@@ -1,0 +1,15 @@
+export default {
+  'plugin.embed.title': 'Видео',
+  'plugin.embed.url': 'URL',
+  'plugin.embed.urlPrompt': 'Ссылка на видео (YouTube или Vimeo):',
+  'plugin.embed.hint': 'Вставьте ссылку на YouTube или Vimeo',
+  'plugin.embed.caption': 'Подпись',
+  'plugin.embed.delete': 'Удалить',
+  'plugin.embed.replace': 'Заменить',
+  'plugin.embed.settings': 'Настройки',
+  'plugin.embed.videoTitle': 'Заголовок',
+  'plugin.embed.duration': 'Длительность',
+  'plugin.embed.cover': 'Обложка',
+  'plugin.embed.uploadCover': 'Загрузить',
+  'plugin.embed.removeCover': 'Убрать',
+}

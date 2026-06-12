@@ -1,0 +1,49 @@
+.editor-toggle {
+  border: 1px solid var(--er-border);
+  border-radius: var(--er-radius);
+  overflow: hidden;
+}
+
+.editor-toggle__summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px;
+  cursor: pointer;
+  list-style: none;
+  font-weight: 500;
+  color: var(--er-text-1);
+  transition: background-color 0.15s;
+}
+
+.editor-toggle__summary::-webkit-details-marker {
+  display: none;
+}
+
+.editor-toggle__summary:hover {
+  background-color: var(--er-surface);
+}
+
+.editor-toggle__chevron {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  color: var(--er-text-3);
+  transition: transform 0.2s;
+}
+
+.editor-toggle[open] .editor-toggle__chevron {
+  transform: rotate(90deg);
+}
+
+.editor-toggle__title {
+  flex: 1;
+}
+
+.editor-toggle__body {
+  padding: 14px 18px;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--er-text-2);
+  border-top: 1px solid var(--er-border);
+}

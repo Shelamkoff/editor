@@ -1,0 +1,15 @@
+export default {
+  'plugin.person.title': 'Person',
+  'plugin.person.namePlaceholder': 'Name',
+  'plugin.person.rolePlaceholder': 'Role / Position',
+  'plugin.person.bioPlaceholder': 'Short bio...',
+  'plugin.person.uploadAvatar': 'Upload avatar',
+  'plugin.person.addLink': 'Add link',
+  'plugin.person.linksLabel': 'Links',
+  'plugin.person.linkPlaceholder': 'Paste social link...',
+  'plugin.person.cropTitle': 'Crop avatar',
+  'plugin.person.cropConfirm': 'Apply',
+  'plugin.person.cropCancel': 'Cancel',
+  'plugin.person.addPerson': 'Add person',
+  'plugin.person.removePerson': 'Remove',
+}

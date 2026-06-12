@@ -1,0 +1,171 @@
+/*!
+ * Mention inline plugin — stylesheet.
+ *
+ * Two concerns:
+ *   1. Dropdown UI  (.oe-mention-*)  — autocomplete suggestions shown while
+ *      the user is typing after the trigger character.
+ *   2. Committed pill (.oe-ip--mention) — extends the base `.oe-ip` inline
+ *      widget defined in `core/themes/variables.css`.
+ *
+ * Colors come from the editor theme CSS variables so the plugin
+ * blends with dark / light themes automatically.
+ */
+
+/* ── Dropdown container ─────────────────────────────────────── */
+.oe-mention-dropdown {
+  /* Absolute, so `top`/`left` are document-space (matches the math in
+     `index.js _positionRaw` which adds `window.scrollY/X` to viewport-
+     relative `getBoundingClientRect()` values). The dropdown then
+     scrolls with the page naturally. */
+  position: absolute;
+  z-index: 1000;
+  min-width: 240px;
+  max-width: 320px;
+  max-height: 240px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: var(--oe-bg, #ffffff);
+  border: 1px solid var(--oe-border, #e4e4e7);
+  border-radius: var(--oe-radius, 10px);
+  box-shadow: var(--oe-shadow-lg, 0 8px 24px rgba(0, 0, 0, 0.14));
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--oe-text-1, #1a1a1f);
+
+  /* Hidden by default — toggled via .oe-mention-dropdown--active. */
+  opacity: 0;
+  transform: translateY(-4px);
+  visibility: hidden;
+  transition: opacity 0.12s ease, transform 0.12s ease;
+  pointer-events: none;
+}
+
+.oe-mention-dropdown--active {
+  opacity: 1;
+  transform: translateY(0);
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/* Thin scrollbar. */
+.oe-mention-dropdown::-webkit-scrollbar { width: 6px; height: 6px; }
+.oe-mention-dropdown::-webkit-scrollbar-track { background: transparent; }
+.oe-mention-dropdown::-webkit-scrollbar-thumb {
+  background: var(--oe-border, #e4e4e7);
+  border-radius: 6px;
+}
+
+/* ── Dropdown item ──────────────────────────────────────────── */
+.oe-mention-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  cursor: pointer;
+  user-select: none;
+  border-bottom: 1px solid var(--oe-border-soft, rgba(0, 0, 0, 0.05));
+  transition: background-color 0.1s ease;
+}
+
+.oe-mention-item:last-child { border-bottom: none; }
+
+.oe-mention-item:hover,
+.oe-mention-item--active {
+  background: var(--oe-card-hover, rgba(0, 0, 0, 0.04));
+}
+
+/* ── Avatar ─────────────────────────────────────────────────── */
+.oe-mention-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: var(--oe-border-soft, rgba(0, 0, 0, 0.05));
+}
+
+.oe-mention-avatar-placeholder {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  background: var(--oe-accent, #4f8cff);
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+/* ── Info column ────────────────────────────────────────────── */
+.oe-mention-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.oe-mention-name {
+  font-weight: 500;
+  font-size: 13px;
+  color: var(--oe-text-1, #1a1a1f);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.oe-mention-details {
+  font-size: 11px;
+  color: var(--oe-text-2, #71717a);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── No-results row ─────────────────────────────────────────── */
+.oe-mention-no-results {
+  cursor: default;
+  color: var(--oe-text-2, #71717a);
+}
+.oe-mention-no-results:hover { background: transparent; }
+
+/* ── Loading row ────────────────────────────────────────────── */
+.oe-mention-loading {
+  color: var(--oe-text-2, #71717a);
+  cursor: default;
+}
+.oe-mention-loading .oe-mention-item { justify-content: center; font-size: 12px; }
+.oe-mention-loading .oe-mention-item:hover { background: transparent; }
+
+/* ── Committed pill (extends base .oe-ip) ───────────────────── */
+/*
+ * Base `.oe-ip` (core/themes/variables.css) already provides the
+ * pill shape, padding, border-radius, font-size, vertical-align
+ * and cursor. The `--mention` modifier only tints it.
+ */
+.oe-ip--mention {
+  background: color-mix(in srgb, var(--oe-accent, #4f8cff) 14%, transparent);
+  color: var(--oe-accent, #4f8cff);
+  font-weight: 500;
+  font-family: inherit;  /* override mono from base .oe-ip */
+  padding: 1px 6px;
+  gap: 0;
+}
+
+.oe-ip--mention:hover {
+  background: color-mix(in srgb, var(--oe-accent, #4f8cff) 22%, transparent);
+}
+
+/*
+ * Editing state — the user has backspaced into / is typing inside a
+ * committed pill. Dropdown is open, query is being re-matched. Visual
+ * treatment mirrors mentionjs `.mention.active`: slightly bolder tint +
+ * dashed outline as an affordance for "this is in-flight, not committed".
+ */
+.oe-ip--mention--editing {
+  background: color-mix(in srgb, var(--oe-accent, #4f8cff) 24%, transparent);
+  outline: 1px dashed color-mix(in srgb, var(--oe-accent, #4f8cff) 55%, transparent);
+  outline-offset: 1px;
+}

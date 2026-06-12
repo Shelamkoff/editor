@@ -1,0 +1,58 @@
+.oe-table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.oe-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid var(--oe-border, #1a1a1a);
+  border-radius: var(--oe-radius-sm, 4px);
+  font-size: var(--oe-font-size, 15px);
+  line-height: var(--oe-line-height, 1.7);
+  color: var(--oe-text-1, #f5f5f5);
+  font-family: var(--oe-font, inherit);
+}
+
+.oe-table__cell {
+  padding: 8px 12px;
+  border: 1px solid var(--oe-border, #1a1a1a);
+  outline: none;
+  word-break: break-word;
+  white-space: pre-wrap;
+  vertical-align: top;
+  min-width: 80px;
+}
+
+.oe-table__cell:focus {
+  background: var(--oe-accent-alpha, rgba(67, 87, 180, 0.15));
+}
+
+/* Header row */
+.oe-table-wrapper[data-headings="true"] th.oe-table__cell {
+  background: var(--oe-surface, #0a0a0a);
+  font-weight: 600;
+  color: var(--oe-text-1, #f5f5f5);
+}
+
+/* Inline formatting inside cells */
+.oe-table__cell b,
+.oe-table__cell strong {
+  font-weight: 600;
+}
+
+.oe-table__cell a {
+  color: var(--oe-text-2, #c4c4c4);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.oe-table__cell a:hover {
+  color: var(--oe-text-1, #f5f5f5);
+}
+
+.oe-table__cell mark {
+  padding: 1px 4px;
+  background: var(--oe-mark-bg, rgba(245, 166, 35, 0.2));
+  border-radius: 3px;
+}

@@ -1,0 +1,80 @@
+/* =============================================================================
+   Checklist plugin — interactive checklist with checkable items
+   ============================================================================= */
+
+.oe-checklist {
+  padding: 0;
+  list-style: none;
+}
+
+.oe-checklist__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.25rem 0;
+  transition: opacity 0.2s;
+}
+
+.oe-checklist__item--checked .oe-checklist__text {
+  text-decoration: line-through;
+  color: var(--oe-text-3, #6e6e78);
+}
+
+/* ── Checkbox ─────────────────────────────────────────────────────────────── */
+
+.oe-checklist__checkbox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1.125rem;
+  height: 1.125rem;
+  margin-top: 0.1875rem;
+  border: 2px solid var(--oe-border-hover, #3a3a44);
+  border-radius: 4px;
+  background: transparent;
+  color: transparent;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  padding: 0;
+  outline: none;
+}
+
+.oe-checklist__checkbox:hover {
+  border-color: var(--oe-accent, #4357b4);
+}
+
+.oe-checklist__item--checked .oe-checklist__checkbox {
+  background: var(--oe-accent, #4357b4);
+  border-color: var(--oe-accent, #4357b4);
+  color: var(--oe-text-on-accent, #fff);
+}
+
+.oe-checklist__checkbox svg {
+  width: 12px;
+  height: 12px;
+}
+
+/* ── Text ─────────────────────────────────────────────────────────────────── */
+
+.oe-checklist__text {
+  flex: 1;
+  min-width: 0;
+  outline: none;
+  line-height: 1.6;
+  word-break: break-word;
+}
+
+.oe-checklist__text:empty::before {
+  content: '';
+}
+
+/* ── Light theme ──────────────────────────────────────────────────────────── */
+
+.oe-theme-light .oe-checklist__checkbox {
+  border-color: var(--oe-border-hover, #d0d0d0);
+}
+
+.oe-theme-light .oe-checklist__checkbox:hover {
+  border-color: var(--oe-accent, #4357b4);
+}

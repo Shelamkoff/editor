@@ -1,0 +1,15 @@
+export default {
+  'plugin.person.title': 'Персона',
+  'plugin.person.namePlaceholder': 'Имя',
+  'plugin.person.rolePlaceholder': 'Должность / Роль',
+  'plugin.person.bioPlaceholder': 'Краткое био...',
+  'plugin.person.uploadAvatar': 'Загрузить аватар',
+  'plugin.person.addLink': 'Добавить ссылку',
+  'plugin.person.linksLabel': 'Ссылки',
+  'plugin.person.linkPlaceholder': 'Вставьте ссылку...',
+  'plugin.person.cropTitle': 'Обрезать аватар',
+  'plugin.person.cropConfirm': 'Применить',
+  'plugin.person.cropCancel': 'Отмена',
+  'plugin.person.addPerson': 'Добавить персону',
+  'plugin.person.removePerson': 'Удалить',
+}

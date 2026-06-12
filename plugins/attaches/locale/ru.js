@@ -1,0 +1,17 @@
+export default {
+  'plugin.attaches.title': 'Файл',
+  'plugin.attaches.upload': 'Загрузить',
+  'plugin.attaches.dropzoneUpload': 'Загрузите',
+  'plugin.attaches.dropzoneText': 'файлы с устройства или перетащите их сюда',
+  'plugin.attaches.addFiles': 'Добавить файлы',
+  'plugin.attaches.delete': 'Удалить',
+  'plugin.attaches.deleteAll': 'Удалить все',
+  'plugin.attaches.filesCount': 'вложений',
+  'plugin.attaches.settings': 'Настройки',
+  'plugin.attaches.template': 'Шаблон',
+  'plugin.attaches.variantA': 'Карточка',
+  'plugin.attaches.variantB': 'Строчный',
+  'plugin.attaches.variantF': 'Список',
+  'plugin.attaches.variantG': 'Объёмный',
+  'plugin.attaches.untitled': 'Файл',
+}

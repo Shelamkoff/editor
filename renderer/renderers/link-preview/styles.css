@@ -1,0 +1,246 @@
+/* =============================================================================
+   LinkPreview renderer — 7 card templates
+   ============================================================================= */
+
+.editor-link-preview {
+    display: flex;
+    overflow: hidden;
+    border-radius: 0.625rem;
+    border: 1px solid var(--er-border);
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.15s;
+}
+
+.editor-link-preview:hover {
+    border-color: var(--er-border-hover);
+}
+
+.editor-link-preview__content {
+    flex: 1;
+    min-width: 0;
+    padding: 14px 18px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+}
+
+.editor-link-preview__title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--er-text-1);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.editor-link-preview__desc {
+    font-size: 13px;
+    color: var(--er-text-3);
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.editor-link-preview__domain {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--er-text-3);
+    margin-top: 4px;
+}
+
+.editor-link-preview__favicon {
+    width: 14px;
+    height: 14px;
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+
+.editor-link-preview__external {
+    display: inline-flex;
+    opacity: 0.5;
+}
+
+.editor-link-preview__image {
+    flex-shrink: 0;
+}
+
+.editor-link-preview__image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* ── Template: horizontal (image right) ─────────────────────────────────── */
+
+.editor-link-preview--horizontal {
+    flex-direction: row;
+}
+
+.editor-link-preview--horizontal .editor-link-preview__image {
+    width: 200px;
+}
+
+/* ── Template: compact (small image left) ───────────────────────────────── */
+
+.editor-link-preview--compact {
+    flex-direction: row;
+    align-items: center;
+}
+
+.editor-link-preview--compact .editor-link-preview__image {
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+    order: -1;
+    margin: 10px 0 10px 14px;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.editor-link-preview--compact .editor-link-preview__content {
+    padding: 10px 14px;
+}
+
+.editor-link-preview--compact .editor-link-preview__title {
+    font-size: 13px;
+}
+
+.editor-link-preview--compact .editor-link-preview__desc {
+    -webkit-line-clamp: 1;
+    font-size: 12px;
+}
+
+/* ── Template: large-top (image top) ────────────────────────────────────── */
+
+.editor-link-preview--large-top {
+    flex-direction: column;
+}
+
+.editor-link-preview--large-top .editor-link-preview__image {
+    width: 100%;
+    height: 180px;
+}
+
+/* ── Template: minimal (no image, accent border) ────────────────────────── */
+
+.editor-link-preview--minimal {
+    flex-direction: row;
+    border-left: 3px solid var(--er-accent);
+}
+
+.editor-link-preview--minimal .editor-link-preview__content {
+    padding: 12px 16px;
+}
+
+.editor-link-preview--minimal .editor-link-preview__title {
+    font-size: 13px;
+}
+
+.editor-link-preview--minimal .editor-link-preview__desc {
+    font-size: 12px;
+    -webkit-line-clamp: 1;
+}
+
+/* ── Template: twitter (image top, domain above title) ──────────────────── */
+
+.editor-link-preview--twitter {
+    flex-direction: column;
+    background: var(--er-surface);
+}
+
+.editor-link-preview--twitter .editor-link-preview__image {
+    width: 100%;
+    height: 180px;
+    border-bottom: 1px solid var(--er-border);
+}
+
+.editor-link-preview--twitter .editor-link-preview__content {
+    padding: 12px 14px;
+    gap: 2px;
+}
+
+.editor-link-preview--twitter .editor-link-preview__domain {
+    order: -1;
+    margin-top: 0;
+    margin-bottom: 2px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.editor-link-preview--twitter .editor-link-preview__title {
+    font-size: 13px;
+    white-space: normal;
+    -webkit-line-clamp: 2;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.editor-link-preview--twitter .editor-link-preview__desc {
+    font-size: 12px;
+    -webkit-line-clamp: 1;
+}
+
+/* ── Template: notion (large favicon left) ──────────────────────────────── */
+
+.editor-link-preview--notion {
+    flex-direction: row;
+    align-items: center;
+    background: var(--er-surface);
+}
+
+.editor-link-preview__favicon-large {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    margin: 12px 0 12px 14px;
+    flex-shrink: 0;
+}
+
+.editor-link-preview--notion .editor-link-preview__content {
+    padding: 10px 14px;
+    gap: 0;
+}
+
+.editor-link-preview--notion .editor-link-preview__title {
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.editor-link-preview--notion .editor-link-preview__desc {
+    display: none;
+}
+
+.editor-link-preview--notion .editor-link-preview__domain {
+    margin-top: 1px;
+    font-size: 11px;
+}
+
+/* ── Template: split (50/50) ────────────────────────────────────────────── */
+
+.editor-link-preview--split {
+    flex-direction: row;
+    min-height: 140px;
+}
+
+.editor-link-preview--split .editor-link-preview__image {
+    width: 50%;
+}
+
+.editor-link-preview--split .editor-link-preview__content {
+    width: 50%;
+    padding: 16px 20px;
+}
+
+.editor-link-preview--split .editor-link-preview__title {
+    font-size: 15px;
+    white-space: normal;
+}

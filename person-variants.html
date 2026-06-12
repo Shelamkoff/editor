@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Person Block — Multi-Person Variants</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0e0e10;
+  --surface: #141418;
+  --surface-2: #1a1a20;
+  --border: #1e1e24;
+  --border-hover: #2e2e38;
+  --text-1: #f5f5f5;
+  --text-2: #c4c4c4;
+  --text-3: #6e6e78;
+  --accent: #4357b4;
+  --radius: 12px;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text-1);
+  font-family: 'DM Sans', sans-serif;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* ── Tabs ──────────────────────────────────────────────────────────────── */
+.tabs {
+  position: sticky; top: 0; z-index: 100;
+  display: flex; justify-content: center; gap: 0.25rem;
+  padding: 1rem 2rem;
+  background: rgba(14,14,16,0.85); backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+.tab {
+  padding: 0.5rem 1.25rem; border: 1px solid var(--border); border-radius: 2rem;
+  background: transparent; color: var(--text-3);
+  font-family: 'Space Mono', monospace; font-size: 0.6875rem;
+  font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
+  cursor: pointer; transition: all 0.2s; outline: none;
+}
+.tab:hover { border-color: var(--border-hover); color: var(--text-2); }
+.tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+.panel {
+  display: none; opacity: 0; transform: translateY(8px);
+  transition: opacity 0.3s, transform 0.3s; padding: 3rem 2rem 6rem;
+}
+.panel.active { display: block; }
+.panel.visible { opacity: 1; transform: translateY(0); }
+.panel-title {
+  font-family: 'Space Mono', monospace; font-size: 0.625rem;
+  font-weight: 700; text-transform: uppercase; letter-spacing: 0.15em;
+  color: var(--accent); margin-bottom: 2rem; text-align: center;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   A — Dribbble accordion: one expanded + collapsed thumbnails
+   ══════════════════════════════════════════════════════════════════════════ */
+.va {
+  display: flex;
+  gap: 0;
+  max-width: 1000px;
+  margin: 0 auto;
+  height: 520px;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.va__item {
+  position: relative;
+  flex: 0 0 100px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: flex 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.va__item.active {
+  flex: 1 1 0;
+  cursor: default;
+}
+
+/* Collapsed: just the photo */
+.va__thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.va__item:not(.active)::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.3);
+  transition: background 0.2s;
+}
+.va__item:not(.active):hover::after {
+  background: rgba(0,0,0,0.1);
+}
+
+/* Expanded: split layout overlaying the thumb */
+.va__expanded {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  opacity: 0;
+  transition: opacity 0.3s ease 0.2s;
+  pointer-events: none;
+}
+
+.va__item.active .va__expanded {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.va__info {
+  flex: 1;
+  padding: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: #f5f5f0;
+  color: #1a1a1a;
+  min-width: 0;
+}
+
+.va__name { font-size: 1.75rem; font-weight: 700; line-height: 1.15; color: #1a1a1a; }
+.va__role { font-size: 0.875rem; color: #888; margin-top: 0.25rem; }
+
+.va__fields { margin-top: 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
+.va__field-label { font-size: 0.6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #1a1a1a; margin-bottom: 0.125rem; }
+.va__field-value { font-size: 0.8125rem; color: #555; line-height: 1.65; }
+
+.va__links { display: flex; gap: 0.5rem; margin-top: 1.5rem; }
+.va__link {
+  display: flex; align-items: center; justify-content: center;
+  width: 2.25rem; height: 2.25rem; border-radius: 50%;
+  background: rgba(0,0,0,0.06); color: #888;
+  text-decoration: none; transition: background 0.15s, color 0.15s;
+}
+.va__link:hover { background: #1a1a1a; color: #fff; }
+
+.va__photo {
+  flex-shrink: 0;
+  width: 340px;
+}
+.va__photo img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   B — Classic Row: border, no bg, hover = border-accent, carousel nav below
+   ══════════════════════════════════════════════════════════════════════════ */
+.vb__viewport { overflow: hidden; }
+
+.vb__track {
+  display: flex;
+  gap: 1rem;
+  will-change: transform;
+}
+
+.vb__card {
+  flex-shrink: 0;
+  width: 300px;
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  padding: 1.25rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  transition: border-color 0.2s;
+}
+.vb__card:hover { border-color: var(--border); }
+
+.vb__avatar-wrap {
+  flex-shrink: 0; width: 5rem; height: 5rem;
+  border-radius: 50%; overflow: hidden;
+}
+.vb__avatar-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.vb__info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.125rem; }
+.vb__name { font-weight: 600; font-size: 0.9375rem; color: var(--text-1); }
+.vb__role { font-size: 0.75rem; color: var(--text-3); }
+.vb__bio {
+  font-size: 0.75rem; color: var(--text-2); line-height: 1.5; margin-top: 0.375rem;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+.vb__links { display: flex; flex-direction: column; gap: 0.125rem; margin-top: 0.5rem; }
+.vb__link {
+  display: flex; align-items: center; gap: 0.375rem;
+  color: var(--text-3); text-decoration: none; font-size: 0.6875rem; transition: color 0.15s;
+}
+.vb__link:hover { color: var(--text-1); }
+.vb__link svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+/* Nav below center */
+.vb__nav-bar {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+}
+.vb__nav-bar.hidden { display: none; }
+
+.vb__nav {
+  width: 2rem; height: 2rem; border-radius: 50%; border: 1px solid var(--border);
+  background: transparent; color: var(--text-3);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.15s; outline: none;
+}
+.vb__nav:hover { border-color: var(--accent); color: var(--accent); }
+.vb__nav:disabled { opacity: 0.25; pointer-events: none; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   C — Grid: border, no bg, hover = border-accent
+   ══════════════════════════════════════════════════════════════════════════ */
+.vc__grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1.25rem; max-width: 960px; margin: 0 auto;
+}
+.vc__card {
+  border-radius: var(--radius); border: 1px solid var(--border);
+  overflow: hidden; transition: border-color 0.2s, transform 0.2s;
+}
+.vc__card:hover { border-color: var(--accent); transform: translateY(-2px); }
+
+.vc__photo { width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; }
+.vc__body { padding: 1.25rem; }
+.vc__name { font-size: 1rem; font-weight: 700; color: var(--text-1); }
+.vc__role { font-size: 0.75rem; color: var(--accent); font-weight: 500; margin-top: 0.125rem; }
+.vc__bio {
+  font-size: 0.8125rem; color: var(--text-3); line-height: 1.5; margin-top: 0.625rem;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+.vc__links {
+  display: flex; gap: 0.375rem; margin-top: 0.875rem; padding-top: 0.875rem;
+  border-top: 1px solid var(--border);
+}
+.vc__link {
+  display: flex; align-items: center; justify-content: center;
+  width: 1.75rem; height: 1.75rem; border-radius: 0.375rem;
+  color: var(--text-3); text-decoration: none; transition: color 0.15s;
+}
+.vc__link:hover { color: var(--text-1); }
+.vc__link svg { width: 14px; height: 14px; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   D — Stack: border, no bg, hover = border-accent
+   ══════════════════════════════════════════════════════════════════════════ */
+.vd__list { display: flex; flex-direction: column; gap: 0.5rem; max-width: 720px; margin: 0 auto; }
+.vd__card {
+  display: flex; gap: 1.25rem; align-items: flex-start;
+  padding: 1.25rem; border-radius: var(--radius);
+  border: 1px solid var(--border); transition: border-color 0.2s;
+}
+.vd__card:hover { border-color: var(--accent); }
+.vd__avatar { flex-shrink: 0; width: 5rem; height: 5rem; border-radius: 50%; object-fit: cover; }
+.vd__info { flex: 1; min-width: 0; }
+.vd__name { font-size: 1rem; font-weight: 600; color: var(--text-1); }
+.vd__role { font-size: 0.75rem; color: var(--text-3); margin-top: 0.125rem; }
+.vd__bio { font-size: 0.8125rem; color: var(--text-2); line-height: 1.5; margin-top: 0.5rem; }
+.vd__links { display: flex; gap: 0.75rem; margin-top: 0.75rem; }
+.vd__link {
+  display: flex; align-items: center; gap: 0.375rem;
+  color: var(--text-3); text-decoration: none; font-size: 0.6875rem; transition: color 0.15s;
+}
+.vd__link:hover { color: var(--text-1); }
+.vd__link svg { width: 14px; height: 14px; }
+</style>
+</head>
+<body>
+
+<svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="ico-github" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-4.3 1.4-4.3-2.5-6-3m12 5v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6 0 0 0-1.3-3.2 4.2 4.2 0 0 0-.1-3.2s-1.1-.3-3.5 1.3a12.3 12.3 0 0 0-6.2 0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2 0 0 0-.1 3.2A4.6 4.6 0 0 0 4 9.5c0 4.6 2.7 5.7 5.5 6-.6.6-.6 1.2-.5 2V21"/></symbol>
+  <symbol id="ico-twitter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4l11.733 16h4.267l-11.733-16z"/><path d="M4 20l6.768-6.768m2.46-2.46l6.772-6.772"/></symbol>
+  <symbol id="ico-telegram" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 10l-4 4l6 6l4-16l-18 7l4 2l2 6l3-4"/></symbol>
+  <symbol id="ico-web" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></symbol>
+  <symbol id="ico-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6l6 6"/></symbol>
+  <symbol id="ico-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6l-6 6"/></symbol>
+</svg>
+
+<nav class="tabs">
+  <button class="tab active" data-panel="a">A &mdash; Dribbble</button>
+  <button class="tab" data-panel="b">B &mdash; Classic Row</button>
+  <button class="tab" data-panel="c">C &mdash; Grid</button>
+  <button class="tab" data-panel="d">D &mdash; Stack</button>
+</nav>
+
+<!-- ═══ A — Dribbble accordion ════════════════════════════════════════ -->
+<div class="panel active visible" id="panel-a">
+  <div class="panel-title">A &mdash; Dribbble Accordion (click collapsed thumbnails)</div>
+  <div class="va" id="va-accordion">
+
+    <div class="va__item active" data-i="0">
+      <img class="va__thumb" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=1040&fit=crop&crop=face" alt="">
+      <div class="va__expanded">
+        <div class="va__info">
+          <div class="va__name">David Smith</div>
+          <div class="va__role">Tech-Enthusiast</div>
+          <div class="va__fields">
+            <div><div class="va__field-label">Occupation</div><div class="va__field-value">Software Engineer</div></div>
+            <div><div class="va__field-label">Background</div><div class="va__field-value">David has a strong background in technology. He is tech-savvy and keeps up with the latest trends in cryptocurrencies and blockchain.</div></div>
+          </div>
+          <div class="va__links">
+            <a class="va__link" href="#"><svg width="16" height="16"><use href="#ico-github"/></svg></a>
+            <a class="va__link" href="#"><svg width="16" height="16"><use href="#ico-twitter"/></svg></a>
+            <a class="va__link" href="#"><svg width="16" height="16"><use href="#ico-telegram"/></svg></a>
+          </div>
+        </div>
+        <div class="va__photo"><img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=680&h=1040&fit=crop&crop=face" alt=""></div>
+      </div>
+    </div>
+
+    <div class="va__item" data-i="1">
+      <img class="va__thumb" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=1040&fit=crop&crop=face" alt="">
+      <div class="va__expanded">
+        <div class="va__info">
+          <div class="va__name">Sophia Wilson</div>
+          <div class="va__role">Aspiring Investor</div>
+          <div class="va__fields">
+            <div><div class="va__field-label">Occupation</div><div class="va__field-value">Marketing Manager</div></div>
+            <div><div class="va__field-label">Background</div><div class="va__field-value">Sophia has a background in traditional finance. She has experience managing her savings and investments but is new to cryptocurrencies and blockchain technology.</div></div>
+          </div>
+          <div class="va__links">
+            <a class="va__link" href="#"><svg width="16" height="16"><use href="#ico-twitter"/></svg></a>
+            <a class="va__link" href="#"><svg width="16" height="16"><use href="#ico-web"/></svg></a>
+          </div>
+        </div>
+        <div class="va__photo"><img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=680&h=1040&fit=crop&crop=face" alt=""></div>
+      </div>
+    </div>
+
+    <div class="va__item" data-i="2">
+      <img class="va__thumb" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=1040&fit=crop&crop=face" alt="">
+      <div class="va__expanded">
+        <div class="va__info">
+          <div class="va__name">Alex Chen</div>
+          <div class="va__role">Lead Designer</div>
+          <div class="va__fields">
+            <div><div class="va__field-label">Occupation</div><div class="va__field-value">Creative Director</div></div>
+            <div><div class="va__field-label">Background</div><div class="va__field-value">Alex brings 10+ years of design experience across product, brand, and motion design. Passionate about design systems and bridging the gap between design and engineering.</div></div>
+          </div>
+          <div class="va__links">
+            <a class="va__link" href="#"><svg width="16" height="16"><use href="#ico-github"/></svg></a>
+            <a class="va__link" href="#"><svg width="16" height="16"><use href="#ico-web"/></svg></a>
+          </div>
+        </div>
+        <div class="va__photo"><img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=680&h=1040&fit=crop&crop=face" alt=""></div>
+      </div>
+    </div>
+
+    <div class="va__item" data-i="3">
+      <img class="va__thumb" src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=1040&fit=crop&crop=face" alt="">
+      <div class="va__expanded">
+        <div class="va__info">
+          <div class="va__name">Maria Rodriguez</div>
+          <div class="va__role">Data Scientist</div>
+          <div class="va__fields">
+            <div><div class="va__field-label">Occupation</div><div class="va__field-value">ML Researcher</div></div>
+            <div><div class="va__field-label">Background</div><div class="va__field-value">Maria specializes in machine learning and NLP. She has published research on transformer architectures and works on production ML systems at scale.</div></div>
+          </div>
+          <div class="va__links">
+            <a class="va__link" href="#"><svg width="16" height="16"><use href="#ico-github"/></svg></a>
+            <a class="va__link" href="#"><svg width="16" height="16"><use href="#ico-telegram"/></svg></a>
+          </div>
+        </div>
+        <div class="va__photo"><img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=680&h=1040&fit=crop&crop=face" alt=""></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══ B — Classic Row ═══════════════════════════════════════════════ -->
+<div class="panel" id="panel-b">
+  <div class="panel-title">B &mdash; Classic Row (border, hover=accent, nav below)</div>
+  <div id="carousel-b">
+    <div class="vb__viewport">
+      <div class="vb__track">
+        <div class="vb__card">
+          <div class="vb__avatar-wrap"><img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face" alt=""></div>
+          <div class="vb__info"><div class="vb__name">David Smith</div><div class="vb__role">Software Engineer</div><div class="vb__bio">David has a strong background in technology. He keeps up with the latest trends in web development.</div><div class="vb__links"><a class="vb__link" href="#"><svg><use href="#ico-github"/></svg> github.com/dsmith</a><a class="vb__link" href="#"><svg><use href="#ico-twitter"/></svg> x.com/dsmith</a></div></div>
+        </div>
+        <div class="vb__card">
+          <div class="vb__avatar-wrap"><img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop&crop=face" alt=""></div>
+          <div class="vb__info"><div class="vb__name">Sophia Wilson</div><div class="vb__role">Marketing Manager</div><div class="vb__bio">Sophia has a background in traditional finance and experience managing investments and brand strategy.</div><div class="vb__links"><a class="vb__link" href="#"><svg><use href="#ico-twitter"/></svg> x.com/sophia</a><a class="vb__link" href="#"><svg><use href="#ico-web"/></svg> sophia.io</a></div></div>
+        </div>
+        <div class="vb__card">
+          <div class="vb__avatar-wrap"><img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face" alt=""></div>
+          <div class="vb__info"><div class="vb__name">Alex Chen</div><div class="vb__role">Creative Director</div><div class="vb__bio">Alex brings 10+ years of design experience across product, brand, and motion design.</div><div class="vb__links"><a class="vb__link" href="#"><svg><use href="#ico-github"/></svg> github.com/alexchen</a><a class="vb__link" href="#"><svg><use href="#ico-web"/></svg> alexchen.design</a></div></div>
+        </div>
+        <div class="vb__card">
+          <div class="vb__avatar-wrap"><img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop&crop=face" alt=""></div>
+          <div class="vb__info"><div class="vb__name">Maria Rodriguez</div><div class="vb__role">ML Researcher</div><div class="vb__bio">Maria specializes in ML and NLP. Published research on transformer architectures.</div><div class="vb__links"><a class="vb__link" href="#"><svg><use href="#ico-github"/></svg> github.com/maria</a><a class="vb__link" href="#"><svg><use href="#ico-telegram"/></svg> t.me/maria</a></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="vb__nav-bar">
+      <button class="vb__nav" id="vb-prev"><svg width="14" height="14"><use href="#ico-left"/></svg></button>
+      <button class="vb__nav" id="vb-next"><svg width="14" height="14"><use href="#ico-right"/></svg></button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ C — Grid ══════════════════════════════════════════════════════ -->
+<div class="panel" id="panel-c">
+  <div class="panel-title">C &mdash; Responsive Grid</div>
+  <div class="vc__grid">
+    <div class="vc__card">
+      <img class="vc__photo" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=560&h=420&fit=crop&crop=face" alt="">
+      <div class="vc__body"><div class="vc__name">David Smith</div><div class="vc__role">Software Engineer</div><div class="vc__bio">David has a strong background in technology and keeps up with the latest trends.</div><div class="vc__links"><a class="vc__link" href="#"><svg><use href="#ico-github"/></svg></a><a class="vc__link" href="#"><svg><use href="#ico-twitter"/></svg></a><a class="vc__link" href="#"><svg><use href="#ico-telegram"/></svg></a></div></div>
+    </div>
+    <div class="vc__card">
+      <img class="vc__photo" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=560&h=420&fit=crop&crop=face" alt="">
+      <div class="vc__body"><div class="vc__name">Sophia Wilson</div><div class="vc__role">Marketing Manager</div><div class="vc__bio">Sophia has experience managing investments and brand strategy in digital marketing.</div><div class="vc__links"><a class="vc__link" href="#"><svg><use href="#ico-twitter"/></svg></a><a class="vc__link" href="#"><svg><use href="#ico-web"/></svg></a></div></div>
+    </div>
+    <div class="vc__card">
+      <img class="vc__photo" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=560&h=420&fit=crop&crop=face" alt="">
+      <div class="vc__body"><div class="vc__name">Alex Chen</div><div class="vc__role">Creative Director</div><div class="vc__bio">Alex brings 10+ years of design experience across product, brand, and motion design.</div><div class="vc__links"><a class="vc__link" href="#"><svg><use href="#ico-github"/></svg></a><a class="vc__link" href="#"><svg><use href="#ico-twitter"/></svg></a><a class="vc__link" href="#"><svg><use href="#ico-web"/></svg></a></div></div>
+    </div>
+    <div class="vc__card">
+      <img class="vc__photo" src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=560&h=420&fit=crop&crop=face" alt="">
+      <div class="vc__body"><div class="vc__name">Maria Rodriguez</div><div class="vc__role">ML Researcher</div><div class="vc__bio">Maria specializes in ML and NLP. Published research on transformer architectures.</div><div class="vc__links"><a class="vc__link" href="#"><svg><use href="#ico-github"/></svg></a><a class="vc__link" href="#"><svg><use href="#ico-telegram"/></svg></a></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ D — Stack ═════════════════════════════════════════════════════ -->
+<div class="panel" id="panel-d">
+  <div class="panel-title">D &mdash; Vertical Stack</div>
+  <div class="vd__list">
+    <div class="vd__card">
+      <img class="vd__avatar" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face" alt="">
+      <div class="vd__info"><div class="vd__name">David Smith</div><div class="vd__role">Software Engineer</div><div class="vd__bio">David has a strong background in technology. He keeps up with the latest trends in web development and open-source tools.</div><div class="vd__links"><a class="vd__link" href="#"><svg><use href="#ico-github"/></svg> GitHub</a><a class="vd__link" href="#"><svg><use href="#ico-twitter"/></svg> Twitter</a><a class="vd__link" href="#"><svg><use href="#ico-web"/></svg> Website</a></div></div>
+    </div>
+    <div class="vd__card">
+      <img class="vd__avatar" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop&crop=face" alt="">
+      <div class="vd__info"><div class="vd__name">Sophia Wilson</div><div class="vd__role">Marketing Manager</div><div class="vd__bio">Sophia has a background in traditional finance and experience managing investments and brand strategy.</div><div class="vd__links"><a class="vd__link" href="#"><svg><use href="#ico-twitter"/></svg> Twitter</a><a class="vd__link" href="#"><svg><use href="#ico-telegram"/></svg> Telegram</a><a class="vd__link" href="#"><svg><use href="#ico-web"/></svg> Website</a></div></div>
+    </div>
+    <div class="vd__card">
+      <img class="vd__avatar" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face" alt="">
+      <div class="vd__info"><div class="vd__name">Alex Chen</div><div class="vd__role">Creative Director</div><div class="vd__bio">Alex brings 10+ years of design experience across product, brand, and motion design. Passionate about design systems.</div><div class="vd__links"><a class="vd__link" href="#"><svg><use href="#ico-github"/></svg> GitHub</a><a class="vd__link" href="#"><svg><use href="#ico-twitter"/></svg> Twitter</a><a class="vd__link" href="#"><svg><use href="#ico-web"/></svg> Website</a></div></div>
+    </div>
+    <div class="vd__card">
+      <img class="vd__avatar" src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop&crop=face" alt="">
+      <div class="vd__info"><div class="vd__name">Maria Rodriguez</div><div class="vd__role">ML Researcher</div><div class="vd__bio">Maria specializes in ML and NLP. Published research on transformer architectures and production ML systems.</div><div class="vd__links"><a class="vd__link" href="#"><svg><use href="#ico-github"/></svg> GitHub</a><a class="vd__link" href="#"><svg><use href="#ico-twitter"/></svg> Twitter</a><a class="vd__link" href="#"><svg><use href="#ico-telegram"/></svg> Telegram</a></div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Tab switching ──
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    const target = tab.dataset.panel
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'))
+    tab.classList.add('active')
+    document.querySelectorAll('.panel').forEach(p => {
+      p.classList.remove('visible')
+      setTimeout(() => {
+        p.classList.remove('active')
+        if (p.id === `panel-${target}`) {
+          p.classList.add('active')
+          void p.offsetHeight
+          p.classList.add('visible')
+          // Recalc carousels when panel becomes visible
+          window.dispatchEvent(new Event('resize'))
+        }
+      }, 150)
+    })
+  })
+})
+
+// ── A: Accordion ──
+document.querySelectorAll('.va__item').forEach(item => {
+  item.addEventListener('click', () => {
+    if (item.classList.contains('active')) return
+    document.querySelectorAll('.va__item').forEach(i => i.classList.remove('active'))
+    item.classList.add('active')
+  })
+})
+
+// ── B: Infinite loop — N clones each side, transform ──
+;(function() {
+  const viewport = document.querySelector('#carousel-b .vb__viewport')
+  const track = document.querySelector('#carousel-b .vb__track')
+  const prevBtn = document.getElementById('vb-prev')
+  const nextBtn = document.getElementById('vb-next')
+  const navBar = document.querySelector('#carousel-b .vb__nav-bar')
+  const GAP = 16
+  const originals = Array.from(track.children)
+  const N = originals.length
+
+  // Clone full set before and after
+  for (let i = N - 1; i >= 0; i--) { const c = originals[i].cloneNode(true); c.dataset.clone = ''; track.insertBefore(c, track.firstChild) }
+  for (let i = 0; i < N; i++) { const c = originals[i].cloneNode(true); c.dataset.clone = ''; track.appendChild(c) }
+  // DOM: [N clones] [N originals] [N clones]
+
+  let idx = 0
+  let busy = false
+
+  // Measure card width from CSS (300px), not from layout which may be affected by clones
+  const CARD_W = 300
+  function cw() { return CARD_W + GAP }
+  function realW() { return N * CARD_W + (N - 1) * GAP }
+  function pos(i) { return (i + N) * cw() }
+
+  function jump(i) {
+    track.style.transition = 'none'
+    track.style.transform = 'translateX(-' + pos(i) + 'px)'
+  }
+
+  function slide(i) {
+    track.style.transition = 'transform 0.35s ease'
+    track.style.transform = 'translateX(-' + pos(i) + 'px)'
+  }
+
+  function refresh() {
+    if (!viewport.offsetWidth) return // panel not visible yet
+    const fits = realW() <= viewport.offsetWidth
+    navBar.classList.toggle('hidden', fits)
+    const clones = track.querySelectorAll('[data-clone]')
+    track.style.justifyContent = fits ? 'center' : ''
+    if (fits) {
+      clones.forEach(c => c.style.display = 'none')
+      idx = 0; busy = false
+      track.style.transition = 'none'
+      track.style.transform = ''
+    } else {
+      clones.forEach(c => c.style.display = '')
+      jump(idx)
+    }
+  }
+
+  track.addEventListener('transitionend', function(e) {
+    if (e.target !== track || e.propertyName !== 'transform') return
+    if (idx >= N) { idx -= N; jump(idx) }
+    else if (idx < 0) { idx += N; jump(idx) }
+    busy = false
+  })
+
+  nextBtn.addEventListener('click', () => {
+    if (busy || realW() <= viewport.offsetWidth) return
+    busy = true; idx++; slide(idx)
+  })
+  prevBtn.addEventListener('click', () => {
+    if (busy || realW() <= viewport.offsetWidth) return
+    busy = true; idx--; slide(idx)
+  })
+
+  window.addEventListener('resize', refresh)
+  refresh()
+})()
+</script>
+</body>
+</html>

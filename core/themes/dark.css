@@ -1,0 +1,30 @@
+.oe-theme-dark {
+  --oe-bg: #0d0d0d;
+  --oe-surface: #0a0a0a;
+  --oe-card: #111;
+  --oe-card-hover: #191919;
+  --oe-border: #1a1a1a;
+  --oe-border-hover: #2a2a2a;
+  --oe-text-1: #f5f5f5;
+  --oe-text-2: #c4c4c4;
+  --oe-text-3: #908c8c;
+  --oe-accent: #4357b4;
+  --oe-accent-alpha: rgba(67, 87, 180, 0.15);
+  --oe-accent-text: #a78bfa;
+  --oe-surface-2: #141414;
+  --oe-surface-elevated: #1e1e24;
+  --oe-surface-hover: #1e1e24;
+  --oe-border-focus: #4357b4;
+  --oe-input-bg: #2c2c33;
+  --oe-input-bg-hover: #353540;
+  --oe-selection-bg: rgba(67, 87, 180, 0.25);
+  --oe-toolbar-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+
+
+  --oe-success: #4ade80;
+  --oe-success-alpha: rgba(74, 222, 128, 0.14);
+  --oe-danger: #f87171;
+  --oe-danger-light: #fca5a5;
+  --oe-danger-alpha: rgba(248, 113, 113, 0.14);
+  --oe-text-on-accent: #fff;
+}

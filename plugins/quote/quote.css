@@ -1,0 +1,72 @@
+/* =============================================================================
+   Quote plugin — edit mode styles
+   ============================================================================= */
+
+.oe-quote {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-left: 16px;
+  border-left: 3px solid var(--oe-accent, #4357b4);
+}
+
+.oe-quote__text {
+  margin: 0;
+  padding: 0;
+  font-size: var(--oe-font-size, 15px);
+  line-height: var(--oe-line-height, 1.7);
+  color: var(--oe-text-1, #f5f5f5);
+  font-family: var(--oe-font, inherit);
+  font-style: italic;
+  outline: none;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+.oe-quote__caption {
+  margin: 0;
+  padding: 0;
+  font-size: 0.85em;
+  line-height: 1.5;
+  color: var(--oe-text-3, #908c8c);
+  font-family: var(--oe-font, inherit);
+  font-style: normal;
+  outline: none;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+/* Placeholders */
+.oe-quote__text:empty::before,
+.oe-quote__caption:empty::before {
+  content: attr(data-placeholder);
+  color: var(--oe-text-3, #908c8c);
+  pointer-events: none;
+  font-weight: 400;
+  font-style: normal;
+}
+
+/* Inline formatting */
+.oe-quote__text b,
+.oe-quote__text strong {
+  font-weight: 600;
+}
+
+.oe-quote__text a {
+  color: var(--oe-text-2, #c4c4c4);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.oe-quote__text a:hover {
+  color: var(--oe-text-1, #f5f5f5);
+}
+
+/* font-style: normal for code inside italic quote text */
+.oe-quote__text code { font-style: normal; }
+
+.oe-quote__text mark {
+  padding: 1px 4px;
+  background: var(--oe-mark-bg, rgba(245, 166, 35, 0.2));
+  border-radius: 3px;
+}

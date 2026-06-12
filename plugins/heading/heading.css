@@ -1,0 +1,76 @@
+/* =============================================================================
+   Heading plugin — edit mode styles
+   ============================================================================= */
+
+.oe-heading {
+  margin: 0;
+  padding: 0;
+  color: var(--oe-text-1, #f5f5f5);
+  font-family: var(--oe-font, inherit);
+  font-weight: 700;
+  outline: none;
+  word-break: break-word;
+  white-space: pre-wrap;
+  letter-spacing: -0.02em;
+}
+
+.oe-heading--h2 {
+  font-size: 1.6em;
+  line-height: 1.35;
+  margin-top: 0.3em;
+}
+
+.oe-heading--h3 {
+  font-size: 1.3em;
+  line-height: 1.4;
+  margin-top: 0.2em;
+}
+
+.oe-heading--h4 {
+  font-size: 1.1em;
+  line-height: 1.5;
+  margin-top: 0.1em;
+}
+
+.oe-heading--h5 {
+  font-size: 0.95em;
+  line-height: 1.5;
+  margin-top: 0.1em;
+}
+
+.oe-heading--h6 {
+  font-size: 0.85em;
+  line-height: 1.5;
+  margin-top: 0.1em;
+  letter-spacing: 0.03em;
+}
+
+/* Placeholder */
+.oe-heading:empty::before {
+  content: attr(data-placeholder);
+  color: var(--oe-text-3, #908c8c);
+  pointer-events: none;
+  font-weight: 400;
+}
+
+/* Inline formatting inside headings */
+.oe-heading b,
+.oe-heading strong {
+  font-weight: 800;
+}
+
+.oe-heading a {
+  color: var(--oe-text-2, #c4c4c4);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.oe-heading a:hover {
+  color: var(--oe-text-1, #f5f5f5);
+}
+
+.oe-heading mark {
+  padding: 1px 4px;
+  background: var(--oe-mark-bg, rgba(245, 166, 35, 0.2));
+  border-radius: 3px;
+}

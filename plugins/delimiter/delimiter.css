@@ -1,0 +1,22 @@
+/* =============================================================================
+   Delimiter plugin — edit mode styles
+   ============================================================================= */
+
+.oe-delimiter {
+  margin: 0;
+  border: none;
+  text-align: center;
+  outline: none;
+  cursor: default;
+}
+
+.oe-delimiter::after {
+  content: '***';
+  font-size: 1.8rem;
+  letter-spacing: 0.24em;
+  color: var(--oe-text-2, #666);
+}
+
+.oe-block--focused .oe-delimiter::after {
+  color: var(--oe-text-1, #999);
+}

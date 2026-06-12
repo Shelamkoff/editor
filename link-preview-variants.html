@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Link Preview — 5 Card Variants</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #0a0a0a;
+      color: #f5f5f5;
+      padding: 40px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 48px;
+    }
+    h1 { font-size: 20px; font-weight: 600; letter-spacing: -0.02em; }
+    h2 { font-size: 14px; font-weight: 500; color: #908c8c; margin-bottom: 12px; }
+    .variants { width: 100%; max-width: 640px; }
+    .card-wrap { margin-bottom: 32px; }
+
+    /* ── Shared base ─────────────────────────── */
+    .lp {
+      --lp-bg: #111;
+      --lp-border: #1a1a1a;
+      --lp-border-hover: #2a2a2a;
+      --lp-text-1: #f5f5f5;
+      --lp-text-2: #c4c4c4;
+      --lp-text-3: #908c8c;
+      --lp-radius: 10px;
+      --lp-accent: #7c5cfc;
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      overflow: hidden;
+      border-radius: var(--lp-radius);
+      border: 1px solid var(--lp-border);
+      transition: border-color 0.15s;
+    }
+    .lp:hover { border-color: var(--lp-border-hover); }
+    .lp__content { flex: 1; min-width: 0; padding: 14px 18px; display: flex; flex-direction: column; justify-content: center; gap: 4px; }
+    .lp__title { font-size: 14px; font-weight: 600; color: var(--lp-text-1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .lp__desc { font-size: 13px; color: var(--lp-text-3); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .lp__domain { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--lp-text-3); margin-top: 4px; }
+    .lp__favicon { width: 14px; height: 14px; border-radius: 2px; }
+    .lp__image { flex-shrink: 0; }
+    .lp__image img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+    /* ── Variant 1: Horizontal (image right) ── */
+    .lp--v1 { flex-direction: row; }
+    .lp--v1 .lp__image { width: 200px; }
+
+    /* ── Variant 2: Horizontal compact (small square image left) ── */
+    .lp--v2 { flex-direction: row; }
+    .lp--v2 .lp__image { width: 80px; height: 80px; flex-shrink: 0; order: -1; }
+    .lp--v2 .lp__image img { border-radius: 6px; margin: 10px; width: 60px; height: 60px; }
+
+    /* ── Variant 3: Large image top ── */
+    .lp--v3 { flex-direction: column; }
+    .lp--v3 .lp__image { width: 100%; height: 200px; }
+
+    /* ── Variant 4: Minimal (no image, accent left border) ── */
+    .lp--v4 { flex-direction: row; border-left: 3px solid var(--lp-accent); }
+    .lp--v4 .lp__content { padding: 12px 16px; }
+    .lp--v4 .lp__title { font-size: 13px; }
+    .lp--v4 .lp__desc { font-size: 12px; -webkit-line-clamp: 1; }
+
+    /* ── Variant 5: Full-bleed image with overlay text ── */
+    .lp--v5 { flex-direction: column; position: relative; min-height: 160px; border: none; }
+    .lp--v5 .lp__image { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .lp--v5 .lp__image img { border-radius: var(--lp-radius); }
+    .lp--v5 .lp__image::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 50%, transparent 100%);
+      border-radius: var(--lp-radius);
+    }
+    .lp--v5 .lp__content { position: relative; z-index: 1; justify-content: flex-end; padding: 16px 18px; min-height: 160px; }
+    .lp--v5 .lp__title { color: #fff; font-size: 15px; }
+    .lp--v5 .lp__desc { color: rgba(255,255,255,0.7); }
+    .lp--v5 .lp__domain { color: rgba(255,255,255,0.5); }
+
+    /* ── Variant 6: Twitter/X-style embed card ── */
+    .lp--v6 { flex-direction: column; background: var(--lp-bg); }
+    .lp--v6 .lp__image { width: 100%; height: 180px; border-bottom: 1px solid var(--lp-border); }
+    .lp--v6 .lp__content { padding: 12px 14px; gap: 2px; }
+    .lp--v6 .lp__domain { order: -1; margin-top: 0; margin-bottom: 2px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
+    .lp--v6 .lp__title { font-size: 13px; white-space: normal; -webkit-line-clamp: 2; display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; }
+    .lp--v6 .lp__desc { font-size: 12px; -webkit-line-clamp: 1; }
+
+    /* ── Variant 7: Notion-style inline bookmark ── */
+    .lp--v7 { flex-direction: row; align-items: center; padding: 0; background: var(--lp-bg); }
+    .lp--v7 .lp__favicon-large { width: 32px; height: 32px; border-radius: 6px; margin: 12px 0 12px 14px; flex-shrink: 0; }
+    .lp--v7 .lp__content { padding: 10px 14px; gap: 0; }
+    .lp--v7 .lp__title { font-size: 13px; font-weight: 500; }
+    .lp--v7 .lp__desc { display: none; }
+    .lp--v7 .lp__domain { margin-top: 1px; font-size: 11px; }
+    .lp--v7 .lp__url-text { color: var(--lp-text-3); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 1px; opacity: 0.6; }
+
+    /* ── Variant 8: Pill / chip style (inline, very compact) ── */
+    .lp--v8 {
+      display: inline-flex; flex-direction: row; align-items: center; gap: 8px;
+      padding: 6px 12px; border-radius: 20px; background: var(--lp-bg);
+    }
+    .lp--v8 .lp__favicon { width: 16px; height: 16px; border-radius: 3px; flex-shrink: 0; }
+    .lp--v8 .lp__content { padding: 0; flex-direction: row; align-items: center; gap: 6px; }
+    .lp--v8 .lp__title { font-size: 13px; font-weight: 500; white-space: nowrap; }
+    .lp--v8 .lp__desc { display: none; }
+    .lp--v8 .lp__domain { display: none; }
+    .lp--v8 .lp__arrow { color: var(--lp-text-3); display: flex; align-items: center; }
+
+    /* ── Variant 9: Side-by-side equal split ── */
+    .lp--v9 { flex-direction: row; min-height: 140px; }
+    .lp--v9 .lp__image { width: 50%; }
+    .lp--v9 .lp__content { width: 50%; padding: 16px 20px; }
+    .lp--v9 .lp__title { font-size: 15px; white-space: normal; }
+    .lp--v9 .lp__desc { font-size: 13px; }
+
+    /* ── Variant 10: GitHub-style repo card ── */
+    .lp--v10 { flex-direction: column; background: var(--lp-bg); padding: 16px 18px; }
+    .lp--v10 .lp__content { padding: 0; gap: 6px; }
+    .lp--v10 .lp__repo-header { display: flex; align-items: center; gap: 8px; }
+    .lp--v10 .lp__repo-avatar { width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0; }
+    .lp--v10 .lp__repo-name { font-size: 14px; font-weight: 600; color: var(--lp-accent); }
+    .lp--v10 .lp__desc { font-size: 13px; margin-top: 2px; }
+    .lp--v10 .lp__repo-meta { display: flex; align-items: center; gap: 12px; font-size: 12px; color: var(--lp-text-3); margin-top: 8px; }
+    .lp--v10 .lp__repo-stat { display: flex; align-items: center; gap: 4px; }
+    .lp--v10 .lp__repo-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .lp--v10 .lp__title { display: none; }
+    .lp--v10 .lp__domain { display: none; }
+  </style>
+</head>
+<body>
+  <h1>Link Preview — 5 Card Variants</h1>
+
+  <div class="variants">
+    <!-- Variant 1: Horizontal image right (current default) -->
+    <div class="card-wrap">
+      <h2>1. Horizontal — image right</h2>
+      <a class="lp lp--v1" href="#">
+        <div class="lp__content">
+          <div class="lp__title">Understanding Modern JavaScript Frameworks</div>
+          <div class="lp__desc">A deep dive into the architecture and trade-offs of React, Vue, and Svelte in 2026.</div>
+          <div class="lp__domain">
+            <img class="lp__favicon" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%234f46e5'/><text x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' fill='white' font-size='18' font-weight='700'>D</text></svg>" alt="">
+            <span>dev.to</span>
+          </div>
+        </div>
+        <div class="lp__image">
+          <img src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='300'><rect width='400' height='300' fill='%231e1e2e'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%234f46e5' font-size='40' font-family='sans-serif'>JS</text></svg>" alt="">
+        </div>
+      </a>
+    </div>
+
+    <!-- Variant 2: Compact square image left -->
+    <div class="card-wrap">
+      <h2>2. Compact — small image left</h2>
+      <a class="lp lp--v2" href="#">
+        <div class="lp__content">
+          <div class="lp__title">Rust 2.0 Released</div>
+          <div class="lp__desc">The latest major release brings async traits, improved compile times and more.</div>
+          <div class="lp__domain">
+            <img class="lp__favicon" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23f97316'/><text x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' fill='white' font-size='18' font-weight='700'>R</text></svg>" alt="">
+            <span>blog.rust-lang.org</span>
+          </div>
+        </div>
+        <div class="lp__image">
+          <img src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><rect width='200' height='200' fill='%231a1a2e'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23f97316' font-size='48' font-family='sans-serif'>🦀</text></svg>" alt="">
+        </div>
+      </a>
+    </div>
+
+    <!-- Variant 3: Large image top -->
+    <div class="card-wrap">
+      <h2>3. Large image top</h2>
+      <a class="lp lp--v3" href="#">
+        <div class="lp__image">
+          <img src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='640' height='200'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%25' stop-color='%230f3460'/><stop offset='100%25' stop-color='%2316213e'/></linearGradient></defs><rect width='640' height='200' fill='url(%23g)'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23818cf8' font-size='32' font-family='sans-serif'>Featured Article</text></svg>" alt="">
+        </div>
+        <div class="lp__content">
+          <div class="lp__title">The Future of Web Development in 2026</div>
+          <div class="lp__desc">Edge computing, AI-assisted coding, and the evolution of JavaScript — what's next for web developers.</div>
+          <div class="lp__domain">
+            <img class="lp__favicon" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%2322c55e'/><text x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' fill='white' font-size='18' font-weight='700'>M</text></svg>" alt="">
+            <span>medium.com</span>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <!-- Variant 4: Minimal (no image, accent border) -->
+    <div class="card-wrap">
+      <h2>4. Minimal — no image, accent border</h2>
+      <a class="lp lp--v4" href="#">
+        <div class="lp__content">
+          <div class="lp__title">RFC: Signals in JavaScript</div>
+          <div class="lp__desc">TC39 proposal for native reactive signals in the JavaScript language</div>
+          <div class="lp__domain">
+            <img class="lp__favicon" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23333'/><text x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' fill='white' font-size='18' font-weight='700'>G</text></svg>" alt="">
+            <span>github.com</span>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <!-- Variant 5: Full-bleed image with overlay -->
+    <div class="card-wrap">
+      <h2>5. Full-bleed image with gradient overlay</h2>
+      <a class="lp lp--v5" href="#">
+        <div class="lp__image">
+          <img src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='640' height='200'><defs><linearGradient id='g2' x1='0' y1='0' x2='1' y2='1'><stop offset='0%25' stop-color='%23667eea'/><stop offset='100%25' stop-color='%23764ba2'/></linearGradient></defs><rect width='640' height='200' fill='url(%23g2)'/></svg>" alt="">
+        </div>
+        <div class="lp__content">
+          <div class="lp__title">Designing for Accessibility: A Complete Guide</div>
+          <div class="lp__desc">Everything you need to know about building inclusive web experiences in 2026.</div>
+          <div class="lp__domain">
+            <span>smashingmagazine.com</span>
+          </div>
+        </div>
+      </a>
+    </div>
+    <!-- Variant 6: Twitter/X embed style -->
+    <div class="card-wrap">
+      <h2>6. Twitter/X — domain above title, image top</h2>
+      <a class="lp lp--v6" href="#">
+        <div class="lp__image">
+          <img src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='640' height='180'><rect width='640' height='180' fill='%23161b22'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%2358a6ff' font-size='28' font-family='sans-serif'>Vue.js 4.0</text></svg>" alt="">
+        </div>
+        <div class="lp__content">
+          <div class="lp__domain">
+            <img class="lp__favicon" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%2342b883'/><text x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' fill='white' font-size='18' font-weight='700'>V</text></svg>" alt="">
+            <span>vuejs.org</span>
+          </div>
+          <div class="lp__title">Vue.js 4.0 — Vapor Mode, Signals, and the Road Ahead</div>
+          <div class="lp__desc">The next major version embraces fine-grained reactivity and virtual-DOM-free rendering</div>
+        </div>
+      </a>
+    </div>
+
+    <!-- Variant 7: Notion-style inline bookmark -->
+    <div class="card-wrap">
+      <h2>7. Notion-style — inline bookmark, favicon + title + URL</h2>
+      <a class="lp lp--v7" href="#">
+        <img class="lp__favicon-large" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23e11d48'/><text x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' fill='white' font-size='16' font-weight='700'>Y</text></svg>" alt="">
+        <div class="lp__content">
+          <div class="lp__title">Why Signals Are the Future of Web Frameworks</div>
+          <div class="lp__domain">
+            <span>youtube.com</span>
+          </div>
+          <div class="lp__url-text">https://youtube.com/watch?v=xk4aHF_gDCA</div>
+        </div>
+      </a>
+    </div>
+
+    <!-- Variant 8: Pill / chip style -->
+    <div class="card-wrap">
+      <h2>8. Pill / Chip — ultra-compact inline</h2>
+      <a class="lp lp--v8" href="#">
+        <img class="lp__favicon" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23333'/><text x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' fill='white' font-size='18' font-weight='700'>G</text></svg>" alt="">
+        <div class="lp__content">
+          <div class="lp__title">github.com/vuejs/core</div>
+        </div>
+        <span class="lp__arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 6h-6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/><path d="M11 13l9-9"/><path d="M15 4h5v5"/></svg></span>
+      </a>
+    </div>
+
+    <!-- Variant 9: Side-by-side equal split -->
+    <div class="card-wrap">
+      <h2>9. 50/50 Split — image left, content right</h2>
+      <a class="lp lp--v9" href="#">
+        <div class="lp__image">
+          <img src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='320' height='200'><defs><linearGradient id='g3' x1='0' y1='0' x2='1' y2='1'><stop offset='0%25' stop-color='%23ec4899'/><stop offset='100%25' stop-color='%23f97316'/></linearGradient></defs><rect width='320' height='200' fill='url(%23g3)'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='white' font-size='36' font-family='sans-serif'>🎨</text></svg>" alt="">
+        </div>
+        <div class="lp__content">
+          <div class="lp__title">CSS Container Queries: The Complete Guide</div>
+          <div class="lp__desc">Learn how container queries change responsive design forever. Practical examples and patterns for production.</div>
+          <div class="lp__domain">
+            <img class="lp__favicon" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23264de4'/><text x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' fill='white' font-size='18' font-weight='700'>C</text></svg>" alt="">
+            <span>css-tricks.com</span>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <!-- Variant 10: GitHub-style repo card -->
+    <div class="card-wrap">
+      <h2>10. GitHub repo card — avatar + name + stats</h2>
+      <a class="lp lp--v10" href="#">
+        <div class="lp__content">
+          <div class="lp__repo-header">
+            <img class="lp__repo-avatar" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='16' fill='%23238636'/><text x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' fill='white' font-size='16' font-weight='700'>V</text></svg>" alt="">
+            <span class="lp__repo-name">vuejs / core</span>
+          </div>
+          <div class="lp__desc">🖖 Vue.js is a progressive, incrementally-adoptable JavaScript framework for building UI on the web.</div>
+          <div class="lp__repo-meta">
+            <div class="lp__repo-stat"><span class="lp__repo-dot" style="background:#f1e05a"></span> TypeScript</div>
+            <div class="lp__repo-stat">⭐ 48.2k</div>
+            <div class="lp__repo-stat">🍴 8.3k</div>
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
+</body>
+</html>

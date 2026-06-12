@@ -1,0 +1,12 @@
+.editor-delimiter {
+  margin: 38px auto;
+  border: none;
+  text-align: center;
+}
+
+.editor-delimiter::after {
+  content: '***';
+  font-size: 1.8rem;
+  letter-spacing: 0.24em;
+  color: var(--er-text-2, #666);
+}

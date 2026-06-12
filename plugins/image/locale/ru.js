@@ -1,0 +1,15 @@
+export default {
+  'plugin.image.title': 'Изображение',
+  'plugin.image.upload': 'Загрузить',
+  'plugin.image.url': 'URL',
+  'plugin.image.urlPrompt': 'URL изображения:',
+  'plugin.image.dropzone': 'или перетащите файл сюда',
+  'plugin.image.dropzoneUpload': 'Загрузите',
+  'plugin.image.dropzoneText': 'изображение с устройства или перетащите его сюда',
+  'plugin.image.replace': 'Заменить',
+  'plugin.image.delete': 'Удалить',
+  'plugin.image.caption': 'Подпись',
+  'plugin.image.settings': 'Настройки',
+  'plugin.image.expand': 'Расширить',
+  'plugin.image.background': 'Фон',
+}

@@ -1,0 +1,20 @@
+.editor-list {
+  padding-left: 24px;
+}
+
+.editor-list--ordered {
+  list-style-type: decimal;
+}
+
+.editor-list--unordered {
+  list-style-type: disc;
+}
+
+.editor-list__item {
+  margin-bottom: 8px;
+  color: var(--er-text-2);
+}
+
+.editor-list__item:last-child {
+  margin-bottom: 0;
+}

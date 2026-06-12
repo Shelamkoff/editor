@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RectorJs — Block Editor</title>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "highlight.js/lib/core": "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/es/core.min.js",
+      "highlight.js/lib/languages/javascript": "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/es/languages/javascript.min.js",
+      "highlight.js/lib/languages/typescript": "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/es/languages/typescript.min.js",
+      "highlight.js/lib/languages/python": "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/es/languages/python.min.js",
+      "highlight.js/lib/languages/sql": "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/es/languages/sql.min.js",
+      "highlight.js/lib/languages/bash": "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/es/languages/bash.min.js",
+      "highlight.js/lib/languages/json": "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/es/languages/json.min.js",
+      "highlight.js/lib/languages/xml": "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/es/languages/xml.min.js",
+      "highlight.js/lib/languages/css": "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/es/languages/css.min.js",
+      "highlight.js/lib/languages/php": "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/es/languages/php.min.js",
+      "highlight.js/lib/languages/go": "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/es/languages/go.min.js",
+      "highlight.js/lib/languages/rust": "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/es/languages/rust.min.js",
+      "highlight.js/lib/languages/java": "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/es/languages/java.min.js",
+      "highlight.js/lib/languages/csharp": "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/es/languages/csharp.min.js",
+      "highlight.js/lib/languages/plaintext": "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/es/languages/plaintext.min.js",
+      "highlight.js/lib/languages/cpp": "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/es/languages/cpp.min.js",
+      "highlight.js/lib/languages/ruby": "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/es/languages/ruby.min.js",
+      "highlight.js/lib/languages/swift": "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/es/languages/swift.min.js",
+      "highlight.js/lib/languages/kotlin": "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/es/languages/kotlin.min.js",
+      "highlight.js/lib/languages/yaml": "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/es/languages/yaml.min.js"
+    }
+  }
+  </script>
+
+  <!-- Editor CSS -->
+  <link rel="stylesheet" href="core/themes/variables.css">
+  <link rel="stylesheet" href="core/themes/dark.css">
+  <link rel="stylesheet" href="core/themes/light.css">
+  <!-- Plugin CSS is now auto-injected by createEditor via static styles -->
+  <!-- Renderer CSS is injected via <link> tags (base.css + per-renderer styles.css) -->
+  <!-- Expose (lightbox) CSS for gallery renderer -->
+
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #000;
+      --surface: #111114;
+      --surface-2: #1c1c20;
+      --border: #28282e;
+      --border-2: #38383e;
+      --text: #fff;
+      --text-2: #ededf0;
+      --text-3: #b8b8c0;
+      --accent: #4357b4;
+      --accent-hover: #5468c4;
+      --dot-red: #ff5f57;
+      --dot-amber: #febc2e;
+      --dot-green: #28c840;
+      --code-text: #f5f6fa;
+      --code-kw: #e0c3ff;
+      --code-fn: #b6d4ff;
+      --code-str: #c6f5be;
+      --code-comment: #9095ad;
+      --nav-bg: color-mix(in srgb, #000000 70%, transparent);
+      --font: 'Outfit', system-ui, -apple-system, sans-serif;
+      --mono: 'JetBrains Mono', monospace;
+      --max-w: 1080px;
+      --ease: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    :root.theme-light {
+      --bg: #e3e3ff57;
+      --surface: #ffffff;
+      --surface-2: #f7f7f9;
+      --nav-bg: color-mix(in srgb, #ffffff 70%, transparent);
+      --border: #d8d8de;
+      --border-2: #c4c4ca;
+      --text: #0a0a0c;
+      --text-2: #1f1f24;
+      --text-3: #5a5a64;
+      --accent: #3858d4;
+      --accent-hover: #2a47b8;
+      --code-text: #1a1d29;
+      --code-kw: #6c1fb8;
+      --code-fn: #1c5fb8;
+      --code-str: #1f7a3a;
+      --code-comment: #6a7080;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 15px;
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    ::selection { background: rgba(138, 165, 255, 0.4); }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .animation {
+      opacity: 0; transform: translateY(24px);
+      transition: opacity 0.6s var(--ease), transform 0.6s var(--ease);
+    }
+
+    .animation.visible {
+      opacity: 1; transform: translateY(0);
+    }
+
+    .hero .animation { animation: fadeUp 0.8s var(--ease) both; }
+    .hero .animation:nth-child(1) { animation-delay: 0.1s; }
+    .hero .animation:nth-child(2) { animation-delay: 0.25s; }
+    .hero .animation:nth-child(3) { animation-delay: 0.4s; }
+    .hero .animation:nth-child(4) { animation-delay: 0.55s; }
+
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: var(--surface); }
+    ::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-3); }
+
+    a { color: inherit; }
+
+    .w { max-width: var(--max-w); margin: 0 auto; padding: 0 2rem; }
+
+    /* ═══ NAV ═══════════════════════════════════════════════════════════════ */
+
+    .nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: var(--nav-bg);
+      backdrop-filter: blur(20px) saturate(1.4);
+      -webkit-backdrop-filter: blur(20px) saturate(1.4);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav__in {
+      max-width: var(--max-w); margin: 0 auto; padding: 0 2rem;
+      display: flex; align-items: center; justify-content: center;
+      height: 52px;
+    }
+
+    .nav__right { display: flex; align-items: center; gap: 1.75rem; }
+
+    .nav__link {
+      font-size: 0.8125rem; font-weight: 400; color: var(--text-2);
+      text-decoration: none; transition: color 0.15s;
+    }
+
+    .nav__link:hover { color: var(--text); }
+
+    .lang-select {
+      position: relative; font-size: 0.75rem; user-select: none;
+    }
+
+    .lang-select__current {
+      display: flex; align-items: center; justify-content: center; gap: 4px;
+      padding: 5px 12px; cursor: pointer; color: var(--text-2);
+      font-weight: 600; font-family: var(--font); transition: color 0.15s;
+      border: 1px solid var(--border-2); border-radius: 8px;
+      background: var(--surface);
+    }
+
+    .lang-select__current:hover { color: var(--text); }
+
+    .lang-select__chevron {
+      width: 10px; height: 10px; transition: transform 0.3s var(--ease);
+      flex-shrink: 0;
+    }
+
+    .lang-select.open .lang-select__chevron { transform: rotate(180deg); }
+
+    .lang-select__expand {
+      position: absolute; top: calc(100% + 4px); left: 50%;
+      transform: translateX(-50%);
+      min-width: 100%; border: 1px solid var(--border-2); border-radius: 8px;
+      background: var(--surface); overflow: hidden;
+      opacity: 0; visibility: hidden;
+      transform-origin: top center;
+      transition: opacity 0.2s, visibility 0.2s;
+    }
+
+    .lang-select.open .lang-select__expand {
+      opacity: 1; visibility: visible;
+    }
+
+    .lang-select__options {
+      display: flex; flex-direction: column; padding: 4px 0;
+    }
+
+    .lang-select__options button {
+      display: block; width: 100%; padding: 5px 12px;
+      border: none; background: transparent; color: var(--text-3);
+      cursor: pointer; font-family: var(--font); font-size: 0.75rem;
+      font-weight: 600; transition: all 0.15s; text-align: center;
+    }
+
+    .lang-select__options button:hover { color: var(--text); }
+    .lang-select__options button.on { color: var(--text); }
+
+    .theme-toggle {
+      display: flex; align-items: center; justify-content: center;
+      width: 32px; height: 32px;
+      padding: 0; border: 1px solid var(--border-2); border-radius: 8px;
+      background: var(--surface); color: var(--text-2); cursor: pointer;
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
+    }
+    .theme-toggle:hover { color: var(--text); border-color: var(--text-3); }
+    .theme-toggle svg { width: 16px; height: 16px; }
+    .theme-toggle .icon-sun { display: none; }
+    .theme-toggle .icon-moon { display: block; }
+    :root.theme-light .theme-toggle .icon-sun { display: block; }
+    :root.theme-light .theme-toggle .icon-moon { display: none; }
+
+    /* ═══ HERO ══════════════════════════════════════════════════════════════ */
+
+    .hero {
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      text-align: center; padding: 4rem 0;
+    }
+
+    .hero__tag {
+      display: inline-block; padding: 0.25rem 0.875rem;
+      border: 1px solid var(--border-2); border-radius: 100px;
+      font-size: 0.6875rem; font-weight: 500; color: var(--text-2);
+      letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 2rem;
+    }
+
+    .hero__title {
+      font-size: clamp(2.75rem, 7vw, 5rem); font-weight: 700;
+      letter-spacing: -0.045em; line-height: 1.05; margin-bottom: 1.5rem;
+    }
+
+    .hero__sub {
+      font-size: 1.0625rem; font-weight: 400; color: var(--text-2);
+      max-width: 480px; margin: 0 auto 2.5rem; line-height: 1.6;
+    }
+
+    .hero__actions { display: flex; justify-content: center; gap: 0.75rem; }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.625rem 1.5rem; border-radius: 8px;
+      font-family: var(--font); font-size: 0.8125rem; font-weight: 500;
+      border: none; cursor: pointer; text-decoration: none;
+      transition: all 0.2s var(--ease);
+    }
+
+    .btn--fill { background: var(--accent); color: #fff; }
+    .btn--fill:hover { background: var(--accent-hover); }
+
+    .btn--outline {
+      background: transparent; color: var(--text);
+      border: 1px solid var(--border-2);
+    }
+
+    .btn--outline:hover { border-color: var(--text-3); }
+    .btn svg { width: 14px; height: 14px; }
+
+    /* ═══ SECTIONS ══════════════════════════════════════════════════════════ */
+
+    .sec { padding: 3rem 0; }
+
+    .sec__label {
+      font-size: 0.625rem; text-transform: uppercase; letter-spacing: 0.15em;
+      color: var(--text); font-weight: 600; margin-bottom: 0.625rem;
+    }
+
+    .sec__title {
+      font-size: clamp(1.375rem, 3vw, 2rem); font-weight: 600;
+      letter-spacing: -0.03em; margin-bottom: 0.75rem;
+    }
+
+    .sec__desc { color: var(--text-2); max-width: 480px; font-weight: 400; margin-bottom: 3rem; }
+
+    .sec__label--spaced { margin-top: 2.5rem; }
+
+    /* ═══ FEATURES ══════════════════════════════════════════════════════════ */
+
+    .feat-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 1px; background: var(--border);
+      border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
+    }
+
+    .feat {
+      background: var(--surface); padding: 1.75rem;
+      transition: background 0.25s var(--ease);
+    }
+
+    .feat:hover { background: var(--surface-2); }
+
+    .feat__ico {
+      width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+      border: 1px solid var(--border-2); border-radius: 8px;
+      color: var(--text-2); margin-bottom: 1rem;
+    }
+
+    .feat__ico svg { width: 16px; height: 16px; }
+    .feat__name { font-size: 0.875rem; font-weight: 600; margin-bottom: 0.25rem; }
+    .feat__txt { font-size: 0.8125rem; color: var(--text-2); font-weight: 400; line-height: 1.55; }
+
+    /* ═══ DEMO ══════════════════════════════════════════════════════════════ */
+
+    .demo-wrap {
+      border: 1px solid var(--border); border-radius: 14px; background: var(--surface);
+    }
+
+    .demo-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.625rem 1.25rem; border-bottom: 1px solid var(--border);
+      background: var(--surface-2); border-radius: 14px 14px 0 0;
+    }
+
+    .demo-bar__left { display: flex; gap: 6px; }
+    .demo-bar__dot { width: 10px; height: 10px; border-radius: 50%; }
+    .demo-bar__dot:nth-child(1) { background: var(--dot-red); }
+    .demo-bar__dot:nth-child(2) { background: var(--dot-amber); }
+    .demo-bar__dot:nth-child(3) { background: var(--dot-green); }
+    .demo-bar__right { display: flex; gap: 0.5rem; }
+
+    .demo-bar__btn {
+      padding: 0.25rem 0.75rem; border: 1px solid var(--border); border-radius: 5px;
+      background: transparent; color: var(--text-3);
+      font-family: var(--font); font-size: 0.6875rem; font-weight: 500;
+      cursor: pointer; transition: all 0.15s;
+    }
+
+    .demo-bar__btn:hover { border-color: var(--text-3); color: var(--text-2); }
+    .demo-bar__btn.on { background: var(--text); color: var(--bg); border-color: var(--text); }
+
+    .demo-editor { min-height: 320px; padding: 1rem 3.5rem 1rem 1.5rem; }
+
+    .demo-preview {
+      min-height: 320px; padding: 2rem 2.5rem;
+      color: var(--text); line-height: 1.7; font-size: 1rem;
+    }
+    .demo-preview h1, .demo-preview h2, .demo-preview h3,
+    .demo-preview h4, .demo-preview h5, .demo-preview h6 {
+      margin: 1.5em 0 0.5em; font-weight: 600; line-height: 1.3;
+    }
+    .demo-preview p { margin: 0.75em 0; }
+    .demo-preview ul, .demo-preview ol { margin: 0.75em 0; padding-left: 1.5em; }
+    .demo-preview blockquote {
+      border-left: 3px solid var(--accent); padding: 0.5em 1em;
+      margin: 1em 0; color: var(--text-2); font-style: italic;
+    }
+    .demo-preview pre {
+      background: var(--surface-2); padding: 1em; border-radius: 8px;
+      overflow-x: auto; font-family: var(--mono); font-size: 0.875em;
+    }
+    .demo-preview code { font-family: var(--mono); font-size: 0.9em; }
+    .demo-preview img { max-width: 100%; border-radius: 8px; }
+    .demo-preview hr { border: none; border-top: 1px solid var(--border); margin: 2em 0; }
+
+    /* ═══ OUTPUT JSON ═════════════════════════════════════════════════════ */
+
+    .output-json {
+      margin-top: 1.5rem;
+    }
+
+    .output-json__toggle {
+      display: flex; align-items: center; gap: 8px;
+      cursor: pointer; color: var(--text-3); font-size: 0.8125rem;
+      font-weight: 500; font-family: var(--font);
+      list-style: none; transition: color 0.15s; user-select: none;
+    }
+
+    .output-json__toggle::-webkit-details-marker { display: none; }
+
+    .output-json__toggle::before {
+      content: ''; display: inline-block; width: 0; height: 0;
+      border-left: 5px solid currentColor; border-top: 4px solid transparent;
+      border-bottom: 4px solid transparent; transition: transform 0.2s var(--ease);
+    }
+
+    .output-json[open] > .output-json__toggle::before {
+      transform: rotate(90deg);
+    }
+
+    .output-json__toggle:hover { color: var(--text-2); }
+
+    .output-json__pre {
+      margin-top: 0.75rem; padding: 1rem 1.25rem;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; font-family: var(--mono); font-size: 0.75rem;
+      color: var(--text-2); line-height: 1.6; white-space: pre-wrap;
+      max-height: 400px; overflow-y: auto;
+    }
+
+    .output-json__pre .k { color: var(--code-kw); }
+    .output-json__pre .f { color: var(--code-fn); }
+    .output-json__pre .s { color: var(--code-str); }
+
+    /* ═══ PLUGINS ═══════════════════════════════════════════════════════════ */
+
+    .plug-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 0.625rem;
+    }
+
+    .plug {
+      display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+      padding: 1.125rem 0.5rem; border: 1px solid var(--border); border-radius: 10px;
+      background: var(--surface); text-align: center;
+      transition: all 0.2s var(--ease); cursor: default;
+    }
+
+    .plug:hover { border-color: var(--border-2); background: var(--surface-2); }
+    .plug__ico { color: var(--text-3); transition: color 0.2s; }
+    .plug:hover .plug__ico { color: var(--text-2); }
+    .plug__name { font-size: 0.6875rem; font-weight: 400; color: var(--text-3); }
+    .plug:hover .plug__name { color: var(--text-2); }
+
+    /* ═══ CODE / API ════════════════════════════════════════════════════════ */
+
+    .code-frame {
+      border: 1px solid var(--border); border-radius: 12px;
+      overflow: hidden; background: var(--surface); margin-bottom: 1.5rem;
+    }
+
+    .code-frame__head {
+      padding: 0.5rem 1rem; border-bottom: 1px solid var(--border);
+      font-family: var(--mono); font-size: 0.625rem; color: var(--text-3);
+      background: var(--surface-2);
+    }
+
+    .code-frame pre {
+      padding: 1.25rem; font-family: var(--mono); font-size: 0.8125rem;
+      line-height: 1.7; color: var(--code-text); overflow-x: auto;
+    }
+
+    .code-frame .k { color: var(--code-kw); }
+    .code-frame .f { color: var(--code-fn); }
+    .code-frame .s { color: var(--code-str); }
+    .code-frame .c { color: var(--code-comment); }
+
+    .api-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 0.75rem; margin-top: 2rem;
+    }
+
+    .api-card {
+      padding: 1.125rem; border: 1px solid var(--border); border-radius: 10px;
+      background: var(--surface);
+    }
+
+    .api-card__method {
+      font-family: var(--mono); font-size: 0.8125rem; font-weight: 500;
+      color: var(--accent); margin-bottom: 0.25rem;
+    }
+
+    .api-card__desc { font-size: 0.8125rem; color: var(--text-2); font-weight: 400; }
+
+    /* ═══ STAR CTA ═════════════════════════════════════════════════════════ */
+
+    .star-cta { padding: 4rem 0 3rem; }
+
+    .star-cta__title {
+      font-size: clamp(1.25rem, 3vw, 1.75rem); font-weight: 600;
+      letter-spacing: -0.02em; margin-bottom: 0.75rem;
+    }
+
+    .star-cta__desc {
+      font-size: 0.9375rem; color: var(--text-2); font-weight: 400;
+      max-width: 440px; margin: 0 auto 2rem; line-height: 1.6;
+    }
+
+    .star-cta__arrows {
+      display: flex; justify-content: center; gap: 3rem;
+      color: var(--text-3); margin-bottom: 1rem;
+    }
+
+    .star-cta__arrows--bottom {
+      margin-bottom: 0; margin-top: 1rem;
+    }
+
+    .star-cta__arrow {
+      animation: starFloat 2s var(--ease) infinite alternate;
+    }
+
+    .star-cta__arrow--tl { animation-delay: 0s; }
+    .star-cta__arrow--t { animation-delay: 0.15s; }
+    .star-cta__arrow--tr { animation-delay: 0.3s; }
+    .star-cta__arrow--bl { animation-delay: 0.1s; }
+    .star-cta__arrow--b { animation-delay: 0.25s; }
+    .star-cta__arrow--br { animation-delay: 0.4s; }
+
+    @keyframes starFloat {
+      from { opacity: 0.3; transform: translateY(3px); }
+      to { opacity: 0.7; transform: translateY(-3px); }
+    }
+
+    .star-cta__btn {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.75rem 2rem; border-radius: 10px;
+      background: var(--surface-2); border: 1px solid var(--border-2);
+      color: var(--text); font-family: var(--font); font-size: 0.9375rem;
+      font-weight: 600; text-decoration: none; cursor: pointer;
+      transition: all 0.2s var(--ease);
+    }
+
+    .star-cta__btn:hover {
+      background: var(--surface); border-color: var(--text-3);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px rgba(79, 125, 249, 0.15);
+    }
+
+    .star-cta__btn svg { color: #f5c542; }
+
+    /* ═══ FOOTER ════════════════════════════════════════════════════════════ */
+
+    .foot { border-top: 1px solid var(--border); padding: 2rem 0; text-align: center; }
+    .foot__txt { font-size: 0.75rem; color: var(--text-3); font-weight: 400; }
+
+    .foot__links {
+      display: flex; justify-content: center; gap: 1.5rem; margin-top: 0.5rem;
+    }
+
+    .foot__link {
+      font-size: 0.75rem; color: var(--text-2); text-decoration: none;
+      transition: color 0.15s;
+    }
+
+    .foot__link:hover { color: var(--text); }
+
+    /* ═══ RESPONSIVE ════════════════════════════════════════════════════════ */
+
+    @media (max-width: 768px) {
+      .w { padding: 0 1.25rem; }
+      .nav__link { display: none; }
+      .hero { padding: 7rem 0 3rem; }
+      .sec { padding: 3rem 0; }
+      .feat-grid { grid-template-columns: 1fr; }
+      .plug-grid { grid-template-columns: repeat(3, 1fr); }
+      .api-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="nav" aria-label="Main navigation">
+    <div class="nav__in">
+      <div class="nav__right">
+        <a href="#features" class="nav__link" data-i18n="nav.features">Features</a>
+        <a href="#demo" class="nav__link" data-i18n="nav.demo">Demo</a>
+        <a href="#plugins" class="nav__link" data-i18n="nav.plugins">Plugins</a>
+        <a href="#api" class="nav__link" data-i18n="nav.code">Code</a>
+        <div class="lang-select" id="langSelect" role="group" aria-label="Language">
+          <div class="lang-select__current" id="langToggle">
+            <span class="lang-select__value">EN</span>
+            <svg class="lang-select__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="lang-select__expand">
+            <div class="lang-select__options">
+              <button type="button" class="on" data-lang="en">EN</button>
+              <button type="button" data-lang="ru">RU</button>
+            </div>
+          </div>
+        </div>
+        <button type="button" class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="w">
+      <div class="hero__tag animation" data-i18n="hero.tag">Block Editor</div>
+      <h1 class="hero__title animation">RectorJs</h1>
+      <p class="hero__sub animation" data-i18n="hero.sub">Modern extensible block editor. Vanilla JavaScript, zero dependencies, clean JSON output.</p>
+      <div class="hero__actions animation">
+        <a href="#demo" class="btn btn--fill" data-i18n="hero.cta1">Try Demo</a>
+        <a href="#api" class="btn btn--outline" data-i18n="hero.cta2">
+          <!-- Tabler: terminal-2 -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 9l3 3l-3 3"/><path d="M13 15l3 0"/></svg>
+          Documentation
+        </a>
+      </div>
+    </div>
+  </section>
+
+
+
+  <!-- FEATURES -->
+  <section class="sec" id="features">
+    <div class="w">
+      <h2 class="sec__title animation" data-i18n="sec.feat.t">Everything you need</h2>
+
+      <div class="feat-grid animation">
+        <article class="feat">
+          <!-- Tabler: layout-rows -->
+          <div class="feat__ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/><path d="M4 13a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/></svg></div>
+          <h3 class="feat__name" data-i18n="f.1.t">Block Architecture</h3>
+          <p class="feat__txt" data-i18n="f.1.d">Modular content blocks — paragraphs, headings, lists, images, video, tables. Each block is independent.</p>
+        </article>
+        <article class="feat">
+          <!-- Tabler: puzzle -->
+          <div class="feat__ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h3a1 1 0 0 0 1-1V4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v1a1 1 0 0 0 1 1h2a1 1 0 0 1 1 1v2a1 1 0 0 0 1 1h1a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-1a1 1 0 0 0-1 1v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7z"/></svg></div>
+          <h3 class="feat__name" data-i18n="f.2.t">21+ Plugins</h3>
+          <p class="feat__txt" data-i18n="f.2.d">Image, gallery, embed, code, table, checklist, quote, toggle, columns, poll. Build your own with a simple API.</p>
+        </article>
+        <article class="feat">
+          <!-- Tabler: text-size -->
+          <div class="feat__ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5h13v2"/><path d="M10 5v14"/><path d="M12 19H8"/><path d="M15 13v-1h6v1"/><path d="M18 12v7"/><path d="M17 19h2"/></svg></div>
+          <h3 class="feat__name" data-i18n="f.3.t">Inline Tools</h3>
+          <p class="feat__txt" data-i18n="f.3.d">Bold, italic, links, code, font size, text color, alignment — floating toolbar and keyboard shortcuts.</p>
+        </article>
+        <article class="feat">
+          <!-- Tabler: grip-vertical -->
+          <div class="feat__ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="19" r="1"/></svg></div>
+          <h3 class="feat__name" data-i18n="f.4.t">Drag & Drop</h3>
+          <p class="feat__txt" data-i18n="f.4.d">Reorder blocks with smooth FLIP animations. Drag handle on every block for intuitive management.</p>
+        </article>
+        <article class="feat">
+          <!-- Tabler: arrow-back-up -->
+          <div class="feat__ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14l-4-4 4-4"/><path d="M5 10h11a4 4 0 0 1 0 8h-1"/></svg></div>
+          <h3 class="feat__name" data-i18n="f.5.t">Undo / Redo</h3>
+          <p class="feat__txt" data-i18n="f.5.d">Snapshot-based history with debounce. Ctrl+Z / Ctrl+Shift+Z across all operations.</p>
+        </article>
+        <article class="feat">
+          <!-- Tabler: braces -->
+          <div class="feat__ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4a2 2 0 0 0-2 2v3a2 3 0 0 1-2 3 2 3 0 0 1 2 3v3a2 2 0 0 0 2 2"/><path d="M17 4a2 2 0 0 1 2 2v3a2 3 0 0 0 2 3 2 3 0 0 0-2 3v3a2 2 0 0 1-2 2"/></svg></div>
+          <h3 class="feat__name" data-i18n="f.6.t">Clean JSON</h3>
+          <p class="feat__txt" data-i18n="f.6.d">Structured block data. Each block stores type + data. Serialize, store, and render on any platform.</p>
+        </article>
+        <article class="feat">
+          <!-- Tabler: language -->
+          <div class="feat__ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h7"/><path d="M7 4v1a4 4 0 0 0 4 4 5 5 0 0 1-5 5"/><path d="M6 16l4-4"/><path d="M13 20l3.5-7 3.5 7"/><path d="M14 18h5"/></svg></div>
+          <h3 class="feat__name" data-i18n="f.7.t">i18n</h3>
+          <p class="feat__txt" data-i18n="f.7.d">Built-in English and Russian. Add any language with a translation dictionary.</p>
+        </article>
+        <article class="feat">
+          <!-- Tabler: palette -->
+          <div class="feat__ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21a9 9 0 0 1 0-18c4.97 0 9 3.582 9 8 0 1.06-.474 2.078-1.318 2.828-.844.75-1.989 1.172-3.182 1.172H14a2 2 0 0 0-1 3.75A1.3 1.3 0 0 1 12 21"/><circle cx="7.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="12" cy="7.5" r=".5" fill="currentColor"/><circle cx="16.5" cy="10.5" r=".5" fill="currentColor"/></svg></div>
+          <h3 class="feat__name" data-i18n="f.8.t">Themes</h3>
+          <p class="feat__txt" data-i18n="f.8.d">CSS custom properties for full theming. Dark and light modes at runtime. Build your own theme.</p>
+        </article>
+        <article class="feat">
+          <!-- Tabler: feather -->
+          <div class="feat__ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l10-10"/><path d="M20 4l-2 2a8 8 0 0 1-8 8H4a8 8 0 0 1 8-8l2-2"/><path d="M14 4l4 4"/></svg></div>
+          <h3 class="feat__name" data-i18n="f.9.t">Zero Dependencies</h3>
+          <p class="feat__txt" data-i18n="f.9.d">No React, no Vue, no frameworks. Pure vanilla JavaScript, works everywhere.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- DEMO -->
+  <section class="sec" id="demo">
+    <div class="w">
+      <h2 class="sec__title animation" data-i18n="sec.demo.t">Try it right here</h2>
+
+      <div class="demo-wrap animation">
+        <div class="demo-bar">
+          <div class="demo-bar__left">
+            <div class="demo-bar__dot" aria-hidden="true"></div>
+            <div class="demo-bar__dot" aria-hidden="true"></div>
+            <div class="demo-bar__dot" aria-hidden="true"></div>
+          </div>
+          <div class="demo-bar__right">
+            <button type="button" class="demo-bar__btn" id="previewBtn" data-i18n="demo.preview">Preview</button>
+          </div>
+        </div>
+        <div class="demo-editor" id="editorHolder"></div>
+        <div class="demo-preview" id="previewHolder" style="display:none"></div>
+      </div>
+
+      <details class="output-json" id="outputJson">
+        <summary class="output-json__toggle" data-i18n="demo.output">Output JSON</summary>
+        <pre class="output-json__pre" id="outputPre"></pre>
+      </details>
+    </div>
+  </section>
+
+  <!-- PLUGINS -->
+  <section class="sec" id="plugins">
+    <div class="w">
+      <h2 class="sec__title animation" data-i18n="sec.plug.t">21 blocks, ready to use</h2>
+      <div class="plug-grid animation" id="plugGrid"></div>
+    </div>
+  </section>
+
+  <!-- API -->
+  <section class="sec" id="api">
+    <div class="w">
+      <h2 class="sec__title animation" data-i18n="sec.api.t">Up and running in minutes</h2>
+
+      <div class="code-frame animation">
+        <div class="code-frame__head">app.js</div>
+        <pre><code><span class="k">import</span> { createEditor, Paragraph, Heading } <span class="k">from</span> <span class="s">'rectorjs'</span>
+
+<span class="k">const</span> editor = <span class="f">createEditor</span>({
+  holder: document.<span class="f">getElementById</span>(<span class="s">'editor'</span>),
+  plugins: [
+    <span class="k">new</span> <span class="f">Paragraph</span>(),
+    <span class="k">new</span> <span class="f">Heading</span>(),
+  ],
+  locale: <span class="s">'en'</span>,
+  theme: <span class="s">'dark'</span>,
+  <span class="f">onChange</span>(data) {
+    console.<span class="f">log</span>(data)
+  },
+})
+
+<span class="c">// Save content as JSON</span>
+<span class="k">const</span> data = <span class="k">await</span> editor.<span class="f">save</span>()</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- STAR CTA -->
+  <section class="star-cta animation">
+    <div class="w" style="text-align:center">
+      <h2 class="star-cta__title" data-i18n="star.title">Support the project</h2>
+      <p class="star-cta__desc" data-i18n="star.desc">If RectorJs is useful to you, give it a star on GitHub. It helps the project grow.</p>
+      <div class="star-cta__arrows" aria-hidden="true">
+        <svg class="star-cta__arrow star-cta__arrow--tl" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17l10 -10"/><path d="M16 17l-9 0l0 -9"/></svg>
+        <svg class="star-cta__arrow star-cta__arrow--t" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="M18 13l-6 6l-6 -6"/></svg>
+        <svg class="star-cta__arrow star-cta__arrow--tr" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 17l-10 -10"/><path d="M8 17l9 0l0 -9"/></svg>
+      </div>
+      <a href="#" class="star-cta__btn" target="_blank" rel="noopener">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17.75l-6.172 3.245l1.179-6.873l-4.993-4.867l6.9-1.002L12 2l3.086 6.253l6.9 1.002l-4.993 4.867l1.179 6.873z"/></svg>
+        <span data-i18n="star.btn">Star on GitHub</span>
+      </a>
+      <div class="star-cta__arrows star-cta__arrows--bottom" aria-hidden="true">
+        <svg class="star-cta__arrow star-cta__arrow--bl" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7l10 10"/><path d="M16 7l-9 0l0 9"/></svg>
+        <svg class="star-cta__arrow star-cta__arrow--b" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M18 11l-6 -6l-6 6"/></svg>
+        <svg class="star-cta__arrow star-cta__arrow--br" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 7l-10 10"/><path d="M8 7l9 0l0 9"/></svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="foot">
+    <div class="w">
+      <p class="foot__txt" data-i18n="foot.txt">Vanilla JavaScript. Zero dependencies.</p>
+      <nav class="foot__links" aria-label="Footer links">
+        <a href="#" class="foot__link" data-i18n="foot.github">GitHub</a>
+        <a href="#api" class="foot__link" data-i18n="foot.docs">Documentation</a>
+        <a href="demo.html" class="foot__link" data-i18n="nav.demo">Demo</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { createEditor } from './core/index.js'
+    import { Paragraph } from './plugins/paragraph/index.js'
+    import { Heading } from './plugins/heading/index.js'
+    import { List } from './plugins/list/index.js'
+    import { Quote } from './plugins/quote/index.js'
+    import { Code } from './plugins/code/index.js'
+    import { Image } from './plugins/image/index.js'
+    import { Embed } from './plugins/embed/index.js'
+    import { Gallery } from './plugins/gallery/index.js'
+    import { Checklist } from './plugins/checklist/index.js'
+    import { Warning } from './plugins/warning/index.js'
+    import { Raw } from './plugins/raw/index.js'
+    import { Poll } from './plugins/poll/index.js'
+    import { Person } from './plugins/person/index.js'
+    import { Attaches } from './plugins/attaches/index.js'
+    import { LinkPreview } from './plugins/link-preview/index.js'
+    import { Toggle } from './plugins/toggle/index.js'
+    import { Columns } from './plugins/columns/index.js'
+    import { Spoiler } from './plugins/spoiler/index.js'
+    import { Delimiter } from './plugins/delimiter/index.js'
+    import { Table } from './plugins/table/index.js'
+    import localeEn from './locale/en.js'
+    import localeRu from './locale/ru.js'
+
+    /* ── i18n ──────────────────────────────────────────────────────────── */
+
+    const T = {
+      en: {
+        'nav.features':'Features','nav.demo':'Demo','nav.plugins':'Plugins','nav.api':'API',
+        'hero.tag':'Block Editor',
+        'hero.sub':'Modern extensible block editor. Vanilla JavaScript, zero dependencies, clean JSON output.',
+        'hero.cta1':'Try Demo','hero.cta2':'Documentation',
+        'sec.feat.l':'Features','sec.feat.t':'Everything you need',
+        'f.1.t':'Block Architecture','f.1.d':'Modular content blocks — paragraphs, headings, lists, images, video, tables. Each block is independent.',
+        'f.2.t':'21+ Plugins','f.2.d':'Image, gallery, embed, code, table, checklist, quote, toggle, columns, poll. Build your own with a simple API.',
+        'f.3.t':'Inline Tools','f.3.d':'Bold, italic, links, code, font size, text color, alignment — floating toolbar and keyboard shortcuts.',
+        'f.4.t':'Drag & Drop','f.4.d':'Reorder blocks with smooth FLIP animations. Drag handle on every block for intuitive management.',
+        'f.5.t':'Undo / Redo','f.5.d':'Snapshot-based history with debounce. Ctrl+Z / Ctrl+Shift+Z across all operations.',
+        'f.6.t':'Clean JSON','f.6.d':'Structured block data. Each block stores type + data. Serialize, store, and render on any platform.',
+        'f.7.t':'i18n','f.7.d':'Built-in English and Russian. Add any language with a translation dictionary.',
+        'f.8.t':'Themes','f.8.d':'CSS custom properties for full theming. Dark and light modes at runtime. Build your own theme.',
+        'f.9.t':'Zero Dependencies','f.9.d':'No React, no Vue, no frameworks. Pure vanilla JavaScript, works everywhere.',
+        'sec.demo.l':'Live Demo','sec.demo.t':'Try it right here',
+        'sec.demo.d':'Fully functional editor. Type, add blocks with + or /, format text, drag to reorder.',
+        'demo.json':'JSON','demo.theme.dark':'Dark','demo.theme.light':'Light',
+        'sec.plug.l':'Plugins','sec.plug.t':'21 blocks, ready to use',
+        'sec.plug.d':'Every plugin is independent. Use only what you need.',
+        'sec.api.l':'Quick Start','sec.api.t':'Up and running in minutes','sec.api.m':'API Methods',
+        'api.save':'Returns editor content as JSON.',
+        'api.render':'Replaces content with provided data.',
+        'api.clear':'Clears all blocks.',
+        'api.destroy':'Destroys editor, cleans up DOM.',
+        'api.events':'Subscribe to block:added, block:removed, etc.',
+        'api.blocks':'Read-only block list access.',
+        'demo.preview':'Preview','demo.edit':'Edit','demo.output':'Output JSON',
+        'star.title':'Support the project','star.desc':'If RectorJs is useful to you, give it a star on GitHub. It helps the project grow.','star.btn':'Star on GitHub',
+        'foot.txt':'Vanilla JavaScript. Zero dependencies.','foot.docs':'Documentation','foot.github':'GitHub',
+      },
+      ru: {
+        'nav.features':'Возможности','nav.demo':'Демо','nav.plugins':'Плагины','nav.api':'API',
+        'hero.tag':'Блочный редактор',
+        'hero.sub':'Современный расширяемый блочный редактор. Чистый JavaScript, без зависимостей, JSON на выходе.',
+        'hero.cta1':'Попробовать','hero.cta2':'Документация',
+        'sec.feat.l':'Возможности','sec.feat.t':'Всё, что нужно',
+        'f.1.t':'Блочная архитектура','f.1.d':'Модульные блоки — абзацы, заголовки, списки, изображения, видео, таблицы. Каждый блок независим.',
+        'f.2.t':'21+ плагин','f.2.d':'Изображения, галерея, видео, код, таблицы, чеклисты, цитаты, аккордеон, колонки, опросы. Создавайте свои.',
+        'f.3.t':'Инлайн-инструменты','f.3.d':'Жирный, курсив, ссылки, код, размер шрифта, цвет текста, выравнивание — плавающая панель.',
+        'f.4.t':'Drag & Drop','f.4.d':'Перестановка блоков с FLIP-анимацией. Ручка перетаскивания на каждом блоке.',
+        'f.5.t':'Отмена / Повтор','f.5.d':'Snapshot-история. Ctrl+Z / Ctrl+Shift+Z для всех операций.',
+        'f.6.t':'Чистый JSON','f.6.d':'Структурированный формат. Тип + данные. Легко сериализовать, хранить и рендерить.',
+        'f.7.t':'i18n','f.7.d':'Встроенные English и Русский. Добавляйте любой язык.',
+        'f.8.t':'Темы','f.8.d':'CSS-переменные для темизации. Тёмная и светлая темы в рантайме.',
+        'f.9.t':'Без зависимостей','f.9.d':'Без React, Vue, фреймворков. Чистый vanilla JavaScript.',
+        'sec.demo.l':'Живое демо','sec.demo.t':'Попробуйте прямо здесь',
+        'sec.demo.d':'Полнофункциональный редактор. Печатайте, добавляйте блоки, форматируйте.',
+        'demo.json':'JSON','demo.theme.dark':'Тёмная','demo.theme.light':'Светлая',
+        'sec.plug.l':'Плагины','sec.plug.t':'21 блок, готовый к использованию',
+        'sec.plug.d':'Каждый плагин независим. Используйте только нужные.',
+        'sec.api.l':'Быстрый старт','sec.api.t':'Запуск за пару минут','sec.api.m':'Методы API',
+        'api.save':'Возвращает содержимое в JSON.',
+        'api.render':'Заменяет содержимое переданными данными.',
+        'api.clear':'Очищает все блоки.',
+        'api.destroy':'Уничтожает редактор, очищает DOM.',
+        'api.events':'Подписка на block:added, block:removed и др.',
+        'api.blocks':'Read-only доступ к блокам.',
+        'demo.preview':'Превью','demo.edit':'Редактор','demo.output':'JSON на выходе',
+        'star.title':'Поддержите проект','star.desc':'Если RectorJs оказался полезен, поставьте звезду на GitHub. Это помогает проекту расти.','star.btn':'Звезда на GitHub',
+        'foot.txt':'Чистый JavaScript. Без зависимостей.','foot.docs':'Документация','foot.github':'GitHub',
+      },
+    }
+
+    let lang = localStorage.getItem('rjs-lang') || 'en'
+
+    const langSelect = document.getElementById('langSelect')
+    const langToggle = document.getElementById('langToggle')
+    const langValue = langSelect.querySelector('.lang-select__value')
+
+    function setLang(l) {
+      lang = l
+      localStorage.setItem('rjs-lang', l)
+      document.documentElement.lang = l
+      const d = T[l] || T.en
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const k = el.dataset.i18n
+        if (d[k]) el.textContent = d[k]
+      })
+      langValue.textContent = l.toUpperCase()
+      langSelect.querySelectorAll('.lang-select__options button').forEach(b =>
+        b.classList.toggle('on', b.dataset.lang === l)
+      )
+      langSelect.classList.remove('open')
+    }
+
+    langToggle.addEventListener('click', () => {
+      langSelect.classList.toggle('open')
+    })
+
+    langSelect.querySelectorAll('.lang-select__options button').forEach(b =>
+      b.addEventListener('click', () => setLang(b.dataset.lang))
+    )
+
+    document.addEventListener('click', (e) => {
+      if (!langSelect.contains(e.target)) langSelect.classList.remove('open')
+    })
+
+    /* ── Theme toggle ─────────────────────────────────────────────────── */
+    const themeToggle = document.getElementById('themeToggle')
+    const savedTheme = localStorage.getItem('rectorjs-theme') || 'dark'
+    function setTheme(t) {
+      document.documentElement.classList.toggle('theme-light', t === 'light')
+      // Sync embedded editor theme
+      const oeRoot = document.querySelector('.oe-editor')
+      if (oeRoot) {
+        oeRoot.classList.toggle('oe-theme-dark', t === 'dark')
+        oeRoot.classList.toggle('oe-theme-light', t === 'light')
+      }
+      localStorage.setItem('rectorjs-theme', t)
+    }
+    setTheme(savedTheme)
+    themeToggle.addEventListener('click', () => {
+      const next = document.documentElement.classList.contains('theme-light') ? 'dark' : 'light'
+      setTheme(next)
+    })
+
+    function escapeHtml(s) {
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    }
+
+    function highlightJS(code) {
+      return escapeHtml(code)
+        .replace(/\b(const|let|var|new|await|import|from|export)\b/g, '<span class="k">$1</span>')
+        .replace(/\b(createEditor|getElementById|Paragraph|Heading|save)\b/g, '<span class="f">$1</span>')
+        .replace(/'([^']*)'/g, '\'<span class="s">$1</span>\'')
+        .replace(/(\/\/.*)/g, '<span class="c">$1</span>')
+    }
+
+    /* ── Plugins grid ──────────────────────────────────────────────────── */
+
+    const plugins = [
+      new Paragraph(), new Heading(), new List(), new Quote(),
+      new Code(), new Image(), new Embed(), new Gallery(),
+      new Checklist(), new Warning(), new Raw(), new Poll(),
+      new Person(), new Attaches(),
+      new LinkPreview({
+        async fetchMeta(url) {
+          try {
+            const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`)
+            if (!res.ok) return {}
+            const html = await res.text()
+            const doc = new DOMParser().parseFromString(html, 'text/html')
+            const og = (name) => doc.querySelector(`meta[property="og:${name}"]`)?.content || ''
+            const meta = (name) => doc.querySelector(`meta[name="${name}"]`)?.content || ''
+            let domain = ''
+            try { domain = new URL(url).hostname } catch {}
+            return {
+              title: og('title') || doc.querySelector('title')?.textContent || '',
+              description: og('description') || meta('description') || '',
+              image: og('image') || '',
+              favicon: `https://www.google.com/s2/favicons?domain=${domain}&sz=64`,
+              domain,
+            }
+          } catch {
+            return {}
+          }
+        }
+      }),
+      new Toggle(), new Columns(), new Spoiler(),
+      new Delimiter(), new Table(),
+    ]
+
+    const grid = document.getElementById('plugGrid')
+    for (const p of plugins) {
+      const card = document.createElement('div')
+      card.className = 'plug'
+      card.innerHTML = `<div class="plug__ico" aria-hidden="true">${p.icon}</div><div class="plug__name">${p.title || p.type}</div>`
+      grid.appendChild(card)
+    }
+
+    /* ── Editor ────────────────────────────────────────────────────────── */
+
+    const initialEditorTheme = document.documentElement.classList.contains('theme-light') ? 'light' : 'dark'
+    const editor = createEditor({
+      holder: document.getElementById('editorHolder'),
+      plugins,
+      locale: lang === 'ru' ? localeRu : localeEn,
+      theme: initialEditorTheme,
+      autofocus: false,
+      minHeight: 280,
+      data: {
+        blocks: [
+          { type: 'heading', data: { text: 'Welcome to RectorJs', level: 2 } },
+          { type: 'paragraph', data: { text: 'A <b>modern block editor</b> for the web. Hover over a block to see the <code>+</code> button and drag handle on the right.' } },
+          { type: 'paragraph', data: { text: 'Select text to see the <i>inline toolbar</i>. Press <code>/</code> in an empty block for slash commands.' } },
+        ],
+      },
+    })
+
+    /* ── Preview toggle ────────────────────────────────────────────────── */
+
+    let previewing = false
+    const previewBtn = document.getElementById('previewBtn')
+    const editorHolder = document.getElementById('editorHolder')
+    const previewHolder = document.getElementById('previewHolder')
+
+    // Dynamically import renderer — recreated on theme change
+    /** @type {any} */
+    let EditorRendererClass = null
+    async function getRenderer() {
+      if (!EditorRendererClass) {
+        const mod = await import('./renderer/index.js')
+        EditorRendererClass = mod.EditorRenderer
+      }
+      const currentTheme = document.documentElement.classList.contains('theme-light') ? 'light' : 'dark'
+      const renderer = new EditorRendererClass({ throwOnUnknown: false, theme: currentTheme })
+      renderer.injectStyles()
+      return renderer
+    }
+
+    previewBtn.addEventListener('click', async () => {
+      previewing = !previewing
+      const d = T[lang] || T.en
+
+      if (previewing) {
+        const data = await editor.save()
+        const renderer = await getRenderer()
+        previewHolder.innerHTML = ''
+        previewHolder.appendChild(renderer.render(data))
+        editorHolder.style.display = 'none'
+        previewHolder.style.display = ''
+        previewBtn.textContent = d['demo.edit'] || 'Edit'
+        previewBtn.classList.add('on')
+      } else {
+        editorHolder.style.display = ''
+        previewHolder.style.display = 'none'
+        previewBtn.textContent = d['demo.preview'] || 'Preview'
+        previewBtn.classList.remove('on')
+      }
+    })
+
+    /* ── Output JSON accordion ─────────────────────────────────────────── */
+
+    const outputJson = document.getElementById('outputJson')
+    const outputPre = document.getElementById('outputPre')
+
+    function highlightJson(val, indent = 0) {
+      const pad = '  '.repeat(indent)
+      if (val === null) return '<span class="k">null</span>'
+      if (typeof val === 'boolean') return `<span class="k">${val}</span>`
+      if (typeof val === 'number') return `<span class="k">${val}</span>`
+      if (typeof val === 'string') return `<span class="s">"${val.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}"</span>`
+      if (Array.isArray(val)) {
+        if (val.length === 0) return '[]'
+        const items = val.map(v => pad + '  ' + highlightJson(v, indent + 1))
+        return '[\n' + items.join(',\n') + '\n' + pad + ']'
+      }
+      const keys = Object.keys(val)
+      if (keys.length === 0) return '{}'
+      const entries = keys.map(k =>
+        pad + '  ' + `<span class="f">"${k}"</span>: ` + highlightJson(val[k], indent + 1)
+      )
+      return '{\n' + entries.join(',\n') + '\n' + pad + '}'
+    }
+
+    outputJson.addEventListener('toggle', async () => {
+      if (outputJson.open) {
+        const d = await editor.save()
+        outputPre.innerHTML = highlightJson(d)
+      }
+    })
+
+    /* ── Init lang ────────────────────────────────────────────────────── */
+
+    setLang(lang)
+
+    // Scroll-triggered fade-in (skip hero — it uses CSS animation)
+    const observer = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible')
+          observer.unobserve(entry.target)
+        }
+      }
+    }, { threshold: 0.15 })
+
+    document.querySelectorAll('.animation:not(.hero .animation)').forEach(el => observer.observe(el))
+  </script>
+
+</body>
+</html>

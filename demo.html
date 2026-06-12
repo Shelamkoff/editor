@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ophire Editor — Demo</title>
+  <link rel="stylesheet" href="core/themes/variables.css">
+  <link rel="stylesheet" href="../color-picker/colorPicker.css">
+  <link rel="stylesheet" href="core/themes/dark.css">
+  <link rel="stylesheet" href="core/themes/light.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #000;
+      color: #f5f5f5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+      transition: background 0.3s, color 0.3s;
+    }
+    body.light {
+      background: #f5f5f5;
+      color: #1a1a1a;
+    }
+
+    /* ── Header ─────────────────────────────────────────────── */
+    .demo-header {
+      width: 100%;
+      max-width: 720px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 32px;
+    }
+    .demo-title {
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+    .demo-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .demo-btn {
+      padding: 6px 14px;
+      font-size: 13px;
+      font-family: inherit;
+      font-weight: 500;
+      border: 1px solid #2a2a2a;
+      border-radius: 6px;
+      background: #111;
+      color: #c4c4c4;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .demo-btn:hover {
+      background: #191919;
+      color: #f5f5f5;
+      border-color: #3a3a3a;
+    }
+    .demo-btn--active {
+      background: #4357b4;
+      color: #fff;
+      border-color: #4357b4;
+    }
+    .demo-btn--active:hover {
+      background: #3e5ace;
+      border-color: #3e5ace;
+    }
+    body.light .demo-btn {
+      background: #fff;
+      border-color: #e5e5e5;
+      color: #525252;
+    }
+    body.light .demo-btn:hover {
+      background: #fafafa;
+      color: #1a1a1a;
+      border-color: #d4d4d4;
+    }
+    body.light .demo-btn--active {
+      background: #3e5ace;
+      color: #fff;
+      border-color: #3e5ace;
+    }
+
+    /* ── Editor wrapper ─────────────────────────────────────── */
+    .demo-editor {
+      width: 100%;
+      max-width: 720px;
+      padding: 24px 60px 24px 60px;
+      background: #0a0a0a;
+      border: 1px solid #1a1a1a;
+      border-radius: 12px;
+      min-height: 400px;
+      transition: background 0.3s, border-color 0.3s;
+    }
+    body.light .demo-editor {
+      background: #fff;
+      border-color: #e5e5e5;
+    }
+
+    /* ── Output panel ───────────────────────────────────────── */
+    .demo-output {
+      width: 100%;
+      max-width: 720px;
+      margin-top: 24px;
+    }
+    .demo-output__toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 0;
+      font-size: 13px;
+      font-weight: 500;
+      color: #908c8c;
+      cursor: pointer;
+      border: none;
+      background: none;
+      font-family: inherit;
+      transition: color 0.15s;
+    }
+    .demo-output__toggle:hover {
+      color: #c4c4c4;
+    }
+    .demo-output__toggle svg {
+      transition: transform 0.2s;
+    }
+    .demo-output__toggle--open svg {
+      transform: rotate(90deg);
+    }
+    .demo-output__pre {
+      display: none;
+      margin-top: 8px;
+      padding: 16px 20px;
+      background: #0d1117;
+      border: 1px solid #21262d;
+      border-radius: 10px;
+      font-family: 'JetBrains Mono', 'Fira Code', Monaco, Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      color: #c9d1d9;
+      overflow-x: auto;
+      white-space: pre;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    .demo-output__pre--open {
+      display: block;
+    }
+    body.light .demo-output__pre {
+      background: #fafafa;
+      border-color: #e5e5e5;
+      color: #1a1a1a;
+    }
+
+    /* ── Status bar ─────────────────────────────────────────── */
+    .demo-status {
+      width: 100%;
+      max-width: 720px;
+      margin-top: 12px;
+      display: flex;
+      gap: 16px;
+      font-size: 12px;
+      color: #908c8c;
+    }
+    .demo-status__item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .demo-status__dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #3fb950;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="demo-header">
+    <div class="demo-title">OmenJs</div>
+    <div class="demo-actions">
+      <button class="demo-btn demo-btn--active" id="themeBtn">Dark</button>
+      <button class="demo-btn" id="saveBtn">Save JSON</button>
+      <button class="demo-btn" id="clearBtn">Clear</button>
+    </div>
+  </div>
+
+  <div class="demo-editor" id="editor"></div>
+
+  <div class="demo-status">
+    <div class="demo-status__item">
+      <span class="demo-status__dot"></span>
+      <span id="blockCount">1 block</span>
+    </div>
+    <div class="demo-status__item" id="focusInfo">—</div>
+  </div>
+
+  <div class="demo-output">
+    <button class="demo-output__toggle" id="outputToggle">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      Output JSON
+    </button>
+    <pre class="demo-output__pre" id="outputPre"></pre>
+  </div>
+
+  <script type="module">
+    import { createEditor, createColorSwatchPlugin, createMentionPlugin } from './core/index.js'
+    import locale from './locale/ru.js'
+    // Block plugins are imported from their own entry points to keep bundles tree-shakeable.
+    import { Paragraph }   from './plugins/paragraph/index.js'
+    import { Heading }     from './plugins/heading/index.js'
+    import { List }        from './plugins/list/index.js'
+    import { Quote }       from './plugins/quote/index.js'
+    import { Code }        from './plugins/code/index.js'
+    import { Image }       from './plugins/image/index.js'
+    import { Embed }       from './plugins/embed/index.js'
+    import { Gallery }     from './plugins/gallery/index.js'
+    import { Checklist }   from './plugins/checklist/index.js'
+    import { Warning }     from './plugins/warning/index.js'
+    import { Raw }         from './plugins/raw/index.js'
+    import { Poll }        from './plugins/poll/index.js'
+    import { Person }      from './plugins/person/index.js'
+    import { Attaches }    from './plugins/attaches/index.js'
+    import { LinkPreview } from './plugins/link-preview/index.js'
+    import { Toggle }      from './plugins/toggle/index.js'
+    import { Columns }     from './plugins/columns/index.js'
+    import { Spoiler }     from './plugins/spoiler/index.js'
+    import { Delimiter }   from './plugins/delimiter/index.js'
+    import { Table }       from './plugins/table/index.js'
+
+    // ── DOM refs (hoisted before editor init) ────────────────
+    const blockCountEl = document.getElementById('blockCount')
+    const focusInfoEl = document.getElementById('focusInfo')
+    const outputToggle = document.getElementById('outputToggle')
+    const outputPre = document.getElementById('outputPre')
+    const themeBtn = document.getElementById('themeBtn')
+
+    // ── Mention plugin: mock dataset + paginated async search ────
+    // Substitutes a real API call — same contract the production
+    // `searchUsers()` fetcher follows (returns { items, nextPageUrl? }).
+    const DEMO_USERS = [
+      { id: 1,  name: 'Anya Morozova',   details: '@anya · Design' },
+      { id: 2,  name: 'Bilal Haddad',    details: '@bilal · Engineering' },
+      { id: 3,  name: 'Clara Nowak',     details: '@clara · Product' },
+      { id: 4,  name: 'Dmitri Volkov',   details: '@dmitri · Engineering' },
+      { id: 5,  name: 'Elena Silva',     details: '@elena · Marketing' },
+      { id: 6,  name: 'Farid Kasem',     details: '@farid · Ops' },
+      { id: 7,  name: 'Gio Conti',       details: '@gio · Design' },
+      { id: 8,  name: 'Hannah Park',     details: '@hannah · Engineering' },
+      { id: 9,  name: 'Ivar Sørensen',   details: '@ivar · Research' },
+      { id: 10, name: 'Jade Okonkwo',    details: '@jade · Product' },
+      { id: 11, name: 'Kira Tanaka',     details: '@kira · Engineering' },
+      { id: 12, name: 'Léo Martin',      details: '@leo · Design' },
+      { id: 13, name: 'Maya Lindqvist',  details: '@maya · People' },
+      { id: 14, name: 'Noah Ellis',      details: '@noah · Engineering' },
+      { id: 15, name: 'Olena Kovalenko', details: '@olena · Ops' },
+      { id: 16, name: 'Priya Shah',      details: '@priya · Product' },
+      { id: 17, name: 'Quinn O’Brien',   details: '@quinn · Marketing' },
+      { id: 18, name: 'Rafael Okoye',    details: '@rafael · Engineering' },
+      { id: 19, name: 'Sara Bianchi',    details: '@sara · Design' },
+      { id: 20, name: 'Talia Weiss',     details: '@talia · People' },
+    ]
+    const PAGE_SIZE = 8
+
+    async function demoSearchUsers(query, nextPageUrl) {
+      // Simulate network latency so the debounce + loading indicator are
+      // visible in the demo.
+      await new Promise(r => setTimeout(r, 180))
+
+      const filtered = DEMO_USERS.filter(u =>
+        u.name.toLowerCase().includes(query.toLowerCase())
+      )
+      const offset = nextPageUrl ? parseInt(nextPageUrl, 10) : 0
+      const page = filtered.slice(offset, offset + PAGE_SIZE)
+      const nextOffset = offset + PAGE_SIZE
+      return {
+        items: page,
+        nextPageUrl: nextOffset < filtered.length ? String(nextOffset) : null,
+      }
+    }
+
+    let outputOpen = false
+    let isDark = true
+
+    function updateOutput(data) {
+      if (outputOpen) {
+        outputPre.textContent = JSON.stringify(data, null, 2)
+      }
+    }
+
+    function updateStatus() {
+      const count = editor.blocks.getBlockCount()
+      blockCountEl.textContent = `${count} block${count !== 1 ? 's' : ''}`
+
+      const current = editor.blocks.getCurrentBlock()
+      focusInfoEl.textContent = current
+        ? `focused: ${current.type} #${current.id.slice(0, 6)}`
+        : '—'
+    }
+
+    // ── Init editor ──────────────────────────────────────────
+    const editor = createEditor({
+      holder: document.getElementById('editor'),
+      locale,
+      plugins: [
+        new Paragraph(),
+        new Heading(),
+        new List(),
+        new Quote(),
+        new Code(),
+        new Image(),
+        new Embed(),
+        new Gallery(),
+        new Checklist(),
+        new Warning(),
+        new Raw(),
+        new Poll(),
+        new Person(),
+        new Attaches(),
+        new LinkPreview({
+          async fetchMeta(url) {
+            const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`)
+            if (!res.ok) return {}
+            const html = await res.text()
+            const doc = new DOMParser().parseFromString(html, 'text/html')
+            const og = (name) => doc.querySelector(`meta[property="og:${name}"]`)?.content || ''
+            const meta = (name) => doc.querySelector(`meta[name="${name}"]`)?.content || ''
+            let domain = ''
+            try { domain = new URL(url).hostname } catch {}
+            return {
+              title: og('title') || doc.querySelector('title')?.textContent || '',
+              description: og('description') || meta('description') || '',
+              image: og('image') || '',
+              favicon: `https://www.google.com/s2/favicons?domain=${domain}&sz=64`,
+              domain,
+            }
+          }
+        }),
+        new Toggle(),
+        new Columns(),
+        new Spoiler(),
+        new Delimiter(),
+        new Table(),
+      ],
+      inlinePlugins: [
+        createColorSwatchPlugin(),
+        createMentionPlugin({
+          // Demo-only: swap `demoSearchUsers` for a real `searchUsers()` call
+          // in production. Contract is identical — Promise<{items, nextPageUrl?}>
+          // or Promise<Item[]>.
+          searchFunction: demoSearchUsers,
+          debounceDelay: 250,
+          onMentionSelect(data) {
+            console.log('[demo] mention selected:', data)
+          },
+        }),
+      ],
+      theme: 'dark',
+      autofocus: true,
+      minHeight: 350,
+      onChange(data) {
+        updateOutput(data)
+        updateStatus()
+      },
+    })
+
+    // With async createEditor, the editor is fully ready after await —
+    // no need for onReady callback.
+    updateStatus()
+
+    // ── Events ───────────────────────────────────────────────
+    editor.events.on('block:focused', () => updateStatus())
+    editor.events.on('block:added', () => updateStatus())
+    editor.events.on('block:removed', () => updateStatus())
+
+    // ── Output panel toggle ──────────────────────────────────
+    outputToggle.addEventListener('click', () => {
+      outputOpen = !outputOpen
+      outputToggle.classList.toggle('demo-output__toggle--open', outputOpen)
+      outputPre.classList.toggle('demo-output__pre--open', outputOpen)
+      if (outputOpen) {
+        editor.save().then(data => updateOutput(data))
+      }
+    })
+
+    // ── Theme toggle ─────────────────────────────────────────
+    themeBtn.addEventListener('click', () => {
+      isDark = !isDark
+      document.body.classList.toggle('light', !isDark)
+
+      const editorRoot = editor.rootElement
+      editorRoot.classList.toggle('oe-theme-dark', isDark)
+      editorRoot.classList.toggle('oe-theme-light', !isDark)
+
+      themeBtn.textContent = isDark ? 'Dark' : 'Light'
+    })
+
+    // ── Save button ──────────────────────────────────────────
+    document.getElementById('saveBtn').addEventListener('click', async () => {
+      const data = await editor.save()
+      const json = JSON.stringify(data, null, 2)
+      console.log('Editor output:', data)
+
+      try {
+        await navigator.clipboard.writeText(json)
+        const btn = document.getElementById('saveBtn')
+        btn.textContent = 'Copied!'
+        setTimeout(() => { btn.textContent = 'Save JSON' }, 1500)
+      } catch {
+        outputOpen = true
+        outputToggle.classList.add('demo-output__toggle--open')
+        outputPre.classList.add('demo-output__pre--open')
+        updateOutput(data)
+      }
+    })
+
+    // ── Clear button ─────────────────────────────────────────
+    document.getElementById('clearBtn').addEventListener('click', () => {
+      editor.clear()
+      editor.focus()
+      updateStatus()
+    })
+  </script>
+</body>
+</html>

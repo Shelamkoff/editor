@@ -1,0 +1,15 @@
+export default {
+  'plugin.embed.title': 'Video',
+  'plugin.embed.url': 'URL',
+  'plugin.embed.urlPrompt': 'Video URL (YouTube or Vimeo):',
+  'plugin.embed.hint': 'Paste a YouTube or Vimeo link',
+  'plugin.embed.caption': 'Caption',
+  'plugin.embed.delete': 'Delete',
+  'plugin.embed.replace': 'Replace',
+  'plugin.embed.settings': 'Settings',
+  'plugin.embed.videoTitle': 'Title',
+  'plugin.embed.duration': 'Duration',
+  'plugin.embed.cover': 'Cover',
+  'plugin.embed.uploadCover': 'Upload',
+  'plugin.embed.removeCover': 'Remove',
+}

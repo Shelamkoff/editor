@@ -1,0 +1,34 @@
+.editor-table-wrapper {
+  overflow-x: auto;
+  border-radius: var(--er-radius-sm);
+  border: 1px solid var(--er-border);
+}
+
+.editor-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.editor-table__head {
+  background-color: var(--er-surface);
+}
+
+.editor-table__header {
+  padding: 10px 14px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--er-text-1);
+  border-bottom: 1px solid var(--er-border);
+  white-space: nowrap;
+}
+
+.editor-table__cell {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--er-border);
+  color: var(--er-text-2);
+}
+
+.editor-table__row:last-child .editor-table__cell {
+  border-bottom: none;
+}

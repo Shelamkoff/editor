@@ -1,0 +1,314 @@
+/* =============================================================================
+   Poll plugin — poll/survey with single/multiple choice and results preview
+   ============================================================================= */
+
+.oe-poll {
+  border: 1px solid var(--oe-border, #2e2e35);
+  border-radius: 0.5rem;
+  padding: 1rem 1.25rem;
+  outline: none;
+}
+
+/* ── Question ─────────────────────────────────────────────────────────────── */
+
+.oe-poll__question {
+  font-weight: 600;
+  font-size: 1rem;
+  outline: none;
+  margin-bottom: 0.75rem;
+  line-height: 1.4;
+}
+
+.oe-poll__question:empty::before {
+  content: attr(data-placeholder);
+  color: var(--oe-text-3, #6e6e78);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* ── Options container ────────────────────────────────────────────────────── */
+
+.oe-poll__options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+/* ── Option item ──────────────────────────────────────────────────────────── */
+
+.oe-poll__option {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.375rem 0.5rem;
+  border-radius: 0.375rem;
+  transition: background 0.12s;
+  position: relative;
+}
+
+.oe-poll__option:hover {
+  background: var(--oe-surface-hover, rgba(255, 255, 255, 0.03));
+}
+
+/* ── Option marker (radio/checkbox visual) ────────────────────────────────── */
+
+.oe-poll__option-marker {
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
+  margin-top: 0.25rem;
+  border: 2px solid var(--oe-border-hover, #3a3a44);
+  transition: border-color 0.15s;
+}
+
+.oe-poll__option-marker--single {
+  border-radius: 50%;
+}
+
+.oe-poll__option-marker--multiple {
+  border-radius: 3px;
+}
+
+.oe-poll__option:hover .oe-poll__option-marker {
+  border-color: var(--oe-accent, #4357b4);
+}
+
+/* ── Option text ──────────────────────────────────────────────────────────── */
+
+.oe-poll__option-text {
+  flex: 1;
+  min-width: 0;
+  outline: none;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.oe-poll__option-text:empty::before {
+  content: attr(data-placeholder);
+  color: var(--oe-text-3, #6e6e78);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* ── Option remove button ─────────────────────────────────────────────────── */
+
+.oe-poll__option-remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-top: 0.1875rem;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--oe-text-3, #6e6e78);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s, background 0.15s, color 0.15s;
+  outline: none;
+  padding: 0;
+}
+
+.oe-poll__option:hover .oe-poll__option-remove {
+  opacity: 1;
+}
+
+.oe-poll__option-remove:hover {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--oe-danger, #f87171);
+}
+
+/* ── Add option button ────────────────────────────────────────────────────── */
+
+.oe-poll__option-add {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.5rem;
+  margin-top: 0.25rem;
+  border: 1px dashed var(--oe-border, #2e2e35);
+  border-radius: 0.375rem;
+  background: transparent;
+  color: var(--oe-text-3, #6e6e78);
+  font-size: 0.8125rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+  outline: none;
+}
+
+.oe-poll__option-add:hover {
+  border-color: var(--oe-accent, #4357b4);
+  color: var(--oe-accent, #4357b4);
+}
+
+.oe-poll__option-add svg {
+  flex-shrink: 0;
+}
+
+/* ── Results preview ──────────────────────────────────────────────────────── */
+
+.oe-poll__results {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--oe-border, #2e2e35);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.oe-poll__result-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.oe-poll__result-label {
+  min-width: 4rem;
+  max-width: 8rem;
+  font-size: 0.75rem;
+  color: var(--oe-text-2, #9898a0);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.oe-poll__result-bar {
+  flex: 1;
+  height: 6px;
+  background: var(--oe-surface-2, #1a1a1f);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.oe-poll__result-fill {
+  height: 100%;
+  background: var(--oe-accent, #4357b4);
+  border-radius: 3px;
+  transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.oe-poll__result-pct {
+  min-width: 2.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--oe-text-3, #6e6e78);
+  text-align: right;
+}
+
+/* ── Action bar ───────────────────────────────────────────────────────────── */
+
+.oe-poll__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  margin-top: 0.75rem;
+  background: var(--oe-surface, #0e0e10);
+  border: 1px solid var(--oe-border, #1a1a1f);
+  border-radius: 0.5rem;
+  padding: 0.1875rem;
+}
+
+.oe-poll__action-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3125rem;
+  padding: 0.3125rem 0.5rem;
+  border: none;
+  border-radius: 0.375rem;
+  background: transparent;
+  color: var(--oe-text-1, #fff);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.15s;
+  white-space: nowrap;
+  line-height: 1;
+  isolation: isolate;
+  font-family: inherit;
+  outline: none;
+}
+
+.oe-poll__action-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 0.375rem;
+  background: var(--oe-accent, #4357b4);
+  transform: scale(0);
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  z-index: -1;
+  backface-visibility: hidden;
+}
+
+.oe-poll__action-btn:hover::before {
+  transform: scale(1);
+}
+
+.oe-poll__action-btn--active {
+  color: var(--oe-accent, #4357b4);
+}
+
+.oe-poll__action-btn--danger {
+  color: var(--oe-danger, #f87171);
+}
+
+.oe-poll__action-btn--danger::before {
+  background: var(--oe-danger, #f87171);
+}
+
+.oe-poll__action-btn--danger:hover {
+  color: var(--oe-text-on-accent, #fff);
+}
+
+.oe-poll__action-btn svg {
+  flex-shrink: 0;
+}
+
+.oe-poll__actions-sep {
+  width: 1px;
+  height: 1.125rem;
+  background: var(--oe-border, #1a1a1f);
+  margin: 0 0.0625rem;
+  flex-shrink: 0;
+}
+
+/* ── Light theme ──────────────────────────────────────────────────────────── */
+
+.oe-theme-light .oe-poll {
+  border-color: var(--oe-border, #e0e0e0);
+}
+
+.oe-theme-light .oe-poll__option:hover {
+  background: var(--oe-surface-hover, rgba(0, 0, 0, 0.02));
+}
+
+.oe-theme-light .oe-poll__option-marker {
+  border-color: var(--oe-border-hover, #d0d0d0);
+}
+
+.oe-theme-light .oe-poll__option-add {
+  border-color: var(--oe-border, #e0e0e0);
+}
+
+.oe-theme-light .oe-poll__results {
+  border-top-color: var(--oe-border, #e0e0e0);
+}
+
+.oe-theme-light .oe-poll__result-bar {
+  background: var(--oe-surface-2, #f0f0f0);
+}
+
+.oe-theme-light .oe-poll__actions {
+  background: var(--oe-surface, #fafafa);
+  border-color: var(--oe-border, #e0e0e0);
+}
+
+.oe-theme-light .oe-poll__action-btn {
+  color: var(--oe-text-1, #1a1a1a);
+}

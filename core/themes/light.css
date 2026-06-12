@@ -1,0 +1,33 @@
+.oe-theme-light {
+  --oe-bg: #fff;
+  --oe-surface: #fafafa;
+  --oe-card: #fff;
+  --oe-card-hover: #f5f5f5;
+  --oe-border: #e5e5e5;
+  --oe-border-hover: #d4d4d4;
+  --oe-text-1: #1a1a1a;
+  --oe-text-2: #525252;
+  --oe-text-3: #a3a3a3;
+  --oe-accent: #6d4de6;
+  --oe-accent-alpha: rgba(109, 77, 230, 0.1);
+  --oe-accent-text: #6d4de6;
+  --oe-surface-2: #f0f0f0;
+  --oe-surface-elevated: #fff;
+  --oe-surface-hover: #f0f0f0;
+  --oe-border-focus: #6d4de6;
+  --oe-input-bg: #f0f0f0;
+  --oe-input-bg-hover: #e8e8e8;
+  --oe-selection-bg: rgba(109, 77, 230, 0.2);
+  --oe-toolbar-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+
+
+  --oe-success: #16a34a;
+  --oe-success-alpha: rgba(22, 163, 74, 0.12);
+  --oe-danger: #dc2626;
+  --oe-danger-light: #ef4444;
+  --oe-danger-alpha: rgba(220, 38, 38, 0.1);
+  --oe-text-on-accent: #fff;
+
+  --oe-code-inline-bg: #f0eef8;
+  --oe-code-inline-text: #6d4de6;
+}

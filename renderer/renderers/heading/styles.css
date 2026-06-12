@@ -1,0 +1,26 @@
+.editor-header {
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--er-text-1);
+  letter-spacing: -0.02em;
+}
+
+.editor-header--level-2 {
+  font-size: 24px;
+}
+
+.editor-header--level-3 {
+  font-size: 20px;
+}
+
+.editor-header--level-4 {
+  font-size: 18px;
+}
+
+.editor-header--level-5 {
+  font-size: 16px;
+}
+
+.editor-header--level-6 {
+  font-size: 14px;
+}

@@ -1,0 +1,103 @@
+/* =============================================================================
+   Columns plugin — multi-column layout
+   ============================================================================= */
+
+.oe-columns {
+  outline: none;
+}
+
+/* ── Grid ─────────────────────────────────────────────────────────────────── */
+
+.oe-columns__grid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+/* ── Column ───────────────────────────────────────────────────────────────── */
+
+.oe-columns__col {
+  min-height: 3rem;
+  padding: 0.75rem;
+  border: 1px dashed var(--oe-border, #2e2e35);
+  border-radius: 0.375rem;
+  outline: none;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  transition: border-color 0.15s;
+}
+
+.oe-columns__col:focus {
+  border-color: var(--oe-accent, #4357b4);
+  border-style: solid;
+}
+
+.oe-columns__col:empty::before {
+  content: attr(data-placeholder);
+  color: var(--oe-text-3, #6e6e78);
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+/* ── Layout selector ──────────────────────────────────────────────────────── */
+
+.oe-columns__actions {
+  display: inline-flex;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+  background: var(--oe-surface, #0e0e10);
+  border: 1px solid var(--oe-border, #1a1a1f);
+  border-radius: 0.375rem;
+  padding: 0.1875rem;
+}
+
+.oe-columns__layout-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.3125rem 0.5rem;
+  border: none;
+  border-radius: 0.25rem;
+  background: transparent;
+  color: var(--oe-text-3, #6e6e78);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+  outline: none;
+}
+
+.oe-columns__layout-btn:hover {
+  background: var(--oe-surface-hover, #1e1e24);
+  color: var(--oe-text-1, #e8e8ec);
+}
+
+.oe-columns__layout-btn--active {
+  background: var(--oe-accent, #4357b4);
+  color: var(--oe-text-on-accent, #fff);
+}
+
+.oe-columns__layout-btn--active:hover {
+  opacity: 0.9;
+}
+
+/* ── Light theme ──────────────────────────────────────────────────────────── */
+
+.oe-theme-light .oe-columns__col {
+  border-color: var(--oe-border, #e0e0e0);
+}
+
+.oe-theme-light .oe-columns__col:focus {
+  border-color: var(--oe-accent, #4357b4);
+}
+
+.oe-theme-light .oe-columns__actions {
+  background: var(--oe-surface, #fafafa);
+  border-color: var(--oe-border, #e0e0e0);
+}
+
+.oe-theme-light .oe-columns__layout-btn {
+  color: var(--oe-text-3, #6e6e78);
+}
+
+.oe-theme-light .oe-columns__layout-btn:hover {
+  background: var(--oe-surface-hover, #f0f0f0);
+  color: var(--oe-text-1, #1a1a1a);
+}

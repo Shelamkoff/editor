@@ -1,0 +1,63 @@
+/* =============================================================================
+   Warning plugin — callout/notice block
+   ============================================================================= */
+
+.oe-warning {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-left: 4px solid var(--oe-warning-border, #f59e0b);
+  background: var(--oe-warning-bg, rgba(245, 158, 11, 0.06));
+  border-radius: 0 0.375rem 0.375rem 0;
+}
+
+/* ── Icon ─────────────────────────────────────────────────────────────────── */
+
+.oe-warning__icon {
+  flex-shrink: 0;
+  color: var(--oe-warning-icon, #f59e0b);
+  margin-top: 0.125rem;
+}
+
+/* ── Content ──────────────────────────────────────────────────────────────── */
+
+.oe-warning__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.oe-warning__title {
+  font-weight: 600;
+  font-size: 0.9375rem;
+  outline: none;
+  margin-bottom: 0.25rem;
+  line-height: 1.4;
+}
+
+.oe-warning__title:empty::before {
+  content: attr(data-placeholder);
+  color: var(--oe-text-3, #6e6e78);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.oe-warning__message {
+  font-size: 0.875rem;
+  outline: none;
+  line-height: 1.6;
+  color: var(--oe-text-2, #9898a0);
+}
+
+.oe-warning__message:empty::before {
+  content: attr(data-placeholder);
+  color: var(--oe-text-3, #6e6e78);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* ── Light theme ──────────────────────────────────────────────────────────── */
+
+.oe-theme-light .oe-warning {
+  background: var(--oe-warning-bg, rgba(245, 158, 11, 0.06));
+  border-left-color: var(--oe-warning-border, #f59e0b);
+}

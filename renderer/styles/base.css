@@ -1,0 +1,168 @@
+/* =============================================================================
+   Renderer base — CSS variables + global inline styles
+   ============================================================================= */
+
+/* ── Dark theme (default) ─────────────────────────────────────────────────── */
+
+.editor-content {
+  --er-font: var(--font, inherit);
+  --er-font-mono: 'JetBrains Mono', 'Fira Code', Monaco, Consolas, monospace;
+  --er-font-size: 15px;
+  --er-line-height: 1.7;
+
+  --er-text-1: #f5f5f5;
+  --er-text-2: #c4c4c4;
+  --er-text-3: #908c8c;
+
+  --er-bg: #0d0d0d;
+  --er-surface: #0a0a0a;
+  --er-surface-hover: #111;
+  --er-border: #1a1a1a;
+  --er-border-hover: #2a2a2a;
+  --er-accent: #4357b4;
+  --er-text-on-accent: #fff;
+  --er-danger: #f87171;
+
+  --er-block-spacing: 0.5rem;
+  --er-radius: 10px;
+  --er-radius-sm: 6px;
+
+  --er-code-bg: #0d1117;
+  --er-code-border: #21262d;
+  --er-code-text: #c9d1d9;
+  --er-code-bar-bg: #21262d;
+  --er-code-copy-color: rgba(255, 255, 255, 0.5);
+  --er-code-success: #3fb950;
+  --er-code-scrollbar: rgba(255, 255, 255, 0.15);
+  --er-code-inline-bg: #1e1e24;
+  --er-code-inline-text: #a78bfa;
+
+  --er-quote-bg: rgba(99, 102, 241, 0.06);
+  --er-quote-border: rgba(99, 102, 241, 0.15);
+  --er-quote-accent: #818cf8;
+
+  --er-warning-bg: rgba(234, 179, 8, 0.06);
+  --er-warning-border: rgba(234, 179, 8, 0.2);
+  --er-warning-accent: #eab308;
+
+  --er-mark-bg: rgba(245, 166, 35, 0.2);
+
+  --er-embed-play-bg: #f1f1f1;
+  --er-embed-play-color: #2a2b2d;
+  --er-embed-placeholder: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  --er-embed-placeholder-icon: rgba(255, 255, 255, 0.3);
+
+  font-size: var(--er-font-size);
+  line-height: var(--er-line-height);
+  color: var(--er-text-1);
+  font-family: var(--er-font), sans-serif;
+}
+
+/* ── Light theme ──────────────────────────────────────────────────────────── */
+
+.editor-content--light,
+.editor-content[data-theme="light"] {
+  --er-text-1: #1a1a1a;
+  --er-text-2: #4a4a4a;
+  --er-text-3: #888;
+
+  --er-bg: #fff;
+  --er-surface: #f7f7f8;
+  --er-surface-hover: #f0f0f2;
+  --er-border: #e0e0e4;
+  --er-border-hover: #d0d0d4;
+  --er-accent: #4357b4;
+  --er-text-on-accent: #fff;
+
+  --er-code-bg: #f6f8fa;
+  --er-code-border: #d1d5db;
+  --er-code-text: #24292e;
+  --er-code-bar-bg: #e5e7eb;
+  --er-code-copy-color: rgba(0, 0, 0, 0.4);
+  --er-code-success: #16a34a;
+  --er-code-scrollbar: rgba(0, 0, 0, 0.15);
+  --er-code-inline-bg: #f0eef8;
+  --er-code-inline-text: #6d4de6;
+
+  --er-quote-bg: rgba(99, 102, 241, 0.04);
+  --er-quote-border: rgba(99, 102, 241, 0.15);
+  --er-quote-accent: #6366f1;
+
+  --er-warning-bg: rgba(234, 179, 8, 0.06);
+  --er-warning-border: rgba(234, 179, 8, 0.2);
+  --er-warning-accent: #ca8a04;
+
+  --er-mark-bg: rgba(245, 166, 35, 0.15);
+
+  --er-embed-play-bg: #fff;
+  --er-embed-play-color: #1a1a1a;
+  --er-embed-placeholder: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 50%, #94a3b8 100%);
+  --er-embed-placeholder-icon: rgba(0, 0, 0, 0.2);
+}
+
+/* ── Spacing ──────────────────────────────────────────────────────────────── */
+
+.editor-content > * {
+  margin-bottom: var(--er-block-spacing);
+}
+
+.editor-content > *:last-child {
+  margin-bottom: 0;
+}
+
+/* ── Inline formatting ────────────────────────────────────────────────────── */
+
+.editor-content b,
+.editor-content strong {
+  font-weight: 600;
+  color: var(--er-text-1);
+}
+
+.editor-content i,
+.editor-content em {
+  font-style: italic;
+}
+
+.editor-content code {
+  padding: 2px 6px;
+  background-color: var(--er-code-inline-bg, #1e1e24);
+  border: 1px solid var(--er-border-hover, #2a2a2a);
+  border-radius: 4px;
+  font-family: var(--er-font-mono), monospace;
+  font-size: 0.875em;
+  color: var(--er-code-inline-text, #a78bfa);
+}
+
+.editor-content mark {
+  padding: 1px 4px;
+  background-color: var(--er-mark-bg);
+  border-radius: 3px;
+  color: var(--er-text-1);
+}
+
+.editor-content a {
+  color: var(--er-text-2);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.15s;
+}
+
+.editor-content a:hover {
+  color: var(--er-text-1);
+}
+
+/* ── Unknown block fallback ───────────────────────────────────────────────── */
+
+.editor-unknown {
+  padding: 12px;
+  background-color: var(--er-surface);
+  border: 1px dashed var(--er-border);
+  border-radius: var(--er-radius-sm);
+  font-size: 13px;
+  color: var(--er-text-3);
+  text-align: center;
+}
+
+.editor-unknown::before {
+  content: 'Unknown block: ' attr(data-block-type);
+}

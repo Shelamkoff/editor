@@ -1,0 +1,57 @@
+.oe-list {
+  margin: 0;
+  padding: 0 0 0 1.5em;
+  color: var(--oe-text-1, #f5f5f5);
+  font-family: var(--oe-font, inherit);
+  font-size: var(--oe-font-size, 15px);
+  line-height: var(--oe-line-height, 1.7);
+}
+
+.oe-list--unordered {
+  list-style-type: disc;
+}
+
+.oe-list--ordered {
+  list-style-type: decimal;
+}
+
+.oe-list__item {
+  outline: none;
+  word-break: break-word;
+  white-space: pre-wrap;
+  padding: 1px 0;
+}
+
+.oe-list__item::marker {
+  color: var(--oe-text-3, #908c8c);
+}
+
+/* Inline formatting inside list items */
+.oe-list__item b,
+.oe-list__item strong {
+  font-weight: 600;
+  color: var(--oe-text-1, #f5f5f5);
+}
+
+.oe-list__item i,
+.oe-list__item em {
+  font-style: italic;
+}
+
+.oe-list__item a {
+  color: var(--oe-text-2, #c4c4c4);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.15s;
+}
+
+.oe-list__item a:hover {
+  color: var(--oe-text-1, #f5f5f5);
+}
+
+.oe-list__item mark {
+  padding: 1px 4px;
+  background: var(--oe-mark-bg, rgba(245, 166, 35, 0.2));
+  border-radius: 3px;
+  color: var(--oe-text-1, #f5f5f5);
+}

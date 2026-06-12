@@ -1,0 +1,11 @@
+/**
+ * Escape a string for safe insertion into HTML text content.
+ * @param {string} text
+ * @returns {string}
+ */
+export function escapeHtml(text) {
+  if (!text) return ''
+  const div = document.createElement('div')
+  div.textContent = text
+  return div.innerHTML
+}

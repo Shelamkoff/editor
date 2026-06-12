@@ -1,0 +1,43 @@
+.editor-quote {
+  display: flex;
+  gap: 16px;
+  padding: 20px 24px;
+  background-color: var(--er-quote-bg);
+  border: 1px solid var(--er-quote-border);
+  border-radius: var(--er-radius);
+}
+
+.editor-quote__icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-start;
+  padding-top: 2px;
+  color: var(--er-quote-accent);
+}
+
+.editor-quote__icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.editor-quote__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.editor-quote__text {
+  margin: 0;
+  line-height: var(--er-line-height);
+  color: var(--er-text-2);
+}
+
+.editor-quote__caption {
+  display: block;
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--er-text-3);
+}
+
+.editor-quote__caption::before {
+  content: '— ';
+}

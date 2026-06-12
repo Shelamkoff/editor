@@ -1,0 +1,40 @@
+.editor-image {
+  width: fit-content;
+}
+
+.editor-image__picture {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--er-radius-sm);
+}
+
+.editor-image--bordered .editor-image__picture {
+  border: 1px solid var(--er-border);
+}
+
+.editor-image--expanded {
+  width: 100vw;
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: none;
+}
+
+.editor-image--expanded .editor-image__picture {
+  width: 100%;
+  border-radius: 0;
+}
+
+.editor-image--background {
+  padding: 16px;
+  background-color: var(--er-surface);
+  border-radius: var(--er-radius);
+}
+
+.editor-image__caption {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--er-text-3);
+  text-align: center;
+}

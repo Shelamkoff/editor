@@ -1,0 +1,56 @@
+.oe-paragraph {
+  margin: 0;
+  padding: 0;
+  font-size: var(--oe-font-size, 15px);
+  line-height: var(--oe-line-height, 1.7);
+  color: var(--oe-text-1, #f5f5f5);
+  font-family: var(--oe-font, inherit);
+  outline: none;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+/* Placeholder — only when it's the sole empty block in the editor */
+.oe-blocks > :first-child:last-child .oe-paragraph:empty::before {
+  content: attr(data-placeholder);
+  color: var(--oe-text-3, #908c8c);
+  pointer-events: none;
+  font-weight: 400;
+}
+
+/* Inline formatting inside paragraphs */
+.oe-paragraph b,
+.oe-paragraph strong {
+  font-weight: 600;
+  color: var(--oe-text-1, #f5f5f5);
+}
+
+.oe-paragraph i,
+.oe-paragraph em {
+  font-style: italic;
+}
+
+.oe-paragraph a {
+  color: var(--oe-text-2, #c4c4c4);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.15s;
+}
+
+.oe-paragraph a:hover {
+  color: var(--oe-text-1, #f5f5f5);
+}
+
+
+.oe-paragraph mark {
+  padding: 1px 4px;
+  background: var(--oe-mark-bg, rgba(245, 166, 35, 0.2));
+  border-radius: 3px;
+  color: var(--oe-text-1, #f5f5f5);
+}
+
+.oe-paragraph s,
+.oe-paragraph strike {
+  text-decoration: line-through;
+  color: var(--oe-text-2, #c4c4c4);
+}

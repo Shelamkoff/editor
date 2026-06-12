@@ -1,0 +1,17 @@
+export default {
+  'plugin.attaches.title': 'File',
+  'plugin.attaches.upload': 'Upload',
+  'plugin.attaches.dropzoneUpload': 'Upload',
+  'plugin.attaches.dropzoneText': 'files from your device or drag and drop them here',
+  'plugin.attaches.addFiles': 'Add files',
+  'plugin.attaches.delete': 'Delete',
+  'plugin.attaches.deleteAll': 'Delete all',
+  'plugin.attaches.filesCount': 'files',
+  'plugin.attaches.settings': 'Settings',
+  'plugin.attaches.template': 'Template',
+  'plugin.attaches.variantA': 'Card',
+  'plugin.attaches.variantB': 'Inline',
+  'plugin.attaches.variantF': 'List',
+  'plugin.attaches.variantG': 'Elevated',
+  'plugin.attaches.untitled': 'File',
+}

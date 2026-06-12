@@ -1,0 +1,41 @@
+// @ts-check
+import { resolvePath } from '../../../shared/resolvePath.js'
+import { mapTextFields } from '../../../plugins/list/mapTextFields.js'
+
+const styles = resolvePath('./styles.css', import.meta.url)
+
+/**
+ * List block renderer — Ophire Editor format
+ * Data: { style: 'ordered' | 'unordered', items: string[] }
+ * @param {string} classPrefix
+ * @returns {import('../../types').BlockRenderer<import('../../types').ListBlock>}
+ */
+export function createListRenderer(classPrefix, _locale) {
+  return {
+    type: 'list',
+    styles: [styles],
+    mapTextFields,
+
+    /**
+     * @param {import('../../types').ListBlock} block
+     * @param {import('../../types').InlineParser} parseInline
+     * @returns {HTMLElement}
+     */
+    render(block, parseInline) {
+      const { style, items } = block.data
+
+      const tag = style === 'ordered' ? 'ol' : 'ul'
+      const list = document.createElement(tag)
+      list.className = `${classPrefix}-list ${classPrefix}-list--${style}`
+
+      for (const item of items) {
+        const li = document.createElement('li')
+        li.className = `${classPrefix}-list__item`
+        li.appendChild(parseInline(item))
+        list.appendChild(li)
+      }
+
+      return list
+    },
+  }
+}

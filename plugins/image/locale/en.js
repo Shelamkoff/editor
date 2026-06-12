@@ -1,0 +1,15 @@
+export default {
+  'plugin.image.title': 'Image',
+  'plugin.image.upload': 'Upload',
+  'plugin.image.url': 'URL',
+  'plugin.image.urlPrompt': 'Image URL:',
+  'plugin.image.dropzone': 'or drag and drop a file here',
+  'plugin.image.dropzoneUpload': 'Upload',
+  'plugin.image.dropzoneText': 'an image from your device or drag and drop it here',
+  'plugin.image.replace': 'Replace',
+  'plugin.image.delete': 'Delete',
+  'plugin.image.caption': 'Caption',
+  'plugin.image.settings': 'Settings',
+  'plugin.image.expand': 'Expand',
+  'plugin.image.background': 'Background',
+}

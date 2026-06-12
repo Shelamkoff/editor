@@ -1,0 +1,10 @@
+export function createSvgIcon(d: string, size?: number): string;
+export const ICON_PLUS: string;
+export const ICON_DRAG: string;
+export const ICON_DELETE: string;
+export const ICON_UP: string;
+export const ICON_DOWN: string;
+export const ICON_DUPLICATE: string;
+export const ICON_BACK: string;
+export const ICON_SWITCH: string;
+export const ICON_CHEVRON_RIGHT: string;
