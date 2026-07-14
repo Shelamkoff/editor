@@ -53,6 +53,23 @@ export function generateInlineId() {
  * our own `generateInlineId` output plus any reasonable external id).
  */
 const PLACEHOLDER_RE = /\{\{([A-Za-z0-9_-]+)\}\}/g
+const INLINE_ID_RE = /^[A-Za-z0-9_-]+$/
+const RESERVED_INLINE_IDS = new Set(['__proto__', 'constructor', 'prototype'])
+
+/**
+ * @param {string | null} preferred
+ * @param {Set<string>} usedIds
+ */
+function allocateInlineId(preferred, usedIds) {
+  let id = preferred
+  if (!id || !INLINE_ID_RE.test(id) || RESERVED_INLINE_IDS.has(id) || usedIds.has(id)) {
+    do {
+      id = generateInlineId()
+    } while (usedIds.has(id) || RESERVED_INLINE_IDS.has(id))
+  }
+  usedIds.add(id)
+  return id
+}
 
 /**
  * Walk `html` for inline-plugin widget spans, replace each with a
@@ -62,15 +79,17 @@ const PLACEHOLDER_RE = /\{\{([A-Za-z0-9_-]+)\}\}/g
  *
  * @param {string} html
  * @param {PluginLookup | null | undefined} registry
+ * @param {Set<string>} [usedIds] IDs already allocated in sibling text fields
  * @returns {{ html: string, inline: Record<string, InlineWidget> }}
  */
-export function serializeInlineHtml(html, registry) {
-  /** @type {Record<string, InlineWidget>} */
-  const inline = {}
-  if (!html || !registry) return { html: html || '', inline }
+export function serializeInlineHtml(html, registry, usedIds = new Set()) {
+  /** @type {Array<[string, InlineWidget]>} */
+  const entries = []
+  const source = String(html || '')
+  if (!source || !registry) return { html: source, inline: {} }
 
   const tpl = document.createElement('template')
-  tpl.innerHTML = html
+  tpl.innerHTML = source
 
   const widgets = tpl.content.querySelectorAll('[data-inline-plugin]')
   for (const widget of widgets) {
@@ -80,11 +99,15 @@ export function serializeInlineHtml(html, registry) {
     const plugin = registry.get(type)
     if (!plugin) continue
 
-    const id = el.getAttribute('data-id') || generateInlineId()
-    inline[id] = {
-      type,
-      data: plugin.getData(el),
+    const id = allocateInlineId(el.getAttribute('data-id'), usedIds)
+    const data = plugin.getData(el)
+    if (!data || typeof data !== 'object' || Array.isArray(data)) {
+      throw new TypeError(`Inline plugin "${type}" getData() must return a data object`)
     }
+    entries.push([id, {
+      type,
+      data,
+    }])
 
     // Placeholder is a plain text token. It survives sanitization as-is
     // (text content is untouched by the tag/attribute allowlist) and
@@ -92,7 +115,7 @@ export function serializeInlineHtml(html, registry) {
     el.replaceWith(document.createTextNode(`{{${id}}}`))
   }
 
-  return { html: tpl.innerHTML, inline }
+  return { html: tpl.innerHTML, inline: Object.fromEntries(entries) }
 }
 
 /**
@@ -113,11 +136,12 @@ export function serializeInlineHtml(html, registry) {
  * @returns {string}
  */
 export function deserializeInlineHtml(html, inline, registry) {
-  if (!html) return ''
-  if (!inline || !registry || !html.includes('{{')) return html
+  const source = String(html || '')
+  if (!source) return ''
+  if (!inline || typeof inline !== 'object' || !registry || !source.includes('{{')) return source
 
   const tpl = document.createElement('template')
-  tpl.innerHTML = html
+  tpl.innerHTML = source
 
   /** Visit every text node and expand placeholder tokens in place. */
   const walker = document.createTreeWalker(tpl.content, NodeFilter.SHOW_TEXT)
@@ -141,16 +165,29 @@ export function deserializeInlineHtml(html, inline, registry) {
     let match
     while ((match = PLACEHOLDER_RE.exec(text)) !== null) {
       const [token, id] = match
-      const ref = inline[id]
-      const plugin = ref ? registry.get(ref.type) : undefined
-      if (!ref || !plugin) continue   // leave untouched text — user-typed lookalike
+      const ref = Object.prototype.hasOwnProperty.call(inline, id) ? inline[id] : undefined
+      if (!ref || typeof ref !== 'object' || typeof ref.type !== 'string') continue
+      const plugin = registry.get(ref.type)
+      if (!plugin) continue   // leave untouched text — user-typed lookalike
+
+      let widget
+      try {
+        const data = ref.data && typeof ref.data === 'object'
+          ? /** @type {Record<string, unknown>} */ (ref.data)
+          : {}
+        widget = plugin.createWidget(data, id)
+      } catch {
+        // Preserve malformed legacy entries as their original plain token.
+        continue
+      }
+      if (!(widget instanceof HTMLElement)) continue
 
       // Preserve the text before the placeholder.
       if (match.index > lastIndex) {
         frag.appendChild(document.createTextNode(text.slice(lastIndex, match.index)))
       }
       // Instantiate the widget with its stable id preserved.
-      frag.appendChild(plugin.createWidget(/** @type {Record<string, unknown>} */ (ref.data), id))
+      frag.appendChild(widget)
       lastIndex = match.index + token.length
     }
 

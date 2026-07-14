@@ -6,7 +6,7 @@ export class ChangeNotifier {
   /** @type {ReturnType<typeof setTimeout> | null} */
   #timer = null
 
-  /** @type {() => Promise<import('./types').EditorDocument>} */
+  /** @type {() => import('./types').EditorDocument | Promise<import('./types').EditorDocument>} */
   #saveFn
 
   /** @type {((data: import('./types').EditorDocument) => void) | undefined} */
@@ -15,8 +15,11 @@ export class ChangeNotifier {
   /** @type {number} */
   #delay
 
+  /** @type {boolean} */
+  #destroyed = false
+
   /**
-   * @param {() => Promise<import('./types').EditorDocument>} saveFn
+   * @param {() => import('./types').EditorDocument | Promise<import('./types').EditorDocument>} saveFn
    * @param {((data: import('./types').EditorDocument) => void)} [onChange]
    * @param {number} [delay]
    */
@@ -27,14 +30,14 @@ export class ChangeNotifier {
   }
 
   schedule() {
-    if (!this.#onChange) return
+    if (this.#destroyed || !this.#onChange) return
     if (this.#timer) clearTimeout(this.#timer)
     this.#timer = setTimeout(async () => {
       this.#timer = null
       if (this.#onChange) {
         try {
           const data = await this.#saveFn()
-          this.#onChange(data)
+          if (!this.#destroyed) this.#onChange?.(data)
         } catch (err) {
           console.warn('[ChangeNotifier] Failed to save:', err)
         }
@@ -43,6 +46,7 @@ export class ChangeNotifier {
   }
 
   destroy() {
+    this.#destroyed = true
     if (this.#timer) {
       clearTimeout(this.#timer)
       this.#timer = null

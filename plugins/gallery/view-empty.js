@@ -6,6 +6,8 @@ import { ICON_SELECT } from './icons.js'
  * @typedef {Object} EmptyViewDeps
  * @property {(key: string, fallback: string) => string} t
  * @property {() => void} onUploadClick
+ * @property {Array<{ icon?: string, label: string, handler: (context: { signal: AbortSignal }) => Promise<Array<{url: string, alt?: string}> | null> }>} customActions
+ * @property {(handler: (context: { signal: AbortSignal }) => Promise<Array<{url: string, alt?: string}> | null>) => Promise<void>} runCustomAction
  * @property {(files: File[]) => void} onFilesDropped
  */
 
@@ -27,6 +29,8 @@ export function renderEmptyView(wrapper, state, deps) {
     selectIcon: CSS.selectIcon,
     selectText: CSS.selectText,
     selectLink: CSS.selectLink,
+    selectActions: CSS.selectActions,
+    selectAction: CSS.selectAction,
     dropzoneActive: CSS.dropzoneActive,
     filled: CSS.filled,
   }, {
@@ -34,6 +38,11 @@ export function renderEmptyView(wrapper, state, deps) {
     uploadText: deps.t('dropzoneUpload', 'Upload'),
     afterText: deps.t('dropzoneText', 'images from your device or drag and drop them here'),
     onUploadClick: deps.onUploadClick,
+    actions: deps.customActions.map(action => ({
+      icon: action.icon,
+      label: action.label,
+      onSelect: () => { void deps.runCustomAction(action.handler) },
+    })),
     onDrop: (dt) => {
       const files = [...(dt.files || [])].filter((f) => f.type.startsWith('image/'))
       if (files.length > 0) deps.onFilesDropped(files)

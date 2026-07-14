@@ -24,7 +24,13 @@ export function hydrateInlinePlugins(root, registry, ctx) {
       continue
     }
 
-    plugin.hydrate(el, ctx)
-    el.dataset.hydrated = '1'
+    try {
+      plugin.hydrate(el, ctx)
+      el.dataset.hydrated = '1'
+    } catch (err) {
+      // One malformed third-party widget must not prevent the rest of a
+      // document from rendering or hydrating.
+      console.warn(`[hydrateInlinePlugins] Failed to hydrate "${type}":`, err)
+    }
   }
 }

@@ -1,6 +1,7 @@
 import { sanitizeHtml } from '../../core/sanitize.js'
 import { resolvePath } from '../../shared/resolvePath.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
+import { validateColumnsData } from '../../shared/blockDataValidators.js'
 
 const editorStyles = resolvePath('./columns.css', import.meta.url)
 
@@ -54,7 +55,7 @@ export class Columns extends BlockPluginAbstract {
    * @param {Record<string, unknown>} data
    * @returns {HTMLElement}
    */
-  render(data) {
+  render(data, context) {
     const layout = LAYOUT_KEYS.includes(/** @type {any} */ (data?.layout)) ? String(data.layout) : '1-1'
     const layoutDef = /** @type {{ cols: number, grid: string, label: string }} */ (LAYOUTS[layout])
     const columns = Array.isArray(data?.columns)
@@ -72,7 +73,7 @@ export class Columns extends BlockPluginAbstract {
 
     stateMap.set(wrapper, { data: { columns, layout } })
 
-    this._build(wrapper)
+    this._build(wrapper, context)
     return wrapper
   }
 
@@ -89,7 +90,7 @@ export class Columns extends BlockPluginAbstract {
 
   /** @param {Record<string, unknown>} data */
   validate(data) {
-    return Array.isArray(data?.columns) && data.columns.length >= 2
+    return validateColumnsData(data)
   }
 
   /** @param {HTMLElement} element */
@@ -129,7 +130,7 @@ export class Columns extends BlockPluginAbstract {
   }
 
   /** @param {HTMLElement} wrapper */
-  _build(wrapper) {
+  _build(wrapper, context) {
     const s = stateMap.get(wrapper)
     if (!s) return
     wrapper.innerHTML = ''
@@ -172,8 +173,10 @@ export class Columns extends BlockPluginAbstract {
       btn.title = LAYOUTS[key]?.label || ''
       btn.addEventListener('mousedown', (e) => e.preventDefault())
       btn.addEventListener('click', () => {
-        this._syncFromDom(wrapper)
-        this._changeLayout(wrapper, key)
+        context.mutate(() => {
+          this._syncFromDom(wrapper)
+          this._changeLayout(wrapper, key, context)
+        })
       })
       actions.appendChild(btn)
     }
@@ -185,7 +188,7 @@ export class Columns extends BlockPluginAbstract {
    * @param {HTMLElement} wrapper
    * @param {string} newLayout
    */
-  _changeLayout(wrapper, newLayout) {
+  _changeLayout(wrapper, newLayout, context) {
     const newDef = LAYOUTS[newLayout]
     if (!newDef) return
 
@@ -208,7 +211,6 @@ export class Columns extends BlockPluginAbstract {
     }
 
     s.data.layout = newLayout
-    this._build(wrapper)
-    wrapper.dispatchEvent(new InputEvent('input', { bubbles: true }))
+    this._build(wrapper, context)
   }
 }

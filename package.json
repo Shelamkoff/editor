@@ -1,0 +1,143 @@
+{
+  "name": "@shelamkoff/rector",
+  "version": "1.0.0",
+  "description": "Extensible browser-native block editor with atomic history, versioned JSON, and document rendering",
+  "type": "module",
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./core": {
+      "types": "./dist/core/index.d.ts",
+      "import": "./dist/core/index.js"
+    },
+    "./types": {
+      "types": "./dist/types.d.ts"
+    },
+    "./plugins": {
+      "types": "./dist/plugins/index.d.ts",
+      "import": "./dist/plugins/index.js"
+    },
+    "./plugins/async": {
+      "types": "./dist/plugins/async.d.ts",
+      "import": "./dist/plugins/async.js"
+    },
+    "./plugins/*": {
+      "types": "./dist/plugins/*/index.d.ts",
+      "import": "./dist/plugins/*/index.js"
+    },
+    "./inline-plugins/color": {
+      "types": "./dist/inline-plugins/color.d.ts",
+      "import": "./dist/inline-plugins/color.js"
+    },
+    "./inline-plugins/mention": {
+      "types": "./dist/inline-plugins/mention/index.d.ts",
+      "import": "./dist/inline-plugins/mention/index.js"
+    },
+    "./inline-tools": {
+      "types": "./dist/inline-tools/defaults.d.ts",
+      "import": "./dist/inline-tools/defaults.js"
+    },
+    "./inline-tools/*": {
+      "types": "./dist/inline-tools/*.d.ts",
+      "import": "./dist/inline-tools/*.js"
+    },
+    "./renderer": {
+      "types": "./dist/renderer/index.d.ts",
+      "import": "./dist/renderer/index.js"
+    },
+    "./renderer/async": {
+      "types": "./dist/renderer/async.d.ts",
+      "import": "./dist/renderer/async.js"
+    },
+    "./renderer/renderers": {
+      "types": "./dist/renderer/renderers/index.d.ts",
+      "import": "./dist/renderer/renderers/index.js"
+    },
+    "./renderer/renderers/async": {
+      "types": "./dist/renderer/renderers/async.d.ts",
+      "import": "./dist/renderer/renderers/async.js"
+    },
+    "./renderer/renderers/*": {
+      "types": "./dist/renderer/renderers/*/index.d.ts",
+      "import": "./dist/renderer/renderers/*/index.js"
+    },
+    "./locale/*": {
+      "types": "./dist/locale/*.d.ts",
+      "import": "./dist/locale/*.js"
+    },
+    "./styles/editor.css": "./dist/styles/editor.css",
+    "./styles/renderer.css": "./dist/renderer/styles/base.css",
+    "./styles/themes/*": "./dist/core/themes/*.css",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "NOTICE",
+    "THIRD_PARTY_LICENSES.txt"
+  ],
+  "scripts": {
+    "build": "npm run docs:readme && node scripts/build-package.mjs",
+    "build:types": "node scripts/generate-declarations.mjs --out dist",
+    "typecheck": "node node_modules/typescript/bin/tsc -p jsconfig.json",
+    "docs:readme": "node scripts/generate-extension-readmes.mjs",
+    "docs:sync": "npm run docs:readme && node scripts/sync-vitepress-readmes.mjs",
+    "docs:dev": "npm run docs:sync && vitepress dev docs --host 127.0.0.1",
+    "docs:build": "npm run docs:sync && vitepress build docs",
+    "docs:preview": "vitepress preview docs --host 127.0.0.1",
+    "docs:check": "npm run docs:build && node scripts/vitepress-docs-smoke.mjs && node scripts/vitepress-browser-smoke.mjs",
+    "test": "node --test",
+    "test:browser": "node tests/browser/run.mjs && node tests/browser/physical-history.mjs && node tests/browser/heap-gate.mjs",
+    "test:docs": "npm run docs:readme && node scripts/readme-smoke.mjs",
+    "test:types": "node --test shared/declarationParity.test.js",
+    "test:package": "node scripts/package-consumer-gate.mjs",
+    "prepublishOnly": "npm run typecheck && npm test && npm run test:browser && npm run test:docs && npm run test:types && npm run test:package",
+    "prepack": "npm run build"
+  },
+  "dependencies": {
+    "@shelamkoff/color-picker": "^1.0.0",
+    "@shelamkoff/event-bus": "^1.0.0"
+  },
+  "peerDependencies": {
+    "@shelamkoff/carousel": "^1.0.0",
+    "@shelamkoff/cropper": "^1.0.0",
+    "@shelamkoff/expose": "^1.0.0"
+  },
+  "devDependencies": {
+    "@tabler/icons-vue": "^3.41.1",
+    "typescript": "~5.9.3",
+    "vite": "^7.0.0",
+    "vitepress": "2.0.0-alpha.17"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "editor",
+    "block-editor",
+    "rich-text",
+    "renderer",
+    "plugins",
+    "framework-agnostic",
+    "esm"
+  ],
+  "author": "Shelamkoff",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Shelamkoff/editor.git"
+  },
+  "homepage": "https://github.com/Shelamkoff/editor",
+  "bugs": {
+    "url": "https://github.com/Shelamkoff/editor/issues"
+  },
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  }
+}

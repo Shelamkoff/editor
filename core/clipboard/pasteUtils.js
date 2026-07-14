@@ -5,6 +5,18 @@ const BLOCK_TAGS = new Set([
 ])
 
 /**
+ * Create a paragraph that remains owned by inert template content. Cloning
+ * untrusted media into a regular detached element can still start loading and
+ * fire event attributes before the paste sanitizer gets a chance to run.
+ * @returns {HTMLParagraphElement}
+ */
+function createInertParagraph() {
+  const template = document.createElement('template')
+  template.innerHTML = '<p></p>'
+  return /** @type {HTMLParagraphElement} */ (template.content.firstElementChild)
+}
+
+/**
  * @typedef {Object} ExtractedBlock
  * @property {string} tag — lowercase tag name (e.g. 'p', 'pre', 'h2')
  * @property {HTMLElement} element — the DOM element
@@ -15,23 +27,24 @@ const BLOCK_TAGS = new Set([
  * Returns an array of {tag, element} objects for each block-level element found.
  * Inline-only content is returned as a synthetic 'p' wrapper.
  *
- * @param {HTMLElement} container — parsed HTML container
+ * @param {ParentNode} container — inert parsed HTML container
+ * @param {(tag: string) => boolean} [isRoutedTag] — plugin-owned container tags
  * @returns {ExtractedBlock[]}
  */
-export function extractBlockElements(container) {
+export function extractBlockElements(container, isRoutedTag = () => false) {
   /** @type {ExtractedBlock[]} */
   const results = []
+  const isBlockTag = (tag) => BLOCK_TAGS.has(tag) || isRoutedTag(tag)
 
   const hasBlockChild = Array.from(container.children).some(
-    c => BLOCK_TAGS.has(c.tagName.toLowerCase())
+    c => isBlockTag(c.tagName.toLowerCase())
   )
 
   if (!hasBlockChild) {
     // Flat HTML with no block structure — wrap as single paragraph
-    const html = container.innerHTML.trim()
-    if (html) {
-      const p = document.createElement('p')
-      p.innerHTML = html
+    const p = createInertParagraph()
+    for (const child of container.childNodes) p.appendChild(child.cloneNode(true))
+    if (p.innerHTML.trim()) {
       results.push({ tag: 'p', element: p })
     }
     return results
@@ -45,7 +58,7 @@ export function extractBlockElements(container) {
       if (child.nodeType === Node.TEXT_NODE) {
         const text = child.textContent?.trim()
         if (text) {
-          const p = document.createElement('p')
+          const p = createInertParagraph()
           p.textContent = text
           results.push({ tag: 'p', element: p })
         }
@@ -59,21 +72,20 @@ export function extractBlockElements(container) {
 
       if (tag === 'br') continue
 
-      if (BLOCK_TAGS.has(tag)) {
+      if (isBlockTag(tag)) {
         results.push({ tag, element: el })
       } else {
         // Inline or unknown — check for nested block children
         const nested = Array.from(el.children).some(
-          c => BLOCK_TAGS.has(c.tagName.toLowerCase())
+          c => isBlockTag(c.tagName.toLowerCase())
         )
 
         if (nested) {
           walk(el)
         } else {
-          const html = el.innerHTML.trim()
-          if (html) {
-            const p = document.createElement('p')
-            p.innerHTML = html
+          const p = createInertParagraph()
+          for (const child of el.childNodes) p.appendChild(child.cloneNode(true))
+          if (p.innerHTML.trim()) {
             results.push({ tag: 'p', element: p })
           }
         }

@@ -1,4 +1,4 @@
-import { ALLOWED_TAGS, ALLOWED_ATTRS } from './allowlist.js'
+import { ALLOWED_TAGS, ALLOWED_ATTRS, INLINE_PLUGIN_ATTRS } from './allowlist.js'
 import { sanitizeUrl } from './sanitizeUrl.js'
 import { sanitizeStyle } from './sanitizeStyle.js'
 
@@ -47,6 +47,13 @@ export function sanitizeSubtree(node) {
 
     // Inline plugin span — preserve attributes/styles, recurse into children.
     if (tag === 'span' && el.hasAttribute('data-inline-plugin')) {
+      for (const attr of Array.from(el.attributes)) {
+        if (!INLINE_PLUGIN_ATTRS.has(attr.name) || attr.name.startsWith('on')) {
+          el.removeAttribute(attr.name)
+        }
+      }
+      el.removeAttribute('style')
+      el.setAttribute('contenteditable', 'false')
       sanitizeSubtree(el)
       i++
       continue

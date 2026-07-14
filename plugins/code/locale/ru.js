@@ -5,4 +5,6 @@ export default {
   'plugin.code.edit': 'Редактировать',
   'plugin.code.done': 'Готово',
   'plugin.code.search': 'Поиск...',
+  'plugin.code.languageAuto': 'Авто',
+  'plugin.code.languagePlainText': 'Обычный текст',
 }

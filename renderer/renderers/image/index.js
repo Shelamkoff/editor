@@ -1,6 +1,7 @@
 // @ts-check
 import { InvalidBlockDataError } from '../../errors.js'
 import { resolvePath } from '../../../shared/resolvePath.js'
+import { setSafeUrlAttribute } from '../../../shared/sanitize/sanitizeUrl.js'
 
 const styles = resolvePath('./styles.css', import.meta.url)
 
@@ -68,7 +69,7 @@ export function createImageRenderer(classPrefix, _locale) {
 
       const img = document.createElement('img')
       img.className = `${classPrefix}-image__picture`
-      img.src = file.url
+      setSafeUrlAttribute(img, 'src', file.url, 'media')
       img.alt = caption || ''
 
       if (file.width) img.width = file.width

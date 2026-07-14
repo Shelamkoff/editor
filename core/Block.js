@@ -1,4 +1,5 @@
 import { uid } from './uid.js'
+import { cloneEditorData } from '../shared/cloneEditorData.js'
 import { el } from './dom.js'
 import { BLOCK_CLASS } from './constants.js'
 
@@ -23,24 +24,77 @@ export class Block {
 
   /** @type {boolean} */
   #selected = false
+  /** @type {Record<string, unknown> | null} */
+  #cachedData = null
+  /** @type {boolean} */
+  #dirty = true
+  /** @type {number} */
+  #version = 0
+  #readOnly
+
+  /** @type {Record<string, unknown> | undefined} */
+  #tunes
+
+  /** @type {string | number | undefined} */
+  #revision
+
+  /** @type {Record<string, import('../renderer/types').InlineWidget> | undefined} */
+  #preservedInline
+
+  /** @type {import('./CommandDispatcher').CommandDispatcher} */
+  #commands
+
+  /** @type {boolean} */
+  #destroyed = false
 
   /**
    * @param {import('./types').BlockPlugin} plugin
    * @param {Record<string, unknown>} [data]
    * @param {string} [id]
+   * @param {boolean} [readOnly]
+   * @param {import('./CommandDispatcher').CommandDispatcher} commands
+   * @param {{ tunes?: Record<string, unknown>, revision?: string | number, inline?: Record<string, import('../renderer/types').InlineWidget>, preserveInline?: boolean }} [metadata]
    */
-  constructor(plugin, data, id) {
+  constructor(plugin, data, id, readOnly = false, commands, metadata = {}) {
     this.#id = id || uid()
     this.#type = plugin.type
     this.#plugin = plugin
+    this.#readOnly = readOnly
+    this.#commands = commands
+    this.#tunes = metadata.tunes === undefined ? undefined : cloneEditorData(metadata.tunes)
+    this.#revision = metadata.revision
+    this.#preservedInline = metadata.preserveInline && metadata.inline
+      ? cloneEditorData(metadata.inline)
+      : undefined
 
     this.#element = el('div', BLOCK_CLASS, {
       'data-block-id': this.#id,
       'data-block-type': this.#type,
     })
 
-    this.#contentElement = plugin.render(data || {})
+    const contentElement = plugin.render(data || {}, {
+      mutate: (operation) => this.#runMutation(operation),
+      readOnly: this.#readOnly,
+    })
+    if (!(contentElement instanceof HTMLElement)) {
+      throw new TypeError(`Block plugin "${this.#type}" render() must return an HTMLElement`)
+    }
+    this.#contentElement = contentElement
+    this.#applyReadOnly()
     this.#element.appendChild(this.#contentElement)
+  }
+
+  /**
+   * Core-owned command boundary for interactive block-plugin controls.
+   * Plugins mutate their own DOM, while the Block remains responsible for
+   * cache invalidation, change events, and the final history commit.
+   * @template T
+   * @param {() => T} operation
+   * @returns {T | undefined}
+   */
+  #runMutation(operation) {
+    if (this.#destroyed || this.#readOnly) return undefined
+    return this.#commands.runForBlock(this, operation)
   }
 
   get id() {
@@ -86,8 +140,34 @@ export class Block {
    * @returns {import('./types').BlockData}
    */
   save() {
-    const data = this.#plugin.save(this.#contentElement)
-    return { id: this.#id, type: this.#type, data }
+    if (this.#dirty || !this.#cachedData) {
+      const saved = this.#plugin.save(this.#contentElement)
+      if (!saved || typeof saved !== 'object' || Array.isArray(saved)) {
+        throw new TypeError(`Block plugin "${this.#type}" save() must return a data object`)
+      }
+      this.#cachedData = cloneEditorData(saved)
+      this.#dirty = false
+    }
+    const data = cloneEditorData(this.#cachedData)
+    const result = { id: this.#id, type: this.#type, data }
+    if (this.#revision !== undefined) result.revision = this.#revision
+    if (this.#tunes !== undefined) result.tunes = cloneEditorData(this.#tunes)
+    if (this.#preservedInline !== undefined) result.inline = cloneEditorData(this.#preservedInline)
+    return result
+  }
+
+  /** Mark cached serialization stale after a block-local mutation. */
+  markDirty() {
+    this.#dirty = true
+    // A producer-owned revision only describes the input block. Once the
+    // editor changes that block it can no longer claim the old revision.
+    this.#revision = undefined
+    this.#version++
+  }
+
+  /** Monotonic version used by incremental consumers. */
+  get version() {
+    return this.#version
   }
 
   /**
@@ -98,6 +178,7 @@ export class Block {
     if (this.#plugin.merge) {
       this.#plugin.merge(this.#contentElement, data)
     }
+    this.markDirty()
   }
 
   /**
@@ -126,7 +207,18 @@ export class Block {
    * @returns {boolean}
    */
   get hasInlineTools() {
-    return this.#plugin.inlineTools !== false
+    const setting = this.#plugin.inlineTools
+    return setting !== false && (!Array.isArray(setting) || setting.length > 0)
+  }
+
+  /**
+   * Tool types allowed by this block, or null when the editor-wide set applies.
+   * @returns {readonly string[] | null}
+   */
+  get inlineToolTypes() {
+    return Array.isArray(this.#plugin.inlineTools)
+      ? this.#plugin.inlineTools
+      : null
   }
 
   /**
@@ -156,12 +248,39 @@ export class Block {
   replaceContentElement(newEl) {
     if (newEl === this.#contentElement) return
     if (newEl.parentNode === this.#element) {
+      this.markDirty()
       // Plugin already performed the DOM swap; just track the new ref.
       this.#contentElement = newEl
       return
     }
     this.#element.replaceChild(newEl, this.#contentElement)
+    this.markDirty()
     this.#contentElement = newEl
+  }
+
+
+  /**
+   * Enforce read-only as a DOM invariant instead of relying on pointer events.
+   */
+  #applyReadOnly() {
+    if (!this.#readOnly) return
+
+    this.#contentElement.setAttribute('aria-readonly', 'true')
+    const editables = [
+      ...(this.#contentElement.matches('[contenteditable]') ? [this.#contentElement] : []),
+      ...this.#contentElement.querySelectorAll('[contenteditable]'),
+    ]
+    for (const editable of editables) {
+      /** @type {HTMLElement} */ (editable).contentEditable = 'false'
+    }
+
+    const fields = this.#contentElement.querySelectorAll('input, textarea')
+    for (const field of fields) {
+      /** @type {HTMLInputElement | HTMLTextAreaElement} */ (field).readOnly = true
+    }
+    for (const control of this.#contentElement.querySelectorAll('button, select')) {
+      /** @type {HTMLButtonElement | HTMLSelectElement} */ (control).disabled = true
+    }
   }
 
   /**
@@ -169,8 +288,14 @@ export class Block {
    * Used by BlockManager.convert() which handles element removal separately.
    */
   disposePlugin() {
+    if (this.#destroyed) return
+    this.#destroyed = true
     if (this.#plugin.destroy) {
-      this.#plugin.destroy(this.#contentElement)
+      try {
+        this.#plugin.destroy(this.#contentElement)
+      } catch (err) {
+        console.warn(`[Block] Plugin destroy failed for ${this.#id} (${this.#type}):`, err)
+      }
     }
   }
 
@@ -201,8 +326,6 @@ export class Block {
    * BlockAnimator handles animated removal separately.
    */
   destroy() {
-    if (this.#plugin.destroy) {
-      this.#plugin.destroy(this.#contentElement)
-    }
+    this.disposePlugin()
   }
 }

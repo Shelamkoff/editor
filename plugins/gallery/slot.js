@@ -1,4 +1,5 @@
 import { CSS } from './css.js'
+import { setSafeUrlAttribute } from '../../shared/sanitize/sanitizeUrl.js'
 
 /**
  * @typedef {Object} SlotDeps
@@ -31,7 +32,7 @@ export function createFilledSlot(img, index, signal, deps) {
 
   const image = document.createElement('img')
   image.className = CSS.slotImg
-  image.src = img.url
+  setSafeUrlAttribute(image, 'src', img.url, 'media')
   image.alt = img.caption || ''
   image.draggable = false
   image.loading = 'lazy'
@@ -88,7 +89,7 @@ export function createOverflowItem(img, globalIndex, signal, deps) {
 
   const imgEl = document.createElement('img')
   imgEl.className = CSS.slotImg
-  imgEl.src = img.url
+  setSafeUrlAttribute(imgEl, 'src', img.url, 'media')
   imgEl.alt = img.caption || ''
   imgEl.loading = 'lazy'
   imgEl.draggable = false

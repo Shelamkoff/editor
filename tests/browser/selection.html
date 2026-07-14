@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Editor cross-block selection and focus</title>
+  <style>
+    #sandbox { width: 720px; }
+    .oe-editor { width: 640px; }
+    .oe-block { display: block; margin: 8px 0; padding: 8px; }
+    .oe-paragraph { display: block; min-height: 24px; margin: 0; }
+  </style>
+</head>
+<body data-status="running">
+  <button id="outside" type="button">Outside</button>
+  <div id="sandbox"></div>
+  <pre id="result">running</pre>
+  <script type="module" src="./selection.js"></script>
+</body>
+</html>

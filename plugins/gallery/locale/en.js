@@ -24,4 +24,11 @@ export default {
   'plugin.gallery.styles': 'Styles',
   'plugin.gallery.styleRadius': 'Radius',
   'plugin.gallery.styleHeight': 'Height',
+  'plugin.gallery.back': 'Back',
+  'plugin.gallery.autoplayDelayPlaceholder': 'ms (e.g. 3000)',
+  'plugin.gallery.styleGap': 'Gap',
+  'plugin.gallery.layoutAuto': 'Automatic layout',
+  'plugin.gallery.layoutMasonry': 'Masonry layout',
+  'plugin.gallery.layoutTriptych': 'Triptych layout',
+  'plugin.gallery.layoutTemplate': 'Layout template',
 }

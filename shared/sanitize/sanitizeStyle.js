@@ -6,7 +6,7 @@ import { ALLOWED_STYLE_PROPS } from './allowlist.js'
  * `expression(` or `url(` (defense against legacy IE expression and CSS fetching).
  *
  * @param {string} style
- * @returns {string} Sanitized `prop: value; prop: value` string, or '' if nothing left.
+ * @returns {string} Canonical `prop: value; prop: value;` string, or '' if nothing left.
  */
 export function sanitizeStyle(style) {
   if (!style) return ''
@@ -33,5 +33,7 @@ export function sanitizeStyle(style) {
     safe.push(`${property}: ${value}`)
   }
 
-  return safe.join('; ')
+  // Match CSSStyleDeclaration/innerHTML serialization so save → render → save
+  // remains byte-stable for formatting created through element.style.
+  return safe.length > 0 ? `${safe.join('; ')};` : ''
 }

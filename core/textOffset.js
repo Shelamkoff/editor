@@ -125,6 +125,39 @@ export function restoreSelectionByOffsets(element, startOffset, endOffset) {
 }
 
 /**
+ * Create a range from the last occurrence of `search` through the end of its
+ * text node. The lookup follows DOM text nodes instead of flattening the
+ * block to `textContent`, so inline widgets before the match cannot shift it.
+ *
+ * @param {HTMLElement} element
+ * @param {string} search
+ * @returns {Range | null}
+ */
+export function createRangeFromLastTextMatch(element, search) {
+  if (!search) return null
+
+  const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT)
+  /** @type {Text | null} */
+  let matchNode = null
+  let matchOffset = -1
+
+  while (walker.nextNode()) {
+    const node = /** @type {Text} */ (walker.currentNode)
+    const offset = node.data.lastIndexOf(search)
+    if (offset >= 0) {
+      matchNode = node
+      matchOffset = offset
+    }
+  }
+
+  if (!matchNode) return null
+  const range = document.createRange()
+  range.setStart(matchNode, matchOffset)
+  range.setEnd(matchNode, matchNode.length)
+  return range
+}
+
+/**
  * Count total text content before a node in document order.
  * @param {Node} container
  * @param {Node} refNode

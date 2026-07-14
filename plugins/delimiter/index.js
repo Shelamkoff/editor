@@ -4,6 +4,7 @@
 
 import { resolvePath } from '../../shared/resolvePath.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
+import { validateDelimiterData } from '../../shared/blockDataValidators.js'
 
 const editorStyles = resolvePath('./delimiter.css', import.meta.url)
 
@@ -44,8 +45,8 @@ export class Delimiter extends BlockPluginAbstract {
   /**
    * @returns {boolean}
    */
-  validate() {
-    return true
+  validate(data) {
+    return validateDelimiterData(data)
   }
 
   /**

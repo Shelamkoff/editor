@@ -95,6 +95,12 @@ export class BlockAnimator {
       fill: 'forwards',
     })
 
-    return anim.finished.then(() => element.remove())
+    // Undo/render may synchronously detach the element while this animation
+    // is running. A cancelled Web Animation rejects `finished`; normalize
+    // that lifecycle path so toolbar cleanup subscribed to `animDone` still
+    // runs and no unhandled rejection escapes.
+    return anim.finished
+      .catch(() => undefined)
+      .then(() => element.remove())
   }
 }

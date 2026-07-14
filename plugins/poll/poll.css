@@ -59,6 +59,9 @@
   margin-top: 0.25rem;
   border: 2px solid var(--oe-border-hover, #3a3a44);
   transition: border-color 0.15s;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
 }
 
 .oe-poll__option-marker--single {
@@ -71,6 +74,21 @@
 
 .oe-poll__option:hover .oe-poll__option-marker {
   border-color: var(--oe-accent, #4357b4);
+}
+
+.oe-poll__option-marker--selected {
+  border-color: var(--oe-accent, #4357b4);
+  background: var(--oe-accent, #4357b4);
+  box-shadow: inset 0 0 0 3px var(--oe-surface, #0e0e10);
+}
+
+.oe-poll__option-marker:focus-visible,
+.oe-poll__submit:focus-visible,
+.oe-poll__option-remove:focus-visible,
+.oe-poll__option-add:focus-visible,
+.oe-poll__action-btn:focus-visible {
+  outline: 2px solid var(--oe-focus-ring, var(--oe-accent, #4357b4));
+  outline-offset: 2px;
 }
 
 /* ── Option text ──────────────────────────────────────────────────────────── */
@@ -158,6 +176,74 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+}
+
+.oe-poll__runtime {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.625rem;
+}
+
+.oe-poll__status {
+  margin-top: 0.75rem;
+  color: var(--oe-text-3, #6e6e78);
+  font-size: 0.75rem;
+}
+
+.oe-poll__status--error {
+  color: var(--oe-danger, #f87171);
+}
+
+.oe-poll__submit {
+  margin-top: 0.25rem;
+  padding: 0.4375rem 0.75rem;
+  border: 1px solid var(--oe-accent, #4357b4);
+  border-radius: 0.375rem;
+  background: var(--oe-accent, #4357b4);
+  color: var(--oe-text-on-accent, #fff);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.oe-poll__submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.oe-poll__voters {
+  margin-top: 0.25rem;
+}
+
+.oe-poll__voters-title {
+  margin-bottom: 0.375rem;
+  color: var(--oe-text-2, #9898a0);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.oe-poll__voters ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.oe-poll__voters li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: var(--oe-text-2, #9898a0);
+  font-size: 0.75rem;
+}
+
+.oe-poll__voters img {
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 .oe-poll__result-row {

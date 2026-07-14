@@ -3,7 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ophire Editor — Demo</title>
+  <title>Rector — Demo</title>
+  <script type="importmap">
+    {
+      "imports": {
+        "@shelamkoff/event-bus": "../event-bus/dist/index.js",
+        "@shelamkoff/color-picker": "../color-picker/dist/index.js",
+        "@shelamkoff/cropper": "../cropper/dist/src/index.js",
+        "@shelamkoff/carousel": "../carousel/dist/src/index.js",
+        "@shelamkoff/expose": "../expose/dist/src/index.js"
+      }
+    }
+  </script>
+  <link rel="icon" type="image/x-icon" href="../rector_favicon_exact.ico">
   <link rel="stylesheet" href="core/themes/variables.css">
   <link rel="stylesheet" href="../color-picker/colorPicker.css">
   <link rel="stylesheet" href="core/themes/dark.css">
@@ -36,16 +48,22 @@
       justify-content: space-between;
       margin-bottom: 32px;
     }
-    .demo-title {
-      font-size: 20px;
-      font-weight: 600;
-      letter-spacing: -0.02em;
+    .demo-logo {
+      display: block;
+      width: 104px;
+      height: auto;
+    }
+    body.light .demo-logo {
+      filter: invert(1);
     }
     .demo-actions {
       display: flex;
       gap: 8px;
     }
     .demo-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       padding: 6px 14px;
       font-size: 13px;
       font-family: inherit;
@@ -55,6 +73,7 @@
       background: #111;
       color: #c4c4c4;
       cursor: pointer;
+      text-decoration: none;
       transition: all 0.15s;
     }
     .demo-btn:hover {
@@ -178,13 +197,21 @@
       border-radius: 50%;
       background: #3fb950;
     }
+
+    @media (max-width: 640px) {
+      body { padding: 24px 12px; }
+      .demo-header { align-items: flex-start; flex-direction: column; gap: 16px; }
+      .demo-actions { flex-wrap: wrap; }
+      .demo-editor { padding: 20px 36px; }
+    }
   </style>
 </head>
 <body>
 
   <div class="demo-header">
-    <div class="demo-title">OmenJs</div>
+    <img class="demo-logo" src="../rector_logo_exact.svg" alt="Rector" width="872" height="221">
     <div class="demo-actions">
+      <a class="demo-btn" id="docsLink" href="/">Documentation</a>
       <button class="demo-btn demo-btn--active" id="themeBtn">Dark</button>
       <button class="demo-btn" id="saveBtn">Save JSON</button>
       <button class="demo-btn" id="clearBtn">Clear</button>
@@ -221,6 +248,7 @@
     import { Image }       from './plugins/image/index.js'
     import { Embed }       from './plugins/embed/index.js'
     import { Gallery }     from './plugins/gallery/index.js'
+    import { CarouselBlock } from './plugins/carousel/index.js'
     import { Checklist }   from './plugins/checklist/index.js'
     import { Warning }     from './plugins/warning/index.js'
     import { Raw }         from './plugins/raw/index.js'
@@ -240,6 +268,12 @@
     const outputToggle = document.getElementById('outputToggle')
     const outputPre = document.getElementById('outputPre')
     const themeBtn = document.getElementById('themeBtn')
+    const docsLink = document.getElementById('docsLink')
+    const demoLanguage = new URLSearchParams(window.location.search).get('lang') === 'ru' ? 'ru' : 'en'
+
+    document.documentElement.lang = demoLanguage
+    docsLink.href = demoLanguage === 'ru' ? '/ru/' : '/'
+    docsLink.textContent = demoLanguage === 'ru' ? 'Документация' : 'Documentation'
 
     // ── Mention plugin: mock dataset + paginated async search ────
     // Substitutes a real API call — same contract the production
@@ -317,6 +351,7 @@
         new Image(),
         new Embed(),
         new Gallery(),
+        new CarouselBlock(),
         new Checklist(),
         new Warning(),
         new Raw(),
@@ -385,7 +420,7 @@
       outputToggle.classList.toggle('demo-output__toggle--open', outputOpen)
       outputPre.classList.toggle('demo-output__pre--open', outputOpen)
       if (outputOpen) {
-        editor.save().then(data => updateOutput(data))
+        updateOutput(editor.save())
       }
     })
 
@@ -403,7 +438,7 @@
 
     // ── Save button ──────────────────────────────────────────
     document.getElementById('saveBtn').addEventListener('click', async () => {
-      const data = await editor.save()
+      const data = editor.save()
       const json = JSON.stringify(data, null, 2)
       console.log('Editor output:', data)
 

@@ -641,8 +641,10 @@ export function getSelectedBlockElements(cbs) {
  * @param {Node} [contextNode] - any node inside the editor for scoping
  */
 export function notifyEditorChanged(contextNode) {
-  const editor = getEditorRoot(contextNode)
-  const ce = editor?.querySelector('[contenteditable="true"]')
+  const element = contextNode?.nodeType === Node.ELEMENT_NODE
+    ? /** @type {Element} */ (contextNode)
+    : contextNode?.parentElement
+  const ce = element?.closest('[contenteditable="true"]')
   if (ce) ce.dispatchEvent(new InputEvent('input', { bubbles: true }))
 }
 

@@ -1,0 +1,378 @@
+[
+  {
+    "title": "Block plugins",
+    "titleRu": "Блочные плагины",
+    "route": "/reference/editor/plugins/index",
+    "group": "Rector block plugins",
+    "source": "plugins/README.md",
+    "sourceRu": "plugins/README.ru.md"
+  },
+  {
+    "title": "Attaches block plugin",
+    "titleRu": "Блочный плагин Attaches",
+    "route": "/reference/editor/plugins/attaches",
+    "group": "Rector block plugins",
+    "source": "plugins/attaches/README.md",
+    "sourceRu": "plugins/attaches/README.ru.md"
+  },
+  {
+    "title": "CarouselBlock block plugin",
+    "titleRu": "Блочный плагин CarouselBlock",
+    "route": "/reference/editor/plugins/carousel",
+    "group": "Rector block plugins",
+    "source": "plugins/carousel/README.md",
+    "sourceRu": "plugins/carousel/README.ru.md"
+  },
+  {
+    "title": "Checklist block plugin",
+    "titleRu": "Блочный плагин Checklist",
+    "route": "/reference/editor/plugins/checklist",
+    "group": "Rector block plugins",
+    "source": "plugins/checklist/README.md",
+    "sourceRu": "plugins/checklist/README.ru.md"
+  },
+  {
+    "title": "Code block plugin",
+    "titleRu": "Блочный плагин Code",
+    "route": "/reference/editor/plugins/code",
+    "group": "Rector block plugins",
+    "source": "plugins/code/README.md",
+    "sourceRu": "plugins/code/README.ru.md"
+  },
+  {
+    "title": "Columns block plugin",
+    "titleRu": "Блочный плагин Columns",
+    "route": "/reference/editor/plugins/columns",
+    "group": "Rector block plugins",
+    "source": "plugins/columns/README.md",
+    "sourceRu": "plugins/columns/README.ru.md"
+  },
+  {
+    "title": "Delimiter block plugin",
+    "titleRu": "Блочный плагин Delimiter",
+    "route": "/reference/editor/plugins/delimiter",
+    "group": "Rector block plugins",
+    "source": "plugins/delimiter/README.md",
+    "sourceRu": "plugins/delimiter/README.ru.md"
+  },
+  {
+    "title": "Embed block plugin",
+    "titleRu": "Блочный плагин Embed",
+    "route": "/reference/editor/plugins/embed",
+    "group": "Rector block plugins",
+    "source": "plugins/embed/README.md",
+    "sourceRu": "plugins/embed/README.ru.md"
+  },
+  {
+    "title": "Gallery block plugin",
+    "titleRu": "Блочный плагин Gallery",
+    "route": "/reference/editor/plugins/gallery",
+    "group": "Rector block plugins",
+    "source": "plugins/gallery/README.md",
+    "sourceRu": "plugins/gallery/README.ru.md"
+  },
+  {
+    "title": "Heading block plugin",
+    "titleRu": "Блочный плагин Heading",
+    "route": "/reference/editor/plugins/heading",
+    "group": "Rector block plugins",
+    "source": "plugins/heading/README.md",
+    "sourceRu": "plugins/heading/README.ru.md"
+  },
+  {
+    "title": "Image block plugin",
+    "titleRu": "Блочный плагин Image",
+    "route": "/reference/editor/plugins/image",
+    "group": "Rector block plugins",
+    "source": "plugins/image/README.md",
+    "sourceRu": "plugins/image/README.ru.md"
+  },
+  {
+    "title": "LinkPreview block plugin",
+    "titleRu": "Блочный плагин LinkPreview",
+    "route": "/reference/editor/plugins/link-preview",
+    "group": "Rector block plugins",
+    "source": "plugins/link-preview/README.md",
+    "sourceRu": "plugins/link-preview/README.ru.md"
+  },
+  {
+    "title": "List block plugin",
+    "titleRu": "Блочный плагин List",
+    "route": "/reference/editor/plugins/list",
+    "group": "Rector block plugins",
+    "source": "plugins/list/README.md",
+    "sourceRu": "plugins/list/README.ru.md"
+  },
+  {
+    "title": "Paragraph block plugin",
+    "titleRu": "Блочный плагин Paragraph",
+    "route": "/reference/editor/plugins/paragraph",
+    "group": "Rector block plugins",
+    "source": "plugins/paragraph/README.md",
+    "sourceRu": "plugins/paragraph/README.ru.md"
+  },
+  {
+    "title": "Person block plugin",
+    "titleRu": "Блочный плагин Person",
+    "route": "/reference/editor/plugins/person",
+    "group": "Rector block plugins",
+    "source": "plugins/person/README.md",
+    "sourceRu": "plugins/person/README.ru.md"
+  },
+  {
+    "title": "Poll block plugin",
+    "titleRu": "Блочный плагин Poll",
+    "route": "/reference/editor/plugins/poll",
+    "group": "Rector block plugins",
+    "source": "plugins/poll/README.md",
+    "sourceRu": "plugins/poll/README.ru.md"
+  },
+  {
+    "title": "Quote block plugin",
+    "titleRu": "Блочный плагин Quote",
+    "route": "/reference/editor/plugins/quote",
+    "group": "Rector block plugins",
+    "source": "plugins/quote/README.md",
+    "sourceRu": "plugins/quote/README.ru.md"
+  },
+  {
+    "title": "Raw block plugin",
+    "titleRu": "Блочный плагин Raw",
+    "route": "/reference/editor/plugins/raw",
+    "group": "Rector block plugins",
+    "source": "plugins/raw/README.md",
+    "sourceRu": "plugins/raw/README.ru.md"
+  },
+  {
+    "title": "Spoiler block plugin",
+    "titleRu": "Блочный плагин Spoiler",
+    "route": "/reference/editor/plugins/spoiler",
+    "group": "Rector block plugins",
+    "source": "plugins/spoiler/README.md",
+    "sourceRu": "plugins/spoiler/README.ru.md"
+  },
+  {
+    "title": "Table block plugin",
+    "titleRu": "Блочный плагин Table",
+    "route": "/reference/editor/plugins/table",
+    "group": "Rector block plugins",
+    "source": "plugins/table/README.md",
+    "sourceRu": "plugins/table/README.ru.md"
+  },
+  {
+    "title": "Toggle block plugin",
+    "titleRu": "Блочный плагин Toggle",
+    "route": "/reference/editor/plugins/toggle",
+    "group": "Rector block plugins",
+    "source": "plugins/toggle/README.md",
+    "sourceRu": "plugins/toggle/README.ru.md"
+  },
+  {
+    "title": "Warning block plugin",
+    "titleRu": "Блочный плагин Warning",
+    "route": "/reference/editor/plugins/warning",
+    "group": "Rector block plugins",
+    "source": "plugins/warning/README.md",
+    "sourceRu": "plugins/warning/README.ru.md"
+  },
+  {
+    "title": "Inline plugins",
+    "titleRu": "Внутристрочные плагины",
+    "route": "/reference/editor/inline-plugins/index",
+    "group": "Rector inline plugins",
+    "source": "inline-plugins/README.md",
+    "sourceRu": "inline-plugins/README.ru.md"
+  },
+  {
+    "title": "Color swatch inline plugin",
+    "titleRu": "Внутристрочный плагин образца цвета",
+    "route": "/reference/editor/inline-plugins/color",
+    "group": "Rector inline plugins",
+    "source": "inline-plugins/color/README.md",
+    "sourceRu": "inline-plugins/color/README.ru.md"
+  },
+  {
+    "title": "Mention inline plugin",
+    "titleRu": "Внутристрочный плагин упоминаний",
+    "route": "/reference/editor/inline-plugins/mention",
+    "group": "Rector inline plugins",
+    "source": "inline-plugins/mention/README.md",
+    "sourceRu": "inline-plugins/mention/README.ru.md"
+  },
+  {
+    "title": "Block renderers",
+    "titleRu": "Рендереры блоков",
+    "route": "/reference/editor/renderers/index",
+    "group": "Rector renderers",
+    "source": "renderer/renderers/README.md",
+    "sourceRu": "renderer/renderers/README.ru.md"
+  },
+  {
+    "title": "Attaches renderer",
+    "titleRu": "Рендерер Attaches",
+    "route": "/reference/editor/renderers/attaches",
+    "group": "Rector renderers",
+    "source": "renderer/renderers/attaches/README.md",
+    "sourceRu": "renderer/renderers/attaches/README.ru.md"
+  },
+  {
+    "title": "CarouselBlock renderer",
+    "titleRu": "Рендерер CarouselBlock",
+    "route": "/reference/editor/renderers/carousel",
+    "group": "Rector renderers",
+    "source": "renderer/renderers/carousel/README.md",
+    "sourceRu": "renderer/renderers/carousel/README.ru.md"
+  },
+  {
+    "title": "Checklist renderer",
+    "titleRu": "Рендерер Checklist",
+    "route": "/reference/editor/renderers/checklist",
+    "group": "Rector renderers",
+    "source": "renderer/renderers/checklist/README.md",
+    "sourceRu": "renderer/renderers/checklist/README.ru.md"
+  },
+  {
+    "title": "Code renderer",
+    "titleRu": "Рендерер Code",
+    "route": "/reference/editor/renderers/code",
+    "group": "Rector renderers",
+    "source": "renderer/renderers/code/README.md",
+    "sourceRu": "renderer/renderers/code/README.ru.md"
+  },
+  {
+    "title": "Columns renderer",
+    "titleRu": "Рендерер Columns",
+    "route": "/reference/editor/renderers/columns",
+    "group": "Rector renderers",
+    "source": "renderer/renderers/columns/README.md",
+    "sourceRu": "renderer/renderers/columns/README.ru.md"
+  },
+  {
+    "title": "Delimiter renderer",
+    "titleRu": "Рендерер Delimiter",
+    "route": "/reference/editor/renderers/delimiter",
+    "group": "Rector renderers",
+    "source": "renderer/renderers/delimiter/README.md",
+    "sourceRu": "renderer/renderers/delimiter/README.ru.md"
+  },
+  {
+    "title": "Embed renderer",
+    "titleRu": "Рендерер Embed",
+    "route": "/reference/editor/renderers/embed",
+    "group": "Rector renderers",
+    "source": "renderer/renderers/embed/README.md",
+    "sourceRu": "renderer/renderers/embed/README.ru.md"
+  },
+  {
+    "title": "Gallery renderer",
+    "titleRu": "Рендерер Gallery",
+    "route": "/reference/editor/renderers/gallery",
+    "group": "Rector renderers",
+    "source": "renderer/renderers/gallery/README.md",
+    "sourceRu": "renderer/renderers/gallery/README.ru.md"
+  },
+  {
+    "title": "Heading renderer",
+    "titleRu": "Рендерер Heading",
+    "route": "/reference/editor/renderers/heading",
+    "group": "Rector renderers",
+    "source": "renderer/renderers/heading/README.md",
+    "sourceRu": "renderer/renderers/heading/README.ru.md"
+  },
+  {
+    "title": "Image renderer",
+    "titleRu": "Рендерер Image",
+    "route": "/reference/editor/renderers/image",
+    "group": "Rector renderers",
+    "source": "renderer/renderers/image/README.md",
+    "sourceRu": "renderer/renderers/image/README.ru.md"
+  },
+  {
+    "title": "LinkPreview renderer",
+    "titleRu": "Рендерер LinkPreview",
+    "route": "/reference/editor/renderers/link-preview",
+    "group": "Rector renderers",
+    "source": "renderer/renderers/link-preview/README.md",
+    "sourceRu": "renderer/renderers/link-preview/README.ru.md"
+  },
+  {
+    "title": "List renderer",
+    "titleRu": "Рендерер List",
+    "route": "/reference/editor/renderers/list",
+    "group": "Rector renderers",
+    "source": "renderer/renderers/list/README.md",
+    "sourceRu": "renderer/renderers/list/README.ru.md"
+  },
+  {
+    "title": "Paragraph renderer",
+    "titleRu": "Рендерер Paragraph",
+    "route": "/reference/editor/renderers/paragraph",
+    "group": "Rector renderers",
+    "source": "renderer/renderers/paragraph/README.md",
+    "sourceRu": "renderer/renderers/paragraph/README.ru.md"
+  },
+  {
+    "title": "Person renderer",
+    "titleRu": "Рендерер Person",
+    "route": "/reference/editor/renderers/person",
+    "group": "Rector renderers",
+    "source": "renderer/renderers/person/README.md",
+    "sourceRu": "renderer/renderers/person/README.ru.md"
+  },
+  {
+    "title": "Poll renderer",
+    "titleRu": "Рендерер Poll",
+    "route": "/reference/editor/renderers/poll",
+    "group": "Rector renderers",
+    "source": "renderer/renderers/poll/README.md",
+    "sourceRu": "renderer/renderers/poll/README.ru.md"
+  },
+  {
+    "title": "Quote renderer",
+    "titleRu": "Рендерер Quote",
+    "route": "/reference/editor/renderers/quote",
+    "group": "Rector renderers",
+    "source": "renderer/renderers/quote/README.md",
+    "sourceRu": "renderer/renderers/quote/README.ru.md"
+  },
+  {
+    "title": "Raw renderer",
+    "titleRu": "Рендерер Raw",
+    "route": "/reference/editor/renderers/raw",
+    "group": "Rector renderers",
+    "source": "renderer/renderers/raw/README.md",
+    "sourceRu": "renderer/renderers/raw/README.ru.md"
+  },
+  {
+    "title": "Spoiler renderer",
+    "titleRu": "Рендерер Spoiler",
+    "route": "/reference/editor/renderers/spoiler",
+    "group": "Rector renderers",
+    "source": "renderer/renderers/spoiler/README.md",
+    "sourceRu": "renderer/renderers/spoiler/README.ru.md"
+  },
+  {
+    "title": "Table renderer",
+    "titleRu": "Рендерер Table",
+    "route": "/reference/editor/renderers/table",
+    "group": "Rector renderers",
+    "source": "renderer/renderers/table/README.md",
+    "sourceRu": "renderer/renderers/table/README.ru.md"
+  },
+  {
+    "title": "Toggle renderer",
+    "titleRu": "Рендерер Toggle",
+    "route": "/reference/editor/renderers/toggle",
+    "group": "Rector renderers",
+    "source": "renderer/renderers/toggle/README.md",
+    "sourceRu": "renderer/renderers/toggle/README.ru.md"
+  },
+  {
+    "title": "Warning renderer",
+    "titleRu": "Рендерер Warning",
+    "route": "/reference/editor/renderers/warning",
+    "group": "Rector renderers",
+    "source": "renderer/renderers/warning/README.md",
+    "sourceRu": "renderer/renderers/warning/README.ru.md"
+  }
+]

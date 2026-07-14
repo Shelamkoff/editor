@@ -1,9 +1,11 @@
 import { resolvePath } from '../../shared/resolvePath.js'
+import { getHighlightRuntime, loadHighlightRuntime } from '../../shared/highlightRuntime.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
+import { validateCodeData } from '../../shared/blockDataValidators.js'
 
 const editorStyles = resolvePath('./code.css', import.meta.url)
 
-/** @type {WeakMap<HTMLElement, {code: string, language: string, editMode: boolean}>} */
+/** @type {WeakMap<HTMLElement, {code: string, language: string, editMode: boolean, context: import('../../core/types').BlockMutationContext}>} */
 const codeStateMap = new WeakMap()
 
 /** @type {WeakMap<HTMLElement, {textarea: HTMLTextAreaElement, pre: HTMLPreElement, codeEl: HTMLElement, copyBtn: HTMLElement, editBtn: HTMLElement, dropdown: HTMLElement, dropdownTrigger: HTMLElement, langLabel: HTMLElement}>} */
@@ -102,46 +104,12 @@ function moveDropdownFocus(list, currentIdx, dir) {
   return idx
 }
 
-
-/** @type {Promise<object> | null} */
-let _hljsLoadPromise = null
-
-/**
- * Load highlight.js (all languages bundle) from CDN (once).
- * @returns {Promise<object>}
- */
-function loadHljs() {
-  if (/** @type {any} */ (window).hljs) return Promise.resolve(/** @type {any} */ (window).hljs)
-  if (_hljsLoadPromise) return _hljsLoadPromise
-
-  _hljsLoadPromise = new Promise(function (resolve, reject) {
-    const script = document.createElement('script')
-    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js'
-    script.onload = function () {
-      const hljs = /** @type {any} */ (window).hljs
-      if (hljs) {
-        resolve(hljs)
-      } else {
-        reject(new Error('hljs not found on window'))
-      }
-    }
-    script.onerror = function () {
-      reject(new Error('Failed to load highlight.js from CDN'))
-    }
-    document.head.appendChild(script)
-  })
-
-  return _hljsLoadPromise
-}
-
-/** @type {any} module-level hljs ref (avoids private field issues in closures) */
-let _hljs = null
-
 /**
  * Highlight a code block wrapper using hljs (if loaded).
  * @param {HTMLElement} wrapper
+ * @param {import('../../shared/highlightRuntime').HighlightRuntime | null} hljs
  */
-function highlightCodeBlock(wrapper) {
+function highlightCodeBlock(wrapper, hljs) {
   const state = codeStateMap.get(wrapper)
   const refs = refsMap.get(wrapper)
   const codeEl = refs && refs.codeEl
@@ -156,22 +124,22 @@ function highlightCodeBlock(wrapper) {
   // Trailing newline keeps pre height = textarea height
   codeEl.textContent = code + '\n'
 
-  if (!_hljs) {
+  if (!hljs) {
     codeEl.classList.add('hljs')
     return
   }
 
   try {
     if (lang === 'auto') {
-      const result = _hljs.highlightAuto(code)
+      const result = hljs.highlightAuto(code)
       if (result.language) {
         codeEl.innerHTML = result.value + '\n'
         codeEl.classList.add('hljs', 'language-' + result.language)
       } else {
         codeEl.classList.add('hljs')
       }
-    } else if (_hljs.getLanguage(lang)) {
-      const result = _hljs.highlight(code, { language: lang, ignoreIllegals: true })
+    } else if (hljs.getLanguage(lang)) {
+      const result = hljs.highlight(code, { language: lang, ignoreIllegals: true })
       codeEl.innerHTML = result.value + '\n'
       codeEl.classList.add('hljs')
     } else {
@@ -184,6 +152,15 @@ function highlightCodeBlock(wrapper) {
 }
 
 
+/**
+ * @typedef {{
+ *   hljs?: import('../../shared/highlightRuntime').HighlightRuntime,
+ *   injectStyles?: boolean,
+ *   css?: string,
+ * }} CodeConfig
+ */
+
+/** @extends {BlockPluginAbstract<CodeConfig>} */
 export class Code extends BlockPluginAbstract {
   static isTextBlock = false
   static styles = [editorStyles]
@@ -191,29 +168,34 @@ export class Code extends BlockPluginAbstract {
   icon = ICON
   inlineTools = false
 
+  /** @type {import('../../shared/highlightRuntime').HighlightRuntime | null} */
+  #highlightRuntime = null
+
+  /** @type {Set<HTMLElement>} */
+  #wrappers = new Set()
+
   /** @returns {string} */
   get title() {
     return this._t('title', 'Code')
   }
 
   /**
-   * @param {{ hljs?: object }} [config]
+   * @param {CodeConfig} [config]
    */
   constructor(config) {
     super(config)
-    if (config && config.hljs) {
-      _hljs = config.hljs
-    } else if (!_hljs && !_hljsLoadPromise) {
-      // Autoload from CDN
-      void loadHljs().then(function (hljs) {
-        _hljs = hljs
-        // Re-highlight all existing code blocks
-        const wrappers = document.querySelectorAll('.oe-code-wrap')
-        for (let i = 0; i < wrappers.length; i++) {
-          highlightCodeBlock(/** @type {HTMLElement} */ (wrappers[i]))
+    this.#highlightRuntime = config?.hljs ?? getHighlightRuntime()
+
+    if (!this.#highlightRuntime) {
+      // The bundled runtime is shared and immutable, while mounted blocks remain
+      // owned by this plugin instance. A custom runtime never leaks to another editor.
+      void loadHighlightRuntime().then(runtime => {
+        this.#highlightRuntime = runtime
+        for (const wrapper of this.#wrappers) {
+          highlightCodeBlock(wrapper, runtime)
         }
       }).catch(function (err) {
-        console.warn('[Code] Failed to load highlight.js:', err)
+        console.warn('[Code] Failed to load local highlight.js:', err)
       })
     }
   }
@@ -329,7 +311,7 @@ export class Code extends BlockPluginAbstract {
    * @param {{ code?: string, language?: string }} data
    * @returns {HTMLElement}
    */
-  render(data) {
+  render(data, context) {
     const code = data.code ?? ''
     const language = data.language ?? 'auto'
 
@@ -341,7 +323,8 @@ export class Code extends BlockPluginAbstract {
     wrapper.dataset.lang = language
 
     // State stored via WeakMap for save()
-    codeStateMap.set(wrapper, { code, language, editMode: false })
+    codeStateMap.set(wrapper, { code, language, editMode: false, context })
+    this.#wrappers.add(wrapper)
 
     // ── Header bar ──
     const bar = document.createElement('div')
@@ -404,22 +387,21 @@ export class Code extends BlockPluginAbstract {
       if (st) st.code = textarea.value
       this.#syncScroll(wrapper)
       this.#highlight(wrapper)
-      // Trigger undo/redo snapshot (textarea input doesn't bubble to EditorFacade)
-      wrapper.dispatchEvent(new InputEvent('input', { bubbles: true }))
     })
 
     textarea.addEventListener('paste', (e) => {
       e.preventDefault()
       e.stopPropagation()
-      const text = /** @type {ClipboardEvent} */ (e).clipboardData?.getData('text/plain') || ''
-      const s = textarea.selectionStart
-      const end = textarea.selectionEnd
-      textarea.value = textarea.value.substring(0, s) + text + textarea.value.substring(end)
-      textarea.selectionStart = textarea.selectionEnd = s + text.length
       const st = codeStateMap.get(wrapper)
-      if (st) st.code = textarea.value
-      this.#highlight(wrapper)
-      wrapper.dispatchEvent(new InputEvent('input', { bubbles: true }))
+      st?.context.mutate(() => {
+        const text = /** @type {ClipboardEvent} */ (e).clipboardData?.getData('text/plain') || ''
+        const s = textarea.selectionStart
+        const end = textarea.selectionEnd
+        textarea.value = textarea.value.substring(0, s) + text + textarea.value.substring(end)
+        textarea.selectionStart = textarea.selectionEnd = s + text.length
+        st.code = textarea.value
+        this.#highlight(wrapper)
+      })
     })
 
     textarea.addEventListener('scroll', () => this.#syncScroll(wrapper))
@@ -471,7 +453,7 @@ export class Code extends BlockPluginAbstract {
    * @returns {boolean}
    */
   validate(data) {
-    return typeof data.code === 'string' && data.code.trim().length > 0
+    return validateCodeData(data)
   }
 
   /**
@@ -515,6 +497,7 @@ export class Code extends BlockPluginAbstract {
    * @param {HTMLElement} element
    */
   destroy(element) {
+    this.#wrappers.delete(element)
     const handler = docMousedownMap.get(element)
     if (handler) {
       document.removeEventListener('mousedown', handler)
@@ -579,7 +562,7 @@ export class Code extends BlockPluginAbstract {
 
   /** @param {HTMLElement} wrapper */
   #highlight(wrapper) {
-    highlightCodeBlock(wrapper)
+    highlightCodeBlock(wrapper, this.#highlightRuntime)
   }
 
   /** @param {HTMLElement} wrapper */
@@ -629,26 +612,28 @@ export class Code extends BlockPluginAbstract {
     if (e.key === 'Tab' && !e.shiftKey) {
       e.preventDefault()
       e.stopPropagation()
-      const s = textarea.selectionStart
-      const end = textarea.selectionEnd
-      const v = textarea.value
-      if (s !== end && v.substring(s, end).includes('\n')) {
-        const before = v.substring(0, s)
-        const selected = v.substring(s, end)
-        const after = v.substring(end)
-        const lineStart = before.lastIndexOf('\n') + 1
-        const prefix = before.substring(lineStart)
-        const block = prefix + selected
-        const indented = '    ' + block.replace(/\n/g, '\n    ')
-        textarea.value = before.substring(0, lineStart) + indented + after
-        textarea.selectionStart = lineStart
-        textarea.selectionEnd = lineStart + indented.length
-      } else {
-        textarea.value = v.substring(0, s) + '    ' + v.substring(end)
-        textarea.selectionStart = textarea.selectionEnd = s + 4
-      }
-      if (hkState) hkState.code = textarea.value
-      this.#highlight(wrapper)
+      hkState?.context.mutate(() => {
+        const s = textarea.selectionStart
+        const end = textarea.selectionEnd
+        const v = textarea.value
+        if (s !== end && v.substring(s, end).includes('\n')) {
+          const before = v.substring(0, s)
+          const selected = v.substring(s, end)
+          const after = v.substring(end)
+          const lineStart = before.lastIndexOf('\n') + 1
+          const prefix = before.substring(lineStart)
+          const block = prefix + selected
+          const indented = '    ' + block.replace(/\n/g, '\n    ')
+          textarea.value = before.substring(0, lineStart) + indented + after
+          textarea.selectionStart = lineStart
+          textarea.selectionEnd = lineStart + indented.length
+        } else {
+          textarea.value = v.substring(0, s) + '    ' + v.substring(end)
+          textarea.selectionStart = textarea.selectionEnd = s + 4
+        }
+        hkState.code = textarea.value
+        this.#highlight(wrapper)
+      })
       return
     }
 
@@ -656,16 +641,18 @@ export class Code extends BlockPluginAbstract {
     if (e.key === 'Tab' && e.shiftKey) {
       e.preventDefault()
       e.stopPropagation()
-      const s = textarea.selectionStart
-      const v = textarea.value
-      const lineStart = v.lastIndexOf('\n', s - 1) + 1
-      const linePrefix = v.substring(lineStart, lineStart + 4)
-      if (linePrefix === '    ') {
-        textarea.value = v.substring(0, lineStart) + v.substring(lineStart + 4)
-        textarea.selectionStart = textarea.selectionEnd = Math.max(s - 4, lineStart)
-      }
-      if (hkState) hkState.code = textarea.value
-      this.#highlight(wrapper)
+      hkState?.context.mutate(() => {
+        const s = textarea.selectionStart
+        const v = textarea.value
+        const lineStart = v.lastIndexOf('\n', s - 1) + 1
+        const linePrefix = v.substring(lineStart, lineStart + 4)
+        if (linePrefix === '    ') {
+          textarea.value = v.substring(0, lineStart) + v.substring(lineStart + 4)
+          textarea.selectionStart = textarea.selectionEnd = Math.max(s - 4, lineStart)
+        }
+        hkState.code = textarea.value
+        this.#highlight(wrapper)
+      })
       return
     }
 
@@ -761,6 +748,14 @@ export class Code extends BlockPluginAbstract {
 
   // ── Private: Language dropdown ─────────────────────────────────────────────
 
+  /** @param {{ value: string, label: string } | undefined} language */
+  #languageLabel(language) {
+    if (!language) return ''
+    if (language.value === 'auto') return this._t('languageAuto', language.label)
+    if (language.value === 'plaintext') return this._t('languagePlainText', language.label)
+    return language.label
+  }
+
   /**
    * @param {HTMLElement} wrapper
    * @returns {{ dropdown: HTMLElement, trigger: HTMLElement, langLabel: HTMLElement }}
@@ -776,7 +771,7 @@ export class Code extends BlockPluginAbstract {
     trigger.type = 'button'
     trigger.className = 'oe-code-dropdown__trigger'
     const currentLang = LANGUAGES.find(l => l.value === state.language)
-    trigger.textContent = currentLang ? currentLang.label : state.language
+    trigger.textContent = currentLang ? this.#languageLabel(currentLang) : state.language
 
     trigger.addEventListener('click', (e) => {
       e.stopPropagation()
@@ -842,7 +837,7 @@ export class Code extends BlockPluginAbstract {
       item.className = 'oe-code-dropdown__item'
       if (lang.value === state.language) item.classList.add('oe-code-dropdown__item--active')
       item.dataset.value = lang.value
-      item.textContent = lang.label
+      item.textContent = this.#languageLabel(lang)
       item.addEventListener('click', (e) => {
         e.stopPropagation()
         this.#selectLanguage(wrapper, lang.value)
@@ -861,7 +856,7 @@ export class Code extends BlockPluginAbstract {
     const langLabel = document.createElement('span')
     langLabel.className = 'oe-code-lang'
     const labelLang = LANGUAGES.find(l => l.value === state.language)
-    langLabel.textContent = labelLang ? labelLang.label : state.language
+    langLabel.textContent = labelLang ? this.#languageLabel(labelLang) : state.language
 
     // Close on outside click
     const onDocMousedown = (/** @type {MouseEvent} */ e) => {
@@ -913,33 +908,34 @@ export class Code extends BlockPluginAbstract {
     const refs = refsMap.get(wrapper)
     if (!state || !refs) return
 
-    state.language = value
-    wrapper.dataset.lang = value
+    state.context.mutate(() => {
+      state.language = value
+      wrapper.dataset.lang = value
 
-    // Update trigger text
-    const dropdown = refs.dropdown
-    const drefs = dropdown ? dropdownRefsMap.get(dropdown) : undefined
-    if (drefs?.trigger) {
-      const lang = LANGUAGES.find(l => l.value === value)
-      drefs.trigger.textContent = lang ? lang.label : value
-    }
-
-    // Update lang label
-    if (refs.langLabel) {
-      const lang = LANGUAGES.find(l => l.value === value)
-      refs.langLabel.textContent = lang ? lang.label : value
-    }
-
-    // Update active state in list
-    if (drefs?.list) {
-      for (const item of drefs.list.children) {
-        item.classList.toggle('oe-code-dropdown__item--active', /** @type {HTMLElement} */ (item).dataset.value === value)
+      // Update trigger text
+      const dropdown = refs.dropdown
+      const drefs = dropdown ? dropdownRefsMap.get(dropdown) : undefined
+      if (drefs?.trigger) {
+        const lang = LANGUAGES.find(l => l.value === value)
+        drefs.trigger.textContent = lang ? this.#languageLabel(lang) : value
       }
-    }
 
-    this.#highlight(wrapper)
-    this.#closeDropdown(wrapper)
-    wrapper.dispatchEvent(new InputEvent('input', { bubbles: true }))
+      // Update lang label
+      if (refs.langLabel) {
+        const lang = LANGUAGES.find(l => l.value === value)
+        refs.langLabel.textContent = lang ? this.#languageLabel(lang) : value
+      }
+
+      // Update active state in list
+      if (drefs?.list) {
+        for (const item of drefs.list.children) {
+          item.classList.toggle('oe-code-dropdown__item--active', /** @type {HTMLElement} */ (item).dataset.value === value)
+        }
+      }
+
+      this.#highlight(wrapper)
+      this.#closeDropdown(wrapper)
+    })
   }
 
 }

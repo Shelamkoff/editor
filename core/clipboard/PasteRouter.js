@@ -67,6 +67,20 @@ export class PasteRouter {
    * @returns {import('../types').BlockPlugin | undefined}
    */
   findByPattern(text) {
-    return this.#patternRoutes.find((r) => r.regex.test(text))?.plugin
+    return this.#patternRoutes.find((route) => this.#matches(route.regex, text))?.plugin
+  }
+
+  /**
+   * Plugin-owned expressions may be global or sticky. RegExp.test() mutates
+   * lastIndex for both flags, so every routing decision must start from the
+   * same state and leave the expression reusable by the next paste.
+   * @param {RegExp} regex
+   * @param {string} value
+   */
+  #matches(regex, value) {
+    regex.lastIndex = 0
+    const matched = regex.test(value)
+    regex.lastIndex = 0
+    return matched
   }
 }

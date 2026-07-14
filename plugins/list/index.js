@@ -2,6 +2,7 @@ import { sanitizeHtml } from '../../core/sanitize.js'
 import { resolvePath } from '../../shared/resolvePath.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { mapTextFields } from './mapTextFields.js'
+import { validateListData } from '../../shared/blockDataValidators.js'
 
 const editorStyles = resolvePath('./list.css', import.meta.url)
 
@@ -39,7 +40,7 @@ export class List extends BlockPluginAbstract {
    * @param {{ items?: string[], style?: 'ordered' | 'unordered' }} data
    * @returns {HTMLElement}
    */
-  render(data) {
+  render(data, context) {
     const style = data.style || 'unordered'
     const tag = style === 'ordered' ? 'ol' : 'ul'
     const list = document.createElement(tag)
@@ -57,10 +58,10 @@ export class List extends BlockPluginAbstract {
       if (ke.key === 'Enter' && !ke.shiftKey) {
         ke.preventDefault()
         ke.stopPropagation()
-        this.#handleEnter(list)
+        this.#handleEnter(list, context)
       }
       if (ke.key === 'Backspace') {
-        this.#handleBackspace(list, ke)
+        this.#handleBackspace(list, ke, context)
       }
     })
 
@@ -87,7 +88,7 @@ export class List extends BlockPluginAbstract {
    * @returns {boolean}
    */
   validate(data) {
-    return Array.isArray(data.items) && data.items.some(i => i.trim().length > 0)
+    return validateListData(data)
   }
 
   /**
@@ -117,6 +118,76 @@ export class List extends BlockPluginAbstract {
       text: items.join('<br>'),
       items,
       style: element.dataset.style || 'unordered',
+    }
+  }
+
+  /**
+   * Describe a partial list selection without exposing list markup to the
+   * core's generic text splitter. Selected item content can be transferred
+   * to another text block; all unselected content remains in one list.
+   *
+   * @param {HTMLElement} element
+   * @param {Range} range
+   * @returns {{ remainingData: { items: string[], style: string } | null, selectedData: { text: string, items: string[], style: string } } | null}
+   */
+  splitSelection(element, range) {
+    const items = [...element.querySelectorAll(':scope > li')]
+    const selectedItems = []
+    const remainingItems = []
+
+    for (const item of items) {
+      if (!range.intersectsNode(item)) {
+        remainingItems.push(item.innerHTML.trim())
+        continue
+      }
+
+      const selectionPart = document.createRange()
+      selectionPart.selectNodeContents(item)
+      if (item.contains(range.startContainer)) {
+        selectionPart.setStart(range.startContainer, range.startOffset)
+      }
+      if (item.contains(range.endContainer)) {
+        selectionPart.setEnd(range.endContainer, range.endOffset)
+      }
+
+      if (selectionPart.collapsed) {
+        remainingItems.push(item.innerHTML.trim())
+        continue
+      }
+
+      const selectedHtml = this.#rangeHtml(selectionPart, item)
+      if (selectedHtml) selectedItems.push(selectedHtml)
+
+      const before = document.createRange()
+      before.selectNodeContents(item)
+      let beforeHtml = ''
+      if (item.contains(range.startContainer)) {
+        before.setEnd(range.startContainer, range.startOffset)
+        beforeHtml = this.#rangeHtml(before, item)
+      }
+
+      const after = document.createRange()
+      after.selectNodeContents(item)
+      let afterHtml = ''
+      if (item.contains(range.endContainer)) {
+        after.setStart(range.endContainer, range.endOffset)
+        afterHtml = this.#rangeHtml(after, item)
+      }
+
+      const remainingHtml = `${beforeHtml}${afterHtml}`
+      if (this.#hasContent(remainingHtml)) remainingItems.push(remainingHtml)
+    }
+
+    if (selectedItems.length === 0) return null
+
+    const style = element.dataset.style || 'unordered'
+    return {
+      remainingData: remainingItems.length > 0 ? { items: remainingItems, style } : null,
+      selectedData: {
+        text: selectedItems.join('<br>'),
+        items: selectedItems,
+        style,
+      },
     }
   }
 
@@ -218,11 +289,36 @@ export class List extends BlockPluginAbstract {
     return li
   }
 
+  /** @param {Range} range @param {Element} root */
+  #rangeHtml(range, root) {
+    const container = document.createElement('div')
+    container.appendChild(range.cloneContents())
+    let ancestor = range.commonAncestorContainer.nodeType === Node.ELEMENT_NODE
+      ? /** @type {Element} */ (range.commonAncestorContainer)
+      : range.commonAncestorContainer.parentElement
+
+    while (ancestor && ancestor !== root && root.contains(ancestor)) {
+      const wrapper = ancestor.cloneNode(false)
+      while (container.firstChild) wrapper.appendChild(container.firstChild)
+      container.appendChild(wrapper)
+      ancestor = ancestor.parentElement
+    }
+    return container.innerHTML.trim()
+  }
+
+  /** @param {string} html */
+  #hasContent(html) {
+    const container = document.createElement('div')
+    container.innerHTML = html
+    if (container.textContent?.replace(/\u00a0/g, ' ').trim()) return true
+    return !!container.querySelector('img, video, audio, iframe, [data-inline-plugin]')
+  }
+
   /**
    * Handle Enter key — create new list item, or remove empty item at end.
    * @param {HTMLElement} list
    */
-  #handleEnter(list) {
+  #handleEnter(list, context) {
     const sel = window.getSelection()
     if (!sel || sel.rangeCount === 0) return
 
@@ -245,53 +341,54 @@ export class List extends BlockPluginAbstract {
       }
 
       // Remove empty item
-      const isLast = currentLi === list.lastElementChild
-      const removedIdx = Array.from(list.children).indexOf(currentLi)
-      currentLi.remove()
+      context.mutate(() => {
+        const isLast = currentLi === list.lastElementChild
+        const removedIdx = Array.from(list.children).indexOf(currentLi)
+        currentLi.remove()
 
-      if (isLast) {
-        // Focus last remaining item end, then bubble Enter to create new block
-        const lastItem = /** @type {HTMLElement | null} */ (list.querySelector(':scope > li:last-child'))
-        if (lastItem) {
-          this.#setCaretToEnd(lastItem)
+        if (isLast) {
+          // Focus last remaining item end, then bubble Enter to create new block
+          const lastItem = /** @type {HTMLElement | null} */ (list.querySelector(':scope > li:last-child'))
+          if (lastItem) {
+            this.#setCaretToEnd(lastItem)
+          }
+          // Dispatch bubbling Enter so BlockOperations splits the block
+          list.dispatchEvent(new KeyboardEvent('keydown', {
+            key: 'Enter', code: 'Enter', bubbles: true, cancelable: true,
+          }))
+        } else {
+          // Focus the item that took its place
+          const items = list.querySelectorAll(':scope > li')
+          const focusIdx = Math.min(removedIdx, items.length - 1)
+          const focusItem = items[Math.max(0, focusIdx)] || items[0]
+          if (focusItem) {
+            /** @type {HTMLElement} */ (focusItem).focus()
+            this.#setCaretToStart(/** @type {HTMLElement} */ (focusItem))
+          }
         }
-        // Dispatch bubbling Enter so BlockOperations splits the block
-        list.dispatchEvent(new KeyboardEvent('keydown', {
-          key: 'Enter', code: 'Enter', bubbles: true, cancelable: true,
-        }))
-      } else {
-        // Focus the item that took its place
-        const items = list.querySelectorAll(':scope > li')
-        const focusIdx = Math.min(removedIdx, items.length - 1)
-        const focusItem = items[Math.max(0, focusIdx)] || items[0]
-        if (focusItem) {
-          /** @type {HTMLElement} */ (focusItem).focus()
-          this.#setCaretToStart(/** @type {HTMLElement} */ (focusItem))
-        }
-      }
+      })
       return
     }
 
     // Split content at caret — extract everything after caret
-    const afterRange = document.createRange()
-    afterRange.setStart(range.endContainer, range.endOffset)
-    afterRange.setEndAfter(currentLi.lastChild || currentLi)
-    const fragment = afterRange.extractContents()
+    context.mutate(() => {
+      const afterRange = document.createRange()
+      afterRange.setStart(range.endContainer, range.endOffset)
+      afterRange.setEndAfter(currentLi.lastChild || currentLi)
+      const fragment = afterRange.extractContents()
 
-    // Create new li with the extracted content
-    const newLi = document.createElement('li')
-    newLi.classList.add('oe-list__item')
-    newLi.contentEditable = 'true'
-    newLi.appendChild(fragment)
+      // Create new li with the extracted content
+      const newLi = document.createElement('li')
+      newLi.classList.add('oe-list__item')
+      newLi.contentEditable = 'true'
+      newLi.appendChild(fragment)
 
-    // Insert after current
-    currentLi.after(newLi)
+      // Insert after current
+      currentLi.after(newLi)
 
-    // Set caret to beginning of new item
-    this.#setCaretToStart(newLi)
-
-    // Dispatch input event for undo tracking
-    list.dispatchEvent(new Event('input', { bubbles: true }))
+      // Set caret to beginning of new item
+      this.#setCaretToStart(newLi)
+    })
   }
 
   /**
@@ -299,7 +396,7 @@ export class List extends BlockPluginAbstract {
    * @param {HTMLElement} list
    * @param {KeyboardEvent} e
    */
-  #handleBackspace(list, e) {
+  #handleBackspace(list, e, context) {
     const sel = window.getSelection()
     if (!sel || sel.rangeCount === 0) return
     const range = sel.getRangeAt(0)
@@ -325,25 +422,25 @@ export class List extends BlockPluginAbstract {
     e.stopPropagation()
 
     // Merge current into previous
-    const mergeOffset = prevLi.childNodes.length
-    while (currentLi.firstChild) {
-      prevLi.appendChild(currentLi.firstChild)
-    }
-    currentLi.remove()
+    context.mutate(() => {
+      const mergeOffset = prevLi.childNodes.length
+      while (currentLi.firstChild) {
+        prevLi.appendChild(currentLi.firstChild)
+      }
+      currentLi.remove()
 
-    // Set caret at merge point
-    prevLi.focus()
-    const newRange = document.createRange()
-    if (prevLi.childNodes[mergeOffset]) {
-      newRange.setStartBefore(prevLi.childNodes[mergeOffset])
-    } else {
-      newRange.setStart(prevLi, prevLi.childNodes.length)
-    }
-    newRange.collapse(true)
-    sel.removeAllRanges()
-    sel.addRange(newRange)
-
-    list.dispatchEvent(new Event('input', { bubbles: true }))
+      // Set caret at merge point
+      prevLi.focus()
+      const newRange = document.createRange()
+      if (prevLi.childNodes[mergeOffset]) {
+        newRange.setStartBefore(prevLi.childNodes[mergeOffset])
+      } else {
+        newRange.setStart(prevLi, prevLi.childNodes.length)
+      }
+      newRange.collapse(true)
+      sel.removeAllRanges()
+      sel.addRange(newRange)
+    })
   }
 
   /**

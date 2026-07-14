@@ -1,4 +1,12 @@
-export interface EditorDocument {
+import type {
+  EditorBlockData,
+  EditorInlineWidget,
+  EditorOutputData,
+} from '../shared/documentTypes.js'
+import type { LocaleValue, PluralForms } from '../shared/localeTypes.js'
+export type { LocaleValue, PluralForms } from '../shared/localeTypes.js'
+
+export interface EditorDocument extends EditorOutputData<BlockData> {
   time?: number
   version: string
   blocks: BlockData[]
@@ -7,10 +15,11 @@ export interface EditorDocument {
 export interface BlockData<
   T extends string = string,
   D extends Record<string, unknown> = Record<string, unknown>
-> {
+> extends EditorBlockData<T, D> {
   id: string
   type: T
   data: D
+  revision?: string | number
   tunes?: Record<string, unknown>
   /**
    * Inline widget map for text-carrying blocks. Populated by the editor's
@@ -20,7 +29,7 @@ export interface BlockData<
    * key is the widget's stable instance id (the same value that appears
    * inside `{{...}}` in the text and as `data-id` on the live widget).
    */
-  inline?: Record<string, import('../renderer/types').InlineWidget>
+  inline?: Record<string, EditorInlineWidget>
 }
 
 // ── Plugin API ───────────────────────────────────────────────────────────────
@@ -30,8 +39,8 @@ export interface BasePlugin {
   readonly type: string
   readonly title: string
   readonly icon: string
-  /** Locale messages per language. Merged into i18n on registration. */
-  readonly locale?: Record<string, Record<string, string>>
+  /** Locale metadata for composition roots that aggregate dictionaries. */
+  readonly locale?: Record<string, Record<string, LocaleValue>>
   /** Receive i18n instance for localized titles, labels, and placeholders. */
   setI18n?(i18n: { t(key: string): string }): void
 }
@@ -48,7 +57,7 @@ export interface BlockPlugin<D extends Record<string, unknown> = Record<string, 
   readonly inlineTools?: boolean | string[]
 
   // ── Core (required) ──────────────────────────────────────────────────────
-  render(data: D): HTMLElement
+  render(data: D, context: BlockMutationContext): HTMLElement
   save(element: HTMLElement): D
 
   // ── Lifecycle ────────────────────────────────────────────────────────────
@@ -71,9 +80,20 @@ export interface BlockPlugin<D extends Record<string, unknown> = Record<string, 
   // ── Paste ────────────────────────────────────────────────────────────────
   pasteConfig?: PasteConfig
   onPaste?(event: PasteEvent): D | null
+  /** Wait for asynchronous state created by a paste before committing history. */
+  waitForPaste?(element: HTMLElement): Promise<void>
 
   // ── Conversion ───────────────────────────────────────────────────────────
   exportData?(element: HTMLElement): Record<string, unknown>
+  /**
+   * Describe a partial selection using plugin-owned data boundaries.
+   * The method must not mutate `element`. The core replaces the source with
+   * `remainingData` and creates the target block from `selectedData`.
+   */
+  splitSelection?(element: HTMLElement, range: Range): {
+    remainingData: D | null
+    selectedData: Record<string, unknown>
+  } | null
 
   // ── Inline toolbar controls ──────────────────────────────────────────────
   renderInlineControls?(contentElement: HTMLElement, ctx: InlineControlContext): InlineControlGroup | null
@@ -97,13 +117,21 @@ export interface BlockPlugin<D extends Record<string, unknown> = Record<string, 
   mapTextFields?(data: D, transform: (html: string) => string): void
 }
 
+/** Runtime services available to a block plugin's interactive handlers. */
+export interface BlockMutationContext {
+  /** Execute one synchronous block-local command as one undo/redo step. */
+  mutate<T>(operation: () => T): T | undefined
+  /** True when interactive mutations and side-effecting controls must not be mounted. */
+  readonly readOnly: boolean
+}
+
 /** Static properties on block plugin constructors. */
 export interface BlockPluginConstructor<D extends Record<string, unknown> = Record<string, unknown>> {
   new (): BlockPlugin<D>
   /** CSS stylesheet URLs injected via <link> tags. */
   styles?: string[]
   /** Locale messages per language, merged into i18n on registration. */
-  locale?: Record<string, Record<string, string>>
+  locale?: Record<string, Record<string, LocaleValue>>
   /** Whether this block type is text-based (has contenteditable root). Used by cross-block conversion. */
   isTextBlock?: boolean
 }
@@ -111,6 +139,8 @@ export interface BlockPluginConstructor<D extends Record<string, unknown> = Reco
 export interface InlineControlContext {
   /** Call before DOM swaps to prevent toolbar from hiding */
   suppressSelectionChange(): void
+  /** Execute one synchronous block-local command as one undo/redo step. */
+  mutate<T>(operation: () => T): T
   /** Call after DOM swap when contentElement was replaced (e.g. heading level change) */
   onContentElementChanged(newElement: HTMLElement): void
 }
@@ -188,15 +218,22 @@ export interface InlineTool {
   /** Dynamic title for tooltip (e.g. current alignment name, link/unlink). */
   getTitle?(active: boolean): string
   /** Called after the tool button is mounted in the DOM. */
-  onMount?(button: HTMLElement): void
+  onMount?(button: HTMLElement, mutations?: InlineMutationContext): void
   /** Whether the tool's dropdown is currently open (prevents toolbar from hiding). */
   isDropdownOpen?(): boolean
   destroy?(): void
 }
 
+export interface InlineMutationContext {
+  /** Execute one synchronous range mutation as one undo/redo step. */
+  mutate<T>(range: Range, operation: () => T): T
+}
+
 export interface InlineToolActionContext {
   /** Cloned selection range saved before opening the panel */
   range: Range
+  /** Execute a mutation of the saved range as one undo/redo step. */
+  mutate<T>(operation: () => T): T
   /** Restore the saved selection (call before applying changes) */
   restoreSelection(): void
   /** Close the actions panel and return to the buttons view */
@@ -234,9 +271,11 @@ export interface EditorEvents {
   'editor:ready': undefined
   'editor:willChange': undefined
   'editor:changed': undefined
+  'history:commit': undefined
   'editor:destroyed': undefined
   'toolbar:opened': { type: 'block' | 'inline' }
   'toolbar:closed': { type: 'block' | 'inline' }
+  'paste:applied': { startBlockId?: string; endBlockId?: string }
   'dragHandle:clicked': undefined
 }
 
@@ -251,10 +290,57 @@ export interface EditorTuning {
   change: { debounceMs: number }
   /** TypeSelector search — minimum plugin count before filter input appears. */
   toolbar: { filterThreshold: number }
-  /** Block insert/move animation durations (ms). */
-  animations: { blockInsertMs: number, blockMoveMs: number }
+  /** Block insert/move/remove animation durations (ms). */
+  animations: { blockInsertMs: number, blockMoveMs: number, blockRemoveMs: number }
   /** Width below which the UI switches to mobile layout. Matches CSS media queries. */
   mobileBreakpoint: number
+}
+
+export interface BlockValidationIssue {
+  blockId: string
+  type: string
+  data: Record<string, unknown>
+}
+
+/** One directed, synchronous document-format migration. */
+export interface DocumentMigration {
+  from: string
+  to: string
+  migrate(document: EditorDocument): EditorDocument
+}
+
+export type EditorDiagnosticCode =
+  | 'command.failed'
+  | 'command.slow'
+  | 'paste.failed'
+  | 'paste.slow'
+  | 'migration.applied'
+  | 'migration.failed'
+  | 'migration.unavailable'
+  | 'save.failed'
+  | 'save.slow'
+  | 'render.slow'
+  | 'editor.create.failed'
+  | 'cleanup.failed'
+
+export interface DiagnosticThresholds {
+  commandMs: number
+  saveMs: number
+  renderMs: number
+  pasteMs: number
+}
+
+/** Content-free operational signal. No document/plugin payload is exposed. */
+export interface EditorDiagnostic {
+  code: EditorDiagnosticCode
+  timestamp: number
+  durationMs?: number
+  operation?: string
+  pluginType?: string
+  blockType?: string
+  fromVersion?: string
+  toVersion?: string
+  errorName?: string
 }
 
 export interface EditorConfig {
@@ -265,6 +351,10 @@ export interface EditorConfig {
   /** Inline plugins (widgets inside text: color swatch, mention, etc.) */
   inlinePlugins?: InlinePlugin[]
   data?: EditorDocument
+  /** Ordered through `from`/`to` links before initial load and every render(). */
+  migrations?: DocumentMigration[]
+  /** Reject unknown/incomplete version chains; preserve accepts them unchanged. */
+  documentVersionPolicy?: 'preserve' | 'strict'
   readOnly?: boolean
   placeholder?: string
   autofocus?: boolean
@@ -278,6 +368,14 @@ export interface EditorConfig {
   tuning?: DeepPartial<EditorTuning>
   onChange?: (data: EditorDocument) => void
   onReady?: () => void
+  /** Preserve invalid blocks by default; strict mode rejects save. */
+  validationMode?: 'preserve' | 'strict'
+  /** Receives validation diagnostics without changing the saved document. */
+  onValidationError?: (issue: BlockValidationIssue) => void
+  /** Opt-in, content-free operational diagnostics. Disabled when omitted. */
+  onDiagnostic?: (diagnostic: EditorDiagnostic) => void
+  /** Slow-operation thresholds; omitted values do not emit timing diagnostics. */
+  diagnosticThresholds?: Partial<DiagnosticThresholds>
   theme?: string
 }
 
@@ -292,20 +390,13 @@ import enLocale from './locale/en.js'
  * their language rules (e.g. English uses `one`/`other`, Russian uses
  * `one`/`few`/`many`).
  */
-export interface PluralForms {
-  zero?: string
-  one?: string
-  two?: string
-  few?: string
-  many?: string
-  other: string
-}
+// The shared PluralForms type is re-exported above.
 
 /**
  * A locale entry — either a plain string (with optional `{name}` placeholders)
  * or a plural-form object (selected by `i18n.plural(key, count)`).
  */
-export type LocaleValue = string | PluralForms
+// The shared LocaleValue type is re-exported above.
 
 /**
  * Built-in editor messages, auto-derived from the core English locale.
@@ -360,13 +451,17 @@ export interface IBlock {
   readonly element: HTMLElement
   readonly contentElement: HTMLElement
   readonly hasInlineTools: boolean
+  /** Explicit per-block allowlist, or null when the editor-wide set applies. */
+  readonly inlineToolTypes: readonly string[] | null
   /** Whether this block's plugin supports merge. */
   readonly canMerge: boolean
+  readonly version: number
   focused: boolean
   selected: boolean
 
   save(): BlockData
   merge(data: Record<string, unknown>): void
+  markDirty(): void
   /** Replace the content element with a new one, updating the DOM. */
   replaceContentElement(newEl: HTMLElement): void
   /** Clean up the plugin without removing the block element from DOM. */
@@ -396,13 +491,23 @@ export interface IBlockReader {
   getSelectedBlocks(): IBlock[]
   /** Check if any blocks are in selected state. */
   hasSelectedBlocks(): boolean
-  save(): BlockData[]
   [Symbol.iterator](): Iterator<IBlock>
 }
 
 /** Full block CRUD. Extends IBlockReader. */
 export interface IBlockManager extends IBlockReader {
-  insert(type: string, data?: Record<string, unknown>, index?: number, id?: string): IBlock
+  insert(
+    type: string,
+    data?: Record<string, unknown>,
+    index?: number,
+    id?: string,
+    inline?: Record<string, EditorInlineWidget>,
+  ): IBlock
+  prepareReplacement(blockList: BlockData[] | undefined, defaultBlockType: string, logPrefix?: string): {
+    blocks: readonly IBlock[]
+    commit(): void
+    dispose(): void
+  }
   remove(index: number): void
   move(fromIndex: number, toIndex: number): void
   convert(index: number, newType: string, extraData?: Record<string, unknown>): IBlock | undefined
@@ -454,22 +559,70 @@ export interface ICrossBlockSelection {
 
 // ── Public Editor API ────────────────────────────────────────────────────────
 
+/** Public block handle without manager-integrity mutation methods. */
+export interface EditorBlockView {
+  readonly id: string
+  readonly type: string
+  readonly element: HTMLElement
+  readonly contentElement: HTMLElement
+  readonly focused: boolean
+  readonly selected: boolean
+  readonly hasInlineTools: boolean
+  readonly canMerge: boolean
+  readonly version: number
+  focus(): void
+  isEmpty(): boolean
+}
+
+/** Intentional public query/command surface for document blocks. */
+export interface EditorBlocksApi {
+  getBlockByIndex(index: number): EditorBlockView | undefined
+  getBlockById(id: string): EditorBlockView | undefined
+  getCurrentBlock(): EditorBlockView | undefined
+  getCurrentIndex(): number
+  getBlockCount(): number
+  getBlockIndex(id: string): number
+  getSelectedBlocks(): EditorBlockView[]
+  hasSelectedBlocks(): boolean
+  setCurrentIndex(index: number): void
+  selectBlocks(blockIds: string[]): void
+  clearSelection(): void
+  insert(
+    type: string,
+    data?: Record<string, unknown>,
+    index?: number,
+    id?: string,
+    inline?: Record<string, EditorInlineWidget>,
+  ): EditorBlockView | undefined
+  remove(index: number): void
+  move(fromIndex: number, toIndex: number): void
+  convert(index: number, type: string, data?: Record<string, unknown>): EditorBlockView | undefined
+  [Symbol.iterator](): Iterator<EditorBlockView>
+}
+
+/** Subscription-only editor event API. */
+export interface EditorEventSubscriptions {
+  on<K extends keyof EditorEvents>(event: K, handler: (data: EditorEvents[K]) => void): () => void
+  off<K extends keyof EditorEvents>(event: K, handler: (data: EditorEvents[K]) => void): void
+  once<K extends keyof EditorEvents>(event: K, handler: (data: EditorEvents[K]) => void): () => void
+}
+
 export interface IEditor {
-  save(): Promise<EditorDocument>
+  save(): EditorDocument
   render(data: EditorDocument): void
   clear(): void
   focus(): void
+  insertInlinePlugin(type: string, data?: Record<string, string>): boolean
   destroy(): void
   readonly isReady: boolean
-  readonly blocks: IBlockReader
-  readonly events: IEventBus
+  readonly blocks: EditorBlocksApi
+  readonly events: EditorEventSubscriptions
   readonly rootElement: HTMLElement
 }
 
 // ── Inline Plugins ───────────────────────────────────────────────────────────
 
 export interface InlinePlugin extends BasePlugin {
-  readonly editable?: boolean
   readonly trigger?: string
   /** Patterns that auto-convert pasted/typed text into this widget. */
   readonly pasteConfig?: { patterns: RegExp[] }
@@ -483,11 +636,13 @@ export interface InlinePlugin extends BasePlugin {
    * when omitted, the factory generates a fresh id (via `generateInlineId`).
    */
   createWidget(data: Record<string, string>, id?: string): HTMLElement
+  /** Acquire editor-scoped resources after the editor root and context exist. */
+  mount?(rootElement: HTMLElement, ctx: InlinePluginContext): void
   hydrate(element: HTMLElement, ctx: InlinePluginContext): void
   getData(element: HTMLElement): Record<string, string>
   onEdit?(element: HTMLElement, text: string, ctx: InlinePluginContext): void
   onCommit?(element: HTMLElement, data: Record<string, string>): void
-  destroy?(element: HTMLElement): void
+  destroy?(): void
 
   /**
    * Optional custom insertion hook for programmatic "+" (toolbox) clicks.
@@ -502,9 +657,11 @@ export interface InlinePlugin extends BasePlugin {
 }
 
 export interface InlinePluginContext {
-  showPopup(anchor: HTMLElement, content: HTMLElement): void
+  showPopup(anchor: HTMLElement, content: HTMLElement, cleanup?: () => void): void
   hidePopup(): void
-  notifyChanged(): void
+  /** Execute one widget-local command as one undo/redo step. */
+  mutate<T>(target: Node, operation: () => T): T | undefined
+  notifyChanged(target?: Node): void
 }
 
 export interface IInlinePluginRegistry {
@@ -513,4 +670,5 @@ export interface IInlinePluginRegistry {
   values(): IterableIterator<InlinePlugin>
   readonly size: number
   readonly triggerMap: Map<string, InlinePlugin>
+  mount(rootElement: HTMLElement, ctx: InlinePluginContext): void
 }

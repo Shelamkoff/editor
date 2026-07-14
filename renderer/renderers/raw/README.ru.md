@@ -1,0 +1,33 @@
+# Рендерер Raw
+
+Преобразует сохранённый блок `raw` в принадлежащий рендереру DOM.
+
+Синхронная точка входа `@shelamkoff/rector/renderer` включает все встроенные рендереры, поэтому до её импорта установите `@shelamkoff/carousel` и `@shelamkoff/expose`. Значение `blockTypes: []` отключает создание встроенных рендереров, но не меняет правила разрешения модулей ESM.
+
+## Использование
+
+```js
+import { createEditorRenderer } from '@shelamkoff/rector/renderer'
+import { createRawRenderer } from '@shelamkoff/rector/renderer/renderers/raw'
+
+const renderer = createEditorRenderer({ classPrefix: 'article', blockTypes: [] })
+renderer.registerRenderer(createRawRenderer('article', {}))
+const rendererStyles = renderer.injectStyles()
+renderer.renderTo(documentData, document.querySelector('#article'))
+
+// При удалении добавленного результата:
+renderer.destroy()
+rendererStyles.destroy()
+```
+
+## Типичные данные
+
+```json
+{ "html": "<section>Content</section>" }
+```
+
+Поле `html` проходит отдельный очиститель произвольного HTML; обработчик внутристрочной разметки намеренно не используется. Рендерер не создаёт обработчиков или сторонних экземпляров и не объявляет таблиц стилей.
+
+Если рендерер объявляет стили, показанный выше явный вызов `EditorRenderer.injectStyles()` подключает их, а возвращённый владелец освобождает.
+
+Жизненный цикл, восстановление внутристрочных виджетов, стили и границы безопасности описаны в последовательном руководстве VitePress.

@@ -5,4 +5,6 @@ export default {
   'plugin.code.edit': 'Edit',
   'plugin.code.done': 'Done',
   'plugin.code.search': 'Search...',
+  'plugin.code.languageAuto': 'Auto',
+  'plugin.code.languagePlainText': 'Plain text',
 }

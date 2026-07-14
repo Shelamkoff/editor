@@ -1,7 +1,6 @@
 import {
   ICON_CLEAR,
   saveCrossBlockOffsets,
-  notifyEditorChanged,
 } from './utils.js'
 
 /**
@@ -144,7 +143,6 @@ export function createClearFormattingTool(label, cbs = null) {
         }
       } catch { /* detached nodes */ }
 
-      notifyEditorChanged(actualRange.startContainer)
     },
   }
 }

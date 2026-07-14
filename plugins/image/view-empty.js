@@ -7,6 +7,8 @@ import { ICON_SELECT } from './icons.js'
  * @property {(key: string, fallback: string) => string} t
  * @property {(file: File) => void} onFileDropped
  * @property {() => void} onUploadClick
+ * @property {Array<{ icon?: string, label: string, handler: (context: { signal: AbortSignal }) => Promise<{url: string, alt?: string} | null> }>} customActions
+ * @property {(handler: (context: { signal: AbortSignal }) => Promise<{url: string, alt?: string} | null>) => Promise<void>} runCustomAction
  */
 
 /**
@@ -30,6 +32,8 @@ export function renderEmptyView(wrapper, state, deps) {
     selectIcon: CSS.selectIcon,
     selectText: CSS.selectText,
     selectLink: CSS.selectLink,
+    selectActions: CSS.selectActions,
+    selectAction: CSS.selectAction,
     dropzoneActive: CSS.dropzoneActive,
     filled: CSS.filled,
   }, {
@@ -37,6 +41,11 @@ export function renderEmptyView(wrapper, state, deps) {
     uploadText: deps.t('dropzoneUpload', 'Upload'),
     afterText: deps.t('dropzoneText', 'an image from your device or drag and drop it here'),
     onUploadClick: deps.onUploadClick,
+    actions: deps.customActions.map(action => ({
+      icon: action.icon,
+      label: action.label,
+      onSelect: () => { void deps.runCustomAction(action.handler) },
+    })),
     onDrop: (dt) => {
       const file = dt.files[0]
       if (file && file.type.startsWith('image/')) {

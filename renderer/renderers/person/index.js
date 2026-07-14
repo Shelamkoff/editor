@@ -1,9 +1,10 @@
 // @ts-check
-import { Carousel, createSwipe } from '../../../../carousel/src/index.js'
+import { Carousel, createSwipe, carouselStylesUrl } from '@shelamkoff/carousel'
 import { resolvePath } from '../../../shared/resolvePath.js'
+import { setSafeUrlAttribute } from '../../../shared/sanitize/sanitizeUrl.js'
 
 const styles = resolvePath('./styles.css', import.meta.url)
-const carouselStyles = resolvePath('../../../../carousel/styles/carousel.css', import.meta.url)
+const carouselStyles = carouselStylesUrl
 
 const ICON_LEFT = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6l6 6"/></svg>'
 const ICON_RIGHT = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6l-6 6"/></svg>'
@@ -22,9 +23,14 @@ const SOCIAL_ICONS = {
  * @param {string} classPrefix
  * @returns {import('../../types').BlockRenderer<import('../../types').PersonBlock>}
  */
-export function createPersonRenderer(classPrefix, /** @type {Record<string, string>} */ locale) {
-    const t = (/** @type {string} */ key, /** @type {string} */ fb) => locale?.[key] ?? fb
+export function createPersonRenderer(classPrefix, /** @type {Record<string, import('../../../shared/localeTypes').LocaleValue>} */ locale) {
+    const t = (/** @type {string} */ key, /** @type {string} */ fallback) => {
+        const value = locale?.[key]
+        return typeof value === 'string' ? value : fallback
+    }
     const p = `${classPrefix}-person`
+    const mounted = new WeakMap()
+
 
     return {
         type: 'person',
@@ -40,10 +46,14 @@ export function createPersonRenderer(classPrefix, /** @type {Record<string, stri
 
             const wrapper = document.createElement('div')
             wrapper.className = p
+            /** @type {{ observer: ResizeObserver | null, carousel: Carousel | null }} */
+            const resources = { observer: null, carousel: null }
+            mounted.set(wrapper, resources)
+
 
             if (persons.length <= 1) {
                 const person = persons[0] || block.data
-                wrapper.appendChild(renderCard(person, parseInline, p))
+                wrapper.appendChild(renderCard(person, parseInline, p, t))
             } else {
                 const carouselContainer = document.createElement('div')
                 carouselContainer.className = `${p}__carousel`
@@ -51,7 +61,7 @@ export function createPersonRenderer(classPrefix, /** @type {Record<string, stri
 
                 // Build slides from persons
                 const slides = persons.map(person => ({
-                    content: () => renderCard(person, parseInline, p),
+                    content: () => renderCard(person, parseInline, p, t),
                 }))
 
                 // Measure once mounted to decide if carousel is needed
@@ -68,7 +78,7 @@ export function createPersonRenderer(classPrefix, /** @type {Record<string, stri
                         const list = document.createElement('div')
                         list.className = `${p}__list`
                         for (const person of persons) {
-                            list.appendChild(renderCard(person, parseInline, p))
+                            list.appendChild(renderCard(person, parseInline, p, t))
                         }
                         carouselContainer.appendChild(list)
                         return
@@ -82,6 +92,7 @@ export function createPersonRenderer(classPrefix, /** @type {Record<string, stri
                         loop: persons.length > slidesPerView,
                         plugins: [createSwipe()],
                     })
+                    resources.carousel = carousel
 
                     // External nav below carousel (not inside viewport)
                     const nav = document.createElement('div')
@@ -90,20 +101,32 @@ export function createPersonRenderer(classPrefix, /** @type {Record<string, stri
                     prevBtn.type = 'button'
                     prevBtn.className = `${p}__nav-btn`
                     prevBtn.innerHTML = ICON_LEFT
+                    prevBtn.setAttribute('aria-label', t('renderer.person.previous', 'Previous person'))
+                    prevBtn.querySelector('svg')?.setAttribute('aria-hidden', 'true')
                     prevBtn.addEventListener('click', () => carousel.prev())
                     const nextBtn = document.createElement('button')
                     nextBtn.type = 'button'
                     nextBtn.className = `${p}__nav-btn`
                     nextBtn.innerHTML = ICON_RIGHT
+                    nextBtn.setAttribute('aria-label', t('renderer.person.next', 'Next person'))
+                    nextBtn.querySelector('svg')?.setAttribute('aria-hidden', 'true')
                     nextBtn.addEventListener('click', () => carousel.next())
                     nav.appendChild(prevBtn)
                     nav.appendChild(nextBtn)
                     wrapper.appendChild(nav)
                 })
+                resources.observer = ro
                 ro.observe(carouselContainer)
             }
 
             return wrapper
+        },
+        destroy(element) {
+            const resources = mounted.get(element)
+            if (!resources) return
+            resources.observer?.disconnect()
+            resources.carousel?.destroy()
+            mounted.delete(element)
         },
     }
 }
@@ -112,9 +135,10 @@ export function createPersonRenderer(classPrefix, /** @type {Record<string, stri
  * @param {any} person
  * @param {import('../../types').InlineParser} parseInline
  * @param {string} p
+ * @param {(key: string, fallback: string) => string} t
  * @returns {HTMLElement}
  */
-function renderCard(person, parseInline, p) {
+function renderCard(person, parseInline, p, t) {
     const { avatar, name, role, bio, links } = person
 
     const card = document.createElement('div')
@@ -125,7 +149,7 @@ function renderCard(person, parseInline, p) {
         avatarWrap.className = `${p}__avatar-wrap`
         const img = document.createElement('img')
         img.className = `${p}__avatar-img`
-        img.src = avatar
+        setSafeUrlAttribute(img, 'src', avatar, 'media')
         img.alt = name || ''
         img.loading = 'lazy'
         avatarWrap.appendChild(img)
@@ -163,7 +187,7 @@ function renderCard(person, parseInline, p) {
         for (const link of validLinks) {
             const a = document.createElement('a')
             a.className = `${p}__link`
-            a.href = link.url
+            setSafeUrlAttribute(a, 'href', link.url, 'external')
             a.target = '_blank'
             a.rel = 'noopener noreferrer'
             a.title = link.type || t('renderer.person.link', 'Link')

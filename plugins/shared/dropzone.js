@@ -11,6 +11,8 @@
  * @property {string} selectLink — upload link class
  * @property {string} dropzoneActive — class added on dragover
  * @property {string} filled — class removed from wrapper on render
+ * @property {string} [selectActions] — optional application-source list class
+ * @property {string} [selectAction] — optional application-source button class
  */
 
 /**
@@ -20,6 +22,7 @@
  * @property {string} afterText — localized text after the upload link
  * @property {() => void} onUploadClick — trigger file input
  * @property {(dataTransfer: DataTransfer) => void} onDrop — handle dropped files
+ * @property {Array<{ icon?: string, label: string, onSelect: () => void }>} [actions]
  */
 
 /**
@@ -58,6 +61,24 @@ export function renderDropzone(wrapper, signal, css, config) {
 
   text.append(uploadLink, afterText)
   select.append(icon, text)
+
+  if (css.selectActions && css.selectAction && config.actions?.length) {
+    const actions = document.createElement('div')
+    actions.className = css.selectActions
+    for (const action of config.actions) {
+      const button = document.createElement('button')
+      button.type = 'button'
+      button.className = css.selectAction
+      if (action.icon) button.insertAdjacentHTML('afterbegin', action.icon)
+      button.append(document.createTextNode(action.label))
+      button.addEventListener('click', (event) => {
+        event.stopPropagation()
+        action.onSelect()
+      }, { signal })
+      actions.appendChild(button)
+    }
+    select.appendChild(actions)
+  }
 
   wrapper.addEventListener('dragover', (e) => {
     e.preventDefault()

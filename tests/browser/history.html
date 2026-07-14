@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Editor history and paste matrix</title>
+  <script type="importmap">
+    {
+      "imports": {
+        "@shelamkoff/event-bus": "../../../event-bus/dist/index.js",
+        "@shelamkoff/color-picker": "../../../color-picker/dist/index.js",
+        "@shelamkoff/cropper": "../../../cropper/dist/src/index.js",
+        "@shelamkoff/carousel": "../../../carousel/dist/src/index.js",
+        "@shelamkoff/expose": "../../../expose/dist/src/index.js"
+      }
+    }
+  </script>
+</head>
+<body data-status="running">
+  <div id="sandbox"></div>
+  <pre id="result">running</pre>
+  <script type="module" src="./history.js"></script>
+</body>
+</html>

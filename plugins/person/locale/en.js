@@ -12,4 +12,5 @@ export default {
   'plugin.person.cropCancel': 'Cancel',
   'plugin.person.addPerson': 'Add person',
   'plugin.person.removePerson': 'Remove',
+  'plugin.person.fallbackName': 'Person {number}',
 }

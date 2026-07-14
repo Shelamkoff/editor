@@ -1,0 +1,35 @@
+# Внутристрочные плагины
+
+Внутристрочные плагины сохраняют структурированные данные внутри текста, не превращая их в непрозрачный HTML. Rector записывает устойчивый заполнитель `{{widgetId}}` в текстовое поле и соответствующий объект `{ type, data }` в карту `inline` блока.
+
+## Встроенные плагины
+
+| Плагин | Точка входа | Назначение |
+| --- | --- | --- |
+| [Цвет](./color/README.ru.md) | `@shelamkoff/rector/inline-plugins/color` | Сохраняемый цвет текста или фона |
+| [Упоминание](./mention/README.ru.md) | `@shelamkoff/rector/inline-plugins/mention` | Поиск и вставка сущности из источника приложения |
+
+## Регистрация
+
+```js
+import { createEditor } from '@shelamkoff/rector'
+import { createColorSwatchPlugin } from '@shelamkoff/rector/inline-plugins/color'
+import { createMentionPlugin } from '@shelamkoff/rector/inline-plugins/mention'
+
+const editor = createEditor({
+  holder,
+  plugins,
+  inlinePlugins: [
+    createColorSwatchPlugin(),
+    createMentionPlugin({
+      searchFunction: async query => searchPeople(query),
+    }),
+  ],
+})
+```
+
+Плагин реализует `createWidget(data, id)` и `getData(element)`. Дополнительно доступны `hydrate`, `onEdit`, `onCommit`, `pasteConfig`, `destroy` и соответствующий виджет рендерера. Переданный в `createWidget` идентификатор необходимо сохранить: его замена разрывает связь токена с данными.
+
+Интерактивные изменения выполняются через предоставленный Rector контекст изменения, чтобы одно завершённое действие создавало один шаг отмены. DOM всплывающего элемента, таймеры, запросы, обработчики событий и объектные URL освобождаются в жизненном цикле плагина.
+
+Полный контракт, правила безопасности, соответствующий рендерер, граница истории и жизненный цикл описаны в последовательном руководстве VitePress.

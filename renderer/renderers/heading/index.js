@@ -1,7 +1,7 @@
 // @ts-check
 import { InvalidBlockDataError } from '../../errors.js'
 import { resolvePath } from '../../../shared/resolvePath.js'
-import { mapTextFields } from '../../../plugins/heading/mapTextFields.js'
+import { mapHeadingTextFields as mapTextFields } from '../../../shared/mapTextFields.js'
 
 const styles = resolvePath('./styles.css', import.meta.url)
 
@@ -9,7 +9,7 @@ const styles = resolvePath('./styles.css', import.meta.url)
 const VALID_LEVELS = new Set([2, 3, 4, 5, 6])
 
 /**
- * Heading block renderer — Ophire Editor format
+ * Heading block renderer for the Rector document format.
  * Block type: 'heading' (not 'header')
  * @param {string} classPrefix
  * @returns {import('../../types').BlockRenderer<import('../../types').HeadingBlock>}

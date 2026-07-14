@@ -31,6 +31,7 @@ export default {
   'block.duplicate': 'Duplicate',
   'block.convertTo': 'Convert to',
   'block.back': 'Back',
+  'block.unsupported': 'Unsupported block type: {type}',
 
   'slash.noResults': 'No results',
 }

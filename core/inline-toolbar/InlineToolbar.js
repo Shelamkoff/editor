@@ -94,6 +94,12 @@ export class InlineToolbar {
   /** @type {SelectionTracker} */
   #selectionTracker
 
+  /** @type {import('../CommandDispatcher').CommandDispatcher} */
+  #mutations
+
+  /** @type {import('../types').InlineMutationContext} */
+  #mutationContext
+
   /**
    * @param {HTMLElement} rootEl
    * @param {import('../types').ISelectionManager} selection
@@ -103,8 +109,9 @@ export class InlineToolbar {
    * @param {(type: string) => import('../types').BlockPlugin['renderInlineControls'] | undefined} getInlineControls
    * @param {import('../TypeSelector').TypeSelector} typeSelector
    * @param {import('../types').ICrossBlockSelection} crossBlockSelection
+   * @param {import('../CommandDispatcher').CommandDispatcher} commands
    */
-  constructor(rootEl, selection, blocks, events, tools, getInlineControls, typeSelector, crossBlockSelection) {
+  constructor(rootEl, selection, blocks, events, tools, getInlineControls, typeSelector, crossBlockSelection, commands) {
     this.#rootEl = rootEl
     this.#selection = selection
     this.#blocks = blocks
@@ -113,6 +120,10 @@ export class InlineToolbar {
     this.#crossBlockSelection = crossBlockSelection
     this.#typeSelector = typeSelector
     this.#tooltip = new Tooltip()
+    this.#mutations = commands
+    this.#mutationContext = {
+      mutate: (range, operation) => this.#mutations.runForRange(range, operation),
+    }
 
     // ── DOM scaffold ─────────────────────────────────────────────────────────
     this.#el = el('div', 'oe-inline-toolbar')
@@ -154,6 +165,7 @@ export class InlineToolbar {
       tooltip: this.#tooltip,
       updateActiveStates: () => this.#updateActiveStates(),
       hideTypeSelector: () => this.#typeSelector.close(),
+      mutate: (range, operation) => this.#mutations.runForRange(range, operation),
       // After the drill-down panel closes, restore the buttons view so the
       // toolbar visually reappears (otherwise it stays stuck in actions mode
       // with nothing inside, which looks like the toolbar disappeared).
@@ -169,6 +181,7 @@ export class InlineToolbar {
       events,
       typeSelector: this.#typeSelector,
       setSuppressSelectionChange: (value) => this.#selectionTracker.setSuppressSelectionChange(value),
+      mutations: this.#mutations,
     })
 
     this.#selectionTracker = new SelectionTracker(this.#el, {
@@ -186,7 +199,7 @@ export class InlineToolbar {
     // Notify tools after DOM is fully assembled.
     for (const tool of this.#tools) {
       const btn = this.#buttons.get(tool.type)
-      if (tool.onMount && btn) tool.onMount(btn)
+      if (tool.onMount && btn) tool.onMount(btn, this.#mutationContext)
     }
   }
 
@@ -208,8 +221,8 @@ export class InlineToolbar {
     this.#typeSelector.update()
     this.#pluginControls.update()
     this.#el.style.display = ''
-    this.#positioner.position()
     this.#updateActiveStates()
+    this.#positioner.position()
     this.#events.emit(EditorEvent.TOOLBAR_OPENED, { type: 'inline' })
   }
 
@@ -241,6 +254,9 @@ export class InlineToolbar {
       if (!block?.hasInlineTools) return
     }
 
+    const allowedTypes = this.#resolveAllowedToolTypes(sel)
+    if (allowedTypes && !allowedTypes.has(toolName)) return
+
     const tool = this.#tools.find((t) => t.type === toolName)
     if (!tool) return
 
@@ -249,9 +265,8 @@ export class InlineToolbar {
     if (tool.renderActions) {
       this.#openActions(tool)
     } else {
-      tool.toggle(sel)
+      this.#mutations.runForRange(sel.range, () => tool.toggle(sel))
       this.#updateActiveStates()
-      this.#events.emit(EditorEvent.CHANGED)
     }
   }
 
@@ -310,14 +325,15 @@ export class InlineToolbar {
         this.#typeSelector.close()
 
         const sel = this.#resolveSelection()
+        const allowedTypes = sel ? this.#resolveAllowedToolTypes(sel) : null
+        if (allowedTypes && !allowedTypes.has(tool.type)) return
         if (tool.renderActions) {
           this.#openActions(tool)
         } else {
           // Clear any block-selection overlay (Ctrl+A) to prevent double-highlight.
           this.#blocks.clearSelection()
-          if (sel) tool.toggle(sel)
+          if (sel) this.#mutations.runForRange(sel.range, () => tool.toggle(sel))
           this.#updateActiveStates()
-          this.#events.emit(EditorEvent.CHANGED)
         }
       })
 
@@ -340,9 +356,8 @@ export class InlineToolbar {
       // The tool wants toggle semantics rather than a panel.
       const sel = this.#selection.getSelection() ?? this.#resolveSelection()
       if (sel) {
-        tool.toggle(sel)
+        this.#mutations.runForRange(sel.range, () => tool.toggle(sel))
         this.#updateActiveStates()
-        this.#events.emit(EditorEvent.CHANGED)
       }
       return
     }
@@ -369,10 +384,18 @@ export class InlineToolbar {
 
   #updateActiveStates() {
     const selection = this.#resolveSelection()
+    const allowedTypes = selection ? this.#resolveAllowedToolTypes(selection) : null
 
     for (const tool of this.#tools) {
       const btn = this.#buttons.get(tool.type)
       if (!btn) continue
+
+      const allowed = !allowedTypes || allowedTypes.has(tool.type)
+      btn.hidden = !allowed
+      if (!allowed) {
+        btn.classList.remove('oe-inline-tool--active')
+        continue
+      }
 
       let active = false
       if (selection && tool.isActive) {
@@ -385,6 +408,45 @@ export class InlineToolbar {
         btn.innerHTML = tool.getIcon(active)
       }
     }
+  }
+
+  /**
+   * Intersect per-block tool allowlists across the selected range.
+   * null means every editor-configured tool is allowed.
+   * @param {import('../types').InlineSelection} selection
+   * @returns {Set<string> | null}
+   */
+  #resolveAllowedToolTypes(selection) {
+    const startBlock = selection.blockId
+      ? this.#blocks.getBlockById(selection.blockId)
+      : this.#blocks.getBlockByChildNode(selection.range.startContainer)
+    const endBlock = this.#blocks.getBlockByChildNode(selection.range.endContainer) ?? startBlock
+    if (!startBlock) return null
+
+    const startIndex = this.#blocks.getBlockIndex(startBlock.id)
+    const endIndex = endBlock ? this.#blocks.getBlockIndex(endBlock.id) : startIndex
+    if (startIndex < 0 || endIndex < 0) return null
+    const from = Math.min(startIndex, endIndex)
+    const to = Math.max(startIndex, endIndex)
+    /** @type {Set<string> | null} */
+    let allowed = null
+
+    for (let index = from; index <= to; index++) {
+      const block = this.#blocks.getBlockByIndex(index)
+      const blockTypes = block?.inlineToolTypes
+      if (!blockTypes) continue
+
+      const blockSet = new Set(blockTypes)
+      if (allowed === null) {
+        allowed = blockSet
+      } else {
+        for (const type of allowed) {
+          if (!blockSet.has(type)) allowed.delete(type)
+        }
+      }
+    }
+
+    return allowed
   }
 
   /** @returns {boolean} true if any tool has an open dropdown */

@@ -1,8 +1,7 @@
-import { EDITOR_VERSION } from './constants.js'
 import { EditorEvent } from './editorEvents.js'
 
 /**
- * @typedef {{ data: string, blocksKey: string, blockId?: string, offset?: number }} Snapshot
+ * @typedef {{ time?: number, version: string, blocks: string[], blockId?: string, offset?: number }} Snapshot
  */
 
 export class UndoManager {
@@ -15,8 +14,8 @@ export class UndoManager {
   /** @type {import('./types').IBlockReader} */
   #blocks
 
-  /** @type {() => Promise<import('./types').EditorDocument>} */
-  #saveFn
+  /** @type {() => import('./types').EditorDocument} */
+  #captureFn
 
   /** @type {(data: import('./types').EditorDocument, caret?: { blockId: string, offset: number }) => void} */
   #renderFn
@@ -30,20 +29,17 @@ export class UndoManager {
   /** @type {Snapshot[]} */
   #redoStack = []
 
+  /** @type {WeakMap<object, string>} */
+  #serializedBlocks = new WeakMap()
+
   /** @type {ReturnType<typeof setTimeout> | null} */
   #debounceTimer = null
 
   /** @type {boolean} */
   #destroyed = false
 
-  /** @type {boolean} */
-  #snapshotInProgress = false
-
-  /** @type {boolean} */
-  #pendingSnapshot = false
-
-  /** @type {boolean} */
-  #batching = false
+  /** Nesting depth for compound operations. Only the outer boundary commits. */
+  #batchDepth = 0
 
   /** @type {boolean} */
   #restoring = false
@@ -54,26 +50,26 @@ export class UndoManager {
   /**
    * @param {import('./types').IBlockReader} blocks
    * @param {import('./types').IEventBus} events
-   * @param {() => Promise<import('./types').EditorDocument>} saveFn
+   * @param {() => import('./types').EditorDocument} captureFn
    * @param {(data: import('./types').EditorDocument, caret?: { blockId: string, offset: number }) => void} renderFn
    * @param {() => { blockId: string, offset: number } | null} getCaretFn
    * @param {{ maxStack: number, debounceMs: number }} [tuning]
    */
-  constructor(blocks, events, saveFn, renderFn, getCaretFn, tuning) {
+  constructor(blocks, events, captureFn, renderFn, getCaretFn, tuning) {
     this.#blocks = blocks
-    this.#saveFn = saveFn
+    this.#captureFn = captureFn
     this.#renderFn = renderFn
     this.#getCaretFn = getCaretFn
     this.#maxStack = tuning?.maxStack ?? 100
     this.#debounceMs = tuning?.debounceMs ?? 300
 
     // Take initial snapshot synchronously
-    this.#takeSnapshotSync()
+    this.#takeSnapshot()
 
     // Capture pre-change state before structural operations
     const unsubWillChange = events.on(EditorEvent.WILL_CHANGE, () => {
       if (this.#restoring) return
-      this.saveSync()
+      this.commit()
     })
 
     // Listen for changes
@@ -85,8 +81,11 @@ export class UndoManager {
     // Batch events
     const unsubBatchStart = events.on(EditorEvent.UNDO_BATCH_START, () => { if (!this.#restoring) this.beginBatch() })
     const unsubBatchEnd = events.on(EditorEvent.UNDO_BATCH_END, () => { if (!this.#restoring) this.endBatch() })
+    const unsubCommit = events.on(EditorEvent.HISTORY_COMMIT, () => {
+      if (!this.#restoring) this.commit()
+    })
 
-    this.#unsubscribe = () => { unsubWillChange(); unsubChanged(); unsubBatchStart(); unsubBatchEnd() }
+    this.#unsubscribe = () => { unsubWillChange(); unsubChanged(); unsubBatchStart(); unsubBatchEnd(); unsubCommit() }
   }
 
   get canUndo() {
@@ -98,36 +97,26 @@ export class UndoManager {
   }
 
   /**
-   * Save a snapshot immediately.
-   */
-  save() {
-    void this.#takeSnapshot()
-  }
-
-  /**
-   * Flush any pending debounce and take a synchronous snapshot.
+   * Flush any pending debounce and commit the current document snapshot.
    * Call BEFORE structural operations (insert, remove, move, convert)
    * to ensure the pre-change state is in the undo stack.
    */
-  saveSync() {
-    if (this.#batching) return
+  commit() {
+    if (this.#destroyed) return
+    if (this.#batchDepth > 0) return
     if (this.#debounceTimer) {
       clearTimeout(this.#debounceTimer)
       this.#debounceTimer = null
     }
-    this.#takeSnapshotSync()
+    this.#takeSnapshot()
   }
 
   /**
    * Restore the previous state.
    */
   undo() {
-    // Flush pending debounced snapshot so the current state is captured before undo
-    if (this.#debounceTimer) {
-      clearTimeout(this.#debounceTimer)
-      this.#debounceTimer = null
-      this.#takeSnapshotSync()
-    }
+    if (this.#destroyed) return
+    this.#reconcileCurrentState()
 
     if (!this.canUndo) return
 
@@ -136,7 +125,15 @@ export class UndoManager {
 
     const prev = this.#undoStack[this.#undoStack.length - 1]
     if (prev) {
-      this.#restore(prev)
+      try {
+        this.#restore(prev)
+      } catch (error) {
+        if (current) {
+          this.#redoStack.pop()
+          this.#undoStack.push(current)
+        }
+        throw error
+      }
     }
   }
 
@@ -144,40 +141,43 @@ export class UndoManager {
    * Restore the next state.
    */
   redo() {
-    // Flush pending debounced snapshot so the current state is captured
-    if (this.#debounceTimer) {
-      clearTimeout(this.#debounceTimer)
-      this.#debounceTimer = null
-      this.#takeSnapshotSync()
-    }
+    if (this.#destroyed) return
+    this.#reconcileCurrentState()
 
     if (!this.canRedo) return
 
     const next = this.#redoStack.pop()
     if (next) {
       this.#undoStack.push(next)
-      this.#restore(next)
+      try {
+        this.#restore(next)
+      } catch (error) {
+        this.#undoStack.pop()
+        this.#redoStack.push(next)
+        throw error
+      }
     }
   }
 
   /**
    * Begin a batch — all changes until endBatch() are treated as one undo step.
-   * Call saveSync() before batch to capture pre-change state.
+   * Captures the pre-change state when the outer batch begins.
    */
   beginBatch() {
-    if (!this.#batching) {
-      this.saveSync()
-      this.#batching = true
+    if (this.#batchDepth === 0) {
+      this.commit()
     }
+    this.#batchDepth++
   }
 
   /**
    * End the batch and take a snapshot of the final state.
    */
   endBatch() {
-    if (this.#batching) {
-      this.#batching = false
-      this.#takeSnapshotSync()
+    if (this.#batchDepth === 0) return
+    this.#batchDepth--
+    if (this.#batchDepth === 0) {
+      this.#takeSnapshot()
     }
   }
 
@@ -187,6 +187,8 @@ export class UndoManager {
   clear() {
     this.#undoStack = []
     this.#redoStack = []
+    this.#serializedBlocks = new WeakMap()
+    this.#batchDepth = 0
     if (this.#debounceTimer) {
       clearTimeout(this.#debounceTimer)
       this.#debounceTimer = null
@@ -203,12 +205,34 @@ export class UndoManager {
   }
 
   #debouncedSnapshot() {
-    if (this.#batching) return
+    if (this.#batchDepth > 0) return
     if (this.#debounceTimer) clearTimeout(this.#debounceTimer)
     this.#debounceTimer = setTimeout(() => {
-      void this.#takeSnapshot()
       this.#debounceTimer = null
+      try {
+        this.#takeSnapshot()
+      } catch (error) {
+        console.warn('[UndoManager] Failed to take debounced snapshot:', error)
+      }
     }, this.#debounceMs)
+  }
+
+  /**
+   * Reconcile the live editor state at the history command boundary.
+   *
+   * History correctness must not depend on a debounce timer still being
+   * active. A synchronous/custom command may have changed the canonical
+   * document even when its final change notification was missed. Pushing is
+   * content-deduplicated, so the normal committed path remains a no-op here;
+   * an uncommitted current state becomes the newest entry and can be undone
+   * without accidentally reverting the preceding structural command.
+   */
+  #reconcileCurrentState() {
+    if (this.#debounceTimer) {
+      clearTimeout(this.#debounceTimer)
+      this.#debounceTimer = null
+    }
+    this.#takeSnapshot()
   }
 
   /**
@@ -217,12 +241,27 @@ export class UndoManager {
    * @returns {boolean} true if pushed, false if deduplicated
    */
   #pushSnapshot(data) {
-    const blocksKey = JSON.stringify(data.blocks)
+    const blocks = data.blocks.map(block => {
+      const cached = this.#serializedBlocks.get(block)
+      if (cached !== undefined) return cached
 
-    // Deduplicate: if block content is identical to the last snapshot,
-    // update the caret position but don't push a new snapshot.
-    const lastSnapshot = this.#undoStack.length ? this.#undoStack[this.#undoStack.length - 1] : null
-    if (lastSnapshot?.blocksKey === blocksKey) {
+      const serialized = JSON.stringify(block)
+      if (serialized === undefined) {
+        throw new TypeError('Editor block is not JSON serializable')
+      }
+      this.#serializedBlocks.set(block, serialized)
+      return serialized
+    })
+
+    // Arrays are new per entry, while strings for unchanged canonical
+    // blocks are shared between snapshots.
+    const lastSnapshot = this.#undoStack.length
+      ? this.#undoStack[this.#undoStack.length - 1]
+      : null
+    const unchanged = lastSnapshot?.blocks.length === blocks.length
+      && blocks.every((block, index) => block === lastSnapshot.blocks[index])
+
+    if (unchanged && lastSnapshot) {
       const caret = this.#getCaretFn()
       if (caret) {
         lastSnapshot.blockId = caret.blockId
@@ -232,9 +271,12 @@ export class UndoManager {
     }
 
     const caret = this.#getCaretFn()
-    const dataStr = `{"time":${data.time},"version":${JSON.stringify(data.version)},"blocks":${blocksKey}}`
     /** @type {Snapshot} */
-    const snapshot = { data: dataStr, blocksKey }
+    const snapshot = {
+      time: data.time,
+      version: data.version,
+      blocks,
+    }
     if (caret) {
       snapshot.blockId = caret.blockId
       snapshot.offset = caret.offset
@@ -248,36 +290,9 @@ export class UndoManager {
     return true
   }
 
-  /**
-   * Synchronous snapshot for initial state.
-   */
-  #takeSnapshotSync() {
-    const blocks = this.#blocks.save()
-    this.#pushSnapshot({ time: Date.now(), version: EDITOR_VERSION, blocks })
-  }
-
-  async #takeSnapshot() {
-    if (this.#snapshotInProgress) {
-      this.#pendingSnapshot = true
-      return
-    }
-
-    this.#snapshotInProgress = true
-
-    try {
-      const data = await this.#saveFn()
-      if (this.#destroyed) return
-      this.#pushSnapshot(data)
-    } catch (err) {
-      console.warn('[UndoManager] Failed to take snapshot:', err)
-    } finally {
-      this.#snapshotInProgress = false
-
-      if (this.#pendingSnapshot) {
-        this.#pendingSnapshot = false
-        void this.#takeSnapshot()
-      }
-    }
+  #takeSnapshot() {
+    if (this.#destroyed) return
+    this.#pushSnapshot(this.#captureFn())
   }
 
   /**
@@ -286,15 +301,23 @@ export class UndoManager {
   #restore(snapshot) {
     let data
     try {
-      data = JSON.parse(snapshot.data)
+      data = {
+        time: snapshot.time,
+        version: snapshot.version,
+        blocks: snapshot.blocks.map(block => JSON.parse(block)),
+      }
     } catch (err) {
-      console.error('[UndoManager] Failed to parse snapshot:', err)
-      return
+      throw new Error('[UndoManager] Failed to parse snapshot', { cause: err })
     }
-    const caret = snapshot.blockId != null ? { blockId: snapshot.blockId, offset: snapshot.offset ?? 0 } : undefined
-    // Suppress event handlers during render so undo/redo does not create snapshots
+    const caret = snapshot.blockId != null
+      ? { blockId: snapshot.blockId, offset: snapshot.offset ?? 0 }
+      : undefined
+    // Suppress event handlers during render so undo/redo does not create snapshots.
     this.#restoring = true
-    this.#renderFn(data, caret)
-    this.#restoring = false
+    try {
+      this.#renderFn(data, caret)
+    } finally {
+      this.#restoring = false
+    }
   }
 }

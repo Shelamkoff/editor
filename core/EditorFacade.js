@@ -1,9 +1,6 @@
-import { DEFAULT_BLOCK_TYPE, EDITOR_VERSION } from './constants.js'
 import { EditorEvent } from './editorEvents.js'
 import { hydrateInlinePlugins } from './hydrateInlinePlugins.js'
 import { insertInlinePluginAtCaret } from './inlinePluginInsert.js'
-import { populateBlocks } from './populateBlocks.js'
-import { serializeInlineHtml } from '../shared/inlineMarshal.js'
 
 export class EditorFacade {
   /** @type {HTMLElement} */
@@ -12,11 +9,29 @@ export class EditorFacade {
   /** @type {import('./types').IBlockManager} */
   #blocks
 
+  /** @type {import('./PublicEditorApi').EditorBlocksApi} */
+  #publicBlocks
+
   /** @type {import('./types').ISelectionManager} */
   #selection
 
   /** @type {import('./types').IEventBus} */
   #events
+
+  /** @type {import('./PublicEditorApi').EditorEventSubscriptions} */
+  #publicEvents
+
+  /** @type {import('./DocumentSnapshotStore').DocumentSnapshotStore} */
+  #snapshots
+
+  /** @type {import('./DocumentSchema').DocumentSchema} */
+  #documentSchema
+
+  /** @type {import('./CommandDispatcher').CommandDispatcher} */
+  #commands
+
+  /** @type {import('./Diagnostics').Diagnostics} */
+  #diagnostics
 
   /** @type {boolean} */
   #ready = false
@@ -41,17 +56,44 @@ export class EditorFacade {
    * @param {import('./types').IBlockManager} blocks
    * @param {import('./types').ISelectionManager} selection
    * @param {import('./types').IEventBus} events
-   * @param {import('./types').EditorConfig} config
+   * @param {string} defaultBlockType
    * @param {import('./InlinePluginRegistry').InlinePluginRegistry} [inlinePluginRegistry]
    * @param {import('./types').InlinePluginContext} [inlinePluginCtx]
    * @param {import('./types').ICrossBlockSelection} [crossBlockSelection]
+   * @param {import('./CommandDispatcher').CommandDispatcher} commands
+   * @param {import('./DocumentSchema').DocumentSchema} documentSchema
+   * @param {import('./Diagnostics').Diagnostics} diagnostics
+   * @param {import('./DocumentSnapshotStore').DocumentSnapshotStore} snapshots
+   * @param {import('./PublicEditorApi').EditorBlocksApi} publicBlocks
+   * @param {import('./PublicEditorApi').EditorEventSubscriptions} publicEvents
    */
-  constructor(rootEl, blocks, selection, events, config, inlinePluginRegistry, inlinePluginCtx, crossBlockSelection) {
+  constructor(
+    rootEl,
+    blocks,
+    selection,
+    events,
+    defaultBlockType,
+    inlinePluginRegistry,
+    inlinePluginCtx,
+    crossBlockSelection,
+    commands,
+    documentSchema,
+    diagnostics,
+    snapshots,
+    publicBlocks,
+    publicEvents,
+  ) {
     this.#rootEl = rootEl
     this.#blocks = blocks
     this.#selection = selection
     this.#events = events
-    this.#defaultBlockType = config.defaultBlock || DEFAULT_BLOCK_TYPE
+    this.#commands = commands
+    this.#documentSchema = documentSchema
+    this.#diagnostics = diagnostics
+    this.#snapshots = snapshots
+    this.#publicBlocks = publicBlocks
+    this.#publicEvents = publicEvents
+    this.#defaultBlockType = defaultBlockType
     this.#inlinePluginRegistry = inlinePluginRegistry ?? null
     this.#inlinePluginCtx = inlinePluginCtx ?? null
     this.#crossBlockSelection = crossBlockSelection ?? null
@@ -77,11 +119,11 @@ export class EditorFacade {
   }
 
   get blocks() {
-    return /** @type {import('./types').IBlockReader} */ (this.#blocks)
+    return this.#publicBlocks
   }
 
   get events() {
-    return this.#events
+    return this.#publicEvents
   }
 
   get rootElement() {
@@ -98,45 +140,10 @@ export class EditorFacade {
    * carrying only `{{<id>}}` text placeholders, polymorphically
    * reconstructible on load.
    *
-   * @returns {Promise<import('./types').EditorDocument>}
+   * @returns {import('./types').EditorDocument}
    */
-  async save() {
-    const registry = this.#inlinePluginRegistry
-    const snapshots = []
-
-    for (const block of this.#blocks) {
-      /** @type {import('./types').BlockData} */
-      let snap
-      try {
-        snap = block.save()
-      } catch (err) {
-        console.error(`[EditorFacade] Failed to save block ${block.id} (${block.type}):`, err)
-        snap = { id: block.id, type: block.type, data: {} }
-      }
-
-      // Inline-widget marshalling — only for text blocks that opted in.
-      if (registry && typeof block.plugin.mapTextFields === 'function') {
-        /** @type {Record<string, import('../renderer/types').InlineWidget>} */
-        const inline = {}
-        block.plugin.mapTextFields(
-          /** @type {Record<string, unknown>} */ (snap.data),
-          (html) => {
-            const res = serializeInlineHtml(html, registry)
-            Object.assign(inline, res.inline)
-            return res.html
-          },
-        )
-        if (Object.keys(inline).length > 0) snap.inline = inline
-      }
-
-      snapshots.push(snap)
-    }
-
-    return {
-      time: Date.now(),
-      version: EDITOR_VERSION,
-      blocks: snapshots,
-    }
+  save() {
+    return this.#snapshots.save()
   }
 
   /**
@@ -145,40 +152,63 @@ export class EditorFacade {
    * @param {{ blockId: string, offset: number }} [caret] - optional caret position to restore
    */
   render(data, caret) {
-    // Clear transient selection state before replacing content.
-    // Without this, InlineToolbar refuses to hide (checks crossBlockSelection.range)
-    // and CSS highlights remain painted on detached DOM nodes.
-    if (this.#crossBlockSelection) this.#crossBlockSelection.deactivate(this.#rootEl)
-    this.#blocks.clearSelection()
+    const startedAt = this.#diagnostics.enabled ? this.#diagnostics.now() : 0
+    const normalized = this.#documentSchema.normalize(data)
+    const replacement = this.#blocks.prepareReplacement(
+      normalized.blocks,
+      this.#defaultBlockType,
+      'EditorFacade',
+    )
 
-    this.#blocks.clear()
-    populateBlocks(this.#blocks, data.blocks, this.#defaultBlockType, 'EditorFacade')
-
-    // Hydrate inline plugins in re-rendered blocks
-    if (this.#inlinePluginRegistry && this.#inlinePluginCtx && this.#inlinePluginRegistry.size > 0) {
-      for (const block of this.#blocks) {
-        hydrateInlinePlugins(block.contentElement, this.#inlinePluginRegistry, this.#inlinePluginCtx)
+    try {
+      if (this.#inlinePluginRegistry && this.#inlinePluginCtx && this.#inlinePluginRegistry.size > 0) {
+        for (const block of replacement.blocks) {
+          hydrateInlinePlugins(block.contentElement, this.#inlinePluginRegistry, this.#inlinePluginCtx)
+        }
       }
+    } catch (error) {
+      replacement.dispose()
+      throw error
     }
 
-    // Restore caret position
-    if (caret) {
-      const targetBlock = this.#blocks.getBlockById(caret.blockId)
-      if (targetBlock) {
-        const idx = this.#blocks.getBlockIndex(caret.blockId)
-        if (idx >= 0) this.#blocks.setCurrentIndex(idx)
-        targetBlock.focus()
-        this.#selection.setCaretToOffset(caret.blockId, caret.offset)
-        return
-      }
-    }
+    this.#events.emit(EditorEvent.UNDO_BATCH_START)
+    try {
+      // Clear transient selection state before replacing content.
+      // Without this, InlineToolbar refuses to hide (checks crossBlockSelection.range)
+      // and CSS highlights remain painted on detached DOM nodes.
+      if (this.#crossBlockSelection) this.#crossBlockSelection.deactivate(this.#rootEl)
+      this.#blocks.clearSelection()
 
-    // Fallback: focus first block
-    this.#blocks.setCurrentIndex(0)
-    const first = this.#blocks.getBlockByIndex(0)
-    if (first) {
-      first.focus()
-      this.#selection.setCaretToBlock(first.id, 'end')
+      replacement.commit()
+      this.#snapshots.setDocumentVersion(normalized.version)
+
+      // Restore caret position
+      if (caret) {
+        const targetBlock = this.#blocks.getBlockById(caret.blockId)
+        if (targetBlock) {
+          const idx = this.#blocks.getBlockIndex(caret.blockId)
+          if (idx >= 0) this.#blocks.setCurrentIndex(idx)
+          targetBlock.focus()
+          this.#selection.setCaretToOffset(caret.blockId, caret.offset)
+          return
+        }
+      }
+
+      // Fallback: focus first block
+      this.#blocks.setCurrentIndex(0)
+      const first = this.#blocks.getBlockByIndex(0)
+      if (first) {
+        first.focus()
+        this.#selection.setCaretToBlock(first.id, 'end')
+      }
+    } finally {
+      this.#events.emit(EditorEvent.UNDO_BATCH_END)
+      if (startedAt) {
+        const durationMs = this.#diagnostics.now() - startedAt
+        if (durationMs >= this.#diagnostics.threshold('renderMs')) {
+          this.#diagnostics.emit('render.slow', { durationMs })
+        }
+      }
     }
   }
 
@@ -186,9 +216,14 @@ export class EditorFacade {
    * Clear all blocks and insert an empty default block.
    */
   clear() {
-    this.#blocks.clear()
-    this.#blocks.insert(this.#defaultBlockType)
-    this.#blocks.setCurrentIndex(0)
+    const replacement = this.#blocks.prepareReplacement(undefined, this.#defaultBlockType, 'EditorFacade.clear')
+    this.#events.emit(EditorEvent.UNDO_BATCH_START)
+    try {
+      replacement.commit()
+      this.#blocks.setCurrentIndex(0)
+    } finally {
+      this.#events.emit(EditorEvent.UNDO_BATCH_END)
+    }
   }
 
   /**
@@ -205,10 +240,28 @@ export class EditorFacade {
    * Insert an inline plugin widget at the current caret position.
    * @param {string} type
    * @param {Record<string, string>} [data]
+   * @returns {boolean} whether editor DOM was changed
    */
   insertInlinePlugin(type, data = {}) {
-    if (!this.#inlinePluginRegistry || !this.#inlinePluginCtx) return
-    insertInlinePluginAtCaret(this.#inlinePluginRegistry, this.#inlinePluginCtx, this.#events, type, data)
+    if (!this.#inlinePluginRegistry || !this.#inlinePluginCtx) return false
+
+    const selection = window.getSelection()
+    const range = selection?.rangeCount ? selection.getRangeAt(0) : null
+    if (!range || !this.#rootEl.contains(range.commonAncestorContainer)) return false
+    const block = this.#blocks.getBlockByChildNode(range.commonAncestorContainer)
+    if (
+      !block
+      || typeof block.plugin.mapTextFields !== 'function'
+      || !this.#inlinePluginRegistry.get(type)
+    ) return false
+
+    return this.#commands.runForBlock(block, () => insertInlinePluginAtCaret(
+      this.#inlinePluginRegistry,
+      this.#inlinePluginCtx,
+      type,
+      data,
+      this.#rootEl,
+    ))
   }
 
   /**
@@ -219,6 +272,10 @@ export class EditorFacade {
       try {
         this.#destroyables[i]?.destroy()
       } catch (err) {
+        this.#diagnostics.emit('cleanup.failed', {
+          operation: this.#destroyables[i]?.constructor?.name || 'destroyable',
+          errorName: this.#diagnostics.errorName(err),
+        })
         console.warn('[EditorFacade] Error destroying module:', err)
       }
     }

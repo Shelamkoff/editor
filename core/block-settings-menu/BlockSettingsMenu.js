@@ -58,9 +58,11 @@ export class BlockSettingsMenu {
    * @param {import('../types').ICrossBlockSelection} crossBlockSelection
    * @param {import('../BlockOperations').BlockOperations} blockOps
    * @param {string} defaultBlockType
+   * @param {(current: import('../types').IBlock, index: number) => import('../types').IBlock | undefined} duplicateBlock
+   * @param {import('../CommandDispatcher').CommandDispatcher} commands
    * @param {{ mobileBreakpoint?: number }} [tuning]
    */
-  constructor(rootEl, blocks, selection, plugins, i18n, events, crossBlockSelection, blockOps, defaultBlockType, tuning) {
+  constructor(rootEl, blocks, selection, plugins, i18n, events, crossBlockSelection, blockOps, defaultBlockType, duplicateBlock, commands, tuning) {
     this.#rootEl = rootEl
     this.#crossBlockSelection = crossBlockSelection
 
@@ -75,9 +77,12 @@ export class BlockSettingsMenu {
     document.addEventListener('click', this.#onDocumentClick, true)
 
     this.#actions = new BlockActions({
-      blocks, selection, blockOps, plugins, crossBlockSelection, events,
-      defaultBlockType,
-      onClose: () => this.close(),
+      blocks, selection, blockOps, plugins, crossBlockSelection, events, commands,
+      defaultBlockType, duplicateBlock,
+      // Every terminal action positions focus/caret itself. Restoring the
+      // range captured before the menu opened would either move focus back to
+      // the source block (duplicate) or target detached DOM (delete/convert).
+      onClose: () => this.close({ restoreSelection: false }),
       onAfterMove: () => this.#refreshAfterMove(),
       getSavedRange: () => this.#savedRange,
     })
@@ -113,12 +118,14 @@ export class BlockSettingsMenu {
     else this.#show()
   }
 
-  close() {
+  /** @param {{ restoreSelection?: boolean }} [options] */
+  close(options = {}) {
     if (!this.#open) return
+    const restore = options.restoreSelection ?? true
     this.#open = false
     this.#menuEl.style.display = 'none'
     CrossBlockSelection.hideHighlight()
-    this.#restoreSelection()
+    if (restore) this.#restoreSelection()
     this.#savedRange = null
     this.#onCloseCallback?.()
   }

@@ -2,6 +2,8 @@ import { sanitizeHtml } from '../../core/sanitize.js'
 import { SERVICES, buildPlayer } from './player.js'
 import { resolvePath } from '../../shared/resolvePath.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
+import { validateEmbedData } from '../../shared/blockDataValidators.js'
+import { sanitizeUrl } from '../../shared/sanitize/sanitizeUrl.js'
 
 const editorStyles = resolvePath('./embed.css', import.meta.url)
 
@@ -75,13 +77,37 @@ function parseVideoUrl(url) {
 /** Per-block state keyed by wrapper element */
 const stateMap = new WeakMap()
 
+/**
+ * @typedef {Object} EmbedPreview
+ * @property {string} thumbnailUrl
+ * @property {string} [title]
+ */
 
+/**
+ * @typedef {Object} EmbedConfig
+ * @property {(file: File, context: { signal: AbortSignal }) => Promise<{ url: string }>} [uploadFile]
+ * @property {Array<{ icon?: string, label: string, handler: (context: { signal: AbortSignal }) => Promise<{ url: string } | null> }>} [actions]
+ * @property {false | ((request: {
+ *   service: 'vimeo', videoId: string, url: string, signal: AbortSignal
+ * }) => Promise<EmbedPreview | null>)} [resolvePreview]
+ *   `false` disables remote preview resolution; omitted uses Vimeo oEmbed.
+ * @property {number} [previewTimeoutMs]
+ * @property {boolean} [injectStyles]
+ * @property {string} [css]
+ */
+
+/** @extends {BlockPluginAbstract<EmbedConfig>} */
 export class Embed extends BlockPluginAbstract {
   static isTextBlock = false
   static styles = [editorStyles]
   type = 'embed'
   icon = ICON
   inlineTools = false
+
+  /** @param {EmbedConfig} [config] */
+  constructor(config) {
+    super(config)
+  }
 
   pasteConfig = {
     patterns: [
@@ -97,12 +123,12 @@ export class Embed extends BlockPluginAbstract {
   }
 
   /** @param {Record<string, unknown>} data */
-  render(data) {
+  render(data, context) {
     const blockData = {
       service: String(data?.service || ''),
       videoId: String(data?.videoId || ''),
       caption: String(data?.caption || ''),
-      cover: String(data?.cover || ''),
+      cover: sanitizeUrl(String(data?.cover || ''), { policy: 'media', fallback: '' }),
       title: String(data?.title || ''),
       duration: String(data?.duration || ''),
     }
@@ -119,6 +145,7 @@ export class Embed extends BlockPluginAbstract {
       urlIconEl: null,
       inputTimer: null,
       playerRef: null,
+      context,
     })
 
     this._renderUrlBar(wrapper)
@@ -140,7 +167,7 @@ export class Embed extends BlockPluginAbstract {
   }
 
   /** @param {Record<string, unknown>} data */
-  validate(data) { return !!data?.service && !!data?.videoId }
+  validate(data) { return validateEmbedData(data) }
 
   /** @param {HTMLElement} element */
   isEmpty(element) {
@@ -245,18 +272,22 @@ export class Embed extends BlockPluginAbstract {
 
     if (!parsed) {
       if (s.data.service) {
-        s.data.service = ''
-        s.data.videoId = ''
-        this._removePlayerElements(wrapper)
-        iconEl.innerHTML = ICON_FORMS
+        s.context.mutate(() => {
+          s.data.service = ''
+          s.data.videoId = ''
+          this._removePlayerElements(wrapper)
+          iconEl.innerHTML = ICON_FORMS
+        })
       }
       return
     }
     if (parsed.service === s.data.service && parsed.videoId === s.data.videoId) return
 
-    iconEl.innerHTML = ICON_LOADER
-    s.data.service = parsed.service
-    s.data.videoId = parsed.videoId
+    s.context.mutate(() => {
+      iconEl.innerHTML = ICON_LOADER
+      s.data.service = parsed.service
+      s.data.videoId = parsed.videoId
+    })
 
     requestAnimationFrame(() => {
       const st = stateMap.get(wrapper)
@@ -267,7 +298,6 @@ export class Embed extends BlockPluginAbstract {
       this._renderCaption(wrapper)
       this._renderActions(wrapper)
       wrapper.classList.add(CSS.filled)
-      wrapper.dispatchEvent(new InputEvent('input', { bubbles: true }))
     })
   }
 
@@ -300,6 +330,8 @@ export class Embed extends BlockPluginAbstract {
       classPrefix: 'oe',
       playIcon: ICON_PLAY,
       placeholderHtml: hasStaticPreview ? undefined : ICON_VIDEO_PLACEHOLDER,
+      playLabel: this._t('play', 'Play video'),
+      videoLabel: this._t('videoLabel', 'Video'),
     })
 
     s.playerRef = result
@@ -312,7 +344,7 @@ export class Embed extends BlockPluginAbstract {
     }
 
     // Vimeo: no static preview → fetch via oEmbed API
-    if (!hasStaticPreview && !s.data.cover) {
+    if (s.data.service === 'vimeo' && !hasStaticPreview && !s.data.cover) {
       const placeholder = result.player.querySelector(`.${CSS.placeholder}`)
       if (placeholder) void this._fetchVimeoPreview(wrapper, result.player, /** @type {HTMLElement} */ (placeholder))
     }
@@ -413,14 +445,15 @@ export class Embed extends BlockPluginAbstract {
       e.stopPropagation()
       const st = stateMap.get(wrapper)
       if (!st) return
-      if (st.inputTimer) clearTimeout(st.inputTimer)
-      st.data = this._defaultData()
-      this._removePlayerElements(wrapper)
-      if (st.urlIconEl) st.urlIconEl.innerHTML = ICON_FORMS
-      const inp = wrapper.querySelector(`.${CSS.urlInput}`)
-      if (inp) { /** @type {HTMLInputElement} */ (inp).value = ''; /** @type {HTMLInputElement} */ (inp).focus() }
-      wrapper.classList.remove(CSS.filled)
-      wrapper.dispatchEvent(new InputEvent('input', { bubbles: true }))
+      st.context.mutate(() => {
+        if (st.inputTimer) clearTimeout(st.inputTimer)
+        st.data = this._defaultData()
+        this._removePlayerElements(wrapper)
+        if (st.urlIconEl) st.urlIconEl.innerHTML = ICON_FORMS
+        const inp = wrapper.querySelector(`.${CSS.urlInput}`)
+        if (inp) { /** @type {HTMLInputElement} */ (inp).value = ''; /** @type {HTMLInputElement} */ (inp).focus() }
+        wrapper.classList.remove(CSS.filled)
+      })
     }, { signal })
     mainView.appendChild(deleteBtn)
 
@@ -446,7 +479,7 @@ export class Embed extends BlockPluginAbstract {
 
     // Back
     const backBtn = this._makeBtn(
-      `${ICON_BACK} ${this._t('block.back', 'Back')}`,
+      `${ICON_BACK} ${this._t('back', 'Back')}`,
       () => { coverView.remove(); mainView.style.display = 'contents' },
       signal
     )
@@ -464,12 +497,17 @@ export class Embed extends BlockPluginAbstract {
     const customActions = this._config.actions || []
     for (const action of customActions) {
       coverView.appendChild(this._makeBtn(
-        `${action.icon} ${action.label}`,
+        `${action.icon || ''} ${action.label}`.trim(),
         async () => {
           try {
-            const result = await action.handler()
-            const st = stateMap.get(wrapper)
-            if (result?.url && st) { st.data.cover = result.url; this._rebuildPlayer(wrapper); wrapper.dispatchEvent(new InputEvent('input', { bubbles: true })) }
+            const initial = stateMap.get(wrapper)
+            if (!initial || initial.context.readOnly) return
+            const result = await action.handler({ signal })
+            const current = stateMap.get(wrapper)
+            const url = sanitizeUrl(String(result?.url || ''), { policy: 'media', fallback: '' })
+            if (!signal.aborted && url && current === initial) {
+              current.context.mutate(() => { current.data.cover = url; this._rebuildPlayer(wrapper) })
+            }
           } catch { /* cancelled */ }
           coverView.remove()
           mainView.style.display = 'contents'
@@ -485,9 +523,7 @@ export class Embed extends BlockPluginAbstract {
         const url = prompt(this._t('coverUrlPrompt', 'Image URL:'))
         const st = stateMap.get(wrapper)
         if (url && /^https?:\/\/.+/i.test(url) && st) {
-          st.data.cover = url
-          this._rebuildPlayer(wrapper)
-          wrapper.dispatchEvent(new InputEvent('input', { bubbles: true }))
+          st.context.mutate(() => { st.data.cover = url; this._rebuildPlayer(wrapper) })
         }
         coverView.remove()
         mainView.style.display = 'contents'
@@ -507,9 +543,7 @@ export class Embed extends BlockPluginAbstract {
         e.stopPropagation()
         const st = stateMap.get(wrapper)
         if (st) {
-          st.data.cover = ''
-          this._rebuildPlayer(wrapper)
-          wrapper.dispatchEvent(new InputEvent('input', { bubbles: true }))
+          st.context.mutate(() => { st.data.cover = ''; this._rebuildPlayer(wrapper) })
         }
         coverView.remove()
         mainView.style.display = 'contents'
@@ -573,7 +607,7 @@ export class Embed extends BlockPluginAbstract {
     input.type = 'text'
     input.className = CSS.styleInput
     input.value = value || ''
-    input.addEventListener('input', () => { onChange(input.value); wrapper.dispatchEvent(new InputEvent('input', { bubbles: true })) })
+    input.addEventListener('input', () => onChange(input.value))
     input.addEventListener('keydown', (e) => { if (!e.ctrlKey && !e.metaKey) e.stopPropagation() })
 
     lbl.appendChild(input)
@@ -629,6 +663,8 @@ export class Embed extends BlockPluginAbstract {
 
   /** @param {HTMLElement} wrapper */
   _triggerCoverUpload(wrapper) {
+    const current = stateMap.get(wrapper)
+    if (!current || current.context.readOnly) return
     const input = document.createElement('input')
     input.type = 'file'
     input.accept = 'image/*'
@@ -640,11 +676,12 @@ export class Embed extends BlockPluginAbstract {
       } else {
         const s = stateMap.get(wrapper)
         if (!s) return
-        if (s.objectUrl) URL.revokeObjectURL(s.objectUrl)
-        s.objectUrl = URL.createObjectURL(file)
-        s.data.cover = s.objectUrl
-        this._rebuildPlayer(wrapper)
-        wrapper.dispatchEvent(new InputEvent('input', { bubbles: true }))
+        s.context.mutate(() => {
+          if (s.objectUrl) URL.revokeObjectURL(s.objectUrl)
+          s.objectUrl = URL.createObjectURL(file)
+          s.data.cover = s.objectUrl
+          this._rebuildPlayer(wrapper)
+        })
       }
     })
     input.click()
@@ -656,11 +693,17 @@ export class Embed extends BlockPluginAbstract {
    */
   async _uploadCover(wrapper, file) {
     if (!this._config.uploadFile) return
+    const initial = stateMap.get(wrapper)
+    if (!initial || initial.context.readOnly) return
+    const signal = initial.abortController?.signal ?? new AbortController().signal
     wrapper.classList.add(CSS.loading)
     try {
-      const result = await this._config.uploadFile(file)
+      const result = await this._config.uploadFile(file, { signal })
       const s = stateMap.get(wrapper)
-      if (result?.url && s) { s.data.cover = result.url; this._rebuildPlayer(wrapper); wrapper.dispatchEvent(new InputEvent('input', { bubbles: true })) }
+      const url = sanitizeUrl(String(result?.url || ''), { policy: 'media', fallback: '' })
+      if (!signal.aborted && url && s === initial) {
+        s.context.mutate(() => { s.data.cover = url; this._rebuildPlayer(wrapper) })
+      }
     } catch { /* failed */ } finally { wrapper.classList.remove(CSS.loading) }
   }
 
@@ -672,15 +715,52 @@ export class Embed extends BlockPluginAbstract {
   async _fetchVimeoPreview(wrapper, _player, _placeholder) {
     const s = stateMap.get(wrapper)
     if (!s) return
+    const videoId = s.data.videoId
+    const playerRef = s.playerRef
+    const controller = new AbortController()
+    const parentSignal = s.abortController?.signal
+    const abort = () => controller.abort(parentSignal?.reason)
+    parentSignal?.addEventListener('abort', abort, { once: true })
+    const timeout = setTimeout(
+      () => controller.abort(new DOMException('Embed preview timed out', 'TimeoutError')),
+      Math.max(0, this._config.previewTimeoutMs ?? 5000),
+    )
     try {
-      const res = await fetch(`https://vimeo.com/api/oembed.json?url=https://vimeo.com/${s.data.videoId}&width=640`)
-      if (!res.ok) return
-      const data = await res.json()
-      const st = stateMap.get(wrapper)
-      if (data['thumbnail_url'] && st && st.playerRef) {
-        st.playerRef.setPreview(data['thumbnail_url'], data['title'] || 'Video preview')
+      const url = `https://vimeo.com/${videoId}`
+      let preview
+      if (this._config.resolvePreview === false) return
+      if (this._config.resolvePreview) {
+        preview = await this._config.resolvePreview({
+          service: 'vimeo',
+          videoId,
+          url,
+          signal: controller.signal,
+        })
+      } else {
+        const endpoint = `https://vimeo.com/api/oembed.json?url=${encodeURIComponent(url)}&width=640`
+        const response = await fetch(endpoint, { signal: controller.signal, credentials: 'omit' })
+        if (!response.ok) return
+        const data = await response.json()
+        preview = data?.thumbnail_url
+          ? { thumbnailUrl: String(data.thumbnail_url), title: String(data.title || '') }
+          : null
       }
-    } catch { /* keep placeholder */ }
+
+      const st = stateMap.get(wrapper)
+      if (
+        preview?.thumbnailUrl
+        && st === s
+        && st.data.videoId === videoId
+        && st.playerRef === playerRef
+      ) {
+        playerRef?.setPreview(preview.thumbnailUrl, preview.title || 'Video preview')
+      }
+    } catch (error) {
+      if (!controller.signal.aborted) console.warn('[Embed] Failed to resolve Vimeo preview', error)
+    } finally {
+      clearTimeout(timeout)
+      parentSignal?.removeEventListener('abort', abort)
+    }
   }
 
   /**

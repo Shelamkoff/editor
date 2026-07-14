@@ -1,0 +1,42 @@
+# Person renderer
+
+Renderer for the `person` block. It converts persisted block data into renderer-owned DOM.
+The Person renderer directly uses `@shelamkoff/carousel` and its `carouselStylesUrl` package export.
+
+The `@shelamkoff/rector/renderer` entry contains the synchronous built-in preset, so `@shelamkoff/carousel` and `@shelamkoff/expose` must be installed before importing it. Passing `blockTypes: []` prevents default renderer construction but does not change ESM module resolution.
+
+## Usage
+
+```js
+import { createEditorRenderer } from '@shelamkoff/rector/renderer'
+import { createPersonRenderer } from '@shelamkoff/rector/renderer/renderers/person'
+
+const renderer = createEditorRenderer({ classPrefix: 'article', blockTypes: [] })
+renderer.registerRenderer(createPersonRenderer('article', {}))
+const rendererStyles = renderer.injectStyles()
+renderer.renderTo(documentData, document.querySelector('#article'))
+
+// When the mounted output is removed:
+renderer.destroy()
+rendererStyles.destroy()
+```
+
+## Typical data
+
+```json
+{
+  "persons": [{
+    "avatar": "https://cdn.example/ada.jpg",
+    "name": "Ada",
+    "role": "Author",
+    "bio": "",
+    "links": [{ "type": "website", "url": "https://example.com" }]
+  }]
+}
+```
+
+Profile text uses the inline parser; avatars and links use the media and external URL policies. Multi-profile output owns a Carousel and navigation listeners, released in `destroy()`. The renderer declares profile and Carousel styles.
+
+When styles are declared, the explicit `EditorRenderer.injectStyles()` call shown above acquires them and its returned owner releases them.
+
+The VitePress guide documents renderer ownership, inline widget reconstruction, styles, cleanup, and security boundaries.

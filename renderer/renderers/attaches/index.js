@@ -1,6 +1,10 @@
 // @ts-check
 import { resolvePath } from '../../../shared/resolvePath.js'
 import { getFileIcon, getExtension, formatSize, EXT_COLORS } from '../../../shared/fileUtils.js'
+import { sanitizeDownloadUrl, setSafeUrlAttribute } from '../../../shared/sanitize/sanitizeUrl.js'
+import { loadZipRuntime } from '../../../shared/zipRuntime.js'
+
+let groupSequence = 0
 
 const styles = resolvePath('./styles.css', import.meta.url)
 
@@ -8,31 +12,165 @@ const ICON_CHEVRON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height=
 const ICON_FILE_DEFAULT = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2"/></svg>'
 const ICON_DL = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><path d="M7 11l5 5l5-5"/><path d="M12 4v12"/></svg>'
 
+export const ARCHIVE_LIMITS = Object.freeze({
+  files: 50,
+  fileBytes: 25 * 1024 * 1024,
+  totalBytes: 100 * 1024 * 1024,
+  concurrency: 4,
+})
+
+const WINDOWS_RESERVED_NAME_RE = /^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i
+
 /**
- * @param {Array<{url: string, name: string}>} files
+ * Convert an untrusted attachment name into a flat, portable ZIP entry name.
+ * @param {unknown} value
+ * @param {number} [index]
  */
-async function downloadArchive(files) {
-  const JSZip = (await import('jszip')).default
+export function sanitizeArchiveFilename(value, index = 0) {
+  const fallback = `file-${index + 1}`
+  if (typeof value !== 'string') return fallback
+  let name = value
+    .replace(/[<>:"/\\|?*\x00-\x1f\x7f]/g, '_')
+    .replace(/[. ]+$/g, '')
+    .trim()
+  if (!name || name === '.' || name === '..' || WINDOWS_RESERVED_NAME_RE.test(name)) name = fallback
+  return name.slice(0, 128) || fallback
+}
+
+/** @param {string} name @param {Set<string>} used */
+function uniqueArchiveFilename(name, used) {
+  const key = name.toLocaleLowerCase('en-US')
+  if (!used.has(key)) {
+    used.add(key)
+    return name
+  }
+  const dot = name.lastIndexOf('.')
+  const stem = dot > 0 ? name.slice(0, dot) : name
+  const extension = dot > 0 ? name.slice(dot) : ''
+  for (let suffix = 2; ; suffix += 1) {
+    const candidate = `${stem.slice(0, Math.max(1, 128 - extension.length - String(suffix).length - 3))} (${suffix})${extension}`
+    const candidateKey = candidate.toLocaleLowerCase('en-US')
+    if (!used.has(candidateKey)) {
+      used.add(candidateKey)
+      return candidate
+    }
+  }
+}
+
+/** @param {Response} response @param {AbortSignal} signal @param {{ value: number }} total */
+async function readBoundedResponse(response, signal, total) {
+  const declared = Number(response.headers.get('content-length'))
+  if (Number.isFinite(declared) && declared > ARCHIVE_LIMITS.fileBytes) {
+    throw new RangeError('Attachment exceeds the per-file ZIP limit')
+  }
+
+  if (!response.body?.getReader) {
+    const blob = await response.blob()
+    if (blob.size > ARCHIVE_LIMITS.fileBytes || total.value + blob.size > ARCHIVE_LIMITS.totalBytes) {
+      throw new RangeError('Attachment archive exceeds its size limit')
+    }
+    total.value += blob.size
+    return blob
+  }
+
+  const reader = response.body.getReader()
+  /** @type {ArrayBuffer[]} */
+  const chunks = []
+  let size = 0
+  try {
+    while (true) {
+      signal.throwIfAborted()
+      const { done, value } = await reader.read()
+      if (done) break
+      if (!value) continue
+      size += value.byteLength
+      total.value += value.byteLength
+      if (size > ARCHIVE_LIMITS.fileBytes || total.value > ARCHIVE_LIMITS.totalBytes) {
+        throw new RangeError('Attachment archive exceeds its size limit')
+      }
+      const copy = new Uint8Array(value.byteLength)
+      copy.set(value)
+      chunks.push(copy.buffer)
+    }
+  } catch (error) {
+    await reader.cancel(error).catch(() => {})
+    throw error
+  }
+  return new Blob(chunks, { type: response.headers.get('content-type') || 'application/octet-stream' })
+}
+
+/**
+ * @param {Array<{url: string, name: string, size?: number}>} files
+ * @param {{ signal: AbortSignal }} context
+ */
+export async function downloadArchive(files, { signal }) {
+  if (files.length > ARCHIVE_LIMITS.files) throw new RangeError('Too many attachments for one ZIP archive')
+  signal.throwIfAborted()
+
+  const usedNames = new Set()
+  const entries = files.map((file, index) => ({
+    url: sanitizeDownloadUrl(file.url),
+    name: uniqueArchiveFilename(sanitizeArchiveFilename(file.name, index), usedNames),
+    declaredSize: Number(file.size) || 0,
+  })).filter(entry => entry.url)
+  if (entries.some(entry => entry.declaredSize > ARCHIVE_LIMITS.fileBytes)) {
+    throw new RangeError('Attachment exceeds the per-file ZIP limit')
+  }
+
+  const JSZip = await loadZipRuntime()
   const zip = new JSZip()
-  await Promise.all(files.map(async (f) => {
-    try { const res = await fetch(f.url); if (res.ok) zip.file(f.name || 'file', await res.blob()) } catch { /* skip */ }
-  }))
+  const total = { value: 0 }
+  let cursor = 0
+  let archived = 0
+  const workers = Array.from({ length: Math.min(ARCHIVE_LIMITS.concurrency, entries.length) }, async () => {
+    while (cursor < entries.length) {
+      const entry = entries[cursor++]
+      signal.throwIfAborted()
+      try {
+        const response = await fetch(entry.url, { signal })
+        if (!response.ok) continue
+        zip.file(entry.name, await readBoundedResponse(response, signal, total))
+        archived += 1
+      } catch (error) {
+        if (signal.aborted || error instanceof RangeError) throw error
+        // Keep the previous partial-archive behaviour for individual network failures.
+      }
+    }
+  })
+  await Promise.all(workers)
+  if (!archived) throw new Error('No attachments could be added to the ZIP archive')
+  signal.throwIfAborted()
   const blob = await zip.generateAsync({ type: 'blob' })
+  signal.throwIfAborted()
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
-  a.href = url; a.download = 'files.zip'; a.click()
-  URL.revokeObjectURL(url)
+  setSafeUrlAttribute(a, 'href', url, 'download'); a.download = 'files.zip'; a.click()
+  setTimeout(() => URL.revokeObjectURL(url), 0)
 }
 
 /**
  * @param {string} classPrefix
- * @param {Record<string, string>} locale
+ * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} locale
  * @returns {import('../../types').BlockRenderer<import('../../types').AttachesBlock>}
  */
 export function createAttachesRenderer(classPrefix, locale) {
   const cls = classPrefix
+  /** @type {WeakMap<HTMLElement, AbortController>} */
+  const archiveRequests = new WeakMap()
   /** @param {string} key @param {string} fallback */
-  const t = (key, fallback) => locale?.[key] ?? fallback
+  const t = (key, fallback) => {
+    const value = locale?.[key]
+    return typeof value === 'string' ? value : fallback
+  }
+  /** @param {string} key @param {number} count @param {string} fallback */
+  const p = (key, count, fallback) => {
+    const value = locale?.[key]
+    if (typeof value === 'string') return value
+    if (!value || typeof value !== 'object') return fallback
+    const language = locale?.__lang
+    const category = new Intl.PluralRules(typeof language === 'string' ? language : 'en').select(count)
+    return value[category] ?? value.other ?? fallback
+  }
 
   return {
     type: 'attaches',
@@ -60,11 +198,26 @@ export function createAttachesRenderer(classPrefix, locale) {
         case 'g': renderMaterial(wrapper, files, cls, t); break
         default:
           if (files.length === 1) wrapper.appendChild(buildCardA(files[0], cls, t))
-          else wrapper.appendChild(buildGroupA(files, cls, t))
+          else wrapper.appendChild(buildGroupA(files, cls, t, p, () => {
+            archiveRequests.get(wrapper)?.abort()
+            const controller = new AbortController()
+            archiveRequests.set(wrapper, controller)
+            downloadArchive(files, { signal: controller.signal }).catch(error => {
+              if (controller.signal.aborted) return
+              wrapper.dispatchEvent(new CustomEvent('rector:archive-error', { detail: { error } }))
+            }).finally(() => {
+              if (archiveRequests.get(wrapper) === controller) archiveRequests.delete(wrapper)
+            })
+          }))
           break
       }
 
       return wrapper
+    },
+
+    destroy(wrapper) {
+      archiveRequests.get(wrapper)?.abort()
+      archiveRequests.delete(wrapper)
     },
   }
 }
@@ -92,7 +245,7 @@ function buildCardA(file, cls, t) {
 
   const dl = document.createElement('a')
   dl.className = `${cls}-attaches__download`
-  dl.href = file.url; dl.download = file.name || ''; dl.textContent = t('renderer.attaches.download', 'Download')
+  setSafeUrlAttribute(dl, 'href', file.url, 'download'); dl.download = file.name || ''; dl.textContent = t('renderer.attaches.download', 'Download')
   card.appendChild(dl)
 
   return card
@@ -119,8 +272,10 @@ function buildIconA(/** @type {{ extension: string }} */ file, /** @type {string
  * @param {Array<{url: string, name: string, size: number, extension: string}>} files
  * @param {string} cls
  * @param {(key: string, fallback: string) => string} t
+ * @param {(key: string, count: number, fallback: string) => string} p
+ * @param {() => void} onDownloadArchive
  */
-function buildGroupA(files, cls, t) {
+function buildGroupA(files, cls, t, p, onDownloadArchive) {
   const group = document.createElement('div')
   group.className = `${cls}-attaches__group`
 
@@ -133,7 +288,7 @@ function buildGroupA(files, cls, t) {
   info.className = `${cls}-attaches__info`
   const count = document.createElement('div')
   count.className = `${cls}-attaches__name`
-  count.textContent = `${files.length} ${t('renderer.attaches.files', 'files')}`
+  count.textContent = `${files.length} ${p('renderer.attaches.files', files.length, 'files')}`
   info.appendChild(count)
   const meta = document.createElement('div')
   meta.className = `${cls}-attaches__meta`
@@ -142,34 +297,48 @@ function buildGroupA(files, cls, t) {
   const archiveLink = document.createElement('a')
   archiveLink.className = `${cls}-attaches__download`
   archiveLink.href = '#'; archiveLink.textContent = t('renderer.attaches.downloadZip', 'Download ZIP')
-  archiveLink.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); downloadArchive(files) })
+  archiveLink.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); onDownloadArchive() })
   meta.appendChild(archiveLink)
   info.appendChild(meta)
-  const chevron = document.createElement('div')
+  const chevron = document.createElement('button')
+  chevron.type = 'button'
   chevron.className = `${cls}-attaches__chevron`
   chevron.innerHTML = ICON_CHEVRON
+  chevron.setAttribute('aria-label', t('renderer.attaches.toggle', 'Show or hide files'))
+  chevron.setAttribute('aria-expanded', 'false')
   header.append(iconWrap, info, chevron)
 
   const body = document.createElement('div')
   body.className = `${cls}-attaches__group-body`
+  body.id = `rector-attaches-group-${++groupSequence}`
+  chevron.setAttribute('aria-controls', body.id)
   for (const file of files) {
     const row = document.createElement('div')
     row.className = `${cls}-attaches__row`
     const fname = document.createElement('a')
     fname.className = `${cls}-attaches__row-name`
-    fname.href = file.url; fname.download = file.name || ''; fname.textContent = file.name || t('renderer.attaches.file', 'File')
+    setSafeUrlAttribute(fname, 'href', file.url, 'download'); fname.download = file.name || ''; fname.textContent = file.name || t('renderer.attaches.file', 'File')
     row.appendChild(fname)
     if (file.size) { const sz = document.createElement('span'); sz.className = `${cls}-attaches__row-size`; sz.textContent = formatSize(file.size); row.appendChild(sz) }
     const dl = document.createElement('a')
     dl.className = `${cls}-attaches__download`
-    dl.href = file.url; dl.download = file.name || ''; dl.textContent = t('renderer.attaches.download', 'Download')
+    setSafeUrlAttribute(dl, 'href', file.url, 'download'); dl.download = file.name || ''; dl.textContent = t('renderer.attaches.download', 'Download')
     row.appendChild(dl)
     body.appendChild(row)
   }
 
-  header.addEventListener('click', () => {
+  const toggle = () => {
     body.classList.toggle(`${cls}-attaches__group-body--open`)
     chevron.classList.toggle(`${cls}-attaches__chevron--open`)
+    chevron.setAttribute('aria-expanded', String(body.classList.contains(`${cls}-attaches__group-body--open`)))
+  }
+  header.addEventListener('click', (event) => {
+    if (event.target instanceof HTMLAnchorElement) return
+    toggle()
+  })
+  chevron.addEventListener('click', (event) => {
+    event.stopPropagation()
+    toggle()
   })
 
   group.append(header, body)
@@ -190,7 +359,7 @@ function renderPills(wrapper, files, cls, t) {
   for (const file of files) {
     const pill = document.createElement('a')
     pill.className = `${cls}-attaches__pill`
-    pill.href = file.url; pill.download = file.name || ''
+    setSafeUrlAttribute(pill, 'href', file.url, 'download'); pill.download = file.name || ''
     const ic = document.createElement('div')
     ic.className = `${cls}-attaches__pill-icon`
     ic.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2"/></svg>'
@@ -220,7 +389,7 @@ function renderNotion(wrapper, files, cls, t) {
     row.className = `${cls}-attaches__notion-row`
     const name = document.createElement('a')
     name.className = `${cls}-attaches__notion-name`
-    name.href = file.url; name.download = file.name || ''; name.textContent = file.name || t('renderer.attaches.file', 'File')
+    setSafeUrlAttribute(name, 'href', file.url, 'download'); name.download = file.name || ''; name.textContent = file.name || t('renderer.attaches.file', 'File')
     row.appendChild(name)
     const ext = (file.extension || '').toUpperCase()
     if (ext) {
@@ -265,7 +434,7 @@ function renderMaterial(wrapper, files, cls, t) {
     card.appendChild(info)
     const dl = document.createElement('a')
     dl.className = `${cls}-attaches__material-dl`
-    dl.href = file.url; dl.download = file.name || ''; dl.innerHTML = ICON_DL
+    setSafeUrlAttribute(dl, 'href', file.url, 'download'); dl.download = file.name || ''; dl.innerHTML = ICON_DL
     card.appendChild(dl)
     stack.appendChild(card)
   }

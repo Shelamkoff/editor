@@ -12,4 +12,8 @@ export default {
   'plugin.embed.cover': 'Обложка',
   'plugin.embed.uploadCover': 'Загрузить',
   'plugin.embed.removeCover': 'Убрать',
+  'plugin.embed.back': 'Назад',
+  'plugin.embed.coverUrlPrompt': 'URL изображения обложки:',
+  'plugin.embed.play': 'Воспроизвести видео',
+  'plugin.embed.videoLabel': 'Видео',
 }

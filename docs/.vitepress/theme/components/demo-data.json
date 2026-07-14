@@ -1,0 +1,20 @@
+{
+  "en": [
+    { "id": "welcome", "type": "heading", "data": { "text": "A document is more than HTML", "level": 2 } },
+    { "id": "intro", "type": "paragraph", "data": { "text": "Rector keeps <strong>editing behavior</strong>, structured data, and document rendering connected by one versioned contract. Try {{demo-mention}} and the {{demo-color}} swatch." }, "inline": { "demo-mention": { "type": "mention", "data": { "id": "ada", "name": "Ada Lovelace" } }, "demo-color": { "type": "color", "data": { "value": "#4357b4" } } } },
+    { "id": "principles", "type": "list", "data": { "items": ["One completed interaction is one history step", "Each block owns serializable data", "Renderers stay independent from editor UI"], "style": "unordered" } },
+    { "id": "quote", "type": "quote", "data": { "text": "Plugins extend contracts, not internal managers.", "caption": "Architecture rule" } },
+    { "id": "warning", "type": "warning", "data": { "title": "Try the toolbar", "message": "Select text above and apply bold, italic, a link, color, alignment, or another inline tool. Then use undo and redo." } },
+    { "id": "delimiter", "type": "delimiter", "data": {} },
+    { "id": "outro", "type": "paragraph", "data": { "text": "Open <strong>Output JSON</strong> below or switch to Preview to inspect the rendered document." } }
+  ],
+  "ru": [
+    { "id": "welcome", "type": "heading", "data": { "text": "Документ — это больше, чем HTML", "level": 2 } },
+    { "id": "intro", "type": "paragraph", "data": { "text": "Rector связывает <strong>поведение редактора</strong>, структурированные данные и рендеринг документа одним версионированным контрактом. Проверьте {{demo-mention}} и образец цвета {{demo-color}}." }, "inline": { "demo-mention": { "type": "mention", "data": { "id": "ada", "name": "Ада Лавлейс" } }, "demo-color": { "type": "color", "data": { "value": "#4357b4" } } } },
+    { "id": "principles", "type": "list", "data": { "items": ["Одно завершённое действие — один шаг истории", "Каждый блок владеет сериализуемыми данными", "Рендереры не зависят от UI редактора"], "style": "unordered" } },
+    { "id": "quote", "type": "quote", "data": { "text": "Плагины расширяют контракты, а не внутренние менеджеры.", "caption": "Правило архитектуры" } },
+    { "id": "warning", "type": "warning", "data": { "title": "Проверьте панель инструментов", "message": "Выделите текст выше, примените форматирование, а затем используйте отмену и повтор." } },
+    { "id": "delimiter", "type": "delimiter", "data": {} },
+    { "id": "outro", "type": "paragraph", "data": { "text": "Откройте <strong>JSON на выходе</strong> или переключитесь в «Превью», чтобы проверить результат рендеринга." } }
+  ]
+}

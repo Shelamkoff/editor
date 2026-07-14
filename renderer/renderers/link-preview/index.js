@@ -1,5 +1,6 @@
 // @ts-check
 import { resolvePath } from '../../../shared/resolvePath.js'
+import { setSafeUrlAttribute } from '../../../shared/sanitize/sanitizeUrl.js'
 
 const styles = resolvePath('./styles.css', import.meta.url)
 
@@ -35,7 +36,7 @@ export function createLinkPreviewRenderer(classPrefix, _locale) {
 
             const card = document.createElement('a')
             card.className = `${p} ${p}--${tpl}`
-            card.href = url
+            setSafeUrlAttribute(card, 'href', url, 'external')
             card.target = '_blank'
             card.rel = 'noopener noreferrer'
 
@@ -43,7 +44,7 @@ export function createLinkPreviewRenderer(classPrefix, _locale) {
             if (tpl === 'notion') {
                 const bigFav = document.createElement('img')
                 bigFav.className = `${p}__favicon-large`
-                bigFav.src = favicon || ''
+                setSafeUrlAttribute(bigFav, 'src', favicon || '', 'media')
                 bigFav.width = 32
                 bigFav.height = 32
                 bigFav.alt = ''
@@ -76,7 +77,7 @@ export function createLinkPreviewRenderer(classPrefix, _locale) {
             if (favicon && tpl !== 'notion') {
                 const fav = document.createElement('img')
                 fav.className = `${p}__favicon`
-                fav.src = favicon
+                setSafeUrlAttribute(fav, 'src', favicon, 'media')
                 fav.width = 14
                 fav.height = 14
                 fav.alt = ''
@@ -101,7 +102,7 @@ export function createLinkPreviewRenderer(classPrefix, _locale) {
                 const imgWrap = document.createElement('div')
                 imgWrap.className = `${p}__image`
                 const img = document.createElement('img')
-                img.src = image
+                setSafeUrlAttribute(img, 'src', image, 'media')
                 img.alt = title || ''
                 img.loading = 'lazy'
                 imgWrap.appendChild(img)

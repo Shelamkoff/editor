@@ -14,27 +14,50 @@ import { closestBlock } from './dom.js'
  * @param {Range} range
  * @param {string} targetType
  * @param {Record<string, unknown>} [targetData]
+ * @param {boolean} [targetIsText]
  * @returns {boolean} whether conversion actually happened
  */
-export function splitAndConvert(blocks, selection, currentIndex, currentType, contentEl, range, targetType, targetData) {
+export function splitAndConvert(blocks, selection, currentIndex, currentType, contentEl, range, targetType, targetData, targetIsText = false) {
+  const currentBlock = blocks.getBlockByIndex(currentIndex)
+  const pluginSplit = currentBlock?.plugin.splitSelection?.(contentEl, range)
+
+  if (pluginSplit) {
+    const transferable = targetIsText ? pluginSplit.selectedData : {}
+    const newData = { ...transferable, ...(targetData || {}) }
+    let insertIndex = currentIndex + 1
+
+    if (pluginSplit.remainingData) {
+      blocks.convert(currentIndex, currentType, pluginSplit.remainingData)
+    } else {
+      blocks.remove(currentIndex)
+      insertIndex = currentIndex
+    }
+
+    const newBlock = blocks.insert(targetType, newData, insertIndex)
+    blocks.setCurrentIndex(insertIndex)
+    selection.setCaretToBlock(newBlock.id, 'start')
+    newBlock.focus()
+    return true
+  }
+
   // Extract before/selected/after content as HTML
   const beforeRange = document.createRange()
   beforeRange.selectNodeContents(contentEl)
   beforeRange.setEnd(range.startContainer, range.startOffset)
   const beforeEl = document.createElement('div')
   beforeEl.appendChild(beforeRange.cloneContents())
-  const beforeHtml = (beforeEl.textContent || '').trim() ? beforeEl.innerHTML.trim() : ''
+  const beforeHtml = beforeEl.innerHTML
 
   const selectedEl = document.createElement('div')
   selectedEl.appendChild(range.cloneContents())
-  const selectedHtml = selectedEl.innerHTML.trim()
+  const selectedHtml = selectedEl.innerHTML
 
   const afterRange = document.createRange()
   afterRange.selectNodeContents(contentEl)
   afterRange.setStart(range.endContainer, range.endOffset)
   const afterEl = document.createElement('div')
   afterEl.appendChild(afterRange.cloneContents())
-  const afterHtml = (afterEl.textContent || '').trim() ? afterEl.innerHTML.trim() : ''
+  const afterHtml = afterEl.innerHTML
 
   if (!selectedHtml) return false
 
@@ -52,6 +75,7 @@ export function splitAndConvert(blocks, selection, currentIndex, currentType, co
 
   if (!beforeHtml) {
     contentEl.innerHTML = selectedHtml
+    currentBlock?.markDirty()
     const converted = blocks.convert(currentIndex, targetType, mergedData)
     if (afterHtml) {
       blocks.insert(currentType, { text: afterHtml }, currentIndex + 1)
@@ -63,12 +87,14 @@ export function splitAndConvert(blocks, selection, currentIndex, currentType, co
     }
   } else if (!afterHtml) {
     contentEl.innerHTML = beforeHtml
+    currentBlock?.markDirty()
     const newBlock = blocks.insert(targetType, mergedData, currentIndex + 1)
     blocks.setCurrentIndex(currentIndex + 1)
     selection.setCaretToBlock(newBlock.id, 'start')
     newBlock.focus()
   } else {
     contentEl.innerHTML = beforeHtml
+    currentBlock?.markDirty()
     const newBlock = blocks.insert(targetType, mergedData, currentIndex + 1)
     blocks.insert(currentType, { text: afterHtml }, currentIndex + 2)
     blocks.setCurrentIndex(currentIndex + 1)
@@ -129,6 +155,11 @@ export function isFullBlockSelected(contentEl, range) {
  */
 export function restoreSelection(savedRange, crossBlockSelection) {
   if (!savedRange) return
+  // Never clear a valid live caret in order to restore a Range whose block
+  // was deleted or replaced by a structural command. Chromium accepts some
+  // detached ranges without throwing, but leaves focus on <body>; the next
+  // Ctrl+Z then bypasses the editor and enters native DOM history.
+  if (!savedRange.startContainer.isConnected || !savedRange.endContainer.isConnected) return
   const sel = window.getSelection()
   if (sel) {
     try {

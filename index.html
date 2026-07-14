@@ -3,34 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RectorJs — Block Editor</title>
-
   <script type="importmap">
-  {
-    "imports": {
-      "highlight.js/lib/core": "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/es/core.min.js",
-      "highlight.js/lib/languages/javascript": "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/es/languages/javascript.min.js",
-      "highlight.js/lib/languages/typescript": "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/es/languages/typescript.min.js",
-      "highlight.js/lib/languages/python": "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/es/languages/python.min.js",
-      "highlight.js/lib/languages/sql": "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/es/languages/sql.min.js",
-      "highlight.js/lib/languages/bash": "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/es/languages/bash.min.js",
-      "highlight.js/lib/languages/json": "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/es/languages/json.min.js",
-      "highlight.js/lib/languages/xml": "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/es/languages/xml.min.js",
-      "highlight.js/lib/languages/css": "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/es/languages/css.min.js",
-      "highlight.js/lib/languages/php": "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/es/languages/php.min.js",
-      "highlight.js/lib/languages/go": "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/es/languages/go.min.js",
-      "highlight.js/lib/languages/rust": "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/es/languages/rust.min.js",
-      "highlight.js/lib/languages/java": "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/es/languages/java.min.js",
-      "highlight.js/lib/languages/csharp": "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/es/languages/csharp.min.js",
-      "highlight.js/lib/languages/plaintext": "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/es/languages/plaintext.min.js",
-      "highlight.js/lib/languages/cpp": "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/es/languages/cpp.min.js",
-      "highlight.js/lib/languages/ruby": "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/es/languages/ruby.min.js",
-      "highlight.js/lib/languages/swift": "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/es/languages/swift.min.js",
-      "highlight.js/lib/languages/kotlin": "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/es/languages/kotlin.min.js",
-      "highlight.js/lib/languages/yaml": "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/es/languages/yaml.min.js"
+    {
+      "imports": {
+        "@shelamkoff/event-bus": "../event-bus/dist/index.js",
+        "@shelamkoff/color-picker": "../color-picker/dist/index.js",
+        "@shelamkoff/cropper": "../cropper/dist/src/index.js",
+        "@shelamkoff/carousel": "../carousel/dist/src/index.js",
+        "@shelamkoff/expose": "../expose/dist/src/index.js"
+      }
     }
-  }
   </script>
+  <title>RectorJs — Block Editor</title>
 
   <!-- Editor CSS -->
   <link rel="stylesheet" href="core/themes/variables.css">
@@ -769,6 +753,7 @@
     import { Image } from './plugins/image/index.js'
     import { Embed } from './plugins/embed/index.js'
     import { Gallery } from './plugins/gallery/index.js'
+    import { CarouselBlock } from './plugins/carousel/index.js'
     import { Checklist } from './plugins/checklist/index.js'
     import { Warning } from './plugins/warning/index.js'
     import { Raw } from './plugins/raw/index.js'
@@ -920,7 +905,7 @@
 
     const plugins = [
       new Paragraph(), new Heading(), new List(), new Quote(),
-      new Code(), new Image(), new Embed(), new Gallery(),
+      new Code(), new Image(), new Embed(), new Gallery(), new CarouselBlock(),
       new Checklist(), new Warning(), new Raw(), new Poll(),
       new Person(), new Attaches(),
       new LinkPreview({
@@ -1003,7 +988,7 @@
       const d = T[lang] || T.en
 
       if (previewing) {
-        const data = await editor.save()
+        const data = editor.save()
         const renderer = await getRenderer()
         previewHolder.innerHTML = ''
         previewHolder.appendChild(renderer.render(data))
@@ -1045,7 +1030,7 @@
 
     outputJson.addEventListener('toggle', async () => {
       if (outputJson.open) {
-        const d = await editor.save()
+        const d = editor.save()
         outputPre.innerHTML = highlightJson(d)
       }
     })

@@ -3,6 +3,7 @@ import { resolvePath } from '../../shared/resolvePath.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { createHeadingLevelSelect } from './HeadingLevelSelect.js'
 import { mapTextFields } from './mapTextFields.js'
+import { validateHeadingData } from '../../shared/blockDataValidators.js'
 
 const editorStyles = resolvePath('./heading.css', import.meta.url)
 
@@ -178,7 +179,7 @@ export class Heading extends BlockPluginAbstract {
    * @returns {boolean}
    */
   validate(data) {
-    return typeof data.text === 'string' && data.text.trim().length > 0
+    return validateHeadingData(data)
   }
 
   /**
@@ -249,7 +250,7 @@ export class Heading extends BlockPluginAbstract {
    * @returns {import('../../types').InlineControlGroup}
    */
   renderInlineControls(element, ctx) {
-    return createHeadingLevelSelect(this, element, ctx, (key, fallback) => this._t(key, fallback))
+    return createHeadingLevelSelect(this, element, ctx, (key, fallback) => this._t(key, fallback), HEADING_LEVELS)
   }
 
   /**

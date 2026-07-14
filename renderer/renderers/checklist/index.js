@@ -1,6 +1,6 @@
 // @ts-check
 import { resolvePath } from '../../../shared/resolvePath.js'
-import { mapTextFields } from '../../../plugins/checklist/mapTextFields.js'
+import { mapChecklistTextFields as mapTextFields } from '../../../shared/mapTextFields.js'
 
 const styles = resolvePath('./styles.css', import.meta.url)
 

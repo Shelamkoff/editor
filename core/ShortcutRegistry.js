@@ -1,5 +1,5 @@
 export class ShortcutRegistry {
-  /** @type {Map<string, (e: KeyboardEvent) => void>} */
+  /** @type {Map<string, { handler: (e: KeyboardEvent) => void, scope: 'content' | 'editor' }>} */
   #shortcuts = new Map()
 
   /**
@@ -9,11 +9,15 @@ export class ShortcutRegistry {
    *
    * @param {string} combo — normalized combo string
    * @param {(e: KeyboardEvent) => void} handler
+   * @param {{ scope?: 'content' | 'editor' }} [options]
    * @returns {() => void} Unregister function
    */
-  register(combo, handler) {
+  register(combo, handler, options = {}) {
     const key = this.#normalizeCombo(combo)
-    this.#shortcuts.set(key, handler)
+    this.#shortcuts.set(key, {
+      handler,
+      scope: options.scope ?? 'content',
+    })
     return () => this.#shortcuts.delete(key)
   }
 
@@ -22,15 +26,16 @@ export class ShortcutRegistry {
    * calls its handler and returns true.
    *
    * @param {KeyboardEvent} e
+   * @param {'content' | 'editor'} [scope]
    * @returns {boolean} Whether the event was handled
    */
-  handle(e) {
+  handle(e, scope = 'content') {
     const key = this.#eventToKey(e)
-    const handler = this.#shortcuts.get(key)
+    const entry = this.#shortcuts.get(key)
 
-    if (handler) {
+    if (entry && (scope === 'content' || entry.scope === 'editor')) {
       e.preventDefault()
-      handler(e)
+      entry.handler(e)
       return true
     }
     return false

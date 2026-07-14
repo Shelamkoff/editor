@@ -1,6 +1,11 @@
-import { BLOCK_CLASS } from '../constants.js'
-import { closestBlock } from '../dom.js'
 import { EditorEvent } from '../editorEvents.js'
+
+/** @param {import('../types').IBlock} block */
+function editableElement(block) {
+  const root = block.contentElement
+  if (root.matches('[contenteditable="true"]')) return root
+  return /** @type {HTMLElement | null} */ (root.querySelector('[contenteditable="true"]'))
+}
 
 /**
  * Operations on cross-block selections (text spanning multiple blocks).
@@ -89,99 +94,87 @@ export class CrossBlockEditor {
    * surviving head + tail into the first block.
    *
    * @param {Range} crossRange
-   * @param {() => void} notifyChanged
+   * @param {(...blocks: import('../types').IBlock[]) => void} notifyChanged
    */
   deleteContent(crossRange, notifyChanged) {
-    this.#events.emit(EditorEvent.UNDO_BATCH_START)
-
     const blocks = this.#blocks
 
-    const startBlockEl = closestBlock(crossRange.startContainer)
-    const endBlockEl = closestBlock(crossRange.endContainer)
-    if (!startBlockEl || !endBlockEl) return
+    const firstBlock = blocks.getBlockByChildNode(crossRange.startContainer)
+    const lastBlock = blocks.getBlockByChildNode(crossRange.endContainer)
+    if (!firstBlock || !lastBlock || firstBlock === lastBlock) return
+
+    const firstIndex = blocks.getBlockIndex(firstBlock.id)
+    const lastIndex = blocks.getBlockIndex(lastBlock.id)
+    if (firstIndex < 0 || lastIndex <= firstIndex) return
 
     const rangeStart = { node: crossRange.startContainer, offset: crossRange.startOffset }
     const rangeEnd = { node: crossRange.endContainer, offset: crossRange.endOffset }
 
-    const container = startBlockEl.parentElement
-    if (!container) return
+    const firstCe = editableElement(firstBlock)
+    const lastCe = editableElement(lastBlock)
 
-    /** @type {HTMLElement[]} */
-    const blockEls = []
-    let inside = false
-    for (const child of container.children) {
-      if (child === startBlockEl) inside = true
-      if (inside && child.classList.contains(BLOCK_CLASS)) {
-        blockEls.push(/** @type {HTMLElement} */ (child))
+    // The cross-block algorithm requires two editable endpoints. Validate
+    // before opening a history batch so malformed/detached ranges cannot
+    // leave UndoManager permanently batching.
+    if (!firstCe || !lastCe) return
+
+    this.#events.emit(EditorEvent.UNDO_BATCH_START)
+    try {
+      // 1. Delete tail of last block.
+      if (lastCe) {
+        try {
+          const delRange = document.createRange()
+          delRange.selectNodeContents(lastCe)
+          delRange.setEnd(rangeEnd.node, rangeEnd.offset)
+          delRange.deleteContents()
+          lastCe.normalize()
+        } catch {
+          // Range may have been invalidated mid-operation; ignore.
+        }
       }
-      if (child === endBlockEl) break
-    }
 
-    const firstCe = startBlockEl.querySelector('[contenteditable="true"]')
-    const lastEl = blockEls.length > 1 ? blockEls[blockEls.length - 1] : null
-    const lastCe = lastEl?.querySelector('[contenteditable="true"]')
-
-    // 1. Delete tail of last block.
-    if (lastCe) {
-      try {
-        const delRange = document.createRange()
-        delRange.selectNodeContents(lastCe)
-        delRange.setEnd(rangeEnd.node, rangeEnd.offset)
-        delRange.deleteContents()
-        lastCe.normalize()
-      } catch {
-        // Range may have been invalidated mid-operation; ignore.
+      // 2. Remove middle blocks (skip first and last).
+      for (let index = lastIndex - 1; index > firstIndex; index--) {
+        blocks.remove(index)
       }
-    }
 
-    // 2. Remove middle blocks (skip first and last).
-    for (let i = blockEls.length - 2; i >= 1; i--) {
-      const blockId = blockEls[i]?.dataset.blockId
-      if (blockId) {
-        const idx = blocks.getBlockIndex(blockId)
-        if (idx >= 0) blocks.remove(idx)
+      // 3. Delete head of first block.
+      if (firstCe) {
+        try {
+          const delRange = document.createRange()
+          delRange.selectNodeContents(firstCe)
+          delRange.setStart(rangeStart.node, rangeStart.offset)
+          delRange.deleteContents()
+          firstCe.normalize()
+        } catch {
+          // ignore
+        }
       }
-    }
 
-    // 3. Delete head of first block.
-    if (firstCe) {
-      try {
-        const delRange = document.createRange()
-        delRange.selectNodeContents(firstCe)
-        delRange.setStart(rangeStart.node, rangeStart.offset)
-        delRange.deleteContents()
-        firstCe.normalize()
-      } catch {
-        // ignore
+      // Caret target = end of remaining text in firstCe (the merge boundary).
+      const caretOffset = (firstCe?.textContent || '').length
+
+      // 4. Merge first + last.
+      if (lastCe !== firstCe) {
+        // Preserve boundary whitespace exactly. Trimming here joins words
+        // when a range ends immediately before a leading space in the tail.
+        const remaining = lastCe.innerHTML
+        if (remaining) {
+          const tpl = document.createElement('template')
+          tpl.innerHTML = remaining
+          firstCe.append(...tpl.content.childNodes)
+        }
+        const index = blocks.getBlockIndex(lastBlock.id)
+        if (index >= 0) blocks.remove(index)
       }
-    }
 
-    // Caret target = end of remaining text in firstCe (the merge boundary).
-    const caretOffset = (firstCe?.textContent || '').length
+      blocks.clearSelection()
+      this.#crossBlockSelection.deactivate(this.#rootEl)
 
-    // 4. Merge first + last.
-    if (lastCe && firstCe && lastCe !== firstCe) {
-      const remaining = lastCe.innerHTML.trim()
-      if (remaining) {
-        const tpl = document.createElement('template')
-        tpl.innerHTML = remaining
-        firstCe.append(...tpl.content.childNodes)
-      }
-      const lastBlockId = lastEl?.dataset.blockId
-      if (lastBlockId) {
-        const idx = blocks.getBlockIndex(lastBlockId)
-        if (idx >= 0) blocks.remove(idx)
-      }
-    }
+      if (blocks.getBlockCount() === 0) blocks.insert(this.#defaultBlockType)
 
-    this.#crossBlockSelection.deactivate(this.#rootEl)
-
-    if (blocks.getBlockCount() === 0) blocks.insert(this.#defaultBlockType)
-
-    // 5. Restore caret at the merge boundary.
-    const focusId = startBlockEl.dataset.blockId
-    if (focusId) {
-      const focusIdx = blocks.getBlockIndex(focusId)
+      // 5. Restore caret at the merge boundary.
+      const focusIdx = blocks.getBlockIndex(firstBlock.id)
       if (focusIdx >= 0) {
         blocks.setCurrentIndex(focusIdx)
         const block = blocks.getBlockByIndex(focusIdx)
@@ -194,9 +187,12 @@ export class CrossBlockEditor {
           }
         }
       }
-    }
 
-    this.#events.emit(EditorEvent.UNDO_BATCH_END)
-    notifyChanged()
+      // Mark the surviving block dirty and notify while UndoManager is still
+      // batching, so the final snapshot observes the DOM mutation.
+      notifyChanged(firstBlock)
+    } finally {
+      this.#events.emit(EditorEvent.UNDO_BATCH_END)
+    }
   }
 }

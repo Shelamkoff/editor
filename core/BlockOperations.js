@@ -80,14 +80,17 @@ export class BlockOperations {
     if (!current) return
 
     this.#events.emit(EditorEvent.UNDO_BATCH_START)
+    try {
+      const fragmentHtml = this.#selection.extractFragmentAfterCaret()
+      current.markDirty()
+      this.#events.emit(EditorEvent.BLOCK_CHANGED, { blockId: current.id })
 
-    const fragmentHtml = this.#selection.extractFragmentAfterCaret()
-
-    const currentIndex = blocks.getCurrentIndex()
-    const data = fragmentHtml ? { text: fragmentHtml } : {}
-    this.insertAndFocus(this.#defaultBlockType, data, currentIndex + 1)
-
-    this.#events.emit(EditorEvent.UNDO_BATCH_END)
+      const currentIndex = blocks.getCurrentIndex()
+      const data = fragmentHtml ? { text: fragmentHtml } : {}
+      this.insertAndFocus(this.#defaultBlockType, data, currentIndex + 1)
+    } finally {
+      this.#events.emit(EditorEvent.UNDO_BATCH_END)
+    }
   }
 
   /**
@@ -117,17 +120,18 @@ export class BlockOperations {
 
     if (prev.type === current.type && prev.canMerge) {
       this.#events.emit(EditorEvent.UNDO_BATCH_START)
-
-      const currentData = current.save().data
-      const mergeOffset = prev.contentElement.textContent?.length ?? 0
-      prev.merge(currentData)
-      blocks.remove(currentIndex)
-      blocks.setCurrentIndex(currentIndex - 1)
-      prev.focus()
-      const actualLength = prev.contentElement.textContent?.length ?? 0
-      this.#selection.setCaretToOffset(prev.id, Math.min(mergeOffset, actualLength))
-
-      this.#events.emit(EditorEvent.UNDO_BATCH_END)
+      try {
+        const currentData = current.save().data
+        const mergeOffset = prev.contentElement.textContent?.length ?? 0
+        prev.merge(currentData)
+        blocks.remove(currentIndex)
+        blocks.setCurrentIndex(currentIndex - 1)
+        prev.focus()
+        const actualLength = prev.contentElement.textContent?.length ?? 0
+        this.#selection.setCaretToOffset(prev.id, Math.min(mergeOffset, actualLength))
+      } finally {
+        this.#events.emit(EditorEvent.UNDO_BATCH_END)
+      }
       return true
     }
 
@@ -156,15 +160,16 @@ export class BlockOperations {
 
     if (current.type === next.type && current.canMerge) {
       this.#events.emit(EditorEvent.UNDO_BATCH_START)
-
-      const nextData = next.save().data
-      const mergeOffset = current.contentElement.textContent?.length ?? 0
-      current.merge(nextData)
-      blocks.remove(currentIndex + 1)
-      const actualLength = current.contentElement.textContent?.length ?? 0
-      this.#selection.setCaretToOffset(current.id, Math.min(mergeOffset, actualLength))
-
-      this.#events.emit(EditorEvent.UNDO_BATCH_END)
+      try {
+        const nextData = next.save().data
+        const mergeOffset = current.contentElement.textContent?.length ?? 0
+        current.merge(nextData)
+        blocks.remove(currentIndex + 1)
+        const actualLength = current.contentElement.textContent?.length ?? 0
+        this.#selection.setCaretToOffset(current.id, Math.min(mergeOffset, actualLength))
+      } finally {
+        this.#events.emit(EditorEvent.UNDO_BATCH_END)
+      }
       return true
     }
 

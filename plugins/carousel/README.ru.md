@@ -1,0 +1,94 @@
+# Блочный плагин CarouselBlock
+
+Карусель из изображений, видео и очищенного HTML с навигацией, пагинацией, миниатюрами, автопрокруткой и управлением порядком.
+
+## Установка и регистрация
+
+```bash
+npm install @shelamkoff/rector
+```
+
+```js
+import { createEditor } from '@shelamkoff/rector'
+import { CarouselBlock } from '@shelamkoff/rector/plugins/carousel'
+import '@shelamkoff/rector/styles/editor.css'
+
+const editor = createEditor({
+  holder: document.querySelector('#editor'),
+  plugins: [new CarouselBlock()],
+})
+```
+
+Тип блока — `carousel`. Класс также экспортируется общей точкой входа `@shelamkoff/rector/plugins` и может загружаться по типу документа через `@shelamkoff/rector/plugins/async`.
+
+## Данные
+
+```json
+{
+  "slides": [
+    { "id": "cover", "type": "image", "src": "https://cdn.example/cover.jpg", "alt": "Cover", "caption": "Opening slide" },
+    { "id": "clip", "type": "video", "src": "https://cdn.example/clip.mp4", "poster": "https://cdn.example/poster.jpg", "caption": "Video" },
+    { "id": "note", "type": "html", "html": "<strong>Sanitized HTML</strong>" }
+  ],
+  "options": { "loop": true, "autoplay": false, "autoplayDelay": 5000, "navigation": true, "pagination": true, "thumbnails": false, "aspectRatio": "16 / 9" }
+}
+```
+
+Каждый слайд имеет устойчивый `id` и тип `image`, `video` или `html`. Адреса медиафайлов проходят общую проверку URL, а HTML очищается. Без `uploadFile` изображения сохраняются как URL со встроенными данными, а видео используют временные объектные URL. Для постоянного хранения видео настройте загрузчик. Рендереру требуется `@shelamkoff/carousel`.
+
+## Конфигурация
+
+Каждый встроенный блочный плагин принимает два параметра владения стилями: `injectStyles?: boolean` по умолчанию равен `true`; укажите `false`, если приложение само включает CSS этого плагина. `css?: string` добавляет URL таблицы стилей приложения после стандартной, а при отключённой стандартной инъекции служит URL замены.
+
+`uploadFile(file, { signal })` сохраняет изображение или видео и возвращает `{ url, poster? }`. Обработчики в `actions` возвращают массив слайдов или `null`. Все обработчики должны учитывать переданный `AbortSignal`.
+
+## Источники файлов приложения
+
+Используйте `uploadFile` для браузерных объектов `File` с изображениями и видео, а `actions` — для готовых слайдов из медиатеки, облачного диска или другого каталога приложения. Одно действие может вернуть изображения, видео и HTML-слайды вместе.
+
+```js
+const carousel = new CarouselBlock({
+  actions: [{
+    label: 'Медиатека',
+    async handler({ signal }) {
+      const assets = await openMediaLibrary({
+        accept: ['image/*', 'video/*', 'text/html'],
+        multiple: true,
+        signal,
+      })
+      return assets?.map(asset => asset.type === 'html'
+        ? {
+            id: asset.id,
+            type: 'html',
+            html: asset.html,
+            caption: asset.caption,
+          }
+        : {
+            id: asset.id,
+            type: asset.type,
+            src: asset.url,
+            alt: asset.alt,
+            poster: asset.poster,
+            caption: asset.caption,
+          }) ?? null
+    },
+  }],
+})
+```
+
+Каждому слайду нужен устойчивый уникальный `id`. Изображение и видео используют `type: 'image' | 'video'` и `src`; HTML-слайд использует `type: 'html'` и `html`. При отмене выбора верните `null`. Весь выбор становится одним шагом отмены и повтора. Загрузка, отмена, проверка данных и общий адаптер описаны в разделе [«Источники файлов и медиатека»](https://shelamkoff.github.io/editor/ru/guide/file-sources).
+
+
+## Возможности
+
+Загрузка изображений и видео; слайды по URL и с очищенным HTML; добавление, удаление и изменение порядка; настройка зацикливания, автопрокрутки, навигации, пагинации, миниатюр, задержки и соотношения сторон; отменяемые загрузки и источники приложения.
+
+## История, жизненный цикл и стили
+
+Действия плагина входят в конвейер команд через предоставленный контекст `mutate()`, поэтому одно завершённое действие создаёт один шаг отмены и повтора. Редактор подсчитывает владельцев объявленных URL стилей. Удаление блока вызывает его метод освобождения ресурсов; `editor.destroy()` освобождает оставшиеся блоки и общие ресурсы.
+
+Не удаляйте контейнер редактора до вызова `editor.destroy()`.
+
+## Вывод документа
+
+Используйте фабричную функцию из `@shelamkoff/rector/renderer/renderers/carousel`. Последовательное руководство VitePress описывает проверку данных, миграции, разработку расширений, диагностику, безопасность и стили.

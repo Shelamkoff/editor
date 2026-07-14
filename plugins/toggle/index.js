@@ -1,6 +1,7 @@
 import { sanitizeHtml } from '../../core/sanitize.js'
 import { resolvePath } from '../../shared/resolvePath.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
+import { validateToggleData } from '../../shared/blockDataValidators.js'
 
 const editorStyles = resolvePath('./toggle.css', import.meta.url)
 
@@ -26,7 +27,7 @@ export class Toggle extends BlockPluginAbstract {
    * @param {{ title?: string, content?: string, open?: boolean }} data
    * @returns {HTMLElement}
    */
-  render(data) {
+  render(data, context) {
     const wrapper = document.createElement('div')
     wrapper.classList.add('oe-toggle')
     if (data?.open) wrapper.classList.add('oe-toggle--open')
@@ -35,14 +36,19 @@ export class Toggle extends BlockPluginAbstract {
     const header = document.createElement('div')
     header.className = 'oe-toggle__header'
 
-    const chevron = document.createElement('span')
+    const chevron = document.createElement('button')
+    chevron.type = 'button'
     chevron.className = 'oe-toggle__chevron'
     chevron.innerHTML = ICON_CHEVRON
+    chevron.setAttribute('aria-label', this._t('toggleLabel', 'Show or hide content'))
+    chevron.setAttribute('aria-expanded', String(wrapper.classList.contains('oe-toggle--open')))
     chevron.addEventListener('mousedown', (e) => e.preventDefault())
     chevron.addEventListener('click', (e) => {
       e.stopPropagation()
-      wrapper.classList.toggle('oe-toggle--open')
-      wrapper.dispatchEvent(new InputEvent('input', { bubbles: true }))
+      context.mutate(() => {
+        const open = wrapper.classList.toggle('oe-toggle--open')
+        chevron.setAttribute('aria-expanded', String(open))
+      })
     })
 
     const titleEl = document.createElement('div')
@@ -54,7 +60,10 @@ export class Toggle extends BlockPluginAbstract {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault()
         e.stopPropagation()
-        wrapper.classList.add('oe-toggle--open')
+        context.mutate(() => {
+          wrapper.classList.add('oe-toggle--open')
+          chevron.setAttribute('aria-expanded', 'true')
+        })
         const body = wrapper.querySelector('.oe-toggle__body')
         if (body) /** @type {HTMLElement} */ (body).focus()
       }
@@ -96,7 +105,7 @@ export class Toggle extends BlockPluginAbstract {
 
   /** @param {Record<string, unknown>} data */
   validate(data) {
-    return !!(/** @type {any} */ (data)?.title?.trim() || /** @type {any} */ (data)?.content?.trim())
+    return validateToggleData(data)
   }
 
   /** @param {HTMLElement} element */

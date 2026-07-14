@@ -1,0 +1,7 @@
+# Block renderers
+
+Every built-in editor block has a matching renderer. Import an individual factory from `@shelamkoff/rector/renderer/renderers/<path>`, the complete synchronous preset from `@shelamkoff/rector/renderer/renderers`, or lazy factories from `@shelamkoff/rector/renderer/renderers/async`.
+
+Renderer objects return DOM, declare stylesheet URLs, optionally map inline-widget fields, and expose deterministic per-element cleanup through the owning `EditorRenderer`.
+
+The VitePress rendering and extension guides document registration, inline parsing, stylesheet ownership, cleanup, and the custom renderer contract.

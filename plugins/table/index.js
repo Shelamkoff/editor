@@ -1,6 +1,7 @@
 import { sanitizeHtml } from '../../core/sanitize.js'
 import { resolvePath } from '../../shared/resolvePath.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
+import { validateTableData } from '../../shared/blockDataValidators.js'
 
 const editorStyles = resolvePath('./table.css', import.meta.url)
 
@@ -35,7 +36,7 @@ export class Table extends BlockPluginAbstract {
    * @param {{ content?: string[][], withHeadings?: boolean }} data
    * @returns {HTMLElement}
    */
-  render(data) {
+  render(data, context) {
     const rows = data.content?.length || 3
     const cols = data.content?.[0]?.length || 3
     const withHeadings = data.withHeadings ?? false
@@ -74,17 +75,19 @@ export class Table extends BlockPluginAbstract {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault()
         e.stopPropagation()
-        const sel = window.getSelection()
-        if (sel && sel.rangeCount > 0) {
-          const range = sel.getRangeAt(0)
-          range.deleteContents()
-          const br = document.createElement('br')
-          range.insertNode(br)
-          range.setStartAfter(br)
-          range.collapse(true)
-          sel.removeAllRanges()
-          sel.addRange(range)
-        }
+        context.mutate(() => {
+          const sel = window.getSelection()
+          if (sel && sel.rangeCount > 0) {
+            const range = sel.getRangeAt(0)
+            range.deleteContents()
+            const br = document.createElement('br')
+            range.insertNode(br)
+            range.setStartAfter(br)
+            range.collapse(true)
+            sel.removeAllRanges()
+            sel.addRange(range)
+          }
+        })
       }
     })
 
@@ -158,10 +161,6 @@ export class Table extends BlockPluginAbstract {
         break
     }
 
-    // Trigger undo/redo snapshot
-    const ce = element.querySelector('[contenteditable="true"]')
-    if (ce) ce.dispatchEvent(new InputEvent('input', { bubbles: true }))
-
     return null
   }
 
@@ -193,7 +192,7 @@ export class Table extends BlockPluginAbstract {
    * @returns {boolean}
    */
   validate(data) {
-    return Array.isArray(data.content) && data.content.length > 0
+    return validateTableData(data)
   }
 
   /**

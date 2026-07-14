@@ -18,6 +18,8 @@
  * @property {{ type: 'block' | 'inline' }} TOOLBAR_CLOSED
  * @property {void} UNDO_BATCH_START
  * @property {void} UNDO_BATCH_END
+ * @property {void} HISTORY_COMMIT
+ * @property {{ startBlockId?: string, endBlockId?: string }} PASTE_APPLIED
  * @property {{ type: string }} INLINE_PLUGIN_INSERT
  * @property {void} DRAG_HANDLE_CLICKED
  */
@@ -43,6 +45,8 @@ export const EditorEvent = {
 
   UNDO_BATCH_START: 'undo:batchStart',
   UNDO_BATCH_END: 'undo:batchEnd',
+  HISTORY_COMMIT: 'history:commit',
+  PASTE_APPLIED: 'paste:applied',
 
   INLINE_PLUGIN_INSERT: 'inlinePlugin:insert',
 

@@ -1,5 +1,3 @@
-import { EditorEvent } from '../editorEvents.js'
-
 /**
  * @typedef {Object} PluginControlsSlotDeps
  * @property {import('../types').IBlockManager} blocks
@@ -7,6 +5,7 @@ import { EditorEvent } from '../editorEvents.js'
  * @property {import('../types').IEventBus} events
  * @property {import('../TypeSelector').TypeSelector} typeSelector
  * @property {(suppress: boolean) => void} setSuppressSelectionChange
+ * @property {import('../CommandDispatcher').CommandDispatcher} mutations
  *   Hint to the SelectionTracker to skip the next few selectionchange events
  *   (used while a plugin control swaps the contenteditable element).
  */
@@ -71,16 +70,24 @@ export class PluginControlsSlot {
           })
         })
       },
+      mutate: (operation) => this.#deps.mutations.runForBlock(currentBlock, operation),
       onContentElementChanged: (newEl) => {
+        const externalMutation = !this.#deps.mutations.active
         if (newEl && newEl !== currentBlock.contentElement) {
           currentBlock.replaceContentElement(newEl)
         }
         this.#deps.typeSelector.update()
-        this.#deps.events.emit(EditorEvent.CHANGED)
+        if (externalMutation) this.#deps.mutations.commitExternal(currentBlock)
       },
     }
 
-    const group = renderInlineControls(currentBlock.contentElement, ctx)
+    let group
+    try {
+      group = renderInlineControls(currentBlock.contentElement, ctx)
+    } catch (err) {
+      console.warn(`[PluginControlsSlot] Failed to render controls for "${currentBlock.type}":`, err)
+      return
+    }
     if (!group || !group.elements.length) return
 
     this.#current = group
@@ -95,11 +102,16 @@ export class PluginControlsSlot {
    */
   clear() {
     if (this.#current) {
-      this.#current.destroy?.()
-      for (const element of this.#current.elements) {
-        element.remove()
+      try {
+        this.#current.destroy?.()
+      } catch (err) {
+        console.warn('[PluginControlsSlot] Failed to destroy plugin controls:', err)
+      } finally {
+        for (const element of this.#current.elements) {
+          element.remove()
+        }
+        this.#current = null
       }
-      this.#current = null
     }
     this.#dividerEl.style.display = 'none'
   }

@@ -1,6 +1,6 @@
 // @ts-check
 import { InvalidBlockDataError } from '../../errors.js'
-import { buildPlayer } from '../../../plugins/embed/player.js'
+import { buildPlayer } from '../../../shared/embedPlayer.js'
 import { resolvePath } from '../../../shared/resolvePath.js'
 
 const styles = resolvePath('./styles.css', import.meta.url)
@@ -13,7 +13,9 @@ const ICON_PLAY = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24
  * @param {string} classPrefix
  * @returns {import('../../types').BlockRenderer<import('../../types').EmbedBlock>}
  */
-export function createEmbedRenderer(classPrefix, _locale) {
+export function createEmbedRenderer(classPrefix, locale) {
+  /** @param {string} key @param {string} fallback */
+  const t = (key, fallback) => typeof locale?.[key] === 'string' ? locale[key] : fallback
   return {
     type: 'embed',
     styles: [styles],
@@ -42,6 +44,8 @@ export function createEmbedRenderer(classPrefix, _locale) {
         duration,
         classPrefix,
         playIcon: ICON_PLAY,
+        playLabel: t('renderer.embed.play', 'Play video'),
+        videoLabel: t('renderer.embed.video', 'Video'),
       })
 
       // Wire play button

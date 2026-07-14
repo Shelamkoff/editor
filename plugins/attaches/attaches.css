@@ -27,6 +27,15 @@
 .oe-attaches__select-text { font-size: 0.8125rem; color: var(--oe-text-3, #5a5a64); line-height: 1.5; }
 .oe-attaches__select-link { background: none; border: none; padding: 0; font: inherit; color: var(--oe-accent, #4357b4); text-decoration: none; cursor: pointer; outline: none; }
 .oe-attaches__select-link:hover { text-decoration: underline; }
+.oe-attaches__select-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.375rem; }
+.oe-attaches__select-action {
+  display: inline-flex; align-items: center; gap: 0.375rem;
+  padding: 0.375rem 0.625rem; border: 1px solid var(--oe-border, #2e2e35);
+  border-radius: 0.375rem; background: var(--oe-surface-2, #17171a); color: var(--oe-text-2, #c4c4c4);
+  font: inherit; font-size: 0.75rem; cursor: pointer;
+}
+.oe-attaches__select-action:hover { color: var(--oe-text-1, #fff); border-color: var(--oe-border-hover, #3a3a44); }
+.oe-attaches__select-action svg { width: 14px; height: 14px; }
 
 /* ── Single file card ─────────────────────────────────────────────────────── */
 

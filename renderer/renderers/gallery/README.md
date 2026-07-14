@@ -1,0 +1,39 @@
+# Gallery renderer
+
+Renderer for the `gallery` block. It converts persisted block data into renderer-owned DOM.
+The Gallery renderer directly uses `@shelamkoff/expose` and its `exposeStylesUrl` package export.
+
+The `@shelamkoff/rector/renderer` entry contains the synchronous built-in preset, so `@shelamkoff/carousel` and `@shelamkoff/expose` must be installed before importing it. Passing `blockTypes: []` prevents default renderer construction but does not change ESM module resolution.
+
+## Usage
+
+```js
+import { createEditorRenderer } from '@shelamkoff/rector/renderer'
+import { createGalleryRenderer } from '@shelamkoff/rector/renderer/renderers/gallery'
+
+const renderer = createEditorRenderer({ classPrefix: 'article', blockTypes: [] })
+renderer.registerRenderer(createGalleryRenderer('article', {}))
+const rendererStyles = renderer.injectStyles()
+renderer.renderTo(documentData, document.querySelector('#article'))
+
+// When the mounted output is removed:
+renderer.destroy()
+rendererStyles.destroy()
+```
+
+## Typical data
+
+```json
+{
+  "images": [{ "url": "https://cdn.example/a.jpg", "caption": "A" }],
+  "layout": "auto",
+  "styles": { "gap": "8px", "borderRadius": "8px", "height": "420px" },
+  "options": { "loop": true, "zoom": true, "navigation": true, "captions": true, "thumbnails": true, "fullscreen": true, "autoplayInterval": 0 }
+}
+```
+
+Image sources use the media URL policy. The renderer owns its Expose viewers and image-readiness listeners; `destroy()` releases them. It declares gallery and Expose styles.
+
+When styles are declared, the explicit `EditorRenderer.injectStyles()` call shown above acquires them and its returned owner releases them.
+
+The VitePress guide documents renderer ownership, inline widget reconstruction, styles, cleanup, and security boundaries.

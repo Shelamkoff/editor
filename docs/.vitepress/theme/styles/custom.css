@@ -1,0 +1,630 @@
+@import '../../../../core/themes/variables.css';
+@import '../../../../core/themes/light.css';
+@import '../../../../core/themes/dark.css';
+@import '@shelamkoff/color-picker/styles.css';
+@import '@shelamkoff/cropper/styles.css';
+@import '@shelamkoff/carousel/styles.css';
+@import '@shelamkoff/expose/styles.css';
+
+@import '../../../../plugins/paragraph/paragraph.css';
+@import '../../../../plugins/heading/heading.css';
+@import '../../../../plugins/list/list.css';
+@import '../../../../plugins/quote/quote.css';
+@import '../../../../plugins/code/code.css';
+@import '../../../../plugins/image/image.css';
+@import '../../../../plugins/embed/embed.css';
+@import '../../../../plugins/gallery/gallery.css';
+@import '../../../../plugins/carousel/carousel.css';
+@import '../../../../plugins/checklist/checklist.css';
+@import '../../../../plugins/warning/warning.css';
+@import '../../../../plugins/raw/raw.css';
+@import '../../../../plugins/poll/poll.css';
+@import '../../../../plugins/person/person.css';
+@import '../../../../plugins/attaches/attaches.css';
+@import '../../../../plugins/link-preview/link-preview.css';
+@import '../../../../plugins/toggle/toggle.css';
+@import '../../../../plugins/columns/columns.css';
+@import '../../../../plugins/spoiler/spoiler.css';
+@import '../../../../plugins/delimiter/delimiter.css';
+@import '../../../../plugins/table/table.css';
+
+@import '../../../../renderer/styles/base.css';
+@import '../../../../renderer/renderers/paragraph/styles.css';
+@import '../../../../renderer/renderers/heading/styles.css';
+@import '../../../../renderer/renderers/list/styles.css';
+@import '../../../../renderer/renderers/quote/styles.css';
+@import '../../../../renderer/renderers/code/styles.css';
+@import '../../../../renderer/renderers/image/styles.css';
+@import '../../../../renderer/renderers/embed/styles.css';
+@import '../../../../renderer/renderers/gallery/styles.css';
+@import '../../../../renderer/renderers/carousel/styles.css';
+@import '../../../../renderer/renderers/checklist/styles.css';
+@import '../../../../renderer/renderers/warning/styles.css';
+@import '../../../../renderer/renderers/poll/styles.css';
+@import '../../../../renderer/renderers/person/styles.css';
+@import '../../../../renderer/renderers/attaches/styles.css';
+@import '../../../../renderer/renderers/link-preview/styles.css';
+@import '../../../../renderer/renderers/toggle/styles.css';
+@import '../../../../renderer/renderers/columns/styles.css';
+@import '../../../../renderer/renderers/spoiler/styles.css';
+@import '../../../../renderer/renderers/delimiter/styles.css';
+@import '../../../../renderer/renderers/table/styles.css';
+
+/* Rector docs — original Ophire landing theme. */
+
+:root {
+  --vp-c-brand: #4357b4;
+  --vp-c-brand-1: #4357b4;
+  --vp-c-brand-2: #5468c4;
+  --vp-c-brand-3: #3a4da0;
+  --vp-c-brand-soft: rgba(67, 87, 180, 0.14);
+  --vp-button-brand-bg: #4357b4;
+  --vp-button-brand-hover-bg: #5468c4;
+  --vp-button-brand-active-bg: #3a4da0;
+  --vp-button-brand-border: transparent;
+  --vp-button-brand-text: #fff;
+  --vp-button-brand-hover-border: transparent;
+  --vp-button-brand-hover-text: #fff;
+
+  --vp-font-family-base: 'Outfit', system-ui, -apple-system, sans-serif;
+  --vp-font-family-mono: 'JetBrains Mono', monospace;
+
+  /* High-contrast cool light theme: canvas, surface and text are explicit. */
+  --vp-c-bg: #f5f7fa;
+  --vp-c-bg-soft: #ffffff;
+  --vp-c-bg-mute: #e9edf2;
+  --vp-c-bg-alt: #edf1f5;
+  --vp-c-divider: #d3d9e1;
+  --vp-c-border: #bcc5d0;
+  --vp-c-text-1: #171b22;
+  --vp-c-text-2: #424a56;
+  --vp-c-text-3: #667180;
+  --vp-c-bg-elv: #ffffff;
+  --rector-header-bg: #ffffff;
+  --rector-header-surface: #e7ecf2;
+  --rector-header-surface-hover: #dce3eb;
+  --rector-header-border: #adb8c5;
+  --rector-header-text: #171b22;
+  --rector-header-muted: #536071;
+  --rector-header-active-bg: #4357b4;
+  --rector-header-active-text: #ffffff;
+  --rector-code-bg: #e8edf3;
+  --rector-code-control-bg: #f8fafc;
+}
+
+.dark {
+  --vp-c-brand-1: #6b7fd4;
+  --vp-c-brand-2: #8b9be4;
+  --vp-c-brand-3: #4357b4;
+  --vp-button-brand-bg: #4357b4;
+  --vp-button-brand-hover-bg: #5468c4;
+
+  --vp-c-bg: #0c0f11;
+  --vp-c-bg-soft: #121619;
+  --vp-c-bg-mute: #191e22;
+  --vp-c-bg-alt: #0c0f11;
+  --vp-c-divider: #242a2f;
+  --vp-c-border: #32393f;
+  --vp-c-text-1: #f1f3f5;
+  --vp-c-text-2: #b7bec7;
+  --vp-c-text-3: #7e8894;
+  --vp-c-bg-elv: #14191d;
+  --rector-header-bg: #0a0d0f;
+  --rector-header-surface: #14191d;
+  --rector-header-surface-hover: #20262c;
+  --rector-header-border: #343c44;
+  --rector-header-text: #f1f3f5;
+  --rector-header-muted: #a8b2bd;
+  --rector-header-active-bg: #4357b4;
+  --rector-header-active-text: #ffffff;
+  --rector-code-bg: #141a1f;
+  --rector-code-control-bg: #20272d;
+}
+
+/* Thin, low-contrast scrollbars for the page and scrollable demos. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--vp-c-border) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background-color: var(--vp-c-border);
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--vp-c-text-3);
+}
+
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Local search is a larger extension of the header dropdown system. */
+:root {
+  --vp-local-search-bg: var(--rector-header-bg);
+  --vp-local-search-result-bg: transparent;
+  --vp-local-search-result-border: transparent;
+  --vp-local-search-result-selected-bg: var(--rector-header-surface-hover);
+  --vp-local-search-result-selected-border: transparent;
+  --vp-local-search-highlight-bg: var(--rector-header-surface-hover);
+  --vp-local-search-highlight-text: var(--rector-header-text);
+}
+
+.VPLocalSearchBox .backdrop {
+  background: color-mix(in srgb, #090b0d 68%, transparent);
+  backdrop-filter: blur(5px);
+}
+
+.VPLocalSearchBox .shell {
+  width: min(calc(100vw - 40px), 720px);
+  max-height: min(calc(100vh - 96px), 680px);
+  margin: 48px auto;
+  padding: 0;
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid var(--rector-header-border);
+  border-radius: 12px;
+  background: var(--rector-header-bg);
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.42);
+}
+
+.VPLocalSearchBox .search-bar {
+  min-height: 48px;
+  margin: 12px;
+  padding: 0 12px;
+  border: 1px solid transparent;
+  border-radius: 8px !important;
+  background: var(--rector-header-surface);
+}
+
+.VPLocalSearchBox .shell .search-bar:focus-within {
+  border-color: transparent !important;
+  box-shadow: none;
+}
+
+.VPLocalSearchBox .search-input {
+  color: var(--rector-header-text);
+  font-size: 16px;
+  font-weight: 450;
+}
+
+.VPLocalSearchBox .search-input::placeholder {
+  color: var(--rector-header-muted);
+  opacity: 1;
+}
+
+.VPLocalSearchBox .search-icon {
+  margin: 8px 10px 8px 2px;
+  color: var(--rector-header-muted);
+}
+
+.VPLocalSearchBox .search-actions button {
+  border-radius: 7px;
+  color: var(--rector-header-muted);
+}
+
+.VPLocalSearchBox .search-actions button:not([disabled]):hover,
+.VPLocalSearchBox .toggle-layout-button.detailed-list {
+  color: var(--rector-header-text);
+  background: var(--rector-header-surface-hover);
+}
+
+.VPLocalSearchBox .results {
+  gap: 2px;
+  padding: 0 8px 8px;
+  background: var(--rector-header-bg);
+}
+
+.VPLocalSearchBox .result {
+  min-height: 48px;
+  border-width: 0;
+  border-radius: 7px;
+  background: var(--vp-local-search-result-bg);
+}
+
+.VPLocalSearchBox .result > div {
+  margin: 9px 12px;
+}
+
+.VPLocalSearchBox .result.selected {
+  background: var(--vp-local-search-result-selected-bg);
+  box-shadow: none;
+}
+
+.VPLocalSearchBox .titles {
+  gap: 5px;
+  color: var(--rector-header-muted);
+}
+
+.VPLocalSearchBox .title-icon {
+  width: 14px;
+  color: var(--rector-header-muted);
+  opacity: 1;
+}
+
+.VPLocalSearchBox .title.main {
+  color: var(--rector-header-text);
+  font-weight: 550;
+}
+
+.VPLocalSearchBox .title .local-search-icon {
+  color: var(--rector-header-muted);
+  opacity: 0.55;
+}
+
+.VPLocalSearchBox .no-results {
+  padding: 32px 18px;
+  color: var(--rector-header-muted);
+  text-align: center;
+}
+
+.VPLocalSearchBox .search-keyboard-shortcuts {
+  min-height: 48px;
+  padding: 10px 16px;
+  align-items: center;
+  border-top: 0 !important;
+  color: var(--rector-header-muted);
+  background: var(--rector-header-bg);
+}
+
+.VPLocalSearchBox .search-keyboard-shortcuts kbd {
+  border-color: var(--rector-header-border);
+  color: var(--rector-header-text);
+  background: var(--rector-header-surface);
+  box-shadow: none;
+}
+
+@media (max-width: 767px) {
+  .VPLocalSearchBox .shell {
+    width: 100vw;
+    max-height: 100vh;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .VPLocalSearchBox .search-bar {
+    min-height: 48px;
+    margin: 8px;
+    padding: 0 10px;
+  }
+
+  .VPLocalSearchBox .results {
+    padding: 8px;
+  }
+}
+
+/* Header controls and flyouts share one contrast system. */
+.VPNavBarTitle .logo {
+  width: auto;
+  height: 22px;
+  filter: invert(1);
+}
+
+.dark .VPNavBarTitle .logo {
+  filter: none;
+}
+
+.VPNavBar {
+  background: var(--rector-header-bg);
+  border-bottom-color: var(--rector-header-border);
+}
+
+.VPNavBarMenuLink,
+.VPFlyout .button,
+.VPNavBarSearchButton,
+.VPSocialLink,
+.VPNavBarAppearance .button {
+  color: var(--rector-header-text);
+}
+
+.VPNavBarMenuLink:hover,
+.VPFlyout .button:hover,
+.VPSocialLink:hover,
+.VPNavBarAppearance .button:hover {
+  color: var(--vp-c-brand-1);
+}
+
+.VPNavBar .VPNavBarSearchButton {
+  display: flex;
+  justify-content: flex-start;
+  gap: 10px;
+  border: 1px solid var(--rector-header-border);
+  color: var(--rector-header-muted);
+  background: var(--rector-header-surface);
+}
+
+@media (min-width: 768px) {
+  .VPNavBar .VPNavBarSearchButton {
+    min-width: 352px;
+  }
+}
+
+.VPNavBar .VPNavBarSearchButton:hover {
+  border-color: var(--rector-header-border);
+  color: var(--rector-header-text);
+  background: var(--rector-header-surface-hover);
+}
+
+.VPNavBar .VPNavBarSearchButton .keys {
+  margin-left: auto;
+  border-color: var(--rector-header-border);
+  color: var(--rector-header-muted);
+  background: var(--rector-header-bg);
+}
+
+.VPFlyout .button .text,
+.VPFlyout .button .icon,
+.VPFlyout .button .option-icon,
+.VPFlyout .button .text-icon {
+  color: inherit;
+  fill: currentColor;
+}
+
+.VPFlyout .button[aria-expanded='true'] {
+  color: var(--vp-c-brand-1);
+}
+
+.VPNavBarTranslations .button .option-icon {
+  display: none;
+}
+
+.VPNavBarTranslations .button .text::before {
+  content: 'English';
+}
+
+html[lang='ru'] .VPNavBarTranslations .button .text::before {
+  content: 'Русский';
+}
+
+.VPFlyout .VPMenu {
+  min-width: 160px;
+  padding: 8px;
+  border: 1px solid var(--rector-header-border);
+  border-radius: 10px;
+  background: var(--rector-header-surface);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.28);
+}
+
+.VPFlyout .VPMenu .group {
+  margin: 0 -8px;
+  padding: 0 8px 8px;
+}
+
+.VPFlyout .VPMenu .items {
+  display: grid;
+  gap: 4px;
+}
+
+.VPNavBarTranslations .VPMenu > .items > .title {
+  display: flex;
+  align-items: center;
+  min-height: 36px;
+  margin-bottom: 4px;
+  padding: 2px 10px;
+  border: 0;
+  border-radius: 7px;
+  color: var(--rector-header-text);
+  background: var(--rector-header-surface-hover);
+}
+
+.VPNavBarTranslations .VPMenu {
+  min-width: 176px;
+  padding: 6px;
+  border-color: var(--rector-header-border);
+  border-radius: 9px;
+  background: var(--rector-header-bg);
+  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.3);
+}
+
+.VPFlyout .VPMenu .title,
+.VPFlyout .VPMenu .label {
+  color: var(--rector-header-muted);
+}
+
+.VPFlyout .VPMenuLink .link {
+  min-height: 36px;
+  padding: 2px 10px;
+  border-radius: 7px;
+  color: var(--rector-header-text);
+}
+
+.VPFlyout .VPMenuLink .link:hover,
+.VPFlyout .VPMenuLink .link:focus-visible {
+  color: var(--rector-header-text);
+  background: var(--rector-header-surface-hover);
+}
+
+.VPFlyout .VPMenuLink .link.active {
+  color: var(--rector-header-active-text);
+  background: var(--rector-header-active-bg);
+}
+
+.VPFlyout .VPMenuLink .link.active:hover,
+.VPFlyout .VPMenuLink .link.active:focus-visible {
+  color: var(--rector-header-active-text);
+  background: var(--vp-button-brand-active-bg);
+}
+
+/* Documentation dropdown: dense grouped navigation inspired by vuejs.org. */
+.VPNavBarMenuGroup .VPMenu {
+  min-width: 264px;
+  max-height: min(72vh, 620px);
+  padding: 6px 0;
+  overflow-y: auto;
+  border-color: var(--rector-header-border);
+  border-radius: 9px;
+  background: var(--rector-header-bg);
+  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.3);
+}
+
+.VPNavBarMenuGroup .VPMenu > .items {
+  display: block;
+}
+
+.VPNavBarMenuGroup .VPMenuGroup {
+  margin: 0;
+  padding: 10px 12px 12px;
+  border-top: 1px solid var(--rector-header-border);
+}
+
+.VPNavBarMenuGroup .VPMenuGroup:first-child {
+  padding-top: 6px;
+  border-top: 0;
+}
+
+.VPNavBarMenuGroup .VPMenuGroup .title {
+  padding: 0 10px 4px;
+  color: var(--rector-header-muted);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 24px;
+  letter-spacing: 0.075em;
+  text-transform: uppercase;
+}
+
+.VPNavBarMenuGroup .VPMenuLink .link {
+  display: flex;
+  min-height: 34px;
+  align-items: center;
+  padding: 0 10px;
+  border-radius: 6px;
+  color: var(--rector-header-text);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.VPNavBarMenuGroup .VPMenuLink .link:hover,
+.VPNavBarMenuGroup .VPMenuLink .link:focus-visible {
+  color: var(--rector-header-text);
+  background: var(--rector-header-surface-hover);
+}
+
+.VPNavBarMenuGroup .VPMenuLink .link.active,
+.VPNavBarMenuGroup .VPMenuLink .link.active:hover,
+.VPNavBarMenuGroup .VPMenuLink .link.active:focus-visible {
+  color: var(--vp-c-brand-1);
+  background: var(--vp-c-brand-soft);
+}
+
+.VPNavBarMenuGroup .VPMenuLink .vp-external-link-icon::after {
+  width: 10px;
+  height: 10px;
+  margin-left: auto;
+  color: var(--rector-header-muted);
+}
+
+.VPNavBarMenuLink:focus-visible,
+.VPFlyout .button:focus-visible,
+.VPNavBarSearchButton:focus-visible,
+.VPSocialLink:focus-visible,
+.VPNavBarAppearance .button:focus-visible,
+.VPFlyout .VPMenuLink .link:focus-visible {
+  outline: 2px solid var(--vp-c-brand-1);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* Documentation pages: quiet hierarchy without decorative separators. */
+.vp-doc h2 {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.vp-doc h2 .header-anchor {
+  top: 0;
+}
+
+.VPSidebar .group + .group,
+.VPSidebarItem.level-1 .items,
+.VPSidebarItem.level-2 .items,
+.VPSidebarItem.level-3 .items,
+.VPSidebarItem.level-4 .items,
+.VPSidebarItem.level-5 .items {
+  border: 0 !important;
+}
+
+.VPNavBarTitle.has-sidebar .title {
+  border-bottom-color: transparent !important;
+}
+
+.VPDocFooter .prev-next {
+  border-top: 0 !important;
+}
+
+/* Code remains visually separate without adding another section divider. */
+.vp-doc div[class*='language-'],
+.vp-doc .vp-block {
+  border-radius: 10px;
+  background-color: var(--rector-code-bg);
+}
+
+.vp-doc [class*='language-'] > button.copy {
+  top: 8px;
+  right: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background-color: var(--rector-code-control-bg);
+  background-size: 16px;
+}
+
+.vp-doc [class*='language-'] > button.copy.copied,
+.vp-doc [class*='language-'] > button.copy:hover.copied {
+  border-radius: 0 9px 9px 0;
+}
+
+.vp-doc [class*='language-'] > button.copy.copied::before,
+.vp-doc [class*='language-'] > button.copy:hover.copied::before {
+  height: 32px;
+  border-radius: 9px 0 0 9px;
+}
+
+/* Match the document column to the search field's left edge on desktop. */
+@media (min-width: 1280px) {
+  .VPDoc.has-sidebar {
+    padding-left: 0 !important;
+  }
+
+  .VPDoc.has-sidebar .content-container {
+    margin-right: auto !important;
+    margin-left: 0 !important;
+  }
+}
+
+/* Hero title */
+.VPHero .name {
+  font-family: 'Outfit', system-ui, sans-serif;
+  font-weight: 700;
+}
+
+/* HomePage: remove VitePress container constraints on page layout */
+.VPPage .vp-doc .home-page,
+.VPContent .home-page {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
+.VPPage .container {
+  max-width: none !important;
+  padding: 0 !important;
+}
+
+.VPPage .content {
+  max-width: none !important;
+  padding: 0 !important;
+}

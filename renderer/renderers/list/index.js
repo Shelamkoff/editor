@@ -1,11 +1,11 @@
 // @ts-check
 import { resolvePath } from '../../../shared/resolvePath.js'
-import { mapTextFields } from '../../../plugins/list/mapTextFields.js'
+import { mapListTextFields as mapTextFields } from '../../../shared/mapTextFields.js'
 
 const styles = resolvePath('./styles.css', import.meta.url)
 
 /**
- * List block renderer — Ophire Editor format
+ * List block renderer for the Rector document format.
  * Data: { style: 'ordered' | 'unordered', items: string[] }
  * @param {string} classPrefix
  * @returns {import('../../types').BlockRenderer<import('../../types').ListBlock>}

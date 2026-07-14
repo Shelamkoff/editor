@@ -1,12 +1,9 @@
 import { resolvePath } from '../../shared/resolvePath.js'
+import { sanitizeUrl, setSafeUrlAttribute } from '../../shared/sanitize/sanitizeUrl.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
+import { validateLinkPreviewData } from '../../shared/blockDataValidators.js'
 
 const editorStyles = resolvePath('./link-preview.css', import.meta.url)
-
-/** @param {string} str */
-function escapeAttr(str) {
-  return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-}
 
 // Tabler: link (toolbox)
 const ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 15l6-6"/><path d="M11 6l.463-.536a5 5 0 0 1 7.071 7.072L18 13"/><path d="M13 18l-.397.534a5.068 5.068 0 0 1-7.127 0 4.972 4.972 0 0 1 0-7.071L6 11"/></svg>'
@@ -17,6 +14,29 @@ const ICON_SETTINGS = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height
 const ICON_TRASH = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16"/><path stroke-linecap="round" stroke-linejoin="round" d="M10 11v6"/><path stroke-linecap="round" stroke-linejoin="round" d="M14 11v6"/><path stroke-linecap="round" stroke-linejoin="round" d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12"/><path stroke-linecap="round" stroke-linejoin="round" d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/></svg>'
 const ICON_EXTERNAL = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6h-6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/><path d="M11 13l9-9"/><path d="M15 4h5v5"/></svg>'
 
+/**
+ * Render a favicon without interpolating untrusted URLs into HTML.
+ * @param {HTMLElement} iconEl
+ * @param {string} favicon
+ */
+function renderUrlIcon(iconEl, favicon) {
+  iconEl.replaceChildren()
+  if (!favicon) {
+    iconEl.innerHTML = ICON_FORMS
+    return
+  }
+
+  const img = document.createElement('img')
+  img.width = 16
+  img.height = 16
+  img.style.borderRadius = '2px'
+  const safe = setSafeUrlAttribute(img, 'src', favicon, 'media')
+  if (!safe) {
+    iconEl.innerHTML = ICON_FORMS
+    return
+  }
+  iconEl.appendChild(img)
+}
 const TEMPLATES = ['horizontal', 'compact', 'large-top', 'minimal', 'twitter', 'notion', 'split']
 
 // Mini SVG icons for template selector (schematic layouts)
@@ -35,11 +55,27 @@ const P = 'oe-lp' // CSS prefix
 
 /**
  * @typedef {{
+ *   title?: string,
+ *   description?: string,
+ *   image?: string,
+ *   favicon?: string,
+ *   domain?: string,
+ * }} LinkPreviewMeta
+ * @typedef {{
+ *   fetchMeta?: (url: string, context: { signal: AbortSignal }) => Promise<LinkPreviewMeta>,
+ *   injectStyles?: boolean,
+ *   css?: string,
+ * }} LinkPreviewConfig
+ */
+
+/**
+ * @typedef {{
  *   data: { url: string, title: string, description: string, image: string, favicon: string, domain: string, template: string },
  *   wrapper: HTMLDivElement,
  *   abortController: AbortController | null,
  *   urlIconEl: HTMLElement | null,
  *   inputTimer: ReturnType<typeof setTimeout> | null,
+ *   context: import('../../core/types').BlockMutationContext,
  * }} LinkPreviewState
  */
 
@@ -47,6 +83,7 @@ const P = 'oe-lp' // CSS prefix
 const stateMap = new WeakMap()
 
 
+/** @extends {BlockPluginAbstract<LinkPreviewConfig>} */
 export class LinkPreview extends BlockPluginAbstract {
   static isTextBlock = false
   static styles = [editorStyles]
@@ -54,22 +91,27 @@ export class LinkPreview extends BlockPluginAbstract {
   icon = ICON
   inlineTools = false
 
+  /** @param {LinkPreviewConfig} [config] */
+  constructor(config) {
+    super(config)
+  }
+
   pasteConfig = { patterns: [/^https?:\/\/[^\s]+$/i] }
 
-  get title() { return this._t('title', 'Bookmark') }
+  get title() { return this._t('title', 'Link Preview') }
 
   _defaultData() {
     return { url: '', title: '', description: '', image: '', favicon: '', domain: '', template: 'notion' }
   }
 
   /** @param {Record<string, unknown>} data */
-  render(data) {
+  render(data, context) {
     const parsedData = {
-      url: String(data?.url || ''),
+      url: sanitizeUrl(String(data?.url || ''), { policy: 'external', fallback: '' }),
       title: String(data?.title || ''),
       description: String(data?.description || ''),
-      image: String(data?.image || ''),
-      favicon: String(data?.favicon || ''),
+      image: sanitizeUrl(String(data?.image || ''), { policy: 'media', fallback: '' }),
+      favicon: sanitizeUrl(String(data?.favicon || ''), { policy: 'media', fallback: '' }),
       domain: String(data?.domain || ''),
       template: TEMPLATES.includes(/** @type {string} */ (data?.template)) ? String(data.template) : 'notion',
     }
@@ -85,6 +127,7 @@ export class LinkPreview extends BlockPluginAbstract {
       abortController: null,
       urlIconEl: null,
       inputTimer: null,
+      context,
     })
 
     this._renderUrlBar(wrapper)
@@ -98,15 +141,12 @@ export class LinkPreview extends BlockPluginAbstract {
         this._loadMeta(wrapper, parsedData.url).then(() => {
           const st = stateMap.get(wrapper)
           if (!st || st.data.url !== parsedData.url) return
-          if (st.urlIconEl) st.urlIconEl.innerHTML = st.data.favicon
-            ? `<img src="${escapeAttr(st.data.favicon)}" width="16" height="16" style="border-radius:2px">`
-            : ICON_FORMS
+          if (st.urlIconEl) renderUrlIcon(st.urlIconEl, st.data.favicon)
           // Re-render only the card, keep actions/dropdown
           wrapper.querySelector(`.${P}__card`)?.remove()
           this._renderCard(wrapper)
           const actions = wrapper.querySelector(`.${P}__actions`)
           if (actions) wrapper.appendChild(actions)
-          wrapper.dispatchEvent(new InputEvent('input', { bubbles: true }))
         })
       }
     }
@@ -122,7 +162,7 @@ export class LinkPreview extends BlockPluginAbstract {
   }
 
   /** @param {Record<string, unknown>} d */
-  validate(d) { return !!d?.url }
+  validate(d) { return validateLinkPreviewData(d) }
 
   /** @param {HTMLElement} element */
   isEmpty(element) {
@@ -185,9 +225,7 @@ export class LinkPreview extends BlockPluginAbstract {
 
     const iconEl = document.createElement('span')
     iconEl.className = `${P}__url-icon`
-    iconEl.innerHTML = s.data.favicon
-      ? `<img src="${escapeAttr(s.data.favicon)}" width="16" height="16" style="border-radius:2px">`
-      : ICON_FORMS
+    renderUrlIcon(iconEl, s.data.favicon)
     bar.appendChild(iconEl)
     s.urlIconEl = iconEl
 
@@ -235,31 +273,31 @@ export class LinkPreview extends BlockPluginAbstract {
 
     if (!url || !/^https?:\/\/.+/i.test(url)) {
       if (s.data.url) {
-        s.data = { ...this._defaultData(), template: s.data.template }
-        this._removeCardElements(wrapper)
-        iconEl.innerHTML = ICON_FORMS
+        s.context.mutate(() => {
+          s.data = { ...this._defaultData(), template: s.data.template }
+          this._removeCardElements(wrapper)
+          iconEl.innerHTML = ICON_FORMS
+        })
       }
       return
     }
 
     if (url === s.data.url) return
 
-    iconEl.innerHTML = ICON_LOADER
-    s.data.url = url
-    try { s.data.domain = new URL(url).hostname } catch {}
+    s.context.mutate(() => {
+      iconEl.innerHTML = ICON_LOADER
+      s.data.url = url
+      try { s.data.domain = new URL(url).hostname } catch {}
+    })
 
     this._loadMeta(wrapper, url).then(() => {
       const st = stateMap.get(wrapper)
       if (!st) return
-      if (st.urlIconEl) st.urlIconEl.innerHTML = st.data.favicon
-        ? `<img src="${escapeAttr(st.data.favicon)}" width="16" height="16" style="border-radius:2px">`
-        : ICON_FORMS
+      if (st.urlIconEl) renderUrlIcon(st.urlIconEl, st.data.favicon)
       this._removeCardElements(wrapper)
       this._renderCard(wrapper)
       this._renderActions(wrapper)
       wrapper.classList.add(`${P}--filled`)
-      // Trigger undo/redo snapshot
-      wrapper.dispatchEvent(new InputEvent('input', { bubbles: true }))
     })
   }
 
@@ -270,18 +308,21 @@ export class LinkPreview extends BlockPluginAbstract {
   async _loadMeta(wrapper, url) {
     if (!this._config.fetchMeta) return
     const s = stateMap.get(wrapper)
-    if (!s) return
+    if (!s || s.context.readOnly) return
+    const signal = s.abortController?.signal ?? new AbortController().signal
     try {
-      const meta = await this._config.fetchMeta(url)
-      if (meta && s.data.url === url) {
-        s.data.title = meta.title || ''
-        s.data.description = meta.description || ''
-        s.data.image = meta.image || ''
-        s.data.favicon = meta.favicon || ''
-        if (meta.domain) s.data.domain = meta.domain
+      const meta = await this._config.fetchMeta(url, { signal })
+      if (meta && stateMap.get(wrapper) === s && s.data.url === url) {
+        s.context.mutate(() => {
+          s.data.title = meta.title || ''
+          s.data.description = meta.description || ''
+          s.data.image = sanitizeUrl(meta.image || '', { policy: 'media', fallback: '' })
+          s.data.favicon = sanitizeUrl(meta.favicon || '', { policy: 'media', fallback: '' })
+          if (meta.domain) s.data.domain = meta.domain
+        })
       }
     } catch (err) {
-      console.warn('[LinkPreview] Failed to fetch meta for', url, err)
+      if (!signal.aborted) console.warn('[LinkPreview] Failed to fetch meta for', url, err)
     }
   }
 
@@ -303,7 +344,7 @@ export class LinkPreview extends BlockPluginAbstract {
 
     const card = document.createElement('a')
     card.className = `${P}__card ${P}__card--${tpl}`
-    card.href = s.data.url
+    setSafeUrlAttribute(card, 'href', s.data.url, 'external')
     card.target = '_blank'
     card.rel = 'noopener noreferrer'
     card.addEventListener('click', (e) => e.stopPropagation())
@@ -330,7 +371,7 @@ export class LinkPreview extends BlockPluginAbstract {
     if (s.data.favicon && tpl !== 'notion') {
       const fav = document.createElement('img')
       fav.className = `${P}__favicon`
-      fav.src = s.data.favicon
+      setSafeUrlAttribute(fav, 'src', s.data.favicon, 'media')
       fav.width = 14
       fav.height = 14
       fav.alt = ''
@@ -354,7 +395,7 @@ export class LinkPreview extends BlockPluginAbstract {
       const imgWrap = document.createElement('div')
       imgWrap.className = `${P}__image`
       const img = document.createElement('img')
-      img.src = s.data.image
+      setSafeUrlAttribute(img, 'src', s.data.image, 'media')
       img.alt = ''
       img.loading = 'lazy'
       imgWrap.appendChild(img)
@@ -365,7 +406,7 @@ export class LinkPreview extends BlockPluginAbstract {
     if (tpl === 'notion') {
       const bigFav = document.createElement('img')
       bigFav.className = `${P}__favicon-large`
-      bigFav.src = s.data.favicon || ''
+      setSafeUrlAttribute(bigFav, 'src', s.data.favicon || '', 'media')
       bigFav.width = 32
       bigFav.height = 32
       bigFav.alt = ''
@@ -431,13 +472,14 @@ export class LinkPreview extends BlockPluginAbstract {
       e.stopPropagation()
       const st = stateMap.get(wrapper)
       if (!st) return
-      if (st.inputTimer) clearTimeout(st.inputTimer)
-      st.data = this._defaultData()
-      this._removeCardElements(wrapper)
-      if (st.urlIconEl) st.urlIconEl.innerHTML = ICON
-      const inp = wrapper.querySelector(`.${P}__url-input`)
-      if (inp) { /** @type {HTMLInputElement} */ (inp).value = ''; /** @type {HTMLInputElement} */ (inp).focus() }
-      wrapper.dispatchEvent(new InputEvent('input', { bubbles: true }))
+      st.context.mutate(() => {
+        if (st.inputTimer) clearTimeout(st.inputTimer)
+        st.data = this._defaultData()
+        this._removeCardElements(wrapper)
+        if (st.urlIconEl) st.urlIconEl.innerHTML = ICON
+        const inp = wrapper.querySelector(`.${P}__url-input`)
+        if (inp) { /** @type {HTMLInputElement} */ (inp).value = ''; /** @type {HTMLInputElement} */ (inp).focus() }
+      })
     }, { signal })
     actions.appendChild(deleteBtn)
 
@@ -469,22 +511,24 @@ export class LinkPreview extends BlockPluginAbstract {
       btn.type = 'button'
       btn.className = `${P}__tpl-btn${s.data.template === tpl ? ` ${P}__tpl-btn--active` : ''}`
       btn.innerHTML = TEMPLATE_ICONS[tpl] || ''
-      btn.title = tpl
+      btn.title = this._t(`template.${tpl}`, tpl)
+      btn.setAttribute('aria-label', btn.title)
       btn.addEventListener('mousedown', (e) => e.preventDefault(), { signal })
       btn.addEventListener('click', () => {
         const st = stateMap.get(wrapper)
         if (!st) return
-        st.data.template = tpl
-        grid.querySelectorAll(`.${P}__tpl-btn`).forEach(b => b.classList.remove(`${P}__tpl-btn--active`))
-        btn.classList.add(`${P}__tpl-btn--active`)
-        // Re-render only the card, keep actions/dropdown intact
-        wrapper.querySelector(`.${P}__card`)?.remove()
-        this._renderCard(wrapper)
-        // Move actions back to the end after card was re-appended
-        const actions = wrapper.querySelector(`.${P}__actions`)
-        if (actions) wrapper.appendChild(actions)
-        wrapper.classList.add(`${P}--filled`)
-        wrapper.dispatchEvent(new InputEvent('input', { bubbles: true }))
+        st.context.mutate(() => {
+          st.data.template = tpl
+          grid.querySelectorAll(`.${P}__tpl-btn`).forEach(b => b.classList.remove(`${P}__tpl-btn--active`))
+          btn.classList.add(`${P}__tpl-btn--active`)
+          // Re-render only the card, keep actions/dropdown intact
+          wrapper.querySelector(`.${P}__card`)?.remove()
+          this._renderCard(wrapper)
+          // Move actions back to the end after card was re-appended
+          const actions = wrapper.querySelector(`.${P}__actions`)
+          if (actions) wrapper.appendChild(actions)
+          wrapper.classList.add(`${P}--filled`)
+        })
       }, { signal })
       grid.appendChild(btn)
     }

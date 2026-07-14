@@ -7,6 +7,7 @@ import code from '../plugins/code/locale/en.js'
 import image from '../plugins/image/locale/en.js'
 import embed from '../plugins/embed/locale/en.js'
 import gallery from '../plugins/gallery/locale/en.js'
+import carousel from '../plugins/carousel/locale/en.js'
 import checklist from '../plugins/checklist/locale/en.js'
 import warning from '../plugins/warning/locale/en.js'
 import raw from '../plugins/raw/locale/en.js'
@@ -33,6 +34,7 @@ export default {
   ...image,
   ...embed,
   ...gallery,
+  ...carousel,
   ...checklist,
   ...warning,
   ...raw,

@@ -86,17 +86,19 @@ export function createAlignTool(labels, cbs = null) {
           e.stopPropagation()
           ctx.restoreSelection()
 
-          const crossBlocks = getSelectedBlockElements(cbs)
-          if (crossBlocks) {
-            for (const blockEl of crossBlocks) {
-              blockEl.style.textAlign = alignment.value
+          ctx.mutate(() => {
+            const crossBlocks = getSelectedBlockElements(cbs)
+            if (crossBlocks) {
+              for (const blockEl of crossBlocks) {
+                blockEl.style.textAlign = alignment.value
+              }
+            } else {
+              const target = getBlockElement()
+              if (target) {
+                target.style.textAlign = alignment.value
+              }
             }
-          } else {
-            const target = getBlockElement()
-            if (target) {
-              target.style.textAlign = alignment.value
-            }
-          }
+          })
           ctx.close()
         })
         panel.appendChild(btn)

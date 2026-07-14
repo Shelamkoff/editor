@@ -9,6 +9,8 @@ export const CSS = {
   selectIcon: 'oe-gallery__select-icon',
   selectText: 'oe-gallery__select-text',
   selectLink: 'oe-gallery__select-link',
+  selectActions: 'oe-gallery__select-actions',
+  selectAction: 'oe-gallery__select-action',
   dropzoneActive: 'oe-gallery__select--dragover',
   actionsView: 'oe-gallery__actions-view',
   actionChevron: 'oe-gallery__action-chevron',

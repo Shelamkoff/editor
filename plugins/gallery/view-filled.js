@@ -21,13 +21,13 @@ import {
  * @property {() => import('./state.js').GalleryState | undefined} getState
  * @property {() => void} reRender
  * @property {() => void} renderEmpty
- * @property {() => void} notifyChanged
+ * @property {(operation: () => void) => void} mutate
  * @property {(files: File[]) => void} onFilesDropped
  * @property {() => void} onTriggerFileInput
  * @property {() => void} onPromptUrl
  * @property {() => void} onDeleteAll
- * @property {Array<{ icon: string, label: string, handler: () => Promise<Array<{url: string, alt?: string}> | null> }>} customActions
- * @property {(handler: () => Promise<Array<{url: string, alt?: string}> | null>) => Promise<void>} runCustomAction
+ * @property {Array<{ icon?: string, label: string, handler: (context: { signal: AbortSignal }) => Promise<Array<{url: string, alt?: string}> | null> }>} customActions
+ * @property {(handler: (context: { signal: AbortSignal }) => Promise<Array<{url: string, alt?: string}> | null>) => Promise<void>} runCustomAction
  */
 
 /**
@@ -181,19 +181,21 @@ function makeSlotDeps(deps) {
     onRemoveImage: (index) => {
       const state = deps.getState()
       if (!state) return
-      state.data.images.splice(index, 1)
-      if (state.data.images.length === 0) deps.renderEmpty()
-      else deps.reRender()
-      deps.notifyChanged()
+      deps.mutate(() => {
+        state.data.images.splice(index, 1)
+        if (state.data.images.length === 0) deps.renderEmpty()
+        else deps.reRender()
+      })
     },
     onSwapImages: (from, to) => {
       const state = deps.getState()
       if (!state) return
-      const tmp = state.data.images[from]
-      state.data.images[from] = /** @type {any} */ (state.data.images[to])
-      state.data.images[to] = /** @type {any} */ (tmp)
-      deps.reRender()
-      deps.notifyChanged()
+      deps.mutate(() => {
+        const tmp = state.data.images[from]
+        state.data.images[from] = /** @type {any} */ (state.data.images[to])
+        state.data.images[to] = /** @type {any} */ (tmp)
+        deps.reRender()
+      })
     },
   }
 }
@@ -212,7 +214,7 @@ function renderActions(wrapper, state, deps, signal) {
     t: deps.t,
     syncCaptions: deps.syncCaptions,
     reRender: deps.reRender,
-    notifyChanged: deps.notifyChanged,
+    mutate: deps.mutate,
   }
 
   // Settings dropdown
@@ -290,7 +292,7 @@ function showAddView(actions, mainView, deps, signal) {
   const restore = () => { view.remove(); mainView.style.display = 'contents' }
 
   view.appendChild(makeActionBtn(
-    `${ICON_BACK} ${deps.t('block.back', 'Back')}`,
+    `${ICON_BACK} ${deps.t('back', 'Back')}`,
     restore,
     signal,
   ))
@@ -304,7 +306,7 @@ function showAddView(actions, mainView, deps, signal) {
 
   for (const action of deps.customActions) {
     view.appendChild(makeActionBtn(
-      `${action.icon} ${action.label}`,
+      `${action.icon || ''} ${action.label}`.trim(),
       async () => { await deps.runCustomAction(action.handler); restore() },
       signal,
     ))

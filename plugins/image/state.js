@@ -1,6 +1,6 @@
 /**
  * @typedef {Object} ImageData
- * @property {{ url: string }} file
+ * @property {{ url: string, width?: number, height?: number }} file
  * @property {string} caption
  * @property {boolean} withBorder
  * @property {boolean} expanded
@@ -32,6 +32,9 @@ export class ImageState {
 
   /** @type {File | null} */
   pendingFile = null
+
+  /** @type {Promise<void> | null} */
+  pendingUpload = null
 
   /**
    * @param {ImageData} data
@@ -69,6 +72,8 @@ export class ImageState {
     this.abortController = null
     this.borderObserver = null
     this.objectUrl = null
+    this.pendingFile = null
+    this.pendingUpload = null
   }
 }
 
@@ -81,8 +86,14 @@ export class ImageState {
  */
 export function normalizeImageData(data) {
   const fileObj = /** @type {any} */ (data?.file)
+  /** @type {{ url: string, width?: number, height?: number }} */
+  const file = {
+    url: sanitizeUrl(String(fileObj?.url || ''), { policy: 'media', fallback: '' }),
+  }
+  if (Number.isFinite(fileObj?.width) && fileObj.width > 0) file.width = Number(fileObj.width)
+  if (Number.isFinite(fileObj?.height) && fileObj.height > 0) file.height = Number(fileObj.height)
   return {
-    file: { url: String(fileObj?.url || '') },
+    file,
     caption: String(data?.caption || ''),
     withBorder: !!data?.withBorder,
     expanded: !!data?.expanded,
@@ -104,3 +115,4 @@ export function emptyImageData() {
     styles: {},
   }
 }
+import { sanitizeUrl } from '../../shared/sanitize/sanitizeUrl.js'

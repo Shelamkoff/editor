@@ -1,4 +1,4 @@
-import { ColorPicker } from '../../color-picker/index.js'
+import { ColorPicker } from '@shelamkoff/color-picker'
 import { generateInlineId } from '../shared/inlineMarshal.js'
 
 /**
@@ -9,16 +9,15 @@ import { generateInlineId } from '../shared/inlineMarshal.js'
  * @returns {import('../types').InlinePlugin}
  */
 export function createColorSwatchPlugin() {
-  /** @type {{ t(key: string): string } | null} */
+  /** @type {import('../core/types').IScopedI18n | null} */
   let i18n = null
 
   return {
     type: 'color',
-    get title() { return i18n?.t('title') ?? 'Color' },
+    get title() { return i18n?.has('title') ? i18n.t('title') : 'Color' },
     icon: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21a9 9 0 0 1 0-18c4.97 0 9 3.582 9 8c0 1.06-.474 2.078-1.318 2.828S17.938 15 16.5 15H14a2 2 0 0 0-1 3.75A1.3 1.3 0 0 1 12 21"/><circle cx="7.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="12" cy="7.5" r=".5" fill="currentColor"/><circle cx="16.5" cy="10.5" r=".5" fill="currentColor"/></svg>',
-    /** @param {{ t(key: string): string }} _i18n */
+    /** @param {import('../core/types').IScopedI18n} _i18n */
     setI18n(_i18n) { i18n = _i18n },
-    editable: false,
     pasteConfig: {
       patterns: [
         /^#[0-9a-fA-F]{3}$/,
@@ -113,13 +112,16 @@ function normalizeToHex6(value) {
  */
 function openColorPicker(widget, ctx) {
   const current = normalizeToHex6(widget.dataset.value || '#000000')
+  const originalLabel = widget.querySelector('.oe-ip__label')?.textContent ?? current
+  let committed = false
 
   const picker = new ColorPicker({
     onApply(cssColor) {
-      updateWidget(widget, normalizeToHex6(cssColor))
-      ctx.notifyChanged()
+      const next = normalizeToHex6(cssColor)
+      restoreWidget(widget, current, originalLabel)
+      ctx.mutate(widget, () => updateWidget(widget, next))
+      committed = true
       ctx.hidePopup()
-      picker.destroy()
     },
     onChange(cssColor) {
       updateWidget(widget, normalizeToHex6(cssColor))
@@ -138,7 +140,10 @@ function openColorPicker(widget, ctx) {
 
   picker.open(current, 1)
 
-  ctx.showPopup(widget, popupContent)
+  ctx.showPopup(widget, popupContent, () => {
+    if (!committed) restoreWidget(widget, current, originalLabel)
+    picker.destroy()
+  })
 }
 
 /**
@@ -154,7 +159,13 @@ function updateWidget(widget, value) {
   const label = widget.querySelector('.oe-ip__label')
   if (label) label.textContent = value
 
-  widget.dispatchEvent(new InputEvent('input', { bubbles: true }))
+}
+
+/** @param {HTMLElement} widget @param {string} value @param {string} label */
+function restoreWidget(widget, value, label) {
+  updateWidget(widget, value)
+  const labelElement = widget.querySelector('.oe-ip__label')
+  if (labelElement) labelElement.textContent = label
 }
 
 /**

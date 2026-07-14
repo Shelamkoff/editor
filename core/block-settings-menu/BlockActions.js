@@ -1,5 +1,5 @@
 import { EditorEvent } from '../editorEvents.js'
-import { convertCrossBlockRange } from '../crossBlockConvert.js'
+import { convertCrossBlockRange, isTextType } from '../crossBlockConvert.js'
 import { splitAndConvert, isFullBlockSelected } from '../splitConvert.js'
 
 /**
@@ -10,7 +10,9 @@ import { splitAndConvert, isFullBlockSelected } from '../splitConvert.js'
  * @property {Map<string, import('../types').BlockPlugin>} plugins
  * @property {import('../types').ICrossBlockSelection} crossBlockSelection
  * @property {import('../types').IEventBus} events
+ * @property {import('../CommandDispatcher').CommandDispatcher} commands
  * @property {string} defaultBlockType
+ * @property {(current: import('../types').IBlock, index: number) => import('../types').IBlock | undefined} duplicateBlock
  * @property {() => void} onClose       called after each terminal action
  * @property {() => void} onAfterMove   called after move (rebuild + reposition)
  * @property {() => Range | null} getSavedRange
@@ -31,9 +33,13 @@ export class BlockActions {
   /** @type {BlockActionsDeps} */
   #deps
 
+  /** @type {import('../CommandDispatcher').CommandDispatcher} */
+  #mutations
+
   /** @param {BlockActionsDeps} deps */
   constructor(deps) {
     this.#deps = deps
+    this.#mutations = deps.commands
   }
 
   moveUp() {
@@ -56,31 +62,31 @@ export class BlockActions {
     const current = blocks.getBlockByIndex(index)
     if (!current) return
 
-    const data = current.save()
-    this.#deps.blockOps.insertAndFocus(data.type, data.data, index + 1, 'end')
+    this.#deps.duplicateBlock(current, index)
     this.#deps.onClose()
   }
 
   delete() {
     this.#deps.events.emit(EditorEvent.UNDO_BATCH_START)
+    try {
+      const blocks = this.#deps.blocks
+      const index = blocks.getCurrentIndex()
+      blocks.remove(index)
 
-    const blocks = this.#deps.blocks
-    const index = blocks.getCurrentIndex()
-    blocks.remove(index)
+      if (blocks.getBlockCount() === 0) {
+        blocks.insert(this.#deps.defaultBlockType)
+      }
 
-    if (blocks.getBlockCount() === 0) {
-      blocks.insert(this.#deps.defaultBlockType)
+      const focusIdx = Math.min(index, blocks.getBlockCount() - 1)
+      blocks.setCurrentIndex(focusIdx)
+      const block = blocks.getBlockByIndex(focusIdx)
+      if (block) {
+        block.focus()
+        this.#deps.selection.setCaretToBlock(block.id, 'start')
+      }
+    } finally {
+      this.#deps.events.emit(EditorEvent.UNDO_BATCH_END)
     }
-
-    const focusIdx = Math.min(index, blocks.getBlockCount() - 1)
-    blocks.setCurrentIndex(focusIdx)
-    const block = blocks.getBlockByIndex(focusIdx)
-    if (block) {
-      block.focus()
-      this.#deps.selection.setCaretToBlock(block.id, 'start')
-    }
-
-    this.#deps.events.emit(EditorEvent.UNDO_BATCH_END)
     this.#deps.onClose()
   }
 
@@ -108,7 +114,7 @@ export class BlockActions {
           events: this.#deps.events,
         },
         crossRange, type, data,
-        () => this.#deps.events.emit(EditorEvent.CHANGED),
+        null,
       )
       this.#deps.onClose()
       return
@@ -149,20 +155,30 @@ export class BlockActions {
     const isFullBlock = sel.isCollapsed || isFullBlockSelected(contentEl, range)
 
     this.#deps.events.emit(EditorEvent.UNDO_BATCH_START)
-
-    if (isFullBlock) {
-      const converted = blocks.convert(index, type, data)
-      if (converted) {
-        blocks.setCurrentIndex(index)
-        this.#deps.selection.setCaretToBlock(converted.id, 'start')
-        converted.focus()
-        this.#deps.events.emit(EditorEvent.CHANGED)
+    try {
+      if (isFullBlock) {
+        const converted = blocks.convert(index, type, data)
+        if (converted) {
+          blocks.setCurrentIndex(index)
+          this.#deps.selection.setCaretToBlock(converted.id, 'start')
+          converted.focus()
+        }
+      } else {
+        splitAndConvert(
+          blocks,
+          this.#deps.selection,
+          index,
+          current.type,
+          contentEl,
+          range,
+          type,
+          data,
+          isTextType(this.#deps.plugins, type),
+        )
       }
-    } else if (splitAndConvert(blocks, this.#deps.selection, index, current.type, contentEl, range, type, data)) {
-      this.#deps.events.emit(EditorEvent.CHANGED)
+    } finally {
+      this.#deps.events.emit(EditorEvent.UNDO_BATCH_END)
     }
-
-    this.#deps.events.emit(EditorEvent.UNDO_BATCH_END)
     this.#deps.onClose()
   }
 
@@ -182,33 +198,35 @@ export class BlockActions {
     if (plugin.changeLevel && action) {
       const level = parseInt(action, 10)
       if (level) {
-        const newEl = plugin.changeLevel(current.contentElement, level)
-        if (newEl !== current.contentElement) {
-          current.replaceContentElement(newEl)
-        }
+        this.#mutations.runForBlock(current, () => {
+          const newEl = plugin.changeLevel(current.contentElement, level)
+          if (newEl !== current.contentElement) {
+            current.replaceContentElement(newEl)
+          }
+        })
         this.#deps.onClose()
         // Restore focus to the (possibly new) content element — closing
         // the settings menu shifts focus away, and changeLevel's internal
         // selection restore runs before the close.
         current.contentElement.focus()
-        this.#deps.events.emit(EditorEvent.CHANGED)
         return
       }
     }
 
     // Fallback: re-render via convert.
     if (plugin.onSettingsAction) {
-      const newData = plugin.onSettingsAction(current.contentElement, action)
-      if (newData) {
-        const index = this.#deps.blocks.getCurrentIndex()
-        const converted = this.#deps.blocks.convert(index, current.type, newData)
-        if (converted) {
-          this.#deps.blocks.setCurrentIndex(index)
-          this.#deps.selection.setCaretToBlock(converted.id, 'end')
-          converted.focus()
+      this.#mutations.runForBlock(current, () => {
+        const newData = plugin.onSettingsAction(current.contentElement, action)
+        if (newData) {
+          const index = this.#deps.blocks.getCurrentIndex()
+          const converted = this.#deps.blocks.convert(index, current.type, newData)
+          if (converted) {
+            this.#deps.blocks.setCurrentIndex(index)
+            this.#deps.selection.setCaretToBlock(converted.id, 'end')
+            converted.focus()
+          }
         }
-      }
-      this.#deps.events.emit(EditorEvent.CHANGED)
+      })
     }
     this.#deps.onClose()
   }

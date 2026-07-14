@@ -23,6 +23,9 @@ export class TriggerManager {
   /** @type {{ plugin: import('./types').InlinePlugin, startNode: Text, startOffset: number } | null} */
   #active = null
 
+  /** @type {() => void} */
+  #unsubscribeBlockChanged
+
   /**
    * @param {HTMLElement} rootEl
    * @param {import('./InlinePluginRegistry').InlinePluginRegistry} registry
@@ -39,11 +42,15 @@ export class TriggerManager {
 
     rootEl.addEventListener('input', this.#onInput)
     rootEl.addEventListener('keydown', this.#onKeyDown, true)
+    this.#unsubscribeBlockChanged = events.on(EditorEvent.BLOCK_CHANGED, () => {
+      if (this.#active && !this.#active.startNode.isConnected) this.#cancelTrigger()
+    })
   }
 
   destroy() {
     this.#rootEl.removeEventListener('input', this.#onInput)
     this.#rootEl.removeEventListener('keydown', this.#onKeyDown, true)
+    this.#unsubscribeBlockChanged()
     this.#active = null
   }
 

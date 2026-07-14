@@ -1,5 +1,6 @@
 import { el, positionPopup } from './dom.js'
 import { EditorEvent } from './editorEvents.js'
+import { createRangeFromLastTextMatch } from './textOffset.js'
 
 export class SlashCommands {
   /** @type {HTMLElement} */
@@ -13,6 +14,9 @@ export class SlashCommands {
 
   /** @type {import('./types').IEventBus} */
   #events
+
+  /** @type {import('./CommandDispatcher').CommandDispatcher} */
+  #commands
 
   /** @type {import('./I18n').I18n} */
   #i18n
@@ -38,6 +42,9 @@ export class SlashCommands {
   /** @type {(() => void) | null} */
   #scrollCleanup = null
 
+  /** @type {number} */
+  #positionFrame = 0
+
   /** @type {import('./InlinePluginRegistry').InlinePluginRegistry | null} */
   #inlinePluginRegistry
 
@@ -50,6 +57,7 @@ export class SlashCommands {
    * @property {import('./types').IBlockManager} blocks
    * @property {import('./types').ISelectionManager} selection
    * @property {import('./types').IEventBus} events
+   * @property {import('./CommandDispatcher').CommandDispatcher} commands
    * @property {import('./I18n').I18n} i18n
    * @property {import('./InlinePluginRegistry').InlinePluginRegistry} [inlinePluginRegistry]
    * @property {import('./types').InlinePluginContext} [inlinePluginCtx]
@@ -60,11 +68,12 @@ export class SlashCommands {
    * @param {SlashCommandsConfig} config
    */
   constructor(rootEl, config) {
-    const { plugins, blocks, selection, events, i18n, inlinePluginRegistry, inlinePluginCtx } = config
+    const { plugins, blocks, selection, events, commands, i18n, inlinePluginRegistry, inlinePluginCtx } = config
     this.#rootEl = rootEl
     this.#blocks = blocks
     this.#selection = selection
     this.#events = events
+    this.#commands = commands
     this.#i18n = i18n
     this.#inlinePluginRegistry = inlinePluginRegistry ?? null
     this.#inlinePluginCtx = inlinePluginCtx ?? null
@@ -117,11 +126,13 @@ export class SlashCommands {
     this.#filter = ''
     this.#menuEl.style.display = 'none'
     this.#removeScrollListener()
+    this.#cancelScheduledPosition()
   }
 
   /** Clean up. */
   destroy() {
     this.#removeScrollListener()
+    this.#cancelScheduledPosition()
     this.#rootEl.removeEventListener('keydown', this.#onKeyDown, true)
     this.#rootEl.removeEventListener('input', this.#onInput)
     this.#menuEl.remove()
@@ -139,6 +150,8 @@ export class SlashCommands {
       if (slashIdx >= 0) {
         this.#filter = text.slice(slashIdx + 1)
         this.#updateItems()
+        this.#position()
+        this.#schedulePosition()
       } else {
         // Slash removed — close
         this.close()
@@ -184,7 +197,10 @@ export class SlashCommands {
       case 'Escape':
         e.preventDefault()
         e.stopPropagation()
-        this.#clearSlashText()
+        this.#runBatch(() => {
+          const block = this.#blocks.getCurrentBlock()
+          if (block) this.#commands.runForBlock(block, () => this.#clearSlashText())
+        })
         this.close()
         break
 
@@ -214,7 +230,22 @@ export class SlashCommands {
     this.#updateItems()
     this.#menuEl.style.display = ''
     this.#position()
+    this.#schedulePosition()
     this.#addScrollListener()
+  }
+
+  #schedulePosition() {
+    this.#cancelScheduledPosition()
+    this.#positionFrame = requestAnimationFrame(() => {
+      this.#positionFrame = 0
+      if (this.#open) this.#position()
+    })
+  }
+
+  #cancelScheduledPosition() {
+    if (!this.#positionFrame) return
+    cancelAnimationFrame(this.#positionFrame)
+    this.#positionFrame = 0
   }
 
   #addScrollListener() {
@@ -309,19 +340,43 @@ export class SlashCommands {
 
     if (item.inlineInsert && this.#inlinePluginRegistry && this.#inlinePluginCtx) {
       // Inline plugin: delete "/text" and insert widget at caret position
-      this.#insertInlineWidget(current, item.type)
+      this.#runBatch(() => this.#commands.runForBlock(
+        current,
+        () => this.#insertInlineWidget(current, item.type),
+      ))
       return
     }
 
-    // Block plugin: clear slash text and convert block
-    current.contentElement.textContent = ''
+    this.#runBatch(() => this.#commands.runForBlock(current, () => {
+      const slashIndex = (current.contentElement.textContent || '').lastIndexOf('/')
 
-    const converted = blocks.convert(currentIndex, item.type, item.data)
-    if (converted) {
-      blocks.setCurrentIndex(currentIndex)
-      this.#selection.setCaretToBlock(converted.id, 'start')
-      converted.focus()
-    }
+      // A block command typed after existing content must not destroy that
+      // content. Remove only the command query and insert the requested block
+      // directly after the source block. An otherwise empty command block is
+      // converted in place, which avoids leaving an empty paragraph behind.
+      if (slashIndex > 0) {
+        this.#clearSlashText()
+        current.markDirty()
+
+        const inserted = blocks.insert(item.type, item.data, currentIndex + 1)
+        if (inserted) {
+          blocks.setCurrentIndex(currentIndex + 1)
+          this.#selection.setCaretToBlock(inserted.id, 'start')
+          inserted.focus()
+        }
+        return
+      }
+
+      current.contentElement.textContent = ''
+      current.markDirty()
+
+      const converted = blocks.convert(currentIndex, item.type, item.data)
+      if (converted) {
+        blocks.setCurrentIndex(currentIndex)
+        this.#selection.setCaretToBlock(converted.id, 'start')
+        converted.focus()
+      }
+    }))
   }
 
   /**
@@ -372,17 +427,17 @@ export class SlashCommands {
    */
   #clearSlashText() {
     const block = this.#blocks.getCurrentBlock()
-    if (!block) return
+    if (!block) return false
 
     const ce = block.contentElement
     const text = ce.textContent || ''
     const slashIdx = text.lastIndexOf('/')
-    if (slashIdx < 0) return
+    if (slashIdx < 0) return false
 
     // If the block contains only the slash command, clear everything.
     if (slashIdx === 0) {
       ce.textContent = ''
-      return
+      return true
     }
 
     // Walk text nodes to find the slash position and delete from there to end.
@@ -405,9 +460,20 @@ export class SlashCommands {
           sel.removeAllRanges()
           sel.addRange(range)
         }
-        break
+        return true
       }
       charCount += nodeLen
+    }
+    return false
+  }
+
+  /** Run one slash action as a balanced atomic history operation. */
+  #runBatch(operation) {
+    this.#events.emit(EditorEvent.UNDO_BATCH_START)
+    try {
+      return operation()
+    } finally {
+      this.#events.emit(EditorEvent.UNDO_BATCH_END)
     }
   }
 
@@ -417,8 +483,20 @@ export class SlashCommands {
 
     const blockRect = block.element.getBoundingClientRect()
     const editorRect = this.#rootEl.getBoundingClientRect()
+    const text = block.contentElement.textContent || ''
+    const commandRange = text.includes('/')
+      ? createRangeFromLastTextMatch(block.contentElement, '/')
+      : null
+    const commandRect = commandRange
+      ? (commandRange.getClientRects()[0] ?? commandRange.getBoundingClientRect())
+      : null
+    const anchorRect = commandRect && commandRect.height > 0 ? commandRect : blockRect
+    const menuWidth = this.#menuEl.offsetWidth || 240
+    const minimumLeft = -editorRect.left
+    const maximumLeft = Math.max(minimumLeft, window.innerWidth - editorRect.left - menuWidth)
+    const desiredLeft = anchorRect.left - editorRect.left
 
-    this.#menuEl.style.left = `${blockRect.left - editorRect.left}px`
-    positionPopup(this.#menuEl, blockRect, editorRect)
+    this.#menuEl.style.left = `${Math.min(maximumLeft, Math.max(minimumLeft, desiredLeft))}px`
+    positionPopup(this.#menuEl, anchorRect, editorRect)
   }
 }

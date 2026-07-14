@@ -8,7 +8,7 @@ import { extractBlockElements } from './pasteUtils.js'
  * @property {import('../BlockOperations').BlockOperations} blockOps
  * @property {string} defaultBlockType
  * @property {import('./PasteRouter.js').PasteRouter} router
- * @property {() => void} notifyChanged
+ * @property {(...blocks: import('../types').IBlock[]) => void} notifyChanged
  */
 
 /**
@@ -22,10 +22,15 @@ export function pastePlainText(text, ctx) {
   const lines = text.split(/\n/)
   const nonEmpty = lines.filter((line) => line.length > 0)
   if (nonEmpty.length === 0) return
+  // Keep the original target before a multi-block paste moves current/focus
+  // to the last inserted block. This existing block is mutated directly and
+  // must be invalidated explicitly for the pre/post-paste history snapshots.
+  const targetBlock = ctx.blocks.getCurrentBlock()
 
   if (nonEmpty.length === 1) {
     insertTextOrReplace(/** @type {string} */ (nonEmpty[0]), ctx.blocks)
-    ctx.notifyChanged()
+    if (targetBlock) ctx.notifyChanged(targetBlock)
+    else ctx.notifyChanged()
     return
   }
 
@@ -51,7 +56,8 @@ export function pastePlainText(text, ctx) {
     lastBlock.focus()
   }
 
-  ctx.notifyChanged()
+  if (targetBlock) ctx.notifyChanged(targetBlock)
+  else ctx.notifyChanged()
 }
 
 /**
@@ -64,20 +70,31 @@ export function pastePlainText(text, ctx) {
  * @param {InsertContext} ctx
  */
 export function pasteHtml(html, ctx) {
-  const temp = document.createElement('div')
-  temp.innerHTML = html
+  // Parse clipboard markup in inert template content. Individual extracted
+  // blocks are sanitized before insertion or handed to an explicit plugin
+  // paste handler; no untrusted subtree is connected to the live document.
+  const template = document.createElement('template')
+  template.innerHTML = html
 
-  const extracted = extractBlockElements(temp)
-    .filter((b) => (b.element.textContent || '').trim())
+  const extracted = extractBlockElements(
+    template.content,
+    (tag) => !!ctx.router.findByTag(tag),
+  )
+    // Routed non-text elements (for example IMG/HR) may have no textContent
+    // and still carry meaningful paste data in their attributes.
+    .filter((b) => (b.element.textContent || '').trim() || !!ctx.router.findByTag(b.tag))
 
   if (extracted.length === 0) return
 
   const first = /** @type {import('./pasteUtils.js').ExtractedBlock} */ (extracted[0])
+  const targetBlock = ctx.blocks.getCurrentBlock()
 
   // Single paragraph → inline insert into the current block.
   if (extracted.length === 1 && first.tag === 'p') {
     const sanitized = sanitizeHtml(first.element.innerHTML)
     if (sanitized) insertHtmlAtCaret(sanitized)
+    if (targetBlock) ctx.notifyChanged(targetBlock)
+    else ctx.notifyChanged()
     return
   }
 
@@ -119,7 +136,8 @@ export function pasteHtml(html, ctx) {
     }
   }
 
-  ctx.notifyChanged()
+  if (firstIsTextLike && targetBlock) ctx.notifyChanged(targetBlock)
+  else ctx.notifyChanged()
 }
 
 /**
@@ -183,14 +201,10 @@ function insertHtmlAtCaret(html) {
   if (!sel || sel.rangeCount === 0) return
   const range = sel.getRangeAt(0)
   range.deleteContents()
-  const temp = document.createElement('div')
-  temp.innerHTML = html
-  const frag = document.createDocumentFragment()
-  /** @type {Node | null} */
-  let lastNode = null
-  while (temp.firstChild) {
-    lastNode = frag.appendChild(temp.firstChild)
-  }
+  const template = document.createElement('template')
+  template.innerHTML = html
+  const frag = template.content
+  const lastNode = frag.lastChild
   range.insertNode(frag)
   if (lastNode) {
     range.setStartAfter(lastNode)

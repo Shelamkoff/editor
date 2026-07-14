@@ -1,10 +1,14 @@
 import { el } from './dom.js'
 import { EditorEvent } from './editorEvents.js'
-import { EventBus } from '../../event-bus/index.js'
+import { EventBus } from '@shelamkoff/event-bus'
 import { I18n } from './I18n.js'
 import { BlockManager } from './BlockManager.js'
 import { SelectionManager } from './SelectionManager.js'
 import { EditorFacade } from './EditorFacade.js'
+import { DocumentSnapshotStore } from './DocumentSnapshotStore.js'
+import { DocumentSchema } from './DocumentSchema.js'
+import { Diagnostics } from './Diagnostics.js'
+import { EditorBlocksApi, EditorEventSubscriptions, EditorHandle } from './PublicEditorApi.js'
 import { BlockOperations } from './BlockOperations.js'
 import { ShortcutRegistry } from './ShortcutRegistry.js'
 import { Toolbar } from './toolbar/Toolbar.js'
@@ -12,6 +16,7 @@ import { InlineToolbar } from './inline-toolbar/InlineToolbar.js'
 import { TypeSelector } from './TypeSelector.js'
 import { KeyboardManager } from './KeyboardManager.js'
 import { UndoManager } from './UndoManager.js'
+import { CommandDispatcher } from './CommandDispatcher.js'
 import { Clipboard } from './clipboard/Clipboard.js'
 import { DragManager } from './DragManager.js'
 import { CrossBlockSelection } from './CrossBlockSelection.js'
@@ -27,7 +32,7 @@ import { PopupManager } from './PopupManager.js'
 import { injectStyleUrls } from './StyleInjector.js'
 import { resolveTuning } from './config.js'
 import {DEFAULT_BLOCK_TYPE, DEFAULT_THEME} from './constants.js'
-import { populateBlocks } from './populateBlocks.js'
+import { claimPluginInstances } from './PluginOwnership.js'
 import en from './locale/en.js'
 
 /**
@@ -40,21 +45,48 @@ import en from './locale/en.js'
  * @returns {import('./types').InlineTool[]}
  */
 function resolveInlineTools(config, i18n, crossBlockSelection) {
-  const allDefaults = createDefaultInlineTools({ i18n, crossBlockSelection })
-  if (!config) return allDefaults
+  if (!config) return createDefaultInlineTools({ i18n, crossBlockSelection })
+  const defaultTypes = config.filter(item => typeof item === 'string')
+  const allDefaults = createDefaultInlineTools({ i18n, crossBlockSelection, types: defaultTypes })
 
   /** @type {Map<string, import('./types').InlineTool>} */
   const defaultMap = new Map()
   for (const tool of allDefaults) defaultMap.set(tool.type, tool)
 
-  return config.map(item => {
+  /** @type {import('./types').InlineTool[]} */
+  const resolved = []
+  /** @type {Map<string, number>} */
+  const indexes = new Map()
+
+  for (const item of config) {
+    let tool
     if (typeof item === 'string') {
-      const tool = defaultMap.get(item)
+      tool = defaultMap.get(item)
       if (!tool) throw new Error(`Unknown inline tool: "${item}"`)
-      return tool
+    } else {
+      tool = item
     }
-    return item
-  })
+
+    if (!tool || typeof tool.type !== 'string' || tool.type.length === 0) {
+      throw new TypeError('Inline tool must have a non-empty string type')
+    }
+    if (
+      typeof tool.icon !== 'string'
+      || typeof tool.isActive !== 'function'
+      || typeof tool.toggle !== 'function'
+    ) {
+      throw new TypeError(`Inline tool "${tool.type}" must define icon, isActive(), and toggle()`)
+    }
+    const existingIndex = indexes.get(tool.type)
+    if (existingIndex === undefined) {
+      indexes.set(tool.type, resolved.length)
+      resolved.push(tool)
+    } else {
+      resolved[existingIndex] = tool
+    }
+  }
+
+  return resolved
 }
 
 /**
@@ -92,7 +124,6 @@ function buildEditorDOM(holder, theme, minHeight) {
   const clickArea = el('div', 'oe-click-area')
   rootEl.appendChild(blocksEl)
   rootEl.appendChild(clickArea)
-  holder.appendChild(rootEl)
   return { rootEl, blocksEl, clickArea }
 }
 
@@ -114,11 +145,15 @@ function wireInputTracking(rootEl, blocks, events) {
     }
   }
 
-  const onInput = () => {
-    const current = blocks.getCurrentBlock()
-    if (current) {
-      events.emit(EditorEvent.BLOCK_CHANGED, { blockId: current.id })
-    }
+  const onInput = (/** @type {InputEvent} */ event) => {
+    const target = /** @type {Node} */ (event.target)
+    // Editor controls (URL/color/font inputs, filters, dialogs) also bubble
+    // `input` through rootEl. They are not document mutations and must never
+    // advance block history by falling back to the currently focused block.
+    const changed = blocks.getBlockByChildNode(target)
+    if (!changed) return
+    changed.markDirty()
+    events.emit(EditorEvent.BLOCK_CHANGED, { blockId: changed.id })
     events.emit(EditorEvent.CHANGED)
   }
 
@@ -169,13 +204,16 @@ function injectPluginStyles(plugins) {
  * @property {import('./SelectionManager').SelectionManager} selection
  * @property {import('./I18n').I18n} i18n
  * @property {import('./types').IEventBus} events
+ * @property {CommandDispatcher} commands
  * @property {import('./CrossBlockSelection').CrossBlockSelection} crossBlockSelection
  * @property {string} defaultBlockType
  * @property {import('./InlinePluginRegistry').InlinePluginRegistry} inlinePluginRegistry
  * @property {import('./types').InlinePluginContext} inlinePluginCtx
  * @property {EditorFacade} facade
+ * @property {DocumentSnapshotStore} snapshots
  * @property {import('./config').EditorTuning} tuning
  * @property {import('./types').EditorConfig} config
+ * @property {Diagnostics} diagnostics
  */
 
 /**
@@ -186,15 +224,35 @@ function injectPluginStyles(plugins) {
 function wireEditMode(deps) {
   const {
     rootEl, blocksEl, clickArea, plugins, blocks, selection,
-    i18n, events, crossBlockSelection, defaultBlockType,
-    inlinePluginRegistry, inlinePluginCtx, facade, tuning, config,
+    i18n, events, commands, crossBlockSelection, defaultBlockType,
+    inlinePluginRegistry, inlinePluginCtx, facade, snapshots, tuning, config, diagnostics,
   } = deps
 
   const blockOps = new BlockOperations(blocks, selection, defaultBlockType, events)
+  const pluginMutations = commands
+
+  const duplicateBlock = (current, index) => {
+    const snapshot = snapshots.capture().blocks.find(block => block.id === current.id)
+    if (!snapshot) return undefined
+
+    const duplicate = blocks.insert(
+      snapshot.type,
+      snapshot.data,
+      index + 1,
+      undefined,
+      snapshot.inline,
+    )
+    hydrateInlinePlugins(duplicate.contentElement, inlinePluginRegistry, inlinePluginCtx)
+    const duplicateIndex = blocks.getBlockIndex(duplicate.id)
+    blocks.setCurrentIndex(duplicateIndex)
+    selection.setCaretToBlock(duplicate.id, 'end')
+    duplicate.focus()
+    return duplicate
+  }
 
   const toolbar = new Toolbar(rootEl, {
-    plugins, blocks, selection, i18n, events, crossBlockSelection,
-    blockOps, defaultBlockType, inlinePluginRegistry,
+    plugins, blocks, selection, i18n, events, commands, crossBlockSelection,
+    blockOps, defaultBlockType, inlinePluginRegistry, duplicateBlock,
     tuning: {
       filterThreshold: tuning.toolbar.filterThreshold,
       mobileBreakpoint: tuning.mobileBreakpoint,
@@ -215,12 +273,22 @@ function wireEditMode(deps) {
   }
 
   const typeSelector = new TypeSelector(blocks, selection, plugins, i18n, crossBlockSelection, events, tuning.toolbar)
-  const inlineToolbar = new InlineToolbar(rootEl, selection, blocks, events, inlineTools, getInlineControls, typeSelector, crossBlockSelection)
+  const inlineToolbar = new InlineToolbar(
+    rootEl,
+    selection,
+    blocks,
+    events,
+    inlineTools,
+    getInlineControls,
+    typeSelector,
+    crossBlockSelection,
+    commands,
+  )
   facade.registerDestroyable(inlineToolbar)
 
   const undoManager = new UndoManager(
     blocks, events,
-    () => facade.save(),
+    () => snapshots.capture(),
     (data, caret) => facade.render(data, caret),
     () => selection.getCaret(),
     tuning.undo,
@@ -228,10 +296,20 @@ function wireEditMode(deps) {
   facade.registerDestroyable(undoManager)
 
   const shortcuts = new ShortcutRegistry()
-  shortcuts.register('Mod+Z', () => undoManager.undo())
-  shortcuts.register('Mod+Shift+Z', () => undoManager.redo())
+  shortcuts.register('Mod+Z', () => undoManager.undo(), { scope: 'editor' })
+  shortcuts.register('Mod+Shift+Z', () => undoManager.redo(), { scope: 'editor' })
+  shortcuts.register('Mod+Y', () => undoManager.redo(), { scope: 'editor' })
 
-  const slashCommands = new SlashCommands(rootEl, { plugins, blocks, selection, events, i18n, inlinePluginRegistry, inlinePluginCtx })
+  const slashCommands = new SlashCommands(rootEl, {
+    plugins,
+    blocks,
+    selection,
+    events,
+    commands,
+    i18n,
+    inlinePluginRegistry,
+    inlinePluginCtx,
+  })
   facade.registerDestroyable(slashCommands)
 
   shortcuts.register('Escape', () => {
@@ -252,7 +330,9 @@ function wireEditMode(deps) {
       for (const sc of plugin.shortcuts) {
         shortcuts.register(sc.combo, () => {
           const current = blocks.getCurrentBlock()
-          if (current) sc.handler(current.contentElement)
+          if (current) {
+            pluginMutations.runForBlock(current, () => sc.handler(current.contentElement))
+          }
         })
       }
     }
@@ -268,14 +348,23 @@ function wireEditMode(deps) {
   }
 
   if (inlinePluginRegistry.size > 0) {
-    facade.registerDestroyable(new InlinePatternMatcher(rootEl, inlinePluginRegistry, inlinePluginCtx, events, blocks))
+    facade.registerDestroyable(new InlinePatternMatcher(
+      rootEl,
+      inlinePluginRegistry,
+      inlinePluginCtx,
+      events,
+      blocks,
+      commands,
+    ))
   }
 
   const clipboard = new Clipboard(rootEl, {
-    blocks, selection, plugins, defaultBlockType, crossBlockSelection, events, blockOps, uiActivePredicate,
+    blocks, selection, plugins, defaultBlockType, crossBlockSelection, events, commands,
+    blockOps, inlinePluginRegistry, inlinePluginCtx, diagnostics, uiActivePredicate,
+    captureSnapshot: () => snapshots.capture(),
   })
   facade.registerDestroyable(clipboard)
-  facade.registerDestroyable(new DragManager(rootEl, blocksEl, blocks, toolbar.dragHandle, events, tuning.drag))
+  facade.registerDestroyable(new DragManager(rootEl, blocks, toolbar.dragHandle, events, tuning.drag))
   facade.registerDestroyable(new MouseSelectionManager(rootEl, { blocksEl, clickArea, blocks, selection, events, crossBlockSelection, defaultBlockType }))
 
   // Re-emit block:focused so Toolbar positions itself
@@ -309,11 +398,23 @@ function registerPlugins(pluginList, i18n, defaultBlockType, placeholder) {
   /** @type {Map<string, import('./types').BlockPlugin>} */
   const plugins = new Map()
   for (const plugin of pluginList) {
+    if (!plugin || typeof plugin.type !== 'string' || !plugin.type) {
+      throw new TypeError('Every block plugin must have a non-empty string type')
+    }
+    if (typeof plugin.render !== 'function' || typeof plugin.save !== 'function') {
+      throw new TypeError(`Block plugin "${plugin.type}" must implement render() and save()`)
+    }
+    if (plugins.has(plugin.type)) {
+      throw new Error(`Duplicate block plugin type: "${plugin.type}"`)
+    }
     injectPluginI18n(plugin, i18n)
     if (placeholder && plugin.type === defaultBlockType && /** @type {*} */ (plugin).setPlaceholder) {
       /** @type {*} */ (plugin).setPlaceholder(placeholder)
     }
     plugins.set(plugin.type, plugin)
+  }
+  if (!plugins.has(defaultBlockType)) {
+    throw new Error(`Default block plugin "${defaultBlockType}" is not registered`)
   }
   return plugins
 }
@@ -322,84 +423,167 @@ function registerPlugins(pluginList, i18n, defaultBlockType, placeholder) {
  * Create a new block editor instance.
  *
  * @param {import('./types').EditorConfig} config
- * @returns {EditorFacade}
+ * @returns {import('./types').IEditor}
  */
 export function createEditor(config) {
+  if (!(config?.holder instanceof HTMLElement)) {
+    throw new TypeError('createEditor() requires an HTMLElement holder')
+  }
+  if (!Array.isArray(config.plugins)) {
+    throw new TypeError('createEditor() requires a plugins array')
+  }
+
   const readOnly = config.readOnly ?? false
-  const defaultBlockType = config.defaultBlock || DEFAULT_BLOCK_TYPE
+  const defaultBlockType = config.defaultBlock
+    || (config.plugins?.some(plugin => plugin?.type === DEFAULT_BLOCK_TYPE)
+      ? DEFAULT_BLOCK_TYPE
+      : config.plugins?.[0]?.type || DEFAULT_BLOCK_TYPE)
   const theme = config.theme || DEFAULT_THEME
   const tuning = resolveTuning(config.tuning)
 
-  const events = new EventBus()
-  const i18n = initI18n(config)
-  const plugins = registerPlugins(config.plugins, i18n, defaultBlockType, config.placeholder)
+  let rootEl
+  let blocks
+  let inlinePluginRegistry
+  let facade
+  let pluginOwnership
+  const diagnostics = new Diagnostics(config.onDiagnostic, config.diagnosticThresholds)
 
-  const { rootEl, blocksEl, clickArea } = buildEditorDOM(config.holder, theme, config.minHeight)
-
-  const blocks = new BlockManager(blocksEl, plugins, events, tuning.animations)
-  const selection = new SelectionManager(rootEl, blocks)
-
-  // Inline plugin registry must exist BEFORE `populateBlocks` so that any
-  // saved inline widget placeholders in the initial content get rehydrated
-  // (BlockManager.insert → plugin.mapTextFields → deserializeInlineHtml).
-  const inlinePluginRegistry = new InlinePluginRegistry(config.inlinePlugins || [])
-  for (const ip of inlinePluginRegistry.values()) {
-    injectPluginI18n(ip, i18n)
-  }
-  i18n.freeze()
-  blocks.setInlinePluginRegistry(inlinePluginRegistry)
-
-  populateBlocks(blocks, config.data?.blocks, defaultBlockType)
-  blocks.setCurrentIndex(0)
-  blocks.enableAnimations()
-
-  const crossBlockSelection = new CrossBlockSelection()
-
-  const inlinePluginCtx = new PopupManager(events, EditorEvent.CHANGED)
-  inlinePluginCtx.setRoot(rootEl)
-
-  if (inlinePluginRegistry.size > 0) {
-    for (const block of blocks) {
-      hydrateInlinePlugins(block.contentElement, inlinePluginRegistry, inlinePluginCtx)
-    }
-  }
-
-  const facade = new EditorFacade(rootEl, blocks, selection, events, config, inlinePluginRegistry, inlinePluginCtx, crossBlockSelection)
-  facade.registerDestroyable(inlinePluginCtx)
-  const changeNotifier = new ChangeNotifier(() => facade.save(), config.onChange, tuning.change.debounceMs)
-  facade.registerDestroyable(changeNotifier)
-
-  facade.registerDestroyable(wireInputTracking(rootEl, blocks, events))
-
-  events.on(EditorEvent.CHANGED, () => changeNotifier.schedule())
-
-  if (!readOnly) {
-    wireEditMode({
-      rootEl, blocksEl, clickArea, plugins, blocks, selection,
-      i18n, events, crossBlockSelection, defaultBlockType,
-      inlinePluginRegistry, inlinePluginCtx, facade, tuning, config,
+  try {
+    pluginOwnership = claimPluginInstances([
+      ...config.plugins,
+      ...(config.inlinePlugins || []),
+    ])
+    const events = new EventBus()
+    const documentSchema = new DocumentSchema({
+      migrations: config.migrations,
+      versionPolicy: config.documentVersionPolicy,
+      diagnostics,
     })
+    const i18n = initI18n(config)
+    const plugins = registerPlugins(config.plugins, i18n, defaultBlockType, config.placeholder)
+
+    const dom = buildEditorDOM(config.holder, theme, config.minHeight)
+    rootEl = dom.rootEl
+    const { blocksEl, clickArea } = dom
+
+    blocks = new BlockManager(
+      blocksEl,
+      plugins,
+      events,
+      tuning.animations,
+      readOnly,
+      type => i18n.t('block.unsupported', { type }),
+    )
+    const commands = new CommandDispatcher(blocks, events, diagnostics)
+    blocks.setCommandDispatcher(commands)
+    const selection = new SelectionManager(rootEl, blocks)
+
+    // Register inline plugins before inserting blocks so saved inline widget
+    // placeholders can be rehydrated as each block enters the document.
+    inlinePluginRegistry = new InlinePluginRegistry(config.inlinePlugins || [])
+    for (const ip of inlinePluginRegistry.values()) {
+      injectPluginI18n(ip, i18n)
+    }
+    i18n.freeze()
+    blocks.setInlinePluginRegistry(inlinePluginRegistry)
+
+    const initialDocument = config.data ? documentSchema.normalize(config.data) : null
+    blocks.prepareReplacement(initialDocument?.blocks, defaultBlockType, 'createEditor').commit()
+    blocks.setCurrentIndex(0)
+    blocks.enableAnimations()
+    config.holder.appendChild(rootEl)
+
+    const crossBlockSelection = new CrossBlockSelection()
+
+    const inlinePluginCtx = new PopupManager(events, EditorEvent.CHANGED, blocks, commands)
+    inlinePluginCtx.setRoot(rootEl)
+    inlinePluginRegistry.mount(rootEl, inlinePluginCtx)
+
+    if (inlinePluginRegistry.size > 0) {
+      for (const block of blocks) {
+        hydrateInlinePlugins(block.contentElement, inlinePluginRegistry, inlinePluginCtx)
+      }
+    }
+
+    const snapshots = new DocumentSnapshotStore(
+      blocks,
+      inlinePluginRegistry,
+      config,
+      diagnostics,
+      initialDocument?.version ?? documentSchema.currentVersion,
+    )
+    const publicBlocks = new EditorBlocksApi(blocks)
+    const publicEvents = new EditorEventSubscriptions(events)
+    facade = new EditorFacade(
+      rootEl,
+      blocks,
+      selection,
+      events,
+      defaultBlockType,
+      inlinePluginRegistry,
+      inlinePluginCtx,
+      crossBlockSelection,
+      commands,
+      documentSchema,
+      diagnostics,
+      snapshots,
+      publicBlocks,
+      publicEvents,
+    )
+    facade.registerDestroyable(pluginOwnership)
+    facade.registerDestroyable(inlinePluginCtx)
+    facade.registerDestroyable(inlinePluginRegistry)
+    commands.configureRollback(
+      () => snapshots.capture(),
+      document => facade.render(document),
+    )
+    const changeNotifier = new ChangeNotifier(() => facade.save(), config.onChange, tuning.change.debounceMs)
+    facade.registerDestroyable(changeNotifier)
+    events.on(EditorEvent.CHANGED, () => changeNotifier.schedule())
+
+    if (!readOnly) {
+      facade.registerDestroyable(wireInputTracking(rootEl, blocks, events))
+      wireEditMode({
+        rootEl, blocksEl, clickArea, plugins, blocks, selection,
+        i18n, events, commands, crossBlockSelection, defaultBlockType,
+        inlinePluginRegistry, inlinePluginCtx, facade, snapshots, tuning, config, diagnostics,
+      })
+    }
+
+    const styleCleanup = injectPluginStyles(plugins)
+    if (styleCleanup) facade.registerDestroyable(styleCleanup)
+
+    if (config.autofocus && !readOnly) {
+      facade.focus()
+    }
+
+    facade.markReady()
+    events.emit(EditorEvent.READY)
+
+    if (config.onReady) {
+      queueMicrotask(() => {
+        if (facade.isReady) config.onReady()
+      })
+    }
+
+    return new EditorHandle(facade)
+  } catch (error) {
+    diagnostics.emit('editor.create.failed', { errorName: diagnostics.errorName(error) })
+    if (facade) {
+      facade.destroy()
+    } else {
+      blocks?.clear()
+      inlinePluginRegistry?.destroy()
+      pluginOwnership?.destroy()
+      rootEl?.remove()
+    }
+    throw error
   }
-
-  const styleCleanup = injectPluginStyles(plugins)
-  if (styleCleanup) facade.registerDestroyable(styleCleanup)
-
-  if (config.autofocus) {
-    facade.focus()
-  }
-
-  facade.markReady()
-  events.emit(EditorEvent.READY)
-
-  if (config.onReady) {
-    queueMicrotask(() => config.onReady())
-  }
-
-  return facade
 }
 
+export { DocumentSchema } from './DocumentSchema.js'
+
 // ── Public API ──────────────────────────────────────────────────────────────
-export { EditorFacade } from './EditorFacade.js'
 export { uid } from './uid.js'
 export { sanitizeHtml, escapeHtml } from './sanitize.js'
 export { createDefaultInlineTools } from '../inline-tools/defaults.js'

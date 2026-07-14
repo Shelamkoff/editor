@@ -1,5 +1,6 @@
 import { resolvePath } from '../../shared/resolvePath.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
+import { validateRawData } from '../../shared/blockDataValidators.js'
 
 const editorStyles = resolvePath('./raw.css', import.meta.url)
 
@@ -25,7 +26,7 @@ export class Raw extends BlockPluginAbstract {
    * @param {{ html?: string }} data
    * @returns {HTMLElement}
    */
-  render(data) {
+  render(data, context) {
     const wrapper = document.createElement('div')
     wrapper.classList.add('oe-raw')
     wrapper.contentEditable = 'false'
@@ -43,11 +44,13 @@ export class Raw extends BlockPluginAbstract {
     toggleBtn.type = 'button'
     toggleBtn.className = 'oe-raw__toggle'
     toggleBtn.textContent = this._t('preview', 'Preview')
+    toggleBtn.setAttribute('aria-pressed', 'false')
     toggleBtn.addEventListener('mousedown', (e) => e.preventDefault())
     toggleBtn.addEventListener('click', () => {
       const s = stateMap.get(wrapper)
       if (s) {
         s.showPreview = !s.showPreview
+        toggleBtn.setAttribute('aria-pressed', String(s.showPreview))
         this.#syncPreview(wrapper)
       }
     })
@@ -62,16 +65,18 @@ export class Raw extends BlockPluginAbstract {
     textarea.spellcheck = false
     textarea.addEventListener('input', () => {
       this.#autoResize(textarea)
-      wrapper.dispatchEvent(new InputEvent('input', { bubbles: true }))
     })
     textarea.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') e.stopPropagation()
       if (e.key === 'Tab') {
         e.preventDefault()
-        const start = textarea.selectionStart
-        const end = textarea.selectionEnd
-        textarea.value = textarea.value.substring(0, start) + '  ' + textarea.value.substring(end)
-        textarea.selectionStart = textarea.selectionEnd = start + 2
+        context.mutate(() => {
+          const start = textarea.selectionStart
+          const end = textarea.selectionEnd
+          textarea.value = textarea.value.substring(0, start) + '  ' + textarea.value.substring(end)
+          textarea.selectionStart = textarea.selectionEnd = start + 2
+          this.#autoResize(textarea)
+        })
       }
     })
 
@@ -103,7 +108,7 @@ export class Raw extends BlockPluginAbstract {
    * @returns {boolean}
    */
   validate(data) {
-    return !!data?.html?.trim()
+    return validateRawData(data)
   }
 
   /**
@@ -150,14 +155,18 @@ export class Raw extends BlockPluginAbstract {
       s.preview.textContent = ''
       const iframe = document.createElement('iframe')
       iframe.sandbox = ''
+      iframe.title = this._t('previewFrame', 'HTML preview')
       iframe.style.cssText = 'width:100%;border:none;min-height:100px'
+      iframe.srcdoc = s.textarea.value
       s.preview.appendChild(iframe)
-      iframe.contentDocument?.open()
-      iframe.contentDocument?.write(s.textarea.value)
-      iframe.contentDocument?.close()
       const resizeIframe = () => {
-        const h = iframe.contentDocument?.documentElement?.scrollHeight
-        if (h) iframe.style.height = h + 'px'
+        try {
+          const h = iframe.contentDocument?.documentElement?.scrollHeight
+          if (h) iframe.style.height = h + 'px'
+        } catch {
+          // A sandboxed srcdoc intentionally has an opaque origin in browsers
+          // that enforce it here. The minimum height remains the safe fallback.
+        }
       }
       iframe.addEventListener('load', resizeIframe)
       requestAnimationFrame(resizeIframe)

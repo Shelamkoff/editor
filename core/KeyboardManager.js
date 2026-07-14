@@ -60,14 +60,27 @@ export class KeyboardManager {
    * @param {KeyboardEvent} e
    */
   #onKeyDown = (e) => {
-    // Skip when interactive UI overlay is active (dropdown, actions panel).
-    // The overlay handles its own keyboard events.
-    if (this.#isUIActive?.()) return
-
-    // Only process keyboard events originating from block content or the editor root.
-    // Events from toolbar UI (inputs, buttons) are not editor commands.
     const target = /** @type {HTMLElement} */ (e.target)
-    if (target !== this.#rootEl && !target.closest?.(BLOCK_SELECTOR)) return
+    const isBlockTarget = target === this.#rootEl || !!target.closest?.(BLOCK_SELECTOR)
+
+    // Editor-scoped history must run before overlay routing. Otherwise an open
+    // actions panel/dropdown lets the browser execute its own contenteditable
+    // DOM history, whose order is unrelated to the editor's block history.
+    if (isBlockTarget && this.#shortcuts.handle(e, 'editor')) return
+
+    // Document-level shortcuts (currently undo/redo) remain available while a
+    // non-text editor control owns focus. Native history in inputs, textareas,
+    // selects, and auxiliary contenteditables must never be intercepted.
+    if (!isBlockTarget) {
+      const isEditorControl = this.#rootEl.contains(target)
+      const ownsNativeHistory = !!target.closest?.('input, textarea, select, [contenteditable="true"]')
+      if (isEditorControl && !ownsNativeHistory) this.#shortcuts.handle(e, 'editor')
+      return
+    }
+
+    // Skip block commands when interactive UI overlay is active. The overlay
+    // handles its own keyboard events.
+    if (this.#isUIActive?.()) return
 
     // 0. If blocks are selected, handle delete/backspace to remove them
     if (this.#blocks.hasSelectedBlocks()) {
@@ -82,7 +95,9 @@ export class KeyboardManager {
       }
     }
 
-    // 1. Try registered shortcuts (Mod+Z, Mod+B, plugin shortcuts...)
+    // 1. Try content-scoped shortcuts (Mod+B, plugin shortcuts...). Editor-
+    // scoped history was already offered above and will not match again here
+    // because a handled event returned immediately.
     if (this.#shortcuts.handle(e)) return
 
     // 2. Structural keys
@@ -138,9 +153,6 @@ export class KeyboardManager {
         }
         return
 
-      case 'Tab':
-        e.preventDefault()
-        return
     }
 
     // 3. Cmd+A — select all in block, then all blocks
@@ -214,14 +226,15 @@ export class KeyboardManager {
    */
   #deleteSelectedBlocks() {
     this.#events.emit(EditorEvent.UNDO_BATCH_START)
-
-    const result = this.#blocks.removeSelected(this.#defaultBlockType)
-    if (result) {
-      this.#blocks.setCurrentIndex(result.focusIndex)
-      const focusBlock = this.#blocks.getBlockByIndex(result.focusIndex)
-      if (focusBlock) focusBlock.focus()
+    try {
+      const result = this.#blocks.removeSelected(this.#defaultBlockType)
+      if (result) {
+        this.#blocks.setCurrentIndex(result.focusIndex)
+        const focusBlock = this.#blocks.getBlockByIndex(result.focusIndex)
+        if (focusBlock) focusBlock.focus()
+      }
+    } finally {
+      this.#events.emit(EditorEvent.UNDO_BATCH_END)
     }
-
-    this.#events.emit(EditorEvent.UNDO_BATCH_END)
   }
 }

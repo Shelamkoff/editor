@@ -1,6 +1,6 @@
 // @ts-check
 import { resolvePath } from '../../../shared/resolvePath.js'
-import { mapTextFields } from '../../../plugins/quote/mapTextFields.js'
+import { mapQuoteTextFields as mapTextFields } from '../../../shared/mapTextFields.js'
 
 const styles = resolvePath('./styles.css', import.meta.url)
 
@@ -24,10 +24,10 @@ export function createQuoteRenderer(classPrefix, _locale) {
      * @returns {HTMLElement}
      */
     render(block, parseInline) {
-      const { text, caption, alignment = 'left' } = block.data
+      const { text, caption } = block.data
 
       const blockquote = document.createElement('blockquote')
-      blockquote.className = `${classPrefix}-quote ${classPrefix}-quote--${alignment}`
+      blockquote.className = `${classPrefix}-quote`
 
       const icon = document.createElement('span')
       icon.className = `${classPrefix}-quote__icon`

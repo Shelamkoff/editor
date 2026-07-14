@@ -2,7 +2,6 @@ import {
   saveSelectionOffsets,
   restoreSelectionOffsets,
   clearCrossBlockRange,
-  notifyEditorChanged,
 } from './utils.js'
 import { editableTextWalker } from '../core/textOffset.js'
 
@@ -79,7 +78,6 @@ export function createCaseTransformTool(label, cbs = null) {
         clearCrossBlockRange(cbs)
       }
 
-      notifyEditorChanged(range.startContainer)
     },
   }
 }

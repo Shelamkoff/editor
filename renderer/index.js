@@ -1,23 +1,43 @@
 // @ts-check
-import { UnknownBlockTypeError } from './errors.js'
+import { InvalidBlockDataError, UnknownBlockTypeError } from './errors.js'
 import { createInlineParser } from './inline.js'
 import { createDefaultRenderers, getSupportedBlockTypes } from './renderers/index.js'
 import { resolvePath } from '../shared/resolvePath.js'
 import { deserializeInlineHtml } from '../shared/inlineMarshal.js'
+import { cloneEditorData } from '../shared/cloneEditorData.js'
 import defaultLocale from './locale/en.js'
+import { acquireStyleUrls } from '../shared/styleRegistry.js'
+import { validateKnownBlockData } from '../shared/blockDataValidators.js'
 
 const baseCssUrl = resolvePath('./styles/base.css', import.meta.url)
 
 /**
- * Renders Ophire Editor blocks to DOM elements.
+ * Renders Rector document blocks to DOM elements.
  */
 export class EditorRenderer {
-  /** @type {{ classPrefix: string, throwOnUnknown: boolean, theme: 'dark' | 'light' }} */
+  /** @type {{ classPrefix: string, throwOnUnknown: boolean, theme: 'dark' | 'light', validationMode: 'preserve' | 'strict', onValidationError?: (issue: { blockId?: string, type: string }) => void }} */
   #config
   /** @type {Map<string, import('./types').BlockRenderer>} */
   #renderers
   /** @type {Map<string, import('./types').InlinePluginLike>} */
   #inlinePlugins
+  /** @type {Map<HTMLElement, { wrapper: HTMLElement, blocks: Map<string, { element: HTMLElement, type: string, signature: string, renderer?: import('./types').BlockRenderer }> }>} */
+  #mountedContainers = new Map()
+
+  /** Results returned by render(); keyed by their document wrapper. */
+  /** @type {Map<HTMLElement, Array<{ element: HTMLElement, type: string, renderer?: import('./types').BlockRenderer }>>} */
+  #detachedDocuments = new Map()
+
+  /** Results returned directly by renderBlock(). */
+  /** @type {Map<HTMLElement, { element: HTMLElement, type: string, renderer?: import('./types').BlockRenderer }>} */
+  #detachedBlocks = new Map()
+
+  /** @type {Map<string, number>} */
+  #rendererRevisions = new Map()
+
+  /** Built-in types use the same neutral validators as their editor plugins. */
+  #defaultRendererTypes = new Set()
+
   /** @type {import('./types').InlineParser} */
   #parseInline
 
@@ -27,9 +47,17 @@ export class EditorRenderer {
       classPrefix: config.classPrefix ?? 'editor',
       throwOnUnknown: config.throwOnUnknown ?? true,
       theme: config.theme ?? 'dark',
+      validationMode: config.validationMode ?? 'preserve',
+      onValidationError: config.onValidationError,
     }
     const locale = { ...defaultLocale, ...config.locale }
-    this.#renderers = createDefaultRenderers(this.#config.classPrefix, locale)
+    this.#renderers = createDefaultRenderers(
+      this.#config.classPrefix,
+      locale,
+      config.blockTypes,
+      config.blockConfigs,
+    )
+    this.#defaultRendererTypes = new Set(this.#renderers.keys())
     this.#parseInline = createInlineParser(this.#config.classPrefix)
 
     // Inline plugin registry (for rehydrating `{{<id>}}` placeholder
@@ -48,7 +76,9 @@ export class EditorRenderer {
    * @returns {this}
    */
   registerRenderer(renderer) {
+    this.#rendererRevisions.set(renderer.type, (this.#rendererRevisions.get(renderer.type) ?? 0) + 1)
     this.#renderers.set(renderer.type, renderer)
+    this.#defaultRendererTypes.delete(renderer.type)
     return this
   }
 
@@ -58,7 +88,9 @@ export class EditorRenderer {
    * @returns {this}
    */
   unregisterRenderer(type) {
+    this.#rendererRevisions.set(type, (this.#rendererRevisions.get(type) ?? 0) + 1)
     this.#renderers.delete(type)
+    this.#defaultRendererTypes.delete(type)
     return this
   }
 
@@ -85,6 +117,19 @@ export class EditorRenderer {
    * @returns {HTMLElement}
    */
   renderBlock(block) {
+    const entry = this.#createRenderedBlock(block)
+    this.#detachedBlocks.set(entry.element, entry)
+    return entry.element
+  }
+
+  /**
+   * Create a block together with the exact renderer that owns its resources.
+   * Internal aggregate rendering uses this method so ownership is registered
+   * exactly once by the public operation that returns or mounts the result.
+   * @param {import('./types').OutputBlockData} block
+   * @returns {{ element: HTMLElement, type: string, renderer?: import('./types').BlockRenderer }}
+   */
+  #createRenderedBlock(block) {
     const renderer = this.#renderers.get(block.type)
 
     if (!renderer) {
@@ -96,7 +141,19 @@ export class EditorRenderer {
       const placeholder = document.createElement('div')
       placeholder.className = `${this.#config.classPrefix}-unknown`
       placeholder.dataset.blockType = block.type
-      return placeholder
+      return { element: placeholder, type: block.type }
+    }
+
+    if (this.#defaultRendererTypes.has(block.type) && !validateKnownBlockData(block.type, block.data)) {
+      const issue = { blockId: block.id, type: block.type }
+      try {
+        this.#config.onValidationError?.(issue)
+      } catch {
+        // Consumer diagnostics must not break rendering or alter validation.
+      }
+      if (this.#config.validationMode === 'strict') {
+        throw new InvalidBlockDataError(block.type, 'Block data does not match its schema', block.id)
+      }
     }
 
     // Rehydrate inline widget placeholders before calling the block
@@ -107,7 +164,7 @@ export class EditorRenderer {
       const inline = block.inline
       const registry = this.#inlinePlugins
       // Clone `data` so we don't mutate the caller's object with hydrated HTML.
-      const hydratedData = { ...block.data }
+      const hydratedData = cloneEditorData(block.data)
       renderer.mapTextFields(
         /** @type {Record<string, unknown>} */ (hydratedData),
         (html) => deserializeInlineHtml(html, inline, registry),
@@ -116,13 +173,17 @@ export class EditorRenderer {
     }
 
     const element = renderer.render(renderableBlock, this.#parseInline)
+    if (!(element instanceof HTMLElement)) {
+      throw new TypeError(`Block renderer "${block.type}" render() must return an HTMLElement`)
+    }
 
     // Add block id as data attribute if present
     if (block.id) {
       element.dataset.blockId = block.id
     }
 
-    return element
+    element.dataset.blockType = block.type
+    return { element, type: block.type, renderer }
   }
 
   /**
@@ -136,24 +197,162 @@ export class EditorRenderer {
     wrapper.className = `${this.#config.classPrefix}-content`
       + (theme === 'light' ? ` ${this.#config.classPrefix}-content--light` : '')
 
-    if (data.blocks?.length) {
-      for (const block of data.blocks) {
-        wrapper.appendChild(this.renderBlock(block))
+    /** @type {Array<{ element: HTMLElement, type: string, renderer?: import('./types').BlockRenderer }>} */
+    const created = []
+    try {
+      if (data.blocks?.length) {
+        for (const block of data.blocks) {
+          const entry = this.#createRenderedBlock(block)
+          created.push(entry)
+          wrapper.appendChild(entry.element)
+        }
       }
+    } catch (error) {
+      for (const entry of created) this.#disposeRenderedElement(entry)
+      throw error
     }
 
+    this.#detachedDocuments.set(wrapper, created)
     return wrapper
   }
 
   /**
-   * Render all blocks to a container element
+   * Release resources owned by one rendered block.
+   * @param {{ element: HTMLElement, type: string, renderer?: import('./types').BlockRenderer }} entry
+   */
+  #disposeRenderedElement(entry) {
+    try {
+      entry.renderer?.destroy?.(entry.element)
+    } catch (err) {
+      console.warn('[EditorRenderer] Failed to destroy renderer "' + entry.type + '":', err)
+    }
+  }
+
+  /**
+   * Prefer a producer-owned O(1) content revision. Plain JSON documents keep
+   * the deep signature fallback and therefore retain in-place mutation
+   * detection without requiring a new contract.
+   * @param {import('./types').OutputBlockData} block
+   * @param {number} rendererRevision
+   */
+  #blockSignature(block, rendererRevision) {
+    if (typeof block.revision === 'string' || typeof block.revision === 'number') {
+      return JSON.stringify([rendererRevision, block.type, block.revision])
+    }
+    return JSON.stringify([rendererRevision, block.type, block.data, block.inline ?? null])
+  }
+
+  /**
+   * Incrementally render blocks to a container. Stable block ids reuse their
+   * DOM and renderer resources; changed blocks alone are replaced.
    * @param {import('./types').OutputData} data
    * @param {HTMLElement} container
    * @returns {void}
    */
   renderTo(data, container) {
-    container.innerHTML = ''
-    container.appendChild(this.render(data))
+    const mounted = this.#mountedContainers.get(container)
+    const wrapper = mounted?.wrapper ?? document.createElement('div')
+    if (!mounted) {
+      const theme = this.#config.theme
+      wrapper.className = this.#config.classPrefix + '-content'
+        + (theme === 'light' ? ' ' + this.#config.classPrefix + '-content--light' : '')
+    }
+
+    const previous = mounted?.blocks ?? new Map()
+    /** @type {Map<string, { element: HTMLElement, type: string, signature: string, renderer?: import('./types').BlockRenderer }>} */
+    const next = new Map()
+    /** @type {HTMLElement[]} */
+    const ordered = []
+    /** @type {Array<{ element: HTMLElement, type: string, renderer?: import('./types').BlockRenderer }>} */
+    const created = []
+    /** @type {Map<string, number>} */
+    const occurrences = new Map()
+
+    try {
+      const blocks = data.blocks ?? []
+      for (let index = 0; index < blocks.length; index++) {
+        const block = blocks[index]
+        const baseKey = block.id ? 'id:' + block.id : 'index:' + index
+        const occurrence = occurrences.get(baseKey) ?? 0
+        occurrences.set(baseKey, occurrence + 1)
+        const key = baseKey + '#' + occurrence
+        const revision = this.#rendererRevisions.get(block.type) ?? 0
+        const signature = this.#blockSignature(block, revision)
+        const existing = previous.get(key)
+
+        let element
+        let owner
+        if (existing && existing.type === block.type && existing.signature === signature) {
+          element = existing.element
+          owner = existing.renderer
+        } else {
+          const entry = this.#createRenderedBlock(block)
+          owner = entry.renderer
+          element = entry.element
+          created.push(entry)
+        }
+
+        next.set(key, { element, type: block.type, signature, renderer: owner })
+        ordered.push(element)
+      }
+    } catch (error) {
+      for (const entry of created) this.#disposeRenderedElement(entry)
+      throw error
+    }
+
+    for (const [key, entry] of previous) {
+      if (next.get(key)?.element !== entry.element) {
+        this.#disposeRenderedElement(entry)
+      }
+    }
+
+    wrapper.replaceChildren(...ordered)
+    if (wrapper.parentNode !== container || container.childNodes.length !== 1) {
+      container.replaceChildren(wrapper)
+    }
+    this.#mountedContainers.set(container, { wrapper, blocks: next })
+  }
+
+  /**
+   * Dispose one result returned by renderBlock()/render(), one renderTo()
+   * container, or every resource owned by this renderer instance.
+   * @param {HTMLElement} [target]
+   */
+  destroy(target) {
+    const containers = target
+      ? (this.#mountedContainers.has(target) ? [target] : [])
+      : [...this.#mountedContainers.keys()]
+    for (const target of containers) {
+      const mounted = this.#mountedContainers.get(target)
+      if (mounted) {
+        for (const entry of mounted.blocks.values()) {
+          this.#disposeRenderedElement(entry)
+        }
+      }
+      this.#mountedContainers.delete(target)
+      target.replaceChildren()
+    }
+
+    const documents = target
+      ? (this.#detachedDocuments.has(target) ? [target] : [])
+      : [...this.#detachedDocuments.keys()]
+    for (const wrapper of documents) {
+      for (const entry of this.#detachedDocuments.get(wrapper) ?? []) {
+        this.#disposeRenderedElement(entry)
+      }
+      this.#detachedDocuments.delete(wrapper)
+      wrapper.replaceChildren()
+    }
+
+    const blocks = target
+      ? (this.#detachedBlocks.has(target) ? [target] : [])
+      : [...this.#detachedBlocks.keys()]
+    for (const element of blocks) {
+      const entry = this.#detachedBlocks.get(element)
+      if (entry) this.#disposeRenderedElement(entry)
+      this.#detachedBlocks.delete(element)
+      element.replaceChildren()
+    }
   }
 
   /**
@@ -186,25 +385,7 @@ export class EditorRenderer {
    * @returns {{ destroy(): void }}
    */
   injectStyles() {
-    const urls = this.getStyleUrls()
-    /** @type {HTMLLinkElement[]} */
-    const links = []
-
-    for (const url of urls) {
-      if (document.querySelector(`link[href="${CSS.escape(url)}"]`)) continue
-      const link = document.createElement('link')
-      link.rel = 'stylesheet'
-      link.href = url
-      link.dataset.editorRenderer = ''
-      document.head.appendChild(link)
-      links.push(link)
-    }
-
-    return {
-      destroy() {
-        for (const link of links) link.remove()
-      }
-    }
+    return acquireStyleUrls(this.getStyleUrls())
   }
 }
 

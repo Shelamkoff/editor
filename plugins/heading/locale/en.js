@@ -6,4 +6,5 @@ export default {
   'plugin.heading.h5': 'Heading 5',
   'plugin.heading.h6': 'Heading 6',
   'plugin.heading.placeholder': 'Heading {level}',
+  'plugin.heading.level': 'Heading level',
 }

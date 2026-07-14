@@ -5,9 +5,8 @@ import {
   normalizeAfterEdit,
   saveSelectionOffsets,
   restoreSelectionOffsets,
-  notifyEditorChanged,
 } from './utils.js'
-import { ColorPicker, parseRgbCss } from '../../color-picker/index.js'
+import { ColorPicker, parseRgbCss } from '@shelamkoff/color-picker'
 
 /**
  * Find the closest <span> with inline background-color on the selection anchor.
@@ -46,6 +45,18 @@ export function createBgColorTool(label, cbs = null) {
 
   /** @type {ColorPicker | null} */
   let picker = null
+  /** @type {import('../core/types').InlineMutationContext | null} */
+  let mutations = null
+
+  /**
+   * @template T
+   * @param {Range} range
+   * @param {() => T} operation
+   * @returns {T}
+   */
+  function mutate(range, operation) {
+    return mutations ? mutations.mutate(range, operation) : operation()
+  }
 
   function openPicker() {
     if (!picker) return
@@ -114,6 +125,7 @@ export function createBgColorTool(label, cbs = null) {
    * @param {{ saved: import('./utils.js').SavedOffsets }} ctx
    */
   function finalizeSelection(ctx) {
+    ctx.singleCe?.focus({ preventScroll: true })
     restoreSelectionOffsets(cbs, ctx.saved)
     // Update savedRange from restored selection
     if (!ctx.saved.crossOffsets) {
@@ -123,7 +135,6 @@ export function createBgColorTool(label, cbs = null) {
       }
     }
     closePicker()
-    notifyEditorChanged(savedRange?.startContainer)
   }
 
   /** @param {string} color */
@@ -132,30 +143,32 @@ export function createBgColorTool(label, cbs = null) {
     const ctx = prepareSelectionContext()
     if (!ctx) { closePicker(); return }
 
-    if (ctx.walkRoot) {
-      const targets = collectTextTargets(ctx.walkRoot, ctx.range)
+    mutate(ctx.range, () => {
+      if (ctx.walkRoot) {
+        const targets = collectTextTargets(ctx.walkRoot, ctx.range)
 
-      for (let i = targets.length - 1; i >= 0; i--) {
-        const t = targets[i]
-        if (!t) continue
-        const { node, startOffset, endOffset } = t
-        let targetNode = node
-        if (endOffset < node.length) node.splitText(endOffset)
-        if (startOffset > 0) targetNode = /** @type {Text} */ (node.splitText(startOffset))
+        for (let i = targets.length - 1; i >= 0; i--) {
+          const t = targets[i]
+          if (!t) continue
+          const { node, startOffset, endOffset } = t
+          let targetNode = node
+          if (endOffset < node.length) node.splitText(endOffset)
+          if (startOffset > 0) targetNode = /** @type {Text} */ (node.splitText(startOffset))
 
-        const parentEl = targetNode.parentElement
-        if (parentEl?.tagName === 'SPAN' && parentEl.style.backgroundColor) {
-          parentEl.style.backgroundColor = color
-        } else {
-          const wrapper = document.createElement('span')
-          wrapper.style.backgroundColor = color
-          targetNode.parentNode?.insertBefore(wrapper, targetNode)
-          wrapper.appendChild(targetNode)
+          const parentEl = targetNode.parentElement
+          if (parentEl?.tagName === 'SPAN' && parentEl.style.backgroundColor) {
+            parentEl.style.backgroundColor = color
+          } else {
+            const wrapper = document.createElement('span')
+            wrapper.style.backgroundColor = color
+            targetNode.parentNode?.insertBefore(wrapper, targetNode)
+            wrapper.appendChild(targetNode)
+          }
         }
-      }
 
-      normalizeAfterEdit(ctx.singleCe, ctx.walkRoot)
-    }
+        normalizeAfterEdit(ctx.singleCe, ctx.walkRoot)
+      }
+    })
 
     if (dotEl) dotEl.style.backgroundColor = color
     finalizeSelection(ctx)
@@ -165,23 +178,25 @@ export function createBgColorTool(label, cbs = null) {
     const ctx = prepareSelectionContext()
     if (!ctx) { closePicker(); return }
 
-    if (ctx.walkRoot) {
-      const spans = Array.from(ctx.walkRoot.querySelectorAll('span'))
-      for (const span of spans) {
-        if (!span.style.backgroundColor || !ctx.range.intersectsNode(span)) continue
-        if (span.style.length > 1) {
-          span.style.removeProperty('background-color')
-          if (!span.getAttribute('style') && !span.getAttribute('class')) {
+    mutate(ctx.range, () => {
+      if (ctx.walkRoot) {
+        const spans = Array.from(ctx.walkRoot.querySelectorAll('span'))
+        for (const span of spans) {
+          if (!span.style.backgroundColor || !ctx.range.intersectsNode(span)) continue
+          if (span.style.length > 1) {
+            span.style.removeProperty('background-color')
+            if (!span.getAttribute('style') && !span.getAttribute('class')) {
+              while (span.firstChild) span.parentNode?.insertBefore(span.firstChild, span)
+              span.remove()
+            }
+          } else {
             while (span.firstChild) span.parentNode?.insertBefore(span.firstChild, span)
             span.remove()
           }
-        } else {
-          while (span.firstChild) span.parentNode?.insertBefore(span.firstChild, span)
-          span.remove()
         }
+        normalizeAfterEdit(ctx.singleCe, ctx.walkRoot)
       }
-      normalizeAfterEdit(ctx.singleCe, ctx.walkRoot)
-    }
+    })
     if (dotEl) dotEl.style.backgroundColor = '#ffffff'
     lastColor = '#ffffff'
     finalizeSelection(ctx)
@@ -226,7 +241,8 @@ export function createBgColorTool(label, cbs = null) {
       }
     },
 
-    onMount(button) {
+    onMount(button, mutationContext) {
+      mutations = mutationContext ?? null
       btnEl = button
       dotEl = button.querySelector('.oe-inline-tool__color-dot')
       if (dotEl) dotEl.style.backgroundColor = lastColor
@@ -248,6 +264,7 @@ export function createBgColorTool(label, cbs = null) {
       document.removeEventListener('mousedown', onDocMouseDown, true)
       picker?.destroy()
       picker = null
+      mutations = null
     },
   }
 }

@@ -22,10 +22,11 @@ export function createToggleRenderer(classPrefix, _locale) {
          * @returns {HTMLElement}
          */
         render(block, parseInline) {
-            const { title, content } = block.data
+            const { title, content, open } = block.data
 
             const details = document.createElement('details')
             details.className = `${classPrefix}-toggle`
+            details.open = open === true
 
             const summary = document.createElement('summary')
             summary.className = `${classPrefix}-toggle__summary`

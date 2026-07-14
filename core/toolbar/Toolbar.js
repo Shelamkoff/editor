@@ -93,10 +93,12 @@ export class Toolbar {
    * @property {import('../types').ISelectionManager} selection
    * @property {import('../I18n').I18n} i18n
    * @property {import('../types').IEventBus} events
+   * @property {import('../CommandDispatcher').CommandDispatcher} commands
    * @property {import('../types').ICrossBlockSelection} crossBlockSelection
    * @property {import('../BlockOperations').BlockOperations} blockOps
    * @property {string} [defaultBlockType]
    * @property {import('../InlinePluginRegistry').InlinePluginRegistry} [inlinePluginRegistry]
+   * @property {(current: import('../types').IBlock, index: number) => import('../types').IBlock | undefined} duplicateBlock
    * @property {{ filterThreshold?: number, mobileBreakpoint?: number, moveAnimationMs?: number }} [tuning]
    */
 
@@ -106,8 +108,8 @@ export class Toolbar {
    */
   constructor(rootEl, config) {
     const {
-      plugins, blocks, selection, i18n, events, crossBlockSelection,
-      blockOps, defaultBlockType, inlinePluginRegistry, tuning,
+      plugins, blocks, selection, i18n, events, commands, crossBlockSelection,
+      blockOps, defaultBlockType, inlinePluginRegistry, duplicateBlock, tuning,
     } = config
 
     this.#rootEl = rootEl
@@ -179,7 +181,11 @@ export class Toolbar {
       },
     })
 
-    this.#settingsMenu = new BlockSettingsMenu(rootEl, blocks, selection, plugins, i18n, events, crossBlockSelection, blockOps, this.#defaultBlockType)
+    this.#settingsMenu = new BlockSettingsMenu(
+      rootEl, blocks, selection, plugins, i18n, events,
+      crossBlockSelection, blockOps, this.#defaultBlockType,
+      duplicateBlock, commands, { mobileBreakpoint },
+    )
     this.#settingsMenu.onClose = () => {
       if (this.#positioner.isMobile()) {
         this.#settingsMenu.menuEl.classList.remove('oe-settings-menu--open')

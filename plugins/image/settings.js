@@ -5,7 +5,7 @@ import { refreshInlineStyles } from './styles.js'
 /**
  * @typedef {Object} SettingsDeps
  * @property {(key: string, fallback: string) => string} t
- * @property {() => void} notifyChanged
+ * @property {(operation: () => void) => void} mutate
  */
 
 /**
@@ -13,8 +13,8 @@ import { refreshInlineStyles } from './styles.js'
  * object fit/position, expand toggle, background toggle/color, and border.
  *
  * Mutations write directly into `state.data.styles` (or `state.data.expanded`
- * etc.) and call `refreshInlineStyles` + `deps.notifyChanged` so undo/save
- * see the change immediately.
+ * etc.) inside the core-owned mutation boundary so undo/save see each
+ * control action immediately.
  *
  * @param {HTMLElement} wrapper
  * @param {import('./state.js').ImageState} state
@@ -44,10 +44,11 @@ function buildStyleForm(wrapper, state, deps) {
   form.addEventListener('click', (e) => e.stopPropagation())
 
   const onStyleChange = (/** @type {string} */ key, /** @type {string} */ value) => {
-    if (value) styles[key] = value
-    else delete styles[key]
-    refreshInlineStyles(wrapper, state)
-    deps.notifyChanged()
+    deps.mutate(() => {
+      if (value) styles[key] = value
+      else delete styles[key]
+      refreshInlineStyles(wrapper, state)
+    })
   }
 
   const makeInput = (/** @type {string} */ key, /** @type {string | undefined} */ value) => {
@@ -77,7 +78,8 @@ function buildStyleForm(wrapper, state, deps) {
     trigger.className = CSS.customSelectTrigger
 
     const triggerText = document.createElement('span')
-    triggerText.textContent = value || 'none'
+    const optionLabel = (/** @type {string} */ option) => deps.t(`value.${option || 'none'}`, option || 'None')
+    triggerText.textContent = optionLabel(value || 'none')
 
     const arrow = document.createElement('span')
     arrow.className = CSS.customSelectArrow
@@ -87,6 +89,9 @@ function buildStyleForm(wrapper, state, deps) {
 
     const optionsList = document.createElement('div')
     optionsList.className = CSS.customSelectOptions
+    optionsList.setAttribute('role', 'listbox')
+    trigger.setAttribute('aria-haspopup', 'listbox')
+    trigger.setAttribute('aria-expanded', 'false')
 
     let currentValue = value || ''
     let isOpen = false
@@ -94,6 +99,7 @@ function buildStyleForm(wrapper, state, deps) {
     const closeSelect = () => {
       isOpen = false
       selectWrapper.classList.remove(CSS.customSelectOpen)
+      trigger.setAttribute('aria-expanded', 'false')
     }
     const openSelect = () => {
       form.querySelectorAll(`.${CSS.customSelectOpen}`).forEach((el) => {
@@ -101,18 +107,22 @@ function buildStyleForm(wrapper, state, deps) {
       })
       isOpen = true
       selectWrapper.classList.add(CSS.customSelectOpen)
+      trigger.setAttribute('aria-expanded', 'true')
     }
 
     const renderOptions = () => {
       optionsList.innerHTML = ''
       for (const opt of options) {
-        const optEl = document.createElement('div')
+        const optEl = document.createElement('button')
+        optEl.type = 'button'
         optEl.className = CSS.customSelectOption
         const isSelected = opt === currentValue
         if (isSelected) optEl.classList.add(CSS.customSelectOptionSelected)
+        optEl.setAttribute('role', 'option')
+        optEl.setAttribute('aria-selected', String(isSelected))
 
         const textSpan = document.createElement('span')
-        textSpan.textContent = opt || 'none'
+        textSpan.textContent = optionLabel(opt)
         optEl.appendChild(textSpan)
 
         if (isSelected) {
@@ -122,14 +132,32 @@ function buildStyleForm(wrapper, state, deps) {
           optEl.appendChild(checkSpan)
         }
 
-        optEl.addEventListener('mousedown', (e) => {
-          e.preventDefault()
-          e.stopPropagation()
+        const selectOption = () => {
           currentValue = opt
-          triggerText.textContent = opt || 'none'
+          triggerText.textContent = optionLabel(opt)
           onStyleChange(key, opt)
           closeSelect()
           renderOptions()
+          trigger.focus()
+        }
+        optEl.addEventListener('mousedown', (e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          selectOption()
+        })
+        optEl.addEventListener('click', selectOption)
+        optEl.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape') {
+            event.preventDefault()
+            closeSelect()
+            trigger.focus()
+          } else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+            event.preventDefault()
+            const siblings = [...optionsList.querySelectorAll('button')]
+            const current = siblings.indexOf(optEl)
+            const direction = event.key === 'ArrowDown' ? 1 : -1
+            siblings[(current + direction + siblings.length) % siblings.length]?.focus()
+          }
         })
         optionsList.appendChild(optEl)
       }
@@ -140,6 +168,12 @@ function buildStyleForm(wrapper, state, deps) {
       e.preventDefault()
       e.stopPropagation()
       isOpen ? closeSelect() : openSelect()
+    })
+    trigger.addEventListener('keydown', (event) => {
+      if (!['Enter', ' ', 'ArrowDown'].includes(event.key)) return
+      event.preventDefault()
+      if (!isOpen) openSelect()
+      optionsList.querySelector('button')?.focus()
     })
 
     document.addEventListener('mousedown', (e) => {
@@ -195,16 +229,20 @@ function buildStyleForm(wrapper, state, deps) {
     const expSwitch = document.createElement('button')
     expSwitch.type = 'button'
     expSwitch.className = `${CSS.switch}${state.data.expanded ? ` ${CSS.switchActive}` : ''}`
+    expSwitch.setAttribute('aria-label', expandLabel)
+    expSwitch.setAttribute('aria-pressed', String(state.data.expanded))
     expSwitch.addEventListener('mousedown', (e) => e.preventDefault(), { signal })
     expSwitch.addEventListener('click', () => {
-      state.data.expanded = !state.data.expanded
-      wrapper.classList.toggle(CSS.expanded, state.data.expanded)
-      expSwitch.classList.toggle(CSS.switchActive, state.data.expanded)
-      widthInput.disabled = state.data.expanded
-      minWidthInput.disabled = state.data.expanded
-      maxWidthInput.disabled = state.data.expanded
-      refreshInlineStyles(wrapper, state)
-      deps.notifyChanged()
+      deps.mutate(() => {
+        state.data.expanded = !state.data.expanded
+        wrapper.classList.toggle(CSS.expanded, state.data.expanded)
+        expSwitch.classList.toggle(CSS.switchActive, state.data.expanded)
+        expSwitch.setAttribute('aria-pressed', String(state.data.expanded))
+        widthInput.disabled = state.data.expanded
+        minWidthInput.disabled = state.data.expanded
+        maxWidthInput.disabled = state.data.expanded
+        refreshInlineStyles(wrapper, state)
+      })
     }, { signal })
 
     expRow.append(expLabel, expSwitch)
@@ -217,15 +255,15 @@ function buildStyleForm(wrapper, state, deps) {
     maxWidthInput.disabled = true
   }
 
-  form.appendChild(makeGroup('Dimensions',
-    makeRow(['W', widthInput], ['H', makeInput('height', styles.height)]),
-    makeRow(['Min W', minWidthInput], ['Min H', makeInput('minHeight', styles.minHeight)]),
-    makeRow(['Max W', maxWidthInput], ['Max H', makeInput('maxHeight', styles.maxHeight)]),
+  form.appendChild(makeGroup(deps.t('dimensions', 'Dimensions'),
+    makeRow([deps.t('widthShort', 'W'), widthInput], [deps.t('heightShort', 'H'), makeInput('height', styles.height)]),
+    makeRow([deps.t('minWidth', 'Min W'), minWidthInput], [deps.t('minHeight', 'Min H'), makeInput('minHeight', styles.minHeight)]),
+    makeRow([deps.t('maxWidth', 'Max W'), maxWidthInput], [deps.t('maxHeight', 'Max H'), makeInput('maxHeight', styles.maxHeight)]),
   ))
 
-  form.appendChild(makeGroup('Display',
-    makeRow(['Fit', makeSelect('objectFit', ['none', 'cover', 'contain', 'fill', 'scale-down'], styles.objectFit)]),
-    makeRow(['Position', makeInput('objectPosition', styles.objectPosition)]),
+  form.appendChild(makeGroup(deps.t('display', 'Display'),
+    makeRow([deps.t('fit', 'Fit'), makeSelect('objectFit', ['none', 'cover', 'contain', 'fill', 'scale-down'], styles.objectFit)]),
+    makeRow([deps.t('position', 'Position'), makeInput('objectPosition', styles.objectPosition)]),
   ))
 
   // Background switch
@@ -240,20 +278,24 @@ function buildStyleForm(wrapper, state, deps) {
   const bgSwitch = document.createElement('button')
   bgSwitch.type = 'button'
   bgSwitch.className = `${CSS.switch}${state.data.withBackground ? ` ${CSS.switchActive}` : ''}`
+  bgSwitch.setAttribute('aria-label', bgLabel)
+  bgSwitch.setAttribute('aria-pressed', String(state.data.withBackground))
   bgSwitch.addEventListener('mousedown', (e) => e.preventDefault(), { signal })
   bgSwitch.addEventListener('click', () => {
-    state.data.withBackground = !state.data.withBackground
-    wrapper.classList.toggle(CSS.withBackground, state.data.withBackground)
-    bgSwitch.classList.toggle(CSS.switchActive, state.data.withBackground)
-    bgColorRow.style.display = state.data.withBackground ? '' : 'none'
-    refreshInlineStyles(wrapper, state)
-    deps.notifyChanged()
+    deps.mutate(() => {
+      state.data.withBackground = !state.data.withBackground
+      wrapper.classList.toggle(CSS.withBackground, state.data.withBackground)
+      bgSwitch.classList.toggle(CSS.switchActive, state.data.withBackground)
+      bgSwitch.setAttribute('aria-pressed', String(state.data.withBackground))
+      bgColorRow.style.display = state.data.withBackground ? '' : 'none'
+      refreshInlineStyles(wrapper, state)
+    })
   }, { signal })
 
   bgSwitchRow.append(bgLabelEl, bgSwitch)
   form.appendChild(bgSwitchRow)
 
-  const bgColorRow = makeRow(['Color', makeColor('backgroundColor', styles.backgroundColor)])
+  const bgColorRow = makeRow([deps.t('color', 'Color'), makeColor('backgroundColor', styles.backgroundColor)])
   bgColorRow.style.display = state.data.withBackground ? '' : 'none'
   form.appendChild(bgColorRow)
 
@@ -261,17 +303,17 @@ function buildStyleForm(wrapper, state, deps) {
   const borderGroup = document.createElement('div')
   borderGroup.className = CSS.styleGroup
 
-  const borderStyleRow = makeRow(['Border', makeSelect('borderStyle', ['none', 'solid', 'dashed'], styles.borderStyle)])
+  const borderStyleRow = makeRow([deps.t('border', 'Border'), makeSelect('borderStyle', ['none', 'solid', 'dashed'], styles.borderStyle)])
   borderGroup.appendChild(borderStyleRow)
 
   const hasBorder = styles.borderStyle && styles.borderStyle !== 'none'
-  const borderColorRow = makeRow(['Color', makeColor('borderColor', styles.borderColor)])
+  const borderColorRow = makeRow([deps.t('color', 'Color'), makeColor('borderColor', styles.borderColor)])
   borderColorRow.style.display = hasBorder ? '' : 'none'
 
-  const borderWidthRow = makeRow(['Width', makeInput('borderWidth', styles.borderWidth)])
+  const borderWidthRow = makeRow([deps.t('width', 'Width'), makeInput('borderWidth', styles.borderWidth)])
   borderWidthRow.style.display = hasBorder ? '' : 'none'
 
-  const borderRadiusRow = makeRow(['Radius', makeInput('borderRadius', styles.borderRadius)])
+  const borderRadiusRow = makeRow([deps.t('radius', 'Radius'), makeInput('borderRadius', styles.borderRadius)])
 
   borderGroup.append(borderColorRow, borderWidthRow, borderRadiusRow)
   form.appendChild(borderGroup)

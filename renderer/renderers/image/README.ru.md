@@ -1,0 +1,40 @@
+# Рендерер Image
+
+Преобразует сохранённый блок `image` в принадлежащий рендереру DOM.
+
+Синхронная точка входа `@shelamkoff/rector/renderer` включает все встроенные рендереры, поэтому до её импорта установите `@shelamkoff/carousel` и `@shelamkoff/expose`. Значение `blockTypes: []` отключает создание встроенных рендереров, но не меняет правила разрешения модулей ESM.
+
+## Использование
+
+```js
+import { createEditorRenderer } from '@shelamkoff/rector/renderer'
+import { createImageRenderer } from '@shelamkoff/rector/renderer/renderers/image'
+
+const renderer = createEditorRenderer({ classPrefix: 'article', blockTypes: [] })
+renderer.registerRenderer(createImageRenderer('article', {}))
+const rendererStyles = renderer.injectStyles()
+renderer.renderTo(documentData, document.querySelector('#article'))
+
+// При удалении добавленного результата:
+renderer.destroy()
+rendererStyles.destroy()
+```
+
+## Типичные данные
+
+```json
+{
+  "file": { "url": "https://cdn.example/image.jpg" },
+  "caption": "Caption",
+  "withBorder": false,
+  "expanded": false,
+  "withBackground": false,
+  "styles": { "objectFit": "cover", "borderRadius": "8px" }
+}
+```
+
+Адрес изображения проходит политику URL для медиафайлов, а подпись — общий обработчик внутристрочной разметки. Рендерер объявляет одну таблицу стилей и не создаёт обработчиков или сторонних экземпляров.
+
+Если рендерер объявляет стили, показанный выше явный вызов `EditorRenderer.injectStyles()` подключает их, а возвращённый владелец освобождает.
+
+Жизненный цикл, восстановление внутристрочных виджетов, стили и границы безопасности описаны в последовательном руководстве VitePress.

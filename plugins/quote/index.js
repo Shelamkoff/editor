@@ -6,6 +6,7 @@ import { sanitizeHtml } from '../../core/sanitize.js'
 import { resolvePath } from '../../shared/resolvePath.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { mapTextFields } from './mapTextFields.js'
+import { validateQuoteData } from '../../shared/blockDataValidators.js'
 
 const editorStyles = resolvePath('./quote.css', import.meta.url)
 
@@ -92,7 +93,7 @@ export class Quote extends BlockPluginAbstract {
    * @returns {boolean}
    */
   validate(data) {
-    return typeof data.text === 'string' && data.text.trim().length > 0
+    return validateQuoteData(data)
   }
 
   /**

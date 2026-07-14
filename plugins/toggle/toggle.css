@@ -15,6 +15,11 @@
 }
 
 .oe-toggle__chevron {
+  appearance: none;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -26,6 +31,11 @@
   transition: transform 0.2s ease, color 0.15s;
   cursor: pointer;
   border-radius: 3px;
+}
+
+.oe-toggle__chevron:focus-visible {
+  outline: 2px solid var(--oe-accent, #4357b4);
+  outline-offset: 2px;
 }
 
 .oe-toggle__chevron:hover {

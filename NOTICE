@@ -1,0 +1,17 @@
+Ophire Editor includes the following third-party runtime components:
+
+- DOMPurify 3.4.12, Copyright Cure53 and other contributors.
+  Distributed under Apache-2.0 OR MPL-2.0.
+  https://github.com/cure53/DOMPurify
+
+- highlight.js 11.11.1, Copyright the highlight.js contributors.
+  Distributed under BSD-3-Clause.
+  https://github.com/highlightjs/highlight.js
+
+- JSZip 3.10.1, Copyright 2009-2016 Stuart Knightley and contributors.
+  The MIT license option is selected. JSZip contains pako 1.0.2, distributed under MIT.
+  https://github.com/Stuk/jszip
+
+The complete selected license texts and upstream source links are included in
+THIRD_PARTY_LICENSES.txt. License headers are also retained where supplied by
+the vendored distribution files.

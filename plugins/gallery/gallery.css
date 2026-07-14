@@ -53,6 +53,18 @@
   text-decoration: underline;
 }
 
+.oe-gallery__select-actions {
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 0.375rem;
+}
+.oe-gallery__select-action {
+  display: inline-flex; align-items: center; gap: 0.375rem;
+  padding: 0.375rem 0.625rem; border: 1px solid var(--oe-border);
+  border-radius: 0.375rem; background: var(--oe-surface-2); color: var(--oe-text-2);
+  font: inherit; font-size: 0.75rem; cursor: pointer;
+}
+.oe-gallery__select-action:hover { color: var(--oe-text-1); border-color: var(--oe-border-hover); }
+.oe-gallery__select-action svg { width: 14px; height: 14px; }
+
 /* Action bar drill-down view */
 .oe-gallery__actions-view {
   display: contents;

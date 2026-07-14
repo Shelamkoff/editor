@@ -1,19 +1,23 @@
 import { resolvePath } from '../../shared/resolvePath.js'
 import { triggerFileInput } from '../shared/fileInput.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
+import { validateImageData } from '../../shared/blockDataValidators.js'
 import { CSS } from './css.js'
 import { ICON } from './icons.js'
 import { ImageState, normalizeImageData, emptyImageData } from './state.js'
 import { ImageUploader } from './uploader.js'
 import { renderEmptyView } from './view-empty.js'
 import { renderFilledView } from './view-filled.js'
+import { sanitizeMediaUrl } from '../../shared/sanitize/sanitizeUrl.js'
 
 const editorStyles = resolvePath('./image.css', import.meta.url)
 
 /**
  * @typedef {Object} ImageConfig
- * @property {(file: File) => Promise<{ url: string, alt?: string }>} [uploadFile]
- * @property {Array<{ icon: string, label: string, handler: () => Promise<{url: string, alt?: string} | null> }>} [actions]
+ * @property {(file: File, context: { signal: AbortSignal }) => Promise<{ url: string, alt?: string }>} [uploadFile]
+ * @property {Array<{ icon?: string, label: string, handler: (context: { signal: AbortSignal }) => Promise<{url: string, alt?: string} | null> }>} [actions]
+ * @property {boolean} [injectStyles]
+ * @property {string} [css]
  */
 
 /**
@@ -47,6 +51,9 @@ export class Image extends BlockPluginAbstract {
   /** Per-block state, keyed by wrapper element. Encapsulated to this instance. */
   #states = /** @type {WeakMap<HTMLElement, ImageState>} */ (new WeakMap())
 
+  /** @type {WeakMap<HTMLElement, import('../../core/types').BlockMutationContext>} */
+  #contexts = new WeakMap()
+
   /** @param {ImageConfig} [config] */
   constructor(config) {
     super(config)
@@ -64,7 +71,7 @@ export class Image extends BlockPluginAbstract {
    * @param {Record<string, unknown>} data
    * @returns {HTMLElement}
    */
-  render(data) {
+  render(data, context) {
     const blockData = normalizeImageData(data)
     const pendingFile = /** @type {File | null} */ (/** @type {any} */ (data)?._pendingFile || null)
 
@@ -75,6 +82,7 @@ export class Image extends BlockPluginAbstract {
 
     const state = new ImageState(blockData, pendingFile)
     this.#states.set(wrapper, state)
+    this.#contexts.set(wrapper, context)
 
     if (blockData.withBorder) wrapper.classList.add(CSS.withBorder)
     if (blockData.expanded) wrapper.classList.add(CSS.expanded)
@@ -87,10 +95,12 @@ export class Image extends BlockPluginAbstract {
     }
 
     // Drain pending file from paste (async; renders after upload completes).
-    if (state.pendingFile) {
+    if (state.pendingFile && !context.readOnly) {
       const file = state.pendingFile
       state.pendingFile = null
-      void this.#handleFile(wrapper, file)
+      state.pendingUpload = this.#handleFile(wrapper, file).finally(() => {
+        if (this.#states.get(wrapper) === state) state.pendingUpload = null
+      })
     }
 
     return wrapper
@@ -111,7 +121,7 @@ export class Image extends BlockPluginAbstract {
    * @returns {boolean}
    */
   validate(data) {
-    return !!/** @type {any} */ (data?.file)?.url
+    return validateImageData(data)
   }
 
   /**
@@ -153,6 +163,15 @@ export class Image extends BlockPluginAbstract {
   }
 
   /**
+   * Keep a file paste inside one undo transaction until its upload finishes.
+   * @param {HTMLElement} element
+   * @returns {Promise<void>}
+   */
+  waitForPaste(element) {
+    return this.#states.get(element)?.pendingUpload ?? Promise.resolve()
+  }
+
+  /**
    * @param {HTMLElement} element
    */
   destroy(element) {
@@ -160,6 +179,7 @@ export class Image extends BlockPluginAbstract {
     if (!state) return
     state.dispose()
     this.#states.delete(element)
+    this.#contexts.delete(element)
   }
 
   // ── Internal coordination ──────────────────────────────────────────────────
@@ -167,9 +187,9 @@ export class Image extends BlockPluginAbstract {
   /** @param {string} key @param {string} fallback */
   #t = (key, fallback) => this._t(key, fallback)
 
-  /** @param {HTMLElement} wrapper */
-  #notifyChanged = (wrapper) => {
-    wrapper.dispatchEvent(new InputEvent('input', { bubbles: true }))
+  /** @param {HTMLElement} wrapper @param {() => void} operation */
+  #mutate = (wrapper, operation) => {
+    this.#contexts.get(wrapper)?.mutate(operation)
   }
 
   /** @param {HTMLElement} wrapper */
@@ -180,6 +200,8 @@ export class Image extends BlockPluginAbstract {
       t: this.#t,
       onUploadClick: () => this.#triggerFileInput(wrapper),
       onFileDropped: (file) => { void this.#handleFile(wrapper, file) },
+      customActions: this._config.actions || [],
+      runCustomAction: async (handler) => this.#runCustomAction(wrapper, handler),
     })
   }
 
@@ -189,7 +211,7 @@ export class Image extends BlockPluginAbstract {
     if (!state) return
     renderFilledView(wrapper, state, {
       t: this.#t,
-      notifyChanged: () => this.#notifyChanged(wrapper),
+      mutate: (operation) => this.#mutate(wrapper, operation),
       customActions: this._config.actions || [],
       onTriggerFileInput: () => this.#triggerFileInput(wrapper),
       onPromptUrl: () => this.#promptUrl(wrapper),
@@ -200,6 +222,7 @@ export class Image extends BlockPluginAbstract {
 
   /** @param {HTMLElement} wrapper */
   #triggerFileInput(wrapper) {
+    if (this.#contexts.get(wrapper)?.readOnly) return
     triggerFileInput({
       accept: 'image/*',
       onFiles: (files) => {
@@ -214,27 +237,35 @@ export class Image extends BlockPluginAbstract {
    */
   async #handleFile(wrapper, file) {
     const state = this.#states.get(wrapper)
-    if (!state) return
-    await this.#uploader.handle(wrapper, file, (url) => {
-      state.data.file = { url }
-      this.#renderFilled(wrapper)
-      this.#notifyChanged(wrapper)
-    })
+    const context = this.#contexts.get(wrapper)
+    if (!state || !context || context.readOnly) return
+    await this.#uploader.handle(wrapper, file, (result) => {
+      if (this.#states.get(wrapper) !== state) return
+      this.#mutate(wrapper, () => {
+        state.data.file = { url: result.url }
+        if (result.alt && !state.data.caption) state.data.caption = result.alt
+        this.#renderFilled(wrapper)
+      })
+    }, state.abortController?.signal)
   }
 
   /**
    * @param {HTMLElement} wrapper
-   * @param {() => Promise<{url: string, alt?: string} | null>} handler
+   * @param {(context: { signal: AbortSignal }) => Promise<{url: string, alt?: string} | null>} handler
    */
   async #runCustomAction(wrapper, handler) {
     const state = this.#states.get(wrapper)
-    if (!state) return
+    if (!state || this.#contexts.get(wrapper)?.readOnly) return
     try {
-      const result = await handler()
-      if (result?.url) {
-        state.data.file = { url: result.url }
-        this.#renderFilled(wrapper)
-        this.#notifyChanged(wrapper)
+      const signal = state.abortController?.signal ?? new AbortController().signal
+      const result = await handler({ signal })
+      const url = sanitizeMediaUrl(result?.url || '')
+      if (!signal.aborted && this.#states.get(wrapper) === state && url) {
+        this.#mutate(wrapper, () => {
+          state.data.file = { url }
+          if (result?.alt && !state.data.caption) state.data.caption = result.alt
+          this.#renderFilled(wrapper)
+        })
       }
     } catch {
       // Action cancelled or failed.
@@ -244,12 +275,13 @@ export class Image extends BlockPluginAbstract {
   /** @param {HTMLElement} wrapper */
   #promptUrl(wrapper) {
     const state = this.#states.get(wrapper)
-    if (!state) return
+    if (!state || this.#contexts.get(wrapper)?.readOnly) return
     const url = prompt(this.#t('urlPrompt', 'Image URL:'))
     if (url && /^https?:\/\/.+/i.test(url)) {
-      state.data.file = { url }
-      this.#renderFilled(wrapper)
-      this.#notifyChanged(wrapper)
+      this.#mutate(wrapper, () => {
+        state.data.file = { url }
+        this.#renderFilled(wrapper)
+      })
     }
   }
 
@@ -257,9 +289,10 @@ export class Image extends BlockPluginAbstract {
   #deleteImage(wrapper) {
     const state = this.#states.get(wrapper)
     if (!state) return
-    state.data.file = { url: '' }
-    state.data.styles = {}
-    this.#renderEmpty(wrapper)
-    this.#notifyChanged(wrapper)
+    this.#mutate(wrapper, () => {
+      state.data.file = { url: '' }
+      state.data.styles = {}
+      this.#renderEmpty(wrapper)
+    })
   }
 }

@@ -10,7 +10,7 @@
  *  - storing the constructor config in `_config`
  *
  * Subclasses must implement the `BlockPlugin` contract proper:
- *  - `type`, `icon`, `render(data)`, `save(element)`
+ *  - `type`, `icon`, `render(data, context)`, `save(element)`
  *  - usually `static styles`, `static locale`, `static isTextBlock`
  *  - optional `validate`, `merge`, `renderSettings`, `onPaste`, etc.
  *

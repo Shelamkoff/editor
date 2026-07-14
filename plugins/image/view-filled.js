@@ -1,4 +1,5 @@
 import { sanitizeHtml } from '../../core/sanitize.js'
+import { setSafeUrlAttribute } from '../../shared/sanitize/sanitizeUrl.js'
 import { makeActionBtn as _makeActionBtn, makeSep as _makeSep } from '../shared/actionBar.js'
 import { CSS } from './css.js'
 import {
@@ -14,9 +15,9 @@ import { buildSettingsPanel } from './settings.js'
  * @property {() => void} onTriggerFileInput
  * @property {() => void} onPromptUrl
  * @property {() => void} onDelete
- * @property {() => void} notifyChanged
- * @property {Array<{ icon: string, label: string, handler: () => Promise<{url: string, alt?: string} | null> }>} customActions
- * @property {(handler: () => Promise<{url: string, alt?: string} | null>) => Promise<void>} runCustomAction
+ * @property {(operation: () => void) => void} mutate
+ * @property {Array<{ icon?: string, label: string, handler: (context: { signal: AbortSignal }) => Promise<{url: string, alt?: string} | null> }>} customActions
+ * @property {(handler: (context: { signal: AbortSignal }) => Promise<{url: string, alt?: string} | null>) => Promise<void>} runCustomAction
  */
 
 /**
@@ -43,13 +44,13 @@ export function renderFilledView(wrapper, state, deps) {
 
   const img = document.createElement('img')
   img.className = CSS.image
-  img.src = state.data.file.url
+  setSafeUrlAttribute(img, 'src', state.data.file.url, 'media')
   img.alt = state.data.caption || ''
   applyInlineStyles(state, img, container)
   container.appendChild(img)
 
   // Caption
-  const caption = renderCaption(state, signal)
+  const caption = renderCaption(state, signal, deps)
   container.appendChild(caption)
   wrapper.appendChild(container)
 
@@ -60,13 +61,14 @@ export function renderFilledView(wrapper, state, deps) {
 /**
  * @param {import('./state.js').ImageState} state
  * @param {AbortSignal} signal
+ * @param {FilledViewDeps} deps
  * @returns {HTMLElement}
  */
-function renderCaption(state, signal) {
+function renderCaption(state, signal, deps) {
   const caption = document.createElement('div')
   caption.className = CSS.caption
   caption.contentEditable = 'true'
-  caption.dataset.placeholder = 'Caption'
+  caption.dataset.placeholder = deps.t('caption', 'Caption')
 
   if (state.data.caption) {
     caption.innerHTML = sanitizeHtml(state.data.caption)
@@ -117,7 +119,7 @@ function renderActions(wrapper, state, deps, signal) {
   const actions = document.createElement('div')
   actions.className = CSS.actions
 
-  const settingsDeps = { t: deps.t, notifyChanged: deps.notifyChanged }
+  const settingsDeps = { t: deps.t, mutate: deps.mutate }
 
   // Settings dropdown
   const dropdown = document.createElement('div')
@@ -215,7 +217,7 @@ function showReplaceView(actions, mainView, deps, signal) {
   const restore = () => { view.remove(); mainView.style.display = 'contents' }
 
   view.appendChild(makeActionBtn(
-    `${ICON_BACK} ${deps.t('block.back', 'Back')}`,
+    `${ICON_BACK} ${deps.t('back', 'Back')}`,
     restore,
     signal,
   ))
@@ -229,7 +231,7 @@ function showReplaceView(actions, mainView, deps, signal) {
 
   for (const action of deps.customActions) {
     view.appendChild(makeActionBtn(
-      `${action.icon} ${action.label}`,
+      `${action.icon || ''} ${action.label}`.trim(),
       async () => { await deps.runCustomAction(action.handler); restore() },
       signal,
     ))

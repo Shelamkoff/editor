@@ -2,8 +2,8 @@
 /**
  * Mention inline plugin.
  *
- * A faithful port of `@shelamkoff/mentionjs` adapted for the Ophire editor's
- * InlinePlugin contract. Same customization surface (searchFunction,
+ * A port of `@shelamkoff/mentionjs` adapted to Rector's InlinePlugin
+ * contract. It preserves the customization surface (searchFunction,
  * debounceDelay, noResultsText, dropdownClass, onMentionSelect, renderItem,
  * renderNoResults, renderLoading), same dropdown behavior (debounced search,
  * keyboard navigation, pagination on scroll, loading/no-results states).
@@ -14,11 +14,11 @@
  *     gymnastics from the original are unnecessary here.
  *   - The committed widget uses the editor's canonical inline-widget
  *     representation: `<span data-inline-plugin="mention" data-value="<id>"
- *     class="oe-ip oe-ip--mention" contenteditable="false">@Name</span>`.
+ *     class="oe-ip oe-ip--mention">@Name</span>`.
  *     The shared sanitize allowlist preserves this through save / render.
  *
- * Styling lives in `./styles.css`; consumers (Editor.vue / EditorContent.vue)
- * import it alongside the rest of the editor CSS.
+ * Styling lives in `./styles.css` and is acquired through the shared style
+ * registry while the owning editor is mounted.
  */
 
 /**
@@ -36,6 +36,7 @@
 import { resolvePath } from '../../shared/resolvePath.js'
 import { injectStyleUrls } from '../../core/StyleInjector.js'
 import { createMentionWidget } from './widget.js'
+import { setSafeUrlAttribute } from '../../shared/sanitize/sanitizeUrl.js'
 
 /** Absolute URL to the plugin's stylesheet. Ref-counted via `injectStyleUrls`. */
 const STYLES_URL = resolvePath('./styles.css', import.meta.url)
@@ -58,10 +59,10 @@ function createElement(tag, className) {
 }
 
 function escapeHtml(str) {
-  return String(str).replace(/[&<>"']/g, (s) => (
-    /** @type {Record<string,string>} */
-    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[s])
-  ))
+  const entities = /** @type {Record<string, string>} */ ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  })
+  return String(str).replace(/[&<>"']/g, s => entities[s] ?? s)
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -143,7 +144,7 @@ class DropdownUI {
 
     if (data.avatar) {
       const img = document.createElement('img')
-      img.src = data.avatar
+      setSafeUrlAttribute(img, 'src', data.avatar, 'media')
       img.alt = ''
       img.className = 'oe-mention-avatar'
       el.appendChild(img)
@@ -286,19 +287,16 @@ class DropdownUI {
 export function createMentionPlugin(options = {}) {
   const opts = Object.assign({}, DEFAULTS, options)
 
-  // Self-inject the plugin stylesheet on first use. Ref-counted, so multiple
-  // plugin instances across editors share a single <link>; destroy() releases
-  // the ref.
-  const styleHandle = injectStyleUrls([STYLES_URL])
+  // Editor-scoped resources are acquired later by mount(). Construction is
+  // deliberately side-effect free so failed registration cannot leak them.
+  /** @type {{ destroy(): void } | null} */
+  let styleHandle = null
+  /** @type {HTMLElement | null} */
+  let rootElement = null
 
-  // `handleBeforeInput` is registered globally here at construction time so
-  // that committed mentions in ANY block — even those loaded before the
-  // user's first `@` keystroke — are edit-aware from the moment they mount.
-  // The function itself is defined later in this factory closure (hoisted
-  // via `function` declaration).
-  document.addEventListener('beforeinput', /** @type {EventListener} */ (handleBeforeInput), true)
+  // handleBeforeInput is attached to the owning editor root by mount().
 
-  /** @type {{ t(key: string): string } | null} */
+  /** @type {import('../../core/types').IScopedI18n | null} */
   let i18n = null
   /**
    * Scoped i18n lookup — the editor passes an I18n instance pre-scoped to
@@ -311,6 +309,7 @@ export function createMentionPlugin(options = {}) {
    */
   const t = (key, fallback) => {
     if (!i18n) return fallback
+    if (!i18n.has(key)) return fallback
     const v = i18n.t(key)
     return (v === undefined || v === null || v === '') ? fallback : v
   }
@@ -349,6 +348,7 @@ export function createMentionPlugin(options = {}) {
    *   currentQuery: string,
    *   debounceTimer: ReturnType<typeof setTimeout> | null,
    *   debounceReject: ((err: Error) => void) | null,
+   *   searchController: AbortController | null,
    *   searchRequestId: number,
    *   ctx: InlinePluginContext,
    *   committedInThisSession: boolean,
@@ -433,7 +433,7 @@ export function createMentionPlugin(options = {}) {
     return parent.closest('[data-inline-plugin="mention"]')
   }
 
-  /** @param {HTMLElement} el */
+  /** @param {Node} el */
   function inDOM(el) {
     return !!el && document.contains(el)
   }
@@ -539,6 +539,10 @@ export function createMentionPlugin(options = {}) {
   async function runSearch(query, nextPageUrl = null) {
     if (!session) return null
 
+    session.searchController?.abort()
+    const controller = new AbortController()
+    session.searchController = controller
+
     if (!nextPageUrl) {
       session.currentQuery = query
       if (session.debounceReject) {
@@ -556,7 +560,7 @@ export function createMentionPlugin(options = {}) {
 
     const execute = async () => {
       if (!opts.searchFunction) return /** @type {MentionSearchResult} */ ({ items: [], nextPageUrl: null })
-      return await opts.searchFunction(query, nextPageUrl)
+      return await opts.searchFunction(query, nextPageUrl, { signal: controller.signal })
     }
 
     /** @type {MentionSearchResult | MentionItem[] | undefined} */
@@ -574,13 +578,15 @@ export function createMentionPlugin(options = {}) {
         raw = await execute()
       }
     } catch (err) {
-      if (/** @type {Error} */ (err)?.message === 'cancelled') return null
+      if (capturedSession.searchController === controller) capturedSession.searchController = null
+      if (controller.signal.aborted || /** @type {Error} */ (err)?.name === 'AbortError' || /** @type {Error} */ (err)?.message === 'cancelled') return null
       // eslint-disable-next-line no-console
       console.warn('[mention-plugin] search failed:', err)
       return null
     }
 
-    if (!session || requestId !== session.searchRequestId) return null
+    if (capturedSession.searchController === controller) capturedSession.searchController = null
+    if (!session || session !== capturedSession || controller.signal.aborted || requestId !== session.searchRequestId) return null
 
     const items = Array.isArray(raw)
       ? raw
@@ -676,7 +682,7 @@ export function createMentionPlugin(options = {}) {
    *  - 'fresh' — replace the typed `@query` text range with a new widget;
    *  - 'edit'  — rewrite the already-committed span in place.
    *
-   * Both paths end with `ctx.notifyChanged()` + `closeSession()`.
+   * Both paths run inside the owning block's mutation boundary.
    *
    * @param {MentionItem} data
    */
@@ -688,18 +694,19 @@ export function createMentionPlugin(options = {}) {
     // some engines may land synchronously and tear the session down before
     // we get to `notifyChanged()`.
     const ctx = session.ctx
+    const parentEl = session.parentEl
 
-    if (session.mode === 'edit') {
-      commitEditMention(data, ctx)
-    } else {
-      commitFreshMention(data, ctx)
-    }
+    ctx.mutate(parentEl, () => {
+      if (session?.mode === 'edit') {
+        commitEditMention(data, ctx)
+      } else if (session) {
+        commitFreshMention(data, ctx)
+      }
+    })
 
     if (typeof opts.onMentionSelect === 'function') {
       try { opts.onMentionSelect({ id: data.id, name: data.name }) } catch { /* noop */ }
     }
-    ctx.notifyChanged()
-
     closeSession()
   }
 
@@ -818,6 +825,8 @@ export function createMentionPlugin(options = {}) {
       clearTimeout(session.debounceTimer)
       session.debounceTimer = null
     }
+    session.searchController?.abort()
+    session.searchController = null
     session.searchRequestId++
 
     // Tear down UI + listeners.
@@ -828,6 +837,8 @@ export function createMentionPlugin(options = {}) {
     document.removeEventListener('keydown', session.keydownHandler, true)
     document.removeEventListener('selectionchange', session.selectionChangeHandler)
     document.removeEventListener('mousedown', session.outsideMouseDownHandler, true)
+    const closingSession = session
+    session = null
 
     // Edit-mode exit handling:
     //
@@ -844,26 +855,25 @@ export function createMentionPlugin(options = {}) {
     //    mention effectively stops being a mention, which is the
     //    semantically correct outcome ("user started editing but didn't
     //    pick anyone").
-    if (session.mode === 'edit' && session.span && inDOM(session.span)) {
-      const span = session.span
-      if (session.committedInThisSession) {
+    if (closingSession.mode === 'edit' && closingSession.span && inDOM(closingSession.span)) {
+      const span = closingSession.span
+      if (closingSession.committedInThisSession) {
         span.classList.remove('oe-ip--mention--editing')
       } else {
         const text = span.textContent || ''
-        const tn = document.createTextNode(text)
-        const parent = span.parentNode
-        if (parent) {
+        mutateContent(closingSession.parentEl, () => {
+          const tn = document.createTextNode(text)
+          const parent = span.parentNode
+          if (!parent) return
           parent.insertBefore(tn, span)
           parent.removeChild(span)
           // Place caret at end of the unwrapped text — this matches the
           // user's likely mental position after a bail-out backspace.
           setCaretAt(tn, text.length)
-          notifyChange(session.parentEl)
-        }
+        })
       }
     }
 
-    session = null
   }
 
   // ─── Keyboard / mouse plumbing ─────────────────────────────────────────
@@ -1094,6 +1104,7 @@ export function createMentionPlugin(options = {}) {
       currentQuery: '',
       debounceTimer: null,
       debounceReject: null,
+      searchController: null,
       searchRequestId: 0,
       ctx,
       committedInThisSession: false,
@@ -1131,6 +1142,7 @@ export function createMentionPlugin(options = {}) {
       currentQuery: '',
       debounceTimer: null,
       debounceReject: null,
+      searchController: null,
       searchRequestId: 0,
       ctx,
       committedInThisSession: false,
@@ -1214,6 +1226,16 @@ export function createMentionPlugin(options = {}) {
     }
   }
 
+  /** @param {HTMLElement} parentEl @param {() => void} operation */
+  function mutateContent(parentEl, operation) {
+    if (globalCtx) {
+      globalCtx.mutate(parentEl, operation)
+    } else {
+      operation()
+      notifyChange(parentEl)
+    }
+  }
+
   /**
    * Programmatically entering edit mode on a span we've stumbled into —
    * e.g. after `backspaceBeforeSpan` walks into a previous mention.
@@ -1243,7 +1265,7 @@ export function createMentionPlugin(options = {}) {
     // Caret NOT in a mention span → defer to the editor's normal handling
     // for typing, deletes, etc. Fresh-trigger `@` detection is done by
     // TriggerManager (separate listener), not here.
-    if (!span) return
+    if (!span || !rootElement?.contains(span)) return
 
     const sel = window.getSelection()
     if (!sel) return
@@ -1283,16 +1305,15 @@ export function createMentionPlugin(options = {}) {
       if (isEditing) closeSession()
 
       if (e.inputType === 'insertText' && typeof e.data === 'string') {
-        const tn = document.createTextNode(e.data)
-        span.parentNode?.insertBefore(tn, span)
-        setCaretAt(tn, e.data.length)
-        notifyChange(parentEl)
+        mutateContent(parentEl, () => {
+          const tn = document.createTextNode(e.data)
+          span.parentNode?.insertBefore(tn, span)
+          setCaretAt(tn, e.data.length)
+        })
       } else if (e.inputType === 'deleteContentBackward') {
-        backspaceBeforeSpan(span)
-        notifyChange(parentEl)
+        mutateContent(parentEl, () => backspaceBeforeSpan(span))
       } else if (e.inputType === 'deleteContentForward') {
-        deleteForwardInSpan(span, spanText)
-        notifyChange(parentEl)
+        mutateContent(parentEl, () => deleteForwardInSpan(span, spanText))
       }
       return
     }
@@ -1303,23 +1324,23 @@ export function createMentionPlugin(options = {}) {
     if (isAtEnd && !isEditing) {
       if ((e.inputType === 'insertText' || e.inputType === 'insertCompositionText') && typeof e.data === 'string') {
         e.preventDefault()
-        const next = span.nextSibling
-        if (next && next.nodeType === Node.TEXT_NODE) {
-          next.textContent = e.data + (next.textContent || '')
-          setCaretAt(next, e.data.length)
-        } else {
-          const char = e.data === ' ' ? '\u00A0' : e.data
-          const tn = document.createTextNode(char)
-          span.after(tn)
-          setCaretAt(tn, 1)
-        }
-        notifyChange(parentEl)
+        mutateContent(parentEl, () => {
+          const next = span.nextSibling
+          if (next && next.nodeType === Node.TEXT_NODE) {
+            next.textContent = e.data + (next.textContent || '')
+            setCaretAt(next, e.data.length)
+          } else {
+            const char = e.data === ' ' ? '\u00A0' : e.data
+            const tn = document.createTextNode(char)
+            span.after(tn)
+            setCaretAt(tn, 1)
+          }
+        })
         return
       }
       if (e.inputType === 'deleteContentForward') {
         e.preventDefault()
-        deleteForwardAfterNode(span)
-        notifyChange(parentEl)
+        mutateContent(parentEl, () => deleteForwardAfterNode(span))
         return
       }
     }
@@ -1335,9 +1356,10 @@ export function createMentionPlugin(options = {}) {
       // (splitBlock) is intentionally bypassed inside a pill, because the
       // user was semantically editing the mention, not splitting the block.
       if (isEditing) closeSession()
-      setCaretAfterNode(span)
-      insertBr(window.getSelection() || sel)
-      notifyChange(parentEl)
+      mutateContent(parentEl, () => {
+        setCaretAfterNode(span)
+        insertBr(window.getSelection() || sel)
+      })
       return
     }
 
@@ -1349,21 +1371,18 @@ export function createMentionPlugin(options = {}) {
       if (spanText.length === 1) {
         e.preventDefault()
         if (isEditing) closeSession()
-        const prev = span.previousSibling
-        const next = span.nextSibling
-        span.parentNode?.removeChild(span)
-        const range = document.createRange()
-        if (prev && prev.nodeType === Node.TEXT_NODE) {
-          range.setStart(prev, (prev.textContent || '').length)
-        } else if (next) {
-          range.setStartBefore(next)
-        } else {
-          range.setStart(parentEl, 0)
-        }
-        range.collapse(true)
-        sel.removeAllRanges()
-        sel.addRange(range)
-        notifyChange(parentEl)
+        mutateContent(parentEl, () => {
+          const prev = span.previousSibling
+          const next = span.nextSibling
+          span.parentNode?.removeChild(span)
+          const range = document.createRange()
+          if (prev && prev.nodeType === Node.TEXT_NODE) range.setStart(prev, (prev.textContent || '').length)
+          else if (next) range.setStartBefore(next)
+          else range.setStart(parentEl, 0)
+          range.collapse(true)
+          sel.removeAllRanges()
+          sel.addRange(range)
+        })
         return
       }
 
@@ -1372,11 +1391,12 @@ export function createMentionPlugin(options = {}) {
       if (offset === 1 && spanText.startsWith(opts.trigger)) {
         e.preventDefault()
         if (isEditing) closeSession()
-        const tn = document.createTextNode(spanText.substring(1))
-        span.parentNode?.insertBefore(tn, span)
-        span.parentNode?.removeChild(span)
-        setCaretAt(tn, 0)
-        notifyChange(parentEl)
+        mutateContent(parentEl, () => {
+          const tn = document.createTextNode(spanText.substring(1))
+          span.parentNode?.insertBefore(tn, span)
+          span.parentNode?.removeChild(span)
+          setCaretAt(tn, 0)
+        })
         return
       }
 
@@ -1386,14 +1406,12 @@ export function createMentionPlugin(options = {}) {
       const newText = removeCharAt(spanText, offset - 1)
       const newOffset = offset - 1
 
-      const tn = span.firstChild
-      if (tn && tn.nodeType === Node.TEXT_NODE) {
-        tn.textContent = newText
-      } else {
-        span.textContent = newText
-      }
-      setCaretAt(span.firstChild || span, newOffset)
-      notifyChange(parentEl)
+      mutateContent(parentEl, () => {
+        const tn = span.firstChild
+        if (tn && tn.nodeType === Node.TEXT_NODE) tn.textContent = newText
+        else span.textContent = newText
+        setCaretAt(span.firstChild || span, newOffset)
+      })
 
       refreshEditSession(span, parentEl, newText.substring(1))
       return
@@ -1406,8 +1424,7 @@ export function createMentionPlugin(options = {}) {
       // At end → remove a char from the following sibling.
       if (offset >= spanText.length) {
         e.preventDefault()
-        deleteForwardAfterNode(span)
-        notifyChange(parentEl)
+        mutateContent(parentEl, () => deleteForwardAfterNode(span))
         return
       }
 
@@ -1416,39 +1433,39 @@ export function createMentionPlugin(options = {}) {
 
       if (newText.length === 0) {
         if (isEditing) closeSession()
-        const prev = span.previousSibling
-        const next = span.nextSibling
-        span.parentNode?.removeChild(span)
-        const range = document.createRange()
-        if (next) range.setStartBefore(next)
-        else if (prev && prev.nodeType === Node.TEXT_NODE) range.setStart(prev, (prev.textContent || '').length)
-        else range.setStart(parentEl, 0)
-        range.collapse(true)
-        sel.removeAllRanges()
-        sel.addRange(range)
-        notifyChange(parentEl)
+        mutateContent(parentEl, () => {
+          const prev = span.previousSibling
+          const next = span.nextSibling
+          span.parentNode?.removeChild(span)
+          const range = document.createRange()
+          if (next) range.setStartBefore(next)
+          else if (prev && prev.nodeType === Node.TEXT_NODE) range.setStart(prev, (prev.textContent || '').length)
+          else range.setStart(parentEl, 0)
+          range.collapse(true)
+          sel.removeAllRanges()
+          sel.addRange(range)
+        })
         return
       }
 
       // If forward-delete ate the trigger → unwrap to plain text.
       if (offset === 0 && !newText.startsWith(opts.trigger)) {
         if (isEditing) closeSession()
-        const tn = document.createTextNode(newText)
-        span.parentNode?.insertBefore(tn, span)
-        span.parentNode?.removeChild(span)
-        setCaretAt(tn, 0)
-        notifyChange(parentEl)
+        mutateContent(parentEl, () => {
+          const tn = document.createTextNode(newText)
+          span.parentNode?.insertBefore(tn, span)
+          span.parentNode?.removeChild(span)
+          setCaretAt(tn, 0)
+        })
         return
       }
 
-      const tn = span.firstChild
-      if (tn && tn.nodeType === Node.TEXT_NODE) {
-        tn.textContent = newText
-      } else {
-        span.textContent = newText
-      }
-      setCaretAt(span.firstChild || span, offset)
-      notifyChange(parentEl)
+      mutateContent(parentEl, () => {
+        const tn = span.firstChild
+        if (tn && tn.nodeType === Node.TEXT_NODE) tn.textContent = newText
+        else span.textContent = newText
+        setCaretAt(span.firstChild || span, offset)
+      })
 
       refreshEditSession(span, parentEl, newText.substring(1))
       return
@@ -1469,7 +1486,7 @@ export function createMentionPlugin(options = {}) {
 
   /**
    * Delegate widget DOM construction to the shared widget module so the
-   * editor and the read-only renderer use identical markup. The mention
+   * editor and document renderer use identical markup. The mention
    * widget is intentionally NOT `contentEditable="false"` — the caret can
    * enter it and Backspace / Delete / typing inside it work character-by-
    * character (matching the original `@shelamkoff/mentionjs` behavior).
@@ -1485,14 +1502,26 @@ export function createMentionPlugin(options = {}) {
   const plugin = {
     type: 'mention',
     trigger: opts.trigger,
-    editable: false,
-
     get title() { return t('title', 'Mention') },
 
     icon: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-3.92 7.94"/></svg>',
 
-    /** @param {{ t(key: string): string }} _i18n */
+    /** @param {import('../../core/types').IScopedI18n} _i18n */
     setI18n(_i18n) { i18n = _i18n },
+
+    /**
+     * Acquire resources only after the plugin belongs to a successfully
+     * constructed editor. The listener is scoped to that editor root.
+     * @param {HTMLElement} editorRoot
+     * @param {InlinePluginContext} ctx
+     */
+    mount(editorRoot, ctx) {
+      if (rootElement) throw new Error('Mention plugin is already mounted')
+      rootElement = editorRoot
+      globalCtx = ctx
+      styleHandle = injectStyleUrls([STYLES_URL])
+      rootElement.addEventListener('beforeinput', /** @type {EventListener} */ (handleBeforeInput), true)
+    },
 
     /**
      * Called by TriggerManager when `trigger` is typed at a word boundary
@@ -1574,7 +1603,7 @@ export function createMentionPlugin(options = {}) {
     /**
      * Delegate to the shared widget primitive — one source of truth for
      * how a mention span reads back into data, used by both the editor
-     * marshal pipeline and the read-only renderer.
+     * marshal pipeline and document renderer.
      * @param {HTMLElement} element
      * @returns {Record<string, string>}
      */
@@ -1678,20 +1707,19 @@ export function createMentionPlugin(options = {}) {
     /**
      * Per-widget cleanup hook, per the InlinePlugin contract.
      *
-     * The editor currently only calls `destroy` on BLOCK plugins (`Block.js`),
-     * not inline ones — but we still satisfy the signature and use it to:
+     * InlinePluginRegistry calls this once for the owning editor and uses it to:
      *  - close any open session;
-     *  - detach the global `beforeinput` listener attached at construction;
+     *  - detach the editor-scoped `beforeinput` listener;
      *  - release the shared stylesheet ref.
-     *
-     * Callers wanting explicit teardown may invoke `plugin.destroy()` manually.
      *
      * @param {HTMLElement} [_element] unused — present only to match contract
      */
     destroy(_element) {
       closeSession()
-      document.removeEventListener('beforeinput', /** @type {EventListener} */ (handleBeforeInput), true)
-      styleHandle.destroy()
+      rootElement?.removeEventListener('beforeinput', /** @type {EventListener} */ (handleBeforeInput), true)
+      rootElement = null
+      styleHandle?.destroy()
+      styleHandle = null
       globalCtx = null
     },
   }
@@ -1699,7 +1727,7 @@ export function createMentionPlugin(options = {}) {
   return plugin
 }
 
-// Re-export the read-only widget factory so consumers can pick the
+// Re-export the renderer widget factory so consumers can pick the
 // minimum surface they need (renderer-only uses `createMentionWidget`,
 // editor uses `createMentionPlugin`).
 export { createMentionWidget } from './widget.js'

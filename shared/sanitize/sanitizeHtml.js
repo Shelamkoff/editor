@@ -10,8 +10,10 @@ import { sanitizeSubtree } from './walker.js'
 export function sanitizeHtml(html) {
   if (!html) return ''
 
-  const temp = document.createElement('div')
-  temp.innerHTML = html
-  sanitizeSubtree(temp)
-  return temp.innerHTML
+  // Template contents are inert: parsing untrusted markup cannot execute a
+  // script or start media loading before the allowlist walker runs.
+  const template = document.createElement('template')
+  template.innerHTML = html
+  sanitizeSubtree(template.content)
+  return template.innerHTML
 }

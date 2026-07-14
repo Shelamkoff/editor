@@ -1,24 +1,5 @@
 // @ts-check
-/**
- * Minimal HTML sanitizer — strips script/style tags and event handlers.
- * @param {string} html
- * @returns {string}
- */
-function sanitize(html) {
-  const temp = document.createElement('div')
-  temp.innerHTML = html
-  for (const el of temp.querySelectorAll('script, style, iframe, object, embed, form, meta, link, base')) el.remove()
-  for (const el of temp.querySelectorAll('*')) {
-    for (const attr of Array.from(el.attributes)) {
-      const name = attr.name.toLowerCase()
-      const val = attr.value.trim().toLowerCase()
-      if (name.startsWith('on') || val.startsWith('javascript:') || val.startsWith('data:text/html')) {
-        el.removeAttribute(attr.name)
-      }
-    }
-  }
-  return temp.innerHTML
-}
+import { setSanitizedRawHtml } from '../../../shared/sanitize/sanitizeRawHtml.js'
 
 /**
  * Raw HTML block renderer
@@ -38,7 +19,7 @@ export function createRawRenderer(classPrefix, _locale) {
     render(block, _parseInline) {
       const wrapper = document.createElement('div')
       wrapper.className = `${classPrefix}-raw`
-      wrapper.innerHTML = sanitize(block.data.html)
+      setSanitizedRawHtml(wrapper, block.data.html)
       return wrapper
     },
   }

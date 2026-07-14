@@ -7,6 +7,7 @@
 import { sanitizeHtml } from '../../core/sanitize.js'
 import { resolvePath } from '../../shared/resolvePath.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
+import { validateWarningData } from '../../shared/blockDataValidators.js'
 
 const editorStyles = resolvePath('./warning.css', import.meta.url)
 
@@ -105,7 +106,7 @@ export class Warning extends BlockPluginAbstract {
    * @returns {boolean}
    */
   validate(data) {
-    return !!(data?.title?.trim() || data?.message?.trim())
+    return validateWarningData(data)
   }
 
   /**

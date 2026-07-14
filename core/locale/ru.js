@@ -4,10 +4,10 @@ export default {
   'toolbar.tune': 'Настройки блока',
   'toolbox.search': 'Поиск...',
 
-  'inline.bold': 'Жирный',
+  'inline.bold': 'Полужирный',
   'inline.italic': 'Курсив',
   'inline.link': 'Ссылка',
-  'inline.code': 'Инлайн код',
+  'inline.code': 'Внутристрочный код',
   'inline.marker': 'Маркер',
   'inline.bgcolor': 'Фон текста',
   'inline.strikethrough': 'Зачёркнутый',
@@ -20,7 +20,7 @@ export default {
   'inline.script.none': 'Обычный',
   'inline.fontSize': 'Размер шрифта',
   'inline.case': 'Сменить регистр',
-  'inline.clear': 'Сбросить стили',
+  'inline.clear': 'Очистить форматирование',
   'link.placeholder': 'Вставьте ссылку...',
   'link.apply': 'Применить',
   'link.unlink': 'Удалить ссылку',
@@ -31,6 +31,7 @@ export default {
   'block.duplicate': 'Дублировать',
   'block.convertTo': 'Преобразовать в',
   'block.back': 'Назад',
+  'block.unsupported': 'Неподдерживаемый тип блока: {type}',
 
   'slash.noResults': 'Ничего не найдено',
 }

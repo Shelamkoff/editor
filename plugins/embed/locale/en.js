@@ -12,4 +12,8 @@ export default {
   'plugin.embed.cover': 'Cover',
   'plugin.embed.uploadCover': 'Upload',
   'plugin.embed.removeCover': 'Remove',
+  'plugin.embed.back': 'Back',
+  'plugin.embed.coverUrlPrompt': 'Cover image URL:',
+  'plugin.embed.play': 'Play video',
+  'plugin.embed.videoLabel': 'Video',
 }

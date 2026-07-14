@@ -7,6 +7,7 @@ import code from '../plugins/code/locale/ru.js'
 import image from '../plugins/image/locale/ru.js'
 import embed from '../plugins/embed/locale/ru.js'
 import gallery from '../plugins/gallery/locale/ru.js'
+import carousel from '../plugins/carousel/locale/ru.js'
 import checklist from '../plugins/checklist/locale/ru.js'
 import warning from '../plugins/warning/locale/ru.js'
 import raw from '../plugins/raw/locale/ru.js'
@@ -33,6 +34,7 @@ export default {
   ...image,
   ...embed,
   ...gallery,
+  ...carousel,
   ...checklist,
   ...warning,
   ...raw,

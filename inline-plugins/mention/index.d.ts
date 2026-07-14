@@ -1,5 +1,5 @@
-import type { InlinePlugin } from '../../core/types'
-import type { InlineWidget, InlinePluginLike } from '../../renderer/types'
+import type { InlinePlugin } from '../../core/types.js'
+import type { InlineWidget, InlinePluginLike } from '../../renderer/types.js'
 
 /**
  * A single search-result entry for the mention dropdown.
@@ -13,7 +13,7 @@ export interface MentionItem {
   avatar?: string
   /** Optional secondary line shown under the name. */
   details?: string
-  /** Extra fields are preserved and passed through to `onMentionSelect`. */
+  /** Extra fields remain available to custom result renderers. They are not persisted or passed to `onMentionSelect`. */
   [key: string]: unknown
 }
 
@@ -26,9 +26,15 @@ export interface MentionSearchResult {
   nextPageUrl?: string | null
 }
 
+export interface MentionSearchContext {
+  /** Aborted when a newer query starts, the popup closes, or the plugin is destroyed. */
+  signal: AbortSignal
+}
+
 export type MentionSearchFunction = (
   query: string,
-  nextPageUrl?: string | null,
+  nextPageUrl: string | null,
+  context: MentionSearchContext,
 ) => Promise<MentionSearchResult | MentionItem[]>
 
 export type MentionRenderItem = (
@@ -69,13 +75,13 @@ export interface MentionPluginOptions {
  *
  * The plugin listens for the trigger character (default `@`) via the editor's
  * built-in `TriggerManager`, opens a searchable dropdown, and commits the
- * selected user as an Ophire inline widget:
+ * selected user as a Rector inline widget:
  *
  *   <span data-inline-plugin="mention" data-value="<id>"
- *         class="oe-ip oe-ip--mention" contenteditable="false">@Name</span>
+ *         class="oe-ip oe-ip--mention">@Name</span>
  *
  * The widget survives paragraph save/render via the shared sanitize allowlist,
- * and is shown in read-only content (via `EditorContent`) using the same CSS.
+ * and is restored by the document renderer using the same widget contract.
  */
 export function createMentionPlugin(options?: MentionPluginOptions): InlinePlugin
 
@@ -95,7 +101,7 @@ export interface MentionWidgetData extends Record<string, unknown> {
 export type MentionWidget = InlineWidget<'mention', MentionWidgetData>
 
 /**
- * Read-only mention widget — just `createWidget` + `getData` + `type`.
+ * Renderer-side mention widget — just `createWidget` + `getData` + `type`.
  * Pass to `RendererConfig.inlinePlugins` so the renderer can rehydrate
  * mention placeholders into their display pills without dragging in the
  * full editor runtime (dropdown UI, trigger manager, search pipeline).

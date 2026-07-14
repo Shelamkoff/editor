@@ -1,5 +1,3 @@
-import { EditorEvent } from '../editorEvents.js'
-
 /**
  * @typedef {Object} ActionsPanelDeps
  * @property {import('../types').IEventBus} events
@@ -7,6 +5,7 @@ import { EditorEvent } from '../editorEvents.js'
  * @property {import('../Tooltip').Tooltip} tooltip
  * @property {() => void} updateActiveStates
  * @property {() => void} hideTypeSelector
+ * @property {<T>(range: Range, operation: () => T) => T} mutate
  * @property {() => void} onClosed
  *   Called after the panel is removed and the saved selection has been
  *   restored. InlineToolbar uses this to flip its view back to "buttons"
@@ -58,6 +57,8 @@ export class ActionsPanel {
     if (!tool.renderActions) return null
 
     // Save current selection range before focus moves into the panel.
+    // Never reuse a range left by a previous panel invocation.
+    this.#savedRange = null
     const sel = window.getSelection()
     if (sel && sel.rangeCount > 0) {
       this.#savedRange = sel.getRangeAt(0).cloneRange()
@@ -67,6 +68,7 @@ export class ActionsPanel {
     /** @type {import('../types').InlineToolActionContext} */
     const ctx = {
       range: this.#savedRange,
+      mutate: (operation) => this.#deps.mutate(/** @type {Range} */ (this.#savedRange), operation),
       restoreSelection: () => this.#restoreSelection(),
       close: () => this.close(),
       showTooltip: (anchor, label) => this.#deps.tooltip.show(anchor, label),
@@ -92,6 +94,7 @@ export class ActionsPanel {
     this.#panel = null
 
     this.#restoreSelection()
+    this.#savedRange = null
     this.#deps.updateActiveStates()
     this.#deps.onClosed()
   }
@@ -111,9 +114,18 @@ export class ActionsPanel {
     if (this.#deps.crossBlockSelection.range) return
     const sel = window.getSelection()
     if (!sel) return
-    // If selection is already non-collapsed (tool already restored it), don't overwrite.
-    if (!sel.isCollapsed && sel.rangeCount > 0) return
+    const start = this.#savedRange.startContainer
+    const startElement = start.nodeType === Node.ELEMENT_NODE
+      ? /** @type {HTMLElement} */ (start)
+      : start.parentElement
+    const editingHost = startElement?.closest('[contenteditable="true"]')
+
+    // Focus may still belong to a URL/action input after the panel closes.
+    // Move it back to the editing host so the next undo/redo shortcut reaches
+    // the editor history. Focus first, then restore the exact range because
+    // focusing a contenteditable may collapse the native selection.
     try {
+      editingHost?.focus({ preventScroll: true })
       sel.removeAllRanges()
       sel.addRange(this.#savedRange)
     } catch {

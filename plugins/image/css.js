@@ -7,6 +7,8 @@ export const CSS = {
   selectIcon: 'oe-image__select-icon',
   selectText: 'oe-image__select-text',
   selectLink: 'oe-image__select-link',
+  selectActions: 'oe-image__select-actions',
+  selectAction: 'oe-image__select-action',
   dropzoneActive: 'oe-image__select--dragover',
   actionsView: 'oe-image__actions-view',
   actionChevron: 'oe-image__action-chevron',

@@ -9,11 +9,13 @@ import {
   createTransform,
   createDownload,
   createFullscreen,
-} from '../../../../expose/src/index.js'
+  exposeStylesUrl,
+} from '@shelamkoff/expose'
 import { resolvePath } from '../../../shared/resolvePath.js'
+import { setSafeUrlAttribute } from '../../../shared/sanitize/sanitizeUrl.js'
 
 const styles = resolvePath('./styles.css', import.meta.url)
-const exposeStyles = resolvePath('../../../../expose/styles/expose.css', import.meta.url)
+const exposeStyles = exposeStylesUrl
 
 const MAX_VISIBLE = 6
 
@@ -90,6 +92,8 @@ function selectAutoTemplate(count, orientations) {
  * @returns {import('../../types').BlockRenderer<import('../../types').GalleryBlock>}
  */
 export function createGalleryRenderer(classPrefix, _locale) {
+  /** @type {WeakMap<HTMLElement, Set<import('@shelamkoff/expose').Expose>>} */
+  const activeInstances = new WeakMap()
   return {
     type: 'gallery',
     styles: [styles, exposeStyles],
@@ -113,6 +117,9 @@ export function createGalleryRenderer(classPrefix, _locale) {
       }
 
       const container = document.createElement('div')
+      /** @type {Set<import('@shelamkoff/expose').Expose>} */
+      const instances = new Set()
+      activeInstances.set(container, instances)
       container.className = `${classPrefix}-gallery`
 
       const slots = getSlotsCount(layout)
@@ -190,7 +197,7 @@ export function createGalleryRenderer(classPrefix, _locale) {
         const idx = Array.from(container.querySelectorAll(`.${classPrefix}-gallery__item`)).indexOf(item)
         if (idx === -1) return
 
-        /** @type {import('../../../../expose/src/types').SlideData[]} */
+        /** @type {import('@shelamkoff/expose').SlideData[]} */
         const slides = images.map(img => ({
           src: img.url,
           caption: img.caption || undefined,
@@ -201,7 +208,7 @@ export function createGalleryRenderer(classPrefix, _locale) {
         const o = options || {}
         const loop = single ? false : (o.loop ?? true)
 
-        /** @type {import('../../../../expose/src/types').ExposePlugin[]} */
+        /** @type {import('@shelamkoff/expose').ExposePlugin[]} */
         const plugins = []
 
         if (o.zoom ?? true) plugins.push(createZoom())
@@ -212,6 +219,7 @@ export function createGalleryRenderer(classPrefix, _locale) {
         plugins.push(createTransform())
         plugins.push(createDownload())
 
+        /** @type {Array<'counter'>} */
         const toolbar = single ? [] : ['counter']
 
         const expose = new Expose(slides, {
@@ -221,11 +229,29 @@ export function createGalleryRenderer(classPrefix, _locale) {
           toolbar,
           plugins,
         })
+        instances.add(expose)
         expose.open(idx)
-        expose.on('close:complete', () => expose.destroy())
+        expose.on('close:complete', () => {
+          expose.destroy()
+          instances.delete(expose)
+        })
       })
 
       return container
+    },
+
+    /**
+     * Dispose lightboxes that are still open when rendered content is replaced.
+     * @param {HTMLElement} element
+     */
+    destroy(element) {
+      const instances = activeInstances.get(element)
+      if (!instances) return
+      for (const expose of instances) {
+        expose.destroy()
+      }
+      instances.clear()
+      activeInstances.delete(element)
     },
   }
 }
@@ -241,7 +267,7 @@ function createItem(image, classPrefix) {
 
   const img = document.createElement('img')
   img.className = `${classPrefix}-gallery__image`
-  img.src = image.url
+  setSafeUrlAttribute(img, 'src', image.url, 'media')
   img.alt = image.caption || ''
   img.loading = 'lazy'
   figure.appendChild(img)

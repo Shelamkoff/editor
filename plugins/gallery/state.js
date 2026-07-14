@@ -1,4 +1,5 @@
 import { ALL_LAYOUTS } from './layout.js'
+import { sanitizeUrl } from '../../shared/sanitize/sanitizeUrl.js'
 
 /**
  * @typedef {{ url: string, caption: string }} GalleryImage
@@ -27,9 +28,19 @@ export class GalleryState {
   /** @type {number} -1 when no drag in progress */
   dragIndex = -1
 
-  /** @param {GalleryData} data */
-  constructor(data) {
+  /** @type {File[]} */
+  pendingFiles = []
+
+  /** @type {Promise<void> | null} */
+  pendingUpload = null
+
+  /**
+   * @param {GalleryData} data
+   * @param {File[]} [pendingFiles]
+   */
+  constructor(data, pendingFiles = []) {
     this.data = data
+    this.pendingFiles = pendingFiles
   }
 
   /**
@@ -45,6 +56,8 @@ export class GalleryState {
   dispose() {
     this.abortController?.abort()
     this.abortController = null
+    this.pendingFiles = []
+    this.pendingUpload = null
   }
 }
 
@@ -68,7 +81,7 @@ export function emptyGalleryData() {
 export function normalizeGalleryData(data) {
   const images = Array.isArray(data?.images)
     ? data.images.map((img) => ({
-        url: String(/** @type {any} */ (img)?.url || ''),
+        url: sanitizeUrl(String(/** @type {any} */ (img)?.url || ''), { policy: 'media', fallback: '' }),
         caption: String(/** @type {any} */ (img)?.caption || ''),
       }))
     : []

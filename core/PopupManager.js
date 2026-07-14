@@ -11,6 +11,9 @@ export class PopupManager {
   /** @type {((e: MouseEvent) => void) | null} */
   #outsideClickHandler = null
 
+  /** @type {(() => void) | null} */
+  #activeCleanup = null
+
   /** @type {import('./types').IEventBus} */
   #events
 
@@ -20,13 +23,23 @@ export class PopupManager {
   /** @type {HTMLElement | null} */
   #rootEl = null
 
+  /** @type {import('./types').IBlockManager} */
+  #blocks
+
+  /** @type {import('./CommandDispatcher').CommandDispatcher} */
+  #mutations
+
   /**
    * @param {import('./types').IEventBus} events
    * @param {string} changedEvent
+   * @param {import('./types').IBlockManager} blocks
+   * @param {import('./CommandDispatcher').CommandDispatcher} commands
    */
-  constructor(events, changedEvent) {
+  constructor(events, changedEvent, blocks, commands) {
     this.#events = events
     this.#changedEvent = /** @type {*} */ (changedEvent)
+    this.#blocks = blocks
+    this.#mutations = commands
   }
 
   /**
@@ -41,8 +54,9 @@ export class PopupManager {
    * Show a popup near an anchor element.
    * @param {HTMLElement} anchor
    * @param {HTMLElement} content
+   * @param {(() => void) | undefined} cleanup
    */
-  showPopup(anchor, content) {
+  showPopup(anchor, content, cleanup) {
     this.hidePopup()
 
     const popup = document.createElement('div')
@@ -67,8 +81,12 @@ export class PopupManager {
     }
 
     this.#activePopup = popup
+    this.#activeCleanup = cleanup || null
 
-    requestAnimationFrame(() => {
+    // Arm after the opening event finishes, without depending on a rendered
+    // animation frame (background tabs may suspend rAF indefinitely).
+    queueMicrotask(() => {
+      if (this.#activePopup !== popup) return
       this.#outsideClickHandler = (/** @type {MouseEvent} */ e) => {
         if (popup.contains(/** @type {Node} */ (e.target))) return
         if (anchor.contains(/** @type {Node} */ (e.target))) return
@@ -79,18 +97,60 @@ export class PopupManager {
   }
 
   hidePopup() {
-    if (this.#activePopup) {
-      this.#activePopup.remove()
-      this.#activePopup = null
-    }
     if (this.#outsideClickHandler) {
       document.removeEventListener('mousedown', this.#outsideClickHandler, true)
       this.#outsideClickHandler = null
     }
+    if (this.#activePopup) {
+      this.#activePopup.remove()
+      this.#activePopup = null
+    }
+
+    const cleanup = this.#activeCleanup
+    this.#activeCleanup = null
+    if (cleanup) {
+      try {
+        cleanup()
+      } catch (error) {
+        // A plugin disposer must not prevent the rest of editor teardown.
+        console.error('Inline popup cleanup failed', error)
+      }
+    }
   }
 
-  notifyChanged() {
+  /**
+   * Notify through the concrete editing host whenever one can be resolved.
+   * This lets the editor invalidate the exact block cache rather than only
+   * scheduling a document-level change callback.
+   * @param {Node} [target]
+   */
+  notifyChanged(target) {
+    const candidate = target
+      ?? window.getSelection()?.anchorNode
+      ?? document.activeElement
+    const element = candidate?.nodeType === Node.ELEMENT_NODE
+      ? /** @type {Element} */ (candidate)
+      : candidate?.parentElement
+    const editable = element?.closest?.('[contenteditable="true"]')
+    if (editable && (!this.#rootEl || this.#rootEl.contains(editable))) {
+      editable.dispatchEvent(new InputEvent('input', { bubbles: true }))
+      return
+    }
     this.#events.emit(/** @type {string} */ (this.#changedEvent))
+  }
+
+  /**
+   * Execute one inline-widget command against its exact owning block.
+   * Detached/stale widget callbacks are ignored.
+   * @template T
+   * @param {Node} target
+   * @param {() => T} operation
+   * @returns {T | undefined}
+   */
+  mutate(target, operation) {
+    const block = this.#blocks.getBlockByChildNode(target)
+    if (!block) return undefined
+    return this.#mutations.runForBlock(block, operation)
   }
 
   destroy() {

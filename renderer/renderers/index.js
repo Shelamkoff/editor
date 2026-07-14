@@ -12,6 +12,7 @@ import { createWarningRenderer } from './warning/index.js'
 import { createEmbedRenderer } from './embed/index.js'
 import { createRawRenderer } from './raw/index.js'
 import { createGalleryRenderer } from './gallery/index.js'
+import { createCarouselRenderer } from './carousel/index.js'
 import { createAttachesRenderer } from './attaches/index.js'
 import { createLinkPreviewRenderer } from './link-preview/index.js'
 import { createToggleRenderer } from './toggle/index.js'
@@ -19,12 +20,13 @@ import { createColumnsRenderer } from './columns/index.js'
 import { createSpoilerRenderer } from './spoiler/index.js'
 import { createPollRenderer } from './poll/index.js'
 import { createPersonRenderer } from './person/index.js'
+import { BLOCK_TYPES } from '../../shared/blockTypes.js'
 
 /**
- * @typedef {(prefix: string, locale: Record<string, string>) => import('../types').BlockRenderer} RendererFactory
+ * @typedef {(prefix: string, locale: Record<string, import('../../shared/localeTypes').LocaleValue>, config?: unknown) => import('../types').BlockRenderer} RendererFactory
  */
 
-// Factory functions map — Ophire Editor block types only
+// Factory functions map for Rector document block types.
 /** @type {Record<import('../types').BlockType, RendererFactory>} */
 const rendererFactories = {
   paragraph: createParagraphRenderer,
@@ -40,6 +42,7 @@ const rendererFactories = {
   embed: createEmbedRenderer,
   raw: createRawRenderer,
   gallery: createGalleryRenderer,
+  carousel: createCarouselRenderer,
   attaches: createAttachesRenderer,
   linkPreview: createLinkPreviewRenderer,
   toggle: createToggleRenderer,
@@ -54,21 +57,25 @@ const rendererFactories = {
  * @returns {import('../types').BlockType[]}
  */
 export function getSupportedBlockTypes() {
-  return /** @type {import('../types').BlockType[]} */ (Object.keys(rendererFactories))
+  return [...BLOCK_TYPES]
 }
 
 /**
  * Create all default renderers
  * @param {string} classPrefix
- * @param {Record<string, string>} locale
+ * @param {Record<string, import('../../shared/localeTypes').LocaleValue>} locale
+ * @param {import('../types').BlockType[]} [types]
+ * @param {Record<string, unknown>} [configs]
  * @returns {Map<string, import('../types').BlockRenderer>}
  */
-export function createDefaultRenderers(classPrefix, locale) {
+export function createDefaultRenderers(classPrefix, locale, types = getSupportedBlockTypes(), configs = {}) {
   /** @type {Map<string, import('../types').BlockRenderer>} */
   const renderers = new Map()
 
-  for (const [type, factory] of Object.entries(rendererFactories)) {
-    renderers.set(type, factory(classPrefix, locale))
+  for (const type of new Set(types)) {
+    const factory = rendererFactories[type]
+    if (!factory) continue
+    renderers.set(type, factory(classPrefix, locale, configs[type]))
   }
 
   return renderers
@@ -79,17 +86,18 @@ export function createDefaultRenderers(classPrefix, locale) {
  * @template {import('../types').OutputBlockData} T
  * @param {T['type']} type
  * @param {string} classPrefix
- * @param {Record<string, string>} [locale]
+ * @param {Record<string, import('../../shared/localeTypes').LocaleValue>} [locale]
+ * @param {unknown} [config]
  * @returns {import('../types').BlockRenderer<T> | null}
  */
-export function createRenderer(type, classPrefix, locale) {
+export function createRenderer(type, classPrefix, locale, config) {
   const factory = rendererFactories[/** @type {import('../types').BlockType} */ (type)]
 
   if (!factory) {
     return null
   }
 
-  return /** @type {import('../types').BlockRenderer<T>} */ (factory(classPrefix, locale || {}))
+  return /** @type {import('../types').BlockRenderer<T>} */ (factory(classPrefix, locale || {}, config))
 }
 
 export {
@@ -106,6 +114,7 @@ export {
   createEmbedRenderer,
   createRawRenderer,
   createGalleryRenderer,
+  createCarouselRenderer,
   createAttachesRenderer,
   createLinkPreviewRenderer,
   createToggleRenderer,

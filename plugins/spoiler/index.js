@@ -7,11 +7,13 @@
 import { sanitizeHtml } from '../../core/sanitize.js'
 import { resolvePath } from '../../shared/resolvePath.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
+import { validateSpoilerData } from '../../shared/blockDataValidators.js'
 
 const editorStyles = resolvePath('./spoiler.css', import.meta.url)
 
 // Tabler icon: eye-off
 const ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.585 10.587a2 2 0 0 0 2.829 2.828"/><path d="M16.681 16.673a8.717 8.717 0 0 1-4.681 1.327c-3.6 0-6.6-2-9-6 1.272-2.12 2.712-3.678 4.32-4.674m2.86-1.146a9.055 9.055 0 0 1 1.82-.18c3.6 0 6.6 2 9 6-.666 1.11-1.379 2.067-2.138 2.87"/><path d="M3 3l18 18"/></svg>'
+let spoilerSequence = 0
 
 
 export class Spoiler extends BlockPluginAbstract {
@@ -55,10 +57,15 @@ export class Spoiler extends BlockPluginAbstract {
     toggle.className = 'oe-spoiler__toggle'
     toggle.innerHTML = ICON
     toggle.title = this._t('toggle', 'Toggle spoiler')
+    toggle.setAttribute('aria-label', this._t('toggle', 'Toggle spoiler'))
+    toggle.setAttribute('aria-expanded', 'true')
+    toggle.querySelector('svg')?.setAttribute('aria-hidden', 'true')
     toggle.addEventListener('mousedown', (e) => e.preventDefault())
     toggle.addEventListener('click', (e) => {
       e.stopPropagation()
-      wrapper.classList.toggle('oe-spoiler--open')
+      const open = wrapper.classList.toggle('oe-spoiler--open')
+      toggle.setAttribute('aria-expanded', String(open))
+      content.hidden = !open
     })
 
     // Header row
@@ -69,6 +76,8 @@ export class Spoiler extends BlockPluginAbstract {
     // Hidden content
     const content = document.createElement('div')
     content.className = 'oe-spoiler__content'
+    content.id = `oe-spoiler-content-${++spoilerSequence}`
+    toggle.setAttribute('aria-controls', content.id)
     content.contentEditable = 'true'
     content.dataset.placeholder = this._t('contentPlaceholder', 'Hidden content...')
     if (data?.content) content.innerHTML = sanitizeHtml(data.content)
@@ -101,7 +110,7 @@ export class Spoiler extends BlockPluginAbstract {
 
   /** @param {Record<string, unknown>} data */
   validate(data) {
-    return !!(/** @type {any} */ (data)?.content?.trim())
+    return validateSpoilerData(data)
   }
 
   /** @param {HTMLElement} element */

@@ -1,0 +1,41 @@
+# Рендерер LinkPreview
+
+Преобразует сохранённый блок `linkPreview` в принадлежащий рендереру DOM.
+
+Синхронная точка входа `@shelamkoff/rector/renderer` включает все встроенные рендереры, поэтому до её импорта установите `@shelamkoff/carousel` и `@shelamkoff/expose`. Значение `blockTypes: []` отключает создание встроенных рендереров, но не меняет правила разрешения модулей ESM.
+
+## Использование
+
+```js
+import { createEditorRenderer } from '@shelamkoff/rector/renderer'
+import { createLinkPreviewRenderer } from '@shelamkoff/rector/renderer/renderers/link-preview'
+
+const renderer = createEditorRenderer({ classPrefix: 'article', blockTypes: [] })
+renderer.registerRenderer(createLinkPreviewRenderer('article', {}))
+const rendererStyles = renderer.injectStyles()
+renderer.renderTo(documentData, document.querySelector('#article'))
+
+// При удалении добавленного результата:
+renderer.destroy()
+rendererStyles.destroy()
+```
+
+## Типичные данные
+
+```json
+{
+  "url": "https://example.com",
+  "title": "Example",
+  "description": "",
+  "image": "",
+  "favicon": "",
+  "domain": "example.com",
+  "template": "notion"
+}
+```
+
+Адрес назначения проходит политику внешних ссылок, а изображения — политику URL для медиафайлов; текстовые поля добавляются как текст. Рендерер объявляет одну таблицу стилей и не создаёт обработчиков или сторонних экземпляров.
+
+Если рендерер объявляет стили, показанный выше явный вызов `EditorRenderer.injectStyles()` подключает их, а возвращённый владелец освобождает.
+
+Жизненный цикл, восстановление внутристрочных виджетов, стили и границы безопасности описаны в последовательном руководстве VitePress.

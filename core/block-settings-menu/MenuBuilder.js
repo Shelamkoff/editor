@@ -64,7 +64,12 @@ export class MenuBuilder {
     // Plugin-specific settings (e.g. heading levels, table operations).
     const plugin = this.#deps.plugins.get(current.type)
     if (plugin?.renderSettings) {
-      const settingsItems = plugin.renderSettings(current.contentElement)
+      let settingsItems = null
+      try {
+        settingsItems = plugin.renderSettings(current.contentElement)
+      } catch (err) {
+        console.warn(`[MenuBuilder] Failed to render settings for "${current.type}":`, err)
+      }
       const items = Array.isArray(settingsItems) ? settingsItems : settingsItems ? [settingsItems] : []
 
       for (const item of items) {
@@ -77,7 +82,9 @@ export class MenuBuilder {
         this.#menuEl.appendChild(item)
       }
 
-      this.#menuEl.appendChild(el('li', 'oe-settings-menu__separator', { role: 'separator' }))
+      if (items.length > 0) {
+        this.#menuEl.appendChild(el('li', 'oe-settings-menu__separator', { role: 'separator' }))
+      }
     }
 
     // Duplicate

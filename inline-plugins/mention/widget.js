@@ -1,12 +1,12 @@
 // @ts-check
 /**
- * Mention widget primitives — the read-only half of the mention inline
+ * Mention widget primitives — the renderer-side half of the mention inline
  * plugin (build + read DOM, no editor runtime).
  *
  * Pure DOM factories with no dependencies on the editor (TriggerManager,
  * dropdown UI, search pipeline, i18n, styles). Used by:
  *   - `createMentionPlugin()` — full editor plugin delegates to these.
- *   - Read-only renderer — `EditorRenderer` receives this via
+ *   - Document renderer — `EditorRenderer` receives this via
  *     `RendererConfig.inlinePlugins` and uses it to rehydrate committed
  *     mention placeholders (`{{<id>}}`) back into pills.
  */

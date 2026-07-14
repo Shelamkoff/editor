@@ -8,7 +8,7 @@ import { applyGalleryStyles } from './styles.js'
  * @property {(key: string, fallback: string) => string} t
  * @property {() => void} syncCaptions
  * @property {() => void} reRender   re-render the filled view (after layout change)
- * @property {() => void} notifyChanged
+ * @property {(operation: () => void) => void} mutate
  */
 
 /**
@@ -50,17 +50,27 @@ function buildLayoutGroup(wrapper, state, deps, signal) {
   grid.className = CSS.layoutGrid
 
   for (const layout of ALL_LAYOUTS) {
+    const layoutLabel = layout === 'auto'
+      ? deps.t('layoutAuto', 'Automatic layout')
+      : layout === 'masonry'
+        ? deps.t('layoutMasonry', 'Masonry layout')
+        : layout === 'triptych'
+          ? deps.t('layoutTriptych', 'Triptych layout')
+          : `${deps.t('layoutTemplate', 'Layout template')} ${layout}`
     const btn = document.createElement('button')
     btn.type = 'button'
     btn.className = `${CSS.layoutBtn}${state.data.layout === layout ? ` ${CSS.layoutBtnActive}` : ''}`
     btn.innerHTML = LAYOUT_ICONS[layout] || ''
-    btn.title = layout
+    btn.title = layoutLabel
+    btn.setAttribute('aria-label', layoutLabel)
+    btn.setAttribute('aria-pressed', String(state.data.layout === layout))
     btn.addEventListener('mousedown', (e) => e.preventDefault(), { signal })
     btn.addEventListener('click', () => {
-      deps.syncCaptions()
-      state.data.layout = layout
-      deps.reRender()
-      deps.notifyChanged()
+      deps.mutate(() => {
+        deps.syncCaptions()
+        state.data.layout = layout
+        deps.reRender()
+      })
     }, { signal })
     grid.appendChild(btn)
   }
@@ -86,10 +96,15 @@ function buildLightboxGroup(state, deps, signal) {
     const btn = document.createElement('button')
     btn.type = 'button'
     btn.className = `${CSS.switch}${(opts[key] ?? defaultVal) ? ` ${CSS.switchActive}` : ''}`
+    btn.setAttribute('aria-label', label)
+    btn.setAttribute('aria-pressed', String(Boolean(opts[key] ?? defaultVal)))
     btn.addEventListener('mousedown', (e) => e.preventDefault(), { signal })
     btn.addEventListener('click', () => {
-      opts[key] = !(opts[key] ?? defaultVal)
-      btn.classList.toggle(CSS.switchActive)
+      deps.mutate(() => {
+        opts[key] = !(opts[key] ?? defaultVal)
+        btn.classList.toggle(CSS.switchActive)
+        btn.setAttribute('aria-pressed', String(Boolean(opts[key])))
+      })
     }, { signal })
     row.append(lbl, btn)
     return row
@@ -112,12 +127,14 @@ function buildLightboxGroup(state, deps, signal) {
   const autoplayInput = document.createElement('input')
   autoplayInput.type = 'text'
   autoplayInput.className = CSS.styleInput
-  autoplayInput.placeholder = 'ms (e.g. 3000)'
+  autoplayInput.placeholder = deps.t('autoplayDelayPlaceholder', 'ms (e.g. 3000)')
   autoplayInput.value = opts.autoplayInterval ? String(opts.autoplayInterval) : ''
   autoplayInput.addEventListener('input', () => {
-    const val = parseInt(autoplayInput.value, 10)
-    if (val > 0) opts.autoplayInterval = val
-    else delete opts.autoplayInterval
+    deps.mutate(() => {
+      const val = parseInt(autoplayInput.value, 10)
+      if (val > 0) opts.autoplayInterval = val
+      else delete opts.autoplayInterval
+    })
   }, { signal })
   autoplayLbl.append(autoplaySpan, autoplayInput)
   autoplayRow.appendChild(autoplayLbl)
@@ -142,9 +159,11 @@ function buildStylesGroup(wrapper, state, deps, signal) {
     input.className = CSS.styleInput
     input.value = value || ''
     input.addEventListener('input', () => {
-      if (input.value) styles[key] = input.value
-      else delete styles[key]
-      applyGalleryStyles(wrapper, state)
+      deps.mutate(() => {
+        if (input.value) styles[key] = input.value
+        else delete styles[key]
+        applyGalleryStyles(wrapper, state)
+      })
     }, { signal })
     return input
   }
@@ -161,7 +180,7 @@ function buildStylesGroup(wrapper, state, deps, signal) {
     return row
   }
 
-  group.appendChild(makeRow('Gap', makeStyleInput('gap', styles.gap)))
+  group.appendChild(makeRow(deps.t('styleGap', 'Gap'), makeStyleInput('gap', styles.gap)))
   group.appendChild(makeRow(deps.t('styleRadius', 'Radius'), makeStyleInput('borderRadius', styles.borderRadius)))
   group.appendChild(makeRow(deps.t('styleHeight', 'Height'), makeStyleInput('height', styles.height)))
 

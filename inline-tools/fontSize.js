@@ -8,7 +8,6 @@ import {
   normalizeAfterEdit,
   saveSelectionOffsets,
   restoreSelectionOffsets,
-  notifyEditorChanged,
 } from './utils.js'
 
 /** Preset font sizes in px */
@@ -151,6 +150,20 @@ export function createFontSizeTool(label, cbs = null) {
   /** @type {Range | null} */
   let savedRange = null
   let isOpen = false
+  /** @type {number | null} */
+  let focusFrame = null
+  /** @type {import('../core/types').InlineMutationContext | null} */
+  let mutations = null
+
+  /**
+   * @template T
+   * @param {Range} range
+   * @param {() => T} operation
+   * @returns {T}
+   */
+  function mutate(range, operation) {
+    return mutations ? mutations.mutate(range, operation) : operation()
+  }
 
   function updateLabel() {
     if (!sizeLabel) return
@@ -183,8 +196,10 @@ export function createFontSizeTool(label, cbs = null) {
     const currentSize = getCurrentFontSize(crossRange || savedRange)
     if (inputEl) {
       inputEl.value = String(currentSize)
-      requestAnimationFrame(() => {
-        if (!inputEl) return
+      if (focusFrame !== null) cancelAnimationFrame(focusFrame)
+      focusFrame = requestAnimationFrame(() => {
+        focusFrame = null
+        if (!isOpen || !inputEl?.isConnected) return
         inputEl.focus()
         inputEl.select()
       })
@@ -194,6 +209,10 @@ export function createFontSizeTool(label, cbs = null) {
   function closeDropdown() {
     if (!isOpen) return
     isOpen = false
+    if (focusFrame !== null) {
+      cancelAnimationFrame(focusFrame)
+      focusFrame = null
+    }
     if (dropdownEl) dropdownEl.style.display = 'none'
     restoreRange()
   }
@@ -205,6 +224,11 @@ export function createFontSizeTool(label, cbs = null) {
     try {
       const root = savedRange.startContainer.getRootNode()
       if (!(root instanceof Document)) return
+      const start = savedRange.startContainer
+      const startElement = start.nodeType === Node.ELEMENT_NODE
+        ? /** @type {HTMLElement} */ (start)
+        : start.parentElement
+      startElement?.closest('[contenteditable="true"]')?.focus({ preventScroll: true })
       sel.removeAllRanges()
       sel.addRange(savedRange)
     } catch {
@@ -253,18 +277,19 @@ export function createFontSizeTool(label, cbs = null) {
     const actualRange = cbs?.range?.cloneRange() || range
     const saved = saveSelectionOffsets(actualRange)
 
-    // Always use wrapRangeWithFontSize — it handles both existing spans (update)
-    // and unwrapped text (create new spans) in a single pass.
-    const result = wrapRangeWithFontSize(actualRange, `${sizePx}px`)
-    if (result) {
-      const startCe = result.firstSpan.closest('[contenteditable]')
-      const endCe = result.lastSpan.closest('[contenteditable]')
-      if (startCe) startCe.normalize()
-      if (endCe && endCe !== startCe) endCe.normalize()
-    }
+    mutate(actualRange, () => {
+      // Always use wrapRangeWithFontSize — it handles both existing spans (update)
+      // and unwrapped text (create new spans) in a single pass.
+      const result = wrapRangeWithFontSize(actualRange, `${sizePx}px`)
+      if (result) {
+        const startCe = result.firstSpan.closest('[contenteditable]')
+        const endCe = result.lastSpan.closest('[contenteditable]')
+        if (startCe) startCe.normalize()
+        if (endCe && endCe !== startCe) endCe.normalize()
+      }
 
-    restoreSelectionOffsets(cbs, saved)
-    notifyEditorChanged(range.startContainer)
+      restoreSelectionOffsets(cbs, saved)
+    })
     snapshotCurrentRange()
     updateLabel()
     closeDropdown()
@@ -292,25 +317,26 @@ export function createFontSizeTool(label, cbs = null) {
 
     if (!toUnwrap.length) { closeDropdown(); return }
 
-    for (const span of toUnwrap) {
-      const parent = span.parentNode
-      if (!parent) continue
-      if (span.style.length > 1) {
-        span.style.removeProperty('font-size')
-        if (!span.getAttribute('style')) {
+    mutate(actualRange, () => {
+      for (const span of toUnwrap) {
+        const parent = span.parentNode
+        if (!parent) continue
+        if (span.style.length > 1) {
+          span.style.removeProperty('font-size')
+          if (!span.getAttribute('style')) {
+            while (span.firstChild) parent.insertBefore(span.firstChild, span)
+            span.remove()
+          }
+        } else {
           while (span.firstChild) parent.insertBefore(span.firstChild, span)
           span.remove()
         }
-      } else {
-        while (span.firstChild) parent.insertBefore(span.firstChild, span)
-        span.remove()
       }
-    }
 
-    if (walkRoot) normalizeAfterEdit(getContentEditable(actualRange), walkRoot)
+      if (walkRoot) normalizeAfterEdit(getContentEditable(actualRange), walkRoot)
 
-    restoreSelectionOffsets(cbs, saved)
-    notifyEditorChanged(range.startContainer)
+      restoreSelectionOffsets(cbs, saved)
+    })
     snapshotCurrentRange()
     updateLabel()
     closeDropdown()
@@ -429,7 +455,8 @@ export function createFontSizeTool(label, cbs = null) {
       }
     },
 
-    onMount(button) {
+    onMount(button, mutationContext) {
+      mutations = mutationContext ?? null
       button.classList.add('oe-font-size-select')
       button.innerHTML = ''
 
@@ -450,7 +477,10 @@ export function createFontSizeTool(label, cbs = null) {
 
     destroy() {
       document.removeEventListener('mousedown', onDocMouseDown, true)
+      if (focusFrame !== null) cancelAnimationFrame(focusFrame)
+      focusFrame = null
       if (dropdownEl) { dropdownEl.remove(); dropdownEl = null }
+      mutations = null
     },
   }
 }

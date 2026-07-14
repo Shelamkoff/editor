@@ -355,20 +355,31 @@ export class TypeSelector {
     let didConvert = false
 
     this.#events?.emit(EditorEvent.UNDO_BATCH_START)
-
-    if (isFullBlock) {
-      const converted = blocks.convert(currentIndex, targetType, targetData)
-      if (converted) {
-        blocks.setCurrentIndex(currentIndex)
-        this.#selection.setCaretToBlock(converted.id, 'start')
-        converted.focus()
-        didConvert = true
+    try {
+      if (isFullBlock) {
+        const converted = blocks.convert(currentIndex, targetType, targetData)
+        if (converted) {
+          blocks.setCurrentIndex(currentIndex)
+          this.#selection.setCaretToBlock(converted.id, 'start')
+          converted.focus()
+          didConvert = true
+        }
+      } else {
+        didConvert = splitAndConvert(
+          blocks,
+          this.#selection,
+          currentIndex,
+          currentType,
+          contentEl,
+          range,
+          targetType,
+          targetData,
+          isTextType(this.#plugins, targetType),
+        )
       }
-    } else {
-      didConvert = splitAndConvert(blocks, this.#selection, currentIndex, currentType, contentEl, range, targetType, targetData)
+    } finally {
+      this.#events?.emit(EditorEvent.UNDO_BATCH_END)
     }
-
-    this.#events?.emit(EditorEvent.UNDO_BATCH_END)
 
     if (didConvert && this.#onConvert) this.#onConvert()
   }
@@ -402,47 +413,47 @@ export class TypeSelector {
     const blocks = this.#blocks
 
     this.#events?.emit(EditorEvent.UNDO_BATCH_START)
-
-    // Check if target is text-based
-    const targetIsText = isTextType(this.#plugins, targetType)
-
     let focusBlock = null
+    try {
+      // Check if target is text-based
+      const targetIsText = isTextType(this.#plugins, targetType)
 
-    if (targetIsText) {
-      // Text target: convert each block individually (reverse order)
-      for (let i = selectedBlocks.length - 1; i >= 0; i--) {
-        const block = selectedBlocks[i]
-        if (!block) continue
-        const idx = blocks.getBlockIndex(block.id)
-        if (idx >= 0 && block.type !== targetType) {
-          const converted = blocks.convert(idx, targetType, /** @type {Record<string, unknown> | undefined} */ (targetData))
-          if (converted) focusBlock = converted
+      if (targetIsText) {
+        // Text target: convert each block individually (reverse order)
+        for (let i = selectedBlocks.length - 1; i >= 0; i--) {
+          const block = selectedBlocks[i]
+          if (!block) continue
+          const idx = blocks.getBlockIndex(block.id)
+          if (idx >= 0 && block.type !== targetType) {
+            const converted = blocks.convert(idx, targetType, /** @type {Record<string, unknown> | undefined} */ (targetData))
+            if (converted) focusBlock = converted
+          }
         }
+      } else {
+        // Non-text target: remove all selected, insert ONE new block
+        const firstIdx = blocks.getBlockIndex(/** @type {string} */ (selectedBlocks[0]?.id))
+
+        // Remove in reverse order
+        for (let i = selectedBlocks.length - 1; i >= 0; i--) {
+          const idx = blocks.getBlockIndex(/** @type {string} */ (selectedBlocks[i]?.id))
+          if (idx >= 0) blocks.remove(idx)
+        }
+
+        focusBlock = blocks.insert(targetType, /** @type {Record<string, unknown>} */ (targetData || {}), firstIdx)
       }
-    } else {
-      // Non-text target: remove all selected, insert ONE new block
-      const firstIdx = blocks.getBlockIndex(/** @type {string} */ (selectedBlocks[0]?.id))
 
-      // Remove in reverse order
-      for (let i = selectedBlocks.length - 1; i >= 0; i--) {
-        const idx = blocks.getBlockIndex(/** @type {string} */ (selectedBlocks[i]?.id))
-        if (idx >= 0) blocks.remove(idx)
+      // Clear block selection
+      blocks.clearSelection()
+
+      if (focusBlock) {
+        const focusIdx = blocks.getBlockIndex(focusBlock.id)
+        if (focusIdx >= 0) blocks.setCurrentIndex(focusIdx)
+        this.#selection.setCaretToBlock(focusBlock.id, 'start')
+        focusBlock.focus()
       }
-
-      focusBlock = blocks.insert(targetType, /** @type {Record<string, unknown>} */ (targetData || {}), firstIdx)
+    } finally {
+      this.#events?.emit(EditorEvent.UNDO_BATCH_END)
     }
-
-    // Clear block selection
-    blocks.clearSelection()
-
-    if (focusBlock) {
-      const focusIdx = blocks.getBlockIndex(focusBlock.id)
-      if (focusIdx >= 0) blocks.setCurrentIndex(focusIdx)
-      this.#selection.setCaretToBlock(focusBlock.id, 'start')
-      focusBlock.focus()
-    }
-
-    this.#events?.emit(EditorEvent.UNDO_BATCH_END)
 
     if (this.#onConvert) this.#onConvert()
   }

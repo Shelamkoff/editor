@@ -1,0 +1,42 @@
+# Рендерер Person
+
+Преобразует сохранённый блок `person` в принадлежащий рендереру DOM.
+Рендерер Person напрямую использует `@shelamkoff/carousel` и экспорт пакета `carouselStylesUrl`.
+
+Синхронная точка входа `@shelamkoff/rector/renderer` включает все встроенные рендереры, поэтому до её импорта установите `@shelamkoff/carousel` и `@shelamkoff/expose`. Значение `blockTypes: []` отключает создание встроенных рендереров, но не меняет правила разрешения модулей ESM.
+
+## Использование
+
+```js
+import { createEditorRenderer } from '@shelamkoff/rector/renderer'
+import { createPersonRenderer } from '@shelamkoff/rector/renderer/renderers/person'
+
+const renderer = createEditorRenderer({ classPrefix: 'article', blockTypes: [] })
+renderer.registerRenderer(createPersonRenderer('article', {}))
+const rendererStyles = renderer.injectStyles()
+renderer.renderTo(documentData, document.querySelector('#article'))
+
+// При удалении добавленного результата:
+renderer.destroy()
+rendererStyles.destroy()
+```
+
+## Типичные данные
+
+```json
+{
+  "persons": [{
+    "avatar": "https://cdn.example/ada.jpg",
+    "name": "Ada",
+    "role": "Author",
+    "bio": "",
+    "links": [{ "type": "website", "url": "https://example.com" }]
+  }]
+}
+```
+
+Текст профиля проходит обработчик внутристрочной разметки, а аватары и ссылки — политики URL для медиафайлов и внешних адресов. Вывод нескольких профилей владеет Carousel и обработчиками навигации, которые освобождаются в `destroy()`. Рендерер объявляет стили профиля и Carousel.
+
+Если рендерер объявляет стили, показанный выше явный вызов `EditorRenderer.injectStyles()` подключает их, а возвращённый владелец освобождает.
+
+Жизненный цикл, восстановление внутристрочных виджетов, стили и границы безопасности описаны в последовательном руководстве VitePress.

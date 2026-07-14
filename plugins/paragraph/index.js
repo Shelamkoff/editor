@@ -2,6 +2,7 @@ import { sanitizeHtml } from '../../core/sanitize.js'
 import { resolvePath } from '../../shared/resolvePath.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { mapTextFields } from './mapTextFields.js'
+import { validateParagraphData } from '../../shared/blockDataValidators.js'
 
 const editorStyles = resolvePath('./paragraph.css', import.meta.url)
 
@@ -9,9 +10,9 @@ const editorStyles = resolvePath('./paragraph.css', import.meta.url)
 const ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4l12 0"/><path d="M12 4l0 16"/></svg>'
 
 
-/**
- * @extends {BlockPluginAbstract<{ placeholder?: string }>}
- */
+/** @typedef {{ placeholder?: string, injectStyles?: boolean, css?: string }} ParagraphConfig */
+
+/** @extends {BlockPluginAbstract<ParagraphConfig>} */
 export class Paragraph extends BlockPluginAbstract {
   static isTextBlock = true
   static styles = [editorStyles]
@@ -19,6 +20,11 @@ export class Paragraph extends BlockPluginAbstract {
   icon = ICON
   inlineTools = true
   mapTextFields = mapTextFields
+
+  /** @param {ParagraphConfig} [config] */
+  constructor(config) {
+    super(config)
+  }
 
   /** @returns {string} */
   get title() {
@@ -83,7 +89,7 @@ export class Paragraph extends BlockPluginAbstract {
    * @returns {boolean}
    */
   validate(data) {
-    return typeof data.text === 'string' && data.text.trim().length > 0
+    return validateParagraphData(data)
   }
 
   /**

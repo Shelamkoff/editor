@@ -1,16 +1,45 @@
 import { el } from '../core/dom.js'
+import { sanitizeUrl } from '../shared/sanitize/sanitizeUrl.js'
 import {
   ICON_LINK, ICON_CHECK, ICON_UNLINK,
   removeEmptyInlineTags,
   saveSelectionOffsets,
   restoreSelectionOffsets,
-  notifyEditorChanged,
   getContentEditable,
   getWalkRoot,
   collectTextTargets,
   normalizeAfterEdit,
   createBackButton,
 } from './utils.js'
+
+/**
+ * Return every link touched by a range. The walk root is deliberately the
+ * contenteditable (or the common editor root for a cross-block selection),
+ * rather than the range's common ancestor: the latter can be the link itself,
+ * and querySelectorAll() never includes the element it is called on.
+ *
+ * Keeping detection, active-state rendering, and unlinking on this single
+ * query prevents the three code paths from disagreeing about the selection.
+ *
+ * @param {Range} range
+ * @returns {HTMLAnchorElement[]}
+ */
+function getIntersectingLinks(range) {
+  const walkRoot = getWalkRoot(range)
+  if (!walkRoot) return []
+
+  const candidates = []
+  if (walkRoot.matches('a')) candidates.push(walkRoot)
+  candidates.push(...walkRoot.querySelectorAll('a'))
+
+  return candidates.filter((candidate) => {
+    try {
+      return range.intersectsNode(candidate)
+    } catch {
+      return false
+    }
+  })
+}
 
 /**
  * Create the link inline tool with a drill-down URL input panel.
@@ -42,18 +71,7 @@ export function createLinkTool(linkPlaceholder, linkLabel, actionLabels = {}, cb
         if (sel?.anchorNode) return !!sel.anchorNode.parentElement?.closest('a')
         return false
       }
-      const ancestor = range.commonAncestorContainer
-      const container = ancestor.nodeType === Node.ELEMENT_NODE
-        ? /** @type {HTMLElement} */ (ancestor)
-        : ancestor.parentElement
-      if (container?.closest('a')) return true
-      if (container) {
-        const links = container.querySelectorAll('a')
-        for (const link of links) {
-          if (range.intersectsNode(link)) return true
-        }
-      }
-      return false
+      return getIntersectingLinks(range).length > 0
     },
 
     toggle(selection) {
@@ -62,23 +80,18 @@ export function createLinkTool(linkPlaceholder, linkLabel, actionLabels = {}, cb
       if (!actualRange) return
       const saved = saveSelectionOffsets(actualRange)
 
-      const ancestor = actualRange.commonAncestorContainer
-      const walkParent = ancestor.nodeType === Node.ELEMENT_NODE
-        ? /** @type {HTMLElement} */ (ancestor)
-        : ancestor.parentElement
-      if (walkParent) {
-        const links = Array.from(walkParent.querySelectorAll('a'))
-          .filter(a => actualRange.intersectsNode(a))
-        for (const link of links) {
-          const parent = link.parentNode
-          while (link.firstChild) parent?.insertBefore(link.firstChild, link)
-          link.remove()
-        }
-        walkParent.normalize()
+      const walkRoot = getWalkRoot(actualRange)
+      if (!walkRoot) return
+
+      for (const link of getIntersectingLinks(actualRange)) {
+        const parent = link.parentNode
+        while (link.firstChild) parent?.insertBefore(link.firstChild, link)
+        link.remove()
       }
 
+      normalizeAfterEdit(getContentEditable(actualRange), walkRoot)
+
       restoreSelectionOffsets(cbs, saved)
-      notifyEditorChanged(actualRange.startContainer)
     },
 
     /**
@@ -92,19 +105,7 @@ export function createLinkTool(linkPlaceholder, linkLabel, actionLabels = {}, cb
       const currentSel = window.getSelection()
       if (currentSel?.anchorNode) {
         const range = cbs?.range || (currentSel.rangeCount ? currentSel.getRangeAt(0) : null)
-        if (range) {
-          const ancestor = range.commonAncestorContainer
-          const container = ancestor.nodeType === Node.ELEMENT_NODE
-            ? /** @type {HTMLElement} */ (ancestor)
-            : ancestor.parentElement
-          if (container?.closest('a')) return null
-          if (container) {
-            const links = container.querySelectorAll('a')
-            for (const link of links) {
-              if (range.intersectsNode(link)) return null
-            }
-          }
-        }
+        if (range && getIntersectingLinks(range).length > 0) return null
       }
 
       const panel = el('div', 'oe-inline-toolbar__panel oe-inline-toolbar__panel--link')
@@ -186,49 +187,52 @@ export function createLinkTool(linkPlaceholder, linkLabel, actionLabels = {}, cb
 
         const saved = saveSelectionOffsets(actualRange)
 
-        // Wrap each text node in the range with an <a> tag
-        const walkRoot = getWalkRoot(actualRange)
-        if (walkRoot) {
-          const targets = collectTextTargets(walkRoot, actualRange)
-          for (let i = targets.length - 1; i >= 0; i--) {
-            const t = targets[i]
-            if (!t) continue
-            const { node, startOffset, endOffset } = t
-            let targetNode = node
-            if (endOffset < node.length) node.splitText(endOffset)
-            if (startOffset > 0) targetNode = /** @type {Text} */ (node.splitText(startOffset))
+        ctx.mutate(() => {
+          // Wrap each text node in the range with an <a> tag
+          const walkRoot = getWalkRoot(actualRange)
+          if (walkRoot) {
+            const targets = collectTextTargets(walkRoot, actualRange)
+            for (let i = targets.length - 1; i >= 0; i--) {
+              const t = targets[i]
+              if (!t) continue
+              const { node, startOffset, endOffset } = t
+              let targetNode = node
+              if (endOffset < node.length) node.splitText(endOffset)
+              if (startOffset > 0) targetNode = /** @type {Text} */ (node.splitText(startOffset))
 
-            // Skip if already inside a link
-            if (targetNode.parentElement?.closest('a')) continue
+              // Skip if already inside a link
+              if (targetNode.parentElement?.closest('a')) continue
 
-            const anchor = document.createElement('a')
-            anchor.href = url
-            anchor.rel = 'noopener noreferrer'
-            anchor.target = '_blank'
-            targetNode.parentNode?.insertBefore(anchor, targetNode)
-            anchor.appendChild(targetNode)
+              const anchor = document.createElement('a')
+              anchor.href = sanitizeUrl(url)
+              anchor.rel = 'noopener noreferrer'
+              anchor.target = '_blank'
+              targetNode.parentNode?.insertBefore(anchor, targetNode)
+              anchor.appendChild(targetNode)
+            }
+            normalizeAfterEdit(getContentEditable(actualRange), walkRoot)
           }
-          normalizeAfterEdit(getContentEditable(actualRange), walkRoot)
-        }
 
-        restoreSelectionOffsets(cbs, saved)
+          restoreSelectionOffsets(cbs, saved)
+        })
         ctx.close()
-        notifyEditorChanged(actualRange.startContainer)
       }
 
       function removeLink() {
         ctx.restoreSelection()
         const s = window.getSelection()
         const anchor = s?.anchorNode?.parentElement?.closest('a')
-        if (anchor) {
-          const parent = anchor.parentNode
-          const fragment = document.createDocumentFragment()
-          while (anchor.firstChild) {
-            fragment.appendChild(anchor.firstChild)
+        ctx.mutate(() => {
+          if (anchor) {
+            const parent = anchor.parentNode
+            const fragment = document.createDocumentFragment()
+            while (anchor.firstChild) {
+              fragment.appendChild(anchor.firstChild)
+            }
+            anchor.replaceWith(fragment)
+            removeEmptyInlineTags(parent)
           }
-          anchor.replaceWith(fragment)
-          removeEmptyInlineTags(parent)
-        }
+        })
         ctx.close()
       }
 

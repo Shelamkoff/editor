@@ -1,9 +1,17 @@
+import type {
+    EditorBlockData,
+    EditorInlineWidget,
+    EditorOutputData,
+} from '../shared/documentTypes.js'
+import type { LocaleValue } from '../shared/localeTypes.js'
+export type { LocaleValue, PluralForms } from '../shared/localeTypes.js'
+
 /**
  * Renderer input data. Compatible with EditorDocument from the editor core —
  * the renderer accepts any editor output as-is. Fields are optional because
  * the renderer only needs `blocks`; callers may omit metadata.
  */
-export interface OutputData {
+export interface OutputData extends EditorOutputData<OutputBlockData> {
     time?: number
     version?: string
     blocks: OutputBlockData[]
@@ -25,7 +33,7 @@ export interface OutputData {
 export interface OutputBlockData<
     Type extends string = string,
     Data extends object = object
-> {
+> extends EditorBlockData<Type, Data> {
     id?: string
     type: Type
     data: Data
@@ -46,10 +54,7 @@ export interface OutputBlockData<
 export interface InlineWidget<
     Type extends string = string,
     Data extends Record<string, unknown> = Record<string, unknown>
-> {
-    type: Type
-    data: Data
-}
+> extends EditorInlineWidget<Type, Data> {}
 
 // ── Block Data Types ────────────────────────────────────────────────────────
 
@@ -72,7 +77,6 @@ export interface ListData {
 export interface QuoteData {
     text: string
     caption: string
-    alignment?: 'left' | 'center'
 }
 
 export interface CodeData {
@@ -184,6 +188,31 @@ export interface GalleryData {
     options?: GalleryOptions
 }
 
+export interface CarouselSlide {
+    id: string
+    type: 'image' | 'video' | 'html'
+    src?: string
+    alt?: string
+    caption?: string
+    poster?: string
+    html?: string
+}
+
+export interface CarouselOptions {
+    loop: boolean
+    autoplay: boolean
+    autoplayDelay: number
+    navigation: boolean
+    pagination: boolean
+    thumbnails: boolean
+    aspectRatio?: string
+}
+
+export interface CarouselData extends Record<string, unknown> {
+    slides: CarouselSlide[]
+    options: CarouselOptions
+}
+
 export interface AttachesFile {
     url: string
     name: string
@@ -196,7 +225,7 @@ export interface AttachesData {
     files?: AttachesFile[]
     /** Legacy single-file format */
     file?: AttachesFile
-    title?: string
+    variant?: 'a' | 'b' | 'f' | 'g'
 }
 
 export type LinkPreviewTemplate = 'horizontal' | 'compact' | 'large-top' | 'minimal' | 'twitter' | 'notion' | 'split'
@@ -232,14 +261,56 @@ export interface SpoilerData {
 }
 
 export interface PollOption {
+    id: string
     text: string
+}
+
+export interface PollOptionResult {
+    id: string
     votes: number
 }
 
-export interface PollData {
+export interface PollVoter {
+    id: string
+    name?: string
+    avatar?: string
+    optionIds?: string[]
+}
+
+export interface PollResults {
+    revision?: string
+    total: number
+    options: PollOptionResult[]
+    voters?: PollVoter[]
+    votersTotal?: number
+    currentUserVote?: string[]
+}
+
+export interface PollData extends Record<string, unknown> {
+    pollId?: string
     question: string
     type: 'single' | 'multiple'
     options: PollOption[]
+    resultsMode: 'always' | 'afterVote' | 'hidden'
+    initialResults?: PollResults
+}
+
+export interface PollDataSource {
+    load(context: { pollId: string; signal: AbortSignal }): Promise<PollResults>
+    vote(context: { pollId: string; optionIds: string[]; revision?: string; signal: AbortSignal }): Promise<PollResults>
+    subscribe?(context: {
+        pollId: string
+        signal: AbortSignal
+        onUpdate(results: PollResults): void
+        onError(error: unknown): void
+    }): void | (() => void)
+}
+
+export interface PollRendererConfig {
+    dataSource?: PollDataSource
+    onError?: (error: unknown) => void
+    maxVoters?: number
+    compareRevisions?: (next: string, current: string) => number
 }
 
 export interface PersonLink {
@@ -248,16 +319,15 @@ export interface PersonLink {
 }
 
 export interface PersonItem {
-    avatar?: string
-    name?: string
-    role?: string
-    bio?: string
-    links?: PersonLink[]
+    avatar: string
+    name: string
+    role: string
+    bio: string
+    links: PersonLink[]
 }
 
-export interface PersonData extends PersonItem {
-    /** Multi-person format (current) */
-    persons?: PersonItem[]
+export interface PersonData {
+    persons: PersonItem[]
 }
 
 // ── Block Type Aliases ──────────────────────────────────────────────────────
@@ -275,6 +345,7 @@ export type WarningBlock = OutputBlockData<'warning', WarningData>
 export type EmbedBlock = OutputBlockData<'embed', EmbedData>
 export type RawBlock = OutputBlockData<'raw', RawData>
 export type GalleryBlock = OutputBlockData<'gallery', GalleryData>
+export type CarouselBlock = OutputBlockData<'carousel', CarouselData>
 export type AttachesBlock = OutputBlockData<'attaches', AttachesData>
 export type LinkPreviewBlock = OutputBlockData<'linkPreview', LinkPreviewData>
 export type ToggleBlock = OutputBlockData<'toggle', ToggleData>
@@ -297,6 +368,7 @@ export type Block =
     | EmbedBlock
     | RawBlock
     | GalleryBlock
+    | CarouselBlock
     | AttachesBlock
     | LinkPreviewBlock
     | ToggleBlock
@@ -315,6 +387,8 @@ export interface BlockRenderer<T extends OutputBlockData = OutputBlockData> {
     type: T['type']
     styles?: string[]
     render(block: T, parseInline: InlineParser): HTMLElement
+    /** Release observers, global listeners, and third-party instances. */
+    destroy?(element: HTMLElement): void
     /**
      * Symmetric with `BlockPlugin.mapTextFields`. Walk the block's
      * HTML-bearing fields and apply `transform` to each. The renderer
@@ -325,12 +399,25 @@ export interface BlockRenderer<T extends OutputBlockData = OutputBlockData> {
 }
 
 export interface RendererConfig {
+    /** Namespace used by generated renderer classes. Default: 'editor'. */
     classPrefix?: string
+    /** Throw for an unregistered block instead of rendering a placeholder. Default: true. */
     throwOnUnknown?: boolean
     /** Theme for the rendered output. Default: 'dark'. */
     theme?: 'dark' | 'light'
+    /** Validate built-in block data before rendering. Default: 'preserve'. */
+    validationMode?: 'preserve' | 'strict'
+    /** Content-free notification for malformed built-in block data. */
+    onValidationError?: (issue: { blockId?: string; type: string }) => void
     /** Flat locale dictionary for renderer strings. Keys use `renderer.*` prefix. */
-    locale?: Record<string, string>
+    locale?: Record<string, LocaleValue>
+    /** Default renderers to construct. Omit to keep the complete public preset. */
+    blockTypes?: BlockType[]
+    /** Per-built-in-renderer runtime configuration. */
+    blockConfigs?: {
+        poll?: PollRendererConfig
+        [type: string]: unknown
+    }
     /**
      * Inline plugins the renderer should use when rehydrating inline widget
      * placeholder tokens (`{{<id>}}`). Read-only rendering only needs each

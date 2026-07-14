@@ -1,6 +1,7 @@
 import { sanitizeHtml } from '../../core/sanitize.js'
 import { resolvePath } from '../../shared/resolvePath.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
+import { validateChecklistData } from '../../shared/blockDataValidators.js'
 import { mapTextFields } from './mapTextFields.js'
 
 const editorStyles = resolvePath('./checklist.css', import.meta.url)
@@ -10,6 +11,9 @@ const ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" vie
 
 // Check icon inside checkbox
 const CHECK_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
+
+/** @type {WeakMap<HTMLElement, import('../../core/types').BlockMutationContext>} */
+const mutationContexts = new WeakMap()
 
 
 export class Checklist extends BlockPluginAbstract {
@@ -31,9 +35,10 @@ export class Checklist extends BlockPluginAbstract {
    * @param {{ items?: Array<{ text: string, checked: boolean }> }} data
    * @returns {HTMLElement}
    */
-  render(data) {
+  render(data, context) {
     const wrapper = document.createElement('div')
     wrapper.classList.add('oe-checklist')
+    mutationContexts.set(wrapper, context)
 
     const items = data?.items?.length ? data.items : [{ text: '', checked: false }]
 
@@ -78,7 +83,7 @@ export class Checklist extends BlockPluginAbstract {
    */
   // noinspection JSUnusedGlobalSymbols
   validate(data) {
-    return Array.isArray(data?.items) && data.items.length > 0
+    return validateChecklistData(data)
   }
 
   /**
@@ -161,16 +166,7 @@ export class Checklist extends BlockPluginAbstract {
     const item = document.createElement('div')
     item.className = `oe-checklist__item${checked ? ' oe-checklist__item--checked' : ''}`
 
-    const checkbox = document.createElement('button')
-    checkbox.type = 'button'
-    checkbox.className = 'oe-checklist__checkbox'
-    checkbox.innerHTML = CHECK_SVG
-    checkbox.addEventListener('mousedown', (e) => e.preventDefault())
-    checkbox.addEventListener('click', (e) => {
-      e.stopPropagation()
-      item.classList.toggle('oe-checklist__item--checked')
-      wrapper.dispatchEvent(new InputEvent('input', { bubbles: true }))
-    })
+    const checkbox = this.#createCheckbox(wrapper, item, checked)
 
     const content = document.createElement('div')
     content.className = 'oe-checklist__text'
@@ -195,47 +191,66 @@ export class Checklist extends BlockPluginAbstract {
     const currentItem = currentText.closest('.oe-checklist__item')
     if (!currentItem) return
 
-    // Split content at caret
-    const afterRange = document.createRange()
-    afterRange.setStart(range.endContainer, range.endOffset)
-    afterRange.setEndAfter(currentText.lastChild || currentText)
-    const afterFrag = afterRange.extractContents()
+    const context = mutationContexts.get(wrapper)
+    if (!context) return
 
-    const afterText = document.createElement('div')
-    afterText.appendChild(afterFrag)
-    const newText = afterText.innerHTML.trim()
+    context.mutate(() => {
+      // Split content at caret
+      const afterRange = document.createRange()
+      afterRange.setStart(range.endContainer, range.endOffset)
+      afterRange.setEndAfter(currentText.lastChild || currentText)
+      const afterFrag = afterRange.extractContents()
 
-    // Create new item after current
-    const newItem = document.createElement('div')
-    newItem.className = 'oe-checklist__item'
+      const afterText = document.createElement('div')
+      afterText.appendChild(afterFrag)
+      const newText = afterText.innerHTML.trim()
 
+      // Create new item after current
+      const newItem = document.createElement('div')
+      newItem.className = 'oe-checklist__item'
+
+      const checkbox = this.#createCheckbox(wrapper, newItem, false)
+
+      const content = document.createElement('div')
+      content.className = 'oe-checklist__text'
+      content.contentEditable = 'true'
+      if (newText) content.innerHTML = newText
+
+      newItem.append(checkbox, content)
+      currentItem.after(newItem)
+
+      // Focus new item
+      content.focus()
+      const newRange = document.createRange()
+      newRange.setStart(content, 0)
+      newRange.collapse(true)
+      sel.removeAllRanges()
+      sel.addRange(newRange)
+    })
+  }
+
+  /**
+   * @param {HTMLElement} wrapper
+   * @param {HTMLElement} item
+   * @param {boolean} checked
+   */
+  #createCheckbox(wrapper, item, checked) {
     const checkbox = document.createElement('button')
     checkbox.type = 'button'
     checkbox.className = 'oe-checklist__checkbox'
     checkbox.innerHTML = CHECK_SVG
-    checkbox.addEventListener('mousedown', (e) => e.preventDefault())
-    checkbox.addEventListener('click', (e) => {
-      e.stopPropagation()
-      newItem.classList.toggle('oe-checklist__item--checked')
-      wrapper.dispatchEvent(new InputEvent('input', { bubbles: true }))
+    checkbox.setAttribute('aria-label', this._t('toggle', 'Toggle checklist item'))
+    checkbox.setAttribute('aria-pressed', String(checked))
+    checkbox.addEventListener('mousedown', (event) => event.preventDefault())
+    checkbox.addEventListener('click', (event) => {
+      event.stopPropagation()
+      mutationContexts.get(wrapper)?.mutate(() => {
+        const next = !item.classList.contains('oe-checklist__item--checked')
+        item.classList.toggle('oe-checklist__item--checked', next)
+        checkbox.setAttribute('aria-pressed', String(next))
+      })
     })
-
-    const content = document.createElement('div')
-    content.className = 'oe-checklist__text'
-    content.contentEditable = 'true'
-    if (newText) content.innerHTML = newText
-
-    newItem.append(checkbox, content)
-    currentItem.after(newItem)
-
-    // Focus new item
-    content.focus()
-    const newRange = document.createRange()
-    newRange.setStart(content, 0)
-    newRange.collapse(true)
-    sel.removeAllRanges()
-    sel.addRange(newRange)
-    wrapper.dispatchEvent(new InputEvent('input', { bubbles: true }))
+    return checkbox
   }
 
   /**
@@ -274,25 +289,29 @@ export class Checklist extends BlockPluginAbstract {
     const prevText = /** @type {HTMLElement | null} */ (prevItem.querySelector('.oe-checklist__text'))
     if (!prevText) return
 
-    // Merge into previous
-    const mergePoint = prevText.childNodes.length
-    while (currentText.firstChild) {
-      prevText.appendChild(currentText.firstChild)
-    }
-    currentItem.remove()
+    const context = mutationContexts.get(wrapper)
+    if (!context) return
 
-    // Set caret at merge point
-    prevText.focus()
-    const newRange = document.createRange()
-    if (prevText.childNodes[mergePoint]) {
-      newRange.setStartBefore(prevText.childNodes[mergePoint])
-    } else {
-      newRange.setStart(prevText, prevText.childNodes.length)
-    }
-    newRange.collapse(true)
-    sel.removeAllRanges()
-    sel.addRange(newRange)
-    wrapper.dispatchEvent(new InputEvent('input', { bubbles: true }))
+    context.mutate(() => {
+      // Merge into previous
+      const mergePoint = prevText.childNodes.length
+      while (currentText.firstChild) {
+        prevText.appendChild(currentText.firstChild)
+      }
+      currentItem.remove()
+
+      // Set caret at merge point
+      prevText.focus()
+      const newRange = document.createRange()
+      if (prevText.childNodes[mergePoint]) {
+        newRange.setStartBefore(prevText.childNodes[mergePoint])
+      } else {
+        newRange.setStart(prevText, prevText.childNodes.length)
+      }
+      newRange.collapse(true)
+      sel.removeAllRanges()
+      sel.addRange(newRange)
+    })
   }
 
 }

@@ -5,9 +5,6 @@ export class DragManager {
   /** @type {HTMLElement} */
   #rootEl
 
-  /** @type {HTMLElement} */
-  #blocksContainer
-
   /** @type {import('./types').IBlockManager} */
   #blocks
 
@@ -43,15 +40,13 @@ export class DragManager {
 
   /**
    * @param {HTMLElement} rootEl
-   * @param {HTMLElement} blocksContainer
    * @param {import('./types').IBlockManager} blocks
    * @param {HTMLElement} dragHandle
    * @param {import('./types').IEventBus} events
    * @param {{ threshold: number }} [tuning]
    */
-  constructor(rootEl, blocksContainer, blocks, dragHandle, events, tuning) {
+  constructor(rootEl, blocks, dragHandle, events, tuning) {
     this.#rootEl = rootEl
-    this.#blocksContainer = blocksContainer
     this.#blocks = blocks
     this.#dragHandle = dragHandle
     this.#events = events
@@ -170,7 +165,11 @@ export class DragManager {
     if (!this.#draggingBlock) return
 
     const editorRect = this.#rootEl.getBoundingClientRect()
-    const children = Array.from(this.#blocksContainer.children)
+    const children = []
+    for (let index = 0; index < this.#blocks.getBlockCount(); index++) {
+      const block = this.#blocks.getBlockByIndex(index)
+      if (block) children.push(block.element)
+    }
 
     let closestIndex = children.length
     let closestDist = Infinity

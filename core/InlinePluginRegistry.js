@@ -27,13 +27,24 @@ export class InlinePluginRegistry {
    * @param {InlinePlugin} plugin
    */
   register(plugin) {
-    if (this.#plugins.has(plugin.type)) {
-      console.warn(`[InlinePluginRegistry] Plugin "${plugin.type}" already registered, overwriting`)
+    if (!plugin || typeof plugin.type !== 'string' || !plugin.type) {
+      throw new TypeError('Every inline plugin must have a non-empty string type')
     }
-    this.#plugins.set(plugin.type, plugin)
+    for (const method of ['createWidget', 'hydrate', 'getData']) {
+      if (typeof plugin[method] !== 'function') {
+        throw new TypeError(`Inline plugin "${plugin.type}" must implement ${method}()`)
+      }
+    }
+    if (this.#plugins.has(plugin.type)) {
+      throw new Error(`Duplicate inline plugin type: "${plugin.type}"`)
+    }
     if (plugin.trigger) {
+      if (this.#triggers.has(plugin.trigger)) {
+        throw new Error(`Duplicate inline plugin trigger: "${plugin.trigger}"`)
+      }
       this.#triggers.set(plugin.trigger, plugin)
     }
+    this.#plugins.set(plugin.type, plugin)
   }
 
   /**
@@ -68,10 +79,45 @@ export class InlinePluginRegistry {
   }
 
   /**
+   * Acquire resources that must be scoped to one live editor root.
+   * @param {HTMLElement} rootElement
+   * @param {import('./types').InlinePluginContext} ctx
+   */
+  mount(rootElement, ctx) {
+    const mounted = []
+    try {
+      for (const plugin of this.#plugins.values()) {
+        plugin.mount?.(rootElement, ctx)
+        mounted.push(plugin)
+      }
+    } catch (error) {
+      for (const plugin of mounted.reverse()) {
+        try { plugin.destroy?.() } catch { /* preserve the mount failure */ }
+      }
+      throw error
+    }
+  }
+
+  /**
    * Get all registered trigger characters.
    * @returns {string[]}
    */
   triggerKeys() {
     return [...this.#triggers.keys()]
+  }
+
+  /**
+   * Release plugin-level resources such as global listeners and shared styles.
+   */
+  destroy() {
+    for (const plugin of this.#plugins.values()) {
+      try {
+        plugin.destroy?.()
+      } catch (err) {
+        console.warn('[InlinePluginRegistry] Failed to destroy plugin "' + plugin.type + '":', err)
+      }
+    }
+    this.#plugins.clear()
+    this.#triggers.clear()
   }
 }

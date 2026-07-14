@@ -2,6 +2,8 @@ import { resolvePath } from '../../shared/resolvePath.js'
 import { triggerFileInput } from '../shared/fileInput.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { getFileIcon, getExtension, formatSize, EXT_COLORS } from '../../shared/fileUtils.js'
+import { validateAttachesData } from '../../shared/blockDataValidators.js'
+import { sanitizeUrl } from '../../shared/sanitize/sanitizeUrl.js'
 
 const editorStyles = resolvePath('./attaches.css', import.meta.url)
 
@@ -28,10 +30,17 @@ const VARIANT_META = {
 /**
  * @typedef {{ url: string, name: string, size: number, extension: string }} FileEntry
  * @typedef {{
+ *   uploadFile?: (file: File, context: { signal: AbortSignal }) => Promise<{ url: string, size?: number }>,
+ *   actions?: Array<{ icon?: string, label: string, handler: (context: { signal: AbortSignal }) => Promise<Array<{ url: string, name: string, size?: number, extension?: string }> | null> }>,
+ *   injectStyles?: boolean,
+ *   css?: string,
+ * }} AttachesConfig
+ * @typedef {{
  *   data: { files: FileEntry[], variant: string },
  *   objectUrls: string[],
  *   abortController: AbortController | null,
  *   expanded: boolean,
+ *   context: import('../../core/types').BlockMutationContext,
  * }} AttachesState
  */
 
@@ -39,6 +48,7 @@ const VARIANT_META = {
 const stateMap = new WeakMap()
 
 
+/** @extends {BlockPluginAbstract<AttachesConfig>} */
 export class Attaches extends BlockPluginAbstract {
   static isTextBlock = false
   static styles = [editorStyles]
@@ -46,23 +56,30 @@ export class Attaches extends BlockPluginAbstract {
   icon = ICON
   inlineTools = false
 
+  /** @param {AttachesConfig} [config] */
+  constructor(config) {
+    super(config)
+  }
+
   get title() { return this._t('title', 'File') }
 
   /**
    * @param {Record<string, unknown>} data
    * @returns {HTMLElement}
    */
-  render(data) {
+  render(data, context) {
     /** @type {FileEntry[]} */
     let files
     if (data?.file && !data?.files) {
       const f = /** @type {any} */ (data.file)
-      files = f.url ? [{ url: String(f.url), name: String(f.name || ''), size: Number(f.size) || 0, extension: String(f.extension || getExtension(f.name || '')) }] : []
+      const url = sanitizeUrl(String(f.url || ''), { policy: 'download', fallback: '' })
+      files = url ? [{ url, name: String(f.name || ''), size: Number(f.size) || 0, extension: String(f.extension || getExtension(f.name || '')) }] : []
     } else {
-      files = /** @type {any[]} */ (data?.files || []).filter(f => f?.url).map(f => ({
-        url: String(f.url), name: String(f.name || ''), size: Number(f.size) || 0,
-        extension: String(f.extension || getExtension(f.name || '')),
-      }))
+      files = /** @type {any[]} */ (data?.files || []).map(f => ({
+        url: sanitizeUrl(String(f?.url || ''), { policy: 'download', fallback: '' }),
+        name: String(f?.name || ''), size: Number(f?.size) || 0,
+        extension: String(f?.extension || getExtension(f?.name || '')),
+      })).filter(f => f.url)
     }
 
     const variant = String(data?.variant || 'f')
@@ -72,7 +89,7 @@ export class Attaches extends BlockPluginAbstract {
     wrapper.contentEditable = 'false'
     wrapper.tabIndex = -1
 
-    stateMap.set(wrapper, { data: { files, variant }, objectUrls: [], abortController: null, expanded: false })
+    stateMap.set(wrapper, { data: { files, variant }, objectUrls: [], abortController: null, expanded: false, context })
 
     if (files.length > 0) this.#renderFilled(wrapper)
     else this.#renderSelect(wrapper)
@@ -88,8 +105,7 @@ export class Attaches extends BlockPluginAbstract {
   }
 
   validate(/** @type {Record<string, unknown>} */ data) {
-    const f = /** @type {any[]} */ (data?.files)
-    return Array.isArray(f) && f.length > 0 && f.some(x => !!x?.url)
+    return validateAttachesData(data)
   }
 
   isEmpty(/** @type {HTMLElement} */ el) {
@@ -140,6 +156,12 @@ export class Attaches extends BlockPluginAbstract {
     const select = document.createElement('div')
     select.className = 'oe-attaches__select'
 
+    if (s.context.readOnly) {
+      select.textContent = this._t('emptyReadonly', 'No files')
+      wrapper.appendChild(select)
+      return
+    }
+
     const icon = document.createElement('div')
     icon.className = 'oe-attaches__select-icon'
     icon.innerHTML = ICON_SELECT
@@ -153,6 +175,24 @@ export class Attaches extends BlockPluginAbstract {
     link.addEventListener('click', (e) => { e.stopPropagation(); this.#triggerFileInput(wrapper) }, { signal })
     text.append(link, document.createTextNode(' ' + this._t('dropzoneText', 'files from your device or drag and drop them here')))
     select.append(icon, text)
+
+    if (this._config.actions?.length) {
+      const sources = document.createElement('div')
+      sources.className = 'oe-attaches__select-actions'
+      for (const action of this._config.actions) {
+        const button = document.createElement('button')
+        button.type = 'button'
+        button.className = 'oe-attaches__select-action'
+        if (action.icon) button.insertAdjacentHTML('afterbegin', action.icon)
+        button.append(document.createTextNode(action.label))
+        button.addEventListener('click', event => {
+          event.stopPropagation()
+          void this.#runCustomAction(wrapper, action.handler)
+        }, { signal })
+        sources.appendChild(button)
+      }
+      select.appendChild(sources)
+    }
 
     wrapper.addEventListener('dragover', (e) => { e.preventDefault(); select.classList.add('oe-attaches__select--dragover') }, { signal })
     wrapper.addEventListener('dragleave', () => select.classList.remove('oe-attaches__select--dragover'), { signal })
@@ -192,7 +232,7 @@ export class Attaches extends BlockPluginAbstract {
         break
     }
 
-    this.#renderActions(wrapper, signal)
+    if (!s.context.readOnly) this.#renderActions(wrapper, signal)
   }
 
   // ── Variant A: Minimal ────────────────────────────────────────────────────
@@ -227,7 +267,7 @@ export class Attaches extends BlockPluginAbstract {
     headerInfo.className = 'oe-attaches__info'
     const countText = document.createElement('div')
     countText.className = 'oe-attaches__name oe-attaches__name--static'
-    countText.textContent = `${files.length} ${this._t('filesCount', 'files')}`
+    countText.textContent = `${files.length} ${this._p('filesCount', files.length, 'files')}`
     headerInfo.appendChild(countText)
     const totalSize = files.reduce((sum, f) => sum + (f.size || 0), 0)
     if (totalSize > 0) { const m = document.createElement('span'); m.className = 'oe-attaches__meta'; m.textContent = formatSize(totalSize); headerInfo.appendChild(m) }
@@ -353,11 +393,15 @@ export class Attaches extends BlockPluginAbstract {
    * @param {AbortSignal} signal
    */
   #buildNameEl(wrapper, index, file, signal) {
+    const state = stateMap.get(wrapper)
+    const editable = !state?.context.readOnly
     const el = document.createElement('div')
-    el.className = 'oe-attaches__name'
-    el.contentEditable = 'true'
+    el.className = `oe-attaches__name${editable ? '' : ' oe-attaches__name--static'}`
+    el.contentEditable = String(editable)
     const fallbackName = this._t('untitled', 'File')
     el.textContent = file.name || fallbackName
+    if (!editable) return el
+
     el.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') { e.preventDefault(); el.blur() }
       if (!e.ctrlKey && !e.metaKey) e.stopPropagation()
@@ -379,15 +423,22 @@ export class Attaches extends BlockPluginAbstract {
     btn.type = 'button'
     btn.className = 'oe-attaches__remove'
     btn.innerHTML = '&times;'
+    const state = stateMap.get(wrapper)
+    if (state?.context.readOnly) {
+      btn.hidden = true
+      btn.disabled = true
+      return btn
+    }
     btn.addEventListener('mousedown', (e) => e.preventDefault(), { signal })
     btn.addEventListener('click', (e) => {
       e.stopPropagation()
       const st = stateMap.get(wrapper)
       if (!st) return
-      st.data.files.splice(index, 1)
-      if (st.data.files.length > 0) this.#renderFilled(wrapper)
-      else this.#renderSelect(wrapper)
-      wrapper.dispatchEvent(new InputEvent('input', { bubbles: true }))
+      st.context.mutate(() => {
+        st.data.files.splice(index, 1)
+        if (st.data.files.length > 0) this.#renderFilled(wrapper)
+        else this.#renderSelect(wrapper)
+      })
     }, { signal })
     return btn
   }
@@ -434,6 +485,19 @@ export class Attaches extends BlockPluginAbstract {
     addBtn.addEventListener('click', (e) => { e.stopPropagation(); this.#triggerFileInput(wrapper) }, { signal })
     actions.appendChild(addBtn)
 
+    for (const action of this._config.actions || []) {
+      const sourceBtn = document.createElement('button')
+      sourceBtn.type = 'button'
+      sourceBtn.className = 'oe-attaches__action-btn'
+      sourceBtn.innerHTML = `${action.icon || ''} ${action.label}`
+      sourceBtn.addEventListener('mousedown', (e) => e.preventDefault(), { signal })
+      sourceBtn.addEventListener('click', (e) => {
+        e.stopPropagation()
+        void this.#runCustomAction(wrapper, action.handler)
+      }, { signal })
+      actions.appendChild(sourceBtn)
+    }
+
     actions.appendChild(this.#sep())
 
     // Delete all
@@ -445,9 +509,11 @@ export class Attaches extends BlockPluginAbstract {
     delBtn.addEventListener('click', (e) => {
       e.stopPropagation()
       const st = stateMap.get(wrapper)
-      if (st) st.data = { files: [], variant: st.data.variant }
-      this.#renderSelect(wrapper)
-      wrapper.dispatchEvent(new InputEvent('input', { bubbles: true }))
+      if (!st) return
+      st.context.mutate(() => {
+        st.data = { files: [], variant: st.data.variant }
+        this.#renderSelect(wrapper)
+      })
     }, { signal })
     actions.appendChild(delBtn)
 
@@ -484,13 +550,14 @@ export class Attaches extends BlockPluginAbstract {
       btn.addEventListener('click', () => {
         const st = stateMap.get(wrapper)
         if (!st) return
-        this.#syncNames(wrapper)
-        st.data.variant = v
-        grid.querySelectorAll('.oe-attaches__tpl-btn').forEach(b => b.classList.remove('oe-attaches__tpl-btn--active'))
-        btn.classList.add('oe-attaches__tpl-btn--active')
-        // Re-render content only, keep actions intact
-        this.#rerenderContent(wrapper)
-        wrapper.dispatchEvent(new InputEvent('input', { bubbles: true }))
+        st.context.mutate(() => {
+          this.#syncNames(wrapper)
+          st.data.variant = v
+          grid.querySelectorAll('.oe-attaches__tpl-btn').forEach(b => b.classList.remove('oe-attaches__tpl-btn--active'))
+          btn.classList.add('oe-attaches__tpl-btn--active')
+          // Re-render content only, keep actions intact
+          this.#rerenderContent(wrapper)
+        })
       }, { signal })
       grid.appendChild(btn)
     }
@@ -543,6 +610,8 @@ export class Attaches extends BlockPluginAbstract {
 
   /** @param {HTMLElement} wrapper */
   #triggerFileInput(wrapper) {
+    const s = stateMap.get(wrapper)
+    if (!s || s.context.readOnly) return
     triggerFileInput({
       multiple: true,
       onFiles: (files) => this.#handleFiles(wrapper, files),
@@ -552,29 +621,78 @@ export class Attaches extends BlockPluginAbstract {
   /** @param {HTMLElement} wrapper @param {FileList | File[]} fileList */
   async #handleFiles(wrapper, fileList) {
     const s = stateMap.get(wrapper)
-    if (!s) return
+    if (!s || s.context.readOnly) return
     const files = Array.from(fileList)
+    const signal = s.abortController?.signal ?? new AbortController().signal
 
     if (this._config.uploadFile) {
       wrapper.classList.add('oe-attaches--loading')
       try {
+        const added = []
         for (const file of files) {
+          if (signal.aborted) break
           const ext = getExtension(file.name)
-          const result = await this._config.uploadFile(file)
-          if (result?.url) s.data.files.push({ url: result.url, name: file.name, size: result.size ?? file.size, extension: ext })
+          const result = await this._config.uploadFile(file, { signal })
+          const url = sanitizeUrl(String(result?.url || ''), { policy: 'download', fallback: '' })
+          if (url) added.push({ url, name: file.name, size: result.size ?? file.size, extension: ext })
         }
-        this.#renderFilled(wrapper)
-        wrapper.dispatchEvent(new InputEvent('input', { bubbles: true }))
+        if (!signal.aborted && stateMap.get(wrapper) === s && added.length > 0) {
+          s.context.mutate(() => {
+            s.data.files.push(...added)
+            this.#renderFilled(wrapper)
+          })
+        }
       } catch { /* */ } finally { wrapper.classList.remove('oe-attaches--loading') }
     } else {
+      const added = []
       for (const file of files) {
+        if (signal.aborted) break
         const ext = getExtension(file.name)
         const url = URL.createObjectURL(file)
         s.objectUrls.push(url)
-        s.data.files.push({ url, name: file.name, size: file.size, extension: ext })
+        added.push({ url, name: file.name, size: file.size, extension: ext })
       }
-      this.#renderFilled(wrapper)
-      wrapper.dispatchEvent(new InputEvent('input', { bubbles: true }))
+      if (!signal.aborted && stateMap.get(wrapper) === s && added.length > 0) {
+        s.context.mutate(() => {
+          s.data.files.push(...added)
+          this.#renderFilled(wrapper)
+        })
+      }
+    }
+  }
+
+  /**
+   * Add files selected by an application source such as a media library.
+   * One completed selection becomes one editor history operation.
+   * @param {HTMLElement} wrapper
+   * @param {(context: { signal: AbortSignal }) => Promise<Array<{ url: string, name: string, size?: number, extension?: string }> | null>} handler
+   */
+  async #runCustomAction(wrapper, handler) {
+    const s = stateMap.get(wrapper)
+    if (!s || s.context.readOnly) return
+    const signal = s.abortController?.signal ?? new AbortController().signal
+    try {
+      const result = await handler({ signal })
+      if (!Array.isArray(result) || signal.aborted || stateMap.get(wrapper) !== s) return
+      const added = result.flatMap(item => {
+        const url = sanitizeUrl(String(item?.url || ''), { policy: 'download', fallback: '' })
+        const name = String(item?.name || '').trim()
+        if (!url || !name) return []
+        const size = Number(item?.size)
+        return [{
+          url,
+          name,
+          size: Number.isFinite(size) && size >= 0 ? size : 0,
+          extension: String(item?.extension || getExtension(name)),
+        }]
+      })
+      if (!added.length) return
+      s.context.mutate(() => {
+        s.data.files.push(...added)
+        this.#renderFilled(wrapper)
+      })
+    } catch (error) {
+      if (!signal.aborted) console.warn('[Attaches] Application source failed:', error)
     }
   }
 }

@@ -1,5 +1,5 @@
 import enLocale from './en.js'
 
-declare module '../../../types' {
+declare module '../../../core/types.js' {
   interface I18nMessages extends Record<keyof typeof enLocale, string> {}
 }

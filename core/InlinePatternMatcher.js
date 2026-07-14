@@ -27,6 +27,12 @@ export class InlinePatternMatcher {
   /** @type {import('./types').IBlockManager} */
   #blocks
 
+  /** @type {import('./CommandDispatcher').CommandDispatcher} */
+  #mutations
+
+  /** @type {() => void} */
+  #unsubscribePasteApplied
+
   /** @type {PatternEntry[]} */
   #patterns = []
 
@@ -36,13 +42,15 @@ export class InlinePatternMatcher {
    * @param {import('./types').InlinePluginContext} ctx
    * @param {import('./types').IEventBus} events
    * @param {import('./types').IBlockManager} blocks
+   * @param {import('./CommandDispatcher').CommandDispatcher} commands
    */
-  constructor(rootEl, registry, ctx, events, blocks) {
+  constructor(rootEl, registry, ctx, events, blocks, commands) {
     this.#rootEl = rootEl
     this.#registry = registry
     this.#ctx = ctx
     this.#events = events
     this.#blocks = blocks
+    this.#mutations = commands
 
     // Collect all patterns from plugins
     for (const plugin of registry.values()) {
@@ -55,54 +63,35 @@ export class InlinePatternMatcher {
 
     if (this.#patterns.length === 0) return
 
-    rootEl.addEventListener('paste', this.#onPaste, true)
+    this.#unsubscribePasteApplied = events.on(EditorEvent.PASTE_APPLIED, this.#onPasteApplied)
     rootEl.addEventListener('keydown', this.#onKeyDown)
   }
 
   destroy() {
-    this.#rootEl.removeEventListener('paste', this.#onPaste, true)
+    this.#unsubscribePasteApplied?.()
     this.#rootEl.removeEventListener('keydown', this.#onKeyDown)
   }
 
   /**
-   * After paste, scan inserted text nodes for pattern matches.
+   * Scan the exact block interval affected by Clipboard while its undo batch
+   * is still open, so paste + automatic widgets remain one history step.
+   * @param {{ startBlockId?: string, endBlockId?: string }} payload
    */
-  #onPaste = () => {
-    // Use requestAnimationFrame to let the paste complete first
-    requestAnimationFrame(() => {
-      const block = this.#blocks.getCurrentBlock()
-      if (!block) return
+  #onPasteApplied = (payload = {}) => {
+    const start = payload.startBlockId
+      ? this.#blocks.getBlockIndex(payload.startBlockId)
+      : this.#blocks.getCurrentIndex()
+    const end = payload.endBlockId
+      ? this.#blocks.getBlockIndex(payload.endBlockId)
+      : this.#blocks.getCurrentIndex()
+    if (start < 0 || end < 0) return
 
-      const ce = block.contentElement
-      let replaced = false
-
-      // Walk all text nodes and check for patterns
-      const walker = document.createTreeWalker(ce, NodeFilter.SHOW_TEXT)
-      /** @type {{ node: Text, match: string, start: number, end: number, plugin: import('./types').InlinePlugin }[]} */
-      const matches = []
-
-      while (walker.nextNode()) {
-        const node = /** @type {Text} */ (walker.currentNode)
-        // Skip text inside inline plugin widgets
-        if (node.parentElement?.closest('[data-inline-plugin]')) continue
-
-        const text = node.textContent || ''
-        this.#findMatches(text, node, matches)
-      }
-
-      // Replace matches in reverse order to preserve offsets
-      for (let i = matches.length - 1; i >= 0; i--) {
-        const m = matches[i]
-        if (!m) continue
-        this.#replaceMatch(m.node, m.start, m.end, m.plugin, m.match)
-        replaced = true
-      }
-
-      if (replaced) {
-        hydrateInlinePlugins(ce, this.#registry, this.#ctx)
-        this.#events.emit(EditorEvent.CHANGED)
-      }
-    })
+    const candidates = []
+    for (let index = Math.min(start, end); index <= Math.max(start, end); index++) {
+      const block = this.#blocks.getBlockByIndex(index)
+      if (block) candidates.push(block)
+    }
+    this.#replacePatterns(candidates)
   }
 
   /**
@@ -134,27 +123,55 @@ export class InlinePatternMatcher {
 
     // Check against patterns
     for (const { plugin, pattern } of this.#patterns) {
-      if (pattern.test(word)) {
+      if (this.#matches(pattern, word)) {
         e.preventDefault()
         e.stopPropagation()
+        const block = this.#blocks.getBlockByChildNode(node)
+        if (!block) return
+        this.#mutations.runForBlock(block, () => {
+          this.#replaceMatch(/** @type {Text} */ (node), wordStart, offset, plugin, word)
 
-        this.#replaceMatch(/** @type {Text} */ (node), wordStart, offset, plugin, word)
-
-        // Insert the space that was suppressed by preventDefault
-        if (e.key === ' ') {
-          const r = sel.getRangeAt(0)
-          const spaceNode = document.createTextNode(' ')
-          r.insertNode(spaceNode)
-          r.setStartAfter(spaceNode)
-          r.collapse(true)
-          sel.removeAllRanges()
-          sel.addRange(r)
-        }
-
-        this.#events.emit(EditorEvent.CHANGED)
+          // Insert the space that was suppressed by preventDefault
+          if (e.key === ' ') {
+            const r = sel.getRangeAt(0)
+            const spaceNode = document.createTextNode(' ')
+            r.insertNode(spaceNode)
+            r.setStartAfter(spaceNode)
+            r.collapse(true)
+            sel.removeAllRanges()
+            sel.addRange(r)
+          }
+        })
         return
       }
     }
+  }
+
+  /** @param {import('./types').IBlock[]} blocks */
+  #replacePatterns(blocks) {
+    /** @type {Map<import('./types').IBlock, { node: Text, match: string, start: number, end: number, plugin: import('./types').InlinePlugin }[]>} */
+    const matchesByBlock = new Map()
+    for (const block of blocks) {
+      const matches = []
+      const walker = document.createTreeWalker(block.contentElement, NodeFilter.SHOW_TEXT)
+      while (walker.nextNode()) {
+        const node = /** @type {Text} */ (walker.currentNode)
+        if (node.parentElement?.closest('[data-inline-plugin]')) continue
+        this.#findMatches(node.textContent || '', node, matches)
+      }
+      if (matches.length > 0) matchesByBlock.set(block, matches)
+    }
+    if (matchesByBlock.size === 0) return
+
+    this.#mutations.runForBlocks(matchesByBlock.keys(), () => {
+      for (const [block, matches] of matchesByBlock) {
+        for (let index = matches.length - 1; index >= 0; index--) {
+          const match = matches[index]
+          if (match) this.#replaceMatch(match.node, match.start, match.end, match.plugin, match.match)
+        }
+        hydrateInlinePlugins(block.contentElement, this.#registry, this.#ctx)
+      }
+    })
   }
 
   /**
@@ -175,7 +192,7 @@ export class InlinePatternMatcher {
       }
 
       for (const { plugin, pattern } of this.#patterns) {
-        if (pattern.test(segment)) {
+        if (this.#matches(pattern, segment)) {
           results.push({
             node,
             match: segment,
@@ -192,6 +209,20 @@ export class InlinePatternMatcher {
   }
 
   /**
+   * RegExp instances are plugin-owned and may use `g` or `y`. Calling
+   * `test()` on those expressions mutates `lastIndex`, which otherwise makes
+   * identical adjacent patterns match only intermittently.
+   * @param {RegExp} pattern
+   * @param {string} value
+   */
+  #matches(pattern, value) {
+    pattern.lastIndex = 0
+    const matched = pattern.test(value)
+    pattern.lastIndex = 0
+    return matched
+  }
+
+  /**
    * Replace a text range with an inline plugin widget.
    * @param {Text} textNode
    * @param {number} start
@@ -202,6 +233,9 @@ export class InlinePatternMatcher {
   #replaceMatch(textNode, start, end, plugin, matchText) {
     const data = plugin.onPatternMatch?.(matchText) ?? { value: matchText }
     const widget = plugin.createWidget(data)
+    if (!(widget instanceof HTMLElement)) {
+      throw new TypeError(`Inline plugin "${plugin.type}" createWidget() must return an HTMLElement`)
+    }
 
     // Split text node to isolate the match
     if (end < textNode.length) {

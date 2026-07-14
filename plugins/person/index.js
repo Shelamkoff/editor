@@ -1,11 +1,13 @@
 import { sanitizeHtml } from '../../core/sanitize.js'
-import { openCropper } from '../../../cropper/src/index.js'
+import { CropperDialog, cropperStylesUrl } from '@shelamkoff/cropper'
 import { resolveSocialIcon, SOCIAL_ICONS } from './socialResolver.js'
 import { resolvePath } from '../../shared/resolvePath.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
+import { sanitizeUrl, setSafeUrlAttribute } from '../../shared/sanitize/sanitizeUrl.js'
+import { validatePersonData } from '../../shared/blockDataValidators.js'
 
 const editorStyles = resolvePath('./person.css', import.meta.url)
-const cropperStyles = resolvePath('../../../cropper/styles/cropper.css', import.meta.url)
+const cropperStyles = cropperStylesUrl
 
 // Tabler icon: user-circle
 const ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M12 10m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"/><path d="M6.168 18.849a4 4 0 0 1 3.832 -2.849h4a4 4 0 0 1 3.834 2.855"/></svg>'
@@ -22,6 +24,16 @@ const ICON_GRIP = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12
 
 /**
  * @typedef {{ avatar: string, name: string, role: string, bio: string, links: Array<{type: string, url: string}> }} PersonData
+ * @typedef {{
+ *   uploadFile?: (file: File, context: { signal: AbortSignal }) => Promise<{ url: string }>,
+ *   socialResolvers?: Array<{
+ *     test: RegExp | ((url: string) => boolean),
+ *     type: string,
+ *     icon?: string,
+ *   }>,
+ *   injectStyles?: boolean,
+ *   css?: string,
+ * }} PersonConfig
  */
 
 /**
@@ -31,6 +43,9 @@ const ICON_GRIP = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12
  *   activeIdx: number,
  *   debounceTimers: Map<string, number>,
  *   dragFromIdx: number | null,
+ *   cropperDialog: CropperDialog | null,
+ *   abortController: AbortController,
+ *   context: import('../../core/types').BlockMutationContext,
  * }} PersonState
  */
 
@@ -38,12 +53,18 @@ const ICON_GRIP = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12
 const stateMap = new WeakMap()
 
 
+/** @extends {BlockPluginAbstract<PersonConfig>} */
 export class Person extends BlockPluginAbstract {
   static isTextBlock = false
   static styles = [editorStyles, cropperStyles]
   type = 'person'
   icon = ICON
   inlineTools = false
+
+  /** @param {PersonConfig} [config] */
+  constructor(config) {
+    super(config)
+  }
 
   /** @returns {string} */
   get title() {
@@ -63,17 +84,20 @@ export class Person extends BlockPluginAbstract {
    * @param {Record<string, unknown>} data
    * @returns {HTMLElement}
    */
-  render(data) {
+  render(data, context) {
     const raw = /** @type {any[]} */ (data?.persons || [])
     const parsedData = {
       persons: raw.length > 0
         ? raw.map(p => ({
-            avatar: String(p?.avatar || ''),
+            avatar: sanitizeUrl(String(p?.avatar || ''), { policy: 'media', fallback: '' }),
             name: String(p?.name || ''),
             role: String(p?.role || ''),
             bio: String(p?.bio || ''),
             links: Array.isArray(p?.links)
-              ? p.links.map((/** @type {any} */ l) => ({ type: String(l?.type || 'website'), url: String(l?.url || '') }))
+              ? p.links.map((/** @type {any} */ l) => ({
+                  type: String(l?.type || 'website'),
+                  url: sanitizeUrl(String(l?.url || ''), { policy: 'link', fallback: '' }),
+                })).filter((/** @type {{url: string}} */ link) => link.url)
               : [],
           }))
         : [this._defaultPerson()],
@@ -90,6 +114,9 @@ export class Person extends BlockPluginAbstract {
       activeIdx: Math.min(0, parsedData.persons.length - 1),
       debounceTimers: new Map(),
       dragFromIdx: null,
+      cropperDialog: null,
+      abortController: new AbortController(),
+      context,
     })
 
     this._rebuild(wrapper)
@@ -104,9 +131,13 @@ export class Person extends BlockPluginAbstract {
     const s = stateMap.get(element)
     if (!s) return { persons: [] }
     this._syncActiveFromDom(element)
+    // Keep an entirely empty single-person block semantically empty, while
+    // preserving additional draft tabs as structural document state so add /
+    // remove operations can be saved and undone before the user names them.
+    const preserveDrafts = s.data.persons.length > 1
     return {
       persons: s.data.persons
-        .filter(p => p.name.trim() || p.avatar)
+        .filter(p => preserveDrafts || p.name.trim() || p.avatar)
         .map(p => ({
           ...p,
           links: p.links.filter(l => l.url.trim()).map(l => ({ ...l })),
@@ -119,8 +150,7 @@ export class Person extends BlockPluginAbstract {
    * @returns {boolean}
    */
   validate(data) {
-    const persons = /** @type {any[]} */ (data?.persons)
-    return Array.isArray(persons) && persons.some(p => !!p?.name)
+    return validatePersonData(data)
   }
 
   /**
@@ -150,6 +180,9 @@ export class Person extends BlockPluginAbstract {
   destroy(element) {
     const s = stateMap.get(element)
     if (s) {
+      s.cropperDialog?.destroy()
+      s.cropperDialog = null
+      s.abortController.abort()
       for (const timer of s.debounceTimers.values()) clearTimeout(timer)
       s.debounceTimers.clear()
       stateMap.delete(element)
@@ -187,7 +220,7 @@ export class Person extends BlockPluginAbstract {
 
     const tab = document.createElement('div')
     tab.className = 'oe-person__tab' + (i === s.activeIdx ? ' oe-person__tab--active' : '')
-    tab.draggable = true
+    tab.draggable = !s.context.readOnly
 
     // Drag handle
     const grip = document.createElement('span')
@@ -199,14 +232,14 @@ export class Person extends BlockPluginAbstract {
     if (person.avatar) {
       const mini = document.createElement('img')
       mini.className = 'oe-person__tab-avatar'
-      mini.src = person.avatar
+      setSafeUrlAttribute(mini, 'src', person.avatar, 'media')
       tab.appendChild(mini)
     }
 
     // Name
     const label = document.createElement('span')
     label.className = 'oe-person__tab-label'
-    label.textContent = person.name || `Person ${i + 1}`
+    label.textContent = person.name || this._t('fallbackName', 'Person {number}', { number: i + 1 })
     tab.appendChild(label)
 
     // Remove button
@@ -221,12 +254,13 @@ export class Person extends BlockPluginAbstract {
         e.stopPropagation()
         const st = stateMap.get(wrapper)
         if (!st) return
-        this._syncActiveFromDom(wrapper)
-        st.data.persons.splice(i, 1)
-        if (st.activeIdx >= st.data.persons.length) st.activeIdx = st.data.persons.length - 1
-        if (st.activeIdx < 0) st.activeIdx = 0
-        this._rebuild(wrapper)
-        wrapper.dispatchEvent(new InputEvent('input', { bubbles: true }))
+        st.context.mutate(() => {
+          this._syncActiveFromDom(wrapper)
+          st.data.persons.splice(i, 1)
+          if (st.activeIdx >= st.data.persons.length) st.activeIdx = st.data.persons.length - 1
+          if (st.activeIdx < 0) st.activeIdx = 0
+          this._rebuild(wrapper)
+        })
       })
       tab.appendChild(rm)
     }
@@ -284,14 +318,15 @@ export class Person extends BlockPluginAbstract {
       if (!st) return
       const from = st.dragFromIdx
       if (from === null || from === i) return
-      this._syncActiveFromDom(wrapper)
-      const moved = st.data.persons.splice(from, 1)[0]
-      if (moved) st.data.persons.splice(i, 0, moved)
-      if (st.activeIdx === from) st.activeIdx = i
-      else if (from < st.activeIdx && i >= st.activeIdx) st.activeIdx--
-      else if (from > st.activeIdx && i <= st.activeIdx) st.activeIdx++
-      this._rebuild(wrapper)
-      wrapper.dispatchEvent(new InputEvent('input', { bubbles: true }))
+      st.context.mutate(() => {
+        this._syncActiveFromDom(wrapper)
+        const moved = st.data.persons.splice(from, 1)[0]
+        if (moved) st.data.persons.splice(i, 0, moved)
+        if (st.activeIdx === from) st.activeIdx = i
+        else if (from < st.activeIdx && i >= st.activeIdx) st.activeIdx--
+        else if (from > st.activeIdx && i <= st.activeIdx) st.activeIdx++
+        this._rebuild(wrapper)
+      })
     })
 
     return tab
@@ -318,11 +353,12 @@ export class Person extends BlockPluginAbstract {
     addBtn.addEventListener('click', () => {
       const st = stateMap.get(wrapper)
       if (!st) return
-      this._syncActiveFromDom(wrapper)
-      st.data.persons.push(this._defaultPerson())
-      st.activeIdx = st.data.persons.length - 1
-      this._rebuild(wrapper)
-      wrapper.dispatchEvent(new InputEvent('input', { bubbles: true }))
+      st.context.mutate(() => {
+        this._syncActiveFromDom(wrapper)
+        st.data.persons.push(this._defaultPerson())
+        st.activeIdx = st.data.persons.length - 1
+        this._rebuild(wrapper)
+      })
     })
     tabs.appendChild(addBtn)
 
@@ -351,7 +387,7 @@ export class Person extends BlockPluginAbstract {
     if (person.avatar) {
       const img = document.createElement('img')
       img.className = 'oe-person__avatar-img'
-      img.src = person.avatar
+      setSafeUrlAttribute(img, 'src', person.avatar, 'media')
       img.alt = ''
       avatarWrap.appendChild(img)
     } else {
@@ -492,7 +528,14 @@ export class Person extends BlockPluginAbstract {
     input.placeholder = 'https://...'
     input.value = link.url
     input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); this._resolveIcon(wrapper, index, input.value, iconEl); return }
+      if (e.key === 'Enter') {
+        e.preventDefault()
+        e.stopPropagation()
+        const state = stateMap.get(wrapper)
+        const targetPerson = state?.data.persons[state.activeIdx]
+        if (targetPerson) this._resolveIcon(wrapper, index, input.value, iconEl, targetPerson)
+        return
+      }
       if (!e.ctrlKey && !e.metaKey) e.stopPropagation()
     })
 
@@ -513,10 +556,11 @@ export class Person extends BlockPluginAbstract {
           removeBtn.innerHTML = ICON_REMOVE
           removeBtn.addEventListener('mousedown', e => e.preventDefault())
           removeBtn.addEventListener('click', () => {
-            this._syncActiveFromDom(wrapper)
-            person.links.splice(index, 1)
-            this._rebuild(wrapper)
-            wrapper.dispatchEvent(new InputEvent('input', { bubbles: true }))
+            s.context.mutate(() => {
+              this._syncActiveFromDom(wrapper)
+              person.links.splice(index, 1)
+              this._rebuild(wrapper)
+            })
           })
           row.appendChild(removeBtn)
         }
@@ -525,7 +569,7 @@ export class Person extends BlockPluginAbstract {
       }
     })
     input.addEventListener('paste', () => {
-      requestAnimationFrame(() => this._resolveIcon(wrapper, index, input.value, iconEl))
+      requestAnimationFrame(() => this._resolveIcon(wrapper, index, input.value, iconEl, person))
     })
     row.appendChild(input)
 
@@ -536,10 +580,11 @@ export class Person extends BlockPluginAbstract {
       removeBtn.innerHTML = ICON_REMOVE
       removeBtn.addEventListener('mousedown', e => e.preventDefault())
       removeBtn.addEventListener('click', () => {
-        this._syncActiveFromDom(wrapper)
-        person.links.splice(index, 1)
-        this._rebuild(wrapper)
-        wrapper.dispatchEvent(new InputEvent('input', { bubbles: true }))
+        s.context.mutate(() => {
+          this._syncActiveFromDom(wrapper)
+          person.links.splice(index, 1)
+          this._rebuild(wrapper)
+        })
       })
       row.appendChild(removeBtn)
     }
@@ -557,13 +602,15 @@ export class Person extends BlockPluginAbstract {
     const s = stateMap.get(wrapper)
     if (!s) return
     const key = `${s.activeIdx}:${index}`
+    const targetPerson = s.data.persons[s.activeIdx]
+    if (!targetPerson) return
     const existing = s.debounceTimers.get(key)
     if (existing) clearTimeout(existing)
     iconEl.innerHTML = ICON_LOADER
     iconEl.querySelector('svg')?.classList.add('oe-person__spin')
     const timer = window.setTimeout(() => {
       s.debounceTimers.delete(key)
-      this._resolveIcon(wrapper, index, url, iconEl)
+      this._resolveIcon(wrapper, index, url, iconEl, targetPerson)
     }, 500)
     s.debounceTimers.set(key, timer)
   }
@@ -573,8 +620,9 @@ export class Person extends BlockPluginAbstract {
    * @param {number} index
    * @param {string} url
    * @param {HTMLElement} iconEl
+   * @param {PersonData} targetPerson
    */
-  _resolveIcon(wrapper, index, url, iconEl) {
+  _resolveIcon(wrapper, index, url, iconEl, targetPerson) {
     const s = stateMap.get(wrapper)
     if (!s) return
     const key = `${s.activeIdx}:${index}`
@@ -583,15 +631,19 @@ export class Person extends BlockPluginAbstract {
     const resolved = resolveSocialIcon(url, this._config.socialResolvers)
     iconEl.innerHTML = resolved.icon
     iconEl.dataset.type = resolved.type
-    const person = s.data.persons[s.activeIdx]
-    const personLink = person?.links[index]
-    if (personLink) personLink.type = resolved.type
+    if (!s.data.persons.includes(targetPerson)) return
+    const personLink = targetPerson.links[index]
+    if (personLink && personLink.type !== resolved.type) {
+      s.context.mutate(() => { personLink.type = resolved.type })
+    }
   }
 
   // ── Avatar upload ─────────────────────────────────────────────────────────
 
   /** @param {HTMLElement} wrapper */
   _triggerAvatarUpload(wrapper) {
+    const currentState = stateMap.get(wrapper)
+    if (!currentState || currentState.context.readOnly) return
     const t = (/** @type {string} */ key, /** @type {string} */ fallback) => this._t(key, fallback)
     const input = document.createElement('input')
     input.type = 'file'
@@ -599,27 +651,49 @@ export class Person extends BlockPluginAbstract {
     input.addEventListener('change', async () => {
       const file = input.files?.[0]
       if (!file) return
-      const croppedBlob = await openCropper(file, /** @type {*} */ ({
+      const state = stateMap.get(wrapper)
+      if (!state) return
+      const targetPerson = state.data.persons[state.activeIdx]
+      if (!targetPerson) return
+
+      state.cropperDialog?.destroy()
+      const dialog = new CropperDialog(file, {
         title: t('cropTitle', 'Crop avatar'),
         confirmText: t('cropConfirm', 'Apply'),
         cancelText: t('cropCancel', 'Cancel'),
-      }))
+      })
+      state.cropperDialog = dialog
+      dialog.open()
+
+      let croppedBlob
+      try {
+        croppedBlob = await dialog.result
+      } finally {
+        const current = stateMap.get(wrapper)
+        if (current?.cropperDialog === dialog) current.cropperDialog = null
+      }
+
       if (!croppedBlob) return
+      if (!stateMap.has(wrapper)) return
       this._syncActiveFromDom(wrapper)
 
       if (this._config.uploadFile) {
-        void this._uploadAvatar(wrapper, croppedBlob)
+        void this._uploadAvatar(wrapper, croppedBlob, targetPerson)
       } else {
         const reader = new FileReader()
+        const abort = () => reader.abort()
+        state.abortController.signal.addEventListener('abort', abort, { once: true })
         reader.onload = () => {
-          this._syncActiveFromDom(wrapper)
+          state.abortController.signal.removeEventListener('abort', abort)
           const st = stateMap.get(wrapper)
-          if (!st) return
-          const p = st.data.persons[st.activeIdx]
-          if (p) p.avatar = /** @type {string} */ (reader.result)
-          this._rebuild(wrapper)
-          wrapper.dispatchEvent(new InputEvent('input', { bubbles: true }))
+          if (!st || !st.data.persons.includes(targetPerson)) return
+          st.context.mutate(() => {
+            targetPerson.avatar = /** @type {string} */ (reader.result)
+            this._rebuild(wrapper)
+          })
         }
+        reader.onerror = () => state.abortController.signal.removeEventListener('abort', abort)
+        reader.onabort = () => state.abortController.signal.removeEventListener('abort', abort)
         reader.readAsDataURL(croppedBlob)
       }
     })
@@ -629,21 +703,24 @@ export class Person extends BlockPluginAbstract {
   /**
    * @param {HTMLElement} wrapper
    * @param {Blob} blob
+   * @param {PersonData} targetPerson
    */
-  async _uploadAvatar(wrapper, blob) {
+  async _uploadAvatar(wrapper, blob, targetPerson) {
     if (!this._config.uploadFile) return
+    const initial = stateMap.get(wrapper)
+    if (!initial || initial.context.readOnly) return
     wrapper.classList.add('oe-person--loading')
     try {
       const file = new File([blob], 'avatar.webp', { type: 'image/webp' })
-      const result = await this._config.uploadFile(file)
-      if (result?.url) {
-        this._syncActiveFromDom(wrapper)
+      const result = await this._config.uploadFile(file, { signal: initial.abortController.signal })
+      const url = sanitizeUrl(String(result?.url || ''), { policy: 'media', fallback: '' })
+      if (url) {
         const s = stateMap.get(wrapper)
-        if (!s) return
-        const person = s.data.persons[s.activeIdx]
-        if (person) person.avatar = result.url
-        this._rebuild(wrapper)
-        wrapper.dispatchEvent(new InputEvent('input', { bubbles: true }))
+        if (!s || !s.data.persons.includes(targetPerson)) return
+        s.context.mutate(() => {
+          targetPerson.avatar = url
+          this._rebuild(wrapper)
+        })
       }
     } catch {
       // Upload failed

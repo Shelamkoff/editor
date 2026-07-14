@@ -1,11 +1,11 @@
 // @ts-check
 import { resolvePath } from '../../../shared/resolvePath.js'
-import { mapTextFields } from '../../../plugins/paragraph/mapTextFields.js'
+import { mapParagraphTextFields as mapTextFields } from '../../../shared/mapTextFields.js'
 
 const styles = resolvePath('./styles.css', import.meta.url)
 
 /**
- * Paragraph block renderer — Ophire Editor format
+ * Paragraph block renderer for the Rector document format.
  * @param {string} classPrefix
  * @returns {import('../../types').BlockRenderer<import('../../types').ParagraphBlock>}
  */

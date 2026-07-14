@@ -1,0 +1,59 @@
+# Блочный плагин LinkPreview
+
+Предварительный просмотр ссылки с семью шаблонами и необязательными метаданными приложения.
+
+## Установка и регистрация
+
+```bash
+npm install @shelamkoff/rector
+```
+
+```js
+import { createEditor } from '@shelamkoff/rector'
+import { LinkPreview } from '@shelamkoff/rector/plugins/link-preview'
+import '@shelamkoff/rector/styles/editor.css'
+
+const editor = createEditor({
+  holder: document.querySelector('#editor'),
+  plugins: [new LinkPreview()],
+})
+```
+
+Тип блока — `linkPreview`. Класс также экспортируется общей точкой входа `@shelamkoff/rector/plugins` и может загружаться по типу документа через `@shelamkoff/rector/plugins/async`.
+
+## Данные
+
+```json
+{
+  "url": "https://example.com",
+  "title": "Example",
+  "description": "",
+  "image": "",
+  "favicon": "",
+  "domain": "example.com",
+  "template": "notion"
+}
+```
+
+`template` принимает `horizontal`, `compact`, `large-top`, `minimal`, `twitter`, `notion` или `split`. Разрешены только ссылки HTTP и HTTPS.
+
+## Конфигурация
+
+Каждый встроенный блочный плагин принимает два параметра владения стилями: `injectStyles?: boolean` по умолчанию равен `true`; укажите `false`, если приложение само включает CSS этого плагина. `css?: string` добавляет URL таблицы стилей приложения после стандартной, а при отключённой стандартной инъекции служит URL замены.
+
+`fetchMeta(url, { signal })` возвращает `title`, `description`, `image`, `favicon` и `domain` и должен учитывать переданный `AbortSignal`. Адреса изображения и значка проходят общую политику адресов медиафайлов.
+
+
+## Возможности
+
+Вставка URL; асинхронное получение метаданных; выбор шаблона; безопасное назначение URL; освобождение ресурсов.
+
+## История, жизненный цикл и стили
+
+Действия плагина входят в конвейер команд через предоставленный контекст `mutate()`, поэтому одно завершённое действие создаёт один шаг отмены и повтора. Редактор подсчитывает владельцев объявленных URL стилей. Удаление блока вызывает его метод освобождения ресурсов; `editor.destroy()` освобождает оставшиеся блоки и общие ресурсы.
+
+Не удаляйте контейнер редактора до вызова `editor.destroy()`.
+
+## Вывод документа
+
+Используйте фабричную функцию из `@shelamkoff/rector/renderer/renderers/link-preview`. Последовательное руководство VitePress описывает проверку данных, миграции, разработку расширений, диагностику, безопасность и стили.

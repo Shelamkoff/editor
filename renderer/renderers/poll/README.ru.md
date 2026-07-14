@@ -1,0 +1,40 @@
+# Рендерер Poll
+
+Преобразует сохранённый блок `poll` в принадлежащий рендереру DOM.
+
+Синхронная точка входа `@shelamkoff/rector/renderer` включает все встроенные рендереры, поэтому до её импорта установите `@shelamkoff/carousel` и `@shelamkoff/expose`. Значение `blockTypes: []` отключает создание встроенных рендереров, но не меняет правила разрешения модулей ESM.
+
+## Использование
+
+```js
+import { createEditorRenderer } from '@shelamkoff/rector/renderer'
+import { createPollRenderer } from '@shelamkoff/rector/renderer/renderers/poll'
+
+const renderer = createEditorRenderer({ classPrefix: 'article', blockTypes: [] })
+renderer.registerRenderer(createPollRenderer('article', {}))
+const rendererStyles = renderer.injectStyles()
+renderer.renderTo(documentData, document.querySelector('#article'))
+
+// При удалении добавленного результата:
+renderer.destroy()
+rendererStyles.destroy()
+```
+
+## Типичные данные
+
+```json
+{
+  "pollId": "release-survey",
+  "question": "Which channel should receive the release?",
+  "type": "single",
+  "options": [{ "id": "stable", "text": "Stable" }, { "id": "next", "text": "Next" }],
+  "resultsMode": "afterVote",
+  "initialResults": { "total": 0, "options": [{ "id": "stable", "votes": 0 }, { "id": "next", "votes": 0 }] }
+}
+```
+
+Вопрос и варианты проходят обработчик внутристрочной разметки, а аватары — политику URL для медиафайлов. Рендерер владеет состоянием голосования, отменой запросов, подписками и элементами управления и освобождает их в `destroy()`. Он объявляет одну таблицу стилей.
+
+Если рендерер объявляет стили, показанный выше явный вызов `EditorRenderer.injectStyles()` подключает их, а возвращённый владелец освобождает.
+
+Жизненный цикл, восстановление внутристрочных виджетов, стили и границы безопасности описаны в последовательном руководстве VitePress.
