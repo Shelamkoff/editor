@@ -1,8 +1,7 @@
 // @ts-check
-import { resolvePath } from '../../../shared/resolvePath.js'
 import { mapWarningTextFields as mapTextFields } from '../../../shared/mapTextFields.js'
 
-const styles = resolvePath('./styles.css', import.meta.url)
+const styles = new URL('./styles.css', import.meta.url).href
 
 // Tabler icon: alert-triangle
 const ICON_WARNING = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636-2.87l-8.106-13.536a1.914 1.914 0 0 0-3.274 0z"/><path d="M12 16h.01"/></svg>`

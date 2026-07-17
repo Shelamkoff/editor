@@ -1,8 +1,7 @@
 // @ts-check
-import { resolvePath } from '../../../shared/resolvePath.js'
 import { mapQuoteTextFields as mapTextFields } from '../../../shared/mapTextFields.js'
 
-const styles = resolvePath('./styles.css', import.meta.url)
+const styles = new URL('./styles.css', import.meta.url).href
 
 // Tabler icon: quote
 const ICON_QUOTE = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/></svg>`

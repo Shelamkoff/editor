@@ -2,7 +2,6 @@
 import { InvalidBlockDataError, UnknownBlockTypeError } from './errors.js'
 import { createInlineParser } from './inline.js'
 import { createDefaultRenderers, getSupportedBlockTypes } from './renderers/index.js'
-import { resolvePath } from '../shared/resolvePath.js'
 import { deserializeInlineHtml } from '../shared/inlineMarshal.js'
 import { cloneEditorData } from '../shared/cloneEditorData.js'
 import defaultLocale from './locale/en.js'
@@ -11,7 +10,7 @@ import { validateKnownBlockData } from '../shared/blockDataValidators.js'
 import { normalizeKnownBlockData } from '../shared/blockDataNormalizers.js'
 import { normalizeTextAlign } from '../shared/textFormat.js'
 
-const baseCssUrl = resolvePath('./styles/base.css', import.meta.url)
+const baseCssUrl = new URL('./styles/base.css', import.meta.url).href
 
 /**
  * Renders Rector document blocks to DOM elements.

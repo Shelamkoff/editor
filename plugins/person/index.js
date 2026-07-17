@@ -1,13 +1,12 @@
 import { sanitizeHtml } from '../../core/sanitize.js'
 import { CropperDialog, cropperStylesUrl } from '@shelamkoff/cropper'
 import { resolveSocialIcon, SOCIAL_ICONS } from './socialResolver.js'
-import { resolvePath } from '../../shared/resolvePath.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { sanitizeUrl, setSafeUrlAttribute } from '../../shared/sanitize/sanitizeUrl.js'
 import { validatePersonData } from '../../shared/blockDataValidators.js'
 import { normalizeTextValue } from '../../shared/textFormat.js'
 
-const editorStyles = resolvePath('./person.css', import.meta.url)
+const editorStyles = new URL('./person.css', import.meta.url).href
 const cropperStyles = cropperStylesUrl
 
 // Tabler icon: user-circle

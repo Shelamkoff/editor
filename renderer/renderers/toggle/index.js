@@ -1,8 +1,7 @@
 // @ts-check
-import { resolvePath } from '../../../shared/resolvePath.js'
 import { mapToggleTextFields as mapTextFields } from '../../../shared/mapTextFields.js'
 
-const styles = resolvePath('./styles.css', import.meta.url)
+const styles = new URL('./styles.css', import.meta.url).href
 
 // Tabler icon: chevron-right
 const ICON_CHEVRON = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6l-6 6"/></svg>`

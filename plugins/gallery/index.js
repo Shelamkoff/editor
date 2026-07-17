@@ -1,4 +1,3 @@
-import { resolvePath } from '../../shared/resolvePath.js'
 import { isSupportedImageFile, triggerFileInput } from '../shared/fileInput.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { validateGalleryData } from '../../shared/blockDataValidators.js'
@@ -10,7 +9,7 @@ import { renderEmptyView } from './view-empty.js'
 import { renderFilledView } from './view-filled.js'
 import { sanitizeMediaUrl } from '../../shared/sanitize/sanitizeUrl.js'
 
-const editorStyles = resolvePath('./gallery.css', import.meta.url)
+const editorStyles = new URL('./gallery.css', import.meta.url).href
 
 /**
  * @typedef {(file: File, context: { signal: AbortSignal }) => Promise<{ url: string, alt?: string }>} UploadFn

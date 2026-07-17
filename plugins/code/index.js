@@ -1,10 +1,9 @@
-import { resolvePath } from '../../shared/resolvePath.js'
 import { getHighlightRuntime, loadHighlightRuntime } from '../../shared/highlightRuntime.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { validateCodeData } from '../../shared/blockDataValidators.js'
 import { READ_ONLY_INTERACTIVE_ATTRIBUTE } from '../../core/constants.js'
 
-const editorStyles = resolvePath('./code.css', import.meta.url)
+const editorStyles = new URL('./code.css', import.meta.url).href
 
 /** @type {WeakMap<HTMLElement, {code: string, language: string, editMode: boolean, context: import('../../core/types').BlockMutationContext, copyResetTimer: ReturnType<typeof setTimeout> | null}>} */
 const codeStateMap = new WeakMap()

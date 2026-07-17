@@ -1,6 +1,5 @@
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { uid } from '../../core/uid.js'
-import { resolvePath } from '../../shared/resolvePath.js'
 import {
   normalizeCarouselAspectRatio,
   normalizeCarouselData,
@@ -22,7 +21,7 @@ import {
   ICON_REPLACE, ICON_SELECT, ICON_SETTINGS, ICON_TRASH, ICON_UPLOAD, ICON_URL,
 } from './icons.js'
 
-const editorStyles = resolvePath('./carousel.css', import.meta.url)
+const editorStyles = new URL('./carousel.css', import.meta.url).href
 
 /**
  * Read a local image while respecting the owning block's lifecycle.

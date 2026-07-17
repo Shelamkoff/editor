@@ -10,10 +10,9 @@ import {
   createFullscreen,
   exposeStylesUrl,
 } from '@shelamkoff/expose'
-import { resolvePath } from '../../../shared/resolvePath.js'
 import { setSafeUrlAttribute } from '../../../shared/sanitize/sanitizeUrl.js'
 
-const styles = resolvePath('./styles.css', import.meta.url)
+const styles = new URL('./styles.css', import.meta.url).href
 const exposeStyles = exposeStylesUrl
 
 const MAX_VISIBLE = 6

@@ -1,11 +1,10 @@
 import { sanitizeHtml } from '../../core/sanitize.js'
-import { resolvePath } from '../../shared/resolvePath.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { validateColumnsData } from '../../shared/blockDataValidators.js'
 import { normalizeTextValue } from '../../shared/textFormat.js'
 import { mapColumnsTextFields } from '../../shared/mapTextFields.js'
 
-const editorStyles = resolvePath('./columns.css', import.meta.url)
+const editorStyles = new URL('./columns.css', import.meta.url).href
 
 // Tabler icon: columns-2
 const ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3m0 1a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><path d="M12 3v18"/></svg>'

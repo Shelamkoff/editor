@@ -5,9 +5,8 @@ import {
     loadHighlightRuntime,
 } from '../../../shared/highlightRuntime.js'
 import { escapeHtml } from '../../../shared/sanitize/escapeHtml.js'
-import { resolvePath } from '../../../shared/resolvePath.js'
 
-const styles = resolvePath('./styles.css', import.meta.url)
+const styles = new URL('./styles.css', import.meta.url).href
 
 
 /**

@@ -1,12 +1,11 @@
 import { sanitizeHtml } from '../../core/sanitize.js'
-import { resolvePath } from '../../shared/resolvePath.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { createHeadingLevelSelect } from './HeadingLevelSelect.js'
 import { mapTextFields } from './mapTextFields.js'
 import { validateHeadingData } from '../../shared/blockDataValidators.js'
 import { normalizeHeadingLevel, normalizeTextAlign, normalizeTextValue } from '../../shared/textFormat.js'
 
-const editorStyles = resolvePath('./heading.css', import.meta.url)
+const editorStyles = new URL('./heading.css', import.meta.url).href
 
 // Tabler icon: heading
 const ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 12h10"/><path d="M7 5v14"/><path d="M17 5v14"/><path d="M15 19h4"/><path d="M15 5h4"/><path d="M5 19h4"/><path d="M5 5h4"/></svg>'

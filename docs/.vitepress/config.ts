@@ -209,7 +209,7 @@ export default defineConfig({
   },
 
   themeConfig: {
-    logo: asset('/logo.svg'),
+    logo: '/logo.svg',
     siteTitle: false,
     socialLinks: [
       { icon: 'github', link: 'https://github.com/Shelamkoff/editor' },

@@ -1,12 +1,11 @@
 // @ts-check
-import { resolvePath } from '../../../shared/resolvePath.js'
 import { getFileIcon, getExtension, formatSize, EXT_COLORS } from '../../../shared/fileUtils.js'
 import { sanitizeDownloadUrl, setSafeUrlAttribute } from '../../../shared/sanitize/sanitizeUrl.js'
 import { loadZipRuntime } from '../../../shared/zipRuntime.js'
 
 let groupSequence = 0
 
-const styles = resolvePath('./styles.css', import.meta.url)
+const styles = new URL('./styles.css', import.meta.url).href
 
 const ICON_CHEVRON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>'
 const ICON_FILE_DEFAULT = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2"/></svg>'

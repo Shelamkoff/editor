@@ -136,6 +136,7 @@ const pluginIcons: Record<string, any> = {
 
 const githubUrl = 'https://github.com/Shelamkoff/editor'
 const getStartedLink = withBase(props.lang === 'ru' ? '/ru/guide/getting-started' : '/guide/getting-started')
+const heroLogoUrl = withBase('/logo.svg')
 
 </script>
 
@@ -146,7 +147,7 @@ const getStartedLink = withBase(props.lang === 'ru' ? '/ru/guide/getting-started
       <div class="hero__container">
         <h1 class="hero__visually-hidden">{{ texts.heroTitle }}</h1>
         <div class="hero__logo-frame anim-hero" style="animation-delay: 0.1s">
-          <img class="hero__logo" :src="withBase('/logo.svg')" alt="Rector" width="872" height="221">
+          <img class="hero__logo" :src="heroLogoUrl" alt="Rector" width="872" height="221">
         </div>
         <p class="hero__sub anim-hero" style="animation-delay: 0.2s">
           {{ texts.heroSub }}

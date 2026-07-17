@@ -1,8 +1,7 @@
 // @ts-check
-import { resolvePath } from '../../../shared/resolvePath.js'
 import { mapColumnsTextFields as mapTextFields } from '../../../shared/mapTextFields.js'
 
-const styles = resolvePath('./styles.css', import.meta.url)
+const styles = new URL('./styles.css', import.meta.url).href
 
 /** @type {Record<string, string>} */
 const LAYOUT_GRIDS = {

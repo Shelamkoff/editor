@@ -20,6 +20,7 @@ const expectedBlockTypes = [
   'linkPreview', 'toggle', 'columns', 'spoiler', 'delimiter', 'table',
 ]
 const qaRoot = process.env.RECTOR_QA_DIR ? resolve(process.env.RECTOR_QA_DIR) : null
+const missingRequests = []
 
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
 
@@ -71,6 +72,7 @@ function startStaticServer() {
       response.writeHead(200, { 'Content-Type': contentTypes[extname(file)] ?? 'application/octet-stream' })
       response.end(body)
     } catch {
+      missingRequests.push(request.url ?? '/')
       response.writeHead(404)
       response.end('Not found')
     }
@@ -243,6 +245,54 @@ try {
   assert(!result.removedSectionPresent, 'Removed quick-start code section is still visible')
   if (result.dark) assert(result.logoFilter === 'none', `Dark-theme hero logo has an unexpected filter: ${result.logoFilter}`)
 
+  const mentionPrepared = await evaluate(client, `(() => {
+    const editable = [...document.querySelectorAll('.live-demo [contenteditable="true"]')]
+      .find(element => element.textContent?.includes('Rector'))
+    if (!(editable instanceof HTMLElement)) return false
+    editable.focus()
+    const selection = getSelection()
+    const range = document.createRange()
+    range.selectNodeContents(editable)
+    range.collapse(false)
+    selection?.removeAllRanges()
+    selection?.addRange(range)
+    return true
+  })()`)
+  assert(mentionPrepared, 'Could not focus a text block for mention QA')
+  await client.send('Input.insertText', { text: ' ' })
+  await client.send('Input.insertText', { text: '@' })
+  await client.send('Input.insertText', { text: 'Ада' })
+  await delay(300)
+
+  const mentionResults = await evaluate(client, `(() => ({
+    active: Boolean(document.querySelector('.oe-mention-dropdown--active')),
+    items: [...document.querySelectorAll('.oe-mention-item[data-index]')]
+      .map(item => item.textContent?.replace(/\\s+/g, ' ').trim() ?? ''),
+  }))()`)
+  assert(mentionResults.active, 'Mention suggestions did not open for a known person')
+  assert(mentionResults.items.some(item => item.includes('Ада Лавлейс')), `Known mention was not found: ${mentionResults.items.join(', ')}`)
+
+  const mentionCommitted = await evaluate(client, `(() => {
+    const item = [...document.querySelectorAll('.oe-mention-item[data-index]')]
+      .find(element => element.textContent?.includes('Ада Лавлейс'))
+    if (!(item instanceof HTMLElement)) return false
+    item.click()
+    return true
+  })()`)
+  assert(mentionCommitted, 'Could not select the known mention')
+  await delay(200)
+
+  const mentionWidget = await evaluate(client, `(() => {
+    const widget = [...document.querySelectorAll('.live-demo [data-inline-plugin="mention"]')]
+      .find(element => element.textContent?.includes('Ада Лавлейс'))
+    return widget ? {
+      text: widget.textContent,
+      styled: getComputedStyle(widget).display !== 'inline',
+    } : null
+  })()`)
+  assert(mentionWidget?.text?.includes('Ада Лавлейс'), 'Selected mention was not committed to the document')
+  assert(mentionWidget.styled, 'Mention stylesheet was not applied')
+
   if (qaRoot) {
     const switchedToLight = await evaluate(client, `(() => {
       if (!document.documentElement.classList.contains('dark')) return true
@@ -413,7 +463,7 @@ try {
     await delay(250)
 
     const slideAdded = await evaluate(client, `(() => {
-      window.prompt = () => '/logo.svg'
+      window.prompt = () => ${JSON.stringify(`${siteBase}logo.svg`)}
       const carousel = [...document.querySelectorAll('.live-demo .oe-carousel-block')].at(-1)
       const addUrl = [...(carousel?.querySelectorAll('.oe-carousel-block__select-action') ?? [])]
         .find(item => /URL/i.test(item.textContent ?? ''))
@@ -438,6 +488,8 @@ try {
     await captureScreenshot(client, join(qaRoot, 'carousel-implementation-dark.png'))
   }
 
+  assert(missingRequests.length === 0, `VitePress requested missing assets: ${[...new Set(missingRequests)].join(', ')}`)
+
   console.log(JSON.stringify({
     blockPlugins: result.blockTypes.length,
     inlinePlugins: result.inlineTypes.length,
@@ -447,6 +499,8 @@ try {
     heroCentered: true,
     localSearchShortcut: true,
     searchKeyAlignedRight: true,
+    mentionAutocomplete: true,
+    missingAssets: 0,
   }))
 } finally {
   client?.close()

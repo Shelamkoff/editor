@@ -9,12 +9,11 @@ import {
   createSwipe,
   createThumbnails,
 } from '@shelamkoff/carousel'
-import { resolvePath } from '../../../shared/resolvePath.js'
 import { normalizeCarouselData } from '../../../shared/carouselData.js'
 import { setSanitizedRawHtml } from '../../../shared/sanitize/sanitizeRawHtml.js'
 import { setSafeUrlAttribute } from '../../../shared/sanitize/sanitizeUrl.js'
 
-const styles = resolvePath('./styles.css', import.meta.url)
+const styles = new URL('./styles.css', import.meta.url).href
 
 /**
  * Create the mixed-media carousel renderer and own its Carousel instances.

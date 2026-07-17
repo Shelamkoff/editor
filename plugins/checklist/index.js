@@ -1,11 +1,10 @@
 import { sanitizeHtml } from '../../core/sanitize.js'
-import { resolvePath } from '../../shared/resolvePath.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { validateChecklistData } from '../../shared/blockDataValidators.js'
 import { mapTextFields } from './mapTextFields.js'
 import { normalizeTextValue } from '../../shared/textFormat.js'
 
-const editorStyles = resolvePath('./checklist.css', import.meta.url)
+const editorStyles = new URL('./checklist.css', import.meta.url).href
 
 // Tabler icon: list-check
 const ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 5.5l1.5 1.5l2.5-2.5"/><path d="M3.5 11.5l1.5 1.5l2.5-2.5"/><path d="M3.5 17.5l1.5 1.5l2.5-2.5"/><path d="M11 6h9"/><path d="M11 12h9"/><path d="M11 18h9"/></svg>'

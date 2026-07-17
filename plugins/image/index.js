@@ -1,4 +1,3 @@
-import { resolvePath } from '../../shared/resolvePath.js'
 import { isSupportedImageFile, triggerFileInput } from '../shared/fileInput.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { validateImageData } from '../../shared/blockDataValidators.js'
@@ -10,7 +9,7 @@ import { renderEmptyView } from './view-empty.js'
 import { renderFilledView } from './view-filled.js'
 import { sanitizeMediaUrl } from '../../shared/sanitize/index.js'
 
-const editorStyles = resolvePath('./image.css', import.meta.url)
+const editorStyles = new URL('./image.css', import.meta.url).href
 
 /**
  * @typedef {{ url: string, alt?: string }} ImageSourceResult

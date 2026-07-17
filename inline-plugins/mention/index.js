@@ -33,13 +33,12 @@
  * @typedef {import('../../core/types').InlinePluginContext} InlinePluginContext
  */
 
-import { resolvePath } from '../../shared/resolvePath.js'
 import { injectStyleUrls } from '../../core/StyleInjector.js'
 import { createMentionWidget } from './widget.js'
 import { setSafeUrlAttribute } from '../../shared/sanitize/sanitizeUrl.js'
 
 /** Absolute URL to the plugin's stylesheet. Ref-counted via `injectStyleUrls`. */
-const STYLES_URL = resolvePath('./styles.css', import.meta.url)
+const STYLES_URL = new URL('./styles.css', import.meta.url).href
 
 const DEFAULTS = Object.freeze({
   trigger: '@',

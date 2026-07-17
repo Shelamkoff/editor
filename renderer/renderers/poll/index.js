@@ -1,5 +1,4 @@
 // @ts-check
-import { resolvePath } from '../../../shared/resolvePath.js'
 import {
   applyLocalPollVote,
   normalizePollData,
@@ -8,7 +7,7 @@ import {
 } from '../../../shared/pollData.js'
 import { setSafeUrlAttribute } from '../../../shared/sanitize/sanitizeUrl.js'
 
-const styles = resolvePath('./styles.css', import.meta.url)
+const styles = new URL('./styles.css', import.meta.url).href
 
 /**
  * Interactive poll renderer. Author configuration stays in the document;

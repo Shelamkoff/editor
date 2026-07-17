@@ -1,11 +1,10 @@
 import { sanitizeHtml } from '../../core/sanitize.js'
-import { resolvePath } from '../../shared/resolvePath.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { mapTextFields } from './mapTextFields.js'
 import { validateParagraphData } from '../../shared/blockDataValidators.js'
 import { normalizeTextAlign, normalizeTextValue } from '../../shared/textFormat.js'
 
-const editorStyles = resolvePath('./paragraph.css', import.meta.url)
+const editorStyles = new URL('./paragraph.css', import.meta.url).href
 
 // Tabler icon: letter-t
 const ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4l12 0"/><path d="M12 4l0 16"/></svg>'
