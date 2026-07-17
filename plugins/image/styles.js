@@ -8,6 +8,7 @@ import { CSS } from './css.js'
  * @param {import('./state.js').ImageState} state
  * @param {HTMLImageElement} img
  * @param {HTMLElement} container
+ * @returns {void}
  */
 export function applyInlineStyles(state, img, container) {
   const styles = state.data.styles
@@ -44,6 +45,7 @@ export function applyInlineStyles(state, img, container) {
  *
  * @param {HTMLElement} wrapper
  * @param {import('./state.js').ImageState} state
+ * @returns {void}
  */
 export function refreshInlineStyles(wrapper, state) {
   const img = /** @type {HTMLImageElement | null} */ (wrapper.querySelector(`.${CSS.image}`))

@@ -105,7 +105,7 @@ Call `destroy()` before removing the holder or the view that contains it. Rector
 editor.destroy()
 ```
 
-Calling `destroy()` again is safe. Every other editor operation throws after destruction so that use-after-destroy errors are visible.
+Calling `destroy()` again is safe. After destruction, `isReady` remains readable and returns `false`; every other property or operation throws so that use-after-destroy errors are visible.
 
 ## Where to continue
 

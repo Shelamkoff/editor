@@ -27,7 +27,14 @@ The registered block type is `warning`. The class is also exported by the comple
 { "title": "Note", "message": "Important details" }
 ```
 
-Both fields are serialized as strings.
+### Field reference
+
+| Field | Required | Meaning and constraints |
+| --- | --- | --- |
+| `title` | yes | String containing sanitized inline HTML; it may be empty. |
+| `message` | yes | String containing sanitized inline HTML; it may be empty. |
+
+At least one of `title` and `message` must be non-blank. Both fields support inline-widget marshaling.
 
 ## Configuration
 

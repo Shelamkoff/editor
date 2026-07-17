@@ -130,8 +130,7 @@ export class I18n {
    */
   has(key) {
     if (key in this.#messages) return true
-    if (this.#fallback && key in this.#fallback) return true
-    return false
+    return !!(this.#fallback && key in this.#fallback);
   }
 
   /**

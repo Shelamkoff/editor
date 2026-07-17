@@ -35,17 +35,31 @@ The registered block type is `person`. The class is also exported by the complet
 }
 ```
 
+### Field reference
+
+| Field | Required | Meaning and constraints |
+| --- | --- | --- |
+| `persons` | yes | Non-empty array of profile cards. The saved order is the display order. |
+| `persons[].avatar` | yes | Empty string or canonical media URL. Cropping and uploading replace this value. |
+| `persons[].name` | yes | Profile name string. A profile with both an empty name and empty avatar is treated as empty by the editor. |
+| `persons[].role`, `persons[].bio` | yes | Role and biography strings; empty values are allowed. |
+| `persons[].links` | yes | Array of social links; it may be empty. Every item needs a string `type` and a canonical link-policy `url`. |
+
+All fields are present in normalized saved data even when their values are empty. Unknown application fields are not part of the contract and should be stored outside the block.
+
+The active profile tab is view state, not document data: `save()` persists all profiles in their current order but does not persist which tab was open. Tab switching therefore remains available in read-only mode so a reader can inspect every profile; it does not create a history entry. Adding, removing, reordering, or editing profiles is disabled in read-only mode.
+
 Callback avatar URLs must pass the shared media URL policy. The editor plugin requires `@shelamkoff/cropper`. The multi-card renderer requires `@shelamkoff/carousel`.
 
 ## Configuration
 
 Every built-in block plugin accepts two style ownership options: `injectStyles?: boolean` defaults to `true`; set it to `false` when the host bundles that plugin's CSS. `css?: string` adds one host-provided stylesheet URL after the plugin default, or acts as the replacement URL when default injection is disabled.
 
-`uploadFile?: (file: File, context: { signal: AbortSignal }) => Promise<{ url: string }>` uploads the cropped avatar as `avatar.webp` and must stop work when the supplied signal is aborted. `socialResolvers?: Array<{ test: RegExp | ((url: string) => boolean); type: string; icon?: string }>` extends social-link icon resolution.
+`uploadFile?: (file: File, context: { signal: AbortSignal }) => Promise<{ url: string }>` uploads the cropped avatar as `avatar.webp` and must stop work when the supplied signal is aborted. Without it, the cropped avatar is embedded in `persons[].avatar` as a data URL, which increases document size. `socialResolvers?: Array<{ test: RegExp | ((url: string) => boolean); type: string; icon?: string }>` extends social-link icon resolution.
 
 ## Capabilities
 
-Multiple profiles; tab reordering; avatar crop/upload; social links and deterministic dialog cleanup.
+Multiple profiles; tab reordering; avatar crop/upload; social links; read-only profile navigation; deterministic dialog cleanup.
 
 ## Undo, lifecycle, and styles
 

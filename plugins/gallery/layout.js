@@ -11,6 +11,8 @@ export const MAX_VISIBLE = 6
 const POLY_SLOTS = { 'poly-5': 5, 'poly-3arch': 3, 'poly-5flat': 5, 'poly-3steps': 3 }
 
 /**
+ * Return the number of visible slots provided by a gallery layout.
+ *
  * @param {string} layout
  * @returns {number} number of slots, or `Infinity` for layouts that flow all images
  */

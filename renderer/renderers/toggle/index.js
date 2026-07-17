@@ -1,5 +1,6 @@
 // @ts-check
 import { resolvePath } from '../../../shared/resolvePath.js'
+import { mapToggleTextFields as mapTextFields } from '../../../shared/mapTextFields.js'
 
 const styles = resolvePath('./styles.css', import.meta.url)
 
@@ -9,12 +10,14 @@ const ICON_CHEVRON = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height=
 /**
  * Toggle (accordion) block renderer
  * @param {string} classPrefix
+ * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} _locale
  * @returns {import('../../types').BlockRenderer<import('../../types').ToggleBlock>}
  */
 export function createToggleRenderer(classPrefix, _locale) {
     return {
         type: 'toggle',
         styles: [styles],
+        mapTextFields,
 
         /**
          * @param {import('../../types').ToggleBlock} block

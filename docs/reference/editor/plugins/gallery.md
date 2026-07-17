@@ -36,9 +36,21 @@ The registered block type is `gallery`. The class is also exported by the comple
   "images": [{ "url": "https://cdn.example/a.jpg", "caption": "A" }],
   "layout": "auto",
   "styles": { "gap": "8px", "borderRadius": "8px", "height": "420px" },
-  "options": { "loop": true, "zoom": true, "navigation": true, "captions": true, "thumbnails": true, "fullscreen": true, "autoplayInterval": 0 }
+  "options": { "loop": true, "zoom": true, "navigation": true, "captions": true, "thumbnails": true, "fullscreen": true, "autoplayInterval": 3000 }
 }
 ```
+
+### Field reference
+
+| Field | Required | Meaning and constraints |
+| --- | --- | --- |
+| `images` | yes | Non-empty array. Every item requires a media-policy `url`; `caption` is an optional string. |
+| `layout` | yes | One of `auto`, `1`, `2`, `3a`, `3b`, `3c`, `4a`, `4b`, `4c`, `5a`, `5b`, `5c`, `6a`, `6b`, `6c`, `triptych`, `masonry`, `poly-5`, `poly-3arch`, `poly-5flat`, or `poly-3steps`. |
+| `styles` | no | String-valued map. The built-in settings UI uses `gap`, `borderRadius`, and `height`. |
+| `options.loop` | no | Wraps viewer navigation from the last image to the first. The new-block default is `true`. |
+| `options.zoom`, `navigation`, `captions`, `fullscreen` | no | Boolean viewer controls; new-block defaults are `true`. |
+| `options.thumbnails` | no | Shows viewer thumbnails; the new-block default is `false`. |
+| `options.autoplayInterval` | no | Positive finite interval in milliseconds. Omit it to disable autoplay. `0` is not valid persisted data. |
 
 Without `uploadFile`, local files become data URLs. Callback results are accepted only when `url` passes the shared media URL policy. The viewer requires `@shelamkoff/expose`.
 

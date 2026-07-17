@@ -1,6 +1,6 @@
 # Color swatch inline plugin
 
-Atomic, non-editable color swatch persisted inside a text block by stable widget id.
+Persistent, atomic color sample embedded in a text block. It displays a dot and its color value; it does not format the surrounding text.
 
 ## Install and register
 
@@ -22,8 +22,40 @@ const editor = createEditor({
 })
 ```
 
-The plugin type is `color`. Saved widget data is `{ value: string }`. The block text contains a `{{widgetId}}` token and the block-level `inline` map stores the widget type and payload.
+The plugin type is `color`. Register it only once per editor. Blocks that enable inline plugins can insert it from the inline-plugin menu; a pasted supported color literal can also be converted to a swatch.
 
-Color parsing and the popup UI come from `@shelamkoff/color-picker`. Widget insertion, color changes, removal, undo, and redo use the common command dispatcher. Call `editor.destroy()` to release the popup, listeners, and shared styles.
+## Stored data
 
-The VitePress extension guide documents the complete inline widget contract, history boundary, storage shape, and cleanup rules.
+The text field stores a stable placeholder while the block-level `inline` map owns the payload:
+
+```json
+{
+  "text": "Brand color: {{w_brand}}",
+  "inline": {
+    "w_brand": {
+      "type": "color",
+      "data": { "value": "#4357b4" }
+    }
+  }
+}
+```
+
+| Field | Required | Meaning |
+| --- | --- | --- |
+| `value` | yes | CSS color displayed by the sample. A fresh menu insertion defaults to `#4357b4`; malformed legacy data falls back to `#000000` when read. |
+
+The paste matcher recognizes 3-, 6-, and 8-digit hexadecimal colors plus `rgb()`, `rgba()`, `hsl()`, and `hsla()` forms. The picker converts an applied value to six-digit hexadecimal form. Existing accepted values remain readable even before the user opens the picker.
+
+## Interaction and history
+
+Clicking the sample opens `@shelamkoff/color-picker`. Picker movement is a temporary preview. Apply commits one widget-local command and therefore one undo/redo step; closing the popup without applying restores the previous value and creates no history entry. Insertion and removal use the editor's normal inline-widget commands.
+
+In read-only mode the widget remains visible but does not open the picker. `editor.destroy()` closes the popup, destroys the picker, removes listeners, and releases reference-counted styles.
+
+## Styles and document output
+
+Import the color-picker stylesheet in addition to the Rector editor stylesheet. The widget root uses `.oe-ip.oe-ip--color`; its dot and label use `.oe-ip__dot` and `.oe-ip__label`. Scope host overrides under the editor or renderer container.
+
+For document output, pass `createColorSwatchPlugin()` in `EditorRenderer`'s `inlinePlugins` array. The renderer uses its `createWidget()` and `getData()` subset; the picker is not mounted by the renderer.
+
+The sequential VitePress guide explains the complete inline-plugin contract, placeholder storage, security rules, command boundary, and cleanup requirements.

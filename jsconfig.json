@@ -5,7 +5,7 @@
     "moduleResolution": "Bundler",
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "allowJs": true,
-    "checkJs": false,
+    "checkJs": true,
     "noEmit": true,
     "skipLibCheck": false
   },
@@ -30,11 +30,15 @@
     "shared/**/*.d.ts"
   ],
   "exclude": [
+    ".declaration-probe",
+    ".npm-pack-cache",
+    ".package",
     ".package-tmp",
     "dist",
     "node_modules",
     "tests",
     "benchmarks",
+    "**/*.test.js",
     "shared/runtime"
   ]
 }

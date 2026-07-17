@@ -36,9 +36,11 @@ rendererStyles.destroy()
   "images": [{ "url": "https://cdn.example/a.jpg", "caption": "A" }],
   "layout": "auto",
   "styles": { "gap": "8px", "borderRadius": "8px", "height": "420px" },
-  "options": { "loop": true, "zoom": true, "navigation": true, "captions": true, "thumbnails": true, "fullscreen": true, "autoplayInterval": 0 }
+  "options": { "loop": true, "zoom": true, "navigation": true, "captions": true, "thumbnails": true, "fullscreen": true, "autoplayInterval": 3000 }
 }
 ```
+
+The complete persisted-data contract, including layouts, defaults, and validation constraints, is defined by the matching [Gallery plugin](/reference/editor/plugins/gallery#field-reference).
 
 Image sources use the media URL policy. The renderer owns its Expose viewers and image-readiness listeners; `destroy()` releases them. It declares gallery and Expose styles.
 

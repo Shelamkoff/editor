@@ -3,6 +3,7 @@ import { resolvePath } from '../../shared/resolvePath.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { mapTextFields } from './mapTextFields.js'
 import { validateListData } from '../../shared/blockDataValidators.js'
+import { normalizeTextValue } from '../../shared/textFormat.js'
 
 const editorStyles = resolvePath('./list.css', import.meta.url)
 
@@ -10,7 +11,7 @@ const editorStyles = resolvePath('./list.css', import.meta.url)
 const ICON_UL = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11"/><path d="M9 12h11"/><path d="M9 18h11"/><path d="M5 6v.01"/><path d="M5 12v.01"/><path d="M5 18v.01"/></svg>'
 const ICON_OL = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 6h9"/><path d="M11 12h9"/><path d="M11 18h9"/><path d="M4 16a2 2 0 1 1 4 0c0 .591-.5 1-1 1.5l-3 2.5h4"/><path d="M6 10v-6l-2 2"/></svg>'
 
-
+/** Editable ordered or unordered rich-text list. */
 export class List extends BlockPluginAbstract {
   static isTextBlock = true
   static styles = [editorStyles]
@@ -19,12 +20,18 @@ export class List extends BlockPluginAbstract {
   inlineTools = true
   mapTextFields = mapTextFields
 
-  /** @returns {string} */
+  /**
+   * Return the localized toolbox label for this block.
+   * @returns {string}
+   */
   get title() {
     return this._t('bulletedTitle', 'Bulleted List')
   }
 
-  /** @returns {{ title: string, icon: string, data: { style: string } }[]} */
+  /**
+   * Return the toolbox variants exposed by this block plugin.
+   * @returns {{ title: string, icon: string, data: { style: string } }[]}
+   */
   get toolbox() {
     return [
       { title: this._t('bulletedTitle', 'Bulleted List'), icon: ICON_UL, data: { style: 'unordered' } },
@@ -37,17 +44,25 @@ export class List extends BlockPluginAbstract {
   }
 
   /**
-   * @param {{ items?: string[], style?: 'ordered' | 'unordered' }} data
+   * Create the editable DOM owned by this block instance.
+   * @param {{ items?: string[], text?: string, style?: 'ordered' | 'unordered' }} data
+   * @param {import('../../core/types').BlockMutationContext} context
    * @returns {HTMLElement}
    */
   render(data, context) {
-    const style = data.style || 'unordered'
+    const style = data?.style === 'ordered' ? 'ordered' : 'unordered'
     const tag = style === 'ordered' ? 'ol' : 'ul'
     const list = document.createElement(tag)
     list.classList.add('oe-list', `oe-list--${style}`)
     list.dataset.style = style
 
-    const items = data.items?.length ? data.items : ['']
+    const serializedItems = Array.isArray(data?.items)
+      ? data.items.filter(item => typeof item === 'string')
+      : []
+    const transferredText = normalizeTextValue(data?.text)
+    const items = serializedItems.length > 0
+      ? serializedItems
+      : [transferredText]
 
     for (const itemText of items) {
       this.#addItem(list, itemText)
@@ -56,9 +71,10 @@ export class List extends BlockPluginAbstract {
     list.addEventListener('keydown', (e) => {
       const ke = /** @type {KeyboardEvent} */ (e)
       if (ke.key === 'Enter' && !ke.shiftKey) {
-        ke.preventDefault()
-        ke.stopPropagation()
-        this.#handleEnter(list, context)
+        if (this.#handleEnter(list, context)) {
+          ke.preventDefault()
+          ke.stopPropagation()
+        }
       }
       if (ke.key === 'Backspace') {
         this.#handleBackspace(list, ke, context)
@@ -69,6 +85,7 @@ export class List extends BlockPluginAbstract {
   }
 
   /**
+   * Serialize the current block DOM into document data.
    * @param {HTMLElement} element
    * @returns {{ items: string[], style: string }}
    */
@@ -84,6 +101,7 @@ export class List extends BlockPluginAbstract {
   }
 
   /**
+   * Check whether serialized data satisfies this block's schema.
    * @param {{ items?: string[], style?: string }} data
    * @returns {boolean}
    */
@@ -92,12 +110,15 @@ export class List extends BlockPluginAbstract {
   }
 
   /**
+   * Merge incoming text into the current block.
    * @param {HTMLElement} element
    * @param {{ items?: string[], text?: string }} data
+   * @returns {void}
    */
   merge(element, data) {
-    if (data.items) {
+    if (Array.isArray(data.items)) {
       for (const itemText of data.items) {
+        if (typeof itemText !== 'string') continue
         this.#addItem(element, itemText)
       }
     } else if (data.text) {
@@ -106,6 +127,7 @@ export class List extends BlockPluginAbstract {
   }
 
   /**
+   * Extract neutral rich text and list metadata for block conversion.
    * @param {HTMLElement} element
    * @returns {{ text: string, items: string[], style: string }}
    */
@@ -192,6 +214,7 @@ export class List extends BlockPluginAbstract {
   }
 
   /**
+   * Check whether the block has no meaningful user content.
    * @param {HTMLElement} element
    * @returns {boolean}
    */
@@ -289,7 +312,7 @@ export class List extends BlockPluginAbstract {
     return li
   }
 
-  /** @param {Range} range @param {Element} root */
+  /** @param {Range} range @param {Element} root @returns {string} */
   #rangeHtml(range, root) {
     const container = document.createElement('div')
     container.appendChild(range.cloneContents())
@@ -306,7 +329,7 @@ export class List extends BlockPluginAbstract {
     return container.innerHTML.trim()
   }
 
-  /** @param {string} html */
+  /** @param {string} html @returns {boolean} */
   #hasContent(html) {
     const container = document.createElement('div')
     container.innerHTML = html
@@ -317,10 +340,12 @@ export class List extends BlockPluginAbstract {
   /**
    * Handle Enter key — create new list item, or remove empty item at end.
    * @param {HTMLElement} list
+   * @param {import('../../core/types').BlockMutationContext} context
+   * @returns {boolean} Whether the key press was handled by this list.
    */
   #handleEnter(list, context) {
     const sel = window.getSelection()
-    if (!sel || sel.rangeCount === 0) return
+    if (!sel || sel.rangeCount === 0) return false
 
     const range = sel.getRangeAt(0)
     const currentLi = /** @type {HTMLElement | null} */ (
@@ -329,15 +354,21 @@ export class List extends BlockPluginAbstract {
         : range.startContainer.parentElement?.closest('li')
     )
 
-    if (!currentLi) return
+    const endLi = /** @type {HTMLElement | null} */ (
+      range.endContainer.nodeType === Node.ELEMENT_NODE
+        ? /** @type {HTMLElement} */ (range.endContainer).closest('li')
+        : range.endContainer.parentElement?.closest('li')
+    )
+
+    if (!currentLi || !endLi || currentLi.parentElement !== list || endLi.parentElement !== list) return false
 
     // If current item is empty — remove it and let block-level handle exit
     if ((currentLi.textContent?.trim().length ?? 0) === 0) {
       const remainingCount = list.querySelectorAll(':scope > li').length
 
       if (remainingCount <= 1) {
-        // Only item — keep it, let the block system handle
-        return
+        context.exitEmptyBlock()
+        return true
       }
 
       // Remove empty item
@@ -347,15 +378,13 @@ export class List extends BlockPluginAbstract {
         currentLi.remove()
 
         if (isLast) {
-          // Focus last remaining item end, then bubble Enter to create new block
+          // Focus last remaining item end, then ask the core to create the
+          // following default block inside this same command transaction.
           const lastItem = /** @type {HTMLElement | null} */ (list.querySelector(':scope > li:last-child'))
           if (lastItem) {
             this.#setCaretToEnd(lastItem)
           }
-          // Dispatch bubbling Enter so BlockOperations splits the block
-          list.dispatchEvent(new KeyboardEvent('keydown', {
-            key: 'Enter', code: 'Enter', bubbles: true, cancelable: true,
-          }))
+          context.splitBlock()
         } else {
           // Focus the item that took its place
           const items = list.querySelectorAll(':scope > li')
@@ -367,15 +396,34 @@ export class List extends BlockPluginAbstract {
           }
         }
       })
-      return
+      return true
     }
 
-    // Split content at caret — extract everything after caret
+    // Replace a non-collapsed selection before splitting, matching native
+    // editable-list behaviour for both one-item and multi-item selections.
     context.mutate(() => {
-      const afterRange = document.createRange()
-      afterRange.setStart(range.endContainer, range.endOffset)
-      afterRange.setEndAfter(currentLi.lastChild || currentLi)
-      const fragment = afterRange.extractContents()
+      const selectionEnd = document.createRange()
+      selectionEnd.setStart(range.endContainer, range.endOffset)
+      selectionEnd.setEnd(endLi, endLi.childNodes.length)
+      const fragment = selectionEnd.extractContents()
+
+      if (currentLi === endLi) {
+        range.deleteContents()
+      } else {
+        const selectedStart = document.createRange()
+        selectedStart.setStart(range.startContainer, range.startOffset)
+        selectedStart.setEnd(currentLi, currentLi.childNodes.length)
+        selectedStart.deleteContents()
+
+        let item = currentLi.nextElementSibling
+        while (item) {
+          const next = item.nextElementSibling
+          const reachedEnd = item === endLi
+          item.remove()
+          if (reachedEnd) break
+          item = next
+        }
+      }
 
       // Create new li with the extracted content
       const newLi = document.createElement('li')
@@ -389,12 +437,15 @@ export class List extends BlockPluginAbstract {
       // Set caret to beginning of new item
       this.#setCaretToStart(newLi)
     })
+    return true
   }
 
   /**
    * Handle Backspace — merge with previous item when at start, or delete empty items.
    * @param {HTMLElement} list
    * @param {KeyboardEvent} e
+   * @param {import('../../core/types').BlockMutationContext} context
+   * @returns {void}
    */
   #handleBackspace(list, e, context) {
     const sel = window.getSelection()
@@ -407,7 +458,7 @@ export class List extends BlockPluginAbstract {
         ? /** @type {HTMLElement} */ (range.startContainer).closest('li')
         : range.startContainer.parentElement?.closest('li')
     )
-    if (!currentLi) return
+    if (!currentLi || currentLi.parentElement !== list) return
 
     // Check if caret is at the very start of the li
     const isAtStart = this.#isCaretAtStart(currentLi, range)
@@ -468,7 +519,7 @@ export class List extends BlockPluginAbstract {
     return false
   }
 
-  /** @param {HTMLElement} el */
+  /** @param {HTMLElement} el @returns {void} */
   #setCaretToStart(el) {
     const sel = window.getSelection()
     if (!sel) return
@@ -491,7 +542,7 @@ export class List extends BlockPluginAbstract {
     sel.addRange(range)
   }
 
-  /** @param {HTMLElement} el */
+  /** @param {HTMLElement} el @returns {void} */
   #setCaretToEnd(el) {
     const sel = window.getSelection()
     if (!sel) return

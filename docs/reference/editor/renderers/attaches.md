@@ -37,7 +37,19 @@ rendererStyles.destroy()
 }
 ```
 
+The [attaches plugin field reference](/reference/editor/plugins/attaches#field-reference) is the canonical persisted-data contract shared by the editor and renderer.
+
 Links use the download URL policy. Archive work, cancellation, object URLs, and interactive controls belong to the block and are released by `destroy()`. The renderer declares one stylesheet.
+
+## Archive helpers
+
+The renderer subpath also exports the same archive primitives used by its “download all” control:
+
+- `ARCHIVE_LIMITS` is an immutable object with `files` (50), `fileBytes` (25 MiB), `totalBytes` (100 MiB), and `concurrency` (4). These are hard limits, not configuration options.
+- `sanitizeArchiveFilename(value, index?)` returns a flat portable ZIP-entry name. It removes path separators and control characters, avoids Windows reserved names, trims unsafe trailing characters, limits the result to 128 characters, and falls back to `file-${index + 1}`.
+- `downloadArchive(files, { signal })` fetches safe download URLs, skips individual network failures, creates `files.zip`, starts a browser download, and resolves with no value. It rejects when cancelled, when a hard size/count limit is exceeded, or when no file can be archived. Pass an `AbortSignal`; the function requires browser `document`, `fetch`, `Blob`, and object-URL APIs.
+
+Files with rejected URL schemes are omitted. Filenames are made unique inside an archive. The helper does not return the generated `Blob` and does not upload or persist anything.
 
 When styles are declared, the explicit `EditorRenderer.injectStyles()` call shown above acquires them and its returned owner releases them.
 

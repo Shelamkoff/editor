@@ -3,6 +3,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 
 import { DocumentSnapshotStore } from './DocumentSnapshotStore.js'
+import { EditorFacade } from './EditorFacade.js'
 
 function createBlock(id, readData) {
   let saveCalls = 0
@@ -82,4 +83,43 @@ test('block save failure aborts the document transaction', () => {
     () => store.save(),
     /Failed to save block broken \(test\)/,
   )
+})
+
+test('destroy releases plugin-owned blocks before shared editor services', () => {
+  const order = []
+  const blocks = {
+    clear() { order.push('blocks') },
+  }
+  const events = {
+    emit() { order.push('event') },
+    clear() { order.push('events') },
+  }
+  const root = {
+    remove() { order.push('root') },
+  }
+  const diagnostics = {
+    emit() {},
+    errorName() { return 'Error' },
+  }
+  const facade = new EditorFacade(
+    /** @type {any} */ (root),
+    /** @type {any} */ ({
+      blocks,
+      selection: {},
+      events,
+      defaultBlockType: 'paragraph',
+      commands: {},
+      documentSchema: {},
+      diagnostics,
+      snapshots: {},
+      publicBlocks: {},
+      publicEvents: {},
+      readOnly: false,
+    }),
+  )
+  facade.registerDestroyable({ destroy() { order.push('shared') } })
+
+  facade.destroy()
+
+  assert.deepEqual(order, ['blocks', 'shared', 'event', 'events', 'root'])
 })

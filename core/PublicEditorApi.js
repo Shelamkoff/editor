@@ -1,3 +1,5 @@
+import { EditorEvent } from './editorEvents.js'
+
 /**
  * Safe view over an internal Block. It deliberately omits manager-integrity
  * methods such as destroy(), markDirty(), merge() and replaceContentElement().
@@ -32,12 +34,32 @@ export class EditorBlocksApi {
   /** @type {import('./types').IBlockManager} */
   #blocks
 
+  /** @type {import('./types').IEventBus} */
+  #events
+
   /** @type {WeakMap<import('./types').IBlock, PublicBlockView>} */
   #views = new WeakMap()
 
-  /** @param {import('./types').IBlockManager} blocks */
-  constructor(blocks) {
+  /**
+   * @param {import('./types').IBlockManager} blocks
+   * @param {import('./types').IEventBus} events
+   */
+  constructor(blocks, events) {
     this.#blocks = blocks
+    this.#events = events
+  }
+
+  /** @returns {string[]} */
+  #selectedBlockIds() {
+    return this.#blocks.getSelectedBlocks().map(block => block.id)
+  }
+
+  /** @param {string[]} previousBlockIds */
+  #emitSelectionChanged(previousBlockIds) {
+    const blockIds = this.#selectedBlockIds()
+    const unchanged = blockIds.length === previousBlockIds.length
+      && blockIds.every((id, index) => id === previousBlockIds[index])
+    if (!unchanged) this.#events.emit(EditorEvent.BLOCK_SELECTED, { blockIds })
   }
 
   /** @param {import('./types').IBlock | undefined} block */
@@ -65,11 +87,17 @@ export class EditorBlocksApi {
 
   /** @param {string[]} blockIds */
   selectBlocks(blockIds) {
+    const previousBlockIds = this.#selectedBlockIds()
     const selected = new Set(blockIds)
     for (const block of this.#blocks) block.selected = selected.has(block.id)
+    this.#emitSelectionChanged(previousBlockIds)
   }
 
-  clearSelection() { this.#blocks.clearSelection() }
+  clearSelection() {
+    const previousBlockIds = this.#selectedBlockIds()
+    this.#blocks.clearSelection()
+    this.#emitSelectionChanged(previousBlockIds)
+  }
 
   insert(type, data, index, id, inline) {
     return this.#view(this.#blocks.insert(type, data, index, id, inline))
@@ -115,10 +143,16 @@ export class EditorHandle {
   get blocks() { this.#assertActive(); return this.#facade.blocks }
   get events() { this.#assertActive(); return this.#facade.events }
   get rootElement() { this.#assertActive(); return this.#facade.rootElement }
+  get readOnly() { this.#assertActive(); return this.#facade.readOnly }
+  get canUndo() { this.#assertActive(); return this.#facade.canUndo }
+  get canRedo() { this.#assertActive(); return this.#facade.canRedo }
   save() { this.#assertActive(); return this.#facade.save() }
   render(data) { this.#assertActive(); this.#facade.render(data) }
   clear() { this.#assertActive(); this.#facade.clear() }
   focus() { this.#assertActive(); this.#facade.focus() }
+  undo() { this.#assertActive(); return this.#facade.undo() }
+  redo() { this.#assertActive(); return this.#facade.redo() }
+  setReadOnly(readOnly) { this.#assertActive(); this.#facade.setReadOnly(readOnly) }
   insertInlinePlugin(type, data) { this.#assertActive(); return this.#facade.insertInlinePlugin(type, data) }
   destroy() { if (this.#facade.isReady) this.#facade.destroy() }
 }

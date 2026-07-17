@@ -31,9 +31,6 @@ function getCurrentScript() {
  * Walks up to the contenteditable to ensure we find wrapping tags.
  * @param {Range} range
  */
-/**
- * @param {Range} range
- */
 function removeAllScriptTags(range) {
   // Use the contenteditable (or common editor root for cross-block ranges),
   // not commonAncestorContainer. The common ancestor can itself be <sup> or

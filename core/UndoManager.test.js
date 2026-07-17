@@ -5,9 +5,16 @@ import assert from 'node:assert/strict'
 import { UndoManager } from './UndoManager.js'
 
 function createEvents() {
+  const listeners = new Map()
   return {
-    on() {
-      return () => {}
+    on(type, listener) {
+      const values = listeners.get(type) ?? new Set()
+      values.add(listener)
+      listeners.set(type, values)
+      return () => values.delete(listener)
+    },
+    emit(type, payload) {
+      for (const listener of listeners.get(type) ?? []) listener(payload)
     },
   }
 }
@@ -57,12 +64,12 @@ test('history deduplicates documents and restores shared block snapshots', () =>
   // Equal content with fresh object identities must still deduplicate.
   current = structuredClone(changed)
   manager.commit()
-  manager.undo()
+  assert.equal(manager.undo(), true)
 
   assert.deepEqual(restored, initial)
   assert.equal(manager.canRedo, true)
 
-  manager.redo()
+  assert.equal(manager.redo(), true)
   assert.deepEqual(restored, changed)
 
   manager.destroy()
@@ -261,5 +268,166 @@ test('failed restore keeps undo and redo stacks unchanged', () => {
   manager.undo()
   assert.deepEqual(restored, initial)
   assert.equal(manager.canRedo, true)
+  manager.destroy()
+})
+
+test('history availability reflects pending input before its debounce expires', () => {
+  const initial = {
+    time: 1,
+    version: '1',
+    blocks: [{ id: 'origin', type: 'paragraph', data: { text: 'origin' } }],
+  }
+  const changed = {
+    time: 2,
+    version: '1',
+    blocks: [{ id: 'origin', type: 'paragraph', data: { text: 'changed' } }],
+  }
+  const replacement = {
+    time: 3,
+    version: '1',
+    blocks: [{ id: 'origin', type: 'paragraph', data: { text: 'replacement' } }],
+  }
+  const events = createEvents()
+  const states = []
+  events.on('history:changed', state => states.push(state))
+  let current = initial
+
+  const manager = new UndoManager(
+    { save: () => current.blocks },
+    events,
+    () => current,
+    data => { current = data },
+    () => null,
+    { maxStack: 10, debounceMs: 60_000 },
+  )
+
+  current = changed
+  events.emit('editor:changed')
+  assert.equal(manager.canUndo, true)
+  assert.equal(manager.canRedo, false)
+  assert.deepEqual(states.at(-1), { canUndo: true, canRedo: false })
+
+  assert.equal(manager.undo(), true)
+  assert.deepEqual(current, initial)
+  assert.equal(manager.canRedo, true)
+
+  current = replacement
+  events.emit('editor:changed')
+  assert.equal(manager.canRedo, false, 'a pending branch must invalidate redo immediately')
+  assert.deepEqual(states.at(-1), { canUndo: true, canRedo: false })
+
+  manager.destroy()
+})
+
+test('failed snapshot capture preserves the pending history step and event state', () => {
+  const initial = {
+    time: 1,
+    version: '1',
+    blocks: [{ id: 'origin', type: 'paragraph', data: { text: 'initial' } }],
+  }
+  const changed = {
+    time: 2,
+    version: '1',
+    blocks: [{ id: 'origin', type: 'paragraph', data: { text: 'changed' } }],
+  }
+  const events = createEvents()
+  const states = []
+  events.on('history:changed', state => states.push(state))
+  let current = initial
+  let rejectCapture = false
+
+  const manager = new UndoManager(
+    { save: () => current.blocks },
+    events,
+    () => {
+      if (rejectCapture) throw new Error('capture failed')
+      return current
+    },
+    data => { current = data },
+    () => null,
+    { maxStack: 10, debounceMs: 60_000 },
+  )
+
+  current = changed
+  events.emit('editor:changed')
+  rejectCapture = true
+  assert.throws(() => manager.commit(), /capture failed/)
+  assert.equal(manager.canUndo, true, 'failed capture consumed the pending undo step')
+  assert.deepEqual(states.at(-1), { canUndo: true, canRedo: false })
+
+  rejectCapture = false
+  manager.commit()
+  assert.equal(manager.undo(), true)
+  assert.deepEqual(current, initial)
+  manager.destroy()
+})
+
+test('maxStack counts undoable states rather than the current snapshot', () => {
+  const initial = {
+    time: 1,
+    version: '1',
+    blocks: [{ id: 'origin', type: 'paragraph', data: { text: 'initial' } }],
+  }
+  const changed = {
+    time: 2,
+    version: '1',
+    blocks: [{ id: 'origin', type: 'paragraph', data: { text: 'changed' } }],
+  }
+  let current = initial
+  const manager = new UndoManager(
+    { save: () => current.blocks },
+    createEvents(),
+    () => current,
+    data => { current = data },
+    () => null,
+    { maxStack: 1, debounceMs: 0 },
+  )
+
+  current = changed
+  manager.commit()
+  assert.equal(manager.canUndo, true)
+  assert.equal(manager.undo(), true)
+  assert.deepEqual(current, initial)
+  assert.equal(manager.undo(), false)
+  manager.destroy()
+})
+
+test('read-only availability is masked while programmatic changes remain in history', () => {
+  const initial = {
+    time: 1,
+    version: '1',
+    blocks: [{ id: 'origin', type: 'paragraph', data: { text: 'origin' } }],
+  }
+  const changed = {
+    time: 2,
+    version: '1',
+    blocks: [...initial.blocks, { id: 'added', type: 'paragraph', data: { text: 'added' } }],
+  }
+  const events = createEvents()
+  const states = []
+  events.on('history:changed', state => states.push(state))
+  let current = initial
+
+  const manager = new UndoManager(
+    { save: () => current.blocks },
+    events,
+    () => current,
+    data => { current = data },
+    () => null,
+    { maxStack: 10, debounceMs: 0 },
+  )
+
+  manager.setCommandsEnabled(false, { notify: false })
+  current = changed
+  events.emit('editor:willChange')
+  events.emit('editor:changed')
+  events.emit('history:commit')
+  assert.equal(manager.canUndo, false)
+  assert.equal(states.some(state => state.canUndo || state.canRedo), false)
+
+  manager.setCommandsEnabled(true, { notify: false })
+  assert.equal(manager.canUndo, true, 'recorded read-only changes were discarded')
+  assert.equal(manager.undo(), true)
+  assert.deepEqual(current, initial)
   manager.destroy()
 })

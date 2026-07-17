@@ -1,6 +1,8 @@
 import { createSimpleInlineTool, ICON_STRIKETHROUGH } from './utils.js'
 
 /**
+ * Create the built-in strikethrough control (`<s>`, `Mod+Shift+S`).
+ *
  * @param {string} label
  * @param {import('../types').ICrossBlockSelection | null} [cbs]
  * @returns {import('../types').InlineTool}

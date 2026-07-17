@@ -8,11 +8,14 @@ import {
   normalizeAfterEdit,
   saveSelectionOffsets,
   restoreSelectionOffsets,
+  toggleTag,
 } from './utils.js'
 
 /** Preset font sizes in px */
 const FONT_SIZE_PRESETS = [12, 14, 16, 18, 20, 24, 28, 32, 40, 48, 64]
 const FONT_SIZE_DEFAULT = 16
+const FONT_SIZE_MIN = 1
+const FONT_SIZE_MAX = 200
 
 const ICON_CHEVRON_SM = '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6"/></svg>'
 
@@ -25,9 +28,15 @@ function findFontSizeSpan(rangeHint) {
   let node
   if (rangeHint) {
     const sc = rangeHint.startContainer
-    node = sc.nodeType === Node.ELEMENT_NODE
-      ? /** @type {HTMLElement} */ (sc)
-      : sc.parentElement
+    if (sc.nodeType === Node.ELEMENT_NODE) {
+      const element = /** @type {HTMLElement} */ (sc)
+      const child = element.childNodes[Math.min(rangeHint.startOffset, element.childNodes.length - 1)]
+      node = child?.nodeType === Node.ELEMENT_NODE
+        ? /** @type {HTMLElement} */ (child)
+        : child?.parentElement ?? element
+    } else {
+      node = sc.parentElement
+    }
   } else {
     const sel = window.getSelection()
     if (!sel || !sel.anchorNode) return null
@@ -176,6 +185,7 @@ export function createFontSizeTool(label, cbs = null) {
 
   function openDropdown() {
     if (!dropdownEl || !inputEl) return
+    savedRange = null
     const cbsRange = cbs?.range
     if (cbsRange) {
       savedRange = cbsRange.cloneRange()
@@ -228,7 +238,8 @@ export function createFontSizeTool(label, cbs = null) {
       const startElement = start.nodeType === Node.ELEMENT_NODE
         ? /** @type {HTMLElement} */ (start)
         : start.parentElement
-      startElement?.closest('[contenteditable="true"]')?.focus({ preventScroll: true })
+      const editable = startElement?.closest('[contenteditable="true"]')
+      if (editable instanceof HTMLElement) editable.focus({ preventScroll: true })
       sel.removeAllRanges()
       sel.addRange(savedRange)
     } catch {
@@ -262,6 +273,7 @@ export function createFontSizeTool(label, cbs = null) {
    * @param {number} sizePx
    */
   function applySize(sizePx) {
+    if (!Number.isInteger(sizePx) || sizePx < FONT_SIZE_MIN || sizePx > FONT_SIZE_MAX) return
     restoreRange()
     const sel = window.getSelection()
     if (!sel || sel.isCollapsed || !sel.rangeCount) { closeDropdown(); return }
@@ -308,32 +320,52 @@ export function createFontSizeTool(label, cbs = null) {
     if (!walkRoot) { closeDropdown(); return }
 
     const spans = walkRoot.querySelectorAll('span')
-    const toUnwrap = []
+    const toReset = []
     for (const span of spans) {
       if (span.style.fontSize && actualRange.intersectsNode(span)) {
-        toUnwrap.push(span)
+        toReset.push(span)
       }
     }
 
-    if (!toUnwrap.length) { closeDropdown(); return }
+    if (!toReset.length) { closeDropdown(); return }
 
     mutate(actualRange, () => {
-      for (const span of toUnwrap) {
-        const parent = span.parentNode
-        if (!parent) continue
-        if (span.style.length > 1) {
-          span.style.removeProperty('font-size')
-          if (!span.getAttribute('style')) {
-            while (span.firstChild) parent.insertBefore(span.firstChild, span)
-            span.remove()
-          }
-        } else {
-          while (span.firstChild) parent.insertBefore(span.firstChild, span)
-          span.remove()
-        }
+      // Move font-size into a temporary dedicated wrapper. This lets the
+      // range splitter remove only the selected portion while every other
+      // style/class/data attribute remains on the original span.
+      for (let index = toReset.length - 1; index >= 0; index--) {
+        const span = /** @type {HTMLElement} */ (toReset[index])
+        if (!span.isConnected) continue
+        const marker = document.createElement('oe-font-size')
+        marker.style.fontSize = span.style.fontSize
+        span.style.removeProperty('font-size')
+        if (!span.getAttribute('style')) span.removeAttribute('style')
+        while (span.firstChild) marker.appendChild(span.firstChild)
+        if (span.attributes.length === 0) span.replaceWith(marker)
+        else span.appendChild(marker)
       }
 
-      if (walkRoot) normalizeAfterEdit(getContentEditable(actualRange), walkRoot)
+      restoreSelectionOffsets(cbs, saved)
+      for (let guard = 0; guard < 100; guard++) {
+        const selection = window.getSelection()
+        const current = cbs?.range || (selection?.rangeCount ? selection.getRangeAt(0) : null)
+        if (!current) break
+        const currentRoot = getWalkRoot(current)
+        const hasMarker = !!currentRoot && Array.from(currentRoot.querySelectorAll('oe-font-size'))
+          .some(marker => current.intersectsNode(marker))
+        if (!hasMarker) break
+        toggleTag('oe-font-size', current)
+        restoreSelectionOffsets(cbs, saved)
+      }
+
+      for (const marker of walkRoot.querySelectorAll('oe-font-size')) {
+        const span = document.createElement('span')
+        span.style.fontSize = /** @type {HTMLElement} */ (marker).style.fontSize
+        while (marker.firstChild) span.appendChild(marker.firstChild)
+        marker.replaceWith(span)
+      }
+
+      normalizeAfterEdit(getContentEditable(actualRange), walkRoot)
 
       restoreSelectionOffsets(cbs, saved)
     })
@@ -359,16 +391,17 @@ export function createFontSizeTool(label, cbs = null) {
     inputEl.type = 'number'
     inputEl.className = 'oe-font-size-input'
     inputEl.placeholder = 'px'
-    inputEl.min = '1'
-    inputEl.max = '200'
+    inputEl.setAttribute('aria-label', `${label}, px`)
+    inputEl.min = String(FONT_SIZE_MIN)
+    inputEl.max = String(FONT_SIZE_MAX)
     inputEl.addEventListener('keydown', (e) => {
       // Stop ALL key events from reaching KeyboardManager (which would
       // interpret Delete/Backspace as block merge, arrows as navigation, etc.)
       e.stopPropagation()
       if (e.key === 'Enter') {
         e.preventDefault()
-        const val = parseInt(/** @type {HTMLInputElement} */ (inputEl).value, 10)
-        if (val > 0) applySize(val)
+        const val = Number(/** @type {HTMLInputElement} */ (inputEl).value)
+        applySize(val)
       } else if (e.key === 'Escape') {
         e.preventDefault()
         closeDropdown()
@@ -379,15 +412,17 @@ export function createFontSizeTool(label, cbs = null) {
     inputEl.addEventListener('input', (e) => e.stopPropagation())
 
     const applyBtn = el('button', 'oe-font-size-apply', { type: 'button' })
+    applyBtn.setAttribute('aria-label', label)
     applyBtn.innerHTML = ICON_CHECK
     applyBtn.addEventListener('click', (e) => {
       e.preventDefault()
       e.stopPropagation()
-      const val = parseInt(/** @type {HTMLInputElement} */ (inputEl).value, 10)
-      if (val > 0) applySize(val)
+      const val = Number(/** @type {HTMLInputElement} */ (inputEl).value)
+      applySize(val)
     })
 
     const resetBtn = el('button', 'oe-font-size-reset', { type: 'button' })
+    resetBtn.setAttribute('aria-label', `${label}: 16px`)
     resetBtn.innerHTML = createSvgIcon('<path d="M18 6l-12 12"/><path d="M6 6l12 12"/>', 14)
     resetBtn.addEventListener('click', (e) => {
       e.preventDefault()
@@ -400,17 +435,20 @@ export function createFontSizeTool(label, cbs = null) {
     inputRow.appendChild(resetBtn)
     dropdownEl.appendChild(inputRow)
 
-    // Preset list (ul/li)
+    // Preset list. Each action is a native button so presets are reachable
+    // without a pointer and participate in the browser's focus order.
     const list = el('ul', 'oe-font-size-list')
     for (const size of FONT_SIZE_PRESETS) {
-      const item = el('li', 'oe-font-size-item', { 'data-size': String(size) })
+      const row = document.createElement('li')
+      const item = el('button', 'oe-font-size-item', { type: 'button', 'data-size': String(size) })
       item.textContent = size + 'px'
       item.addEventListener('click', (e) => {
         e.preventDefault()
         e.stopPropagation()
         applySize(size)
       })
-      list.appendChild(item)
+      row.appendChild(item)
+      list.appendChild(row)
     }
     dropdownEl.appendChild(list)
 

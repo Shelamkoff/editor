@@ -1,5 +1,7 @@
 import { EditorEvent } from './editorEvents.js'
 
+/** @typedef {import('./types').IBlockOperations} IBlockOperationsContract */
+/** @implements {IBlockOperationsContract} */
 export class BlockOperations {
   /** @type {import('./types').IBlockManager} */
   #blocks
@@ -44,8 +46,8 @@ export class BlockOperations {
   }
 
   /**
-   * If the current block is empty and of the default type, convert it in-place.
-   * Otherwise insert a new block after it. Focuses the result.
+   * If the current block is empty and of the default type, convert it in place.
+   * Otherwise, insert a new block after it. Focuses the result.
    * @param {string} type
    * @param {Record<string, unknown>} [data]
    * @param {'start' | 'end'} [caretPosition='start']
@@ -91,6 +93,26 @@ export class BlockOperations {
     } finally {
       this.#events.emit(EditorEvent.UNDO_BATCH_END)
     }
+  }
+
+  /**
+   * Convert the current empty non-default block to the configured default
+   * block and preserve focus. This is the common "exit block" operation used
+   * by list-like plugins and by Backspace handling.
+   * @returns {boolean} Whether a block was converted.
+   */
+  exitEmptyBlock() {
+    const current = this.#blocks.getCurrentBlock()
+    if (!current || !current.isEmpty() || current.type === this.#defaultBlockType) return false
+
+    const index = this.#blocks.getCurrentIndex()
+    const converted = this.#blocks.convert(index, this.#defaultBlockType)
+    if (!converted) return false
+
+    this.#blocks.setCurrentIndex(index)
+    converted.focus()
+    this.#selection.setCaretToBlock(converted.id, 'start')
+    return true
   }
 
   /**

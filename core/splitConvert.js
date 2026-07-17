@@ -40,6 +40,13 @@ export function splitAndConvert(blocks, selection, currentIndex, currentType, co
     return true
   }
 
+  // The generic splitter owns only a single editable root whose HTML maps to
+  // `{ text }`. A structured block can contain several editable descendants
+  // and plugin-owned controls; rewriting its wrapper.innerHTML would corrupt
+  // both its data shape and event handlers. Such plugins must describe a safe
+  // data-level split through `splitSelection()`.
+  if (contentEl.getAttribute('contenteditable') !== 'true') return false
+
   // Extract before/selected/after content as HTML
   const beforeRange = document.createRange()
   beforeRange.selectNodeContents(contentEl)

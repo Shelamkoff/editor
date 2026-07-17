@@ -1,5 +1,6 @@
 // @ts-check
 import { resolvePath } from '../../../shared/resolvePath.js'
+import { mapWarningTextFields as mapTextFields } from '../../../shared/mapTextFields.js'
 
 const styles = resolvePath('./styles.css', import.meta.url)
 
@@ -9,12 +10,14 @@ const ICON_WARNING = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height=
 /**
  * Warning block renderer
  * @param {string} classPrefix
+ * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} _locale
  * @returns {import('../../types').BlockRenderer<import('../../types').WarningBlock>}
  */
 export function createWarningRenderer(classPrefix, _locale) {
     return {
         type: 'warning',
         styles: [styles],
+        mapTextFields,
 
         /**
          * @param {import('../../types').WarningBlock} block
@@ -26,7 +29,7 @@ export function createWarningRenderer(classPrefix, _locale) {
 
             const wrapper = document.createElement('div')
             wrapper.className = `${classPrefix}-warning`
-            wrapper.setAttribute('role', 'alert')
+            wrapper.setAttribute('role', 'note')
 
             const icon = document.createElement('span')
             icon.className = `${classPrefix}-warning__icon`

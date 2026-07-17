@@ -1,6 +1,6 @@
 // @ts-check
 import { resolvePath } from '../../../shared/resolvePath.js'
-import { setSafeUrlAttribute } from '../../../shared/sanitize/sanitizeUrl.js'
+import { sanitizeUrl, setSafeUrlAttribute } from '../../../shared/sanitize/sanitizeUrl.js'
 
 const styles = resolvePath('./styles.css', import.meta.url)
 
@@ -12,9 +12,9 @@ const TEMPLATES = ['horizontal', 'compact', 'large-top', 'minimal', 'twitter', '
 /**
  * Link preview (bookmark) block renderer with 7 templates support.
  * Mirrors the editor plugin: horizontal, compact, large-top, minimal, twitter, notion, split.
- * Auto-falls back to 'minimal' template when no rich content (title/image).
  *
  * @param {string} classPrefix
+ * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} _locale
  * @returns {import('../../types').BlockRenderer<import('../../types').LinkPreviewBlock>}
  */
 export function createLinkPreviewRenderer(classPrefix, _locale) {
@@ -36,12 +36,15 @@ export function createLinkPreviewRenderer(classPrefix, _locale) {
 
             const card = document.createElement('a')
             card.className = `${p} ${p}--${tpl}`
-            setSafeUrlAttribute(card, 'href', url, 'external')
+            const href = sanitizeUrl(url, {
+                policy: 'external', allowRelative: false, fallback: '',
+            })
+            if (href) card.href = href
             card.target = '_blank'
             card.rel = 'noopener noreferrer'
 
             // Notion: large favicon before content
-            if (tpl === 'notion') {
+            if (tpl === 'notion' && favicon) {
                 const bigFav = document.createElement('img')
                 bigFav.className = `${p}__favicon-large`
                 setSafeUrlAttribute(bigFav, 'src', favicon || '', 'media')

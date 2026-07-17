@@ -1,10 +1,12 @@
 import { renderDropzone } from '../shared/dropzone.js'
+import { isSupportedImageFile } from '../shared/fileInput.js'
 import { CSS } from './css.js'
 import { ICON_SELECT } from './icons.js'
 
 /**
  * @typedef {Object} EmptyViewDeps
  * @property {(key: string, fallback: string) => string} t
+ * @property {boolean} readOnly
  * @property {() => void} onUploadClick
  * @property {Array<{ icon?: string, label: string, handler: (context: { signal: AbortSignal }) => Promise<Array<{url: string, alt?: string}> | null> }>} customActions
  * @property {(handler: (context: { signal: AbortSignal }) => Promise<Array<{url: string, alt?: string}> | null>) => Promise<void>} runCustomAction
@@ -18,6 +20,7 @@ import { ICON_SELECT } from './icons.js'
  * @param {HTMLElement} wrapper
  * @param {import('./state.js').GalleryState} state
  * @param {EmptyViewDeps} deps
+ * @returns {void}
  */
 export function renderEmptyView(wrapper, state, deps) {
   state.resetTransient()
@@ -37,6 +40,8 @@ export function renderEmptyView(wrapper, state, deps) {
     iconHtml: ICON_SELECT,
     uploadText: deps.t('dropzoneUpload', 'Upload'),
     afterText: deps.t('dropzoneText', 'images from your device or drag and drop them here'),
+    readOnly: deps.readOnly,
+    emptyText: deps.t('emptyReadonly', 'No images'),
     onUploadClick: deps.onUploadClick,
     actions: deps.customActions.map(action => ({
       icon: action.icon,
@@ -44,7 +49,7 @@ export function renderEmptyView(wrapper, state, deps) {
       onSelect: () => { void deps.runCustomAction(action.handler) },
     })),
     onDrop: (dt) => {
-      const files = [...(dt.files || [])].filter((f) => f.type.startsWith('image/'))
+      const files = [...(dt.files || [])].filter(isSupportedImageFile)
       if (files.length > 0) deps.onFilesDropped(files)
     },
   })

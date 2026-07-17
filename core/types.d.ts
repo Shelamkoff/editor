@@ -3,8 +3,12 @@ import type {
   EditorInlineWidget,
   EditorOutputData,
 } from '../shared/documentTypes.js'
-import type { LocaleValue, PluralForms } from '../shared/localeTypes.js'
+import type { LocaleValue } from '../shared/localeTypes.js'
 export type { LocaleValue, PluralForms } from '../shared/localeTypes.js'
+
+/** Explicit DOM aliases used by JavaScript JSDoc without colliding with Node.js types. */
+export type DOMNode = Node
+export type DOMText = Text
 
 export interface EditorDocument extends EditorOutputData<BlockData> {
   time?: number
@@ -56,12 +60,20 @@ export interface BasePlugin {
 export interface BlockPlugin<D extends Record<string, unknown> = Record<string, unknown>> extends BasePlugin {
   readonly inlineTools?: boolean | string[]
 
+  /** Return the immutable constructor options owned by this plugin instance. */
+  getPluginConfig?(): PluginRuntimeConfig
+  /** Override the empty-state prompt of the default text block. */
+  setPlaceholder?(placeholder: string): void
+
   // ── Core (required) ──────────────────────────────────────────────────────
   render(data: D, context: BlockMutationContext): HTMLElement
   save(element: HTMLElement): D
 
   // ── Lifecycle ────────────────────────────────────────────────────────────
   validate?(data: D): boolean
+  /** Release resources shared by all mounted blocks when the editor is destroyed. */
+  dispose?(): void
+  /** Release resources owned by one rendered block. */
   destroy?(element: HTMLElement): void
   isEmpty?(element: HTMLElement): boolean
 
@@ -84,11 +96,19 @@ export interface BlockPlugin<D extends Record<string, unknown> = Record<string, 
   waitForPaste?(element: HTMLElement): Promise<void>
 
   // ── Conversion ───────────────────────────────────────────────────────────
+  /**
+   * Return neutral fields that can initialize another block type during a
+   * conversion. This is not a search-index hook: preserve meaningful text and
+   * safe inline HTML under conventional keys such as `text` where possible.
+   */
   exportData?(element: HTMLElement): Record<string, unknown>
   /**
    * Describe a partial selection using plugin-owned data boundaries.
    * The method must not mutate `element`. The core replaces the source with
-   * `remainingData` and creates the target block from `selectedData`.
+   * `remainingData` and creates the target block from `selectedData`. A plugin
+   * whose root is not itself `contenteditable="true"` must implement this
+   * method to support partial conversion; the generic HTML splitter is used
+   * only for a single editable root that serializes to `{ text }`.
    */
   splitSelection?(element: HTMLElement, range: Range): {
     remainingData: D | null
@@ -106,9 +126,9 @@ export interface BlockPlugin<D extends Record<string, unknown> = Record<string, 
    * committed widget spans with placeholder refs while the core collects
    * an `inline` widget map at the block level).
    *
-   * Implement on text-carrying blocks (paragraph, heading, list, quote,
-   * checklist). Structural / media blocks should leave this undefined —
-   * the core skips the marshal step for them.
+   * Implement on every block that enables inline tools and stores HTML,
+   * including structured blocks with several text fields. Media-only blocks
+   * should leave this undefined; the core then skips widget marshalling.
    *
    * `transform` is opaque to the plugin: it hides the tokenize / rehydrate
    * mechanism and the widget registry entirely. The plugin only knows its
@@ -121,8 +141,24 @@ export interface BlockPlugin<D extends Record<string, unknown> = Record<string, 
 export interface BlockMutationContext {
   /** Execute one synchronous block-local command as one undo/redo step. */
   mutate<T>(operation: () => T): T | undefined
-  /** True when interactive mutations and side-effecting controls must not be mounted. */
+  /** Split the current block through the core structural command pipeline. */
+  splitBlock(): void
+  /** Convert the current empty non-default block to the default block type. */
+  exitEmptyBlock(): boolean
+  /**
+   * True when document mutations and application side effects are forbidden.
+   * A presentation-only button may remain enabled by adding
+   * `data-oe-read-only-interactive` to that control.
+   */
   readonly readOnly: boolean
+}
+
+/** Common runtime options consumed by the editor composition root. */
+export interface PluginRuntimeConfig extends Record<string, unknown> {
+  /** Disable automatic injection of the plugin constructor's `styles` URLs. */
+  injectStyles?: boolean
+  /** Additional stylesheet URL injected after the plugin's default styles. */
+  css?: string
 }
 
 /** Static properties on block plugin constructors. */
@@ -132,7 +168,12 @@ export interface BlockPluginConstructor<D extends Record<string, unknown> = Reco
   styles?: string[]
   /** Locale messages per language, merged into i18n on registration. */
   locale?: Record<string, Record<string, LocaleValue>>
-  /** Whether this block type is text-based (has contenteditable root). Used by cross-block conversion. */
+  /**
+   * Whether this block accepts neutral rich text during conversion and can
+   * participate in text-target cross-block conversion. This does not require
+   * the plugin root itself to be contenteditable; structured text plugins use
+   * `splitSelection()` to describe partial selections.
+   */
   isTextBlock?: boolean
 }
 
@@ -272,6 +313,8 @@ export interface EditorEvents {
   'editor:willChange': undefined
   'editor:changed': undefined
   'history:commit': undefined
+  'history:changed': { canUndo: boolean; canRedo: boolean }
+  'readOnly:changed': { readOnly: boolean }
   'editor:destroyed': undefined
   'toolbar:opened': { type: 'block' | 'inline' }
   'toolbar:closed': { type: 'block' | 'inline' }
@@ -353,7 +396,7 @@ export interface EditorConfig {
   data?: EditorDocument
   /** Ordered through `from`/`to` links before initial load and every render(). */
   migrations?: DocumentMigration[]
-  /** Reject unknown/incomplete version chains; preserve accepts them unchanged. */
+  /** Apply reachable migrations; strict also requires a complete path to the current version. */
   documentVersionPolicy?: 'preserve' | 'strict'
   readOnly?: boolean
   placeholder?: string
@@ -481,7 +524,7 @@ export interface IBlock {
 export interface IBlockReader {
   getBlockByIndex(index: number): IBlock | undefined
   getBlockById(id: string): IBlock | undefined
-  getBlockByChildNode(node: Node): IBlock | undefined
+  getBlockByChildNode(node: DOMNode): IBlock | undefined
   getBlockByY(y: number): IBlock | undefined
   getCurrentBlock(): IBlock | undefined
   getCurrentIndex(): number
@@ -496,6 +539,7 @@ export interface IBlockReader {
 
 /** Full block CRUD. Extends IBlockReader. */
 export interface IBlockManager extends IBlockReader {
+  setReadOnly(readOnly: boolean): void
   insert(
     type: string,
     data?: Record<string, unknown>,
@@ -505,7 +549,7 @@ export interface IBlockManager extends IBlockReader {
   ): IBlock
   prepareReplacement(blockList: BlockData[] | undefined, defaultBlockType: string, logPrefix?: string): {
     blocks: readonly IBlock[]
-    commit(): void
+    commit(options?: { notifyChange?: boolean }): void
     dispose(): void
   }
   remove(index: number): void
@@ -532,6 +576,7 @@ export interface ISelectionManager {
 /** Block-level structural operations (split, merge, navigate). */
 export interface IBlockOperations {
   splitBlock(): void
+  exitEmptyBlock(): boolean
   mergeWithPrevious(): boolean
   mergeWithNext(): boolean
   navigateToPrevious(): boolean
@@ -612,9 +657,27 @@ export interface IEditor {
   render(data: EditorDocument): void
   clear(): void
   focus(): void
+  /**
+   * Restore exactly one previous committed history step.
+   * Returns false when the undo stack is empty or the editor is read-only.
+   */
+  undo(): boolean
+  /**
+   * Restore exactly one next committed history step.
+   * Returns false when the redo stack is empty or the editor is read-only.
+   */
+  redo(): boolean
+  /** Switch the live instance between interactive editing and read-only display. */
+  setReadOnly(readOnly: boolean): void
   insertInlinePlugin(type: string, data?: Record<string, string>): boolean
   destroy(): void
+  /** Remains readable after destroy() and then returns false. */
   readonly isReady: boolean
+  readonly readOnly: boolean
+  /** Whether undo() can currently restore a step; false while read-only. */
+  readonly canUndo: boolean
+  /** Whether redo() can currently restore a step; false while read-only. */
+  readonly canRedo: boolean
   readonly blocks: EditorBlocksApi
   readonly events: EditorEventSubscriptions
   readonly rootElement: HTMLElement
@@ -623,6 +686,7 @@ export interface IEditor {
 // ── Inline Plugins ───────────────────────────────────────────────────────────
 
 export interface InlinePlugin extends BasePlugin {
+  /** Optional activation trigger. Must contain exactly one Unicode code point. */
   readonly trigger?: string
   /** Patterns that auto-convert pasted/typed text into this widget. */
   readonly pasteConfig?: { patterns: RegExp[] }
@@ -640,7 +704,11 @@ export interface InlinePlugin extends BasePlugin {
   mount?(rootElement: HTMLElement, ctx: InlinePluginContext): void
   hydrate(element: HTMLElement, ctx: InlinePluginContext): void
   getData(element: HTMLElement): Record<string, string>
+  /** Return false for an in-progress widget that must be serialized as plain text. */
+  isCommitted?(element: HTMLElement): boolean
   onEdit?(element: HTMLElement, text: string, ctx: InlinePluginContext): void
+  /** Called when the editor cancels an active trigger session. */
+  onCancel?(): void
   onCommit?(element: HTMLElement, data: Record<string, string>): void
   destroy?(): void
 
@@ -657,18 +725,23 @@ export interface InlinePlugin extends BasePlugin {
 }
 
 export interface InlinePluginContext {
+  /** Current editor interaction mode. Mutation methods are inert when true. */
+  readonly readOnly: boolean
   showPopup(anchor: HTMLElement, content: HTMLElement, cleanup?: () => void): void
   hidePopup(): void
   /** Execute one widget-local command as one undo/redo step. */
-  mutate<T>(target: Node, operation: () => T): T | undefined
-  notifyChanged(target?: Node): void
+  mutate<T>(target: DOMNode, operation: () => T): T | undefined
+  notifyChanged(target?: DOMNode): void
 }
 
 export interface IInlinePluginRegistry {
+  register(plugin: InlinePlugin): void
   get(type: string): InlinePlugin | undefined
   getByTrigger(char: string): InlinePlugin | undefined
   values(): IterableIterator<InlinePlugin>
   readonly size: number
-  readonly triggerMap: Map<string, InlinePlugin>
+  readonly hasTriggers: boolean
   mount(rootElement: HTMLElement, ctx: InlinePluginContext): void
+  triggerKeys(): string[]
+  destroy(): void
 }

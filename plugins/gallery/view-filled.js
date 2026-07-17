@@ -17,6 +17,7 @@ import {
 /**
  * @typedef {Object} FilledViewDeps
  * @property {(key: string, fallback: string) => string} t
+ * @property {boolean} readOnly
  * @property {() => void} syncCaptions
  * @property {() => import('./state.js').GalleryState | undefined} getState
  * @property {() => void} reRender
@@ -37,6 +38,7 @@ import {
  * @param {HTMLElement} wrapper
  * @param {import('./state.js').GalleryState} state
  * @param {FilledViewDeps} deps
+ * @returns {void}
  */
 export function renderFilledView(wrapper, state, deps) {
   state.resetTransient()
@@ -52,7 +54,7 @@ export function renderFilledView(wrapper, state, deps) {
   }
 
   applyGalleryStyles(wrapper, state)
-  wrapper.appendChild(renderActions(wrapper, state, deps, signal))
+  if (!deps.readOnly) wrapper.appendChild(renderActions(wrapper, state, deps, signal))
 }
 
 /**
@@ -75,7 +77,7 @@ function renderMasonry(wrapper, state, deps, signal) {
     grid.appendChild(slot)
   })
 
-  attachExternalDrop(grid, signal, deps.onFilesDropped)
+  if (!deps.readOnly) attachExternalDrop(grid, signal, deps.onFilesDropped)
   wrapper.appendChild(grid)
 }
 
@@ -125,13 +127,17 @@ function renderSlotBased(wrapper, state, deps, signal) {
 
       const imgEl = /** @type {HTMLImageElement | null} */ (slot.querySelector(`.${CSS.slotImg}`))
       if (imgEl) {
+        let ready = false
         const onReady = () => {
+          if (ready) return
+          ready = true
           orientations[idx] = classifyOrientation(imgEl.naturalWidth, imgEl.naturalHeight)
           loadedCount++
           if (loadedCount >= slotCount) onAllLoaded()
         }
         imgEl.addEventListener('load', onReady, { once: true, signal })
         imgEl.addEventListener('error', onReady, { once: true, signal })
+        if (imgEl.complete) queueMicrotask(onReady)
       }
       grid.appendChild(slot)
     }
@@ -149,7 +155,7 @@ function renderSlotBased(wrapper, state, deps, signal) {
     }
   }
 
-  attachExternalDrop(grid, signal, deps.onFilesDropped)
+  if (!deps.readOnly) attachExternalDrop(grid, signal, deps.onFilesDropped)
   wrapper.appendChild(grid)
 
   if (overflowImages.length > 0) {
@@ -161,7 +167,7 @@ function renderSlotBased(wrapper, state, deps, signal) {
       overflow.appendChild(createOverflowItem(img, globalIdx, signal, slotDeps))
     })
 
-    attachExternalDrop(overflow, signal, deps.onFilesDropped)
+    if (!deps.readOnly) attachExternalDrop(overflow, signal, deps.onFilesDropped)
     wrapper.appendChild(overflow)
   }
 }
@@ -176,6 +182,7 @@ function renderSlotBased(wrapper, state, deps, signal) {
 function makeSlotDeps(deps) {
   return {
     t: deps.t,
+    readOnly: deps.readOnly,
     syncCaptions: deps.syncCaptions,
     getState: deps.getState,
     onRemoveImage: (index) => {
@@ -225,12 +232,17 @@ function renderActions(wrapper, state, deps, signal) {
   settingsBtn.type = 'button'
   settingsBtn.className = CSS.actionBtn
   settingsBtn.innerHTML = `${ICON_SETTINGS} ${deps.t('settings', 'Settings')}`
+  settingsBtn.setAttribute('aria-haspopup', 'true')
+  settingsBtn.setAttribute('aria-expanded', 'false')
 
   const panel = buildSettingsPanel(wrapper, state, settingsDeps)
+  panel.setAttribute('role', 'group')
+  panel.setAttribute('aria-label', deps.t('settings', 'Settings'))
 
   settingsBtn.addEventListener('click', (e) => {
     e.stopPropagation()
-    dropdown.classList.toggle(CSS.dropdownOpen)
+    const open = dropdown.classList.toggle(CSS.dropdownOpen)
+    settingsBtn.setAttribute('aria-expanded', String(open))
   }, { signal })
 
   dropdown.append(settingsBtn, panel)
@@ -238,7 +250,15 @@ function renderActions(wrapper, state, deps, signal) {
   document.addEventListener('click', (e) => {
     if (!dropdown.contains(/** @type {Node} */ (e.target))) {
       dropdown.classList.remove(CSS.dropdownOpen)
+      settingsBtn.setAttribute('aria-expanded', 'false')
     }
+  }, { signal })
+  dropdown.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape' || !dropdown.classList.contains(CSS.dropdownOpen)) return
+    event.preventDefault()
+    dropdown.classList.remove(CSS.dropdownOpen)
+    settingsBtn.setAttribute('aria-expanded', 'false')
+    settingsBtn.focus()
   }, { signal })
 
   // Main view container (for drill-down hide/show)
@@ -265,6 +285,7 @@ function renderActions(wrapper, state, deps, signal) {
   deleteAllBtn.type = 'button'
   deleteAllBtn.className = `${CSS.actionBtn} ${CSS.actionBtnDanger}`
   deleteAllBtn.innerHTML = ICON_TRASH
+  deleteAllBtn.setAttribute('aria-label', deps.t('deleteAll', 'Delete all'))
   deleteAllBtn.addEventListener('mousedown', (e) => e.preventDefault(), { signal })
   deleteAllBtn.addEventListener('click', (e) => {
     e.stopPropagation()

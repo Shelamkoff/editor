@@ -48,12 +48,12 @@ interface BlockData {
 - `revision` is an optional producer-owned content revision or stable hash used to accelerate repeated `renderTo()` calls.
 - `type` selects the registered block plugin and renderer.
 - `data` is owned and validated by that block plugin.
-- `tunes` stores optional cross-block settings.
+- `tunes` stores optional settings owned by the editor rather than one block plugin. The built-in alignment tool writes `tunes.textAlign: 'left' | 'center' | 'right' | 'justify'`, so alignment also persists for structured blocks with several text fields.
 - `inline` stores persistent widgets referenced from the block's text fields.
 
 Do not infer a block's identity from its array index. Indices change after insert, remove, and move operations.
 
-`revision` is not a block id and not the document-format `version`. When supplied, it must change whenever `data` or `inline` changes. Rector preserves an input revision while the editor leaves that block untouched, then removes it after a local mutation because the editor cannot generate the producer's next value. Omitting `revision` is fully supported; the renderer falls back to a deep content signature.
+`revision` is not a block id and not the document-format `version`. When supplied, it must change whenever `data`, `tunes`, or `inline` changes. Rector preserves an input revision while the editor leaves that block untouched, then removes it after a local mutation because the editor cannot generate the producer's next value. Omitting `revision` is fully supported; the renderer falls back to a deep content signature.
 
 ## Plugin-owned data
 
@@ -68,9 +68,16 @@ type ParagraphData = {
 type HeadingData = {
   text: string
   level: 2 | 3 | 4 | 5 | 6
-  align?: 'left' | 'center' | 'right'
+  align?: 'left' | 'center' | 'right' | 'justify'
 }
 ```
+
+`ParagraphData.align` and `HeadingData.align` remain part of those plugins'
+data contracts. The built-in alignment control additionally writes the
+editor-owned `tunes.textAlign` value so the same control works for every block
+with a text-bearing root, including structured blocks. When both values are
+present, `tunes.textAlign` is the document-wide override applied by the editor
+and renderer after the plugin creates its element.
 
 Use the plugin reference page as the source of truth for its fields and defaults. Unknown keys should not be used for application metadata: the plugin may discard them during its save round trip. Store document-level application metadata outside `EditorDocument` unless an explicit plugin contract owns it.
 
@@ -137,7 +144,7 @@ const normalized = schema.normalize(untrustedInput)
 
 The document version belongs to the complete envelope, not to one plugin. Choose one policy for an editor instance:
 
-- `preserve` accepts a structurally valid document at an unknown version when no migration begins at that version;
+- `preserve` applies every migration reachable from the declared version and, if the chain ends before the current version, returns the last structurally valid document reached;
 - `strict` requires a complete migration path to the current version.
 
 Preservation is useful for lossless inspection or staged deployments. Strict mode is appropriate when the application can only operate on the current schema.
@@ -174,7 +181,7 @@ const migrations = [
 ]
 ```
 
-Rector clones the input before each migration, verifies that the result is a document, and forces the declared `to` version. Duplicate `from` values, self-targeting steps, cycles, and incomplete chains are rejected according to policy.
+Rector clones the input before each migration, verifies that the result is a document, and forces the declared `to` version. Duplicate `from` values and self-targeting steps are rejected when the schema is constructed. Cycles always throw during normalization. An incomplete chain throws in `strict` mode; in `preserve` mode Rector returns the last structurally valid document reached.
 
 Migration functions must be deterministic and synchronous. Do not perform network requests, read mutable global state, mutate the supplied object in another task, or depend on current locale.
 

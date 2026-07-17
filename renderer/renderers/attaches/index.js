@@ -12,6 +12,10 @@ const ICON_CHEVRON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height=
 const ICON_FILE_DEFAULT = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2"/></svg>'
 const ICON_DL = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><path d="M7 11l5 5l5-5"/><path d="M12 4v12"/></svg>'
 
+/**
+ * Hard safety and concurrency limits used by {@link downloadArchive}.
+ * Values are expressed as file counts or bytes and are immutable.
+ */
 export const ARCHIVE_LIMITS = Object.freeze({
   files: 50,
   fileBytes: 25 * 1024 * 1024,
@@ -25,6 +29,7 @@ const WINDOWS_RESERVED_NAME_RE = /^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)
  * Convert an untrusted attachment name into a flat, portable ZIP entry name.
  * @param {unknown} value
  * @param {number} [index]
+ * @returns {string}
  */
 export function sanitizeArchiveFilename(value, index = 0) {
   const fallback = `file-${index + 1}`
@@ -100,8 +105,10 @@ async function readBoundedResponse(response, signal, total) {
 }
 
 /**
+ * Download attachments and package them into one ZIP archive.
  * @param {Array<{url: string, name: string, size?: number}>} files
  * @param {{ signal: AbortSignal }} context
+ * @returns {Promise<void>}
  */
 export async function downloadArchive(files, { signal }) {
   if (files.length > ARCHIVE_LIMITS.files) throw new RangeError('Too many attachments for one ZIP archive')
@@ -149,6 +156,7 @@ export async function downloadArchive(files, { signal }) {
 }
 
 /**
+ * Create the attachment-list renderer and its archive-download lifecycle.
  * @param {string} classPrefix
  * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} locale
  * @returns {import('../../types').BlockRenderer<import('../../types').AttachesBlock>}
@@ -435,6 +443,7 @@ function renderMaterial(wrapper, files, cls, t) {
     const dl = document.createElement('a')
     dl.className = `${cls}-attaches__material-dl`
     setSafeUrlAttribute(dl, 'href', file.url, 'download'); dl.download = file.name || ''; dl.innerHTML = ICON_DL
+    dl.setAttribute('aria-label', `${t('renderer.attaches.download', 'Download')}: ${file.name || t('renderer.attaches.file', 'File')}`)
     card.appendChild(dl)
     stack.appendChild(card)
   }

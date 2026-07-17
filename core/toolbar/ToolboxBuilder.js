@@ -166,9 +166,8 @@ export class ToolboxBuilder {
 
     for (const item of items) {
       const itemEl = /** @type {HTMLElement} */ (item)
-      const searchText = itemEl.dataset.search
-        || itemEl.querySelector('.oe-toolbox__label')?.textContent?.toLowerCase()
-        || ''
+      const labelText = itemEl.querySelector('.oe-toolbox__label')?.textContent ?? ''
+      const searchText = itemEl.dataset.search || String(labelText).toLowerCase()
       const match = !q || searchText.includes(q)
       itemEl.style.display = match ? '' : 'none'
       if (match) visibleCount++
@@ -202,12 +201,13 @@ export class ToolboxBuilder {
       e.preventDefault()
       e.stopPropagation()
       const first = this.#toolboxEl.querySelector('[role="menuitem"]:not([style*="display: none"])')
-      if (first) /** @type {HTMLElement} */ (first).focus()
+      if (first instanceof globalThis.HTMLElement) first.focus()
     } else if (e.key === 'ArrowUp') {
       e.preventDefault()
       e.stopPropagation()
       const items = this.#toolboxEl.querySelectorAll('[role="menuitem"]:not([style*="display: none"])')
-      if (items.length) /** @type {HTMLElement} */ (items[items.length - 1]).focus()
+      const last = items.item(items.length - 1)
+      if (last instanceof globalThis.HTMLElement) last.focus()
     } else if (e.key !== 'Enter') {
       e.stopPropagation()
     }

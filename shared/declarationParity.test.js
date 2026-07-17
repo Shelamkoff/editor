@@ -1,13 +1,56 @@
 import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
-import { readFile, readdir, rm } from 'node:fs/promises'
+import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises'
 import { after, test } from 'node:test'
 import { fileURLToPath } from 'node:url'
 import { generateDeclarations } from '../scripts/generate-declarations.mjs'
 
 const editorRoot = new URL('../', import.meta.url)
-const declarationRoot = new URL('.package-tmp/declaration-tests/', editorRoot)
+const declarationRoot = new URL(`.package-tmp/declaration-tests-${process.pid}/`, editorRoot)
 await generateDeclarations(fileURLToPath(declarationRoot))
+const consumerRoot = new URL('consumer-tests/', declarationRoot)
+await mkdir(consumerRoot, { recursive: true })
+
+for (const file of ['core-consumer.ts', 'public-consumer.ts']) {
+  const source = await readFile(new URL(`tests/types/${file}`, editorRoot), 'utf8')
+  await writeFile(
+    new URL(file, consumerRoot),
+    source
+      .replaceAll('../../.package-tmp/declaration-tests/', '../')
+      .replaceAll('../../../cropper/', '../../../../cropper/'),
+    'utf8',
+  )
+}
+
+const commonCompilerOptions = {
+  target: 'ES2022',
+  lib: ['ES2022', 'DOM', 'DOM.Iterable'],
+  baseUrl: '.',
+  paths: {
+    '@shelamkoff/cropper': ['../../../../cropper/src/index.d.ts'],
+  },
+  strict: true,
+  noEmit: true,
+  skipLibCheck: false,
+}
+await Promise.all([
+  writeFile(new URL('tsconfig.nodenext.json', consumerRoot), JSON.stringify({
+    compilerOptions: {
+      ...commonCompilerOptions,
+      module: 'NodeNext',
+      moduleResolution: 'NodeNext',
+    },
+    include: ['core-consumer.ts', 'public-consumer.ts'],
+  }, null, 2)),
+  writeFile(new URL('tsconfig.bundler.json', consumerRoot), JSON.stringify({
+    compilerOptions: {
+      ...commonCompilerOptions,
+      module: 'ESNext',
+      moduleResolution: 'Bundler',
+    },
+    include: ['core-consumer.ts', 'public-consumer.ts'],
+  }, null, 2)),
+])
 after(async () => rm(fileURLToPath(declarationRoot), { recursive: true, force: true }))
 
 const publicPairs = [
@@ -117,8 +160,8 @@ test('public declarations compile for NodeNext and Bundler consumers', () => {
   const compilerPath = process.env.EDITOR_TSC_PATH
     ?? fileURLToPath(new URL('../node_modules/typescript/bin/tsc', editorRoot))
   const configs = [
-    new URL('tests/types/tsconfig.nodenext.json', editorRoot),
-    new URL('tests/types/tsconfig.bundler.json', editorRoot),
+    new URL('tsconfig.nodenext.json', consumerRoot),
+    new URL('tsconfig.bundler.json', consumerRoot),
   ]
 
   for (const config of configs) {
@@ -166,4 +209,10 @@ test('public editor declarations hide composition internals and match block inse
   assert.doesNotMatch(facadeDeclaration, /captureSnapshotSync/)
   assert.match(coreTypes, /insert\([\s\S]*?inline\?:\s*Record<string,\s*EditorInlineWidget>[\s\S]*?\):\s*IBlock/)
   assert.match(coreTypes, /readonly events:\s*EditorEventSubscriptions/)
+  assert.match(coreTypes, /readonly readOnly:\s*boolean/)
+  assert.match(coreTypes, /readonly canUndo:\s*boolean/)
+  assert.match(coreTypes, /readonly canRedo:\s*boolean/)
+  assert.match(coreTypes, /undo\(\):\s*boolean/)
+  assert.match(coreTypes, /redo\(\):\s*boolean/)
+  assert.match(coreTypes, /setReadOnly\(readOnly:\s*boolean\):\s*void/)
 })

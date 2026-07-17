@@ -1,5 +1,4 @@
 // @ts-check
-import { InvalidBlockDataError } from '../../errors.js'
 import {
   Expose,
   createCaptions,
@@ -88,10 +87,12 @@ function selectAutoTemplate(count, orientations) {
 }
 
 /**
+ * Create the gallery renderer and own every opened Expose instance.
  * @param {string} classPrefix
+ * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} locale
  * @returns {import('../../types').BlockRenderer<import('../../types').GalleryBlock>}
  */
-export function createGalleryRenderer(classPrefix, _locale) {
+export function createGalleryRenderer(classPrefix, locale) {
   /** @type {WeakMap<HTMLElement, Set<import('@shelamkoff/expose').Expose>>} */
   const activeInstances = new WeakMap()
   return {
@@ -112,10 +113,6 @@ export function createGalleryRenderer(classPrefix, _locale) {
         ? 'auto'
         : rawLayout
 
-      if (!images?.length) {
-        throw new InvalidBlockDataError('gallery', 'Gallery must have at least one image', block.id)
-      }
-
       const container = document.createElement('div')
       /** @type {Set<import('@shelamkoff/expose').Expose>} */
       const instances = new Set()
@@ -126,6 +123,9 @@ export function createGalleryRenderer(classPrefix, _locale) {
       const visibleCount = Math.min(images.length, layout === 'auto' ? MAX_VISIBLE : slots)
       const visibleImages = images.slice(0, visibleCount)
       const overflowCount = images.length - visibleCount
+      const openLabel = typeof locale['renderer.gallery.open'] === 'string'
+        ? locale['renderer.gallery.open']
+        : 'Open image'
 
       if (layout === 'auto') {
         // Set initial template class, refine after images load
@@ -147,16 +147,23 @@ export function createGalleryRenderer(classPrefix, _locale) {
         }
 
         visibleImages.forEach((image, i) => {
-          const item = createItem(image, classPrefix)
+          const item = createItem(image, classPrefix, openLabel)
           const img = item.querySelector('img')
           if (img) {
+            let settled = false
             const onImgReady = () => {
+              if (settled) return
+              settled = true
               orientations[i] = img.naturalWidth ? detectOrientation(img) : 'S'
               loadedCount++
               if (loadedCount >= visibleImages.length) onAllLoaded()
             }
             img.addEventListener('load', onImgReady, { once: true })
             img.addEventListener('error', onImgReady, { once: true })
+            // A cached image can become complete between assigning `src` in
+            // createItem() and registering these listeners. Account for that
+            // path without counting a later load/error event twice.
+            if (img.complete) queueMicrotask(onImgReady)
           }
           if (overflowCount > 0 && i === visibleImages.length - 1) {
             item.appendChild(createOverflow(overflowCount, classPrefix))
@@ -167,7 +174,7 @@ export function createGalleryRenderer(classPrefix, _locale) {
         container.classList.add('eg--masonry')
 
         images.forEach((image) => {
-          const item = createItem(image, classPrefix)
+          const item = createItem(image, classPrefix, openLabel)
           container.appendChild(item)
         })
       } else {
@@ -175,7 +182,7 @@ export function createGalleryRenderer(classPrefix, _locale) {
         container.classList.add(`eg--${layout}`)
 
         visibleImages.forEach((image, i) => {
-          const item = createItem(image, classPrefix)
+          const item = createItem(image, classPrefix, openLabel)
           if (overflowCount > 0 && i === visibleImages.length - 1) {
             item.appendChild(createOverflow(overflowCount, classPrefix))
           }
@@ -215,7 +222,8 @@ export function createGalleryRenderer(classPrefix, _locale) {
         if (o.captions ?? true) plugins.push(createCaptions())
         if (o.thumbnails) plugins.push(createThumbnails())
         if (o.fullscreen ?? true) plugins.push(createFullscreen())
-        if (o.autoplayInterval) plugins.push(createAutoplay({ interval: o.autoplayInterval }))
+        const autoplay = o.autoplayInterval ? createAutoplay({ interval: o.autoplayInterval }) : null
+        if (autoplay) plugins.push(autoplay)
         plugins.push(createTransform())
         plugins.push(createDownload())
 
@@ -226,12 +234,18 @@ export function createGalleryRenderer(classPrefix, _locale) {
           startIndex: idx,
           animation: 'fade',
           loop,
+          navigation: o.navigation ?? true,
           toolbar,
           plugins,
         })
         instances.add(expose)
-        expose.open(idx)
         expose.on('close:complete', () => {
+          expose.destroy()
+          instances.delete(expose)
+        })
+        void expose.open(idx).then(() => {
+          autoplay?.start()
+        }).catch(() => {
           expose.destroy()
           instances.delete(expose)
         })
@@ -259,11 +273,20 @@ export function createGalleryRenderer(classPrefix, _locale) {
 /**
  * @param {{ url: string; caption?: string }} image
  * @param {string} classPrefix
+ * @param {string} openLabel
  * @returns {HTMLElement}
  */
-function createItem(image, classPrefix) {
+function createItem(image, classPrefix, openLabel) {
   const figure = document.createElement('figure')
   figure.className = `${classPrefix}-gallery__item`
+  figure.tabIndex = 0
+  figure.setAttribute('role', 'button')
+  figure.setAttribute('aria-label', image.caption ? `${openLabel}: ${image.caption}` : openLabel)
+  figure.addEventListener('keydown', (event) => {
+    if (event.key !== 'Enter' && event.key !== ' ') return
+    event.preventDefault()
+    figure.click()
+  })
 
   const img = document.createElement('img')
   img.className = `${classPrefix}-gallery__image`

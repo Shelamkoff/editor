@@ -2,6 +2,7 @@ import { sanitizeHtml } from '../../core/sanitize.js'
 import { resolvePath } from '../../shared/resolvePath.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { validateTableData } from '../../shared/blockDataValidators.js'
+import { mapTableTextFields } from '../../shared/mapTextFields.js'
 
 const editorStyles = resolvePath('./table.css', import.meta.url)
 
@@ -15,31 +16,39 @@ const ICON_COL_ADD = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height=
 const ICON_COL_DEL = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4v16a1 1 0 0 0 1 1h4a1 1 0 0 0 1 -1v-16a1 1 0 0 0 -1 -1h-4a1 1 0 0 0 -1 1z"/><path d="M15 12l4 0"/></svg>'
 const ICON_HEADER = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-14z"/><path d="M3 10h18"/><path d="M10 3v7"/></svg>'
 
-
+/** Editable rich-text table with row, column, and heading controls. */
 export class Table extends BlockPluginAbstract {
   static isTextBlock = false
   static styles = [editorStyles]
   type = 'table'
   icon = ICON
   inlineTools = true
-
+  mapTextFields = mapTableTextFields
   pasteConfig = {
     tags: ['table'],
   }
 
-  /** @returns {string} */
+  /**
+   * Return the localized toolbox label for this block.
+   * @returns {string}
+   */
   get title() {
     return this._t('title', 'Table')
   }
 
   /**
+   * Create the editable DOM owned by this block instance.
    * @param {{ content?: string[][], withHeadings?: boolean }} data
+   * @param {import('../../core/types').BlockMutationContext} context
    * @returns {HTMLElement}
    */
   render(data, context) {
-    const rows = data.content?.length || 3
-    const cols = data.content?.[0]?.length || 3
-    const withHeadings = data.withHeadings ?? false
+    const inputRows = Array.isArray(data?.content)
+      ? data.content.filter(Array.isArray)
+      : []
+    const rows = inputRows.length || 3
+    const cols = inputRows.find(row => row.length > 0)?.length || 3
+    const withHeadings = data?.withHeadings === true
 
     const wrapper = document.createElement('div')
     wrapper.classList.add('oe-table-wrapper')
@@ -55,7 +64,8 @@ export class Table extends BlockPluginAbstract {
         const cell = document.createElement(isHeader ? 'th' : 'td')
         cell.classList.add('oe-table__cell')
         cell.contentEditable = 'true'
-        const text = data.content?.[r]?.[c] || ''
+        const candidate = inputRows[r]?.[c]
+        const text = typeof candidate === 'string' ? candidate : ''
         if (text) {
           cell.innerHTML = sanitizeHtml(text)
         }
@@ -67,9 +77,10 @@ export class Table extends BlockPluginAbstract {
     // Tab navigation between cells
     table.addEventListener('keydown', (e) => {
       if (e.key === 'Tab') {
-        e.preventDefault()
-        e.stopPropagation()
-        this.#navigateCell(table, e.shiftKey ? -1 : 1)
+        if (this.#navigateCell(table, e.shiftKey ? -1 : 1)) {
+          e.preventDefault()
+          e.stopPropagation()
+        }
       }
       // Prevent Enter from creating new block — insert <br> instead
       if (e.key === 'Enter' && !e.shiftKey) {
@@ -165,6 +176,7 @@ export class Table extends BlockPluginAbstract {
   }
 
   /**
+   * Serialize the current block DOM into document data.
    * @param {HTMLElement} element
    * @returns {{ content: string[][], withHeadings: boolean }}
    */
@@ -188,6 +200,7 @@ export class Table extends BlockPluginAbstract {
   }
 
   /**
+   * Check whether serialized data satisfies this block's schema.
    * @param {{ content?: string[][] }} data
    * @returns {boolean}
    */
@@ -196,15 +209,24 @@ export class Table extends BlockPluginAbstract {
   }
 
   /**
+   * Extract neutral text that can initialize another block type.
    * @param {HTMLElement} element
    * @returns {{ text: string }}
    */
   exportData(element) {
     const table = element.querySelector('table')
-    return { text: table?.textContent?.trim() || '' }
+    if (!table) return { text: '' }
+    const rows = [...table.rows].map(row => (
+      [...row.cells]
+        .map(cell => sanitizeHtml(cell.innerHTML.trim()))
+        .filter(Boolean)
+        .join(' — ')
+    )).filter(Boolean)
+    return { text: rows.join('<br>') }
   }
 
   /**
+   * Check whether the block has no meaningful user content.
    * @param {HTMLElement} element
    * @returns {boolean}
    */
@@ -230,17 +252,18 @@ export class Table extends BlockPluginAbstract {
     if (!table) return null
 
     const content = []
-    let withHeadings = false
     const rows = table.querySelectorAll('tr')
     for (const tr of rows) {
       const row = []
       for (const cell of tr.querySelectorAll('td, th')) {
         row.push(cell.innerHTML.trim())
-        if (cell.tagName === 'TH') withHeadings = true
       }
       if (row.length > 0) content.push(row)
     }
     if (content.length === 0) return null
+    const firstContentRow = [...rows].find(row => row.querySelector('td, th'))
+    const withHeadings = !!firstContentRow
+      && [...firstContentRow.querySelectorAll('td, th')].some(cell => cell.tagName === 'TH')
     return { content, withHeadings }
   }
 
@@ -250,6 +273,7 @@ export class Table extends BlockPluginAbstract {
    * Toggle header row (th ↔ td for first row).
    * @param {HTMLElement} wrapper
    * @param {HTMLTableElement} table
+   * @returns {void}
    */
   #toggleHeader(wrapper, table) {
     const firstRow = table.rows[0]
@@ -272,6 +296,7 @@ export class Table extends BlockPluginAbstract {
   /**
    * Add a row at the end.
    * @param {HTMLTableElement} table
+   * @returns {void}
    */
   #addRow(table) {
     const cols = table.rows[0]?.cells.length || 1
@@ -288,6 +313,7 @@ export class Table extends BlockPluginAbstract {
   /**
    * Delete the last row (keep at least 1).
    * @param {HTMLTableElement} table
+   * @returns {void}
    */
   #deleteRow(table) {
     if (table.rows.length <= 1) return
@@ -297,6 +323,7 @@ export class Table extends BlockPluginAbstract {
   /**
    * Add a column at the end.
    * @param {HTMLTableElement} table
+   * @returns {void}
    */
   #addColumn(table) {
     const wrapper = /** @type {HTMLElement | null} */ (table.closest('.oe-table-wrapper'))
@@ -316,6 +343,7 @@ export class Table extends BlockPluginAbstract {
   /**
    * Delete the last column (keep at least 1).
    * @param {HTMLTableElement} table
+   * @returns {void}
    */
   #deleteColumn(table) {
     const cols = table.rows[0]?.cells.length || 0
@@ -330,11 +358,12 @@ export class Table extends BlockPluginAbstract {
    * Navigate to adjacent cell.
    * @param {HTMLTableElement} table
    * @param {number} direction — 1 for forward, -1 for backward
+   * @returns {boolean} Whether focus moved to another cell.
    */
   #navigateCell(table, direction) {
     const cells = /** @type {HTMLElement[]} */ ([...table.querySelectorAll('td, th')])
     const sel = window.getSelection()
-    if (!sel || sel.rangeCount === 0) return
+    if (!sel || sel.rangeCount === 0) return false
 
     const activeCell = /** @type {HTMLElement | null} */ (
       sel.anchorNode?.nodeType === Node.ELEMENT_NODE
@@ -342,9 +371,11 @@ export class Table extends BlockPluginAbstract {
         : sel.anchorNode?.parentElement?.closest('td, th')
     )
 
-    if (!activeCell) {
-      cells[0]?.focus()
-      return
+    if (!activeCell || !table.contains(activeCell)) {
+      const first = cells[0]
+      if (!first) return false
+      first.focus()
+      return true
     }
 
     const idx = cells.indexOf(activeCell)
@@ -361,6 +392,8 @@ export class Table extends BlockPluginAbstract {
       }
       sel.removeAllRanges()
       sel.addRange(range)
+      return true
     }
+    return false
   }
 }

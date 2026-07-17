@@ -35,7 +35,7 @@ The registered block type is `delimiter`. The class is also exported by the comp
 {}
 ```
 
-The serialized `data` object is always empty.
+The block accepts an object as `data` and serializes it as `{}`. It has no configurable data fields; non-object values fail validation.
 
 ## Configuration
 

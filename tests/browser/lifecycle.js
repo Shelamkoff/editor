@@ -269,6 +269,119 @@ async function run() {
   assert(resolverAborted, 'editor destroy did not cancel the embed preview resolver')
   assertSnapshot(tracker.snapshot(), baseline, tracker, 'cancelled embed preview resolver leaked resources')
 
+  const replaceHolder = document.createElement('section')
+  sandbox.appendChild(replaceHolder)
+  let replacedPreviewAborted = false
+  const replaceEditor = createEditor({
+    holder: replaceHolder,
+    plugins: [new Embed({
+      resolvePreview: request => new Promise(resolve => {
+        request.signal.addEventListener('abort', () => {
+          replacedPreviewAborted = true
+          resolve(null)
+        }, { once: true })
+      }),
+    })],
+    inlineTools: [],
+    data: {
+      version: 'browser-lifecycle',
+      blocks: [{ id: 'vimeo-replace', type: 'embed', data: { service: 'vimeo', videoId: '24680' } }],
+    },
+  })
+  const documentClicksBeforeReplace = tracker.activeGlobalListeners()
+    .filter(name => name === 'document:click').length
+  const replaceInput = replaceHolder.querySelector('.oe-embed__url-input')
+  assert(replaceInput instanceof HTMLInputElement, 'embed URL input is missing')
+  replaceInput.value = 'https://youtu.be/dQw4w9WgXcQ'
+  replaceInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }))
+  await delay(20)
+  assert(replacedPreviewAborted, 'replacing an embed URL did not cancel the previous preview request')
+  const documentClicksAfterReplace = tracker.activeGlobalListeners()
+    .filter(name => name === 'document:click').length
+  assert(
+    documentClicksAfterReplace <= documentClicksBeforeReplace,
+    `replacing an embed URL accumulated global action-panel listeners (before=${documentClicksBeforeReplace}, after=${documentClicksAfterReplace}): `
+      + JSON.stringify(tracker.activeGlobalListeners()),
+  )
+  replaceEditor.destroy()
+  replaceHolder.remove()
+  assertSnapshot(tracker.snapshot(), baseline, tracker, 'replaced embed leaked resources')
+
+  const imageRaceHolder = document.createElement('section')
+  sandbox.appendChild(imageRaceHolder)
+  const imageResolvers = []
+  const imagePlugin = new Image({
+    actions: [{
+      label: 'Library',
+      handler: ({ signal }) => new Promise(resolve => imageResolvers.push({ resolve, signal })),
+    }],
+  })
+  const imageRaceElement = imagePlugin.render({}, { mutate: operation => operation(), readOnly: false })
+  imageRaceHolder.appendChild(imageRaceElement)
+  const imageSourceButton = imageRaceElement.querySelector('.oe-image__select-action')
+  assert(imageSourceButton, 'image custom source action is missing')
+  imageSourceButton.click()
+  imageSourceButton.click()
+  assert(imageResolvers.length === 2, 'image custom source did not start both requests')
+  assert(imageResolvers[0].signal.aborted, 'new image source request did not cancel the previous request')
+  imageResolvers[1].resolve({ url: 'https://example.com/latest.png', alt: 'Latest' })
+  await delay(0)
+  imageResolvers[0].resolve({ url: 'https://example.com/stale.png', alt: 'Stale' })
+  await delay(0)
+  assert(imagePlugin.save(imageRaceElement).file.url === 'https://example.com/latest.png', 'stale image source replaced the latest result')
+  assert(!imageRaceElement.classList.contains('oe-image--loading'), 'image loading state remained after the latest source completed')
+  imagePlugin.destroy(imageRaceElement)
+  imageRaceHolder.remove()
+  assertSnapshot(tracker.snapshot(), baseline, tracker, 'image source race leaked resources')
+
+  const pickerHolder = document.createElement('section')
+  sandbox.appendChild(pickerHolder)
+  const pickerPlugin = new Image()
+  const pickerElement = pickerPlugin.render({}, { mutate: operation => operation(), readOnly: false })
+  pickerHolder.appendChild(pickerElement)
+  const originalInputClick = HTMLInputElement.prototype.click
+  HTMLInputElement.prototype.click = function () {}
+  try {
+    pickerElement.querySelector('.oe-image__select-link')?.click()
+  } finally {
+    HTMLInputElement.prototype.click = originalInputClick
+  }
+  assert(document.body.querySelector('input[type="file"]'), 'image picker did not create its temporary input')
+  pickerPlugin.destroy(pickerElement)
+  pickerHolder.remove()
+  assert(!document.body.querySelector('input[type="file"]'), 'destroying an image block leaked its temporary file input')
+  assertSnapshot(tracker.snapshot(), baseline, tracker, 'image picker leaked resources')
+
+  const galleryRaceHolder = document.createElement('section')
+  sandbox.appendChild(galleryRaceHolder)
+  const galleryResolvers = []
+  const galleryPlugin = new Gallery({
+    actions: [{
+      label: 'Library',
+      handler: ({ signal }) => new Promise(resolve => galleryResolvers.push({ resolve, signal })),
+    }],
+  })
+  const galleryRaceElement = galleryPlugin.render({}, { mutate: operation => operation(), readOnly: false })
+  galleryRaceHolder.appendChild(galleryRaceElement)
+  const gallerySourceButton = galleryRaceElement.querySelector('.oe-gallery__select-action')
+  assert(gallerySourceButton, 'gallery custom source action is missing')
+  gallerySourceButton.click()
+  gallerySourceButton.click()
+  assert(galleryResolvers.length === 2, 'gallery custom source did not start both requests')
+  assert(!galleryResolvers[0].signal.aborted, 'starting an additive gallery source cancelled the previous source')
+  galleryResolvers[1].resolve([{ url: 'https://example.com/second.png', alt: 'Second' }])
+  await delay(0)
+  galleryResolvers[0].resolve([{ url: 'https://example.com/first.png', alt: 'First' }])
+  await delay(0)
+  const galleryRaceData = galleryPlugin.save(galleryRaceElement)
+  assert(galleryRaceData.images.length === 2, 'concurrent gallery sources lost an image batch')
+  assert(galleryRaceData.images.some(image => image.url.endsWith('/first.png')), 'first gallery source result is missing')
+  assert(galleryRaceData.images.some(image => image.url.endsWith('/second.png')), 'second gallery source result is missing')
+  assert(!galleryRaceElement.classList.contains('oe-gallery--loading'), 'gallery loading state remained after all sources completed')
+  galleryPlugin.destroy(galleryRaceElement)
+  galleryRaceHolder.remove()
+  assertSnapshot(tracker.snapshot(), baseline, tracker, 'gallery source race leaked resources')
+
   for (const closeTiming of ['before-frame', 'after-frame']) {
     const holder = document.createElement('section')
     sandbox.appendChild(holder)
@@ -386,7 +499,42 @@ async function run() {
   trackHeap('attaches-element', attachesElement)
   attaches.destroy(attachesElement)
   attachesElement.remove()
+  // Object URLs are editor-scoped rather than block-scoped: an undo snapshot
+  // may recreate the removed block and still needs the same URL. The editor's
+  // PluginOwnership invokes dispose() after every block has been released.
+  attaches.dispose()
   assertSnapshot(tracker.snapshot(), baseline, tracker, 'attachment destroy leaked resources')
+
+  const attachmentResolvers = []
+  const concurrentAttaches = new Attaches({
+    actions: [{
+      label: 'Library',
+      handler: ({ signal }) => new Promise(resolve => attachmentResolvers.push({ resolve, signal })),
+    }],
+  })
+  const concurrentAttachesElement = concurrentAttaches.render({}, {
+    mutate: operation => operation(),
+    readOnly: false,
+  })
+  sandbox.appendChild(concurrentAttachesElement)
+  const attachmentSource = concurrentAttachesElement.querySelector('.oe-attaches__select-action')
+  assert(attachmentSource, 'attachment custom source action is missing')
+  attachmentSource.click()
+  attachmentSource.click()
+  assert(attachmentResolvers.length === 2, 'attachment custom source did not start both requests')
+  assert(!attachmentResolvers[0].signal.aborted, 'starting an additive attachment source cancelled the previous source')
+  attachmentResolvers[1].resolve([{ url: 'https://example.com/second.pdf', name: 'second.pdf' }])
+  await delay(0)
+  attachmentResolvers[0].resolve([{ url: 'https://example.com/first.pdf', name: 'first.pdf' }])
+  await delay(0)
+  const concurrentAttachmentData = concurrentAttaches.save(concurrentAttachesElement)
+  assert(concurrentAttachmentData.files.length === 2, 'concurrent attachment sources lost a file batch')
+  assert(!concurrentAttachesElement.classList.contains('oe-attaches--loading'),
+    'attachment loading state remained after all sources completed')
+  concurrentAttaches.destroy(concurrentAttachesElement)
+  concurrentAttaches.dispose()
+  concurrentAttachesElement.remove()
+  assertSnapshot(tracker.snapshot(), baseline, tracker, 'concurrent attachment sources leaked resources')
 
   const renderer = new EditorRenderer({ blockTypes: BLOCK_TYPES, throwOnUnknown: true })
   const container = document.createElement('main')
@@ -433,14 +581,19 @@ async function run() {
           { url: pixel, caption: 'Second' },
         ],
         layout: '2',
-        options: { zoom: true, captions: true, fullscreen: true },
+        options: { zoom: true, navigation: false, captions: true, fullscreen: true },
       },
     }],
   }, galleryContainer)
   const galleryItem = galleryContainer.querySelector('.editor-gallery__item')
   assert(galleryItem, 'gallery renderer did not create an interactive item')
-  galleryItem.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }))
+  assert(galleryItem.getAttribute('role') === 'button' && galleryItem.tabIndex === 0,
+    'gallery renderer item is not keyboard accessible')
+  assert(galleryItem.getAttribute('aria-label')?.includes('First'),
+    'gallery renderer item has no descriptive accessible name')
+  galleryItem.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }))
   assert(document.querySelector('.expose'), 'gallery renderer did not open the Expose integration')
+  assert(!document.querySelector('.expose__nav'), 'gallery renderer ignored navigation:false')
   assert(document.documentElement.classList.contains('expose-noscroll'), 'Expose did not lock document scrolling')
   trackHeap('gallery-renderer', galleryRenderer)
   trackHeap('gallery-renderer-container', galleryContainer)

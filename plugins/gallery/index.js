@@ -1,5 +1,5 @@
 import { resolvePath } from '../../shared/resolvePath.js'
-import { triggerFileInput } from '../shared/fileInput.js'
+import { isSupportedImageFile, triggerFileInput } from '../shared/fileInput.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { validateGalleryData } from '../../shared/blockDataValidators.js'
 import { CSS } from './css.js'
@@ -16,14 +16,14 @@ const editorStyles = resolvePath('./gallery.css', import.meta.url)
  * @typedef {(file: File, context: { signal: AbortSignal }) => Promise<{ url: string, alt?: string }>} UploadFn
  *
  * @typedef {Object} GalleryConfig
- * @property {UploadFn} [uploadFile]
- * @property {Array<{ icon?: string, label: string, handler: (context: { signal: AbortSignal }) => Promise<Array<{url: string, alt?: string}> | null> }>} [actions]
- * @property {boolean} [injectStyles]
- * @property {string} [css]
+ * @property {UploadFn} [uploadFile] Uploads one browser file. Without this callback the plugin reads each file into a data URL stored in the document.
+ * @property {Array<{ icon?: string, label: string, handler: (context: { signal: AbortSignal }) => Promise<Array<{url: string, alt?: string}> | null> }>} [actions] Additional application-owned image sources. `icon` is trusted application markup; never pass user-authored HTML.
+ * @property {boolean} [injectStyles=true] Whether the editor should load the built-in gallery stylesheet.
+ * @property {string} [css] Additional stylesheet URL, or the replacement URL when `injectStyles` is `false`.
  */
 
 /**
- * Block plugin for image galleries. Public surface implements `BlockPlugin`.
+ * Editable image gallery with upload-source extensions, ordering, and layout controls.
  * Internal logic is split across:
  *  - `state.js`     — per-block state container (replaces module WeakMap)
  *  - `uploader.js`  — multi-file upload pipeline
@@ -32,8 +32,6 @@ const editorStyles = resolvePath('./gallery.css', import.meta.url)
  *  - `view-empty.js`/ `view-filled.js` — DOM rendering for the two states
  *  - `settings.js`  — settings dropdown form
  *  - `styles.js`    — gallery-level inline style application
- */
-/**
  * @extends {BlockPluginAbstract<GalleryConfig>}
  */
 export class Gallery extends BlockPluginAbstract {
@@ -48,22 +46,24 @@ export class Gallery extends BlockPluginAbstract {
     files: ['image/*'],
   }
 
-  /** @type {GalleryUploader} */
   #uploader
-
   /** Per-block state, encapsulated to this plugin instance. */
   #states = /** @type {WeakMap<HTMLElement, GalleryState>} */ (new WeakMap())
-
   /** @type {WeakMap<HTMLElement, import('../../core/types').BlockMutationContext>} */
   #contexts = new WeakMap()
-
-  /** @param {GalleryConfig} [config] */
+  /**
+   * Create a Gallery instance with the supplied consumer configuration.
+   * @param {GalleryConfig} [config]
+   */
   constructor(config) {
     super(config)
     this.#uploader = new GalleryUploader(this._config)
   }
 
-  /** @returns {string} */
+  /**
+   * Return the localized toolbox label for this block.
+   * @returns {string}
+   */
   get title() {
     return this._t('title', 'Gallery')
   }
@@ -71,7 +71,9 @@ export class Gallery extends BlockPluginAbstract {
   // ── BlockPlugin contract ───────────────────────────────────────────────────
 
   /**
+   * Create the editable DOM owned by this block instance.
    * @param {Record<string, unknown>} data
+   * @param {import('../../core/types').BlockMutationContext} context
    * @returns {HTMLElement}
    */
   render(data, context) {
@@ -105,6 +107,7 @@ export class Gallery extends BlockPluginAbstract {
   }
 
   /**
+   * Serialize the current block DOM into document data.
    * @param {HTMLElement} element
    * @returns {Record<string, unknown>}
    */
@@ -121,6 +124,7 @@ export class Gallery extends BlockPluginAbstract {
   }
 
   /**
+   * Check whether serialized data satisfies this block's schema.
    * @param {Record<string, unknown>} data
    * @returns {boolean}
    */
@@ -129,6 +133,7 @@ export class Gallery extends BlockPluginAbstract {
   }
 
   /**
+   * Check whether the block has no meaningful user content.
    * @param {HTMLElement} element
    * @returns {boolean}
    */
@@ -138,14 +143,17 @@ export class Gallery extends BlockPluginAbstract {
   }
 
   /**
-   * @param {HTMLElement} _element
+   * Extract neutral text that can initialize another block type.
+   * @param {HTMLElement} element
    * @returns {Record<string, unknown>}
    */
-  exportData(_element) {
-    return { text: '' }
+  exportData(element) {
+    const state = this.#states.get(element)
+    return { text: state?.data.images.map(image => image.caption).filter(Boolean).join(' ') || '' }
   }
 
   /**
+   * Handle supported pasted content for this block.
    * @param {import('../../types').PasteEvent} event
    * @returns {Record<string, unknown> | null}
    */
@@ -170,7 +178,9 @@ export class Gallery extends BlockPluginAbstract {
   }
 
   /**
+   * Release listeners and resources owned by this block element.
    * @param {HTMLElement} element
+   * @returns {void}
    */
   destroy(element) {
     const state = this.#states.get(element)
@@ -182,10 +192,10 @@ export class Gallery extends BlockPluginAbstract {
 
   // ── Internal coordination ──────────────────────────────────────────────────
 
-  /** @param {string} key @param {string} fallback */
+  /** @param {string} key @param {string} fallback @returns {string} */
   #t = (key, fallback) => this._t(key, fallback)
 
-  /** @param {HTMLElement} wrapper @param {() => void} operation */
+  /** @param {HTMLElement} wrapper @param {() => void} operation @returns {void} */
   #mutate = (wrapper, operation) => {
     this.#contexts.get(wrapper)?.mutate(operation)
   }
@@ -195,6 +205,7 @@ export class Gallery extends BlockPluginAbstract {
    * mutation that would re-render and tear down the live caption nodes.
    *
    * @param {HTMLElement} wrapper
+   * @returns {void}
    */
   #syncCaptions(wrapper) {
     const state = this.#states.get(wrapper)
@@ -211,12 +222,13 @@ export class Gallery extends BlockPluginAbstract {
     })
   }
 
-  /** @param {HTMLElement} wrapper */
+  /** @param {HTMLElement} wrapper @returns {void} */
   #renderEmpty(wrapper) {
     const state = this.#states.get(wrapper)
     if (!state) return
     renderEmptyView(wrapper, state, {
       t: this.#t,
+      readOnly: Boolean(this.#contexts.get(wrapper)?.readOnly),
       onUploadClick: () => this.#triggerFileInput(wrapper),
       onFilesDropped: (files) => { void this.#handleFiles(wrapper, files) },
       customActions: this._config.actions || [],
@@ -224,12 +236,13 @@ export class Gallery extends BlockPluginAbstract {
     })
   }
 
-  /** @param {HTMLElement} wrapper */
+  /** @param {HTMLElement} wrapper @returns {void} */
   #renderFilled(wrapper) {
     const state = this.#states.get(wrapper)
     if (!state) return
     renderFilledView(wrapper, state, {
       t: this.#t,
+      readOnly: Boolean(this.#contexts.get(wrapper)?.readOnly),
       syncCaptions: () => this.#syncCaptions(wrapper),
       getState: () => this.#states.get(wrapper),
       reRender: () => this.#renderFilled(wrapper),
@@ -244,12 +257,13 @@ export class Gallery extends BlockPluginAbstract {
     })
   }
 
-  /** @param {HTMLElement} wrapper */
+  /** @param {HTMLElement} wrapper @returns {void} */
   #triggerFileInput(wrapper) {
     if (this.#contexts.get(wrapper)?.readOnly) return
     triggerFileInput({
       accept: 'image/*',
       multiple: true,
+      signal: this.#states.get(wrapper)?.abortController?.signal,
       onFiles: (files) => void this.#handleFiles(wrapper, files),
     })
   }
@@ -257,62 +271,82 @@ export class Gallery extends BlockPluginAbstract {
   /**
    * @param {HTMLElement} wrapper
    * @param {File[]} files
+   * @returns {Promise<void>}
    */
   async #handleFiles(wrapper, files) {
     const state = this.#states.get(wrapper)
     const context = this.#contexts.get(wrapper)
     if (!state || !context || context.readOnly) return
-    await this.#uploader.handle(wrapper, files, (added) => {
-      if (this.#states.get(wrapper) !== state) return
-      this.#mutate(wrapper, () => {
-        state.data.images.push(...added)
-        this.#renderFilled(wrapper)
-      })
-    }, state.abortController?.signal)
+    const accepted = files.filter(isSupportedImageFile)
+    if (accepted.length === 0) return
+    const controller = state.beginTask()
+    wrapper.classList.add(CSS.loading)
+    try {
+      await this.#uploader.handle(accepted, (added) => {
+        if (controller.signal.aborted || this.#states.get(wrapper) !== state) return
+        this.#mutate(wrapper, () => {
+          this.#syncCaptions(wrapper)
+          state.data.images.push(...added)
+          this.#renderFilled(wrapper)
+        })
+      }, controller.signal)
+    } finally {
+      if (state.finishTask(controller)) wrapper.classList.remove(CSS.loading)
+    }
   }
 
   /**
    * @param {HTMLElement} wrapper
    * @param {(context: { signal: AbortSignal }) => Promise<Array<{url: string, alt?: string}> | null>} handler
+   * @returns {Promise<void>}
    */
   async #runCustomAction(wrapper, handler) {
     const state = this.#states.get(wrapper)
     if (!state || this.#contexts.get(wrapper)?.readOnly) return
+    const controller = state.beginTask()
+    wrapper.classList.add(CSS.loading)
     try {
-      const signal = state.abortController?.signal ?? new AbortController().signal
-      const result = await handler({ signal })
-      if (!signal.aborted && this.#states.get(wrapper) === state && Array.isArray(result) && result.length > 0) {
+      const result = await handler({ signal: controller.signal })
+      if (!controller.signal.aborted && this.#states.get(wrapper) === state && Array.isArray(result) && result.length > 0) {
+        const added = result.flatMap(item => {
+          const url = sanitizeMediaUrl(item?.url || '')
+          if (!url) return []
+          return [{ url, caption: typeof item?.alt === 'string' ? item.alt : '' }]
+        })
+        if (!added.length) return
         this.#mutate(wrapper, () => {
-          for (const item of result) {
-            const url = sanitizeMediaUrl(item?.url || '')
-            if (url) state.data.images.push({ url, caption: item?.alt || '' })
-          }
+          this.#syncCaptions(wrapper)
+          state.data.images.push(...added)
           this.#renderFilled(wrapper)
         })
       }
     } catch {
       // Action cancelled or failed.
+    } finally {
+      if (state.finishTask(controller)) wrapper.classList.remove(CSS.loading)
     }
   }
 
-  /** @param {HTMLElement} wrapper */
+  /** @param {HTMLElement} wrapper @returns {void} */
   #promptUrl(wrapper) {
     const state = this.#states.get(wrapper)
     if (!state || this.#contexts.get(wrapper)?.readOnly) return
-    const url = prompt(this.#t('urlPrompt', 'Image URL:'))
-    if (url && /^https?:\/\/.+/i.test(url)) {
+    const url = sanitizeMediaUrl(prompt(this.#t('urlPrompt', 'Image URL:')) || '')
+    if (url) {
       this.#mutate(wrapper, () => {
-        state.data.images.push({ url, caption: '' })
         this.#syncCaptions(wrapper)
+        state.data.images.push({ url, caption: '' })
         this.#renderFilled(wrapper)
       })
     }
   }
 
-  /** @param {HTMLElement} wrapper */
+  /** @param {HTMLElement} wrapper @returns {void} */
   #deleteAll(wrapper) {
     const state = this.#states.get(wrapper)
     if (!state) return
+    state.cancelTasks()
+    wrapper.classList.remove(CSS.loading)
     this.#mutate(wrapper, () => {
       state.data.images = []
       this.#renderEmpty(wrapper)

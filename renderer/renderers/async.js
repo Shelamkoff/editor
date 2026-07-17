@@ -36,12 +36,20 @@ function requestedTypes(source) {
   return [...new Set(types)]
 }
 
-/** @returns {import('../types').BlockType[]} */
+/**
+ * List every built-in block type supported by the asynchronous renderer loader.
+ * @returns {import('../types').BlockType[]}
+ */
 export function getAsyncRendererTypes() {
   return [...BLOCK_TYPES]
 }
 
-/** @param {string} type @returns {Promise<RendererFactory>} */
+/**
+ * Load the renderer factory for one built-in block type without creating it.
+ * @param {string} type
+ * @returns {Promise<RendererFactory>}
+ * @throws {RangeError} when `type` is not a built-in renderer type
+ */
 export async function loadRendererFactory(type) {
   const loader = rendererLoaders[/** @type {import('../types').BlockType} */ (type)]
   if (!loader) throw new RangeError(`Unknown editor renderer type: ${type}`)
@@ -49,6 +57,9 @@ export async function loadRendererFactory(type) {
 }
 
 /**
+ * Preload factories for explicit types or for the types present in a document.
+ * Duplicate type names are loaded once and map order follows first occurrence.
+ *
  * @param {readonly string[] | { blocks?: readonly { type: string }[] }} [source]
  * @returns {Promise<Map<string, RendererFactory>>}
  */
@@ -59,10 +70,13 @@ export async function preloadRendererFactories(source) {
 }
 
 /**
+ * Load and create one built-in renderer.
+ *
  * @param {string} type
  * @param {string} classPrefix
  * @param {Record<string, import('../../shared/localeTypes').LocaleValue>} [locale]
  * @param {unknown} [config]
+ * @returns {Promise<import('../types').BlockRenderer>}
  */
 export async function createRendererAsync(type, classPrefix, locale = {}, config) {
   const factory = await loadRendererFactory(type)
@@ -70,6 +84,9 @@ export async function createRendererAsync(type, classPrefix, locale = {}, config
 }
 
 /**
+ * Load and create a renderer map for explicit types or document block types.
+ * Per-renderer configuration is selected from `configs` by block type.
+ *
  * @param {string} classPrefix
  * @param {Record<string, import('../../shared/localeTypes').LocaleValue>} [locale]
  * @param {readonly string[] | { blocks?: readonly { type: string }[] }} [source]

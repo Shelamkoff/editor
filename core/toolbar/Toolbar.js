@@ -246,11 +246,6 @@ export class Toolbar {
     return this.#dragBtn
   }
 
-  /** @returns {boolean} */
-  get isToolboxOpen() {
-    return this.#toolboxOpen
-  }
-
   /**
    * Toggle the block settings menu (called via event from DragManager).
    */
@@ -426,8 +421,10 @@ export class Toolbar {
 
   #onDocumentClick = (/** @type {MouseEvent} */ e) => {
     if (!this.#toolboxOpen) return
-    const target = /** @type {Node} */ (e.target)
-    if (this.#toolboxEl.contains(target) || this.#plusBtn.contains(target)) return
+    const target = e.target
+    if (!(target instanceof globalThis.Node)) return
+    const targetNode = /** @type {import('../types').DOMNode} */ (target)
+    if (this.#toolboxEl.contains(targetNode) || this.#plusBtn.contains(targetNode)) return
     // On mobile the backdrop handles closing.
     if (this.#positioner.isMobile()) return
     this.closeToolbox()

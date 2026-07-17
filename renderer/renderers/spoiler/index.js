@@ -1,5 +1,6 @@
 // @ts-check
 import { resolvePath } from '../../../shared/resolvePath.js'
+import { mapSpoilerTextFields as mapTextFields } from '../../../shared/mapTextFields.js'
 
 const styles = resolvePath('./styles.css', import.meta.url)
 
@@ -12,6 +13,7 @@ let spoilerSequence = 0
  * Mirrors editor plugin layout: card with header (toggle + label) + content section.
  *
  * @param {string} classPrefix
+ * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} locale
  * @returns {import('../../types').BlockRenderer<import('../../types').SpoilerBlock>}
  */
 export function createSpoilerRenderer(classPrefix, /** @type {Record<string, import('../../../shared/localeTypes').LocaleValue>} */ locale) {
@@ -24,6 +26,7 @@ export function createSpoilerRenderer(classPrefix, /** @type {Record<string, imp
     return {
         type: 'spoiler',
         styles: [styles],
+        mapTextFields,
 
         /**
          * @param {import('../../types').SpoilerBlock} block

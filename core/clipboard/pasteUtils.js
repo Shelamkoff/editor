@@ -18,8 +18,8 @@ function createInertParagraph() {
 
 /**
  * @typedef {Object} ExtractedBlock
- * @property {string} tag — lowercase tag name (e.g. 'p', 'pre', 'h2')
- * @property {HTMLElement} element — the DOM element
+ * @property {string} tag Lowercase tag name (for example, `p`, `pre`, or `h2`).
+ * @property {HTMLElement} element Extracted DOM element.
  */
 
 /**
@@ -27,8 +27,8 @@ function createInertParagraph() {
  * Returns an array of {tag, element} objects for each block-level element found.
  * Inline-only content is returned as a synthetic 'p' wrapper.
  *
- * @param {ParentNode} container — inert parsed HTML container
- * @param {(tag: string) => boolean} [isRoutedTag] — plugin-owned container tags
+ * @param {ParentNode} container Inert parsed HTML container.
+ * @param {(tag: string) => boolean} [isRoutedTag] Tests plugin-owned container tags.
  * @returns {ExtractedBlock[]}
  */
 export function extractBlockElements(container, isRoutedTag = () => false) {
@@ -41,7 +41,7 @@ export function extractBlockElements(container, isRoutedTag = () => false) {
   )
 
   if (!hasBlockChild) {
-    // Flat HTML with no block structure — wrap as single paragraph
+    // Wrap flat HTML without block structure as a single paragraph.
     const p = createInertParagraph()
     for (const child of container.childNodes) p.appendChild(child.cloneNode(true))
     if (p.innerHTML.trim()) {
@@ -51,7 +51,7 @@ export function extractBlockElements(container, isRoutedTag = () => false) {
   }
 
   /**
-   * @param {Node} node
+   * @param {import('../types').DOMNode} node
    */
   const walk = (node) => {
     for (const child of node.childNodes) {

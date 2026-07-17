@@ -10,6 +10,7 @@ export default {
   'renderer.carousel.next': 'Next slide',
   'renderer.carousel.page': 'Go to page',
   'renderer.carousel.slide': 'Go to slide',
+  'renderer.gallery.open': 'Open image',
   'renderer.poll.selectOption': 'Select option',
   'renderer.poll.vote': 'Vote',
   'renderer.poll.loading': 'Loading results…',

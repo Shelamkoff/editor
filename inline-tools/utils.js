@@ -4,20 +4,34 @@ import { closestBlock, el } from '../core/dom.js'
 import { createSvgIcon, ICON_BACK } from '../core/icons.js'
 import { getTextOffset, editableTextWalker } from '../core/textOffset.js'
 
+/** SVG markup for the standard back-navigation icon used in action panels. */
 export { ICON_BACK }
 
+/** SVG markup for the bold formatting control. */
 export const ICON_BOLD = createSvgIcon('<path d="M7 5h6a3.5 3.5 0 0 1 0 7h-6z"/><path d="M13 12h1a3.5 3.5 0 0 1 0 7h-7v-7"/>')
+/** SVG markup for the italic formatting control. */
 export const ICON_ITALIC = createSvgIcon('<path d="M11 5l6 0"/><path d="M7 19l6 0"/><path d="M14 5l-4 14"/>')
+/** SVG markup for the link formatting control. */
 export const ICON_LINK = createSvgIcon('<path d="M9 15l6 -6"/><path d="M11 6l.463 -.536a5 5 0 0 1 7.071 7.072l-.534 .464"/><path d="M13 18l-.397 .534a5.068 5.068 0 0 1 -7.127 0a4.972 4.972 0 0 1 0 -7.071l.524 -.463"/>')
+/** SVG markup for the inline-code formatting control. */
 export const ICON_CODE = createSvgIcon('<path d="M7 8l-4 4l4 4"/><path d="M17 8l4 4l-4 4"/>')
+/** SVG markup for the text-highlight formatting control. */
 export const ICON_HIGHLIGHT = createSvgIcon('<path d="M3 19h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4"/><path d="M12.5 5.5l4 4"/><path d="M4.5 13.5l4 4"/><path d="M21 15l-2 2l-4 -4l2 -2z"/>')
+/** SVG markup for the strikethrough formatting control. */
 export const ICON_STRIKETHROUGH = createSvgIcon('<path d="M5 12l14 0"/><path d="M16 6.5a4 2 0 0 0 -4 -1.5h-1a3.5 3.5 0 0 0 0 7h2a3.5 3.5 0 0 1 0 7h-1.5a4 2 0 0 1 -4 -1.5"/>')
+/** SVG markup for the left-alignment control. */
 export const ICON_ALIGN_LEFT = createSvgIcon('<path d="M4 6l16 0"/><path d="M4 12l10 0"/><path d="M4 18l14 0"/>')
+/** SVG markup for the center-alignment control. */
 export const ICON_ALIGN_CENTER = createSvgIcon('<path d="M4 6l16 0"/><path d="M7 12l10 0"/><path d="M5 18l14 0"/>')
+/** SVG markup for the right-alignment control. */
 export const ICON_ALIGN_RIGHT = createSvgIcon('<path d="M4 6l16 0"/><path d="M10 12l10 0"/><path d="M6 18l14 0"/>')
+/** SVG markup for the justified-alignment control. */
 export const ICON_ALIGN_JUSTIFY = createSvgIcon('<path d="M4 6l16 0"/><path d="M4 12l16 0"/><path d="M4 18l16 0"/>')
+/** SVG markup for the remove-link control. */
 export const ICON_UNLINK = createSvgIcon('<path d="M9 15l3 -3m2 -2l1 -1"/><path d="M11 6l.463 -.536a5 5 0 0 1 7.071 7.072l-.534 .464"/><path d="M13 18l-.397 .534a5.068 5.068 0 0 1 -7.127 0a4.972 4.972 0 0 1 0 -7.071l.524 -.463"/><path d="M3 3l18 18"/>')
+/** SVG markup for confirmation controls. */
 export const ICON_CHECK = createSvgIcon('<path d="M5 12l5 5l10 -10"/>')
+/** SVG markup for the clear-formatting control. */
 export const ICON_CLEAR = createSvgIcon('<path d="M17 15l4 4m0 -4l-4 4"/><path d="M7 6v-1h11v1"/><path d="M7 19l4 0"/><path d="M13 5l-4 14"/>')
 
 /** Inline tag selector for empty-tag cleanup. */
@@ -43,6 +57,7 @@ function closestInEditable(el, selector) {
  * Remove empty inline wrapper tags and normalize text nodes.
  * Called after any DOM mutation that unwraps/removes inline formatting.
  * @param {Node | null} parent
+ * @returns {void}
  */
 export function removeEmptyInlineTags(parent) {
   if (!parent || parent.nodeType !== Node.ELEMENT_NODE) return
@@ -73,7 +88,11 @@ function mergeAdjacentTags(parent, tagName) {
     if (node.nodeType === Node.ELEMENT_NODE
         && next?.nodeType === Node.ELEMENT_NODE
         && /** @type {Element} */ (node).tagName === upper
-        && /** @type {Element} */ (next).tagName === upper) {
+        && /** @type {Element} */ (next).tagName === upper
+        && haveSameAttributes(
+          /** @type {Element} */ (node),
+          /** @type {Element} */ (next),
+        )) {
       while (next.firstChild) node.appendChild(next.firstChild)
       next.remove()
       // Don't advance — merged node may have a new adjacent sibling
@@ -82,6 +101,21 @@ function mergeAdjacentTags(parent, tagName) {
     }
   }
   parent.normalize()
+}
+
+/**
+ * Compare element attributes without depending on their source order.
+ * Wrappers with different classes, data or inline styles must not be merged.
+ * @param {Element} left
+ * @param {Element} right
+ * @returns {boolean}
+ */
+function haveSameAttributes(left, right) {
+  if (left.attributes.length !== right.attributes.length) return false
+  for (const attribute of left.attributes) {
+    if (right.getAttribute(attribute.name) !== attribute.value) return false
+  }
+  return true
 }
 
 /**
@@ -153,8 +187,10 @@ function wrapIfNeeded(content, wrapperTemplate) {
  * Wrap or unwrap a selection with an inline tag.
  * @param {string} tagName
  * @param {Range} range
+ * @param {(element: HTMLElement) => boolean} [matches]
+ * @returns {void}
  */
-export function toggleTag(tagName, range) {
+export function toggleTag(tagName, range, matches = () => true) {
   const sel = window.getSelection()
   if (!sel || !range) return
 
@@ -164,7 +200,10 @@ export function toggleTag(tagName, range) {
     : parent.parentElement
 
   // Case 1: Selection is entirely INSIDE an existing tag — unwrap
-  const ancestor = closestInEditable(container, tagName)
+  let ancestor = closestInEditable(container, tagName)
+  while (ancestor && !matches(ancestor)) {
+    ancestor = closestInEditable(ancestor.parentElement, tagName)
+  }
   if (ancestor) {
     // Check if selection covers the full ancestor content via character offsets
     // (compareBoundaryPoints is unreliable for mixed text/element boundaries)
@@ -243,7 +282,7 @@ export function toggleTag(tagName, range) {
           if (!iw) continue
           wrappedAfter = wrapIfNeeded(wrappedAfter, /** @type {HTMLElement} */ (iw))
         }
-        const afterTag = document.createElement(tagName)
+        const afterTag = /** @type {HTMLElement} */ (ancestor.cloneNode(false))
         afterTag.appendChild(wrappedAfter)
         parentNode?.insertBefore(afterTag, ref)
       }
@@ -278,7 +317,9 @@ export function toggleTag(tagName, range) {
     const descendants = container.querySelectorAll(tagName)
     const toUnwrap = []
     for (const el of descendants) {
-      if (range.intersectsNode(el)) toUnwrap.push(el)
+      if (range.intersectsNode(el) && matches(/** @type {HTMLElement} */ (el))) {
+        toUnwrap.push(el)
+      }
     }
     if (toUnwrap.length) {
       // Save selection offsets relative to the CE so we can restore after DOM mutations
@@ -349,7 +390,7 @@ export function toggleTag(tagName, range) {
               if (!iw) continue
               wrappedAfter = wrapIfNeeded(wrappedAfter, /** @type {HTMLElement} */ (iw))
             }
-            const afterTag = document.createElement(tagName)
+            const afterTag = /** @type {HTMLElement} */ (el.cloneNode(false))
             afterTag.appendChild(wrappedAfter)
             parentNode?.insertBefore(afterTag, ref)
           }
@@ -462,9 +503,9 @@ export function toggleTag(tagName, range) {
  * @returns {HTMLElement | null}
  */
 export function getEditorRoot(node) {
-  if (!node) return document.querySelector('.oe-editor')
+  if (!node) return null
   const el = node.nodeType === Node.ELEMENT_NODE ? /** @type {Element} */ (node) : node.parentElement
-  return /** @type {HTMLElement | null} */ (el?.closest('.oe-editor')) ?? document.querySelector('.oe-editor')
+  return /** @type {HTMLElement | null} */ (el?.closest('.oe-editor'))
 }
 
 /**
@@ -472,10 +513,11 @@ export function getEditorRoot(node) {
  * invalidate the range's node references).
  * @param {import('../types').ICrossBlockSelection | null} [cbs]
  * @param {Node} [contextNode] - any node inside the editor for scoping
+ * @returns {void}
  */
 export function clearCrossBlockRange(cbs, contextNode) {
   if (cbs) {
-    const editor = getEditorRoot(contextNode)
+    const editor = getEditorRoot(contextNode ?? cbs.range?.startContainer)
     cbs.deactivate(editor ?? undefined)
   } else {
     const editor = getEditorRoot(contextNode)
@@ -529,42 +571,103 @@ export function findNodeAtOffset(container, charOffset, bias = 'start') {
 }
 
 /**
+ * Return every editable field owned by one block in DOM order.
+ * @param {HTMLElement} block
+ * @returns {HTMLElement[]}
+ */
+function editableFields(block) {
+  const descendants = Array.from(
+    block.querySelectorAll('[contenteditable]'),
+    element => /** @type {HTMLElement} */ (element),
+  )
+  return block.matches('[contenteditable]') ? [block, ...descendants] : descendants
+}
+
+/**
+ * Resolve the editable field that owns a range boundary. A boundary may be an
+ * element node positioned between children, so inspect that child before
+ * falling back to the first field for legacy or synthetic ranges.
+ * @param {HTMLElement} block
+ * @param {Node} container
+ * @param {number} offset
+ * @returns {{ element: HTMLElement, index: number } | null}
+ */
+function editableAtBoundary(block, container, offset) {
+  const fields = editableFields(block)
+  if (!fields.length) return null
+
+  const containerElement = container.nodeType === Node.ELEMENT_NODE
+    ? /** @type {HTMLElement} */ (container)
+    : container.parentElement
+  let candidate = containerElement?.closest('[contenteditable]') ?? null
+
+  if (!candidate && container.nodeType === Node.ELEMENT_NODE) {
+    const children = container.childNodes
+    const child = children[Math.min(offset, children.length - 1)] ?? null
+    const childElement = child?.nodeType === Node.ELEMENT_NODE
+      ? /** @type {HTMLElement} */ (child)
+      : child?.parentElement
+    candidate = childElement?.closest('[contenteditable]')
+      ?? childElement?.querySelector?.('[contenteditable]')
+      ?? null
+  }
+
+  const editable = candidate instanceof HTMLElement ? candidate : null
+  const index = editable && block.contains(editable) ? fields.indexOf(editable) : -1
+  return index >= 0 ? { element: fields[index], index } : { element: fields[0], index: 0 }
+}
+
+/**
  * Save cross-block range as block IDs + character offsets (survives DOM mutations).
  * @param {Range} range
- * @returns {{ startBlockId: string, endBlockId: string, startOffset: number, endOffset: number } | null}
+ * @returns {{ editorRoot: HTMLElement, startBlockId: string, endBlockId: string, startFieldIndex: number, endFieldIndex: number, startOffset: number, endOffset: number } | null}
  */
 export function saveCrossBlockOffsets(range) {
   const startBlock = closestBlock(range.startContainer)
   const endBlock = closestBlock(range.endContainer)
   if (!startBlock || !endBlock || startBlock === endBlock) return null
 
-  const startCe = startBlock.querySelector('[contenteditable]')
-  const endCe = endBlock.querySelector('[contenteditable]')
-  if (!startCe || !endCe) return null
+  const editorRoot = getEditorRoot(startBlock)
+  if (!editorRoot || getEditorRoot(endBlock) !== editorRoot) return null
+
+  const startField = editableAtBoundary(startBlock, range.startContainer, range.startOffset)
+  const endField = editableAtBoundary(endBlock, range.endContainer, range.endOffset)
+  if (!startField || !endField) return null
 
   return {
+    editorRoot,
     startBlockId: startBlock.dataset.blockId ?? '',
     endBlockId: endBlock.dataset.blockId ?? '',
-    startOffset: getTextOffset(startCe, range.startContainer, range.startOffset),
-    endOffset: getTextOffset(endCe, range.endContainer, range.endOffset),
+    startFieldIndex: startField.index,
+    endFieldIndex: endField.index,
+    startOffset: getTextOffset(startField.element, range.startContainer, range.startOffset),
+    endOffset: getTextOffset(endField.element, range.endContainer, range.endOffset),
   }
 }
 
 /**
  * Restore cross-block range from saved offsets. Updates CrossBlockSelection and CSS Highlight.
  * @param {import('../types').ICrossBlockSelection | null} cbs
- * @param {{ startBlockId: string, endBlockId: string, startOffset: number, endOffset: number }} offsets
+ * @param {{ editorRoot: HTMLElement, startBlockId: string, endBlockId: string, startFieldIndex?: number, endFieldIndex?: number, startOffset: number, endOffset: number }} offsets
  * @returns {Range | null}
  */
 export function restoreCrossBlockRange(cbs, offsets) {
-  // Query globally — data-block-id is unique — then derive editor root from found block.
-  // Avoids getEditorRoot() without args which falls back to first .oe-editor on page.
-  const startBlock = document.querySelector(`[data-block-id="${offsets.startBlockId}"]`)
-  const endBlock = document.querySelector(`[data-block-id="${offsets.endBlockId}"]`)
+  const { editorRoot } = offsets
+  if (!editorRoot.isConnected) return null
+
+  // Block IDs are unique only within one editor document. Comparing dataset
+  // values also avoids interpolating document-owned IDs into a CSS selector.
+  const blocks = editorRoot.querySelectorAll('[data-block-id]')
+  const startBlock = Array.from(blocks).find(block => (
+    /** @type {HTMLElement} */ (block).dataset.blockId === offsets.startBlockId
+  ))
+  const endBlock = Array.from(blocks).find(block => (
+    /** @type {HTMLElement} */ (block).dataset.blockId === offsets.endBlockId
+  ))
   if (!startBlock || !endBlock) return null
 
-  const startCe = startBlock.querySelector('[contenteditable]')
-  const endCe = endBlock.querySelector('[contenteditable]')
+  const startCe = editableFields(/** @type {HTMLElement} */ (startBlock))[offsets.startFieldIndex ?? 0]
+  const endCe = editableFields(/** @type {HTMLElement} */ (endBlock))[offsets.endFieldIndex ?? 0]
   if (!startCe || !endCe) return null
 
   const start = findNodeAtOffset(startCe, offsets.startOffset)
@@ -578,11 +681,10 @@ export function restoreCrossBlockRange(cbs, offsets) {
   } catch { return null }
 
   // Update stored range and visual highlight
-  const editor = getEditorRoot(range.startContainer)
-  if (cbs && editor) {
-    cbs.activate(range, editor)
+  if (cbs) {
+    cbs.activate(range, editorRoot)
   } else {
-    if (editor) editor.classList.add('oe-editor--cross-selecting')
+    editorRoot.classList.add('oe-editor--cross-selecting')
     CrossBlockSelection.showHighlight(range)
   }
 
@@ -602,7 +704,7 @@ export function restoreCrossBlockRange(cbs, offsets) {
 /**
  * Check if a selection spans multiple .oe-block elements.
  * @param {import('../types').ICrossBlockSelection | null} [cbs]
- * @returns {HTMLElement[] | null} Array of block contentElements, or null if single-block
+ * @returns {HTMLElement[] | null} Array of plugin-owned block roots, or null if single-block
  */
 export function getSelectedBlockElements(cbs) {
   const sel = window.getSelection()
@@ -617,7 +719,7 @@ export function getSelectedBlockElements(cbs) {
 
   if (!startBlock || !endBlock || startBlock === endBlock) return null
 
-  // Collect all block contentElements between start and end
+  // Collect all plugin-owned block roots between start and end.
   const blocks = []
   const container = startBlock.parentElement
   if (!container) return null
@@ -626,8 +728,8 @@ export function getSelectedBlockElements(cbs) {
   for (const child of container.children) {
     if (child === startBlock) inside = true
     if (inside && child.classList.contains(BLOCK_CLASS)) {
-      const ce = child.querySelector('[contenteditable]')
-      if (ce) blocks.push(/** @type {HTMLElement} */ (ce))
+      const content = child.firstElementChild
+      if (content instanceof HTMLElement) blocks.push(content)
     }
     if (child === endBlock) break
   }
@@ -639,6 +741,7 @@ export function getSelectedBlockElements(cbs) {
  * Dispatch a synthetic input event on the nearest contenteditable to trigger
  * undo/redo snapshot via EditorFacade.onInput → editor:changed.
  * @param {Node} [contextNode] - any node inside the editor for scoping
+ * @returns {void}
  */
 export function notifyEditorChanged(contextNode) {
   const element = contextNode?.nodeType === Node.ELEMENT_NODE
@@ -731,6 +834,19 @@ export function getBlockElement() {
 }
 
 /**
+ * Find the plugin-owned root of the block containing the current selection.
+ * Unlike {@link getBlockElement}, this returns the block content root rather
+ * than one nested editable field, so block-level settings survive plugins
+ * with several text fields.
+ * @returns {HTMLElement | null}
+ */
+export function getBlockContentElement() {
+  const selection = window.getSelection()
+  const block = closestBlock(selection?.anchorNode)
+  return block?.firstElementChild instanceof HTMLElement ? block.firstElementChild : null
+}
+
+/**
  * Find the contentEditable ancestor of a range's start.
  * Returns null for cross-block ranges (start and end in different contenteditables).
  * @param {Range} range
@@ -794,6 +910,7 @@ export function collectTextTargets(walkRoot, range) {
  * Normalize contenteditables after DOM manipulation.
  * @param {HTMLElement | null} singleCe - single contenteditable (null for cross-block)
  * @param {HTMLElement} walkRoot
+ * @returns {void}
  */
 export function normalizeAfterEdit(singleCe, walkRoot) {
   if (singleCe) {
@@ -806,8 +923,8 @@ export function normalizeAfterEdit(singleCe, walkRoot) {
 
 /**
  * @typedef {Object} SavedOffsets
- * @property {{ startBlockId: string, endBlockId: string, startOffset: number, endOffset: number } | null} crossOffsets
- * @property {{ ce: Node, start: number, end: number } | null} singleOffsets
+ * @property {{ editorRoot: HTMLElement, startBlockId: string, endBlockId: string, startFieldIndex: number, endFieldIndex: number, startOffset: number, endOffset: number } | null} crossOffsets - Serialized selection spanning multiple editable block fields.
+ * @property {{ ce: Node, start: number, end: number } | null} singleOffsets - Text offsets and owning editable node for a selection contained in one field.
  */
 
 /**
@@ -839,6 +956,7 @@ export function saveSelectionOffsets(range) {
  * Restore selection from saved offsets after DOM mutation.
  * @param {import('../types').ICrossBlockSelection | null} cbs
  * @param {SavedOffsets} saved
+ * @returns {void}
  */
 export function restoreSelectionOffsets(cbs, saved) {
   if (saved.crossOffsets) {

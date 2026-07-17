@@ -68,10 +68,17 @@
 .oe-attaches__group-header:hover { background: var(--oe-card-hover, rgba(255,255,255,0.03)); }
 
 .oe-attaches__chevron {
+  appearance: none;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
   flex-shrink: 0;
   color: var(--oe-text-3, #6e6e78);
   transition: transform 0.2s;
 }
+.oe-attaches__chevron:focus-visible { outline: 2px solid var(--oe-accent, #4357b4); outline-offset: 2px; }
 .oe-attaches__chevron--open { transform: rotate(180deg); }
 
 .oe-attaches__group-body {

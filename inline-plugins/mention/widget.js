@@ -12,38 +12,37 @@
  */
 
 import { generateInlineId } from '../../shared/inlineMarshal.js'
+import { normalizeTextValue } from '../../shared/textFormat.js'
 
 /** @typedef {import('./index').MentionWidgetData} MentionWidgetData */
 
 /**
- * Trigger character (the `@` in front of the name). Kept in sync with
- * the full plugin's default — the widget IS the trigger + the name.
- */
-const TRIGGER = '@'
-
-/**
- * @param {MentionWidgetData} data
+ * @param {Record<string, unknown>} data
+ * @param {string} trigger
  * @param {string} [id] Stable widget instance id. Preserved across save /
  *   load round-trips. Generated if not supplied (fresh commit path).
  * @returns {HTMLElement}
  */
-function createWidget(data, id) {
+function createWidget(data, trigger, id) {
+  const value = normalizeTextValue(data.id)
+  const name = normalizeTextValue(data.name)
   const span = document.createElement('span')
   span.className = 'oe-ip oe-ip--mention'
   span.setAttribute('data-inline-plugin', 'mention')
   span.setAttribute('data-id', id || generateInlineId())
-  span.setAttribute('data-value', String(data.id ?? ''))
-  span.textContent = TRIGGER + String(data.name ?? '')
+  span.setAttribute('data-value', value)
+  span.textContent = trigger + name
   return span
 }
 
 /**
  * @param {HTMLElement} element
+ * @param {string} trigger
  * @returns {MentionWidgetData}
  */
-function getData(element) {
+function getData(element, trigger) {
   const text = element.textContent || ''
-  const name = text.startsWith(TRIGGER) ? text.slice(TRIGGER.length) : text
+  const name = text.startsWith(trigger) ? text.slice(trigger.length) : text
   return {
     id: element.dataset.value || '',
     name,
@@ -57,12 +56,20 @@ function getData(element) {
  * Implements the structural subset of `InlinePlugin` expected by
  * `EditorRenderer.config.inlinePlugins` (`type` + `createWidget` + `getData`).
  *
+ * The renderer must receive the same trigger as the editor plugin when a
+ * non-default trigger is used. The trigger is presentation configuration and
+ * is not duplicated in every serialized widget.
+ *
+ * @param {string} [trigger='@'] Exactly one Unicode code point.
  * @returns {import('../../renderer/types').InlinePluginLike}
  */
-export function createMentionWidget() {
+export function createMentionWidget(trigger = '@') {
+  if (typeof trigger !== 'string' || Array.from(trigger).length !== 1) {
+    throw new TypeError('Mention widget trigger must be exactly one Unicode code point')
+  }
   return {
     type: 'mention',
-    createWidget,
-    getData,
+    createWidget: (data, id) => createWidget(data, trigger, id),
+    getData: element => getData(element, trigger),
   }
 }

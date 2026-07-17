@@ -6,7 +6,7 @@ Inline plugins store structured data inside text without turning it into opaque 
 
 | Plugin | Package entry | Purpose |
 | --- | --- | --- |
-| [Color](./color/README.md) | `@shelamkoff/rector/inline-plugins/color` | Persisted foreground/background color swatch |
+| [Color](./color/README.md) | `@shelamkoff/rector/inline-plugins/color` | Persisted color sample with an editable value |
 | [Mention](./mention/README.md) | `@shelamkoff/rector/inline-plugins/mention` | Searchable entity mention with host-provided data |
 
 ## Register in the editor

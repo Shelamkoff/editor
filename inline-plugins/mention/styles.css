@@ -7,30 +7,34 @@
  *   2. Committed pill (.oe-ip--mention) — extends the base `.oe-ip` inline
  *      widget defined in `core/themes/variables.css`.
  *
- * Colors come from the editor theme CSS variables so the plugin
- * blends with dark / light themes automatically.
+ * Colors come from the owning editor's theme CSS variables so the plugin
+ * blends with built-in and consumer-defined themes automatically.
  */
 
 /* ── Dropdown container ─────────────────────────────────────── */
 .oe-mention-dropdown {
-  /* Absolute, so `top`/`left` are document-space (matches the math in
-     `index.js _positionRaw` which adds `window.scrollY/X` to viewport-
-     relative `getBoundingClientRect()` values). The dropdown then
-     scrolls with the page naturally. */
-  position: absolute;
+  /* The element lives inside `.oe-editor` to inherit theme tokens. Fixed
+     positioning keeps the caret math in viewport coordinates and avoids
+     coupling the popup to a block's layout. */
+  position: fixed;
   z-index: 1000;
-  min-width: 240px;
-  max-width: 320px;
-  max-height: 240px;
+  box-sizing: border-box;
+  width: max-content;
+  min-width: 260px;
+  max-width: min(320px, calc(100vw - 20px));
+  max-height: min(280px, calc(100vh - 20px));
+  padding: 6px;
   overflow-y: auto;
   overflow-x: hidden;
-  background: var(--oe-bg, #ffffff);
-  border: 1px solid var(--oe-border, #e4e4e7);
+  scrollbar-width: thin;
+  scrollbar-color: var(--oe-border-hover, #2a2a2a) transparent;
+  background: var(--oe-toolbar-bg, var(--oe-card, #111));
+  border: 1px solid var(--oe-toolbar-border, var(--oe-border, #1a1a1a));
   border-radius: var(--oe-radius, 10px);
-  box-shadow: var(--oe-shadow-lg, 0 8px 24px rgba(0, 0, 0, 0.14));
-  font-family: inherit;
+  box-shadow: var(--oe-toolbar-shadow, 0 8px 24px rgba(0, 0, 0, 0.4));
+  font-family: var(--oe-font, inherit), sans-serif;
   font-size: 13px;
-  color: var(--oe-text-1, #1a1a1f);
+  color: var(--oe-text-1, #f5f5f5);
 
   /* Hidden by default — toggled via .oe-mention-dropdown--active. */
   opacity: 0;
@@ -51,7 +55,7 @@
 .oe-mention-dropdown::-webkit-scrollbar { width: 6px; height: 6px; }
 .oe-mention-dropdown::-webkit-scrollbar-track { background: transparent; }
 .oe-mention-dropdown::-webkit-scrollbar-thumb {
-  background: var(--oe-border, #e4e4e7);
+  background: var(--oe-border-hover, #2a2a2a);
   border-radius: 6px;
 }
 
@@ -60,18 +64,19 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px 12px;
+  min-height: 52px;
+  padding: 8px 10px;
   cursor: pointer;
   user-select: none;
-  border-bottom: 1px solid var(--oe-border-soft, rgba(0, 0, 0, 0.05));
-  transition: background-color 0.1s ease;
+  border-radius: var(--oe-radius-sm, 4px);
+  color: var(--oe-text-2, #c4c4c4);
+  transition: color var(--oe-transition, 0.15s ease), background-color var(--oe-transition, 0.15s ease);
 }
-
-.oe-mention-item:last-child { border-bottom: none; }
 
 .oe-mention-item:hover,
 .oe-mention-item--active {
-  background: var(--oe-card-hover, rgba(0, 0, 0, 0.04));
+  background: var(--oe-card-hover, #191919);
+  color: var(--oe-text-1, #f5f5f5);
 }
 
 /* ── Avatar ─────────────────────────────────────────────────── */
@@ -81,7 +86,7 @@
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
-  background: var(--oe-border-soft, rgba(0, 0, 0, 0.05));
+  background: var(--oe-surface-2, #141414);
 }
 
 .oe-mention-avatar-placeholder {
@@ -91,7 +96,7 @@
   display: grid;
   place-items: center;
   flex-shrink: 0;
-  background: var(--oe-accent, #4f8cff);
+  background: var(--oe-accent, #4357b4);
   color: #ffffff;
   font-weight: 600;
   font-size: 12px;
@@ -110,7 +115,7 @@
 .oe-mention-name {
   font-weight: 500;
   font-size: 13px;
-  color: var(--oe-text-1, #1a1a1f);
+  color: var(--oe-text-1, #f5f5f5);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -118,7 +123,7 @@
 
 .oe-mention-details {
   font-size: 11px;
-  color: var(--oe-text-2, #71717a);
+  color: var(--oe-text-3, #908c8c);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -127,13 +132,13 @@
 /* ── No-results row ─────────────────────────────────────────── */
 .oe-mention-no-results {
   cursor: default;
-  color: var(--oe-text-2, #71717a);
+  color: var(--oe-text-3, #908c8c);
 }
 .oe-mention-no-results:hover { background: transparent; }
 
 /* ── Loading row ────────────────────────────────────────────── */
 .oe-mention-loading {
-  color: var(--oe-text-2, #71717a);
+  color: var(--oe-text-3, #908c8c);
   cursor: default;
 }
 .oe-mention-loading .oe-mention-item { justify-content: center; font-size: 12px; }
@@ -168,4 +173,11 @@
   background: color-mix(in srgb, var(--oe-accent, #4f8cff) 24%, transparent);
   outline: 1px dashed color-mix(in srgb, var(--oe-accent, #4f8cff) 55%, transparent);
   outline-offset: 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .oe-mention-dropdown,
+  .oe-mention-item {
+    transition: none;
+  }
 }

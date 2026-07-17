@@ -99,6 +99,7 @@ Use `:focus-visible` for keyboard focus. Do not remove the visible focus state w
 | Code | `.oe-code-wrap` |
 | Image | `.oe-image` |
 | Gallery | `.oe-gallery` |
+| Carousel | `.oe-carousel-block` |
 | Embed | `.oe-embed` |
 | Table | `.oe-table-wrapper` |
 | Attachments | `.oe-attaches` |
@@ -142,11 +143,15 @@ Rector reference-counts identical URLs across instances and releases an injected
 Built-in plugin constructors support `injectStyles: false` when the host bundles plugin CSS itself. The optional `css` string adds one host-provided stylesheet URL after the default, or supplies the replacement URL when default injection is disabled.
 
 ```js
-new Callout({
+import { Paragraph } from '@shelamkoff/rector/plugins/paragraph'
+
+new Paragraph({
   injectStyles: false,
-  css: new URL('./callout.application.css', import.meta.url).href,
+  css: new URL('./paragraph.application.css', import.meta.url).href,
 })
 ```
+
+A custom plugin that accepts the same options must expose its constructor configuration through `getPluginConfig()`. Extending `BlockPluginAbstract` supplies that behavior.
 
 In host-managed mode the application is responsible for including every required stylesheet and for the lifecycle of its own link or style bundle.
 

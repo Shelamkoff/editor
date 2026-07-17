@@ -12,6 +12,7 @@ import { buildSettingsPanel } from './settings.js'
 /**
  * @typedef {Object} FilledViewDeps
  * @property {(key: string, fallback: string) => string} t
+ * @property {boolean} readOnly
  * @property {() => void} onTriggerFileInput
  * @property {() => void} onPromptUrl
  * @property {() => void} onDelete
@@ -31,6 +32,7 @@ import { buildSettingsPanel } from './settings.js'
  * @param {HTMLElement} wrapper
  * @param {import('./state.js').ImageState} state
  * @param {FilledViewDeps} deps
+ * @returns {void}
  */
 export function renderFilledView(wrapper, state, deps) {
   state.resetTransient()
@@ -45,17 +47,22 @@ export function renderFilledView(wrapper, state, deps) {
   const img = document.createElement('img')
   img.className = CSS.image
   setSafeUrlAttribute(img, 'src', state.data.file.url, 'media')
-  img.alt = state.data.caption || ''
   applyInlineStyles(state, img, container)
   container.appendChild(img)
 
   // Caption
   const caption = renderCaption(state, signal, deps)
+  img.alt = caption.textContent?.trim() || ''
+  if (!deps.readOnly) {
+    caption.addEventListener('input', () => {
+      img.alt = caption.textContent?.trim() || ''
+    }, { signal })
+  }
   container.appendChild(caption)
   wrapper.appendChild(container)
 
   // Action bar
-  wrapper.appendChild(renderActions(wrapper, state, deps, signal))
+  if (!deps.readOnly) wrapper.appendChild(renderActions(wrapper, state, deps, signal))
 }
 
 /**
@@ -67,7 +74,7 @@ export function renderFilledView(wrapper, state, deps) {
 function renderCaption(state, signal, deps) {
   const caption = document.createElement('div')
   caption.className = CSS.caption
-  caption.contentEditable = 'true'
+  caption.contentEditable = deps.readOnly ? 'false' : 'true'
   caption.dataset.placeholder = deps.t('caption', 'Caption')
 
   if (state.data.caption) {
@@ -89,21 +96,23 @@ function renderCaption(state, signal, deps) {
     }
   }
 
-  caption.addEventListener('input', syncEmpty, { signal })
-  caption.addEventListener('focus', () => caption.removeAttribute('data-empty'), { signal })
-  caption.addEventListener('blur', () => {
-    if (!caption.textContent?.trim()) {
-      caption.innerHTML = ''
-      caption.setAttribute('data-empty', 'true')
-      state.data.caption = ''
-    }
-  }, { signal })
-  caption.addEventListener('keydown', (e) => {
-    if (e.key === 'Backspace' && !caption.textContent?.trim()) {
-      e.preventDefault()
-      e.stopPropagation()
-    }
-  }, { signal })
+  if (!deps.readOnly) {
+    caption.addEventListener('input', syncEmpty, { signal })
+    caption.addEventListener('focus', () => caption.removeAttribute('data-empty'), { signal })
+    caption.addEventListener('blur', () => {
+      if (!caption.textContent?.trim()) {
+        caption.innerHTML = ''
+        caption.setAttribute('data-empty', 'true')
+        state.data.caption = ''
+      }
+    }, { signal })
+    caption.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' && !caption.textContent?.trim()) {
+        e.preventDefault()
+        e.stopPropagation()
+      }
+    }, { signal })
+  }
 
   return caption
 }
@@ -129,18 +138,24 @@ function renderActions(wrapper, state, deps, signal) {
   settingsBtn.type = 'button'
   settingsBtn.className = CSS.actionBtn
   settingsBtn.innerHTML = `${ICON_SETTINGS} ${deps.t('settings', 'Settings')}`
+  settingsBtn.setAttribute('aria-haspopup', 'true')
+  settingsBtn.setAttribute('aria-expanded', 'false')
 
   const panel = buildSettingsPanel(wrapper, state, settingsDeps)
+  panel.setAttribute('role', 'group')
+  panel.setAttribute('aria-label', deps.t('settings', 'Settings'))
 
   settingsBtn.addEventListener('click', (e) => {
     e.stopPropagation()
     const isOpen = dropdown.classList.contains(CSS.dropdownOpen)
     if (isOpen) {
       dropdown.classList.remove(CSS.dropdownOpen)
+      settingsBtn.setAttribute('aria-expanded', 'false')
     } else {
       panel.style.top = ''
       panel.style.bottom = ''
       dropdown.classList.add(CSS.dropdownOpen)
+      settingsBtn.setAttribute('aria-expanded', 'true')
 
       const btnRect = settingsBtn.getBoundingClientRect()
       const panelRect = panel.getBoundingClientRect()
@@ -160,7 +175,16 @@ function renderActions(wrapper, state, deps, signal) {
   document.addEventListener('click', (e) => {
     if (!dropdown.contains(/** @type {Node} */ (e.target))) {
       dropdown.classList.remove(CSS.dropdownOpen)
+      settingsBtn.setAttribute('aria-expanded', 'false')
     }
+  }, { signal })
+
+  dropdown.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape' || !dropdown.classList.contains(CSS.dropdownOpen)) return
+    event.preventDefault()
+    dropdown.classList.remove(CSS.dropdownOpen)
+    settingsBtn.setAttribute('aria-expanded', 'false')
+    settingsBtn.focus()
   }, { signal })
 
   const sep1 = makeSep()
@@ -188,6 +212,7 @@ function renderActions(wrapper, state, deps, signal) {
   deleteBtn.type = 'button'
   deleteBtn.className = `${CSS.actionBtn} ${CSS.actionBtnDanger}`
   deleteBtn.innerHTML = ICON_TRASH
+  deleteBtn.setAttribute('aria-label', deps.t('delete', 'Delete'))
   deleteBtn.addEventListener('mousedown', (e) => e.preventDefault(), { signal })
   deleteBtn.addEventListener('click', (e) => {
     e.stopPropagation()

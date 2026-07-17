@@ -1,5 +1,4 @@
 // @ts-check
-import { InvalidBlockDataError } from '../../errors.js'
 import { resolvePath } from '../../../shared/resolvePath.js'
 import { setSafeUrlAttribute } from '../../../shared/sanitize/sanitizeUrl.js'
 
@@ -41,6 +40,7 @@ function applyInlineStyles(img, figure, styles, expanded, withBackground) {
 /**
  * Image block renderer
  * @param {string} classPrefix
+ * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} _locale
  * @returns {import('../../types').BlockRenderer<import('../../types').ImageBlock>}
  */
 export function createImageRenderer(classPrefix, _locale) {
@@ -56,10 +56,6 @@ export function createImageRenderer(classPrefix, _locale) {
     render(block, parseInline) {
       const { file, caption, withBorder, expanded, withBackground, styles } = block.data
 
-      if (!file?.url) {
-        throw new InvalidBlockDataError('image', 'Missing file URL', block.id)
-      }
-
       const figure = document.createElement('figure')
       figure.className = `${classPrefix}-image`
 
@@ -70,7 +66,14 @@ export function createImageRenderer(classPrefix, _locale) {
       const img = document.createElement('img')
       img.className = `${classPrefix}-image__picture`
       setSafeUrlAttribute(img, 'src', file.url, 'media')
-      img.alt = caption || ''
+
+      let figcaption = null
+      if (caption) {
+        figcaption = document.createElement('figcaption')
+        figcaption.className = `${classPrefix}-image__caption`
+        figcaption.appendChild(parseInline(caption))
+      }
+      img.alt = figcaption?.textContent?.trim() || ''
 
       if (file.width) img.width = file.width
       if (file.height) img.height = file.height
@@ -82,12 +85,7 @@ export function createImageRenderer(classPrefix, _locale) {
 
       figure.appendChild(img)
 
-      if (caption) {
-        const figcaption = document.createElement('figcaption')
-        figcaption.className = `${classPrefix}-image__caption`
-        figcaption.appendChild(parseInline(caption))
-        figure.appendChild(figcaption)
-      }
+      if (figcaption) figure.appendChild(figcaption)
 
       return figure
     },

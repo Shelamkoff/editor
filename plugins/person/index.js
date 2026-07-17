@@ -5,6 +5,7 @@ import { resolvePath } from '../../shared/resolvePath.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { sanitizeUrl, setSafeUrlAttribute } from '../../shared/sanitize/sanitizeUrl.js'
 import { validatePersonData } from '../../shared/blockDataValidators.js'
+import { normalizeTextValue } from '../../shared/textFormat.js'
 
 const editorStyles = resolvePath('./person.css', import.meta.url)
 const cropperStyles = cropperStylesUrl
@@ -24,22 +25,16 @@ const ICON_GRIP = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12
 
 /**
  * @typedef {{ avatar: string, name: string, role: string, bio: string, links: Array<{type: string, url: string}> }} PersonData
- * @typedef {{
- *   uploadFile?: (file: File, context: { signal: AbortSignal }) => Promise<{ url: string }>,
- *   socialResolvers?: Array<{
- *     test: RegExp | ((url: string) => boolean),
- *     type: string,
- *     icon?: string,
- *   }>,
- *   injectStyles?: boolean,
- *   css?: string,
- * }} PersonConfig
+ * @typedef {Object} PersonConfig
+ * @property {(file: File, context: { signal: AbortSignal }) => Promise<{ url: string }>} [uploadFile] Uploads the cropped avatar. When omitted, the cropped image is stored in the document as a data URL.
+ * @property {Array<{ test: RegExp | ((url: string) => boolean), type: string, icon?: string }>} [socialResolvers] Additional URL classifiers for social links. The first matching resolver supplies the persisted `type`; `icon` is trusted application SVG/HTML.
+ * @property {boolean} [injectStyles=true] Whether the editor should load the built-in person and cropper stylesheets.
+ * @property {string} [css] Additional stylesheet URL, or the replacement URL when `injectStyles` is `false`.
  */
 
 /**
  * @typedef {{
  *   data: { persons: PersonData[] },
- *   wrapper: HTMLDivElement | null,
  *   activeIdx: number,
  *   debounceTimers: Map<string, number>,
  *   dragFromIdx: number | null,
@@ -53,7 +48,11 @@ const ICON_GRIP = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12
 const stateMap = new WeakMap()
 
 
-/** @extends {BlockPluginAbstract<PersonConfig>} */
+/**
+ * Multi-person profile block with editable biography, links, ordering, and
+ * optional avatar cropping.
+ * @extends {BlockPluginAbstract<PersonConfig>}
+ */
 export class Person extends BlockPluginAbstract {
   static isTextBlock = false
   static styles = [editorStyles, cropperStyles]
@@ -61,42 +60,52 @@ export class Person extends BlockPluginAbstract {
   icon = ICON
   inlineTools = false
 
-  /** @param {PersonConfig} [config] */
+  /**
+   * Create a Person instance with the supplied consumer configuration.
+   * @param {PersonConfig} [config]
+   */
   constructor(config) {
     super(config)
   }
 
-  /** @returns {string} */
+  /**
+   * Return the localized toolbox label for this block.
+   * @returns {string}
+   */
   get title() {
     return this._t('title', 'Person')
   }
 
-  /** @returns {PersonData} */
+  /** Create an empty profile for a new person tab. @returns {PersonData} */
   _defaultPerson() {
     return { avatar: '', name: '', role: '', bio: '', links: [] }
   }
 
+  /** @returns {{ persons: PersonData[] }} */
   _defaultData() {
     return { persons: [this._defaultPerson()] }
   }
-
   /**
+   * Create the editable DOM owned by this block instance.
    * @param {Record<string, unknown>} data
+   * @param {import('../../core/types').BlockMutationContext} context
    * @returns {HTMLElement}
    */
   render(data, context) {
-    const raw = /** @type {any[]} */ (data?.persons || [])
+    const raw = Array.isArray(data?.persons)
+      ? /** @type {any[]} */ (data.persons).filter(person => person && typeof person === 'object' && !Array.isArray(person))
+      : []
     const parsedData = {
       persons: raw.length > 0
         ? raw.map(p => ({
-            avatar: sanitizeUrl(String(p?.avatar || ''), { policy: 'media', fallback: '' }),
-            name: String(p?.name || ''),
-            role: String(p?.role || ''),
-            bio: String(p?.bio || ''),
+            avatar: sanitizeUrl(normalizeTextValue(p?.avatar), { policy: 'media', fallback: '' }),
+            name: normalizeTextValue(p?.name),
+            role: normalizeTextValue(p?.role),
+            bio: normalizeTextValue(p?.bio),
             links: Array.isArray(p?.links)
-              ? p.links.map((/** @type {any} */ l) => ({
-                  type: String(l?.type || 'website'),
-                  url: sanitizeUrl(String(l?.url || ''), { policy: 'link', fallback: '' }),
+              ? p.links.filter((/** @type {any} */ link) => link && typeof link === 'object' && !Array.isArray(link)).map((/** @type {any} */ l) => ({
+                  type: normalizeTextValue(l?.type) || 'website',
+                  url: sanitizeUrl(normalizeTextValue(l?.url), { policy: 'link', fallback: '' }),
                 })).filter((/** @type {{url: string}} */ link) => link.url)
               : [],
           }))
@@ -110,8 +119,7 @@ export class Person extends BlockPluginAbstract {
 
     stateMap.set(wrapper, {
       data: parsedData,
-      wrapper,
-      activeIdx: Math.min(0, parsedData.persons.length - 1),
+      activeIdx: 0,
       debounceTimers: new Map(),
       dragFromIdx: null,
       cropperDialog: null,
@@ -124,6 +132,7 @@ export class Person extends BlockPluginAbstract {
   }
 
   /**
+   * Serialize the current block DOM into document data.
    * @param {HTMLElement} element
    * @returns {Record<string, unknown>}
    */
@@ -140,12 +149,16 @@ export class Person extends BlockPluginAbstract {
         .filter(p => preserveDrafts || p.name.trim() || p.avatar)
         .map(p => ({
           ...p,
-          links: p.links.filter(l => l.url.trim()).map(l => ({ ...l })),
+          links: p.links.flatMap(link => {
+            const url = sanitizeUrl(link.url, { policy: 'link', fallback: '' })
+            return url ? [{ type: link.type, url }] : []
+          }),
         })),
     }
   }
 
   /**
+   * Check whether serialized data satisfies this block's schema.
    * @param {Record<string, unknown>} data
    * @returns {boolean}
    */
@@ -154,6 +167,7 @@ export class Person extends BlockPluginAbstract {
   }
 
   /**
+   * Check whether the block has no meaningful user content.
    * @param {HTMLElement} element
    * @returns {boolean}
    */
@@ -165,6 +179,7 @@ export class Person extends BlockPluginAbstract {
   }
 
   /**
+   * Extract neutral text that can initialize another block type.
    * @param {HTMLElement} element
    * @returns {{ text: string }}
    */
@@ -175,7 +190,9 @@ export class Person extends BlockPluginAbstract {
   }
 
   /**
+   * Release listeners and resources owned by this block element.
    * @param {HTMLElement} element
+   * @returns {void}
    */
   destroy(element) {
     const s = stateMap.get(element)
@@ -191,11 +208,12 @@ export class Person extends BlockPluginAbstract {
 
   // ── Full rebuild (tabs + card) ─────────────────────────────────────────────
 
-  /** @param {HTMLElement} wrapper */
+  /** @param {HTMLElement} wrapper @returns {void} */
   _rebuild(wrapper) {
     const s = stateMap.get(wrapper)
     if (!s) return
 
+    this._clearDebounceTimers(s)
     wrapper.innerHTML = ''
 
     // Tab bar (always shown — contains "+" button)
@@ -243,12 +261,13 @@ export class Person extends BlockPluginAbstract {
     tab.appendChild(label)
 
     // Remove button
-    if (s.data.persons.length > 1) {
+    if (!s.context.readOnly && s.data.persons.length > 1) {
       const rm = document.createElement('button')
       rm.type = 'button'
       rm.className = 'oe-person__tab-remove'
       rm.innerHTML = ICON_REMOVE
       rm.title = this._t('removePerson', 'Remove')
+      rm.setAttribute('aria-label', rm.title)
       rm.addEventListener('mousedown', e => e.stopPropagation())
       rm.addEventListener('click', (e) => {
         e.stopPropagation()
@@ -270,6 +289,7 @@ export class Person extends BlockPluginAbstract {
       const st = stateMap.get(wrapper)
       if (!st || i === st.activeIdx) return
       this._syncActiveFromDom(wrapper)
+      this._clearDebounceTimers(st)
       st.activeIdx = i
 
       // Toggle tab active class
@@ -315,7 +335,7 @@ export class Person extends BlockPluginAbstract {
       e.preventDefault()
       tab.classList.remove('oe-person__tab--dragover')
       const st = stateMap.get(wrapper)
-      if (!st) return
+      if (!st || st.context.readOnly) return
       const from = st.dragFromIdx
       if (from === null || from === i) return
       st.context.mutate(() => {
@@ -332,7 +352,7 @@ export class Person extends BlockPluginAbstract {
     return tab
   }
 
-  /** @param {HTMLElement} wrapper */
+  /** @param {HTMLElement} wrapper @returns {HTMLElement} */
   _buildTabs(wrapper) {
     const s = stateMap.get(wrapper)
     if (!s) return document.createElement('div')
@@ -344,23 +364,25 @@ export class Person extends BlockPluginAbstract {
       tabs.appendChild(this._buildTab(wrapper, s, i))
     }
 
-    // "+" button (always in tab bar)
-    const addBtn = document.createElement('button')
-    addBtn.type = 'button'
-    addBtn.className = 'oe-person__tab-add'
-    addBtn.innerHTML = ICON_PLUS
-    addBtn.title = this._t('addPerson', 'Add person')
-    addBtn.addEventListener('click', () => {
-      const st = stateMap.get(wrapper)
-      if (!st) return
-      st.context.mutate(() => {
-        this._syncActiveFromDom(wrapper)
-        st.data.persons.push(this._defaultPerson())
-        st.activeIdx = st.data.persons.length - 1
-        this._rebuild(wrapper)
+    if (!s.context.readOnly) {
+      const addBtn = document.createElement('button')
+      addBtn.type = 'button'
+      addBtn.className = 'oe-person__tab-add'
+      addBtn.innerHTML = ICON_PLUS
+      addBtn.title = this._t('addPerson', 'Add person')
+      addBtn.setAttribute('aria-label', addBtn.title)
+      addBtn.addEventListener('click', () => {
+        const st = stateMap.get(wrapper)
+        if (!st || st.context.readOnly) return
+        st.context.mutate(() => {
+          this._syncActiveFromDom(wrapper)
+          st.data.persons.push(this._defaultPerson())
+          st.activeIdx = st.data.persons.length - 1
+          this._rebuild(wrapper)
+        })
       })
-    })
-    tabs.appendChild(addBtn)
+      tabs.appendChild(addBtn)
+    }
 
     return tabs
   }
@@ -370,6 +392,7 @@ export class Person extends BlockPluginAbstract {
   /**
    * @param {HTMLElement} wrapper
    * @param {HTMLElement} parent
+   * @returns {void}
    */
   _buildCard(wrapper, parent) {
     const s = stateMap.get(wrapper)
@@ -397,14 +420,17 @@ export class Person extends BlockPluginAbstract {
       avatarWrap.appendChild(placeholder)
     }
 
-    const avatarOverlay = document.createElement('button')
-    avatarOverlay.type = 'button'
-    avatarOverlay.className = 'oe-person__avatar-upload'
-    avatarOverlay.innerHTML = ICON_CAMERA
-    avatarOverlay.title = this._t('uploadAvatar', 'Upload avatar')
-    avatarOverlay.addEventListener('mousedown', e => e.preventDefault())
-    avatarOverlay.addEventListener('click', () => this._triggerAvatarUpload(wrapper))
-    avatarWrap.appendChild(avatarOverlay)
+    if (!s.context.readOnly) {
+      const avatarOverlay = document.createElement('button')
+      avatarOverlay.type = 'button'
+      avatarOverlay.className = 'oe-person__avatar-upload'
+      avatarOverlay.innerHTML = ICON_CAMERA
+      avatarOverlay.title = this._t('uploadAvatar', 'Upload avatar')
+      avatarOverlay.setAttribute('aria-label', avatarOverlay.title)
+      avatarOverlay.addEventListener('mousedown', e => e.preventDefault())
+      avatarOverlay.addEventListener('click', () => this._triggerAvatarUpload(wrapper))
+      avatarWrap.appendChild(avatarOverlay)
+    }
     card.appendChild(avatarWrap)
 
     // Info
@@ -413,26 +439,26 @@ export class Person extends BlockPluginAbstract {
 
     const name = document.createElement('div')
     name.className = 'oe-person__name'
-    name.contentEditable = 'true'
+    name.contentEditable = s.context.readOnly ? 'false' : 'true'
     name.dataset.placeholder = this._t('namePlaceholder', 'Name')
     if (person.name) name.innerHTML = sanitizeHtml(person.name)
-    this._setupEditable(name, 'name', false)
+    this._setupEditable(name, false)
     info.appendChild(name)
 
     const role = document.createElement('div')
     role.className = 'oe-person__role'
-    role.contentEditable = 'true'
+    role.contentEditable = s.context.readOnly ? 'false' : 'true'
     role.dataset.placeholder = this._t('rolePlaceholder', 'Role / Position')
     if (person.role) role.innerHTML = sanitizeHtml(person.role)
-    this._setupEditable(role, 'role', false)
+    this._setupEditable(role, false)
     info.appendChild(role)
 
     const bio = document.createElement('div')
     bio.className = 'oe-person__bio'
-    bio.contentEditable = 'true'
+    bio.contentEditable = s.context.readOnly ? 'false' : 'true'
     bio.dataset.placeholder = this._t('bioPlaceholder', 'Short bio...')
     if (person.bio) bio.innerHTML = sanitizeHtml(person.bio)
-    this._setupEditable(bio, 'bio', true)
+    this._setupEditable(bio, true)
     info.appendChild(bio)
 
     // Links
@@ -446,9 +472,9 @@ export class Person extends BlockPluginAbstract {
 
     const links = [...person.links]
     const hasEmptyLast = links.length > 0 && !links[links.length - 1]?.url.trim()
-    if (!hasEmptyLast) links.push({ type: 'website', url: '' })
+    if (!s.context.readOnly && !hasEmptyLast) links.push({ type: 'website', url: '' })
     links.forEach((link, i) => {
-      linksSection.appendChild(this._createLinkRow(wrapper, link, i, links.length))
+      linksSection.appendChild(this._createLinkRow(wrapper, link, i))
     })
 
     info.appendChild(linksSection)
@@ -461,10 +487,10 @@ export class Person extends BlockPluginAbstract {
 
   /**
    * @param {HTMLElement} el
-   * @param {string} _field
    * @param {boolean} allowMultiline
+   * @returns {void}
    */
-  _setupEditable(el, _field, allowMultiline) {
+  _setupEditable(el, allowMultiline) {
     el.addEventListener('keydown', (e) => {
       if (!allowMultiline && e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); return }
       if (!e.ctrlKey && !e.metaKey) e.stopPropagation()
@@ -474,7 +500,7 @@ export class Person extends BlockPluginAbstract {
     })
   }
 
-  /** @param {HTMLElement} wrapper */
+  /** @param {HTMLElement} wrapper @returns {void} */
   _syncActiveFromDom(wrapper) {
     const s = stateMap.get(wrapper)
     if (!s) return
@@ -504,10 +530,9 @@ export class Person extends BlockPluginAbstract {
    * @param {HTMLElement} wrapper
    * @param {{ type: string, url: string }} link
    * @param {number} index
-   * @param {number} totalCount
    * @returns {HTMLDivElement}
    */
-  _createLinkRow(wrapper, link, index, totalCount) {
+  _createLinkRow(wrapper, link, index) {
     const s = stateMap.get(wrapper)
     if (!s) return document.createElement('div')
 
@@ -527,7 +552,8 @@ export class Person extends BlockPluginAbstract {
     input.className = 'oe-person__link-url'
     input.placeholder = 'https://...'
     input.value = link.url
-    input.addEventListener('keydown', (e) => {
+    input.readOnly = s.context.readOnly
+    if (!s.context.readOnly) input.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
         e.preventDefault()
         e.stopPropagation()
@@ -541,7 +567,7 @@ export class Person extends BlockPluginAbstract {
 
     const person = /** @type {NonNullable<typeof s.data.persons[0]>} */ (s.data.persons[s.activeIdx])
     let grewAlready = false
-    input.addEventListener('input', () => {
+    if (!s.context.readOnly) input.addEventListener('input', () => {
       this._debouncedResolve(wrapper, index, input.value, iconEl)
       if (isEmptySlot && !grewAlready && input.value.trim()) {
         grewAlready = true
@@ -554,6 +580,7 @@ export class Person extends BlockPluginAbstract {
           removeBtn.type = 'button'
           removeBtn.className = 'oe-person__link-remove'
           removeBtn.innerHTML = ICON_REMOVE
+          removeBtn.setAttribute('aria-label', this._t('removeLink', 'Remove link'))
           removeBtn.addEventListener('mousedown', e => e.preventDefault())
           removeBtn.addEventListener('click', () => {
             s.context.mutate(() => {
@@ -564,20 +591,21 @@ export class Person extends BlockPluginAbstract {
           })
           row.appendChild(removeBtn)
         }
-        const newRow = this._createLinkRow(wrapper, { type: 'website', url: '' }, index + 1, totalCount + 1)
+        const newRow = this._createLinkRow(wrapper, { type: 'website', url: '' }, index + 1)
         row.parentElement?.appendChild(newRow)
       }
     })
-    input.addEventListener('paste', () => {
+    if (!s.context.readOnly) input.addEventListener('paste', () => {
       requestAnimationFrame(() => this._resolveIcon(wrapper, index, input.value, iconEl, person))
     })
     row.appendChild(input)
 
-    if (!isEmptySlot) {
+    if (!s.context.readOnly && !isEmptySlot) {
       const removeBtn = document.createElement('button')
       removeBtn.type = 'button'
       removeBtn.className = 'oe-person__link-remove'
       removeBtn.innerHTML = ICON_REMOVE
+      removeBtn.setAttribute('aria-label', this._t('removeLink', 'Remove link'))
       removeBtn.addEventListener('mousedown', e => e.preventDefault())
       removeBtn.addEventListener('click', () => {
         s.context.mutate(() => {
@@ -597,6 +625,7 @@ export class Person extends BlockPluginAbstract {
    * @param {number} index
    * @param {string} url
    * @param {HTMLElement} iconEl
+   * @returns {void}
    */
   _debouncedResolve(wrapper, index, url, iconEl) {
     const s = stateMap.get(wrapper)
@@ -610,9 +639,22 @@ export class Person extends BlockPluginAbstract {
     iconEl.querySelector('svg')?.classList.add('oe-person__spin')
     const timer = window.setTimeout(() => {
       s.debounceTimers.delete(key)
-      this._resolveIcon(wrapper, index, url, iconEl, targetPerson)
+      this._resolveIcon(wrapper, index, url, iconEl, targetPerson, key)
     }, 500)
     s.debounceTimers.set(key, timer)
+  }
+
+  /**
+   * Cancel every pending social-link resolver owned by one rendered block.
+   * Rebuilt or replaced cards resolve their current URLs synchronously, so a
+   * timer tied to a detached input must never update a later link at the same
+   * array index.
+   * @param {PersonState} state
+   * @returns {void}
+   */
+  _clearDebounceTimers(state) {
+    for (const timer of state.debounceTimers.values()) clearTimeout(timer)
+    state.debounceTimers.clear()
   }
 
   /**
@@ -621,17 +663,20 @@ export class Person extends BlockPluginAbstract {
    * @param {string} url
    * @param {HTMLElement} iconEl
    * @param {PersonData} targetPerson
+   * @param {string} [timerKey] Exact pending-timer key captured by the caller.
+   * @returns {void}
    */
-  _resolveIcon(wrapper, index, url, iconEl, targetPerson) {
+  _resolveIcon(wrapper, index, url, iconEl, targetPerson, timerKey) {
     const s = stateMap.get(wrapper)
     if (!s) return
-    const key = `${s.activeIdx}:${index}`
+    const personIndex = s.data.persons.indexOf(targetPerson)
+    if (personIndex < 0) return
+    const key = timerKey || `${personIndex}:${index}`
     const existing = s.debounceTimers.get(key)
     if (existing) { clearTimeout(existing); s.debounceTimers.delete(key) }
     const resolved = resolveSocialIcon(url, this._config.socialResolvers)
     iconEl.innerHTML = resolved.icon
     iconEl.dataset.type = resolved.type
-    if (!s.data.persons.includes(targetPerson)) return
     const personLink = targetPerson.links[index]
     if (personLink && personLink.type !== resolved.type) {
       s.context.mutate(() => { personLink.type = resolved.type })
@@ -640,7 +685,7 @@ export class Person extends BlockPluginAbstract {
 
   // ── Avatar upload ─────────────────────────────────────────────────────────
 
-  /** @param {HTMLElement} wrapper */
+  /** @param {HTMLElement} wrapper @returns {void} */
   _triggerAvatarUpload(wrapper) {
     const currentState = stateMap.get(wrapper)
     if (!currentState || currentState.context.readOnly) return
@@ -704,6 +749,7 @@ export class Person extends BlockPluginAbstract {
    * @param {HTMLElement} wrapper
    * @param {Blob} blob
    * @param {PersonData} targetPerson
+   * @returns {Promise<void>}
    */
   async _uploadAvatar(wrapper, blob, targetPerson) {
     if (!this._config.uploadFile) return

@@ -35,7 +35,14 @@ The registered block type is `table`. The class is also exported by the complete
 { "withHeadings": true, "content": [["Name", "Value"], ["A", "1"]] }
 ```
 
-`content` is a rectangular array of rows. Cells store sanitized inline HTML; table cells do not currently marshal inline widgets.
+### Field reference
+
+| Field | Required | Meaning and constraints |
+| --- | --- | --- |
+| `content` | yes | Non-empty rectangular array of rows with at least one column. Every cell must be a string. New tables start as a 3-by-3 grid. |
+| `withHeadings` | no | Boolean indicating whether the first row is a heading row; defaults to `false`. |
+
+Cells store sanitized inline HTML. Every cell supports the editor's enabled inline tools and persistent inline widgets; widget data is marshalled through the block-level `inline` map in the same way as other rich-text blocks.
 
 ## Configuration
 

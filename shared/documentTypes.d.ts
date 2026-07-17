@@ -16,7 +16,7 @@ export interface EditorBlockData<
   /**
    * Optional producer-owned content revision (or stable content hash).
    * When present, incremental renderers can compare blocks in O(1).
-   * The producer must change it whenever `data` or `inline` changes.
+   * The producer must change it whenever `data`, `tunes`, or `inline` changes.
    */
   revision?: string | number
   type: Type

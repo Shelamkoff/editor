@@ -99,5 +99,6 @@ test('embed and link preview validators apply their declared URL and enum polici
     url: 'https://example.com/page', title: '', description: '', image: '', favicon: '', domain: '', template: 'notion',
   }), true)
   assert.equal(validateLinkPreviewData({ url: 'mailto:user@example.com' }), false)
-  assert.equal(validateLinkPreviewData({ url: '/relative', template: 'unknown' }), false)
+  assert.equal(validateLinkPreviewData({ url: '/relative', template: 'notion' }), false)
+  assert.equal(validateLinkPreviewData({ url: '//example.com/page', template: 'notion' }), false)
 })

@@ -1,6 +1,6 @@
 /**
  * Create a TreeWalker that skips text nodes inside inline plugin widgets.
- * @param {Node} root
+ * @param {import('./types').DOMNode} root
  * @returns {TreeWalker}
  */
 export function editableTextWalker(root) {
@@ -14,34 +14,34 @@ export function editableTextWalker(root) {
 
 /**
  * Get the first text node inside a node.
- * @param {Node} node
- * @returns {Text | null}
+ * @param {import('./types').DOMNode} node
+ * @returns {import('./types').DOMText | null}
  */
 export function firstTextNode(node) {
-  if (node.nodeType === Node.TEXT_NODE) return /** @type {Text} */ (node)
+  if (node.nodeType === Node.TEXT_NODE) return /** @type {import('./types').DOMText} */ (node)
   const w = document.createTreeWalker(node, NodeFilter.SHOW_TEXT)
-  return /** @type {Text | null} */ (w.nextNode())
+  return /** @type {import('./types').DOMText | null} */ (w.nextNode())
 }
 
 /**
  * Get the last text node inside a node.
- * @param {Node} node
- * @returns {Text | null}
+ * @param {import('./types').DOMNode} node
+ * @returns {import('./types').DOMText | null}
  */
 export function lastTextNode(node) {
-  if (node.nodeType === Node.TEXT_NODE) return /** @type {Text} */ (node)
+  if (node.nodeType === Node.TEXT_NODE) return /** @type {import('./types').DOMText} */ (node)
   const w = document.createTreeWalker(node, NodeFilter.SHOW_TEXT)
   let last = null
   while (w.nextNode()) last = w.currentNode
-  return /** @type {Text | null} */ (last)
+  return /** @type {import('./types').DOMText | null} */ (last)
 }
 
 /**
  * Calculate character offset from the start of a container element.
  * Uses TreeWalker over text nodes — consistent with findNodeAtOffset().
  * Handles both text-node and element-node target positions.
- * @param {Node} container
- * @param {Node} targetNode
+ * @param {import('./types').DOMNode} container
+ * @param {import('./types').DOMNode} targetNode
  * @param {number} targetOffset
  * @returns {number}
  */
@@ -51,7 +51,7 @@ export function getTextOffset(container, targetNode, targetOffset) {
   if (targetNode.nodeType === Node.ELEMENT_NODE) {
     if (targetOffset < targetNode.childNodes.length) {
       // "Before child[targetOffset]" → resolve to (firstTextNodeInChild, 0)
-      const child = /** @type {Node} */ (targetNode.childNodes[targetOffset])
+      const child = /** @type {import('./types').DOMNode} */ (targetNode.childNodes[targetOffset])
       const first = firstTextNode(child)
       if (first) {
         targetNode = first
@@ -137,12 +137,12 @@ export function createRangeFromLastTextMatch(element, search) {
   if (!search) return null
 
   const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT)
-  /** @type {Text | null} */
+  /** @type {import('./types').DOMText | null} */
   let matchNode = null
   let matchOffset = -1
 
   while (walker.nextNode()) {
-    const node = /** @type {Text} */ (walker.currentNode)
+    const node = /** @type {import('./types').DOMText} */ (walker.currentNode)
     const offset = node.data.lastIndexOf(search)
     if (offset >= 0) {
       matchNode = node
@@ -159,8 +159,8 @@ export function createRangeFromLastTextMatch(element, search) {
 
 /**
  * Count total text content before a node in document order.
- * @param {Node} container
- * @param {Node} refNode
+ * @param {import('./types').DOMNode} container
+ * @param {import('./types').DOMNode} refNode
  * @returns {number}
  */
 function countTextBefore(container, refNode) {

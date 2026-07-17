@@ -40,11 +40,17 @@ The built-in names are case-sensitive:
 | `code` | inline code |
 | `marker` | highlighted text using `mark` |
 | `bgcolor` | background color |
-| `fontSize` | font size in pixels |
+| `fontSize` | integer font size from 1 to 200 pixels; presets are 12, 14, 16, 18, 20, 24, 28, 32, 40, 48, and 64 pixels; 16 pixels removes an explicit size |
 | `script` | superscript or subscript |
 | `align` | alignment of affected blocks |
-| `caseTransform` | text case transformation |
-| `clearFormatting` | remove supported inline formatting |
+| `caseTransform` | toggle selected cased Unicode letters between uppercase and lowercase; digits, punctuation, and uncased scripts are unchanged |
+| `clearFormatting` | remove `b`, `i`, `s`, `code`, `mark`, `span`, `em`, `strong`, `u`, `sup`, and `sub` formatting while preserving links, inline widgets, and block alignment |
+
+`align` is grouped with inline tools because it is exposed from the selection
+toolbar, but it does not wrap the selected text in markup. It changes the whole
+affected block and persists the value as `block.tunes.textAlign`. For Paragraph
+and Heading, the plugin-owned `data.align` field remains supported; the tune is
+the cross-plugin override when both values exist.
 
 An unknown string causes `createEditor()` to throw. If the array contains the same `type` more than once, the later object replaces the earlier implementation while retaining its first toolbar position. This permits `['bold', customBold]`; use duplicate types only for an intentional replacement.
 
@@ -139,6 +145,8 @@ const textColor = {
 
 Each completed choice calls `ctx.mutate()` once. Opening the panel, changing focus, or previewing a value must not create a history entry. Returning `null` from `renderActions()` tells Rector to fall back to `toggle()` for that activation.
 
+`InlineToolActionContext` also exposes `range`, `restoreSelection()`, `close()`, `showTooltip(anchor, label)`, and `hideTooltip()`. `range` is the cloned range that was active when the panel opened. Call `restoreSelection()` immediately before applying a DOM change, then wrap the completed change in one `mutate()` call. `close()` returns from the actions panel to the tool buttons. `showTooltip()` and `hideTooltip()` reuse Rector's accessible tooltip for controls inside the panel; they do not alter selection or history.
+
 ### Mounted controls and cleanup
 
 `onMount(button, mutations)` is intended for a tool that adds a dropdown or other long-lived DOM next to its button. A later dropdown action is outside the normal button-click wrapper, so it must call `mutations.mutate(range, operation)` once with the saved range. Return `true` from `isDropdownOpen()` while the overlay is active so Rector does not hide the toolbar.
@@ -201,17 +209,23 @@ interface InlinePlugin {
   mount?(rootElement: HTMLElement, ctx: InlinePluginContext): void
   hydrate(element: HTMLElement, ctx: InlinePluginContext): void
   getData(element: HTMLElement): Record<string, string>
+  isCommitted?(element: HTMLElement): boolean
   onPatternMatch?(match: string): Record<string, string>
   onEdit?(element: HTMLElement, text: string, ctx: InlinePluginContext): void
+  onCancel?(): void
   onCommit?(element: HTMLElement, data: Record<string, string>): void
   insertFresh?(ctx: InlinePluginContext): void
   destroy?(): void
 }
 ```
 
-`createWidget()` builds the widget and must preserve a supplied id as `data-id`. `mount()` acquires editor-scoped resources after the owning root and mutation context exist. `getData()` returns JSON-compatible strings for serialization. `hydrate()` attaches behavior to restored DOM. The optional trigger and pattern members support suggestion and automatic conversion flows; `insertFresh()` replaces the default programmatic insertion behavior. `destroy()` releases mounted resources and widget state when the editor is destroyed.
+`createWidget()` builds the widget and must preserve a supplied id as `data-id`. `mount()` acquires editor-scoped resources after the owning root and mutation context exist. `getData()` returns JSON-compatible strings for serialization. `hydrate()` attaches behavior to restored DOM. A `trigger` must be exactly one Unicode code point. `onEdit()` receives the text between that trigger and the caret; `onCancel()` closes plugin-owned transient UI when the caret leaves the session, Escape is pressed, the trigger is removed, or the editor is destroyed. Optional paste-pattern members support automatic conversion; `insertFresh()` replaces the default programmatic insertion behavior. `destroy()` releases mounted resources and widget state when the editor is destroyed.
+
+Implement `isCommitted(element)` when a widget has a temporary state that is visible while the user is searching or editing but is not yet valid document data. Return `false` only for that temporary state. During `save()`, Rector serializes the element's visible text as ordinary text and omits its `block.inline` entry. A committed widget must return `true` (or omit the method). This prevents autosave from producing an incomplete entity while keeping the user's typed query.
 
 One plugin object can hydrate many widget elements. Store element-specific state in a `WeakMap`. Use `ctx.showPopup()` and `ctx.hidePopup()` for owned overlays, and use `ctx.mutate(target, operation)` once per completed persistent change. The target must be the widget or one of its descendants so Rector can find the owner block.
+
+`InlinePluginContext.readOnly` reports the current interaction mode. Do not mount or activate mutating controls when it is `true`. `ctx.notifyChanged(target?)` tells Rector that plugin state changed outside `ctx.mutate()` so change observers can resave it; it does not create a history snapshot and is not a replacement for `ctx.mutate()`. Prefer `ctx.mutate()` for every user action that changes persistent data. Use `notifyChanged()` only after an already committed external update or a plugin flow whose command boundary is owned elsewhere, and pass an element inside the owning block whenever possible.
 
 ## Insert a widget from application code
 

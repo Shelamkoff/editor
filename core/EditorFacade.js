@@ -2,6 +2,24 @@ import { EditorEvent } from './editorEvents.js'
 import { hydrateInlinePlugins } from './hydrateInlinePlugins.js'
 import { insertInlinePluginAtCaret } from './inlinePluginInsert.js'
 
+/**
+ * @typedef {Object} EditorFacadeDeps
+ * @property {import('./types').IBlockManager} blocks Live block collection.
+ * @property {import('./types').ISelectionManager} selection Selection service.
+ * @property {import('./types').IEventBus} events Internal event bus.
+ * @property {string} defaultBlockType Fallback block type for insertions.
+ * @property {import('./CommandDispatcher').CommandDispatcher} commands Command boundary.
+ * @property {import('./DocumentSchema').DocumentSchema} documentSchema Document validator and migrator.
+ * @property {import('./Diagnostics').Diagnostics} diagnostics Diagnostic reporter.
+ * @property {import('./DocumentSnapshotStore').DocumentSnapshotStore} snapshots Document snapshot store.
+ * @property {import('./PublicEditorApi').EditorBlocksApi} publicBlocks Public block API.
+ * @property {import('./PublicEditorApi').EditorEventSubscriptions} publicEvents Public event subscriptions.
+ * @property {boolean} readOnly Initial interaction mode.
+ * @property {import('./types').IInlinePluginRegistry} [inlinePluginRegistry] Inline plugin registry.
+ * @property {import('./types').InlinePluginContext} [inlinePluginCtx] Inline plugin runtime context.
+ * @property {import('./types').ICrossBlockSelection} [crossBlockSelection] Cross-block selection service.
+ */
+
 export class EditorFacade {
   /** @type {HTMLElement} */
   #rootEl
@@ -42,7 +60,7 @@ export class EditorFacade {
   /** @type {Array<{ destroy(): void }>} */
   #destroyables = []
 
-  /** @type {import('./InlinePluginRegistry').InlinePluginRegistry | null} */
+  /** @type {import('./types').IInlinePluginRegistry | null} */
   #inlinePluginRegistry
 
   /** @type {import('./types').InlinePluginContext | null} */
@@ -51,38 +69,36 @@ export class EditorFacade {
   /** @type {import('./types').ICrossBlockSelection | null} */
   #crossBlockSelection
 
+  /** @type {import('./UndoManager').UndoManager | null} */
+  #history = null
+
+  /** @type {boolean} */
+  #readOnly
+
+  /** @type {((readOnly: boolean) => void) | null} */
+  #readOnlyTransition = null
+
   /**
    * @param {HTMLElement} rootEl
-   * @param {import('./types').IBlockManager} blocks
-   * @param {import('./types').ISelectionManager} selection
-   * @param {import('./types').IEventBus} events
-   * @param {string} defaultBlockType
-   * @param {import('./InlinePluginRegistry').InlinePluginRegistry} [inlinePluginRegistry]
-   * @param {import('./types').InlinePluginContext} [inlinePluginCtx]
-   * @param {import('./types').ICrossBlockSelection} [crossBlockSelection]
-   * @param {import('./CommandDispatcher').CommandDispatcher} commands
-   * @param {import('./DocumentSchema').DocumentSchema} documentSchema
-   * @param {import('./Diagnostics').Diagnostics} diagnostics
-   * @param {import('./DocumentSnapshotStore').DocumentSnapshotStore} snapshots
-   * @param {import('./PublicEditorApi').EditorBlocksApi} publicBlocks
-   * @param {import('./PublicEditorApi').EditorEventSubscriptions} publicEvents
+   * @param {EditorFacadeDeps} deps
    */
-  constructor(
-    rootEl,
-    blocks,
-    selection,
-    events,
-    defaultBlockType,
-    inlinePluginRegistry,
-    inlinePluginCtx,
-    crossBlockSelection,
-    commands,
-    documentSchema,
-    diagnostics,
-    snapshots,
-    publicBlocks,
-    publicEvents,
-  ) {
+  constructor(rootEl, deps) {
+    const {
+      blocks,
+      selection,
+      events,
+      defaultBlockType,
+      commands,
+      documentSchema,
+      diagnostics,
+      snapshots,
+      publicBlocks,
+      publicEvents,
+      readOnly,
+      inlinePluginRegistry,
+      inlinePluginCtx,
+      crossBlockSelection,
+    } = deps
     this.#rootEl = rootEl
     this.#blocks = blocks
     this.#selection = selection
@@ -97,6 +113,7 @@ export class EditorFacade {
     this.#inlinePluginRegistry = inlinePluginRegistry ?? null
     this.#inlinePluginCtx = inlinePluginCtx ?? null
     this.#crossBlockSelection = crossBlockSelection ?? null
+    this.#readOnly = readOnly
   }
 
   /**
@@ -105,6 +122,16 @@ export class EditorFacade {
    */
   registerDestroyable(module) {
     this.#destroyables.push(module)
+  }
+
+  /** @param {import('./UndoManager').UndoManager} history */
+  configureHistory(history) {
+    this.#history = history
+  }
+
+  /** @param {(readOnly: boolean) => void} transition */
+  configureReadOnlyTransition(transition) {
+    this.#readOnlyTransition = transition
   }
 
   /**
@@ -130,6 +157,42 @@ export class EditorFacade {
     return this.#rootEl
   }
 
+  get readOnly() {
+    return this.#readOnly
+  }
+
+  get canUndo() {
+    return !this.#readOnly && Boolean(this.#history?.canUndo)
+  }
+
+  get canRedo() {
+    return !this.#readOnly && Boolean(this.#history?.canRedo)
+  }
+
+  undo() {
+    if (this.#readOnly) return false
+    return this.#history?.undo() ?? false
+  }
+
+  redo() {
+    if (this.#readOnly) return false
+    return this.#history?.redo() ?? false
+  }
+
+  /** @param {boolean} readOnly */
+  setReadOnly(readOnly) {
+    if (typeof readOnly !== 'boolean') throw new TypeError('setReadOnly() requires a boolean')
+    if (readOnly === this.#readOnly) return
+    if (!this.#readOnlyTransition) throw new Error('Editor read-only transition is not configured')
+    this.#readOnlyTransition(readOnly)
+    this.#readOnly = readOnly
+    this.#events.emit(EditorEvent.READ_ONLY_CHANGED, { readOnly })
+    this.#events.emit(EditorEvent.HISTORY_CHANGED, {
+      canUndo: this.canUndo,
+      canRedo: this.canRedo,
+    })
+  }
+
   /**
    * Save editor content.
    *
@@ -150,8 +213,9 @@ export class EditorFacade {
    * Render data into the editor, replacing existing content.
    * @param {import('./types').EditorDocument} data
    * @param {{ blockId: string, offset: number }} [caret] - optional caret position to restore
+   * @param {{ focus?: boolean, notifyChange?: boolean }} [options]
    */
-  render(data, caret) {
+  render(data, caret, options = {}) {
     const startedAt = this.#diagnostics.enabled ? this.#diagnostics.now() : 0
     const normalized = this.#documentSchema.normalize(data)
     const replacement = this.#blocks.prepareReplacement(
@@ -179,7 +243,7 @@ export class EditorFacade {
       if (this.#crossBlockSelection) this.#crossBlockSelection.deactivate(this.#rootEl)
       this.#blocks.clearSelection()
 
-      replacement.commit()
+      replacement.commit({ notifyChange: options.notifyChange })
       this.#snapshots.setDocumentVersion(normalized.version)
 
       // Restore caret position
@@ -194,8 +258,11 @@ export class EditorFacade {
         }
       }
 
-      // Fallback: focus first block
+      // Mode transitions rebuild plugin DOM without stealing browser focus.
       this.#blocks.setCurrentIndex(0)
+      if (options.focus === false) return
+
+      // Fallback: focus first block
       const first = this.#blocks.getBlockByIndex(0)
       if (first) {
         first.focus()
@@ -243,7 +310,7 @@ export class EditorFacade {
    * @returns {boolean} whether editor DOM was changed
    */
   insertInlinePlugin(type, data = {}) {
-    if (!this.#inlinePluginRegistry || !this.#inlinePluginCtx) return false
+    if (this.#readOnly || !this.#inlinePluginRegistry || !this.#inlinePluginCtx) return false
 
     const selection = window.getSelection()
     const range = selection?.rangeCount ? selection.getRangeAt(0) : null
@@ -268,6 +335,11 @@ export class EditorFacade {
    * Destroy the editor and clean up all modules.
    */
   destroy() {
+    // Blocks own plugin-created DOM, listeners and external instances. Release
+    // them while plugin registries, shared styles and editor services are still
+    // alive; shared ownership is released by the destroyables below.
+    this.#blocks.clear()
+
     for (let i = this.#destroyables.length - 1; i >= 0; i--) {
       try {
         this.#destroyables[i]?.destroy()
@@ -280,8 +352,6 @@ export class EditorFacade {
       }
     }
     this.#destroyables = []
-
-    this.#blocks.clear()
     this.#events.emit(EditorEvent.DESTROYED)
     this.#events.clear()
 

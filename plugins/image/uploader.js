@@ -1,4 +1,3 @@
-import { CSS } from './css.js'
 import { sanitizeMediaUrl } from '../../shared/sanitize/sanitizeUrl.js'
 
 /**
@@ -6,18 +5,9 @@ import { sanitizeMediaUrl } from '../../shared/sanitize/sanitizeUrl.js'
  */
 
 /**
- * File upload pipeline for the Image plugin.
- *
- * Two paths:
- *  - configured `uploadFile`: send to backend, await `{ url }`, render.
- *  - no upload endpoint: read as data-URL via `FileReader`, render in place.
- *
- * Both paths set/clear the loading class on the wrapper and call `onResolve`
- * with the resolved URL on success. Failures are swallowed silently — image
- * data is not corrupted, the user can simply retry.
- *
- * The aborting/cleanup of any in-flight reader is delegated to ImageState's
- * `AbortController`, which the caller resets between renders.
+ * Resolve an image file through the consumer upload callback or a local data
+ * URL fallback. The caller owns visual loading state so an older operation
+ * cannot clear the indicator for a newer one. Failures leave data unchanged.
  */
 export class ImageUploader {
   /** @type {UploadFn | undefined} */
@@ -29,49 +19,46 @@ export class ImageUploader {
   }
 
   /**
-   * @param {HTMLElement} wrapper
-   * @param {File} file
-   * @param {(result: { url: string, alt?: string }) => void} onResolve
-   * @param {AbortSignal | undefined} signal
-   */
-  async handle(wrapper, file, onResolve, signal) {
-    if (signal?.aborted) return
-    if (this.#uploadFn) {
-      await this.#uploadRemote(wrapper, file, onResolve, signal)
-    } else {
-      await this.#readDataUrl(wrapper, file, onResolve, signal)
-    }
-  }
-
-  /**
-   * @param {HTMLElement} wrapper
-   * @param {File} file
-   * @param {(result: { url: string, alt?: string }) => void} onResolve
-   * @param {AbortSignal | undefined} signal
-   */
-  async #uploadRemote(wrapper, file, onResolve, signal) {
-    if (!this.#uploadFn) return
-    wrapper.classList.add(CSS.loading)
-    try {
-      const result = await this.#uploadFn(file, { signal: signal ?? new AbortController().signal })
-      const url = sanitizeMediaUrl(result?.url || '')
-      if (!signal?.aborted && url) onResolve({ url, alt: result?.alt })
-    } catch {
-      // Upload failed, keep current state.
-    } finally {
-      wrapper.classList.remove(CSS.loading)
-    }
-  }
-
-  /**
-   * @param {HTMLElement} wrapper
    * @param {File} file
    * @param {(result: { url: string, alt?: string }) => void} onResolve
    * @param {AbortSignal | undefined} signal
    * @returns {Promise<void>}
    */
-  #readDataUrl(wrapper, file, onResolve, signal) {
-    wrapper.classList.add(CSS.loading)
+  async handle(file, onResolve, signal) {
+    if (signal?.aborted) return
+    if (this.#uploadFn) {
+      await this.#uploadRemote(file, onResolve, signal)
+    } else {
+      await this.#readDataUrl(file, onResolve, signal)
+    }
+  }
+
+  /**
+   * @param {File} file
+   * @param {(result: { url: string, alt?: string }) => void} onResolve
+   * @param {AbortSignal | undefined} signal
+   * @returns {Promise<void>}
+   */
+  async #uploadRemote(file, onResolve, signal) {
+    if (!this.#uploadFn) return
+    try {
+      const result = await this.#uploadFn(file, { signal: signal ?? new AbortController().signal })
+      const url = sanitizeMediaUrl(result?.url || '')
+      if (!signal?.aborted && url) {
+        onResolve({ url, alt: typeof result?.alt === 'string' ? result.alt : undefined })
+      }
+    } catch {
+      // Upload failed or was cancelled; keep the current image data.
+    }
+  }
+
+  /**
+   * @param {File} file
+   * @param {(result: { url: string, alt?: string }) => void} onResolve
+   * @param {AbortSignal | undefined} signal
+   * @returns {Promise<void>}
+   */
+  #readDataUrl(file, onResolve, signal) {
     return new Promise((resolve) => {
       const reader = new FileReader()
       let settled = false
@@ -79,7 +66,6 @@ export class ImageUploader {
         if (settled) return
         settled = true
         signal?.removeEventListener('abort', abort)
-        wrapper.classList.remove(CSS.loading)
         resolve()
       }
       const abort = () => reader.abort()
@@ -87,7 +73,8 @@ export class ImageUploader {
 
       reader.onload = () => {
         try {
-          if (!signal?.aborted && typeof reader.result === 'string') onResolve({ url: reader.result })
+          const url = typeof reader.result === 'string' ? sanitizeMediaUrl(reader.result) : ''
+          if (!signal?.aborted && url) onResolve({ url })
         } finally {
           finish()
         }

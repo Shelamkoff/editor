@@ -3,9 +3,11 @@
  * @typedef {import('./types').InlinePluginContext} InlinePluginContext
  */
 
+/** @typedef {import('./types').IInlinePluginRegistry} IInlinePluginRegistryContract */
 /**
  * Registry for inline plugins (widgets inside text blocks).
  * Inline plugins are different from block plugins (full blocks) and inline tools (text formatting).
+ * @implements {IInlinePluginRegistryContract}
  */
 export class InlinePluginRegistry {
   /** @type {Map<string, InlinePlugin>} */
@@ -38,7 +40,10 @@ export class InlinePluginRegistry {
     if (this.#plugins.has(plugin.type)) {
       throw new Error(`Duplicate inline plugin type: "${plugin.type}"`)
     }
-    if (plugin.trigger) {
+    if (plugin.trigger !== undefined) {
+      if (typeof plugin.trigger !== 'string' || Array.from(plugin.trigger).length !== 1) {
+        throw new TypeError(`Inline plugin "${plugin.type}" trigger must be exactly one Unicode code point`)
+      }
       if (this.#triggers.has(plugin.trigger)) {
         throw new Error(`Duplicate inline plugin trigger: "${plugin.trigger}"`)
       }

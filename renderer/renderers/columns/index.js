@@ -1,5 +1,6 @@
 // @ts-check
 import { resolvePath } from '../../../shared/resolvePath.js'
+import { mapColumnsTextFields as mapTextFields } from '../../../shared/mapTextFields.js'
 
 const styles = resolvePath('./styles.css', import.meta.url)
 
@@ -14,12 +15,14 @@ const LAYOUT_GRIDS = {
 /**
  * Columns layout block renderer
  * @param {string} classPrefix
+ * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} _locale
  * @returns {import('../../types').BlockRenderer<import('../../types').ColumnsBlock>}
  */
 export function createColumnsRenderer(classPrefix, _locale) {
     return {
         type: 'columns',
         styles: [styles],
+        mapTextFields,
 
         /**
          * @param {import('../../types').ColumnsBlock} block

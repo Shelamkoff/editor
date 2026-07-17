@@ -2,6 +2,7 @@ import { resolvePath } from '../../shared/resolvePath.js'
 import { sanitizeUrl, setSafeUrlAttribute } from '../../shared/sanitize/sanitizeUrl.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { validateLinkPreviewData } from '../../shared/blockDataValidators.js'
+import { normalizeTextValue } from '../../shared/textFormat.js'
 
 const editorStyles = resolvePath('./link-preview.css', import.meta.url)
 
@@ -38,6 +39,7 @@ function renderUrlIcon(iconEl, favicon) {
   iconEl.appendChild(img)
 }
 const TEMPLATES = ['horizontal', 'compact', 'large-top', 'minimal', 'twitter', 'notion', 'split']
+let templatePanelSequence = 0
 
 // Mini SVG icons for template selector (schematic layouts)
 /** @type {Record<string, string>} */
@@ -54,25 +56,25 @@ const TEMPLATE_ICONS = {
 const P = 'oe-lp' // CSS prefix
 
 /**
- * @typedef {{
- *   title?: string,
- *   description?: string,
- *   image?: string,
- *   favicon?: string,
- *   domain?: string,
- * }} LinkPreviewMeta
- * @typedef {{
- *   fetchMeta?: (url: string, context: { signal: AbortSignal }) => Promise<LinkPreviewMeta>,
- *   injectStyles?: boolean,
- *   css?: string,
- * }} LinkPreviewConfig
+ * @typedef {Object} LinkPreviewMeta
+ * @property {string} [title] Human-readable page title.
+ * @property {string} [description] Plain-text page summary.
+ * @property {string} [image] Absolute or media-safe preview image URL.
+ * @property {string} [favicon] Absolute or media-safe site icon URL.
+ * @property {string} [domain] Display domain; the plugin derives it from the URL when omitted.
+ * @typedef {Object} LinkPreviewConfig
+ * @property {(url: string, context: { signal: AbortSignal }) => Promise<LinkPreviewMeta>} [fetchMeta] Resolves metadata for a sanitized external HTTP(S) URL. Without it the card uses URL-derived fields only and performs no metadata request.
+ * @property {boolean} [injectStyles=true] Whether the editor should load the built-in link-preview stylesheet.
+ * @property {string} [css] Additional stylesheet URL, or the replacement URL when `injectStyles` is `false`.
  */
 
 /**
  * @typedef {{
  *   data: { url: string, title: string, description: string, image: string, favicon: string, domain: string, template: string },
  *   wrapper: HTMLDivElement,
- *   abortController: AbortController | null,
+ *   lifecycleController: AbortController,
+ *   requestController: AbortController | null,
+ *   pendingUrl: string | null,
  *   urlIconEl: HTMLElement | null,
  *   inputTimer: ReturnType<typeof setTimeout> | null,
  *   context: import('../../core/types').BlockMutationContext,
@@ -83,7 +85,11 @@ const P = 'oe-lp' // CSS prefix
 const stateMap = new WeakMap()
 
 
-/** @extends {BlockPluginAbstract<LinkPreviewConfig>} */
+/**
+ * Rich external-link card with optional metadata resolution and selectable
+ * presentation templates.
+ * @extends {BlockPluginAbstract<LinkPreviewConfig>}
+ */
 export class LinkPreview extends BlockPluginAbstract {
   static isTextBlock = false
   static styles = [editorStyles]
@@ -91,29 +97,45 @@ export class LinkPreview extends BlockPluginAbstract {
   icon = ICON
   inlineTools = false
 
-  /** @param {LinkPreviewConfig} [config] */
+  /**
+   * Create a LinkPreview instance with the supplied consumer configuration.
+   * @param {LinkPreviewConfig} [config]
+   */
   constructor(config) {
     super(config)
   }
 
   pasteConfig = { patterns: [/^https?:\/\/[^\s]+$/i] }
 
+  /**
+   * Return the localized toolbox label for this block.
+   * @returns {string} Localized toolbox title.
+   */
   get title() { return this._t('title', 'Link Preview') }
 
+  /** Create an empty, serializable link-preview value. @returns {LinkPreviewState['data']} */
   _defaultData() {
     return { url: '', title: '', description: '', image: '', favicon: '', domain: '', template: 'notion' }
   }
-
-  /** @param {Record<string, unknown>} data */
+  /**
+   * Create the editable DOM owned by this block instance.
+   * @param {Record<string, unknown>} data
+   * @param {import('../../core/types').BlockMutationContext} context
+   * @returns {HTMLElement}
+   */
   render(data, context) {
     const parsedData = {
-      url: sanitizeUrl(String(data?.url || ''), { policy: 'external', fallback: '' }),
-      title: String(data?.title || ''),
-      description: String(data?.description || ''),
-      image: sanitizeUrl(String(data?.image || ''), { policy: 'media', fallback: '' }),
-      favicon: sanitizeUrl(String(data?.favicon || ''), { policy: 'media', fallback: '' }),
-      domain: String(data?.domain || ''),
-      template: TEMPLATES.includes(/** @type {string} */ (data?.template)) ? String(data.template) : 'notion',
+      url: sanitizeUrl(normalizeTextValue(data?.url), {
+        policy: 'external', allowRelative: false, fallback: '',
+      }),
+      title: normalizeTextValue(data?.title),
+      description: normalizeTextValue(data?.description),
+      image: sanitizeUrl(normalizeTextValue(data?.image), { policy: 'media', fallback: '' }),
+      favicon: sanitizeUrl(normalizeTextValue(data?.favicon), { policy: 'media', fallback: '' }),
+      domain: normalizeTextValue(data?.domain),
+      template: TEMPLATES.includes(/** @type {string} */ (data?.template))
+        ? normalizeTextValue(data.template)
+        : 'notion',
     }
 
     const wrapper = document.createElement('div')
@@ -124,7 +146,9 @@ export class LinkPreview extends BlockPluginAbstract {
     stateMap.set(wrapper, {
       data: parsedData,
       wrapper,
-      abortController: null,
+      lifecycleController: new AbortController(),
+      requestController: null,
+      pendingUrl: null,
       urlIconEl: null,
       inputTimer: null,
       context,
@@ -133,14 +157,20 @@ export class LinkPreview extends BlockPluginAbstract {
     this._renderUrlBar(wrapper)
     if (parsedData.url) {
       this._renderCard(wrapper)
-      this._renderActions(wrapper)
+      if (!context.readOnly) this._renderActions(wrapper)
       wrapper.classList.add(`${P}--filled`)
 
       // If URL is set but metadata is missing, fetch it now (covers paste-as-block path)
-      if (this._config.fetchMeta && !parsedData.title && !parsedData.image && !parsedData.favicon) {
-        this._loadMeta(wrapper, parsedData.url).then(() => {
+      if (!context.readOnly && this._config.fetchMeta && !parsedData.title && !parsedData.image && !parsedData.favicon) {
+        this._resolveMeta(wrapper, parsedData.url).then(meta => {
+          if (!meta) return
           const st = stateMap.get(wrapper)
           if (!st || st.data.url !== parsedData.url) return
+          const committed = st.context.mutate(() => {
+            this._applyMeta(st, meta)
+            return true
+          })
+          if (!committed) return
           if (st.urlIconEl) renderUrlIcon(st.urlIconEl, st.data.favicon)
           // Re-render only the card, keep actions/dropdown
           wrapper.querySelector(`.${P}__card`)?.remove()
@@ -154,35 +184,53 @@ export class LinkPreview extends BlockPluginAbstract {
     return wrapper
   }
 
-  /** @param {HTMLElement} element */
+  /**
+   * Serialize the current block DOM into document data.
+   * @param {HTMLElement} element @returns {LinkPreviewState['data']}
+   */
   save(element) {
     const s = stateMap.get(element)
     if (!s) return this._defaultData()
     return { ...s.data }
   }
 
-  /** @param {Record<string, unknown>} d */
+  /**
+   * Check whether serialized data satisfies this block's schema.
+   * @param {Record<string, unknown>} d @returns {boolean}
+   */
   validate(d) { return validateLinkPreviewData(d) }
 
-  /** @param {HTMLElement} element */
+  /**
+   * Check whether the block has no meaningful user content.
+   * @param {HTMLElement} element @returns {boolean}
+   */
   isEmpty(element) {
     const s = stateMap.get(element)
     if (!s) return true
     return !s.data.url
   }
 
-  /** @param {HTMLElement} element */
+  /**
+   * Extract neutral text that can initialize another block type.
+   * @param {HTMLElement} element @returns {{ text: string }}
+   */
   exportData(element) {
     const s = stateMap.get(element)
     if (!s) return { text: '' }
     return { text: s.data.title || s.data.url || '' }
   }
 
-  /** @param {import('../../types').PasteEvent} event */
+  /**
+   * Handle supported pasted content for this block.
+   * @param {import('../../types').PasteEvent} event
+   * @returns {LinkPreviewState['data'] | null}
+   */
   onPaste(event) {
     if (event.type === 'pattern') {
-      const url = String(event.data)
-      if (url && /^https?:\/\/.+/i.test(url)) {
+      const url = sanitizeUrl(String(event.data), {
+        policy: 'external', allowRelative: false, fallback: '',
+      })
+      if (url) {
         const d = { ...this._defaultData(), url }
         try { d.domain = new URL(url).hostname } catch {}
         // Metadata fetch is triggered in render() when title is empty —
@@ -193,32 +241,28 @@ export class LinkPreview extends BlockPluginAbstract {
     return null
   }
 
-  /** @param {HTMLElement} element */
+  /**
+   * Release listeners and resources owned by this block element.
+   * @param {HTMLElement} element @returns {void}
+   */
   destroy(element) {
     const s = stateMap.get(element)
     if (s) {
-      s.abortController?.abort()
+      s.lifecycleController.abort()
+      s.requestController?.abort()
+      s.pendingUrl = null
       if (s.inputTimer) clearTimeout(s.inputTimer)
       stateMap.delete(element)
     }
   }
 
-  /** @param {HTMLElement} wrapper */
-  _cleanup(wrapper) {
-    const s = stateMap.get(wrapper)
-    if (!s) return
-    s.abortController?.abort()
-    s.abortController = new AbortController()
-  }
-
   // ── URL Bar ─────────────────────────────────────────────────────────────────
 
-  /** @param {HTMLElement} wrapper */
+  /** @param {HTMLElement} wrapper @returns {void} */
   _renderUrlBar(wrapper) {
     const s = stateMap.get(wrapper)
     if (!s) return
-    this._cleanup(wrapper)
-    const signal = /** @type {AbortController} */ (s.abortController).signal
+    const signal = s.lifecycleController.signal
 
     const bar = document.createElement('div')
     bar.className = `${P}__url-bar`
@@ -235,43 +279,53 @@ export class LinkPreview extends BlockPluginAbstract {
     input.placeholder = this._t('placeholder', 'Paste a link...')
     if (s.data.url) input.value = s.data.url
 
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault(); e.stopPropagation()
+    input.readOnly = s.context.readOnly
+    if (!s.context.readOnly) {
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault(); e.stopPropagation()
+          if (s.inputTimer) { clearTimeout(s.inputTimer); s.inputTimer = null }
+          this._processUrl(wrapper, input.value.trim())
+          return
+        }
+        // Let modifier combos (Ctrl+Z, Ctrl+A, etc.) bubble to ShortcutRegistry
+        if (!e.ctrlKey && !e.metaKey) e.stopPropagation()
+      }, { signal })
+      input.addEventListener('paste', (e) => {
+        e.stopPropagation()
+        if (s.inputTimer) { clearTimeout(s.inputTimer); s.inputTimer = null }
+        requestAnimationFrame(() => this._processUrl(wrapper, input.value.trim()))
+      }, { signal })
+      input.addEventListener('input', () => {
         if (s.inputTimer) clearTimeout(s.inputTimer)
-        this._processUrl(wrapper, input.value.trim())
-        return
-      }
-      // Let modifier combos (Ctrl+Z, Ctrl+A, etc.) bubble to ShortcutRegistry
-      if (!e.ctrlKey && !e.metaKey) e.stopPropagation()
-    }, { signal })
-    input.addEventListener('paste', (e) => {
-      e.stopPropagation()
-      if (s.inputTimer) clearTimeout(s.inputTimer)
-      requestAnimationFrame(() => this._processUrl(wrapper, input.value.trim()))
-    }, { signal })
-    input.addEventListener('input', () => {
-      if (s.inputTimer) clearTimeout(s.inputTimer)
-      s.inputTimer = setTimeout(() => { s.inputTimer = null; this._processUrl(wrapper, input.value.trim()) }, 500)
-    }, { signal })
+        s.inputTimer = setTimeout(() => { s.inputTimer = null; this._processUrl(wrapper, input.value.trim()) }, 500)
+      }, { signal })
+    }
 
     bar.appendChild(input)
     wrapper.appendChild(bar)
 
-    if (!s.data.url) requestAnimationFrame(() => input.focus())
+    if (!s.context.readOnly && !s.data.url) requestAnimationFrame(() => input.focus())
   }
 
   /**
    * @param {HTMLElement} wrapper
    * @param {string} url
+   * @returns {void}
    */
   _processUrl(wrapper, url) {
     const s = stateMap.get(wrapper)
-    if (!s) return
+    if (!s || s.context.readOnly) return
     const iconEl = s.urlIconEl
     if (!iconEl) return
 
-    if (!url || !/^https?:\/\/.+/i.test(url)) {
+    const safeUrl = sanitizeUrl(url, {
+      policy: 'external', allowRelative: false, fallback: '',
+    })
+    if (!safeUrl) {
+      s.requestController?.abort()
+      s.requestController = null
+      s.pendingUrl = null
       if (s.data.url) {
         s.context.mutate(() => {
           s.data = { ...this._defaultData(), template: s.data.template }
@@ -282,51 +336,124 @@ export class LinkPreview extends BlockPluginAbstract {
       return
     }
 
-    if (url === s.data.url) return
-
-    s.context.mutate(() => {
+    const metadataMissing = !s.data.title && !s.data.image && !s.data.favicon
+    if (safeUrl === s.data.url) {
+      if (!this._config.fetchMeta || !metadataMissing) return
       iconEl.innerHTML = ICON_LOADER
-      s.data.url = url
-      try { s.data.domain = new URL(url).hostname } catch {}
-    })
+      this._resolveMeta(wrapper, safeUrl).then(meta => {
+        if (!meta) return
+        const current = stateMap.get(wrapper)
+        if (!current || current.data.url !== safeUrl) return
+        const committed = current.context.mutate(() => {
+          this._applyMeta(current, meta)
+          return true
+        })
+        if (committed) this._renderResolvedUrl(wrapper, safeUrl)
+      })
+      return
+    }
 
-    this._loadMeta(wrapper, url).then(() => {
-      const st = stateMap.get(wrapper)
-      if (!st) return
-      if (st.urlIconEl) renderUrlIcon(st.urlIconEl, st.data.favicon)
-      this._removeCardElements(wrapper)
-      this._renderCard(wrapper)
-      this._renderActions(wrapper)
-      wrapper.classList.add(`${P}--filled`)
+    iconEl.innerHTML = this._config.fetchMeta ? ICON_LOADER : ICON_FORMS
+    this._resolveMeta(wrapper, safeUrl).then(meta => {
+      if (!meta) return
+      const current = stateMap.get(wrapper)
+      if (!current) return
+      const committed = current.context.mutate(() => {
+        const template = current.data.template
+        current.data = { ...this._defaultData(), template, url: safeUrl }
+        try { current.data.domain = new URL(safeUrl).hostname } catch {}
+        this._applyMeta(current, meta)
+        return true
+      })
+      if (committed) this._renderResolvedUrl(wrapper, safeUrl)
     })
+  }
+
+  /**
+   * Refresh the card after the current URL has finished resolving.
+   * @param {HTMLElement} wrapper
+   * @param {string} url
+   * @returns {void}
+   */
+  _renderResolvedUrl(wrapper, url) {
+    const s = stateMap.get(wrapper)
+    if (!s || s.data.url !== url) return
+    if (s.urlIconEl) renderUrlIcon(s.urlIconEl, s.data.favicon)
+    this._removeCardElements(wrapper)
+    this._renderCard(wrapper)
+    this._renderActions(wrapper)
+    wrapper.classList.add(`${P}--filled`)
   }
 
   /**
    * @param {HTMLElement} wrapper
    * @param {string} url
+   * Resolve and normalize metadata without changing serialized block data.
+   * A `null` result means the request was superseded or the block was removed.
+   * Network and application errors still resolve to an empty object so the
+   * sanitized URL can be committed as one complete user action.
+   * @returns {Promise<LinkPreviewMeta | null>}
    */
-  async _loadMeta(wrapper, url) {
-    if (!this._config.fetchMeta) return
+  async _resolveMeta(wrapper, url) {
     const s = stateMap.get(wrapper)
-    if (!s || s.context.readOnly) return
-    const signal = s.abortController?.signal ?? new AbortController().signal
+    if (!s || s.context.readOnly) return null
+    s.requestController?.abort()
+    s.requestController = null
+    s.pendingUrl = url
+    if (!this._config.fetchMeta) {
+      s.pendingUrl = null
+      return {}
+    }
+    const controller = new AbortController()
+    s.requestController = controller
+    const signal = controller.signal
     try {
       const meta = await this._config.fetchMeta(url, { signal })
-      if (meta && stateMap.get(wrapper) === s && s.data.url === url) {
-        s.context.mutate(() => {
-          s.data.title = meta.title || ''
-          s.data.description = meta.description || ''
-          s.data.image = sanitizeUrl(meta.image || '', { policy: 'media', fallback: '' })
-          s.data.favicon = sanitizeUrl(meta.favicon || '', { policy: 'media', fallback: '' })
-          if (meta.domain) s.data.domain = meta.domain
-        })
+      if (signal.aborted || stateMap.get(wrapper) !== s || s.pendingUrl !== url) return null
+      const source = meta && typeof meta === 'object' ? meta : {}
+      /** @type {LinkPreviewMeta} */
+      const normalized = {}
+      if (Object.hasOwn(source, 'title')) normalized.title = normalizeTextValue(source.title)
+      if (Object.hasOwn(source, 'description')) normalized.description = normalizeTextValue(source.description)
+      if (Object.hasOwn(source, 'image')) {
+        normalized.image = sanitizeUrl(normalizeTextValue(source.image), { policy: 'media', fallback: '' })
       }
+      if (Object.hasOwn(source, 'favicon')) {
+        normalized.favicon = sanitizeUrl(normalizeTextValue(source.favicon), { policy: 'media', fallback: '' })
+      }
+      if (Object.hasOwn(source, 'domain')) normalized.domain = normalizeTextValue(source.domain)
+      return normalized
     } catch (err) {
       if (!signal.aborted) console.warn('[LinkPreview] Failed to fetch meta for', url, err)
+      return !signal.aborted && stateMap.get(wrapper) === s && s.pendingUrl === url ? {} : null
+    } finally {
+      if (s.requestController === controller) s.requestController = null
+      if (s.pendingUrl === url) s.pendingUrl = null
     }
   }
 
-  /** @param {HTMLElement} wrapper */
+  /**
+   * Apply already-normalized metadata to the current state.
+   * @param {LinkPreviewState} state
+   * @param {LinkPreviewMeta} meta
+   * @returns {void}
+   */
+  _applyMeta(state, meta) {
+    if (meta.title !== undefined) state.data.title = normalizeTextValue(meta.title)
+    if (meta.description !== undefined) state.data.description = normalizeTextValue(meta.description)
+    if (meta.image !== undefined) {
+      state.data.image = sanitizeUrl(normalizeTextValue(meta.image), { policy: 'media', fallback: '' })
+    }
+    if (meta.favicon !== undefined) {
+      state.data.favicon = sanitizeUrl(normalizeTextValue(meta.favicon), { policy: 'media', fallback: '' })
+    }
+    if (meta.domain !== undefined) {
+      const domain = normalizeTextValue(meta.domain)
+      if (domain) state.data.domain = domain
+    }
+  }
+
+  /** @param {HTMLElement} wrapper @returns {void} */
   _removeCardElements(wrapper) {
     wrapper.querySelector(`.${P}__card`)?.remove()
     wrapper.querySelector(`.${P}__actions`)?.remove()
@@ -335,7 +462,7 @@ export class LinkPreview extends BlockPluginAbstract {
 
   // ── Card ────────────────────────────────────────────────────────────────────
 
-  /** @param {HTMLElement} wrapper */
+  /** @param {HTMLElement} wrapper @returns {void} */
   _renderCard(wrapper) {
     const s = stateMap.get(wrapper)
     if (!s) return
@@ -344,10 +471,19 @@ export class LinkPreview extends BlockPluginAbstract {
 
     const card = document.createElement('a')
     card.className = `${P}__card ${P}__card--${tpl}`
-    setSafeUrlAttribute(card, 'href', s.data.url, 'external')
+    const href = sanitizeUrl(s.data.url, {
+      policy: 'external', allowRelative: false, fallback: '',
+    })
+    if (href) card.href = href
     card.target = '_blank'
     card.rel = 'noopener noreferrer'
-    card.addEventListener('click', (e) => e.stopPropagation())
+    card.addEventListener('click', (event) => {
+      event.stopPropagation()
+      // Opening the destination while the user is selecting or configuring
+      // the block would leave the editor unexpectedly. The same card remains
+      // a normal link in read-only mode and in the document renderer.
+      if (!s.context.readOnly) event.preventDefault()
+    })
 
     const content = document.createElement('div')
     content.className = `${P}__content`
@@ -396,14 +532,14 @@ export class LinkPreview extends BlockPluginAbstract {
       imgWrap.className = `${P}__image`
       const img = document.createElement('img')
       setSafeUrlAttribute(img, 'src', s.data.image, 'media')
-      img.alt = ''
+      img.alt = s.data.title || ''
       img.loading = 'lazy'
       imgWrap.appendChild(img)
       card.appendChild(imgWrap)
     }
 
     // Notion: large favicon
-    if (tpl === 'notion') {
+    if (tpl === 'notion' && s.data.favicon) {
       const bigFav = document.createElement('img')
       bigFav.className = `${P}__favicon-large`
       setSafeUrlAttribute(bigFav, 'src', s.data.favicon || '', 'media')
@@ -418,11 +554,11 @@ export class LinkPreview extends BlockPluginAbstract {
 
   // ── Actions ─────────────────────────────────────────────────────────────────
 
-  /** @param {HTMLElement} wrapper */
+  /** @param {HTMLElement} wrapper @returns {void} */
   _renderActions(wrapper) {
     const s = stateMap.get(wrapper)
-    if (!s) return
-    const signal = s.abortController?.signal
+    if (!s || s.context.readOnly) return
+    const signal = s.lifecycleController.signal
 
     const actions = document.createElement('div')
     actions.className = `${P}__actions`
@@ -435,13 +571,20 @@ export class LinkPreview extends BlockPluginAbstract {
     settingsBtn.type = 'button'
     settingsBtn.className = `${P}__action-btn`
     settingsBtn.innerHTML = `${ICON_SETTINGS} ${this._t('settings', 'Settings')}`
+    settingsBtn.setAttribute('aria-haspopup', 'true')
+    settingsBtn.setAttribute('aria-expanded', 'false')
 
     const panel = this._buildTemplatePanel(wrapper, signal)
+    panel.id = `oe-link-preview-template-panel-${++templatePanelSequence}`
+    panel.setAttribute('role', 'group')
+    panel.setAttribute('aria-label', this._t('template', 'Template'))
+    settingsBtn.setAttribute('aria-controls', panel.id)
 
     settingsBtn.addEventListener('mousedown', (e) => e.preventDefault(), { signal })
     settingsBtn.addEventListener('click', (e) => {
       e.stopPropagation()
       const open = dropdown.classList.toggle(`${P}__dropdown--open`)
+      settingsBtn.setAttribute('aria-expanded', String(open))
       if (open) {
         const r = settingsBtn.getBoundingClientRect()
         const h = panel.offsetHeight || 200
@@ -451,7 +594,18 @@ export class LinkPreview extends BlockPluginAbstract {
     }, { signal })
 
     document.addEventListener('click', (e) => {
-      if (!dropdown.contains(/** @type {Node} */ (e.target))) dropdown.classList.remove(`${P}__dropdown--open`)
+      if (!dropdown.contains(/** @type {Node} */ (e.target))) {
+        dropdown.classList.remove(`${P}__dropdown--open`)
+        settingsBtn.setAttribute('aria-expanded', 'false')
+      }
+    }, { signal })
+    dropdown.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape' || !dropdown.classList.contains(`${P}__dropdown--open`)) return
+      event.preventDefault()
+      event.stopPropagation()
+      dropdown.classList.remove(`${P}__dropdown--open`)
+      settingsBtn.setAttribute('aria-expanded', 'false')
+      settingsBtn.focus()
     }, { signal })
 
     dropdown.append(settingsBtn, panel)
@@ -474,9 +628,13 @@ export class LinkPreview extends BlockPluginAbstract {
       if (!st) return
       st.context.mutate(() => {
         if (st.inputTimer) clearTimeout(st.inputTimer)
+        st.inputTimer = null
+        st.requestController?.abort()
+        st.requestController = null
+        st.pendingUrl = null
         st.data = this._defaultData()
         this._removeCardElements(wrapper)
-        if (st.urlIconEl) st.urlIconEl.innerHTML = ICON
+        if (st.urlIconEl) st.urlIconEl.innerHTML = ICON_FORMS
         const inp = wrapper.querySelector(`.${P}__url-input`)
         if (inp) { /** @type {HTMLInputElement} */ (inp).value = ''; /** @type {HTMLInputElement} */ (inp).focus() }
       })
@@ -489,6 +647,7 @@ export class LinkPreview extends BlockPluginAbstract {
   /**
    * @param {HTMLElement} wrapper
    * @param {AbortSignal} [signal]
+   * @returns {HTMLElement}
    */
   _buildTemplatePanel(wrapper, signal) {
     const s = stateMap.get(wrapper)

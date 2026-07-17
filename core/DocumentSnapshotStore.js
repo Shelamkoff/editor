@@ -127,7 +127,7 @@ export class DocumentSnapshotStore {
     }
 
     if (typeof block.plugin.validate === 'function') {
-      let valid = false
+      let valid
       try {
         valid = block.plugin.validate(snapshot.data)
       } catch {

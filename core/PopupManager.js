@@ -1,8 +1,9 @@
+/** @typedef {import('./types').InlinePluginContext} InlinePluginContextContract */
 /**
  * Manages floating popups for inline plugins (color picker, etc.).
  * Positions popup near an anchor element, handles outside-click dismissal.
  *
- * Implements InlinePluginContext (showPopup, hidePopup, notifyChanged).
+ * @implements {InlinePluginContextContract}
  */
 export class PopupManager {
   /** @type {HTMLElement | null} */
@@ -29,17 +30,26 @@ export class PopupManager {
   /** @type {import('./CommandDispatcher').CommandDispatcher} */
   #mutations
 
+  /** @type {() => boolean} */
+  #isReadOnly
+
   /**
    * @param {import('./types').IEventBus} events
    * @param {string} changedEvent
    * @param {import('./types').IBlockManager} blocks
    * @param {import('./CommandDispatcher').CommandDispatcher} commands
+   * @param {() => boolean} [isReadOnly]
    */
-  constructor(events, changedEvent, blocks, commands) {
+  constructor(events, changedEvent, blocks, commands, isReadOnly = () => false) {
     this.#events = events
     this.#changedEvent = /** @type {*} */ (changedEvent)
     this.#blocks = blocks
     this.#mutations = commands
+    this.#isReadOnly = isReadOnly
+  }
+
+  get readOnly() {
+    return this.#isReadOnly()
   }
 
   /**
@@ -57,6 +67,10 @@ export class PopupManager {
    * @param {(() => void) | undefined} cleanup
    */
   showPopup(anchor, content, cleanup) {
+    if (this.readOnly) {
+      this.#runCleanup(cleanup)
+      return
+    }
     this.hidePopup()
 
     const popup = document.createElement('div')
@@ -88,8 +102,10 @@ export class PopupManager {
     queueMicrotask(() => {
       if (this.#activePopup !== popup) return
       this.#outsideClickHandler = (/** @type {MouseEvent} */ e) => {
-        if (popup.contains(/** @type {Node} */ (e.target))) return
-        if (anchor.contains(/** @type {Node} */ (e.target))) return
+        const target = e.target
+        if (!(target instanceof Node)) return
+        if (popup.contains(target)) return
+        if (anchor.contains(target)) return
         this.hidePopup()
       }
       document.addEventListener('mousedown', this.#outsideClickHandler, true)
@@ -108,13 +124,19 @@ export class PopupManager {
 
     const cleanup = this.#activeCleanup
     this.#activeCleanup = null
-    if (cleanup) {
-      try {
-        cleanup()
-      } catch (error) {
-        // A plugin disposer must not prevent the rest of editor teardown.
-        console.error('Inline popup cleanup failed', error)
-      }
+    this.#runCleanup(cleanup)
+  }
+
+  /**
+   * A plugin disposer must not interrupt a mode switch or editor teardown.
+   * @param {(() => void) | null | undefined} cleanup
+   */
+  #runCleanup(cleanup) {
+    if (!cleanup) return
+    try {
+      cleanup()
+    } catch (error) {
+      console.error('Inline popup cleanup failed', error)
     }
   }
 
@@ -122,9 +144,10 @@ export class PopupManager {
    * Notify through the concrete editing host whenever one can be resolved.
    * This lets the editor invalidate the exact block cache rather than only
    * scheduling a document-level change callback.
-   * @param {Node} [target]
+   * @param {import('./types').DOMNode} [target]
    */
   notifyChanged(target) {
+    if (this.readOnly) return
     const candidate = target
       ?? window.getSelection()?.anchorNode
       ?? document.activeElement
@@ -143,11 +166,12 @@ export class PopupManager {
    * Execute one inline-widget command against its exact owning block.
    * Detached/stale widget callbacks are ignored.
    * @template T
-   * @param {Node} target
+   * @param {import('./types').DOMNode} target
    * @param {() => T} operation
    * @returns {T | undefined}
    */
   mutate(target, operation) {
+    if (this.readOnly) return undefined
     const block = this.#blocks.getBlockByChildNode(target)
     if (!block) return undefined
     return this.#mutations.runForBlock(block, operation)

@@ -29,6 +29,8 @@ const editor = createEditor({
 
 The registered block type is `carousel`. The class is also exported by the complete `@shelamkoff/rector/plugins` preset and can be loaded through `@shelamkoff/rector/plugins/async`.
 
+`Carousel` is an exact alias of `CarouselBlock`, not a second implementation. Prefer `CarouselBlock` in new code; the alias is available from both the plugin subpath and the complete preset.
+
 ## Data
 
 ```json
@@ -41,6 +43,19 @@ The registered block type is `carousel`. The class is also exported by the compl
   "options": { "loop": true, "autoplay": false, "autoplayDelay": 5000, "navigation": true, "pagination": true, "thumbnails": false, "aspectRatio": "16 / 9" }
 }
 ```
+
+### Field reference
+
+| Field | Required | Meaning and constraints |
+| --- | --- | --- |
+| `slides` | yes | Non-empty array. Every slide needs a non-empty unique `id` and a `type` of `image`, `video`, or `html`. |
+| `slides[].src` | image/video | Canonical media URL. Image and video slides cannot omit it. |
+| `slides[].html` | HTML | Non-empty HTML string. It is sanitized during normalization and rendering. |
+| `slides[].poster` | no | Optional media-policy poster URL for a video. |
+| `slides[].alt`, `slides[].caption` | no | Optional strings. `alt` applies to media alternatives; `caption` is visible slide text. |
+| `options.loop`, `options.autoplay`, `options.navigation`, `options.pagination`, `options.thumbnails` | yes | Boolean behavior controls. Defaults are respectively `false`, `false`, `true`, `true`, and `false`. |
+| `options.autoplayDelay` | yes | Positive finite delay in milliseconds; normalization defaults it to `3000`. |
+| `options.aspectRatio` | no | `auto` or a positive numeric ratio written as `width / height`, for example `16 / 9`. |
 
 Every slide requires a stable `id` and a `type` of `image`, `video`, or `html`. Media sources pass the shared URL policy; HTML is sanitized. Without `uploadFile`, images become data URLs and videos use temporary object URLs, so persistent video documents require an uploader. The document renderer requires `@shelamkoff/carousel`.
 
@@ -84,7 +99,7 @@ const carousel = new CarouselBlock({
 })
 ```
 
-Every returned slide needs a stable, unique `id`. Media items use `type: 'image' | 'video'` and `src`; HTML items use `type: 'html'` and `html`. Return `null` when selection is cancelled. The complete selection becomes one undo/redo step. See [File sources and media libraries](https://shelamkoff.github.io/editor/guide/file-sources) for upload, cancellation, validation, and reusable adapter guidance.
+Media items use `type: 'image' | 'video'` and `src`; HTML items use `type: 'html'` and `html`. Supply stable, unique `id` values when the application needs to preserve its own slide identities. The plugin generates an id for an omitted one and replaces duplicates before saving. Unusable entries are ignored. Return `null` when selection is cancelled. The complete selection becomes one undo/redo step. See [File sources and media libraries](https://shelamkoff.github.io/editor/guide/file-sources) for upload, cancellation, validation, and reusable adapter guidance.
 
 ## Capabilities
 

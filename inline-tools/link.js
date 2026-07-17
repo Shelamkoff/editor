@@ -28,8 +28,9 @@ function getIntersectingLinks(range) {
   const walkRoot = getWalkRoot(range)
   if (!walkRoot) return []
 
+  /** @type {HTMLAnchorElement[]} */
   const candidates = []
-  if (walkRoot.matches('a')) candidates.push(walkRoot)
+  if (walkRoot instanceof HTMLAnchorElement) candidates.push(walkRoot)
   candidates.push(...walkRoot.querySelectorAll('a'))
 
   return candidates.filter((candidate) => {

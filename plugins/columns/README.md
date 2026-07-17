@@ -27,7 +27,14 @@ The registered block type is `columns`. The class is also exported by the comple
 { "columns": [{ "content": "Left" }, { "content": "Right" }], "layout": "1-1" }
 ```
 
-`layout` accepts `1-1`, `1-2`, `2-1`, or `1-1-1`. The number of columns must match the selected layout.
+### Field reference
+
+| Field | Required | Meaning and constraints |
+| --- | --- | --- |
+| `layout` | yes | `1-1`, `1-2`, `2-1`, or `1-1-1`. A new block defaults to `1-1`. |
+| `columns` | yes | Array of `{ content: string }` objects. Two-column layouts require exactly two entries; `1-1-1` requires exactly three. Content stores sanitized inline HTML. |
+
+Empty column strings are valid. Changing the layout preserves columns in order. Expanding from two to three columns adds an empty final column. Reducing from three to two columns appends the removed column's non-blank rich text to the second column, separated by `<br>`, so changing the layout does not discard content. Every column supports the editor's enabled inline tools and persistent inline widgets.
 
 ## Configuration
 

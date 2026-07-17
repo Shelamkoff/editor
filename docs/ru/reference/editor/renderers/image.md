@@ -33,13 +33,15 @@ rendererStyles.destroy()
 ```json
 {
   "file": { "url": "https://cdn.example/image.jpg" },
-  "caption": "Caption",
+  "caption": "Подпись",
   "withBorder": false,
   "expanded": false,
   "withBackground": false,
   "styles": { "objectFit": "cover", "borderRadius": "8px" }
 }
 ```
+
+Канонический контракт сохраняемых данных, общий для редактора и рендерера, приведён в [справочнике полей плагина изображения](/ru/reference/editor/plugins/image#поля-данных).
 
 Адрес изображения проходит политику URL для медиафайлов, а подпись — общий обработчик внутристрочной разметки. Рендерер объявляет одну таблицу стилей и не создаёт обработчиков или сторонних экземпляров.
 

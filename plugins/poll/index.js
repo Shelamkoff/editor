@@ -28,19 +28,17 @@ const ICON_SORT = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
 /**
  * @typedef {import('../../shared/pollData').PollData} PollData
  * @typedef {import('../../shared/pollData').PollResults} PollResults
- * @typedef {{
- *   load(context: { pollId: string, signal: AbortSignal }): Promise<PollResults>,
- *   vote(context: { pollId: string, optionIds: string[], revision?: string, signal: AbortSignal }): Promise<PollResults>,
- *   subscribe?(context: { pollId: string, signal: AbortSignal, onUpdate(results: PollResults): void, onError(error: unknown): void }): void | (() => void),
- * }} PollDataSource
- * @typedef {{
- *   dataSource?: PollDataSource,
- *   onError?: (error: unknown) => void,
- *   maxVoters?: number,
- *   compareRevisions?: (next: string, current: string) => number,
- *   injectStyles?: boolean,
- *   css?: string,
- * }} PollConfig
+ * @typedef {Object} PollDataSource
+ * @property {(context: { pollId: string, signal: AbortSignal }) => Promise<PollResults>} load Loads the current counts and optional voter summaries for a persisted poll ID.
+ * @property {(context: { pollId: string, optionIds: string[], revision?: string, signal: AbortSignal }) => Promise<PollResults>} vote Submits the selected option IDs and returns the authoritative results.
+ * @property {(context: { pollId: string, signal: AbortSignal, onUpdate(results: PollResults): void, onError(error: unknown): void }) => void | (() => void)} [subscribe] Starts live result delivery and optionally returns an idempotent unsubscribe function.
+ * @typedef {Object} PollConfig
+ * @property {PollDataSource} [dataSource] Backend adapter. Without it votes update the serialized `initialResults` snapshot locally; no remote load, submission, or live subscription occurs.
+ * @property {(error: unknown) => void} [onError] Receives rejected load, vote, and subscription errors after the plugin updates its error state.
+ * @property {number} [maxVoters=50] Maximum number of voter summaries retained and rendered. Finite values are rounded down and clamped to zero; omitted or non-finite values use 50.
+ * @property {(next: string, current: string) => number} [compareRevisions] Orders opaque backend revisions. Return a positive number when `next` is newer, zero when equal, and a negative number when stale.
+ * @property {boolean} [injectStyles=true] Whether the editor should load the built-in poll stylesheet.
+ * @property {string} [css] Additional stylesheet URL, or the replacement URL when `injectStyles` is `false`.
  * @typedef {{
  *   data: PollData,
  *   runtime: PollResults,
@@ -61,7 +59,11 @@ const ICON_SORT = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
 const stateMap = new WeakMap()
 
 
-/** @extends {BlockPluginAbstract<PollConfig>} */
+/**
+ * Interactive single- or multiple-choice poll with optional remote result
+ * loading, vote submission, and live result subscriptions.
+ * @extends {BlockPluginAbstract<PollConfig>}
+ */
 export class Poll extends BlockPluginAbstract {
   static isTextBlock = false
   static styles = [editorStyles]
@@ -69,17 +71,23 @@ export class Poll extends BlockPluginAbstract {
   icon = ICON
   inlineTools = false
 
-  /** @returns {string} */
+  /**
+   * Return the localized toolbox label for this block.
+   * @returns {string}
+   */
   get title() {
     return this._t('title', 'Poll')
   }
 
-  /** @param {PollConfig} [config] */
+  /**
+   * Create a Poll instance with the supplied consumer configuration.
+   * @param {PollConfig} [config]
+   */
   constructor(config) {
     super(config)
   }
 
-  /** @returns {string} */
+  /** Create a stable identifier for a new answer option. @returns {string} */
   #createOptionId() {
     return `option-${uid()}`
   }
@@ -96,15 +104,15 @@ export class Poll extends BlockPluginAbstract {
       resultsMode: 'always',
     })
   }
-
   /**
+   * Create the editable DOM owned by this block instance.
    * @param {Record<string, unknown>} data
    * @param {import('../../core/types').BlockMutationContext} context
    * @returns {HTMLElement}
    */
   render(data, context) {
     const d = normalizePollData(data, () => this.#createOptionId())
-    const runtime = normalizePollResults(d.initialResults, d.options.map(option => option.id), this._config.maxVoters)
+    const runtime = normalizePollResults(d.initialResults, d.options.map(option => option.id), this._config.maxVoters, d.type)
 
     const wrapper = document.createElement('div')
     wrapper.classList.add('oe-poll')
@@ -133,13 +141,14 @@ export class Poll extends BlockPluginAbstract {
   }
 
   /**
+   * Serialize the current block DOM into document data.
    * @param {HTMLElement} element
    * @returns {PollData}
    */
   save(element) {
     this.#syncFromDom(element)
     const s = stateMap.get(element)
-    if (!s) return { question: '', type: 'single', options: [] }
+    if (!s) return { question: '', type: 'single', options: [], resultsMode: 'always' }
     return /** @type {PollData} */ ({
       ...(s.data.pollId ? { pollId: s.data.pollId } : {}),
       question: s.data.question,
@@ -151,6 +160,7 @@ export class Poll extends BlockPluginAbstract {
   }
 
   /**
+   * Check whether serialized data satisfies this block's schema.
    * @param {Record<string, unknown>} data
    * @returns {boolean}
    */
@@ -159,6 +169,7 @@ export class Poll extends BlockPluginAbstract {
   }
 
   /**
+   * Check whether the block has no meaningful user content.
    * @param {HTMLElement} element
    * @returns {boolean}
    */
@@ -170,6 +181,7 @@ export class Poll extends BlockPluginAbstract {
   }
 
   /**
+   * Extract neutral text that can initialize another block type.
    * @param {HTMLElement} element
    * @returns {{ text: string }}
    */
@@ -179,7 +191,9 @@ export class Poll extends BlockPluginAbstract {
   }
 
   /**
+   * Release listeners and resources owned by this block element.
    * @param {HTMLElement} element
+   * @returns {void}
    */
   destroy(element) {
     const s = stateMap.get(element)
@@ -188,7 +202,9 @@ export class Poll extends BlockPluginAbstract {
       s.loadVersion++
       s.voteVersion++
       s.abortController?.abort()
-      s.unsubscribe?.()
+      try { s.unsubscribe?.() } catch (error) {
+        try { this._config.onError?.(error) } catch {}
+      }
       s.abortController = null
       s.unsubscribe = null
     }
@@ -197,7 +213,7 @@ export class Poll extends BlockPluginAbstract {
 
   // ── Private ─────────────────────────────────────────────────────────────────
 
-  /** @param {HTMLElement} wrapper */
+  /** @param {HTMLElement} wrapper @returns {void} */
   #syncFromDom(wrapper) {
     const s = stateMap.get(wrapper)
     if (!s) return
@@ -213,7 +229,7 @@ export class Poll extends BlockPluginAbstract {
     })
   }
 
-  /** @param {HTMLElement} wrapper */
+  /** @param {HTMLElement} wrapper @returns {void} */
   #build(wrapper) {
     const s = stateMap.get(wrapper)
     if (!s) return
@@ -223,10 +239,10 @@ export class Poll extends BlockPluginAbstract {
     // Question
     const question = document.createElement('div')
     question.className = 'oe-poll__question'
-    question.contentEditable = 'true'
+    question.contentEditable = s.context.readOnly ? 'false' : 'true'
     question.dataset.placeholder = this._t('questionPlaceholder', 'Question...')
     if (s.data.question) question.innerHTML = sanitizeHtml(s.data.question)
-    question.addEventListener('keydown', (e) => {
+    if (!s.context.readOnly) question.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault()
         e.stopPropagation()
@@ -245,33 +261,35 @@ export class Poll extends BlockPluginAbstract {
     optionsWrap.className = 'oe-poll__options'
 
     s.data.options.forEach((opt, i) => {
-      optionsWrap.appendChild(this.#createOption(wrapper, s, opt, i, optionsWrap))
+      optionsWrap.appendChild(this.#createOption(wrapper, s, opt, i))
     })
 
     // Add option button
-    const addBtn = document.createElement('button')
-    addBtn.type = 'button'
-    addBtn.className = 'oe-poll__option-add'
-    addBtn.innerHTML = `${ICON_PLUS} ${this._t('addOption', 'Add option')}`
-    addBtn.addEventListener('mousedown', (e) => e.preventDefault())
-    addBtn.addEventListener('click', () => {
-      s.context.mutate(() => {
-        this.#syncFromDom(wrapper)
-        s.data.options.push({ id: this.#createOptionId(), text: '' })
-        this.#reconcileRuntime(s)
-        this.#build(wrapper)
-        const texts = wrapper.querySelectorAll('.oe-poll__option-text')
-        if (texts.length) /** @type {HTMLElement} */ (texts[texts.length - 1]).focus()
+    if (!s.context.readOnly) {
+      const addBtn = document.createElement('button')
+      addBtn.type = 'button'
+      addBtn.className = 'oe-poll__option-add'
+      addBtn.innerHTML = `${ICON_PLUS} ${this._t('addOption', 'Add option')}`
+      addBtn.addEventListener('mousedown', (e) => e.preventDefault())
+      addBtn.addEventListener('click', () => {
+        s.context.mutate(() => {
+          this.#syncFromDom(wrapper)
+          s.data.options.push({ id: this.#createOptionId(), text: '' })
+          this.#reconcileRuntime(s)
+          this.#build(wrapper)
+          const texts = wrapper.querySelectorAll('.oe-poll__option-text')
+          if (texts.length) /** @type {HTMLElement} */ (texts[texts.length - 1]).focus()
+        })
       })
-    })
-    optionsWrap.appendChild(addBtn)
+      optionsWrap.appendChild(addBtn)
+    }
 
     w.appendChild(optionsWrap)
 
     w.appendChild(this.#buildRuntime(wrapper, s))
 
     // Action bar
-    w.appendChild(this.#buildActions(wrapper, s))
+    if (!s.context.readOnly) w.appendChild(this.#buildActions(wrapper, s))
   }
 
   /**
@@ -279,10 +297,9 @@ export class Poll extends BlockPluginAbstract {
    * @param {PollState} s
    * @param {{ id: string, text: string }} opt
    * @param {number} index
-   * @param {HTMLElement} _container
    * @returns {HTMLDivElement}
    */
-  #createOption(wrapper, s, opt, index, _container) {
+  #createOption(wrapper, s, opt, index) {
     const option = document.createElement('div')
     option.className = 'oe-poll__option'
 
@@ -291,10 +308,11 @@ export class Poll extends BlockPluginAbstract {
     marker.type = 'button'
     marker.className = `oe-poll__option-marker oe-poll__option-marker--${s.data.type}`
     marker.dataset.optionId = opt.id
+    marker.disabled = s.context.readOnly
     marker.setAttribute('aria-label', this._t('selectOption', 'Select option'))
     marker.setAttribute('aria-pressed', String(s.selected.has(opt.id)))
     if (s.selected.has(opt.id)) marker.classList.add('oe-poll__option-marker--selected')
-    marker.addEventListener('click', () => {
+    if (!s.context.readOnly) marker.addEventListener('click', () => {
       if (s.submitting) return
       if (s.data.type === 'single') {
         s.selected = new Set([opt.id])
@@ -311,12 +329,12 @@ export class Poll extends BlockPluginAbstract {
     // Text
     const text = document.createElement('div')
     text.className = 'oe-poll__option-text'
-    text.contentEditable = 'true'
+    text.contentEditable = s.context.readOnly ? 'false' : 'true'
     const placeholder = this._t('optionPlaceholder', 'Option')
     text.dataset.placeholder = `${placeholder} ${index + 1}`
     if (opt.text) text.innerHTML = sanitizeHtml(opt.text)
 
-    text.addEventListener('keydown', (e) => {
+    if (!s.context.readOnly) text.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault()
         e.stopPropagation()
@@ -358,7 +376,7 @@ export class Poll extends BlockPluginAbstract {
     option.appendChild(text)
 
     // Remove button
-    if (s.data.options.length > 2) {
+    if (!s.context.readOnly && s.data.options.length > 2) {
       const removeBtn = document.createElement('button')
       removeBtn.type = 'button'
       removeBtn.className = 'oe-poll__option-remove'
@@ -395,7 +413,8 @@ export class Poll extends BlockPluginAbstract {
 
       const label = document.createElement('span')
       label.className = 'oe-poll__result-label'
-      label.textContent = opt.text || '—'
+      if (opt.text) label.innerHTML = sanitizeHtml(opt.text)
+      else label.textContent = '—'
 
       const bar = document.createElement('div')
       bar.className = 'oe-poll__result-bar'
@@ -418,24 +437,27 @@ export class Poll extends BlockPluginAbstract {
     return results
   }
 
-  /** @param {'always' | 'afterVote' | 'hidden'} mode */
+  /** @param {'always' | 'afterVote' | 'hidden'} mode @returns {string} */
   #resultsModeLabel(mode) {
     if (mode === 'afterVote') return this._t('resultsAfterVote', 'Results after vote')
     if (mode === 'hidden') return this._t('resultsHidden', 'Results hidden')
     return this._t('resultsAlways', 'Results always visible')
   }
 
-  /** @param {PollState} s */
+  /** @param {PollState} s @returns {void} */
   #reconcileRuntime(s) {
     const ids = s.data.options.map(option => option.id)
-    s.runtime = normalizePollResults(s.runtime, ids, this._config.maxVoters)
+    s.runtime = normalizePollResults(s.runtime, ids, this._config.maxVoters, s.data.type)
     s.selected = new Set([...s.selected].filter(id => ids.includes(id)))
+    if (s.data.type === 'single' && s.selected.size > 1) {
+      s.selected = new Set([[...s.selected][0]])
+    }
     if (!this._config.dataSource && s.data.initialResults) {
-      s.data.initialResults = normalizePollResults(s.data.initialResults, ids, this._config.maxVoters)
+      s.data.initialResults = normalizePollResults(s.data.initialResults, ids, this._config.maxVoters, s.data.type)
     }
   }
 
-  /** @param {HTMLElement} wrapper @param {PollState} s */
+  /** @param {HTMLElement} wrapper @param {PollState} s @returns {void} */
   #syncSelectionUi(wrapper, s) {
     wrapper.querySelectorAll('.oe-poll__option-marker').forEach(element => {
       const button = /** @type {HTMLButtonElement} */ (element)
@@ -445,12 +467,12 @@ export class Poll extends BlockPluginAbstract {
     })
   }
 
-  /** @param {HTMLElement} wrapper @param {PollState} s */
+  /** @param {HTMLElement} wrapper @param {PollState} s @returns {void} */
   #replaceRuntime(wrapper, s) {
     wrapper.querySelector('.oe-poll__runtime')?.replaceWith(this.#buildRuntime(wrapper, s))
   }
 
-  /** @param {HTMLElement} wrapper @param {PollState} s */
+  /** @param {HTMLElement} wrapper @param {PollState} s @returns {HTMLDivElement} */
   #buildRuntime(wrapper, s) {
     const runtime = document.createElement('div')
     runtime.className = 'oe-poll__runtime'
@@ -485,14 +507,14 @@ export class Poll extends BlockPluginAbstract {
     const submit = document.createElement('button')
     submit.type = 'button'
     submit.className = 'oe-poll__submit'
-    submit.disabled = s.submitting || s.loading || s.selected.size === 0
+    submit.disabled = s.context.readOnly || s.submitting || s.loading || s.selected.size === 0
     submit.textContent = s.submitting ? this._t('submitting', 'Submitting…') : this._t('vote', 'Vote')
     submit.addEventListener('click', () => this.#submitVote(wrapper, s))
     runtime.appendChild(submit)
     return runtime
   }
 
-  /** @param {PollState} s */
+  /** @param {PollState} s @returns {HTMLDivElement} */
   #buildVoters(s) {
     const section = document.createElement('div')
     section.className = 'oe-poll__voters'
@@ -521,9 +543,9 @@ export class Poll extends BlockPluginAbstract {
     return section
   }
 
-  /** @param {HTMLElement} wrapper @param {PollState} s */
+  /** @param {HTMLElement} wrapper @param {PollState} s @returns {void} */
   #submitVote(wrapper, s) {
-    if (s.submitting || s.selected.size === 0) return
+    if (s.context.readOnly || s.submitting || s.selected.size === 0) return
     const optionIds = [...s.selected]
     if (!this._config.dataSource) {
       s.context.mutate(() => {
@@ -541,6 +563,7 @@ export class Poll extends BlockPluginAbstract {
       return
     }
 
+    const dataSource = this._config.dataSource
     const controller = s.abortController
     if (!controller || controller.signal.aborted) return
     const connectionVersion = s.connectionVersion
@@ -548,12 +571,30 @@ export class Poll extends BlockPluginAbstract {
     s.submitting = true
     s.error = false
     this.#replaceRuntime(wrapper, s)
-    void this._config.dataSource.vote({
-      pollId: s.data.pollId,
-      optionIds,
-      revision: s.runtime.revision,
-      signal: controller.signal,
-    }).then(results => {
+
+    // Invoke the consumer callback synchronously with the user action. The
+    // pending flag is already set, so subscription-driven re-renders cannot
+    // admit a second submission. Wrap only the returned value as a promise;
+    // deferring the callback itself would make observable submission timing
+    // depend on an unrelated microtask.
+    let voteRequest
+    try {
+      voteRequest = dataSource.vote({
+        pollId: /** @type {string} */ (s.data.pollId),
+        optionIds,
+        revision: s.runtime.revision,
+        signal: controller.signal,
+      })
+    } catch (error) {
+      if (stateMap.get(wrapper) === s && !controller.signal.aborted
+        && connectionVersion === s.connectionVersion && voteVersion === s.voteVersion) {
+        s.submitting = false
+        this.#reportDataSourceError(wrapper, s, error)
+      }
+      return
+    }
+
+    void Promise.resolve(voteRequest).then(results => {
       if (stateMap.get(wrapper) !== s || controller.signal.aborted
         || connectionVersion !== s.connectionVersion || voteVersion !== s.voteVersion) return
       this.#acceptRuntimeResults(wrapper, s, results, true)
@@ -569,9 +610,9 @@ export class Poll extends BlockPluginAbstract {
     })
   }
 
-  /** @param {HTMLElement} wrapper @param {PollState} s @param {PollResults} results @param {boolean} [confirmedVote] */
+  /** @param {HTMLElement} wrapper @param {PollState} s @param {PollResults} results @param {boolean} [confirmedVote] @returns {void} */
   #acceptRuntimeResults(wrapper, s, results, confirmedVote = false) {
-    const normalized = normalizePollResults(results, s.data.options.map(option => option.id), this._config.maxVoters)
+    const normalized = normalizePollResults(results, s.data.options.map(option => option.id), this._config.maxVoters, s.data.type)
     let accepted
     try {
       accepted = shouldAcceptPollRevision(normalized.revision, s.runtime.revision, this._config.compareRevisions)
@@ -593,21 +634,23 @@ export class Poll extends BlockPluginAbstract {
     this.#replaceRuntime(wrapper, s)
   }
 
-  /** @param {HTMLElement} wrapper @param {PollState} s @param {unknown} error */
+  /** @param {HTMLElement} wrapper @param {PollState} s @param {unknown} error @returns {void} */
   #reportDataSourceError(wrapper, s, error) {
     s.error = true
     try { this._config.onError?.(error) } catch {}
     this.#replaceRuntime(wrapper, s)
   }
 
-  /** @param {HTMLElement} wrapper */
+  /** @param {HTMLElement} wrapper @returns {void} */
   #connectDataSource(wrapper) {
     const s = stateMap.get(wrapper)
     const dataSource = this._config.dataSource
     if (!s || !dataSource || !s.data.pollId) return
 
     s.abortController?.abort()
-    s.unsubscribe?.()
+    try { s.unsubscribe?.() } catch (error) {
+      try { this._config.onError?.(error) } catch {}
+    }
     const controller = new AbortController()
     s.abortController = controller
     const connectionVersion = ++s.connectionVersion
@@ -641,7 +684,10 @@ export class Poll extends BlockPluginAbstract {
       }
     }
 
-    void dataSource.load({ pollId: s.data.pollId, signal: controller.signal }).then(results => {
+    void Promise.resolve().then(() => dataSource.load({
+      pollId: /** @type {string} */ (s.data.pollId),
+      signal: controller.signal,
+    })).then(results => {
       if (stateMap.get(wrapper) !== s || controller.signal.aborted
         || connectionVersion !== s.connectionVersion || loadVersion !== s.loadVersion) return
       this.#acceptRuntimeResults(wrapper, s, results)
@@ -680,10 +726,21 @@ export class Poll extends BlockPluginAbstract {
     typeBtn.addEventListener('click', () => {
       s.context.mutate(() => {
         this.#syncFromDom(wrapper)
+        const previousVote = s.runtime.currentUserVote || []
         s.data.type = s.data.type === 'single' ? 'multiple' : 'single'
         if (s.data.type === 'single' && s.selected.size > 1) {
           s.selected = new Set([[...s.selected][0]])
         }
+        if (!this._config.dataSource && s.data.type === 'single' && previousVote.length > 1) {
+          s.runtime = applyLocalPollVote(
+            s.runtime,
+            previousVote,
+            previousVote.slice(0, 1),
+            s.data.options.map(option => option.id),
+          )
+          s.data.initialResults = structuredClone(s.runtime)
+        }
+        this.#reconcileRuntime(s)
         this.#build(wrapper)
       })
     })
@@ -738,8 +795,17 @@ export class Poll extends BlockPluginAbstract {
     deleteBtn.addEventListener('mousedown', (e) => e.preventDefault())
     deleteBtn.addEventListener('click', () => {
       s.context.mutate(() => {
+        s.connectionVersion++
+        s.loadVersion++
+        s.voteVersion++
+        s.abortController?.abort()
+        try { s.unsubscribe?.() } catch (error) {
+          try { this._config.onError?.(error) } catch {}
+        }
+        s.abortController = null
+        s.unsubscribe = null
         s.data = this.#defaultData()
-        s.runtime = normalizePollResults(undefined, s.data.options.map(option => option.id))
+        s.runtime = normalizePollResults(undefined, s.data.options.map(option => option.id), this._config.maxVoters, s.data.type)
         s.selected.clear()
         s.hasVoted = false
         this.#build(wrapper)

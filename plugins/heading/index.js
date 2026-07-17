@@ -4,6 +4,7 @@ import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { createHeadingLevelSelect } from './HeadingLevelSelect.js'
 import { mapTextFields } from './mapTextFields.js'
 import { validateHeadingData } from '../../shared/blockDataValidators.js'
+import { normalizeHeadingLevel, normalizeTextAlign, normalizeTextValue } from '../../shared/textFormat.js'
 
 const editorStyles = resolvePath('./heading.css', import.meta.url)
 
@@ -18,18 +19,21 @@ const ICON_H5 = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" 
 // Tabler: h6
 const ICON_H6 = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14a2 2 0 1 0 0 4a2 2 0 0 0 0 -4z"/><path d="M21 12a2 2 0 1 0 -4 0v4"/><path d="M4 6v12"/><path d="M12 6v12"/><path d="M11 18h2"/><path d="M3 18h2"/><path d="M4 12h8"/><path d="M3 6h2"/><path d="M11 6h2"/></svg>'
 
-/** @type {ReadonlyArray<{ level: number, key: string, icon: string }>} */
-const HEADING_LEVELS = [
-  { level: 2, key: 'h2', icon: ICON_H2 },
-  { level: 3, key: 'h3', icon: ICON_H3 },
-  { level: 4, key: 'h4', icon: ICON_H4 },
-  { level: 5, key: 'h5', icon: ICON_H5 },
-  { level: 6, key: 'h6', icon: ICON_H6 },
-]
+/**
+ * Immutable metadata for the heading levels exposed by the plugin UI.
+ * Consumers may reuse it to build controls that stay aligned with Rector's
+ * supported H2-H6 range; `key` is the plugin-local localization key.
+ * @type {ReadonlyArray<{ level: number, key: string, icon: string }>}
+ */
+export const HEADING_LEVELS = Object.freeze([
+  Object.freeze({ level: 2, key: 'h2', icon: ICON_H2 }),
+  Object.freeze({ level: 3, key: 'h3', icon: ICON_H3 }),
+  Object.freeze({ level: 4, key: 'h4', icon: ICON_H4 }),
+  Object.freeze({ level: 5, key: 'h5', icon: ICON_H5 }),
+  Object.freeze({ level: 6, key: 'h6', icon: ICON_H6 }),
+])
 
-export { HEADING_LEVELS }
-
-
+/** Editable H2-H6 heading block with alignment and inline formatting. */
 export class Heading extends BlockPluginAbstract {
   static isTextBlock = true
   static styles = [editorStyles]
@@ -37,25 +41,16 @@ export class Heading extends BlockPluginAbstract {
   icon = ICON
   inlineTools = true
   mapTextFields = mapTextFields
-
   pasteConfig = {
     tags: ['h2', 'h3', 'h4', 'h5', 'h6'],
   }
 
-  /** @returns {string} */
-  get title() {
-    return this._t('title', 'Heading')
-  }
-
   /**
-   * Get localized heading level title.
-   * @param {number} level
+   * Return the localized toolbox label for this block.
    * @returns {string}
    */
-  // @ts-ignore used by external callers
-  #levelTitle(level) {
-    const entry = HEADING_LEVELS.find(h => h.level === level)
-    return entry ? this._t(entry.key, `Heading ${level}`) : `Heading ${level}`
+  get title() {
+    return this._t('title', 'Heading')
   }
 
   /**
@@ -68,21 +63,24 @@ export class Heading extends BlockPluginAbstract {
   }
 
   /**
+   * Create the editable DOM owned by this block instance.
    * @param {{ text?: string, level?: number, align?: string }} data
    * @returns {HTMLElement}
    */
   render(data) {
-    const level = data.level || 2
-    const tag = `h${Math.min(Math.max(level, 2), 6)}`
+    const level = normalizeHeadingLevel(data?.level)
+    const tag = `h${level}`
     const heading = document.createElement(tag)
     heading.classList.add('oe-heading', `oe-heading--${tag}`)
     heading.contentEditable = 'true'
 
-    if (data.text) {
-      heading.innerHTML = sanitizeHtml(data.text)
+    const text = normalizeTextValue(data?.text)
+    if (text) {
+      heading.innerHTML = sanitizeHtml(text)
     }
-    if (data.align) {
-      heading.style.textAlign = data.align
+    const align = normalizeTextAlign(data?.align)
+    if (align) {
+      heading.style.textAlign = align
     }
 
     heading.dataset.placeholder = this.#placeholder(level)
@@ -98,7 +96,7 @@ export class Heading extends BlockPluginAbstract {
    * @returns {HTMLElement}
    */
   changeLevel(element, newLevel) {
-    const level = Math.min(Math.max(newLevel, 2), 6)
+    const level = normalizeHeadingLevel(newLevel)
     const tag = `h${level}`
 
     // If already at this level, do nothing
@@ -123,6 +121,7 @@ export class Heading extends BlockPluginAbstract {
     newEl.className = `oe-heading oe-heading--${tag}`
     newEl.contentEditable = 'true'
     newEl.dataset.placeholder = this.#placeholder(level)
+    newEl.style.textAlign = normalizeTextAlign(element.style.textAlign)
 
     // Move all children (nodes are moved, not cloned — refs stay valid)
     while (element.firstChild) {
@@ -164,17 +163,18 @@ export class Heading extends BlockPluginAbstract {
   }
 
   /**
+   * Serialize the current block DOM into document data.
    * @param {HTMLElement} element
    * @returns {{ text: string, level: number, align?: string }}
    */
   save(element) {
-    /** @type {{ text: string, level: number, align?: string }} */
     const data = { text: element.innerHTML.trim(), level: this.getLevel(element) }
     if (element.style.textAlign) data.align = element.style.textAlign
     return data
   }
 
   /**
+   * Check whether serialized data satisfies this block's schema.
    * @param {{ text: string, level?: number }} data
    * @returns {boolean}
    */
@@ -183,27 +183,31 @@ export class Heading extends BlockPluginAbstract {
   }
 
   /**
+   * Merge incoming text into the current block.
    * @param {HTMLElement} element
    * @param {{ text?: string }} data
+   * @returns {void}
    */
   merge(element, data) {
-    if (data.text) {
-      element.innerHTML += sanitizeHtml(data.text)
+    const text = normalizeTextValue(data.text)
+    if (text) {
+      element.innerHTML += sanitizeHtml(text)
     }
   }
 
   /**
+   * Extract neutral rich text and heading metadata for block conversion.
    * @param {HTMLElement} element
    * @returns {{ text: string, level: number, align?: string }}
    */
   exportData(element) {
-    /** @type {{ text: string, level: number, align?: string }} */
     const data = { text: element.innerHTML.trim(), level: this.getLevel(element) }
     if (element.style.textAlign) data.align = element.style.textAlign
     return data
   }
 
   /**
+   * Check whether the block has no meaningful user content.
    * @param {HTMLElement} element
    * @returns {boolean}
    */
@@ -213,7 +217,7 @@ export class Heading extends BlockPluginAbstract {
 
   /**
    * Render settings items for the block settings menu.
-   * Returns H2/H3/H4 buttons shown directly in the main settings view.
+   * Returns H2-H6 buttons shown directly in the main settings view.
    * @param {HTMLElement} element
    * @returns {HTMLElement[]}
    */

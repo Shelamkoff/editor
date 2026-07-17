@@ -50,9 +50,9 @@ export type MentionRenderNoResults = (
 export type MentionRenderLoading = () => HTMLElement | null | undefined
 
 export interface MentionPluginOptions {
-  /** Character that activates the dropdown. Default: '@'. */
+  /** Exactly one Unicode code point that activates and prefixes a mention. Default: '@'. */
   trigger?: string
-  /** Async callback that returns suggestions for a query. Required. */
+  /** Async callback that returns suggestions for a query. Without it the dropdown is empty. */
   searchFunction?: MentionSearchFunction | null
   /** Debounce window between keystroke and `searchFunction` call. */
   debounceDelay?: number
@@ -105,5 +105,6 @@ export type MentionWidget = InlineWidget<'mention', MentionWidgetData>
  * Pass to `RendererConfig.inlinePlugins` so the renderer can rehydrate
  * mention placeholders into their display pills without dragging in the
  * full editor runtime (dropdown UI, trigger manager, search pipeline).
+ * Pass the same trigger used by `createMentionPlugin()` when it is not `@`.
  */
-export function createMentionWidget(): InlinePluginLike
+export function createMentionWidget(trigger?: string): InlinePluginLike

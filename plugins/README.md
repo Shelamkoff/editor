@@ -5,8 +5,8 @@ The package ships 21 editable block plugins. Import a single plugin from `@shela
 | Plugin | Block type | Purpose |
 | --- | --- | --- |
 | [Paragraph](./paragraph/README.md) | `paragraph` | Editable rich-text paragraph with alignment, inline tools, inline widgets, merge, and block conversion support. |
-| [Heading](./heading/README.md) | `heading` | Heading levels 2-6 with alignment, inline formatting, inline widgets, shortcuts, and level controls. |
-| [List](./list/README.md) | `list` | Ordered and unordered rich-text lists with keyboard indentation behavior. |
+| [Heading](./heading/README.md) | `heading` | Heading levels 2-6 with alignment, inline formatting, inline widgets, paste handling, and level controls. |
+| [List](./list/README.md) | `list` | Ordered and unordered rich-text lists with item splitting, merging, block exit, and conversion of selected items. |
 | [Quote](./quote/README.md) | `quote` | Quotation text with an optional caption. |
 | [Code](./code/README.md) | `code` | Code block with a language selector and optional syntax highlighting. |
 | [Image](./image/README.md) | `image` | Uploadable image with caption, sizing, border, background, and object-fit controls. |
@@ -19,7 +19,7 @@ The package ships 21 editable block plugins. Import a single plugin from `@shela
 | [Gallery](./gallery/README.md) | `gallery` | Multi-image gallery with layouts, captions, appearance settings, reordering, and viewer options. |
 | [CarouselBlock](./carousel/README.md) | `carousel` | Mixed image, video, and sanitized HTML slides with navigation, pagination, thumbnails, autoplay, and ordering controls. |
 | [Attaches](./attaches/README.md) | `attaches` | One or more downloadable files with selectable presentation variants. |
-| [LinkPreview](./link-preview/README.md) | `linkPreview` | Bookmark preview with seven visual templates and optional application-provided metadata. |
+| [LinkPreview](./link-preview/README.md) | `linkPreview` | Link preview card with seven visual templates and optional application-provided metadata. |
 | [Toggle](./toggle/README.md) | `toggle` | Collapsible block with editable title, rich content, and persistent open state. |
 | [Columns](./columns/README.md) | `columns` | Two- or three-column rich-content layouts. |
 | [Spoiler](./spoiler/README.md) | `spoiler` | User-revealed hidden content with an editable label. |
@@ -37,7 +37,7 @@ const plugins = await createBlockPluginsAsync(documentData, {
 })
 ```
 
-The async loader deduplicates imports and preserves the deterministic built-in type order. Unknown types reject instead of being silently ignored.
+The async loader deduplicates imports and preserves the first-occurrence order from the supplied type list or document. When no source is supplied, it uses the built-in catalog order. Unknown types reject instead of being silently ignored.
 
 ## Authoring
 

@@ -7,13 +7,14 @@ import { resolvePath } from '../../shared/resolvePath.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { mapTextFields } from './mapTextFields.js'
 import { validateQuoteData } from '../../shared/blockDataValidators.js'
+import { normalizeTextValue } from '../../shared/textFormat.js'
 
 const editorStyles = resolvePath('./quote.css', import.meta.url)
 
 // Tabler icon: blockquote
 const ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M9 5a2 2 0 0 1 2 2v6c0 3.13 -1.65 5.193 -4.757 5.97a1 1 0 1 1 -.486 -1.94c2.227 -.557 3.243 -1.827 3.243 -4.03v-1h-3a2 2 0 0 1 -1.995 -1.85l-.005 -.15v-3a2 2 0 0 1 2 -2z"/><path d="M18 5a2 2 0 0 1 2 2v6c0 3.13 -1.65 5.193 -4.757 5.97a1 1 0 1 1 -.486 -1.94c2.227 -.557 3.243 -1.827 3.243 -4.03v-1h-3a2 2 0 0 1 -1.995 -1.85l-.005 -.15v-3a2 2 0 0 1 2 -2z"/></svg>'
 
-
+/** Editable quotation with optional attribution. */
 export class Quote extends BlockPluginAbstract {
   static isTextBlock = true
   static styles = [editorStyles]
@@ -21,17 +22,20 @@ export class Quote extends BlockPluginAbstract {
   icon = ICON
   inlineTools = true
   mapTextFields = mapTextFields
-
   pasteConfig = {
     tags: ['blockquote'],
   }
 
-  /** @returns {string} */
+  /**
+   * Return the localized toolbox label for this block.
+   * @returns {string}
+   */
   get title() {
     return this._t('title', 'Quote')
   }
 
   /**
+   * Create the editable DOM owned by this block instance.
    * @param {{ text?: string, caption?: string }} data
    * @returns {HTMLElement}
    */
@@ -43,29 +47,34 @@ export class Quote extends BlockPluginAbstract {
     blockquote.classList.add('oe-quote__text')
     blockquote.contentEditable = 'true'
     blockquote.dataset.placeholder = this._t('textPlaceholder', 'Quote')
-    if (data.text) {
-      blockquote.innerHTML = sanitizeHtml(data.text)
+    const text = normalizeTextValue(data?.text)
+    if (text) {
+      blockquote.innerHTML = sanitizeHtml(text)
     }
 
     const caption = document.createElement('cite')
     caption.classList.add('oe-quote__caption')
     caption.contentEditable = 'true'
     caption.dataset.placeholder = this._t('captionPlaceholder', 'Caption')
-    if (data.caption) {
-      caption.innerHTML = sanitizeHtml(data.caption)
+    const captionText = normalizeTextValue(data?.caption)
+    if (captionText) {
+      caption.innerHTML = sanitizeHtml(captionText)
     }
 
-    // Tab switches between text and caption
+    // Move between the two fields without trapping focus at block boundaries.
     wrapper.addEventListener('keydown', (e) => {
-      if (e.key === 'Tab') {
+      if (e.key !== 'Tab') return
+      const active = document.activeElement
+      const inQuote = active === blockquote || blockquote.contains(/** @type {Node} */ (active))
+      const inCaption = active === caption || caption.contains(/** @type {Node} */ (active))
+      if (!e.shiftKey && inQuote) {
         e.preventDefault()
         e.stopPropagation()
-        const active = document.activeElement
-        if (active === blockquote || blockquote.contains(/** @type {Node} */ (active))) {
-          caption.focus()
-        } else {
-          blockquote.focus()
-        }
+        caption.focus()
+      } else if (e.shiftKey && inCaption) {
+        e.preventDefault()
+        e.stopPropagation()
+        blockquote.focus()
       }
     })
 
@@ -76,6 +85,7 @@ export class Quote extends BlockPluginAbstract {
   }
 
   /**
+   * Serialize the current block DOM into document data.
    * @param {HTMLElement} element
    * @returns {{ text: string, caption: string }}
    */
@@ -89,6 +99,7 @@ export class Quote extends BlockPluginAbstract {
   }
 
   /**
+   * Check whether serialized data satisfies this block's schema.
    * @param {{ text?: string, caption?: string }} data
    * @returns {boolean}
    */
@@ -97,17 +108,21 @@ export class Quote extends BlockPluginAbstract {
   }
 
   /**
+   * Merge incoming text into the current block.
    * @param {HTMLElement} element
    * @param {{ text?: string }} data
+   * @returns {void}
    */
   merge(element, data) {
     const textEl = element.querySelector('.oe-quote__text')
-    if (textEl && data.text) {
-      textEl.innerHTML += sanitizeHtml(data.text)
+    const text = normalizeTextValue(data.text)
+    if (textEl && text) {
+      textEl.innerHTML += sanitizeHtml(text)
     }
   }
 
   /**
+   * Extract neutral fields that can initialize another block type.
    * @param {HTMLElement} element
    * @returns {{ text: string, caption: string }}
    */
@@ -121,12 +136,14 @@ export class Quote extends BlockPluginAbstract {
   }
 
   /**
+   * Check whether the block has no meaningful user content.
    * @param {HTMLElement} element
    * @returns {boolean}
    */
   isEmpty(element) {
     const textEl = element.querySelector('.oe-quote__text')
-    return (textEl?.textContent?.trim().length ?? 0) === 0
+    const captionEl = element.querySelector('.oe-quote__caption')
+    return !textEl?.textContent?.trim() && !captionEl?.textContent?.trim()
   }
 
   /**
@@ -140,7 +157,7 @@ export class Quote extends BlockPluginAbstract {
     const clone = /** @type {HTMLElement} */ (event.element.cloneNode(true))
     // Extract cite if present
     const cite = clone.querySelector('cite, footer, figcaption')
-    const caption = cite?.textContent?.trim() || ''
+    const caption = cite?.innerHTML?.trim() || ''
     if (cite) cite.remove()
     return { text: clone.innerHTML, caption }
   }

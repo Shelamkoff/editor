@@ -33,6 +33,8 @@ import { injectStyleUrls } from './StyleInjector.js'
 import { resolveTuning } from './config.js'
 import {DEFAULT_BLOCK_TYPE, DEFAULT_THEME} from './constants.js'
 import { claimPluginInstances } from './PluginOwnership.js'
+import { claimEditorHolder } from './EditorHolderOwnership.js'
+import { LifecycleScope } from './LifecycleScope.js'
 import en from './locale/en.js'
 
 /**
@@ -119,12 +121,23 @@ function injectPluginI18n(plugin, i18n) {
  */
 function buildEditorDOM(holder, theme, minHeight) {
   const rootEl = el('div', `oe-editor oe-theme-${theme}`, { tabindex: '-1' })
-  if (minHeight) rootEl.style.minHeight = `${minHeight}px`
+  if (minHeight !== undefined) rootEl.style.minHeight = `${minHeight}px`
   const blocksEl = el('div', 'oe-blocks')
   const clickArea = el('div', 'oe-click-area')
   rootEl.appendChild(blocksEl)
   rootEl.appendChild(clickArea)
   return { rootEl, blocksEl, clickArea }
+}
+
+/**
+ * Synchronize the editor root's read-only class and accessibility state.
+ * @param {HTMLElement} rootEl Editor root element.
+ * @param {boolean} readOnly Whether document mutations are disabled.
+ */
+function applyReadOnlyAttributes(rootEl, readOnly) {
+  rootEl.classList.toggle('oe-editor--read-only', readOnly)
+  if (readOnly) rootEl.setAttribute('aria-readonly', 'true')
+  else rootEl.removeAttribute('aria-readonly')
 }
 
 /**
@@ -136,7 +149,7 @@ function buildEditorDOM(holder, theme, minHeight) {
  */
 function wireInputTracking(rootEl, blocks, events) {
   const onFocusIn = (/** @type {FocusEvent} */ e) => {
-    const target = /** @type {Node} */ (e.target)
+    const target = /** @type {import('./types').DOMNode} */ (e.target)
     const block = blocks.getBlockByChildNode(target)
     if (!block) return
     const index = blocks.getBlockIndex(block.id)
@@ -146,7 +159,7 @@ function wireInputTracking(rootEl, blocks, events) {
   }
 
   const onInput = (/** @type {InputEvent} */ event) => {
-    const target = /** @type {Node} */ (event.target)
+    const target = /** @type {import('./types').DOMNode} */ (event.target)
     // Editor controls (URL/color/font inputs, filters, dialogs) also bubble
     // `input` through rootEl. They are not document mutations and must never
     // advance block history by falling back to the currently focused block.
@@ -186,7 +199,8 @@ function injectPluginStyles(plugins) {
       ? plugin.getPluginConfig()
       : undefined
     if (cfg?.injectStyles !== false) {
-      const urls = plugin.constructor?.styles
+      const constructor = /** @type {import('./types').BlockPluginConstructor} */ (plugin.constructor)
+      const urls = constructor.styles
       if (urls) styleUrls.push(...urls)
     }
     if (cfg?.css) styleUrls.push(cfg.css)
@@ -214,6 +228,8 @@ function injectPluginStyles(plugins) {
  * @property {import('./config').EditorTuning} tuning
  * @property {import('./types').EditorConfig} config
  * @property {Diagnostics} diagnostics
+ * @property {LifecycleScope} scope
+ * @property {UndoManager} undoManager
  */
 
 /**
@@ -226,9 +242,17 @@ function wireEditMode(deps) {
     rootEl, blocksEl, clickArea, plugins, blocks, selection,
     i18n, events, commands, crossBlockSelection, defaultBlockType,
     inlinePluginRegistry, inlinePluginCtx, facade, snapshots, tuning, config, diagnostics,
+    scope, undoManager,
   } = deps
 
   const blockOps = new BlockOperations(blocks, selection, defaultBlockType, events)
+  blocks.setPluginStructuralCommands({
+    splitBlock: () => blockOps.splitBlock(),
+    exitEmptyBlock: () => blockOps.exitEmptyBlock(),
+  })
+  scope.register({
+    destroy: () => blocks.setPluginStructuralCommands({ splitBlock: null, exitEmptyBlock: null }),
+  })
   const pluginMutations = commands
 
   const duplicateBlock = (current, index) => {
@@ -259,11 +283,12 @@ function wireEditMode(deps) {
       moveAnimationMs: tuning.animations.blockMoveMs,
     },
   })
-  facade.registerDestroyable(toolbar)
+  scope.register(toolbar)
 
-  events.on(EditorEvent.INLINE_PLUGIN_INSERT, (/** @type {{ type: string }} */ payload) => {
+  const unsubscribeInlineInsert = events.on(EditorEvent.INLINE_PLUGIN_INSERT, (/** @type {{ type: string }} */ payload) => {
     facade.insertInlinePlugin(payload.type)
   })
+  scope.register({ destroy: unsubscribeInlineInsert })
 
   const inlineTools = resolveInlineTools(config.inlineTools, i18n, crossBlockSelection)
 
@@ -284,16 +309,7 @@ function wireEditMode(deps) {
     crossBlockSelection,
     commands,
   )
-  facade.registerDestroyable(inlineToolbar)
-
-  const undoManager = new UndoManager(
-    blocks, events,
-    () => snapshots.capture(),
-    (data, caret) => facade.render(data, caret),
-    () => selection.getCaret(),
-    tuning.undo,
-  )
-  facade.registerDestroyable(undoManager)
+  scope.register(inlineToolbar)
 
   const shortcuts = new ShortcutRegistry()
   shortcuts.register('Mod+Z', () => undoManager.undo(), { scope: 'editor' })
@@ -310,7 +326,7 @@ function wireEditMode(deps) {
     inlinePluginRegistry,
     inlinePluginCtx,
   })
-  facade.registerDestroyable(slashCommands)
+  scope.register(slashCommands)
 
   shortcuts.register('Escape', () => {
     toolbar.closeToolbox()
@@ -341,14 +357,14 @@ function wireEditMode(deps) {
   const uiActivePredicate = () => inlineToolbar.hasActiveUI() || slashCommands.isOpen
 
   const keyboardManager = new KeyboardManager(rootEl, blockOps, shortcuts, blocks, events, defaultBlockType, uiActivePredicate)
-  facade.registerDestroyable(keyboardManager)
+  scope.register(keyboardManager)
 
   if (inlinePluginRegistry.hasTriggers) {
-    facade.registerDestroyable(new TriggerManager(rootEl, inlinePluginRegistry, inlinePluginCtx, events))
+    scope.register(new TriggerManager(rootEl, inlinePluginRegistry, inlinePluginCtx, events))
   }
 
   if (inlinePluginRegistry.size > 0) {
-    facade.registerDestroyable(new InlinePatternMatcher(
+    scope.register(new InlinePatternMatcher(
       rootEl,
       inlinePluginRegistry,
       inlinePluginCtx,
@@ -363,9 +379,9 @@ function wireEditMode(deps) {
     blockOps, inlinePluginRegistry, inlinePluginCtx, diagnostics, uiActivePredicate,
     captureSnapshot: () => snapshots.capture(),
   })
-  facade.registerDestroyable(clipboard)
-  facade.registerDestroyable(new DragManager(rootEl, blocks, toolbar.dragHandle, events, tuning.drag))
-  facade.registerDestroyable(new MouseSelectionManager(rootEl, { blocksEl, clickArea, blocks, selection, events, crossBlockSelection, defaultBlockType }))
+  scope.register(clipboard)
+  scope.register(new DragManager(rootEl, blocks, toolbar.dragHandle, events, tuning.drag))
+  scope.register(new MouseSelectionManager(rootEl, { blocksEl, clickArea, blocks, selection, events, crossBlockSelection, defaultBlockType }))
 
   // Re-emit block:focused so Toolbar positions itself
   // (initial setCurrentIndex fired before Toolbar was created)
@@ -381,8 +397,11 @@ function wireEditMode(deps) {
  * @returns {I18n}
  */
 function initI18n(config) {
-  const localeMessages = /** @type {Record<string, any>} */ (config.locale) || en
-  const lang = localeMessages.__lang || 'en'
+  const localeMessages = /** @type {Record<string, import('./types').LocaleValue>} */ (
+    config.locale ?? en
+  )
+  const configuredLang = localeMessages.__lang
+  const lang = typeof configuredLang === 'string' ? configuredLang : 'en'
   return new I18n(localeMessages, localeMessages === en ? undefined : en, lang)
 }
 
@@ -408,8 +427,8 @@ function registerPlugins(pluginList, i18n, defaultBlockType, placeholder) {
       throw new Error(`Duplicate block plugin type: "${plugin.type}"`)
     }
     injectPluginI18n(plugin, i18n)
-    if (placeholder && plugin.type === defaultBlockType && /** @type {*} */ (plugin).setPlaceholder) {
-      /** @type {*} */ (plugin).setPlaceholder(placeholder)
+    if (placeholder !== undefined && plugin.type === defaultBlockType && typeof plugin.setPlaceholder === 'function') {
+      plugin.setPlaceholder(placeholder)
     }
     plugins.set(plugin.type, plugin)
   }
@@ -432,8 +451,20 @@ export function createEditor(config) {
   if (!Array.isArray(config.plugins)) {
     throw new TypeError('createEditor() requires a plugins array')
   }
+  if (config.readOnly !== undefined && typeof config.readOnly !== 'boolean') {
+    throw new TypeError('createEditor() readOnly must be a boolean')
+  }
+  if (config.placeholder !== undefined && typeof config.placeholder !== 'string') {
+    throw new TypeError('createEditor() placeholder must be a string')
+  }
+  if (
+    config.minHeight !== undefined
+    && (typeof config.minHeight !== 'number' || !Number.isFinite(config.minHeight) || config.minHeight < 0)
+  ) {
+    throw new RangeError('createEditor() minHeight must be a finite number greater than or equal to 0')
+  }
 
-  const readOnly = config.readOnly ?? false
+  let readOnly = config.readOnly ?? false
   const defaultBlockType = config.defaultBlock
     || (config.plugins?.some(plugin => plugin?.type === DEFAULT_BLOCK_TYPE)
       ? DEFAULT_BLOCK_TYPE
@@ -447,6 +478,7 @@ export function createEditor(config) {
   let facade
   let pluginOwnership
   const diagnostics = new Diagnostics(config.onDiagnostic, config.diagnosticThresholds)
+  const holderOwnership = claimEditorHolder(config.holder)
 
   try {
     pluginOwnership = claimPluginInstances([
@@ -464,6 +496,7 @@ export function createEditor(config) {
 
     const dom = buildEditorDOM(config.holder, theme, config.minHeight)
     rootEl = dom.rootEl
+    applyReadOnlyAttributes(rootEl, readOnly)
     const { blocksEl, clickArea } = dom
 
     blocks = new BlockManager(
@@ -495,7 +528,13 @@ export function createEditor(config) {
 
     const crossBlockSelection = new CrossBlockSelection()
 
-    const inlinePluginCtx = new PopupManager(events, EditorEvent.CHANGED, blocks, commands)
+    const inlinePluginCtx = new PopupManager(
+      events,
+      EditorEvent.CHANGED,
+      blocks,
+      commands,
+      () => readOnly,
+    )
     inlinePluginCtx.setRoot(rootEl)
     inlinePluginRegistry.mount(rootEl, inlinePluginCtx)
 
@@ -512,10 +551,9 @@ export function createEditor(config) {
       diagnostics,
       initialDocument?.version ?? documentSchema.currentVersion,
     )
-    const publicBlocks = new EditorBlocksApi(blocks)
+    const publicBlocks = new EditorBlocksApi(blocks, events)
     const publicEvents = new EditorEventSubscriptions(events)
-    facade = new EditorFacade(
-      rootEl,
+    facade = new EditorFacade(rootEl, {
       blocks,
       selection,
       events,
@@ -529,7 +567,9 @@ export function createEditor(config) {
       snapshots,
       publicBlocks,
       publicEvents,
-    )
+      readOnly,
+    })
+    facade.registerDestroyable(holderOwnership)
     facade.registerDestroyable(pluginOwnership)
     facade.registerDestroyable(inlinePluginCtx)
     facade.registerDestroyable(inlinePluginRegistry)
@@ -541,14 +581,80 @@ export function createEditor(config) {
     facade.registerDestroyable(changeNotifier)
     events.on(EditorEvent.CHANGED, () => changeNotifier.schedule())
 
-    if (!readOnly) {
-      facade.registerDestroyable(wireInputTracking(rootEl, blocks, events))
-      wireEditMode({
-        rootEl, blocksEl, clickArea, plugins, blocks, selection,
-        i18n, events, commands, crossBlockSelection, defaultBlockType,
-        inlinePluginRegistry, inlinePluginCtx, facade, snapshots, tuning, config, diagnostics,
-      })
+    const undoManager = new UndoManager(
+      blocks, events,
+      () => snapshots.capture(),
+      (data, caret) => facade.render(data, caret),
+      () => selection.getCaret(),
+      tuning.undo,
+    )
+    undoManager.setCommandsEnabled(!readOnly, { notify: false })
+    facade.configureHistory(undoManager)
+    facade.registerDestroyable(undoManager)
+
+    /** @type {LifecycleScope | null} */
+    let editModeScope = null
+    const mountEditMode = () => {
+      if (editModeScope) return
+      const scope = new LifecycleScope()
+      try {
+        scope.register(wireInputTracking(rootEl, blocks, events))
+        wireEditMode({
+          rootEl, blocksEl, clickArea, plugins, blocks, selection,
+          i18n, events, commands, crossBlockSelection, defaultBlockType,
+          inlinePluginRegistry, inlinePluginCtx, facade, snapshots, tuning, config, diagnostics,
+          scope, undoManager,
+        })
+        editModeScope = scope
+      } catch (error) {
+        scope.destroy()
+        throw error
+      }
     }
+
+    const unmountEditMode = () => {
+      editModeScope?.destroy()
+      editModeScope = null
+      crossBlockSelection.deactivate(rootEl)
+      blocks.clearSelection()
+    }
+    facade.registerDestroyable({ destroy: unmountEditMode })
+
+    facade.configureReadOnlyTransition(nextReadOnly => {
+      const previousReadOnly = facade.readOnly
+      // Cancel transient widget previews before capturing the canonical
+      // document. Otherwise a preview could be serialized as a committed edit.
+      inlinePluginCtx.hidePopup()
+      undoManager.commit()
+      const document = facade.save()
+      unmountEditMode()
+      readOnly = nextReadOnly
+      blocks.setReadOnly(nextReadOnly)
+      applyReadOnlyAttributes(rootEl, nextReadOnly)
+
+      try {
+        facade.render(document, undefined, { focus: false, notifyChange: false })
+        if (!nextReadOnly) mountEditMode()
+        undoManager.setCommandsEnabled(!nextReadOnly, { notify: false })
+      } catch (transitionError) {
+        unmountEditMode()
+        readOnly = previousReadOnly
+        blocks.setReadOnly(previousReadOnly)
+        applyReadOnlyAttributes(rootEl, previousReadOnly)
+        try {
+          facade.render(document, undefined, { focus: false, notifyChange: false })
+          if (!previousReadOnly) mountEditMode()
+        } catch (rollbackError) {
+          throw new AggregateError(
+            [transitionError, rollbackError],
+            'Editor read-only transition and rollback failed',
+          )
+        }
+        throw transitionError
+      }
+    })
+
+    if (!readOnly) mountEditMode()
 
     const styleCleanup = injectPluginStyles(plugins)
     if (styleCleanup) facade.registerDestroyable(styleCleanup)
@@ -575,6 +681,7 @@ export function createEditor(config) {
       blocks?.clear()
       inlinePluginRegistry?.destroy()
       pluginOwnership?.destroy()
+      holderOwnership.destroy()
       rootEl?.remove()
     }
     throw error
@@ -592,5 +699,5 @@ export { createColorSwatchPlugin } from '../inline-plugins/color.js'
 export { createMentionPlugin } from '../inline-plugins/mention/index.js'
 
 // Block plugins are NOT re-exported here — import them directly from their
-// own entry points to keep bundles tree-shakeable. See frontend/editor/demo.html
-// for the canonical import shape.
+// own entry points to keep bundles tree-shakeable. See demo.html for the
+// canonical import shape.

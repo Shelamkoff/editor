@@ -1,5 +1,8 @@
 import { createColorSwatchPlugin, createEditor } from '../../core/index.js'
-import { Attaches, Checklist, Heading, LinkPreview, List, Paragraph } from '../../plugins/index.js'
+import {
+  Attaches, Carousel, Checklist, Code, Embed, Gallery, Heading, Image,
+  LinkPreview, List, Paragraph, Raw, Spoiler, Toggle,
+} from '../../plugins/index.js'
 import { EditorRenderer } from '../../renderer/index.js'
 import { deserializeInlineHtml, serializeInlineHtml } from '../../shared/inlineMarshal.js'
 import { sanitizeHtml, sanitizeRawHtml, setSanitizedRawHtml } from '../../shared/sanitize/index.js'
@@ -67,8 +70,33 @@ async function run() {
   assert(!/javascript|svg\+xml/i.test(sanitizeRawHtml(unsafeRaw)), 'string Raw sanitizer kept an active URL')
   assert(window.__editorSecurityProbe === 0, 'Raw sanitizer executed an inert payload')
 
+  const rawPreviewHolder = document.createElement('section')
+  sandbox.appendChild(rawPreviewHolder)
+  const rawPreviewEditor = createEditor({
+    holder: rawPreviewHolder,
+    plugins: [new Raw()],
+    inlineTools: [],
+    readOnly: true,
+    data: { version: 'raw-preview', blocks: [{ id: 'raw-preview', type: 'raw', data: { html: unsafeRaw } }] },
+  })
+  const rawPreviewFrame = rawPreviewEditor.rootElement.querySelector('.oe-raw__preview iframe')
+  assert(rawPreviewFrame instanceof HTMLIFrameElement, 'read-only Raw block did not show its preview')
+  assert(!/script|javascript|svg\+xml/i.test(rawPreviewFrame.srcdoc), 'Raw editor preview bypassed the Raw sanitizer')
+  const rawPreviewToggle = rawPreviewEditor.rootElement.querySelector('.oe-raw__toggle')
+  assert(
+    rawPreviewToggle instanceof HTMLButtonElement
+      && rawPreviewToggle.hidden
+      && rawPreviewToggle.disabled
+      && rawPreviewToggle.getAttribute('aria-pressed') === 'true',
+    'read-only Raw block exposed an active editing toggle or inconsistent preview state',
+  )
+  rawPreviewEditor.destroy()
+
   const widgetPlugin = {
     type: 'test',
+    isCommitted(element) {
+      return element.dataset.committed !== 'false'
+    },
     getData(element) {
       return { value: element.dataset.value || '' }
     },
@@ -94,6 +122,13 @@ async function run() {
   assert(Object.keys(serialized.inline).length === 3, 'inline serializer lost widget data')
   assert(Object.getPrototypeOf(serialized.inline) === Object.prototype, 'inline serializer changed the map prototype')
   assert(!Object.hasOwn(serialized.inline, '__proto__'), 'inline serializer kept a reserved widget ID')
+
+  const transient = serializeInlineHtml(
+    '<span data-inline-plugin="test" data-id="pending" data-value="stale" data-committed="false">@pending</span>',
+    registry,
+  )
+  assert(transient.html === '@pending', 'inline serializer did not preserve transient widget text')
+  assert(Object.keys(transient.inline).length === 0, 'inline serializer persisted a transient widget')
 
   const inheritedInline = Object.create({ ghost: { type: 'test', data: { value: 'polluted' } } })
   assert(
@@ -421,7 +456,7 @@ async function run() {
   const readOnlyEditor = createEditor({
     holder: readOnlyHolder,
     readOnly: true,
-    plugins: [readOnlyProbe, new Attaches(), new LinkPreview({
+    plugins: [readOnlyProbe, new Attaches(), new Image(), new Gallery(), new Code(), new Embed(), new Carousel(), new Spoiler(), new Toggle(), new LinkPreview({
       async fetchMeta() {
         readOnlyRequests += 1
         return { title: 'Unexpected request' }
@@ -434,6 +469,22 @@ async function run() {
       blocks: [
         { id: 'probe', type: 'readOnlyProbe', data: { value: 'unchanged' } },
         { id: 'attachment', type: 'attaches', data: { files: [{ url: 'https://cdn.example/read-only.pdf', name: 'read-only.pdf', size: 42, extension: 'pdf' }], variant: 'f' } },
+        { id: 'image', type: 'image', data: { file: { url: pixel }, caption: 'Read-only image' } },
+        { id: 'gallery', type: 'gallery', data: { images: [{ url: pixel, caption: 'Read-only gallery image' }], layout: 'auto' } },
+        { id: 'code', type: 'code', data: { code: 'const immutable = true', language: 'javascript' } },
+        { id: 'embed', type: 'embed', data: { service: 'youtube', videoId: 'dQw4w9WgXcQ', caption: 'Read-only video' } },
+        {
+          id: 'carousel', type: 'carousel',
+          data: {
+            slides: [
+              { id: 'first', type: 'image', src: pixel, alt: 'First' },
+              { id: 'second', type: 'image', src: pixel, alt: 'Second' },
+            ],
+            options: { loop: false, autoplay: false, autoplayDelay: 3000, navigation: true, pagination: true, thumbnails: true },
+          },
+        },
+        { id: 'spoiler', type: 'spoiler', data: { label: 'Details', content: 'Hidden information' } },
+        { id: 'toggle', type: 'toggle', data: { title: 'More', content: 'Toggle information', open: false } },
         { id: 'link', type: 'linkPreview', data: { url: 'https://example.com', title: '', description: '', image: '', favicon: '', domain: '', template: 'notion' } },
       ],
     },
@@ -446,7 +497,79 @@ async function run() {
   assert(readOnlySaved.blocks[0]?.data?.value === 'unchanged', 'read-only editor persisted a UI mutation')
   assert(!readOnlyEditor.rootElement.querySelector('.oe-attaches__name[contenteditable="true"]'), 'read-only attachments kept editable file names')
   assert(!readOnlyEditor.rootElement.querySelector('.oe-attaches__remove:not([hidden])'), 'read-only attachments exposed remove controls')
+  assert(!readOnlyEditor.rootElement.querySelector('.oe-image__actions, .oe-gallery__actions'), 'read-only media blocks exposed editing controls')
+  assert(!readOnlyEditor.rootElement.querySelector('.oe-image [contenteditable="true"], .oe-gallery [contenteditable="true"]'), 'read-only media blocks kept editable captions')
+  assert(!readOnlyEditor.rootElement.querySelector('.oe-gallery [draggable="true"]'), 'read-only gallery kept draggable images')
+  const readOnlyCode = readOnlyEditor.rootElement.querySelector('[data-block-id="code"]')
+  assert(readOnlyCode?.querySelector('.oe-code-textarea')?.readOnly === true, 'read-only code kept an editable textarea')
+  assert(readOnlyCode?.querySelector('.oe-code-btn--edit')?.hidden === true, 'read-only code exposed its edit control')
+  const readOnlyCopy = readOnlyCode?.querySelector('.oe-code-btn--copy')
+  assert(readOnlyCopy instanceof HTMLButtonElement && !readOnlyCopy.disabled, 'read-only code disabled its presentation-only copy control')
+
+  const beforePresentationActions = JSON.stringify(readOnlySaved.blocks)
+  const readOnlyPlay = readOnlyEditor.rootElement.querySelector('[data-block-id="embed"] .oe-embed__play-btn')
+  assert(readOnlyPlay instanceof HTMLButtonElement && !readOnlyPlay.disabled, 'read-only embed disabled video playback')
+  readOnlyPlay.click()
+  assert(readOnlyEditor.rootElement.querySelector('[data-block-id="embed"] iframe'), 'read-only embed did not start playback')
+
+  const readOnlyCarousel = readOnlyEditor.rootElement.querySelector('[data-block-id="carousel"]')
+  const readOnlyNext = readOnlyCarousel?.querySelector('.oe-carousel-block__nav--next')
+  assert(readOnlyNext instanceof HTMLButtonElement && !readOnlyNext.disabled, 'read-only carousel disabled slide navigation')
+  readOnlyNext.click()
+  assert(readOnlyCarousel?.querySelector('.oe-carousel-block__counter')?.textContent === '2 / 2', 'read-only carousel did not change its visible slide')
+
+  const readOnlySpoiler = readOnlyEditor.rootElement.querySelector('[data-block-id="spoiler"]')
+  const readOnlySpoilerToggle = readOnlySpoiler?.querySelector('.oe-spoiler__toggle')
+  const readOnlySpoilerContent = readOnlySpoiler?.querySelector('.oe-spoiler__content')
+  assert(
+    readOnlySpoilerToggle instanceof HTMLButtonElement
+      && !readOnlySpoilerToggle.disabled
+      && readOnlySpoilerContent instanceof HTMLElement
+      && readOnlySpoilerContent.hidden,
+    'read-only spoiler did not start as an accessible collapsed disclosure',
+  )
+  readOnlySpoilerToggle.click()
+  assert(!readOnlySpoilerContent.hidden && readOnlySpoilerToggle.getAttribute('aria-expanded') === 'true', 'read-only spoiler could not reveal its content')
+
+  const readOnlyToggle = readOnlyEditor.rootElement.querySelector('[data-block-id="toggle"]')
+  const readOnlyToggleButton = readOnlyToggle?.querySelector('.oe-toggle__chevron')
+  assert(readOnlyToggleButton instanceof HTMLButtonElement && !readOnlyToggleButton.disabled, 'read-only toggle disabled its disclosure control')
+  readOnlyToggleButton.click()
+  assert(readOnlyToggle?.querySelector('.oe-toggle')?.classList.contains('oe-toggle--open'), 'read-only toggle did not reveal its content')
+  assert(JSON.stringify((await readOnlyEditor.save()).blocks) === beforePresentationActions, 'presentation-only read-only controls changed document data')
   readOnlyEditor.destroy()
+
+  const editableLinkHolder = document.createElement('section')
+  sandbox.appendChild(editableLinkHolder)
+  const editableLinkEditor = createEditor({
+    holder: editableLinkHolder,
+    plugins: [new LinkPreview()],
+    defaultBlock: 'linkPreview',
+    inlineTools: [],
+    data: {
+      version: 'link-preview-navigation',
+      blocks: [{
+        id: 'editable-link',
+        type: 'linkPreview',
+        data: { url: 'https://example.com', title: 'Example', description: '', image: '', favicon: '', domain: 'example.com', template: 'notion' },
+      }],
+    },
+  })
+  const editableCard = editableLinkEditor.rootElement.querySelector('.oe-lp__card')
+  assert(editableCard instanceof HTMLAnchorElement, 'editable link preview did not render a card')
+  const editableClick = new MouseEvent('click', { bubbles: true, cancelable: true })
+  editableCard.dispatchEvent(editableClick)
+  assert(editableClick.defaultPrevented, 'editable link preview allowed navigation away from the editor')
+  editableLinkEditor.setReadOnly(true)
+  const readOnlyCard = editableLinkEditor.rootElement.querySelector('.oe-lp__card')
+  assert(readOnlyCard instanceof HTMLAnchorElement, 'read-only link preview did not render a card')
+  // Remove the destination only inside the test so dispatching a synthetic
+  // activation cannot navigate the browser test page.
+  readOnlyCard.removeAttribute('href')
+  const readOnlyClick = new MouseEvent('click', { bubbles: true, cancelable: true })
+  readOnlyCard.dispatchEvent(readOnlyClick)
+  assert(!readOnlyClick.defaultPrevented, 'read-only link preview suppressed normal link activation')
+  editableLinkEditor.destroy()
 
   const unsafeUploadHolder = document.createElement('section')
   sandbox.appendChild(unsafeUploadHolder)
@@ -482,7 +605,7 @@ async function run() {
     holder: sourceHolder,
     plugins: [new Attaches({
       actions: [{
-        label: 'Library',
+        label: '<img src=x onerror=alert(1)>Library',
         async handler({ signal }) {
           sourceReceivedSignal = signal instanceof AbortSignal
           return [
@@ -497,6 +620,7 @@ async function run() {
   })
   const sourceButton = sourceEditor.rootElement.querySelector('.oe-attaches__select-action')
   assert(sourceButton instanceof HTMLButtonElement, 'attachment application source is missing in the empty state')
+  assert(!sourceButton.querySelector('img'), 'attachment application source rendered its label as HTML')
   sourceButton.click()
   await new Promise(resolve => setTimeout(resolve, 30))
   const sourceSaved = await sourceEditor.save()
@@ -549,6 +673,35 @@ async function run() {
   assert(unsafeAttributes.length === 0, `renderer kept unsafe URL attributes: ${unsafeAttributes.join(', ')}`)
   renderer.destroy(renderHost)
 
+  const builtInTypes = [
+    'paragraph', 'heading', 'list', 'quote', 'code', 'delimiter', 'table',
+    'checklist', 'warning', 'embed', 'raw', 'gallery', 'carousel', 'image',
+    'attaches', 'linkPreview', 'toggle', 'columns', 'spoiler', 'poll', 'person',
+  ]
+  const preserveIssues = []
+  const preserveRenderer = new EditorRenderer({
+    blockTypes: builtInTypes,
+    validationMode: 'preserve',
+    onValidationError: issue => preserveIssues.push(issue),
+  })
+  const malformedData = { text: { leaked: true }, items: { leaked: true }, nested: ['invalid'] }
+  const malformedBefore = JSON.stringify(malformedData)
+  const preserveHost = document.createElement('section')
+  sandbox.appendChild(preserveHost)
+  preserveRenderer.renderTo({
+    version: 'malformed-renderer-data',
+    blocks: builtInTypes.map((type, index) => ({
+      id: `malformed-renderer-${index}`,
+      type,
+      data: type === 'delimiter' ? null : malformedData,
+    })),
+  }, preserveHost)
+  assert(preserveIssues.length === builtInTypes.length, 'preserve renderer did not report every invalid built-in block')
+  assert(JSON.stringify(malformedData) === malformedBefore, 'preserve renderer mutated caller-owned invalid data')
+  assert(!preserveHost.textContent.includes('[object Object]'), 'preserve renderer leaked an object coercion into output')
+  assert(preserveHost.querySelectorAll('[data-block-type]').length === builtInTypes.length, 'preserve renderer dropped an invalid built-in block')
+  preserveRenderer.destroy(preserveHost)
+
   await new Promise(resolve => setTimeout(resolve, 30))
   assert(window.__editorSecurityProbe === 0, 'an inert HTML payload executed')
   sandbox.replaceChildren()
@@ -556,7 +709,7 @@ async function run() {
     inlineWidgets: 3,
     nestedInlineBlocks: 2,
     malformedBlocksPreserved: malformedSaved.blocks.length,
-    securitySurfaces: ['inline HTML', 'Raw HTML', 'paste', 'inline marshal', 'renderer URLs', 'upload callback URLs', 'application file sources'],
+    securitySurfaces: ['inline HTML', 'Raw HTML', 'paste', 'inline marshal', 'renderer URLs', 'renderer preserve mode', 'upload callback URLs', 'application file sources'],
   }
 }
 

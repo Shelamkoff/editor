@@ -21,6 +21,7 @@ const SOCIAL_ICONS = {
 /**
  * Person/author card block renderer — supports multi-person with carousel
  * @param {string} classPrefix
+ * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} locale
  * @returns {import('../../types').BlockRenderer<import('../../types').PersonBlock>}
  */
 export function createPersonRenderer(classPrefix, /** @type {Record<string, import('../../../shared/localeTypes').LocaleValue>} */ locale) {

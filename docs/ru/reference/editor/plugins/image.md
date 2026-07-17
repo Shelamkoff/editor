@@ -34,13 +34,25 @@ const editor = createEditor({
 ```json
 {
   "file": { "url": "https://cdn.example/image.jpg" },
-  "caption": "Caption",
+  "caption": "Подпись",
   "withBorder": false,
   "expanded": false,
   "withBackground": false,
   "styles": { "objectFit": "cover", "borderRadius": "8px" }
 }
 ```
+
+### Поля данных
+
+| Поле | Обязательное | Назначение и ограничения |
+| --- | --- | --- |
+| `file.url` | да | Канонический адрес медиафайла, разрешённый политикой Rector. Пустой адрес существует только в ещё не сохранённом пустом блоке. |
+| `file.width`, `file.height` | нет | Положительные конечные исходные размеры в пикселях. |
+| `caption` | нет | Подпись в виде очищенной внутристрочной HTML-разметки; по умолчанию пустая строка. |
+| `withBorder` | нет | Включает встроенное оформление рамки; по умолчанию `false`. |
+| `expanded` | нет | Растягивает изображение до ширины содержимого редактора и временно игнорирует пользовательские ограничения ширины; по умолчанию `false`. |
+| `withBackground` | нет | Применяет `styles.backgroundColor` к контейнеру изображения; по умолчанию `false`. |
+| `styles` | нет | Карта строковых стилей. Панель настроек записывает `width`, `height`, `minWidth`, `minHeight`, `maxWidth`, `maxHeight`, `objectFit`, `objectPosition`, `backgroundColor`, `borderStyle`, `borderColor`, `borderWidth` и `borderRadius`. Приложение должно ограничивать CSS-значения при работе с недоверенными данными. |
 
 Без `uploadFile` локальный файл сохраняется как URL со встроенными данными. До удалённой загрузки проверяйте тип и размер файла.
 

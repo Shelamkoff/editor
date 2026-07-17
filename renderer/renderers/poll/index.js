@@ -44,7 +44,7 @@ export function createPollRenderer(classPrefix, locale, config = {}) {
 
   /** @param {HTMLElement} wrapper @param {any} state @param {unknown} input @param {boolean} [confirmedVote] */
   function accept(wrapper, state, input, confirmedVote = false) {
-    const next = normalizePollResults(input, state.data.options.map(option => option.id), config.maxVoters)
+    const next = normalizePollResults(input, state.data.options.map(option => option.id), config.maxVoters, state.data.type)
     let accepted
     try {
       accepted = shouldAcceptPollRevision(next.revision, state.results.revision, config.compareRevisions)
@@ -99,11 +99,11 @@ export function createPollRenderer(classPrefix, locale, config = {}) {
       const marker = document.createElement('button')
       marker.type = 'button'
       marker.className = `${p}__marker ${p}__marker--${state.data.type}`
-      marker.setAttribute('aria-label', t('selectOption', 'Select option'))
       marker.setAttribute('aria-pressed', String(state.selected.has(option.id)))
       if (state.selected.has(option.id)) marker.classList.add(`${p}__marker--selected`)
       marker.disabled = state.submitting
       marker.addEventListener('click', () => {
+        if (state.submitting) return
         if (state.data.type === 'single') state.selected = new Set([option.id])
         else if (state.selected.has(option.id)) state.selected.delete(option.id)
         else state.selected.add(option.id)
@@ -116,6 +116,7 @@ export function createPollRenderer(classPrefix, locale, config = {}) {
       const text = document.createElement('span')
       text.className = `${p}__option-text`
       text.appendChild(state.parseInline(option.text))
+      marker.setAttribute('aria-label', `${t('selectOption', 'Select option')}: ${text.textContent || option.id}`)
       content.appendChild(text)
 
       if (showResults(state)) {
@@ -208,12 +209,25 @@ export function createPollRenderer(classPrefix, locale, config = {}) {
     state.submitting = true
     state.error = false
     build(wrapper, state)
-    void config.dataSource.vote({
-      pollId: state.data.pollId,
-      optionIds: selected,
-      revision: state.results.revision,
-      signal: state.controller.signal,
-    }).then(result => {
+
+    let voteRequest
+    try {
+      voteRequest = config.dataSource.vote({
+        pollId: state.data.pollId,
+        optionIds: selected,
+        revision: state.results.revision,
+        signal: state.controller.signal,
+      })
+    } catch (error) {
+      if (states.get(wrapper) === state && !state.controller.signal.aborted
+        && connectionVersion === state.connectionVersion && voteVersion === state.voteVersion) {
+        state.submitting = false
+        fail(wrapper, state, error)
+      }
+      return
+    }
+
+    void Promise.resolve(voteRequest).then(result => {
       if (states.get(wrapper) === state && !state.controller.signal.aborted
         && connectionVersion === state.connectionVersion && voteVersion === state.voteVersion) {
         accept(wrapper, state, result, true)
@@ -260,7 +274,10 @@ export function createPollRenderer(classPrefix, locale, config = {}) {
         fail(wrapper, state, error)
       }
     }
-    void config.dataSource.load({ pollId: state.data.pollId, signal: controller.signal }).then(result => {
+    void Promise.resolve().then(() => config.dataSource.load({
+      pollId: state.data.pollId,
+      signal: controller.signal,
+    })).then(result => {
       if (states.get(wrapper) === state && !controller.signal.aborted
         && connectionVersion === state.connectionVersion && loadVersion === state.loadVersion) accept(wrapper, state, result)
     }).catch(error => {
@@ -281,7 +298,7 @@ export function createPollRenderer(classPrefix, locale, config = {}) {
     render(block, parseInline) {
       let fallbackIndex = 0
       const data = normalizePollData(block.data, () => `legacy-option-${++fallbackIndex}`)
-      const results = normalizePollResults(data.initialResults, data.options.map(option => option.id), config.maxVoters)
+      const results = normalizePollResults(data.initialResults, data.options.map(option => option.id), config.maxVoters, data.type)
       const wrapper = document.createElement('div')
       wrapper.className = p
       const state = {
@@ -311,7 +328,9 @@ export function createPollRenderer(classPrefix, locale, config = {}) {
       state.loadVersion++
       state.voteVersion++
       state.controller?.abort()
-      state.unsubscribe?.()
+      try { state.unsubscribe?.() } catch (error) {
+        try { config.onError?.(error) } catch {}
+      }
       state.controller = null
       state.unsubscribe = null
       states.delete(element)

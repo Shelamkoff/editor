@@ -1,3 +1,6 @@
+import { sanitizeUrl } from '../../shared/sanitize/sanitizeUrl.js'
+import { normalizeTextValue } from '../../shared/textFormat.js'
+
 /**
  * @typedef {Object} ImageData
  * @property {{ url: string, width?: number, height?: number }} file
@@ -10,12 +13,8 @@
 
 /**
  * Per-block state for an Image instance.
- *
- * Replaces the previous module-level `WeakMap` keyed by wrapper element.
- * Encapsulates lifecycle: an `AbortController` so all DOM listeners attached
- * with `{ signal }` are torn down on `dispose()`, plus a `MutationObserver`
- * for the border-style row in the settings form, plus an object URL for
- * data-URL fallback uploads (revoked on dispose).
+ * Owns view listeners, the settings observer, paste coordination, and the
+ * latest asynchronous image-source operation.
  */
 export class ImageState {
   /** @type {ImageData} */
@@ -27,14 +26,14 @@ export class ImageState {
   /** @type {MutationObserver | null} */
   borderObserver = null
 
-  /** @type {string | null} */
-  objectUrl = null
-
   /** @type {File | null} */
   pendingFile = null
 
   /** @type {Promise<void> | null} */
   pendingUpload = null
+
+  /** @type {AbortController | null} */
+  taskController = null
 
   /**
    * @param {ImageData} data
@@ -46,32 +45,58 @@ export class ImageState {
   }
 
   /**
-   * Reset listener controller, observer, and any held object URL.
-   * Called between view renders (empty → filled, filled → empty)
-   * and from full disposal.
+   * Reset listeners and the observer between empty and filled view renders.
+   * Source operations use a separate controller because rendering a filled
+   * view is part of completing such an operation.
+   * @returns {void}
    */
   resetTransient() {
     this.abortController?.abort()
     this.abortController = new AbortController()
     this.borderObserver?.disconnect()
     this.borderObserver = null
-    if (this.objectUrl) {
-      URL.revokeObjectURL(this.objectUrl)
-      this.objectUrl = null
-    }
   }
 
   /**
-   * Final disposal — block was removed from the editor.
-   * After this the state is no longer usable.
+   * Start an asynchronous source operation and cancel the previous one.
+   * @returns {AbortController}
+   */
+  beginTask() {
+    this.taskController?.abort()
+    this.taskController = new AbortController()
+    return this.taskController
+  }
+
+  /**
+   * Mark a source operation as complete if it is still the latest operation.
+   * @param {AbortController} controller
+   * @returns {boolean} Whether the controller was current.
+   */
+  finishTask(controller) {
+    if (this.taskController !== controller) return false
+    this.taskController = null
+    return true
+  }
+
+  /**
+   * Cancel the current upload or custom source action.
+   * @returns {void}
+   */
+  cancelTask() {
+    this.taskController?.abort()
+    this.taskController = null
+  }
+
+  /**
+   * Release all resources after the block was removed from the editor.
+   * @returns {void}
    */
   dispose() {
     this.abortController?.abort()
     this.borderObserver?.disconnect()
-    if (this.objectUrl) URL.revokeObjectURL(this.objectUrl)
+    this.cancelTask()
     this.abortController = null
     this.borderObserver = null
-    this.objectUrl = null
     this.pendingFile = null
     this.pendingUpload = null
   }
@@ -79,7 +104,7 @@ export class ImageState {
 
 /**
  * Construct a fresh `ImageData` from arbitrary user input.
- * Defensive: every field is normalized to its expected type.
+ * Every field is normalized to its expected type.
  *
  * @param {Record<string, unknown>} [data]
  * @returns {ImageData}
@@ -88,23 +113,32 @@ export function normalizeImageData(data) {
   const fileObj = /** @type {any} */ (data?.file)
   /** @type {{ url: string, width?: number, height?: number }} */
   const file = {
-    url: sanitizeUrl(String(fileObj?.url || ''), { policy: 'media', fallback: '' }),
+    url: sanitizeUrl(normalizeTextValue(fileObj?.url), { policy: 'media', fallback: '' }),
   }
   if (Number.isFinite(fileObj?.width) && fileObj.width > 0) file.width = Number(fileObj.width)
   if (Number.isFinite(fileObj?.height) && fileObj.height > 0) file.height = Number(fileObj.height)
+  const rawStyles = data?.styles && typeof data.styles === 'object' && !Array.isArray(data.styles)
+    ? /** @type {Record<string, unknown>} */ (data.styles)
+    : {}
+  /** @type {Record<string, string>} */
+  const styles = {}
+  for (const [name, value] of Object.entries(rawStyles)) {
+    if (typeof value === 'string') styles[name] = value
+  }
   return {
     file,
-    caption: String(data?.caption || ''),
-    withBorder: !!data?.withBorder,
-    expanded: !!data?.expanded,
-    withBackground: !!data?.withBackground,
-    styles: data?.styles
-      ? /** @type {Record<string, string>} */ ({ .../** @type {any} */ (data.styles) })
-      : {},
+    caption: normalizeTextValue(data?.caption),
+    withBorder: data?.withBorder === true,
+    expanded: data?.expanded === true,
+    withBackground: data?.withBackground === true,
+    styles,
   }
 }
 
-/** @returns {ImageData} */
+/**
+ * Create the canonical empty value used for a new Image block.
+ * @returns {ImageData}
+ */
 export function emptyImageData() {
   return {
     file: { url: '' },
@@ -115,4 +149,3 @@ export function emptyImageData() {
     styles: {},
   }
 }
-import { sanitizeUrl } from '../../shared/sanitize/sanitizeUrl.js'

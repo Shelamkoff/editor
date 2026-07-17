@@ -10,6 +10,7 @@ const ICON_QUOTE = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="2
 /**
  * Quote block renderer — callout style with icon
  * @param {string} classPrefix
+ * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} _locale
  * @returns {import('../../types').BlockRenderer<import('../../types').QuoteBlock>}
  */
 export function createQuoteRenderer(classPrefix, _locale) {

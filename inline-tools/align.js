@@ -4,10 +4,11 @@ import {
   ICON_ALIGN_CENTER,
   ICON_ALIGN_RIGHT,
   ICON_ALIGN_JUSTIFY,
-  getBlockElement,
+  getBlockContentElement,
   getSelectedBlockElements,
   createBackButton,
 } from './utils.js'
+import { TEXT_ALIGN_TUNE_ATTRIBUTE } from '../core/constants.js'
 
 const ALIGNMENTS = [
   { value: '',        icon: ICON_ALIGN_LEFT,    key: 'left' },
@@ -17,6 +18,9 @@ const ALIGNMENTS = [
 ]
 
 /**
+ * Create the toolbar control that applies one text alignment to every block
+ * participating in the current selection.
+ *
  * @param {{ left: string, center: string, right: string, justify: string }} labels
  * @param {import('../types').ICrossBlockSelection | null} [cbs]
  * @returns {import('../types').InlineTool}
@@ -33,8 +37,14 @@ export function createAlignTool(labels, cbs = null) {
 
   /** Get current alignment from selection */
   function getCurrentAlign() {
-    const block = getBlockElement()
+    const block = getBlockContentElement()
     return block?.style.textAlign || ''
+  }
+
+  /** @param {HTMLElement} blockRoot @param {string} value */
+  function setAlignment(blockRoot, value) {
+    blockRoot.style.textAlign = value
+    blockRoot.setAttribute(TEXT_ALIGN_TUNE_ATTRIBUTE, value)
   }
 
   return {
@@ -90,12 +100,12 @@ export function createAlignTool(labels, cbs = null) {
             const crossBlocks = getSelectedBlockElements(cbs)
             if (crossBlocks) {
               for (const blockEl of crossBlocks) {
-                blockEl.style.textAlign = alignment.value
+                setAlignment(blockEl, alignment.value)
               }
             } else {
-              const target = getBlockElement()
+              const target = getBlockContentElement()
               if (target) {
-                target.style.textAlign = alignment.value
+                setAlignment(target, alignment.value)
               }
             }
           })

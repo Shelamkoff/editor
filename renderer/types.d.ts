@@ -261,28 +261,41 @@ export interface SpoilerData {
 }
 
 export interface PollOption {
+    /** Stable document identity used by result snapshots and vote submissions. */
     id: string
+    /** Inline-markup label displayed to the reader. */
     text: string
 }
 
 export interface PollOptionResult {
+    /** Id of one current author-owned option. */
     id: string
+    /** Non-negative integer number of ballots that selected this option. */
     votes: number
 }
 
 export interface PollVoter {
+    /** Stable application-owned voter identity. */
     id: string
     name?: string
+    /** Avatar URL accepted by the renderer media policy. */
     avatar?: string
+    /** Current option ids attributed to this voter. */
     optionIds?: string[]
 }
 
 export interface PollResults {
+    /** Optional opaque server revision used to reject stale snapshots. */
     revision?: string
+    /** Non-negative integer ballot count and percentage denominator. */
     total: number
+    /** Exactly one result for every current poll option. */
     options: PollOptionResult[]
+    /** Optional bounded voter summaries. */
     voters?: PollVoter[]
+    /** Total voter count when `voters` contains only a bounded subset. */
     votersTotal?: number
+    /** Complete selection of the current application user. */
     currentUserVote?: string[]
 }
 
@@ -296,8 +309,11 @@ export interface PollData extends Record<string, unknown> {
 }
 
 export interface PollDataSource {
+    /** Load the first authoritative result snapshot. */
     load(context: { pollId: string; signal: AbortSignal }): Promise<PollResults>
+    /** Submit the complete current selection and return an authoritative snapshot. */
     vote(context: { pollId: string; optionIds: string[]; revision?: string; signal: AbortSignal }): Promise<PollResults>
+    /** Subscribe to later authoritative snapshots and optionally return idempotent cleanup. */
     subscribe?(context: {
         pollId: string
         signal: AbortSignal
@@ -307,9 +323,13 @@ export interface PollDataSource {
 }
 
 export interface PollRendererConfig {
+    /** Optional server-owned result adapter; local voting is used when omitted. */
     dataSource?: PollDataSource
+    /** Observes adapter, cleanup, and revision-comparator errors. */
     onError?: (error: unknown) => void
+    /** Maximum retained voter records; defaults to 50. */
     maxVoters?: number
+    /** Orders opaque revisions; a positive result accepts `next` as newer. */
     compareRevisions?: (next: string, current: string) => number
 }
 

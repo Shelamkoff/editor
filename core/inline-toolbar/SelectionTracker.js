@@ -107,7 +107,8 @@ export class SelectionTracker {
 
   #onDocumentMouseDown = (/** @type {MouseEvent} */ e) => {
     if (this.#toolbarEl.style.display === 'none') return
-    const target = /** @type {Node} */ (e.target)
+    const target = e.target
+    if (!(target instanceof Node)) return
     if (this.#toolbarEl.contains(target)) return
     this.#deps.hide()
   }

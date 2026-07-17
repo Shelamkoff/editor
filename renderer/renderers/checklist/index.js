@@ -7,6 +7,7 @@ const styles = resolvePath('./styles.css', import.meta.url)
 /**
  * Checklist block renderer
  * @param {string} classPrefix
+ * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} _locale
  * @returns {import('../../types').BlockRenderer<import('../../types').ChecklistBlock>}
  */
 export function createChecklistRenderer(classPrefix, _locale) {

@@ -25,8 +25,8 @@
 
 /**
  * @typedef {import('../renderer/types').InlineWidget} InlineWidget
- * @typedef {import('../renderer/types').InlinePluginLike} InlinePluginLike
- * @typedef {{ get(type: string): InlinePluginLike | undefined }} PluginLookup
+ * @typedef {import('../renderer/types').InlinePluginLike & { isCommitted?(element: HTMLElement): boolean }} MarshalInlinePlugin
+ * @typedef {{ get(type: string): MarshalInlinePlugin | undefined }} PluginLookup
  */
 
 /**
@@ -98,6 +98,16 @@ export function serializeInlineHtml(html, registry, usedIds = new Set()) {
     if (!type) continue
     const plugin = registry.get(type)
     if (!plugin) continue
+
+    // Trigger-driven widgets can temporarily look like a widget while the
+    // user is editing a query, but they do not yet have valid persistent
+    // identity. Save their visible text instead of manufacturing an invalid
+    // inline-map entry. The plugin owns this decision because only it knows
+    // when its transient state becomes committed.
+    if (plugin.isCommitted?.(el) === false) {
+      el.replaceWith(document.createTextNode(el.textContent || ''))
+      continue
+    }
 
     const id = allocateInlineId(el.getAttribute('data-id'), usedIds)
     const data = plugin.getData(el)

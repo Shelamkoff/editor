@@ -1,9 +1,11 @@
 import { CSS } from './css.js'
 import { setSafeUrlAttribute } from '../../shared/sanitize/sanitizeUrl.js'
+import { isSupportedImageFile } from '../shared/fileInput.js'
 
 /**
  * @typedef {Object} SlotDeps
  * @property {(key: string, fallback: string) => string} t
+ * @property {boolean} readOnly
  * @property {(index: number) => void} onRemoveImage
  * @property {(from: number, to: number) => void} onSwapImages
  * @property {() => void} syncCaptions
@@ -28,7 +30,7 @@ export function createFilledSlot(img, index, signal, deps) {
   const slot = document.createElement('div')
   slot.className = `${CSS.slot} ${CSS.slotFilled}`
   slot.dataset.index = String(index)
-  slot.draggable = true
+  slot.draggable = !deps.readOnly
 
   const image = document.createElement('img')
   image.className = CSS.slotImg
@@ -46,17 +48,20 @@ export function createFilledSlot(img, index, signal, deps) {
     deps,
   )
 
-  addRemoveBtn(slot, () => {
-    const i = parseInt(slot.dataset.index || slot.dataset.slot || '0', 10)
-    deps.syncCaptions()
-    deps.onRemoveImage(i)
-  }, signal)
-
-  attachSlotDrag(slot, index, signal, deps)
+  if (!deps.readOnly) {
+    addRemoveBtn(slot, deps.t('delete', 'Delete'), () => {
+      const i = parseInt(slot.dataset.index || slot.dataset.slot || '0', 10)
+      deps.syncCaptions()
+      deps.onRemoveImage(i)
+    }, signal)
+    attachSlotDrag(slot, index, signal, deps)
+  }
   return slot
 }
 
 /**
+ * Build an unfilled placeholder for a template slot.
+ *
  * @param {number} slotIndex
  * @param {SlotDeps} deps
  * @returns {HTMLDivElement}
@@ -75,6 +80,8 @@ export function createEmptySlot(slotIndex, deps) {
 }
 
 /**
+ * Build a draggable image item displayed outside the active template slots.
+ *
  * @param {{ url: string, caption: string }} img
  * @param {number} globalIndex
  * @param {AbortSignal} signal
@@ -85,7 +92,7 @@ export function createOverflowItem(img, globalIndex, signal, deps) {
   const item = document.createElement('div')
   item.className = CSS.overflowItem
   item.dataset.index = String(globalIndex)
-  item.draggable = true
+  item.draggable = !deps.readOnly
 
   const imgEl = document.createElement('img')
   imgEl.className = CSS.slotImg
@@ -95,12 +102,13 @@ export function createOverflowItem(img, globalIndex, signal, deps) {
   imgEl.draggable = false
   item.appendChild(imgEl)
 
-  addRemoveBtn(item, () => {
-    deps.syncCaptions()
-    deps.onRemoveImage(globalIndex)
-  }, signal)
-
-  attachSlotDrag(item, globalIndex, signal, deps)
+  if (!deps.readOnly) {
+    addRemoveBtn(item, deps.t('delete', 'Delete'), () => {
+      deps.syncCaptions()
+      deps.onRemoveImage(globalIndex)
+    }, signal)
+    attachSlotDrag(item, globalIndex, signal, deps)
+  }
   return item
 }
 
@@ -110,12 +118,13 @@ export function createOverflowItem(img, globalIndex, signal, deps) {
  * @param {HTMLElement} el
  * @param {AbortSignal} signal
  * @param {(files: File[]) => void} onFiles
+ * @returns {void}
  */
 export function attachExternalDrop(el, signal, onFiles) {
   el.addEventListener('dragover', (e) => { e.preventDefault() }, { signal })
   el.addEventListener('drop', (e) => {
     e.preventDefault()
-    const files = [...(e.dataTransfer?.files || [])].filter((f) => f.type.startsWith('image/'))
+    const files = [...(e.dataTransfer?.files || [])].filter(isSupportedImageFile)
     if (files.length > 0) onFiles(files)
   }, { signal })
 }
@@ -132,7 +141,7 @@ export function attachExternalDrop(el, signal, onFiles) {
 function addCaption(parent, image, getIndex, signal, deps) {
   const captionEl = document.createElement('div')
   captionEl.className = CSS.slotCaption
-  captionEl.contentEditable = 'true'
+  captionEl.contentEditable = deps.readOnly ? 'false' : 'true'
   captionEl.dataset.placeholder = deps.t('caption', 'Caption')
 
   const isEmpty = !image.caption?.trim()
@@ -140,6 +149,11 @@ function addCaption(parent, image, getIndex, signal, deps) {
     captionEl.setAttribute('data-empty', 'true')
   } else {
     captionEl.textContent = image.caption
+  }
+
+  if (deps.readOnly) {
+    parent.appendChild(captionEl)
+    return
   }
 
   captionEl.addEventListener('input', () => {
@@ -153,6 +167,8 @@ function addCaption(parent, image, getIndex, signal, deps) {
     captionEl.textContent?.trim()
       ? captionEl.removeAttribute('data-empty')
       : captionEl.setAttribute('data-empty', 'true')
+    const imageElement = parent.querySelector(`.${CSS.slotImg}`)
+    if (imageElement instanceof HTMLImageElement) imageElement.alt = captionEl.textContent?.trim() || ''
   }, { signal })
   captionEl.addEventListener('focus', () => captionEl.removeAttribute('data-empty'), { signal })
   captionEl.addEventListener('blur', () => {
@@ -175,14 +191,16 @@ function addCaption(parent, image, getIndex, signal, deps) {
 
 /**
  * @param {HTMLElement} parent
+ * @param {string} label
  * @param {() => void} onRemove
  * @param {AbortSignal} signal
  */
-function addRemoveBtn(parent, onRemove, signal) {
+function addRemoveBtn(parent, label, onRemove, signal) {
   const btn = document.createElement('button')
   btn.type = 'button'
   btn.className = CSS.slotRemove
   btn.innerHTML = '&times;'
+  btn.setAttribute('aria-label', label)
   btn.addEventListener('mousedown', (e) => e.preventDefault(), { signal })
   btn.addEventListener('click', (e) => { e.stopPropagation(); onRemove() }, { signal })
   parent.appendChild(btn)
@@ -212,8 +230,9 @@ function attachSlotDrag(el, index, signal, deps) {
     el.classList.remove(CSS.itemDragging)
     const state = deps.getState()
     if (state) state.dragIndex = -1
-    document
-      .querySelectorAll(`.${CSS.slotOver}, .${CSS.overflowItemOver}`)
+    const gallery = el.closest(`.${CSS.wrapper}`) ?? el.parentElement
+    gallery
+      ?.querySelectorAll(`.${CSS.slotOver}, .${CSS.overflowItemOver}`)
       .forEach((n) => n.classList.remove(CSS.slotOver, CSS.overflowItemOver))
   }, { signal })
 

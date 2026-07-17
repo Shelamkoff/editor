@@ -42,11 +42,11 @@ The table below is the complete public `EditorConfig` contract. A value describe
 | `inlinePlugins` | no | `[]` | Persistent widgets embedded in text, such as mentions or color swatches. These are different from formatting tools because their data is stored in the block's `inline` map. |
 | `data` | no | one empty default block | The initial versioned document. Rector clones and normalizes it before plugins receive data; later mutations of the caller's object do not mutate the editor. |
 | `migrations` | no | `[]` | Directed synchronous document migrations. Rector follows `from` → `to` links until the current document version is reached. |
-| `documentVersionPolicy` | no | `'preserve'` | What to do when the incoming document has an unknown version or an incomplete migration chain. `preserve` keeps a structurally valid document at its declared version; `strict` throws. |
-| `readOnly` | no | `false` | Disables editor mutations and editing controls while keeping the editor lifecycle and block UI. Use a renderer when editing infrastructure is not needed at all. |
-| `placeholder` | no | plugin locale | Overrides the placeholder of the default block when that plugin implements `setPlaceholder()`. It does not change placeholders owned by other plugins. |
+| `documentVersionPolicy` | no | `'preserve'` | What to do when the incoming document has an unknown version or an incomplete migration chain. `preserve` applies every reachable migration and keeps the last structurally valid version; `strict` requires a complete chain and throws otherwise. |
+| `readOnly` | no | `false` | Selects the initial mode. It disables user and plugin editing controls while keeping host-authorized document methods available. Change it later with `editor.setReadOnly()`. |
+| `placeholder` | no | plugin locale | Overrides the placeholder of the default block when that plugin implements `setPlaceholder()`. Pass an empty string to suppress that placeholder. It does not change placeholders owned by other plugins. |
 | `autofocus` | no | `false` | Focuses the first editable or focusable element after successful creation. It has no effect in read-only mode. |
-| `minHeight` | no | stylesheet value | Sets an inline minimum height, in CSS pixels, on the editor root. Omit it to leave sizing to CSS. |
+| `minHeight` | no | stylesheet value | Sets a finite non-negative inline minimum height, in CSS pixels, on the editor root. Omit it to leave sizing to CSS. |
 | `defaultBlock` | no | `paragraph`, otherwise the first plugin | Registered block type used for an empty document, Enter-created blocks, and the replacement inserted after the last block is removed. |
 | `locale` | no | built-in English dictionary | A merged core-and-plugin dictionary. Use the exported aggregated locale to translate all built-in UI, and `__lang` to select plural rules. |
 | `tuning` | no | `DEFAULT_TUNING` | Partial behavioral overrides for dragging, history, change notifications, the toolbox, animations, and the mobile breakpoint. Each leaf is described below. |
@@ -123,11 +123,13 @@ createEditor({
 
 | Option | Default | Meaning |
 | --- | --- | --- |
-| `readOnly` | `false` | Disables editing controls while retaining the editor document view. Use the renderer when no editor lifecycle is needed. |
-| `placeholder` | localized text | Placeholder passed to the default block plugin when it implements `setPlaceholder()`. |
+| `readOnly` | `false` | Selects the initial interactive or read-only mode. Read `editor.readOnly` and call `editor.setReadOnly(boolean)` to change it later. |
+| `placeholder` | localized text | Placeholder passed to the default block plugin when it implements `setPlaceholder()`. An empty string disables it. |
 | `autofocus` | `false` | Focuses the initial block after creation. |
 | `minHeight` | editor stylesheet default | Minimum editable area height in pixels. |
 | `theme` | `dark` | Theme name placed on the editor root. Built-in names are `dark` and `light`. |
+
+`setReadOnly()` preserves the current document and history. The transition rebuilds plugin DOM with a new `context.readOnly` value, but does not create a history step, trigger `onChange`, or request or restore browser focus. Replacing mounted plugin elements may therefore lose the current focus; call `editor.focus()` after returning to edit mode when required. While read-only, user editing, inline insertion, undo, and redo are unavailable; `save()`, `render()`, `clear()`, and host structural block commands remain available. The complete runtime contract is described in [Editor API](/guide/editor-api#editing-and-read-only-modes).
 
 ## Localization
 
@@ -168,7 +170,7 @@ Use request cancellation or monotonically increasing revisions in the storage la
 
 `documentVersionPolicy` controls unsupported document versions:
 
-- `preserve` keeps a valid document envelope at its declared version when no complete migration chain exists;
+- `preserve` applies every reachable migration and, if the chain ends early, keeps the last structurally valid document reached (which may still be the originally declared version);
 - `strict` rejects an unknown or incomplete version chain.
 
 `validationMode` controls a registered plugin whose `validate(data)` returns `false`:
@@ -223,6 +225,8 @@ Every leaf has one purpose; tuning values never change the document schema.
 
 `undo.debounceMs` coalesces continuous text input; it does not combine explicit structural or toolbar actions. `change.debounceMs` affects notifications only, not history ordering.
 
+All numeric tuning leaves must be finite and non-negative. `undo.maxStack` must additionally be an integer of at least `1`, and `toolbar.filterThreshold` must be an integer. Invalid values are rejected synchronously before Rector claims the holder or mounts plugin DOM.
+
 ## Diagnostics
 
 Operational diagnostics are disabled unless `onDiagnostic` is present. Signals contain operation metadata but never document or plugin payloads.
@@ -253,6 +257,8 @@ Possible `code` values are `command.failed`, `command.slow`, `paste.failed`, `pa
 | `saveMs` | `save.slow` for document serialization |
 | `renderMs` | `render.slow` for block/document rendering measured by the instrumented operation |
 | `pasteMs` | `paste.slow` for a paste transaction |
+
+Every supplied threshold must be a finite non-negative number. An invalid threshold is rejected during `createEditor()` before DOM composition starts.
 
 Every `EditorDiagnostic` has `code` and a numeric `timestamp`. Depending on the operation it may also contain `durationMs`, `operation`, `pluginType`, `blockType`, `fromVersion`, `toVersion`, or `errorName`. It never contains document text, block data, plugin configuration, or thrown error objects.
 

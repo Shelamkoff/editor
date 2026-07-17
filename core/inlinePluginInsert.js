@@ -3,7 +3,7 @@
  *
  * Extracted from EditorFacade to keep DOM manipulation out of the facade.
  *
- * @param {import('./InlinePluginRegistry').InlinePluginRegistry} registry
+ * @param {import('./types').IInlinePluginRegistry} registry
  * @param {import('./types').InlinePluginContext} ctx
  * @param {string} type
  * @param {Record<string, string>} [data]

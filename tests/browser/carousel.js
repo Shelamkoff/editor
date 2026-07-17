@@ -16,7 +16,11 @@ async function run() {
     actions: [{
       label: 'Library',
       async handler() {
-        return [{ id: 'library', type: 'html', html: '<img src="javascript:x"><script>window.carouselXss=1</script><p>Safe</p>', caption: 'Library' }]
+        return [
+          { id: 'library', type: 'html', html: '<img src="javascript:x"><script>window.carouselXss=1</script><p>Safe</p>', caption: 'Library' },
+          { id: 'invalid-image', type: 'image', src: 'javascript:alert(1)' },
+          { id: 'invalid-html', type: 'html', html: '<script>window.carouselXss=2</script>' },
+        ]
       },
     }],
   })
@@ -40,6 +44,17 @@ async function run() {
   assert(!savedAfterAction.slides[2].html.includes('javascript:'), 'HTML slide retained an active URL')
 
   element.querySelector('[aria-label="Go to slide 1"]').click()
+  const settingsButton = buttonByText(element, '.oe-carousel-block__action-btn', 'Settings')
+  assert(settingsButton.getAttribute('aria-expanded') === 'false', 'settings disclosure has no closed state')
+  settingsButton.click()
+  assert(settingsButton.getAttribute('aria-expanded') === 'true', 'settings disclosure did not expose its open state')
+  const sourceInput = [...element.querySelectorAll('.oe-carousel-block__field')]
+    .find(label => label.textContent.includes('Source URL'))?.querySelector('input')
+  assert(sourceInput instanceof HTMLInputElement, 'source URL setting is missing')
+  const sourceBeforeInvalidEdit = plugin.save(element).slides[0].src
+  sourceInput.value = 'javascript:alert(1)'
+  sourceInput.dispatchEvent(new Event('change', { bubbles: true }))
+  assert(plugin.save(element).slides[0].src === sourceBeforeInvalidEdit, 'invalid source URL replaced valid slide media')
   buttonByText(element, '.oe-carousel-block__action-btn', 'Settings').click()
   element.querySelector('[aria-label="Move slide forward"]').click()
   assert(plugin.save(element).slides[0].id === 'second', 'slide reorder failed')
@@ -55,7 +70,11 @@ async function run() {
   assert(remove instanceof HTMLButtonElement, 'remove slide control is missing')
   remove.click()
   assert(plugin.save(element).slides.length === 2, 'slide removal failed')
+  buttonByText(element, '.oe-carousel-block__action-btn', 'Add').click()
+  buttonByText(element, '.oe-carousel-block__action-btn', 'Upload').click()
+  assert(document.body.querySelector('input[type="file"]'), 'carousel upload did not create its temporary file input')
   plugin.destroy(element)
+  assert(!document.body.querySelector('input[type="file"]'), 'destroying a carousel block leaked its temporary file input')
   element.remove()
 
   let resolveUpload
@@ -70,6 +89,34 @@ async function run() {
   await tick()
   assert(mutations === beforeDestroy, 'upload callback mutated a destroyed carousel block')
   pending.destroy(pendingElement)
+
+  let unsupportedUploads = 0
+  const unsupported = new CarouselBlock({
+    async uploadFile() { unsupportedUploads++; return { url: pixel } },
+  })
+  const unsupportedElement = unsupported.render({ slides: [], options }, { mutate(operation) { return operation() } })
+  sandbox.appendChild(unsupportedElement)
+  const transfer = new DataTransfer()
+  transfer.items.add(new File(['plain text'], 'notes.txt', { type: 'text/plain' }))
+  unsupportedElement.dispatchEvent(new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer: transfer }))
+  await tick()
+  assert(unsupportedUploads === 0, 'dropzone sent an unsupported file to uploadFile')
+  assert(unsupported.save(unsupportedElement).slides.length === 0, 'dropzone converted an unsupported file into a slide')
+  unsupported.destroy(unsupportedElement)
+  unsupportedElement.remove()
+
+  const extensionFallback = new CarouselBlock({
+    async uploadFile() { return { url: pixel } },
+  })
+  const extensionElement = extensionFallback.render({ slides: [], options }, { mutate(operation) { return operation() } })
+  sandbox.appendChild(extensionElement)
+  const extensionTransfer = new DataTransfer()
+  extensionTransfer.items.add(new File(['video'], 'clip.mp4'))
+  extensionElement.dispatchEvent(new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer: extensionTransfer }))
+  await tick()
+  assert(extensionFallback.save(extensionElement).slides[0]?.type === 'video', 'extension-only video was classified as an image')
+  extensionFallback.destroy(extensionElement)
+  extensionElement.remove()
 
   let emptySourceMutations = 0
   const emptySource = new CarouselBlock({
@@ -99,7 +146,7 @@ async function run() {
   renderer.destroy(container)
   assert(container.childNodes.length === 0, 'carousel renderer leaked DOM on destroy')
 
-  return { operations: ['source', 'empty source', 'reorder', 'settings', 'remove', 'read-only', 'upload abort', 'render/destroy'], mutations }
+  return { operations: ['source', 'empty source', 'reorder', 'settings', 'remove', 'read-only', 'upload abort', 'drop validation', 'extension fallback', 'render/destroy'], mutations }
 }
 
 try {

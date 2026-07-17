@@ -1,4 +1,4 @@
-import { cp, mkdir, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises'
+import { cp, mkdir, mkdtemp, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises'
 import { dirname, extname, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import ts from 'typescript'
@@ -115,8 +115,8 @@ async function assertNoShadowDeclarations() {
   }
 }
 
-async function addTypeOnlyPrelude(declaration, source) {
-  const relativeDeclaration = relative(join(editorRoot, '.package-tmp', 'declarations', 'editor'), declaration)
+async function addTypeOnlyPrelude(declaration, source, emittedEditorRoot) {
+  const relativeDeclaration = relative(emittedEditorRoot, declaration)
     .replaceAll('\\', '/')
   const pluginMatch = relativeDeclaration.match(/^plugins\/([^/]+)\/index\.d\.ts$/)
   if (!pluginMatch) return source
@@ -131,62 +131,72 @@ async function addTypeOnlyPrelude(declaration, source) {
 export async function generateDeclarations(outputDirectory) {
   const outputRoot = resolve(outputDirectory)
   assertInsideEditor(outputRoot, 'Declaration output')
-  const temporaryRoot = resolve(editorRoot, '.package-tmp', 'declarations')
+  const temporaryParent = resolve(editorRoot, '.package-tmp')
+  assertInsideEditor(temporaryParent, 'Declaration temporary parent')
+  await mkdir(temporaryParent, { recursive: true })
+  const temporaryRoot = await mkdtemp(join(temporaryParent, 'declarations-'))
   assertInsideEditor(temporaryRoot, 'Declaration temporary output')
-  await assertNoShadowDeclarations()
-  await rm(temporaryRoot, { recursive: true, force: true })
-  await rm(outputRoot, { recursive: true, force: true })
-  await mkdir(temporaryRoot, { recursive: true })
+  try {
+    await assertNoShadowDeclarations()
+    await rm(outputRoot, { recursive: true, force: true })
 
-  const roots = []
-  for (const root of sourceRoots) {
-    roots.push(...await walk(join(editorRoot, root), path => path.endsWith('.js') && !path.endsWith('.test.js')))
-  }
+    const roots = []
+    for (const root of sourceRoots) {
+      roots.push(...await walk(join(editorRoot, root), path => path.endsWith('.js') && !path.endsWith('.test.js')))
+    }
 
-  const program = ts.createProgram(roots, {
-    allowJs: true,
-    checkJs: false,
-    declaration: true,
-    declarationMap: false,
-    emitDeclarationOnly: true,
-    noEmitOnError: false,
-    module: ts.ModuleKind.ESNext,
-    moduleResolution: ts.ModuleResolutionKind.Bundler,
-    target: ts.ScriptTarget.ES2022,
-    skipLibCheck: true,
-    rootDir: workRoot,
-    outDir: temporaryRoot,
-  })
-  const emitResult = program.emit()
-  const errors = [...ts.getPreEmitDiagnostics(program), ...emitResult.diagnostics]
-    .filter(diagnostic => diagnostic.category === ts.DiagnosticCategory.Error)
-  if (emitResult.emitSkipped) {
+    const program = ts.createProgram(roots, {
+      allowJs: true,
+      checkJs: false,
+      declaration: true,
+      declarationMap: false,
+      emitDeclarationOnly: true,
+      noEmitOnError: false,
+      module: ts.ModuleKind.ESNext,
+      moduleResolution: ts.ModuleResolutionKind.Bundler,
+      target: ts.ScriptTarget.ES2022,
+      skipLibCheck: true,
+      rootDir: workRoot,
+      outDir: temporaryRoot,
+    })
+    const emitResult = program.emit()
+    const errors = [...ts.getPreEmitDiagnostics(program), ...emitResult.diagnostics]
+      .filter(diagnostic => diagnostic.category === ts.DiagnosticCategory.Error)
+    if (emitResult.emitSkipped) {
+      throw new Error(`Declaration generation failed:\n${errors.map(formatDiagnostic).join('\n')}`)
+    }
+
+    const emittedEditorRoot = join(temporaryRoot, 'editor')
+    const emitted = await walk(emittedEditorRoot, path => path.endsWith('.d.ts'))
+    for (const declaration of emitted) {
+      const destination = join(outputRoot, relative(emittedEditorRoot, declaration))
+      await mkdir(dirname(destination), { recursive: true })
+      const withTypePrelude = await addTypeOnlyPrelude(
+        declaration,
+        await readFile(declaration, 'utf8'),
+        emittedEditorRoot,
+      )
+      const normalized = normalizeSpecifiers(normalizePackageBoundaries(withTypePrelude))
+      await writeFile(destination, normalized, 'utf8')
+    }
+    await copyTypeOnlyFacades(outputRoot)
+    return {
+      runtimeDeclarations: emitted.length,
+      sourceDiagnostics: errors.length,
+      sourceDiagnosticDetails: errors.map(formatDiagnostic),
+    }
+  } finally {
     await rm(temporaryRoot, { recursive: true, force: true })
-    throw new Error(`Declaration generation failed:\n${errors.map(formatDiagnostic).join('\n')}`)
-  }
-
-  const emittedEditorRoot = join(temporaryRoot, 'editor')
-  const emitted = await walk(emittedEditorRoot, path => path.endsWith('.d.ts'))
-  for (const declaration of emitted) {
-    const destination = join(outputRoot, relative(emittedEditorRoot, declaration))
-    await mkdir(dirname(destination), { recursive: true })
-    const withTypePrelude = await addTypeOnlyPrelude(declaration, await readFile(declaration, 'utf8'))
-    const normalized = normalizeSpecifiers(normalizePackageBoundaries(withTypePrelude))
-    await writeFile(destination, normalized, 'utf8')
-  }
-  await copyTypeOnlyFacades(outputRoot)
-  await rm(temporaryRoot, { recursive: true, force: true })
-  return {
-    runtimeDeclarations: emitted.length,
-    sourceDiagnostics: errors.length,
-    sourceDiagnosticDetails: errors.map(formatDiagnostic),
   }
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const outputFlag = process.argv.indexOf('--out')
-  const output = outputFlag >= 0 ? process.argv[outputFlag + 1] : '.package/types'
-  if (!output) throw new Error('--out requires a directory')
+  if (outputFlag < 0) {
+    throw new Error('Declaration output is required. Use --out <directory>.')
+  }
+  const output = process.argv[outputFlag + 1]
+  if (!output || output.startsWith('--')) throw new Error('--out requires a directory')
   const result = await generateDeclarations(resolve(editorRoot, output))
   if (result.sourceDiagnostics > 0) {
     throw new Error(`Declaration generation reported ${result.sourceDiagnostics} source diagnostics:\n${result.sourceDiagnosticDetails.join('\n')}`)

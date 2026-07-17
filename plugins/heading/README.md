@@ -1,6 +1,6 @@
 # Heading block plugin
 
-Heading levels 2-6 with alignment, inline formatting, inline widgets, shortcuts, and level controls.
+Heading levels 2-6 with alignment, inline formatting, inline widgets, paste handling, and level controls.
 
 ## Install and register
 
@@ -21,13 +21,23 @@ const editor = createEditor({
 
 The registered block type is `heading`. The class is also exported by the complete `@shelamkoff/rector/plugins` preset and can be loaded through `@shelamkoff/rector/plugins/async`.
 
+The same subpath exports `HEADING_LEVELS`, a read-only array of `{ level, key, icon }` entries for H2-H6. `key` is a plugin-local localization key and `icon` is trusted built-in SVG markup. Use the array when an application-level heading control must expose exactly the levels supported by the plugin; do not mutate its entries.
+
 ## Data
 
 ```json
 { "text": "Section", "level": 2, "align": "left" }
 ```
 
-`level` accepts integers from `2` through `6`; `align` accepts `left`, `center`, or `right`.
+### Field reference
+
+| Field | Required | Meaning and constraints |
+| --- | --- | --- |
+| `text` | yes | Non-blank sanitized inline HTML. It may reference values from the block's `inline` map. |
+| `level` | yes | Integer from `2` through `6`. A newly inserted heading starts at level `2`. |
+| `align` | no | `left`, `center`, `right`, or `justify`; omitted means normal text alignment. |
+
+An empty heading may exist as an editing draft, but strict document validation rejects it until `text` is non-blank.
 
 ## Configuration
 
@@ -35,7 +45,7 @@ Every built-in block plugin accepts two style ownership options: `injectStyles?:
 
 ## Capabilities
 
-Inline tools and widgets; heading-tag paste; keyboard shortcuts; level changes; export for conversion.
+Inline tools and widgets; heading-tag paste; level changes; export for conversion.
 
 ## Undo, lifecycle, and styles
 

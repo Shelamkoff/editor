@@ -10,6 +10,7 @@ export default {
   'renderer.carousel.next': 'Следующий слайд',
   'renderer.carousel.page': 'Перейти к странице',
   'renderer.carousel.slide': 'Перейти к слайду',
+  'renderer.gallery.open': 'Открыть изображение',
   'renderer.poll.selectOption': 'Выбрать вариант',
   'renderer.poll.vote': 'Проголосовать',
   'renderer.poll.loading': 'Загрузка результатов…',

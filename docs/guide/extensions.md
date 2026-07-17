@@ -80,13 +80,31 @@ export class Callout {
 
 Native edits inside `contenteditable` are tracked by Rector. A plugin-owned button, picker, toggle, completed upload, or other explicit action must use the `context.mutate()` captured by `render()`.
 
+### Block mutation context
+
+`BlockMutationContext` separates changes owned by a plugin from structural changes owned by the editor:
+
+| Member | Use |
+| --- | --- |
+| `mutate(operation)` | Run one synchronous plugin-local change as one history step. Returns the operation result, or `undefined` in read-only mode. |
+| `splitBlock()` | Insert and focus the configured default block immediately after the current block. When called inside an active `mutate()`, both the plugin cleanup and the insertion belong to the same history step. |
+| `exitEmptyBlock()` | Convert the current empty non-default block to the configured default type. Returns `true` only when conversion occurred. |
+| `readOnly` | `true` when controls that change the document must not be mounted or activated. |
+
+Use `splitBlock()` for a list-like control that consumes its empty trailing item and needs to continue in a normal paragraph. Use `exitEmptyBlock()` when the structured block itself is empty. Do not dispatch synthetic keyboard events to request either operation: they can be intercepted by the plugin again and do not define a reliable command boundary. Structural methods are inert when edit-mode services are unavailable.
+
+In read-only mode Rector disables buttons, inputs, and other controls inside a block by default. A genuinely presentation-only control may remain interactive by carrying `data-oe-read-only-interactive`, for example a copy button, carousel navigation, or a spoiler disclosure. Do not add this attribute to voting, uploads, settings, navigation with application side effects, or any action that changes serialized data. The attribute is an explicit promise that the control is safe in read-only mode; it does not make the handler safe automatically.
+
 ### Optional block capabilities
 
 | Member | Purpose |
 | --- | --- |
 | `inlineTools` | use `true` for the editor-wide set, a string array for a per-block allowlist, or `false` to disable inline tools |
+| `getPluginConfig()` | expose the immutable constructor configuration to Rector so shared options such as `injectStyles` and `css` can be applied without reading private fields; `BlockPluginAbstract` implements this method |
+| `setPlaceholder(value)` | accept the editor-level `placeholder` for the configured default block; a placeholder supplied directly to the plugin must keep priority |
 | `validate(data)` | accept or reject the plugin payload |
 | `destroy(element)` | release block-local listeners and resources |
+| `dispose()` | release resources shared by all blocks of this plugin when the owning editor is destroyed |
 | `isEmpty(element)` | define empty-block behavior |
 | `toolbox` | one or more insertion variants with initial data |
 | `shortcuts` | block-scoped keyboard actions |
@@ -103,6 +121,38 @@ Native edits inside `contenteditable` are tracked by Rector. A plugin-owned butt
 | `mapTextFields(data, transform)` | expose every HTML-bearing field for widget marshalling |
 
 Implement only capabilities the plugin actually owns. Optional methods are detected at runtime.
+
+#### Runtime plugin configuration
+
+Plugins may expose the common runtime options through `getPluginConfig()`:
+
+```ts
+interface PluginRuntimeConfig extends Record<string, unknown> {
+  injectStyles?: boolean
+  css?: string
+}
+```
+
+`BlockPluginAbstract` copies and freezes the constructor configuration, so consumers may safely read it but cannot change a live plugin by mutating the original object. `injectStyles: false` disables the URLs declared by the plugin's static `styles` array. `css` is one additional stylesheet URL loaded after those static styles; it is not a string of CSS rules. A plugin may add its own configuration fields alongside these shared options.
+
+#### Block-specific inline controls
+
+`renderInlineControls(element, context)` can mount controls that apply only to the focused block:
+
+```ts
+interface InlineControlContext {
+  suppressSelectionChange(): void
+  mutate<T>(operation: () => T): T
+  onContentElementChanged(newElement: HTMLElement): void
+}
+
+interface InlineControlGroup {
+  elements: HTMLElement[]
+  destroy?(): void
+}
+```
+
+Return an `InlineControlGroup`, or `null` when the block has no controls in its current state. Rector mounts every item in `elements` into the block-specific part of the inline toolbar and calls `destroy()` when that group is removed. Use `mutate()` once per completed synchronous action. When a control replaces the plugin's content element, call `suppressSelectionChange()` before the replacement and `onContentElementChanged(newElement)` after it so Rector can keep block ownership and selection state consistent.
 
 ### Data-aware partial conversion
 
@@ -137,7 +187,42 @@ The method is a pure description step: it must not mutate `element`, create bloc
 
 Return `null` when the range cannot be represented safely. Keep inline markup sanitized and preserve the same field names used by `save()` and `mapTextFields()`. The built-in List plugin is the reference implementation: selected items are removed, ordered items renumber naturally, and selected markup becomes `text` when the target is textual.
 
+The generic fallback is intentionally limited to a plugin whose returned root
+element itself has `contenteditable="true"` and whose transferable field is
+`text`. It never rewrites a wrapper containing several editable descendants.
+If a structured plugin omits `splitSelection()` or returns `null`, Rector leaves
+the document unchanged for that partial conversion. Whole-block conversion is
+still available through `exportData()`.
+
 ### Paste routing
+
+The paste contract distinguishes tags, files, and matched text:
+
+```ts
+interface PasteConfig {
+  tags?: string[]
+  files?: string[]
+  patterns?: RegExp[]
+}
+
+interface TagPasteEvent {
+  type: 'tag'
+  element: HTMLElement
+  tag: string
+}
+
+interface FilePasteEvent {
+  type: 'file'
+  file: File
+}
+
+interface PatternPasteEvent {
+  type: 'pattern'
+  data: string
+}
+
+type PasteEvent = TagPasteEvent | FilePasteEvent | PatternPasteEvent
+```
 
 ```js
 pasteConfig = {
@@ -157,6 +242,17 @@ onPaste(event) {
 ```
 
 File patterns use MIME expressions such as `image/*`. Treat clipboard HTML, text, and files as untrusted input. `onPaste()` returns plugin data; it must not insert a block or emit events itself.
+
+#### Block shortcuts
+
+```ts
+interface ShortcutEntry {
+  combo: string
+  handler(contentElement: HTMLElement): void
+}
+```
+
+Each item in `shortcuts` registers a normalized combination such as `Ctrl+Shift+K`. Rector prevents the browser default, passes the current block's content element to `handler()`, and runs the handler inside one plugin mutation transaction. Keep a shortcut handler synchronous. If it starts asynchronous work, capture the block's `BlockMutationContext` in `render()` and call `context.mutate()` only when that work completes.
 
 ### Text field mapping
 
@@ -192,10 +288,11 @@ interface InlinePlugin {
   createWidget(data: Record<string, string>, id?: string): HTMLElement
   hydrate(element: HTMLElement, context: InlinePluginContext): void
   getData(element: HTMLElement): Record<string, string>
+  isCommitted?(element: HTMLElement): boolean
 }
 ```
 
-Optional `trigger`, `pasteConfig`, `onPatternMatch()`, `onEdit()`, `onCommit()`, and `insertFresh()` support suggestion flows and pattern conversion. Interactions that change stored widget data use `context.mutate(target, operation)`.
+Optional `trigger`, `pasteConfig`, `onPatternMatch()`, `onEdit()`, `onCancel()`, `onCommit()`, and `insertFresh()` support suggestion flows and pattern conversion. A trigger is exactly one Unicode code point. The editor calls `onCancel()` when an active trigger session is abandoned, so the plugin can close transient UI and cancel pending work. `isCommitted()` can exclude an in-progress widget from structured serialization while preserving its visible text. Interactions that change stored widget data use `context.mutate(target, operation)`.
 
 The editor may instantiate one plugin object for many widget elements. Store element-specific state in a `WeakMap`, not in one shared field.
 
@@ -246,12 +343,15 @@ Supply English and Russian dictionaries when the extension supports both languag
 
 ## Cleanup and ownership
 
-Release every resource where it is owned:
+Release every resource where it is owned. `destroy(element)` may run whenever
+one rendered block is replaced, removed, or restored from history. `dispose()`
+runs once when the editor releases the plugin instance:
 
-- remove global listeners and abort requests in `destroy()`;
+- remove block-local listeners and abort block-local requests in `destroy(element)`;
+- remove plugin-wide listeners and caches in `dispose()`;
 - disconnect observers and clear timers;
 - destroy third-party instances;
-- revoke object URLs;
+- keep object URLs referenced by undo snapshots alive until `dispose()`, then revoke them;
 - remove temporary popups through the supplied context;
 - ignore asynchronous results after destruction or detachment.
 

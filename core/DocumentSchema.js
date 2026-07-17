@@ -131,10 +131,13 @@ export class DocumentSchema {
     const version = typeof declaredVersion === 'string' && declaredVersion
       ? declaredVersion
       : this.#currentVersion
+    const normalizedBlocks = /** @type {import('./types').BlockData[]} */ (
+      cloneEditorData(blocks)
+    )
     /** @type {import('./types').EditorDocument} */
     const normalized = {
       version,
-      blocks: cloneEditorData(blocks),
+      blocks: normalizedBlocks,
     }
     if (typeof candidate.time === 'number' && Number.isFinite(candidate.time)) {
       normalized.time = candidate.time

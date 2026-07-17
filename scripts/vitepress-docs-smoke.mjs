@@ -6,6 +6,20 @@ const root = resolve(fileURLToPath(new URL('..', import.meta.url)))
 const docsRoot = join(root, 'docs')
 const distRoot = join(docsRoot, '.vitepress', 'dist')
 const catalogSourceRoots = ['plugins', 'inline-plugins', 'renderer']
+const configuredBase = process.env.DOCS_BASE ?? '/'
+const siteBase = configuredBase === '/'
+  ? '/'
+  : `/${configuredBase.replace(/^\/+|\/+$/g, '')}/`
+
+function withSiteBase(path) {
+  return siteBase === '/' ? path : `${siteBase}${path.replace(/^\/+/, '')}`
+}
+
+function withoutSiteBase(path) {
+  if (siteBase === '/') return path
+  if (path === siteBase.slice(0, -1)) return '/'
+  return path.startsWith(siteBase) ? `/${path.slice(siteBase.length)}` : path
+}
 
 function assert(condition, message) {
   if (!condition) throw new Error(message)
@@ -227,8 +241,9 @@ const builtPaths = new Set(htmlFiles.map(path => `/${relative(distRoot, path).re
 const failures = []
 
 function routeCandidates(href, sourceFile) {
-  const urlPath = href.split(/[?#]/, 1)[0]
-  if (!urlPath || /^(?:https?:|mailto:|tel:|javascript:)/i.test(urlPath)) return []
+  const rawPath = href.split(/[?#]/, 1)[0]
+  if (!rawPath || /^(?:https?:|mailto:|tel:|javascript:)/i.test(rawPath)) return []
+  const urlPath = rawPath.startsWith('/') ? withoutSiteBase(rawPath) : rawPath
   if (urlPath.startsWith('/assets/') || urlPath === '/favicon.ico' || urlPath === '/vp-icons.css') return []
 
   const sourceRoute = `/${relative(distRoot, sourceFile).replaceAll('\\', '/')}`
@@ -256,13 +271,13 @@ for (const htmlFile of htmlFiles) {
 assert(failures.length === 0, `Broken internal links:\n${failures.slice(0, 30).join('\n')}`)
 await access(join(distRoot, 'assets', 'site.css'))
 const homeHtml = await readFile(join(distRoot, 'index.html'), 'utf8')
-assert(homeHtml.includes('/assets/site.css'), 'Landing does not include its stable stylesheet entry')
+assert(homeHtml.includes(withSiteBase('/assets/site.css')), 'Landing does not include its stable stylesheet entry')
 assert(homeHtml.includes('A browser-native editor for structured content'), 'English landing content is missing')
-assert(homeHtml.includes('/#demo'), 'English header does not link to the homepage editor')
+assert(homeHtml.includes(withSiteBase('/#demo')), 'English header does not link to the homepage editor')
 assert(homeHtml.includes('id="demo"'), 'English homepage editor anchor is missing')
 const ruHomeHtml = await readFile(join(distRoot, 'ru', 'index.html'), 'utf8')
 assert(ruHomeHtml.includes('Браузерный редактор структурированного содержимого'), 'Russian landing content is missing')
-assert(ruHomeHtml.includes('/ru/#demo'), 'Russian header does not link to the homepage editor')
+assert(ruHomeHtml.includes(withSiteBase('/ru/#demo')), 'Russian header does not link to the homepage editor')
 assert(ruHomeHtml.includes('id="demo"'), 'Russian homepage editor anchor is missing')
 const commandGuide = await readFile(join(docsRoot, 'guide', 'commands-history.md'), 'utf8')
 const commandGuideRu = await readFile(join(docsRoot, 'ru', 'guide', 'commands-history.md'), 'utf8')

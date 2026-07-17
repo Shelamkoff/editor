@@ -6,7 +6,7 @@
 
 | Плагин | Точка входа | Назначение |
 | --- | --- | --- |
-| [Цвет](./color/README.ru.md) | `@shelamkoff/rector/inline-plugins/color` | Сохраняемый цвет текста или фона |
+| [Образец цвета](./color/README.ru.md) | `@shelamkoff/rector/inline-plugins/color` | Сохраняемый образец с редактируемым значением цвета |
 | [Упоминание](./mention/README.ru.md) | `@shelamkoff/rector/inline-plugins/mention` | Поиск и вставка сущности из источника приложения |
 
 ## Регистрация

@@ -1,17 +1,14 @@
 // @ts-check
-import { InvalidBlockDataError } from '../../errors.js'
 import { resolvePath } from '../../../shared/resolvePath.js'
 import { mapHeadingTextFields as mapTextFields } from '../../../shared/mapTextFields.js'
 
 const styles = resolvePath('./styles.css', import.meta.url)
 
-/** @type {Set<2 | 3 | 4 | 5 | 6>} */
-const VALID_LEVELS = new Set([2, 3, 4, 5, 6])
-
 /**
  * Heading block renderer for the Rector document format.
  * Block type: 'heading' (not 'header')
  * @param {string} classPrefix
+ * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} _locale
  * @returns {import('../../types').BlockRenderer<import('../../types').HeadingBlock>}
  */
 export function createHeaderRenderer(classPrefix, _locale) {
@@ -27,10 +24,6 @@ export function createHeaderRenderer(classPrefix, _locale) {
      */
     render(block, parseInline) {
       const { level, text, align } = block.data
-
-      if (!VALID_LEVELS.has(level)) {
-        throw new InvalidBlockDataError('heading', `Invalid heading level: ${level}`, block.id)
-      }
 
       const heading = document.createElement(`h${level}`)
       heading.className = `${classPrefix}-header ${classPrefix}-header--level-${level}`

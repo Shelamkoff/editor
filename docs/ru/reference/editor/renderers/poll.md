@@ -19,7 +19,20 @@ import { createEditorRenderer } from '@shelamkoff/rector/renderer'
 import { createPollRenderer } from '@shelamkoff/rector/renderer/renderers/poll'
 
 const renderer = createEditorRenderer({ classPrefix: 'article', blockTypes: [] })
-renderer.registerRenderer(createPollRenderer('article', {}))
+renderer.registerRenderer(createPollRenderer('article', {}, {
+  dataSource: {
+    load: ({ pollId, signal }) => api.getPollResults(pollId, { signal }),
+    vote: ({ pollId, optionIds, revision, signal }) => (
+      api.submitPollVote(pollId, { optionIds, revision }, { signal })
+    ),
+    subscribe({ pollId, signal, onUpdate, onError }) {
+      const connection = api.subscribeToPoll(pollId, { onUpdate, onError })
+      signal.addEventListener('abort', () => connection.close(), { once: true })
+      return () => connection.close()
+    },
+  },
+  onError: error => console.error('Ошибка источника данных рендерера Poll', error),
+}))
 const rendererStyles = renderer.injectStyles()
 renderer.renderTo(documentData, document.querySelector('#article'))
 
@@ -33,15 +46,30 @@ rendererStyles.destroy()
 ```json
 {
   "pollId": "release-survey",
-  "question": "Which channel should receive the release?",
+  "question": "В какой канал отправить уведомление о выпуске?",
   "type": "single",
-  "options": [{ "id": "stable", "text": "Stable" }, { "id": "next", "text": "Next" }],
+  "options": [{ "id": "stable", "text": "Стабильный" }, { "id": "next", "text": "Следующий" }],
   "resultsMode": "afterVote",
   "initialResults": { "total": 0, "options": [{ "id": "stable", "votes": 0 }, { "id": "next", "votes": 0 }] }
 }
 ```
 
-Вопрос и варианты проходят обработчик внутристрочной разметки, а аватары — политику URL для медиафайлов. Рендерер владеет состоянием голосования, отменой запросов, подписками и элементами управления и освобождает их в `destroy()`. Он объявляет одну таблицу стилей.
+Полный контракт сохранённых данных и текущих результатов описан в [справочнике полей плагина Poll](/ru/reference/editor/plugins/poll#поля-данных).
+
+## Конфигурация
+
+Третий аргумент `createPollRenderer(classPrefix, locale, config)` принимает тот же источник текущих результатов, что и плагин редактора:
+
+| Поле | Назначение |
+| --- | --- |
+| `dataSource` | Необязательный адаптер сервера. Методы `load` и `vote` обязательны, `subscribe` необязателен. Без адаптера голосование изменяет локальное состояние рендерера, начальное значение которого берётся из `initialResults`. |
+| `onError` | Необязательный обработчик ошибок загрузки, голосования, подписки, очистки или сравнения ревизий. Рендерер также показывает локализованное состояние ошибки. |
+| `maxVoters` | Наибольшее число записей о проголосовавших, сохраняемое из каждого результата. Конечное значение округляется вниз и ограничивается снизу нулём; при отсутствии или некорректном значении используется `50`. |
+| `compareRevisions` | Необязательная функция `(next, current) => number` для сравнения непрозрачных ревизий сервера. Возвращайте положительное число, только если `next` новее. Без функции разные ревизии применяются в порядке поступления. |
+
+`dataSource` используется, только если в сохранённых данных есть непустой `pollId`. `load` получает первый достоверный снимок. `vote` получает весь текущий выбор и отображаемую ревизию и должен вернуть новый достоверный снимок. `subscribe` передаёт последующие снимки через `onUpdate`; сообщайте об ошибках соединения через переданный `onError` и возвращайте функцию очистки, которую можно безопасно вызвать повторно. Каждый обратный вызов получает `AbortSignal`; прекращайте незавершённую работу после его прерывания. Каждый результат должен содержать `total` — число бюллетеней и знаменатель процентов — и по одному элементу `{ id, votes }` для каждого текущего варианта. При множественном выборе сумма голосов вариантов может превышать `total`.
+
+Вопрос и варианты проходят обработчик внутристрочной разметки, а аватары — политику URL для медиафайлов. Текущие результаты существуют только во время работы и не изменяют документ, переданный в `renderTo()`. Рендерер владеет состоянием голосования, отменой запросов, подписками и элементами управления и освобождает их в `destroy()`. Он объявляет одну таблицу стилей.
 
 Если рендерер объявляет стили, показанный выше явный вызов `EditorRenderer.injectStyles()` подключает их, а возвращённый владелец освобождает.
 

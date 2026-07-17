@@ -35,6 +35,8 @@ rendererStyles.destroy()
 }
 ```
 
+The complete persisted-data contract is defined by the matching [Person plugin](../../../plugins/person/README.md#field-reference).
+
 Profile text uses the inline parser; avatars and links use the media and external URL policies. Multi-profile output owns a Carousel and navigation listeners, released in `destroy()`. The renderer declares profile and Carousel styles.
 
 When styles are declared, the explicit `EditorRenderer.injectStyles()` call shown above acquires them and its returned owner releases them.

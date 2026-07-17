@@ -8,6 +8,7 @@ const styles = resolvePath('./styles.css', import.meta.url)
  * List block renderer for the Rector document format.
  * Data: { style: 'ordered' | 'unordered', items: string[] }
  * @param {string} classPrefix
+ * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} _locale
  * @returns {import('../../types').BlockRenderer<import('../../types').ListBlock>}
  */
 export function createListRenderer(classPrefix, _locale) {

@@ -16,7 +16,7 @@
  *
  * Not instantiable directly — `new BlockPluginAbstract()` throws.
  *
- * @template {Record<string, any>} [TConfig=Record<string, any>]
+ * @template {object} [TConfig=Record<string, any>]
  */
 export class BlockPluginAbstract {
   /** @type {import('../core/types').IScopedI18n | null} */
@@ -30,7 +30,9 @@ export class BlockPluginAbstract {
     if (new.target === BlockPluginAbstract) {
       throw new Error('BlockPluginAbstract is abstract — extend it')
     }
-    this._config = /** @type {TConfig} */ (Object.freeze(config || {}))
+    // Freeze Rector's own shallow copy. Freezing the object supplied by the
+    // consumer would unexpectedly make application configuration immutable.
+    this._config = /** @type {TConfig} */ (Object.freeze({ ...(config || {}) }))
   }
 
   /**
@@ -52,6 +54,7 @@ export class BlockPluginAbstract {
    * untouched.
    *
    * @param {import('../core/types').IScopedI18n} i18n
+   * @returns {void}
    */
   setI18n(i18n) {
     this.#i18n = i18n

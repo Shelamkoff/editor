@@ -3,7 +3,7 @@
  * Finds all `[data-inline-plugin]` elements and calls the matching plugin's `hydrate()`.
  *
  * @param {HTMLElement} root
- * @param {import('./InlinePluginRegistry').InlinePluginRegistry} registry
+ * @param {import('./types').IInlinePluginRegistry} registry
  * @param {import('./types').InlinePluginContext} ctx
  */
 export function hydrateInlinePlugins(root, registry, ctx) {

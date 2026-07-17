@@ -1,8 +1,15 @@
 import { uid } from './uid.js'
 import { cloneEditorData } from '../shared/cloneEditorData.js'
 import { el } from './dom.js'
-import { BLOCK_CLASS } from './constants.js'
+import {
+  BLOCK_CLASS,
+  READ_ONLY_INTERACTIVE_ATTRIBUTE,
+  TEXT_ALIGN_TUNE_ATTRIBUTE,
+} from './constants.js'
+import { normalizeTextAlign } from '../shared/textFormat.js'
 
+/** @typedef {import('./types').IBlock} IBlockContract */
+/** @implements {IBlockContract} */
 export class Block {
   /** @type {string} */
   #id
@@ -47,15 +54,21 @@ export class Block {
   /** @type {boolean} */
   #destroyed = false
 
+  /** @type {(() => void) | null} */
+  #splitBlock = null
+
+  /** @type {(() => boolean) | null} */
+  #exitEmptyBlock = null
+
   /**
    * @param {import('./types').BlockPlugin} plugin
+   * @param {import('./CommandDispatcher').CommandDispatcher} commands
    * @param {Record<string, unknown>} [data]
    * @param {string} [id]
    * @param {boolean} [readOnly]
-   * @param {import('./CommandDispatcher').CommandDispatcher} commands
    * @param {{ tunes?: Record<string, unknown>, revision?: string | number, inline?: Record<string, import('../renderer/types').InlineWidget>, preserveInline?: boolean }} [metadata]
    */
-  constructor(plugin, data, id, readOnly = false, commands, metadata = {}) {
+  constructor(plugin, commands, data, id, readOnly = false, metadata = {}) {
     this.#id = id || uid()
     this.#type = plugin.type
     this.#plugin = plugin
@@ -74,12 +87,15 @@ export class Block {
 
     const contentElement = plugin.render(data || {}, {
       mutate: (operation) => this.#runMutation(operation),
+      splitBlock: () => this.#splitBlock?.(),
+      exitEmptyBlock: () => this.#exitEmptyBlock?.() ?? false,
       readOnly: this.#readOnly,
     })
     if (!(contentElement instanceof HTMLElement)) {
       throw new TypeError(`Block plugin "${this.#type}" render() must return an HTMLElement`)
     }
     this.#contentElement = contentElement
+    this.#applyTextAlignTune()
     this.#applyReadOnly()
     this.#element.appendChild(this.#contentElement)
   }
@@ -95,6 +111,17 @@ export class Block {
   #runMutation(operation) {
     if (this.#destroyed || this.#readOnly) return undefined
     return this.#commands.runForBlock(this, operation)
+  }
+
+  /**
+   * Connect core structural commands used by interactive plugin controls.
+   * The callbacks are cleared while the editor is in read-only mode.
+   * @param {{ splitBlock: (() => void) | null, exitEmptyBlock: (() => boolean) | null }} commands
+   * @returns {void}
+   */
+  setStructuralCommands(commands) {
+    this.#splitBlock = commands.splitBlock
+    this.#exitEmptyBlock = commands.exitEmptyBlock
   }
 
   get id() {
@@ -146,6 +173,7 @@ export class Block {
         throw new TypeError(`Block plugin "${this.#type}" save() must return a data object`)
       }
       this.#cachedData = cloneEditorData(saved)
+      this.#syncTextAlignTune()
       this.#dirty = false
     }
     const data = cloneEditorData(this.#cachedData)
@@ -198,7 +226,7 @@ export class Block {
     if (typeof this.#plugin.isEmpty === 'function') {
       return this.#plugin.isEmpty(this.#contentElement)
     }
-    const text = this.#contentElement.textContent?.trim() ?? ''
+    const text = (this.#contentElement.textContent || '').trim()
     return text.length === 0
   }
 
@@ -239,7 +267,7 @@ export class Block {
    *  2. The plugin returned a fresh detached element — we swap it in via
    *     `replaceChild`.
    *
-   * Without the first branch, calling this after an in-place plugin swap
+   * Without the first branch, calling this after a DOM swap performed by the plugin
    * throws `NotFoundError: replaceChild — node is not a child of this node`,
    * because the old contentElement is already detached.
    *
@@ -251,11 +279,36 @@ export class Block {
       this.markDirty()
       // Plugin already performed the DOM swap; just track the new ref.
       this.#contentElement = newEl
+      this.#applyTextAlignTune()
       return
     }
     this.#element.replaceChild(newEl, this.#contentElement)
     this.markDirty()
     this.#contentElement = newEl
+    this.#applyTextAlignTune()
+  }
+
+  /** Apply a valid serialized block alignment to the plugin root. */
+  #applyTextAlignTune() {
+    const align = normalizeTextAlign(this.#tunes?.textAlign)
+    if (!align) return
+    this.#contentElement.style.textAlign = align
+    this.#contentElement.setAttribute(TEXT_ALIGN_TUNE_ATTRIBUTE, align)
+  }
+
+  /**
+   * Copy an alignment explicitly changed by the toolbar into block tunes.
+   * Plugin-owned `data.align` remains readable and writable for Paragraph and
+   * Heading, while the tune gives every other text block one stable contract.
+   */
+  #syncTextAlignTune() {
+    if (!this.#contentElement.hasAttribute(TEXT_ALIGN_TUNE_ATTRIBUTE)) return
+
+    const align = normalizeTextAlign(this.#contentElement.getAttribute(TEXT_ALIGN_TUNE_ATTRIBUTE))
+    const nextTunes = this.#tunes ? cloneEditorData(this.#tunes) : {}
+    if (align) nextTunes.textAlign = align
+    else delete nextTunes.textAlign
+    this.#tunes = Object.keys(nextTunes).length > 0 ? nextTunes : undefined
   }
 
 
@@ -266,20 +319,26 @@ export class Block {
     if (!this.#readOnly) return
 
     this.#contentElement.setAttribute('aria-readonly', 'true')
-    const editables = [
-      ...(this.#contentElement.matches('[contenteditable]') ? [this.#contentElement] : []),
-      ...this.#contentElement.querySelectorAll('[contenteditable]'),
-    ]
-    for (const editable of editables) {
-      /** @type {HTMLElement} */ (editable).contentEditable = 'false'
+    /** @type {HTMLElement[]} */
+    const editableElements = []
+    if (this.#contentElement.matches('[contenteditable]')) {
+      editableElements.push(this.#contentElement)
+    }
+    for (const editableElement of this.#contentElement.querySelectorAll('[contenteditable]')) {
+      if (editableElement instanceof HTMLElement) editableElements.push(editableElement)
+    }
+    for (const editableElement of editableElements) {
+      editableElement.contentEditable = 'false'
     }
 
-    const fields = this.#contentElement.querySelectorAll('input, textarea')
-    for (const field of fields) {
-      /** @type {HTMLInputElement | HTMLTextAreaElement} */ (field).readOnly = true
+    for (const field of this.#contentElement.querySelectorAll('input, textarea')) {
+      if (field instanceof HTMLInputElement) field.readOnly = true
+      else if (field instanceof HTMLTextAreaElement) field.readOnly = true
     }
     for (const control of this.#contentElement.querySelectorAll('button, select')) {
-      /** @type {HTMLButtonElement | HTMLSelectElement} */ (control).disabled = true
+      if (control.hasAttribute(READ_ONLY_INTERACTIVE_ATTRIBUTE)) continue
+      if (control instanceof HTMLButtonElement) control.disabled = true
+      else if (control instanceof HTMLSelectElement) control.disabled = true
     }
   }
 
@@ -308,13 +367,13 @@ export class Block {
       return
     }
     const editable = this.#contentElement.querySelector('[contenteditable="true"]')
-    if (editable) {
-      /** @type {HTMLElement} */ (editable).focus()
+    if (editable instanceof HTMLElement) {
+      editable.focus()
       return
     }
     const focusable = this.#contentElement.querySelector('input, textarea, [tabindex]')
-    if (focusable) {
-      /** @type {HTMLElement} */ (focusable).focus()
+    if (focusable instanceof HTMLElement) {
+      focusable.focus()
       return
     }
     this.#contentElement.setAttribute('tabindex', '-1')

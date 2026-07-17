@@ -42,11 +42,6 @@ export class ActionsPanel {
     this.#deps = deps
   }
 
-  /** @returns {boolean} */
-  get isOpen() {
-    return this.#panel !== null
-  }
-
   /**
    * Try to open the tool's actions panel.
    * @param {import('../types').InlineTool} tool
@@ -125,7 +120,9 @@ export class ActionsPanel {
     // the editor history. Focus first, then restore the exact range because
     // focusing a contenteditable may collapse the native selection.
     try {
-      editingHost?.focus({ preventScroll: true })
+      if (editingHost instanceof globalThis.HTMLElement) {
+        editingHost.focus({ preventScroll: true })
+      }
       sel.removeAllRanges()
       sel.addRange(this.#savedRange)
     } catch {

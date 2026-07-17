@@ -21,7 +21,7 @@ export function el(tag, className, attrs) {
 /**
  * Find the closest `.oe-block` ancestor of a DOM node.
  * Consolidates the repeated `node.closest('.oe-block')` pattern.
- * @param {Node} node
+ * @param {import('./types').DOMNode} node
  * @returns {HTMLElement | null}
  */
 export function closestBlock(node) {

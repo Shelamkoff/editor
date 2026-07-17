@@ -12,6 +12,12 @@ export class Diagnostics {
    */
   constructor(report, thresholds = {}) {
     this.#report = report
+    for (const [name, value] of Object.entries(thresholds)) {
+      if (!['commandMs', 'saveMs', 'renderMs', 'pasteMs'].includes(name)) continue
+      if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) {
+        throw new RangeError(`diagnosticThresholds.${name} must be a finite number greater than or equal to 0`)
+      }
+    }
     this.#thresholds = {
       commandMs: thresholds.commandMs ?? Infinity,
       saveMs: thresholds.saveMs ?? Infinity,

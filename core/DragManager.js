@@ -121,7 +121,7 @@ export class DragManager {
       const dy = Math.abs(e.clientY - this.#startY)
       if (dx + dy < this.#threshold) return
 
-      // Threshold exceeded — start drag (only if more than 1 block)
+      // Threshold exceeded: start dragging only when another block exists.
       if (this.#blocks.getBlockCount() <= 1) return
       this.#isDragging = true
       this.#startDrag()
@@ -140,7 +140,7 @@ export class DragManager {
     if (this.#isDragging) {
       this.#endDrag()
     } else {
-      // No drag — the mousedown was just a click on the handle.
+      // No drag: the mousedown was just a click on the handle.
       // Announce via event bus so Toolbar (or any listener) can open its menu.
       this.#events.emit(EditorEvent.DRAG_HANDLE_CLICKED)
     }
@@ -191,10 +191,12 @@ export class DragManager {
     this.#dropIndicator.style.display = ''
 
     if (closestIndex < children.length) {
-      const refRect = /** @type {HTMLElement} */ (children[closestIndex]).getBoundingClientRect()
+      const referenceElement = /** @type {HTMLElement} */ (children[closestIndex])
+      const refRect = referenceElement.getBoundingClientRect()
       this.#dropIndicator.style.top = `${refRect.top - editorRect.top - 2}px`
     } else if (children.length > 0) {
-      const lastRect = /** @type {HTMLElement} */ (children[children.length - 1]).getBoundingClientRect()
+      const lastElement = /** @type {HTMLElement} */ (children[children.length - 1])
+      const lastRect = lastElement.getBoundingClientRect()
       this.#dropIndicator.style.top = `${lastRect.bottom - editorRect.top + 2}px`
     }
   }

@@ -6,6 +6,7 @@ const styles = resolvePath('./styles.css', import.meta.url)
 /**
  * Delimiter block renderer
  * @param {string} classPrefix
+ * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} _locale
  * @returns {import('../../types').BlockRenderer<import('../../types').DelimiterBlock>}
  */
 export function createDelimiterRenderer(classPrefix, _locale) {

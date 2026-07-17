@@ -42,6 +42,18 @@ The registered block type is `image`. The class is also exported by the complete
 }
 ```
 
+### Field reference
+
+| Field | Required | Meaning and constraints |
+| --- | --- | --- |
+| `file.url` | yes | Canonical media URL accepted by Rector's media policy. An empty URL exists only in an unsaved empty block. |
+| `file.width`, `file.height` | no | Positive finite intrinsic dimensions in pixels. |
+| `caption` | no | Caption as sanitized inline HTML; defaults to an empty string. |
+| `withBorder` | no | Enables the built-in border presentation; defaults to `false`. |
+| `expanded` | no | Expands the image to the editor content width and ignores custom width constraints while active; defaults to `false`. |
+| `withBackground` | no | Applies `styles.backgroundColor` to the image container; defaults to `false`. |
+| `styles` | no | String-valued style map. The settings UI writes `width`, `height`, `minWidth`, `minHeight`, `maxWidth`, `maxHeight`, `objectFit`, `objectPosition`, `backgroundColor`, `borderStyle`, `borderColor`, `borderWidth`, and `borderRadius`. CSS values should be constrained by the host when data is untrusted. |
+
 Without `uploadFile`, local files are stored as data URLs. Validate file size/type in application code before remote upload. Callback results are accepted only when `url` passes the shared media URL policy.
 
 ## Configuration

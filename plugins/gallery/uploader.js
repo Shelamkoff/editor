@@ -1,4 +1,3 @@
-import { CSS } from './css.js'
 import { sanitizeMediaUrl } from '../../shared/sanitize/sanitizeUrl.js'
 
 /**
@@ -6,15 +5,9 @@ import { sanitizeMediaUrl } from '../../shared/sanitize/sanitizeUrl.js'
  */
 
 /**
- * Multi-file upload pipeline for the Gallery plugin.
- *
- * - With `uploadFile` configured: each file is sent sequentially to the
- *   backend; failed files are skipped silently.
- * - Without `uploadFile`: files are read as data-URLs via `FileReader`,
- *   then pushed into the gallery in arrival order.
- *
- * Both paths set/clear the `loading` class on the wrapper and call
- * `onAdded(images)` once with the full batch.
+ * Resolve a batch of gallery images through a consumer upload callback or
+ * local data URLs. The caller owns loading state and operation lifetime.
+ * Result order always follows input-file order; failed files are omitted.
  */
 export class GalleryUploader {
   /** @type {UploadFn | undefined} */
@@ -26,57 +19,55 @@ export class GalleryUploader {
   }
 
   /**
-   * @param {HTMLElement} wrapper
    * @param {File[]} files
    * @param {(images: Array<{ url: string, caption: string }>) => void} onAdded
    * @param {AbortSignal | undefined} signal
+   * @returns {Promise<void>}
    */
-  async handle(wrapper, files, onAdded, signal) {
-    if (signal?.aborted) return
+  async handle(files, onAdded, signal) {
+    if (signal?.aborted || files.length === 0) return
     if (this.#uploadFn) {
-      await this.#uploadRemote(wrapper, files, onAdded, signal)
+      await this.#uploadRemote(files, onAdded, signal)
     } else {
-      await this.#readDataUrls(wrapper, files, onAdded, signal)
+      await this.#readDataUrls(files, onAdded, signal)
     }
   }
 
   /**
-   * @param {HTMLElement} wrapper
+   * Upload sequentially so consumers do not receive an uncontrolled request
+   * burst and the resulting image order stays deterministic.
    * @param {File[]} files
    * @param {(images: Array<{ url: string, caption: string }>) => void} onAdded
    * @param {AbortSignal | undefined} signal
+   * @returns {Promise<void>}
    */
-  async #uploadRemote(wrapper, files, onAdded, signal) {
+  async #uploadRemote(files, onAdded, signal) {
     if (!this.#uploadFn) return
-    wrapper.classList.add(CSS.loading)
     /** @type {Array<{ url: string, caption: string }>} */
     const added = []
-    try {
-      for (const file of files) {
-        if (signal?.aborted) break
-        try {
-          const result = await this.#uploadFn(file, { signal: signal ?? new AbortController().signal })
-          const url = sanitizeMediaUrl(result?.url || '')
-          if (!signal?.aborted && url) added.push({ url, caption: result?.alt || '' })
-        } catch {
-          // Per-file failure — skip and continue.
+    for (const file of files) {
+      if (signal?.aborted) break
+      try {
+        const result = await this.#uploadFn(file, { signal: signal ?? new AbortController().signal })
+        const url = sanitizeMediaUrl(result?.url || '')
+        if (!signal?.aborted && url) {
+          added.push({ url, caption: typeof result?.alt === 'string' ? result.alt : '' })
         }
+      } catch {
+        // Skip a failed file and continue the same batch.
       }
-      if (!signal?.aborted && added.length > 0) onAdded(added)
-    } finally {
-      wrapper.classList.remove(CSS.loading)
     }
+    if (!signal?.aborted && added.length > 0) onAdded(added)
   }
 
   /**
-   * @param {HTMLElement} wrapper
    * @param {File[]} files
    * @param {(images: Array<{ url: string, caption: string }>) => void} onAdded
    * @param {AbortSignal | undefined} signal
+   * @returns {Promise<void>}
    */
-  #readDataUrls(wrapper, files, onAdded, signal) {
+  #readDataUrls(files, onAdded, signal) {
     return new Promise((resolve) => {
-      wrapper.classList.add(CSS.loading)
       /** @type {Array<{ url: string, caption: string } | null>} */
       const results = files.map(() => null)
       let remaining = files.length
@@ -85,15 +76,9 @@ export class GalleryUploader {
       const finish = () => {
         if (settled) return
         settled = true
-        wrapper.classList.remove(CSS.loading)
         const added = results.filter((item) => item !== null)
         if (!signal?.aborted && added.length > 0) onAdded(added)
         resolve(undefined)
-      }
-
-      if (remaining === 0) {
-        finish()
-        return
       }
 
       files.forEach((file, index) => {
@@ -109,9 +94,8 @@ export class GalleryUploader {
         const abort = () => reader.abort()
         signal?.addEventListener('abort', abort, { once: true })
         reader.onload = () => {
-          if (!signal?.aborted && typeof reader.result === 'string') {
-            results[index] = { url: reader.result, caption: '' }
-          }
+          const url = typeof reader.result === 'string' ? sanitizeMediaUrl(reader.result) : ''
+          if (!signal?.aborted && url) results[index] = { url, caption: '' }
           completeReader()
         }
         reader.onerror = completeReader

@@ -26,6 +26,7 @@ test('editable plugins, output types and read-only renderers stay in sync', asyn
   assert.equal(exports.length, BLOCK_TYPES.length, 'the complete preset must expose every canonical block plugin')
 
   const pluginTypes = []
+  const inlineTypes = new Set()
   for (const [, className, directory] of exports) {
     const pluginSource = await source(`plugins/${directory}/index.js`)
     assert.match(pluginSource, new RegExp(`export class ${className} extends BlockPluginAbstract`))
@@ -34,6 +35,10 @@ test('editable plugins, output types and read-only renderers stay in sync', asyn
     assert.match(pluginSource, /\n\s*validate\s*\(/, `${className} must define its validation policy`)
     const type = pluginSource.match(/\n\s*type\s*=\s*'([^']+)'/)?.[1]
     assert.ok(type, `${className} must declare a stable block type`)
+    if (/\n\s*inlineTools\s*=\s*true\b/.test(pluginSource)) {
+      assert.match(pluginSource, /\n\s*mapTextFields\s*=/, `${className} exposes inline tools and must marshal every HTML field`)
+      inlineTypes.add(type)
+    }
     pluginTypes.push(type)
   }
 
@@ -52,6 +57,9 @@ test('editable plugins, output types and read-only renderers stay in sync', asyn
     assert.equal(renderer?.type, type)
     assert.equal(typeof renderer?.render, 'function')
     assert.ok(Array.isArray(renderer?.styles), `${type} renderer must publish a style URL list`)
+    if (inlineTypes.has(type)) {
+      assert.equal(typeof renderer?.mapTextFields, 'function', `${type} renderer must mirror editor text-field marshalling`)
+    }
   }
 })
 

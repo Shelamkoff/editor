@@ -7,6 +7,7 @@ class FakeElement {
     this.tagName = tagName.toUpperCase()
     this.className = ''
     this.dataset = {}
+    this.style = {}
     this.childNodes = []
     this.parentNode = null
     this.textContent = ''
@@ -309,4 +310,40 @@ test('producer revisions skip deep signatures while JSON input keeps compatibili
   }, container)
   assert.equal(renderCalls, 2)
   assert.notEqual(container.children[0].children[0], first)
+})
+
+test('block tunes participate in incremental rendering and apply safe text alignment', async () => {
+  const { EditorRenderer } = await import('./index.js')
+  let renderCalls = 0
+  const renderer = new EditorRenderer({ blockTypes: [] })
+  renderer.registerRenderer({
+    type: 'tuned',
+    render() {
+      renderCalls++
+      return document.createElement('article')
+    },
+  })
+
+  const container = document.createElement('main')
+  renderer.renderTo({
+    blocks: [{ id: 'stable', type: 'tuned', data: {}, tunes: { textAlign: 'center' } }],
+  }, container)
+  const centered = container.children[0].children[0]
+  assert.equal(centered.style.textAlign, 'center')
+
+  renderer.renderTo({
+    blocks: [{ id: 'stable', type: 'tuned', data: {}, tunes: { textAlign: 'right' } }],
+  }, container)
+  const right = container.children[0].children[0]
+  assert.equal(renderCalls, 2)
+  assert.notEqual(right, centered)
+  assert.equal(right.style.textAlign, 'right')
+
+  const unsafe = renderer.renderBlock({
+    id: 'unsafe',
+    type: 'tuned',
+    data: {},
+    tunes: { textAlign: 'expression(alert(1))' },
+  })
+  assert.equal(unsafe.style.textAlign, undefined)
 })

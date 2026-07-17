@@ -1,5 +1,6 @@
 import { ColorPicker } from '@shelamkoff/color-picker'
 import { generateInlineId } from '../shared/inlineMarshal.js'
+import { normalizeTextValue } from '../shared/textFormat.js'
 
 /**
  * Color swatch inline plugin.
@@ -34,7 +35,7 @@ export function createColorSwatchPlugin() {
     },
 
     createWidget(data, id) {
-      const value = data.value || '#4357b4'
+      const value = normalizeTextValue(data.value).trim() || '#4357b4'
 
       const span = document.createElement('span')
       span.contentEditable = 'false'
@@ -59,6 +60,7 @@ export function createColorSwatchPlugin() {
 
     hydrate(element, ctx) {
       element.addEventListener('click', (e) => {
+        if (ctx.readOnly) return
         e.preventDefault()
         e.stopPropagation()
         openColorPicker(element, ctx)
@@ -73,10 +75,6 @@ export function createColorSwatchPlugin() {
   }
 }
 
-/**
- * @param {HTMLElement} widget
- * @param {import('../types').InlinePluginContext} ctx
- */
 /**
  * Normalize any color value to a 6-digit hex string.
  * @param {string} value
@@ -161,7 +159,14 @@ function updateWidget(widget, value) {
 
 }
 
-/** @param {HTMLElement} widget @param {string} value @param {string} label */
+/**
+ * Restore both the stored color and the human-readable label.
+ *
+ * @param {HTMLElement} widget
+ * @param {string} value
+ * @param {string} label
+ * @returns {void}
+ */
 function restoreWidget(widget, value, label) {
   updateWidget(widget, value)
   const labelElement = widget.querySelector('.oe-ip__label')

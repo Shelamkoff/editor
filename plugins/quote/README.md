@@ -27,7 +27,14 @@ The registered block type is `quote`. The class is also exported by the complete
 { "text": "Quote", "caption": "Author" }
 ```
 
-Both `text` and `caption` participate in inline-widget marshaling.
+### Field reference
+
+| Field | Required | Meaning and constraints |
+| --- | --- | --- |
+| `text` | yes | Non-blank sanitized inline HTML. |
+| `caption` | yes | A string; it may be empty. |
+
+Both fields participate in inline-widget marshaling. A new quote can be an empty draft, but strict validation requires non-blank `text` before persistence.
 
 ## Configuration
 

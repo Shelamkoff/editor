@@ -8,6 +8,7 @@ export default {
   'plugin.attaches.delete': 'Удалить',
   'plugin.attaches.deleteAll': 'Удалить все',
   'plugin.attaches.filesCount': { one: 'вложение', few: 'вложения', many: 'вложений', other: 'вложения' },
+  'plugin.attaches.toggleGroup': 'Показать или скрыть файлы',
   'plugin.attaches.settings': 'Настройки',
   'plugin.attaches.template': 'Шаблон',
   'plugin.attaches.variantA': 'Карточка',

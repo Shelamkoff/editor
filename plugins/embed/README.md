@@ -27,13 +27,22 @@ The registered block type is `embed`. The class is also exported by the complete
 { "service": "youtube", "videoId": "dQw4w9WgXcQ", "caption": "Caption", "cover": "", "title": "", "duration": "" }
 ```
 
+### Field reference
+
+| Field | Required | Meaning and constraints |
+| --- | --- | --- |
+| `service` | yes | `youtube` or `vimeo`. |
+| `videoId` | yes | Eleven-character YouTube id or numeric Vimeo id, according to `service`. |
+| `caption`, `title`, `duration` | no | Display strings; normalized saved data uses empty strings when absent. |
+| `cover` | no | Empty string or canonical media-policy URL. It may come from preview resolution, upload, or an application action. |
+
 Upload, action, and preview callbacks receive an `AbortSignal` and must stop work when it is aborted. The preview request is `{ service: "vimeo", videoId, url, signal }`. Only supported provider URLs and media URLs accepted by the shared policy are used.
 
 ## Configuration
 
 Every built-in block plugin accepts two style ownership options: `injectStyles?: boolean` defaults to `true`; set it to `false` when the host bundles that plugin's CSS. `css?: string` adds one host-provided stylesheet URL after the plugin default, or acts as the replacement URL when default injection is disabled.
 
-`uploadFile?: (file: File, context: { signal: AbortSignal }) => Promise<{ url: string }>` uploads a cover. `actions?: Array<{ icon?; label; handler(context: { signal: AbortSignal }): Promise<{ url: string } | null> }>` adds application cover sources. `resolvePreview?: false | (request) => Promise<{ thumbnailUrl: string; title?: string } | null>` overrides Vimeo preview resolution; `false` disables it. `previewTimeoutMs?: number` defaults to 5000 ms.
+`uploadFile?: (file: File, context: { signal: AbortSignal }) => Promise<{ url: string }>` persists a cover. Without it, a selected cover uses a temporary object URL that stops working after editor disposal or page reload. `actions?: Array<{ icon?; label; handler(context: { signal: AbortSignal }): Promise<{ url: string } | null> }>` adds application cover sources. `resolvePreview?: false | (request) => Promise<{ thumbnailUrl: string; title?: string } | null>` overrides Vimeo preview resolution; `false` disables it. When `resolvePreview` is omitted, the plugin requests Vimeo oEmbed directly from the browser; YouTube does not use this callback. `previewTimeoutMs?: number` defaults to `5000`; finite values are clamped to zero and non-finite values use the default.
 
 ## Application cover sources
 

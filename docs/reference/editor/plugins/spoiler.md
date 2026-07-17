@@ -35,7 +35,14 @@ The registered block type is `spoiler`. The class is also exported by the comple
 { "label": "Reveal", "content": "Spoiler text" }
 ```
 
-The renderer supplies keyboard and expanded-state semantics.
+### Field reference
+
+| Field | Required | Meaning and constraints |
+| --- | --- | --- |
+| `label` | yes | String containing sanitized inline HTML; it may be empty. |
+| `content` | yes | Non-blank sanitized inline HTML. |
+
+The expanded state is transient and is not stored in block data. The renderer supplies keyboard and `aria-expanded` disclosure semantics.
 
 ## Configuration
 

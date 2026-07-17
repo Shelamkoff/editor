@@ -1,6 +1,6 @@
 # Extension reference
 
-This section is generated from extension reference files that ship with the npm package. The sequential Rector guide is maintained directly in VitePress.
+This section is generated from extension reference files maintained alongside the source code. The sequential Rector guide is maintained directly in VitePress.
 
 ## Rector block plugins
 

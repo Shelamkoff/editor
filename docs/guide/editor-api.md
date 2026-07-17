@@ -10,16 +10,24 @@ interface IEditor {
   render(data: EditorDocument): void
   clear(): void
   focus(): void
+  /** Restore exactly one previous committed history step. */
+  undo(): boolean
+  /** Reapply exactly one previously undone history step. */
+  redo(): boolean
+  setReadOnly(readOnly: boolean): void
   insertInlinePlugin(type: string, data?: Record<string, string>): boolean
   destroy(): void
   readonly isReady: boolean
+  readonly readOnly: boolean
+  readonly canUndo: boolean
+  readonly canRedo: boolean
   readonly blocks: EditorBlocksApi
   readonly events: EditorEventSubscriptions
   readonly rootElement: HTMLElement
 }
 ```
 
-Except for an idempotent `destroy()`, accessing the handle after destruction throws `Editor instance is destroyed`.
+After `destroy()`, `isReady` remains readable and returns `false`; calling `destroy()` again is safe. Accessing any other property or method throws `Editor instance is destroyed`.
 
 ## `save()`
 
@@ -48,7 +56,7 @@ Do not call `render()` to update one block. Use the block API or the mutation co
 
 ## `clear()`
 
-Replaces the document with one empty block of `defaultBlock` type, makes it the current block, and creates one history step. It does not move browser focus; call `editor.focus()` afterwards when the application wants that behavior. Undo restores the previous complete document; redo applies the clear again.
+Replaces the document with one empty block of `defaultBlock` type, makes it the current block, and creates one history step. The method does not request or restore browser focus. Replacing the active block detaches its DOM, so focus may be lost; call `editor.focus()` afterwards when the application needs focus to remain in the editor. Undo restores the previous complete document; redo applies the clear again.
 
 ```js
 editor.clear()
@@ -59,9 +67,51 @@ editor.focus()
 
 Moves focus into the current editable block. It has no effect on stored data and creates no history entry.
 
+## History controls
+
+`undo()` restores the previous committed document step and `redo()` restores the next one. Each method returns `true` only when it performed a restore. It returns `false` when the corresponding stack is empty or the editor is read-only. `canUndo` and `canRedo` expose the same availability without changing the document.
+
+Availability changes immediately on input: it does not wait for `tuning.undo.debounceMs` to close the coalesced typing step. A new input branch invalidates redo immediately as well.
+
+Use `history:changed` to keep application controls synchronized. Read the getters once after creating the editor because the initial state exists before an application can subscribe.
+
+```js
+function syncHistory() {
+  undoButton.disabled = !editor.canUndo
+  redoButton.disabled = !editor.canRedo
+}
+
+undoButton.addEventListener('click', () => editor.undo())
+redoButton.addEventListener('click', () => editor.redo())
+
+const stopHistorySync = editor.events.on('history:changed', syncHistory)
+syncHistory()
+```
+
+The configured `tuning.undo.maxStack` limits retained snapshots. New edits after an undo discard the redo branch. See [Commands and history](/guide/commands-history) for transaction boundaries and text-input coalescing.
+
+## Editing and read-only modes
+
+`readOnly` reports the current mode. `setReadOnly(true)` disables interactive editing on the existing instance; `setReadOnly(false)` mounts the editing infrastructure again. Passing the current value is a no-op. Passing a non-boolean value throws a `TypeError`.
+
+```js
+editor.setReadOnly(true)
+console.log(editor.readOnly) // true
+
+editor.setReadOnly(false)
+```
+
+A mode transition commits pending text input, rebuilds plugin DOM with the new `BlockMutationContext.readOnly` value, and mounts or releases edit-only managers. The document and history stacks are preserved. The transition does not create a history step, emit a document-change notification, call `onChange`, or request or restore browser focus. Because mounted plugin elements are replaced, current focus may be lost; call `editor.focus()` after returning to edit mode when required. It emits `readOnly:changed`, followed by `history:changed` because history controls are unavailable while read-only.
+
+Read-only mode blocks user editing, plugin mutation controls, inline insertion, and history restoration. Host-authorized document methods (`save()`, `render()`, `clear()`, and `editor.blocks` structural commands) remain available so an application can load or replace content. Use the document renderer instead when no editor lifecycle or programmatic editing API is required.
+
+Programmatic document mutations performed while read-only are still recorded in history. `canUndo` and `canRedo` remain `false` and `undo()`/`redo()` remain unavailable until `setReadOnly(false)` restores editing; the recorded steps can then be restored normally.
+
+Because a transition destroys and recreates each plugin's mounted element, application code must not retain plugin-owned DOM nodes. Custom plugins must release element-specific listeners and resources in `destroy(element)` and derive interactive controls from `context.readOnly` each time `render(data, context)` runs.
+
 ## `insertInlinePlugin(type, data?)`
 
-Inserts a registered inline widget at the current caret or activates its custom insertion flow. Returns `false` when the type is unknown or no suitable caret exists.
+Inserts a registered inline widget at the current caret or activates its custom insertion flow. Returns `false` when the editor is read-only, the type is unknown, or no suitable caret exists.
 
 ```js
 const inserted = editor.insertInlinePlugin('mention', {
@@ -101,6 +151,8 @@ for (const block of editor.blocks) {
 }
 ```
 
+This is the public `Symbol.iterator` implementation of `EditorBlocksApi`; prefer the `for...of` form above instead of invoking it directly.
+
 ### Selection and focus commands
 
 ```js
@@ -109,7 +161,7 @@ editor.blocks.selectBlocks(['intro', 'body'])
 editor.blocks.clearSelection()
 ```
 
-These methods update editor selection state. `EditorBlockView.focus()` focuses that block; `isEmpty()` delegates to the plugin's emptiness contract.
+`selectBlocks()` and `clearSelection()` emit `block:selected` only when the selected block IDs actually change. The payload contains the selected IDs in document order. `setCurrentIndex()` changes the current block used by keyboard operations, but does not change block selection and does not emit `block:selected`. `EditorBlockView.focus()` focuses that block; `isEmpty()` delegates to the plugin's emptiness contract.
 
 ### Structural commands
 
@@ -171,11 +223,13 @@ stop()
 | `block:changed` | `{ blockId }` | affected block committed |
 | `block:focused` | `{ blockId }` | focus entered a block |
 | `block:blurred` | `{ blockId }` | focus left a block |
-| `block:selected` | `{ blockIds }` | block selection changed |
+| `block:selected` | `{ blockIds }` | user or Blocks API selection changed |
 | `editor:ready` | none | composition completed |
 | `editor:willChange` | none | outer command begins |
 | `editor:changed` | none | command mutation committed |
 | `history:commit` | none | one history step committed |
+| `history:changed` | `{ canUndo, canRedo }` | public history availability changed |
+| `readOnly:changed` | `{ readOnly }` | `setReadOnly()` completed a mode transition |
 | `editor:destroyed` | none | cleanup completed |
 | `toolbar:opened` | `{ type }` | block or inline toolbar opened |
 | `toolbar:closed` | `{ type }` | toolbar closed |
@@ -208,6 +262,39 @@ Normal editor integration does not instantiate `InlinePluginRegistry`. Pass plug
 The extension factories are available from the root entry for convenience. Their documented subpath imports remain preferable when an application wants the narrowest possible dependency boundary. See [Inline tools and plugins](/guide/inline-extensions).
 
 See [Document format](/guide/document-format) for `DocumentSchema` options and [Security and lifecycle](/guide/security-lifecycle) for sanitizer boundaries.
+
+## TypeScript entry points
+
+Use `import type` for contracts that are erased from emitted JavaScript:
+
+```ts
+import type {
+  EditorConfig,
+  EditorDocument,
+  IEditor,
+} from '@shelamkoff/rector'
+import type {
+  EditorTuning,
+  InlinePlugin,
+  InlinePluginContext,
+} from '@shelamkoff/rector/types'
+```
+
+`@shelamkoff/rector` is the normal application entry and re-exports the supported editor types. `@shelamkoff/rector/core` exposes the same editor runtime without the root convenience exports. `@shelamkoff/rector/types` is a type-only entry for extension authors and advanced adapters; it has no JavaScript runtime.
+
+The public declarations are grouped by responsibility:
+
+| Area | Main contracts |
+| --- | --- |
+| document and configuration | `EditorDocument`, `BlockData`, `EditorConfig`, `EditorTuning`, `DocumentMigration` |
+| diagnostics and validation | `EditorDiagnostic`, `EditorDiagnosticCode`, `DiagnosticThresholds`, `BlockValidationIssue` |
+| block extensions | `BasePlugin`, `BlockPlugin`, `BlockMutationContext`, `BlockPluginConstructor`, `PluginRuntimeConfig`, `ToolboxEntry`, `PasteConfig`, `PasteEvent`, `TagPasteEvent`, `FilePasteEvent`, `PatternPasteEvent`, `ShortcutEntry`, `InlineControlContext`, `InlineControlGroup` |
+| inline extensions | `InlineTool`, `InlineToolActionContext`, `InlineMutationContext`, `InlinePlugin`, `InlinePluginContext`, `InlineSelection`, `IInlinePluginRegistry` |
+| application integration | `IEditor`, `EditorBlocksApi`, `EditorBlockView`, `EditorEventSubscriptions`, `EditorEvents`, `CaretPosition` |
+| advanced composition | `IBlock`, `IBlockReader`, `IBlockManager`, `ISelectionManager`, `IBlockOperations`, `IEventBus`, `ICrossBlockSelection`, `IScopedI18n` |
+| localization | `LocaleValue`, `PluralForms`, `I18nMessages`, `MessageKey` |
+
+Application code normally needs only `IEditor`, `EditorConfig`, `EditorDocument`, and the extension contracts it implements. The manager interfaces describe dependency boundaries used by advanced composition, adapters, and tests. They do not make the editor's internal manager instances available from `createEditor()`; use `editor.blocks`, `editor.events`, and the documented `IEditor` methods for normal integration.
 
 ## Lifecycle pattern
 

@@ -2,6 +2,7 @@ import { access, readFile } from 'node:fs/promises'
 import { dirname, join, relative, resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import ts from 'typescript'
+import { loadBlockPlugin } from '../plugins/async.js'
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)))
 const workspace = resolve(root, '..')
@@ -65,6 +66,21 @@ const moduleCache = new Map()
 let exampleCount = 0
 let jsonCount = 0
 let linkCount = 0
+const jsonShapesByFile = new Map()
+const jsonValuesByFile = new Map()
+
+function jsonShape(value) {
+  if (Array.isArray(value)) {
+    const itemShapes = [...new Set(value.map(item => JSON.stringify(jsonShape(item))))].sort()
+    return { type: 'array', items: itemShapes }
+  }
+  if (value !== null && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.keys(value).sort().map(key => [key, jsonShape(value[key])]),
+    )
+  }
+  return value === null ? 'null' : typeof value
+}
 
 function proseOnly(markdown) {
   return markdown
@@ -93,13 +109,20 @@ const allowedRussianLatin = new Set([
   'person',
 ])
 
+const untranslatedRussianExampleValues = [
+  'Hello', 'world', 'Section', 'One', 'Two', 'Quote', 'Author', 'Caption',
+  'Name', 'Value', 'Ship', 'Note', 'Important details', 'Content', 'Cover',
+  'Opening slide', 'Video', 'Sanitized HTML', 'Example', 'Details',
+  'Hidden text', 'Left', 'Right', 'Reveal', 'Spoiler text', 'Stable', 'Next',
+]
+
 for (const file of allReadmes) {
   const markdown = await readFile(file, 'utf8')
   const label = relative(workspace, file)
   const isRussian = file.endsWith('README.ru.md')
   if (!markdown.startsWith('# ')) throw new Error(`${label}: missing H1`)
-  if (isRussian && !/[А-Яа-яЁё]/.test(markdown)) throw new Error(`${label}: Russian translation has no Cyrillic text`)
-  if (/\uFFFD/.test(markdown) || (!isRussian && /(?:вЂ|в”|Р[Ђ-џ])/.test(markdown))) {
+  if (isRussian && !/[А-Яа-яЁё]/u.test(markdown)) throw new Error(`${label}: Russian translation has no Cyrillic text`)
+  if (/\uFFFD|(?:Рџ|РЎ|Рµ|Р°|РЅ|СЃ|С‚|вЂ)/u.test(markdown)) {
     throw new Error(`${label}: contains mojibake or replacement characters`)
   }
 
@@ -113,6 +136,8 @@ for (const file of allReadmes) {
         .filter(word => !allowedRussianLatin.has(word)),
     )]
     if (latinWords.length) throw new Error(`${label}: unexplained Latin prose remains: ${latinWords.join(', ')}`)
+    const untranslatedValue = untranslatedRussianExampleValues.find(value => markdown.includes(`"${value}"`))
+    if (untranslatedValue) throw new Error(`${label}: untranslated example value remains: ${untranslatedValue}`)
   }
 
   const sourceRelative = relative(root, file).replaceAll('\\', '/')
@@ -167,9 +192,16 @@ for (const file of allReadmes) {
   }
 
   for (const match of markdown.matchAll(/```json\s*\r?\n([\s\S]*?)```/g)) {
-    try { JSON.parse(match[1]) } catch (error) {
+    let parsed
+    try { parsed = JSON.parse(match[1]) } catch (error) {
       throw new Error(`${label}: invalid JSON example: ${error.message}`)
     }
+    const shapes = jsonShapesByFile.get(file) ?? []
+    shapes.push(JSON.stringify(jsonShape(parsed)))
+    jsonShapesByFile.set(file, shapes)
+    const values = jsonValuesByFile.get(file) ?? []
+    values.push(parsed)
+    jsonValuesByFile.set(file, values)
     if (!isRussian) jsonCount += 1
   }
 
@@ -201,11 +233,44 @@ for (const file of allReadmes) {
   }
 }
 
+for (const file of readmes) {
+  const russian = file.replace(/README\.md$/, 'README.ru.md')
+  const englishShapes = jsonShapesByFile.get(file) ?? []
+  const russianShapes = jsonShapesByFile.get(russian) ?? []
+  if (JSON.stringify(englishShapes) !== JSON.stringify(russianShapes)) {
+    throw new Error(`${relative(workspace, file)}: English and Russian JSON examples have different data shapes`)
+  }
+}
+
+// Documentation examples are executable parts of the public data contract.
+// Check both the editor and renderer examples with the same strict validator
+// used for consumer documents instead of merely accepting syntactically valid
+// JSON that the runtime would later reject.
+for (const directory of blockPaths) {
+  const type = directory === 'link-preview' ? 'linkPreview' : directory
+  const Plugin = await loadBlockPlugin(type)
+  const plugin = new Plugin()
+  for (const file of [
+    join(root, 'plugins', directory, 'README.md'),
+    join(root, 'renderer', 'renderers', directory, 'README.md'),
+  ]) {
+    const examples = jsonValuesByFile.get(file) ?? []
+    if (examples.length !== 1) {
+      throw new Error(`${relative(root, file)}: expected exactly one document-data JSON example`)
+    }
+    if (!plugin.validate(examples[0])) {
+      throw new Error(`${relative(root, file)}: documented data example fails the ${type} validator`)
+    }
+  }
+}
+
+let packageReadmeCopiesChecked = 0
 for (const source of [...readmes.slice(1), ...russianReadmes.slice(1)]) {
   const built = join(root, 'dist', relative(root, source))
   try {
     const [sourceText, builtText] = await Promise.all([readFile(source, 'utf8'), readFile(built, 'utf8')])
     if (sourceText !== builtText) throw new Error(`${relative(root, source)}: built README is stale`)
+    packageReadmeCopiesChecked += 1
   } catch (error) {
     if (error?.code === 'ENOENT') continue
     throw error
@@ -213,6 +278,22 @@ for (const source of [...readmes.slice(1), ...russianReadmes.slice(1)]) {
 }
 
 if (exampleCount < 40) throw new Error(`Expected at least 40 JS/TS examples, got ${exampleCount}`)
-if (jsonCount !== 42) throw new Error(`Expected 42 block-data JSON examples, got ${jsonCount}`)
+// Every concrete block plugin and matching renderer has one document-data
+// example. The two concrete inline plugins additionally document their
+// serialized markup. Derive the contract from the catalog so adding a block
+// cannot leave this gate with an unexplained stale magic number.
+const expectedJsonCount = blockPaths.length * 2 + 2
+if (jsonCount !== expectedJsonCount) {
+  throw new Error(`Expected ${expectedJsonCount} data JSON examples, got ${jsonCount}`)
+}
 
-console.log(JSON.stringify({ readmes: allReadmes.length, languages: ['en', 'ru'], examples: exampleCount, json: jsonCount, links: linkCount, imports: true, encoding: true, builtCopies: true }))
+console.log(JSON.stringify({
+  readmes: allReadmes.length,
+  languages: ['en', 'ru'],
+  examples: exampleCount,
+  json: jsonCount,
+  links: linkCount,
+  imports: true,
+  encoding: true,
+  packageReadmeCopiesChecked,
+}))

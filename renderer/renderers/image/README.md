@@ -33,6 +33,8 @@ rendererStyles.destroy()
 }
 ```
 
+The [image plugin field reference](../../../plugins/image/README.md#field-reference) is the canonical persisted-data contract shared by the editor and renderer.
+
 The image source uses the media URL policy and the caption uses the shared inline parser. The renderer declares one stylesheet and creates no listeners or external instances.
 
 When styles are declared, the explicit `EditorRenderer.injectStyles()` call shown above acquires them and its returned owner releases them.

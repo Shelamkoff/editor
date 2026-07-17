@@ -19,6 +19,8 @@
  * @property {void} UNDO_BATCH_START
  * @property {void} UNDO_BATCH_END
  * @property {void} HISTORY_COMMIT
+ * @property {{ canUndo: boolean, canRedo: boolean }} HISTORY_CHANGED
+ * @property {{ readOnly: boolean }} READ_ONLY_CHANGED
  * @property {{ startBlockId?: string, endBlockId?: string }} PASTE_APPLIED
  * @property {{ type: string }} INLINE_PLUGIN_INSERT
  * @property {void} DRAG_HANDLE_CLICKED
@@ -46,6 +48,8 @@ export const EditorEvent = {
   UNDO_BATCH_START: 'undo:batchStart',
   UNDO_BATCH_END: 'undo:batchEnd',
   HISTORY_COMMIT: 'history:commit',
+  HISTORY_CHANGED: 'history:changed',
+  READ_ONLY_CHANGED: 'readOnly:changed',
   PASTE_APPLIED: 'paste:applied',
 
   INLINE_PLUGIN_INSERT: 'inlinePlugin:insert',

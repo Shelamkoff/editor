@@ -186,17 +186,19 @@ export class BlockSettingsMenu {
 
   #onDocumentClick = (/** @type {MouseEvent} */ e) => {
     if (!this.#open) return
-    const target = /** @type {Node} */ (e.target)
-    if (this.#menuEl.contains(target)) return
+    const target = e.target
+    if (!(target instanceof globalThis.Node)) return
+    const targetNode = /** @type {import('../types').DOMNode} */ (target)
+    if (this.#menuEl.contains(targetNode)) return
 
     // Ignore clicks on the toolbar (drag handle has its own toggle path).
     const toolbar = this.#rootEl.querySelector('.oe-toolbar')
-    if (toolbar?.contains(target)) return
+    if (toolbar?.contains(targetNode)) return
 
     // On mobile the backdrop handles closing via Toolbar.
     const backdrop = this.#rootEl.closest('.oe-editor')?.parentElement?.querySelector('.oe-offcanvas-backdrop')
       ?? document.querySelector('.oe-offcanvas-backdrop')
-    if (backdrop?.contains(target)) return
+    if (backdrop?.contains(targetNode)) return
 
     this.close()
   }

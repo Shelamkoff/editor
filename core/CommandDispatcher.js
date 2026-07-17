@@ -3,7 +3,7 @@ import { EditorEvent } from './editorEvents.js'
 /**
  * Single execution boundary for editor commands.
  *
- * Commands may provide a cheap inverse rollback. Otherwise the dispatcher
+ * Commands may provide a cheap inverse rollback. Otherwise, the dispatcher
  * restores the canonical pre-command checkpoint configured by the composition
  * root. Nested commands join the outer command and produce one history entry.
  */
@@ -18,11 +18,28 @@ export class CommandDispatcher {
   /** @type {unknown} */ #nestedFailure = null
   /** @type {import('./Diagnostics').Diagnostics | null} */ #diagnostics
 
-  /** @param {import('./Diagnostics').Diagnostics} [diagnostics] */
+  /**
+   * @param {import('./types').IBlockManager} blocks Block manager whose
+   * affected instances are marked dirty after a successful command.
+   * @param {import('./types').IEventBus} events Event bus used to delimit
+   * document changes and history transactions.
+   * @param {import('./Diagnostics').Diagnostics} [diagnostics] Optional
+   * diagnostics sink for failed and slow commands.
+   */
   constructor(blocks, events, diagnostics) {
     this.#blocks = blocks
     this.#events = events
     this.#diagnostics = diagnostics ?? null
+  }
+
+  /**
+   * Propagate a nested command failure to the outer transaction even when an
+   * intermediate caller caught it.
+   * @param {boolean} outermost Whether the current command owns the transaction.
+   * @throws {unknown} The first failure raised by a nested command.
+   */
+  #throwNestedFailure(outermost) {
+    if (outermost && this.#nestedFailure) throw this.#nestedFailure
   }
 
   /** Configure the canonical fallback used when a command throws. */
@@ -72,6 +89,7 @@ export class CommandDispatcher {
    *   apply: () => T,
    *   rollback?: () => void,
    *   markDirty?: boolean,
+   *   notifyChange?: boolean,
    *   notify?: (result: T) => void,
    * }} command
    * @returns {T}
@@ -84,7 +102,7 @@ export class CommandDispatcher {
     if (outermost) this.#nestedFailure = null
     for (const block of command.affected ?? []) this.#affected.add(block)
     const checkpoint = outermost && this.#capture ? this.#capture() : null
-    if (outermost) this.#events.emit(EditorEvent.WILL_CHANGE)
+    if (outermost && command.notifyChange !== false) this.#events.emit(EditorEvent.WILL_CHANGE)
 
     let failed = false
     this.#depth++
@@ -93,7 +111,7 @@ export class CommandDispatcher {
       command.notify?.(result)
       // A nested command cannot be made successful by catching its error in
       // the caller: the outer transaction is poisoned and rolls back whole.
-      if (outermost && this.#nestedFailure) throw this.#nestedFailure
+      this.#throwNestedFailure(outermost)
       return result
     } catch (cause) {
       failed = true
@@ -112,7 +130,7 @@ export class CommandDispatcher {
         const affected = [...this.#affected]
         this.#affected.clear()
         // A failed command was restored and must not create a history entry.
-        if (!failed) {
+        if (!failed && command.notifyChange !== false) {
           this.#markAndCommit(command.markDirty === false ? [] : affected)
         }
         if (startedAt && this.#diagnostics) {

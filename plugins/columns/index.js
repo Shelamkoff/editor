@@ -2,23 +2,23 @@ import { sanitizeHtml } from '../../core/sanitize.js'
 import { resolvePath } from '../../shared/resolvePath.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { validateColumnsData } from '../../shared/blockDataValidators.js'
+import { normalizeTextValue } from '../../shared/textFormat.js'
+import { mapColumnsTextFields } from '../../shared/mapTextFields.js'
 
 const editorStyles = resolvePath('./columns.css', import.meta.url)
 
 // Tabler icon: columns-2
 const ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3m0 1a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><path d="M12 3v18"/></svg>'
 
-/** @type {Record<string, { cols: number, grid: string, label: string }>} */
+
 const LAYOUTS = {
   '1-1':   { cols: 2, grid: '1fr 1fr', label: '50 / 50' },
   '1-2':   { cols: 2, grid: '1fr 2fr', label: '33 / 67' },
   '2-1':   { cols: 2, grid: '2fr 1fr', label: '67 / 33' },
   '1-1-1': { cols: 3, grid: '1fr 1fr 1fr', label: '33 / 33 / 33' },
 }
-
 /** @type {(keyof typeof LAYOUTS)[]} */
 const LAYOUT_KEYS = ['1-1', '1-2', '2-1', '1-1-1']
-
 // Layout preview icons (small SVGs for selector)
 /** @type {Record<string, string>} */
 const LAYOUT_ICONS = {
@@ -27,39 +27,36 @@ const LAYOUT_ICONS = {
   '2-1':   '<svg width="20" height="14" viewBox="0 0 20 14"><rect x="0.5" y="0.5" width="12" height="13" rx="1" fill="none" stroke="currentColor" stroke-width="1"/><rect x="13.5" y="0.5" width="6" height="13" rx="1" fill="none" stroke="currentColor" stroke-width="1"/></svg>',
   '1-1-1': '<svg width="20" height="14" viewBox="0 0 20 14"><rect x="0.5" y="0.5" width="5.67" height="13" rx="1" fill="none" stroke="currentColor" stroke-width="1"/><rect x="7.17" y="0.5" width="5.67" height="13" rx="1" fill="none" stroke="currentColor" stroke-width="1"/><rect x="13.83" y="0.5" width="5.67" height="13" rx="1" fill="none" stroke="currentColor" stroke-width="1"/></svg>',
 }
-
 /** @type {WeakMap<HTMLElement, { data: { columns: Array<{content: string}>, layout: string } }>} */
 const stateMap = new WeakMap()
-
-
+/** Editable two- or three-column rich-text layout block. */
 export class Columns extends BlockPluginAbstract {
   static isTextBlock = false
   static styles = [editorStyles]
   type = 'columns'
   icon = ICON
-  inlineTools = false
+  inlineTools = true
+  mapTextFields = mapColumnsTextFields
 
-  /** @returns {string} */
+  /**
+   * Return the localized toolbox label for this block.
+   * @returns {string}
+   */
   get title() {
     return this._t('title', 'Columns')
   }
 
-  _defaultData() {
-    return {
-      columns: [{ content: '' }, { content: '' }],
-      layout: '1-1',
-    }
-  }
-
   /**
+   * Create the editable DOM owned by this block instance.
    * @param {Record<string, unknown>} data
+   * @param {import('../../core/types').BlockMutationContext} context
    * @returns {HTMLElement}
    */
   render(data, context) {
     const layout = LAYOUT_KEYS.includes(/** @type {any} */ (data?.layout)) ? String(data.layout) : '1-1'
     const layoutDef = /** @type {{ cols: number, grid: string, label: string }} */ (LAYOUTS[layout])
     const columns = Array.isArray(data?.columns)
-      ? data.columns.map((c) => ({ content: String(c?.content || '') }))
+      ? data.columns.map((c) => ({ content: normalizeTextValue(c?.content) }))
       : []
 
     // Ensure correct number of columns for layout
@@ -73,13 +70,16 @@ export class Columns extends BlockPluginAbstract {
 
     stateMap.set(wrapper, { data: { columns, layout } })
 
-    this._build(wrapper, context)
+    this.#build(wrapper, context)
     return wrapper
   }
 
-  /** @param {HTMLElement} element */
+  /**
+   * Serialize the current block DOM into document data.
+   * @param {HTMLElement} element @returns {{ columns: Array<{ content: string }>, layout: string }}
+   */
   save(element) {
-    this._syncFromDom(element)
+    this.#syncFromDom(element)
     const s = stateMap.get(element)
     if (!s) return { columns: [], layout: '1-1' }
     return {
@@ -88,36 +88,48 @@ export class Columns extends BlockPluginAbstract {
     }
   }
 
-  /** @param {Record<string, unknown>} data */
+  /**
+   * Check whether serialized data satisfies this block's schema.
+   * @param {Record<string, unknown>} data @returns {boolean}
+   */
   validate(data) {
     return validateColumnsData(data)
   }
 
-  /** @param {HTMLElement} element */
+  /**
+   * Check whether the block has no meaningful user content.
+   * @param {HTMLElement} element @returns {boolean}
+   */
   isEmpty(element) {
-    this._syncFromDom(element)
+    this.#syncFromDom(element)
     const s = stateMap.get(element)
     if (!s) return true
     return s.data.columns.every((c) => !c.content.trim())
   }
 
-  /** @param {HTMLElement} element */
+  /**
+   * Extract neutral rich text that can initialize another block type.
+   * @param {HTMLElement} element @returns {{ text: string }}
+   */
   exportData(element) {
-    this._syncFromDom(element)
+    this.#syncFromDom(element)
     const s = stateMap.get(element)
     if (!s) return { text: '' }
-    return { text: s.data.columns.map((c) => c.content).join(' ') }
+    return { text: s.data.columns.map((c) => c.content).filter(Boolean).join('<br>') }
   }
 
-  /** @param {HTMLElement} element */
+  /**
+   * Release listeners and resources owned by this block element.
+   * @param {HTMLElement} element @returns {void}
+   */
   destroy(element) {
     stateMap.delete(element)
   }
 
   // ── Private ─────────────────────────────────────────────────────────────────
 
-  /** @param {HTMLElement} wrapper */
-  _syncFromDom(wrapper) {
+  /** @param {HTMLElement} wrapper @returns {void} */
+  #syncFromDom(wrapper) {
     const s = stateMap.get(wrapper)
     if (!s) return
     const colEls = wrapper.querySelectorAll('.oe-columns__col')
@@ -129,8 +141,12 @@ export class Columns extends BlockPluginAbstract {
     })
   }
 
-  /** @param {HTMLElement} wrapper */
-  _build(wrapper, context) {
+  /**
+   * @param {HTMLElement} wrapper
+   * @param {import('../../core/types').BlockMutationContext} context
+   * @returns {void}
+   */
+  #build(wrapper, context) {
     const s = stateMap.get(wrapper)
     if (!s) return
     wrapper.innerHTML = ''
@@ -171,11 +187,13 @@ export class Columns extends BlockPluginAbstract {
       btn.className = `oe-columns__layout-btn${s.data.layout === key ? ' oe-columns__layout-btn--active' : ''}`
       btn.innerHTML = LAYOUT_ICONS[key] || ''
       btn.title = LAYOUTS[key]?.label || ''
+      btn.setAttribute('aria-label', `${this._t('layout', 'Layout')} ${btn.title}`)
+      btn.setAttribute('aria-pressed', String(s.data.layout === key))
       btn.addEventListener('mousedown', (e) => e.preventDefault())
       btn.addEventListener('click', () => {
         context.mutate(() => {
-          this._syncFromDom(wrapper)
-          this._changeLayout(wrapper, key, context)
+          this.#syncFromDom(wrapper)
+          this.#changeLayout(wrapper, key, context)
         })
       })
       actions.appendChild(btn)
@@ -187,8 +205,10 @@ export class Columns extends BlockPluginAbstract {
   /**
    * @param {HTMLElement} wrapper
    * @param {string} newLayout
+   * @param {import('../../core/types').BlockMutationContext} context
+   * @returns {void}
    */
-  _changeLayout(wrapper, newLayout, context) {
+  #changeLayout(wrapper, newLayout, context) {
     const newDef = LAYOUTS[newLayout]
     if (!newDef) return
 
@@ -211,6 +231,6 @@ export class Columns extends BlockPluginAbstract {
     }
 
     s.data.layout = newLayout
-    this._build(wrapper, context)
+    this.#build(wrapper, context)
   }
 }

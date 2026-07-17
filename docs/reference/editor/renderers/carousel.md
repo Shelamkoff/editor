@@ -42,6 +42,8 @@ rendererStyles.destroy()
 }
 ```
 
+The complete persisted-data contract, including per-slide requirements and option defaults, is defined by the matching [Carousel plugin](/reference/editor/plugins/carousel#field-reference).
+
 Image and video sources use the media URL policy; HTML slides use the raw-HTML sanitizer. The renderer owns the Carousel instance and releases it in `destroy()`. It declares its own and Carousel styles.
 
 When styles are declared, the explicit `EditorRenderer.injectStyles()` call shown above acquires them and its returned owner releases them.

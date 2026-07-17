@@ -42,7 +42,16 @@ const DEFAULT_MATCHERS = [
 export function resolveSocialIcon(url, customResolvers) {
   if (customResolvers) {
     for (const r of customResolvers) {
-      const match = typeof r.test === 'function' ? r.test(url) : r.test.test(url)
+      let match = false
+      if (typeof r.test === 'function') {
+        match = r.test(url)
+      } else {
+        // Global and sticky regular expressions retain `lastIndex` between
+        // calls. Reset it so the same URL always produces the same result.
+        r.test.lastIndex = 0
+        match = r.test.test(url)
+        r.test.lastIndex = 0
+      }
       if (match) return { type: r.type, icon: r.icon || ICONS[r.type] || ICONS['website'] || '' }
     }
   }

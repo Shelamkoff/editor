@@ -7,6 +7,8 @@ import { cloneEditorData } from '../shared/cloneEditorData.js'
 import { uid } from './uid.js'
 import { createPreservedBlockPlugin } from './PreservedBlockPlugin.js'
 
+/** @typedef {import('./types').IBlockManager} IBlockManagerContract */
+/** @implements {IBlockManagerContract} */
 export class BlockManager {
   /** @type {Block[]} */
   #blocks = []
@@ -39,6 +41,9 @@ export class BlockManager {
 
   /** @type {import('./CommandDispatcher').CommandDispatcher | null} */
   #commands = null
+
+  /** @type {{ splitBlock: (() => void) | null, exitEmptyBlock: (() => boolean) | null }} */
+  #structuralCommands = { splitBlock: null, exitEmptyBlock: null }
 
   /** @type {Map<string, import('./types').BlockPlugin>} */
   #preservedPlugins = new Map()
@@ -81,6 +86,21 @@ export class BlockManager {
     this.#commands = commands
   }
 
+  /**
+   * Wire structural commands into existing and subsequently created blocks.
+   * @param {{ splitBlock: (() => void) | null, exitEmptyBlock: (() => boolean) | null }} commands
+   * @returns {void}
+   */
+  setPluginStructuralCommands(commands) {
+    this.#structuralCommands = commands
+    for (const block of this.#blocks) block.setStructuralCommands(commands)
+  }
+
+  /** Select the render context used for subsequently created blocks. */
+  setReadOnly(readOnly) {
+    this.#readOnly = readOnly
+  }
+
   /** Build a block without mutating the live manager. */
   #createBlock(type, data, id, inline, metadata = {}, preserveUnknown = false) {
     if (!this.#commands) throw new Error('[BlockManager] CommandDispatcher is not configured')
@@ -99,11 +119,13 @@ export class BlockManager {
       const registry = this.#inlinePluginRegistry
       plugin.mapTextFields(blockData, (html) => deserializeInlineHtml(html, inline, registry))
     }
-    return new Block(plugin, blockData, id, this.#readOnly, this.#commands, {
+    const block = new Block(plugin, this.#commands, blockData, id, this.#readOnly, {
       ...metadata,
       inline,
       preserveInline: preserveUnknown,
     })
+    block.setStructuralCommands(this.#structuralCommands)
+    return block
   }
 
   /** Resolve a collision-safe block id. */
@@ -129,18 +151,18 @@ export class BlockManager {
    *
    * Removed blocks may remain in the container while their exit animation is
    * running, so `container.children[index]` is not a valid model index. Use
-   * neighbouring live Block instances as anchors instead.
+   * neighboring live Block instances as anchors instead.
    * @param {HTMLElement} element
    * @param {number} index
    */
   #placeElementAtIndex(element, index) {
-    const next = this.#blocks[index + 1]?.element
+    const next = /** @type {HTMLElement | undefined} */ (this.#blocks[index + 1]?.element)
     if (next?.parentNode === this.#container) {
       this.#container.insertBefore(element, next)
       return
     }
 
-    const previous = this.#blocks[index - 1]?.element
+    const previous = /** @type {HTMLElement | undefined} */ (this.#blocks[index - 1]?.element)
     if (previous?.parentNode === this.#container) {
       previous.after(element)
       return
@@ -176,7 +198,7 @@ export class BlockManager {
       name: 'block.insert',
       markDirty: false,
       apply: () => {
-      const block = this.#createBlock(type, data, blockId, inline)
+        const block = this.#createBlock(type, data, blockId, inline)
         this.#blocks.splice(insertIndex, 0, block)
         this.#blockMap.set(block.id, block)
         this.#rebuildIndexMap()
@@ -263,12 +285,13 @@ export class BlockManager {
 
     return {
       blocks: /** @type {readonly Block[]} */ (staged),
-      commit: () => {
+      commit: (options = {}) => {
         if (settled) throw new Error('[BlockManager] Replacement transaction is already settled')
         if (!this.#commands) throw new Error('[BlockManager] CommandDispatcher is not configured')
         this.#commands.execute({
           name: 'document.replace',
           markDirty: false,
+          notifyChange: options.notifyChange,
           apply: () => {
             settled = true
             for (const block of this.#blocks) block.destroy()
@@ -409,7 +432,8 @@ export class BlockManager {
       name: 'block.convert',
       markDirty: false,
       apply: () => {
-        const newBlock = new Block(plugin, newData, blockId, this.#readOnly, this.#commands)
+        const newBlock = new Block(plugin, this.#commands, newData, blockId, this.#readOnly)
+        newBlock.setStructuralCommands(this.#structuralCommands)
         block.disposePlugin()
         block.element.remove()
         this.#blocks.splice(index, 1, newBlock)
@@ -498,7 +522,7 @@ export class BlockManager {
 
   /**
    * Find the block that contains a given DOM node.
-   * @param {Node} node
+   * @param {import('./types').DOMNode} node
    * @returns {Block | undefined}
    */
   getBlockByChildNode(node) {
@@ -608,9 +632,9 @@ export class BlockManager {
 
   /**
    * Iterator support.
-   * @returns {Iterator<Block>}
+   * @returns {IterableIterator<Block>}
    */
   [Symbol.iterator]() {
-    return this.#blocks[Symbol.iterator]()
+    return this.#blocks.values()
   }
 }

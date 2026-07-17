@@ -2,6 +2,10 @@ node_modules/
 dist/
 docs/.vitepress/cache/
 docs/.vitepress/dist/
+# Generated from the extension README sources by docs:sync.
+docs/reference/
+docs/ru/reference/
+docs/.vitepress/readme-catalog.json
 .package/
 .package-tmp/
 .declaration-probe/

@@ -27,7 +27,14 @@ The registered block type is `paragraph`. The class is also exported by the comp
 { "text": "Hello <strong>world</strong>", "align": "left" }
 ```
 
-`align` accepts `left`, `center`, `right`, or `justify`. `text` contains sanitized inline HTML and may contain inline-widget placeholder tokens while serialized.
+### Field reference
+
+| Field | Required | Meaning and constraints |
+| --- | --- | --- |
+| `text` | yes | Non-blank sanitized inline HTML. Serialized text may contain placeholders whose data lives in the block's `inline` map. |
+| `align` | no | `left`, `center`, `right`, or `justify`. When omitted, the editor and renderer use their normal text alignment. |
+
+An empty paragraph may exist temporarily while the user is editing. It is not valid persisted paragraph data in strict validation mode.
 
 ## Configuration
 

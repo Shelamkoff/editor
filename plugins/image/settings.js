@@ -38,6 +38,8 @@ export function buildSettingsPanel(wrapper, state, deps) {
 function buildStyleForm(wrapper, state, deps) {
   const styles = state.data.styles ||= {}
   const signal = /** @type {AbortController} */ (state.abortController).signal
+  /** @type {Set<() => void>} */
+  const closeSelects = new Set()
 
   const form = document.createElement('div')
   form.className = CSS.styleForm
@@ -102,13 +104,14 @@ function buildStyleForm(wrapper, state, deps) {
       trigger.setAttribute('aria-expanded', 'false')
     }
     const openSelect = () => {
-      form.querySelectorAll(`.${CSS.customSelectOpen}`).forEach((el) => {
-        if (el !== selectWrapper) el.classList.remove(CSS.customSelectOpen)
-      })
+      for (const close of closeSelects) {
+        if (close !== closeSelect) close()
+      }
       isOpen = true
       selectWrapper.classList.add(CSS.customSelectOpen)
       trigger.setAttribute('aria-expanded', 'true')
     }
+    closeSelects.add(closeSelect)
 
     const renderOptions = () => {
       optionsList.innerHTML = ''
@@ -143,7 +146,6 @@ function buildStyleForm(wrapper, state, deps) {
         optEl.addEventListener('mousedown', (e) => {
           e.preventDefault()
           e.stopPropagation()
-          selectOption()
         })
         optEl.addEventListener('click', selectOption)
         optEl.addEventListener('keydown', (event) => {

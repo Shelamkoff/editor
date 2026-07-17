@@ -27,7 +27,13 @@ The registered block type is `checklist`. The class is also exported by the comp
 { "items": [{ "text": "Ship", "checked": false }] }
 ```
 
-Each item has a string `text` and boolean `checked`; item text supports inline tools and inline widgets.
+### Field reference
+
+| Field | Required | Meaning and constraints |
+| --- | --- | --- |
+| `items` | yes | A non-empty array of objects. Each object requires string `text` and boolean `checked`. Text supports sanitized inline markup and inline widgets. |
+
+The document validator permits an empty `text` string, because an empty item is a valid editing state. Enter in an empty last item removes it and creates the default block after the checklist; Enter in the sole empty item converts the checklist itself. Each transition is one undoable action.
 
 ## Configuration
 

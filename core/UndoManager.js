@@ -14,6 +14,9 @@ export class UndoManager {
   /** @type {import('./types').IBlockReader} */
   #blocks
 
+  /** @type {import('./types').IEventBus} */
+  #events
+
   /** @type {() => import('./types').EditorDocument} */
   #captureFn
 
@@ -44,6 +47,18 @@ export class UndoManager {
   /** @type {boolean} */
   #restoring = false
 
+  /** A live change exists but has not reached its coalesced snapshot yet. */
+  #pendingChange = false
+
+  /** @type {boolean | null} */
+  #lastCanUndo = null
+
+  /** @type {boolean | null} */
+  #lastCanRedo = null
+
+  /** History keeps recording, but commands are unavailable in read-only mode. */
+  #commandsEnabled = true
+
   /** @type {() => void} */
   #unsubscribe
 
@@ -57,6 +72,7 @@ export class UndoManager {
    */
   constructor(blocks, events, captureFn, renderFn, getCaretFn, tuning) {
     this.#blocks = blocks
+    this.#events = events
     this.#captureFn = captureFn
     this.#renderFn = renderFn
     this.#getCaretFn = getCaretFn
@@ -75,6 +91,8 @@ export class UndoManager {
     // Listen for changes
     const unsubChanged = events.on(EditorEvent.CHANGED, () => {
       if (this.#restoring) return
+      this.#pendingChange = true
+      this.#emitState()
       this.#debouncedSnapshot()
     })
 
@@ -89,11 +107,27 @@ export class UndoManager {
   }
 
   get canUndo() {
-    return this.#undoStack.length > 1
+    return this.#commandsEnabled && (this.#pendingChange || this.#undoStack.length > 1)
   }
 
   get canRedo() {
-    return this.#redoStack.length > 0
+    return this.#commandsEnabled && !this.#pendingChange && this.#redoStack.length > 0
+  }
+
+  /**
+   * Mask public command availability without pausing history recording.
+   * @param {boolean} enabled
+   * @param {{ notify?: boolean }} [options]
+   */
+  setCommandsEnabled(enabled, options = {}) {
+    if (this.#destroyed || enabled === this.#commandsEnabled) return
+    this.#commandsEnabled = enabled
+    if (options.notify === false) {
+      this.#lastCanUndo = this.canUndo
+      this.#lastCanRedo = this.canRedo
+      return
+    }
+    this.#emitState()
   }
 
   /**
@@ -115,10 +149,10 @@ export class UndoManager {
    * Restore the previous state.
    */
   undo() {
-    if (this.#destroyed) return
+    if (this.#destroyed) return false
     this.#reconcileCurrentState()
 
-    if (!this.canUndo) return
+    if (!this.canUndo) return false
 
     const current = this.#undoStack.pop()
     if (current) this.#redoStack.push(current)
@@ -134,17 +168,20 @@ export class UndoManager {
         }
         throw error
       }
+      this.#emitState()
+      return true
     }
+    return false
   }
 
   /**
    * Restore the next state.
    */
   redo() {
-    if (this.#destroyed) return
+    if (this.#destroyed) return false
     this.#reconcileCurrentState()
 
-    if (!this.canRedo) return
+    if (!this.canRedo) return false
 
     const next = this.#redoStack.pop()
     if (next) {
@@ -156,7 +193,10 @@ export class UndoManager {
         this.#redoStack.push(next)
         throw error
       }
+      this.#emitState()
+      return true
     }
+    return false
   }
 
   /**
@@ -189,10 +229,12 @@ export class UndoManager {
     this.#redoStack = []
     this.#serializedBlocks = new WeakMap()
     this.#batchDepth = 0
+    this.#pendingChange = false
     if (this.#debounceTimer) {
       clearTimeout(this.#debounceTimer)
       this.#debounceTimer = null
     }
+    if (!this.#destroyed) this.#emitState()
   }
 
   /**
@@ -283,16 +325,34 @@ export class UndoManager {
     }
 
     this.#undoStack.push(snapshot)
-    if (this.#undoStack.length > this.#maxStack) {
+    // Keep the current state plus the configured number of undoable states.
+    if (this.#undoStack.length > this.#maxStack + 1) {
       this.#undoStack.shift()
     }
     this.#redoStack = []
     return true
   }
 
+  #emitState() {
+    const canUndo = this.canUndo
+    const canRedo = this.canRedo
+    if (canUndo === this.#lastCanUndo && canRedo === this.#lastCanRedo) return
+    this.#lastCanUndo = canUndo
+    this.#lastCanRedo = canRedo
+    this.#events.emit(EditorEvent.HISTORY_CHANGED, {
+      canUndo,
+      canRedo,
+    })
+  }
+
   #takeSnapshot() {
     if (this.#destroyed) return
-    this.#pushSnapshot(this.#captureFn())
+    // Capture and serialize first. A plugin save failure must not consume the
+    // pending change or publish history state that never committed.
+    const snapshot = this.#captureFn()
+    this.#pushSnapshot(snapshot)
+    this.#pendingChange = false
+    this.#emitState()
   }
 
   /**

@@ -10,10 +10,10 @@ const ICON_CHEVRON = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height=
  *
  * @param {import('./index.js').Heading} plugin
  * @param {HTMLElement} element - heading content element
- * @param {import('../../../editor/core/types').InlineControlContext} ctx
+ * @param {import('../../core/types').InlineControlContext} ctx
  * @param {(key: string, fallback: string) => string} t - translation function
  * @param {ReadonlyArray<{level: number, key: string, icon: string}>} levels
- * @returns {import('../../../editor/core/types').InlineControlGroup}
+ * @returns {import('../../core/types').InlineControlGroup}
  */
 export function createHeadingLevelSelect(plugin, element, ctx, t, levels) {
   let currentLevel = plugin.getLevel(element)

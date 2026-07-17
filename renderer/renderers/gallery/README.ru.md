@@ -28,9 +28,11 @@ rendererStyles.destroy()
   "images": [{ "url": "https://cdn.example/a.jpg", "caption": "A" }],
   "layout": "auto",
   "styles": { "gap": "8px", "borderRadius": "8px", "height": "420px" },
-  "options": { "loop": true, "zoom": true, "navigation": true, "captions": true, "thumbnails": true, "fullscreen": true, "autoplayInterval": 0 }
+  "options": { "loop": true, "zoom": true, "navigation": true, "captions": true, "thumbnails": true, "fullscreen": true, "autoplayInterval": 3000 }
 }
 ```
+
+Полный контракт сохранённых данных, включая раскладки, значения по умолчанию и ограничения проверки, описан в [справочнике полей плагина Gallery](../../../plugins/gallery/README.ru.md#поля-данных).
 
 Адреса изображений проходят политику URL для медиафайлов. Рендерер владеет экземплярами `Expose` и обработчиками готовности изображений; `destroy()` освобождает их. Он объявляет стили галереи и `Expose`.
 

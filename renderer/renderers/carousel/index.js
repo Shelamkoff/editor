@@ -16,15 +16,21 @@ import { setSafeUrlAttribute } from '../../../shared/sanitize/sanitizeUrl.js'
 
 const styles = resolvePath('./styles.css', import.meta.url)
 
-/** @param {string} classPrefix @param {Record<string, any>} locale */
+/**
+ * Create the mixed-media carousel renderer and own its Carousel instances.
+ * @param {string} classPrefix
+ * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} locale
+ * @returns {import('../../types').BlockRenderer<import('../../types').CarouselBlock>}
+ */
 export function createCarouselRenderer(classPrefix, locale) {
   const p = `${classPrefix}-carousel-block`
   /** @type {WeakMap<HTMLElement, Carousel>} */
   const instances = new WeakMap()
   /** @param {string} key @param {string} fallback */
-  const t = (key, fallback) => typeof locale[`renderer.carousel.${key}`] === 'string'
-    ? locale[`renderer.carousel.${key}`]
-    : fallback
+  const t = (key, fallback) => {
+    const value = locale[`renderer.carousel.${key}`]
+    return typeof value === 'string' ? value : fallback
+  }
 
   return {
     type: 'carousel',
@@ -77,6 +83,10 @@ export function createCarouselRenderer(classPrefix, locale) {
           meta: { id: slide.id, type: slide.type },
         }
       })
+
+      // Preserve mode may intentionally pass a normalized empty carousel.
+      // Avoid constructing a runtime instance with no navigable slides.
+      if (!slides.length) return root
 
       const plugins = [createKeyboard({ scope: 'container' }), createSwipe({ mouse: true })]
       if (data.options.navigation) plugins.push(createArrows())

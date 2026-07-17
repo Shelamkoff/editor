@@ -36,12 +36,14 @@ rendererStyles.destroy()
   "persons": [{
     "avatar": "https://cdn.example/ada.jpg",
     "name": "Ada",
-    "role": "Author",
+    "role": "Автор",
     "bio": "",
     "links": [{ "type": "website", "url": "https://example.com" }]
   }]
 }
 ```
+
+Полный контракт сохранённых данных описан в [справочнике полей плагина Person](/ru/reference/editor/plugins/person#поля-данных).
 
 Текст профиля проходит обработчик внутристрочной разметки, а аватары и ссылки — политики URL для медиафайлов и внешних адресов. Вывод нескольких профилей владеет Carousel и обработчиками навигации, которые освобождаются в `destroy()`. Рендерер объявляет стили профиля и Carousel.
 

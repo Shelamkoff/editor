@@ -63,6 +63,7 @@ try {
     'toggle', 'columns', 'spoiler', 'poll', 'person',
   ]
   const requiredEntries = [
+    'package/README.md',
     'package/LICENSE',
     'package/NOTICE',
     'package/THIRD_PARTY_LICENSES.txt',
@@ -83,10 +84,7 @@ try {
   ]
   const missingEntries = requiredEntries.filter(entry => !tarEntries.includes(entry))
   if (missingEntries.length) throw new Error(`Tarball misses publication files: ${missingEntries.join(', ')}`)
-  if (tarEntries.includes('package/README.md') || tarEntries.includes('package/README.ru.md')) {
-    throw new Error('Rector tarball contains an obsolete root README; public documentation belongs to VitePress')
-  }
-  const forbiddenEntry = tarEntries.find(entry => /(?:^|\/)(?:node_modules|tests|benchmarks|docs|\.vitepress)(?:\/|$)|\.vue$|(?:demo|variants|test-cropper)\.html$/.test(entry))
+  const forbiddenEntry = tarEntries.find(entry => /(?:^|\/)(?:node_modules|tests|benchmarks|docs|\.vitepress)(?:\/|$)|\.(?:html|vue)$/.test(entry))
   if (forbiddenEntry) throw new Error(`Tarball contains a development-only file: ${forbiddenEntry}`)
 
   const dependencyPackRoot = join(temporaryRoot, 'dependencies')
@@ -174,10 +172,34 @@ const configuredPlugins = [
 const mentionPlugin = createMentionPlugin({
   searchFunction: async (_query, _nextPageUrl, { signal }) => signal.aborted ? [] : [{ id: '1', name: 'Ada' }],
 })
-void [createEditor, DocumentSchema, Paragraph, Person, configuredPlugins, createBlockPluginsAsync, mentionPlugin, createBoldTool, createEditorRenderer, createDefaultRenderersAsync, EventBus, ColorPicker, parseColorInput, Carousel, Cropper, Expose, colorPickerStylesUrl, carouselStylesUrl, cropperStylesUrl, exposeStylesUrl]
+function usePublicEditorApi(editor = createEditor({
+  holder: document.createElement('div'),
+  plugins: [new Paragraph()],
+  inlineTools: [],
+})) {
+  const available = [editor.readOnly, editor.canUndo, editor.canRedo]
+  editor.undo()
+  editor.redo()
+  void editor.setReadOnly(!editor.readOnly)
+  return available
+}
+void [createEditor, DocumentSchema, Paragraph, Person, configuredPlugins, createBlockPluginsAsync, mentionPlugin, createBoldTool, createEditorRenderer, createDefaultRenderersAsync, EventBus, ColorPicker, parseColorInput, Carousel, Cropper, Expose, colorPickerStylesUrl, carouselStylesUrl, cropperStylesUrl, exposeStylesUrl, usePublicEditorApi]
 `
   await writeFile(join(consumerRoot, 'src/main.js'), consumerSource, 'utf8')
-  await writeFile(join(consumerRoot, 'src/main.ts'), consumerSource, 'utf8')
+  const consumerTypeSource = `${consumerSource}
+import type { EditorConfig, IEditor } from '@shelamkoff/rector'
+import type { EditorTuning, InlinePlugin } from '@shelamkoff/rector/types'
+import type { OutputData, ParagraphBlock, RendererConfig } from '@shelamkoff/rector/renderer/types'
+declare const publicEditor: IEditor
+declare const editorConfig: EditorConfig
+declare const tuning: EditorTuning
+declare const inlinePlugin: InlinePlugin
+declare const output: OutputData
+declare const paragraph: ParagraphBlock
+declare const rendererConfig: RendererConfig
+void [publicEditor, editorConfig, tuning, inlinePlugin, output, paragraph, rendererConfig]
+`
+  await writeFile(join(consumerRoot, 'src/main.ts'), consumerTypeSource, 'utf8')
   await writeFile(join(consumerRoot, 'index.html'), '<script type="module" src="/src/main.js"></script>\n', 'utf8')
 
   for (const moduleResolution of ['Bundler', 'NodeNext']) {

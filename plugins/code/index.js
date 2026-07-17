@@ -2,20 +2,23 @@ import { resolvePath } from '../../shared/resolvePath.js'
 import { getHighlightRuntime, loadHighlightRuntime } from '../../shared/highlightRuntime.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { validateCodeData } from '../../shared/blockDataValidators.js'
+import { READ_ONLY_INTERACTIVE_ATTRIBUTE } from '../../core/constants.js'
 
 const editorStyles = resolvePath('./code.css', import.meta.url)
 
-/** @type {WeakMap<HTMLElement, {code: string, language: string, editMode: boolean, context: import('../../core/types').BlockMutationContext}>} */
+/** @type {WeakMap<HTMLElement, {code: string, language: string, editMode: boolean, context: import('../../core/types').BlockMutationContext, copyResetTimer: ReturnType<typeof setTimeout> | null}>} */
 const codeStateMap = new WeakMap()
 
-/** @type {WeakMap<HTMLElement, {textarea: HTMLTextAreaElement, pre: HTMLPreElement, codeEl: HTMLElement, copyBtn: HTMLElement, editBtn: HTMLElement, dropdown: HTMLElement, dropdownTrigger: HTMLElement, langLabel: HTMLElement}>} */
+/** @type {WeakMap<HTMLElement, {textarea: HTMLTextAreaElement, pre: HTMLPreElement, codeEl: HTMLElement, copyBtn: HTMLElement, editBtn: HTMLElement, dropdown: HTMLElement, langLabel: HTMLElement}>} */
 const refsMap = new WeakMap()
 
 /** @type {WeakMap<HTMLElement, (e: MouseEvent) => void>} */
 const docMousedownMap = new WeakMap()
 
-/** @type {WeakMap<HTMLElement, {panel: HTMLElement, search: HTMLInputElement, list: HTMLElement, trigger: HTMLElement, focusedIndex: number}>} */
+/** @type {WeakMap<HTMLElement, {panel: HTMLElement, search: HTMLInputElement, list: HTMLElement, trigger: HTMLElement}>} */
 const dropdownRefsMap = new WeakMap()
+
+let dropdownSequence = 0
 
 // Tabler icon: source-code
 const ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 8l-4 4l4 4"/><path d="M17 8l4 4l-4 4"/><path d="M14 4l-4 16"/></svg>'
@@ -153,14 +156,16 @@ function highlightCodeBlock(wrapper, hljs) {
 
 
 /**
- * @typedef {{
- *   hljs?: import('../../shared/highlightRuntime').HighlightRuntime,
- *   injectStyles?: boolean,
- *   css?: string,
- * }} CodeConfig
+ * @typedef {Object} CodeConfig
+ * @property {import('../../shared/highlightRuntime').HighlightRuntime} [hljs] Application-supplied highlight.js-compatible runtime. The bundled runtime is loaded lazily when omitted.
+ * @property {boolean} [injectStyles=true] Whether the editor should load the built-in plugin stylesheet.
+ * @property {string} [css] Additional or replacement stylesheet URL, depending on `injectStyles`.
  */
 
-/** @extends {BlockPluginAbstract<CodeConfig>} */
+/**
+ * Editable source-code block with language selection and optional syntax highlighting.
+ * @extends {BlockPluginAbstract<CodeConfig>}
+ */
 export class Code extends BlockPluginAbstract {
   static isTextBlock = false
   static styles = [editorStyles]
@@ -168,18 +173,19 @@ export class Code extends BlockPluginAbstract {
   icon = ICON
   inlineTools = false
 
-  /** @type {import('../../shared/highlightRuntime').HighlightRuntime | null} */
   #highlightRuntime = null
-
   /** @type {Set<HTMLElement>} */
   #wrappers = new Set()
-
-  /** @returns {string} */
+  /**
+   * Return the localized toolbox label for this block.
+   * @returns {string}
+   */
   get title() {
     return this._t('title', 'Code')
   }
 
   /**
+   * Create a Code instance with the supplied consumer configuration.
    * @param {CodeConfig} [config]
    */
   constructor(config) {
@@ -308,12 +314,16 @@ export class Code extends BlockPluginAbstract {
   }
 
   /**
+   * Create the editable DOM owned by this block instance.
    * @param {{ code?: string, language?: string }} data
+   * @param {import('../../core/types').BlockMutationContext} context
    * @returns {HTMLElement}
    */
   render(data, context) {
-    const code = data.code ?? ''
-    const language = data.language ?? 'auto'
+    const code = typeof data.code === 'string' ? data.code : ''
+    const language = typeof data.language === 'string' && data.language
+      ? data.language
+      : 'auto'
 
     // ── Wrapper (non-editable, focusable) ──
     const wrapper = document.createElement('div')
@@ -323,7 +333,7 @@ export class Code extends BlockPluginAbstract {
     wrapper.dataset.lang = language
 
     // State stored via WeakMap for save()
-    codeStateMap.set(wrapper, { code, language, editMode: false, context })
+    codeStateMap.set(wrapper, { code, language, editMode: false, context, copyResetTimer: null })
     this.#wrappers.add(wrapper)
 
     // ── Header bar ──
@@ -334,12 +344,14 @@ export class Code extends BlockPluginAbstract {
     dots.className = 'oe-code-dots'
     dots.innerHTML = '<span></span><span></span><span></span>'
 
-    const { dropdown, trigger: dropdownTrigger, langLabel } = this.#buildDropdown(wrapper)
+    const { dropdown, langLabel } = this.#buildDropdown(wrapper)
 
     const copyBtn = document.createElement('button')
     copyBtn.className = 'oe-code-btn oe-code-btn--copy'
     copyBtn.type = 'button'
     copyBtn.title = this._t('copy', 'Copy')
+    copyBtn.setAttribute('aria-label', copyBtn.title)
+    copyBtn.setAttribute(READ_ONLY_INTERACTIVE_ATTRIBUTE, '')
     copyBtn.innerHTML = ICON_COPY
     copyBtn.addEventListener('click', () => this.#copy(wrapper, copyBtn))
 
@@ -347,7 +359,10 @@ export class Code extends BlockPluginAbstract {
     editBtn.className = 'oe-code-btn oe-code-btn--edit'
     editBtn.type = 'button'
     editBtn.title = this._t('edit', 'Edit')
+    editBtn.setAttribute('aria-label', editBtn.title)
     editBtn.innerHTML = ICON_EDIT
+    editBtn.hidden = context.readOnly
+    editBtn.disabled = context.readOnly
     editBtn.addEventListener('click', () => {
       if (codeStateMap.get(wrapper)?.editMode) {
         this.#switchToView(wrapper)
@@ -380,6 +395,7 @@ export class Code extends BlockPluginAbstract {
     textarea.className = 'oe-code-textarea'
     textarea.placeholder = this._t('placeholder', '// Write code...')
     textarea.spellcheck = false
+    textarea.readOnly = context.readOnly
     textarea.value = code
 
     textarea.addEventListener('input', () => {
@@ -419,11 +435,11 @@ export class Code extends BlockPluginAbstract {
     // Store DOM refs for later access
     refsMap.set(wrapper, {
       textarea, pre, codeEl, copyBtn, editBtn,
-      dropdown, dropdownTrigger, langLabel,
+      dropdown, langLabel,
     })
 
     // Initial state
-    if (code.trim() === '') {
+    if (code.trim() === '' && !context.readOnly) {
       this.#switchToEdit(wrapper)
     } else {
       this.#switchToView(wrapper)
@@ -433,6 +449,7 @@ export class Code extends BlockPluginAbstract {
   }
 
   /**
+   * Serialize the current block DOM into document data.
    * @param {HTMLElement} element
    * @returns {{ code: string, language: string }}
    */
@@ -449,6 +466,7 @@ export class Code extends BlockPluginAbstract {
   }
 
   /**
+   * Check whether serialized data satisfies this block's schema.
    * @param {{ code?: string }} data
    * @returns {boolean}
    */
@@ -457,6 +475,7 @@ export class Code extends BlockPluginAbstract {
   }
 
   /**
+   * Check whether the block has no meaningful user content.
    * @param {HTMLElement} element
    * @returns {boolean}
    */
@@ -470,6 +489,7 @@ export class Code extends BlockPluginAbstract {
   }
 
   /**
+   * Extract neutral text that can initialize another block type.
    * @param {HTMLElement} element
    * @returns {{ text: string }}
    */
@@ -479,6 +499,7 @@ export class Code extends BlockPluginAbstract {
   }
 
   /**
+   * Handle supported pasted content for this block.
    * @param {{ type: string, element?: HTMLElement, tag?: string, data?: string }} event
    * @returns {{ code: string, language: string } | null}
    */
@@ -494,10 +515,14 @@ export class Code extends BlockPluginAbstract {
   }
 
   /**
+   * Release listeners and resources owned by this block element.
    * @param {HTMLElement} element
+   * @returns {void}
    */
   destroy(element) {
     this.#wrappers.delete(element)
+    const state = codeStateMap.get(element)
+    if (state?.copyResetTimer) clearTimeout(state.copyResetTimer)
     const handler = docMousedownMap.get(element)
     if (handler) {
       document.removeEventListener('mousedown', handler)
@@ -506,11 +531,11 @@ export class Code extends BlockPluginAbstract {
 
   // ── Private: Edit/View mode ───────────────────────────────────────────────
 
-  /** @param {HTMLElement} wrapper */
+  /** @param {HTMLElement} wrapper @returns {void} */
   #switchToEdit(wrapper) {
     const state = codeStateMap.get(wrapper)
     const refs = refsMap.get(wrapper)
-    if (!state || !refs) return
+    if (!state || !refs || state.context.readOnly) return
 
     state.editMode = true
     wrapper.classList.add('oe-code-wrap--editing')
@@ -524,6 +549,7 @@ export class Code extends BlockPluginAbstract {
 
     refs.editBtn.innerHTML = ICON_CHECK
     refs.editBtn.title = this._t('done', 'Done')
+    refs.editBtn.setAttribute('aria-label', refs.editBtn.title)
 
     refs.dropdown.style.display = ''
     refs.langLabel.style.display = 'none'
@@ -532,7 +558,7 @@ export class Code extends BlockPluginAbstract {
     refs.textarea.focus()
   }
 
-  /** @param {HTMLElement} wrapper */
+  /** @param {HTMLElement} wrapper @returns {void} */
   #switchToView(wrapper) {
     const state = codeStateMap.get(wrapper)
     const refs = refsMap.get(wrapper)
@@ -550,6 +576,7 @@ export class Code extends BlockPluginAbstract {
 
     refs.editBtn.innerHTML = ICON_EDIT
     refs.editBtn.title = this._t('edit', 'Edit')
+    refs.editBtn.setAttribute('aria-label', refs.editBtn.title)
 
     refs.dropdown.style.display = 'none'
     this.#closeDropdown(wrapper)
@@ -560,12 +587,12 @@ export class Code extends BlockPluginAbstract {
 
   // ── Private: Syntax highlighting ──────────────────────────────────────────
 
-  /** @param {HTMLElement} wrapper */
+  /** @param {HTMLElement} wrapper @returns {void} */
   #highlight(wrapper) {
     highlightCodeBlock(wrapper, this.#highlightRuntime)
   }
 
-  /** @param {HTMLElement} wrapper */
+  /** @param {HTMLElement} wrapper @returns {void} */
   #syncScroll(wrapper) {
     const refs = refsMap.get(wrapper)
     if (!refs) return
@@ -578,18 +605,28 @@ export class Code extends BlockPluginAbstract {
   /**
    * @param {HTMLElement} wrapper
    * @param {HTMLElement} btn
+   * @returns {void}
    */
   #copy(wrapper, btn) {
-    const code = codeStateMap.get(wrapper)?.code || ''
+    const state = codeStateMap.get(wrapper)
+    const code = state?.code || ''
     if (!code) return
 
-    void navigator.clipboard.writeText(code).then(() => {
+    const writeText = navigator.clipboard?.writeText
+    if (typeof writeText !== 'function') return
+
+    void writeText.call(navigator.clipboard, code).then(() => {
+      if (!codeStateMap.has(wrapper)) return
       btn.innerHTML = ICON_CHECK
       btn.classList.add('oe-code-btn--copied')
-      setTimeout(() => {
+      if (state?.copyResetTimer) clearTimeout(state.copyResetTimer)
+      const timer = setTimeout(() => {
+        if (state) state.copyResetTimer = null
+        if (!codeStateMap.has(wrapper)) return
         btn.innerHTML = ICON_COPY
         btn.classList.remove('oe-code-btn--copied')
       }, 1800)
+      if (state) state.copyResetTimer = timer
     }).catch(() => {
       // Clipboard API unavailable (HTTP without localhost)
     })
@@ -601,6 +638,7 @@ export class Code extends BlockPluginAbstract {
    * @param {KeyboardEvent} e
    * @param {HTMLElement} wrapper
    * @param {HTMLTextAreaElement} textarea
+   * @returns {void}
    */
   #handleKeydown(e, wrapper, textarea) {
     const hkState = codeStateMap.get(wrapper)
@@ -643,13 +681,18 @@ export class Code extends BlockPluginAbstract {
       e.stopPropagation()
       hkState?.context.mutate(() => {
         const s = textarea.selectionStart
+        const end = textarea.selectionEnd
         const v = textarea.value
         const lineStart = v.lastIndexOf('\n', s - 1) + 1
-        const linePrefix = v.substring(lineStart, lineStart + 4)
-        if (linePrefix === '    ') {
-          textarea.value = v.substring(0, lineStart) + v.substring(lineStart + 4)
-          textarea.selectionStart = textarea.selectionEnd = Math.max(s - 4, lineStart)
-        }
+        const selected = v.substring(lineStart, end)
+        const dedented = selected.replace(/^ {1,4}/gm, '')
+        if (selected === dedented) return
+        const firstIndent = selected.match(/^ {1,4}/)?.[0].length ?? 0
+        textarea.value = v.substring(0, lineStart) + dedented + v.substring(end)
+        textarea.selectionStart = Math.max(lineStart, s - firstIndent)
+        textarea.selectionEnd = end > s
+          ? lineStart + dedented.length
+          : textarea.selectionStart
         hkState.code = textarea.value
         this.#highlight(wrapper)
       })
@@ -748,7 +791,7 @@ export class Code extends BlockPluginAbstract {
 
   // ── Private: Language dropdown ─────────────────────────────────────────────
 
-  /** @param {{ value: string, label: string } | undefined} language */
+  /** @param {{ value: string, label: string } | undefined} language @returns {string} */
   #languageLabel(language) {
     if (!language) return ''
     if (language.value === 'auto') return this._t('languageAuto', language.label)
@@ -763,6 +806,7 @@ export class Code extends BlockPluginAbstract {
   #buildDropdown(wrapper) {
     const dropdown = document.createElement('div')
     dropdown.className = 'oe-code-dropdown'
+    const dropdownId = `oe-code-dropdown-${++dropdownSequence}`
 
     const state = /** @type {NonNullable<ReturnType<typeof codeStateMap.get>>} */ (codeStateMap.get(wrapper))
 
@@ -770,6 +814,9 @@ export class Code extends BlockPluginAbstract {
     const trigger = document.createElement('button')
     trigger.type = 'button'
     trigger.className = 'oe-code-dropdown__trigger'
+    trigger.setAttribute('aria-haspopup', 'listbox')
+    trigger.setAttribute('aria-expanded', 'false')
+    trigger.setAttribute('aria-controls', `${dropdownId}-panel`)
     const currentLang = LANGUAGES.find(l => l.value === state.language)
     trigger.textContent = currentLang ? this.#languageLabel(currentLang) : state.language
 
@@ -785,17 +832,25 @@ export class Code extends BlockPluginAbstract {
     // Panel
     const panel = document.createElement('div')
     panel.className = 'oe-code-dropdown__panel'
+    panel.id = `${dropdownId}-panel`
 
     // Search input
     const search = document.createElement('input')
     search.type = 'text'
     search.className = 'oe-code-dropdown__search'
     search.placeholder = this._t('search', 'Search...')
+    search.setAttribute('aria-label', this._t('search', 'Search...'))
+    search.setAttribute('role', 'combobox')
+    search.setAttribute('aria-autocomplete', 'list')
+    search.setAttribute('aria-expanded', 'false')
+    search.setAttribute('aria-controls', `${dropdownId}-list`)
     search.autocomplete = 'off'
 
     // List (created before search listeners that reference it)
     const list = document.createElement('div')
     list.className = 'oe-code-dropdown__list'
+    list.id = `${dropdownId}-list`
+    list.setAttribute('role', 'listbox')
 
     let focusedIndex = -1
 
@@ -803,23 +858,29 @@ export class Code extends BlockPluginAbstract {
       filterDropdownItems(list, search.value)
       focusedIndex = -1
       clearDropdownFocus(list)
+      search.removeAttribute('aria-activedescendant')
     })
 
     search.addEventListener('keydown', (e) => {
       // Let modifier combos (Ctrl+Z, Ctrl+A, etc.) bubble to ShortcutRegistry
       if (!e.ctrlKey && !e.metaKey) e.stopPropagation()
       if (e.key === 'Escape') {
-        this.#closeDropdown(wrapper)
+        e.preventDefault()
+        this.#closeDropdown(wrapper, true)
         return
       }
       if (e.key === 'ArrowDown') {
         e.preventDefault()
         focusedIndex = moveDropdownFocus(list, focusedIndex, 1)
+        const focused = getVisibleItems(list)[focusedIndex]
+        if (focused?.id) search.setAttribute('aria-activedescendant', focused.id)
         return
       }
       if (e.key === 'ArrowUp') {
         e.preventDefault()
         focusedIndex = moveDropdownFocus(list, focusedIndex, -1)
+        const focused = getVisibleItems(list)[focusedIndex]
+        if (focused?.id) search.setAttribute('aria-activedescendant', focused.id)
         return
       }
       if (e.key === 'Enter') {
@@ -836,6 +897,9 @@ export class Code extends BlockPluginAbstract {
       const item = document.createElement('div')
       item.className = 'oe-code-dropdown__item'
       if (lang.value === state.language) item.classList.add('oe-code-dropdown__item--active')
+      item.setAttribute('role', 'option')
+      item.id = `${dropdownId}-option-${lang.value}`
+      item.setAttribute('aria-selected', String(lang.value === state.language))
       item.dataset.value = lang.value
       item.textContent = this.#languageLabel(lang)
       item.addEventListener('click', (e) => {
@@ -850,7 +914,7 @@ export class Code extends BlockPluginAbstract {
     dropdown.appendChild(panel)
 
     // Store refs for open/close
-    dropdownRefsMap.set(dropdown, { panel, search, list, trigger, focusedIndex })
+    dropdownRefsMap.set(dropdown, { panel, search, list, trigger })
 
     // Language label (view mode)
     const langLabel = document.createElement('span')
@@ -870,7 +934,7 @@ export class Code extends BlockPluginAbstract {
     return { dropdown, trigger, langLabel }
   }
 
-  /** @param {HTMLElement} wrapper */
+  /** @param {HTMLElement} wrapper @returns {void} */
   #openDropdown(wrapper) {
     const dropdown = refsMap.get(wrapper)?.dropdown
     if (!dropdown) return
@@ -879,29 +943,34 @@ export class Code extends BlockPluginAbstract {
 
     drefs.panel.prepend(drefs.search)
     dropdown.classList.add('oe-code-dropdown--open')
+    drefs.trigger.setAttribute('aria-expanded', 'true')
+    drefs.search.setAttribute('aria-expanded', 'true')
     drefs.search.value = ''
     filterDropdownItems(drefs.list, '')
-    drefs.focusedIndex = -1
     clearDropdownFocus(drefs.list)
     drefs.search.focus()
   }
 
-  /** @param {HTMLElement} wrapper */
-  #closeDropdown(wrapper) {
+  /** @param {HTMLElement} wrapper @param {boolean} [restoreFocus=false] @returns {void} */
+  #closeDropdown(wrapper, restoreFocus = false) {
     const dropdown = refsMap.get(wrapper)?.dropdown
     if (!dropdown) return
     const drefs = dropdownRefsMap.get(dropdown)
     if (!drefs) return
 
     dropdown.classList.remove('oe-code-dropdown--open')
+    drefs.trigger.setAttribute('aria-expanded', 'false')
+    drefs.search.setAttribute('aria-expanded', 'false')
+    drefs.search.removeAttribute('aria-activedescendant')
     drefs.search.remove()
-    drefs.focusedIndex = -1
     clearDropdownFocus(drefs.list)
+    if (restoreFocus) drefs.trigger.focus()
   }
 
   /**
    * @param {HTMLElement} wrapper
    * @param {string} value
+   * @returns {void}
    */
   #selectLanguage(wrapper, value) {
     const state = codeStateMap.get(wrapper)
@@ -929,12 +998,14 @@ export class Code extends BlockPluginAbstract {
       // Update active state in list
       if (drefs?.list) {
         for (const item of drefs.list.children) {
-          item.classList.toggle('oe-code-dropdown__item--active', /** @type {HTMLElement} */ (item).dataset.value === value)
+          const selected = /** @type {HTMLElement} */ (item).dataset.value === value
+          item.classList.toggle('oe-code-dropdown__item--active', selected)
+          item.setAttribute('aria-selected', String(selected))
         }
       }
 
       this.#highlight(wrapper)
-      this.#closeDropdown(wrapper)
+      this.#closeDropdown(wrapper, true)
     })
   }
 

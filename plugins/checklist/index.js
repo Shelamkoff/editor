@@ -3,6 +3,7 @@ import { resolvePath } from '../../shared/resolvePath.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { validateChecklistData } from '../../shared/blockDataValidators.js'
 import { mapTextFields } from './mapTextFields.js'
+import { normalizeTextValue } from '../../shared/textFormat.js'
 
 const editorStyles = resolvePath('./checklist.css', import.meta.url)
 
@@ -12,10 +13,9 @@ const ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" vie
 // Check icon inside checkbox
 const CHECK_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
 
-/** @type {WeakMap<HTMLElement, import('../../core/types').BlockMutationContext>} */
+
 const mutationContexts = new WeakMap()
-
-
+/** Editable checklist block with independently toggleable rich-text items. */
 export class Checklist extends BlockPluginAbstract {
   static isTextBlock = true
   static styles = [editorStyles]
@@ -24,15 +24,18 @@ export class Checklist extends BlockPluginAbstract {
   inlineTools = true
   mapTextFields = mapTextFields
 
-  /** @returns {string} */
+  /**
+   * Return the localized toolbox label for this block.
+   * @returns {string}
+   */
   get title() {
     return this._t('title', 'Checklist')
   }
 
-  pasteConfig = {}
-
   /**
-   * @param {{ items?: Array<{ text: string, checked: boolean }> }} data
+   * Create the editable DOM owned by this block instance.
+   * @param {{ items?: Array<{ text: string, checked: boolean } | string>, text?: string }} data
+   * @param {import('../../core/types').BlockMutationContext} context
    * @returns {HTMLElement}
    */
   render(data, context) {
@@ -40,17 +43,33 @@ export class Checklist extends BlockPluginAbstract {
     wrapper.classList.add('oe-checklist')
     mutationContexts.set(wrapper, context)
 
-    const items = data?.items?.length ? data.items : [{ text: '', checked: false }]
+    const serializedItems = Array.isArray(data?.items)
+      ? data.items.flatMap(item => {
+        if (typeof item === 'string') return [{ text: item, checked: false }]
+        if (item && typeof item === 'object' && !Array.isArray(item)) {
+          return [{
+            text: typeof item.text === 'string' ? item.text : '',
+            checked: item.checked === true,
+          }]
+        }
+        return []
+      })
+      : []
+    const transferredText = normalizeTextValue(data?.text)
+    const items = serializedItems.length > 0
+      ? serializedItems
+      : [{ text: transferredText, checked: false }]
 
     for (const item of items) {
-      this.#addItem(wrapper, item.text, !!item.checked)
+      this.#addItem(wrapper, typeof item.text === 'string' ? item.text : '', item.checked === true)
     }
 
     wrapper.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault()
-        e.stopPropagation()
-        this.#handleEnter(wrapper)
+        if (this.#handleEnter(wrapper)) {
+          e.preventDefault()
+          e.stopPropagation()
+        }
       }
       if (e.key === 'Backspace') {
         this.#handleBackspace(wrapper, e)
@@ -61,6 +80,7 @@ export class Checklist extends BlockPluginAbstract {
   }
 
   /**
+   * Serialize the current block DOM into document data.
    * @param {HTMLElement} element
    * @returns {{ items: Array<{ text: string, checked: boolean }> }}
    */
@@ -78,15 +98,16 @@ export class Checklist extends BlockPluginAbstract {
   }
 
   /**
+   * Check whether serialized data satisfies this block's schema.
    * @param {{ items?: Array<{ text: string, checked: boolean }> }} data
    * @returns {boolean}
    */
-  // noinspection JSUnusedGlobalSymbols
   validate(data) {
     return validateChecklistData(data)
   }
 
   /**
+   * Check whether the block has no meaningful user content.
    * @param {HTMLElement} element
    * @returns {boolean}
    */
@@ -101,29 +122,34 @@ export class Checklist extends BlockPluginAbstract {
   }
 
   /**
+   * Extract neutral text that can initialize another block type.
    * @param {HTMLElement} element
    * @returns {{ text: string }}
    */
   exportData(element) {
     const texts = []
     for (const item of element.querySelectorAll('.oe-checklist__text')) {
-      const t = item.textContent?.trim()
+      const t = sanitizeHtml(item.innerHTML?.trim() || '')
       if (t) texts.push(t)
     }
-    return { text: texts.join('\n') }
+    return { text: texts.join('<br>') }
   }
 
   /**
+   * Merge incoming text into the current block.
    * @param {HTMLElement} element
    * @param {Record<string, unknown>} data
+   * @returns {void}
    */
   merge(element, data) {
     if (Array.isArray(data?.items)) {
       for (const item of data.items) {
-        this.#addItem(element, item.text || '', !!item.checked)
+        if (!item || typeof item !== 'object' || Array.isArray(item)) continue
+        this.#addItem(element, typeof item.text === 'string' ? item.text : '', item.checked === true)
       }
-    } else if (data?.text) {
-      this.#addItem(element, String(data.text), false)
+    } else {
+      const text = normalizeTextValue(data?.text)
+      if (text) this.#addItem(element, text, false)
     }
     const lastText = /** @type {HTMLElement | null} */ (element.querySelector('.oe-checklist__item:last-child .oe-checklist__text'))
     if (lastText) {
@@ -139,28 +165,13 @@ export class Checklist extends BlockPluginAbstract {
     }
   }
 
-  /**
-   * @param {import('../../types').PasteEvent} event
-   * @returns {Record<string, unknown> | null}
-   */
-  onPaste(event) {
-    if (event.type === 'tag') {
-      const el = /** @type {HTMLElement} */ (event.element.cloneNode(true))
-      const items = []
-      for (const li of el.querySelectorAll('li')) {
-        items.push({ text: li.innerHTML.trim(), checked: false })
-      }
-      if (items.length > 0) return { items }
-    }
-    return null
-  }
-
   // ── Private ─────────────────────────────────────────────────────────────────
 
   /**
    * @param {HTMLElement} wrapper
    * @param {string} text
    * @param {boolean} checked
+   * @returns {void}
    */
   #addItem(wrapper, text, checked) {
     const item = document.createElement('div')
@@ -177,29 +188,91 @@ export class Checklist extends BlockPluginAbstract {
     wrapper.appendChild(item)
   }
 
-  /** @param {HTMLElement} wrapper */
+  /** @param {HTMLElement} wrapper @returns {boolean} Whether the key press was handled by this checklist. */
   #handleEnter(wrapper) {
     const sel = window.getSelection()
-    if (!sel?.rangeCount) return
+    if (!sel?.rangeCount) return false
 
     const range = sel.getRangeAt(0)
     const currentText = range.startContainer.nodeType === Node.TEXT_NODE
       ? range.startContainer.parentElement?.closest('.oe-checklist__text')
       : /** @type {HTMLElement} */ (range.startContainer).closest('.oe-checklist__text')
-    if (!currentText) return
+    const endText = range.endContainer.nodeType === Node.TEXT_NODE
+      ? range.endContainer.parentElement?.closest('.oe-checklist__text')
+      : /** @type {HTMLElement} */ (range.endContainer).closest('.oe-checklist__text')
+    if (!currentText || !endText || !wrapper.contains(currentText) || !wrapper.contains(endText)) return false
 
     const currentItem = currentText.closest('.oe-checklist__item')
-    if (!currentItem) return
+    const endItem = endText.closest('.oe-checklist__item')
+    if (!currentItem || !endItem || currentItem.parentElement !== wrapper || endItem.parentElement !== wrapper) return false
 
     const context = mutationContexts.get(wrapper)
-    if (!context) return
+    if (!context) return false
+
+    const itemCount = wrapper.querySelectorAll('.oe-checklist__item').length
+    if (!currentText.textContent?.trim()) {
+      if (itemCount <= 1) {
+        context.exitEmptyBlock()
+        return true
+      }
+
+      context.mutate(() => {
+        const isLast = currentItem === wrapper.lastElementChild
+        const nextItem = currentItem.nextElementSibling
+        currentItem.remove()
+
+        if (isLast) {
+          const lastText = /** @type {HTMLElement | null} */ (
+            wrapper.querySelector('.oe-checklist__item:last-child .oe-checklist__text')
+          )
+          if (lastText) {
+            lastText.focus()
+            const end = document.createRange()
+            end.selectNodeContents(lastText)
+            end.collapse(false)
+            sel.removeAllRanges()
+            sel.addRange(end)
+          }
+          context.splitBlock()
+          return
+        }
+
+        const nextText = /** @type {HTMLElement | null} */ (nextItem?.querySelector('.oe-checklist__text'))
+        if (nextText) {
+          nextText.focus()
+          const start = document.createRange()
+          start.setStart(nextText, 0)
+          start.collapse(true)
+          sel.removeAllRanges()
+          sel.addRange(start)
+        }
+      })
+      return true
+    }
 
     context.mutate(() => {
-      // Split content at caret
-      const afterRange = document.createRange()
-      afterRange.setStart(range.endContainer, range.endOffset)
-      afterRange.setEndAfter(currentText.lastChild || currentText)
-      const afterFrag = afterRange.extractContents()
+      const selectionEnd = document.createRange()
+      selectionEnd.setStart(range.endContainer, range.endOffset)
+      selectionEnd.setEnd(endText, endText.childNodes.length)
+      const afterFrag = selectionEnd.extractContents()
+
+      if (currentItem === endItem) {
+        range.deleteContents()
+      } else {
+        const selectedStart = document.createRange()
+        selectedStart.setStart(range.startContainer, range.startOffset)
+        selectedStart.setEnd(currentText, currentText.childNodes.length)
+        selectedStart.deleteContents()
+
+        let item = currentItem.nextElementSibling
+        while (item) {
+          const next = item.nextElementSibling
+          const reachedEnd = item === endItem
+          item.remove()
+          if (reachedEnd) break
+          item = next
+        }
+      }
 
       const afterText = document.createElement('div')
       afterText.appendChild(afterFrag)
@@ -227,12 +300,14 @@ export class Checklist extends BlockPluginAbstract {
       sel.removeAllRanges()
       sel.addRange(newRange)
     })
+    return true
   }
 
   /**
    * @param {HTMLElement} wrapper
    * @param {HTMLElement} item
    * @param {boolean} checked
+   * @returns {HTMLButtonElement}
    */
   #createCheckbox(wrapper, item, checked) {
     const checkbox = document.createElement('button')
@@ -256,6 +331,7 @@ export class Checklist extends BlockPluginAbstract {
   /**
    * @param {HTMLElement} wrapper
    * @param {KeyboardEvent} e
+   * @returns {void}
    */
   #handleBackspace(wrapper, e) {
     const items = wrapper.querySelectorAll('.oe-checklist__item')
@@ -269,17 +345,12 @@ export class Checklist extends BlockPluginAbstract {
     const currentText = range.startContainer.nodeType === Node.TEXT_NODE
       ? range.startContainer.parentElement?.closest('.oe-checklist__text')
       : /** @type {HTMLElement} */ (range.startContainer).closest('.oe-checklist__text')
-    if (!currentText) return
+    if (!(currentText instanceof HTMLElement) || !wrapper.contains(currentText)) return
 
-    // Only merge if caret is at the very start
-    const offset = range.startOffset
-    const isAtStart = offset === 0 && (
-      range.startContainer === currentText ||
-      (range.startContainer.nodeType === Node.TEXT_NODE && range.startContainer === currentText.firstChild)
-    )
-    if (!isAtStart) return
+    if (!this.#isCaretAtStart(currentText, range)) return
 
     const currentItem = currentText.closest('.oe-checklist__item')
+    if (!currentItem || currentItem.parentElement !== wrapper) return
     const prevItem = currentItem?.previousElementSibling
     if (!prevItem) return
 
@@ -312,6 +383,25 @@ export class Checklist extends BlockPluginAbstract {
       sel.removeAllRanges()
       sel.addRange(newRange)
     })
+  }
+
+  /**
+   * @param {HTMLElement} text
+   * @param {Range} range
+   * @returns {boolean}
+   */
+  #isCaretAtStart(text, range) {
+    const { startContainer, startOffset } = range
+    if (startContainer === text && startOffset === 0) return true
+    if (startContainer.nodeType !== Node.TEXT_NODE || startOffset !== 0) return false
+
+    /** @type {Node | null} */
+    let node = startContainer
+    while (node && node !== text) {
+      if (node.previousSibling) return false
+      node = node.parentNode
+    }
+    return node === text
   }
 
 }

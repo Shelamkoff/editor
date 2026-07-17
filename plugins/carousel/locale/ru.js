@@ -23,6 +23,8 @@ export default {
   'plugin.carousel.moveNextShort': 'Позже',
   'plugin.carousel.remove': 'Удалить',
   'plugin.carousel.removeSlide': 'Удалить слайд',
+  'plugin.carousel.deleteAll': 'Удалить все слайды',
+  'plugin.carousel.video': 'Видеослайд',
   'plugin.carousel.settings': 'Настройки',
   'plugin.carousel.currentSlide': 'Текущий слайд',
   'plugin.carousel.behavior': 'Поведение',

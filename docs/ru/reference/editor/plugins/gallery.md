@@ -36,9 +36,21 @@ const editor = createEditor({
   "images": [{ "url": "https://cdn.example/a.jpg", "caption": "A" }],
   "layout": "auto",
   "styles": { "gap": "8px", "borderRadius": "8px", "height": "420px" },
-  "options": { "loop": true, "zoom": true, "navigation": true, "captions": true, "thumbnails": true, "fullscreen": true, "autoplayInterval": 0 }
+  "options": { "loop": true, "zoom": true, "navigation": true, "captions": true, "thumbnails": true, "fullscreen": true, "autoplayInterval": 3000 }
 }
 ```
+
+### Поля данных
+
+| Поле | Обязательное | Назначение и ограничения |
+| --- | --- | --- |
+| `images` | да | Непустой массив. Каждому элементу нужен разрешённый политикой медиафайлов `url`; `caption` — необязательная строка. |
+| `layout` | да | Одно из значений `auto`, `1`, `2`, `3a`, `3b`, `3c`, `4a`, `4b`, `4c`, `5a`, `5b`, `5c`, `6a`, `6b`, `6c`, `triptych`, `masonry`, `poly-5`, `poly-3arch`, `poly-5flat` или `poly-3steps`. |
+| `styles` | нет | Карта строковых значений. Встроенная панель настроек использует `gap`, `borderRadius` и `height`. |
+| `options.loop` | нет | После последнего изображения переходит к первому; для нового блока по умолчанию `true`. |
+| `options.zoom`, `navigation`, `captions`, `fullscreen` | нет | Логические параметры просмотра; для нового блока по умолчанию `true`. |
+| `options.thumbnails` | нет | Показывает миниатюры; для нового блока по умолчанию `false`. |
+| `options.autoplayInterval` | нет | Положительный конечный интервал в миллисекундах. Отсутствие поля отключает автовоспроизведение. Значение `0` недопустимо в сохранённых данных. |
 
 Без `uploadFile` файлы сохраняются как URL со встроенными данными. Для полноэкранного просмотра нужен `@shelamkoff/expose`.
 

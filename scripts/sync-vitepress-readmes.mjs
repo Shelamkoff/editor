@@ -154,7 +154,7 @@ const groupTitlesRu = {
 const indexLines = [
   '# Extension reference',
   '',
-  'This section is generated from extension reference files that ship with the npm package. The sequential Rector guide is maintained directly in VitePress.',
+  'This section is generated from extension reference files maintained alongside the source code. The sequential Rector guide is maintained directly in VitePress.',
   '',
 ]
 for (const group of groups) {
@@ -164,7 +164,7 @@ for (const group of groups) {
   }
   indexLines.push('')
 }
-await writeFile(join(outputRoot, 'index.md'), `${indexLines.join('\n')}\n`, 'utf8')
+await writeFile(join(outputRoot, 'index.md'), `${indexLines.join('\n').trimEnd()}\n`, 'utf8')
 await writeFile(
   join(ruOutputRoot, 'index.md'),
   `${[
@@ -178,7 +178,7 @@ await writeFile(
       ...catalog.filter(entry => entry.group === group).map(item => `- [${item.titleRu}](${item.route.replace('/reference/', '/ru/reference/')})`),
       '',
     ]),
-  ].join('\n')}\n`,
+  ].join('\n').trimEnd()}\n`,
   'utf8',
 )
 await writeFile(generatedCatalogPath, `${JSON.stringify(catalog, null, 2)}\n`, 'utf8')

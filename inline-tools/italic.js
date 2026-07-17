@@ -1,6 +1,8 @@
 import { createSimpleInlineTool, ICON_ITALIC } from './utils.js'
 
 /**
+ * Create the built-in italic formatting control (`<i>`, `Mod+I`).
+ *
  * @param {string} label
  * @param {import('../types').ICrossBlockSelection | null} [cbs]
  * @returns {import('../types').InlineTool}

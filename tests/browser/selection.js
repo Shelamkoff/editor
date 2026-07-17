@@ -1,5 +1,6 @@
 import { createEditor } from '../../core/index.js'
-import { Paragraph } from '../../plugins/index.js'
+import { Paragraph, Quote } from '../../plugins/index.js'
+import { restoreCrossBlockRange, saveCrossBlockOffsets } from '../../inline-tools/utils.js'
 
 const initialData = {
   version: 'browser-selection',
@@ -208,6 +209,54 @@ async function run() {
   assert(!outsideHarness.editor.rootElement.classList.contains('oe-editor--cross-selecting'), 'outside click kept cross selection active')
   assert(outsideHarness.editor.blocks.getSelectedBlocks().length === 0, 'outside click kept block selection active')
   outsideHarness.editor.destroy()
+
+  const duplicateFirst = createHarness(sandbox)
+  const duplicateSecond = createHarness(sandbox)
+  await delay()
+  const duplicateStart = duplicateSecond.editor.blocks.getBlockByIndex(0).contentElement
+  const duplicateEnd = duplicateSecond.editor.blocks.getBlockByIndex(1).contentElement
+  const duplicateRange = document.createRange()
+  duplicateRange.setStart(textNode(duplicateStart), 2)
+  duplicateRange.setEnd(textNode(duplicateEnd), 3)
+  const duplicateOffsets = saveCrossBlockOffsets(duplicateRange)
+  assert(duplicateOffsets, 'cross-block offsets were not saved')
+  const restoredDuplicateRange = restoreCrossBlockRange(null, duplicateOffsets)
+  assert(restoredDuplicateRange, 'cross-block offsets were not restored')
+  assert(
+    duplicateSecond.editor.rootElement.contains(restoredDuplicateRange.startContainer)
+      && !duplicateFirst.editor.rootElement.contains(restoredDuplicateRange.startContainer),
+    'cross-block restore escaped to an editor with duplicate block IDs',
+  )
+  duplicateFirst.editor.destroy()
+  duplicateSecond.editor.destroy()
+
+  const multiFieldHolder = document.createElement('section')
+  sandbox.appendChild(multiFieldHolder)
+  const multiFieldEditor = createEditor({
+    holder: multiFieldHolder,
+    plugins: [new Paragraph(), new Quote()],
+    inlineTools: [],
+    data: {
+      version: 'browser-selection',
+      blocks: [
+        { id: 'quote-alpha', type: 'quote', data: { text: 'First quote', caption: 'First caption' } },
+        { id: 'quote-bravo', type: 'quote', data: { text: 'Second quote', caption: 'Second caption' } },
+      ],
+    },
+  })
+  const firstCaption = multiFieldEditor.blocks.getBlockByIndex(0).contentElement.querySelector('.oe-quote__caption')
+  const secondCaption = multiFieldEditor.blocks.getBlockByIndex(1).contentElement.querySelector('.oe-quote__caption')
+  assert(firstCaption && secondCaption, 'multi-field selection fixture is missing quote captions')
+  const multiFieldRange = document.createRange()
+  multiFieldRange.setStart(textNode(firstCaption), 2)
+  multiFieldRange.setEnd(textNode(secondCaption), 6)
+  const multiFieldOffsets = saveCrossBlockOffsets(multiFieldRange)
+  assert(multiFieldOffsets?.startFieldIndex === 1 && multiFieldOffsets?.endFieldIndex === 1, 'cross-block offsets lost their editable field indexes')
+  const restoredMultiFieldRange = restoreCrossBlockRange(null, multiFieldOffsets)
+  assert(restoredMultiFieldRange, 'multi-field cross-block offsets were not restored')
+  assert(firstCaption.contains(restoredMultiFieldRange.startContainer), 'cross-block restore moved the start into the first field')
+  assert(secondCaption.contains(restoredMultiFieldRange.endContainer), 'cross-block restore moved the end into the first field')
+  multiFieldEditor.destroy()
 
   const focusHarness = createHarness(sandbox)
   const first = focusHarness.editor.blocks.getBlockByIndex(0).contentElement

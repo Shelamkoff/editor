@@ -27,7 +27,13 @@ The registered block type is `raw`. The class is also exported by the complete `
 { "html": "<section>Content</section>" }
 ```
 
-HTML stays inert in the editable surface. The matching renderer sanitizes it before mounting; application-specific trust policy still belongs to the host.
+### Field reference
+
+| Field | Required | Meaning and constraints |
+| --- | --- | --- |
+| `html` | yes | Non-blank HTML source string. |
+
+HTML stays inert in the source editor. Tab indents the selected lines and Shift+Tab removes one leading tab or up to two leading spaces; each indentation action is one history step. The preview is shown automatically in read-only mode and can be toggled while editing. Both the editor preview and the matching renderer sanitize the source before mounting it. The editor preview additionally uses a sandboxed iframe without script permissions. Active elements, unsafe URLs, event attributes, and unsafe CSS are removed, but allowed remote images and other safe resources can still cause browser requests, so the host remains responsible for its network and content policy. An empty draft does not pass strict persisted-data validation.
 
 ## Configuration
 
@@ -35,7 +41,7 @@ Every built-in block plugin accepts two style ownership options: `injectStyles?:
 
 ## Capabilities
 
-Raw text editing; sandboxed editor preview; sanitized document rendering.
+Raw text editing; multiline Tab and Shift+Tab indentation; sandboxed editor preview; sanitized document rendering; automatic preview in read-only mode.
 
 ## Undo, lifecycle, and styles
 

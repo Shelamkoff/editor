@@ -60,6 +60,7 @@ export function createBgColorTool(label, cbs = null) {
 
   function openPicker() {
     if (!picker) return
+    savedRange = null
     // Use cross-block range if available (native is clipped).
     // Clone to avoid mutation when addRange clips cross-block ranges.
     const crossRange = cbs?.range
@@ -122,7 +123,7 @@ export function createBgColorTool(label, cbs = null) {
 
   /**
    * Restore selection after DOM mutation using saved offsets.
-   * @param {{ saved: import('./utils.js').SavedOffsets }} ctx
+   * @param {{ saved: import('./utils.js').SavedOffsets, singleCe: HTMLElement | null }} ctx
    */
   function finalizeSelection(ctx) {
     ctx.singleCe?.focus({ preventScroll: true })

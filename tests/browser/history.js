@@ -45,6 +45,7 @@ function semantic(document) {
     id: block.id,
     type: block.type,
     data: block.data,
+    ...(block.tunes ? { tunes: block.tunes } : {}),
     ...(block.inline ? { inline: block.inline } : {}),
   }))
 }
@@ -201,9 +202,25 @@ function selectElementText(element) {
 
 function pointAtTextOffset(block, offset) {
   const target = block.contentElement
-  const node = target.firstChild
-  assert(node?.nodeType === Node.TEXT_NODE, 'cross-block fixture needs a direct text node')
-  const clamped = Math.max(0, Math.min(offset, node.data.length))
+  const walker = document.createTreeWalker(target, NodeFilter.SHOW_TEXT)
+  const nodes = []
+  while (walker.nextNode()) {
+    if (walker.currentNode.textContent?.length) nodes.push(walker.currentNode)
+  }
+  assert(nodes.length > 0, 'cross-block fixture needs text content')
+  let remaining = Math.max(0, offset)
+  let node = nodes.at(-1)
+  let clamped = node?.textContent?.length ?? 0
+  for (const candidate of nodes) {
+    const length = candidate.textContent?.length ?? 0
+    if (remaining <= length) {
+      node = candidate
+      clamped = remaining
+      break
+    }
+    remaining -= length
+  }
+  assert(node?.nodeType === Node.TEXT_NODE, 'cross-block text point is unavailable')
   const probe = document.createRange()
   if (clamped === 0) {
     probe.setStart(node, 0)
@@ -709,6 +726,60 @@ async function run() {
   })
   crossConvert.editor.destroy()
 
+  const structuredFirstCrossConvert = createHarness(sandbox, {
+    version: 'browser-history',
+    blocks: [
+      { id: 'structured-first-list', type: 'list', data: { style: 'ordered', items: ['First', '<strong>Second</strong>', 'Third'] } },
+      { id: 'structured-first-tail', type: 'paragraph', data: { text: 'TailEnd' } },
+    ],
+  })
+  await assertUndoRedo(structuredFirstCrossConvert.editor, 'structured first endpoint cross-block conversion', async () => {
+    const first = structuredFirstCrossConvert.editor.blocks.getBlockById('structured-first-list')
+    const last = structuredFirstCrossConvert.editor.blocks.getBlockById('structured-first-tail')
+    assert(first && last, 'structured first endpoint fixture is incomplete')
+    await activateCrossBlockSelection(structuredFirstCrossConvert.editor, first, last, 5, 4)
+    const selector = structuredFirstCrossConvert.editor.rootElement.querySelector('.oe-inline-toolbar__type-select')
+    assert(selector instanceof HTMLButtonElement, 'structured first endpoint selector is missing')
+    selector.click()
+    const heading = structuredFirstCrossConvert.editor.rootElement.querySelector('.oe-inline-toolbar__type-item[data-plugin-type="heading"]')
+    assert(heading instanceof HTMLElement, 'structured first endpoint heading option is missing')
+    heading.click()
+    await delay()
+    const converted = await snapshot(structuredFirstCrossConvert.editor)
+    assert(converted.map(block => block.type).join(',') === 'list,heading,heading,paragraph', `structured first endpoint order is invalid: ${stable(converted)}`)
+    assert(stable(converted[0]?.data.items) === stable(['First']), `structured first endpoint lost its list remainder: ${stable(converted)}`)
+    assert(converted[1]?.data.text === '<strong>Second</strong><br>Third', `structured first endpoint lost selected list data: ${stable(converted)}`)
+    assert(converted[2]?.data.text === 'Tail' && converted[3]?.data.text === 'End', `structured first endpoint lost paragraph boundary data: ${stable(converted)}`)
+  })
+  structuredFirstCrossConvert.editor.destroy()
+
+  const structuredLastCrossConvert = createHarness(sandbox, {
+    version: 'browser-history',
+    blocks: [
+      { id: 'structured-last-head', type: 'paragraph', data: { text: 'Alpha' } },
+      { id: 'structured-last-list', type: 'list', data: { style: 'unordered', items: ['First', '<em>Second</em>', 'Third'] } },
+    ],
+  })
+  await assertUndoRedo(structuredLastCrossConvert.editor, 'structured last endpoint cross-block conversion', async () => {
+    const first = structuredLastCrossConvert.editor.blocks.getBlockById('structured-last-head')
+    const last = structuredLastCrossConvert.editor.blocks.getBlockById('structured-last-list')
+    assert(first && last, 'structured last endpoint fixture is incomplete')
+    await activateCrossBlockSelection(structuredLastCrossConvert.editor, first, last, 2, 11)
+    const selector = structuredLastCrossConvert.editor.rootElement.querySelector('.oe-inline-toolbar__type-select')
+    assert(selector instanceof HTMLButtonElement, 'structured last endpoint selector is missing')
+    selector.click()
+    const heading = structuredLastCrossConvert.editor.rootElement.querySelector('.oe-inline-toolbar__type-item[data-plugin-type="heading"]')
+    assert(heading instanceof HTMLElement, 'structured last endpoint heading option is missing')
+    heading.click()
+    await delay()
+    const converted = await snapshot(structuredLastCrossConvert.editor)
+    assert(converted.map(block => block.type).join(',') === 'paragraph,heading,heading,list', `structured last endpoint order is invalid: ${stable(converted)}`)
+    assert(converted[0]?.data.text === 'Al' && converted[1]?.data.text === 'pha', `structured last endpoint lost paragraph boundary data: ${stable(converted)}`)
+    assert(converted[2]?.data.text === 'First<br><em>Second</em>', `structured last endpoint lost selected list data: ${stable(converted)}`)
+    assert(stable(converted[3]?.data.items) === stable(['Third']), `structured last endpoint lost its list remainder: ${stable(converted)}`)
+  })
+  structuredLastCrossConvert.editor.destroy()
+
   for (const style of ['ordered', 'unordered']) {
     const listConvert = createHarness(sandbox, {
       version: 'browser-history',
@@ -773,6 +844,85 @@ async function run() {
     assert(converted[2]?.data.text === 'Tail', `non-text conversion displaced the following block: ${stable(converted)}`)
   })
   listToMedia.editor.destroy()
+
+  for (const [targetType, plugin] of [
+    ['list', null],
+    ['checklist', new Checklist()],
+  ]) {
+    const textToStructured = createHarness(sandbox, {
+      version: 'browser-history',
+      blocks: [{ id: `text-to-${targetType}`, type: 'paragraph', data: { text: 'Keep <strong>rich text</strong>' } }],
+    }, { extraPlugins: plugin ? [plugin] : [] })
+    await assertUndoRedo(textToStructured.editor, `paragraph to ${targetType} conversion`, async () => {
+      const source = textToStructured.editor.blocks.getBlockByIndex(0)
+      textToStructured.editor.blocks.setCurrentIndex(0)
+      setCaretToEnd(source)
+      document.dispatchEvent(new Event('selectionchange'))
+      await delay(20)
+
+      const selector = textToStructured.editor.rootElement.querySelector('.oe-inline-toolbar__type-select')
+      assert(selector instanceof HTMLButtonElement, `${targetType} conversion selector is missing`)
+      selector.click()
+      const item = textToStructured.editor.rootElement.querySelector(`.oe-inline-toolbar__type-item[data-plugin-type="${targetType}"]`)
+      assert(item instanceof HTMLElement, `${targetType} conversion option is missing`)
+      item.click()
+      await delay()
+
+      const converted = await snapshot(textToStructured.editor)
+      assert(converted[0]?.type === targetType, `paragraph was not converted to ${targetType}: ${stable(converted)}`)
+      const transferred = targetType === 'list'
+        ? converted[0]?.data.items?.[0]
+        : converted[0]?.data.items?.[0]?.text
+      assert(transferred === 'Keep <strong>rich text</strong>', `${targetType} conversion lost neutral rich text: ${stable(converted)}`)
+    })
+    textToStructured.editor.destroy()
+  }
+
+  const listToChecklist = createHarness(sandbox, {
+    version: 'browser-history',
+    blocks: [{ id: 'list-to-checklist', type: 'list', data: { style: 'ordered', items: ['First', '<em>Second</em>', 'Third'] } }],
+  }, { extraPlugins: [new Checklist()] })
+  await assertUndoRedo(listToChecklist.editor, 'partial list to checklist conversion', async () => {
+    const listBlock = listToChecklist.editor.blocks.getBlockByIndex(0)
+    const secondItem = listBlock?.contentElement.querySelector(':scope > li:nth-child(2)')
+    assert(secondItem instanceof HTMLElement, 'list-to-checklist second item is missing')
+    listToChecklist.editor.blocks.setCurrentIndex(0)
+    selectElementText(secondItem)
+    document.dispatchEvent(new Event('selectionchange'))
+    await delay(20)
+
+    const selector = listToChecklist.editor.rootElement.querySelector('.oe-inline-toolbar__type-select')
+    selector?.click()
+    const checklist = listToChecklist.editor.rootElement.querySelector('.oe-inline-toolbar__type-item[data-plugin-type="checklist"]')
+    assert(checklist instanceof HTMLElement, 'list-to-checklist option is missing')
+    checklist.click()
+    await delay()
+
+    const converted = await snapshot(listToChecklist.editor)
+    assert(converted.map(block => block.type).join(',') === 'list,checklist', `list-to-checklist order is invalid: ${stable(converted)}`)
+    assert(stable(converted[0]?.data.items) === stable(['First', 'Third']), `list-to-checklist did not retain unselected items: ${stable(converted)}`)
+    assert(converted[1]?.data.items?.[0]?.text === '<em>Second</em>', `list-to-checklist lost selected HTML: ${stable(converted)}`)
+  })
+  listToChecklist.editor.destroy()
+
+  const unsupportedStructuredSplit = createHarness(sandbox, {
+    version: 'browser-history',
+    blocks: [{ id: 'checklist-partial-safe', type: 'checklist', data: { items: [{ text: 'Do not corrupt', checked: true }] } }],
+  }, { extraPlugins: [new Checklist()] })
+  const beforeUnsupportedSplit = await snapshot(unsupportedStructuredSplit.editor)
+  const checklistText = unsupportedStructuredSplit.editor.rootElement.querySelector('.oe-checklist__text')
+  assert(checklistText instanceof HTMLElement, 'structured split fixture is missing')
+  unsupportedStructuredSplit.editor.blocks.setCurrentIndex(0)
+  selectElementText(checklistText)
+  document.dispatchEvent(new Event('selectionchange'))
+  await delay(20)
+  unsupportedStructuredSplit.editor.rootElement.querySelector('.oe-inline-toolbar__type-select')?.click()
+  const unsupportedParagraph = unsupportedStructuredSplit.editor.rootElement.querySelector('.oe-inline-toolbar__type-item[data-plugin-type="paragraph"]')
+  assert(unsupportedParagraph instanceof HTMLElement, 'structured split paragraph option is missing')
+  unsupportedParagraph.click()
+  await delay()
+  assert(stable(await snapshot(unsupportedStructuredSplit.editor)) === stable(beforeUnsupportedSplit), 'unsupported structured partial conversion corrupted the block')
+  unsupportedStructuredSplit.editor.destroy()
 
   const slashPosition = createHarness(sandbox, {
     version: 'browser-history',
@@ -850,6 +1000,7 @@ async function run() {
     ['list', null, { style: 'unordered', items: ['List inline'] }],
     ['quote', new Quote(), { text: 'Quote inline', caption: 'Caption' }],
     ['table', new Table(), { withHeadings: false, content: [['Table inline']] }],
+    ['columns', new Columns(), { layout: '1-1', columns: [{ content: 'Columns inline' }, { content: 'Second column' }] }],
     ['checklist', new Checklist(), { items: [{ text: 'Checklist inline', checked: false }] }],
     ['warning', new Warning(), { title: 'Warning inline', message: 'Message' }],
     ['toggle', new Toggle(), { title: 'Toggle inline', content: 'Content', open: true }],
@@ -950,6 +1101,20 @@ async function run() {
     caseHarness.editor.destroy()
   }
 
+  const unicodeCase = createHarness(sandbox, {
+    version: 'browser-history',
+    blocks: [{ id: 'case-unicode', type: 'paragraph', data: { text: 'Καλημέρα κόσμε' } }],
+  }, { inlineTools: ['caseTransform'] })
+  const unicodeBlock = unicodeCase.editor.blocks.getBlockByIndex(0)
+  unicodeCase.editor.blocks.setCurrentIndex(0)
+  selectText(unicodeBlock)
+  document.dispatchEvent(new Event('selectionchange'))
+  await delay(20)
+  unicodeCase.editor.rootElement.querySelector('[data-tool="caseTransform"]').click()
+  await delay()
+  assert(unicodeCase.editor.save().blocks[0].data.text === 'ΚΑΛΗΜΈΡΑ ΚΌΣΜΕ', 'case transform ignored a cased non-Latin script')
+  unicodeCase.editor.destroy()
+
   const clearFormatting = createHarness(sandbox, {
     version: 'browser-history',
     blocks: [{
@@ -969,6 +1134,29 @@ async function run() {
   })
   clearFormatting.editor.destroy()
 
+  const partialClear = createHarness(sandbox, {
+    version: 'browser-history',
+    blocks: [{
+      id: 'partial-clear-inline-formatting',
+      type: 'paragraph',
+      data: { text: '<b>Before selected after</b>' },
+    }],
+  }, { inlineTools: ['clearFormatting'] })
+  await assertUndoRedo(partialClear.editor, 'partial clear formatting', async () => {
+    const block = partialClear.editor.blocks.getBlockByIndex(0)
+    partialClear.editor.blocks.setCurrentIndex(0)
+    selectText(block, 7, 15)
+    document.dispatchEvent(new Event('selectionchange'))
+    await delay(20)
+    partialClear.editor.rootElement.querySelector('[data-tool="clearFormatting"]').click()
+    await delay()
+  })
+  assert(
+    partialClear.editor.save().blocks[0].data.text === '<b>Before </b>selected<b> after</b>',
+    'partial clear formatting changed text outside the selected range',
+  )
+  partialClear.editor.destroy()
+
   const alignFormatting = createHarness(sandbox, {
     version: 'browser-history',
     blocks: [{ id: 'align-apply', type: 'paragraph', data: { text: 'Aligned value' } }],
@@ -986,6 +1174,28 @@ async function run() {
     await delay()
   })
   alignFormatting.editor.destroy()
+
+  const structuredAlignment = createHarness(sandbox, {
+    version: 'browser-history',
+    blocks: [{ id: 'quote-align', type: 'quote', data: { text: 'Aligned quote', caption: 'Author' } }],
+  }, { inlineTools: ['align'], extraPlugins: [new Quote()] })
+  await assertUndoRedo(structuredAlignment.editor, 'structured block alignment', async () => {
+    const block = structuredAlignment.editor.blocks.getBlockByIndex(0)
+    structuredAlignment.editor.blocks.setCurrentIndex(0)
+    const quoteText = block.contentElement.querySelector('.oe-quote__text')
+    assert(quoteText instanceof HTMLElement, 'quote text field is missing')
+    selectElementText(quoteText)
+    document.dispatchEvent(new Event('selectionchange'))
+    await delay(20)
+    structuredAlignment.editor.rootElement.querySelector('[data-tool="align"]').click()
+    const actions = [...structuredAlignment.editor.rootElement.querySelectorAll('.oe-inline-toolbar__align-panel .oe-inline-tool:not(.oe-inline-tool--back)')]
+    actions[1].click()
+    await delay()
+  })
+  const structuredAlignedDocument = structuredAlignment.editor.save()
+  assert(structuredAlignedDocument.blocks[0].tunes?.textAlign === 'center', 'structured block alignment was not serialized as a block tune')
+  assert(structuredAlignment.editor.blocks.getBlockByIndex(0).contentElement.style.textAlign === 'center', 'structured block alignment was not applied to the complete plugin root')
+  structuredAlignment.editor.destroy()
 
   const alignRemoval = createHarness(sandbox, {
     version: 'browser-history',
@@ -1138,6 +1348,27 @@ async function run() {
   })
   fontFormatting.editor.destroy()
 
+  for (const invalidValue of ['201', '12.5']) {
+    const invalidFont = createHarness(sandbox, initialData, { inlineTools: ['fontSize'] })
+    const beforeInvalidFont = await snapshot(invalidFont.editor)
+    const block = invalidFont.editor.blocks.getBlockByIndex(1)
+    invalidFont.editor.blocks.setCurrentIndex(1)
+    selectText(block)
+    document.dispatchEvent(new Event('selectionchange'))
+    await delay(20)
+    invalidFont.editor.rootElement.querySelector('[data-tool="fontSize"]').click()
+    const input = invalidFont.editor.rootElement.querySelector('.oe-font-size-input')
+    assert(input instanceof HTMLInputElement, 'font-size input is missing for range validation')
+    input.value = invalidValue
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }))
+    await delay()
+    assert(
+      stable(await snapshot(invalidFont.editor)) === stable(beforeInvalidFont),
+      `font-size accepted invalid custom value ${invalidValue}`,
+    )
+    invalidFont.editor.destroy()
+  }
+
   const fontRemoval = createHarness(sandbox, {
     version: 'browser-history',
     blocks: [{ id: 'font-remove', type: 'paragraph', data: { text: '<span style="font-size: 24px;">Sized value</span>' } }],
@@ -1160,6 +1391,45 @@ async function run() {
     await delay()
   })
   fontRemoval.editor.destroy()
+
+  const partialFontRemoval = createHarness(sandbox, {
+    version: 'browser-history',
+    blocks: [{
+      id: 'partial-font-remove',
+      type: 'paragraph',
+      data: { text: '<span style="font-size: 24px; background-color: rgb(10, 20, 30);">Before selected after</span>' },
+    }],
+  }, { inlineTools: ['fontSize'] })
+  await assertUndoRedo(partialFontRemoval.editor, 'partial font-size removal', async () => {
+    const block = partialFontRemoval.editor.blocks.getBlockByIndex(0)
+    partialFontRemoval.editor.blocks.setCurrentIndex(0)
+    selectText(block, 7, 15)
+    document.dispatchEvent(new Event('selectionchange'))
+    await delay(20)
+    const button = partialFontRemoval.editor.rootElement.querySelector('[data-tool="fontSize"]')
+    assert(button instanceof HTMLButtonElement, 'partial font-size removal button is missing')
+    button.click()
+    const reset = partialFontRemoval.editor.rootElement.querySelector('.oe-font-size-reset')
+    assert(reset instanceof HTMLButtonElement, 'partial font-size reset action is missing')
+    reset.click()
+    await delay()
+  })
+  const partialFontBlock = partialFontRemoval.editor.blocks.getBlockByIndex(0).contentElement
+  const partialFontNodes = []
+  const partialFontWalker = document.createTreeWalker(partialFontBlock, NodeFilter.SHOW_TEXT)
+  while (partialFontWalker.nextNode()) partialFontNodes.push(partialFontWalker.currentNode)
+  const selectedNode = partialFontNodes.find(node => node.textContent === 'selected')
+  const beforeNode = partialFontNodes.find(node => node.textContent === 'Before ')
+  const afterNode = partialFontNodes.find(node => node.textContent === ' after')
+  const fontAncestor = node => node?.parentElement?.closest('span[style*="font-size"]') ?? null
+  assert(selectedNode && !fontAncestor(selectedNode), 'font-size remained on the selected text')
+  assert(beforeNode && fontAncestor(beforeNode), 'font-size was removed before the selected text')
+  assert(afterNode && fontAncestor(afterNode), 'font-size was removed after the selected text')
+  assert(
+    selectedNode.parentElement?.closest('span[style*="background-color"]'),
+    'font-size reset removed an unrelated style from the selected text',
+  )
+  partialFontRemoval.editor.destroy()
 
   const headingControls = createHarness(sandbox, {
     version: 'browser-history',
@@ -1196,6 +1466,21 @@ async function run() {
   })
   rawCommand.editor.destroy()
 
+  const rawDedentCommand = createHarness(sandbox, {
+    version: 'browser-history',
+    blocks: [{ id: 'raw-dedent-command', type: 'raw', data: { html: '  first\n second\nthird' } }],
+  }, { extraPlugins: [new Raw()] })
+  await assertUndoRedo(rawDedentCommand.editor, 'raw multiline Shift+Tab command', () => {
+    const textarea = rawDedentCommand.editor.rootElement.querySelector('.oe-raw__textarea')
+    assert(textarea instanceof HTMLTextAreaElement, 'raw textarea is missing for dedent')
+    textarea.focus()
+    textarea.selectionStart = 0
+    textarea.selectionEnd = textarea.value.length
+    dispatchEditorKey(textarea, 'Tab', 'Tab', { shiftKey: true })
+    assert(textarea.value === 'first\nsecond\nthird', 'raw multiline Shift+Tab did not dedent every selected line')
+  })
+  rawDedentCommand.editor.destroy()
+
   const codeCommand = createHarness(sandbox, {
     version: 'browser-history',
     blocks: [{ id: 'code-command', type: 'code', data: { code: 'x', language: 'auto' } }],
@@ -1208,6 +1493,23 @@ async function run() {
     dispatchEditorKey(textarea, 'Tab', 'Tab')
   })
   codeCommand.editor.destroy()
+
+  const codeDedentCommand = createHarness(sandbox, {
+    version: 'browser-history',
+    blocks: [{ id: 'code-dedent-command', type: 'code', data: { code: '    first\n  second\nthird', language: 'auto' } }],
+  }, { extraPlugins: [new Code()] })
+  await assertUndoRedo(codeDedentCommand.editor, 'code multiline Shift+Tab command', () => {
+    const edit = codeDedentCommand.editor.rootElement.querySelector('.oe-code-btn--edit')
+    const textarea = codeDedentCommand.editor.rootElement.querySelector('.oe-code-textarea')
+    assert(edit instanceof HTMLButtonElement && textarea instanceof HTMLTextAreaElement, 'code edit controls are missing')
+    edit.click()
+    textarea.focus()
+    textarea.selectionStart = 0
+    textarea.selectionEnd = textarea.value.length
+    dispatchEditorKey(textarea, 'Tab', 'Tab', { shiftKey: true })
+    assert(textarea.value === 'first\nsecond\nthird', 'code multiline Shift+Tab did not dedent every selected line')
+  })
+  codeDedentCommand.editor.destroy()
 
   const listCommand = createHarness(sandbox, {
     version: 'browser-history',
@@ -1223,6 +1525,75 @@ async function run() {
   })
   listCommand.editor.destroy()
 
+  const listSelectionCommand = createHarness(sandbox, {
+    version: 'browser-history',
+    blocks: [{ id: 'list-selection-command', type: 'list', data: { items: ['Alpha selection', 'Middle', 'Omega tail'], style: 'ordered' } }],
+  })
+  await assertUndoRedo(listSelectionCommand.editor, 'list selected range replacement command', () => {
+    const items = listSelectionCommand.editor.rootElement.querySelectorAll('.oe-list__item')
+    const firstText = items[0]?.firstChild
+    const lastText = items[2]?.firstChild
+    assert(firstText?.nodeType === Node.TEXT_NODE && lastText?.nodeType === Node.TEXT_NODE, 'list selection text nodes are missing')
+    const range = document.createRange()
+    range.setStart(firstText, 6)
+    range.setEnd(lastText, 6)
+    const selection = window.getSelection()
+    selection?.removeAllRanges()
+    selection?.addRange(range)
+    dispatchEditorKey(/** @type {HTMLElement} */ (items[0]), 'Enter', 'Enter')
+  })
+  const listSelectionData = (await snapshot(listSelectionCommand.editor))[0]?.data
+  assert(
+    listSelectionData?.items?.length === 2
+      && listSelectionData.items[0] === 'Alpha'
+      && listSelectionData.items[1] === 'tail',
+    `list Enter did not replace the selected item range: ${stable(listSelectionData)}`,
+  )
+  listSelectionCommand.editor.destroy()
+
+  const listExit = createHarness(sandbox, {
+    version: 'browser-history',
+    blocks: [{ id: 'list-exit', type: 'list', data: { items: ['One', ''], style: 'ordered' } }],
+  })
+  await assertUndoRedo(listExit.editor, 'list empty last item exit command', () => {
+    const item = listExit.editor.rootElement.querySelector('.oe-list__item:last-child')
+    assert(item instanceof HTMLElement, 'empty last list item is missing')
+    listExit.editor.blocks.setCurrentIndex(0)
+    item.focus()
+    const range = document.createRange()
+    range.selectNodeContents(item)
+    range.collapse(true)
+    const selection = window.getSelection()
+    selection?.removeAllRanges()
+    selection?.addRange(range)
+    dispatchEditorKey(item, 'Enter', 'Enter')
+  })
+  const exitedList = await snapshot(listExit.editor)
+  assert(exitedList.map(block => block.type).join(',') === 'list,paragraph', `empty last list item did not create a following paragraph: ${stable(exitedList)}`)
+  assert(stable(exitedList[0]?.data.items) === stable(['One']), `empty last list item was not removed: ${stable(exitedList)}`)
+  listExit.editor.destroy()
+
+  const emptyListExit = createHarness(sandbox, {
+    version: 'browser-history',
+    blocks: [{ id: 'empty-list-exit', type: 'list', data: { items: [''], style: 'unordered' } }],
+  })
+  await assertUndoRedo(emptyListExit.editor, 'single empty list exit command', () => {
+    const item = emptyListExit.editor.rootElement.querySelector('.oe-list__item')
+    assert(item instanceof HTMLElement, 'single empty list item is missing')
+    emptyListExit.editor.blocks.setCurrentIndex(0)
+    item.focus()
+    const range = document.createRange()
+    range.selectNodeContents(item)
+    range.collapse(true)
+    const selection = window.getSelection()
+    selection?.removeAllRanges()
+    selection?.addRange(range)
+    dispatchEditorKey(item, 'Enter', 'Enter')
+  })
+  const convertedEmptyList = await snapshot(emptyListExit.editor)
+  assert(convertedEmptyList.length === 1 && convertedEmptyList[0]?.type === 'paragraph', `single empty list was not converted to the default block: ${stable(convertedEmptyList)}`)
+  emptyListExit.editor.destroy()
+
   const checklistCommand = createHarness(sandbox, {
     version: 'browser-history',
     blocks: [{ id: 'check-command', type: 'checklist', data: { items: [{ text: 'Check', checked: false }] } }],
@@ -1233,6 +1604,115 @@ async function run() {
     checkbox.click()
   })
   checklistCommand.editor.destroy()
+
+  const checklistSelectionCommand = createHarness(sandbox, {
+    version: 'browser-history',
+    blocks: [{
+      id: 'checklist-selection-command',
+      type: 'checklist',
+      data: { items: [
+        { text: 'Alpha selection', checked: true },
+        { text: 'Middle', checked: false },
+        { text: 'Omega tail', checked: true },
+      ] },
+    }],
+  }, { extraPlugins: [new Checklist()] })
+  await assertUndoRedo(checklistSelectionCommand.editor, 'checklist selected range replacement command', () => {
+    const texts = checklistSelectionCommand.editor.rootElement.querySelectorAll('.oe-checklist__text')
+    const firstText = texts[0]?.firstChild
+    const lastText = texts[2]?.firstChild
+    assert(firstText?.nodeType === Node.TEXT_NODE && lastText?.nodeType === Node.TEXT_NODE, 'checklist selection text nodes are missing')
+    const range = document.createRange()
+    range.setStart(firstText, 6)
+    range.setEnd(lastText, 6)
+    const selection = window.getSelection()
+    selection?.removeAllRanges()
+    selection?.addRange(range)
+    dispatchEditorKey(/** @type {HTMLElement} */ (texts[0]), 'Enter', 'Enter')
+  })
+  const checklistSelectionData = (await snapshot(checklistSelectionCommand.editor))[0]?.data
+  assert(
+    checklistSelectionData?.items?.length === 2
+      && checklistSelectionData.items[0]?.text === 'Alpha'
+      && checklistSelectionData.items[0]?.checked === true
+      && checklistSelectionData.items[1]?.text === 'tail'
+      && checklistSelectionData.items[1]?.checked === false,
+    `checklist Enter did not replace the selected item range: ${stable(checklistSelectionData)}`,
+  )
+  checklistSelectionCommand.editor.destroy()
+
+  const checklistNestedBackspace = createHarness(sandbox, {
+    version: 'browser-history',
+    blocks: [{ id: 'checklist-nested-backspace', type: 'checklist', data: { items: [
+      { text: 'Previous', checked: false },
+      { text: '<strong>Current</strong>', checked: true },
+    ] } }],
+  }, { extraPlugins: [new Checklist()] })
+  await assertUndoRedo(checklistNestedBackspace.editor, 'checklist nested Backspace merge command', () => {
+    const nested = checklistNestedBackspace.editor.rootElement.querySelector('.oe-checklist__item:last-child strong')?.firstChild
+    assert(nested?.nodeType === Node.TEXT_NODE, 'nested checklist text is missing')
+    const range = document.createRange()
+    range.setStart(nested, 0)
+    range.collapse(true)
+    const selection = window.getSelection()
+    selection?.removeAllRanges()
+    selection?.addRange(range)
+    dispatchEditorKey(/** @type {HTMLElement} */ (nested.parentElement), 'Backspace', 'Backspace')
+  })
+  const nestedBackspaceData = (await snapshot(checklistNestedBackspace.editor))[0]?.data
+  assert(
+    nestedBackspaceData?.items?.length === 1
+      && nestedBackspaceData.items[0]?.text === 'Previous<strong>Current</strong>',
+    `checklist Backspace did not merge a nested first text node: ${stable(nestedBackspaceData)}`,
+  )
+  checklistNestedBackspace.editor.destroy()
+
+  const checklistExit = createHarness(sandbox, {
+    version: 'browser-history',
+    blocks: [{
+      id: 'check-exit',
+      type: 'checklist',
+      data: { items: [{ text: 'Keep', checked: true }, { text: '', checked: false }] },
+    }],
+  }, { extraPlugins: [new Checklist()] })
+  await assertUndoRedo(checklistExit.editor, 'checklist empty last item exit command', () => {
+    const item = checklistExit.editor.rootElement.querySelector('.oe-checklist__item:last-child .oe-checklist__text')
+    assert(item instanceof HTMLElement, 'empty last checklist item is missing')
+    checklistExit.editor.blocks.setCurrentIndex(0)
+    item.focus()
+    const range = document.createRange()
+    range.selectNodeContents(item)
+    range.collapse(true)
+    const selection = window.getSelection()
+    selection?.removeAllRanges()
+    selection?.addRange(range)
+    dispatchEditorKey(item, 'Enter', 'Enter')
+  })
+  const exitedChecklist = await snapshot(checklistExit.editor)
+  assert(exitedChecklist.map(block => block.type).join(',') === 'checklist,paragraph', `empty last checklist item did not create a following paragraph: ${stable(exitedChecklist)}`)
+  assert(exitedChecklist[0]?.data.items?.length === 1, `empty last checklist item was not removed: ${stable(exitedChecklist)}`)
+  checklistExit.editor.destroy()
+
+  const emptyChecklistExit = createHarness(sandbox, {
+    version: 'browser-history',
+    blocks: [{ id: 'empty-check-exit', type: 'checklist', data: { items: [{ text: '', checked: false }] } }],
+  }, { extraPlugins: [new Checklist()] })
+  await assertUndoRedo(emptyChecklistExit.editor, 'single empty checklist exit command', () => {
+    const item = emptyChecklistExit.editor.rootElement.querySelector('.oe-checklist__text')
+    assert(item instanceof HTMLElement, 'single empty checklist item is missing')
+    emptyChecklistExit.editor.blocks.setCurrentIndex(0)
+    item.focus()
+    const range = document.createRange()
+    range.selectNodeContents(item)
+    range.collapse(true)
+    const selection = window.getSelection()
+    selection?.removeAllRanges()
+    selection?.addRange(range)
+    dispatchEditorKey(item, 'Enter', 'Enter')
+  })
+  const convertedEmptyChecklist = await snapshot(emptyChecklistExit.editor)
+  assert(convertedEmptyChecklist.length === 1 && convertedEmptyChecklist[0]?.type === 'paragraph', `single empty checklist was not converted to the default block: ${stable(convertedEmptyChecklist)}`)
+  emptyChecklistExit.editor.destroy()
 
   const tableCommand = createHarness(sandbox, {
     version: 'browser-history',
@@ -1245,7 +1725,43 @@ async function run() {
     window.getSelection()?.collapseToEnd()
     dispatchEditorKey(cell, 'Enter', 'Enter')
   })
+
+  const tableCells = [...tableCommand.editor.rootElement.querySelectorAll('.oe-table__cell')]
+  assert(tableCells.length > 0, 'table navigation cells are missing')
+  const firstCell = tableCells[0]
+  const lastCell = tableCells.at(-1)
+  firstCell.focus()
+  const backwardBoundary = new KeyboardEvent('keydown', {
+    key: 'Tab', code: 'Tab', shiftKey: true, bubbles: true, cancelable: true,
+  })
+  assert(firstCell.dispatchEvent(backwardBoundary) === true && !backwardBoundary.defaultPrevented, 'Shift+Tab was trapped at the first table cell')
+  lastCell.focus()
+  const forwardBoundary = new KeyboardEvent('keydown', {
+    key: 'Tab', code: 'Tab', bubbles: true, cancelable: true,
+  })
+  assert(lastCell.dispatchEvent(forwardBoundary) === true && !forwardBoundary.defaultPrevented, 'Tab was trapped at the last table cell')
   tableCommand.editor.destroy()
+
+  const quoteFocus = createHarness(sandbox, {
+    version: 'browser-history',
+    blocks: [{ id: 'quote-focus', type: 'quote', data: { text: 'Quotation', caption: 'Author' } }],
+  }, { extraPlugins: [new Quote()] })
+  const quoteText = quoteFocus.editor.rootElement.querySelector('.oe-quote__text')
+  const quoteCaption = quoteFocus.editor.rootElement.querySelector('.oe-quote__caption')
+  assert(quoteText instanceof HTMLElement && quoteCaption instanceof HTMLElement, 'quote focus fields are missing')
+  quoteText.focus()
+  const quoteForward = new KeyboardEvent('keydown', { key: 'Tab', code: 'Tab', bubbles: true, cancelable: true })
+  quoteText.dispatchEvent(quoteForward)
+  assert(quoteForward.defaultPrevented && document.activeElement === quoteCaption, 'Tab did not move from quote text to caption')
+  const quoteExitForward = new KeyboardEvent('keydown', { key: 'Tab', code: 'Tab', bubbles: true, cancelable: true })
+  assert(quoteCaption.dispatchEvent(quoteExitForward) === true && !quoteExitForward.defaultPrevented, 'Tab was trapped after the quote caption')
+  quoteCaption.focus()
+  const quoteBackward = new KeyboardEvent('keydown', { key: 'Tab', code: 'Tab', shiftKey: true, bubbles: true, cancelable: true })
+  quoteCaption.dispatchEvent(quoteBackward)
+  assert(quoteBackward.defaultPrevented && document.activeElement === quoteText, 'Shift+Tab did not move from quote caption to text')
+  const quoteExitBackward = new KeyboardEvent('keydown', { key: 'Tab', code: 'Tab', shiftKey: true, bubbles: true, cancelable: true })
+  assert(quoteText.dispatchEvent(quoteExitBackward) === true && !quoteExitBackward.defaultPrevented, 'Shift+Tab was trapped before the quote text')
+  quoteFocus.editor.destroy()
 
   const sequentialToggle = createHarness(sandbox, {
     version: 'browser-history',
@@ -1360,6 +1876,35 @@ async function run() {
     remove.click()
   })
   previewCommand.editor.destroy()
+
+  const previewResolution = createHarness(sandbox, {
+    version: 'browser-history',
+    blocks: [{
+      id: 'preview-resolution',
+      type: 'linkPreview',
+      data: { url: '', title: '', description: '', image: '', favicon: '', domain: '', template: 'notion' },
+    }],
+  }, {
+    extraPlugins: [new LinkPreview({
+      async fetchMeta() {
+        return { title: 'Resolved title', description: 'Resolved description' }
+      },
+    })],
+  })
+  await assertUndoRedo(previewResolution.editor, 'link preview URL and metadata command', () => {
+    const input = previewResolution.editor.rootElement.querySelector('.oe-lp__url-input')
+    assert(input instanceof HTMLInputElement, 'link preview URL input is missing')
+    input.value = 'https://example.com/resolved'
+    input.dispatchEvent(new KeyboardEvent('keydown', {
+      key: 'Enter',
+      bubbles: true,
+      cancelable: true,
+    }))
+  })
+  const resolvedPreview = await snapshot(previewResolution.editor)
+  assert(resolvedPreview[0]?.data?.url === 'https://example.com/resolved', 'link preview did not persist the resolved URL')
+  assert(resolvedPreview[0]?.data?.title === 'Resolved title', 'link preview did not persist resolved metadata')
+  previewResolution.editor.destroy()
 
   const embedCommand = createHarness(sandbox, {
     version: 'browser-history',
@@ -1595,6 +2140,26 @@ async function run() {
     colorInput.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText' }))
     apply.click()
   })
+
+  const colorBeforeReadOnly = stable(await snapshot(inlineHarness.editor))
+  colorWidget = inlineHarness.editor.rootElement.querySelector('[data-inline-plugin="color"]')
+  assert(colorWidget instanceof HTMLElement, 'color widget disappeared before read-only transition')
+  colorWidget.click()
+  await delay(20)
+  colorInput = inlineHarness.editor.rootElement.querySelector('.oe-color-hex')
+  assert(colorInput instanceof HTMLInputElement, 'color picker did not open before read-only transition')
+  colorInput.value = '#fedcba'
+  colorInput.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText' }))
+  inlineHarness.editor.setReadOnly(true)
+  assert(!inlineHarness.editor.rootElement.querySelector('.oe-ip-popup'), 'read-only transition kept an inline popup open')
+  assert(stable(await snapshot(inlineHarness.editor)) === colorBeforeReadOnly, 'read-only transition committed a transient color preview')
+
+  colorWidget = inlineHarness.editor.rootElement.querySelector('[data-inline-plugin="color"]')
+  assert(colorWidget instanceof HTMLElement, 'read-only render lost the color widget')
+  colorWidget.click()
+  await delay(20)
+  assert(!inlineHarness.editor.rootElement.querySelector('.oe-ip-popup'), 'read-only color widget opened a mutation popup')
+  assert(stable(await snapshot(inlineHarness.editor)) === colorBeforeReadOnly, 'read-only color widget changed the document')
   inlineHarness.editor.destroy()
 
   const incompatibleInline = createHarness(sandbox, {
@@ -1699,6 +2264,186 @@ async function run() {
   })
   galleryDataUrlHarness.editor.destroy()
 
+  const publicApiHolder = document.createElement('section')
+  sandbox.appendChild(publicApiHolder)
+  let modeChangeNotifications = 0
+  const publicApiEditor = createEditor({
+    holder: publicApiHolder,
+    plugins: [new Paragraph()],
+    inlineTools: [],
+    data: structuredClone(initialData),
+    tuning: { change: { debounceMs: 0 } },
+    onChange() { modeChangeNotifications++ },
+  })
+  const historyStates = []
+  const readOnlyStates = []
+  let modeWillChangeEvents = 0
+  let modeChangedEvents = 0
+  let modeCommitEvents = 0
+  publicApiEditor.events.on('history:changed', state => historyStates.push(state))
+  publicApiEditor.events.on('readOnly:changed', state => readOnlyStates.push(state))
+  publicApiEditor.events.on('editor:willChange', () => { modeWillChangeEvents++ })
+  publicApiEditor.events.on('editor:changed', () => { modeChangedEvents++ })
+  publicApiEditor.events.on('history:commit', () => { modeCommitEvents++ })
+  assert(publicApiEditor.readOnly === false, 'public readOnly getter did not expose edit mode')
+  assert(publicApiEditor.canUndo === false && publicApiEditor.canRedo === false, 'new editor exposed unavailable history')
+  publicApiEditor.blocks.insert('paragraph', { text: 'Public history' })
+  assert(publicApiEditor.canUndo === true, 'public canUndo did not update after insert')
+  assert(publicApiEditor.undo() === true, 'public undo() did not restore the previous step')
+  assert(publicApiEditor.blocks.getBlockCount() === 2, 'public undo() restored the wrong document')
+  assert(publicApiEditor.canRedo === true, 'public canRedo did not update after undo')
+  assert(publicApiEditor.redo() === true, 'public redo() did not restore the next step')
+  assert(publicApiEditor.blocks.getBlockCount() === 3, 'public redo() restored the wrong document')
+  assert(historyStates.some(state => state.canUndo) && historyStates.some(state => state.canRedo), 'history:changed did not expose button state')
+
+  await delay(20)
+  modeChangeNotifications = 0
+  modeWillChangeEvents = 0
+  modeChangedEvents = 0
+  modeCommitEvents = 0
+
+  publicApiEditor.setReadOnly(true)
+  await delay(20)
+  assert(publicApiEditor.readOnly === true, 'setReadOnly(true) did not update the public mode')
+  assert(publicApiEditor.rootElement.getAttribute('aria-readonly') === 'true', 'read-only root semantics are missing')
+  assert(!publicApiEditor.rootElement.querySelector('[contenteditable="true"]'), 'read-only transition kept editable DOM')
+  assert(publicApiEditor.canUndo === false && publicApiEditor.canRedo === false, 'read-only mode exposed active history commands')
+  assert(publicApiEditor.undo() === false && publicApiEditor.redo() === false, 'read-only mode executed a history mutation')
+
+  publicApiEditor.setReadOnly(false)
+  await delay(20)
+  assert(publicApiEditor.readOnly === false, 'setReadOnly(false) did not restore edit mode')
+  assert(publicApiEditor.rootElement.querySelector('[contenteditable="true"]'), 'edit-mode transition did not restore editable DOM')
+  assert(publicApiEditor.canUndo === true, 'mode transition discarded history')
+  assert(readOnlyStates.map(state => state.readOnly).join(',') === 'true,false', 'readOnly:changed emitted an invalid sequence')
+  assert(modeChangeNotifications === 0, 'mode transition emitted a document change notification')
+  assert(
+    modeWillChangeEvents === 0 && modeChangedEvents === 0 && modeCommitEvents === 0,
+    'mode transition emitted command or document mutation events',
+  )
+
+  publicApiEditor.setReadOnly(true)
+  publicApiEditor.setReadOnly(false)
+  shortcut(publicApiEditor)
+  await delay(20)
+  assert(publicApiEditor.blocks.getBlockCount() === 2, 'mode remount duplicated keyboard history handlers')
+  assert(publicApiEditor.canRedo === true, 'keyboard undo after mode remount did not update public history')
+  publicApiEditor.destroy()
+
+  const pendingHistoryHolder = document.createElement('section')
+  sandbox.appendChild(pendingHistoryHolder)
+  const pendingHistoryEditor = createEditor({
+    holder: pendingHistoryHolder,
+    plugins: [new Paragraph()],
+    inlineTools: [],
+    data: {
+      version: 'browser-history',
+      blocks: [{ id: 'pending', type: 'paragraph', data: { text: 'Before' } }],
+    },
+    tuning: { undo: { debounceMs: 60_000 } },
+  })
+  const pendingHistoryStates = []
+  pendingHistoryEditor.events.on('history:changed', state => pendingHistoryStates.push(state))
+  const pendingHistoryBlock = pendingHistoryEditor.blocks.getBlockByIndex(0)
+  pendingHistoryBlock.contentElement.textContent = 'After'
+  pendingHistoryBlock.contentElement.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText' }))
+  assert(pendingHistoryEditor.canUndo === true, 'pending input did not immediately enable public undo')
+  assert(pendingHistoryEditor.canRedo === false, 'pending input exposed redo from an obsolete branch')
+  assert(pendingHistoryStates.at(-1)?.canUndo === true, 'pending input did not emit public history availability')
+  assert(pendingHistoryEditor.undo() === true, 'public undo did not flush pending input')
+  assert(pendingHistoryEditor.save().blocks[0].data.text === 'Before', 'public undo did not restore pending input')
+  pendingHistoryEditor.destroy()
+
+  const readOnlyHostHolder = document.createElement('section')
+  sandbox.appendChild(readOnlyHostHolder)
+  const readOnlyHostEditor = createEditor({
+    holder: readOnlyHostHolder,
+    plugins: [new Paragraph()],
+    inlineTools: [],
+    data: {
+      version: 'browser-history',
+      blocks: [{ id: 'host-origin', type: 'paragraph', data: { text: 'Origin' } }],
+    },
+  })
+  readOnlyHostEditor.setReadOnly(true)
+  const readOnlyHistoryStates = []
+  readOnlyHostEditor.events.on('history:changed', state => readOnlyHistoryStates.push(state))
+  readOnlyHostEditor.blocks.insert('paragraph', { text: 'Host update' })
+  await delay(20)
+  assert(readOnlyHostEditor.canUndo === false && readOnlyHostEditor.canRedo === false, 'read-only host update exposed history commands')
+  assert(!readOnlyHistoryStates.some(state => state.canUndo || state.canRedo), 'read-only history event contradicted public getters')
+  readOnlyHostEditor.setReadOnly(false)
+  assert(readOnlyHostEditor.canUndo === true, 'read-only host update was not retained for editable history')
+  assert(readOnlyHostEditor.undo() === true, 'recorded read-only host update could not be undone after editing resumed')
+  assert(readOnlyHostEditor.blocks.getBlockCount() === 1, 'read-only host history restored the wrong document')
+  readOnlyHostEditor.destroy()
+
+  const completeModeHolder = document.createElement('section')
+  sandbox.appendChild(completeModeHolder)
+  const completeModePlugins = [
+    new Paragraph(), new Heading(), new List(), new Quote(), new Code(), new Raw(),
+    new Checklist(), new Table(), new Warning(), new Toggle(), new Spoiler(), new Columns(),
+    new Image(), new Gallery(), new CarouselBlock(), new Attaches(), new LinkPreview(),
+    new Embed(), new Person(), new Poll(),
+  ]
+
+  const tablePasteProbe = document.createElement('div')
+  tablePasteProbe.innerHTML = '<table><tr><td>Body</td></tr><tr><th>Footer heading cell</th></tr></table>'
+  const tablePasteData = new Table().onPaste({
+    type: 'tag',
+    tag: 'table',
+    element: /** @type {HTMLElement} */ (tablePasteProbe.firstElementChild),
+  })
+  assert(tablePasteData?.withHeadings === false, 'table paste treated a later TH cell as the first-row header')
+
+  const quotePasteProbe = document.createElement('blockquote')
+  quotePasteProbe.innerHTML = 'Quote<cite><strong>Formatted author</strong></cite>'
+  const quotePasteData = new Quote().onPaste({ type: 'tag', tag: 'blockquote', element: quotePasteProbe })
+  assert(quotePasteData?.caption === '<strong>Formatted author</strong>', 'quote paste discarded caption formatting')
+  const completeModeEditor = createEditor({
+    holder: completeModeHolder,
+    plugins: completeModePlugins,
+    inlineTools: [],
+  })
+  for (const plugin of completeModePlugins.slice(1)) completeModeEditor.blocks.insert(plugin.type)
+  const completeModeDocument = stable(semantic(completeModeEditor.save()))
+  completeModeEditor.setReadOnly(true)
+  assert(!completeModeEditor.rootElement.querySelector('[contenteditable="true"]'), 'a built-in plugin stayed editable in read-only mode')
+  assert(stable(semantic(completeModeEditor.save())) === completeModeDocument, 'built-in plugin data changed when entering read-only mode')
+  completeModeEditor.setReadOnly(false)
+  assert(stable(semantic(completeModeEditor.save())) === completeModeDocument, 'built-in plugin data changed when returning to edit mode')
+  completeModeEditor.destroy()
+
+  const holderOwnership = document.createElement('section')
+  sandbox.appendChild(holderOwnership)
+  const holderOwner = createEditor({ holder: holderOwnership, plugins: [new Paragraph()], inlineTools: [] })
+  let duplicateHolderRejected = false
+  try {
+    createEditor({ holder: holderOwnership, plugins: [new Paragraph()], inlineTools: [] })
+  } catch {
+    duplicateHolderRejected = true
+  }
+  assert(duplicateHolderRejected, 'one holder accepted two live editor instances')
+  holderOwner.destroy()
+  const holderReuse = createEditor({ holder: holderOwnership, plugins: [new Paragraph()], inlineTools: [] })
+  holderReuse.destroy()
+
+  for (const [label, invalidConfig] of [
+    ['minHeight', { minHeight: -1 }],
+    ['history depth', { tuning: { undo: { maxStack: 0 } } }],
+    ['change debounce', { tuning: { change: { debounceMs: Number.NaN } } }],
+  ]) {
+    const invalidHolder = document.createElement('section')
+    sandbox.appendChild(invalidHolder)
+    let rejected = false
+    try {
+      createEditor({ holder: invalidHolder, plugins: [new Paragraph()], inlineTools: [], ...invalidConfig })
+    } catch {
+      rejected = true
+    }
+    assert(rejected && invalidHolder.childNodes.length === 0, `invalid ${label} configuration was accepted`)
+  }
+
   const callbackHolder = document.createElement('section')
   sandbox.appendChild(callbackHolder)
   let readyCalls = 0
@@ -1741,7 +2486,8 @@ async function run() {
     historyCases: [
       'typing', 'split block', 'insert', 'sequential insert', 'toolbar sequential insert', 'move', 'convert',
       'remove', 'clear', 'public render', 'sequential inline formatting',
-      'partial cross-block conversion', 'ordered partial list conversion', 'unordered partial list conversion',
+      'partial cross-block conversion', 'structured endpoint cross-block conversion',
+      'ordered partial list conversion', 'unordered partial list conversion',
       'partial list conversion to a non-text block', 'slash command caret positioning',
       'slash block insertion after existing text', 'inline block duplicate',
     ],
@@ -1758,7 +2504,11 @@ async function run() {
     ],
     pluginPasteRoutes: pluginPasteCases.map(([label]) => label),
     pluginCommandCases: [
-      'raw Tab', 'code Tab', 'list item split', 'checklist toggle', 'table line break',
+      'raw Tab', 'raw multiline Shift+Tab', 'code Tab', 'list item split',
+      'list selected range replacement', 'list empty last item exit',
+      'single empty list exit', 'checklist toggle', 'checklist empty last item exit',
+      'checklist selected range replacement', 'checklist nested Backspace merge',
+      'single empty checklist exit', 'table line break', 'quote focus navigation',
       'rapid toggle ordering', 'columns layout', 'poll add option',
       'image delete', 'gallery remove image', 'carousel remove slide', 'attachment remove',
       'link preview delete', 'embed delete', 'person add',
@@ -1771,12 +2521,13 @@ async function run() {
       'case transform upper/lower', 'clear formatting', 'align apply/reset', 'script apply/remove',
       'background color apply/remove', 'link action formatting', 'link removal',
       'font-size apply/remove', 'heading inline control',
-      'color widget preview/cancel/apply',
+      'color widget preview/cancel/apply/read-only',
       'per-block inline tool allowlist',
       'inline tool replacement by type',
     ],
     lifecycleCycles: 5,
     callbackCases: ['onReady microtask', 'onChange mutation notification'],
+    publicApiCases: ['undo/redo state', 'pending history state', 'history events', 'dynamic read-only', 'read-only host history', 'mode lifecycle', 'all-plugin mode transition', 'holder ownership', 'numeric validation'],
   }
 }
 

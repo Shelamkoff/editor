@@ -1,4 +1,5 @@
 import { sanitizeSubtree } from './walker.js'
+import { normalizeTextValue } from '../textFormat.js'
 
 /**
  * Parse an HTML string into a sanitized DocumentFragment.
@@ -12,10 +13,11 @@ import { sanitizeSubtree } from './walker.js'
  */
 export function parseInline(html) {
   const fragment = document.createDocumentFragment()
-  if (!html) return fragment
+  const source = normalizeTextValue(html)
+  if (!source) return fragment
 
   const template = document.createElement('template')
-  template.innerHTML = html
+  template.innerHTML = source
   sanitizeSubtree(template.content)
   fragment.appendChild(template.content)
 

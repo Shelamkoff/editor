@@ -34,6 +34,8 @@ rendererStyles.destroy()
 }
 ```
 
+The [link-preview plugin field reference](../../../plugins/link-preview/README.md#field-reference) is the canonical persisted-data contract shared by the editor and renderer.
+
 The destination uses the external-link URL policy and image sources use the media URL policy; text fields are assigned as text. The renderer declares one stylesheet and creates no listeners or external instances.
 
 When styles are declared, the explicit `EditorRenderer.injectStyles()` call shown above acquires them and its returned owner releases them.

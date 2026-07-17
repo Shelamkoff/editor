@@ -386,36 +386,7 @@ export class SlashCommands {
    * @param {string} pluginType
    */
   #insertInlineWidget(block, pluginType) {
-    const ce = block.contentElement
-    const text = ce.textContent || ''
-
-    // Find and remove the "/command" text, place caret at deletion point
-    const slashIdx = text.lastIndexOf('/')
-    if (slashIdx >= 0) {
-      const walker = document.createTreeWalker(ce, NodeFilter.SHOW_TEXT)
-      let charCount = 0
-      while (walker.nextNode()) {
-        const node = /** @type {Text} */ (walker.currentNode)
-        const nodeLen = node.length
-        if (charCount + nodeLen > slashIdx) {
-          const offsetInNode = slashIdx - charCount
-          const range = document.createRange()
-          range.setStart(node, offsetInNode)
-          range.setEnd(node, nodeLen)
-          range.deleteContents()
-
-          // Place caret at deletion point so EditorFacade inserts widget here
-          const sel = window.getSelection()
-          if (sel) {
-            range.collapse(true)
-            sel.removeAllRanges()
-            sel.addRange(range)
-          }
-          break
-        }
-        charCount += nodeLen
-      }
-    }
+    this.#removeQueryText(block)
 
     // Delegate widget creation to EditorFacade via event bus
     this.#events.emit(EditorEvent.INLINE_PLUGIN_INSERT, { type: pluginType })
@@ -429,6 +400,16 @@ export class SlashCommands {
     const block = this.#blocks.getCurrentBlock()
     if (!block) return false
 
+    return this.#removeQueryText(block)
+  }
+
+  /**
+   * Remove the last slash query in one block and keep the caret at the
+   * deletion boundary so the selected command can insert at that position.
+   * @param {import('./types').IBlock} block
+   * @returns {boolean}
+   */
+  #removeQueryText(block) {
     const ce = block.contentElement
     const text = ce.textContent || ''
     const slashIdx = text.lastIndexOf('/')
@@ -444,7 +425,7 @@ export class SlashCommands {
     const walker = document.createTreeWalker(ce, NodeFilter.SHOW_TEXT)
     let charCount = 0
     while (walker.nextNode()) {
-      const node = /** @type {Text} */ (walker.currentNode)
+      const node = /** @type {import('./types').DOMText} */ (walker.currentNode)
       const nodeLen = node.length
       if (charCount + nodeLen > slashIdx) {
         const offsetInNode = slashIdx - charCount

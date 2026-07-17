@@ -35,7 +35,15 @@ The registered block type is `toggle`. The class is also exported by the complet
 { "title": "Details", "content": "Hidden text", "open": false }
 ```
 
-`open` is serialized so the renderer can preserve the chosen initial state.
+### Field reference
+
+| Field | Required | Meaning and constraints |
+| --- | --- | --- |
+| `title` | yes | String containing sanitized inline HTML; it may be empty. |
+| `content` | yes | String containing sanitized inline HTML; it may be empty. |
+| `open` | no | Boolean initial disclosure state; defaults to `false` when omitted. |
+
+At least one of `title` and `content` must be non-blank. The persisted `open` value lets the renderer reproduce the chosen initial state.
 
 ## Configuration
 

@@ -115,16 +115,7 @@ export class KeyboardManager {
             e.preventDefault()
           } else {
             // Convert empty non-default block to default type (e.g. empty list → paragraph)
-            const current = this.#blocks.getCurrentBlock()
-            if (current && current.isEmpty() && current.type !== this.#defaultBlockType) {
-              const idx = this.#blocks.getCurrentIndex()
-              const converted = this.#blocks.convert(idx, this.#defaultBlockType)
-              if (converted) {
-                this.#blocks.setCurrentIndex(idx)
-                converted.focus()
-                e.preventDefault()
-              }
-            }
+            if (this.#blockOps.exitEmptyBlock()) e.preventDefault()
           }
         }
         return

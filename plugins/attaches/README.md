@@ -30,7 +30,17 @@ The registered block type is `attaches`. The class is also exported by the compl
 }
 ```
 
-`variant` accepts `a`, `b`, `f`, or `g`. Legacy input with a single `file` object is read, but saves use the `files` array. Callback URLs must pass the shared download URL policy. Without `uploadFile`, selected files use temporary object URLs; configure an uploader for data that must survive cleanup or page reload.
+### Field reference
+
+| Field | Required | Meaning and constraints |
+| --- | --- | --- |
+| `files` | yes | Non-empty array. Saves always use this plural form. |
+| `files[].url` | yes | Canonical URL allowed by the download policy. |
+| `files[].name`, `files[].extension` | yes | Strings used for the displayed file name and extension. |
+| `files[].size` | yes | Finite non-negative byte count. |
+| `variant` | no | Presentation variant `a`, `b`, `f`, or `g`; the plugin default is `f`. |
+
+Legacy input may contain one `file` object instead of `files`; the next save normalizes it to the array contract. Callback URLs must pass the shared download URL policy. Without `uploadFile`, selected files use temporary object URLs; configure an uploader for data that must survive cleanup or page reload.
 
 ## Configuration
 

@@ -31,4 +31,5 @@ export default {
   'plugin.gallery.layoutMasonry': 'Кладочный макет',
   'plugin.gallery.layoutTriptych': 'Триптих',
   'plugin.gallery.layoutTemplate': 'Шаблон макета',
+  'plugin.gallery.emptyReadonly': 'Нет изображений',
 }

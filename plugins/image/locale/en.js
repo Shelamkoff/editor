@@ -34,4 +34,5 @@ export default {
   'plugin.image.value.scale-down': 'Scale down',
   'plugin.image.value.solid': 'Solid',
   'plugin.image.value.dashed': 'Dashed',
+  'plugin.image.emptyReadonly': 'No image',
 }

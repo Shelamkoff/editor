@@ -1,5 +1,7 @@
 import { getTextOffset, firstTextNode, lastTextNode, editableTextWalker } from './textOffset.js'
 
+/** @typedef {import('./types').ISelectionManager} ISelectionManagerContract */
+/** @implements {ISelectionManagerContract} */
 export class SelectionManager {
   /** @type {import('./types').IBlockReader} */
   #blocks

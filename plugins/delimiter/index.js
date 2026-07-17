@@ -11,7 +11,7 @@ const editorStyles = resolvePath('./delimiter.css', import.meta.url)
 // Tabler icon: separator-horizontal (three dots)
 const ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h2"/><path d="M17 12h2"/><path d="M11 12h2"/></svg>'
 
-
+/** Visual section separator that stores no user data. */
 export class Delimiter extends BlockPluginAbstract {
   static isTextBlock = false
   static styles = [editorStyles]
@@ -19,12 +19,16 @@ export class Delimiter extends BlockPluginAbstract {
   icon = ICON
   inlineTools = false
 
-  /** @returns {string} */
+  /**
+   * Return the localized toolbox label for this block.
+   * @returns {string}
+   */
   get title() {
     return this._t('title', 'Delimiter')
   }
 
   /**
+   * Create the editable DOM owned by this block instance.
    * @returns {HTMLElement}
    */
   render() {
@@ -36,6 +40,7 @@ export class Delimiter extends BlockPluginAbstract {
   }
 
   /**
+   * Serialize the current block DOM into document data.
    * @returns {{}}
    */
   save() {
@@ -43,6 +48,8 @@ export class Delimiter extends BlockPluginAbstract {
   }
 
   /**
+   * Check whether serialized data satisfies this block's schema.
+   * @param {Record<string, unknown>} data
    * @returns {boolean}
    */
   validate(data) {
@@ -50,6 +57,7 @@ export class Delimiter extends BlockPluginAbstract {
   }
 
   /**
+   * Check whether the block has no meaningful user content.
    * @param {HTMLElement} _element
    * @returns {boolean}
    */

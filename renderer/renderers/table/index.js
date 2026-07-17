@@ -1,18 +1,20 @@
 // @ts-check
-import { InvalidBlockDataError } from '../../errors.js'
 import { resolvePath } from '../../../shared/resolvePath.js'
+import { mapTableTextFields as mapTextFields } from '../../../shared/mapTextFields.js'
 
 const styles = resolvePath('./styles.css', import.meta.url)
 
 /**
  * Table block renderer
  * @param {string} classPrefix
+ * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} _locale
  * @returns {import('../../types').BlockRenderer<import('../../types').TableBlock>}
  */
 export function createTableRenderer(classPrefix, _locale) {
   return {
     type: 'table',
     styles: [styles],
+    mapTextFields,
 
     /**
      * @param {import('../../types').TableBlock} block
@@ -21,10 +23,6 @@ export function createTableRenderer(classPrefix, _locale) {
      */
     render(block, parseInline) {
       const { content, withHeadings = false } = block.data
-
-      if (!content || !Array.isArray(content) || content.length === 0) {
-        throw new InvalidBlockDataError('table', 'Table content is empty or invalid', block.id)
-      }
 
       const wrapper = document.createElement('div')
       wrapper.className = `${classPrefix}-table-wrapper`

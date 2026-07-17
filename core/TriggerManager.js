@@ -8,7 +8,7 @@ export class TriggerManager {
   /** @type {HTMLElement} */
   #rootEl
 
-  /** @type {import('./InlinePluginRegistry').InlinePluginRegistry} */
+  /** @type {import('./types').IInlinePluginRegistry} */
   #registry
 
   /** @type {import('./types').InlinePluginContext} */
@@ -20,7 +20,7 @@ export class TriggerManager {
   /** @type {Set<string>} */
   #triggerChars
 
-  /** @type {{ plugin: import('./types').InlinePlugin, startNode: Text, startOffset: number } | null} */
+  /** @type {{ plugin: import('./types').InlinePlugin, startNode: import('./types').DOMText, startOffset: number } | null} */
   #active = null
 
   /** @type {() => void} */
@@ -28,7 +28,7 @@ export class TriggerManager {
 
   /**
    * @param {HTMLElement} rootEl
-   * @param {import('./InlinePluginRegistry').InlinePluginRegistry} registry
+   * @param {import('./types').IInlinePluginRegistry} registry
    * @param {import('./types').InlinePluginContext} ctx
    * @param {import('./types').IEventBus} events
    */
@@ -51,7 +51,7 @@ export class TriggerManager {
     this.#rootEl.removeEventListener('input', this.#onInput)
     this.#rootEl.removeEventListener('keydown', this.#onKeyDown, true)
     this.#unsubscribeBlockChanged()
-    this.#active = null
+    this.#cancelTrigger()
   }
 
   #onInput = () => {
@@ -67,16 +67,20 @@ export class TriggerManager {
 
     const node = sel.anchorNode
     if (!node || node.nodeType !== Node.TEXT_NODE) return
+    const textNode = /** @type {import('./types').DOMText} */ (node)
 
     const offset = sel.anchorOffset
     if (offset === 0) return
 
-    const char = /** @type {Text} */ (node).data[offset - 1]
+    const textBeforeCaret = textNode.data.slice(0, offset)
+    const char = Array.from(textBeforeCaret).at(-1)
     if (!char || !this.#triggerChars.has(char)) return
 
+    const triggerOffset = offset - char.length
+
     // Check that trigger is at word boundary (start of text or preceded by space)
-    if (offset > 1) {
-      const prevChar = /** @type {Text} */ (node).data[offset - 2]
+    if (triggerOffset > 0) {
+      const prevChar = Array.from(textNode.data.slice(0, triggerOffset)).at(-1)
       if (prevChar && prevChar !== ' ' && prevChar !== '\u00A0') return
     }
 
@@ -85,8 +89,8 @@ export class TriggerManager {
 
     this.#active = {
       plugin,
-      startNode: /** @type {Text} */ (node),
-      startOffset: offset - 1, // Position of the trigger character
+      startNode: textNode,
+      startOffset: triggerOffset,
     }
 
     // Notify plugin that trigger started
@@ -110,14 +114,21 @@ export class TriggerManager {
     const currentNode = sel.anchorNode
     const currentOffset = sel.anchorOffset
 
-    // Simple case: caret is still in the same text node
-    if (currentNode === startNode && currentOffset > startOffset + 1) {
-      const query = startNode.data.slice(startOffset + 1, currentOffset)
+    // An empty query is significant: a plugin may restore its initial
+    // suggestions after the user removes the last query character.
+    if (currentNode === startNode) {
+      const trigger = plugin.trigger ?? ''
+      const triggerEnd = startOffset + trigger.length
+      if (!trigger || !startNode.data.startsWith(trigger, startOffset) || currentOffset < triggerEnd) {
+        this.#cancelTrigger()
+        return
+      }
+      const query = startNode.data.slice(triggerEnd, currentOffset)
       const parentEl = /** @type {HTMLElement} */ (startNode.parentElement)
       if (plugin.onEdit) {
         plugin.onEdit(parentEl, query, this.#ctx)
       }
-    } else if (currentNode !== startNode) {
+    } else {
       // Caret moved to different node — cancel trigger
       this.#cancelTrigger()
     }
@@ -135,8 +146,10 @@ export class TriggerManager {
 
   #cancelTrigger() {
     if (!this.#active) return
-    this.#ctx.hidePopup()
+    const plugin = this.#active.plugin
     this.#active = null
+    this.#ctx.hidePopup()
+    plugin.onCancel?.()
   }
 
   /** @returns {boolean} */

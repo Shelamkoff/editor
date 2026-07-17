@@ -35,7 +35,7 @@ export class MouseSelectionManager {
   /** @type {import('./types').IBlock | null} */
   #mouseStartBlock = null
 
-  /** @type {Node | null} exact DOM node of mousedown caret */
+  /** @type {import('./types').DOMNode | null} exact DOM node of mousedown caret */
   #mouseStartNode = null
 
   /** @type {number} offset within mouseStartNode */
@@ -112,8 +112,8 @@ export class MouseSelectionManager {
    * @param {MouseEvent} e
    */
   #onDocumentMouseDown = (e) => {
-    const target = /** @type {Node | null} */ (e.target)
-    if (!target || this.#rootEl.contains(target)) return
+    const target = e.target
+    if (!(target instanceof Node) || this.#rootEl.contains(target)) return
 
     // Drop block + cross-block selection.
     this.#clearBlockSelection()
@@ -133,17 +133,20 @@ export class MouseSelectionManager {
    * Get caret position under a point.
    * @param {number} x
    * @param {number} y
-   * @returns {{ node: Node, offset: number } | null}
+   * @returns {{ node: import('./types').DOMNode, offset: number } | null}
    */
   #caretFromPoint(x, y) {
     if (typeof document.caretPositionFromPoint === 'function') {
       const p = document.caretPositionFromPoint(x, y)
       return p ? { node: p.offsetNode, offset: p.offset } : null
     }
-    // Fallback for browsers without caretPositionFromPoint
-    const doc = /** @type {Document & { caretRangeFromPoint?(x: number, y: number): Range | null }} */ (document)
-    if (typeof doc.caretRangeFromPoint === 'function') {
-      const r = doc.caretRangeFromPoint(x, y)
+    // Compatibility fallback for engines that expose only the legacy API.
+    // Reflective access keeps the deprecated member out of the core contract.
+    const legacyCaretRangeFromPoint = /** @type {((x: number, y: number) => Range | null) | undefined} */ (
+      Reflect.get(document, 'caretRangeFromPoint')
+    )
+    if (typeof legacyCaretRangeFromPoint === 'function') {
+      const r = legacyCaretRangeFromPoint.call(document, x, y)
       return r ? { node: r.startContainer, offset: r.startOffset } : null
     }
     return null
@@ -160,7 +163,8 @@ export class MouseSelectionManager {
   }
 
   #onMouseDown = (/** @type {MouseEvent} */ e) => {
-    const target = /** @type {HTMLElement} */ (e.target)
+    const target = e.target
+    if (!(target instanceof HTMLElement)) return
 
     // Only clear cross-block selection when clicking inside content area,
     // not on toolbar buttons or other UI elements
@@ -181,7 +185,7 @@ export class MouseSelectionManager {
       return
     }
 
-    this.#mouseStartBlock = this.#blocks.getBlockByChildNode(/** @type {Node} */ (e.target)) ?? null
+    this.#mouseStartBlock = this.#blocks.getBlockByChildNode(target) ?? null
 
     const caret = this.#caretFromPoint(e.clientX, e.clientY)
     if (caret) {
@@ -193,7 +197,8 @@ export class MouseSelectionManager {
   #onClickArea = (/** @type {MouseEvent} */ e) => {
     if (this.#isBlockSelecting) return
 
-    const target = /** @type {HTMLElement} */ (e.target)
+    const target = e.target
+    if (!(target instanceof HTMLElement)) return
     if (!this.#isClickAreaTarget(target)) return
 
     const blocks = this.#blocks

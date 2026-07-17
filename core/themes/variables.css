@@ -559,9 +559,14 @@
 }
 
 .oe-font-size-item {
+  display: block;
+  width: 100%;
   padding: 6px 8px;
+  border: 0;
   border-radius: var(--oe-radius-sm);
+  background: transparent;
   color: var(--oe-text-1);
+  text-align: left;
   font-size: 13px;
   font-family: var(--oe-font), sans-serif;
   cursor: pointer;

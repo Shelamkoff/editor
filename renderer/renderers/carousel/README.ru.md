@@ -26,13 +26,15 @@ rendererStyles.destroy()
 ```json
 {
   "slides": [
-    { "id": "cover", "type": "image", "src": "https://cdn.example/cover.jpg", "alt": "Cover", "caption": "Opening slide" },
-    { "id": "clip", "type": "video", "src": "https://cdn.example/clip.mp4", "poster": "https://cdn.example/poster.jpg", "caption": "Video" },
-    { "id": "note", "type": "html", "html": "<strong>Sanitized HTML</strong>" }
+    { "id": "cover", "type": "image", "src": "https://cdn.example/cover.jpg", "alt": "Обложка", "caption": "Первый слайд" },
+    { "id": "clip", "type": "video", "src": "https://cdn.example/clip.mp4", "poster": "https://cdn.example/poster.jpg", "caption": "Видео" },
+    { "id": "note", "type": "html", "html": "<strong>Очищенный HTML</strong>" }
   ],
   "options": { "loop": true, "autoplay": false, "autoplayDelay": 5000, "navigation": true, "pagination": true, "thumbnails": false, "aspectRatio": "16 / 9" }
 }
 ```
+
+Полный контракт сохранённых данных, включая требования к слайдам и значения параметров по умолчанию, описан в [справочнике полей плагина Carousel](../../../plugins/carousel/README.ru.md#поля-данных).
 
 Адреса изображений и видео проходят политику URL для медиафайлов, а HTML-слайды — очиститель произвольного HTML. Рендерер владеет экземпляром Carousel и освобождает его в `destroy()`. Он объявляет собственные стили и стили Carousel.
 

@@ -3,6 +3,7 @@ import { resolvePath } from '../../shared/resolvePath.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { mapTextFields } from './mapTextFields.js'
 import { validateParagraphData } from '../../shared/blockDataValidators.js'
+import { normalizeTextAlign, normalizeTextValue } from '../../shared/textFormat.js'
 
 const editorStyles = resolvePath('./paragraph.css', import.meta.url)
 
@@ -10,9 +11,21 @@ const editorStyles = resolvePath('./paragraph.css', import.meta.url)
 const ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4l12 0"/><path d="M12 4l0 16"/></svg>'
 
 
-/** @typedef {{ placeholder?: string, injectStyles?: boolean, css?: string }} ParagraphConfig */
+/**
+ * Consumer configuration for {@link Paragraph}.
+ * @typedef {Object} ParagraphConfig
+ * @property {string} [placeholder] Text shown by an empty paragraph. The
+ *   default comes from the active editor locale.
+ * @property {boolean} [injectStyles=true] Whether the editor should load the
+ *   built-in paragraph stylesheet.
+ * @property {string} [css] Additional stylesheet URL, or the replacement URL
+ *   when `injectStyles` is `false`.
+ */
 
-/** @extends {BlockPluginAbstract<ParagraphConfig>} */
+/**
+ * Editable paragraph block that stores sanitized rich text and alignment.
+ * @extends {BlockPluginAbstract<ParagraphConfig>}
+ */
 export class Paragraph extends BlockPluginAbstract {
   static isTextBlock = true
   static styles = [editorStyles]
@@ -21,12 +34,18 @@ export class Paragraph extends BlockPluginAbstract {
   inlineTools = true
   mapTextFields = mapTextFields
 
-  /** @param {ParagraphConfig} [config] */
+  /**
+   * Create a Paragraph instance with the supplied consumer configuration.
+   * @param {ParagraphConfig} [config]
+   */
   constructor(config) {
     super(config)
   }
 
-  /** @returns {string} */
+  /**
+   * Return the localized toolbox label for this block.
+   * @returns {string}
+   */
   get title() {
     return this._t('title', 'Text')
   }
@@ -34,14 +53,16 @@ export class Paragraph extends BlockPluginAbstract {
   /**
    * Set placeholder from editor-level config (lower priority than constructor config).
    * @param {string} placeholder
+   * @returns {void}
    */
   setPlaceholder(placeholder) {
-    if (!this._config.placeholder) {
+    if (!Object.hasOwn(this._config, 'placeholder')) {
       this._config = /** @type {typeof this._config} */ (Object.freeze({ ...this._config, placeholder }))
     }
   }
 
   /**
+   * Create the editable DOM owned by this block instance.
    * @param {{ text?: string, align?: string }} data
    * @returns {HTMLElement}
    */
@@ -50,18 +71,20 @@ export class Paragraph extends BlockPluginAbstract {
     p.classList.add('oe-paragraph')
     p.contentEditable = 'true'
 
-    if (data.text) {
-      p.innerHTML = sanitizeHtml(data.text)
+    const text = normalizeTextValue(data?.text)
+    if (text) {
+      p.innerHTML = sanitizeHtml(text)
     }
-    if (data.align) {
-      p.style.textAlign = data.align
+    const align = normalizeTextAlign(data?.align)
+    if (align) {
+      p.style.textAlign = align
     }
 
     // Placeholder via data attribute + CSS :empty::before
     // Priority: explicit config > i18n locale > empty (no placeholder)
-    const placeholder = this._config.placeholder
-      || this._t('placeholder', '')
-      || ''
+    const placeholder = Object.hasOwn(this._config, 'placeholder')
+      ? this._config.placeholder
+      : this._t('placeholder', '')
     if (placeholder) {
       p.dataset.placeholder = placeholder
     }
@@ -74,17 +97,18 @@ export class Paragraph extends BlockPluginAbstract {
   }
 
   /**
+   * Serialize the current block DOM into document data.
    * @param {HTMLElement} element
    * @returns {{ text: string, align?: string }}
    */
   save(element) {
-    /** @type {{ text: string, align?: string }} */
     const data = { text: element.innerHTML.trim() }
     if (element.style.textAlign) data.align = element.style.textAlign
     return data
   }
 
   /**
+   * Check whether serialized data satisfies this block's schema.
    * @param {{ text: string }} data
    * @returns {boolean}
    */
@@ -96,14 +120,17 @@ export class Paragraph extends BlockPluginAbstract {
    * Merge another paragraph's data into this element.
    * @param {HTMLElement} element
    * @param {{ text?: string, align?: string }} data
+   * @returns {void}
    */
   merge(element, data) {
-    if (data.text) {
-      element.innerHTML += sanitizeHtml(data.text)
+    const text = normalizeTextValue(data.text)
+    if (text) {
+      element.innerHTML += sanitizeHtml(text)
     }
     // Preserve alignment from merged block if current has none
-    if (data.align && !element.style.textAlign) {
-      element.style.textAlign = data.align
+    const align = normalizeTextAlign(data.align)
+    if (align && !element.style.textAlign) {
+      element.style.textAlign = align
     }
   }
 

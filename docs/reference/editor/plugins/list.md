@@ -8,7 +8,7 @@ editLink: false
 
 # List block plugin
 
-Ordered and unordered rich-text lists with keyboard indentation behavior.
+Ordered and unordered rich-text lists with item splitting, merging, block exit, and partial-selection conversion.
 
 ## Install and register
 
@@ -35,7 +35,18 @@ The registered block type is `list`. The class is also exported by the complete 
 { "style": "unordered", "items": ["One", "Two"] }
 ```
 
-`style` is `ordered` or `unordered`. Every item uses the shared sanitized inline-markup and inline-widget contract. When only part of a list is converted, selected items are removed from the source list, ordered items are renumbered, and the new block is inserted immediately after the list. A text target receives the selected inline markup; a non-text target starts with its own default data.
+### Field reference
+
+| Field | Required | Meaning and constraints |
+| --- | --- | --- |
+| `style` | yes | `ordered` or `unordered`. A newly inserted list uses the toolbox variant selected by the user. |
+| `items` | yes | A non-empty array of strings with at least one non-blank item. Each string contains sanitized inline HTML and may reference the block's `inline` map. |
+
+An empty trailing item is an editing state, not valid persisted list data. Pressing Enter in that item removes it and creates the editor's default block after the list as one undoable action. Pressing Enter in the sole empty item converts the list itself to the default block.
+
+In a non-empty item, Enter splits at the caret: content before the caret remains in the current item and content after it moves to a new following item. With a non-collapsed selection, the selected content is removed first; the unselected suffix becomes the new item, including selections that cross several items. At the start of any item except the first, Backspace merges that item into the preceding one. These structural edits each form one undoable history step.
+
+When only part of a list is converted, selected items are removed from the source list, ordered items are renumbered, and the new block is inserted immediately after the list. A text target receives the selected inline markup; a non-text target starts with its own default data.
 
 ## Configuration
 
@@ -43,7 +54,7 @@ Every built-in block plugin accepts two style ownership options: `injectStyles?:
 
 ## Capabilities
 
-Inline tools and widgets; ordered/unordered toolbox entries; list paste; merge; whole-block conversion; data-aware partial-selection conversion.
+Inline tools and widgets; ordered/unordered toolbox entries; list paste; Enter splitting; Backspace merging; whole-block conversion; data-aware partial-selection conversion.
 
 ## Undo, lifecycle, and styles
 

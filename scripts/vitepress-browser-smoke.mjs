@@ -8,6 +8,10 @@ import { fileURLToPath } from 'node:url'
 
 const root = fileURLToPath(new URL('..', import.meta.url))
 const distRoot = join(root, 'docs', '.vitepress', 'dist')
+const configuredBase = process.env.DOCS_BASE ?? '/'
+const siteBase = configuredBase === '/'
+  ? '/'
+  : `/${configuredBase.replace(/^\/+|\/+$/g, '')}/`
 const chromePath = process.env.EDITOR_CHROME_PATH
   ?? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
 const expectedBlockTypes = [
@@ -46,13 +50,21 @@ function startStaticServer() {
   return createHttpServer(async (request, response) => {
     try {
       const pathname = decodeURIComponent(new URL(request.url ?? '/', 'http://127.0.0.1').pathname)
-      const relativePath = pathname === '/'
+      const sitePath = siteBase === '/'
+        ? pathname
+        : pathname === siteBase.slice(0, -1)
+          ? '/'
+          : pathname.startsWith(siteBase)
+            ? `/${pathname.slice(siteBase.length)}`
+            : null
+      if (sitePath === null) throw new Error('Path is outside the configured site base')
+      const relativePath = sitePath === '/'
         ? 'index.html'
-        : pathname.endsWith('/')
-          ? `${pathname.slice(1)}index.html`
-          : extname(pathname)
-            ? pathname.slice(1)
-            : `${pathname.slice(1)}.html`
+        : sitePath.endsWith('/')
+          ? `${sitePath.slice(1)}index.html`
+          : extname(sitePath)
+            ? sitePath.slice(1)
+            : `${sitePath.slice(1)}.html`
       const file = resolve(distRoot, relativePath)
       if (file !== distRoot && !file.startsWith(`${distRoot}${sep}`)) throw new Error('Invalid path')
       const body = await readFile(file)
@@ -171,7 +183,7 @@ await new Promise((resolve, reject) => {
   staticServer.listen(0, '127.0.0.1', resolve)
 })
 const address = staticServer.address()
-const pageUrl = `http://127.0.0.1:${address.port}/ru/`
+const pageUrl = `http://127.0.0.1:${address.port}${siteBase}ru/`
 let chrome
 let client
 

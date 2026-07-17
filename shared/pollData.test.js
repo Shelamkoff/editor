@@ -42,6 +42,26 @@ test('poll schema rejects duplicate options, incomplete choices and mismatched r
     ...base,
     initialResults: { total: 1, options: [{ id: 'a', votes: 1 }] },
   }), false)
+  const complete = {
+    total: 1,
+    options: [{ id: 'a', votes: 1 }, { id: 'b', votes: 0 }],
+    revision: '2',
+    currentUserVote: ['a'],
+    votersTotal: 1,
+    voters: [{ id: 'user', name: 'User', avatar: '/avatar.png', optionIds: ['a'] }],
+  }
+  assert.equal(validatePollData({ ...base, initialResults: complete }), true)
+  assert.equal(validatePollData({ ...base, initialResults: { ...complete, total: 1.5 } }), false)
+  assert.equal(validatePollData({ ...base, initialResults: { ...complete, currentUserVote: ['a', 'a'] } }), false)
+  assert.equal(validatePollData({ ...base, initialResults: {
+    ...complete,
+    voters: [{ id: 'user', avatar: 'javascript:alert(1)' }],
+  } }), false)
+  assert.equal(validatePollData({
+    ...base,
+    type: 'single',
+    initialResults: { ...complete, currentUserVote: ['a', 'b'] },
+  }), false)
 })
 
 test('runtime results discard unknown options and unsafe voter avatars', () => {
@@ -60,12 +80,53 @@ test('runtime results discard unknown options and unsafe voter avatars', () => {
   assert.equal(result.votersTotal, 100)
 })
 
+test('single-choice runtime keeps one selection and unique voters', () => {
+  const result = normalizePollResults({
+    total: 2,
+    options: [{ id: 'a', votes: 1 }, { id: 'b', votes: 1 }],
+    currentUserVote: ['a', 'b'],
+    voters: [
+      { id: 'same', optionIds: ['a', 'b'] },
+      { id: 'same', optionIds: ['b'] },
+      { id: 'other', optionIds: ['b'] },
+    ],
+  }, ['a', 'b'], 50, 'single')
+
+  assert.deepEqual(result.currentUserVote, ['a'])
+  assert.deepEqual(result.voters, [
+    { id: 'same', optionIds: ['a'] },
+    { id: 'other', optionIds: ['b'] },
+  ])
+})
+
+test('runtime voter limit is a non-negative integer with a stable fallback', () => {
+  const input = {
+    options: [],
+    voters: [{ id: '1' }, { id: '2' }, { id: '3' }],
+  }
+  assert.deepEqual(normalizePollResults(input, [], 1.9).voters, [{ id: '1' }])
+  assert.deepEqual(normalizePollResults(input, [], -2).voters, [])
+  assert.equal(normalizePollResults(input, [], Number.NaN).voters.length, 3)
+})
+
 test('local voting replaces the previous user vote without double-counting', () => {
   const first = applyLocalPollVote(undefined, [], ['a'], ['a', 'b'])
   assert.deepEqual(first.options, [{ id: 'a', votes: 1 }, { id: 'b', votes: 0 }])
+  assert.equal(first.total, 1)
   const changed = applyLocalPollVote(first, ['a'], ['b'], ['a', 'b'])
   assert.deepEqual(changed.options, [{ id: 'a', votes: 0 }, { id: 'b', votes: 1 }])
+  assert.equal(changed.total, 1)
   assert.deepEqual(changed.currentUserVote, ['b'])
+})
+
+test('multiple-choice local voting counts ballots rather than selected options', () => {
+  const first = applyLocalPollVote(undefined, [], ['a', 'b'], ['a', 'b'])
+  assert.deepEqual(first.options, [{ id: 'a', votes: 1 }, { id: 'b', votes: 1 }])
+  assert.equal(first.total, 1)
+
+  const changed = applyLocalPollVote(first, ['a', 'b'], ['b'], ['a', 'b'])
+  assert.deepEqual(changed.options, [{ id: 'a', votes: 0 }, { id: 'b', votes: 1 }])
+  assert.equal(changed.total, 1)
 })
 
 test('poll revisions use host ordering only when it is explicitly provided', () => {

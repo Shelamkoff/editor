@@ -15,7 +15,7 @@ export class InlinePatternMatcher {
   /** @type {HTMLElement} */
   #rootEl
 
-  /** @type {import('./InlinePluginRegistry').InlinePluginRegistry} */
+  /** @type {import('./types').IInlinePluginRegistry} */
   #registry
 
   /** @type {import('./types').InlinePluginContext} */
@@ -38,7 +38,7 @@ export class InlinePatternMatcher {
 
   /**
    * @param {HTMLElement} rootEl
-   * @param {import('./InlinePluginRegistry').InlinePluginRegistry} registry
+   * @param {import('./types').IInlinePluginRegistry} registry
    * @param {import('./types').InlinePluginContext} ctx
    * @param {import('./types').IEventBus} events
    * @param {import('./types').IBlockManager} blocks
@@ -105,11 +105,12 @@ export class InlinePatternMatcher {
 
     const node = sel.anchorNode
     if (!node || node.nodeType !== Node.TEXT_NODE) return
+    const textNode = /** @type {import('./types').DOMText} */ (node)
     // Skip inside inline plugin widgets
     if (/** @type {Element | null} */ (node.parentElement)?.closest('[data-inline-plugin]')) return
 
     const offset = sel.anchorOffset
-    const text = /** @type {Text} */ (node).data
+    const text = textNode.data
     if (!text || offset === 0) return
 
     // Extract the word before caret (back to previous space or start)
@@ -129,7 +130,7 @@ export class InlinePatternMatcher {
         const block = this.#blocks.getBlockByChildNode(node)
         if (!block) return
         this.#mutations.runForBlock(block, () => {
-          this.#replaceMatch(/** @type {Text} */ (node), wordStart, offset, plugin, word)
+          this.#replaceMatch(textNode, wordStart, offset, plugin, word)
 
           // Insert the space that was suppressed by preventDefault
           if (e.key === ' ') {
@@ -149,13 +150,13 @@ export class InlinePatternMatcher {
 
   /** @param {import('./types').IBlock[]} blocks */
   #replacePatterns(blocks) {
-    /** @type {Map<import('./types').IBlock, { node: Text, match: string, start: number, end: number, plugin: import('./types').InlinePlugin }[]>} */
+    /** @type {Map<import('./types').IBlock, { node: import('./types').DOMText, match: string, start: number, end: number, plugin: import('./types').InlinePlugin }[]>} */
     const matchesByBlock = new Map()
     for (const block of blocks) {
       const matches = []
       const walker = document.createTreeWalker(block.contentElement, NodeFilter.SHOW_TEXT)
       while (walker.nextNode()) {
-        const node = /** @type {Text} */ (walker.currentNode)
+        const node = /** @type {import('./types').DOMText} */ (walker.currentNode)
         if (node.parentElement?.closest('[data-inline-plugin]')) continue
         this.#findMatches(node.textContent || '', node, matches)
       }
@@ -177,8 +178,8 @@ export class InlinePatternMatcher {
   /**
    * Find all pattern matches in a text string.
    * @param {string} text
-   * @param {Text} node
-   * @param {{ node: Text, match: string, start: number, end: number, plugin: import('./types').InlinePlugin }[]} results
+   * @param {import('./types').DOMText} node
+   * @param {{ node: import('./types').DOMText, match: string, start: number, end: number, plugin: import('./types').InlinePlugin }[]} results
    */
   #findMatches(text, node, results) {
     // Split text by whitespace and check each word
@@ -224,7 +225,7 @@ export class InlinePatternMatcher {
 
   /**
    * Replace a text range with an inline plugin widget.
-   * @param {Text} textNode
+   * @param {import('./types').DOMText} textNode
    * @param {number} start
    * @param {number} end
    * @param {import('./types').InlinePlugin} plugin
@@ -242,7 +243,7 @@ export class InlinePatternMatcher {
       textNode.splitText(end)
     }
     const targetNode = start > 0
-      ? /** @type {Text} */ (textNode.splitText(start))
+      ? /** @type {import('./types').DOMText} */ (textNode.splitText(start))
       : textNode
 
     // Replace the matched text with widget

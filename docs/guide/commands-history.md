@@ -66,6 +66,8 @@ Rector saves the plugin DOM before and after the mutation. Undo restores the pre
 
 Do not call `mutate()` for focus, hover, opening a menu, or another transient UI state that is not part of the document.
 
+List-like plugins sometimes need a core structural operation after changing their own data. `context.splitBlock()` inserts the configured default block after the current block; `context.exitEmptyBlock()` converts an empty non-default block to that default type. Call `splitBlock()` inside the same `mutate()` that removes an empty trailing item so both effects are one compound history step. `exitEmptyBlock()` already enters the structural command pipeline and reports whether conversion occurred. These methods replace synthetic Enter or Backspace events; plugins must not emulate keyboard input to request editor structure changes.
+
 ## Slash commands
 
 Typing `/` opens the command menu. On an empty block the menu offers registered block plugins; when inline plugins are registered, it can also open after existing text and offers the matching inline widgets. Entries are built from the configured `plugins` and `inlinePlugins` arrays, so there is no separate slash-command registry.
@@ -175,7 +177,7 @@ The editor registers platform-aware keyboard shortcuts inside its root:
 | Undo | `Mod+Z` |
 | Redo | `Mod+Shift+Z` or `Mod+Y` |
 
-`Mod` means Command on macOS and Control on Windows or Linux. Rector deliberately does not expose public `undo()` and `redo()` methods in version 1.0.0. Host buttons should not reach into the internal undo manager.
+`Mod` means Command on macOS and Control on Windows or Linux. Application controls use the same public history through `editor.undo()` and `editor.redo()`. Both return `false` when no step is available or the editor is read-only. Use `editor.canUndo`, `editor.canRedo`, and the `history:changed` event to maintain disabled button state; do not reach into the internal undo manager.
 
 Native undo remains available in ordinary `input` and `textarea` controls owned by a plugin. Editor history takes precedence only when focus belongs to editable document content or editor UI.
 
@@ -185,6 +187,8 @@ History is last-in, first-out. If a block is inserted and formatting is then app
 
 Continuous text input is coalesced within `tuning.undo.debounceMs`, which defaults to 300 ms. A command boundary, selection-changing action, structural operation, paste, or toolbar action closes the typing group.
 
+`canUndo` and `history:changed` react as soon as the first input event opens that group; application buttons therefore do not wait for the debounce timer. Starting a new input branch also makes `canRedo` false immediately.
+
 The history stack stores at most `tuning.undo.maxStack` entries, which defaults to 100. Committing a new action after undo discards the redo branch.
 
 ## Events are observations, not commands
@@ -192,15 +196,21 @@ The history stack stores at most `tuning.undo.maxStack` entries, which defaults 
 `editor.events` is subscription-only. Events report completed behavior and must not be emitted by application or plugin code.
 
 ```js
-const unsubscribe = editor.events.on('history:commit', () => {
-  updateDirtyIndicator()
+const stopHistoryState = editor.events.on('history:changed', ({ canUndo, canRedo }) => {
+  undoButton.disabled = !canUndo
+  redoButton.disabled = !canRedo
+})
+
+const stopDirtyState = editor.events.on('history:commit', () => {
+  markDocumentDirty()
 })
 
 // Later
-unsubscribe()
+stopHistoryState()
+stopDirtyState()
 ```
 
-Use `history:commit` to observe a committed step and `editor:changed` to observe a document mutation. `onChange` is the debounced serialized notification intended for persistence.
+Use `history:changed` to observe command availability, `history:commit` to observe a committed step, and `editor:changed` to observe a document mutation. `onChange` is the debounced serialized notification intended for persistence. Mode transitions emit `history:changed`, but do not emit `history:commit`, `editor:changed`, or `onChange`.
 
 ## Extension checklist
 

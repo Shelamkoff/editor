@@ -14,7 +14,7 @@ editLink: false
 
 | Плагин | Точка входа | Назначение |
 | --- | --- | --- |
-| [Цвет](/ru/reference/editor/inline-plugins/color) | `@shelamkoff/rector/inline-plugins/color` | Сохраняемый цвет текста или фона |
+| [Образец цвета](/ru/reference/editor/inline-plugins/color) | `@shelamkoff/rector/inline-plugins/color` | Сохраняемый образец с редактируемым значением цвета |
 | [Упоминание](/ru/reference/editor/inline-plugins/mention) | `@shelamkoff/rector/inline-plugins/mention` | Поиск и вставка сущности из источника приложения |
 
 ## Регистрация

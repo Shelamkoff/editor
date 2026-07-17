@@ -4,6 +4,7 @@ import { setSanitizedRawHtml } from '../../../shared/sanitize/sanitizeRawHtml.js
 /**
  * Raw HTML block renderer
  * @param {string} classPrefix
+ * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} _locale
  * @returns {import('../../types').BlockRenderer<import('../../types').RawBlock>}
  */
 export function createRawRenderer(classPrefix, _locale) {

@@ -7,6 +7,7 @@ import { CSS } from './css.js'
  *
  * @param {HTMLElement} wrapper
  * @param {import('./state.js').GalleryState} state
+ * @returns {void}
  */
 export function applyGalleryStyles(wrapper, state) {
   const grid = /** @type {HTMLElement | null} */ (wrapper.querySelector(`.${CSS.grid}`))

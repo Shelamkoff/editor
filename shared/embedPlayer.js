@@ -1,4 +1,4 @@
-import { setSafeUrlAttribute } from './sanitize/sanitizeUrl.js'
+import { sanitizeUrl, setSafeUrlAttribute } from './sanitize/sanitizeUrl.js'
 
 /** @type {Record<string, { regex: RegExp[], embedUrl: (id: string) => string, previewUrl: ((id: string) => string) | null }>} */
 export const SERVICES = {
@@ -19,6 +19,9 @@ const IFRAME_SANDBOX = 'allow-scripts allow-same-origin allow-presentation allow
 
 /**
  * Build a video player DOM subtree.
+ *
+ * `playIcon` and `placeholderHtml` are inserted with `innerHTML` and therefore
+ * must contain trusted application-owned markup, never user content.
  *
  * @param {{
  *   service: string,
@@ -45,7 +48,9 @@ export function buildPlayer(opts) {
   player.className = `${prefix}__player`
 
   // Preview: custom cover → service thumbnail → placeholder
-  const previewUrl = cover || svc?.previewUrl?.(videoId) || ''
+  const previewUrl = sanitizeUrl(cover || '', { policy: 'media', fallback: '' })
+    || svc?.previewUrl?.(videoId)
+    || ''
 
   /** @type {HTMLElement | null} */
   let previewEl = null
@@ -53,12 +58,15 @@ export function buildPlayer(opts) {
   if (previewUrl) {
     const img = document.createElement('img')
     img.className = `${prefix}__preview`
-    setSafeUrlAttribute(img, 'src', previewUrl, 'media')
+    const safePreview = setSafeUrlAttribute(img, 'src', previewUrl, 'media')
     img.alt = title || videoLabel
     img.loading = 'lazy'
-    player.appendChild(img)
-    previewEl = img
-  } else if (placeholderHtml) {
+    if (safePreview) {
+      player.appendChild(img)
+      previewEl = img
+    }
+  }
+  if (!previewEl && placeholderHtml) {
     previewEl = document.createElement('div')
     previewEl.className = `${prefix}__placeholder`
     previewEl.innerHTML = placeholderHtml
@@ -104,8 +112,8 @@ export function buildPlayer(opts) {
 
     const iframe = document.createElement('iframe')
     setSafeUrlAttribute(iframe, 'src', embedUrl, 'external')
-    iframe.setAttribute('frameborder', '0')
-    iframe.setAttribute('allowfullscreen', 'true')
+    iframe.style.border = '0'
+    iframe.allowFullscreen = true
     iframe.setAttribute('allow', IFRAME_ALLOW)
     iframe.setAttribute('sandbox', IFRAME_SANDBOX)
     iframe.title = title || videoLabel
@@ -118,12 +126,13 @@ export function buildPlayer(opts) {
    * @param {string} [alt]
    */
   function setPreview(src, alt) {
-    if (previewEl) previewEl.remove()
     const img = document.createElement('img')
     img.className = `${prefix}__preview`
-    setSafeUrlAttribute(img, 'src', src, 'media')
+    const safePreview = setSafeUrlAttribute(img, 'src', src, 'media')
+    if (!safePreview) return
     img.alt = alt || videoLabel
     img.loading = 'lazy'
+    if (previewEl) previewEl.remove()
     player.insertBefore(img, player.firstChild)
     previewEl = img
   }

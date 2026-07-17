@@ -12,5 +12,6 @@ export default {
   'plugin.person.cropCancel': 'Отмена',
   'plugin.person.addPerson': 'Добавить персону',
   'plugin.person.removePerson': 'Удалить',
+  'plugin.person.removeLink': 'Удалить ссылку',
   'plugin.person.fallbackName': 'Персона {number}',
 }

@@ -50,6 +50,9 @@
       "types": "./dist/renderer/index.d.ts",
       "import": "./dist/renderer/index.js"
     },
+    "./renderer/types": {
+      "types": "./dist/renderer/types.d.ts"
+    },
     "./renderer/async": {
       "types": "./dist/renderer/async.d.ts",
       "import": "./dist/renderer/async.js"
@@ -77,23 +80,26 @@
   },
   "files": [
     "dist",
+    "README.md",
     "LICENSE",
     "NOTICE",
     "THIRD_PARTY_LICENSES.txt"
   ],
   "scripts": {
-    "build": "npm run docs:readme && node scripts/build-package.mjs",
+    "build": "npm run docs:validate-readmes && node scripts/build-package.mjs",
     "build:types": "node scripts/generate-declarations.mjs --out dist",
     "typecheck": "node node_modules/typescript/bin/tsc -p jsconfig.json",
-    "docs:readme": "node scripts/generate-extension-readmes.mjs",
-    "docs:sync": "npm run docs:readme && node scripts/sync-vitepress-readmes.mjs",
+    "docs:validate-readmes": "node scripts/validate-extension-readmes.mjs",
+    "docs:sync": "npm run docs:validate-readmes && node scripts/sync-vitepress-readmes.mjs",
     "docs:dev": "npm run docs:sync && vitepress dev docs --host 127.0.0.1",
     "docs:build": "npm run docs:sync && vitepress build docs",
     "docs:preview": "vitepress preview docs --host 127.0.0.1",
     "docs:check": "npm run docs:build && node scripts/vitepress-docs-smoke.mjs && node scripts/vitepress-browser-smoke.mjs",
     "test": "node --test",
     "test:browser": "node tests/browser/run.mjs && node tests/browser/physical-history.mjs && node tests/browser/heap-gate.mjs",
-    "test:docs": "npm run docs:readme && node scripts/readme-smoke.mjs",
+    "test:plugin-source": "node scripts/plugin-source-audit.mjs",
+    "test:plugin-locales": "node scripts/plugin-locale-audit.mjs",
+    "test:docs": "npm run docs:validate-readmes && npm run test:plugin-source && npm run test:plugin-locales && node scripts/documentation-contract-audit.mjs && node scripts/readme-smoke.mjs",
     "test:types": "node --test shared/declarationParity.test.js",
     "test:package": "node scripts/package-consumer-gate.mjs",
     "prepublishOnly": "npm run typecheck && npm test && npm run test:browser && npm run test:docs && npm run test:types && npm run test:package",
@@ -131,7 +137,7 @@
     "type": "git",
     "url": "git+https://github.com/Shelamkoff/editor.git"
   },
-  "homepage": "https://github.com/Shelamkoff/editor",
+  "homepage": "https://shelamkoff.github.io/editor/",
   "bugs": {
     "url": "https://github.com/Shelamkoff/editor/issues"
   },

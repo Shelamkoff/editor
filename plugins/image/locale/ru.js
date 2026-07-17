@@ -34,4 +34,5 @@ export default {
   'plugin.image.value.scale-down': 'Только уменьшать',
   'plugin.image.value.solid': 'Сплошная',
   'plugin.image.value.dashed': 'Штриховая',
+  'plugin.image.emptyReadonly': 'Нет изображения',
 }

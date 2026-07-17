@@ -13,8 +13,8 @@ The package ships 21 editable block plugins. Import a single plugin from `@shela
 | Plugin | Block type | Purpose |
 | --- | --- | --- |
 | [Paragraph](/reference/editor/plugins/paragraph) | `paragraph` | Editable rich-text paragraph with alignment, inline tools, inline widgets, merge, and block conversion support. |
-| [Heading](/reference/editor/plugins/heading) | `heading` | Heading levels 2-6 with alignment, inline formatting, inline widgets, shortcuts, and level controls. |
-| [List](/reference/editor/plugins/list) | `list` | Ordered and unordered rich-text lists with keyboard indentation behavior. |
+| [Heading](/reference/editor/plugins/heading) | `heading` | Heading levels 2-6 with alignment, inline formatting, inline widgets, paste handling, and level controls. |
+| [List](/reference/editor/plugins/list) | `list` | Ordered and unordered rich-text lists with item splitting, merging, block exit, and conversion of selected items. |
 | [Quote](/reference/editor/plugins/quote) | `quote` | Quotation text with an optional caption. |
 | [Code](/reference/editor/plugins/code) | `code` | Code block with a language selector and optional syntax highlighting. |
 | [Image](/reference/editor/plugins/image) | `image` | Uploadable image with caption, sizing, border, background, and object-fit controls. |
@@ -27,7 +27,7 @@ The package ships 21 editable block plugins. Import a single plugin from `@shela
 | [Gallery](/reference/editor/plugins/gallery) | `gallery` | Multi-image gallery with layouts, captions, appearance settings, reordering, and viewer options. |
 | [CarouselBlock](/reference/editor/plugins/carousel) | `carousel` | Mixed image, video, and sanitized HTML slides with navigation, pagination, thumbnails, autoplay, and ordering controls. |
 | [Attaches](/reference/editor/plugins/attaches) | `attaches` | One or more downloadable files with selectable presentation variants. |
-| [LinkPreview](/reference/editor/plugins/link-preview) | `linkPreview` | Bookmark preview with seven visual templates and optional application-provided metadata. |
+| [LinkPreview](/reference/editor/plugins/link-preview) | `linkPreview` | Link preview card with seven visual templates and optional application-provided metadata. |
 | [Toggle](/reference/editor/plugins/toggle) | `toggle` | Collapsible block with editable title, rich content, and persistent open state. |
 | [Columns](/reference/editor/plugins/columns) | `columns` | Two- or three-column rich-content layouts. |
 | [Spoiler](/reference/editor/plugins/spoiler) | `spoiler` | User-revealed hidden content with an editable label. |
@@ -45,7 +45,7 @@ const plugins = await createBlockPluginsAsync(documentData, {
 })
 ```
 
-The async loader deduplicates imports and preserves the deterministic built-in type order. Unknown types reject instead of being silently ignored.
+The async loader deduplicates imports and preserves the first-occurrence order from the supplied type list or document. When no source is supplied, it uses the built-in catalog order. Unknown types reject instead of being silently ignored.
 
 ## Authoring
 

@@ -99,6 +99,7 @@ function setTheme(editor, theme) {
 | Код | `.oe-code-wrap` |
 | Изображение | `.oe-image` |
 | Галерея | `.oe-gallery` |
+| Карусель | `.oe-carousel-block` |
 | Встраиваемый материал | `.oe-embed` |
 | Таблица | `.oe-table-wrapper` |
 | Вложения | `.oe-attaches` |
@@ -142,11 +143,15 @@ Rector подсчитывает владельцев одинаковых URL м
 Конструкторы встроенных плагинов принимают `injectStyles: false`, если приложение собирает CSS самостоятельно. Необязательная строка `css` добавляет один URL таблицы стилей приложения после стандартной или задаёт URL замены, когда стандартная инъекция отключена.
 
 ```js
-new Callout({
+import { Paragraph } from '@shelamkoff/rector/plugins/paragraph'
+
+new Paragraph({
   injectStyles: false,
-  css: new URL('./callout.application.css', import.meta.url).href,
+  css: new URL('./paragraph.application.css', import.meta.url).href,
 })
 ```
+
+Пользовательский плагин, принимающий те же параметры, должен возвращать конфигурацию конструктора через `getPluginConfig()`. Наследование от `BlockPluginAbstract` предоставляет такое поведение.
 
 В этом режиме приложение отвечает за подключение всех необходимых таблиц стилей и за жизненный цикл принадлежащих ему ссылок или пакета стилей.
 

@@ -105,6 +105,38 @@ async function run() {
   assert(unsubscribeCalls === 1, 'destroy did not unsubscribe Poll data source')
   remoteElement.remove()
 
+  let readOnlyVoteCalls = 0
+  let readOnlySubscriber
+  const readOnlySource = {
+    async load() {
+      return { revision: '1', total: 0, options: [{ id: 'yes', votes: 0 }, { id: 'no', votes: 0 }] }
+    },
+    async vote() {
+      readOnlyVoteCalls++
+      return { revision: '2', total: 1, options: [{ id: 'yes', votes: 1 }, { id: 'no', votes: 0 }] }
+    },
+    subscribe(context) {
+      readOnlySubscriber = context
+    },
+  }
+  const readOnlyPoll = new Poll({ dataSource: readOnlySource })
+  const readOnlyElement = readOnlyPoll.render(fixture, {
+    readOnly: true,
+    mutate() { throw new Error('read-only poll attempted a document mutation') },
+  })
+  sandbox.appendChild(readOnlyElement)
+  await tick()
+  readOnlySubscriber.onUpdate({
+    revision: '2', total: 1,
+    options: [{ id: 'yes', votes: 1 }, { id: 'no', votes: 0 }],
+  })
+  const readOnlySubmit = readOnlyElement.querySelector('.oe-poll__submit')
+  assert(readOnlySubmit.disabled, 'asynchronous results enabled voting in read-only mode')
+  readOnlySubmit.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+  assert(readOnlyVoteCalls === 0, 'read-only poll invoked the external vote callback')
+  readOnlyPoll.destroy(readOnlyElement)
+  readOnlyElement.remove()
+
   const renderer = new EditorRenderer({
     blockTypes: ['poll'],
     blockConfigs: { poll: { dataSource, compareRevisions } },
@@ -133,7 +165,7 @@ async function run() {
 
   return {
     modes: ['local', 'load', 'vote', 'subscribe', 'renderer'],
-    guards: ['afterVote confirmation', 'single history step', 'duplicate submit', 'concurrent subscription update', 'revision ordering', 'abort', 'unsubscribe', 'safe voters'],
+    guards: ['afterVote confirmation', 'single history step', 'duplicate submit', 'concurrent subscription update', 'revision ordering', 'read-only side effects', 'abort', 'unsubscribe', 'safe voters'],
   }
 }
 

@@ -23,6 +23,8 @@ export default {
   'plugin.carousel.moveNextShort': 'Later',
   'plugin.carousel.remove': 'Remove',
   'plugin.carousel.removeSlide': 'Remove slide',
+  'plugin.carousel.deleteAll': 'Remove all slides',
+  'plugin.carousel.video': 'Video slide',
   'plugin.carousel.settings': 'Settings',
   'plugin.carousel.currentSlide': 'Current slide',
   'plugin.carousel.behavior': 'Behavior',

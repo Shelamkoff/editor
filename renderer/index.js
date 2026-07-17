@@ -8,6 +8,8 @@ import { cloneEditorData } from '../shared/cloneEditorData.js'
 import defaultLocale from './locale/en.js'
 import { acquireStyleUrls } from '../shared/styleRegistry.js'
 import { validateKnownBlockData } from '../shared/blockDataValidators.js'
+import { normalizeKnownBlockData } from '../shared/blockDataNormalizers.js'
+import { normalizeTextAlign } from '../shared/textFormat.js'
 
 const baseCssUrl = resolvePath('./styles/base.css', import.meta.url)
 
@@ -144,6 +146,7 @@ export class EditorRenderer {
       return { element: placeholder, type: block.type }
     }
 
+    let renderableBlock = block
     if (this.#defaultRendererTypes.has(block.type) && !validateKnownBlockData(block.type, block.data)) {
       const issue = { blockId: block.id, type: block.type }
       try {
@@ -154,28 +157,31 @@ export class EditorRenderer {
       if (this.#config.validationMode === 'strict') {
         throw new InvalidBlockDataError(block.type, 'Block data does not match its schema', block.id)
       }
+      renderableBlock = { ...block, data: normalizeKnownBlockData(block.type, block.data) }
     }
 
     // Rehydrate inline widget placeholders before calling the block
     // renderer — mirrors editor-side `BlockManager.insert` behavior.
     // Only text renderers that opted in (`mapTextFields`) participate.
-    let renderableBlock = block
-    if (block.inline && typeof renderer.mapTextFields === 'function' && this.#inlinePlugins.size > 0) {
-      const inline = block.inline
+    if (renderableBlock.inline && typeof renderer.mapTextFields === 'function' && this.#inlinePlugins.size > 0) {
+      const inline = renderableBlock.inline
       const registry = this.#inlinePlugins
       // Clone `data` so we don't mutate the caller's object with hydrated HTML.
-      const hydratedData = cloneEditorData(block.data)
+      const hydratedData = cloneEditorData(renderableBlock.data)
       renderer.mapTextFields(
         /** @type {Record<string, unknown>} */ (hydratedData),
         (html) => deserializeInlineHtml(html, inline, registry),
       )
-      renderableBlock = { ...block, data: hydratedData }
+      renderableBlock = { ...renderableBlock, data: hydratedData }
     }
 
     const element = renderer.render(renderableBlock, this.#parseInline)
     if (!(element instanceof HTMLElement)) {
       throw new TypeError(`Block renderer "${block.type}" render() must return an HTMLElement`)
     }
+
+    const textAlign = normalizeTextAlign(block.tunes?.textAlign)
+    if (textAlign) element.style.textAlign = textAlign
 
     // Add block id as data attribute if present
     if (block.id) {
@@ -239,7 +245,13 @@ export class EditorRenderer {
     if (typeof block.revision === 'string' || typeof block.revision === 'number') {
       return JSON.stringify([rendererRevision, block.type, block.revision])
     }
-    return JSON.stringify([rendererRevision, block.type, block.data, block.inline ?? null])
+    return JSON.stringify([
+      rendererRevision,
+      block.type,
+      block.data,
+      block.tunes ?? null,
+      block.inline ?? null,
+    ])
   }
 
   /**

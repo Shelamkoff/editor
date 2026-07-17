@@ -1,5 +1,4 @@
 // @ts-check
-import { InvalidBlockDataError } from '../../errors.js'
 import { buildPlayer } from '../../../shared/embedPlayer.js'
 import { resolvePath } from '../../../shared/resolvePath.js'
 
@@ -11,6 +10,7 @@ const ICON_PLAY = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24
  * Embed block renderer — uses shared buildPlayer() for identical DOM structure.
  * Data: { service, videoId, caption?, cover?, title?, duration? }
  * @param {string} classPrefix
+ * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} locale
  * @returns {import('../../types').BlockRenderer<import('../../types').EmbedBlock>}
  */
 export function createEmbedRenderer(classPrefix, locale) {
@@ -28,12 +28,9 @@ export function createEmbedRenderer(classPrefix, locale) {
     render(block, parseInline) {
       const { service, videoId, caption, cover, title, duration } = block.data
 
-      if (!service || !videoId) {
-        throw new InvalidBlockDataError('embed', 'Missing service or videoId', block.id)
-      }
-
       const figure = document.createElement('figure')
       figure.className = `${classPrefix}-embed`
+      if (!videoId) return figure
 
       // Build player using shared module (same DOM as editor plugin)
       const result = buildPlayer({

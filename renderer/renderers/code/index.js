@@ -33,9 +33,14 @@ const ICON_CHECK = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="1
  * Uses highlight.js for syntax highlighting with auto-detection
  * @see https://highlightjs.org/
  * @param {string} classPrefix
+ * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} locale
  * @returns {import('../../types').BlockRenderer<import('../../types').CodeBlock>}
  */
 export function createCodeRenderer(classPrefix, /** @type {Record<string, import('../../../shared/localeTypes').LocaleValue>} */ locale) {
+    /** @type {WeakMap<HTMLElement, number>} */
+    const resetTimers = new WeakMap()
+    /** @type {WeakSet<HTMLElement>} */
+    const liveElements = new WeakSet()
     const t = (/** @type {string} */ key, /** @type {string} */ fallback) => {
         const value = locale?.[key]
         return typeof value === 'string' ? value : fallback
@@ -54,6 +59,7 @@ export function createCodeRenderer(classPrefix, /** @type {Record<string, import
 
             const wrapper = document.createElement('div')
             wrapper.className = `${classPrefix}-code`
+            liveElements.add(wrapper)
 
             const highlighted = highlightCode(code, language)
 
@@ -75,13 +81,19 @@ export function createCodeRenderer(classPrefix, /** @type {Record<string, import
             copyBtn.addEventListener('click', async () => {
                 try {
                     await navigator.clipboard.writeText(code)
+                    if (!liveElements.has(wrapper)) return
                     copyBtn.innerHTML = ICON_CHECK
                     copyBtn.classList.add(`${classPrefix}-code__copy--success`)
 
-                    setTimeout(() => {
+                    const previousTimer = resetTimers.get(wrapper)
+                    if (previousTimer !== undefined) clearTimeout(previousTimer)
+                    const timer = window.setTimeout(() => {
+                        resetTimers.delete(wrapper)
+                        if (!liveElements.has(wrapper)) return
                         copyBtn.innerHTML = ICON_CLIPBOARD
                         copyBtn.classList.remove(`${classPrefix}-code__copy--success`)
                     }, 2000)
+                    resetTimers.set(wrapper, timer)
                 } catch {
                     // Clipboard API unavailable (HTTP without localhost)
                 }
@@ -100,6 +112,7 @@ export function createCodeRenderer(classPrefix, /** @type {Record<string, import
 
             if (!getHighlightRuntime()) {
                 void loadHighlightRuntime().then(() => {
+                    if (!liveElements.has(wrapper)) return
                     const loaded = highlightCode(code, language)
                     langLabel.textContent = (loaded.language && loaded.language !== 'plaintext') ? loaded.language : ''
                     codeElement.className = classPrefix + '-code__content hljs language-' + loaded.language
@@ -113,6 +126,12 @@ export function createCodeRenderer(classPrefix, /** @type {Record<string, import
             wrapper.appendChild(pre)
 
             return wrapper
+        },
+        destroy(element) {
+            liveElements.delete(element)
+            const timer = resetTimers.get(element)
+            if (timer !== undefined) clearTimeout(timer)
+            resetTimers.delete(element)
         },
     }
 }

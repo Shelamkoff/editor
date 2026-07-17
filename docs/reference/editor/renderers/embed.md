@@ -34,6 +34,8 @@ rendererStyles.destroy()
 { "service": "youtube", "videoId": "dQw4w9WgXcQ", "caption": "Caption", "cover": "", "title": "", "duration": "" }
 ```
 
+The [embed plugin field reference](/reference/editor/plugins/embed#field-reference) is the canonical persisted-data contract shared by the editor and renderer.
+
 The shared player builds output only for supported providers and the caption uses the inline parser. The play listener is released with the rendered root. The renderer declares one stylesheet.
 
 When styles are declared, the explicit `EditorRenderer.injectStyles()` call shown above acquires them and its returned owner releases them.

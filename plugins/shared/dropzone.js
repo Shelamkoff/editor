@@ -5,34 +5,37 @@
 
 /**
  * @typedef {Object} DropzoneCssMap
- * @property {string} select — wrapper class
- * @property {string} selectIcon — icon container class
- * @property {string} selectText — text container class
- * @property {string} selectLink — upload link class
- * @property {string} dropzoneActive — class added on dragover
- * @property {string} filled — class removed from wrapper on render
- * @property {string} [selectActions] — optional application-source list class
- * @property {string} [selectAction] — optional application-source button class
+ * @property {string} select Wrapper class.
+ * @property {string} selectIcon Icon container class.
+ * @property {string} selectText Text container class.
+ * @property {string} selectLink Upload link class.
+ * @property {string} dropzoneActive Class added during dragover.
+ * @property {string} filled Class removed from the wrapper during rendering.
+ * @property {string} [selectActions] Optional application-source list class.
+ * @property {string} [selectAction] Optional application-source button class.
  */
 
 /**
  * @typedef {Object} DropzoneConfig
- * @property {string} iconHtml — SVG icon markup
- * @property {string} uploadText — localized "Upload" link text
- * @property {string} afterText — localized text after the upload link
- * @property {() => void} onUploadClick — trigger file input
- * @property {(dataTransfer: DataTransfer) => void} onDrop — handle dropped files
+ * @property {string} iconHtml SVG icon markup.
+ * @property {string} uploadText Localized upload-link text.
+ * @property {string} afterText Localized text after the upload link.
+ * @property {() => void} onUploadClick Opens the file input.
+ * @property {(dataTransfer: DataTransfer) => void} onDrop Handles dropped files.
  * @property {Array<{ icon?: string, label: string, onSelect: () => void }>} [actions]
+ * @property {boolean} [readOnly] Render a non-interactive empty state.
+ * @property {string} [emptyText] Text shown for an empty read-only block.
  */
 
 /**
  * Render a dropzone (empty-state) view into a wrapper element.
  * Clears the wrapper, removes the `filled` class, and wires drag-and-drop.
  *
- * @param {HTMLElement} wrapper — block wrapper element
- * @param {AbortSignal} signal — for automatic listener cleanup
+ * @param {HTMLElement} wrapper Block wrapper element.
+ * @param {AbortSignal} signal Enables automatic listener cleanup.
  * @param {DropzoneCssMap} css — plugin-specific CSS class names
  * @param {DropzoneConfig} config — icon, text, and callbacks
+ * @returns {void}
  */
 export function renderDropzone(wrapper, signal, css, config) {
   wrapper.innerHTML = ''
@@ -47,6 +50,13 @@ export function renderDropzone(wrapper, signal, css, config) {
 
   const text = document.createElement('div')
   text.className = css.selectText
+
+  if (config.readOnly) {
+    text.textContent = config.emptyText || config.afterText
+    select.append(icon, text)
+    wrapper.appendChild(select)
+    return
+  }
 
   const uploadLink = document.createElement('button')
   uploadLink.type = 'button'

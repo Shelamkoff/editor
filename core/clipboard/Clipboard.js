@@ -251,7 +251,6 @@ export class Clipboard {
       e.clipboardData?.setData('text/plain', text)
       e.clipboardData?.setData('text/html', html)
       e.clipboardData?.setData(MIME_TYPE, JSON.stringify(blocksData))
-      return
     }
 
   }
@@ -284,7 +283,6 @@ export class Clipboard {
       } finally {
         this.#events.emit(EditorEvent.UNDO_BATCH_END)
       }
-      return
     }
 
   }
@@ -557,9 +555,15 @@ export class Clipboard {
       const initialData = plugin.onPaste({ type: 'file', file })
       if (!initialData) return null
 
-      element = plugin.render(initialData, { mutate: (operation) => operation() })
+      element = plugin.render(initialData, {
+        mutate: (operation) => operation(),
+        splitBlock: () => {},
+        exitEmptyBlock: () => false,
+        readOnly: false,
+      })
       if (!(element instanceof HTMLElement)) {
-        throw new TypeError(`File paste plugin "${plugin.type}" did not return an HTMLElement`)
+        console.error(`[Clipboard] File paste plugin "${plugin.type}" did not return an HTMLElement`)
+        return null
       }
 
       shell = document.createElement('div')
@@ -588,7 +592,8 @@ export class Clipboard {
 
       const saved = plugin.save(element)
       if (!saved || typeof saved !== 'object' || Array.isArray(saved)) {
-        throw new TypeError(`File paste plugin "${plugin.type}" returned invalid data`)
+        console.error(`[Clipboard] File paste plugin "${plugin.type}" returned invalid data`)
+        return null
       }
       if (plugin.validate && !plugin.validate(saved)) return null
       return { type: plugin.type, data: cloneEditorData(saved) }

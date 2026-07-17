@@ -1,6 +1,7 @@
 import { sanitizeUrl } from './sanitize/sanitizeUrl.js'
 import { validatePollData } from './pollData.js'
 import { validateCarouselData } from './carouselData.js'
+import { isTextAlign } from './textFormat.js'
 
 export const COLUMN_LAYOUT_SIZES = Object.freeze({
   '1-1': 2,
@@ -27,9 +28,8 @@ const OPTIONAL_LINK_PREVIEW_STRINGS = [
   'title', 'description', 'image', 'favicon', 'domain',
 ]
 const OPTIONAL_EMBED_STRINGS = ['caption', 'cover', 'title', 'duration']
-const TEXT_ALIGNS = new Set(['left', 'center', 'right', 'justify'])
 
-/** @param {unknown} value */
+/** @param {unknown} value @returns {value is Record<string, unknown>} */
 function isRecord(value) {
   return !!value && typeof value === 'object' && !Array.isArray(value)
 }
@@ -46,7 +46,7 @@ function isNonEmptyString(value) {
 
 /** @param {unknown} value */
 function isOptionalTextAlign(value) {
-  return value === undefined || (typeof value === 'string' && TEXT_ALIGNS.has(value))
+  return value === undefined || isTextAlign(value)
 }
 
 /** @param {unknown} data */
@@ -196,7 +196,9 @@ export function validateGalleryData(data) {
       if (value.options[key] !== undefined && typeof value.options[key] !== 'boolean') return false
     }
     if (value.options.autoplayInterval !== undefined
-      && (!Number.isFinite(value.options.autoplayInterval) || value.options.autoplayInterval <= 0)) return false
+      && (typeof value.options.autoplayInterval !== 'number'
+        || !Number.isFinite(value.options.autoplayInterval)
+        || value.options.autoplayInterval <= 0)) return false
   }
   return true
 }
@@ -216,7 +218,8 @@ export function validateEmbedData(data) {
 export function validateLinkPreviewData(data) {
   if (!isRecord(data)) return false
   const value = /** @type {Record<string, unknown>} */ (data)
-  if (!isCanonicalUrl(value.url, 'external')) return false
+  if (typeof value.url !== 'string'
+    || sanitizeUrl(value.url, { policy: 'external', allowRelative: false, fallback: '' }) !== value.url) return false
   if (!hasOptionalStrings(value, OPTIONAL_LINK_PREVIEW_STRINGS)) return false
   if (!isCanonicalUrl(value.image, 'media', true) || !isCanonicalUrl(value.favicon, 'media', true)) return false
   return value.template === undefined
@@ -230,7 +233,8 @@ export function validateImageData(data) {
   if (!isRecord(value.file) || !isCanonicalUrl(value.file.url, 'media')) return false
   for (const key of ['width', 'height']) {
     const dimension = value.file[key]
-    if (dimension !== undefined && (!Number.isFinite(dimension) || dimension <= 0)) return false
+    if (dimension !== undefined
+      && (typeof dimension !== 'number' || !Number.isFinite(dimension) || dimension <= 0)) return false
   }
   if (value.caption !== undefined && typeof value.caption !== 'string') return false
   for (const key of ['withBorder', 'expanded', 'withBackground']) {
@@ -253,6 +257,7 @@ export function validateAttachesData(data) {
     && isCanonicalUrl(file.url, 'download')
     && typeof file.name === 'string'
     && typeof file.extension === 'string'
+    && typeof file.size === 'number'
     && Number.isFinite(file.size)
     && file.size >= 0
   ))

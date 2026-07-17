@@ -8,6 +8,7 @@ export default {
   'plugin.attaches.delete': 'Delete',
   'plugin.attaches.deleteAll': 'Delete all',
   'plugin.attaches.filesCount': { one: 'file', other: 'files' },
+  'plugin.attaches.toggleGroup': 'Show or hide files',
   'plugin.attaches.settings': 'Settings',
   'plugin.attaches.template': 'Template',
   'plugin.attaches.variantA': 'Card',

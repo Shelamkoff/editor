@@ -1,5 +1,6 @@
 import { ALL_LAYOUTS } from './layout.js'
 import { sanitizeUrl } from '../../shared/sanitize/sanitizeUrl.js'
+import { normalizeTextValue } from '../../shared/textFormat.js'
 
 /**
  * @typedef {{ url: string, caption: string }} GalleryImage
@@ -11,13 +12,7 @@ import { sanitizeUrl } from '../../shared/sanitize/sanitizeUrl.js'
  * @property {Record<string, any>} options
  */
 
-/**
- * Per-block state for a Gallery instance. Encapsulates:
- *  - resolved data (`images`, `layout`, `styles`, `options`)
- *  - an `AbortController` to tear down all signal-bound listeners on
- *    re-render or disposal
- *  - the in-flight drag index (used by slot drag/drop reorder)
- */
+/** Per-block Gallery state and resource ownership. */
 export class GalleryState {
   /** @type {GalleryData} */
   data
@@ -25,7 +20,10 @@ export class GalleryState {
   /** @type {AbortController | null} */
   abortController = null
 
-  /** @type {number} -1 when no drag in progress */
+  /** @type {Set<AbortController>} */
+  taskControllers = new Set()
+
+  /** @type {number} -1 when no drag is in progress. */
   dragIndex = -1
 
   /** @type {File[]} */
@@ -44,24 +42,50 @@ export class GalleryState {
   }
 
   /**
-   * Reset the abort controller — used between view renders so that listeners
-   * attached to the previous DOM are cleaned up before new ones are added.
+   * Replace the controller for listeners owned by the current rendered view.
+   * Upload/source tasks are independent so re-rendering one completed batch
+   * cannot cancel other batches that the user already started.
+   * @returns {void}
    */
   resetTransient() {
     this.abortController?.abort()
     this.abortController = new AbortController()
   }
 
-  /** Final disposal — block was removed from the editor. */
+  /** Start and register one asynchronous additive source operation. @returns {AbortController} */
+  beginTask() {
+    const controller = new AbortController()
+    this.taskControllers.add(controller)
+    return controller
+  }
+
+  /**
+   * Complete one source operation.
+   * @param {AbortController} controller
+   * @returns {boolean} Whether no source operations remain.
+   */
+  finishTask(controller) {
+    this.taskControllers.delete(controller)
+    return this.taskControllers.size === 0
+  }
+
+  /** Cancel every pending upload or application source action. @returns {void} */
+  cancelTasks() {
+    for (const controller of this.taskControllers) controller.abort()
+    this.taskControllers.clear()
+  }
+
+  /** Dispose listeners and pending transient input owned by this block. @returns {void} */
   dispose() {
     this.abortController?.abort()
+    this.cancelTasks()
     this.abortController = null
     this.pendingFiles = []
     this.pendingUpload = null
   }
 }
 
-/** @returns {GalleryData} */
+/** Create the canonical empty value for a new Gallery block. @returns {GalleryData} */
 export function emptyGalleryData() {
   return {
     images: [],
@@ -72,25 +96,38 @@ export function emptyGalleryData() {
 }
 
 /**
- * Normalize arbitrary user input into a clean GalleryData.
- * Defensive: validates layout against the known list, coerces strings.
- *
+ * Normalize arbitrary input into canonical Gallery data.
+ * Unknown layouts and malformed values fall back to documented defaults.
  * @param {Record<string, unknown>} [data]
  * @returns {GalleryData}
  */
 export function normalizeGalleryData(data) {
   const images = Array.isArray(data?.images)
     ? data.images.map((img) => ({
-        url: sanitizeUrl(String(/** @type {any} */ (img)?.url || ''), { policy: 'media', fallback: '' }),
-        caption: String(/** @type {any} */ (img)?.caption || ''),
-      }))
+        url: sanitizeUrl(normalizeTextValue(/** @type {any} */ (img)?.url), { policy: 'media', fallback: '' }),
+        caption: normalizeTextValue(/** @type {any} */ (img)?.caption),
+      })).filter(image => image.url)
     : []
 
-  const layout = ALL_LAYOUTS.includes(String(data?.layout)) ? String(data?.layout) : 'auto'
-  const styles = data?.styles ? /** @type {Record<string, any>} */ ({ .../** @type {any} */ (data.styles) }) : {}
-  const options = data?.options
-    ? /** @type {Record<string, any>} */ ({ .../** @type {any} */ (data.options) })
-    : { loop: true, zoom: true, navigation: true, captions: true, fullscreen: true, thumbnails: false }
+  const requestedLayout = normalizeTextValue(data?.layout)
+  const layout = ALL_LAYOUTS.includes(requestedLayout) ? requestedLayout : 'auto'
+  const rawStyles = data?.styles && typeof data.styles === 'object' && !Array.isArray(data.styles)
+    ? /** @type {Record<string, unknown>} */ (data.styles)
+    : {}
+  const styles = Object.fromEntries(Object.entries(rawStyles).filter(([, value]) => typeof value === 'string'))
+
+  const rawOptions = data?.options && typeof data.options === 'object' && !Array.isArray(data.options)
+    ? /** @type {Record<string, unknown>} */ (data.options)
+    : {}
+  /** @type {Record<string, boolean | number>} */
+  const options = {}
+  const defaults = { loop: true, zoom: true, navigation: true, captions: true, fullscreen: true, thumbnails: false }
+  for (const [key, fallback] of Object.entries(defaults)) {
+    options[key] = typeof rawOptions[key] === 'boolean' ? rawOptions[key] : fallback
+  }
+  if (Number.isFinite(rawOptions.autoplayInterval) && Number(rawOptions.autoplayInterval) > 0) {
+    options.autoplayInterval = Number(rawOptions.autoplayInterval)
+  }
 
   return { images, layout, styles, options }
 }

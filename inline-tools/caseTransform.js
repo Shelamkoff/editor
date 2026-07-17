@@ -13,7 +13,11 @@ const ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" vie
  * @returns {boolean}
  */
 function isUpperCase(text) {
-  const letters = text.replace(/[^a-zA-Zа-яА-ЯёЁ]/g, '')
+  // Comparing both case mappings recognizes cased letters independently of
+  // their script without treating digits and punctuation as letters.
+  const letters = Array.from(text)
+    .filter(char => char.toLocaleLowerCase() !== char.toLocaleUpperCase())
+    .join('')
   return letters.length > 0 && letters === letters.toUpperCase()
 }
 
