@@ -8,6 +8,7 @@ The complete guides, API reference, extension contracts, plugin catalog, and liv
 
 - [English documentation](https://shelamkoff.github.io/editor/)
 - [Документация на русском](https://shelamkoff.github.io/editor/ru/)
+- [Live demo](https://shelamkoff.github.io/editor/#demo)
 
 ## Installation
 
