@@ -1,6 +1,7 @@
 # @shelamkoff/rector
 
 Rector is an extensible browser-native block editor with atomic undo and redo, versioned JSON documents, inline formatting, block plugins, and document rendering.
+![Editor demo](https://github.com/Shelamkoff/editor/blob/master/docs/public/editor.png)
 
 ## Documentation
 
