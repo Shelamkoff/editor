@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Physical history fixture</title>
+  <script type="importmap">
+    {
+      "imports": {
+        "@shelamkoff/event-bus": "../../../event-bus/dist/index.js",
+        "@shelamkoff/color-picker": "../../../color-picker/dist/index.js",
+        "@shelamkoff/cropper": "../../../cropper/dist/src/index.js",
+        "@shelamkoff/carousel": "../../../carousel/dist/src/index.js",
+        "@shelamkoff/expose": "../../../expose/dist/src/index.js"
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="../../core/themes/variables.css">
+  <link rel="stylesheet" href="../../core/themes/dark.css">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 32px;
+      background: #000;
+      color: #fff;
+      font-family: system-ui, sans-serif;
+    }
+    #editor {
+      width: min(720px, 100%);
+      margin: 0 auto;
+    }
+  </style>
+</head>
+<body>
+  <main id="editor"></main>
+  <script type="module">
+    import { createEditor } from '../../core/index.js'
+    import { Paragraph } from '../../plugins/paragraph/index.js'
+
+    createEditor({
+      holder: document.querySelector('#editor'),
+      plugins: [new Paragraph()],
+      theme: 'dark',
+      autofocus: true,
+      minHeight: 350,
+    })
+  </script>
+</body>
+</html>

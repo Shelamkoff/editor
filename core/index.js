@@ -700,5 +700,5 @@ export { createColorSwatchPlugin } from '../inline-plugins/color.js'
 export { createMentionPlugin } from '../inline-plugins/mention/index.js'
 
 // Block plugins are NOT re-exported here — import them directly from their
-// own entry points to keep bundles tree-shakeable. See demo.html for the
+// own entry points to keep bundles tree-shakeable. See index.html for the
 // canonical import shape.

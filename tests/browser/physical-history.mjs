@@ -195,7 +195,7 @@ async function stopProcess(process) {
 
 const vitePort = await freePort()
 const debugPort = await freePort()
-const pageUrl = `http://127.0.0.1:${vitePort}/editor/demo.html`
+const pageUrl = `http://127.0.0.1:${vitePort}/editor/tests/browser/physical-history.html`
 const userDataDir = await mkdtemp(join(tmpdir(), 'ophire-editor-physical-history-'))
 const vite = spawn(process.execPath, [serverPath], {
   cwd: fileURLToPath(serverRoot),
