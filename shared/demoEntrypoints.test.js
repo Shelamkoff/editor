@@ -12,8 +12,8 @@ const expectedPackages = [
   '@shelamkoff/expose',
 ]
 
-test('browser demos use relative editor modules and map published dependencies', async () => {
-  for (const path of ['demo.html', 'index.html']) {
+test('browser entry point uses relative editor modules and maps published dependencies', async () => {
+  for (const path of ['index.html']) {
     const html = await readFile(new URL(path, editorRoot), 'utf8')
     const importMapSource = html.match(/<script\s+type=["']importmap["']>([\s\S]*?)<\/script>/i)?.[1]
     assert.ok(importMapSource, `${path} must map published package dependencies for direct browser use`)
