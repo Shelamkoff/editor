@@ -58,7 +58,7 @@ const vite = spawn(process.execPath, [
 
 try {
   let pages = [
-    ...['roundtrip.html', 'history.html', 'selection.html', 'lifecycle.html', 'security.html', 'mention.html', 'poll.html', 'carousel.html', 'imports.html']
+    ...['roundtrip.html', 'history.html', 'selection.html', 'lifecycle.html', 'security.html', 'mention.html', 'poll.html', 'carousel.html', 'plugin-surfaces.html', 'imports.html']
       .map(page => ({ label: page, path: `/editor/tests/browser/${page}` })),
     { label: 'cropper/lifecycle.html', path: '/cropper/tests/browser/lifecycle.html' },
     { label: 'expose/lifecycle.html', path: '/expose/tests/browser/lifecycle.html' },

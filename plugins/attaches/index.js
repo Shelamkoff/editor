@@ -4,8 +4,11 @@ import { getFileIcon, getExtension, formatSize, EXT_COLORS } from '../../shared/
 import { validateAttachesData } from '../../shared/blockDataValidators.js'
 import { sanitizeUrl } from '../../shared/sanitize/sanitizeUrl.js'
 import { normalizeTextValue } from '../../shared/textFormat.js'
+import { createPluginLayer } from '../shared/layer.js'
+import { openSourceEditor, preloadSourceEditor } from '../shared/sourceEditor.js'
 
 const editorStyles = new URL('./attaches.css', import.meta.url).href
+const sourceEditorStyles = new URL('../shared/sourceEditor.css', import.meta.url).href
 
 const ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21h-10a2 2 0 0 1-2-2v-14a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2"/><path d="M12 11v6"/><path d="M9.5 13.5l2.5-2.5l2.5 2.5"/></svg>'
 const ICON_SELECT = '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21h-10a2 2 0 0 1-2-2v-14a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2"/><path d="M12 11v6"/><path d="M9.5 13.5l2.5-2.5l2.5 2.5"/></svg>'
@@ -51,6 +54,24 @@ const VARIANT_META = {
 const stateMap = new WeakMap()
 let groupSequence = 0
 
+/**
+ * Derive a readable attachment name from a URL without trusting it as markup.
+ * @param {string} url Sanitized absolute file URL.
+ * @returns {string} Decoded final path segment, or an empty string.
+ */
+function getUrlFileName(url) {
+  try {
+    const segment = new URL(url).pathname.split('/').filter(Boolean).pop()
+    if (!segment) return ''
+    try {
+      return decodeURIComponent(segment)
+    } catch {
+      return segment
+    }
+  } catch {
+    return ''
+  }
+}
 
 /**
  * File attachment block supporting direct uploads and consumer-defined file
@@ -59,7 +80,7 @@ let groupSequence = 0
  */
 export class Attaches extends BlockPluginAbstract {
   static isTextBlock = false
-  static styles = [editorStyles]
+  static styles = [editorStyles, sourceEditorStyles]
   type = 'attaches'
   icon = ICON
   inlineTools = false
@@ -246,7 +267,21 @@ export class Attaches extends BlockPluginAbstract {
     link.className = 'oe-attaches__select-link'
     link.textContent = this._t('dropzoneUpload', 'Upload')
     link.addEventListener('click', (e) => { e.stopPropagation(); this.#triggerFileInput(wrapper) }, { signal })
-    text.append(link, document.createTextNode(' ' + this._t('dropzoneText', 'files from your device or drag and drop them here')))
+    const urlLink = document.createElement('button')
+    urlLink.type = 'button'
+    urlLink.className = 'oe-attaches__select-link'
+    urlLink.textContent = this._t('dropzoneUrl', 'insert a URL')
+    urlLink.addEventListener('click', (event) => {
+      event.preventDefault()
+      event.stopPropagation()
+      this.#openUrlEditor(wrapper)
+    }, { signal })
+    text.append(
+      link,
+      document.createTextNode(' ' + this._t('dropzoneText', 'files from your device or drag and drop them here')),
+      document.createTextNode(` ${this._t('dropzoneUrlPrefix', 'or')} `),
+      urlLink,
+    )
     select.append(icon, text)
 
     const configuredActions = this.#config.actions ?? []
@@ -277,6 +312,7 @@ export class Attaches extends BlockPluginAbstract {
     }, { signal })
 
     wrapper.appendChild(select)
+    preloadSourceEditor(wrapper, signal, ['url'])
   }
 
   // ── filled state (dispatches by variant) ──────────────────────────────────
@@ -597,9 +633,12 @@ export class Attaches extends BlockPluginAbstract {
     settingsBtn.setAttribute('aria-expanded', 'false')
 
     const panel = this.#buildVariantPanel(wrapper, signal)
+    const layer = createPluginLayer(wrapper, signal)
     const setOpen = (open) => {
       dropdown.classList.toggle('oe-attaches__dropdown--open', open)
       settingsBtn.setAttribute('aria-expanded', String(open))
+      if (open) layer.open()
+      else layer.close()
     }
 
     settingsBtn.addEventListener('mousedown', (e) => e.preventDefault(), { signal })
@@ -770,6 +809,44 @@ export class Attaches extends BlockPluginAbstract {
   }
 
   // ── file handling ──────────────────────────────────────────────────────────
+
+  /**
+   * Open the shared in-editor URL form and append one remote file.
+   * @param {HTMLElement} wrapper Block wrapper that owns the form.
+   * @returns {void}
+   */
+  #openUrlEditor(wrapper) {
+    const state = stateMap.get(wrapper)
+    const signal = state?.viewController?.signal
+    if (!state || state.context.readOnly || !signal || signal.aborted) return
+
+    openSourceEditor({
+      wrapper,
+      signal,
+      kind: 'url',
+      title: this._t('urlEditorTitle', 'Add file by URL'),
+      label: this._t('urlEditorLabel', 'File URL'),
+      placeholder: this._t('urlEditorPlaceholder', 'https://example.com/file.pdf'),
+      submitText: this._t('sourceSubmit', 'Add'),
+      cancelText: this._t('sourceCancel', 'Cancel'),
+      invalidText: this._t('invalidUrl', 'Enter a valid file URL.'),
+      normalize: value => sanitizeUrl(value, { policy: 'download', fallback: '' }),
+      onSubmit: url => {
+        const current = stateMap.get(wrapper)
+        if (current !== state || current.context.readOnly) return
+        const name = getUrlFileName(url) || this._t('urlFileName', 'Linked file')
+        current.context.mutate(() => {
+          current.data.files.push({
+            url,
+            name,
+            size: 0,
+            extension: getExtension(name),
+          })
+          this.#renderFilled(wrapper)
+        })
+      },
+    })
+  }
 
   /** @param {HTMLElement} wrapper @returns {void} */
   #triggerFileInput(wrapper) {

@@ -1,4 +1,5 @@
 .oe-gallery {
+  position: relative;
   border-radius: 0.5rem;
   overflow-anchor: none;
   text-align: center;
@@ -615,7 +616,7 @@
   border-radius: 8px;
   box-shadow: var(--oe-toolbar-shadow, 0 8px 24px rgba(0, 0, 0, 0.4));
   padding: 10px;
-  z-index: 100;
+  z-index: var(--oe-plugin-panel-z-index, 1100);
 }
 
 .oe-gallery__dropdown--open .oe-gallery__dropdown-panel {
@@ -803,6 +804,10 @@
 
 .oe-theme-light .oe-gallery__action-btn {
   color: var(--oe-text-1, #1a1a1a);
+}
+
+.oe-theme-light .oe-gallery__action-btn:hover {
+  color: var(--oe-text-on-accent, #fff);
 }
 
 .oe-theme-light .oe-gallery__action-btn--active {

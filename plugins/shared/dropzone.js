@@ -22,6 +22,7 @@
  * @property {string} afterText Localized text after the upload link.
  * @property {() => void} onUploadClick Opens the file input.
  * @property {(dataTransfer: DataTransfer) => void} onDrop Handles dropped files.
+ * @property {Array<{ label: string, prefix?: string, onSelect: () => void }>} [inlineActions]
  * @property {Array<{ icon?: string, label: string, onSelect: () => void }>} [actions]
  * @property {boolean} [readOnly] Render a non-interactive empty state.
  * @property {string} [emptyText] Text shown for an empty read-only block.
@@ -67,9 +68,19 @@ export function renderDropzone(wrapper, signal, css, config) {
     config.onUploadClick()
   }, { signal })
 
-  const afterText = document.createTextNode(' ' + config.afterText)
-
-  text.append(uploadLink, afterText)
+  text.append(uploadLink, document.createTextNode(' ' + config.afterText))
+  for (const action of config.inlineActions || []) {
+    if (action.prefix) text.append(document.createTextNode(' ' + action.prefix + ' '))
+    const button = document.createElement('button')
+    button.type = 'button'
+    button.className = css.selectLink
+    button.textContent = action.label
+    button.addEventListener('click', (event) => {
+      event.stopPropagation()
+      action.onSelect()
+    }, { signal })
+    text.appendChild(button)
+  }
   select.append(icon, text)
 
   if (css.selectActions && css.selectAction && config.actions?.length) {

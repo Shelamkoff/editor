@@ -8,6 +8,7 @@ import { ICON_SELECT } from './icons.js'
  * @property {(key: string, fallback: string) => string} t
  * @property {boolean} readOnly
  * @property {() => void} onUploadClick
+ * @property {() => void} onOpenUrlEditor
  * @property {Array<{ icon?: string, label: string, handler: (context: { signal: AbortSignal }) => Promise<Array<{url: string, alt?: string}> | null> }>} customActions
  * @property {(handler: (context: { signal: AbortSignal }) => Promise<Array<{url: string, alt?: string}> | null>) => Promise<void>} runCustomAction
  * @property {(files: File[]) => void} onFilesDropped
@@ -43,6 +44,11 @@ export function renderEmptyView(wrapper, state, deps) {
     readOnly: deps.readOnly,
     emptyText: deps.t('emptyReadonly', 'No images'),
     onUploadClick: deps.onUploadClick,
+    inlineActions: [{
+      prefix: deps.t('dropzoneUrlPrefix', 'or'),
+      label: deps.t('dropzoneUrl', 'insert by URL'),
+      onSelect: deps.onOpenUrlEditor,
+    }],
     actions: deps.customActions.map(action => ({
       icon: action.icon,
       label: action.label,

@@ -9,6 +9,27 @@ import { cloneEditorData } from '../../shared/cloneEditorData.js'
 const MIME_TYPE = 'application/x-rector-editor'
 
 /**
+ * Core-owned progress UI for asynchronous file pastes. The plugin's pending
+ * element stays mounted so its upload lifecycle can continue, but is hidden
+ * until the completed block is committed to the document.
+ *
+ * @param {string} label
+ * @returns {HTMLElement}
+ */
+function createPendingPasteIndicator(label) {
+  const indicator = document.createElement('div')
+  indicator.className = 'oe-pending-paste__indicator'
+  indicator.setAttribute('role', 'status')
+  indicator.setAttribute('aria-label', label)
+
+  const spinner = document.createElement('span')
+  spinner.className = 'oe-pending-paste__spinner'
+  spinner.setAttribute('aria-hidden', 'true')
+  indicator.appendChild(spinner)
+  return indicator
+}
+
+/**
  * Extract plain text and HTML from a DOM Range.
  * @param {Range} range
  * @returns {{ text: string, html: string }}
@@ -118,6 +139,9 @@ export class Clipboard {
   /** @type {boolean} */
   #destroyed = false
 
+  /** @type {string} */
+  #pendingPasteLabel = 'Processing file'
+
   /**
    * @typedef {Object} ClipboardConfig
    * @property {import('../types').IBlockManager} blocks
@@ -133,6 +157,7 @@ export class Clipboard {
    * @property {import('../types').InlinePluginContext} inlinePluginCtx
    * @property {import('../Diagnostics').Diagnostics} [diagnostics]
    * @property {(() => boolean)} [uiActivePredicate]
+   * @property {string} [pendingPasteLabel]
    */
 
   /**
@@ -143,7 +168,7 @@ export class Clipboard {
     const {
       blocks, selection, plugins, defaultBlockType, crossBlockSelection,
       events, commands, blockOps, captureSnapshot, inlinePluginRegistry,
-      inlinePluginCtx, diagnostics, uiActivePredicate,
+      inlinePluginCtx, diagnostics, uiActivePredicate, pendingPasteLabel,
     } = config
     this.#rootEl = rootEl
     this.#blocks = blocks
@@ -158,6 +183,7 @@ export class Clipboard {
     this.#inlinePluginRegistry = inlinePluginRegistry
     this.#inlinePluginCtx = inlinePluginCtx
     this.#isUIActive = uiActivePredicate ?? null
+    this.#pendingPasteLabel = pendingPasteLabel || this.#pendingPasteLabel
 
     this.#blockOps = blockOps
     this.#router = new PasteRouter(plugins.values())
@@ -569,7 +595,9 @@ export class Clipboard {
       shell = document.createElement('div')
       shell.className = 'oe-block oe-block--pending-paste'
       shell.dataset.blockType = plugin.type
-      shell.appendChild(element)
+      shell.setAttribute('aria-busy', 'true')
+      element.hidden = true
+      shell.append(createPendingPasteIndicator(this.#pendingPasteLabel), element)
       pendingHost.appendChild(shell)
 
       let cleaned = false

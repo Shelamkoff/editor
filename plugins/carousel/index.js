@@ -14,6 +14,8 @@ import {
 import { makeActionBtn, makeSep } from '../shared/actionBar.js'
 import { renderDropzone } from '../shared/dropzone.js'
 import { triggerFileInput } from '../shared/fileInput.js'
+import { createPluginLayer } from '../shared/layer.js'
+import { openSourceEditor, preloadSourceEditor } from '../shared/sourceEditor.js'
 import { CarouselState } from './state.js'
 import { READ_ONLY_INTERACTIVE_ATTRIBUTE } from '../../core/constants.js'
 import {
@@ -22,6 +24,7 @@ import {
 } from './icons.js'
 
 const editorStyles = new URL('./carousel.css', import.meta.url).href
+const sourceEditorStyles = new URL('../shared/sourceEditor.css', import.meta.url).href
 
 /**
  * Read a local image while respecting the owning block's lifecycle.
@@ -121,7 +124,7 @@ function getMediaUrlType(url) {
  */
 export class CarouselBlock extends BlockPluginAbstract {
   static isTextBlock = false
-  static styles = [editorStyles]
+  static styles = [editorStyles, sourceEditorStyles]
   type = 'carousel'
   icon = ICON
   inlineTools = false
@@ -252,6 +255,7 @@ export class CarouselBlock extends BlockPluginAbstract {
     }
     wrapper.appendChild(this.#stage(wrapper, state, signal))
     if (!state.context.readOnly) wrapper.appendChild(this.#actions(wrapper, state, signal))
+    if (!state.context.readOnly) preloadSourceEditor(wrapper, state.lifecycleController.signal, ['url', 'html'])
   }
 
   /**
@@ -284,12 +288,21 @@ export class CarouselBlock extends BlockPluginAbstract {
       afterText: this._t('dropzoneText', 'images or videos from your device or drag and drop them here'),
       onUploadClick: () => this.#triggerFileInput(wrapper),
       onDrop: dataTransfer => { if (dataTransfer.files.length) void this.#addFiles(wrapper, [...dataTransfer.files]) },
-      actions: [
-        ...this.#sourceActions(wrapper, state),
-        { icon: ICON_URL, label: this._t('addUrl', 'Add URL'), onSelect: () => this.#addUrl(wrapper, state) },
-        { icon: ICON_CODE, label: this._t('addHtml', 'Add HTML'), onSelect: () => this.#addHtml(wrapper, state) },
+      inlineActions: [
+        {
+          prefix: this._t('dropzoneUrlPrefix', 'or'),
+          label: this._t('dropzoneUrl', 'insert a URL'),
+          onSelect: () => this.#addUrl(wrapper, state),
+        },
+        {
+          prefix: this._t('dropzoneHtmlPrefix', 'or'),
+          label: this._t('dropzoneHtml', 'insert HTML'),
+          onSelect: () => this.#addHtml(wrapper, state),
+        },
       ],
+      actions: this.#sourceActions(wrapper, state),
     })
+    preloadSourceEditor(wrapper, state.lifecycleController.signal, ['url', 'html'])
   }
 
   /**
@@ -317,7 +330,10 @@ export class CarouselBlock extends BlockPluginAbstract {
     const slide = state.data.slides[state.activeIndex]
     const stage = document.createElement('div')
     stage.className = 'oe-carousel-block__stage'
-    if (state.data.options.aspectRatio) stage.style.aspectRatio = state.data.options.aspectRatio
+    if (state.data.options.aspectRatio && state.data.options.aspectRatio !== 'auto') {
+      stage.classList.add('oe-carousel-block__stage--fixed-ratio')
+      stage.style.aspectRatio = state.data.options.aspectRatio
+    }
 
     const media = document.createElement('div')
     media.className = 'oe-carousel-block__media'
@@ -478,27 +494,34 @@ export class CarouselBlock extends BlockPluginAbstract {
 
     const settings = document.createElement('div')
     settings.className = 'oe-carousel-block__dropdown'
-    const settingsButton = makeActionBtn('oe-carousel-block__action-btn', `${ICON_SETTINGS} ${this._t('settings', 'Settings')}`, () => {
-      const open = !settings.classList.contains('oe-carousel-block__dropdown--open')
+    const layer = createPluginLayer(wrapper, signal)
+    const panel = this.#settingsPanel(wrapper, state, signal)
+    panel.setAttribute('aria-hidden', 'true')
+    /** @type {HTMLButtonElement} */
+    let settingsButton
+    const setSettingsOpen = open => {
       settings.classList.toggle('oe-carousel-block__dropdown--open', open)
-      settingsButton.setAttribute('aria-expanded', String(open))
+      settingsButton?.setAttribute('aria-expanded', String(open))
+      panel.setAttribute('aria-hidden', String(!open))
+      if (open) layer.open()
+      else layer.close()
+    }
+    settingsButton = makeActionBtn('oe-carousel-block__action-btn', `${ICON_SETTINGS} ${this._t('settings', 'Settings')}`, () => {
+      setSettingsOpen(!settings.classList.contains('oe-carousel-block__dropdown--open'))
     }, signal)
     settingsButton.setAttribute('aria-haspopup', 'true')
     settingsButton.setAttribute('aria-expanded', 'false')
-    const panel = this.#settingsPanel(wrapper, state, signal)
     settings.append(settingsButton, panel)
     document.addEventListener('click', event => {
       const target = event.target
       if (!(target instanceof Node) || !settings.contains(target)) {
-        settings.classList.remove('oe-carousel-block__dropdown--open')
-        settingsButton.setAttribute('aria-expanded', 'false')
+        setSettingsOpen(false)
       }
     }, { signal })
     settings.addEventListener('keydown', event => {
       if (event.key !== 'Escape') return
       event.stopPropagation()
-      settings.classList.remove('oe-carousel-block__dropdown--open')
-      settingsButton.setAttribute('aria-expanded', 'false')
+      setSettingsOpen(false)
       settingsButton.focus()
     }, { signal })
     main.append(settings, makeSep('oe-carousel-block__actions-sep'))
@@ -547,8 +570,14 @@ export class CarouselBlock extends BlockPluginAbstract {
         void this.#runAction(wrapper, state, action); restore()
       }, signal))
     }
-    view.appendChild(makeActionBtn('oe-carousel-block__action-btn', `${ICON_URL} URL`, () => { this.#addUrl(wrapper, state); restore() }, signal))
-    view.appendChild(makeActionBtn('oe-carousel-block__action-btn', `${ICON_CODE} HTML`, () => { this.#addHtml(wrapper, state); restore() }, signal))
+    view.appendChild(makeActionBtn('oe-carousel-block__action-btn', `${ICON_URL} URL`, () => {
+      restore()
+      this.#addUrl(wrapper, state)
+    }, signal))
+    view.appendChild(makeActionBtn('oe-carousel-block__action-btn', `${ICON_CODE} HTML`, () => {
+      restore()
+      this.#addHtml(wrapper, state)
+    }, signal))
     actions.appendChild(view)
   }
 
@@ -573,10 +602,18 @@ export class CarouselBlock extends BlockPluginAbstract {
         if (html.trim()) slide.html = html
       }, wrapper, state, signal, 'text', true))
     } else {
-      panel.appendChild(this.#field(this._t('source', 'Source URL'), slide.src || '', false, value => {
+      const source = slide.src || ''
+      const embeddedSource = /^data:/i.test(source)
+      const sourceField = this.#field(this._t('source', 'Source URL'), embeddedSource ? '' : source, false, value => {
         const src = sanitizeUrl(value, { policy: 'media', fallback: '' })
         if (src) slide.src = src
-      }, wrapper, state, signal, 'text', true))
+      }, wrapper, state, signal, 'text', true)
+      const sourceInput = sourceField.querySelector('input')
+      if (embeddedSource && sourceInput instanceof HTMLInputElement) {
+        sourceInput.placeholder = this._t('embeddedSource', 'Local file — paste a URL to replace it')
+        sourceInput.dataset.oeEmbeddedSource = 'true'
+      }
+      panel.appendChild(sourceField)
       panel.appendChild(this.#field(this._t('alt', 'Alternative text'), slide.alt || '', false, value => { slide.alt = value }, wrapper, state, signal))
       if (slide.type === 'video') {
         panel.appendChild(this.#field(this._t('poster', 'Poster URL'), slide.poster || '', false, value => {
@@ -648,6 +685,7 @@ export class CarouselBlock extends BlockPluginAbstract {
     const row = document.createElement('label')
     row.className = 'oe-carousel-block__field'
     row.classList.toggle('oe-carousel-block__field--full', fullWidth)
+    row.classList.toggle('oe-carousel-block__field--multiline', multiline)
     const title = document.createElement('span')
     title.textContent = label
     const input = multiline
@@ -738,41 +776,63 @@ export class CarouselBlock extends BlockPluginAbstract {
   }
 
   /**
-   * Prompt for an image or video URL and append a slide when it is safe.
+   * Open the embedded URL editor and append a media slide after validation.
    * @param {HTMLElement} wrapper Root element owned by this block render.
    * @param {CarouselState} state Mutable state associated with `wrapper`.
    * @returns {void}
    */
   #addUrl(wrapper, state) {
     if (state.context.readOnly) return
-    const source = prompt(this._t('sourcePrompt', 'Media URL'))
-    if (!source) return
-    const src = sanitizeUrl(source, { policy: 'media', fallback: '' })
-    if (!src) return
-    const type = getMediaUrlType(src)
-    state.context.mutate(() => {
-      state.data.slides.push({ id: this.#createId(), type, src, alt: '', caption: '' })
-      state.activeIndex = state.data.slides.length - 1
-      this.#build(wrapper, state)
+    openSourceEditor({
+      wrapper,
+      signal: state.lifecycleController.signal,
+      kind: 'url',
+      title: this._t('urlEditorTitle', 'Add media by URL'),
+      label: this._t('urlEditorLabel', 'Media URL'),
+      placeholder: this._t('urlEditorPlaceholder', 'https://example.com/image.jpg'),
+      submitText: this._t('sourceSubmit', 'Add'),
+      cancelText: this._t('sourceCancel', 'Cancel'),
+      invalidText: this._t('invalidUrl', 'Enter a valid media URL.'),
+      normalize: value => sanitizeUrl(value, { policy: 'media', fallback: '' }),
+      onSubmit: src => {
+        if (this.#states.get(wrapper) !== state || state.context.readOnly) return
+        const type = getMediaUrlType(src)
+        state.context.mutate(() => {
+          state.data.slides.push({ id: this.#createId(), type, src, alt: '', caption: '' })
+          state.activeIndex = state.data.slides.length - 1
+          this.#build(wrapper, state)
+        })
+      },
     })
   }
 
   /**
-   * Prompt for sanitized HTML and append it as a slide.
+   * Open the embedded HTML editor and append a sanitized HTML slide.
    * @param {HTMLElement} wrapper Root element owned by this block render.
    * @param {CarouselState} state Mutable state associated with `wrapper`.
    * @returns {void}
    */
   #addHtml(wrapper, state) {
     if (state.context.readOnly) return
-    const html = prompt(this._t('htmlPrompt', 'Slide HTML'))
-    if (!html) return
-    const safe = sanitizeRawHtml(html)
-    if (!safe.trim()) return
-    state.context.mutate(() => {
-      state.data.slides.push({ id: this.#createId(), type: 'html', html: safe, caption: '' })
-      state.activeIndex = state.data.slides.length - 1
-      this.#build(wrapper, state)
+    openSourceEditor({
+      wrapper,
+      signal: state.lifecycleController.signal,
+      kind: 'html',
+      title: this._t('htmlEditorTitle', 'Add HTML slide'),
+      label: this._t('htmlEditorLabel', 'Slide HTML'),
+      placeholder: this._t('htmlEditorPlaceholder', '<article>...</article>'),
+      submitText: this._t('sourceSubmit', 'Add'),
+      cancelText: this._t('sourceCancel', 'Cancel'),
+      invalidText: this._t('invalidHtml', 'Enter valid slide HTML.'),
+      normalize: value => sanitizeRawHtml(value).trim(),
+      onSubmit: html => {
+        if (this.#states.get(wrapper) !== state || state.context.readOnly) return
+        state.context.mutate(() => {
+          state.data.slides.push({ id: this.#createId(), type: 'html', html, caption: '' })
+          state.activeIndex = state.data.slides.length - 1
+          this.#build(wrapper, state)
+        })
+      },
     })
   }
 

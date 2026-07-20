@@ -3,6 +3,7 @@
    ============================================================================= */
 
 .oe-attaches {
+  position: relative;
   border-radius: 0.5rem;
   overflow-anchor: none;
   text-align: center;
@@ -213,7 +214,7 @@
   border: 1px solid var(--oe-toolbar-border, var(--oe-border, #1a1a1f));
   border-radius: var(--oe-radius, 0.5rem);
   box-shadow: var(--oe-toolbar-shadow, 0 8px 24px rgba(0,0,0,0.4));
-  z-index: 100;
+  z-index: var(--oe-plugin-panel-z-index, 1100);
 }
 .oe-attaches__dropdown--open .oe-attaches__dropdown-panel { display: block; }
 
@@ -364,6 +365,7 @@
 .oe-theme-light .oe-attaches__name { color: var(--oe-text-1, #1a1a1a); }
 .oe-theme-light .oe-attaches__actions { background: var(--oe-surface, #fafafa); border-color: var(--oe-border, #e0e0e0); }
 .oe-theme-light .oe-attaches__action-btn { color: var(--oe-text-1, #1a1a1a); }
+.oe-theme-light .oe-attaches__action-btn:hover { color: var(--oe-text-on-accent, #fff); }
 .oe-theme-light .oe-attaches__pill { background: var(--oe-surface, #fafafa); border-color: var(--oe-border, #e0e0e0); }
 .oe-theme-light .oe-attaches__pill:hover { background: var(--oe-card-hover, #f5f5f5); }
 .oe-theme-light .oe-attaches__notion { border-color: var(--oe-border, #e0e0e0); }

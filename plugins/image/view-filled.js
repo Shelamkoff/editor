@@ -8,13 +8,14 @@ import {
 } from './icons.js'
 import { applyInlineStyles } from './styles.js'
 import { buildSettingsPanel } from './settings.js'
+import { createPluginLayer } from '../shared/layer.js'
 
 /**
  * @typedef {Object} FilledViewDeps
  * @property {(key: string, fallback: string) => string} t
  * @property {boolean} readOnly
  * @property {() => void} onTriggerFileInput
- * @property {() => void} onPromptUrl
+ * @property {() => void} onOpenUrlEditor
  * @property {() => void} onDelete
  * @property {(operation: () => void) => void} mutate
  * @property {Array<{ icon?: string, label: string, handler: (context: { signal: AbortSignal }) => Promise<{url: string, alt?: string} | null> }>} customActions
@@ -144,14 +145,20 @@ function renderActions(wrapper, state, deps, signal) {
   const panel = buildSettingsPanel(wrapper, state, settingsDeps)
   panel.setAttribute('role', 'group')
   panel.setAttribute('aria-label', deps.t('settings', 'Settings'))
+  const settingsLayer = createPluginLayer(wrapper, signal)
+  const closeSettings = () => {
+    dropdown.classList.remove(CSS.dropdownOpen)
+    settingsBtn.setAttribute('aria-expanded', 'false')
+    settingsLayer.close()
+  }
 
   settingsBtn.addEventListener('click', (e) => {
     e.stopPropagation()
     const isOpen = dropdown.classList.contains(CSS.dropdownOpen)
     if (isOpen) {
-      dropdown.classList.remove(CSS.dropdownOpen)
-      settingsBtn.setAttribute('aria-expanded', 'false')
+      closeSettings()
     } else {
+      settingsLayer.open()
       panel.style.top = ''
       panel.style.bottom = ''
       dropdown.classList.add(CSS.dropdownOpen)
@@ -174,16 +181,14 @@ function renderActions(wrapper, state, deps, signal) {
 
   document.addEventListener('click', (e) => {
     if (!dropdown.contains(/** @type {Node} */ (e.target))) {
-      dropdown.classList.remove(CSS.dropdownOpen)
-      settingsBtn.setAttribute('aria-expanded', 'false')
+      closeSettings()
     }
   }, { signal })
 
   dropdown.addEventListener('keydown', (event) => {
     if (event.key !== 'Escape' || !dropdown.classList.contains(CSS.dropdownOpen)) return
     event.preventDefault()
-    dropdown.classList.remove(CSS.dropdownOpen)
-    settingsBtn.setAttribute('aria-expanded', 'false')
+    closeSettings()
     settingsBtn.focus()
   }, { signal })
 
@@ -264,7 +269,7 @@ function showReplaceView(actions, mainView, deps, signal) {
 
   view.appendChild(makeActionBtn(
     `${ICON_URL} URL`,
-    () => { deps.onPromptUrl(); restore() },
+    () => { deps.onOpenUrlEditor(); restore() },
     signal,
   ))
 

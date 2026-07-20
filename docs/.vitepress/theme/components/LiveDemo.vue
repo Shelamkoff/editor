@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useData } from 'vitepress'
+import '../../../../plugins/shared/sourceEditor.css'
 
 const props = defineProps<{ lang: string }>()
 const { isDark } = useData()

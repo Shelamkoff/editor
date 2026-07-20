@@ -6,6 +6,14 @@ const options = { loop: false, autoplay: false, autoplayDelay: 3000, navigation:
 const sandbox = document.querySelector('#sandbox')
 const tick = () => new Promise(resolve => setTimeout(resolve, 0))
 function assert(value, message) { if (!value) throw new Error(message) }
+async function waitFor(predicate, message) {
+  const deadline = performance.now() + 2000
+  while (performance.now() < deadline) {
+    if (predicate()) return
+    await new Promise(resolve => setTimeout(resolve, 10))
+  }
+  throw new Error(message)
+}
 function buttonByText(root, selector, text) {
   return [...root.querySelectorAll(selector)].find(button => button.textContent.trim().includes(text))
 }
@@ -33,6 +41,13 @@ async function run() {
   }, { mutate(operation) { mutations++; return operation() } })
   sandbox.appendChild(element)
   assert(element.querySelector('.oe-carousel-block__stage'), 'carousel media stage is missing')
+  const editorStage = element.querySelector('.oe-carousel-block__stage')
+  const editorImage = element.querySelector('.oe-carousel-block__media > img')
+  assert(editorStage instanceof HTMLElement && editorImage instanceof HTMLImageElement, 'carousel editor image is missing')
+  await waitFor(() => editorImage.getBoundingClientRect().width > 0, 'carousel editor styles did not load')
+  assert(getComputedStyle(editorImage).maxHeight === 'none', 'carousel editor still clamps image height')
+  assert(Math.abs(editorStage.getBoundingClientRect().width - editorImage.getBoundingClientRect().width) < 1,
+    `carousel editor image does not fill the available width: stage=${editorStage.getBoundingClientRect().width}, image=${editorImage.getBoundingClientRect().width}`)
   assert(!element.querySelector('.oe-carousel-block__toolbar'), 'legacy carousel toolbar is still rendered')
   buttonByText(element, '.oe-carousel-block__action-btn', 'Add').click()
   buttonByText(element, '.oe-carousel-block__action-btn', 'Library').click()
@@ -52,6 +67,10 @@ async function run() {
     .find(label => label.textContent.includes('Source URL'))?.querySelector('input')
   assert(sourceInput instanceof HTMLInputElement, 'source URL setting is missing')
   const sourceBeforeInvalidEdit = plugin.save(element).slides[0].src
+  assert(sourceInput.value === '', 'embedded image data was copied into the source URL input')
+  assert(sourceInput.dataset.oeEmbeddedSource === 'true', 'embedded source setting is not marked as compact')
+  assert(sourceInput.placeholder.includes('Local file'), 'embedded source setting has no replacement hint')
+  assert(sourceBeforeInvalidEdit === pixel, 'compacting the source setting changed the stored image')
   sourceInput.value = 'javascript:alert(1)'
   sourceInput.dispatchEvent(new Event('change', { bubbles: true }))
   assert(plugin.save(element).slides[0].src === sourceBeforeInvalidEdit, 'invalid source URL replaced valid slide media')
@@ -142,6 +161,18 @@ async function run() {
   sandbox.appendChild(container)
   renderer.renderTo({ blocks: [{ id: 'carousel', type: 'carousel', data: savedAfterAction }] }, container)
   assert(container.querySelector('.carousel'), 'carousel renderer did not mount the external instance')
+  const renderedViewport = container.querySelector('.carousel__viewport')
+  const renderedImage = container.querySelector('.editor-carousel-block__slide img')
+  assert(renderedViewport instanceof HTMLElement && renderedImage instanceof HTMLImageElement,
+    'carousel renderer image is missing')
+  await waitFor(() => {
+    const viewportWidth = renderedViewport.getBoundingClientRect().width
+    const imageWidth = renderedImage.getBoundingClientRect().width
+    return imageWidth > 0 && Math.abs(viewportWidth - imageWidth) < 1
+  }, 'carousel renderer image did not settle to the available width')
+  assert(getComputedStyle(renderedImage).maxHeight === 'none', 'carousel renderer still clamps image height')
+  assert(Math.abs(renderedViewport.getBoundingClientRect().width - renderedImage.getBoundingClientRect().width) < 1,
+    'carousel renderer image does not fill the available width')
   assert(!container.querySelector('script'), 'carousel renderer mounted unsafe HTML')
   renderer.destroy(container)
   assert(container.childNodes.length === 0, 'carousel renderer leaked DOM on destroy')

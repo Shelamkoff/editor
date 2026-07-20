@@ -1,6 +1,6 @@
 {
   "name": "@shelamkoff/rector",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Extensible browser-native block editor with atomic history, versioned JSON, and document rendering",
   "type": "module",
   "sideEffects": [
@@ -106,11 +106,9 @@
     "prepack": "npm run build"
   },
   "dependencies": {
-    "@shelamkoff/color-picker": "^1.0.0",
-    "@shelamkoff/event-bus": "^1.0.0"
-  },
-  "peerDependencies": {
     "@shelamkoff/carousel": "^1.0.0",
+    "@shelamkoff/color-picker": "^1.0.0",
+    "@shelamkoff/event-bus": "^1.0.0",
     "@shelamkoff/cropper": "^1.0.0",
     "@shelamkoff/expose": "^1.0.0"
   },

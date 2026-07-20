@@ -297,6 +297,10 @@ assert(homeComponent.includes('min-height: calc(100svh - var(--vp-nav-height, 64
 assert(homeComponent.includes('.home-demo:target') && homeComponent.includes('outline: none'), 'Homepage demo target frame is not suppressed')
 
 const liveDemo = await readFile(join(docsRoot, '.vitepress', 'theme', 'components', 'LiveDemo.vue'), 'utf8')
+assert(
+  liveDemo.includes("plugins/shared/sourceEditor.css"),
+  'Homepage demo does not load the shared URL/HTML editor styles with its component',
+)
 for (const plugin of [
   'Paragraph', 'Heading', 'List', 'Quote', 'Code', 'Image', 'Embed', 'Gallery',
   'CarouselBlock', 'Checklist', 'Warning', 'Raw', 'Poll', 'Person', 'Attaches',

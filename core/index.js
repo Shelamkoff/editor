@@ -377,6 +377,7 @@ function wireEditMode(deps) {
   const clipboard = new Clipboard(rootEl, {
     blocks, selection, plugins, defaultBlockType, crossBlockSelection, events, commands,
     blockOps, inlinePluginRegistry, inlinePluginCtx, diagnostics, uiActivePredicate,
+    pendingPasteLabel: i18n.t('clipboard.processingFile'),
     captureSnapshot: () => snapshots.capture(),
   })
   scope.register(clipboard)

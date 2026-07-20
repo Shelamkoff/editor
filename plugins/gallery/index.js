@@ -8,8 +8,10 @@ import { GalleryUploader } from './uploader.js'
 import { renderEmptyView } from './view-empty.js'
 import { renderFilledView } from './view-filled.js'
 import { sanitizeMediaUrl } from '../../shared/sanitize/sanitizeUrl.js'
+import { openSourceEditor, preloadSourceEditor } from '../shared/sourceEditor.js'
 
 const editorStyles = new URL('./gallery.css', import.meta.url).href
+const sourceEditorStyles = new URL('../shared/sourceEditor.css', import.meta.url).href
 
 /**
  * @typedef {(file: File, context: { signal: AbortSignal }) => Promise<{ url: string, alt?: string }>} UploadFn
@@ -35,7 +37,7 @@ const editorStyles = new URL('./gallery.css', import.meta.url).href
  */
 export class Gallery extends BlockPluginAbstract {
   static isTextBlock = false
-  static styles = [editorStyles]
+  static styles = [editorStyles, sourceEditorStyles]
 
   type = 'gallery'
   icon = ICON
@@ -225,23 +227,27 @@ export class Gallery extends BlockPluginAbstract {
   #renderEmpty(wrapper) {
     const state = this.#states.get(wrapper)
     if (!state) return
+    const readOnly = Boolean(this.#contexts.get(wrapper)?.readOnly)
     renderEmptyView(wrapper, state, {
       t: this.#t,
-      readOnly: Boolean(this.#contexts.get(wrapper)?.readOnly),
+      readOnly,
       onUploadClick: () => this.#triggerFileInput(wrapper),
+      onOpenUrlEditor: () => this.#openUrlEditor(wrapper),
       onFilesDropped: (files) => { void this.#handleFiles(wrapper, files) },
       customActions: this._config.actions || [],
       runCustomAction: async (handler) => this.#runCustomAction(wrapper, handler),
     })
+    if (!readOnly) preloadSourceEditor(wrapper, state.abortController.signal, ['url'])
   }
 
   /** @param {HTMLElement} wrapper @returns {void} */
   #renderFilled(wrapper) {
     const state = this.#states.get(wrapper)
     if (!state) return
+    const readOnly = Boolean(this.#contexts.get(wrapper)?.readOnly)
     renderFilledView(wrapper, state, {
       t: this.#t,
-      readOnly: Boolean(this.#contexts.get(wrapper)?.readOnly),
+      readOnly,
       syncCaptions: () => this.#syncCaptions(wrapper),
       getState: () => this.#states.get(wrapper),
       reRender: () => this.#renderFilled(wrapper),
@@ -249,11 +255,12 @@ export class Gallery extends BlockPluginAbstract {
       mutate: (operation) => this.#mutate(wrapper, operation),
       onFilesDropped: (files) => { void this.#handleFiles(wrapper, files) },
       onTriggerFileInput: () => this.#triggerFileInput(wrapper),
-      onPromptUrl: () => this.#promptUrl(wrapper),
+      onOpenUrlEditor: () => this.#openUrlEditor(wrapper),
       onDeleteAll: () => this.#deleteAll(wrapper),
       customActions: this._config.actions || [],
       runCustomAction: async (handler) => this.#runCustomAction(wrapper, handler),
     })
+    if (!readOnly) preloadSourceEditor(wrapper, state.abortController.signal, ['url'])
   }
 
   /** @param {HTMLElement} wrapper @returns {void} */
@@ -327,17 +334,31 @@ export class Gallery extends BlockPluginAbstract {
   }
 
   /** @param {HTMLElement} wrapper @returns {void} */
-  #promptUrl(wrapper) {
+  #openUrlEditor(wrapper) {
     const state = this.#states.get(wrapper)
-    if (!state || this.#contexts.get(wrapper)?.readOnly) return
-    const url = sanitizeMediaUrl(prompt(this.#t('urlPrompt', 'Image URL:')) || '')
-    if (url) {
-      this.#mutate(wrapper, () => {
-        this.#syncCaptions(wrapper)
-        state.data.images.push({ url, caption: '' })
-        this.#renderFilled(wrapper)
-      })
-    }
+    const signal = state?.abortController?.signal
+    if (!state || !signal || this.#contexts.get(wrapper)?.readOnly) return
+    openSourceEditor({
+      wrapper,
+      signal,
+      kind: 'url',
+      title: this.#t('urlEditorTitle', 'Insert image by URL'),
+      label: this.#t('urlEditorLabel', 'Image URL'),
+      placeholder: this.#t('urlEditorPlaceholder', 'https://example.com/image.jpg'),
+      submitText: this.#t('sourceSubmit', 'Insert'),
+      cancelText: this.#t('sourceCancel', 'Cancel'),
+      invalidText: this.#t('invalidUrl', 'Enter a valid image URL.'),
+      normalize: sanitizeMediaUrl,
+      onSubmit: (url) => {
+        const current = this.#states.get(wrapper)
+        if (current !== state || this.#contexts.get(wrapper)?.readOnly) return
+        this.#mutate(wrapper, () => {
+          this.#syncCaptions(wrapper)
+          state.data.images.push({ url, caption: '' })
+          this.#renderFilled(wrapper)
+        })
+      },
+    })
   }
 
   /** @param {HTMLElement} wrapper @returns {void} */

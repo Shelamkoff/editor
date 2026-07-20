@@ -41,6 +41,7 @@ export function createCarouselRenderer(classPrefix, locale) {
       root.className = p
       root.setAttribute('aria-label', t('label', 'Content carousel'))
       if (data.options.aspectRatio && data.options.aspectRatio !== 'auto') {
+        root.classList.add(`${p}--fixed-ratio`)
         root.style.aspectRatio = data.options.aspectRatio
       }
 

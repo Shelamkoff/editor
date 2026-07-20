@@ -33,5 +33,6 @@ export default {
   'block.back': 'Back',
   'block.unsupported': 'Unsupported block type: {type}',
 
+  'clipboard.processingFile': 'Processing file',
   'slash.noResults': 'No results',
 }

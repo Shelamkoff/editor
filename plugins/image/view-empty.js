@@ -9,6 +9,7 @@ import { ICON_SELECT } from './icons.js'
  * @property {boolean} readOnly
  * @property {(file: File) => void} onFileDropped
  * @property {() => void} onUploadClick
+ * @property {() => void} onOpenUrlEditor
  * @property {Array<{ icon?: string, label: string, handler: (context: { signal: AbortSignal }) => Promise<{url: string, alt?: string} | null> }>} customActions
  * @property {(handler: (context: { signal: AbortSignal }) => Promise<{url: string, alt?: string} | null>) => Promise<void>} runCustomAction
  */
@@ -43,6 +44,11 @@ export function renderEmptyView(wrapper, state, deps) {
     iconHtml: ICON_SELECT,
     uploadText: deps.t('dropzoneUpload', 'Upload'),
     afterText: deps.t('dropzoneText', 'an image from your device or drag and drop it here'),
+    inlineActions: [{
+      prefix: deps.t('dropzoneUrlPrefix', 'or'),
+      label: deps.t('dropzoneUrl', 'insert by URL'),
+      onSelect: deps.onOpenUrlEditor,
+    }],
     readOnly: deps.readOnly,
     emptyText: deps.t('emptyReadonly', 'No image'),
     onUploadClick: deps.onUploadClick,

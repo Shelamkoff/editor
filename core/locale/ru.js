@@ -33,5 +33,6 @@ export default {
   'block.back': 'Назад',
   'block.unsupported': 'Неподдерживаемый тип блока: {type}',
 
+  'clipboard.processingFile': 'Обработка файла',
   'slash.noResults': 'Ничего не найдено',
 }

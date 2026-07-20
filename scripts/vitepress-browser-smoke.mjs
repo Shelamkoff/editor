@@ -20,6 +20,7 @@ const expectedBlockTypes = [
   'linkPreview', 'toggle', 'columns', 'spoiler', 'delimiter', 'table',
 ]
 const qaRoot = process.env.RECTOR_QA_DIR ? resolve(process.env.RECTOR_QA_DIR) : null
+const externalPageUrl = process.env.RECTOR_DOCS_URL?.trim() || null
 const missingRequests = []
 
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
@@ -179,13 +180,16 @@ async function stopProcess(process) {
 
 const debugPort = await freePort()
 const profile = await mkdtemp(join(tmpdir(), 'rector-vitepress-'))
-const staticServer = startStaticServer()
-await new Promise((resolve, reject) => {
-  staticServer.once('error', reject)
-  staticServer.listen(0, '127.0.0.1', resolve)
-})
-const address = staticServer.address()
-const pageUrl = `http://127.0.0.1:${address.port}${siteBase}ru/`
+const staticServer = externalPageUrl ? null : startStaticServer()
+if (staticServer) {
+  await new Promise((resolve, reject) => {
+    staticServer.once('error', reject)
+    staticServer.listen(0, '127.0.0.1', resolve)
+  })
+}
+const address = staticServer?.address()
+const pageUrl = externalPageUrl
+  ?? `http://127.0.0.1:${typeof address === 'object' && address ? address.port : 0}${siteBase}ru/`
 let chrome
 let client
 
@@ -244,6 +248,47 @@ try {
   assert(result.heroCenterDelta <= 2, `Hero content is not vertically centered (delta ${result.heroCenterDelta}px)`)
   assert(!result.removedSectionPresent, 'Removed quick-start code section is still visible')
   if (result.dark) assert(result.logoFilter === 'none', `Dark-theme hero logo has an unexpected filter: ${result.logoFilter}`)
+
+  const navigationLayering = await evaluate(client, `(() => {
+    const nav = document.querySelector('.VPNav')
+    const block = document.querySelector('.live-demo .oe-block')
+    if (!(nav instanceof HTMLElement) || !(block instanceof HTMLElement)) return null
+    const previousStyle = block.getAttribute('style')
+    const wasLayerOpen = block.hasAttribute('data-oe-layer-open')
+    try {
+      const navRect = nav.getBoundingClientRect()
+      block.dataset.oeLayerOpen = 'true'
+      for (const [property, value] of Object.entries({
+        position: 'fixed',
+        left: String(navRect.left) + 'px',
+        top: String(navRect.top) + 'px',
+        width: String(navRect.width) + 'px',
+        height: String(navRect.height) + 'px',
+        background: '#4357b4',
+        pointerEvents: 'auto',
+      })) {
+        block.style.setProperty(property, value, 'important')
+      }
+      const topElement = document.elementFromPoint(
+        navRect.left + navRect.width / 2,
+        navRect.top + navRect.height / 2,
+      )
+      return {
+        navOnTop: topElement === nav || nav.contains(topElement),
+        activeBlockZ: getComputedStyle(block).zIndex,
+        topElement: (topElement?.tagName || 'none') + '.' + (topElement?.className || ''),
+      }
+    } finally {
+      if (previousStyle === null) block.removeAttribute('style')
+      else block.setAttribute('style', previousStyle)
+      if (!wasLayerOpen) block.removeAttribute('data-oe-layer-open')
+    }
+  })()`)
+  assert(navigationLayering, 'Could not inspect documentation navigation layering')
+  assert(
+    navigationLayering.navOnTop,
+    `Active plugin block covers the documentation navigation (block z-index ${navigationLayering.activeBlockZ}, top ${navigationLayering.topElement})`,
+  )
 
   const mentionPrepared = await evaluate(client, `(() => {
     const editable = [...document.querySelectorAll('.live-demo [contenteditable="true"]')]
@@ -340,19 +385,24 @@ try {
   assert(searchShortcut.background !== searchShortcut.navBackground, 'Header search field is indistinguishable from the light header')
   assert(searchShortcut.borderWidth !== '0px' && searchShortcut.borderColor !== 'rgba(0, 0, 0, 0)', 'Header search field has no visible border')
 
-  await delay(100)
-  const localSearch = await evaluate(client, `(() => {
-    const input = document.querySelector('.VPLocalSearchBox .search-input')
-    const shell = document.querySelector('.VPLocalSearchBox .shell')
-    if (!(input instanceof HTMLInputElement) || !(shell instanceof HTMLElement)) return null
-    const inputStyle = getComputedStyle(input.closest('.search-bar'))
-    return {
-      focused: document.activeElement === input,
-      shellVisible: shell.getBoundingClientRect().width > 0,
-      focusBorder: inputStyle.borderTopColor,
-      focusShadow: inputStyle.boxShadow,
-    }
-  })()`)
+  let localSearch = null
+  const localSearchDeadline = Date.now() + 3000
+  while (Date.now() < localSearchDeadline) {
+    localSearch = await evaluate(client, `(() => {
+      const input = document.querySelector('.VPLocalSearchBox .search-input')
+      const shell = document.querySelector('.VPLocalSearchBox .shell')
+      if (!(input instanceof HTMLInputElement) || !(shell instanceof HTMLElement)) return null
+      const inputStyle = getComputedStyle(input.closest('.search-bar'))
+      return {
+        focused: document.activeElement === input,
+        shellVisible: shell.getBoundingClientRect().width > 0,
+        focusBorder: inputStyle.borderTopColor,
+        focusShadow: inputStyle.boxShadow,
+      }
+    })()`)
+    if (localSearch?.shellVisible && localSearch.focused) break
+    await delay(100)
+  }
   assert(localSearch?.shellVisible, 'Ctrl+K did not open the local search modal')
   assert(localSearch.focused, 'Ctrl+K did not focus the local search input')
   assert(localSearch.focusShadow === 'none', `Local search input kept a focus shadow: ${localSearch.focusShadow}`)
@@ -462,17 +512,114 @@ try {
     assert(carouselInserted, 'Could not insert the carousel block for QA')
     await delay(250)
 
-    const slideAdded = await evaluate(client, `(() => {
-      window.prompt = () => ${JSON.stringify(`${siteBase}logo.svg`)}
+    const sourceEditorOpened = await evaluate(client, `(() => {
       const carousel = [...document.querySelectorAll('.live-demo .oe-carousel-block')].at(-1)
-      const addUrl = [...(carousel?.querySelectorAll('.oe-carousel-block__select-action') ?? [])]
+      const addUrl = [...(carousel?.querySelectorAll('.oe-carousel-block__select-link') ?? [])]
         .find(item => /URL/i.test(item.textContent ?? ''))
       if (!(addUrl instanceof HTMLElement)) return false
       addUrl.click()
       return true
     })()`)
-    assert(slideAdded, 'Could not add a URL slide for carousel QA')
+    assert(sourceEditorOpened, 'Could not open the carousel URL editor for QA')
+    await delay(200)
+    await captureScreenshot(client, join(qaRoot, 'carousel-url-editor-dark.png'))
+
+    const sourceEditorStyled = await evaluate(client, `(() => {
+      const root = document.querySelector('.live-demo .oe-source-editor[data-oe-source-editor="url"]')
+      const panel = root?.querySelector('.oe-source-editor__panel')
+      const field = root?.querySelector('.oe-source-editor__field')
+      if (!(root instanceof HTMLElement)
+          || !(panel instanceof HTMLFormElement)
+          || !(field instanceof HTMLInputElement)) return { ok: false }
+      const rootStyle = getComputedStyle(root)
+      const panelStyle = getComputedStyle(panel)
+      const fieldStyle = getComputedStyle(field)
+      const metrics = {
+        rootPosition: rootStyle.position,
+        panelDisplay: panelStyle.display,
+        panelBackground: panelStyle.backgroundColor,
+        fieldMinHeight: parseFloat(fieldStyle.minHeight),
+        fieldWidth: field.getBoundingClientRect().width,
+        sourceStyleIds: [...document.querySelectorAll('style[data-vite-dev-id]')]
+          .map(style => style.getAttribute('data-vite-dev-id'))
+          .filter(id => /sourceEditor/i.test(id || '')),
+        sourceResources: performance.getEntriesByType('resource')
+          .map(entry => entry.name)
+          .filter(name => /LiveDemo|sourceEditor/i.test(name)),
+        sourceRulePresent: [...document.styleSheets].some(sheet => {
+          try {
+            return [...sheet.cssRules].some(rule => rule.selectorText === '.oe-source-editor')
+          } catch {
+            return false
+          }
+        }),
+      }
+      field.value = new URL(${JSON.stringify(`${siteBase}logo.svg`)}, location.href).href
+      panel.requestSubmit()
+      return {
+        ok: true,
+        ...metrics,
+      }
+    })()`)
+    assert(
+      sourceEditorStyled?.ok
+        && sourceEditorStyled.rootPosition === 'absolute'
+        && sourceEditorStyled.panelDisplay === 'grid'
+        && sourceEditorStyled.panelBackground !== 'rgba(0, 0, 0, 0)'
+        && sourceEditorStyled.fieldMinHeight >= 40
+        && sourceEditorStyled.fieldWidth > 200,
+      `Homepage demo rendered an unstyled carousel URL editor: ${JSON.stringify(sourceEditorStyled)}`,
+    )
     await delay(300)
+
+    const htmlEditorOpened = await evaluate(client, `(() => {
+      const carousel = [...document.querySelectorAll('.live-demo .oe-carousel-block')].at(-1)
+      const add = [...(carousel?.querySelectorAll('.oe-carousel-block__action-btn') ?? [])]
+        .find(item => /Добавить|Add/i.test(item.textContent ?? ''))
+      if (!(add instanceof HTMLButtonElement)) return false
+      add.click()
+      const html = [...(carousel?.querySelectorAll('.oe-carousel-block__action-btn') ?? [])]
+        .find(item => /HTML/i.test(item.textContent ?? ''))
+      if (!(html instanceof HTMLButtonElement)) return false
+      html.click()
+      return true
+    })()`)
+    assert(htmlEditorOpened, 'Could not open the carousel HTML editor for QA')
+    await delay(200)
+    await captureScreenshot(client, join(qaRoot, 'carousel-html-editor-dark.png'))
+
+    const htmlEditorStyled = await evaluate(client, `(() => {
+      const root = document.querySelector('.live-demo .oe-source-editor[data-oe-source-editor="html"]')
+      const panel = root?.querySelector('.oe-source-editor__panel')
+      const field = root?.querySelector('.oe-source-editor__field')
+      const cancel = root?.querySelector('.oe-source-editor__button--secondary')
+      if (!(root instanceof HTMLElement)
+          || !(panel instanceof HTMLFormElement)
+          || !(field instanceof HTMLTextAreaElement)
+          || !(cancel instanceof HTMLButtonElement)) return { ok: false }
+      const rootRect = root.getBoundingClientRect()
+      const panelRect = panel.getBoundingClientRect()
+      const metrics = {
+        rootHeight: rootRect.height,
+        panelHeight: panelRect.height,
+        panelWidth: panelRect.width,
+        textAlign: getComputedStyle(panel).textAlign,
+        rows: field.rows,
+        fieldMinHeight: parseFloat(getComputedStyle(field).minHeight),
+      }
+      cancel.click()
+      return { ok: true, ...metrics }
+    })()`)
+    assert(
+      htmlEditorStyled?.ok
+        && htmlEditorStyled.rootHeight >= htmlEditorStyled.panelHeight
+        && htmlEditorStyled.panelWidth <= 512
+        && htmlEditorStyled.textAlign === 'left'
+        && htmlEditorStyled.rows === 6
+        && htmlEditorStyled.fieldMinHeight >= 144,
+      `Homepage demo rendered an inconsistent carousel HTML editor: ${JSON.stringify(htmlEditorStyled)}`,
+    )
+    await delay(200)
 
     const settingsOpened = await evaluate(client, `(() => {
       const carousel = [...document.querySelectorAll('.live-demo .oe-carousel-block')].at(-1)
@@ -486,6 +633,77 @@ try {
     assert(settingsOpened, 'Could not open carousel settings for QA')
     await delay(350)
     await captureScreenshot(client, join(qaRoot, 'carousel-implementation-dark.png'))
+
+    const carouselSettingsStyled = await evaluate(client, `(() => {
+      const panel = document.querySelector('.live-demo .oe-carousel-block__dropdown-panel')
+      const field = panel?.querySelector('.oe-carousel-block__field input')
+      const toggle = panel?.querySelector('.oe-carousel-block__switch input')
+      if (!(panel instanceof HTMLElement)
+          || !(field instanceof HTMLInputElement)
+          || !(toggle instanceof HTMLInputElement)) return { ok: false }
+      const panelStyle = getComputedStyle(panel)
+      const fieldStyle = getComputedStyle(field)
+      const toggleStyle = getComputedStyle(toggle)
+      return {
+        ok: true,
+        width: panel.getBoundingClientRect().width,
+        padding: panelStyle.padding,
+        borderRadius: panelStyle.borderRadius,
+        fieldHeight: field.getBoundingClientRect().height,
+        fieldBorderWidth: fieldStyle.borderTopWidth,
+        toggleWidth: toggle.getBoundingClientRect().width,
+        toggleHeight: toggle.getBoundingClientRect().height,
+      }
+    })()`)
+    assert(
+      carouselSettingsStyled?.ok
+        && carouselSettingsStyled.width === 400
+        && carouselSettingsStyled.padding === '12px'
+        && carouselSettingsStyled.borderRadius === '8px'
+        && carouselSettingsStyled.fieldHeight === 22
+        && carouselSettingsStyled.fieldBorderWidth === '0px'
+        && carouselSettingsStyled.toggleWidth === 28
+        && carouselSettingsStyled.toggleHeight === 16,
+      `Carousel settings no longer match Image/Gallery styling: ${JSON.stringify(carouselSettingsStyled)}`,
+    )
+
+    const carouselActionTarget = await evaluate(client, `(() => {
+      const carousel = [...document.querySelectorAll('.live-demo .oe-carousel-block')].at(-1)
+      const add = [...(carousel?.querySelectorAll('.oe-carousel-block__action-btn') ?? [])]
+        .find(item => /Добавить|Add/i.test(item.textContent ?? ''))
+      if (!(add instanceof HTMLButtonElement)) return null
+      const rect = add.getBoundingClientRect()
+      return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }
+    })()`)
+    assert(carouselActionTarget, 'Could not locate a carousel action button for hover QA')
+    await client.send('Input.dispatchMouseEvent', {
+      type: 'mouseMoved',
+      x: carouselActionTarget.x,
+      y: carouselActionTarget.y,
+    })
+    await delay(300)
+    await captureScreenshot(client, join(qaRoot, 'carousel-action-hover-dark.png'))
+
+    const carouselActionEffect = await evaluate(client, `(() => {
+      const carousel = [...document.querySelectorAll('.live-demo .oe-carousel-block')].at(-1)
+      const add = [...(carousel?.querySelectorAll('.oe-carousel-block__action-btn') ?? [])]
+        .find(item => /Добавить|Add/i.test(item.textContent ?? ''))
+      if (!(add instanceof HTMLButtonElement)) return null
+      const pseudo = getComputedStyle(add, '::before')
+      const matrix = new DOMMatrixReadOnly(pseudo.transform)
+      return {
+        background: pseudo.backgroundColor,
+        scaleX: matrix.a,
+        scaleY: matrix.d,
+      }
+    })()`)
+    assert(
+      carouselActionEffect
+        && carouselActionEffect.background === 'rgb(67, 87, 180)'
+        && carouselActionEffect.scaleX >= 0.99
+        && carouselActionEffect.scaleY >= 0.99,
+      `Carousel actions no longer use the Image/Gallery accent scale effect: ${JSON.stringify(carouselActionEffect)}`,
+    )
   }
 
   assert(missingRequests.length === 0, `VitePress requested missing assets: ${[...new Set(missingRequests)].join(', ')}`)
@@ -497,6 +715,7 @@ try {
     demoFrame: false,
     heroViewport: true,
     heroCentered: true,
+    navAbovePluginBlocks: true,
     localSearchShortcut: true,
     searchKeyAlignedRight: true,
     mentionAutocomplete: true,
@@ -505,6 +724,6 @@ try {
 } finally {
   client?.close()
   await stopProcess(chrome)
-  await new Promise(resolve => staticServer.close(resolve))
+  if (staticServer) await new Promise(resolve => staticServer.close(resolve))
   await rm(profile, { recursive: true, force: true, maxRetries: 20, retryDelay: 200 })
 }

@@ -2230,11 +2230,40 @@ async function run() {
   dispatchFilePaste(cancelledSlowPaste.editor)
   await delay()
   const finishCancelledPaste = finishSlowPaste
-  assert(cancelledSlowPaste.holder.querySelector('.oe-block--pending-paste'), 'pending paste did not expose progress DOM')
+  const pendingShell = cancelledSlowPaste.holder.querySelector('.oe-block--pending-paste')
+  assert(pendingShell instanceof HTMLElement, 'pending paste did not expose progress DOM')
+  assert(pendingShell.getAttribute('aria-busy') === 'true', 'pending paste was not exposed as busy')
+  const pendingSpinner = pendingShell.querySelector('.oe-pending-paste__spinner')
+  assert(pendingSpinner instanceof HTMLElement, 'pending paste did not render the core spinner')
+  const hiddenPluginSurface = pendingShell.querySelector('[data-url]')
+  assert(hiddenPluginSurface instanceof HTMLElement && hiddenPluginSurface.hidden, 'pending plugin UI remained visible behind the spinner')
   cancelledSlowPaste.editor.destroy()
   assert(!cancelledSlowPaste.holder.querySelector('.oe-block--pending-paste'), 'destroy leaked pending paste DOM')
   finishCancelledPaste?.()
   await delay(20)
+
+  let finishImagePaste = null
+  const pendingImageHarness = createHarness(sandbox, initialData, {
+    extraPlugins: [new Image({
+      uploadFile: () => new Promise(resolve => {
+        finishImagePaste = () => resolve({ url: pixel, alt: 'Pasted pixel' })
+      }),
+    })],
+  })
+  dispatchFilePaste(pendingImageHarness.editor)
+  await delay()
+  const pendingImageShell = pendingImageHarness.holder.querySelector('.oe-block--pending-paste')
+  assert(pendingImageShell?.querySelector('.oe-pending-paste__spinner'), 'image paste did not render the processing spinner')
+  const pendingImageSurface = pendingImageShell?.querySelector('.oe-image')
+  assert(
+    pendingImageSurface instanceof HTMLElement && pendingImageSurface.hidden,
+    'image drop zone remained visible while the pasted file was processing',
+  )
+  finishImagePaste?.()
+  await delay(40)
+  assert(!pendingImageHarness.holder.querySelector('.oe-block--pending-paste'), 'image processing spinner remained after upload')
+  assert(pendingImageHarness.holder.querySelector('.oe-image--filled'), 'processed pasted image did not replace the spinner')
+  pendingImageHarness.editor.destroy()
 
   const fileHarness = createHarness(sandbox, initialData, { image: true })
   await assertUndoRedo(fileHarness.editor, 'file paste', async () => {
