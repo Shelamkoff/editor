@@ -14,6 +14,7 @@ import {
   attachExternalDrop, createEmptySlot, createFilledSlot, createOverflowItem,
 } from './slot.js'
 import { createPluginLayer } from '../shared/layer.js'
+import { mountGalleryMasonry } from '../../shared/galleryMasonry.js'
 
 /**
  * @typedef {Object} FilledViewDeps
@@ -71,15 +72,21 @@ function renderMasonry(wrapper, state, deps, signal) {
   grid.className = `${CSS.grid} eg--masonry`
 
   const slotDeps = makeSlotDeps(deps)
+  /** @type {HTMLElement[]} */
+  const slots = []
 
   state.data.images.forEach((img, i) => {
     const slot = createFilledSlot(img, i, signal, slotDeps)
     slot.dataset.index = String(i)
+    const image = /** @type {HTMLImageElement | null} */ (slot.querySelector(`.${CSS.slotImg}`))
+    if (image) image.loading = 'eager'
+    slots.push(slot)
     grid.appendChild(slot)
   })
 
   if (!deps.readOnly) attachExternalDrop(grid, signal, deps.onFilesDropped)
   wrapper.appendChild(grid)
+  mountGalleryMasonry(grid, slots, { signal })
 }
 
 /**

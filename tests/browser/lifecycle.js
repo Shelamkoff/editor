@@ -382,6 +382,35 @@ async function run() {
   galleryRaceHolder.remove()
   assertSnapshot(tracker.snapshot(), baseline, tracker, 'gallery source race leaked resources')
 
+  const masonryHolder = document.createElement('section')
+  masonryHolder.style.width = '720px'
+  sandbox.appendChild(masonryHolder)
+  const masonryPlugin = new Gallery()
+  const masonryElement = masonryPlugin.render({
+    images: [
+      { url: pixel, caption: 'One' },
+      { url: pixel, caption: 'Two' },
+      { url: pixel, caption: 'Three' },
+      { url: pixel, caption: 'Four' },
+    ],
+    layout: 'masonry',
+    styles: { gap: '8px' },
+  }, { mutate: operation => operation(), readOnly: false })
+  masonryHolder.appendChild(masonryElement)
+  await delay(250)
+  const masonryGrid = masonryElement.querySelector('.oe-gallery__grid.eg--masonry.masonry-container')
+  assert(masonryGrid, 'gallery plugin did not mount @shelamkoff/masonry')
+  assert(masonryGrid.querySelectorAll(':scope > .masonry-item').length === 4,
+    'gallery plugin masonry did not own every image')
+  assert(Number.parseFloat(masonryGrid.style.height) > 0,
+    'gallery plugin masonry did not calculate a container height')
+  assert(tracker.snapshot().resizeObservers > baseline.resizeObservers,
+    'gallery plugin masonry observer was not created')
+  masonryPlugin.destroy(masonryElement)
+  masonryHolder.remove()
+  await delay(0)
+  assertSnapshot(tracker.snapshot(), baseline, tracker, 'gallery plugin masonry leaked resources')
+
   for (const closeTiming of ['before-frame', 'after-frame']) {
     const holder = document.createElement('section')
     sandbox.appendChild(holder)
@@ -569,6 +598,7 @@ async function run() {
 
   const galleryRenderer = new EditorRenderer({ blockTypes: BLOCK_TYPES, throwOnUnknown: true })
   const galleryContainer = document.createElement('main')
+  galleryContainer.style.width = '720px'
   sandbox.appendChild(galleryContainer)
   galleryRenderer.renderTo({
     version: 'browser-lifecycle',
@@ -580,11 +610,19 @@ async function run() {
           { url: pixel, caption: 'First' },
           { url: pixel, caption: 'Second' },
         ],
-        layout: '2',
+        layout: 'masonry',
+        styles: { gap: '8px' },
         options: { zoom: true, navigation: false, captions: true, fullscreen: true },
       },
     }],
   }, galleryContainer)
+  await delay(250)
+  const renderedMasonry = galleryContainer.querySelector('.editor-gallery.eg--masonry.masonry-container')
+  assert(renderedMasonry, 'gallery renderer did not mount @shelamkoff/masonry')
+  assert(renderedMasonry.querySelectorAll(':scope > .masonry-item').length === 2,
+    'gallery renderer masonry did not own every image')
+  assert(Number.parseFloat(renderedMasonry.style.height) > 0,
+    'gallery renderer masonry did not calculate a container height')
   const galleryItem = galleryContainer.querySelector('.editor-gallery__item')
   assert(galleryItem, 'gallery renderer did not create an interactive item')
   assert(galleryItem.getAttribute('role') === 'button' && galleryItem.tabIndex === 0,
@@ -614,7 +652,7 @@ async function run() {
     editorCycles: 5,
     tracked: [
       'global listeners', 'MutationObserver', 'ResizeObserver', 'IntersectionObserver',
-      'object URLs', 'styles', 'inline popup', 'ColorPicker', 'Cropper', 'Carousel', 'Expose',
+      'object URLs', 'styles', 'inline popup', 'ColorPicker', 'Cropper', 'Carousel', 'Masonry', 'Expose',
     ],
   }
 }

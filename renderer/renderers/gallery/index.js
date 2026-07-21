@@ -11,6 +11,7 @@ import {
   exposeStylesUrl,
 } from '@shelamkoff/expose'
 import { setSafeUrlAttribute } from '../../../shared/sanitize/sanitizeUrl.js'
+import { mountGalleryMasonry } from '../../../shared/galleryMasonry.js'
 
 const styles = new URL('./styles.css', import.meta.url).href
 const exposeStyles = exposeStylesUrl
@@ -94,6 +95,8 @@ function selectAutoTemplate(count, orientations) {
 export function createGalleryRenderer(classPrefix, locale) {
   /** @type {WeakMap<HTMLElement, Set<import('@shelamkoff/expose').Expose>>} */
   const activeInstances = new WeakMap()
+  /** @type {WeakMap<HTMLElement, ReturnType<typeof mountGalleryMasonry>>} */
+  const masonryMounts = new WeakMap()
   return {
     type: 'gallery',
     styles: [styles, exposeStyles],
@@ -125,6 +128,8 @@ export function createGalleryRenderer(classPrefix, locale) {
       const openLabel = typeof locale['renderer.gallery.open'] === 'string'
         ? locale['renderer.gallery.open']
         : 'Open image'
+      /** @type {HTMLElement[] | null} */
+      let masonryItems = null
 
       if (layout === 'auto') {
         // Set initial template class, refine after images load
@@ -171,9 +176,13 @@ export function createGalleryRenderer(classPrefix, locale) {
         })
       } else if (layout === 'masonry') {
         container.classList.add('eg--masonry')
+        masonryItems = []
 
         images.forEach((image) => {
           const item = createItem(image, classPrefix, openLabel)
+          const img = item.querySelector('img')
+          if (img) img.loading = 'eager'
+          masonryItems?.push(item)
           container.appendChild(item)
         })
       } else {
@@ -192,6 +201,9 @@ export function createGalleryRenderer(classPrefix, locale) {
       // Apply gallery inline styles
       if (styles) {
         applyGalleryStyles(container, styles, classPrefix)
+      }
+      if (masonryItems) {
+        masonryMounts.set(container, mountGalleryMasonry(container, masonryItems))
       }
 
       // Expose lightbox on click
@@ -258,13 +270,16 @@ export function createGalleryRenderer(classPrefix, locale) {
      * @param {HTMLElement} element
      */
     destroy(element) {
+      masonryMounts.get(element)?.destroy()
+      masonryMounts.delete(element)
       const instances = activeInstances.get(element)
-      if (!instances) return
-      for (const expose of instances) {
-        expose.destroy()
+      if (instances) {
+        for (const expose of instances) {
+          expose.destroy()
+        }
+        instances.clear()
+        activeInstances.delete(element)
       }
-      instances.clear()
-      activeInstances.delete(element)
     },
   }
 }

@@ -6,6 +6,8 @@ const editorRoot = new URL('../', import.meta.url)
 
 const expectedPackages = [
   '@shelamkoff/event-bus',
+  '@shelamkoff/infinite-scroll',
+  '@shelamkoff/masonry',
   '@shelamkoff/color-picker',
   '@shelamkoff/cropper',
   '@shelamkoff/carousel',
@@ -20,7 +22,7 @@ test('browser entry point uses relative editor modules and maps published depend
     const importMap = JSON.parse(importMapSource)
     assert.deepEqual(Object.keys(importMap.imports ?? {}), expectedPackages, `${path} has an incomplete dependency import map`)
     for (const target of Object.values(importMap.imports)) {
-      assert.match(target, /^\.\.\//, `${path} import-map target must stay workspace-relative: ${target}`)
+      assert.match(target, /^\.\.?\//, `${path} import-map target must stay relative: ${target}`)
     }
     for (const match of html.matchAll(/\b(?:import|export)\s+[^;\n]*?\sfrom\s*['"]([^'"]+)['"]/g)) {
       assert.match(match[1], /^\.\.?\//, `${path} contains bare module import ${match[1]}`)

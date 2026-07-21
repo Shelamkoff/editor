@@ -434,17 +434,38 @@
   aspect-ratio: 3 / 1.5;
 }
 
-/* Masonry: CSS columns */
+/* Masonry: layout is calculated by @shelamkoff/masonry. */
 .eg--masonry {
-  column-count: 3;
-  column-gap: 0.25rem;
+  position: relative;
+  width: 100%;
+  gap: 0.25rem;
 }
+
+.eg--masonry.masonry-container > .masonry-item {
+  position: absolute;
+  top: 0;
+  left: 0;
+  will-change: transform;
+  opacity: 0;
+}
+
+.eg--masonry.masonry-container > .masonry-item--visible {
+  opacity: 1;
+}
+
 .eg--masonry .oe-gallery__slot {
-  break-inside: avoid;
-  margin-bottom: 0.25rem;
+  width: 100%;
+  margin: 0;
 }
+
 .eg--masonry .oe-gallery__slot-img {
   height: auto;
+}
+
+.eg--masonry-fallback {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+  height: auto !important;
 }
 
 /* ── Polyptych templates ── */
@@ -514,7 +535,6 @@
   }
   .eg--6b .oe-gallery__slot:nth-child(1) { grid-column: 1 / -1; grid-row: auto; }
   .eg--6b .oe-gallery__slot:nth-child(n+2) { grid-column: auto; }
-  .eg--masonry { column-count: 2; }
 }
 
 /* ── Action bar ───────────────────────────────────────────────────────────── */

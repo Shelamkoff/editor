@@ -1,9 +1,9 @@
 # Gallery renderer
 
 Renderer for the `gallery` block. It converts persisted block data into renderer-owned DOM.
-The Gallery renderer directly uses `@shelamkoff/expose` and its `exposeStylesUrl` package export.
+The Gallery renderer directly uses `@shelamkoff/expose` and its `exposeStylesUrl` package export. Its `masonry` layout is powered by `@shelamkoff/masonry` and is disposed together with renderer-owned output.
 
-The `@shelamkoff/rector/renderer` entry contains the synchronous built-in preset, so `@shelamkoff/carousel` and `@shelamkoff/expose` must be installed before importing it. Passing `blockTypes: []` prevents default renderer construction but does not change ESM module resolution.
+The `@shelamkoff/rector/renderer` entry contains the synchronous built-in preset, so `@shelamkoff/carousel`, `@shelamkoff/expose`, and `@shelamkoff/masonry` must be installed before importing it. Passing `blockTypes: []` prevents default renderer construction but does not change ESM module resolution.
 
 ## Usage
 

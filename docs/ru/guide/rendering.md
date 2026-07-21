@@ -5,7 +5,7 @@
 Синхронная точка входа рендерера содержит полный встроенный набор. Её граф модулей включает интеграции Gallery и Person, поэтому до импорта `@shelamkoff/rector/renderer` установите их дополнительные пакеты из `peerDependencies`:
 
 ```bash
-npm install @shelamkoff/rector @shelamkoff/carousel @shelamkoff/expose
+npm install @shelamkoff/rector @shelamkoff/carousel @shelamkoff/expose @shelamkoff/masonry
 ```
 
 Приложению, которое не импортирует рендерер, эти пакеты не нужны. `blockTypes` ограничивает создаваемые рендереры, но не может изменить разрешение модулей ESM после импорта точки входа.

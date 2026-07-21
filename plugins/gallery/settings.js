@@ -165,6 +165,11 @@ function buildStylesGroup(wrapper, state, deps, signal) {
         applyGalleryStyles(wrapper, state)
       })
     }, { signal })
+    if (key === 'gap') {
+      input.addEventListener('change', () => {
+        if (state.data.layout === 'masonry') deps.reRender()
+      }, { signal })
+    }
     return input
   }
 

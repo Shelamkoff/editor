@@ -5,7 +5,7 @@
 The synchronous renderer entry contains the complete built-in preset. Its module graph includes the Gallery and Person integrations, so install their optional peers before importing `@shelamkoff/rector/renderer`:
 
 ```bash
-npm install @shelamkoff/rector @shelamkoff/carousel @shelamkoff/expose
+npm install @shelamkoff/rector @shelamkoff/carousel @shelamkoff/expose @shelamkoff/masonry
 ```
 
 Applications that never import the renderer do not need those packages. `blockTypes` limits constructed renderers but cannot change ESM module resolution after the entry has been imported.

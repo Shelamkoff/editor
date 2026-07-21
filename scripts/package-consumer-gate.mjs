@@ -47,7 +47,7 @@ try {
   const packageFiles = await readdir(resolve(editorRoot, 'dist'), { recursive: true })
   for (const relativePath of packageFiles.filter(path => /\.(?:js|d\.ts)$/.test(path))) {
     const content = await readFile(join(editorRoot, 'dist', relativePath), 'utf8')
-    if (/\.\.\/\.\.\/(?:event-bus|color-picker|cropper|carousel|expose)\//.test(content)) {
+    if (/\.\.\/\.\.\/(?:event-bus|infinite-scroll|masonry|color-picker|cropper|carousel|expose)\//.test(content)) {
       throw new Error(`Unpublished local dependency boundary remains in dist/${relativePath}`)
     }
   }
@@ -89,20 +89,32 @@ try {
 
   const dependencyPackRoot = join(temporaryRoot, 'dependencies')
   await mkdir(dependencyPackRoot, { recursive: true })
-  const dependencyDirectories = ['event-bus', 'color-picker', 'cropper', 'carousel', 'expose']
+  const dependencyPackages = [
+    ...['event-bus', 'color-picker', 'cropper', 'carousel', 'expose'].map(directory => ({
+      directory,
+      packageRoot: resolve(editorRoot, '..', directory),
+      ignoreScripts: false,
+    })),
+    ...['infinite-scroll', 'masonry'].map(directory => ({
+      directory,
+      packageRoot: resolve(editorRoot, 'node_modules', '@shelamkoff', directory),
+      ignoreScripts: true,
+    })),
+  ]
   const dependencyReadmes = {
     carousel: ['arrows', 'dots', 'thumbnails', 'keyboard', 'swipe', 'autoplay', 'lazyload', 'parallax'],
     expose: ['captions', 'zoom', 'thumbnails', 'autoplay', 'transform', 'download', 'fullscreen'],
   }
   const dependencyTarballs = []
-  for (const directory of dependencyDirectories) {
-    const packageRoot = resolve(editorRoot, '..', directory)
-    const output = run(node, [
+  for (const { directory, packageRoot, ignoreScripts } of dependencyPackages) {
+    const args = [
       npmCli,
       'pack',
       '--pack-destination', dependencyPackRoot,
       '--cache', npmCache,
-    ], packageRoot, { capture: true }).trim()
+    ]
+    if (ignoreScripts) args.push('--ignore-scripts')
+    const output = run(node, args, packageRoot, { capture: true }).trim()
     const dependencyTarball = join(dependencyPackRoot, basename(output.split(/\r?\n/).at(-1)))
     dependencyTarballs.push(dependencyTarball)
     const entries = run('tar', ['-tf', dependencyTarball], packageRoot, { capture: true }).split(/\r?\n/).filter(Boolean)

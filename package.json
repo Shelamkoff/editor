@@ -110,7 +110,8 @@
     "@shelamkoff/color-picker": "^1.0.0",
     "@shelamkoff/event-bus": "^1.0.0",
     "@shelamkoff/cropper": "^1.0.0",
-    "@shelamkoff/expose": "^1.0.0"
+    "@shelamkoff/expose": "^1.0.0",
+    "@shelamkoff/masonry": "^1.0.0"
   },
   "devDependencies": {
     "@tabler/icons-vue": "^3.41.1",
