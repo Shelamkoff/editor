@@ -11,7 +11,6 @@ npm install @shelamkoff/rector @shelamkoff/cropper
 ```js
 import { createEditor } from '@shelamkoff/rector'
 import { Person } from '@shelamkoff/rector/plugins/person'
-import '@shelamkoff/rector/styles/editor.css'
 
 const editor = createEditor({
   holder: document.querySelector('#editor'),

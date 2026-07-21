@@ -16,13 +16,10 @@ Applications that never import the renderer do not need those packages. `blockTy
 import { createEditorRenderer } from '@shelamkoff/rector/renderer'
 
 const renderer = createEditorRenderer({ theme: 'dark' })
-const styles = renderer.injectStyles()
-
 renderer.renderTo(documentData, document.querySelector('#article'))
 
 // When the view is removed:
-renderer.destroy(document.querySelector('#article'))
-styles.destroy()
+renderer.destroy()
 ```
 
 The renderer accepts the document returned by `editor.save()` directly. Metadata such as `time`, `version`, and block `id` is optional to rendering; `blocks`, each block `type`, and plugin data are the functional inputs.
@@ -31,6 +28,7 @@ The renderer accepts the document returned by `editor.save()` directly. Metadata
 
 ```ts
 interface RendererConfig {
+  injectStyles?: boolean
   classPrefix?: string
   throwOnUnknown?: boolean
   theme?: 'dark' | 'light'
@@ -48,6 +46,7 @@ interface RendererConfig {
 
 | Option | Default | Meaning |
 | --- | --- | --- |
+| `injectStyles` | `true` | automatically load base and registered-renderer styles on first render |
 | `classPrefix` | `editor` | namespace used by generated renderer classes |
 | `throwOnUnknown` | `true` | throw for an unregistered block instead of rendering a placeholder |
 | `theme` | `dark` | renderer theme tokens |
@@ -158,25 +157,26 @@ The block renderer's `mapTextFields()` must identify exactly the same HTML-beari
 
 ## Styles
 
-`getStyleUrls()` returns the deduplicated base and registered-renderer stylesheet URLs. `injectStyles()` reference-counts them in the current document and returns a release handle.
+With the default `injectStyles: true`, the first render automatically acquires the deduplicated base and registered-renderer stylesheet URLs. Destroying the last owned result or calling a full `renderer.destroy()` releases that automatic owner. `getStyleUrls()` exposes the URLs, and `injectStyles()` remains available for explicit preloading; it returns an independent release handle.
 
 ```js
-const styleOwner = renderer.injectStyles()
-try {
-  renderer.renderTo(documentData, container)
-} finally {
-  renderer.destroy(container)
-  styleOwner.destroy()
-}
+import '@shelamkoff/rector/styles/renderer.css'
+import '@shelamkoff/rector/renderer/renderers/gallery/styles.css'
+
+const renderer = createEditorRenderer({
+  blockTypes: ['gallery'],
+  injectStyles: false,
+})
+renderer.renderTo(documentData, container)
 ```
 
-Do not import editor UI CSS for output-only content. Renderer styles are a separate package entry: `@shelamkoff/rector/styles/renderer.css`.
+Do not import editor UI CSS for output-only content. Bundler-managed mode uses `@shelamkoff/rector/styles/renderer.css` plus each selected `renderer/renderers/<type>/styles.css` subpath. The all-in-one `@shelamkoff/rector/styles.css` is also available when bundle size is not a concern.
 
 ## Cleanup
 
 `destroy(target)` accepts a container previously passed to `renderTo()`, a wrapper returned by `render()`, or an element returned by `renderBlock()`. It invokes the owning block renderer's optional `destroy(element)`, empties renderer-owned output, and forgets that result. `destroy()` without an argument releases every result owned by the instance.
 
-Cleanup does not remove a container supplied by the application. It releases renderer-owned observers, listeners, and third-party instances and forgets the mount. A style handle returned by `injectStyles()` has a separate lifetime and must still be released with its own `destroy()`.
+Cleanup does not remove a container supplied by the application. It releases renderer-owned observers, listeners, and third-party instances and forgets the mount. Automatic styles are released when no owned result remains. A separate handle returned by an explicit `injectStyles()` call has its own lifetime and must still be released with its own `destroy()`.
 
 ## Security boundary
 

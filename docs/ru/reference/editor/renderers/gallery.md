@@ -9,9 +9,9 @@ editLink: false
 # Рендерер Gallery
 
 Преобразует сохранённый блок `gallery` в принадлежащий рендереру DOM.
-Рендерер Gallery напрямую использует `@shelamkoff/expose` и экспорт пакета `exposeStylesUrl`.
+Рендерер Gallery напрямую использует `@shelamkoff/expose` и экспорт пакета `exposeStylesUrl`. Для раскладки `masonry` он использует `@shelamkoff/masonry` и освобождает экземпляр библиотеки вместе с принадлежащим рендереру DOM.
 
-Синхронная точка входа `@shelamkoff/rector/renderer` включает все встроенные рендереры, поэтому до её импорта установите `@shelamkoff/carousel` и `@shelamkoff/expose`. Значение `blockTypes: []` отключает создание встроенных рендереров, но не меняет правила разрешения модулей ESM.
+Синхронная точка входа `@shelamkoff/rector/renderer` включает все встроенные рендереры, поэтому до её импорта установите `@shelamkoff/carousel`, `@shelamkoff/expose` и `@shelamkoff/masonry`. Значение `blockTypes: []` отключает создание встроенных рендереров, но не меняет правила разрешения модулей ESM.
 
 ## Использование
 

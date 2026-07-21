@@ -16,7 +16,6 @@ Trigger-driven entity search with keyboard navigation, cursor pagination, custom
 import { createEditor } from '@shelamkoff/rector'
 import { Paragraph } from '@shelamkoff/rector/plugins/paragraph'
 import { createMentionPlugin } from '@shelamkoff/rector/inline-plugins/mention'
-import '@shelamkoff/rector/styles/editor.css'
 
 const mention = createMentionPlugin({
   async searchFunction(query, nextPageUrl, { signal }) {
@@ -94,7 +93,7 @@ The saved `id` is normalized to a string. `onMentionSelect` receives the source 
 
 A fresh commit or replacement of an existing mention is one undo/redo step. Search text, active-row movement, loading state, and opening or closing the popup are transient UI state and do not create commands.
 
-The plugin owns one popup, its document/window listeners, debounce timer, request controller, and a reference-counted stylesheet handle. `editor.destroy()` releases all of them. Register one separately created mention plugin per editor; mounting the same instance twice is rejected.
+The plugin owns one popup, its document/window listeners, debounce timer, and request controller. Its `styles` declaration is owned centrally by the editor, and `editor.destroy()` releases all runtime resources and automatic style references. In bundler-managed mode, import `@shelamkoff/rector/inline-plugins/mention/styles.css` and create the editor with `injectStyles: false`. Register one separately created mention plugin per editor; mounting the same instance twice is rejected.
 
 Use `.oe-ip--mention` for saved pills and `.oe-mention-dropdown` plus its child classes for the suggestion UI. `avatar` URLs pass the shared media URL policy, and built-in rows assign names/details through text-safe DOM operations.
 

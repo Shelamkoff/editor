@@ -11,7 +11,6 @@ npm install @shelamkoff/rector
 ```js
 import { createEditor } from '@shelamkoff/rector'
 import { LinkPreview } from '@shelamkoff/rector/plugins/link-preview'
-import '@shelamkoff/rector/styles/editor.css'
 
 const editor = createEditor({
   holder: document.querySelector('#editor'),

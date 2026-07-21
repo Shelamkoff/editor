@@ -35,13 +35,12 @@ Rector owns the contents of the holder for the lifetime of the editor instance. 
 
 ## Create the editor
 
-Register every block type that the document may contain. Import the editor stylesheet once in the application entry point.
+Register every block type that the document may contain. The default `injectStyles: true` mode loads the editor, plugin, and dependency styles automatically.
 
 ```js
 import { createEditor } from '@shelamkoff/rector'
 import { Paragraph } from '@shelamkoff/rector/plugins/paragraph'
 import { Heading } from '@shelamkoff/rector/plugins/heading'
-import '@shelamkoff/rector/styles/editor.css'
 
 const holder = document.querySelector('#editor')
 
@@ -68,6 +67,8 @@ const editor = createEditor({
   },
 })
 ```
+
+For Vite, Nuxt, or another CSS-aware bundler, set `injectStyles: false` and import the base plus selected plugin CSS subpaths, or the all-in-one `@shelamkoff/rector/styles.css`. The styling guide lists both forms.
 
 `createEditor()` returns an editor handle synchronously. When it returns, `editor.isReady` is `true`; `onReady` is useful when initialization must notify another part of the application.
 

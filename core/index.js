@@ -182,18 +182,25 @@ function wireInputTracking(rootEl, blocks, events) {
 }
 
 /**
- * Collect and inject plugin stylesheets via <link> tags (reference-counted).
+ * Collect and inject all editor stylesheets via <link> tags (reference-counted).
  *
  * Per-plugin config knobs (passed via plugin constructor):
  *  - `injectStyles: false`  — skip the default stylesheet for this plugin
  *  - `css: '/path/to.css'`  — inject an additional stylesheet AFTER the default
  *
  * @param {Map<string, import('./types').BlockPlugin>} plugins
+ * @param {import('./InlinePluginRegistry').InlinePluginRegistry} inlinePlugins
+ * @param {boolean} enabled
  * @returns {{ destroy(): void } | null}
  */
-function injectPluginStyles(plugins) {
+function injectEditorStyles(plugins, inlinePlugins, enabled) {
+  if (!enabled) return null
   /** @type {string[]} */
-  const styleUrls = []
+  const styleUrls = [
+    new URL('./themes/variables.css', import.meta.url).href,
+    new URL('./themes/light.css', import.meta.url).href,
+    new URL('./themes/dark.css', import.meta.url).href,
+  ]
   for (const plugin of plugins.values()) {
     const cfg = typeof plugin.getPluginConfig === 'function'
       ? plugin.getPluginConfig()
@@ -204,6 +211,9 @@ function injectPluginStyles(plugins) {
       if (urls) styleUrls.push(...urls)
     }
     if (cfg?.css) styleUrls.push(cfg.css)
+  }
+  for (const plugin of inlinePlugins.values()) {
+    if (plugin.styles) styleUrls.push(...plugin.styles)
   }
   return styleUrls.length > 0 ? injectStyleUrls(styleUrls) : null
 }
@@ -455,6 +465,9 @@ export function createEditor(config) {
   if (config.readOnly !== undefined && typeof config.readOnly !== 'boolean') {
     throw new TypeError('createEditor() readOnly must be a boolean')
   }
+  if (config.injectStyles !== undefined && typeof config.injectStyles !== 'boolean') {
+    throw new TypeError('createEditor() injectStyles must be a boolean')
+  }
   if (config.placeholder !== undefined && typeof config.placeholder !== 'string') {
     throw new TypeError('createEditor() placeholder must be a string')
   }
@@ -466,6 +479,7 @@ export function createEditor(config) {
   }
 
   let readOnly = config.readOnly ?? false
+  const injectStyles = config.injectStyles ?? true
   const defaultBlockType = config.defaultBlock
     || (config.plugins?.some(plugin => plugin?.type === DEFAULT_BLOCK_TYPE)
       ? DEFAULT_BLOCK_TYPE
@@ -657,7 +671,7 @@ export function createEditor(config) {
 
     if (!readOnly) mountEditMode()
 
-    const styleCleanup = injectPluginStyles(plugins)
+    const styleCleanup = injectEditorStyles(plugins, inlinePluginRegistry, injectStyles)
     if (styleCleanup) facade.registerDestroyable(styleCleanup)
 
     if (config.autofocus && !readOnly) {

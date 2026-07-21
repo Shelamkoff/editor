@@ -35,13 +35,12 @@ Rector управляет содержимым контейнера, пока с
 
 ## Создание редактора
 
-Зарегистрируйте все типы блоков, которые могут встретиться в документе. Таблицу стилей редактора достаточно один раз импортировать в точке входа приложения.
+Зарегистрируйте все типы блоков, которые могут встретиться в документе. Режим `injectStyles: true`, включённый по умолчанию, автоматически загружает стили редактора, плагинов и их зависимостей.
 
 ```js
 import { createEditor } from '@shelamkoff/rector'
 import { Paragraph } from '@shelamkoff/rector/plugins/paragraph'
 import { Heading } from '@shelamkoff/rector/plugins/heading'
-import '@shelamkoff/rector/styles/editor.css'
 
 const holder = document.querySelector('#editor')
 
@@ -68,6 +67,8 @@ const editor = createEditor({
   },
 })
 ```
+
+Для Vite, Nuxt или другого сборщика с поддержкой CSS укажите `injectStyles: false` и импортируйте базовый CSS вместе с subpath выбранных плагинов либо единую точку `@shelamkoff/rector/styles.css`. Оба варианта описаны в руководстве по стилям.
 
 `createEditor()` синхронно возвращает дескриптор редактора. К этому моменту `editor.isReady` равен `true`. Обработчик `onReady` нужен, если об окончании инициализации следует уведомить другую часть приложения.
 

@@ -19,7 +19,6 @@ npm install @shelamkoff/rector
 ```js
 import { createEditor } from '@shelamkoff/rector'
 import { Poll } from '@shelamkoff/rector/plugins/poll'
-import '@shelamkoff/rector/styles/editor.css'
 
 const editor = createEditor({
   holder: document.querySelector('#editor'),

@@ -141,9 +141,9 @@ for (const file of allReadmes) {
   }
 
   const sourceRelative = relative(root, file).replaceAll('\\', '/')
-  if (/^plugins\/[^/]+\/README(?:\.ru)?\.md$/.test(sourceRelative)
-    && !markdown.includes("@shelamkoff/rector/styles/editor.css")) {
-    throw new Error(`${label}: block plugin example does not import editor styles`)
+  if (/^(?:plugins|inline-plugins)\/[^/]+\/README(?:\.ru)?\.md$/.test(sourceRelative)
+    && markdown.includes("import '@shelamkoff/rector/styles/editor.css'")) {
+    throw new Error(`${label}: default automatic style mode must not duplicate the editor stylesheet import`)
   }
   if (/^renderer\/renderers\/[^/]+\/README(?:\.ru)?\.md$/.test(sourceRelative)) {
     if (!markdown.includes('renderer.injectStyles()') || !markdown.includes('rendererStyles.destroy()')) {

@@ -19,7 +19,6 @@ npm install @shelamkoff/rector
 ```js
 import { createEditor } from '@shelamkoff/rector'
 import { Embed } from '@shelamkoff/rector/plugins/embed'
-import '@shelamkoff/rector/styles/editor.css'
 
 const editor = createEditor({
   holder: document.querySelector('#editor'),

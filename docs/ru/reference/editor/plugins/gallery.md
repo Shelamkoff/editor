@@ -19,7 +19,6 @@ npm install @shelamkoff/rector
 ```js
 import { createEditor } from '@shelamkoff/rector'
 import { Gallery } from '@shelamkoff/rector/plugins/gallery'
-import '@shelamkoff/rector/styles/editor.css'
 
 const editor = createEditor({
   holder: document.querySelector('#editor'),
@@ -52,7 +51,7 @@ const editor = createEditor({
 | `options.thumbnails` | нет | Показывает миниатюры; для нового блока по умолчанию `false`. |
 | `options.autoplayInterval` | нет | Положительный конечный интервал в миллисекундах. Отсутствие поля отключает автовоспроизведение. Значение `0` недопустимо в сохранённых данных. |
 
-Без `uploadFile` файлы сохраняются как URL со встроенными данными. Для полноэкранного просмотра нужен `@shelamkoff/expose`.
+Без `uploadFile` файлы сохраняются как URL со встроенными данными. Для полноэкранного просмотра нужен `@shelamkoff/expose`. Раскладка `masonry` измеряется и позиционируется библиотекой `@shelamkoff/masonry`, а не имитацией через CSS columns.
 
 ## Конфигурация
 

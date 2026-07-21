@@ -33,3 +33,20 @@ test('cloneEditorData rejects cycles but permits shared JSON subtrees', () => {
   circular.self = circular
   assert.throws(() => cloneEditorData(circular), /circular reference/)
 })
+
+test('cloneEditorData clones JSON-shaped object and array proxies', () => {
+  const objectTarget = { text: 'Vue', nested: { value: 1 } }
+  const objectProxy = new Proxy(objectTarget, {})
+  const arrayTarget = [objectProxy, { text: 'Rector' }]
+  const arrayProxy = new Proxy(arrayTarget, {})
+
+  const clonedObject = cloneEditorData(objectProxy)
+  const clonedArray = cloneEditorData(arrayProxy)
+
+  assert.deepEqual(clonedObject, objectTarget)
+  assert.deepEqual(clonedArray, [objectTarget, { text: 'Rector' }])
+  assert.notStrictEqual(clonedObject, objectTarget)
+  assert.notStrictEqual(clonedObject.nested, objectTarget.nested)
+  assert.notStrictEqual(clonedArray, arrayTarget)
+  assert.notStrictEqual(clonedArray[0], objectTarget)
+})

@@ -1,14 +1,55 @@
 # Styling and themes
 
-Rector exposes stable root classes and CSS custom properties. Import package CSS before application overrides and scope overrides under your holder so multiple editors can have independent visual systems.
+Rector exposes stable root classes and CSS custom properties. It supports one style switch with two delivery paths: automatic reference-counted `<link>` elements for browser-native use, or explicit CSS imports for bundlers.
 
-## Required stylesheet
+## Automatic styles (default)
+
+```js
+const editor = createEditor({
+  holder,
+  plugins,
+  inlinePlugins,
+  injectStyles: true,
+})
+```
+
+`injectStyles` defaults to `true`. Rector loads the editor base and theme styles, every registered block plugin stylesheet, every registered inline-plugin stylesheet, and their declared dependency styles. Identical URLs are reference-counted across editor instances and removed after the last owner is destroyed.
+
+The renderer uses the same option and automatically loads its base and registered renderer styles on the first render:
+
+```js
+const renderer = createEditorRenderer({ injectStyles: true })
+renderer.renderTo(documentData, article)
+renderer.destroy()
+```
+
+## Bundler-managed styles
+
+For Vite, Nuxt, or another CSS-aware bundler, disable runtime links and import only the styles used by the application:
 
 ```js
 import '@shelamkoff/rector/styles/editor.css'
+import '@shelamkoff/rector/plugins/image/styles.css'
+import '@shelamkoff/rector/inline-plugins/color/styles.css'
+
+const editor = createEditor({
+  holder,
+  plugins,
+  inlinePlugins,
+  injectStyles: false,
+})
 ```
 
-The entry includes editor layout, built-in plugin CSS, and light and dark theme variables. Extensions that own styles from another package acquire them through Rector's reference-counted style registry. For example, the Color inline plugin registers the color-picker stylesheet automatically; do not import it manually.
+Renderer styles have equivalent subpaths:
+
+```js
+import '@shelamkoff/rector/styles/renderer.css'
+import '@shelamkoff/rector/renderer/renderers/carousel/styles.css'
+
+const renderer = createEditorRenderer({ injectStyles: false })
+```
+
+`@shelamkoff/rector/styles.css` is the all-in-one alternative containing editor, inline-plugin, and renderer CSS for every built-in extension. Import package CSS before application overrides and scope overrides under your holder so multiple editors can have independent visual systems.
 
 ## Select a theme
 
@@ -134,7 +175,7 @@ export class Callout {
 }
 ```
 
-Rector reference-counts identical URLs across instances and releases an injected link after the last owner is destroyed. Do not remove those link elements manually.
+Rector collects block `static styles` and inline-plugin `styles` into the same reference-counted owner. Renderer instances collect the `styles` arrays of their registered renderers. Do not remove injected link elements manually.
 
 Built-in plugin constructors support `injectStyles: false` when the host bundles plugin CSS itself. The optional `css` string adds one host-provided stylesheet URL after the default, or supplies the replacement URL when default injection is disabled.
 
@@ -175,18 +216,14 @@ Include reduced-motion handling for nonessential extension animation and keep te
 
 ## Renderer styles
 
-Output rendering has a separate stylesheet lifecycle. Do not rely on editor UI classes in published content.
+Output rendering has a separate stylesheet lifecycle. Do not rely on editor UI classes in published content. With automatic styles enabled, rendering acquires the required URLs lazily; destroying the last owned result or calling a full `renderer.destroy()` releases them.
 
 ```js
 import { createEditorRenderer } from '@shelamkoff/rector/renderer'
 
 const renderer = createEditorRenderer({ classPrefix: 'article' })
-const styleOwner = renderer.injectStyles()
-
 renderer.renderTo(documentData, article)
-
-renderer.destroy(article)
-styleOwner.destroy()
+renderer.destroy()
 ```
 
-`classPrefix` changes the output namespace. If styles are managed by the host instead, import `@shelamkoff/rector/styles/renderer.css` and the styles declared by each selected renderer.
+`classPrefix` changes the output namespace. `renderer.injectStyles()` remains available when styles must be acquired before the first render; it returns an independent owner that must be destroyed. In bundler-managed mode, import `@shelamkoff/rector/styles/renderer.css` and every selected renderer subpath, then create the renderer with `injectStyles: false`.

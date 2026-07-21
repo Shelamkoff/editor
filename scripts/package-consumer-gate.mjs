@@ -77,6 +77,13 @@ try {
     'package/dist/inline-plugins/mention/README.ru.md',
     'package/dist/renderer/renderers/README.md',
     'package/dist/renderer/renderers/README.ru.md',
+    'package/dist/styles.css',
+    'package/dist/styles/editor.css',
+    'package/dist/styles/renderer.css',
+    'package/dist/styles/inline-plugins/color.css',
+    'package/dist/styles/inline-plugins/mention.css',
+    ...blockReadmes.map(type => `package/dist/styles/plugins/${type}.css`),
+    ...blockReadmes.map(type => `package/dist/styles/renderers/${type}.css`),
     ...blockReadmes.map(type => `package/dist/plugins/${type}/README.md`),
     ...blockReadmes.map(type => `package/dist/plugins/${type}/README.ru.md`),
     ...blockReadmes.map(type => `package/dist/renderer/renderers/${type}/README.md`),
@@ -154,8 +161,11 @@ import { ColorPicker, colorPickerStylesUrl, parseColorInput } from '@shelamkoff/
 import { Carousel, carouselStylesUrl } from '@shelamkoff/carousel'
 import { Cropper, cropperStylesUrl } from '@shelamkoff/cropper'
 import { Expose, exposeStylesUrl } from '@shelamkoff/expose'
+import '@shelamkoff/rector/styles.css'
 import '@shelamkoff/rector/styles/editor.css'
-import '@shelamkoff/color-picker/styles.css'
+import '@shelamkoff/rector/plugins/person/styles.css'
+import '@shelamkoff/rector/inline-plugins/color/styles.css'
+import '@shelamkoff/rector/renderer/renderers/carousel/styles.css'
 const configuredPlugins = [
   new CarouselBlock({
     uploadFile: async (file, { signal }) => ({ url: signal.aborted ? '' : URL.createObjectURL(file) }),
@@ -188,6 +198,7 @@ function usePublicEditorApi(editor = createEditor({
   holder: document.createElement('div'),
   plugins: [new Paragraph()],
   inlineTools: [],
+  injectStyles: false,
 })) {
   const available = [editor.readOnly, editor.canUndo, editor.canRedo]
   editor.undo()

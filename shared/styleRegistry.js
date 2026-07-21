@@ -3,6 +3,11 @@ const entries = new Map()
 
 /** @param {string[]} urls */
 export function acquireStyleUrls(urls) {
+  const head = globalThis.document?.head
+  if (!head || typeof head.appendChild !== 'function') {
+    return { destroy() {} }
+  }
+
   const tracked = []
   for (const url of new Set(urls)) {
     const existing = entries.get(url)
@@ -13,7 +18,7 @@ export function acquireStyleUrls(urls) {
       link.rel = 'stylesheet'
       link.href = url
       link.dataset.oeStyle = ''
-      document.head.appendChild(link)
+      head.appendChild(link)
       entries.set(url, { count: 1, link })
     }
     tracked.push(url)

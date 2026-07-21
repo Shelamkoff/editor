@@ -49,6 +49,18 @@ test('preserve policy accepts unknown versions without mutating input', () => {
   assert.notEqual(normalized.blocks, source.blocks)
 })
 
+test('document normalization accepts JSON-shaped reactive proxies', () => {
+  const blocksTarget = [{ id: 'proxy', type: 'paragraph', data: { text: 'Vue' } }]
+  const blocksProxy = new Proxy(blocksTarget, {})
+  const documentProxy = new Proxy({ version: '2', blocks: blocksProxy }, {})
+
+  const normalized = new DocumentSchema({ currentVersion: '2' }).normalize(documentProxy)
+
+  assert.deepEqual(normalized, { version: '2', blocks: blocksTarget })
+  assert.notStrictEqual(normalized.blocks, blocksTarget)
+  assert.notStrictEqual(normalized.blocks[0], blocksTarget[0])
+})
+
 test('document envelope policy preserves safe fallback and supports strict rejection', () => {
   const schema = new DocumentSchema()
   assert.deepEqual(schema.normalize(null).blocks, [])

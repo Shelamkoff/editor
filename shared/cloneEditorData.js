@@ -14,7 +14,14 @@ import { assertJsonValue } from './jsonData.js'
 export function cloneEditorData(value) {
   assertJsonValue(value)
   if (typeof structuredClone === 'function') {
-    return structuredClone(value)
+    try {
+      return structuredClone(value)
+    } catch (error) {
+      const errorName = error && typeof error === 'object' && 'name' in error
+        ? error.name
+        : undefined
+      if (errorName !== 'DataCloneError') throw error
+    }
   }
   return JSON.parse(JSON.stringify(value))
 }

@@ -16,13 +16,10 @@ npm install @shelamkoff/rector @shelamkoff/carousel @shelamkoff/expose @shelamko
 import { createEditorRenderer } from '@shelamkoff/rector/renderer'
 
 const renderer = createEditorRenderer({ theme: 'dark' })
-const styles = renderer.injectStyles()
-
 renderer.renderTo(documentData, document.querySelector('#article'))
 
 // При удалении представления:
-renderer.destroy(document.querySelector('#article'))
-styles.destroy()
+renderer.destroy()
 ```
 
 Рендерер напрямую принимает документ из `editor.save()`. Метаданные `time`, `version` и `id` блока для отображения необязательны. Функциональным входом служат `blocks`, `type` каждого блока и данные плагина.
@@ -31,6 +28,7 @@ styles.destroy()
 
 ```ts
 interface RendererConfig {
+  injectStyles?: boolean
   classPrefix?: string
   throwOnUnknown?: boolean
   theme?: 'dark' | 'light'
@@ -48,6 +46,7 @@ interface RendererConfig {
 
 | Параметр | Значение по умолчанию | Назначение |
 | --- | --- | --- |
+| `injectStyles` | `true` | автоматически загрузить базовые стили и стили зарегистрированных рендереров при первом отображении |
 | `classPrefix` | `editor` | пространство имён классов результата |
 | `throwOnUnknown` | `true` | выбросить исключение для незарегистрированного блока вместо вывода заглушки |
 | `theme` | `dark` | тема рендерера |
@@ -158,25 +157,26 @@ const renderers = await createDefaultRenderersAsync('oe', {}, documentData)
 
 ## Стили
 
-`getStyleUrls()` возвращает уникальные URL основных таблиц и стилей зарегистрированных рендереров. `injectStyles()` подсчитывает их владельцев в текущем документе и возвращает дескриптор освобождения.
+При стандартном `injectStyles: true` первый рендеринг автоматически получает уникальные URL базовых таблиц и стилей зарегистрированных рендереров. Уничтожение последнего результата или полный `renderer.destroy()` освобождает этого владельца. `getStyleUrls()` возвращает URL, а `injectStyles()` остаётся доступным для явной предварительной загрузки и возвращает независимый дескриптор освобождения.
 
 ```js
-const styleOwner = renderer.injectStyles()
-try {
-  renderer.renderTo(documentData, container)
-} finally {
-  renderer.destroy(container)
-  styleOwner.destroy()
-}
+import '@shelamkoff/rector/styles/renderer.css'
+import '@shelamkoff/rector/renderer/renderers/gallery/styles.css'
+
+const renderer = createEditorRenderer({
+  blockTypes: ['gallery'],
+  injectStyles: false,
+})
+renderer.renderTo(documentData, container)
 ```
 
-Не импортируйте CSS интерфейса редактора ради итогового документа. Стили рендерера имеют отдельную точку входа: `@shelamkoff/rector/styles/renderer.css`.
+Не импортируйте CSS интерфейса редактора ради итогового документа. В режиме сборщика используйте `@shelamkoff/rector/styles/renderer.css` вместе с subpath `renderer/renderers/<type>/styles.css` каждого выбранного рендерера. Если размер пакета не важен, доступна единая точка `@shelamkoff/rector/styles.css`.
 
 ## Освобождение ресурсов
 
 `destroy(target)` принимает контейнер, ранее переданный в `renderTo()`, оболочку из `render()` или элемент из `renderBlock()`. Метод вызывает необязательный `destroy(element)` владеющего рендерера блока, очищает принадлежащий рендереру результат и забывает его. `destroy()` без аргумента освобождает все результаты этого экземпляра.
 
-Контейнер приложения не удаляется. Освобождаются наблюдатели, обработчики и сторонние экземпляры, после чего запись об установке забывается. Владелец стилей из `injectStyles()` имеет отдельный жизненный цикл и также должен быть освобождён собственным методом `destroy()`.
+Контейнер приложения не удаляется. Освобождаются наблюдатели, обработчики и сторонние экземпляры, после чего запись об установке забывается. Автоматически подключённые стили освобождаются, когда не остаётся принадлежащих рендереру результатов. Отдельный дескриптор, возвращённый явным `injectStyles()`, имеет собственный жизненный цикл и должен быть освобождён своим методом `destroy()`.
 
 ## Граница безопасности
 

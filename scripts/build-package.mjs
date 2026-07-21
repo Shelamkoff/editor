@@ -6,6 +6,21 @@ import { generateDeclarations } from './generate-declarations.mjs'
 const editorRoot = resolve(fileURLToPath(new URL('..', import.meta.url)))
 const distRoot = join(editorRoot, 'dist')
 const sourceRoots = ['core', 'inline-plugins', 'inline-tools', 'locale', 'plugins', 'renderer', 'shared']
+const blockTypes = [
+  'paragraph', 'heading', 'list', 'quote', 'code', 'image', 'delimiter', 'table',
+  'checklist', 'warning', 'embed', 'raw', 'gallery', 'carousel', 'attaches', 'link-preview',
+  'toggle', 'columns', 'spoiler', 'poll', 'person',
+]
+const sourceEditorTypes = new Set(['image', 'gallery', 'carousel', 'attaches'])
+const rendererTypes = blockTypes
+const pluginDependencyStyles = {
+  person: ['@shelamkoff/cropper/styles.css'],
+}
+const rendererDependencyStyles = {
+  carousel: ['@shelamkoff/carousel/styles.css'],
+  gallery: ['@shelamkoff/expose/styles.css'],
+  person: ['@shelamkoff/carousel/styles.css'],
+}
 
 async function walk(directory, result = []) {
   for (const entry of await readdir(directory, { withFileTypes: true })) {
@@ -46,6 +61,61 @@ async function writeStyleEntrypoints() {
     "@import '../core/themes/dark.css';",
     '',
   ].join('\n'), 'utf8')
+
+  await writeFile(join(stylesRoot, 'renderer.css'), [
+    "@import '../renderer/styles/base.css';",
+    '',
+  ].join('\n'), 'utf8')
+
+  const pluginStylesRoot = join(stylesRoot, 'plugins')
+  await mkdir(pluginStylesRoot, { recursive: true })
+  for (const type of blockTypes) {
+    const imports = [`../../plugins/${type}/${type}.css`]
+    if (sourceEditorTypes.has(type)) imports.push('../../plugins/shared/sourceEditor.css')
+    imports.push(...(pluginDependencyStyles[type] ?? []))
+    await writeFile(
+      join(pluginStylesRoot, `${type}.css`),
+      `${imports.map(path => `@import '${path}';`).join('\n')}\n`,
+      'utf8',
+    )
+  }
+
+  const inlineStylesRoot = join(stylesRoot, 'inline-plugins')
+  await mkdir(inlineStylesRoot, { recursive: true })
+  await writeFile(join(inlineStylesRoot, 'color.css'), "@import '@shelamkoff/color-picker/styles.css';\n", 'utf8')
+  await writeFile(join(inlineStylesRoot, 'mention.css'), "@import '../../inline-plugins/mention/styles.css';\n", 'utf8')
+
+  const rendererStylesRoot = join(stylesRoot, 'renderers')
+  await mkdir(rendererStylesRoot, { recursive: true })
+  for (const type of rendererTypes) {
+    const imports = type === 'raw'
+      ? []
+      : [
+          `../../renderer/renderers/${type}/styles.css`,
+          ...(rendererDependencyStyles[type] ?? []),
+        ]
+    await writeFile(
+      join(rendererStylesRoot, `${type}.css`),
+      imports.length > 0
+        ? `${imports.map(path => `@import '${path}';`).join('\n')}\n`
+        : '/* Raw rendering relies only on the shared renderer stylesheet. */\n',
+      'utf8',
+    )
+  }
+
+  const aggregateImports = [
+    './styles/editor.css',
+    './styles/renderer.css',
+    ...blockTypes.map(type => `./styles/plugins/${type}.css`),
+    './styles/inline-plugins/color.css',
+    './styles/inline-plugins/mention.css',
+    ...rendererTypes.map(type => `./styles/renderers/${type}.css`),
+  ]
+  await writeFile(
+    join(distRoot, 'styles.css'),
+    `${aggregateImports.map(path => `@import '${path}';`).join('\n')}\n`,
+    'utf8',
+  )
 }
 
 await rm(distRoot, { recursive: true, force: true })

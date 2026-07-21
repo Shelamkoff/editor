@@ -202,6 +202,7 @@ interface InlinePlugin {
   readonly type: string
   readonly title: string
   readonly icon: string
+  readonly styles?: readonly string[]
   readonly trigger?: string
   readonly pasteConfig?: { patterns: RegExp[] }
 
@@ -219,7 +220,7 @@ interface InlinePlugin {
 }
 ```
 
-`createWidget()` builds the widget and must preserve a supplied id as `data-id`. `mount()` acquires editor-scoped resources after the owning root and mutation context exist. `getData()` returns JSON-compatible strings for serialization. `hydrate()` attaches behavior to restored DOM. A `trigger` must be exactly one Unicode code point. `onEdit()` receives the text between that trigger and the caret; `onCancel()` closes plugin-owned transient UI when the caret leaves the session, Escape is pressed, the trigger is removed, or the editor is destroyed. Optional paste-pattern members support automatic conversion; `insertFresh()` replaces the default programmatic insertion behavior. `destroy()` releases mounted resources and widget state when the editor is destroyed.
+`styles` declares stylesheet URLs without loading them itself. Rector combines them with base and block-plugin styles when `createEditor({ injectStyles: true })` is used; bundler-managed applications import the corresponding CSS subpath and set the flag to `false`. `createWidget()` builds the widget and must preserve a supplied id as `data-id`. `mount()` acquires editor-scoped resources after the owning root and mutation context exist. `getData()` returns JSON-compatible strings for serialization. `hydrate()` attaches behavior to restored DOM. A `trigger` must be exactly one Unicode code point. `onEdit()` receives the text between that trigger and the caret; `onCancel()` closes plugin-owned transient UI when the caret leaves the session, Escape is pressed, the trigger is removed, or the editor is destroyed. Optional paste-pattern members support automatic conversion; `insertFresh()` replaces the default programmatic insertion behavior. `destroy()` releases mounted resources and widget state when the editor is destroyed.
 
 Implement `isCommitted(element)` when a widget has a temporary state that is visible while the user is searching or editing but is not yet valid document data. Return `false` only for that temporary state. During `save()`, Rector serializes the element's visible text as ordinary text and omits its `block.inline` entry. A committed widget must return `true` (or omit the method). This prevents autosave from producing an incomplete entity while keeping the user's typed query.
 

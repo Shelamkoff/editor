@@ -12,7 +12,6 @@ npm install @shelamkoff/rector @shelamkoff/color-picker
 import { createEditor } from '@shelamkoff/rector'
 import { Paragraph } from '@shelamkoff/rector/plugins/paragraph'
 import { createColorSwatchPlugin } from '@shelamkoff/rector/inline-plugins/color'
-import '@shelamkoff/rector/styles/editor.css'
 
 const editor = createEditor({
   holder: document.querySelector('#editor'),
@@ -53,7 +52,7 @@ In read-only mode the widget remains visible but does not open the picker. `edit
 
 ## Styles and document output
 
-The plugin acquires the color-picker stylesheet through Rector's reference-counted style registry while its editor is mounted, so applications must not import it separately. The widget root uses `.oe-ip.oe-ip--color`; its dot and label use `.oe-ip__dot` and `.oe-ip__label`. Scope host overrides under the editor or renderer container.
+The plugin declares the color-picker stylesheet to Rector's shared style registry. With the default `injectStyles: true`, no CSS import is needed. In bundler-managed mode, set `injectStyles: false` on `createEditor()` and import `@shelamkoff/rector/inline-plugins/color/styles.css`. The widget root uses `.oe-ip.oe-ip--color`; its dot and label use `.oe-ip__dot` and `.oe-ip__label`. Scope host overrides under the editor or renderer container.
 
 For document output, pass `createColorSwatchPlugin()` in `EditorRenderer`'s `inlinePlugins` array. The renderer uses its `createWidget()` and `getData()` subset; the picker is not mounted by the renderer.
 

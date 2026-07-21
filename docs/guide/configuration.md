@@ -14,6 +14,7 @@ interface EditorConfig {
   migrations?: DocumentMigration[]
   documentVersionPolicy?: 'preserve' | 'strict'
   readOnly?: boolean
+  injectStyles?: boolean
   placeholder?: string
   autofocus?: boolean
   minHeight?: number
@@ -44,6 +45,7 @@ The table below is the complete public `EditorConfig` contract. A value describe
 | `migrations` | no | `[]` | Directed synchronous document migrations. Rector follows `from` → `to` links until the current document version is reached. |
 | `documentVersionPolicy` | no | `'preserve'` | What to do when the incoming document has an unknown version or an incomplete migration chain. `preserve` applies every reachable migration and keeps the last structurally valid version; `strict` requires a complete chain and throws otherwise. |
 | `readOnly` | no | `false` | Selects the initial mode. It disables user and plugin editing controls while keeping host-authorized document methods available. Change it later with `editor.setReadOnly()`. |
+| `injectStyles` | no | `true` | Loads base, theme, registered block-plugin, and registered inline-plugin styles through reference-counted `<link>` elements. Set it to `false` when the host imports package CSS through a bundler. |
 | `placeholder` | no | plugin locale | Overrides the placeholder of the default block when that plugin implements `setPlaceholder()`. Pass an empty string to suppress that placeholder. It does not change placeholders owned by other plugins. |
 | `autofocus` | no | `false` | Focuses the first editable or focusable element after successful creation. It has no effect in read-only mode. |
 | `minHeight` | no | stylesheet value | Sets a finite non-negative inline minimum height, in CSS pixels, on the editor root. Omit it to leave sizing to CSS. |

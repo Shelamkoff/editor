@@ -197,6 +197,8 @@ async function run() {
 
   renderer.renderTo(structuredClone(output), container)
   const wrapper = container.firstElementChild
+  assert(document.querySelectorAll('link[data-oe-style]').length > 0,
+    'renderer did not automatically acquire styles')
   assert(wrapper?.children.length === BLOCK_TYPES.length, 'read-only renderer did not render every block')
   assert(!container.querySelector('[contenteditable="true"]'), 'read-only renderer created editable content')
   const firstNodes = [...wrapper.children]
@@ -211,13 +213,24 @@ async function run() {
   injected.destroy()
   assert(document.querySelectorAll('link[data-oe-style]').length > 0, 'one renderer owner removed shared styles')
   injectedSecondOwner.destroy()
-  assert(document.querySelectorAll('link[data-oe-style]').length === 0, 'renderer styles leaked after last owner destroy')
+  assert(document.querySelectorAll('link[data-oe-style]').length > 0,
+    'explicit owners removed the renderer automatic style owner')
 
   for (let cycle = 0; cycle < 10; cycle++) {
     renderer.renderTo(structuredClone(output), container)
     renderer.destroy(container)
     assert(container.childNodes.length === 0, `renderer destroy leaked DOM at cycle ${cycle}`)
   }
+
+  renderer.destroy()
+  assert(document.querySelectorAll('link[data-oe-style]').length === 0,
+    'renderer automatic styles leaked after destroy')
+
+  const manualRenderer = new EditorRenderer({ blockTypes: [], injectStyles: false })
+  manualRenderer.renderTo({ blocks: [] }, container)
+  assert(document.querySelectorAll('link[data-oe-style]').length === 0,
+    'renderer injectStyles:false still acquired styles')
+  manualRenderer.destroy()
 
   await new Promise(resolve => setTimeout(resolve, 250))
   assert(runtimeErrors.length === 0, `browser runtime errors: ${runtimeErrors.join('\n')}`)

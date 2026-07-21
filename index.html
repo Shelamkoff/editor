@@ -18,13 +18,7 @@
   </script>
   <title>RectorJs — Block Editor</title>
 
-  <!-- Editor CSS -->
-  <link rel="stylesheet" href="core/themes/variables.css">
-  <link rel="stylesheet" href="core/themes/dark.css">
-  <link rel="stylesheet" href="core/themes/light.css">
-  <!-- Plugin CSS is now auto-injected by createEditor via static styles -->
-  <!-- Renderer CSS is injected via <link> tags (base.css + per-renderer styles.css) -->
-  <!-- Expose (lightbox) CSS for gallery renderer -->
+  <!-- Editor, plugin, and renderer CSS is auto-injected by their owners. -->
 
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -967,6 +961,7 @@
     /* ── Preview toggle ────────────────────────────────────────────────── */
 
     let previewing = false
+    let previewRenderer = null
     const previewBtn = document.getElementById('previewBtn')
     const editorHolder = document.getElementById('editorHolder')
     const previewHolder = document.getElementById('previewHolder')
@@ -980,9 +975,7 @@
         EditorRendererClass = mod.EditorRenderer
       }
       const currentTheme = document.documentElement.classList.contains('theme-light') ? 'light' : 'dark'
-      const renderer = new EditorRendererClass({ throwOnUnknown: false, theme: currentTheme })
-      renderer.injectStyles()
-      return renderer
+      return new EditorRendererClass({ throwOnUnknown: false, theme: currentTheme })
     }
 
     previewBtn.addEventListener('click', async () => {
@@ -991,14 +984,17 @@
 
       if (previewing) {
         const data = editor.save()
-        const renderer = await getRenderer()
+        previewRenderer = await getRenderer()
         previewHolder.innerHTML = ''
-        previewHolder.appendChild(renderer.render(data))
+        previewHolder.appendChild(previewRenderer.render(data))
         editorHolder.style.display = 'none'
         previewHolder.style.display = ''
         previewBtn.textContent = d['demo.edit'] || 'Edit'
         previewBtn.classList.add('on')
       } else {
+        previewRenderer?.destroy()
+        previewRenderer = null
+        previewHolder.replaceChildren()
         editorHolder.style.display = ''
         previewHolder.style.display = 'none'
         previewBtn.textContent = d['demo.preview'] || 'Preview'

@@ -16,7 +16,7 @@ const baseCssUrl = new URL('./styles/base.css', import.meta.url).href
  * Renders Rector document blocks to DOM elements.
  */
 export class EditorRenderer {
-  /** @type {{ classPrefix: string, throwOnUnknown: boolean, theme: 'dark' | 'light', validationMode: 'preserve' | 'strict', onValidationError?: (issue: { blockId?: string, type: string }) => void }} */
+  /** @type {{ injectStyles: boolean, classPrefix: string, throwOnUnknown: boolean, theme: 'dark' | 'light', validationMode: 'preserve' | 'strict', onValidationError?: (issue: { blockId?: string, type: string }) => void }} */
   #config
   /** @type {Map<string, import('./types').BlockRenderer>} */
   #renderers
@@ -42,9 +42,19 @@ export class EditorRenderer {
   /** @type {import('./types').InlineParser} */
   #parseInline
 
+  /** @type {{ destroy(): void } | null} */
+  #styleOwner = null
+
+  /** @type {string} */
+  #styleKey = ''
+
   /** @param {import('./types').RendererConfig} [config] */
   constructor(config = {}) {
+    if (config.injectStyles !== undefined && typeof config.injectStyles !== 'boolean') {
+      throw new TypeError('EditorRenderer injectStyles must be a boolean')
+    }
     this.#config = {
+      injectStyles: config.injectStyles ?? true,
       classPrefix: config.classPrefix ?? 'editor',
       throwOnUnknown: config.throwOnUnknown ?? true,
       theme: config.theme ?? 'dark',
@@ -118,9 +128,15 @@ export class EditorRenderer {
    * @returns {HTMLElement}
    */
   renderBlock(block) {
-    const entry = this.#createRenderedBlock(block)
-    this.#detachedBlocks.set(entry.element, entry)
-    return entry.element
+    this.#ensureStyles()
+    try {
+      const entry = this.#createRenderedBlock(block)
+      this.#detachedBlocks.set(entry.element, entry)
+      return entry.element
+    } catch (error) {
+      this.#releaseAutomaticStylesIfIdle()
+      throw error
+    }
   }
 
   /**
@@ -197,6 +213,7 @@ export class EditorRenderer {
    * @returns {HTMLElement}
    */
   render(data) {
+    this.#ensureStyles()
     const wrapper = document.createElement('div')
     const theme = this.#config.theme
     wrapper.className = `${this.#config.classPrefix}-content`
@@ -214,6 +231,7 @@ export class EditorRenderer {
       }
     } catch (error) {
       for (const entry of created) this.#disposeRenderedElement(entry)
+      this.#releaseAutomaticStylesIfIdle()
       throw error
     }
 
@@ -261,6 +279,7 @@ export class EditorRenderer {
    * @returns {void}
    */
   renderTo(data, container) {
+    this.#ensureStyles()
     const mounted = this.#mountedContainers.get(container)
     const wrapper = mounted?.wrapper ?? document.createElement('div')
     if (!mounted) {
@@ -308,6 +327,7 @@ export class EditorRenderer {
       }
     } catch (error) {
       for (const entry of created) this.#disposeRenderedElement(entry)
+      this.#releaseAutomaticStylesIfIdle()
       throw error
     }
 
@@ -364,6 +384,8 @@ export class EditorRenderer {
       this.#detachedBlocks.delete(element)
       element.replaceChildren()
     }
+
+    this.#releaseAutomaticStylesIfIdle(!target)
   }
 
   /**
@@ -389,6 +411,29 @@ export class EditorRenderer {
     }
 
     return [...urls]
+  }
+
+  #ensureStyles() {
+    if (!this.#config.injectStyles) return
+    const urls = this.getStyleUrls()
+    const key = urls.join('\n')
+    if (this.#styleOwner && this.#styleKey === key) return
+    const nextOwner = acquireStyleUrls(urls)
+    this.#styleOwner?.destroy()
+    this.#styleOwner = nextOwner
+    this.#styleKey = key
+  }
+
+  /** Release automatic styles after the last rendered result, or unconditionally. */
+  #releaseAutomaticStylesIfIdle(force = false) {
+    if (!force && (
+      this.#mountedContainers.size > 0
+      || this.#detachedDocuments.size > 0
+      || this.#detachedBlocks.size > 0
+    )) return
+    this.#styleOwner?.destroy()
+    this.#styleOwner = null
+    this.#styleKey = ''
   }
 
   /**

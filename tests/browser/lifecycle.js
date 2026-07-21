@@ -462,6 +462,24 @@ async function run() {
     assertSnapshot(tracker.snapshot(), baseline, tracker, `color popup leaked resources (${closeTiming})`)
   }
 
+  const manualStylesHolder = document.createElement('section')
+  sandbox.appendChild(manualStylesHolder)
+  const manualStylesEditor = createEditor({
+    holder: manualStylesHolder,
+    plugins: [new Paragraph()],
+    inlinePlugins: [
+      createColorSwatchPlugin(),
+      createMentionPlugin({ searchFunction: async () => [] }),
+    ],
+    inlineTools: [],
+    injectStyles: false,
+  })
+  assert(document.querySelectorAll('link[data-oe-style]').length === 0,
+    'injectStyles:false still acquired block or inline-plugin styles')
+  manualStylesEditor.destroy()
+  manualStylesHolder.remove()
+  assertSnapshot(tracker.snapshot(), baseline, tracker, 'manual stylesheet mode leaked resources')
+
   const imageBlob = await (await fetch(pixel)).blob()
   const imageFile = new File([imageBlob], 'avatar.png', { type: 'image/png' })
   const imageTransfer = new DataTransfer()

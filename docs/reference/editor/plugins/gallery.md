@@ -19,7 +19,6 @@ npm install @shelamkoff/rector
 ```js
 import { createEditor } from '@shelamkoff/rector'
 import { Gallery } from '@shelamkoff/rector/plugins/gallery'
-import '@shelamkoff/rector/styles/editor.css'
 
 const editor = createEditor({
   holder: document.querySelector('#editor'),
@@ -52,7 +51,7 @@ The registered block type is `gallery`. The class is also exported by the comple
 | `options.thumbnails` | no | Shows viewer thumbnails; the new-block default is `false`. |
 | `options.autoplayInterval` | no | Positive finite interval in milliseconds. Omit it to disable autoplay. `0` is not valid persisted data. |
 
-Without `uploadFile`, local files become data URLs. Callback results are accepted only when `url` passes the shared media URL policy. The viewer requires `@shelamkoff/expose`.
+Without `uploadFile`, local files become data URLs. Callback results are accepted only when `url` passes the shared media URL policy. The viewer requires `@shelamkoff/expose`. The `masonry` layout is measured and positioned by `@shelamkoff/masonry`; it is not a CSS-columns approximation.
 
 ## Configuration
 

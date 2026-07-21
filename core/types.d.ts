@@ -389,6 +389,8 @@ export interface EditorDiagnostic {
 export interface EditorConfig {
   holder: HTMLElement
   plugins: BlockPlugin[]
+  /** Automatically load registered block and inline-plugin styles through reference-counted link elements. Default: true. */
+  injectStyles?: boolean
   /** Custom inline tools. String types filter defaults, objects are used as-is. If omitted, all defaults are used. */
   inlineTools?: Array<string | InlineTool>
   /** Inline plugins (widgets inside text: color swatch, mention, etc.) */
@@ -686,6 +688,8 @@ export interface IEditor {
 // ── Inline Plugins ───────────────────────────────────────────────────────────
 
 export interface InlinePlugin extends BasePlugin {
+  /** Stylesheets declaratively owned by this plugin. */
+  readonly styles?: readonly string[]
   /** Optional activation trigger. Must contain exactly one Unicode code point. */
   readonly trigger?: string
   /** Patterns that auto-convert pasted/typed text into this widget. */

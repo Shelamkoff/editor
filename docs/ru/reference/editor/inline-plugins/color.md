@@ -20,8 +20,6 @@ npm install @shelamkoff/rector @shelamkoff/color-picker
 import { createEditor } from '@shelamkoff/rector'
 import { Paragraph } from '@shelamkoff/rector/plugins/paragraph'
 import { createColorSwatchPlugin } from '@shelamkoff/rector/inline-plugins/color'
-import '@shelamkoff/rector/styles/editor.css'
-import '@shelamkoff/color-picker/styles.css'
 
 const editor = createEditor({
   holder: document.querySelector('#editor'),
@@ -62,7 +60,7 @@ const editor = createEditor({
 
 ## Стили и отображение документа
 
-Кроме стилей редактора импортируйте таблицу стилей средства выбора цвета. Корневой элемент использует `.oe-ip.oe-ip--color`, а точка и подпись — `.oe-ip__dot` и `.oe-ip__label`. Ограничивайте переопределения контейнером редактора или рендерера.
+Плагин объявляет таблицу стилей средства выбора цвета общему реестру Rector. При стандартном `injectStyles: true` импорт CSS не нужен. В режиме сборщика укажите `injectStyles: false` в `createEditor()` и импортируйте `@shelamkoff/rector/inline-plugins/color/styles.css`. Корневой элемент использует `.oe-ip.oe-ip--color`, а точка и подпись — `.oe-ip__dot` и `.oe-ip__label`. Ограничивайте переопределения контейнером редактора или рендерера.
 
 Для отображения документа передайте `createColorSwatchPlugin()` в массив `inlinePlugins` конструктора `EditorRenderer`. Рендерер использует только `createWidget()` и `getData()`; окно выбора цвета в нём не подключается.
 

@@ -17,8 +17,8 @@
  *     data-value="<entity>" class="oe-ip oe-ip--mention">@Name</span>`.
  *     The shared sanitize allowlist preserves this through save / render.
  *
- * Styling lives in `./styles.css` and is acquired through the shared style
- * registry while the owning editor is mounted.
+ * Styling lives in `./styles.css` and is declared through the plugin's
+ * `styles` property for the editor's shared style registry.
  */
 
 /**
@@ -33,11 +33,10 @@
  * @typedef {import('../../core/types').InlinePluginContext} InlinePluginContext
  */
 
-import { injectStyleUrls } from '../../core/StyleInjector.js'
 import { createMentionWidget } from './widget.js'
 import { setSafeUrlAttribute } from '../../shared/sanitize/sanitizeUrl.js'
 
-/** Absolute URL to the plugin's stylesheet. Ref-counted via `injectStyleUrls`. */
+/** Absolute URL to the plugin's stylesheet. */
 const STYLES_URL = new URL('./styles.css', import.meta.url).href
 
 const DEFAULTS = Object.freeze({
@@ -348,8 +347,6 @@ export function createMentionPlugin(options = {}) {
 
   // Editor-scoped resources are acquired later by mount(). Construction is
   // deliberately side-effect free so failed registration cannot leak them.
-  /** @type {{ destroy(): void } | null} */
-  let styleHandle = null
   /** @type {HTMLElement | null} */
   let rootElement = null
 
@@ -1653,6 +1650,7 @@ export function createMentionPlugin(options = {}) {
   /** @type {InlinePlugin} */
   const plugin = {
     type: 'mention',
+    styles: [STYLES_URL],
     trigger: opts.trigger,
     get title() { return t('title', 'Mention') },
 
@@ -1671,7 +1669,6 @@ export function createMentionPlugin(options = {}) {
       if (rootElement) throw new Error('Mention plugin is already mounted')
       rootElement = editorRoot
       globalCtx = ctx
-      styleHandle = injectStyleUrls([STYLES_URL])
       rootElement.addEventListener('beforeinput', /** @type {EventListener} */ (handleBeforeInput), true)
     },
 
@@ -1874,15 +1871,13 @@ export function createMentionPlugin(options = {}) {
      * owning editor and uses it to:
      *  - close any open session;
      *  - detach the editor-scoped `beforeinput` listener;
-     *  - release the shared stylesheet ref.
+     *  - release editor-scoped listeners and active UI.
      *
      */
     destroy() {
       closeSession()
       rootElement?.removeEventListener('beforeinput', /** @type {EventListener} */ (handleBeforeInput), true)
       rootElement = null
-      styleHandle?.destroy()
-      styleHandle = null
       globalCtx = null
     },
   }

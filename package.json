@@ -1,6 +1,6 @@
 {
   "name": "@shelamkoff/rector",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Extensible browser-native block editor with atomic history, versioned JSON, and document rendering",
   "type": "module",
   "sideEffects": [
@@ -38,6 +38,7 @@
       "types": "./dist/inline-plugins/mention/index.d.ts",
       "import": "./dist/inline-plugins/mention/index.js"
     },
+    "./inline-plugins/*/styles.css": "./dist/styles/inline-plugins/*.css",
     "./inline-tools": {
       "types": "./dist/inline-tools/defaults.d.ts",
       "import": "./dist/inline-tools/defaults.js"
@@ -69,12 +70,15 @@
       "types": "./dist/renderer/renderers/*/index.d.ts",
       "import": "./dist/renderer/renderers/*/index.js"
     },
+    "./renderer/renderers/*/styles.css": "./dist/styles/renderers/*.css",
     "./locale/*": {
       "types": "./dist/locale/*.d.ts",
       "import": "./dist/locale/*.js"
     },
+    "./styles.css": "./dist/styles.css",
     "./styles/editor.css": "./dist/styles/editor.css",
-    "./styles/renderer.css": "./dist/renderer/styles/base.css",
+    "./styles/renderer.css": "./dist/styles/renderer.css",
+    "./plugins/*/styles.css": "./dist/styles/plugins/*.css",
     "./styles/themes/*": "./dist/core/themes/*.css",
     "./package.json": "./package.json"
   },

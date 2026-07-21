@@ -419,6 +419,8 @@ export interface BlockRenderer<T extends OutputBlockData = OutputBlockData> {
 }
 
 export interface RendererConfig {
+    /** Automatically load base and registered-renderer styles on first render. Default: true. */
+    injectStyles?: boolean
     /** Namespace used by generated renderer classes. Default: 'editor'. */
     classPrefix?: string
     /** Throw for an unregistered block instead of rendering a placeholder. Default: true. */
