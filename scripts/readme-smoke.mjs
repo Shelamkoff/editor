@@ -151,8 +151,8 @@ for (const file of allReadmes) {
     }
   }
   if (/^inline-plugins\/color\/README(?:\.ru)?\.md$/.test(sourceRelative)
-    && !markdown.includes("@shelamkoff/color-picker/styles.css")) {
-    throw new Error(`${label}: color widget example does not import color-picker styles`)
+    && markdown.includes("@shelamkoff/color-picker/styles.css")) {
+    throw new Error(`${label}: color widget example must rely on Rector's style registry`)
   }
 
   for (const match of markdown.matchAll(/\[[^\]]+\]\(([^)]+)\)/g)) {

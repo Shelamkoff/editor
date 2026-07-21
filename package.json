@@ -1,6 +1,6 @@
 {
   "name": "@shelamkoff/rector",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Extensible browser-native block editor with atomic history, versioned JSON, and document rendering",
   "type": "module",
   "sideEffects": [

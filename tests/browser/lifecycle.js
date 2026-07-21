@@ -136,11 +136,12 @@ window.__editorHeapReport = () => ({
   alive: heapSentinels.filter(item => item.ref.deref() !== undefined).map(item => item.label),
 })
 
-const [{ createColorSwatchPlugin, createEditor, createMentionPlugin }, pluginModule, rendererModule, blockTypesModule] = await Promise.all([
+const [{ createColorSwatchPlugin, createEditor, createMentionPlugin }, pluginModule, rendererModule, blockTypesModule, { colorPickerStylesUrl }] = await Promise.all([
   import('../../core/index.js'),
   import('../../plugins/index.js'),
   import('../../renderer/index.js'),
   import('../../shared/blockTypes.js'),
+  import('@shelamkoff/color-picker'),
 ])
 
 const {
@@ -430,6 +431,10 @@ async function run() {
       },
       tuning: { undo: { debounceMs: 0 }, change: { debounceMs: 0 } },
     })
+    const colorPickerStyleLinks = Array.from(document.querySelectorAll('link[data-oe-style]'))
+      .filter(link => link.href === colorPickerStylesUrl)
+    assert(colorPickerStyleLinks.length === 1,
+      `color plugin did not acquire the color-picker stylesheet (${closeTiming})`)
     const beforePopup = tracker.snapshot()
     const swatch = holder.querySelector('[data-inline-plugin="color"]')
     assert(swatch, `color widget was not hydrated (${closeTiming})`)
@@ -451,6 +456,9 @@ async function run() {
     holder.remove()
     await delay(50)
     assert(!document.querySelector('.oe-ip-popup'), `color popup DOM leaked (${closeTiming})`)
+    assert(!Array.from(document.querySelectorAll('link[data-oe-style]'))
+      .some(link => link.href === colorPickerStylesUrl),
+    `color plugin did not release the color-picker stylesheet (${closeTiming})`)
     assertSnapshot(tracker.snapshot(), baseline, tracker, `color popup leaked resources (${closeTiming})`)
   }
 

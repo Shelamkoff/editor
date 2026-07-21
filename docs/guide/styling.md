@@ -8,11 +8,7 @@ Rector exposes stable root classes and CSS custom properties. Import package CSS
 import '@shelamkoff/rector/styles/editor.css'
 ```
 
-The entry includes editor layout, built-in plugin CSS, and light and dark theme variables. A feature with styles from another package documents its additional import; for example, the color picker uses:
-
-```js
-import '@shelamkoff/color-picker/styles.css'
-```
+The entry includes editor layout, built-in plugin CSS, and light and dark theme variables. Extensions that own styles from another package acquire them through Rector's reference-counted style registry. For example, the Color inline plugin registers the color-picker stylesheet automatically; do not import it manually.
 
 ## Select a theme
 
