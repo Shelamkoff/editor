@@ -1,27 +1,10 @@
 import { getTextLength } from '../textOffset.js'
 import { EditorEvent } from '../editorEvents.js'
 
-/** @param {import('../types').IBlock} block */
-function editableElement(block) {
-  const root = block.contentElement
-  if (root.matches('[contenteditable="true"]')) return root
-  return /** @type {HTMLElement | null} */ (root.querySelector('[contenteditable="true"]'))
-}
+import { editableFields, editableAtBoundary } from '../editableFields.js'
 
-/**
- * Operations on cross-block selections (text spanning multiple blocks).
- *
- * Cross-block selection is held in `ICrossBlockSelection` (a custom range
- * since the native browser API can't span editing hosts). This class
- * encapsulates the multi-step delete sequence:
- *
- *  1. Delete tail of last block (from rangeEnd → end of CE).
- *  2. Remove all middle blocks.
- *  3. Delete head of first block (from start of CE → rangeStart).
- *  4. Merge first + last (first block keeps the merged content).
- *  5. Restore caret at the merge boundary.
- *
- * Wrapped in an UNDO_BATCH so the whole operation is one undo step.
+/** Delete a selection spanning editable fields without discarding unselected
+ * fields or plugin-owned wrappers. All mutations share one command boundary.
  */
 export class CrossBlockEditor {
   /** @type {HTMLElement} */
@@ -116,91 +99,51 @@ export class CrossBlockEditor {
     const rangeStart = { node: crossRange.startContainer, offset: crossRange.startOffset }
     const rangeEnd = { node: crossRange.endContainer, offset: crossRange.endOffset }
 
-    const firstCe = editableElement(firstBlock)
-    const lastCe = editableElement(lastBlock)
-
-    // The cross-block algorithm requires two editable endpoints. Validate
-    // before opening a history batch so malformed/detached ranges cannot
-    // leave UndoManager permanently batching.
-    if (!firstCe || !lastCe) return
+    const firstField = editableAtBoundary(firstBlock.contentElement, rangeStart.node, rangeStart.offset)
+    const lastField = editableAtBoundary(lastBlock.contentElement, rangeEnd.node, rangeEnd.offset)
+    const firstCe = firstField?.element
+    const lastCe = lastField?.element
+    if (!firstCe || !lastCe || !firstCe.contains(rangeStart.node) || !lastCe.contains(rangeEnd.node)) return false
+    const firstFields = editableFields(firstBlock.contentElement).filter(field => field.contentEditable === 'true')
+    const lastFields = editableFields(lastBlock.contentElement).filter(field => field.contentEditable === 'true')
+    const firstPosition = firstFields.indexOf(firstCe)
+    const lastPosition = lastFields.indexOf(lastCe)
+    if (firstPosition < 0 || lastPosition < 0) return false
+    // Nested editing hosts need a plugin-owned structural split. Refuse them
+    // before mutation rather than detach an endpoint through its ancestor.
+    if (firstFields.some(field => field !== firstCe && field.contains(firstCe))
+        || lastFields.some(field => field !== lastCe && field.contains(lastCe))) return false
 
     return this.#commands.runForBlocks([firstBlock, lastBlock], () => {
-      this.#events.emit(EditorEvent.UNDO_BATCH_START)
-      try {
-        // 1. Delete tail of last block.
-        if (lastCe) {
-          try {
-            const delRange = document.createRange()
-            delRange.selectNodeContents(lastCe)
-            delRange.setEnd(rangeEnd.node, rangeEnd.offset)
-            delRange.deleteContents()
-            lastCe.normalize()
-          } catch {
-            // Range may have been invalidated mid-operation; ignore.
-          }
-        }
+      const source = lastBlock.save()
+      const suffixRange = document.createRange()
+      suffixRange.selectNodeContents(lastCe)
+      suffixRange.setStart(rangeEnd.node, rangeEnd.offset)
+      const suffix = document.createElement('template')
+      suffix.content.appendChild(suffixRange.cloneContents())
+      const transferred = firstBlock.importInlineContent(suffix.innerHTML, source.inline)
 
-        // 2. Remove middle blocks (skip first and last).
-        for (let index = lastIndex - 1; index > firstIndex; index--) {
-          blocks.remove(index)
-        }
+      // Only the first field's suffix and subsequent fields are selected.
+      const headRange = document.createRange()
+      headRange.selectNodeContents(firstCe)
+      headRange.setStart(rangeStart.node, rangeStart.offset)
+      headRange.deleteContents()
+      for (const field of firstFields.slice(firstPosition + 1)) field.replaceChildren()
+      const caretOffset = getTextLength(firstCe)
 
-        // 3. Delete head of first block.
-        if (firstCe) {
-          try {
-            const delRange = document.createRange()
-            delRange.selectNodeContents(firstCe)
-            delRange.setStart(rangeStart.node, rangeStart.offset)
-            delRange.deleteContents()
-            firstCe.normalize()
-          } catch {
-            // ignore
-          }
-        }
+      // Move the last field's suffix; later fields stay in their original block.
+      for (const field of lastFields.slice(0, lastPosition + 1)) field.replaceChildren()
+      suffix.innerHTML = transferred
+      firstCe.append(...suffix.content.childNodes)
+      for (let index = lastIndex - 1; index > firstIndex; index--) blocks.remove(index)
+      if (lastPosition === lastFields.length - 1) blocks.remove(blocks.getBlockIndex(lastBlock.id))
 
-        // Caret target = end of remaining text in firstCe (the merge boundary).
-        const caretOffset = getTextLength(firstCe)
-
-        // 4. Merge first + last.
-        if (lastCe !== firstCe) {
-          // Preserve boundary whitespace exactly. Trimming here joins words
-          // when a range ends immediately before a leading space in the tail.
-          const remaining = lastCe.innerHTML
-          if (remaining) {
-            const tpl = document.createElement('template')
-            tpl.innerHTML = remaining
-            firstCe.append(...tpl.content.childNodes)
-          }
-          const index = blocks.getBlockIndex(lastBlock.id)
-          if (index >= 0) blocks.remove(index)
-        }
-
-        blocks.clearSelection()
-        this.#crossBlockSelection.deactivate(this.#rootEl)
-
-        if (blocks.getBlockCount() === 0) blocks.insert(this.#defaultBlockType)
-
-        // 5. Restore caret at the merge boundary.
-        const focusIdx = blocks.getBlockIndex(firstBlock.id)
-        if (focusIdx >= 0) {
-          blocks.setCurrentIndex(focusIdx)
-          const block = blocks.getBlockByIndex(focusIdx)
-          if (block) {
-            block.focus()
-            if (caretOffset > 0) {
-              this.#selection.setCaretToOffset(block.id, caretOffset)
-            } else {
-              this.#selection.setCaretToBlock(block.id, 'start')
-            }
-          }
-        }
-
-        // Mark the surviving block dirty and notify while UndoManager is still
-        // batching, so the final snapshot observes the DOM mutation.
-        notifyChanged(firstBlock)
-      } finally {
-        this.#events.emit(EditorEvent.UNDO_BATCH_END)
-      }
+      blocks.clearSelection()
+      this.#crossBlockSelection.deactivate(this.#rootEl)
+      blocks.setCurrentIndex(blocks.getBlockIndex(firstBlock.id))
+      this.#selection.setCaretToOffset(firstBlock.id, caretOffset, firstField.index)
+      notifyChanged(firstBlock, lastBlock)
+      return true
     })
   }
 }

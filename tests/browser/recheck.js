@@ -1,3 +1,4 @@
+import { register as recheck_04_cross_fields } from './regressions/recheck-04-cross-fields.js'
 import { register as recheck_05_inline_transfer } from './regressions/recheck-05-inline-transfer.js'
 import { register as recheck_09_field_caret } from './regressions/recheck-09-field-caret.js'
 import { register as recheck_08_html_wrappers } from './regressions/recheck-08-html-wrappers.js'
@@ -29,4 +30,5 @@ recheck_12_media_export()
 recheck_08_html_wrappers()
 recheck_09_field_caret()
 recheck_05_inline_transfer()
+recheck_04_cross_fields()
 await run()
