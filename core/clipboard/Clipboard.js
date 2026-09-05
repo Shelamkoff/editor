@@ -1,3 +1,4 @@
+import { blockClipboardHtml } from './clipboardHtml.js'
 import { capturePasteSelection } from './pasteSelection.js'
 import { BLOCK_SELECTOR } from '../constants.js'
 import { EditorEvent } from '../editorEvents.js'
@@ -289,7 +290,7 @@ export class Clipboard {
         this.#captureSnapshot().blocks.map(block => [block.id, block]),
       )
       const blocksData = selectedBlocks.map(block => canonical.get(block.id) ?? block.save())
-      const html = selectedBlocks.map((b) => b.contentElement.innerHTML).join('\n')
+      const html = selectedBlocks.map(blockClipboardHtml).join('\n')
       const text = selectedBlocks.map((b) => b.contentElement.textContent).join('\n')
       e.clipboardData?.setData('text/plain', text)
       e.clipboardData?.setData('text/html', html)

@@ -1,3 +1,4 @@
+import { register as clipboardHtml } from './regressions/clipboard-html.js'
 import { register as clipboardTunes } from './regressions/clipboard-tunes.js'
 import { register as composition } from './regressions/composition.js'
 import { register as apiLifetime } from './regressions/api-lifetime.js'
@@ -29,4 +30,5 @@ logicalPositions()
 apiLifetime()
 composition()
 clipboardTunes()
+clipboardHtml()
 await run()
