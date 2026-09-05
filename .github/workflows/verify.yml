@@ -1,0 +1,52 @@
+name: Verify library
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: verify-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  node:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: npm install --ignore-scripts
+      - name: Check types
+        run: npm run typecheck
+      - name: Unit tests
+        if: ${{ !cancelled() }}
+        run: |
+          set -o pipefail
+          mkdir -p test-results
+          npm test 2>&1 | tee test-results/unit.log
+      - name: Archive reproducible test inputs
+        if: ${{ !cancelled() }}
+        run: |
+          mkdir -p test-results
+          git archive --format=tar HEAD > test-results/source.tar
+          test ! -f package-lock.json || cp package-lock.json test-results/resolved-package-lock.json
+          if test -d node_modules; then
+            tar -czf test-results/dependencies.tar.gz node_modules
+          fi
+      - name: Upload verification inputs and results
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: verification-${{ github.sha }}
+          path: test-results/
+          retention-days: 1
+          compression-level: 0
