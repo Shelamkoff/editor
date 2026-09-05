@@ -53,7 +53,7 @@ const vite = spawn(process.execPath, [
 })
 
 try {
-  const labels = ['roundtrip.html', 'history.html', 'selection.html', 'lifecycle.html', 'security.html', 'mention.html', 'poll.html', 'carousel.html', 'plugin-surfaces.html', 'imports.html', 'audit.html']
+  const labels = ['roundtrip.html', 'history.html', 'selection.html', 'lifecycle.html', 'security.html', 'mention.html', 'poll.html', 'carousel.html', 'plugin-surfaces.html', 'imports.html', 'audit.html', 'recheck.html']
   let pages = labels.map(label => ({ label, path: `/tests/browser/${label}` }))
   if (process.env.EDITOR_BROWSER_PAGE) {
     pages = pages.filter(page => page.label === process.env.EDITOR_BROWSER_PAGE)

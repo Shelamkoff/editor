@@ -47,6 +47,9 @@ export class UndoManager {
   /** @type {boolean} */
   #restoring = false
 
+  /** Ignore only our own completed-restoration change, not observer commands. */
+  #restoredChange = false
+
   /** @type {() => boolean} */
   #commandActive = () => false
 
@@ -93,6 +96,7 @@ export class UndoManager {
 
     // Listen for changes
     const unsubChanged = events.on(EditorEvent.CHANGED, () => {
+      if (this.#restoredChange) { this.#restoredChange = false; return }
       if (this.#restoring || this.#commandActive()) return
       this.#pendingChange = true
       this.#emitState()
@@ -167,6 +171,7 @@ export class UndoManager {
       this.#restore(checkpoint)
       this.#pendingChange = false
       this.#emitState()
+      this.#notifyRestored()
       return true
     }
 
@@ -187,6 +192,7 @@ export class UndoManager {
         throw error
       }
       this.#emitState()
+      this.#notifyRestored()
       return true
     }
     return false
@@ -212,9 +218,20 @@ export class UndoManager {
         throw error
       }
       this.#emitState()
+      this.#notifyRestored()
       return true
     }
     return false
+  }
+
+  /** Publish a successful user history action after restoration has completed.
+   * The history listener is registered before consumer subscriptions. It consumes
+   * the one-shot guard before consumers can start a new, normally recorded command.
+   */
+  #notifyRestored() {
+    this.#restoredChange = true
+    try { this.#events.emit(EditorEvent.CHANGED) }
+    finally { this.#restoredChange = false }
   }
 
   /**
