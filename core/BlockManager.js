@@ -301,6 +301,7 @@ export class BlockManager {
             this.#rebuildIndexMap()
             this.#currentIndex = -1
             this.#container.replaceChildren(...staged.map(block => block.element))
+            this.#events.emit(EditorEvent.DOCUMENT_REPLACED)
           },
         })
       },

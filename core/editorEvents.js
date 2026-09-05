@@ -5,6 +5,7 @@
  * @property {void} READY
  * @property {void} WILL_CHANGE
  * @property {void} CHANGED
+ * @property {void} DOCUMENT_REPLACED
  * @property {void} DESTROYED
  * @property {{ blockId: string, index: number }} BLOCK_ADDED
  * @property {{ blockId: string, index: number, animDone?: Promise<void> }} BLOCK_REMOVED
@@ -32,6 +33,7 @@ export const EditorEvent = {
   WILL_CHANGE: 'editor:willChange',
   CHANGED: 'editor:changed',
   DESTROYED: 'editor:destroyed',
+  DOCUMENT_REPLACED: 'document:replaced',
 
   BLOCK_ADDED: 'block:added',
   BLOCK_REMOVED: 'block:removed',

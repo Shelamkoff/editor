@@ -136,6 +136,12 @@ export class Clipboard {
   /** @type {Set<{ cancelled: boolean, cleanup(): void }>} */
   #pendingPastes = new Set()
 
+  /** @type {Set<HTMLElement>} */
+  #pendingHosts = new Set()
+  #documentGeneration = 0
+  /** @type {() => void} */
+  #unsubscribeReplacement
+
   /** @type {boolean} */
   #destroyed = false
 
@@ -200,6 +206,8 @@ export class Clipboard {
     }
     this.#onKeyDown = (e) => this.#handleKeyDown(/** @type {KeyboardEvent} */ (e))
 
+    this.#unsubscribeReplacement = events.on(EditorEvent.DOCUMENT_REPLACED, () => this.#cancelPendingPastes())
+
     rootEl.addEventListener('copy', this.#onCopy, true)
     rootEl.addEventListener('cut', this.#onCut, true)
     rootEl.addEventListener('paste', this.#onPaste, true)
@@ -212,6 +220,14 @@ export class Clipboard {
     this.#rootEl.removeEventListener('cut', this.#onCut, true)
     this.#rootEl.removeEventListener('paste', this.#onPaste, true)
     this.#rootEl.removeEventListener('keydown', this.#onKeyDown, true)
+    this.#unsubscribeReplacement()
+    this.#cancelPendingPastes()
+  }
+
+  #cancelPendingPastes() {
+    this.#documentGeneration++
+    for (const host of this.#pendingHosts) host.remove()
+    this.#pendingHosts.clear()
     for (const pending of [...this.#pendingPastes]) {
       pending.cancelled = true
       pending.cleanup()
@@ -487,9 +503,11 @@ export class Clipboard {
    * @param {{ crossRange: Range | null, selectedIds: string[], anchorBlockId?: string, fallbackIndex: number }} target
    */
   async #pasteFiles(files, target) {
+    const generation = this.#documentGeneration
     const pendingHost = document.createElement('div')
     pendingHost.className = 'oe-pending-pastes'
     pendingHost.setAttribute('aria-live', 'polite')
+    this.#pendingHosts.add(pendingHost)
 
     const anchor = target.anchorBlockId
       ? this.#blocks.getBlockById(target.anchorBlockId)
@@ -500,8 +518,9 @@ export class Clipboard {
       files.map(file => this.#prepareFilePaste(file, pendingHost)),
     )).filter(Boolean)
     pendingHost.remove()
+    this.#pendingHosts.delete(pendingHost)
 
-    if (this.#destroyed || prepared.length === 0) return
+    if (this.#destroyed || generation !== this.#documentGeneration || prepared.length === 0) return
 
     this.#events.emit(EditorEvent.UNDO_BATCH_START)
     try {
