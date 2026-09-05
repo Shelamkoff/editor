@@ -54,6 +54,9 @@ export class EditorFacade {
   /** @type {boolean} */
   #ready = false
 
+  /** Teardown may also run for a facade that never became ready. */
+  #destroyed = false
+
   /** @type {string} */
   #defaultBlockType
 
@@ -349,6 +352,9 @@ export class EditorFacade {
    * Destroy the editor and clean up all modules.
    */
   destroy() {
+    if (this.#destroyed) return
+    this.#destroyed = true
+    this.#ready = false
     // Blocks own plugin-created DOM, listeners and external instances. Release
     // them while plugin registries, shared styles and editor services are still
     // alive; shared ownership is released by the destroyables below.

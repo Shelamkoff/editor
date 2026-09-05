@@ -4,7 +4,8 @@ import { register as r2 } from './regressions/recheck-03-atomic-delete.js'
 import { register as r3 } from './regressions/recheck-06-observer-mutation.js'
 import { register as r4 } from './regressions/recheck-14-staged-cleanup.js'
 import { register as r5 } from './regressions/recheck-15-stale-inline.js'
-import { register as r6 } from './regressions/recheck-17-public-events.js'
+import { register as r6 } from './regressions/recheck-16-destroy.js'
+import { register as r7 } from './regressions/recheck-17-public-events.js'
 import { run } from './regressions/harness.js'
 r0()
 r1()
@@ -13,4 +14,5 @@ r3()
 r4()
 r5()
 r6()
+r7()
 await run()
