@@ -1,3 +1,4 @@
+import { register as blockIndices } from './regressions/block-indices.js'
 import { register as rendererLifecycle } from './regressions/renderer-lifecycle.js'
 import { register as historyRecovery } from './regressions/history-recovery.js'
 import { register as historyVersion } from './regressions/history-version.js'
@@ -17,4 +18,5 @@ enterSelection()
 historyVersion()
 historyRecovery()
 rendererLifecycle()
+blockIndices()
 await run()

@@ -7,6 +7,11 @@ import { cloneEditorData } from '../shared/cloneEditorData.js'
 import { uid } from './uid.js'
 import { createPreservedBlockPlugin } from './PreservedBlockPlugin.js'
 
+/** @param {number} index */
+function assertBlockIndex(index) {
+  if (!Number.isSafeInteger(index)) throw new RangeError('Block index must be a safe integer')
+}
+
 /** @typedef {import('./types').IBlockManager} IBlockManagerContract */
 /** @implements {IBlockManagerContract} */
 export class BlockManager {
@@ -186,6 +191,7 @@ export class BlockManager {
    * @returns {Block}
    */
   insert(type, data, index, id, inline) {
+    if (index !== undefined) assertBlockIndex(index)
     if (!this.#commands) throw new Error('[BlockManager] CommandDispatcher is not configured')
     const blockId = this.#uniqueId(id, this.#blockMap)
 
@@ -318,6 +324,7 @@ export class BlockManager {
    * @param {number} index
    */
   remove(index) {
+    assertBlockIndex(index)
     const block = this.#blocks[index]
     if (!block) return
     if (!this.#commands) throw new Error('[BlockManager] CommandDispatcher is not configured')
@@ -350,6 +357,8 @@ export class BlockManager {
    * @param {number} toIndex
    */
   move(fromIndex, toIndex) {
+    assertBlockIndex(fromIndex)
+    assertBlockIndex(toIndex)
     if (fromIndex === toIndex) return
     const block = this.#blocks[fromIndex]
     if (!block) return
@@ -403,6 +412,7 @@ export class BlockManager {
    * @returns {Block | undefined}
    */
   convert(index, newType, extraData) {
+    assertBlockIndex(index)
     const block = this.#blocks[index]
     if (!block) return undefined
 
@@ -456,6 +466,7 @@ export class BlockManager {
    * @param {number} index
    */
   setCurrentIndex(index) {
+    assertBlockIndex(index)
     if (this.#currentIndex >= 0 && this.#currentIndex < this.#blocks.length) {
       const prev = this.#blocks[this.#currentIndex]
       if (prev) {
