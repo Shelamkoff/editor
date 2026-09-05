@@ -50,3 +50,43 @@ jobs:
           path: test-results/
           retention-days: 1
           compression-level: 0
+
+  release:
+    name: ${{ matrix.gate }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        gate: [browser, package, docs, budget]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: npm install --ignore-scripts
+      - name: Build package
+        run: npm run build
+      - name: Run release gate
+        env:
+          GATE: ${{ matrix.gate }}
+        run: |
+          set -o pipefail
+          mkdir -p test-results
+          case "$GATE" in
+            browser) npm run test:browser 2>&1 | tee test-results/browser.log ;;
+            package) npm run test:package 2>&1 | tee test-results/package.log ;;
+            docs) { npm run test:docs && npm run docs:check; } 2>&1 | tee test-results/docs.log ;;
+            budget) node benchmarks/bundle-budget.mjs 2>&1 | tee test-results/budget.log ;;
+            *) exit 2 ;;
+          esac
+      - name: Upload release gate results
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.gate }}-${{ github.sha }}
+          path: test-results/
+          retention-days: 3
