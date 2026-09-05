@@ -391,6 +391,7 @@ export class Code extends BlockPluginAbstract {
     })
 
     const textarea = document.createElement('textarea')
+    textarea.setAttribute('data-oe-document-input', '')
     textarea.className = 'oe-code-textarea'
     textarea.placeholder = this._t('placeholder', '// Write code...')
     textarea.spellcheck = false

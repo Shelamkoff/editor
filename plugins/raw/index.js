@@ -69,6 +69,7 @@ export class Raw extends BlockPluginAbstract {
 
     // Textarea (code input)
     const textarea = document.createElement('textarea')
+    textarea.setAttribute('data-oe-document-input', '')
     textarea.className = 'oe-raw__textarea'
     textarea.placeholder = this._t('placeholder', 'Paste HTML code...')
     textarea.value = normalizeTextValue(data?.html)

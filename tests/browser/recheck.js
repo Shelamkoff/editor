@@ -1,3 +1,4 @@
+import { register as recheck_11_native_fields } from './regressions/recheck-11-native-fields.js'
 import { register as r0 } from './regressions/recheck-01-history-notifications.js'
 import { register as r1 } from './regressions/recheck-02-atomic-convert.js'
 import { register as r2 } from './regressions/recheck-03-atomic-delete.js'
@@ -19,4 +20,5 @@ r6()
 r7()
 r8()
 r9()
+recheck_11_native_fields()
 await run()

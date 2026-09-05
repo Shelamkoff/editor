@@ -335,6 +335,7 @@ export class Embed extends BlockPluginAbstract {
 
     const input = document.createElement('input')
     input.className = CSS.urlInput
+    input.setAttribute('data-oe-document-input', 'history')
     input.type = 'url'
     input.inputMode = 'url'
     input.placeholder = this._t('urlPrompt', 'Video URL (YouTube or Vimeo)')

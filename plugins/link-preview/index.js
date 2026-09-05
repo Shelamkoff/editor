@@ -274,6 +274,7 @@ export class LinkPreview extends BlockPluginAbstract {
 
     const input = document.createElement('input')
     input.className = `${P}__url-input`
+    input.setAttribute('data-oe-document-input', 'history')
     input.type = 'text'
     input.placeholder = this._t('placeholder', 'Paste a link...')
     if (s.data.url) input.value = s.data.url
