@@ -588,9 +588,14 @@ export function createEditor(config) {
     facade.registerDestroyable(pluginOwnership)
     facade.registerDestroyable(inlinePluginCtx)
     facade.registerDestroyable(inlinePluginRegistry)
+    /** @type {{ blockId: string, offset: number } | null} */
+    let rollbackCaret = null
     commands.configureRollback(
-      () => snapshots.capture(),
-      document => facade.render(document),
+      () => {
+        rollbackCaret = selection.getCaret()
+        return snapshots.capture()
+      },
+      document => facade.restoreCheckpoint(document, rollbackCaret ?? undefined),
     )
     const changeNotifier = new ChangeNotifier(() => facade.save(), config.onChange, tuning.change.debounceMs)
     facade.registerDestroyable(changeNotifier)

@@ -49,6 +49,17 @@ export class CommandDispatcher {
     this.#restore = restore
   }
 
+  /** Restore core state without capturing or committing the damaged live document.
+   * @template T
+   * @param {() => T} operation
+   * @returns {T}
+   */
+  restore(operation) {
+    const previous = this.#restoring
+    this.#restoring = true
+    try { return operation() } finally { this.#restoring = previous }
+  }
+
   get active() { return this.#depth > 0 }
 
   runForRange(range, operation) {

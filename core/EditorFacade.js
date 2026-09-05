@@ -279,6 +279,16 @@ export class EditorFacade {
     }
   }
 
+  /** Restore a trusted internal checkpoint; never capture the damaged DOM.
+   * @param {import('./types').EditorDocument} document
+   * @param {{ blockId: string, offset: number }} [caret]
+   */
+  restoreCheckpoint(document, caret) {
+    const restore = () => this.#commands.restore(() => this.render(document, caret, { notifyChange: false }))
+    if (this.#history) this.#history.withoutRecording(restore)
+    else restore()
+  }
+
   /**
    * Clear all blocks and insert an empty default block.
    */

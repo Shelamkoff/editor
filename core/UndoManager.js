@@ -221,6 +221,23 @@ export class UndoManager {
     }
   }
 
+  /** Apply a checkpoint without recording the transient state being replaced.
+   * @param {() => void} restore
+   */
+  withoutRecording(restore) {
+    const previous = this.#restoring
+    this.#restoring = true
+    try {
+      restore()
+      this.#pendingChange = false
+      if (this.#debounceTimer) clearTimeout(this.#debounceTimer)
+      this.#debounceTimer = null
+    } finally {
+      this.#restoring = previous
+      if (!previous) this.#emitState()
+    }
+  }
+
   /**
    * Clear all history.
    */
