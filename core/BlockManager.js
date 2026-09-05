@@ -198,9 +198,10 @@ export class BlockManager {
    * @param {number} [index] - insert position, defaults to after current or end
    * @param {string} [id] - optional block ID (for restoring saved data)
    * @param {Record<string, import('../renderer/types').InlineWidget>} [inline]
+   * @param {Record<string, unknown>} [tunes] Transferable settings for a copied block.
    * @returns {Block}
    */
-  insert(type, data, index, id, inline) {
+  insert(type, data, index, id, inline, tunes) {
     if (index !== undefined) assertBlockIndex(index)
     if (!this.#commands) throw new Error('[BlockManager] CommandDispatcher is not configured')
     const blockId = this.#uniqueId(id, this.#blockMap)
@@ -214,7 +215,7 @@ export class BlockManager {
       name: 'block.insert',
       markDirty: false,
       apply: () => {
-        const block = this.#createBlock(type, data, blockId, inline)
+        const block = this.#createBlock(type, data, blockId, inline, { tunes })
         this.#blocks.splice(insertIndex, 0, block)
         this.#blockMap.set(block.id, block)
         this.#rebuildIndexMap()

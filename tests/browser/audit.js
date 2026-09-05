@@ -1,3 +1,4 @@
+import { register as clipboardTunes } from './regressions/clipboard-tunes.js'
 import { register as composition } from './regressions/composition.js'
 import { register as apiLifetime } from './regressions/api-lifetime.js'
 import { register as logicalPositions } from './regressions/logical-positions.js'
@@ -27,4 +28,5 @@ widgetLifecycle()
 logicalPositions()
 apiLifetime()
 composition()
+clipboardTunes()
 await run()

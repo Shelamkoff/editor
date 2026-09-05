@@ -498,7 +498,10 @@ export class Clipboard {
       const inline = blockData.inline && typeof blockData.inline === 'object'
         ? blockData.inline
         : undefined
-      const inserted = this.#blocks.insert(type, blockData.data, insertIndex, undefined, inline)
+      const tunes = blockData.tunes && typeof blockData.tunes === 'object' && !Array.isArray(blockData.tunes)
+        ? blockData.tunes
+        : undefined
+      const inserted = this.#blocks.insert(type, blockData.data, insertIndex, undefined, inline, tunes)
       hydrateInlinePlugins(inserted.contentElement, this.#inlinePluginRegistry, this.#inlinePluginCtx)
       insertIndex++
     }
