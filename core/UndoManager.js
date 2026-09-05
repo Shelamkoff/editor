@@ -1,7 +1,7 @@
 import { EditorEvent } from './editorEvents.js'
 
 /**
- * @typedef {{ time?: number, version: string, blocks: string[], blockId?: string, offset?: number }} Snapshot
+ * @typedef {{ time?: number, version: string, blocks: string[], blockId?: string, offset?: number, fieldIndex?: number }} Snapshot
  */
 
 export class UndoManager {
@@ -20,10 +20,10 @@ export class UndoManager {
   /** @type {() => import('./types').EditorDocument} */
   #captureFn
 
-  /** @type {(data: import('./types').EditorDocument, caret?: { blockId: string, offset: number }) => void} */
+  /** @type {(data: import('./types').EditorDocument, caret?: import('./types').CaretPosition) => void} */
   #renderFn
 
-  /** @type {() => { blockId: string, offset: number } | null} */
+  /** @type {() => import('./types').CaretPosition | null} */
   #getCaretFn
 
   /** @type {Snapshot[]} */
@@ -72,8 +72,8 @@ export class UndoManager {
    * @param {import('./types').IBlockReader} blocks
    * @param {import('./types').IEventBus} events
    * @param {() => import('./types').EditorDocument} captureFn
-   * @param {(data: import('./types').EditorDocument, caret?: { blockId: string, offset: number }) => void} renderFn
-   * @param {() => { blockId: string, offset: number } | null} getCaretFn
+   * @param {(data: import('./types').EditorDocument, caret?: import('./types').CaretPosition) => void} renderFn
+   * @param {() => import('./types').CaretPosition | null} getCaretFn
    * @param {{ maxStack: number, debounceMs: number }} [tuning]
    */
   constructor(blocks, events, captureFn, renderFn, getCaretFn, tuning) {
@@ -361,6 +361,7 @@ export class UndoManager {
       if (caret) {
         lastSnapshot.blockId = caret.blockId
         lastSnapshot.offset = caret.offset
+        lastSnapshot.fieldIndex = caret.fieldIndex
       }
       return false
     }
@@ -375,6 +376,7 @@ export class UndoManager {
     if (caret) {
       snapshot.blockId = caret.blockId
       snapshot.offset = caret.offset
+      snapshot.fieldIndex = caret.fieldIndex
     }
 
     this.#undoStack.push(snapshot)
@@ -423,7 +425,7 @@ export class UndoManager {
       throw new Error('[UndoManager] Failed to parse snapshot', { cause: err })
     }
     const caret = snapshot.blockId != null
-      ? { blockId: snapshot.blockId, offset: snapshot.offset ?? 0 }
+      ? { blockId: snapshot.blockId, offset: snapshot.offset ?? 0, fieldIndex: snapshot.fieldIndex }
       : undefined
     // Suppress event handlers during render so undo/redo does not create snapshots.
     this.#restoring = true

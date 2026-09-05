@@ -1,3 +1,4 @@
+import { editableAtBoundary } from '../editableFields.js'
 import { getTextOffset } from '../textOffset.js'
 
 /** Preserve the insertion target across a failed paste's document rollback.
@@ -15,7 +16,9 @@ export function capturePasteSelection(root, blocks, selection, crossSelection) {
   const currentId = blocks.getCurrentBlock()?.id
   const boundary = (node, offset) => {
     const block = blocks.getBlockByChildNode(node)
-    return block ? { id: block.id, offset: getTextOffset(block.contentElement, node, offset) } : null
+    if (!block) return null
+    const field = editableAtBoundary(block.contentElement, node, offset)
+    return { id: block.id, offset: getTextOffset(field?.element ?? block.contentElement, node, offset), fieldIndex: field?.index }
   }
   const start = range ? boundary(range.startContainer, range.startOffset) : null
   const end = range ? boundary(range.endContainer, range.endOffset) : null
@@ -23,10 +26,10 @@ export function capturePasteSelection(root, blocks, selection, crossSelection) {
     for (const block of blocks) block.selected = selected.has(block.id)
     if (currentId) blocks.setCurrentIndex(blocks.getBlockIndex(currentId))
     if (!start || !end || !native) return
-    selection.setCaretToOffset(start.id, start.offset)
+    selection.setCaretToOffset(start.id, start.offset, start.fieldIndex)
     if (!native.rangeCount) return
     const restored = native.getRangeAt(0).cloneRange()
-    selection.setCaretToOffset(end.id, end.offset)
+    selection.setCaretToOffset(end.id, end.offset, end.fieldIndex)
     if (!native.rangeCount) return
     const last = native.getRangeAt(0)
     restored.setEnd(last.startContainer, last.startOffset)

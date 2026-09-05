@@ -1,3 +1,4 @@
+import { editableFields, editableAtBoundary } from './editableFields.js'
 import { getTextOffset, getTextLength, findNodeAtOffset } from './textOffset.js'
 
 /** @typedef {import('./types').ISelectionManager} ISelectionManagerContract */
@@ -41,9 +42,11 @@ export class SelectionManager {
     const block = this.#blocks.getBlockByChildNode(range.startContainer)
     if (!block) return null
 
+    const field = editableAtBoundary(block.contentElement, range.startContainer, range.startOffset)
     return {
       blockId: block.id,
-      offset: getTextOffset(block.contentElement, range.startContainer, range.startOffset),
+      offset: getTextOffset(field?.element ?? block.contentElement, range.startContainer, range.startOffset),
+      ...(field ? { fieldIndex: field.index } : {}),
     }
   }
 
@@ -63,12 +66,16 @@ export class SelectionManager {
    * Restore a logical position, counting BR and inline widgets as one unit.
    * @param {string} blockId
    * @param {number} textOffset
+   * @param {number} [fieldIndex] Editable field identity for history/bookmarks.
    */
-  setCaretToOffset(blockId, textOffset) {
+  setCaretToOffset(blockId, textOffset, fieldIndex) {
     const block = this.#blocks.getBlockById(blockId)
     const selection = window.getSelection()
     if (!block || !selection) return
-    const point = findNodeAtOffset(block.contentElement, textOffset)
+    const root = fieldIndex === undefined ? block.contentElement : editableFields(block.contentElement)[fieldIndex]
+    if (!root) return
+    if (fieldIndex !== undefined) root.focus()
+    const point = findNodeAtOffset(root, textOffset)
     const range = document.createRange()
     range.setStart(point.node, point.offset)
     range.collapse(true)

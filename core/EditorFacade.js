@@ -215,7 +215,7 @@ export class EditorFacade {
   /**
    * Render data into the editor, replacing existing content.
    * @param {import('./types').EditorDocument} data
-   * @param {{ blockId: string, offset: number }} [caret] - optional caret position to restore
+   * @param {import('./types').CaretPosition} [caret] - optional caret position to restore
    * @param {{ focus?: boolean, notifyChange?: boolean }} [options]
    */
   render(data, caret, options = {}) {
@@ -256,7 +256,7 @@ export class EditorFacade {
           const idx = this.#blocks.getBlockIndex(caret.blockId)
           if (idx >= 0) this.#blocks.setCurrentIndex(idx)
           targetBlock.focus()
-          this.#selection.setCaretToOffset(caret.blockId, caret.offset)
+          this.#selection.setCaretToOffset(caret.blockId, caret.offset, caret.fieldIndex)
           return
         }
       }
@@ -286,7 +286,7 @@ export class EditorFacade {
 
   /** Restore a trusted internal checkpoint; never capture the damaged DOM.
    * @param {import('./types').EditorDocument} document
-   * @param {{ blockId: string, offset: number }} [caret]
+   * @param {import('./types').CaretPosition} [caret]
    */
   restoreCheckpoint(document, caret) {
     const restore = () => this.#commands.restore(() => this.render(document, caret, { notifyChange: false }))

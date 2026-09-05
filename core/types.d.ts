@@ -290,6 +290,8 @@ export interface InlineToolActionContext {
 export interface CaretPosition {
   blockId: string
   offset: number
+  /** Optional field identity; offset is relative to that editable field. */
+  fieldIndex?: number
 }
 
 export interface InlineSelection {
@@ -569,7 +571,7 @@ export interface IBlockManager extends IBlockReader {
 export interface ISelectionManager {
   getCaret(): CaretPosition | null
   setCaretToBlock(blockId: string, position: 'start' | 'end'): void
-  setCaretToOffset(blockId: string, textOffset: number): void
+  setCaretToOffset(blockId: string, textOffset: number, fieldIndex?: number): void
   getSelection(): InlineSelection | null
   isAtStart(): boolean
   isAtEnd(): boolean
