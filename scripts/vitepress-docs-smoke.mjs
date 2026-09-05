@@ -1,3 +1,4 @@
+import { untranslatedGuideTerms } from './russian-guide-prose.mjs'
 import { access, readFile, readdir } from 'node:fs/promises'
 import { dirname, extname, join, normalize, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -98,34 +99,10 @@ for (const name of guideFiles) {
   assert(englishHeadings === russianHeadings, `${name}: English and Russian chapter structures diverge (${englishHeadings} vs ${russianHeadings})`)
 }
 
-const allowedRussianGuideLatin = new Set([
-  'rector', 'vitepress', 'json', 'html', 'css', 'dom', 'esm', 'api', 'url',
-  'mime', 'npm', 'node.js', 'github', 'youtube', 'vimeo', 'http', 'https',
-  'command', 'control', 'macos', 'windows', 'linux', 'weakmap', 'abortsignal',
-  'documentfragment', 'typeerror', 'htmlelement',
-  'attaches', 'checklist', 'code', 'columns', 'delimiter', 'embed', 'gallery',
-  'heading', 'image', 'linkpreview', 'list', 'paragraph', 'person', 'poll', 'carousel', 'carouselblock',
-  'quote', 'raw', 'spoiler', 'table', 'toggle', 'warning', 'color', 'mention',
-  'highlight.js', 'mit',
-  'id', 'svg', 'es', 'raw', 'gallery', 'person',
-])
 
 for (const file of (await walk(join(docsRoot, 'ru'))).filter(path => extname(path) === '.md')) {
   const markdown = await readFile(file, 'utf8')
-  const prose = markdown
-    .replace(/^---[\s\S]*?---\s*/m, '')
-    .replace(/<script\b[\s\S]*?<\/script>/gi, '')
-    .replace(/```[\s\S]*?```/g, '')
-    .replace(/`[^`\n]+`/g, '')
-    .replace(/\[[^\]]*\]\([^)]+\)/g, '')
-    .replace(/https?:\/\/\S+/g, '')
-    .replace(/<[^>]+>/g, '')
-    .replace(/&(?:#\d+|[A-Za-z]+);/g, '')
-  const latinWords = [...new Set(
-    [...prose.matchAll(/[A-Za-z][A-Za-z0-9+]*(?:\.[A-Za-z]+)?/g)]
-      .map(match => match[0].toLowerCase())
-      .filter(word => !allowedRussianGuideLatin.has(word)),
-  )]
+  const latinWords = untranslatedGuideTerms(markdown)
   assert(latinWords.length === 0, `${relative(docsRoot, file)}: untranslated prose terms: ${latinWords.join(', ')}`)
 }
 
