@@ -50,24 +50,29 @@ function extractRangeContent(range) {
  *
  * @param {KeyboardEvent} e
  * @param {Range} crossRange
- * @returns {boolean} whether the async Clipboard API handled the operation
+ * @returns {Promise<boolean> | null} Null delegates to the native clipboard event.
  */
 function copyRange(e, crossRange) {
-  if (typeof ClipboardItem === 'undefined' || !navigator.clipboard?.write) return false
+  const clipboard = navigator.clipboard
+  if (!clipboard?.write && !clipboard?.writeText) return null
 
   e.preventDefault()
   const { text, html } = extractRangeContent(crossRange)
-
-  navigator.clipboard.write([
-    new ClipboardItem({
-      'text/plain': new Blob([text], { type: 'text/plain' }),
-      'text/html': new Blob([html], { type: 'text/html' }),
-    }),
-  ]).catch((err) => {
-    console.warn('[Clipboard] Failed to write rich clipboard, falling back to plain text:', err)
-    navigator.clipboard?.writeText?.(text).catch(() => {})
-  })
-  return true
+  return (async () => {
+    if (clipboard.write && typeof ClipboardItem !== 'undefined') {
+      try {
+        await clipboard.write([new ClipboardItem({
+          'text/plain': new Blob([text], { type: 'text/plain' }),
+          'text/html': new Blob([html], { type: 'text/html' }),
+        })])
+        return true
+      } catch { /* A plain-text write may still be permitted. */ }
+    }
+    if (clipboard.writeText) {
+      try { await clipboard.writeText(text); return true } catch { /* Keep the selection intact. */ }
+    }
+    return false
+  })()
 }
 
 /**
@@ -141,6 +146,7 @@ export class Clipboard {
   /** @type {Set<HTMLElement>} */
   #pendingHosts = new Set()
   #documentGeneration = 0
+  #clipboardOperation = 0
   /** @type {() => void} */
   #unsubscribeReplacement
 
@@ -261,11 +267,31 @@ export class Clipboard {
     if (!(e.ctrlKey || e.metaKey)) return
 
     if (e.code === 'KeyX') {
-      if (!copyRange(e, crossRange)) return
+      const generation = this.#documentGeneration
+      const operation = ++this.#clipboardOperation
+      const before = this.#captureSnapshot()
+      const signature = JSON.stringify([before.version, before.blocks])
+      // Range instances are live. Retain immutable endpoint values as well.
+      const startNode = crossRange.startContainer
+      const startOffset = crossRange.startOffset
+      const endNode = crossRange.endContainer
+      const endOffset = crossRange.endOffset
+      const pending = copyRange(e, crossRange)
+      if (!pending) return
       e.stopPropagation()
-      this.#crossEditor.setCaretToRangeEnd(crossRange)
-      this.#crossEditor.deleteContent(crossRange, (...blocks) => this.#notifyChanged(...blocks))
+      void pending.then(copied => {
+        if (!copied || this.#destroyed || generation !== this.#documentGeneration || operation !== this.#clipboardOperation) return
+        const current = this.#crossBlockSelection.range
+        if (!current || current.startContainer !== startNode || current.startOffset !== startOffset
+          || current.endContainer !== endNode || current.endOffset !== endOffset) return
+        if (!this.#rootEl.contains(startNode) || !this.#rootEl.contains(endNode)) return
+        const now = this.#captureSnapshot()
+        if (JSON.stringify([now.version, now.blocks]) !== signature) return
+        this.#crossEditor.setCaretToRangeEnd(current)
+        this.#crossEditor.deleteContent(current, (...blocks) => this.#notifyChanged(...blocks))
+      }).catch(error => console.warn('[Clipboard] Cut was not applied:', error))
     } else if (e.code === 'KeyC') {
+      this.#clipboardOperation++
       if (copyRange(e, crossRange)) e.stopPropagation()
     }
   }
@@ -274,36 +300,40 @@ export class Clipboard {
 
   /** @param {ClipboardEvent} e */
   #handleCopy(e) {
+    this.#clipboardOperation++
     const crossRange = this.#crossBlockSelection.range
     if (crossRange) {
       e.preventDefault()
+      if (!e.clipboardData) return false
       const { text, html } = extractRangeContent(crossRange)
-      e.clipboardData?.setData('text/plain', text)
-      e.clipboardData?.setData('text/html', html)
-      return
+      e.clipboardData.setData('text/plain', text)
+      e.clipboardData.setData('text/html', html)
+      return true
     }
 
     const selectedBlocks = this.#blocks.getSelectedBlocks()
     if (selectedBlocks.length > 0) {
       e.preventDefault()
+      if (!e.clipboardData) return false
       const canonical = new Map(
         this.#captureSnapshot().blocks.map(block => [block.id, block]),
       )
       const blocksData = selectedBlocks.map(block => canonical.get(block.id) ?? block.save())
-      const html = selectedBlocks.map(blockClipboardHtml).join('\n')
+      const html = selectedBlocks.map(block => blockClipboardHtml(block)).join('\n')
       const text = selectedBlocks.map((b) => b.contentElement.textContent).join('\n')
       e.clipboardData?.setData('text/plain', text)
       e.clipboardData?.setData('text/html', html)
-      e.clipboardData?.setData(MIME_TYPE, JSON.stringify(blocksData))
+      e.clipboardData.setData(MIME_TYPE, JSON.stringify(blocksData))
+      return true
     }
-
+    return false
   }
 
   // ── Cut ─────────────────────────────────────────────────────────────────────
 
   /** @param {ClipboardEvent} e */
   #handleCut(e) {
-    this.#handleCopy(e)
+    if (!this.#handleCopy(e)) return
 
     const blocks = this.#blocks
     const crossRange = this.#crossBlockSelection.range
