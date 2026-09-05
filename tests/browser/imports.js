@@ -111,7 +111,7 @@ async function run() {
   const imported = new Map()
   for (const path of new Set(runtimePaths)) {
     try {
-      imported.set(path, await import(path))
+      imported.set(path, await import(/* @vite-ignore */ path))
     } catch (error) {
       throw new Error(`Legacy runtime import failed: ${path}`, { cause: error })
     }

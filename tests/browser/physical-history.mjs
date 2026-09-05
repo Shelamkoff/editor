@@ -5,10 +5,8 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-const serverRoot = new URL('../../../', import.meta.url)
-const serverPath = fileURLToPath(new URL('scripts/dev-server.mjs', serverRoot))
-const chromePath = process.env.EDITOR_CHROME_PATH
-  ?? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
+import { editorRoot, vitePath, findChrome } from './environment.mjs'
+const chromePath = findChrome()
 
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
 
@@ -81,7 +79,14 @@ class CdpClient {
   send(method, params = {}) {
     const id = ++this.#nextId
     return new Promise((resolve, reject) => {
-      this.#pending.set(id, { resolve, reject })
+      const timer = setTimeout(() => {
+        this.#pending.delete(id)
+        reject(new Error(`CDP ${method} timed out`))
+      }, 30_000)
+      this.#pending.set(id, {
+        resolve: value => { clearTimeout(timer); resolve(value) },
+        reject: error => { clearTimeout(timer); reject(error) },
+      })
       this.#socket.send(JSON.stringify({ id, method, params }))
     })
   }
@@ -195,11 +200,10 @@ async function stopProcess(process) {
 
 const vitePort = await freePort()
 const debugPort = await freePort()
-const pageUrl = `http://127.0.0.1:${vitePort}/editor/tests/browser/physical-history.html`
+const pageUrl = `http://127.0.0.1:${vitePort}/tests/browser/physical-history.html`
 const userDataDir = await mkdtemp(join(tmpdir(), 'ophire-editor-physical-history-'))
-const vite = spawn(process.execPath, [serverPath], {
-  cwd: fileURLToPath(serverRoot),
-  env: { ...process.env, HOST: '127.0.0.1', PORT: String(vitePort) },
+const vite = spawn(process.execPath, [vitePath, '--host', '127.0.0.1', '--port', String(vitePort), '--strictPort'], {
+  cwd: fileURLToPath(editorRoot),
   stdio: 'ignore',
 })
 
@@ -337,7 +341,7 @@ try {
   assert(!/<i>/i.test(inlineAfterDeleteUndo.blocks[2].html), 'Inline Undo after structural restore did not remove Italic', inlineAfterDeleteUndo)
   assert(/contenteditable="true"/i.test(inlineAfterDeleteUndo.active), 'Focus escaped after inline Undo on a restored document', inlineAfterDeleteUndo)
 
-  const historyUrl = new URL('/editor/tests/browser/history.html', pageUrl).href
+  const historyUrl = new URL('/tests/browser/history.html', pageUrl).href
   await client.send('Page.navigate', { url: historyUrl })
   const historyMatrix = await waitForHistoryMatrix(client)
 

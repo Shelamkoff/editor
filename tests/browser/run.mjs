@@ -2,12 +2,8 @@ import { spawn } from 'node:child_process'
 import { createServer } from 'node:net'
 import { fileURLToPath } from 'node:url'
 
-const editorRoot = new URL('../../', import.meta.url)
-const serverRoot = new URL('../../../', import.meta.url)
-const vitePath = process.env.EDITOR_VITE_PATH
-  ?? fileURLToPath(new URL('node_modules/vite/bin/vite.js', serverRoot))
-const chromePath = process.env.EDITOR_CHROME_PATH
-  ?? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
+import { editorRoot, vitePath, findChrome } from './environment.mjs'
+const chromePath = findChrome()
 
 async function freePort() {
   return new Promise((resolve, reject) => {
@@ -52,21 +48,13 @@ const vite = spawn(process.execPath, [
   '--port', String(port),
   '--strictPort',
 ], {
-  cwd: fileURLToPath(serverRoot),
+  cwd: fileURLToPath(editorRoot),
   stdio: ['ignore', 'pipe', 'pipe'],
 })
 
 try {
-  let pages = [
-    ...['roundtrip.html', 'history.html', 'selection.html', 'lifecycle.html', 'security.html', 'mention.html', 'poll.html', 'carousel.html', 'plugin-surfaces.html', 'imports.html']
-      .map(page => ({ label: page, path: `/editor/tests/browser/${page}` })),
-    { label: 'cropper/lifecycle.html', path: '/cropper/tests/browser/lifecycle.html' },
-    { label: 'expose/lifecycle.html', path: '/expose/tests/browser/lifecycle.html' },
-    ...['circle', 'rectangle', 'free'].map(shape => ({
-      label: `cropper/core-${shape}`,
-      path: `/cropper/tests/browser/lifecycle.html?coreShape=${shape}`,
-    })),
-  ]
+  const labels = ['roundtrip.html', 'history.html', 'selection.html', 'lifecycle.html', 'security.html', 'mention.html', 'poll.html', 'carousel.html', 'plugin-surfaces.html', 'imports.html', 'audit.html']
+  let pages = labels.map(label => ({ label, path: `/tests/browser/${label}` }))
   if (process.env.EDITOR_BROWSER_PAGE) {
     pages = pages.filter(page => page.label === process.env.EDITOR_BROWSER_PAGE)
     if (pages.length === 0) throw new Error(`Unknown browser page: ${process.env.EDITOR_BROWSER_PAGE}`)
@@ -83,8 +71,9 @@ try {
       '--dump-dom',
       pageUrl,
     ], { stdio: ['ignore', 'pipe', 'pipe'] })
-    const result = await collect(chrome)
-    if (result.exitCode !== 0 || !result.stdout.includes('data-status="pass"')) {
+    const timeout = setTimeout(() => chrome.kill('SIGKILL'), 60_000)
+    const result = await collect(chrome).finally(() => clearTimeout(timeout))
+    if (result.exitCode !== 0 || !/<body\b[^>]*data-status="pass"/.test(result.stdout)) {
       throw new Error(`Browser gate failed for ${page.label}\n${result.stdout}\n${result.stderr}`)
     }
     const summary = result.stdout.match(/<pre id="result">([^<]+)<\/pre>/)?.[1]

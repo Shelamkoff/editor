@@ -2,15 +2,11 @@ import { spawn } from 'node:child_process'
 import { mkdtemp, rm } from 'node:fs/promises'
 import { createServer } from 'node:net'
 import { tmpdir } from 'node:os'
-import { join, resolve } from 'node:path'
+import { join, resolve, relative, isAbsolute, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-const editorRoot = new URL('../../', import.meta.url)
-const serverRoot = new URL('../../../', import.meta.url)
-const vitePath = process.env.EDITOR_VITE_PATH
-  ?? fileURLToPath(new URL('node_modules/vite/bin/vite.js', serverRoot))
-const chromePath = process.env.EDITOR_CHROME_PATH
-  ?? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
+import { editorRoot, vitePath, findChrome } from './environment.mjs'
+const chromePath = findChrome()
 
 async function freePort() {
   return new Promise((resolvePort, reject) => {
@@ -46,7 +42,7 @@ async function findPageTarget(debugPort, expectedUrl, chrome) {
       if (response.ok) {
         const targets = await response.json()
         const target = targets.find(item => item.type === 'page' && item.url === expectedUrl)
-          ?? targets.find(item => item.type === 'page' && item.url.includes('/editor/tests/browser/lifecycle.html'))
+          ?? targets.find(item => item.type === 'page' && item.url.includes('/tests/browser/lifecycle.html'))
         if (target?.webSocketDebuggerUrl) return target
       }
     } catch {}
@@ -95,7 +91,14 @@ class CdpClient {
   send(method, params = {}) {
     const id = ++this.#nextId
     return new Promise((resolveResult, reject) => {
-      this.#pending.set(id, { resolve: resolveResult, reject })
+      const timer = setTimeout(() => {
+        this.#pending.delete(id)
+        reject(new Error(`CDP ${method} timed out`))
+      }, 60_000)
+      this.#pending.set(id, {
+        resolve: value => { clearTimeout(timer); resolveResult(value) },
+        reject: error => { clearTimeout(timer); reject(error) },
+      })
       this.#socket.send(JSON.stringify({ id, method, params }))
     })
   }
@@ -149,11 +152,12 @@ async function stopProcess(child) {
 
 const vitePort = await freePort()
 const debugPort = await freePort()
-const pageUrl = `http://127.0.0.1:${vitePort}/editor/tests/browser/lifecycle.html`
+const pageUrl = `http://127.0.0.1:${vitePort}/tests/browser/lifecycle.html`
 const userDataDir = await mkdtemp(join(tmpdir(), 'ophire-editor-heap-'))
 const verifiedTempRoot = resolve(tmpdir())
 const verifiedUserData = resolve(userDataDir)
-if (!verifiedUserData.startsWith(verifiedTempRoot + '\\')) {
+const relativeProfile = relative(verifiedTempRoot, verifiedUserData)
+if (!relativeProfile || isAbsolute(relativeProfile) || relativeProfile === '..' || relativeProfile.startsWith('..' + sep)) {
   throw new Error(`Refusing to use non-temporary Chrome profile: ${verifiedUserData}`)
 }
 
@@ -163,7 +167,7 @@ const vite = spawn(process.execPath, [
   '--port', String(vitePort),
   '--strictPort',
 ], {
-  cwd: fileURLToPath(serverRoot),
+  cwd: fileURLToPath(editorRoot),
   stdio: 'ignore',
 })
 
