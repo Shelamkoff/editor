@@ -6,11 +6,19 @@ import { EditorEvent } from './editorEvents.js'
  */
 class PublicBlockView {
   /** @type {import('./types').IBlock} */
-  #block
+  #internalBlock
+  /** @type {() => void} */
+  #assertActive
 
-  /** @param {import('./types').IBlock} block */
-  constructor(block) {
-    this.#block = block
+  /** @param {import('./types').IBlock} block @param {() => void} assertActive */
+  constructor(block, assertActive) {
+    this.#internalBlock = block
+    this.#assertActive = assertActive
+  }
+
+  get #block() {
+    this.#assertActive()
+    return this.#internalBlock
   }
 
   get id() { return this.#block.id }
@@ -31,8 +39,8 @@ class PublicBlockView {
  * manager, while returned objects never expose manager-invariant mutators.
  */
 export class EditorBlocksApi {
-  /** @type {import('./types').IBlockManager} */
-  #blocks
+  /** @type {import('./types').IBlockManager | null} */
+  #manager
 
   /** @type {import('./types').IEventBus} */
   #events
@@ -45,8 +53,21 @@ export class EditorBlocksApi {
    * @param {import('./types').IEventBus} events
    */
   constructor(blocks, events) {
-    this.#blocks = blocks
+    this.#manager = blocks
     this.#events = events
+    events.on(EditorEvent.DESTROYED, () => {
+      this.#manager = null
+      this.#views = new WeakMap()
+    })
+  }
+
+  #assertActive() {
+    if (!this.#manager) throw new Error('Editor instance is destroyed')
+  }
+
+  get #blocks() {
+    this.#assertActive()
+    return this.#manager
   }
 
   /** @returns {string[]} */
@@ -64,10 +85,11 @@ export class EditorBlocksApi {
 
   /** @param {import('./types').IBlock | undefined} block */
   #view(block) {
+    this.#assertActive()
     if (!block) return undefined
     let view = this.#views.get(block)
     if (!view) {
-      view = new PublicBlockView(block)
+      view = new PublicBlockView(block, () => this.#assertActive())
       this.#views.set(block, view)
     }
     return view
@@ -114,17 +136,23 @@ export class EditorBlocksApi {
 
 /** Public subscription-only facade over the internal mutable event bus. */
 export class EditorEventSubscriptions {
+  #active = true
   /** @type {import('./types').IEventBus} */
   #events
 
   /** @param {import('./types').IEventBus} events */
   constructor(events) {
     this.#events = events
+    events.on(EditorEvent.DESTROYED, () => { this.#active = false })
   }
 
-  on(event, handler) { return this.#events.on(event, handler) }
+  #assertActive() {
+    if (!this.#active) throw new Error('Editor instance is destroyed')
+  }
+
+  on(event, handler) { this.#assertActive(); return this.#events.on(event, handler) }
   off(event, handler) { this.#events.off(event, handler) }
-  once(event, handler) { return this.#events.once(event, handler) }
+  once(event, handler) { this.#assertActive(); return this.#events.once(event, handler) }
 }
 
 /** Minimal consumer handle; the composition facade remains core-internal. */

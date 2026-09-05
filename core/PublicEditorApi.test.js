@@ -2,6 +2,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { EditorBlocksApi, EditorHandle } from './PublicEditorApi.js'
+import { EventBus } from '@shelamkoff/event-bus'
 import { EditorEvent } from './editorEvents.js'
 
 function createBlocks() {
@@ -21,11 +22,8 @@ function createBlocks() {
 test('EditorBlocksApi emits selection changes from public selection commands', () => {
   const blocks = createBlocks()
   const selectedPayloads = []
-  const events = {
-    emit(event, payload) {
-      if (event === EditorEvent.BLOCK_SELECTED) selectedPayloads.push(payload)
-    },
-  }
+  const events = new EventBus()
+  events.on(EditorEvent.BLOCK_SELECTED, payload => selectedPayloads.push(payload))
   const api = new EditorBlocksApi(blocks, events)
 
   api.selectBlocks(['second', 'missing'])
