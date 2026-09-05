@@ -1,7 +1,10 @@
+import { CompositionGuard } from './CompositionGuard.js'
 import { BLOCK_SELECTOR } from './constants.js'
 import { EditorEvent } from './editorEvents.js'
 
 export class KeyboardManager {
+  /** @type {CompositionGuard} */
+  #composition
   /** @type {HTMLElement} */
   #rootEl
 
@@ -46,6 +49,7 @@ export class KeyboardManager {
     this.#defaultBlockType = defaultBlockType
     this.#isUIActive = uiActivePredicate ?? null
 
+    this.#composition = new CompositionGuard(rootEl)
     rootEl.addEventListener('keydown', this.#onKeyDown)
   }
 
@@ -53,6 +57,7 @@ export class KeyboardManager {
    * Clean up.
    */
   destroy() {
+    this.#composition.destroy()
     this.#rootEl.removeEventListener('keydown', this.#onKeyDown)
   }
 

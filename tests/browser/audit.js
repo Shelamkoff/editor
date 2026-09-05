@@ -1,3 +1,4 @@
+import { register as composition } from './regressions/composition.js'
 import { register as apiLifetime } from './regressions/api-lifetime.js'
 import { register as logicalPositions } from './regressions/logical-positions.js'
 import { register as widgetLifecycle } from './regressions/widget-lifecycle.js'
@@ -25,4 +26,5 @@ blockIndices()
 widgetLifecycle()
 logicalPositions()
 apiLifetime()
+composition()
 await run()
