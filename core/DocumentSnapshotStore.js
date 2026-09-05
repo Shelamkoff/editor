@@ -140,7 +140,9 @@ export class DocumentSnapshotStore {
           type: block.type,
           data: cloneEditorData(snapshot.data),
         }
-        this.#onValidationError?.(issue)
+        // Reporting is observational: it must not override preserve/strict policy.
+        try { this.#onValidationError?.(issue) }
+        catch (error) { console.warn('[DocumentSnapshotStore] Validation observer failed:', error) }
         if (this.#validationMode === 'strict') {
           throw new Error('Invalid block data for "' + block.type + '" (' + block.id + ')')
         }
