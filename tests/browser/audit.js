@@ -1,3 +1,4 @@
+import { register as historyVersion } from './regressions/history-version.js'
 import { register as enterSelection } from './regressions/enter-selection.js'
 import { register as atomicOperations } from './regressions/atomic-operations.js'
 import { register as commitFailure } from './regressions/commit-failure.js'
@@ -11,4 +12,5 @@ rollback()
 commitFailure()
 atomicOperations()
 enterSelection()
+historyVersion()
 await run()

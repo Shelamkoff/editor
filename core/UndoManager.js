@@ -142,7 +142,7 @@ export class UndoManager {
    * to ensure the pre-change state is in the undo stack.
    */
   commit() {
-    if (this.#destroyed) return
+    if (this.#destroyed || this.#restoring) return
     if (this.#batchDepth > 0) return
     if (this.#debounceTimer) {
       clearTimeout(this.#debounceTimer)
@@ -323,7 +323,8 @@ export class UndoManager {
     const lastSnapshot = this.#undoStack.length
       ? this.#undoStack[this.#undoStack.length - 1]
       : null
-    const unchanged = lastSnapshot?.blocks.length === blocks.length
+    const unchanged = lastSnapshot?.version === data.version
+      && lastSnapshot.blocks.length === blocks.length
       && blocks.every((block, index) => block === lastSnapshot.blocks[index])
 
     if (unchanged && lastSnapshot) {
