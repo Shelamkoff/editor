@@ -1,3 +1,4 @@
+import { register as logicalPositions } from './regressions/logical-positions.js'
 import { register as widgetLifecycle } from './regressions/widget-lifecycle.js'
 import { register as blockIndices } from './regressions/block-indices.js'
 import { register as rendererLifecycle } from './regressions/renderer-lifecycle.js'
@@ -21,4 +22,5 @@ historyRecovery()
 rendererLifecycle()
 blockIndices()
 widgetLifecycle()
+logicalPositions()
 await run()

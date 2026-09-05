@@ -1,4 +1,4 @@
-import { getTextOffset, firstTextNode, lastTextNode, editableTextWalker } from './textOffset.js'
+import { getTextOffset, getTextLength, findNodeAtOffset } from './textOffset.js'
 
 /** @typedef {import('./types').ISelectionManager} ISelectionManagerContract */
 /** @implements {ISelectionManagerContract} */
@@ -56,73 +56,24 @@ export class SelectionManager {
     const block = this.#blocks.getBlockById(blockId)
     if (!block) return
 
-    const element = block.contentElement
-    const sel = window.getSelection()
-    if (!sel) return
-
-    if (!element.hasChildNodes()) {
-      element.focus()
-      return
-    }
-
-    const range = document.createRange()
-
-    if (position === 'start') {
-      const node = firstTextNode(element) || element
-      range.setStart(node, 0)
-      range.collapse(true)
-    } else {
-      const node = lastTextNode(element) || element
-      const offset = node.nodeType === Node.TEXT_NODE
-        ? (node.textContent?.length ?? 0)
-        : node.childNodes.length
-      range.setStart(node, offset)
-      range.collapse(true)
-    }
-
-    sel.removeAllRanges()
-    sel.addRange(range)
+    this.setCaretToOffset(blockId, position === 'start' ? 0 : getTextLength(block.contentElement))
   }
 
   /**
-   * Set the caret to a specific text offset within a block's content.
-   * Walks text nodes to find the correct position.
+   * Restore a logical position, counting BR and inline widgets as one unit.
    * @param {string} blockId
-   * @param {number} textOffset — character offset from start of block text
+   * @param {number} textOffset
    */
   setCaretToOffset(blockId, textOffset) {
     const block = this.#blocks.getBlockById(blockId)
-    if (!block) return
-
-    const element = block.contentElement
-    const sel = window.getSelection()
-    if (!sel) return
-
-    if (!element.hasChildNodes()) {
-      element.focus()
-      return
-    }
-
-    const walker = editableTextWalker(element)
-    let remaining = textOffset
-
-    while (walker.nextNode()) {
-      const node = walker.currentNode
-      const len = node.textContent?.length ?? 0
-
-      if (remaining <= len) {
-        const range = document.createRange()
-        range.setStart(node, remaining)
-        range.collapse(true)
-        sel.removeAllRanges()
-        sel.addRange(range)
-        return
-      }
-      remaining -= len
-    }
-
-    // Offset exceeds total text — clamp to end (can happen after merge/undo)
-    this.setCaretToBlock(blockId, 'end')
+    const selection = window.getSelection()
+    if (!block || !selection) return
+    const point = findNodeAtOffset(block.contentElement, textOffset)
+    const range = document.createRange()
+    range.setStart(point.node, point.offset)
+    range.collapse(true)
+    selection.removeAllRanges()
+    selection.addRange(range)
   }
 
   /**
@@ -173,7 +124,7 @@ export class SelectionManager {
     const block = this.#blocks.getBlockByChildNode(range.startContainer)
     if (!block) return false
 
-    const totalLength = block.contentElement.textContent?.length ?? 0
+    const totalLength = getTextLength(block.contentElement)
     const currentOffset = getTextOffset(block.contentElement, range.startContainer, range.startOffset)
 
     return currentOffset >= totalLength

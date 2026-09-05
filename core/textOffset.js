@@ -1,6 +1,42 @@
+/** @param {Node} node */
+function isAtomic(node) {
+  return node.nodeType === Node.ELEMENT_NODE
+    && (/** @type {Element} */ (node).tagName === 'BR'
+      || /** @type {Element} */ (node).hasAttribute('data-inline-plugin'))
+}
+
+/** Walk logical leaves without entering inline widgets.
+ * @param {Node} root
+ * @returns {Generator<Node>}
+ */
+function* positionNodes(root) {
+  const stack = [root]
+  while (stack.length) {
+    const node = stack.pop()
+    if (!node) continue
+    if (node.nodeType === Node.TEXT_NODE || isAtomic(node)) yield node
+    else {
+      for (let index = node.childNodes.length - 1; index >= 0; index--) {
+        stack.push(node.childNodes[index])
+      }
+    }
+  }
+}
+
+/** UTF-16 text units, with one unit per BR or atomic inline widget.
+ * @param {Node} root
+ * @returns {number}
+ */
+export function getTextLength(root) {
+  let length = 0
+  for (const node of positionNodes(root)) length += isAtomic(node) ? 1 : (node.textContent?.length ?? 0)
+  return length
+}
+
 /**
- * Create a TreeWalker that skips text nodes inside inline plugin widgets.
- * @param {import('./types').DOMNode} root
+ * Create a TreeWalker for text transformations, excluding widget labels.
+ * Position calculations use logical leaves instead of this text-only view.
+ * @param {Node} root
  * @returns {TreeWalker}
  */
 export function editableTextWalker(root) {
@@ -8,173 +44,131 @@ export function editableTextWalker(root) {
     acceptNode(node) {
       if (node.parentElement?.closest('[data-inline-plugin]')) return NodeFilter.FILTER_REJECT
       return NodeFilter.FILTER_ACCEPT
-    }
+    },
   })
 }
 
-/**
- * Get the first text node inside a node.
- * @param {import('./types').DOMNode} node
- * @returns {import('./types').DOMText | null}
- */
+/** @param {Node} node @returns {Text | null} */
 export function firstTextNode(node) {
-  if (node.nodeType === Node.TEXT_NODE) return /** @type {import('./types').DOMText} */ (node)
-  const w = document.createTreeWalker(node, NodeFilter.SHOW_TEXT)
-  return /** @type {import('./types').DOMText | null} */ (w.nextNode())
+  if (node.nodeType === Node.TEXT_NODE) return /** @type {Text} */ (node)
+  return /** @type {Text | null} */ (editableTextWalker(node).nextNode())
 }
 
-/**
- * Get the last text node inside a node.
- * @param {import('./types').DOMNode} node
- * @returns {import('./types').DOMText | null}
- */
+/** @param {Node} node @returns {Text | null} */
 export function lastTextNode(node) {
-  if (node.nodeType === Node.TEXT_NODE) return /** @type {import('./types').DOMText} */ (node)
-  const w = document.createTreeWalker(node, NodeFilter.SHOW_TEXT)
+  if (node.nodeType === Node.TEXT_NODE) return /** @type {Text} */ (node)
+  const walker = editableTextWalker(node)
   let last = null
-  while (w.nextNode()) last = w.currentNode
-  return /** @type {import('./types').DOMText | null} */ (last)
+  while (walker.nextNode()) last = walker.currentNode
+  return /** @type {Text | null} */ (last)
 }
 
 /**
- * Calculate character offset from the start of a container element.
- * Uses TreeWalker over text nodes — consistent with findNodeAtOffset().
- * Handles both text-node and element-node target positions.
- * @param {import('./types').DOMNode} container
- * @param {import('./types').DOMNode} targetNode
+ * Convert a native DOM boundary to a logical position. Both sides of a BR or
+ * widget have distinct offsets; a widget's label never changes its length.
+ * @param {Node} container
+ * @param {Node} targetNode
  * @param {number} targetOffset
  * @returns {number}
  */
 export function getTextOffset(container, targetNode, targetOffset) {
-  // Normalize element-node positions to text-node positions.
-  // When targetNode is an element, targetOffset is a child-node index.
-  if (targetNode.nodeType === Node.ELEMENT_NODE) {
-    if (targetOffset < targetNode.childNodes.length) {
-      // "Before child[targetOffset]" → resolve to (firstTextNodeInChild, 0)
-      const child = /** @type {import('./types').DOMNode} */ (targetNode.childNodes[targetOffset])
-      const first = firstTextNode(child)
-      if (first) {
-        targetNode = first
-        targetOffset = 0
-      } else {
-        return countTextBefore(container, child)
-      }
-    } else {
-      // "After last child" → resolve to (lastTextNode, endOfText)
-      const last = lastTextNode(targetNode)
-      if (last) {
-        targetNode = last
-        targetOffset = last.textContent?.length ?? 0
-      } else {
-        // No text nodes at all — return total text length up to this point
-        return container.textContent?.length ?? 0
-      }
+  if (!container.contains(targetNode)) return getTextLength(container)
+  for (let node = targetNode; node && node !== container; node = node.parentNode) {
+    if (isAtomic(node)) {
+      targetNode = node
+      targetOffset = targetOffset > 0 ? 1 : 0
+      break
     }
   }
-
-  // targetNode is now a text node — walk until we find it
-  // Use editableTextWalker to skip inline plugin widget text (consistent with setCaretToOffset)
-  const walker = editableTextWalker(container)
   let offset = 0
-
-  while (walker.nextNode()) {
-    if (walker.currentNode === targetNode) {
-      return offset + targetOffset
+  if (targetNode.nodeType === Node.TEXT_NODE || isAtomic(targetNode)) {
+    offset = Math.max(0, Math.min(targetOffset, getTextLength(targetNode)))
+  } else {
+    for (let index = 0; index < Math.min(targetOffset, targetNode.childNodes.length); index++) {
+      offset += getTextLength(targetNode.childNodes[index])
     }
-    offset += walker.currentNode.textContent?.length ?? 0
   }
-
-  // targetNode not found — return total offset (defensive)
+  for (let node = targetNode; node && node !== container; node = node.parentNode) {
+    for (let sibling = node.previousSibling; sibling; sibling = sibling.previousSibling) {
+      offset += getTextLength(sibling)
+    }
+  }
   return offset
 }
 
-/**
- * Restore a text selection by character offsets within an element.
- * Walks text nodes to find the correct start/end positions.
- * @param {HTMLElement} element
- * @param {number} startOffset — character offset from start
- * @param {number} endOffset — character offset for end
- */
-export function restoreSelectionByOffsets(element, startOffset, endOffset) {
-  const sel = window.getSelection()
-  if (!sel) return
-  const range = document.createRange()
-  const walker = editableTextWalker(element)
-  let pos = 0
-  let startSet = false
-
-  while (walker.nextNode()) {
-    const node = walker.currentNode
-    const len = node.textContent?.length ?? 0
-    if (!startSet && pos + len >= startOffset) {
-      range.setStart(node, startOffset - pos)
-      startSet = true
-    }
-    if (startSet && pos + len >= endOffset) {
-      range.setEnd(node, endOffset - pos)
-      sel.removeAllRanges()
-      sel.addRange(range)
-      return
-    }
-    pos += len
-  }
-  // Fallback: select all content
-  range.selectNodeContents(element)
-  sel.removeAllRanges()
-  sel.addRange(range)
+/** @param {Node} node @param {number} offset @returns {{ node: Node, offset: number }} */
+function boundary(node, offset) {
+  if (!isAtomic(node)) return { node, offset }
+  const parent = node.parentNode
+  if (!parent) return { node, offset: 0 }
+  const index = Array.prototype.indexOf.call(parent.childNodes, node)
+  return { node: parent, offset: index + (offset > 0 ? 1 : 0) }
 }
 
 /**
- * Create a range from the last occurrence of `search` through the end of its
- * text node. The lookup follows DOM text nodes instead of flattening the
- * block to `textContent`, so inline widgets before the match cannot shift it.
- *
+ * Resolve a logical position without placing a caret inside an atomic node.
+ * At text-wrapper boundaries, the bias keeps selection starts/ends on their
+ * intended side. Out-of-range positions clamp to the nearest valid boundary.
+ * @param {Node} container
+ * @param {number} charOffset
+ * @param {'start' | 'end'} [bias]
+ * @returns {{ node: Node, offset: number }}
+ */
+export function findNodeAtOffset(container, charOffset, bias = 'start') {
+  const nodes = [...positionNodes(container)]
+  let remaining = Math.max(0, Math.trunc(charOffset) || 0)
+  for (let index = 0; index < nodes.length; index++) {
+    const node = nodes[index]
+    const length = isAtomic(node) ? 1 : (node.textContent?.length ?? 0)
+    if (remaining < length) return boundary(node, remaining)
+    if (remaining === length) {
+      if (bias === 'start' && nodes[index + 1]) return boundary(nodes[index + 1], 0)
+      return boundary(node, length)
+    }
+    remaining -= length
+  }
+  const last = nodes[nodes.length - 1]
+  return last ? boundary(last, getTextLength(last)) : { node: container, offset: 0 }
+}
+
+/**
+ * Restore a selection using the same logical positions as caret/history APIs.
+ * @param {HTMLElement} element
+ * @param {number} startOffset
+ * @param {number} endOffset
+ */
+export function restoreSelectionByOffsets(element, startOffset, endOffset) {
+  const selection = window.getSelection()
+  if (!selection) return
+  const start = findNodeAtOffset(element, startOffset, 'start')
+  const end = findNodeAtOffset(element, endOffset, 'end')
+  const range = document.createRange()
+  range.setStart(start.node, start.offset)
+  range.setEnd(end.node, end.offset)
+  selection.removeAllRanges()
+  selection.addRange(range)
+}
+
+/**
+ * Find the last occurrence of text within a DOM text node.
  * @param {HTMLElement} element
  * @param {string} search
  * @returns {Range | null}
  */
 export function createRangeFromLastTextMatch(element, search) {
   if (!search) return null
-
   const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT)
-  /** @type {import('./types').DOMText | null} */
+  /** @type {Text | null} */
   let matchNode = null
   let matchOffset = -1
-
   while (walker.nextNode()) {
-    const node = /** @type {import('./types').DOMText} */ (walker.currentNode)
+    const node = /** @type {Text} */ (walker.currentNode)
     const offset = node.data.lastIndexOf(search)
-    if (offset >= 0) {
-      matchNode = node
-      matchOffset = offset
-    }
+    if (offset >= 0) { matchNode = node; matchOffset = offset }
   }
-
   if (!matchNode) return null
   const range = document.createRange()
   range.setStart(matchNode, matchOffset)
   range.setEnd(matchNode, matchNode.length)
   return range
-}
-
-/**
- * Count total text content before a node in document order.
- * @param {import('./types').DOMNode} container
- * @param {import('./types').DOMNode} refNode
- * @returns {number}
- */
-function countTextBefore(container, refNode) {
-  const walker = editableTextWalker(container)
-  let offset = 0
-  while (walker.nextNode()) {
-    const textNode = walker.currentNode
-    // Stop when we reach or pass the reference node
-    if (textNode === refNode) break
-    if (refNode.nodeType === Node.ELEMENT_NODE && refNode.contains(textNode)) break
-    // Check document order: stop if textNode comes after refNode
-    const pos = textNode.compareDocumentPosition(refNode)
-    if (pos & Node.DOCUMENT_POSITION_PRECEDING) break
-    offset += textNode.textContent?.length ?? 0
-  }
-  return offset
 }

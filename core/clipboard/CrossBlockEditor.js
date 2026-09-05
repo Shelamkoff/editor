@@ -1,3 +1,4 @@
+import { getTextLength } from '../textOffset.js'
 import { EditorEvent } from '../editorEvents.js'
 
 /** @param {import('../types').IBlock} block */
@@ -158,7 +159,7 @@ export class CrossBlockEditor {
         }
 
         // Caret target = end of remaining text in firstCe (the merge boundary).
-        const caretOffset = (firstCe?.textContent || '').length
+        const caretOffset = getTextLength(firstCe)
 
         // 4. Merge first + last.
         if (lastCe !== firstCe) {

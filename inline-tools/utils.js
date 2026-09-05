@@ -2,7 +2,7 @@ import { BLOCK_CLASS } from '../core/constants.js'
 import { CrossBlockSelection } from '../core/CrossBlockSelection.js'
 import { closestBlock, el } from '../core/dom.js'
 import { createSvgIcon, ICON_BACK } from '../core/icons.js'
-import { getTextOffset, editableTextWalker } from '../core/textOffset.js'
+import { getTextOffset, getTextLength, findNodeAtOffset as findLogicalPosition, editableTextWalker } from '../core/textOffset.js'
 
 /** SVG markup for the standard back-navigation icon used in action panels. */
 export { ICON_BACK }
@@ -209,7 +209,7 @@ export function toggleTag(tagName, range, matches = () => true) {
     // (compareBoundaryPoints is unreliable for mixed text/element boundaries)
     const startOff = getTextOffset(ancestor, range.startContainer, range.startOffset)
     const endOff = getTextOffset(ancestor, range.endContainer, range.endOffset)
-    const totalLen = ancestor.textContent?.length ?? 0
+    const totalLen = getTextLength(ancestor)
     const coversStart = startOff === 0
     const coversEnd = endOff >= totalLen
 
@@ -470,7 +470,7 @@ export function toggleTag(tagName, range, matches = () => true) {
     const ce = wrapper.closest('[contenteditable="true"]')
     if (ce) {
       const wrapStart = getTextOffset(ce, wrapper.firstChild || wrapper, 0)
-      const wrapEnd = wrapStart + (wrapper.textContent?.length ?? 0)
+      const wrapEnd = wrapStart + (getTextLength(wrapper))
       mergeAdjacentTags(mergeParent, tagName)
       // Restore selection from saved offsets
       const s = findNodeAtOffset(ce, wrapStart)
@@ -540,34 +540,7 @@ export { getTextOffset }
  * @returns {{ node: Node, offset: number } | null}
  */
 export function findNodeAtOffset(container, charOffset, bias = 'start') {
-  const walker = editableTextWalker(container)
-  let remaining = charOffset
-  /** @type {Text | null} */
-  let lastNode = null
-  while (walker.nextNode()) {
-    lastNode = /** @type {Text} */ (walker.currentNode)
-    const len = lastNode.textContent?.length ?? 0
-    // Use < for intermediate nodes, <= only for the last node
-    if (remaining < len) return { node: lastNode, offset: remaining }
-    if (remaining === len) {
-      const saved = /** @type {Text} */ (walker.currentNode)
-      if (walker.nextNode()) {
-        const next = /** @type {Text} */ (walker.currentNode)
-        // 'end' bias: stay in current node to avoid crossing into the next wrapper
-        if (bias === 'end' && saved.parentElement !== next.parentElement) {
-          return { node: saved, offset: remaining }
-        }
-        // 'start' bias (default): prefer start of next node for clean range boundaries
-        return { node: next, offset: 0 }
-      }
-      // Last node — return end position
-      return { node: saved, offset: remaining }
-    }
-    remaining -= len
-  }
-  // Clamp to end of last text node
-  if (lastNode) return { node: lastNode, offset: lastNode.textContent?.length ?? 0 }
-  return null
+  return findLogicalPosition(container, charOffset, bias)
 }
 
 /**
