@@ -139,20 +139,63 @@ export class EditorEventSubscriptions {
   #active = true
   /** @type {import('./types').IEventBus} */
   #events
+  /** @type {import('./CommandDispatcher').CommandDispatcher | null} */
+  #commands
+  /** @type {Map<string, Map<Function, () => void>>} */
+  #subscriptions = new Map()
 
-  /** @param {import('./types').IEventBus} events */
-  constructor(events) {
+  /** @param {import('./types').IEventBus} events
+   * @param {import('./CommandDispatcher').CommandDispatcher} [commands]
+   */
+  constructor(events, commands) {
     this.#events = events
-    events.on(EditorEvent.DESTROYED, () => { this.#active = false })
+    this.#commands = commands ?? null
+    events.on(EditorEvent.DESTROYED, () => {
+      this.#active = false
+      this.#subscriptions.clear()
+    })
   }
 
   #assertActive() {
     if (!this.#active) throw new Error('Editor instance is destroyed')
   }
 
-  on(event, handler) { this.#assertActive(); return this.#events.on(event, handler) }
-  off(event, handler) { this.#events.off(event, handler) }
-  once(event, handler) { this.#assertActive(); return this.#events.once(event, handler) }
+  #listen(event, handler, once) {
+    this.#assertActive()
+    if (typeof handler !== 'function') throw new TypeError('Handler must be a function')
+    let handlers = this.#subscriptions.get(event)
+    if (!handlers) this.#subscriptions.set(event, handlers = new Map())
+    const existing = handlers.get(handler)
+    if (existing) return existing
+    let listening = true
+    const receive = data => {
+      const deliver = () => {
+        if (!listening || (!this.#active && event !== EditorEvent.DESTROYED)) return
+        if (once) unsubscribe()
+        try {
+          const result = handler(data)
+          if (result && typeof result.then === 'function') {
+            Promise.resolve(result).catch(error => console.error(`[EditorEvents] ${event}:`, error))
+          }
+        } catch (error) { console.error(`[EditorEvents] ${event}:`, error) }
+      }
+      if (this.#commands) this.#commands.afterCommit(deliver)
+      else deliver()
+    }
+    const off = this.#events.on(event, receive)
+    const unsubscribe = () => {
+      listening = false
+      off()
+      handlers.delete(handler)
+      if (handlers.size === 0) this.#subscriptions.delete(event)
+    }
+    handlers.set(handler, unsubscribe)
+    return unsubscribe
+  }
+
+  on(event, handler) { return this.#listen(event, handler, false) }
+  off(event, handler) { this.#subscriptions.get(event)?.get(handler)?.() }
+  once(event, handler) { return this.#listen(event, handler, true) }
 }
 
 /** Minimal consumer handle; the composition facade remains core-internal. */

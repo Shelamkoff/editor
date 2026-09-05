@@ -11,6 +11,7 @@ export class CommandDispatcher {
   /** @type {import('./types').IBlockManager} */ #blocks
   /** @type {import('./types').IEventBus} */ #events
   /** @type {number} */ #depth = 0
+  /** @type {Array<() => void>} */ #observers = []
   /** @type {Set<import('./types').IBlock>} */ #affected = new Set()
   /** @type {(() => import('./types').EditorDocument) | null} */ #capture = null
   /** @type {((document: import('./types').EditorDocument) => void) | null} */ #restore = null
@@ -64,6 +65,15 @@ export class CommandDispatcher {
     const previous = this.#restoring
     this.#restoring = true
     try { return operation() } finally { this.#restoring = previous }
+  }
+
+  /** Deliver external observations only after the enclosing command commits.
+   * Internal editor services continue to receive synchronous working-state events.
+   * @param {() => void} observer
+   */
+  afterCommit(observer) {
+    if (this.active) this.#observers.push(observer)
+    else observer()
   }
 
   get active() { return this.#depth > 0 }
@@ -128,6 +138,7 @@ export class CommandDispatcher {
     this.#depth++
     let result
     let committed = null
+    let observers = []
     try {
       result = command.apply()
       command.notify?.(result)
@@ -153,6 +164,8 @@ export class CommandDispatcher {
     } finally {
       this.#depth--
       if (outermost) {
+        observers = this.#observers
+        this.#observers = []
         this.#affected.clear()
         if (startedAt && this.#diagnostics) {
           const durationMs = this.#diagnostics.now() - startedAt
@@ -166,6 +179,7 @@ export class CommandDispatcher {
     }
     // Observers may issue a new command. Publish only after the completed
     // transaction has released its depth, affected set and failure state.
+    for (const observer of observers) observer()
     if (committed) this.#publish(committed)
     return result
   }
