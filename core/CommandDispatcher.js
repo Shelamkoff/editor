@@ -16,6 +16,7 @@ export class CommandDispatcher {
   /** @type {((document: import('./types').EditorDocument) => void) | null} */ #restore = null
   /** @type {boolean} */ #restoring = false
   /** @type {unknown} */ #nestedFailure = null
+  /** @type {boolean} */ #hasNestedFailure = false
   /** @type {import('./Diagnostics').Diagnostics | null} */ #diagnostics
 
   /**
@@ -39,7 +40,7 @@ export class CommandDispatcher {
    * @throws {unknown} The first failure raised by a nested command.
    */
   #throwNestedFailure(outermost) {
-    if (outermost && this.#nestedFailure) throw this.#nestedFailure
+    if (outermost && this.#hasNestedFailure) throw this.#nestedFailure
   }
 
   /** Configure the canonical fallback used when a command throws. */
@@ -99,7 +100,10 @@ export class CommandDispatcher {
 
     const outermost = this.#depth === 0
     const startedAt = outermost && this.#diagnostics?.enabled ? this.#diagnostics.now() : 0
-    if (outermost) this.#nestedFailure = null
+    if (outermost) {
+      this.#nestedFailure = null
+      this.#hasNestedFailure = false
+    }
     for (const block of command.affected ?? []) this.#affected.add(block)
     const checkpoint = outermost && this.#capture ? this.#capture() : null
     if (outermost && command.notifyChange !== false) this.#events.emit(EditorEvent.WILL_CHANGE)
@@ -115,7 +119,10 @@ export class CommandDispatcher {
       return result
     } catch (cause) {
       failed = true
-      this.#nestedFailure ??= cause
+      if (!this.#hasNestedFailure) {
+        this.#nestedFailure = cause
+        this.#hasNestedFailure = true
+      }
       if (outermost) {
         this.#diagnostics?.emit('command.failed', {
           operation: command.name,
@@ -140,6 +147,7 @@ export class CommandDispatcher {
           }
         }
         this.#nestedFailure = null
+        this.#hasNestedFailure = false
       }
     }
   }
