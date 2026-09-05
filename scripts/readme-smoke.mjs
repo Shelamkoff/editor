@@ -29,7 +29,7 @@ if (readmes.length !== 47) throw new Error(`Expected 47 Rector extension referen
 if (allReadmes.length !== 94) throw new Error(`Expected 94 localized Rector extension reference files, got ${allReadmes.length}`)
 
 const manifest = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'))
-const colorPickerManifest = JSON.parse(await readFile(join(workspace, 'color-picker', 'package.json'), 'utf8'))
+const colorPickerManifest = JSON.parse(await readFile(new URL(import.meta.resolve('@shelamkoff/color-picker/package.json')), 'utf8'))
 
 function isExportedBy(packageManifest, specifier) {
   if (specifier === packageManifest.name) return true
