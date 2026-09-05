@@ -166,7 +166,7 @@ export async function generateDeclarations(outputDirectory) {
       throw new Error(`Declaration generation failed:\n${errors.map(formatDiagnostic).join('\n')}`)
     }
 
-    const emittedEditorRoot = join(temporaryRoot, 'editor')
+    const emittedEditorRoot = join(temporaryRoot, relative(workRoot, editorRoot))
     const emitted = await walk(emittedEditorRoot, path => path.endsWith('.d.ts'))
     for (const declaration of emitted) {
       const destination = join(outputRoot, relative(emittedEditorRoot, declaration))

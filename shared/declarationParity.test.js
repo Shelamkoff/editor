@@ -16,8 +16,7 @@ for (const file of ['core-consumer.ts', 'public-consumer.ts']) {
   await writeFile(
     new URL(file, consumerRoot),
     source
-      .replaceAll('../../.package-tmp/declaration-tests/', '../')
-      .replaceAll('../../../cropper/', '../../../../cropper/'),
+      .replaceAll('../../.package-tmp/declaration-tests/', '../'),
     'utf8',
   )
 }
@@ -26,9 +25,6 @@ const commonCompilerOptions = {
   target: 'ES2022',
   lib: ['ES2022', 'DOM', 'DOM.Iterable'],
   baseUrl: '.',
-  paths: {
-    '@shelamkoff/cropper': ['../../../../cropper/src/index.d.ts'],
-  },
   strict: true,
   noEmit: true,
   skipLibCheck: false,
@@ -158,7 +154,7 @@ test('declaration imports are valid native ESM specifiers', async () => {
 
 test('public declarations compile for NodeNext and Bundler consumers', () => {
   const compilerPath = process.env.EDITOR_TSC_PATH
-    ?? fileURLToPath(new URL('../node_modules/typescript/bin/tsc', editorRoot))
+    ?? fileURLToPath(new URL('node_modules/typescript/bin/tsc', editorRoot))
   const configs = [
     new URL('tsconfig.nodenext.json', consumerRoot),
     new URL('tsconfig.bundler.json', consumerRoot),

@@ -5,9 +5,6 @@
     "moduleResolution": "NodeNext",
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "baseUrl": ".",
-    "paths": {
-      "@shelamkoff/cropper": ["../../../cropper/src/index.d.ts"]
-    },
     "strict": true,
     "noEmit": true,
     "skipLibCheck": false

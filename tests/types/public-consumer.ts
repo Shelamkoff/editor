@@ -35,7 +35,7 @@ import type { BlockPlugin } from '../../.package-tmp/declaration-tests/core/inde
 import type { MessageKey } from '../../.package-tmp/declaration-tests/core/types.js'
 import type { BlockRenderer, OutputBlockData } from '../../.package-tmp/declaration-tests/renderer/types.js'
 import type { PollDataSource } from '../../.package-tmp/declaration-tests/plugins/poll/index.js'
-import { CropperDialog } from '../../../cropper/src/index.js'
+import { CropperDialog } from '@shelamkoff/cropper'
 
 const pluginConstructors = [
   Attaches,
