@@ -1,3 +1,4 @@
+import { register as recheck_08_html_wrappers } from './regressions/recheck-08-html-wrappers.js'
 import { register as recheck_12_media_export } from './regressions/recheck-12-media-export.js'
 import { register as recheck_11_native_fields } from './regressions/recheck-11-native-fields.js'
 import { register as r0 } from './regressions/recheck-01-history-notifications.js'
@@ -23,4 +24,5 @@ r8()
 r9()
 recheck_11_native_fields()
 recheck_12_media_export()
+recheck_08_html_wrappers()
 await run()

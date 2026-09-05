@@ -34,65 +34,40 @@ function createInertParagraph() {
 export function extractBlockElements(container, isRoutedTag = () => false) {
   /** @type {ExtractedBlock[]} */
   const results = []
-  const isBlockTag = (tag) => BLOCK_TAGS.has(tag) || isRoutedTag(tag)
-
-  const hasBlockChild = Array.from(container.children).some(
-    c => isBlockTag(c.tagName.toLowerCase())
+  const isBlockTag = tag => BLOCK_TAGS.has(tag) || isRoutedTag(tag)
+  /** @param {ParentNode} node @returns {boolean} */
+  const hasBlocks = node => Array.from(node.children).some(
+    child => isBlockTag(child.tagName.toLowerCase()) || hasBlocks(child),
   )
 
-  if (!hasBlockChild) {
-    // Wrap flat HTML without block structure as a single paragraph.
-    const p = createInertParagraph()
-    for (const child of container.childNodes) p.appendChild(child.cloneNode(true))
-    if (p.innerHTML.trim()) {
-      results.push({ tag: 'p', element: p })
+  /** @param {ParentNode} node */
+  const walk = node => {
+    let inline = createInertParagraph()
+    const flush = () => {
+      if (inline.innerHTML.trim()) results.push({ tag: 'p', element: inline })
+      inline = createInertParagraph()
     }
-    return results
-  }
-
-  /**
-   * @param {import('../types').DOMNode} node
-   */
-  const walk = (node) => {
     for (const child of node.childNodes) {
-      if (child.nodeType === Node.TEXT_NODE) {
-        const text = child.textContent?.trim()
-        if (text) {
-          const p = createInertParagraph()
-          p.textContent = text
-          results.push({ tag: 'p', element: p })
-        }
+      if (child.nodeType !== Node.ELEMENT_NODE) {
+        if (child.nodeType === Node.TEXT_NODE) inline.appendChild(child.cloneNode(true))
         continue
       }
-
-      if (child.nodeType !== Node.ELEMENT_NODE) continue
-
-      const el = /** @type {HTMLElement} */ (child)
-      const tag = el.tagName.toLowerCase()
-
-      if (tag === 'br') continue
-
-      if (isBlockTag(tag)) {
-        results.push({ tag, element: el })
+      const element = /** @type {HTMLElement} */ (child)
+      const tag = element.tagName.toLowerCase()
+      // Plugin-owned structures (tables, lists, quotes...) are indivisible.
+      // Generic wrappers may contain multiple logical paragraphs at any depth.
+      if (!isRoutedTag(tag) && hasBlocks(element)) {
+        flush()
+        walk(element)
+      } else if (isBlockTag(tag)) {
+        flush()
+        results.push({ tag, element })
       } else {
-        // Inline or unknown — check for nested block children
-        const nested = Array.from(el.children).some(
-          c => isBlockTag(c.tagName.toLowerCase())
-        )
-
-        if (nested) {
-          walk(el)
-        } else {
-          const p = createInertParagraph()
-          for (const child of el.childNodes) p.appendChild(child.cloneNode(true))
-          if (p.innerHTML.trim()) {
-            results.push({ tag: 'p', element: p })
-          }
-        }
+        inline.appendChild(element.cloneNode(true))
       }
     }
+    flush()
   }
-
   walk(container)
   return results
 }
