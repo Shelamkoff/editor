@@ -552,7 +552,9 @@ export class BlockManager {
     const blockEl = closestBlock(node)
     if (!blockEl) return undefined
     const id = blockEl.dataset.blockId
-    return id ? this.getBlockById(id) : undefined
+    const block = id ? this.getBlockById(id) : undefined
+    // IDs survive replacement; a detached old wrapper is not the live block.
+    return block?.element === blockEl ? block : undefined
   }
 
   /**
