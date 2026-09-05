@@ -1,3 +1,4 @@
+import { transferInlineContent } from './transferInlineContent.js'
 import { uid } from './uid.js'
 import { cloneEditorData } from '../shared/cloneEditorData.js'
 import { el } from './dom.js'
@@ -198,11 +199,32 @@ export class Block {
     return this.#version
   }
 
+  /** Carry a fragment's opaque inline payload into this block.
+   * @param {string} html
+   * @param {Record<string, import('../renderer/types').InlineWidget>} [inline]
+   * @returns {string}
+   */
+  importInlineContent(html, inline) {
+    const occupied = new Set(Object.keys(this.#preservedInline ?? {}))
+    for (const node of this.#contentElement.querySelectorAll('[data-inline-plugin][data-id]')) {
+      occupied.add(node.getAttribute('data-id'))
+    }
+    const result = transferInlineContent(html, inline, occupied)
+    if (Object.keys(result.inline).length) {
+      this.#preservedInline = { ...this.#preservedInline, ...result.inline }
+      this.markDirty()
+    }
+    return result.html
+  }
+
   /**
    * Merge another block's data into this one.
    * @param {Record<string, unknown>} data
+   * @param {Record<string, import('../renderer/types').InlineWidget>} [inline]
    */
-  merge(data) {
+  merge(data, inline) {
+    data = cloneEditorData(data)
+    this.#plugin.mapTextFields?.(data, html => this.importInlineContent(html, inline))
     if (this.#plugin.merge) {
       this.#plugin.merge(this.#contentElement, data)
     }

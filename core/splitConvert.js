@@ -19,6 +19,7 @@ import { closestBlock } from './dom.js'
  */
 export function splitAndConvert(blocks, selection, currentIndex, currentType, contentEl, range, targetType, targetData, targetIsText = false) {
   const currentBlock = blocks.getBlockByIndex(currentIndex)
+  const metadata = currentBlock?.save()
   const pluginSplit = currentBlock?.plugin.splitSelection?.(contentEl, range)
 
   if (pluginSplit) {
@@ -33,7 +34,7 @@ export function splitAndConvert(blocks, selection, currentIndex, currentType, co
       insertIndex = currentIndex
     }
 
-    const newBlock = blocks.insert(targetType, newData, insertIndex)
+    const newBlock = blocks.insert(targetType, newData, insertIndex, undefined, metadata?.inline, metadata?.tunes)
     blocks.setCurrentIndex(insertIndex)
     selection.setCaretToBlock(newBlock.id, 'start')
     newBlock.focus()
@@ -85,7 +86,7 @@ export function splitAndConvert(blocks, selection, currentIndex, currentType, co
     currentBlock?.markDirty()
     const converted = blocks.convert(currentIndex, targetType, mergedData)
     if (afterHtml) {
-      blocks.insert(currentType, { text: afterHtml }, currentIndex + 1)
+      blocks.insert(currentType, { text: afterHtml }, currentIndex + 1, undefined, metadata?.inline, metadata?.tunes)
     }
     if (converted) {
       blocks.setCurrentIndex(currentIndex)
@@ -95,15 +96,15 @@ export function splitAndConvert(blocks, selection, currentIndex, currentType, co
   } else if (!afterHtml) {
     contentEl.innerHTML = beforeHtml
     currentBlock?.markDirty()
-    const newBlock = blocks.insert(targetType, mergedData, currentIndex + 1)
+    const newBlock = blocks.insert(targetType, mergedData, currentIndex + 1, undefined, metadata?.inline, metadata?.tunes)
     blocks.setCurrentIndex(currentIndex + 1)
     selection.setCaretToBlock(newBlock.id, 'start')
     newBlock.focus()
   } else {
     contentEl.innerHTML = beforeHtml
     currentBlock?.markDirty()
-    const newBlock = blocks.insert(targetType, mergedData, currentIndex + 1)
-    blocks.insert(currentType, { text: afterHtml }, currentIndex + 2)
+    const newBlock = blocks.insert(targetType, mergedData, currentIndex + 1, undefined, metadata?.inline, metadata?.tunes)
+    blocks.insert(currentType, { text: afterHtml }, currentIndex + 2, undefined, metadata?.inline, metadata?.tunes)
     blocks.setCurrentIndex(currentIndex + 1)
     selection.setCaretToBlock(newBlock.id, 'start')
     newBlock.focus()

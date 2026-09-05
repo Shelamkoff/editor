@@ -507,7 +507,8 @@ export interface IBlock {
   selected: boolean
 
   save(): BlockData
-  merge(data: Record<string, unknown>): void
+  merge(data: Record<string, unknown>, inline?: Record<string, EditorInlineWidget>): void
+  importInlineContent(html: string, inline?: Record<string, EditorInlineWidget>): string
   markDirty(): void
   /** Replace the content element with a new one, updating the DOM. */
   replaceContentElement(newEl: HTMLElement): void

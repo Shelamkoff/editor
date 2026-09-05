@@ -90,13 +90,17 @@ export class BlockOperations {
     return this.#commands.runForBlock(current, () => {
       this.#events.emit(EditorEvent.UNDO_BATCH_START)
       try {
+        const metadata = current.save()
         const fragmentHtml = this.#selection.extractFragmentAfterCaret()
         current.markDirty()
         this.#events.emit(EditorEvent.BLOCK_CHANGED, { blockId: current.id })
 
         const currentIndex = blocks.getCurrentIndex()
         const data = fragmentHtml ? { text: fragmentHtml } : {}
-        this.insertAndFocus(this.#defaultBlockType, data, currentIndex + 1)
+        const inserted = blocks.insert(this.#defaultBlockType, data, currentIndex + 1, undefined, metadata.inline, metadata.tunes)
+        blocks.setCurrentIndex(currentIndex + 1)
+        inserted.focus()
+        this.#selection.setCaretToBlock(inserted.id, 'start')
       } finally {
         this.#events.emit(EditorEvent.UNDO_BATCH_END)
       }
@@ -152,9 +156,9 @@ export class BlockOperations {
       return this.#commands.runForBlocks([prev, current], () => {
         this.#events.emit(EditorEvent.UNDO_BATCH_START)
         try {
-          const currentData = current.save().data
+          const currentData = current.save()
           const mergeOffset = getTextLength(prev.contentElement)
-          prev.merge(currentData)
+          prev.merge(currentData.data, currentData.inline)
           blocks.remove(currentIndex)
           blocks.setCurrentIndex(currentIndex - 1)
           prev.focus()
@@ -194,9 +198,9 @@ export class BlockOperations {
       return this.#commands.runForBlocks([current, next], () => {
         this.#events.emit(EditorEvent.UNDO_BATCH_START)
         try {
-          const nextData = next.save().data
+          const nextData = next.save()
           const mergeOffset = getTextLength(current.contentElement)
-          current.merge(nextData)
+          current.merge(nextData.data, nextData.inline)
           blocks.remove(currentIndex + 1)
           const actualLength = getTextLength(current.contentElement)
           this.#selection.setCaretToOffset(current.id, Math.min(mergeOffset, actualLength))

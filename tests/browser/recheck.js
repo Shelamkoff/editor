@@ -1,3 +1,4 @@
+import { register as recheck_05_inline_transfer } from './regressions/recheck-05-inline-transfer.js'
 import { register as recheck_09_field_caret } from './regressions/recheck-09-field-caret.js'
 import { register as recheck_08_html_wrappers } from './regressions/recheck-08-html-wrappers.js'
 import { register as recheck_12_media_export } from './regressions/recheck-12-media-export.js'
@@ -27,4 +28,5 @@ recheck_11_native_fields()
 recheck_12_media_export()
 recheck_08_html_wrappers()
 recheck_09_field_caret()
+recheck_05_inline_transfer()
 await run()

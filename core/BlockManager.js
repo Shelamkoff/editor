@@ -443,6 +443,7 @@ export class BlockManager {
       oldData = {}
     }
 
+    const metadata = block.save()
     const newData = { ...oldData, ...extraData }
     const oldType = block.type
     const blockId = block.id
@@ -454,7 +455,7 @@ export class BlockManager {
       name: 'block.convert',
       markDirty: false,
       apply: () => {
-        const newBlock = this.#createBlock(newType, newData, blockId, undefined)
+        const newBlock = this.#createBlock(newType, newData, blockId, metadata.inline, { tunes: metadata.tunes })
         newBlock.setStructuralCommands(this.#structuralCommands)
         block.disposePlugin()
         block.element.remove()
