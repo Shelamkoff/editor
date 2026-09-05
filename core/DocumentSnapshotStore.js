@@ -111,7 +111,7 @@ export class DocumentSnapshotStore {
       block.plugin.mapTextFields(
         /** @type {Record<string, unknown>} */ (snapshot.data),
         (html) => {
-          const result = serializeInlineHtml(html, registry, usedInlineIds)
+          const result = serializeInlineHtml(html, registry, usedInlineIds, snapshot.inline)
           for (const [id, widget] of Object.entries(result.inline)) {
             Object.defineProperty(inline, id, {
               value: widget,
@@ -124,6 +124,7 @@ export class DocumentSnapshotStore {
         },
       )
       if (Object.keys(inline).length > 0) snapshot.inline = inline
+      else delete snapshot.inline
     }
 
     if (typeof block.plugin.validate === 'function') {

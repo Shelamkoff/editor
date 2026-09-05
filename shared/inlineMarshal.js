@@ -80,9 +80,10 @@ function allocateInlineId(preferred, usedIds) {
  * @param {string} html
  * @param {PluginLookup | null | undefined} registry
  * @param {Set<string>} [usedIds] IDs already allocated in sibling text fields
+ * @param {Record<string, InlineWidget>} [preserved] Original metadata for unresolved tokens
  * @returns {{ html: string, inline: Record<string, InlineWidget> }}
  */
-export function serializeInlineHtml(html, registry, usedIds = new Set()) {
+export function serializeInlineHtml(html, registry, usedIds = new Set(), preserved = {}) {
   /** @type {Array<[string, InlineWidget]>} */
   const entries = []
   const source = String(html || '')
@@ -90,6 +91,19 @@ export function serializeInlineHtml(html, registry, usedIds = new Set()) {
 
   const tpl = document.createElement('template')
   tpl.innerHTML = source
+
+  // Keep unresolved tokens as opaque document data. Scan TEXT nodes, not
+  // attributes, and reserve their ids before allocating ids to live widgets.
+  const textWalker = document.createTreeWalker(tpl.content, NodeFilter.SHOW_TEXT)
+  while (textWalker.nextNode()) {
+    const node = textWalker.currentNode
+    if (node.parentElement?.closest('[data-inline-plugin]')) continue
+    for (const [, id] of (node.textContent || '').matchAll(PLACEHOLDER_RE)) {
+      if (!Object.hasOwn(preserved, id)) continue
+      entries.push([id, preserved[id]])
+      usedIds.add(id)
+    }
+  }
 
   const widgets = tpl.content.querySelectorAll('[data-inline-plugin]')
   for (const widget of widgets) {

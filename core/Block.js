@@ -76,7 +76,7 @@ export class Block {
     this.#commands = commands
     this.#tunes = metadata.tunes === undefined ? undefined : cloneEditorData(metadata.tunes)
     this.#revision = metadata.revision
-    this.#preservedInline = metadata.preserveInline && metadata.inline
+    this.#preservedInline = metadata.inline
       ? cloneEditorData(metadata.inline)
       : undefined
 
