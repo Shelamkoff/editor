@@ -96,31 +96,26 @@ try {
 
   const dependencyPackRoot = join(temporaryRoot, 'dependencies')
   await mkdir(dependencyPackRoot, { recursive: true })
-  const dependencyPackages = [
-    ...['event-bus', 'color-picker', 'cropper', 'carousel', 'expose'].map(directory => ({
+  // Test the dependency artifacts consumers actually install. Their source
+  // repositories and build scripts are deliberately not part of this gate.
+  const dependencyPackages = ['event-bus', 'color-picker', 'cropper', 'carousel', 'expose', 'infinite-scroll', 'masonry']
+    .map(directory => ({
       directory,
-      packageRoot: resolve(editorRoot, '..', directory),
-      ignoreScripts: false,
-    })),
-    ...['infinite-scroll', 'masonry'].map(directory => ({
-      directory,
-      packageRoot: resolve(editorRoot, 'node_modules', '@shelamkoff', directory),
-      ignoreScripts: true,
-    })),
-  ]
+      packageRoot: dirname(fileURLToPath(import.meta.resolve(`@shelamkoff/${directory}/package.json`))),
+    }))
   const dependencyReadmes = {
     carousel: ['arrows', 'dots', 'thumbnails', 'keyboard', 'swipe', 'autoplay', 'lazyload', 'parallax'],
     expose: ['captions', 'zoom', 'thumbnails', 'autoplay', 'transform', 'download', 'fullscreen'],
   }
   const dependencyTarballs = []
-  for (const { directory, packageRoot, ignoreScripts } of dependencyPackages) {
+  for (const { directory, packageRoot } of dependencyPackages) {
     const args = [
       npmCli,
       'pack',
+      '--ignore-scripts',
       '--pack-destination', dependencyPackRoot,
       '--cache', npmCache,
     ]
-    if (ignoreScripts) args.push('--ignore-scripts')
     const output = run(node, args, packageRoot, { capture: true }).trim()
     const dependencyTarball = join(dependencyPackRoot, basename(output.split(/\r?\n/).at(-1)))
     dependencyTarballs.push(dependencyTarball)
@@ -140,6 +135,7 @@ try {
   run(node, [
     npmCli,
     'install',
+    '--offline',
     '--ignore-scripts',
     '--no-audit',
     '--no-fund',
