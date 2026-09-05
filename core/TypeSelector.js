@@ -9,6 +9,8 @@ const ICON_CHEVRON = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height=
 const ICON_SEARCH = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7"/><path d="M21 21l-6-6"/></svg>'
 
 export class TypeSelector {
+  /** @type {import('./CommandDispatcher').CommandDispatcher} */
+  #commands
   /** @type {number} */
   #filterThreshold
   /** @type {import('./types').IBlockManager} */
@@ -54,12 +56,14 @@ export class TypeSelector {
    * @param {import('./types').IBlockManager} blocks
    * @param {import('./types').ISelectionManager} selection
    * @param {Map<string, import('./types').BlockPlugin>} plugins
+   * @param {import('./CommandDispatcher').CommandDispatcher} commands
    * @param {import('./I18n').I18n} [i18n]
    * @param {import('./types').ICrossBlockSelection} [crossBlockSelection]
    * @param {import('./types').IEventBus} [events]
    * @param {{ filterThreshold: number }} [tuning]
    */
-  constructor(blocks, selection, plugins, i18n, crossBlockSelection, events, tuning) {
+  constructor(blocks, selection, plugins, commands, i18n, crossBlockSelection, events, tuning) {
+    this.#commands = commands
     this.#blocks = blocks
     this.#selection = selection
     this.#plugins = plugins
@@ -309,6 +313,14 @@ export class TypeSelector {
    * @param {Record<string, unknown>} [targetData]
    */
   #convertSelection(targetType, targetData) {
+    return this.#commands.execute({
+      name: 'selection.convert',
+      markDirty: false,
+      apply: () => this.#applyConversion(targetType, targetData),
+    })
+  }
+
+  #applyConversion(targetType, targetData) {
     const blocks = this.#blocks
 
     // Check for cross-block selection first

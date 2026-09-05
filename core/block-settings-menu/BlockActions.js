@@ -102,6 +102,14 @@ export class BlockActions {
    * @param {Record<string, unknown>} [data]
    */
   convertTo(type, data) {
+    return this.#mutations.execute({
+      name: 'settings.convert',
+      markDirty: false,
+      apply: () => this.#applyConversion(type, data),
+    })
+  }
+
+  #applyConversion(type, data) {
     const crossRange = this.#deps.crossBlockSelection.range
 
     if (crossRange) {

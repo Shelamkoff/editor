@@ -307,7 +307,7 @@ function wireEditMode(deps) {
     return p?.renderInlineControls ? p.renderInlineControls.bind(p) : undefined
   }
 
-  const typeSelector = new TypeSelector(blocks, selection, plugins, i18n, crossBlockSelection, events, tuning.toolbar)
+  const typeSelector = new TypeSelector(blocks, selection, plugins, commands, i18n, crossBlockSelection, events, tuning.toolbar)
   const inlineToolbar = new InlineToolbar(
     rootEl,
     selection,
