@@ -610,6 +610,11 @@ export function createEditor(config) {
     )
     undoManager.setCommandsEnabled(!readOnly, { notify: false })
     facade.configureHistory(undoManager)
+    commands.configureCommit(() => {
+      // Validate even inside an undo batch, where commit() intentionally waits.
+      snapshots.capture()
+      undoManager.commit()
+    })
     facade.registerDestroyable(undoManager)
 
     /** @type {LifecycleScope | null} */

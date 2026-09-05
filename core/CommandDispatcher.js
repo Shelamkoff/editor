@@ -14,6 +14,7 @@ export class CommandDispatcher {
   /** @type {Set<import('./types').IBlock>} */ #affected = new Set()
   /** @type {(() => import('./types').EditorDocument) | null} */ #capture = null
   /** @type {((document: import('./types').EditorDocument) => void) | null} */ #restore = null
+  /** @type {(() => void) | null} */ #commit = null
   /** @type {boolean} */ #restoring = false
   /** @type {unknown} */ #nestedFailure = null
   /** @type {boolean} */ #hasNestedFailure = false
@@ -48,6 +49,9 @@ export class CommandDispatcher {
     this.#capture = capture
     this.#restore = restore
   }
+
+  /** Configure the mandatory synchronous persistence/history step. */
+  configureCommit(commit) { this.#commit = commit }
 
   /** Restore core state without capturing or committing the damaged live document.
    * @template T
@@ -119,7 +123,6 @@ export class CommandDispatcher {
     const checkpoint = outermost && this.#capture ? this.#capture() : null
     if (outermost && command.notifyChange !== false) this.#events.emit(EditorEvent.WILL_CHANGE)
 
-    let failed = false
     this.#depth++
     try {
       const result = command.apply()
@@ -127,9 +130,11 @@ export class CommandDispatcher {
       // A nested command cannot be made successful by catching its error in
       // the caller: the outer transaction is poisoned and rolls back whole.
       this.#throwNestedFailure(outermost)
+      if (outermost && command.notifyChange !== false) {
+        this.#markAndCommit(command.markDirty === false ? [] : [...this.#affected])
+      }
       return result
     } catch (cause) {
-      failed = true
       if (!this.#hasNestedFailure) {
         this.#nestedFailure = cause
         this.#hasNestedFailure = true
@@ -145,12 +150,7 @@ export class CommandDispatcher {
     } finally {
       this.#depth--
       if (outermost) {
-        const affected = [...this.#affected]
         this.#affected.clear()
-        // A failed command was restored and must not create a history entry.
-        if (!failed && command.notifyChange !== false) {
-          this.#markAndCommit(command.markDirty === false ? [] : affected)
-        }
         if (startedAt && this.#diagnostics) {
           const durationMs = this.#diagnostics.now() - startedAt
           if (durationMs >= this.#diagnostics.threshold('commandMs')) {
@@ -198,6 +198,11 @@ export class CommandDispatcher {
       if (seen.has(block) || this.#blocks.getBlockById(block.id) !== block) continue
       seen.add(block)
       block.markDirty()
+    }
+    // Validation and history are required work, not isolated event observers.
+    // Run them inside execute()'s catch boundary before announcing success.
+    this.#commit?.()
+    for (const block of seen) {
       this.#events.emit(EditorEvent.BLOCK_CHANGED, { blockId: block.id })
     }
     this.#events.emit(EditorEvent.CHANGED)
