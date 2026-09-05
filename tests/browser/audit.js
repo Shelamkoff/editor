@@ -1,3 +1,4 @@
+import { register as enterSelection } from './regressions/enter-selection.js'
 import { register as atomicOperations } from './regressions/atomic-operations.js'
 import { register as commitFailure } from './regressions/commit-failure.js'
 import { register as rollback } from './regressions/rollback.js'
@@ -9,4 +10,5 @@ pendingPaste()
 rollback()
 commitFailure()
 atomicOperations()
+enterSelection()
 await run()

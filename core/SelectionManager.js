@@ -192,6 +192,14 @@ export class SelectionManager {
     const block = this.#blocks.getBlockByChildNode(range.startContainer)
     if (!block) return null
 
+    // Enter replaces the current text selection before splitting its tail.
+    // Cross-block selections are handled by the clipboard range editor.
+    if (!range.collapsed) {
+      if (!block.contentElement.contains(range.endContainer)) return null
+      range.deleteContents()
+      range.collapse(true)
+    }
+
     const endRange = document.createRange()
     endRange.selectNodeContents(block.contentElement)
     endRange.setStart(range.startContainer, range.startOffset)
