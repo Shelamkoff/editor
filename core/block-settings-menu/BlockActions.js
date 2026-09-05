@@ -67,6 +67,14 @@ export class BlockActions {
   }
 
   delete() {
+    return this.#mutations.execute({
+      name: 'settings.delete',
+      markDirty: false,
+      apply: () => this.#deleteAndReplace(),
+    })
+  }
+
+  #deleteAndReplace() {
     this.#deps.events.emit(EditorEvent.UNDO_BATCH_START)
     try {
       const blocks = this.#deps.blocks

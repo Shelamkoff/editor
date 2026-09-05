@@ -1,10 +1,12 @@
 import { register as r0 } from './regressions/recheck-01-history-notifications.js'
 import { register as r1 } from './regressions/recheck-02-atomic-convert.js'
-import { register as r2 } from './regressions/recheck-06-observer-mutation.js'
-import { register as r3 } from './regressions/recheck-17-public-events.js'
+import { register as r2 } from './regressions/recheck-03-atomic-delete.js'
+import { register as r3 } from './regressions/recheck-06-observer-mutation.js'
+import { register as r4 } from './regressions/recheck-17-public-events.js'
 import { run } from './regressions/harness.js'
 r0()
 r1()
 r2()
 r3()
+r4()
 await run()
