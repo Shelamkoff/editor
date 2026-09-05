@@ -269,6 +269,8 @@ export class EditorFacade {
         this.#selection.setCaretToBlock(first.id, 'end')
       }
     } finally {
+      // No-op after commit; otherwise release the staged document on any failure.
+      replacement.dispose()
       this.#events.emit(EditorEvent.UNDO_BATCH_END)
       if (startedAt) {
         const durationMs = this.#diagnostics.now() - startedAt
@@ -299,6 +301,8 @@ export class EditorFacade {
       replacement.commit()
       this.#blocks.setCurrentIndex(0)
     } finally {
+      // No-op after commit; otherwise release the staged document on any failure.
+      replacement.dispose()
       this.#events.emit(EditorEvent.UNDO_BATCH_END)
     }
   }
