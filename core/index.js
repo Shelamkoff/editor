@@ -275,6 +275,7 @@ function wireEditMode(deps) {
       index + 1,
       undefined,
       snapshot.inline,
+      snapshot.tunes,
     )
     hydrateInlinePlugins(duplicate.contentElement, inlinePluginRegistry, inlinePluginCtx)
     const duplicateIndex = blocks.getBlockIndex(duplicate.id)
