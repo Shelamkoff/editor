@@ -337,7 +337,25 @@ export class EditorRenderer {
       }
     }
 
-    wrapper.replaceChildren(...ordered)
+    // Keep unchanged nodes connected. Replacing even the same children resets
+    // iframe browsing contexts, focus, and custom-element lifecycle state.
+    const retained = new Set(ordered)
+    for (const child of Array.from(wrapper.childNodes)) {
+      if (!retained.has(/** @type {HTMLElement} */ (child))) child.remove()
+    }
+    const movable = /** @type {HTMLElement & { moveBefore?: (node: Node, child: Node | null) => void }} */ (wrapper)
+    let cursor = wrapper.firstChild
+    for (const element of ordered) {
+      if (element === cursor) {
+        cursor = cursor.nextSibling
+        continue
+      }
+      if (typeof movable.moveBefore === 'function' && element.isConnected && wrapper.isConnected) {
+        movable.moveBefore(element, cursor)
+      } else {
+        wrapper.insertBefore(element, cursor)
+      }
+    }
     if (wrapper.parentNode !== container || container.childNodes.length !== 1) {
       container.replaceChildren(wrapper)
     }

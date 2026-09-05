@@ -1,3 +1,4 @@
+import { register as rendererLifecycle } from './regressions/renderer-lifecycle.js'
 import { register as historyRecovery } from './regressions/history-recovery.js'
 import { register as historyVersion } from './regressions/history-version.js'
 import { register as enterSelection } from './regressions/enter-selection.js'
@@ -15,4 +16,5 @@ atomicOperations()
 enterSelection()
 historyVersion()
 historyRecovery()
+rendererLifecycle()
 await run()

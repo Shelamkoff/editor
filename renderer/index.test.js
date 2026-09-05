@@ -17,6 +17,22 @@ class FakeElement {
     return this.childNodes
   }
 
+  get firstChild() { return this.childNodes[0] ?? null }
+  get nextSibling() {
+    const siblings = this.parentNode?.childNodes ?? []
+    return siblings[siblings.indexOf(this) + 1] ?? null
+  }
+  remove() { this.#detach(this) }
+  insertBefore(child, anchor) {
+    if (anchor !== null && !this.childNodes.includes(anchor)) throw new Error('NotFoundError')
+    if (child === anchor) return child
+    this.#detach(child)
+    const index = anchor === null ? this.childNodes.length : this.childNodes.indexOf(anchor)
+    this.childNodes.splice(index, 0, child)
+    child.parentNode = this
+    return child
+  }
+
   appendChild(child) {
     this.#detach(child)
     this.childNodes.push(child)
