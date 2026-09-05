@@ -1,3 +1,4 @@
+import { register as historyRecovery } from './regressions/history-recovery.js'
 import { register as historyVersion } from './regressions/history-version.js'
 import { register as enterSelection } from './regressions/enter-selection.js'
 import { register as atomicOperations } from './regressions/atomic-operations.js'
@@ -13,4 +14,5 @@ commitFailure()
 atomicOperations()
 enterSelection()
 historyVersion()
+historyRecovery()
 await run()

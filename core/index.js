@@ -604,7 +604,7 @@ export function createEditor(config) {
     const undoManager = new UndoManager(
       blocks, events,
       () => snapshots.capture(),
-      (data, caret) => facade.render(data, caret),
+      (data, caret) => facade.restoreCheckpoint(data, caret),
       () => selection.getCaret(),
       tuning.undo,
     )

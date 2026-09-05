@@ -155,8 +155,20 @@ export class UndoManager {
    * Restore the previous state.
    */
   undo() {
-    if (this.#destroyed) return false
-    this.#reconcileCurrentState()
+    if (this.#destroyed || !this.#commandsEnabled) return false
+    try {
+      this.#reconcileCurrentState()
+    } catch (captureError) {
+      // An invalid, unsaved live edit must not prevent recovery. It has no
+      // serializable redo state: restore the latest checkpoint without popping
+      // it, and keep any previously valid redo branch intact.
+      const checkpoint = this.#undoStack[this.#undoStack.length - 1]
+      if (!checkpoint) throw captureError
+      this.#restore(checkpoint)
+      this.#pendingChange = false
+      this.#emitState()
+      return true
+    }
 
     if (!this.canUndo) return false
 
@@ -184,7 +196,7 @@ export class UndoManager {
    * Restore the next state.
    */
   redo() {
-    if (this.#destroyed) return false
+    if (this.#destroyed || !this.#commandsEnabled) return false
     this.#reconcileCurrentState()
 
     if (!this.canRedo) return false
