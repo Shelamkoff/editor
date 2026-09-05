@@ -1,4 +1,5 @@
-import { cp, mkdir, readdir, rm, writeFile } from 'node:fs/promises'
+import { transformWithEsbuild } from 'vite'
+import { cp, mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { dirname, extname, join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { generateDeclarations } from './generate-declarations.mjs'
@@ -46,7 +47,20 @@ async function copyRuntime() {
       if (!isPublishableSource(source)) continue
       const destination = join(distRoot, relative(editorRoot, source))
       await mkdir(dirname(destination), { recursive: true })
-      await cp(source, destination)
+      if (extname(source) === '.css') {
+        const result = await transformWithEsbuild(await readFile(source, 'utf8'), source, { loader: 'css', minify: true })
+        await writeFile(destination, result.code, 'utf8')
+      } else if (extname(source) === '.js') {
+        // Preserve cacheable CSS URLs in bundlers as well as native browsers.
+        // Vite recognizes no-inline; native servers simply ignore the query.
+        const code = (await readFile(source, 'utf8')).replace(
+          /new URL\((['"])([^'"]+\.css)\1,\s*import\.meta\.url\)/g,
+          (_, quote, path) => `new URL(${quote}${path}?no-inline${quote}, import.meta.url)`,
+        )
+        await writeFile(destination, code, 'utf8')
+      } else {
+        await cp(source, destination)
+      }
     }
   }
   await cp(join(editorRoot, 'index.js'), join(distRoot, 'index.js'))

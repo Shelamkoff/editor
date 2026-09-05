@@ -105,7 +105,7 @@
     "test:plugin-locales": "node scripts/plugin-locale-audit.mjs",
     "test:docs": "npm run docs:validate-readmes && npm run test:plugin-source && npm run test:plugin-locales && node scripts/documentation-contract-audit.mjs && node scripts/readme-smoke.mjs",
     "test:types": "node --test shared/declarationParity.test.js",
-    "test:package": "node scripts/package-consumer-gate.mjs",
+    "test:package": "node scripts/package-consumer-gate.mjs && node scripts/check-package-assets.mjs",
     "prepublishOnly": "npm run typecheck && npm test && npm run test:browser && npm run test:docs && npm run test:types && npm run test:package",
     "prepack": "npm run build"
   },
