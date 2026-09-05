@@ -255,7 +255,7 @@ function wireEditMode(deps) {
     scope, undoManager,
   } = deps
 
-  const blockOps = new BlockOperations(blocks, selection, defaultBlockType, events)
+  const blockOps = new BlockOperations(blocks, selection, defaultBlockType, events, commands)
   blocks.setPluginStructuralCommands({
     splitBlock: () => blockOps.splitBlock(),
     exitEmptyBlock: () => blockOps.exitEmptyBlock(),
@@ -609,6 +609,7 @@ export function createEditor(config) {
       tuning.undo,
     )
     undoManager.setCommandsEnabled(!readOnly, { notify: false })
+    undoManager.configureCommandActivity(() => commands.active)
     facade.configureHistory(undoManager)
     commands.configureCommit(() => {
       // Validate even inside an undo batch, where commit() intentionally waits.

@@ -38,6 +38,9 @@ export class CrossBlockEditor {
   /** @type {import('../types').IEventBus} */
   #events
 
+  /** @type {import('../CommandDispatcher').CommandDispatcher} */
+  #commands
+
   /** @type {string} */
   #defaultBlockType
 
@@ -48,13 +51,15 @@ export class CrossBlockEditor {
    * @param {import('../types').ICrossBlockSelection} crossBlockSelection
    * @param {import('../types').IEventBus} events
    * @param {string} defaultBlockType
+   * @param {import('../CommandDispatcher').CommandDispatcher} commands
    */
-  constructor(rootEl, blocks, selection, crossBlockSelection, events, defaultBlockType) {
+  constructor(rootEl, blocks, selection, crossBlockSelection, events, defaultBlockType, commands) {
     this.#rootEl = rootEl
     this.#blocks = blocks
     this.#selection = selection
     this.#crossBlockSelection = crossBlockSelection
     this.#events = events
+    this.#commands = commands
     this.#defaultBlockType = defaultBlockType
   }
 
@@ -118,81 +123,83 @@ export class CrossBlockEditor {
     // leave UndoManager permanently batching.
     if (!firstCe || !lastCe) return
 
-    this.#events.emit(EditorEvent.UNDO_BATCH_START)
-    try {
-      // 1. Delete tail of last block.
-      if (lastCe) {
-        try {
-          const delRange = document.createRange()
-          delRange.selectNodeContents(lastCe)
-          delRange.setEnd(rangeEnd.node, rangeEnd.offset)
-          delRange.deleteContents()
-          lastCe.normalize()
-        } catch {
-          // Range may have been invalidated mid-operation; ignore.
-        }
-      }
-
-      // 2. Remove middle blocks (skip first and last).
-      for (let index = lastIndex - 1; index > firstIndex; index--) {
-        blocks.remove(index)
-      }
-
-      // 3. Delete head of first block.
-      if (firstCe) {
-        try {
-          const delRange = document.createRange()
-          delRange.selectNodeContents(firstCe)
-          delRange.setStart(rangeStart.node, rangeStart.offset)
-          delRange.deleteContents()
-          firstCe.normalize()
-        } catch {
-          // ignore
-        }
-      }
-
-      // Caret target = end of remaining text in firstCe (the merge boundary).
-      const caretOffset = (firstCe?.textContent || '').length
-
-      // 4. Merge first + last.
-      if (lastCe !== firstCe) {
-        // Preserve boundary whitespace exactly. Trimming here joins words
-        // when a range ends immediately before a leading space in the tail.
-        const remaining = lastCe.innerHTML
-        if (remaining) {
-          const tpl = document.createElement('template')
-          tpl.innerHTML = remaining
-          firstCe.append(...tpl.content.childNodes)
-        }
-        const index = blocks.getBlockIndex(lastBlock.id)
-        if (index >= 0) blocks.remove(index)
-      }
-
-      blocks.clearSelection()
-      this.#crossBlockSelection.deactivate(this.#rootEl)
-
-      if (blocks.getBlockCount() === 0) blocks.insert(this.#defaultBlockType)
-
-      // 5. Restore caret at the merge boundary.
-      const focusIdx = blocks.getBlockIndex(firstBlock.id)
-      if (focusIdx >= 0) {
-        blocks.setCurrentIndex(focusIdx)
-        const block = blocks.getBlockByIndex(focusIdx)
-        if (block) {
-          block.focus()
-          if (caretOffset > 0) {
-            this.#selection.setCaretToOffset(block.id, caretOffset)
-          } else {
-            this.#selection.setCaretToBlock(block.id, 'start')
+    return this.#commands.runForBlocks([firstBlock, lastBlock], () => {
+      this.#events.emit(EditorEvent.UNDO_BATCH_START)
+      try {
+        // 1. Delete tail of last block.
+        if (lastCe) {
+          try {
+            const delRange = document.createRange()
+            delRange.selectNodeContents(lastCe)
+            delRange.setEnd(rangeEnd.node, rangeEnd.offset)
+            delRange.deleteContents()
+            lastCe.normalize()
+          } catch {
+            // Range may have been invalidated mid-operation; ignore.
           }
         }
-      }
 
-      // Mark the surviving block dirty and notify while UndoManager is still
-      // batching, so the final snapshot observes the DOM mutation.
-      notifyChanged(firstBlock)
-    } finally {
-      this.#events.emit(EditorEvent.UNDO_BATCH_END)
-    }
+        // 2. Remove middle blocks (skip first and last).
+        for (let index = lastIndex - 1; index > firstIndex; index--) {
+          blocks.remove(index)
+        }
+
+        // 3. Delete head of first block.
+        if (firstCe) {
+          try {
+            const delRange = document.createRange()
+            delRange.selectNodeContents(firstCe)
+            delRange.setStart(rangeStart.node, rangeStart.offset)
+            delRange.deleteContents()
+            firstCe.normalize()
+          } catch {
+            // ignore
+          }
+        }
+
+        // Caret target = end of remaining text in firstCe (the merge boundary).
+        const caretOffset = (firstCe?.textContent || '').length
+
+        // 4. Merge first + last.
+        if (lastCe !== firstCe) {
+          // Preserve boundary whitespace exactly. Trimming here joins words
+          // when a range ends immediately before a leading space in the tail.
+          const remaining = lastCe.innerHTML
+          if (remaining) {
+            const tpl = document.createElement('template')
+            tpl.innerHTML = remaining
+            firstCe.append(...tpl.content.childNodes)
+          }
+          const index = blocks.getBlockIndex(lastBlock.id)
+          if (index >= 0) blocks.remove(index)
+        }
+
+        blocks.clearSelection()
+        this.#crossBlockSelection.deactivate(this.#rootEl)
+
+        if (blocks.getBlockCount() === 0) blocks.insert(this.#defaultBlockType)
+
+        // 5. Restore caret at the merge boundary.
+        const focusIdx = blocks.getBlockIndex(firstBlock.id)
+        if (focusIdx >= 0) {
+          blocks.setCurrentIndex(focusIdx)
+          const block = blocks.getBlockByIndex(focusIdx)
+          if (block) {
+            block.focus()
+            if (caretOffset > 0) {
+              this.#selection.setCaretToOffset(block.id, caretOffset)
+            } else {
+              this.#selection.setCaretToBlock(block.id, 'start')
+            }
+          }
+        }
+
+        // Mark the surviving block dirty and notify while UndoManager is still
+        // batching, so the final snapshot observes the DOM mutation.
+        notifyChanged(firstBlock)
+      } finally {
+        this.#events.emit(EditorEvent.UNDO_BATCH_END)
+      }
+    })
   }
 }

@@ -1,3 +1,4 @@
+import { capturePasteSelection } from './pasteSelection.js'
 import { BLOCK_SELECTOR } from '../constants.js'
 import { EditorEvent } from '../editorEvents.js'
 import { CrossBlockEditor } from './CrossBlockEditor.js'
@@ -194,7 +195,7 @@ export class Clipboard {
     this.#blockOps = blockOps
     this.#router = new PasteRouter(plugins.values())
     this.#crossEditor = new CrossBlockEditor(
-      rootEl, blocks, selection, crossBlockSelection, events, defaultBlockType,
+      rootEl, blocks, selection, crossBlockSelection, events, defaultBlockType, commands,
     )
 
     this.#onCopy = (e) => this.#handleCopy(/** @type {ClipboardEvent} */ (e))
@@ -387,6 +388,26 @@ export class Clipboard {
       return
     }
 
+    const restoreTarget = capturePasteSelection(this.#rootEl, this.#blocks, this.#selection, this.#crossBlockSelection)
+    try {
+      this.#commands.execute({
+        name: 'clipboard.paste',
+        apply: () => this.#applyPaste(e, pasteStartBlock, customData),
+      })
+    } catch (error) {
+      const hasFallback = e.clipboardData?.getData('text/html') || e.clipboardData?.getData('text/plain')
+      if (!customData || !hasFallback) throw error
+      // The first transaction has fully rolled back. Reapply the original
+      // selection against restored nodes before attempting an independent fallback.
+      restoreTarget()
+      this.#commands.execute({
+        name: 'clipboard.paste.fallback',
+        apply: () => this.#applyPaste(e, pasteStartBlock, ''),
+      })
+    }
+  }
+
+  #applyPaste(e, pasteStartBlock, customData) {
     this.#events.emit(EditorEvent.UNDO_BATCH_START)
 
     try {
@@ -459,41 +480,36 @@ export class Clipboard {
    * @param {number} insertIndex
    */
   #pasteCustomMime(customData, insertIndex) {
-    try {
-      /** @type {unknown} */
-      const parsed = JSON.parse(customData)
-      if (!Array.isArray(parsed) || parsed.length === 0) return false
+    let parsed
+    try { parsed = JSON.parse(customData) } catch { return false }
+    if (!Array.isArray(parsed) || parsed.length === 0) return false
 
-      const blocksData = parsed.filter(blockData => (
-        blockData
-        && typeof blockData === 'object'
-        && typeof blockData.type === 'string'
-        && blockData.data
-        && typeof blockData.data === 'object'
-      ))
-      if (blocksData.length === 0) return false
+    const blocksData = parsed.filter(blockData => (
+      blockData
+      && typeof blockData === 'object'
+      && typeof blockData.type === 'string'
+      && blockData.data
+      && typeof blockData.data === 'object'
+    ))
+    if (blocksData.length === 0) return false
 
-      for (const blockData of blocksData) {
-        const type = this.#plugins.has(blockData.type) ? blockData.type : this.#defaultBlockType
-        const inline = blockData.inline && typeof blockData.inline === 'object'
-          ? blockData.inline
-          : undefined
-        const inserted = this.#blocks.insert(type, blockData.data, insertIndex, undefined, inline)
-        hydrateInlinePlugins(inserted.contentElement, this.#inlinePluginRegistry, this.#inlinePluginCtx)
-        insertIndex++
-      }
-      // Focus the last inserted block once (avoid intermediate focus shifts).
-      const lastInserted = this.#blocks.getBlockByIndex(insertIndex - 1)
-      if (lastInserted) {
-        this.#blocks.setCurrentIndex(insertIndex - 1)
-        this.#selection.setCaretToBlock(lastInserted.id, 'end')
-        lastInserted.focus()
-      }
-      return true
-    } catch (err) {
-      console.error('[Clipboard] Failed to parse custom data:', err)
-      return false
+    for (const blockData of blocksData) {
+      const type = this.#plugins.has(blockData.type) ? blockData.type : this.#defaultBlockType
+      const inline = blockData.inline && typeof blockData.inline === 'object'
+        ? blockData.inline
+        : undefined
+      const inserted = this.#blocks.insert(type, blockData.data, insertIndex, undefined, inline)
+      hydrateInlinePlugins(inserted.contentElement, this.#inlinePluginRegistry, this.#inlinePluginCtx)
+      insertIndex++
     }
+    // Focus the last inserted block once (avoid intermediate focus shifts).
+    const lastInserted = this.#blocks.getBlockByIndex(insertIndex - 1)
+    if (lastInserted) {
+      this.#blocks.setCurrentIndex(insertIndex - 1)
+      this.#selection.setCaretToBlock(lastInserted.id, 'end')
+      lastInserted.focus()
+    }
+    return true
   }
 
   /**
@@ -522,65 +538,67 @@ export class Clipboard {
 
     if (this.#destroyed || generation !== this.#documentGeneration || prepared.length === 0) return
 
-    this.#events.emit(EditorEvent.UNDO_BATCH_START)
-    try {
-      let result = null
-      if (target.crossRange
-          && this.#rootEl.contains(target.crossRange.startContainer)
-          && this.#rootEl.contains(target.crossRange.endContainer)) {
-        this.#crossEditor.deleteContent(target.crossRange, (...blocks) => this.#notifyChanged(...blocks))
-      } else if (target.selectedIds.length > 0) {
-        const selected = new Set(target.selectedIds)
-        this.#blocks.clearSelection()
-        for (const block of this.#blocks) block.selected = selected.has(block.id)
-        result = this.#blocks.removeSelected(this.#defaultBlockType)
-      }
-
-      let insertIndex
-      if (result) {
-        insertIndex = result.focusIndex
-      } else {
-        const liveAnchorIndex = target.anchorBlockId
-          ? this.#blocks.getBlockIndex(target.anchorBlockId)
-          : -1
-        insertIndex = liveAnchorIndex >= 0
-          ? liveAnchorIndex + 1
-          : Math.min(target.fallbackIndex, this.#blocks.getBlockCount())
-      }
-
-      const current = target.anchorBlockId
-        ? this.#blocks.getBlockById(target.anchorBlockId)
-        : null
-      let replaceEmpty = prepared.length === 1
-        && current?.isEmpty()
-        && current.type === this.#defaultBlockType
-      if (replaceEmpty) insertIndex = this.#blocks.getBlockIndex(current.id)
-
-      for (const entry of prepared) {
-        const inserted = this.#blocks.insert(entry.type, entry.data, insertIndex)
-        hydrateInlinePlugins(inserted.contentElement, this.#inlinePluginRegistry, this.#inlinePluginCtx)
-        if (replaceEmpty) {
-          this.#blocks.remove(insertIndex + 1)
-          replaceEmpty = false
+    return this.#commands.execute({ name: 'clipboard.files', apply: () => {
+      this.#events.emit(EditorEvent.UNDO_BATCH_START)
+      try {
+        let result = null
+        if (target.crossRange
+            && this.#rootEl.contains(target.crossRange.startContainer)
+            && this.#rootEl.contains(target.crossRange.endContainer)) {
+          this.#crossEditor.deleteContent(target.crossRange, (...blocks) => this.#notifyChanged(...blocks))
+        } else if (target.selectedIds.length > 0) {
+          const selected = new Set(target.selectedIds)
+          this.#blocks.clearSelection()
+          for (const block of this.#blocks) block.selected = selected.has(block.id)
+          result = this.#blocks.removeSelected(this.#defaultBlockType)
         }
-        insertIndex++
-      }
 
-      const lastInserted = this.#blocks.getBlockByIndex(insertIndex - 1)
-      if (lastInserted) {
-        this.#blocks.setCurrentIndex(insertIndex - 1)
-        lastInserted.focus()
-      } else {
-        this.#rootEl.focus()
-      }
+        let insertIndex
+        if (result) {
+          insertIndex = result.focusIndex
+        } else {
+          const liveAnchorIndex = target.anchorBlockId
+            ? this.#blocks.getBlockIndex(target.anchorBlockId)
+            : -1
+          insertIndex = liveAnchorIndex >= 0
+            ? liveAnchorIndex + 1
+            : Math.min(target.fallbackIndex, this.#blocks.getBlockCount())
+        }
 
-      this.#events.emit(EditorEvent.PASTE_APPLIED, {
-        ...(target.anchorBlockId ? { startBlockId: target.anchorBlockId } : {}),
-        ...(lastInserted ? { endBlockId: lastInserted.id } : {}),
-      })
-    } finally {
-      this.#events.emit(EditorEvent.UNDO_BATCH_END)
-    }
+        const current = target.anchorBlockId
+          ? this.#blocks.getBlockById(target.anchorBlockId)
+          : null
+        let replaceEmpty = prepared.length === 1
+          && current?.isEmpty()
+          && current.type === this.#defaultBlockType
+        if (replaceEmpty) insertIndex = this.#blocks.getBlockIndex(current.id)
+
+        for (const entry of prepared) {
+          const inserted = this.#blocks.insert(entry.type, entry.data, insertIndex)
+          hydrateInlinePlugins(inserted.contentElement, this.#inlinePluginRegistry, this.#inlinePluginCtx)
+          if (replaceEmpty) {
+            this.#blocks.remove(insertIndex + 1)
+            replaceEmpty = false
+          }
+          insertIndex++
+        }
+
+        const lastInserted = this.#blocks.getBlockByIndex(insertIndex - 1)
+        if (lastInserted) {
+          this.#blocks.setCurrentIndex(insertIndex - 1)
+          lastInserted.focus()
+        } else {
+          this.#rootEl.focus()
+        }
+
+        this.#events.emit(EditorEvent.PASTE_APPLIED, {
+          ...(target.anchorBlockId ? { startBlockId: target.anchorBlockId } : {}),
+          ...(lastInserted ? { endBlockId: lastInserted.id } : {}),
+        })
+      } finally {
+        this.#events.emit(EditorEvent.UNDO_BATCH_END)
+      }
+    } })
   }
 
   /**

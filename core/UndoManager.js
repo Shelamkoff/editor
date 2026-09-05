@@ -47,6 +47,9 @@ export class UndoManager {
   /** @type {boolean} */
   #restoring = false
 
+  /** @type {() => boolean} */
+  #commandActive = () => false
+
   /** A live change exists but has not reached its coalesced snapshot yet. */
   #pendingChange = false
 
@@ -84,27 +87,30 @@ export class UndoManager {
 
     // Capture pre-change state before structural operations
     const unsubWillChange = events.on(EditorEvent.WILL_CHANGE, () => {
-      if (this.#restoring) return
+      if (this.#restoring || this.#commandActive()) return
       this.commit()
     })
 
     // Listen for changes
     const unsubChanged = events.on(EditorEvent.CHANGED, () => {
-      if (this.#restoring) return
+      if (this.#restoring || this.#commandActive()) return
       this.#pendingChange = true
       this.#emitState()
       this.#debouncedSnapshot()
     })
 
     // Batch events
-    const unsubBatchStart = events.on(EditorEvent.UNDO_BATCH_START, () => { if (!this.#restoring) this.beginBatch() })
-    const unsubBatchEnd = events.on(EditorEvent.UNDO_BATCH_END, () => { if (!this.#restoring) this.endBatch() })
+    const unsubBatchStart = events.on(EditorEvent.UNDO_BATCH_START, () => { if (!this.#restoring && !this.#commandActive()) this.beginBatch() })
+    const unsubBatchEnd = events.on(EditorEvent.UNDO_BATCH_END, () => { if (!this.#restoring && !this.#commandActive()) this.endBatch() })
     const unsubCommit = events.on(EditorEvent.HISTORY_COMMIT, () => {
-      if (!this.#restoring) this.commit()
+      if (!this.#restoring && !this.#commandActive()) this.commit()
     })
 
     this.#unsubscribe = () => { unsubWillChange(); unsubChanged(); unsubBatchStart(); unsubBatchEnd(); unsubCommit() }
   }
+
+  /** @param {() => boolean} active */
+  configureCommandActivity(active) { this.#commandActive = active }
 
   get canUndo() {
     return this.#commandsEnabled && (this.#pendingChange || this.#undoStack.length > 1)

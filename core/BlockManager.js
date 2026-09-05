@@ -603,18 +603,20 @@ export class BlockManager {
     const selected = this.getSelectedBlocks()
     if (selected.length === 0) return null
 
-    const firstIdx = this.getBlockIndex(selected[0].id)
+    return this.#commands.execute({ name: 'blocks.removeSelected', markDirty: false, apply: () => {
+      const firstIdx = this.getBlockIndex(selected[0].id)
 
-    for (let i = selected.length - 1; i >= 0; i--) {
-      const idx = this.getBlockIndex(selected[i].id)
-      if (idx >= 0) this.remove(idx)
-    }
+      for (let i = selected.length - 1; i >= 0; i--) {
+        const idx = this.getBlockIndex(selected[i].id)
+        if (idx >= 0) this.remove(idx)
+      }
 
-    if (this.#blocks.length === 0) {
-      this.insert(defaultBlockType)
-    }
+      if (this.#blocks.length === 0) {
+        this.insert(defaultBlockType)
+      }
 
-    return { focusIndex: Math.min(firstIdx, this.#blocks.length - 1) }
+      return { focusIndex: Math.min(firstIdx, this.#blocks.length - 1) }
+    } })
   }
 
   /**

@@ -1,3 +1,4 @@
+import { register as atomicOperations } from './regressions/atomic-operations.js'
 import { register as commitFailure } from './regressions/commit-failure.js'
 import { register as rollback } from './regressions/rollback.js'
 import { register as pendingPaste } from './regressions/pending-paste.js'
@@ -7,4 +8,5 @@ inlinePreservation()
 pendingPaste()
 rollback()
 commitFailure()
+atomicOperations()
 await run()
