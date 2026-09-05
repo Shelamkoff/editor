@@ -1,3 +1,5 @@
+import { hydrateInlineWidget } from './hydrateInlinePlugins.js'
+
 /**
  * Insert an inline plugin widget at the current native caret position.
  *
@@ -35,8 +37,7 @@ export function insertInlinePluginAtCaret(registry, ctx, type, data = {}, rootEl
   if (!(widget instanceof HTMLElement)) {
     throw new TypeError(`Inline plugin "${type}" createWidget() must return an HTMLElement`)
   }
-  plugin.hydrate(widget, ctx)
-  widget.dataset.hydrated = '1'
+  hydrateInlineWidget(widget, plugin, ctx)
 
   range.deleteContents()
   range.insertNode(widget)

@@ -124,7 +124,7 @@ export class Paragraph extends BlockPluginAbstract {
   merge(element, data) {
     const text = normalizeTextValue(data.text)
     if (text) {
-      element.innerHTML += sanitizeHtml(text)
+      element.insertAdjacentHTML('beforeend', sanitizeHtml(text))
     }
     // Preserve alignment from merged block if current has none
     const align = normalizeTextAlign(data.align)

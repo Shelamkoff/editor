@@ -1,3 +1,4 @@
+import { hydrateInlinePlugins } from './hydrateInlinePlugins.js'
 import { Block } from './Block.js'
 import { BlockAnimator } from './BlockAnimator.js'
 import { closestBlock } from './dom.js'
@@ -41,6 +42,9 @@ export class BlockManager {
 
   /** @type {import('./InlinePluginRegistry').InlinePluginRegistry | null} */
   #inlinePluginRegistry = null
+
+  /** @type {import('./types').InlinePluginContext | null} */
+  #inlinePluginContext = null
   /** @type {boolean} */
   #readOnly
 
@@ -86,6 +90,9 @@ export class BlockManager {
     this.#inlinePluginRegistry = registry
   }
 
+  /** @param {import('./types').InlinePluginContext} context */
+  setInlinePluginContext(context) { this.#inlinePluginContext = context }
+
   /** @param {import('./CommandDispatcher').CommandDispatcher} commands */
   setCommandDispatcher(commands) {
     this.#commands = commands
@@ -130,6 +137,9 @@ export class BlockManager {
       preserveInline: preserveUnknown,
     })
     block.setStructuralCommands(this.#structuralCommands)
+    if (this.#inlinePluginRegistry && this.#inlinePluginContext) {
+      hydrateInlinePlugins(block.contentElement, this.#inlinePluginRegistry, this.#inlinePluginContext)
+    }
     return block
   }
 
@@ -443,7 +453,7 @@ export class BlockManager {
       name: 'block.convert',
       markDirty: false,
       apply: () => {
-        const newBlock = new Block(plugin, this.#commands, newData, blockId, this.#readOnly)
+        const newBlock = this.#createBlock(newType, newData, blockId, undefined)
         newBlock.setStructuralCommands(this.#structuralCommands)
         block.disposePlugin()
         block.element.remove()

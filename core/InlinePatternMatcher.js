@@ -1,3 +1,4 @@
+import { hydrateInlineWidget } from './hydrateInlinePlugins.js'
 import { EditorEvent } from './editorEvents.js'
 import { hydrateInlinePlugins } from './hydrateInlinePlugins.js'
 
@@ -251,7 +252,7 @@ export class InlinePatternMatcher {
     targetNode.remove()
 
     // Hydrate immediately
-    plugin.hydrate(widget, this.#ctx)
+    hydrateInlineWidget(widget, plugin, this.#ctx)
     widget.dataset.hydrated = '1'
 
     // Place caret after widget

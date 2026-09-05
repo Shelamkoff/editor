@@ -14,7 +14,7 @@ export class CommandDispatcher {
   /** @type {Set<import('./types').IBlock>} */ #affected = new Set()
   /** @type {(() => import('./types').EditorDocument) | null} */ #capture = null
   /** @type {((document: import('./types').EditorDocument) => void) | null} */ #restore = null
-  /** @type {(() => void) | null} */ #commit = null
+  /** @type {((affected: import('./types').IBlock[]) => void) | null} */ #commit = null
   /** @type {boolean} */ #restoring = false
   /** @type {unknown} */ #nestedFailure = null
   /** @type {boolean} */ #hasNestedFailure = false
@@ -50,7 +50,9 @@ export class CommandDispatcher {
     this.#restore = restore
   }
 
-  /** Configure the mandatory synchronous persistence/history step. */
+  /** Configure the mandatory synchronous persistence/history step.
+   * @param {(affected: import('./types').IBlock[]) => void} commit
+   */
   configureCommit(commit) { this.#commit = commit }
 
   /** Restore core state without capturing or committing the damaged live document.
@@ -201,7 +203,7 @@ export class CommandDispatcher {
     }
     // Validation and history are required work, not isolated event observers.
     // Run them inside execute()'s catch boundary before announcing success.
-    this.#commit?.()
+    this.#commit?.([...seen])
     for (const block of seen) {
       this.#events.emit(EditorEvent.BLOCK_CHANGED, { blockId: block.id })
     }

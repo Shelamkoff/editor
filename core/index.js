@@ -552,6 +552,7 @@ export function createEditor(config) {
     )
     inlinePluginCtx.setRoot(rootEl)
     inlinePluginRegistry.mount(rootEl, inlinePluginCtx)
+    blocks.setInlinePluginContext(inlinePluginCtx)
 
     if (inlinePluginRegistry.size > 0) {
       for (const block of blocks) {
@@ -611,7 +612,10 @@ export function createEditor(config) {
     undoManager.setCommandsEnabled(!readOnly, { notify: false })
     undoManager.configureCommandActivity(() => commands.active)
     facade.configureHistory(undoManager)
-    commands.configureCommit(() => {
+    commands.configureCommit(affected => {
+      for (const block of affected) {
+        hydrateInlinePlugins(block.contentElement, inlinePluginRegistry, inlinePluginCtx)
+      }
       // Validate even inside an undo batch, where commit() intentionally waits.
       snapshots.capture()
       undoManager.commit()

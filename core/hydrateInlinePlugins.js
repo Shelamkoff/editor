@@ -1,3 +1,19 @@
+/** Live ownership cannot be inferred from serialized data-hydrated markup. */
+const hydratedWidgets = new WeakMap()
+
+/**
+ * @param {HTMLElement} element
+ * @param {import('./types').InlinePlugin} plugin
+ * @param {import('./types').InlinePluginContext} ctx
+ */
+export function hydrateInlineWidget(element, plugin, ctx) {
+  const previous = hydratedWidgets.get(element)
+  if (previous?.plugin === plugin && previous.ctx === ctx) return
+  plugin.hydrate(element, ctx)
+  hydratedWidgets.set(element, { plugin, ctx })
+  element.dataset.hydrated = '1'
+}
+
 /**
  * Hydrate inline plugin widgets inside a DOM root.
  * Finds all `[data-inline-plugin]` elements and calls the matching plugin's `hydrate()`.
@@ -12,9 +28,6 @@ export function hydrateInlinePlugins(root, registry, ctx) {
   const widgets = root.querySelectorAll('[data-inline-plugin]')
   for (const widget of widgets) {
     const el = /** @type {HTMLElement} */ (widget)
-    // Skip already hydrated widgets
-    if (el.dataset.hydrated) continue
-
     const type = el.dataset.inlinePlugin
     if (!type) continue
 
@@ -25,8 +38,7 @@ export function hydrateInlinePlugins(root, registry, ctx) {
     }
 
     try {
-      plugin.hydrate(el, ctx)
-      el.dataset.hydrated = '1'
+      hydrateInlineWidget(el, plugin, ctx)
     } catch (err) {
       // One malformed third-party widget must not prevent the rest of a
       // document from rendering or hydrating.
