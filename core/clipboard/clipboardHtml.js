@@ -1,4 +1,5 @@
 import { sanitizeHtml } from '../sanitize.js'
+import { sanitizeMediaUrl } from '../../shared/sanitize/sanitizeUrl.js'
 
 /** Export inline content without editor state or controls.
  * @param {Element} source
@@ -49,6 +50,23 @@ function list(source) {
  */
 export function blockClipboardHtml(block) {
   const root = block.contentElement
+  if (block.type === 'delimiter') return '<hr>'
+  if (block.type === 'image') {
+    const data = /** @type {{ file?: { url?: string }, caption?: string }} */ (block.save().data)
+    // Build in inert content: exporting must not load media or preserve UI.
+    const template = document.createElement('template')
+    template.innerHTML = '<figure><img></figure>'
+    const figure = template.content.firstElementChild
+    const image = figure.querySelector('img')
+    const url = sanitizeMediaUrl(data.file?.url)
+    if (url) image.setAttribute('src', url)
+    const captionSource = document.createElement('template')
+    captionSource.innerHTML = typeof data.caption === 'string' ? data.caption : ''
+    const caption = field('figcaption', captionSource)
+    image.setAttribute('alt', caption.textContent || '')
+    if (caption.innerHTML) figure.appendChild(caption)
+    return figure.outerHTML
+  }
   if (root.matches('p, h1, h2, h3, h4, h5, h6')) return field(root.tagName.toLowerCase(), root).outerHTML
   if (block.type === 'quote') {
     const quote = field('blockquote', root.querySelector('blockquote') || root)
