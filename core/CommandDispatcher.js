@@ -95,7 +95,7 @@ export class CommandDispatcher {
     if (this.#depth > 0) return
     const affected = [...this.#affected]
     this.#affected.clear()
-    this.#markAndCommit(affected)
+    this.#publish(this.#markAndCommit(affected))
   }
 
   /**
@@ -126,16 +126,17 @@ export class CommandDispatcher {
     if (outermost && command.notifyChange !== false) this.#events.emit(EditorEvent.WILL_CHANGE)
 
     this.#depth++
+    let result
+    let committed = null
     try {
-      const result = command.apply()
+      result = command.apply()
       command.notify?.(result)
       // A nested command cannot be made successful by catching its error in
       // the caller: the outer transaction is poisoned and rolls back whole.
       this.#throwNestedFailure(outermost)
       if (outermost && command.notifyChange !== false) {
-        this.#markAndCommit(command.markDirty === false ? [] : [...this.#affected])
+        committed = this.#markAndCommit(command.markDirty === false ? [] : [...this.#affected])
       }
-      return result
     } catch (cause) {
       if (!this.#hasNestedFailure) {
         this.#nestedFailure = cause
@@ -163,6 +164,10 @@ export class CommandDispatcher {
         this.#hasNestedFailure = false
       }
     }
+    // Observers may issue a new command. Publish only after the completed
+    // transaction has released its depth, affected set and failure state.
+    if (committed) this.#publish(committed)
+    return result
   }
 
   #rollback(command, checkpoint, cause) {
@@ -204,7 +209,11 @@ export class CommandDispatcher {
     // Validation and history are required work, not isolated event observers.
     // Run them inside execute()'s catch boundary before announcing success.
     this.#commit?.([...seen])
-    for (const block of seen) {
+    return [...seen]
+  }
+
+  #publish(affected) {
+    for (const block of affected) {
       this.#events.emit(EditorEvent.BLOCK_CHANGED, { blockId: block.id })
     }
     this.#events.emit(EditorEvent.CHANGED)
