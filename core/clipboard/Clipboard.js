@@ -592,14 +592,17 @@ export class Clipboard {
     if (blocksData.length === 0) return false
 
     for (const blockData of blocksData) {
-      const type = this.#plugins.has(blockData.type) ? blockData.type : this.#defaultBlockType
+      // Internal copies are document data, not a request to reinterpret an
+      // unknown payload as paragraph data. Preserve the same opaque block
+      // representation used by render() when a plugin is not registered.
+      const type = blockData.type
       const inline = blockData.inline && typeof blockData.inline === 'object'
         ? blockData.inline
         : undefined
       const tunes = blockData.tunes && typeof blockData.tunes === 'object' && !Array.isArray(blockData.tunes)
         ? blockData.tunes
         : undefined
-      const inserted = this.#blocks.insert(type, blockData.data, insertIndex, undefined, inline, tunes)
+      const inserted = this.#blocks.insert(type, blockData.data, insertIndex, undefined, inline, tunes, !this.#plugins.has(type))
       hydrateInlinePlugins(inserted.contentElement, this.#inlinePluginRegistry, this.#inlinePluginCtx)
       insertIndex++
     }

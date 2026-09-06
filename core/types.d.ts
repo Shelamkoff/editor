@@ -552,6 +552,7 @@ export interface IBlockManager extends IBlockReader {
     id?: string,
     inline?: Record<string, EditorInlineWidget>,
     tunes?: Record<string, unknown>,
+    preserveUnknown?: boolean,
   ): IBlock
   prepareReplacement(blockList: BlockData[] | undefined, defaultBlockType: string, logPrefix?: string): {
     blocks: readonly IBlock[]

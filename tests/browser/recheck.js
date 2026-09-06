@@ -1,3 +1,4 @@
+import { register as opaqueClipboard } from './regressions/recheck-25-opaque-clipboard.js'
 import { register as mergeCaret } from './regressions/recheck-24-merge-caret.js'
 import { register as pendingTargets } from './regressions/recheck-23-paste-target.js'
 import { register as textReplacement } from './regressions/recheck-20-text-replacement.js'
@@ -47,4 +48,5 @@ whitespaceHistory()
 textReplacement()
 pendingTargets()
 mergeCaret()
+opaqueClipboard()
 await run()
