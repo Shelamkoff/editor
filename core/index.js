@@ -286,8 +286,8 @@ function wireEditMode(deps) {
     hydrateInlinePlugins(duplicate.contentElement, inlinePluginRegistry, inlinePluginCtx)
     const duplicateIndex = blocks.getBlockIndex(duplicate.id)
     blocks.setCurrentIndex(duplicateIndex)
-    selection.setCaretToBlock(duplicate.id, 'end')
     duplicate.focus()
+    selection.setCaretToBlock(duplicate.id, 'end')
     return duplicate
   }
 

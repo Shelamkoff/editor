@@ -645,8 +645,8 @@ export class Clipboard {
     const lastInserted = this.#blocks.getBlockByIndex(insertIndex - 1)
     if (lastInserted) {
       this.#blocks.setCurrentIndex(insertIndex - 1)
-      this.#selection.setCaretToBlock(lastInserted.id, 'end')
       lastInserted.focus()
+      this.#selection.setCaretToBlock(lastInserted.id, 'end')
     }
     return true
   }

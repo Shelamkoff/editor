@@ -1,3 +1,4 @@
+import { Paragraph, Table } from '../../plugins/index.js'
 import { test, make, para, select, pause, assert, equal, texts, run } from './regressions/harness.js'
 import { selectAcross } from './regressions/cross-input-fixture.js'
 
@@ -33,5 +34,21 @@ test('native input within one paragraph keeps ordinary browser editing behavior'
   await printable()
   equal(texts(editor), ['AlXa'])
 })
+
+for (const empty of [false, true]) {
+  test(`native ArrowUp inserts into the ${empty ? 'empty' : 'populated'} final table cell`, async () => {
+    const editor = make([
+      { id: 'table', type: 'table', data: { withHeadings: false, content: [['A', empty ? '' : 'B']] } },
+      para('after', 'After'),
+    ], { plugins: [new Paragraph(), new Table()] })
+    select(editor.blocks.getBlockById('after').contentElement, 0)
+    await window.__testInput('Input.dispatchKeyEvent', { type: 'rawKeyDown', key: 'ArrowUp', code: 'ArrowUp', windowsVirtualKeyCode: 38 })
+    await window.__testInput('Input.dispatchKeyEvent', { type: 'keyUp', key: 'ArrowUp', code: 'ArrowUp', windowsVirtualKeyCode: 38 })
+    await window.__testInput('Input.insertText', { text: 'X' })
+    equal(editor.save().blocks[0].data.content, [['A', empty ? 'X' : 'BX']])
+    editor.undo()
+    equal(editor.save().blocks[0].data.content, [['A', empty ? '' : 'B']])
+  })
+}
 
 await run()

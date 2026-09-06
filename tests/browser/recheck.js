@@ -1,3 +1,4 @@
+import { register as edgeFieldFocus } from './regressions/recheck-35-edge-field-focus.js'
 import { register as dragLifetime } from './regressions/recheck-34-drag-lifetime.js'
 import { register as structuralLifetime } from './regressions/recheck-33-structural-context-lifetime.js'
 import { register as inlineBoundaries } from './regressions/recheck-32-inline-field-boundaries.js'
@@ -67,4 +68,5 @@ sourceRemainders()
 inlineBoundaries()
 structuralLifetime()
 dragLifetime()
+edgeFieldFocus()
 await run()

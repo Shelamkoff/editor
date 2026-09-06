@@ -59,7 +59,17 @@ export class SelectionManager {
     const block = this.#blocks.getBlockById(blockId)
     if (!block) return
 
-    this.setCaretToOffset(blockId, position === 'start' ? 0 : getTextLength(block.contentElement))
+    // A composite block's edge is an actual field, including an empty one.
+    // setCaretToOffset focuses that host before restoring the logical point.
+    const fields = editableFields(block.contentElement)
+      .map((element, index) => ({ element, index }))
+      .filter(field => field.element.contentEditable === 'true')
+    const edge = position === 'start' ? fields[0] : fields.at(-1)
+    this.setCaretToOffset(
+      blockId,
+      position === 'start' ? 0 : getTextLength(edge?.element ?? block.contentElement),
+      edge?.index,
+    )
   }
 
   /**

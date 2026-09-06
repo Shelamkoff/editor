@@ -46,8 +46,8 @@ export class BlockOperations {
     const newBlock = this.#blocks.insert(type, data, index)
     const newIndex = this.#blocks.getBlockIndex(newBlock.id)
     this.#blocks.setCurrentIndex(newIndex)
-    this.#selection.setCaretToBlock(newBlock.id, caretPosition)
     newBlock.focus()
+    this.#selection.setCaretToBlock(newBlock.id, caretPosition)
     return newBlock
   }
 
@@ -69,8 +69,8 @@ export class BlockOperations {
       const converted = this.#blocks.convert(currentIndex, type, data)
       if (converted) {
         this.#blocks.setCurrentIndex(currentIndex)
-        this.#selection.setCaretToBlock(converted.id, caretPosition)
         converted.focus()
+        this.#selection.setCaretToBlock(converted.id, caretPosition)
         return converted
       }
     }
@@ -148,8 +148,8 @@ export class BlockOperations {
     if (current.isEmpty()) {
       blocks.remove(currentIndex)
       blocks.setCurrentIndex(currentIndex - 1)
-      this.#selection.setCaretToBlock(prev.id, 'end')
       prev.focus()
+      this.#selection.setCaretToBlock(prev.id, 'end')
       return true
     }
 
@@ -230,8 +230,8 @@ export class BlockOperations {
     if (!prev) return false
 
     blocks.setCurrentIndex(currentIndex - 1)
-    this.#selection.setCaretToBlock(prev.id, 'end')
     prev.focus()
+    this.#selection.setCaretToBlock(prev.id, 'end')
     return true
   }
 
@@ -248,8 +248,8 @@ export class BlockOperations {
     if (!next) return false
 
     blocks.setCurrentIndex(currentIndex + 1)
-    this.#selection.setCaretToBlock(next.id, 'start')
     next.focus()
+    this.#selection.setCaretToBlock(next.id, 'start')
     return true
   }
 }
