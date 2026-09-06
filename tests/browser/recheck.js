@@ -1,3 +1,4 @@
+import { register as renderVersion } from './regressions/recheck-21-render-version.js'
 import { register as compositeMerge } from './regressions/recheck-19-composite-merge.js'
 import { register as pasteTail } from './regressions/recheck-07-paste-tail.js'
 import { register as crossEnter } from './regressions/recheck-10-cross-enter.js'
@@ -37,4 +38,5 @@ recheck_04_cross_fields()
 crossEnter()
 pasteTail()
 compositeMerge()
+renderVersion()
 await run()

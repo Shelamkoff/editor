@@ -240,37 +240,46 @@ export class EditorFacade {
 
     this.#events.emit(EditorEvent.UNDO_BATCH_START)
     try {
-      // Clear transient selection state before replacing content.
-      // Without this, InlineToolbar refuses to hide (checks crossBlockSelection.range)
-      // and CSS highlights remain painted on detached DOM nodes.
-      if (this.#crossBlockSelection) this.#crossBlockSelection.deactivate(this.#rootEl)
-      this.#blocks.clearSelection()
+      // The envelope and the block tree form one persistence transaction.
+      // A nested replacement must not publish the new blocks with an old version.
+      this.#commands.execute({
+        name: 'document.render',
+        markDirty: false,
+        notifyChange: options.notifyChange,
+        apply: () => {
+          // Clear transient selection state before replacing content.
+          // Without this, InlineToolbar refuses to hide (checks crossBlockSelection.range)
+          // and CSS highlights remain painted on detached DOM nodes.
+          if (this.#crossBlockSelection) this.#crossBlockSelection.deactivate(this.#rootEl)
+          this.#blocks.clearSelection()
 
-      replacement.commit({ notifyChange: options.notifyChange })
-      this.#snapshots.setDocumentVersion(normalized.version)
+          replacement.commit({ notifyChange: options.notifyChange })
+          this.#snapshots.setDocumentVersion(normalized.version)
 
-      // Restore caret position
-      if (caret) {
-        const targetBlock = this.#blocks.getBlockById(caret.blockId)
-        if (targetBlock) {
-          const idx = this.#blocks.getBlockIndex(caret.blockId)
-          if (idx >= 0) this.#blocks.setCurrentIndex(idx)
-          targetBlock.focus()
-          this.#selection.setCaretToOffset(caret.blockId, caret.offset, caret.fieldIndex)
-          return
-        }
-      }
+          // Restore caret position
+          if (caret) {
+            const targetBlock = this.#blocks.getBlockById(caret.blockId)
+            if (targetBlock) {
+              const idx = this.#blocks.getBlockIndex(caret.blockId)
+              if (idx >= 0) this.#blocks.setCurrentIndex(idx)
+              targetBlock.focus()
+              this.#selection.setCaretToOffset(caret.blockId, caret.offset, caret.fieldIndex)
+              return
+            }
+          }
 
-      // Mode transitions rebuild plugin DOM without stealing browser focus.
-      this.#blocks.setCurrentIndex(0)
-      if (options.focus === false) return
+          // Mode transitions rebuild plugin DOM without stealing browser focus.
+          this.#blocks.setCurrentIndex(0)
+          if (options.focus === false) return
 
-      // Fallback: focus first block
-      const first = this.#blocks.getBlockByIndex(0)
-      if (first) {
-        first.focus()
-        this.#selection.setCaretToBlock(first.id, 'end')
-      }
+          // Fallback: focus first block
+          const first = this.#blocks.getBlockByIndex(0)
+          if (first) {
+            first.focus()
+            this.#selection.setCaretToBlock(first.id, 'end')
+          }
+        },
+      })
     } finally {
       // No-op after commit; otherwise release the staged document on any failure.
       replacement.dispose()
