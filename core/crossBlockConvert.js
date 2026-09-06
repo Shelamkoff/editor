@@ -135,6 +135,10 @@ export function convertCrossBlockRange(ctx, crossRange, targetType, targetData, 
   // structured plugin supports data-level splitting.
   if ((!firstFull && !firstSplit) || (!lastFull && !lastSplit)) return false
 
+  // Capture transferable metadata before either endpoint is replaced. New
+  // fragments get fresh IDs/revisions, but keep the payloads their tokens use.
+  const firstMetadata = firstSplit ? firstBlock.save() : null
+  const lastMetadata = lastSplit ? lastBlock.save() : null
   const targetIsText = isTextType(plugins, targetType)
   /** @type {import('./types').IBlock[]} */
   const convertedBlocks = []
@@ -156,7 +160,7 @@ export function convertCrossBlockRange(ctx, crossRange, targetType, targetData, 
           ...(targetData || {}),
         })
         if (converted) focusBlock = recordConverted(converted)
-        if (lastSplit.remainingData) blocks.insert(lastBlock.type, lastSplit.remainingData, lastIdx + 1)
+        if (lastSplit.remainingData) blocks.insert(lastBlock.type, lastSplit.remainingData, lastIdx + 1, undefined, lastMetadata?.inline, lastMetadata?.tunes)
       } else {
         const converted = blocks.convert(lastIdx, targetType, targetData)
         if (converted) focusBlock = recordConverted(converted)
@@ -181,7 +185,7 @@ export function convertCrossBlockRange(ctx, crossRange, targetType, targetData, 
           focusBlock = recordConverted(blocks.insert(targetType, {
             ...firstSplit.selectedData,
             ...(targetData || {}),
-          }, firstIdx + 1))
+          }, firstIdx + 1, undefined, firstMetadata?.inline, firstMetadata?.tunes))
         } else {
           const converted = blocks.convert(firstIdx, targetType, {
             ...firstSplit.selectedData,
