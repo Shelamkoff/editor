@@ -84,7 +84,7 @@ function analyzePartialEndpoint(block, range, side) {
     const remainingHtml = rangeHtml(remainingRange)
     return {
       selectedData: { text: selectedHtml },
-      remainingData: hasTransferableContent(remainingHtml) ? { text: remainingHtml } : null,
+      remainingData: hasTransferableContent(remainingHtml) ? { ...block.save().data, text: remainingHtml } : null,
     }
   } catch {
     return null

@@ -88,7 +88,7 @@ export function splitAndConvert(blocks, selection, currentIndex, currentType, co
     currentBlock?.markDirty()
     const converted = blocks.convert(currentIndex, targetType, mergedData)
     if (afterHtml) {
-      blocks.insert(currentType, { text: afterHtml }, currentIndex + 1, undefined, metadata?.inline, metadata?.tunes)
+      blocks.insert(currentType, { ...metadata?.data, text: afterHtml }, currentIndex + 1, undefined, metadata?.inline, metadata?.tunes)
     }
     if (converted) {
       blocks.setCurrentIndex(currentIndex)
@@ -106,7 +106,7 @@ export function splitAndConvert(blocks, selection, currentIndex, currentType, co
     contentEl.innerHTML = beforeHtml
     currentBlock?.markDirty()
     const newBlock = blocks.insert(targetType, mergedData, currentIndex + 1, undefined, metadata?.inline, metadata?.tunes)
-    blocks.insert(currentType, { text: afterHtml }, currentIndex + 2, undefined, metadata?.inline, metadata?.tunes)
+    blocks.insert(currentType, { ...metadata?.data, text: afterHtml }, currentIndex + 2, undefined, metadata?.inline, metadata?.tunes)
     blocks.setCurrentIndex(currentIndex + 1)
     selection.setCaretToBlock(newBlock.id, 'start')
     newBlock.focus()
