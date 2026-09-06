@@ -1,3 +1,4 @@
+import { appendMergeField } from '../shared/appendMergeField.js'
 import { sanitizeHtml } from '../../core/sanitize.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { validateToggleData } from '../../shared/blockDataValidators.js'
@@ -166,11 +167,8 @@ export class Toggle extends BlockPluginAbstract {
    * @returns {void}
    */
   merge(element, data) {
-    const body = element.querySelector('.oe-toggle__body')
-    const text = normalizeTextValue(data?.text)
-    if (body && text) {
-      if (body.innerHTML.trim()) body.innerHTML += '<br>'
-      body.innerHTML += sanitizeHtml(text)
+    appendMergeField(element, '.oe-toggle__title', data?.title)
+    if (appendMergeField(element, '.oe-toggle__body', data?.content ?? data?.text)) {
       element.classList.add('oe-toggle--open')
       element.querySelector('.oe-toggle__chevron')?.setAttribute('aria-expanded', 'true')
       const state = stateMap.get(element)

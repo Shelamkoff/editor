@@ -1,3 +1,4 @@
+import { appendMergeField } from '../shared/appendMergeField.js'
 // =============================================================================
 // Warning — callout/notice block with title and message
 //
@@ -152,15 +153,8 @@ export class Warning extends BlockPluginAbstract {
    * @returns {void}
    */
   merge(element, data) {
-    const message = element.querySelector('.oe-warning__message')
-    const text = normalizeTextValue(data?.text)
-    if (message && text) {
-      if (message.innerHTML.trim()) {
-        message.innerHTML += '<br>' + sanitizeHtml(text)
-      } else {
-        message.innerHTML = sanitizeHtml(text)
-      }
-    }
+    appendMergeField(element, '.oe-warning__title', data?.title)
+    appendMergeField(element, '.oe-warning__message', data?.message ?? data?.text)
   }
 
 }

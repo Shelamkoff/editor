@@ -1,3 +1,4 @@
+import { register as compositeMerge } from './regressions/recheck-19-composite-merge.js'
 import { register as pasteTail } from './regressions/recheck-07-paste-tail.js'
 import { register as crossEnter } from './regressions/recheck-10-cross-enter.js'
 import { register as recheck_04_cross_fields } from './regressions/recheck-04-cross-fields.js'
@@ -35,4 +36,5 @@ recheck_05_inline_transfer()
 recheck_04_cross_fields()
 crossEnter()
 pasteTail()
+compositeMerge()
 await run()

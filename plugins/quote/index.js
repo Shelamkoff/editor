@@ -1,3 +1,4 @@
+import { appendMergeField } from '../shared/appendMergeField.js'
 // =============================================================================
 // Quote — blockquote with optional caption
 // =============================================================================
@@ -109,15 +110,12 @@ export class Quote extends BlockPluginAbstract {
   /**
    * Merge incoming text into the current block.
    * @param {HTMLElement} element
-   * @param {{ text?: string }} data
+   * @param {{ text?: string, caption?: string }} data
    * @returns {void}
    */
   merge(element, data) {
-    const textEl = element.querySelector('.oe-quote__text')
-    const text = normalizeTextValue(data.text)
-    if (textEl && text) {
-      textEl.innerHTML += sanitizeHtml(text)
-    }
+    appendMergeField(element, '.oe-quote__text', data.text, '')
+    appendMergeField(element, '.oe-quote__caption', data.caption)
   }
 
   /**

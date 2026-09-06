@@ -1,3 +1,4 @@
+import { appendMergeField } from '../shared/appendMergeField.js'
 // =============================================================================
 // Spoiler — hidden text revealed on click
 //
@@ -157,12 +158,8 @@ export class Spoiler extends BlockPluginAbstract {
    * @returns {void}
    */
   merge(element, data) {
-    const content = element.querySelector('.oe-spoiler__content')
-    const text = normalizeTextValue(data?.text)
-    if (content && text) {
-      if (content.innerHTML.trim()) content.innerHTML += '<br>'
-      content.innerHTML += sanitizeHtml(text)
-    }
+    appendMergeField(element, '.oe-spoiler__label', data?.label)
+    appendMergeField(element, '.oe-spoiler__content', data?.content ?? data?.text)
   }
 
 }
