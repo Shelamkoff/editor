@@ -1,3 +1,4 @@
+import { register as nativeConversion } from './regressions/recheck-30-native-conversion.js'
 import { register as crossMetadata } from './regressions/recheck-29-cross-convert-metadata.js'
 import { register as nativePasteRange } from './regressions/recheck-28-native-paste-range.js'
 import { register as emptyFieldBoundaries } from './regressions/recheck-27-empty-field-boundaries.js'
@@ -57,4 +58,5 @@ formInput()
 emptyFieldBoundaries()
 nativePasteRange()
 crossMetadata()
+nativeConversion()
 await run()

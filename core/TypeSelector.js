@@ -1,3 +1,4 @@
+import { resolveBlockRange } from './selectionRange.js'
 import {el, positionPopup} from './dom.js'
 import {convertCrossBlockRange, isTextType} from './crossBlockConvert.js'
 import {CrossBlockSelection} from './CrossBlockSelection.js'
@@ -323,16 +324,25 @@ export class TypeSelector {
   #applyConversion(targetType, targetData) {
     const blocks = this.#blocks
 
-    // Check for cross-block selection first
-    const crossRange = this.#crossBlockSelection?.range
-
-    if (crossRange) {
-      this.#convertCrossBlock(crossRange, targetType, targetData)
-      return
+    const selectedBlocks = blocks.getSelectedBlocks()
+    // Menu focus may clip the native selection. Resolve its saved boundaries
+    // before choosing the single-block or cross-block conversion path.
+    const candidate = this.#crossBlockSelection?.range
+      ?? (selectedBlocks.length > 1 ? null : this.#savedRange)
+    if (candidate) {
+      const endpoints = resolveBlockRange(blocks, candidate)
+      if (!endpoints) {
+        this.#savedRange = null
+        this.close()
+        return
+      }
+      if (endpoints.first !== endpoints.last) {
+        this.#convertCrossBlock(candidate, targetType, targetData)
+        return
+      }
     }
 
     // Also check block-level selection (Ctrl+A)
-    const selectedBlocks = this.#blocks.getSelectedBlocks()
     if (selectedBlocks.length > 1) {
       this.#convertMultipleBlocks(selectedBlocks, targetType, targetData)
       return

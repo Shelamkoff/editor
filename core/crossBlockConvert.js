@@ -1,3 +1,4 @@
+import { resolveBlockRange } from './selectionRange.js'
 import { closestBlock } from './dom.js'
 import { EditorEvent } from './editorEvents.js'
 import { rangeStartsAtBeginning, rangeEndsAtEnd } from './splitConvert.js'
@@ -123,7 +124,9 @@ export function convertCrossBlockRange(ctx, crossRange, targetType, targetData, 
 
   const firstBlock = blocks.getBlockByIndex(firstIdx)
   const lastBlock = blocks.getBlockByIndex(lastIdx)
-  if (!firstBlock || !lastBlock || !plugins.has(targetType)) return false
+  const endpoints = resolveBlockRange(blocks, crossRange)
+  if (!firstBlock || !lastBlock || endpoints?.first !== firstBlock
+      || endpoints.last !== lastBlock || !plugins.has(targetType)) return false
 
   const firstFull = rangeStartsAtBeginning(firstBlock.contentElement, crossRange)
   const lastFull = rangeEndsAtEnd(lastBlock.contentElement, crossRange)

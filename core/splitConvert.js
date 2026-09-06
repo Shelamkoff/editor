@@ -19,6 +19,8 @@ import { closestBlock } from './dom.js'
  */
 export function splitAndConvert(blocks, selection, currentIndex, currentType, contentEl, range, targetType, targetData, targetIsText = false) {
   const currentBlock = blocks.getBlockByIndex(currentIndex)
+  if (!currentBlock || currentBlock.contentElement !== contentEl
+      || !contentEl.contains(range.startContainer) || !contentEl.contains(range.endContainer)) return false
   const metadata = currentBlock?.save()
   const pluginSplit = currentBlock?.plugin.splitSelection?.(contentEl, range)
 

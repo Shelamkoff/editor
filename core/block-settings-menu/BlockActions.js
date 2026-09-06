@@ -1,3 +1,4 @@
+import { resolveBlockRange } from '../selectionRange.js'
 import { EditorEvent } from '../editorEvents.js'
 import { convertCrossBlockRange, isTextType } from '../crossBlockConvert.js'
 import { splitAndConvert, isFullBlockSelected } from '../splitConvert.js'
@@ -118,9 +119,11 @@ export class BlockActions {
   }
 
   #applyConversion(type, data) {
-    const crossRange = this.#deps.crossBlockSelection.range
+    const candidate = this.#deps.crossBlockSelection.range ?? this.#deps.getSavedRange()
+    const endpoints = candidate ? resolveBlockRange(this.#deps.blocks, candidate) : null
+    if (candidate && !endpoints) { this.#deps.onClose(); return }
 
-    if (crossRange) {
+    if (endpoints && endpoints.first !== endpoints.last) {
       convertCrossBlockRange(
         {
           blocks: this.#deps.blocks,
@@ -129,7 +132,7 @@ export class BlockActions {
           crossBlockSelection: this.#deps.crossBlockSelection,
           events: this.#deps.events,
         },
-        crossRange, type, data,
+        candidate, type, data,
         null,
       )
       this.#deps.onClose()
