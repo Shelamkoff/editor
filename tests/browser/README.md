@@ -24,3 +24,10 @@ real clipboard permission dialogs.
 Tests belonging to the standalone cropper/expose repositories are not part of
 this checkout. Rector's own lifecycle and plugin integration suites still test
 its use and cleanup of those installed packages.
+
+## Bundle size
+
+The CI `size-report` job records the package measurements without treating the
+historical size targets as release requirements. Compilation or measurement
+errors still fail the job. Run `node benchmarks/bundle-budget.mjs --enforce` only
+when intentionally checking those targets; the default command is informational.
