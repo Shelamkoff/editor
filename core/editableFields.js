@@ -49,3 +49,22 @@ export function editableAtBoundary(block, container, offset) {
   return index >= 0 ? { element: fields[index], index } : { element: fields[0], index: 0 }
 }
 
+
+/** A raw inline DOM mutation is safe only within one actual editing host.
+ * Unlike editableAtBoundary(), this resolver never guesses a neighboring
+ * field for a wrapper boundary or accepts a position inside a locked widget.
+ * @param {HTMLElement} block
+ * @param {Range} range
+ * @returns {HTMLElement | null}
+ */
+export function editableRange(block, range) {
+  const field = editableAtBoundary(block, range.startContainer, range.startOffset)?.element
+  if (!field || field.contentEditable !== 'true') return null
+  for (const container of [range.startContainer, range.endContainer]) {
+    const element = container.nodeType === Node.ELEMENT_NODE
+      ? /** @type {Element} */ (container)
+      : container.parentElement
+    if (!field.contains(container) || element?.closest('[contenteditable]') !== field) return null
+  }
+  return field
+}

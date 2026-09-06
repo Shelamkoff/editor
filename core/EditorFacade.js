@@ -1,3 +1,4 @@
+import { editableRange } from './editableFields.js'
 import { EditorEvent } from './editorEvents.js'
 import { hydrateInlinePlugins } from './hydrateInlinePlugins.js'
 import { insertInlinePluginAtCaret } from './inlinePluginInsert.js'
@@ -348,12 +349,15 @@ export class EditorFacade {
       || !this.#inlinePluginRegistry.get(type)
     ) return false
 
+    const field = editableRange(block.contentElement, range)
+    if (!field) return false
+
     return this.#commands.runForBlock(block, () => insertInlinePluginAtCaret(
       this.#inlinePluginRegistry,
       this.#inlinePluginCtx,
       type,
       data,
-      this.#rootEl,
+      field,
     ))
   }
 

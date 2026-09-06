@@ -1,3 +1,4 @@
+import { register as inlineBoundaries } from './regressions/recheck-32-inline-field-boundaries.js'
 import { register as sourceRemainders } from './regressions/recheck-31-source-remainders.js'
 import { register as nativeConversion } from './regressions/recheck-30-native-conversion.js'
 import { register as crossMetadata } from './regressions/recheck-29-cross-convert-metadata.js'
@@ -61,4 +62,5 @@ nativePasteRange()
 crossMetadata()
 nativeConversion()
 sourceRemainders()
+inlineBoundaries()
 await run()
