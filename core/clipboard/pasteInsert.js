@@ -1,3 +1,4 @@
+import { takePasteTail, finishBlockPaste } from './pasteTail.js'
 import { sanitizeHtml } from '../sanitize.js'
 import { extractBlockElements } from './pasteUtils.js'
 
@@ -34,6 +35,7 @@ export function pastePlainText(text, ctx) {
     return
   }
 
+  const tail = takePasteTail(targetBlock)
   insertTextOrReplace(/** @type {string} */ (nonEmpty[0]), ctx.blocks)
 
   const currentIndex = ctx.blocks.getCurrentIndex()
@@ -44,17 +46,13 @@ export function pastePlainText(text, ctx) {
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
-    ctx.blocks.insert(ctx.defaultBlockType, { text: escaped }, insertIndex)
+    ctx.blocks.insert(ctx.defaultBlockType, { text: escaped }, insertIndex, undefined, undefined, tail?.metadata.tunes)
     insertIndex++
   }
 
   // Focus the last inserted block once (avoid intermediate focus shifts).
   const lastBlock = ctx.blocks.getBlockByIndex(insertIndex - 1)
-  if (lastBlock) {
-    ctx.blocks.setCurrentIndex(insertIndex - 1)
-    ctx.selection.setCaretToBlock(lastBlock.id, 'end')
-    lastBlock.focus()
-  }
+  finishBlockPaste(lastBlock, tail, true, ctx)
 
   if (targetBlock) ctx.notifyChanged(targetBlock)
   else ctx.notifyChanged()
@@ -99,20 +97,12 @@ export function pasteHtml(html, ctx) {
   }
 
   const currentIndex = ctx.blocks.getCurrentIndex()
-  const currentBlock = ctx.blocks.getBlockByIndex(currentIndex)
-  const currentIsEmpty = currentBlock?.isEmpty()
-
+  const tail = takePasteTail(targetBlock)
   const firstIsTextLike = first.tag === 'p' || first.tag === 'div'
 
   if (firstIsTextLike) {
     const sanitized = sanitizeHtml(first.element.innerHTML)
-    if (sanitized) {
-      if (currentIsEmpty && currentBlock) {
-        currentBlock.contentElement.innerHTML = sanitized
-      } else {
-        insertHtmlAtCaret(sanitized)
-      }
-    }
+    if (sanitized) insertHtmlAtCaret(sanitized)
   } else {
     insertBlockFromExtracted(first, currentIndex + 1, ctx)
   }
@@ -122,21 +112,18 @@ export function pasteHtml(html, ctx) {
 
   for (let i = 1; i < extracted.length; i++) {
     const item = /** @type {import('./pasteUtils.js').ExtractedBlock} */ (extracted[i])
-    insertBlockFromExtracted(item, insertIndex, ctx)
+    insertBlockFromExtracted(item, insertIndex, ctx, tail?.metadata.tunes)
     insertIndex++
   }
 
   if (extracted.length > 1 || first.tag !== 'p') {
     const lastIdx = insertIndex - 1
     const lastBlock = ctx.blocks.getBlockByIndex(lastIdx)
-    if (lastBlock) {
-      ctx.blocks.setCurrentIndex(lastIdx)
-      ctx.selection.setCaretToBlock(lastBlock.id, 'end')
-      lastBlock.focus()
-    }
+    const last = extracted[extracted.length - 1]
+    finishBlockPaste(lastBlock, tail, last.tag === 'p' || last.tag === 'div', ctx)
   }
 
-  if (firstIsTextLike && targetBlock) ctx.notifyChanged(targetBlock)
+  if (targetBlock) ctx.notifyChanged(targetBlock)
   else ctx.notifyChanged()
 }
 
@@ -144,8 +131,9 @@ export function pasteHtml(html, ctx) {
  * @param {import('./pasteUtils.js').ExtractedBlock} extracted
  * @param {number} index
  * @param {InsertContext} ctx
+ * @param {Record<string, unknown>} [tunes]
  */
-function insertBlockFromExtracted(extracted, index, ctx) {
+function insertBlockFromExtracted(extracted, index, ctx, tunes) {
   const plugin = ctx.router.findByTag(extracted.tag)
 
   if (plugin?.onPaste) {
@@ -161,7 +149,7 @@ function insertBlockFromExtracted(extracted, index, ctx) {
   }
 
   const sanitized = sanitizeHtml(extracted.element.innerHTML)
-  ctx.blocks.insert(ctx.defaultBlockType, { text: sanitized }, index)
+  ctx.blocks.insert(ctx.defaultBlockType, { text: sanitized }, index, undefined, undefined, tunes)
 }
 
 /**
