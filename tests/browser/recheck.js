@@ -1,3 +1,4 @@
+import { register as structuralLifetime } from './regressions/recheck-33-structural-context-lifetime.js'
 import { register as inlineBoundaries } from './regressions/recheck-32-inline-field-boundaries.js'
 import { register as sourceRemainders } from './regressions/recheck-31-source-remainders.js'
 import { register as nativeConversion } from './regressions/recheck-30-native-conversion.js'
@@ -63,4 +64,5 @@ crossMetadata()
 nativeConversion()
 sourceRemainders()
 inlineBoundaries()
+structuralLifetime()
 await run()

@@ -88,8 +88,10 @@ export class Block {
 
     const contentElement = plugin.render(data || {}, {
       mutate: (operation) => this.#runMutation(operation),
-      splitBlock: () => this.#splitBlock?.(),
-      exitEmptyBlock: () => this.#exitEmptyBlock?.() ?? false,
+      splitBlock: () => {
+        if (!this.#destroyed && !this.#readOnly) this.#splitBlock?.()
+      },
+      exitEmptyBlock: () => this.#destroyed || this.#readOnly ? false : this.#exitEmptyBlock?.() ?? false,
       readOnly: this.#readOnly,
     })
     if (!(contentElement instanceof HTMLElement)) {
@@ -371,6 +373,8 @@ export class Block {
   disposePlugin() {
     if (this.#destroyed) return
     this.#destroyed = true
+    this.#splitBlock = null
+    this.#exitEmptyBlock = null
     if (this.#plugin.destroy) {
       try {
         this.#plugin.destroy(this.#contentElement)
