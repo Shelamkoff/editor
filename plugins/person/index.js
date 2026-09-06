@@ -549,6 +549,8 @@ export class Person extends BlockPluginAbstract {
     const input = document.createElement('input')
     input.type = 'text'
     input.className = 'oe-person__link-url'
+    // Live serialized value, with native field editing and editor history.
+    input.setAttribute('data-oe-document-input', 'value')
     input.placeholder = 'https://...'
     input.value = link.url
     input.readOnly = s.context.readOnly

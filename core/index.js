@@ -163,6 +163,12 @@ function wireInputTracking(rootEl, blocks, events) {
     // Editor controls (URL/color/font inputs, filters, dialogs) also bubble
     // `input` through rootEl. They are not document mutations and must never
     // advance block history by falling back to the currently focused block.
+    const element = target instanceof Element ? target : target.parentElement
+    const field = element?.closest('input, textarea, select')
+    const ownership = field?.getAttribute('data-oe-document-input')
+    // Empty/value markers serialize every keystroke. History-only URL fields
+    // commit through context.mutate(); other form controls are private drafts.
+    if (field && ownership !== '' && ownership !== 'value') return
     const changed = blocks.getBlockByChildNode(target)
     if (!changed) return
     changed.markDirty()

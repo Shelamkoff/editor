@@ -79,7 +79,7 @@ export class KeyboardManager {
     if (isBlockTarget && this.#shortcuts.handle(e, 'editor')) return
     // URL-backed fields share committed document history but keep their own
     // editing keys; only code/raw surfaces delegate structural boundaries.
-    if (formField?.getAttribute('data-oe-document-input') === 'history') return
+    if (formField && ['history', 'value'].includes(formField.getAttribute('data-oe-document-input'))) return
 
     // Document-level shortcuts (currently undo/redo) remain available while a
     // non-text editor control owns focus. Native history in inputs, textareas,
