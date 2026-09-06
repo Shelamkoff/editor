@@ -1,4 +1,4 @@
-import { getTextLength } from './textOffset.js'
+import { captureMergeCaret } from './mergeCaret.js'
 import { EditorEvent } from './editorEvents.js'
 
 /** @typedef {import('./types').IBlockOperations} IBlockOperationsContract */
@@ -158,13 +158,13 @@ export class BlockOperations {
         this.#events.emit(EditorEvent.UNDO_BATCH_START)
         try {
           const currentData = current.save()
-          const mergeOffset = getTextLength(prev.contentElement)
+          const mergeCaret = captureMergeCaret(prev, 'start')
           prev.merge(currentData.data, currentData.inline)
           blocks.remove(currentIndex)
           blocks.setCurrentIndex(currentIndex - 1)
           prev.focus()
-          const actualLength = getTextLength(prev.contentElement)
-          this.#selection.setCaretToOffset(prev.id, Math.min(mergeOffset, actualLength))
+          const caret = mergeCaret()
+          this.#selection.setCaretToOffset(prev.id, caret.offset, caret.fieldIndex)
         } finally {
           this.#events.emit(EditorEvent.UNDO_BATCH_END)
         }
@@ -200,11 +200,11 @@ export class BlockOperations {
         this.#events.emit(EditorEvent.UNDO_BATCH_START)
         try {
           const nextData = next.save()
-          const mergeOffset = getTextLength(current.contentElement)
+          const mergeCaret = captureMergeCaret(current, 'end')
           current.merge(nextData.data, nextData.inline)
           blocks.remove(currentIndex + 1)
-          const actualLength = getTextLength(current.contentElement)
-          this.#selection.setCaretToOffset(current.id, Math.min(mergeOffset, actualLength))
+          const caret = mergeCaret()
+          this.#selection.setCaretToOffset(current.id, caret.offset, caret.fieldIndex)
         } finally {
           this.#events.emit(EditorEvent.UNDO_BATCH_END)
         }

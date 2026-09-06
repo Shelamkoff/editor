@@ -1,3 +1,4 @@
+import { register as mergeCaret } from './regressions/recheck-24-merge-caret.js'
 import { register as pendingTargets } from './regressions/recheck-23-paste-target.js'
 import { register as textReplacement } from './regressions/recheck-20-text-replacement.js'
 import { register as whitespaceHistory } from './regressions/recheck-22-whitespace-history.js'
@@ -45,4 +46,5 @@ renderVersion()
 whitespaceHistory()
 textReplacement()
 pendingTargets()
+mergeCaret()
 await run()
