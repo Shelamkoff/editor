@@ -1,3 +1,4 @@
+import { editableAtBoundary } from '../editableFields.js'
 import { blockClipboardHtml } from './clipboardHtml.js'
 import { captureFilePasteTarget } from './filePasteTarget.js'
 import { capturePasteSelection } from './pasteSelection.js'
@@ -466,6 +467,9 @@ export class Clipboard {
       : this.#blocks.getCurrentBlock()
 
     e.preventDefault()
+    // Never allow a raw Range mutation to escape this editor or remove the
+    // editing-host structure of a composite block.
+    this.#pasteRange()
 
     // File uploads are prepared outside the live document. This keeps a slow
     // plugin promise from holding the editor-wide undo batch open while the
@@ -505,6 +509,33 @@ export class Clipboard {
     }
   }
 
+  /** Read the current native/stored paste range again after any rollback.
+   * Cross-block replacement belongs to CrossBlockEditor; a raw DOM Range may
+   * only mutate one editable field. Refuse unsupported boundaries beforehand.
+   * @returns {Range | null}
+   */
+  #pasteRange() {
+    const native = window.getSelection()
+    const range = this.#crossBlockSelection.range
+      ?? (native?.rangeCount ? native.getRangeAt(0) : null)
+    if (!range) return null
+    if (!this.#rootEl.contains(range.startContainer) || !this.#rootEl.contains(range.endContainer)) {
+      throw new RangeError('Paste selection must stay inside its editor')
+    }
+    if (!range.collapsed && !this.#blocks.hasSelectedBlocks()) {
+      const first = this.#blocks.getBlockByChildNode(range.startContainer)
+      const last = this.#blocks.getBlockByChildNode(range.endContainer)
+      if (!first || !last) throw new RangeError('Paste selection must belong to content blocks')
+      if (first === last) {
+        const field = editableAtBoundary(first.contentElement, range.startContainer, range.startOffset)?.element
+        if (!field?.contains(range.startContainer) || !field.contains(range.endContainer)) {
+          throw new RangeError('Paste within a block must stay in one editable field')
+        }
+      }
+    }
+    return range
+  }
+
   #applyPaste(e, pasteStartBlock, customData) {
     this.#events.emit(EditorEvent.UNDO_BATCH_START)
 
@@ -512,10 +543,14 @@ export class Clipboard {
       // A mouse cross-selection also paints whole blocks as selected for UI
       // purposes, but paste must replace only its text range. Route that case
       // through the range editor before considering whole-block selection.
+      const range = this.#pasteRange()
+      const first = range ? this.#blocks.getBlockByChildNode(range.startContainer) : null
+      const last = range ? this.#blocks.getBlockByChildNode(range.endContainer) : null
       const crossRange = this.#crossBlockSelection.range
+        ?? (!this.#blocks.hasSelectedBlocks() && first && last && first !== last ? range : null)
       let result = null
       if (crossRange) {
-        this.#crossEditor.deleteContent(crossRange, (...blocks) => this.#notifyChanged(...blocks))
+        if (!this.#crossEditor.deleteContent(crossRange, (...blocks) => this.#notifyChanged(...blocks))) return
       } else {
         result = this.#blocks.removeSelected(this.#defaultBlockType)
       }
