@@ -167,7 +167,7 @@ export class Heading extends BlockPluginAbstract {
    * @returns {{ text: string, level: number, align?: string }}
    */
   save(element) {
-    const data = { text: element.innerHTML.trim(), level: this.getLevel(element) }
+    const data = { text: element.innerHTML, level: this.getLevel(element) }
     if (element.style.textAlign) data.align = element.style.textAlign
     return data
   }
@@ -200,7 +200,7 @@ export class Heading extends BlockPluginAbstract {
    * @returns {{ text: string, level: number, align?: string }}
    */
   exportData(element) {
-    const data = { text: element.innerHTML.trim(), level: this.getLevel(element) }
+    const data = { text: element.innerHTML, level: this.getLevel(element) }
     if (element.style.textAlign) data.align = element.style.textAlign
     return data
   }

@@ -1,3 +1,4 @@
+import { register as whitespaceHistory } from './regressions/recheck-22-whitespace-history.js'
 import { register as renderVersion } from './regressions/recheck-21-render-version.js'
 import { register as compositeMerge } from './regressions/recheck-19-composite-merge.js'
 import { register as pasteTail } from './regressions/recheck-07-paste-tail.js'
@@ -39,4 +40,5 @@ crossEnter()
 pasteTail()
 compositeMerge()
 renderVersion()
+whitespaceHistory()
 await run()

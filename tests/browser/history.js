@@ -567,7 +567,7 @@ async function run() {
   await delay()
   assert(stable(await snapshot(demoHistory.editor)) === stable(beforeDemoBold), 'default-toolbar undo removed a block instead of Bold')
   assert(demoHistory.editor.blocks.getBlockById(demoUpper.id), 'default-toolbar undo removed the upper inserted block')
-  assert(demoHistory.editor.blocks.getBlockById(demoLower.id), 'default-toolbar undo removed the lower inserted block')
+  assert(demoHistory.editor.blocks.getBlockById(demoLower.id), 'default-toolbar undo removed the formatted block')
   shortcut(demoHistory.editor, { shift: true, target: demoHistory.editor.blocks.getBlockById(demoLower.id).contentElement })
   await delay()
   assert(stable(await snapshot(demoHistory.editor)) === stable(afterDemoBold), 'default-toolbar Bold redo failed')
@@ -990,7 +990,7 @@ async function run() {
 
     const converted = await snapshot(slashBlockInsert.editor)
     assert(converted.map(block => block.type).join(',') === 'paragraph,columns', `slash command did not insert the block below its source: ${stable(converted)}`)
-    assert(converted[0]?.data.text === 'Prefix', `slash command removed existing text: ${stable(converted)}`)
+    assert(converted[0]?.data.text === 'Prefix ', `slash command changed the existing prefix: ${stable(converted)}`)
   })
   slashBlockInsert.editor.destroy()
 

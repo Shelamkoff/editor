@@ -279,7 +279,7 @@ async function run() {
   await delay()
   assert(splitHarness.editor.blocks.getBlockCount() === 4, 'Enter did not insert one block')
   const splitTexts = await blockTexts(splitHarness.editor)
-  assert(splitTexts[0] === 'Alpha' && splitTexts[1] === 'one', 'Enter split saved stale or incorrect content')
+  assert(splitTexts[0] === 'Alpha ' && splitTexts[1] === 'one', 'Enter split saved stale or incorrect content')
   shortcut(splitHarness.editor)
   await delay()
   assert(JSON.stringify(await blockTexts(splitHarness.editor)) === JSON.stringify(['Alpha one', 'Bravo two', 'Charlie three']), 'Enter split undo failed')

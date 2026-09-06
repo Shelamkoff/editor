@@ -101,7 +101,7 @@ export class Paragraph extends BlockPluginAbstract {
    * @returns {{ text: string, align?: string }}
    */
   save(element) {
-    const data = { text: element.innerHTML.trim() }
+    const data = { text: element.innerHTML }
     if (element.style.textAlign) data.align = element.style.textAlign
     return data
   }
@@ -140,7 +140,7 @@ export class Paragraph extends BlockPluginAbstract {
    */
   exportData(element) {
     /** @type {{ text: string, align?: string }} */
-    const data = { text: element.innerHTML.trim() }
+    const data = { text: element.innerHTML }
     if (element.style.textAlign) data.align = element.style.textAlign
     return data
   }
