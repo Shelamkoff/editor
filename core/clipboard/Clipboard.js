@@ -220,6 +220,7 @@ export class Clipboard {
     rootEl.addEventListener('cut', this.#onCut, true)
     rootEl.addEventListener('paste', this.#onPaste, true)
     rootEl.addEventListener('keydown', this.#onKeyDown, true)
+    rootEl.addEventListener('beforeinput', this.#onBeforeInput, true)
   }
 
   destroy() {
@@ -228,6 +229,7 @@ export class Clipboard {
     this.#rootEl.removeEventListener('cut', this.#onCut, true)
     this.#rootEl.removeEventListener('paste', this.#onPaste, true)
     this.#rootEl.removeEventListener('keydown', this.#onKeyDown, true)
+    this.#rootEl.removeEventListener('beforeinput', this.#onBeforeInput, true)
     this.#unsubscribeReplacement()
     this.#cancelPendingPastes()
   }
@@ -240,6 +242,43 @@ export class Clipboard {
       pending.cancelled = true
       pending.cleanup()
     }
+  }
+
+  /** Replace the full editor-owned range before native input is clipped to
+   * one editing host. Composition retains its native, noncancelable lifecycle.
+   * @param {InputEvent} event
+   */
+  #onBeforeInput = (event) => {
+    if (event.defaultPrevented || !event.cancelable || event.isComposing
+        || typeof event.data !== 'string' || this.#isUIActive?.()) return
+    if (event.inputType !== 'insertText' && event.inputType !== 'insertReplacementText') return
+    const target = event.target
+    if (!(target instanceof HTMLElement) || !target.isContentEditable
+        || !target.closest(BLOCK_SELECTOR) || target.closest('input, textarea, select')) return
+    const selection = window.getSelection()
+    const range = this.#crossBlockSelection.range
+      ?? (selection?.rangeCount ? selection.getRangeAt(0) : null)
+    if (!range || range.collapsed || !this.#rootEl.contains(range.startContainer)
+        || !this.#rootEl.contains(range.endContainer)) return
+    const first = this.#blocks.getBlockByChildNode(range.startContainer)
+    const last = this.#blocks.getBlockByChildNode(range.endContainer)
+    if (!first || !last || first === last) return
+
+    // Deletion and insertion share a checkpoint. A failed save must not leave
+    // only the deletion applied, and input.data is text, never trusted markup.
+    event.preventDefault()
+    event.stopPropagation()
+    this.#commands.execute({ name: 'selection.replaceText', apply: () => {
+      if (!this.#crossEditor.deleteContent(range, (...blocks) => this.#notifyChanged(...blocks))) return
+      const caret = selection.getRangeAt(0)
+      const text = document.createTextNode(event.data)
+      caret.insertNode(text)
+      caret.setStartAfter(text)
+      caret.collapse(true)
+      selection.removeAllRanges()
+      selection.addRange(caret)
+      this.#notifyChanged()
+    } })
   }
 
   // ── Keyboard shortcuts (cross-block range) ──────────────────────────────────

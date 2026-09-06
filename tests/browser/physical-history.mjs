@@ -53,6 +53,7 @@ class CdpClient {
   #socket
   #nextId = 0
   #pending = new Map()
+  #listeners = new Map()
 
   static async connect(url) {
     const socket = new WebSocket(url)
@@ -67,7 +68,10 @@ class CdpClient {
     this.#socket = socket
     socket.addEventListener('message', event => {
       const message = JSON.parse(String(event.data))
-      if (!message.id) return
+      if (!message.id) {
+        for (const listener of this.#listeners.get(message.method) ?? []) listener(message.params)
+        return
+      }
       const pending = this.#pending.get(message.id)
       if (!pending) return
       this.#pending.delete(message.id)
@@ -89,6 +93,12 @@ class CdpClient {
       })
       this.#socket.send(JSON.stringify({ id, method, params }))
     })
+  }
+
+  on(method, listener) {
+    const listeners = this.#listeners.get(method) ?? []
+    listeners.push(listener)
+    this.#listeners.set(method, listeners)
   }
 
   close() {
@@ -345,6 +355,30 @@ try {
   await client.send('Page.navigate', { url: historyUrl })
   const historyMatrix = await waitForHistoryMatrix(client)
 
+  // Real browser insertion must cover beforeinput paths without a keydown.
+  // The page builds its range through MouseSelectionManager; CDP types into it.
+  await client.send('Runtime.addBinding', { name: '__rectorTestInput' })
+  client.on('Runtime.bindingCalled', ({ name, payload }) => {
+    if (name !== '__rectorTestInput') return
+    const request = JSON.parse(payload)
+    const respond = (ok, result) => evaluate(client,
+      `window.__resolveTestInput(${JSON.stringify(request.id)}, ${ok}, ${JSON.stringify(result)})`)
+    const allowed = ['Input.dispatchKeyEvent', 'Input.insertText']
+    const operation = allowed.includes(request.method)
+      ? client.send(request.method, request.params)
+      : Promise.reject(new Error('Unsupported fixture input method'))
+    void operation.then(result => respond(true, result), error => respond(false, String(error)))
+      .catch(error => console.error('Native input fixture failed:', error))
+  })
+  await client.send('Page.navigate', { url: new URL('/tests/browser/native-text-input.html', pageUrl).href })
+  // Wait for navigation rather than accepting the previous page's pass marker.
+  const nativeDeadline = Date.now() + 20_000
+  while (!await evaluate(client, 'typeof window.__resolveTestInput === "function"')) {
+    if (Date.now() > nativeDeadline) throw new Error('Timed out loading native input fixture')
+    await delay(50)
+  }
+  const nativeTextInput = JSON.parse(await waitForHistoryMatrix(client))
+
   console.log(JSON.stringify({
     enterScenario: { beforeBold, afterBold, afterUndo, afterRedo, afterRemoveBold, afterUndoRemoval },
     toolboxScenario: {
@@ -358,6 +392,7 @@ try {
       inlineAfterDeleteUndo,
     },
     historyMatrix: JSON.parse(historyMatrix),
+    nativeTextInput,
   }))
 } finally {
   client?.close()

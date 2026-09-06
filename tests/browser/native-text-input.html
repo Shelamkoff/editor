@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en"><head><meta charset="UTF-8"><title>Native cross-block text input</title>
+<style>body { margin: 0; padding: 20px; font-family: sans-serif; } section { width: 640px; }</style>
+</head><body data-status="running"><pre id="result">running</pre>
+<script type="module">
+  // The physical runner exposes only the CDP input methods used by this fixture.
+  let sequence = 0
+  const pending = new Map()
+  window.__resolveTestInput = (id, ok, result) => {
+    const request = pending.get(id)
+    if (!request) return
+    pending.delete(id)
+    if (ok) request.resolve(result)
+    else request.reject(new Error(result))
+  }
+  window.__testInput = (method, params) => new Promise((resolve, reject) => {
+    const id = ++sequence
+    pending.set(id, { resolve, reject })
+    window.__rectorTestInput(JSON.stringify({ id, method, params }))
+  })
+  await import('./native-text-input.js')
+</script></body></html>
