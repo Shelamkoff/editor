@@ -1,3 +1,4 @@
+import { register as crossEnter } from './regressions/recheck-10-cross-enter.js'
 import { register as recheck_04_cross_fields } from './regressions/recheck-04-cross-fields.js'
 import { register as recheck_05_inline_transfer } from './regressions/recheck-05-inline-transfer.js'
 import { register as recheck_09_field_caret } from './regressions/recheck-09-field-caret.js'
@@ -31,4 +32,5 @@ recheck_08_html_wrappers()
 recheck_09_field_caret()
 recheck_05_inline_transfer()
 recheck_04_cross_fields()
+crossEnter()
 await run()

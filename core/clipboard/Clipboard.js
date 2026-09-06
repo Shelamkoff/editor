@@ -253,8 +253,35 @@ export class Clipboard {
     const target = /** @type {HTMLElement} */ (e.target)
     if (target !== this.#rootEl && !target.closest?.(BLOCK_SELECTOR)) return
 
-    const crossRange = this.#crossBlockSelection.range
+    // A retained mouse range must not intercept editing in a plugin form.
+    if (target.closest?.('input, textarea, select')) return
+    let crossRange = this.#crossBlockSelection.range
+    const insertParagraph = e.key === 'Enter' && !e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey
+    if (insertParagraph && !crossRange) {
+      const native = window.getSelection()
+      const range = native?.rangeCount ? native.getRangeAt(0) : null
+      if (range && !range.collapsed
+          && this.#rootEl.contains(range.startContainer) && this.#rootEl.contains(range.endContainer)) {
+        const first = this.#blocks.getBlockByChildNode(range.startContainer)
+        const last = this.#blocks.getBlockByChildNode(range.endContainer)
+        if (first && last && first !== last) crossRange = range.cloneRange()
+      }
+    }
     if (!crossRange) return
+
+    if (insertParagraph) {
+      e.preventDefault()
+      e.stopPropagation()
+      this.#commands.execute({
+        name: 'selection.replaceWithBreak',
+        apply: () => {
+          if (this.#crossEditor.deleteContent(crossRange, (...blocks) => this.#notifyChanged(...blocks))) {
+            this.#blockOps.splitBlock()
+          }
+        },
+      })
+      return
+    }
 
     if (e.key === 'Backspace' || e.key === 'Delete') {
       e.preventDefault()

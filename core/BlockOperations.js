@@ -92,6 +92,7 @@ export class BlockOperations {
       try {
         const metadata = current.save()
         const fragmentHtml = this.#selection.extractFragmentAfterCaret()
+        if (fragmentHtml === null) return
         current.markDirty()
         this.#events.emit(EditorEvent.BLOCK_CHANGED, { blockId: current.id })
 

@@ -150,16 +150,20 @@ export class SelectionManager {
     const block = this.#blocks.getBlockByChildNode(range.startContainer)
     if (!block) return null
 
-    // Enter replaces the current text selection before splitting its tail.
-    // Cross-block selections are handled by the clipboard range editor.
+    // Split only the field containing the caret, not a plugin's entire
+    // wrapper (for example the quote text plus its unselected caption).
+    const field = editableAtBoundary(block.contentElement, range.startContainer, range.startOffset)?.element
+    if (!field || field.contentEditable !== 'true'
+        || !field.contains(range.startContainer) || !field.contains(range.endContainer)) return null
+
+    // Cross-block selections must first be replaced by the range editor.
     if (!range.collapsed) {
-      if (!block.contentElement.contains(range.endContainer)) return null
       range.deleteContents()
       range.collapse(true)
     }
 
     const endRange = document.createRange()
-    endRange.selectNodeContents(block.contentElement)
+    endRange.selectNodeContents(field)
     endRange.setStart(range.startContainer, range.startOffset)
 
     const fragment = endRange.extractContents()
