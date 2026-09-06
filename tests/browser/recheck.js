@@ -1,3 +1,4 @@
+import { register as rendererStyles } from './regressions/recheck-36-renderer-style-ownership.js'
 import { register as edgeFieldFocus } from './regressions/recheck-35-edge-field-focus.js'
 import { register as dragLifetime } from './regressions/recheck-34-drag-lifetime.js'
 import { register as structuralLifetime } from './regressions/recheck-33-structural-context-lifetime.js'
@@ -69,4 +70,5 @@ inlineBoundaries()
 structuralLifetime()
 dragLifetime()
 edgeFieldFocus()
+rendererStyles()
 await run()

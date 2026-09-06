@@ -36,6 +36,12 @@ export class EditorRenderer {
   /** @type {Map<string, number>} */
   #rendererRevisions = new Map()
 
+  /** Exact renderer owners of created results, including staged results.
+   * Count by renderer rather than scanning every live block on each render.
+   * @type {Map<import('./types').BlockRenderer, number>}
+   */
+  #liveRenderers = new Map()
+
   /** Built-in types use the same neutral validators as their editor plugins. */
   #defaultRendererTypes = new Set()
 
@@ -204,6 +210,7 @@ export class EditorRenderer {
     }
 
     element.dataset.blockType = block.type
+    this.#liveRenderers.set(renderer, (this.#liveRenderers.get(renderer) ?? 0) + 1)
     return { element, type: block.type, renderer }
   }
 
@@ -248,6 +255,12 @@ export class EditorRenderer {
       entry.renderer?.destroy?.(entry.element)
     } catch (err) {
       console.warn('[EditorRenderer] Failed to destroy renderer "' + entry.type + '":', err)
+    } finally {
+      if (entry.renderer) {
+        const count = this.#liveRenderers.get(entry.renderer) ?? 0
+        if (count > 1) this.#liveRenderers.set(entry.renderer, count - 1)
+        else this.#liveRenderers.delete(entry.renderer)
+      }
     }
   }
 
@@ -360,6 +373,7 @@ export class EditorRenderer {
       container.replaceChildren(wrapper)
     }
     this.#mountedContainers.set(container, { wrapper, blocks: next })
+    this.#ensureStyles()
   }
 
   /**
@@ -415,14 +429,14 @@ export class EditorRenderer {
   }
 
   /**
-   * Collect all CSS URLs from base styles and registered renderers
+   * Collect CSS from registered renderers and every still-owned result
    * @returns {string[]}
    */
   getStyleUrls() {
     /** @type {Set<string>} */
     const urls = new Set([baseCssUrl])
 
-    for (const renderer of this.#renderers.values()) {
+    for (const renderer of new Set([...this.#renderers.values(), ...this.#liveRenderers.keys()])) {
       if (renderer.styles) {
         for (const url of renderer.styles) urls.add(url)
       }
@@ -448,7 +462,12 @@ export class EditorRenderer {
       this.#mountedContainers.size > 0
       || this.#detachedDocuments.size > 0
       || this.#detachedBlocks.size > 0
-    )) return
+    )) {
+      // Other results are still live, but a retired renderer may now have no
+      // owners. Reconcile only after the containing operation has settled.
+      this.#ensureStyles()
+      return
+    }
     this.#styleOwner?.destroy()
     this.#styleOwner = null
     this.#styleKey = ''
