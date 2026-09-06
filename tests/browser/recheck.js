@@ -1,3 +1,4 @@
+import { register as emptyFieldBoundaries } from './regressions/recheck-27-empty-field-boundaries.js'
 import { register as formInput } from './regressions/recheck-26-form-input.js'
 import { register as opaqueClipboard } from './regressions/recheck-25-opaque-clipboard.js'
 import { register as mergeCaret } from './regressions/recheck-24-merge-caret.js'
@@ -51,4 +52,5 @@ pendingTargets()
 mergeCaret()
 opaqueClipboard()
 formInput()
+emptyFieldBoundaries()
 await run()

@@ -108,33 +108,26 @@ export class SelectionManager {
    * Check if the caret is at the very start of the current block's content.
    * @returns {boolean}
    */
-  isAtStart() {
-    const sel = window.getSelection()
-    if (!sel || sel.rangeCount === 0 || !sel.isCollapsed) return false
+  isAtStart() { return this.#isAtBlockEdge(false) }
 
-    const range = sel.getRangeAt(0)
-    const block = this.#blocks.getBlockByChildNode(range.startContainer)
-    if (!block) return false
+  /** Check the last editable field, not a wrapper-wide character offset. */
+  isAtEnd() { return this.#isAtBlockEdge(true) }
 
-    return getTextOffset(block.contentElement, range.startContainer, range.startOffset) === 0
-  }
-
-  /**
-   * Check if the caret is at the very end of the current block's content.
-   * @returns {boolean}
+  /** Empty fields still own distinct positions. A zero-length sibling must
+   * not turn an internal field boundary into the start/end of the whole block.
+   * @param {boolean} atEnd
    */
-  isAtEnd() {
-    const sel = window.getSelection()
-    if (!sel || sel.rangeCount === 0 || !sel.isCollapsed) return false
-
-    const range = sel.getRangeAt(0)
+  #isAtBlockEdge(atEnd) {
+    const range = this.#getRange()
+    if (!range || !range.collapsed) return false
     const block = this.#blocks.getBlockByChildNode(range.startContainer)
     if (!block) return false
-
-    const totalLength = getTextLength(block.contentElement)
-    const currentOffset = getTextOffset(block.contentElement, range.startContainer, range.startOffset)
-
-    return currentOffset >= totalLength
+    const fields = editableFields(block.contentElement).filter(field => field.contentEditable === 'true')
+    const edge = atEnd ? fields.at(-1) : fields[0]
+    const field = editableAtBoundary(block.contentElement, range.startContainer, range.startOffset)?.element
+    if (!edge || field !== edge || !edge.contains(range.startContainer)) return false
+    const offset = getTextOffset(edge, range.startContainer, range.startOffset)
+    return atEnd ? offset >= getTextLength(edge) : offset === 0
   }
 
   /**
