@@ -1,4 +1,5 @@
 import { blockClipboardHtml } from './clipboardHtml.js'
+import { captureFilePasteTarget } from './filePasteTarget.js'
 import { capturePasteSelection } from './pasteSelection.js'
 import { BLOCK_SELECTOR } from '../constants.js'
 import { EditorEvent } from '../editorEvents.js'
@@ -628,6 +629,10 @@ export class Clipboard {
     const anchor = target.anchorBlockId
       ? this.#blocks.getBlockById(target.anchorBlockId)
       : this.#blocks.getCurrentBlock()
+    const targetIsCurrent = captureFilePasteTarget(
+      this.#blocks, this.#crossBlockSelection, target,
+      files.length === 1 && anchor?.type === this.#defaultBlockType,
+    )
     if (anchor?.element.parentNode) anchor.element.after(pendingHost)
 
     const prepared = (await Promise.all(
@@ -636,7 +641,7 @@ export class Clipboard {
     pendingHost.remove()
     this.#pendingHosts.delete(pendingHost)
 
-    if (this.#destroyed || generation !== this.#documentGeneration || prepared.length === 0) return
+    if (this.#destroyed || generation !== this.#documentGeneration || prepared.length === 0 || !targetIsCurrent()) return
 
     return this.#commands.execute({ name: 'clipboard.files', apply: () => {
       this.#events.emit(EditorEvent.UNDO_BATCH_START)

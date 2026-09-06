@@ -1,3 +1,4 @@
+import { register as pendingTargets } from './regressions/recheck-23-paste-target.js'
 import { register as textReplacement } from './regressions/recheck-20-text-replacement.js'
 import { register as whitespaceHistory } from './regressions/recheck-22-whitespace-history.js'
 import { register as renderVersion } from './regressions/recheck-21-render-version.js'
@@ -43,4 +44,5 @@ compositeMerge()
 renderVersion()
 whitespaceHistory()
 textReplacement()
+pendingTargets()
 await run()
