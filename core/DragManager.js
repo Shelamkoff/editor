@@ -38,6 +38,9 @@ export class DragManager {
   /** @type {number} */
   #threshold
 
+  /** @type {() => void} */
+  #unsubscribeReplacement
+
   /**
    * @param {HTMLElement} rootEl
    * @param {import('./types').IBlockManager} blocks
@@ -60,23 +63,33 @@ export class DragManager {
     // Capture-phase click: stop propagation to prevent BlockSettingsMenu
     // from closing the menu that was just opened by the mouseup callback
     this.#dragHandle.addEventListener('click', this.#onClick, true)
+    this.#unsubscribeReplacement = events.on(EditorEvent.DOCUMENT_REPLACED, () => this.#cancelDrag())
   }
 
   /**
    * Clean up.
    */
   destroy() {
-    if (this.#isDragging && this.#draggingBlock) {
-      this.#draggingBlock.element.classList.remove('oe-block--dragging')
-      this.#draggingBlock = null
-      this.#isDragging = false
-      this.#dragHandle.style.cursor = ''
-      document.body.style.cursor = ''
-    }
+    this.#cancelDrag()
+    this.#unsubscribeReplacement()
 
     this.#dragHandle.removeEventListener('mousedown', this.#onMouseDown)
     this.#dragHandle.removeEventListener('click', this.#onClick, true)
     this.#dropIndicator.remove()
+    document.removeEventListener('mousemove', this.#onMouseMove)
+    document.removeEventListener('mouseup', this.#onMouseUp)
+  }
+
+  /** Cancel both pending presses and active drags without applying a move. */
+  #cancelDrag() {
+    this.#draggingBlock?.element.classList.remove('oe-block--dragging')
+    if (this.#isDragging) document.body.style.cursor = ''
+    this.#draggingBlock = null
+    this.#isDragging = false
+    this.#mouseDownHandled = false
+    this.#dropIndex = -1
+    this.#dropIndicator.style.display = 'none'
+    this.#dragHandle.style.cursor = ''
     document.removeEventListener('mousemove', this.#onMouseMove)
     document.removeEventListener('mouseup', this.#onMouseUp)
   }
@@ -103,6 +116,9 @@ export class DragManager {
     e.preventDefault()
     e.stopPropagation()
 
+    this.#cancelDrag()
+    this.#draggingBlock = this.#blocks.getCurrentBlock() ?? null
+    if (!this.#draggingBlock) return
     this.#mouseDownHandled = true
     this.#startX = e.clientX
     this.#startY = e.clientY
@@ -116,6 +132,10 @@ export class DragManager {
    * @param {MouseEvent} e
    */
   #onMouseMove = (e) => {
+    if (!this.#draggingBlock || this.#blocks.getBlockById(this.#draggingBlock.id) !== this.#draggingBlock) {
+      this.#cancelDrag()
+      return
+    }
     if (!this.#isDragging) {
       const dx = Math.abs(e.clientX - this.#startX)
       const dy = Math.abs(e.clientY - this.#startY)
@@ -137,19 +157,18 @@ export class DragManager {
     document.removeEventListener('mousemove', this.#onMouseMove)
     document.removeEventListener('mouseup', this.#onMouseUp)
 
-    if (this.#isDragging) {
-      this.#endDrag()
-    } else {
-      // No drag: the mousedown was just a click on the handle.
-      // Announce via event bus so Toolbar (or any listener) can open its menu.
-      this.#events.emit(EditorEvent.DRAG_HANDLE_CLICKED)
+    try {
+      const block = this.#draggingBlock
+      if (!block || this.#blocks.getBlockById(block.id) !== block) return
+      if (this.#isDragging) this.#endDrag()
+      else this.#events.emit(EditorEvent.DRAG_HANDLE_CLICKED)
+    } finally {
+      this.#cancelDrag()
     }
-
-    this.#isDragging = false
   }
 
   #startDrag() {
-    const block = this.#blocks.getCurrentBlock()
+    const block = this.#draggingBlock
     if (!block) return
 
     this.#draggingBlock = block
