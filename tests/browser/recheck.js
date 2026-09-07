@@ -1,3 +1,4 @@
+import { register as fontSizeCascade } from './regressions/recheck-48-font-size-cascade.js'
 import { register as behaviorContracts } from './regressions/recheck-47-behavior-contracts.js'
 import { register as harnessEquality } from './regressions/recheck-46-harness-equality.js'
 import { register as caseExpansion } from './regressions/recheck-45-case-expansion.js'
@@ -93,4 +94,5 @@ backgroundRange()
 caseExpansion()
 harnessEquality()
 behaviorContracts()
+fontSizeCascade()
 await run()

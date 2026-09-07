@@ -75,24 +75,15 @@ function getCurrentFontSize(rangeHint) {
 
 /**
  * Safely wrap the selected range in a <span> with font-size.
- * Uses per-text-node wrapping when surroundContents fails (cross-element selection).
+ * Wraps editable text nodes so enclosed explicit sizes are actually overridden.
  * If a text node's parent is already a font-size span, updates it instead of nesting.
  * @param {Range} range
  * @param {string} fontSize — e.g. "24px"
  * @returns {{ firstSpan: HTMLElement, lastSpan: HTMLElement } | null}
  */
 function wrapRangeWithFontSize(range, fontSize) {
-  const span = document.createElement('span')
-  span.style.fontSize = fontSize
-
-  // Fast path: selection doesn't cross element boundaries
-  try {
-    range.surroundContents(span)
-    return { firstSpan: span, lastSpan: span }
-  } catch {
-    // surroundContents failed — wrap individual text nodes
-  }
-
+  // Format editable text at its own boundary. An outer surroundContents span
+  // cannot override sizes on enclosed descendants and also styles widgets.
   const walkRoot = getWalkRoot(range)
   if (!walkRoot) return null
 
