@@ -1,3 +1,5 @@
+import { hasInlineContent, removeEmptyInlineTags } from './inlineContent.js'
+export { removeEmptyInlineTags } from './inlineContent.js'
 import { editableFields, editableAtBoundary } from '../core/editableFields.js'
 import { BLOCK_CLASS } from '../core/constants.js'
 import { CrossBlockSelection } from '../core/CrossBlockSelection.js'
@@ -35,9 +37,6 @@ export const ICON_CHECK = createSvgIcon('<path d="M5 12l5 5l10 -10"/>')
 /** SVG markup for the clear-formatting control. */
 export const ICON_CLEAR = createSvgIcon('<path d="M17 15l4 4m0 -4l-4 4"/><path d="M7 6v-1h11v1"/><path d="M7 19l4 0"/><path d="M13 5l-4 14"/>')
 
-/** Inline tag selector for empty-tag cleanup. */
-const INLINE_TAGS_SELECTOR = 'b, i, s, em, strong, u, mark, code, span, a, sup, sub'
-
 /**
  * Like `element.closest(selector)`, but stops at the contenteditable boundary.
  * Prevents matching elements outside the editor (e.g. a `<span>` in the page layout).
@@ -52,21 +51,6 @@ function closestInEditable(el, selector) {
     el = el.parentElement
   }
   return null
-}
-
-/**
- * Remove empty inline wrapper tags and normalize text nodes.
- * Called after any DOM mutation that unwraps/removes inline formatting.
- * @param {Node | null} parent
- * @returns {void}
- */
-export function removeEmptyInlineTags(parent) {
-  if (!parent || parent.nodeType !== Node.ELEMENT_NODE) return
-  const empties = /** @type {HTMLElement} */ (parent).querySelectorAll(INLINE_TAGS_SELECTOR)
-  for (const el of empties) {
-    if (!el.textContent && !el.querySelector('img, br')) el.remove()
-  }
-  parent.normalize()
 }
 
 /**
@@ -275,7 +259,7 @@ export function toggleTag(tagName, range, matches = () => true) {
       // 4. Re-wrap after content with inner wrappers + ancestor tag
       //    extractContents already clones partially-covered inner wrappers,
       //    so wrapIfNeeded prevents duplication.
-      if (afterFrag.textContent) {
+      if (hasInlineContent(afterFrag)) {
         /** @type {Node} */
         let wrappedAfter = afterFrag
         for (let i = 0; i < innerWrappers.length; i++) {
@@ -289,7 +273,7 @@ export function toggleTag(tagName, range, matches = () => true) {
       }
 
       // 5. Remove ancestor if empty
-      if (!ancestor.textContent) ancestor.remove()
+      if (!hasInlineContent(ancestor)) ancestor.remove()
 
       // 6. Clean up empty inline tags left by extraction
       removeEmptyInlineTags(parentNode)
@@ -383,7 +367,7 @@ export function toggleTag(tagName, range, matches = () => true) {
           }
           parentNode?.insertBefore(wrappedSel, ref)
 
-          if (afterFrag.textContent) {
+          if (hasInlineContent(afterFrag)) {
             /** @type {Node} */
             let wrappedAfter = afterFrag
             for (let i = 0; i < innerWrappers.length; i++) {
@@ -396,7 +380,7 @@ export function toggleTag(tagName, range, matches = () => true) {
             parentNode?.insertBefore(afterTag, ref)
           }
 
-          if (!el.textContent) el.remove()
+          if (!hasInlineContent(el)) el.remove()
         }
       }
 

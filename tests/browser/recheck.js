@@ -1,3 +1,4 @@
+import { register as formatLinebreaks } from './regressions/recheck-37-format-linebreaks.js'
 import { register as rendererStyles } from './regressions/recheck-36-renderer-style-ownership.js'
 import { register as edgeFieldFocus } from './regressions/recheck-35-edge-field-focus.js'
 import { register as dragLifetime } from './regressions/recheck-34-drag-lifetime.js'
@@ -71,4 +72,5 @@ structuralLifetime()
 dragLifetime()
 edgeFieldFocus()
 rendererStyles()
+formatLinebreaks()
 await run()
