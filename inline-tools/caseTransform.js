@@ -5,7 +5,7 @@ import {
   restoreSelectionOffsets,
   clearCrossBlockRange,
 } from './utils.js'
-import { editableTextWalker } from '../core/textOffset.js'
+import { editableTextWalker, getTextOffset } from '../core/textOffset.js'
 
 // Tabler: letter-case-toggle
 const ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 15.5v-7a2.5 2.5 0 0 1 5 0v7"/><path d="M6.5 12h5"/><path d="M15 15.5v-3.5a2 2 0 1 1 4 0v3.5"/></svg>'
@@ -21,6 +21,49 @@ function isUpperCase(text) {
     .filter(char => char.toLocaleLowerCase() !== char.toLocaleUpperCase())
     .join('')
   return letters.length > 0 && letters === letters.toUpperCase()
+}
+
+/** @typedef {{ node: Text, start: number, end: number }} CaseTarget */
+
+/** Convert continuous logical text, not each formatting node independently.
+ * Field edges, BRs and atomic widgets delimit runs. Node boundaries do not.
+ * @param {CaseTarget[]} targets
+ * @param {boolean} upper
+ * @returns {string[]}
+ */
+function caseReplacements(targets, upper) {
+  const convert = (/** @type {string} */ text) => upper ? text.toUpperCase() : text.toLowerCase()
+  /** @type {string[]} */
+  const replacements = []
+  /** @type {Array<{ index: number, text: string }>} */
+  let run = []
+  /** @type {Element | null} */
+  let previousField = null
+  let previousEnd = -1
+  const flush = () => {
+    const converted = convert(run.map(part => part.text).join(''))
+    let offset = 0
+    for (const part of run) {
+      // Default (not locale-tailored) Unicode contextual casing changes the
+      // sigma value, not its width. Unconditional expansions retain their
+      // per-fragment widths, letting us distribute the contextual result
+      // without discarding existing formatting nodes or selection bookmarks.
+      const width = convert(part.text).length
+      replacements[part.index] = converted.slice(offset, offset + width)
+      offset += width
+    }
+    run = []
+  }
+  targets.forEach(({ node, start, end }, index) => {
+    const field = node.parentElement?.closest('[contenteditable="true"]') ?? null
+    const from = field ? getTextOffset(field, node, start) : 0
+    if (!field || field !== previousField || from !== previousEnd) flush()
+    run.push({ index, text: node.data.slice(start, end) })
+    previousField = field
+    previousEnd = field ? getTextOffset(field, node, end) : -1
+  })
+  flush()
+  return replacements
 }
 
 /**
@@ -79,12 +122,13 @@ export function createCaseTransformTool(label, cbs = null) {
       if (!text) return
       const toUpper = !isUpperCase(text)
 
-      // Transform only the clipped portions
-      for (const { node, start, end } of targets) {
+      const replacements = caseReplacements(targets, toUpper)
+      // Transform only the clipped portions, preserving each live text node.
+      for (const [index, { node, start, end }] of targets.entries()) {
         const before = node.data.slice(0, start)
         const middle = node.data.slice(start, end)
         const after = node.data.slice(end)
-        const replacement = toUpper ? middle.toUpperCase() : middle.toLowerCase()
+        const replacement = replacements[index]
         // Cross-block offsets are local to their fields. An expansion in the
         // first block must not also shift the final block's endpoint.
         if (endField?.contains(node)) endDelta += replacement.length - middle.length

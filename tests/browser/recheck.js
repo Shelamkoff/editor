@@ -1,3 +1,4 @@
+import { register as caseContext } from './regressions/recheck-52-case-context.js'
 import { register as caseWidgetLabels } from './regressions/recheck-51-case-widget-labels.js'
 import { register as nativeFilePaste } from './regressions/recheck-49-native-file-paste.js'
 import { register as atomicLinks } from './regressions/recheck-50-atomic-links.js'
@@ -101,4 +102,5 @@ fontSizeCascade()
 atomicLinks()
 nativeFilePaste()
 caseWidgetLabels()
+caseContext()
 await run()
