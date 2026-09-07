@@ -1,3 +1,4 @@
+import { register as tableGrid } from './regressions/recheck-59-table-import-grid.js'
 import { register as pasteLineEndings } from './regressions/recheck-58-paste-line-endings.js'
 import { register as patternCaret } from './regressions/recheck-57-pattern-caret.js'
 import { register as nativeCut } from './regressions/recheck-56-native-cut.js'
@@ -115,4 +116,5 @@ exportFailure()
 nativeCut()
 patternCaret()
 pasteLineEndings()
+tableGrid()
 await run()

@@ -1,3 +1,4 @@
+import { tablePasteData } from './paste.js'
 import { sanitizeHtml } from '../../core/sanitize.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { validateTableData } from '../../shared/blockDataValidators.js'
@@ -250,20 +251,7 @@ export class Table extends BlockPluginAbstract {
       : event.element.querySelector('table')
     if (!table) return null
 
-    const content = []
-    const rows = table.querySelectorAll('tr')
-    for (const tr of rows) {
-      const row = []
-      for (const cell of tr.querySelectorAll('td, th')) {
-        row.push(cell.innerHTML.trim())
-      }
-      if (row.length > 0) content.push(row)
-    }
-    if (content.length === 0) return null
-    const firstContentRow = [...rows].find(row => row.querySelector('td, th'))
-    const withHeadings = !!firstContentRow
-      && [...firstContentRow.querySelectorAll('td, th')].some(cell => cell.tagName === 'TH')
-    return { content, withHeadings }
+    return tablePasteData(/** @type {HTMLTableElement} */ (table))
   }
 
   // ── Private — table operations ─────────────────────────────────────────────
