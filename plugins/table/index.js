@@ -1,3 +1,4 @@
+import { editableRange } from '../../core/editableFields.js'
 import { tablePasteData } from './paste.js'
 import { sanitizeHtml } from '../../core/sanitize.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
@@ -74,32 +75,39 @@ export class Table extends BlockPluginAbstract {
       table.appendChild(tr)
     }
 
-    // Tab navigation between cells
-    table.addEventListener('keydown', (e) => {
-      if (e.key === 'Tab') {
-        if (this.#navigateCell(table, e.shiftKey ? -1 : 1)) {
-          e.preventDefault()
-          e.stopPropagation()
-        }
+    // Native Range.deleteContents() may remove TD/TR nodes or leave this
+    // editor entirely. Only a range owned by the event's actual cell is safe.
+    /** @param {KeyboardEvent | InputEvent} event */
+    const insertBreak = event => {
+      if (event.defaultPrevented || !event.cancelable || event.isComposing) return
+      event.preventDefault()
+      event.stopPropagation()
+      const selection = window.getSelection()
+      if (!selection?.rangeCount) return
+      const range = selection.getRangeAt(0)
+      const cell = editableRange(wrapper, range)
+      const targetField = event.target instanceof Element
+        ? event.target.closest('[contenteditable]') : null
+      if (!cell?.matches('td, th') || cell.closest('table') !== table || targetField !== cell) return
+      context.mutate(() => {
+        range.deleteContents()
+        const br = document.createElement('br')
+        range.insertNode(br)
+        range.setStartAfter(br)
+        range.collapse(true)
+        selection.removeAllRanges()
+        selection.addRange(range)
+      })
+    }
+    table.addEventListener('keydown', event => {
+      if (event.key === 'Tab' && this.#navigateCell(table, event.shiftKey ? -1 : 1)) {
+        event.preventDefault()
+        event.stopPropagation()
       }
-      // Prevent Enter from creating new block — insert <br> instead
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault()
-        e.stopPropagation()
-        context.mutate(() => {
-          const sel = window.getSelection()
-          if (sel && sel.rangeCount > 0) {
-            const range = sel.getRangeAt(0)
-            range.deleteContents()
-            const br = document.createElement('br')
-            range.insertNode(br)
-            range.setStartAfter(br)
-            range.collapse(true)
-            sel.removeAllRanges()
-            sel.addRange(range)
-          }
-        })
-      }
+      if (event.key === 'Enter') insertBreak(event)
+    })
+    table.addEventListener('beforeinput', event => {
+      if (event.inputType === 'insertParagraph' || event.inputType === 'insertLineBreak') insertBreak(event)
     })
 
     wrapper.appendChild(table)

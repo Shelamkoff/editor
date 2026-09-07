@@ -1,3 +1,4 @@
+import { registerNative as tableBreakNative } from './regressions/recheck-60-table-break-boundaries.js'
 import { createColorSwatchPlugin } from '../../inline-plugins/color.js'
 import { decodedTexts } from './regressions/recheck-57-pattern-caret.js'
 import { crossRange } from './regressions/recheck-56-native-cut.js'
@@ -123,4 +124,5 @@ for (const [initial, offset, value, expected] of [
     equal(editor.canUndo, false)
   })
 }
+tableBreakNative()
 await run()

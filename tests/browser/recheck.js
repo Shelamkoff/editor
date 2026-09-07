@@ -1,3 +1,4 @@
+import { register as tableBreak } from './regressions/recheck-60-table-break-boundaries.js'
 import { register as tableGrid } from './regressions/recheck-59-table-import-grid.js'
 import { register as pasteLineEndings } from './regressions/recheck-58-paste-line-endings.js'
 import { register as patternCaret } from './regressions/recheck-57-pattern-caret.js'
@@ -117,4 +118,5 @@ nativeCut()
 patternCaret()
 pasteLineEndings()
 tableGrid()
+tableBreak()
 await run()
