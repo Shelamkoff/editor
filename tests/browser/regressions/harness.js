@@ -4,6 +4,14 @@ import { Paragraph } from '../../../plugins/paragraph/index.js'
 const cases = []
 const editors = []
 const holders = []
+let activeErrors = null
+
+/** Declare exactly one intentional browser event error in the current test. */
+export function expectError(pattern) {
+  if (!activeErrors || !(pattern instanceof RegExp)) throw new TypeError('expectError requires a RegExp inside an active test')
+  activeErrors.expected.push({ pattern, seen: false })
+}
+
 export const pause = (ms = 0) => new Promise(resolve => setTimeout(resolve, ms))
 export const para = (id, text, extra = {}) => ({ id, type: 'paragraph', data: { text }, ...extra })
 export function test(name, run) { cases.push({ name, run }) }
@@ -55,12 +63,45 @@ export const texts = editor => editor.save().blocks.map(block => block.data.text
 export async function run() {
   const results = []
   for (const { name, run } of cases) {
-    try { await run(); results.push({ name, status: 'PASS' }) }
-    catch (error) { results.push({ name, status: 'FAIL', error: error.stack }) }
-    finally {
-      for (const editor of editors.splice(0)) editor.destroy()
-      for (const holder of holders.splice(0)) holder.remove()
+    const errors = { expected: [], unexpected: [] }
+    activeErrors = errors
+    const capture = (event) => {
+      const cause = event.type === 'unhandledrejection' ? event.reason : event.error ?? event.message
+      const message = cause?.message ?? String(cause)
+      const expected = errors.expected.find(item => {
+        item.pattern.lastIndex = 0
+        return !item.seen && item.pattern.test(message)
+      })
+      if (expected) expected.seen = true
+      else errors.unexpected.push(cause?.stack ?? message)
+      // The result below owns the failure. Avoid duplicate browser logging,
+      // but never turn an unexpected event into a successful test.
+      event.preventDefault()
     }
+    window.addEventListener('error', capture)
+    window.addEventListener('unhandledrejection', capture)
+    const failures = []
+    try { await run() }
+    catch (error) { failures.push(error?.stack ?? String(error)) }
+    finally {
+      // Allow native rejection reporting and the opening event's microtasks.
+      await pause()
+      for (const editor of editors.splice(0)) {
+        try { editor.destroy() } catch (error) { failures.push(error?.stack ?? String(error)) }
+      }
+      for (const holder of holders.splice(0)) holder.remove()
+      await pause()
+      window.removeEventListener('error', capture)
+      window.removeEventListener('unhandledrejection', capture)
+      activeErrors = null
+    }
+    failures.push(...errors.unexpected)
+    for (const item of errors.expected) {
+      if (!item.seen) failures.push(`Expected browser error was not raised: ${item.pattern}`)
+    }
+    results.push(failures.length
+      ? { name, status: 'FAIL', error: failures.join('\n') }
+      : { name, status: 'PASS' })
   }
   window.__auditResults = results
   const failed = results.filter(result => result.status !== 'PASS')

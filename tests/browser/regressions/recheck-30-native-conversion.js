@@ -1,3 +1,4 @@
+import { expectError } from './harness.js'
 import { Paragraph, Heading } from '../../../plugins/index.js'
 import { test, make, para, equal, assert, texts, select } from './harness.js'
 import { convertSelection, selectNative } from './conversion-fixture.js'
@@ -49,6 +50,7 @@ export function register() {
     })
   }
   test('native partial cross conversion rolls back every endpoint on a render error', () => {
+    expectError(/deliberate endpoint error/)
     class Failing extends Heading { render(data) { if (data.text === 'pha') throw new Error('deliberate endpoint error'); return super.render(data) } }
     const editor = make([para('a', 'Alpha'), para('b', 'Bravo')], { plugins: [new Paragraph(), new Failing()] })
     selectNative(editor.blocks.getBlockById('a').contentElement, 2, editor.blocks.getBlockById('b').contentElement, 3)

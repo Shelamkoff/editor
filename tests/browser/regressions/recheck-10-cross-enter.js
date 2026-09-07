@@ -1,3 +1,4 @@
+import { expectError } from './harness.js'
 import { Paragraph } from '../../../plugins/paragraph/index.js'
 import { Quote } from '../../../plugins/quote/index.js'
 import { test, make, para, key, pause, assert, equal, texts } from './harness.js'
@@ -91,6 +92,7 @@ export function register() {
   })
 
   test('cross-block Enter rolls back the deletion if the new paragraph cannot render', () => {
+    expectError(/deliberate split render failure/)
     class FailingParagraph extends Paragraph {
       render(data) {
         if (data?.text === 'vo') throw new Error('deliberate split render failure')

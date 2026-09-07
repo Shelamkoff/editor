@@ -1,3 +1,4 @@
+import { expectError } from './harness.js'
 import { Paragraph, Heading, Delimiter } from '../../../plugins/index.js'
 import { createColorSwatchPlugin } from '../../../inline-plugins/color.js'
 import { selectAcross } from './cross-input-fixture.js'
@@ -48,6 +49,7 @@ export function register() {
     equal(saved[2].tunes, { textAlign: 'right' })
   })
   test('failed endpoint conversion rolls back the document with all opaque metadata intact', () => {
+    expectError(/deliberate endpoint failure/)
     class FailingHeading extends Heading {
       render(data) { if (data.text.includes('{{w}}')) throw new Error('deliberate endpoint failure'); return super.render(data) }
     }

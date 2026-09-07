@@ -1,3 +1,4 @@
+import { expectError } from './harness.js'
 import { Paragraph, Quote } from '../../../plugins/index.js'
 import { test, make, para, select, equal, assert, texts } from './harness.js'
 import { selectAcross } from './cross-input-fixture.js'
@@ -91,6 +92,7 @@ export function register() {
   })
 
   test('a failing input replacement restores the full selected document', () => {
+    expectError(/Failed to save block a \(paragraph\)/)
     class Rejecting extends Paragraph {
       save(element) {
         if (element.textContent.includes('REJECT')) throw new Error('deliberate replacement failure')

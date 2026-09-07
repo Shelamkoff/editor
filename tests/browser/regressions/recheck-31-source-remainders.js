@@ -1,3 +1,4 @@
+import { expectError } from './harness.js'
 import { Paragraph, Heading } from '../../../plugins/index.js'
 import { test, make, select, equal, texts } from './harness.js'
 import { convertSelection, selectNative } from './conversion-fixture.js'
@@ -48,6 +49,7 @@ export function register() {
     equal(remainder.inline, inline)
   })
   test('failure rendering a source remainder rolls back the complete conversion', () => {
+    expectError(/deliberate remainder failure/)
     class FailingHeading extends Heading {
       render(data) { if (data.text === 'DE') throw new Error('deliberate remainder failure'); return super.render(data) }
     }
