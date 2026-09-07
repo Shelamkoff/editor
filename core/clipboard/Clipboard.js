@@ -479,8 +479,12 @@ export class Clipboard {
     if (target) {
       // Only handle paste inside content blocks.
       if (!target.closest(BLOCK_SELECTOR)) return
-      const closestNonEditable = target.closest('[contenteditable="false"]')
-      if (closestNonEditable && closestNonEditable.closest(BLOCK_SELECTOR)) return
+      // The nearest editing host determines editability. Composite blocks
+      // may deliberately put editable fields inside a noneditable wrapper.
+      // Native form controls and atomic widgets still own their own input.
+      if (target.closest('input, textarea, select, [data-inline-plugin]')) return
+      const host = target.closest('[contenteditable]')
+      if (host?.getAttribute('contenteditable') === 'false' && host.closest(BLOCK_SELECTOR)) return
     }
 
     const pasteStartBlock = target

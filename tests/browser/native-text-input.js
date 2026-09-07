@@ -1,3 +1,4 @@
+import { registerNative as nestedPasteNative } from './regressions/recheck-63-nested-editing-host.js'
 import { registerNative as emptyPasteNative } from './regressions/recheck-62-empty-paste.js'
 import { registerNative as tableBreakNative } from './regressions/recheck-60-table-break-boundaries.js'
 import { createColorSwatchPlugin } from '../../inline-plugins/color.js'
@@ -127,4 +128,5 @@ for (const [initial, offset, value, expected] of [
 }
 tableBreakNative()
 emptyPasteNative()
+nestedPasteNative()
 await run()

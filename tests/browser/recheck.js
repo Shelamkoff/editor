@@ -1,3 +1,4 @@
+import { register as nestedPaste } from './regressions/recheck-63-nested-editing-host.js'
 import { register as emptyPaste } from './regressions/recheck-62-empty-paste.js'
 import { register as tableBreak } from './regressions/recheck-60-table-break-boundaries.js'
 import { register as tableGrid } from './regressions/recheck-59-table-import-grid.js'
@@ -121,4 +122,5 @@ pasteLineEndings()
 tableGrid()
 tableBreak()
 emptyPaste()
+nestedPaste()
 await run()
