@@ -4,7 +4,7 @@
  * newer content (including blocks newly inserted between range endpoints).
  * @param {import('../types').IBlockReader} blocks
  * @param {import('../types').ICrossBlockSelection} crossSelection
- * @param {{ crossRange: Range | null, selectedIds: string[], anchorBlockId?: string }} target
+ * @param {{ crossRange: Range | null, nativeRange?: boolean, selectedIds: string[], anchorBlockId?: string }} target
  * @param {boolean} mayReplaceEmpty Whether one file may replace an empty anchor.
  * @returns {() => boolean}
  */
@@ -31,7 +31,12 @@ export function captureFilePasteTarget(blocks, crossSelection, target, mayReplac
     if (captured.some(({ block, version }) => blocks.getBlockById(block.id) !== block || block.version !== version)) return false
 
     if (range) {
-      const current = crossSelection.range
+      // A native selection must be compared with the current native Range,
+      // not with the separate mouse-selection store, which was never set.
+      const native = target.nativeRange ? start.node.ownerDocument?.getSelection() : null
+      const current = target.nativeRange
+        ? (native?.rangeCount ? native.getRangeAt(0) : null)
+        : crossSelection.range
       if (!first || !last || firstIndex < 0 || lastIndex < firstIndex || !current) return false
       if (current.startContainer !== start.node || current.startOffset !== start.offset
           || current.endContainer !== end.node || current.endOffset !== end.offset) return false

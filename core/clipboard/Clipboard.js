@@ -474,7 +474,7 @@ export class Clipboard {
     e.preventDefault()
     // Never allow a raw Range mutation to escape this editor or remove the
     // editing-host structure of a composite block.
-    this.#pasteRange()
+    const pasteRange = this.#pasteRange()
 
     // File uploads are prepared outside the live document. This keeps a slow
     // plugin promise from holding the editor-wide undo batch open while the
@@ -482,12 +482,18 @@ export class Clipboard {
     const customData = e.clipboardData?.getData(MIME_TYPE)
     const files = Array.from(e.clipboardData?.files ?? [])
     if (!customData && files.length > 0) {
-      const crossRange = this.#crossBlockSelection.range?.cloneRange() ?? null
+      const stored = this.#crossBlockSelection.range
+      const first = pasteRange ? this.#blocks.getBlockByChildNode(pasteRange.startContainer) : null
+      const last = pasteRange ? this.#blocks.getBlockByChildNode(pasteRange.endContainer) : null
+      const nativeCross = !this.#blocks.hasSelectedBlocks() && pasteRange && !pasteRange.collapsed
+        && first && last && first !== last ? pasteRange : null
+      const crossRange = (stored ?? nativeCross)?.cloneRange() ?? null
       const selectedIds = crossRange
         ? []
         : this.#blocks.getSelectedBlocks().map(block => block.id)
       await this.#pasteFiles(files, {
         crossRange,
+        nativeRange: !!crossRange && !stored,
         selectedIds,
         anchorBlockId: pasteStartBlock?.id,
         fallbackIndex: this.#blocks.getCurrentIndex() + 1,
@@ -660,7 +666,7 @@ export class Clipboard {
    * Prepare uploads outside the model, then commit every successful file as
    * one synchronous history operation.
    * @param {File[]} files
-   * @param {{ crossRange: Range | null, selectedIds: string[], anchorBlockId?: string, fallbackIndex: number }} target
+   * @param {{ crossRange: Range | null, nativeRange?: boolean, selectedIds: string[], anchorBlockId?: string, fallbackIndex: number }} target
    */
   async #pasteFiles(files, target) {
     const generation = this.#documentGeneration
