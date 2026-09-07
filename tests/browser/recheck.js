@@ -1,3 +1,4 @@
+import { register as caseExpansion } from './regressions/recheck-45-case-expansion.js'
 import { register as backgroundRange } from './regressions/recheck-44-background-range.js'
 import { register as scriptRange } from './regressions/recheck-43-script-range.js'
 import { register as fontSizeRange } from './regressions/recheck-42-font-size-range.js'
@@ -87,4 +88,5 @@ popupOwner()
 fontSizeRange()
 scriptRange()
 backgroundRange()
+caseExpansion()
 await run()

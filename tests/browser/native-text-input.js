@@ -71,4 +71,18 @@ for (const key of ['Backspace', 'Delete']) {
   })
 }
 
+test('native typing replaces all characters produced by Unicode case expansion', async () => {
+  const editor = make([para('a', 'aßb')], { inlineTools: ['caseTransform'] })
+  const field = editor.blocks.getBlockById('a').contentElement
+  select(field, 1, 2)
+  document.dispatchEvent(new Event('selectionchange')); await pause(35)
+  editor.rootElement.querySelector('[data-tool="caseTransform"]').click()
+  equal(field.textContent, 'aSSb')
+  equal(window.getSelection().getRangeAt(0).toString(), 'SS')
+  await window.__testInput('Input.insertText', { text: 'X' })
+  equal(texts(editor), ['aXb'])
+  editor.undo(); equal(texts(editor), ['aSSb'])
+  editor.undo(); equal(texts(editor), ['aßb'])
+})
+
 await run()

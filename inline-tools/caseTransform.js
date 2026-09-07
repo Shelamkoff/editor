@@ -1,3 +1,5 @@
+import { closestBlock } from '../core/dom.js'
+import { editableAtBoundary } from '../core/editableFields.js'
 import {
   saveSelectionOffsets,
   restoreSelectionOffsets,
@@ -46,6 +48,13 @@ export function createCaseTransformTool(label, cbs = null) {
       const toUpper = !isUpperCase(text)
 
       const saved = saveSelectionOffsets(range)
+      const endBlock = closestBlock(range.endContainer)
+      const endField = saved.singleOffsets?.ce ?? (endBlock
+        ? editableAtBoundary(endBlock, range.endContainer, range.endOffset)?.element : null)
+      const native = window.getSelection()
+      const backward = !native?.isCollapsed && native?.anchorNode === range.endContainer
+        && native.anchorOffset === range.endOffset
+      let endDelta = 0
 
       // Collect only text nodes clipped to range boundaries
       const ancestor = range.commonAncestorContainer
@@ -74,10 +83,20 @@ export function createCaseTransformTool(label, cbs = null) {
         const before = node.data.slice(0, start)
         const middle = node.data.slice(start, end)
         const after = node.data.slice(end)
-        node.data = before + (toUpper ? middle.toUpperCase() : middle.toLowerCase()) + after
+        const replacement = toUpper ? middle.toUpperCase() : middle.toLowerCase()
+        // Cross-block offsets are local to their fields. An expansion in the
+        // first block must not also shift the final block's endpoint.
+        if (endField?.contains(node)) endDelta += replacement.length - middle.length
+        node.data = before + replacement + after
       }
 
+      if (saved.singleOffsets) saved.singleOffsets.end += endDelta
+      else if (saved.crossOffsets) saved.crossOffsets.endOffset += endDelta
       restoreSelectionOffsets(cbs, saved)
+      if (backward && saved.singleOffsets && native?.rangeCount) {
+        const restored = native.getRangeAt(0)
+        native.setBaseAndExtent(restored.endContainer, restored.endOffset, restored.startContainer, restored.startOffset)
+      }
       if (!saved.crossOffsets && !saved.singleOffsets) {
         clearCrossBlockRange(cbs)
       }
