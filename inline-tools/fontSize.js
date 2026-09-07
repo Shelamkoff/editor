@@ -118,11 +118,13 @@ function wrapRangeWithFontSize(range, fontSize) {
       targetNode = /** @type {Text} */ (node.splitText(startOffset))
     }
 
-    // If parent is already a font-size span, just update its size
+    // Update an existing span only when it contains exactly the selected node.
+    // Splitting a Text node alone does not split its parent styling boundary.
     /** @type {HTMLElement} */
     let currentSpan
     const parentEl = targetNode.parentElement
-    if (parentEl?.tagName === 'SPAN' && parentEl.style.fontSize) {
+    if (parentEl?.tagName === 'SPAN' && parentEl.style.fontSize
+        && parentEl.childNodes.length === 1 && parentEl.firstChild === targetNode) {
       parentEl.style.fontSize = fontSize
       currentSpan = parentEl
     } else {
