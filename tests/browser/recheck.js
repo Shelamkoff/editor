@@ -1,3 +1,4 @@
+import { register as atomicLinks } from './regressions/recheck-50-atomic-links.js'
 import { register as fontSizeCascade } from './regressions/recheck-48-font-size-cascade.js'
 import { register as behaviorContracts } from './regressions/recheck-47-behavior-contracts.js'
 import { register as harnessEquality } from './regressions/recheck-46-harness-equality.js'
@@ -95,4 +96,5 @@ caseExpansion()
 harnessEquality()
 behaviorContracts()
 fontSizeCascade()
+atomicLinks()
 await run()

@@ -12,6 +12,16 @@ import {
   createBackButton,
 } from './utils.js'
 
+/** Widget-owned hyperlinks are UI, not authored link formatting.
+ * @param {Node | null | undefined} node
+ * @returns {HTMLAnchorElement | null}
+ */
+function authoredAnchor(node) {
+  const element = node?.nodeType === Node.ELEMENT_NODE ? /** @type {Element} */ (node) : node?.parentElement
+  const anchor = element?.closest('a')
+  return anchor && !anchor.closest('[data-inline-plugin]') ? anchor : null
+}
+
 /**
  * Return every link touched by a range. The walk root is deliberately the
  * contenteditable (or the common editor root for a cross-block selection),
@@ -34,6 +44,7 @@ function getIntersectingLinks(range) {
   candidates.push(...walkRoot.querySelectorAll('a'))
 
   return candidates.filter((candidate) => {
+    if (candidate.closest('[data-inline-plugin]')) return false
     try {
       return range.intersectsNode(candidate)
     } catch {
@@ -69,7 +80,7 @@ export function createLinkTool(linkPlaceholder, linkLabel, actionLabels = {}, cb
       const range = cbs?.range || selection?.range
       if (!range) {
         const sel = window.getSelection()
-        if (sel?.anchorNode) return !!sel.anchorNode.parentElement?.closest('a')
+        if (sel?.anchorNode) return !!authoredAnchor(sel.anchorNode)
         return false
       }
       return getIntersectingLinks(range).length > 0
@@ -167,7 +178,7 @@ export function createLinkTool(linkPlaceholder, linkLabel, actionLabels = {}, cb
 
       // Check if already inside a link
       const sel = window.getSelection()
-      const existingAnchor = sel?.anchorNode?.parentElement?.closest('a')
+      const existingAnchor = authoredAnchor(sel?.anchorNode)
       if (existingAnchor) {
         input.value = existingAnchor.getAttribute('href') || ''
         unlinkBtn.style.display = ''
@@ -222,7 +233,7 @@ export function createLinkTool(linkPlaceholder, linkLabel, actionLabels = {}, cb
       function removeLink() {
         ctx.restoreSelection()
         const s = window.getSelection()
-        const anchor = s?.anchorNode?.parentElement?.closest('a')
+        const anchor = authoredAnchor(s?.anchorNode)
         ctx.mutate(() => {
           if (anchor) {
             const parent = anchor.parentNode
