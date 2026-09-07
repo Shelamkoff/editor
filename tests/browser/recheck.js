@@ -1,3 +1,4 @@
+import { register as widgetCleanup } from './regressions/recheck-38-widget-cleanup.js'
 import { register as formatLinebreaks } from './regressions/recheck-37-format-linebreaks.js'
 import { register as rendererStyles } from './regressions/recheck-36-renderer-style-ownership.js'
 import { register as edgeFieldFocus } from './regressions/recheck-35-edge-field-focus.js'
@@ -73,4 +74,5 @@ dragLifetime()
 edgeFieldFocus()
 rendererStyles()
 formatLinebreaks()
+widgetCleanup()
 await run()

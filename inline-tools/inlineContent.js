@@ -8,7 +8,7 @@ const INLINE_TAGS_SELECTOR = 'b, i, s, em, strong, u, mark, code, span, a, sup, 
 export function hasInlineContent(node) {
   return !!node.textContent || (
     (node.nodeType === Node.ELEMENT_NODE || node.nodeType === Node.DOCUMENT_FRAGMENT_NODE)
-    && !!/** @type {Element | DocumentFragment} */ (node).querySelector('br, img')
+    && !!/** @type {Element | DocumentFragment} */ (node).querySelector('br, img, [data-inline-plugin]')
   )
 }
 
@@ -22,7 +22,9 @@ export function removeEmptyInlineTags(parent) {
   if (!parent || parent.nodeType !== Node.ELEMENT_NODE) return
   const empties = /** @type {HTMLElement} */ (parent).querySelectorAll(INLINE_TAGS_SELECTOR)
   for (const el of empties) {
-    if (!el.textContent && !el.querySelector('img, br')) el.remove()
+    // Widget roots and descendants are owned by the plugin, not text formatting.
+    if (el.closest('[data-inline-plugin]')) continue
+    if (!hasInlineContent(el)) el.remove()
   }
   parent.normalize()
 }
