@@ -1,3 +1,4 @@
+import { register as behaviorContracts } from './regressions/recheck-47-behavior-contracts.js'
 import { register as harnessEquality } from './regressions/recheck-46-harness-equality.js'
 import { register as caseExpansion } from './regressions/recheck-45-case-expansion.js'
 import { register as backgroundRange } from './regressions/recheck-44-background-range.js'
@@ -91,4 +92,5 @@ scriptRange()
 backgroundRange()
 caseExpansion()
 harnessEquality()
+behaviorContracts()
 await run()
