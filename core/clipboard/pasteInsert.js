@@ -22,8 +22,7 @@ import { extractBlockElements } from './pasteUtils.js'
 export function pastePlainText(text, ctx) {
   // Treat CRLF as one boundary and standalone CR as a newline, before
   // applying the existing policy of omitting empty lines.
-  const lines = text.split(/\r\n?|\n/)
-  const nonEmpty = lines.filter((line) => line.length > 0)
+  const nonEmpty = preparePlainText(text)
   if (nonEmpty.length === 0) return
   // Keep the original target before a multi-block paste moves current/focus
   // to the last inserted block. This existing block is mutated directly and
@@ -60,98 +59,74 @@ export function pastePlainText(text, ctx) {
   else ctx.notifyChanged()
 }
 
-/**
- * Insert HTML into the editor at the current caret.
- * Splits multi-element HTML into multiple blocks via `extractBlockElements`,
- * routes known tags to plugins via `pasteConfig.tags`, and falls back to
- * the default block type for unknown tags.
- *
+/** @param {string} text @returns {string[]} */
+export function preparePlainText(text) {
+  return text.split(/\r\n?|\n/).filter(line => line.length > 0)
+}
+
+/** @typedef {{ tag: string, type: string, data: Record<string, unknown>, routed: boolean }} PreparedHtml */
+
+/** Parse and sanitize before any selected content is removed. Plugin paste
+ * handlers run exactly once, while their returned data is still staged.
  * @param {string} html
- * @param {InsertContext} ctx
+ * @param {Pick<InsertContext, 'router' | 'defaultBlockType'>} ctx
+ * @returns {PreparedHtml[]}
  */
-export function pasteHtml(html, ctx) {
-  // Parse clipboard markup in inert template content. Individual extracted
-  // blocks are sanitized before insertion or handed to an explicit plugin
-  // paste handler; no untrusted subtree is connected to the live document.
+export function prepareHtmlPaste(html, ctx) {
   const template = document.createElement('template')
   template.innerHTML = html
+  const extracted = extractBlockElements(template.content, tag => !!ctx.router.findByTag(tag))
+  const prepared = []
+  for (const item of extracted) {
+    const plugin = ctx.router.findByTag(item.tag)
+    if (!(item.element.textContent || '').trim() && !plugin) continue
+    if (plugin?.onPaste && item.tag !== 'p' && item.tag !== 'div') {
+      const data = plugin.onPaste({ type: 'tag', element: item.element, tag: item.tag })
+      if (data) {
+        prepared.push({ tag: item.tag, type: plugin.type, data, routed: true })
+        continue
+      }
+    }
+    const text = sanitizeHtml(item.element.innerHTML)
+    if (text) prepared.push({ tag: item.tag, type: ctx.defaultBlockType, data: { text }, routed: false })
+  }
+  return prepared
+}
 
-  const extracted = extractBlockElements(
-    template.content,
-    (tag) => !!ctx.router.findByTag(tag),
-  )
-    // Routed non-text elements (for example IMG/HR) may have no textContent
-    // and still carry meaningful paste data in their attributes.
-    .filter((b) => (b.element.textContent || '').trim() || !!ctx.router.findByTag(b.tag))
+/** @param {string} html @param {InsertContext} ctx */
+export function pasteHtml(html, ctx) {
+  pastePreparedHtml(prepareHtmlPaste(html, ctx), ctx)
+}
 
-  if (extracted.length === 0) return
-
-  const first = /** @type {import('./pasteUtils.js').ExtractedBlock} */ (extracted[0])
+/** Apply a nonempty, prepared HTML sequence inside the clipboard transaction.
+ * @param {PreparedHtml[]} prepared
+ * @param {InsertContext} ctx
+ */
+export function pastePreparedHtml(prepared, ctx) {
+  if (!prepared.length) return
+  const first = prepared[0]
   const targetBlock = ctx.blocks.getCurrentBlock()
-
-  // Single paragraph → inline insert into the current block.
-  if (extracted.length === 1 && first.tag === 'p') {
-    const sanitized = sanitizeHtml(first.element.innerHTML)
-    if (sanitized) insertHtmlAtCaret(sanitized)
+  const textLike = item => !item.routed && (item.tag === 'p' || item.tag === 'div')
+  if (prepared.length === 1 && textLike(first)) {
+    insertHtmlAtCaret(String(first.data.text))
     if (targetBlock) ctx.notifyChanged(targetBlock)
     else ctx.notifyChanged()
     return
   }
-
   const currentIndex = ctx.blocks.getCurrentIndex()
   const tail = takePasteTail(targetBlock)
-  const firstIsTextLike = first.tag === 'p' || first.tag === 'div'
-
-  if (firstIsTextLike) {
-    const sanitized = sanitizeHtml(first.element.innerHTML)
-    if (sanitized) insertHtmlAtCaret(sanitized)
-  } else {
-    insertBlockFromExtracted(first, currentIndex + 1, ctx)
-  }
-
   let insertIndex = currentIndex + 1
-  if (!firstIsTextLike) insertIndex++
-
-  for (let i = 1; i < extracted.length; i++) {
-    const item = /** @type {import('./pasteUtils.js').ExtractedBlock} */ (extracted[i])
-    insertBlockFromExtracted(item, insertIndex, ctx, tail?.metadata.tunes)
-    insertIndex++
-  }
-
-  if (extracted.length > 1 || first.tag !== 'p') {
-    const lastIdx = insertIndex - 1
-    const lastBlock = ctx.blocks.getBlockByIndex(lastIdx)
-    const last = extracted[extracted.length - 1]
-    finishBlockPaste(lastBlock, tail, last.tag === 'p' || last.tag === 'div', ctx)
-  }
-
+  const insert = item => ctx.blocks.insert(
+    item.type, item.data, insertIndex++, undefined, undefined,
+    item.routed ? undefined : tail?.metadata.tunes,
+  )
+  if (textLike(first)) insertHtmlAtCaret(String(first.data.text))
+  else insert(first)
+  for (const item of prepared.slice(1)) insert(item)
+  const lastBlock = ctx.blocks.getBlockByIndex(insertIndex - 1)
+  finishBlockPaste(lastBlock, tail, textLike(prepared.at(-1)), ctx)
   if (targetBlock) ctx.notifyChanged(targetBlock)
   else ctx.notifyChanged()
-}
-
-/**
- * @param {import('./pasteUtils.js').ExtractedBlock} extracted
- * @param {number} index
- * @param {InsertContext} ctx
- * @param {Record<string, unknown>} [tunes]
- */
-function insertBlockFromExtracted(extracted, index, ctx, tunes) {
-  const plugin = ctx.router.findByTag(extracted.tag)
-
-  if (plugin?.onPaste) {
-    const data = plugin.onPaste({
-      type: 'tag',
-      element: extracted.element,
-      tag: extracted.tag,
-    })
-    if (data) {
-      ctx.blocks.insert(plugin.type, data, index)
-      return
-    }
-  }
-
-  const sanitized = sanitizeHtml(extracted.element.innerHTML)
-  ctx.blocks.insert(ctx.defaultBlockType, { text: sanitized }, index, undefined, undefined, tunes)
 }
 
 /**

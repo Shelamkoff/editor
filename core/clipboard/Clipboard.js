@@ -6,7 +6,7 @@ import { BLOCK_SELECTOR } from '../constants.js'
 import { EditorEvent } from '../editorEvents.js'
 import { CrossBlockEditor } from './CrossBlockEditor.js'
 import { PasteRouter } from './PasteRouter.js'
-import { pasteHtml, pastePlainText } from './pasteInsert.js'
+import { prepareHtmlPaste, pastePreparedHtml, preparePlainText, pastePlainText } from './pasteInsert.js'
 import { hydrateInlinePlugins } from '../hydrateInlinePlugins.js'
 import { cloneEditorData } from '../../shared/cloneEditorData.js'
 
@@ -517,11 +517,13 @@ export class Clipboard {
       return
     }
 
+    const prepared = this.#preparePaste(e, customData)
+    if (!prepared) return
     const restoreTarget = capturePasteSelection(this.#rootEl, this.#blocks, this.#selection, this.#crossBlockSelection)
     try {
       this.#commands.execute({
         name: 'clipboard.paste',
-        apply: () => this.#applyPaste(e, pasteStartBlock, customData),
+        apply: () => this.#applyPaste(prepared, pasteStartBlock),
       })
     } catch (error) {
       const hasFallback = e.clipboardData?.getData('text/html') || e.clipboardData?.getData('text/plain')
@@ -529,9 +531,11 @@ export class Clipboard {
       // The first transaction has fully rolled back. Reapply the original
       // selection against restored nodes before attempting an independent fallback.
       restoreTarget()
+      const fallback = this.#preparePaste(e, '')
+      if (!fallback) throw error
       this.#commands.execute({
         name: 'clipboard.paste.fallback',
-        apply: () => this.#applyPaste(e, pasteStartBlock, ''),
+        apply: () => this.#applyPaste(fallback, pasteStartBlock),
       })
     }
   }
@@ -563,7 +567,7 @@ export class Clipboard {
     return range
   }
 
-  #applyPaste(e, pasteStartBlock, customData) {
+  #applyPaste(prepared, pasteStartBlock) {
     this.#events.emit(EditorEvent.UNDO_BATCH_START)
 
     try {
@@ -586,21 +590,25 @@ export class Clipboard {
       const insertIndex = result ? result.focusIndex : this.#blocks.getCurrentIndex() + 1
       const hadSelection = !!result
 
-      // ── 1. Internal MIME (block-level paste) ──
-      if (customData && this.#pasteCustomMime(customData, insertIndex)) return
-
-      // ── 3. Plain text URL/pattern matching (before HTML) ──
-      const html = e.clipboardData?.getData('text/html')
-      const plainText = e.clipboardData?.getData('text/plain') || ''
-
-      if (plainText && this.#handlePatternPaste(plainText)) return
-
-      if (hadSelection) {
-        this.#ensureCaretBlock(Math.min(insertIndex, this.#blocks.getBlockCount()))
+      if (prepared.blocks) {
+        this.#pasteCustomMime(prepared.blocks, insertIndex)
+        return
       }
-
-      // ── 4. HTML / plain text ──
-      this.#pasteContent(html, plainText)
+      if (prepared.pattern) {
+        this.#blockOps.replaceEmptyOrInsert(prepared.pattern.type, prepared.pattern.data)
+        return
+      }
+      if (hadSelection) this.#ensureCaretBlock(Math.min(insertIndex, this.#blocks.getBlockCount()))
+      const ctx = {
+        blocks: this.#blocks,
+        selection: this.#selection,
+        blockOps: this.#blockOps,
+        defaultBlockType: this.#defaultBlockType,
+        router: this.#router,
+        notifyChanged: (...blocks) => this.#notifyChanged(...blocks),
+      }
+      if (prepared.html) pastePreparedHtml(prepared.html, ctx)
+      else pastePlainText(prepared.text, ctx)
       const pasteEndBlock = this.#blocks.getCurrentBlock()
       this.#events.emit(EditorEvent.PASTE_APPLIED, {
         ...(pasteStartBlock ? { startBlockId: pasteStartBlock.id } : {}),
@@ -613,46 +621,48 @@ export class Clipboard {
     }
   }
 
-  /**
-   * Paste HTML or plain text content at the current caret position.
-   * @param {string} [html]
-   * @param {string} [plainText]
+  /** Prepare a supported payload before the first destructive mutation.
+   * No payload means no command, no selection change and no change event.
+   * @param {ClipboardEvent} event
+   * @param {string} customData
    */
-  #pasteContent(html, plainText) {
-    const ctx = {
-      blocks: this.#blocks,
-      selection: this.#selection,
-      blockOps: this.#blockOps,
-      defaultBlockType: this.#defaultBlockType,
-      router: this.#router,
-      notifyChanged: (...blocks) => this.#notifyChanged(...blocks),
+  #preparePaste(event, customData) {
+    let blocks = null
+    if (customData) {
+      let parsed
+      try { parsed = JSON.parse(customData) } catch { /* Consider other formats. */ }
+      if (Array.isArray(parsed)) {
+        const valid = parsed.filter(block => block && typeof block === 'object'
+          && typeof block.type === 'string' && block.data && typeof block.data === 'object')
+        if (valid.length) blocks = valid
+      }
     }
-
+    const prepared = { blocks, pattern: null, html: null, text: '' }
+    if (blocks) return prepared
+    const text = event.clipboardData?.getData('text/plain') || ''
+    const plugin = text ? this.#router.findByPattern(text) : null
+    const data = plugin?.onPaste?.({ type: 'pattern', data: text })
+    if (data) {
+      prepared.pattern = { type: plugin.type, data }
+      return prepared
+    }
+    const html = event.clipboardData?.getData('text/html') || ''
     if (html) {
-      pasteHtml(html, ctx)
-    } else if (plainText) {
-      pastePlainText(plainText, ctx)
+      const parts = prepareHtmlPaste(html, {
+        router: this.#router, defaultBlockType: this.#defaultBlockType,
+      })
+      if (parts.length) {
+        prepared.html = parts
+        return prepared
+      }
     }
+    if (!preparePlainText(text).length) return null
+    prepared.text = text
+    return prepared
   }
 
-  /**
-   * @param {string} customData
-   * @param {number} insertIndex
-   */
-  #pasteCustomMime(customData, insertIndex) {
-    let parsed
-    try { parsed = JSON.parse(customData) } catch { return false }
-    if (!Array.isArray(parsed) || parsed.length === 0) return false
-
-    const blocksData = parsed.filter(blockData => (
-      blockData
-      && typeof blockData === 'object'
-      && typeof blockData.type === 'string'
-      && blockData.data
-      && typeof blockData.data === 'object'
-    ))
-    if (blocksData.length === 0) return false
-
+  /** @param {import('../types').BlockData[]} blocksData @param {number} insertIndex */
+  #pasteCustomMime(blocksData, insertIndex) {
     for (const blockData of blocksData) {
       // Internal copies are document data, not a request to reinterpret an
       // unknown payload as paragraph data. Preserve the same opaque block
@@ -838,20 +848,6 @@ export class Clipboard {
     } finally {
       pending?.cleanup()
     }
-  }
-
-  /**
-   * @param {string} text
-   * @returns {boolean}
-   */
-  #handlePatternPaste(text) {
-    const plugin = this.#router.findByPattern(text)
-    if (!plugin?.onPaste) return false
-    const data = plugin.onPaste({ type: 'pattern', data: text })
-    if (!data) return false
-
-    this.#blockOps.replaceEmptyOrInsert(plugin.type, data)
-    return true
   }
 
   // ── Helpers ─────────────────────────────────────────────────────────────────

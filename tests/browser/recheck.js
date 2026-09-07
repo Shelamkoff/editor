@@ -1,3 +1,4 @@
+import { register as emptyPaste } from './regressions/recheck-62-empty-paste.js'
 import { register as tableBreak } from './regressions/recheck-60-table-break-boundaries.js'
 import { register as tableGrid } from './regressions/recheck-59-table-import-grid.js'
 import { register as pasteLineEndings } from './regressions/recheck-58-paste-line-endings.js'
@@ -119,4 +120,5 @@ patternCaret()
 pasteLineEndings()
 tableGrid()
 tableBreak()
+emptyPaste()
 await run()
