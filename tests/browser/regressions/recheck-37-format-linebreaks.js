@@ -1,5 +1,14 @@
 import { test, make, para, key, equal, assert } from './harness.js'
 
+function glyphs(field, tag) {
+  const result = []
+  const walker = document.createTreeWalker(field, NodeFilter.SHOW_TEXT)
+  while (walker.nextNode()) {
+    for (const char of walker.currentNode.data) result.push([char, !!walker.currentNode.parentElement.closest(tag)])
+  }
+  return result
+}
+
 export function register() {
   for (const [tool, tag, shortcut] of [['bold', 'b', 'b'], ['italic', 'i', 'i']]) {
     for (const side of ['before', 'after']) {
@@ -16,6 +25,7 @@ export function register() {
         const result = editor.save().blocks[0].data.text
         assert(result.includes('<br>'), 'authored break outside selection must survive')
         equal(field.textContent, 'ABC')
+        equal(glyphs(field, tag), [['A', side === 'after'], ['B', false], ['C', false]], 'the selected text must actually lose formatting')
         equal(window.getSelection().toString(), side === 'before' ? 'AB' : 'B')
         editor.undo(); equal(editor.save().blocks[0].data.text, html)
         editor.redo(); equal(editor.save().blocks[0].data.text, result)
@@ -31,6 +41,8 @@ export function register() {
     window.getSelection().removeAllRanges(); window.getSelection().addRange(range)
     key(field, 'b', { ctrlKey: true, code: 'KeyB' })
     assert(field.querySelector('br'), 'nested unselected break must survive')
+    equal(glyphs(field, 'b'), [['A', true], ['B', false], ['C', false]])
+    equal(glyphs(field, 'i'), [['A', true], ['B', true], ['C', false]], 'unrelated italic remains')
     equal(field.innerText.replace(/\n+/g, '\n'), 'AB\nC')
     equal(window.getSelection().toString(), 'B')
   })
