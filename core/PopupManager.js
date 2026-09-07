@@ -1,3 +1,5 @@
+import { EditorEvent } from './editorEvents.js'
+
 /** @typedef {import('./types').InlinePluginContext} InlinePluginContextContract */
 /**
  * Manages floating popups for inline plugins (color picker, etc.).
@@ -6,6 +8,15 @@
  * @implements {InlinePluginContextContract}
  */
 export class PopupManager {
+  /** @type {HTMLElement | null} */
+  #anchor = null
+  /** @type {import('./types').IBlock | undefined} */
+  #anchorBlock
+  /** @type {MutationObserver | null} */
+  #anchorObserver = null
+  /** @type {(() => void)[]} */
+  #unsubscribers = []
+  #destroyed = false
   /** @type {HTMLElement | null} */
   #activePopup = null
 
@@ -46,10 +57,14 @@ export class PopupManager {
     this.#blocks = blocks
     this.#mutations = commands
     this.#isReadOnly = isReadOnly
+    for (const event of [EditorEvent.CHANGED, EditorEvent.DOCUMENT_REPLACED,
+      EditorEvent.BLOCK_REMOVED, EditorEvent.BLOCK_CONVERTED]) {
+      this.#unsubscribers.push(events.on(event, () => this.#closeIfStale()))
+    }
   }
 
   get readOnly() {
-    return this.#isReadOnly()
+    return this.#destroyed || this.#isReadOnly()
   }
 
   /**
@@ -67,7 +82,7 @@ export class PopupManager {
    * @param {(() => void) | undefined} cleanup
    */
   showPopup(anchor, content, cleanup) {
-    if (this.readOnly) {
+    if (this.readOnly || (this.#rootEl && !this.#rootEl.contains(anchor))) {
       this.#runCleanup(cleanup)
       return
     }
@@ -96,6 +111,13 @@ export class PopupManager {
 
     this.#activePopup = popup
     this.#activeCleanup = cleanup || null
+    this.#anchor = anchor
+    this.#anchorBlock = this.#blocks.getBlockByChildNode(anchor)
+    // Native DOM edits can remove a widget without a structural block event.
+    if (this.#rootEl) {
+      this.#anchorObserver = new MutationObserver(() => this.#closeIfStale())
+      this.#anchorObserver.observe(this.#rootEl, { childList: true, subtree: true })
+    }
 
     // Arm after the opening event finishes, without depending on a rendered
     // animation frame (background tabs may suspend rAF indefinitely).
@@ -112,7 +134,18 @@ export class PopupManager {
     })
   }
 
+  #closeIfStale() {
+    if (!this.#anchor) return
+    const detached = this.#rootEl ? !this.#rootEl.contains(this.#anchor) : !this.#anchor.isConnected
+    const retired = this.#anchorBlock && this.#blocks.getBlockById(this.#anchorBlock.id) !== this.#anchorBlock
+    if (detached || retired) this.hidePopup()
+  }
+
   hidePopup() {
+    this.#anchorObserver?.disconnect()
+    this.#anchorObserver = null
+    this.#anchor = null
+    this.#anchorBlock = undefined
     if (this.#outsideClickHandler) {
       document.removeEventListener('mousedown', this.#outsideClickHandler, true)
       this.#outsideClickHandler = null
@@ -178,6 +211,8 @@ export class PopupManager {
   }
 
   destroy() {
+    this.#destroyed = true
+    for (const unsubscribe of this.#unsubscribers.splice(0)) unsubscribe()
     this.hidePopup()
   }
 }

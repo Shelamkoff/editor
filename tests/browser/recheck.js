@@ -1,3 +1,4 @@
+import { register as popupOwner } from './regressions/recheck-41-popup-owner.js'
 import { register as nativeDelete } from './regressions/recheck-40-native-delete.js'
 import { register as remainderWidgets } from './regressions/recheck-39-remainder-widgets.js'
 import { register as widgetCleanup } from './regressions/recheck-38-widget-cleanup.js'
@@ -79,4 +80,5 @@ formatLinebreaks()
 widgetCleanup()
 remainderWidgets()
 nativeDelete()
+popupOwner()
 await run()
