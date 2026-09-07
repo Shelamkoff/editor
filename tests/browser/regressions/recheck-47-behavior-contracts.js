@@ -104,9 +104,16 @@ export function register() {
   test('Person navigation renders localized accessible names and hides decorative icons', async () => {
     const renderer = createPersonRenderer('contract', { 'renderer.person.previous': 'Previous profile', 'renderer.person.next': 'Next profile' })
     const root = renderer.render({ type: 'person', data: { persons: [{ name: 'A' }, { name: 'B' }, { name: 'C' }] } }, parseInline)
-    root.style.width = '320px'; document.body.appendChild(root)
+    // ResizeObserver is delivered during rendering, not by advancing timer
+    // tasks. Keep the real fixture visible and wait for actual frames so the
+    // virtual-time runner cannot exhaust a polling delay before the first frame.
+    root.style.cssText = 'position:fixed;left:0;top:0;width:320px;min-height:100px'
+    document.body.appendChild(root)
     try {
-      for (let n = 0; n < 40 && !root.querySelector('.contract-person__nav'); n++) await pause(10)
+      equal(root.querySelector('.contract-person__carousel').getBoundingClientRect().width, 320)
+      for (let frame = 0; frame < 10 && !root.querySelector('.contract-person__nav'); frame++) {
+        await new Promise(resolve => requestAnimationFrame(resolve))
+      }
       const controls = [...root.querySelectorAll('.contract-person__nav button')]
       equal(controls.map(button => button.getAttribute('aria-label')), ['Previous profile', 'Next profile'])
       for (const button of controls) equal(button.querySelector('svg').getAttribute('aria-hidden'), 'true')
