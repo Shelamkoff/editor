@@ -1,3 +1,4 @@
+import { deserializeInlineHtml } from '../../shared/inlineMarshal.js'
 import { takePasteTail, finishBlockPaste } from './pasteTail.js'
 import { sanitizeHtml } from '../sanitize.js'
 import { extractBlockElements } from './pasteUtils.js'
@@ -9,6 +10,7 @@ import { extractBlockElements } from './pasteUtils.js'
  * @property {import('../BlockOperations').BlockOperations} blockOps
  * @property {string} defaultBlockType
  * @property {import('./PasteRouter.js').PasteRouter} router
+ * @property {import('../InlinePluginRegistry').InlinePluginRegistry} [inlineRegistry]
  * @property {(...blocks: import('../types').IBlock[]) => void} notifyChanged
  */
 
@@ -64,7 +66,7 @@ export function preparePlainText(text) {
   return text.split(/\r\n?|\n/).filter(line => line.length > 0)
 }
 
-/** @typedef {{ tag: string, type: string, data: Record<string, unknown>, routed: boolean }} PreparedHtml */
+/** @typedef {{ tag: string, type: string, data: Record<string, unknown>, routed: boolean, inline?: Record<string, import('../../renderer/types').InlineWidget> }} PreparedHtml */
 
 /** Parse and sanitize before any selected content is removed. Plugin paste
  * handlers run exactly once, while their returned data is still staged.
@@ -106,9 +108,14 @@ export function pastePreparedHtml(prepared, ctx) {
   if (!prepared.length) return
   const first = prepared[0]
   const targetBlock = ctx.blocks.getCurrentBlock()
+  const inlineHtml = item => {
+    if (!item.inline || !targetBlock) return String(item.data.text)
+    const html = targetBlock.importInlineContent(String(item.data.text), item.inline)
+    return deserializeInlineHtml(html, targetBlock.save().inline, ctx.inlineRegistry)
+  }
   const textLike = item => !item.routed && (item.tag === 'p' || item.tag === 'div')
   if (prepared.length === 1 && textLike(first)) {
-    insertHtmlAtCaret(String(first.data.text))
+    insertHtmlAtCaret(inlineHtml(first))
     if (targetBlock) ctx.notifyChanged(targetBlock)
     else ctx.notifyChanged()
     return
@@ -117,10 +124,10 @@ export function pastePreparedHtml(prepared, ctx) {
   const tail = takePasteTail(targetBlock)
   let insertIndex = currentIndex + 1
   const insert = item => ctx.blocks.insert(
-    item.type, item.data, insertIndex++, undefined, undefined,
+    item.type, item.data, insertIndex++, undefined, item.inline,
     item.routed ? undefined : tail?.metadata.tunes,
   )
-  if (textLike(first)) insertHtmlAtCaret(String(first.data.text))
+  if (textLike(first)) insertHtmlAtCaret(inlineHtml(first))
   else insert(first)
   for (const item of prepared.slice(1)) insert(item)
   const lastBlock = ctx.blocks.getBlockByIndex(insertIndex - 1)

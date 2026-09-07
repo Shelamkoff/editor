@@ -1,3 +1,4 @@
+import { FRAGMENT_MIME, rangeClipboardContent, parseClipboardFragment } from './rangeClipboard.js'
 import { editableAtBoundary } from '../editableFields.js'
 import { blockClipboardHtml } from './clipboardHtml.js'
 import { captureFilePasteTarget } from './filePasteTarget.js'
@@ -34,32 +35,23 @@ function createPendingPasteIndicator(label) {
 }
 
 /**
- * Extract plain text and HTML from a DOM Range.
- * @param {Range} range
- * @returns {{ text: string, html: string }}
- */
-function extractRangeContent(range) {
-  const text = range.toString()
-  const frag = range.cloneContents()
-  const div = document.createElement('div')
-  div.appendChild(frag)
-  return { text, html: div.innerHTML }
-}
-
-/**
  * Copy a cross-block range as both plain text and HTML via async Clipboard API.
  * Used from keydown handler where ClipboardEvent.clipboardData is unavailable.
  *
  * @param {KeyboardEvent} e
- * @param {Range} crossRange
+ * @param {{ text: string, html: string, fragment?: string }} content
  * @returns {Promise<boolean> | null} Null delegates to the native clipboard event.
  */
-function copyRange(e, crossRange) {
+function copyRange(e, content) {
+  // Async clipboard's text-only fallback cannot carry opaque widget data.
+  // Leave this gesture to the native event, where the required custom MIME
+  // can be written and verified before a destructive Cut is allowed.
+  if (content.fragment) return null
   const clipboard = navigator.clipboard
   if (!clipboard?.write && !clipboard?.writeText) return null
 
   e.preventDefault()
-  const { text, html } = extractRangeContent(crossRange)
+  const { text, html } = content
   return (async () => {
     if (clipboard.write && typeof ClipboardItem !== 'undefined') {
       try {
@@ -349,7 +341,7 @@ export class Clipboard {
       const startOffset = crossRange.startOffset
       const endNode = crossRange.endContainer
       const endOffset = crossRange.endOffset
-      const pending = copyRange(e, crossRange)
+      const pending = copyRange(e, rangeClipboardContent(crossRange, this.#captureSnapshot().blocks, this.#inlinePluginRegistry))
       if (!pending) return
       e.stopPropagation()
       void pending.then(copied => {
@@ -365,7 +357,7 @@ export class Clipboard {
       }).catch(error => console.warn('[Clipboard] Cut was not applied:', error))
     } else if (e.code === 'KeyC') {
       this.#clipboardOperation++
-      if (copyRange(e, crossRange)) e.stopPropagation()
+      if (copyRange(e, rangeClipboardContent(crossRange, this.#captureSnapshot().blocks, this.#inlinePluginRegistry))) e.stopPropagation()
     }
   }
 
@@ -394,9 +386,13 @@ export class Clipboard {
     if (crossRange) {
       e.preventDefault()
       if (!e.clipboardData) return false
-      const { text, html } = extractRangeContent(crossRange)
+      const { text, html, fragment } = rangeClipboardContent(crossRange, this.#captureSnapshot().blocks, this.#inlinePluginRegistry)
       e.clipboardData.setData('text/plain', text)
       e.clipboardData.setData('text/html', html)
+      if (fragment) {
+        e.clipboardData.setData(FRAGMENT_MIME, fragment)
+        if (e.clipboardData.getData(FRAGMENT_MIME) !== fragment) return false
+      }
       return true
     }
 
@@ -500,8 +496,9 @@ export class Clipboard {
     // plugin promise from holding the editor-wide undo batch open while the
     // user continues editing. The completed blocks are committed once.
     const customData = e.clipboardData?.getData(MIME_TYPE)
+    const fragmentData = e.clipboardData?.getData(FRAGMENT_MIME)
     const files = Array.from(e.clipboardData?.files ?? [])
-    if (!customData && files.length > 0) {
+    if (!customData && !fragmentData && files.length > 0) {
       const stored = this.#crossBlockSelection.range
       const first = pasteRange ? this.#blocks.getBlockByChildNode(pasteRange.startContainer) : null
       const last = pasteRange ? this.#blocks.getBlockByChildNode(pasteRange.endContainer) : null
@@ -521,7 +518,7 @@ export class Clipboard {
       return
     }
 
-    const prepared = this.#preparePaste(e, customData)
+    const prepared = this.#preparePaste(e, customData, fragmentData)
     if (!prepared) return
     const restoreTarget = capturePasteSelection(this.#rootEl, this.#blocks, this.#selection, this.#crossBlockSelection)
     try {
@@ -530,12 +527,15 @@ export class Clipboard {
         apply: () => this.#applyPaste(prepared, pasteStartBlock),
       })
     } catch (error) {
+      // A valid rich fragment owns data absent from its HTML/plain fallbacks.
+      // Never convert a failed lossless insertion into a lossy success.
+      if (fragmentData) throw error
       const hasFallback = e.clipboardData?.getData('text/html') || e.clipboardData?.getData('text/plain')
-      if (!customData || !hasFallback) throw error
+      if ((!customData && !fragmentData) || !hasFallback) throw error
       // The first transaction has fully rolled back. Reapply the original
       // selection against restored nodes before attempting an independent fallback.
       restoreTarget()
-      const fallback = this.#preparePaste(e, '')
+      const fallback = this.#preparePaste(e, '', '')
       if (!fallback) throw error
       this.#commands.execute({
         name: 'clipboard.paste.fallback',
@@ -609,6 +609,7 @@ export class Clipboard {
         blockOps: this.#blockOps,
         defaultBlockType: this.#defaultBlockType,
         router: this.#router,
+        inlineRegistry: this.#inlinePluginRegistry,
         notifyChanged: (...blocks) => this.#notifyChanged(...blocks),
       }
       if (prepared.html) pastePreparedHtml(prepared.html, ctx)
@@ -629,8 +630,9 @@ export class Clipboard {
    * No payload means no command, no selection change and no change event.
    * @param {ClipboardEvent} event
    * @param {string} customData
+   * @param {string} [fragmentData]
    */
-  #preparePaste(event, customData) {
+  #preparePaste(event, customData, fragmentData) {
     let blocks = null
     if (customData) {
       let parsed
@@ -643,6 +645,16 @@ export class Clipboard {
     }
     const prepared = { blocks, pattern: null, html: null, text: '' }
     if (blocks) return prepared
+    const fragment = parseClipboardFragment(fragmentData)
+    if (fragment) {
+      const parts = prepareHtmlPaste(fragment.html, {
+        router: this.#router, defaultBlockType: this.#defaultBlockType,
+      })
+      if (parts.length) {
+        prepared.html = parts.map(part => ({ ...part, inline: fragment.inline }))
+        return prepared
+      }
+    }
     const text = event.clipboardData?.getData('text/plain') || ''
     const plugin = text ? this.#router.findByPattern(text) : null
     const data = plugin?.onPaste?.({ type: 'pattern', data: text })

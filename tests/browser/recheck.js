@@ -1,3 +1,4 @@
+import { register as fragmentInline } from './regressions/recheck-61-fragment-inline.js'
 import { register as nestedPaste } from './regressions/recheck-63-nested-editing-host.js'
 import { register as emptyPaste } from './regressions/recheck-62-empty-paste.js'
 import { register as tableBreak } from './regressions/recheck-60-table-break-boundaries.js'
@@ -123,4 +124,5 @@ tableGrid()
 tableBreak()
 emptyPaste()
 nestedPaste()
+fragmentInline()
 await run()
