@@ -1,3 +1,4 @@
+import { register as caseWidgetLabels } from './regressions/recheck-51-case-widget-labels.js'
 import { register as nativeFilePaste } from './regressions/recheck-49-native-file-paste.js'
 import { register as atomicLinks } from './regressions/recheck-50-atomic-links.js'
 import { register as fontSizeCascade } from './regressions/recheck-48-font-size-cascade.js'
@@ -99,4 +100,5 @@ behaviorContracts()
 fontSizeCascade()
 atomicLinks()
 nativeFilePaste()
+caseWidgetLabels()
 await run()

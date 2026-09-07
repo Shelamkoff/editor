@@ -42,11 +42,6 @@ export function createCaseTransformTool(label, cbs = null) {
       const range = selection?.range
       if (!range || range.collapsed) return
 
-      const text = range.toString()
-      if (!text) return
-
-      const toUpper = !isUpperCase(text)
-
       const saved = saveSelectionOffsets(range)
       const endBlock = closestBlock(range.endContainer)
       const endField = saved.singleOffsets?.ce ?? (endBlock
@@ -77,6 +72,12 @@ export function createCaseTransformTool(label, cbs = null) {
         if (start >= end) continue
         targets.push({ node, start, end })
       }
+
+      // Decide using exactly the editable fragments we will transform. Widget
+      // labels participate in Range.toString(), but are not authored text.
+      const text = targets.map(({ node, start, end }) => node.data.slice(start, end)).join('')
+      if (!text) return
+      const toUpper = !isUpperCase(text)
 
       // Transform only the clipped portions
       for (const { node, start, end } of targets) {
