@@ -1,6 +1,8 @@
+import { createColorSwatchPlugin } from '../../inline-plugins/color.js'
+import { decodedTexts } from './regressions/recheck-57-pattern-caret.js'
 import { crossRange } from './regressions/recheck-56-native-cut.js'
 import { Paragraph, Table } from '../../plugins/index.js'
-import { test, make, para, select, pause, assert, equal, texts, run } from './regressions/harness.js'
+import { test, make, para, select, pause, paste, assert, equal, texts, run } from './regressions/harness.js'
 import { selectAcross } from './regressions/cross-input-fixture.js'
 
 async function printable() {
@@ -101,6 +103,24 @@ for (const backwards of [false, true]) {
     editor.undo(); equal(texts(editor), ['Alpha', 'Bravo'])
     equal(editor.canUndo, false)
     editor.redo(); equal(texts(editor), ['Alvo'])
+  })
+}
+for (const [initial, offset, value, expected] of [
+  ['', 0, '#ff0000 mid #00ff00 tail', ['#ff0000 mid #00ff00 tailX']],
+  ['abcd', 2, '#ff0000 tail', ['ab#ff0000 tailXcd']],
+  ['abcd', 2, '#ff0000 tail\n#00ff00 end', ['ab#ff0000 tail', '#00ff00 endXcd']],
+]) {
+  test(`native typing stays after the full pattern paste: ${JSON.stringify(value)}`, async () => {
+    const editor = make([para('a', initial)], { inlinePlugins: [createColorSwatchPlugin()] })
+    select(editor.blocks.getBlockById('a').contentElement, offset)
+    await paste(editor.blocks.getBlockById('a').contentElement, { 'text/plain': value })
+    const pasted = editor.save().blocks
+    assert(pasted.some(block => block.inline), 'automatic conversion ran')
+    await window.__testInput('Input.insertText', { text: 'X' })
+    equal(decodedTexts(editor), expected)
+    editor.undo(); equal(editor.save().blocks, pasted)
+    editor.undo(); equal(texts(editor), [initial])
+    equal(editor.canUndo, false)
   })
 }
 await run()

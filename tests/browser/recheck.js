@@ -1,3 +1,4 @@
+import { register as patternCaret } from './regressions/recheck-57-pattern-caret.js'
 import { register as nativeCut } from './regressions/recheck-56-native-cut.js'
 import { register as exportFailure } from './regressions/recheck-55-export-failure.js'
 import { register as atomicEmptiness } from './regressions/recheck-54-atomic-emptiness.js'
@@ -111,4 +112,5 @@ atomicTagFormatting()
 atomicEmptiness()
 exportFailure()
 nativeCut()
+patternCaret()
 await run()

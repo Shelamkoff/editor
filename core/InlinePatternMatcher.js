@@ -165,13 +165,25 @@ export class InlinePatternMatcher {
     }
     if (matchesByBlock.size === 0) return
 
+    const selection = window.getSelection()
+    const caret = selection?.rangeCount ? selection.getRangeAt(0).cloneRange() : null
+    const backward = caret && !caret.collapsed && selection.anchorNode === caret.endContainer
+      && selection.anchorOffset === caret.endOffset
+
     this.#mutations.runForBlocks(matchesByBlock.keys(), () => {
       for (const [block, matches] of matchesByBlock) {
         for (let index = matches.length - 1; index >= 0; index--) {
           const match = matches[index]
-          if (match) this.#replaceMatch(match.node, match.start, match.end, match.plugin, match.match)
+          if (match) this.#replaceMatch(match.node, match.start, match.end, match.plugin, match.match, false)
         }
         hydrateInlinePlugins(block.contentElement, this.#registry, this.#ctx)
+      }
+      // Reattach the live bookmark after DOM splits. Merely letting its offsets
+      // update can leave the browser's native editing caret at an earlier node.
+      if (caret && this.#rootEl.contains(caret.startContainer) && this.#rootEl.contains(caret.endContainer)) {
+        selection.removeAllRanges()
+        selection.addRange(caret)
+        if (backward) selection.setBaseAndExtent(caret.endContainer, caret.endOffset, caret.startContainer, caret.startOffset)
       }
     })
   }
@@ -231,8 +243,9 @@ export class InlinePatternMatcher {
    * @param {number} end
    * @param {import('./types').InlinePlugin} plugin
    * @param {string} matchText
+   * @param {boolean} [placeCaret=true] Only interactive word completion owns caret placement.
    */
-  #replaceMatch(textNode, start, end, plugin, matchText) {
+  #replaceMatch(textNode, start, end, plugin, matchText, placeCaret = true) {
     const data = plugin.onPatternMatch?.(matchText) ?? { value: matchText }
     const widget = plugin.createWidget(data)
     if (!(widget instanceof HTMLElement)) {
@@ -255,8 +268,10 @@ export class InlinePatternMatcher {
     hydrateInlineWidget(widget, plugin, this.#ctx)
     widget.dataset.hydrated = '1'
 
-    // Place caret after widget
-    const sel = window.getSelection()
+    // Batch paste already positioned the caret at its complete insertion
+    // boundary. Native ranges follow splitText/removal; do not move it to each
+    // earlier match while walking the batch backwards.
+    const sel = placeCaret ? window.getSelection() : null
     if (sel) {
       const range = document.createRange()
       range.setStartAfter(widget)
