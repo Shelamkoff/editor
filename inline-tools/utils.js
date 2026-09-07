@@ -45,6 +45,7 @@ export const ICON_CLEAR = createSvgIcon('<path d="M17 15l4 4m0 -4l-4 4"/><path d
  * @returns {HTMLElement | null}
  */
 function closestInEditable(el, selector) {
+  if (el?.closest('[data-inline-plugin]')) return null
   while (el) {
     if (el.matches(selector)) return el
     if (el.getAttribute('contenteditable') === 'true') return null
@@ -178,6 +179,16 @@ function wrapIfNeeded(content, wrapperTemplate) {
 export function toggleTag(tagName, range, matches = () => true) {
   const sel = window.getSelection()
   if (!sel || !range) return
+  // Widget markup belongs to its plugin, not to author text formatting.
+  // A range may contain an entire widget but must not edit its internals.
+  for (const endpoint of [range.startContainer, range.endContainer]) {
+    const element = endpoint.nodeType === Node.ELEMENT_NODE
+      ? /** @type {Element} */ (endpoint) : endpoint.parentElement
+    if (element?.closest('[data-inline-plugin]')) return
+  }
+  const canChange = (/** @type {HTMLElement} */ element) => (
+    !element.closest('[data-inline-plugin]') && matches(element)
+  )
 
   const parent = range.commonAncestorContainer
   const container = parent.nodeType === Node.ELEMENT_NODE
@@ -186,7 +197,7 @@ export function toggleTag(tagName, range, matches = () => true) {
 
   // Case 1: Selection is entirely INSIDE an existing tag — unwrap
   let ancestor = closestInEditable(container, tagName)
-  while (ancestor && !matches(ancestor)) {
+  while (ancestor && !canChange(ancestor)) {
     ancestor = closestInEditable(ancestor.parentElement, tagName)
   }
   if (ancestor) {
@@ -302,7 +313,7 @@ export function toggleTag(tagName, range, matches = () => true) {
     const descendants = container.querySelectorAll(tagName)
     const toUnwrap = []
     for (const el of descendants) {
-      if (range.intersectsNode(el) && matches(/** @type {HTMLElement} */ (el))) {
+      if (range.intersectsNode(el) && canChange(/** @type {HTMLElement} */ (el))) {
         toUnwrap.push(el)
       }
     }

@@ -1,3 +1,4 @@
+import { register as atomicTagFormatting } from './regressions/recheck-53-atomic-tag-formatting.js'
 import { register as caseContext } from './regressions/recheck-52-case-context.js'
 import { register as caseWidgetLabels } from './regressions/recheck-51-case-widget-labels.js'
 import { register as nativeFilePaste } from './regressions/recheck-49-native-file-paste.js'
@@ -103,4 +104,5 @@ atomicLinks()
 nativeFilePaste()
 caseWidgetLabels()
 caseContext()
+atomicTagFormatting()
 await run()
