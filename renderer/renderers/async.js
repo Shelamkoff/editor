@@ -52,7 +52,7 @@ export function getAsyncRendererTypes() {
  */
 export async function loadRendererFactory(type) {
   const loader = rendererLoaders[/** @type {import('../types').BlockType} */ (type)]
-  if (!loader) throw new RangeError(`Unknown editor renderer type: ${type}`)
+  if (!Object.hasOwn(rendererLoaders, type)) throw new RangeError(`Unknown editor renderer type: ${type}`)
   return loader()
 }
 
