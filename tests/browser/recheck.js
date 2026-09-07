@@ -1,3 +1,4 @@
+import { register as nativeCut } from './regressions/recheck-56-native-cut.js'
 import { register as exportFailure } from './regressions/recheck-55-export-failure.js'
 import { register as atomicEmptiness } from './regressions/recheck-54-atomic-emptiness.js'
 import { register as atomicTagFormatting } from './regressions/recheck-53-atomic-tag-formatting.js'
@@ -109,4 +110,5 @@ caseContext()
 atomicTagFormatting()
 atomicEmptiness()
 exportFailure()
+nativeCut()
 await run()

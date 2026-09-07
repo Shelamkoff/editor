@@ -1,3 +1,4 @@
+import { crossRange } from './regressions/recheck-56-native-cut.js'
 import { Paragraph, Table } from '../../plugins/index.js'
 import { test, make, para, select, pause, assert, equal, texts, run } from './regressions/harness.js'
 import { selectAcross } from './regressions/cross-input-fixture.js'
@@ -85,4 +86,21 @@ test('native typing replaces all characters produced by Unicode case expansion',
   editor.undo(); equal(texts(editor), ['aßb'])
 })
 
+for (const backwards of [false, true]) {
+  test(`native Ctrl+X cuts the full ${backwards ? 'backward' : 'forward'} cross-host Range`, async () => {
+    const editor = make([para('a', 'Alpha'), para('b', 'Bravo')])
+    const first = editor.blocks.getBlockById('a').contentElement
+    crossRange(first, editor.blocks.getBlockById('b').contentElement, backwards)
+    let cuts = 0
+    editor.rootElement.addEventListener('cut', () => { cuts++ }, { once: true })
+    const params = { key: 'x', code: 'KeyX', windowsVirtualKeyCode: 88, modifiers: 2 }
+    await window.__testInput('Input.dispatchKeyEvent', { type: 'rawKeyDown', ...params })
+    await window.__testInput('Input.dispatchKeyEvent', { type: 'keyUp', ...params })
+    equal(cuts, 1, 'native clipboard event is delivered')
+    equal(texts(editor), ['Alvo'])
+    editor.undo(); equal(texts(editor), ['Alpha', 'Bravo'])
+    equal(editor.canUndo, false)
+    editor.redo(); equal(texts(editor), ['Alvo'])
+  })
+}
 await run()

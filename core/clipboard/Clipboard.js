@@ -369,12 +369,28 @@ export class Clipboard {
     }
   }
 
+  /** Resolve text selection for both native Copy and Cut events. Explicit
+   * whole-block selection keeps priority over a leftover native range.
+   * @returns {Range | null}
+   */
+  #copyRange() {
+    const stored = this.#crossBlockSelection.range
+    if (!stored && this.#blocks.hasSelectedBlocks()) return null
+    const selection = window.getSelection()
+    const range = stored ?? (selection?.rangeCount ? selection.getRangeAt(0) : null)
+    if (!range || range.collapsed || !this.#rootEl.contains(range.startContainer)
+        || !this.#rootEl.contains(range.endContainer)) return null
+    const first = this.#blocks.getBlockByChildNode(range.startContainer)
+    const last = this.#blocks.getBlockByChildNode(range.endContainer)
+    return first && last && first !== last ? range : null
+  }
+
   // ── Copy ────────────────────────────────────────────────────────────────────
 
   /** @param {ClipboardEvent} e */
   #handleCopy(e) {
     this.#clipboardOperation++
-    const crossRange = this.#crossBlockSelection.range
+    const crossRange = this.#copyRange()
     if (crossRange) {
       e.preventDefault()
       if (!e.clipboardData) return false
@@ -409,7 +425,7 @@ export class Clipboard {
     if (!this.#handleCopy(e)) return
 
     const blocks = this.#blocks
-    const crossRange = this.#crossBlockSelection.range
+    const crossRange = this.#copyRange()
     if (crossRange) {
       this.#crossEditor.deleteContent(crossRange, (...blocks) => this.#notifyChanged(...blocks))
       return
