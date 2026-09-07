@@ -1,3 +1,4 @@
+import { register as scriptRange } from './regressions/recheck-43-script-range.js'
 import { register as fontSizeRange } from './regressions/recheck-42-font-size-range.js'
 import { register as popupOwner } from './regressions/recheck-41-popup-owner.js'
 import { register as nativeDelete } from './regressions/recheck-40-native-delete.js'
@@ -83,4 +84,5 @@ remainderWidgets()
 nativeDelete()
 popupOwner()
 fontSizeRange()
+scriptRange()
 await run()

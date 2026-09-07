@@ -1,3 +1,4 @@
+import { editSelectedAncestors } from './selectedAncestors.js'
 import {
   toggleTag,
   removeEmptyInlineTags,
@@ -27,7 +28,7 @@ function getCurrentScript() {
 }
 
 /**
- * Remove all <sup> and <sub> tags that intersect the range by unwrapping them.
+ * Remove script wrappers only around the selected portion of each text node.
  * Walks up to the contenteditable to ensure we find wrapping tags.
  * @param {Range} range
  */
@@ -38,17 +39,9 @@ function removeAllScriptTags(range) {
   const root = getWalkRoot(range)
   if (!root) return
 
-  const tags = []
-  if (root.matches('sup, sub')) tags.push(root)
-  tags.push(...root.querySelectorAll('sup, sub'))
-  for (const tag of tags) {
-    if (!range.intersectsNode(tag)) continue
-    if (tag.closest('[data-inline-plugin]')) continue
-    const parent = tag.parentNode
-    if (!parent) continue
-    while (tag.firstChild) parent.insertBefore(tag.firstChild, tag)
-    tag.remove()
-  }
+  editSelectedAncestors(range, element => element.matches('sup, sub'), element => {
+    element.replaceWith(...element.childNodes)
+  })
 
   // Clean up empty inline tags and normalize
   removeEmptyInlineTags(root)
@@ -139,6 +132,9 @@ export function createScriptTool(labels, cbs = null) {
           })
 
           ctx.close()
+          // Closing the actions panel may restore its pre-mutation Range.
+          // Reapply the logical bookmark after that stale DOM reference.
+          restoreSelectionOffsets(cbs, saved)
         })
         panel.appendChild(btn)
       }
