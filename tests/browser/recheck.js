@@ -1,3 +1,4 @@
+import { register as nativeDelete } from './regressions/recheck-40-native-delete.js'
 import { register as remainderWidgets } from './regressions/recheck-39-remainder-widgets.js'
 import { register as widgetCleanup } from './regressions/recheck-38-widget-cleanup.js'
 import { register as formatLinebreaks } from './regressions/recheck-37-format-linebreaks.js'
@@ -77,4 +78,5 @@ rendererStyles()
 formatLinebreaks()
 widgetCleanup()
 remainderWidgets()
+nativeDelete()
 await run()

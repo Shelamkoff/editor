@@ -251,9 +251,10 @@ export class Clipboard {
    * @param {InputEvent} event
    */
   #onBeforeInput = (event) => {
-    if (event.defaultPrevented || !event.cancelable || event.isComposing
-        || typeof event.data !== 'string' || this.#isUIActive?.()) return
-    if (event.inputType !== 'insertText' && event.inputType !== 'insertReplacementText') return
+    if (event.defaultPrevented || !event.cancelable || event.isComposing || this.#isUIActive?.()) return
+    const deleting = event.inputType === 'deleteContentBackward' || event.inputType === 'deleteContentForward'
+    if (!deleting && (typeof event.data !== 'string'
+        || (event.inputType !== 'insertText' && event.inputType !== 'insertReplacementText'))) return
     const target = event.target
     if (!(target instanceof HTMLElement) || !target.isContentEditable
         || !target.closest(BLOCK_SELECTOR) || target.closest('input, textarea, select')) return
@@ -270,6 +271,10 @@ export class Clipboard {
     // only the deletion applied, and input.data is text, never trusted markup.
     event.preventDefault()
     event.stopPropagation()
+    if (deleting) {
+      this.#crossEditor.deleteContent(range, (...blocks) => this.#notifyChanged(...blocks))
+      return
+    }
     this.#commands.execute({ name: 'selection.replaceText', apply: () => {
       if (!this.#crossEditor.deleteContent(range, (...blocks) => this.#notifyChanged(...blocks))) return
       const caret = selection.getRangeAt(0)
@@ -298,7 +303,7 @@ export class Clipboard {
     if (target.closest?.('input, textarea, select')) return
     let crossRange = this.#crossBlockSelection.range
     const insertParagraph = e.key === 'Enter' && !e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey
-    if (insertParagraph && !crossRange) {
+    if ((insertParagraph || e.key === 'Backspace' || e.key === 'Delete') && !crossRange) {
       const native = window.getSelection()
       const range = native?.rangeCount ? native.getRangeAt(0) : null
       if (range && !range.collapsed

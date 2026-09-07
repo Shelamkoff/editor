@@ -51,4 +51,24 @@ for (const empty of [false, true]) {
   })
 }
 
+for (const key of ['Backspace', 'Delete']) {
+  test(`native ${key} deletes a DOM Range spanning multiple editable hosts`, async () => {
+    const editor = make([para('a', 'Alpha'), para('b', 'Bravo')])
+    const first = editor.blocks.getBlockById('a').contentElement
+    const last = editor.blocks.getBlockById('b').contentElement
+    first.focus()
+    const range = document.createRange(); range.setStart(first.firstChild, 2); range.setEnd(last.firstChild, 3)
+    const selection = window.getSelection(); selection.removeAllRanges(); selection.addRange(range)
+    equal(selection.getRangeAt(0).toString(), 'phaBra')
+    const params = { key, code: key, windowsVirtualKeyCode: key === 'Backspace' ? 8 : 46 }
+    await window.__testInput('Input.dispatchKeyEvent', { type: 'rawKeyDown', ...params })
+    await window.__testInput('Input.dispatchKeyEvent', { type: 'keyUp', ...params })
+    equal(texts(editor), ['Alvo'])
+    await window.__testInput('Input.insertText', { text: 'X' })
+    equal(texts(editor), ['AlXvo'])
+    editor.undo(); equal(texts(editor), ['Alvo'])
+    editor.undo(); equal(texts(editor), ['Alpha', 'Bravo'])
+  })
+}
+
 await run()
