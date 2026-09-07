@@ -1,3 +1,4 @@
+import { register as harnessEquality } from './regressions/recheck-46-harness-equality.js'
 import { register as caseExpansion } from './regressions/recheck-45-case-expansion.js'
 import { register as backgroundRange } from './regressions/recheck-44-background-range.js'
 import { register as scriptRange } from './regressions/recheck-43-script-range.js'
@@ -89,4 +90,5 @@ fontSizeRange()
 scriptRange()
 backgroundRange()
 caseExpansion()
+harnessEquality()
 await run()

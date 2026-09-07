@@ -1,3 +1,4 @@
+import { deepEqual, describe } from './deepEqual.js'
 import { createEditor } from '../../../core/index.js'
 import { Paragraph } from '../../../plugins/paragraph/index.js'
 
@@ -17,7 +18,7 @@ export const para = (id, text, extra = {}) => ({ id, type: 'paragraph', data: { 
 export function test(name, run) { cases.push({ name, run }) }
 export function assert(value, message = 'Assertion failed') { if (!value) throw new Error(message) }
 export function equal(actual, expected, message = '') {
-  assert(JSON.stringify(actual) === JSON.stringify(expected), `${message}\nexpected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`)
+  if (!deepEqual(actual, expected)) throw new Error(`${message}\nexpected ${describe(expected)}, got ${describe(actual)}`)
 }
 export function make(blocks = [para('a', 'A')], options = {}) {
   const holder = document.createElement('section')
