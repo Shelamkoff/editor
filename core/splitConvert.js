@@ -95,18 +95,17 @@ export function splitAndConvert(blocks, selection, currentIndex, currentType, co
       selection.setCaretToBlock(converted.id, 'start')
       converted.focus()
     }
-  } else if (!afterHtml) {
-    contentEl.innerHTML = beforeHtml
-    currentBlock?.markDirty()
-    const newBlock = blocks.insert(targetType, mergedData, currentIndex + 1, undefined, metadata?.inline, metadata?.tunes)
-    blocks.setCurrentIndex(currentIndex + 1)
-    selection.setCaretToBlock(newBlock.id, 'start')
-    newBlock.focus()
   } else {
-    contentEl.innerHTML = beforeHtml
-    currentBlock?.markDirty()
+    // Keep existing prefix nodes: widgets own listeners, not just markup.
+    const remainder = document.createRange()
+    remainder.selectNodeContents(contentEl)
+    remainder.setStart(range.startContainer, range.startOffset)
+    remainder.deleteContents()
+    currentBlock.markDirty()
     const newBlock = blocks.insert(targetType, mergedData, currentIndex + 1, undefined, metadata?.inline, metadata?.tunes)
-    blocks.insert(currentType, { ...metadata?.data, text: afterHtml }, currentIndex + 2, undefined, metadata?.inline, metadata?.tunes)
+    if (afterHtml) {
+      blocks.insert(currentType, { ...metadata?.data, text: afterHtml }, currentIndex + 2, undefined, metadata?.inline, metadata?.tunes)
+    }
     blocks.setCurrentIndex(currentIndex + 1)
     selection.setCaretToBlock(newBlock.id, 'start')
     newBlock.focus()

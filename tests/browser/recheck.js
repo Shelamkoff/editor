@@ -1,3 +1,4 @@
+import { register as remainderWidgets } from './regressions/recheck-39-remainder-widgets.js'
 import { register as widgetCleanup } from './regressions/recheck-38-widget-cleanup.js'
 import { register as formatLinebreaks } from './regressions/recheck-37-format-linebreaks.js'
 import { register as rendererStyles } from './regressions/recheck-36-renderer-style-ownership.js'
@@ -75,4 +76,5 @@ edgeFieldFocus()
 rendererStyles()
 formatLinebreaks()
 widgetCleanup()
+remainderWidgets()
 await run()
