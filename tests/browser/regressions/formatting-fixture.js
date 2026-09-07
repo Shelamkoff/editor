@@ -27,3 +27,25 @@ export async function sizeAction(editor, value) {
   const button = editor.rootElement.querySelector(value === 'reset' ? '.oe-font-size-reset' : `[data-size="${value}"]`)
   assert(button, `missing font-size action ${value}`); button.click(); await pause()
 }
+export async function backgroundAction(editor, remove = false) {
+  await openTool(editor, 'bgcolor')
+  const picker = editor.rootElement.querySelector('.oe-color-dropdown')
+  assert(picker, 'missing built-in ColorPicker')
+  if (remove) picker.querySelector('.oe-color-btn--remove').click()
+  else {
+    const input = picker.querySelector('.oe-color-hex')
+    input.value = '#00ff00'
+    input.dispatchEvent(new Event('input', { bubbles: true }))
+    input.dispatchEvent(new Event('change', { bubbles: true }))
+    picker.querySelector('.oe-color-btn--apply').click()
+  }
+  await pause()
+}
+export function backgroundAt(element) {
+  const host = element.closest('[contenteditable="true"]')
+  while (element && element !== host) {
+    if (element.style.backgroundColor) return element.style.backgroundColor
+    element = element.parentElement
+  }
+  return 'none'
+}

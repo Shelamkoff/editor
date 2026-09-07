@@ -1,3 +1,4 @@
+import { register as backgroundRange } from './regressions/recheck-44-background-range.js'
 import { register as scriptRange } from './regressions/recheck-43-script-range.js'
 import { register as fontSizeRange } from './regressions/recheck-42-font-size-range.js'
 import { register as popupOwner } from './regressions/recheck-41-popup-owner.js'
@@ -85,4 +86,5 @@ nativeDelete()
 popupOwner()
 fontSizeRange()
 scriptRange()
+backgroundRange()
 await run()

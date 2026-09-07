@@ -1,3 +1,4 @@
+import { editSelectedAncestors } from './selectedAncestors.js'
 import {
   getContentEditable,
   getWalkRoot,
@@ -157,7 +158,8 @@ export function createBgColorTool(label, cbs = null) {
           if (startOffset > 0) targetNode = /** @type {Text} */ (node.splitText(startOffset))
 
           const parentEl = targetNode.parentElement
-          if (parentEl?.tagName === 'SPAN' && parentEl.style.backgroundColor) {
+          if (parentEl?.tagName === 'SPAN' && parentEl.style.backgroundColor
+              && parentEl.childNodes.length === 1 && parentEl.firstChild === targetNode) {
             parentEl.style.backgroundColor = color
           } else {
             const wrapper = document.createElement('span')
@@ -181,20 +183,14 @@ export function createBgColorTool(label, cbs = null) {
 
     mutate(ctx.range, () => {
       if (ctx.walkRoot) {
-        const spans = Array.from(ctx.walkRoot.querySelectorAll('span'))
-        for (const span of spans) {
-          if (!span.style.backgroundColor || !ctx.range.intersectsNode(span)) continue
-          if (span.style.length > 1) {
+        editSelectedAncestors(ctx.range,
+          span => span.tagName === 'SPAN' && !!span.style.backgroundColor,
+          span => {
             span.style.removeProperty('background-color')
-            if (!span.getAttribute('style') && !span.getAttribute('class')) {
-              while (span.firstChild) span.parentNode?.insertBefore(span.firstChild, span)
-              span.remove()
-            }
-          } else {
-            while (span.firstChild) span.parentNode?.insertBefore(span.firstChild, span)
-            span.remove()
-          }
-        }
+            if (span.style.length === 0) span.removeAttribute('style')
+            if (span.attributes.length === 0) span.replaceWith(...span.childNodes)
+          },
+        )
         normalizeAfterEdit(ctx.singleCe, ctx.walkRoot)
       }
     })
