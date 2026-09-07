@@ -433,16 +433,11 @@ export class BlockManager {
       throw new Error(`[BlockManager] Unknown block type: "${newType}"`)
     }
 
-    // Extract transferable data from old block
-    let oldData
-    try {
-      oldData = block.plugin.exportData
-        ? block.plugin.exportData(block.contentElement)
-        : block.save().data
-    } catch (err) {
-      console.warn(`[BlockManager] Failed to export data from ${block.type}:`, err)
-      oldData = {}
-    }
+    // Export is a prerequisite, not a best-effort hint. Never replace the
+    // source with empty data when its plugin cannot transfer the content.
+    const oldData = block.plugin.exportData
+      ? block.plugin.exportData(block.contentElement)
+      : block.save().data
 
     const metadata = block.save()
     const newData = { ...oldData, ...extraData }

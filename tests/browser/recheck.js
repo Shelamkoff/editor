@@ -1,3 +1,4 @@
+import { register as exportFailure } from './regressions/recheck-55-export-failure.js'
 import { register as atomicEmptiness } from './regressions/recheck-54-atomic-emptiness.js'
 import { register as atomicTagFormatting } from './regressions/recheck-53-atomic-tag-formatting.js'
 import { register as caseContext } from './regressions/recheck-52-case-context.js'
@@ -107,4 +108,5 @@ caseWidgetLabels()
 caseContext()
 atomicTagFormatting()
 atomicEmptiness()
+exportFailure()
 await run()
