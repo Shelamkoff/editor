@@ -20,7 +20,9 @@ import { extractBlockElements } from './pasteUtils.js'
  * @param {InsertContext} ctx
  */
 export function pastePlainText(text, ctx) {
-  const lines = text.split(/\n/)
+  // Treat CRLF as one boundary and standalone CR as a newline, before
+  // applying the existing policy of omitting empty lines.
+  const lines = text.split(/\r\n?|\n/)
   const nonEmpty = lines.filter((line) => line.length > 0)
   if (nonEmpty.length === 0) return
   // Keep the original target before a multi-block paste moves current/focus

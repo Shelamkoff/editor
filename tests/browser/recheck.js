@@ -1,3 +1,4 @@
+import { register as pasteLineEndings } from './regressions/recheck-58-paste-line-endings.js'
 import { register as patternCaret } from './regressions/recheck-57-pattern-caret.js'
 import { register as nativeCut } from './regressions/recheck-56-native-cut.js'
 import { register as exportFailure } from './regressions/recheck-55-export-failure.js'
@@ -113,4 +114,5 @@ atomicEmptiness()
 exportFailure()
 nativeCut()
 patternCaret()
+pasteLineEndings()
 await run()
