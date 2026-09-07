@@ -243,10 +243,14 @@ export class Block {
 
   /**
    * Check if the block content is empty.
-   * Delegates to plugin.isEmpty() if defined, else checks textContent.
+   * Atomic inline widgets are content even when their plugin renders no text.
+   * Otherwise delegates to plugin.isEmpty() or checks textContent.
    * @returns {boolean}
    */
   isEmpty() {
+    // Core owns inline payloads; a text-only plugin emptiness check must not
+    // authorize discarding them during merge, replacement or file paste.
+    if (this.#contentElement.querySelector('[data-inline-plugin]')) return false
     if (typeof this.#plugin.isEmpty === 'function') {
       return this.#plugin.isEmpty(this.#contentElement)
     }
