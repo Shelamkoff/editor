@@ -211,6 +211,15 @@ export class Block {
     for (const node of this.#contentElement.querySelectorAll('[data-inline-plugin][data-id]')) {
       occupied.add(node.getAttribute('data-id'))
     }
+    // A literal token already authored in the recipient must stay literal.
+    // Reserve only text nodes, not attributes or widget-owned labels, using
+    // the same token boundaries as the serializer.
+    const walker = document.createTreeWalker(this.#contentElement, NodeFilter.SHOW_TEXT)
+    while (walker.nextNode()) {
+      const node = walker.currentNode
+      if (node.parentElement?.closest('[data-inline-plugin]')) continue
+      for (const [, id] of (node.textContent || '').matchAll(/\{\{([A-Za-z0-9_-]+)\}\}/g)) occupied.add(id)
+    }
     const result = transferInlineContent(html, inline, occupied)
     if (Object.keys(result.inline).length) {
       this.#preservedInline = { ...this.#preservedInline, ...result.inline }
