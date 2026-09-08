@@ -16,11 +16,37 @@ export const FRAGMENT_MIME = 'application/x-rector-fragment'
 export function rangeClipboardContent(range, blocks, registry) {
   const template = document.createElement('template')
   template.content.appendChild(range.cloneContents())
-  const result = { text: range.toString(), html: template.innerHTML }
   const canonical = new Map(blocks.map(block => [block.id, block]))
-  const copies = [...template.content.querySelectorAll('.oe-block[data-block-id]')]
-    .filter(node => !node.closest('[data-inline-plugin]'))
-  let needsMetadata = false
+  // cloneContents() inside one field contains no block wrapper. Resolve its
+  // canonical owner from the live endpoints instead of looking in the clone.
+  const owner = node => (node.nodeType === Node.ELEMENT_NODE ? node : node.parentElement)
+    ?.closest('.oe-block[data-block-id]')
+  const start = owner(range.startContainer)
+  const singleSource = start && start === owner(range.endContainer)
+    ? canonical.get(start.getAttribute('data-block-id')) : null
+  if (singleSource) {
+    // A Range wholly inside <b>, <a> or a styled span clones only its children.
+    // Keep author formatting up to (but not including) the editing host.
+    let ancestor = range.commonAncestorContainer.nodeType === Node.ELEMENT_NODE
+      ? /** @type {Element} */ (range.commonAncestorContainer)
+      : range.commonAncestorContainer.parentElement
+    const field = ancestor?.closest('[contenteditable]')
+    while (ancestor && ancestor !== field && start.contains(ancestor)) {
+      const wrapper = ancestor.cloneNode(false)
+      wrapper.appendChild(template.content)
+      template.content.appendChild(wrapper)
+      ancestor = ancestor.parentElement
+    }
+  }
+  const result = { text: range.toString(), html: template.innerHTML }
+  const copies = singleSource
+    ? [{ copy: template, source: singleSource }]
+    : [...template.content.querySelectorAll('.oe-block[data-block-id]')]
+      .filter(node => !node.closest('[data-inline-plugin]'))
+      .map(copy => ({ copy, source: canonical.get(copy.getAttribute('data-block-id')) }))
+  // Native clipboard can omit a known, user-select:none widget as well.
+  // For single-field copies carry its payload rather than trusting native HTML.
+  let needsMetadata = !!singleSource && !!template.content.querySelector('[data-inline-plugin]')
   // Reserve all literal tokens as well, so a copied reference cannot give an
   // unrelated user-typed lookalike (in another block) an unintended payload.
   const occupied = new Set()
@@ -29,7 +55,7 @@ export function rangeClipboardContent(range, blocks, registry) {
     const node = walker.currentNode
     if (node.parentElement?.closest('[data-inline-plugin]')) continue
     const blockId = node.parentElement?.closest('.oe-block[data-block-id]')?.getAttribute('data-block-id')
-    const inline = canonical.get(blockId)?.inline
+    const inline = (singleSource ?? canonical.get(blockId))?.inline
     for (const [, id] of (node.textContent || '').matchAll(/\{\{([A-Za-z0-9_-]+)\}\}/g)) {
       occupied.add(id)
       if (inline && Object.hasOwn(inline, id)) needsMetadata = true
@@ -38,8 +64,7 @@ export function rangeClipboardContent(range, blocks, registry) {
   if (!needsMetadata) return result
 
   const entries = []
-  for (const copy of copies) {
-    const source = canonical.get(copy.getAttribute('data-block-id'))
+  for (const { copy, source } of copies) {
     if (!source) continue
     // Known widgets become portable tokens as well: the receiving editor may
     // register a different set of plugins than the source editor.

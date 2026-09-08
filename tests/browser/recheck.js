@@ -1,3 +1,4 @@
+import { register as singleFieldClipboard } from './regressions/recheck-65-single-field-clipboard.js'
 import { register as literalCollisions } from './regressions/recheck-64-literal-inline-collisions.js'
 import { register as fragmentInline } from './regressions/recheck-61-fragment-inline.js'
 import { register as nestedPaste } from './regressions/recheck-63-nested-editing-host.js'
@@ -127,4 +128,5 @@ emptyPaste()
 nestedPaste()
 fragmentInline()
 literalCollisions()
+singleFieldClipboard()
 await run()

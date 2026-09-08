@@ -1,5 +1,5 @@
 import { FRAGMENT_MIME, rangeClipboardContent, parseClipboardFragment } from './rangeClipboard.js'
-import { editableAtBoundary } from '../editableFields.js'
+import { editableAtBoundary, editableRange } from '../editableFields.js'
 import { blockClipboardHtml } from './clipboardHtml.js'
 import { captureFilePasteTarget } from './filePasteTarget.js'
 import { capturePasteSelection } from './pasteSelection.js'
@@ -374,19 +374,35 @@ export class Clipboard {
         || !this.#rootEl.contains(range.endContainer)) return null
     const first = this.#blocks.getBlockByChildNode(range.startContainer)
     const last = this.#blocks.getBlockByChildNode(range.endContainer)
-    return first && last && first !== last ? range : null
+    if (!first || !last) return null
+    return first !== last || editableRange(first.contentElement, range) ? range : null
   }
 
   // ── Copy ────────────────────────────────────────────────────────────────────
 
   /** @param {ClipboardEvent} e */
   #handleCopy(e) {
+    // Inputs may retain an unrelated document Range while owning their own
+    // native selection. Never copy or cut that stale editor selection.
+    if (e.target instanceof Element && e.target.closest('input, textarea, select')) return false
     this.#clipboardOperation++
     const crossRange = this.#copyRange()
     if (crossRange) {
+      let content
+      try {
+        content = rangeClipboardContent(crossRange, this.#captureSnapshot().blocks, this.#inlinePluginRegistry)
+      } catch (error) {
+        e.preventDefault()
+        throw error
+      }
+      const first = this.#blocks.getBlockByChildNode(crossRange.startContainer)
+      const last = this.#blocks.getBlockByChildNode(crossRange.endContainer)
+      // Plain single-field selections keep native clipboard semantics. Take
+      // ownership only when native transfer would omit widget data.
+      if (first === last && !content.fragment) return false
       e.preventDefault()
       if (!e.clipboardData) return false
-      const { text, html, fragment } = rangeClipboardContent(crossRange, this.#captureSnapshot().blocks, this.#inlinePluginRegistry)
+      const { text, html, fragment } = content
       e.clipboardData.setData('text/plain', text)
       e.clipboardData.setData('text/html', html)
       if (fragment) {
@@ -423,7 +439,24 @@ export class Clipboard {
     const blocks = this.#blocks
     const crossRange = this.#copyRange()
     if (crossRange) {
-      this.#crossEditor.deleteContent(crossRange, (...blocks) => this.#notifyChanged(...blocks))
+      const first = blocks.getBlockByChildNode(crossRange.startContainer)
+      const last = blocks.getBlockByChildNode(crossRange.endContainer)
+      if (first === last) {
+        const field = first && editableRange(first.contentElement, crossRange)
+        if (!field) return
+        this.#commands.runForBlocks([first], () => {
+          crossRange.deleteContents()
+          crossRange.collapse(true)
+          blocks.setCurrentIndex(blocks.getBlockIndex(first.id))
+          field.focus()
+          const selection = window.getSelection()
+          selection?.removeAllRanges()
+          selection?.addRange(crossRange)
+          this.#notifyChanged(first)
+        })
+      } else {
+        this.#crossEditor.deleteContent(crossRange, (...blocks) => this.#notifyChanged(...blocks))
+      }
       return
     }
 

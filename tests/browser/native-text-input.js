@@ -1,3 +1,4 @@
+import { registerNative as singleFieldClipboardNative } from './regressions/recheck-65-single-field-clipboard.js'
 import { registerNative as fragmentInlineNative } from './regressions/recheck-61-fragment-inline.js'
 import { registerNative as nestedPasteNative } from './regressions/recheck-63-nested-editing-host.js'
 import { registerNative as emptyPasteNative } from './regressions/recheck-62-empty-paste.js'
@@ -131,4 +132,5 @@ tableBreakNative()
 emptyPasteNative()
 nestedPasteNative()
 fragmentInlineNative()
+singleFieldClipboardNative()
 await run()
