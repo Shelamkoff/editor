@@ -124,7 +124,7 @@ function openColorPicker(widget, ctx) {
       ctx.hidePopup()
     },
     onChange(cssColor) {
-      updateWidget(widget, cssColor)
+      updateWidget(widget, (parseColorInput(cssColor)?.a ?? 1) < 1 ? cssColor : normalizeToHex6(cssColor))
     },
     onFormatChange(formatted) {
       updateWidgetLabel(widget, formatted)
