@@ -73,6 +73,7 @@ export function createDefaultRenderers(classPrefix, locale, types = getSupported
   const renderers = new Map()
 
   for (const type of new Set(types)) {
+    if (!Object.hasOwn(rendererFactories, type)) continue
     const factory = rendererFactories[type]
     if (!factory) continue
     renderers.set(type, factory(classPrefix, locale, configs[type]))
@@ -91,6 +92,7 @@ export function createDefaultRenderers(classPrefix, locale, types = getSupported
  * @returns {import('../types').BlockRenderer<T> | null}
  */
 export function createRenderer(type, classPrefix, locale, config) {
+  if (!Object.hasOwn(rendererFactories, type)) return null
   const factory = rendererFactories[/** @type {import('../types').BlockType} */ (type)]
 
   if (!factory) {
