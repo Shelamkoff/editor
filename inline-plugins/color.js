@@ -1,4 +1,4 @@
-import { ColorPicker, colorPickerStylesUrl } from '@shelamkoff/color-picker'
+import { ColorPicker, colorPickerStylesUrl, parseColorInput } from '@shelamkoff/color-picker'
 import { generateInlineId } from '../shared/inlineMarshal.js'
 import { normalizeTextValue } from '../shared/textFormat.js'
 
@@ -110,20 +110,21 @@ function normalizeToHex6(value) {
  * @param {import('../types').InlinePluginContext} ctx
  */
 function openColorPicker(widget, ctx) {
-  const current = normalizeToHex6(widget.dataset.value || '#000000')
+  // Cancellation restores the exact persisted value, not the picker's display format.
+  const current = widget.dataset.value || '#000000'
   const originalLabel = widget.querySelector('.oe-ip__label')?.textContent ?? current
   let committed = false
 
   const picker = new ColorPicker({
     onApply(cssColor) {
-      const next = normalizeToHex6(cssColor)
+      const next = (parseColorInput(cssColor)?.a ?? 1) < 1 ? cssColor : normalizeToHex6(cssColor)
       restoreWidget(widget, current, originalLabel)
       ctx.mutate(widget, () => updateWidget(widget, next))
       committed = true
       ctx.hidePopup()
     },
     onChange(cssColor) {
-      updateWidget(widget, normalizeToHex6(cssColor))
+      updateWidget(widget, cssColor)
     },
     onFormatChange(formatted) {
       updateWidgetLabel(widget, formatted)
@@ -137,7 +138,7 @@ function openColorPicker(widget, ctx) {
   popupContent.style.position = 'static'
   popupContent.style.transform = 'none'
 
-  picker.open(current, 1)
+  picker.open(parseColorInput(current) ? current : normalizeToHex6(current))
 
   ctx.showPopup(widget, popupContent, () => {
     if (!committed) restoreWidget(widget, current, originalLabel)
