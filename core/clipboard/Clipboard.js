@@ -424,8 +424,9 @@ export class Clipboard {
       const text = selectedBlocks.map((b) => b.contentElement.textContent).join('\n')
       e.clipboardData?.setData('text/plain', text)
       e.clipboardData?.setData('text/html', html)
-      e.clipboardData.setData(MIME_TYPE, JSON.stringify(blocksData))
-      return true
+      const payload = JSON.stringify(blocksData)
+      e.clipboardData.setData(MIME_TYPE, payload)
+      return e.clipboardData.getData(MIME_TYPE) === payload
     }
     return false
   }

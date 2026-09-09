@@ -1,3 +1,4 @@
+import { register as blockCutWrite } from './regressions/recheck-66-block-cut-write.js'
 import { register as singleFieldClipboard } from './regressions/recheck-65-single-field-clipboard.js'
 import { register as literalCollisions } from './regressions/recheck-64-literal-inline-collisions.js'
 import { register as fragmentInline } from './regressions/recheck-61-fragment-inline.js'
@@ -129,4 +130,5 @@ nestedPaste()
 fragmentInline()
 literalCollisions()
 singleFieldClipboard()
+blockCutWrite()
 await run()
