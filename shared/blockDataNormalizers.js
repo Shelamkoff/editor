@@ -111,7 +111,7 @@ export function normalizeKnownBlockData(type, input) {
       }
     }
     case 'columns': {
-      const layout = typeof source.layout === 'string' && COLUMN_LAYOUT_SIZES[source.layout]
+      const layout = typeof source.layout === 'string' && Object.hasOwn(COLUMN_LAYOUT_SIZES, source.layout)
         ? source.layout
         : '1-1'
       const columns = Array.isArray(source.columns) ? source.columns : []
