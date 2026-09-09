@@ -1,3 +1,4 @@
+import { register as fieldInput } from './regressions/recheck-69-field-input-boundaries.js'
 import { register as softBreak } from './regressions/recheck-68-soft-break.js'
 import { register as colorCancel } from './regressions/recheck-67-color-cancel.js'
 import { register as blockCutWrite } from './regressions/recheck-66-block-cut-write.js'
@@ -135,4 +136,5 @@ singleFieldClipboard()
 blockCutWrite()
 colorCancel()
 softBreak()
+fieldInput()
 await run()

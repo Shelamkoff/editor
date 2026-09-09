@@ -258,7 +258,16 @@ export class Clipboard {
         || !this.#rootEl.contains(range.endContainer)) return
     const first = this.#blocks.getBlockByChildNode(range.startContainer)
     const last = this.#blocks.getBlockByChildNode(range.endContainer)
-    if (!first || !last || first === last) return
+    if (!first || !last) return
+    if (first === last) {
+      // A block may own several independent editing hosts. Native replacement
+      // is clipped to one host, so reject unsupported field-spanning input.
+      if (!editableRange(first.contentElement, range)) {
+        event.preventDefault()
+        event.stopPropagation()
+      }
+      return
+    }
 
     // Deletion and insertion share a checkpoint. A failed save must not leave
     // only the deletion applied, and input.data is text, never trusted markup.
@@ -315,6 +324,12 @@ export class Clipboard {
           && this.#rootEl.contains(range.startContainer) && this.#rootEl.contains(range.endContainer)) {
         const first = this.#blocks.getBlockByChildNode(range.startContainer)
         const last = this.#blocks.getBlockByChildNode(range.endContainer)
+        if ((e.key === 'Backspace' || e.key === 'Delete')
+            && first && first === last && !editableRange(first.contentElement, range)) {
+          e.preventDefault()
+          e.stopPropagation()
+          return
+        }
         if (first && last && first !== last) crossRange = range.cloneRange()
       }
     }
@@ -760,7 +775,7 @@ export class Clipboard {
 
   /**
    * Prepare uploads outside the model, then commit every successful file as
-   * one synchronous history operation.
+   * one synchronous operation at its original target.
    * @param {File[]} files
    * @param {{ crossRange: Range | null, nativeRange?: boolean, selectedIds: string[], anchorBlockId?: string, fallbackIndex: number }} target
    */

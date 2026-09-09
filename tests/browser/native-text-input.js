@@ -1,3 +1,4 @@
+import { registerNative as fieldInputNative } from './regressions/recheck-69-field-input-boundaries.js'
 import { registerNative as softBreakNative } from './regressions/recheck-68-soft-break.js'
 import { registerNative as singleFieldClipboardNative } from './regressions/recheck-65-single-field-clipboard.js'
 import { registerNative as fragmentInlineNative } from './regressions/recheck-61-fragment-inline.js'
@@ -135,4 +136,5 @@ nestedPasteNative()
 fragmentInlineNative()
 singleFieldClipboardNative()
 softBreakNative()
+fieldInputNative()
 await run()
