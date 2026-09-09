@@ -245,7 +245,8 @@ export class Clipboard {
   #onBeforeInput = (event) => {
     if (event.defaultPrevented || !event.cancelable || event.isComposing || this.#isUIActive?.()) return
     const deleting = event.inputType === 'deleteContentBackward' || event.inputType === 'deleteContentForward'
-    if (!deleting && (typeof event.data !== 'string'
+    const lineBreak = event.inputType === 'insertLineBreak'
+    if (!deleting && !lineBreak && (typeof event.data !== 'string'
         || (event.inputType !== 'insertText' && event.inputType !== 'insertReplacementText'))) return
     const target = event.target
     if (!(target instanceof HTMLElement) || !target.isContentEditable
@@ -267,12 +268,23 @@ export class Clipboard {
       this.#crossEditor.deleteContent(range, (...blocks) => this.#notifyChanged(...blocks))
       return
     }
-    this.#commands.execute({ name: 'selection.replaceText', apply: () => {
+    this.#replaceCrossRange(range, lineBreak ? null : event.data)
+  }
+
+  /** Replace a checked cross-block selection as a single history operation.
+   * null denotes a soft break; strings are inserted as text, never markup.
+   * @param {Range} range
+   * @param {string | null} value
+   */
+  #replaceCrossRange(range, value) {
+    const selection = window.getSelection()
+    if (!selection) return
+    this.#commands.execute({ name: value === null ? 'selection.replaceLineBreak' : 'selection.replaceText', apply: () => {
       if (!this.#crossEditor.deleteContent(range, (...blocks) => this.#notifyChanged(...blocks))) return
       const caret = selection.getRangeAt(0)
-      const text = document.createTextNode(event.data)
-      caret.insertNode(text)
-      caret.setStartAfter(text)
+      const node = value === null ? document.createElement('br') : document.createTextNode(value)
+      caret.insertNode(node)
+      caret.setStartAfter(node)
       caret.collapse(true)
       selection.removeAllRanges()
       selection.addRange(caret)
@@ -294,8 +306,9 @@ export class Clipboard {
     // A retained mouse range must not intercept editing in a plugin form.
     if (target.closest?.('input, textarea, select')) return
     let crossRange = this.#crossBlockSelection.range
+    const insertLineBreak = e.key === 'Enter' && e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey
     const insertParagraph = e.key === 'Enter' && !e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey
-    if ((insertParagraph || e.key === 'Backspace' || e.key === 'Delete') && !crossRange) {
+    if ((insertParagraph || insertLineBreak || e.key === 'Backspace' || e.key === 'Delete') && !crossRange) {
       const native = window.getSelection()
       const range = native?.rangeCount ? native.getRangeAt(0) : null
       if (range && !range.collapsed
@@ -306,6 +319,13 @@ export class Clipboard {
       }
     }
     if (!crossRange) return
+
+    if (insertLineBreak) {
+      e.preventDefault()
+      e.stopPropagation()
+      this.#replaceCrossRange(crossRange, null)
+      return
+    }
 
     if (insertParagraph) {
       e.preventDefault()

@@ -1,3 +1,4 @@
+import { registerNative as softBreakNative } from './regressions/recheck-68-soft-break.js'
 import { registerNative as singleFieldClipboardNative } from './regressions/recheck-65-single-field-clipboard.js'
 import { registerNative as fragmentInlineNative } from './regressions/recheck-61-fragment-inline.js'
 import { registerNative as nestedPasteNative } from './regressions/recheck-63-nested-editing-host.js'
@@ -133,4 +134,5 @@ emptyPasteNative()
 nestedPasteNative()
 fragmentInlineNative()
 singleFieldClipboardNative()
+softBreakNative()
 await run()
