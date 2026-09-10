@@ -363,3 +363,25 @@ test('block tunes participate in incremental rendering and apply safe text align
   })
   assert.equal(unsafe.style.textAlign, undefined)
 })
+
+test('custom classPrefix keeps consumer classes while retaining bundled style aliases', async () => {
+  const { EditorRenderer } = await import('./index.js')
+  const renderer = new EditorRenderer({ classPrefix: 'article', blockTypes: ['delimiter'], injectStyles: false })
+  const wrapper = renderer.render({
+    blocks: [{ id: 'd', type: 'delimiter', data: {} }],
+  })
+
+  assert.equal(wrapper.className, 'article-content editor-content')
+  assert.equal(wrapper.children[0].className, 'article-delimiter editor-delimiter')
+
+  const custom = new EditorRenderer({ classPrefix: 'article', blockTypes: [], injectStyles: false })
+  custom.registerRenderer({
+    type: 'custom',
+    render() {
+      const element = document.createElement('article')
+      element.className = 'article-warning'
+      return element
+    },
+  })
+  assert.equal(custom.renderBlock({ type: 'custom', data: {} }).className, 'article-warning')
+})

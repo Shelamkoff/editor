@@ -11,6 +11,7 @@ import { normalizeKnownBlockData } from '../shared/blockDataNormalizers.js'
 import { normalizeTextAlign } from '../shared/textFormat.js'
 
 const baseCssUrl = new URL('./styles/base.css', import.meta.url).href
+const bundledRendererCssRoot = new URL('./renderers/', import.meta.url).href
 
 /**
  * Renders Rector document blocks to DOM elements.
@@ -162,7 +163,7 @@ export class EditorRenderer {
 
       // Return empty div for unknown blocks when not throwing
       const placeholder = document.createElement('div')
-      placeholder.className = `${this.#config.classPrefix}-unknown`
+      placeholder.className = this.#withStableClass(`${this.#config.classPrefix}-unknown`)
       placeholder.dataset.blockType = block.type
       return { element: placeholder, type: block.type }
     }
@@ -200,6 +201,7 @@ export class EditorRenderer {
     if (!(element instanceof HTMLElement)) {
       throw new TypeError(`Block renderer "${block.type}" render() must return an HTMLElement`)
     }
+    this.#addBundledStyleAliases(element, renderer)
 
     const textAlign = normalizeTextAlign(block.tunes?.textAlign)
     if (textAlign) element.style.textAlign = textAlign
@@ -223,8 +225,7 @@ export class EditorRenderer {
     this.#ensureStyles()
     const wrapper = document.createElement('div')
     const theme = this.#config.theme
-    wrapper.className = `${this.#config.classPrefix}-content`
-      + (theme === 'light' ? ` ${this.#config.classPrefix}-content--light` : '')
+    wrapper.className = this.#contentClassName(theme)
 
     /** @type {Array<{ element: HTMLElement, type: string, renderer?: import('./types').BlockRenderer }>} */
     const created = []
@@ -297,8 +298,7 @@ export class EditorRenderer {
     const wrapper = mounted?.wrapper ?? document.createElement('div')
     if (!mounted) {
       const theme = this.#config.theme
-      wrapper.className = this.#config.classPrefix + '-content'
-        + (theme === 'light' ? ' ' + this.#config.classPrefix + '-content--light' : '')
+      wrapper.className = this.#contentClassName(theme)
     }
 
     const previous = mounted?.blocks ?? new Map()
@@ -426,6 +426,54 @@ export class EditorRenderer {
    */
   getClassPrefix() {
     return this.#config.classPrefix
+  }
+
+  /** Keep bundled CSS addressable even when consumers choose a namespace. */
+  #withStableClass(className) {
+    if (this.#config.classPrefix === 'editor') return className
+    const sourcePrefix = this.#config.classPrefix + '-'
+    if (!className.startsWith(sourcePrefix)) return className
+    return className + ' editor-' + className.slice(sourcePrefix.length)
+  }
+
+  /** @param {'dark' | 'light'} theme */
+  #contentClassName(theme) {
+    const prefix = this.#config.classPrefix
+    const classes = [`${prefix}-content`]
+    if (prefix !== 'editor') classes.push('editor-content')
+    if (theme === 'light') {
+      classes.push(`${prefix}-content--light`)
+      if (prefix !== 'editor') classes.push('editor-content--light')
+    }
+    return classes.join(' ')
+  }
+
+  /**
+   * Bundled renderer styles are authored against the stable `editor-` namespace.
+   * Preserve the consumer namespace while adding stable aliases to bundled DOM.
+   * Custom renderers without Rector-owned styles are left untouched.
+   * @param {HTMLElement} root
+   * @param {import('./types').BlockRenderer} renderer
+   */
+  #addBundledStyleAliases(root, renderer) {
+    const prefix = this.#config.classPrefix
+    if (prefix === 'editor' || !renderer.styles?.some(url => typeof url === 'string' && url.startsWith(bundledRendererCssRoot))) return
+
+    const sourcePrefix = prefix + '-'
+    /** @type {Element[]} */
+    const stack = [root]
+    while (stack.length) {
+      const element = stack.pop()
+      if (!element) continue
+      if (typeof element.className === 'string' && element.className) {
+        const classes = element.className.split(/\s+/).filter(Boolean)
+        const aliases = classes
+          .filter(name => name.startsWith(sourcePrefix))
+          .map(name => 'editor-' + name.slice(sourcePrefix.length))
+        if (aliases.length) element.className = [...new Set([...classes, ...aliases])].join(' ')
+      }
+      for (const child of element.children ?? []) stack.push(child)
+    }
   }
 
   /**
