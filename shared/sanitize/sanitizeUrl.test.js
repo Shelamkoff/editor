@@ -76,3 +76,18 @@ test('network URL policies reject embedded credentials', () => {
   assert.equal(sanitizeDownloadUrl('https://user@example.com/file.pdf'), '')
   assert.equal(sanitizeUrl('https://example.com/user@example.com'), 'https://example.com/user@example.com')
 })
+
+test('network URL policies reject credential-bearing backslash authority forms', () => {
+  const variants = [
+    String.raw`\\user:secret@example.com/path`,
+    String.raw`/\user:secret@example.com/path`,
+    String.raw`\/user:secret@example.com/path`,
+  ]
+
+  for (const url of variants) {
+    assert.equal(sanitizeUrl(url), '#')
+    assert.equal(sanitizeExternalUrl(url), '#')
+    assert.equal(sanitizeMediaUrl(url), '')
+    assert.equal(sanitizeDownloadUrl(url), '')
+  }
+})

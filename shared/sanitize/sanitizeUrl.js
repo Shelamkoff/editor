@@ -9,7 +9,7 @@ const SAFE_IMAGE_DATA_RE = /^data:image\/(?:avif|gif|jpeg|png|webp);base64,[a-z0
 /** Reject network URLs that embed credentials in their authority. */
 function hasNetworkCredentials(url) {
   try {
-    const parsed = new URL(url.startsWith('//') ? 'https:' + url : url)
+    const parsed = new URL(/^[\\/]{2}/.test(url) ? 'https:' + url : url)
     return Boolean(parsed.username || parsed.password)
   } catch {
     return true
@@ -54,7 +54,7 @@ export function sanitizeUrl(url, options = {}) {
   if ((policy === 'media' || policy === 'download') && SAFE_IMAGE_DATA_RE.test(stripped)) return stripped
   if (/^data\s*:/i.test(normalized)) return fallback
 
-  if (stripped.startsWith('//')) {
+  if (/^[\\/]{2}/.test(stripped)) {
     if (!allowRelative || hasNetworkCredentials(stripped)) return fallback
     return stripped
   }
