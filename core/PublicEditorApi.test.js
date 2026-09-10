@@ -86,7 +86,7 @@ test('public block moves use final indices and moved events expose final positio
   api.move(1, 1)
   api.move(0, 3)
 
-  assert.deepEqual(moves, [[0, 2], [2, 0]])
+  assert.deepEqual(moves, [[0, 2], [2, 0], [0, 3]])
   assert.throws(() => api.move(0.5, 1), RangeError)
 
   events.emit(EditorEvent.BLOCK_MOVED, { blockId: 'a', from: 0, to: 2 })
