@@ -96,3 +96,21 @@ test('public block moves use final indices and moved events expose final positio
     { blockId: 'a', from: 2, to: 0 },
   ])
 })
+
+test('public focus rejects out-of-range indices before they reach the block manager', () => {
+  const focused = []
+  const blocks = {
+    getBlockCount() { return 2 },
+    setCurrentIndex(index) { focused.push(index) },
+    getSelectedBlocks() { return [] },
+    *[Symbol.iterator]() {},
+  }
+  const api = new EditorBlocksApi(blocks, new EventBus())
+
+  api.setCurrentIndex(1)
+  assert.deepEqual(focused, [1])
+  assert.throws(() => api.setCurrentIndex(-1), /out of range/)
+  assert.throws(() => api.setCurrentIndex(2), /out of range/)
+  assert.throws(() => api.setCurrentIndex(1.5), /safe integer/)
+  assert.deepEqual(focused, [1])
+})

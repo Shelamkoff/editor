@@ -105,7 +105,12 @@ export class EditorBlocksApi {
   hasSelectedBlocks() { return this.#blocks.hasSelectedBlocks() }
 
   /** Focus/navigation state is safe to expose as an explicit command. */
-  setCurrentIndex(index) { this.#blocks.setCurrentIndex(index) }
+  setCurrentIndex(index) {
+    if (!Number.isSafeInteger(index)) throw new RangeError('Block index must be a safe integer')
+    const count = this.#blocks.getBlockCount()
+    if (index < 0 || index >= count) throw new RangeError('Block index is out of range')
+    this.#blocks.setCurrentIndex(index)
+  }
 
   /** @param {string[]} blockIds */
   selectBlocks(blockIds) {
