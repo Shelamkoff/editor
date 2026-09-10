@@ -1,6 +1,8 @@
 import { el } from '../dom.js'
 import { OFFCANVAS_ANIMATION_MS } from '../constants.js'
 
+let offcanvasSequence = 0
+
 /** CSS custom properties copied from the editor root onto the offcanvas wrapper. */
 const INHERITED_CSS_VARS = [
   '--oe-bg', '--oe-card', '--oe-card-hover', '--oe-border', '--oe-border-hover',
@@ -24,6 +26,9 @@ const INHERITED_CSS_VARS = [
 export class OffcanvasRoot {
   /** @type {HTMLElement} */
   #editorRoot
+
+  /** Stable per-instance key used to isolate portalled DOM. */
+  #instanceId = `oe-offcanvas-${++offcanvasSequence}`
 
   /** @type {HTMLElement | null} */
   #backdropEl = null
@@ -53,8 +58,7 @@ export class OffcanvasRoot {
     if (root) return root
 
     root = el('div', 'oe-offcanvas-root oe-editor')
-    const editorId = this.#editorId()
-    if (editorId) root.setAttribute('data-editor-id', editorId)
+    root.setAttribute('data-editor-id', this.#instanceId)
 
     // Copy computed CSS custom properties from the editor so the offcanvas
     // surface visually matches the editor theme.
@@ -115,13 +119,7 @@ export class OffcanvasRoot {
   }
 
   /** @returns {string} */
-  #editorId() {
-    return this.#editorRoot.dataset.editorId || this.#editorRoot.id || ''
-  }
-
-  /** @returns {string} */
   #selector() {
-    const id = this.#editorId()
-    return id ? `.oe-offcanvas-root[data-editor-id="${id}"]` : '.oe-offcanvas-root'
+    return `.oe-offcanvas-root[data-editor-id="${this.#instanceId}"]`
   }
 }
