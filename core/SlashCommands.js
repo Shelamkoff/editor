@@ -138,9 +138,12 @@ export class SlashCommands {
     this.#menuEl.remove()
   }
 
-  #onInput = () => {
-    const block = this.#blocks.getCurrentBlock()
-    if (!block) return
+  #onInput = (/** @type {InputEvent} */ e) => {
+    const block = this.#editingBlockForTarget(e.target)
+    if (!block) {
+      this.close()
+      return
+    }
 
     const text = block.contentElement.textContent || ''
 
@@ -170,6 +173,7 @@ export class SlashCommands {
 
   #onKeyDown = (/** @type {KeyboardEvent} */ e) => {
     if (!this.#open) return
+    if (!this.#editingBlockForTarget(e.target)) return
 
     switch (e.key) {
       case 'ArrowDown':
@@ -221,6 +225,14 @@ export class SlashCommands {
         this.#selectItem(this.#activeIndex)
         break
     }
+  }
+
+  /** Return the document block that owns a contenteditable event target. */
+  #editingBlockForTarget(target) {
+    const element = /** @type {Element | null} */ (target)
+    const editingHost = element?.closest?.('[contenteditable="true"]') ?? null
+    if (!editingHost || !this.#rootEl.contains(editingHost)) return null
+    return this.#blocks.getBlockByChildNode(editingHost) ?? null
   }
 
   #openMenu() {
