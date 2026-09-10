@@ -125,7 +125,7 @@ export class InlineToolbar {
       mutate: (range, operation) => this.#mutations.runForRange(range, operation),
     }
 
-    // ── DOM scaffold ─────────────────────────────────────────────────────────
+    // ── DOM scaffold ──────────────────────────────────────────────────────────
     this.#el = el('div', 'oe-inline-toolbar')
     this.#el.style.display = 'none'
 
@@ -156,7 +156,7 @@ export class InlineToolbar {
     this.#el.appendChild(this.#typeSelector.dropdownElement)
     rootEl.appendChild(this.#el)
 
-    // ── Collaborators ────────────────────────────────────────────────────────
+    // ── Collaborators ───────────────────────────────────────────────────────
     this.#positioner = new InlinePositioner(this.#el, rootEl)
 
     this.#actionsPanel = new ActionsPanel({
@@ -203,27 +203,35 @@ export class InlineToolbar {
     }
   }
 
-  // ── Public API ─────────────────────────────────────────────────────────────
+  // ── Public API ────────────────────────────────────────────────────────────
 
   /** @returns {boolean} */
   // noinspection JSUnusedGlobalSymbols
-  get isVisible() {
-    return this.#visible
-  }
+  get isVisible() { return this.#visible }
 
   show() {
-    this.#visible = true
-    this.#currentView = VIEW_BUTTONS
-    this.#buttonsPanel.style.display = ''
-    this.#actionsPanel.reset()
-    this.#typeSelector.close()
-    this.#tooltip.hide()
-    this.#typeSelector.update()
-    this.#pluginControls.update()
-    this.#el.style.display = ''
+    // Don't show without a selection.
+    const sel = this.#resolveSelection()
+    if (!sel) return
+
+    // Cancel any action panel when re-showing.
+    if (this.#currentView === VIEW_ACTIONS) {
+      this.#actionsPanel.reset()
+      this.#currentView = VIEW_BUTTONS
+      this.#buttonsPanel.style.display = ''
+    }
+
+    // Refresh plugin-specific controls.
+    this.#pluginControls.refresh()
+
     this.#updateActiveStates()
     this.#positioner.position()
-    this.#events.emit(EditorEvent.TOOLBAR_OPENED, { type: 'inline' })
+
+    if (!this.#visible) {
+      this.#visible = true
+      this.#el.style.display = 'flex'
+      this.#events.emit(EditorEvent.TOOLBAR_OPENED, { type: 'inline' })
+    }
   }
 
   hide() {
@@ -377,7 +385,12 @@ export class InlineToolbar {
     if (sel) return sel
     const nativeSel = window.getSelection()
     if (nativeSel && !nativeSel.isCollapsed && nativeSel.rangeCount > 0) {
-      return { range: nativeSel.getRangeAt(0), text: nativeSel.toString(), blockId: '' }
+      const range = nativeSel.getRangeAt(0)
+      const startBlock = this.#blocks.getBlockByChildNode(range.startContainer)
+      const endBlock = this.#blocks.getBlockByChildNode(range.endContainer)
+      if (startBlock && endBlock) {
+        return { range, text: nativeSel.toString(), blockId: '' }
+      }
     }
     return null
   }

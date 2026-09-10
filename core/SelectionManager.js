@@ -27,7 +27,7 @@ export class SelectionManager {
     const sel = window.getSelection()
     if (!sel || sel.rangeCount === 0) return null
     const range = sel.getRangeAt(0)
-    if (!this.#editorEl.contains(range.startContainer)) return null
+    if (!this.#editorEl.contains(range.startContainer) || !this.#editorEl.contains(range.endContainer)) return null
     return range
   }
 
@@ -102,7 +102,7 @@ export class SelectionManager {
     if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return null
 
     const range = sel.getRangeAt(0)
-    if (!this.#editorEl.contains(range.startContainer)) return null
+    if (!this.#editorEl.contains(range.startContainer) || !this.#editorEl.contains(range.endContainer)) return null
 
     const block = this.#blocks.getBlockByChildNode(range.startContainer)
     if (!block) return null

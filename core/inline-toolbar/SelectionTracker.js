@@ -139,13 +139,13 @@ export class SelectionTracker {
 
     const startBlock = this.#deps.blocks.getBlockByChildNode(range.startContainer)
     const endBlock = this.#deps.blocks.getBlockByChildNode(range.endContainer)
-    if (!startBlock) {
+    if (!startBlock || !endBlock) {
       this.#deps.hide()
       return
     }
 
     // Single block selection.
-    if (!endBlock || startBlock.id === endBlock.id) {
+    if (startBlock.id === endBlock.id) {
       if (startBlock.hasInlineTools) {
         this.#deps.show()
       } else {
