@@ -16,6 +16,9 @@ export class InlinePluginRegistry {
   /** @type {Map<string, InlinePlugin>} */
   #triggers = new Map()
 
+  /** Plugins already released during rollback; prevents duplicate destroy(). */
+  #disposed = new WeakSet()
+
   /**
    * @param {InlinePlugin[]} plugins
    */
@@ -90,16 +93,29 @@ export class InlinePluginRegistry {
    */
   mount(rootElement, ctx) {
     const mounted = []
-    try {
-      for (const plugin of this.#plugins.values()) {
+    for (const plugin of this.#plugins.values()) {
+      // A retry after a rolled-back mount starts a fresh ownership cycle.
+      this.#disposed.delete(plugin)
+      try {
         plugin.mount?.(rootElement, ctx)
-        mounted.push(plugin)
+      } catch (error) {
+        // The failing plugin may already have acquired resources before throwing.
+        this.#release(plugin, false)
+        for (const mountedPlugin of mounted.reverse()) this.#release(mountedPlugin, false)
+        throw error
       }
-    } catch (error) {
-      for (const plugin of mounted.reverse()) {
-        try { plugin.destroy?.() } catch { /* preserve the mount failure */ }
-      }
-      throw error
+      mounted.push(plugin)
+    }
+  }
+
+  /** @param {InlinePlugin} plugin @param {boolean} report */
+  #release(plugin, report) {
+    if (this.#disposed.has(plugin)) return
+    this.#disposed.add(plugin)
+    try {
+      plugin.destroy?.()
+    } catch (err) {
+      if (report) console.warn('[InlinePluginRegistry] Failed to destroy plugin "' + plugin.type + '":', err)
     }
   }
 
@@ -115,13 +131,7 @@ export class InlinePluginRegistry {
    * Release plugin-level resources such as global listeners and shared styles.
    */
   destroy() {
-    for (const plugin of this.#plugins.values()) {
-      try {
-        plugin.destroy?.()
-      } catch (err) {
-        console.warn('[InlinePluginRegistry] Failed to destroy plugin "' + plugin.type + '":', err)
-      }
-    }
+    for (const plugin of this.#plugins.values()) this.#release(plugin, true)
     this.#plugins.clear()
     this.#triggers.clear()
   }
