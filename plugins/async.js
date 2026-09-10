@@ -29,11 +29,23 @@ const pluginLoaders = {
   person: () => import('./person/index.js').then(module => module.Person),
 }
 
+/** @param {unknown} value @param {string} label */
+function requireRecord(value, label) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new TypeError(`${label} must be an object`)
+  }
+  return /** @type {Record<string, unknown>} */ (value)
+}
+
 /** @param {readonly string[] | { blocks?: readonly { type: string }[] } | undefined} source */
 function requestedTypes(source) {
-  const document = /** @type {{ blocks?: readonly { type: string }[] } | undefined} */ (source)
-  const types = Array.isArray(source) ? source : document?.blocks?.map(block => block.type) ?? BLOCK_TYPES
-  return [...new Set(types)]
+  if (source === undefined) return [...BLOCK_TYPES]
+  if (Array.isArray(source)) return [...new Set(source)]
+  if (!source || typeof source !== 'object') throw new TypeError('source must be an array or document object')
+  const document = /** @type {Record<string, unknown>} */ (source)
+  if (document.blocks === undefined) return [...BLOCK_TYPES]
+  if (!Array.isArray(document.blocks)) throw new TypeError('source.blocks must be an array')
+  return [...new Set(document.blocks.map(block => block?.type))]
 }
 
 /**
@@ -74,6 +86,11 @@ export async function preloadBlockPlugins(source) {
  * @returns {Promise<import('../core/types').BlockPlugin[]>}
  */
 export async function createBlockPluginsAsync(source, configs = {}) {
+  const configMap = requireRecord(configs, 'configs')
   const constructors = await preloadBlockPlugins(source)
-  return [...constructors].map(([type, Plugin]) => new Plugin(configs[/** @type {import('../renderer/types').BlockType} */ (type)]))
+  return [...constructors].map(([type, Plugin]) => {
+    const config = configMap[type]
+    if (config !== undefined) requireRecord(config, `configs.${type}`)
+    return new Plugin(/** @type {Record<string, unknown> | undefined} */ (config))
+  })
 }
