@@ -20,7 +20,11 @@ export class DocumentSchema {
    * }} [options]
    */
   constructor(options = {}) {
-    this.#currentVersion = options.currentVersion ?? EDITOR_VERSION
+    const currentVersion = options.currentVersion === undefined ? EDITOR_VERSION : options.currentVersion
+    if (typeof currentVersion !== 'string' || !currentVersion) {
+      throw new TypeError('currentVersion must be a non-empty string')
+    }
+    this.#currentVersion = currentVersion
     const versionPolicy = options.versionPolicy === undefined ? 'preserve' : options.versionPolicy
     if (versionPolicy !== 'preserve' && versionPolicy !== 'strict') {
       throw new TypeError('versionPolicy must be "preserve" or "strict"')

@@ -87,3 +87,12 @@ test('document schema rejects unknown runtime version policies', () => {
     )
   }
 })
+
+test('document schema requires a non-empty runtime current version', () => {
+  for (const invalid of ['', null, false, 42]) {
+    assert.throws(
+      () => new DocumentSchema({ currentVersion: invalid }),
+      /currentVersion must be a non-empty string/,
+    )
+  }
+})
