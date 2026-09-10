@@ -24,7 +24,7 @@ jobs:
         with:
           node-version: 22
       - name: Install dependencies
-        run: npm install --ignore-scripts
+        run: npm ci --ignore-scripts
       - name: Check types
         run: npm run typecheck
       - name: Unit tests
@@ -67,7 +67,7 @@ jobs:
         with:
           node-version: 22
       - name: Install dependencies
-        run: npm install --ignore-scripts
+        run: npm ci --ignore-scripts
       - name: Build package
         run: npm run build
       - name: Run release gate
