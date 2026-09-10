@@ -54,10 +54,16 @@ export class TriggerManager {
     this.#cancelTrigger()
   }
 
-  #onInput = () => {
+  #onInput = (/** @type {InputEvent} */ e) => {
+    const editingHost = this.#editingHostForTarget(e.target)
+    if (!editingHost) {
+      this.#cancelTrigger()
+      return
+    }
+
     if (this.#active) {
       // Active trigger session — update plugin with current text
-      this.#updateActiveTrigger()
+      this.#updateActiveTrigger(editingHost)
       return
     }
 
@@ -66,7 +72,7 @@ export class TriggerManager {
     if (!sel || !sel.isCollapsed || !sel.rangeCount) return
 
     const node = sel.anchorNode
-    if (!node || node.nodeType !== Node.TEXT_NODE) return
+    if (!node || node.nodeType !== Node.TEXT_NODE || !editingHost.contains(node)) return
     const textNode = /** @type {import('./types').DOMText} */ (node)
 
     const offset = sel.anchorOffset
@@ -99,7 +105,7 @@ export class TriggerManager {
     }
   }
 
-  #updateActiveTrigger() {
+  #updateActiveTrigger(editingHost) {
     if (!this.#active) return
 
     const { plugin, startNode, startOffset } = this.#active
@@ -113,6 +119,10 @@ export class TriggerManager {
 
     const currentNode = sel.anchorNode
     const currentOffset = sel.anchorOffset
+    if (!currentNode || !editingHost.contains(currentNode)) {
+      this.#cancelTrigger()
+      return
+    }
 
     // An empty query is significant: a plugin may restore its initial
     // suggestions after the user removes the last query character.
@@ -135,13 +145,20 @@ export class TriggerManager {
   }
 
   #onKeyDown = (/** @type {KeyboardEvent} */ e) => {
-    if (!this.#active) return
+    if (!this.#active || !this.#editingHostForTarget(e.target)) return
 
     if (e.key === 'Escape') {
       e.preventDefault()
       e.stopPropagation()
       this.#cancelTrigger()
     }
+  }
+
+  /** Return the contenteditable host that owns a root-level editing event. */
+  #editingHostForTarget(target) {
+    const element = /** @type {Element | null} */ (target)
+    const editingHost = element?.closest?.('[contenteditable="true"]') ?? null
+    return editingHost && this.#rootEl.contains(editingHost) ? editingHost : null
   }
 
   #cancelTrigger() {
