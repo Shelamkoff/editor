@@ -49,7 +49,7 @@ export class PluginControlsSlot {
    * Re-query the current block's plugin and render its inline controls.
    * Idempotent — clears any existing controls before rendering new ones.
    */
-  update() {
+  refresh() {
     this.clear()
 
     const currentBlock = this.#deps.blocks.getCurrentBlock()
