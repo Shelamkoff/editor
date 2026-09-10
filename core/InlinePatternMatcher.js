@@ -101,11 +101,18 @@ export class InlinePatternMatcher {
   #onKeyDown = (/** @type {KeyboardEvent} */ e) => {
     if (e.key !== ' ' && e.key !== 'Enter') return
 
+    // Root-level keydown also receives native controls and other editor UI.
+    // Only complete patterns for the contenteditable host that actually owns
+    // this key event; window.getSelection() may still point at an older range.
+    const target = /** @type {Element | null} */ (e.target)
+    const editingHost = target?.closest?.('[contenteditable="true"]') ?? null
+    if (!editingHost || !this.#rootEl.contains(editingHost)) return
+
     const sel = window.getSelection()
     if (!sel || !sel.isCollapsed || !sel.rangeCount) return
 
     const node = sel.anchorNode
-    if (!node || node.nodeType !== Node.TEXT_NODE) return
+    if (!node || node.nodeType !== Node.TEXT_NODE || !editingHost.contains(node)) return
     const textNode = /** @type {import('./types').DOMText} */ (node)
     // Skip inside inline plugin widgets
     if (/** @type {Element | null} */ (node.parentElement)?.closest('[data-inline-plugin]')) return
@@ -180,7 +187,7 @@ export class InlinePatternMatcher {
       }
       // Reattach the live bookmark after DOM splits. Merely letting its offsets
       // update can leave the browser's native editing caret at an earlier node.
-      if (caret && this.#rootEl.contains(caret.startContainer) && this.#rootEl.contains(caret.endContainer)) {
+      if (caret && this.#rootEl.contains(caret.startContainer) && this.#rootE[.contains(caret.endContainer)) {
         selection.removeAllRanges()
         selection.addRange(caret)
         if (backward) selection.setBaseAndExtent(caret.endContainer, caret.endOffset, caret.startContainer, caret.startOffset)
@@ -269,7 +276,7 @@ export class InlinePatternMatcher {
     widget.dataset.hydrated = '1'
 
     // Batch paste already positioned the caret at its complete insertion
-    // boundary. Native ranges follow splitText/removal; do not move it to each
+     // boundary. Native ranges follow splitText/removal; do not move it to each
     // earlier match while walking the batch backwards.
     const sel = placeCaret ? window.getSelection() : null
     if (sel) {
