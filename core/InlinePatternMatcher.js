@@ -187,7 +187,7 @@ export class InlinePatternMatcher {
       }
       // Reattach the live bookmark after DOM splits. Merely letting its offsets
       // update can leave the browser's native editing caret at an earlier node.
-      if (caret && this.#rootEl.contains(caret.startContainer) && this.#rootE[.contains(caret.endContainer)) {
+      if (caret && this.#rootEl.contains(caret.startContainer) && this.#rootEl.contains(caret.endContainer)) {
         selection.removeAllRanges()
         selection.addRange(caret)
         if (backward) selection.setBaseAndExtent(caret.endContainer, caret.endOffset, caret.startContainer, caret.startOffset)
@@ -276,7 +276,7 @@ export class InlinePatternMatcher {
     widget.dataset.hydrated = '1'
 
     // Batch paste already positioned the caret at its complete insertion
-     // boundary. Native ranges follow splitText/removal; do not move it to each
+    // boundary. Native ranges follow splitText/removal; do not move it to each
     // earlier match while walking the batch backwards.
     const sel = placeCaret ? window.getSelection() : null
     if (sel) {
