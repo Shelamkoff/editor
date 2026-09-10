@@ -411,7 +411,6 @@ export class BlockManager {
 
         this.#animator.animateMove(this.#blocks, lo, hi, firstRects)
         this.#events.emit(EditorEvent.BLOCK_MOVED, { blockId: block.id, from: fromIndex, to: toIndex })
-        this.#events.emit(EditorEvent.BLOCK_FOCUSED, { blockId: block.id })
       },
     })
   }
