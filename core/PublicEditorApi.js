@@ -130,7 +130,19 @@ export class EditorBlocksApi {
     return this.#view(this.#blocks.insert(type, data, index, id, inline))
   }
 
-  remove(index) { this.#blocks.remove(index) }
+  remove(index) {
+    const removed = this.#blocks.getBlockByIndex(index)
+    const wasCurrent = removed !== undefined && removed === this.#blocks.getCurrentBlock()
+    if (wasCurrent) removed.focused = false
+    this.#blocks.remove(index)
+    if (wasCurrent) {
+      const current = this.#blocks.getCurrentBlock()
+      if (current) {
+        current.focused = true
+        this.#events.emit(EditorEvent.BLOCK_FOCUSED, { blockId: current.id })
+      }
+    }
+  }
   move(fromIndex, toIndex) {
     if (!Number.isSafeInteger(fromIndex) || !Number.isSafeInteger(toIndex)) {
       throw new RangeError('Block index must be a safe integer')

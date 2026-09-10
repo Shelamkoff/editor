@@ -114,3 +114,31 @@ test('public focus rejects out-of-range indices before they reach the block mana
   assert.throws(() => api.setCurrentIndex(1.5), /safe integer/)
   assert.deepEqual(focused, [1])
 })
+
+test('public removal transfers focused state when the current block changes', () => {
+  const first = { id: 'first', focused: false, selected: false }
+  const second = { id: 'second', focused: true, selected: false }
+  const third = { id: 'third', focused: false, selected: false }
+  const items = [first, second, third]
+  let currentIndex = 1
+  const blocks = {
+    getBlockByIndex(index) { return items[index] },
+    getCurrentBlock() { return items[currentIndex] },
+    remove(index) {
+      items.splice(index, 1)
+      currentIndex = Math.min(currentIndex, items.length - 1)
+    },
+    getSelectedBlocks() { return [] },
+    *[Symbol.iterator]() { yield* items },
+  }
+  const events = new EventBus()
+  const focused = []
+  events.on(EditorEvent.BLOCK_FOCUSED, ({ blockId }) => focused.push(blockId))
+  const api = new EditorBlocksApi(blocks, events)
+
+  api.remove(1)
+
+  assert.equal(second.focused, false)
+  assert.equal(third.focused, true)
+  assert.deepEqual(focused, ['third'])
+})
