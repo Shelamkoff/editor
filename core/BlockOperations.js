@@ -93,9 +93,6 @@ export class BlockOperations {
         const metadata = current.save()
         const fragmentHtml = this.#selection.extractFragmentAfterCaret()
         if (fragmentHtml === null) return
-        current.markDirty()
-        this.#events.emit(EditorEvent.BLOCK_CHANGED, { blockId: current.id })
-
         const currentIndex = blocks.getCurrentIndex()
         const data = fragmentHtml ? { text: fragmentHtml } : {}
         const inserted = blocks.insert(this.#defaultBlockType, data, currentIndex + 1, undefined, metadata.inline, metadata.tunes)
