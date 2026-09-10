@@ -67,3 +67,12 @@ test('download policy accepts inert raster data but rejects active data payloads
   assert.equal(sanitizeDownloadUrl('data:text/html;base64,PHNjcmlwdD4='), '')
   assert.equal(sanitizeDownloadUrl('data:image/svg+xml;base64,PHN2Zz4='), '')
 })
+
+test('network URL policies reject embedded credentials', () => {
+  assert.equal(sanitizeUrl('https://user:secret@example.com/path'), '#')
+  assert.equal(sanitizeUrl('//user@example.com/path'), '#')
+  assert.equal(sanitizeExternalUrl('http://user@example.com'), '#')
+  assert.equal(sanitizeMediaUrl('https://user:secret@example.com/image.png'), '')
+  assert.equal(sanitizeDownloadUrl('https://user@example.com/file.pdf'), '')
+  assert.equal(sanitizeUrl('https://example.com/user@example.com'), 'https://example.com/user@example.com')
+})

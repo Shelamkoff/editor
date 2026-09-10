@@ -6,6 +6,16 @@ const MEDIA_PROTOCOLS = new Set(['http:', 'https:', 'blob:'])
 const DOWNLOAD_PROTOCOLS = new Set(['http:', 'https:', 'blob:'])
 const SAFE_IMAGE_DATA_RE = /^data:image\/(?:avif|gif|jpeg|png|webp);base64,[a-z0-9+/=\s]+$/i
 
+/** Reject network URLs that embed credentials in their authority. */
+function hasNetworkCredentials(url) {
+  try {
+    const parsed = new URL(url.startsWith('//') ? 'https:' + url : url)
+    return Boolean(parsed.username || parsed.password)
+  } catch {
+    return true
+  }
+}
+
 /**
  * @typedef {'link' | 'external' | 'media' | 'download'} UrlPolicy
  * @typedef {{
@@ -44,13 +54,17 @@ export function sanitizeUrl(url, options = {}) {
   if ((policy === 'media' || policy === 'download') && SAFE_IMAGE_DATA_RE.test(stripped)) return stripped
   if (/^data\s*:/i.test(normalized)) return fallback
 
-  if (stripped.startsWith('//')) return allowRelative ? stripped : fallback
+  if (stripped.startsWith('//')) {
+    if (!allowRelative || hasNetworkCredentials(stripped)) return fallback
+    return stripped
+  }
 
   const schemeMatch = normalized.match(/^([a-z][a-z0-9+.-]*):/i)
   if (!schemeMatch) return allowRelative ? stripped : fallback
 
   const protocol = String(schemeMatch[1]).toLowerCase() + ':'
   if (!getAllowedProtocols(policy).has(protocol)) return fallback
+  if ((protocol === 'http:' || protocol === 'https:') && hasNetworkCredentials(stripped)) return fallback
 
   return stripped
 }
