@@ -78,3 +78,12 @@ test('document envelope policy preserves safe fallback and supports strict rejec
     /Duplicate document migration source/,
   )
 })
+
+test('document schema rejects unknown runtime version policies', () => {
+  for (const invalid of ['strcit', '', null, true, 1]) {
+    assert.throws(
+      () => new DocumentSchema({ versionPolicy: invalid }),
+      /versionPolicy must be "preserve" or "strict"/,
+    )
+  }
+})

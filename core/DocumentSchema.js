@@ -21,7 +21,11 @@ export class DocumentSchema {
    */
   constructor(options = {}) {
     this.#currentVersion = options.currentVersion ?? EDITOR_VERSION
-    this.#versionPolicy = options.versionPolicy ?? 'preserve'
+    const versionPolicy = options.versionPolicy === undefined ? 'preserve' : options.versionPolicy
+    if (versionPolicy !== 'preserve' && versionPolicy !== 'strict') {
+      throw new TypeError('versionPolicy must be "preserve" or "strict"')
+    }
+    this.#versionPolicy = versionPolicy
     this.#diagnostics = options.diagnostics ?? null
 
     for (const migration of options.migrations ?? []) {
