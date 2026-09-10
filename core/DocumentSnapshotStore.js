@@ -1,6 +1,7 @@
 import { EDITOR_VERSION } from './constants.js'
 import { serializeInlineHtml } from '../shared/inlineMarshal.js'
 import { cloneEditorData } from '../shared/cloneEditorData.js'
+import { resolveValidationMode } from '../shared/validationMode.js'
 
 /**
  * Core-owned canonical document store.
@@ -40,7 +41,7 @@ export class DocumentSnapshotStore {
   constructor(blocks, inlinePluginRegistry, config, diagnostics, initialVersion = EDITOR_VERSION) {
     this.#blocks = blocks
     this.#inlinePluginRegistry = inlinePluginRegistry
-    this.#validationMode = config.validationMode ?? 'preserve'
+    this.#validationMode = resolveValidationMode(config.validationMode)
     this.#onValidationError = config.onValidationError
     this.#diagnostics = diagnostics ?? null
     this.#documentVersion = initialVersion

@@ -9,6 +9,7 @@ import { acquireStyleUrls } from '../shared/styleRegistry.js'
 import { validateKnownBlockData } from '../shared/blockDataValidators.js'
 import { normalizeKnownBlockData } from '../shared/blockDataNormalizers.js'
 import { normalizeTextAlign } from '../shared/textFormat.js'
+import { resolveValidationMode } from '../shared/validationMode.js'
 
 const baseCssUrl = new URL('./styles/base.css', import.meta.url).href
 const bundledRendererCssRoot = new URL('./renderers/', import.meta.url).href
@@ -65,7 +66,7 @@ export class EditorRenderer {
       classPrefix: config.classPrefix ?? 'editor',
       throwOnUnknown: config.throwOnUnknown ?? true,
       theme: config.theme ?? 'dark',
-      validationMode: config.validationMode ?? 'preserve',
+      validationMode: resolveValidationMode(config.validationMode),
       onValidationError: config.onValidationError,
     }
     const locale = { ...defaultLocale, ...config.locale }
