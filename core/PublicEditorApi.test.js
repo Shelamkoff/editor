@@ -1,7 +1,7 @@
 // @ts-nocheck
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { EditorBlocksApi, EditorHandle } from './PublicEditorApi.js'
+import { EditorBlocksApi, EditorEventSubscriptions, EditorHandle } from './PublicEditorApi.js'
 import { EventBus } from '@shelamkoff/event-bus'
 import { EditorEvent } from './editorEvents.js'
 
@@ -65,4 +65,34 @@ test('EditorHandle exposes history state and preserves the documented destroyed 
   editor.destroy()
   assert.throws(() => editor.canUndo, /Editor instance is destroyed/)
   assert.throws(() => editor.undo(), /Editor instance is destroyed/)
+})
+
+test('public block moves use final indices and moved events expose final positions', () => {
+  const moves = []
+  const blocks = {
+    getBlockCount() { return 3 },
+    move(from, to) { moves.push([from, to]) },
+    getSelectedBlocks() { return [] },
+    *[Symbol.iterator]() {},
+  }
+  const events = new EventBus()
+  const api = new EditorBlocksApi(blocks, events)
+  const subscriptions = new EditorEventSubscriptions(events)
+  const payloads = []
+  subscriptions.on(EditorEvent.BLOCK_MOVED, payload => payloads.push(payload))
+
+  api.move(0, 1)
+  api.move(2, 0)
+  api.move(1, 1)
+  api.move(0, 3)
+
+  assert.deepEqual(moves, [[0, 2], [2, 0]])
+  assert.throws(() => api.move(0.5, 1), RangeError)
+
+  events.emit(EditorEvent.BLOCK_MOVED, { blockId: 'a', from: 0, to: 2 })
+  events.emit(EditorEvent.BLOCK_MOVED, { blockId: 'a', from: 2, to: 0 })
+  assert.deepEqual(payloads, [
+    { blockId: 'a', from: 0, to: 1 },
+    { blockId: 'a', from: 2, to: 0 },
+  ])
 })

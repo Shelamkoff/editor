@@ -126,7 +126,16 @@ export class EditorBlocksApi {
   }
 
   remove(index) { this.#blocks.remove(index) }
-  move(fromIndex, toIndex) { this.#blocks.move(fromIndex, toIndex) }
+  move(fromIndex, toIndex) {
+    if (!Number.isSafeInteger(fromIndex) || !Number.isSafeInteger(toIndex)) {
+      throw new RangeError('Block index must be a safe integer')
+    }
+    if (fromIndex === toIndex) return
+    const count = this.#blocks.getBlockCount()
+    if (fromIndex < 0 || fromIndex >= count || toIndex < 0 || toIndex >= count) return
+    const insertionIndex = fromIndex < toIndex ? toIndex + 1 : toIndex
+    this.#blocks.move(fromIndex, insertionIndex)
+  }
   convert(index, type, data) { return this.#view(this.#blocks.convert(index, type, data)) }
 
   *[Symbol.iterator]() {
@@ -169,11 +178,15 @@ export class EditorEventSubscriptions {
     if (existing) return existing
     let listening = true
     const receive = data => {
+      const publicData = event === EditorEvent.BLOCK_MOVED
+        && data && Number.isSafeInteger(data.from) && Number.isSafeInteger(data.to)
+        ? { ...data, to: data.from < data.to ? data.to - 1 : data.to }
+        : data
       const deliver = () => {
         if (!listening || (!this.#active && event !== EditorEvent.DESTROYED)) return
         if (once) unsubscribe()
         try {
-          const result = handler(data)
+          const result = handler(publicData)
           if (result && typeof result.then === 'function') {
             Promise.resolve(result).catch(error => console.error(`[EditorEvents] ${event}:`, error))
           }
