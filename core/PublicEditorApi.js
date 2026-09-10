@@ -133,9 +133,9 @@ export class EditorBlocksApi {
   remove(index) {
     const removed = this.#blocks.getBlockByIndex(index)
     const wasCurrent = removed !== undefined && removed === this.#blocks.getCurrentBlock()
-    if (wasCurrent) removed.focused = false
     this.#blocks.remove(index)
     if (wasCurrent) {
+      removed.focused = false
       const current = this.#blocks.getCurrentBlock()
       if (current) {
         current.focused = true
