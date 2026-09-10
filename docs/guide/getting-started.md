@@ -7,7 +7,7 @@ This page builds the smallest complete integration. The following chapters expla
 ## Requirements
 
 - a modern browser with native ES modules;
-- Node.js 20 or newer for installation and build tooling;
+- Node.js 20.19+ or 22.12+ for installation and build tooling;
 - an application that can import CSS and ESM packages.
 
 ## Install
