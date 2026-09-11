@@ -9,6 +9,7 @@ import {
   validateEmbedData,
   validateGalleryData,
   validateImageData,
+  validateKnownBlockData,
   validateLinkPreviewData,
   validatePersonData,
   validateTableData,
@@ -17,6 +18,13 @@ import { BLOCK_TYPES } from './blockTypes.js'
 
 test('every built-in block type has a strict validator', () => {
   assert.deepEqual(Object.keys(BLOCK_DATA_VALIDATORS).sort(), [...BLOCK_TYPES].sort())
+})
+
+test('known block validation ignores inherited registry keys', () => {
+  for (const type of ['__proto__', 'constructor', 'toString', 'hasOwnProperty']) {
+    assert.doesNotThrow(() => validateKnownBlockData(type, {}))
+    assert.equal(validateKnownBlockData(type, {}), false)
+  }
 })
 
 test('text and structural validators reject values their renderers would coerce', () => {
