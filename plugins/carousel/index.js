@@ -849,40 +849,54 @@ export class CarouselBlock extends BlockPluginAbstract {
     const signal = state.lifecycleController.signal
     const supportedFiles = files.filter(isSupportedMediaFile)
     if (!supportedFiles.length) return
-    const slides = await Promise.all(supportedFiles.map(async file => {
-      try {
-        const type = getMediaFileType(file)
-        if (!type) return null
-        let src = ''
-        let poster = ''
-        if (this._config.uploadFile) {
-          const result = await this._config.uploadFile(file, { signal })
-          src = sanitizeUrl(result?.url || '', { policy: 'media', fallback: '' })
-          poster = sanitizeUrl(result?.poster || '', { policy: 'media', fallback: '' })
-        } else if (type === 'image') {
-          src = sanitizeUrl(await readFileDataUrl(file, signal), { policy: 'media', fallback: '' })
-        } else {
-          src = URL.createObjectURL(file)
-          this.#objectUrls.add(src)
+    /** Object URLs created by this batch but not yet owned by document/history. @type {string[]} */
+    const batchObjectUrls = []
+    let committed = false
+    try {
+      const slides = await Promise.all(supportedFiles.map(async file => {
+        try {
+          const type = getMediaFileType(file)
+          if (!type) return null
+          let src = ''
+          let poster = ''
+          if (this._config.uploadFile) {
+            const result = await this._config.uploadFile(file, { signal })
+            src = sanitizeUrl(result?.url || '', { policy: 'media', fallback: '' })
+            poster = sanitizeUrl(result?.poster || '', { policy: 'media', fallback: '' })
+          } else if (type === 'image') {
+            src = sanitizeUrl(await readFileDataUrl(file, signal), { policy: 'media', fallback: '' })
+          } else {
+            src = URL.createObjectURL(file)
+            this.#objectUrls.add(src)
+            batchObjectUrls.push(src)
+          }
+          if (!src) return null
+          return {
+            id: this.#createId(), type, src, alt: file.name, caption: '',
+            ...(type === 'video' && poster ? { poster } : {}),
+          }
+        } catch (error) {
+          if (!signal.aborted) console.warn(`[CarouselBlock] Failed to add "${file.name}":`, error)
+          return null
         }
-        if (!src) return null
-        return {
-          id: this.#createId(), type, src, alt: file.name, caption: '',
-          ...(type === 'video' && poster ? { poster } : {}),
+      }))
+      if (signal.aborted || this.#states.get(wrapper) !== state) return
+      const valid = /** @type {CarouselSlide[]} */ (slides.filter(slide => slide !== null))
+      if (!valid.length) return
+      state.context.mutate(() => {
+        state.data.slides.push(...valid)
+        state.activeIndex = state.data.slides.length - valid.length
+        this.#build(wrapper, state)
+      })
+      committed = true
+    } finally {
+      if (!committed) {
+        for (const url of batchObjectUrls) {
+          URL.revokeObjectURL(url)
+          this.#objectUrls.delete(url)
         }
-      } catch (error) {
-        if (!signal.aborted) console.warn(`[CarouselBlock] Failed to add "${file.name}":`, error)
-        return null
       }
-    }))
-    if (signal.aborted || this.#states.get(wrapper) !== state) return
-    const valid = /** @type {CarouselSlide[]} */ (slides.filter(slide => slide !== null))
-    if (!valid.length) return
-    state.context.mutate(() => {
-      state.data.slides.push(...valid)
-      state.activeIndex = state.data.slides.length - valid.length
-      this.#build(wrapper, state)
-    })
+    }
   }
 
   /**
