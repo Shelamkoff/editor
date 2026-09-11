@@ -3,6 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <title>Editor history and paste matrix</title>
+  <style>
+    /* Browser fixtures do not import the package stylesheet. Keep the slash
+       menu in the same containing block and reset geometry as production
+       before its first render/positioning pass, rather than patching the
+       element only after the menu has already opened. */
+    .oe-editor { position: relative; }
+    .oe-slash-menu {
+      position: absolute;
+      width: 240px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+  </style>
   <script type="importmap">
     {
       "imports": {
