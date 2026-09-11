@@ -202,3 +202,21 @@ test('public selection rejects non-array and non-string block id collections', (
   assert.throws(() => api.selectBlocks(['first', 2]), /blockIds must be an array of strings/)
   assert.deepEqual(blocks.getSelectedBlocks(), [])
 })
+
+test('EditorHandle validates programmatic inline plugin arguments before delegation', () => {
+  const calls = []
+  const facade = {
+    isReady: true,
+    insertInlinePlugin(type, data) { calls.push([type, data]); return true },
+  }
+  const editor = new EditorHandle(facade)
+
+  assert.throws(() => editor.insertInlinePlugin(42), /type must be a string/)
+  assert.throws(() => editor.insertInlinePlugin('mention', null), /data must be an object of string values/)
+  assert.throws(() => editor.insertInlinePlugin('mention', []), /data must be an object of string values/)
+  assert.throws(() => editor.insertInlinePlugin('mention', { id: 1 }), /data must be an object of string values/)
+  assert.deepEqual(calls, [])
+
+  assert.equal(editor.insertInlinePlugin('mention', { id: '1', name: 'Ada' }), true)
+  assert.deepEqual(calls, [['mention', { id: '1', name: 'Ada' }]])
+})

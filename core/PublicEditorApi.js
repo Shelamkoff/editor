@@ -273,6 +273,21 @@ export class EditorHandle {
   undo() { this.#assertActive(); return this.#facade.undo() }
   redo() { this.#assertActive(); return this.#facade.redo() }
   setReadOnly(readOnly) { this.#assertActive(); this.#facade.setReadOnly(readOnly) }
-  insertInlinePlugin(type, data) { this.#assertActive(); return this.#facade.insertInlinePlugin(type, data) }
+  insertInlinePlugin(type, data) {
+    this.#assertActive()
+    if (typeof type !== 'string') throw new TypeError('Inline plugin type must be a string')
+    if (
+      data !== undefined
+      && (
+        data === null
+        || typeof data !== 'object'
+        || Array.isArray(data)
+        || Object.values(data).some(value => typeof value !== 'string')
+      )
+    ) {
+      throw new TypeError('Inline plugin data must be an object of string values')
+    }
+    return this.#facade.insertInlinePlugin(type, data)
+  }
   destroy() { if (this.#facade.isReady) this.#facade.destroy() }
 }
