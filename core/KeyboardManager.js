@@ -72,19 +72,17 @@ export class KeyboardManager {
     const actionControl = target.closest?.(
       'button, a[href], summary, [role="button"], [role="menuitem"], [role="option"], [role="checkbox"], [role="radio"], [role="switch"]',
     )
-    if (actionControl) return
-
     // Auxiliary form fields own their keys and native history. Document-backed
     // inputs opt in so code/raw plugins can delegate boundary keys and Undo.
     const formField = target.closest?.('input, textarea, select')
-    if (formField && !formField.hasAttribute('data-oe-document-input')) return
-
     const isBlockTarget = target === this.#rootEl || !!target.closest?.(BLOCK_SELECTOR)
 
-    // Editor-scoped history must run before overlay routing. Otherwise an open
-    // actions panel/dropdown lets the browser execute its own contenteditable
-    // DOM history, whose order is unrelated to the editor's block history.
+    // Editor-scoped history must run before overlay/control routing. Buttons and
+    // links own activation/navigation keys, but editor Undo/Redo must remain
+    // available while focus is parked on plugin UI inside a block.
     if (isBlockTarget && this.#shortcuts.handle(e, 'editor')) return
+    if (actionControl) return
+    if (formField && !formField.hasAttribute('data-oe-document-input')) return
     // URL-backed fields share committed document history but keep their own
     // editing keys; only code/raw surfaces delegate structural boundaries.
     if (formField && ['history', 'value'].includes(formField.getAttribute('data-oe-document-input'))) return

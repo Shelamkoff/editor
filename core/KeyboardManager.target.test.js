@@ -4,7 +4,7 @@ import assert from 'node:assert/strict'
 import { KeyboardManager } from './KeyboardManager.js'
 import { BLOCK_SELECTOR } from './constants.js'
 
-function harness() {
+function harness(shortcutHandle = () => false) {
   const listeners = new Map()
   const documentListeners = new Map()
   const ownerDocument = {
@@ -30,7 +30,7 @@ function harness() {
     navigateToPrevious() { return false },
     navigateToNext() { return false },
   }
-  const shortcuts = { handle() { return false } }
+  const shortcuts = { handle: shortcutHandle }
   const blocks = { hasSelectedBlocks() { return false } }
   const events = { emit() {} }
   const manager = new KeyboardManager(root, blockOps, shortcuts, blocks, events, 'paragraph')
@@ -70,5 +70,29 @@ test('native interactive controls inside blocks keep Enter instead of splitting 
     assert.equal(prevented, false, `${kind} Enter default was prevented`)
   }
   assert.deepEqual(calls, [])
+  manager.destroy()
+})
+
+test('editor-scoped history remains available from action controls', () => {
+  const scopes = []
+  const { listeners, calls, manager } = harness((_event, scope) => {
+    scopes.push(scope)
+    return scope === 'editor'
+  })
+  let prevented = false
+  const event = {
+    target: keyTarget('button'),
+    key: 'z',
+    code: 'KeyZ',
+    shiftKey: false,
+    metaKey: false,
+    ctrlKey: true,
+    altKey: false,
+    preventDefault() { prevented = true },
+  }
+  listeners.get('keydown')(event)
+  assert.deepEqual(scopes, ['editor'])
+  assert.deepEqual(calls, [])
+  assert.equal(prevented, false)
   manager.destroy()
 })
