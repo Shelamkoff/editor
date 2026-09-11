@@ -211,6 +211,7 @@ export class Embed extends BlockPluginAbstract {
       data: blockData,
       lifecycleController: new AbortController(),
       viewController: null,
+      coverController: null,
       viewCleanups: [],
       urlIconEl: null,
       inputTimer: null,
@@ -287,6 +288,7 @@ export class Embed extends BlockPluginAbstract {
       for (const cleanup of s.viewCleanups.splice(0)) cleanup()
       s.lifecycleController.abort()
       s.viewController?.abort()
+      s.coverController?.abort()
       if (s.inputTimer) clearTimeout(s.inputTimer)
       stateMap.delete(element)
     }
@@ -314,6 +316,40 @@ export class Embed extends BlockPluginAbstract {
     for (const cleanup of s.viewCleanups.splice(0)) cleanup()
     s.viewController?.abort()
     s.viewController = new AbortController()
+  }
+
+  /**
+   * Start an exclusive cover-source task. A newer replacement owns the block
+   * and aborts any older task, while a view/lifecycle change aborts the current
+   * task as well.
+   * @param {HTMLElement} wrapper
+   * @returns {{ state: any, controller: AbortController } | null}
+   */
+  _beginCoverTask(wrapper) {
+    const s = stateMap.get(wrapper)
+    if (!s || s.context.readOnly) return null
+    s.coverController?.abort()
+    const controller = new AbortController()
+    s.coverController = controller
+    const parentSignal = s.viewController?.signal ?? s.lifecycleController.signal
+    const abort = () => controller.abort(parentSignal.reason)
+    if (parentSignal.aborted) abort()
+    else parentSignal.addEventListener('abort', abort, { once: true, signal: controller.signal })
+    return { state: s, controller }
+  }
+
+  /**
+   * Release cover-task ownership only when the completing task still owns it.
+   * @param {HTMLElement} wrapper
+   * @param {any} state
+   * @param {AbortController} controller
+   * @returns {boolean}
+   */
+  _finishCoverTask(wrapper, state, controller) {
+    const current = stateMap.get(wrapper)
+    if (current !== state || state.coverController !== controller) return false
+    state.coverController = null
+    return true
   }
 
   // ── URL Bar ─────────────────────────────────────────────────────────────────
@@ -653,16 +689,19 @@ export class Embed extends BlockPluginAbstract {
       coverView.appendChild(this._makeBtn(
         `${action.icon || ''} ${escapeHtml(action.label)}`.trim(),
         async () => {
+          const task = this._beginCoverTask(wrapper)
+          if (!task) return
+          const { state: initial, controller } = task
           try {
-            const initial = stateMap.get(wrapper)
-            if (!initial || initial.context.readOnly) return
-            const result = await action.handler({ signal })
+            const result = await action.handler({ signal: controller.signal })
             const current = stateMap.get(wrapper)
             const url = sanitizeUrl(String(result?.url || ''), { policy: 'media', fallback: '' })
-            if (!signal.aborted && url && current === initial) {
+            if (!controller.signal.aborted && url && current === initial && initial.coverController === controller) {
               current.context.mutate(() => { current.data.cover = url; this._rebuildPlayer(wrapper) })
             }
-          } catch { /* cancelled */ }
+          } catch { /* cancelled */ } finally {
+            this._finishCoverTask(wrapper, initial, controller)
+          }
           coverView.remove()
           mainView.style.display = 'contents'
         },
@@ -849,18 +888,20 @@ export class Embed extends BlockPluginAbstract {
    */
   async _uploadCover(wrapper, file) {
     if (!this._config.uploadFile) return
-    const initial = stateMap.get(wrapper)
-    if (!initial || initial.context.readOnly) return
-    const signal = initial.viewController?.signal ?? initial.lifecycleController.signal
+    const task = this._beginCoverTask(wrapper)
+    if (!task) return
+    const { state: initial, controller } = task
     wrapper.classList.add(CSS.loading)
     try {
-      const result = await this._config.uploadFile(file, { signal })
+      const result = await this._config.uploadFile(file, { signal: controller.signal })
       const s = stateMap.get(wrapper)
       const url = sanitizeUrl(String(result?.url || ''), { policy: 'media', fallback: '' })
-      if (!signal.aborted && url && s === initial) {
+      if (!controller.signal.aborted && url && s === initial && initial.coverController === controller) {
         s.context.mutate(() => { s.data.cover = url; this._rebuildPlayer(wrapper) })
       }
-    } catch { /* failed */ } finally { wrapper.classList.remove(CSS.loading) }
+    } catch { /* failed */ } finally {
+      if (this._finishCoverTask(wrapper, initial, controller)) wrapper.classList.remove(CSS.loading)
+    }
   }
 
   /**
