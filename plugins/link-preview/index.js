@@ -428,8 +428,10 @@ export class LinkPreview extends BlockPluginAbstract {
       if (!signal.aborted) console.warn('[LinkPreview] Failed to fetch meta for', url, err)
       return !signal.aborted && stateMap.get(wrapper) === s && s.pendingUrl === url ? {} : null
     } finally {
-      if (s.requestController === controller) s.requestController = null
-      if (s.pendingUrl === url) s.pendingUrl = null
+      if (s.requestController === controller) {
+        s.requestController = null
+        if (s.pendingUrl === url) s.pendingUrl = null
+      }
     }
   }
 
