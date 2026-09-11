@@ -136,7 +136,7 @@ async function stop(process) {
   try { await closed } finally { clearTimeout(timer) }
 }
 
-const labels = ['harness-contract.html', 'roundtrip.html', 'history.html', 'selection.html', 'lifecycle.html', 'security.html', 'action-label-security.html', 'audit-regressions.html', 'attaches-abort-urls.html', 'embed-service-registry.html', 'mention.html', 'poll.html', 'carousel.html', 'plugin-surfaces.html', 'imports.html', 'audit.html', 'recheck.html']
+const labels = ['harness-contract.html', 'roundtrip.html', 'history.html', 'selection.html', 'lifecycle.html', 'security.html', 'action-label-security.html', 'audit-regressions.html', 'attaches-abort-urls.html', 'embed-service-registry.html', 'person-social-registry.html', 'mention.html', 'poll.html', 'carousel.html', 'plugin-surfaces.html', 'imports.html', 'audit.html', 'recheck.html']
 const pages = process.env.EDITOR_BROWSER_PAGE ? labels.filter(label => label === process.env.EDITOR_BROWSER_PAGE) : labels
 if (!pages.length) throw new Error(`Unknown browser page: ${process.env.EDITOR_BROWSER_PAGE}`)
 const chromePath = findChrome()
