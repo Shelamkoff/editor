@@ -9,6 +9,7 @@ import {
   validatePollData,
 } from '../../shared/pollData.js'
 import { setSafeUrlAttribute } from '../../shared/sanitize/sanitizeUrl.js'
+import { escapeHtml } from '../../shared/sanitize/escapeHtml.js'
 
 const editorStyles = new URL('./poll.css', import.meta.url).href
 
@@ -268,7 +269,7 @@ export class Poll extends BlockPluginAbstract {
       const addBtn = document.createElement('button')
       addBtn.type = 'button'
       addBtn.className = 'oe-poll__option-add'
-      addBtn.innerHTML = `${ICON_PLUS} ${this._t('addOption', 'Add option')}`
+      addBtn.innerHTML = `${ICON_PLUS} ${escapeHtml(this._t('addOption', 'Add option'))}`
       addBtn.addEventListener('mousedown', (e) => e.preventDefault())
       addBtn.addEventListener('click', () => {
         s.context.mutate(() => {
@@ -720,7 +721,7 @@ export class Poll extends BlockPluginAbstract {
     const typeLabel = isSingle
       ? this._t('single', 'Single choice')
       : this._t('multiple', 'Multiple choice')
-    typeBtn.innerHTML = `${typeIcon} ${typeLabel}`
+    typeBtn.innerHTML = `${typeIcon} ${escapeHtml(typeLabel)}`
     typeBtn.addEventListener('mousedown', (e) => e.preventDefault())
     typeBtn.addEventListener('click', () => {
       s.context.mutate(() => {
@@ -751,7 +752,7 @@ export class Poll extends BlockPluginAbstract {
     const resultsBtn = document.createElement('button')
     resultsBtn.type = 'button'
     resultsBtn.className = 'oe-poll__action-btn'
-    resultsBtn.innerHTML = `${ICON_RESULTS} ${this.#resultsModeLabel(s.data.resultsMode)}`
+    resultsBtn.innerHTML = `${ICON_RESULTS} ${escapeHtml(this.#resultsModeLabel(s.data.resultsMode))}`
     resultsBtn.addEventListener('mousedown', (e) => e.preventDefault())
     resultsBtn.addEventListener('click', () => {
       s.context.mutate(() => {
@@ -769,7 +770,7 @@ export class Poll extends BlockPluginAbstract {
     const sortBtn = document.createElement('button')
     sortBtn.type = 'button'
     sortBtn.className = 'oe-poll__action-btn'
-    sortBtn.innerHTML = `${ICON_SORT} ${this._t('sort', 'Sort')}`
+    sortBtn.innerHTML = `${ICON_SORT} ${escapeHtml(this._t('sort', 'Sort'))}`
     sortBtn.addEventListener('mousedown', (e) => e.preventDefault())
     sortBtn.addEventListener('click', () => {
       s.context.mutate(() => {
