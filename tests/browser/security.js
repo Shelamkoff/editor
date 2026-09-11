@@ -678,6 +678,7 @@ async function run() {
     'checklist', 'warning', 'embed', 'raw', 'gallery', 'carousel', 'image',
     'attaches', 'linkPreview', 'toggle', 'columns', 'spoiler', 'poll', 'person',
   ]
+  const invalidBuiltInTypes = builtInTypes.filter(type => type !== 'delimiter')
   const preserveIssues = []
   const preserveRenderer = new EditorRenderer({
     blockTypes: builtInTypes,
@@ -696,7 +697,11 @@ async function run() {
       data: type === 'delimiter' ? {} : malformedData,
     })),
   }, preserveHost)
-  assert(preserveIssues.length === builtInTypes.length, 'preserve renderer did not report every invalid built-in block')
+  const reportedInvalidTypes = preserveIssues.map(issue => issue.type).sort()
+  assert(
+    JSON.stringify(reportedInvalidTypes) === JSON.stringify([...invalidBuiltInTypes].sort()),
+    `preserve renderer reported unexpected invalid built-in types: ${reportedInvalidTypes.join(', ')}`,
+  )
   assert(JSON.stringify(malformedData) === malformedBefore, 'preserve renderer mutated caller-owned invalid data')
   assert(!preserveHost.textContent.includes('[object Object]'), 'preserve renderer leaked an object coercion into output')
   assert(preserveHost.querySelectorAll('[data-block-type]').length === builtInTypes.length, 'preserve renderer dropped an invalid built-in block')
