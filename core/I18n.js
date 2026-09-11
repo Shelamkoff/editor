@@ -25,6 +25,17 @@ const PLURAL_RULES = {
 }
 
 /**
+ * Copy locale entries into a dictionary without an inherited prototype.
+ * This keeps reserved object names ordinary translation keys and prevents
+ * `__proto__` assignments from changing lookup semantics.
+ * @param {Partial<I18nMessages>} [messages]
+ * @returns {Record<string, LocaleValue>}
+ */
+function createDictionary(messages = {}) {
+  return /** @type {Record<string, LocaleValue>} */ (Object.assign(Object.create(null), messages))
+}
+
+/**
  * Interpolate `{name}` placeholders in a message string.
  * @param {string} msg
  * @param {Record<string, string | number>} [params]
@@ -72,8 +83,8 @@ export class I18n {
    * @param {string} [lang]                       language code for plural rules ('en', 'ru', ...)
    */
   constructor(messages, fallback, lang = 'en') {
-    this.#messages = /** @type {Record<string, LocaleValue>} */ ({ ...(messages || en) })
-    this.#fallback = fallback ? /** @type {Record<string, LocaleValue>} */ ({ ...fallback }) : null
+    this.#messages = createDictionary(messages || en)
+    this.#fallback = fallback ? createDictionary(fallback) : null
     this.#lang = lang
   }
 
@@ -98,7 +109,7 @@ export class I18n {
    */
   mergeFallback(messages) {
     if (this.#frozen) throw new Error('[I18n] Dictionary is frozen — cannot merge after init')
-    if (!this.#fallback) this.#fallback = {}
+    if (!this.#fallback) this.#fallback = createDictionary()
     Object.assign(this.#fallback, messages)
   }
 
@@ -129,8 +140,8 @@ export class I18n {
    * @returns {boolean}
    */
   has(key) {
-    if (key in this.#messages) return true
-    return !!(this.#fallback && key in this.#fallback);
+    if (Object.hasOwn(this.#messages, key)) return true
+    return !!(this.#fallback && Object.hasOwn(this.#fallback, key))
   }
 
   /**
@@ -212,8 +223,8 @@ export class I18n {
    * @returns {LocaleValue | undefined}
    */
   #resolve(key) {
-    if (key in this.#messages) return this.#messages[key]
-    if (this.#fallback && key in this.#fallback) return this.#fallback[key]
+    if (Object.hasOwn(this.#messages, key)) return this.#messages[key]
+    if (this.#fallback && Object.hasOwn(this.#fallback, key)) return this.#fallback[key]
     return undefined
   }
 
