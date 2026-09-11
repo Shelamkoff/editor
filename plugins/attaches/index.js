@@ -3,6 +3,7 @@ import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { getFileIcon, getExtension, formatSize, EXT_COLORS } from '../../shared/fileUtils.js'
 import { validateAttachesData } from '../../shared/blockDataValidators.js'
 import { sanitizeUrl } from '../../shared/sanitize/sanitizeUrl.js'
+import { escapeHtml } from '../../shared/sanitize/escapeHtml.js'
 import { normalizeTextValue } from '../../shared/textFormat.js'
 import { createPluginLayer } from '../shared/layer.js'
 import { openSourceEditor, preloadSourceEditor } from '../shared/sourceEditor.js'
@@ -628,7 +629,7 @@ export class Attaches extends BlockPluginAbstract {
     const settingsBtn = document.createElement('button')
     settingsBtn.type = 'button'
     settingsBtn.className = 'oe-attaches__action-btn'
-    settingsBtn.innerHTML = `${ICON_SETTINGS} ${this._t('settings', 'Settings')}`
+    settingsBtn.innerHTML = `${ICON_SETTINGS} ${escapeHtml(this._t('settings', 'Settings'))}`
     settingsBtn.setAttribute('aria-haspopup', 'true')
     settingsBtn.setAttribute('aria-expanded', 'false')
 
@@ -668,7 +669,7 @@ export class Attaches extends BlockPluginAbstract {
     const addBtn = document.createElement('button')
     addBtn.type = 'button'
     addBtn.className = 'oe-attaches__action-btn'
-    addBtn.innerHTML = `${ICON_UPLOAD} ${this._t('addFiles', 'Add files')}`
+    addBtn.innerHTML = `${ICON_UPLOAD} ${escapeHtml(this._t('addFiles', 'Add files'))}`
     addBtn.addEventListener('mousedown', (e) => e.preventDefault(), { signal })
     addBtn.addEventListener('click', (e) => { e.stopPropagation(); this.#triggerFileInput(wrapper) }, { signal })
     actions.appendChild(addBtn)
