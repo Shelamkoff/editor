@@ -56,6 +56,40 @@ function validateRendererConfig(config) {
   }
 }
 
+/** @param {unknown} block */
+function validateOutputBlock(block) {
+  if (!block || typeof block !== 'object' || Array.isArray(block)) {
+    throw new TypeError('EditorRenderer block must be an object')
+  }
+  const candidate = /** @type {Record<string, unknown>} */ (block)
+  if (typeof candidate.type !== 'string' || !candidate.type) {
+    throw new TypeError('EditorRenderer block type must be a non-empty string')
+  }
+  if (!candidate.data || typeof candidate.data !== 'object' || Array.isArray(candidate.data)) {
+    throw new TypeError('EditorRenderer block data must be an object')
+  }
+  if (candidate.id !== undefined && typeof candidate.id !== 'string') {
+    throw new TypeError('EditorRenderer block id must be a string')
+  }
+  if (candidate.revision !== undefined && typeof candidate.revision !== 'string' && typeof candidate.revision !== 'number') {
+    throw new TypeError('EditorRenderer block revision must be a string or number')
+  }
+  assertOptionalRecord(candidate.tunes, 'block tunes')
+  assertOptionalRecord(candidate.inline, 'block inline data')
+}
+
+/** @param {unknown} data */
+function validateOutputData(data) {
+  if (!data || typeof data !== 'object' || Array.isArray(data)) {
+    throw new TypeError('EditorRenderer data must be an object')
+  }
+  const candidate = /** @type {Record<string, unknown>} */ (data)
+  if (!Array.isArray(candidate.blocks)) {
+    throw new TypeError('EditorRenderer blocks must be an array')
+  }
+  for (const block of candidate.blocks) validateOutputBlock(block)
+}
+
 /** @param {unknown} renderer */
 function validateCustomRenderer(renderer) {
   if (!renderer || typeof renderer !== 'object' || Array.isArray(renderer)) {
@@ -90,6 +124,24 @@ export class EditorRenderer extends EditorRendererImpl {
   registerRenderer(renderer) {
     validateCustomRenderer(renderer)
     return super.registerRenderer(renderer)
+  }
+
+  /** @param {import('./types').OutputBlockData} block */
+  renderBlock(block) {
+    validateOutputBlock(block)
+    return super.renderBlock(block)
+  }
+
+  /** @param {import('./types').OutputData} data */
+  render(data) {
+    validateOutputData(data)
+    return super.render(data)
+  }
+
+  /** @param {import('./types').OutputData} data @param {HTMLElement} container */
+  renderTo(data, container) {
+    validateOutputData(data)
+    return super.renderTo(data, container)
   }
 }
 
