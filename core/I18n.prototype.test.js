@@ -28,3 +28,13 @@ test('I18n fallback merge cannot inject translations through __proto__', () => {
   assert.equal(i18n.has('pollutedFallback'), false)
   assert.equal(i18n.t('pollutedFallback'), 'pollutedFallback')
 })
+
+test('I18n plural rules ignore inherited prototype language names', () => {
+  const forms = { one: 'one', other: 'other' }
+
+  for (const lang of ['__proto__', 'constructor', 'toString']) {
+    const i18n = new I18n({ count: forms }, undefined, lang)
+    assert.equal(i18n.plural('count', 1), 'one')
+    assert.equal(i18n.plural('count', 2), 'other')
+  }
+})
