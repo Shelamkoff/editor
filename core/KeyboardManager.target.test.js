@@ -37,7 +37,7 @@ function harness(shortcutHandle = () => false) {
   return { listeners, calls, manager }
 }
 
-function keyTarget(kind) {
+function keyTarget(kind, inBlock = true) {
   const block = { kind: 'block' }
   const control = {
     hasAttribute() { return false },
@@ -45,7 +45,7 @@ function keyTarget(kind) {
       if (selector === 'input, textarea, select') return null
       if (selector.includes('button') && kind === 'button') return control
       if (selector.includes('a[href]') && kind === 'link') return control
-      if (selector === BLOCK_SELECTOR) return block
+      if (selector === BLOCK_SELECTOR) return inBlock ? block : null
       return null
     },
   }
@@ -73,6 +73,7 @@ test('native interactive controls inside blocks keep Enter instead of splitting 
   manager.destroy()
 })
 
+
 test('editor-scoped history remains available from action controls', () => {
   const scopes = []
   const { listeners, calls, manager } = harness((_event, scope) => {
@@ -81,7 +82,7 @@ test('editor-scoped history remains available from action controls', () => {
   })
   let prevented = false
   const event = {
-    target: keyTarget('button'),
+    target: keyTarget('button', false),
     key: 'z',
     code: 'KeyZ',
     shiftKey: false,

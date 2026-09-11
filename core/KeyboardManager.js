@@ -81,7 +81,6 @@ export class KeyboardManager {
     // links own activation/navigation keys, but editor Undo/Redo must remain
     // available while focus is parked on plugin UI inside a block.
     if (isBlockTarget && this.#shortcuts.handle(e, 'editor')) return
-    if (actionControl) return
     if (formField && !formField.hasAttribute('data-oe-document-input')) return
     // URL-backed fields share committed document history but keep their own
     // editing keys; only code/raw surfaces delegate structural boundaries.
@@ -96,6 +95,7 @@ export class KeyboardManager {
       if (isEditorControl && !ownsNativeHistory) this.#shortcuts.handle(e, 'editor')
       return
     }
+    if (actionControl) return
 
     // Skip block commands when interactive UI overlay is active. The overlay
     // handles its own keyboard events.
