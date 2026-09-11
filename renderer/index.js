@@ -26,12 +26,33 @@ function validateRendererConfig(config) {
     throw new TypeError('EditorRenderer onValidationError must be a function')
   }
   assertOptionalRecord(config.locale, 'locale')
-  if (config.blockTypes !== undefined && !Array.isArray(config.blockTypes)) {
-    throw new TypeError('EditorRenderer blockTypes must be an array')
+  if (config.blockTypes !== undefined) {
+    if (!Array.isArray(config.blockTypes)) {
+      throw new TypeError('EditorRenderer blockTypes must be an array')
+    }
+    const supported = new Set(getSupportedBlockTypes())
+    for (const type of config.blockTypes) {
+      if (typeof type !== 'string' || !supported.has(type)) {
+        throw new TypeError(`EditorRenderer unknown block type: ${String(type)}`)
+      }
+    }
   }
   assertOptionalRecord(config.blockConfigs, 'blockConfigs')
-  if (config.inlinePlugins !== undefined && !Array.isArray(config.inlinePlugins)) {
-    throw new TypeError('EditorRenderer inlinePlugins must be an array')
+  if (config.inlinePlugins !== undefined) {
+    if (!Array.isArray(config.inlinePlugins)) {
+      throw new TypeError('EditorRenderer inlinePlugins must be an array')
+    }
+    const types = new Set()
+    for (const plugin of config.inlinePlugins) {
+      if (!plugin || typeof plugin !== 'object' || typeof plugin.type !== 'string' || !plugin.type) {
+        throw new TypeError('EditorRenderer inline plugin must have a non-empty string type')
+      }
+      if (typeof plugin.createWidget !== 'function' || typeof plugin.getData !== 'function') {
+        throw new TypeError(`EditorRenderer inline plugin "${plugin.type}" must implement createWidget() and getData()`)
+      }
+      if (types.has(plugin.type)) throw new Error(`Duplicate renderer inline plugin type: "${plugin.type}"`)
+      types.add(plugin.type)
+    }
   }
 }
 
