@@ -24,3 +24,12 @@ test('renderer config rejects unknown block types and malformed inline plugin en
     /duplicate renderer inline plugin type/i,
   )
 })
+
+test('registerRenderer rejects malformed custom renderer contracts before registration', () => {
+  const renderer = new EditorRenderer({ blockTypes: [] })
+  assert.throws(() => renderer.registerRenderer(null), /custom renderer must be an object/i)
+  assert.throws(() => renderer.registerRenderer({ type: '', render() {} }), /non-empty string type/i)
+  assert.throws(() => renderer.registerRenderer({ type: 'custom' }), /must implement render\(\)/i)
+  assert.throws(() => renderer.registerRenderer({ type: 'custom', render() {}, styles: 'x.css' }), /styles must be an array of strings/i)
+  assert.equal(renderer.hasRenderer('custom'), false)
+})
