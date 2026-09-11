@@ -40,6 +40,31 @@ async function run() {
   local.destroy(localElement)
   localElement.remove()
 
+  const manyVoters = Array.from({ length: 60 }, (_, index) => ({ id: `voter-${index + 1}`, name: `Voter ${index + 1}` }))
+  const initialResults = {
+    total: 0,
+    options: [{ id: 'yes', votes: 0 }, { id: 'no', votes: 0 }],
+    votersTotal: manyVoters.length,
+    voters: manyVoters,
+  }
+  const retainedPoll = new Poll({ maxVoters: 75 })
+  const retainedElement = retainedPoll.render({ ...fixture, initialResults }, { mutate(operation) { return operation() } })
+  sandbox.appendChild(retainedElement)
+  assert(retainedElement.querySelectorAll('.oe-poll__voters li').length === 60, 'poll truncated initial voters below configured maxVoters')
+  retainedPoll.destroy(retainedElement)
+  retainedElement.remove()
+
+  const retainedRenderer = new EditorRenderer({
+    blockTypes: ['poll'],
+    blockConfigs: { poll: { maxVoters: 75 } },
+  })
+  const retainedContainer = document.createElement('div')
+  sandbox.appendChild(retainedContainer)
+  retainedRenderer.renderTo({ blocks: [{ id: 'retained-poll', type: 'poll', data: { ...fixture, initialResults } }] }, retainedContainer)
+  assert(retainedContainer.querySelectorAll('.editor-poll__voters li').length === 60, 'poll renderer truncated initial voters below configured maxVoters')
+  retainedRenderer.destroy(retainedContainer)
+  retainedContainer.remove()
+
   let voteCalls = 0
   let unsubscribeCalls = 0
   let loadSignal
@@ -165,7 +190,7 @@ async function run() {
 
   return {
     modes: ['local', 'load', 'vote', 'subscribe', 'renderer'],
-    guards: ['afterVote confirmation', 'single history step', 'duplicate submit', 'concurrent subscription update', 'revision ordering', 'read-only side effects', 'abort', 'unsubscribe', 'safe voters'],
+    guards: ['afterVote confirmation', 'single history step', 'configured voter retention', 'duplicate submit', 'concurrent subscription update', 'revision ordering', 'read-only side effects', 'abort', 'unsubscribe', 'safe voters'],
   }
 }
 
