@@ -140,7 +140,7 @@ async function embedCoverOwnership() {
 
     requests[0].resolve({ url: 'https://example.test/stale.png' })
     await settle()
-    assert(wrapper.classList.contains('oe-embed-block--loading'), 'stale embed cover completion cleared current loading state')
+    assert(wrapper.classList.contains('oe-embed--loading'), 'stale embed cover completion cleared current loading state')
     assert(plugin.save(wrapper).cover === '', 'stale embed cover upload committed while replacement was pending')
 
     requests[1].resolve({ url: 'https://example.test/fresh.png' })
