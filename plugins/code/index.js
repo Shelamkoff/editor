@@ -523,10 +523,15 @@ export class Code extends BlockPluginAbstract {
     this.#wrappers.delete(element)
     const state = codeStateMap.get(element)
     if (state?.copyResetTimer) clearTimeout(state.copyResetTimer)
+    const refs = refsMap.get(element)
     const handler = docMousedownMap.get(element)
     if (handler) {
       document.removeEventListener('mousedown', handler)
     }
+    if (refs?.dropdown) dropdownRefsMap.delete(refs.dropdown)
+    docMousedownMap.delete(element)
+    refsMap.delete(element)
+    codeStateMap.delete(element)
   }
 
   // ── Private: Edit/View mode ───────────────────────────────────────────────
