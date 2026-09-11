@@ -192,3 +192,13 @@ test('off removes both persistent and once registrations for one handler', () =>
 
   assert.equal(calls, 0)
 })
+
+
+test('public selection rejects non-array and non-string block id collections', () => {
+  const blocks = createBlocks()
+  const api = new EditorBlocksApi(blocks, new EventBus())
+
+  assert.throws(() => api.selectBlocks('first'), /blockIds must be an array of strings/)
+  assert.throws(() => api.selectBlocks(['first', 2]), /blockIds must be an array of strings/)
+  assert.deepEqual(blocks.getSelectedBlocks(), [])
+})

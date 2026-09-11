@@ -115,6 +115,9 @@ export class EditorBlocksApi {
 
   /** @param {string[]} blockIds */
   selectBlocks(blockIds) {
+    if (!Array.isArray(blockIds) || blockIds.some(id => typeof id !== 'string')) {
+      throw new TypeError('blockIds must be an array of strings')
+    }
     const previousBlockIds = this.#selectedBlockIds()
     const selected = new Set(blockIds)
     for (const block of this.#blocks) block.selected = selected.has(block.id)
