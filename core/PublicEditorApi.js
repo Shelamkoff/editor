@@ -109,6 +109,7 @@ export class EditorBlocksApi {
     if (!Number.isSafeInteger(index)) throw new RangeError('Block index must be a safe integer')
     const count = this.#blocks.getBlockCount()
     if (index < 0 || index >= count) throw new RangeError('Block index is out of range')
+    if (index === this.#blocks.getCurrentIndex()) return
     this.#blocks.setCurrentIndex(index)
   }
 

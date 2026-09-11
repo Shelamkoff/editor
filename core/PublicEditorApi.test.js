@@ -99,9 +99,11 @@ test('public block moves use final indices and moved events expose final positio
 
 test('public focus rejects out-of-range indices before they reach the block manager', () => {
   const focused = []
+  let currentIndex = 0
   const blocks = {
     getBlockCount() { return 2 },
-    setCurrentIndex(index) { focused.push(index) },
+    getCurrentIndex() { return currentIndex },
+    setCurrentIndex(index) { currentIndex = index; focused.push(index) },
     getSelectedBlocks() { return [] },
     *[Symbol.iterator]() {},
   }
@@ -141,4 +143,18 @@ test('public removal transfers focused state when the current block changes', ()
   assert.equal(second.focused, false)
   assert.equal(third.focused, true)
   assert.deepEqual(focused, ['third'])
+})
+
+test('public focus is idempotent for the current index', () => {
+  const calls = []
+  const blocks = {
+    getBlockCount() { return 1 },
+    getCurrentIndex() { return 0 },
+    setCurrentIndex(index) { calls.push(index) },
+    getSelectedBlocks() { return [] },
+    *[Symbol.iterator]() {},
+  }
+  const api = new EditorBlocksApi(blocks, new EventBus())
+  api.setCurrentIndex(0)
+  assert.deepEqual(calls, [])
 })
