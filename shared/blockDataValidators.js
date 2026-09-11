@@ -308,6 +308,6 @@ export const BLOCK_DATA_VALIDATORS = Object.freeze({
 
 /** @param {string} type @param {unknown} data */
 export function validateKnownBlockData(type, data) {
-  const validator = BLOCK_DATA_VALIDATORS[type]
-  return validator ? validator(data) : false
+  if (!Object.hasOwn(BLOCK_DATA_VALIDATORS, type)) return false
+  return BLOCK_DATA_VALIDATORS[type](data)
 }
