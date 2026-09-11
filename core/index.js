@@ -30,7 +30,7 @@ import { TriggerManager } from './TriggerManager.js'
 import { InlinePatternMatcher } from './InlinePatternMatcher.js'
 import { PopupManager } from './PopupManager.js'
 import { injectStyleUrls } from './StyleInjector.js'
-import { resolveTuning } from './config.js'
+import { resolveTuning, validateEditorConfigOptions } from './config.js'
 import {DEFAULT_BLOCK_TYPE, DEFAULT_THEME} from './constants.js'
 import { claimPluginInstances } from './PluginOwnership.js'
 import { claimEditorHolder } from './EditorHolderOwnership.js'
@@ -484,6 +484,8 @@ export function createEditor(config) {
   ) {
     throw new RangeError('createEditor() minHeight must be a finite number greater than or equal to 0')
   }
+
+  validateEditorConfigOptions(config)
 
   let readOnly = config.readOnly ?? false
   const injectStyles = config.injectStyles ?? true

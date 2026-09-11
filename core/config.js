@@ -62,6 +62,66 @@ function validateGroup(value, path) {
   return /** @type {Record<string, unknown>} */ (value)
 }
 
+
+/**
+ * Validate public createEditor() option shapes that JavaScript callers do not
+ * get from the TypeScript declarations. Deeper value validation stays with the
+ * subsystem that owns it (tuning, diagnostics, document schema, plugins).
+ * @param {import('./types').EditorConfig} config
+ * @returns {void}
+ */
+export function validateEditorConfigOptions(config) {
+  for (const field of ['inlineTools', 'inlinePlugins', 'migrations']) {
+    const value = config[field]
+    if (value !== undefined && !Array.isArray(value)) {
+      throw new TypeError(`createEditor() ${field} must be an array`)
+    }
+  }
+
+  if (config.autofocus !== undefined && typeof config.autofocus !== 'boolean') {
+    throw new TypeError('createEditor() autofocus must be a boolean')
+  }
+
+  if (
+    config.defaultBlock !== undefined
+    && (typeof config.defaultBlock !== 'string' || config.defaultBlock.length === 0)
+  ) {
+    throw new TypeError('createEditor() defaultBlock must be a non-empty string')
+  }
+
+  if (
+    config.locale !== undefined
+    && (config.locale === null || typeof config.locale !== 'object' || Array.isArray(config.locale))
+  ) {
+    throw new TypeError('createEditor() locale must be an object')
+  }
+
+  for (const field of ['onChange', 'onReady', 'onValidationError', 'onDiagnostic']) {
+    const value = config[field]
+    if (value !== undefined && typeof value !== 'function') {
+      throw new TypeError(`createEditor() ${field} must be a function`)
+    }
+  }
+
+  if (
+    config.diagnosticThresholds !== undefined
+    && (
+      config.diagnosticThresholds === null
+      || typeof config.diagnosticThresholds !== 'object'
+      || Array.isArray(config.diagnosticThresholds)
+    )
+  ) {
+    throw new TypeError('createEditor() diagnosticThresholds must be an object')
+  }
+
+  if (
+    config.theme !== undefined
+    && (typeof config.theme !== 'string' || config.theme.length === 0)
+  ) {
+    throw new TypeError('createEditor() theme must be a non-empty string')
+  }
+}
+
 /**
  * Merge user-supplied tuning overrides onto defaults.
  * Shallow per-group (one level deep) — each group is an object with primitive leaves.
