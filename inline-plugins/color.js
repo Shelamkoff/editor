@@ -12,6 +12,7 @@ import { normalizeTextValue } from '../shared/textFormat.js'
 export function createColorSwatchPlugin() {
   /** @type {import('../core/types').IScopedI18n | null} */
   let i18n = null
+  let lifecycleController = new AbortController()
   return {
     type: 'color',
     styles: [colorPickerStylesUrl],
@@ -19,6 +20,10 @@ export function createColorSwatchPlugin() {
     icon: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21a9 9 0 0 1 0-18c4.97 0 9 3.582 9 8c0 1.06-.474 2.078-1.318 2.828S17.938 15 16.5 15H14a2 2 0 0 0-1 3.75A1.3 1.3 0 0 1 12 21"/><circle cx="7.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="12" cy="7.5" r=".5" fill="currentColor"/><circle cx="16.5" cy="10.5" r=".5" fill="currentColor"/></svg>',
     /** @param {import('../core/types').IScopedI18n} _i18n */
     setI18n(_i18n) { i18n = _i18n },
+    /** @returns {void} */
+    mount() {
+      if (lifecycleController.signal.aborted) lifecycleController = new AbortController()
+    },
     pasteConfig: {
       patterns: [
         /^#[0-9a-fA-F]{3}$/,
@@ -64,13 +69,19 @@ export function createColorSwatchPlugin() {
         e.preventDefault()
         e.stopPropagation()
         openColorPicker(element, ctx)
-      })
+      }, { signal: lifecycleController.signal })
     },
 
     getData(element) {
       return {
         value: element.dataset.value || '#000000',
       }
+    },
+
+    /** @returns {void} */
+    destroy() {
+      lifecycleController.abort()
+      i18n = null
     },
 
   }
