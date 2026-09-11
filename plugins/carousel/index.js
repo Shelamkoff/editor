@@ -6,6 +6,7 @@ import {
   validateCarouselData,
 } from '../../shared/carouselData.js'
 import {
+  escapeHtml,
   sanitizeRawHtml,
   sanitizeUrl,
   setSafeUrlAttribute,
@@ -506,7 +507,7 @@ export class CarouselBlock extends BlockPluginAbstract {
       if (open) layer.open()
       else layer.close()
     }
-    settingsButton = makeActionBtn('oe-carousel-block__action-btn', `${ICON_SETTINGS} ${this._t('settings', 'Settings')}`, () => {
+    settingsButton = makeActionBtn('oe-carousel-block__action-btn', `${ICON_SETTINGS} ${escapeHtml(this._t('settings', 'Settings'))}`, () => {
       setSettingsOpen(!settings.classList.contains('oe-carousel-block__dropdown--open'))
     }, signal)
     settingsButton.setAttribute('aria-haspopup', 'true')
@@ -528,7 +529,7 @@ export class CarouselBlock extends BlockPluginAbstract {
 
     main.appendChild(makeActionBtn(
       'oe-carousel-block__action-btn',
-      `${ICON_REPLACE} ${this._t('add', 'Add')} ${ICON_CHEVRON}`,
+      `${ICON_REPLACE} ${escapeHtml(this._t('add', 'Add'))} ${ICON_CHEVRON}`,
       () => this.#showAddView(actions, main, wrapper, state, signal),
       signal,
     ))
@@ -560,13 +561,13 @@ export class CarouselBlock extends BlockPluginAbstract {
     const view = document.createElement('div')
     view.className = 'oe-carousel-block__actions-view'
     const restore = () => { view.remove(); main.hidden = false }
-    view.appendChild(makeActionBtn('oe-carousel-block__action-btn', `${ICON_BACK} ${this._t('back', 'Back')}`, restore, signal))
+    view.appendChild(makeActionBtn('oe-carousel-block__action-btn', `${ICON_BACK} ${escapeHtml(this._t('back', 'Back'))}`, restore, signal))
     view.appendChild(makeSep('oe-carousel-block__actions-sep'))
-    view.appendChild(makeActionBtn('oe-carousel-block__action-btn', `${ICON_UPLOAD} ${this._t('upload', 'Upload')}`, () => {
+    view.appendChild(makeActionBtn('oe-carousel-block__action-btn', `${ICON_UPLOAD} ${escapeHtml(this._t('upload', 'Upload'))}`, () => {
       this.#triggerFileInput(wrapper); restore()
     }, signal))
     for (const action of this._config.actions || []) {
-      view.appendChild(makeActionBtn('oe-carousel-block__action-btn', `${action.icon || ''} ${action.label}`, () => {
+      view.appendChild(makeActionBtn('oe-carousel-block__action-btn', `${action.icon || ''} ${escapeHtml(action.label)}`, () => {
         void this.#runAction(wrapper, state, action); restore()
       }, signal))
     }
@@ -625,13 +626,13 @@ export class CarouselBlock extends BlockPluginAbstract {
 
     const order = document.createElement('div')
     order.className = 'oe-carousel-block__slide-actions'
-    const backward = makeActionBtn('oe-carousel-block__settings-button', `${ICON_PREVIOUS} ${this._t('movePreviousShort', 'Earlier')}`, () => this.#move(wrapper, state, state.activeIndex, state.activeIndex - 1), signal)
+    const backward = makeActionBtn('oe-carousel-block__settings-button', `${ICON_PREVIOUS} ${escapeHtml(this._t('movePreviousShort', 'Earlier'))}`, () => this.#move(wrapper, state, state.activeIndex, state.activeIndex - 1), signal)
     backward.setAttribute('aria-label', this._t('movePrevious', 'Move slide backward'))
     backward.disabled = state.activeIndex === 0
-    const forward = makeActionBtn('oe-carousel-block__settings-button', `${this._t('moveNextShort', 'Later')} ${ICON_NEXT}`, () => this.#move(wrapper, state, state.activeIndex, state.activeIndex + 1), signal)
+    const forward = makeActionBtn('oe-carousel-block__settings-button', `${escapeHtml(this._t('moveNextShort', 'Later'))} ${ICON_NEXT}`, () => this.#move(wrapper, state, state.activeIndex, state.activeIndex + 1), signal)
     forward.setAttribute('aria-label', this._t('moveNext', 'Move slide forward'))
     forward.disabled = state.activeIndex === state.data.slides.length - 1
-    const remove = makeActionBtn('oe-carousel-block__settings-button oe-carousel-block__settings-button--danger', `${ICON_TRASH} ${this._t('removeSlide', 'Remove slide')}`, () => this.#removeSlide(wrapper, state, state.activeIndex), signal)
+    const remove = makeActionBtn('oe-carousel-block__settings-button oe-carousel-block__settings-button--danger', `${ICON_TRASH} ${escapeHtml(this._t('removeSlide', 'Remove slide'))}`, () => this.#removeSlide(wrapper, state, state.activeIndex), signal)
     order.append(backward, forward, remove)
     panel.appendChild(order)
 
