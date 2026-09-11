@@ -195,7 +195,7 @@ export class I18n {
     const merged = { ...params, count }
     if (typeof value === 'string') return interpolate(value, merged)
 
-    const rule = PLURAL_RULES[this.#lang] ?? PLURAL_RULES.en
+    const rule = Object.hasOwn(PLURAL_RULES, this.#lang) ? PLURAL_RULES[this.#lang] : PLURAL_RULES.en
     const category = /** @type {(n: number) => keyof PluralForms} */ (rule)(count)
     const form = value[category] ?? value.other ?? Object.values(value)[0] ?? ''
     return interpolate(form, merged)
