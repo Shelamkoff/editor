@@ -2,6 +2,7 @@ import { sanitizeUrl, setSafeUrlAttribute } from '../../shared/sanitize/sanitize
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { validateLinkPreviewData } from '../../shared/blockDataValidators.js'
 import { normalizeTextValue } from '../../shared/textFormat.js'
+import { escapeHtml } from '../../shared/sanitize/escapeHtml.js'
 
 const editorStyles = new URL('./link-preview.css', import.meta.url).href
 
@@ -570,7 +571,7 @@ export class LinkPreview extends BlockPluginAbstract {
     const settingsBtn = document.createElement('button')
     settingsBtn.type = 'button'
     settingsBtn.className = `${P}__action-btn`
-    settingsBtn.innerHTML = `${ICON_SETTINGS} ${this._t('settings', 'Settings')}`
+    settingsBtn.innerHTML = `${ICON_SETTINGS} ${escapeHtml(this._t('settings', 'Settings'))}`
     settingsBtn.setAttribute('aria-haspopup', 'true')
     settingsBtn.setAttribute('aria-expanded', 'false')
 
