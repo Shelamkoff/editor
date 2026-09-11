@@ -1,4 +1,5 @@
 import { sanitizeHtml } from '../../core/sanitize.js'
+import { escapeHtml } from '../../shared/sanitize/escapeHtml.js'
 import { setSafeUrlAttribute } from '../../shared/sanitize/sanitizeUrl.js'
 import { makeActionBtn as _makeActionBtn, makeSep as _makeSep } from '../shared/actionBar.js'
 import { CSS } from './css.js'
@@ -138,7 +139,7 @@ function renderActions(wrapper, state, deps, signal) {
   const settingsBtn = document.createElement('button')
   settingsBtn.type = 'button'
   settingsBtn.className = CSS.actionBtn
-  settingsBtn.innerHTML = `${ICON_SETTINGS} ${deps.t('settings', 'Settings')}`
+  settingsBtn.innerHTML = `${ICON_SETTINGS} ${escapeHtml(deps.t('settings', 'Settings'))}`
   settingsBtn.setAttribute('aria-haspopup', 'true')
   settingsBtn.setAttribute('aria-expanded', 'false')
 
@@ -203,7 +204,7 @@ function renderActions(wrapper, state, deps, signal) {
 
   // Replace (drill-down: Upload + URL)
   const replaceBtn = makeActionBtn(
-    `${ICON_REPLACE} ${deps.t('replace', 'Replace')} ${ICON_CHEVRON_RIGHT}`,
+    `${ICON_REPLACE} ${escapeHtml(deps.t('replace', 'Replace'))} ${ICON_CHEVRON_RIGHT}`,
     () => showReplaceView(actions, mainView, deps, signal),
     signal,
   )
@@ -247,21 +248,21 @@ function showReplaceView(actions, mainView, deps, signal) {
   const restore = () => { view.remove(); mainView.style.display = 'contents' }
 
   view.appendChild(makeActionBtn(
-    `${ICON_BACK} ${deps.t('back', 'Back')}`,
+    `${ICON_BACK} ${escapeHtml(deps.t('back', 'Back'))}`,
     restore,
     signal,
   ))
   view.appendChild(makeSep())
 
   view.appendChild(makeActionBtn(
-    `${ICON_UPLOAD} ${deps.t('upload', 'Upload')}`,
+    `${ICON_UPLOAD} ${escapeHtml(deps.t('upload', 'Upload'))}`,
     () => { deps.onTriggerFileInput(); restore() },
     signal,
   ))
 
   for (const action of deps.customActions) {
     view.appendChild(makeActionBtn(
-      `${action.icon || ''} ${action.label}`.trim(),
+      `${action.icon || ''} ${escapeHtml(action.label)}`.trim(),
       async () => { await deps.runCustomAction(action.handler); restore() },
       signal,
     ))
