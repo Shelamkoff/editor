@@ -1,4 +1,4 @@
-import { sanitizeHtml } from '../../core/sanitize.js'
+import { sanitizeHtml, escapeHtml } from '../../core/sanitize.js'
 import { SERVICES, buildPlayer } from './player.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { validateEmbedData } from '../../shared/blockDataValidators.js'
@@ -538,7 +538,7 @@ export class Embed extends BlockPluginAbstract {
     dropdown.className = CSS.dropdown
 
     const settingsBtn = this._makeBtn(
-      `${ICON_SETTINGS} ${this._t('settings', 'Settings')}`,
+      `${ICON_SETTINGS} ${escapeHtml(this._t('settings', 'Settings'))}`,
       () => {
         const isOpen = dropdown.classList.contains(CSS.dropdownOpen)
         dropdown.classList.toggle(CSS.dropdownOpen, !isOpen)
@@ -580,7 +580,7 @@ export class Embed extends BlockPluginAbstract {
 
     // Cover (drill-down)
     const coverBtn = this._makeBtn(
-      `${ICON_PHOTO} ${this._t('cover', 'Cover')} ${ICON_CHEVRON_RIGHT}`,
+      `${ICON_PHOTO} ${escapeHtml(this._t('cover', 'Cover'))} ${ICON_CHEVRON_RIGHT}`,
       () => this._showCoverView(wrapper, actions, mainView, signal),
       signal
     )
@@ -633,7 +633,7 @@ export class Embed extends BlockPluginAbstract {
 
     // Back
     const backBtn = this._makeBtn(
-      `${ICON_BACK} ${this._t('back', 'Back')}`,
+      `${ICON_BACK} ${escapeHtml(this._t('back', 'Back'))}`,
       () => { coverView.remove(); mainView.style.display = 'contents' },
       signal
     )
@@ -642,7 +642,7 @@ export class Embed extends BlockPluginAbstract {
 
     // Upload
     coverView.appendChild(this._makeBtn(
-      `${ICON_UPLOAD} ${this._t('uploadCover', 'Upload')}`,
+      `${ICON_UPLOAD} ${escapeHtml(this._t('uploadCover', 'Upload'))}`,
       () => { this._triggerCoverUpload(wrapper); coverView.remove(); mainView.style.display = 'contents' },
       signal
     ))
@@ -651,7 +651,7 @@ export class Embed extends BlockPluginAbstract {
     const customActions = this._config.actions || []
     for (const action of customActions) {
       coverView.appendChild(this._makeBtn(
-        `${action.icon || ''} ${action.label}`.trim(),
+        `${action.icon || ''} ${escapeHtml(action.label)}`.trim(),
         async () => {
           try {
             const initial = stateMap.get(wrapper)
@@ -692,7 +692,7 @@ export class Embed extends BlockPluginAbstract {
       const removeBtn = document.createElement('button')
       removeBtn.type = 'button'
       removeBtn.className = `${CSS.actionBtn} ${CSS.actionBtnDanger}`
-      removeBtn.innerHTML = `${ICON_REMOVE} ${this._t('removeCover', 'Remove')}`
+      removeBtn.innerHTML = `${ICON_REMOVE} ${escapeHtml(this._t('removeCover', 'Remove'))}`
       removeBtn.addEventListener('click', (e) => {
         e.stopPropagation()
         const st = stateMap.get(wrapper)
