@@ -15,3 +15,13 @@ test('BlockPluginAbstract snapshots configuration without freezing the consumer 
   config.enabled = false
   assert.equal(plugin.getPluginConfig().enabled, true)
 })
+
+test('BlockPluginAbstract validates shared runtime style options', () => {
+  for (const invalid of [null, 'oops', [], 42]) {
+    assert.throws(() => new TestPlugin(invalid), /configuration must be an object/)
+  }
+  assert.throws(() => new TestPlugin({ injectStyles: 'false' }), /injectStyles must be a boolean/)
+  assert.throws(() => new TestPlugin({ css: 42 }), /css must be a string/)
+
+  assert.equal(new TestPlugin({ injectStyles: false, css: '/plugin.css' }).getPluginConfig().injectStyles, false)
+})

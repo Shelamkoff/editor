@@ -30,9 +30,19 @@ export class BlockPluginAbstract {
     if (new.target === BlockPluginAbstract) {
       throw new Error('BlockPluginAbstract is abstract — extend it')
     }
+    if (config !== undefined && (config === null || typeof config !== 'object' || Array.isArray(config))) {
+      throw new TypeError('Block plugin configuration must be an object')
+    }
+    const runtimeConfig = /** @type {Record<string, unknown>} */ (config ?? {})
+    if (runtimeConfig.injectStyles !== undefined && typeof runtimeConfig.injectStyles !== 'boolean') {
+      throw new TypeError('Block plugin injectStyles must be a boolean')
+    }
+    if (runtimeConfig.css !== undefined && typeof runtimeConfig.css !== 'string') {
+      throw new TypeError('Block plugin css must be a string')
+    }
     // Freeze Rector's own shallow copy. Freezing the object supplied by the
     // consumer would unexpectedly make application configuration immutable.
-    this._config = /** @type {TConfig} */ (Object.freeze({ ...(config || {}) }))
+    this._config = /** @type {TConfig} */ (Object.freeze({ ...runtimeConfig }))
   }
 
   /**
