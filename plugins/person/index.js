@@ -38,6 +38,7 @@ const ICON_GRIP = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12
  *   debounceTimers: Map<string, number>,
  *   dragFromIdx: number | null,
  *   cropperDialog: CropperDialog | null,
+ *   avatarTasks: Map<PersonData, AbortController>,
  *   abortController: AbortController,
  *   context: import('../../core/types').BlockMutationContext,
  * }} PersonState
@@ -122,6 +123,7 @@ export class Person extends BlockPluginAbstract {
       debounceTimers: new Map(),
       dragFromIdx: null,
       cropperDialog: null,
+      avatarTasks: new Map(),
       abortController: new AbortController(),
       context,
     })
@@ -199,6 +201,8 @@ export class Person extends BlockPluginAbstract {
       s.cropperDialog?.destroy()
       s.cropperDialog = null
       s.abortController.abort()
+      for (const controller of s.avatarTasks.values()) controller.abort()
+      s.avatarTasks.clear()
       for (const timer of s.debounceTimers.values()) clearTimeout(timer)
       s.debounceTimers.clear()
       stateMap.delete(element)
@@ -274,6 +278,11 @@ export class Person extends BlockPluginAbstract {
         if (!st) return
         st.context.mutate(() => {
           this._syncActiveFromDom(wrapper)
+          const removed = st.data.persons[i]
+          const task = removed ? st.avatarTasks.get(removed) : null
+          task?.abort()
+          if (removed) st.avatarTasks.delete(removed)
+          if (st.avatarTasks.size === 0) wrapper.classList.remove('oe-person--loading')
           st.data.persons.splice(i, 1)
           if (st.activeIdx >= st.data.persons.length) st.activeIdx = st.data.persons.length - 1
           if (st.activeIdx < 0) st.activeIdx = 0
@@ -726,24 +735,93 @@ export class Person extends BlockPluginAbstract {
       if (this._config.uploadFile) {
         void this._uploadAvatar(wrapper, croppedBlob, targetPerson)
       } else {
-        const reader = new FileReader()
-        const abort = () => reader.abort()
-        state.abortController.signal.addEventListener('abort', abort, { once: true })
-        reader.onload = () => {
-          state.abortController.signal.removeEventListener('abort', abort)
-          const st = stateMap.get(wrapper)
-          if (!st || !st.data.persons.includes(targetPerson)) return
-          st.context.mutate(() => {
-            targetPerson.avatar = /** @type {string} */ (reader.result)
-            this._rebuild(wrapper)
-          })
-        }
-        reader.onerror = () => state.abortController.signal.removeEventListener('abort', abort)
-        reader.onabort = () => state.abortController.signal.removeEventListener('abort', abort)
-        reader.readAsDataURL(croppedBlob)
+        void this._readAvatar(wrapper, croppedBlob, targetPerson)
       }
     })
     input.click()
+  }
+
+  /**
+   * Start a latest-wins avatar operation for one profile without cancelling
+   * independent uploads that belong to other profile tabs.
+   * @param {HTMLElement} wrapper
+   * @param {PersonData} targetPerson
+   * @returns {{ state: PersonState, controller: AbortController } | null}
+   */
+  _beginAvatarTask(wrapper, targetPerson) {
+    const state = stateMap.get(wrapper)
+    if (!state || state.context.readOnly || !state.data.persons.includes(targetPerson)) return null
+    state.avatarTasks.get(targetPerson)?.abort()
+    const controller = new AbortController()
+    state.avatarTasks.set(targetPerson, controller)
+    wrapper.classList.add('oe-person--loading')
+    return { state, controller }
+  }
+
+  /**
+   * Release avatar-task ownership only when the completing task is still the
+   * latest task for its target profile.
+   * @param {HTMLElement} wrapper
+   * @param {PersonState} state
+   * @param {PersonData} targetPerson
+   * @param {AbortController} controller
+   * @returns {boolean}
+   */
+  _finishAvatarTask(wrapper, state, targetPerson, controller) {
+    if (stateMap.get(wrapper) !== state || state.avatarTasks.get(targetPerson) !== controller) return false
+    state.avatarTasks.delete(targetPerson)
+    if (state.avatarTasks.size === 0) wrapper.classList.remove('oe-person--loading')
+    return true
+  }
+
+  /**
+   * Store a cropped avatar locally while preserving same-person latest-wins
+   * ownership and block lifecycle cancellation.
+   * @param {HTMLElement} wrapper
+   * @param {Blob} blob
+   * @param {PersonData} targetPerson
+   * @returns {Promise<void>}
+   */
+  async _readAvatar(wrapper, blob, targetPerson) {
+    const task = this._beginAvatarTask(wrapper, targetPerson)
+    if (!task) return
+    const { state, controller } = task
+    try {
+      const result = await new Promise((resolve, reject) => {
+        const reader = new FileReader()
+        let settled = false
+        const finish = (callback) => {
+          if (settled) return
+          settled = true
+          controller.signal.removeEventListener('abort', abort)
+          callback()
+        }
+        const abort = () => {
+          if (reader.readyState === FileReader.LOADING) reader.abort()
+          else finish(() => reject(controller.signal.reason || new DOMException('Avatar read aborted', 'AbortError')))
+        }
+        controller.signal.addEventListener('abort', abort, { once: true })
+        reader.onload = () => finish(() => resolve(typeof reader.result === 'string' ? reader.result : ''))
+        reader.onerror = () => finish(() => reject(reader.error || new Error('Failed to read avatar')))
+        reader.onabort = () => finish(() => reject(controller.signal.reason || new DOMException('Avatar read aborted', 'AbortError')))
+        try { reader.readAsDataURL(blob) } catch (error) { finish(() => reject(error)) }
+      })
+      const current = stateMap.get(wrapper)
+      if (
+        controller.signal.aborted
+        || current !== state
+        || state.avatarTasks.get(targetPerson) !== controller
+        || !state.data.persons.includes(targetPerson)
+      ) return
+      state.context.mutate(() => {
+        targetPerson.avatar = String(result)
+        this._rebuild(wrapper)
+      })
+    } catch {
+      // Read was cancelled or failed.
+    } finally {
+      this._finishAvatarTask(wrapper, state, targetPerson, controller)
+    }
   }
 
   /**
@@ -754,25 +832,29 @@ export class Person extends BlockPluginAbstract {
    */
   async _uploadAvatar(wrapper, blob, targetPerson) {
     if (!this._config.uploadFile) return
-    const initial = stateMap.get(wrapper)
-    if (!initial || initial.context.readOnly) return
-    wrapper.classList.add('oe-person--loading')
+    const task = this._beginAvatarTask(wrapper, targetPerson)
+    if (!task) return
+    const { state, controller } = task
     try {
       const file = new File([blob], 'avatar.webp', { type: 'image/webp' })
-      const result = await this._config.uploadFile(file, { signal: initial.abortController.signal })
+      const result = await this._config.uploadFile(file, { signal: controller.signal })
       const url = sanitizeUrl(String(result?.url || ''), { policy: 'media', fallback: '' })
-      if (url) {
-        const s = stateMap.get(wrapper)
-        if (!s || !s.data.persons.includes(targetPerson)) return
-        s.context.mutate(() => {
-          targetPerson.avatar = url
-          this._rebuild(wrapper)
-        })
-      }
+      const current = stateMap.get(wrapper)
+      if (
+        controller.signal.aborted
+        || !url
+        || current !== state
+        || state.avatarTasks.get(targetPerson) !== controller
+        || !state.data.persons.includes(targetPerson)
+      ) return
+      state.context.mutate(() => {
+        targetPerson.avatar = url
+        this._rebuild(wrapper)
+      })
     } catch {
-      // Upload failed
+      // Upload was cancelled or failed.
     } finally {
-      wrapper.classList.remove('oe-person--loading')
+      this._finishAvatarTask(wrapper, state, targetPerson, controller)
     }
   }
 }
