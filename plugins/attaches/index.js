@@ -934,22 +934,38 @@ export class Attaches extends BlockPluginAbstract {
         }
       } else {
         const added = []
-        for (const file of files) {
-          if (signal.aborted) break
-          const ext = getExtension(file.name)
-          try {
-            const url = URL.createObjectURL(file)
-            this.#objectUrls.add(url)
-            added.push({ url, name: file.name, size: file.size, extension: ext })
-          } catch (error) {
-            console.warn(`[Attaches] Failed to open "${file.name}":`, error)
+        const createdUrls = []
+        let committed = false
+        try {
+          for (const file of files) {
+            if (signal.aborted) break
+            const ext = getExtension(file.name)
+            try {
+              const url = URL.createObjectURL(file)
+              this.#objectUrls.add(url)
+              createdUrls.push(url)
+              added.push({ url, name: file.name, size: file.size, extension: ext })
+            } catch (error) {
+              console.warn(`[Attaches] Failed to open "${file.name}":`, error)
+            }
           }
-        }
-        if (!signal.aborted && stateMap.get(wrapper) === s && added.length > 0) {
-          s.context.mutate(() => {
-            s.data.files.push(...added)
-            this.#renderFilled(wrapper)
-          })
+          if (!signal.aborted && stateMap.get(wrapper) === s && added.length > 0) {
+            s.context.mutate(() => {
+              s.data.files.push(...added)
+              this.#renderFilled(wrapper)
+            })
+            committed = true
+          }
+        } finally {
+          if (!committed) {
+            const current = stateMap.get(wrapper)
+            const retained = new Set(current?.data.files.map(file => file.url) || [])
+            for (const url of createdUrls) {
+              if (retained.has(url)) continue
+              URL.revokeObjectURL(url)
+              this.#objectUrls.delete(url)
+            }
+          }
         }
       }
     } finally {
