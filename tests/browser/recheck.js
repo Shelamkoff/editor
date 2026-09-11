@@ -1,3 +1,4 @@
+import { register as toolbarDestroyTimer } from './regressions/recheck-70-toolbar-destroy-timer.js'
 import { register as fieldInput } from './regressions/recheck-69-field-input-boundaries.js'
 import { register as softBreak } from './regressions/recheck-68-soft-break.js'
 import { register as colorCancel } from './regressions/recheck-67-color-cancel.js'
@@ -137,4 +138,5 @@ blockCutWrite()
 colorCancel()
 softBreak()
 fieldInput()
+toolbarDestroyTimer()
 await run()

@@ -77,6 +77,15 @@ export class Toolbar {
   /** @type {boolean} */
   #removing = false
 
+  /** @type {ReturnType<typeof setTimeout> | null} */
+  #toolboxReturnTimer = null
+
+  /** @type {ReturnType<typeof setTimeout> | null} */
+  #settingsReturnTimer = null
+
+  /** @type {boolean} */
+  #destroyed = false
+
   /** @type {(() => void) | null} */
   #unsubFocused = null
   /** @type {(() => void) | null} */
@@ -191,8 +200,10 @@ export class Toolbar {
         this.#settingsMenu.menuEl.classList.remove('oe-settings-menu--open')
         this.#offcanvas.hideBackdrop()
         this.#dragBtn.setAttribute('aria-expanded', 'false')
-        setTimeout(() => {
-          if (!this.#settingsMenu.isOpen) {
+        if (this.#settingsReturnTimer) clearTimeout(this.#settingsReturnTimer)
+        this.#settingsReturnTimer = setTimeout(() => {
+          this.#settingsReturnTimer = null
+          if (!this.#destroyed && !this.#settingsMenu.isOpen) {
             this.#rootEl.appendChild(this.#settingsMenu.menuEl)
           }
         }, OFFCANVAS_ANIMATION_MS)
@@ -323,8 +334,10 @@ export class Toolbar {
     if (this.#positioner.isMobile()) {
       this.#toolboxEl.classList.remove('oe-toolbox--open')
       this.#offcanvas.hideBackdrop()
-      setTimeout(() => {
-        if (!this.#toolboxOpen) {
+      if (this.#toolboxReturnTimer) clearTimeout(this.#toolboxReturnTimer)
+      this.#toolboxReturnTimer = setTimeout(() => {
+        this.#toolboxReturnTimer = null
+        if (!this.#destroyed && !this.#toolboxOpen) {
           this.#toolboxEl.style.display = 'none'
           this.#rootEl.appendChild(this.#toolboxEl)
         }
@@ -341,6 +354,15 @@ export class Toolbar {
   }
 
   destroy() {
+    this.#destroyed = true
+    if (this.#toolboxReturnTimer) {
+      clearTimeout(this.#toolboxReturnTimer)
+      this.#toolboxReturnTimer = null
+    }
+    if (this.#settingsReturnTimer) {
+      clearTimeout(this.#settingsReturnTimer)
+      this.#settingsReturnTimer = null
+    }
     this.#unsubFocused?.()
     this.#unsubMoved?.()
     this.#unsubDragHandleClicked?.()
