@@ -1,7 +1,7 @@
 import { sanitizeUrl, setSafeUrlAttribute } from './sanitize/sanitizeUrl.js'
 
 /** @type {Record<string, { regex: RegExp[], embedUrl: (id: string) => string, previewUrl: ((id: string) => string) | null }>} */
-export const SERVICES = {
+export const SERVICES = Object.assign(Object.create(null), {
   youtube: {
     regex: [/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/],
     embedUrl: (id) => `https://www.youtube.com/embed/${id}?autoplay=1&rel=0`,
@@ -12,7 +12,7 @@ export const SERVICES = {
     embedUrl: (id) => `https://player.vimeo.com/video/${id}?autoplay=1`,
     previewUrl: null,
   },
-}
+})
 
 const IFRAME_ALLOW = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture'
 const IFRAME_SANDBOX = 'allow-scripts allow-same-origin allow-presentation allow-popups'
