@@ -172,7 +172,7 @@ export class EditorEventSubscriptions {
   #events
   /** @type {import('./CommandDispatcher').CommandDispatcher | null} */
   #commands
-  /** @type {Map<string, Map<Function, () => void>>} */
+  /** @type {Map<string, Map<Function, { on?: () => void, once?: () => void }>>} */
   #subscriptions = new Map()
 
   /** @param {import('./types').IEventBus} events
@@ -196,7 +196,13 @@ export class EditorEventSubscriptions {
     if (typeof handler !== 'function') throw new TypeError('Handler must be a function')
     let handlers = this.#subscriptions.get(event)
     if (!handlers) this.#subscriptions.set(event, handlers = new Map())
-    const existing = handlers.get(handler)
+    let registrations = handlers.get(handler)
+    if (!registrations) {
+      registrations = {}
+      handlers.set(handler, registrations)
+    }
+    const kind = once ? 'once' : 'on'
+    const existing = registrations[kind]
     if (existing) return existing
     let listening = true
     const receive = data => {
@@ -221,15 +227,20 @@ export class EditorEventSubscriptions {
     const unsubscribe = () => {
       listening = false
       off()
-      handlers.delete(handler)
+      delete registrations[kind]
+      if (!registrations.on && !registrations.once) handlers.delete(handler)
       if (handlers.size === 0) this.#subscriptions.delete(event)
     }
-    handlers.set(handler, unsubscribe)
+    registrations[kind] = unsubscribe
     return unsubscribe
   }
 
   on(event, handler) { return this.#listen(event, handler, false) }
-  off(event, handler) { this.#subscriptions.get(event)?.get(handler)?.() }
+  off(event, handler) {
+    const registrations = this.#subscriptions.get(event)?.get(handler)
+    registrations?.on?.()
+    registrations?.once?.()
+  }
   once(event, handler) { return this.#listen(event, handler, true) }
 }
 

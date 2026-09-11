@@ -158,3 +158,37 @@ test('public focus is idempotent for the current index', () => {
   api.setCurrentIndex(0)
   assert.deepEqual(calls, [])
 })
+
+
+test('on and once keep independent semantics for the same handler', () => {
+  const events = new EventBus()
+  const subscriptions = new EditorEventSubscriptions(events)
+  let calls = 0
+  const handler = () => { calls += 1 }
+
+  const stopOn = subscriptions.on('audit:event', handler)
+  const stopOnce = subscriptions.once('audit:event', handler)
+
+  events.emit('audit:event')
+  events.emit('audit:event')
+  assert.equal(calls, 3)
+
+  stopOn()
+  stopOnce()
+  events.emit('audit:event')
+  assert.equal(calls, 3)
+})
+
+test('off removes both persistent and once registrations for one handler', () => {
+  const events = new EventBus()
+  const subscriptions = new EditorEventSubscriptions(events)
+  let calls = 0
+  const handler = () => { calls += 1 }
+
+  subscriptions.on('audit:event', handler)
+  subscriptions.once('audit:event', handler)
+  subscriptions.off('audit:event', handler)
+  events.emit('audit:event')
+
+  assert.equal(calls, 0)
+})
