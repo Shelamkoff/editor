@@ -16,6 +16,17 @@ function isRecord(value) {
 }
 
 /**
+ * Preserve the voter details already present in a persisted/runtime snapshot.
+ * The configured runtime cap is applied by the plugin/renderer after document
+ * normalization; normalization itself must not silently lower that cap to 50.
+ * @param {unknown} input
+ * @returns {number}
+ */
+function retainedVoterLimit(input) {
+  return isRecord(input) && Array.isArray(input.voters) ? input.voters.length : 50
+}
+
+/**
  * Normalize an untrusted runtime result without retaining arbitrary fields.
  * Unknown option ids and active avatar URLs are discarded.
  * @param {unknown} input
@@ -123,7 +134,14 @@ export function normalizePollData(input, createId) {
       })),
     }
   }
-  if (initial) data.initialResults = normalizePollResults(initial, options.map(option => option.id), 50, data.type)
+  if (initial) {
+    data.initialResults = normalizePollResults(
+      initial,
+      options.map(option => option.id),
+      retainedVoterLimit(initial),
+      data.type,
+    )
+  }
   return data
 }
 
@@ -200,7 +218,7 @@ export function validatePollData(data) {
  * @returns {PollResults}
  */
 export function applyLocalPollVote(current, previousIds, nextIds, optionIds) {
-  const result = normalizePollResults(current, optionIds)
+  const result = normalizePollResults(current, optionIds, retainedVoterLimit(current))
   const previous = new Set(previousIds)
   const next = new Set(nextIds)
   result.options = result.options.map(option => ({
