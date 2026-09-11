@@ -62,7 +62,8 @@ export const EXT_COLORS = {
  * @returns {{ svg: string, key: string }}
  */
 export function getFileIcon(ext) {
-  const key = EXT_MAP[ext.toLowerCase()] || 'default'
+  const normalized = ext.toLowerCase()
+  const key = Object.hasOwn(EXT_MAP, normalized) ? EXT_MAP[normalized] : 'default'
   return { svg: FILE_ICONS[key] ?? FILE_ICONS['default'] ?? '', key }
 }
 
