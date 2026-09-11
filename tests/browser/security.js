@@ -693,7 +693,7 @@ async function run() {
     blocks: builtInTypes.map((type, index) => ({
       id: `malformed-renderer-${index}`,
       type,
-      data: type === 'delimiter' ? null : malformedData,
+      data: type === 'delimiter' ? {} : malformedData,
     })),
   }, preserveHost)
   assert(preserveIssues.length === builtInTypes.length, 'preserve renderer did not report every invalid built-in block')
