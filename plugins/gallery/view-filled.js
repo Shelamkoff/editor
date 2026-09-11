@@ -1,4 +1,5 @@
 import { makeActionBtn as _makeActionBtn, makeSep as _makeSep } from '../shared/actionBar.js'
+import { escapeHtml } from '../../shared/sanitize/escapeHtml.js'
 import { CSS } from './css.js'
 import {
   ICON_ADD_IMAGE, ICON_BACK, ICON_CHEVRON_RIGHT, ICON_SETTINGS, ICON_TRASH,
@@ -239,7 +240,7 @@ function renderActions(wrapper, state, deps, signal) {
   const settingsBtn = document.createElement('button')
   settingsBtn.type = 'button'
   settingsBtn.className = CSS.actionBtn
-  settingsBtn.innerHTML = `${ICON_SETTINGS} ${deps.t('settings', 'Settings')}`
+  settingsBtn.innerHTML = `${ICON_SETTINGS} ${escapeHtml(deps.t('settings', 'Settings'))}`
   settingsBtn.setAttribute('aria-haspopup', 'true')
   settingsBtn.setAttribute('aria-expanded', 'false')
 
@@ -283,7 +284,7 @@ function renderActions(wrapper, state, deps, signal) {
 
   // Add (drill-down)
   const addBtn = makeActionBtn(
-    `${ICON_ADD_IMAGE} ${deps.t('addMore', 'Add')} ${ICON_CHEVRON_RIGHT}`,
+    `${ICON_ADD_IMAGE} ${escapeHtml(deps.t('addMore', 'Add'))} ${ICON_CHEVRON_RIGHT}`,
     () => showAddView(actions, mainView, deps, signal),
     signal,
   )
@@ -325,21 +326,21 @@ function showAddView(actions, mainView, deps, signal) {
   const restore = () => { view.remove(); mainView.style.display = 'contents' }
 
   view.appendChild(makeActionBtn(
-    `${ICON_BACK} ${deps.t('back', 'Back')}`,
+    `${ICON_BACK} ${escapeHtml(deps.t('back', 'Back'))}`,
     restore,
     signal,
   ))
   view.appendChild(makeSep())
 
   view.appendChild(makeActionBtn(
-    `${ICON_UPLOAD} ${deps.t('upload', 'Upload')}`,
+    `${ICON_UPLOAD} ${escapeHtml(deps.t('upload', 'Upload'))}`,
     () => { deps.onTriggerFileInput(); restore() },
     signal,
   ))
 
   for (const action of deps.customActions) {
     view.appendChild(makeActionBtn(
-      `${action.icon || ''} ${action.label}`.trim(),
+      `${action.icon || ''} ${escapeHtml(action.label)}`.trim(),
       async () => { await deps.runCustomAction(action.handler); restore() },
       signal,
     ))
