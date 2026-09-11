@@ -1,5 +1,27 @@
 import { EditorEvent } from './editorEvents.js'
 
+const PUBLIC_EDITOR_EVENTS = new Set([
+  EditorEvent.READY,
+  EditorEvent.WILL_CHANGE,
+  EditorEvent.CHANGED,
+  EditorEvent.DESTROYED,
+  EditorEvent.BLOCK_ADDED,
+  EditorEvent.BLOCK_REMOVED,
+  EditorEvent.BLOCK_MOVED,
+  EditorEvent.BLOCK_CONVERTED,
+  EditorEvent.BLOCK_CHANGED,
+  EditorEvent.BLOCK_FOCUSED,
+  EditorEvent.BLOCK_BLURRED,
+  EditorEvent.BLOCK_SELECTED,
+  EditorEvent.TOOLBAR_OPENED,
+  EditorEvent.TOOLBAR_CLOSED,
+  EditorEvent.HISTORY_COMMIT,
+  EditorEvent.HISTORY_CHANGED,
+  EditorEvent.READ_ONLY_CHANGED,
+  EditorEvent.PASTE_APPLIED,
+  EditorEvent.DRAG_HANDLE_CLICKED,
+])
+
 /**
  * Safe view over an internal Block. It deliberately omits manager-integrity
  * methods such as destroy(), markDirty(), merge() and replaceContentElement().
@@ -196,6 +218,9 @@ export class EditorEventSubscriptions {
 
   #listen(event, handler, once) {
     this.#assertActive()
+    if (!PUBLIC_EDITOR_EVENTS.has(event)) {
+      throw new TypeError(`Unknown public editor event: ${String(event)}`)
+    }
     if (typeof handler !== 'function') throw new TypeError('Handler must be a function')
     let handlers = this.#subscriptions.get(event)
     if (!handlers) this.#subscriptions.set(event, handlers = new Map())

@@ -166,16 +166,16 @@ test('on and once keep independent semantics for the same handler', () => {
   let calls = 0
   const handler = () => { calls += 1 }
 
-  const stopOn = subscriptions.on('audit:event', handler)
-  const stopOnce = subscriptions.once('audit:event', handler)
+  const stopOn = subscriptions.on(EditorEvent.CHANGED, handler)
+  const stopOnce = subscriptions.once(EditorEvent.CHANGED, handler)
 
-  events.emit('audit:event')
-  events.emit('audit:event')
+  events.emit(EditorEvent.CHANGED)
+  events.emit(EditorEvent.CHANGED)
   assert.equal(calls, 3)
 
   stopOn()
   stopOnce()
-  events.emit('audit:event')
+  events.emit(EditorEvent.CHANGED)
   assert.equal(calls, 3)
 })
 
@@ -185,10 +185,10 @@ test('off removes both persistent and once registrations for one handler', () =>
   let calls = 0
   const handler = () => { calls += 1 }
 
-  subscriptions.on('audit:event', handler)
-  subscriptions.once('audit:event', handler)
-  subscriptions.off('audit:event', handler)
-  events.emit('audit:event')
+  subscriptions.on(EditorEvent.CHANGED, handler)
+  subscriptions.once(EditorEvent.CHANGED, handler)
+  subscriptions.off(EditorEvent.CHANGED, handler)
+  events.emit(EditorEvent.CHANGED)
 
   assert.equal(calls, 0)
 })
@@ -219,4 +219,14 @@ test('EditorHandle validates programmatic inline plugin arguments before delegat
 
   assert.equal(editor.insertInlinePlugin('mention', { id: '1', name: 'Ada' }), true)
   assert.deepEqual(calls, [['mention', { id: '1', name: 'Ada' }]])
+})
+
+test('public event subscriptions reject typos and internal bus events', () => {
+  const events = new EventBus()
+  const subscriptions = new EditorEventSubscriptions(events)
+
+  assert.throws(() => subscriptions.on('block:moevd', () => {}), /Unknown public editor event/)
+  assert.throws(() => subscriptions.once(EditorEvent.DOCUMENT_REPLACED, () => {}), /Unknown public editor event/)
+  assert.throws(() => subscriptions.on(EditorEvent.UNDO_BATCH_START, () => {}), /Unknown public editor event/)
+  assert.throws(() => subscriptions.on(EditorEvent.INLINE_PLUGIN_INSERT, () => {}), /Unknown public editor event/)
 })
