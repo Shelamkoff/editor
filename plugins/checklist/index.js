@@ -78,7 +78,11 @@ export class Checklist extends BlockPluginAbstract {
     return wrapper
   }
 
-  /** Release the block-scoped mutation context when this DOM is disposed. */
+  /**
+   * Release the block-scoped mutation context when this DOM is disposed.
+   * @param {HTMLElement} element
+   * @returns {void}
+   */
   destroy(element) {
     mutationContexts.delete(element)
   }
