@@ -66,6 +66,14 @@ export class KeyboardManager {
    */
   #onKeyDown = (e) => {
     const target = /** @type {HTMLElement} */ (e.target)
+    // Native/action controls inside a block own their activation keys. Without
+    // this boundary, Enter on plugin buttons/links bubbles to the block handler
+    // and is misinterpreted as splitBlock(), preventing the control's default.
+    const actionControl = target.closest?.(
+      'button, a[href], summary, [role="button"], [role="menuitem"], [role="option"], [role="checkbox"], [role="radio"], [role="switch"]',
+    )
+    if (actionControl) return
+
     // Auxiliary form fields own their keys and native history. Document-backed
     // inputs opt in so code/raw plugins can delegate boundary keys and Undo.
     const formField = target.closest?.('input, textarea, select')
