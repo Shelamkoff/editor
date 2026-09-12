@@ -34,3 +34,46 @@ test('renderer public methods reject malformed document envelopes and blocks', a
 
   assert.equal(renderer.render({ blocks: [{ type: 'custom', data: {} }] }).children.length, 1)
 })
+
+test('renderer document boundary rejects sparse block arrays without reading inherited entries', async () => {
+  const { EditorRenderer } = await import('./index.js')
+  const renderer = new EditorRenderer({ blockTypes: [], throwOnUnknown: false, injectStyles: false })
+  let reads = 0
+  const prototype = Object.create(Array.prototype)
+  Object.defineProperty(prototype, '0', {
+    configurable: true,
+    get() { reads++; throw new Error('inherited block entry accessed') },
+  })
+  const blocks = []
+  Object.setPrototypeOf(blocks, prototype)
+  blocks.length = 1
+  assert.throws(() => renderer.render({ blocks }), /dense array/i)
+  assert.equal(reads, 0)
+})
+
+test('renderer snapshots the JSON block boundary before custom renderers observe data', async () => {
+  const { EditorRenderer } = await import('./index.js')
+  const renderer = new EditorRenderer({ blockTypes: [], injectStyles: false })
+  let seen
+  renderer.registerRenderer({
+    type: 'custom',
+    render(block) { seen = block; return document.createElement('article') },
+  })
+
+  assert.throws(
+    () => renderer.renderBlock({ type: 'custom', data: { value: undefined } }),
+    /non-JSON undefined/,
+  )
+  assert.equal(seen, undefined)
+
+  let reads = 0
+  const prototype = {}
+  Object.defineProperty(prototype, 'type', {
+    configurable: true,
+    get() { reads++; throw new Error('inherited block type accessed') },
+  })
+  const block = Object.create(prototype)
+  block.data = {}
+  assert.throws(() => renderer.renderBlock(block), /JSON object/)
+  assert.equal(reads, 0)
+})

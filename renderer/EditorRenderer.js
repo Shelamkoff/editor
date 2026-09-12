@@ -155,6 +155,10 @@ export class EditorRenderer {
    * @returns {{ element: HTMLElement, type: string, renderer?: import('./types').BlockRenderer }}
    */
   #createRenderedBlock(block) {
+    // A block crosses the public rendering boundary only when it is actually
+    // rendered. This preserves O(1) reuse for equal producer revisions while
+    // ensuring custom/default renderers never observe caller-owned JSON data.
+    block = cloneEditorData(block)
     const renderer = this.#renderers.get(block.type)
 
     if (!renderer) {

@@ -1,5 +1,6 @@
 // @ts-check
 import { EditorRenderer as EditorRendererImpl, getSupportedBlockTypes } from './EditorRenderer.js'
+import { cloneEditorData } from '../shared/cloneEditorData.js'
 
 /** @param {unknown} value @param {string} label */
 function assertOptionalRecord(value, label) {
@@ -72,33 +73,62 @@ function validateOutputBlock(block) {
   if (!block || typeof block !== 'object' || Array.isArray(block)) {
     throw new TypeError('EditorRenderer block must be an object')
   }
+  const prototype = Object.getPrototypeOf(block)
+  if (prototype !== Object.prototype && prototype !== null) {
+    throw new TypeError('EditorRenderer block must be a JSON object')
+  }
   const candidate = /** @type {Record<string, unknown>} */ (block)
-  if (typeof candidate.type !== 'string' || !candidate.type) {
+  if (!Object.hasOwn(candidate, 'type') || typeof candidate.type !== 'string' || !candidate.type) {
     throw new TypeError('EditorRenderer block type must be a non-empty string')
   }
-  if (!candidate.data || typeof candidate.data !== 'object' || Array.isArray(candidate.data)) {
+  if (!Object.hasOwn(candidate, 'data') || !candidate.data || typeof candidate.data !== 'object' || Array.isArray(candidate.data)) {
     throw new TypeError('EditorRenderer block data must be an object')
   }
-  if (candidate.id !== undefined && typeof candidate.id !== 'string') {
+  if (Object.hasOwn(candidate, 'id') && candidate.id !== undefined && typeof candidate.id !== 'string') {
     throw new TypeError('EditorRenderer block id must be a string')
   }
-  if (candidate.revision !== undefined && typeof candidate.revision !== 'string' && typeof candidate.revision !== 'number') {
+  if (Object.hasOwn(candidate, 'revision') && candidate.revision !== undefined
+      && typeof candidate.revision !== 'string' && typeof candidate.revision !== 'number') {
     throw new TypeError('EditorRenderer block revision must be a string or number')
   }
-  assertOptionalRecord(candidate.tunes, 'block tunes')
-  assertOptionalRecord(candidate.inline, 'block inline data')
+  if (Object.hasOwn(candidate, 'tunes')) assertOptionalRecord(candidate.tunes, 'block tunes')
+  if (Object.hasOwn(candidate, 'inline')) assertOptionalRecord(candidate.inline, 'block inline data')
 }
 
-/** @param {unknown} data */
-function validateOutputData(data) {
+/**
+ * Normalize the public document boundary without defeating producer revisions.
+ * Unrevisioned blocks are snapshotted before their deep signature is computed.
+ * Revisioned blocks keep opaque payloads unread until a changed block actually
+ * needs rendering; the renderer snapshots them at that point.
+ * @param {unknown} data
+ * @returns {import('./types').OutputData}
+ */
+function prepareOutputData(data) {
   if (!data || typeof data !== 'object' || Array.isArray(data)) {
     throw new TypeError('EditorRenderer data must be an object')
   }
   const candidate = /** @type {Record<string, unknown>} */ (data)
-  if (!Array.isArray(candidate.blocks)) {
+  if (!Object.hasOwn(candidate, 'blocks') || !Array.isArray(candidate.blocks)) {
     throw new TypeError('EditorRenderer blocks must be an array')
   }
-  for (const block of candidate.blocks) validateOutputBlock(block)
+  assertDenseArray(candidate.blocks, 'blocks')
+
+  const blocks = candidate.blocks.map(block => {
+    validateOutputBlock(block)
+    const source = /** @type {import('./types').OutputBlockData} */ (block)
+    if (typeof source.revision !== 'string' && typeof source.revision !== 'number') {
+      const snapshot = cloneEditorData(source)
+      validateOutputBlock(snapshot)
+      return snapshot
+    }
+
+    // Copy only own envelope fields. Keeping the payload opaque is deliberate:
+    // equal producer revisions promise that the content is unchanged, so
+    // renderTo() must be able to reuse the mounted node without reading it.
+    return /** @type {import('./types').OutputBlockData} */ ({ ...source })
+  })
+
+  return /** @type {import('./types').OutputData} */ ({ ...candidate, blocks })
 }
 
 /** @param {unknown} renderer */
@@ -149,14 +179,12 @@ export class EditorRenderer extends EditorRendererImpl {
 
   /** @param {import('./types').OutputData} data */
   render(data) {
-    validateOutputData(data)
-    return super.render(data)
+    return super.render(prepareOutputData(data))
   }
 
   /** @param {import('./types').OutputData} data @param {HTMLElement} container */
   renderTo(data, container) {
-    validateOutputData(data)
-    return super.renderTo(data, container)
+    return super.renderTo(prepareOutputData(data), container)
   }
 }
 
