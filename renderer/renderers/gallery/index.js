@@ -12,6 +12,7 @@ import {
 } from '@shelamkoff/expose'
 import { setSafeUrlAttribute } from '../../../shared/sanitize/sanitizeUrl.js'
 import { mountGalleryMasonry } from '../../../shared/galleryMasonry.js'
+import { localeText } from '../locale.js'
 
 const styles = new URL('./styles.css', import.meta.url).href
 const exposeStyles = exposeStylesUrl
@@ -125,9 +126,7 @@ export function createGalleryRenderer(classPrefix, locale) {
       const visibleCount = Math.min(images.length, layout === 'auto' ? MAX_VISIBLE : slots)
       const visibleImages = images.slice(0, visibleCount)
       const overflowCount = images.length - visibleCount
-      const openLabel = typeof locale['renderer.gallery.open'] === 'string'
-        ? locale['renderer.gallery.open']
-        : 'Open image'
+      const openLabel = localeText(locale, 'renderer.gallery.open', 'Open image')
       /** @type {HTMLElement[] | null} */
       let masonryItems = null
 

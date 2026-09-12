@@ -1,5 +1,6 @@
 // @ts-check
 import { buildPlayer } from '../../../shared/embedPlayer.js'
+import { localeText } from '../locale.js'
 
 const styles = new URL('./styles.css', import.meta.url).href
 
@@ -14,7 +15,7 @@ const ICON_PLAY = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24
  */
 export function createEmbedRenderer(classPrefix, locale) {
   /** @param {string} key @param {string} fallback */
-  const t = (key, fallback) => typeof locale?.[key] === 'string' ? locale[key] : fallback
+  const t = (key, fallback) => localeText(locale, key, fallback)
   return {
     type: 'embed',
     styles: [styles],

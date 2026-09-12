@@ -5,6 +5,7 @@ import {
     loadHighlightRuntime,
 } from '../../../shared/highlightRuntime.js'
 import { escapeHtml } from '../../../shared/sanitize/escapeHtml.js'
+import { localeText } from '../locale.js'
 
 const styles = new URL('./styles.css', import.meta.url).href
 
@@ -40,10 +41,7 @@ export function createCodeRenderer(classPrefix, /** @type {Record<string, import
     const resetTimers = new WeakMap()
     /** @type {WeakSet<HTMLElement>} */
     const liveElements = new WeakSet()
-    const t = (/** @type {string} */ key, /** @type {string} */ fallback) => {
-        const value = locale?.[key]
-        return typeof value === 'string' ? value : fallback
-    }
+    const t = (/** @type {string} */ key, /** @type {string} */ fallback) => localeText(locale, key, fallback)
     return {
         type: 'code',
         styles: [styles],

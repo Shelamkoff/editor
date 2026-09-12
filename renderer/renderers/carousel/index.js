@@ -12,6 +12,7 @@ import {
 import { normalizeCarouselData } from '../../../shared/carouselData.js'
 import { setSanitizedRawHtml } from '../../../shared/sanitize/sanitizeRawHtml.js'
 import { setSafeUrlAttribute } from '../../../shared/sanitize/sanitizeUrl.js'
+import { localeText } from '../locale.js'
 
 const styles = new URL('./styles.css', import.meta.url).href
 
@@ -26,10 +27,7 @@ export function createCarouselRenderer(classPrefix, locale) {
   /** @type {WeakMap<HTMLElement, Carousel>} */
   const instances = new WeakMap()
   /** @param {string} key @param {string} fallback */
-  const t = (key, fallback) => {
-    const value = locale[`renderer.carousel.${key}`]
-    return typeof value === 'string' ? value : fallback
-  }
+  const t = (key, fallback) => localeText(locale, `renderer.carousel.${key}`, fallback)
 
   return {
     type: 'carousel',

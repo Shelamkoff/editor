@@ -2,6 +2,7 @@
 import { getFileIcon, getExtension, formatSize, EXT_COLORS } from '../../../shared/fileUtils.js'
 import { sanitizeDownloadUrl, setSafeUrlAttribute } from '../../../shared/sanitize/sanitizeUrl.js'
 import { loadZipRuntime } from '../../../shared/zipRuntime.js'
+import { localePluralText, localeText } from '../locale.js'
 
 let groupSequence = 0
 
@@ -184,19 +185,9 @@ export function createAttachesRenderer(classPrefix, locale) {
   /** @type {WeakMap<HTMLElement, AbortController>} */
   const archiveRequests = new WeakMap()
   /** @param {string} key @param {string} fallback */
-  const t = (key, fallback) => {
-    const value = locale?.[key]
-    return typeof value === 'string' ? value : fallback
-  }
+  const t = (key, fallback) => localeText(locale, key, fallback)
   /** @param {string} key @param {number} count @param {string} fallback */
-  const p = (key, count, fallback) => {
-    const value = locale?.[key]
-    if (typeof value === 'string') return value
-    if (!value || typeof value !== 'object') return fallback
-    const language = locale?.__lang
-    const category = new Intl.PluralRules(typeof language === 'string' ? language : 'en').select(count)
-    return value[category] ?? value.other ?? fallback
-  }
+  const p = (key, count, fallback) => localePluralText(locale, key, count, fallback)
 
   return {
     type: 'attaches',

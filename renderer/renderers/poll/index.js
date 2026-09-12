@@ -6,6 +6,7 @@ import {
   shouldAcceptPollRevision,
 } from '../../../shared/pollData.js'
 import { setSafeUrlAttribute } from '../../../shared/sanitize/sanitizeUrl.js'
+import { localeText } from '../locale.js'
 
 const styles = new URL('./styles.css', import.meta.url).href
 
@@ -37,9 +38,7 @@ export function createPollRenderer(classPrefix, locale, config = {}) {
   const states = new WeakMap()
 
   /** @param {string} key @param {string} fallback */
-  const t = (key, fallback) => typeof locale[`renderer.poll.${key}`] === 'string'
-    ? locale[`renderer.poll.${key}`]
-    : fallback
+  const t = (key, fallback) => localeText(locale, `renderer.poll.${key}`, fallback)
 
   /** @param {HTMLElement} wrapper @param {any} state @param {unknown} input @param {boolean} [confirmedVote] */
   function accept(wrapper, state, input, confirmedVote = false) {

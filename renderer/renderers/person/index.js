@@ -1,6 +1,7 @@
 // @ts-check
 import { Carousel, createSwipe, carouselStylesUrl } from '@shelamkoff/carousel'
 import { setSafeUrlAttribute } from '../../../shared/sanitize/sanitizeUrl.js'
+import { localeText } from '../locale.js'
 
 const styles = new URL('./styles.css', import.meta.url).href
 const carouselStyles = carouselStylesUrl
@@ -24,10 +25,7 @@ const SOCIAL_ICONS = Object.assign(Object.create(null), {
  * @returns {import('../../types').BlockRenderer<import('../../types').PersonBlock>}
  */
 export function createPersonRenderer(classPrefix, /** @type {Record<string, import('../../../shared/localeTypes').LocaleValue>} */ locale) {
-    const t = (/** @type {string} */ key, /** @type {string} */ fallback) => {
-        const value = locale?.[key]
-        return typeof value === 'string' ? value : fallback
-    }
+    const t = (/** @type {string} */ key, /** @type {string} */ fallback) => localeText(locale, key, fallback)
     const p = `${classPrefix}-person`
     const mounted = new WeakMap()
 

@@ -1,5 +1,6 @@
 // @ts-check
 import { mapSpoilerTextFields as mapTextFields } from '../../../shared/mapTextFields.js'
+import { localeText } from '../locale.js'
 
 const styles = new URL('./styles.css', import.meta.url).href
 
@@ -16,10 +17,7 @@ let spoilerSequence = 0
  * @returns {import('../../types').BlockRenderer<import('../../types').SpoilerBlock>}
  */
 export function createSpoilerRenderer(classPrefix, /** @type {Record<string, import('../../../shared/localeTypes').LocaleValue>} */ locale) {
-    const t = (/** @type {string} */ key, /** @type {string} */ fallback) => {
-        const value = locale?.[key]
-        return typeof value === 'string' ? value : fallback
-    }
+    const t = (/** @type {string} */ key, /** @type {string} */ fallback) => localeText(locale, key, fallback)
     const p = `${classPrefix}-spoiler`
 
     return {
