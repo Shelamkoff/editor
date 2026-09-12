@@ -8,6 +8,15 @@ function assertOptionalRecord(value, label) {
   }
 }
 
+/** @param {unknown[]} value @param {string} label */
+function assertDenseArray(value, label) {
+  for (let index = 0; index < value.length; index++) {
+    if (!Object.hasOwn(value, index)) {
+      throw new TypeError(`EditorRenderer ${label} must be a dense array`)
+    }
+  }
+}
+
 /** @param {import('./types').RendererConfig} config */
 function validateRendererConfig(config) {
   if (config.injectStyles !== undefined && typeof config.injectStyles !== 'boolean') {
@@ -30,6 +39,7 @@ function validateRendererConfig(config) {
     if (!Array.isArray(config.blockTypes)) {
       throw new TypeError('EditorRenderer blockTypes must be an array')
     }
+    assertDenseArray(config.blockTypes, 'blockTypes')
     const supported = new Set(getSupportedBlockTypes())
     for (const type of config.blockTypes) {
       if (typeof type !== 'string' || !supported.has(type)) {
@@ -42,6 +52,7 @@ function validateRendererConfig(config) {
     if (!Array.isArray(config.inlinePlugins)) {
       throw new TypeError('EditorRenderer inlinePlugins must be an array')
     }
+    assertDenseArray(config.inlinePlugins, 'inlinePlugins')
     const types = new Set()
     for (const plugin of config.inlinePlugins) {
       if (!plugin || typeof plugin !== 'object' || typeof plugin.type !== 'string' || !plugin.type) {
@@ -116,8 +127,12 @@ function validateCustomRenderer(renderer) {
 export class EditorRenderer extends EditorRendererImpl {
   /** @param {import('./types').RendererConfig} [config] */
   constructor(config = {}) {
-    validateRendererConfig(config)
-    super(config)
+    if (!config || typeof config !== 'object' || Array.isArray(config)) {
+      throw new TypeError('EditorRenderer config must be an object')
+    }
+    const ownConfig = /** @type {import('./types').RendererConfig} */ ({ ...config })
+    validateRendererConfig(ownConfig)
+    super(ownConfig)
   }
 
   /** @param {import('./types').BlockRenderer} renderer @returns {this} */
