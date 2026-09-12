@@ -46,6 +46,20 @@ async function run() {
   assert(!sanitized.includes('background-image'), 'inline sanitizer kept a dangerous CSS property')
   assert(window.__editorSecurityProbe === 0, 'inline sanitizer executed an inert payload')
 
+
+  const previousBoldAllowlist = Object.getOwnPropertyDescriptor(Object.prototype, 'b')
+  Object.defineProperty(Object.prototype, 'b', {
+    configurable: true,
+    value: new Set(['onclick']),
+  })
+  try {
+    const pollutedAllowlist = sanitizeHtml('<b onclick="window.__editorSecurityProbe++">prototype-safe</b>')
+    assert(!/onclick/i.test(pollutedAllowlist), 'inline sanitizer trusted inherited attribute allowlist entries')
+  } finally {
+    if (previousBoldAllowlist) Object.defineProperty(Object.prototype, 'b', previousBoldAllowlist)
+    else delete Object.prototype.b
+  }
+
   const rawHost = document.createElement('div')
   const unsafeRaw = `<section>
     <img src="data:image/svg+xml,<svg onload=alert(1)>" srcset="javascript:alert(1) 1x, ${pixel} 2x" onerror="window.__editorSecurityProbe++">

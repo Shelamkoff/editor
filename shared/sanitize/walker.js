@@ -60,7 +60,7 @@ export function sanitizeSubtree(node) {
     }
 
     // Strip disallowed attributes
-    const allowedAttrs = ALLOWED_ATTRS[tag]
+    const allowedAttrs = Object.hasOwn(ALLOWED_ATTRS, tag) ? ALLOWED_ATTRS[tag] : undefined
     const attrs = Array.from(el.attributes)
     for (const attr of attrs) {
       if (!allowedAttrs?.has(attr.name)) {
