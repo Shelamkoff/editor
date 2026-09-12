@@ -76,6 +76,13 @@ export function validateEditorConfigOptions(config) {
     if (value !== undefined && !Array.isArray(value)) {
       throw new TypeError(`createEditor() ${field} must be an array`)
     }
+    if (Array.isArray(value)) {
+      for (let index = 0; index < value.length; index++) {
+        if (!Object.hasOwn(value, index)) {
+          throw new TypeError(`createEditor() ${field} must be a dense array`)
+        }
+      }
+    }
   }
 
   if (config.autofocus !== undefined && typeof config.autofocus !== 'boolean') {
@@ -130,9 +137,9 @@ export function validateEditorConfigOptions(config) {
  * @returns {EditorTuning}
  */
 export function resolveTuning(overrides) {
-  const supplied = /** @type {Partial<EditorTuning>} */ (
-    overrides === undefined ? {} : validateGroup(overrides, 'tuning')
-  )
+  const supplied = /** @type {Partial<EditorTuning>} */ ({
+    ...(overrides === undefined ? {} : validateGroup(overrides, 'tuning')),
+  })
   const drag = supplied.drag === undefined ? {} : validateGroup(supplied.drag, 'tuning.drag')
   const undo = supplied.undo === undefined ? {} : validateGroup(supplied.undo, 'tuning.undo')
   const change = supplied.change === undefined ? {} : validateGroup(supplied.change, 'tuning.change')

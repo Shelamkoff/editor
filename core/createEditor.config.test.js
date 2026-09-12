@@ -37,3 +37,46 @@ test('createEditor rejects malformed runtime option shapes at the public boundar
     globalThis.HTMLElement = previous
   }
 })
+
+test('createEditor ignores inherited top-level options', () => {
+  const previous = globalThis.HTMLElement
+  globalThis.HTMLElement = FakeHolder
+  let reads = 0
+  const prototype = {}
+  Object.defineProperty(prototype, 'autofocus', {
+    configurable: true,
+    get() { reads++; throw new Error('inherited option accessed') },
+  })
+  const config = Object.create(prototype)
+  config.holder = new FakeHolder()
+  config.plugins = []
+  try {
+    assert.throws(() => createEditor(config), /Default block plugin/)
+    assert.equal(reads, 0)
+  } finally {
+    globalThis.HTMLElement = previous
+  }
+})
+
+test('createEditor rejects sparse plugin configuration arrays without reading inherited entries', () => {
+  const previous = globalThis.HTMLElement
+  globalThis.HTMLElement = FakeHolder
+  try {
+    for (const field of ['plugins', 'inlineTools', 'inlinePlugins', 'migrations']) {
+      let reads = 0
+      const prototype = Object.create(Array.prototype)
+      Object.defineProperty(prototype, '0', {
+        configurable: true,
+        get() { reads++; throw new Error(`inherited ${field} entry accessed`) },
+      })
+      const values = []
+      Object.setPrototypeOf(values, prototype)
+      values.length = 1
+      const config = { holder: new FakeHolder(), plugins: [], [field]: values }
+      assert.throws(() => createEditor(config), /dense array/i, field)
+      assert.equal(reads, 0, field)
+    }
+  } finally {
+    globalThis.HTMLElement = previous
+  }
+})

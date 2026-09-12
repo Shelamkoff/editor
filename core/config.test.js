@@ -46,3 +46,24 @@ test('resolveTuning rejects malformed tuning groups', () => {
     assert.throws(() => resolveTuning(config), new RegExp(`${path.replaceAll('.', '\\.')} must be an object`))
   }
 })
+
+test('resolveTuning ignores inherited top-level tuning values without reading them', () => {
+  let reads = 0
+  const prototype = {}
+  for (const key of ['drag', 'undo', 'change', 'toolbar', 'animations', 'mobileBreakpoint']) {
+    Object.defineProperty(prototype, key, {
+      configurable: true,
+      get() { reads++; throw new Error(`inherited tuning ${key} accessed`) },
+    })
+  }
+  const tuning = Object.create(prototype)
+  assert.deepEqual(resolveTuning(tuning), {
+    ...DEFAULT_TUNING,
+    drag: { ...DEFAULT_TUNING.drag },
+    undo: { ...DEFAULT_TUNING.undo },
+    change: { ...DEFAULT_TUNING.change },
+    toolbar: { ...DEFAULT_TUNING.toolbar },
+    animations: { ...DEFAULT_TUNING.animations },
+  })
+  assert.equal(reads, 0)
+})

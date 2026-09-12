@@ -463,11 +463,20 @@ function registerPlugins(pluginList, i18n, defaultBlockType, placeholder) {
  * @returns {import('./types').IEditor}
  */
 export function createEditor(config) {
-  if (!(config?.holder instanceof HTMLElement)) {
+  if (!config || typeof config !== 'object' || Array.isArray(config)) {
+    throw new TypeError('createEditor() requires an HTMLElement holder')
+  }
+  config = /** @type {import('./types').EditorConfig} */ ({ ...config })
+  if (!(config.holder instanceof HTMLElement)) {
     throw new TypeError('createEditor() requires an HTMLElement holder')
   }
   if (!Array.isArray(config.plugins)) {
     throw new TypeError('createEditor() requires a plugins array')
+  }
+  for (let index = 0; index < config.plugins.length; index++) {
+    if (!Object.hasOwn(config.plugins, index)) {
+      throw new TypeError('createEditor() plugins must be a dense array')
+    }
   }
   if (config.readOnly !== undefined && typeof config.readOnly !== 'boolean') {
     throw new TypeError('createEditor() readOnly must be a boolean')
