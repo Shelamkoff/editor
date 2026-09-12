@@ -92,7 +92,7 @@ export function parseClipboardFragment(value) {
         || !fragment.inline || typeof fragment.inline !== 'object' || Array.isArray(fragment.inline)) return null
     for (const [id, entry] of Object.entries(fragment.inline)) {
       if (!/^[A-Za-z0-9_-]+$/.test(id) || ['__proto__', 'constructor', 'prototype'].includes(id)
-          || !entry || typeof entry !== 'object' || typeof entry.type !== 'string'
+          || !entry || typeof entry !== 'object' || typeof entry.type !== 'string' || !entry.type
           || !entry.data || typeof entry.data !== 'object' || Array.isArray(entry.data)) return null
     }
     return cloneEditorData({ html: fragment.html, inline: fragment.inline })
