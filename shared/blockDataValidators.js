@@ -156,7 +156,7 @@ export function validateTableData(data) {
 export function validateColumnsData(data) {
   if (!isRecord(data)) return false
   const value = /** @type {Record<string, unknown>} */ (data)
-  if (typeof value.layout !== 'string') return false
+  if (typeof value.layout !== 'string' || !Object.hasOwn(COLUMN_LAYOUT_SIZES, value.layout)) return false
   const size = COLUMN_LAYOUT_SIZES[value.layout]
   return Number.isInteger(size)
     && Array.isArray(value.columns)

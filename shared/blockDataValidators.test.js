@@ -110,3 +110,21 @@ test('embed and link preview validators apply their declared URL and enum polici
   assert.equal(validateLinkPreviewData({ url: '/relative', template: 'notion' }), false)
   assert.equal(validateLinkPreviewData({ url: '//example.com/page', template: 'notion' }), false)
 })
+
+test('columns validation ignores inherited layout registry entries', () => {
+  const key = '__rectorAuditColumnsLayout__'
+  let reads = 0
+  Object.defineProperty(Object.prototype, key, {
+    configurable: true,
+    get() { reads++; throw new Error('inherited layout accessed') },
+  })
+  try {
+    assert.equal(validateColumnsData({
+      layout: key,
+      columns: [{ content: 'a' }, { content: 'b' }],
+    }), false)
+    assert.equal(reads, 0)
+  } finally {
+    delete Object.prototype[key]
+  }
+})
