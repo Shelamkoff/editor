@@ -77,3 +77,17 @@ test('cloneEditorData drops array metadata that JSON serialization ignores', () 
   assert.deepEqual(cloned, [{ value: 1 }])
   assert.equal(Object.hasOwn(cloned, 'extra'), false)
 })
+
+
+test('cloneEditorData rejects exotic prototypes without evaluating constructor accessors', () => {
+  let reads = 0
+  const prototype = {}
+  Object.defineProperty(prototype, 'constructor', {
+    configurable: true,
+    get() { reads++; throw new Error('inherited constructor accessed') },
+  })
+  const value = Object.create(prototype)
+  value.text = 'safe own data'
+  assert.throws(() => cloneEditorData(value), /non-JSON object/)
+  assert.equal(reads, 0)
+})

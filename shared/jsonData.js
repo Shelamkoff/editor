@@ -32,7 +32,8 @@ export function cloneJsonValue(value, path = '$') {
 
     const prototype = Object.getPrototypeOf(current)
     if (!Array.isArray(current) && prototype !== Object.prototype && prototype !== null) {
-      const name = /** @type {{ constructor?: { name?: string } }} */ (current).constructor?.name || 'object'
+      const constructor = Object.getOwnPropertyDescriptor(prototype, 'constructor')?.value
+      const name = typeof constructor === 'function' && constructor.name ? constructor.name : 'object'
       throw new TypeError(`${currentPath} contains non-JSON object ${name}`)
     }
 
