@@ -48,13 +48,13 @@ export const EXT_MAP = {
 }
 
 /** Extension → badge accent color (only for known doc types). @type {Record<string, string>} */
-export const EXT_COLORS = {
+export const EXT_COLORS = Object.assign(Object.create(null), {
   pdf: '#e74c3c',
   doc: '#2b579a', docx: '#2b579a',
   xls: '#217346', xlsx: '#217346',
   ppt: '#d24726', pptx: '#d24726',
   zip: '#f39c12', rar: '#f39c12', '7z': '#f39c12',
-}
+})
 
 /**
  * Get the SVG icon for a file extension.
