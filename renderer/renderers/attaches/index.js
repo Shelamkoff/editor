@@ -123,35 +123,54 @@ export async function downloadArchive(files, { signal }) {
     throw new RangeError('Attachment exceeds the per-file ZIP limit')
   }
 
-  const JSZip = await loadZipRuntime()
-  const zip = new JSZip()
-  const total = { value: 0 }
-  let cursor = 0
-  let archived = 0
-  const workers = Array.from({ length: Math.min(ARCHIVE_LIMITS.concurrency, entries.length) }, async () => {
-    while (cursor < entries.length) {
-      const entry = entries[cursor++]
-      signal.throwIfAborted()
-      try {
-        const response = await fetch(entry.url, { signal })
-        if (!response.ok) continue
-        zip.file(entry.name, await readBoundedResponse(response, signal, total))
-        archived += 1
-      } catch (error) {
-        if (signal.aborted || error instanceof RangeError) throw error
-        // Keep the previous partial-archive behaviour for individual network failures.
+  const controller = new AbortController()
+  const abortOperation = () => controller.abort(signal.reason)
+  signal.addEventListener('abort', abortOperation, { once: true })
+  const operationSignal = controller.signal
+
+  try {
+    operationSignal.throwIfAborted()
+    const JSZip = await loadZipRuntime()
+    operationSignal.throwIfAborted()
+    const zip = new JSZip()
+    const total = { value: 0 }
+    let cursor = 0
+    let archived = 0
+    const workers = Array.from({ length: Math.min(ARCHIVE_LIMITS.concurrency, entries.length) }, async () => {
+      while (cursor < entries.length) {
+        const entry = entries[cursor++]
+        operationSignal.throwIfAborted()
+        try {
+          const response = await fetch(entry.url, { signal: operationSignal })
+          if (!response.ok) continue
+          zip.file(entry.name, await readBoundedResponse(response, operationSignal, total))
+          archived += 1
+        } catch (error) {
+          if (error instanceof RangeError) {
+            controller.abort(error)
+            throw error
+          }
+          if (operationSignal.aborted) {
+            if (signal.aborted) signal.throwIfAborted()
+            throw operationSignal.reason ?? error
+          }
+          // Keep the previous partial-archive behaviour for individual network failures.
+        }
       }
-    }
-  })
-  await Promise.all(workers)
-  if (!archived) throw new Error('No attachments could be added to the ZIP archive')
-  signal.throwIfAborted()
-  const blob = await zip.generateAsync({ type: 'blob' })
-  signal.throwIfAborted()
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  setSafeUrlAttribute(a, 'href', url, 'download'); a.download = 'files.zip'; a.click()
-  setTimeout(() => URL.revokeObjectURL(url), 0)
+    })
+    await Promise.all(workers)
+    if (!archived) throw new Error('No attachments could be added to the ZIP archive')
+    operationSignal.throwIfAborted()
+    const blob = await zip.generateAsync({ type: 'blob' })
+    operationSignal.throwIfAborted()
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    setSafeUrlAttribute(a, 'href', url, 'download'); a.download = 'files.zip'; a.click()
+    setTimeout(() => URL.revokeObjectURL(url), 0)
+  } finally {
+    signal.removeEventListener('abort', abortOperation)
+    controller.abort()
+  }
 }
 
 /**

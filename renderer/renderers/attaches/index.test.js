@@ -28,3 +28,44 @@ test('ZIP limits and cancellation fail before loading or fetching attachments', 
     /Too many attachments/,
   )
 })
+
+
+test('ZIP safety failure aborts sibling downloads without aborting caller signal', async () => {
+  const originalFetch = globalThis.fetch
+  const caller = new AbortController()
+  let siblingSignal = null
+  let releaseSibling
+  let calls = 0
+
+  globalThis.fetch = async (_url, options = {}) => {
+    calls += 1
+    if (calls === 1) {
+      return new Response(new Uint8Array([1]), {
+        status: 200,
+        headers: { 'content-length': String(ARCHIVE_LIMITS.fileBytes + 1) },
+      })
+    }
+    siblingSignal = options.signal
+    return await new Promise((resolve, reject) => {
+      releaseSibling = () => reject(new Error('test cleanup'))
+      if (options.signal?.aborted) reject(options.signal.reason)
+      else options.signal?.addEventListener('abort', () => reject(options.signal.reason), { once: true })
+    })
+  }
+
+  try {
+    await assert.rejects(
+      downloadArchive([
+        { url: 'https://example.test/oversized.bin', name: 'oversized.bin' },
+        { url: 'https://example.test/sibling.bin', name: 'sibling.bin' },
+      ], { signal: caller.signal }),
+      /per-file ZIP limit/,
+    )
+    assert.ok(siblingSignal, 'a concurrent sibling request should start')
+    assert.equal(siblingSignal.aborted, true, 'the archive operation should abort sibling work')
+    assert.equal(caller.signal.aborted, false, 'archive-local cancellation must not abort the caller')
+  } finally {
+    releaseSibling?.()
+    globalThis.fetch = originalFetch
+  }
+})
