@@ -50,3 +50,30 @@ test('cloneEditorData clones JSON-shaped object and array proxies', () => {
   assert.notStrictEqual(clonedArray, arrayTarget)
   assert.notStrictEqual(clonedArray[0], objectTarget)
 })
+
+test('cloneEditorData snapshots accessor-backed JSON exactly once', () => {
+  let reads = 0
+  const source = {}
+  Object.defineProperty(source, 'value', {
+    enumerable: true,
+    get() {
+      reads++
+      return reads === 1 ? { stable: true } : undefined
+    },
+  })
+
+  const cloned = cloneEditorData(source)
+
+  assert.deepEqual(cloned, { value: { stable: true } })
+  assert.equal(reads, 1)
+})
+
+test('cloneEditorData drops array metadata that JSON serialization ignores', () => {
+  const source = [{ value: 1 }]
+  source.extra = { transient: true }
+
+  const cloned = cloneEditorData(source)
+
+  assert.deepEqual(cloned, [{ value: 1 }])
+  assert.equal(Object.hasOwn(cloned, 'extra'), false)
+})
