@@ -31,3 +31,19 @@ test('synchronous renderer config maps ignore inherited block type keys', () => 
   assert.equal(defaults.get('paragraph')?.type, 'paragraph')
   assert.equal(reads, 0)
 })
+
+test('synchronous renderer type lists ignore inherited sparse entries', () => {
+  let reads = 0
+  const prototype = Object.create(Array.prototype)
+  Object.defineProperty(prototype, '0', {
+    configurable: true,
+    get() { reads++; return 'paragraph' },
+  })
+  const types = []
+  Object.setPrototypeOf(types, prototype)
+  types.length = 1
+
+  const defaults = createDefaultRenderers('test', {}, types)
+  assert.equal(defaults.size, 0)
+  assert.equal(reads, 0)
+})

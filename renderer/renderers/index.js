@@ -72,7 +72,12 @@ export function createDefaultRenderers(classPrefix, locale, types = getSupported
   /** @type {Map<string, import('../types').BlockRenderer>} */
   const renderers = new Map()
 
-  for (const type of new Set(types)) {
+  const requestedTypes = []
+  for (let index = 0; index < types.length; index++) {
+    if (Object.hasOwn(types, index)) requestedTypes.push(types[index])
+  }
+
+  for (const type of new Set(requestedTypes)) {
     if (!Object.hasOwn(rendererFactories, type)) continue
     const factory = rendererFactories[type]
     if (!factory) continue
