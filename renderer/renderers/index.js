@@ -76,7 +76,7 @@ export function createDefaultRenderers(classPrefix, locale, types = getSupported
     if (!Object.hasOwn(rendererFactories, type)) continue
     const factory = rendererFactories[type]
     if (!factory) continue
-    renderers.set(type, factory(classPrefix, locale, configs[type]))
+    renderers.set(type, factory(classPrefix, locale, Object.hasOwn(configs, type) ? configs[type] : undefined))
   }
 
   return renderers

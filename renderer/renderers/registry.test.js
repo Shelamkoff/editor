@@ -17,3 +17,17 @@ test('synchronous renderer factories still create every registered renderer', ()
     assert.equal(typeof all.get(type).render, 'function')
   }
 })
+
+
+test('synchronous renderer config maps ignore inherited block type keys', () => {
+  let reads = 0
+  const prototype = {}
+  Object.defineProperty(prototype, 'paragraph', {
+    enumerable: true,
+    get() { reads++; throw new Error('inherited paragraph config accessed') },
+  })
+  const configs = Object.create(prototype)
+  const defaults = createDefaultRenderers('test', {}, ['paragraph'], configs)
+  assert.equal(defaults.get('paragraph')?.type, 'paragraph')
+  assert.equal(reads, 0)
+})
