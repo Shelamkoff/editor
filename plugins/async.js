@@ -89,7 +89,7 @@ export async function createBlockPluginsAsync(source, configs = {}) {
   const configMap = requireRecord(configs, 'configs')
   const constructors = await preloadBlockPlugins(source)
   return [...constructors].map(([type, Plugin]) => {
-    const config = configMap[type]
+    const config = Object.hasOwn(configMap, type) ? configMap[type] : undefined
     if (config !== undefined) requireRecord(config, `configs.${type}`)
     return new Plugin(/** @type {Record<string, unknown> | undefined} */ (config))
   })

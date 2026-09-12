@@ -117,7 +117,7 @@ export async function createDefaultRenderersAsync(classPrefix, locale = {}, sour
     factory(
       classPrefix,
       /** @type {Record<string, import('../../shared/localeTypes').LocaleValue>} */ (localeMap),
-      configMap[type],
+      Object.hasOwn(configMap, type) ? configMap[type] : undefined,
     ),
   ]))
 }

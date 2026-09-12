@@ -17,3 +17,20 @@ test('async renderer helpers reject malformed public argument shapes', async () 
   await assert.rejects(() => createRendererAsync('paragraph', 'x', []), /locale must be an object/)
   await assert.rejects(() => createDefaultRenderersAsync('x', {}, ['paragraph'], []), /configs must be an object/)
 })
+
+
+test('async preset config maps ignore inherited block type keys', async () => {
+  let reads = 0
+  const prototype = {}
+  Object.defineProperty(prototype, 'paragraph', {
+    enumerable: true,
+    get() { reads++; throw new Error('inherited paragraph config accessed') },
+  })
+  const configs = Object.create(prototype)
+
+  const plugins = await createBlockPluginsAsync(['paragraph'], configs)
+  assert.equal(plugins.length, 1)
+  const renderers = await createDefaultRenderersAsync('x', {}, ['paragraph'], configs)
+  assert.equal(renderers.size, 1)
+  assert.equal(reads, 0)
+})
