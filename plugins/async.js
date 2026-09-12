@@ -68,8 +68,8 @@ export function getAsyncBlockPluginTypes() {
  * @returns {Promise<AsyncBlockPluginConstructor>}
  */
 export async function loadBlockPlugin(type) {
-  const loader = pluginLoaders[/** @type {import('../renderer/types').BlockType} */ (type)]
   if (!Object.hasOwn(pluginLoaders, type)) throw new RangeError(`Unknown editor block plugin type: ${type}`)
+  const loader = pluginLoaders[/** @type {import('../renderer/types').BlockType} */ (type)]
   return loader()
 }
 

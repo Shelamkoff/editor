@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { preloadBlockPlugins, createBlockPluginsAsync } from '../plugins/async.js'
-import { createRendererAsync, preloadRendererFactories, createDefaultRenderersAsync } from '../renderer/renderers/async.js'
+import { loadBlockPlugin, preloadBlockPlugins, createBlockPluginsAsync } from '../plugins/async.js'
+import { createRendererAsync, loadRendererFactory, preloadRendererFactories, createDefaultRenderersAsync } from '../renderer/renderers/async.js'
 
 test('async plugin helpers reject malformed source and configuration shapes', async () => {
   await assert.rejects(() => preloadBlockPlugins('paragraph'), /source must be an array or document object/)
@@ -61,4 +61,21 @@ test('async preset document sources ignore inherited block collections and types
   await assert.rejects(() => preloadBlockPlugins(inheritedTypeSource), RangeError)
   await assert.rejects(() => preloadRendererFactories(inheritedTypeSource), RangeError)
   assert.equal(typeReads, 0)
+})
+
+
+test('async loader registries reject inherited getters before reading them', async () => {
+  const key = '__rectorAuditInheritedLoader__'
+  let reads = 0
+  Object.defineProperty(Object.prototype, key, {
+    configurable: true,
+    get() { reads++; throw new Error('inherited loader accessed') },
+  })
+  try {
+    await assert.rejects(() => loadBlockPlugin(key), /Unknown editor block plugin type/)
+    await assert.rejects(() => loadRendererFactory(key), /Unknown editor renderer type/)
+    assert.equal(reads, 0)
+  } finally {
+    delete Object.prototype[key]
+  }
 })
