@@ -233,6 +233,7 @@ export class Toolbar {
         this.#removing = true
         const done = payload?.animDone ?? Promise.resolve()
         done.then(() => {
+          if (this.#destroyed) return
           this.#removing = false
           this.#positioner.animateAfterRemoval()
         })
