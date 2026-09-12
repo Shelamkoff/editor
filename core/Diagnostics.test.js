@@ -28,3 +28,20 @@ test('diagnostic thresholds reject invalid durations', () => {
   }
   assert.doesNotThrow(() => new Diagnostics(() => {}, { commandMs: 0 }))
 })
+
+test('diagnostic thresholds ignore inherited values without reading them', () => {
+  let reads = 0
+  const prototype = {}
+  for (const key of ['commandMs', 'saveMs', 'renderMs', 'pasteMs']) {
+    Object.defineProperty(prototype, key, {
+      configurable: true,
+      get() { reads++; throw new Error(`inherited diagnostic ${key} accessed`) },
+    })
+  }
+  const thresholds = Object.create(prototype)
+  const diagnostics = new Diagnostics(() => {}, thresholds)
+  for (const key of ['commandMs', 'saveMs', 'renderMs', 'pasteMs']) {
+    assert.equal(diagnostics.threshold(key), Infinity)
+  }
+  assert.equal(reads, 0)
+})
