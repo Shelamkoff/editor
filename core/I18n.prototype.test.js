@@ -38,3 +38,28 @@ test('I18n plural rules ignore inherited prototype language names', () => {
     assert.equal(i18n.plural('count', 2), 'other')
   }
 })
+
+test('I18n plural forms ignore inherited prototype categories', () => {
+  let reads = 0
+  const prototype = {}
+  Object.defineProperty(prototype, 'one', {
+    configurable: true,
+    get() { reads++; throw new Error('inherited plural form accessed') },
+  })
+  const forms = Object.create(prototype)
+  forms.other = 'other'
+  const i18n = new I18n({ count: forms })
+  assert.equal(i18n.plural('count', 1), 'other')
+  assert.equal(reads, 0)
+})
+
+test('I18n snapshots and freezes plural form values without freezing caller objects', () => {
+  const forms = { one: 'one', other: 'other' }
+  const i18n = new I18n({ count: forms })
+  i18n.freeze()
+  forms.one = 'changed'
+  forms.other = 'changed'
+  assert.equal(Object.isFrozen(forms), false)
+  assert.equal(i18n.plural('count', 1), 'one')
+  assert.equal(i18n.t('count'), 'other')
+})

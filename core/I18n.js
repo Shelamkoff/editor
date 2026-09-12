@@ -32,7 +32,33 @@ const PLURAL_RULES = {
  * @returns {Record<string, LocaleValue>}
  */
 function createDictionary(messages = {}) {
-  return /** @type {Record<string, LocaleValue>} */ (Object.assign(Object.create(null), messages))
+  /** @type {Record<string, LocaleValue>} */
+  const dictionary = Object.create(null)
+  assignDictionary(dictionary, messages)
+  return dictionary
+}
+
+/**
+ * Copy only own locale entries and isolate plural-form objects from their
+ * caller-owned prototype and subsequent mutation.
+ * @param {Record<string, LocaleValue>} target
+ * @param {Partial<I18nMessages>} messages
+ */
+function assignDictionary(target, messages) {
+  for (const key of Object.keys(messages)) {
+    const value = messages[key]
+    target[key] = value && typeof value === 'object' && !Array.isArray(value)
+      ? /** @type {LocaleValue} */ (Object.assign(Object.create(null), value))
+      : /** @type {LocaleValue} */ (value)
+  }
+}
+
+/** @param {Record<string, LocaleValue>} dictionary */
+function freezeDictionary(dictionary) {
+  for (const value of Object.values(dictionary)) {
+    if (value && typeof value === 'object') Object.freeze(value)
+  }
+  Object.freeze(dictionary)
 }
 
 /**
@@ -97,7 +123,7 @@ export class I18n {
    */
   merge(messages) {
     if (this.#frozen) throw new Error('[I18n] Dictionary is frozen — cannot merge after init')
-    Object.assign(this.#messages, messages)
+    assignDictionary(this.#messages, messages)
   }
 
   /**
@@ -110,7 +136,7 @@ export class I18n {
   mergeFallback(messages) {
     if (this.#frozen) throw new Error('[I18n] Dictionary is frozen — cannot merge after init')
     if (!this.#fallback) this.#fallback = createDictionary()
-    Object.assign(this.#fallback, messages)
+    assignDictionary(this.#fallback, messages)
   }
 
   /**
@@ -121,8 +147,8 @@ export class I18n {
   freeze() {
     if (this.#frozen) return
     this.#frozen = true
-    Object.freeze(this.#messages)
-    if (this.#fallback) Object.freeze(this.#fallback)
+    freezeDictionary(this.#messages)
+    if (this.#fallback) freezeDictionary(this.#fallback)
   }
 
   /**
