@@ -34,7 +34,7 @@ export function createColumnsRenderer(classPrefix, _locale) {
             const wrapper = document.createElement('div')
             wrapper.className = `${classPrefix}-columns`
             wrapper.style.display = 'grid'
-            wrapper.style.gridTemplateColumns = LAYOUT_GRIDS[layout] || '1fr 1fr'
+            wrapper.style.gridTemplateColumns = Object.hasOwn(LAYOUT_GRIDS, layout) ? LAYOUT_GRIDS[layout] : '1fr 1fr'
             wrapper.style.gap = '1rem'
 
             for (const col of columns) {
