@@ -40,7 +40,13 @@ function requireRecord(value, label) {
 /** @param {readonly string[] | { blocks?: readonly { type: string }[] } | undefined} source */
 function requestedTypes(source) {
   if (source === undefined) return [...BLOCK_TYPES]
-  if (Array.isArray(source)) return [...new Set(source)]
+  if (Array.isArray(source)) {
+    const types = []
+    for (let index = 0; index < source.length; index++) {
+      types.push(Object.hasOwn(source, index) ? source[index] : undefined)
+    }
+    return [...new Set(types)]
+  }
   if (!source || typeof source !== 'object') throw new TypeError('source must be an array or document object')
   const document = /** @type {Record<string, unknown>} */ (source)
   if (!Object.hasOwn(document, 'blocks')) return [...BLOCK_TYPES]

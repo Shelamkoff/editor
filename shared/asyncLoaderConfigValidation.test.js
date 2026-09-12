@@ -79,3 +79,20 @@ test('async loader registries reject inherited getters before reading them', asy
     delete Object.prototype[key]
   }
 })
+
+
+test('async explicit type lists reject inherited sparse entries without reading them', async () => {
+  let reads = 0
+  const prototype = Object.create(Array.prototype)
+  Object.defineProperty(prototype, '0', {
+    configurable: true,
+    get() { reads++; return 'paragraph' },
+  })
+  const types = []
+  Object.setPrototypeOf(types, prototype)
+  types.length = 1
+
+  await assert.rejects(() => preloadBlockPlugins(types), RangeError)
+  await assert.rejects(() => preloadRendererFactories(types), RangeError)
+  assert.equal(reads, 0)
+})
