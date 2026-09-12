@@ -34,3 +34,31 @@ test('async preset config maps ignore inherited block type keys', async () => {
   assert.equal(renderers.size, 1)
   assert.equal(reads, 0)
 })
+
+
+test('async preset document sources ignore inherited block collections and types', async () => {
+  let blocksReads = 0
+  const sourcePrototype = {}
+  Object.defineProperty(sourcePrototype, 'blocks', {
+    enumerable: true,
+    get() { blocksReads++; throw new Error('inherited blocks accessed') },
+  })
+  const source = Object.create(sourcePrototype)
+
+  const plugins = await preloadBlockPlugins(source)
+  const renderers = await preloadRendererFactories(source)
+  assert.equal(plugins.size, renderers.size)
+  assert.equal(blocksReads, 0)
+
+  let typeReads = 0
+  const blockPrototype = {}
+  Object.defineProperty(blockPrototype, 'type', {
+    enumerable: true,
+    get() { typeReads++; return 'paragraph' },
+  })
+  const inheritedTypeSource = { blocks: [Object.create(blockPrototype)] }
+
+  await assert.rejects(() => preloadBlockPlugins(inheritedTypeSource), RangeError)
+  await assert.rejects(() => preloadRendererFactories(inheritedTypeSource), RangeError)
+  assert.equal(typeReads, 0)
+})
