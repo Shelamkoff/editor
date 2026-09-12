@@ -10,6 +10,7 @@ import { PasteRouter } from './PasteRouter.js'
 import { prepareHtmlPaste, pastePreparedHtml, preparePlainText, pastePlainText } from './pasteInsert.js'
 import { hydrateInlinePlugins } from '../hydrateInlinePlugins.js'
 import { cloneEditorData } from '../../shared/cloneEditorData.js'
+import { parseBlockClipboardPayload } from './blockClipboard.js'
 
 const MIME_TYPE = 'application/x-rector-editor'
 
@@ -702,16 +703,7 @@ export class Clipboard {
    * @param {string} [fragmentData]
    */
   #preparePaste(event, customData, fragmentData) {
-    let blocks = null
-    if (customData) {
-      let parsed
-      try { parsed = JSON.parse(customData) } catch { /* Consider other formats. */ }
-      if (Array.isArray(parsed)) {
-        const valid = parsed.filter(block => block && typeof block === 'object'
-          && typeof block.type === 'string' && block.data && typeof block.data === 'object')
-        if (valid.length) blocks = valid
-      }
-    }
+    const blocks = parseBlockClipboardPayload(customData)
     const prepared = { blocks, pattern: null, html: null, text: '' }
     if (blocks) return prepared
     const fragment = parseClipboardFragment(fragmentData)
@@ -753,7 +745,7 @@ export class Clipboard {
       // unknown payload as paragraph data. Preserve the same opaque block
       // representation used by render() when a plugin is not registered.
       const type = blockData.type
-      const inline = blockData.inline && typeof blockData.inline === 'object'
+      const inline = blockData.inline && typeof blockData.inline === 'object' && !Array.isArray(blockData.inline)
         ? blockData.inline
         : undefined
       const tunes = blockData.tunes && typeof blockData.tunes === 'object' && !Array.isArray(blockData.tunes)
