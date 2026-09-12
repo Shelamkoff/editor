@@ -66,6 +66,7 @@ export function createPersonRenderer(classPrefix, /** @type {Record<string, impo
                 const CARD_W = 300
                 const GAP = 16
                 const ro = new ResizeObserver(() => {
+                    if (mounted.get(wrapper) !== resources) return
                     if (!carouselContainer.offsetWidth) return
                     ro.disconnect()
 
