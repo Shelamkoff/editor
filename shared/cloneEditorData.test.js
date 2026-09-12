@@ -78,7 +78,6 @@ test('cloneEditorData drops array metadata that JSON serialization ignores', () 
   assert.equal(Object.hasOwn(cloned, 'extra'), false)
 })
 
-
 test('cloneEditorData rejects exotic prototypes without evaluating constructor accessors', () => {
   let reads = 0
   const prototype = {}
@@ -89,5 +88,19 @@ test('cloneEditorData rejects exotic prototypes without evaluating constructor a
   const value = Object.create(prototype)
   value.text = 'safe own data'
   assert.throws(() => cloneEditorData(value), /non-JSON object/)
+  assert.equal(reads, 0)
+})
+
+test('cloneEditorData rejects inherited sparse array entries without evaluating them', () => {
+  let reads = 0
+  const prototype = Object.create(Array.prototype)
+  Object.defineProperty(prototype, '0', {
+    configurable: true,
+    get() { reads++; throw new Error('inherited array entry accessed') },
+  })
+  const value = []
+  Object.setPrototypeOf(value, prototype)
+  value.length = 1
+  assert.throws(() => cloneEditorData(value), /array hole/)
   assert.equal(reads, 0)
 })

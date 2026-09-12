@@ -42,7 +42,7 @@ export function cloneJsonValue(value, path = '$') {
       if (Array.isArray(current)) {
         const result = []
         for (let index = 0; index < current.length; index++) {
-          if (!(index in current)) throw new TypeError(`${currentPath}[${index}] is an array hole`)
+          if (!Object.hasOwn(current, index)) throw new TypeError(`${currentPath}[${index}] is an array hole`)
           result.push(visit(current[index], `${currentPath}[${index}]`))
         }
         return result
