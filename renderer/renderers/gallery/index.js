@@ -48,7 +48,7 @@ const POLY_SLOTS = {
 function getSlotsCount(layout) {
   if (layout === 'auto' || layout === 'masonry') return Infinity
   if (layout === 'triptych') return 3
-  if (layout in POLY_SLOTS) return POLY_SLOTS[layout] ?? 6
+  if (Object.hasOwn(POLY_SLOTS, layout)) return POLY_SLOTS[layout] ?? 6
   const m = layout.match(/^(\d)/)
   return m && m[1] ? parseInt(m[1], 10) : 6
 }

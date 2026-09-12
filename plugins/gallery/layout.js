@@ -19,7 +19,7 @@ const POLY_SLOTS = { 'poly-5': 5, 'poly-3arch': 3, 'poly-5flat': 5, 'poly-3steps
 export function getSlotsCount(layout) {
   if (layout === 'auto' || layout === 'masonry') return Infinity
   if (layout === 'triptych') return 3
-  if (POLY_SLOTS[layout]) return POLY_SLOTS[layout]
+  if (Object.hasOwn(POLY_SLOTS, layout)) return POLY_SLOTS[layout]
   const m = layout.match(/^(\d)/)
   return m?.[1] ? parseInt(m[1], 10) : MAX_VISIBLE
 }
