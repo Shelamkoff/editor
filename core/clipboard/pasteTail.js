@@ -9,8 +9,10 @@ import { getTextLength } from '../textOffset.js'
  * @returns {PasteTail | null}
  */
 export function takePasteTail(block) {
-  const selection = window.getSelection()
-  if (!block || !selection?.rangeCount) return null
+  if (!block) return null
+  const ownerDocument = block.contentElement.ownerDocument
+  const selection = ownerDocument.defaultView?.getSelection() ?? null
+  if (!selection?.rangeCount) return null
   const range = selection.getRangeAt(0)
   const field = editableAtBoundary(block.contentElement, range.startContainer, range.startOffset)?.element
   if (!field || field.contentEditable !== 'true'
@@ -18,10 +20,10 @@ export function takePasteTail(block) {
     throw new RangeError('Block paste requires a selection within one editable field')
   }
   const metadata = block.save()
-  const suffix = document.createRange()
+  const suffix = ownerDocument.createRange()
   suffix.selectNodeContents(field)
   suffix.setStart(range.endContainer, range.endOffset)
-  const template = document.createElement('template')
+  const template = ownerDocument.createElement('template')
   template.content.appendChild(suffix.extractContents())
   range.deleteContents()
   range.collapse(true)
@@ -44,7 +46,7 @@ export function finishBlockPaste(lastBlock, tail, mergeText, ctx) {
   let caretOffset = getTextLength(lastBlock.contentElement)
   if (tail?.html) {
     if (mergeText && lastBlock.contentElement.contentEditable === 'true') {
-      const template = document.createElement('template')
+      const template = lastBlock.contentElement.ownerDocument.createElement('template')
       template.innerHTML = lastBlock.importInlineContent(tail.html, tail.metadata.inline)
       lastBlock.contentElement.append(...template.content.childNodes)
       ctx.notifyChanged(lastBlock)
