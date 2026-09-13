@@ -34,8 +34,8 @@ export function createPluginLayer(owner, signal) {
     open() {
       if (opened || signal.aborted) return
       const candidate = owner.closest('.oe-block')
-      if (!(candidate instanceof HTMLElement)) return
-      block = candidate
+      if (!candidate) return
+      block = /** @type {HTMLElement} */ (candidate)
       opened = true
       openLayers.set(block, (openLayers.get(block) || 0) + 1)
       block.setAttribute('data-oe-layer-open', 'true')
