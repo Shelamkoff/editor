@@ -3,12 +3,15 @@ import test from 'node:test'
 
 import { PluginControlsSlot } from './PluginControlsSlot.js'
 
-test('latest selection suppression owns the delayed release', () => {
+test('latest selection suppression owns the delayed release in the editor window', () => {
   const originalRaf = globalThis.requestAnimationFrame
+  globalThis.requestAnimationFrame = () => { throw new Error('ambient requestAnimationFrame must not be used') }
   const frames = []
-  globalThis.requestAnimationFrame = callback => {
-    frames.push(callback)
-    return frames.length
+  const ownerWindow = {
+    requestAnimationFrame(callback) {
+      frames.push(callback)
+      return frames.length
+    },
   }
 
   try {
@@ -16,7 +19,7 @@ test('latest selection suppression owns the delayed release', () => {
     let controlsContext
     const block = { type: 'paragraph', contentElement: {} }
     const slot = new PluginControlsSlot(
-      { appendChild() {} },
+      { ownerDocument: { defaultView: ownerWindow }, appendChild() {} },
       { style: {} },
       {
         blocks: { getCurrentBlock: () => block },

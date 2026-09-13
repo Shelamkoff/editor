@@ -28,6 +28,9 @@ export class PluginControlsSlot {
   /** @type {HTMLElement} */
   #dividerEl
 
+  /** @type {(Window & typeof globalThis) | null} */
+  #view
+
   /** @type {PluginControlsSlotDeps} */
   #deps
 
@@ -44,6 +47,7 @@ export class PluginControlsSlot {
   constructor(zoneEl, dividerEl, deps) {
     this.#zoneEl = zoneEl
     this.#dividerEl = dividerEl
+    this.#view = /** @type {(Window & typeof globalThis) | null} */ (zoneEl.ownerDocument?.defaultView ?? null)
     this.#deps = deps
   }
 
@@ -67,8 +71,10 @@ export class PluginControlsSlot {
         this.#deps.setSuppressSelectionChange(true)
         // Re-enable on the second rAF — gives DOM swaps a couple of frames
         // to settle before we start tracking selectionchange again.
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
+        const schedule = this.#view?.requestAnimationFrame?.bind(this.#view)
+          ?? requestAnimationFrame
+        schedule(() => {
+          schedule(() => {
             if (generation !== this.#suppressionGeneration) return
             this.#deps.setSuppressSelectionChange(false)
           })
