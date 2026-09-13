@@ -5,6 +5,9 @@ export class DragManager {
   /** @type {HTMLElement} */
   #rootEl
 
+  /** @type {Document} */
+  #document
+
   /** @type {import('./types').IBlockManager} */
   #blocks
 
@@ -50,12 +53,13 @@ export class DragManager {
    */
   constructor(rootEl, blocks, dragHandle, events, tuning) {
     this.#rootEl = rootEl
+    this.#document = rootEl.ownerDocument
     this.#blocks = blocks
     this.#dragHandle = dragHandle
     this.#events = events
     this.#threshold = tuning?.threshold ?? 5
 
-    this.#dropIndicator = el('div', 'oe-drop-indicator')
+    this.#dropIndicator = el('div', 'oe-drop-indicator', undefined, this.#document)
     this.#dropIndicator.style.display = 'none'
     rootEl.appendChild(this.#dropIndicator)
 
@@ -76,22 +80,22 @@ export class DragManager {
     this.#dragHandle.removeEventListener('mousedown', this.#onMouseDown)
     this.#dragHandle.removeEventListener('click', this.#onClick, true)
     this.#dropIndicator.remove()
-    document.removeEventListener('mousemove', this.#onMouseMove)
-    document.removeEventListener('mouseup', this.#onMouseUp)
+    this.#document.removeEventListener('mousemove', this.#onMouseMove)
+    this.#document.removeEventListener('mouseup', this.#onMouseUp)
   }
 
   /** Cancel both pending presses and active drags without applying a move. */
   #cancelDrag() {
     this.#draggingBlock?.element.classList.remove('oe-block--dragging')
-    if (this.#isDragging) document.body.style.cursor = ''
+    if (this.#isDragging) this.#document.body.style.cursor = ''
     this.#draggingBlock = null
     this.#isDragging = false
     this.#mouseDownHandled = false
     this.#dropIndex = -1
     this.#dropIndicator.style.display = 'none'
     this.#dragHandle.style.cursor = ''
-    document.removeEventListener('mousemove', this.#onMouseMove)
-    document.removeEventListener('mouseup', this.#onMouseUp)
+    this.#document.removeEventListener('mousemove', this.#onMouseMove)
+    this.#document.removeEventListener('mouseup', this.#onMouseUp)
   }
 
   /**
@@ -124,8 +128,8 @@ export class DragManager {
     this.#startY = e.clientY
     this.#isDragging = false
 
-    document.addEventListener('mousemove', this.#onMouseMove)
-    document.addEventListener('mouseup', this.#onMouseUp)
+    this.#document.addEventListener('mousemove', this.#onMouseMove)
+    this.#document.addEventListener('mouseup', this.#onMouseUp)
   }
 
   /**
@@ -154,8 +158,8 @@ export class DragManager {
    * @param {MouseEvent} _e
    */
   #onMouseUp = (_e) => {
-    document.removeEventListener('mousemove', this.#onMouseMove)
-    document.removeEventListener('mouseup', this.#onMouseUp)
+    this.#document.removeEventListener('mousemove', this.#onMouseMove)
+    this.#document.removeEventListener('mouseup', this.#onMouseUp)
 
     try {
       const block = this.#draggingBlock
@@ -174,7 +178,7 @@ export class DragManager {
     this.#draggingBlock = block
     block.element.classList.add('oe-block--dragging')
     this.#dragHandle.style.cursor = 'grabbing'
-    document.body.style.cursor = 'grabbing'
+    this.#document.body.style.cursor = 'grabbing'
   }
 
   /**
@@ -223,7 +227,7 @@ export class DragManager {
   #endDrag() {
     this.#dropIndicator.style.display = 'none'
     this.#dragHandle.style.cursor = ''
-    document.body.style.cursor = ''
+    this.#document.body.style.cursor = ''
 
     if (this.#draggingBlock) {
       this.#draggingBlock.element.classList.remove('oe-block--dragging')
