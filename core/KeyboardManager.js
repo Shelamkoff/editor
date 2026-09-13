@@ -8,6 +8,12 @@ export class KeyboardManager {
   /** @type {HTMLElement} */
   #rootEl
 
+  /** @type {Document} */
+  #document
+
+  /** @type {Window | null} */
+  #view
+
   /** @type {import('./types').IBlockOperations} */
   #blockOps
 
@@ -42,6 +48,8 @@ export class KeyboardManager {
    */
   constructor(rootEl, blockOps, shortcuts, blocks, events, defaultBlockType, uiActivePredicate) {
     this.#rootEl = rootEl
+    this.#document = rootEl.ownerDocument
+    this.#view = this.#document.defaultView
     this.#blockOps = blockOps
     this.#shortcuts = shortcuts
     this.#blocks = blocks
@@ -188,7 +196,7 @@ export class KeyboardManager {
       return
     }
 
-    const sel = window.getSelection()
+    const sel = this.#view?.getSelection()
     const current = this.#blocks.getCurrentBlock()
 
     // If current block is empty (collapsed caret, nothing to select),
@@ -219,7 +227,7 @@ export class KeyboardManager {
       if (firstBlock && lastBlock && sel) {
         const firstCe = firstBlock.contentElement
         const lastCe = lastBlock.contentElement
-        const range = document.createRange()
+        const range = this.#document.createRange()
         range.setStart(firstCe, 0)
         range.setEnd(lastCe, lastCe.childNodes.length)
         sel.removeAllRanges()
