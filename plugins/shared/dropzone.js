@@ -42,14 +42,15 @@ export function renderDropzone(wrapper, signal, css, config) {
   wrapper.innerHTML = ''
   wrapper.classList.remove(css.filled)
 
-  const select = document.createElement('div')
+  const ownerDocument = wrapper.ownerDocument
+  const select = ownerDocument.createElement('div')
   select.className = css.select
 
-  const icon = document.createElement('div')
+  const icon = ownerDocument.createElement('div')
   icon.className = css.selectIcon
   icon.innerHTML = config.iconHtml
 
-  const text = document.createElement('div')
+  const text = ownerDocument.createElement('div')
   text.className = css.selectText
 
   if (config.readOnly) {
@@ -59,7 +60,7 @@ export function renderDropzone(wrapper, signal, css, config) {
     return
   }
 
-  const uploadLink = document.createElement('button')
+  const uploadLink = ownerDocument.createElement('button')
   uploadLink.type = 'button'
   uploadLink.className = css.selectLink
   uploadLink.textContent = config.uploadText
@@ -68,10 +69,10 @@ export function renderDropzone(wrapper, signal, css, config) {
     config.onUploadClick()
   }, { signal })
 
-  text.append(uploadLink, document.createTextNode(' ' + config.afterText))
+  text.append(uploadLink, ownerDocument.createTextNode(' ' + config.afterText))
   for (const action of config.inlineActions || []) {
-    if (action.prefix) text.append(document.createTextNode(' ' + action.prefix + ' '))
-    const button = document.createElement('button')
+    if (action.prefix) text.append(ownerDocument.createTextNode(' ' + action.prefix + ' '))
+    const button = ownerDocument.createElement('button')
     button.type = 'button'
     button.className = css.selectLink
     button.textContent = action.label
@@ -84,14 +85,14 @@ export function renderDropzone(wrapper, signal, css, config) {
   select.append(icon, text)
 
   if (css.selectActions && css.selectAction && config.actions?.length) {
-    const actions = document.createElement('div')
+    const actions = ownerDocument.createElement('div')
     actions.className = css.selectActions
     for (const action of config.actions) {
-      const button = document.createElement('button')
+      const button = ownerDocument.createElement('button')
       button.type = 'button'
       button.className = css.selectAction
       if (action.icon) button.insertAdjacentHTML('afterbegin', action.icon)
-      button.append(document.createTextNode(action.label))
+      button.append(ownerDocument.createTextNode(action.label))
       button.addEventListener('click', (event) => {
         event.stopPropagation()
         action.onSelect()
