@@ -1,6 +1,6 @@
 import { CropperDialog } from '@shelamkoff/cropper'
 import { createEditor } from '../../core/index.js'
-import { Attaches, Carousel, Embed, LinkPreview, Person, Poll } from '../../plugins/index.js'
+import { Attaches, Carousel, Embed, LinkPreview, Paragraph, Person, Poll } from '../../plugins/index.js'
 
 const sandbox = document.querySelector('#sandbox')
 const tick = () => new Promise(resolve => setTimeout(resolve, 0))
@@ -11,6 +11,16 @@ function assert(condition, message) {
 
 async function settle(times = 2) {
   for (let index = 0; index < times; index++) await tick()
+}
+
+function nextFrames(times = 2) {
+  return new Promise(resolve => {
+    const step = remaining => {
+      if (remaining <= 0) resolve()
+      else requestAnimationFrame(() => step(remaining - 1))
+    }
+    step(times)
+  })
 }
 
 function assertNoMarkup(root, payload, name) {
@@ -275,6 +285,56 @@ async function personAvatarOwnership() {
   }
 }
 
+async function mobileToolbarFrameOwnership() {
+  const holder = document.createElement('section')
+  sandbox.appendChild(holder)
+  const editor = createEditor({
+    holder,
+    plugins: [new Paragraph()],
+    inlineTools: [],
+    data: { version: 'audit-regressions', blocks: [{ id: 'toolbar-frame', type: 'paragraph', data: { text: 'Frame ownership' } }] },
+    tuning: {
+      mobileBreakpoint: 2000,
+      animations: { blockInsertMs: 0, blockMoveMs: 0, blockRemoveMs: 0 },
+    },
+  })
+
+  try {
+    const block = editor.blocks.getBlockByIndex(0)
+    assert(block, 'mobile toolbar fixture block is missing')
+    editor.blocks.setCurrentIndex(0)
+    block.focus()
+
+    const plus = editor.rootElement.querySelector('.oe-toolbar__btn:not(.oe-toolbar__drag)')
+    const toolbox = editor.rootElement.querySelector('.oe-toolbox')
+    assert(plus instanceof HTMLButtonElement && toolbox instanceof HTMLElement, 'mobile toolbox controls are missing')
+
+    // Open and close before the queued opening frame runs. The frame belongs
+    // to the old open state and must not resurrect its CSS class afterwards.
+    plus.click()
+    plus.click()
+    await nextFrames()
+    assert(!toolbox.classList.contains('oe-toolbox--open'), 'stale toolbox opening frame ran after close')
+
+    const drag = editor.rootElement.querySelector('.oe-toolbar__drag')
+    assert(drag instanceof HTMLButtonElement, 'mobile settings handle is missing')
+    const pressDrag = () => {
+      drag.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true, button: 0, clientX: 10, clientY: 10 }))
+      document.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, cancelable: true, button: 0, clientX: 10, clientY: 10 }))
+    }
+
+    pressDrag()
+    pressDrag()
+    await nextFrames()
+    const settings = document.querySelector('.oe-settings-menu')
+    assert(settings instanceof HTMLElement, 'mobile settings menu is missing')
+    assert(!settings.classList.contains('oe-settings-menu--open'), 'stale settings opening frame ran after close')
+  } finally {
+    editor.destroy()
+    holder.remove()
+  }
+}
+
 async function run() {
   const cases = [
     ['locale-markup-boundary', localeMarkupBoundary],
@@ -282,6 +342,7 @@ async function run() {
     ['embed-cover-ownership', embedCoverOwnership],
     ['carousel-aborted-batch-object-urls', carouselAbortedBatchUrls],
     ['person-avatar-ownership', personAvatarOwnership],
+    ['mobile-toolbar-frame-ownership', mobileToolbarFrameOwnership],
   ]
   const results = []
   for (const [name, callback] of cases) {

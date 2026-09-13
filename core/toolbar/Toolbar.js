@@ -272,7 +272,11 @@ export class Toolbar {
         this.#offcanvas.showBackdrop()
         this.#offcanvas.getRoot().appendChild(this.#settingsMenu.menuEl)
         this.#settingsMenu.toggle()
-        requestAnimationFrame(() => this.#settingsMenu.menuEl.classList.add('oe-settings-menu--open'))
+        requestAnimationFrame(() => {
+          if (!this.#destroyed && this.#settingsMenu.isOpen) {
+            this.#settingsMenu.menuEl.classList.add('oe-settings-menu--open')
+          }
+        })
       }
     } else {
       this.#settingsMenu.toggle()
@@ -305,7 +309,11 @@ export class Toolbar {
       this.#offcanvas.showBackdrop()
       this.#offcanvas.getRoot().appendChild(this.#toolboxEl)
       this.#toolboxEl.style.display = ''
-      requestAnimationFrame(() => this.#toolboxEl.classList.add('oe-toolbox--open'))
+      requestAnimationFrame(() => {
+        if (!this.#destroyed && this.#toolboxOpen) {
+          this.#toolboxEl.classList.add('oe-toolbox--open')
+        }
+      })
     } else {
       this.#toolboxEl.style.display = ''
       this.#positioner.positionToolbox(this.#toolboxEl)
