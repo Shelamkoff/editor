@@ -1166,20 +1166,21 @@ export function createMentionPlugin(options = {}) {
 
   async function loadMoreResults() {
     if (!session || session.isLoadingMore || !session.nextPageUrl) return
-    session.isLoadingMore = true
-    session.dropdown.showLoading()
+    const capturedSession = session
+    capturedSession.isLoadingMore = true
+    capturedSession.dropdown.showLoading()
     try {
-      const prevLen = session.results.length
-      const newItems = await runSearch(session.currentQuery, session.nextPageUrl)
-      session?.dropdown.hideLoading()
-      if (!session || newItems === null) return
-      session.dropdown.appendItems(newItems, prevLen, session.selectedIndex)
+      const prevLen = capturedSession.results.length
+      const newItems = await runSearch(capturedSession.currentQuery, capturedSession.nextPageUrl)
+      capturedSession.dropdown.hideLoading()
+      if (session !== capturedSession || newItems === null) return
+      capturedSession.dropdown.appendItems(newItems, prevLen, capturedSession.selectedIndex)
     } catch (err) {
       // eslint-disable-next-line no-console
       console.warn('[mention-plugin] load more failed:', err)
-      session?.dropdown.hideLoading()
+      capturedSession.dropdown.hideLoading()
     } finally {
-      if (session) session.isLoadingMore = false
+      capturedSession.isLoadingMore = false
     }
   }
 
