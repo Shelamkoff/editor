@@ -13,36 +13,25 @@ import {
  *   Used by the convert-view back button to redraw the main view.
  */
 
-/**
- * Builds the contents of the block settings menu.
- *
- * Two views:
- *  - Main view: move up/down, plugin settings (e.g. heading levels),
- *    duplicate, convert-to (drill-down), delete.
- *  - Convert view: list of all block types, with the current one marked active.
- *
- * Drill-down direction is conveyed via two CSS classes
- * (`oe-settings-menu--forward`/`--back`) so the menu can animate.
- */
+/** Builds the contents of the block settings menu. */
 export class MenuBuilder {
   /** @type {HTMLElement} */
   #menuEl
 
+  /** @type {Document} */
+  #document
+
   /** @type {MenuBuilderDeps} */
   #deps
 
-  /**
-   * @param {HTMLElement} menuEl
-   * @param {MenuBuilderDeps} deps
-   */
+  /** @param {HTMLElement} menuEl @param {MenuBuilderDeps} deps */
   constructor(menuEl, deps) {
     this.#menuEl = menuEl
+    this.#document = menuEl.ownerDocument
     this.#deps = deps
   }
 
-  /**
-   * @param {'forward' | 'back' | 'none'} [direction]
-   */
+  /** @param {'forward' | 'back' | 'none'} [direction] */
   buildMainView(direction = 'none') {
     this.#menuEl.innerHTML = ''
     this.#applyDirection(direction)
@@ -55,13 +44,10 @@ export class MenuBuilder {
     const isFirst = currentIndex === 0
     const isLast = currentIndex === blocks.getBlockCount() - 1
 
-    // Move up / Move down — always at the top.
     this.#addItem(this.#deps.i18n.t('block.moveUp'), ICON_UP, () => this.#deps.actions.moveUp(), isFirst)
     this.#addItem(this.#deps.i18n.t('block.moveDown'), ICON_DOWN, () => this.#deps.actions.moveDown(), isLast)
+    this.#menuEl.appendChild(el('li', 'oe-settings-menu__separator', { role: 'separator' }, this.#document))
 
-    this.#menuEl.appendChild(el('li', 'oe-settings-menu__separator', { role: 'separator' }))
-
-    // Plugin-specific settings (e.g. heading levels, table operations).
     const plugin = this.#deps.plugins.get(current.type)
     if (plugin?.renderSettings) {
       let settingsItems = null
@@ -71,7 +57,6 @@ export class MenuBuilder {
         console.warn(`[MenuBuilder] Failed to render settings for "${current.type}":`, err)
       }
       const items = Array.isArray(settingsItems) ? settingsItems : settingsItems ? [settingsItems] : []
-
       for (const item of items) {
         if (!item) continue
         item.addEventListener('click', (e) => {
@@ -81,36 +66,27 @@ export class MenuBuilder {
         })
         this.#menuEl.appendChild(item)
       }
-
       if (items.length > 0) {
-        this.#menuEl.appendChild(el('li', 'oe-settings-menu__separator', { role: 'separator' }))
+        this.#menuEl.appendChild(el('li', 'oe-settings-menu__separator', { role: 'separator' }, this.#document))
       }
     }
 
-    // Duplicate
     this.#addItem(this.#deps.i18n.t('block.duplicate'), ICON_DUPLICATE, () => this.#deps.actions.duplicate())
-
-    // Convert-to drill-down (only when there are multiple block types).
     if (this.#deps.plugins.size > 1) {
       this.#addDrilldownItem(this.#deps.i18n.t('block.convertTo'), ICON_SWITCH, () => this.buildConvertView())
     }
-
-    this.#menuEl.appendChild(el('li', 'oe-settings-menu__separator', { role: 'separator' }))
-
-    // Delete (danger).
+    this.#menuEl.appendChild(el('li', 'oe-settings-menu__separator', { role: 'separator' }, this.#document))
     this.#addItem(this.#deps.i18n.t('block.delete'), ICON_DELETE, () => this.#deps.actions.delete(), false, true)
   }
 
   buildConvertView() {
     this.#menuEl.innerHTML = ''
     this.#applyDirection('forward')
-
     const current = this.#deps.blocks.getCurrentBlock()
     if (!current) return
 
-    // Back button.
     this.#addItem(this.#deps.i18n.t('block.back'), ICON_BACK, () => this.#deps.rebuildMain('back'))
-    this.#menuEl.appendChild(el('li', 'oe-settings-menu__separator', { role: 'separator' }))
+    this.#menuEl.appendChild(el('li', 'oe-settings-menu__separator', { role: 'separator' }, this.#document))
 
     for (const plugin of this.#deps.plugins.values()) {
       const isActive = plugin.type === current.type
@@ -122,11 +98,7 @@ export class MenuBuilder {
     }
   }
 
-  // ── helpers ─────────────────────────────────────────────────────────────────
-
-  /**
-   * @param {'forward' | 'back' | 'none'} direction
-   */
+  /** @param {'forward' | 'back' | 'none'} direction */
   #applyDirection(direction) {
     if (direction === 'back') {
       this.#menuEl.classList.add('oe-settings-menu--back')
@@ -139,38 +111,21 @@ export class MenuBuilder {
     }
   }
 
-  /**
-   * @param {string} label
-   * @param {string} icon
-   * @param {() => void} handler
-   * @param {boolean} [disabled]
-   * @param {boolean} [danger]
-   */
+  /** @param {string} label @param {string} icon @param {() => void} handler @param {boolean} [disabled] @param {boolean} [danger] */
   #addItem(label, icon, handler, disabled = false, danger = false) {
     this.#menuEl.appendChild(this.#createItemBtn(label, icon, handler, disabled, danger))
   }
 
-  /**
-   * @param {string} label
-   * @param {string} icon
-   * @param {() => void} handler
-   */
+  /** @param {string} label @param {string} icon @param {() => void} handler */
   #addDrilldownItem(label, icon, handler) {
     const item = this.#createItemBtn(label, icon, handler)
-    const arrow = el('span', 'oe-settings-menu__arrow')
+    const arrow = el('span', 'oe-settings-menu__arrow', undefined, this.#document)
     arrow.innerHTML = ICON_CHEVRON_RIGHT
     item.appendChild(arrow)
     this.#menuEl.appendChild(item)
   }
 
-  /**
-   * @param {string} label
-   * @param {string} icon
-   * @param {() => void} handler
-   * @param {boolean} [disabled]
-   * @param {boolean} [danger]
-   * @returns {HTMLElement}
-   */
+  /** @param {string} label @param {string} icon @param {() => void} handler @param {boolean} [disabled] @param {boolean} [danger] @returns {HTMLElement} */
   #createItemBtn(label, icon, handler, disabled = false, danger = false) {
     let cls = 'oe-settings-menu__item'
     if (disabled) cls += ' oe-settings-menu__item--disabled'
@@ -180,13 +135,13 @@ export class MenuBuilder {
       role: 'menuitem',
       tabindex: '-1',
       ...(disabled ? { 'aria-disabled': 'true' } : {}),
-    })
+    }, this.#document)
 
-    const iconSpan = el('span', 'oe-settings-menu__icon')
+    const iconSpan = el('span', 'oe-settings-menu__icon', undefined, this.#document)
     iconSpan.innerHTML = icon
     btn.appendChild(iconSpan)
 
-    const labelSpan = el('span', 'oe-settings-menu__label')
+    const labelSpan = el('span', 'oe-settings-menu__label', undefined, this.#document)
     labelSpan.textContent = label
     btn.appendChild(labelSpan)
 
@@ -197,7 +152,6 @@ export class MenuBuilder {
         handler()
       })
     }
-
     return btn
   }
 }
