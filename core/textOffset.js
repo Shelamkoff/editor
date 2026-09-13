@@ -1,6 +1,12 @@
+const ELEMENT_NODE = 1
+const TEXT_NODE = 3
+const SHOW_TEXT = 4
+const FILTER_ACCEPT = 1
+const FILTER_REJECT = 2
+
 /** @param {Node} node */
 function isAtomic(node) {
-  return node.nodeType === Node.ELEMENT_NODE
+  return node.nodeType === ELEMENT_NODE
     && (/** @type {Element} */ (node).tagName === 'BR'
       || /** @type {Element} */ (node).hasAttribute('data-inline-plugin'))
 }
@@ -14,7 +20,7 @@ function* positionNodes(root) {
   while (stack.length) {
     const node = stack.pop()
     if (!node) continue
-    if (node.nodeType === Node.TEXT_NODE || isAtomic(node)) yield node
+    if (node.nodeType === TEXT_NODE || isAtomic(node)) yield node
     else {
       for (let index = node.childNodes.length - 1; index >= 0; index--) {
         stack.push(node.childNodes[index])
@@ -40,23 +46,25 @@ export function getTextLength(root) {
  * @returns {TreeWalker}
  */
 export function editableTextWalker(root) {
-  return document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+  const ownerDocument = root.ownerDocument ?? document
+  const viewFilter = ownerDocument.defaultView?.NodeFilter
+  return ownerDocument.createTreeWalker(root, viewFilter?.SHOW_TEXT ?? SHOW_TEXT, {
     acceptNode(node) {
-      if (node.parentElement?.closest('[data-inline-plugin]')) return NodeFilter.FILTER_REJECT
-      return NodeFilter.FILTER_ACCEPT
+      if (node.parentElement?.closest('[data-inline-plugin]')) return viewFilter?.FILTER_REJECT ?? FILTER_REJECT
+      return viewFilter?.FILTER_ACCEPT ?? FILTER_ACCEPT
     },
   })
 }
 
 /** @param {Node} node @returns {Text | null} */
 export function firstTextNode(node) {
-  if (node.nodeType === Node.TEXT_NODE) return /** @type {Text} */ (node)
+  if (node.nodeType === TEXT_NODE) return /** @type {Text} */ (node)
   return /** @type {Text | null} */ (editableTextWalker(node).nextNode())
 }
 
 /** @param {Node} node @returns {Text | null} */
 export function lastTextNode(node) {
-  if (node.nodeType === Node.TEXT_NODE) return /** @type {Text} */ (node)
+  if (node.nodeType === TEXT_NODE) return /** @type {Text} */ (node)
   const walker = editableTextWalker(node)
   let last = null
   while (walker.nextNode()) last = walker.currentNode
@@ -81,7 +89,7 @@ export function getTextOffset(container, targetNode, targetOffset) {
     }
   }
   let offset = 0
-  if (targetNode.nodeType === Node.TEXT_NODE || isAtomic(targetNode)) {
+  if (targetNode.nodeType === TEXT_NODE || isAtomic(targetNode)) {
     offset = Math.max(0, Math.min(targetOffset, getTextLength(targetNode)))
   } else {
     for (let index = 0; index < Math.min(targetOffset, targetNode.childNodes.length); index++) {
@@ -138,11 +146,13 @@ export function findNodeAtOffset(container, charOffset, bias = 'start') {
  * @param {number} endOffset
  */
 export function restoreSelectionByOffsets(element, startOffset, endOffset) {
-  const selection = window.getSelection()
+  const ownerDocument = element.ownerDocument ?? document
+  const selection = ownerDocument.defaultView?.getSelection()
+    ?? (element.ownerDocument ? null : window.getSelection())
   if (!selection) return
   const start = findNodeAtOffset(element, startOffset, 'start')
   const end = findNodeAtOffset(element, endOffset, 'end')
-  const range = document.createRange()
+  const range = ownerDocument.createRange()
   range.setStart(start.node, start.offset)
   range.setEnd(end.node, end.offset)
   selection.removeAllRanges()
@@ -157,7 +167,9 @@ export function restoreSelectionByOffsets(element, startOffset, endOffset) {
  */
 export function createRangeFromLastTextMatch(element, search) {
   if (!search) return null
-  const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT)
+  const ownerDocument = element.ownerDocument ?? document
+  const showText = ownerDocument.defaultView?.NodeFilter?.SHOW_TEXT ?? SHOW_TEXT
+  const walker = ownerDocument.createTreeWalker(element, showText)
   /** @type {Text | null} */
   let matchNode = null
   let matchOffset = -1
@@ -167,7 +179,7 @@ export function createRangeFromLastTextMatch(element, search) {
     if (offset >= 0) { matchNode = node; matchOffset = offset }
   }
   if (!matchNode) return null
-  const range = document.createRange()
+  const range = ownerDocument.createRange()
   range.setStart(matchNode, matchOffset)
   range.setEnd(matchNode, matchNode.length)
   return range
