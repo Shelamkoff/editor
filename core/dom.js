@@ -5,10 +5,11 @@ import { BLOCK_SELECTOR } from './constants.js'
  * @param {string} tag
  * @param {string} [className]
  * @param {Record<string, string>} [attrs]
+ * @param {Document} [ownerDocument]
  * @returns {HTMLElement}
  */
-export function el(tag, className, attrs) {
-  const element = document.createElement(tag)
+export function el(tag, className, attrs, ownerDocument = document) {
+  const element = ownerDocument.createElement(tag)
   if (className) element.className = className
   if (attrs) {
     for (const [key, value] of Object.entries(attrs)) {
@@ -25,7 +26,7 @@ export function el(tag, className, attrs) {
  * @returns {HTMLElement | null}
  */
 export function closestBlock(node) {
-  const el = node.nodeType === Node.ELEMENT_NODE
+  const el = node.nodeType === 1
     ? /** @type {Element} */ (node)
     : node.parentElement
   return /** @type {HTMLElement | null} */ (el?.closest(BLOCK_SELECTOR) ?? null)
@@ -47,7 +48,8 @@ export function closestBlock(node) {
  */
 export function positionPopup(popupEl, anchorRect, rootRect, { defaultHeight = 300, gap = 4, buffer = 8, relative = false } = {}) {
   const height = popupEl.offsetHeight || defaultHeight
-  const spaceBelow = window.innerHeight - anchorRect.bottom - buffer
+  const viewportHeight = popupEl.ownerDocument?.defaultView?.innerHeight ?? window.innerHeight
+  const spaceBelow = viewportHeight - anchorRect.bottom - buffer
   const spaceAbove = anchorRect.top - buffer
 
   if (spaceBelow >= height || spaceBelow >= spaceAbove) {

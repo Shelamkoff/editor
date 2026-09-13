@@ -50,22 +50,24 @@ export function splitAndConvert(blocks, selection, currentIndex, currentType, co
   // data-level split through `splitSelection()`.
   if (contentEl.getAttribute('contenteditable') !== 'true') return false
 
+  const ownerDocument = contentEl.ownerDocument
+
   // Extract before/selected/after content as HTML
-  const beforeRange = document.createRange()
+  const beforeRange = ownerDocument.createRange()
   beforeRange.selectNodeContents(contentEl)
   beforeRange.setEnd(range.startContainer, range.startOffset)
-  const beforeEl = document.createElement('div')
+  const beforeEl = ownerDocument.createElement('div')
   beforeEl.appendChild(beforeRange.cloneContents())
   const beforeHtml = beforeEl.innerHTML
 
-  const selectedEl = document.createElement('div')
+  const selectedEl = ownerDocument.createElement('div')
   selectedEl.appendChild(range.cloneContents())
   const selectedHtml = selectedEl.innerHTML
 
-  const afterRange = document.createRange()
+  const afterRange = ownerDocument.createRange()
   afterRange.selectNodeContents(contentEl)
   afterRange.setStart(range.endContainer, range.endOffset)
-  const afterEl = document.createElement('div')
+  const afterEl = ownerDocument.createElement('div')
   afterEl.appendChild(afterRange.cloneContents())
   const afterHtml = afterEl.innerHTML
 
@@ -97,7 +99,7 @@ export function splitAndConvert(blocks, selection, currentIndex, currentType, co
     }
   } else {
     // Keep existing prefix nodes: widgets own listeners, not just markup.
-    const remainder = document.createRange()
+    const remainder = ownerDocument.createRange()
     remainder.selectNodeContents(contentEl)
     remainder.setStart(range.startContainer, range.startOffset)
     remainder.deleteContents()
@@ -122,9 +124,9 @@ export function splitAndConvert(blocks, selection, currentIndex, currentType, co
  */
 export function rangeStartsAtBeginning(contentEl, range) {
   try {
-    const full = document.createRange()
+    const full = contentEl.ownerDocument.createRange()
     full.selectNodeContents(contentEl)
-    return range.compareBoundaryPoints(Range.START_TO_START, full) <= 0
+    return range.compareBoundaryPoints(0, full) <= 0
   } catch { return true }
 }
 
@@ -136,9 +138,9 @@ export function rangeStartsAtBeginning(contentEl, range) {
  */
 export function rangeEndsAtEnd(contentEl, range) {
   try {
-    const full = document.createRange()
+    const full = contentEl.ownerDocument.createRange()
     full.selectNodeContents(contentEl)
-    return range.compareBoundaryPoints(Range.END_TO_END, full) >= 0
+    return range.compareBoundaryPoints(2, full) >= 0
   } catch { return true }
 }
 
@@ -169,7 +171,7 @@ export function restoreSelection(savedRange, crossBlockSelection) {
   // detached ranges without throwing, but leaves focus on <body>; the next
   // Ctrl+Z then bypasses the editor and enters native DOM history.
   if (!savedRange.startContainer.isConnected || !savedRange.endContainer.isConnected) return
-  const sel = window.getSelection()
+  const sel = savedRange.startContainer.ownerDocument?.defaultView?.getSelection()
   if (sel) {
     try {
       sel.removeAllRanges()

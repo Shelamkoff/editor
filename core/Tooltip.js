@@ -5,11 +5,16 @@ export class Tooltip {
   /** @type {ReturnType<typeof setTimeout> | null} */
   #timer = null
 
-  constructor() {
-    this.#el = document.createElement('div')
+  /** @type {Document} */
+  #document
+
+  /** @param {Document} [ownerDocument] */
+  constructor(ownerDocument = document) {
+    this.#document = ownerDocument
+    this.#el = ownerDocument.createElement('div')
     this.#el.className = 'oe-tooltip'
     this.#el.style.display = 'none'
-    document.body.appendChild(this.#el)
+    ownerDocument.body.appendChild(this.#el)
   }
 
   /**
@@ -25,12 +30,12 @@ export class Tooltip {
 
     this.#timer = setTimeout(() => {
       this.#el.textContent = ''
-      const labelSpan = document.createElement('span')
+      const labelSpan = this.#document.createElement('span')
       labelSpan.className = 'oe-tooltip__label'
       labelSpan.textContent = label
       this.#el.appendChild(labelSpan)
       if (shortcut) {
-        const shortcutSpan = document.createElement('span')
+        const shortcutSpan = this.#document.createElement('span')
         shortcutSpan.className = 'oe-tooltip__shortcut'
         shortcutSpan.textContent = shortcut
         this.#el.appendChild(shortcutSpan)

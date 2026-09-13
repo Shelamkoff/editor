@@ -37,18 +37,19 @@ export class CrossBlockSelection {
    * @param {Range} range
    */
   static showHighlight(range) {
-    if (typeof Highlight !== 'undefined' && CSS.highlights) {
-      CSS.highlights.set(HIGHLIGHT_KEY, new Highlight(range))
-    }
+    const view = /** @type {(Window & typeof globalThis) | null} */ (range.startContainer.ownerDocument?.defaultView ?? null)
+    const HighlightCtor = view?.Highlight
+    const highlights = view?.CSS?.highlights
+    if (HighlightCtor && highlights) highlights.set(HIGHLIGHT_KEY, new HighlightCtor(range))
   }
 
   /**
    * Remove the visual-only CSS Highlight (no state change).
    */
-  static hideHighlight() {
-    if (typeof CSS !== 'undefined' && CSS.highlights) {
-      CSS.highlights.delete(HIGHLIGHT_KEY)
-    }
+  static hideHighlight(range) {
+    const view = /** @type {(Window & typeof globalThis) | null} */ (range?.startContainer.ownerDocument?.defaultView ?? null)
+    const highlights = view?.CSS?.highlights
+    if (highlights) highlights.delete(HIGHLIGHT_KEY)
   }
 
   /**
@@ -67,8 +68,9 @@ export class CrossBlockSelection {
    * @param {HTMLElement} [rootEl] - `.oe-editor` element
    */
   deactivate(rootEl) {
+    const range = this.#range
     this.#range = null
     if (rootEl) rootEl.classList.remove('oe-editor--cross-selecting')
-    CrossBlockSelection.hideHighlight()
+    if (range) CrossBlockSelection.hideHighlight(range)
   }
 }

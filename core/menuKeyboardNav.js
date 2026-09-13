@@ -15,7 +15,7 @@ export function handleMenuKeydown(e, menuEl, { onEscape, itemSelector = '[role="
   )
   if (!items.length && e.key !== 'Escape') return false
 
-  const current = /** @type {HTMLElement} */ (document.activeElement)
+  const current = /** @type {HTMLElement} */ (menuEl.ownerDocument.activeElement)
   const idx = items.indexOf(current)
 
   switch (e.key) {
