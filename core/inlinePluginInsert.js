@@ -19,7 +19,9 @@ export function insertInlinePluginAtCaret(registry, ctx, type, data = {}, rootEl
     return false
   }
 
-  const sel = window.getSelection()
+  const ownerDocument = rootEl?.ownerDocument ?? document
+  const ownerWindow = rootEl ? ownerDocument.defaultView : window
+  const sel = ownerWindow?.getSelection()
   if (!sel || !sel.rangeCount) return false
   const range = sel.getRangeAt(0)
   if (rootEl && !rootEl.contains(range.commonAncestorContainer)) return false
@@ -34,7 +36,8 @@ export function insertInlinePluginAtCaret(registry, ctx, type, data = {}, rootEl
   }
 
   const widget = plugin.createWidget(data)
-  if (!(widget instanceof HTMLElement)) {
+  const HTMLElementCtor = widget?.ownerDocument?.defaultView?.HTMLElement
+  if (HTMLElementCtor ? !(widget instanceof HTMLElementCtor) : !(widget instanceof HTMLElement)) {
     throw new TypeError(`Inline plugin "${type}" createWidget() must return an HTMLElement`)
   }
   hydrateInlineWidget(widget, plugin, ctx)
@@ -43,11 +46,11 @@ export function insertInlinePluginAtCaret(registry, ctx, type, data = {}, rootEl
   range.insertNode(widget)
 
   // Insert a space after widget so caret has somewhere to go
-  const space = document.createTextNode('\u00A0')
+  const space = ownerDocument.createTextNode('\u00A0')
   widget.after(space)
 
   // Place caret after the space
-  const newRange = document.createRange()
+  const newRange = ownerDocument.createRange()
   newRange.setStartAfter(space)
   newRange.collapse(true)
   sel.removeAllRanges()

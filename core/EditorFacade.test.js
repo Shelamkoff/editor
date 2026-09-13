@@ -123,3 +123,98 @@ test('destroy releases plugin-owned blocks before shared editor services', () =>
 
   assert.deepEqual(order, ['blocks', 'shared', 'event', 'events', 'root'])
 })
+
+test('inline plugin insertion reads selection from the editor owning window', () => {
+  class FakeElement {
+    constructor(ownerDocument) {
+      this.ownerDocument = ownerDocument
+      this.nodeType = 1
+      this.contentEditable = 'true'
+      this.childNodes = []
+      this.dataset = {}
+      this.parentElement = null
+    }
+    contains(node) { return node === this }
+    querySelectorAll() { return [] }
+    matches(selector) { return selector === '[contenteditable]' }
+    closest(selector) { return selector === '[contenteditable]' ? this : null }
+  }
+
+  let field
+  const range = {
+    get commonAncestorContainer() { return field },
+    get startContainer() { return field },
+    get endContainer() { return field },
+    startOffset: 0,
+    endOffset: 0,
+  }
+  const ownerSelection = {
+    rangeCount: 1,
+    getRangeAt() { return range },
+  }
+  const ownerDocument = {
+    defaultView: {
+      getSelection() { return ownerSelection },
+    },
+  }
+  field = new FakeElement(ownerDocument)
+  const root = new FakeElement(ownerDocument)
+  root.contains = node => node === field
+
+  let inserts = 0
+  const plugin = {
+    type: 'mention',
+    mapTextFields() {},
+    insertFresh() { inserts++ },
+  }
+  const registry = {
+    get(type) { return type === 'mention' ? plugin : undefined },
+  }
+  const block = { id: 'block', plugin, contentElement: field }
+  const blocks = {
+    getBlockByChildNode(node) { return node === field ? block : undefined },
+  }
+  const commands = {
+    runForBlock(target, callback) {
+      assert.equal(target, block)
+      return callback()
+    },
+  }
+  const facade = new EditorFacade(
+    /** @type {any} */ (root),
+    /** @type {any} */ ({
+      blocks,
+      selection: {},
+      events: {},
+      defaultBlockType: 'paragraph',
+      commands,
+      documentSchema: {},
+      diagnostics: {},
+      snapshots: {},
+      publicBlocks: {},
+      publicEvents: {},
+      readOnly: false,
+      inlinePluginRegistry: registry,
+      inlinePluginCtx: {},
+    }),
+  )
+
+  const previousWindow = globalThis.window
+  const previousNode = globalThis.Node
+  const previousHTMLElement = globalThis.HTMLElement
+  globalThis.window = {
+    getSelection() {
+      throw new Error('ambient selection must not be read')
+    },
+  }
+  globalThis.Node = { ELEMENT_NODE: 1 }
+  globalThis.HTMLElement = FakeElement
+  try {
+    assert.equal(facade.insertInlinePlugin('mention'), true)
+    assert.equal(inserts, 1)
+  } finally {
+    globalThis.window = previousWindow
+    globalThis.Node = previousNode
+    globalThis.HTMLElement = previousHTMLElement
+  }
+})

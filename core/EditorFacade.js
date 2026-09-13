@@ -339,7 +339,7 @@ export class EditorFacade {
   insertInlinePlugin(type, data = {}) {
     if (this.#readOnly || !this.#inlinePluginRegistry || !this.#inlinePluginCtx) return false
 
-    const selection = window.getSelection()
+    const selection = this.#rootEl.ownerDocument.defaultView?.getSelection()
     const range = selection?.rangeCount ? selection.getRangeAt(0) : null
     if (!range || !this.#rootEl.contains(range.commonAncestorContainer)) return false
     const block = this.#blocks.getBlockByChildNode(range.commonAncestorContainer)
