@@ -38,7 +38,7 @@ export class PopupManager {
   /** @type {Document | null} */
   #document = null
 
-  /** @type {Window | null} */
+  /** @type {(Window & typeof globalThis) | null} */
   #view = null
 
   /** @type {import('./types').IBlockManager} */
@@ -80,7 +80,7 @@ export class PopupManager {
   setRoot(rootEl) {
     this.#rootEl = rootEl
     this.#document = rootEl.ownerDocument
-    this.#view = this.#document.defaultView
+    this.#view = /** @type {(Window & typeof globalThis) | null} */ (this.#document.defaultView)
   }
 
   /**

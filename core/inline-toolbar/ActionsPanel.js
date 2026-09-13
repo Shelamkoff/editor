@@ -38,13 +38,13 @@ export class ActionsPanel {
   /** @type {HTMLElement | null} */
   #panel = null
 
-  /** @type {Window | null} */
+  /** @type {(Window & typeof globalThis) | null} */
   #view
 
   /** @param {ActionsPanelDeps} deps */
   constructor(deps) {
     this.#deps = deps
-    this.#view = deps.rootEl.ownerDocument.defaultView
+    this.#view = /** @type {(Window & typeof globalThis) | null} */ (deps.rootEl.ownerDocument.defaultView)
   }
 
   /**
@@ -122,7 +122,7 @@ export class ActionsPanel {
     const startElement = start.nodeType === 1
       ? /** @type {HTMLElement} */ (start)
       : start.parentElement
-    const editingHost = startElement?.closest('[contenteditable="true"]')
+    const editingHost = /** @type {HTMLElement | null | undefined} */ (startElement?.closest('[contenteditable="true"]'))
 
     // Focus may still belong to a URL/action input after the panel closes.
     // Move it back to the editing host so the next undo/redo shortcut reaches

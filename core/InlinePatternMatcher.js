@@ -19,7 +19,7 @@ export class InlinePatternMatcher {
   /** @type {Document} */
   #document
 
-  /** @type {Window | null} */
+  /** @type {(Window & typeof globalThis) | null} */
   #view
 
   /** @type {import('./types').IInlinePluginRegistry} */
@@ -54,7 +54,7 @@ export class InlinePatternMatcher {
   constructor(rootEl, registry, ctx, events, blocks, commands) {
     this.#rootEl = rootEl
     this.#document = rootEl.ownerDocument
-    this.#view = this.#document.defaultView
+    this.#view = /** @type {(Window & typeof globalThis) | null} */ (this.#document.defaultView)
     this.#registry = registry
     this.#ctx = ctx
     this.#events = events
