@@ -3,12 +3,13 @@ import { sanitizeMediaUrl } from '../../shared/sanitize/sanitizeUrl.js'
 
 /** Export inline content without editor state or controls.
  * @param {Element} source
+ * @param {Document} ownerDocument
  */
-function inline(source) {
-  const template = document.createElement('template')
+function inline(source, ownerDocument) {
+  const template = ownerDocument.createElement('template')
   template.innerHTML = source.innerHTML
   for (const control of template.content.querySelectorAll('button, input, textarea, select, script, style, svg, [role="menu"], [role="dialog"]')) control.remove()
-  const result = document.createElement('span')
+  const result = ownerDocument.createElement('span')
   result.innerHTML = sanitizeHtml(template.innerHTML)
   for (const node of result.querySelectorAll('*')) {
     for (const attribute of [...node.attributes]) {
@@ -18,26 +19,26 @@ function inline(source) {
   return result.innerHTML
 }
 
-/** @param {string} tag @param {Element} source */
-function field(tag, source) {
-  const element = document.createElement(tag)
-  element.innerHTML = inline(source)
+/** @param {string} tag @param {Element} source @param {Document} ownerDocument */
+function field(tag, source, ownerDocument) {
+  const element = ownerDocument.createElement(tag)
+  element.innerHTML = inline(source, ownerDocument)
   return element
 }
 
-/** @param {Element} source */
-function list(source) {
-  const result = document.createElement(source.tagName.toLowerCase() === 'ol' ? 'ol' : 'ul')
+/** @param {Element} source @param {Document} ownerDocument */
+function list(source, ownerDocument) {
+  const result = ownerDocument.createElement(source.tagName.toLowerCase() === 'ol' ? 'ol' : 'ul')
   for (const item of source.children) {
     if (item.tagName !== 'LI') continue
-    const template = document.createElement('template')
+    const template = ownerDocument.createElement('template')
     template.innerHTML = item.innerHTML
     const nested = [...template.content.querySelectorAll('ul, ol')].filter(node => !node.parentElement?.closest('ul, ol'))
     for (const node of nested) node.remove()
-    const holder = document.createElement('div')
+    const holder = ownerDocument.createElement('div')
     holder.innerHTML = template.innerHTML
-    const li = field('li', holder)
-    for (const node of nested) li.appendChild(list(node))
+    const li = field('li', holder, ownerDocument)
+    for (const node of nested) li.appendChild(list(node, ownerDocument))
     result.appendChild(li)
   }
   return result
@@ -50,51 +51,52 @@ function list(source) {
  */
 export function blockClipboardHtml(block) {
   const root = block.contentElement
+  const ownerDocument = root.ownerDocument ?? document
   if (block.type === 'delimiter') return '<hr>'
   if (block.type === 'image') {
     const data = /** @type {{ file?: { url?: string }, caption?: string }} */ (block.save().data)
     // Build in inert content: exporting must not load media or preserve UI.
-    const template = document.createElement('template')
+    const template = ownerDocument.createElement('template')
     template.innerHTML = '<figure><img></figure>'
     const figure = template.content.firstElementChild
     const image = figure.querySelector('img')
     const url = sanitizeMediaUrl(data.file?.url)
     if (url) image.setAttribute('src', url)
-    const captionSource = document.createElement('template')
+    const captionSource = ownerDocument.createElement('template')
     captionSource.innerHTML = typeof data.caption === 'string' ? data.caption : ''
-    const caption = field('figcaption', captionSource)
+    const caption = field('figcaption', captionSource, ownerDocument)
     image.setAttribute('alt', caption.textContent || '')
     if (caption.innerHTML) figure.appendChild(caption)
     return figure.outerHTML
   }
-  if (root.matches('p, h1, h2, h3, h4, h5, h6')) return field(root.tagName.toLowerCase(), root).outerHTML
+  if (root.matches('p, h1, h2, h3, h4, h5, h6')) return field(root.tagName.toLowerCase(), root, ownerDocument).outerHTML
   if (block.type === 'quote') {
-    const quote = field('blockquote', root.querySelector('blockquote') || root)
+    const quote = field('blockquote', root.querySelector('blockquote') || root, ownerDocument)
     const caption = root.querySelector('cite')
-    if (caption?.textContent) quote.appendChild(field('cite', caption))
+    if (caption?.textContent) quote.appendChild(field('cite', caption, ownerDocument))
     return quote.outerHTML
   }
   if (block.type === 'code' || block.type === 'raw') {
     const data = block.save().data
-    const pre = document.createElement('pre')
-    const code = document.createElement('code')
+    const pre = ownerDocument.createElement('pre')
+    const code = ownerDocument.createElement('code')
     code.textContent = String(data.code ?? data.html ?? '')
     pre.appendChild(code)
     return pre.outerHTML
   }
   const listRoot = root.matches('ul, ol') ? root : null
-  if (listRoot) return list(listRoot).outerHTML
+  if (listRoot) return list(listRoot, ownerDocument).outerHTML
   const tableRoot = root.matches('table') ? root : root.querySelector('table')
   if (tableRoot) {
-    const table = document.createElement('table')
+    const table = ownerDocument.createElement('table')
     for (const row of tableRoot.querySelectorAll('tr')) {
-      const tr = document.createElement('tr')
-      for (const cell of row.children) if (cell.matches('td, th')) tr.appendChild(field(cell.tagName.toLowerCase(), cell))
+      const tr = ownerDocument.createElement('tr')
+      for (const cell of row.children) if (cell.matches('td, th')) tr.appendChild(field(cell.tagName.toLowerCase(), cell, ownerDocument))
       table.appendChild(tr)
     }
     return table.outerHTML
   }
   // Custom/composite plugins contribute authored fields, not toolbar DOM.
   const fields = root.matches('[contenteditable="true"]') ? [root] : [...root.querySelectorAll('[contenteditable="true"]')]
-  return fields.length ? fields.map(source => field('p', source).outerHTML).join('\n') : field('p', root).outerHTML
+  return fields.length ? fields.map(source => field('p', source, ownerDocument).outerHTML).join('\n') : field('p', root, ownerDocument).outerHTML
 }
