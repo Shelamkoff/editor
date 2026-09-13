@@ -67,8 +67,9 @@ export class CrossBlockEditor {
     endBlock.focus()
 
     try {
-      const sel = window.getSelection()
-      const r = document.createRange()
+      const ownerDocument = this.#rootEl.ownerDocument
+      const sel = ownerDocument.defaultView?.getSelection()
+      const r = ownerDocument.createRange()
       r.setStart(endNode, endOffset)
       r.collapse(true)
       sel?.removeAllRanges()
@@ -115,16 +116,17 @@ export class CrossBlockEditor {
         || lastFields.some(field => field !== lastCe && field.contains(lastCe))) return false
 
     return this.#commands.runForBlocks([firstBlock, lastBlock], () => {
+      const ownerDocument = this.#rootEl.ownerDocument
       const source = lastBlock.save()
-      const suffixRange = document.createRange()
+      const suffixRange = ownerDocument.createRange()
       suffixRange.selectNodeContents(lastCe)
       suffixRange.setStart(rangeEnd.node, rangeEnd.offset)
-      const suffix = document.createElement('template')
+      const suffix = ownerDocument.createElement('template')
       suffix.content.appendChild(suffixRange.cloneContents())
       const transferred = firstBlock.importInlineContent(suffix.innerHTML, source.inline)
 
       // Only the first field's suffix and subsequent fields are selected.
-      const headRange = document.createRange()
+      const headRange = ownerDocument.createRange()
       headRange.selectNodeContents(firstCe)
       headRange.setStart(rangeStart.node, rangeStart.offset)
       headRange.deleteContents()
