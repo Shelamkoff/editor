@@ -64,7 +64,9 @@ export function openSourceEditor(config) {
 
   const surface = ensureSurface(config.wrapper, config.signal, config.kind)
   if (!surface) return { close() {} }
-  const controller = new AbortController()
+  const view = config.wrapper.ownerDocument.defaultView
+  const AbortControllerCtor = view?.AbortController ?? AbortController
+  const controller = new AbortControllerCtor()
   const { root, backdrop, panel, title, labelText, field, error, cancel, submit } = surface
   backdrop.setAttribute('aria-label', config.cancelText)
   panel.setAttribute('aria-label', config.title)
@@ -150,43 +152,44 @@ function ensureSurface(wrapper, signal, kind) {
   if (cached?.signal === signal && cached.root.isConnected) return cached
   cached?.destroy()
 
-  const root = document.createElement('div')
+  const ownerDocument = wrapper.ownerDocument
+  const root = ownerDocument.createElement('div')
   root.className = 'oe-source-editor oe-source-editor--preloaded'
   root.dataset.oeSourceEditor = kind
   root.setAttribute('aria-hidden', 'true')
   root.inert = true
 
-  const backdrop = document.createElement('button')
+  const backdrop = ownerDocument.createElement('button')
   backdrop.type = 'button'
   backdrop.className = 'oe-source-editor__backdrop'
   backdrop.setAttribute('aria-label', 'Cancel')
   backdrop.tabIndex = -1
 
-  const panel = document.createElement('form')
+  const panel = ownerDocument.createElement('form')
   panel.className = 'oe-source-editor__panel'
   panel.noValidate = true
   panel.setAttribute('role', 'dialog')
   panel.setAttribute('aria-modal', 'true')
   panel.setAttribute('aria-label', 'Source')
 
-  const title = document.createElement('h3')
+  const title = ownerDocument.createElement('h3')
   title.className = 'oe-source-editor__title'
   title.textContent = 'Source'
 
-  const label = document.createElement('label')
+  const label = ownerDocument.createElement('label')
   label.className = 'oe-source-editor__label'
-  const labelText = document.createElement('span')
+  const labelText = ownerDocument.createElement('span')
   labelText.textContent = 'Source'
 
   /** @type {HTMLInputElement | HTMLTextAreaElement} */
   let field
   if (kind === 'html') {
-    const textarea = document.createElement('textarea')
+    const textarea = ownerDocument.createElement('textarea')
     textarea.rows = 6
     textarea.spellcheck = false
     field = textarea
   } else {
-    const input = document.createElement('input')
+    const input = ownerDocument.createElement('input')
     input.type = 'url'
     input.inputMode = 'url'
     input.setAttribute('autocomplete', 'url')
@@ -196,20 +199,20 @@ function ensureSurface(wrapper, signal, kind) {
   field.required = true
   label.append(labelText, field)
 
-  const error = document.createElement('div')
+  const error = ownerDocument.createElement('div')
   error.className = 'oe-source-editor__error'
   error.setAttribute('role', 'alert')
   error.hidden = true
 
-  const actions = document.createElement('div')
+  const actions = ownerDocument.createElement('div')
   actions.className = 'oe-source-editor__actions'
 
-  const cancel = document.createElement('button')
+  const cancel = ownerDocument.createElement('button')
   cancel.type = 'button'
   cancel.className = 'oe-source-editor__button oe-source-editor__button--secondary'
   cancel.textContent = 'Cancel'
 
-  const submit = document.createElement('button')
+  const submit = ownerDocument.createElement('button')
   submit.type = 'submit'
   submit.className = 'oe-source-editor__button oe-source-editor__button--primary'
   submit.textContent = 'Insert'
