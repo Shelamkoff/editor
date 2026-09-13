@@ -7,6 +7,12 @@ import { takePasteTail } from './pasteTail.js'
 test('paste tail reads selection and creates DOM in the block owning document', () => {
   const field = {
     contentEditable: 'true',
+    nodeType: 1,
+    childNodes: [],
+    parentElement: null,
+    querySelectorAll() { return [] },
+    matches(selector) { return selector === '[contenteditable]' },
+    closest(selector) { return selector === '[contenteditable]' ? field : null },
     contains() { return true },
   }
   const range = {
@@ -38,8 +44,6 @@ test('paste tail reads selection and creates DOM in the block owning document', 
     createElement(tag) { assert.equal(tag, 'template'); return template },
   }
   field.ownerDocument = ownerDocument
-  field.nodeType = 1
-  field.closest = () => field
   const block = {
     contentElement: field,
     save() { return { type: 'paragraph', data: {} } },
@@ -48,12 +52,18 @@ test('paste tail reads selection and creates DOM in the block owning document', 
 
   const previousWindow = globalThis.window
   const previousDocument = globalThis.document
+  const previousNode = globalThis.Node
+  const previousHTMLElement = globalThis.HTMLElement
   globalThis.window = new Proxy({}, { get() { throw new Error('ambient window must not be used') } })
   globalThis.document = new Proxy({}, { get() { throw new Error('ambient document must not be used') } })
+  globalThis.Node = new Proxy({}, { get() { throw new Error('ambient Node must not be used') } })
+  globalThis.HTMLElement = class AmbientHTMLElement {}
   try {
     assert.deepEqual(takePasteTail(block), { html: '', metadata: { type: 'paragraph', data: {} } })
   } finally {
     globalThis.window = previousWindow
     globalThis.document = previousDocument
+    globalThis.Node = previousNode
+    globalThis.HTMLElement = previousHTMLElement
   }
 })

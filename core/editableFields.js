@@ -25,15 +25,15 @@ export function editableAtBoundary(block, container, offset) {
   const fields = editableFields(block)
   if (!fields.length) return null
 
-  const containerElement = container.nodeType === Node.ELEMENT_NODE
+  const containerElement = container.nodeType === 1
     ? /** @type {HTMLElement} */ (container)
     : container.parentElement
   let candidate = containerElement?.closest('[contenteditable]') ?? null
 
-  if (!candidate && container.nodeType === Node.ELEMENT_NODE) {
+  if (!candidate && container.nodeType === 1) {
     const children = container.childNodes
     const child = children[Math.min(offset, children.length - 1)] ?? null
-    const childElement = child?.nodeType === Node.ELEMENT_NODE
+    const childElement = child?.nodeType === 1
       ? /** @type {HTMLElement} */ (child)
       : child?.parentElement
     candidate = childElement?.closest('[contenteditable]')
@@ -44,7 +44,9 @@ export function editableAtBoundary(block, container, offset) {
   while (candidate && !fields.includes(/** @type {HTMLElement} */ (candidate))) {
     candidate = candidate.parentElement?.closest('[contenteditable]') ?? null
   }
-  const editable = candidate instanceof HTMLElement ? candidate : null
+  const editable = candidate && typeof candidate === 'object'
+    ? /** @type {HTMLElement} */ (candidate)
+    : null
   const index = editable && block.contains(editable) ? fields.indexOf(editable) : -1
   return index >= 0 ? { element: fields[index], index } : { element: fields[0], index: 0 }
 }
@@ -61,7 +63,7 @@ export function editableRange(block, range) {
   const field = editableAtBoundary(block, range.startContainer, range.startOffset)?.element
   if (!field || field.contentEditable !== 'true') return null
   for (const container of [range.startContainer, range.endContainer]) {
-    const element = container.nodeType === Node.ELEMENT_NODE
+    const element = container.nodeType === 1
       ? /** @type {Element} */ (container)
       : container.parentElement
     if (!field.contains(container) || element?.closest('[contenteditable]') !== field) return null
