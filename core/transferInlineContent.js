@@ -7,11 +7,12 @@ import { cloneEditorData } from '../shared/cloneEditorData.js'
  * @param {string} html
  * @param {Record<string, import('../renderer/types').InlineWidget>} references
  * @param {Set<string>} occupied
+ * @param {Document} [ownerDocument]
  * @returns {{ html: string, inline: Record<string, import('../renderer/types').InlineWidget> }}
  */
-export function transferInlineContent(html, references, occupied) {
+export function transferInlineContent(html, references, occupied, ownerDocument = document) {
   if (!references || !Object.keys(references).length) return { html, inline: {} }
-  const template = document.createElement('template')
+  const template = ownerDocument.createElement('template')
   template.innerHTML = html
   const mapping = new Map()
   const entries = []
@@ -25,7 +26,7 @@ export function transferInlineContent(html, references, occupied) {
     entries.push([next, cloneEditorData(references[id])])
     return next
   }
-  const walker = document.createTreeWalker(template.content, NodeFilter.SHOW_TEXT)
+  const walker = ownerDocument.createTreeWalker(template.content, 4)
   while (walker.nextNode()) {
     const text = /** @type {Text} */ (walker.currentNode)
     if (text.parentElement?.closest('[data-inline-plugin]')) continue
