@@ -10,12 +10,20 @@ export class SelectionManager {
   /** @type {HTMLElement} */
   #editorEl
 
+  /** @type {Document} */
+  #document
+
+  /** @type {Window | null} */
+  #view
+
   /**
    * @param {HTMLElement} editorEl
    * @param {import('./types').IBlockReader} blocks
    */
   constructor(editorEl, blocks) {
     this.#editorEl = editorEl
+    this.#document = editorEl.ownerDocument
+    this.#view = this.#document.defaultView
     this.#blocks = blocks
   }
 
@@ -24,7 +32,7 @@ export class SelectionManager {
    * @returns {Range | null}
    */
   #getRange() {
-    const sel = window.getSelection()
+    const sel = this.#view?.getSelection()
     if (!sel || sel.rangeCount === 0) return null
     const range = sel.getRangeAt(0)
     if (!this.#editorEl.contains(range.startContainer) || !this.#editorEl.contains(range.endContainer)) return null
@@ -80,13 +88,13 @@ export class SelectionManager {
    */
   setCaretToOffset(blockId, textOffset, fieldIndex) {
     const block = this.#blocks.getBlockById(blockId)
-    const selection = window.getSelection()
+    const selection = this.#view?.getSelection()
     if (!block || !selection) return
     const root = fieldIndex === undefined ? block.contentElement : editableFields(block.contentElement)[fieldIndex]
     if (!root) return
     if (fieldIndex !== undefined) root.focus()
     const point = findNodeAtOffset(root, textOffset)
-    const range = document.createRange()
+    const range = this.#document.createRange()
     range.setStart(point.node, point.offset)
     range.collapse(true)
     selection.removeAllRanges()
@@ -98,7 +106,7 @@ export class SelectionManager {
    * @returns {import('./types').InlineSelection | null}
    */
   getSelection() {
-    const sel = window.getSelection()
+    const sel = this.#view?.getSelection()
     if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return null
 
     const range = sel.getRangeAt(0)
@@ -146,7 +154,7 @@ export class SelectionManager {
    * @returns {string | null}
    */
   extractFragmentAfterCaret() {
-    const sel = window.getSelection()
+    const sel = this.#view?.getSelection()
     if (!sel || sel.rangeCount === 0) return null
 
     const range = sel.getRangeAt(0)
@@ -165,12 +173,12 @@ export class SelectionManager {
       range.collapse(true)
     }
 
-    const endRange = document.createRange()
+    const endRange = this.#document.createRange()
     endRange.selectNodeContents(field)
     endRange.setStart(range.startContainer, range.startOffset)
 
     const fragment = endRange.extractContents()
-    const temp = document.createElement('div')
+    const temp = this.#document.createElement('div')
     temp.appendChild(fragment)
 
     return temp.innerHTML
