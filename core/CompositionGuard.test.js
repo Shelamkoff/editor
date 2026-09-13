@@ -46,3 +46,18 @@ test('IME guard captures on the owning window before document plugin listeners',
   guard.destroy()
   assert.equal((view.listeners.get('keydown') ?? []).length, 0)
 })
+
+test('IME guard does not borrow a global window for an owner document without a browsing context', () => {
+  const documentTarget = new FakeTarget()
+  documentTarget.defaultView = null
+  const root = new FakeTarget()
+  root.ownerDocument = documentTarget
+  root.contains = () => true
+
+  const guard = new CompositionGuard(root)
+  assert.equal((root.listeners.get('compositionstart') ?? []).length, 1)
+  assert.equal((documentTarget.listeners.get('keydown') ?? []).length, 0)
+
+  guard.destroy()
+  assert.equal((root.listeners.get('compositionstart') ?? []).length, 0)
+})

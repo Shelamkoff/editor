@@ -1,19 +1,23 @@
 /** Keep native IME key handling ahead of editor and block-plugin commands. */
 export class CompositionGuard {
   /** @type {HTMLElement} */ #root
-  /** @type {Window} */ #view
+  /** @type {Window | null} */ #view = null
   #composing = false
 
   /** @param {HTMLElement} root */
   constructor(root) {
     this.#root = root
-    this.#view = root.ownerDocument.defaultView ?? window
+    // Bind capture to the browsing context that owns the editor. Detached
+    // documents legitimately have no defaultView; in that case the root-level
+    // composition state still works and there is no foreign global window to
+    // borrow safely.
+    this.#view = root.ownerDocument?.defaultView ?? null
     root.addEventListener('compositionstart', this.#start)
     root.addEventListener('compositionend', this.#end)
     root.addEventListener('focusout', this.#blur)
     // Window capture runs before document-level plugin dropdown listeners.
     // Stop editor listeners only; never prevent the browser's native default.
-    this.#view.addEventListener('keydown', this.#key, true)
+    this.#view?.addEventListener('keydown', this.#key, true)
   }
 
   #start = () => { this.#composing = true }
@@ -30,7 +34,7 @@ export class CompositionGuard {
     this.#root.removeEventListener('compositionstart', this.#start)
     this.#root.removeEventListener('compositionend', this.#end)
     this.#root.removeEventListener('focusout', this.#blur)
-    this.#view.removeEventListener('keydown', this.#key, true)
+    this.#view?.removeEventListener('keydown', this.#key, true)
     this.#composing = false
   }
 }
