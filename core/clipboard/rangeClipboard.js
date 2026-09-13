@@ -14,12 +14,13 @@ export const FRAGMENT_MIME = 'application/x-rector-fragment'
  * @returns {{ text: string, html: string, fragment?: string }}
  */
 export function rangeClipboardContent(range, blocks, registry) {
-  const template = document.createElement('template')
+  const ownerDocument = range.startContainer.ownerDocument ?? document
+  const template = ownerDocument.createElement('template')
   template.content.appendChild(range.cloneContents())
   const canonical = new Map(blocks.map(block => [block.id, block]))
   // cloneContents() inside one field contains no block wrapper. Resolve its
   // canonical owner from the live endpoints instead of looking in the clone.
-  const owner = node => (node.nodeType === Node.ELEMENT_NODE ? node : node.parentElement)
+  const owner = node => (node.nodeType === 1 ? node : node.parentElement)
     ?.closest('.oe-block[data-block-id]')
   const start = owner(range.startContainer)
   const singleSource = start && start === owner(range.endContainer)
@@ -27,7 +28,7 @@ export function rangeClipboardContent(range, blocks, registry) {
   if (singleSource) {
     // A Range wholly inside <b>, <a> or a styled span clones only its children.
     // Keep author formatting up to (but not including) the editing host.
-    let ancestor = range.commonAncestorContainer.nodeType === Node.ELEMENT_NODE
+    let ancestor = range.commonAncestorContainer.nodeType === 1
       ? /** @type {Element} */ (range.commonAncestorContainer)
       : range.commonAncestorContainer.parentElement
     const field = ancestor?.closest('[contenteditable]')
@@ -50,7 +51,7 @@ export function rangeClipboardContent(range, blocks, registry) {
   // Reserve all literal tokens as well, so a copied reference cannot give an
   // unrelated user-typed lookalike (in another block) an unintended payload.
   const occupied = new Set()
-  const walker = document.createTreeWalker(template.content, NodeFilter.SHOW_TEXT)
+  const walker = ownerDocument.createTreeWalker(template.content, 4)
   while (walker.nextNode()) {
     const node = walker.currentNode
     if (node.parentElement?.closest('[data-inline-plugin]')) continue
@@ -69,7 +70,7 @@ export function rangeClipboardContent(range, blocks, registry) {
     // Known widgets become portable tokens as well: the receiving editor may
     // register a different set of plugins than the source editor.
     const serialized = serializeInlineHtml(copy.innerHTML, registry, new Set(), source.inline)
-    const transferred = transferInlineContent(serialized.html, serialized.inline, occupied)
+    const transferred = transferInlineContent(serialized.html, serialized.inline, occupied, ownerDocument)
     copy.innerHTML = transferred.html
     entries.push(...Object.entries(transferred.inline))
   }
