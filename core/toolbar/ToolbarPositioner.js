@@ -30,6 +30,9 @@ export class ToolbarPositioner {
   /** @type {number} */
   #moveAnimationMs
 
+  /** @type {Animation | null} */
+  #moveAnimation = null
+
   /** @type {boolean} */
   moveAnimating = false
 
@@ -86,6 +89,8 @@ export class ToolbarPositioner {
    */
   animatePosition(settingsMenuEl) {
     if (this.isMobile()) {
+      this.#cancelMoveAnimation()
+      this.moveAnimating = false
       this.updatePosition()
       return
     }
@@ -106,31 +111,21 @@ export class ToolbarPositioner {
       offsetEl = /** @type {HTMLElement | null} */ (offsetEl.offsetParent)
     }
 
-    this.moveAnimating = true
     this.#toolbarEl.style.top = `${newTop}px`
 
     if (this.#toolbarEl.parentElement !== this.#rootEl) {
       this.#rootEl.appendChild(this.#toolbarEl)
     }
 
-    // INVERT + PLAY
+    // INVERT + PLAY. A newer move owns the toolbar transform and state;
+    // cancel any older animation before starting the replacement.
     const dy = oldTop - newTop
-    if (Math.abs(dy) < 1) {
-      this.moveAnimating = false
-      return
-    }
-
-    const opts = { duration: this.#moveAnimationMs, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' }
-
-    this.#toolbarEl.animate(
-      [{ transform: `translateY(${dy}px)` }, { transform: 'translateY(0)' }],
-      opts,
-    ).onfinish = () => { this.moveAnimating = false }
+    if (!this.#animateToolbar(dy)) return
 
     if (settingsMenuEl) {
       settingsMenuEl.animate(
         [{ transform: `translateY(${dy}px)` }, { transform: 'translateY(0)' }],
-        opts,
+        { duration: this.#moveAnimationMs, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' },
       )
     }
   }
@@ -147,12 +142,7 @@ export class ToolbarPositioner {
     this.updatePosition()
     const newTop = parseFloat(this.#toolbarEl.style.top) || 0
     const dy = oldTop - newTop
-    if (Math.abs(dy) > 1) {
-      this.#toolbarEl.animate(
-        [{ transform: `translateY(${dy}px)` }, { transform: 'translateY(0)' }],
-        { duration: this.#moveAnimationMs, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' },
-      )
-    }
+    this.#animateToolbar(dy)
     return dy
   }
 
@@ -184,5 +174,39 @@ export class ToolbarPositioner {
   /** @returns {boolean} */
   isMobile() {
     return window.innerWidth < this.#mobileBreakpoint
+  }
+
+  /** @param {number} dy @returns {Animation | null} */
+  #animateToolbar(dy) {
+    this.#cancelMoveAnimation()
+    if (Math.abs(dy) < 1) {
+      this.moveAnimating = false
+      return null
+    }
+
+    this.moveAnimating = true
+    const animation = this.#toolbarEl.animate(
+      [{ transform: `translateY(${dy}px)` }, { transform: 'translateY(0)' }],
+      { duration: this.#moveAnimationMs, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' },
+    )
+    this.#moveAnimation = animation
+
+    const settle = () => {
+      if (this.#moveAnimation !== animation) return
+      this.#moveAnimation = null
+      this.moveAnimating = false
+    }
+    animation.onfinish = settle
+    animation.oncancel = settle
+    return animation
+  }
+
+  #cancelMoveAnimation() {
+    const animation = this.#moveAnimation
+    if (!animation) return
+    // Clear ownership first so a synchronous `oncancel` cannot mark a newer
+    // animation idle while it is being installed.
+    this.#moveAnimation = null
+    animation.cancel()
   }
 }
