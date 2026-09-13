@@ -8,6 +8,7 @@ import { KeyboardManager } from './KeyboardManager.js'
 test('select-all uses the editor owning selection and document range', () => {
   const listeners = new Map()
   const documentListeners = new Map()
+  const windowListeners = new Map()
   const calls = []
   const nativeRange = {
     setStart(node, offset) { calls.push(['start', node, offset]) },
@@ -18,8 +19,15 @@ test('select-all uses the editor owning selection and document range', () => {
     removeAllRanges() { calls.push(['remove']) },
     addRange(range) { calls.push(['add', range]) },
   }
+  const ownerWindow = {
+    getSelection() { return nativeSelection },
+    addEventListener(type, handler) { windowListeners.set(type, handler) },
+    removeEventListener(type, handler) {
+      if (windowListeners.get(type) === handler) windowListeners.delete(type)
+    },
+  }
   const ownerDocument = {
-    defaultView: { getSelection() { return nativeSelection } },
+    defaultView: ownerWindow,
     createRange() { calls.push(['create']); return nativeRange },
     addEventListener(type, handler) { documentListeners.set(type, handler) },
     removeEventListener(type, handler) {
@@ -79,4 +87,5 @@ test('select-all uses the editor owning selection and document range', () => {
   assert.equal(second.selected, true)
   assert.ok(calls.some(call => call[0] === 'create'))
   assert.ok(calls.some(call => call[0] === 'add' && call[1] === nativeRange))
+  assert.equal(windowListeners.size, 0)
 })
