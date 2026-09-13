@@ -39,7 +39,7 @@ export type {
 } from './types.js'
 
 export function createEditor(config: import('./types.js').EditorConfig): import('./types.js').IEditor
-export function createDefaultInlineTools(options?: { i18n?: import('./I18n.js').I18n, crossBlockSelection?: import('./types.js').ICrossBlockSelection }): import('./types.js').InlineTool[]
+export function createDefaultInlineTools(options?: { i18n?: import('./I18n.js').I18n, crossBlockSelection?: import('./types.js').ICrossBlockSelection, types?: string[] }): import('./types.js').InlineTool[]
 export function uid(): string
 export function sanitizeHtml(html: string): string
 export function escapeHtml(text: string): string

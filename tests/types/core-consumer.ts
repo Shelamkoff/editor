@@ -32,6 +32,8 @@ const config: EditorConfig = {
 const editor: IEditor = createEditor(config)
 const document: EditorDocument = editor.save()
 const tools = createDefaultInlineTools()
+const filteredTools = createDefaultInlineTools({ types: ['bold', 'italic'] })
+void filteredTools
 
 void document
 void tools

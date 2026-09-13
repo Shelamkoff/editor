@@ -17,8 +17,12 @@ import { createClearFormattingTool } from './clearFormatting.js'
  * @returns {import('../types').InlineTool[]}
  */
 export function createDefaultInlineTools(options = {}) {
-  const i18n = options.i18n
-  const cbs = options.crossBlockSelection ?? null
+  if (!options || typeof options !== 'object' || Array.isArray(options)) {
+    throw new TypeError('inline tool options must be an object')
+  }
+  const ownOptions = { ...options }
+  const i18n = ownOptions.i18n
+  const cbs = ownOptions.crossBlockSelection ?? null
   /** @param {import('../types').MessageKey} key @param {string} fallback @returns {string} */
   const t = (key, fallback) => i18n?.t(key) ?? fallback
 
@@ -50,7 +54,14 @@ export function createDefaultInlineTools(options = {}) {
     ['clearFormatting', () => createClearFormattingTool(t('inline.clear', 'Clear formatting'), cbs)],
   ]
 
-  const requested = options.types ? new Set(options.types) : null
+  const explicitTypes = ownOptions.types
+  if (explicitTypes !== undefined) {
+    if (!Array.isArray(explicitTypes)) throw new TypeError('types must be an array')
+    for (let index = 0; index < explicitTypes.length; index++) {
+      if (!Object.hasOwn(explicitTypes, index)) throw new TypeError('types must be a dense array')
+    }
+  }
+  const requested = explicitTypes ? new Set(explicitTypes) : null
   return factories
     .filter(([type]) => !requested || requested.has(type))
     .map(([, create]) => create())
