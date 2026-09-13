@@ -8,10 +8,11 @@ const BLOCK_TAGS = new Set([
  * Create a paragraph that remains owned by inert template content. Cloning
  * untrusted media into a regular detached element can still start loading and
  * fire event attributes before the paste sanitizer gets a chance to run.
+ * @param {Document} ownerDocument
  * @returns {HTMLParagraphElement}
  */
-function createInertParagraph() {
-  const template = document.createElement('template')
+function createInertParagraph(ownerDocument) {
+  const template = ownerDocument.createElement('template')
   template.innerHTML = '<p></p>'
   return /** @type {HTMLParagraphElement} */ (template.content.firstElementChild)
 }
@@ -34,6 +35,7 @@ function createInertParagraph() {
 export function extractBlockElements(container, isRoutedTag = () => false) {
   /** @type {ExtractedBlock[]} */
   const results = []
+  const ownerDocument = /** @type {Node} */ (container).ownerDocument ?? document
   const isBlockTag = tag => BLOCK_TAGS.has(tag) || isRoutedTag(tag)
   /** @param {ParentNode} node @returns {boolean} */
   const hasBlocks = node => Array.from(node.children).some(
@@ -42,14 +44,14 @@ export function extractBlockElements(container, isRoutedTag = () => false) {
 
   /** @param {ParentNode} node */
   const walk = node => {
-    let inline = createInertParagraph()
+    let inline = createInertParagraph(ownerDocument)
     const flush = () => {
       if (inline.innerHTML.trim()) results.push({ tag: 'p', element: inline })
-      inline = createInertParagraph()
+      inline = createInertParagraph(ownerDocument)
     }
     for (const child of node.childNodes) {
-      if (child.nodeType !== Node.ELEMENT_NODE) {
-        if (child.nodeType === Node.TEXT_NODE) inline.appendChild(child.cloneNode(true))
+      if (child.nodeType !== 1) {
+        if (child.nodeType === 3) inline.appendChild(child.cloneNode(true))
         continue
       }
       const element = /** @type {HTMLElement} */ (child)
