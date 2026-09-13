@@ -9,7 +9,7 @@ import { getTextOffset } from '../textOffset.js'
  * @returns {() => void}
  */
 export function capturePasteSelection(root, blocks, selection, crossSelection) {
-  const native = window.getSelection()
+  const native = root.ownerDocument.defaultView?.getSelection() ?? null
   const cross = crossSelection.range
   const range = cross ?? (native?.rangeCount ? native.getRangeAt(0) : null)
   const selected = new Set(blocks.getSelectedBlocks().map(block => block.id))
