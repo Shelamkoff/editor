@@ -17,6 +17,12 @@ export class MouseSelectionManager {
   /** @type {HTMLElement} */
   #clickArea
 
+  /** @type {Document} */
+  #document
+
+  /** @type {(Window & typeof globalThis) | null} */
+  #view
+
   /** @type {import('./types').IBlockManager} */
   #blocks
 
@@ -64,6 +70,8 @@ export class MouseSelectionManager {
     this.#rootEl = rootEl
     this.#blocksEl = blocksEl
     this.#clickArea = clickArea
+    this.#document = rootEl.ownerDocument
+    this.#view = /** @type {(Window & typeof globalThis) | null} */ (this.#document.defaultView)
     this.#blocks = blocks
     this.#selection = selection
     this.#events = events
@@ -72,12 +80,12 @@ export class MouseSelectionManager {
 
     rootEl.addEventListener('mousedown', this.#onMouseDown)
     rootEl.addEventListener('click', this.#onClickArea)
-    document.addEventListener('mousemove', this.#onMouseMove)
-    document.addEventListener('mouseup', this.#onMouseUp)
+    this.#document.addEventListener('mousemove', this.#onMouseMove)
+    this.#document.addEventListener('mouseup', this.#onMouseUp)
     // Outside-click handler: clears cross-block selection + native text
     // selection when the user clicks anywhere outside the editor, mirroring
     // how plain text fields lose selection on outside focus.
-    document.addEventListener('mousedown', this.#onDocumentMouseDown, true)
+    this.#document.addEventListener('mousedown', this.#onDocumentMouseDown, true)
   }
 
   /**
@@ -86,9 +94,9 @@ export class MouseSelectionManager {
   destroy() {
     this.#rootEl.removeEventListener('mousedown', this.#onMouseDown)
     this.#rootEl.removeEventListener('click', this.#onClickArea)
-    document.removeEventListener('mousemove', this.#onMouseMove)
-    document.removeEventListener('mouseup', this.#onMouseUp)
-    document.removeEventListener('mousedown', this.#onDocumentMouseDown, true)
+    this.#document.removeEventListener('mousemove', this.#onMouseMove)
+    this.#document.removeEventListener('mouseup', this.#onMouseUp)
+    this.#document.removeEventListener('mousedown', this.#onDocumentMouseDown, true)
   }
 
   /**
@@ -113,14 +121,15 @@ export class MouseSelectionManager {
    */
   #onDocumentMouseDown = (e) => {
     const target = e.target
-    if (!(target instanceof Node) || this.#rootEl.contains(target)) return
+    if (!target || typeof target !== 'object' || !('nodeType' in target)
+        || this.#rootEl.contains(/** @type {Node} */ (target))) return
 
     // Drop block + cross-block selection.
     this.#clearBlockSelection()
 
     // If the native text selection is still anchored inside the editor,
     // collapse it so the user sees the selection disappear visually.
-    const nativeSel = window.getSelection()
+    const nativeSel = this.#view?.getSelection()
     if (nativeSel && nativeSel.rangeCount > 0) {
       const anchor = nativeSel.anchorNode
       if (anchor && this.#rootEl.contains(anchor)) {
@@ -136,17 +145,17 @@ export class MouseSelectionManager {
    * @returns {{ node: import('./types').DOMNode, offset: number } | null}
    */
   #caretFromPoint(x, y) {
-    if (typeof document.caretPositionFromPoint === 'function') {
-      const p = document.caretPositionFromPoint(x, y)
+    if (typeof this.#document.caretPositionFromPoint === 'function') {
+      const p = this.#document.caretPositionFromPoint(x, y)
       return p ? { node: p.offsetNode, offset: p.offset } : null
     }
     // Compatibility fallback for engines that expose only the legacy API.
     // Reflective access keeps the deprecated member out of the core contract.
     const legacyCaretRangeFromPoint = /** @type {((x: number, y: number) => Range | null) | undefined} */ (
-      Reflect.get(document, 'caretRangeFromPoint')
+      Reflect.get(this.#document, 'caretRangeFromPoint')
     )
     if (typeof legacyCaretRangeFromPoint === 'function') {
-      const r = legacyCaretRangeFromPoint.call(document, x, y)
+      const r = legacyCaretRangeFromPoint.call(this.#document, x, y)
       return r ? { node: r.startContainer, offset: r.startOffset } : null
     }
     return null
@@ -164,19 +173,21 @@ export class MouseSelectionManager {
 
   #onMouseDown = (/** @type {MouseEvent} */ e) => {
     const target = e.target
-    if (!(target instanceof HTMLElement)) return
+    const HTMLElementCtor = this.#view?.HTMLElement
+    if (!target || (HTMLElementCtor ? !(target instanceof HTMLElementCtor) : typeof target !== 'object')) return
+    const element = /** @type {HTMLElement} */ (target)
 
     // Only clear cross-block selection when clicking inside content area,
     // not on toolbar buttons or other UI elements
-    if (target.closest(BLOCK_SELECTOR) || target.closest('.oe-blocks') || this.#isClickAreaTarget(target)) {
+    if (element.closest(BLOCK_SELECTOR) || element.closest('.oe-blocks') || this.#isClickAreaTarget(element)) {
       this.#clearBlockSelection()
     }
 
     this.#mouseStartNode = null
     this.#mouseStartOffset = 0
 
-    if (this.#isEmptySpace(target)) {
-      if (this.#isClickAreaTarget(target)) {
+    if (this.#isEmptySpace(element)) {
+      if (this.#isClickAreaTarget(element)) {
         const lastBlock = this.#blocks.getBlockByIndex(this.#blocks.getBlockCount() - 1)
         this.#mouseStartBlock = lastBlock || null
       } else {
@@ -185,7 +196,7 @@ export class MouseSelectionManager {
       return
     }
 
-    this.#mouseStartBlock = this.#blocks.getBlockByChildNode(target) ?? null
+    this.#mouseStartBlock = this.#blocks.getBlockByChildNode(element) ?? null
 
     const caret = this.#caretFromPoint(e.clientX, e.clientY)
     if (caret) {
@@ -198,8 +209,10 @@ export class MouseSelectionManager {
     if (this.#isBlockSelecting) return
 
     const target = e.target
-    if (!(target instanceof HTMLElement)) return
-    if (!this.#isClickAreaTarget(target)) return
+    const HTMLElementCtor = this.#view?.HTMLElement
+    if (!target || (HTMLElementCtor ? !(target instanceof HTMLElementCtor) : typeof target !== 'object')) return
+    const element = /** @type {HTMLElement} */ (target)
+    if (!this.#isClickAreaTarget(element)) return
 
     const blocks = this.#blocks
     const lastBlock = blocks.getBlockByIndex(blocks.getBlockCount() - 1)
@@ -244,10 +257,10 @@ export class MouseSelectionManager {
     const endContent = currentBlock.contentElement
     const contentRect = endContent.getBoundingClientRect()
     const clampedY = Math.max(contentRect.top + 1, Math.min(contentRect.bottom - 1, e.clientY))
-    let endCaret = this.#caretFromPoint(e.clientX, clampedY)
+    const endCaret = this.#caretFromPoint(e.clientX, clampedY)
     if (!endCaret) return
 
-    const range = document.createRange()
+    const range = this.#document.createRange()
     const startIdx = blocks.getBlockIndex(this.#mouseStartBlock.id)
     const endIdx = blocks.getBlockIndex(currentBlock.id)
 
@@ -265,7 +278,7 @@ export class MouseSelectionManager {
 
     this.#crossBlockSelection.activate(range, this.#rootEl)
 
-    const sel = window.getSelection()
+    const sel = this.#view?.getSelection()
     if (sel) {
       try {
         sel.removeAllRanges()
