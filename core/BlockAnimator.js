@@ -80,7 +80,8 @@ export class BlockAnimator {
     }
 
     const height = element.offsetHeight
-    const margin = parseFloat(getComputedStyle(element).marginBottom) || 0
+    const view = element.ownerDocument.defaultView
+    const margin = parseFloat(view?.getComputedStyle(element).marginBottom ?? '0') || 0
     element.style.overflow = 'hidden'
     element.style.pointerEvents = 'none'
     element.style.transformOrigin = 'top center'
