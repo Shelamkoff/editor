@@ -94,3 +94,38 @@ test('an explicit inverse avoids the checkpoint fallback', () => {
   assert.equal(block.value, 'initial')
   assert.equal(restoredCheckpoint, false)
 })
+
+test('a nested failure forces the outer checkpoint instead of a partial inverse', () => {
+  const { commands } = harness()
+  const state = { outer: 'initial', nested: 'initial' }
+  let restoredCheckpoint = false
+
+  commands.configureRollback(
+    () => ({ version: 'test', blocks: [], state: { ...state } }),
+    checkpoint => {
+      restoredCheckpoint = true
+      Object.assign(state, checkpoint.state)
+    },
+  )
+
+  assert.throws(() => commands.execute({
+    name: 'outer-with-inverse',
+    apply() {
+      state.outer = 'outer-partial'
+      try {
+        commands.execute({
+          name: 'nested-failure',
+          apply() {
+            state.nested = 'nested-partial'
+            throw new Error('nested failed')
+          },
+        })
+      } catch { /* transaction remains poisoned */ }
+    },
+    // This inverse only knows how to undo the outer command's own mutation.
+    rollback() { state.outer = 'initial' },
+  }), /nested failed/)
+
+  assert.equal(restoredCheckpoint, true)
+  assert.deepEqual(state, { outer: 'initial', nested: 'initial' })
+})

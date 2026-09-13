@@ -149,6 +149,10 @@ export class CommandDispatcher {
         committed = this.#markAndCommit(command.markDirty === false ? [] : [...this.#affected])
       }
     } catch (cause) {
+      // Capture this before registering a direct outer failure below. A
+      // pre-existing nested failure means an outer command-specific inverse
+      // cannot be assumed to undo every mutation in the joined transaction.
+      const failedNestedTransaction = outermost && this.#hasNestedFailure
       if (!this.#hasNestedFailure) {
         this.#nestedFailure = cause
         this.#hasNestedFailure = true
@@ -159,7 +163,7 @@ export class CommandDispatcher {
           errorName: this.#diagnostics.errorName(cause),
         })
       }
-      if (outermost) this.#rollback(command, checkpoint, cause)
+      if (outermost) this.#rollback(command, checkpoint, cause, failedNestedTransaction)
       throw cause
     } finally {
       this.#depth--
@@ -184,9 +188,10 @@ export class CommandDispatcher {
     return result
   }
 
-  #rollback(command, checkpoint, cause) {
+  #rollback(command, checkpoint, cause, forceCheckpoint = false) {
+    const canRestoreCheckpoint = !!checkpoint && !!this.#restore
     let inverseError = null
-    if (command.rollback) {
+    if (command.rollback && !(forceCheckpoint && canRestoreCheckpoint)) {
       try {
         command.rollback()
         return
