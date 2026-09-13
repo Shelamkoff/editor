@@ -17,6 +17,9 @@ export class MenuPositioner {
   /** @type {HTMLElement} */
   #rootEl
 
+  /** @type {Window | null} */
+  #view
+
   /** @type {number} */
   #mobileBreakpoint
 
@@ -28,11 +31,13 @@ export class MenuPositioner {
   constructor(menuEl, rootEl, mobileBreakpoint = 768) {
     this.#menuEl = menuEl
     this.#rootEl = rootEl
+    this.#view = rootEl.ownerDocument.defaultView
     this.#mobileBreakpoint = mobileBreakpoint
   }
 
   position() {
-    if (window.innerWidth < this.#mobileBreakpoint) {
+    const viewportWidth = this.#view?.innerWidth ?? Infinity
+    if (viewportWidth < this.#mobileBreakpoint) {
       // Mobile: CSS handles bottom-sheet positioning.
       this.#menuEl.style.top = ''
       this.#menuEl.style.bottom = ''
@@ -65,7 +70,8 @@ export class MenuPositioner {
 
     // Prefer below; flip above if not enough space.
     const toolbarBottomAbs = editorRect.top + toolbarLayoutTop + toolbarHeight
-    const spaceBelow = window.innerHeight - toolbarBottomAbs - 8
+    const viewportHeight = this.#view?.innerHeight ?? Infinity
+    const spaceBelow = viewportHeight - toolbarBottomAbs - 8
     const menuHeight = this.#menuEl.offsetHeight || 320
 
     if (spaceBelow >= menuHeight) {
