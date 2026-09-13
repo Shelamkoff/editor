@@ -35,6 +35,12 @@ export class PopupManager {
   /** @type {HTMLElement | null} */
   #rootEl = null
 
+  /** @type {Document | null} */
+  #document = null
+
+  /** @type {Window | null} */
+  #view = null
+
   /** @type {import('./types').IBlockManager} */
   #blocks
 
@@ -73,6 +79,8 @@ export class PopupManager {
    */
   setRoot(rootEl) {
     this.#rootEl = rootEl
+    this.#document = rootEl.ownerDocument
+    this.#view = this.#document.defaultView
   }
 
   /**
@@ -88,19 +96,22 @@ export class PopupManager {
     }
     this.hidePopup()
 
-    const popup = document.createElement('div')
+    const ownerDocument = this.#document ?? anchor.ownerDocument
+    const ownerView = this.#view ?? ownerDocument.defaultView
+    const popup = ownerDocument.createElement('div')
     popup.className = 'oe-ip-popup'
     popup.appendChild(content)
 
-    // Append inside editor root to inherit CSS variables (theme)
-    const container = this.#rootEl || document.body
+    // Append inside editor root to inherit CSS variables (theme).
+    const container = this.#rootEl || ownerDocument.body
     container.appendChild(popup)
 
     // Measure after append so offsetHeight is available.
     // Popup uses position:fixed, so viewport coordinates are correct.
     const rect = anchor.getBoundingClientRect()
     const popupHeight = popup.offsetHeight || 260
-    const spaceBelow = window.innerHeight - rect.bottom - 8
+    const viewportHeight = ownerView?.innerHeight ?? Number.POSITIVE_INFINITY
+    const spaceBelow = viewportHeight - rect.bottom - 8
 
     popup.style.left = `${rect.left}px`
     if (spaceBelow >= popupHeight) {
@@ -114,8 +125,9 @@ export class PopupManager {
     this.#anchor = anchor
     this.#anchorBlock = this.#blocks.getBlockByChildNode(anchor)
     // Native DOM edits can remove a widget without a structural block event.
-    if (this.#rootEl) {
-      this.#anchorObserver = new MutationObserver(() => this.#closeIfStale())
+    const MutationObserverCtor = ownerView?.MutationObserver
+    if (this.#rootEl && MutationObserverCtor) {
+      this.#anchorObserver = new MutationObserverCtor(() => this.#closeIfStale())
       this.#anchorObserver.observe(this.#rootEl, { childList: true, subtree: true })
     }
 
@@ -125,12 +137,13 @@ export class PopupManager {
       if (this.#activePopup !== popup) return
       this.#outsideClickHandler = (/** @type {MouseEvent} */ e) => {
         const target = e.target
-        if (!(target instanceof Node)) return
-        if (popup.contains(target)) return
-        if (anchor.contains(target)) return
+        if (!target || typeof target !== 'object' || !('nodeType' in target)) return
+        const node = /** @type {Node} */ (target)
+        if (popup.contains(node)) return
+        if (anchor.contains(node)) return
         this.hidePopup()
       }
-      document.addEventListener('mousedown', this.#outsideClickHandler, true)
+      ownerDocument.addEventListener('mousedown', this.#outsideClickHandler, true)
     })
   }
 
@@ -147,7 +160,7 @@ export class PopupManager {
     this.#anchor = null
     this.#anchorBlock = undefined
     if (this.#outsideClickHandler) {
-      document.removeEventListener('mousedown', this.#outsideClickHandler, true)
+      this.#document?.removeEventListener('mousedown', this.#outsideClickHandler, true)
       this.#outsideClickHandler = null
     }
     if (this.#activePopup) {
@@ -182,14 +195,16 @@ export class PopupManager {
   notifyChanged(target) {
     if (this.readOnly) return
     const candidate = target
-      ?? window.getSelection()?.anchorNode
-      ?? document.activeElement
-    const element = candidate?.nodeType === Node.ELEMENT_NODE
+      ?? this.#view?.getSelection()?.anchorNode
+      ?? this.#document?.activeElement
+    const element = candidate?.nodeType === 1
       ? /** @type {Element} */ (candidate)
       : candidate?.parentElement
     const editable = element?.closest?.('[contenteditable="true"]')
     if (editable && (!this.#rootEl || this.#rootEl.contains(editable))) {
-      editable.dispatchEvent(new InputEvent('input', { bubbles: true }))
+      const InputEventCtor = this.#view?.InputEvent
+      if (InputEventCtor) editable.dispatchEvent(new InputEventCtor('input', { bubbles: true }))
+      else this.#events.emit(/** @type {string} */ (this.#changedEvent))
       return
     }
     this.#events.emit(/** @type {string} */ (this.#changedEvent))
