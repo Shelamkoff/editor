@@ -41,7 +41,10 @@ export class TriggerManager {
     this.#triggerChars = new Set(registry.triggerKeys())
 
     rootEl.addEventListener('input', this.#onInput)
-    rootEl.addEventListener('keydown', this.#onKeyDown, true)
+    // Trigger plugins may own document-level capture listeners (mention does).
+    // Observe Escape one level earlier so plugin cleanup cannot stop the event
+    // before the manager releases its own active trigger state.
+    window.addEventListener('keydown', this.#onKeyDown, true)
     this.#unsubscribeBlockChanged = events.on(EditorEvent.BLOCK_CHANGED, () => {
       if (this.#active && !this.#active.startNode.isConnected) this.#cancelTrigger()
     })
@@ -49,7 +52,7 @@ export class TriggerManager {
 
   destroy() {
     this.#rootEl.removeEventListener('input', this.#onInput)
-    this.#rootEl.removeEventListener('keydown', this.#onKeyDown, true)
+    window.removeEventListener('keydown', this.#onKeyDown, true)
     this.#unsubscribeBlockChanged()
     this.#cancelTrigger()
   }
