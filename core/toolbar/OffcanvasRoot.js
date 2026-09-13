@@ -36,6 +36,9 @@ export class OffcanvasRoot {
   /** @type {ReturnType<typeof setTimeout> | null} */
   #backdropTimer = null
 
+  /** Generation used to invalidate queued show frames after hide/destroy. */
+  #backdropGeneration = 0
+
   /** @type {() => void} */
   #onBackdropClick
 
@@ -87,7 +90,9 @@ export class OffcanvasRoot {
       this.getRoot().appendChild(this.#backdropEl)
     }
 
+    const generation = ++this.#backdropGeneration
     requestAnimationFrame(() => {
+      if (generation !== this.#backdropGeneration) return
       this.#backdropEl?.classList.add('oe-offcanvas-backdrop--visible')
     })
   }
@@ -96,6 +101,7 @@ export class OffcanvasRoot {
    * Animate the backdrop out, then remove it.
    */
   hideBackdrop() {
+    ++this.#backdropGeneration
     if (!this.#backdropEl) return
     this.#backdropEl.classList.remove('oe-offcanvas-backdrop--visible')
     this.#backdropTimer = setTimeout(() => {
@@ -109,6 +115,7 @@ export class OffcanvasRoot {
    * Final cleanup — remove the backdrop and the offcanvas root.
    */
   destroy() {
+    ++this.#backdropGeneration
     if (this.#backdropTimer) {
       clearTimeout(this.#backdropTimer)
       this.#backdropTimer = null
