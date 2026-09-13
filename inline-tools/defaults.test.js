@@ -7,7 +7,7 @@ test('default inline tool type filters reject inherited sparse entries without r
   const prototype = Object.create(Array.prototype)
   Object.defineProperty(prototype, '0', {
     configurable: true,
-    get() { reads+,; return 'bold' },
+    get() { reads++; return 'bold' },
   })
   const types = []
   Object.setPrototypeOf(types, prototype)
@@ -17,7 +17,6 @@ test('default inline tool type filters reject inherited sparse entries without r
   assert.equal(reads, 0)
   assert.deepEqual(createDefaultInlineTools({ types: ['bold', 'italic'] }).map(tool => tool.type), ['bold', 'italic'])
 })
-
 
 test('default inline tool options ignore inherited configuration entries', () => {
   let reads = 0
