@@ -4,12 +4,13 @@ import test from 'node:test'
 
 import { ToolbarPositioner } from './ToolbarPositioner.js'
 
-function createHarness() {
+function createHarness(width = 1200) {
   const originalWindow = globalThis.window
-  globalThis.window = { innerWidth: 1200 }
+  globalThis.window = new Proxy({}, { get() { throw new Error('ambient window must not be used') } })
 
   const animations = []
   const root = {
+    ownerDocument: { defaultView: { innerWidth: width } },
     appendChild(element) { element.parentElement = this },
     getBoundingClientRect() { return { top: 0, right: 100, bottom: 100 } },
   }
@@ -89,6 +90,15 @@ test('removal FLIP keeps moveAnimating true until it settles', () => {
 
     harness.animations[0].onfinish?.()
     assert.equal(harness.positioner.moveAnimating, false)
+  } finally {
+    harness.restore()
+  }
+})
+
+test('mobile breakpoint is read from the editor owning window', () => {
+  const harness = createHarness(500)
+  try {
+    assert.equal(harness.positioner.isMobile(), true)
   } finally {
     harness.restore()
   }

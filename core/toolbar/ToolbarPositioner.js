@@ -21,6 +21,9 @@ export class ToolbarPositioner {
   /** @type {HTMLElement} */
   #rootEl
 
+  /** @type {Window | null} */
+  #view
+
   /** @type {import('../types').IBlockReader} */
   #blocks
 
@@ -45,6 +48,7 @@ export class ToolbarPositioner {
   constructor(toolbarEl, rootEl, blocks, options) {
     this.#toolbarEl = toolbarEl
     this.#rootEl = rootEl
+    this.#view = rootEl.ownerDocument.defaultView
     this.#blocks = blocks
     this.#mobileBreakpoint = options.mobileBreakpoint
     this.#moveAnimationMs = options.moveAnimationMs
@@ -173,7 +177,7 @@ export class ToolbarPositioner {
 
   /** @returns {boolean} */
   isMobile() {
-    return window.innerWidth < this.#mobileBreakpoint
+    return (this.#view?.innerWidth ?? Infinity) < this.#mobileBreakpoint
   }
 
   /** @param {number} dy @returns {Animation | null} */
