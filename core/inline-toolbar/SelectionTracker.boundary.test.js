@@ -4,30 +4,29 @@ import test from 'node:test'
 
 import { SelectionTracker } from './SelectionTracker.js'
 
-test('selection tracker hides when a native range leaves the editor', () => {
+test('selection tracker hides when an owning-document range leaves the editor', () => {
   const inside = {}
   const outside = {}
   const range = { startContainer: inside, endContainer: outside }
   const listeners = new Map()
-  const previousDocument = globalThis.document
-  const previousWindow = globalThis.window
-  globalThis.document = {
+  const ownerDocument = {
+    defaultView: {
+      getSelection() {
+        return {
+          isCollapsed: false,
+          rangeCount: 1,
+          getRangeAt() { return range },
+          toString() { return 'mixed' },
+        }
+      },
+      requestAnimationFrame(callback) { callback(); return 1 },
+    },
     addEventListener(type, handler) { listeners.set(type, handler) },
     removeEventListener() {},
   }
-  globalThis.window = {
-    getSelection() {
-      return {
-        isCollapsed: false,
-        rangeCount: 1,
-        getRangeAt() { return range },
-        toString() { return 'mixed' },
-      }
-    },
-  }
   let shown = 0
   let hidden = 0
-  const root = { addEventListener() {}, removeEventListener() {} }
+  const root = { ownerDocument, addEventListener() {}, removeEventListener() {} }
   const toolbar = { style: { display: 'none' } }
   const block = { id: 'block', hasInlineTools: true }
   const tracker = new SelectionTracker(toolbar, {
@@ -42,6 +41,10 @@ test('selection tracker hides when a native range leaves the editor', () => {
     hasOpenToolDropdown() { return false },
   })
 
+  const previousDocument = globalThis.document
+  const previousWindow = globalThis.window
+  globalThis.document = new Proxy({}, { get() { throw new Error('ambient document must not be used') } })
+  globalThis.window = new Proxy({}, { get() { throw new Error('ambient window must not be used') } })
   try {
     listeners.get('selectionchange')()
     assert.equal(shown, 0)
@@ -54,23 +57,23 @@ test('selection tracker hides when a native range leaves the editor', () => {
 })
 
 
-test('selection tracker ignores a pending mouseup frame after destroy', () => {
+test('selection tracker ignores an owning-window mouseup frame after destroy', () => {
   const documentListeners = new Map()
   const rootListeners = new Map()
-  const previousDocument = globalThis.document
-  const previousWindow = globalThis.window
-  const previousRaf = globalThis.requestAnimationFrame
   let frame = null
-  globalThis.document = {
+  const ownerDocument = {
+    defaultView: {
+      getSelection() { return null },
+      requestAnimationFrame(callback) { frame = callback; return 1 },
+    },
     addEventListener(type, handler) { documentListeners.set(type, handler) },
     removeEventListener() {},
   }
-  globalThis.window = { getSelection() { return null } }
-  globalThis.requestAnimationFrame = callback => { frame = callback; return 1 }
 
   let shown = 0
   let hidden = 0
   const root = {
+    ownerDocument,
     addEventListener(type, handler) { rootListeners.set(type, handler) },
     removeEventListener() {},
   }
@@ -87,6 +90,8 @@ test('selection tracker ignores a pending mouseup frame after destroy', () => {
     hasOpenToolDropdown() { return false },
   })
 
+  const previousRaf = globalThis.requestAnimationFrame
+  globalThis.requestAnimationFrame = () => { throw new Error('ambient rAF must not be used') }
   try {
     rootListeners.get('mousedown')()
     documentListeners.get('mouseup')()
@@ -96,8 +101,6 @@ test('selection tracker ignores a pending mouseup frame after destroy', () => {
     assert.equal(shown, 0)
     assert.equal(hidden, 0)
   } finally {
-    globalThis.document = previousDocument
-    globalThis.window = previousWindow
     globalThis.requestAnimationFrame = previousRaf
   }
 })

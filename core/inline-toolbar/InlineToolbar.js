@@ -160,6 +160,7 @@ export class InlineToolbar {
     this.#positioner = new InlinePositioner(this.#el, rootEl)
 
     this.#actionsPanel = new ActionsPanel({
+      rootEl,
       events,
       crossBlockSelection,
       tooltip: this.#tooltip,
@@ -383,7 +384,7 @@ export class InlineToolbar {
     }
     const sel = this.#selection.getSelection()
     if (sel) return sel
-    const nativeSel = window.getSelection()
+    const nativeSel = this.#rootEl.ownerDocument.defaultView?.getSelection()
     if (nativeSel && !nativeSel.isCollapsed && nativeSel.rangeCount > 0) {
       const range = nativeSel.getRangeAt(0)
       const startBlock = this.#blocks.getBlockByChildNode(range.startContainer)

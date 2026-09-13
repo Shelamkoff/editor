@@ -12,6 +12,9 @@ export class InlinePositioner {
   /** @type {HTMLElement} */
   #rootEl
 
+  /** @type {Window | null} */
+  #view
+
   /**
    * @param {HTMLElement} toolbarEl
    * @param {HTMLElement} rootEl
@@ -19,6 +22,7 @@ export class InlinePositioner {
   constructor(toolbarEl, rootEl) {
     this.#toolbarEl = toolbarEl
     this.#rootEl = rootEl
+    this.#view = rootEl.ownerDocument.defaultView
   }
 
   /**
@@ -26,7 +30,7 @@ export class InlinePositioner {
    * No-op if there's no live selection.
    */
   position() {
-    const sel = window.getSelection()
+    const sel = this.#view?.getSelection()
     if (!sel || sel.rangeCount === 0) return
 
     const range = sel.getRangeAt(0)

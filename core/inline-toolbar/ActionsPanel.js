@@ -1,5 +1,6 @@
 /**
  * @typedef {Object} ActionsPanelDeps
+ * @property {HTMLElement} rootEl
  * @property {import('../types').IEventBus} events
  * @property {import('../types').ICrossBlockSelection} crossBlockSelection
  * @property {import('../Tooltip').Tooltip} tooltip
@@ -37,9 +38,13 @@ export class ActionsPanel {
   /** @type {HTMLElement | null} */
   #panel = null
 
+  /** @type {Window | null} */
+  #view
+
   /** @param {ActionsPanelDeps} deps */
   constructor(deps) {
     this.#deps = deps
+    this.#view = deps.rootEl.ownerDocument.defaultView
   }
 
   /**
@@ -54,9 +59,13 @@ export class ActionsPanel {
     // Save current selection range before focus moves into the panel.
     // Never reuse a range left by a previous panel invocation.
     this.#savedRange = null
-    const sel = window.getSelection()
+    const sel = this.#view?.getSelection()
     if (sel && sel.rangeCount > 0) {
-      this.#savedRange = sel.getRangeAt(0).cloneRange()
+      const candidate = sel.getRangeAt(0)
+      if (this.#deps.rootEl.contains(candidate.startContainer)
+          && this.#deps.rootEl.contains(candidate.endContainer)) {
+        this.#savedRange = candidate.cloneRange()
+      }
     }
     if (!this.#savedRange) return null
 
@@ -107,10 +116,10 @@ export class ActionsPanel {
     if (!this.#savedRange) return
     // If cross-block selection is active, the tool already restored it via cbs.
     if (this.#deps.crossBlockSelection.range) return
-    const sel = window.getSelection()
+    const sel = this.#view?.getSelection()
     if (!sel) return
     const start = this.#savedRange.startContainer
-    const startElement = start.nodeType === Node.ELEMENT_NODE
+    const startElement = start.nodeType === 1
       ? /** @type {HTMLElement} */ (start)
       : start.parentElement
     const editingHost = startElement?.closest('[contenteditable="true"]')
@@ -120,7 +129,8 @@ export class ActionsPanel {
     // the editor history. Focus first, then restore the exact range because
     // focusing a contenteditable may collapse the native selection.
     try {
-      if (editingHost instanceof globalThis.HTMLElement) {
+      const HTMLElementCtor = this.#view?.HTMLElement
+      if (editingHost && (HTMLElementCtor ? editingHost instanceof HTMLElementCtor : typeof editingHost.focus === 'function')) {
         editingHost.focus({ preventScroll: true })
       }
       sel.removeAllRanges()

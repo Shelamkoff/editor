@@ -15,22 +15,6 @@
 /**
  * Tracks the user's selection and decides when the inline toolbar should
  * appear or disappear.
- *
- * Listens to:
- *  - `selectionchange` on document — fires when the caret moves or text
- *    is selected. Filtered through several "is something else interactive"
- *    checks (actions panel, type selector, tool dropdown, mouse-down).
- *  - `mousedown`/`mouseup` on document — defers checks until the user
- *    finishes their drag-select. Without this we'd flicker the toolbar
- *    while the selection is still growing.
- *  - `mousedown` on document (capture) — closes the toolbar when the
- *    user clicks outside it.
- *
- * Decision logic in `checkSelection`:
- *  - empty/no selection → hide (unless cross-block selection is active)
- *  - single text block with `hasInlineTools` → show
- *  - cross-block range covering only text-blocks → show
- *  - any non-text block in the range → hide
  */
 export class SelectionTracker {
   /** @type {SelectionTrackerDeps} */
@@ -38,6 +22,12 @@ export class SelectionTracker {
 
   /** @type {HTMLElement} */
   #toolbarEl
+
+  /** @type {Document} */
+  #document
+
+  /** @type {Window | null} */
+  #view
 
   /** @type {boolean} */
   #isMouseDown = false
@@ -55,19 +45,21 @@ export class SelectionTracker {
   constructor(toolbarEl, deps) {
     this.#toolbarEl = toolbarEl
     this.#deps = deps
+    this.#document = deps.rootEl.ownerDocument
+    this.#view = this.#document.defaultView
 
-    document.addEventListener('selectionchange', this.#onSelectionChange)
+    this.#document.addEventListener('selectionchange', this.#onSelectionChange)
     deps.rootEl.addEventListener('mousedown', this.#onEditorMouseDown)
-    document.addEventListener('mouseup', this.#onDocumentMouseUp)
-    document.addEventListener('mousedown', this.#onDocumentMouseDown, true)
+    this.#document.addEventListener('mouseup', this.#onDocumentMouseUp)
+    this.#document.addEventListener('mousedown', this.#onDocumentMouseDown, true)
   }
 
   destroy() {
     this.#destroyed = true
-    document.removeEventListener('selectionchange', this.#onSelectionChange)
+    this.#document.removeEventListener('selectionchange', this.#onSelectionChange)
     this.#deps.rootEl.removeEventListener('mousedown', this.#onEditorMouseDown)
-    document.removeEventListener('mouseup', this.#onDocumentMouseUp)
-    document.removeEventListener('mousedown', this.#onDocumentMouseDown, true)
+    this.#document.removeEventListener('mouseup', this.#onDocumentMouseUp)
+    this.#document.removeEventListener('mousedown', this.#onDocumentMouseDown, true)
   }
 
   /**
@@ -79,8 +71,6 @@ export class SelectionTracker {
   setSuppressSelectionChange(value) {
     this.#suppressSelectionChange = value
   }
-
-  // ── Event handlers ──────────────────────────────────────────────────────────
 
   #onSelectionChange = () => {
     if (this.#deps.isInActionsView()) return
@@ -100,7 +90,9 @@ export class SelectionTracker {
     if (!this.#isMouseDown) return
     this.#isMouseDown = false
 
-    requestAnimationFrame(() => {
+    const schedule = this.#view?.requestAnimationFrame?.bind(this.#view)
+    if (!schedule) return
+    schedule(() => {
       if (this.#destroyed) return
       if (this.#suppressSelectionChange) return
       if (this.#deps.isInActionsView()) return
@@ -113,15 +105,13 @@ export class SelectionTracker {
   #onDocumentMouseDown = (/** @type {MouseEvent} */ e) => {
     if (this.#toolbarEl.style.display === 'none') return
     const target = e.target
-    if (!(target instanceof Node)) return
-    if (this.#toolbarEl.contains(target)) return
+    if (!target || typeof target !== 'object' || !('nodeType' in target)) return
+    if (this.#toolbarEl.contains(/** @type {Node} */ (target))) return
     this.#deps.hide()
   }
 
-  // ── Decision ────────────────────────────────────────────────────────────
-
   #checkSelection() {
-    const sel = window.getSelection()
+    const sel = this.#view?.getSelection()
     if (!sel || sel.isCollapsed || !sel.rangeCount) {
       // Cross-block selection is held in our custom store; native selection
       // gets clipped at editing-host boundaries, so an empty native selection
@@ -149,17 +139,12 @@ export class SelectionTracker {
       return
     }
 
-    // Single block selection.
     if (startBlock.id === endBlock.id) {
-      if (startBlock.hasInlineTools) {
-        this.#deps.show()
-      } else {
-        this.#deps.hide()
-      }
+      if (startBlock.hasInlineTools) this.#deps.show()
+      else this.#deps.hide()
       return
     }
 
-    // Cross-block native selection — only show if every spanned block has inline tools.
     const startIdx = this.#deps.blocks.getBlockIndex(startBlock.id)
     const endIdx = this.#deps.blocks.getBlockIndex(endBlock.id)
     const from = Math.min(startIdx, endIdx)
