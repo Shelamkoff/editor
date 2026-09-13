@@ -45,6 +45,9 @@ export class SelectionTracker {
   /** @type {boolean} */
   #suppressSelectionChange = false
 
+  /** @type {boolean} */
+  #destroyed = false
+
   /**
    * @param {HTMLElement} toolbarEl
    * @param {SelectionTrackerDeps} deps
@@ -60,6 +63,7 @@ export class SelectionTracker {
   }
 
   destroy() {
+    this.#destroyed = true
     document.removeEventListener('selectionchange', this.#onSelectionChange)
     this.#deps.rootEl.removeEventListener('mousedown', this.#onEditorMouseDown)
     document.removeEventListener('mouseup', this.#onDocumentMouseUp)
@@ -97,6 +101,7 @@ export class SelectionTracker {
     this.#isMouseDown = false
 
     requestAnimationFrame(() => {
+      if (this.#destroyed) return
       if (this.#suppressSelectionChange) return
       if (this.#deps.isInActionsView()) return
       if (this.#deps.isTypeSelectorOpen()) return
@@ -113,7 +118,7 @@ export class SelectionTracker {
     this.#deps.hide()
   }
 
-  // ── Decision ────────────────────────────────────────────────────────────────
+  // ── Decision ────────────────────────────────────────────────────────────
 
   #checkSelection() {
     const sel = window.getSelection()

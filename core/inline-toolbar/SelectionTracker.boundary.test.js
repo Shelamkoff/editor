@@ -52,3 +52,52 @@ test('selection tracker hides when a native range leaves the editor', () => {
     globalThis.window = previousWindow
   }
 })
+
+
+test('selection tracker ignores a pending mouseup frame after destroy', () => {
+  const documentListeners = new Map()
+  const rootListeners = new Map()
+  const previousDocument = globalThis.document
+  const previousWindow = globalThis.window
+  const previousRaf = globalThis.requestAnimationFrame
+  let frame = null
+  globalThis.document = {
+    addEventListener(type, handler) { documentListeners.set(type, handler) },
+    removeEventListener() {},
+  }
+  globalThis.window = { getSelection() { return null } }
+  globalThis.requestAnimationFrame = callback => { frame = callback; return 1 }
+
+  let shown = 0
+  let hidden = 0
+  const root = {
+    addEventListener(type, handler) { rootListeners.set(type, handler) },
+    removeEventListener() {},
+  }
+  const toolbar = { style: { display: 'none' } }
+  const tracker = new SelectionTracker(toolbar, {
+    rootEl: root,
+    blocks: { getBlockByChildNode() {} },
+    crossBlockSelection: { range: {} },
+    show() { shown++ },
+    hide() { hidden++ },
+    updateActiveStates() {},
+    isInActionsView() { return false },
+    isTypeSelectorOpen() { return false },
+    hasOpenToolDropdown() { return false },
+  })
+
+  try {
+    rootListeners.get('mousedown')()
+    documentListeners.get('mouseup')()
+    assert.equal(typeof frame, 'function')
+    tracker.destroy()
+    frame()
+    assert.equal(shown, 0)
+    assert.equal(hidden, 0)
+  } finally {
+    globalThis.document = previousDocument
+    globalThis.window = previousWindow
+    globalThis.requestAnimationFrame = previousRaf
+  }
+})
