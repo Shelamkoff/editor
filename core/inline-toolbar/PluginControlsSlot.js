@@ -34,6 +34,8 @@ export class PluginControlsSlot {
   /** @type {import('../types').InlineControlGroup | null} */
   #current = null
 
+  #suppressionGeneration = 0
+
   /**
    * @param {HTMLElement} zoneEl  container that holds the rendered controls
    * @param {HTMLElement} dividerEl  divider element shown only when controls are present
@@ -61,11 +63,13 @@ export class PluginControlsSlot {
     /** @type {import('../types').InlineControlContext} */
     const ctx = {
       suppressSelectionChange: () => {
+        const generation = ++this.#suppressionGeneration
         this.#deps.setSuppressSelectionChange(true)
         // Re-enable on the second rAF — gives DOM swaps a couple of frames
         // to settle before we start tracking selectionchange again.
         requestAnimationFrame(() => {
           requestAnimationFrame(() => {
+            if (generation !== this.#suppressionGeneration) return
             this.#deps.setSuppressSelectionChange(false)
           })
         })
