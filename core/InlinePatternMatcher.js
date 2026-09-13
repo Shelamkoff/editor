@@ -16,6 +16,12 @@ export class InlinePatternMatcher {
   /** @type {HTMLElement} */
   #rootEl
 
+  /** @type {Document} */
+  #document
+
+  /** @type {Window | null} */
+  #view
+
   /** @type {import('./types').IInlinePluginRegistry} */
   #registry
 
@@ -47,6 +53,8 @@ export class InlinePatternMatcher {
    */
   constructor(rootEl, registry, ctx, events, blocks, commands) {
     this.#rootEl = rootEl
+    this.#document = rootEl.ownerDocument
+    this.#view = this.#document.defaultView
     this.#registry = registry
     this.#ctx = ctx
     this.#events = events
@@ -103,16 +111,16 @@ export class InlinePatternMatcher {
 
     // Root-level keydown also receives native controls and other editor UI.
     // Only complete patterns for the contenteditable host that actually owns
-    // this key event; window.getSelection() may still point at an older range.
+    // this key event; the native selection may still point at an older range.
     const target = /** @type {Element | null} */ (e.target)
     const editingHost = target?.closest?.('[contenteditable="true"]') ?? null
     if (!editingHost || !this.#rootEl.contains(editingHost)) return
 
-    const sel = window.getSelection()
+    const sel = this.#view?.getSelection()
     if (!sel || !sel.isCollapsed || !sel.rangeCount) return
 
     const node = sel.anchorNode
-    if (!node || node.nodeType !== Node.TEXT_NODE || !editingHost.contains(node)) return
+    if (!node || node.nodeType !== 3 || !editingHost.contains(node)) return
     const textNode = /** @type {import('./types').DOMText} */ (node)
     // Skip inside inline plugin widgets
     if (/** @type {Element | null} */ (node.parentElement)?.closest('[data-inline-plugin]')) return
@@ -143,7 +151,7 @@ export class InlinePatternMatcher {
           // Insert the space that was suppressed by preventDefault
           if (e.key === ' ') {
             const r = sel.getRangeAt(0)
-            const spaceNode = document.createTextNode(' ')
+            const spaceNode = this.#document.createTextNode(' ')
             r.insertNode(spaceNode)
             r.setStartAfter(spaceNode)
             r.collapse(true)
@@ -160,9 +168,10 @@ export class InlinePatternMatcher {
   #replacePatterns(blocks) {
     /** @type {Map<import('./types').IBlock, { node: import('./types').DOMText, match: string, start: number, end: number, plugin: import('./types').InlinePlugin }[]>} */
     const matchesByBlock = new Map()
+    const showText = this.#view?.NodeFilter?.SHOW_TEXT ?? 4
     for (const block of blocks) {
       const matches = []
-      const walker = document.createTreeWalker(block.contentElement, NodeFilter.SHOW_TEXT)
+      const walker = this.#document.createTreeWalker(block.contentElement, showText)
       while (walker.nextNode()) {
         const node = /** @type {import('./types').DOMText} */ (walker.currentNode)
         if (node.parentElement?.closest('[data-inline-plugin]')) continue
@@ -172,7 +181,7 @@ export class InlinePatternMatcher {
     }
     if (matchesByBlock.size === 0) return
 
-    const selection = window.getSelection()
+    const selection = this.#view?.getSelection()
     const caret = selection?.rangeCount ? selection.getRangeAt(0).cloneRange() : null
     const backward = caret && !caret.collapsed && selection.anchorNode === caret.endContainer
       && selection.anchorOffset === caret.endOffset
@@ -187,7 +196,7 @@ export class InlinePatternMatcher {
       }
       // Reattach the live bookmark after DOM splits. Merely letting its offsets
       // update can leave the browser's native editing caret at an earlier node.
-      if (caret && this.#rootEl.contains(caret.startContainer) && this.#rootEl.contains(caret.endContainer)) {
+      if (caret && selection && this.#rootEl.contains(caret.startContainer) && this.#rootEl.contains(caret.endContainer)) {
         selection.removeAllRanges()
         selection.addRange(caret)
         if (backward) selection.setBaseAndExtent(caret.endContainer, caret.endOffset, caret.startContainer, caret.startOffset)
@@ -255,7 +264,8 @@ export class InlinePatternMatcher {
   #replaceMatch(textNode, start, end, plugin, matchText, placeCaret = true) {
     const data = plugin.onPatternMatch?.(matchText) ?? { value: matchText }
     const widget = plugin.createWidget(data)
-    if (!(widget instanceof HTMLElement)) {
+    const HTMLElementCtor = widget?.ownerDocument?.defaultView?.HTMLElement
+    if (HTMLElementCtor ? !(widget instanceof HTMLElementCtor) : !(widget instanceof HTMLElement)) {
       throw new TypeError(`Inline plugin "${plugin.type}" createWidget() must return an HTMLElement`)
     }
 
@@ -278,9 +288,9 @@ export class InlinePatternMatcher {
     // Batch paste already positioned the caret at its complete insertion
     // boundary. Native ranges follow splitText/removal; do not move it to each
     // earlier match while walking the batch backwards.
-    const sel = placeCaret ? window.getSelection() : null
+    const sel = placeCaret ? this.#view?.getSelection() : null
     if (sel) {
-      const range = document.createRange()
+      const range = this.#document.createRange()
       range.setStartAfter(widget)
       range.collapse(true)
       sel.removeAllRanges()
