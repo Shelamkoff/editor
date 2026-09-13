@@ -10,16 +10,28 @@ import { rangeStartsAtBeginning, rangeEndsAtEnd } from './splitConvert.js'
 
 test('DOM helpers and tooltip use the supplied/owning document', () => {
   const created = []
+  const timerCalls = []
   const body = { appendChild(node) { created.push(['append', node]) } }
+  const ownerView = {
+    innerHeight: 500,
+    setTimeout(callback, delay) {
+      timerCalls.push(['set', delay, callback])
+      return 41
+    },
+    clearTimeout(id) {
+      timerCalls.push(['clear', id])
+    },
+  }
   const ownerDocument = {
     body,
-    defaultView: { innerHeight: 500 },
+    defaultView: ownerView,
     createElement(tag) {
       const node = {
         tagName: tag.toUpperCase(),
         ownerDocument,
         className: '',
         style: {},
+        textContent: '',
         setAttribute() {},
         appendChild() {},
         remove() {},
@@ -30,12 +42,17 @@ test('DOM helpers and tooltip use the supplied/owning document', () => {
   }
   const previousDocument = globalThis.document
   const previousWindow = globalThis.window
+  const previousSetTimeout = globalThis.setTimeout
+  const previousClearTimeout = globalThis.clearTimeout
   globalThis.document = new Proxy({}, { get() { throw new Error('ambient document must not be used') } })
   globalThis.window = new Proxy({}, { get() { throw new Error('ambient window must not be used') } })
+  globalThis.setTimeout = () => { throw new Error('ambient setTimeout must not be used') }
+  globalThis.clearTimeout = () => { throw new Error('ambient clearTimeout must not be used') }
   try {
     const node = el('div', 'x', undefined, ownerDocument)
     assert.equal(node.ownerDocument, ownerDocument)
     const tooltip = new Tooltip(ownerDocument)
+    tooltip.show({ getBoundingClientRect() { return { left: 10, width: 20, bottom: 30 } } }, 'Label', undefined, { delay: 25 })
     tooltip.destroy()
 
     const popup = { ownerDocument, offsetHeight: 100, style: {} }
@@ -44,8 +61,11 @@ test('DOM helpers and tooltip use the supplied/owning document', () => {
   } finally {
     globalThis.document = previousDocument
     globalThis.window = previousWindow
+    globalThis.setTimeout = previousSetTimeout
+    globalThis.clearTimeout = previousClearTimeout
   }
   assert.ok(created.some(entry => entry[0] === 'append'))
+  assert.deepEqual(timerCalls.map(call => call.slice(0, 2)), [['set', 25], ['clear', 41]])
 })
 
 test('menu keyboard navigation reads activeElement from the menu document', () => {
