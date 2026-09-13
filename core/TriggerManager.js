@@ -8,6 +8,9 @@ export class TriggerManager {
   /** @type {HTMLElement} */
   #rootEl
 
+  /** @type {Window | null} */
+  #view = null
+
   /** @type {import('./types').IInlinePluginRegistry} */
   #registry
 
@@ -34,6 +37,7 @@ export class TriggerManager {
    */
   constructor(rootEl, registry, ctx, events) {
     this.#rootEl = rootEl
+    this.#view = rootEl.ownerDocument?.defaultView ?? null
     this.#registry = registry
     this.#ctx = ctx
     this.#events = events
@@ -43,8 +47,9 @@ export class TriggerManager {
     rootEl.addEventListener('input', this.#onInput)
     // Trigger plugins may own document-level capture listeners (mention does).
     // Observe Escape one level earlier so plugin cleanup cannot stop the event
-    // before the manager releases its own active trigger state.
-    window.addEventListener('keydown', this.#onKeyDown, true)
+    // before the manager releases its own active trigger state. Use the
+    // browsing context that owns the editor rather than the ambient global.
+    this.#view?.addEventListener('keydown', this.#onKeyDown, true)
     this.#unsubscribeBlockChanged = events.on(EditorEvent.BLOCK_CHANGED, () => {
       if (this.#active && !this.#active.startNode.isConnected) this.#cancelTrigger()
     })
@@ -52,7 +57,7 @@ export class TriggerManager {
 
   destroy() {
     this.#rootEl.removeEventListener('input', this.#onInput)
-    window.removeEventListener('keydown', this.#onKeyDown, true)
+    this.#view?.removeEventListener('keydown', this.#onKeyDown, true)
     this.#unsubscribeBlockChanged()
     this.#cancelTrigger()
   }
@@ -70,12 +75,13 @@ export class TriggerManager {
       return
     }
 
-    // Check if a trigger character was just typed
-    const sel = window.getSelection()
+    // Check if a trigger character was just typed. Selection belongs to the
+    // same browsing context as the editor root; never borrow the top-level one.
+    const sel = this.#view?.getSelection()
     if (!sel || !sel.isCollapsed || !sel.rangeCount) return
 
     const node = sel.anchorNode
-    if (!node || node.nodeType !== Node.TEXT_NODE || !editingHost.contains(node)) return
+    if (!node || node.nodeType !== 3 || !editingHost.contains(node)) return
     const textNode = /** @type {import('./types').DOMText} */ (node)
 
     const offset = sel.anchorOffset
@@ -114,7 +120,7 @@ export class TriggerManager {
     const { plugin, startNode, startOffset } = this.#active
 
     // Extract text between trigger and current caret
-    const sel = window.getSelection()
+    const sel = this.#view?.getSelection()
     if (!sel || !sel.isCollapsed) {
       this.#cancelTrigger()
       return

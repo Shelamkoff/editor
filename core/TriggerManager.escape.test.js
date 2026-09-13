@@ -13,11 +13,10 @@ class FakeTarget {
   fire(type, event) { this.listeners.get(type)?.(event) }
 }
 
-test('Escape releases trigger state before document capture listeners can swallow it', () => {
-  const originalWindow = globalThis.window
-  const originalNode = globalThis.Node
+test('Escape releases trigger state on the owning window before document capture listeners can swallow it', () => {
   const fakeWindow = new FakeTarget()
   const root = new FakeTarget()
+  root.ownerDocument = { defaultView: fakeWindow }
   root.closest = selector => selector === '[contenteditable="true"]' ? root : null
   root.contains = node => node === root || node === textNode
 
@@ -48,32 +47,26 @@ test('Escape releases trigger state before document capture listeners can swallo
     anchorNode: textNode,
     anchorOffset: 1,
   })
-  globalThis.window = fakeWindow
-  globalThis.Node = { TEXT_NODE: 3 }
 
-  try {
-    const manager = new TriggerManager(root, registry, ctx, events)
-    root.fire('input', { target: root })
-    assert.equal(manager.isActive, true)
-    assert.equal(plugin.edits, 1)
+  const manager = new TriggerManager(root, registry, ctx, events)
+  root.fire('input', { target: root })
+  assert.equal(manager.isActive, true)
+  assert.equal(plugin.edits, 1)
 
-    let prevented = false
-    let stopped = false
-    fakeWindow.fire('keydown', {
-      target: root,
-      key: 'Escape',
-      preventDefault() { prevented = true },
-      stopPropagation() { stopped = true },
-    })
+  let prevented = false
+  let stopped = false
+  fakeWindow.fire('keydown', {
+    target: root,
+    key: 'Escape',
+    preventDefault() { prevented = true },
+    stopPropagation() { stopped = true },
+  })
 
-    assert.equal(manager.isActive, false)
-    assert.equal(plugin.cancels, 1)
-    assert.equal(hidden, 1)
-    assert.equal(prevented, true)
-    assert.equal(stopped, true)
-    manager.destroy()
-  } finally {
-    globalThis.window = originalWindow
-    globalThis.Node = originalNode
-  }
+  assert.equal(manager.isActive, false)
+  assert.equal(plugin.cancels, 1)
+  assert.equal(hidden, 1)
+  assert.equal(prevented, true)
+  assert.equal(stopped, true)
+  manager.destroy()
+  assert.equal(fakeWindow.listeners.has('keydown'), false)
 })
