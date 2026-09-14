@@ -1,3 +1,4 @@
+import { register as toolbarRealm } from './regressions/recheck-82-toolbar-realm.js'
 import { register as clipboardRealm } from './regressions/recheck-81-clipboard-realm.js'
 import { register as pasteInsertRealm } from './regressions/recheck-80-paste-insert-realm.js'
 import { register as linkToolRealm } from './regressions/recheck-79-link-tool-realm.js'
@@ -160,5 +161,6 @@ caseTransformRealm()
 bgColorRealm()
 linkToolRealm()
 pasteInsertRealm()
+toolbarRealm()
 clipboardRealm()
 await run()

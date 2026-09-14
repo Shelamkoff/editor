@@ -26,6 +26,15 @@ export class Toolbar {
   /** @type {HTMLElement} */
   #rootEl
 
+  /** @type {Document} */
+  #document
+
+  /** @type {(Window & typeof globalThis) | null} */
+  #view
+
+  /** Synthetic tests may omit ownerDocument entirely. */
+  #ambientFallback = false
+
   /** @type {import('../types').IBlockManager} */
   #blocks
 
@@ -122,6 +131,10 @@ export class Toolbar {
     } = config
 
     this.#rootEl = rootEl
+    const ownerDocument = rootEl.ownerDocument ?? null
+    this.#document = ownerDocument ?? globalThis.document
+    this.#view = /** @type {(Window & typeof globalThis) | null} */ (ownerDocument?.defaultView ?? null)
+    this.#ambientFallback = !ownerDocument
     this.#blocks = blocks
     this.#selection = selection
     this.#defaultBlockType = defaultBlockType || DEFAULT_BLOCK_TYPE
@@ -134,17 +147,17 @@ export class Toolbar {
     const moveAnimationMs = tuning?.moveAnimationMs ?? 200
 
     // ── DOM scaffold ─────────────────────────────────────────────────────────
-    this.#toolbarEl = el('div', 'oe-toolbar')
+    this.#toolbarEl = el('div', 'oe-toolbar', undefined, this.#document)
     this.#toolbarEl.style.display = 'none'
 
-    this.#tooltip = new Tooltip()
+    this.#tooltip = new Tooltip(this.#document)
 
     this.#plusBtn = el('button', 'oe-toolbar__btn', {
       type: 'button',
       'aria-label': i18n.t('toolbar.add'),
       'aria-haspopup': 'menu',
       'aria-expanded': 'false',
-    })
+    }, this.#document)
     this.#plusBtn.innerHTML = ICON_PLUS
     this.#plusBtn.addEventListener('click', this.#onPlusClick)
     this.#plusBtn.addEventListener('mouseenter', () => this.#tooltip.show(this.#plusBtn, i18n.t('toolbar.add')))
@@ -155,7 +168,7 @@ export class Toolbar {
       'aria-label': i18n.t('toolbar.tune'),
       'aria-haspopup': 'menu',
       'aria-expanded': 'false',
-    })
+    }, this.#document)
     this.#dragBtn.innerHTML = ICON_DRAG
     this.#dragBtn.addEventListener('mouseenter', () => this.#tooltip.show(this.#dragBtn, i18n.t('toolbar.tune')))
     this.#dragBtn.addEventListener('mouseleave', () => this.#tooltip.hide())
@@ -163,7 +176,7 @@ export class Toolbar {
     this.#toolbarEl.appendChild(this.#plusBtn)
     this.#toolbarEl.appendChild(this.#dragBtn)
 
-    this.#toolboxEl = el('ul', 'oe-toolbox', { role: 'menu', tabindex: '-1' })
+    this.#toolboxEl = el('ul', 'oe-toolbox', { role: 'menu', tabindex: '-1' }, this.#document)
     this.#toolboxEl.style.display = 'none'
 
     // ── Collaborators ────────────────────────────────────────────────────────
@@ -200,8 +213,8 @@ export class Toolbar {
         this.#settingsMenu.menuEl.classList.remove('oe-settings-menu--open')
         this.#offcanvas.hideBackdrop()
         this.#dragBtn.setAttribute('aria-expanded', 'false')
-        if (this.#settingsReturnTimer) clearTimeout(this.#settingsReturnTimer)
-        this.#settingsReturnTimer = setTimeout(() => {
+        if (this.#settingsReturnTimer) this.#clearTimer(this.#settingsReturnTimer)
+        this.#settingsReturnTimer = this.#setTimer(() => {
           this.#settingsReturnTimer = null
           if (!this.#destroyed && !this.#settingsMenu.isOpen) {
             this.#rootEl.appendChild(this.#settingsMenu.menuEl)
@@ -248,7 +261,7 @@ export class Toolbar {
       this.#positioner.animatePosition(menuEl)
     })
 
-    document.addEventListener('click', this.#onDocumentClick, true)
+    this.#document.addEventListener('click', this.#onDocumentClick, true)
   }
 
   // ── Public API ─────────────────────────────────────────────────────────────
@@ -272,7 +285,7 @@ export class Toolbar {
         this.#offcanvas.showBackdrop()
         this.#offcanvas.getRoot().appendChild(this.#settingsMenu.menuEl)
         this.#settingsMenu.toggle()
-        requestAnimationFrame(() => {
+        this.#requestFrame(() => {
           if (!this.#destroyed && this.#settingsMenu.isOpen) {
             this.#settingsMenu.menuEl.classList.add('oe-settings-menu--open')
           }
@@ -309,7 +322,7 @@ export class Toolbar {
       this.#offcanvas.showBackdrop()
       this.#offcanvas.getRoot().appendChild(this.#toolboxEl)
       this.#toolboxEl.style.display = ''
-      requestAnimationFrame(() => {
+      this.#requestFrame(() => {
         if (!this.#destroyed && this.#toolboxOpen) {
           this.#toolboxEl.classList.add('oe-toolbox--open')
         }
@@ -322,11 +335,11 @@ export class Toolbar {
     this.#toolboxBuilder.resetFilter()
 
     if (this.#toolboxBuilder.filterInput) {
-      requestAnimationFrame(() => {
+      this.#requestFrame(() => {
         if (this.#toolboxOpen) this.#toolboxBuilder.filterInput?.focus()
       })
     } else {
-      requestAnimationFrame(() => {
+      this.#requestFrame(() => {
         if (this.#toolboxOpen) this.#toolboxEl.focus()
       })
     }
@@ -343,8 +356,8 @@ export class Toolbar {
     if (this.#positioner.isMobile()) {
       this.#toolboxEl.classList.remove('oe-toolbox--open')
       this.#offcanvas.hideBackdrop()
-      if (this.#toolboxReturnTimer) clearTimeout(this.#toolboxReturnTimer)
-      this.#toolboxReturnTimer = setTimeout(() => {
+      if (this.#toolboxReturnTimer) this.#clearTimer(this.#toolboxReturnTimer)
+      this.#toolboxReturnTimer = this.#setTimer(() => {
         this.#toolboxReturnTimer = null
         if (!this.#destroyed && !this.#toolboxOpen) {
           this.#toolboxEl.style.display = 'none'
@@ -365,18 +378,18 @@ export class Toolbar {
   destroy() {
     this.#destroyed = true
     if (this.#toolboxReturnTimer) {
-      clearTimeout(this.#toolboxReturnTimer)
+      this.#clearTimer(this.#toolboxReturnTimer)
       this.#toolboxReturnTimer = null
     }
     if (this.#settingsReturnTimer) {
-      clearTimeout(this.#settingsReturnTimer)
+      this.#clearTimer(this.#settingsReturnTimer)
       this.#settingsReturnTimer = null
     }
     this.#unsubFocused?.()
     this.#unsubMoved?.()
     this.#unsubDragHandleClicked?.()
     this.#unsubRemoved?.()
-    document.removeEventListener('click', this.#onDocumentClick, true)
+    this.#document.removeEventListener('click', this.#onDocumentClick, true)
     this.#plusBtn.removeEventListener('click', this.#onPlusClick)
     this.#toolboxBuilder.destroy()
     this.#tooltip.destroy()
@@ -440,6 +453,30 @@ export class Toolbar {
     this.closeToolbox()
   }
 
+  /** @param {ReturnType<typeof setTimeout>} timer */
+  #clearTimer(timer) {
+    const clearTimer = this.#view?.clearTimeout?.bind(this.#view)
+      ?? (this.#ambientFallback ? clearTimeout : null)
+    clearTimer?.(/** @type {number} */ (timer))
+  }
+
+  /** @param {() => void} callback @param {number} delay */
+  #setTimer(callback, delay) {
+    const setTimer = this.#view?.setTimeout?.bind(this.#view)
+      ?? (this.#ambientFallback ? setTimeout : null)
+    if (setTimer) return setTimer(callback, delay)
+    queueMicrotask(callback)
+    return null
+  }
+
+  /** @param {() => void} callback */
+  #requestFrame(callback) {
+    const requestFrame = this.#view?.requestAnimationFrame?.bind(this.#view)
+      ?? (this.#ambientFallback ? requestAnimationFrame : null)
+    if (requestFrame) requestFrame(callback)
+    else queueMicrotask(callback)
+  }
+
   #onPlusClick = (/** @type {MouseEvent} */ e) => {
     e.stopPropagation()
     this.#settingsMenu.close()
@@ -453,7 +490,8 @@ export class Toolbar {
   #onDocumentClick = (/** @type {MouseEvent} */ e) => {
     if (!this.#toolboxOpen) return
     const target = e.target
-    if (!(target instanceof globalThis.Node)) return
+    const NodeCtor = this.#view?.Node ?? (this.#ambientFallback ? globalThis.Node : null)
+    if (NodeCtor ? !(target instanceof NodeCtor) : !target || typeof target !== 'object') return
     const targetNode = /** @type {import('../types').DOMNode} */ (target)
     if (this.#toolboxEl.contains(targetNode) || this.#plusBtn.contains(targetNode)) return
     // On mobile the backdrop handles closing.
