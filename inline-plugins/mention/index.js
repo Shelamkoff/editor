@@ -215,7 +215,7 @@ class DropdownUI {
     if (data.avatar) {
       const img = this._createElement('img')
       setSafeUrlAttribute(img, 'src', data.avatar, 'media')
-      img.alt = ''
+      img.setAttribute('alt', '')
       img.className = 'oe-mention-avatar'
       el.appendChild(img)
     } else {
