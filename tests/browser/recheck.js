@@ -1,3 +1,4 @@
+import { register as pasteInsertRealm } from './regressions/recheck-80-paste-insert-realm.js'
 import { register as linkToolRealm } from './regressions/recheck-79-link-tool-realm.js'
 import { register as bgColorRealm } from './regressions/recheck-78-bg-color-realm.js'
 import { register as caseTransformRealm } from './regressions/recheck-77-case-transform-realm.js'
@@ -157,4 +158,5 @@ clearFormattingRealm()
 caseTransformRealm()
 bgColorRealm()
 linkToolRealm()
+pasteInsertRealm()
 await run()

@@ -108,6 +108,7 @@ export function pastePreparedHtml(prepared, ctx) {
   if (!prepared.length) return
   const first = prepared[0]
   const targetBlock = ctx.blocks.getCurrentBlock()
+  const ownerDocument = targetBlock?.contentElement.ownerDocument ?? null
   const inlineHtml = item => {
     if (!item.inline || !targetBlock) return String(item.data.text)
     const html = targetBlock.importInlineContent(String(item.data.text), item.inline)
@@ -115,7 +116,7 @@ export function pastePreparedHtml(prepared, ctx) {
   }
   const textLike = item => !item.routed && (item.tag === 'p' || item.tag === 'div')
   if (prepared.length === 1 && textLike(first)) {
-    insertHtmlAtCaret(inlineHtml(first))
+    insertHtmlAtCaret(inlineHtml(first), ownerDocument)
     if (targetBlock) ctx.notifyChanged(targetBlock)
     else ctx.notifyChanged()
     return
@@ -127,7 +128,7 @@ export function pastePreparedHtml(prepared, ctx) {
     item.type, item.data, insertIndex++, undefined, item.inline,
     item.routed ? undefined : tail?.metadata.tunes,
   )
-  if (textLike(first)) insertHtmlAtCaret(inlineHtml(first))
+  if (textLike(first)) insertHtmlAtCaret(inlineHtml(first), ownerDocument)
   else insert(first)
   for (const item of prepared.slice(1)) insert(item)
   const lastBlock = ctx.blocks.getBlockByIndex(insertIndex - 1)
@@ -144,22 +145,23 @@ export function pastePreparedHtml(prepared, ctx) {
  * @param {import('../types').IBlockReader} blocks
  */
 function insertTextOrReplace(text, blocks) {
-  const sel = window.getSelection()
+  const block = blocks.getCurrentBlock()
+  const ownerDocument = block?.contentElement.ownerDocument ?? null
+  const sel = ownerDocument?.defaultView?.getSelection?.() ?? null
   if (sel && sel.rangeCount > 0) {
-    insertTextAtCaret(text)
+    insertTextAtCaret(text, ownerDocument)
     return
   }
-  const block = blocks.getCurrentBlock()
   if (block) block.contentElement.textContent = text
 }
 
-/** @param {string} text */
-function insertTextAtCaret(text) {
-  const sel = window.getSelection()
-  if (!sel || sel.rangeCount === 0) return
+/** @param {string} text @param {Document | null} ownerDocument */
+function insertTextAtCaret(text, ownerDocument) {
+  const sel = ownerDocument?.defaultView?.getSelection?.() ?? null
+  if (!ownerDocument || !sel || sel.rangeCount === 0) return
   const range = sel.getRangeAt(0)
   range.deleteContents()
-  const textNode = document.createTextNode(text)
+  const textNode = ownerDocument.createTextNode(text)
   range.insertNode(textNode)
   range.setStartAfter(textNode)
   range.collapse(true)
@@ -167,13 +169,13 @@ function insertTextAtCaret(text) {
   sel.addRange(range)
 }
 
-/** @param {string} html */
-function insertHtmlAtCaret(html) {
-  const sel = window.getSelection()
-  if (!sel || sel.rangeCount === 0) return
+/** @param {string} html @param {Document | null} ownerDocument */
+function insertHtmlAtCaret(html, ownerDocument) {
+  const sel = ownerDocument?.defaultView?.getSelection?.() ?? null
+  if (!ownerDocument || !sel || sel.rangeCount === 0) return
   const range = sel.getRangeAt(0)
   range.deleteContents()
-  const template = document.createElement('template')
+  const template = ownerDocument.createElement('template')
   template.innerHTML = html
   const frag = template.content
   const lastNode = frag.lastChild
