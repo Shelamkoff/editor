@@ -9,16 +9,26 @@ import {
 } from './utils.js'
 import { ColorPicker, parseRgbCss } from '@shelamkoff/color-picker'
 
+const ELEMENT_NODE = 1
+
 /**
  * Find the closest <span> with inline background-color on the selection anchor.
+ * @param {Range | null} [rangeHint]
+ * @param {Document | null} [ownerDocument]
  * @returns {HTMLElement | null}
  */
-function findBgSpan() {
-  const sel = window.getSelection()
-  if (!sel || !sel.anchorNode) return null
-  let node = sel.anchorNode.nodeType === Node.ELEMENT_NODE
-    ? /** @type {HTMLElement} */ (sel.anchorNode)
-    : sel.anchorNode.parentElement
+function findBgSpan(rangeHint = null, ownerDocument = rangeHint?.startContainer?.ownerDocument ?? null) {
+  let anchorNode
+  if (rangeHint) {
+    anchorNode = rangeHint.startContainer
+  } else {
+    const sel = ownerDocument?.defaultView?.getSelection?.()
+    if (!sel || !sel.anchorNode) return null
+    anchorNode = sel.anchorNode
+  }
+  let node = anchorNode.nodeType === ELEMENT_NODE
+    ? /** @type {HTMLElement} */ (anchorNode)
+    : anchorNode.parentElement
   while (node) {
     if (node.tagName === 'SPAN' && node.style.backgroundColor) return node
     if (node.classList && node.classList.contains('oe-paragraph')) break
@@ -42,12 +52,24 @@ export function createBgColorTool(label, cbs = null) {
   let btnEl = null
   /** @type {Range | null} */
   let savedRange = null
+  /** @type {Document | null} */
+  let ownerDocument = null
   let pickerOpen = false
 
   /** @type {ColorPicker | null} */
   let picker = null
   /** @type {import('../core/types').InlineMutationContext | null} */
   let mutations = null
+
+  /** @param {Range | null} [range] @returns {Document | null} */
+  function documentFor(range = null) {
+    return range?.startContainer?.ownerDocument ?? ownerDocument
+  }
+
+  /** @param {Range | null} [range] @returns {Selection | null} */
+  function selectionFor(range = null) {
+    return documentFor(range)?.defaultView?.getSelection?.() ?? null
+  }
 
   /**
    * @template T
@@ -68,14 +90,14 @@ export function createBgColorTool(label, cbs = null) {
     if (crossRange) {
       savedRange = crossRange.cloneRange()
     } else {
-      const sel = window.getSelection()
+      const sel = selectionFor()
       if (sel && sel.rangeCount > 0) {
         savedRange = sel.getRangeAt(0).cloneRange()
       }
     }
     if (!savedRange) return
 
-    const existing = findBgSpan()
+    const existing = findBgSpan(savedRange, documentFor(savedRange))
     let hex = '#ffffff'
     let alpha = 1
     if (existing) {
@@ -95,7 +117,7 @@ export function createBgColorTool(label, cbs = null) {
 
   function restoreRange() {
     if (!savedRange) return
-    const sel = window.getSelection()
+    const sel = selectionFor(savedRange)
     if (sel) {
       try {
         sel.removeAllRanges()
@@ -131,7 +153,7 @@ export function createBgColorTool(label, cbs = null) {
     restoreSelectionOffsets(cbs, ctx.saved)
     // Update savedRange from restored selection
     if (!ctx.saved.crossOffsets) {
-      const sel = window.getSelection()
+      const sel = selectionFor(savedRange)
       if (sel && sel.rangeCount > 0) {
         savedRange = sel.getRangeAt(0).cloneRange()
       }
@@ -162,7 +184,7 @@ export function createBgColorTool(label, cbs = null) {
               && parentEl.childNodes.length === 1 && parentEl.firstChild === targetNode) {
             parentEl.style.backgroundColor = color
           } else {
-            const wrapper = document.createElement('span')
+            const wrapper = targetNode.ownerDocument.createElement('span')
             wrapper.style.backgroundColor = color
             targetNode.parentNode?.insertBefore(wrapper, targetNode)
             wrapper.appendChild(targetNode)
@@ -223,7 +245,8 @@ export function createBgColorTool(label, cbs = null) {
         pickerOpen = false
         picker.close()
       }
-      const span = findBgSpan()
+      const range = cbs?.range ?? (savedRange && pickerOpen ? savedRange : null)
+      const span = findBgSpan(range, documentFor(range))
       if (span && dotEl) {
         dotEl.style.backgroundColor = span.style.backgroundColor
       }
@@ -241,6 +264,7 @@ export function createBgColorTool(label, cbs = null) {
     onMount(button, mutationContext) {
       mutations = mutationContext ?? null
       btnEl = button
+      ownerDocument = button.ownerDocument
       dotEl = button.querySelector('.oe-inline-tool__color-dot')
       if (dotEl) dotEl.style.backgroundColor = lastColor
 
@@ -254,14 +278,15 @@ export function createBgColorTool(label, cbs = null) {
         toolbar.appendChild(picker.element)
       }
 
-      document.addEventListener('mousedown', onDocMouseDown, true)
+      ownerDocument.addEventListener('mousedown', onDocMouseDown, true)
     },
 
     destroy() {
-      document.removeEventListener('mousedown', onDocMouseDown, true)
+      ownerDocument?.removeEventListener('mousedown', onDocMouseDown, true)
       picker?.destroy()
       picker = null
       mutations = null
+      ownerDocument = null
     },
   }
 }

@@ -1,3 +1,4 @@
+import { register as bgColorRealm } from './regressions/recheck-78-bg-color-realm.js'
 import { register as caseTransformRealm } from './regressions/recheck-77-case-transform-realm.js'
 import { register as clearFormattingRealm } from './regressions/recheck-76-clear-formatting-realm.js'
 import { register as alignToolRealm } from './regressions/recheck-75-align-tool-realm.js'
@@ -153,4 +154,5 @@ scriptToolRealm()
 alignToolRealm()
 clearFormattingRealm()
 caseTransformRealm()
+bgColorRealm()
 await run()
