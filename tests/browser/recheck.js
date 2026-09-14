@@ -1,3 +1,4 @@
+import { register as inlineUtilsRealm } from './regressions/recheck-73-inline-utils-realm.js'
 import { register as toolbarRemovalRace } from './regressions/recheck-72-toolbar-removal-race.js'
 import { register as toolbarReadOnlyRemoval } from './regressions/recheck-71-toolbar-readonly-removal.js'
 import { register as toolbarDestroyTimer } from './regressions/recheck-70-toolbar-destroy-timer.js'
@@ -143,4 +144,5 @@ fieldInput()
 toolbarDestroyTimer()
 toolbarReadOnlyRemoval()
 toolbarRemovalRace()
+inlineUtilsRealm()
 await run()

@@ -7,6 +7,10 @@ import { closestBlock, el } from '../core/dom.js'
 import { createSvgIcon, ICON_BACK } from '../core/icons.js'
 import { getTextOffset, getTextLength, findNodeAtOffset as findLogicalPosition, editableTextWalker } from '../core/textOffset.js'
 
+const ELEMENT_NODE = 1
+const TEXT_NODE = 3
+const DOCUMENT_FRAGMENT_NODE = 11
+
 /** SVG markup for the standard back-navigation icon used in action panels. */
 export { ICON_BACK }
 
@@ -62,7 +66,7 @@ function closestInEditable(el, selector) {
  * @param {string} tagName — lowercase tag name to merge
  */
 function mergeAdjacentTags(parent, tagName) {
-  if (!parent || parent.nodeType !== Node.ELEMENT_NODE) return
+  if (!parent || parent.nodeType !== ELEMENT_NODE) return
   const upper = tagName.toUpperCase()
   // Normalize first so empty text nodes between elements are removed
   parent.normalize()
@@ -71,8 +75,8 @@ function mergeAdjacentTags(parent, tagName) {
   while (node) {
     const next = node.nextSibling
     // Only merge if two same-tag elements are truly DOM-adjacent (no text nodes between them)
-    if (node.nodeType === Node.ELEMENT_NODE
-        && next?.nodeType === Node.ELEMENT_NODE
+    if (node.nodeType === ELEMENT_NODE
+        && next?.nodeType === ELEMENT_NODE
         && /** @type {Element} */ (node).tagName === upper
         && /** @type {Element} */ (next).tagName === upper
         && haveSameAttributes(
@@ -120,14 +124,14 @@ function haveSameAttributes(left, right) {
 function hasWrapperTag(content, tag) {
   let node = content
   // Unwrap single-child DocumentFragments
-  while (node.nodeType === Node.DOCUMENT_FRAGMENT_NODE && node.childNodes.length === 1) {
+  while (node.nodeType === DOCUMENT_FRAGMENT_NODE && node.childNodes.length === 1) {
     node = /** @type {Node} */ (node.firstChild)
   }
   // For multi-child fragments: the tag is considered present if the
   // fragment itself IS the unwrapped content (no single wrapper around it).
   // We only need to detect a wrapper that surrounds ALL children.
   // Walk down single-child element chain looking for the tag.
-  while (node.nodeType === Node.ELEMENT_NODE) {
+  while (node.nodeType === ELEMENT_NODE) {
     if (/** @type {Element} */ (node).tagName.toLowerCase() === tag) return true
     // Only descend if there's exactly one element child (a wrapper chain)
     const children = /** @type {Element} */ (node).children
@@ -160,7 +164,7 @@ function wrapIfNeeded(content, wrapperTemplate) {
   // wrappers for each child individually (DOM spec). Adding another wrapper
   // around the whole fragment would double-wrap children that don't need it.
   // Leave multi-child fragments as-is — the per-child clones are correct.
-  if (content.nodeType === Node.DOCUMENT_FRAGMENT_NODE && content.childNodes.length > 1) {
+  if (content.nodeType === DOCUMENT_FRAGMENT_NODE && content.childNodes.length > 1) {
     return content
   }
 
@@ -177,12 +181,14 @@ function wrapIfNeeded(content, wrapperTemplate) {
  * @returns {void}
  */
 export function toggleTag(tagName, range, matches = () => true) {
-  const sel = window.getSelection()
-  if (!sel || !range) return
+  if (!range) return
+  const ownerDocument = range.startContainer.ownerDocument
+  const sel = ownerDocument?.defaultView?.getSelection?.() ?? null
+  if (!ownerDocument || !sel) return
   // Widget markup belongs to its plugin, not to author text formatting.
   // A range may contain an entire widget but must not edit its internals.
   for (const endpoint of [range.startContainer, range.endContainer]) {
-    const element = endpoint.nodeType === Node.ELEMENT_NODE
+    const element = endpoint.nodeType === ELEMENT_NODE
       ? /** @type {Element} */ (endpoint) : endpoint.parentElement
     if (element?.closest('[data-inline-plugin]')) return
   }
@@ -191,7 +197,7 @@ export function toggleTag(tagName, range, matches = () => true) {
   )
 
   const parent = range.commonAncestorContainer
-  const container = parent.nodeType === Node.ELEMENT_NODE
+  const container = parent.nodeType === ELEMENT_NODE
     ? /** @type {HTMLElement} */ (parent)
     : parent.parentElement
 
@@ -221,7 +227,7 @@ export function toggleTag(tagName, range, matches = () => true) {
       if (firstChild && lastChild) {
         try {
           sel.removeAllRanges()
-          const newRange = document.createRange()
+          const newRange = ownerDocument.createRange()
           newRange.setStartBefore(firstChild)
           newRange.setEndAfter(lastChild)
           sel.addRange(newRange)
@@ -244,14 +250,14 @@ export function toggleTag(tagName, range, matches = () => true) {
       const innerWrappers = []
       /** @type {Node | null} */
       let n = range.startContainer
-      if (n.nodeType === Node.TEXT_NODE) n = n.parentElement
+      if (n.nodeType === TEXT_NODE) n = n.parentElement
       while (n && n !== ancestor) {
         innerWrappers.push(/** @type {HTMLElement} */ (n).cloneNode(false))
         n = /** @type {HTMLElement} */ (n).parentElement
       }
 
       // 1. Extract content AFTER selection
-      const afterRange = document.createRange()
+      const afterRange = ownerDocument.createRange()
       afterRange.setStart(range.endContainer, range.endOffset)
       afterRange.setEndAfter(ancestor.lastChild || ancestor)
       const afterFrag = afterRange.extractContents()
@@ -297,7 +303,7 @@ export function toggleTag(tagName, range, matches = () => true) {
         if (s && e) {
           try {
             sel.removeAllRanges()
-            const nr = document.createRange()
+            const nr = ownerDocument.createRange()
             nr.setStart(s.node, s.offset)
             nr.setEnd(e.node, e.offset)
             sel.addRange(nr)
@@ -328,7 +334,7 @@ export function toggleTag(tagName, range, matches = () => true) {
       for (let ti = toUnwrap.length - 1; ti >= 0; ti--) {
         const el = /** @type {HTMLElement} */ (toUnwrap[ti])
         // Create a clipped range: intersection of selection with this element
-        const clipped = document.createRange()
+        const clipped = ownerDocument.createRange()
         if (el.contains(range.startContainer)) {
           clipped.setStart(range.startContainer, range.startOffset)
         } else {
@@ -357,13 +363,13 @@ export function toggleTag(tagName, range, matches = () => true) {
           const innerWrappers = []
           /** @type {Node | null} */
           let nn = clipped.startContainer
-          if (nn.nodeType === Node.TEXT_NODE) nn = nn.parentElement
+          if (nn.nodeType === TEXT_NODE) nn = nn.parentElement
           while (nn && nn !== el) {
             innerWrappers.push(/** @type {HTMLElement} */ (nn).cloneNode(false))
             nn = /** @type {HTMLElement} */ (nn).parentElement
           }
 
-          const afterRange = document.createRange()
+          const afterRange = ownerDocument.createRange()
           afterRange.setStart(clipped.endContainer, clipped.endOffset)
           afterRange.setEndAfter(el.lastChild || el)
           const afterFrag = afterRange.extractContents()
@@ -405,7 +411,7 @@ export function toggleTag(tagName, range, matches = () => true) {
       if (s && e) {
         try {
           sel.removeAllRanges()
-          const nr = document.createRange()
+          const nr = ownerDocument.createRange()
           nr.setStart(s.node, s.offset)
           nr.setEnd(e.node, e.offset)
           sel.addRange(nr)
@@ -417,7 +423,7 @@ export function toggleTag(tagName, range, matches = () => true) {
   }
 
   // Case 3: No existing tag found — wrap selection
-  const wrapper = document.createElement(tagName)
+  const wrapper = ownerDocument.createElement(tagName)
   try {
     range.surroundContents(wrapper)
   } catch {
@@ -425,7 +431,7 @@ export function toggleTag(tagName, range, matches = () => true) {
     // Per-text-node wrapping as safe fallback.
     // Use contenteditable for single-block, commonAncestorContainer for cross-block.
     const singleCe = container?.closest('[contenteditable="true"]')
-    const walkRoot = singleCe || (range.commonAncestorContainer.nodeType === Node.ELEMENT_NODE
+    const walkRoot = singleCe || (range.commonAncestorContainer.nodeType === ELEMENT_NODE
       ? range.commonAncestorContainer
       : range.commonAncestorContainer.parentElement)
     if (walkRoot) {
@@ -448,7 +454,7 @@ export function toggleTag(tagName, range, matches = () => true) {
         let targetNode = node
         if (endOffset < node.length) node.splitText(endOffset)
         if (startOffset > 0) targetNode = /** @type {Text} */ (node.splitText(startOffset))
-        const w = document.createElement(tagName)
+        const w = ownerDocument.createElement(tagName)
         targetNode.parentNode?.insertBefore(w, targetNode)
         w.appendChild(targetNode)
       }
@@ -474,7 +480,7 @@ export function toggleTag(tagName, range, matches = () => true) {
       if (s && e) {
         try {
           sel.removeAllRanges()
-          const nr = document.createRange()
+          const nr = ownerDocument.createRange()
           nr.setStart(s.node, s.offset)
           nr.setEnd(e.node, e.offset)
           sel.addRange(nr)
@@ -484,7 +490,7 @@ export function toggleTag(tagName, range, matches = () => true) {
       // No CE — fallback: select wrapper contents (no merge)
       try {
         sel.removeAllRanges()
-        const nr = document.createRange()
+        const nr = ownerDocument.createRange()
         nr.selectNodeContents(wrapper)
         sel.addRange(nr)
       } catch { /* detached */ }
@@ -500,7 +506,7 @@ export function toggleTag(tagName, range, matches = () => true) {
  */
 export function getEditorRoot(node) {
   if (!node) return null
-  const el = node.nodeType === Node.ELEMENT_NODE ? /** @type {Element} */ (node) : node.parentElement
+  const el = node.nodeType === ELEMENT_NODE ? /** @type {Element} */ (node) : node.parentElement
   return /** @type {HTMLElement | null} */ (el?.closest('.oe-editor'))
 }
 
@@ -596,7 +602,8 @@ export function restoreCrossBlockRange(cbs, offsets) {
   const end = findNodeAtOffset(endCe, offsets.endOffset, 'end')
   if (!start || !end) return null
 
-  const range = document.createRange()
+  const ownerDocument = editorRoot.ownerDocument
+  const range = ownerDocument.createRange()
   try {
     range.setStart(start.node, start.offset)
     range.setEnd(end.node, end.offset)
@@ -612,8 +619,8 @@ export function restoreCrossBlockRange(cbs, offsets) {
 
   // Place native caret at end of cross-block range
   try {
-    const sel = window.getSelection()
-    const caret = document.createRange()
+    const sel = ownerDocument.defaultView?.getSelection?.() ?? null
+    const caret = ownerDocument.createRange()
     caret.setStart(range.endContainer, range.endOffset)
     caret.collapse(true)
     sel?.removeAllRanges()
@@ -626,16 +633,14 @@ export function restoreCrossBlockRange(cbs, offsets) {
 /**
  * Check if a selection spans multiple .oe-block elements.
  * @param {import('../types').ICrossBlockSelection | null} [cbs]
+ * @param {Range | null} [rangeHint] - saved owning range when no cross-block range is active
  * @returns {HTMLElement[] | null} Array of plugin-owned block roots, or null if single-block
  */
-export function getSelectedBlockElements(cbs) {
-  const sel = window.getSelection()
-  if (!sel || sel.isCollapsed || !sel.rangeCount) return null
-
-  // Native selection clips to focused contenteditable.
-  // Use the cross-block range if available.
-  const nativeRange = sel.getRangeAt(0)
-  const range = cbs?.range || nativeRange
+export function getSelectedBlockElements(cbs, rangeHint = null) {
+  // Native selection clips to the focused contenteditable. Callers that do
+  // not have a stored cross-block range must pass the saved owning range.
+  const range = cbs?.range || rangeHint
+  if (!range || range.collapsed) return null
   const startBlock = closestBlock(range.startContainer)
   const endBlock = closestBlock(range.endContainer)
 
@@ -651,7 +656,7 @@ export function getSelectedBlockElements(cbs) {
     if (child === startBlock) inside = true
     if (inside && child.classList.contains(BLOCK_CLASS)) {
       const content = child.firstElementChild
-      if (content instanceof HTMLElement) blocks.push(content)
+      if (content?.nodeType === ELEMENT_NODE) blocks.push(/** @type {HTMLElement} */ (content))
     }
     if (child === endBlock) break
   }
@@ -666,11 +671,12 @@ export function getSelectedBlockElements(cbs) {
  * @returns {void}
  */
 export function notifyEditorChanged(contextNode) {
-  const element = contextNode?.nodeType === Node.ELEMENT_NODE
+  const element = contextNode?.nodeType === ELEMENT_NODE
     ? /** @type {Element} */ (contextNode)
     : contextNode?.parentElement
   const ce = element?.closest('[contenteditable="true"]')
-  if (ce) ce.dispatchEvent(new InputEvent('input', { bubbles: true }))
+  const InputEventCtor = ce?.ownerDocument?.defaultView?.InputEvent
+  if (ce && InputEventCtor) ce.dispatchEvent(new InputEventCtor('input', { bubbles: true }))
 }
 
 /**
@@ -696,7 +702,7 @@ export function createSimpleInlineTool(type, title, icon, tag, shortcut, cbs) {
       if (!range) return false
 
       const ancestor = range.commonAncestorContainer
-      const container = ancestor.nodeType === Node.ELEMENT_NODE
+      const container = ancestor.nodeType === ELEMENT_NODE
         ? /** @type {HTMLElement} */ (ancestor)
         : ancestor.parentElement
 
@@ -745,7 +751,7 @@ export function createSimpleInlineTool(type, title, icon, tag, shortcut, cbs) {
 export function getBlockElement() {
   const sel = window.getSelection()
   if (!sel || !sel.anchorNode) return null
-  let node = sel.anchorNode.nodeType === Node.ELEMENT_NODE
+  let node = sel.anchorNode.nodeType === ELEMENT_NODE
     ? /** @type {HTMLElement} */ (sel.anchorNode)
     : sel.anchorNode.parentElement
   while (node) {
@@ -776,13 +782,13 @@ export function getBlockContentElement() {
  */
 export function getContentEditable(range) {
   const startNode = range.startContainer
-  const startEl = startNode.nodeType === Node.ELEMENT_NODE
+  const startEl = startNode.nodeType === ELEMENT_NODE
     ? /** @type {HTMLElement} */ (startNode)
     : startNode.parentElement
   const startCe = startEl?.closest('[contenteditable="true"]') ?? null
 
   const endNode = range.endContainer
-  const endEl = endNode.nodeType === Node.ELEMENT_NODE
+  const endEl = endNode.nodeType === ELEMENT_NODE
     ? /** @type {HTMLElement} */ (endNode)
     : endNode.parentElement
   const endCe = endEl?.closest('[contenteditable="true"]') ?? null
@@ -800,7 +806,7 @@ export function getContentEditable(range) {
  */
 export function getWalkRoot(range) {
   return getContentEditable(range)
-    || (range.commonAncestorContainer.nodeType === Node.ELEMENT_NODE
+    || (range.commonAncestorContainer.nodeType === ELEMENT_NODE
       ? /** @type {HTMLElement} */ (range.commonAncestorContainer)
       : range.commonAncestorContainer.parentElement)
 }
@@ -859,7 +865,7 @@ export function saveSelectionOffsets(range) {
   /** @type {{ ce: Node, start: number, end: number } | null} */
   let singleOffsets = null
   if (!crossOffsets) {
-    const startEl = range.startContainer.nodeType === Node.ELEMENT_NODE
+    const startEl = range.startContainer.nodeType === ELEMENT_NODE
       ? /** @type {HTMLElement} */ (range.startContainer)
       : range.startContainer.parentElement
     const ce = startEl?.closest('[contenteditable="true"]')
@@ -889,8 +895,10 @@ export function restoreSelectionOffsets(cbs, saved) {
     const e = findNodeAtOffset(ce, end, 'end')
     if (s && e) {
       try {
-        const sel = window.getSelection()
-        const r = document.createRange()
+        const ownerDocument = ce.ownerDocument
+        const sel = ownerDocument?.defaultView?.getSelection?.() ?? null
+        if (!ownerDocument || !sel) return
+        const r = ownerDocument.createRange()
         r.setStart(s.node, s.offset)
         r.setEnd(e.node, e.offset)
         sel?.removeAllRanges()
@@ -902,11 +910,12 @@ export function restoreSelectionOffsets(cbs, saved) {
 
 /**
  * Create a standard back button for inline toolbar drill-down panels.
- * @param {{ close(): void }} ctx
+ * @param {{ close(): void, range: Range }} ctx
  * @returns {HTMLElement}
  */
 export function createBackButton(ctx) {
-  const backBtn = el('button', 'oe-inline-tool oe-inline-tool--back', { type: 'button' })
+  const ownerDocument = ctx.range.startContainer.ownerDocument
+  const backBtn = el('button', 'oe-inline-tool oe-inline-tool--back', { type: 'button' }, ownerDocument)
   backBtn.innerHTML = ICON_BACK
   backBtn.addEventListener('mousedown', (e) => { e.preventDefault(); e.stopPropagation() })
   backBtn.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); ctx.close() })
