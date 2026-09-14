@@ -48,7 +48,9 @@ export function closestBlock(node) {
  */
 export function positionPopup(popupEl, anchorRect, rootRect, { defaultHeight = 300, gap = 4, buffer = 8, relative = false } = {}) {
   const height = popupEl.offsetHeight || defaultHeight
-  const viewportHeight = popupEl.ownerDocument?.defaultView?.innerHeight ?? window.innerHeight
+  // A detached document has no meaningful viewport. Treat it as unbounded
+  // instead of borrowing an unrelated ambient window from another realm.
+  const viewportHeight = popupEl.ownerDocument?.defaultView?.innerHeight ?? Number.POSITIVE_INFINITY
   const spaceBelow = viewportHeight - anchorRect.bottom - buffer
   const spaceAbove = anchorRect.top - buffer
 
@@ -64,4 +66,3 @@ export function positionPopup(popupEl, anchorRect, rootRect, { defaultHeight = 3
       : `${/** @type {DOMRect} */ (rootRect).bottom - anchorRect.top + gap}px`
   }
 }
-
