@@ -101,8 +101,11 @@ export class Heading extends BlockPluginAbstract {
     // If already at this level, do nothing
     if (element.tagName.toLowerCase() === tag) return element
 
+    const ownerDocument = element.ownerDocument
+    const ownerWindow = ownerDocument.defaultView
+
     // Save full selection range (not just caret) so inline tools keep working
-    const sel = window.getSelection()
+    const sel = ownerWindow?.getSelection?.()
     let startNode = null, startOffset = 0
     let endNode = null, endOffset = 0
     let wasCollapsed = true
@@ -116,7 +119,7 @@ export class Heading extends BlockPluginAbstract {
     }
 
     // Create new element with same content
-    const newEl = document.createElement(tag)
+    const newEl = ownerDocument.createElement(tag)
     newEl.className = `oe-heading oe-heading--${tag}`
     newEl.contentEditable = 'true'
     newEl.dataset.placeholder = this.#placeholder(level)
@@ -133,7 +136,7 @@ export class Heading extends BlockPluginAbstract {
     // Restore full selection range
     if (sel && startNode) {
       try {
-        const range = document.createRange()
+        const range = ownerDocument.createRange()
         range.setStart(startNode, startOffset)
         if (!wasCollapsed && endNode) {
           range.setEnd(endNode, endOffset)
@@ -221,9 +224,10 @@ export class Heading extends BlockPluginAbstract {
    * @returns {HTMLElement[]}
    */
   renderSettings(element) {
+    const ownerDocument = element.ownerDocument
     const currentLevel = this.getLevel(element)
     return HEADING_LEVELS.map(({ level, key, icon }) => {
-      const btn = document.createElement('li')
+      const btn = ownerDocument.createElement('li')
       btn.setAttribute('role', 'menuitem')
       btn.setAttribute('tabindex', '-1')
       btn.className = 'oe-settings-menu__item'
@@ -232,12 +236,12 @@ export class Heading extends BlockPluginAbstract {
       }
       btn.dataset.level = String(level)
 
-      const iconSpan = document.createElement('span')
+      const iconSpan = ownerDocument.createElement('span')
       iconSpan.className = 'oe-settings-menu__icon'
       iconSpan.innerHTML = icon
       btn.appendChild(iconSpan)
 
-      const labelSpan = document.createElement('span')
+      const labelSpan = ownerDocument.createElement('span')
       labelSpan.className = 'oe-settings-menu__label'
       labelSpan.textContent = this._t(key, `Heading ${level}`)
       btn.appendChild(labelSpan)
