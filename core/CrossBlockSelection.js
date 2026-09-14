@@ -1,14 +1,15 @@
+/** Highlight key used across the editor for cross-block visual highlight. */
+const HIGHLIGHT_KEY = 'oe-cross-select'
+
+/** Registries touched by showHighlight(). This lets legacy/no-argument close
+ * paths clear editor-owned highlights without consulting ambient global CSS. */
+const activeHighlightRegistries = new Set()
+
 /**
  * Stores the cross-block Range that native Selection cannot represent.
  * Browsers clip Selection to the focused contentEditable, so this service
  * preserves the full range across editing hosts for copy/cut/format/convert.
- *
- * Also manages the visual side-effects: CSS Highlight API painting and
- * the `.oe-editor--cross-selecting` class that suppresses `::selection`.
  */
-/** Highlight key used across the editor for cross-block visual highlight. */
-const HIGHLIGHT_KEY = 'oe-cross-select'
-
 export class CrossBlockSelection {
   /** @type {Range | null} */
   #range = null
@@ -40,16 +41,30 @@ export class CrossBlockSelection {
     const view = /** @type {(Window & typeof globalThis) | null} */ (range.startContainer.ownerDocument?.defaultView ?? null)
     const HighlightCtor = view?.Highlight
     const highlights = view?.CSS?.highlights
-    if (HighlightCtor && highlights) highlights.set(HIGHLIGHT_KEY, new HighlightCtor(range))
+    if (HighlightCtor && highlights) {
+      highlights.set(HIGHLIGHT_KEY, new HighlightCtor(range))
+      activeHighlightRegistries.add(highlights)
+    }
   }
 
   /**
-   * Remove the visual-only CSS Highlight (no state change).
+   * Remove the visual-only CSS Highlight. When no range is available (for
+   * example a menu close path after focus changed), clear only registries that
+   * were previously touched by this class rather than falling back to globals.
+   * @param {Range} [range]
    */
   static hideHighlight(range) {
     const view = /** @type {(Window & typeof globalThis) | null} */ (range?.startContainer.ownerDocument?.defaultView ?? null)
     const highlights = view?.CSS?.highlights
-    if (highlights) highlights.delete(HIGHLIGHT_KEY)
+    if (highlights) {
+      highlights.delete(HIGHLIGHT_KEY)
+      activeHighlightRegistries.delete(highlights)
+      return
+    }
+    for (const registry of [...activeHighlightRegistries]) {
+      registry.delete(HIGHLIGHT_KEY)
+      activeHighlightRegistries.delete(registry)
+    }
   }
 
   /**
