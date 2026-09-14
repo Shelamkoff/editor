@@ -22,7 +22,8 @@ import { refreshInlineStyles } from './styles.js'
  * @returns {HTMLElement}
  */
 export function buildSettingsPanel(wrapper, state, deps) {
-  const panel = document.createElement('div')
+  const ownerDocument = wrapper.ownerDocument ?? globalThis.document
+  const panel = ownerDocument.createElement('div')
   panel.className = CSS.dropdownPanel
   panel.addEventListener('click', (e) => e.stopPropagation())
   panel.appendChild(buildStyleForm(wrapper, state, deps))
@@ -36,12 +37,14 @@ export function buildSettingsPanel(wrapper, state, deps) {
  * @returns {HTMLElement}
  */
 function buildStyleForm(wrapper, state, deps) {
+  const ownerDocument = wrapper.ownerDocument ?? globalThis.document
+  const ownerWindow = ownerDocument?.defaultView ?? null
   const styles = state.data.styles ||= {}
   const signal = /** @type {AbortController} */ (state.abortController).signal
   /** @type {Set<() => void>} */
   const closeSelects = new Set()
 
-  const form = document.createElement('div')
+  const form = ownerDocument.createElement('div')
   form.className = CSS.styleForm
   form.addEventListener('click', (e) => e.stopPropagation())
 
@@ -54,7 +57,7 @@ function buildStyleForm(wrapper, state, deps) {
   }
 
   const makeInput = (/** @type {string} */ key, /** @type {string | undefined} */ value) => {
-    const input = document.createElement('input')
+    const input = ownerDocument.createElement('input')
     input.type = 'text'
     input.className = CSS.styleInput
     input.value = value || ''
@@ -63,7 +66,7 @@ function buildStyleForm(wrapper, state, deps) {
   }
 
   const makeColor = (/** @type {string} */ key, /** @type {string | undefined} */ value) => {
-    const input = document.createElement('input')
+    const input = ownerDocument.createElement('input')
     input.type = 'color'
     input.className = CSS.styleColor
     input.value = value || '#000000'
@@ -72,24 +75,24 @@ function buildStyleForm(wrapper, state, deps) {
   }
 
   const makeSelect = (/** @type {string} */ key, /** @type {string[]} */ options, /** @type {string | undefined} */ value) => {
-    const selectWrapper = document.createElement('div')
+    const selectWrapper = ownerDocument.createElement('div')
     selectWrapper.className = CSS.customSelect
 
-    const trigger = document.createElement('button')
+    const trigger = ownerDocument.createElement('button')
     trigger.type = 'button'
     trigger.className = CSS.customSelectTrigger
 
-    const triggerText = document.createElement('span')
+    const triggerText = ownerDocument.createElement('span')
     const optionLabel = (/** @type {string} */ option) => deps.t(`value.${option || 'none'}`, option || 'None')
     triggerText.textContent = optionLabel(value || 'none')
 
-    const arrow = document.createElement('span')
+    const arrow = ownerDocument.createElement('span')
     arrow.className = CSS.customSelectArrow
     arrow.innerHTML = CHEVRON_DOWN
 
     trigger.append(triggerText, arrow)
 
-    const optionsList = document.createElement('div')
+    const optionsList = ownerDocument.createElement('div')
     optionsList.className = CSS.customSelectOptions
     optionsList.setAttribute('role', 'listbox')
     trigger.setAttribute('aria-haspopup', 'listbox')
@@ -116,7 +119,7 @@ function buildStyleForm(wrapper, state, deps) {
     const renderOptions = () => {
       optionsList.innerHTML = ''
       for (const opt of options) {
-        const optEl = document.createElement('button')
+        const optEl = ownerDocument.createElement('button')
         optEl.type = 'button'
         optEl.className = CSS.customSelectOption
         const isSelected = opt === currentValue
@@ -124,12 +127,12 @@ function buildStyleForm(wrapper, state, deps) {
         optEl.setAttribute('role', 'option')
         optEl.setAttribute('aria-selected', String(isSelected))
 
-        const textSpan = document.createElement('span')
+        const textSpan = ownerDocument.createElement('span')
         textSpan.textContent = optionLabel(opt)
         optEl.appendChild(textSpan)
 
         if (isSelected) {
-          const checkSpan = document.createElement('span')
+          const checkSpan = ownerDocument.createElement('span')
           checkSpan.className = CSS.customSelectCheck
           checkSpan.innerHTML = CHECK_ICON
           optEl.appendChild(checkSpan)
@@ -178,7 +181,7 @@ function buildStyleForm(wrapper, state, deps) {
       optionsList.querySelector('button')?.focus()
     })
 
-    document.addEventListener('mousedown', (e) => {
+    ownerDocument.addEventListener('mousedown', (e) => {
       if (isOpen && !selectWrapper.contains(/** @type {Node} */ (e.target))) {
         closeSelect()
       }
@@ -189,12 +192,12 @@ function buildStyleForm(wrapper, state, deps) {
   }
 
   const makeRow = (/** @type {[string, HTMLElement][]} */ ...items) => {
-    const row = document.createElement('div')
+    const row = ownerDocument.createElement('div')
     row.className = CSS.styleRow
     for (const [labelText, input] of items) {
-      const label = document.createElement('label')
+      const label = ownerDocument.createElement('label')
       label.className = CSS.styleLabel
-      const span = document.createElement('span')
+      const span = ownerDocument.createElement('span')
       span.textContent = labelText
       label.append(span, input)
       row.appendChild(label)
@@ -203,9 +206,9 @@ function buildStyleForm(wrapper, state, deps) {
   }
 
   const makeGroup = (/** @type {string} */ title, /** @type {HTMLElement[]} */ ...rows) => {
-    const group = document.createElement('div')
+    const group = ownerDocument.createElement('div')
     group.className = CSS.styleGroup
-    const titleEl = document.createElement('div')
+    const titleEl = ownerDocument.createElement('div')
     titleEl.className = CSS.styleGroupTitle
     titleEl.textContent = title
     group.append(titleEl, ...rows)
@@ -221,14 +224,14 @@ function buildStyleForm(wrapper, state, deps) {
   // Expanded switch (only for landscape images)
   if (isLandscape(wrapper)) {
     const expandLabel = deps.t('expand', 'Expand')
-    const expRow = document.createElement('div')
+    const expRow = ownerDocument.createElement('div')
     expRow.className = CSS.switchRow
 
-    const expLabel = document.createElement('span')
+    const expLabel = ownerDocument.createElement('span')
     expLabel.className = CSS.switchLabel
     expLabel.textContent = expandLabel
 
-    const expSwitch = document.createElement('button')
+    const expSwitch = ownerDocument.createElement('button')
     expSwitch.type = 'button'
     expSwitch.className = `${CSS.switch}${state.data.expanded ? ` ${CSS.switchActive}` : ''}`
     expSwitch.setAttribute('aria-label', expandLabel)
@@ -270,14 +273,14 @@ function buildStyleForm(wrapper, state, deps) {
 
   // Background switch
   const bgLabel = deps.t('background', 'Background')
-  const bgSwitchRow = document.createElement('div')
+  const bgSwitchRow = ownerDocument.createElement('div')
   bgSwitchRow.className = CSS.switchRow
 
-  const bgLabelEl = document.createElement('span')
+  const bgLabelEl = ownerDocument.createElement('span')
   bgLabelEl.className = CSS.switchLabel
   bgLabelEl.textContent = bgLabel
 
-  const bgSwitch = document.createElement('button')
+  const bgSwitch = ownerDocument.createElement('button')
   bgSwitch.type = 'button'
   bgSwitch.className = `${CSS.switch}${state.data.withBackground ? ` ${CSS.switchActive}` : ''}`
   bgSwitch.setAttribute('aria-label', bgLabel)
@@ -302,7 +305,7 @@ function buildStyleForm(wrapper, state, deps) {
   form.appendChild(bgColorRow)
 
   // Border section
-  const borderGroup = document.createElement('div')
+  const borderGroup = ownerDocument.createElement('div')
   borderGroup.className = CSS.styleGroup
 
   const borderStyleRow = makeRow([deps.t('border', 'Border'), makeSelect('borderStyle', ['none', 'solid', 'dashed'], styles.borderStyle)])
@@ -324,7 +327,9 @@ function buildStyleForm(wrapper, state, deps) {
   const borderSelectWrapper = borderStyleRow.querySelector(`.${CSS.customSelect}`)
   if (borderSelectWrapper) {
     state.borderObserver?.disconnect()
-    state.borderObserver = new MutationObserver(() => {
+    const MutationObserverCtor = ownerWindow?.MutationObserver ?? globalThis.MutationObserver
+    if (!MutationObserverCtor) return form
+    state.borderObserver = new MutationObserverCtor(() => {
       const val = state.data.styles?.borderStyle
       const show = val && val !== 'none'
       borderColorRow.style.display = show ? '' : 'none'
