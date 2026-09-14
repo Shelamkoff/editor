@@ -16,38 +16,40 @@ const FONT_SIZE_PRESETS = [12, 14, 16, 18, 20, 24, 28, 32, 40, 48, 64]
 const FONT_SIZE_DEFAULT = 16
 const FONT_SIZE_MIN = 1
 const FONT_SIZE_MAX = 200
+const ELEMENT_NODE = 1
 
 const ICON_CHEVRON_SM = '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6"/></svg>'
 
 /**
  * Find the closest <span> with inline font-size on the selection anchor.
  * @param {Range | null} [rangeHint] - optional range to check instead of live selection
+ * @param {Document | null} [ownerDocument] - owning editor document for live selection
  * @returns {HTMLElement | null}
  */
-function findFontSizeSpan(rangeHint) {
+function findFontSizeSpan(rangeHint, ownerDocument = rangeHint?.startContainer?.ownerDocument ?? null) {
   let node
   if (rangeHint) {
     const sc = rangeHint.startContainer
-    if (sc.nodeType === Node.ELEMENT_NODE) {
+    if (sc.nodeType === ELEMENT_NODE) {
       const element = /** @type {HTMLElement} */ (sc)
       const child = element.childNodes[Math.min(rangeHint.startOffset, element.childNodes.length - 1)]
-      node = child?.nodeType === Node.ELEMENT_NODE
+      node = child?.nodeType === ELEMENT_NODE
         ? /** @type {HTMLElement} */ (child)
         : child?.parentElement ?? element
     } else {
       node = sc.parentElement
     }
   } else {
-    const sel = window.getSelection()
+    const sel = ownerDocument?.defaultView?.getSelection?.()
     if (!sel || !sel.anchorNode) return null
     const anchor = sel.anchorNode
-    if (anchor.nodeType === Node.ELEMENT_NODE) {
+    if (anchor.nodeType === ELEMENT_NODE) {
       // When anchorNode is an element, resolve to the actual child at anchorOffset.
       // Clamp offset to valid range to avoid undefined when offset equals childNodes.length.
       const children = /** @type {HTMLElement} */ (anchor).childNodes
       const clampedOffset = Math.min(sel.anchorOffset, children.length - 1)
       const child = clampedOffset >= 0 ? children[clampedOffset] : null
-      node = child?.nodeType === Node.ELEMENT_NODE
+      node = child?.nodeType === ELEMENT_NODE
         ? /** @type {HTMLElement} */ (child)
         : child?.parentElement ?? /** @type {HTMLElement} */ (anchor)
     } else {
@@ -65,10 +67,11 @@ function findFontSizeSpan(rangeHint) {
 /**
  * Get current font size in px from selection or a saved range.
  * @param {Range | null} [rangeHint]
+ * @param {Document | null} [ownerDocument]
  * @returns {number}
  */
-function getCurrentFontSize(rangeHint) {
-  const span = findFontSizeSpan(rangeHint)
+function getCurrentFontSize(rangeHint, ownerDocument) {
+  const span = findFontSizeSpan(rangeHint, ownerDocument)
   if (span) return parseInt(span.style.fontSize, 10) || FONT_SIZE_DEFAULT
   return FONT_SIZE_DEFAULT
 }
@@ -119,7 +122,7 @@ function wrapRangeWithFontSize(range, fontSize) {
       parentEl.style.fontSize = fontSize
       currentSpan = parentEl
     } else {
-      const wrapper = document.createElement('span')
+      const wrapper = targetNode.ownerDocument.createElement('span')
       wrapper.style.fontSize = fontSize
       targetNode.parentNode?.insertBefore(wrapper, targetNode)
       wrapper.appendChild(targetNode)
@@ -151,11 +154,32 @@ export function createFontSizeTool(label, cbs = null) {
   let inputEl = null
   /** @type {Range | null} */
   let savedRange = null
+  /** @type {Document | null} */
+  let ownerDocument = null
+  /** @type {(Window & typeof globalThis) | null} */
+  let ownerWindow = null
   let isOpen = false
   /** @type {number | null} */
   let focusFrame = null
   /** @type {import('../core/types').InlineMutationContext | null} */
   let mutations = null
+
+  /** @param {Range | null} [range] @returns {Document | null} */
+  function documentFor(range = null) {
+    return range?.startContainer?.ownerDocument ?? ownerDocument
+  }
+
+  /** @param {Range | null} [range] @returns {Selection | null} */
+  function selectionFor(range = null) {
+    return documentFor(range)?.defaultView?.getSelection?.() ?? null
+  }
+
+  function cancelFocusFrame() {
+    if (focusFrame === null) return
+    const view = dropdownEl?.ownerDocument?.defaultView ?? ownerWindow
+    view?.cancelAnimationFrame?.(focusFrame)
+    focusFrame = null
+  }
 
   /**
    * @template T
@@ -170,10 +194,9 @@ export function createFontSizeTool(label, cbs = null) {
   function updateLabel() {
     if (!sizeLabel) return
     // Use cross-block range if available (native selection is clipped).
-
     const crossRange = cbs?.range
     const hint = crossRange || (isOpen ? savedRange : null)
-    sizeLabel.textContent = getCurrentFontSize(hint) + 'px'
+    sizeLabel.textContent = getCurrentFontSize(hint, documentFor(hint)) + 'px'
   }
 
   function openDropdown() {
@@ -183,7 +206,7 @@ export function createFontSizeTool(label, cbs = null) {
     if (cbsRange) {
       savedRange = cbsRange.cloneRange()
     } else {
-      const sel = window.getSelection()
+      const sel = selectionFor()
       if (sel && sel.rangeCount > 0 && !sel.isCollapsed) {
         savedRange = sel.getRangeAt(0).cloneRange()
       }
@@ -194,14 +217,20 @@ export function createFontSizeTool(label, cbs = null) {
     dropdownEl.style.display = ''
     updateActiveItem()
 
-
     const crossRange = cbs?.range
-    const currentSize = getCurrentFontSize(crossRange || savedRange)
-    if (inputEl) {
-      inputEl.value = String(currentSize)
-      if (focusFrame !== null) cancelAnimationFrame(focusFrame)
-      focusFrame = requestAnimationFrame(() => {
+    const currentSize = getCurrentFontSize(crossRange || savedRange, documentFor(crossRange || savedRange))
+    inputEl.value = String(currentSize)
+    cancelFocusFrame()
+    const view = inputEl.ownerDocument?.defaultView ?? ownerWindow
+    if (view?.requestAnimationFrame) {
+      focusFrame = view.requestAnimationFrame(() => {
         focusFrame = null
+        if (!isOpen || !inputEl?.isConnected) return
+        inputEl.focus()
+        inputEl.select()
+      })
+    } else {
+      queueMicrotask(() => {
         if (!isOpen || !inputEl?.isConnected) return
         inputEl.focus()
         inputEl.select()
@@ -212,27 +241,25 @@ export function createFontSizeTool(label, cbs = null) {
   function closeDropdown() {
     if (!isOpen) return
     isOpen = false
-    if (focusFrame !== null) {
-      cancelAnimationFrame(focusFrame)
-      focusFrame = null
-    }
+    cancelFocusFrame()
     if (dropdownEl) dropdownEl.style.display = 'none'
     restoreRange()
   }
 
   function restoreRange() {
     if (!savedRange) return
-    const sel = window.getSelection()
-    if (!sel) return
+    const doc = documentFor(savedRange)
+    const sel = selectionFor(savedRange)
+    if (!doc || !sel) return
     try {
       const root = savedRange.startContainer.getRootNode()
-      if (!(root instanceof Document)) return
+      if (root !== doc) return
       const start = savedRange.startContainer
-      const startElement = start.nodeType === Node.ELEMENT_NODE
+      const startElement = start.nodeType === ELEMENT_NODE
         ? /** @type {HTMLElement} */ (start)
         : start.parentElement
-      const editable = startElement?.closest('[contenteditable="true"]')
-      if (editable instanceof HTMLElement) editable.focus({ preventScroll: true })
+      const editable = /** @type {HTMLElement | null | undefined} */ (startElement?.closest('[contenteditable="true"]'))
+      editable?.focus({ preventScroll: true })
       sel.removeAllRanges()
       sel.addRange(savedRange)
     } catch {
@@ -242,7 +269,7 @@ export function createFontSizeTool(label, cbs = null) {
 
   /** Update savedRange to reflect the current selection (after DOM ops). */
   function snapshotCurrentRange() {
-    const sel = window.getSelection()
+    const sel = selectionFor(cbs?.range ?? savedRange)
     if (sel && sel.rangeCount > 0 && !sel.isCollapsed) {
       savedRange = sel.getRangeAt(0).cloneRange()
     }
@@ -252,7 +279,8 @@ export function createFontSizeTool(label, cbs = null) {
     if (!dropdownEl) return
 
     const crossRange = cbs?.range
-    const currentPx = getCurrentFontSize(crossRange || savedRange)
+    const hint = crossRange || savedRange
+    const currentPx = getCurrentFontSize(hint, documentFor(hint))
 
     const items = dropdownEl.querySelectorAll('[data-size]')
     for (const item of items) {
@@ -268,7 +296,7 @@ export function createFontSizeTool(label, cbs = null) {
   function applySize(sizePx) {
     if (!Number.isInteger(sizePx) || sizePx < FONT_SIZE_MIN || sizePx > FONT_SIZE_MAX) return
     restoreRange()
-    const sel = window.getSelection()
+    const sel = selectionFor(cbs?.range ?? savedRange)
     if (!sel || sel.isCollapsed || !sel.rangeCount) { closeDropdown(); return }
     const range = sel.getRangeAt(0)
 
@@ -278,7 +306,6 @@ export function createFontSizeTool(label, cbs = null) {
     }
 
     // Use the stored cross-block range if available (native range is clipped)
-
     const actualRange = cbs?.range?.cloneRange() || range
     const saved = saveSelectionOffsets(actualRange)
 
@@ -302,7 +329,7 @@ export function createFontSizeTool(label, cbs = null) {
 
   function removeSize() {
     restoreRange()
-    const sel = window.getSelection()
+    const sel = selectionFor(cbs?.range ?? savedRange)
     if (!sel || !sel.rangeCount) { closeDropdown(); return }
     const range = sel.getRangeAt(0)
 
@@ -323,13 +350,15 @@ export function createFontSizeTool(label, cbs = null) {
     if (!toReset.length) { closeDropdown(); return }
 
     mutate(actualRange, () => {
+      const doc = documentFor(actualRange)
+      if (!doc) return
       // Move font-size into a temporary dedicated wrapper. This lets the
       // range splitter remove only the selected portion while every other
       // style/class/data attribute remains on the original span.
       for (let index = toReset.length - 1; index >= 0; index--) {
         const span = /** @type {HTMLElement} */ (toReset[index])
         if (!span.isConnected) continue
-        const marker = document.createElement('oe-font-size')
+        const marker = doc.createElement('oe-font-size')
         marker.style.fontSize = span.style.fontSize
         span.style.removeProperty('font-size')
         if (!span.getAttribute('style')) span.removeAttribute('style')
@@ -340,7 +369,7 @@ export function createFontSizeTool(label, cbs = null) {
 
       restoreSelectionOffsets(cbs, saved)
       for (let guard = 0; guard < 100; guard++) {
-        const selection = window.getSelection()
+        const selection = selectionFor(cbs?.range ?? savedRange)
         const current = cbs?.range || (selection?.rangeCount ? selection.getRangeAt(0) : null)
         if (!current) break
         const currentRoot = getWalkRoot(current)
@@ -352,7 +381,7 @@ export function createFontSizeTool(label, cbs = null) {
       }
 
       for (const marker of walkRoot.querySelectorAll('oe-font-size')) {
-        const span = document.createElement('span')
+        const span = doc.createElement('span')
         span.style.fontSize = /** @type {HTMLElement} */ (marker).style.fontSize
         while (marker.firstChild) span.appendChild(marker.firstChild)
         marker.replaceWith(span)
@@ -369,7 +398,8 @@ export function createFontSizeTool(label, cbs = null) {
 
   /** @param {HTMLElement} toolbarRoot */
   function buildDropdown(toolbarRoot) {
-    dropdownEl = el('div', 'oe-font-size-dropdown')
+    const doc = toolbarRoot.ownerDocument
+    dropdownEl = el('div', 'oe-font-size-dropdown', undefined, doc)
     dropdownEl.style.display = 'none'
 
     dropdownEl.addEventListener('mousedown', (e) => {
@@ -379,8 +409,8 @@ export function createFontSizeTool(label, cbs = null) {
     })
 
     // Custom input row
-    const inputRow = el('div', 'oe-font-size-input-row')
-    inputEl = /** @type {HTMLInputElement} */ (document.createElement('input'))
+    const inputRow = el('div', 'oe-font-size-input-row', undefined, doc)
+    inputEl = /** @type {HTMLInputElement} */ (doc.createElement('input'))
     inputEl.type = 'number'
     inputEl.className = 'oe-font-size-input'
     inputEl.placeholder = 'px'
@@ -404,7 +434,7 @@ export function createFontSizeTool(label, cbs = null) {
     // (which would emit editor:changed and trigger undo snapshots).
     inputEl.addEventListener('input', (e) => e.stopPropagation())
 
-    const applyBtn = el('button', 'oe-font-size-apply', { type: 'button' })
+    const applyBtn = el('button', 'oe-font-size-apply', { type: 'button' }, doc)
     applyBtn.setAttribute('aria-label', label)
     applyBtn.innerHTML = ICON_CHECK
     applyBtn.addEventListener('click', (e) => {
@@ -414,7 +444,7 @@ export function createFontSizeTool(label, cbs = null) {
       applySize(val)
     })
 
-    const resetBtn = el('button', 'oe-font-size-reset', { type: 'button' })
+    const resetBtn = el('button', 'oe-font-size-reset', { type: 'button' }, doc)
     resetBtn.setAttribute('aria-label', `${label}: 16px`)
     resetBtn.innerHTML = createSvgIcon('<path d="M18 6l-12 12"/><path d="M6 6l12 12"/>', 14)
     resetBtn.addEventListener('click', (e) => {
@@ -430,10 +460,10 @@ export function createFontSizeTool(label, cbs = null) {
 
     // Preset list. Each action is a native button so presets are reachable
     // without a pointer and participate in the browser's focus order.
-    const list = el('ul', 'oe-font-size-list')
+    const list = el('ul', 'oe-font-size-list', undefined, doc)
     for (const size of FONT_SIZE_PRESETS) {
-      const row = document.createElement('li')
-      const item = el('button', 'oe-font-size-item', { type: 'button', 'data-size': String(size) })
+      const row = doc.createElement('li')
+      const item = el('button', 'oe-font-size-item', { type: 'button', 'data-size': String(size) }, doc)
       item.textContent = size + 'px'
       item.addEventListener('click', (e) => {
         e.preventDefault()
@@ -475,7 +505,7 @@ export function createFontSizeTool(label, cbs = null) {
       // Side-effect: update the displayed font-size value.
       // Called by InlineToolbar.#updateActiveStates on every selection change.
       updateLabel()
-      return !!findFontSizeSpan()
+      return !!findFontSizeSpan(null, ownerDocument)
     },
 
     toggle(_selection) {
@@ -488,14 +518,16 @@ export function createFontSizeTool(label, cbs = null) {
 
     onMount(button, mutationContext) {
       mutations = mutationContext ?? null
+      ownerDocument = button.ownerDocument
+      ownerWindow = /** @type {(Window & typeof globalThis) | null} */ (ownerDocument?.defaultView ?? null)
       button.classList.add('oe-font-size-select')
       button.innerHTML = ''
 
-      sizeLabel = el('span', 'oe-font-size-select__value')
+      sizeLabel = el('span', 'oe-font-size-select__value', undefined, ownerDocument)
       sizeLabel.textContent = FONT_SIZE_DEFAULT + 'px'
       button.appendChild(sizeLabel)
 
-      const chevron = el('span', 'oe-font-size-select__chevron')
+      const chevron = el('span', 'oe-font-size-select__chevron', undefined, ownerDocument)
       chevron.innerHTML = ICON_CHEVRON_SM
       button.appendChild(chevron)
 
@@ -503,15 +535,16 @@ export function createFontSizeTool(label, cbs = null) {
 
       const toolbar = /** @type {HTMLElement | null} */ (button.closest('.oe-inline-toolbar'))
       if (toolbar) buildDropdown(toolbar)
-      document.addEventListener('mousedown', onDocMouseDown, true)
+      ownerDocument?.addEventListener('mousedown', onDocMouseDown, true)
     },
 
     destroy() {
-      document.removeEventListener('mousedown', onDocMouseDown, true)
-      if (focusFrame !== null) cancelAnimationFrame(focusFrame)
-      focusFrame = null
+      ownerDocument?.removeEventListener('mousedown', onDocMouseDown, true)
+      cancelFocusFrame()
       if (dropdownEl) { dropdownEl.remove(); dropdownEl = null }
       mutations = null
+      ownerWindow = null
+      ownerDocument = null
     },
   }
 }
