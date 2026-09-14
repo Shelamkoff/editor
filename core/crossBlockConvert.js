@@ -24,16 +24,16 @@ export function isTextType(plugins, type) {
   return ctor?.isTextBlock === true
 }
 
-/** @param {Range} range @returns {string} */
-function rangeHtml(range) {
-  const container = document.createElement('div')
+/** @param {Range} range @param {Document} ownerDocument @returns {string} */
+function rangeHtml(range, ownerDocument) {
+  const container = ownerDocument.createElement('div')
   container.appendChild(range.cloneContents())
   return container.innerHTML
 }
 
-/** @param {string} html @returns {boolean} */
-function hasTransferableContent(html) {
-  const container = document.createElement('div')
+/** @param {string} html @param {Document} ownerDocument @returns {boolean} */
+function hasTransferableContent(html, ownerDocument) {
+  const container = ownerDocument.createElement('div')
   container.innerHTML = html
   if ((container.textContent || '').replace(/\u00a0/g, ' ').trim()) return true
   return !!container.querySelector('img, video, audio, iframe, [data-inline-plugin]')
@@ -66,9 +66,10 @@ function analyzePartialEndpoint(block, range, side) {
   if (content.getAttribute('contenteditable') !== 'true') return null
 
   try {
-    const selectedRange = document.createRange()
+    const ownerDocument = content.ownerDocument
+    const selectedRange = ownerDocument.createRange()
     selectedRange.selectNodeContents(content)
-    const remainingRange = document.createRange()
+    const remainingRange = ownerDocument.createRange()
     remainingRange.selectNodeContents(content)
 
     if (side === 'first') {
@@ -79,12 +80,12 @@ function analyzePartialEndpoint(block, range, side) {
       remainingRange.setStart(range.endContainer, range.endOffset)
     }
 
-    const selectedHtml = rangeHtml(selectedRange)
-    if (!hasTransferableContent(selectedHtml)) return null
-    const remainingHtml = rangeHtml(remainingRange)
+    const selectedHtml = rangeHtml(selectedRange, ownerDocument)
+    if (!hasTransferableContent(selectedHtml, ownerDocument)) return null
+    const remainingHtml = rangeHtml(remainingRange, ownerDocument)
     return {
       selectedData: { text: selectedHtml },
-      remainingData: hasTransferableContent(remainingHtml) ? { ...block.save().data, text: remainingHtml } : null,
+      remainingData: hasTransferableContent(remainingHtml, ownerDocument) ? { ...block.save().data, text: remainingHtml } : null,
     }
   } catch {
     return null
@@ -230,7 +231,7 @@ export function convertCrossBlockRange(ctx, crossRange, targetType, targetData, 
 
     if (targetIsText && newFirstBlock && newLastBlock && newFirstBlock !== newLastBlock) {
       try {
-        const newRange = document.createRange()
+        const newRange = newFirstBlock.contentElement.ownerDocument.createRange()
         newRange.selectNodeContents(newFirstBlock.contentElement)
         newRange.setEnd(newLastBlock.contentElement, newLastBlock.contentElement.childNodes.length)
         const editor = /** @type {HTMLElement | null} */ (newFirstBlock.contentElement.closest('.oe-editor'))
