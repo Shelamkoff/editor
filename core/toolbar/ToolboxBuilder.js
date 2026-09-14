@@ -138,13 +138,13 @@ export class ToolboxBuilder {
       e.preventDefault()
       e.stopPropagation()
       const first = this.#toolboxEl.querySelector('[role="menuitem"]:not([style*="display: none"])')
-      if (this.#isOwnedElement(first)) first.focus()
+      if (this.#isOwnedElement(first)) /** @type {HTMLElement} */ (first).focus()
     } else if (e.key === 'ArrowUp') {
       e.preventDefault()
       e.stopPropagation()
       const items = this.#toolboxEl.querySelectorAll('[role="menuitem"]:not([style*="display: none"])')
       const last = items.item(items.length - 1)
-      if (this.#isOwnedElement(last)) last.focus()
+      if (this.#isOwnedElement(last)) /** @type {HTMLElement} */ (last).focus()
     } else if (e.key !== 'Enter') {
       e.stopPropagation()
     }
