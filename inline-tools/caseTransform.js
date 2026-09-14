@@ -7,6 +7,8 @@ import {
 } from './utils.js'
 import { editableTextWalker, getTextOffset } from '../core/textOffset.js'
 
+const ELEMENT_NODE = 1
+
 // Tabler: letter-case-toggle
 const ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 15.5v-7a2.5 2.5 0 0 1 5 0v7"/><path d="M6.5 12h5"/><path d="M15 15.5v-3.5a2 2 0 1 1 4 0v3.5"/></svg>'
 
@@ -89,14 +91,14 @@ export function createCaseTransformTool(label, cbs = null) {
       const endBlock = closestBlock(range.endContainer)
       const endField = saved.singleOffsets?.ce ?? (endBlock
         ? editableAtBoundary(endBlock, range.endContainer, range.endOffset)?.element : null)
-      const native = window.getSelection()
+      const native = range.startContainer.ownerDocument?.defaultView?.getSelection?.() ?? null
       const backward = !native?.isCollapsed && native?.anchorNode === range.endContainer
         && native.anchorOffset === range.endOffset
       let endDelta = 0
 
       // Collect only text nodes clipped to range boundaries
       const ancestor = range.commonAncestorContainer
-      const walkParent = ancestor.nodeType === Node.ELEMENT_NODE
+      const walkParent = ancestor.nodeType === ELEMENT_NODE
         ? /** @type {HTMLElement} */ (ancestor)
         : ancestor.parentElement
       if (!walkParent) return
