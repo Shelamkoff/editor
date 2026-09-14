@@ -23,6 +23,7 @@ export function register() {
         tuning: {
           undo: { debounceMs: 10000 }, change: { debounceMs: 10000 },
           animations: { blockInsertMs: 0, blockMoveMs: 0, blockRemoveMs: 0 },
+          mobileBreakpoint: 1,
         },
       })
 
