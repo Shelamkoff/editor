@@ -1,3 +1,4 @@
+import { register as scriptToolRealm } from './regressions/recheck-74-script-tool-realm.js'
 import { register as inlineUtilsRealm } from './regressions/recheck-73-inline-utils-realm.js'
 import { register as toolbarRemovalRace } from './regressions/recheck-72-toolbar-removal-race.js'
 import { register as toolbarReadOnlyRemoval } from './regressions/recheck-71-toolbar-readonly-removal.js'
@@ -145,4 +146,5 @@ toolbarDestroyTimer()
 toolbarReadOnlyRemoval()
 toolbarRemovalRace()
 inlineUtilsRealm()
+scriptToolRealm()
 await run()

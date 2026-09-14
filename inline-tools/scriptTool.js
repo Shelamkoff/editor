@@ -10,18 +10,22 @@ import {
 
 const ICON_SUP = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7l8 10m-8 0l8 -10"/><path d="M21 11h-4l3.5 -4a1.73 1.73 0 0 0 -3.5 -1"/></svg>'
 const ICON_SUB = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7l8 10m-8 0l8 -10"/><path d="M21 20h-4l3.5 -4a1.73 1.73 0 0 0 -3.5 -1"/></svg>'
+const ELEMENT_NODE = 1
+
 const ICON_NONE = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7l8 10m-8 0l8 -10"/></svg>'
 
 /**
  * Detect which script mode the selection is in.
+ * @param {Range | null} [range]
+ * @param {Document | null} [ownerDocument]
  * @returns {'sup' | 'sub' | 'none'}
  */
-function getCurrentScript() {
-  const sel = window.getSelection()
-  if (!sel?.anchorNode) return 'none'
-  const node = sel.anchorNode.nodeType === Node.ELEMENT_NODE
-    ? /** @type {HTMLElement} */ (sel.anchorNode)
-    : sel.anchorNode.parentElement
+function getCurrentScript(range = null, ownerDocument = range?.startContainer?.ownerDocument ?? null) {
+  const anchorNode = range?.startContainer ?? ownerDocument?.defaultView?.getSelection?.()?.anchorNode ?? null
+  if (!anchorNode) return 'none'
+  const node = anchorNode.nodeType === ELEMENT_NODE
+    ? /** @type {HTMLElement} */ (anchorNode)
+    : anchorNode.parentElement
   if (node?.closest('sup')) return 'sup'
   if (node?.closest('sub')) return 'sub'
   return 'none'
@@ -54,6 +58,9 @@ function removeAllScriptTags(range) {
  * @returns {import('../types').InlineTool}
  */
 export function createScriptTool(labels, cbs = null) {
+  /** @type {Document | null} */
+  let ownerDocument = null
+
   const modes = [
     { tag: 'sup', icon: ICON_SUP, title: labels.sup, key: 'sup' },
     { tag: 'sub', icon: ICON_SUB, title: labels.sub, key: 'sub' },
@@ -66,35 +73,47 @@ export function createScriptTool(labels, cbs = null) {
     icon: ICON_SUP,
 
     getIcon() {
-      const c = getCurrentScript()
+      const c = getCurrentScript(cbs?.range, ownerDocument)
       return c === 'sub' ? ICON_SUB : ICON_SUP
     },
 
     getTitle() {
-      const c = getCurrentScript()
+      const c = getCurrentScript(cbs?.range, ownerDocument)
       if (c === 'sup') return labels.sup
       if (c === 'sub') return labels.sub
       return labels.sup
     },
 
-    isActive() {
-      return getCurrentScript() !== 'none'
+    isActive(selection) {
+      const range = cbs?.range || selection?.range || null
+      if (range?.startContainer?.ownerDocument) ownerDocument = range.startContainer.ownerDocument
+      return getCurrentScript(range, ownerDocument) !== 'none'
     },
 
     toggle() {
       // no-op: opens renderActions panel
     },
 
+    onMount(button) {
+      ownerDocument = button.ownerDocument
+    },
+
+    destroy() {
+      ownerDocument = null
+    },
+
     renderActions(ctx) {
-      const panel = document.createElement('div')
+      const doc = ctx.range.startContainer.ownerDocument
+      ownerDocument = doc
+      const panel = doc.createElement('div')
       panel.className = 'oe-inline-toolbar__panel oe-inline-toolbar__script-panel'
 
       panel.appendChild(createBackButton(ctx))
 
-      const current = getCurrentScript()
+      const current = getCurrentScript(cbs?.range || ctx.range, doc)
 
       for (const mode of modes) {
-        const btn = document.createElement('button')
+        const btn = doc.createElement('button')
         btn.type = 'button'
         btn.className = 'oe-inline-tool'
         btn.innerHTML = mode.icon
@@ -108,7 +127,7 @@ export function createScriptTool(labels, cbs = null) {
           e.stopPropagation()
           ctx.restoreSelection()
 
-          const sel = window.getSelection()
+          const sel = doc.defaultView?.getSelection?.() ?? null
           if (!sel || !sel.rangeCount) { ctx.close(); return }
           // Use cross-block range if available (native range is clipped to one contenteditable)
           const range = cbs?.range || sel.getRangeAt(0)
