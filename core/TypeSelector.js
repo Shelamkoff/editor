@@ -1,57 +1,32 @@
 import { resolveBlockRange } from './selectionRange.js'
-import {el, positionPopup} from './dom.js'
-import {convertCrossBlockRange, isTextType} from './crossBlockConvert.js'
-import {CrossBlockSelection} from './CrossBlockSelection.js'
-import {handleMenuKeydown} from './menuKeyboardNav.js'
-import {splitAndConvert, isFullBlockSelected, restoreSelection} from './splitConvert.js'
+import { el, positionPopup } from './dom.js'
+import { convertCrossBlockRange, isTextType } from './crossBlockConvert.js'
+import { CrossBlockSelection } from './CrossBlockSelection.js'
+import { handleMenuKeydown } from './menuKeyboardNav.js'
+import { splitAndConvert, isFullBlockSelected, restoreSelection } from './splitConvert.js'
 import { EditorEvent } from './editorEvents.js'
 
 const ICON_CHEVRON = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6"/></svg>'
 const ICON_SEARCH = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7"/><path d="M21 21l-6-6"/></svg>'
 
 export class TypeSelector {
-  /** @type {import('./CommandDispatcher').CommandDispatcher} */
-  #commands
-  /** @type {number} */
-  #filterThreshold
-  /** @type {import('./types').IBlockManager} */
-  #blocks
-
-  /** @type {import('./types').ISelectionManager} */
-  #selection
-
-  /** @type {Map<string, import('./types').BlockPlugin>} */
-  #plugins
-
-  /** @type {HTMLElement} */
-  #selectBtn
-
-  /** @type {HTMLElement} */
-  #typeName
-
-  /** @type {HTMLElement} */
-  #dropdown
-
-  /** @type {boolean} */
-  #dropdownOpen = false
-
-  /** @type {Range | null} saved range before dropdown open */
-  #savedRange = null
-
-  /** @type {(() => void) | null} */
-  #onConvert = null
-
-  /** @type {import('./I18n').I18n | null} */
-  #i18n = null
-
-  /** @type {HTMLInputElement | null} */
-  #filterInput = null
-
-  /** @type {import('./types').ICrossBlockSelection | undefined} */
-  #crossBlockSelection
-
-  /** @type {import('./types').IEventBus | undefined} */
-  #events
+  /** @type {import('./CommandDispatcher').CommandDispatcher} */ #commands
+  /** @type {number} */ #filterThreshold
+  /** @type {import('./types').IBlockManager} */ #blocks
+  /** @type {import('./types').ISelectionManager} */ #selection
+  /** @type {Map<string, import('./types').BlockPlugin>} */ #plugins
+  /** @type {Document} */ #document
+  /** @type {(Window & typeof globalThis) | null} */ #view
+  /** @type {HTMLElement} */ #selectBtn
+  /** @type {HTMLElement} */ #typeName
+  /** @type {HTMLElement} */ #dropdown
+  /** @type {boolean} */ #dropdownOpen = false
+  /** @type {Range | null} */ #savedRange = null
+  /** @type {(() => void) | null} */ #onConvert = null
+  /** @type {import('./I18n').I18n | null} */ #i18n = null
+  /** @type {HTMLInputElement | null} */ #filterInput = null
+  /** @type {import('./types').ICrossBlockSelection | undefined} */ #crossBlockSelection
+  /** @type {import('./types').IEventBus | undefined} */ #events
 
   /**
    * @param {import('./types').IBlockManager} blocks
@@ -73,16 +48,20 @@ export class TypeSelector {
     this.#events = events
     this.#filterThreshold = tuning?.filterThreshold ?? 7
 
+    const currentDocument = blocks.getCurrentBlock()?.contentElement?.ownerDocument
+    this.#document = currentDocument ?? document
+    this.#view = /** @type {(Window & typeof globalThis) | null} */ (this.#document.defaultView)
+
     this.#selectBtn = el('button', 'oe-inline-toolbar__type-select', {
       type: 'button',
       'aria-haspopup': 'menu',
       'aria-expanded': 'false',
-    })
+    }, this.#document)
 
-    this.#typeName = el('span', 'oe-inline-toolbar__type-name')
+    this.#typeName = el('span', 'oe-inline-toolbar__type-name', undefined, this.#document)
     this.#selectBtn.appendChild(this.#typeName)
 
-    const chevron = el('span', 'oe-inline-toolbar__type-chevron')
+    const chevron = el('span', 'oe-inline-toolbar__type-chevron', undefined, this.#document)
     chevron.innerHTML = ICON_CHEVRON
     this.#selectBtn.appendChild(chevron)
 
@@ -96,56 +75,33 @@ export class TypeSelector {
       this.#toggleDropdown()
     })
 
-    this.#dropdown = el('ul', 'oe-inline-toolbar__type-dropdown', { role: 'menu' })
+    this.#dropdown = el('ul', 'oe-inline-toolbar__type-dropdown', { role: 'menu' }, this.#document)
     this.#dropdown.style.display = 'none'
     this.#dropdown.addEventListener('keydown', this.#onDropdownKeydown)
   }
 
-  /** The select button element (mount into panel). */
-  get selectButton() {
-    return this.#selectBtn
-  }
+  get selectButton() { return this.#selectBtn }
+  get dropdownElement() { return this.#dropdown }
+  set onConvert(fn) { this.#onConvert = fn }
 
-  /** The dropdown element (mount into toolbar root). */
-  get dropdownElement() {
-    return this.#dropdown
-  }
-
-  /**
-   * Set callback fired after a conversion happens.
-   * @param {() => void} fn
-   */
-  set onConvert(fn) {
-    this.#onConvert = fn
-  }
-
-  /** Update displayed type name from current block. */
   update() {
     const currentBlock = this.#blocks.getCurrentBlock()
     if (!currentBlock) return
-
     const plugin = this.#plugins.get(currentBlock.type)
-    if (!plugin) return
-
-    this.#typeName.textContent = plugin.title
+    if (plugin) this.#typeName.textContent = plugin.title
   }
 
-  /** Close the dropdown if open. */
   close() {
     if (!this.#dropdownOpen) return
     this.#dropdownOpen = false
     this.#dropdown.style.display = 'none'
     this.#selectBtn.setAttribute('aria-expanded', 'false')
     CrossBlockSelection.hideHighlight()
-    // Restore native selection so the highlight returns to the contenteditable
     this.#restoreSelection()
     this.#savedRange = null
   }
 
-  /** @returns {boolean} */
-  get isOpen() {
-    return this.#dropdownOpen
-  }
+  get isOpen() { return this.#dropdownOpen }
 
   destroy() {
     this.#dropdown.removeEventListener('keydown', this.#onDropdownKeydown)
@@ -153,7 +109,6 @@ export class TypeSelector {
     this.#selectBtn.remove()
   }
 
-  /** @param {KeyboardEvent} e */
   #onDropdownKeydown = (e) => {
     handleMenuKeydown(e, this.#dropdown, {
       onEscape: () => {
@@ -165,45 +120,33 @@ export class TypeSelector {
   }
 
   #toggleDropdown() {
-    if (this.#dropdownOpen) {
-      this.close()
-    } else {
-      this.#openDropdown()
-    }
+    if (this.#dropdownOpen) this.close()
+    else this.#openDropdown()
   }
 
   #openDropdown() {
     this.#dropdownOpen = true
     this.#selectBtn.setAttribute('aria-expanded', 'true')
 
-    // Save selection before focus shifts to filter input
-    const sel = window.getSelection()
-    if (sel && sel.rangeCount > 0) {
-      this.#savedRange = sel.getRangeAt(0).cloneRange()
-    }
-    // Also preserve cross-block range (native selection gets clipped on focus change)
-    if (this.#crossBlockSelection?.range) {
-      this.#savedRange = this.#crossBlockSelection.clone()
-    }
+    const sel = this.#view?.getSelection()
+    if (sel && sel.rangeCount > 0) this.#savedRange = sel.getRangeAt(0).cloneRange()
+    if (this.#crossBlockSelection?.range) this.#savedRange = this.#crossBlockSelection.clone()
 
-    // Show CSS Highlight so the selection stays visible while focus is in the dropdown
     if (this.#savedRange && !this.#savedRange.collapsed) {
       CrossBlockSelection.showHighlight(this.#savedRange)
     }
 
     this.#buildDropdownItems()
     this.#dropdown.style.display = ''
-
-    // Position: prefer below, flip above if no space
     this.#positionDropdown()
 
-    // Focus filter input or first menu item
+    const schedule = this.#view?.requestAnimationFrame?.bind(this.#view) ?? queueMicrotask
     if (this.#filterInput) {
-      requestAnimationFrame(() => this.#filterInput?.focus())
+      schedule(() => this.#filterInput?.focus())
     } else {
-      requestAnimationFrame(() => {
+      schedule(() => {
         const first = /** @type {HTMLElement | null} */ (this.#dropdown.querySelector('[role="menuitem"]'))
-        if (first) first.focus()
+        first?.focus()
       })
     }
   }
@@ -211,7 +154,6 @@ export class TypeSelector {
   #positionDropdown() {
     this.#dropdown.style.top = ''
     this.#dropdown.style.bottom = ''
-
     const btnRect = this.#selectBtn.getBoundingClientRect()
     positionPopup(this.#dropdown, btnRect, null, { relative: true, defaultHeight: 224 })
   }
@@ -222,18 +164,17 @@ export class TypeSelector {
     const currentBlock = this.#blocks.getCurrentBlock()
     const plugins = [...this.#plugins.values()]
 
-    // Add filter if too many plugins
     if (plugins.length > this.#filterThreshold) {
-      const filterWrap = el('li', 'oe-inline-toolbar__type-filter', { role: 'none' })
+      const filterWrap = el('li', 'oe-inline-toolbar__type-filter', { role: 'none' }, this.#document)
       filterWrap.style.position = 'relative'
 
-      const icon = el('span', 'oe-inline-toolbar__type-filter-icon')
+      const icon = el('span', 'oe-inline-toolbar__type-filter-icon', undefined, this.#document)
       icon.innerHTML = ICON_SEARCH
 
       const input = el('input', 'oe-inline-toolbar__type-filter-input', {
         type: 'text',
         placeholder: this.#i18n?.t('toolbox.search') ?? 'Search...',
-      })
+      }, this.#document)
       const typedInput = /** @type {HTMLInputElement} */ (input)
       typedInput.addEventListener('input', () => this.#applyFilter(typedInput.value))
       typedInput.addEventListener('keydown', (e) => {
@@ -255,14 +196,14 @@ export class TypeSelector {
       let cls = 'oe-inline-toolbar__type-item'
       if (isActive) cls += ' oe-inline-toolbar__type-item--active'
 
-      const item = el('li', cls, { role: 'menuitem', tabindex: '-1' })
+      const item = el('li', cls, { role: 'menuitem', tabindex: '-1' }, this.#document)
       item.dataset.pluginType = plugin.type
 
-      const iconEl = el('span', 'oe-inline-toolbar__type-item-icon')
+      const iconEl = el('span', 'oe-inline-toolbar__type-item-icon', undefined, this.#document)
       iconEl.innerHTML = plugin.icon
       item.appendChild(iconEl)
 
-      const label = el('span', 'oe-inline-toolbar__type-item-label')
+      const label = el('span', 'oe-inline-toolbar__type-item-label', undefined, this.#document)
       label.textContent = plugin.title
       item.appendChild(label)
 
@@ -280,7 +221,6 @@ export class TypeSelector {
     }
   }
 
-  /** @param {string} query */
   #applyFilter(query) {
     const q = query.toLowerCase().trim()
     const items = /** @type {NodeListOf<HTMLElement>} */ (this.#dropdown.querySelectorAll('.oe-inline-toolbar__type-item'))
@@ -294,11 +234,10 @@ export class TypeSelector {
       if (match) visible++
     }
 
-    // Show empty state
     let emptyEl = /** @type {HTMLElement | null} */ (this.#dropdown.querySelector('.oe-inline-toolbar__type-empty'))
     if (visible === 0) {
       if (!emptyEl) {
-        emptyEl = el('div', 'oe-inline-toolbar__type-empty')
+        emptyEl = el('div', 'oe-inline-toolbar__type-empty', undefined, this.#document)
         emptyEl.textContent = this.#i18n?.t('slash.noResults') ?? 'No results'
         this.#dropdown.appendChild(emptyEl)
       }
@@ -308,11 +247,6 @@ export class TypeSelector {
     }
   }
 
-  /**
-   * Convert the selected text range to a different block type.
-   * @param {string} targetType
-   * @param {Record<string, unknown>} [targetData]
-   */
   #convertSelection(targetType, targetData) {
     return this.#commands.execute({
       name: 'selection.convert',
@@ -323,12 +257,10 @@ export class TypeSelector {
 
   #applyConversion(targetType, targetData) {
     const blocks = this.#blocks
-
     const selectedBlocks = blocks.getSelectedBlocks()
-    // Menu focus may clip the native selection. Resolve its saved boundaries
-    // before choosing the single-block or cross-block conversion path.
     const candidate = this.#crossBlockSelection?.range
       ?? (selectedBlocks.length > 1 ? null : this.#savedRange)
+
     if (candidate) {
       const endpoints = resolveBlockRange(blocks, candidate)
       if (!endpoints) {
@@ -342,13 +274,11 @@ export class TypeSelector {
       }
     }
 
-    // Also check block-level selection (Ctrl+A)
     if (selectedBlocks.length > 1) {
       this.#convertMultipleBlocks(selectedBlocks, targetType, targetData)
       return
     }
 
-    // Single-block conversion
     const currentBlock = blocks.getCurrentBlock()
     if (!currentBlock) return
 
@@ -356,16 +286,14 @@ export class TypeSelector {
     const currentType = currentBlock.type
     const contentEl = currentBlock.contentElement
 
-    // If same type and no extra data, nothing to do
     if (targetType === currentType && !targetData) {
       this.close()
       return
     }
 
-    // Restore selection
     this.#restoreSelection()
 
-    const sel = window.getSelection()
+    const sel = this.#view?.getSelection()
     if (!sel || sel.rangeCount === 0) {
       this.close()
       return
@@ -373,7 +301,6 @@ export class TypeSelector {
 
     const range = sel.getRangeAt(0)
     const isFullBlock = sel.isCollapsed || isFullBlockSelected(contentEl, range)
-
     let didConvert = false
 
     this.#events?.emit(EditorEvent.UNDO_BATCH_START)
@@ -406,16 +333,7 @@ export class TypeSelector {
     if (didConvert && this.#onConvert) this.#onConvert()
   }
 
-  /**
-   * Convert blocks in a cross-block selection range, with partial split support.
-   * Delegates to shared utility.
-   *
-   * @param {Range} crossRange
-   * @param {string} targetType
-   * @param {object} [targetData]
-   */
   #convertCrossBlock(crossRange, targetType, targetData) {
-    // Clear saved range — it points to pre-conversion DOM nodes
     this.#savedRange = null
     this.close()
     convertCrossBlockRange(
@@ -425,23 +343,14 @@ export class TypeSelector {
     )
   }
 
-  /**
-   * Convert multiple selected blocks (Ctrl+A style selection).
-   * @param {import('./types').IBlock[]} selectedBlocks
-   * @param {string} targetType
-   * @param {object} [targetData]
-   */
   #convertMultipleBlocks(selectedBlocks, targetType, targetData) {
     const blocks = this.#blocks
-
     this.#events?.emit(EditorEvent.UNDO_BATCH_START)
     let focusBlock = null
     try {
-      // Check if target is text-based
       const targetIsText = isTextType(this.#plugins, targetType)
 
       if (targetIsText) {
-        // Text target: convert each block individually (reverse order)
         for (let i = selectedBlocks.length - 1; i >= 0; i--) {
           const block = selectedBlocks[i]
           if (!block) continue
@@ -452,21 +361,15 @@ export class TypeSelector {
           }
         }
       } else {
-        // Non-text target: remove all selected, insert ONE new block
         const firstIdx = blocks.getBlockIndex(/** @type {string} */ (selectedBlocks[0]?.id))
-
-        // Remove in reverse order
         for (let i = selectedBlocks.length - 1; i >= 0; i--) {
           const idx = blocks.getBlockIndex(/** @type {string} */ (selectedBlocks[i]?.id))
           if (idx >= 0) blocks.remove(idx)
         }
-
         focusBlock = blocks.insert(targetType, /** @type {Record<string, unknown>} */ (targetData || {}), firstIdx)
       }
 
-      // Clear block selection
       blocks.clearSelection()
-
       if (focusBlock) {
         const focusIdx = blocks.getBlockIndex(focusBlock.id)
         if (focusIdx >= 0) blocks.setCurrentIndex(focusIdx)
