@@ -20,7 +20,6 @@ function harness() {
   return { emitted, block, commands: new CommandDispatcher(blocks, events) }
 }
 
-
 for (const cause of [0, false, '', null, undefined]) {
   test(`caught nested failure ${String(cause)} rolls back the whole command`, () => {
     const { emitted, block, commands } = harness()
@@ -57,3 +56,39 @@ for (const cause of [0, false, '', null, undefined]) {
     assert.equal(block.dirty, 1)
   })
 }
+
+test('a failed checkpoint capture cannot leak affected blocks into the next command', () => {
+  const emitted = []
+  const events = { emit: (event, data) => emitted.push([event, data]) }
+  const first = {
+    id: 'a', type: 'paragraph', dirty: 0,
+    markDirty() { this.dirty++ },
+  }
+  const second = {
+    id: 'b', type: 'paragraph', dirty: 0,
+    markDirty() { this.dirty++ },
+  }
+  const blocks = {
+    getBlockById(id) { return id === first.id ? first : id === second.id ? second : undefined },
+  }
+  const commands = new CommandDispatcher(blocks, events)
+  let failCapture = true
+  commands.configureRollback(
+    () => {
+      if (failCapture) throw new Error('capture failed')
+      return { version: 'test', blocks: [] }
+    },
+    () => {},
+  )
+
+  assert.throws(() => commands.runForBlock(first, () => {}), /capture failed/)
+  failCapture = false
+  commands.runForBlock(second, () => {})
+
+  assert.equal(first.dirty, 0)
+  assert.equal(second.dirty, 1)
+  assert.deepEqual(
+    emitted.filter(([event]) => event === EditorEvent.BLOCK_CHANGED).map(([, data]) => data.blockId),
+    ['b'],
+  )
+})

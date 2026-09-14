@@ -131,9 +131,14 @@ export class CommandDispatcher {
       this.#nestedFailure = null
       this.#hasNestedFailure = false
     }
-    for (const block of command.affected ?? []) this.#affected.add(block)
+
+    // Nothing below this point may mutate transaction state until the prelude
+    // has completed. A throwing affected iterable, checkpoint capture, or
+    // WILL_CHANGE listener must leave the next command with a clean slate.
+    const commandAffected = [...(command.affected ?? [])]
     const checkpoint = outermost && this.#capture ? this.#capture() : null
     if (outermost && command.notifyChange !== false) this.#events.emit(EditorEvent.WILL_CHANGE)
+    for (const block of commandAffected) this.#affected.add(block)
 
     this.#depth++
     let result
