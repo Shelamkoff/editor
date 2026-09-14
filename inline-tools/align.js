@@ -1,15 +1,15 @@
-import { el } from '../core/dom.js'
+import { el, closestBlock } from '../core/dom.js'
 import {
   ICON_ALIGN_LEFT,
   ICON_ALIGN_CENTER,
   ICON_ALIGN_RIGHT,
   ICON_ALIGN_JUSTIFY,
-  getBlockContentElement,
   getSelectedBlockElements,
   createBackButton,
 } from './utils.js'
 import { TEXT_ALIGN_TUNE_ATTRIBUTE } from '../core/constants.js'
 
+const ELEMENT_NODE = 1
 const ALIGNMENTS = [
   { value: '',        icon: ICON_ALIGN_LEFT,    key: 'left' },
   { value: 'center',  icon: ICON_ALIGN_CENTER,  key: 'center' },
@@ -26,6 +26,8 @@ const ALIGNMENTS = [
  * @returns {import('../types').InlineTool}
  */
 export function createAlignTool(labels, cbs = null) {
+  /** @type {Document | null} */
+  let ownerDocument = null
   /** @type {Record<string, { icon: string, title: string }>} */
   const alignMap = {
     '':        { icon: ICON_ALIGN_LEFT,    title: labels.left },
@@ -35,9 +37,19 @@ export function createAlignTool(labels, cbs = null) {
     'justify': { icon: ICON_ALIGN_JUSTIFY, title: labels.justify },
   }
 
-  /** Get current alignment from selection */
-  function getCurrentAlign() {
-    const block = getBlockContentElement()
+  /** @param {Range | null} [rangeHint] @returns {HTMLElement | null} */
+  function getBlockContent(rangeHint = null) {
+    const anchor = rangeHint?.startContainer
+      ?? ownerDocument?.defaultView?.getSelection?.()?.anchorNode
+      ?? null
+    const block = closestBlock(anchor)
+    const content = block?.firstElementChild
+    return content?.nodeType === ELEMENT_NODE ? /** @type {HTMLElement} */ (content) : null
+  }
+
+  /** @param {Range | null} [rangeHint] */
+  function getCurrentAlign(rangeHint = null) {
+    const block = getBlockContent(rangeHint)
     return block?.style.textAlign || ''
   }
 
@@ -55,18 +67,20 @@ export function createAlignTool(labels, cbs = null) {
 
     /** Dynamic icon - reflects current alignment */
     getIcon() {
-      const entry = alignMap[getCurrentAlign()] ?? alignMap['']
+      const entry = alignMap[getCurrentAlign(cbs?.range)] ?? alignMap['']
       return entry?.icon ?? ICON_ALIGN_LEFT
     },
 
     /** Dynamic label for tooltip */
     getTitle() {
-      const entry = alignMap[getCurrentAlign()] ?? alignMap['']
+      const entry = alignMap[getCurrentAlign(cbs?.range)] ?? alignMap['']
       return entry?.title ?? labels.left
     },
 
-    isActive() {
-      const align = getCurrentAlign()
+    isActive(selection) {
+      const range = cbs?.range || selection?.range || null
+      if (range?.startContainer?.ownerDocument) ownerDocument = range.startContainer.ownerDocument
+      const align = getCurrentAlign(range)
       return !!align && align !== 'left'
     },
 
@@ -74,16 +88,26 @@ export function createAlignTool(labels, cbs = null) {
       // no-op: opens renderActions
     },
 
+    onMount(button) {
+      ownerDocument = button.ownerDocument
+    },
+
+    destroy() {
+      ownerDocument = null
+    },
+
     renderActions(ctx) {
-      const panel = el('div', 'oe-inline-toolbar__panel oe-inline-toolbar__align-panel')
+      const doc = ctx.range.startContainer.ownerDocument
+      ownerDocument = doc
+      const panel = el('div', 'oe-inline-toolbar__panel oe-inline-toolbar__align-panel', undefined, doc)
 
       panel.appendChild(createBackButton(ctx))
 
-      const currentAlign = getCurrentAlign()
+      const currentAlign = getCurrentAlign(cbs?.range || ctx.range)
 
       for (const alignment of ALIGNMENTS) {
         const info = /** @type {{ icon: string, title: string }} */ (alignMap[alignment.value] ?? alignMap[''])
-        const btn = el('button', 'oe-inline-tool', { type: 'button' })
+        const btn = el('button', 'oe-inline-tool', { type: 'button' }, doc)
         btn.innerHTML = alignment.icon
         if (currentAlign === alignment.value || (!currentAlign && alignment.value === '')) {
           btn.classList.add('oe-inline-tool--active')
@@ -97,16 +121,15 @@ export function createAlignTool(labels, cbs = null) {
           ctx.restoreSelection()
 
           ctx.mutate(() => {
-            const crossBlocks = getSelectedBlockElements(cbs)
+            const activeRange = cbs?.range || ctx.range
+            const crossBlocks = getSelectedBlockElements(cbs, activeRange)
             if (crossBlocks) {
               for (const blockEl of crossBlocks) {
                 setAlignment(blockEl, alignment.value)
               }
             } else {
-              const target = getBlockContentElement()
-              if (target) {
-                setAlignment(target, alignment.value)
-              }
+              const target = getBlockContent(activeRange)
+              if (target) setAlignment(target, alignment.value)
             }
           })
           ctx.close()

@@ -1,3 +1,4 @@
+import { register as alignToolRealm } from './regressions/recheck-75-align-tool-realm.js'
 import { register as scriptToolRealm } from './regressions/recheck-74-script-tool-realm.js'
 import { register as inlineUtilsRealm } from './regressions/recheck-73-inline-utils-realm.js'
 import { register as toolbarRemovalRace } from './regressions/recheck-72-toolbar-removal-race.js'
@@ -147,4 +148,5 @@ toolbarReadOnlyRemoval()
 toolbarRemovalRace()
 inlineUtilsRealm()
 scriptToolRealm()
+alignToolRealm()
 await run()
