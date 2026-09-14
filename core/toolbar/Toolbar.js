@@ -74,8 +74,8 @@ export class Toolbar {
   /** @type {boolean} */
   #toolboxOpen = false
 
-  /** @type {boolean} */
-  #removing = false
+  /** @type {number} */
+  #pendingRemovals = 0
 
   /** @type {ReturnType<typeof setTimeout> | null} */
   #toolboxReturnTimer = null
@@ -215,7 +215,7 @@ export class Toolbar {
 
     // ── Event subscriptions ──────────────────────────────────────────────────
     this.#unsubFocused = events.on(EditorEvent.BLOCK_FOCUSED, () => {
-      if (!this.#positioner.moveAnimating && !this.#removing) {
+      if (!this.#positioner.moveAnimating && this.#pendingRemovals === 0) {
         if (!this.#positioner.updatePosition()) this.hide()
       }
     })
@@ -230,12 +230,12 @@ export class Toolbar {
     this.#unsubRemoved = events.on(
       EditorEvent.BLOCK_REMOVED,
       (/** @type {{ animDone?: Promise<void> }} */ payload) => {
-        this.#removing = true
+        this.#pendingRemovals++
         const done = payload?.animDone ?? Promise.resolve()
-        done.then(() => {
+        Promise.resolve(done).catch(() => undefined).then(() => {
           if (this.#destroyed) return
-          this.#removing = false
-          this.#positioner.animateAfterRemoval()
+          this.#pendingRemovals = Math.max(0, this.#pendingRemovals - 1)
+          if (this.#pendingRemovals === 0) this.#positioner.animateAfterRemoval()
         })
       },
     )
