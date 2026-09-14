@@ -5,6 +5,8 @@ import {
   toggleTag,
 } from './utils.js'
 
+const ELEMENT_NODE = 1
+
 const CLEARABLE_TAGS = ['b', 'i', 's', 'code', 'mark', 'span', 'em', 'strong', 'u', 'sup', 'sub']
 
 /**
@@ -23,7 +25,7 @@ function isClearableElement(element) {
  * @returns {boolean}
  */
 function hasClearableWrapper(range, tag) {
-  const start = range.startContainer.nodeType === Node.ELEMENT_NODE
+  const start = range.startContainer.nodeType === ELEMENT_NODE
     ? /** @type {HTMLElement} */ (range.startContainer)
     : range.startContainer.parentElement
   let ancestor = start
@@ -32,7 +34,7 @@ function hasClearableWrapper(range, tag) {
     ancestor = ancestor.parentElement
   }
 
-  const common = range.commonAncestorContainer.nodeType === Node.ELEMENT_NODE
+  const common = range.commonAncestorContainer.nodeType === ELEMENT_NODE
     ? /** @type {HTMLElement} */ (range.commonAncestorContainer)
     : range.commonAncestorContainer.parentElement
   const root = common?.closest('[contenteditable="true"]') || common
@@ -62,8 +64,9 @@ export function createClearFormattingTool(label, cbs = null) {
 
       for (const tag of CLEARABLE_TAGS) {
         restoreSelectionOffsets(cbs, saved)
-        const selection = window.getSelection()
-        const current = cbs?.range || (selection?.rangeCount ? selection.getRangeAt(0) : null)
+        const ownerDocument = cbs?.range?.startContainer?.ownerDocument ?? actualRange.startContainer.ownerDocument
+        const nativeSelection = ownerDocument?.defaultView?.getSelection?.() ?? null
+        const current = cbs?.range || (nativeSelection?.rangeCount ? nativeSelection.getRangeAt(0) : null)
         if (!current || !hasClearableWrapper(current, tag)) continue
         toggleTag(tag, current, isClearableElement)
       }
