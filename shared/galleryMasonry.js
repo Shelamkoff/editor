@@ -32,6 +32,13 @@ export function mountGalleryMasonry(container, elements, options = {}) {
     onError,
   } = options
 
+  const view = /** @type {(Window & typeof globalThis) | null} */ (container.ownerDocument?.defaultView ?? null)
+  const ResizeObserverCtor = view?.ResizeObserver
+  const requestFrame = view?.requestAnimationFrame?.bind(view)
+  const cancelFrame = view?.cancelAnimationFrame?.bind(view)
+  const getStyle = view?.getComputedStyle?.bind(view)
+  const scheduleMicrotask = view?.queueMicrotask?.bind(view) ?? queueMicrotask
+
   /** @type {Masonry | null} */
   let instance = null
   /** @type {ResizeObserver | null} */
@@ -57,14 +64,13 @@ export function mountGalleryMasonry(container, elements, options = {}) {
   const stopWaiting = () => {
     waitingObserver?.disconnect()
     waitingObserver = null
-    if (frameId !== null && typeof cancelAnimationFrame === 'function') {
-      cancelAnimationFrame(frameId)
-    }
+    if (frameId !== null && cancelFrame) cancelFrame(frameId)
     frameId = null
   }
 
   const readGap = () => {
-    const style = getComputedStyle(container)
+    if (!getStyle) return 4
+    const style = getStyle(container)
     const value = Number.parseFloat(style.columnGap || style.gap)
     return Number.isFinite(value) && value >= 0 ? value : 4
   }
@@ -125,19 +131,19 @@ export function mountGalleryMasonry(container, elements, options = {}) {
     destroy()
   } else {
     signal?.addEventListener('abort', destroy, { once: true })
-    if (typeof ResizeObserver === 'function') {
-      waitingObserver = new ResizeObserver(() => {
+    if (ResizeObserverCtor) {
+      waitingObserver = new ResizeObserverCtor(() => {
         void start()
       })
       waitingObserver.observe(container)
     }
-    if (typeof requestAnimationFrame === 'function') {
-      frameId = requestAnimationFrame(() => {
+    if (requestFrame) {
+      frameId = requestFrame(() => {
         frameId = null
         void start()
       })
     }
-    queueMicrotask(() => {
+    scheduleMicrotask(() => {
       void start()
     })
   }
