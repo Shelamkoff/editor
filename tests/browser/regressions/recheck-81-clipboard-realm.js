@@ -90,18 +90,19 @@ export function register() {
     }
   })
 
-  test('HTML paste routing parses elements in the supplied owning document', () => {
+  test('HTML paste routing parses elements in the supplied owning realm', () => {
     const iframe = document.createElement('iframe')
     document.body.appendChild(iframe)
     try {
       const doc = iframe.contentDocument
-      assert(doc, 'iframe document unavailable')
-      let seenDocument = null
+      const view = iframe.contentWindow
+      assert(doc && view, 'iframe realm unavailable')
+      let seenElement = null
       const plugin = {
         type: 'probe',
         pasteConfig: { tags: ['figure'] },
         onPaste({ element }) {
-          seenDocument = element.ownerDocument
+          seenElement = element
           return { value: element.textContent || '' }
         },
       }
@@ -112,7 +113,8 @@ export function register() {
       })
 
       equal(parts.length, 1)
-      assert(seenDocument === doc, 'paste parser created plugin input in the ambient document')
+      assert(seenElement instanceof view.HTMLElement, 'paste parser escaped the supplied owning realm')
+      assert(!(seenElement instanceof window.HTMLElement), 'paste parser created plugin input in the ambient realm')
     } finally {
       iframe.remove()
     }
