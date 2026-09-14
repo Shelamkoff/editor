@@ -48,7 +48,7 @@ test('slash commands ignore input events from auxiliary native controls', () => 
   globalThis.NodeFilter = { SHOW_TEXT: 4 }
   globalThis.document = {
     documentElement: {},
-    createElement(tag) { return new FakeElement(tag) },
+    createElement(tag) { const el = new FakeElement(tag); el.ownerDocument = this; return el },
     createTreeWalker() {
       let done = false
       return {
@@ -78,10 +78,13 @@ test('slash commands ignore input events from auxiliary native controls', () => 
   }
   globalThis.requestAnimationFrame = () => 1
   globalThis.cancelAnimationFrame = () => {}
+  globalThis.document.defaultView = globalThis.window
 
   const root = new FakeElement('div')
+  root.ownerDocument = globalThis.document
   root.contains = () => true
   const content = new FakeElement('p')
+  content.ownerDocument = globalThis.document
   content.contentEditable = 'true'
   content.textContent = '/'
   const block = { id: 'b', type: 'paragraph', element: new FakeElement('div'), contentElement: content }

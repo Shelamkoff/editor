@@ -6,6 +6,12 @@ export class SlashCommands {
   /** @type {HTMLElement} */
   #rootEl
 
+  /** @type {Document} */
+  #document
+
+  /** @type {(Window & typeof globalThis) | null} */
+  #view
+
   /** @type {import('./types').IBlockManager} */
   #blocks
 
@@ -70,6 +76,8 @@ export class SlashCommands {
   constructor(rootEl, config) {
     const { plugins, blocks, selection, events, commands, i18n, inlinePluginRegistry, inlinePluginCtx } = config
     this.#rootEl = rootEl
+    this.#document = rootEl.ownerDocument
+    this.#view = /** @type {(Window & typeof globalThis) | null} */ (this.#document.defaultView)
     this.#blocks = blocks
     this.#selection = selection
     this.#events = events
@@ -79,7 +87,6 @@ export class SlashCommands {
     this.#inlinePluginCtx = inlinePluginCtx ?? null
 
     for (const plugin of plugins.values()) {
-      // searchText includes English type name + localized title for bilingual search
       const title = plugin.title
       const enFallback = plugin.type.charAt(0).toUpperCase() + plugin.type.slice(1)
       this.#allItems.push({
@@ -90,7 +97,6 @@ export class SlashCommands {
       })
     }
 
-    // Add inline plugins to the menu
     if (inlinePluginRegistry) {
       for (const ip of inlinePluginRegistry.values()) {
         const title = ip.title
@@ -105,11 +111,10 @@ export class SlashCommands {
       }
     }
 
-    this.#menuEl = el('ul', 'oe-slash-menu', { role: 'menu' })
+    this.#menuEl = el('ul', 'oe-slash-menu', { role: 'menu' }, this.#document)
     this.#menuEl.style.display = 'none'
     rootEl.appendChild(this.#menuEl)
 
-    // Capture-phase keydown to intercept before KeyboardManager
     rootEl.addEventListener('keydown', this.#onKeyDown, true)
     rootEl.addEventListener('input', this.#onInput)
   }
@@ -119,7 +124,6 @@ export class SlashCommands {
     return this.#open
   }
 
-  /** Close the slash menu. */
   close() {
     if (!this.#open) return
     this.#open = false
@@ -129,7 +133,6 @@ export class SlashCommands {
     this.#cancelScheduledPosition()
   }
 
-  /** Clean up. */
   destroy() {
     this.#removeScrollListener()
     this.#cancelScheduledPosition()
@@ -148,7 +151,6 @@ export class SlashCommands {
     const text = block.contentElement.textContent || ''
 
     if (this.#open) {
-      // Update filter: text after last "/"
       const slashIdx = text.lastIndexOf('/')
       if (slashIdx >= 0) {
         this.#filter = text.slice(slashIdx + 1)
@@ -156,17 +158,14 @@ export class SlashCommands {
         this.#position()
         this.#schedulePosition()
       } else {
-        // Slash removed — close
         this.close()
       }
       return
     }
 
-    // Detect "/" typed — at start of empty block or anywhere if inline plugins exist
     if (text === '/') {
       this.#openMenu()
     } else if (this.#inlinePluginRegistry && this.#inlinePluginRegistry.size > 0 && text.endsWith('/')) {
-      // "/" typed in the middle of text — open menu for inline plugins
       this.#openMenu()
     }
   }
@@ -209,12 +208,10 @@ export class SlashCommands {
         break
 
       case 'Backspace': {
-        // If only "/" remains, close and let backspace remove it
         const block = this.#blocks.getCurrentBlock()
         const text = block?.contentElement.textContent || ''
         if (text === '/') {
           this.close()
-          // Don't stopPropagation — let the key go through to remove "/"
         }
         break
       }
@@ -227,7 +224,6 @@ export class SlashCommands {
     }
   }
 
-  /** Return the document block that owns a contenteditable event target. */
   #editingBlockForTarget(target) {
     const element = /** @type {Element | null} */ (target)
     const editingHost = element?.closest?.('[contenteditable="true"]') ?? null
@@ -248,7 +244,9 @@ export class SlashCommands {
 
   #schedulePosition() {
     this.#cancelScheduledPosition()
-    this.#positionFrame = requestAnimationFrame(() => {
+    const requestFrame = this.#view?.requestAnimationFrame?.bind(this.#view)
+    if (!requestFrame) return
+    this.#positionFrame = requestFrame(() => {
       this.#positionFrame = 0
       if (this.#open) this.#position()
     })
@@ -256,20 +254,20 @@ export class SlashCommands {
 
   #cancelScheduledPosition() {
     if (!this.#positionFrame) return
-    cancelAnimationFrame(this.#positionFrame)
+    this.#view?.cancelAnimationFrame?.(this.#positionFrame)
     this.#positionFrame = 0
   }
 
   #addScrollListener() {
     this.#removeScrollListener()
     const onScroll = () => { if (this.#open) this.#position() }
-    // Listen on nearest scrollable ancestor and window
     let scrollParent = this.#rootEl.parentElement
-    while (scrollParent && scrollParent !== document.documentElement) {
+    while (scrollParent && scrollParent !== this.#document.documentElement) {
       if (scrollParent.scrollHeight > scrollParent.clientHeight) break
       scrollParent = scrollParent.parentElement
     }
-    const target = scrollParent || window
+    const target = scrollParent || this.#view
+    if (!target) return
     target.addEventListener('scroll', onScroll, { passive: true })
     this.#scrollCleanup = () => target.removeEventListener('scroll', onScroll)
   }
@@ -294,21 +292,21 @@ export class SlashCommands {
     this.#menuEl.innerHTML = ''
 
     if (this.#filteredItems.length === 0) {
-      const empty = el('li', 'oe-slash-menu__empty', { role: 'none' })
+      const empty = el('li', 'oe-slash-menu__empty', { role: 'none' }, this.#document)
       empty.textContent = this.#i18n.t('slash.noResults')
       this.#menuEl.appendChild(empty)
       return
     }
 
     this.#filteredItems.forEach((item, i) => {
-      const btn = el('li', 'oe-slash-menu__item', { role: 'menuitem', tabindex: '-1' })
+      const btn = el('li', 'oe-slash-menu__item', { role: 'menuitem', tabindex: '-1' }, this.#document)
       if (i === this.#activeIndex) btn.classList.add('oe-slash-menu__item--active')
 
-      const icon = el('span', 'oe-slash-menu__icon')
+      const icon = el('span', 'oe-slash-menu__icon', undefined, this.#document)
       icon.innerHTML = item.icon
       btn.appendChild(icon)
 
-      const label = el('span', 'oe-slash-menu__label')
+      const label = el('span', 'oe-slash-menu__label', undefined, this.#document)
       label.textContent = item.title
       btn.appendChild(label)
 
@@ -329,16 +327,13 @@ export class SlashCommands {
       this.#menuEl.appendChild(btn)
     })
 
-    // Scroll active item into view
     const activeEl = this.#menuEl.children[this.#activeIndex]
     if (activeEl) {
       activeEl.scrollIntoView({ block: 'nearest' })
     }
   }
 
-  /**
-   * @param {number} index
-   */
+  /** @param {number} index */
   #selectItem(index) {
     const item = this.#filteredItems[index]
     if (!item) return
@@ -351,7 +346,6 @@ export class SlashCommands {
     this.close()
 
     if (item.inlineInsert && this.#inlinePluginRegistry && this.#inlinePluginCtx) {
-      // Inline plugin: delete "/text" and insert widget at caret position
       this.#runBatch(() => this.#commands.runForBlock(
         current,
         () => this.#insertInlineWidget(current, item.type),
@@ -362,10 +356,6 @@ export class SlashCommands {
     this.#runBatch(() => this.#commands.runForBlock(current, () => {
       const slashIndex = (current.contentElement.textContent || '').lastIndexOf('/')
 
-      // A block command typed after existing content must not destroy that
-      // content. Remove only the command query and insert the requested block
-      // directly after the source block. An otherwise empty command block is
-      // converted in place, which avoids leaving an empty paragraph behind.
       if (slashIndex > 0) {
         this.#clearSlashText()
         current.markDirty()
@@ -391,23 +381,11 @@ export class SlashCommands {
     }))
   }
 
-  /**
-   * Delete the "/command" text and insert an inline plugin widget via event bus.
-   * EditorFacade handles actual widget creation/hydration.
-   * @param {import('./types').IBlock} block
-   * @param {string} pluginType
-   */
   #insertInlineWidget(block, pluginType) {
     this.#removeQueryText(block)
-
-    // Delegate widget creation to EditorFacade via event bus
     this.#events.emit(EditorEvent.INLINE_PLUGIN_INSERT, { type: pluginType })
   }
 
-  /**
-   * Remove only the `/command` text from the current block, preserving
-   * any content that preceded the slash.
-   */
   #clearSlashText() {
     const block = this.#blocks.getCurrentBlock()
     if (!block) return false
@@ -416,8 +394,6 @@ export class SlashCommands {
   }
 
   /**
-   * Remove the last slash query in one block and keep the caret at the
-   * deletion boundary so the selected command can insert at that position.
    * @param {import('./types').IBlock} block
    * @returns {boolean}
    */
@@ -427,27 +403,24 @@ export class SlashCommands {
     const slashIdx = text.lastIndexOf('/')
     if (slashIdx < 0) return false
 
-    // If the block contains only the slash command, clear everything.
     if (slashIdx === 0) {
       ce.textContent = ''
       return true
     }
 
-    // Walk text nodes to find the slash position and delete from there to end.
-    const walker = document.createTreeWalker(ce, NodeFilter.SHOW_TEXT)
+    const walker = this.#document.createTreeWalker(ce, this.#view?.NodeFilter?.SHOW_TEXT ?? 4)
     let charCount = 0
     while (walker.nextNode()) {
       const node = /** @type {import('./types').DOMText} */ (walker.currentNode)
       const nodeLen = node.length
       if (charCount + nodeLen > slashIdx) {
         const offsetInNode = slashIdx - charCount
-        const range = document.createRange()
+        const range = this.#document.createRange()
         range.setStart(node, offsetInNode)
         range.setEnd(node, nodeLen)
         range.deleteContents()
 
-        // Place caret at deletion point
-        const sel = window.getSelection()
+        const sel = this.#view?.getSelection()
         if (sel) {
           range.collapse(true)
           sel.removeAllRanges()
@@ -460,7 +433,6 @@ export class SlashCommands {
     return false
   }
 
-  /** Run one slash action as a balanced atomic history operation. */
   #runBatch(operation) {
     this.#events.emit(EditorEvent.UNDO_BATCH_START)
     try {
@@ -486,7 +458,8 @@ export class SlashCommands {
     const anchorRect = commandRect && commandRect.height > 0 ? commandRect : blockRect
     const menuWidth = this.#menuEl.offsetWidth || 240
     const minimumLeft = -editorRect.left
-    const maximumLeft = Math.max(minimumLeft, window.innerWidth - editorRect.left - menuWidth)
+    const viewportRight = this.#view?.innerWidth ?? editorRect.right
+    const maximumLeft = Math.max(minimumLeft, viewportRight - editorRect.left - menuWidth)
     const desiredLeft = anchorRect.left - editorRect.left
 
     this.#menuEl.style.left = `${Math.min(maximumLeft, Math.max(minimumLeft, desiredLeft))}px`
