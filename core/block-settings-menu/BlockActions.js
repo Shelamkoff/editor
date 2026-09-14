@@ -14,22 +14,11 @@ import { splitAndConvert, isFullBlockSelected } from '../splitConvert.js'
  * @property {import('../CommandDispatcher').CommandDispatcher} commands
  * @property {string} defaultBlockType
  * @property {(current: import('../types').IBlock, index: number) => import('../types').IBlock | undefined} duplicateBlock
- * @property {() => void} onClose       called after each terminal action
- * @property {() => void} onAfterMove   called after move (rebuild + reposition)
+ * @property {() => void} onClose
+ * @property {() => void} onAfterMove
  * @property {() => Range | null} getSavedRange
- *   Returns the range that was active when the menu opened — used by `convertTo`
- *   to restore caret before slicing the block.
  */
 
-/**
- * The actual block-mutating operations exposed by the settings menu:
- * move up/down, duplicate, delete, convert to type, plugin-specific
- * settings actions (e.g. heading level change).
- *
- * Each method is "fire-and-forget" — it performs the mutation and (in
- * most cases) closes the menu via `deps.onClose()`. Move operations
- * keep the menu open via `deps.onAfterMove()`.
- */
 export class BlockActions {
   /** @type {BlockActionsDeps} */
   #deps
@@ -99,17 +88,7 @@ export class BlockActions {
     this.#deps.onClose()
   }
 
-  /**
-   * Convert the current block (or the cross-block range) to a different type.
-   *
-   * Three branches:
-   *  1. Cross-block range → delegate to `convertCrossBlockRange`.
-   *  2. Single block, no selection or full-block selection → swap whole block.
-   *  3. Single block, partial selection → `splitAndConvert` (creates two blocks).
-   *
-   * @param {string} type
-   * @param {Record<string, unknown>} [data]
-   */
+  /** @param {string} type @param {Record<string, unknown>} [data] */
   convertTo(type, data) {
     return this.#mutations.execute({
       name: 'settings.convert',
@@ -139,16 +118,6 @@ export class BlockActions {
       return
     }
 
-    // Restore the saved selection so the conversion happens against
-    // the user's actual caret/range, not the menu focus.
-    const savedRange = this.#deps.getSavedRange()
-    if (savedRange) {
-      const sel = window.getSelection()
-      if (sel) {
-        try { sel.removeAllRanges(); sel.addRange(savedRange) } catch { /* detached DOM */ }
-      }
-    }
-
     const blocks = this.#deps.blocks
     const index = blocks.getCurrentIndex()
     const current = blocks.getBlockByIndex(index)
@@ -156,9 +125,18 @@ export class BlockActions {
 
     if (type === current.type && !data) { this.#deps.onClose(); return }
 
-    const sel = window.getSelection()
+    const savedRange = this.#deps.getSavedRange()
+    const ownerDocument = savedRange?.startContainer.ownerDocument ?? current.contentElement.ownerDocument
+    const sel = ownerDocument?.defaultView?.getSelection?.() ?? null
+
+    // Restore the saved selection in the same browsing context that owns the
+    // range. Menu focus can live in an iframe where the ambient page selection
+    // is unrelated to the editor.
+    if (savedRange && sel) {
+      try { sel.removeAllRanges(); sel.addRange(savedRange) } catch { /* detached DOM */ }
+    }
+
     if (!sel || sel.rangeCount === 0) {
-      // No selection — full block convert.
       const converted = blocks.convert(index, type, data)
       if (converted) {
         blocks.setCurrentIndex(index)
@@ -202,10 +180,6 @@ export class BlockActions {
   }
 
   /**
-   * Handle a plugin-specific settings item (e.g. "Heading 2" → changeLevel(2)).
-   * Falls back to `onSettingsAction` + `convert` for plugins without an
-   * in-place update path.
-   *
    * @param {import('../types').IBlock} current
    * @param {import('../types').BlockPlugin} plugin
    * @param {HTMLElement} item
@@ -213,7 +187,6 @@ export class BlockActions {
   handleSettingsAction(current, plugin, item) {
     const action = item.dataset.level || item.dataset.action || ''
 
-    // Special case: Heading has changeLevel() for in-place updates.
     if (plugin.changeLevel && action) {
       const level = parseInt(action, 10)
       if (level) {
@@ -224,15 +197,11 @@ export class BlockActions {
           }
         })
         this.#deps.onClose()
-        // Restore focus to the (possibly new) content element — closing
-        // the settings menu shifts focus away, and changeLevel's internal
-        // selection restore runs before the close.
         current.contentElement.focus()
         return
       }
     }
 
-    // Fallback: re-render via convert.
     if (plugin.onSettingsAction) {
       this.#mutations.runForBlock(current, () => {
         const newData = plugin.onSettingsAction(current.contentElement, action)
