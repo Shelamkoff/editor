@@ -71,11 +71,14 @@ export function preparePlainText(text) {
 /** Parse and sanitize before any selected content is removed. Plugin paste
  * handlers run exactly once, while their returned data is still staged.
  * @param {string} html
- * @param {Pick<InsertContext, 'router' | 'defaultBlockType'>} ctx
+ * @param {Pick<InsertContext, 'router' | 'defaultBlockType'> & { ownerDocument?: Document, blocks?: import('../types').IBlockReader }} ctx
  * @returns {PreparedHtml[]}
  */
 export function prepareHtmlPaste(html, ctx) {
-  const template = document.createElement('template')
+  const ownerDocument = ctx.ownerDocument
+    ?? ctx.blocks?.getCurrentBlock?.()?.contentElement?.ownerDocument
+    ?? document
+  const template = ownerDocument.createElement('template')
   template.innerHTML = html
   const extracted = extractBlockElements(template.content, tag => !!ctx.router.findByTag(tag))
   const prepared = []

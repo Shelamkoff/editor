@@ -13,6 +13,7 @@ import { cloneEditorData } from '../../shared/cloneEditorData.js'
 import { parseBlockClipboardPayload } from './blockClipboard.js'
 
 const MIME_TYPE = 'application/x-rector-editor'
+const ELEMENT_NODE = 1
 
 /**
  * Core-owned progress UI for asynchronous file pastes. The plugin's pending
@@ -20,15 +21,16 @@ const MIME_TYPE = 'application/x-rector-editor'
  * until the completed block is committed to the document.
  *
  * @param {string} label
+ * @param {Document} ownerDocument
  * @returns {HTMLElement}
  */
-function createPendingPasteIndicator(label) {
-  const indicator = document.createElement('div')
+function createPendingPasteIndicator(label, ownerDocument) {
+  const indicator = ownerDocument.createElement('div')
   indicator.className = 'oe-pending-paste__indicator'
   indicator.setAttribute('role', 'status')
   indicator.setAttribute('aria-label', label)
 
-  const spinner = document.createElement('span')
+  const spinner = ownerDocument.createElement('span')
   spinner.className = 'oe-pending-paste__spinner'
   spinner.setAttribute('aria-hidden', 'true')
   indicator.appendChild(spinner)
@@ -41,24 +43,27 @@ function createPendingPasteIndicator(label) {
  *
  * @param {KeyboardEvent} e
  * @param {{ text: string, html: string, fragment?: string }} content
+ * @param {(Window & typeof globalThis) | null} view
  * @returns {Promise<boolean> | null} Null delegates to the native clipboard event.
  */
-function copyRange(e, content) {
+function copyRange(e, content, view) {
   // Async clipboard's text-only fallback cannot carry opaque widget data.
   // Leave this gesture to the native event, where the required custom MIME
   // can be written and verified before a destructive Cut is allowed.
   if (content.fragment) return null
-  const clipboard = navigator.clipboard
+  const clipboard = view?.navigator?.clipboard
   if (!clipboard?.write && !clipboard?.writeText) return null
 
   e.preventDefault()
   const { text, html } = content
   return (async () => {
-    if (clipboard.write && typeof ClipboardItem !== 'undefined') {
+    const ClipboardItemCtor = view?.ClipboardItem
+    const BlobCtor = view?.Blob
+    if (clipboard.write && ClipboardItemCtor && BlobCtor) {
       try {
-        await clipboard.write([new ClipboardItem({
-          'text/plain': new Blob([text], { type: 'text/plain' }),
-          'text/html': new Blob([html], { type: 'text/html' }),
+        await clipboard.write([new ClipboardItemCtor({
+          'text/plain': new BlobCtor([text], { type: 'text/plain' }),
+          'text/html': new BlobCtor([html], { type: 'text/html' }),
         })])
         return true
       } catch { /* A plain-text write may still be permitted. */ }
@@ -218,6 +223,21 @@ export class Clipboard {
     rootEl.addEventListener('beforeinput', this.#onBeforeInput, true)
   }
 
+  /** @returns {Document} */
+  #ownerDocument() {
+    return this.#rootEl.ownerDocument
+  }
+
+  /** @returns {(Window & typeof globalThis) | null} */
+  #ownerWindow() {
+    return /** @type {(Window & typeof globalThis) | null} */ (this.#ownerDocument().defaultView)
+  }
+
+  /** @returns {Selection | null} */
+  #nativeSelection() {
+    return this.#ownerWindow()?.getSelection?.() ?? null
+  }
+
   destroy() {
     this.#destroyed = true
     this.#rootEl.removeEventListener('copy', this.#onCopy, true)
@@ -249,10 +269,12 @@ export class Clipboard {
     const lineBreak = event.inputType === 'insertLineBreak'
     if (!deleting && !lineBreak && (typeof event.data !== 'string'
         || (event.inputType !== 'insertText' && event.inputType !== 'insertReplacementText'))) return
-    const target = event.target
-    if (!(target instanceof HTMLElement) || !target.isContentEditable
-        || !target.closest(BLOCK_SELECTOR) || target.closest('input, textarea, select')) return
-    const selection = window.getSelection()
+    const target = /** @type {Node | null} */ (event.target)
+    if (!target || target.nodeType !== ELEMENT_NODE) return
+    const targetElement = /** @type {HTMLElement} */ (target)
+    if (!targetElement.isContentEditable
+        || !targetElement.closest(BLOCK_SELECTOR) || targetElement.closest('input, textarea, select')) return
+    const selection = this.#nativeSelection()
     const range = this.#crossBlockSelection.range
       ?? (selection?.rangeCount ? selection.getRangeAt(0) : null)
     if (!range || range.collapsed || !this.#rootEl.contains(range.startContainer)
@@ -287,12 +309,13 @@ export class Clipboard {
    * @param {string | null} value
    */
   #replaceCrossRange(range, value) {
-    const selection = window.getSelection()
+    const ownerDocument = range.startContainer.ownerDocument ?? this.#ownerDocument()
+    const selection = ownerDocument.defaultView?.getSelection?.() ?? null
     if (!selection) return
     this.#commands.execute({ name: value === null ? 'selection.replaceLineBreak' : 'selection.replaceText', apply: () => {
       if (!this.#crossEditor.deleteContent(range, (...blocks) => this.#notifyChanged(...blocks))) return
       const caret = selection.getRangeAt(0)
-      const node = value === null ? document.createElement('br') : document.createTextNode(value)
+      const node = value === null ? ownerDocument.createElement('br') : ownerDocument.createTextNode(value)
       caret.insertNode(node)
       caret.setStartAfter(node)
       caret.collapse(true)
@@ -319,7 +342,7 @@ export class Clipboard {
     const insertLineBreak = e.key === 'Enter' && e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey
     const insertParagraph = e.key === 'Enter' && !e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey
     if ((insertParagraph || insertLineBreak || e.key === 'Backspace' || e.key === 'Delete') && !crossRange) {
-      const native = window.getSelection()
+      const native = this.#nativeSelection()
       const range = native?.rangeCount ? native.getRangeAt(0) : null
       if (range && !range.collapsed
           && this.#rootEl.contains(range.startContainer) && this.#rootEl.contains(range.endContainer)) {
@@ -377,7 +400,11 @@ export class Clipboard {
       const startOffset = crossRange.startOffset
       const endNode = crossRange.endContainer
       const endOffset = crossRange.endOffset
-      const pending = copyRange(e, rangeClipboardContent(crossRange, this.#captureSnapshot().blocks, this.#inlinePluginRegistry))
+      const pending = copyRange(
+        e,
+        rangeClipboardContent(crossRange, this.#captureSnapshot().blocks, this.#inlinePluginRegistry),
+        this.#ownerWindow(),
+      )
       if (!pending) return
       e.stopPropagation()
       void pending.then(copied => {
@@ -393,7 +420,11 @@ export class Clipboard {
       }).catch(error => console.warn('[Clipboard] Cut was not applied:', error))
     } else if (e.code === 'KeyC') {
       this.#clipboardOperation++
-      if (copyRange(e, rangeClipboardContent(crossRange, this.#captureSnapshot().blocks, this.#inlinePluginRegistry))) e.stopPropagation()
+      if (copyRange(
+        e,
+        rangeClipboardContent(crossRange, this.#captureSnapshot().blocks, this.#inlinePluginRegistry),
+        this.#ownerWindow(),
+      )) e.stopPropagation()
     }
   }
 
@@ -404,7 +435,7 @@ export class Clipboard {
   #copyRange() {
     const stored = this.#crossBlockSelection.range
     if (!stored && this.#blocks.hasSelectedBlocks()) return null
-    const selection = window.getSelection()
+    const selection = this.#nativeSelection()
     const range = stored ?? (selection?.rangeCount ? selection.getRangeAt(0) : null)
     if (!range || range.collapsed || !this.#rootEl.contains(range.startContainer)
         || !this.#rootEl.contains(range.endContainer)) return null
@@ -420,7 +451,9 @@ export class Clipboard {
   #handleCopy(e) {
     // Inputs may retain an unrelated document Range while owning their own
     // native selection. Never copy or cut that stale editor selection.
-    if (e.target instanceof Element && e.target.closest('input, textarea, select')) return false
+    const target = /** @type {Node | null} */ (e.target)
+    if (target?.nodeType === ELEMENT_NODE
+        && /** @type {Element} */ (target).closest('input, textarea, select')) return false
     this.#clipboardOperation++
     const crossRange = this.#copyRange()
     if (crossRange) {
@@ -486,7 +519,7 @@ export class Clipboard {
           crossRange.collapse(true)
           blocks.setCurrentIndex(blocks.getBlockIndex(first.id))
           field.focus()
-          const selection = window.getSelection()
+          const selection = crossRange.startContainer.ownerDocument?.defaultView?.getSelection?.() ?? null
           selection?.removeAllRanges()
           selection?.addRange(crossRange)
           this.#notifyChanged(first)
@@ -620,7 +653,7 @@ export class Clipboard {
    * @returns {Range | null}
    */
   #pasteRange() {
-    const native = window.getSelection()
+    const native = this.#nativeSelection()
     const range = this.#crossBlockSelection.range
       ?? (native?.rangeCount ? native.getRangeAt(0) : null)
     if (!range) return null
@@ -709,7 +742,9 @@ export class Clipboard {
     const fragment = parseClipboardFragment(fragmentData)
     if (fragment) {
       const parts = prepareHtmlPaste(fragment.html, {
-        router: this.#router, defaultBlockType: this.#defaultBlockType,
+        router: this.#router,
+        defaultBlockType: this.#defaultBlockType,
+        ownerDocument: this.#ownerDocument(),
       })
       if (parts.length) {
         prepared.html = parts.map(part => ({ ...part, inline: fragment.inline }))
@@ -726,7 +761,9 @@ export class Clipboard {
     const html = event.clipboardData?.getData('text/html') || ''
     if (html) {
       const parts = prepareHtmlPaste(html, {
-        router: this.#router, defaultBlockType: this.#defaultBlockType,
+        router: this.#router,
+        defaultBlockType: this.#defaultBlockType,
+        ownerDocument: this.#ownerDocument(),
       })
       if (parts.length) {
         prepared.html = parts
@@ -773,7 +810,8 @@ export class Clipboard {
    */
   async #pasteFiles(files, target) {
     const generation = this.#documentGeneration
-    const pendingHost = document.createElement('div')
+    const ownerDocument = this.#ownerDocument()
+    const pendingHost = ownerDocument.createElement('div')
     pendingHost.className = 'oe-pending-pastes'
     pendingHost.setAttribute('aria-live', 'polite')
     this.#pendingHosts.add(pendingHost)
@@ -881,17 +919,20 @@ export class Clipboard {
         exitEmptyBlock: () => false,
         readOnly: false,
       })
-      if (!(element instanceof HTMLElement)) {
+      const elementWindow = element?.ownerDocument?.defaultView
+      const HTMLElementCtor = elementWindow?.HTMLElement
+      if (!HTMLElementCtor || !(element instanceof HTMLElementCtor)) {
         console.error(`[Clipboard] File paste plugin "${plugin.type}" did not return an HTMLElement`)
         return null
       }
 
-      shell = document.createElement('div')
+      const ownerDocument = this.#ownerDocument()
+      shell = ownerDocument.createElement('div')
       shell.className = 'oe-block oe-block--pending-paste'
       shell.dataset.blockType = plugin.type
       shell.setAttribute('aria-busy', 'true')
       element.hidden = true
-      shell.append(createPendingPasteIndicator(this.#pendingPasteLabel), element)
+      shell.append(createPendingPasteIndicator(this.#pendingPasteLabel, ownerDocument), element)
       pendingHost.appendChild(shell)
 
       let cleaned = false
@@ -936,9 +977,10 @@ export class Clipboard {
     this.#blocks.setCurrentIndex(newIdx)
 
     newBlock.focus()
-    const sel = window.getSelection()
+    const ownerDocument = newBlock.contentElement.ownerDocument
+    const sel = ownerDocument.defaultView?.getSelection?.() ?? null
     if (sel) {
-      const range = document.createRange()
+      const range = ownerDocument.createRange()
       range.setStart(newBlock.contentElement, 0)
       range.collapse(true)
       sel.removeAllRanges()
