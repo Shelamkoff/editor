@@ -204,7 +204,8 @@ export function deserializeInlineHtml(html, inline, registry) {
         // Preserve malformed legacy entries as their original plain token.
         continue
       }
-      if (!(widget instanceof HTMLElement)) continue
+      const HTMLElementCtor = widget?.ownerDocument?.defaultView?.HTMLElement
+      if (!HTMLElementCtor || !(widget instanceof HTMLElementCtor)) continue
 
       // Preserve the text before the placeholder.
       if (match.index > lastIndex) {
