@@ -18,3 +18,29 @@ test('destroy suppresses an onChange callback whose save is already in flight', 
 
   assert.equal(calls, 0)
 })
+
+test('a newer scheduled save suppresses an older result that settles later', async () => {
+  const resolvers = []
+  const seen = []
+  const notifier = new ChangeNotifier(
+    () => new Promise(resolve => { resolvers.push(resolve) }),
+    data => seen.push(data.version),
+    0,
+  )
+
+  notifier.schedule()
+  await new Promise(resolve => setTimeout(resolve, 5))
+  notifier.schedule()
+  await new Promise(resolve => setTimeout(resolve, 5))
+
+  assert.equal(resolvers.length, 2)
+  resolvers[1]({ version: 'new', blocks: [] })
+  await Promise.resolve()
+  await Promise.resolve()
+  resolvers[0]({ version: 'old', blocks: [] })
+  await Promise.resolve()
+  await Promise.resolve()
+
+  assert.deepEqual(seen, ['new'])
+  notifier.destroy()
+})
