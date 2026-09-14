@@ -16,6 +16,9 @@ const ICON_CHEVRON = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height=
  * @returns {import('../../core/types').InlineControlGroup}
  */
 export function createHeadingLevelSelect(plugin, element, ctx, t, levels) {
+  const ownerDocument = element.ownerDocument
+  const ownerWindow = ownerDocument.defaultView
+  const HTMLElementCtor = ownerWindow?.HTMLElement
   let currentLevel = plugin.getLevel(element)
   let contentEl = element
   let dropdownOpen = false
@@ -26,32 +29,32 @@ export function createHeadingLevelSelect(plugin, element, ctx, t, levels) {
   let savedEndOffset = null
 
   // Select button: "H2 ▾"
-  const selectBtn = document.createElement('button')
+  const selectBtn = ownerDocument.createElement('button')
   selectBtn.type = 'button'
   selectBtn.className = 'oe-inline-toolbar__level-select'
   selectBtn.setAttribute('aria-label', t('level', 'Heading level'))
   selectBtn.setAttribute('aria-haspopup', 'menu')
   selectBtn.setAttribute('aria-expanded', 'false')
 
-  const label = document.createElement('span')
+  const label = ownerDocument.createElement('span')
   label.className = 'oe-inline-toolbar__level-label'
   label.textContent = `H${currentLevel}`
   selectBtn.appendChild(label)
 
-  const chevron = document.createElement('span')
+  const chevron = ownerDocument.createElement('span')
   chevron.className = 'oe-inline-toolbar__type-chevron'
   chevron.setAttribute('aria-hidden', 'true')
   chevron.innerHTML = ICON_CHEVRON
   selectBtn.appendChild(chevron)
 
   // Dropdown panel
-  const dropdown = document.createElement('div')
+  const dropdown = ownerDocument.createElement('div')
   dropdown.className = 'oe-inline-toolbar__level-dropdown'
   dropdown.setAttribute('role', 'menu')
   dropdown.style.display = 'none'
 
   for (const { level, key, icon } of levels) {
-    const item = document.createElement('button')
+    const item = ownerDocument.createElement('button')
     item.type = 'button'
     item.className = 'oe-inline-toolbar__type-item'
     item.setAttribute('role', 'menuitemradio')
@@ -61,12 +64,12 @@ export function createHeadingLevelSelect(plugin, element, ctx, t, levels) {
     }
     item.dataset.level = String(level)
 
-    const iconSpan = document.createElement('span')
+    const iconSpan = ownerDocument.createElement('span')
     iconSpan.className = 'oe-inline-toolbar__type-item-icon'
     iconSpan.innerHTML = icon
     item.appendChild(iconSpan)
 
-    const labelSpan = document.createElement('span')
+    const labelSpan = ownerDocument.createElement('span')
     labelSpan.className = 'oe-inline-toolbar__type-item-label'
     labelSpan.textContent = t(key, `Heading ${level}`)
     item.appendChild(labelSpan)
@@ -131,7 +134,7 @@ export function createHeadingLevelSelect(plugin, element, ctx, t, levels) {
     if (!dropdownOpen) openDropdown()
     const items = [...dropdown.querySelectorAll('[role="menuitemradio"]')]
     const target = e.key === 'ArrowUp' ? items.at(-1) : items[0]
-    if (target instanceof HTMLElement) target.focus()
+    if (HTMLElementCtor && target instanceof HTMLElementCtor) target.focus()
   })
   dropdown.addEventListener('keydown', (e) => {
     handleMenuKeydown(e, dropdown, {
@@ -144,7 +147,7 @@ export function createHeadingLevelSelect(plugin, element, ctx, t, levels) {
   })
 
   function saveRange() {
-    const sel = window.getSelection()
+    const sel = ownerWindow?.getSelection?.()
     if (sel && sel.rangeCount > 0) {
       const range = sel.getRangeAt(0)
       savedStartOffset = getTextOffset(contentEl, range.startContainer, range.startOffset)
@@ -172,12 +175,12 @@ export function createHeadingLevelSelect(plugin, element, ctx, t, levels) {
     if (selectBtn.contains(target) || dropdown.contains(target)) return
     closeDropdown()
   }
-  document.addEventListener('mousedown', onOutsideClick, true)
+  ownerDocument.addEventListener('mousedown', onOutsideClick, true)
 
   return {
     elements: [selectBtn, dropdown],
     destroy() {
-      document.removeEventListener('mousedown', onOutsideClick, true)
+      ownerDocument.removeEventListener('mousedown', onOutsideClick, true)
     },
   }
 }
