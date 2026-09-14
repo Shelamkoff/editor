@@ -1,11 +1,21 @@
-/** Reference-counted stylesheet ownership shared by editor and renderer. */
-const entries = new Map()
+/** Reference-counted stylesheet ownership, isolated per DOM document. */
+const entriesByDocument = new WeakMap()
 
-/** @param {string[]} urls */
-export function acquireStyleUrls(urls) {
-  const head = globalThis.document?.head
-  if (!head || typeof head.appendChild !== 'function') {
+/**
+ * Acquire stylesheet URLs for one owning document.
+ * @param {string[]} urls
+ * @param {Document | undefined | null} [ownerDocument]
+ */
+export function acquireStyleUrls(urls, ownerDocument = globalThis.document) {
+  const head = ownerDocument?.head
+  if (!ownerDocument || !head || typeof head.appendChild !== 'function') {
     return { destroy() {} }
+  }
+
+  let entries = entriesByDocument.get(ownerDocument)
+  if (!entries) {
+    entries = new Map()
+    entriesByDocument.set(ownerDocument, entries)
   }
 
   const tracked = []
@@ -14,7 +24,7 @@ export function acquireStyleUrls(urls) {
     if (existing) {
       existing.count++
     } else {
-      const link = document.createElement('link')
+      const link = ownerDocument.createElement('link')
       link.rel = 'stylesheet'
       link.href = url
       link.dataset.oeStyle = ''
@@ -38,6 +48,7 @@ export function acquireStyleUrls(urls) {
           entries.delete(url)
         }
       }
+      if (entries.size === 0) entriesByDocument.delete(ownerDocument)
     },
   }
 }
