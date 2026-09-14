@@ -11,121 +11,104 @@ const INHERITED_CSS_VARS = [
   '--oe-font', '--oe-transition', '--oe-surface', '--oe-surface-elevated',
 ]
 
-/**
- * Mobile offcanvas root + backdrop manager.
- *
- * On mobile the toolbox and block-settings menu are mounted into a wrapper
- * appended to `document.body` (so they can use `position: fixed` against
- * the viewport, not the editor's stacking context). This class owns:
- *  - the per-editor `.oe-offcanvas-root` element
- *  - the optional `.oe-offcanvas-backdrop` and its show/hide lifecycle
- *
- * Multiple editor instances on the same page get their own offcanvas root,
- * keyed by `data-editor-id`.
- */
+/** Mobile offcanvas root + backdrop manager. */
 export class OffcanvasRoot {
-  /** @type {HTMLElement} */
-  #editorRoot
-
-  /** Stable per-instance key used to isolate portalled DOM. */
+  /** @type {HTMLElement} */ #editorRoot
+  /** @type {Document} */ #document
+  /** @type {(Window & typeof globalThis) | null} */ #view
+  /** Legacy synthetic tests may omit ownerDocument entirely. */
+  #ambientFallback = false
   #instanceId = `oe-offcanvas-${++offcanvasSequence}`
-
-  /** @type {HTMLElement | null} */
-  #backdropEl = null
-
-  /** @type {ReturnType<typeof setTimeout> | null} */
-  #backdropTimer = null
-
-  /** Generation used to invalidate queued show frames after hide/destroy. */
+  /** @type {HTMLElement | null} */ #backdropEl = null
+  /** @type {ReturnType<typeof setTimeout> | null} */ #backdropTimer = null
   #backdropGeneration = 0
+  /** @type {() => void} */ #onBackdropClick
 
-  /** @type {() => void} */
-  #onBackdropClick
-
-  /**
-   * @param {HTMLElement} editorRoot
-   * @param {() => void} onBackdropClick
-   */
+  /** @param {HTMLElement} editorRoot @param {() => void} onBackdropClick */
   constructor(editorRoot, onBackdropClick) {
     this.#editorRoot = editorRoot
+    const ownerDocument = editorRoot.ownerDocument ?? null
+    this.#document = ownerDocument ?? document
+    this.#view = /** @type {(Window & typeof globalThis) | null} */ (ownerDocument?.defaultView ?? null)
+    this.#ambientFallback = !ownerDocument
     this.#onBackdropClick = onBackdropClick
   }
 
-  /**
-   * Get (or lazily create) the offcanvas root element for this editor instance.
-   * @returns {HTMLElement}
-   */
   getRoot() {
     const selector = this.#selector()
-    let root = /** @type {HTMLElement | null} */ (document.querySelector(selector))
+    let root = /** @type {HTMLElement | null} */ (this.#document.querySelector(selector))
     if (root) return root
 
-    root = el('div', 'oe-offcanvas-root oe-editor')
+    root = el('div', 'oe-offcanvas-root oe-editor', undefined, this.#document)
     root.setAttribute('data-editor-id', this.#instanceId)
 
-    // Copy computed CSS custom properties from the editor so the offcanvas
-    // surface visually matches the editor theme.
-    const styles = getComputedStyle(this.#editorRoot)
-    for (const prop of INHERITED_CSS_VARS) {
-      const val = styles.getPropertyValue(prop)
-      if (val) root.style.setProperty(prop, val)
+    const getStyle = this.#view?.getComputedStyle?.bind(this.#view)
+      ?? (this.#ambientFallback ? globalThis.getComputedStyle : undefined)
+    const styles = getStyle?.(this.#editorRoot)
+    if (styles) {
+      for (const prop of INHERITED_CSS_VARS) {
+        const val = styles.getPropertyValue(prop)
+        if (val) root.style.setProperty(prop, val)
+      }
     }
 
-    document.body.appendChild(root)
+    this.#document.body.appendChild(root)
     return root
   }
 
-  /**
-   * Show the backdrop (creates it if needed). Cancels any pending hide.
-   */
   showBackdrop() {
     if (this.#backdropTimer) {
-      clearTimeout(this.#backdropTimer)
+      const clearTimer = this.#view?.clearTimeout?.bind(this.#view)
+        ?? (this.#ambientFallback ? clearTimeout : null)
+      clearTimer?.(this.#backdropTimer)
       this.#backdropTimer = null
     }
 
     if (!this.#backdropEl) {
-      this.#backdropEl = el('div', 'oe-offcanvas-backdrop')
+      this.#backdropEl = el('div', 'oe-offcanvas-backdrop', undefined, this.#document)
       this.#backdropEl.addEventListener('click', this.#onBackdropClick)
       this.getRoot().appendChild(this.#backdropEl)
     }
 
     const generation = ++this.#backdropGeneration
-    requestAnimationFrame(() => {
+    const reveal = () => {
       if (generation !== this.#backdropGeneration) return
       this.#backdropEl?.classList.add('oe-offcanvas-backdrop--visible')
-    })
+    }
+    const requestFrame = this.#view?.requestAnimationFrame?.bind(this.#view)
+      ?? (this.#ambientFallback ? requestAnimationFrame : null)
+    if (requestFrame) requestFrame(reveal)
+    else queueMicrotask(reveal)
   }
 
-  /**
-   * Animate the backdrop out, then remove it.
-   */
   hideBackdrop() {
     ++this.#backdropGeneration
     if (!this.#backdropEl) return
     this.#backdropEl.classList.remove('oe-offcanvas-backdrop--visible')
-    this.#backdropTimer = setTimeout(() => {
+    const remove = () => {
       this.#backdropEl?.remove()
       this.#backdropEl = null
       this.#backdropTimer = null
-    }, OFFCANVAS_ANIMATION_MS)
+    }
+    const setTimer = this.#view?.setTimeout?.bind(this.#view)
+      ?? (this.#ambientFallback ? setTimeout : null)
+    if (setTimer) this.#backdropTimer = setTimer(remove, OFFCANVAS_ANIMATION_MS)
+    else remove()
   }
 
-  /**
-   * Final cleanup — remove the backdrop and the offcanvas root.
-   */
   destroy() {
     ++this.#backdropGeneration
     if (this.#backdropTimer) {
-      clearTimeout(this.#backdropTimer)
+      const clearTimer = this.#view?.clearTimeout?.bind(this.#view)
+        ?? (this.#ambientFallback ? clearTimeout : null)
+      clearTimer?.(this.#backdropTimer)
       this.#backdropTimer = null
     }
     this.#backdropEl?.remove()
     this.#backdropEl = null
-    document.querySelector(this.#selector())?.remove()
+    this.#document.querySelector(this.#selector())?.remove()
   }
 
-  /** @returns {string} */
   #selector() {
     return `.oe-offcanvas-root[data-editor-id="${this.#instanceId}"]`
   }
