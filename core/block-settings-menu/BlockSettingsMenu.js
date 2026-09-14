@@ -106,7 +106,7 @@ export class BlockSettingsMenu {
     const restore = options.restoreSelection ?? true
     this.#open = false
     this.#menuEl.style.display = 'none'
-    CrossBlockSelection.hideHighlight()
+    if (this.#savedRange) CrossBlockSelection.hideHighlight(this.#savedRange)
     if (restore) this.#restoreSelection()
     this.#savedRange = null
     this.#onCloseCallback?.()

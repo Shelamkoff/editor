@@ -2,6 +2,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
+import { CrossBlockSelection } from './CrossBlockSelection.js'
 import { TypeSelector } from './TypeSelector.js'
 
 function createElementFactory(ownerDocument, focused) {
@@ -38,6 +39,36 @@ function createElementFactory(ownerDocument, focused) {
     }
     return element
   }
+}
+
+function createHighlightRealm() {
+  const highlights = new Map()
+  class Highlight {
+    constructor(range) { this.range = range }
+  }
+  const view = {
+    innerHeight: 800,
+    CSS: { highlights },
+    Highlight,
+    requestAnimationFrame(callback) { callback(); return 1 },
+  }
+  const document = { defaultView: view }
+  const startContainer = { nodeType: 3, ownerDocument: document, isConnected: true, parentElement: null }
+  const endContainer = { nodeType: 3, ownerDocument: document, isConnected: true, parentElement: null }
+  const range = {
+    collapsed: false,
+    startContainer,
+    endContainer,
+    cloneRange() { return this },
+  }
+  const selection = {
+    rangeCount: 1,
+    getRangeAt() { return range },
+    removeAllRanges() {},
+    addRange() {},
+  }
+  view.getSelection = () => selection
+  return { document, view, range, highlights }
 }
 
 test('type selector creates, reads selection and schedules focus in the block owning realm', () => {
@@ -85,5 +116,42 @@ test('type selector creates, reads selection and schedules focus in the block ow
     globalThis.document = previousDocument
     globalThis.window = previousWindow
     globalThis.requestAnimationFrame = previousRaf
+  }
+})
+
+test('closing type selector clears only its own highlight registry', () => {
+  const own = createHighlightRealm()
+  const foreign = createHighlightRealm()
+  const focused = { count: 0 }
+  own.document.createElement = createElementFactory(own.document, focused)
+
+  const block = { type: 'paragraph', contentElement: { ownerDocument: own.document } }
+  const blocks = { getCurrentBlock: () => block }
+  const plugin = { type: 'paragraph', title: 'Paragraph', icon: '<i></i>' }
+  CrossBlockSelection.showHighlight(foreign.range)
+
+  let selector
+  try {
+    selector = new TypeSelector(
+      blocks,
+      {},
+      new Map([['paragraph', plugin]]),
+      { execute(command) { return command.apply() } },
+      null,
+      { range: null },
+      { emit() {} },
+      { filterThreshold: 7 },
+    )
+    selector.selectButton.listeners.get('click')({ preventDefault() {}, stopPropagation() {} })
+    assert.equal(own.highlights.has('oe-cross-select'), true)
+    assert.equal(foreign.highlights.has('oe-cross-select'), true)
+
+    selector.close()
+
+    assert.equal(own.highlights.has('oe-cross-select'), false)
+    assert.equal(foreign.highlights.has('oe-cross-select'), true)
+  } finally {
+    selector?.destroy()
+    CrossBlockSelection.hideHighlight(foreign.range)
   }
 })

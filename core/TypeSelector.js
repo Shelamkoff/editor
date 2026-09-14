@@ -96,7 +96,7 @@ export class TypeSelector {
     this.#dropdownOpen = false
     this.#dropdown.style.display = 'none'
     this.#selectBtn.setAttribute('aria-expanded', 'false')
-    CrossBlockSelection.hideHighlight()
+    if (this.#savedRange) CrossBlockSelection.hideHighlight(this.#savedRange)
     this.#restoreSelection()
     this.#savedRange = null
   }
