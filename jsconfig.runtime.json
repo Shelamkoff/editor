@@ -1,0 +1,13 @@
+{
+  "extends": "./jsconfig.json",
+  "include": [
+    "index.js",
+    "core/**/*.js",
+    "inline-plugins/**/*.js",
+    "inline-tools/**/*.js",
+    "locale/**/*.js",
+    "plugins/**/*.js",
+    "renderer/**/*.js",
+    "shared/**/*.js"
+  ]
+}

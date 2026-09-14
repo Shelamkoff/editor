@@ -93,7 +93,7 @@
   "scripts": {
     "build": "npm run docs:validate-readmes && node scripts/build-package.mjs",
     "build:types": "node scripts/generate-declarations.mjs --out dist",
-    "typecheck": "node node_modules/typescript/bin/tsc -p jsconfig.json",
+    "typecheck": "node node_modules/typescript/bin/tsc -p jsconfig.json && node node_modules/typescript/bin/tsc -p jsconfig.runtime.json",
     "docs:validate-readmes": "node scripts/validate-extension-readmes.mjs",
     "docs:sync": "npm run docs:validate-readmes && node scripts/sync-vitepress-readmes.mjs",
     "docs:dev": "npm run docs:sync && vitepress dev docs --host 127.0.0.1",
