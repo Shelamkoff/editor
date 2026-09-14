@@ -112,7 +112,7 @@ export function register() {
       })
 
       equal(parts.length, 1)
-      equal(seenDocument, doc, 'paste parser created plugin input in the ambient document')
+      assert(seenDocument === doc, 'paste parser created plugin input in the ambient document')
     } finally {
       iframe.remove()
     }
