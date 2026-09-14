@@ -81,11 +81,6 @@ export class Block {
       ? cloneEditorData(metadata.inline)
       : undefined
 
-    this.#element = el('div', BLOCK_CLASS, {
-      'data-block-id': this.#id,
-      'data-block-type': this.#type,
-    })
-
     const contentElement = plugin.render(data || {}, {
       mutate: (operation) => this.#runMutation(operation),
       splitBlock: () => {
@@ -94,9 +89,14 @@ export class Block {
       exitEmptyBlock: () => this.#destroyed || this.#readOnly ? false : this.#exitEmptyBlock?.() ?? false,
       readOnly: this.#readOnly,
     })
-    if (!(contentElement instanceof HTMLElement)) {
+    const HTMLElementCtor = contentElement?.ownerDocument?.defaultView?.HTMLElement ?? globalThis.HTMLElement
+    if (!HTMLElementCtor || !(contentElement instanceof HTMLElementCtor)) {
       throw new TypeError(`Block plugin "${this.#type}" render() must return an HTMLElement`)
     }
+    this.#element = el('div', BLOCK_CLASS, {
+      'data-block-id': this.#id,
+      'data-block-type': this.#type,
+    }, contentElement.ownerDocument ?? globalThis.document)
     this.#contentElement = contentElement
     this.#applyTextAlignTune()
     this.#applyReadOnly()
@@ -214,13 +214,15 @@ export class Block {
     // A literal token already authored in the recipient must stay literal.
     // Reserve only text nodes, not attributes or widget-owned labels, using
     // the same token boundaries as the serializer.
-    const walker = document.createTreeWalker(this.#contentElement, NodeFilter.SHOW_TEXT)
+    const ownerDocument = this.#contentElement.ownerDocument ?? globalThis.document
+    const showText = ownerDocument.defaultView?.NodeFilter?.SHOW_TEXT ?? globalThis.NodeFilter?.SHOW_TEXT ?? 4
+    const walker = ownerDocument.createTreeWalker(this.#contentElement, showText)
     while (walker.nextNode()) {
       const node = walker.currentNode
       if (node.parentElement?.closest('[data-inline-plugin]')) continue
       for (const [, id] of (node.textContent || '').matchAll(/\{\{([A-Za-z0-9_-]+)\}\}/g)) occupied.add(id)
     }
-    const result = transferInlineContent(html, inline, occupied)
+    const result = transferInlineContent(html, inline, occupied, ownerDocument)
     if (Object.keys(result.inline).length) {
       this.#preservedInline = { ...this.#preservedInline, ...result.inline }
       this.markDirty()
@@ -356,26 +358,32 @@ export class Block {
     if (!this.#readOnly) return
 
     this.#contentElement.setAttribute('aria-readonly', 'true')
+    const view = this.#contentElement.ownerDocument?.defaultView ?? globalThis
+    const HTMLElementCtor = view?.HTMLElement
+    const HTMLInputElementCtor = view?.HTMLInputElement
+    const HTMLTextAreaElementCtor = view?.HTMLTextAreaElement
+    const HTMLButtonElementCtor = view?.HTMLButtonElement
+    const HTMLSelectElementCtor = view?.HTMLSelectElement
     /** @type {HTMLElement[]} */
     const editableElements = []
     if (this.#contentElement.matches('[contenteditable]')) {
       editableElements.push(this.#contentElement)
     }
     for (const editableElement of this.#contentElement.querySelectorAll('[contenteditable]')) {
-      if (editableElement instanceof HTMLElement) editableElements.push(editableElement)
+      if (HTMLElementCtor && editableElement instanceof HTMLElementCtor) editableElements.push(editableElement)
     }
     for (const editableElement of editableElements) {
       editableElement.contentEditable = 'false'
     }
 
     for (const field of this.#contentElement.querySelectorAll('input, textarea')) {
-      if (field instanceof HTMLInputElement) field.readOnly = true
-      else if (field instanceof HTMLTextAreaElement) field.readOnly = true
+      if (HTMLInputElementCtor && field instanceof HTMLInputElementCtor) field.readOnly = true
+      else if (HTMLTextAreaElementCtor && field instanceof HTMLTextAreaElementCtor) field.readOnly = true
     }
     for (const control of this.#contentElement.querySelectorAll('button, select')) {
       if (control.hasAttribute(READ_ONLY_INTERACTIVE_ATTRIBUTE)) continue
-      if (control instanceof HTMLButtonElement) control.disabled = true
-      else if (control instanceof HTMLSelectElement) control.disabled = true
+      if (HTMLButtonElementCtor && control instanceof HTMLButtonElementCtor) control.disabled = true
+      else if (HTMLSelectElementCtor && control instanceof HTMLSelectElementCtor) control.disabled = true
     }
   }
 
@@ -401,17 +409,18 @@ export class Block {
    * Focus the first editable or focusable element within the block.
    */
   focus() {
+    const HTMLElementCtor = this.#contentElement.ownerDocument?.defaultView?.HTMLElement ?? globalThis.HTMLElement
     if (this.#contentElement.contentEditable === 'true' || this.#contentElement.tabIndex >= 0) {
       this.#contentElement.focus()
       return
     }
     const editable = this.#contentElement.querySelector('[contenteditable="true"]')
-    if (editable instanceof HTMLElement) {
+    if (HTMLElementCtor && editable instanceof HTMLElementCtor) {
       editable.focus()
       return
     }
     const focusable = this.#contentElement.querySelector('input, textarea, [tabindex]')
-    if (focusable instanceof HTMLElement) {
+    if (HTMLElementCtor && focusable instanceof HTMLElementCtor) {
       focusable.focus()
       return
     }
