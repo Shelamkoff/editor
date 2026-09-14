@@ -38,6 +38,8 @@ import { setSafeUrlAttribute } from '../../shared/sanitize/sanitizeUrl.js'
 
 /** Absolute URL to the plugin's stylesheet. */
 const STYLES_URL = new URL('./styles.css', import.meta.url).href
+const ELEMENT_NODE = 1
+const TEXT_NODE = 3
 
 const DEFAULTS = Object.freeze({
   trigger: '@',
@@ -59,8 +61,16 @@ const COMBOBOX_ARIA_ATTRIBUTES = Object.freeze([
   'aria-activedescendant',
 ])
 
-function createElement(tag, className) {
-  const el = document.createElement(tag)
+/** @param {unknown} value @returns {value is HTMLElement} */
+function isHTMLElement(value) {
+  const element = /** @type {any} */ (value)
+  const HTMLElementCtor = element?.ownerDocument?.defaultView?.HTMLElement
+  return !!HTMLElementCtor && element instanceof HTMLElementCtor
+}
+
+/** @param {Document} ownerDocument @param {string} tag @param {string} [className] */
+function createElement(ownerDocument, tag, className) {
+  const el = ownerDocument.createElement(tag)
   if (className) el.className = className
   return el
 }
@@ -110,9 +120,19 @@ class DropdownUI {
     this._options = options
     /** @type {HTMLElement | null} */
     this._el = null
+    /** @type {Document | null} */
+    this._document = null
+    /** @type {(Window & typeof globalThis) | null} */
+    this._view = null
   }
 
   get el() { return this._el }
+
+  /** @param {string} tag @param {string} [className] */
+  _createElement(tag, className) {
+    if (!this._document) throw new Error('Mention dropdown is not mounted')
+    return createElement(this._document, tag, className)
+  }
 
   /**
    * Mount inside the owning editor so the floating surface inherits the
@@ -123,11 +143,13 @@ class DropdownUI {
   mount(container) {
     if (this._el) this.destroy()
 
+    this._document = container.ownerDocument
+    this._view = /** @type {(Window & typeof globalThis) | null} */ (this._document.defaultView)
     const cls = ['oe-mention-dropdown', this._options.dropdownClass]
       .filter(Boolean)
       .join(' ')
 
-    this._el = createElement('div', cls)
+    this._el = this._createElement('div', cls)
     this._el.id = `oe-mention-listbox-${++dropdownSequence}`
     this._el.setAttribute('role', 'listbox')
     container.appendChild(this._el)
@@ -173,7 +195,7 @@ class DropdownUI {
   _buildItem(data, index, selectedIndex) {
     if (this._options.renderItem) {
       const custom = this._options.renderItem(data, index, index === selectedIndex)
-      if (custom instanceof HTMLElement) {
+      if (isHTMLElement(custom)) {
         if (!custom.classList.contains('oe-mention-item')) custom.classList.add('oe-mention-item')
         if (index === selectedIndex) custom.classList.add('oe-mention-item--active')
         custom.dataset.index = String(index)
@@ -184,31 +206,31 @@ class DropdownUI {
       }
     }
 
-    const el = createElement('div', 'oe-mention-item' + (index === selectedIndex ? ' oe-mention-item--active' : ''))
+    const el = this._createElement('div', 'oe-mention-item' + (index === selectedIndex ? ' oe-mention-item--active' : ''))
     el.dataset.index = String(index)
     el.id = `${this._el?.id || 'oe-mention-listbox'}-option-${index}`
     el.setAttribute('role', 'option')
     el.setAttribute('aria-selected', String(index === selectedIndex))
 
     if (data.avatar) {
-      const img = document.createElement('img')
+      const img = this._createElement('img')
       setSafeUrlAttribute(img, 'src', data.avatar, 'media')
       img.alt = ''
       img.className = 'oe-mention-avatar'
       el.appendChild(img)
     } else {
-      const placeholder = createElement('div', 'oe-mention-avatar-placeholder')
+      const placeholder = this._createElement('div', 'oe-mention-avatar-placeholder')
       placeholder.textContent = (data.name || '?').charAt(0).toUpperCase()
       el.appendChild(placeholder)
     }
 
-    const info = createElement('div', 'oe-mention-info')
-    const name = createElement('div', 'oe-mention-name')
+    const info = this._createElement('div', 'oe-mention-info')
+    const name = this._createElement('div', 'oe-mention-name')
     name.textContent = data.name || ''
     info.appendChild(name)
 
     if (data.details) {
-      const details = createElement('div', 'oe-mention-details')
+      const details = this._createElement('div', 'oe-mention-details')
       details.textContent = data.details
       info.appendChild(details)
     }
@@ -220,14 +242,14 @@ class DropdownUI {
   _buildNoResults() {
     if (this._options.renderNoResults) {
       const custom = this._options.renderNoResults(this._options.noResultsText)
-      if (custom instanceof HTMLElement) {
+      if (isHTMLElement(custom)) {
         custom.classList.add('oe-mention-no-results')
         custom.setAttribute('role', 'status')
         return custom
       }
     }
 
-    const el = createElement('div', 'oe-mention-item oe-mention-no-results')
+    const el = this._createElement('div', 'oe-mention-item oe-mention-no-results')
     el.setAttribute('role', 'status')
     el.innerHTML = `
       <div class="oe-mention-avatar-placeholder">?</div>
@@ -259,7 +281,7 @@ class DropdownUI {
 
     if (this._options.renderLoading) {
       const custom = this._options.renderLoading()
-      if (custom instanceof HTMLElement) {
+      if (isHTMLElement(custom)) {
         if (!custom.classList.contains('oe-mention-loading')) custom.classList.add('oe-mention-loading')
         custom.setAttribute('role', 'status')
         this._el.appendChild(custom)
@@ -267,7 +289,7 @@ class DropdownUI {
       }
     }
 
-    const loader = createElement('div', 'oe-mention-loading')
+    const loader = this._createElement('div', 'oe-mention-loading')
     loader.setAttribute('role', 'status')
     loader.innerHTML = `
       <div class="oe-mention-item">
@@ -286,7 +308,8 @@ class DropdownUI {
   /** @param {{ top: number, left: number, cursorY: number, lineHeight?: number }} p */
   position(p) {
     if (!this._el) return
-    requestAnimationFrame(() => this._positionRaw(p))
+    if (this._view?.requestAnimationFrame) this._view.requestAnimationFrame(() => this._positionRaw(p))
+    else queueMicrotask(() => this._positionRaw(p))
   }
 
   /** @param {{ top: number, left: number, cursorY: number, lineHeight?: number }} p */
@@ -303,8 +326,8 @@ class DropdownUI {
     this._el.style.left = left + 'px'
 
     const rect = this._el.getBoundingClientRect()
-    const vw = window.innerWidth
-    const vh = window.innerHeight
+    const vw = this._view?.innerWidth ?? this._document?.documentElement.clientWidth ?? 0
+    const vh = this._view?.innerHeight ?? this._document?.documentElement.clientHeight ?? 0
     let newLeft = left
     let newTop = top
 
@@ -329,6 +352,8 @@ class DropdownUI {
       this._el.remove()
       this._el = null
     }
+    this._document = null
+    this._view = null
   }
 }
 
@@ -349,6 +374,21 @@ export function createMentionPlugin(options = {}) {
   // deliberately side-effect free so failed registration cannot leak them.
   /** @type {HTMLElement | null} */
   let rootElement = null
+
+  /** @param {Node | null | undefined} [node] @returns {Document | null} */
+  function documentFor(node = null) {
+    return node?.ownerDocument ?? rootElement?.ownerDocument ?? null
+  }
+
+  /** @param {Node | null | undefined} [node] @returns {(Window & typeof globalThis) | null} */
+  function viewFor(node = null) {
+    return /** @type {(Window & typeof globalThis) | null} */ (documentFor(node)?.defaultView ?? null)
+  }
+
+  /** @param {Node | null | undefined} [node] @returns {Selection | null} */
+  function selectionFor(node = null) {
+    return viewFor(node)?.getSelection?.() ?? null
+  }
 
   // handleBeforeInput is attached to the owning editor root by mount().
 
@@ -443,9 +483,10 @@ export function createMentionPlugin(options = {}) {
    * @param {number} offset
    */
   function setCaretAt(node, offset) {
-    const sel = window.getSelection()
-    if (!sel) return
-    const range = document.createRange()
+    const doc = documentFor(node)
+    const sel = selectionFor(node)
+    if (!doc || !sel) return
+    const range = doc.createRange()
     range.setStart(node, offset)
     range.collapse(true)
     sel.removeAllRanges()
@@ -454,9 +495,10 @@ export function createMentionPlugin(options = {}) {
 
   /** @param {Node} node */
   function setCaretAfterNode(node) {
-    const sel = window.getSelection()
-    if (!sel) return
-    const range = document.createRange()
+    const doc = documentFor(node)
+    const sel = selectionFor(node)
+    if (!doc || !sel) return
+    const range = doc.createRange()
     range.setStartAfter(node)
     range.collapse(true)
     sel.removeAllRanges()
@@ -465,9 +507,10 @@ export function createMentionPlugin(options = {}) {
 
   /** @param {Node} node */
   function setCaretBeforeNode(node) {
-    const sel = window.getSelection()
-    if (!sel) return
-    const range = document.createRange()
+    const doc = documentFor(node)
+    const sel = selectionFor(node)
+    if (!doc || !sel) return
+    const range = doc.createRange()
     range.setStartBefore(node)
     range.collapse(true)
     sel.removeAllRanges()
@@ -503,10 +546,10 @@ export function createMentionPlugin(options = {}) {
    * @returns {HTMLElement | null}
    */
   function findMentionSpanAtCaret() {
-    const sel = window.getSelection()
+    const sel = selectionFor(rootElement)
     if (!sel || !sel.anchorNode) return null
     const node = sel.anchorNode
-    if (node.nodeType === Node.ELEMENT_NODE) {
+    if (node.nodeType === ELEMENT_NODE) {
       const el = /** @type {HTMLElement} */ (node)
       if (el.matches?.('[data-inline-plugin="mention"]')) return el
       return el.closest?.('[data-inline-plugin="mention"]') ?? null
@@ -518,7 +561,7 @@ export function createMentionPlugin(options = {}) {
 
   /** @param {Node} el */
   function inDOM(el) {
-    return !!el && document.contains(el)
+    return !!el && !!el.ownerDocument?.contains(el)
   }
 
   /**
@@ -529,18 +572,18 @@ export function createMentionPlugin(options = {}) {
    */
   function backspaceBeforeSpan(span) {
     const prev = span.previousSibling
-    if (prev && prev.nodeType === Node.TEXT_NODE && prev.textContent && prev.textContent.length > 0) {
+    if (prev && prev.nodeType === TEXT_NODE && prev.textContent && prev.textContent.length > 0) {
       prev.textContent = prev.textContent.slice(0, codePointStartBefore(prev.textContent, prev.textContent.length))
       if (prev.textContent.length === 0) prev.parentNode?.removeChild(prev)
       setCaretBeforeNode(span)
       return
     }
-    if (prev && prev.nodeType === Node.ELEMENT_NODE) {
+    if (prev && prev.nodeType === ELEMENT_NODE) {
       const prevEl = /** @type {HTMLElement} */ (prev)
       if (prevEl.matches('[data-inline-plugin="mention"]')) {
         // Walk into the previous committed mention for further editing.
         const text = prevEl.firstChild
-        if (text?.nodeType === Node.TEXT_NODE) {
+        if (text?.nodeType === TEXT_NODE) {
           setCaretAt(text, text.textContent?.length ?? 0)
         }
         openEditSessionForSpan(prevEl)
@@ -568,7 +611,7 @@ export function createMentionPlugin(options = {}) {
       if (next) setCaretBeforeNode(next)
     } else {
       const remaining = spanText.substring(opts.trigger.length)
-      const tn = document.createTextNode(remaining)
+      const tn = span.ownerDocument.createTextNode(remaining)
       span.parentNode?.insertBefore(tn, span)
       span.parentNode?.removeChild(span)
       setCaretAt(tn, 0)
@@ -584,7 +627,7 @@ export function createMentionPlugin(options = {}) {
   function deleteForwardAfterNode(node) {
     const next = node.nextSibling
     if (!next) return
-    if (next.nodeType === Node.TEXT_NODE && next.textContent && next.textContent.length > 0) {
+    if (next.nodeType === TEXT_NODE && next.textContent && next.textContent.length > 0) {
       next.textContent = next.textContent.substring(codePointEndAt(next.textContent, 0))
       if (next.textContent.length === 0) next.parentNode?.removeChild(next)
     } else {
@@ -601,13 +644,24 @@ export function createMentionPlugin(options = {}) {
   function insertBr(sel) {
     if (!sel.rangeCount) return
     const range = sel.getRangeAt(0)
+    const doc = documentFor(range.startContainer)
+    if (!doc) return
     range.deleteContents()
-    const br = document.createElement('br')
+    const br = doc.createElement('br')
     range.insertNode(br)
     range.setStartAfter(br)
     range.collapse(true)
     sel.removeAllRanges()
     sel.addRange(range)
+  }
+
+  /** @param {Session} activeSession */
+  function clearDebounceTimer(activeSession) {
+    if (!activeSession.debounceTimer) return
+    const view = viewFor(activeSession.parentEl)
+    if (view) view.clearTimeout(activeSession.debounceTimer)
+    else clearTimeout(activeSession.debounceTimer)
+    activeSession.debounceTimer = null
   }
 
   // ─── Search pipeline (1:1 with mentionjs) ──────────────────────────────
@@ -623,7 +677,10 @@ export function createMentionPlugin(options = {}) {
     if (!session) return null
 
     session.searchController?.abort()
-    const controller = new AbortController()
+    const view = viewFor(session.parentEl)
+    const AbortControllerCtor = view?.AbortController
+    if (!AbortControllerCtor) return null
+    const controller = new AbortControllerCtor()
     session.searchController = controller
 
     if (!nextPageUrl) {
@@ -632,10 +689,7 @@ export function createMentionPlugin(options = {}) {
         session.debounceReject(new Error('cancelled'))
         session.debounceReject = null
       }
-      if (session.debounceTimer) {
-        clearTimeout(session.debounceTimer)
-        session.debounceTimer = null
-      }
+      clearDebounceTimer(session)
     }
 
     const requestId = ++session.searchRequestId
@@ -652,10 +706,14 @@ export function createMentionPlugin(options = {}) {
       if (!nextPageUrl && query.trim() !== '') {
         raw = await new Promise((resolve, reject) => {
           capturedSession.debounceReject = reject
-          capturedSession.debounceTimer = setTimeout(() => {
+          const ownerView = viewFor(capturedSession.parentEl)
+          const schedule = () => {
             capturedSession.debounceReject = null
             execute().then(resolve).catch(reject)
-          }, opts.debounceDelay ?? 300)
+          }
+          capturedSession.debounceTimer = ownerView
+            ? ownerView.setTimeout(schedule, opts.debounceDelay ?? 300)
+            : setTimeout(schedule, opts.debounceDelay ?? 300)
         })
       } else {
         raw = await execute()
@@ -737,12 +795,14 @@ export function createMentionPlugin(options = {}) {
     const tn = session.triggerTextNode
     if (!tn) return null
 
-    const sel = window.getSelection()
+    const sel = selectionFor(session.parentEl)
     if (!sel || !sel.rangeCount) return null
     const anchorNode = sel.anchorNode
     const anchorOffset = sel.anchorOffset
 
-    const range = document.createRange()
+    const doc = documentFor(tn)
+    if (!doc) return null
+    const range = doc.createRange()
     try {
       range.setStart(tn, session.triggerOffset)
       if (anchorNode && anchorNode === tn) {
@@ -829,10 +889,12 @@ export function createMentionPlugin(options = {}) {
     const triggerNode = session.triggerTextNode
     const triggerOffset = session.triggerOffset
     const currentQueryLen = session.currentQuery.length
+    const doc = documentFor(session.parentEl)
+    if (!doc) return false
 
     const widget = createWidget({ id: String(data.id), name: String(data.name) })
-    const space = document.createTextNode('\u00A0')
-    const sel = window.getSelection()
+    const space = doc.createTextNode('\u00A0')
+    const sel = selectionFor(session.parentEl)
 
     // ─── Primary path: triggerNode still in DOM ────────────────────────
     if (triggerNode && inDOM(triggerNode)) {
@@ -850,11 +912,11 @@ export function createMentionPlugin(options = {}) {
       const parent = triggerNode.parentNode
 
       if (parent) {
-        const frag = document.createDocumentFragment()
-        if (beforeText) frag.appendChild(document.createTextNode(beforeText))
+        const frag = doc.createDocumentFragment()
+        if (beforeText) frag.appendChild(doc.createTextNode(beforeText))
         frag.appendChild(widget)
         frag.appendChild(space)
-        if (afterText) frag.appendChild(document.createTextNode(afterText))
+        if (afterText) frag.appendChild(doc.createTextNode(afterText))
         parent.replaceChild(frag, triggerNode)
         setCaretAt(space, 1)
         return true
@@ -902,13 +964,13 @@ export function createMentionPlugin(options = {}) {
     span.setAttribute('data-value', String(data.id))
 
     const next = span.nextSibling
-    const nextText = next && next.nodeType === Node.TEXT_NODE ? (next.textContent || '') : ''
+    const nextText = next && next.nodeType === TEXT_NODE ? (next.textContent || '') : ''
     const hasSpace = nextText.length > 0 && /^[\s\u00A0]/.test(nextText)
 
     if (hasSpace && next) {
       setCaretAt(next, 1)
     } else {
-      const space = document.createTextNode('\u00A0')
+      const space = span.ownerDocument.createTextNode('\u00A0')
       span.after(space)
       setCaretAt(space, 1)
     }
@@ -930,10 +992,7 @@ export function createMentionPlugin(options = {}) {
       session.debounceReject(new Error('cancelled'))
       session.debounceReject = null
     }
-    if (session.debounceTimer) {
-      clearTimeout(session.debounceTimer)
-      session.debounceTimer = null
-    }
+    clearDebounceTimer(session)
     session.searchController?.abort()
     session.searchController = null
     session.searchRequestId++
@@ -944,9 +1003,10 @@ export function createMentionPlugin(options = {}) {
     unbindScrollResize()
     session.dropdown.destroy()
 
-    document.removeEventListener('keydown', session.keydownHandler, true)
-    document.removeEventListener('selectionchange', session.selectionChangeHandler)
-    document.removeEventListener('mousedown', session.outsideMouseDownHandler, true)
+    const doc = session.parentEl.ownerDocument
+    doc.removeEventListener('keydown', session.keydownHandler, true)
+    doc.removeEventListener('selectionchange', session.selectionChangeHandler)
+    doc.removeEventListener('mousedown', session.outsideMouseDownHandler, true)
     const closingSession = session
     session = null
 
@@ -981,7 +1041,7 @@ export function createMentionPlugin(options = {}) {
       } else {
         const text = span.textContent || ''
         mutateContent(closingSession.parentEl, () => {
-          const tn = document.createTextNode(text)
+          const tn = span.ownerDocument.createTextNode(text)
           const parent = span.parentNode
           if (!parent) return
           parent.insertBefore(tn, span)
@@ -1068,7 +1128,7 @@ export function createMentionPlugin(options = {}) {
 
   function handleSelectionChange() {
     if (!session) return
-    const sel = window.getSelection()
+    const sel = selectionFor(session.parentEl)
     if (!sel || !sel.anchorNode) return
 
     if (session.mode === 'edit') {
@@ -1134,14 +1194,18 @@ export function createMentionPlugin(options = {}) {
   function bindScrollResize() {
     if (!session) return
     session.scrollResizeHandler = () => repositionDropdown()
-    document.addEventListener('scroll', session.scrollResizeHandler, { passive: true, capture: true })
-    window.addEventListener('resize', session.scrollResizeHandler, { passive: true })
+    const doc = session.parentEl.ownerDocument
+    const view = /** @type {(Window & typeof globalThis) | null} */ (doc.defaultView)
+    doc.addEventListener('scroll', session.scrollResizeHandler, { passive: true, capture: true })
+    view?.addEventListener('resize', session.scrollResizeHandler, { passive: true })
   }
 
   function unbindScrollResize() {
     if (!session || !session.scrollResizeHandler) return
-    document.removeEventListener('scroll', session.scrollResizeHandler, true)
-    window.removeEventListener('resize', session.scrollResizeHandler)
+    const doc = session.parentEl.ownerDocument
+    const view = doc.defaultView
+    doc.removeEventListener('scroll', session.scrollResizeHandler, true)
+    view?.removeEventListener('resize', session.scrollResizeHandler)
   }
 
   // ─── Pagination (1:1 with mentionjs _onDropdownScroll / _loadMoreResults) ─
@@ -1209,9 +1273,10 @@ export function createMentionPlugin(options = {}) {
     if (!session) return
     // keydown on document (capture) so we fire before the editor's
     // TriggerManager/KeyboardManager on the editor root.
-    document.addEventListener('keydown', session.keydownHandler, true)
-    document.addEventListener('selectionchange', session.selectionChangeHandler)
-    document.addEventListener('mousedown', session.outsideMouseDownHandler, true)
+    const doc = session.parentEl.ownerDocument
+    doc.addEventListener('keydown', session.keydownHandler, true)
+    doc.addEventListener('selectionchange', session.selectionChangeHandler)
+    doc.addEventListener('mousedown', session.outsideMouseDownHandler, true)
   }
 
   /**
@@ -1361,8 +1426,9 @@ export function createMentionPlugin(options = {}) {
    * @param {HTMLElement | null} parentEl
    */
   function notifyChange(parentEl) {
-    if (parentEl) {
-      parentEl.dispatchEvent(new Event('input', { bubbles: true }))
+    const EventCtor = parentEl?.ownerDocument?.defaultView?.Event
+    if (parentEl && EventCtor) {
+      parentEl.dispatchEvent(new EventCtor('input', { bubbles: true }))
     } else {
       globalCtx?.notifyChanged()
     }
@@ -1417,7 +1483,7 @@ export function createMentionPlugin(options = {}) {
     // TriggerManager (separate listener), not here.
     if (!span || !rootElement?.contains(span)) return
 
-    const sel = window.getSelection()
+    const sel = selectionFor(span)
     if (!sel) return
 
     // Guard: span detached (edge case during heavy editing).
@@ -1436,7 +1502,7 @@ export function createMentionPlugin(options = {}) {
     const spanText = span.textContent || ''
     /** @type {number | null} */
     let cursorInText
-    if (anchorNode && anchorNode.nodeType === Node.TEXT_NODE && anchorNode.parentElement === span) {
+    if (anchorNode && anchorNode.nodeType === TEXT_NODE && anchorNode.parentElement === span) {
       cursorInText = anchorOffset
     } else if (anchorNode === span) {
       // Anchor is span element itself → treat offset 0 as start, 1 as end.
@@ -1456,7 +1522,7 @@ export function createMentionPlugin(options = {}) {
 
       if (e.inputType === 'insertText' && typeof e.data === 'string') {
         mutateContent(parentEl, () => {
-          const tn = document.createTextNode(e.data)
+          const tn = span.ownerDocument.createTextNode(e.data)
           span.parentNode?.insertBefore(tn, span)
           setCaretAt(tn, e.data.length)
         })
@@ -1476,12 +1542,12 @@ export function createMentionPlugin(options = {}) {
         e.preventDefault()
         mutateContent(parentEl, () => {
           const next = span.nextSibling
-          if (next && next.nodeType === Node.TEXT_NODE) {
+          if (next && next.nodeType === TEXT_NODE) {
             next.textContent = e.data + (next.textContent || '')
             setCaretAt(next, e.data.length)
           } else {
             const char = e.data === ' ' ? '\u00A0' : e.data
-            const tn = document.createTextNode(char)
+            const tn = span.ownerDocument.createTextNode(char)
             span.after(tn)
             setCaretAt(tn, 1)
           }
@@ -1508,7 +1574,7 @@ export function createMentionPlugin(options = {}) {
       if (isEditing) closeSession()
       mutateContent(parentEl, () => {
         setCaretAfterNode(span)
-        insertBr(window.getSelection() || sel)
+        insertBr(selectionFor(span) || sel)
       })
       return
     }
@@ -1525,8 +1591,8 @@ export function createMentionPlugin(options = {}) {
           const prev = span.previousSibling
           const next = span.nextSibling
           span.parentNode?.removeChild(span)
-          const range = document.createRange()
-          if (prev && prev.nodeType === Node.TEXT_NODE) range.setStart(prev, (prev.textContent || '').length)
+          const range = span.ownerDocument.createRange()
+          if (prev && prev.nodeType === TEXT_NODE) range.setStart(prev, (prev.textContent || '').length)
           else if (next) range.setStartBefore(next)
           else range.setStart(parentEl, 0)
           range.collapse(true)
@@ -1542,7 +1608,7 @@ export function createMentionPlugin(options = {}) {
         e.preventDefault()
         if (isEditing) closeSessionForSpanReplacement(span)
         mutateContent(parentEl, () => {
-          const tn = document.createTextNode(spanText.substring(opts.trigger.length))
+          const tn = span.ownerDocument.createTextNode(spanText.substring(opts.trigger.length))
           span.parentNode?.insertBefore(tn, span)
           span.parentNode?.removeChild(span)
           setCaretAt(tn, 0)
@@ -1558,7 +1624,7 @@ export function createMentionPlugin(options = {}) {
 
       mutateContent(parentEl, () => {
         const tn = span.firstChild
-        if (tn && tn.nodeType === Node.TEXT_NODE) tn.textContent = newText
+        if (tn && tn.nodeType === TEXT_NODE) tn.textContent = newText
         else span.textContent = newText
         setCaretAt(span.firstChild || span, newOffset)
       })
@@ -1587,9 +1653,9 @@ export function createMentionPlugin(options = {}) {
           const prev = span.previousSibling
           const next = span.nextSibling
           span.parentNode?.removeChild(span)
-          const range = document.createRange()
+          const range = span.ownerDocument.createRange()
           if (next) range.setStartBefore(next)
-          else if (prev && prev.nodeType === Node.TEXT_NODE) range.setStart(prev, (prev.textContent || '').length)
+          else if (prev && prev.nodeType === TEXT_NODE) range.setStart(prev, (prev.textContent || '').length)
           else range.setStart(parentEl, 0)
           range.collapse(true)
           sel.removeAllRanges()
@@ -1602,7 +1668,7 @@ export function createMentionPlugin(options = {}) {
       if (offset === 0 && !newText.startsWith(opts.trigger)) {
         if (isEditing) closeSessionForSpanReplacement(span)
         mutateContent(parentEl, () => {
-          const tn = document.createTextNode(newText)
+          const tn = span.ownerDocument.createTextNode(newText)
           span.parentNode?.insertBefore(tn, span)
           span.parentNode?.removeChild(span)
           setCaretAt(tn, 0)
@@ -1612,7 +1678,7 @@ export function createMentionPlugin(options = {}) {
 
       mutateContent(parentEl, () => {
         const tn = span.firstChild
-        if (tn && tn.nodeType === Node.TEXT_NODE) tn.textContent = newText
+        if (tn && tn.nodeType === TEXT_NODE) tn.textContent = newText
         else span.textContent = newText
         setCaretAt(span.firstChild || span, offset)
       })
@@ -1644,7 +1710,14 @@ export function createMentionPlugin(options = {}) {
    * suggestion dropdown when edits change the query.
    */
   const sharedWidget = createMentionWidget(opts.trigger)
-  const createWidget = sharedWidget.createWidget
+  /** @param {Record<string, string>} data @param {string} [id] */
+  const createWidget = (data, id) => {
+    const widget = sharedWidget.createWidget(data, id)
+    const ownerDocument = rootElement?.ownerDocument
+    return ownerDocument && widget.ownerDocument !== ownerDocument
+      ? /** @type {HTMLElement} */ (ownerDocument.adoptNode(widget))
+      : widget
+  }
 
   // ─── Plugin surface ─────────────────────────────────────────────────────
 
@@ -1696,8 +1769,8 @@ export function createMentionPlugin(options = {}) {
 
       // Open a fresh session on first invocation.
       if (!session) {
-        const sel = window.getSelection()
-        if (!sel || !sel.anchorNode || sel.anchorNode.nodeType !== Node.TEXT_NODE) return
+        const sel = selectionFor(parentEl)
+        if (!sel || !sel.anchorNode || sel.anchorNode.nodeType !== TEXT_NODE) return
 
         const textNode = /** @type {Text} */ (sel.anchorNode)
         const triggerOffset = sel.anchorOffset - opts.trigger.length
@@ -1793,26 +1866,31 @@ export function createMentionPlugin(options = {}) {
      */
     insertFresh(ctx) {
       globalCtx = ctx
+      const doc = rootElement?.ownerDocument
+      const view = /** @type {(Window & typeof globalThis) | null} */ (doc?.defaultView ?? null)
+      if (!doc || !view) return
 
       // Resolve the caret's current block. Fall back to walking up from
       // `sel.anchorNode` — `setCaretToBlock` for an EMPTY paragraph only
       // calls `element.focus()` and doesn't set a selection range, so
       // `sel.rangeCount` may be 0. In that case we insert at the end of
       // whatever contenteditable is currently focused.
-      const sel = window.getSelection()
+      const sel = view.getSelection()
       let parentEl = null
       if (sel && sel.rangeCount > 0) {
         const node = sel.anchorNode
         parentEl = node
-          ? (node.nodeType === Node.ELEMENT_NODE
+          ? (node.nodeType === ELEMENT_NODE
               ? (/** @type {HTMLElement} */ (node).isContentEditable
                   ? /** @type {HTMLElement} */ (node)
                   : findContenteditableBlock(node))
               : findContenteditableBlock(node))
           : null
       }
-      if (!parentEl && document.activeElement instanceof HTMLElement && document.activeElement.isContentEditable) {
-        parentEl = document.activeElement
+      const activeElement = doc.activeElement
+      const HTMLElementCtor = view.HTMLElement
+      if (!parentEl && activeElement && activeElement instanceof HTMLElementCtor && activeElement.isContentEditable) {
+        parentEl = activeElement
       }
       if (!parentEl) return
 
@@ -1823,8 +1901,8 @@ export function createMentionPlugin(options = {}) {
       // a clean insertion point.
       if (
         parentEl.childNodes.length === 1
-        && parentEl.firstChild instanceof HTMLElement
-        && parentEl.firstChild.tagName === 'BR'
+        && parentEl.firstChild?.nodeType === ELEMENT_NODE
+        && /** @type {HTMLElement} */ (parentEl.firstChild).tagName === 'BR'
       ) {
         parentEl.removeChild(parentEl.firstChild)
       }
@@ -1833,7 +1911,7 @@ export function createMentionPlugin(options = {}) {
       // If we have a usable range inside parentEl, honor it; otherwise
       // fall back to appending at the end — matches "+" → type `@`
       // intent from an empty block.
-      const tn = document.createTextNode(opts.trigger)
+      const tn = doc.createTextNode(opts.trigger)
       let inserted = false
       if (sel && sel.rangeCount > 0) {
         const range = sel.getRangeAt(0)
@@ -1859,7 +1937,8 @@ export function createMentionPlugin(options = {}) {
       // That listener reads the live DOM/selection — no dependency on
       // `event.isTrusted`. `wireInputTracking` also sees the input and
       // emits `CHANGED`, so there's no need to call `notifyChange` here.
-      parentEl.dispatchEvent(new InputEvent('input', {
+      const InputEventCtor = view.InputEvent
+      parentEl.dispatchEvent(new InputEventCtor('input', {
         bubbles: true,
         cancelable: false,
         inputType: 'insertText',

@@ -56,7 +56,7 @@ function key(content, value) {
   }))
 }
 
-async function run() {
+async function runSessionRace() {
   const holder = document.createElement('section')
   sandbox.appendChild(holder)
 
@@ -128,11 +128,91 @@ async function run() {
   }
 }
 
-run().then(() => {
-  document.body.dataset.status = 'pass'
-  result.textContent = 'mention pagination remains owned by its originating session'
-}).catch(error => {
-  document.body.dataset.status = 'fail'
-  result.textContent = error?.stack || String(error)
-  console.error(error)
-})
+async function runOwningRealm() {
+  const iframe = document.createElement('iframe')
+  sandbox.appendChild(iframe)
+  let editor = null
+  try {
+    const doc = iframe.contentDocument
+    const view = iframe.contentWindow
+    assert(doc && view, 'mention iframe realm is unavailable')
+
+    let signalRealmOk = false
+    const holder = doc.createElement('section')
+    doc.body.appendChild(holder)
+    editor = createEditor({
+      holder,
+      injectStyles: false,
+      plugins: [new Paragraph()],
+      inlineTools: [],
+      inlinePlugins: [createMentionPlugin({
+        debounceDelay: 0,
+        searchFunction: async (_query, _nextPageUrl, { signal }) => {
+          signalRealmOk = signal instanceof view.AbortSignal
+          return [{ id: 'ada', name: 'Ada' }]
+        },
+      })],
+      data: {
+        version: 'mention-realm',
+        blocks: [{ id: 'paragraph', type: 'paragraph', data: { text: 'Hi ' } }],
+      },
+      tuning: {
+        undo: { debounceMs: 10000, maxStack: 20 },
+        change: { debounceMs: 10000 },
+        animations: { blockInsertMs: 0, blockMoveMs: 0, blockRemoveMs: 0 },
+      },
+    })
+
+    const content = editor.blocks.getBlockByIndex(0).contentElement
+    const text = content.firstChild
+    content.focus()
+    const range = doc.createRange()
+    range.setStart(text, text.data.length)
+    range.collapse(true)
+    const selection = view.getSelection()
+    selection.removeAllRanges()
+    selection.addRange(range)
+    window.getSelection().removeAllRanges()
+
+    assert(editor.insertInlinePlugin('mention'), 'programmatic mention insertion failed in iframe')
+    await delay(20)
+
+    assert(content.textContent.includes('@'), 'mention trigger used the ambient selection')
+    const dropdown = editor.rootElement.querySelector('.oe-mention-dropdown')
+    assert(dropdown, 'mention dropdown did not open in iframe')
+    assert(dropdown.ownerDocument === doc, 'mention dropdown escaped the editor document')
+    assert(dropdown.classList.contains('oe-mention-dropdown--active'), 'mention dropdown did not become active')
+    assert(signalRealmOk, 'mention search used the ambient AbortController')
+    assert(window.getSelection().rangeCount === 0, 'mention mutated the ambient selection')
+
+    document.body.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }))
+    assert(dropdown.isConnected, 'ambient document closed the iframe mention session')
+
+    content.dispatchEvent(new view.KeyboardEvent('keydown', {
+      key: 'Enter',
+      bubbles: true,
+      cancelable: true,
+    }))
+    await delay(0)
+    const widget = content.querySelector('[data-inline-plugin="mention"]')
+    assert(widget, 'iframe mention selection did not commit')
+    assert(widget.ownerDocument === doc, 'committed mention widget escaped the editor document')
+    assert(widget.textContent === '@Ada', 'iframe mention committed the wrong item')
+    assert(!dropdown.isConnected, 'mention dropdown survived commit')
+  } finally {
+    editor?.destroy()
+    iframe.remove()
+  }
+}
+
+Promise.resolve()
+  .then(runSessionRace)
+  .then(runOwningRealm)
+  .then(() => {
+    document.body.dataset.status = 'pass'
+    result.textContent = 'mention pagination and realm ownership remain isolated'
+  }).catch(error => {
+    document.body.dataset.status = 'fail'
+    result.textContent = error?.stack || String(error)
+    console.error(error)
+  })
