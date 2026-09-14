@@ -12,14 +12,16 @@ import {
   createBackButton,
 } from './utils.js'
 
+const ELEMENT_NODE = 1
+
 /** Widget-owned hyperlinks are UI, not authored link formatting.
  * @param {Node | null | undefined} node
  * @returns {HTMLAnchorElement | null}
  */
 function authoredAnchor(node) {
-  const element = node?.nodeType === Node.ELEMENT_NODE ? /** @type {Element} */ (node) : node?.parentElement
+  const element = node?.nodeType === ELEMENT_NODE ? /** @type {Element} */ (node) : node?.parentElement
   const anchor = element?.closest('a')
-  return anchor && !anchor.closest('[data-inline-plugin]') ? anchor : null
+  return anchor && !anchor.closest('[data-inline-plugin]') ? /** @type {HTMLAnchorElement} */ (anchor) : null
 }
 
 /**
@@ -40,7 +42,7 @@ function getIntersectingLinks(range) {
 
   /** @type {HTMLAnchorElement[]} */
   const candidates = []
-  if (walkRoot instanceof HTMLAnchorElement) candidates.push(walkRoot)
+  if (walkRoot.tagName === 'A') candidates.push(/** @type {HTMLAnchorElement} */ (walkRoot))
   candidates.push(...walkRoot.querySelectorAll('a'))
 
   return candidates.filter((candidate) => {
@@ -78,11 +80,7 @@ export function createLinkTool(linkPlaceholder, linkLabel, actionLabels = {}, cb
 
     isActive(selection) {
       const range = cbs?.range || selection?.range
-      if (!range) {
-        const sel = window.getSelection()
-        if (sel?.anchorNode) return !!authoredAnchor(sel.anchorNode)
-        return false
-      }
+      if (!range) return false
       return getIntersectingLinks(range).length > 0
     },
 
@@ -113,14 +111,16 @@ export function createLinkTool(linkPlaceholder, linkLabel, actionLabels = {}, cb
      * @returns {HTMLElement | null}
      */
     renderActions(ctx) {
+      const ownerDocument = ctx.range.startContainer.ownerDocument
+      const ownerWindow = ownerDocument.defaultView
       // When links exist, return null to trigger toggle() (remove links)
-      const currentSel = window.getSelection()
+      const currentSel = ownerWindow?.getSelection?.() ?? null
       if (currentSel?.anchorNode) {
         const range = cbs?.range || (currentSel.rangeCount ? currentSel.getRangeAt(0) : null)
         if (range && getIntersectingLinks(range).length > 0) return null
       }
 
-      const panel = el('div', 'oe-inline-toolbar__panel oe-inline-toolbar__panel--link')
+      const panel = el('div', 'oe-inline-toolbar__panel oe-inline-toolbar__panel--link', undefined, ownerDocument)
 
       const backBtn = createBackButton(ctx)
 
@@ -128,7 +128,7 @@ export function createLinkTool(linkPlaceholder, linkLabel, actionLabels = {}, cb
       const input = /** @type {HTMLInputElement} */ (el('input', 'oe-inline-toolbar__link-input', {
         type: 'url',
         placeholder: linkPlaceholder,
-      }))
+      }, ownerDocument))
       input.addEventListener('keydown', (e) => {
         e.stopPropagation()
         if (e.key === 'Enter') {
@@ -146,7 +146,7 @@ export function createLinkTool(linkPlaceholder, linkLabel, actionLabels = {}, cb
 
       // Apply button
       const applyLabel = actionLabels.apply || 'Apply'
-      const applyBtn = el('button', 'oe-inline-tool oe-inline-tool--apply', { type: 'button' })
+      const applyBtn = el('button', 'oe-inline-tool oe-inline-tool--apply', { type: 'button' }, ownerDocument)
       applyBtn.innerHTML = ICON_CHECK
       applyBtn.addEventListener('mouseenter', () => ctx.showTooltip(applyBtn, applyLabel))
       applyBtn.addEventListener('mouseleave', () => ctx.hideTooltip())
@@ -162,7 +162,7 @@ export function createLinkTool(linkPlaceholder, linkLabel, actionLabels = {}, cb
 
       // Unlink button
       const unlinkLabel = actionLabels.unlink || 'Unlink'
-      const unlinkBtn = el('button', 'oe-inline-tool oe-inline-tool--unlink', { type: 'button' })
+      const unlinkBtn = el('button', 'oe-inline-tool oe-inline-tool--unlink', { type: 'button' }, ownerDocument)
       unlinkBtn.innerHTML = ICON_UNLINK
       unlinkBtn.addEventListener('mouseenter', () => ctx.showTooltip(unlinkBtn, unlinkLabel))
       unlinkBtn.addEventListener('mouseleave', () => ctx.hideTooltip())
@@ -177,7 +177,7 @@ export function createLinkTool(linkPlaceholder, linkLabel, actionLabels = {}, cb
       })
 
       // Check if already inside a link
-      const sel = window.getSelection()
+      const sel = ownerWindow?.getSelection?.() ?? null
       const existingAnchor = authoredAnchor(sel?.anchorNode)
       if (existingAnchor) {
         input.value = existingAnchor.getAttribute('href') || ''
@@ -193,7 +193,7 @@ export function createLinkTool(linkPlaceholder, linkLabel, actionLabels = {}, cb
         ctx.restoreSelection()
 
         // Use cross-block range if available
-        const sel = window.getSelection()
+        const sel = ownerWindow?.getSelection?.() ?? null
         const actualRange = cbs?.range || (sel && sel.rangeCount ? sel.getRangeAt(0) : null)
         if (!actualRange) return
 
@@ -215,7 +215,7 @@ export function createLinkTool(linkPlaceholder, linkLabel, actionLabels = {}, cb
               // Skip if already inside a link
               if (targetNode.parentElement?.closest('a')) continue
 
-              const anchor = document.createElement('a')
+              const anchor = targetNode.ownerDocument.createElement('a')
               anchor.href = sanitizeUrl(url)
               anchor.rel = 'noopener noreferrer'
               anchor.target = '_blank'
@@ -232,12 +232,12 @@ export function createLinkTool(linkPlaceholder, linkLabel, actionLabels = {}, cb
 
       function removeLink() {
         ctx.restoreSelection()
-        const s = window.getSelection()
+        const s = ownerWindow?.getSelection?.() ?? null
         const anchor = authoredAnchor(s?.anchorNode)
         ctx.mutate(() => {
           if (anchor) {
             const parent = anchor.parentNode
-            const fragment = document.createDocumentFragment()
+            const fragment = anchor.ownerDocument.createDocumentFragment()
             while (anchor.firstChild) {
               fragment.appendChild(anchor.firstChild)
             }
@@ -253,8 +253,9 @@ export function createLinkTool(linkPlaceholder, linkLabel, actionLabels = {}, cb
       panel.appendChild(applyBtn)
       panel.appendChild(unlinkBtn)
 
-      // Focus input after panel is mounted
-      requestAnimationFrame(() => input.focus())
+      // Focus input after panel is mounted in the same browsing context.
+      if (ownerWindow?.requestAnimationFrame) ownerWindow.requestAnimationFrame(() => input.focus())
+      else queueMicrotask(() => input.focus())
 
       return panel
     },
