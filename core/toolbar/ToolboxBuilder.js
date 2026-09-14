@@ -13,45 +13,26 @@ const ICON_SEARCH = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="
  * @property {() => void} onClose
  */
 
-/**
- * Builds and manages the toolbox popup contents:
- *  - filter input (when plugin count exceeds threshold)
- *  - menu items for each block plugin
- *  - menu items for each inline plugin
- *  - keyboard navigation (Arrow/Home/End/Escape)
- *  - text filter that hides non-matching items
- *
- * Owns no positioning or open/close state — that lives on Toolbar.
- */
+/** Builds and manages the toolbox popup contents. */
 export class ToolboxBuilder {
-  /** @type {HTMLElement} */
-  #toolboxEl
+  /** @type {HTMLElement} */ #toolboxEl
+  /** @type {ToolboxDeps} */ #deps
+  /** @type {Document} */ #document
+  /** @type {(Window & typeof globalThis) | null} */ #view
+  /** @type {HTMLInputElement | null} */ #filterInput = null
 
-  /** @type {ToolboxDeps} */
-  #deps
-
-  /** @type {HTMLInputElement | null} */
-  #filterInput = null
-
-  /**
-   * @param {HTMLElement} toolboxEl
-   * @param {ToolboxDeps} deps
-   */
+  /** @param {HTMLElement} toolboxEl @param {ToolboxDeps} deps */
   constructor(toolboxEl, deps) {
     this.#toolboxEl = toolboxEl
     this.#deps = deps
+    this.#document = toolboxEl.ownerDocument
+    this.#view = /** @type {(Window & typeof globalThis) | null} */ (this.#document.defaultView)
     this.#toolboxEl.addEventListener('keydown', this.#onKeydown)
     this.#build()
   }
 
-  /** @returns {HTMLInputElement | null} */
-  get filterInput() {
-    return this.#filterInput
-  }
+  get filterInput() { return this.#filterInput }
 
-  /**
-   * Reset the filter to empty (called when reopening the toolbox).
-   */
   resetFilter() {
     if (this.#filterInput) {
       this.#filterInput.value = ''
@@ -63,107 +44,67 @@ export class ToolboxBuilder {
     this.#toolboxEl.removeEventListener('keydown', this.#onKeydown)
   }
 
-  // ── building ────────────────────────────────────────────────────────────────
-
   #build() {
     this.#toolboxEl.innerHTML = ''
     this.#filterInput = null
-
     const plugins = [...this.#deps.plugins.values()]
-
-    if (plugins.length > this.#deps.filterThreshold) {
-      this.#toolboxEl.appendChild(this.#buildFilterInput())
-    }
-
-    for (const plugin of plugins) {
-      this.#toolboxEl.appendChild(this.#buildBlockItem(plugin))
-    }
-
+    if (plugins.length > this.#deps.filterThreshold) this.#toolboxEl.appendChild(this.#buildFilterInput())
+    for (const plugin of plugins) this.#toolboxEl.appendChild(this.#buildBlockItem(plugin))
     if (this.#deps.inlinePlugins) {
-      for (const ip of this.#deps.inlinePlugins.values()) {
-        this.#toolboxEl.appendChild(this.#buildInlinePluginItem(ip))
-      }
+      for (const ip of this.#deps.inlinePlugins.values()) this.#toolboxEl.appendChild(this.#buildInlinePluginItem(ip))
     }
   }
 
-  /** @returns {HTMLElement} */
   #buildFilterInput() {
-    const wrap = el('li', 'oe-toolbox__filter', { role: 'none' })
-
-    const icon = el('span', 'oe-toolbox__filter-icon')
+    const wrap = el('li', 'oe-toolbox__filter', { role: 'none' }, this.#document)
+    const icon = el('span', 'oe-toolbox__filter-icon', undefined, this.#document)
     icon.innerHTML = ICON_SEARCH
-
     const input = /** @type {HTMLInputElement} */ (el('input', 'oe-toolbox__filter-input', {
       type: 'text',
       placeholder: this.#deps.i18n.t('toolbox.search'),
-    }))
-
+    }, this.#document))
     input.addEventListener('input', () => this.#applyFilter(input.value))
     input.addEventListener('keydown', (e) => this.#onFilterKeydown(e, input))
-
     wrap.append(icon, input)
     this.#filterInput = input
     return wrap
   }
 
-  /**
-   * @param {import('../types').BlockPlugin} plugin
-   * @returns {HTMLElement}
-   */
   #buildBlockItem(plugin) {
-    const item = el('li', 'oe-toolbox__item', { role: 'menuitem', tabindex: '-1' })
+    const item = el('li', 'oe-toolbox__item', { role: 'menuitem', tabindex: '-1' }, this.#document)
     item.dataset.pluginType = plugin.type
-
-    // English type name + localized title for bilingual search.
     const enFallback = plugin.type.charAt(0).toUpperCase() + plugin.type.slice(1)
     item.dataset.search = `${enFallback}\0${plugin.title}`.toLowerCase()
-
-    const icon = el('span', 'oe-toolbox__icon')
+    const icon = el('span', 'oe-toolbox__icon', undefined, this.#document)
     icon.innerHTML = plugin.icon
     item.appendChild(icon)
-
-    const label = el('span', 'oe-toolbox__label')
+    const label = el('span', 'oe-toolbox__label', undefined, this.#document)
     label.textContent = plugin.title
     item.appendChild(label)
-
     item.addEventListener('click', () => this.#deps.onInsertBlock(plugin.type))
     return item
   }
 
-  /**
-   * @param {import('../types').InlinePlugin} ip
-   * @returns {HTMLElement}
-   */
   #buildInlinePluginItem(ip) {
-    const item = el('li', 'oe-toolbox__item oe-toolbox__item--inline', { role: 'menuitem', tabindex: '-1' })
+    const item = el('li', 'oe-toolbox__item oe-toolbox__item--inline', { role: 'menuitem', tabindex: '-1' }, this.#document)
     item.dataset.pluginType = ip.type
     item.dataset.inlinePlugin = '1'
-
     const enFallback = ip.type.charAt(0).toUpperCase() + ip.type.slice(1)
     item.dataset.search = `${enFallback}\0${ip.title}`.toLowerCase()
-
-    const iconEl = el('span', 'oe-toolbox__icon')
+    const iconEl = el('span', 'oe-toolbox__icon', undefined, this.#document)
     iconEl.innerHTML = ip.icon
     item.appendChild(iconEl)
-
-    const label = el('span', 'oe-toolbox__label')
+    const label = el('span', 'oe-toolbox__label', undefined, this.#document)
     label.textContent = ip.title
     item.appendChild(label)
-
     item.addEventListener('click', () => this.#deps.onInsertInlinePlugin(ip.type))
     return item
   }
 
-  // ── filter ──────────────────────────────────────────────────────────────────
-
-  /**
-   * @param {string} query
-   */
   #applyFilter(query) {
     const q = query.toLowerCase().trim()
     const items = this.#toolboxEl.querySelectorAll('.oe-toolbox__item')
     let visibleCount = 0
-
     for (const item of items) {
       const itemEl = /** @type {HTMLElement} */ (item)
       const labelText = itemEl.querySelector('.oe-toolbox__label')?.textContent ?? ''
@@ -172,25 +113,21 @@ export class ToolboxBuilder {
       itemEl.style.display = match ? '' : 'none'
       if (match) visibleCount++
     }
-
     let emptyEl = this.#toolboxEl.querySelector('.oe-toolbox__empty')
     if (visibleCount === 0 && q) {
       if (!emptyEl) {
-        emptyEl = el('div', 'oe-toolbox__empty')
+        emptyEl = el('div', 'oe-toolbox__empty', undefined, this.#document)
         emptyEl.textContent = this.#deps.i18n.t('slash.noResults')
         this.#toolboxEl.appendChild(emptyEl)
       }
-    } else if (emptyEl) {
-      emptyEl.remove()
-    }
+    } else if (emptyEl) emptyEl.remove()
   }
 
-  // ── keyboard ────────────────────────────────────────────────────────────────
+  #isOwnedElement(value) {
+    const HTMLElementCtor = this.#view?.HTMLElement
+    return HTMLElementCtor ? value instanceof HTMLElementCtor : !!value && typeof value.focus === 'function'
+  }
 
-  /**
-   * @param {KeyboardEvent} e
-   * @param {HTMLInputElement} input
-   */
   #onFilterKeydown(e, input) {
     if (e.key === 'Escape') {
       input.value = ''
@@ -201,60 +138,43 @@ export class ToolboxBuilder {
       e.preventDefault()
       e.stopPropagation()
       const first = this.#toolboxEl.querySelector('[role="menuitem"]:not([style*="display: none"])')
-      if (first instanceof globalThis.HTMLElement) first.focus()
+      if (this.#isOwnedElement(first)) first.focus()
     } else if (e.key === 'ArrowUp') {
       e.preventDefault()
       e.stopPropagation()
       const items = this.#toolboxEl.querySelectorAll('[role="menuitem"]:not([style*="display: none"])')
       const last = items.item(items.length - 1)
-      if (last instanceof globalThis.HTMLElement) last.focus()
+      if (this.#isOwnedElement(last)) last.focus()
     } else if (e.key !== 'Enter') {
       e.stopPropagation()
     }
   }
 
-  /** @param {KeyboardEvent} e */
   #onKeydown = (e) => {
-    const items = /** @type {HTMLElement[]} */ (
-      [...this.#toolboxEl.querySelectorAll('[role="menuitem"]:not([style*="display: none"])')]
-    )
+    const items = /** @type {HTMLElement[]} */ ([...this.#toolboxEl.querySelectorAll('[role="menuitem"]:not([style*="display: none"])')])
     if (!items.length) return
-
-    const current = /** @type {HTMLElement} */ (document.activeElement)
-    const idx = items.indexOf(current)
+    const current = /** @type {HTMLElement | null} */ (this.#document.activeElement)
+    const idx = current ? items.indexOf(current) : -1
 
     switch (e.key) {
       case 'ArrowDown': {
-        e.preventDefault()
-        e.stopPropagation()
+        e.preventDefault(); e.stopPropagation()
         const next = idx < items.length - 1 ? idx + 1 : 0
         items[next]?.focus()
         break
       }
       case 'ArrowUp': {
-        e.preventDefault()
-        e.stopPropagation()
-        if (idx <= 0 && this.#filterInput) {
-          this.#filterInput.focus()
-        } else {
-          const prev = idx > 0 ? idx - 1 : items.length - 1
-          items[prev]?.focus()
-        }
+        e.preventDefault(); e.stopPropagation()
+        if (idx <= 0 && this.#filterInput) this.#filterInput.focus()
+        else items[idx > 0 ? idx - 1 : items.length - 1]?.focus()
         break
       }
       case 'Escape':
-        e.preventDefault()
-        e.stopPropagation()
-        this.#deps.onClose()
-        break
+        e.preventDefault(); e.stopPropagation(); this.#deps.onClose(); break
       case 'Home':
-        e.preventDefault()
-        items[0]?.focus()
-        break
+        e.preventDefault(); items[0]?.focus(); break
       case 'End':
-        e.preventDefault()
-        items[items.length - 1]?.focus()
-        break
+        e.preventDefault(); items[items.length - 1]?.focus(); break
     }
   }
 }
