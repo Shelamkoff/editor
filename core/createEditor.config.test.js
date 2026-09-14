@@ -80,3 +80,21 @@ test('createEditor rejects sparse plugin configuration arrays without reading in
     globalThis.HTMLElement = previous
   }
 })
+
+test('createEditor accepts a holder from its owning browsing realm', () => {
+  class AmbientElement {}
+  class ForeignElement {
+    constructor(ownerDocument) { this.ownerDocument = ownerDocument }
+  }
+  const ownerDocument = { defaultView: { HTMLElement: ForeignElement } }
+  const holder = new ForeignElement(ownerDocument)
+  const previous = globalThis.HTMLElement
+  globalThis.HTMLElement = AmbientElement
+  try {
+    // Reaching default-plugin validation proves the holder passed the public
+    // HTMLElement boundary using its own browsing realm.
+    assert.throws(() => createEditor({ holder, plugins: [] }), /Default block plugin/)
+  } finally {
+    globalThis.HTMLElement = previous
+  }
+})

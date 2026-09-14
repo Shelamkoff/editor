@@ -120,10 +120,11 @@ function injectPluginI18n(plugin, i18n) {
  * @returns {{ rootEl: HTMLElement, blocksEl: HTMLElement, clickArea: HTMLElement }}
  */
 function buildEditorDOM(holder, theme, minHeight) {
-  const rootEl = el('div', `oe-editor oe-theme-${theme}`, { tabindex: '-1' })
+  const ownerDocument = holder.ownerDocument
+  const rootEl = el('div', `oe-editor oe-theme-${theme}`, { tabindex: '-1' }, ownerDocument)
   if (minHeight !== undefined) rootEl.style.minHeight = `${minHeight}px`
-  const blocksEl = el('div', 'oe-blocks')
-  const clickArea = el('div', 'oe-click-area')
+  const blocksEl = el('div', 'oe-blocks', undefined, ownerDocument)
+  const clickArea = el('div', 'oe-click-area', undefined, ownerDocument)
   rootEl.appendChild(blocksEl)
   rootEl.appendChild(clickArea)
   return { rootEl, blocksEl, clickArea }
@@ -163,7 +164,7 @@ function wireInputTracking(rootEl, blocks, events) {
     // Editor controls (URL/color/font inputs, filters, dialogs) also bubble
     // `input` through rootEl. They are not document mutations and must never
     // advance block history by falling back to the currently focused block.
-    const element = target instanceof Element ? target : target.parentElement
+    const element = target?.nodeType === 1 ? target : target?.parentElement
     const field = element?.closest('input, textarea, select')
     const ownership = field?.getAttribute('data-oe-document-input')
     // Empty/value markers serialize every keystroke. History-only URL fields
@@ -197,9 +198,10 @@ function wireInputTracking(rootEl, blocks, events) {
  * @param {Map<string, import('./types').BlockPlugin>} plugins
  * @param {import('./InlinePluginRegistry').InlinePluginRegistry} inlinePlugins
  * @param {boolean} enabled
+ * @param {Document} ownerDocument
  * @returns {{ destroy(): void } | null}
  */
-function injectEditorStyles(plugins, inlinePlugins, enabled) {
+function injectEditorStyles(plugins, inlinePlugins, enabled, ownerDocument) {
   if (!enabled) return null
   /** @type {string[]} */
   const styleUrls = [
@@ -221,7 +223,7 @@ function injectEditorStyles(plugins, inlinePlugins, enabled) {
   for (const plugin of inlinePlugins.values()) {
     if (plugin.styles) styleUrls.push(...plugin.styles)
   }
-  return styleUrls.length > 0 ? injectStyleUrls(styleUrls) : null
+  return styleUrls.length > 0 ? injectStyleUrls(styleUrls, ownerDocument) : null
 }
 
 /**
@@ -467,7 +469,10 @@ export function createEditor(config) {
     throw new TypeError('createEditor() requires an HTMLElement holder')
   }
   config = /** @type {import('./types').EditorConfig} */ ({ ...config })
-  if (!(config.holder instanceof HTMLElement)) {
+  const holder = config.holder
+  const HolderElement = holder?.ownerDocument?.defaultView?.HTMLElement
+    ?? (typeof HTMLElement !== 'undefined' ? HTMLElement : null)
+  if (!HolderElement || !(holder instanceof HolderElement)) {
     throw new TypeError('createEditor() requires an HTMLElement holder')
   }
   if (!Array.isArray(config.plugins)) {
@@ -704,7 +709,7 @@ export function createEditor(config) {
 
     if (!readOnly) mountEditMode()
 
-    const styleCleanup = injectEditorStyles(plugins, inlinePluginRegistry, injectStyles)
+    const styleCleanup = injectEditorStyles(plugins, inlinePluginRegistry, injectStyles, rootEl.ownerDocument)
     if (styleCleanup) facade.registerDestroyable(styleCleanup)
 
     if (config.autofocus && !readOnly) {
