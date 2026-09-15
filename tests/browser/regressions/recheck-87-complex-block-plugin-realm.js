@@ -160,6 +160,55 @@ export function register() {
   })
 
 
+  test('person avatar upload in a foreign realm avoids the ambient cropper dialog', async () => {
+    const iframe = document.createElement('iframe')
+    document.body.appendChild(iframe)
+    let root = null
+    let plugin = null
+    const ambientCreateElement = document.createElement
+    try {
+      const doc = iframe.contentDocument
+      const view = iframe.contentWindow
+      assert(doc && view, 'iframe realm unavailable')
+      const file = new view.File(['avatar-realm'], 'avatar.png', { type: 'image/png' })
+      let uploaded = null
+      plugin = new Person({
+        uploadFile: async candidate => {
+          uploaded = candidate
+          return { url: 'https://example.test/avatar.png' }
+        },
+      })
+      root = plugin.render({}, mutationContext(doc))
+      doc.body.appendChild(root)
+
+      const originalClick = view.HTMLInputElement.prototype.click
+      view.HTMLInputElement.prototype.click = function () {
+        Object.defineProperty(this, 'files', { configurable: true, value: [file] })
+        this.dispatchEvent(new view.Event('change'))
+      }
+      document.createElement = () => { throw new Error('ambient cropper document must not be used') }
+      try {
+        plugin._triggerAvatarUpload(root)
+        await pause(30)
+      } finally {
+        document.createElement = ambientCreateElement
+        view.HTMLInputElement.prototype.click = originalClick
+      }
+
+      assert(uploaded instanceof view.File, 'avatar upload did not use the owning File constructor')
+      equal(uploaded.name, 'avatar.png', 'foreign-realm fallback changed the original filename')
+      equal(uploaded.type, 'image/png', 'foreign-realm fallback changed the original MIME type')
+      equal(plugin.save(root).persons?.[0]?.avatar, 'https://example.test/avatar.png', 'avatar result was not stored')
+      assert(!document.querySelector('.oe-cropper-overlay'), 'person leaked a cropper dialog into the ambient document')
+    } finally {
+      document.createElement = ambientCreateElement
+      if (plugin && root) plugin.destroy(root)
+      root?.remove()
+      iframe.remove()
+    }
+  })
+
+
   test('embed Vimeo preview fetch stays in the block owning window', async () => {
     const iframe = document.createElement('iframe')
     document.body.appendChild(iframe)

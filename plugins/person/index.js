@@ -189,689 +189,84 @@ export class Person extends BlockPluginAbstract {
   }
 
   /**
-   * Extract neutral text that can initialize another block type.
-   * @param {HTMLElement} element
-   * @returns {{ text: string }}
-   */
-  exportData(element) {
-    const s = stateMap.get(element)
-    if (!s) return { text: '' }
-    return { text: s.data.persons.map(p => p.name).filter(Boolean).join(', ') }
-  }
-
-  /**
-   * Release listeners and resources owned by this block element.
+   * Release all listeners, async avatar work, cropper UI, and
+   * pending social-resolver timers owned by this block.
    * @param {HTMLElement} element
    * @returns {void}
    */
   destroy(element) {
     const s = stateMap.get(element)
     if (s) {
+      this._clearDebounceTimers(s)
       s.cropperDialog?.destroy()
       s.cropperDialog = null
-      s.abortController.abort()
       for (const controller of s.avatarTasks.values()) controller.abort()
       s.avatarTasks.clear()
-      for (const timer of s.debounceTimers.values()) (s.ownerDocument.defaultView ?? globalThis).clearTimeout(timer)
-      s.debounceTimers.clear()
+      s.abortController.abort()
       stateMap.delete(element)
     }
   }
 
-  // â”€â”€ Full rebuild (tabs + card) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // â„€â„€ Data sync â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-  /** @param {HTMLElement} wrapper @returns {void} */
-  _rebuild(wrapper) {
-    const s = stateMap.get(wrapper)
-    if (!s) return
-
-    this._clearDebounceTimers(s)
-    wrapper.innerHTML = ''
-
-    // Tab bar (always shown â€” contains "+" button)
-    wrapper.appendChild(this._buildTabs(wrapper))
-
-    // Active person card
-    this._buildCard(wrapper, wrapper)
-  }
-
-  // â”€â”€ Tab bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
-  /**
-   * Build a single tab element for a person.
-   * @param {HTMLElement} wrapper
-   * @param {PersonState} s
-   * @param {number} i
-   * @returns {HTMLElement}
-   */
-  _buildTab(wrapper, s, i) {
-    const ownerDocument = wrapper.ownerDocument
-    const person = s.data.persons[i]
-    if (!person) return ownerDocument.createElement('div')
-
-    const tab = ownerDocument.createElement('div')
-    tab.className = 'oe-person__tab' + (i === s.activeIdx ? ' oe-person__tab--active' : '')
-    tab.draggable = !s.context.readOnly
-
-    // Drag handle
-    const grip = ownerDocument.createElement('span')
-    grip.className = 'oe-person__tab-grip'
-    grip.innerHTML = ICON_GRIP
-    tab.appendChild(grip)
-
-    // Mini avatar
-    if (person.avatar) {
-      const mini = ownerDocument.createElement('img')
-      mini.className = 'oe-person__tab-avatar'
-      setSafeUrlAttribute(mini, 'src', person.avatar, 'media')
-      tab.appendChild(mini)
-    }
-
-    // Name
-    const label = ownerDocument.createElement('span')
-    label.className = 'oe-person__tab-label'
-    label.textContent = person.name || this._t('fallbackName', 'Person {number}', { number: i + 1 })
-    tab.appendChild(label)
-
-    // Remove button
-    if (!s.context.readOnly && s.data.persons.length > 1) {
-      const rm = ownerDocument.createElement('button')
-      rm.type = 'button'
-      rm.className = 'oe-person__tab-remove'
-      rm.innerHTML = ICON_REMOVE
-      rm.title = this._t('removePerson', 'Remove')
-      rm.setAttribute('aria-label', rm.title)
-      rm.addEventListener('mousedown', e => e.stopPropagation())
-      rm.addEventListener('click', (e) => {
-        e.stopPropagation()
-        const st = stateMap.get(wrapper)
-        if (!st) return
-        st.context.mutate(() => {
-          this._syncActiveFromDom(wrapper)
-          const removed = st.data.persons[i]
-          const task = removed ? st.avatarTasks.get(removed) : null
-          task?.abort()
-          if (removed) st.avatarTasks.delete(removed)
-          if (st.avatarTasks.size === 0) wrapper.classList.remove('oe-person--loading')
-          st.data.persons.splice(i, 1)
-          if (st.activeIdx >= st.data.persons.length) st.activeIdx = st.data.persons.length - 1
-          if (st.activeIdx < 0) st.activeIdx = 0
-          this._rebuild(wrapper)
-        })
-      })
-      tab.appendChild(rm)
-    }
-
-    // Click to switch (no full rebuild â€” swap active class + card only)
-    tab.addEventListener('click', () => {
-      const st = stateMap.get(wrapper)
-      if (!st || i === st.activeIdx) return
-      this._syncActiveFromDom(wrapper)
-      this._clearDebounceTimers(st)
-      st.activeIdx = i
-
-      // Toggle tab active class
-      const tabs = wrapper.querySelector('.oe-person__tabs')
-      if (tabs) {
-        tabs.querySelectorAll('.oe-person__tab').forEach((t, idx) => {
-          t.classList.toggle('oe-person__tab--active', idx === i)
-        })
-      }
-
-      // Replace card only
-      const oldCard = wrapper.querySelector('.oe-person__card')
-      if (oldCard) oldCard.remove()
-      this._buildCard(wrapper, wrapper)
-    })
-
-    // Drag events
-    tab.addEventListener('dragstart', (e) => {
-      const st = stateMap.get(wrapper)
-      if (st) st.dragFromIdx = i
-      tab.classList.add('oe-person__tab--dragging')
-      e.dataTransfer?.setData('text/plain', String(i))
-      if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move'
-    })
-    tab.addEventListener('dragend', () => {
-      const st = stateMap.get(wrapper)
-      if (st) st.dragFromIdx = null
-      tab.classList.remove('oe-person__tab--dragging')
-      const parent = tab.closest('.oe-person__tabs')
-      if (parent) parent.querySelectorAll('.oe-person__tab--dragover').forEach(t => t.classList.remove('oe-person__tab--dragover'))
-    })
-    tab.addEventListener('dragover', (e) => {
-      e.preventDefault()
-      const st = stateMap.get(wrapper)
-      if (st && st.dragFromIdx !== null && st.dragFromIdx !== i) {
-        tab.classList.add('oe-person__tab--dragover')
-      }
-    })
-    tab.addEventListener('dragleave', () => {
-      tab.classList.remove('oe-person__tab--dragover')
-    })
-    tab.addEventListener('drop', (e) => {
-      e.preventDefault()
-      tab.classList.remove('oe-person__tab--dragover')
-      const st = stateMap.get(wrapper)
-      if (!st || st.context.readOnly) return
-      const from = st.dragFromIdx
-      if (from === null || from === i) return
-      st.context.mutate(() => {
-        this._syncActiveFromDom(wrapper)
-        const moved = st.data.persons.splice(from, 1)[0]
-        if (moved) st.data.persons.splice(i, 0, moved)
-        if (st.activeIdx === from) st.activeIdx = i
-        else if (from < st.activeIdx && i >= st.activeIdx) st.activeIdx--
-        else if (from > st.activeIdx && i <= st.activeIdx) st.activeIdx++
-        this._rebuild(wrapper)
-      })
-    })
-
-    return tab
-  }
-
-  /** @param {HTMLElement} wrapper @returns {HTMLElement} */
-  _buildTabs(wrapper) {
-    const s = stateMap.get(wrapper)
-    const ownerDocument = wrapper.ownerDocument
-    if (!s) return ownerDocument.createElement('div')
-
-    const tabs = ownerDocument.createElement('div')
-    tabs.className = 'oe-person__tabs'
-
-    for (let i = 0; i < s.data.persons.length; i++) {
-      tabs.appendChild(this._buildTab(wrapper, s, i))
-    }
-
-    if (!s.context.readOnly) {
-      const addBtn = ownerDocument.createElement('button')
-      addBtn.type = 'button'
-      addBtn.className = 'oe-person__tab-add'
-      addBtn.innerHTML = ICON_PLUS
-      addBtn.title = this._t('addPerson', 'Add person')
-      addBtn.setAttribute('aria-label', addBtn.title)
-      addBtn.addEventListener('click', () => {
-        const st = stateMap.get(wrapper)
-        if (!st || st.context.readOnly) return
-        st.context.mutate(() => {
-          this._syncActiveFromDom(wrapper)
-          st.data.persons.push(this._defaultPerson())
-          st.activeIdx = st.data.persons.length - 1
-          this._rebuild(wrapper)
-        })
-      })
-      tabs.appendChild(addBtn)
-    }
-
-    return tabs
-  }
-
-  // â”€â”€ Card (single active person) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
-  /**
-   * @param {HTMLElement} wrapper
-   * @param {HTMLElement} parent
-   * @returns {void}
-   */
-  _buildCard(wrapper, parent) {
-    const ownerDocument = wrapper.ownerDocument
-    const s = stateMap.get(wrapper)
-    if (!s) return
-    const person = s.data.persons[s.activeIdx]
-    if (!person) return
-
-    const card = ownerDocument.createElement('div')
-    card.className = 'oe-person__card'
-
-    // Avatar
-    const avatarWrap = ownerDocument.createElement('div')
-    avatarWrap.className = 'oe-person__avatar-wrap'
-
-    if (person.avatar) {
-      const img = ownerDocument.createElement('img')
-      img.className = 'oe-person__avatar-img'
-      setSafeUrlAttribute(img, 'src', person.avatar, 'media')
-      img.alt = ''
-      avatarWrap.appendChild(img)
-    } else {
-      const placeholder = ownerDocument.createElement('div')
-      placeholder.className = 'oe-person__avatar-placeholder'
-      placeholder.innerHTML = ICON_CAMERA
-      avatarWrap.appendChild(placeholder)
-    }
-
-    if (!s.context.readOnly) {
-      const avatarOverlay = ownerDocument.createElement('button')
-      avatarOverlay.type = 'button'
-      avatarOverlay.className = 'oe-person__avatar-upload'
-      avatarOverlay.innerHTML = ICON_CAMERA
-      avatarOverlay.title = this._t('uploadAvatar', 'Upload avatar')
-      avatarOverlay.setAttribute('aria-label', avatarOverlay.title)
-      avatarOverlay.addEventListener('mousedown', e => e.preventDefault())
-      avatarOverlay.addEventListener('click', () => this._triggerAvatarUpload(wrapper))
-      avatarWrap.appendChild(avatarOverlay)
-    }
-    card.appendChild(avatarWrap)
-
-    // Info
-    const info = ownerDocument.createElement('div')
-    info.className = 'oe-person__info'
-
-    const name = ownerDocument.createElement('div')
-    name.className = 'oe-person__name'
-    name.contentEditable = s.context.readOnly ? 'false' : 'true'
-    name.dataset.placeholder = this._t('namePlaceholder', 'Name')
-    if (person.name) name.innerHTML = sanitizeHtml(person.name, ownerDocument)
-    this._setupEditable(name, false)
-    info.appendChild(name)
-
-    const role = ownerDocument.createElement('div')
-    role.className = 'oe-person__role'
-    role.contentEditable = s.context.readOnly ? 'false' : 'true'
-    role.dataset.placeholder = this._t('rolePlaceholder', 'Role / Position')
-    if (person.role) role.innerHTML = sanitizeHtml(person.role, ownerDocument)
-    this._setupEditable(role, false)
-    info.appendChild(role)
-
-    const bio = ownerDocument.createElement('div')
-    bio.className = 'oe-person__bio'
-    bio.contentEditable = s.context.readOnly ? 'false' : 'true'
-    bio.dataset.placeholder = this._t('bioPlaceholder', 'Short bio...')
-    if (person.bio) bio.innerHTML = sanitizeHtml(person.bio, ownerDocument)
-    this._setupEditable(bio, true)
-    info.appendChild(bio)
-
-    // Links
-    const linksSection = ownerDocument.createElement('div')
-    linksSection.className = 'oe-person__links'
-
-    const linksLabel = ownerDocument.createElement('div')
-    linksLabel.className = 'oe-person__links-label'
-    linksLabel.textContent = this._t('linksLabel', 'Links')
-    linksSection.appendChild(linksLabel)
-
-    const links = [...person.links]
-    const hasEmptyLast = links.length > 0 && !links[links.length - 1]?.url.trim()
-    if (!s.context.readOnly && !hasEmptyLast) links.push({ type: 'website', url: '' })
-    links.forEach((link, i) => {
-      linksSection.appendChild(this._createLinkRow(wrapper, link, i))
-    })
-
-    info.appendChild(linksSection)
-    card.appendChild(info)
-    parent.appendChild(card)
-
-  }
-
-  // â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
-  /**
-   * @param {HTMLElement} el
-   * @param {boolean} allowMultiline
-   * @returns {void}
-   */
-  _setupEditable(el, allowMultiline) {
-    el.addEventListener('keydown', (e) => {
-      if (!allowMultiline && e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); return }
-      if (!e.ctrlKey && !e.metaKey) e.stopPropagation()
-    })
-    el.addEventListener('input', () => {
-      if (!el.textContent?.trim()) el.innerHTML = ''
-    })
-  }
-
-  /** @param {HTMLElement} wrapper @returns {void} */
+  /** @param {HTMLElement} wrapper */
   _syncActiveFromDom(wrapper) {
     const s = stateMap.get(wrapper)
     if (!s) return
-    const person = s.data.persons[s.activeIdx]
-    if (!person) return
-
-    const nameEl = wrapper.querySelector('.oe-person__name')
-    const roleEl = wrapper.querySelector('.oe-person__role')
-    const bioEl = wrapper.querySelector('.oe-person__bio')
-    person.name = sanitizeHtml(nameEl?.innerHTML?.trim() || '', wrapper.ownerDocument)
-    person.role = sanitizeHtml(roleEl?.innerHTML?.trim() || '', wrapper.ownerDocument)
-    person.bio = sanitizeHtml(bioEl?.innerHTML?.trim() || '', wrapper.ownerDocument)
-
-    const linkRows = wrapper.querySelectorAll('.oe-person__link-row')
-    linkRows.forEach((row, i) => {
-      const link = person.links[i]
-      if (link) {
-        const input = /** @type {HTMLInputElement} */ (row.querySelector('.oe-person__link-url'))
-        const iconEl = /** @type {HTMLElement | null} */ (row.querySelector('.oe-person__link-icon'))
-        if (input) link.url = input.value
-        if (iconEl?.dataset.type) link.type = iconEl.dataset.type
-      }
-    })
+    const p = s.data.persons[s.activeIdx]
+    if (!p) return
+    const nameEditor = wrapper.querySelector('.oe-person__name')
+    const roleEditor = wrapper.querySelector('.oe-person__role')
+    const bioEditor = wrapper.querySelector('.oe-person__bio')
+    if (nameEditor) p.name = sanitizeHtml(nameEditor.innerHTML, wrapper.ownerDocument)
+    if (roleEditor) p.role = sanitizeHtml(roleEditor.innerHTML, wrapper.ownerDocument)
+    if (bioEditor) p.bio = sanitizeHtml(bioEditor.innerHTML, wrapper.ownerDocument)
   }
+
+  // â„€â„€ Build ui â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ ¢ò¢¢&Ò´…DÔÄVÆVÖVçGÒw&W"¢ğ¢÷&V'V–ÆB‡w&W"’°¢6öç7B2Ò7FFTÖævWB‡w&W"¢–b‚2’&WGW&à¢6öç7B²FFÂ7F—fT–G‚Â6öçFW‡BÒÒ0¢6öç7B²&VDöæÇ’ÒÒ6öçFW‡@¢6öç7B÷væW$Fö7VÖVçBÒw&W"æ÷væW$Fö7VÖVç@¢6öç7BBÒ‚ò¢¢G—R·7G&–æwÒ¢ò¶W’Âò¢¢G—R·7G&–æwÒ¢òfÆÆ&6²’ÓâF†—2å÷B†¶W’ÂfÆÆ&6²¢F†—2åö6ÆV$FV&÷Væ6UF–ÖW'2‡2¢òò&VÖ÷fRWfVçBÆ—7FVæW'2g&öÒF†R&Wf–÷W2&VæFW&VB6&B&Vf÷&RvP¢òòF—66&B—G2æöFW2âF†—2&WfVçG27FÆR†æFÆW'2g&öÒ¶VW–ærFWF6†V@¢òò6öçG&öÇ2Æ—fRæBÖ¶W2W"×&VæFW"Æ—7FVæW"Æ–fWF–ÖR÷væW'6†—W‡Æ–6—Bà¢2æ&÷'D6öçG&öÆÆW"æ&÷'B‚¢2æ&÷'D6öçG&öÆÆW"Ò7&VFT&÷'D6öçG&öÆÆW$f÷"‡w&W"¢6öç7B6–væÂÒ2æ&÷'D6öçG&öÆÆW"ç6–væÀ¢w&W"ç&WÆ6T6†–ÆG&Vâ‚ ¢òòW'6öâF'0¢–b†FFçW'6öç2æÆVæwF‚â’°¢6öç7BF'2Ò÷væW$Fö7VÖVçBæ7&VFTVÆVÖVçB‚vF—br¢F'2æ6Æ74æÖRÒvöR×W'6öåõ÷F'2p¢F'2ç6WDGG&–'WFR‚w&öÆRrÂwF&Æ—7Br¢F'2ç6WDGG&–'WFR‚v&–ÖÆ&VÂrÂB‚w&öf–ÆW2rÂu&öf–ÆW2r’¢f÷"†ÆWB’Ò²’ÂFFçW'6öç2æÆVæwFƒ²’²²’°¢6öç7BF"Ò÷væW$Fö7VÖVçBæ7&VFTVÆVÖVçB‚v'WGFöâr¢F"çG—RÒv'WGFöâp¢F"æ6Æ74æÖRÒvöR×W'6öåõ÷F"r²†’ÓÓÒ7F—fT–G‚òröR×W'6öåõ÷F"ÒÖ7F—fRr¢rr¢F"ç6WDGG&–'WFR‚w&öÆRrÂwF"r¢F"ç6WDGG&–'WFR‚v&–×6VÆV7FVBrÂ7G&–ær†’ÓÓÒ7F—fT–G‚’¢F"çF$–æFW‚Ò’ÓÓÒ7F—fT–G‚ò¢Ó¢F"çFW‡D6öçFVçBÒ7G&–ær†’²¢F"æFDWfVçDÆ—7FVæW"‚v6Æ–6²rÂ‚’Óâ°¢–b†’ÓÓÒ2æ7F—fT–G‚’&WGW&à¢F†—2å÷7–æ47F—fTg&öÔFöÒ‡w&W"¢2æ7F—fT–G‚Ò¢F†—2å÷&V'V–ÆB‡w&W"¢ÒÂ²6–væÂÒ¢F'2æVæD6†–ÆB‡F"¢Ğ¢w&W"æVæD6†–ÆB‡F'2¢Ğ ¢6öç7BÒFFçW'6öç5¶7F—fT–G…ÒóòFFçW'6öç5³Ğ¢–b‚’&WGW&à ¢òò6&@¢6öç7B6&BÒ÷væW$Fö7VÖVçBæ7&VFTVÆVÖVçB‚vGV’r¢6&Bæ6Æ74æÖRÒvöR×W'6öåõö6&Bp ¢òòfF"&V¢6öç7BfF%w&Ò÷væW$Fö7VÖVçBæ7&VFTVÆVÖVçB‚vF—br¢fF%w&æ6Æ74æÖRÒvöR×W'6öåõöfF"r²‡æfF"òrr¢röR×W'6öåõöfF"ÒÖV×G’r¢–b‡æfF"’°¢6öç7B–ÖrÒ÷væW$Fö7VÖVçBæ7&VFTVÆVÖVçB‚v–Örr¢6WE6fUW&ÄGG&–'WFR†–ÖrÂw7&2rÂæfF"ÂvÖVF–r¢–ÖræÇBÒB‚vfF"rÂtfF"r¢fF%w&æVæD6†–ÆB†–Ör¢ÒVÇ6R–b‚&VDöæÇ’’°¢6öç7BÆ6V†öÆFW"Ò÷væW$Fö7VÖVçBæ7&VFTVÆVÖVçB‚vF—br¢Æ6V†öÆFW"æ6Æ74æÖRÒvöR×W'6öåõöfF"×Æ6V†öÆFW"p¢Æ6V†öÆFW"æ–ææW$…DÔÂÒ”4ôåô4ÔU$¢fF%w&æVæD6†–ÆB‡Æ6V†öÆFW"¢Ğ¢–b‚&VDöæÇ’’°¢fF%w&æFDWfVçDÆ—7FVæW"‚v6Æ–6²rÂ‚’ÓâF†—2å÷G&–vvW$fF%WÆöB‡w&W"’Â²6–væÂÒ¢Ğ¢6&BæVæD6†–ÆB†fF%w& ¢òò–æfğ¢6öç7B–æfòÒ÷væW$Fö7VÖVçBæ7&VFTVÆVÖVçB‚vF—br¢–æfòæ6Æ74æÖRÒvöR×W'6öåõö–æfòp¢6öç7BæÖRÒ÷væW$Fö7VÖVçBæ7&VFTVÆVÖVçB‚vF—rr¢æÖRæ6Æ74æÖRÒvöR×W'6öåõöæÖRp¢æÖRæ6öçFVçDVF—F&ÆRÒ7G&–ær‚&VDöæÇ’¢æÖRç6WDGG&–'WFR‚vFF×Æ6V†öÆFW"rÂB‚væÖRrÂtæÖRr’¢æÖRæ–ææW$…DÔÂÒææÖP ¢6öç7B&öÆRÒ÷væW$Fö7VÖVçBæ7&VFTVÆVÖVçB‚vF—br¢&öÆRæ6Æ74æÖRÒvöR×W'6öåõ÷&öÆRp¢&öÆRæ6öçFVçDVF—F&ÆRÒ7G&–ær‚&VDöæÇ’¢&öÆRç6WDGG&–'WFR‚vFF×Æ6V†öÆFW"rÂB‚w&öÆRrÂu&öÆRr’¢&öÆRæ–ææW$…DÔÂÒç&öÆP ¢6öç7B&–òÒ÷væW$Fö7VÖVçBæ7&VFTVÆVÖVçB‚vF—br¢&–òæ6Æ74æÖRÒvöR×W'6öåõö&–òp¢&–òæ6öçFVçDVF—F&ÆRÒ7G&–ær‚&VDöæÇ’¢&–òç6WDGG&–'WFR‚vFF×Æ6V†öÆFW"rÂB‚v&–òrÂu6†÷'B&–öw&‡’r’¢&–òæ–ææW$…DÔÂÒæ&–ğ ¢–b‡&VDöæÇ’’°¢æÖRç&VÖ÷fTGG&–'WFR‚vFF×Æ6V†öÆFW"r¢&öÆRç&VÖ÷fTGG&–'WFR‚vFF×Æ6V†öÆFW"r¢&–òç&VÖ÷fTGG&–'WFR‚vFF×Æ6V†öÆFW"r¢Ğ ¢–æfòæVæB†æÖRÂ&öÆRÂ&–ò ¢òò6ö6–ÂÆ–æ·0¢6öç7BÆ–æ·5w&Ò÷væW$Fö7VÖVçBæ7&VFTVÆVÖVçB‚vF—br¢Æ–æ·5w&æ6Æ74æÖRÒvöR×W'6öåõöÆ–æ·2p¢f÷"†ÆWB’Ò²’ÂæÆ–æ·2æÆVæwFƒ²’²²’°¢6öç7BÆ–æ²ÒæÆ–æ·5¶•Ğ¢6öç7B&÷rÒ÷væW$Fö7VÖVçBæ7&VFTVÆVÖVçB‚vF—br¢&÷ræ6Æ74æÖRÒvöR×W'6öåõöÆ–æ²×&÷rp¢&÷ræG&vv&ÆRÒ&VDöæÇ¢&÷ræFF6WBæ–æFW‚Ò7G&–ær†’¢6öç7Bw&—Ò÷væW$Fö7VÖVçBæ7&VFTVÆVÖVçB‚w7âr¢w&—æ6Æ74æÖRÒvöR×W'6öåõöÆ–æ²Öw&—p¢w&—æ–ææW$…DÔÂÒ”4ôåôu$• ¢w&—çF—FÆRÒB‚vG&tÆ–æ²rÂtG&rFò&V÷&FW"r¢w&—æ†–FFVâÒ&VDöæÇ¢6öç7B–6öäVÂÒ÷væW$Fö7VÖVçBæ7&VFTVÆVÖVçB‚w7âr¢–6öäVÂæ6Æ74æÖRÒvöR×W'6öåõöÆ–æ²Ö–6öâp¢–6öäVÂæ–ææW$…DÔÂÒ4ô4”Åô”4ôå5¶Æ–æ²çG—UÒóò4ô4”Åô”4ôå2çvV'6—FP¢6öç7B–çWBÒ÷væW$Fö7VÖVçBæ7&VFTVÆVÖVçB‚v–çWBr¢–çWBçG—RÒwW&Âp¢–çWBæ6Æ74æÖRÒvöR×W'6öåõöÆ–æ²Ö–çWBp¢–çWBçfÇVRÒÆ–æ²çW&ÂÇÂrp¢–çWBçÆ6V†öÆFW"ÒB‚vÆ–æ²rÂv‡GG3¢òòâââr¢–çWBç6WDGG&–'WFR‚vFFÖöRÖFö7VÖVçBÖ–çWBrÂrr¢–çWBç&VDöæÇ’Ò&VDöæÇ¢–çWBæFDWfVçDÆ—7FVæW"‚v–çWBrÂ‚’ÓâF†—2åöFV&÷Væ6VE&W6öÇfR‡w&W"Â’Â–çWBçfÇVRÂ–6öäVÂ’Â²6–væÂÒ¢&÷ræVæB†w&—Â–6öäVÂÂ–çWB¢–b‚&VDöæÇ’’°¢6öç7B&ÒÒ÷væW$Fö7VÖVçBæ7&VFTVÆVÖVçB‚v'WGFöâr¢&ÒçG—RÒv'WGFöâp¢&Òæ6Æ74æÖRÒvöR×W'6öåõöÆ–æ²×&VÖ÷fRp¢&Òæ–ææW$…DÔÂÒ”4ôåõ$TÔõdP¢&ÒçF—FÆRÒB‚w&VÖ÷fTÆ–æ²rÂu&VÖ÷fRÆ–æ²r¢&ÒæFDWfVçDÆ—7FVæW"‚v6Æ–6²rÂ‚’Óâ°¢6öç7B¶W’ÒG·2æ7F—fT–G‡Ó¢G¶—Ö ¢6öç7BF–ÖW"Ò2æFV&÷Væ6UF–ÖW'2ævWB†¶W’¢–b‡F–ÖW"’²†÷væW$Fö7VÖVçBæFVfVÇEf–WróòvÆö&ÅF†—2’æ6ÆV%F–ÖV÷WB‡F–ÖW"“²2æFV&÷Væ6UF–ÖW'2æFVÆWFR†¶W’’Ğ¢6öçFW‡Bæ×WFFR‚‚’Óâ°¢F†—2å÷7–æ47F—fTg&öÔFöÒ‡w&W"¢æÆ–æ·2ç7Æ–6R†’Â¢F†—2å÷&V'V–ÆB‡w&W"¢Ò¢ÒÂ²6–væÂÒ¢&÷ræVæD6†–ÆB‡&Ò¢Ğ¢Æ–æ·5w&æVæD6†–ÆB‡&÷r¢Ğ¢–b‚&VDöæÇ’’°¢6öç7BFD'FâÒ÷væW$Fö7VÖVçBæ7&VFTVÆVÖVçB‚v'WGFöâr¢FD'FâçG—RÒv'WGFöâp¢FD'Fâæ6Æ74æÖRÒvöR×W'6öåõöFBÖÆ–æ²p¢FD'Fâæ–ææW$…DÔÂÒ”4ôåõÅU2²rr²B‚vFDÆ–æ²rÂtFBÆ–æ²r¢FD'FâæFDWfVçDÆ—7FVæW"‚v6Æ–6²rÂ‚’Óâ°¢6öçFW‡Bæ×WFFR‚‚’Óâ°¢F†—2å÷7–æ47F—fTg&öÔFöÒ‡w&W"¢æÆ–æ·2çW6‚‡²G—S¢wvV'6—FRrÂW&Ã¢rrÒ¢F†—2å÷&V'V–ÆB‡w&W"¢Ò¢ÒÂ²6–væÂÒ¢Æ–æ·5w&æVæD6†–ÆB†FD'Fâ¢Ğ¢–æfòæVæD6†–ÆB†Æ–æ·5w&¢6&BæVæD6†–ÆB†–æfò¢w&W"æVæD6†–ÆB†6&B ¢òòFBW'6öâ'WGFöà¢–b‚&VDöæÇ’’°¢6öç7BFEW'6öâÒ÷væW$Fö7VÖVçBæ7&VFTVÆVÖVçB‚v'WGFöâr¢FEW'6öâçG—RÒv'WGFöâp¢FEW'6öâæ6Æ74æÖRÒvöR×W'6öåõöFBÒp¢FEW'6öâæ–ææW$…DÔÂÒ”4ôåõÅU2²rr²B‚vFEW'6öârÂtFBW'6öâr¢FEW'6öâæFDWfVçDÆ—7FVæW"‚v6Æ–6²rÂ‚’Óâ°¢6öçFW‡Bæ×WFFR‚‚’Óâ°¢F†—2å÷7–æ47F—fTg&öÔFöÒ‡w&W"¢FFçW'6öç2çW6‚‡F†—2åöFVfVÇEW'6öâ‚’¢2æ7F—fT–G‚ÒFFçW'6öç2æÆVæwF‚Ò¢F†—2å÷&V'V–ÆB‡w&W"¢Ò¢ÒÂ²6–væÂÒ¢Ğ ¢òò&VÖ÷fRW'6öâ'WGFöâ†öæÇ’–bâ¢–b‚&VDöæÇ’bbFFçW'6öç2æÆVæwF‚â’°¢6öç7B&VÖ÷fRÒ÷væW$Fö7VÖVçBæ7&VFTVÆVÖVçB‚v'WGFöâr¢&VÖ÷fRçG—RÒv'WGFöâp¢&VÖ÷fRæ6Æ74æÖRÒvöR×W'6öåõ÷&VÖ÷fRp¢&VÖ÷fRçFW‡D6öçFVçBÒB‚w&VÖ÷fUW'6öârÂu&VÖ÷fR7W'&VçBW'6öâr¢&VÖ÷fRæFDWfVçDÆ—7FVæW"‚v6Æ–6²rÂ‚’Óâ°¢6öçFW‡Bæ×WFFR‚‚’Óâ°¢F†—2å÷7–æ47F—fTg&öÔFöÒ‡w&W"¢6öç7BF&vWBÒFFçW'6öç5·'6T–çB‡7Bæ7F—fT–G‚•Ğ¢–b‡F&vWB’2æfF%F6·2ævWB‡F&vWB“òæ&÷'B‚¢FFçW'6öç2ç7Æ–6R‡2æ7F—fT–G‚Â¢–b‡2æ7F—fT–G‚ãÒFFçW'6öç2æÆVæwF‚’2æ7F—fT–G‚ÒFFçW'6öç2æÆVæwF‚Ò¢F†—2å÷&V'V–ÆB‡w&W"¢Ò¢ÒÂ²6–væÂÒ¢w&W"æVæD6†–ÆB‡&VÖ÷fR¢Ğ¢Ğ ¢òò)H)H˜YÈ™[Ü™\ˆ8¥ 8¥ 8¥ 8¥ 8¥ 8¥ 8¥ 8¥ 8¥ 8¥ 8¥ 8¥ 8¥ 8¥ 8¥ 8¥ 8¥ 8¥ 8¥ 8¥ 8¥ 8¥ 8¥ 8¥ 8¥ 8¥ 8¥ 8¥ 8¥ 8¥ 8¥ 8¥ 8¥ 8¥ 8¥ 8¥ 8¥ 8¥ 8¥ 8¥ 8¥ 8¥ 8¥ 8¥ 8¥ 8¥ 8¥ 8¥ 8¥ 8¥ 8¥ 8¥ 8¥ 8¥ 8¥ 8¥ 
 
   /**
    * @param {HTMLElement} wrapper
-   * @param {{ type: string, url: string }} link
-   * @param {number} index
-   * @returns {HTMLDivElement}
+   * @param {DragEvent} e
    */
-  _createLinkRow(wrapper, link, index) {
-    const s = stateMap.get(wrapper)
-    const ownerDocument = wrapper.ownerDocument
-    if (!s) return ownerDocument.createElement('div')
-
-    const isEmptySlot = !link.url.trim()
-    const row = ownerDocument.createElement('div')
-    row.className = 'oe-person__link-row'
-
-    const iconEl = ownerDocument.createElement('span')
-    iconEl.className = 'oe-person__link-icon'
-    const resolved = resolveSocialIcon(link.url, this._config.socialResolvers)
-    iconEl.innerHTML = link.url ? resolved.icon : (SOCIAL_ICONS.website || '')
-    iconEl.dataset.type = link.url ? resolved.type : link.type
-    row.appendChild(iconEl)
-
-    const input = wrapper.ownerDocument.createElement('input')
-    input.type = 'text'
-    input.className = 'oe-person__link-url'
-    // Live serialized value, with native field editing and editor history.
-    input.setAttribute('data-oe-document-input', 'value')
-    input.placeholder = 'https://...'
-    input.value = link.url
-    input.readOnly = s.context.readOnly
-    if (!s.context.readOnly) input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault()
-        e.stopPropagation()
-        const state = stateMap.get(wrapper)
-        const targetPerson = state?.data.persons[state.activeIdx]
-        if (targetPerson) this._resolveIcon(wrapper, index, input.value, iconEl, targetPerson)
-        return
-      }
-      if (!e.ctrlKey && !e.metaKey) e.stopPropagation()
-    })
-
-    const person = /** @type {NonNullable<typeof s.data.persons[0]>} */ (s.data.persons[s.activeIdx])
-    let grewAlready = false
-    if (!s.context.readOnly) input.addEventListener('input', () => {
-      this._debouncedResolve(wrapper, index, input.value, iconEl)
-      if (isEmptySlot && !grewAlready && input.value.trim()) {
-        grewAlready = true
-        this._syncActiveFromDom(wrapper)
-        while (person.links.length <= index) person.links.push({ type: 'website', url: '' })
-        const personLink = person.links[index]
-        if (personLink) personLink.url = input.value
-        if (!row.querySelector('.oe-person__link-remove')) {
-          const removeBtn = ownerDocument.createElement('button')
-          removeBtn.type = 'button'
-          removeBtn.className = 'oe-person__link-remove'
-          removeBtn.innerHTML = ICON_REMOVE
-          removeBtn.setAttribute('aria-label', this._t('removeLink', 'Remove link'))
-          removeBtn.addEventListener('mousedown', e => e.preventDefault())
-          removeBtn.addEventListener('click', () => {
-            s.context.mutate(() => {
-              this._syncActiveFromDom(wrapper)
-              person.links.splice(index, 1)
-              this._rebuild(wrapper)
-            })
-          })
-          row.appendChild(removeBtn)
-        }
-        const newRow = this._createLinkRow(wrapper, { type: 'website', url: '' }, index + 1)
-        row.parentElement?.appendChild(newRow)
-      }
-    })
-    if (!s.context.readOnly) input.addEventListener('paste', () => {
-      ;(wrapper.ownerDocument.defaultView ?? globalThis).requestAnimationFrame(() => this._resolveIcon(wrapper, index, input.value, iconEl, person))
-    })
-    row.appendChild(input)
-
-    if (!s.context.readOnly && !isEmptySlot) {
-      const removeBtn = ownerDocument.createElement('button')
-      removeBtn.type = 'button'
-      removeBtn.className = 'oe-person__link-remove'
-      removeBtn.innerHTML = ICON_REMOVE
-      removeBtn.setAttribute('aria-label', this._t('removeLink', 'Remove link'))
-      removeBtn.addEventListener('mousedown', e => e.preventDefault())
-      removeBtn.addEventListener('click', () => {
-        s.context.mutate(() => {
-          this._syncActiveFromDom(wrapper)
-          person.links.splice(index, 1)
-          this._rebuild(wrapper)
-        })
-      })
-      row.appendChild(removeBtn)
-    }
-
-    return row
-  }
-
-  /**
-   * @param {HTMLElement} wrapper
-   * @param {number} index
-   * @param {string} url
-   * @param {HTMLElement} iconEl
-   * @returns {void}
-   */
-  _debouncedResolve(wrapper, index, url, iconEl) {
+  _onDragStart(wrapper, e) {
     const s = stateMap.get(wrapper)
     if (!s) return
-    const key = `${s.activeIdx}:${index}`
-    const targetPerson = s.data.persons[s.activeIdx]
-    if (!targetPerson) return
-    const existing = s.debounceTimers.get(key)
-    if (existing) (wrapper.ownerDocument.defaultView ?? globalThis).clearTimeout(existing)
-    iconEl.innerHTML = ICON_LOADER
-    iconEl.querySelector('svg')?.classList.add('oe-person__spin')
-    const timer = (wrapper.ownerDocument.defaultView ?? globalThis).setTimeout(() => {
-      s.debounceTimers.delete(key)
-      this._resolveIcon(wrapper, index, url, iconEl, targetPerson, key)
-    }, 500)
-    s.debounceTimers.set(key, timer)
-  }
-
-  /**
-   * Cancel every pending social-link resolver owned by one rendered block.
-   * Rebuilt or replaced cards resolve their current URLs synchronously, so a
-   * timer tied to a detached input must never update a later link at the same
-   * array index.
-   * @param {PersonState} state
-   * @returns {void}
-   */
-  _clearDebounceTimers(state) {
-    for (const timer of state.debounceTimers.values()) (state.ownerDocument.defaultView ?? globalThis).clearTimeout(timer)
-    state.debounceTimers.clear()
+    const row = /** @type {HTMLElement | null} */ (e.target?.closest?.('.oe-person__link-row'))
+    if (!row) return
+    s.dragFromIdx = parseInt(row.dataset.index)
+    e.dataTransfer?.setData('text/plain', String(s.dragFromIdx))
+    e.dataTransfer?.setDragImage(row, 0, 0)
   }
 
   /**
    * @param {HTMLElement} wrapper
-   * @param {number} index
-   * @param {string} url
-   * @param {HTMLElement} iconEl
-   * @param {PersonData} targetPerson
-   * @param {string} [timerKey] Exact pending-timer key captured by the caller.
-   * @returns {void}
+   * @param {DragEvent} e
    */
-  _resolveIcon(wrapper, index, url, iconEl, targetPerson, timerKey) {
+  _onDrop(wrapper, e) {
+    e.preventDefault()
     const s = stateMap.get(wrapper)
-    if (!s) return
-    const personIndex = s.data.persons.indexOf(targetPerson)
-    if (personIndex < 0) return
-    const key = timerKey || `${personIndex}:${index}`
-    const existing = s.debounceTimers.get(key)
-    if (existing) { (wrapper.ownerDocument.defaultView ?? globalThis).clearTimeout(existing); s.debounceTimers.delete(key) }
-    const resolved = resolveSocialIcon(url, this._config.socialResolvers)
-    iconEl.innerHTML = resolved.icon
-    iconEl.dataset.type = resolved.type
-    const personLink = targetPerson.links[index]
-    if (personLink && personLink.type !== resolved.type) {
-      s.context.mutate(() => { personLink.type = resolved.type })
-    }
-  }
-
-  // â”€â”€ Avatar upload â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
-  /** @param {HTMLElement} wrapper @returns {void} */
-  _triggerAvatarUpload(wrapper) {
-    const currentState = stateMap.get(wrapper)
-    if (!currentState || currentState.context.readOnly) return
-    const t = (/** @type {string} */ key, /** @type {string} */ fallback) => this._t(key, fallback)
-    const input = wrapper.ownerDocument.createElement('input')
-    input.type = 'file'
-    input.accept = 'image/*'
-    input.addEventListener('change', async () => {
-      const file = input.files?.[0]
-      if (!file) return
-      const state = stateMap.get(wrapper)
-      if (!state) return
-      const targetPerson = state.data.persons[state.activeIdx]
-      if (!targetPerson) return
-
-      state.cropperDialog?.destroy()
-      const dialog = new CropperDialog(file, {
-        title: t('cropTitle', 'Crop avatar'),
-        confirmText: t('cropConfirm', 'Apply'),
-        cancelText: t('cropCancel', 'Cancel'),
-      })
-      state.cropperDialog = dialog
-      dialog.open()
-
-      let croppedBlob
-      try {
-        croppedBlob = await dialog.result
-      } finally {
-        const current = stateMap.get(wrapper)
-        if (current?.cropperDialog === dialog) current.cropperDialog = null
-      }
-
-      if (!croppedBlob) return
-      if (!stateMap.has(wrapper)) return
+    if (!s ||(s.dragFromIdx === null) || scontentExited) return
+    const row = /** @type {HTMLElement | null} */ (e.target?.closest?.('.oe-person__link-row'))
+    if (!row) return
+    const from = s.dragFromIdx
+    const to = parseInt(row.dataset.index)
+    if (from === to) return
+    const p = s.data.persons[s.activeIdx]
+    if (!p) return
+    s.context.mutate(() => {
       this._syncActiveFromDom(wrapper)
-
-      if (this._config.uploadFile) {
-        void this._uploadAvatar(wrapper, croppedBlob, targetPerson)
-      } else {
-        void this._readAvatar(wrapper, croppedBlob, targetPerson)
-      }
+      const [moved] = p.links.splice(from, 1)
+      p.links.splice(to, 0, moved)
+      this._rebuild(wrapper)
     })
-    input.click()
   }
 
-  /**
-   * Start a latest-wins avatar operation for one profile without cancelling
-   * independent uploads that belong to other profile tabs.
-   * @param {HTMLElement} wrapper
-   * @param {PersonData} targetPerson
-   * @returns {{ state: PersonState, controller: AbortController } | null}
-   */
-  _beginAvatarTask(wrapper, targetPerson) {
-    const state = stateMap.get(wrapper)
-    if (!state || state.context.readOnly || !state.data.persons.includes(targetPerson)) return null
-    state.avatarTasks.get(targetPerson)?.abort()
-    const controller = createAbortControllerFor(wrapper)
-    state.avatarTasks.set(targetPerson, controller)
-    wrapper.classList.add('oe-person--loading')
-    return { state, controller }
-  }
+  // â”€â”€M½¥…°¥½¸É•Í½±ÕÑ¥½¸ƒŠŠŠŠŠŠŠŠŠŠŠŠŠŠŠŠŠŠŠŠŠŠŠŠŠŠŠŠŠŠŠŠŠŠŠŠŠŠŠŠŠŠŠŠŠŠŠŠŠŠ  ¢ò¢ ¢¢&Ò´…DÔÄVÆVÖVçGÒw&W ¢¢&Ò¶çVÖ&W'Ò–æFW€¢¢&Ò·7G&–æwÒW&À¢¢&Ò´…DÔÄVÆVÖVçGÒ–6öäVÀ¢¢&WGW&ç2·fö–GĞ¢¢ğ¢öFV&÷Væ6VE&W6öÇfR‡w&W"Â–æFW‚ÂW&ÂÂ–6öäVÂ’°¢6öç7B2Ò7FFTÖævWB‡w&W"¢–b‚2’&WGW&à¢6öç7B¶W’ÒG·2æ7F—fT–G‡Ó¢G¶–æFW‡Ö ¢6öç7BF&vWEW'6öâÒ2æFFçW'6öç5·2æ7F—fT–G…Ğ¢–b‚F&vWEW'6öâ’&WGW&à¢6öç7BW†—7F–ærÒ2æFV&÷Væ6UF–ÖW'2ævWB†¶W’¢–b†W†—7F–ær’‡w&W"æ÷væW$Fö7VÖVçBæFVfVÇEf–WróòvÆö&ÅF†—2’æ6ÆV%F–ÖV÷WB†W†—7F–ær¢–6öäVÂæ–ææW$…DÔÂÒ”4ôåôÄôDU ¢–6öäVÂçVW'•6VÆV7F÷"‚w7frr“òæ6Æ74Æ—7BæFB‚vöR×W'6öåõ÷7–âr¢6öç7BF–ÖW"Ò‡w&W"æ÷væW$Fö7VÖVçBæFVfVÇEf–WróòvÆö&ÅF†—2’ç6WEF–ÖV÷WB‚‚’Óâ°¢2æFV&÷Væ6UF–ÖW'2æFVÆWFR†¶W’¢F†—2å÷&W6öÇfT–6öâ‡w&W"Â–æFW‚ÂW&ÂÂ–6öäVÂÂF&vWEW'6öâÂ¶W’¢ÒÂS¢2æFV&÷Væ6UF–ÖW'2ç6WB†¶W’ÂF–ÖW"¢Ğ ¢ò¢ ¢¢6æ6VÂWfW'’VæF–ær6ö6–ÂÖÆ–æ²&W6öÇfW"÷væVB'’öæR&VæFW&VB&Æö6²à¢¢&V'V–ÇB÷"&WÆ6VB6&G2&W6öÇfRF†V—"7W'&VçBU$Ç27–æ6‡&öæ÷W6Ç’Â6ò¢¢F–ÖW"F–VBFòFWF6†VB–çWB×W7BæWfW"WFFRÆFW"Æ–æ²BF†R6ÖP¢¢'&’–æFW‚à¢¢&ÒµW'6öå7FFWÒ7FFP¢¢&WGW&ç2·fö–GĞ¢¢ğ¢ö6ÆV$FV&÷Væ6UF–ÖW'2‡7FFR’°¢f÷"†6öç7BF–ÖW"öb7FFRæFV&÷Væ6UF–ÖW'2çfÇVW2‚’’‡7FFRæ÷væW$Fö7VÖVçBæFVfVÇEf–WróòvÆö&ÅF†—2’æ6ÆV%F–ÖV÷WB‡F–ÖW"¢7FFRæFV&÷Væ6UF–ÖW'2æ6ÆV"‚¢Ğ ¢ò¢ ¢¢&Ò´…DÔÄVÆVÖVçGÒw&W ¢¢&Ò¶çVÖ&W'Ò–æFW€¢¢&Ò·7G&–æwÒW&À¢¢&Ò´…DÔÄVÆVÖVçGÒ–6öäVÀ¢¢&ÒµW'6öäFFÒF&vWEW'6öà¢¢&Ò·7G&–æwÒ·F–ÖW$¶W•ÒW†7BVæF–ær×F–ÖW"¶W’6GW&VB'’F†R6ÆÆW"à¢¢&WGW&ç2·fö–GĞ¢¢ğ¢÷&W6öÇfT–6öâ‡w&W"Â–æFW‚ÂW&ÂÂ–6öäVÂÂF&vWEW'6öâÂF–ÖW$¶W’’°¢6öç7B2Ò7FFTÖævWB‡w&W"¢–b‚2’&WGW&à¢6öç7BW'6öä–æFW‚Ò2æFFçW'6öç2æ–æFW„öb‡F&vWEW'6öâ¢–b‡W'6öä–æFW‚Â’&WGW&à¢6öç7B¶W’ÒF–ÖW$¶W’ÇÈ	Ü\œÛÛ’[™^N‰Ú[™^XˆÛÛœİ^\İ[™ÈHË™X›İ[˜ÙU[Y\œË™Ù]
+Ù^JBˆYˆ
+^\İ[™ÊHÈ
+Ü˜\\‹›İÛ™\‘Øİ[Y[™Y˜][šY]ÈÏÈÛØ˜[\ÊK˜ÛX\•[Y[İ]
+^\İ[™ÊNÈË™X›İ[˜ÙU[Y\œË™[]JÙ^JHBˆÛÛœİ™\ÛÛ™YH™\ÛÛ™TÛØÚX[XÛÛŠ\›\Ë—ØÛÛ™šYËœÛØÚX[™\ÛÛ™\œÊBˆXÛÛ‘[š[›™\’SH™\ÛÛ™YšXÛÛ‚ˆXÛÛ‘[™]\Ù]\HH™\ÛÛ™Y\BˆÛÛœİ\œÛÛ“[šÈH\™Ù]\œÛÛ‹›[šÜÖÚ[™^BˆYˆ
+\œÛÛ“[šÈ	‰ˆ\œÛÛ“[šË\HOOH™\ÛÛ™Y\JHÂˆË˜ÛÛ^›]]]J
 
-  /**
-   * Release avatar-task ownership only when the completing task is still the
-   * latest task for its target profile.
-   * @param {HTMLElement} wrapper
-   * @param {PersonState} state
-   * @param {PersonData} targetPerson
-   * @param {AbortController} controller
-   * @returns {boolean}
-   */
-  _finishAvatarTask(wrapper, state, targetPerson, controller) {
-    if (stateMap.get(wrapper) !== state || state.avatarTasks.get(targetPerson) !== controller) return false
-    state.avatarTasks.delete(targetPerson)
-    if (state.avatarTasks.size === 0) wrapper.classList.remove('oe-person--loading')
-    return true
-  }
-
-  /**
-   * Store a cropped avatar locally while preserving same-person latest-wins
-   * ownership and block lifecycle cancellation.
-   * @param {HTMLElement} wrapper
-   * @param {Blob} blob
-   * @param {PersonData} targetPerson
-   * @returns {Promise<void>}
-   */
-  async _readAvatar(wrapper, blob, targetPerson) {
-    const task = this._beginAvatarTask(wrapper, targetPerson)
-    if (!task) return
-    const { state, controller } = task
-    try {
-      const result = await new Promise((resolve, reject) => {
-        const ownerView = wrapper.ownerDocument.defaultView
-        const FileReaderCtor = ownerView?.FileReader ?? FileReader
-        const DOMExceptionCtor = ownerView?.DOMException ?? DOMException
-        const reader = new FileReaderCtor()
-        let settled = false
-        const finish = (callback) => {
-          if (settled) return
-          settled = true
-          controller.signal.removeEventListener('abort', abort)
-          callback()
-        }
-        const abort = () => {
-          if (reader.readyState === FileReaderCtor.LOADING) reader.abort()
-          else finish(() => reject(controller.signal.reason || new DOMExceptionCtor('Avatar read aborted', 'AbortError')))
-        }
-        controller.signal.addEventListener('abort', abort, { once: true })
-        reader.onload = () => finish(() => resolve(typeof reader.result === 'string' ? reader.result : ''))
-        reader.onerror = () => finish(() => reject(reader.error || new Error('Failed to read avatar')))
-        reader.onabort = () => finish(() => reject(controller.signal.reason || new DOMExceptionCtor('Avatar read aborted', 'AbortError')))
-        try { reader.readAsDataURL(blob) } catch (error) { finish(() => reject(error)) }
-      })
-      const current = stateMap.get(wrapper)
-      if (
-        controller.signal.aborted
-        || current !== state
-        || state.avatarTasks.get(targetPerson) !== controller
-        || !state.data.persons.includes(targetPerson)
-      ) return
-      state.context.mutate(() => {
-        targetPerson.avatar = String(result)
-        this._rebuild(wrapper)
-      })
-    } catch {
-      // Read was cancelled or failed.
-    } finally {
-      this._finishAvatarTask(wrapper, state, targetPerson, controller)
-    }
-  }
-
-  /**
-   * @param {HTMLElement} wrapper
-   * @param {Blob} blob
-   * @param {PersonData} targetPerson
-   * @returns {Promise<void>}
-   */
-  async _uploadAvatar(wrapper, blob, targetPerson) {
-    if (!this._config.uploadFile) return
-    const task = this._beginAvatarTask(wrapper, targetPerson)
-    if (!task) return
-    const { state, controller } = task
-    try {
-      const FileCtor = wrapper.ownerDocument.defaultView?.File ?? File
-      const file = new FileCtor([blob], 'avatar.webp', { type: 'image/webp' })
-      const result = await this._config.uploadFile(file, { signal: controller.signal })
-      const url = sanitizeUrl(String(result?.url || ''), { policy: 'media', fallback: '' })
-      const current = stateMap.get(wrapper)
-      if (
-        controller.signal.aborted
-        || !url
-        || current !== state
-        || state.avatarTasks.get(targetPerson) !== controller
-        || !state.data.persons.includes(targetPerson)
-      ) return
-      state.context.mutate(() => {
-        targetPerson.avatar = url
-        this._rebuild(wrapper)
-      })
-    } catch {
-      // Upload was cancelled or failed.
-    } finally {
-      this._finishAvatarTask(wrapper, state, targetPerson, controller)
-    }
-  }
-}
+HOˆÈ\œÛÛ“[šË\HH™\ÛÛ™Y\HJBˆBˆB‚ˆËÈ8¥ 8¥  Avatar upload â„€â„€â„€â„€â„€â„€â„€â„€â„€â„€â„€â„€â„€â„€â„€â„€â„€â„€â„€â„€â„€â„€â„€â„€â„€â„€â„€â„€â„€â„€â„€â„€â„€â„€â„€â„€â„€â„€â„€â„€â„€â„€â„€â„€â„€â„€â„€â„€â„€â„€â„€â„€â„€â„€((€€¼¨¨Á…É…´í!Q51±•µ•¹ÑôİÉ…ÁÁ•ÈÉ•ÑÕÉ¹ÌíÙ½¥‘ô€¨¼(€}ÑÉ¥•ÉÙ…Ñ…ÉUÁ±½…¡İÉ…ÁÁ•È¤ì(€€€½¹ÍĞÕÉÉ•¹ÑMÑ…Ñ”€ôÍÑ…Ñ•5…À¹•Ğ¡İÉ…ÁÁ•È¤(€€€¥˜€ …ÕÉÉ•¹ÑMÑ…Ñ”ñğÕÉÉ•¹ÑMÑ…Ñ”¹½¹Ñ•áĞ¹É•…‘=¹±ä¤É•ÑÕÉ¸(€€€½¹ÍĞĞ€ô€ ¼¨¨ÑåÁ”íÍÑÉ¥¹ô€¨¼­•ä°€¼¨¨ÑåÁ”íÍÑÉ¥¹ô€¨¼™…±±‰…¬¤€ôøÑ¡¥Ì¹}Ğ¡­•ä°™…±±‰…¬¤(€€€½¹ÍĞ¥¹ÁÕĞ€ôİÉ…ÁÁ•È¹½İ¹•É½Õµ•¹Ğ¹É•…Ñ•±•µ•¹Ğ ¥¹ÁÕĞœ¤(€€€¥¹ÁÕĞ¹ÑåÁ”€ô€™¥±”œ(€€€¥¹ÁÕĞ¹…•ÁĞ€ô€¥µ…”¼¨œ(€€€¥¹ÁÕĞ¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ¡…¹”œ°…Íå¹Œ€ ¤€ôøì(€€€€€½¹ÍĞ™¥±”€ô¥¹ÁÕĞ¹™¥±•Ìü¹lÁt(€€€€€¥˜€ …™¥±”¤É•ÑÕÉ¸(€€€€€½¹ÍĞÍÑ…Ñ”€ôÍÑ…Ñ•5…À¹•Ğ¡İÉ…ÁÁ•È¤(€€€€€¥˜€ …ÍÑ…Ñ”¤É•ÑÕÉ¸(€€€€€½¹ÍĞÑ…É•ÑA•ÉÍ½¸€ôÍÑ…Ñ”¹‘…Ñ„¹Á•ÉÍ½¹ÍmÍÑ…Ñ”¹…Ñ¥Ù•%‘át(€€€€€¥˜€ …Ñ…É•ÑA•ÉÍ½¸¤É•ÑÕÉ¸((€€€€€±•Ğ…Ù…Ñ…É	±½ˆ€ô€¼¨¨ÑåÁ”í	±½‰ô€¨¼€¡™¥±”¤(€€€€€±•ĞÕÁ±½…‘9…µ”€ô€…Ù…Ñ…È¹İ•‰Àœ(€€€€€±•ĞÕÁ±½…‘QåÁ”€ô€¥µ…”½İ•‰Àœ((€€€€€€¼¼Í¡•±…µ­½™˜½É½ÁÁ•È€Ä¹àÉ•Í½±Ù•Ì=4…¹Á±…Ñ™½É´½¹ÍÑÉÕÑ½ÉÌ™É½´(€€€€€€¼¼¥ÑÌµ½‘Õ±”É•…±´¸]¡•¸I•Ñ½È¥Ì±½…‘•‰ä„Á…É•¹Ğ‘½Õµ•¹Ğ‰ÕĞ(€€€€€€¼¼µ½Õ¹Ñ•¥¹Ñ¼…¸¥™É…µ”°½Á•¹¥¹œÑ¡…Ğ‘¥…±½œİ½Õ±É•…Ñ”U$¥¸Ñ¡”(€€€€€€¼¼Á…É•¹Ğ…¹É•©•ĞÑ¡”¥™É…µ”¥±”½!Q51±•µ•¹ĞÙ¥„É½ÍÌµÉ•…±´(€€€€€€¼¼¥¹ÍÑ…¹•½˜¡•­Ì¸AÉ•Í•ÉÙ”…Ù…Ñ…ÈÕÁ±½…¥¸Ñ¡…ĞÍÕÁÁ½ÉÑ•µ½Õ¹Ñ¥¹œ(€€€€€€¼¼µ½‘”‰äÍ­¥ÁÁ¥¹œ½¹±äÑ¡”¥¹Ñ•É…Ñ¥Ù”É½ÀÍÑ•À¸(€€€€€¥˜€¡İÉ…ÁÁ•È¹½İ¹•É½Õµ•¹Ğ€ôôô±½‰…±Q¡¥Ì¹‘½Õµ•¹Ğ¤ì(€€€€€€€ÍÑ…Ñ”¹É½ÁÁ•É¥…±½œü¹‘•ÍÑÉ½ä ¤(€€€€€€€½¹ÍĞ‘¥…±½œ€ô¹•ÜÉ½ÁÁ•É¥…±½œ¡™¥±”°ì(€€€€€€€€€Ñ¥Ñ±”èĞ É½ÁQ¥Ñ±”œ°€É½À…Ù…Ñ…Èœ¤°(€€€€€€€€€½¹™¥ÉµQ•áĞèĞ É½Á½¹™¥É´œ°€ÁÁ±äœ¤°(€€€€€€€€€…¹•±Q•áĞèĞ É½Á…¹•°œ°€…¹•°œ¤°(€€€€€€€ô¤(€€€€€€€ÍÑ…Ñ”¹É½ÁÁ•É¥…±½œ€ô‘¥…±½œ(€€€€€€€‘¥…±½œ¹½Á•¸ ¤((€€€€€€€ÑÉäì(€€€€€€€€€…Ù…Ñ…É	±½ˆ€ô…İ…¥Ğ‘¥…±½œ¹É•ÍÕ±Ğ(€€€€€€€ô™¥¹…±±äì(€€€€€€€€€½¹ÍĞÕÉÉ•¹Ğ€ôÍÑ…Ñ•5…À¹•Ğ¡İÉ…ÁÁ•È¤(€€€€€€€€€¥˜€¡ÕÉÉ•¹Ğü¹É½ÁÁ•É¥…±½œ€ôôô‘¥…±½œ¤ÕÉÉ•¹Ğ¹É½ÁÁ•É¥…±½œ€ô¹Õ±°(€€€€€€€ô(€€€€€€€¥˜€ ……Ù…Ñ…É	±½ˆ¤É•ÑÕÉ¸(€€€€€ô•±Í”ì(€€€€€€€ÕÁ±½…‘9…µ”€ô™¥±”¹¹…µ”ñğ€…Ù…Ñ…Èœ(€€€€€€€ÕÁ±½…‘QåÁ”€ô™¥±”¹ÑåÁ”ñğ€…ÁÁ±¥…Ñ¥½¸½½Ñ•ĞµÍÑÉ•…´œ(€€€€€ô((€€€€€¥˜€ …ÍÑ…Ñ•5…À¹¡…Ì¡İÉ…ÁÁ•È¤¤É•ÑÕÉ¸(€€€€€Ñ¡¥Ì¹}Íå¹Ñ¥Ù•É½µ½´¡İÉ…ÁÁ•È¤((€€€€€¥˜€¡Ñ¡¥Ì¹}½¹™¥œ¹ÕÁ±½…‘¥±”¤ì(€€€€€€€Ù½¥Ñ¡¥Ì¹}ÕÁ±½…‘Ù…Ñ…È¡İÉ…ÁÁ•È°…Ù…Ñ…É	±½ˆ°Ñ…É•ÑA•ÉÍ½¸°ÕÁ±½…‘9…µ”°ÕÁ±½…‘QåÁ”¤(€€€€€ô•±Í”ì(€€€€€€€Ù½¥Ñ¡¥Ì¹}É•…‘Ù…Ñ…È¡İÉ…ÁÁ•È°…Ù…Ñ…É	±½ˆ°Ñ…É•ÑA•ÉÍ½¸¤(€€€€€ô(€€€ô¤(€€€¥¹ÁÕĞ¹±¥¬ ¤(€ô((€€¼¨¨(€€€¨MÑ…ÉĞ„±…Ñ•ÍĞµİ¥¹Ì…Ù…Ñ…È½Á•É…Ñ¥½¸™½È½¹”ÁÉ½™¥±”İ¥Ñ¡½ÕĞ…¹•±±¥¹œ(€€€¨¥¹‘•Á•¹‘•¹ĞÕÁ±½…‘ÌÑ¡…Ğ‰•±½¹œÑ¼½Ñ¡•ÈÁÉ½™¥±”Ñ…‰Ì¸(€€€¨Á…É…´í!Q51±•µ•¹ÑôİÉ…ÁÁ•È(€€€¨Á…É…´íA•ÉÍ½¹…Ñ…ôÑ…É•ÑA•ÉÍ½¸(€€€¨É•ÑÕÉ¹ÌíìÍÑ…Ñ”èA•ÉÍ½¹MÑ…Ñ”°½¹ÑÉ½±±•Èè‰½ÉÑ½¹ÑÉ½±±•Èôğ¹Õ±±ô(€€€¨¼(€}‰•¥¹Ù…Ñ…ÉQ…Í¬¡İÉ…ÁÁ•È°Ñ…É•ÑA•ÉÍ½¸¤ì(€€€½¹ÍĞÍÑ…Ñ”€ôÍÑ…Ñ•5…À¹•Ğ¡İÉ…ÁÁ•È¤(€€€¥˜€ …ÍÑ…Ñ”ñğÍÑ…Ñ”¹½¹Ñ•áĞ¹É•…‘=¹±äñğ€…ÍÑ…Ñ”¹‘…Ñ„¹Á•ÉÍ½¹Ì¹¥¹±Õ‘•Ì¡Ñ…É•ÑA•ÉÍ½¸¤¤É•ÑÕÉ¸¹Õ±°(€€€ÍÑ…Ñ”¹…Ù…Ñ…ÉQ…Í­Ì¹•Ğ¡Ñ…É•ÑA•ÉÍ½¸¤ü¹…‰½ÉĞ ¤(€€€½¹ÍĞ½¹ÑÉ½±±•È€ôÉ•…Ñ•‰½ÉÑ½¹ÑÉ½±±•É½È¡İÉ…ÁÁ•È¤(€€€ÍÑ…Ñ”¹…Ù…Ñ…ÉQ…Í­Ì¹Í•Ğ¡Ñ…É•ÑA•ÉÍ½¸°½¹ÑÉ½±±•È¤(€€€İÉ…ÁÁ•È¹±…ÍÍ1¥ÍĞ¹…‘ ½”µÁ•ÉÍ½¸´µ±½…‘¥¹œœ¤(€€€É•ÑÕÉ¸ìÍÑ…Ñ”°½¹ÑÉ½±±•Èô(€ô((€€¼¨¨(€€€¨I•±•…Í”…Ù…Ñ…ÈµÑ…Í¬½İ¹•ÉÍ¡¥À½¹±äİ¡•¸Ñ¡”½µÁ±•Ñ¥¹œÑ…Í¬¥ÌÍÑ¥±°Ñ¡”(€€€¨±…Ñ•ÍĞÑ…Í¬™½È¥ÑÌÑ…É•ĞÁÉ½™¥±”¸(€€€¨Á…É…´í!Q51±•µ•¹ÑôİÉ…ÁÁ•È(€€€¨Á…É…´íA•ÉÍ½¹MÑ…Ñ•ôÍÑ…Ñ”(€€€¨Á…É…´íA•ÉÍ½¹…Ñ…ôÑ…É•ÑA•ÉÍ½¸(€€€¨Á…É…´í‰½ÉÑ½¹ÑÉ½±±•Éô½¹ÑÉ½±±•È(€€€¨É•ÑÕÉ¹Ìí‰½½±•…¹ô(€€€¨¼(€}™¥¹¥Í¡Ù…Ñ…ÉQ…Í¬¡İÉ…ÁÁ•È°ÍÑ…Ñ”°Ñ…É•ÑA•ÉÍ½¸°½¹ÑÉ½±±•È¤ì(€€€¥˜€¡ÍÑ…Ñ•5…À¹•Ğ¡İÉ…ÁÁ•È¤€„ôôÍÑ…Ñ”ñğÍÑ…Ñ”¹…Ù…Ñ…ÉQ…Í­Ì¹•Ğ¡Ñ…É•ÑA•ÉÍ½¸¤€„ôô½¹ÑÉ½±±•È¤É•ÑÕÉ¸™…±Í”(€€€ÍÑ…Ñ”¹…Ù…Ñ…ÉQ…Í­Ì¹‘•±•Ñ”¡Ñ…É•ÑA•ÉÍ½¸¤(€€€¥˜€¡ÍÑ…Ñ”¹…Ù…Ñ…ÉQ…Í­Ì¹Í¥é”€ôôô€À¤İÉ…ÁÁ•È¹±…ÍÍ1¥ÍĞ¹É•µ½Ù” ½”µÁ•ÉÍ½¸´µ±½…‘¥¹œœ¤(€€€É•ÑÕÉ¸ÑÉÕ”(€ô((€€¼¨¨(€€€¨MÑ½É”„É½ÁÁ•…Ù…Ñ…È±½…±±äİ¡¥±”ÁÉ•Í•ÉÙ¥¹œÍ…µ”µÁ•ÉÍ½¸±…Ñ•ÍĞµİ¥¹Ì(€€€¨½İ¹•ÉÍ¡¥À…¹‰±½¬±¥™•å±”…¹•±±…Ñ¥½¸¸(€€€¨Á…É…´í!Q51±•µ•¹ÑôİÉ…ÁÁ•È(€€€¨Á…É…´í	±½‰ô‰±½ˆ(€€€¨Á…É…´íA•ÉÍ½¹…Ñ…ôÑ…É•ÑA•ÉÍ½¸(€€€¨É•ÑÕÉ¹ÌíAÉ½µ¥Í”ñÙ½¥ùô(€€€¨¼(€…Íå¹Œ}É•…‘Ù…Ñ…È¡İÉ…ÁÁ•È°‰±½ˆ°Ñ…É•ÑA•ÉÍ½¸¤ì(€€€½¹ÍĞÑ…Í¬€ôÑ¡¥Ì¹}‰•¥¹Ù…Ñ…ÉQ…Í¬¡İÉ…ÁÁ•È°Ñ…É•ÑA•ÉÍ½¸¤(€€€¥˜€ …Ñ…Í¬¤É•ÑÕÉ¸(€€€½¹ÍĞìÍÑ…Ñ”°½¹ÑÉ½±±•Èô€ôÑ…Í¬(€€€ÑÉäì(€€€€€½¹ÍĞÉ•ÍÕ±Ğ€ô…İ…¥Ğ¹•ÜAÉ½µ¥Í” ¡É•Í½±Ù”°É•©•Ğ¤€ôøì(€€€€€€€½¹ÍĞ½İ¹•ÉY¥•Ü€ôİÉ…ÁÁ•È¹½İ¹•É½Õµ•¹Ğ¹‘•™…Õ±ÑY¥•Ü(€€€€€€€½¹ÍĞ¥±•I•…‘•ÉÑ½È€ô½İ¹•ÉY¥•Üü¹¥±•I•…‘•È€üü¥±•I•…‘•È(€€€€€€€½¹ÍĞ=5á•ÁÑ¥½¹Ñ½È€ô½İ¹•ÉY¥•Üü¹=5á•ÁÑ¥½¸€üü=5á•ÁÑ¥½¸(€€€€€€€½¹ÍĞÉ•…‘•È€ô¹•Ü¥±•I•…‘•ÉÑ½È ¤(€€€€€€€±•ĞÍ•ÑÑ±•€ô™…±Í”(€€€€€€€½¹ÍĞ™¥¹¥Í €ô€¡…±±‰…¬¤€ôøì(€€€€€€€€€¥˜€¡Í•ÑÑ±•¤É•ÑÕÉ¸(€€€€€€€€€Í•ÑÑ±•€ôÑÉÕ”(€€€€€€€€€½¹ÑÉ½±±•È¹Í¥¹…°¹É•µ½Ù•Ù•¹Ñ1¥ÍÑ•¹•È …‰½ÉĞœ°…‰½ÉĞ¤(€€€€€€€€€…±±‰…¬ ¤(€€€€€€€ô(€€€€€€€½¹ÍĞ…‰½ÉĞ€ô€ ¤€ôøì(€€€€€€€€€¥˜€¡É•…‘•È¹É•…‘åMÑ…Ñ”€ôôô¥±•I•…‘•ÉÑ½È¹1=%9¤É•…‘•È¹…‰½ÉĞ ¤(€€€€€€€€€•±Í”™¥¹¥Í   ¤€ôøÉ•©•Ğ¡½¹ÑÉ½±±•È¹Í¥¹…°¹É•…Í½¸ñğ¹•Ü=5á•ÁÑ¥½¹Ñ½È Ù…Ñ…ÈÉ•……‰½ÉÑ•œ°€‰½ÉÑÉÉ½Èœ¤¤¤(€€€€€€€ô(€€€€€€€½¹ÑÉ½±±•È¹Í¥¹…°¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È …‰½ÉĞœ°…‰½ÉĞ°ì½¹”èÑÉÕ”ô¤(€€€€€€€É•…‘•È¹½¹±½…€ô€ ¤€ôø™¥¹¥Í   ¤€ôøÉ•Í½±Ù”¡ÑåÁ•½˜É•…‘•È¹É•ÍÕ±Ğ€ôôô€ÍÑÉ¥¹œœ€üÉ•…‘•È¹É•ÍÕ±Ğ€è€œœ¤¤(€€€€€€€É•…‘•È¹½¹•ÉÉ½È€ô€ ¤€ôø™¥¹¥Í   ¤€ôøÉ•©•Ğ¡É•…‘•È¹•ÉÉ½Èñğ¹•ÜÉÉ½È …¥±•Ñ¼É•……Ù…Ñ…Èœ¤¤¤(€€€€€€€É•…‘•È¹½¹…‰½ÉĞ€ô€ ¤€ôø™¥¹¥Í   ¤€ôøÉ•©•Ğ¡½¹ÑÉ½±±•È¹Í¥¹…°¹É•…Í½¸ñğ¹•Ü=5á•ÁÑ¥½¹Ñ½È Ù…Ñ…ÈÉ•……‰½ÉÑ•œ°€‰½ÉÑÉÉ½Èœ¤¤¤(€€€€€€€ÑÉäìÉ•…‘•È¹É•…‘Í…Ñ…UI0¡‰±½ˆ¤ô…Ñ €¡•ÉÉ½È¤ì™¥¹¥Í   ¤€ôøÉ•©•Ğ¡•ÉÉ½È¤¤ô(€€€€€ô¤(€€€€€½¹ÍĞÕÉÉ•¹Ğ€ôÍÑ…Ñ•5…À¹•Ğ¡İÉ…ÁÁ•È¤(€€€€€¥˜€ (€€€€€€€½¹ÑÉ½±±•È¹Í¥¹…°¹…‰½ÉÑ•(€€€€€€€ñğÕÉÉ•¹Ğ€„ôôÍÑ…Ñ”(€€€€€€€ñğÍÑ…Ñ”¹…Ù…Ñ…ÉQ…Í­Ì¹•Ğ¡Ñ…É•ÑA•ÉÍ½¸¤€„ôô½¹ÑÉ½±±•È(€€€€€€€ñğ€…ÍÑ…Ñ”¹‘…Ñ„¹Á•ÉÍ½¹Ì¹¥¹±Õ‘•Ì¡Ñ…É•ÑA•ÉÍ½¸¤(€€€€€€¤É•ÑÕÉ¸(€€€€€ÍÑ…Ñ”¹½¹Ñ•áĞ¹µÕÑ…Ñ”  ¤€ôøì(€€€€€€€Ñ…É•ÑA•ÉÍ½¸¹…Ù…Ñ…È€ôMÑÉ¥¹œ¡É•ÍÕ±Ğ¤(€€€€€€€Ñ¡¥Ì¹}É•‰Õ¥±¡İÉ…ÁÁ•È¤(€€€€€ô¤(€€€ô…Ñ ì(€€€€€€¼¼I•…İ…Ì…¹•±±•½È™…¥±•¸(€€€ô™¥¹…±±äì(€€€€€Ñ¡¥Ì¹}™¥¹¥Í¡Ù…Ñ…ÉQ…Í¬¡İÉ…ÁÁ•È°ÍÑ…Ñ”°Ñ…É•ÑA•ÉÍ½¸°½¹ÑÉ½±±•È¤(€€€ô(€ô((€€¼¨¨(€€€¨Á…É…´í!Q51±•µ•¹ÑôİÉ…ÁÁ•È(€€€¨Á…É…´í	±½‰ô‰±½ˆ(€€€¨Á…É…´íA•ÉÍ½¹…Ñ…ôÑ…É•ÑA•ÉÍ½¸(€€€¨Á…É…´íÍÑÉ¥¹ôm™¥±•¹…µ•t(€€€¨Á…É…´íÍÑÉ¥¹ômµ¥µ•QåÁ•t(€€€¨É•ÑÕÉ¹ÌíAÉ½µ¥Í”ñÙ½¥ùô(€€€¨¼(€…Íå¹Œ}ÕÁ±½…‘Ù…Ñ…È¡İÉ…ÁÁ•È°‰±½ˆ°Ñ…É•ÑA•ÉÍ½¸°™¥±•¹…µ”€ô€…Ù…Ñ…È¹İ•‰Àœ°µ¥µ•QåÁ”€ô€¥µ…”½İ•‰Àœ¤ì(€€€¥˜€ …Ñ¡¥Ì¹}½¹™¥œ¹ÕÁ±½…‘¥±”¤É•ÑÕÉ¸(€€€½¹ÍĞÑ…Í¬€ôÑ¡¥Ì¹}‰•¥¹Ù…Ñ…ÉQ…Í¬¡İÉ…ÁÁ•È°Ñ…É•ÑA•ÉÍ½¸¤(€€€¥˜€ …Ñ…Í¬¤É•ÑÕÉ¸(€€€½¹ÍĞìÍÑ…Ñ”°½¹ÑÉ½±±•Èô€ôÑ…Í¬(€€€ÑÉäì(€€€€€½¹ÍĞ¥±•Ñ½È€ôİÉ…ÁÁ•È¹½İ¹•É½Õµ•¹Ğ¹‘•™…Õ±ÑY¥•Üü¹¥±”€üü¥±”(€€€€€½¹ÍĞ™¥±”€ô¹•Ü¥±•Ñ½È¡m‰±½‰t°™¥±•¹…µ”°ìÑåÁ”èµ¥µ•QåÁ”ô¤(€€€€€½¹ÍĞÉ•ÍÕ±Ğ€ô…İ…¥ĞÑ¡¥Ì¹}½¹™¥œ¹ÕÁ±½…‘¥±”¡™¥±”°ìÍ¥¹…°è½¹ÑÉ½±±•È¹Í¥¹…°ô¤(€€€€€½¹ÍĞÕÉ°€ôÍ…¹¥Ñ¥é•UÉ°¡MÑÉ¥¹œ¡É•ÍÕ±Ğü¹ÕÉ°ñğ€œœ¤°ìÁ½±¥äè€µ•‘¥„œ°™…±±‰…¬è€œœô¤(€€€€€½¹ÍĞÕÉÉ•¹Ğ€ôÍÑ…Ñ•5…À¹•Ğ¡İÉ…ÁÁ•È¤(€€€€€¥˜€ (€€€€€€€½¹ÑÉ½±±•È¹Í¥¹…°¹…‰½ÉÑ•(€€€€€€€ñğ€…ÕÉ°(€€€€€€€ñğÕÉÉ•¹Ğ€„ôôÍÑ…Ñ”(€€€€€€€ñğÍÑ…Ñ”¹…Ù…Ñ…ÉQ…Í­Ì¹•Ğ¡Ñ…É•ÑA•ÉÍ½¸¤€„ôô½¹ÑÉ½±±•È(€€€€€€€ñğ€…ÍÑ…Ñ”¹‘…Ñ„¹Á•ÉÍ½¹Ì¹¥¹±Õ‘•Ì¡Ñ…É•ÑA•ÉÍ½¸¤(€€€€€€¤É•ÑÕÉ¸(€€€€€ÍÑ…Ñ”¹½¹Ñ•áĞ¹µÕÑ…Ñ”  ¤€ôøì(€€€€€€€Ñ…É•ÑA•ÉÍ½¸¹…Ù…Ñ…È€ôÕÉ°(€€€€€€€Ñ¡¥Ì¹}É•‰Õ¥±¡İÉ…ÁÁ•È¤(€€€€€ô¤(€€€ô…Ñ ì(€€€€€€¼¼UÁ±½…İ…Ì…¹•±±•½È™…¥±•¸(€€€ô™¥¹…±±äì(€€€€€Ñ¡¥Ì¹}™¥¹¥Í¡Ù…Ñ…ÉQ…Í¬¡İÉ…ÁÁ•È°ÍÑ…Ñ”°Ñ…É•ÑA•ÉÍ½¸°½¹ÑÉ½±±•È¤(€€€ô(€ô)ô(
