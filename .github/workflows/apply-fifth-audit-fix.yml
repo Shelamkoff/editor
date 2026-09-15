@@ -1,0 +1,33 @@
+name: Apply fifth audit fix
+
+on:
+  push:
+    branches:
+      - fix/audit-tdd-2026-09-05
+    paths:
+      - '.audit-recheck/**'
+      - '.github/workflows/apply-fifth-audit-fix.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Apply verified audit patch
+        run: |
+          set -euo pipefail
+          cat .audit-recheck/*.b64 | base64 -d | gzip -d > /tmp/audit.patch
+          git apply --check /tmp/audit.patch
+          git apply /tmp/audit.patch
+          rm -rf .audit-recheck .github/workflows/apply-fifth-audit-fix.yml
+          git config user.name github-actions
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git diff --cached --check
+          git commit -m "fix(audit): keep async resources in owning realm"
+          git push
