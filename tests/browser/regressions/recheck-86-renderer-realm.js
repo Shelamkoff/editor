@@ -90,4 +90,50 @@ export function register() {
     }
   })
 
+  test('gallery renderTo opens its lightbox in the target document', () => {
+    const iframe = document.createElement('iframe')
+    document.body.appendChild(iframe)
+    let renderer = null
+    try {
+      const doc = iframe.contentDocument
+      const view = iframe.contentWindow
+      assert(doc && view, 'iframe realm unavailable')
+      const container = doc.createElement('main')
+      doc.body.appendChild(container)
+      renderer = new EditorRenderer({ blockTypes: ['gallery'] })
+      const pixel = 'data:image/gif;base64,R0lGODlhAQABAAAAACw='
+      renderer.renderTo({
+        version: '1',
+        blocks: [{
+          id: 'g', type: 'gallery',
+          data: {
+            images: [{ url: pixel, caption: 'Owned image' }],
+            layout: 'auto', styles: {}, options: {},
+          },
+        }],
+      }, container)
+
+      const item = container.querySelector('.editor-gallery__item')
+      assert(item, 'gallery item missing')
+      const ambientCreateElement = document.createElement
+      document.createElement = () => { throw new Error('ambient Expose document must not be used') }
+      try {
+        item.dispatchEvent(new view.MouseEvent('click', { bubbles: true }))
+      } finally {
+        document.createElement = ambientCreateElement
+      }
+
+      const dialog = doc.querySelector('.editor-gallery__lightbox')
+      assert(dialog, 'foreign-realm gallery lightbox missing')
+      equal(dialog.ownerDocument, doc, 'gallery lightbox escaped the target document')
+      assert(!document.querySelector('.editor-gallery__lightbox'), 'gallery lightbox leaked into the ambient document')
+      equal(dialog.querySelector('img')?.getAttribute('src'), pixel, 'gallery lightbox lost its image')
+      dialog.querySelector('.editor-gallery__lightbox-close')?.click()
+      assert(!doc.querySelector('.editor-gallery__lightbox'), 'gallery lightbox was not released')
+    } finally {
+      renderer?.destroy()
+      iframe.remove()
+    }
+  })
+
 }

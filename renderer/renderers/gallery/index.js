@@ -94,7 +94,7 @@ function selectAutoTemplate(count, orientations) {
  * @returns {import('../../types').BlockRenderer<import('../../types').GalleryBlock>}
  */
 export function createGalleryRenderer(classPrefix, locale) {
-  /** @type {WeakMap<HTMLElement, Set<import('@shelamkoff/expose').Expose>>} */
+  /** @type {WeakMap<HTMLElement, Set<{ destroy(): void }>>} */
   const activeInstances = new WeakMap()
   /** @type {WeakMap<HTMLElement, ReturnType<typeof mountGalleryMasonry>>} */
   const masonryMounts = new WeakMap()
@@ -119,7 +119,7 @@ export function createGalleryRenderer(classPrefix, locale) {
         : rawLayout
 
       const container = ownerDocument.createElement('div')
-      /** @type {Set<import('@shelamkoff/expose').Expose>} */
+      /** @type {Set<{ destroy(): void }>} */
       const instances = new Set()
       activeInstances.set(container, instances)
       container.className = `${classPrefix}-gallery`
@@ -216,6 +216,25 @@ export function createGalleryRenderer(classPrefix, locale) {
         const idx = Array.from(container.querySelectorAll(`.${classPrefix}-gallery__item`)).indexOf(item)
         if (idx === -1) return
 
+        // @shelamkoff/expose 1.x owns its DOM through the module realm's
+        // global document/window. Renderer output may live in a different
+        // same-origin document, so keep lightbox DOM in the target realm with
+        // a native dialog instead of leaking an Expose overlay to the parent.
+        if (ownerDocument !== globalThis.document) {
+          let fallback = null
+          fallback = openOwnedGalleryDialog(
+            ownerDocument, images, idx, classPrefix,
+            {
+              close: localeText(locale, 'renderer.gallery.close', 'Close gallery'),
+              previous: localeText(locale, 'renderer.gallery.previous', 'Previous image'),
+              next: localeText(locale, 'renderer.gallery.next', 'Next image'),
+            },
+            () => { if (fallback) instances.delete(fallback) },
+          )
+          instances.add(fallback)
+          return
+        }
+
         /** @type {import('@shelamkoff/expose').SlideData[]} */
         const slides = images.map(img => ({
           src: img.url,
@@ -283,6 +302,89 @@ export function createGalleryRenderer(classPrefix, locale) {
       }
     },
   }
+}
+
+/**
+ * Open a minimal gallery lightbox entirely inside the renderer owning document.
+ * This is the cross-realm fallback for @shelamkoff/expose 1.x.
+ * @param {Document} ownerDocument
+ * @param {Array<{ url: string; caption?: string }>} images
+ * @param {number} startIndex
+ * @param {string} classPrefix
+ * @param {{ close: string; previous: string; next: string }} labels
+ * @param {() => void} onClose
+ * @returns {{ destroy(): void }}
+ */
+function openOwnedGalleryDialog(ownerDocument, images, startIndex, classPrefix, labels, onClose) {
+  const dialog = ownerDocument.createElement('dialog')
+  dialog.className = `${classPrefix}-gallery__lightbox`
+  dialog.setAttribute('aria-label', labels.close)
+
+  const image = ownerDocument.createElement('img')
+  image.className = `${classPrefix}-gallery__lightbox-image`
+  const caption = ownerDocument.createElement('p')
+  caption.className = `${classPrefix}-gallery__lightbox-caption`
+  const close = ownerDocument.createElement('button')
+  close.type = 'button'
+  close.className = `${classPrefix}-gallery__lightbox-close`
+  close.textContent = '×'
+  close.setAttribute('aria-label', labels.close)
+
+  const prev = ownerDocument.createElement('button')
+  prev.type = 'button'
+  prev.className = `${classPrefix}-gallery__lightbox-prev`
+  prev.textContent = '‹'
+  prev.setAttribute('aria-label', labels.previous)
+  const next = ownerDocument.createElement('button')
+  next.type = 'button'
+  next.className = `${classPrefix}-gallery__lightbox-next`
+  next.textContent = '›'
+  next.setAttribute('aria-label', labels.next)
+
+  let index = Math.max(0, Math.min(startIndex, images.length - 1))
+  let destroyed = false
+  const show = () => {
+    const current = images[index]
+    if (!current) return
+    setSafeUrlAttribute(image, 'src', current.url, 'media')
+    image.alt = current.caption || ''
+    caption.textContent = current.caption || ''
+    caption.hidden = !current.caption
+    const multiple = images.length > 1
+    prev.hidden = !multiple
+    next.hidden = !multiple
+  }
+  const move = (delta) => {
+    if (images.length <= 1) return
+    index = (index + delta + images.length) % images.length
+    show()
+  }
+  const onKeydown = (event) => {
+    if (event.key === 'ArrowLeft') { event.preventDefault(); move(-1) }
+    else if (event.key === 'ArrowRight') { event.preventDefault(); move(1) }
+  }
+  const destroy = () => {
+    if (destroyed) return
+    destroyed = true
+    ownerDocument.removeEventListener('keydown', onKeydown)
+    if (dialog.open && typeof dialog.close === 'function') dialog.close()
+    dialog.remove()
+    onClose()
+  }
+
+  close.addEventListener('click', destroy)
+  prev.addEventListener('click', () => move(-1))
+  next.addEventListener('click', () => move(1))
+  dialog.addEventListener('cancel', (event) => { event.preventDefault(); destroy() })
+  dialog.addEventListener('click', (event) => { if (event.target === dialog) destroy() })
+  ownerDocument.addEventListener('keydown', onKeydown)
+  dialog.append(close, prev, image, next, caption)
+  ownerDocument.body.appendChild(dialog)
+  show()
+  if (typeof dialog.showModal === 'function') dialog.showModal()
+  else dialog.setAttribute('open', '')
+  close.focus()
+  return { destroy }
 }
 
 /**

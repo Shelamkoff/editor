@@ -433,3 +433,24 @@
   }
 
 }
+
+.editor-gallery__lightbox {
+  box-sizing: border-box;
+  width: min(92vw, 72rem);
+  max-width: none;
+  border: 0;
+  border-radius: .75rem;
+  padding: 3rem 3.5rem 2rem;
+  background: var(--er-surface, #111);
+  color: var(--er-text, #fff);
+}
+.editor-gallery__lightbox::backdrop { background: rgba(0, 0, 0, .8); }
+.editor-gallery__lightbox-image { display: block; width: 100%; max-height: 78vh; object-fit: contain; }
+.editor-gallery__lightbox-caption { margin: .75rem 0 0; text-align: center; }
+.editor-gallery__lightbox-close, .editor-gallery__lightbox-prev, .editor-gallery__lightbox-next {
+  position: absolute; border: 0; background: rgba(0, 0, 0, .55); color: #fff; cursor: pointer;
+}
+.editor-gallery__lightbox-close { top: .75rem; right: .75rem; width: 2rem; height: 2rem; border-radius: 999px; font-size: 1.5rem; }
+.editor-gallery__lightbox-prev, .editor-gallery__lightbox-next { top: 50%; transform: translateY(-50%); width: 2.5rem; height: 3rem; font-size: 2rem; }
+.editor-gallery__lightbox-prev { left: .5rem; }
+.editor-gallery__lightbox-next { right: .5rem; }
