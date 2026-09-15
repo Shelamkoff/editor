@@ -7,7 +7,8 @@ import {
   saveSelectionOffsets,
   restoreSelectionOffsets,
 } from './utils.js'
-import { ColorPicker, parseRgbCss } from '@shelamkoff/color-picker'
+import { parseRgbCss } from '@shelamkoff/color-picker'
+import { createOwnedColorPicker } from '../shared/colorPickerRealm.js'
 
 const ELEMENT_NODE = 1
 
@@ -56,7 +57,7 @@ export function createBgColorTool(label, cbs = null) {
   let ownerDocument = null
   let pickerOpen = false
 
-  /** @type {ColorPicker | null} */
+  /** @type {ReturnType<typeof createOwnedColorPicker> | null} */
   let picker = null
   /** @type {import('../core/types').InlineMutationContext | null} */
   let mutations = null
@@ -270,7 +271,7 @@ export function createBgColorTool(label, cbs = null) {
 
       const toolbar = /** @type {HTMLElement | null} */ (button.closest('.oe-inline-toolbar'))
       if (toolbar) {
-        picker = new ColorPicker({
+        picker = createOwnedColorPicker(ownerDocument ?? button.ownerDocument, {
           onApply: applyColor,
           onRemove: removeColor,
           showRemove: true,

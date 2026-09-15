@@ -1,4 +1,5 @@
-import { ColorPicker, colorPickerStylesUrl, parseColorInput } from '@shelamkoff/color-picker'
+import { colorPickerStylesUrl, parseColorInput } from '@shelamkoff/color-picker'
+import { createOwnedColorPicker } from '../shared/colorPickerRealm.js'
 import { generateInlineId } from '../shared/inlineMarshal.js'
 import { normalizeTextValue } from '../shared/textFormat.js'
 
@@ -133,7 +134,7 @@ function openColorPicker(widget, ctx) {
   const originalLabel = widget.querySelector('.oe-ip__label')?.textContent ?? current
   let committed = false
 
-  const picker = new ColorPicker({
+  const picker = createOwnedColorPicker(widget.ownerDocument, {
     onApply(cssColor) {
       const next = (parseColorInput(cssColor)?.a ?? 1) < 1 ? cssColor : normalizeToHex6(cssColor, widget.ownerDocument)
       restoreWidget(widget, current, originalLabel)
