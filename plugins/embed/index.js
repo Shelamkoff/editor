@@ -164,7 +164,8 @@ export class Embed extends BlockPluginAbstract {
   inlineTools = false
 
 
-  #objectUrls = new Set()
+  /** @type {Map<string, typeof URL>} */
+  #objectUrls = new Map()
   /**
    * Create an Embed instance with the supplied consumer configuration.
    * @param {EmbedConfig} [config]
@@ -307,7 +308,7 @@ export class Embed extends BlockPluginAbstract {
    * @returns {void}
    */
   dispose() {
-    for (const url of this.#objectUrls) URL.revokeObjectURL(url)
+    for (const [url, URLCtor] of this.#objectUrls) URLCtor.revokeObjectURL(url)
     this.#objectUrls.clear()
   }
 
@@ -890,8 +891,9 @@ export class Embed extends BlockPluginAbstract {
         const s = stateMap.get(wrapper)
         if (!s) return
         s.context.mutate(() => {
-          const coverUrl = URL.createObjectURL(file)
-          this.#objectUrls.add(coverUrl)
+          const URLCtor = wrapper.ownerDocument.defaultView?.URL ?? URL
+          const coverUrl = URLCtor.createObjectURL(file)
+          this.#objectUrls.set(coverUrl, URLCtor)
           s.data.cover = coverUrl
           this._rebuildPlayer(wrapper)
         })

@@ -801,7 +801,10 @@ export class Person extends BlockPluginAbstract {
     const { state, controller } = task
     try {
       const result = await new Promise((resolve, reject) => {
-        const reader = new FileReader()
+        const ownerView = wrapper.ownerDocument.defaultView
+        const FileReaderCtor = ownerView?.FileReader ?? FileReader
+        const DOMExceptionCtor = ownerView?.DOMException ?? DOMException
+        const reader = new FileReaderCtor()
         let settled = false
         const finish = (callback) => {
           if (settled) return
@@ -810,13 +813,13 @@ export class Person extends BlockPluginAbstract {
           callback()
         }
         const abort = () => {
-          if (reader.readyState === FileReader.LOADING) reader.abort()
-          else finish(() => reject(controller.signal.reason || new DOMException('Avatar read aborted', 'AbortError')))
+          if (reader.readyState === FileReaderCtor.LOADING) reader.abort()
+          else finish(() => reject(controller.signal.reason || new DOMExceptionCtor('Avatar read aborted', 'AbortError')))
         }
         controller.signal.addEventListener('abort', abort, { once: true })
         reader.onload = () => finish(() => resolve(typeof reader.result === 'string' ? reader.result : ''))
         reader.onerror = () => finish(() => reject(reader.error || new Error('Failed to read avatar')))
-        reader.onabort = () => finish(() => reject(controller.signal.reason || new DOMException('Avatar read aborted', 'AbortError')))
+        reader.onabort = () => finish(() => reject(controller.signal.reason || new DOMExceptionCtor('Avatar read aborted', 'AbortError')))
         try { reader.readAsDataURL(blob) } catch (error) { finish(() => reject(error)) }
       })
       const current = stateMap.get(wrapper)
@@ -849,7 +852,8 @@ export class Person extends BlockPluginAbstract {
     if (!task) return
     const { state, controller } = task
     try {
-      const file = new File([blob], 'avatar.webp', { type: 'image/webp' })
+      const FileCtor = wrapper.ownerDocument.defaultView?.File ?? File
+      const file = new FileCtor([blob], 'avatar.webp', { type: 'image/webp' })
       const result = await this._config.uploadFile(file, { signal: controller.signal })
       const url = sanitizeUrl(String(result?.url || ''), { policy: 'media', fallback: '' })
       const current = stateMap.get(wrapper)

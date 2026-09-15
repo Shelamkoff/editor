@@ -31,14 +31,18 @@ const sourceEditorStyles = new URL('../shared/sourceEditor.css', import.meta.url
  * Read a local image while respecting the owning block's lifecycle.
  * @param {File} file File to encode.
  * @param {AbortSignal} signal Lifecycle signal owned by the rendered block.
+ * @param {Document} ownerDocument Document that owns the rendered block.
  * @returns {Promise<string>} A data URL for the file.
  */
-function readFileDataUrl(file, signal) {
+function readFileDataUrl(file, signal, ownerDocument) {
+  const ownerView = ownerDocument.defaultView
+  const FileReaderCtor = ownerView?.FileReader ?? FileReader
+  const DOMExceptionCtor = ownerView?.DOMException ?? DOMException
   if (signal.aborted) {
-    return Promise.reject(signal.reason || new DOMException('File read aborted', 'AbortError'))
+    return Promise.reject(signal.reason || new DOMExceptionCtor('File read aborted', 'AbortError'))
   }
   return new Promise((resolve, reject) => {
-    const reader = new FileReader()
+    const reader = new FileReaderCtor()
     let settled = false
     /**
      * Run a completion callback exactly once and detach the abort listener.
@@ -51,9 +55,9 @@ function readFileDataUrl(file, signal) {
       signal.removeEventListener('abort', onSignalAbort)
       callback()
     }
-    const rejectAbort = () => reject(signal.reason || new DOMException('File read aborted', 'AbortError'))
+    const rejectAbort = () => reject(signal.reason || new DOMExceptionCtor('File read aborted', 'AbortError'))
     const onSignalAbort = () => {
-      if (reader.readyState === FileReader.LOADING) reader.abort()
+      if (reader.readyState === FileReaderCtor.LOADING) reader.abort()
       finish(rejectAbort)
     }
     signal.addEventListener('abort', onSignalAbort, { once: true })
@@ -133,8 +137,8 @@ export class CarouselBlock extends BlockPluginAbstract {
 
   /** @type {WeakMap<HTMLElement, CarouselState>} */
   #states = new WeakMap()
-  /** Temporary local URLs retained for undo/redo until editor disposal. @type {Set<string>} */
-  #objectUrls = new Set()
+  /** Temporary local URLs retained for undo/redo until editor disposal. @type {Map<string, typeof URL>} */
+  #objectUrls = new Map()
   /**
    * Return the localized toolbox label for this block.
    * @returns {string}
@@ -227,7 +231,7 @@ export class CarouselBlock extends BlockPluginAbstract {
    * @returns {void}
    */
   dispose() {
-    for (const url of this.#objectUrls) URL.revokeObjectURL(url)
+    for (const [url, URLCtor] of this.#objectUrls) URLCtor.revokeObjectURL(url)
     this.#objectUrls.clear()
   }
 
@@ -878,10 +882,11 @@ export class CarouselBlock extends BlockPluginAbstract {
             src = sanitizeUrl(result?.url || '', { policy: 'media', fallback: '' })
             poster = sanitizeUrl(result?.poster || '', { policy: 'media', fallback: '' })
           } else if (type === 'image') {
-            src = sanitizeUrl(await readFileDataUrl(file, signal), { policy: 'media', fallback: '' })
+            src = sanitizeUrl(await readFileDataUrl(file, signal, wrapper.ownerDocument), { policy: 'media', fallback: '' })
           } else {
-            src = URL.createObjectURL(file)
-            this.#objectUrls.add(src)
+            const URLCtor = wrapper.ownerDocument.defaultView?.URL ?? URL
+            src = URLCtor.createObjectURL(file)
+            this.#objectUrls.set(src, URLCtor)
             batchObjectUrls.push(src)
           }
           if (!src) return null
@@ -906,7 +911,8 @@ export class CarouselBlock extends BlockPluginAbstract {
     } finally {
       if (!committed) {
         for (const url of batchObjectUrls) {
-          URL.revokeObjectURL(url)
+          const URLCtor = this.#objectUrls.get(url) ?? wrapper.ownerDocument.defaultView?.URL ?? URL
+          URLCtor.revokeObjectURL(url)
           this.#objectUrls.delete(url)
         }
       }

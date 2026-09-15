@@ -22,14 +22,15 @@ export class GalleryUploader {
    * @param {File[]} files
    * @param {(images: Array<{ url: string, caption: string }>) => void} onAdded
    * @param {AbortSignal | undefined} signal
+   * @param {Document} [ownerDocument]
    * @returns {Promise<void>}
    */
-  async handle(files, onAdded, signal) {
+  async handle(files, onAdded, signal, ownerDocument = globalThis.document) {
     if (signal?.aborted || files.length === 0) return
     if (this.#uploadFn) {
-      await this.#uploadRemote(files, onAdded, signal)
+      await this.#uploadRemote(files, onAdded, signal, ownerDocument)
     } else {
-      await this.#readDataUrls(files, onAdded, signal)
+      await this.#readDataUrls(files, onAdded, signal, ownerDocument)
     }
   }
 
@@ -39,16 +40,18 @@ export class GalleryUploader {
    * @param {File[]} files
    * @param {(images: Array<{ url: string, caption: string }>) => void} onAdded
    * @param {AbortSignal | undefined} signal
+   * @param {Document} ownerDocument
    * @returns {Promise<void>}
    */
-  async #uploadRemote(files, onAdded, signal) {
+  async #uploadRemote(files, onAdded, signal, ownerDocument) {
     if (!this.#uploadFn) return
     /** @type {Array<{ url: string, caption: string }>} */
     const added = []
     for (const file of files) {
       if (signal?.aborted) break
       try {
-        const result = await this.#uploadFn(file, { signal: signal ?? new AbortController().signal })
+        const AbortControllerCtor = ownerDocument?.defaultView?.AbortController ?? AbortController
+        const result = await this.#uploadFn(file, { signal: signal ?? new AbortControllerCtor().signal })
         const url = sanitizeMediaUrl(result?.url || '')
         if (!signal?.aborted && url) {
           added.push({ url, caption: typeof result?.alt === 'string' ? result.alt : '' })
@@ -64,9 +67,10 @@ export class GalleryUploader {
    * @param {File[]} files
    * @param {(images: Array<{ url: string, caption: string }>) => void} onAdded
    * @param {AbortSignal | undefined} signal
+   * @param {Document} ownerDocument
    * @returns {Promise<void>}
    */
-  #readDataUrls(files, onAdded, signal) {
+  #readDataUrls(files, onAdded, signal, ownerDocument) {
     return new Promise((resolve) => {
       /** @type {Array<{ url: string, caption: string } | null>} */
       const results = files.map(() => null)
@@ -81,8 +85,9 @@ export class GalleryUploader {
         resolve(undefined)
       }
 
+      const FileReaderCtor = ownerDocument?.defaultView?.FileReader ?? FileReader
       files.forEach((file, index) => {
-        const reader = new FileReader()
+        const reader = new FileReaderCtor()
         let readerComplete = false
         const completeReader = () => {
           if (readerComplete) return

@@ -93,7 +93,8 @@ export class Attaches extends BlockPluginAbstract {
   inlineTools = false
 
 
-  #objectUrls = new Set()
+  /** @type {Map<string, typeof URL>} */
+  #objectUrls = new Map()
   /**
    * Create an Attaches instance with the supplied consumer configuration.
    * @param {AttachesConfig} [config]
@@ -225,7 +226,7 @@ export class Attaches extends BlockPluginAbstract {
    * @returns {void}
    */
   dispose() {
-    for (const url of this.#objectUrls) URL.revokeObjectURL(url)
+    for (const [url, URLCtor] of this.#objectUrls) URLCtor.revokeObjectURL(url)
     this.#objectUrls.clear()
   }
 
@@ -962,8 +963,9 @@ export class Attaches extends BlockPluginAbstract {
             if (signal.aborted) break
             const ext = getExtension(file.name)
             try {
-              const url = URL.createObjectURL(file)
-              this.#objectUrls.add(url)
+              const URLCtor = wrapper.ownerDocument.defaultView?.URL ?? URL
+              const url = URLCtor.createObjectURL(file)
+              this.#objectUrls.set(url, URLCtor)
               createdUrls.push(url)
               added.push({ url, name: file.name, size: file.size, extension: ext })
             } catch (error) {
@@ -983,7 +985,8 @@ export class Attaches extends BlockPluginAbstract {
             const retained = new Set(current?.data.files.map(file => file.url) || [])
             for (const url of createdUrls) {
               if (retained.has(url)) continue
-              URL.revokeObjectURL(url)
+              const URLCtor = this.#objectUrls.get(url) ?? wrapper.ownerDocument.defaultView?.URL ?? URL
+              URLCtor.revokeObjectURL(url)
               this.#objectUrls.delete(url)
             }
           }

@@ -297,7 +297,7 @@ export class Gallery extends BlockPluginAbstract {
           state.data.images.push(...added)
           this.#renderFilled(wrapper)
         })
-      }, controller.signal)
+      }, controller.signal, wrapper.ownerDocument)
     } finally {
       if (state.finishTask(controller)) wrapper.classList.remove(CSS.loading)
     }

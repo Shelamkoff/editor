@@ -22,14 +22,15 @@ export class ImageUploader {
    * @param {File} file
    * @param {(result: { url: string, alt?: string }) => void} onResolve
    * @param {AbortSignal | undefined} signal
+   * @param {Document} [ownerDocument]
    * @returns {Promise<void>}
    */
-  async handle(file, onResolve, signal) {
+  async handle(file, onResolve, signal, ownerDocument = globalThis.document) {
     if (signal?.aborted) return
     if (this.#uploadFn) {
-      await this.#uploadRemote(file, onResolve, signal)
+      await this.#uploadRemote(file, onResolve, signal, ownerDocument)
     } else {
-      await this.#readDataUrl(file, onResolve, signal)
+      await this.#readDataUrl(file, onResolve, signal, ownerDocument)
     }
   }
 
@@ -37,12 +38,14 @@ export class ImageUploader {
    * @param {File} file
    * @param {(result: { url: string, alt?: string }) => void} onResolve
    * @param {AbortSignal | undefined} signal
+   * @param {Document} ownerDocument
    * @returns {Promise<void>}
    */
-  async #uploadRemote(file, onResolve, signal) {
+  async #uploadRemote(file, onResolve, signal, ownerDocument) {
     if (!this.#uploadFn) return
     try {
-      const result = await this.#uploadFn(file, { signal: signal ?? new AbortController().signal })
+      const AbortControllerCtor = ownerDocument?.defaultView?.AbortController ?? AbortController
+      const result = await this.#uploadFn(file, { signal: signal ?? new AbortControllerCtor().signal })
       const url = sanitizeMediaUrl(result?.url || '')
       if (!signal?.aborted && url) {
         onResolve({ url, alt: typeof result?.alt === 'string' ? result.alt : undefined })
@@ -56,11 +59,13 @@ export class ImageUploader {
    * @param {File} file
    * @param {(result: { url: string, alt?: string }) => void} onResolve
    * @param {AbortSignal | undefined} signal
+   * @param {Document} ownerDocument
    * @returns {Promise<void>}
    */
-  #readDataUrl(file, onResolve, signal) {
+  #readDataUrl(file, onResolve, signal, ownerDocument) {
     return new Promise((resolve) => {
-      const reader = new FileReader()
+      const FileReaderCtor = ownerDocument?.defaultView?.FileReader ?? FileReader
+      const reader = new FileReaderCtor()
       let settled = false
       const finish = () => {
         if (settled) return

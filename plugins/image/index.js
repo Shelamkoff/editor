@@ -289,7 +289,7 @@ export class Image extends BlockPluginAbstract {
           if (result.alt && !state.data.caption) state.data.caption = result.alt
           this.#renderFilled(wrapper)
         })
-      }, controller.signal)
+      }, controller.signal, wrapper.ownerDocument)
     } finally {
       if (state.finishTask(controller)) wrapper.classList.remove(CSS.loading)
     }
