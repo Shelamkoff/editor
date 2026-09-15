@@ -136,7 +136,7 @@ export class Columns extends BlockPluginAbstract {
     colEls.forEach((el, i) => {
       const col = s.data.columns[i]
       if (col) {
-        col.content = sanitizeHtml(el.innerHTML?.trim() || '')
+        col.content = sanitizeHtml(el.innerHTML?.trim() || '', wrapper.ownerDocument)
       }
     })
   }
@@ -166,7 +166,7 @@ export class Columns extends BlockPluginAbstract {
       col.contentEditable = 'true'
       col.dataset.placeholder = `${this._t('colPlaceholder', 'Column')} ${i + 1}`
       if (colData.content) {
-        col.innerHTML = sanitizeHtml(colData.content)
+        col.innerHTML = sanitizeHtml(colData.content, ownerDocument)
       }
       col.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) { e.stopPropagation(); return }

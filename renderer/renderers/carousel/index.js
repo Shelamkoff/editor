@@ -34,7 +34,7 @@ export function createCarouselRenderer(classPrefix, locale) {
     styles: [styles, carouselStylesUrl],
     render(block, _parseInline, context = { ownerDocument: globalThis.document }) {
       let fallback = 0
-      const data = normalizeCarouselData(block.data, () => `legacy-slide-${++fallback}`)
+      const data = normalizeCarouselData(block.data, () => `legacy-slide-${++fallback}`, context.ownerDocument)
       const root = context.ownerDocument.createElement('div')
       root.className = p
       root.setAttribute('aria-label', t('label', 'Content carousel'))

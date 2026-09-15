@@ -61,14 +61,14 @@ export class Warning extends BlockPluginAbstract {
     titleEl.contentEditable = 'true'
     titleEl.dataset.placeholder = this._t('titlePlaceholder', 'Title')
     const title = normalizeTextValue(data?.title)
-    if (title) titleEl.innerHTML = sanitizeHtml(title)
+    if (title) titleEl.innerHTML = sanitizeHtml(title, ownerDocument)
 
     const messageEl = ownerDocument.createElement('div')
     messageEl.className = 'oe-warning__message'
     messageEl.contentEditable = 'true'
     messageEl.dataset.placeholder = this._t('messagePlaceholder', 'Message')
     const message = normalizeTextValue(data?.message)
-    if (message) messageEl.innerHTML = sanitizeHtml(message)
+    if (message) messageEl.innerHTML = sanitizeHtml(message, ownerDocument)
 
     // Tab between title and message
     titleEl.addEventListener('keydown', (e) => {
@@ -112,8 +112,8 @@ export class Warning extends BlockPluginAbstract {
     const title = element.querySelector('.oe-warning__title')
     const message = element.querySelector('.oe-warning__message')
     return {
-      title: sanitizeHtml(title?.innerHTML?.trim() || ''),
-      message: sanitizeHtml(message?.innerHTML?.trim() || ''),
+      title: sanitizeHtml(title?.innerHTML?.trim() || '', element.ownerDocument),
+      message: sanitizeHtml(message?.innerHTML?.trim() || '', element.ownerDocument),
     }
   }
 
@@ -143,8 +143,8 @@ export class Warning extends BlockPluginAbstract {
    * @returns {{ text: string }}
    */
   exportData(element) {
-    const title = sanitizeHtml(element.querySelector('.oe-warning__title')?.innerHTML?.trim() || '')
-    const message = sanitizeHtml(element.querySelector('.oe-warning__message')?.innerHTML?.trim() || '')
+    const title = sanitizeHtml(element.querySelector('.oe-warning__title')?.innerHTML?.trim() || '', element.ownerDocument)
+    const message = sanitizeHtml(element.querySelector('.oe-warning__message')?.innerHTML?.trim() || '', element.ownerDocument)
     return { text: [title, message].filter(Boolean).join('<br>') }
   }
 

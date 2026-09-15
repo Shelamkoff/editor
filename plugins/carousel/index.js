@@ -175,7 +175,7 @@ export class CarouselBlock extends BlockPluginAbstract {
    */
   save(element) {
     const state = this.#states.get(element)
-    return state ? structuredClone(state.data) : normalizeCarouselData({}, () => this.#createId())
+    return state ? structuredClone(state.data) : normalizeCarouselData({}, () => this.#createId(), element.ownerDocument)
   }
 
   /**
@@ -608,7 +608,7 @@ export class CarouselBlock extends BlockPluginAbstract {
     panel.appendChild(this.#sectionTitle(ownerDocument, this._t('currentSlide', 'Current slide')))
     if (slide.type === 'html') {
       panel.appendChild(this.#field(this._t('html', 'HTML'), slide.html || '', true, value => {
-        const html = sanitizeRawHtml(value)
+        const html = sanitizeRawHtml(value, ownerDocument)
         if (html.trim()) slide.html = html
       }, wrapper, state, signal, 'text', true))
     } else {
@@ -839,7 +839,7 @@ export class CarouselBlock extends BlockPluginAbstract {
       submitText: this._t('sourceSubmit', 'Add'),
       cancelText: this._t('sourceCancel', 'Cancel'),
       invalidText: this._t('invalidHtml', 'Enter valid slide HTML.'),
-      normalize: value => sanitizeRawHtml(value).trim(),
+      normalize: value => sanitizeRawHtml(value, wrapper.ownerDocument).trim(),
       onSubmit: html => {
         if (this.#states.get(wrapper) !== state || state.context.readOnly) return
         state.context.mutate(() => {
@@ -925,7 +925,7 @@ export class CarouselBlock extends BlockPluginAbstract {
       const signal = state.lifecycleController.signal
       const slides = await action.handler({ signal })
       if (!slides || signal.aborted || this.#states.get(wrapper) !== state) return
-      const normalized = normalizeCarouselData({ slides, options: state.data.options }, () => this.#createId()).slides
+      const normalized = normalizeCarouselData({ slides, options: state.data.options }, () => this.#createId(), wrapper.ownerDocument).slides
         .filter(slide => slide.type === 'html' ? !!slide.html?.trim() : !!slide.src)
       if (!normalized.length) return
       const usedIds = new Set(state.data.slides.map(slide => slide.id))

@@ -65,10 +65,10 @@ function sanitizeCssValue(value) {
   return safeValue
 }
 
-/** @param {string} value */
-function sanitizeRawStyle(value) {
-  const source = document.createElement('span')
-  const result = document.createElement('span')
+/** @param {string} value @param {Document} ownerDocument */
+function sanitizeRawStyle(value, ownerDocument) {
+  const source = ownerDocument.createElement('span')
+  const result = ownerDocument.createElement('span')
   source.style.cssText = value
 
   for (const property of Array.from(source.style)) {
@@ -117,7 +117,7 @@ function hardenRawFragment(fragment) {
 
     const style = element.getAttribute('style')
     if (style !== null) {
-      const safe = sanitizeRawStyle(style)
+      const safe = sanitizeRawStyle(style, element.ownerDocument)
       if (safe) element.setAttribute('style', safe)
       else element.removeAttribute('style')
     }
@@ -126,10 +126,12 @@ function hardenRawFragment(fragment) {
 
 /**
  * @param {string} html
+ * @param {Document} ownerDocument
  * @returns {DocumentFragment}
  */
-function sanitizeRawFragment(html) {
-  const fragment = /** @type {DocumentFragment} */ (DOMPurify.sanitize(String(html || ''), {
+function sanitizeRawFragment(html, ownerDocument) {
+  const purifier = ownerDocument.defaultView ? DOMPurify(ownerDocument.defaultView) : DOMPurify
+  const fragment = /** @type {DocumentFragment} */ (purifier.sanitize(String(html || ''), {
     ...RAW_HTML_CONFIG,
     RETURN_DOM_FRAGMENT: true,
     RETURN_TRUSTED_TYPE: false,
@@ -142,11 +144,12 @@ function sanitizeRawFragment(html) {
  * Sanitize HTML produced by the Raw block while preserving the safe subset
  * that the previous renderer supported.
  * @param {string} html
+ * @param {Document} [ownerDocument]
  * @returns {string}
  */
-export function sanitizeRawHtml(html) {
-  const template = document.createElement('template')
-  template.content.appendChild(sanitizeRawFragment(html))
+export function sanitizeRawHtml(html, ownerDocument = globalThis.document) {
+  const template = ownerDocument.createElement('template')
+  template.content.appendChild(sanitizeRawFragment(html, ownerDocument))
   return template.innerHTML
 }
 
@@ -158,5 +161,5 @@ export function sanitizeRawHtml(html) {
  * @param {string} html
  */
 export function setSanitizedRawHtml(element, html) {
-  element.replaceChildren(sanitizeRawFragment(html))
+  element.replaceChildren(sanitizeRawFragment(html, element.ownerDocument))
 }

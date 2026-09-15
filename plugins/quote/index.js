@@ -51,7 +51,7 @@ export class Quote extends BlockPluginAbstract {
     blockquote.dataset.placeholder = this._t('textPlaceholder', 'Quote')
     const text = normalizeTextValue(data?.text)
     if (text) {
-      blockquote.innerHTML = sanitizeHtml(text)
+      blockquote.innerHTML = sanitizeHtml(text, ownerDocument)
     }
 
     const caption = ownerDocument.createElement('cite')
@@ -60,7 +60,7 @@ export class Quote extends BlockPluginAbstract {
     caption.dataset.placeholder = this._t('captionPlaceholder', 'Caption')
     const captionText = normalizeTextValue(data?.caption)
     if (captionText) {
-      caption.innerHTML = sanitizeHtml(captionText)
+      caption.innerHTML = sanitizeHtml(captionText, ownerDocument)
     }
 
     // Move between the two fields without trapping focus at block boundaries.

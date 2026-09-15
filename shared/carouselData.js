@@ -34,8 +34,8 @@ export function normalizeCarouselAspectRatio(value) {
     : undefined
 }
 
-/** @param {unknown} input @param {() => string} createId @returns {CarouselData} */
-export function normalizeCarouselData(input, createId) {
+/** @param {unknown} input @param {() => string} createId @param {Document} [ownerDocument] @returns {CarouselData} */
+export function normalizeCarouselData(input, createId, ownerDocument = globalThis.document) {
   const source = isRecord(input) ? /** @type {Record<string, unknown>} */ (input) : {}
   const seen = new Set()
   const slides = (Array.isArray(source.slides) ? source.slides : []).flatMap(raw => {
@@ -47,7 +47,7 @@ export function normalizeCarouselData(input, createId) {
     /** @type {CarouselSlide} */
     const slide = { id, type }
     if (type === 'html') {
-      slide.html = sanitizeRawHtml(typeof raw.html === 'string' ? raw.html : '')
+      slide.html = sanitizeRawHtml(typeof raw.html === 'string' ? raw.html : '', ownerDocument)
     } else {
       slide.src = sanitizeUrl(typeof raw.src === 'string' ? raw.src : '', { policy: 'media', fallback: '' })
       if (type === 'video') {

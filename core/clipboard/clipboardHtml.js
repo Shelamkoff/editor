@@ -10,7 +10,7 @@ function inline(source, ownerDocument) {
   template.innerHTML = source.innerHTML
   for (const control of template.content.querySelectorAll('button, input, textarea, select, script, style, svg, [role="menu"], [role="dialog"]')) control.remove()
   const result = ownerDocument.createElement('span')
-  result.innerHTML = sanitizeHtml(template.innerHTML)
+  result.innerHTML = sanitizeHtml(template.innerHTML, ownerDocument)
   for (const node of result.querySelectorAll('*')) {
     for (const attribute of [...node.attributes]) {
       if (attribute.name.startsWith('data-') || attribute.name === 'contenteditable' || attribute.name === 'class') node.removeAttribute(attribute.name)

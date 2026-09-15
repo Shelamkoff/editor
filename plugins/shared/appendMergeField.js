@@ -10,8 +10,9 @@ import { normalizeTextValue } from '../../shared/textFormat.js'
  */
 export function appendMergeField(root, selector, value, separator = '<br>') {
   const field = root.querySelector(selector)
-  const html = sanitizeHtml(normalizeTextValue(value))
-  if (!field || !html) return false
+  if (!field) return false
+  const html = sanitizeHtml(normalizeTextValue(value), field.ownerDocument)
+  if (!html) return false
   field.insertAdjacentHTML('beforeend', (field.innerHTML ? separator : '') + html)
   return true
 }

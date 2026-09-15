@@ -219,13 +219,13 @@ export class Poll extends BlockPluginAbstract {
     const s = stateMap.get(wrapper)
     if (!s) return
     const questionEl = wrapper.querySelector('.oe-poll__question')
-    s.data.question = sanitizeHtml(questionEl?.innerHTML?.trim() || '')
+    s.data.question = sanitizeHtml(questionEl?.innerHTML?.trim() || '', wrapper.ownerDocument)
 
     const optionEls = wrapper.querySelectorAll('.oe-poll__option-text')
     optionEls.forEach((el, i) => {
       const opt = s.data.options[i]
       if (opt) {
-        opt.text = sanitizeHtml(el.innerHTML?.trim() || '')
+        opt.text = sanitizeHtml(el.innerHTML?.trim() || '', wrapper.ownerDocument)
       }
     })
   }
@@ -243,7 +243,7 @@ export class Poll extends BlockPluginAbstract {
     question.className = 'oe-poll__question'
     question.contentEditable = s.context.readOnly ? 'false' : 'true'
     question.dataset.placeholder = this._t('questionPlaceholder', 'Question...')
-    if (s.data.question) question.innerHTML = sanitizeHtml(s.data.question)
+    if (s.data.question) question.innerHTML = sanitizeHtml(s.data.question, ownerDocument)
     if (!s.context.readOnly) question.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault()
@@ -335,7 +335,7 @@ export class Poll extends BlockPluginAbstract {
     text.contentEditable = s.context.readOnly ? 'false' : 'true'
     const placeholder = this._t('optionPlaceholder', 'Option')
     text.dataset.placeholder = `${placeholder} ${index + 1}`
-    if (opt.text) text.innerHTML = sanitizeHtml(opt.text)
+    if (opt.text) text.innerHTML = sanitizeHtml(opt.text, ownerDocument)
 
     if (!s.context.readOnly) text.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
@@ -418,7 +418,7 @@ export class Poll extends BlockPluginAbstract {
 
       const label = ownerDocument.createElement('span')
       label.className = 'oe-poll__result-label'
-      if (opt.text) label.innerHTML = sanitizeHtml(opt.text)
+      if (opt.text) label.innerHTML = sanitizeHtml(opt.text, ownerDocument)
       else label.textContent = '—'
 
       const bar = ownerDocument.createElement('div')

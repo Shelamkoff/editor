@@ -461,7 +461,7 @@ export class Person extends BlockPluginAbstract {
     name.className = 'oe-person__name'
     name.contentEditable = s.context.readOnly ? 'false' : 'true'
     name.dataset.placeholder = this._t('namePlaceholder', 'Name')
-    if (person.name) name.innerHTML = sanitizeHtml(person.name)
+    if (person.name) name.innerHTML = sanitizeHtml(person.name, ownerDocument)
     this._setupEditable(name, false)
     info.appendChild(name)
 
@@ -469,7 +469,7 @@ export class Person extends BlockPluginAbstract {
     role.className = 'oe-person__role'
     role.contentEditable = s.context.readOnly ? 'false' : 'true'
     role.dataset.placeholder = this._t('rolePlaceholder', 'Role / Position')
-    if (person.role) role.innerHTML = sanitizeHtml(person.role)
+    if (person.role) role.innerHTML = sanitizeHtml(person.role, ownerDocument)
     this._setupEditable(role, false)
     info.appendChild(role)
 
@@ -477,7 +477,7 @@ export class Person extends BlockPluginAbstract {
     bio.className = 'oe-person__bio'
     bio.contentEditable = s.context.readOnly ? 'false' : 'true'
     bio.dataset.placeholder = this._t('bioPlaceholder', 'Short bio...')
-    if (person.bio) bio.innerHTML = sanitizeHtml(person.bio)
+    if (person.bio) bio.innerHTML = sanitizeHtml(person.bio, ownerDocument)
     this._setupEditable(bio, true)
     info.appendChild(bio)
 
@@ -530,9 +530,9 @@ export class Person extends BlockPluginAbstract {
     const nameEl = wrapper.querySelector('.oe-person__name')
     const roleEl = wrapper.querySelector('.oe-person__role')
     const bioEl = wrapper.querySelector('.oe-person__bio')
-    person.name = sanitizeHtml(nameEl?.innerHTML?.trim() || '')
-    person.role = sanitizeHtml(roleEl?.innerHTML?.trim() || '')
-    person.bio = sanitizeHtml(bioEl?.innerHTML?.trim() || '')
+    person.name = sanitizeHtml(nameEl?.innerHTML?.trim() || '', wrapper.ownerDocument)
+    person.role = sanitizeHtml(roleEl?.innerHTML?.trim() || '', wrapper.ownerDocument)
+    person.bio = sanitizeHtml(bioEl?.innerHTML?.trim() || '', wrapper.ownerDocument)
 
     const linkRows = wrapper.querySelectorAll('.oe-person__link-row')
     linkRows.forEach((row, i) => {

@@ -13,7 +13,7 @@ export class CarouselState {
    */
   constructor(data, createId, context) {
     this.AbortControllerCtor = context.ownerDocument?.defaultView?.AbortController ?? AbortController
-    this.data = normalizeCarouselData(data, createId)
+    this.data = normalizeCarouselData(data, createId, context.ownerDocument ?? globalThis.document)
     this.context = context
     this.activeIndex = 0
     this.viewController = new this.AbortControllerCtor()

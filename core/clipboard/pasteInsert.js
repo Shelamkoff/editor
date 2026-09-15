@@ -92,7 +92,7 @@ export function prepareHtmlPaste(html, ctx) {
         continue
       }
     }
-    const text = sanitizeHtml(item.element.innerHTML)
+    const text = sanitizeHtml(item.element.innerHTML, item.element.ownerDocument)
     if (text) prepared.push({ tag: item.tag, type: ctx.defaultBlockType, data: { text }, routed: false })
   }
   return prepared

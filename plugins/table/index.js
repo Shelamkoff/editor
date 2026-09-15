@@ -70,7 +70,7 @@ export class Table extends BlockPluginAbstract {
         const candidate = inputRows[r]?.[c]
         const text = typeof candidate === 'string' ? candidate : ''
         if (text) {
-          cell.innerHTML = sanitizeHtml(text)
+          cell.innerHTML = sanitizeHtml(text, ownerDocument)
         }
         tr.appendChild(cell)
       }
@@ -232,7 +232,7 @@ export class Table extends BlockPluginAbstract {
     if (!table) return { text: '' }
     const rows = [...table.rows].map(row => (
       [...row.cells]
-        .map(cell => sanitizeHtml(cell.innerHTML.trim()))
+        .map(cell => sanitizeHtml(cell.innerHTML.trim(), element.ownerDocument))
         .filter(Boolean)
         .join(' — ')
     )).filter(Boolean)

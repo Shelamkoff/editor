@@ -80,7 +80,7 @@ export class Toggle extends BlockPluginAbstract {
     titleEl.contentEditable = 'true'
     titleEl.dataset.placeholder = this._t('titlePlaceholder', 'Toggle title...')
     const title = normalizeTextValue(data?.title)
-    if (title) titleEl.innerHTML = sanitizeHtml(title)
+    if (title) titleEl.innerHTML = sanitizeHtml(title, ownerDocument)
     titleEl.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault()
@@ -106,7 +106,7 @@ export class Toggle extends BlockPluginAbstract {
     body.contentEditable = 'true'
     body.dataset.placeholder = this._t('bodyPlaceholder', 'Hidden content...')
     const content = normalizeTextValue(data?.content)
-    if (content) body.innerHTML = sanitizeHtml(content)
+    if (content) body.innerHTML = sanitizeHtml(content, ownerDocument)
     body.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.stopPropagation()
@@ -127,8 +127,8 @@ export class Toggle extends BlockPluginAbstract {
     const title = element.querySelector('.oe-toggle__title')
     const body = element.querySelector('.oe-toggle__body')
     return {
-      title: sanitizeHtml(title?.innerHTML?.trim() || ''),
-      content: sanitizeHtml(body?.innerHTML?.trim() || ''),
+      title: sanitizeHtml(title?.innerHTML?.trim() || '', element.ownerDocument),
+      content: sanitizeHtml(body?.innerHTML?.trim() || '', element.ownerDocument),
       open: stateMap.get(element)?.open ?? element.classList.contains('oe-toggle--open'),
     }
   }
@@ -156,8 +156,8 @@ export class Toggle extends BlockPluginAbstract {
    * @param {HTMLElement} element @returns {{ text: string }}
    */
   exportData(element) {
-    const title = sanitizeHtml(element.querySelector('.oe-toggle__title')?.innerHTML?.trim() || '')
-    const content = sanitizeHtml(element.querySelector('.oe-toggle__body')?.innerHTML?.trim() || '')
+    const title = sanitizeHtml(element.querySelector('.oe-toggle__title')?.innerHTML?.trim() || '', element.ownerDocument)
+    const content = sanitizeHtml(element.querySelector('.oe-toggle__body')?.innerHTML?.trim() || '', element.ownerDocument)
     return { text: [title, content].filter(Boolean).join('<br>') }
   }
 

@@ -1,4 +1,5 @@
 interface DOMPurifyRuntime {
+  (root?: Window): DOMPurifyRuntime
   sanitize(source: string, config?: Record<string, unknown>): string | DocumentFragment | HTMLElement
 }
 

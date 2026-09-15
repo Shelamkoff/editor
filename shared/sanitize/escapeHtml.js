@@ -5,7 +5,9 @@
  */
 export function escapeHtml(text) {
   if (!text) return ''
-  const div = document.createElement('div')
-  div.textContent = text
-  return div.innerHTML
+  return String(text).replace(/[&<>]/g, character => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+  })[character] ?? character)
 }

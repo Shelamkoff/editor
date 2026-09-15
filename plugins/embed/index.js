@@ -541,7 +541,7 @@ export class Embed extends BlockPluginAbstract {
     caption.contentEditable = s.context.readOnly ? 'false' : 'true'
     caption.dataset.placeholder = this._t('caption', 'Caption')
 
-    if (s.data.caption) caption.innerHTML = sanitizeHtml(s.data.caption)
+    if (s.data.caption) caption.innerHTML = sanitizeHtml(s.data.caption, caption.ownerDocument)
     if (!(caption.textContent || '').trim()) { s.data.caption = ''; caption.innerHTML = ''; caption.setAttribute('data-empty', 'true') }
 
     const sync = () => {

@@ -52,7 +52,7 @@ export class Spoiler extends BlockPluginAbstract {
     label.contentEditable = 'true'
     label.dataset.placeholder = this._t('labelPlaceholder', 'Spoiler label...')
     const labelText = normalizeTextValue(data?.label)
-    if (labelText) label.innerHTML = sanitizeHtml(labelText)
+    if (labelText) label.innerHTML = sanitizeHtml(labelText, ownerDocument)
     label.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault()
@@ -93,7 +93,7 @@ export class Spoiler extends BlockPluginAbstract {
     content.contentEditable = 'true'
     content.dataset.placeholder = this._t('contentPlaceholder', 'Hidden content...')
     const contentText = normalizeTextValue(data?.content)
-    if (contentText) content.innerHTML = sanitizeHtml(contentText)
+    if (contentText) content.innerHTML = sanitizeHtml(contentText, ownerDocument)
     content.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.stopPropagation()
@@ -119,8 +119,8 @@ export class Spoiler extends BlockPluginAbstract {
     const label = element.querySelector('.oe-spoiler__label')
     const content = element.querySelector('.oe-spoiler__content')
     return {
-      label: sanitizeHtml(label?.innerHTML?.trim() || ''),
-      content: sanitizeHtml(content?.innerHTML?.trim() || ''),
+      label: sanitizeHtml(label?.innerHTML?.trim() || '', element.ownerDocument),
+      content: sanitizeHtml(content?.innerHTML?.trim() || '', element.ownerDocument),
     }
   }
 
@@ -147,8 +147,8 @@ export class Spoiler extends BlockPluginAbstract {
    * @param {HTMLElement} element @returns {{ text: string }}
    */
   exportData(element) {
-    const label = sanitizeHtml(element.querySelector('.oe-spoiler__label')?.innerHTML?.trim() || '')
-    const content = sanitizeHtml(element.querySelector('.oe-spoiler__content')?.innerHTML?.trim() || '')
+    const label = sanitizeHtml(element.querySelector('.oe-spoiler__label')?.innerHTML?.trim() || '', element.ownerDocument)
+    const content = sanitizeHtml(element.querySelector('.oe-spoiler__content')?.innerHTML?.trim() || '', element.ownerDocument)
     return { text: [label, content].filter(Boolean).join('<br>') }
   }
 

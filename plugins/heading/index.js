@@ -77,7 +77,7 @@ export class Heading extends BlockPluginAbstract {
 
     const text = normalizeTextValue(data?.text)
     if (text) {
-      heading.innerHTML = sanitizeHtml(text)
+      heading.innerHTML = sanitizeHtml(text, ownerDocument)
     }
     const align = normalizeTextAlign(data?.align)
     if (align) {
@@ -195,7 +195,7 @@ export class Heading extends BlockPluginAbstract {
   merge(element, data) {
     const text = normalizeTextValue(data.text)
     if (text) {
-      element.innerHTML += sanitizeHtml(text)
+      element.innerHTML += sanitizeHtml(text, element.ownerDocument)
     }
   }
 

@@ -307,7 +307,7 @@ export class List extends BlockPluginAbstract {
     li.classList.add('oe-list__item')
     li.contentEditable = 'true'
     if (html) {
-      li.innerHTML = sanitizeHtml(html)
+      li.innerHTML = sanitizeHtml(html, list.ownerDocument)
     }
     list.appendChild(li)
     return li

@@ -81,7 +81,7 @@ function renderCaption(state, signal, deps, ownerDocument) {
   caption.dataset.placeholder = deps.t('caption', 'Caption')
 
   if (state.data.caption) {
-    caption.innerHTML = sanitizeHtml(state.data.caption)
+    caption.innerHTML = sanitizeHtml(state.data.caption, caption.ownerDocument)
   }
   if (!caption.textContent?.trim()) {
     state.data.caption = ''

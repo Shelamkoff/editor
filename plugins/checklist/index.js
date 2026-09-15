@@ -101,7 +101,7 @@ export class Checklist extends BlockPluginAbstract {
       const text = item.querySelector('.oe-checklist__text')
       const checked = item.classList.contains('oe-checklist__item--checked')
       items.push({
-        text: sanitizeHtml(text?.innerHTML?.trim() || ''),
+        text: sanitizeHtml(text?.innerHTML?.trim() || '', element.ownerDocument),
         checked,
       })
     }
@@ -140,7 +140,7 @@ export class Checklist extends BlockPluginAbstract {
   exportData(element) {
     const texts = []
     for (const item of element.querySelectorAll('.oe-checklist__text')) {
-      const t = sanitizeHtml(item.innerHTML?.trim() || '')
+      const t = sanitizeHtml(item.innerHTML?.trim() || '', element.ownerDocument)
       if (t) texts.push(t)
     }
     return { text: texts.join('<br>') }
@@ -195,7 +195,7 @@ export class Checklist extends BlockPluginAbstract {
     const content = ownerDocument.createElement('div')
     content.className = 'oe-checklist__text'
     content.contentEditable = 'true'
-    if (text) content.innerHTML = sanitizeHtml(text)
+    if (text) content.innerHTML = sanitizeHtml(text, ownerDocument)
 
     item.append(checkbox, content)
     wrapper.appendChild(item)

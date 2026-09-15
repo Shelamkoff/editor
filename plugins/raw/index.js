@@ -207,7 +207,7 @@ export class Raw extends BlockPluginAbstract {
       iframe.sandbox = ''
       iframe.title = this._t('previewFrame', 'HTML preview')
       iframe.style.cssText = 'width:100%;border:none;min-height:100px'
-      iframe.srcdoc = sanitizeRawHtml(s.textarea.value)
+      iframe.srcdoc = sanitizeRawHtml(s.textarea.value, ownerDocument)
       s.preview.appendChild(iframe)
       const resizeIframe = () => {
         try {
