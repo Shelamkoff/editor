@@ -68,8 +68,9 @@ export class Block {
    * @param {string} [id]
    * @param {boolean} [readOnly]
    * @param {{ tunes?: Record<string, unknown>, revision?: string | number, inline?: Record<string, import('../renderer/types').InlineWidget>, preserveInline?: boolean }} [metadata]
+   * @param {Document} [ownerDocument]
    */
-  constructor(plugin, commands, data, id, readOnly = false, metadata = {}) {
+  constructor(plugin, commands, data, id, readOnly = false, metadata = {}, ownerDocument = globalThis.document) {
     this.#id = id || uid()
     this.#type = plugin.type
     this.#plugin = plugin
@@ -82,6 +83,7 @@ export class Block {
       : undefined
 
     const contentElement = plugin.render(data || {}, {
+      ownerDocument,
       mutate: (operation) => this.#runMutation(operation),
       splitBlock: () => {
         if (!this.#destroyed && !this.#readOnly) this.#splitBlock?.()

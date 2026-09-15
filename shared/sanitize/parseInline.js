@@ -9,14 +9,15 @@ import { normalizeTextValue } from '../textFormat.js'
  * instead of a string — avoids an extra serialize/parse round-trip.
  *
  * @param {string} html
+ * @param {Document} [ownerDocument]
  * @returns {DocumentFragment}
  */
-export function parseInline(html) {
-  const fragment = document.createDocumentFragment()
+export function parseInline(html, ownerDocument = globalThis.document) {
+  const fragment = ownerDocument.createDocumentFragment()
   const source = normalizeTextValue(html)
   if (!source) return fragment
 
-  const template = document.createElement('template')
+  const template = ownerDocument.createElement('template')
   template.innerHTML = source
   sanitizeSubtree(template.content)
   fragment.appendChild(template.content)

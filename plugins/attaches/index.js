@@ -53,6 +53,12 @@ const VARIANT_META = {
 
 /** @type {WeakMap<HTMLElement, AttachesState>} */
 const stateMap = new WeakMap()
+
+/** @param {HTMLElement} element @returns {AbortController} */
+function createAbortControllerFor(element) {
+  const AbortControllerCtor = element.ownerDocument?.defaultView?.AbortController ?? AbortController
+  return new AbortControllerCtor()
+}
 let groupSequence = 0
 
 /**
@@ -114,6 +120,7 @@ export class Attaches extends BlockPluginAbstract {
    * @returns {HTMLElement}
    */
   render(data, context) {
+    const ownerDocument = context.ownerDocument ?? globalThis.document
     const normalizeSize = (value) => {
       const size = Number(value)
       return Number.isFinite(size) && size >= 0 ? size : 0
@@ -140,7 +147,7 @@ export class Attaches extends BlockPluginAbstract {
     }
     const requestedVariant = normalizeTextValue(data?.variant) || 'f'
     const variant = VARIANTS.includes(requestedVariant) ? requestedVariant : 'f'
-    const wrapper = document.createElement('div')
+    const wrapper = ownerDocument.createElement('div')
     wrapper.classList.add('oe-attaches')
     wrapper.contentEditable = 'false'
     wrapper.tabIndex = -1
@@ -242,13 +249,14 @@ export class Attaches extends BlockPluginAbstract {
   #renderSelect(wrapper) {
     const s = stateMap.get(wrapper)
     if (!s) return
+    const ownerDocument = wrapper.ownerDocument
     wrapper.innerHTML = ''
     wrapper.classList.remove('oe-attaches--filled')
     s.viewController?.abort()
-    s.viewController = new AbortController()
+    s.viewController = createAbortControllerFor(wrapper)
     const { signal } = s.viewController
 
-    const select = document.createElement('div')
+    const select = ownerDocument.createElement('div')
     select.className = 'oe-attaches__select'
 
     if (s.context.readOnly) {
@@ -257,18 +265,18 @@ export class Attaches extends BlockPluginAbstract {
       return
     }
 
-    const icon = document.createElement('div')
+    const icon = ownerDocument.createElement('div')
     icon.className = 'oe-attaches__select-icon'
     icon.innerHTML = ICON_SELECT
 
-    const text = document.createElement('div')
+    const text = ownerDocument.createElement('div')
     text.className = 'oe-attaches__select-text'
-    const link = document.createElement('button')
+    const link = ownerDocument.createElement('button')
     link.type = 'button'
     link.className = 'oe-attaches__select-link'
     link.textContent = this._t('dropzoneUpload', 'Upload')
     link.addEventListener('click', (e) => { e.stopPropagation(); this.#triggerFileInput(wrapper) }, { signal })
-    const urlLink = document.createElement('button')
+    const urlLink = ownerDocument.createElement('button')
     urlLink.type = 'button'
     urlLink.className = 'oe-attaches__select-link'
     urlLink.textContent = this._t('dropzoneUrl', 'insert a URL')
@@ -279,22 +287,22 @@ export class Attaches extends BlockPluginAbstract {
     }, { signal })
     text.append(
       link,
-      document.createTextNode(' ' + this._t('dropzoneText', 'files from your device or drag and drop them here')),
-      document.createTextNode(` ${this._t('dropzoneUrlPrefix', 'or')} `),
+      ownerDocument.createTextNode(' ' + this._t('dropzoneText', 'files from your device or drag and drop them here')),
+      ownerDocument.createTextNode(` ${this._t('dropzoneUrlPrefix', 'or')} `),
       urlLink,
     )
     select.append(icon, text)
 
     const configuredActions = this.#config.actions ?? []
     if (configuredActions.length) {
-      const sources = document.createElement('div')
+      const sources = ownerDocument.createElement('div')
       sources.className = 'oe-attaches__select-actions'
       for (const action of configuredActions) {
-        const button = document.createElement('button')
+        const button = ownerDocument.createElement('button')
         button.type = 'button'
         button.className = 'oe-attaches__select-action'
         if (action.icon) button.insertAdjacentHTML('afterbegin', action.icon)
-        button.append(document.createTextNode(action.label))
+        button.append(ownerDocument.createTextNode(action.label))
         button.addEventListener('click', event => {
           event.stopPropagation()
           void this.#runCustomAction(wrapper, action.handler)
@@ -326,7 +334,7 @@ export class Attaches extends BlockPluginAbstract {
     wrapper.innerHTML = ''
     wrapper.classList.add('oe-attaches--filled')
     s.viewController?.abort()
-    s.viewController = new AbortController()
+    s.viewController = createAbortControllerFor(wrapper)
     const { signal } = s.viewController
     const files = s.data.files
     const v = s.data.variant || 'a'
@@ -360,13 +368,14 @@ export class Attaches extends BlockPluginAbstract {
    * @returns {HTMLDivElement}
    */
   #buildCardA(w, file, i, sig) {
-    const card = document.createElement('div')
+    const ownerDocument = w.ownerDocument
+    const card = ownerDocument.createElement('div')
     card.className = 'oe-attaches__card'
-    card.appendChild(this.#buildIconA(file))
-    const info = document.createElement('div')
+    card.appendChild(this.#buildIconA(file, ownerDocument))
+    const info = ownerDocument.createElement('div')
     info.className = 'oe-attaches__info'
     info.appendChild(this.#buildNameEl(w, i, file, sig))
-    if (file.size) { const m = document.createElement('div'); m.className = 'oe-attaches__meta'; m.textContent = formatSize(file.size); info.appendChild(m) }
+    if (file.size) { const m = ownerDocument.createElement('div'); m.className = 'oe-attaches__meta'; m.textContent = formatSize(file.size); info.appendChild(m) }
     card.append(info, this.#buildRemoveBtn(w, i, sig))
     return card
   }
@@ -377,26 +386,27 @@ export class Attaches extends BlockPluginAbstract {
    * @returns {HTMLDivElement}
    */
   #buildGroupA(w, sig) {
+    const ownerDocument = w.ownerDocument
     const s = stateMap.get(w)
-    if (!s) return document.createElement('div')
+    if (!s) return ownerDocument.createElement('div')
     const files = s.data.files
-    const group = document.createElement('div')
+    const group = ownerDocument.createElement('div')
     group.className = 'oe-attaches__group'
 
-    const header = document.createElement('div')
+    const header = ownerDocument.createElement('div')
     header.className = 'oe-attaches__group-header'
-    const iconWrap = document.createElement('div')
+    const iconWrap = ownerDocument.createElement('div')
     iconWrap.className = 'oe-attaches__icon'
     iconWrap.innerHTML = ICON_FILE_DEFAULT
-    const headerInfo = document.createElement('div')
+    const headerInfo = ownerDocument.createElement('div')
     headerInfo.className = 'oe-attaches__info'
-    const countText = document.createElement('div')
+    const countText = ownerDocument.createElement('div')
     countText.className = 'oe-attaches__name oe-attaches__name--static'
     countText.textContent = `${files.length} ${this._p('filesCount', files.length, 'files')}`
     headerInfo.appendChild(countText)
     const totalSize = files.reduce((sum, f) => sum + (f.size || 0), 0)
-    if (totalSize > 0) { const m = document.createElement('span'); m.className = 'oe-attaches__meta'; m.textContent = formatSize(totalSize); headerInfo.appendChild(m) }
-    const chevron = document.createElement('button')
+    if (totalSize > 0) { const m = ownerDocument.createElement('span'); m.className = 'oe-attaches__meta'; m.textContent = formatSize(totalSize); headerInfo.appendChild(m) }
+    const chevron = ownerDocument.createElement('button')
     chevron.type = 'button'
     chevron.className = 'oe-attaches__chevron'
     chevron.innerHTML = ICON_CHEVRON
@@ -404,16 +414,16 @@ export class Attaches extends BlockPluginAbstract {
     chevron.setAttribute('aria-expanded', String(s.expanded))
     header.append(iconWrap, headerInfo, chevron)
 
-    const body = document.createElement('div')
+    const body = ownerDocument.createElement('div')
     body.className = 'oe-attaches__group-body'
     body.id = `rector-editor-attaches-group-${++groupSequence}`
     chevron.setAttribute('aria-controls', body.id)
     if (s.expanded) { body.classList.add('oe-attaches__group-body--open'); chevron.classList.add('oe-attaches__chevron--open') }
     for (let i = 0; i < files.length; i++) {
-      const row = document.createElement('div')
+      const row = ownerDocument.createElement('div')
       row.className = 'oe-attaches__row'
       row.append(this.#buildNameEl(w, i, files[i], sig))
-      if (files[i].size) { const sz = document.createElement('span'); sz.className = 'oe-attaches__row-size'; sz.textContent = formatSize(files[i].size); row.appendChild(sz) }
+      if (files[i].size) { const sz = ownerDocument.createElement('span'); sz.className = 'oe-attaches__row-size'; sz.textContent = formatSize(files[i].size); row.appendChild(sz) }
       row.appendChild(this.#buildRemoveBtn(w, i, sig))
       body.appendChild(row)
     }
@@ -426,7 +436,10 @@ export class Attaches extends BlockPluginAbstract {
       chevron.setAttribute('aria-expanded', String(st.expanded))
     }
     header.addEventListener('click', (event) => {
-      const target = /** @type {HTMLElement | null} */ (event.target instanceof HTMLElement ? event.target : null)
+      const HTMLElementCtor = w.ownerDocument.defaultView?.HTMLElement
+      const target = /** @type {HTMLElement | null} */ (
+        HTMLElementCtor && event.target instanceof HTMLElementCtor ? event.target : null
+      )
       if (target?.closest('button, [contenteditable="true"]')) return
       toggle()
     }, { signal: sig })
@@ -438,13 +451,13 @@ export class Attaches extends BlockPluginAbstract {
     return group
   }
 
-  /** Variant A icon: always default file SVG + extension badge. @param {FileEntry} file @returns {HTMLDivElement} */
-  #buildIconA(file) {
-    const wrap = document.createElement('div')
+  /** Variant A icon: always default file SVG + extension badge. @param {FileEntry} file @param {Document} ownerDocument @returns {HTMLDivElement} */
+  #buildIconA(file, ownerDocument) {
+    const wrap = ownerDocument.createElement('div')
     wrap.className = 'oe-attaches__icon'
     wrap.innerHTML = ICON_FILE_DEFAULT
     if (file.extension) {
-      const badge = document.createElement('span')
+      const badge = ownerDocument.createElement('span')
       badge.className = 'oe-attaches__ext'
       badge.textContent = file.extension.toUpperCase()
       const color = EXT_COLORS[file.extension.toLowerCase()]
@@ -463,17 +476,18 @@ export class Attaches extends BlockPluginAbstract {
    * @returns {void}
    */
   #renderPills(w, files, sig) {
-    const container = document.createElement('div')
+    const ownerDocument = w.ownerDocument
+    const container = ownerDocument.createElement('div')
     container.className = 'oe-attaches__pills'
     for (let i = 0; i < files.length; i++) {
-      const pill = document.createElement('div')
+      const pill = ownerDocument.createElement('div')
       pill.className = 'oe-attaches__pill'
-      const ic = document.createElement('div')
+      const ic = ownerDocument.createElement('div')
       ic.className = 'oe-attaches__pill-icon'
       ic.innerHTML = ICON_FILE_SM
       pill.appendChild(ic)
       pill.appendChild(this.#buildNameEl(w, i, files[i], sig))
-      if (files[i].size) { const sz = document.createElement('span'); sz.className = 'oe-attaches__pill-size'; sz.textContent = formatSize(files[i].size); pill.appendChild(sz) }
+      if (files[i].size) { const sz = ownerDocument.createElement('span'); sz.className = 'oe-attaches__pill-size'; sz.textContent = formatSize(files[i].size); pill.appendChild(sz) }
       pill.appendChild(this.#buildRemoveBtn(w, i, sig))
       container.appendChild(pill)
     }
@@ -489,22 +503,23 @@ export class Attaches extends BlockPluginAbstract {
    * @returns {void}
    */
   #renderNotion(w, files, sig) {
-    const table = document.createElement('div')
+    const ownerDocument = w.ownerDocument
+    const table = ownerDocument.createElement('div')
     table.className = 'oe-attaches__notion'
     for (let i = 0; i < files.length; i++) {
-      const row = document.createElement('div')
+      const row = ownerDocument.createElement('div')
       row.className = 'oe-attaches__notion-row'
       row.appendChild(this.#buildNameEl(w, i, files[i], sig))
       const ext = (files[i].extension || '').toUpperCase()
       if (ext) {
-        const tag = document.createElement('span')
+        const tag = ownerDocument.createElement('span')
         tag.className = 'oe-attaches__notion-tag'
         tag.textContent = ext
         const color = EXT_COLORS[files[i].extension?.toLowerCase()] || null
         if (color) { tag.style.backgroundColor = `${color}20`; tag.style.color = color }
         row.appendChild(tag)
       }
-      if (files[i].size) { const sz = document.createElement('span'); sz.className = 'oe-attaches__notion-size'; sz.textContent = formatSize(files[i].size); row.appendChild(sz) }
+      if (files[i].size) { const sz = ownerDocument.createElement('span'); sz.className = 'oe-attaches__notion-size'; sz.textContent = formatSize(files[i].size); row.appendChild(sz) }
       row.appendChild(this.#buildRemoveBtn(w, i, sig))
       table.appendChild(row)
     }
@@ -520,25 +535,26 @@ export class Attaches extends BlockPluginAbstract {
    * @returns {void}
    */
   #renderMaterial(w, files, sig) {
-    const stack = document.createElement('div')
+    const ownerDocument = w.ownerDocument
+    const stack = ownerDocument.createElement('div')
     stack.className = 'oe-attaches__material'
     for (let i = 0; i < files.length; i++) {
-      const card = document.createElement('div')
+      const card = ownerDocument.createElement('div')
       card.className = 'oe-attaches__material-card'
-      card.appendChild(this.#buildIconG(files[i]))
-      const info = document.createElement('div')
+      card.appendChild(this.#buildIconG(files[i], ownerDocument))
+      const info = ownerDocument.createElement('div')
       info.className = 'oe-attaches__info'
       info.appendChild(this.#buildNameEl(w, i, files[i], sig))
-      if (files[i].size) { const m = document.createElement('div'); m.className = 'oe-attaches__meta'; m.textContent = formatSize(files[i].size); info.appendChild(m) }
+      if (files[i].size) { const m = ownerDocument.createElement('div'); m.className = 'oe-attaches__meta'; m.textContent = formatSize(files[i].size); info.appendChild(m) }
       card.append(info, this.#buildRemoveBtn(w, i, sig))
       stack.appendChild(card)
     }
     w.appendChild(stack)
   }
 
-  /** Variant G icon: custom type-specific icon, no badge. @param {FileEntry} file @returns {HTMLDivElement} */
-  #buildIconG(file) {
-    const wrap = document.createElement('div')
+  /** Variant G icon: custom type-specific icon, no badge. @param {FileEntry} file @param {Document} ownerDocument @returns {HTMLDivElement} */
+  #buildIconG(file, ownerDocument) {
+    const wrap = ownerDocument.createElement('div')
     wrap.className = 'oe-attaches__material-icon'
     const { svg } = getFileIcon(file.extension)
     wrap.innerHTML = svg
@@ -555,9 +571,10 @@ export class Attaches extends BlockPluginAbstract {
    * @returns {HTMLDivElement}
    */
   #buildNameEl(wrapper, index, file, signal) {
+    const ownerDocument = wrapper.ownerDocument
     const state = stateMap.get(wrapper)
     const editable = !state?.context.readOnly
-    const el = document.createElement('div')
+    const el = ownerDocument.createElement('div')
     el.className = `oe-attaches__name${editable ? '' : ' oe-attaches__name--static'}`
     el.contentEditable = String(editable)
     const fallbackName = this._t('untitled', 'File')
@@ -582,7 +599,8 @@ export class Attaches extends BlockPluginAbstract {
    * @returns {HTMLButtonElement}
    */
   #buildRemoveBtn(wrapper, index, signal) {
-    const btn = document.createElement('button')
+    const ownerDocument = wrapper.ownerDocument
+    const btn = ownerDocument.createElement('button')
     btn.type = 'button'
     btn.className = 'oe-attaches__remove'
     btn.innerHTML = '&times;'
@@ -619,14 +637,15 @@ export class Attaches extends BlockPluginAbstract {
    * @returns {void}
    */
   #renderActions(wrapper, signal) {
-    const actions = document.createElement('div')
+    const ownerDocument = wrapper.ownerDocument
+    const actions = ownerDocument.createElement('div')
     actions.className = 'oe-attaches__actions'
 
     // Settings dropdown (variant selector)
-    const dropdown = document.createElement('div')
+    const dropdown = ownerDocument.createElement('div')
     dropdown.className = 'oe-attaches__dropdown'
 
-    const settingsBtn = document.createElement('button')
+    const settingsBtn = ownerDocument.createElement('button')
     settingsBtn.type = 'button'
     settingsBtn.className = 'oe-attaches__action-btn'
     settingsBtn.innerHTML = `${ICON_SETTINGS} ${escapeHtml(this._t('settings', 'Settings'))}`
@@ -648,12 +667,12 @@ export class Attaches extends BlockPluginAbstract {
       setOpen(!dropdown.classList.contains('oe-attaches__dropdown--open'))
     }, { signal })
 
-    document.addEventListener('click', (e) => {
+    ownerDocument.addEventListener('click', (e) => {
       const target = e.target
-      if (!(target instanceof globalThis.Node)) return
+      if (!target || typeof target !== 'object' || !('nodeType' in target)) return
       if (!dropdown.contains(/** @type {import('../../core/types').DOMNode} */ (target))) setOpen(false)
     }, { signal })
-    document.addEventListener('keydown', (event) => {
+    ownerDocument.addEventListener('keydown', (event) => {
       if (event.key !== 'Escape' || !dropdown.classList.contains('oe-attaches__dropdown--open')) return
       event.preventDefault()
       setOpen(false)
@@ -663,10 +682,10 @@ export class Attaches extends BlockPluginAbstract {
     dropdown.append(settingsBtn, panel)
     actions.appendChild(dropdown)
 
-    actions.appendChild(this.#sep())
+    actions.appendChild(this.#sep(ownerDocument))
 
     // Add files
-    const addBtn = document.createElement('button')
+    const addBtn = ownerDocument.createElement('button')
     addBtn.type = 'button'
     addBtn.className = 'oe-attaches__action-btn'
     addBtn.innerHTML = `${ICON_UPLOAD} ${escapeHtml(this._t('addFiles', 'Add files'))}`
@@ -675,11 +694,11 @@ export class Attaches extends BlockPluginAbstract {
     actions.appendChild(addBtn)
 
     for (const action of this.#config.actions ?? []) {
-      const sourceBtn = document.createElement('button')
+      const sourceBtn = ownerDocument.createElement('button')
       sourceBtn.type = 'button'
       sourceBtn.className = 'oe-attaches__action-btn'
       if (action.icon) sourceBtn.insertAdjacentHTML('afterbegin', action.icon)
-      sourceBtn.append(document.createTextNode(` ${action.label}`))
+      sourceBtn.append(ownerDocument.createTextNode(` ${action.label}`))
       sourceBtn.addEventListener('mousedown', (e) => e.preventDefault(), { signal })
       sourceBtn.addEventListener('click', (e) => {
         e.stopPropagation()
@@ -688,10 +707,10 @@ export class Attaches extends BlockPluginAbstract {
       actions.appendChild(sourceBtn)
     }
 
-    actions.appendChild(this.#sep())
+    actions.appendChild(this.#sep(ownerDocument))
 
     // Delete all
-    const delBtn = document.createElement('button')
+    const delBtn = ownerDocument.createElement('button')
     delBtn.type = 'button'
     delBtn.className = 'oe-attaches__action-btn oe-attaches__action-btn--danger'
     delBtn.innerHTML = ICON_TRASH
@@ -719,24 +738,25 @@ export class Attaches extends BlockPluginAbstract {
    * @returns {HTMLDivElement}
    */
   #buildVariantPanel(wrapper, signal) {
+    const ownerDocument = wrapper.ownerDocument
     const s = stateMap.get(wrapper)
-    const panel = document.createElement('div')
+    const panel = ownerDocument.createElement('div')
     panel.className = 'oe-attaches__dropdown-panel'
     panel.setAttribute('role', 'group')
     panel.setAttribute('aria-label', this._t('template', 'Template'))
     panel.addEventListener('click', (e) => e.stopPropagation(), { signal })
 
-    const title = document.createElement('div')
+    const title = ownerDocument.createElement('div')
     title.className = 'oe-attaches__tpl-title'
     title.textContent = this._t('template', 'Template')
     panel.appendChild(title)
 
-    const grid = document.createElement('div')
+    const grid = ownerDocument.createElement('div')
     grid.className = 'oe-attaches__tpl-grid'
 
     for (const v of VARIANTS) {
       const meta = VARIANT_META[v]
-      const btn = document.createElement('button')
+      const btn = ownerDocument.createElement('button')
       btn.type = 'button'
       btn.className = 'oe-attaches__tpl-btn' + (s?.data.variant === v ? ' oe-attaches__tpl-btn--active' : '')
       btn.innerHTML = meta.icon
@@ -802,9 +822,9 @@ export class Attaches extends BlockPluginAbstract {
     if (actions) wrapper.appendChild(actions)
   }
 
-  /** @returns {HTMLDivElement} */
-  #sep() {
-    const s = document.createElement('div')
+  /** @param {Document} ownerDocument @returns {HTMLDivElement} */
+  #sep(ownerDocument) {
+    const s = ownerDocument.createElement('div')
     s.className = 'oe-attaches__actions-sep'
     return s
   }
@@ -854,6 +874,7 @@ export class Attaches extends BlockPluginAbstract {
     const s = stateMap.get(wrapper)
     if (!s || s.context.readOnly) return
     triggerFileInput({
+      ownerDocument: wrapper.ownerDocument,
       multiple: true,
       signal: s.viewController?.signal,
       onFiles: (files) => { void this.#handleFiles(wrapper, files) },
@@ -869,7 +890,7 @@ export class Attaches extends BlockPluginAbstract {
   #startTask(wrapper) {
     const state = stateMap.get(wrapper)
     if (!state || state.context.readOnly) return null
-    const controller = new AbortController()
+    const controller = createAbortControllerFor(wrapper)
     state.taskControllers.add(controller)
     wrapper.classList.add('oe-attaches--loading')
     return { state, controller }

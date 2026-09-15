@@ -129,13 +129,13 @@ export class BlockManager {
     const blockData = data === undefined ? undefined : cloneEditorData(data)
     if (inline && typeof plugin.mapTextFields === 'function' && this.#inlinePluginRegistry && blockData) {
       const registry = this.#inlinePluginRegistry
-      plugin.mapTextFields(blockData, (html) => deserializeInlineHtml(html, inline, registry))
+      plugin.mapTextFields(blockData, (html) => deserializeInlineHtml(html, inline, registry, this.#container.ownerDocument))
     }
     const block = new Block(plugin, this.#commands, blockData, id, this.#readOnly, {
       ...metadata,
       inline,
       preserveInline: preserveUnknown,
-    })
+    }, this.#container.ownerDocument)
     block.setStructuralCommands(this.#structuralCommands)
     if (this.#inlinePluginRegistry && this.#inlinePluginContext) {
       hydrateInlinePlugins(block.contentElement, this.#inlinePluginRegistry, this.#inlinePluginContext)

@@ -28,17 +28,17 @@ export function createColumnsRenderer(classPrefix, _locale) {
          * @param {import('../../types').InlineParser} parseInline
          * @returns {HTMLElement}
          */
-        render(block, parseInline) {
+        render(block, parseInline, context = { ownerDocument: globalThis.document }) {
             const { columns, layout } = block.data
 
-            const wrapper = document.createElement('div')
+            const wrapper = context.ownerDocument.createElement('div')
             wrapper.className = `${classPrefix}-columns`
             wrapper.style.display = 'grid'
             wrapper.style.gridTemplateColumns = Object.hasOwn(LAYOUT_GRIDS, layout) ? LAYOUT_GRIDS[layout] : '1fr 1fr'
             wrapper.style.gap = '1rem'
 
             for (const col of columns) {
-                const colEl = document.createElement('div')
+                const colEl = context.ownerDocument.createElement('div')
                 colEl.className = `${classPrefix}-columns__col`
                 if (col.content) {
                     colEl.appendChild(parseInline(col.content))

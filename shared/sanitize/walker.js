@@ -22,12 +22,12 @@ export function sanitizeSubtree(node) {
   while (i < node.childNodes.length) {
     const child = /** @type {ChildNode} */ (node.childNodes[i])
 
-    if (child.nodeType === Node.TEXT_NODE) {
+    if (child.nodeType === 3) {
       i++
       continue
     }
 
-    if (child.nodeType !== Node.ELEMENT_NODE) {
+    if (child.nodeType !== 1) {
       child.remove()
       continue
     }

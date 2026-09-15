@@ -42,11 +42,12 @@ export class Spoiler extends BlockPluginAbstract {
    * @returns {HTMLElement}
    */
   render(data, context) {
-    const wrapper = document.createElement('div')
+    const ownerDocument = context.ownerDocument ?? globalThis.document
+    const wrapper = ownerDocument.createElement('div')
     wrapper.classList.add('oe-spoiler')
 
     // Label (always visible)
-    const label = document.createElement('div')
+    const label = ownerDocument.createElement('div')
     label.className = 'oe-spoiler__label'
     label.contentEditable = 'true'
     label.dataset.placeholder = this._t('labelPlaceholder', 'Spoiler label...')
@@ -62,7 +63,7 @@ export class Spoiler extends BlockPluginAbstract {
     })
 
     // Toggle button
-    const toggle = document.createElement('button')
+    const toggle = ownerDocument.createElement('button')
     toggle.type = 'button'
     toggle.className = 'oe-spoiler__toggle'
     toggle.innerHTML = ICON
@@ -80,12 +81,12 @@ export class Spoiler extends BlockPluginAbstract {
     })
 
     // Header row
-    const header = document.createElement('div')
+    const header = ownerDocument.createElement('div')
     header.className = 'oe-spoiler__header'
     header.append(toggle, label)
 
     // Hidden content
-    const content = document.createElement('div')
+    const content = ownerDocument.createElement('div')
     content.className = 'oe-spoiler__content'
     content.id = `oe-spoiler-content-${++spoilerSequence}`
     toggle.setAttribute('aria-controls', content.id)

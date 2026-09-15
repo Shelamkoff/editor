@@ -21,12 +21,13 @@ import { normalizeTextValue } from '../../shared/textFormat.js'
  * @param {string} trigger
  * @param {string} [id] Stable widget instance id. Preserved across save /
  *   load round-trips. Generated if not supplied (fresh commit path).
+ * @param {Document} [ownerDocument]
  * @returns {HTMLElement}
  */
-function createWidget(data, trigger, id) {
+function createWidget(data, trigger, id, ownerDocument = globalThis.document) {
   const value = normalizeTextValue(data.id)
   const name = normalizeTextValue(data.name)
-  const span = document.createElement('span')
+  const span = ownerDocument.createElement('span')
   span.className = 'oe-ip oe-ip--mention'
   span.setAttribute('data-inline-plugin', 'mention')
   span.setAttribute('data-id', id || generateInlineId())
@@ -69,7 +70,7 @@ export function createMentionWidget(trigger = '@') {
   }
   return {
     type: 'mention',
-    createWidget: (data, id) => createWidget(data, trigger, id),
+    createWidget: (data, id, context) => createWidget(data, trigger, id, context?.ownerDocument),
     getData: element => getData(element, trigger),
   }
 }

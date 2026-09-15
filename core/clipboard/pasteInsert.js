@@ -115,7 +115,7 @@ export function pastePreparedHtml(prepared, ctx) {
   const inlineHtml = item => {
     if (!item.inline || !targetBlock) return String(item.data.text)
     const html = targetBlock.importInlineContent(String(item.data.text), item.inline)
-    return deserializeInlineHtml(html, targetBlock.save().inline, ctx.inlineRegistry)
+    return deserializeInlineHtml(html, targetBlock.save().inline, ctx.inlineRegistry, ownerDocument ?? globalThis.document)
   }
   const textLike = item => !item.routed && (item.tag === 'p' || item.tag === 'div')
   if (prepared.length === 1 && textLike(first)) {

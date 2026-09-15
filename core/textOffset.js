@@ -46,7 +46,10 @@ export function getTextLength(root) {
  * @returns {TreeWalker}
  */
 export function editableTextWalker(root) {
-  const ownerDocument = root.ownerDocument ?? document
+  const ownerDocument = root.nodeType === 9
+    ? /** @type {Document} */ (root)
+    : root.ownerDocument
+  if (!ownerDocument) throw new Error('DOM node must belong to a document')
   const viewFilter = ownerDocument.defaultView?.NodeFilter
   return ownerDocument.createTreeWalker(root, viewFilter?.SHOW_TEXT ?? SHOW_TEXT, {
     acceptNode(node) {
@@ -146,9 +149,8 @@ export function findNodeAtOffset(container, charOffset, bias = 'start') {
  * @param {number} endOffset
  */
 export function restoreSelectionByOffsets(element, startOffset, endOffset) {
-  const ownerDocument = element.ownerDocument ?? document
-  const selection = ownerDocument.defaultView?.getSelection()
-    ?? (element.ownerDocument ? null : window.getSelection())
+  const ownerDocument = element.ownerDocument
+  const selection = ownerDocument.defaultView?.getSelection() ?? null
   if (!selection) return
   const start = findNodeAtOffset(element, startOffset, 'start')
   const end = findNodeAtOffset(element, endOffset, 'end')
@@ -167,7 +169,7 @@ export function restoreSelectionByOffsets(element, startOffset, endOffset) {
  */
 export function createRangeFromLastTextMatch(element, search) {
   if (!search) return null
-  const ownerDocument = element.ownerDocument ?? document
+  const ownerDocument = element.ownerDocument
   const showText = ownerDocument.defaultView?.NodeFilter?.SHOW_TEXT ?? SHOW_TEXT
   const walker = ownerDocument.createTreeWalker(element, showText)
   /** @type {Text | null} */

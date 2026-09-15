@@ -25,10 +25,10 @@ export function createEmbedRenderer(classPrefix, locale) {
      * @param {import('../../types').InlineParser} parseInline
      * @returns {HTMLElement}
      */
-    render(block, parseInline) {
+    render(block, parseInline, context = { ownerDocument: globalThis.document }) {
       const { service, videoId, caption, cover, title, duration } = block.data
 
-      const figure = document.createElement('figure')
+      const figure = context.ownerDocument.createElement('figure')
       figure.className = `${classPrefix}-embed`
       if (!videoId) return figure
 
@@ -54,7 +54,7 @@ export function createEmbedRenderer(classPrefix, locale) {
 
       // Caption
       if (caption) {
-        const figcaption = document.createElement('figcaption')
+        const figcaption = context.ownerDocument.createElement('figcaption')
         figcaption.className = `${classPrefix}-embed__caption`
         figcaption.appendChild(parseInline(caption))
         figure.appendChild(figcaption)

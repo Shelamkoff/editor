@@ -34,6 +34,7 @@ export function createPollRenderer(classPrefix, locale, config = {}) {
    *   controller: AbortController | null,
    *   unsubscribe: (() => void) | null,
    *   parseInline: import('../../types').InlineParser,
+   *   ownerDocument: Document,
    * }>} */
   const states = new WeakMap()
 
@@ -82,19 +83,19 @@ export function createPollRenderer(classPrefix, locale, config = {}) {
     wrapper.replaceChildren()
 
     if (state.data.question) {
-      const question = document.createElement('div')
+      const question = state.ownerDocument.createElement('div')
       question.className = `${p}__question`
       question.appendChild(state.parseInline(state.data.question))
       wrapper.appendChild(question)
     }
 
-    const options = document.createElement('div')
+    const options = state.ownerDocument.createElement('div')
     options.className = `${p}__options`
     const votes = new Map(state.results.options.map(option => [option.id, option.votes]))
     for (const option of state.data.options) {
-      const row = document.createElement('div')
+      const row = state.ownerDocument.createElement('div')
       row.className = `${p}__option`
-      const marker = document.createElement('button')
+      const marker = state.ownerDocument.createElement('button')
       marker.type = 'button'
       marker.className = `${p}__marker ${p}__marker--${state.data.type}`
       marker.setAttribute('aria-pressed', String(state.selected.has(option.id)))
@@ -109,9 +110,9 @@ export function createPollRenderer(classPrefix, locale, config = {}) {
       })
       row.appendChild(marker)
 
-      const content = document.createElement('div')
+      const content = state.ownerDocument.createElement('div')
       content.className = `${p}__option-content`
-      const text = document.createElement('span')
+      const text = state.ownerDocument.createElement('span')
       text.className = `${p}__option-text`
       text.appendChild(state.parseInline(option.text))
       marker.setAttribute('aria-label', `${t('selectOption', 'Select option')}: ${text.textContent || option.id}`)
@@ -120,13 +121,13 @@ export function createPollRenderer(classPrefix, locale, config = {}) {
       if (showResults(state)) {
         const count = votes.get(option.id) || 0
         const pct = state.results.total > 0 ? Math.round((count / state.results.total) * 100) : 0
-        const bar = document.createElement('div')
+        const bar = state.ownerDocument.createElement('div')
         bar.className = `${p}__bar`
-        const fill = document.createElement('div')
+        const fill = state.ownerDocument.createElement('div')
         fill.className = `${p}__bar-fill`
         fill.style.width = `${pct}%`
         bar.appendChild(fill)
-        const label = document.createElement('span')
+        const label = state.ownerDocument.createElement('span')
         label.className = `${p}__pct`
         label.textContent = `${pct}%`
         content.append(bar, label)
@@ -137,7 +138,7 @@ export function createPollRenderer(classPrefix, locale, config = {}) {
     wrapper.appendChild(options)
 
     if (state.loading || state.error || (showResults(state) && state.results.total === 0)) {
-      const status = document.createElement('div')
+      const status = state.ownerDocument.createElement('div')
       status.className = `${p}__status${state.error ? ` ${p}__status--error` : ''}`
       status.setAttribute('role', state.error ? 'alert' : 'status')
       status.textContent = state.loading
@@ -149,23 +150,23 @@ export function createPollRenderer(classPrefix, locale, config = {}) {
     }
 
     if (showResults(state) && state.results.voters?.length) {
-      const voters = document.createElement('div')
+      const voters = state.ownerDocument.createElement('div')
       voters.className = `${p}__voters`
-      const title = document.createElement('strong')
+      const title = state.ownerDocument.createElement('strong')
       title.textContent = `${t('voters', 'Voters')}: ${state.results.votersTotal ?? state.results.voters.length}`
       voters.appendChild(title)
-      const list = document.createElement('ul')
+      const list = state.ownerDocument.createElement('ul')
       for (const voter of state.results.voters) {
-        const item = document.createElement('li')
+        const item = state.ownerDocument.createElement('li')
         if (voter.avatar) {
-          const avatar = document.createElement('img')
+          const avatar = state.ownerDocument.createElement('img')
           setSafeUrlAttribute(avatar, 'src', voter.avatar, 'media')
           avatar.alt = ''
           avatar.width = 24
           avatar.height = 24
           item.appendChild(avatar)
         }
-        const name = document.createElement('span')
+        const name = state.ownerDocument.createElement('span')
         name.textContent = voter.name || t('anonymousVoter', 'Anonymous voter')
         item.appendChild(name)
         list.appendChild(item)
@@ -174,7 +175,7 @@ export function createPollRenderer(classPrefix, locale, config = {}) {
       wrapper.appendChild(voters)
     }
 
-    const submit = document.createElement('button')
+    const submit = state.ownerDocument.createElement('button')
     submit.type = 'button'
     submit.className = `${p}__submit`
     submit.disabled = state.loading || state.submitting || state.selected.size === 0
@@ -245,7 +246,8 @@ export function createPollRenderer(classPrefix, locale, config = {}) {
   /** @param {HTMLElement} wrapper @param {any} state */
   function connect(wrapper, state) {
     if (!config.dataSource || !state.data.pollId) return
-    const controller = new AbortController()
+    const AbortControllerCtor = state.ownerDocument.defaultView?.AbortController ?? AbortController
+    const controller = new AbortControllerCtor()
     state.controller = controller
     const connectionVersion = ++state.connectionVersion
     const loadVersion = ++state.loadVersion
@@ -293,11 +295,11 @@ export function createPollRenderer(classPrefix, locale, config = {}) {
   return {
     type: 'poll',
     styles: [styles],
-    render(block, parseInline) {
+    render(block, parseInline, context = { ownerDocument: globalThis.document }) {
       let fallbackIndex = 0
       const data = normalizePollData(block.data, () => `legacy-option-${++fallbackIndex}`)
       const results = normalizePollResults(data.initialResults, data.options.map(option => option.id), config.maxVoters, data.type)
-      const wrapper = document.createElement('div')
+      const wrapper = context.ownerDocument.createElement('div')
       wrapper.className = p
       const state = {
         data,
@@ -313,6 +315,7 @@ export function createPollRenderer(classPrefix, locale, config = {}) {
         controller: null,
         unsubscribe: null,
         parseInline,
+        ownerDocument: context.ownerDocument,
       }
       states.set(wrapper, state)
       build(wrapper, state)

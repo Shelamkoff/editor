@@ -150,3 +150,22 @@ test('Block read-only enforcement uses control constructors from the content rea
     Object.assign(globalThis, previous)
   }
 })
+
+
+test('Block passes the editor owning document to plugin render context', () => {
+  const realm = createRealm()
+  let receivedDocument = null
+  const plugin = {
+    type: 'probe',
+    render(_data, context) {
+      receivedDocument = context.ownerDocument
+      return realm.ownerDocument.createElement('div')
+    },
+    save() { return {} },
+  }
+  const commands = { runForBlock(_block, operation) { return operation() } }
+
+  new Block(plugin, commands, {}, 'owner-id', false, {}, realm.ownerDocument)
+
+  assert.equal(receivedDocument, realm.ownerDocument)
+})

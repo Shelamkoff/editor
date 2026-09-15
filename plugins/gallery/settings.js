@@ -20,18 +20,19 @@ import { applyGalleryStyles } from './styles.js'
  * @returns {HTMLElement}
  */
 export function buildSettingsPanel(wrapper, state, deps) {
+  const ownerDocument = wrapper.ownerDocument
   const signal = /** @type {AbortController} */ (state.abortController).signal
 
-  const panel = document.createElement('div')
+  const panel = ownerDocument.createElement('div')
   panel.className = CSS.dropdownPanel
   panel.addEventListener('click', (e) => e.stopPropagation())
 
-  const form = document.createElement('div')
+  const form = ownerDocument.createElement('div')
   form.className = CSS.styleForm
 
-  form.appendChild(buildLayoutGroup(wrapper, state, deps, signal))
-  form.appendChild(buildLightboxGroup(state, deps, signal))
-  form.appendChild(buildStylesGroup(wrapper, state, deps, signal))
+  form.appendChild(buildLayoutGroup(wrapper, state, deps, signal, ownerDocument))
+  form.appendChild(buildLightboxGroup(state, deps, signal, ownerDocument))
+  form.appendChild(buildStylesGroup(wrapper, state, deps, signal, ownerDocument))
 
   panel.appendChild(form)
   return panel
@@ -43,10 +44,10 @@ export function buildSettingsPanel(wrapper, state, deps) {
  * @param {SettingsDeps} deps
  * @param {AbortSignal} signal
  */
-function buildLayoutGroup(wrapper, state, deps, signal) {
-  const group = createGroup(deps.t('layout', 'Layout'))
+function buildLayoutGroup(wrapper, state, deps, signal, ownerDocument) {
+  const group = createGroup(deps.t('layout', 'Layout'), ownerDocument)
 
-  const grid = document.createElement('div')
+  const grid = ownerDocument.createElement('div')
   grid.className = CSS.layoutGrid
 
   for (const layout of ALL_LAYOUTS) {
@@ -57,7 +58,7 @@ function buildLayoutGroup(wrapper, state, deps, signal) {
         : layout === 'triptych'
           ? deps.t('layoutTriptych', 'Triptych layout')
           : `${deps.t('layoutTemplate', 'Layout template')} ${layout}`
-    const btn = document.createElement('button')
+    const btn = ownerDocument.createElement('button')
     btn.type = 'button'
     btn.className = `${CSS.layoutBtn}${state.data.layout === layout ? ` ${CSS.layoutBtnActive}` : ''}`
     btn.innerHTML = LAYOUT_ICONS[layout] || ''
@@ -83,17 +84,17 @@ function buildLayoutGroup(wrapper, state, deps, signal) {
  * @param {SettingsDeps} deps
  * @param {AbortSignal} signal
  */
-function buildLightboxGroup(state, deps, signal) {
+function buildLightboxGroup(state, deps, signal, ownerDocument) {
   const opts = state.data.options
-  const group = createGroup(deps.t('lightbox', 'Lightbox'))
+  const group = createGroup(deps.t('lightbox', 'Lightbox'), ownerDocument)
 
   const makeSwitch = (/** @type {string} */ label, /** @type {string} */ key, /** @type {boolean} */ defaultVal) => {
-    const row = document.createElement('div')
+    const row = ownerDocument.createElement('div')
     row.className = CSS.switchRow
-    const lbl = document.createElement('span')
+    const lbl = ownerDocument.createElement('span')
     lbl.className = CSS.switchLabel
     lbl.textContent = label
-    const btn = document.createElement('button')
+    const btn = ownerDocument.createElement('button')
     btn.type = 'button'
     btn.className = `${CSS.switch}${(opts[key] ?? defaultVal) ? ` ${CSS.switchActive}` : ''}`
     btn.setAttribute('aria-label', label)
@@ -118,13 +119,13 @@ function buildLightboxGroup(state, deps, signal) {
   group.appendChild(makeSwitch(deps.t('optFullscreen', 'Fullscreen'), 'fullscreen', true))
 
   // Autoplay interval
-  const autoplayRow = document.createElement('div')
+  const autoplayRow = ownerDocument.createElement('div')
   autoplayRow.className = CSS.styleRow
-  const autoplayLbl = document.createElement('label')
+  const autoplayLbl = ownerDocument.createElement('label')
   autoplayLbl.className = CSS.styleLabel
-  const autoplaySpan = document.createElement('span')
+  const autoplaySpan = ownerDocument.createElement('span')
   autoplaySpan.textContent = deps.t('optAutoplay', 'Autoplay')
-  const autoplayInput = document.createElement('input')
+  const autoplayInput = ownerDocument.createElement('input')
   autoplayInput.type = 'text'
   autoplayInput.className = CSS.styleInput
   autoplayInput.placeholder = deps.t('autoplayDelayPlaceholder', 'ms (e.g. 3000)')
@@ -149,12 +150,12 @@ function buildLightboxGroup(state, deps, signal) {
  * @param {SettingsDeps} deps
  * @param {AbortSignal} signal
  */
-function buildStylesGroup(wrapper, state, deps, signal) {
-  const group = createGroup(deps.t('styles', 'Styles'))
+function buildStylesGroup(wrapper, state, deps, signal, ownerDocument) {
+  const group = createGroup(deps.t('styles', 'Styles'), ownerDocument)
   const styles = state.data.styles
 
   const makeStyleInput = (/** @type {string} */ key, /** @type {string} */ value) => {
-    const input = document.createElement('input')
+    const input = ownerDocument.createElement('input')
     input.type = 'text'
     input.className = CSS.styleInput
     input.value = value || ''
@@ -174,11 +175,11 @@ function buildStylesGroup(wrapper, state, deps, signal) {
   }
 
   const makeRow = (/** @type {string} */ label, /** @type {HTMLElement} */ input) => {
-    const row = document.createElement('div')
+    const row = ownerDocument.createElement('div')
     row.className = CSS.styleRow
-    const lbl = document.createElement('label')
+    const lbl = ownerDocument.createElement('label')
     lbl.className = CSS.styleLabel
-    const span = document.createElement('span')
+    const span = ownerDocument.createElement('span')
     span.textContent = label
     lbl.append(span, input)
     row.appendChild(lbl)
@@ -193,10 +194,10 @@ function buildStylesGroup(wrapper, state, deps, signal) {
 }
 
 /** @param {string} title @returns {HTMLElement} */
-function createGroup(title) {
-  const group = document.createElement('div')
+function createGroup(title, ownerDocument) {
+  const group = ownerDocument.createElement('div')
   group.className = CSS.styleGroup
-  const titleEl = document.createElement('div')
+  const titleEl = ownerDocument.createElement('div')
   titleEl.className = CSS.styleGroupTitle
   titleEl.textContent = title
   group.appendChild(titleEl)

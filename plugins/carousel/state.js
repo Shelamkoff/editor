@@ -12,11 +12,12 @@ export class CarouselState {
    * @param {import('../../core/types').BlockMutationContext} context Editor mutation and lifecycle context.
    */
   constructor(data, createId, context) {
+    this.AbortControllerCtor = context.ownerDocument?.defaultView?.AbortController ?? AbortController
     this.data = normalizeCarouselData(data, createId)
     this.context = context
     this.activeIndex = 0
-    this.viewController = new AbortController()
-    this.lifecycleController = new AbortController()
+    this.viewController = new this.AbortControllerCtor()
+    this.lifecycleController = new this.AbortControllerCtor()
     this.pendingUpload = null
   }
 
@@ -26,7 +27,7 @@ export class CarouselState {
    */
   resetView() {
     this.viewController.abort()
-    this.viewController = new AbortController()
+    this.viewController = new this.AbortControllerCtor()
     this.activeIndex = Math.max(0, Math.min(this.activeIndex, this.data.slides.length - 1))
     return this.viewController.signal
   }

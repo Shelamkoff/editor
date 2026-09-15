@@ -1,3 +1,5 @@
+import { register as rendererRealm } from './regressions/recheck-86-renderer-realm.js'
+import { register as blockPluginRealm } from './regressions/recheck-85-block-plugin-realm.js'
 import { register as crossConvertRealm } from './regressions/recheck-84-cross-convert-realm.js'
 import { register as imageSettingsRealm } from './regressions/recheck-83-image-settings-realm.js'
 import { register as toolbarRealm } from './regressions/recheck-82-toolbar-realm.js'
@@ -82,6 +84,7 @@ import { register as r6 } from './regressions/recheck-15-stale-inline.js'
 import { register as r7 } from './regressions/recheck-16-destroy.js'
 import { register as r8 } from './regressions/recheck-17-public-events.js'
 import { register as r9 } from './regressions/recheck-18-validation-observer.js'
+import { register as complexBlockPluginRealm } from './regressions/recheck-87-complex-block-plugin-realm.js'
 import { run } from './regressions/harness.js'
 r0()
 r1()
@@ -164,6 +167,9 @@ bgColorRealm()
 linkToolRealm()
 pasteInsertRealm()
 crossConvertRealm()
+blockPluginRealm()
+rendererRealm()
+complexBlockPluginRealm()
 imageSettingsRealm()
 toolbarRealm()
 clipboardRealm()

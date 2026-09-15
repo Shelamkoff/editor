@@ -28,12 +28,12 @@ export function createLinkPreviewRenderer(classPrefix, _locale) {
          * @param {import('../../types').InlineParser} _parseInline
          * @returns {HTMLElement}
          */
-        render(block, _parseInline) {
+        render(block, _parseInline, context = { ownerDocument: globalThis.document }) {
             const { url, title, description, image, favicon, domain } = block.data
             const requestedTpl = block.data.template
             const tpl = (requestedTpl && TEMPLATES.includes(requestedTpl)) ? requestedTpl : 'notion'
 
-            const card = document.createElement('a')
+            const card = context.ownerDocument.createElement('a')
             card.className = `${p} ${p}--${tpl}`
             const href = sanitizeUrl(url, {
                 policy: 'external', allowRelative: false, fallback: '',
@@ -44,7 +44,7 @@ export function createLinkPreviewRenderer(classPrefix, _locale) {
 
             // Notion: large favicon before content
             if (tpl === 'notion' && favicon) {
-                const bigFav = document.createElement('img')
+                const bigFav = context.ownerDocument.createElement('img')
                 bigFav.className = `${p}__favicon-large`
                 setSafeUrlAttribute(bigFav, 'src', favicon || '', 'media')
                 bigFav.width = 32
@@ -55,29 +55,29 @@ export function createLinkPreviewRenderer(classPrefix, _locale) {
             }
 
             // Content
-            const content = document.createElement('div')
+            const content = context.ownerDocument.createElement('div')
             content.className = `${p}__content`
 
             const titleText = title || url
-            const titleEl = document.createElement('div')
+            const titleEl = context.ownerDocument.createElement('div')
             titleEl.className = `${p}__title`
             titleEl.textContent = titleText
             content.appendChild(titleEl)
 
             if (description) {
-                const descEl = document.createElement('div')
+                const descEl = context.ownerDocument.createElement('div')
                 descEl.className = `${p}__desc`
                 descEl.textContent = description
                 content.appendChild(descEl)
             }
 
             // Domain line
-            const domainLine = document.createElement('div')
+            const domainLine = context.ownerDocument.createElement('div')
             domainLine.className = `${p}__domain`
 
             // Favicon (not for notion — it has large favicon instead)
             if (favicon && tpl !== 'notion') {
-                const fav = document.createElement('img')
+                const fav = context.ownerDocument.createElement('img')
                 fav.className = `${p}__favicon`
                 setSafeUrlAttribute(fav, 'src', favicon, 'media')
                 fav.width = 14
@@ -87,11 +87,11 @@ export function createLinkPreviewRenderer(classPrefix, _locale) {
                 domainLine.appendChild(fav)
             }
 
-            const domainText = document.createElement('span')
+            const domainText = context.ownerDocument.createElement('span')
             domainText.textContent = domain || url
             domainLine.appendChild(domainText)
 
-            const ext = document.createElement('span')
+            const ext = context.ownerDocument.createElement('span')
             ext.className = `${p}__external`
             ext.innerHTML = ICON_EXTERNAL
             domainLine.appendChild(ext)
@@ -101,9 +101,9 @@ export function createLinkPreviewRenderer(classPrefix, _locale) {
 
             // Image (not for minimal/notion templates)
             if (image && tpl !== 'minimal' && tpl !== 'notion') {
-                const imgWrap = document.createElement('div')
+                const imgWrap = context.ownerDocument.createElement('div')
                 imgWrap.className = `${p}__image`
-                const img = document.createElement('img')
+                const img = context.ownerDocument.createElement('img')
                 setSafeUrlAttribute(img, 'src', image, 'media')
                 img.alt = title || ''
                 img.loading = 'lazy'

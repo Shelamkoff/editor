@@ -47,14 +47,12 @@ export class EditorRenderer {
   /** Built-in types use the same neutral validators as their editor plugins. */
   #defaultRendererTypes = new Set()
 
-  /** @type {import('./types').InlineParser} */
-  #parseInline
+  /** @type {WeakMap<Document, import('./types').InlineParser>} */
+  #inlineParsers = new WeakMap()
 
-  /** @type {{ destroy(): void } | null} */
-  #styleOwner = null
-
-  /** @type {string} */
-  #styleKey = ''
+  /** Automatic stylesheet owners are isolated per owning document. */
+  /** @type {Map<Document, { owner: { destroy(): void }, key: string }>} */
+  #styleOwners = new Map()
 
   /** @param {import('./types').RendererConfig} [config] */
   constructor(config = {}) {
@@ -77,7 +75,6 @@ export class EditorRenderer {
       config.blockConfigs,
     )
     this.#defaultRendererTypes = new Set(this.#renderers.keys())
-    this.#parseInline = createInlineParser(this.#config.classPrefix)
 
     // Inline plugin registry (for rehydrating `{{<id>}}` placeholder
     // tokens into real widget DOM). Caller supplies lightweight widget
@@ -136,9 +133,10 @@ export class EditorRenderer {
    * @returns {HTMLElement}
    */
   renderBlock(block) {
-    this.#ensureStyles()
+    const ownerDocument = globalThis.document
+    this.#ensureStyles(ownerDocument)
     try {
-      const entry = this.#createRenderedBlock(block)
+      const entry = this.#createRenderedBlock(block, ownerDocument)
       this.#detachedBlocks.set(entry.element, entry)
       return entry.element
     } catch (error) {
@@ -152,9 +150,10 @@ export class EditorRenderer {
    * Internal aggregate rendering uses this method so ownership is registered
    * exactly once by the public operation that returns or mounts the result.
    * @param {import('./types').OutputBlockData} block
+   * @param {Document} ownerDocument
    * @returns {{ element: HTMLElement, type: string, renderer?: import('./types').BlockRenderer }}
    */
-  #createRenderedBlock(block) {
+  #createRenderedBlock(block, ownerDocument) {
     // A block crosses the public rendering boundary only when it is actually
     // rendered. This preserves O(1) reuse for equal producer revisions while
     // ensuring custom/default renderers never observe caller-owned JSON data.
@@ -167,7 +166,7 @@ export class EditorRenderer {
       }
 
       // Return empty div for unknown blocks when not throwing
-      const placeholder = document.createElement('div')
+      const placeholder = ownerDocument.createElement('div')
       placeholder.className = this.#withStableClass(`${this.#config.classPrefix}-unknown`)
       placeholder.dataset.blockType = block.type
       return { element: placeholder, type: block.type }
@@ -197,13 +196,16 @@ export class EditorRenderer {
       const hydratedData = cloneEditorData(renderableBlock.data)
       renderer.mapTextFields(
         /** @type {Record<string, unknown>} */ (hydratedData),
-        (html) => deserializeInlineHtml(html, inline, registry),
+        (html) => deserializeInlineHtml(html, inline, registry, ownerDocument),
       )
       renderableBlock = { ...renderableBlock, data: hydratedData }
     }
 
-    const element = renderer.render(renderableBlock, this.#parseInline)
-    if (!(element instanceof HTMLElement)) {
+    const element = renderer.render(renderableBlock, this.#inlineParserFor(ownerDocument), { ownerDocument })
+    const HTMLElementCtor = element?.ownerDocument?.defaultView?.HTMLElement
+      ?? ownerDocument.defaultView?.HTMLElement
+      ?? globalThis.HTMLElement
+    if (!HTMLElementCtor || !(element instanceof HTMLElementCtor)) {
       throw new TypeError(`Block renderer "${block.type}" render() must return an HTMLElement`)
     }
     this.#addBundledStyleAliases(element, renderer)
@@ -227,8 +229,9 @@ export class EditorRenderer {
    * @returns {HTMLElement}
    */
   render(data) {
-    this.#ensureStyles()
-    const wrapper = document.createElement('div')
+    const ownerDocument = globalThis.document
+    this.#ensureStyles(ownerDocument)
+    const wrapper = ownerDocument.createElement('div')
     const theme = this.#config.theme
     wrapper.className = this.#contentClassName(theme)
 
@@ -237,7 +240,7 @@ export class EditorRenderer {
     try {
       if (data.blocks?.length) {
         for (const block of data.blocks) {
-          const entry = this.#createRenderedBlock(block)
+          const entry = this.#createRenderedBlock(block, ownerDocument)
           created.push(entry)
           wrapper.appendChild(entry.element)
         }
@@ -298,9 +301,10 @@ export class EditorRenderer {
    * @returns {void}
    */
   renderTo(data, container) {
-    this.#ensureStyles()
+    const ownerDocument = container.ownerDocument ?? globalThis.document
+    this.#ensureStyles(ownerDocument)
     const mounted = this.#mountedContainers.get(container)
-    const wrapper = mounted?.wrapper ?? document.createElement('div')
+    const wrapper = mounted?.wrapper ?? ownerDocument.createElement('div')
     if (!mounted) {
       const theme = this.#config.theme
       wrapper.className = this.#contentClassName(theme)
@@ -334,7 +338,7 @@ export class EditorRenderer {
           element = existing.element
           owner = existing.renderer
         } else {
-          const entry = this.#createRenderedBlock(block)
+          const entry = this.#createRenderedBlock(block, ownerDocument)
           owner = entry.renderer
           element = entry.element
           created.push(entry)
@@ -378,7 +382,7 @@ export class EditorRenderer {
       container.replaceChildren(wrapper)
     }
     this.#mountedContainers.set(container, { wrapper, blocks: next })
-    this.#ensureStyles()
+    this.#ensureStyles(ownerDocument)
   }
 
   /**
@@ -498,40 +502,62 @@ export class EditorRenderer {
     return [...urls]
   }
 
-  #ensureStyles() {
+  /** @param {Document} ownerDocument */
+  #inlineParserFor(ownerDocument) {
+    let parser = this.#inlineParsers.get(ownerDocument)
+    if (!parser) {
+      parser = createInlineParser(this.#config.classPrefix, ownerDocument)
+      this.#inlineParsers.set(ownerDocument, parser)
+    }
+    return parser
+  }
+
+  /** @param {Document} ownerDocument */
+  #ensureStyles(ownerDocument) {
     if (!this.#config.injectStyles) return
     const urls = this.getStyleUrls()
     const key = urls.join('\n')
-    if (this.#styleOwner && this.#styleKey === key) return
-    const nextOwner = acquireStyleUrls(urls)
-    this.#styleOwner?.destroy()
-    this.#styleOwner = nextOwner
-    this.#styleKey = key
+    const current = this.#styleOwners.get(ownerDocument)
+    if (current?.key === key) return
+    const nextOwner = acquireStyleUrls(urls, ownerDocument)
+    current?.owner.destroy()
+    this.#styleOwners.set(ownerDocument, { owner: nextOwner, key })
   }
 
-  /** Release automatic styles after the last rendered result, or unconditionally. */
-  #releaseAutomaticStylesIfIdle(force = false) {
-    if (!force && (
-      this.#mountedContainers.size > 0
-      || this.#detachedDocuments.size > 0
-      || this.#detachedBlocks.size > 0
-    )) {
-      // Other results are still live, but a retired renderer may now have no
-      // owners. Reconcile only after the containing operation has settled.
-      this.#ensureStyles()
-      return
+  /** @param {Document} ownerDocument */
+  #hasLiveResultInDocument(ownerDocument) {
+    for (const [container, mounted] of this.#mountedContainers) {
+      if (container.ownerDocument === ownerDocument || mounted.wrapper.ownerDocument === ownerDocument) return true
     }
-    this.#styleOwner?.destroy()
-    this.#styleOwner = null
-    this.#styleKey = ''
+    for (const wrapper of this.#detachedDocuments.keys()) {
+      if (wrapper.ownerDocument === ownerDocument) return true
+    }
+    for (const element of this.#detachedBlocks.keys()) {
+      if (element.ownerDocument === ownerDocument) return true
+    }
+    return false
+  }
+
+  /** Release automatic styles after the last rendered result in each document, or unconditionally. */
+  #releaseAutomaticStylesIfIdle(force = false) {
+    for (const [ownerDocument, entry] of this.#styleOwners) {
+      if (!force && this.#hasLiveResultInDocument(ownerDocument)) {
+        // A retired renderer may have changed the collected style set.
+        this.#ensureStyles(ownerDocument)
+        continue
+      }
+      entry.owner.destroy()
+      this.#styleOwners.delete(ownerDocument)
+    }
   }
 
   /**
-   * Inject <link> tags for all collected CSS URLs
+   * Inject <link> tags for all collected CSS URLs.
+   * @param {Document} [ownerDocument]
    * @returns {{ destroy(): void }}
    */
-  injectStyles() {
-    return acquireStyleUrls(this.getStyleUrls())
+  injectStyles(ownerDocument = globalThis.document) {
+    return acquireStyleUrls(this.getStyleUrls(), ownerDocument)
   }
 }
 

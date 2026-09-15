@@ -30,17 +30,17 @@ export function createSpoilerRenderer(classPrefix, /** @type {Record<string, imp
          * @param {import('../../types').InlineParser} parseInline
          * @returns {HTMLElement}
          */
-        render(block, parseInline) {
+        render(block, parseInline, context = { ownerDocument: globalThis.document }) {
             const { label, content } = block.data
 
-            const wrapper = document.createElement('div')
+            const wrapper = context.ownerDocument.createElement('div')
             wrapper.className = p
 
             // Header: toggle button + label
-            const header = document.createElement('div')
+            const header = context.ownerDocument.createElement('div')
             header.className = `${p}__header`
 
-            const toggle = document.createElement('button')
+            const toggle = context.ownerDocument.createElement('button')
             toggle.type = 'button'
             toggle.className = `${p}__toggle`
             toggle.innerHTML = ICON
@@ -55,7 +55,7 @@ export function createSpoilerRenderer(classPrefix, /** @type {Record<string, imp
                 if (body) body.hidden = !open
             })
 
-            const labelEl = document.createElement('div')
+            const labelEl = context.ownerDocument.createElement('div')
             labelEl.className = `${p}__label`
             if (label) {
                 labelEl.appendChild(parseInline(label))
@@ -66,7 +66,7 @@ export function createSpoilerRenderer(classPrefix, /** @type {Record<string, imp
 
             // Hidden content
             if (content) {
-                body = document.createElement('div')
+                body = context.ownerDocument.createElement('div')
                 body.className = `${p}__content`
                 body.id = `${p}-content-${++spoilerSequence}`
                 body.hidden = true

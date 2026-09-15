@@ -21,15 +21,15 @@ export function createListRenderer(classPrefix, _locale) {
      * @param {import('../../types').InlineParser} parseInline
      * @returns {HTMLElement}
      */
-    render(block, parseInline) {
+    render(block, parseInline, context = { ownerDocument: globalThis.document }) {
       const { style, items } = block.data
 
       const tag = style === 'ordered' ? 'ol' : 'ul'
-      const list = document.createElement(tag)
+      const list = context.ownerDocument.createElement(tag)
       list.className = `${classPrefix}-list ${classPrefix}-list--${style}`
 
       for (const item of items) {
-        const li = document.createElement('li')
+        const li = context.ownerDocument.createElement('li')
         li.className = `${classPrefix}-list__item`
         li.appendChild(parseInline(item))
         list.appendChild(li)

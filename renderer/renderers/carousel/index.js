@@ -32,10 +32,10 @@ export function createCarouselRenderer(classPrefix, locale) {
   return {
     type: 'carousel',
     styles: [styles, carouselStylesUrl],
-    render(block) {
+    render(block, _parseInline, context = { ownerDocument: globalThis.document }) {
       let fallback = 0
       const data = normalizeCarouselData(block.data, () => `legacy-slide-${++fallback}`)
-      const root = document.createElement('div')
+      const root = context.ownerDocument.createElement('div')
       root.className = p
       root.setAttribute('aria-label', t('label', 'Content carousel'))
       if (data.options.aspectRatio && data.options.aspectRatio !== 'auto') {
@@ -45,16 +45,16 @@ export function createCarouselRenderer(classPrefix, locale) {
 
       const slides = data.slides.map(slide => {
         const content = () => {
-          const figure = document.createElement('figure')
+          const figure = context.ownerDocument.createElement('figure')
           figure.className = `${p}__slide`
           if (slide.type === 'image') {
-            const image = document.createElement('img')
+            const image = context.ownerDocument.createElement('img')
             setSafeUrlAttribute(image, 'src', slide.src || '', 'media')
             image.alt = slide.alt || ''
             image.loading = 'lazy'
             figure.appendChild(image)
           } else if (slide.type === 'video') {
-            const video = document.createElement('video')
+            const video = context.ownerDocument.createElement('video')
             video.controls = true
             video.preload = 'metadata'
             setSafeUrlAttribute(video, 'src', slide.src || '', 'media')
@@ -62,13 +62,13 @@ export function createCarouselRenderer(classPrefix, locale) {
             video.setAttribute('aria-label', slide.alt || t('video', 'Video slide'))
             figure.appendChild(video)
           } else {
-            const html = document.createElement('div')
+            const html = context.ownerDocument.createElement('div')
             html.className = `${p}__html`
             setSanitizedRawHtml(html, slide.html || '')
             figure.appendChild(html)
           }
           if (slide.caption) {
-            const caption = document.createElement('figcaption')
+            const caption = context.ownerDocument.createElement('figcaption')
             caption.textContent = slide.caption
             figure.appendChild(caption)
           }

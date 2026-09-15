@@ -20,27 +20,27 @@ export function createTableRenderer(classPrefix, _locale) {
      * @param {import('../../types').InlineParser} parseInline
      * @returns {HTMLElement}
      */
-    render(block, parseInline) {
+    render(block, parseInline, context = { ownerDocument: globalThis.document }) {
       const { content, withHeadings = false } = block.data
 
-      const wrapper = document.createElement('div')
+      const wrapper = context.ownerDocument.createElement('div')
       wrapper.className = `${classPrefix}-table-wrapper`
 
-      const table = document.createElement('table')
+      const table = context.ownerDocument.createElement('table')
       table.className = `${classPrefix}-table`
 
       const startIndex = withHeadings ? 1 : 0
 
       // Render header row
       if (withHeadings && content[0]) {
-        const thead = document.createElement('thead')
+        const thead = context.ownerDocument.createElement('thead')
         thead.className = `${classPrefix}-table__head`
 
-        const headerRow = document.createElement('tr')
+        const headerRow = context.ownerDocument.createElement('tr')
         headerRow.className = `${classPrefix}-table__row`
 
         for (const cell of content[0]) {
-          const th = document.createElement('th')
+          const th = context.ownerDocument.createElement('th')
           th.className = `${classPrefix}-table__header`
           th.appendChild(parseInline(cell))
           headerRow.appendChild(th)
@@ -52,17 +52,17 @@ export function createTableRenderer(classPrefix, _locale) {
 
       // Render body rows
       if (content.length > startIndex) {
-        const tbody = document.createElement('tbody')
+        const tbody = context.ownerDocument.createElement('tbody')
         tbody.className = `${classPrefix}-table__body`
 
         for (let i = startIndex; i < content.length; i++) {
           const cells = content[i]
           if (!cells) continue
-          const row = document.createElement('tr')
+          const row = context.ownerDocument.createElement('tr')
           row.className = `${classPrefix}-table__row`
 
           for (const cell of cells) {
-            const td = document.createElement('td')
+            const td = context.ownerDocument.createElement('td')
             td.className = `${classPrefix}-table__cell`
             td.appendChild(parseInline(cell))
             row.appendChild(td)

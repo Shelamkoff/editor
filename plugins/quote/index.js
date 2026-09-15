@@ -37,13 +37,15 @@ export class Quote extends BlockPluginAbstract {
   /**
    * Create the editable DOM owned by this block instance.
    * @param {{ text?: string, caption?: string }} data
+   * @param {import('../../core/types').BlockMutationContext} context
    * @returns {HTMLElement}
    */
-  render(data) {
-    const wrapper = document.createElement('div')
+  render(data, context) {
+    const ownerDocument = context?.ownerDocument ?? globalThis.document
+    const wrapper = ownerDocument.createElement('div')
     wrapper.classList.add('oe-quote')
 
-    const blockquote = document.createElement('blockquote')
+    const blockquote = ownerDocument.createElement('blockquote')
     blockquote.classList.add('oe-quote__text')
     blockquote.contentEditable = 'true'
     blockquote.dataset.placeholder = this._t('textPlaceholder', 'Quote')
@@ -52,7 +54,7 @@ export class Quote extends BlockPluginAbstract {
       blockquote.innerHTML = sanitizeHtml(text)
     }
 
-    const caption = document.createElement('cite')
+    const caption = ownerDocument.createElement('cite')
     caption.classList.add('oe-quote__caption')
     caption.contentEditable = 'true'
     caption.dataset.placeholder = this._t('captionPlaceholder', 'Caption')
@@ -64,7 +66,7 @@ export class Quote extends BlockPluginAbstract {
     // Move between the two fields without trapping focus at block boundaries.
     wrapper.addEventListener('keydown', (e) => {
       if (e.key !== 'Tab') return
-      const active = document.activeElement
+      const active = wrapper.ownerDocument.activeElement
       const inQuote = active === blockquote || blockquote.contains(/** @type {Node} */ (active))
       const inCaption = active === caption || caption.contains(/** @type {Node} */ (active))
       if (!e.shiftKey && inQuote) {

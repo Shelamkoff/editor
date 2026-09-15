@@ -84,15 +84,16 @@ export class Image extends BlockPluginAbstract {
    * @returns {HTMLElement}
    */
   render(data, context) {
+    const ownerDocument = context.ownerDocument ?? globalThis.document
     const blockData = normalizeImageData(data)
     const pendingFile = /** @type {File | null} */ (/** @type {any} */ (data)?._pendingFile || null)
 
-    const wrapper = document.createElement('div')
+    const wrapper = ownerDocument.createElement('div')
     wrapper.classList.add(CSS.wrapper)
     wrapper.contentEditable = 'false'
     wrapper.tabIndex = -1
 
-    const state = new ImageState(blockData, pendingFile)
+    const state = new ImageState(blockData, pendingFile, ownerDocument)
     this.#states.set(wrapper, state)
     this.#contexts.set(wrapper, context)
 
@@ -260,6 +261,7 @@ export class Image extends BlockPluginAbstract {
   #triggerFileInput(wrapper) {
     if (this.#contexts.get(wrapper)?.readOnly) return
     triggerFileInput({
+      ownerDocument: wrapper.ownerDocument,
       accept: 'image/*',
       signal: this.#states.get(wrapper)?.abortController?.signal,
       onFiles: (files) => {

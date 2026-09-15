@@ -20,26 +20,26 @@ export function createChecklistRenderer(classPrefix, _locale) {
      * @param {import('../../types').InlineParser} parseInline
      * @returns {HTMLElement}
      */
-    render(block, parseInline) {
+    render(block, parseInline, context = { ownerDocument: globalThis.document }) {
       const { items } = block.data
 
-      const ul = document.createElement('ul')
+      const ul = context.ownerDocument.createElement('ul')
       ul.className = `${classPrefix}-checklist`
 
       for (const item of items) {
-        const li = document.createElement('li')
+        const li = context.ownerDocument.createElement('li')
         li.className = `${classPrefix}-checklist__item`
 
         if (item.checked) {
           li.classList.add(`${classPrefix}-checklist__item--checked`)
         }
 
-        const checkbox = document.createElement('span')
+        const checkbox = context.ownerDocument.createElement('span')
         checkbox.className = `${classPrefix}-checklist__checkbox`
         checkbox.setAttribute('role', 'checkbox')
         checkbox.setAttribute('aria-checked', String(item.checked))
 
-        const content = document.createElement('span')
+        const content = context.ownerDocument.createElement('span')
         content.className = `${classPrefix}-checklist__text`
         content.appendChild(parseInline(item.text))
 

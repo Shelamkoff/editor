@@ -119,17 +119,18 @@ export class InlineToolbar {
     this.#tools = tools
     this.#crossBlockSelection = crossBlockSelection
     this.#typeSelector = typeSelector
-    this.#tooltip = new Tooltip()
+    const ownerDocument = rootEl.ownerDocument
+    this.#tooltip = new Tooltip(ownerDocument)
     this.#mutations = commands
     this.#mutationContext = {
       mutate: (range, operation) => this.#mutations.runForRange(range, operation),
     }
 
     // ── DOM scaffold ──────────────────────────────────────────────────────────
-    this.#el = el('div', 'oe-inline-toolbar')
+    this.#el = el('div', 'oe-inline-toolbar', undefined, ownerDocument)
     this.#el.style.display = 'none'
 
-    this.#buttonsPanel = el('div', 'oe-inline-toolbar__panel')
+    this.#buttonsPanel = el('div', 'oe-inline-toolbar__panel', undefined, ownerDocument)
 
     // Type selector is injected (constructed in createEditor with the full
     // plugin map; InlineToolbar deliberately doesn't depend on that).
@@ -140,11 +141,11 @@ export class InlineToolbar {
     this.#buttonsPanel.appendChild(this.#typeSelector.selectButton)
 
     // Divider after type selector.
-    this.#buttonsPanel.appendChild(el('div', 'oe-inline-toolbar__divider'))
+    this.#buttonsPanel.appendChild(el('div', 'oe-inline-toolbar__divider', undefined, ownerDocument))
 
     // Plugin controls zone (filled by the focused block's plugin, if any).
-    const pluginZone = el('div', 'oe-inline-toolbar__plugin-zone')
-    const pluginDivider = el('div', 'oe-inline-toolbar__divider')
+    const pluginZone = el('div', 'oe-inline-toolbar__plugin-zone', undefined, ownerDocument)
+    const pluginDivider = el('div', 'oe-inline-toolbar__divider', undefined, ownerDocument)
     pluginDivider.style.display = 'none'
     this.#buttonsPanel.appendChild(pluginZone)
     this.#buttonsPanel.appendChild(pluginDivider)
@@ -309,7 +310,7 @@ export class InlineToolbar {
       const btn = el('button', 'oe-inline-tool', {
         type: 'button',
         'data-tool': tool.type,
-      })
+      }, this.#rootEl.ownerDocument)
       btn.innerHTML = tool.icon
 
       btn.addEventListener('mouseenter', () => {

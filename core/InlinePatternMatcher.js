@@ -263,7 +263,7 @@ export class InlinePatternMatcher {
    */
   #replaceMatch(textNode, start, end, plugin, matchText, placeCaret = true) {
     const data = plugin.onPatternMatch?.(matchText) ?? { value: matchText }
-    const widget = plugin.createWidget(data)
+    const widget = plugin.createWidget(data, undefined, { ownerDocument: textNode.ownerDocument })
     const HTMLElementCtor = widget?.ownerDocument?.defaultView?.HTMLElement
     if (HTMLElementCtor ? !(widget instanceof HTMLElementCtor) : !(widget instanceof HTMLElement)) {
       throw new TypeError(`Inline plugin "${plugin.type}" createWidget() must return an HTMLElement`)

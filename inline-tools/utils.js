@@ -746,10 +746,11 @@ export function createSimpleInlineTool(type, title, icon, tag, shortcut, cbs) {
 
 /**
  * Find the contentEditable block element from the current selection.
+ * @param {Document} [ownerDocument]
  * @returns {HTMLElement | null}
  */
-export function getBlockElement() {
-  const sel = window.getSelection()
+export function getBlockElement(ownerDocument = globalThis.document) {
+  const sel = ownerDocument?.defaultView?.getSelection?.() ?? null
   if (!sel || !sel.anchorNode) return null
   let node = sel.anchorNode.nodeType === ELEMENT_NODE
     ? /** @type {HTMLElement} */ (sel.anchorNode)
@@ -766,12 +767,15 @@ export function getBlockElement() {
  * Unlike {@link getBlockElement}, this returns the block content root rather
  * than one nested editable field, so block-level settings survive plugins
  * with several text fields.
+ * @param {Document} [ownerDocument]
  * @returns {HTMLElement | null}
  */
-export function getBlockContentElement() {
-  const selection = window.getSelection()
+export function getBlockContentElement(ownerDocument = globalThis.document) {
+  const selection = ownerDocument?.defaultView?.getSelection?.() ?? null
   const block = closestBlock(selection?.anchorNode)
-  return block?.firstElementChild instanceof HTMLElement ? block.firstElementChild : null
+  const element = block?.firstElementChild ?? null
+  const HTMLElementCtor = element?.ownerDocument?.defaultView?.HTMLElement
+  return HTMLElementCtor && element instanceof HTMLElementCtor ? element : null
 }
 
 /**

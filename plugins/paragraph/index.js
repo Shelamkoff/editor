@@ -63,10 +63,12 @@ export class Paragraph extends BlockPluginAbstract {
   /**
    * Create the editable DOM owned by this block instance.
    * @param {{ text?: string, align?: string }} data
+   * @param {import('../../core/types').BlockMutationContext} context
    * @returns {HTMLElement}
    */
-  render(data) {
-    const p = document.createElement('p')
+  render(data, context) {
+    const ownerDocument = context?.ownerDocument ?? globalThis.document
+    const p = ownerDocument.createElement('p')
     p.classList.add('oe-paragraph')
     p.contentEditable = 'true'
 

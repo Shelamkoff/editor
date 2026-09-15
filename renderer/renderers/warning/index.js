@@ -23,30 +23,30 @@ export function createWarningRenderer(classPrefix, _locale) {
          * @param {import('../../types').InlineParser} parseInline
          * @returns {HTMLElement}
          */
-        render(block, parseInline) {
+        render(block, parseInline, context = { ownerDocument: globalThis.document }) {
             const { title, message } = block.data
 
-            const wrapper = document.createElement('div')
+            const wrapper = context.ownerDocument.createElement('div')
             wrapper.className = `${classPrefix}-warning`
             wrapper.setAttribute('role', 'note')
 
-            const icon = document.createElement('span')
+            const icon = context.ownerDocument.createElement('span')
             icon.className = `${classPrefix}-warning__icon`
             icon.setAttribute('aria-hidden', 'true')
             icon.innerHTML = ICON_WARNING
 
-            const content = document.createElement('div')
+            const content = context.ownerDocument.createElement('div')
             content.className = `${classPrefix}-warning__content`
 
             if (title) {
-                const titleElement = document.createElement('strong')
+                const titleElement = context.ownerDocument.createElement('strong')
                 titleElement.className = `${classPrefix}-warning__title`
                 titleElement.appendChild(parseInline(title))
                 content.appendChild(titleElement)
             }
 
             if (message) {
-                const messageElement = document.createElement('p')
+                const messageElement = context.ownerDocument.createElement('p')
                 messageElement.className = `${classPrefix}-warning__message`
                 messageElement.appendChild(parseInline(message))
                 content.appendChild(messageElement)

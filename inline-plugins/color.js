@@ -13,6 +13,8 @@ export function createColorSwatchPlugin() {
   /** @type {import('../core/types').IScopedI18n | null} */
   let i18n = null
   let lifecycleController = new AbortController()
+  /** @type {typeof AbortController} */
+  let AbortControllerCtor = AbortController
   return {
     type: 'color',
     styles: [colorPickerStylesUrl],
@@ -21,8 +23,12 @@ export function createColorSwatchPlugin() {
     /** @param {import('../core/types').IScopedI18n} _i18n */
     setI18n(_i18n) { i18n = _i18n },
     /** @returns {void} */
-    mount() {
-      if (lifecycleController.signal.aborted) lifecycleController = new AbortController()
+    mount(rootElement) {
+      AbortControllerCtor = rootElement.ownerDocument?.defaultView?.AbortController ?? AbortController
+      if (lifecycleController.signal.aborted || !(lifecycleController instanceof AbortControllerCtor)) {
+        lifecycleController.abort()
+        lifecycleController = new AbortControllerCtor()
+      }
     },
     pasteConfig: {
       patterns: [
@@ -39,21 +45,22 @@ export function createColorSwatchPlugin() {
       return { value: match }
     },
 
-    createWidget(data, id) {
+    createWidget(data, id, context) {
+      const ownerDocument = context?.ownerDocument ?? globalThis.document
       const value = normalizeTextValue(data.value).trim() || '#4357b4'
 
-      const span = document.createElement('span')
+      const span = ownerDocument.createElement('span')
       span.contentEditable = 'false'
       span.setAttribute('data-inline-plugin', 'color')
       span.setAttribute('data-id', id || generateInlineId())
       span.setAttribute('data-value', value)
       span.className = 'oe-ip oe-ip--color'
 
-      const dot = document.createElement('span')
+      const dot = ownerDocument.createElement('span')
       dot.className = 'oe-ip__dot'
       dot.style.backgroundColor = value
 
-      const label = document.createElement('span')
+      const label = ownerDocument.createElement('span')
       label.className = 'oe-ip__label'
       label.textContent = value
 
@@ -92,7 +99,7 @@ export function createColorSwatchPlugin() {
  * @param {string} value
  * @returns {string}
  */
-function normalizeToHex6(value) {
+function normalizeToHex6(value, ownerDocument = globalThis.document) {
   // Short hex: #rgb → #rrggbb
   const m3 = value.match(/^#([0-9a-fA-F])([0-9a-fA-F])([0-9a-fA-F])$/)
   if (m3) return '#' + m3[1] + m3[1] + m3[2] + m3[2] + m3[3] + m3[3]
@@ -105,10 +112,10 @@ function normalizeToHex6(value) {
   if (/^#[0-9a-fA-F]{6}$/.test(value)) return value
 
   // Non-hex (rgb, hsl, etc.) — convert via DOM
-  const temp = document.createElement('span')
+  const temp = ownerDocument.createElement('span')
   temp.style.color = value
-  document.body.appendChild(temp)
-  const computed = getComputedStyle(temp).color
+  ownerDocument.body.appendChild(temp)
+  const computed = (ownerDocument.defaultView ?? globalThis).getComputedStyle(temp).color
   temp.remove()
   const m = computed.match(/(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/)
   if (m) return '#' + [m[1], m[2], m[3]].map(n => Number(n).toString(16).padStart(2, '0')).join('')
@@ -128,14 +135,14 @@ function openColorPicker(widget, ctx) {
 
   const picker = new ColorPicker({
     onApply(cssColor) {
-      const next = (parseColorInput(cssColor)?.a ?? 1) < 1 ? cssColor : normalizeToHex6(cssColor)
+      const next = (parseColorInput(cssColor)?.a ?? 1) < 1 ? cssColor : normalizeToHex6(cssColor, widget.ownerDocument)
       restoreWidget(widget, current, originalLabel)
       ctx.mutate(widget, () => updateWidget(widget, next))
       committed = true
       ctx.hidePopup()
     },
     onChange(cssColor) {
-      updateWidget(widget, (parseColorInput(cssColor)?.a ?? 1) < 1 ? cssColor : normalizeToHex6(cssColor))
+      updateWidget(widget, (parseColorInput(cssColor)?.a ?? 1) < 1 ? cssColor : normalizeToHex6(cssColor, widget.ownerDocument))
     },
     onFormatChange(formatted) {
       updateWidgetLabel(widget, formatted)
@@ -149,7 +156,7 @@ function openColorPicker(widget, ctx) {
   popupContent.style.position = 'static'
   popupContent.style.transform = 'none'
 
-  picker.open(parseColorInput(current) ? current : normalizeToHex6(current))
+  picker.open(parseColorInput(current) ? current : normalizeToHex6(current, widget.ownerDocument))
 
   ctx.showPopup(widget, popupContent, () => {
     if (!committed) restoreWidget(widget, current, originalLabel)

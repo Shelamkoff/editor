@@ -49,27 +49,30 @@ export function createCodeRenderer(classPrefix, /** @type {Record<string, import
         /**
          * @param {import('../../types').CodeBlock} block
          * @param {import('../../types').InlineParser} _parseInline
+         * @param {import('../../types').RendererContext} context
          * @returns {HTMLElement}
          */
-        render(block, _parseInline) {
+        render(block, _parseInline, context = { ownerDocument: globalThis.document }) {
             const { code, language } = block.data
+            const ownerDocument = context.ownerDocument
+            const view = ownerDocument.defaultView
 
-            const wrapper = document.createElement('div')
+            const wrapper = ownerDocument.createElement('div')
             wrapper.className = `${classPrefix}-code`
             liveElements.add(wrapper)
 
             const highlighted = highlightCode(code, language)
 
             // Top bar: language label + copy button
-            const bar = document.createElement('div')
+            const bar = ownerDocument.createElement('div')
             bar.className = `${classPrefix}-code__bar`
 
-            const langLabel = document.createElement('span')
+            const langLabel = ownerDocument.createElement('span')
             langLabel.className = `${classPrefix}-code__lang`
             langLabel.textContent = (highlighted.language && highlighted.language !== 'plaintext') ? highlighted.language : ''
             bar.appendChild(langLabel)
 
-            const copyBtn = document.createElement('button')
+            const copyBtn = ownerDocument.createElement('button')
             copyBtn.type = 'button'
             copyBtn.className = `${classPrefix}-code__copy`
             copyBtn.innerHTML = ICON_CLIPBOARD
@@ -77,14 +80,14 @@ export function createCodeRenderer(classPrefix, /** @type {Record<string, import
 
             copyBtn.addEventListener('click', async () => {
                 try {
-                    await navigator.clipboard.writeText(code)
+                    await (view?.navigator ?? navigator).clipboard.writeText(code)
                     if (!liveElements.has(wrapper)) return
                     copyBtn.innerHTML = ICON_CHECK
                     copyBtn.classList.add(`${classPrefix}-code__copy--success`)
 
                     const previousTimer = resetTimers.get(wrapper)
-                    if (previousTimer !== undefined) clearTimeout(previousTimer)
-                    const timer = window.setTimeout(() => {
+                    if (previousTimer !== undefined) (view?.clearTimeout ?? clearTimeout)(previousTimer)
+                    const timer = (view?.setTimeout ?? setTimeout)(() => {
                         resetTimers.delete(wrapper)
                         if (!liveElements.has(wrapper)) return
                         copyBtn.innerHTML = ICON_CLIPBOARD
@@ -100,10 +103,10 @@ export function createCodeRenderer(classPrefix, /** @type {Record<string, import
             wrapper.appendChild(bar)
 
             // Code content
-            const pre = document.createElement('pre')
+            const pre = ownerDocument.createElement('pre')
             pre.className = `${classPrefix}-code__pre`
 
-            const codeElement = document.createElement('code')
+            const codeElement = ownerDocument.createElement('code')
             codeElement.className = `${classPrefix}-code__content hljs language-${highlighted.language}`
             codeElement.innerHTML = highlighted.value
 
@@ -127,7 +130,7 @@ export function createCodeRenderer(classPrefix, /** @type {Record<string, import
         destroy(element) {
             liveElements.delete(element)
             const timer = resetTimers.get(element)
-            if (timer !== undefined) clearTimeout(timer)
+            if (timer !== undefined) (element.ownerDocument.defaultView?.clearTimeout ?? clearTimeout)(timer)
             resetTimers.delete(element)
         },
     }

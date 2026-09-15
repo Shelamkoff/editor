@@ -14,6 +14,9 @@ import { normalizeTextValue } from '../../shared/textFormat.js'
 
 /** Per-block Gallery state and resource ownership. */
 export class GalleryState {
+  /** @type {typeof AbortController} */
+  #AbortControllerCtor
+
   /** @type {GalleryData} */
   data
 
@@ -35,8 +38,10 @@ export class GalleryState {
   /**
    * @param {GalleryData} data
    * @param {File[]} [pendingFiles]
+   * @param {Document} [ownerDocument]
    */
-  constructor(data, pendingFiles = []) {
+  constructor(data, pendingFiles = [], ownerDocument = globalThis.document) {
+    this.#AbortControllerCtor = ownerDocument?.defaultView?.AbortController ?? AbortController
     this.data = data
     this.pendingFiles = pendingFiles
   }
@@ -49,12 +54,12 @@ export class GalleryState {
    */
   resetTransient() {
     this.abortController?.abort()
-    this.abortController = new AbortController()
+    this.abortController = new this.#AbortControllerCtor()
   }
 
   /** Start and register one asynchronous additive source operation. @returns {AbortController} */
   beginTask() {
-    const controller = new AbortController()
+    const controller = new this.#AbortControllerCtor()
     this.taskControllers.add(controller)
     return controller
   }

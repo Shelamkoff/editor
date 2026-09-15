@@ -1710,14 +1710,14 @@ export function createMentionPlugin(options = {}) {
    * suggestion dropdown when edits change the query.
    */
   const sharedWidget = createMentionWidget(opts.trigger)
-  /** @param {Record<string, string>} data @param {string} [id] */
-  const createWidget = (data, id) => {
-    const widget = sharedWidget.createWidget(data, id)
-    const ownerDocument = rootElement?.ownerDocument
-    return ownerDocument && widget.ownerDocument !== ownerDocument
-      ? /** @type {HTMLElement} */ (ownerDocument.adoptNode(widget))
-      : widget
-  }
+  /**
+   * @param {Record<string, string>} data
+   * @param {string} [id]
+   * @param {Document} [ownerDocument]
+   */
+  const createWidget = (data, id, ownerDocument = rootElement?.ownerDocument ?? globalThis.document) => (
+    sharedWidget.createWidget(data, id, { ownerDocument })
+  )
 
   // ─── Plugin surface ─────────────────────────────────────────────────────
 
@@ -1804,10 +1804,11 @@ export function createMentionPlugin(options = {}) {
      *
      * @param {Record<string, string>} data
      * @param {string} [id]
+     * @param {{ readonly ownerDocument: Document }} [context]
      * @returns {HTMLElement}
      */
-    createWidget(data, id) {
-      return createWidget({ id: data.id || '', name: data.name || '' }, id)
+    createWidget(data, id, context = undefined) {
+      return createWidget({ id: data.id || '', name: data.name || '' }, id, context?.ownerDocument)
     },
 
     /**

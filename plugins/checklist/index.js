@@ -10,6 +10,8 @@ const editorStyles = new URL('./checklist.css', import.meta.url).href
 const ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 5.5l1.5 1.5l2.5-2.5"/><path d="M3.5 11.5l1.5 1.5l2.5-2.5"/><path d="M3.5 17.5l1.5 1.5l2.5-2.5"/><path d="M11 6h9"/><path d="M11 12h9"/><path d="M11 18h9"/></svg>'
 
 // Check icon inside checkbox
+const TEXT_NODE = 3
+
 const CHECK_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
 
 
@@ -38,7 +40,8 @@ export class Checklist extends BlockPluginAbstract {
    * @returns {HTMLElement}
    */
   render(data, context) {
-    const wrapper = document.createElement('div')
+    const ownerDocument = context.ownerDocument ?? globalThis.document
+    const wrapper = ownerDocument.createElement('div')
     wrapper.classList.add('oe-checklist')
     mutationContexts.set(wrapper, context)
 
@@ -162,9 +165,10 @@ export class Checklist extends BlockPluginAbstract {
     const lastText = /** @type {HTMLElement | null} */ (element.querySelector('.oe-checklist__item:last-child .oe-checklist__text'))
     if (lastText) {
       lastText.focus()
-      const sel = window.getSelection()
+      const ownerDocument = element.ownerDocument ?? globalThis.document
+      const sel = ownerDocument.defaultView?.getSelection() ?? null
       if (sel) {
-        const range = document.createRange()
+        const range = ownerDocument.createRange()
         range.selectNodeContents(lastText)
         range.collapse(false)
         sel.removeAllRanges()
@@ -182,12 +186,13 @@ export class Checklist extends BlockPluginAbstract {
    * @returns {void}
    */
   #addItem(wrapper, text, checked) {
-    const item = document.createElement('div')
+    const ownerDocument = wrapper.ownerDocument ?? globalThis.document
+    const item = ownerDocument.createElement('div')
     item.className = `oe-checklist__item${checked ? ' oe-checklist__item--checked' : ''}`
 
     const checkbox = this.#createCheckbox(wrapper, item, checked)
 
-    const content = document.createElement('div')
+    const content = ownerDocument.createElement('div')
     content.className = 'oe-checklist__text'
     content.contentEditable = 'true'
     if (text) content.innerHTML = sanitizeHtml(text)
@@ -198,14 +203,17 @@ export class Checklist extends BlockPluginAbstract {
 
   /** @param {HTMLElement} wrapper @returns {boolean} Whether the key press was handled by this checklist. */
   #handleEnter(wrapper) {
-    const sel = window.getSelection()
+    const ownerDocument = wrapper.ownerDocument ?? globalThis.document
+    const sel = ownerDocument.defaultView?.getSelection() ?? null
     if (!sel?.rangeCount) return false
 
     const range = sel.getRangeAt(0)
-    const currentText = range.startContainer.nodeType === Node.TEXT_NODE
-      ? range.startContainer.parentElement?.closest('.oe-checklist__text')
-      : /** @type {HTMLElement} */ (range.startContainer).closest('.oe-checklist__text')
-    const endText = range.endContainer.nodeType === Node.TEXT_NODE
+    const currentText = /** @type {HTMLElement | null} */ (
+      range.startContainer.nodeType === TEXT_NODE
+        ? range.startContainer.parentElement?.closest('.oe-checklist__text') ?? null
+        : /** @type {HTMLElement} */ (range.startContainer).closest('.oe-checklist__text')
+    )
+    const endText = range.endContainer.nodeType === TEXT_NODE
       ? range.endContainer.parentElement?.closest('.oe-checklist__text')
       : /** @type {HTMLElement} */ (range.endContainer).closest('.oe-checklist__text')
     if (!currentText || !endText || !wrapper.contains(currentText) || !wrapper.contains(endText)) return false
@@ -235,7 +243,7 @@ export class Checklist extends BlockPluginAbstract {
           )
           if (lastText) {
             lastText.focus()
-            const end = document.createRange()
+            const end = ownerDocument.createRange()
             end.selectNodeContents(lastText)
             end.collapse(false)
             sel.removeAllRanges()
@@ -248,7 +256,7 @@ export class Checklist extends BlockPluginAbstract {
         const nextText = /** @type {HTMLElement | null} */ (nextItem?.querySelector('.oe-checklist__text'))
         if (nextText) {
           nextText.focus()
-          const start = document.createRange()
+          const start = ownerDocument.createRange()
           start.setStart(nextText, 0)
           start.collapse(true)
           sel.removeAllRanges()
@@ -259,7 +267,7 @@ export class Checklist extends BlockPluginAbstract {
     }
 
     context.mutate(() => {
-      const selectionEnd = document.createRange()
+      const selectionEnd = ownerDocument.createRange()
       selectionEnd.setStart(range.endContainer, range.endOffset)
       selectionEnd.setEnd(endText, endText.childNodes.length)
       const afterFrag = selectionEnd.extractContents()
@@ -267,7 +275,7 @@ export class Checklist extends BlockPluginAbstract {
       if (currentItem === endItem) {
         range.deleteContents()
       } else {
-        const selectedStart = document.createRange()
+        const selectedStart = ownerDocument.createRange()
         selectedStart.setStart(range.startContainer, range.startOffset)
         selectedStart.setEnd(currentText, currentText.childNodes.length)
         selectedStart.deleteContents()
@@ -282,17 +290,17 @@ export class Checklist extends BlockPluginAbstract {
         }
       }
 
-      const afterText = document.createElement('div')
+      const afterText = ownerDocument.createElement('div')
       afterText.appendChild(afterFrag)
       const newText = afterText.innerHTML.trim()
 
       // Create new item after current
-      const newItem = document.createElement('div')
+      const newItem = ownerDocument.createElement('div')
       newItem.className = 'oe-checklist__item'
 
       const checkbox = this.#createCheckbox(wrapper, newItem, false)
 
-      const content = document.createElement('div')
+      const content = ownerDocument.createElement('div')
       content.className = 'oe-checklist__text'
       content.contentEditable = 'true'
       if (newText) content.innerHTML = newText
@@ -302,7 +310,7 @@ export class Checklist extends BlockPluginAbstract {
 
       // Focus new item
       content.focus()
-      const newRange = document.createRange()
+      const newRange = ownerDocument.createRange()
       newRange.setStart(content, 0)
       newRange.collapse(true)
       sel.removeAllRanges()
@@ -318,7 +326,7 @@ export class Checklist extends BlockPluginAbstract {
    * @returns {HTMLButtonElement}
    */
   #createCheckbox(wrapper, item, checked) {
-    const checkbox = document.createElement('button')
+    const checkbox = (wrapper.ownerDocument ?? globalThis.document).createElement('button')
     checkbox.type = 'button'
     checkbox.className = 'oe-checklist__checkbox'
     checkbox.innerHTML = CHECK_SVG
@@ -345,15 +353,18 @@ export class Checklist extends BlockPluginAbstract {
     const items = wrapper.querySelectorAll('.oe-checklist__item')
     if (items.length <= 1) return
 
-    const sel = window.getSelection()
+    const ownerDocument = wrapper.ownerDocument ?? globalThis.document
+    const sel = ownerDocument.defaultView?.getSelection() ?? null
     if (!sel?.rangeCount) return
     const range = sel.getRangeAt(0)
     if (!range.collapsed) return
 
-    const currentText = range.startContainer.nodeType === Node.TEXT_NODE
-      ? range.startContainer.parentElement?.closest('.oe-checklist__text')
-      : /** @type {HTMLElement} */ (range.startContainer).closest('.oe-checklist__text')
-    if (!(currentText instanceof HTMLElement) || !wrapper.contains(currentText)) return
+    const currentText = /** @type {HTMLElement | null} */ (
+      range.startContainer.nodeType === TEXT_NODE
+        ? range.startContainer.parentElement?.closest('.oe-checklist__text') ?? null
+        : /** @type {HTMLElement} */ (range.startContainer).closest('.oe-checklist__text')
+    )
+    if (!currentText || !wrapper.contains(currentText)) return
 
     if (!this.#isCaretAtStart(currentText, range)) return
 
@@ -381,7 +392,7 @@ export class Checklist extends BlockPluginAbstract {
 
       // Set caret at merge point
       prevText.focus()
-      const newRange = document.createRange()
+      const newRange = ownerDocument.createRange()
       if (prevText.childNodes[mergePoint]) {
         newRange.setStartBefore(prevText.childNodes[mergePoint])
       } else {
@@ -401,7 +412,7 @@ export class Checklist extends BlockPluginAbstract {
   #isCaretAtStart(text, range) {
     const { startContainer, startOffset } = range
     if (startContainer === text && startOffset === 0) return true
-    if (startContainer.nodeType !== Node.TEXT_NODE || startOffset !== 0) return false
+    if (startContainer.nodeType !== TEXT_NODE || startOffset !== 0) return false
 
     /** @type {Node | null} */
     let node = startContainer

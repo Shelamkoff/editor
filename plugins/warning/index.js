@@ -39,29 +39,31 @@ export class Warning extends BlockPluginAbstract {
   /**
    * Create the editable DOM owned by this block instance.
    * @param {{ title?: string, message?: string }} data
+   * @param {import('../../core/types').BlockMutationContext} context
    * @returns {HTMLElement}
    */
-  render(data) {
-    const wrapper = document.createElement('div')
+  render(data, context) {
+    const ownerDocument = context?.ownerDocument ?? globalThis.document
+    const wrapper = ownerDocument.createElement('div')
     wrapper.classList.add('oe-warning')
     wrapper.setAttribute('role', 'note')
 
-    const icon = document.createElement('div')
+    const icon = ownerDocument.createElement('div')
     icon.className = 'oe-warning__icon'
     icon.setAttribute('aria-hidden', 'true')
     icon.innerHTML = ICON_LARGE
 
-    const content = document.createElement('div')
+    const content = ownerDocument.createElement('div')
     content.className = 'oe-warning__content'
 
-    const titleEl = document.createElement('div')
+    const titleEl = ownerDocument.createElement('div')
     titleEl.className = 'oe-warning__title'
     titleEl.contentEditable = 'true'
     titleEl.dataset.placeholder = this._t('titlePlaceholder', 'Title')
     const title = normalizeTextValue(data?.title)
     if (title) titleEl.innerHTML = sanitizeHtml(title)
 
-    const messageEl = document.createElement('div')
+    const messageEl = ownerDocument.createElement('div')
     messageEl.className = 'oe-warning__message'
     messageEl.contentEditable = 'true'
     messageEl.dataset.placeholder = this._t('messagePlaceholder', 'Message')

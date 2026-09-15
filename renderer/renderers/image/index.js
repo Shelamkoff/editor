@@ -52,23 +52,23 @@ export function createImageRenderer(classPrefix, _locale) {
      * @param {import('../../types').InlineParser} parseInline
      * @returns {HTMLElement}
      */
-    render(block, parseInline) {
+    render(block, parseInline, context = { ownerDocument: globalThis.document }) {
       const { file, caption, withBorder, expanded, withBackground, styles } = block.data
 
-      const figure = document.createElement('figure')
+      const figure = context.ownerDocument.createElement('figure')
       figure.className = `${classPrefix}-image`
 
       if (withBorder) figure.classList.add(`${classPrefix}-image--bordered`)
       if (expanded) figure.classList.add(`${classPrefix}-image--expanded`)
       if (withBackground) figure.classList.add(`${classPrefix}-image--background`)
 
-      const img = document.createElement('img')
+      const img = context.ownerDocument.createElement('img')
       img.className = `${classPrefix}-image__picture`
       setSafeUrlAttribute(img, 'src', file.url, 'media')
 
       let figcaption = null
       if (caption) {
-        figcaption = document.createElement('figcaption')
+        figcaption = context.ownerDocument.createElement('figcaption')
         figcaption.className = `${classPrefix}-image__caption`
         figcaption.appendChild(parseInline(caption))
       }

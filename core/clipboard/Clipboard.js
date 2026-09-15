@@ -914,6 +914,7 @@ export class Clipboard {
       if (!initialData) return null
 
       element = plugin.render(initialData, {
+        ownerDocument: pendingHost.ownerDocument,
         mutate: (operation) => operation(),
         splitBlock: () => {},
         exitEmptyBlock: () => false,

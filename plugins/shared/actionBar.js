@@ -9,10 +9,11 @@
  * @param {string} innerHTML — SVG icon or label HTML
  * @param {() => void} handler — click callback
  * @param {AbortSignal} signal — AbortSignal for automatic listener removal
+ * @param {Document} [ownerDocument] Document that owns the target block
  * @returns {HTMLButtonElement}
  */
-export function makeActionBtn(cssClass, innerHTML, handler, signal) {
-  const btn = document.createElement('button')
+export function makeActionBtn(cssClass, innerHTML, handler, signal, ownerDocument = globalThis.document) {
+  const btn = ownerDocument.createElement('button')
   btn.type = 'button'
   btn.className = cssClass
   btn.innerHTML = innerHTML
@@ -26,10 +27,11 @@ export function makeActionBtn(cssClass, innerHTML, handler, signal) {
 /**
  * Create a visual separator element for action bars.
  * @param {string} cssClass — CSS class for the separator element
+ * @param {Document} [ownerDocument] Document that owns the target block
  * @returns {HTMLDivElement}
  */
-export function makeSep(cssClass) {
-  const sep = document.createElement('div')
+export function makeSep(cssClass, ownerDocument = globalThis.document) {
+  const sep = ownerDocument.createElement('div')
   sep.className = cssClass
   return sep
 }

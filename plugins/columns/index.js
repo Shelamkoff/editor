@@ -52,6 +52,7 @@ export class Columns extends BlockPluginAbstract {
    * @returns {HTMLElement}
    */
   render(data, context) {
+    const ownerDocument = context.ownerDocument ?? globalThis.document
     const layout = LAYOUT_KEYS.includes(/** @type {any} */ (data?.layout)) ? String(data.layout) : '1-1'
     const layoutDef = /** @type {{ cols: number, grid: string, label: string }} */ (LAYOUTS[layout])
     const columns = Array.isArray(data?.columns)
@@ -62,7 +63,7 @@ export class Columns extends BlockPluginAbstract {
     while (columns.length < layoutDef.cols) columns.push({ content: '' })
     if (columns.length > layoutDef.cols) columns.length = layoutDef.cols
 
-    const wrapper = document.createElement('div')
+    const wrapper = ownerDocument.createElement('div')
     wrapper.classList.add('oe-columns')
     wrapper.contentEditable = 'false'
     wrapper.tabIndex = -1
@@ -148,18 +149,19 @@ export class Columns extends BlockPluginAbstract {
   #build(wrapper, context) {
     const s = stateMap.get(wrapper)
     if (!s) return
+    const ownerDocument = wrapper.ownerDocument ?? context.ownerDocument ?? globalThis.document
     wrapper.innerHTML = ''
 
     const layoutDef = /** @type {{ cols: number, grid: string, label: string }} */ (LAYOUTS[s.data.layout] || LAYOUTS['1-1'])
 
     // Grid container
-    const grid = document.createElement('div')
+    const grid = ownerDocument.createElement('div')
     grid.className = 'oe-columns__grid'
     grid.style.gridTemplateColumns = layoutDef.grid
 
     for (let i = 0; i < s.data.columns.length; i++) {
       const colData = /** @type {{content: string}} */ (s.data.columns[i])
-      const col = document.createElement('div')
+      const col = ownerDocument.createElement('div')
       col.className = 'oe-columns__col'
       col.contentEditable = 'true'
       col.dataset.placeholder = `${this._t('colPlaceholder', 'Column')} ${i + 1}`
@@ -177,11 +179,11 @@ export class Columns extends BlockPluginAbstract {
     wrapper.appendChild(grid)
 
     // Layout selector
-    const actions = document.createElement('div')
+    const actions = ownerDocument.createElement('div')
     actions.className = 'oe-columns__actions'
 
     for (const key of LAYOUT_KEYS) {
-      const btn = document.createElement('button')
+      const btn = ownerDocument.createElement('button')
       btn.type = 'button'
       btn.className = `oe-columns__layout-btn${s.data.layout === key ? ' oe-columns__layout-btn--active' : ''}`
       btn.innerHTML = LAYOUT_ICONS[key] || ''

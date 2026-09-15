@@ -50,11 +50,12 @@ function upgradeCodeBlocks(root) {
 
 /**
  * Create inline parser function.
+ * @param {Document} [ownerDocument]
  * @returns {import('./types').InlineParser}
  */
-export function createInlineParser(_classPrefix) {
+export function createInlineParser(_classPrefix, ownerDocument = globalThis.document) {
   return (/** @type {string} */ text) => {
-    const fragment = parseInline(text)
+    const fragment = parseInline(text, ownerDocument)
     upgradeCodeBlocks(fragment)
     return fragment
   }

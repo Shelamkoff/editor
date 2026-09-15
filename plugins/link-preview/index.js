@@ -27,7 +27,7 @@ function renderUrlIcon(iconEl, favicon) {
     return
   }
 
-  const img = document.createElement('img')
+  const img = iconEl.ownerDocument.createElement('img')
   img.width = 16
   img.height = 16
   img.style.borderRadius = '2px'
@@ -84,6 +84,12 @@ const P = 'oe-lp' // CSS prefix
 /** @type {WeakMap<HTMLElement, LinkPreviewState>} */
 const stateMap = new WeakMap()
 
+/** @param {HTMLElement} element @returns {AbortController} */
+function createAbortControllerFor(element) {
+  const AbortControllerCtor = element.ownerDocument?.defaultView?.AbortController ?? AbortController
+  return new AbortControllerCtor()
+}
+
 
 /**
  * Rich external-link card with optional metadata resolution and selectable
@@ -124,6 +130,7 @@ export class LinkPreview extends BlockPluginAbstract {
    * @returns {HTMLElement}
    */
   render(data, context) {
+    const ownerDocument = context.ownerDocument ?? globalThis.document
     const parsedData = {
       url: sanitizeUrl(normalizeTextValue(data?.url), {
         policy: 'external', allowRelative: false, fallback: '',
@@ -138,7 +145,7 @@ export class LinkPreview extends BlockPluginAbstract {
         : 'notion',
     }
 
-    const wrapper = document.createElement('div')
+    const wrapper = ownerDocument.createElement('div')
     wrapper.className = P
     wrapper.contentEditable = 'false'
     wrapper.tabIndex = -1
@@ -146,7 +153,7 @@ export class LinkPreview extends BlockPluginAbstract {
     stateMap.set(wrapper, {
       data: parsedData,
       wrapper,
-      lifecycleController: new AbortController(),
+      lifecycleController: createAbortControllerFor(wrapper),
       requestController: null,
       pendingUrl: null,
       urlIconEl: null,
@@ -251,7 +258,7 @@ export class LinkPreview extends BlockPluginAbstract {
       s.lifecycleController.abort()
       s.requestController?.abort()
       s.pendingUrl = null
-      if (s.inputTimer) clearTimeout(s.inputTimer)
+      if (s.inputTimer) (element.ownerDocument.defaultView ?? globalThis).clearTimeout(s.inputTimer)
       stateMap.delete(element)
     }
   }
@@ -262,18 +269,20 @@ export class LinkPreview extends BlockPluginAbstract {
   _renderUrlBar(wrapper) {
     const s = stateMap.get(wrapper)
     if (!s) return
+    const ownerDocument = s.context.ownerDocument ?? wrapper.ownerDocument
+    const view = ownerDocument.defaultView ?? globalThis
     const signal = s.lifecycleController.signal
 
-    const bar = document.createElement('div')
+    const bar = ownerDocument.createElement('div')
     bar.className = `${P}__url-bar`
 
-    const iconEl = document.createElement('span')
+    const iconEl = ownerDocument.createElement('span')
     iconEl.className = `${P}__url-icon`
     renderUrlIcon(iconEl, s.data.favicon)
     bar.appendChild(iconEl)
     s.urlIconEl = iconEl
 
-    const input = document.createElement('input')
+    const input = ownerDocument.createElement('input')
     input.className = `${P}__url-input`
     input.setAttribute('data-oe-document-input', 'history')
     input.type = 'text'
@@ -285,7 +294,7 @@ export class LinkPreview extends BlockPluginAbstract {
       input.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
           e.preventDefault(); e.stopPropagation()
-          if (s.inputTimer) { clearTimeout(s.inputTimer); s.inputTimer = null }
+          if (s.inputTimer) { view.clearTimeout(s.inputTimer); s.inputTimer = null }
           this._processUrl(wrapper, input.value.trim())
           return
         }
@@ -294,19 +303,19 @@ export class LinkPreview extends BlockPluginAbstract {
       }, { signal })
       input.addEventListener('paste', (e) => {
         e.stopPropagation()
-        if (s.inputTimer) { clearTimeout(s.inputTimer); s.inputTimer = null }
-        requestAnimationFrame(() => this._processUrl(wrapper, input.value.trim()))
+        if (s.inputTimer) { view.clearTimeout(s.inputTimer); s.inputTimer = null }
+        view.requestAnimationFrame(() => this._processUrl(wrapper, input.value.trim()))
       }, { signal })
       input.addEventListener('input', () => {
-        if (s.inputTimer) clearTimeout(s.inputTimer)
-        s.inputTimer = setTimeout(() => { s.inputTimer = null; this._processUrl(wrapper, input.value.trim()) }, 500)
+        if (s.inputTimer) view.clearTimeout(s.inputTimer)
+        s.inputTimer = view.setTimeout(() => { s.inputTimer = null; this._processUrl(wrapper, input.value.trim()) }, 500)
       }, { signal })
     }
 
     bar.appendChild(input)
     wrapper.appendChild(bar)
 
-    if (!s.context.readOnly && !s.data.url) requestAnimationFrame(() => input.focus())
+    if (!s.context.readOnly && !s.data.url) view.requestAnimationFrame(() => input.focus())
   }
 
   /**
@@ -405,7 +414,7 @@ export class LinkPreview extends BlockPluginAbstract {
       s.pendingUrl = null
       return {}
     }
-    const controller = new AbortController()
+    const controller = createAbortControllerFor(wrapper)
     s.requestController = controller
     const signal = controller.signal
     try {
@@ -469,10 +478,11 @@ export class LinkPreview extends BlockPluginAbstract {
   _renderCard(wrapper) {
     const s = stateMap.get(wrapper)
     if (!s) return
+    const ownerDocument = s.context.ownerDocument ?? wrapper.ownerDocument
 
     const tpl = s.data.template
 
-    const card = document.createElement('a')
+    const card = ownerDocument.createElement('a')
     card.className = `${P}__card ${P}__card--${tpl}`
     const href = sanitizeUrl(s.data.url, {
       policy: 'external', allowRelative: false, fallback: '',
@@ -488,27 +498,27 @@ export class LinkPreview extends BlockPluginAbstract {
       if (!s.context.readOnly) event.preventDefault()
     })
 
-    const content = document.createElement('div')
+    const content = ownerDocument.createElement('div')
     content.className = `${P}__content`
 
     const titleText = s.data.title || s.data.url
-    const title = document.createElement('div')
+    const title = ownerDocument.createElement('div')
     title.className = `${P}__title`
     title.textContent = titleText
     content.appendChild(title)
 
     if (s.data.description) {
-      const desc = document.createElement('div')
+      const desc = ownerDocument.createElement('div')
       desc.className = `${P}__desc`
       desc.textContent = s.data.description
       content.appendChild(desc)
     }
 
-    const domainLine = document.createElement('div')
+    const domainLine = ownerDocument.createElement('div')
     domainLine.className = `${P}__domain`
 
     if (s.data.favicon && tpl !== 'notion') {
-      const fav = document.createElement('img')
+      const fav = ownerDocument.createElement('img')
       fav.className = `${P}__favicon`
       setSafeUrlAttribute(fav, 'src', s.data.favicon, 'media')
       fav.width = 14
@@ -517,11 +527,11 @@ export class LinkPreview extends BlockPluginAbstract {
       domainLine.appendChild(fav)
     }
 
-    const domainText = document.createElement('span')
+    const domainText = ownerDocument.createElement('span')
     domainText.textContent = s.data.domain || s.data.url
     domainLine.appendChild(domainText)
 
-    const ext = document.createElement('span')
+    const ext = ownerDocument.createElement('span')
     ext.className = `${P}__external`
     ext.innerHTML = ICON_EXTERNAL
     domainLine.appendChild(ext)
@@ -531,9 +541,9 @@ export class LinkPreview extends BlockPluginAbstract {
 
     // Image (not for minimal/notion templates)
     if (s.data.image && tpl !== 'minimal' && tpl !== 'notion') {
-      const imgWrap = document.createElement('div')
+      const imgWrap = ownerDocument.createElement('div')
       imgWrap.className = `${P}__image`
-      const img = document.createElement('img')
+      const img = ownerDocument.createElement('img')
       setSafeUrlAttribute(img, 'src', s.data.image, 'media')
       img.alt = s.data.title || ''
       img.loading = 'lazy'
@@ -543,7 +553,7 @@ export class LinkPreview extends BlockPluginAbstract {
 
     // Notion: large favicon
     if (tpl === 'notion' && s.data.favicon) {
-      const bigFav = document.createElement('img')
+      const bigFav = ownerDocument.createElement('img')
       bigFav.className = `${P}__favicon-large`
       setSafeUrlAttribute(bigFav, 'src', s.data.favicon || '', 'media')
       bigFav.width = 32
@@ -561,16 +571,18 @@ export class LinkPreview extends BlockPluginAbstract {
   _renderActions(wrapper) {
     const s = stateMap.get(wrapper)
     if (!s || s.context.readOnly) return
+    const ownerDocument = s.context.ownerDocument ?? wrapper.ownerDocument
+    const view = ownerDocument.defaultView ?? globalThis
     const signal = s.lifecycleController.signal
 
-    const actions = document.createElement('div')
+    const actions = ownerDocument.createElement('div')
     actions.className = `${P}__actions`
 
     // Settings dropdown
-    const dropdown = document.createElement('div')
+    const dropdown = ownerDocument.createElement('div')
     dropdown.className = `${P}__dropdown`
 
-    const settingsBtn = document.createElement('button')
+    const settingsBtn = ownerDocument.createElement('button')
     settingsBtn.type = 'button'
     settingsBtn.className = `${P}__action-btn`
     settingsBtn.innerHTML = `${ICON_SETTINGS} ${escapeHtml(this._t('settings', 'Settings'))}`
@@ -591,12 +603,13 @@ export class LinkPreview extends BlockPluginAbstract {
       if (open) {
         const r = settingsBtn.getBoundingClientRect()
         const h = panel.offsetHeight || 200
-        if (window.innerHeight - r.bottom - 8 < h) { panel.style.top = 'auto'; panel.style.bottom = 'calc(100% + 8px)' }
+        const viewportHeight = wrapper.ownerDocument.defaultView?.innerHeight ?? wrapper.ownerDocument.documentElement.clientHeight
+        if (viewportHeight - r.bottom - 8 < h) { panel.style.top = 'auto'; panel.style.bottom = 'calc(100% + 8px)' }
         else { panel.style.top = 'calc(100% + 8px)'; panel.style.bottom = 'auto' }
       }
     }, { signal })
 
-    document.addEventListener('click', (e) => {
+    wrapper.ownerDocument.addEventListener('click', (e) => {
       if (!dropdown.contains(/** @type {Node} */ (e.target))) {
         dropdown.classList.remove(`${P}__dropdown--open`)
         settingsBtn.setAttribute('aria-expanded', 'false')
@@ -615,12 +628,12 @@ export class LinkPreview extends BlockPluginAbstract {
     actions.appendChild(dropdown)
 
     // Sep
-    const sep = document.createElement('div')
+    const sep = ownerDocument.createElement('div')
     sep.className = `${P}__actions-sep`
     actions.appendChild(sep)
 
     // Delete
-    const deleteBtn = document.createElement('button')
+    const deleteBtn = ownerDocument.createElement('button')
     deleteBtn.type = 'button'
     deleteBtn.className = `${P}__action-btn ${P}__action-btn--danger`
     deleteBtn.innerHTML = ICON_TRASH
@@ -630,7 +643,7 @@ export class LinkPreview extends BlockPluginAbstract {
       const st = stateMap.get(wrapper)
       if (!st) return
       st.context.mutate(() => {
-        if (st.inputTimer) clearTimeout(st.inputTimer)
+        if (st.inputTimer) view.clearTimeout(st.inputTimer)
         st.inputTimer = null
         st.requestController?.abort()
         st.requestController = null
@@ -654,22 +667,23 @@ export class LinkPreview extends BlockPluginAbstract {
    */
   _buildTemplatePanel(wrapper, signal) {
     const s = stateMap.get(wrapper)
-    if (!s) return document.createElement('div')
+    const ownerDocument = s?.context.ownerDocument ?? wrapper.ownerDocument
+    if (!s) return ownerDocument.createElement('div')
 
-    const panel = document.createElement('div')
+    const panel = ownerDocument.createElement('div')
     panel.className = `${P}__dropdown-panel`
     panel.addEventListener('click', (e) => e.stopPropagation())
 
-    const title = document.createElement('div')
+    const title = ownerDocument.createElement('div')
     title.className = `${P}__tpl-title`
     title.textContent = this._t('template', 'Template')
     panel.appendChild(title)
 
-    const grid = document.createElement('div')
+    const grid = ownerDocument.createElement('div')
     grid.className = `${P}__tpl-grid`
 
     for (const tpl of TEMPLATES) {
-      const btn = document.createElement('button')
+      const btn = ownerDocument.createElement('button')
       btn.type = 'button'
       btn.className = `${P}__tpl-btn${s.data.template === tpl ? ` ${P}__tpl-btn--active` : ''}`
       btn.innerHTML = TEMPLATE_ICONS[tpl] || ''

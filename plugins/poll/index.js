@@ -111,10 +111,11 @@ export class Poll extends BlockPluginAbstract {
    * @returns {HTMLElement}
    */
   render(data, context) {
+    const ownerDocument = context.ownerDocument ?? globalThis.document
     const d = normalizePollData(data, () => this.#createOptionId())
     const runtime = normalizePollResults(d.initialResults, d.options.map(option => option.id), this._config.maxVoters, d.type)
 
-    const wrapper = document.createElement('div')
+    const wrapper = ownerDocument.createElement('div')
     wrapper.classList.add('oe-poll')
     wrapper.contentEditable = 'false'
     wrapper.tabIndex = -1
@@ -233,11 +234,12 @@ export class Poll extends BlockPluginAbstract {
   #build(wrapper) {
     const s = stateMap.get(wrapper)
     if (!s) return
+    const ownerDocument = s.context.ownerDocument ?? wrapper.ownerDocument
     const w = wrapper
     w.innerHTML = ''
 
     // Question
-    const question = document.createElement('div')
+    const question = ownerDocument.createElement('div')
     question.className = 'oe-poll__question'
     question.contentEditable = s.context.readOnly ? 'false' : 'true'
     question.dataset.placeholder = this._t('questionPlaceholder', 'Question...')
@@ -257,7 +259,7 @@ export class Poll extends BlockPluginAbstract {
     w.appendChild(question)
 
     // Options container
-    const optionsWrap = document.createElement('div')
+    const optionsWrap = ownerDocument.createElement('div')
     optionsWrap.className = 'oe-poll__options'
 
     s.data.options.forEach((opt, i) => {
@@ -266,7 +268,7 @@ export class Poll extends BlockPluginAbstract {
 
     // Add option button
     if (!s.context.readOnly) {
-      const addBtn = document.createElement('button')
+      const addBtn = ownerDocument.createElement('button')
       addBtn.type = 'button'
       addBtn.className = 'oe-poll__option-add'
       addBtn.innerHTML = `${ICON_PLUS} ${escapeHtml(this._t('addOption', 'Add option'))}`
@@ -300,11 +302,12 @@ export class Poll extends BlockPluginAbstract {
    * @returns {HTMLDivElement}
    */
   #createOption(wrapper, s, opt, index) {
-    const option = document.createElement('div')
+    const ownerDocument = s.context.ownerDocument ?? wrapper.ownerDocument
+    const option = ownerDocument.createElement('div')
     option.className = 'oe-poll__option'
 
     // Marker
-    const marker = document.createElement('button')
+    const marker = ownerDocument.createElement('button')
     marker.type = 'button'
     marker.className = `oe-poll__option-marker oe-poll__option-marker--${s.data.type}`
     marker.dataset.optionId = opt.id
@@ -327,7 +330,7 @@ export class Poll extends BlockPluginAbstract {
     option.appendChild(marker)
 
     // Text
-    const text = document.createElement('div')
+    const text = ownerDocument.createElement('div')
     text.className = 'oe-poll__option-text'
     text.contentEditable = s.context.readOnly ? 'false' : 'true'
     const placeholder = this._t('optionPlaceholder', 'Option')
@@ -359,9 +362,10 @@ export class Poll extends BlockPluginAbstract {
           const texts = wrapper.querySelectorAll('.oe-poll__option-text')
           if (texts[focusIdx]) {
             /** @type {HTMLElement} */ (texts[focusIdx]).focus()
-            const sel = window.getSelection()
+            const ownerDocument = wrapper.ownerDocument
+            const sel = ownerDocument.defaultView?.getSelection() ?? null
             if (sel) {
-              const range = document.createRange()
+              const range = ownerDocument.createRange()
               range.selectNodeContents(texts[focusIdx])
               range.collapse(false)
               sel.removeAllRanges()
@@ -377,7 +381,7 @@ export class Poll extends BlockPluginAbstract {
 
     // Remove button
     if (!s.context.readOnly && s.data.options.length > 2) {
-      const removeBtn = document.createElement('button')
+      const removeBtn = ownerDocument.createElement('button')
       removeBtn.type = 'button'
       removeBtn.className = 'oe-poll__option-remove'
       removeBtn.innerHTML = ICON_REMOVE
@@ -401,32 +405,33 @@ export class Poll extends BlockPluginAbstract {
    * @returns {HTMLDivElement}
    */
   #buildResults(s) {
-    const results = document.createElement('div')
+    const ownerDocument = s.context.ownerDocument ?? globalThis.document
+    const results = ownerDocument.createElement('div')
     results.className = 'oe-poll__results'
 
     const totalVotes = s.runtime.total
     const votesById = new Map(s.runtime.options.map(option => [option.id, option.votes]))
 
     for (const opt of s.data.options) {
-      const row = document.createElement('div')
+      const row = ownerDocument.createElement('div')
       row.className = 'oe-poll__result-row'
 
-      const label = document.createElement('span')
+      const label = ownerDocument.createElement('span')
       label.className = 'oe-poll__result-label'
       if (opt.text) label.innerHTML = sanitizeHtml(opt.text)
       else label.textContent = '—'
 
-      const bar = document.createElement('div')
+      const bar = ownerDocument.createElement('div')
       bar.className = 'oe-poll__result-bar'
 
-      const fill = document.createElement('div')
+      const fill = ownerDocument.createElement('div')
       fill.className = 'oe-poll__result-fill'
       const votes = votesById.get(opt.id) || 0
       const pct = totalVotes > 0 ? Math.round((votes / totalVotes) * 100) : 0
       fill.style.width = `${pct}%`
       bar.appendChild(fill)
 
-      const pctLabel = document.createElement('span')
+      const pctLabel = ownerDocument.createElement('span')
       pctLabel.className = 'oe-poll__result-pct'
       pctLabel.textContent = `${pct}%`
 
@@ -474,17 +479,18 @@ export class Poll extends BlockPluginAbstract {
 
   /** @param {HTMLElement} wrapper @param {PollState} s @returns {HTMLDivElement} */
   #buildRuntime(wrapper, s) {
-    const runtime = document.createElement('div')
+    const ownerDocument = s.context.ownerDocument ?? wrapper.ownerDocument
+    const runtime = ownerDocument.createElement('div')
     runtime.className = 'oe-poll__runtime'
 
     if (s.loading) {
-      const status = document.createElement('div')
+      const status = ownerDocument.createElement('div')
       status.className = 'oe-poll__status'
       status.setAttribute('role', 'status')
       status.textContent = this._t('loading', 'Loading results…')
       runtime.appendChild(status)
     } else if (s.error) {
-      const status = document.createElement('div')
+      const status = ownerDocument.createElement('div')
       status.className = 'oe-poll__status oe-poll__status--error'
       status.setAttribute('role', 'alert')
       status.textContent = this._t('loadError', 'Could not load poll results')
@@ -496,7 +502,7 @@ export class Poll extends BlockPluginAbstract {
     if (!s.loading && showResults) {
       runtime.appendChild(this.#buildResults(s))
       if (s.runtime.total === 0) {
-        const empty = document.createElement('div')
+        const empty = ownerDocument.createElement('div')
         empty.className = 'oe-poll__status'
         empty.textContent = this._t('emptyResults', 'No votes yet')
         runtime.appendChild(empty)
@@ -504,7 +510,7 @@ export class Poll extends BlockPluginAbstract {
       if (s.runtime.voters?.length) runtime.appendChild(this.#buildVoters(s))
     }
 
-    const submit = document.createElement('button')
+    const submit = ownerDocument.createElement('button')
     submit.type = 'button'
     submit.className = 'oe-poll__submit'
     submit.disabled = s.context.readOnly || s.submitting || s.loading || s.selected.size === 0
@@ -516,25 +522,26 @@ export class Poll extends BlockPluginAbstract {
 
   /** @param {PollState} s @returns {HTMLDivElement} */
   #buildVoters(s) {
-    const section = document.createElement('div')
+    const ownerDocument = s.context.ownerDocument ?? globalThis.document
+    const section = ownerDocument.createElement('div')
     section.className = 'oe-poll__voters'
-    const heading = document.createElement('div')
+    const heading = ownerDocument.createElement('div')
     heading.className = 'oe-poll__voters-title'
     const total = s.runtime.votersTotal ?? s.runtime.voters?.length ?? 0
     heading.textContent = `${this._t('voters', 'Voters')}: ${total}`
     section.appendChild(heading)
-    const list = document.createElement('ul')
+    const list = ownerDocument.createElement('ul')
     for (const voter of s.runtime.voters || []) {
-      const item = document.createElement('li')
+      const item = ownerDocument.createElement('li')
       if (voter.avatar) {
-        const image = document.createElement('img')
+        const image = ownerDocument.createElement('img')
         setSafeUrlAttribute(image, 'src', voter.avatar, 'media')
         image.alt = ''
         image.width = 24
         image.height = 24
         item.appendChild(image)
       }
-      const name = document.createElement('span')
+      const name = ownerDocument.createElement('span')
       name.textContent = voter.name || this._t('anonymousVoter', 'Anonymous voter')
       item.appendChild(name)
       list.appendChild(item)
@@ -651,7 +658,8 @@ export class Poll extends BlockPluginAbstract {
     try { s.unsubscribe?.() } catch (error) {
       try { this._config.onError?.(error) } catch {}
     }
-    const controller = new AbortController()
+    const AbortControllerCtor = wrapper.ownerDocument.defaultView?.AbortController ?? AbortController
+    const controller = new AbortControllerCtor()
     s.abortController = controller
     const connectionVersion = ++s.connectionVersion
     const loadVersion = ++s.loadVersion
@@ -709,12 +717,13 @@ export class Poll extends BlockPluginAbstract {
    * @returns {HTMLDivElement}
    */
   #buildActions(wrapper, s) {
-    const actions = document.createElement('div')
+    const ownerDocument = s.context.ownerDocument ?? wrapper.ownerDocument
+    const actions = ownerDocument.createElement('div')
     actions.className = 'oe-poll__actions'
 
     // Type toggle
     const isSingle = s.data.type === 'single'
-    const typeBtn = document.createElement('button')
+    const typeBtn = ownerDocument.createElement('button')
     typeBtn.type = 'button'
     typeBtn.className = 'oe-poll__action-btn'
     const typeIcon = isSingle ? ICON_SINGLE : ICON_MULTI
@@ -746,10 +755,10 @@ export class Poll extends BlockPluginAbstract {
     })
     actions.appendChild(typeBtn)
 
-    actions.appendChild(this.#makeSep())
+    actions.appendChild(this.#makeSep(ownerDocument))
 
     // Results toggle
-    const resultsBtn = document.createElement('button')
+    const resultsBtn = ownerDocument.createElement('button')
     resultsBtn.type = 'button'
     resultsBtn.className = 'oe-poll__action-btn'
     resultsBtn.innerHTML = `${ICON_RESULTS} ${escapeHtml(this.#resultsModeLabel(s.data.resultsMode))}`
@@ -765,9 +774,9 @@ export class Poll extends BlockPluginAbstract {
     })
     actions.appendChild(resultsBtn)
 
-    actions.appendChild(this.#makeSep())
+    actions.appendChild(this.#makeSep(ownerDocument))
 
-    const sortBtn = document.createElement('button')
+    const sortBtn = ownerDocument.createElement('button')
     sortBtn.type = 'button'
     sortBtn.className = 'oe-poll__action-btn'
     sortBtn.innerHTML = `${ICON_SORT} ${escapeHtml(this._t('sort', 'Sort'))}`
@@ -784,10 +793,10 @@ export class Poll extends BlockPluginAbstract {
     })
     actions.appendChild(sortBtn)
 
-    actions.appendChild(this.#makeSep())
+    actions.appendChild(this.#makeSep(ownerDocument))
 
     // Delete
-    const deleteBtn = document.createElement('button')
+    const deleteBtn = ownerDocument.createElement('button')
     deleteBtn.type = 'button'
     deleteBtn.className = 'oe-poll__action-btn oe-poll__action-btn--danger'
     deleteBtn.innerHTML = ICON_TRASH
@@ -816,9 +825,9 @@ export class Poll extends BlockPluginAbstract {
     return actions
   }
 
-  /** @returns {HTMLDivElement} */
-  #makeSep() {
-    const sep = document.createElement('div')
+  /** @param {Document} ownerDocument @returns {HTMLDivElement} */
+  #makeSep(ownerDocument) {
+    const sep = ownerDocument.createElement('div')
     sep.className = 'oe-poll__actions-sep'
     return sep
   }

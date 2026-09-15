@@ -6,6 +6,7 @@ import { isSupportedImageFile } from '../shared/fileInput.js'
  * @typedef {Object} SlotDeps
  * @property {(key: string, fallback: string) => string} t
  * @property {boolean} readOnly
+ * @property {Document} ownerDocument
  * @property {(index: number) => void} onRemoveImage
  * @property {(from: number, to: number) => void} onSwapImages
  * @property {() => void} syncCaptions
@@ -27,12 +28,12 @@ import { isSupportedImageFile } from '../shared/fileInput.js'
  * @returns {HTMLDivElement}
  */
 export function createFilledSlot(img, index, signal, deps) {
-  const slot = document.createElement('div')
+  const slot = deps.ownerDocument.createElement('div')
   slot.className = `${CSS.slot} ${CSS.slotFilled}`
   slot.dataset.index = String(index)
   slot.draggable = !deps.readOnly
 
-  const image = document.createElement('img')
+  const image = deps.ownerDocument.createElement('img')
   image.className = CSS.slotImg
   setSafeUrlAttribute(image, 'src', img.url, 'media')
   image.alt = img.caption || ''
@@ -67,11 +68,11 @@ export function createFilledSlot(img, index, signal, deps) {
  * @returns {HTMLDivElement}
  */
 export function createEmptySlot(slotIndex, deps) {
-  const slot = document.createElement('div')
+  const slot = deps.ownerDocument.createElement('div')
   slot.className = `${CSS.slot} ${CSS.slotEmpty}`
   slot.dataset.slot = String(slotIndex)
 
-  const ph = document.createElement('div')
+  const ph = deps.ownerDocument.createElement('div')
   ph.className = CSS.slotPlaceholder
   ph.textContent = `${deps.t('slot', 'Slot')} ${slotIndex + 1}`
   slot.appendChild(ph)
@@ -89,12 +90,12 @@ export function createEmptySlot(slotIndex, deps) {
  * @returns {HTMLDivElement}
  */
 export function createOverflowItem(img, globalIndex, signal, deps) {
-  const item = document.createElement('div')
+  const item = deps.ownerDocument.createElement('div')
   item.className = CSS.overflowItem
   item.dataset.index = String(globalIndex)
   item.draggable = !deps.readOnly
 
-  const imgEl = document.createElement('img')
+  const imgEl = deps.ownerDocument.createElement('img')
   imgEl.className = CSS.slotImg
   setSafeUrlAttribute(imgEl, 'src', img.url, 'media')
   imgEl.alt = img.caption || ''
@@ -139,7 +140,7 @@ export function attachExternalDrop(el, signal, onFiles) {
  * @param {SlotDeps} deps
  */
 function addCaption(parent, image, getIndex, signal, deps) {
-  const captionEl = document.createElement('div')
+  const captionEl = parent.ownerDocument.createElement('div')
   captionEl.className = CSS.slotCaption
   captionEl.contentEditable = deps.readOnly ? 'false' : 'true'
   captionEl.dataset.placeholder = deps.t('caption', 'Caption')
@@ -168,7 +169,8 @@ function addCaption(parent, image, getIndex, signal, deps) {
       ? captionEl.removeAttribute('data-empty')
       : captionEl.setAttribute('data-empty', 'true')
     const imageElement = parent.querySelector(`.${CSS.slotImg}`)
-    if (imageElement instanceof HTMLImageElement) imageElement.alt = captionEl.textContent?.trim() || ''
+    const ImageCtor = parent.ownerDocument.defaultView?.HTMLImageElement
+    if (ImageCtor && imageElement instanceof ImageCtor) imageElement.alt = captionEl.textContent?.trim() || ''
   }, { signal })
   captionEl.addEventListener('focus', () => captionEl.removeAttribute('data-empty'), { signal })
   captionEl.addEventListener('blur', () => {
@@ -196,7 +198,7 @@ function addCaption(parent, image, getIndex, signal, deps) {
  * @param {AbortSignal} signal
  */
 function addRemoveBtn(parent, label, onRemove, signal) {
-  const btn = document.createElement('button')
+  const btn = parent.ownerDocument.createElement('button')
   btn.type = 'button'
   btn.className = CSS.slotRemove
   btn.innerHTML = '&times;'
@@ -216,7 +218,7 @@ function attachSlotDrag(el, index, signal, deps) {
   const captionEl = el.querySelector(`.${CSS.slotCaption}`)
 
   el.addEventListener('dragstart', (e) => {
-    if (document.activeElement === captionEl) { e.preventDefault(); return }
+    if (el.ownerDocument.activeElement === captionEl) { e.preventDefault(); return }
     const state = deps.getState()
     if (state) state.dragIndex = index
     el.classList.add(CSS.itemDragging)

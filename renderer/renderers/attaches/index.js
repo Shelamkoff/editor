@@ -107,10 +107,10 @@ async function readBoundedResponse(response, signal, total) {
 /**
  * Download attachments and package them into one ZIP archive.
  * @param {Array<{url: string, name: string, size?: number}>} files
- * @param {{ signal: AbortSignal }} context
+ * @param {{ signal: AbortSignal, ownerDocument?: Document }} context
  * @returns {Promise<void>}
  */
-export async function downloadArchive(files, { signal }) {
+export async function downloadArchive(files, { signal, ownerDocument = globalThis.document }) {
   if (files.length > ARCHIVE_LIMITS.files) throw new RangeError('Too many attachments for one ZIP archive')
   signal.throwIfAborted()
 
@@ -124,7 +124,8 @@ export async function downloadArchive(files, { signal }) {
     throw new RangeError('Attachment exceeds the per-file ZIP limit')
   }
 
-  const controller = new AbortController()
+  const AbortControllerCtor = ownerDocument?.defaultView?.AbortController ?? AbortController
+  const controller = new AbortControllerCtor()
   const abortOperation = () => controller.abort(signal.reason)
   signal.addEventListener('abort', abortOperation, { once: true })
   const operationSignal = controller.signal
@@ -164,10 +165,12 @@ export async function downloadArchive(files, { signal }) {
     operationSignal.throwIfAborted()
     const blob = await zip.generateAsync({ type: 'blob' })
     operationSignal.throwIfAborted()
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
+    const view = ownerDocument.defaultView
+    const URLCtor = view?.URL ?? URL
+    const url = URLCtor.createObjectURL(blob)
+    const a = ownerDocument.createElement('a')
     setSafeUrlAttribute(a, 'href', url, 'download'); a.download = 'files.zip'; a.click()
-    setTimeout(() => URL.revokeObjectURL(url), 0)
+    ;(view?.setTimeout ?? setTimeout)(() => URLCtor.revokeObjectURL(url), 0)
   } finally {
     signal.removeEventListener('abort', abortOperation)
     controller.abort()
@@ -193,7 +196,7 @@ export function createAttachesRenderer(classPrefix, locale) {
     type: 'attaches',
     styles: [styles],
 
-    render(block, _parseInline) {
+    render(block, _parseInline, context = { ownerDocument: globalThis.document }) {
       /** @type {Array<{url: string, name: string, size: number, extension: string}>} */
       let files
       if (block.data.file && !block.data.files) {
@@ -205,7 +208,8 @@ export function createAttachesRenderer(classPrefix, locale) {
 
       const variant = /** @type {string} */ (/** @type {any} */ (block.data).variant) || 'f'
 
-      const wrapper = document.createElement('div')
+      const ownerDocument = context.ownerDocument
+      const wrapper = ownerDocument.createElement('div')
       wrapper.className = `${cls}-attaches`
       if (files.length === 0) return wrapper
 
@@ -214,14 +218,16 @@ export function createAttachesRenderer(classPrefix, locale) {
         case 'f': renderNotion(wrapper, files, cls, t); break
         case 'g': renderMaterial(wrapper, files, cls, t); break
         default:
-          if (files.length === 1) wrapper.appendChild(buildCardA(files[0], cls, t))
-          else wrapper.appendChild(buildGroupA(files, cls, t, p, () => {
+          if (files.length === 1) wrapper.appendChild(buildCardA(files[0], cls, t, ownerDocument))
+          else wrapper.appendChild(buildGroupA(files, cls, t, p, ownerDocument, () => {
             archiveRequests.get(wrapper)?.abort()
-            const controller = new AbortController()
+            const AbortControllerCtor = ownerDocument.defaultView?.AbortController ?? AbortController
+            const controller = new AbortControllerCtor()
             archiveRequests.set(wrapper, controller)
-            downloadArchive(files, { signal: controller.signal }).catch(error => {
+            downloadArchive(files, { signal: controller.signal, ownerDocument }).catch(error => {
               if (controller.signal.aborted) return
-              wrapper.dispatchEvent(new CustomEvent('rector:archive-error', { detail: { error } }))
+              const CustomEventCtor = ownerDocument.defaultView?.CustomEvent ?? CustomEvent
+              wrapper.dispatchEvent(new CustomEventCtor('rector:archive-error', { detail: { error } }))
             }).finally(() => {
               if (archiveRequests.get(wrapper) === controller) archiveRequests.delete(wrapper)
             })
@@ -245,22 +251,23 @@ export function createAttachesRenderer(classPrefix, locale) {
  * @param {{ url: string, name: string, size: number, extension: string }} file
  * @param {string} cls
  * @param {(key: string, fallback: string) => string} t
+ * @param {Document} ownerDocument
  */
-function buildCardA(file, cls, t) {
-  const card = document.createElement('div')
+function buildCardA(file, cls, t, ownerDocument) {
+  const card = ownerDocument.createElement('div')
   card.className = `${cls}-attaches__card`
-  card.appendChild(buildIconA(file, cls))
+  card.appendChild(buildIconA(file, cls, ownerDocument))
 
-  const info = document.createElement('div')
+  const info = ownerDocument.createElement('div')
   info.className = `${cls}-attaches__info`
-  const name = document.createElement('div')
+  const name = ownerDocument.createElement('div')
   name.className = `${cls}-attaches__name`
   name.textContent = file.name || t('renderer.attaches.file', 'File')
   info.appendChild(name)
-  if (file.size) { const m = document.createElement('div'); m.className = `${cls}-attaches__meta`; m.textContent = formatSize(file.size); info.appendChild(m) }
+  if (file.size) { const m = ownerDocument.createElement('div'); m.className = `${cls}-attaches__meta`; m.textContent = formatSize(file.size); info.appendChild(m) }
   card.appendChild(info)
 
-  const dl = document.createElement('a')
+  const dl = ownerDocument.createElement('a')
   dl.className = `${cls}-attaches__download`
   setSafeUrlAttribute(dl, 'href', file.url, 'download'); dl.download = file.name || ''; dl.textContent = t('renderer.attaches.download', 'Download')
   card.appendChild(dl)
@@ -269,13 +276,13 @@ function buildCardA(file, cls, t) {
 }
 
 /** Variant A icon: default file SVG + extension badge */
-function buildIconA(/** @type {{ extension: string }} */ file, /** @type {string} */ cls) {
-  const wrap = document.createElement('div')
+function buildIconA(/** @type {{ extension: string }} */ file, /** @type {string} */ cls, /** @type {Document} */ ownerDocument) {
+  const wrap = ownerDocument.createElement('div')
   wrap.className = `${cls}-attaches__icon`
   wrap.innerHTML = ICON_FILE_DEFAULT
   const ext = (file.extension || '').toLowerCase()
   if (ext) {
-    const badge = document.createElement('span')
+    const badge = ownerDocument.createElement('span')
     badge.className = `${cls}-attaches__ext`
     badge.textContent = ext.toUpperCase()
     const color = EXT_COLORS[ext]
@@ -290,34 +297,35 @@ function buildIconA(/** @type {{ extension: string }} */ file, /** @type {string
  * @param {string} cls
  * @param {(key: string, fallback: string) => string} t
  * @param {(key: string, count: number, fallback: string) => string} p
+ * @param {Document} ownerDocument
  * @param {() => void} onDownloadArchive
  */
-function buildGroupA(files, cls, t, p, onDownloadArchive) {
-  const group = document.createElement('div')
+function buildGroupA(files, cls, t, p, ownerDocument, onDownloadArchive) {
+  const group = ownerDocument.createElement('div')
   group.className = `${cls}-attaches__group`
 
-  const header = document.createElement('div')
+  const header = ownerDocument.createElement('div')
   header.className = `${cls}-attaches__group-header`
-  const iconWrap = document.createElement('div')
+  const iconWrap = ownerDocument.createElement('div')
   iconWrap.className = `${cls}-attaches__icon`
   iconWrap.innerHTML = ICON_FILE_DEFAULT
-  const info = document.createElement('div')
+  const info = ownerDocument.createElement('div')
   info.className = `${cls}-attaches__info`
-  const count = document.createElement('div')
+  const count = ownerDocument.createElement('div')
   count.className = `${cls}-attaches__name`
   count.textContent = `${files.length} ${p('renderer.attaches.files', files.length, 'files')}`
   info.appendChild(count)
-  const meta = document.createElement('div')
+  const meta = ownerDocument.createElement('div')
   meta.className = `${cls}-attaches__meta`
   const totalSize = files.reduce((s, f) => s + (f.size || 0), 0)
-  if (totalSize) { const sz = document.createElement('span'); sz.textContent = formatSize(totalSize); meta.appendChild(sz) }
-  const archiveLink = document.createElement('a')
+  if (totalSize) { const sz = ownerDocument.createElement('span'); sz.textContent = formatSize(totalSize); meta.appendChild(sz) }
+  const archiveLink = ownerDocument.createElement('a')
   archiveLink.className = `${cls}-attaches__download`
   archiveLink.href = '#'; archiveLink.textContent = t('renderer.attaches.downloadZip', 'Download ZIP')
   archiveLink.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); onDownloadArchive() })
   meta.appendChild(archiveLink)
   info.appendChild(meta)
-  const chevron = document.createElement('button')
+  const chevron = ownerDocument.createElement('button')
   chevron.type = 'button'
   chevron.className = `${cls}-attaches__chevron`
   chevron.innerHTML = ICON_CHEVRON
@@ -325,19 +333,19 @@ function buildGroupA(files, cls, t, p, onDownloadArchive) {
   chevron.setAttribute('aria-expanded', 'false')
   header.append(iconWrap, info, chevron)
 
-  const body = document.createElement('div')
+  const body = ownerDocument.createElement('div')
   body.className = `${cls}-attaches__group-body`
   body.id = `rector-attaches-group-${++groupSequence}`
   chevron.setAttribute('aria-controls', body.id)
   for (const file of files) {
-    const row = document.createElement('div')
+    const row = ownerDocument.createElement('div')
     row.className = `${cls}-attaches__row`
-    const fname = document.createElement('a')
+    const fname = ownerDocument.createElement('a')
     fname.className = `${cls}-attaches__row-name`
     setSafeUrlAttribute(fname, 'href', file.url, 'download'); fname.download = file.name || ''; fname.textContent = file.name || t('renderer.attaches.file', 'File')
     row.appendChild(fname)
-    if (file.size) { const sz = document.createElement('span'); sz.className = `${cls}-attaches__row-size`; sz.textContent = formatSize(file.size); row.appendChild(sz) }
-    const dl = document.createElement('a')
+    if (file.size) { const sz = ownerDocument.createElement('span'); sz.className = `${cls}-attaches__row-size`; sz.textContent = formatSize(file.size); row.appendChild(sz) }
+    const dl = ownerDocument.createElement('a')
     dl.className = `${cls}-attaches__download`
     setSafeUrlAttribute(dl, 'href', file.url, 'download'); dl.download = file.name || ''; dl.textContent = t('renderer.attaches.download', 'Download')
     row.appendChild(dl)
@@ -350,7 +358,8 @@ function buildGroupA(files, cls, t, p, onDownloadArchive) {
     chevron.setAttribute('aria-expanded', String(body.classList.contains(`${cls}-attaches__group-body--open`)))
   }
   header.addEventListener('click', (event) => {
-    if (event.target instanceof HTMLAnchorElement) return
+    const AnchorCtor = group.ownerDocument.defaultView?.HTMLAnchorElement
+    if (AnchorCtor && event.target instanceof AnchorCtor) return
     toggle()
   })
   chevron.addEventListener('click', (event) => {
@@ -371,20 +380,21 @@ function buildGroupA(files, cls, t, p, onDownloadArchive) {
  * @param {(key: string, fallback: string) => string} t
  */
 function renderPills(wrapper, files, cls, t) {
-  const container = document.createElement('div')
+  const ownerDocument = wrapper.ownerDocument
+  const container = ownerDocument.createElement('div')
   container.className = `${cls}-attaches__pills`
   for (const file of files) {
-    const pill = document.createElement('a')
+    const pill = ownerDocument.createElement('a')
     pill.className = `${cls}-attaches__pill`
     setSafeUrlAttribute(pill, 'href', file.url, 'download'); pill.download = file.name || ''
-    const ic = document.createElement('div')
+    const ic = ownerDocument.createElement('div')
     ic.className = `${cls}-attaches__pill-icon`
     ic.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2"/></svg>'
     pill.appendChild(ic)
-    const name = document.createElement('span')
+    const name = ownerDocument.createElement('span')
     name.textContent = file.name || t('renderer.attaches.file', 'File')
     pill.appendChild(name)
-    if (file.size) { const sz = document.createElement('span'); sz.className = `${cls}-attaches__pill-size`; sz.textContent = formatSize(file.size); pill.appendChild(sz) }
+    if (file.size) { const sz = ownerDocument.createElement('span'); sz.className = `${cls}-attaches__pill-size`; sz.textContent = formatSize(file.size); pill.appendChild(sz) }
     container.appendChild(pill)
   }
   wrapper.appendChild(container)
@@ -399,25 +409,26 @@ function renderPills(wrapper, files, cls, t) {
  * @param {(key: string, fallback: string) => string} t
  */
 function renderNotion(wrapper, files, cls, t) {
-  const table = document.createElement('div')
+  const ownerDocument = wrapper.ownerDocument
+  const table = ownerDocument.createElement('div')
   table.className = `${cls}-attaches__notion`
   for (const file of files) {
-    const row = document.createElement('div')
+    const row = ownerDocument.createElement('div')
     row.className = `${cls}-attaches__notion-row`
-    const name = document.createElement('a')
+    const name = ownerDocument.createElement('a')
     name.className = `${cls}-attaches__notion-name`
     setSafeUrlAttribute(name, 'href', file.url, 'download'); name.download = file.name || ''; name.textContent = file.name || t('renderer.attaches.file', 'File')
     row.appendChild(name)
     const ext = (file.extension || '').toUpperCase()
     if (ext) {
-      const tag = document.createElement('span')
+      const tag = ownerDocument.createElement('span')
       tag.className = `${cls}-attaches__notion-tag`
       tag.textContent = ext
       const color = EXT_COLORS[file.extension?.toLowerCase()]
       if (color) { tag.style.backgroundColor = `${color}20`; tag.style.color = color }
       row.appendChild(tag)
     }
-    if (file.size) { const sz = document.createElement('span'); sz.className = `${cls}-attaches__notion-size`; sz.textContent = formatSize(file.size); row.appendChild(sz) }
+    if (file.size) { const sz = ownerDocument.createElement('span'); sz.className = `${cls}-attaches__notion-size`; sz.textContent = formatSize(file.size); row.appendChild(sz) }
     table.appendChild(row)
   }
   wrapper.appendChild(table)
@@ -432,24 +443,25 @@ function renderNotion(wrapper, files, cls, t) {
  * @param {(key: string, fallback: string) => string} t
  */
 function renderMaterial(wrapper, files, cls, t) {
-  const stack = document.createElement('div')
+  const ownerDocument = wrapper.ownerDocument
+  const stack = ownerDocument.createElement('div')
   stack.className = `${cls}-attaches__material`
   for (const file of files) {
-    const card = document.createElement('div')
+    const card = ownerDocument.createElement('div')
     card.className = `${cls}-attaches__material-card`
-    const iconWrap = document.createElement('div')
+    const iconWrap = ownerDocument.createElement('div')
     iconWrap.className = `${cls}-attaches__material-icon`
     iconWrap.innerHTML = getFileIcon(file.extension).svg
     card.appendChild(iconWrap)
-    const info = document.createElement('div')
+    const info = ownerDocument.createElement('div')
     info.className = `${cls}-attaches__info`
-    const name = document.createElement('div')
+    const name = ownerDocument.createElement('div')
     name.className = `${cls}-attaches__name`
     name.textContent = file.name || t('renderer.attaches.file', 'File')
     info.appendChild(name)
-    if (file.size) { const m = document.createElement('div'); m.className = `${cls}-attaches__meta`; m.textContent = formatSize(file.size); info.appendChild(m) }
+    if (file.size) { const m = ownerDocument.createElement('div'); m.className = `${cls}-attaches__meta`; m.textContent = formatSize(file.size); info.appendChild(m) }
     card.appendChild(info)
-    const dl = document.createElement('a')
+    const dl = ownerDocument.createElement('a')
     dl.className = `${cls}-attaches__material-dl`
     setSafeUrlAttribute(dl, 'href', file.url, 'download'); dl.download = file.name || ''; dl.innerHTML = ICON_DL
     dl.setAttribute('aria-label', `${t('renderer.attaches.download', 'Download')}: ${file.name || t('renderer.attaches.file', 'File')}`)

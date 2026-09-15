@@ -35,7 +35,7 @@ export function insertInlinePluginAtCaret(registry, ctx, type, data = {}, rootEl
     return true
   }
 
-  const widget = plugin.createWidget(data)
+  const widget = plugin.createWidget(data, undefined, { ownerDocument })
   const HTMLElementCtor = widget?.ownerDocument?.defaultView?.HTMLElement
   if (HTMLElementCtor ? !(widget instanceof HTMLElementCtor) : !(widget instanceof HTMLElement)) {
     throw new TypeError(`Inline plugin "${type}" createWidget() must return an HTMLElement`)

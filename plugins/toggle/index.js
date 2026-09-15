@@ -42,18 +42,19 @@ export class Toggle extends BlockPluginAbstract {
    * @returns {HTMLElement}
    */
   render(data, context) {
+    const ownerDocument = context.ownerDocument ?? globalThis.document
     const bodyId = `oe-toggle-body-${++toggleSequence}`
-    const wrapper = document.createElement('div')
+    const wrapper = ownerDocument.createElement('div')
     wrapper.classList.add('oe-toggle')
     const open = data?.open === true
     if (open) wrapper.classList.add('oe-toggle--open')
     stateMap.set(wrapper, { open, context })
 
     // Header (toggle trigger)
-    const header = document.createElement('div')
+    const header = ownerDocument.createElement('div')
     header.className = 'oe-toggle__header'
 
-    const chevron = document.createElement('button')
+    const chevron = ownerDocument.createElement('button')
     chevron.type = 'button'
     chevron.className = 'oe-toggle__chevron'
     chevron.innerHTML = ICON_CHEVRON
@@ -74,7 +75,7 @@ export class Toggle extends BlockPluginAbstract {
       else context.mutate(operation)
     })
 
-    const titleEl = document.createElement('div')
+    const titleEl = ownerDocument.createElement('div')
     titleEl.className = 'oe-toggle__title'
     titleEl.contentEditable = 'true'
     titleEl.dataset.placeholder = this._t('titlePlaceholder', 'Toggle title...')
@@ -99,7 +100,7 @@ export class Toggle extends BlockPluginAbstract {
     wrapper.appendChild(header)
 
     // Body (collapsible content)
-    const body = document.createElement('div')
+    const body = ownerDocument.createElement('div')
     body.className = 'oe-toggle__body'
     body.id = bodyId
     body.contentEditable = 'true'

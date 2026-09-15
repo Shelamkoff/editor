@@ -46,4 +46,41 @@ export function register() {
       iframe.remove()
     }
   })
+
+  test('inline toolbar construction does not borrow the ambient document', () => {
+    const iframe = document.createElement('iframe')
+    document.body.appendChild(iframe)
+    let editor = null
+    try {
+      const doc = iframe.contentDocument
+      assert(doc, 'iframe document unavailable')
+      const holder = doc.createElement('div')
+      doc.body.appendChild(holder)
+      const ambientCreateElement = document.createElement
+      document.createElement = () => { throw new Error('ambient document must not be used') }
+      try {
+        editor = createEditor({
+          holder,
+          injectStyles: false,
+          plugins: [new Paragraph()],
+          inlineTools: [],
+          data: { version: '1', blocks: [{ id: 'a', type: 'paragraph', data: { text: 'A' } }] },
+          tuning: {
+            undo: { debounceMs: 10000 }, change: { debounceMs: 10000 },
+            animations: { blockInsertMs: 0, blockMoveMs: 0, blockRemoveMs: 0 },
+            mobileBreakpoint: 1,
+          },
+        })
+      } finally {
+        document.createElement = ambientCreateElement
+      }
+      const toolbar = editor.rootElement.querySelector('.oe-inline-toolbar')
+      assert(toolbar, 'inline toolbar exists')
+      equal(toolbar.ownerDocument, doc, 'inline toolbar escaped the editor document')
+    } finally {
+      editor?.destroy()
+      iframe.remove()
+    }
+  })
+
 }

@@ -139,6 +139,8 @@ export interface BlockPlugin<D extends Record<string, unknown> = Record<string, 
 
 /** Runtime services available to a block plugin's interactive handlers. */
 export interface BlockMutationContext {
+  /** Document that owns the editor block and any DOM created for it. */
+  readonly ownerDocument?: Document
   /** Execute one synchronous block-local command as one undo/redo step. */
   mutate<T>(operation: () => T): T | undefined
   /** Split the current block through the core structural command pipeline. */
@@ -708,7 +710,7 @@ export interface InlinePlugin extends BasePlugin {
    * provided, the factory MUST set it on the root element as `data-id`;
    * when omitted, the factory generates a fresh id (via `generateInlineId`).
    */
-  createWidget(data: Record<string, string>, id?: string): HTMLElement
+  createWidget(data: Record<string, string>, id?: string, context?: { readonly ownerDocument: Document }): HTMLElement
   /** Acquire editor-scoped resources after the editor root and context exist. */
   mount?(rootElement: HTMLElement, ctx: InlinePluginContext): void
   hydrate(element: HTMLElement, ctx: InlinePluginContext): void

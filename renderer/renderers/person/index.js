@@ -37,12 +37,14 @@ export function createPersonRenderer(classPrefix, /** @type {Record<string, impo
         /**
          * @param {import('../../types').PersonBlock} block
          * @param {import('../../types').InlineParser} parseInline
+         * @param {import('../../types').RendererContext} context
          * @returns {HTMLElement}
          */
-        render(block, parseInline) {
+        render(block, parseInline, context = { ownerDocument: globalThis.document }) {
             const persons = /** @type {any[]} */ (block.data.persons || [])
+            const ownerDocument = context.ownerDocument
 
-            const wrapper = document.createElement('div')
+            const wrapper = ownerDocument.createElement('div')
             wrapper.className = p
             /** @type {{ observer: ResizeObserver | null, carousel: Carousel | null }} */
             const resources = { observer: null, carousel: null }
@@ -51,21 +53,23 @@ export function createPersonRenderer(classPrefix, /** @type {Record<string, impo
 
             if (persons.length <= 1) {
                 const person = persons[0] || block.data
-                wrapper.appendChild(renderCard(person, parseInline, p, t))
+                wrapper.appendChild(renderCard(person, parseInline, p, t, ownerDocument))
             } else {
-                const carouselContainer = document.createElement('div')
+                const carouselContainer = ownerDocument.createElement('div')
                 carouselContainer.className = `${p}__carousel`
                 wrapper.appendChild(carouselContainer)
 
                 // Build slides from persons
                 const slides = persons.map(person => ({
-                    content: () => renderCard(person, parseInline, p, t),
+                    content: () => renderCard(person, parseInline, p, t, ownerDocument),
                 }))
 
                 // Measure once mounted to decide if carousel is needed
                 const CARD_W = 300
                 const GAP = 16
-                const ro = new ResizeObserver(() => {
+                const ResizeObserverCtor = ownerDocument.defaultView?.ResizeObserver ?? globalThis.ResizeObserver
+                if (!ResizeObserverCtor) return wrapper
+                const ro = new ResizeObserverCtor(() => {
                     if (mounted.get(wrapper) !== resources) return
                     if (!carouselContainer.offsetWidth) return
                     ro.disconnect()
@@ -74,10 +78,10 @@ export function createPersonRenderer(classPrefix, /** @type {Record<string, impo
 
                     if (totalW <= carouselContainer.offsetWidth) {
                         // All fit — simple flex row
-                        const list = document.createElement('div')
+                        const list = ownerDocument.createElement('div')
                         list.className = `${p}__list`
                         for (const person of persons) {
-                            list.appendChild(renderCard(person, parseInline, p, t))
+                            list.appendChild(renderCard(person, parseInline, p, t, ownerDocument))
                         }
                         carouselContainer.appendChild(list)
                         return
@@ -94,16 +98,16 @@ export function createPersonRenderer(classPrefix, /** @type {Record<string, impo
                     resources.carousel = carousel
 
                     // External nav below carousel (not inside viewport)
-                    const nav = document.createElement('div')
+                    const nav = ownerDocument.createElement('div')
                     nav.className = `${p}__nav`
-                    const prevBtn = document.createElement('button')
+                    const prevBtn = ownerDocument.createElement('button')
                     prevBtn.type = 'button'
                     prevBtn.className = `${p}__nav-btn`
                     prevBtn.innerHTML = ICON_LEFT
                     prevBtn.setAttribute('aria-label', t('renderer.person.previous', 'Previous person'))
                     prevBtn.querySelector('svg')?.setAttribute('aria-hidden', 'true')
                     prevBtn.addEventListener('click', () => carousel.prev())
-                    const nextBtn = document.createElement('button')
+                    const nextBtn = ownerDocument.createElement('button')
                     nextBtn.type = 'button'
                     nextBtn.className = `${p}__nav-btn`
                     nextBtn.innerHTML = ICON_RIGHT
@@ -137,16 +141,16 @@ export function createPersonRenderer(classPrefix, /** @type {Record<string, impo
  * @param {(key: string, fallback: string) => string} t
  * @returns {HTMLElement}
  */
-function renderCard(person, parseInline, p, t) {
+function renderCard(person, parseInline, p, t, ownerDocument) {
     const { avatar, name, role, bio, links } = person
 
-    const card = document.createElement('div')
+    const card = ownerDocument.createElement('div')
     card.className = `${p}__card`
 
     if (avatar) {
-        const avatarWrap = document.createElement('div')
+        const avatarWrap = ownerDocument.createElement('div')
         avatarWrap.className = `${p}__avatar-wrap`
-        const img = document.createElement('img')
+        const img = ownerDocument.createElement('img')
         img.className = `${p}__avatar-img`
         setSafeUrlAttribute(img, 'src', avatar, 'media')
         img.alt = name || ''
@@ -155,25 +159,25 @@ function renderCard(person, parseInline, p, t) {
         card.appendChild(avatarWrap)
     }
 
-    const info = document.createElement('div')
+    const info = ownerDocument.createElement('div')
     info.className = `${p}__info`
 
     if (name) {
-        const nameEl = document.createElement('div')
+        const nameEl = ownerDocument.createElement('div')
         nameEl.className = `${p}__name`
         nameEl.appendChild(parseInline(name))
         info.appendChild(nameEl)
     }
 
     if (role) {
-        const roleEl = document.createElement('div')
+        const roleEl = ownerDocument.createElement('div')
         roleEl.className = `${p}__role`
         roleEl.appendChild(parseInline(role))
         info.appendChild(roleEl)
     }
 
     if (bio) {
-        const bioEl = document.createElement('div')
+        const bioEl = ownerDocument.createElement('div')
         bioEl.className = `${p}__bio`
         bioEl.appendChild(parseInline(bio))
         info.appendChild(bioEl)
@@ -181,22 +185,22 @@ function renderCard(person, parseInline, p, t) {
 
     const validLinks = (links || []).filter(/** @type {(l: import('../../types').PersonLink) => boolean} */ (l => !!l.url))
     if (validLinks.length > 0) {
-        const linksEl = document.createElement('div')
+        const linksEl = ownerDocument.createElement('div')
         linksEl.className = `${p}__links`
         for (const link of validLinks) {
-            const a = document.createElement('a')
+            const a = ownerDocument.createElement('a')
             a.className = `${p}__link`
             setSafeUrlAttribute(a, 'href', link.url, 'external')
             a.target = '_blank'
             a.rel = 'noopener noreferrer'
             a.title = link.type || t('renderer.person.link', 'Link')
 
-            const iconSpan = document.createElement('span')
+            const iconSpan = ownerDocument.createElement('span')
             iconSpan.className = `${p}__link-icon`
             iconSpan.innerHTML = (link.type && SOCIAL_ICONS[link.type]) || SOCIAL_ICONS.website
             a.appendChild(iconSpan)
 
-            const urlSpan = document.createElement('span')
+            const urlSpan = ownerDocument.createElement('span')
             urlSpan.className = `${p}__link-url`
             urlSpan.textContent = link.url.replace(/^https?:\/\//, '')
             a.appendChild(urlSpan)

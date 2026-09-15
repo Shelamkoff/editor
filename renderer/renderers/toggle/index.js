@@ -23,22 +23,22 @@ export function createToggleRenderer(classPrefix, _locale) {
          * @param {import('../../types').InlineParser} parseInline
          * @returns {HTMLElement}
          */
-        render(block, parseInline) {
+        render(block, parseInline, context = { ownerDocument: globalThis.document }) {
             const { title, content, open } = block.data
 
-            const details = document.createElement('details')
+            const details = context.ownerDocument.createElement('details')
             details.className = `${classPrefix}-toggle`
             details.open = open === true
 
-            const summary = document.createElement('summary')
+            const summary = context.ownerDocument.createElement('summary')
             summary.className = `${classPrefix}-toggle__summary`
 
-            const chevron = document.createElement('span')
+            const chevron = context.ownerDocument.createElement('span')
             chevron.className = `${classPrefix}-toggle__chevron`
             chevron.setAttribute('aria-hidden', 'true')
             chevron.innerHTML = ICON_CHEVRON
 
-            const titleEl = document.createElement('span')
+            const titleEl = context.ownerDocument.createElement('span')
             titleEl.className = `${classPrefix}-toggle__title`
             if (title) titleEl.appendChild(parseInline(title))
 
@@ -46,7 +46,7 @@ export function createToggleRenderer(classPrefix, _locale) {
             details.appendChild(summary)
 
             if (content) {
-                const body = document.createElement('div')
+                const body = context.ownerDocument.createElement('div')
                 body.className = `${classPrefix}-toggle__body`
                 body.appendChild(parseInline(content))
                 details.appendChild(body)

@@ -47,6 +47,12 @@ const ICON_GRIP = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12
 /** @type {WeakMap<HTMLElement, PersonState>} */
 const stateMap = new WeakMap()
 
+/** @param {HTMLElement} element @returns {AbortController} */
+function createAbortControllerFor(element) {
+  const AbortControllerCtor = element.ownerDocument?.defaultView?.AbortController ?? AbortController
+  return new AbortControllerCtor()
+}
+
 
 /**
  * Multi-person profile block with editable biography, links, ordering, and
@@ -92,6 +98,7 @@ export class Person extends BlockPluginAbstract {
    * @returns {HTMLElement}
    */
   render(data, context) {
+    const ownerDocument = context.ownerDocument ?? globalThis.document
     const raw = Array.isArray(data?.persons)
       ? /** @type {any[]} */ (data.persons).filter(person => person && typeof person === 'object' && !Array.isArray(person))
       : []
@@ -112,7 +119,7 @@ export class Person extends BlockPluginAbstract {
         : [this._defaultPerson()],
     }
 
-    const wrapper = document.createElement('div')
+    const wrapper = ownerDocument.createElement('div')
     wrapper.classList.add('oe-person')
     wrapper.contentEditable = 'false'
     wrapper.tabIndex = -1
@@ -124,7 +131,7 @@ export class Person extends BlockPluginAbstract {
       dragFromIdx: null,
       cropperDialog: null,
       avatarTasks: new Map(),
-      abortController: new AbortController(),
+      abortController: createAbortControllerFor(wrapper),
       context,
     })
 
@@ -203,7 +210,7 @@ export class Person extends BlockPluginAbstract {
       s.abortController.abort()
       for (const controller of s.avatarTasks.values()) controller.abort()
       s.avatarTasks.clear()
-      for (const timer of s.debounceTimers.values()) clearTimeout(timer)
+      for (const timer of s.debounceTimers.values()) (s.context.ownerDocument.defaultView ?? globalThis).clearTimeout(timer)
       s.debounceTimers.clear()
       stateMap.delete(element)
     }
@@ -236,36 +243,37 @@ export class Person extends BlockPluginAbstract {
    * @returns {HTMLElement}
    */
   _buildTab(wrapper, s, i) {
+    const ownerDocument = wrapper.ownerDocument
     const person = s.data.persons[i]
-    if (!person) return document.createElement('div')
+    if (!person) return ownerDocument.createElement('div')
 
-    const tab = document.createElement('div')
+    const tab = ownerDocument.createElement('div')
     tab.className = 'oe-person__tab' + (i === s.activeIdx ? ' oe-person__tab--active' : '')
     tab.draggable = !s.context.readOnly
 
     // Drag handle
-    const grip = document.createElement('span')
+    const grip = ownerDocument.createElement('span')
     grip.className = 'oe-person__tab-grip'
     grip.innerHTML = ICON_GRIP
     tab.appendChild(grip)
 
     // Mini avatar
     if (person.avatar) {
-      const mini = document.createElement('img')
+      const mini = ownerDocument.createElement('img')
       mini.className = 'oe-person__tab-avatar'
       setSafeUrlAttribute(mini, 'src', person.avatar, 'media')
       tab.appendChild(mini)
     }
 
     // Name
-    const label = document.createElement('span')
+    const label = ownerDocument.createElement('span')
     label.className = 'oe-person__tab-label'
     label.textContent = person.name || this._t('fallbackName', 'Person {number}', { number: i + 1 })
     tab.appendChild(label)
 
     // Remove button
     if (!s.context.readOnly && s.data.persons.length > 1) {
-      const rm = document.createElement('button')
+      const rm = ownerDocument.createElement('button')
       rm.type = 'button'
       rm.className = 'oe-person__tab-remove'
       rm.innerHTML = ICON_REMOVE
@@ -363,9 +371,10 @@ export class Person extends BlockPluginAbstract {
   /** @param {HTMLElement} wrapper @returns {HTMLElement} */
   _buildTabs(wrapper) {
     const s = stateMap.get(wrapper)
-    if (!s) return document.createElement('div')
+    const ownerDocument = wrapper.ownerDocument
+    if (!s) return ownerDocument.createElement('div')
 
-    const tabs = document.createElement('div')
+    const tabs = ownerDocument.createElement('div')
     tabs.className = 'oe-person__tabs'
 
     for (let i = 0; i < s.data.persons.length; i++) {
@@ -373,7 +382,7 @@ export class Person extends BlockPluginAbstract {
     }
 
     if (!s.context.readOnly) {
-      const addBtn = document.createElement('button')
+      const addBtn = ownerDocument.createElement('button')
       addBtn.type = 'button'
       addBtn.className = 'oe-person__tab-add'
       addBtn.innerHTML = ICON_PLUS
@@ -403,33 +412,34 @@ export class Person extends BlockPluginAbstract {
    * @returns {void}
    */
   _buildCard(wrapper, parent) {
+    const ownerDocument = wrapper.ownerDocument
     const s = stateMap.get(wrapper)
     if (!s) return
     const person = s.data.persons[s.activeIdx]
     if (!person) return
 
-    const card = document.createElement('div')
+    const card = ownerDocument.createElement('div')
     card.className = 'oe-person__card'
 
     // Avatar
-    const avatarWrap = document.createElement('div')
+    const avatarWrap = ownerDocument.createElement('div')
     avatarWrap.className = 'oe-person__avatar-wrap'
 
     if (person.avatar) {
-      const img = document.createElement('img')
+      const img = ownerDocument.createElement('img')
       img.className = 'oe-person__avatar-img'
       setSafeUrlAttribute(img, 'src', person.avatar, 'media')
       img.alt = ''
       avatarWrap.appendChild(img)
     } else {
-      const placeholder = document.createElement('div')
+      const placeholder = ownerDocument.createElement('div')
       placeholder.className = 'oe-person__avatar-placeholder'
       placeholder.innerHTML = ICON_CAMERA
       avatarWrap.appendChild(placeholder)
     }
 
     if (!s.context.readOnly) {
-      const avatarOverlay = document.createElement('button')
+      const avatarOverlay = ownerDocument.createElement('button')
       avatarOverlay.type = 'button'
       avatarOverlay.className = 'oe-person__avatar-upload'
       avatarOverlay.innerHTML = ICON_CAMERA
@@ -442,10 +452,10 @@ export class Person extends BlockPluginAbstract {
     card.appendChild(avatarWrap)
 
     // Info
-    const info = document.createElement('div')
+    const info = ownerDocument.createElement('div')
     info.className = 'oe-person__info'
 
-    const name = document.createElement('div')
+    const name = ownerDocument.createElement('div')
     name.className = 'oe-person__name'
     name.contentEditable = s.context.readOnly ? 'false' : 'true'
     name.dataset.placeholder = this._t('namePlaceholder', 'Name')
@@ -453,7 +463,7 @@ export class Person extends BlockPluginAbstract {
     this._setupEditable(name, false)
     info.appendChild(name)
 
-    const role = document.createElement('div')
+    const role = ownerDocument.createElement('div')
     role.className = 'oe-person__role'
     role.contentEditable = s.context.readOnly ? 'false' : 'true'
     role.dataset.placeholder = this._t('rolePlaceholder', 'Role / Position')
@@ -461,7 +471,7 @@ export class Person extends BlockPluginAbstract {
     this._setupEditable(role, false)
     info.appendChild(role)
 
-    const bio = document.createElement('div')
+    const bio = ownerDocument.createElement('div')
     bio.className = 'oe-person__bio'
     bio.contentEditable = s.context.readOnly ? 'false' : 'true'
     bio.dataset.placeholder = this._t('bioPlaceholder', 'Short bio...')
@@ -470,10 +480,10 @@ export class Person extends BlockPluginAbstract {
     info.appendChild(bio)
 
     // Links
-    const linksSection = document.createElement('div')
+    const linksSection = ownerDocument.createElement('div')
     linksSection.className = 'oe-person__links'
 
-    const linksLabel = document.createElement('div')
+    const linksLabel = ownerDocument.createElement('div')
     linksLabel.className = 'oe-person__links-label'
     linksLabel.textContent = this._t('linksLabel', 'Links')
     linksSection.appendChild(linksLabel)
@@ -542,20 +552,21 @@ export class Person extends BlockPluginAbstract {
    */
   _createLinkRow(wrapper, link, index) {
     const s = stateMap.get(wrapper)
-    if (!s) return document.createElement('div')
+    const ownerDocument = wrapper.ownerDocument
+    if (!s) return ownerDocument.createElement('div')
 
     const isEmptySlot = !link.url.trim()
-    const row = document.createElement('div')
+    const row = ownerDocument.createElement('div')
     row.className = 'oe-person__link-row'
 
-    const iconEl = document.createElement('span')
+    const iconEl = ownerDocument.createElement('span')
     iconEl.className = 'oe-person__link-icon'
     const resolved = resolveSocialIcon(link.url, this._config.socialResolvers)
     iconEl.innerHTML = link.url ? resolved.icon : (SOCIAL_ICONS.website || '')
     iconEl.dataset.type = link.url ? resolved.type : link.type
     row.appendChild(iconEl)
 
-    const input = document.createElement('input')
+    const input = wrapper.ownerDocument.createElement('input')
     input.type = 'text'
     input.className = 'oe-person__link-url'
     // Live serialized value, with native field editing and editor history.
@@ -586,7 +597,7 @@ export class Person extends BlockPluginAbstract {
         const personLink = person.links[index]
         if (personLink) personLink.url = input.value
         if (!row.querySelector('.oe-person__link-remove')) {
-          const removeBtn = document.createElement('button')
+          const removeBtn = ownerDocument.createElement('button')
           removeBtn.type = 'button'
           removeBtn.className = 'oe-person__link-remove'
           removeBtn.innerHTML = ICON_REMOVE
@@ -606,12 +617,12 @@ export class Person extends BlockPluginAbstract {
       }
     })
     if (!s.context.readOnly) input.addEventListener('paste', () => {
-      requestAnimationFrame(() => this._resolveIcon(wrapper, index, input.value, iconEl, person))
+      ;(wrapper.ownerDocument.defaultView ?? globalThis).requestAnimationFrame(() => this._resolveIcon(wrapper, index, input.value, iconEl, person))
     })
     row.appendChild(input)
 
     if (!s.context.readOnly && !isEmptySlot) {
-      const removeBtn = document.createElement('button')
+      const removeBtn = ownerDocument.createElement('button')
       removeBtn.type = 'button'
       removeBtn.className = 'oe-person__link-remove'
       removeBtn.innerHTML = ICON_REMOVE
@@ -644,10 +655,10 @@ export class Person extends BlockPluginAbstract {
     const targetPerson = s.data.persons[s.activeIdx]
     if (!targetPerson) return
     const existing = s.debounceTimers.get(key)
-    if (existing) clearTimeout(existing)
+    if (existing) (wrapper.ownerDocument.defaultView ?? globalThis).clearTimeout(existing)
     iconEl.innerHTML = ICON_LOADER
     iconEl.querySelector('svg')?.classList.add('oe-person__spin')
-    const timer = window.setTimeout(() => {
+    const timer = (wrapper.ownerDocument.defaultView ?? globalThis).setTimeout(() => {
       s.debounceTimers.delete(key)
       this._resolveIcon(wrapper, index, url, iconEl, targetPerson, key)
     }, 500)
@@ -663,7 +674,7 @@ export class Person extends BlockPluginAbstract {
    * @returns {void}
    */
   _clearDebounceTimers(state) {
-    for (const timer of state.debounceTimers.values()) clearTimeout(timer)
+    for (const timer of state.debounceTimers.values()) (state.context.ownerDocument.defaultView ?? globalThis).clearTimeout(timer)
     state.debounceTimers.clear()
   }
 
@@ -683,7 +694,7 @@ export class Person extends BlockPluginAbstract {
     if (personIndex < 0) return
     const key = timerKey || `${personIndex}:${index}`
     const existing = s.debounceTimers.get(key)
-    if (existing) { clearTimeout(existing); s.debounceTimers.delete(key) }
+    if (existing) { (wrapper.ownerDocument.defaultView ?? globalThis).clearTimeout(existing); s.debounceTimers.delete(key) }
     const resolved = resolveSocialIcon(url, this._config.socialResolvers)
     iconEl.innerHTML = resolved.icon
     iconEl.dataset.type = resolved.type
@@ -700,7 +711,7 @@ export class Person extends BlockPluginAbstract {
     const currentState = stateMap.get(wrapper)
     if (!currentState || currentState.context.readOnly) return
     const t = (/** @type {string} */ key, /** @type {string} */ fallback) => this._t(key, fallback)
-    const input = document.createElement('input')
+    const input = wrapper.ownerDocument.createElement('input')
     input.type = 'file'
     input.accept = 'image/*'
     input.addEventListener('change', async () => {
@@ -752,7 +763,7 @@ export class Person extends BlockPluginAbstract {
     const state = stateMap.get(wrapper)
     if (!state || state.context.readOnly || !state.data.persons.includes(targetPerson)) return null
     state.avatarTasks.get(targetPerson)?.abort()
-    const controller = new AbortController()
+    const controller = createAbortControllerFor(wrapper)
     state.avatarTasks.set(targetPerson, controller)
     wrapper.classList.add('oe-person--loading')
     return { state, controller }

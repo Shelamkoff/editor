@@ -8,6 +8,7 @@
  * @property {string} [accept] - accepted MIME types (e.g. 'image/*')
  * @property {boolean} [multiple] - allow multiple file selection
  * @property {AbortSignal} [signal] - removes the temporary input when the owning view is disposed
+ * @property {Document} [ownerDocument] - document that owns the picker surface
  * @property {(files: File[]) => void} onFiles - callback with selected files
  */
 
@@ -19,7 +20,9 @@
  */
 export function triggerFileInput(config) {
   if (config.signal?.aborted) return
-  const input = document.createElement('input')
+  const ownerDocument = config.ownerDocument ?? globalThis.document
+  if (!ownerDocument?.body) throw new Error('File input requires an owning document with a body')
+  const input = ownerDocument.createElement('input')
   input.type = 'file'
   input.style.cssText = 'position:fixed;top:0;left:0;width:1px;height:1px;opacity:0.01;pointer-events:none;z-index:-1'
   if (config.accept) input.accept = config.accept
@@ -38,7 +41,7 @@ export function triggerFileInput(config) {
     cleanup()
   })
   input.addEventListener('cancel', cleanup, { once: true })
-  document.body.appendChild(input)
+  ownerDocument.body.appendChild(input)
   try {
     input.click()
   } catch (error) {

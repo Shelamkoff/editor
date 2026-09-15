@@ -105,10 +105,12 @@ export function createGalleryRenderer(classPrefix, locale) {
     /**
      * @param {import('../../types').GalleryBlock} block
      * @param {import('../../types').InlineParser} _parseInline
+     * @param {import('../../types').RendererContext} context
      * @returns {HTMLElement}
      */
-    render(block, _parseInline) {
+    render(block, _parseInline, context = { ownerDocument: globalThis.document }) {
       const { images, styles, options } = block.data
+      const ownerDocument = context.ownerDocument
       // Normalize legacy layouts to 'auto'
       const rawLayout = block.data.layout
       /** @type {import('../../types').GalleryLayout} */
@@ -116,7 +118,7 @@ export function createGalleryRenderer(classPrefix, locale) {
         ? 'auto'
         : rawLayout
 
-      const container = document.createElement('div')
+      const container = ownerDocument.createElement('div')
       /** @type {Set<import('@shelamkoff/expose').Expose>} */
       const instances = new Set()
       activeInstances.set(container, instances)
@@ -150,7 +152,7 @@ export function createGalleryRenderer(classPrefix, locale) {
         }
 
         visibleImages.forEach((image, i) => {
-          const item = createItem(image, classPrefix, openLabel)
+          const item = createItem(image, classPrefix, openLabel, ownerDocument)
           const img = item.querySelector('img')
           if (img) {
             let settled = false
@@ -169,7 +171,7 @@ export function createGalleryRenderer(classPrefix, locale) {
             if (img.complete) queueMicrotask(onImgReady)
           }
           if (overflowCount > 0 && i === visibleImages.length - 1) {
-            item.appendChild(createOverflow(overflowCount, classPrefix))
+            item.appendChild(createOverflow(overflowCount, classPrefix, ownerDocument))
           }
           container.appendChild(item)
         })
@@ -178,7 +180,7 @@ export function createGalleryRenderer(classPrefix, locale) {
         masonryItems = []
 
         images.forEach((image) => {
-          const item = createItem(image, classPrefix, openLabel)
+          const item = createItem(image, classPrefix, openLabel, ownerDocument)
           const img = item.querySelector('img')
           if (img) img.loading = 'eager'
           masonryItems?.push(item)
@@ -189,9 +191,9 @@ export function createGalleryRenderer(classPrefix, locale) {
         container.classList.add(`eg--${layout}`)
 
         visibleImages.forEach((image, i) => {
-          const item = createItem(image, classPrefix, openLabel)
+          const item = createItem(image, classPrefix, openLabel, ownerDocument)
           if (overflowCount > 0 && i === visibleImages.length - 1) {
-            item.appendChild(createOverflow(overflowCount, classPrefix))
+            item.appendChild(createOverflow(overflowCount, classPrefix, ownerDocument))
           }
           container.appendChild(item)
         })
@@ -287,10 +289,11 @@ export function createGalleryRenderer(classPrefix, locale) {
  * @param {{ url: string; caption?: string }} image
  * @param {string} classPrefix
  * @param {string} openLabel
+ * @param {Document} ownerDocument
  * @returns {HTMLElement}
  */
-function createItem(image, classPrefix, openLabel) {
-  const figure = document.createElement('figure')
+function createItem(image, classPrefix, openLabel, ownerDocument) {
+  const figure = ownerDocument.createElement('figure')
   figure.className = `${classPrefix}-gallery__item`
   figure.tabIndex = 0
   figure.setAttribute('role', 'button')
@@ -301,7 +304,7 @@ function createItem(image, classPrefix, openLabel) {
     figure.click()
   })
 
-  const img = document.createElement('img')
+  const img = ownerDocument.createElement('img')
   img.className = `${classPrefix}-gallery__image`
   setSafeUrlAttribute(img, 'src', image.url, 'media')
   img.alt = image.caption || ''
@@ -314,10 +317,11 @@ function createItem(image, classPrefix, openLabel) {
 /**
  * @param {number} count
  * @param {string} classPrefix
+ * @param {Document} ownerDocument
  * @returns {HTMLElement}
  */
-function createOverflow(count, classPrefix) {
-  const overlay = document.createElement('div')
+function createOverflow(count, classPrefix, ownerDocument) {
+  const overlay = ownerDocument.createElement('div')
   overlay.className = `${classPrefix}-gallery__overflow`
   overlay.textContent = `+${count}`
   return overlay

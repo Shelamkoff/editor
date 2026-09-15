@@ -403,10 +403,15 @@ export type BlockType = Block['type']
 
 export type InlineParser = (text: string) => DocumentFragment
 
+export interface RendererContext {
+    /** Document that owns the render target and all DOM created for it. */
+    readonly ownerDocument: Document
+}
+
 export interface BlockRenderer<T extends OutputBlockData = OutputBlockData> {
     type: T['type']
     styles?: string[]
-    render(block: T, parseInline: InlineParser): HTMLElement
+    render(block: T, parseInline: InlineParser, context?: RendererContext): HTMLElement
     /** Release observers, global listeners, and third-party instances. */
     destroy?(element: HTMLElement): void
     /**
@@ -461,6 +466,6 @@ export interface RendererConfig {
  */
 export interface InlinePluginLike {
     readonly type: string
-    createWidget(data: Record<string, unknown>, id?: string): HTMLElement
+    createWidget(data: Record<string, unknown>, id?: string, context?: { readonly ownerDocument: Document }): HTMLElement
     getData(element: HTMLElement): Record<string, unknown>
 }

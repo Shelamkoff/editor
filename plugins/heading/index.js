@@ -64,12 +64,14 @@ export class Heading extends BlockPluginAbstract {
   /**
    * Create the editable DOM owned by this block instance.
    * @param {{ text?: string, level?: number, align?: string }} data
+   * @param {import('../../core/types').BlockMutationContext} context
    * @returns {HTMLElement}
    */
-  render(data) {
+  render(data, context) {
+    const ownerDocument = context?.ownerDocument ?? globalThis.document
     const level = normalizeHeadingLevel(data?.level)
     const tag = `h${level}`
-    const heading = document.createElement(tag)
+    const heading = ownerDocument.createElement(tag)
     heading.classList.add('oe-heading', `oe-heading--${tag}`)
     heading.contentEditable = 'true'
 

@@ -18,8 +18,8 @@ export function createDelimiterRenderer(classPrefix, _locale) {
      * @param {import('../../types').InlineParser} _parseInline
      * @returns {HTMLElement}
      */
-    render(_block, _parseInline) {
-      const hr = document.createElement('hr')
+    render(_block, _parseInline, context = { ownerDocument: globalThis.document }) {
+      const hr = context.ownerDocument.createElement('hr')
       hr.className = `${classPrefix}-delimiter`
       return hr
     },

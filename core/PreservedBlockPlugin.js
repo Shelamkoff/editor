@@ -19,8 +19,8 @@ export function createPreservedBlockPlugin(type, label) {
     title: type,
     icon: '',
     inlineTools: false,
-    render(data) {
-      const element = document.createElement('div')
+    render(data, context) {
+      const element = (context.ownerDocument ?? globalThis.document).createElement('div')
       element.className = 'oe-unsupported-block'
       element.setAttribute('role', 'note')
       const message = label(type)

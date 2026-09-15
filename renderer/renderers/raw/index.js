@@ -17,8 +17,8 @@ export function createRawRenderer(classPrefix, _locale) {
      * @param {import('../../types').InlineParser} _parseInline
      * @returns {HTMLElement}
      */
-    render(block, _parseInline) {
-      const wrapper = document.createElement('div')
+    render(block, _parseInline, context = { ownerDocument: globalThis.document }) {
+      const wrapper = context.ownerDocument.createElement('div')
       wrapper.className = `${classPrefix}-raw`
       setSanitizedRawHtml(wrapper, block.data.html)
       return wrapper

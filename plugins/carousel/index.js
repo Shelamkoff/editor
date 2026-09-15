@@ -150,7 +150,8 @@ export class CarouselBlock extends BlockPluginAbstract {
    * @returns {HTMLElement} Root element owned by this block render.
    */
   render(data, context) {
-    const wrapper = document.createElement('div')
+    const ownerDocument = context.ownerDocument ?? globalThis.document
+    const wrapper = ownerDocument.createElement('div')
     wrapper.className = 'oe-carousel-block'
     wrapper.contentEditable = 'false'
     wrapper.tabIndex = -1
@@ -267,8 +268,9 @@ export class CarouselBlock extends BlockPluginAbstract {
    * @returns {void}
    */
   #renderEmpty(wrapper, state, signal) {
+    const ownerDocument = state.context.ownerDocument ?? wrapper.ownerDocument
     if (state.context.readOnly) {
-      const empty = document.createElement('div')
+      const empty = ownerDocument.createElement('div')
       empty.className = 'oe-carousel-block__empty'
       empty.textContent = this._t('emptyReadonly', 'No slides')
       wrapper.appendChild(empty)
@@ -328,23 +330,24 @@ export class CarouselBlock extends BlockPluginAbstract {
    * @returns {HTMLElement} Carousel stage for the active slide.
    */
   #stage(wrapper, state, signal) {
+    const ownerDocument = state.context.ownerDocument ?? wrapper.ownerDocument
     const slide = state.data.slides[state.activeIndex]
-    const stage = document.createElement('div')
+    const stage = ownerDocument.createElement('div')
     stage.className = 'oe-carousel-block__stage'
     if (state.data.options.aspectRatio && state.data.options.aspectRatio !== 'auto') {
       stage.classList.add('oe-carousel-block__stage--fixed-ratio')
       stage.style.aspectRatio = state.data.options.aspectRatio
     }
 
-    const media = document.createElement('div')
+    const media = ownerDocument.createElement('div')
     media.className = 'oe-carousel-block__media'
     if (slide.type === 'image') {
-      const image = document.createElement('img')
+      const image = ownerDocument.createElement('img')
       setSafeUrlAttribute(image, 'src', slide.src || '', 'media')
       image.alt = slide.alt || ''
       media.appendChild(image)
     } else if (slide.type === 'video') {
-      const video = document.createElement('video')
+      const video = ownerDocument.createElement('video')
       video.controls = true
       video.preload = 'metadata'
       setSafeUrlAttribute(video, 'src', slide.src || '', 'media')
@@ -352,7 +355,7 @@ export class CarouselBlock extends BlockPluginAbstract {
       video.setAttribute('aria-label', slide.alt || this._t('video', 'Video slide'))
       media.appendChild(video)
     } else {
-      const html = document.createElement('div')
+      const html = ownerDocument.createElement('div')
       html.className = 'oe-carousel-block__html'
       setSanitizedRawHtml(html, slide.html || '')
       media.appendChild(html)
@@ -360,8 +363,8 @@ export class CarouselBlock extends BlockPluginAbstract {
     stage.appendChild(media)
 
     if (state.data.slides.length > 1 && state.data.options.navigation) {
-      const previous = this.#navButton(this._t('previous', 'Previous slide'), ICON_PREVIOUS, 'previous', () => this.#activate(wrapper, state, state.activeIndex - 1), signal)
-      const next = this.#navButton(this._t('next', 'Next slide'), ICON_NEXT, 'next', () => this.#activate(wrapper, state, state.activeIndex + 1), signal)
+      const previous = this.#navButton(ownerDocument, this._t('previous', 'Previous slide'), ICON_PREVIOUS, 'previous', () => this.#activate(wrapper, state, state.activeIndex - 1), signal)
+      const next = this.#navButton(ownerDocument, this._t('next', 'Next slide'), ICON_NEXT, 'next', () => this.#activate(wrapper, state, state.activeIndex + 1), signal)
       if (!state.data.options.loop) {
         previous.disabled = state.activeIndex === 0
         next.disabled = state.activeIndex === state.data.slides.length - 1
@@ -369,13 +372,13 @@ export class CarouselBlock extends BlockPluginAbstract {
       stage.append(previous, next)
     }
 
-    const counter = document.createElement('span')
+    const counter = ownerDocument.createElement('span')
     counter.className = 'oe-carousel-block__counter'
     counter.setAttribute('aria-live', 'polite')
     counter.textContent = `${state.activeIndex + 1} / ${state.data.slides.length}`
     stage.appendChild(counter)
 
-    const caption = document.createElement('div')
+    const caption = ownerDocument.createElement('div')
     caption.className = 'oe-carousel-block__caption'
     caption.contentEditable = state.context.readOnly ? 'false' : 'true'
     caption.dataset.placeholder = this._t('caption', 'Caption')
@@ -392,10 +395,10 @@ export class CarouselBlock extends BlockPluginAbstract {
     stage.appendChild(caption)
 
     if (state.data.slides.length > 1 && state.data.options.pagination) {
-      const dots = document.createElement('div')
+      const dots = ownerDocument.createElement('div')
       dots.className = 'oe-carousel-block__dots'
       state.data.slides.forEach((_, index) => {
-        const dot = document.createElement('button')
+        const dot = ownerDocument.createElement('button')
         dot.type = 'button'
         dot.setAttribute(READ_ONLY_INTERACTIVE_ATTRIBUTE, '')
         dot.className = 'oe-carousel-block__dot'
@@ -409,7 +412,7 @@ export class CarouselBlock extends BlockPluginAbstract {
     }
 
     if (state.data.options.thumbnails && state.data.slides.length > 1) {
-      const thumbnails = document.createElement('div')
+      const thumbnails = ownerDocument.createElement('div')
       thumbnails.className = 'oe-carousel-block__thumbnails'
       state.data.slides.forEach((item, index) => thumbnails.appendChild(this.#thumbnail(wrapper, state, item, index, signal)))
       stage.appendChild(thumbnails)
@@ -419,6 +422,7 @@ export class CarouselBlock extends BlockPluginAbstract {
 
   /**
    * Create one previous or next navigation button.
+   * @param {Document} ownerDocument Owning document for the rendered controls.
    * @param {string} label Accessible button label.
    * @param {string} icon Trusted internal SVG markup.
    * @param {string} direction Direction modifier used by the stylesheet.
@@ -426,8 +430,8 @@ export class CarouselBlock extends BlockPluginAbstract {
    * @param {AbortSignal} signal Signal invalidated when the current view is rebuilt.
    * @returns {HTMLButtonElement} Configured navigation button.
    */
-  #navButton(label, icon, direction, activate, signal) {
-    const button = document.createElement('button')
+  #navButton(ownerDocument, label, icon, direction, activate, signal) {
+    const button = ownerDocument.createElement('button')
     button.type = 'button'
     button.setAttribute(READ_ONLY_INTERACTIVE_ATTRIBUTE, '')
     button.className = `oe-carousel-block__nav oe-carousel-block__nav--${direction}`
@@ -447,7 +451,8 @@ export class CarouselBlock extends BlockPluginAbstract {
    * @returns {HTMLButtonElement} Configured thumbnail button.
    */
   #thumbnail(wrapper, state, slide, index, signal) {
-    const button = document.createElement('button')
+    const ownerDocument = state.context.ownerDocument ?? wrapper.ownerDocument
+    const button = ownerDocument.createElement('button')
     button.type = 'button'
     button.setAttribute(READ_ONLY_INTERACTIVE_ATTRIBUTE, '')
     button.className = 'oe-carousel-block__thumbnail'
@@ -455,7 +460,7 @@ export class CarouselBlock extends BlockPluginAbstract {
     button.setAttribute('aria-label', this._t('goToSlide', 'Go to slide {index}').replace('{index}', String(index + 1)))
     button.setAttribute('aria-current', index === state.activeIndex ? 'true' : 'false')
     if (slide.type === 'image' && slide.src) {
-      const image = document.createElement('img')
+      const image = ownerDocument.createElement('img')
       setSafeUrlAttribute(image, 'src', slide.src, 'media')
       image.alt = ''
       button.appendChild(image)
@@ -488,12 +493,13 @@ export class CarouselBlock extends BlockPluginAbstract {
    * @returns {HTMLElement} Carousel action bar.
    */
   #actions(wrapper, state, signal) {
-    const actions = document.createElement('div')
+    const ownerDocument = state.context.ownerDocument ?? wrapper.ownerDocument
+    const actions = ownerDocument.createElement('div')
     actions.className = 'oe-carousel-block__actions'
-    const main = document.createElement('div')
+    const main = ownerDocument.createElement('div')
     main.className = 'oe-carousel-block__actions-view'
 
-    const settings = document.createElement('div')
+    const settings = ownerDocument.createElement('div')
     settings.className = 'oe-carousel-block__dropdown'
     const layer = createPluginLayer(wrapper, signal)
     const panel = this.#settingsPanel(wrapper, state, signal)
@@ -509,13 +515,13 @@ export class CarouselBlock extends BlockPluginAbstract {
     }
     settingsButton = makeActionBtn('oe-carousel-block__action-btn', `${ICON_SETTINGS} ${escapeHtml(this._t('settings', 'Settings'))}`, () => {
       setSettingsOpen(!settings.classList.contains('oe-carousel-block__dropdown--open'))
-    }, signal)
+    }, signal, ownerDocument)
     settingsButton.setAttribute('aria-haspopup', 'true')
     settingsButton.setAttribute('aria-expanded', 'false')
     settings.append(settingsButton, panel)
-    document.addEventListener('click', event => {
+    wrapper.ownerDocument.addEventListener('click', event => {
       const target = event.target
-      if (!(target instanceof Node) || !settings.contains(target)) {
+      if (!target || typeof target !== 'object' || !('nodeType' in target) || !settings.contains(/** @type {Node} */ (target))) {
         setSettingsOpen(false)
       }
     }, { signal })
@@ -525,22 +531,23 @@ export class CarouselBlock extends BlockPluginAbstract {
       setSettingsOpen(false)
       settingsButton.focus()
     }, { signal })
-    main.append(settings, makeSep('oe-carousel-block__actions-sep'))
+    main.append(settings, makeSep('oe-carousel-block__actions-sep', ownerDocument))
 
     main.appendChild(makeActionBtn(
       'oe-carousel-block__action-btn',
       `${ICON_REPLACE} ${escapeHtml(this._t('add', 'Add'))} ${ICON_CHEVRON}`,
       () => this.#showAddView(actions, main, wrapper, state, signal),
       signal,
+      ownerDocument,
     ))
-    main.appendChild(makeSep('oe-carousel-block__actions-sep'))
+    main.appendChild(makeSep('oe-carousel-block__actions-sep', ownerDocument))
     const deleteAll = makeActionBtn('oe-carousel-block__action-btn oe-carousel-block__action-btn--danger', ICON_TRASH, () => {
       state.context.mutate(() => {
         state.data.slides = []
         state.activeIndex = 0
         this.#build(wrapper, state)
       })
-    }, signal)
+    }, signal, ownerDocument)
     deleteAll.setAttribute('aria-label', this._t('deleteAll', 'Remove all slides'))
     main.appendChild(deleteAll)
     actions.appendChild(main)
@@ -557,28 +564,29 @@ export class CarouselBlock extends BlockPluginAbstract {
    * @returns {void}
    */
   #showAddView(actions, main, wrapper, state, signal) {
+    const ownerDocument = state.context.ownerDocument ?? wrapper.ownerDocument
     main.hidden = true
-    const view = document.createElement('div')
+    const view = ownerDocument.createElement('div')
     view.className = 'oe-carousel-block__actions-view'
     const restore = () => { view.remove(); main.hidden = false }
-    view.appendChild(makeActionBtn('oe-carousel-block__action-btn', `${ICON_BACK} ${escapeHtml(this._t('back', 'Back'))}`, restore, signal))
-    view.appendChild(makeSep('oe-carousel-block__actions-sep'))
+    view.appendChild(makeActionBtn('oe-carousel-block__action-btn', `${ICON_BACK} ${escapeHtml(this._t('back', 'Back'))}`, restore, signal, ownerDocument))
+    view.appendChild(makeSep('oe-carousel-block__actions-sep', ownerDocument))
     view.appendChild(makeActionBtn('oe-carousel-block__action-btn', `${ICON_UPLOAD} ${escapeHtml(this._t('upload', 'Upload'))}`, () => {
       this.#triggerFileInput(wrapper); restore()
-    }, signal))
+    }, signal, ownerDocument))
     for (const action of this._config.actions || []) {
       view.appendChild(makeActionBtn('oe-carousel-block__action-btn', `${action.icon || ''} ${escapeHtml(action.label)}`, () => {
         void this.#runAction(wrapper, state, action); restore()
-      }, signal))
+      }, signal, ownerDocument))
     }
     view.appendChild(makeActionBtn('oe-carousel-block__action-btn', `${ICON_URL} URL`, () => {
       restore()
       this.#addUrl(wrapper, state)
-    }, signal))
+    }, signal, ownerDocument))
     view.appendChild(makeActionBtn('oe-carousel-block__action-btn', `${ICON_CODE} HTML`, () => {
       restore()
       this.#addHtml(wrapper, state)
-    }, signal))
+    }, signal, ownerDocument))
     actions.appendChild(view)
   }
 
@@ -590,13 +598,14 @@ export class CarouselBlock extends BlockPluginAbstract {
    * @returns {HTMLElement} Settings panel for the current carousel state.
    */
   #settingsPanel(wrapper, state, signal) {
+    const ownerDocument = state.context.ownerDocument ?? wrapper.ownerDocument
     const slide = state.data.slides[state.activeIndex]
-    const panel = document.createElement('div')
+    const panel = ownerDocument.createElement('div')
     panel.className = 'oe-carousel-block__dropdown-panel oe-carousel-block__settings'
     panel.setAttribute('role', 'group')
     panel.addEventListener('click', event => event.stopPropagation(), { signal })
 
-    panel.appendChild(this.#sectionTitle(this._t('currentSlide', 'Current slide')))
+    panel.appendChild(this.#sectionTitle(ownerDocument, this._t('currentSlide', 'Current slide')))
     if (slide.type === 'html') {
       panel.appendChild(this.#field(this._t('html', 'HTML'), slide.html || '', true, value => {
         const html = sanitizeRawHtml(value)
@@ -610,7 +619,7 @@ export class CarouselBlock extends BlockPluginAbstract {
         if (src) slide.src = src
       }, wrapper, state, signal, 'text', true)
       const sourceInput = sourceField.querySelector('input')
-      if (embeddedSource && sourceInput instanceof HTMLInputElement) {
+      if (embeddedSource && state.context.ownerDocument.defaultView?.HTMLInputElement && sourceInput instanceof state.context.ownerDocument.defaultView.HTMLInputElement) {
         sourceInput.placeholder = this._t('embeddedSource', 'Local file — paste a URL to replace it')
         sourceInput.dataset.oeEmbeddedSource = 'true'
       }
@@ -624,20 +633,20 @@ export class CarouselBlock extends BlockPluginAbstract {
     }
     panel.appendChild(this.#field(this._t('caption', 'Caption'), slide.caption || '', false, value => { slide.caption = value }, wrapper, state, signal))
 
-    const order = document.createElement('div')
+    const order = ownerDocument.createElement('div')
     order.className = 'oe-carousel-block__slide-actions'
-    const backward = makeActionBtn('oe-carousel-block__settings-button', `${ICON_PREVIOUS} ${escapeHtml(this._t('movePreviousShort', 'Earlier'))}`, () => this.#move(wrapper, state, state.activeIndex, state.activeIndex - 1), signal)
+    const backward = makeActionBtn('oe-carousel-block__settings-button', `${ICON_PREVIOUS} ${escapeHtml(this._t('movePreviousShort', 'Earlier'))}`, () => this.#move(wrapper, state, state.activeIndex, state.activeIndex - 1), signal, ownerDocument)
     backward.setAttribute('aria-label', this._t('movePrevious', 'Move slide backward'))
     backward.disabled = state.activeIndex === 0
-    const forward = makeActionBtn('oe-carousel-block__settings-button', `${escapeHtml(this._t('moveNextShort', 'Later'))} ${ICON_NEXT}`, () => this.#move(wrapper, state, state.activeIndex, state.activeIndex + 1), signal)
+    const forward = makeActionBtn('oe-carousel-block__settings-button', `${escapeHtml(this._t('moveNextShort', 'Later'))} ${ICON_NEXT}`, () => this.#move(wrapper, state, state.activeIndex, state.activeIndex + 1), signal, ownerDocument)
     forward.setAttribute('aria-label', this._t('moveNext', 'Move slide forward'))
     forward.disabled = state.activeIndex === state.data.slides.length - 1
-    const remove = makeActionBtn('oe-carousel-block__settings-button oe-carousel-block__settings-button--danger', `${ICON_TRASH} ${escapeHtml(this._t('removeSlide', 'Remove slide'))}`, () => this.#removeSlide(wrapper, state, state.activeIndex), signal)
+    const remove = makeActionBtn('oe-carousel-block__settings-button oe-carousel-block__settings-button--danger', `${ICON_TRASH} ${escapeHtml(this._t('removeSlide', 'Remove slide'))}`, () => this.#removeSlide(wrapper, state, state.activeIndex), signal, ownerDocument)
     order.append(backward, forward, remove)
     panel.appendChild(order)
 
-    panel.appendChild(this.#sectionTitle(this._t('behavior', 'Behavior')))
-    const switches = document.createElement('div')
+    panel.appendChild(this.#sectionTitle(ownerDocument, this._t('behavior', 'Behavior')))
+    const switches = ownerDocument.createElement('div')
     switches.className = 'oe-carousel-block__switches'
     for (const key of ['loop', 'autoplay', 'navigation', 'pagination', 'thumbnails']) {
       switches.appendChild(this.#checkbox(this._t(key, key), !!state.data.options[key], checked => {
@@ -659,11 +668,12 @@ export class CarouselBlock extends BlockPluginAbstract {
 
   /**
    * Create a heading inside the settings panel.
+   * @param {Document} ownerDocument Owning document for the settings UI.
    * @param {string} text Localized heading text.
    * @returns {HTMLElement} Settings section heading.
    */
-  #sectionTitle(text) {
-    const title = document.createElement('div')
+  #sectionTitle(ownerDocument, text) {
+    const title = ownerDocument.createElement('div')
     title.className = 'oe-carousel-block__settings-title'
     title.textContent = text
     return title
@@ -683,16 +693,18 @@ export class CarouselBlock extends BlockPluginAbstract {
    * @returns {HTMLElement} Label containing the configured input control.
    */
   #field(label, value, multiline, update, wrapper, state, signal, type = 'text', fullWidth = false) {
-    const row = document.createElement('label')
+    const ownerDocument = state.context.ownerDocument ?? wrapper.ownerDocument
+    const row = ownerDocument.createElement('label')
     row.className = 'oe-carousel-block__field'
     row.classList.toggle('oe-carousel-block__field--full', fullWidth)
     row.classList.toggle('oe-carousel-block__field--multiline', multiline)
-    const title = document.createElement('span')
+    const title = ownerDocument.createElement('span')
     title.textContent = label
     const input = multiline
-      ? document.createElement('textarea')
-      : document.createElement('input')
-    if (input instanceof HTMLInputElement) input.type = type
+      ? ownerDocument.createElement('textarea')
+      : ownerDocument.createElement('input')
+    const InputCtor = ownerDocument.defaultView?.HTMLInputElement
+    if (InputCtor && input instanceof InputCtor) input.type = type
     input.value = value
     input.addEventListener('change', () => state.context.mutate(() => {
       update(input.value)
@@ -713,16 +725,17 @@ export class CarouselBlock extends BlockPluginAbstract {
    * @returns {HTMLLabelElement} Label containing the checkbox.
    */
   #checkbox(label, checked, update, wrapper, state, signal) {
-    const row = document.createElement('label')
+    const ownerDocument = state.context.ownerDocument ?? wrapper.ownerDocument
+    const row = ownerDocument.createElement('label')
     row.className = 'oe-carousel-block__switch'
-    const input = document.createElement('input')
+    const input = ownerDocument.createElement('input')
     input.type = 'checkbox'
     input.checked = checked
     input.addEventListener('change', () => state.context.mutate(() => {
       update(input.checked)
       this.#build(wrapper, state)
     }), { signal })
-    row.append(input, document.createTextNode(label))
+    row.append(input, ownerDocument.createTextNode(label))
     return row
   }
 
@@ -769,6 +782,7 @@ export class CarouselBlock extends BlockPluginAbstract {
     const state = this.#states.get(wrapper)
     if (!state || state.context.readOnly) return
     triggerFileInput({
+      ownerDocument: wrapper.ownerDocument,
       accept: 'image/*,video/*',
       multiple: true,
       signal: state.lifecycleController.signal,

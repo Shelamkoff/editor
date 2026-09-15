@@ -1,5 +1,5 @@
 import { test, assert, equal } from './harness.js'
-import { createBackButton, restoreSelectionOffsets, saveSelectionOffsets, toggleTag } from '../../../inline-tools/utils.js'
+import { createBackButton, getBlockContentElement, getBlockElement, restoreSelectionOffsets, saveSelectionOffsets, toggleTag } from '../../../inline-tools/utils.js'
 
 export function register() {
   test('shared inline range helpers stay in the range owning realm', () => {
@@ -21,6 +21,25 @@ export function register() {
       selection.removeAllRanges()
       selection.addRange(range)
       window.getSelection().removeAllRanges()
+
+      equal(getBlockElement(doc), field, 'block lookup used the ambient selection realm')
+      const blockRoot = doc.createElement('div')
+      blockRoot.className = 'oe-block'
+      const pluginRoot = doc.createElement('div')
+      const nested = doc.createElement('span')
+      nested.contentEditable = 'true'
+      nested.textContent = 'X'
+      pluginRoot.appendChild(nested)
+      blockRoot.appendChild(pluginRoot)
+      doc.body.appendChild(blockRoot)
+      const nestedRange = doc.createRange()
+      nestedRange.selectNodeContents(nested)
+      nestedRange.collapse(false)
+      selection.removeAllRanges()
+      selection.addRange(nestedRange)
+      equal(getBlockContentElement(doc), pluginRoot, 'block content lookup used the ambient element realm')
+      selection.removeAllRanges()
+      selection.addRange(range)
 
       const saved = saveSelectionOffsets(range)
       toggleTag('b', range)

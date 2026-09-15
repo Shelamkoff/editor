@@ -33,21 +33,23 @@ export class Raw extends BlockPluginAbstract {
    * @returns {HTMLElement}
    */
   render(data, context) {
+    const ownerDocument = context.ownerDocument ?? globalThis.document
+    const view = ownerDocument.defaultView ?? globalThis
     const previewId = `oe-raw-preview-${++rawSequence}`
-    const wrapper = document.createElement('div')
+    const wrapper = ownerDocument.createElement('div')
     wrapper.classList.add('oe-raw')
     wrapper.contentEditable = 'false'
     wrapper.tabIndex = -1
 
     // Header bar
-    const bar = document.createElement('div')
+    const bar = ownerDocument.createElement('div')
     bar.className = 'oe-raw__bar'
 
-    const label = document.createElement('span')
+    const label = ownerDocument.createElement('span')
     label.className = 'oe-raw__label'
     label.textContent = 'HTML'
 
-    const toggleBtn = document.createElement('button')
+    const toggleBtn = ownerDocument.createElement('button')
     toggleBtn.type = 'button'
     toggleBtn.className = 'oe-raw__toggle'
     toggleBtn.textContent = this._t('preview', 'Preview')
@@ -68,7 +70,7 @@ export class Raw extends BlockPluginAbstract {
     bar.append(label, toggleBtn)
 
     // Textarea (code input)
-    const textarea = document.createElement('textarea')
+    const textarea = ownerDocument.createElement('textarea')
     textarea.setAttribute('data-oe-document-input', '')
     textarea.className = 'oe-raw__textarea'
     textarea.placeholder = this._t('placeholder', 'Paste HTML code...')
@@ -117,7 +119,7 @@ export class Raw extends BlockPluginAbstract {
     })
 
     // Preview container
-    const preview = document.createElement('div')
+    const preview = ownerDocument.createElement('div')
     preview.className = 'oe-raw__preview'
     preview.id = previewId
     preview.style.display = 'none'
@@ -126,7 +128,7 @@ export class Raw extends BlockPluginAbstract {
 
     wrapper.append(bar, textarea, preview)
 
-    requestAnimationFrame(() => this.#autoResize(textarea))
+    view.requestAnimationFrame(() => this.#autoResize(textarea))
     if (context.readOnly) this.#syncPreview(wrapper)
 
     return wrapper
@@ -192,6 +194,8 @@ export class Raw extends BlockPluginAbstract {
   #syncPreview(wrapper) {
     const s = stateMap.get(wrapper)
     if (!s) return
+    const ownerDocument = wrapper.ownerDocument ?? globalThis.document
+    const view = ownerDocument?.defaultView ?? globalThis
     const toggle = /** @type {HTMLButtonElement | null} */ (wrapper.querySelector('.oe-raw__toggle'))
     toggle?.setAttribute('aria-pressed', String(s.showPreview))
 
@@ -199,7 +203,7 @@ export class Raw extends BlockPluginAbstract {
       s.textarea.style.display = 'none'
       s.preview.style.display = ''
       s.preview.textContent = ''
-      const iframe = document.createElement('iframe')
+      const iframe = ownerDocument.createElement('iframe')
       iframe.sandbox = ''
       iframe.title = this._t('previewFrame', 'HTML preview')
       iframe.style.cssText = 'width:100%;border:none;min-height:100px'
@@ -215,13 +219,13 @@ export class Raw extends BlockPluginAbstract {
         }
       }
       iframe.addEventListener('load', resizeIframe)
-      requestAnimationFrame(resizeIframe)
+      view.requestAnimationFrame(resizeIframe)
       toggle?.classList.add('oe-raw__toggle--active')
     } else {
       s.textarea.style.display = ''
       s.preview.style.display = 'none'
       toggle?.classList.remove('oe-raw__toggle--active')
-      requestAnimationFrame(() => this.#autoResize(s.textarea))
+      view.requestAnimationFrame(() => this.#autoResize(s.textarea))
     }
   }
 }

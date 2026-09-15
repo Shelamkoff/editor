@@ -54,7 +54,8 @@ export class Callout {
   }
 
   render(data, context) {
-    const root = document.createElement('aside')
+    const ownerDocument = context.ownerDocument ?? document
+    const root = ownerDocument.createElement('aside')
     root.className = 'callout'
     root.contentEditable = 'true'
     root.innerHTML = sanitizeHtml(String(data.text ?? ''))
@@ -90,8 +91,9 @@ Native edits inside `contenteditable` are tracked by Rector. A plugin-owned butt
 | `splitBlock()` | Insert and focus the configured default block immediately after the current block. When called inside an active `mutate()`, both the plugin cleanup and the insertion belong to the same history step. |
 | `exitEmptyBlock()` | Convert the current empty non-default block to the configured default type. Returns `true` only when conversion occurred. |
 | `readOnly` | `true` when controls that change the document must not be mounted or activated. |
+| `ownerDocument` | The editor's owning `Document`. Create plugin DOM, ranges, and document-bound browser objects from this realm instead of ambient `document`/`window`. |
 
-Use `splitBlock()` for a list-like control that consumes its empty trailing item and needs to continue in a normal paragraph. Use `exitEmptyBlock()` when the structured block itself is empty. Do not dispatch synthetic keyboard events to request either operation: they can be intercepted by the plugin again and do not define a reliable command boundary. Structural methods are inert when edit-mode services are unavailable.
+Use `splitBlock()` for a list-like control that consumes its empty trailing item and needs to continue in a normal paragraph. Use `exitEmptyBlock()` when the structured block itself is empty. Do not dispatch synthetic keyboard events to request either operation: they can be intercepted by the plugin again and do not define a reliable command boundary. Structural methods are inert when edit-mode services are unavailable. Use `ownerDocument` whenever the plugin creates DOM or accesses document-scoped browser APIs so the same plugin works when Rector is mounted in an iframe or another browsing realm.
 
 In read-only mode Rector disables buttons, inputs, and other controls inside a block by default. A genuinely presentation-only control may remain interactive by carrying `data-oe-read-only-interactive`, for example a copy button, carousel navigation, or a spoiler disclosure. Do not add this attribute to voting, uploads, settings, navigation with application side effects, or any action that changes serialized data. The attribute is an explicit promise that the control is safe in read-only mode; it does not make the handler safe automatically.
 
@@ -285,7 +287,7 @@ interface InlinePlugin {
   readonly type: string
   readonly title: string
   readonly icon: string
-  createWidget(data: Record<string, string>, id?: string): HTMLElement
+  createWidget(data: Record<string, string>, id?: string, context?: { ownerDocument: Document }): HTMLElement
   hydrate(element: HTMLElement, context: InlinePluginContext): void
   getData(element: HTMLElement): Record<string, string>
   isCommitted?(element: HTMLElement): boolean
@@ -294,7 +296,7 @@ interface InlinePlugin {
 
 Optional `trigger`, `pasteConfig`, `onPatternMatch()`, `onEdit()`, `onCancel()`, `onCommit()`, and `insertFresh()` support suggestion flows and pattern conversion. A trigger is exactly one Unicode code point. The editor calls `onCancel()` when an active trigger session is abandoned, so the plugin can close transient UI and cancel pending work. `isCommitted()` can exclude an in-progress widget from structured serialization while preserving its visible text. Interactions that change stored widget data use `context.mutate(target, operation)`.
 
-The editor may instantiate one plugin object for many widget elements. Store element-specific state in a `WeakMap`, not in one shared field.
+When `context.ownerDocument` is provided, create the widget DOM in that document so iframe and multi-realm editors do not borrow ambient DOM constructors. The editor may instantiate one plugin object for many widget elements. Store element-specific state in a `WeakMap`, not in one shared field.
 
 Widget storage, insertion, renderer registration, and a side-by-side comparison with formatting tools are covered in [Inline tools and inline plugins](/guide/inline-extensions).
 
@@ -307,8 +309,9 @@ export function createCalloutRenderer(prefix = 'oe') {
   return {
     type: 'callout',
     styles: [new URL('./callout-renderer.css', import.meta.url).href],
-    render(block, parseInline) {
-      const root = document.createElement('aside')
+    render(block, parseInline, context) {
+      const ownerDocument = context?.ownerDocument ?? document
+      const root = ownerDocument.createElement('aside')
       root.className = `${prefix}-callout`
       root.append(parseInline(String(block.data.text ?? '')))
       return root
@@ -320,7 +323,7 @@ export function createCalloutRenderer(prefix = 'oe') {
 }
 ```
 
-Register it through `renderer.registerRenderer()`. `parseInline()` sanitizes supported formatting and reconstructs registered inline widgets. Never assign untrusted plugin data directly to `innerHTML`.
+Register it through `renderer.registerRenderer()`. `context.ownerDocument` identifies the document that owns a `renderTo()` target; create renderer DOM in that realm. `parseInline()` sanitizes supported formatting and reconstructs registered inline widgets. Never assign untrusted plugin data directly to `innerHTML`.
 
 ## Styles and localization
 

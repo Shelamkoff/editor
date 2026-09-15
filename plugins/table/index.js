@@ -6,6 +6,7 @@ import { validateTableData } from '../../shared/blockDataValidators.js'
 import { mapTableTextFields } from '../../shared/mapTextFields.js'
 
 const editorStyles = new URL('./table.css', import.meta.url).href
+const ELEMENT_NODE = 1
 
 // Tabler icon: table
 const ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-14z"/><path d="M3 10h18"/><path d="M10 3v18"/></svg>'
@@ -44,6 +45,7 @@ export class Table extends BlockPluginAbstract {
    * @returns {HTMLElement}
    */
   render(data, context) {
+    const ownerDocument = context.ownerDocument ?? globalThis.document
     const inputRows = Array.isArray(data?.content)
       ? data.content.filter(Array.isArray)
       : []
@@ -51,18 +53,18 @@ export class Table extends BlockPluginAbstract {
     const cols = inputRows.find(row => row.length > 0)?.length || 3
     const withHeadings = data?.withHeadings === true
 
-    const wrapper = document.createElement('div')
+    const wrapper = ownerDocument.createElement('div')
     wrapper.classList.add('oe-table-wrapper')
     wrapper.dataset.headings = String(withHeadings)
 
-    const table = document.createElement('table')
+    const table = ownerDocument.createElement('table')
     table.classList.add('oe-table')
 
     for (let r = 0; r < rows; r++) {
-      const tr = document.createElement('tr')
+      const tr = table.ownerDocument.createElement('tr')
       for (let c = 0; c < cols; c++) {
         const isHeader = withHeadings && r === 0
-        const cell = document.createElement(isHeader ? 'th' : 'td')
+        const cell = table.ownerDocument.createElement(isHeader ? 'th' : 'td')
         cell.classList.add('oe-table__cell')
         cell.contentEditable = 'true'
         const candidate = inputRows[r]?.[c]
@@ -82,16 +84,20 @@ export class Table extends BlockPluginAbstract {
       if (event.defaultPrevented || !event.cancelable || event.isComposing) return
       event.preventDefault()
       event.stopPropagation()
-      const selection = window.getSelection()
+      const ownerDocument = wrapper.ownerDocument
+      const selection = ownerDocument.defaultView?.getSelection() ?? null
       if (!selection?.rangeCount) return
       const range = selection.getRangeAt(0)
       const cell = editableRange(wrapper, range)
-      const targetField = event.target instanceof Element
-        ? event.target.closest('[contenteditable]') : null
+      const eventTarget = event.target
+      const targetElement = eventTarget && typeof eventTarget === 'object' && 'closest' in eventTarget
+        ? /** @type {Element} */ (eventTarget)
+        : null
+      const targetField = targetElement?.closest('[contenteditable]') ?? null
       if (!cell?.matches('td, th') || cell.closest('table') !== table || targetField !== cell) return
       context.mutate(() => {
         range.deleteContents()
-        const br = document.createElement('br')
+        const br = ownerDocument.createElement('br')
         range.insertNode(br)
         range.setStartAfter(br)
         range.collapse(true)
@@ -131,18 +137,18 @@ export class Table extends BlockPluginAbstract {
     ]
 
     return defs.map(item => {
-      const btn = document.createElement('li')
+      const btn = element.ownerDocument.createElement('li')
       btn.setAttribute('role', 'menuitem')
       btn.setAttribute('tabindex', '-1')
       btn.className = 'oe-settings-menu__item'
       if (item.active) btn.classList.add('oe-settings-menu__item--active')
 
-      const ic = document.createElement('span')
+      const ic = element.ownerDocument.createElement('span')
       ic.className = 'oe-settings-menu__icon'
       ic.innerHTML = item.icon
       btn.appendChild(ic)
 
-      const lb = document.createElement('span')
+      const lb = element.ownerDocument.createElement('span')
       lb.className = 'oe-settings-menu__label'
       lb.textContent = item.label
       btn.appendChild(lb)
@@ -280,7 +286,7 @@ export class Table extends BlockPluginAbstract {
 
     const newTag = newIsHeader ? 'th' : 'td'
     for (const cell of [...firstRow.cells]) {
-      const newCell = document.createElement(newTag)
+      const newCell = table.ownerDocument.createElement(newTag)
       newCell.className = 'oe-table__cell'
       newCell.contentEditable = 'true'
       newCell.innerHTML = cell.innerHTML
@@ -295,9 +301,9 @@ export class Table extends BlockPluginAbstract {
    */
   #addRow(table) {
     const cols = table.rows[0]?.cells.length || 1
-    const tr = document.createElement('tr')
+    const tr = table.ownerDocument.createElement('tr')
     for (let c = 0; c < cols; c++) {
-      const td = document.createElement('td')
+      const td = table.ownerDocument.createElement('td')
       td.className = 'oe-table__cell'
       td.contentEditable = 'true'
       tr.appendChild(td)
@@ -328,7 +334,7 @@ export class Table extends BlockPluginAbstract {
       const row = table.rows[r]
       if (!row) continue
       const tag = (isHeader && r === 0) ? 'th' : 'td'
-      const cell = document.createElement(tag)
+      const cell = table.ownerDocument.createElement(tag)
       cell.className = 'oe-table__cell'
       cell.contentEditable = 'true'
       row.appendChild(cell)
@@ -357,11 +363,12 @@ export class Table extends BlockPluginAbstract {
    */
   #navigateCell(table, direction) {
     const cells = /** @type {HTMLElement[]} */ ([...table.querySelectorAll('td, th')])
-    const sel = window.getSelection()
+    const ownerDocument = table.ownerDocument
+    const sel = ownerDocument.defaultView?.getSelection() ?? null
     if (!sel || sel.rangeCount === 0) return false
 
     const activeCell = /** @type {HTMLElement | null} */ (
-      sel.anchorNode?.nodeType === Node.ELEMENT_NODE
+      sel.anchorNode?.nodeType === ELEMENT_NODE
         ? /** @type {HTMLElement} */ (sel.anchorNode).closest('td, th')
         : sel.anchorNode?.parentElement?.closest('td, th')
     )
@@ -378,7 +385,7 @@ export class Table extends BlockPluginAbstract {
     if (next) {
       next.focus()
       // Place caret at start or end
-      const range = document.createRange()
+      const range = ownerDocument.createRange()
       if (direction > 0) {
         range.setStart(next, 0)
       } else {

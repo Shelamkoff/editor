@@ -110,6 +110,12 @@ function parseVideoUrl(url) {
 /** Per-block state keyed by wrapper element */
 const stateMap = new WeakMap()
 
+/** @param {HTMLElement} element @returns {AbortController} */
+function createAbortControllerFor(element) {
+  const AbortControllerCtor = element.ownerDocument?.defaultView?.AbortController ?? AbortController
+  return new AbortControllerCtor()
+}
+
 /**
  * @typedef {Object} EmbedPreview
  * @property {string} thumbnailUrl Sanitized preview-image URL returned by the resolver.
@@ -193,6 +199,7 @@ export class Embed extends BlockPluginAbstract {
    * @returns {HTMLElement}
    */
   render(data, context) {
+    const ownerDocument = context.ownerDocument ?? globalThis.document
     const blockData = {
       service: normalizeTextValue(data?.service),
       videoId: normalizeTextValue(data?.videoId),
@@ -202,14 +209,14 @@ export class Embed extends BlockPluginAbstract {
       duration: normalizeTextValue(data?.duration),
     }
 
-    const wrapper = document.createElement('div')
+    const wrapper = ownerDocument.createElement('div')
     wrapper.classList.add(CSS.wrapper)
     wrapper.contentEditable = 'false'
     wrapper.tabIndex = -1
 
     stateMap.set(wrapper, {
       data: blockData,
-      lifecycleController: new AbortController(),
+      lifecycleController: createAbortControllerFor(wrapper),
       viewController: null,
       coverController: null,
       viewCleanups: [],
@@ -289,7 +296,7 @@ export class Embed extends BlockPluginAbstract {
       s.lifecycleController.abort()
       s.viewController?.abort()
       s.coverController?.abort()
-      if (s.inputTimer) clearTimeout(s.inputTimer)
+      if (s.inputTimer) (element.ownerDocument.defaultView ?? globalThis).clearTimeout(s.inputTimer)
       stateMap.delete(element)
     }
   }
@@ -315,7 +322,7 @@ export class Embed extends BlockPluginAbstract {
     if (!s) return
     for (const cleanup of s.viewCleanups.splice(0)) cleanup()
     s.viewController?.abort()
-    s.viewController = new AbortController()
+    s.viewController = createAbortControllerFor(wrapper)
   }
 
   /**
@@ -329,7 +336,7 @@ export class Embed extends BlockPluginAbstract {
     const s = stateMap.get(wrapper)
     if (!s || s.context.readOnly) return null
     s.coverController?.abort()
-    const controller = new AbortController()
+    const controller = createAbortControllerFor(wrapper)
     s.coverController = controller
     const parentSignal = s.viewController?.signal ?? s.lifecycleController.signal
     const abort = () => controller.abort(parentSignal.reason)
@@ -358,18 +365,20 @@ export class Embed extends BlockPluginAbstract {
   _renderUrlBar(wrapper) {
     const s = stateMap.get(wrapper)
     if (!s) return
+    const ownerDocument = s.context.ownerDocument ?? wrapper.ownerDocument
+    const view = ownerDocument.defaultView ?? globalThis
     const signal = s.lifecycleController.signal
 
-    const bar = document.createElement('div')
+    const bar = ownerDocument.createElement('div')
     bar.className = CSS.urlBar
 
-    const iconEl = document.createElement('span')
+    const iconEl = ownerDocument.createElement('span')
     iconEl.className = CSS.urlIcon
     iconEl.innerHTML = s.data.service ? (BRAND_ICONS[s.data.service] || ICON_FORMS) : ICON_FORMS
     bar.appendChild(iconEl)
     s.urlIconEl = iconEl
 
-    const input = document.createElement('input')
+    const input = ownerDocument.createElement('input')
     input.className = CSS.urlInput
     input.setAttribute('data-oe-document-input', 'history')
     input.type = 'url'
@@ -386,25 +395,25 @@ export class Embed extends BlockPluginAbstract {
     input.readOnly = s.context.readOnly
     if (!s.context.readOnly) {
       input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') { e.preventDefault(); if (s.inputTimer) clearTimeout(s.inputTimer); this._processUrl(wrapper, input.value.trim()) }
+        if (e.key === 'Enter') { e.preventDefault(); if (s.inputTimer) view.clearTimeout(s.inputTimer); this._processUrl(wrapper, input.value.trim()) }
         // Let modifier combos (Ctrl+Z, Ctrl+A, etc.) bubble to ShortcutRegistry
         if (!e.ctrlKey && !e.metaKey) e.stopPropagation()
       }, { signal })
       input.addEventListener('paste', (e) => {
         e.stopPropagation()
-        if (s.inputTimer) clearTimeout(s.inputTimer)
-        requestAnimationFrame(() => this._processUrl(wrapper, input.value.trim()))
+        if (s.inputTimer) view.clearTimeout(s.inputTimer)
+        view.requestAnimationFrame(() => this._processUrl(wrapper, input.value.trim()))
       }, { signal })
       input.addEventListener('input', () => {
-        if (s.inputTimer) clearTimeout(s.inputTimer)
-        s.inputTimer = setTimeout(() => { s.inputTimer = null; this._processUrl(wrapper, input.value.trim()) }, 500)
+        if (s.inputTimer) view.clearTimeout(s.inputTimer)
+        s.inputTimer = view.setTimeout(() => { s.inputTimer = null; this._processUrl(wrapper, input.value.trim()) }, 500)
       }, { signal })
     }
 
     bar.appendChild(input)
     wrapper.appendChild(bar)
 
-    if (!s.context.readOnly && !s.data.service) requestAnimationFrame(() => input.focus())
+    if (!s.context.readOnly && !s.data.service) view.requestAnimationFrame(() => input.focus())
   }
 
   /**
@@ -440,7 +449,7 @@ export class Embed extends BlockPluginAbstract {
       s.data.videoId = parsed.videoId
     })
 
-    requestAnimationFrame(() => {
+    ;((s.context.ownerDocument ?? wrapper.ownerDocument).defaultView ?? globalThis).requestAnimationFrame(() => {
       const st = stateMap.get(wrapper)
       if (
         !st
@@ -496,6 +505,7 @@ export class Embed extends BlockPluginAbstract {
       placeholderHtml: hasStaticPreview ? undefined : ICON_VIDEO_PLACEHOLDER,
       playLabel: this._t('play', 'Play video'),
       videoLabel: this._t('videoLabel', 'Video'),
+      ownerDocument: s.context.ownerDocument ?? wrapper.ownerDocument,
     })
 
     s.playerRef = result
@@ -523,9 +533,10 @@ export class Embed extends BlockPluginAbstract {
   _renderCaption(wrapper) {
     const s = stateMap.get(wrapper)
     if (!s) return
+    const ownerDocument = s.context.ownerDocument ?? wrapper.ownerDocument
     const signal = s.viewController?.signal
 
-    const caption = document.createElement('div')
+    const caption = ownerDocument.createElement('div')
     caption.className = CSS.caption
     caption.contentEditable = s.context.readOnly ? 'false' : 'true'
     caption.dataset.placeholder = this._t('caption', 'Caption')
@@ -559,18 +570,20 @@ export class Embed extends BlockPluginAbstract {
   _renderActions(wrapper) {
     const s = stateMap.get(wrapper)
     if (!s || s.context.readOnly) return
+    const ownerDocument = s.context.ownerDocument ?? wrapper.ownerDocument
+    const view = ownerDocument.defaultView ?? globalThis
     const signal = s.viewController?.signal
 
-    const actions = document.createElement('div')
+    const actions = ownerDocument.createElement('div')
     actions.className = CSS.actions
 
     // Main view
-    const mainView = document.createElement('div')
+    const mainView = ownerDocument.createElement('div')
     mainView.className = CSS.actionsView
     mainView.style.display = 'contents'
 
     // Settings dropdown
-    const dropdown = document.createElement('div')
+    const dropdown = ownerDocument.createElement('div')
     dropdown.className = CSS.dropdown
 
     const settingsBtn = this._makeBtn(
@@ -580,7 +593,7 @@ export class Embed extends BlockPluginAbstract {
         dropdown.classList.toggle(CSS.dropdownOpen, !isOpen)
         settingsBtn.setAttribute('aria-expanded', String(!isOpen))
         if (!isOpen) this._positionPanel(settingsBtn, panel)
-      }, signal
+      }, signal, ownerDocument
     )
     settingsBtn.setAttribute('aria-haspopup', 'true')
     settingsBtn.setAttribute('aria-expanded', 'false')
@@ -592,15 +605,15 @@ export class Embed extends BlockPluginAbstract {
         settingsBtn.setAttribute('aria-expanded', 'false')
       }
     }
-    document.addEventListener('click', closeOnOutsideClick, { signal })
+    ownerDocument.addEventListener('click', closeOnOutsideClick, { signal })
     // AbortSignal removes the listener in modern browsers. The explicit
     // removal also makes ownership observable to lifecycle instrumentation
     // and protects consumers that polyfill signal-aware listeners.
     signal?.addEventListener('abort', () => {
-      document.removeEventListener('click', closeOnOutsideClick)
+      ownerDocument.removeEventListener('click', closeOnOutsideClick)
     }, { once: true })
     s.viewCleanups.push(() => {
-      document.removeEventListener('click', closeOnOutsideClick)
+      ownerDocument.removeEventListener('click', closeOnOutsideClick)
     })
     dropdown.addEventListener('keydown', (e) => {
       if (e.key !== 'Escape') return
@@ -612,21 +625,21 @@ export class Embed extends BlockPluginAbstract {
 
     dropdown.append(settingsBtn, panel)
     mainView.appendChild(dropdown)
-    mainView.appendChild(this._makeSep())
+    mainView.appendChild(this._makeSep(ownerDocument))
 
     // Cover (drill-down)
     const coverBtn = this._makeBtn(
       `${ICON_PHOTO} ${escapeHtml(this._t('cover', 'Cover'))} ${ICON_CHEVRON_RIGHT}`,
       () => this._showCoverView(wrapper, actions, mainView, signal),
-      signal
+      signal, ownerDocument
     )
     coverBtn.querySelector('svg:last-child')?.classList.add(CSS.actionChevron)
     mainView.appendChild(coverBtn)
 
-    mainView.appendChild(this._makeSep())
+    mainView.appendChild(this._makeSep(ownerDocument))
 
     // Delete
-    const deleteBtn = document.createElement('button')
+    const deleteBtn = ownerDocument.createElement('button')
     deleteBtn.type = 'button'
     deleteBtn.className = `${CSS.actionBtn} ${CSS.actionBtnDanger}`
     deleteBtn.innerHTML = ICON_TRASH
@@ -637,7 +650,7 @@ export class Embed extends BlockPluginAbstract {
       const st = stateMap.get(wrapper)
       if (!st) return
       st.context.mutate(() => {
-        if (st.inputTimer) clearTimeout(st.inputTimer)
+        if (st.inputTimer) view.clearTimeout(st.inputTimer)
         st.data = this._defaultData()
         this._removePlayerElements(wrapper)
         if (st.urlIconEl) st.urlIconEl.innerHTML = ICON_FORMS
@@ -661,9 +674,11 @@ export class Embed extends BlockPluginAbstract {
    * @returns {void}
    */
   _showCoverView(wrapper, actions, mainView, signal) {
+    const ownerDocument = wrapper.ownerDocument
+    const view = ownerDocument.defaultView ?? globalThis
     mainView.style.display = 'none'
 
-    const coverView = document.createElement('div')
+    const coverView = ownerDocument.createElement('div')
     coverView.className = CSS.actionsView
     coverView.style.display = 'contents'
 
@@ -671,16 +686,16 @@ export class Embed extends BlockPluginAbstract {
     const backBtn = this._makeBtn(
       `${ICON_BACK} ${escapeHtml(this._t('back', 'Back'))}`,
       () => { coverView.remove(); mainView.style.display = 'contents' },
-      signal
+      signal, ownerDocument
     )
     coverView.appendChild(backBtn)
-    coverView.appendChild(this._makeSep())
+    coverView.appendChild(this._makeSep(ownerDocument))
 
     // Upload
     coverView.appendChild(this._makeBtn(
       `${ICON_UPLOAD} ${escapeHtml(this._t('uploadCover', 'Upload'))}`,
       () => { this._triggerCoverUpload(wrapper); coverView.remove(); mainView.style.display = 'contents' },
-      signal
+      signal, ownerDocument
     ))
 
     // Media Library (if config has actions)
@@ -705,7 +720,7 @@ export class Embed extends BlockPluginAbstract {
           coverView.remove()
           mainView.style.display = 'contents'
         },
-        signal
+        signal, ownerDocument
       ))
     }
 
@@ -713,7 +728,7 @@ export class Embed extends BlockPluginAbstract {
     coverView.appendChild(this._makeBtn(
       `${ICON_LINK} URL`,
       () => {
-        const url = sanitizeUrl(prompt(this._t('coverUrlPrompt', 'Image URL:')) || '', { policy: 'media', fallback: '' })
+        const url = sanitizeUrl(view.prompt?.(this._t('coverUrlPrompt', 'Image URL:')) || '', { policy: 'media', fallback: '' })
         const st = stateMap.get(wrapper)
         if (url && st) {
           st.context.mutate(() => { st.data.cover = url; this._rebuildPlayer(wrapper) })
@@ -721,14 +736,14 @@ export class Embed extends BlockPluginAbstract {
         coverView.remove()
         mainView.style.display = 'contents'
       },
-      signal
+      signal, ownerDocument
     ))
 
     // Remove cover (if has one)
     const s = stateMap.get(wrapper)
     if (s && s.data.cover) {
-      coverView.appendChild(this._makeSep())
-      const removeBtn = document.createElement('button')
+      coverView.appendChild(this._makeSep(ownerDocument))
+      const removeBtn = ownerDocument.createElement('button')
       removeBtn.type = 'button'
       removeBtn.className = `${CSS.actionBtn} ${CSS.actionBtnDanger}`
       removeBtn.innerHTML = `${ICON_REMOVE} ${escapeHtml(this._t('removeCover', 'Remove'))}`
@@ -753,23 +768,24 @@ export class Embed extends BlockPluginAbstract {
    */
   _buildSettingsPanel(wrapper) {
     const s = stateMap.get(wrapper)
-    if (!s) return document.createElement('div')
+    const ownerDocument = s?.context.ownerDocument ?? wrapper.ownerDocument
+    if (!s) return ownerDocument.createElement('div')
 
-    const panel = document.createElement('div')
+    const panel = ownerDocument.createElement('div')
     panel.className = CSS.dropdownPanel
     panel.setAttribute('role', 'group')
     panel.addEventListener('click', (e) => e.stopPropagation())
 
-    const form = document.createElement('div')
+    const form = ownerDocument.createElement('div')
     form.className = CSS.styleForm
 
-    form.appendChild(this._makeInputRow(
+    form.appendChild(this._makeInputRow(ownerDocument,
       this._t('videoTitle', 'Title'),
       s.data.title,
       (v) => { const st = stateMap.get(wrapper); if (st) { st.data.title = v; this._updateOverlay(wrapper, CSS.titleOverlay, v) } }
     ))
 
-    form.appendChild(this._makeInputRow(
+    form.appendChild(this._makeInputRow(ownerDocument,
       this._t('duration', 'Duration'),
       s.data.duration,
       (v) => { const st = stateMap.get(wrapper); if (st) { st.data.duration = v; this._updateOverlay(wrapper, CSS.durationOverlay, v) } }
@@ -780,22 +796,23 @@ export class Embed extends BlockPluginAbstract {
   }
 
   /**
+   * @param {Document} ownerDocument
    * @param {string} label
    * @param {string} value
    * @param {(v: string) => void} onChange
    * @returns {HTMLElement}
    */
-  _makeInputRow(label, value, onChange) {
-    const row = document.createElement('div')
+  _makeInputRow(ownerDocument, label, value, onChange) {
+    const row = ownerDocument.createElement('div')
     row.className = CSS.styleRow
 
-    const lbl = document.createElement('label')
+    const lbl = ownerDocument.createElement('label')
     lbl.className = CSS.styleLabel
-    const span = document.createElement('span')
+    const span = ownerDocument.createElement('span')
     span.textContent = label
     lbl.appendChild(span)
 
-    const input = document.createElement('input')
+    const input = ownerDocument.createElement('input')
     input.type = 'text'
     input.className = CSS.styleInput
     input.value = value || ''
@@ -814,12 +831,13 @@ export class Embed extends BlockPluginAbstract {
    * @returns {void}
    */
   _updateOverlay(wrapper, cls, text) {
+    const ownerDocument = wrapper.ownerDocument
     const player = wrapper.querySelector(`.${CSS.player}`)
     if (!player) return
     let el = player.querySelector(`.${cls}`)
     if (text) {
       if (!el) {
-        el = document.createElement('span')
+        el = ownerDocument.createElement('span')
         el.className = cls
         player.appendChild(el)
       }
@@ -859,7 +877,8 @@ export class Embed extends BlockPluginAbstract {
   _triggerCoverUpload(wrapper) {
     const current = stateMap.get(wrapper)
     if (!current || current.context.readOnly) return
-    const input = document.createElement('input')
+    const ownerDocument = current.context.ownerDocument ?? wrapper.ownerDocument
+    const input = ownerDocument.createElement('input')
     input.type = 'file'
     input.accept = 'image/*'
     input.addEventListener('change', () => {
@@ -913,12 +932,14 @@ export class Embed extends BlockPluginAbstract {
     if (!s) return
     const videoId = s.data.videoId
     const playerRef = s.playerRef
-    const controller = new AbortController()
+    const controller = createAbortControllerFor(wrapper)
     const parentSignal = s.viewController?.signal
     const abort = () => controller.abort(parentSignal?.reason)
     parentSignal?.addEventListener('abort', abort, { once: true })
-    const timeout = setTimeout(
-      () => controller.abort(new DOMException('Embed preview timed out', 'TimeoutError')),
+    const view = wrapper.ownerDocument.defaultView ?? globalThis
+    const DOMExceptionCtor = wrapper.ownerDocument.defaultView?.DOMException ?? DOMException
+    const timeout = view.setTimeout(
+      () => controller.abort(new DOMExceptionCtor('Embed preview timed out', 'TimeoutError')),
       Number.isFinite(this._config.previewTimeoutMs)
         ? Math.max(0, Number(this._config.previewTimeoutMs))
         : 5000,
@@ -959,7 +980,7 @@ export class Embed extends BlockPluginAbstract {
     } catch (error) {
       if (!controller.signal.aborted) console.warn('[Embed] Failed to resolve Vimeo preview', error)
     } finally {
-      clearTimeout(timeout)
+      view.clearTimeout(timeout)
       parentSignal?.removeEventListener('abort', abort)
     }
   }
@@ -968,10 +989,11 @@ export class Embed extends BlockPluginAbstract {
    * @param {string} html
    * @param {() => void | Promise<void>} handler
    * @param {AbortSignal} [signal]
+   * @param {Document} [ownerDocument]
    * @returns {HTMLButtonElement}
    */
-  _makeBtn(html, handler, signal) {
-    const btn = document.createElement('button')
+  _makeBtn(html, handler, signal, ownerDocument = globalThis.document) {
+    const btn = ownerDocument.createElement('button')
     btn.type = 'button'
     btn.className = CSS.actionBtn
     btn.innerHTML = html
@@ -980,9 +1002,9 @@ export class Embed extends BlockPluginAbstract {
     return btn
   }
 
-  /** @returns {HTMLDivElement} */
-  _makeSep() {
-    const sep = document.createElement('div')
+  /** @param {Document} [ownerDocument] @returns {HTMLDivElement} */
+  _makeSep(ownerDocument = globalThis.document) {
+    const sep = ownerDocument.createElement('div')
     sep.className = CSS.actionsSep
     return sep
   }
@@ -997,7 +1019,9 @@ export class Embed extends BlockPluginAbstract {
     panel.style.bottom = ''
     const rect = anchor.getBoundingClientRect()
     const h = panel.offsetHeight || 200
-    if (window.innerHeight - rect.bottom - 8 < h) {
+    const ownerDocument = anchor.ownerDocument
+    const viewportHeight = ownerDocument.defaultView?.innerHeight ?? ownerDocument.documentElement.clientHeight
+    if (viewportHeight - rect.bottom - 8 < h) {
       panel.style.top = 'auto'
       panel.style.bottom = 'calc(100% + 8px)'
     } else {

@@ -319,13 +319,14 @@ export class Code extends BlockPluginAbstract {
    * @returns {HTMLElement}
    */
   render(data, context) {
+    const ownerDocument = context.ownerDocument ?? globalThis.document
     const code = typeof data.code === 'string' ? data.code : ''
     const language = typeof data.language === 'string' && data.language
       ? data.language
       : 'auto'
 
     // ── Wrapper (non-editable, focusable) ──
-    const wrapper = document.createElement('div')
+    const wrapper = ownerDocument.createElement('div')
     wrapper.classList.add('oe-code-wrap')
     wrapper.contentEditable = 'false'
     wrapper.tabIndex = -1
@@ -336,16 +337,16 @@ export class Code extends BlockPluginAbstract {
     this.#wrappers.add(wrapper)
 
     // ── Header bar ──
-    const bar = document.createElement('div')
+    const bar = ownerDocument.createElement('div')
     bar.className = 'oe-code-bar'
 
-    const dots = document.createElement('span')
+    const dots = ownerDocument.createElement('span')
     dots.className = 'oe-code-dots'
     dots.innerHTML = '<span></span><span></span><span></span>'
 
     const { dropdown, langLabel } = this.#buildDropdown(wrapper)
 
-    const copyBtn = document.createElement('button')
+    const copyBtn = ownerDocument.createElement('button')
     copyBtn.className = 'oe-code-btn oe-code-btn--copy'
     copyBtn.type = 'button'
     copyBtn.title = this._t('copy', 'Copy')
@@ -354,7 +355,7 @@ export class Code extends BlockPluginAbstract {
     copyBtn.innerHTML = ICON_COPY
     copyBtn.addEventListener('click', () => this.#copy(wrapper, copyBtn))
 
-    const editBtn = document.createElement('button')
+    const editBtn = ownerDocument.createElement('button')
     editBtn.className = 'oe-code-btn oe-code-btn--edit'
     editBtn.type = 'button'
     editBtn.title = this._t('edit', 'Edit')
@@ -377,12 +378,12 @@ export class Code extends BlockPluginAbstract {
     bar.appendChild(editBtn)
 
     // ── Stacked editor area ──
-    const editorWrap = document.createElement('div')
+    const editorWrap = ownerDocument.createElement('div')
     editorWrap.className = 'oe-code-editor'
 
-    const pre = document.createElement('pre')
+    const pre = ownerDocument.createElement('pre')
     pre.className = 'oe-code-pre'
-    const codeEl = document.createElement('code')
+    const codeEl = ownerDocument.createElement('code')
     codeEl.className = language === 'auto' ? '' : `language-${language}`
     pre.appendChild(codeEl)
 
@@ -390,7 +391,7 @@ export class Code extends BlockPluginAbstract {
       if (!codeStateMap.get(wrapper)?.editMode) this.#switchToEdit(wrapper)
     })
 
-    const textarea = document.createElement('textarea')
+    const textarea = ownerDocument.createElement('textarea')
     textarea.setAttribute('data-oe-document-input', '')
     textarea.className = 'oe-code-textarea'
     textarea.placeholder = this._t('placeholder', '// Write code...')
@@ -522,11 +523,12 @@ export class Code extends BlockPluginAbstract {
   destroy(element) {
     this.#wrappers.delete(element)
     const state = codeStateMap.get(element)
-    if (state?.copyResetTimer) clearTimeout(state.copyResetTimer)
+    const ownerDocument = state?.context.ownerDocument ?? element.ownerDocument ?? globalThis.document
+    if (state?.copyResetTimer) (ownerDocument?.defaultView ?? globalThis).clearTimeout(state.copyResetTimer)
     const refs = refsMap.get(element)
     const handler = docMousedownMap.get(element)
     if (handler) {
-      document.removeEventListener('mousedown', handler)
+      ownerDocument?.removeEventListener('mousedown', handler)
     }
     if (refs?.dropdown) dropdownRefsMap.delete(refs.dropdown)
     docMousedownMap.delete(element)
@@ -617,15 +619,18 @@ export class Code extends BlockPluginAbstract {
     const code = state?.code || ''
     if (!code) return
 
-    const writeText = navigator.clipboard?.writeText
+    const ownerNavigator = wrapper.ownerDocument?.defaultView?.navigator ?? globalThis.navigator
+    const clipboard = ownerNavigator?.clipboard
+    const writeText = clipboard?.writeText
     if (typeof writeText !== 'function') return
 
-    void writeText.call(navigator.clipboard, code).then(() => {
+    void writeText.call(clipboard, code).then(() => {
       if (!codeStateMap.has(wrapper)) return
       btn.innerHTML = ICON_CHECK
       btn.classList.add('oe-code-btn--copied')
-      if (state?.copyResetTimer) clearTimeout(state.copyResetTimer)
-      const timer = setTimeout(() => {
+      const view = wrapper.ownerDocument?.defaultView ?? globalThis
+      if (state?.copyResetTimer) view.clearTimeout(state.copyResetTimer)
+      const timer = view.setTimeout(() => {
         if (state) state.copyResetTimer = null
         if (!codeStateMap.has(wrapper)) return
         btn.innerHTML = ICON_COPY
@@ -647,6 +652,7 @@ export class Code extends BlockPluginAbstract {
    */
   #handleKeydown(e, wrapper, textarea) {
     const hkState = codeStateMap.get(wrapper)
+    const view = wrapper.ownerDocument?.defaultView ?? globalThis
     // Always stop propagation to prevent KeyboardManager from interfering
     // Exceptions: let Escape bubble after switching to view, let arrow keys
     // bubble at textarea boundaries for block navigation
@@ -726,7 +732,7 @@ export class Code extends BlockPluginAbstract {
       e.stopPropagation()
       // Don't prevent default — let textarea handle newline naturally
       // Update state after browser inserts newline
-      requestAnimationFrame(() => {
+      view.requestAnimationFrame(() => {
         if (hkState) hkState.code = textarea.value
         this.#highlight(wrapper)
       })
@@ -740,7 +746,7 @@ export class Code extends BlockPluginAbstract {
         return
       }
       e.stopPropagation()
-      requestAnimationFrame(() => {
+      view.requestAnimationFrame(() => {
         if (hkState) hkState.code = textarea.value
         this.#highlight(wrapper)
       })
@@ -753,7 +759,7 @@ export class Code extends BlockPluginAbstract {
         return
       }
       e.stopPropagation()
-      requestAnimationFrame(() => {
+      view.requestAnimationFrame(() => {
         if (hkState) hkState.code = textarea.value
         this.#highlight(wrapper)
       })
@@ -788,7 +794,7 @@ export class Code extends BlockPluginAbstract {
     e.stopPropagation()
 
     // Update highlight for any content changes
-    requestAnimationFrame(() => {
+    view.requestAnimationFrame(() => {
       if (hkState) hkState.code = textarea.value
       this.#highlight(wrapper)
     })
@@ -809,14 +815,15 @@ export class Code extends BlockPluginAbstract {
    * @returns {{ dropdown: HTMLElement, trigger: HTMLElement, langLabel: HTMLElement }}
    */
   #buildDropdown(wrapper) {
-    const dropdown = document.createElement('div')
+    const state = /** @type {NonNullable<ReturnType<typeof codeStateMap.get>>} */ (codeStateMap.get(wrapper))
+    const ownerDocument = state.context.ownerDocument ?? wrapper.ownerDocument ?? globalThis.document
+    const dropdown = ownerDocument.createElement('div')
     dropdown.className = 'oe-code-dropdown'
     const dropdownId = `oe-code-dropdown-${++dropdownSequence}`
 
-    const state = /** @type {NonNullable<ReturnType<typeof codeStateMap.get>>} */ (codeStateMap.get(wrapper))
 
     // Trigger button
-    const trigger = document.createElement('button')
+    const trigger = ownerDocument.createElement('button')
     trigger.type = 'button'
     trigger.className = 'oe-code-dropdown__trigger'
     trigger.setAttribute('aria-haspopup', 'listbox')
@@ -835,12 +842,12 @@ export class Code extends BlockPluginAbstract {
     })
 
     // Panel
-    const panel = document.createElement('div')
+    const panel = ownerDocument.createElement('div')
     panel.className = 'oe-code-dropdown__panel'
     panel.id = `${dropdownId}-panel`
 
     // Search input
-    const search = document.createElement('input')
+    const search = ownerDocument.createElement('input')
     search.type = 'text'
     search.className = 'oe-code-dropdown__search'
     search.placeholder = this._t('search', 'Search...')
@@ -852,7 +859,7 @@ export class Code extends BlockPluginAbstract {
     search.autocomplete = 'off'
 
     // List (created before search listeners that reference it)
-    const list = document.createElement('div')
+    const list = ownerDocument.createElement('div')
     list.className = 'oe-code-dropdown__list'
     list.id = `${dropdownId}-list`
     list.setAttribute('role', 'listbox')
@@ -899,7 +906,7 @@ export class Code extends BlockPluginAbstract {
     })
 
     for (const lang of LANGUAGES) {
-      const item = document.createElement('div')
+      const item = ownerDocument.createElement('div')
       item.className = 'oe-code-dropdown__item'
       if (lang.value === state.language) item.classList.add('oe-code-dropdown__item--active')
       item.setAttribute('role', 'option')
@@ -922,7 +929,7 @@ export class Code extends BlockPluginAbstract {
     dropdownRefsMap.set(dropdown, { panel, search, list, trigger })
 
     // Language label (view mode)
-    const langLabel = document.createElement('span')
+    const langLabel = ownerDocument.createElement('span')
     langLabel.className = 'oe-code-lang'
     const labelLang = LANGUAGES.find(l => l.value === state.language)
     langLabel.textContent = labelLang ? this.#languageLabel(labelLang) : state.language
@@ -933,7 +940,7 @@ export class Code extends BlockPluginAbstract {
         this.#closeDropdown(wrapper)
       }
     }
-    document.addEventListener('mousedown', onDocMousedown)
+    ownerDocument.addEventListener('mousedown', onDocMousedown)
     docMousedownMap.set(wrapper, onDocMousedown)
 
     return { dropdown, trigger, langLabel }

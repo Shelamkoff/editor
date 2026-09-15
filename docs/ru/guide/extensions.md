@@ -54,7 +54,8 @@ export class Callout {
   }
 
   render(data, context) {
-    const root = document.createElement('aside')
+    const ownerDocument = context.ownerDocument ?? document
+    const root = ownerDocument.createElement('aside')
     root.className = 'callout'
     root.contentEditable = 'true'
     root.innerHTML = sanitizeHtml(String(data.text ?? ''))
@@ -88,8 +89,9 @@ export class Callout {
 | `splitBlock()` | Вставить сразу после текущего блока стандартный тип блока и передать ему фокус. При вызове внутри активного `mutate()` очистка данных плагина и вставка входят в один шаг истории. |
 | `exitEmptyBlock()` | Преобразовать текущий пустой нестандартный блок в настроенный стандартный тип. Возвращает `true`, только если преобразование выполнено. |
 | `readOnly` | Равно `true`, когда элементы управления, меняющие документ, нельзя подключать или активировать. |
+| `ownerDocument` | Владеющий редактором `Document`. Создавайте DOM, диапазоны и привязанные к документу браузерные объекты в этом realm, а не через окружающие `document`/`window`. |
 
-Используйте `splitBlock()` в спископодобном плагине, когда пустой последний пункт удаляется, а ввод должен продолжиться в обычном абзаце. Используйте `exitEmptyBlock()`, когда пуст весь структурированный блок. Не создавайте искусственные клавиатурные события для этих операций: плагин может повторно перехватить такое событие, а граница команды останется неявной. Структурные методы ничего не меняют, когда службы режима редактирования недоступны.
+Используйте `splitBlock()` в спископодобном плагине, когда пустой последний пункт удаляется, а ввод должен продолжиться в обычном абзаце. Используйте `exitEmptyBlock()`, когда пуст весь структурированный блок. Не создавайте искусственные клавиатурные события для этих операций: плагин может повторно перехватить такое событие, а граница команды останется неявной. Структурные методы ничего не меняют, когда службы режима редактирования недоступны. Используйте `ownerDocument` при создании DOM и обращении к API, привязанным к документу, чтобы тот же плагин корректно работал при размещении Rector в iframe или другом browsing realm.
 
 В режиме только для просмотра Rector по умолчанию отключает кнопки, поля ввода и другие элементы управления внутри блока. Элемент, который меняет только представление, можно оставить активным с помощью атрибута `data-oe-read-only-interactive`: например, кнопку копирования, навигацию карусели или раскрытие спойлера. Не добавляйте этот атрибут голосованию, загрузке файлов, настройкам, переходам с побочными действиями приложения и любым операциям, меняющим сохраняемые данные. Атрибут является явным обещанием безопасности элемента в режиме только для просмотра, но сам по себе не делает обработчик безопасным.
 
@@ -278,7 +280,7 @@ interface InlinePlugin {
   readonly type: string
   readonly title: string
   readonly icon: string
-  createWidget(data: Record<string, string>, id?: string): HTMLElement
+  createWidget(data: Record<string, string>, id?: string, context?: { ownerDocument: Document }): HTMLElement
   hydrate(element: HTMLElement, context: InlinePluginContext): void
   getData(element: HTMLElement): Record<string, string>
   isCommitted?(element: HTMLElement): boolean
@@ -287,7 +289,7 @@ interface InlinePlugin {
 
 Необязательные `trigger`, `pasteConfig`, `onPatternMatch()`, `onEdit()`, `onCancel()`, `onCommit()` и `insertFresh()` поддерживают подсказки и преобразование шаблонов. Символ активации должен состоять ровно из одного символа Юникода. Редактор вызывает `onCancel()`, когда активный сеанс ввода отменён, чтобы плагин закрыл временный интерфейс и прервал незавершённую работу. Метод `isCommitted()` позволяет не сохранять незавершённый виджет как структурированные данные, оставляя его видимый текст обычным текстом. Изменения сохранённых данных виджета выполняются через `context.mutate(target, operation)`.
 
-Один объект плагина может обслуживать много элементов виджетов. Храните состояние отдельного элемента в `WeakMap`, а не в одном общем поле.
+Если передан `context.ownerDocument`, создавайте DOM виджета в этом документе, чтобы редактор в iframe или другом realm не использовал окружающие DOM-конструкторы. Один объект плагина может обслуживать много элементов виджетов. Храните состояние отдельного элемента в `WeakMap`, а не в одном общем поле.
 
 Хранение виджетов, вставка, регистрация рендерера и сравнение с инструментами форматирования описаны в разделе [Внутристрочные инструменты и плагины](/ru/guide/inline-extensions).
 
@@ -300,8 +302,9 @@ export function createCalloutRenderer(prefix = 'oe') {
   return {
     type: 'callout',
     styles: [new URL('./callout-renderer.css', import.meta.url).href],
-    render(block, parseInline) {
-      const root = document.createElement('aside')
+    render(block, parseInline, context) {
+      const ownerDocument = context?.ownerDocument ?? document
+      const root = ownerDocument.createElement('aside')
       root.className = `${prefix}-callout`
       root.append(parseInline(String(block.data.text ?? '')))
       return root
@@ -313,7 +316,7 @@ export function createCalloutRenderer(prefix = 'oe') {
 }
 ```
 
-Зарегистрируйте его через `renderer.registerRenderer()`. `parseInline()` очищает поддерживаемое форматирование и восстанавливает зарегистрированные внутристрочные виджеты. Не назначайте недоверенные данные плагина напрямую в `innerHTML`.
+Зарегистрируйте его через `renderer.registerRenderer()`. `context.ownerDocument` указывает документ, которому принадлежит цель `renderTo()`; создавайте DOM рендерера в этом realm. `parseInline()` очищает поддерживаемое форматирование и восстанавливает зарегистрированные внутристрочные виджеты. Не назначайте недоверенные данные плагина напрямую в `innerHTML`.
 
 ## Стили и локализация
 

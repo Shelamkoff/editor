@@ -23,27 +23,27 @@ export function createQuoteRenderer(classPrefix, _locale) {
      * @param {import('../../types').InlineParser} parseInline
      * @returns {HTMLElement}
      */
-    render(block, parseInline) {
+    render(block, parseInline, context = { ownerDocument: globalThis.document }) {
       const { text, caption } = block.data
 
-      const blockquote = document.createElement('blockquote')
+      const blockquote = context.ownerDocument.createElement('blockquote')
       blockquote.className = `${classPrefix}-quote`
 
-      const icon = document.createElement('span')
+      const icon = context.ownerDocument.createElement('span')
       icon.className = `${classPrefix}-quote__icon`
       icon.setAttribute('aria-hidden', 'true')
       icon.innerHTML = ICON_QUOTE
 
-      const body = document.createElement('div')
+      const body = context.ownerDocument.createElement('div')
       body.className = `${classPrefix}-quote__body`
 
-      const content = document.createElement('p')
+      const content = context.ownerDocument.createElement('p')
       content.className = `${classPrefix}-quote__text`
       content.appendChild(parseInline(text))
       body.appendChild(content)
 
       if (caption) {
-        const cite = document.createElement('cite')
+        const cite = context.ownerDocument.createElement('cite')
         cite.className = `${classPrefix}-quote__caption`
         cite.appendChild(parseInline(caption))
         body.appendChild(cite)

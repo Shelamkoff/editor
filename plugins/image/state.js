@@ -17,6 +17,9 @@ import { normalizeTextValue } from '../../shared/textFormat.js'
  * latest asynchronous image-source operation.
  */
 export class ImageState {
+  /** @type {typeof AbortController} */
+  #AbortControllerCtor
+
   /** @type {ImageData} */
   data
 
@@ -38,8 +41,10 @@ export class ImageState {
   /**
    * @param {ImageData} data
    * @param {File | null} [pendingFile]
+   * @param {Document} [ownerDocument]
    */
-  constructor(data, pendingFile = null) {
+  constructor(data, pendingFile = null, ownerDocument = globalThis.document) {
+    this.#AbortControllerCtor = ownerDocument?.defaultView?.AbortController ?? AbortController
     this.data = data
     this.pendingFile = pendingFile
   }
@@ -52,7 +57,7 @@ export class ImageState {
    */
   resetTransient() {
     this.abortController?.abort()
-    this.abortController = new AbortController()
+    this.abortController = new this.#AbortControllerCtor()
     this.borderObserver?.disconnect()
     this.borderObserver = null
   }
@@ -63,7 +68,7 @@ export class ImageState {
    */
   beginTask() {
     this.taskController?.abort()
-    this.taskController = new AbortController()
+    this.taskController = new this.#AbortControllerCtor()
     return this.taskController
   }
 

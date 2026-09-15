@@ -69,10 +69,11 @@ export function renderFilledView(wrapper, state, deps) {
  * @param {AbortSignal} signal
  */
 function renderMasonry(wrapper, state, deps, signal) {
-  const grid = document.createElement('div')
+  const ownerDocument = wrapper.ownerDocument
+  const grid = ownerDocument.createElement('div')
   grid.className = `${CSS.grid} eg--masonry`
 
-  const slotDeps = makeSlotDeps(deps)
+  const slotDeps = makeSlotDeps(deps, ownerDocument)
   /** @type {HTMLElement[]} */
   const slots = []
 
@@ -99,6 +100,7 @@ function renderMasonry(wrapper, state, deps, signal) {
  * @param {AbortSignal} signal
  */
 function renderSlotBased(wrapper, state, deps, signal) {
+  const ownerDocument = wrapper.ownerDocument
   const layout = state.data.layout
   const images = state.data.images
   const isAuto = layout === 'auto'
@@ -110,10 +112,10 @@ function renderSlotBased(wrapper, state, deps, signal) {
   const overflowImages = images.slice(slotCount)
 
   const templateName = isAuto ? pickInitialAutoTemplate(slotCount) : layout
-  const grid = document.createElement('div')
+  const grid = ownerDocument.createElement('div')
   grid.className = `${CSS.grid} eg--${templateName}`
 
-  const slotDeps = makeSlotDeps(deps)
+  const slotDeps = makeSlotDeps(deps, ownerDocument)
 
   // Auto + 3+ images: refine template after we know orientations.
   if (isAuto && slotCount > 2) {
@@ -168,7 +170,7 @@ function renderSlotBased(wrapper, state, deps, signal) {
   wrapper.appendChild(grid)
 
   if (overflowImages.length > 0) {
-    const overflow = document.createElement('div')
+    const overflow = ownerDocument.createElement('div')
     overflow.className = CSS.overflow
 
     overflowImages.forEach((img, oi) => {
@@ -188,8 +190,9 @@ function renderSlotBased(wrapper, state, deps, signal) {
  * @param {FilledViewDeps} deps
  * @returns {import('./slot.js').SlotDeps}
  */
-function makeSlotDeps(deps) {
+function makeSlotDeps(deps, ownerDocument) {
   return {
+    ownerDocument,
     t: deps.t,
     readOnly: deps.readOnly,
     syncCaptions: deps.syncCaptions,
@@ -223,7 +226,8 @@ function makeSlotDeps(deps) {
  * @param {AbortSignal} signal
  */
 function renderActions(wrapper, state, deps, signal) {
-  const actions = document.createElement('div')
+  const ownerDocument = wrapper.ownerDocument
+  const actions = ownerDocument.createElement('div')
   actions.className = CSS.actions
 
   const settingsDeps = {
@@ -234,10 +238,10 @@ function renderActions(wrapper, state, deps, signal) {
   }
 
   // Settings dropdown
-  const dropdown = document.createElement('div')
+  const dropdown = ownerDocument.createElement('div')
   dropdown.className = CSS.dropdown
 
-  const settingsBtn = document.createElement('button')
+  const settingsBtn = ownerDocument.createElement('button')
   settingsBtn.type = 'button'
   settingsBtn.className = CSS.actionBtn
   settingsBtn.innerHTML = `${ICON_SETTINGS} ${escapeHtml(deps.t('settings', 'Settings'))}`
@@ -262,7 +266,7 @@ function renderActions(wrapper, state, deps, signal) {
 
   dropdown.append(settingsBtn, panel)
 
-  document.addEventListener('click', (e) => {
+  wrapper.ownerDocument.addEventListener('click', (e) => {
     if (!dropdown.contains(/** @type {Node} */ (e.target))) {
       setSettingsOpen(false)
     }
@@ -275,26 +279,27 @@ function renderActions(wrapper, state, deps, signal) {
   }, { signal })
 
   // Main view container (for drill-down hide/show)
-  const mainView = document.createElement('div')
+  const mainView = ownerDocument.createElement('div')
   mainView.className = CSS.actionsView
   mainView.style.display = 'contents'
 
   mainView.appendChild(dropdown)
-  mainView.appendChild(makeSep())
+  mainView.appendChild(makeSep(ownerDocument))
 
   // Add (drill-down)
   const addBtn = makeActionBtn(
     `${ICON_ADD_IMAGE} ${escapeHtml(deps.t('addMore', 'Add'))} ${ICON_CHEVRON_RIGHT}`,
-    () => showAddView(actions, mainView, deps, signal),
+    () => showAddView(actions, mainView, deps, signal, ownerDocument),
     signal,
+    ownerDocument,
   )
   addBtn.querySelector('svg:last-child')?.classList.add(CSS.actionChevron)
   mainView.appendChild(addBtn)
 
-  mainView.appendChild(makeSep())
+  mainView.appendChild(makeSep(ownerDocument))
 
   // Delete all
-  const deleteAllBtn = document.createElement('button')
+  const deleteAllBtn = ownerDocument.createElement('button')
   deleteAllBtn.type = 'button'
   deleteAllBtn.className = `${CSS.actionBtn} ${CSS.actionBtnDanger}`
   deleteAllBtn.innerHTML = ICON_TRASH
@@ -316,10 +321,10 @@ function renderActions(wrapper, state, deps, signal) {
  * @param {FilledViewDeps} deps
  * @param {AbortSignal} signal
  */
-function showAddView(actions, mainView, deps, signal) {
+function showAddView(actions, mainView, deps, signal, ownerDocument = actions.ownerDocument) {
   mainView.style.display = 'none'
 
-  const view = document.createElement('div')
+  const view = ownerDocument.createElement('div')
   view.className = CSS.actionsView
   view.style.display = 'contents'
 
@@ -329,13 +334,15 @@ function showAddView(actions, mainView, deps, signal) {
     `${ICON_BACK} ${escapeHtml(deps.t('back', 'Back'))}`,
     restore,
     signal,
+    ownerDocument,
   ))
-  view.appendChild(makeSep())
+  view.appendChild(makeSep(ownerDocument))
 
   view.appendChild(makeActionBtn(
     `${ICON_UPLOAD} ${escapeHtml(deps.t('upload', 'Upload'))}`,
     () => { deps.onTriggerFileInput(); restore() },
     signal,
+    ownerDocument,
   ))
 
   for (const action of deps.customActions) {
@@ -343,6 +350,7 @@ function showAddView(actions, mainView, deps, signal) {
       `${action.icon || ''} ${escapeHtml(action.label)}`.trim(),
       async () => { await deps.runCustomAction(action.handler); restore() },
       signal,
+      ownerDocument,
     ))
   }
 
@@ -350,17 +358,18 @@ function showAddView(actions, mainView, deps, signal) {
     `${ICON_URL} URL`,
     () => { deps.onOpenUrlEditor(); restore() },
     signal,
+    ownerDocument,
   ))
 
   actions.appendChild(view)
 }
 
 /** @param {string} innerHTML @param {() => void} handler @param {AbortSignal} signal */
-function makeActionBtn(innerHTML, handler, signal) {
-  return _makeActionBtn(CSS.actionBtn, innerHTML, handler, signal)
+function makeActionBtn(innerHTML, handler, signal, ownerDocument = globalThis.document) {
+  return _makeActionBtn(CSS.actionBtn, innerHTML, handler, signal, ownerDocument)
 }
 
 /** @returns {HTMLDivElement} */
-function makeSep() {
-  return _makeSep(CSS.actionsSep)
+function makeSep(ownerDocument = globalThis.document) {
+  return _makeSep(CSS.actionsSep, ownerDocument)
 }

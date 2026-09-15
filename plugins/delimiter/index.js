@@ -28,10 +28,13 @@ export class Delimiter extends BlockPluginAbstract {
 
   /**
    * Create the editable DOM owned by this block instance.
+   * @param {Record<string, unknown>} _data
+   * @param {import('../../core/types').BlockMutationContext} context
    * @returns {HTMLElement}
    */
-  render() {
-    const hr = document.createElement('hr')
+  render(_data, context) {
+    const ownerDocument = context?.ownerDocument ?? globalThis.document
+    const hr = ownerDocument.createElement('hr')
     hr.classList.add('oe-delimiter')
     hr.contentEditable = 'false'
     hr.tabIndex = -1

@@ -49,9 +49,10 @@ export class List extends BlockPluginAbstract {
    * @returns {HTMLElement}
    */
   render(data, context) {
+    const ownerDocument = context.ownerDocument ?? globalThis.document
     const style = data?.style === 'ordered' ? 'ordered' : 'unordered'
     const tag = style === 'ordered' ? 'ol' : 'ul'
-    const list = document.createElement(tag)
+    const list = ownerDocument.createElement(tag)
     list.classList.add('oe-list', `oe-list--${style}`)
     list.dataset.style = style
 
@@ -162,7 +163,8 @@ export class List extends BlockPluginAbstract {
         continue
       }
 
-      const selectionPart = document.createRange()
+      const ownerDocument = element.ownerDocument
+      const selectionPart = ownerDocument.createRange()
       selectionPart.selectNodeContents(item)
       if (item.contains(range.startContainer)) {
         selectionPart.setStart(range.startContainer, range.startOffset)
@@ -179,7 +181,7 @@ export class List extends BlockPluginAbstract {
       const selectedHtml = this.#rangeHtml(selectionPart, item)
       if (selectedHtml) selectedItems.push(selectedHtml)
 
-      const before = document.createRange()
+      const before = ownerDocument.createRange()
       before.selectNodeContents(item)
       let beforeHtml = ''
       if (item.contains(range.startContainer)) {
@@ -187,7 +189,7 @@ export class List extends BlockPluginAbstract {
         beforeHtml = this.#rangeHtml(before, item)
       }
 
-      const after = document.createRange()
+      const after = ownerDocument.createRange()
       after.selectNodeContents(item)
       let afterHtml = ''
       if (item.contains(range.endContainer)) {
@@ -196,7 +198,7 @@ export class List extends BlockPluginAbstract {
       }
 
       const remainingHtml = `${beforeHtml}${afterHtml}`
-      if (this.#hasContent(remainingHtml)) remainingItems.push(remainingHtml)
+      if (this.#hasContent(remainingHtml, element.ownerDocument)) remainingItems.push(remainingHtml)
     }
 
     if (selectedItems.length === 0) return null
@@ -238,7 +240,7 @@ export class List extends BlockPluginAbstract {
     ]
 
     return options.map(({ style, label, icon }) => {
-      const btn = document.createElement('li')
+      const btn = element.ownerDocument.createElement('li')
       btn.setAttribute('role', 'menuitem')
       btn.setAttribute('tabindex', '-1')
       btn.className = 'oe-settings-menu__item'
@@ -247,12 +249,12 @@ export class List extends BlockPluginAbstract {
       }
       btn.dataset.action = style
 
-      const iconSpan = document.createElement('span')
+      const iconSpan = element.ownerDocument.createElement('span')
       iconSpan.className = 'oe-settings-menu__icon'
       iconSpan.innerHTML = icon
       btn.appendChild(iconSpan)
 
-      const labelSpan = document.createElement('span')
+      const labelSpan = element.ownerDocument.createElement('span')
       labelSpan.className = 'oe-settings-menu__label'
       labelSpan.textContent = label
       btn.appendChild(labelSpan)
@@ -301,7 +303,7 @@ export class List extends BlockPluginAbstract {
    * @returns {HTMLLIElement}
    */
   #addItem(list, html) {
-    const li = document.createElement('li')
+    const li = list.ownerDocument.createElement('li')
     li.classList.add('oe-list__item')
     li.contentEditable = 'true'
     if (html) {
@@ -313,9 +315,9 @@ export class List extends BlockPluginAbstract {
 
   /** @param {Range} range @param {Element} root @returns {string} */
   #rangeHtml(range, root) {
-    const container = document.createElement('div')
+    const container = root.ownerDocument.createElement('div')
     container.appendChild(range.cloneContents())
-    let ancestor = range.commonAncestorContainer.nodeType === Node.ELEMENT_NODE
+    let ancestor = range.commonAncestorContainer.nodeType === 1
       ? /** @type {Element} */ (range.commonAncestorContainer)
       : range.commonAncestorContainer.parentElement
 
@@ -328,9 +330,9 @@ export class List extends BlockPluginAbstract {
     return container.innerHTML.trim()
   }
 
-  /** @param {string} html @returns {boolean} */
-  #hasContent(html) {
-    const container = document.createElement('div')
+  /** @param {string} html @param {Document} ownerDocument @returns {boolean} */
+  #hasContent(html, ownerDocument) {
+    const container = ownerDocument.createElement('div')
     container.innerHTML = html
     if (container.textContent?.replace(/\u00a0/g, ' ').trim()) return true
     return !!container.querySelector('img, video, audio, iframe, [data-inline-plugin]')
@@ -343,18 +345,20 @@ export class List extends BlockPluginAbstract {
    * @returns {boolean} Whether the key press was handled by this list.
    */
   #handleEnter(list, context) {
-    const sel = window.getSelection()
+    const ownerDocument = list.ownerDocument
+    const view = ownerDocument.defaultView
+    const sel = view?.getSelection() ?? null
     if (!sel || sel.rangeCount === 0) return false
 
     const range = sel.getRangeAt(0)
     const currentLi = /** @type {HTMLElement | null} */ (
-      range.startContainer.nodeType === Node.ELEMENT_NODE
+      range.startContainer.nodeType === 1
         ? /** @type {HTMLElement} */ (range.startContainer).closest('li')
         : range.startContainer.parentElement?.closest('li')
     )
 
     const endLi = /** @type {HTMLElement | null} */ (
-      range.endContainer.nodeType === Node.ELEMENT_NODE
+      range.endContainer.nodeType === 1
         ? /** @type {HTMLElement} */ (range.endContainer).closest('li')
         : range.endContainer.parentElement?.closest('li')
     )
@@ -401,7 +405,7 @@ export class List extends BlockPluginAbstract {
     // Replace a non-collapsed selection before splitting, matching native
     // editable-list behaviour for both one-item and multi-item selections.
     context.mutate(() => {
-      const selectionEnd = document.createRange()
+      const selectionEnd = ownerDocument.createRange()
       selectionEnd.setStart(range.endContainer, range.endOffset)
       selectionEnd.setEnd(endLi, endLi.childNodes.length)
       const fragment = selectionEnd.extractContents()
@@ -409,7 +413,7 @@ export class List extends BlockPluginAbstract {
       if (currentLi === endLi) {
         range.deleteContents()
       } else {
-        const selectedStart = document.createRange()
+        const selectedStart = ownerDocument.createRange()
         selectedStart.setStart(range.startContainer, range.startOffset)
         selectedStart.setEnd(currentLi, currentLi.childNodes.length)
         selectedStart.deleteContents()
@@ -425,7 +429,7 @@ export class List extends BlockPluginAbstract {
       }
 
       // Create new li with the extracted content
-      const newLi = document.createElement('li')
+      const newLi = ownerDocument.createElement('li')
       newLi.classList.add('oe-list__item')
       newLi.contentEditable = 'true'
       newLi.appendChild(fragment)
@@ -447,13 +451,15 @@ export class List extends BlockPluginAbstract {
    * @returns {void}
    */
   #handleBackspace(list, e, context) {
-    const sel = window.getSelection()
+    const ownerDocument = list.ownerDocument
+    const view = ownerDocument.defaultView
+    const sel = view?.getSelection() ?? null
     if (!sel || sel.rangeCount === 0) return
     const range = sel.getRangeAt(0)
     if (!range.collapsed) return
 
     const currentLi = /** @type {HTMLElement | null} */ (
-      range.startContainer.nodeType === Node.ELEMENT_NODE
+      range.startContainer.nodeType === 1
         ? /** @type {HTMLElement} */ (range.startContainer).closest('li')
         : range.startContainer.parentElement?.closest('li')
     )
@@ -481,7 +487,7 @@ export class List extends BlockPluginAbstract {
 
       // Set caret at merge point
       prevLi.focus()
-      const newRange = document.createRange()
+      const newRange = ownerDocument.createRange()
       if (prevLi.childNodes[mergeOffset]) {
         newRange.setStartBefore(prevLi.childNodes[mergeOffset])
       } else {
@@ -505,7 +511,7 @@ export class List extends BlockPluginAbstract {
     if (startContainer === li && startOffset === 0) return true
 
     // Caret in a text node that is the first child (or nested first child)
-    if (startContainer.nodeType === Node.TEXT_NODE && startOffset === 0) {
+    if (startContainer.nodeType === 3 && startOffset === 0) {
       /** @type {Node | null} */
       let node = startContainer
       while (node && node !== li) {
@@ -520,15 +526,16 @@ export class List extends BlockPluginAbstract {
 
   /** @param {HTMLElement} el @returns {void} */
   #setCaretToStart(el) {
-    const sel = window.getSelection()
+    const ownerDocument = el.ownerDocument
+    const sel = ownerDocument.defaultView?.getSelection() ?? null
     if (!sel) return
 
     el.focus()
-    const range = document.createRange()
+    const range = ownerDocument.createRange()
 
     // If element has content, set before first child node
     if (el.firstChild) {
-      if (el.firstChild.nodeType === Node.TEXT_NODE) {
+      if (el.firstChild.nodeType === 3) {
         range.setStart(el.firstChild, 0)
       } else {
         range.setStartBefore(el.firstChild)
@@ -543,14 +550,15 @@ export class List extends BlockPluginAbstract {
 
   /** @param {HTMLElement} el @returns {void} */
   #setCaretToEnd(el) {
-    const sel = window.getSelection()
+    const ownerDocument = el.ownerDocument
+    const sel = ownerDocument.defaultView?.getSelection() ?? null
     if (!sel) return
 
     el.focus()
-    const range = document.createRange()
+    const range = ownerDocument.createRange()
 
     if (el.lastChild) {
-      if (el.lastChild.nodeType === Node.TEXT_NODE) {
+      if (el.lastChild.nodeType === 3) {
         range.setStart(el.lastChild, el.lastChild.textContent?.length || 0)
       } else {
         range.setStartAfter(el.lastChild)

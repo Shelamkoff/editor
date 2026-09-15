@@ -20,8 +20,8 @@ export function createParagraphRenderer(classPrefix, _locale) {
      * @param {import('../../types').InlineParser} parseInline
      * @returns {HTMLElement}
      */
-    render(block, parseInline) {
-      const p = document.createElement('p')
+    render(block, parseInline, context = { ownerDocument: globalThis.document }) {
+      const p = context.ownerDocument.createElement('p')
       p.className = `${classPrefix}-paragraph`
       const { text, align } = block.data
       if (align && align !== 'left') {

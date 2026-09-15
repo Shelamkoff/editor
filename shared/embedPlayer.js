@@ -34,17 +34,19 @@ const IFRAME_SANDBOX = 'allow-scripts allow-same-origin allow-presentation allow
  *   placeholderHtml?: string,
  *   playLabel?: string,
  *   videoLabel?: string,
+ *   ownerDocument?: Document,
  * }} opts
  * @returns {{ player: HTMLElement, play: () => void, setPreview: (src: string, alt?: string) => void }}
  */
 export function buildPlayer(opts) {
   const { service, videoId, cover, title, duration, classPrefix, playIcon, placeholderHtml } = opts
+  const ownerDocument = opts.ownerDocument ?? globalThis.document
   const playLabel = opts.playLabel || 'Play'
   const videoLabel = opts.videoLabel || 'Video'
   const svc = SERVICES[service]
   const prefix = `${classPrefix}-embed`
 
-  const player = document.createElement('div')
+  const player = ownerDocument.createElement('div')
   player.className = `${prefix}__player`
 
   // Preview: custom cover → service thumbnail → placeholder
@@ -56,7 +58,7 @@ export function buildPlayer(opts) {
   let previewEl = null
 
   if (previewUrl) {
-    const img = document.createElement('img')
+    const img = ownerDocument.createElement('img')
     img.className = `${prefix}__preview`
     const safePreview = setSafeUrlAttribute(img, 'src', previewUrl, 'media')
     img.alt = title || videoLabel
@@ -67,14 +69,14 @@ export function buildPlayer(opts) {
     }
   }
   if (!previewEl && placeholderHtml) {
-    previewEl = document.createElement('div')
+    previewEl = ownerDocument.createElement('div')
     previewEl.className = `${prefix}__placeholder`
     previewEl.innerHTML = placeholderHtml
     player.appendChild(previewEl)
   }
 
   // Play button
-  const playBtn = document.createElement('button')
+  const playBtn = ownerDocument.createElement('button')
   playBtn.type = 'button'
   playBtn.className = `${prefix}__play-btn`
   playBtn.innerHTML = playIcon
@@ -83,7 +85,7 @@ export function buildPlayer(opts) {
 
   // Title overlay (top-left)
   if (title) {
-    const titleEl = document.createElement('span')
+    const titleEl = ownerDocument.createElement('span')
     titleEl.className = `${prefix}__title`
     titleEl.textContent = title
     player.appendChild(titleEl)
@@ -91,14 +93,14 @@ export function buildPlayer(opts) {
 
   // Duration overlay (bottom-right)
   if (duration) {
-    const durEl = document.createElement('span')
+    const durEl = ownerDocument.createElement('span')
     durEl.className = `${prefix}__duration`
     durEl.textContent = duration
     player.appendChild(durEl)
   }
 
   // Iframe container (empty until play)
-  const iframeWrap = document.createElement('div')
+  const iframeWrap = ownerDocument.createElement('div')
   iframeWrap.className = `${prefix}__iframe`
   player.appendChild(iframeWrap)
 
@@ -110,7 +112,7 @@ export function buildPlayer(opts) {
 
     player.classList.add(`${prefix}__player--playing`)
 
-    const iframe = document.createElement('iframe')
+    const iframe = ownerDocument.createElement('iframe')
     setSafeUrlAttribute(iframe, 'src', embedUrl, 'external')
     iframe.style.border = '0'
     iframe.allowFullscreen = true
@@ -126,7 +128,7 @@ export function buildPlayer(opts) {
    * @param {string} [alt]
    */
   function setPreview(src, alt) {
-    const img = document.createElement('img')
+    const img = ownerDocument.createElement('img')
     img.className = `${prefix}__preview`
     const safePreview = setSafeUrlAttribute(img, 'src', src, 'media')
     if (!safePreview) return
