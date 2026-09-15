@@ -1,7 +1,7 @@
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { validateRawData } from '../../shared/blockDataValidators.js'
 import { normalizeTextValue } from '../../shared/textFormat.js'
-import { sanitizeRawHtml } from '../../shared/sanitize/sanitizeRawHtml.js'
+import { sanitizeRawHtmlForSink } from '../../shared/sanitize/sanitizeRawHtml.js'
 
 const editorStyles = new URL('./raw.css', import.meta.url).href
 
@@ -207,7 +207,7 @@ export class Raw extends BlockPluginAbstract {
       iframe.sandbox = ''
       iframe.title = this._t('previewFrame', 'HTML preview')
       iframe.style.cssText = 'width:100%;border:none;min-height:100px'
-      iframe.srcdoc = sanitizeRawHtml(s.textarea.value, ownerDocument)
+      iframe.srcdoc = /** @type {any} */ (sanitizeRawHtmlForSink(s.textarea.value, ownerDocument))
       s.preview.appendChild(iframe)
       const resizeIframe = () => {
         try {

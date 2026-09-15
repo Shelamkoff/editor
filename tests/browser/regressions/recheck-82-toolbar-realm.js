@@ -111,4 +111,52 @@ export function register() {
     }
   })
 
+
+  test('editor history and change debounce use the editor owning window timers', () => {
+    const iframe = document.createElement('iframe')
+    document.body.appendChild(iframe)
+    let editor = null
+    const ambientSetTimeout = window.setTimeout
+    try {
+      const doc = iframe.contentDocument
+      const view = iframe.contentWindow
+      assert(doc && view, 'iframe realm unavailable')
+      const holder = doc.createElement('div')
+      doc.body.appendChild(holder)
+      let ownerTimerCalls = 0
+      const ownerSetTimeout = view.setTimeout
+      view.setTimeout = function (...args) {
+        ownerTimerCalls += 1
+        return ownerSetTimeout.apply(this, args)
+      }
+      try {
+        editor = createEditor({
+          holder,
+          injectStyles: false,
+          plugins: [new Paragraph()],
+          inlineTools: [],
+          onChange() {},
+          data: { version: '1', blocks: [{ id: 'a', type: 'paragraph', data: { text: 'A' } }] },
+          tuning: {
+            undo: { debounceMs: 10000 }, change: { debounceMs: 10000 },
+            animations: { blockInsertMs: 0, blockMoveMs: 0, blockRemoveMs: 0 },
+            mobileBreakpoint: 1,
+          },
+        })
+        const content = editor.rootElement.querySelector('[contenteditable="true"]')
+        assert(content, 'editable paragraph unavailable')
+        window.setTimeout = () => { throw new Error('ambient setTimeout must not be used') }
+        content.textContent = 'AB'
+        content.dispatchEvent(new view.InputEvent('input', { bubbles: true, inputType: 'insertText', data: 'B' }))
+        assert(ownerTimerCalls >= 2, 'history/change debounce did not use the owning window timers')
+      } finally {
+        view.setTimeout = ownerSetTimeout
+      }
+    } finally {
+      window.setTimeout = ambientSetTimeout
+      editor?.destroy()
+      iframe.remove()
+    }
+  })
+
 }

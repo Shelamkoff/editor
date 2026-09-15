@@ -623,7 +623,13 @@ export function createEditor(config) {
       },
       document => facade.restoreCheckpoint(document, rollbackCaret ?? undefined),
     )
-    const changeNotifier = new ChangeNotifier(() => facade.save(), config.onChange, tuning.change.debounceMs)
+    const timerHost = rootEl.ownerDocument.defaultView ?? globalThis
+    const changeNotifier = new ChangeNotifier(
+      () => facade.save(),
+      config.onChange,
+      tuning.change.debounceMs,
+      timerHost,
+    )
     facade.registerDestroyable(changeNotifier)
     events.on(EditorEvent.CHANGED, () => changeNotifier.schedule())
 
@@ -633,6 +639,7 @@ export function createEditor(config) {
       (data, caret) => facade.restoreCheckpoint(data, caret),
       () => selection.getCaret(),
       tuning.undo,
+      timerHost,
     )
     undoManager.setCommandsEnabled(!readOnly, { notify: false })
     undoManager.configureCommandActivity(() => commands.active)

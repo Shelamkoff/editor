@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { ARCHIVE_LIMITS, downloadArchive, sanitizeArchiveFilename } from './index.js'
+import { getZipRuntime, setZipRuntime } from '../../../shared/zipRuntime.js'
 
 test('ZIP entry names cannot escape the archive root or use reserved names', () => {
   assert.equal(sanitizeArchiveFilename('../../private.txt'), '.._.._private.txt')
@@ -67,5 +68,86 @@ test('ZIP safety failure aborts sibling downloads without aborting caller signal
   } finally {
     releaseSibling?.()
     globalThis.fetch = originalFetch
+  }
+})
+
+
+test('ZIP download uses the owning document fetch realm', async () => {
+  const originalFetch = globalThis.fetch
+  globalThis.fetch = async () => { throw new Error('ambient fetch must not be used') }
+  const ownerDocument = {
+    defaultView: {
+      AbortController,
+      fetch: async () => new Response(new Uint8Array([1]), {
+        status: 200,
+        headers: { 'content-length': String(ARCHIVE_LIMITS.fileBytes + 1) },
+      }),
+    },
+  }
+
+  try {
+    await assert.rejects(
+      downloadArchive([
+        { url: 'https://example.test/file.bin', name: 'file.bin' },
+      ], { signal: new AbortController().signal, ownerDocument }),
+      /per-file ZIP limit/,
+    )
+  } finally {
+    globalThis.fetch = originalFetch
+  }
+})
+
+
+test('ZIP output is built as an owning-window Blob from byte data', async () => {
+  const previousRuntime = getZipRuntime()
+  /** @type {Uint8Array[]} */
+  const archivedContents = []
+  class FakeZip {
+    file(_name, content) { archivedContents.push(content) }
+    async generateAsync(options) {
+      assert.deepEqual(options, { type: 'uint8array' })
+      return new Uint8Array([7, 8, 9])
+    }
+  }
+  setZipRuntime(FakeZip)
+
+  class OwnerBlob extends Blob {}
+  let createdBlob = null
+  let revoked = ''
+  let clicked = 0
+  const ownerDocument = {
+    defaultView: {
+      AbortController,
+      Blob: OwnerBlob,
+      fetch: async () => new Response(new Uint8Array([1, 2, 3]), {
+        status: 200,
+        headers: { 'content-type': 'application/octet-stream' },
+      }),
+      URL: {
+        createObjectURL(blob) { createdBlob = blob; return 'blob:owner/archive' },
+        revokeObjectURL(url) { revoked = url },
+      },
+      setTimeout(callback) { callback(); return 1 },
+    },
+    createElement() {
+      return {
+        setAttribute() {},
+        download: '',
+        click() { clicked += 1 },
+      }
+    },
+  }
+
+  try {
+    await downloadArchive([
+      { url: 'https://example.test/file.bin', name: 'file.bin' },
+    ], { signal: new AbortController().signal, ownerDocument })
+    assert.equal(archivedContents.length, 1)
+    assert.ok(archivedContents[0] instanceof Uint8Array)
+    assert.ok(createdBlob instanceof OwnerBlob)
+    assert.equal(clicked, 1)
+    assert.equal(revoked, 'blob:owner/archive')
+  } finally {
+    if (previousRuntime) setZipRuntime(previousRuntime)
   }
 })

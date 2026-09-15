@@ -41,6 +41,9 @@ export class UndoManager {
   /** @type {boolean} */
   #destroyed = false
 
+  /** @type {{ setTimeout: typeof setTimeout, clearTimeout: typeof clearTimeout }} */
+  #timerHost
+
   /** Nesting depth for compound operations. Only the outer boundary commits. */
   #batchDepth = 0
 
@@ -75,8 +78,9 @@ export class UndoManager {
    * @param {(data: import('./types').EditorDocument, caret?: import('./types').CaretPosition) => void} renderFn
    * @param {() => import('./types').CaretPosition | null} getCaretFn
    * @param {{ maxStack: number, debounceMs: number }} [tuning]
+   * @param {{ setTimeout: typeof setTimeout, clearTimeout: typeof clearTimeout }} [timerHost]
    */
-  constructor(blocks, events, captureFn, renderFn, getCaretFn, tuning) {
+  constructor(blocks, events, captureFn, renderFn, getCaretFn, tuning, timerHost = globalThis) {
     this.#blocks = blocks
     this.#events = events
     this.#captureFn = captureFn
@@ -84,6 +88,7 @@ export class UndoManager {
     this.#getCaretFn = getCaretFn
     this.#maxStack = tuning?.maxStack ?? 100
     this.#debounceMs = tuning?.debounceMs ?? 300
+    this.#timerHost = timerHost
 
     // Take initial snapshot synchronously
     this.#takeSnapshot()
@@ -149,7 +154,7 @@ export class UndoManager {
     if (this.#destroyed || this.#restoring) return
     if (this.#batchDepth > 0) return
     if (this.#debounceTimer) {
-      clearTimeout(this.#debounceTimer)
+      this.#timerHost.clearTimeout(this.#debounceTimer)
       this.#debounceTimer = null
     }
     this.#takeSnapshot()
@@ -265,7 +270,7 @@ export class UndoManager {
     try {
       restore()
       this.#pendingChange = false
-      if (this.#debounceTimer) clearTimeout(this.#debounceTimer)
+      if (this.#debounceTimer) this.#timerHost.clearTimeout(this.#debounceTimer)
       this.#debounceTimer = null
     } finally {
       this.#restoring = previous
@@ -283,7 +288,7 @@ export class UndoManager {
     this.#batchDepth = 0
     this.#pendingChange = false
     if (this.#debounceTimer) {
-      clearTimeout(this.#debounceTimer)
+      this.#timerHost.clearTimeout(this.#debounceTimer)
       this.#debounceTimer = null
     }
     if (!this.#destroyed) this.#emitState()
@@ -300,8 +305,8 @@ export class UndoManager {
 
   #debouncedSnapshot() {
     if (this.#batchDepth > 0) return
-    if (this.#debounceTimer) clearTimeout(this.#debounceTimer)
-    this.#debounceTimer = setTimeout(() => {
+    if (this.#debounceTimer) this.#timerHost.clearTimeout(this.#debounceTimer)
+    this.#debounceTimer = this.#timerHost.setTimeout(() => {
       this.#debounceTimer = null
       try {
         this.#takeSnapshot()
@@ -323,7 +328,7 @@ export class UndoManager {
    */
   #reconcileCurrentState() {
     if (this.#debounceTimer) {
-      clearTimeout(this.#debounceTimer)
+      this.#timerHost.clearTimeout(this.#debounceTimer)
       this.#debounceTimer = null
     }
     this.#takeSnapshot()

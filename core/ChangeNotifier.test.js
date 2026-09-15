@@ -44,3 +44,30 @@ test('a newer scheduled save suppresses an older result that settles later', asy
   assert.deepEqual(seen, ['new'])
   notifier.destroy()
 })
+
+
+test('change debounce uses the supplied timer host instead of ambient timers', async () => {
+  const callbacks = []
+  const timerHost = {
+    setTimeout(callback) { callbacks.push(callback); return 1 },
+    clearTimeout() {},
+  }
+  const originalSetTimeout = globalThis.setTimeout
+  globalThis.setTimeout = () => { throw new Error('ambient setTimeout must not be used') }
+  const seen = []
+  const notifier = new ChangeNotifier(
+    () => ({ version: 'owned', blocks: [] }),
+    data => seen.push(data.version),
+    0,
+    timerHost,
+  )
+  try {
+    notifier.schedule()
+  } finally {
+    globalThis.setTimeout = originalSetTimeout
+  }
+  assert.equal(callbacks.length, 1)
+  await callbacks[0]()
+  assert.deepEqual(seen, ['owned'])
+  notifier.destroy()
+})

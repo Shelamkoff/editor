@@ -3,6 +3,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 
 import { UndoManager } from './UndoManager.js'
+import { EditorEvent } from './editorEvents.js'
 
 function createEvents() {
   const listeners = new Map()
@@ -429,5 +430,35 @@ test('read-only availability is masked while programmatic changes remain in hist
   assert.equal(manager.canUndo, true, 'recorded read-only changes were discarded')
   assert.equal(manager.undo(), true)
   assert.deepEqual(current, initial)
+  manager.destroy()
+})
+
+
+test('history debounce uses the supplied timer host instead of ambient timers', () => {
+  const callbacks = []
+  const timerHost = {
+    setTimeout(callback) { callbacks.push(callback); return 1 },
+    clearTimeout() {},
+  }
+  const events = createEvents()
+  let current = { version: '1', blocks: [{ id: 'a', type: 'paragraph', data: { text: 'a' } }] }
+  const manager = new UndoManager(
+    { save: () => current.blocks },
+    events,
+    () => current,
+    () => {},
+    () => null,
+    { maxStack: 10, debounceMs: 25 },
+    timerHost,
+  )
+  current = { version: '1', blocks: [{ id: 'a', type: 'paragraph', data: { text: 'b' } }] }
+  const originalSetTimeout = globalThis.setTimeout
+  globalThis.setTimeout = () => { throw new Error('ambient setTimeout must not be used') }
+  try {
+    events.emit(EditorEvent.CHANGED)
+  } finally {
+    globalThis.setTimeout = originalSetTimeout
+  }
+  assert.equal(callbacks.length, 1)
   manager.destroy()
 })

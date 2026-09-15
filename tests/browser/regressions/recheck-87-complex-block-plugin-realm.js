@@ -159,4 +159,45 @@ export function register() {
     }
   })
 
+
+  test('embed Vimeo preview fetch stays in the block owning window', async () => {
+    const iframe = document.createElement('iframe')
+    document.body.appendChild(iframe)
+    let root = null
+    let plugin = null
+    const ambientFetch = window.fetch
+    try {
+      const doc = iframe.contentDocument
+      const view = iframe.contentWindow
+      assert(doc && view, 'iframe realm unavailable')
+      let ownerFetches = 0
+      const ownerFetch = view.fetch
+      view.fetch = async () => {
+        ownerFetches += 1
+        return {
+          ok: true,
+          async json() {
+            return { thumbnail_url: 'https://example.test/vimeo-preview.jpg', title: 'Realm preview' }
+          },
+        }
+      }
+      window.fetch = async () => { throw new Error('ambient fetch must not be used') }
+      try {
+        plugin = new Embed({ previewTimeoutMs: 1000 })
+        root = plugin.render({ service: 'vimeo', videoId: '12345' }, mutationContext(doc))
+        doc.body.appendChild(root)
+        await pause(30)
+        equal(ownerFetches, 1, 'embed preview did not use the owning-window fetch')
+      } finally {
+        view.fetch = ownerFetch
+      }
+    } finally {
+      window.fetch = ambientFetch
+      if (plugin && root) plugin.destroy(root)
+      plugin?.dispose?.()
+      root?.remove()
+      iframe.remove()
+    }
+  })
+
 }

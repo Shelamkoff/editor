@@ -18,6 +18,9 @@ export class ChangeNotifier {
   /** @type {boolean} */
   #destroyed = false
 
+  /** @type {{ setTimeout: typeof setTimeout, clearTimeout: typeof clearTimeout }} */
+  #timerHost
+
   /** Monotonic ownership token for timer and in-flight save results. */
   #generation = 0
 
@@ -25,18 +28,20 @@ export class ChangeNotifier {
    * @param {() => import('./types').EditorDocument | Promise<import('./types').EditorDocument>} saveFn
    * @param {((data: import('./types').EditorDocument) => void)} [onChange]
    * @param {number} [delay]
+   * @param {{ setTimeout: typeof setTimeout, clearTimeout: typeof clearTimeout }} [timerHost]
    */
-  constructor(saveFn, onChange, delay = 250) {
+  constructor(saveFn, onChange, delay = 250, timerHost = globalThis) {
     this.#saveFn = saveFn
     this.#onChange = onChange
     this.#delay = delay
+    this.#timerHost = timerHost
   }
 
   schedule() {
     if (this.#destroyed || !this.#onChange) return
     const generation = ++this.#generation
-    if (this.#timer) clearTimeout(this.#timer)
-    this.#timer = setTimeout(async () => {
+    if (this.#timer) this.#timerHost.clearTimeout(this.#timer)
+    this.#timer = this.#timerHost.setTimeout(async () => {
       this.#timer = null
       if (!this.#onChange) return
       try {
@@ -54,7 +59,7 @@ export class ChangeNotifier {
     this.#destroyed = true
     this.#generation++
     if (this.#timer) {
-      clearTimeout(this.#timer)
+      this.#timerHost.clearTimeout(this.#timer)
       this.#timer = null
     }
   }

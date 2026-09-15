@@ -2,8 +2,8 @@
 
 /**
  * @typedef {new () => {
- *   file(name: string, content: Blob): unknown,
- *   generateAsync(options: { type: 'blob' }): Promise<Blob>
+ *   file(name: string, content: Uint8Array): unknown,
+ *   generateAsync(options: { type: 'uint8array' }): Promise<Uint8Array>
  * }} ZipRuntime
  */
 

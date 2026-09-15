@@ -959,7 +959,8 @@ export class Embed extends BlockPluginAbstract {
         })
       } else {
         const endpoint = `https://vimeo.com/api/oembed.json?url=${encodeURIComponent(url)}&width=640`
-        const response = await fetch(endpoint, { signal: controller.signal, credentials: 'omit' })
+        const fetchFn = view.fetch ? view.fetch.bind(view) : fetch
+        const response = await fetchFn(endpoint, { signal: controller.signal, credentials: 'omit' })
         if (!response.ok) return
         const data = await response.json()
         preview = data?.thumbnail_url

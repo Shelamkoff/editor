@@ -75,11 +75,11 @@ async function readBoundedResponse(response, signal, total) {
       throw new RangeError('Attachment archive exceeds its size limit')
     }
     total.value += blob.size
-    return blob
+    return new Uint8Array(await blob.arrayBuffer())
   }
 
   const reader = response.body.getReader()
-  /** @type {ArrayBuffer[]} */
+  /** @type {Uint8Array[]} */
   const chunks = []
   let size = 0
   try {
@@ -95,13 +95,19 @@ async function readBoundedResponse(response, signal, total) {
       }
       const copy = new Uint8Array(value.byteLength)
       copy.set(value)
-      chunks.push(copy.buffer)
+      chunks.push(copy)
     }
   } catch (error) {
     await reader.cancel(error).catch(() => {})
     throw error
   }
-  return new Blob(chunks, { type: response.headers.get('content-type') || 'application/octet-stream' })
+  const content = new Uint8Array(size)
+  let offset = 0
+  for (const chunk of chunks) {
+    content.set(chunk, offset)
+    offset += chunk.byteLength
+  }
+  return content
 }
 
 /**
@@ -135,6 +141,8 @@ export async function downloadArchive(files, { signal, ownerDocument = globalThi
     const JSZip = await loadZipRuntime()
     operationSignal.throwIfAborted()
     const zip = new JSZip()
+    const view = ownerDocument?.defaultView
+    const fetchFn = view?.fetch ? view.fetch.bind(view) : fetch
     const total = { value: 0 }
     let cursor = 0
     let archived = 0
@@ -143,7 +151,7 @@ export async function downloadArchive(files, { signal, ownerDocument = globalThi
         const entry = entries[cursor++]
         operationSignal.throwIfAborted()
         try {
-          const response = await fetch(entry.url, { signal: operationSignal })
+          const response = await fetchFn(entry.url, { signal: operationSignal })
           if (!response.ok) continue
           zip.file(entry.name, await readBoundedResponse(response, operationSignal, total))
           archived += 1
@@ -163,10 +171,13 @@ export async function downloadArchive(files, { signal, ownerDocument = globalThi
     await Promise.all(workers)
     if (!archived) throw new Error('No attachments could be added to the ZIP archive')
     operationSignal.throwIfAborted()
-    const blob = await zip.generateAsync({ type: 'blob' })
+    const archiveBytes = await zip.generateAsync({ type: 'uint8array' })
     operationSignal.throwIfAborted()
-    const view = ownerDocument.defaultView
+    const BlobCtor = view?.Blob ?? Blob
     const URLCtor = view?.URL ?? URL
+    const archiveBuffer = new ArrayBuffer(archiveBytes.byteLength)
+    new Uint8Array(archiveBuffer).set(archiveBytes)
+    const blob = new BlobCtor([archiveBuffer], { type: 'application/zip' })
     const url = URLCtor.createObjectURL(blob)
     const a = ownerDocument.createElement('a')
     setSafeUrlAttribute(a, 'href', url, 'download'); a.download = 'files.zip'; a.click()

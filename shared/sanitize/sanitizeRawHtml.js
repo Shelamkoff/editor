@@ -154,6 +154,32 @@ export function sanitizeRawHtml(html, ownerDocument = globalThis.document) {
 }
 
 /**
+ * Return sanitized Raw HTML in the value form required by HTML injection
+ * sinks. Browsers without Trusted Types receive the same string as
+ * sanitizeRawHtml(); enforcing browsers receive DOMPurify's TrustedHTML.
+ *
+ * The first pass performs Rector's URL/style hardening. The optional second
+ * pass only signs that already-sanitized serialization with DOMPurify's
+ * owning-window Trusted Types policy.
+ *
+ * @param {string} html
+ * @param {Document} [ownerDocument]
+ * @returns {unknown}
+ */
+export function sanitizeRawHtmlForSink(html, ownerDocument = globalThis.document) {
+  const safeHtml = sanitizeRawHtml(html, ownerDocument)
+  const view = ownerDocument.defaultView
+  const trustedTypes = view ? /** @type {any} */ (view).trustedTypes : null
+  if (!trustedTypes) return safeHtml
+
+  const purifier = DOMPurify(view)
+  return purifier.sanitize(safeHtml, {
+    ...RAW_HTML_CONFIG,
+    RETURN_TRUSTED_TYPE: true,
+  })
+}
+
+/**
  * Sanitize and assign Raw HTML through DOM nodes instead of an HTML string
  * sink. This stays compatible with CSP `require-trusted-types-for` while
  * preserving the string-returning sanitizeRawHtml API.
