@@ -1,6 +1,8 @@
 import { test, equal, assert } from './harness.js'
 import { createEditor } from '../../../core/index.js'
 import { Paragraph } from '../../../plugins/paragraph/index.js'
+import { sanitizeRawHtml } from '../../../shared/sanitize/sanitizeRawHtml.js'
+import { escapeHtml } from '../../../shared/sanitize/escapeHtml.js'
 
 export function register() {
   test('block toolbar lifecycle and outside-click handling stay in the editor owning realm', () => {
@@ -79,6 +81,32 @@ export function register() {
       equal(toolbar.ownerDocument, doc, 'inline toolbar escaped the editor document')
     } finally {
       editor?.destroy()
+      iframe.remove()
+    }
+  })
+
+  test('raw and text sanitizers do not borrow the ambient document', () => {
+    const iframe = document.createElement('iframe')
+    document.body.appendChild(iframe)
+    try {
+      const doc = iframe.contentDocument
+      assert(doc, 'iframe document unavailable')
+      const ambientCreateElement = document.createElement
+      document.createElement = () => { throw new Error('ambient document must not be used') }
+      try {
+        equal(escapeHtml('<&>'), '&lt;&amp;&gt;', 'text escaping changed')
+        const sanitized = sanitizeRawHtml(
+          '<p onclick="bad()" style="color: red">safe</p><script>bad()</script>',
+          doc,
+        )
+        assert(sanitized.includes('<p'), 'safe Raw markup was removed')
+        assert(sanitized.includes('safe'), 'safe Raw text was removed')
+        assert(!sanitized.includes('onclick'), 'Raw event handler survived sanitization')
+        assert(!sanitized.includes('<script'), 'Raw script survived sanitization')
+      } finally {
+        document.createElement = ambientCreateElement
+      }
+    } finally {
       iframe.remove()
     }
   })
