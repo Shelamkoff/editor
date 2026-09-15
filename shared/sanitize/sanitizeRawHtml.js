@@ -20,6 +20,20 @@ const RAW_HTML_CONFIG = {
 
 const CSS_URL_RE = /url\(\s*(?:(["'])(.*?)\1|([^\s)"']+))\s*\)/gi
 
+const purifierByWindow = new WeakMap()
+
+/** @param {Document} ownerDocument */
+function purifierFor(ownerDocument) {
+  const view = ownerDocument.defaultView
+  if (!view) return DOMPurify
+  let purifier = purifierByWindow.get(view)
+  if (!purifier) {
+    purifier = DOMPurify(view)
+    purifierByWindow.set(view, purifier)
+  }
+  return purifier
+}
+
 /** @param {string} value */
 function sanitizeSrcset(value) {
   const candidates = []
@@ -130,7 +144,7 @@ function hardenRawFragment(fragment) {
  * @returns {DocumentFragment}
  */
 function sanitizeRawFragment(html, ownerDocument) {
-  const purifier = ownerDocument.defaultView ? DOMPurify(ownerDocument.defaultView) : DOMPurify
+  const purifier = purifierFor(ownerDocument)
   const fragment = /** @type {DocumentFragment} */ (purifier.sanitize(String(html || ''), {
     ...RAW_HTML_CONFIG,
     RETURN_DOM_FRAGMENT: true,
@@ -172,7 +186,7 @@ export function sanitizeRawHtmlForSink(html, ownerDocument = globalThis.document
   const trustedTypes = view ? /** @type {any} */ (view).trustedTypes : null
   if (!trustedTypes) return safeHtml
 
-  const purifier = DOMPurify(view)
+  const purifier = purifierFor(ownerDocument)
   return purifier.sanitize(safeHtml, {
     ...RAW_HTML_CONFIG,
     RETURN_TRUSTED_TYPE: true,
