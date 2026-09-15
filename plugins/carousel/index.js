@@ -619,7 +619,7 @@ export class CarouselBlock extends BlockPluginAbstract {
         if (src) slide.src = src
       }, wrapper, state, signal, 'text', true)
       const sourceInput = sourceField.querySelector('input')
-      if (embeddedSource && state.context.ownerDocument.defaultView?.HTMLInputElement && sourceInput instanceof state.context.ownerDocument.defaultView.HTMLInputElement) {
+      if (embeddedSource && ownerDocument.defaultView?.HTMLInputElement && sourceInput instanceof ownerDocument.defaultView.HTMLInputElement) {
         sourceInput.placeholder = this._t('embeddedSource', 'Local file — paste a URL to replace it')
         sourceInput.dataset.oeEmbeddedSource = 'true'
       }

@@ -41,6 +41,7 @@ const ICON_GRIP = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12
  *   avatarTasks: Map<PersonData, AbortController>,
  *   abortController: AbortController,
  *   context: import('../../core/types').BlockMutationContext,
+ *   ownerDocument: Document,
  * }} PersonState
  */
 
@@ -133,6 +134,7 @@ export class Person extends BlockPluginAbstract {
       avatarTasks: new Map(),
       abortController: createAbortControllerFor(wrapper),
       context,
+      ownerDocument,
     })
 
     this._rebuild(wrapper)
@@ -210,7 +212,7 @@ export class Person extends BlockPluginAbstract {
       s.abortController.abort()
       for (const controller of s.avatarTasks.values()) controller.abort()
       s.avatarTasks.clear()
-      for (const timer of s.debounceTimers.values()) (s.context.ownerDocument.defaultView ?? globalThis).clearTimeout(timer)
+      for (const timer of s.debounceTimers.values()) (s.ownerDocument.defaultView ?? globalThis).clearTimeout(timer)
       s.debounceTimers.clear()
       stateMap.delete(element)
     }
@@ -674,7 +676,7 @@ export class Person extends BlockPluginAbstract {
    * @returns {void}
    */
   _clearDebounceTimers(state) {
-    for (const timer of state.debounceTimers.values()) (state.context.ownerDocument.defaultView ?? globalThis).clearTimeout(timer)
+    for (const timer of state.debounceTimers.values()) (state.ownerDocument.defaultView ?? globalThis).clearTimeout(timer)
     state.debounceTimers.clear()
   }
 
