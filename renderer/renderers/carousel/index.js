@@ -86,6 +86,30 @@ export function createCarouselRenderer(classPrefix, locale) {
       // Avoid constructing a runtime instance with no navigable slides.
       if (!slides.length) return root
 
+      // @shelamkoff/carousel 1.x resolves HTMLElement/document/window from its
+      // module realm. A renderer target may belong to another same-origin realm
+      // (for example renderTo() into an iframe), where passing the foreign root
+      // to that runtime would fail its instanceof checks and create UI in the
+      // ambient document. Keep every slide available with a native static
+      // fallback in that mounting mode; same-realm rendering retains the full
+      // interactive carousel.
+      if (context.ownerDocument !== globalThis.document) {
+        root.classList.add(`${p}--static`)
+        if (data.options.aspectRatio && data.options.aspectRatio !== 'auto') {
+          root.classList.remove(`${p}--fixed-ratio`)
+          root.style.aspectRatio = ''
+        }
+        for (const slide of slides) {
+          const element = slide.content()
+          if (data.options.aspectRatio && data.options.aspectRatio !== 'auto') {
+            element.classList.add(`${p}__slide--fixed-ratio`)
+            element.style.aspectRatio = data.options.aspectRatio
+          }
+          root.appendChild(element)
+        }
+        return root
+      }
+
       const plugins = [createKeyboard({ scope: 'container' }), createSwipe({ mouse: true })]
       if (data.options.navigation) plugins.push(createArrows())
       if (data.options.pagination) plugins.push(createDots())
