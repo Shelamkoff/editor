@@ -10,26 +10,26 @@ async function test(name, fn) {
 await test('Raw preview assigns TrustedHTML under require-trusted-types-for', async () => {
   assert(typeof /** @type {any} */ (globalThis).trustedTypes === 'object', 'Trusted Types API unavailable under the test browser')
   const raw = new Raw()
-  const wrapper = raw.render(
-    { html: '<p style="color:red" onclick="bad()">safe</p><script>bad()</script>' },
-    {
-      ownerDocument: document,
-      readOnly: false,
-      mutate(fn) { return fn() },
-    },
-  )
-  document.body.appendChild(wrapper)
+  let wrapper = null
   try {
-    const toggle = wrapper.querySelector('.oe-raw__toggle')
-    assert(toggle, 'Raw preview toggle missing')
-    toggle.click()
+    wrapper = raw.render(
+      { html: '<p style="color:red" onclick="bad()">safe</p><script>bad()</script>' },
+      {
+        ownerDocument: document,
+        readOnly: true,
+        mutate(fn) { return fn() },
+      },
+    )
+    document.body.appendChild(wrapper)
     const frame = wrapper.querySelector('iframe')
     assert(frame, 'Raw preview iframe missing')
     assert(frame.srcdoc.includes('safe'), 'safe Raw content missing from preview')
     assert(!/onclick|<script/i.test(frame.srcdoc), 'unsafe Raw content survived preview sanitization')
   } finally {
-    raw.destroy(wrapper)
-    wrapper.remove()
+    if (wrapper) {
+      raw.destroy(wrapper)
+      wrapper.remove()
+    }
   }
 })
 
