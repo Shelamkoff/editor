@@ -136,4 +136,50 @@ export function register() {
     }
   })
 
+  test('multi-person renderTo stays native in a foreign renderer realm', () => {
+    const iframe = document.createElement('iframe')
+    document.body.appendChild(iframe)
+    let renderer = null
+    try {
+      const doc = iframe.contentDocument
+      assert(doc, 'iframe document unavailable')
+      const container = doc.createElement('main')
+      doc.body.appendChild(container)
+      renderer = new EditorRenderer({ blockTypes: ['person'] })
+
+      const ambientCreateElement = document.createElement
+      document.createElement = () => { throw new Error('ambient person carousel document must not be used') }
+      try {
+        renderer.renderTo({
+          version: '1',
+          blocks: [{
+            id: 'people', type: 'person',
+            data: {
+              persons: [
+                { name: 'Ada', role: 'Engineer', bio: '', avatar: '', links: [] },
+                { name: 'Grace', role: 'Scientist', bio: '', avatar: '', links: [] },
+              ],
+            },
+          }],
+        }, container)
+      } finally {
+        document.createElement = ambientCreateElement
+      }
+
+      const root = container.querySelector('.editor-person')
+      assert(root, 'person renderer root missing')
+      equal(root.ownerDocument, doc, 'person renderer escaped the target document')
+      const list = root.querySelector('.editor-person__list')
+      assert(list, 'foreign-realm person renderer did not keep its native list')
+      equal(list.querySelectorAll('.editor-person__card').length, 2, 'foreign-realm person renderer lost profiles')
+      assert(!root.querySelector('.carousel'), 'foreign-realm person renderer invoked the ambient carousel runtime')
+      for (const card of list.querySelectorAll('.editor-person__card')) {
+        equal(card.ownerDocument, doc, 'person card escaped the target document')
+      }
+    } finally {
+      renderer?.destroy()
+      iframe.remove()
+    }
+  })
+
 }

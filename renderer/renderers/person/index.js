@@ -59,6 +59,23 @@ export function createPersonRenderer(classPrefix, /** @type {Record<string, impo
                 carouselContainer.className = `${p}__carousel`
                 wrapper.appendChild(carouselContainer)
 
+                // @shelamkoff/carousel 1.x resolves HTMLElement/document/window from
+                // its module realm. renderTo() may target another same-origin document
+                // (for example an iframe), where handing the foreign container to that
+                // runtime would fail its instanceof checks and create UI in the ambient
+                // document. Keep all people available as the existing native flex list
+                // in that mounting mode; same-realm rendering retains the responsive
+                // interactive carousel below.
+                if (ownerDocument !== globalThis.document) {
+                    const list = ownerDocument.createElement('div')
+                    list.className = `${p}__list`
+                    for (const person of persons) {
+                        list.appendChild(renderCard(person, parseInline, p, t, ownerDocument))
+                    }
+                    carouselContainer.appendChild(list)
+                    return wrapper
+                }
+
                 // Build slides from persons
                 const slides = persons.map(person => ({
                     content: () => renderCard(person, parseInline, p, t, ownerDocument),
