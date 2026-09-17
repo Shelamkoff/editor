@@ -3,7 +3,7 @@ import { appendMergeField } from '../shared/appendMergeField.js'
 // Quote — blockquote with optional caption
 // =============================================================================
 
-import { sanitizeHtml } from '../../core/sanitize.js'
+import { setSanitizedHtml } from '../../core/sanitize.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { mapTextFields } from './mapTextFields.js'
 import { validateQuoteData } from '../../shared/blockDataValidators.js'
@@ -50,18 +50,14 @@ export class Quote extends BlockPluginAbstract {
     blockquote.contentEditable = 'true'
     blockquote.dataset.placeholder = this._t('textPlaceholder', 'Quote')
     const text = normalizeTextValue(data?.text)
-    if (text) {
-      blockquote.innerHTML = sanitizeHtml(text, ownerDocument)
-    }
+    if (text) setSanitizedHtml(blockquote, text)
 
     const caption = ownerDocument.createElement('cite')
     caption.classList.add('oe-quote__caption')
     caption.contentEditable = 'true'
     caption.dataset.placeholder = this._t('captionPlaceholder', 'Caption')
     const captionText = normalizeTextValue(data?.caption)
-    if (captionText) {
-      caption.innerHTML = sanitizeHtml(captionText, ownerDocument)
-    }
+    if (captionText) setSanitizedHtml(caption, captionText)
 
     // Move between the two fields without trapping focus at block boundaries.
     wrapper.addEventListener('keydown', (e) => {
