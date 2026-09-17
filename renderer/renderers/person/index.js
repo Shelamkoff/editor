@@ -2,6 +2,7 @@ import { setTrustedHtml } from '../../../shared/sanitize/sanitizeHtml.js'
 // @ts-check
 import { Carousel, createSwipe, carouselStylesUrl } from '@shelamkoff/carousel'
 import { setSafeUrlAttribute } from '../../../shared/sanitize/sanitizeUrl.js'
+import { requiresTrustedHtml } from '../../../shared/sanitize/trustedHtml.js'
 import { localeText } from '../locale.js'
 
 const styles = new URL('./styles.css', import.meta.url).href
@@ -30,7 +31,6 @@ export function createPersonRenderer(classPrefix, /** @type {Record<string, impo
     const p = `${classPrefix}-person`
     const mounted = new WeakMap()
 
-
     return {
         type: 'person',
         styles: [styles, carouselStyles],
@@ -51,7 +51,6 @@ export function createPersonRenderer(classPrefix, /** @type {Record<string, impo
             const resources = { observer: null, carousel: null }
             mounted.set(wrapper, resources)
 
-
             if (persons.length <= 1) {
                 const person = persons[0] || block.data
                 wrapper.appendChild(renderCard(person, parseInline, p, t, ownerDocument))
@@ -60,14 +59,13 @@ export function createPersonRenderer(classPrefix, /** @type {Record<string, impo
                 carouselContainer.className = `${p}__carousel`
                 wrapper.appendChild(carouselContainer)
 
-                // @shelamkoff/carousel 1.x resolves HTMLElement/document/window from
-                // its module realm. renderTo() may target another same-origin document
-                // (for example an iframe), where handing the foreign container to that
-                // runtime would fail its instanceof checks and create UI in the ambient
-                // document. Keep all people available as the existing native flex list
-                // in that mounting mode; same-realm rendering retains the responsive
-                // interactive carousel below.
-                if (ownerDocument !== globalThis.document) {
+                // @shelamkoff/carousel 1.x is not safe to initialize in a
+                // foreign realm and writes plain strings to HTML sinks. Under
+                // require-trusted-types-for that third-party runtime would
+                // throw. Preserve every person through the native flex-list
+                // fallback in either environment; the ordinary same-realm
+                // non-enforced path keeps the responsive interactive carousel.
+                if (ownerDocument !== globalThis.document || requiresTrustedHtml(ownerDocument)) {
                     const list = ownerDocument.createElement('div')
                     list.className = `${p}__list`
                     for (const person of persons) {
@@ -77,12 +75,10 @@ export function createPersonRenderer(classPrefix, /** @type {Record<string, impo
                     return wrapper
                 }
 
-                // Build slides from persons
                 const slides = persons.map(person => ({
                     content: () => renderCard(person, parseInline, p, t, ownerDocument),
                 }))
 
-                // Measure once mounted to decide if carousel is needed
                 const CARD_W = 300
                 const GAP = 16
                 const ResizeObserverCtor = ownerDocument.defaultView?.ResizeObserver ?? globalThis.ResizeObserver
@@ -95,7 +91,6 @@ export function createPersonRenderer(classPrefix, /** @type {Record<string, impo
                     const totalW = persons.length * CARD_W + (persons.length - 1) * GAP
 
                     if (totalW <= carouselContainer.offsetWidth) {
-                        // All fit — simple flex row
                         const list = ownerDocument.createElement('div')
                         list.className = `${p}__list`
                         for (const person of persons) {
@@ -105,7 +100,6 @@ export function createPersonRenderer(classPrefix, /** @type {Record<string, impo
                         return
                     }
 
-                    // Overflow — init Carousel
                     const slidesPerView = Math.max(1, Math.floor(carouselContainer.offsetWidth / (CARD_W + GAP)))
                     const carousel = new Carousel(carouselContainer, slides, {
                         slidesPerView,
@@ -115,7 +109,6 @@ export function createPersonRenderer(classPrefix, /** @type {Record<string, impo
                     })
                     resources.carousel = carousel
 
-                    // External nav below carousel (not inside viewport)
                     const nav = ownerDocument.createElement('div')
                     nav.className = `${p}__nav`
                     const prevBtn = ownerDocument.createElement('button')
