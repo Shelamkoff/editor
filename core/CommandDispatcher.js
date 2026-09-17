@@ -11,7 +11,8 @@ export class CommandDispatcher {
   /** @type {import('./types').IBlockManager} */ #blocks
   /** @type {import('./types').IEventBus} */ #events
   /** @type {number} */ #depth = 0
-  /** @type {Array<() => void>} */ #observers = []
+  /** @type {Array<() => void>} */ #postCommitQueue = []
+  /** @type {boolean} */ #drainingPostCommit = false
   /** @type {Set<import('./types').IBlock>} */ #affected = new Set()
   /** @type {(() => import('./types').EditorDocument) | null} */ #capture = null
   /** @type {((document: import('./types').EditorDocument) => void) | null} */ #restore = null
@@ -67,12 +68,20 @@ export class CommandDispatcher {
     try { return operation() } finally { this.#restoring = previous }
   }
 
-  /** Deliver external observations only after the enclosing command commits.
+  /**
+   * Deliver external observations only after the enclosing command commits.
+   *
+   * A post-commit callback may synchronously execute another command. While the
+   * queue is draining, those reentrant observations are appended instead of
+   * delivered recursively. This preserves causal FIFO ordering: every public
+   * event belonging to command A is observed before events from a command B
+   * started by one of A's observers.
+   *
    * Internal editor services continue to receive synchronous working-state events.
    * @param {() => void} observer
    */
   afterCommit(observer) {
-    if (this.active) this.#observers.push(observer)
+    if (this.active || this.#drainingPostCommit) this.#postCommitQueue.push(observer)
     else observer()
   }
 
@@ -105,7 +114,7 @@ export class CommandDispatcher {
     if (this.#depth > 0) return
     const affected = [...this.#affected]
     this.#affected.clear()
-    this.#publish(this.#markAndCommit(affected))
+    this.#flushPostCommit(this.#markAndCommit(affected))
   }
 
   /**
@@ -127,6 +136,7 @@ export class CommandDispatcher {
 
     const outermost = this.#depth === 0
     const startedAt = outermost && this.#diagnostics?.enabled ? this.#diagnostics.now() : 0
+    const postCommitStart = outermost ? this.#postCommitQueue.length : -1
     if (outermost) {
       this.#nestedFailure = null
       this.#hasNestedFailure = false
@@ -143,7 +153,6 @@ export class CommandDispatcher {
     this.#depth++
     let result
     let committed = null
-    let observers = []
     try {
       result = command.apply()
       command.notify?.(result)
@@ -163,6 +172,10 @@ export class CommandDispatcher {
         this.#hasNestedFailure = true
       }
       if (outermost) {
+        // Drop observations produced by the transaction that is about to roll
+        // back, while retaining callbacks from an already-draining parent
+        // command that happen to precede this reentrant transaction.
+        this.#postCommitQueue.length = postCommitStart
         this.#diagnostics?.emit('command.failed', {
           operation: command.name,
           errorName: this.#diagnostics.errorName(cause),
@@ -173,8 +186,6 @@ export class CommandDispatcher {
     } finally {
       this.#depth--
       if (outermost) {
-        observers = this.#observers
-        this.#observers = []
         this.#affected.clear()
         if (startedAt && this.#diagnostics) {
           const durationMs = this.#diagnostics.now() - startedAt
@@ -186,11 +197,42 @@ export class CommandDispatcher {
         this.#hasNestedFailure = false
       }
     }
-    // Observers may issue a new command. Publish only after the completed
-    // transaction has released its depth, affected set and failure state.
-    for (const observer of observers) observer()
-    if (committed) this.#publish(committed)
+
+    // Release transaction state before publication. #flushPostCommit publishes
+    // terminal events first so their public deliveries are already queued when
+    // an earlier structural observer starts a reentrant command.
+    if (outermost && committed) this.#flushPostCommit(committed)
     return result
+  }
+
+  /**
+   * Publish one committed command and drain public observations in FIFO order.
+   * Reentrant commands publish synchronously while the drain is active, but
+   * their public deliveries append behind the already queued parent events.
+   * @param {import('./types').IBlock[]} affected
+   */
+  #flushPostCommit(affected) {
+    if (this.#drainingPostCommit) {
+      this.#publish(affected)
+      return
+    }
+
+    this.#drainingPostCommit = true
+    try {
+      this.#publish(affected)
+      while (this.#postCommitQueue.length > 0) {
+        const observer = this.#postCommitQueue.shift()
+        observer?.()
+      }
+    } catch (error) {
+      // Never leak callbacks from an interrupted drain into an unrelated later
+      // command. A throwing observer still propagates after the commit, which
+      // preserves the existing synchronous afterCommit contract.
+      this.#postCommitQueue = []
+      throw error
+    } finally {
+      this.#drainingPostCommit = false
+    }
   }
 
   #rollback(command, checkpoint, cause, forceCheckpoint = false) {
