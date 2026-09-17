@@ -1,4 +1,4 @@
-import { sanitizeHtml } from '../../core/sanitize.js'
+import { setSanitizedHtml, setTrustedHtml } from '../../core/sanitize.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { mapTextFields } from './mapTextFields.js'
 import { validateListData } from '../../shared/blockDataValidators.js'
@@ -251,7 +251,7 @@ export class List extends BlockPluginAbstract {
 
       const iconSpan = element.ownerDocument.createElement('span')
       iconSpan.className = 'oe-settings-menu__icon'
-      iconSpan.innerHTML = icon
+      setTrustedHtml(iconSpan, icon)
       btn.appendChild(iconSpan)
 
       const labelSpan = element.ownerDocument.createElement('span')
@@ -307,7 +307,7 @@ export class List extends BlockPluginAbstract {
     li.classList.add('oe-list__item')
     li.contentEditable = 'true'
     if (html) {
-      li.innerHTML = sanitizeHtml(html, list.ownerDocument)
+      setSanitizedHtml(li, html)
     }
     list.appendChild(li)
     return li
@@ -333,7 +333,7 @@ export class List extends BlockPluginAbstract {
   /** @param {string} html @param {Document} ownerDocument @returns {boolean} */
   #hasContent(html, ownerDocument) {
     const container = ownerDocument.createElement('div')
-    container.innerHTML = html
+    setTrustedHtml(container, html)
     if (container.textContent?.replace(/\u00a0/g, ' ').trim()) return true
     return !!container.querySelector('img, video, audio, iframe, [data-inline-plugin]')
   }
