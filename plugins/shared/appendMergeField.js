@@ -1,4 +1,4 @@
-import { sanitizeHtml } from '../../core/sanitize.js'
+import { sanitizeHtml, insertTrustedHtml } from '../../core/sanitize.js'
 import { normalizeTextValue } from '../../shared/textFormat.js'
 
 /** Append one authored field without recreating existing interactive DOM.
@@ -13,6 +13,6 @@ export function appendMergeField(root, selector, value, separator = '<br>') {
   if (!field) return false
   const html = sanitizeHtml(normalizeTextValue(value), field.ownerDocument)
   if (!html) return false
-  field.insertAdjacentHTML('beforeend', (field.innerHTML ? separator : '') + html)
+  insertTrustedHtml(field, 'beforeend', (field.innerHTML ? separator : '') + html)
   return true
 }
