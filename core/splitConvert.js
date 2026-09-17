@@ -1,3 +1,4 @@
+import { setTrustedHtml } from './sanitize.js'
 import { closestBlock } from './dom.js'
 
 /**
@@ -86,7 +87,7 @@ export function splitAndConvert(blocks, selection, currentIndex, currentType, co
   }
 
   if (!beforeHtml) {
-    contentEl.innerHTML = selectedHtml
+    setTrustedHtml(contentEl, selectedHtml)
     currentBlock?.markDirty()
     const converted = blocks.convert(currentIndex, targetType, mergedData)
     if (afterHtml) {

@@ -1,3 +1,4 @@
+import { setTrustedHtml } from './sanitize.js'
 import { generateInlineId } from '../shared/inlineMarshal.js'
 import { cloneEditorData } from '../shared/cloneEditorData.js'
 
@@ -13,7 +14,7 @@ import { cloneEditorData } from '../shared/cloneEditorData.js'
 export function transferInlineContent(html, references, occupied, ownerDocument = document) {
   if (!references || !Object.keys(references).length) return { html, inline: {} }
   const template = ownerDocument.createElement('template')
-  template.innerHTML = html
+  setTrustedHtml(template, html)
   const mapping = new Map()
   const entries = []
   const allocate = id => {

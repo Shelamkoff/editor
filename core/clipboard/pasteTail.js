@@ -1,3 +1,4 @@
+import { setTrustedHtml } from '../sanitize.js'
 import { editableAtBoundary } from '../editableFields.js'
 import { getTextLength } from '../textOffset.js'
 
@@ -47,7 +48,7 @@ export function finishBlockPaste(lastBlock, tail, mergeText, ctx) {
   if (tail?.html) {
     if (mergeText && lastBlock.contentElement.contentEditable === 'true') {
       const template = lastBlock.contentElement.ownerDocument.createElement('template')
-      template.innerHTML = lastBlock.importInlineContent(tail.html, tail.metadata.inline)
+      setTrustedHtml(template, lastBlock.importInlineContent(tail.html, tail.metadata.inline))
       lastBlock.contentElement.append(...template.content.childNodes)
       ctx.notifyChanged(lastBlock)
     } else {

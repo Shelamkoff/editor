@@ -651,7 +651,7 @@ export class LinkPreview extends BlockPluginAbstract {
         st.pendingUrl = null
         st.data = this._defaultData()
         this._removeCardElements(wrapper)
-        if (st.urlIconEl) st.urlIconEl.innerHTML = ICON_FORMS
+        if (st.urlIconEl) setTrustedHtml(st.urlIconEl, ICON_FORMS)
         const inp = wrapper.querySelector(`.${P}__url-input`)
         if (inp) { /** @type {HTMLInputElement} */ (inp).value = ''; /** @type {HTMLInputElement} */ (inp).focus() }
       })

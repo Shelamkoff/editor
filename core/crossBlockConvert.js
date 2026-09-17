@@ -1,3 +1,4 @@
+import { setTrustedHtml } from './sanitize.js'
 import { resolveBlockRange } from './selectionRange.js'
 import { closestBlock } from './dom.js'
 import { EditorEvent } from './editorEvents.js'
@@ -34,7 +35,7 @@ function rangeHtml(range, ownerDocument) {
 /** @param {string} html @param {Document} ownerDocument @returns {boolean} */
 function hasTransferableContent(html, ownerDocument) {
   const container = ownerDocument.createElement('div')
-  container.innerHTML = html
+  setTrustedHtml(container, html)
   if ((container.textContent || '').replace(/\u00a0/g, ' ').trim()) return true
   return !!container.querySelector('img, video, audio, iframe, [data-inline-plugin]')
 }

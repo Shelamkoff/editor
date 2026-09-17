@@ -655,7 +655,7 @@ export class Embed extends BlockPluginAbstract {
         if (st.inputTimer) view.clearTimeout(st.inputTimer)
         st.data = this._defaultData()
         this._removePlayerElements(wrapper)
-        if (st.urlIconEl) st.urlIconEl.innerHTML = ICON_FORMS
+        if (st.urlIconEl) setTrustedHtml(st.urlIconEl, ICON_FORMS)
         const inp = wrapper.querySelector(`.${CSS.urlInput}`)
         if (inp) { /** @type {HTMLInputElement} */ (inp).value = ''; /** @type {HTMLInputElement} */ (inp).focus() }
         wrapper.classList.remove(CSS.filled)
@@ -1000,7 +1000,7 @@ export class Embed extends BlockPluginAbstract {
     const btn = ownerDocument.createElement('button')
     btn.type = 'button'
     btn.className = CSS.actionBtn
-    btn.innerHTML = html
+    setTrustedHtml(btn, html)
     btn.addEventListener('mousedown', (e) => e.preventDefault(), { signal })
     btn.addEventListener('click', (e) => { e.stopPropagation(); handler() }, { signal })
     return btn

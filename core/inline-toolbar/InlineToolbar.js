@@ -421,7 +421,7 @@ export class InlineToolbar {
 
       // Update dynamic icon if the tool provides one (e.g. alignment, link toggle).
       if (tool.getIcon) {
-        btn.innerHTML = tool.getIcon(active)
+        setTrustedHtml(btn, tool.getIcon(active))
       }
     }
   }

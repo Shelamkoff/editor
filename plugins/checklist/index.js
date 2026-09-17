@@ -304,7 +304,7 @@ export class Checklist extends BlockPluginAbstract {
       const content = ownerDocument.createElement('div')
       content.className = 'oe-checklist__text'
       content.contentEditable = 'true'
-      if (newText) content.innerHTML = newText
+      if (newText) setTrustedHtml(content, newText)
 
       newItem.append(checkbox, content)
       currentItem.after(newItem)

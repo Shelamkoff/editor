@@ -8,7 +8,7 @@ import { sanitizeMediaUrl } from '../../shared/sanitize/sanitizeUrl.js'
  */
 function inline(source, ownerDocument) {
   const template = ownerDocument.createElement('template')
-  template.innerHTML = source.innerHTML
+  setTrustedHtml(template, source.innerHTML)
   for (const control of template.content.querySelectorAll('button, input, textarea, select, script, style, svg, [role="menu"], [role="dialog"]')) control.remove()
   const result = ownerDocument.createElement('span')
   setSanitizedHtml(result, template.innerHTML)
@@ -23,7 +23,7 @@ function inline(source, ownerDocument) {
 /** @param {string} tag @param {Element} source @param {Document} ownerDocument */
 function field(tag, source, ownerDocument) {
   const element = ownerDocument.createElement(tag)
-  element.innerHTML = inline(source, ownerDocument)
+  setTrustedHtml(element, inline(source, ownerDocument))
   return element
 }
 
@@ -33,11 +33,11 @@ function list(source, ownerDocument) {
   for (const item of source.children) {
     if (item.tagName !== 'LI') continue
     const template = ownerDocument.createElement('template')
-    template.innerHTML = item.innerHTML
+    setTrustedHtml(template, item.innerHTML)
     const nested = [...template.content.querySelectorAll('ul, ol')].filter(node => !node.parentElement?.closest('ul, ol'))
     for (const node of nested) node.remove()
     const holder = ownerDocument.createElement('div')
-    holder.innerHTML = template.innerHTML
+    setTrustedHtml(holder, template.innerHTML)
     const li = field('li', holder, ownerDocument)
     for (const node of nested) li.appendChild(list(node, ownerDocument))
     result.appendChild(li)
@@ -64,7 +64,7 @@ export function blockClipboardHtml(block) {
     const url = sanitizeMediaUrl(data.file?.url)
     if (url) image.setAttribute('src', url)
     const captionSource = ownerDocument.createElement('template')
-    captionSource.innerHTML = typeof data.caption === 'string' ? data.caption : ''
+    setSanitizedHtml(captionSource, typeof data.caption === 'string' ? data.caption : '')
     const caption = field('figcaption', captionSource, ownerDocument)
     image.setAttribute('alt', caption.textContent || '')
     if (caption.innerHTML) figure.appendChild(caption)

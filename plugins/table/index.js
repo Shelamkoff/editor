@@ -290,7 +290,7 @@ export class Table extends BlockPluginAbstract {
       const newCell = table.ownerDocument.createElement(newTag)
       newCell.className = 'oe-table__cell'
       newCell.contentEditable = 'true'
-      newCell.innerHTML = cell.innerHTML
+      setTrustedHtml(newCell, cell.innerHTML)
       cell.replaceWith(newCell)
     }
   }

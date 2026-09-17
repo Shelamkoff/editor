@@ -89,7 +89,7 @@ function buildStyleForm(wrapper, state, deps) {
 
     const arrow = ownerDocument.createElement('span')
     arrow.className = CSS.customSelectArrow
-    arrow.innerHTML = CHEVRON_DOWN
+    setTrustedHtml(arrow, CHEVRON_DOWN)
 
     trigger.append(triggerText, arrow)
 

@@ -1,3 +1,4 @@
+import { setTrustedHtml } from '../../core/sanitize.js'
 // @ts-check
 /**
  * Mention inline plugin.
@@ -251,12 +252,12 @@ class DropdownUI {
 
     const el = this._createElement('div', 'oe-mention-item oe-mention-no-results')
     el.setAttribute('role', 'status')
-    el.innerHTML = `
+    setTrustedHtml(el, `
       <div class="oe-mention-avatar-placeholder">?</div>
       <div class="oe-mention-info">
         <div class="oe-mention-name">${escapeHtml(this._options.noResultsText)}</div>
       </div>
-    `
+    `)
     return el
   }
 
@@ -291,11 +292,11 @@ class DropdownUI {
 
     const loader = this._createElement('div', 'oe-mention-loading')
     loader.setAttribute('role', 'status')
-    loader.innerHTML = `
+    setTrustedHtml(loader, `
       <div class="oe-mention-item">
         <div class="oe-mention-info"><div class="oe-mention-name">${escapeHtml(this._options.loadingText)}</div></div>
       </div>
-    `
+    `)
     this._el.appendChild(loader)
   }
 

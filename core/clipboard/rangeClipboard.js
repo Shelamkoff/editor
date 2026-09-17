@@ -1,3 +1,4 @@
+import { setTrustedHtml } from '../sanitize.js'
 import { serializeInlineHtml } from '../../shared/inlineMarshal.js'
 import { cloneEditorData } from '../../shared/cloneEditorData.js'
 import { transferInlineContent } from '../transferInlineContent.js'
@@ -71,7 +72,7 @@ export function rangeClipboardContent(range, blocks, registry) {
     // register a different set of plugins than the source editor.
     const serialized = serializeInlineHtml(copy.innerHTML, registry, new Set(), source.inline, ownerDocument)
     const transferred = transferInlineContent(serialized.html, serialized.inline, occupied, ownerDocument)
-    copy.innerHTML = transferred.html
+    setTrustedHtml(copy, transferred.html)
     entries.push(...Object.entries(transferred.inline))
   }
   return {

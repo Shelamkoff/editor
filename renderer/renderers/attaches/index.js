@@ -475,7 +475,7 @@ function renderMaterial(wrapper, files, cls, t) {
     card.appendChild(info)
     const dl = ownerDocument.createElement('a')
     dl.className = `${cls}-attaches__material-dl`
-    setSafeUrlAttribute(dl, 'href', file.url, 'download'); dl.download = file.name || ''; dl.innerHTML = ICON_DL
+    setSafeUrlAttribute(dl, 'href', file.url, 'download'); dl.download = file.name || ''; setTrustedHtml(dl, ICON_DL)
     dl.setAttribute('aria-label', `${t('renderer.attaches.download', 'Download')}: ${file.name || t('renderer.attaches.file', 'File')}`)
     card.appendChild(dl)
     stack.appendChild(card)

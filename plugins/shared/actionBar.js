@@ -1,3 +1,4 @@
+import { setTrustedHtml } from '../../core/sanitize.js'
 /**
  * Shared action bar utilities for block plugins (image, gallery, etc.).
  * Eliminates duplicate makeActionBtn/makeSep across plugin view-filled files.
@@ -16,7 +17,7 @@ export function makeActionBtn(cssClass, innerHTML, handler, signal, ownerDocumen
   const btn = ownerDocument.createElement('button')
   btn.type = 'button'
   btn.className = cssClass
-  btn.innerHTML = innerHTML
+  setTrustedHtml(btn, innerHTML)
   btn.addEventListener('click', (e) => {
     e.stopPropagation()
     handler()

@@ -1,3 +1,4 @@
+import { setTrustedHtml } from '../sanitize.js'
 import { getTextLength } from '../textOffset.js'
 import { EditorEvent } from '../editorEvents.js'
 
@@ -135,7 +136,7 @@ export class CrossBlockEditor {
 
       // Move the last field's suffix; later fields stay in their original block.
       for (const field of lastFields.slice(0, lastPosition + 1)) field.replaceChildren()
-      suffix.innerHTML = transferred
+      setTrustedHtml(suffix, transferred)
       firstCe.append(...suffix.content.childNodes)
       for (let index = lastIndex - 1; index > firstIndex; index--) blocks.remove(index)
       if (lastPosition === lastFields.length - 1) blocks.remove(blocks.getBlockIndex(lastBlock.id))
