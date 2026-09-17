@@ -1,4 +1,6 @@
 // @ts-check
+import { toTrustedHtml } from './sanitize/trustedHtml.js'
+
 /**
  * Inline widget marshalling.
  *
@@ -91,7 +93,7 @@ export function serializeInlineHtml(html, registry, usedIds = new Set(), preserv
   if (!source || !registry) return { html: source, inline: {} }
 
   const tpl = ownerDocument.createElement('template')
-  tpl.innerHTML = source
+  tpl.innerHTML = /** @type {any} */ (toTrustedHtml(source, ownerDocument))
 
   // Keep unresolved tokens as opaque document data. Scan TEXT nodes, not
   // attributes, and reserve their ids before allocating ids to live widgets.
@@ -167,7 +169,7 @@ export function deserializeInlineHtml(html, inline, registry, ownerDocument = gl
   if (!inline || typeof inline !== 'object' || !registry || !source.includes('{{')) return source
 
   const tpl = ownerDocument.createElement('template')
-  tpl.innerHTML = source
+  tpl.innerHTML = /** @type {any} */ (toTrustedHtml(source, ownerDocument))
 
   /** Visit every text node and expand placeholder tokens in place. */
   const walker = ownerDocument.createTreeWalker(tpl.content, 4)
