@@ -1,9 +1,11 @@
 const policies = new WeakMap()
+const enforcement = new WeakMap()
 
 /**
  * Convert an internal HTML string to TrustedHTML when Trusted Types are
  * available. The policy is intentionally private to Rector and is used only
- * at sinks whose input is subsequently constrained by Rector's sanitizers.
+ * at reviewed sinks. Persisted/user HTML must be sanitized before a trusted
+ * sink helper is used.
  *
  * Applications enforcing a `trusted-types` CSP must allow the `rector` policy.
  *
@@ -31,4 +33,36 @@ export function toTrustedHtml(html, ownerDocument = globalThis.document) {
     policies.set(view, policy)
   }
   return policy.createHTML(html)
+}
+
+/**
+ * Detect whether this document rejects plain strings at HTML sinks.
+ *
+ * Merely exposing `window.trustedTypes` does not mean enforcement is enabled,
+ * so integrations with third-party DOM libraries cannot use feature detection
+ * alone. Probe an inert detached template once per realm and cache the result.
+ * No attacker-controlled markup is parsed by this probe.
+ *
+ * @param {Document} ownerDocument
+ * @returns {boolean}
+ */
+export function requiresTrustedHtml(ownerDocument) {
+  const view = ownerDocument?.defaultView
+  const trustedTypes = view ? /** @type {any} */ (view).trustedTypes : null
+  if (!trustedTypes || !view) return false
+  if (enforcement.has(view)) return enforcement.get(view) === true
+
+  const template = ownerDocument.createElement('template')
+  let required = false
+  try {
+    // This deliberately probes the browser contract with an empty, inert value.
+    // Under require-trusted-types-for 'script' the assignment throws TypeError.
+    template.innerHTML = ''
+  } catch (error) {
+    const TypeErrorCtor = view.TypeError ?? TypeError
+    if (!(error instanceof TypeErrorCtor)) throw error
+    required = true
+  }
+  enforcement.set(view, required)
+  return required
 }
