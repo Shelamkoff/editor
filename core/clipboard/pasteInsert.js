@@ -1,4 +1,5 @@
 import { deserializeInlineHtml } from '../../shared/inlineMarshal.js'
+import { toTrustedHtml } from '../../shared/sanitize/trustedHtml.js'
 import { takePasteTail, finishBlockPaste } from './pasteTail.js'
 import { sanitizeHtml } from '../sanitize.js'
 import { extractBlockElements } from './pasteUtils.js'
@@ -79,7 +80,7 @@ export function prepareHtmlPaste(html, ctx) {
     ?? ctx.blocks?.getCurrentBlock?.()?.contentElement?.ownerDocument
     ?? document
   const template = ownerDocument.createElement('template')
-  template.innerHTML = html
+  template.innerHTML = /** @type {any} */ (toTrustedHtml(html, ownerDocument))
   const extracted = extractBlockElements(template.content, tag => !!ctx.router.findByTag(tag))
   const prepared = []
   for (const item of extracted) {
@@ -179,7 +180,7 @@ function insertHtmlAtCaret(html, ownerDocument) {
   const range = sel.getRangeAt(0)
   range.deleteContents()
   const template = ownerDocument.createElement('template')
-  template.innerHTML = html
+  template.innerHTML = /** @type {any} */ (toTrustedHtml(html, ownerDocument))
   const frag = template.content
   const lastNode = frag.lastChild
   range.insertNode(frag)
