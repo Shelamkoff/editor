@@ -5,16 +5,14 @@ const BLOCK_TAGS = new Set([
 ])
 
 /**
- * Create a paragraph that remains owned by inert template content. Cloning
- * untrusted media into a regular detached element can still start loading and
- * fire event attributes before the paste sanitizer gets a chance to run.
+ * Create an empty synthetic paragraph. Untrusted pasted nodes are appended as
+ * clones only after the source document has already been parsed inertly; the
+ * empty wrapper itself does not require an HTML parser sink.
  * @param {Document} ownerDocument
  * @returns {HTMLParagraphElement}
  */
 function createInertParagraph(ownerDocument) {
-  const template = ownerDocument.createElement('template')
-  template.innerHTML = '<p></p>'
-  return /** @type {HTMLParagraphElement} */ (template.content.firstElementChild)
+  return ownerDocument.createElement('p')
 }
 
 /**
