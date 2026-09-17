@@ -23,24 +23,34 @@ const PUBLIC_EDITOR_EVENTS = new Set([
 ])
 
 /**
- * Safe view over an internal Block. It deliberately omits manager-integrity
- * methods such as destroy(), markDirty(), merge() and replaceContentElement().
+ * Safe identity view over a live block id. It deliberately omits manager-
+ * integrity methods such as destroy(), markDirty(), merge() and
+ * replaceContentElement(). Resolving by id makes a retained view follow an
+ * atomic conversion, which replaces the internal Block instance while keeping
+ * its document identity. Access fails while that id is absent from the live
+ * document instead of exposing detached stale DOM.
  */
 class PublicBlockView {
-  /** @type {import('./types').IBlock} */
-  #internalBlock
-  /** @type {() => void} */
-  #assertActive
+  /** @type {string} */ #id
+  /** @type {(id: string) => import('./types').IBlock | undefined} */ #resolveBlock
+  /** @type {() => void} */ #assertActive
 
-  /** @param {import('./types').IBlock} block @param {() => void} assertActive */
-  constructor(block, assertActive) {
-    this.#internalBlock = block
+  /**
+   * @param {string} id
+   * @param {(id: string) => import('./types').IBlock | undefined} resolveBlock
+   * @param {() => void} assertActive
+   */
+  constructor(id, resolveBlock, assertActive) {
+    this.#id = id
+    this.#resolveBlock = resolveBlock
     this.#assertActive = assertActive
   }
 
   get #block() {
     this.#assertActive()
-    return this.#internalBlock
+    const block = this.#resolveBlock(this.#id)
+    if (!block) throw new Error(`Block "${this.#id}" is no longer attached to the editor`)
+    return block
   }
 
   get id() { return this.#block.id }
@@ -67,8 +77,9 @@ export class EditorBlocksApi {
   /** @type {import('./types').IEventBus} */
   #events
 
-  /** @type {WeakMap<import('./types').IBlock, PublicBlockView>} */
-  #views = new WeakMap()
+  /** Stable public handles keyed by document block identity. */
+  /** @type {Map<string, PublicBlockView>} */
+  #views = new Map()
 
   /**
    * @param {import('./types').IBlockManager} blocks
@@ -79,7 +90,7 @@ export class EditorBlocksApi {
     this.#events = events
     events.on(EditorEvent.DESTROYED, () => {
       this.#manager = null
-      this.#views = new WeakMap()
+      this.#views.clear()
     })
   }
 
@@ -109,10 +120,15 @@ export class EditorBlocksApi {
   #view(block) {
     this.#assertActive()
     if (!block) return undefined
-    let view = this.#views.get(block)
+    let view = this.#views.get(block.id)
     if (!view) {
-      view = new PublicBlockView(block, () => this.#assertActive())
-      this.#views.set(block, view)
+      const id = block.id
+      view = new PublicBlockView(
+        id,
+        blockId => this.#manager?.getBlockById(blockId),
+        () => this.#assertActive(),
+      )
+      this.#views.set(id, view)
     }
     return view
   }
