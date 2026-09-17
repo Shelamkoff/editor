@@ -1,0 +1,40 @@
+name: Apply Trusted Types sink codemod
+
+on:
+  push:
+    branches:
+      - fix/audit-tdd-2026-09-05
+    paths:
+      - .github/workflows/tt-sink-codemod.yml
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - run: npm ci --ignore-scripts
+      - name: Apply mechanical sink migrations
+        run: node .github/tt-sink-codemod.mjs
+      - name: Verify generated source
+        run: |
+          git diff --check
+          npm run typecheck
+          npm test
+      - name: Commit codemod result
+        run: |
+          set -euo pipefail
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add core plugins inline-tools inline-plugins renderer shared
+          git commit -m "refactor(security): route mechanical HTML sinks through TT helpers"
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+          git push origin HEAD:"${GITHUB_REF_NAME}"
