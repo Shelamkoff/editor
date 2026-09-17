@@ -6,17 +6,13 @@ import { extractBlockElements } from './pasteUtils.js'
 
 test('paste block extraction creates synthetic wrappers in the container document', () => {
   const created = []
-  const paragraph = {
-    innerHTML: '',
-    appendChild(node) { this.innerHTML += node.textContent ?? '' },
-  }
   const ownerDocument = {
     createElement(tag) {
-      assert.equal(tag, 'template')
+      assert.equal(tag, 'p')
       created.push(tag)
       return {
-        set innerHTML(_value) {},
-        content: { firstElementChild: { ...paragraph } },
+        innerHTML: '',
+        appendChild(node) { this.innerHTML += node.textContent ?? '' },
       }
     },
   }
