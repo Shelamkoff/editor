@@ -35,6 +35,29 @@ export function sanitizeHtml(html, ownerDocument = globalThis.document) {
 }
 
 /**
+ * Assign HTML that is already trusted by the application/library owner. This
+ * does not sanitize; use only for static Rector markup or trusted extension
+ * markup such as plugin icons. User/document HTML belongs in setSanitizedHtml().
+ * @param {Element} element
+ * @param {string} html
+ */
+export function setTrustedHtml(element, html) {
+  const ownerDocument = element.ownerDocument ?? globalThis.document
+  element.innerHTML = /** @type {any} */ (toTrustedHtml(String(html || ''), ownerDocument))
+}
+
+/**
+ * Insert HTML that is already trusted by the application/library owner.
+ * @param {Element} element
+ * @param {'beforebegin' | 'afterbegin' | 'beforeend' | 'afterend'} position
+ * @param {string} html
+ */
+export function insertTrustedHtml(element, position, html) {
+  const ownerDocument = element.ownerDocument ?? globalThis.document
+  element.insertAdjacentHTML(position, /** @type {any} */ (toTrustedHtml(String(html || ''), ownerDocument)))
+}
+
+/**
  * Sanitize and replace an element's children through a TrustedHTML sink when
  * Trusted Types are enforced.
  * @param {Element} element
@@ -43,7 +66,7 @@ export function sanitizeHtml(html, ownerDocument = globalThis.document) {
 export function setSanitizedHtml(element, html) {
   const ownerDocument = element.ownerDocument ?? globalThis.document
   const safe = sanitizeHtml(html, ownerDocument)
-  element.innerHTML = /** @type {any} */ (toTrustedHtml(safe, ownerDocument))
+  setTrustedHtml(element, safe)
 }
 
 /**
@@ -56,5 +79,5 @@ export function setSanitizedHtml(element, html) {
 export function insertSanitizedHtml(element, position, html) {
   const ownerDocument = element.ownerDocument ?? globalThis.document
   const safe = sanitizeHtml(html, ownerDocument)
-  element.insertAdjacentHTML(position, /** @type {any} */ (toTrustedHtml(safe, ownerDocument)))
+  insertTrustedHtml(element, position, safe)
 }
