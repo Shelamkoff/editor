@@ -1,4 +1,5 @@
 import { sanitizeSubtree } from './walker.js'
+import { toTrustedHtml } from './trustedHtml.js'
 import { normalizeTextValue } from '../textFormat.js'
 
 /**
@@ -18,7 +19,7 @@ export function parseInline(html, ownerDocument = globalThis.document) {
   if (!source) return fragment
 
   const template = ownerDocument.createElement('template')
-  template.innerHTML = source
+  template.innerHTML = /** @type {any} */ (toTrustedHtml(source, ownerDocument))
   sanitizeSubtree(template.content)
   fragment.appendChild(template.content)
 
