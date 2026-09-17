@@ -1,6 +1,7 @@
 // @ts-check
 import { highlightCode, loadHighlightRuntime } from '../shared/highlightRuntime.js'
 import { parseInline } from '../shared/sanitize/parseInline.js'
+import { setTrustedHtml } from '../shared/sanitize/sanitizeHtml.js'
 
 /**
  * Apply highlighting immediately when available, otherwise enhance the
@@ -13,7 +14,8 @@ function highlightElement(element, text, language) {
   const apply = () => {
     const result = highlightCode(text, language)
     if (!result) return false
-    element.innerHTML = result.value
+    // highlight.js escapes source text and returns library-owned markup.
+    setTrustedHtml(element, result.value)
     return true
   }
 
