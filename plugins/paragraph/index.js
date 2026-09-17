@@ -1,4 +1,4 @@
-import { sanitizeHtml } from '../../core/sanitize.js'
+import { insertSanitizedHtml, setSanitizedHtml } from '../../core/sanitize.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { mapTextFields } from './mapTextFields.js'
 import { validateParagraphData } from '../../shared/blockDataValidators.js'
@@ -73,9 +73,7 @@ export class Paragraph extends BlockPluginAbstract {
     p.contentEditable = 'true'
 
     const text = normalizeTextValue(data?.text)
-    if (text) {
-      p.innerHTML = sanitizeHtml(text, ownerDocument)
-    }
+    if (text) setSanitizedHtml(p, text)
     const align = normalizeTextAlign(data?.align)
     if (align) {
       p.style.textAlign = align
@@ -125,9 +123,7 @@ export class Paragraph extends BlockPluginAbstract {
    */
   merge(element, data) {
     const text = normalizeTextValue(data.text)
-    if (text) {
-      element.insertAdjacentHTML('beforeend', sanitizeHtml(text, element.ownerDocument))
-    }
+    if (text) insertSanitizedHtml(element, 'beforeend', text)
     // Preserve alignment from merged block if current has none
     const align = normalizeTextAlign(data.align)
     if (align && !element.style.textAlign) {
