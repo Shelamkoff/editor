@@ -200,8 +200,9 @@ export class CommandDispatcher {
 
     // Release transaction state before publication. #flushPostCommit publishes
     // terminal events first so their public deliveries are already queued when
-    // an earlier structural observer starts a reentrant command.
-    if (outermost && committed) this.#flushPostCommit(committed)
+    // an earlier structural observer starts a reentrant command. Silent
+    // commands still drain structural observations without terminal events.
+    if (outermost) this.#flushPostCommit(committed)
     return result
   }
 
@@ -209,17 +210,18 @@ export class CommandDispatcher {
    * Publish one committed command and drain public observations in FIFO order.
    * Reentrant commands publish synchronously while the drain is active, but
    * their public deliveries append behind the already queued parent events.
-   * @param {import('./types').IBlock[]} affected
+   * A null affected list denotes a successful notifyChange:false command.
+   * @param {import('./types').IBlock[] | null} affected
    */
   #flushPostCommit(affected) {
     if (this.#drainingPostCommit) {
-      this.#publish(affected)
+      if (affected) this.#publish(affected)
       return
     }
 
     this.#drainingPostCommit = true
     try {
-      this.#publish(affected)
+      if (affected) this.#publish(affected)
       while (this.#postCommitQueue.length > 0) {
         const observer = this.#postCommitQueue.shift()
         observer?.()
