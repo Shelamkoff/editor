@@ -28,8 +28,9 @@ for (const file of files) {
   const original = source
   const helpers = new Set()
 
-  // Clearing DOM never needs an HTML parser sink.
-  source = source.replace(/([A-Za-z_$][\w$.[\]#?]*)\.innerHTML\s*=\s*''/g, (_match, target) => `${target}.replaceChildren()`)
+  // Clearing DOM never needs an HTML parser sink. textContent works on the
+  // narrow DOM doubles used by realm/lifecycle tests as well as real Elements.
+  source = source.replace(/([A-Za-z_$][\w$.[\]#?]*)\.innerHTML\s*=\s*''/g, (_match, target) => `${target}.textContent = ''`)
 
   // Existing sanitizeHtml() writes keep the same sanitizer semantics and only
   // change the final sink value type.
