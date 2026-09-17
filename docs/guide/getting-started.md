@@ -6,9 +6,11 @@ This page builds the smallest complete integration. The following chapters expla
 
 ## Requirements
 
-- a modern browser with native ES modules;
+- current stable Chrome or Chromium for the release-tested editing runtime;
 - Node.js 20.19+ or 22.12+ for installation and build tooling;
 - an application that can import CSS and ESM packages.
+
+Rector depends on native `contenteditable`, Selection/Range, clipboard, focus, keyboard, and composition behavior. The automated release gate currently verifies those semantics in Chrome/Chromium. Firefox and WebKit/Safari may work, but they are not part of the supported browser contract until equivalent native engine gates are added.
 
 ## Install
 
