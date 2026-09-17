@@ -14,6 +14,14 @@ Sanitization is context-specific:
 - use explicit CSS property allowlists for user-controlled styles;
 - never pass arbitrary HTML to `innerHTML`, `insertAdjacentHTML`, or SVG markup sinks.
 
+## Trusted Types
+
+Rector supports pages that enforce `Content-Security-Policy: require-trusted-types-for 'script'`. Internal HTML sinks are routed through scoped policies rather than a default Trusted Types policy. If the application also sets an explicit `trusted-types` allowlist, permit `rector` and `dompurify`: `rector` is used for Rector-owned or already-sanitized markup, while `dompurify` is used by the Raw HTML sanitizer.
+
+Rector never installs a default policy. `sanitizeHtml()` intentionally remains a string-returning API because sanitized HTML is also persisted as document data and may be sent to storage or the network. Application code must not take that returned string and assign it directly to a Trusted Types-protected HTML sink. Prefer DOM construction, or create and review an application-owned policy for that specific integration.
+
+A Trusted Types value is not an authorization decision. Persisted/user HTML must still pass the appropriate sanitizer before it reaches Rector's internal trusted sink helpers. Plugin icons and other extension-provided markup execute with the same application-level trust described under [Extension trust](#extension-trust).
+
 ## Raw HTML
 
 The Raw block exists for intentionally accepted HTML, but it still uses the library's raw-content policy. Do not use it to render administrator input, embedded scripts, arbitrary iframes, event handler attributes, or application templates.
