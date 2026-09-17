@@ -38,12 +38,21 @@ export function sanitizeHtml(html, ownerDocument = globalThis.document) {
  * Assign HTML that is already trusted by the application/library owner. This
  * does not sanitize; use only for static Rector markup or trusted extension
  * markup such as plugin icons. User/document HTML belongs in setSanitizedHtml().
+ *
+ * Real DOM Elements always expose ownerDocument. The no-owner fallback exists
+ * only for narrow DOM adapters/test doubles and deliberately avoids borrowing
+ * ambient globalThis.document from another realm.
  * @param {Element} element
  * @param {string} html
  */
 export function setTrustedHtml(element, html) {
-  const ownerDocument = element.ownerDocument ?? globalThis.document
-  element.innerHTML = /** @type {any} */ (toTrustedHtml(String(html || ''), ownerDocument))
+  const value = String(html || '')
+  const ownerDocument = element.ownerDocument
+  if (!ownerDocument) {
+    element.innerHTML = value
+    return
+  }
+  element.innerHTML = /** @type {any} */ (toTrustedHtml(value, ownerDocument))
 }
 
 /**
@@ -53,8 +62,13 @@ export function setTrustedHtml(element, html) {
  * @param {string} html
  */
 export function insertTrustedHtml(element, position, html) {
-  const ownerDocument = element.ownerDocument ?? globalThis.document
-  element.insertAdjacentHTML(position, /** @type {any} */ (toTrustedHtml(String(html || ''), ownerDocument)))
+  const value = String(html || '')
+  const ownerDocument = element.ownerDocument
+  if (!ownerDocument) {
+    element.insertAdjacentHTML(position, value)
+    return
+  }
+  element.insertAdjacentHTML(position, /** @type {any} */ (toTrustedHtml(value, ownerDocument)))
 }
 
 /**
