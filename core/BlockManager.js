@@ -650,7 +650,7 @@ export class BlockManager {
     this.#blockMap.clear()
     this.#indexMap.clear()
     this.#currentIndex = -1
-    this.#container.innerHTML = ''
+    this.#container.replaceChildren()
   }
 
   /**
