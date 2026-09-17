@@ -12,6 +12,7 @@ import {
 import { normalizeCarouselData } from '../../../shared/carouselData.js'
 import { setSanitizedRawHtml } from '../../../shared/sanitize/sanitizeRawHtml.js'
 import { setSafeUrlAttribute } from '../../../shared/sanitize/sanitizeUrl.js'
+import { requiresTrustedHtml } from '../../../shared/sanitize/trustedHtml.js'
 import { localeText } from '../locale.js'
 
 const styles = new URL('./styles.css', import.meta.url).href
@@ -86,14 +87,14 @@ export function createCarouselRenderer(classPrefix, locale) {
       // Avoid constructing a runtime instance with no navigable slides.
       if (!slides.length) return root
 
-      // @shelamkoff/carousel 1.x resolves HTMLElement/document/window from its
-      // module realm. A renderer target may belong to another same-origin realm
-      // (for example renderTo() into an iframe), where passing the foreign root
-      // to that runtime would fail its instanceof checks and create UI in the
-      // ambient document. Keep every slide available with a native static
-      // fallback in that mounting mode; same-realm rendering retains the full
+      // @shelamkoff/carousel 1.x resolves DOM constructors from its module
+      // realm and also assigns plain strings to HTML sinks. A renderer target
+      // may therefore be incompatible either because it belongs to another
+      // same-origin realm or because require-trusted-types-for is enforced.
+      // Keep every slide available with a native static fallback in both
+      // cases; same-realm rendering without TT enforcement retains the full
       // interactive carousel.
-      if (context.ownerDocument !== globalThis.document) {
+      if (context.ownerDocument !== globalThis.document || requiresTrustedHtml(context.ownerDocument)) {
         root.classList.add(`${p}--static`)
         if (data.options.aspectRatio && data.options.aspectRatio !== 'auto') {
           root.classList.remove(`${p}--fixed-ratio`)
