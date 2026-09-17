@@ -130,10 +130,12 @@ try {
   }
 
   // DOMPurify is an ordinary npm runtime dependency rather than a sibling
-  // @shelamkoff package. Pack the exact installed version too so the consumer
-  // fixture remains genuinely offline and verifies the published dependency
-  // graph instead of relying on registry availability.
-  const domPurifyRoot = dirname(fileURLToPath(import.meta.resolve('dompurify/package.json')))
+  // @shelamkoff package. Resolve its exported ESM entry and move up from
+  // dist/ to the package root; package.json itself is intentionally not an
+  // exported subpath. Pack that exact installed version so the consumer
+  // fixture remains genuinely offline.
+  const domPurifyEntry = fileURLToPath(import.meta.resolve('dompurify'))
+  const domPurifyRoot = resolve(dirname(domPurifyEntry), '..')
   const domPurifyOutput = run(node, [
     npmCli,
     'pack',
