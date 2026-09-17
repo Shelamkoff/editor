@@ -129,6 +129,20 @@ try {
     if (missing.length) throw new Error(`${directory} tarball misses: ${missing.join(', ')}`)
   }
 
+  // DOMPurify is an ordinary npm runtime dependency rather than a sibling
+  // @shelamkoff package. Pack the exact installed version too so the consumer
+  // fixture remains genuinely offline and verifies the published dependency
+  // graph instead of relying on registry availability.
+  const domPurifyRoot = dirname(fileURLToPath(import.meta.resolve('dompurify/package.json')))
+  const domPurifyOutput = run(node, [
+    npmCli,
+    'pack',
+    '--ignore-scripts',
+    '--pack-destination', dependencyPackRoot,
+    '--cache', npmCache,
+  ], domPurifyRoot, { capture: true }).trim()
+  dependencyTarballs.push(join(dependencyPackRoot, basename(domPurifyOutput.split(/\r?\n/).at(-1))))
+
   const consumerRoot = join(temporaryRoot, 'consumer')
   await mkdir(join(consumerRoot, 'src'), { recursive: true })
   await writeJson(join(consumerRoot, 'package.json'), { private: true, type: 'module' })
