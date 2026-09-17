@@ -1,4 +1,4 @@
-import DOMPurify from '../runtime/dompurify.js'
+import DOMPurify from 'dompurify'
 import { sanitizeUrl } from './sanitizeUrl.js'
 
 const RAW_HTML_CONFIG = {
