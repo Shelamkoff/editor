@@ -1,3 +1,4 @@
+import { setTrustedHtml } from '../../../shared/sanitize/sanitizeHtml.js'
 // @ts-check
 import { mapSpoilerTextFields as mapTextFields } from '../../../shared/mapTextFields.js'
 import { localeText } from '../locale.js'
@@ -43,7 +44,7 @@ export function createSpoilerRenderer(classPrefix, /** @type {Record<string, imp
             const toggle = context.ownerDocument.createElement('button')
             toggle.type = 'button'
             toggle.className = `${p}__toggle`
-            toggle.innerHTML = ICON
+            setTrustedHtml(toggle, ICON)
             toggle.setAttribute('aria-label', t('renderer.spoiler.toggle', 'Toggle spoiler'))
             toggle.setAttribute('aria-expanded', 'false')
             toggle.querySelector('svg')?.setAttribute('aria-hidden', 'true')

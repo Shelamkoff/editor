@@ -1,3 +1,4 @@
+import { setTrustedHtml } from '../sanitize.js'
 import { el } from '../dom.js'
 import {
   ICON_BACK, ICON_CHEVRON_RIGHT, ICON_DELETE, ICON_DOWN, ICON_DUPLICATE, ICON_SWITCH, ICON_UP,
@@ -33,7 +34,7 @@ export class MenuBuilder {
 
   /** @param {'forward' | 'back' | 'none'} [direction] */
   buildMainView(direction = 'none') {
-    this.#menuEl.innerHTML = ''
+    this.#menuEl.textContent = ''
     this.#applyDirection(direction)
 
     const blocks = this.#deps.blocks
@@ -80,7 +81,7 @@ export class MenuBuilder {
   }
 
   buildConvertView() {
-    this.#menuEl.innerHTML = ''
+    this.#menuEl.textContent = ''
     this.#applyDirection('forward')
     const current = this.#deps.blocks.getCurrentBlock()
     if (!current) return
@@ -120,7 +121,7 @@ export class MenuBuilder {
   #addDrilldownItem(label, icon, handler) {
     const item = this.#createItemBtn(label, icon, handler)
     const arrow = el('span', 'oe-settings-menu__arrow', undefined, this.#document)
-    arrow.innerHTML = ICON_CHEVRON_RIGHT
+    setTrustedHtml(arrow, ICON_CHEVRON_RIGHT)
     item.appendChild(arrow)
     this.#menuEl.appendChild(item)
   }
@@ -138,7 +139,7 @@ export class MenuBuilder {
     }, this.#document)
 
     const iconSpan = el('span', 'oe-settings-menu__icon', undefined, this.#document)
-    iconSpan.innerHTML = icon
+    setTrustedHtml(iconSpan, icon)
     btn.appendChild(iconSpan)
 
     const labelSpan = el('span', 'oe-settings-menu__label', undefined, this.#document)

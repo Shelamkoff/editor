@@ -1,3 +1,4 @@
+import { setSanitizedHtml, setTrustedHtml } from '../sanitize.js'
 import { sanitizeHtml } from '../sanitize.js'
 import { sanitizeMediaUrl } from '../../shared/sanitize/sanitizeUrl.js'
 
@@ -10,7 +11,7 @@ function inline(source, ownerDocument) {
   template.innerHTML = source.innerHTML
   for (const control of template.content.querySelectorAll('button, input, textarea, select, script, style, svg, [role="menu"], [role="dialog"]')) control.remove()
   const result = ownerDocument.createElement('span')
-  result.innerHTML = sanitizeHtml(template.innerHTML, ownerDocument)
+  setSanitizedHtml(result, template.innerHTML)
   for (const node of result.querySelectorAll('*')) {
     for (const attribute of [...node.attributes]) {
       if (attribute.name.startsWith('data-') || attribute.name === 'contenteditable' || attribute.name === 'class') node.removeAttribute(attribute.name)
@@ -57,7 +58,7 @@ export function blockClipboardHtml(block) {
     const data = /** @type {{ file?: { url?: string }, caption?: string }} */ (block.save().data)
     // Build in inert content: exporting must not load media or preserve UI.
     const template = ownerDocument.createElement('template')
-    template.innerHTML = '<figure><img></figure>'
+    setTrustedHtml(template, '<figure><img></figure>')
     const figure = template.content.firstElementChild
     const image = figure.querySelector('img')
     const url = sanitizeMediaUrl(data.file?.url)

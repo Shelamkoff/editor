@@ -1,3 +1,4 @@
+import { setTrustedHtml } from '../../../shared/sanitize/sanitizeHtml.js'
 // @ts-check
 import {
     getHighlightRuntime,
@@ -75,14 +76,14 @@ export function createCodeRenderer(classPrefix, /** @type {Record<string, import
             const copyBtn = ownerDocument.createElement('button')
             copyBtn.type = 'button'
             copyBtn.className = `${classPrefix}-code__copy`
-            copyBtn.innerHTML = ICON_CLIPBOARD
+            setTrustedHtml(copyBtn, ICON_CLIPBOARD)
             copyBtn.title = t('renderer.code.copy', 'Copy code')
 
             copyBtn.addEventListener('click', async () => {
                 try {
                     await (view?.navigator ?? navigator).clipboard.writeText(code)
                     if (!liveElements.has(wrapper)) return
-                    copyBtn.innerHTML = ICON_CHECK
+                    setTrustedHtml(copyBtn, ICON_CHECK)
                     copyBtn.classList.add(`${classPrefix}-code__copy--success`)
 
                     const previousTimer = resetTimers.get(wrapper)
@@ -90,7 +91,7 @@ export function createCodeRenderer(classPrefix, /** @type {Record<string, import
                     const timer = (view?.setTimeout ?? setTimeout)(() => {
                         resetTimers.delete(wrapper)
                         if (!liveElements.has(wrapper)) return
-                        copyBtn.innerHTML = ICON_CLIPBOARD
+                        setTrustedHtml(copyBtn, ICON_CLIPBOARD)
                         copyBtn.classList.remove(`${classPrefix}-code__copy--success`)
                     }, 2000)
                     resetTimers.set(wrapper, timer)
@@ -108,7 +109,7 @@ export function createCodeRenderer(classPrefix, /** @type {Record<string, import
 
             const codeElement = ownerDocument.createElement('code')
             codeElement.className = `${classPrefix}-code__content hljs language-${highlighted.language}`
-            codeElement.innerHTML = highlighted.value
+            setTrustedHtml(codeElement, highlighted.value)
 
             if (!getHighlightRuntime()) {
                 void loadHighlightRuntime().then(() => {
@@ -116,7 +117,7 @@ export function createCodeRenderer(classPrefix, /** @type {Record<string, import
                     const loaded = highlightCode(code, language)
                     langLabel.textContent = (loaded.language && loaded.language !== 'plaintext') ? loaded.language : ''
                     codeElement.className = classPrefix + '-code__content hljs language-' + loaded.language
-                    codeElement.innerHTML = loaded.value
+                    setTrustedHtml(codeElement, loaded.value)
                 }).catch(() => {
                     // Safe escaped fallback is already rendered.
                 })

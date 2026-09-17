@@ -1,3 +1,4 @@
+import { setTrustedHtml } from './sanitize.js'
 import { resolveBlockRange } from './selectionRange.js'
 import { el, positionPopup } from './dom.js'
 import { convertCrossBlockRange, isTextType } from './crossBlockConvert.js'
@@ -62,7 +63,7 @@ export class TypeSelector {
     this.#selectBtn.appendChild(this.#typeName)
 
     const chevron = el('span', 'oe-inline-toolbar__type-chevron', undefined, this.#document)
-    chevron.innerHTML = ICON_CHEVRON
+    setTrustedHtml(chevron, ICON_CHEVRON)
     this.#selectBtn.appendChild(chevron)
 
     this.#selectBtn.addEventListener('mousedown', (e) => {
@@ -159,7 +160,7 @@ export class TypeSelector {
   }
 
   #buildDropdownItems() {
-    this.#dropdown.innerHTML = ''
+    this.#dropdown.textContent = ''
     this.#filterInput = null
     const currentBlock = this.#blocks.getCurrentBlock()
     const plugins = [...this.#plugins.values()]
@@ -169,7 +170,7 @@ export class TypeSelector {
       filterWrap.style.position = 'relative'
 
       const icon = el('span', 'oe-inline-toolbar__type-filter-icon', undefined, this.#document)
-      icon.innerHTML = ICON_SEARCH
+      setTrustedHtml(icon, ICON_SEARCH)
 
       const input = el('input', 'oe-inline-toolbar__type-filter-input', {
         type: 'text',
@@ -200,7 +201,7 @@ export class TypeSelector {
       item.dataset.pluginType = plugin.type
 
       const iconEl = el('span', 'oe-inline-toolbar__type-item-icon', undefined, this.#document)
-      iconEl.innerHTML = plugin.icon
+      setTrustedHtml(iconEl, plugin.icon)
       item.appendChild(iconEl)
 
       const label = el('span', 'oe-inline-toolbar__type-item-label', undefined, this.#document)

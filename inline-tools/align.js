@@ -1,3 +1,4 @@
+import { setTrustedHtml } from '../core/sanitize.js'
 import { el, closestBlock } from '../core/dom.js'
 import {
   ICON_ALIGN_LEFT,
@@ -108,7 +109,7 @@ export function createAlignTool(labels, cbs = null) {
       for (const alignment of ALIGNMENTS) {
         const info = /** @type {{ icon: string, title: string }} */ (alignMap[alignment.value] ?? alignMap[''])
         const btn = el('button', 'oe-inline-tool', { type: 'button' }, doc)
-        btn.innerHTML = alignment.icon
+        setTrustedHtml(btn, alignment.icon)
         if (currentAlign === alignment.value || (!currentAlign && alignment.value === '')) {
           btn.classList.add('oe-inline-tool--active')
         }

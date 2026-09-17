@@ -1,3 +1,4 @@
+import { setTrustedHtml, insertTrustedHtml } from '../../core/sanitize.js'
 /**
  * Shared dropzone (empty-state) view for media block plugins (image, gallery).
  * Eliminates duplicate DOM construction and drag-and-drop wiring.
@@ -39,7 +40,7 @@
  * @returns {void}
  */
 export function renderDropzone(wrapper, signal, css, config) {
-  wrapper.innerHTML = ''
+  wrapper.textContent = ''
   wrapper.classList.remove(css.filled)
 
   const ownerDocument = wrapper.ownerDocument
@@ -48,7 +49,7 @@ export function renderDropzone(wrapper, signal, css, config) {
 
   const icon = ownerDocument.createElement('div')
   icon.className = css.selectIcon
-  icon.innerHTML = config.iconHtml
+  setTrustedHtml(icon, config.iconHtml)
 
   const text = ownerDocument.createElement('div')
   text.className = css.selectText
@@ -91,7 +92,7 @@ export function renderDropzone(wrapper, signal, css, config) {
       const button = ownerDocument.createElement('button')
       button.type = 'button'
       button.className = css.selectAction
-      if (action.icon) button.insertAdjacentHTML('afterbegin', action.icon)
+      if (action.icon) insertTrustedHtml(button, 'afterbegin', action.icon)
       button.append(ownerDocument.createTextNode(action.label))
       button.addEventListener('click', (event) => {
         event.stopPropagation()

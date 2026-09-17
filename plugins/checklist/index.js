@@ -1,3 +1,4 @@
+import { setSanitizedHtml, setTrustedHtml } from '../../core/sanitize.js'
 import { sanitizeHtml } from '../../core/sanitize.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { validateChecklistData } from '../../shared/blockDataValidators.js'
@@ -195,7 +196,7 @@ export class Checklist extends BlockPluginAbstract {
     const content = ownerDocument.createElement('div')
     content.className = 'oe-checklist__text'
     content.contentEditable = 'true'
-    if (text) content.innerHTML = sanitizeHtml(text, ownerDocument)
+    if (text) setSanitizedHtml(content, text)
 
     item.append(checkbox, content)
     wrapper.appendChild(item)
@@ -329,7 +330,7 @@ export class Checklist extends BlockPluginAbstract {
     const checkbox = (wrapper.ownerDocument ?? globalThis.document).createElement('button')
     checkbox.type = 'button'
     checkbox.className = 'oe-checklist__checkbox'
-    checkbox.innerHTML = CHECK_SVG
+    setTrustedHtml(checkbox, CHECK_SVG)
     checkbox.setAttribute('aria-label', this._t('toggle', 'Toggle checklist item'))
     checkbox.setAttribute('aria-pressed', String(checked))
     checkbox.addEventListener('mousedown', (event) => event.preventDefault())

@@ -162,7 +162,7 @@ class DropdownUI {
    */
   render(items, selectedIndex) {
     if (!this._el) return
-    this._el.innerHTML = ''
+    this._el.textContent = ''
 
     if (items.length === 0) {
       this._el.appendChild(this._buildNoResults())

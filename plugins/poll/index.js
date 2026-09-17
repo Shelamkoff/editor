@@ -1,3 +1,4 @@
+import { setSanitizedHtml, setTrustedHtml } from '../../core/sanitize.js'
 import { sanitizeHtml } from '../../core/sanitize.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { uid } from '../../core/uid.js'
@@ -236,14 +237,14 @@ export class Poll extends BlockPluginAbstract {
     if (!s) return
     const ownerDocument = s.context.ownerDocument ?? wrapper.ownerDocument
     const w = wrapper
-    w.innerHTML = ''
+    w.textContent = ''
 
     // Question
     const question = ownerDocument.createElement('div')
     question.className = 'oe-poll__question'
     question.contentEditable = s.context.readOnly ? 'false' : 'true'
     question.dataset.placeholder = this._t('questionPlaceholder', 'Question...')
-    if (s.data.question) question.innerHTML = sanitizeHtml(s.data.question, ownerDocument)
+    if (s.data.question) setSanitizedHtml(question, s.data.question)
     if (!s.context.readOnly) question.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault()
@@ -271,7 +272,7 @@ export class Poll extends BlockPluginAbstract {
       const addBtn = ownerDocument.createElement('button')
       addBtn.type = 'button'
       addBtn.className = 'oe-poll__option-add'
-      addBtn.innerHTML = `${ICON_PLUS} ${escapeHtml(this._t('addOption', 'Add option'))}`
+      setTrustedHtml(addBtn, `${ICON_PLUS} ${escapeHtml(this._t('addOption', 'Add option'))}`)
       addBtn.addEventListener('mousedown', (e) => e.preventDefault())
       addBtn.addEventListener('click', () => {
         s.context.mutate(() => {
@@ -335,7 +336,7 @@ export class Poll extends BlockPluginAbstract {
     text.contentEditable = s.context.readOnly ? 'false' : 'true'
     const placeholder = this._t('optionPlaceholder', 'Option')
     text.dataset.placeholder = `${placeholder} ${index + 1}`
-    if (opt.text) text.innerHTML = sanitizeHtml(opt.text, ownerDocument)
+    if (opt.text) setSanitizedHtml(text, opt.text)
 
     if (!s.context.readOnly) text.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
@@ -384,7 +385,7 @@ export class Poll extends BlockPluginAbstract {
       const removeBtn = ownerDocument.createElement('button')
       removeBtn.type = 'button'
       removeBtn.className = 'oe-poll__option-remove'
-      removeBtn.innerHTML = ICON_REMOVE
+      setTrustedHtml(removeBtn, ICON_REMOVE)
       removeBtn.addEventListener('mousedown', (e) => e.preventDefault())
       removeBtn.addEventListener('click', () => {
         s.context.mutate(() => {
@@ -418,7 +419,7 @@ export class Poll extends BlockPluginAbstract {
 
       const label = ownerDocument.createElement('span')
       label.className = 'oe-poll__result-label'
-      if (opt.text) label.innerHTML = sanitizeHtml(opt.text, ownerDocument)
+      if (opt.text) setSanitizedHtml(label, opt.text)
       else label.textContent = '—'
 
       const bar = ownerDocument.createElement('div')
@@ -730,7 +731,7 @@ export class Poll extends BlockPluginAbstract {
     const typeLabel = isSingle
       ? this._t('single', 'Single choice')
       : this._t('multiple', 'Multiple choice')
-    typeBtn.innerHTML = `${typeIcon} ${escapeHtml(typeLabel)}`
+    setTrustedHtml(typeBtn, `${typeIcon} ${escapeHtml(typeLabel)}`)
     typeBtn.addEventListener('mousedown', (e) => e.preventDefault())
     typeBtn.addEventListener('click', () => {
       s.context.mutate(() => {
@@ -761,7 +762,7 @@ export class Poll extends BlockPluginAbstract {
     const resultsBtn = ownerDocument.createElement('button')
     resultsBtn.type = 'button'
     resultsBtn.className = 'oe-poll__action-btn'
-    resultsBtn.innerHTML = `${ICON_RESULTS} ${escapeHtml(this.#resultsModeLabel(s.data.resultsMode))}`
+    setTrustedHtml(resultsBtn, `${ICON_RESULTS} ${escapeHtml(this.#resultsModeLabel(s.data.resultsMode))}`)
     resultsBtn.addEventListener('mousedown', (e) => e.preventDefault())
     resultsBtn.addEventListener('click', () => {
       s.context.mutate(() => {
@@ -779,7 +780,7 @@ export class Poll extends BlockPluginAbstract {
     const sortBtn = ownerDocument.createElement('button')
     sortBtn.type = 'button'
     sortBtn.className = 'oe-poll__action-btn'
-    sortBtn.innerHTML = `${ICON_SORT} ${escapeHtml(this._t('sort', 'Sort'))}`
+    setTrustedHtml(sortBtn, `${ICON_SORT} ${escapeHtml(this._t('sort', 'Sort'))}`)
     sortBtn.addEventListener('mousedown', (e) => e.preventDefault())
     sortBtn.addEventListener('click', () => {
       s.context.mutate(() => {
@@ -799,7 +800,7 @@ export class Poll extends BlockPluginAbstract {
     const deleteBtn = ownerDocument.createElement('button')
     deleteBtn.type = 'button'
     deleteBtn.className = 'oe-poll__action-btn oe-poll__action-btn--danger'
-    deleteBtn.innerHTML = ICON_TRASH
+    setTrustedHtml(deleteBtn, ICON_TRASH)
     deleteBtn.title = this._t('delete', 'Delete')
     deleteBtn.addEventListener('mousedown', (e) => e.preventDefault())
     deleteBtn.addEventListener('click', () => {

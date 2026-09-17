@@ -1,3 +1,4 @@
+import { setTrustedHtml } from '../../core/sanitize.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { uid } from '../../core/uid.js'
 import {
@@ -439,7 +440,7 @@ export class CarouselBlock extends BlockPluginAbstract {
     button.type = 'button'
     button.setAttribute(READ_ONLY_INTERACTIVE_ATTRIBUTE, '')
     button.className = `oe-carousel-block__nav oe-carousel-block__nav--${direction}`
-    button.innerHTML = icon
+    setTrustedHtml(button, icon)
     button.setAttribute('aria-label', label)
     button.addEventListener('click', activate, { signal })
     return button

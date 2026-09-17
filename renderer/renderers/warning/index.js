@@ -1,3 +1,4 @@
+import { setTrustedHtml } from '../../../shared/sanitize/sanitizeHtml.js'
 // @ts-check
 import { mapWarningTextFields as mapTextFields } from '../../../shared/mapTextFields.js'
 
@@ -33,7 +34,7 @@ export function createWarningRenderer(classPrefix, _locale) {
             const icon = context.ownerDocument.createElement('span')
             icon.className = `${classPrefix}-warning__icon`
             icon.setAttribute('aria-hidden', 'true')
-            icon.innerHTML = ICON_WARNING
+            setTrustedHtml(icon, ICON_WARNING)
 
             const content = context.ownerDocument.createElement('div')
             content.className = `${classPrefix}-warning__content`

@@ -1,3 +1,4 @@
+import { setTrustedHtml } from './sanitize.js'
 import { el, positionPopup } from './dom.js'
 import { EditorEvent } from './editorEvents.js'
 import { createRangeFromLastTextMatch } from './textOffset.js'
@@ -289,7 +290,7 @@ export class SlashCommands {
   }
 
   #renderItems() {
-    this.#menuEl.innerHTML = ''
+    this.#menuEl.textContent = ''
 
     if (this.#filteredItems.length === 0) {
       const empty = el('li', 'oe-slash-menu__empty', { role: 'none' }, this.#document)
@@ -303,7 +304,7 @@ export class SlashCommands {
       if (i === this.#activeIndex) btn.classList.add('oe-slash-menu__item--active')
 
       const icon = el('span', 'oe-slash-menu__icon', undefined, this.#document)
-      icon.innerHTML = item.icon
+      setTrustedHtml(icon, item.icon)
       btn.appendChild(icon)
 
       const label = el('span', 'oe-slash-menu__label', undefined, this.#document)

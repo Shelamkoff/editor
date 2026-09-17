@@ -1,3 +1,4 @@
+import { setTrustedHtml } from '../../../shared/sanitize/sanitizeHtml.js'
 // @ts-check
 import { sanitizeUrl, setSafeUrlAttribute } from '../../../shared/sanitize/sanitizeUrl.js'
 
@@ -93,7 +94,7 @@ export function createLinkPreviewRenderer(classPrefix, _locale) {
 
             const ext = context.ownerDocument.createElement('span')
             ext.className = `${p}__external`
-            ext.innerHTML = ICON_EXTERNAL
+            setTrustedHtml(ext, ICON_EXTERNAL)
             domainLine.appendChild(ext)
 
             content.appendChild(domainLine)

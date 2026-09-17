@@ -1,3 +1,4 @@
+import { setTrustedHtml } from '../../core/sanitize.js'
 import { sanitizeUrl, setSafeUrlAttribute } from '../../shared/sanitize/sanitizeUrl.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { validateLinkPreviewData } from '../../shared/blockDataValidators.js'
@@ -23,7 +24,7 @@ const ICON_EXTERNAL = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height
 function renderUrlIcon(iconEl, favicon) {
   iconEl.replaceChildren()
   if (!favicon) {
-    iconEl.innerHTML = ICON_FORMS
+    setTrustedHtml(iconEl, ICON_FORMS)
     return
   }
 
@@ -33,7 +34,7 @@ function renderUrlIcon(iconEl, favicon) {
   img.style.borderRadius = '2px'
   const safe = setSafeUrlAttribute(img, 'src', favicon, 'media')
   if (!safe) {
-    iconEl.innerHTML = ICON_FORMS
+    setTrustedHtml(iconEl, ICON_FORMS)
     return
   }
   iconEl.appendChild(img)
@@ -340,7 +341,7 @@ export class LinkPreview extends BlockPluginAbstract {
         s.context.mutate(() => {
           s.data = { ...this._defaultData(), template: s.data.template }
           this._removeCardElements(wrapper)
-          iconEl.innerHTML = ICON_FORMS
+          setTrustedHtml(iconEl, ICON_FORMS)
         })
       }
       return
@@ -349,7 +350,7 @@ export class LinkPreview extends BlockPluginAbstract {
     const metadataMissing = !s.data.title && !s.data.image && !s.data.favicon
     if (safeUrl === s.data.url) {
       if (!this._config.fetchMeta || !metadataMissing) return
-      iconEl.innerHTML = ICON_LOADER
+      setTrustedHtml(iconEl, ICON_LOADER)
       this._resolveMeta(wrapper, safeUrl).then(meta => {
         if (!meta) return
         const current = stateMap.get(wrapper)
@@ -363,7 +364,7 @@ export class LinkPreview extends BlockPluginAbstract {
       return
     }
 
-    iconEl.innerHTML = this._config.fetchMeta ? ICON_LOADER : ICON_FORMS
+    setTrustedHtml(iconEl, this._config.fetchMeta ? ICON_LOADER : ICON_FORMS)
     this._resolveMeta(wrapper, safeUrl).then(meta => {
       if (!meta) return
       const current = stateMap.get(wrapper)
@@ -533,7 +534,7 @@ export class LinkPreview extends BlockPluginAbstract {
 
     const ext = ownerDocument.createElement('span')
     ext.className = `${P}__external`
-    ext.innerHTML = ICON_EXTERNAL
+    setTrustedHtml(ext, ICON_EXTERNAL)
     domainLine.appendChild(ext)
 
     content.appendChild(domainLine)
@@ -585,7 +586,7 @@ export class LinkPreview extends BlockPluginAbstract {
     const settingsBtn = ownerDocument.createElement('button')
     settingsBtn.type = 'button'
     settingsBtn.className = `${P}__action-btn`
-    settingsBtn.innerHTML = `${ICON_SETTINGS} ${escapeHtml(this._t('settings', 'Settings'))}`
+    setTrustedHtml(settingsBtn, `${ICON_SETTINGS} ${escapeHtml(this._t('settings', 'Settings'))}`)
     settingsBtn.setAttribute('aria-haspopup', 'true')
     settingsBtn.setAttribute('aria-expanded', 'false')
 
@@ -636,7 +637,7 @@ export class LinkPreview extends BlockPluginAbstract {
     const deleteBtn = ownerDocument.createElement('button')
     deleteBtn.type = 'button'
     deleteBtn.className = `${P}__action-btn ${P}__action-btn--danger`
-    deleteBtn.innerHTML = ICON_TRASH
+    setTrustedHtml(deleteBtn, ICON_TRASH)
     deleteBtn.addEventListener('mousedown', (e) => e.preventDefault(), { signal })
     deleteBtn.addEventListener('click', (e) => {
       e.stopPropagation()
@@ -686,7 +687,7 @@ export class LinkPreview extends BlockPluginAbstract {
       const btn = ownerDocument.createElement('button')
       btn.type = 'button'
       btn.className = `${P}__tpl-btn${s.data.template === tpl ? ` ${P}__tpl-btn--active` : ''}`
-      btn.innerHTML = TEMPLATE_ICONS[tpl] || ''
+      setTrustedHtml(btn, TEMPLATE_ICONS[tpl] || '')
       btn.title = this._t(`template.${tpl}`, tpl)
       btn.setAttribute('aria-label', btn.title)
       btn.addEventListener('mousedown', (e) => e.preventDefault(), { signal })

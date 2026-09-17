@@ -1,3 +1,4 @@
+import { setTrustedHtml } from '../../../shared/sanitize/sanitizeHtml.js'
 // @ts-check
 import { getFileIcon, getExtension, formatSize, EXT_COLORS } from '../../../shared/fileUtils.js'
 import { sanitizeDownloadUrl, setSafeUrlAttribute } from '../../../shared/sanitize/sanitizeUrl.js'
@@ -290,7 +291,7 @@ function buildCardA(file, cls, t, ownerDocument) {
 function buildIconA(/** @type {{ extension: string }} */ file, /** @type {string} */ cls, /** @type {Document} */ ownerDocument) {
   const wrap = ownerDocument.createElement('div')
   wrap.className = `${cls}-attaches__icon`
-  wrap.innerHTML = ICON_FILE_DEFAULT
+  setTrustedHtml(wrap, ICON_FILE_DEFAULT)
   const ext = (file.extension || '').toLowerCase()
   if (ext) {
     const badge = ownerDocument.createElement('span')
@@ -319,7 +320,7 @@ function buildGroupA(files, cls, t, p, ownerDocument, onDownloadArchive) {
   header.className = `${cls}-attaches__group-header`
   const iconWrap = ownerDocument.createElement('div')
   iconWrap.className = `${cls}-attaches__icon`
-  iconWrap.innerHTML = ICON_FILE_DEFAULT
+  setTrustedHtml(iconWrap, ICON_FILE_DEFAULT)
   const info = ownerDocument.createElement('div')
   info.className = `${cls}-attaches__info`
   const count = ownerDocument.createElement('div')
@@ -339,7 +340,7 @@ function buildGroupA(files, cls, t, p, ownerDocument, onDownloadArchive) {
   const chevron = ownerDocument.createElement('button')
   chevron.type = 'button'
   chevron.className = `${cls}-attaches__chevron`
-  chevron.innerHTML = ICON_CHEVRON
+  setTrustedHtml(chevron, ICON_CHEVRON)
   chevron.setAttribute('aria-label', t('renderer.attaches.toggle', 'Show or hide files'))
   chevron.setAttribute('aria-expanded', 'false')
   header.append(iconWrap, info, chevron)
@@ -400,7 +401,7 @@ function renderPills(wrapper, files, cls, t) {
     setSafeUrlAttribute(pill, 'href', file.url, 'download'); pill.download = file.name || ''
     const ic = ownerDocument.createElement('div')
     ic.className = `${cls}-attaches__pill-icon`
-    ic.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2"/></svg>'
+    setTrustedHtml(ic, '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2"/></svg>')
     pill.appendChild(ic)
     const name = ownerDocument.createElement('span')
     name.textContent = file.name || t('renderer.attaches.file', 'File')
@@ -462,7 +463,7 @@ function renderMaterial(wrapper, files, cls, t) {
     card.className = `${cls}-attaches__material-card`
     const iconWrap = ownerDocument.createElement('div')
     iconWrap.className = `${cls}-attaches__material-icon`
-    iconWrap.innerHTML = getFileIcon(file.extension).svg
+    setTrustedHtml(iconWrap, getFileIcon(file.extension).svg)
     card.appendChild(iconWrap)
     const info = ownerDocument.createElement('div')
     info.className = `${cls}-attaches__info`

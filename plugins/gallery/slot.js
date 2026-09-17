@@ -1,3 +1,4 @@
+import { setTrustedHtml } from '../../core/sanitize.js'
 import { CSS } from './css.js'
 import { setSafeUrlAttribute } from '../../shared/sanitize/sanitizeUrl.js'
 import { isSupportedImageFile } from '../shared/fileInput.js'
@@ -201,7 +202,7 @@ function addRemoveBtn(parent, label, onRemove, signal) {
   const btn = parent.ownerDocument.createElement('button')
   btn.type = 'button'
   btn.className = CSS.slotRemove
-  btn.innerHTML = '&times;'
+  setTrustedHtml(btn, '&times;')
   btn.setAttribute('aria-label', label)
   btn.addEventListener('mousedown', (e) => e.preventDefault(), { signal })
   btn.addEventListener('click', (e) => { e.stopPropagation(); onRemove() }, { signal })

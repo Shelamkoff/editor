@@ -1,3 +1,4 @@
+import { setTrustedHtml } from '../../../shared/sanitize/sanitizeHtml.js'
 // @ts-check
 import { mapQuoteTextFields as mapTextFields } from '../../../shared/mapTextFields.js'
 
@@ -32,7 +33,7 @@ export function createQuoteRenderer(classPrefix, _locale) {
       const icon = context.ownerDocument.createElement('span')
       icon.className = `${classPrefix}-quote__icon`
       icon.setAttribute('aria-hidden', 'true')
-      icon.innerHTML = ICON_QUOTE
+      setTrustedHtml(icon, ICON_QUOTE)
 
       const body = context.ownerDocument.createElement('div')
       body.className = `${classPrefix}-quote__body`

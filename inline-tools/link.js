@@ -1,3 +1,4 @@
+import { setTrustedHtml } from '../core/sanitize.js'
 import { el } from '../core/dom.js'
 import { sanitizeUrl } from '../shared/sanitize/sanitizeUrl.js'
 import {
@@ -147,7 +148,7 @@ export function createLinkTool(linkPlaceholder, linkLabel, actionLabels = {}, cb
       // Apply button
       const applyLabel = actionLabels.apply || 'Apply'
       const applyBtn = el('button', 'oe-inline-tool oe-inline-tool--apply', { type: 'button' }, ownerDocument)
-      applyBtn.innerHTML = ICON_CHECK
+      setTrustedHtml(applyBtn, ICON_CHECK)
       applyBtn.addEventListener('mouseenter', () => ctx.showTooltip(applyBtn, applyLabel))
       applyBtn.addEventListener('mouseleave', () => ctx.hideTooltip())
       applyBtn.addEventListener('mousedown', (e) => {
@@ -163,7 +164,7 @@ export function createLinkTool(linkPlaceholder, linkLabel, actionLabels = {}, cb
       // Unlink button
       const unlinkLabel = actionLabels.unlink || 'Unlink'
       const unlinkBtn = el('button', 'oe-inline-tool oe-inline-tool--unlink', { type: 'button' }, ownerDocument)
-      unlinkBtn.innerHTML = ICON_UNLINK
+      setTrustedHtml(unlinkBtn, ICON_UNLINK)
       unlinkBtn.addEventListener('mouseenter', () => ctx.showTooltip(unlinkBtn, unlinkLabel))
       unlinkBtn.addEventListener('mouseleave', () => ctx.hideTooltip())
       unlinkBtn.addEventListener('mousedown', (e) => {

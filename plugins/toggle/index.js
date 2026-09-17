@@ -1,3 +1,4 @@
+import { setSanitizedHtml, setTrustedHtml } from '../../core/sanitize.js'
 import { appendMergeField } from '../shared/appendMergeField.js'
 import { sanitizeHtml } from '../../core/sanitize.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
@@ -57,7 +58,7 @@ export class Toggle extends BlockPluginAbstract {
     const chevron = ownerDocument.createElement('button')
     chevron.type = 'button'
     chevron.className = 'oe-toggle__chevron'
-    chevron.innerHTML = ICON_CHEVRON
+    setTrustedHtml(chevron, ICON_CHEVRON)
     chevron.setAttribute('aria-label', this._t('toggleLabel', 'Show or hide content'))
     chevron.setAttribute(READ_ONLY_INTERACTIVE_ATTRIBUTE, '')
     chevron.setAttribute('aria-expanded', String(wrapper.classList.contains('oe-toggle--open')))
@@ -80,7 +81,7 @@ export class Toggle extends BlockPluginAbstract {
     titleEl.contentEditable = 'true'
     titleEl.dataset.placeholder = this._t('titlePlaceholder', 'Toggle title...')
     const title = normalizeTextValue(data?.title)
-    if (title) titleEl.innerHTML = sanitizeHtml(title, ownerDocument)
+    if (title) setSanitizedHtml(titleEl, title)
     titleEl.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault()
@@ -106,7 +107,7 @@ export class Toggle extends BlockPluginAbstract {
     body.contentEditable = 'true'
     body.dataset.placeholder = this._t('bodyPlaceholder', 'Hidden content...')
     const content = normalizeTextValue(data?.content)
-    if (content) body.innerHTML = sanitizeHtml(content, ownerDocument)
+    if (content) setSanitizedHtml(body, content)
     body.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.stopPropagation()

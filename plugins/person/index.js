@@ -1,3 +1,4 @@
+import { setSanitizedHtml, setTrustedHtml } from '../../core/sanitize.js'
 import { sanitizeHtml } from '../../core/sanitize.js'
 import { CropperDialog, cropperStylesUrl } from '@shelamkoff/cropper'
 import { resolveSocialIcon, SOCIAL_ICONS } from './socialResolver.js'
@@ -226,7 +227,7 @@ export class Person extends BlockPluginAbstract {
     if (!s) return
 
     this._clearDebounceTimers(s)
-    wrapper.innerHTML = ''
+    wrapper.textContent = ''
 
     // Tab bar (always shown — contains "+" button)
     wrapper.appendChild(this._buildTabs(wrapper))
@@ -256,7 +257,7 @@ export class Person extends BlockPluginAbstract {
     // Drag handle
     const grip = ownerDocument.createElement('span')
     grip.className = 'oe-person__tab-grip'
-    grip.innerHTML = ICON_GRIP
+    setTrustedHtml(grip, ICON_GRIP)
     tab.appendChild(grip)
 
     // Mini avatar
@@ -278,7 +279,7 @@ export class Person extends BlockPluginAbstract {
       const rm = ownerDocument.createElement('button')
       rm.type = 'button'
       rm.className = 'oe-person__tab-remove'
-      rm.innerHTML = ICON_REMOVE
+      setTrustedHtml(rm, ICON_REMOVE)
       rm.title = this._t('removePerson', 'Remove')
       rm.setAttribute('aria-label', rm.title)
       rm.addEventListener('mousedown', e => e.stopPropagation())
@@ -387,7 +388,7 @@ export class Person extends BlockPluginAbstract {
       const addBtn = ownerDocument.createElement('button')
       addBtn.type = 'button'
       addBtn.className = 'oe-person__tab-add'
-      addBtn.innerHTML = ICON_PLUS
+      setTrustedHtml(addBtn, ICON_PLUS)
       addBtn.title = this._t('addPerson', 'Add person')
       addBtn.setAttribute('aria-label', addBtn.title)
       addBtn.addEventListener('click', () => {
@@ -436,7 +437,7 @@ export class Person extends BlockPluginAbstract {
     } else {
       const placeholder = ownerDocument.createElement('div')
       placeholder.className = 'oe-person__avatar-placeholder'
-      placeholder.innerHTML = ICON_CAMERA
+      setTrustedHtml(placeholder, ICON_CAMERA)
       avatarWrap.appendChild(placeholder)
     }
 
@@ -444,7 +445,7 @@ export class Person extends BlockPluginAbstract {
       const avatarOverlay = ownerDocument.createElement('button')
       avatarOverlay.type = 'button'
       avatarOverlay.className = 'oe-person__avatar-upload'
-      avatarOverlay.innerHTML = ICON_CAMERA
+      setTrustedHtml(avatarOverlay, ICON_CAMERA)
       avatarOverlay.title = this._t('uploadAvatar', 'Upload avatar')
       avatarOverlay.setAttribute('aria-label', avatarOverlay.title)
       avatarOverlay.addEventListener('mousedown', e => e.preventDefault())
@@ -461,7 +462,7 @@ export class Person extends BlockPluginAbstract {
     name.className = 'oe-person__name'
     name.contentEditable = s.context.readOnly ? 'false' : 'true'
     name.dataset.placeholder = this._t('namePlaceholder', 'Name')
-    if (person.name) name.innerHTML = sanitizeHtml(person.name, ownerDocument)
+    if (person.name) setSanitizedHtml(name, person.name)
     this._setupEditable(name, false)
     info.appendChild(name)
 
@@ -469,7 +470,7 @@ export class Person extends BlockPluginAbstract {
     role.className = 'oe-person__role'
     role.contentEditable = s.context.readOnly ? 'false' : 'true'
     role.dataset.placeholder = this._t('rolePlaceholder', 'Role / Position')
-    if (person.role) role.innerHTML = sanitizeHtml(person.role, ownerDocument)
+    if (person.role) setSanitizedHtml(role, person.role)
     this._setupEditable(role, false)
     info.appendChild(role)
 
@@ -477,7 +478,7 @@ export class Person extends BlockPluginAbstract {
     bio.className = 'oe-person__bio'
     bio.contentEditable = s.context.readOnly ? 'false' : 'true'
     bio.dataset.placeholder = this._t('bioPlaceholder', 'Short bio...')
-    if (person.bio) bio.innerHTML = sanitizeHtml(person.bio, ownerDocument)
+    if (person.bio) setSanitizedHtml(bio, person.bio)
     this._setupEditable(bio, true)
     info.appendChild(bio)
 
@@ -516,7 +517,7 @@ export class Person extends BlockPluginAbstract {
       if (!e.ctrlKey && !e.metaKey) e.stopPropagation()
     })
     el.addEventListener('input', () => {
-      if (!el.textContent?.trim()) el.innerHTML = ''
+      if (!el.textContent?.trim()) el.textContent = ''
     })
   }
 
@@ -564,7 +565,7 @@ export class Person extends BlockPluginAbstract {
     const iconEl = ownerDocument.createElement('span')
     iconEl.className = 'oe-person__link-icon'
     const resolved = resolveSocialIcon(link.url, this._config.socialResolvers)
-    iconEl.innerHTML = link.url ? resolved.icon : (SOCIAL_ICONS.website || '')
+    setTrustedHtml(iconEl, link.url ? resolved.icon : (SOCIAL_ICONS.website || ''))
     iconEl.dataset.type = link.url ? resolved.type : link.type
     row.appendChild(iconEl)
 
@@ -602,7 +603,7 @@ export class Person extends BlockPluginAbstract {
           const removeBtn = ownerDocument.createElement('button')
           removeBtn.type = 'button'
           removeBtn.className = 'oe-person__link-remove'
-          removeBtn.innerHTML = ICON_REMOVE
+          setTrustedHtml(removeBtn, ICON_REMOVE)
           removeBtn.setAttribute('aria-label', this._t('removeLink', 'Remove link'))
           removeBtn.addEventListener('mousedown', e => e.preventDefault())
           removeBtn.addEventListener('click', () => {
@@ -627,7 +628,7 @@ export class Person extends BlockPluginAbstract {
       const removeBtn = ownerDocument.createElement('button')
       removeBtn.type = 'button'
       removeBtn.className = 'oe-person__link-remove'
-      removeBtn.innerHTML = ICON_REMOVE
+      setTrustedHtml(removeBtn, ICON_REMOVE)
       removeBtn.setAttribute('aria-label', this._t('removeLink', 'Remove link'))
       removeBtn.addEventListener('mousedown', e => e.preventDefault())
       removeBtn.addEventListener('click', () => {
@@ -658,7 +659,7 @@ export class Person extends BlockPluginAbstract {
     if (!targetPerson) return
     const existing = s.debounceTimers.get(key)
     if (existing) (wrapper.ownerDocument.defaultView ?? globalThis).clearTimeout(existing)
-    iconEl.innerHTML = ICON_LOADER
+    setTrustedHtml(iconEl, ICON_LOADER)
     iconEl.querySelector('svg')?.classList.add('oe-person__spin')
     const timer = (wrapper.ownerDocument.defaultView ?? globalThis).setTimeout(() => {
       s.debounceTimers.delete(key)
@@ -698,7 +699,7 @@ export class Person extends BlockPluginAbstract {
     const existing = s.debounceTimers.get(key)
     if (existing) { (wrapper.ownerDocument.defaultView ?? globalThis).clearTimeout(existing); s.debounceTimers.delete(key) }
     const resolved = resolveSocialIcon(url, this._config.socialResolvers)
-    iconEl.innerHTML = resolved.icon
+    setTrustedHtml(iconEl, resolved.icon)
     iconEl.dataset.type = resolved.type
     const personLink = targetPerson.links[index]
     if (personLink && personLink.type !== resolved.type) {

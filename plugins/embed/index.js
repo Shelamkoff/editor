@@ -1,3 +1,4 @@
+import { setSanitizedHtml, setTrustedHtml } from '../../core/sanitize.js'
 import { sanitizeHtml, escapeHtml } from '../../core/sanitize.js'
 import { SERVICES, buildPlayer } from './player.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
@@ -375,7 +376,7 @@ export class Embed extends BlockPluginAbstract {
 
     const iconEl = ownerDocument.createElement('span')
     iconEl.className = CSS.urlIcon
-    iconEl.innerHTML = s.data.service ? (BRAND_ICONS[s.data.service] || ICON_FORMS) : ICON_FORMS
+    setTrustedHtml(iconEl, s.data.service ? (BRAND_ICONS[s.data.service] || ICON_FORMS) : ICON_FORMS)
     bar.appendChild(iconEl)
     s.urlIconEl = iconEl
 
@@ -434,7 +435,7 @@ export class Embed extends BlockPluginAbstract {
           s.data.service = ''
           s.data.videoId = ''
           this._removePlayerElements(wrapper)
-          iconEl.innerHTML = ICON_FORMS
+          setTrustedHtml(iconEl, ICON_FORMS)
         })
       }
       return
@@ -445,7 +446,7 @@ export class Embed extends BlockPluginAbstract {
       // Invalidate preview, upload, and custom-source work for the previous
       // video before its promise can commit into the new resource.
       this._removePlayerElements(wrapper)
-      iconEl.innerHTML = ICON_LOADER
+      setTrustedHtml(iconEl, ICON_LOADER)
       s.data.service = parsed.service
       s.data.videoId = parsed.videoId
     })
@@ -457,7 +458,7 @@ export class Embed extends BlockPluginAbstract {
         || st.data.service !== parsed.service
         || st.data.videoId !== parsed.videoId
       ) return
-      iconEl.innerHTML = BRAND_ICONS[parsed.service] || ICON_FORMS
+      setTrustedHtml(iconEl, BRAND_ICONS[parsed.service] || ICON_FORMS)
       this._beginView(wrapper)
       this._renderPlayer(wrapper)
       this._renderCaption(wrapper)
@@ -542,8 +543,8 @@ export class Embed extends BlockPluginAbstract {
     caption.contentEditable = s.context.readOnly ? 'false' : 'true'
     caption.dataset.placeholder = this._t('caption', 'Caption')
 
-    if (s.data.caption) caption.innerHTML = sanitizeHtml(s.data.caption, caption.ownerDocument)
-    if (!(caption.textContent || '').trim()) { s.data.caption = ''; caption.innerHTML = ''; caption.setAttribute('data-empty', 'true') }
+    if (s.data.caption) setSanitizedHtml(caption, s.data.caption)
+    if (!(caption.textContent || '').trim()) { s.data.caption = ''; caption.textContent = ''; caption.setAttribute('data-empty', 'true') }
 
     const sync = () => {
       const st = stateMap.get(wrapper)
@@ -557,7 +558,7 @@ export class Embed extends BlockPluginAbstract {
       caption.addEventListener('focus', () => caption.removeAttribute('data-empty'), { signal })
       caption.addEventListener('blur', () => {
         const st = stateMap.get(wrapper)
-        if (!(caption.textContent || '').trim()) { caption.innerHTML = ''; caption.setAttribute('data-empty', 'true'); if (st) st.data.caption = '' }
+        if (!(caption.textContent || '').trim()) { caption.textContent = ''; caption.setAttribute('data-empty', 'true'); if (st) st.data.caption = '' }
       }, { signal })
       caption.addEventListener('keydown', (e) => { if (e.key === 'Backspace' && !(caption.textContent || '').trim()) { e.preventDefault(); e.stopPropagation() } }, { signal })
     }
@@ -643,7 +644,7 @@ export class Embed extends BlockPluginAbstract {
     const deleteBtn = ownerDocument.createElement('button')
     deleteBtn.type = 'button'
     deleteBtn.className = `${CSS.actionBtn} ${CSS.actionBtnDanger}`
-    deleteBtn.innerHTML = ICON_TRASH
+    setTrustedHtml(deleteBtn, ICON_TRASH)
     deleteBtn.title = this._t('delete', 'Delete')
     deleteBtn.setAttribute('aria-label', this._t('delete', 'Delete'))
     deleteBtn.addEventListener('click', (e) => {
@@ -747,7 +748,7 @@ export class Embed extends BlockPluginAbstract {
       const removeBtn = ownerDocument.createElement('button')
       removeBtn.type = 'button'
       removeBtn.className = `${CSS.actionBtn} ${CSS.actionBtnDanger}`
-      removeBtn.innerHTML = `${ICON_REMOVE} ${escapeHtml(this._t('removeCover', 'Remove'))}`
+      setTrustedHtml(removeBtn, `${ICON_REMOVE} ${escapeHtml(this._t('removeCover', 'Remove'))}`)
       removeBtn.addEventListener('click', (e) => {
         e.stopPropagation()
         const st = stateMap.get(wrapper)

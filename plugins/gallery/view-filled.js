@@ -1,3 +1,4 @@
+import { setTrustedHtml } from '../../core/sanitize.js'
 import { makeActionBtn as _makeActionBtn, makeSep as _makeSep } from '../shared/actionBar.js'
 import { escapeHtml } from '../../shared/sanitize/escapeHtml.js'
 import { CSS } from './css.js'
@@ -45,7 +46,7 @@ import { mountGalleryMasonry } from '../../shared/galleryMasonry.js'
  */
 export function renderFilledView(wrapper, state, deps) {
   state.resetTransient()
-  wrapper.innerHTML = ''
+  wrapper.textContent = ''
   wrapper.classList.add(CSS.filled)
 
   const signal = /** @type {AbortController} */ (state.abortController).signal
@@ -244,7 +245,7 @@ function renderActions(wrapper, state, deps, signal) {
   const settingsBtn = ownerDocument.createElement('button')
   settingsBtn.type = 'button'
   settingsBtn.className = CSS.actionBtn
-  settingsBtn.innerHTML = `${ICON_SETTINGS} ${escapeHtml(deps.t('settings', 'Settings'))}`
+  setTrustedHtml(settingsBtn, `${ICON_SETTINGS} ${escapeHtml(deps.t('settings', 'Settings'))}`)
   settingsBtn.setAttribute('aria-haspopup', 'true')
   settingsBtn.setAttribute('aria-expanded', 'false')
 
@@ -302,7 +303,7 @@ function renderActions(wrapper, state, deps, signal) {
   const deleteAllBtn = ownerDocument.createElement('button')
   deleteAllBtn.type = 'button'
   deleteAllBtn.className = `${CSS.actionBtn} ${CSS.actionBtnDanger}`
-  deleteAllBtn.innerHTML = ICON_TRASH
+  setTrustedHtml(deleteAllBtn, ICON_TRASH)
   deleteAllBtn.setAttribute('aria-label', deps.t('deleteAll', 'Delete all'))
   deleteAllBtn.addEventListener('mousedown', (e) => e.preventDefault(), { signal })
   deleteAllBtn.addEventListener('click', (e) => {

@@ -1,3 +1,4 @@
+import { setTrustedHtml } from '../../core/sanitize.js'
 import { CSS } from './css.js'
 import { CHEVRON_DOWN, CHECK_ICON } from './icons.js'
 import { refreshInlineStyles } from './styles.js'
@@ -117,7 +118,7 @@ function buildStyleForm(wrapper, state, deps) {
     closeSelects.add(closeSelect)
 
     const renderOptions = () => {
-      optionsList.innerHTML = ''
+      optionsList.textContent = ''
       for (const opt of options) {
         const optEl = ownerDocument.createElement('button')
         optEl.type = 'button'
@@ -134,7 +135,7 @@ function buildStyleForm(wrapper, state, deps) {
         if (isSelected) {
           const checkSpan = ownerDocument.createElement('span')
           checkSpan.className = CSS.customSelectCheck
-          checkSpan.innerHTML = CHECK_ICON
+          setTrustedHtml(checkSpan, CHECK_ICON)
           optEl.appendChild(checkSpan)
         }
 

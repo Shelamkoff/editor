@@ -1,3 +1,4 @@
+import { setTrustedHtml } from '../sanitize.js'
 import { el } from '../dom.js'
 
 const ICON_SEARCH = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>'
@@ -45,7 +46,7 @@ export class ToolboxBuilder {
   }
 
   #build() {
-    this.#toolboxEl.innerHTML = ''
+    this.#toolboxEl.textContent = ''
     this.#filterInput = null
     const plugins = [...this.#deps.plugins.values()]
     if (plugins.length > this.#deps.filterThreshold) this.#toolboxEl.appendChild(this.#buildFilterInput())
@@ -58,7 +59,7 @@ export class ToolboxBuilder {
   #buildFilterInput() {
     const wrap = el('li', 'oe-toolbox__filter', { role: 'none' }, this.#document)
     const icon = el('span', 'oe-toolbox__filter-icon', undefined, this.#document)
-    icon.innerHTML = ICON_SEARCH
+    setTrustedHtml(icon, ICON_SEARCH)
     const input = /** @type {HTMLInputElement} */ (el('input', 'oe-toolbox__filter-input', {
       type: 'text',
       placeholder: this.#deps.i18n.t('toolbox.search'),
@@ -76,7 +77,7 @@ export class ToolboxBuilder {
     const enFallback = plugin.type.charAt(0).toUpperCase() + plugin.type.slice(1)
     item.dataset.search = `${enFallback}\0${plugin.title}`.toLowerCase()
     const icon = el('span', 'oe-toolbox__icon', undefined, this.#document)
-    icon.innerHTML = plugin.icon
+    setTrustedHtml(icon, plugin.icon)
     item.appendChild(icon)
     const label = el('span', 'oe-toolbox__label', undefined, this.#document)
     label.textContent = plugin.title
@@ -92,7 +93,7 @@ export class ToolboxBuilder {
     const enFallback = ip.type.charAt(0).toUpperCase() + ip.type.slice(1)
     item.dataset.search = `${enFallback}\0${ip.title}`.toLowerCase()
     const iconEl = el('span', 'oe-toolbox__icon', undefined, this.#document)
-    iconEl.innerHTML = ip.icon
+    setTrustedHtml(iconEl, ip.icon)
     item.appendChild(iconEl)
     const label = el('span', 'oe-toolbox__label', undefined, this.#document)
     label.textContent = ip.title

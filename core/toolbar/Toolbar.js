@@ -1,3 +1,4 @@
+import { setTrustedHtml } from '../sanitize.js'
 import { el } from '../dom.js'
 import { BlockSettingsMenu } from '../block-settings-menu/BlockSettingsMenu.js'
 import { Tooltip } from '../Tooltip.js'
@@ -158,7 +159,7 @@ export class Toolbar {
       'aria-haspopup': 'menu',
       'aria-expanded': 'false',
     }, this.#document)
-    this.#plusBtn.innerHTML = ICON_PLUS
+    setTrustedHtml(this.#plusBtn, ICON_PLUS)
     this.#plusBtn.addEventListener('click', this.#onPlusClick)
     this.#plusBtn.addEventListener('mouseenter', () => this.#tooltip.show(this.#plusBtn, i18n.t('toolbar.add')))
     this.#plusBtn.addEventListener('mouseleave', () => this.#tooltip.hide())
@@ -169,7 +170,7 @@ export class Toolbar {
       'aria-haspopup': 'menu',
       'aria-expanded': 'false',
     }, this.#document)
-    this.#dragBtn.innerHTML = ICON_DRAG
+    setTrustedHtml(this.#dragBtn, ICON_DRAG)
     this.#dragBtn.addEventListener('mouseenter', () => this.#tooltip.show(this.#dragBtn, i18n.t('toolbar.tune')))
     this.#dragBtn.addEventListener('mouseleave', () => this.#tooltip.hide())
 

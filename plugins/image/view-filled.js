@@ -1,3 +1,4 @@
+import { setSanitizedHtml, setTrustedHtml } from '../../core/sanitize.js'
 import { sanitizeHtml } from '../../core/sanitize.js'
 import { escapeHtml } from '../../shared/sanitize/escapeHtml.js'
 import { setSafeUrlAttribute } from '../../shared/sanitize/sanitizeUrl.js'
@@ -38,7 +39,7 @@ import { createPluginLayer } from '../shared/layer.js'
  */
 export function renderFilledView(wrapper, state, deps) {
   state.resetTransient()
-  wrapper.innerHTML = ''
+  wrapper.textContent = ''
   wrapper.classList.add(CSS.filled)
 
   const signal = /** @type {AbortController} */ (state.abortController).signal
@@ -81,11 +82,11 @@ function renderCaption(state, signal, deps, ownerDocument) {
   caption.dataset.placeholder = deps.t('caption', 'Caption')
 
   if (state.data.caption) {
-    caption.innerHTML = sanitizeHtml(state.data.caption, caption.ownerDocument)
+    setSanitizedHtml(caption, state.data.caption)
   }
   if (!caption.textContent?.trim()) {
     state.data.caption = ''
-    caption.innerHTML = ''
+    caption.textContent = ''
     caption.setAttribute('data-empty', 'true')
   }
 
@@ -104,7 +105,7 @@ function renderCaption(state, signal, deps, ownerDocument) {
     caption.addEventListener('focus', () => caption.removeAttribute('data-empty'), { signal })
     caption.addEventListener('blur', () => {
       if (!caption.textContent?.trim()) {
-        caption.innerHTML = ''
+        caption.textContent = ''
         caption.setAttribute('data-empty', 'true')
         state.data.caption = ''
       }
@@ -141,7 +142,7 @@ function renderActions(wrapper, state, deps, signal) {
   const settingsBtn = ownerDocument.createElement('button')
   settingsBtn.type = 'button'
   settingsBtn.className = CSS.actionBtn
-  settingsBtn.innerHTML = `${ICON_SETTINGS} ${escapeHtml(deps.t('settings', 'Settings'))}`
+  setTrustedHtml(settingsBtn, `${ICON_SETTINGS} ${escapeHtml(deps.t('settings', 'Settings'))}`)
   settingsBtn.setAttribute('aria-haspopup', 'true')
   settingsBtn.setAttribute('aria-expanded', 'false')
 
@@ -221,7 +222,7 @@ function renderActions(wrapper, state, deps, signal) {
   const deleteBtn = ownerDocument.createElement('button')
   deleteBtn.type = 'button'
   deleteBtn.className = `${CSS.actionBtn} ${CSS.actionBtnDanger}`
-  deleteBtn.innerHTML = ICON_TRASH
+  setTrustedHtml(deleteBtn, ICON_TRASH)
   deleteBtn.setAttribute('aria-label', deps.t('delete', 'Delete'))
   deleteBtn.addEventListener('mousedown', (e) => e.preventDefault(), { signal })
   deleteBtn.addEventListener('click', (e) => {

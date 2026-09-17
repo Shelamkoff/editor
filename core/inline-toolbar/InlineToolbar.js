@@ -1,3 +1,4 @@
+import { setTrustedHtml } from '../sanitize.js'
 import { el } from '../dom.js'
 import { Tooltip } from '../Tooltip.js'
 import { EditorEvent } from '../editorEvents.js'
@@ -311,7 +312,7 @@ export class InlineToolbar {
         type: 'button',
         'data-tool': tool.type,
       }, this.#rootEl.ownerDocument)
-      btn.innerHTML = tool.icon
+      setTrustedHtml(btn, tool.icon)
 
       btn.addEventListener('mouseenter', () => {
         const active = btn.classList.contains('oe-inline-tool--active')

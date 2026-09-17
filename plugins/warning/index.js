@@ -1,3 +1,4 @@
+import { setSanitizedHtml, setTrustedHtml } from '../../core/sanitize.js'
 import { appendMergeField } from '../shared/appendMergeField.js'
 // =============================================================================
 // Warning — callout/notice block with title and message
@@ -51,7 +52,7 @@ export class Warning extends BlockPluginAbstract {
     const icon = ownerDocument.createElement('div')
     icon.className = 'oe-warning__icon'
     icon.setAttribute('aria-hidden', 'true')
-    icon.innerHTML = ICON_LARGE
+    setTrustedHtml(icon, ICON_LARGE)
 
     const content = ownerDocument.createElement('div')
     content.className = 'oe-warning__content'
@@ -61,14 +62,14 @@ export class Warning extends BlockPluginAbstract {
     titleEl.contentEditable = 'true'
     titleEl.dataset.placeholder = this._t('titlePlaceholder', 'Title')
     const title = normalizeTextValue(data?.title)
-    if (title) titleEl.innerHTML = sanitizeHtml(title, ownerDocument)
+    if (title) setSanitizedHtml(titleEl, title)
 
     const messageEl = ownerDocument.createElement('div')
     messageEl.className = 'oe-warning__message'
     messageEl.contentEditable = 'true'
     messageEl.dataset.placeholder = this._t('messagePlaceholder', 'Message')
     const message = normalizeTextValue(data?.message)
-    if (message) messageEl.innerHTML = sanitizeHtml(message, ownerDocument)
+    if (message) setSanitizedHtml(messageEl, message)
 
     // Tab between title and message
     titleEl.addEventListener('keydown', (e) => {

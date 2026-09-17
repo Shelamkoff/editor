@@ -1,3 +1,4 @@
+import { setTrustedHtml } from '../core/sanitize.js'
 import { editSelectedAncestors } from './selectedAncestors.js'
 import {
   toggleTag,
@@ -116,7 +117,7 @@ export function createScriptTool(labels, cbs = null) {
         const btn = doc.createElement('button')
         btn.type = 'button'
         btn.className = 'oe-inline-tool'
-        btn.innerHTML = mode.icon
+        setTrustedHtml(btn, mode.icon)
         if (current === mode.key && mode.key !== 'none') btn.classList.add('oe-inline-tool--active')
 
         btn.addEventListener('mouseenter', () => ctx.showTooltip(btn, mode.title))

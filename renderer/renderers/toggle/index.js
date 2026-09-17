@@ -1,3 +1,4 @@
+import { setTrustedHtml } from '../../../shared/sanitize/sanitizeHtml.js'
 // @ts-check
 import { mapToggleTextFields as mapTextFields } from '../../../shared/mapTextFields.js'
 
@@ -36,7 +37,7 @@ export function createToggleRenderer(classPrefix, _locale) {
             const chevron = context.ownerDocument.createElement('span')
             chevron.className = `${classPrefix}-toggle__chevron`
             chevron.setAttribute('aria-hidden', 'true')
-            chevron.innerHTML = ICON_CHEVRON
+            setTrustedHtml(chevron, ICON_CHEVRON)
 
             const titleEl = context.ownerDocument.createElement('span')
             titleEl.className = `${classPrefix}-toggle__title`

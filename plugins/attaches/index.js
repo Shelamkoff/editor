@@ -1,3 +1,4 @@
+import { setTrustedHtml, insertTrustedHtml } from '../../core/sanitize.js'
 import { triggerFileInput } from '../shared/fileInput.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { getFileIcon, getExtension, formatSize, EXT_COLORS } from '../../shared/fileUtils.js'
@@ -251,7 +252,7 @@ export class Attaches extends BlockPluginAbstract {
     const s = stateMap.get(wrapper)
     if (!s) return
     const ownerDocument = wrapper.ownerDocument
-    wrapper.innerHTML = ''
+    wrapper.textContent = ''
     wrapper.classList.remove('oe-attaches--filled')
     s.viewController?.abort()
     s.viewController = createAbortControllerFor(wrapper)
@@ -268,7 +269,7 @@ export class Attaches extends BlockPluginAbstract {
 
     const icon = ownerDocument.createElement('div')
     icon.className = 'oe-attaches__select-icon'
-    icon.innerHTML = ICON_SELECT
+    setTrustedHtml(icon, ICON_SELECT)
 
     const text = ownerDocument.createElement('div')
     text.className = 'oe-attaches__select-text'
@@ -302,7 +303,7 @@ export class Attaches extends BlockPluginAbstract {
         const button = ownerDocument.createElement('button')
         button.type = 'button'
         button.className = 'oe-attaches__select-action'
-        if (action.icon) button.insertAdjacentHTML('afterbegin', action.icon)
+        if (action.icon) insertTrustedHtml(button, 'afterbegin', action.icon)
         button.append(ownerDocument.createTextNode(action.label))
         button.addEventListener('click', event => {
           event.stopPropagation()
@@ -332,7 +333,7 @@ export class Attaches extends BlockPluginAbstract {
     const s = stateMap.get(wrapper)
     if (!s) return
     this.#syncNames(wrapper)
-    wrapper.innerHTML = ''
+    wrapper.textContent = ''
     wrapper.classList.add('oe-attaches--filled')
     s.viewController?.abort()
     s.viewController = createAbortControllerFor(wrapper)
@@ -398,7 +399,7 @@ export class Attaches extends BlockPluginAbstract {
     header.className = 'oe-attaches__group-header'
     const iconWrap = ownerDocument.createElement('div')
     iconWrap.className = 'oe-attaches__icon'
-    iconWrap.innerHTML = ICON_FILE_DEFAULT
+    setTrustedHtml(iconWrap, ICON_FILE_DEFAULT)
     const headerInfo = ownerDocument.createElement('div')
     headerInfo.className = 'oe-attaches__info'
     const countText = ownerDocument.createElement('div')
@@ -410,7 +411,7 @@ export class Attaches extends BlockPluginAbstract {
     const chevron = ownerDocument.createElement('button')
     chevron.type = 'button'
     chevron.className = 'oe-attaches__chevron'
-    chevron.innerHTML = ICON_CHEVRON
+    setTrustedHtml(chevron, ICON_CHEVRON)
     chevron.setAttribute('aria-label', this._t('toggleGroup', 'Show or hide files'))
     chevron.setAttribute('aria-expanded', String(s.expanded))
     header.append(iconWrap, headerInfo, chevron)
@@ -456,7 +457,7 @@ export class Attaches extends BlockPluginAbstract {
   #buildIconA(file, ownerDocument) {
     const wrap = ownerDocument.createElement('div')
     wrap.className = 'oe-attaches__icon'
-    wrap.innerHTML = ICON_FILE_DEFAULT
+    setTrustedHtml(wrap, ICON_FILE_DEFAULT)
     if (file.extension) {
       const badge = ownerDocument.createElement('span')
       badge.className = 'oe-attaches__ext'
@@ -485,7 +486,7 @@ export class Attaches extends BlockPluginAbstract {
       pill.className = 'oe-attaches__pill'
       const ic = ownerDocument.createElement('div')
       ic.className = 'oe-attaches__pill-icon'
-      ic.innerHTML = ICON_FILE_SM
+      setTrustedHtml(ic, ICON_FILE_SM)
       pill.appendChild(ic)
       pill.appendChild(this.#buildNameEl(w, i, files[i], sig))
       if (files[i].size) { const sz = ownerDocument.createElement('span'); sz.className = 'oe-attaches__pill-size'; sz.textContent = formatSize(files[i].size); pill.appendChild(sz) }
@@ -558,7 +559,7 @@ export class Attaches extends BlockPluginAbstract {
     const wrap = ownerDocument.createElement('div')
     wrap.className = 'oe-attaches__material-icon'
     const { svg } = getFileIcon(file.extension)
-    wrap.innerHTML = svg
+    setTrustedHtml(wrap, svg)
     return wrap
   }
 
@@ -604,7 +605,7 @@ export class Attaches extends BlockPluginAbstract {
     const btn = ownerDocument.createElement('button')
     btn.type = 'button'
     btn.className = 'oe-attaches__remove'
-    btn.innerHTML = '&times;'
+    setTrustedHtml(btn, '&times;')
     btn.setAttribute('aria-label', this._t('delete', 'Delete'))
     const state = stateMap.get(wrapper)
     if (state?.context.readOnly) {
@@ -649,7 +650,7 @@ export class Attaches extends BlockPluginAbstract {
     const settingsBtn = ownerDocument.createElement('button')
     settingsBtn.type = 'button'
     settingsBtn.className = 'oe-attaches__action-btn'
-    settingsBtn.innerHTML = `${ICON_SETTINGS} ${escapeHtml(this._t('settings', 'Settings'))}`
+    setTrustedHtml(settingsBtn, `${ICON_SETTINGS} ${escapeHtml(this._t('settings', 'Settings'))}`)
     settingsBtn.setAttribute('aria-haspopup', 'true')
     settingsBtn.setAttribute('aria-expanded', 'false')
 
@@ -689,7 +690,7 @@ export class Attaches extends BlockPluginAbstract {
     const addBtn = ownerDocument.createElement('button')
     addBtn.type = 'button'
     addBtn.className = 'oe-attaches__action-btn'
-    addBtn.innerHTML = `${ICON_UPLOAD} ${escapeHtml(this._t('addFiles', 'Add files'))}`
+    setTrustedHtml(addBtn, `${ICON_UPLOAD} ${escapeHtml(this._t('addFiles', 'Add files'))}`)
     addBtn.addEventListener('mousedown', (e) => e.preventDefault(), { signal })
     addBtn.addEventListener('click', (e) => { e.stopPropagation(); this.#triggerFileInput(wrapper) }, { signal })
     actions.appendChild(addBtn)
@@ -698,7 +699,7 @@ export class Attaches extends BlockPluginAbstract {
       const sourceBtn = ownerDocument.createElement('button')
       sourceBtn.type = 'button'
       sourceBtn.className = 'oe-attaches__action-btn'
-      if (action.icon) sourceBtn.insertAdjacentHTML('afterbegin', action.icon)
+      if (action.icon) insertTrustedHtml(sourceBtn, 'afterbegin', action.icon)
       sourceBtn.append(ownerDocument.createTextNode(` ${action.label}`))
       sourceBtn.addEventListener('mousedown', (e) => e.preventDefault(), { signal })
       sourceBtn.addEventListener('click', (e) => {
@@ -714,7 +715,7 @@ export class Attaches extends BlockPluginAbstract {
     const delBtn = ownerDocument.createElement('button')
     delBtn.type = 'button'
     delBtn.className = 'oe-attaches__action-btn oe-attaches__action-btn--danger'
-    delBtn.innerHTML = ICON_TRASH
+    setTrustedHtml(delBtn, ICON_TRASH)
     delBtn.setAttribute('aria-label', this._t('deleteAll', 'Delete all'))
     delBtn.addEventListener('mousedown', (e) => e.preventDefault(), { signal })
     delBtn.addEventListener('click', (e) => {
@@ -760,7 +761,7 @@ export class Attaches extends BlockPluginAbstract {
       const btn = ownerDocument.createElement('button')
       btn.type = 'button'
       btn.className = 'oe-attaches__tpl-btn' + (s?.data.variant === v ? ' oe-attaches__tpl-btn--active' : '')
-      btn.innerHTML = meta.icon
+      setTrustedHtml(btn, meta.icon)
       btn.title = this._t(meta.label, meta.label)
       btn.setAttribute('aria-label', btn.title)
       btn.setAttribute('aria-pressed', String(s?.data.variant === v))

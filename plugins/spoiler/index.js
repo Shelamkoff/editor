@@ -1,3 +1,4 @@
+import { setSanitizedHtml, setTrustedHtml } from '../../core/sanitize.js'
 import { appendMergeField } from '../shared/appendMergeField.js'
 // =============================================================================
 // Spoiler — hidden text revealed on click
@@ -52,7 +53,7 @@ export class Spoiler extends BlockPluginAbstract {
     label.contentEditable = 'true'
     label.dataset.placeholder = this._t('labelPlaceholder', 'Spoiler label...')
     const labelText = normalizeTextValue(data?.label)
-    if (labelText) label.innerHTML = sanitizeHtml(labelText, ownerDocument)
+    if (labelText) setSanitizedHtml(label, labelText)
     label.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault()
@@ -66,7 +67,7 @@ export class Spoiler extends BlockPluginAbstract {
     const toggle = ownerDocument.createElement('button')
     toggle.type = 'button'
     toggle.className = 'oe-spoiler__toggle'
-    toggle.innerHTML = ICON
+    setTrustedHtml(toggle, ICON)
     toggle.title = this._t('toggle', 'Toggle spoiler')
     toggle.setAttribute('aria-label', this._t('toggle', 'Toggle spoiler'))
     toggle.setAttribute(READ_ONLY_INTERACTIVE_ATTRIBUTE, '')
@@ -93,7 +94,7 @@ export class Spoiler extends BlockPluginAbstract {
     content.contentEditable = 'true'
     content.dataset.placeholder = this._t('contentPlaceholder', 'Hidden content...')
     const contentText = normalizeTextValue(data?.content)
-    if (contentText) content.innerHTML = sanitizeHtml(contentText, ownerDocument)
+    if (contentText) setSanitizedHtml(content, contentText)
     content.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.stopPropagation()

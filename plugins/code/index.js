@@ -1,3 +1,4 @@
+import { setTrustedHtml } from '../../core/sanitize.js'
 import { getHighlightRuntime, loadHighlightRuntime } from '../../shared/highlightRuntime.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { validateCodeData } from '../../shared/blockDataValidators.js'
@@ -135,14 +136,14 @@ function highlightCodeBlock(wrapper, hljs) {
     if (lang === 'auto') {
       const result = hljs.highlightAuto(code)
       if (result.language) {
-        codeEl.innerHTML = result.value + '\n'
+        setTrustedHtml(codeEl, result.value + '\n')
         codeEl.classList.add('hljs', 'language-' + result.language)
       } else {
         codeEl.classList.add('hljs')
       }
     } else if (hljs.getLanguage(lang)) {
       const result = hljs.highlight(code, { language: lang, ignoreIllegals: true })
-      codeEl.innerHTML = result.value + '\n'
+      setTrustedHtml(codeEl, result.value + '\n')
       codeEl.classList.add('hljs')
     } else {
       codeEl.classList.add('hljs')
@@ -342,7 +343,7 @@ export class Code extends BlockPluginAbstract {
 
     const dots = ownerDocument.createElement('span')
     dots.className = 'oe-code-dots'
-    dots.innerHTML = '<span></span><span></span><span></span>'
+    setTrustedHtml(dots, '<span></span><span></span><span></span>')
 
     const { dropdown, langLabel } = this.#buildDropdown(wrapper)
 
@@ -352,7 +353,7 @@ export class Code extends BlockPluginAbstract {
     copyBtn.title = this._t('copy', 'Copy')
     copyBtn.setAttribute('aria-label', copyBtn.title)
     copyBtn.setAttribute(READ_ONLY_INTERACTIVE_ATTRIBUTE, '')
-    copyBtn.innerHTML = ICON_COPY
+    setTrustedHtml(copyBtn, ICON_COPY)
     copyBtn.addEventListener('click', () => this.#copy(wrapper, copyBtn))
 
     const editBtn = ownerDocument.createElement('button')
@@ -360,7 +361,7 @@ export class Code extends BlockPluginAbstract {
     editBtn.type = 'button'
     editBtn.title = this._t('edit', 'Edit')
     editBtn.setAttribute('aria-label', editBtn.title)
-    editBtn.innerHTML = ICON_EDIT
+    setTrustedHtml(editBtn, ICON_EDIT)
     editBtn.hidden = context.readOnly
     editBtn.disabled = context.readOnly
     editBtn.addEventListener('click', () => {
@@ -554,7 +555,7 @@ export class Code extends BlockPluginAbstract {
 
     refs.pre.style.pointerEvents = 'none'
 
-    refs.editBtn.innerHTML = ICON_CHECK
+    setTrustedHtml(refs.editBtn, ICON_CHECK)
     refs.editBtn.title = this._t('done', 'Done')
     refs.editBtn.setAttribute('aria-label', refs.editBtn.title)
 
@@ -581,7 +582,7 @@ export class Code extends BlockPluginAbstract {
 
     refs.pre.style.pointerEvents = ''
 
-    refs.editBtn.innerHTML = ICON_EDIT
+    setTrustedHtml(refs.editBtn, ICON_EDIT)
     refs.editBtn.title = this._t('edit', 'Edit')
     refs.editBtn.setAttribute('aria-label', refs.editBtn.title)
 
@@ -626,14 +627,14 @@ export class Code extends BlockPluginAbstract {
 
     void writeText.call(clipboard, code).then(() => {
       if (!codeStateMap.has(wrapper)) return
-      btn.innerHTML = ICON_CHECK
+      setTrustedHtml(btn, ICON_CHECK)
       btn.classList.add('oe-code-btn--copied')
       const view = wrapper.ownerDocument?.defaultView ?? globalThis
       if (state?.copyResetTimer) view.clearTimeout(state.copyResetTimer)
       const timer = view.setTimeout(() => {
         if (state) state.copyResetTimer = null
         if (!codeStateMap.has(wrapper)) return
-        btn.innerHTML = ICON_COPY
+        setTrustedHtml(btn, ICON_COPY)
         btn.classList.remove('oe-code-btn--copied')
       }, 1800)
       if (state) state.copyResetTimer = timer

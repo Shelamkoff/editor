@@ -1,3 +1,4 @@
+import { setSanitizedHtml, setTrustedHtml } from '../../core/sanitize.js'
 import { sanitizeHtml } from '../../core/sanitize.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { validateColumnsData } from '../../shared/blockDataValidators.js'
@@ -150,7 +151,7 @@ export class Columns extends BlockPluginAbstract {
     const s = stateMap.get(wrapper)
     if (!s) return
     const ownerDocument = wrapper.ownerDocument ?? context.ownerDocument ?? globalThis.document
-    wrapper.innerHTML = ''
+    wrapper.textContent = ''
 
     const layoutDef = /** @type {{ cols: number, grid: string, label: string }} */ (LAYOUTS[s.data.layout] || LAYOUTS['1-1'])
 
@@ -166,7 +167,7 @@ export class Columns extends BlockPluginAbstract {
       col.contentEditable = 'true'
       col.dataset.placeholder = `${this._t('colPlaceholder', 'Column')} ${i + 1}`
       if (colData.content) {
-        col.innerHTML = sanitizeHtml(colData.content, ownerDocument)
+        setSanitizedHtml(col, colData.content)
       }
       col.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) { e.stopPropagation(); return }
@@ -186,7 +187,7 @@ export class Columns extends BlockPluginAbstract {
       const btn = ownerDocument.createElement('button')
       btn.type = 'button'
       btn.className = `oe-columns__layout-btn${s.data.layout === key ? ' oe-columns__layout-btn--active' : ''}`
-      btn.innerHTML = LAYOUT_ICONS[key] || ''
+      setTrustedHtml(btn, LAYOUT_ICONS[key] || '')
       btn.title = LAYOUTS[key]?.label || ''
       btn.setAttribute('aria-label', `${this._t('layout', 'Layout')} ${btn.title}`)
       btn.setAttribute('aria-pressed', String(s.data.layout === key))

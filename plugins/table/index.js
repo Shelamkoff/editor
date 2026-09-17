@@ -1,3 +1,4 @@
+import { setSanitizedHtml, setTrustedHtml } from '../../core/sanitize.js'
 import { editableRange } from '../../core/editableFields.js'
 import { tablePasteData } from './paste.js'
 import { sanitizeHtml } from '../../core/sanitize.js'
@@ -70,7 +71,7 @@ export class Table extends BlockPluginAbstract {
         const candidate = inputRows[r]?.[c]
         const text = typeof candidate === 'string' ? candidate : ''
         if (text) {
-          cell.innerHTML = sanitizeHtml(text, ownerDocument)
+          setSanitizedHtml(cell, text)
         }
         tr.appendChild(cell)
       }
@@ -145,7 +146,7 @@ export class Table extends BlockPluginAbstract {
 
       const ic = element.ownerDocument.createElement('span')
       ic.className = 'oe-settings-menu__icon'
-      ic.innerHTML = item.icon
+      setTrustedHtml(ic, item.icon)
       btn.appendChild(ic)
 
       const lb = element.ownerDocument.createElement('span')

@@ -1,3 +1,4 @@
+import { setTrustedHtml } from '../../core/sanitize.js'
 import { CSS } from './css.js'
 import { LAYOUT_ICONS } from './icons.js'
 import { ALL_LAYOUTS } from './layout.js'
@@ -61,7 +62,7 @@ function buildLayoutGroup(wrapper, state, deps, signal, ownerDocument) {
     const btn = ownerDocument.createElement('button')
     btn.type = 'button'
     btn.className = `${CSS.layoutBtn}${state.data.layout === layout ? ` ${CSS.layoutBtnActive}` : ''}`
-    btn.innerHTML = LAYOUT_ICONS[layout] || ''
+    setTrustedHtml(btn, LAYOUT_ICONS[layout] || '')
     btn.title = layoutLabel
     btn.setAttribute('aria-label', layoutLabel)
     btn.setAttribute('aria-pressed', String(state.data.layout === layout))

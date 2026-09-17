@@ -1,3 +1,4 @@
+import { setTrustedHtml } from '../core/sanitize.js'
 import { el } from '../core/dom.js'
 import { createSvgIcon } from '../core/icons.js'
 import {
@@ -436,7 +437,7 @@ export function createFontSizeTool(label, cbs = null) {
 
     const applyBtn = el('button', 'oe-font-size-apply', { type: 'button' }, doc)
     applyBtn.setAttribute('aria-label', label)
-    applyBtn.innerHTML = ICON_CHECK
+    setTrustedHtml(applyBtn, ICON_CHECK)
     applyBtn.addEventListener('click', (e) => {
       e.preventDefault()
       e.stopPropagation()
@@ -446,7 +447,7 @@ export function createFontSizeTool(label, cbs = null) {
 
     const resetBtn = el('button', 'oe-font-size-reset', { type: 'button' }, doc)
     resetBtn.setAttribute('aria-label', `${label}: 16px`)
-    resetBtn.innerHTML = createSvgIcon('<path d="M18 6l-12 12"/><path d="M6 6l12 12"/>', 14)
+    setTrustedHtml(resetBtn, createSvgIcon('<path d="M18 6l-12 12"/><path d="M6 6l12 12"/>', 14))
     resetBtn.addEventListener('click', (e) => {
       e.preventDefault()
       e.stopPropagation()
@@ -521,14 +522,14 @@ export function createFontSizeTool(label, cbs = null) {
       ownerDocument = button.ownerDocument
       ownerWindow = /** @type {(Window & typeof globalThis) | null} */ (ownerDocument?.defaultView ?? null)
       button.classList.add('oe-font-size-select')
-      button.innerHTML = ''
+      button.textContent = ''
 
       sizeLabel = el('span', 'oe-font-size-select__value', undefined, ownerDocument)
       sizeLabel.textContent = FONT_SIZE_DEFAULT + 'px'
       button.appendChild(sizeLabel)
 
       const chevron = el('span', 'oe-font-size-select__chevron', undefined, ownerDocument)
-      chevron.innerHTML = ICON_CHEVRON_SM
+      setTrustedHtml(chevron, ICON_CHEVRON_SM)
       button.appendChild(chevron)
 
       selectBtn = button

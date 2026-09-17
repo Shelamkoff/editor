@@ -1,3 +1,4 @@
+import { setTrustedHtml } from '../../../shared/sanitize/sanitizeHtml.js'
 // @ts-check
 import { Carousel, createSwipe, carouselStylesUrl } from '@shelamkoff/carousel'
 import { setSafeUrlAttribute } from '../../../shared/sanitize/sanitizeUrl.js'
@@ -120,14 +121,14 @@ export function createPersonRenderer(classPrefix, /** @type {Record<string, impo
                     const prevBtn = ownerDocument.createElement('button')
                     prevBtn.type = 'button'
                     prevBtn.className = `${p}__nav-btn`
-                    prevBtn.innerHTML = ICON_LEFT
+                    setTrustedHtml(prevBtn, ICON_LEFT)
                     prevBtn.setAttribute('aria-label', t('renderer.person.previous', 'Previous person'))
                     prevBtn.querySelector('svg')?.setAttribute('aria-hidden', 'true')
                     prevBtn.addEventListener('click', () => carousel.prev())
                     const nextBtn = ownerDocument.createElement('button')
                     nextBtn.type = 'button'
                     nextBtn.className = `${p}__nav-btn`
-                    nextBtn.innerHTML = ICON_RIGHT
+                    setTrustedHtml(nextBtn, ICON_RIGHT)
                     nextBtn.setAttribute('aria-label', t('renderer.person.next', 'Next person'))
                     nextBtn.querySelector('svg')?.setAttribute('aria-hidden', 'true')
                     nextBtn.addEventListener('click', () => carousel.next())
@@ -214,7 +215,7 @@ function renderCard(person, parseInline, p, t, ownerDocument) {
 
             const iconSpan = ownerDocument.createElement('span')
             iconSpan.className = `${p}__link-icon`
-            iconSpan.innerHTML = (link.type && SOCIAL_ICONS[link.type]) || SOCIAL_ICONS.website
+            setTrustedHtml(iconSpan, (link.type && SOCIAL_ICONS[link.type]) || SOCIAL_ICONS.website)
             a.appendChild(iconSpan)
 
             const urlSpan = ownerDocument.createElement('span')

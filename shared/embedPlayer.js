@@ -1,3 +1,4 @@
+import { setTrustedHtml } from './sanitize/sanitizeHtml.js'
 import { sanitizeUrl, setSafeUrlAttribute } from './sanitize/sanitizeUrl.js'
 
 /** @type {Record<string, { regex: RegExp[], embedUrl: (id: string) => string, previewUrl: ((id: string) => string) | null }>} */
@@ -71,7 +72,7 @@ export function buildPlayer(opts) {
   if (!previewEl && placeholderHtml) {
     previewEl = ownerDocument.createElement('div')
     previewEl.className = `${prefix}__placeholder`
-    previewEl.innerHTML = placeholderHtml
+    setTrustedHtml(previewEl, placeholderHtml)
     player.appendChild(previewEl)
   }
 
@@ -79,7 +80,7 @@ export function buildPlayer(opts) {
   const playBtn = ownerDocument.createElement('button')
   playBtn.type = 'button'
   playBtn.className = `${prefix}__play-btn`
-  playBtn.innerHTML = playIcon
+  setTrustedHtml(playBtn, playIcon)
   playBtn.setAttribute('aria-label', playLabel)
   player.appendChild(playBtn)
 

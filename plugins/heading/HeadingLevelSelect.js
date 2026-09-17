@@ -1,3 +1,4 @@
+import { setTrustedHtml } from '../../core/sanitize.js'
 import { getTextOffset } from '../../core/textOffset.js'
 import { restoreSelectionByOffsets } from '../../core/textOffset.js'
 import { handleMenuKeydown } from '../../core/menuKeyboardNav.js'
@@ -44,7 +45,7 @@ export function createHeadingLevelSelect(plugin, element, ctx, t, levels) {
   const chevron = ownerDocument.createElement('span')
   chevron.className = 'oe-inline-toolbar__type-chevron'
   chevron.setAttribute('aria-hidden', 'true')
-  chevron.innerHTML = ICON_CHEVRON
+  setTrustedHtml(chevron, ICON_CHEVRON)
   selectBtn.appendChild(chevron)
 
   // Dropdown panel
@@ -66,7 +67,7 @@ export function createHeadingLevelSelect(plugin, element, ctx, t, levels) {
 
     const iconSpan = ownerDocument.createElement('span')
     iconSpan.className = 'oe-inline-toolbar__type-item-icon'
-    iconSpan.innerHTML = icon
+    setTrustedHtml(iconSpan, icon)
     item.appendChild(iconSpan)
 
     const labelSpan = ownerDocument.createElement('span')

@@ -1,3 +1,4 @@
+import { setTrustedHtml } from '../core/sanitize.js'
 import { hasInlineContent, removeEmptyInlineTags } from './inlineContent.js'
 export { removeEmptyInlineTags } from './inlineContent.js'
 import { editableFields, editableAtBoundary } from '../core/editableFields.js'
@@ -920,7 +921,7 @@ export function restoreSelectionOffsets(cbs, saved) {
 export function createBackButton(ctx) {
   const ownerDocument = ctx.range.startContainer.ownerDocument
   const backBtn = el('button', 'oe-inline-tool oe-inline-tool--back', { type: 'button' }, ownerDocument)
-  backBtn.innerHTML = ICON_BACK
+  setTrustedHtml(backBtn, ICON_BACK)
   backBtn.addEventListener('mousedown', (e) => { e.preventDefault(); e.stopPropagation() })
   backBtn.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); ctx.close() })
   return backBtn
