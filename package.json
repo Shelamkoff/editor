@@ -113,10 +113,11 @@
   "dependencies": {
     "@shelamkoff/carousel": "^1.0.0",
     "@shelamkoff/color-picker": "^1.0.0",
-    "@shelamkoff/event-bus": "^1.0.0",
     "@shelamkoff/cropper": "^1.0.0",
+    "@shelamkoff/event-bus": "^1.0.0",
     "@shelamkoff/expose": "^1.0.0",
-    "@shelamkoff/masonry": "^1.0.0"
+    "@shelamkoff/masonry": "^1.0.0",
+    "dompurify": "3.4.15"
   },
   "devDependencies": {
     "@tabler/icons-vue": "^3.41.1",
