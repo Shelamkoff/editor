@@ -1,4 +1,4 @@
-import { sanitizeHtml } from '../../core/sanitize.js'
+import { insertSanitizedHtml, setSanitizedHtml, setTrustedHtml } from '../../core/sanitize.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { createHeadingLevelSelect } from './HeadingLevelSelect.js'
 import { mapTextFields } from './mapTextFields.js'
@@ -44,29 +44,12 @@ export class Heading extends BlockPluginAbstract {
     tags: ['h2', 'h3', 'h4', 'h5', 'h6'],
   }
 
-  /**
-   * Return the localized toolbox label for this block.
-   * @returns {string}
-   */
-  get title() {
-    return this._t('title', 'Heading')
-  }
+  get title() { return this._t('title', 'Heading') }
 
-  /**
-   * Get localized placeholder for heading.
-   * @param {number} level
-   * @returns {string}
-   */
   #placeholder(level) {
     return this._t('placeholder', `Heading ${level}`, { level })
   }
 
-  /**
-   * Create the editable DOM owned by this block instance.
-   * @param {{ text?: string, level?: number, align?: string }} data
-   * @param {import('../../core/types').BlockMutationContext} context
-   * @returns {HTMLElement}
-   */
   render(data, context) {
     const ownerDocument = context?.ownerDocument ?? globalThis.document
     const level = normalizeHeadingLevel(data?.level)
@@ -76,37 +59,21 @@ export class Heading extends BlockPluginAbstract {
     heading.contentEditable = 'true'
 
     const text = normalizeTextValue(data?.text)
-    if (text) {
-      heading.innerHTML = sanitizeHtml(text, ownerDocument)
-    }
+    if (text) setSanitizedHtml(heading, text)
     const align = normalizeTextAlign(data?.align)
-    if (align) {
-      heading.style.textAlign = align
-    }
+    if (align) heading.style.textAlign = align
 
     heading.dataset.placeholder = this.#placeholder(level)
-
     return heading
   }
 
-  /**
-   * Change heading level in-place (preserves caret position).
-   * Returns the new element (replaces old in DOM).
-   * @param {HTMLElement} element — current heading element
-   * @param {number} newLevel
-   * @returns {HTMLElement}
-   */
   changeLevel(element, newLevel) {
     const level = normalizeHeadingLevel(newLevel)
     const tag = `h${level}`
-
-    // If already at this level, do nothing
     if (element.tagName.toLowerCase() === tag) return element
 
     const ownerDocument = element.ownerDocument
     const ownerWindow = ownerDocument.defaultView
-
-    // Save full selection range (not just caret) so inline tools keep working
     const sel = ownerWindow?.getSelection?.()
     let startNode = null, startOffset = 0
     let endNode = null, endOffset = 0
@@ -120,111 +87,57 @@ export class Heading extends BlockPluginAbstract {
       wasCollapsed = range.collapsed
     }
 
-    // Create new element with same content
     const newEl = ownerDocument.createElement(tag)
     newEl.className = `oe-heading oe-heading--${tag}`
     newEl.contentEditable = 'true'
     newEl.dataset.placeholder = this.#placeholder(level)
     newEl.style.textAlign = normalizeTextAlign(element.style.textAlign)
-
-    // Move all children (nodes are moved, not cloned — refs stay valid)
-    while (element.firstChild) {
-      newEl.appendChild(element.firstChild)
-    }
-
-    // Replace in DOM
+    while (element.firstChild) newEl.appendChild(element.firstChild)
     element.replaceWith(newEl)
 
-    // Restore full selection range
     if (sel && startNode) {
       try {
         const range = ownerDocument.createRange()
         range.setStart(startNode, startOffset)
-        if (!wasCollapsed && endNode) {
-          range.setEnd(endNode, endOffset)
-        } else {
-          range.collapse(true)
-        }
+        if (!wasCollapsed && endNode) range.setEnd(endNode, endOffset)
+        else range.collapse(true)
         sel.removeAllRanges()
         sel.addRange(range)
       } catch {
-        // Node may be detached in edge cases — fall back to focusing element
         newEl.focus()
       }
     }
-
     return newEl
   }
 
-  /**
-   * Get current level from element.
-   * @param {HTMLElement} element
-   * @returns {number}
-   */
   getLevel(element) {
     const tag = element.tagName.toLowerCase()
     return parseInt(tag.charAt(1), 10) || 2
   }
 
-  /**
-   * Serialize the current block DOM into document data.
-   * @param {HTMLElement} element
-   * @returns {{ text: string, level: number, align?: string }}
-   */
   save(element) {
     const data = { text: element.innerHTML, level: this.getLevel(element) }
     if (element.style.textAlign) data.align = element.style.textAlign
     return data
   }
 
-  /**
-   * Check whether serialized data satisfies this block's schema.
-   * @param {{ text: string, level?: number }} data
-   * @returns {boolean}
-   */
-  validate(data) {
-    return validateHeadingData(data)
-  }
+  validate(data) { return validateHeadingData(data) }
 
-  /**
-   * Merge incoming text into the current block.
-   * @param {HTMLElement} element
-   * @param {{ text?: string }} data
-   * @returns {void}
-   */
   merge(element, data) {
     const text = normalizeTextValue(data.text)
-    if (text) {
-      element.innerHTML += sanitizeHtml(text, element.ownerDocument)
-    }
+    if (text) insertSanitizedHtml(element, 'beforeend', text)
   }
 
-  /**
-   * Extract neutral rich text and heading metadata for block conversion.
-   * @param {HTMLElement} element
-   * @returns {{ text: string, level: number, align?: string }}
-   */
   exportData(element) {
     const data = { text: element.innerHTML, level: this.getLevel(element) }
     if (element.style.textAlign) data.align = element.style.textAlign
     return data
   }
 
-  /**
-   * Check whether the block has no meaningful user content.
-   * @param {HTMLElement} element
-   * @returns {boolean}
-   */
   isEmpty(element) {
     return (element.textContent?.trim().length ?? 0) === 0
   }
 
-  /**
-   * Render settings items for the block settings menu.
-   * Returns H2-H6 buttons shown directly in the main settings view.
-   * @param {HTMLElement} element
-   * @returns {HTMLElement[]}
-   */
   renderSettings(element) {
     const ownerDocument = element.ownerDocument
     const currentLevel = this.getLevel(element)
@@ -233,40 +146,26 @@ export class Heading extends BlockPluginAbstract {
       btn.setAttribute('role', 'menuitem')
       btn.setAttribute('tabindex', '-1')
       btn.className = 'oe-settings-menu__item'
-      if (level === currentLevel) {
-        btn.classList.add('oe-settings-menu__item--active')
-      }
+      if (level === currentLevel) btn.classList.add('oe-settings-menu__item--active')
       btn.dataset.level = String(level)
 
       const iconSpan = ownerDocument.createElement('span')
       iconSpan.className = 'oe-settings-menu__icon'
-      iconSpan.innerHTML = icon
+      setTrustedHtml(iconSpan, icon)
       btn.appendChild(iconSpan)
 
       const labelSpan = ownerDocument.createElement('span')
       labelSpan.className = 'oe-settings-menu__label'
       labelSpan.textContent = this._t(key, `Heading ${level}`)
       btn.appendChild(labelSpan)
-
       return btn
     })
   }
 
-  /**
-   * Render heading level select dropdown for the inline toolbar.
-   * @param {HTMLElement} element
-   * @param {import('../../types').InlineControlContext} ctx
-   * @returns {import('../../types').InlineControlGroup}
-   */
   renderInlineControls(element, ctx) {
     return createHeadingLevelSelect(this, element, ctx, (key, fallback) => this._t(key, fallback), HEADING_LEVELS)
   }
 
-  /**
-   * Handle pasted heading elements.
-   * @param {import('../../types').TagPasteEvent} event
-   * @returns {{ text: string, level: number } | null}
-   */
   onPaste(event) {
     if (event.type !== 'tag') return null
     const tag = event.tag.toLowerCase()
@@ -274,5 +173,4 @@ export class Heading extends BlockPluginAbstract {
     if (level < 2 || level > 6) return null
     return { text: event.element.innerHTML, level }
   }
-
 }
