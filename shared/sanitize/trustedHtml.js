@@ -13,7 +13,7 @@ const policies = new WeakMap()
  */
 export function toTrustedHtml(html, ownerDocument = globalThis.document) {
   const view = ownerDocument?.defaultView
-  const trustedTypes = view?.trustedTypes
+  const trustedTypes = view ? /** @type {any} */ (view).trustedTypes : null
   if (!trustedTypes?.createPolicy || !view) return html
 
   let policy = policies.get(view)
