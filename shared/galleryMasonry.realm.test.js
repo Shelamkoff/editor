@@ -51,3 +51,33 @@ test('gallery masonry waits and cleans up through the container owning window', 
   assert.equal(calls.includes('observer:disconnect'), true)
   assert.equal(calls.some(call => Array.isArray(call) && call[0] === 'cancel' && call[1] === 17), true)
 })
+
+
+test('gallery masonry settles even when its error observer throws or rejects', async () => {
+  const microtasks = []
+  const ownerView = {
+    queueMicrotask(callback) { microtasks.push(callback) },
+    getComputedStyle() { throw new Error('layout read failed') },
+  }
+  const container = {
+    ownerDocument: { defaultView: ownerView },
+    isConnected: true,
+    getBoundingClientRect() { return { width: 320 } },
+    classList: { add() {} },
+  }
+
+  let calls = 0
+  const mount = mountGalleryMasonry(container, [], {
+    async onError() {
+      calls++
+      throw new Error('observer failed')
+    },
+  })
+  assert.equal(microtasks.length, 1)
+  microtasks[0]()
+  assert.equal(await mount.ready, null)
+  await Promise.resolve()
+  await Promise.resolve()
+  assert.equal(calls, 1)
+  mount.destroy()
+})
