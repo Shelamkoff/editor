@@ -464,3 +464,23 @@ test('snapshot validation contains throwing thenable accessors and releases its 
   assert.equal(calls, 2)
   assert.equal(warnings, 2)
 })
+
+
+test('validation observers cannot change later blocks in the same saved snapshot', () => {
+  let laterValue = 'before'
+  const first = createBlock('first-invalid', () => ({ value: 'invalid' }))
+  first.plugin.validate = () => false
+  const second = createBlock('second', () => ({ value: laterValue }))
+
+  const store = createStore([first, second], {
+    validationMode: 'preserve',
+    onValidationError() {
+      laterValue = 'after'
+    },
+  })
+
+  const document = store.save()
+  assert.equal(document.blocks[0].data.value, 'invalid')
+  assert.equal(document.blocks[1].data.value, 'before')
+  assert.equal(laterValue, 'after')
+})
