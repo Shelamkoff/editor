@@ -1,3 +1,5 @@
+import { invokeObserver } from '../shared/invokeObserver.js'
+
 /**
  * Content-free, opt-in production diagnostics.
  * Consumer callbacks are isolated and can never break editor execution.
@@ -49,11 +51,7 @@ export class Diagnostics {
       timestamp: Date.now(),
       ...details,
     })
-    try {
-      this.#report(diagnostic)
-    } catch {
-      // Diagnostics are observational and must never affect editor behavior.
-    }
+    invokeObserver(this.#report, [diagnostic])
   }
 
   /** @param {unknown} error */
