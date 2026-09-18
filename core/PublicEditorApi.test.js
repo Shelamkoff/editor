@@ -315,3 +315,29 @@ test('public block state mutations are rejected during a command transaction', (
   assert.equal(first.focused, false)
   assert.equal(currentIndex, 0)
 })
+
+
+test('public event payloads do not expose internal coordination fields', () => {
+  const events = new EventBus()
+  const subscriptions = new EditorEventSubscriptions(events)
+  const removed = []
+  const pasted = []
+
+  subscriptions.on(EditorEvent.BLOCK_REMOVED, payload => removed.push(payload))
+  subscriptions.on(EditorEvent.PASTE_APPLIED, payload => pasted.push(payload))
+
+  events.emit(EditorEvent.BLOCK_REMOVED, {
+    blockId: 'a',
+    index: 2,
+    animDone: Promise.resolve(),
+    internalToken: 'secret',
+  })
+  events.emit(EditorEvent.PASTE_APPLIED, {
+    startBlockId: 'a',
+    endBlockId: 'b',
+    internalRange: { secret: true },
+  })
+
+  assert.deepEqual(removed, [{ blockId: 'a', index: 2 }])
+  assert.deepEqual(pasted, [{ startBlockId: 'a', endBlockId: 'b' }])
+})
