@@ -1,3 +1,4 @@
+import { register as revisionContract } from './regressions/recheck-90-revision-contract.js'
 import { register as rendererExtensionSnapshot } from './regressions/recheck-89-renderer-extension-snapshot.js'
 import { register as inlineOwnership } from './regressions/recheck-88-inline-ownership.js'
 import { register as rendererRealm } from './regressions/recheck-86-renderer-realm.js'
@@ -177,4 +178,5 @@ imageSettingsRealm()
 toolbarRealm()
 clipboardRealm()
 rendererExtensionSnapshot()
+revisionContract()
 await run()
