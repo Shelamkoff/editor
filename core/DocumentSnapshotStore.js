@@ -32,9 +32,9 @@ export class DocumentSnapshotStore {
   /** @type {string} */
   #documentVersion
 
-  /** Validation issues currently being reported on this synchronous stack. */
-  /** @type {Set<string>} */
-  #reportingValidation = new Set()
+  /** Blocks whose validation issue is currently being reported on this stack. */
+  /** @type {WeakSet<import('./types').IBlock>} */
+  #reportingValidation = new WeakSet()
 
   /**
    * @param {import('./types').IBlockReader} blocks
@@ -150,9 +150,8 @@ export class DocumentSnapshotStore {
         // policy. Guard the same block against synchronous self-reentry (for
         // example an observer that calls editor.save()) before this snapshot
         // has reached the cache.
-        const validationKey = block.id + '\u0000' + block.type
-        if (!this.#reportingValidation.has(validationKey)) {
-          this.#reportingValidation.add(validationKey)
+        if (!this.#reportingValidation.has(block)) {
+          this.#reportingValidation.add(block)
           try {
             invokeObserver(
               this.#onValidationError,
@@ -160,7 +159,7 @@ export class DocumentSnapshotStore {
               error => console.warn('[DocumentSnapshotStore] Validation observer failed:', error),
             )
           } finally {
-            this.#reportingValidation.delete(validationKey)
+            this.#reportingValidation.delete(block)
           }
         }
         if (this.#validationMode === 'strict') {
