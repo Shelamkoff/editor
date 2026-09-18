@@ -402,7 +402,7 @@ test('renderer contains rejected validation observer promises', async () => {
   assert.doesNotThrow(() => renderer.renderBlock({
     id: 'table-async',
     type: 'table',
-    data: { content: [['kept', 'lost'], ['ragged']] },
+    data: { content: 'invalid-table-content' },
   }))
   await Promise.resolve()
   await Promise.resolve()
