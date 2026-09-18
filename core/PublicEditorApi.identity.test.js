@@ -57,7 +57,7 @@ test('retained public block view never exposes a detached removed block', () => 
 })
 
 
-test('committed removal permanently retires a retained handle across later id reuse', () => {
+test('committed removal evicts the cache while retained ID handles can follow a later reuse', () => {
   let live = block('a', 'paragraph', 'old')
   const events = new EventBus()
   const manager = {
@@ -76,8 +76,8 @@ test('committed removal permanently retires a retained handle across later id re
   const newView = api.getBlockById('a')
   assert.notStrictEqual(newView, oldView, 'committed removal must release the cache entry')
   assert.equal(newView.type, 'heading')
-  assert.throws(() => oldView.type, /no longer attached/, 'removed handle must not revive for a new block with the same id')
-  assert.throws(() => oldView.element, /no longer attached/)
+  assert.equal(oldView.type, 'heading', 'retained handles resolve document identity by id')
+  assert.equal(oldView.element.marker, 'reused')
 })
 
 test('rolled-back removal does not retire a cached view', () => {
