@@ -548,3 +548,37 @@ test('renderer validation contains hostile thenable accessors and releases its g
   renderer.destroy(second)
   renderer.destroy()
 })
+
+
+test('async validation guard does not suppress independent invalid blocks', async () => {
+  const { EditorRenderer } = await import('./index.js')
+  const seen = []
+  let releaseFirst
+  const firstPending = new Promise(resolve => { releaseFirst = resolve })
+  const renderer = new EditorRenderer({
+    blockTypes: ['table'],
+    validationMode: 'preserve',
+    async onValidationError(issue) {
+      seen.push(issue.blockId)
+      if (issue.blockId === 'table-a') await firstPending
+    },
+  })
+
+  const first = renderer.renderBlock({
+    id: 'table-a',
+    type: 'table',
+    data: { content: 'invalid-a' },
+  })
+  const second = renderer.renderBlock({
+    id: 'table-b',
+    type: 'table',
+    data: { content: 'invalid-b' },
+  })
+
+  assert.deepEqual(seen, ['table-a', 'table-b'])
+  releaseFirst()
+  for (let index = 0; index < 4; index++) await Promise.resolve()
+  renderer.destroy(first)
+  renderer.destroy(second)
+  renderer.destroy()
+})
