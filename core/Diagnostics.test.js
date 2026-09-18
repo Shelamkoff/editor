@@ -45,3 +45,18 @@ test('diagnostic thresholds ignore inherited values without reading them', () =>
   }
   assert.equal(reads, 0)
 })
+
+
+test('diagnostics contain rejected observer promises', async () => {
+  let calls = 0
+  const diagnostics = new Diagnostics(async () => {
+    calls++
+    throw new Error('async diagnostic failure')
+  })
+
+  diagnostics.emit('command.failed', { operation: 'test', errorName: 'Error' })
+  await Promise.resolve()
+  await Promise.resolve()
+
+  assert.equal(calls, 1)
+})
