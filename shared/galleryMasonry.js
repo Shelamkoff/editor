@@ -1,5 +1,6 @@
 // @ts-check
 import { Masonry } from '@shelamkoff/masonry'
+import { invokeObserver } from './invokeObserver.js'
 
 /**
  * @typedef {Object} GalleryMasonryOptions
@@ -8,7 +9,7 @@ import { Masonry } from '@shelamkoff/masonry'
  * @property {number} [transitionDuration]
  * @property {number} [fadeInDuration]
  * @property {number} [contentLoadTimeout]
- * @property {(error: unknown) => void} [onError]
+ * @property {(error: unknown) => void | Promise<void>} [onError]
  */
 
 /**
@@ -111,7 +112,7 @@ export function mountGalleryMasonry(container, elements, options = {}) {
       instance = null
       if (!destroyed) {
         container.classList.add('eg--masonry-fallback')
-        onError?.(error)
+        invokeObserver(onError, [error])
       }
       settle(null)
     }
