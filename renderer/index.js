@@ -55,7 +55,7 @@ function validateRendererConfig(config) {
     }
     config.blockTypes = snapshot
   }
-  assertOptionalRecord(config.blockConfigs, 'blockConfigs')
+  config.blockConfigs = snapshotBlockConfigs(config.blockConfigs)
   let inlinePluginTypes = null
   if (config.inlinePlugins !== undefined) {
     if (!Array.isArray(config.inlinePlugins)) {
@@ -184,6 +184,73 @@ function prepareOutputData(data) {
   })
 
   return /** @type {import('./types').OutputData} */ ({ ...candidate, blocks })
+}
+
+/**
+ * Snapshot the built-in Poll runtime adapter so validated configuration cannot
+ * drift through accessor-backed properties after construction.
+ * @param {unknown} input
+ * @returns {import('./types').PollRendererConfig | undefined}
+ */
+function snapshotPollRendererConfig(input) {
+  if (input === undefined) return undefined
+  if (!input || typeof input !== 'object' || Array.isArray(input)) {
+    throw new TypeError('EditorRenderer blockConfigs.poll must be an object')
+  }
+  const source = /** @type {Record<string, unknown>} */ (input)
+  const dataSourceInput = source.dataSource
+  let dataSource
+  if (dataSourceInput !== undefined) {
+    if (!dataSourceInput || typeof dataSourceInput !== 'object' || Array.isArray(dataSourceInput)) {
+      throw new TypeError('EditorRenderer Poll dataSource must be an object')
+    }
+    const adapter = /** @type {Record<string, unknown>} */ (dataSourceInput)
+    const load = adapter.load
+    const vote = adapter.vote
+    const subscribe = adapter.subscribe
+    if (typeof load !== 'function' || typeof vote !== 'function') {
+      throw new TypeError('EditorRenderer Poll dataSource must implement load() and vote()')
+    }
+    if (subscribe !== undefined && typeof subscribe !== 'function') {
+      throw new TypeError('EditorRenderer Poll dataSource subscribe must be a function')
+    }
+    dataSource = {
+      load: /** @type {any} */ (load).bind(dataSourceInput),
+      vote: /** @type {any} */ (vote).bind(dataSourceInput),
+      ...(typeof subscribe === 'function'
+        ? { subscribe: /** @type {any} */ (subscribe).bind(dataSourceInput) }
+        : {}),
+    }
+  }
+
+  const onError = source.onError
+  if (onError !== undefined && typeof onError !== 'function') {
+    throw new TypeError('EditorRenderer Poll onError must be a function')
+  }
+  const compareRevisions = source.compareRevisions
+  if (compareRevisions !== undefined && typeof compareRevisions !== 'function') {
+    throw new TypeError('EditorRenderer Poll compareRevisions must be a function')
+  }
+  const maxVoters = source.maxVoters
+
+  return {
+    ...(dataSource ? { dataSource } : {}),
+    ...(typeof onError === 'function' ? { onError: /** @type {any} */ (onError).bind(input) } : {}),
+    ...(typeof compareRevisions === 'function'
+      ? { compareRevisions: /** @type {any} */ (compareRevisions).bind(input) }
+      : {}),
+    ...(maxVoters !== undefined ? { maxVoters: /** @type {any} */ (maxVoters) } : {}),
+  }
+}
+
+/** @param {unknown} input @returns {Record<string, unknown> | undefined} */
+function snapshotBlockConfigs(input) {
+  if (input === undefined) return undefined
+  assertOptionalRecord(input, 'blockConfigs')
+  const source = /** @type {Record<string, unknown>} */ (input)
+  const snapshot = { ...source }
+  if (Object.hasOwn(source, 'poll')) snapshot.poll = snapshotPollRendererConfig(source.poll)
+  return snapshot
 }
 
 /** @param {unknown} renderer @returns {import('./types').BlockRenderer} */
