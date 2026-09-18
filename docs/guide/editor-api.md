@@ -236,7 +236,7 @@ stop()
 | `paste:applied` | `{ startBlockId?, endBlockId? }` | paste transaction committed |
 | `dragHandle:clicked` | none | drag handle activated |
 
-Events are synchronous observations. Avoid expensive work inside a handler; schedule it separately. For persistence, prefer the serialized `onChange` callback.
+Events are synchronous observations. Avoid expensive work inside a handler; schedule it separately. `editor:willChange` is observational only: starting another document command from that handler is rejected because structural commands may already have captured block identities and indices for the transaction. `undo()` and `redo()` return `false` while a command transaction is active, and `destroy()` is rejected until it completes. For persistence, prefer the serialized `onChange` callback.
 
 `editor:ready` is emitted during composition, before `createEditor()` returns the public handle. A host that needs a readiness notification must pass `onReady` in the configuration; subscribing to `editor.events` after creation cannot observe that already completed event.
 
