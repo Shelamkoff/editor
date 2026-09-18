@@ -127,13 +127,14 @@ export class BlockManager {
     if (!plugin) throw new Error(`[BlockManager] Unknown block type: "${type}"`)
 
     const blockData = data === undefined ? undefined : cloneEditorData(data)
-    if (inline && typeof plugin.mapTextFields === 'function' && this.#inlinePluginRegistry && blockData) {
+    const blockInline = inline === undefined ? undefined : cloneEditorData(inline)
+    if (blockInline && typeof plugin.mapTextFields === 'function' && this.#inlinePluginRegistry && blockData) {
       const registry = this.#inlinePluginRegistry
-      plugin.mapTextFields(blockData, (html) => deserializeInlineHtml(html, inline, registry, this.#container.ownerDocument))
+      plugin.mapTextFields(blockData, (html) => deserializeInlineHtml(html, blockInline, registry, this.#container.ownerDocument))
     }
     const block = new Block(plugin, this.#commands, blockData, id, this.#readOnly, {
       ...metadata,
-      inline,
+      inline: blockInline,
       preserveInline: preserveUnknown,
     }, this.#container.ownerDocument)
     block.setStructuralCommands(this.#structuralCommands)
