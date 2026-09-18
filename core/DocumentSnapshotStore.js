@@ -1,3 +1,4 @@
+import { invokeObserver } from '../shared/invokeObserver.js'
 import { EDITOR_VERSION } from './constants.js'
 import { serializeInlineHtml } from '../shared/inlineMarshal.js'
 import { cloneEditorData } from '../shared/cloneEditorData.js'
@@ -142,8 +143,11 @@ export class DocumentSnapshotStore {
           data: cloneEditorData(snapshot.data),
         }
         // Reporting is observational: it must not override preserve/strict policy.
-        try { this.#onValidationError?.(issue) }
-        catch (error) { console.warn('[DocumentSnapshotStore] Validation observer failed:', error) }
+        invokeObserver(
+          this.#onValidationError,
+          [issue],
+          error => console.warn('[DocumentSnapshotStore] Validation observer failed:', error),
+        )
         if (this.#validationMode === 'strict') {
           throw new Error('Invalid block data for "' + block.type + '" (' + block.id + ')')
         }
