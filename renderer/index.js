@@ -249,7 +249,7 @@ function snapshotBlockConfigs(input) {
   assertOptionalRecord(input, 'blockConfigs')
   const source = /** @type {Record<string, unknown>} */ (input)
   const snapshot = { ...source }
-  if (Object.hasOwn(source, 'poll')) snapshot.poll = snapshotPollRendererConfig(source.poll)
+  if (Object.hasOwn(source, 'poll')) snapshot.poll = snapshotPollRendererConfig(snapshot.poll)
   return snapshot
 }
 
