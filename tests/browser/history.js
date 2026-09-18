@@ -2501,6 +2501,32 @@ async function run() {
   assert(changedDocuments[0].blocks[0].data.text === 'After', 'onChange received a stale document snapshot')
   callbackEditor.destroy()
 
+  const asyncReadyHolder = document.createElement('section')
+  sandbox.appendChild(asyncReadyHolder)
+  let asyncReadyWarnings = 0
+  const previousWarn = console.warn
+  console.warn = (...args) => {
+    if (String(args[0] || '').includes('onReady observer failed')) asyncReadyWarnings++
+    else previousWarn(...args)
+  }
+  let asyncReadyEditor
+  try {
+    asyncReadyEditor = createEditor({
+      holder: asyncReadyHolder,
+      plugins: [new Paragraph()],
+      inlineTools: [],
+      async onReady() {
+        throw new Error('expected async onReady failure')
+      },
+    })
+    await Promise.resolve()
+    await Promise.resolve()
+    assert(asyncReadyWarnings === 1, 'async onReady rejection was not contained')
+  } finally {
+    asyncReadyEditor?.destroy()
+    console.warn = previousWarn
+  }
+
   for (let cycle = 0; cycle < 5; cycle++) {
     const harness = createHarness(sandbox)
     harness.editor.destroy()
