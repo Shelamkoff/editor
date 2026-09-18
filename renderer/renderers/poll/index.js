@@ -1,3 +1,4 @@
+import { invokeObserver } from '../../../shared/invokeObserver.js'
 // @ts-check
 import {
   applyLocalPollVote,
@@ -67,7 +68,7 @@ export function createPollRenderer(classPrefix, locale, config = {}) {
   /** @param {HTMLElement} wrapper @param {any} state @param {unknown} error */
   function fail(wrapper, state, error) {
     state.error = true
-    try { config.onError?.(error) } catch {}
+    invokeObserver(config.onError, [error])
     build(wrapper, state)
   }
 
