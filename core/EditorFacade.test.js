@@ -329,3 +329,31 @@ test('snapshot validation contains rejected observer promises', async () => {
     console.warn = previousWarn
   }
 })
+
+
+test('public facade focus is rejected during a command transaction', () => {
+  let focusCalls = 0
+  const block = { focus() { focusCalls++ } }
+  const facade = new EditorFacade(
+    /** @type {any} */ ({ remove() {} }),
+    /** @type {any} */ ({
+      blocks: {
+        getCurrentBlock() { return block },
+        getBlockByIndex() { return block },
+      },
+      selection: {},
+      events: {},
+      defaultBlockType: 'paragraph',
+      commands: { inTransaction: true },
+      documentSchema: {},
+      diagnostics: {},
+      snapshots: {},
+      publicBlocks: {},
+      publicEvents: {},
+      readOnly: false,
+    }),
+  )
+
+  assert.throws(() => facade.focus(), /active command transaction/)
+  assert.equal(focusCalls, 0)
+})
