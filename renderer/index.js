@@ -198,8 +198,16 @@ export class EditorRenderer extends EditorRendererImpl {
           reportingValidation = false
           throw error
         }
-        if (result && typeof result.then === 'function') {
-          return Promise.resolve(result).finally(() => { reportingValidation = false })
+        let then
+        try {
+          then = result && result.then
+        } catch (error) {
+          reportingValidation = false
+          throw error
+        }
+        if (typeof then === 'function') {
+          return new Promise((resolve, reject) => then.call(result, resolve, reject))
+            .finally(() => { reportingValidation = false })
         }
         reportingValidation = false
         return result
