@@ -218,3 +218,63 @@ test('inline plugin insertion reads selection from the editor owning window', ()
     globalThis.HTMLElement = previousHTMLElement
   }
 })
+
+
+test('history restore is unavailable during an active command transaction', () => {
+  let undoCalls = 0
+  let redoCalls = 0
+  const facade = new EditorFacade(
+    /** @type {any} */ ({ remove() {} }),
+    /** @type {any} */ ({
+      blocks: {},
+      selection: {},
+      events: {},
+      defaultBlockType: 'paragraph',
+      commands: { active: true },
+      documentSchema: {},
+      diagnostics: {},
+      snapshots: {},
+      publicBlocks: {},
+      publicEvents: {},
+      readOnly: false,
+    }),
+  )
+  facade.configureHistory({
+    canUndo: true,
+    canRedo: true,
+    undo() { undoCalls++; return true },
+    redo() { redoCalls++; return true },
+  })
+
+  assert.equal(facade.canUndo, false)
+  assert.equal(facade.canRedo, false)
+  assert.equal(facade.undo(), false)
+  assert.equal(facade.redo(), false)
+  assert.equal(undoCalls, 0)
+  assert.equal(redoCalls, 0)
+})
+
+test('destroy rejects teardown during an active command transaction', () => {
+  let cleared = 0
+  let removed = 0
+  const facade = new EditorFacade(
+    /** @type {any} */ ({ remove() { removed++ } }),
+    /** @type {any} */ ({
+      blocks: { clear() { cleared++ } },
+      selection: {},
+      events: { emit() {}, clear() {} },
+      defaultBlockType: 'paragraph',
+      commands: { active: true },
+      documentSchema: {},
+      diagnostics: { emit() {}, errorName() { return 'Error' } },
+      snapshots: {},
+      publicBlocks: {},
+      publicEvents: {},
+      readOnly: false,
+    }),
+  )
+
+  assert.throws(() => facade.destroy(), /active command/i)
+  assert.equal(cleared, 0)
+  assert.equal(removed, 0)
+})
