@@ -593,7 +593,7 @@ export function createEditor(config) {
       diagnostics,
       initialDocument?.version ?? documentSchema.currentVersion,
     )
-    const publicBlocks = new EditorBlocksApi(blocks, events)
+    const publicBlocks = new EditorBlocksApi(blocks, events, commands)
     const publicEvents = new EditorEventSubscriptions(events, commands)
     facade = new EditorFacade(rootEl, {
       blocks,
