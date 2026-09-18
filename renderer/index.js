@@ -42,6 +42,7 @@ function validateRendererConfig(config) {
     }
     assertDenseArray(config.blockTypes, 'blockTypes')
     const supported = new Set(getSupportedBlockTypes())
+    /** @type {import('./types').BlockType[]} */
     const snapshot = []
     for (let index = 0; index < config.blockTypes.length; index++) {
       const type = config.blockTypes[index]
