@@ -249,8 +249,9 @@ export class EditorRenderer {
     /** @type {Array<{ element: HTMLElement, type: string, renderer?: import('./types').BlockRenderer }>} */
     const created = []
     try {
-      if (data.blocks?.length) {
-        for (const block of data.blocks) {
+      const blocks = data.blocks
+      if (blocks?.length) {
+        for (const block of blocks) {
           const entry = this.#createRenderedBlock(block, ownerDocument)
           created.push(entry)
           wrapper.appendChild(entry.element)
