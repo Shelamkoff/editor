@@ -35,6 +35,7 @@ class PublicBlockView {
   /** @type {(id: string) => import('./types').IBlock | undefined} */ #resolveBlock
   /** @type {() => void} */ #assertActive
   /** @type {() => void} */ #assertMutable
+  /** @type {boolean} */ #retired = false
 
   /**
    * @param {string} id
@@ -51,6 +52,7 @@ class PublicBlockView {
 
   get #block() {
     this.#assertActive()
+    if (this.#retired) throw new Error(`Block "${this.#id}" is no longer attached to the editor`)
     const block = this.#resolveBlock(this.#id)
     if (!block) throw new Error(`Block "${this.#id}" is no longer attached to the editor`)
     return block
@@ -67,6 +69,9 @@ class PublicBlockView {
   get version() { return this.#block.version }
   focus() { this.#assertMutable(); this.#block.focus() }
   isEmpty() { return this.#block.isEmpty() }
+
+  /** Permanently retire this handle after committed removal of its identity. */
+  retire() { this.#retired = true }
 }
 
 /**
@@ -125,6 +130,7 @@ export class EditorBlocksApi {
 
   #retireViewIfMissing(id) {
     if (!this.#manager || this.#manager.getBlockById(id)) return
+    this.#views.get(id)?.retire()
     this.#views.delete(id)
   }
 
@@ -132,6 +138,7 @@ export class EditorBlocksApi {
     if (!this.#manager) return
     for (const id of this.#views.keys()) {
       if (this.#manager.getBlockById(id)) continue
+      this.#views.get(id)?.retire()
       this.#views.delete(id)
     }
   }
