@@ -21,11 +21,11 @@ interface EditorConfig {
   defaultBlock?: string
   locale?: Record<string, LocaleValue>
   tuning?: DeepPartial<EditorTuning>
-  onChange?: (data: EditorDocument) => void
-  onReady?: () => void
+  onChange?: (data: EditorDocument) => void | Promise<void>
+  onReady?: () => void | Promise<void>
   validationMode?: 'preserve' | 'strict'
-  onValidationError?: (issue: BlockValidationIssue) => void
-  onDiagnostic?: (diagnostic: EditorDiagnostic) => void
+  onValidationError?: (issue: BlockValidationIssue) => void | Promise<void>
+  onDiagnostic?: (diagnostic: EditorDiagnostic) => void | Promise<void>
   diagnosticThresholds?: Partial<DiagnosticThresholds>
   theme?: string
 }
@@ -147,11 +147,11 @@ Custom entries override keys with the same name. Include `__lang` when plural ru
 
 ## Change callbacks
 
-`onReady` is queued as a microtask after successful composition. `createEditor()` already returns a ready handle synchronously; the callback is for notifying another part of the application. It is skipped if the editor is destroyed before the microtask runs.
+`onReady` is queued as a microtask after successful composition. `createEditor()` already returns a ready handle synchronously; the callback is for notifying another part of the application. It is skipped if the editor is destroyed before the microtask runs. The callback may return a Promise; synchronous throws and rejected Promises are isolated and reported as warnings without changing editor readiness.
 
 `onChange` is not called for the initial document. After a document mutation, Rector waits for `tuning.change.debounceMs` (250 ms by default), runs synchronous `save()`, and passes the resulting detached document to the callback. A later change restarts a pending delay. Destroying the editor cancels a pending notification.
 
-If the internal `save()` throws, Rector writes a warning and does not call `onChange`. The callback's return value is ignored, so handle failures inside an asynchronous persistence function. This callback is a notification, not a persistence transaction: a newer edit may occur while a previous request is in progress.
+If the internal `save()` throws, Rector writes a warning and does not call `onChange`. The callback may return a Promise; Rector observes it so synchronous throws and rejected Promises are reported instead of becoming unhandled failures. This callback is still a notification, not a persistence transaction: a newer edit may schedule another callback while a previous asynchronous persistence request is still in progress.
 
 ```js
 const editor = createEditor({
@@ -175,7 +175,9 @@ Use request cancellation or monotonically increasing revisions in the storage la
 - `preserve` applies every reachable migration and, if the chain ends early, keeps the last structurally valid document reached (which may still be the originally declared version);
 - `strict` rejects an unknown or incomplete version chain.
 
-`validationMode` controls a registered plugin whose `validate(data)` returns `false`:
+`validationMode` controls a registered plugin whose `validate(data)` returns `false`. `onValidationError` and `onDiagnostic` are observational callbacks: they may return Promises, and their synchronous or asynchronous failures are isolated from validation and editor control flow.
+
+`validationMode` then applies the following policy:
 
 - `preserve` keeps the block and reports it through `onValidationError`;
 - `strict` makes `save()` throw before returning the document.
