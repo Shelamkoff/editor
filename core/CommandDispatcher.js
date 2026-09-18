@@ -13,6 +13,7 @@ export class CommandDispatcher {
   /** @type {number} */ #depth = 0
   /** @type {Array<() => void>} */ #postCommitQueue = []
   /** @type {boolean} */ #drainingPostCommit = false
+  /** @type {boolean} */ #notifyingWillChange = false
   /** @type {Set<import('./types').IBlock>} */ #affected = new Set()
   /** @type {(() => import('./types').EditorDocument) | null} */ #capture = null
   /** @type {((document: import('./types').EditorDocument) => void) | null} */ #restore = null
@@ -134,6 +135,15 @@ export class CommandDispatcher {
   execute(command) {
     if (this.#restoring) return command.apply()
 
+    if (this.#notifyingWillChange) {
+      const error = new Error('Cannot execute editor commands from WILL_CHANGE observers')
+      if (!this.#hasNestedFailure) {
+        this.#nestedFailure = error
+        this.#hasNestedFailure = true
+      }
+      throw error
+    }
+
     const outermost = this.#depth === 0
     const startedAt = outermost && this.#diagnostics?.enabled ? this.#diagnostics.now() : 0
     const postCommitStart = outermost ? this.#postCommitQueue.length : -1
@@ -156,7 +166,14 @@ export class CommandDispatcher {
     let result
     let committed = null
     try {
-      if (outermost && command.notifyChange !== false) this.#events.emit(EditorEvent.WILL_CHANGE)
+      if (outermost && command.notifyChange !== false) {
+        this.#notifyingWillChange = true
+        try {
+          this.#events.emit(EditorEvent.WILL_CHANGE)
+        } finally {
+          this.#notifyingWillChange = false
+        }
+      }
       for (const block of commandAffected) this.#affected.add(block)
       result = command.apply()
       command.notify?.(result)
