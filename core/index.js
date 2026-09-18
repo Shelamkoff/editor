@@ -36,6 +36,7 @@ import { claimPluginInstances } from './PluginOwnership.js'
 import { claimEditorHolder } from './EditorHolderOwnership.js'
 import { LifecycleScope } from './LifecycleScope.js'
 import en from './locale/en.js'
+import { invokeObserver } from '../shared/invokeObserver.js'
 
 /**
  * Resolve inline tools config into tool instances.
@@ -730,7 +731,12 @@ export function createEditor(config) {
 
     if (config.onReady) {
       queueMicrotask(() => {
-        if (facade.isReady) config.onReady()
+        if (!facade.isReady) return
+        invokeObserver(
+          config.onReady,
+          [],
+          error => console.warn('[Editor] onReady observer failed:', error),
+        )
       })
     }
 
