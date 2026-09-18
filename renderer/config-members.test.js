@@ -62,3 +62,23 @@ test('renderer config rejects sparse public arrays without reading inherited ent
     assert.equal(reads, 0, field)
   }
 })
+
+
+test('registerRenderer observes accessor-backed type once', () => {
+  const editorRenderer = new EditorRenderer({ blockTypes: [] })
+  let reads = 0
+  const custom = {
+    get type() {
+      reads++
+      return reads === 1 ? 'stable-custom' : 'drifted-custom'
+    },
+    render() {
+      return /** @type {any} */ ({})
+    },
+  }
+
+  editorRenderer.registerRenderer(custom)
+  assert.equal(reads, 1)
+  assert.equal(editorRenderer.hasRenderer('stable-custom'), true)
+  assert.equal(editorRenderer.hasRenderer('drifted-custom'), false)
+})
