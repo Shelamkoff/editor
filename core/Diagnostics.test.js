@@ -62,3 +62,19 @@ test('diagnostics contain rejected observer promises', async () => {
 
   assert.equal(calls, 1)
 })
+
+
+test('diagnostics suppress synchronous observer feedback loops', async () => {
+  const received = []
+  let diagnostics
+  diagnostics = new Diagnostics(event => {
+    received.push(event.code)
+    diagnostics.emit('command.slow', { operation: 'observer-child', durationMs: 1 })
+  })
+
+  diagnostics.emit('command.slow', { operation: 'parent', durationMs: 1 })
+  await Promise.resolve()
+  await Promise.resolve()
+
+  assert.deepEqual(received, ['command.slow'])
+})
