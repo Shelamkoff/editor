@@ -394,3 +394,22 @@ test('render and clear reject before staging resources during an active transact
   assert.equal(normalizations, 0)
   assert.equal(preparations, 0)
 })
+
+
+test('snapshot validation observer cannot synchronously recurse through save()', () => {
+  const block = createBlock('invalid-reentrant', () => ({ value: 'preserved' }))
+  block.plugin.validate = () => false
+  let calls = 0
+  let store
+  store = createStore([block], {
+    validationMode: 'preserve',
+    onValidationError() {
+      calls++
+      assert.doesNotThrow(() => store.save())
+    },
+  })
+
+  const document = store.save()
+  assert.equal(document.blocks[0].data.value, 'preserved')
+  assert.equal(calls, 1)
+})
