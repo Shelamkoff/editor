@@ -164,3 +164,65 @@ test('Code destroy makes a pending copy completion inert', async () => {
     globalThis.clearTimeout = previous.clearTimeout
   }
 })
+
+
+test('Code cleans document listeners when render fails after dropdown setup', () => {
+  const previous = {
+    document: globalThis.document,
+    HTMLElement: globalThis.HTMLElement,
+  }
+  const documentListeners = new Map()
+  let failAfterListener = true
+
+  globalThis.HTMLElement = FakeElement
+  globalThis.document = {
+    createElement(tagName) {
+      if (
+        failAfterListener
+        && tagName === 'button'
+        && (documentListeners.get('mousedown') ?? []).length > 0
+      ) {
+        throw new Error('late render failure')
+      }
+      return new FakeElement(tagName)
+    },
+    addEventListener(type, handler) {
+      let handlers = documentListeners.get(type)
+      if (!handlers) documentListeners.set(type, handlers = [])
+      handlers.push(handler)
+    },
+    removeEventListener(type, handler) {
+      const handlers = documentListeners.get(type) ?? []
+      const index = handlers.indexOf(handler)
+      if (index >= 0) handlers.splice(index, 1)
+    },
+  }
+
+  try {
+    const hljs = {
+      getLanguage() { return false },
+      highlightAuto() { return { value: '' } },
+      highlight() { return { value: '' } },
+    }
+    const plugin = new Code({ hljs })
+
+    assert.throws(() => plugin.render(
+      { code: 'abc', language: 'auto' },
+      { readOnly: false, mutate: operation => operation() },
+    ), /late render failure/)
+    assert.equal((documentListeners.get('mousedown') ?? []).length, 0)
+
+    // The failed wrapper must also be gone from the strong wrapper registry:
+    // a later highlight-runtime refresh or normal block render must not touch it.
+    failAfterListener = false
+    const live = plugin.render(
+      { code: 'ok', language: 'auto' },
+      { readOnly: false, mutate: operation => operation() },
+    )
+    plugin.destroy(live)
+    assert.equal((documentListeners.get('mousedown') ?? []).length, 0)
+  } finally {
+    globalThis.document = previous.document
+    globalThis.HTMLElement = previous.HTMLElement
+  }
+})
