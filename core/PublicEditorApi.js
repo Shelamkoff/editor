@@ -416,7 +416,7 @@ export class EditorHandle {
   redo() { return this.#activeFacade().redo() }
   setReadOnly(readOnly) { this.#activeFacade().setReadOnly(readOnly) }
   insertInlinePlugin(type, data) {
-    this.#assertActive()
+    const facade = this.#activeFacade()
     if (typeof type !== 'string') throw new TypeError('Inline plugin type must be a string')
     if (
       data !== undefined
@@ -429,7 +429,7 @@ export class EditorHandle {
     ) {
       throw new TypeError('Inline plugin data must be an object of string values')
     }
-    return this.#facade.insertInlinePlugin(type, data)
+    return facade.insertInlinePlugin(type, data)
   }
   destroy() {
     const facade = this.#facade
