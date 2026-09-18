@@ -1,5 +1,6 @@
 const policies = new WeakMap()
 const enforcement = new WeakMap()
+const sharedPolicyKey = Symbol.for('@shelamkoff/rector/trusted-types-policy')
 
 /**
  * Convert an internal HTML string to TrustedHTML when Trusted Types are
@@ -20,15 +21,36 @@ export function toTrustedHtml(html, ownerDocument = globalThis.document) {
 
   let policy = policies.get(view)
   if (!policy) {
-    try {
-      policy = trustedTypes.createPolicy('rector', {
-        createHTML(value) { return value },
-      })
-    } catch (cause) {
-      throw new TypeError(
-        'Rector could not create its Trusted Types policy. Allow the "rector" policy in the trusted-types CSP directive.',
-        { cause },
-      )
+    const shared = /** @type {any} */ (view)[sharedPolicyKey]
+    if (shared && typeof shared.createHTML === 'function') {
+      policy = shared
+    } else {
+      try {
+        policy = trustedTypes.createPolicy('rector', {
+          createHTML(value) { return value },
+        })
+      } catch (cause) {
+        throw new TypeError(
+          'Rector could not create its Trusted Types policy. Allow the "rector" policy in the trusted-types CSP directive.',
+          { cause },
+        )
+      }
+      // Separate installed/bundled copies of Rector have independent module
+      // state but share the same Window realm. Reuse one policy through a
+      // global-symbol slot so CSP does not need the weaker 'allow-duplicates'
+      // keyword merely because the package appears twice in a dependency graph.
+      try {
+        Object.defineProperty(view, sharedPolicyKey, {
+          value: policy,
+          configurable: false,
+          enumerable: false,
+          writable: false,
+        })
+      } catch {
+        // A non-extensible Window is highly unusual, but the local module can
+        // still operate. A second package copy in that realm will surface the
+        // browser's duplicate-policy TypeError rather than silently weakening CSP.
+      }
     }
     policies.set(view, policy)
   }
