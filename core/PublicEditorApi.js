@@ -22,6 +22,52 @@ const PUBLIC_EDITOR_EVENTS = new Set([
   EditorEvent.DRAG_HANDLE_CLICKED,
 ])
 
+
+/**
+ * Project internal event payloads onto the documented public contract.
+ * Internal services may attach coordination data (for example animation
+ * promises) that must never become accidental public API.
+ * @param {string} event
+ * @param {any} data
+ */
+function publicEventData(event, data) {
+  switch (event) {
+    case EditorEvent.BLOCK_ADDED:
+    case EditorEvent.BLOCK_REMOVED:
+      return { blockId: data?.blockId, index: data?.index }
+    case EditorEvent.BLOCK_MOVED:
+      return {
+        blockId: data?.blockId,
+        from: data?.from,
+        to: Number.isSafeInteger(data?.from) && Number.isSafeInteger(data?.to) && data.from < data.to
+          ? data.to - 1
+          : data?.to,
+      }
+    case EditorEvent.BLOCK_CONVERTED:
+      return { blockId: data?.blockId, from: data?.from, to: data?.to }
+    case EditorEvent.BLOCK_CHANGED:
+    case EditorEvent.BLOCK_FOCUSED:
+    case EditorEvent.BLOCK_BLURRED:
+      return { blockId: data?.blockId }
+    case EditorEvent.BLOCK_SELECTED:
+      return { blockIds: Array.isArray(data?.blockIds) ? [...data.blockIds] : [] }
+    case EditorEvent.TOOLBAR_OPENED:
+    case EditorEvent.TOOLBAR_CLOSED:
+      return { type: data?.type }
+    case EditorEvent.HISTORY_CHANGED:
+      return { canUndo: data?.canUndo === true, canRedo: data?.canRedo === true }
+    case EditorEvent.READ_ONLY_CHANGED:
+      return { readOnly: data?.readOnly === true }
+    case EditorEvent.PASTE_APPLIED:
+      return {
+        ...(typeof data?.startBlockId === 'string' ? { startBlockId: data.startBlockId } : {}),
+        ...(typeof data?.endBlockId === 'string' ? { endBlockId: data.endBlockId } : {}),
+      }
+    default:
+      return undefined
+  }
+}
+
 /**
  * Safe identity view over a live block id. It deliberately omits manager-
  * integrity methods such as destroy(), markDirty(), merge() and
@@ -319,10 +365,7 @@ export class EditorEventSubscriptions {
     if (existing) return existing
     let listening = true
     const receive = data => {
-      const publicData = event === EditorEvent.BLOCK_MOVED
-        && data && Number.isSafeInteger(data.from) && Number.isSafeInteger(data.to)
-        ? { ...data, to: data.from < data.to ? data.to - 1 : data.to }
-        : data
+      const publicData = publicEventData(event, data)
       const deliver = () => {
         if (!listening || (!this.#active && event !== EditorEvent.DESTROYED)) return
         if (once) unsubscribe()
