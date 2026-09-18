@@ -82,3 +82,35 @@ test('registerRenderer observes accessor-backed type once', () => {
   assert.equal(editorRenderer.hasRenderer('stable-custom'), true)
   assert.equal(editorRenderer.hasRenderer('drifted-custom'), false)
 })
+
+
+test('renderer config observes blockTypes and inlinePlugins entries once', () => {
+  let blockEntryReads = 0
+  const blockTypes = []
+  Object.defineProperty(blockTypes, '0', {
+    enumerable: true,
+    configurable: true,
+    get() { blockEntryReads++; return 'paragraph' },
+  })
+  blockTypes.length = 1
+
+  let pluginEntryReads = 0
+  let pluginTypeReads = 0
+  const plugin = {
+    get type() { pluginTypeReads++; return 'probe' },
+    createWidget() { return /** @type {any} */ ({}) },
+    getData() { return {} },
+  }
+  const inlinePlugins = []
+  Object.defineProperty(inlinePlugins, '0', {
+    enumerable: true,
+    configurable: true,
+    get() { pluginEntryReads++; return plugin },
+  })
+  inlinePlugins.length = 1
+
+  assert.doesNotThrow(() => new EditorRenderer({ blockTypes, inlinePlugins }))
+  assert.equal(blockEntryReads, 1)
+  assert.equal(pluginEntryReads, 1)
+  assert.equal(pluginTypeReads, 1)
+})
