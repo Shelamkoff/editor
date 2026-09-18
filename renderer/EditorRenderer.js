@@ -51,6 +51,10 @@ export class EditorRenderer {
   /** @type {WeakMap<Document, import('./types').InlineParser>} */
   #inlineParsers = new WeakMap()
 
+  /** Validation issues currently being reported on this synchronous stack. */
+  /** @type {Set<string>} */
+  #reportingValidation = new Set()
+
   /** Automatic stylesheet owners are isolated per owning document. */
   /** @type {Map<Document, { owner: { destroy(): void }, key: string }>} */
   #styleOwners = new Map()
@@ -176,7 +180,15 @@ export class EditorRenderer {
     let renderableBlock = block
     if (this.#defaultRendererTypes.has(block.type) && !validateKnownBlockData(block.type, block.data)) {
       const issue = { blockId: block.id, type: block.type }
-      invokeObserver(this.#config.onValidationError, [issue])
+      const validationKey = String(block.id ?? '') + '\u0000' + block.type
+      if (!this.#reportingValidation.has(validationKey)) {
+        this.#reportingValidation.add(validationKey)
+        try {
+          invokeObserver(this.#config.onValidationError, [issue])
+        } finally {
+          this.#reportingValidation.delete(validationKey)
+        }
+      }
       if (this.#config.validationMode === 'strict') {
         throw new InvalidBlockDataError(block.type, 'Block data does not match its schema', block.id)
       }
