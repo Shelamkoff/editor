@@ -34,6 +34,7 @@ class PublicBlockView {
   /** @type {string} */ #id
   /** @type {(id: string) => import('./types').IBlock | undefined} */ #resolveBlock
   /** @type {() => void} */ #assertActive
+  /** @type {boolean} */ #retired = false
 
   /**
    * @param {string} id
@@ -46,8 +47,11 @@ class PublicBlockView {
     this.#assertActive = assertActive
   }
 
+  retire() { this.#retired = true }
+
   get #block() {
     this.#assertActive()
+    if (this.#retired) throw new Error(`Block "${this.#id}" is no longer attached to the editor`)
     const block = this.#resolveBlock(this.#id)
     if (!block) throw new Error(`Block "${this.#id}" is no longer attached to the editor`)
     return block
@@ -84,11 +88,23 @@ export class EditorBlocksApi {
   /**
    * @param {import('./types').IBlockManager} blocks
    * @param {import('./types').IEventBus} events
+   * @param {import('./CommandDispatcher').CommandDispatcher} [commands]
    */
-  constructor(blocks, events) {
+  constructor(blocks, events, commands) {
     this.#manager = blocks
     this.#events = events
+
+    const afterCommit = callback => commands ? commands.afterCommit(callback) : callback()
+
+    events.on(EditorEvent.BLOCK_REMOVED, ({ blockId } = {}) => {
+      if (typeof blockId !== 'string') return
+      afterCommit(() => this.#retireViewIfMissing(blockId))
+    })
+    events.on(EditorEvent.DOCUMENT_REPLACED, () => {
+      afterCommit(() => this.#retireMissingViews())
+    })
     events.on(EditorEvent.DESTROYED, () => {
+      for (const view of this.#views.values()) view.retire()
       this.#manager = null
       this.#views.clear()
     })
@@ -96,6 +112,22 @@ export class EditorBlocksApi {
 
   #assertActive() {
     if (!this.#manager) throw new Error('Editor instance is destroyed')
+  }
+
+  #retireViewIfMissing(id) {
+    if (!this.#manager || this.#manager.getBlockById(id)) return
+    const view = this.#views.get(id)
+    view?.retire()
+    this.#views.delete(id)
+  }
+
+  #retireMissingViews() {
+    if (!this.#manager) return
+    for (const [id, view] of this.#views) {
+      if (this.#manager.getBlockById(id)) continue
+      view.retire()
+      this.#views.delete(id)
+    }
   }
 
   get #blocks() {
