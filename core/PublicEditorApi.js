@@ -35,7 +35,7 @@ class PublicBlockView {
   /** @type {(id: string) => import('./types').IBlock | undefined} */ #resolveBlock
   /** @type {() => void} */ #assertActive
   /** @type {() => void} */ #assertMutable
-  /** @type {boolean} */ #retired = false
+  /** @type {false | 'removed' | 'destroyed'} */ #retired = false
 
   /**
    * @param {string} id
@@ -51,7 +51,8 @@ class PublicBlockView {
   }
 
   get #block() {
-    if (this.#retired) throw new Error(`Block "${this.#id}" is no longer attached to the editor`)
+    if (this.#retired === 'destroyed') throw new Error('Editor instance is destroyed')
+    if (this.#retired === 'removed') throw new Error(`Block "${this.#id}" is no longer attached to the editor`)
     this.#assertActive()
     const block = this.#resolveBlock(this.#id)
     if (!block) throw new Error(`Block "${this.#id}" is no longer attached to the editor`)
@@ -70,13 +71,16 @@ class PublicBlockView {
   focus() { this.#assertMutable(); this.#block.focus() }
   isEmpty() { return this.#block.isEmpty() }
 
-  /** Permanently retire this handle and release editor-owned resolver closures. */
-  retire() {
+  /** Permanently retire this handle and release editor-owned resolver closures.
+   * @param {'removed' | 'destroyed'} [reason]
+   */
+  retire(reason = 'removed') {
     if (this.#retired) return
-    this.#retired = true
+    this.#retired = reason
     this.#resolveBlock = () => undefined
     this.#assertActive = () => {}
     this.#assertMutable = () => {
+      if (reason === 'destroyed') throw new Error('Editor instance is destroyed')
       throw new Error(`Block "${this.#id}" is no longer attached to the editor`)
     }
   }
@@ -120,7 +124,7 @@ export class EditorBlocksApi {
       afterCommit(() => this.#retireMissingViews())
     })
     events.on(EditorEvent.DESTROYED, () => {
-      for (const view of this.#views.values()) view.retire()
+      for (const view of this.#views.values()) view.retire('destroyed')
       this.#manager = null
       this.#commands = null
       this.#views.clear()
