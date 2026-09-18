@@ -83,11 +83,17 @@ export function register() {
     const reads = { dataSource: 0, load: 0, vote: 0, subscribe: 0, onError: 0, compare: 0, maxVoters: 0 }
     let loadCalls = 0
     let voteCalls = 0
+    let loadThis = null
+    let voteThis = null
+    let subscribeThis = null
+    let compareThis = 'unset'
+    let onErrorThis = 'unset'
     const adapter = {
       get load() {
         reads.load++
         if (reads.load > 1) throw new Error('Poll load getter was observed twice')
         return async function () {
+          loadThis = this
           loadCalls++
           return {
             revision: '1',
@@ -100,6 +106,7 @@ export function register() {
         reads.vote++
         if (reads.vote > 1) throw new Error('Poll vote getter was observed twice')
         return async function ({ optionIds }) {
+          voteThis = this
           voteCalls++
           return {
             revision: '2',
@@ -115,7 +122,10 @@ export function register() {
       get subscribe() {
         reads.subscribe++
         if (reads.subscribe > 1) throw new Error('Poll subscribe getter was observed twice')
-        return undefined
+        return function () {
+          subscribeThis = this
+          return () => { throw new Error('cleanup probe') }
+        }
       },
     }
     const pollConfig = {
@@ -127,12 +137,17 @@ export function register() {
       get onError() {
         reads.onError++
         if (reads.onError > 1) throw new Error('Poll onError getter was observed twice')
-        return undefined
+        return function () {
+          onErrorThis = this
+        }
       },
       get compareRevisions() {
         reads.compare++
         if (reads.compare > 1) throw new Error('Poll compareRevisions getter was observed twice')
-        return undefined
+        return function (next, current) {
+          compareThis = this
+          return Number(next) - Number(current)
+        }
       },
       get maxVoters() {
         reads.maxVoters++
@@ -165,6 +180,10 @@ export function register() {
     element.querySelector('.editor-poll__submit').click()
     await pause()
     equal(voteCalls, 1)
+    equal(loadThis, adapter, 'Poll load must preserve dataSource method receiver')
+    equal(voteThis, adapter, 'Poll vote must preserve dataSource method receiver')
+    equal(subscribeThis, adapter, 'Poll subscribe must preserve dataSource method receiver')
+    equal(compareThis, undefined, 'Poll compareRevisions must remain a detached callback')
     equal(reads, {
       dataSource: 1,
       load: 1,
@@ -175,6 +194,7 @@ export function register() {
       maxVoters: 1,
     })
     renderer.destroy(element)
+    equal(onErrorThis, undefined, 'Poll onError must remain a detached callback')
     element.remove()
     renderer.destroy()
   })
