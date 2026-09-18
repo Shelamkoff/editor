@@ -80,6 +80,34 @@ test('strict renderer validation rejects lossy built-in data with a content-free
   assert.equal(JSON.stringify(issues).includes('kept'), false)
 })
 
+test('render observes the blocks collection once', async () => {
+  const { EditorRenderer } = await import('./index.js')
+  let reads = 0
+  const renderer = new EditorRenderer({ blockTypes: [] })
+  renderer.registerRenderer({
+    type: 'single-read',
+    render(block) {
+      const element = document.createElement('article')
+      element.textContent = block.data.text
+      return element
+    },
+  })
+  const first = [{ id: 'a', type: 'single-read', data: { text: 'first' } }]
+  const second = [{ id: 'b', type: 'single-read', data: { text: 'second' } }]
+  const input = {
+    get blocks() {
+      reads++
+      return reads === 1 ? first : second
+    },
+  }
+
+  const wrapper = renderer.render(input)
+  assert.equal(reads, 1)
+  assert.equal(wrapper.children[0].dataset.blockId, 'a')
+  assert.equal(wrapper.children[0].textContent, 'first')
+  renderer.destroy(wrapper)
+})
+
 test('renderTo reuses, reorders, replaces and disposes keyed blocks', async () => {
   const { EditorRenderer } = await import('./index.js')
   let renderCalls = 0
