@@ -19,7 +19,7 @@ const bundledRendererCssRoot = new URL('./renderers/', import.meta.url).href
  * Renders Rector document blocks to DOM elements.
  */
 export class EditorRenderer {
-  /** @type {{ injectStyles: boolean, classPrefix: string, throwOnUnknown: boolean, theme: 'dark' | 'light', validationMode: 'preserve' | 'strict', onValidationError?: (issue: { blockId?: string, type: string }) => void }} */
+  /** @type {{ injectStyles: boolean, classPrefix: string, throwOnUnknown: boolean, theme: 'dark' | 'light', validationMode: 'preserve' | 'strict', onValidationError?: (issue: { blockId?: string, type: string }) => void | Promise<void> }} */
   #config
   /** @type {Map<string, import('./types').BlockRenderer>} */
   #renderers
