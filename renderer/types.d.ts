@@ -435,7 +435,7 @@ export interface RendererConfig {
     /** Validate built-in block data before rendering. Default: 'preserve'. */
     validationMode?: 'preserve' | 'strict'
     /** Content-free notification for malformed built-in block data. */
-    onValidationError?: (issue: { blockId?: string; type: string }) => void
+    onValidationError?: (issue: { blockId?: string; type: string }) => void | Promise<void>
     /** Flat locale dictionary for renderer strings. Keys use `renderer.*` prefix. */
     locale?: Record<string, LocaleValue>
     /** Default renderers to construct. Omit to keep the complete public preset. */
