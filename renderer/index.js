@@ -137,9 +137,12 @@ function validateOutputBlock(block) {
   if (Object.hasOwn(candidate, 'id') && candidate.id !== undefined && typeof candidate.id !== 'string') {
     throw new TypeError('EditorRenderer block id must be a string')
   }
-  if (Object.hasOwn(candidate, 'revision') && candidate.revision !== undefined
-      && typeof candidate.revision !== 'string' && typeof candidate.revision !== 'number') {
-    throw new TypeError('EditorRenderer block revision must be a string or number')
+  if (Object.hasOwn(candidate, 'revision') && candidate.revision !== undefined) {
+    const revision = candidate.revision
+    if (typeof revision !== 'string'
+        && (typeof revision !== 'number' || !Number.isFinite(revision))) {
+      throw new TypeError('EditorRenderer block revision must be a string or finite number')
+    }
   }
   if (Object.hasOwn(candidate, 'tunes')) assertOptionalRecord(candidate.tunes, 'block tunes')
   if (Object.hasOwn(candidate, 'inline')) assertOptionalRecord(candidate.inline, 'block inline data')
