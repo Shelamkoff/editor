@@ -264,7 +264,8 @@ export class EditorEventSubscriptions {
           }
         } catch (error) { console.error(`[EditorEvents] ${event}:`, error) }
       }
-      if (this.#commands) this.#commands.afterCommit(deliver)
+      if (event === EditorEvent.WILL_CHANGE) deliver()
+      else if (this.#commands) this.#commands.afterCommit(deliver)
       else deliver()
     }
     const off = this.#events.on(event, receive)
