@@ -4,6 +4,7 @@ import test from 'node:test'
 import { EditorBlocksApi, EditorEventSubscriptions, EditorHandle } from './PublicEditorApi.js'
 import { EventBus } from '@shelamkoff/event-bus'
 import { EditorEvent } from './editorEvents.js'
+import { CommandDispatcher } from './CommandDispatcher.js'
 
 function createBlocks() {
   const items = [
@@ -229,4 +230,34 @@ test('public event subscriptions reject typos and internal bus events', () => {
   assert.throws(() => subscriptions.once(EditorEvent.DOCUMENT_REPLACED, () => {}), /Unknown public editor event/)
   assert.throws(() => subscriptions.on(EditorEvent.UNDO_BATCH_START, () => {}), /Unknown public editor event/)
   assert.throws(() => subscriptions.on(EditorEvent.INLINE_PLUGIN_INSERT, () => {}), /Unknown public editor event/)
+})
+
+
+test('public WILL_CHANGE remains synchronous and reentrant mutations join the command', () => {
+  const events = new EventBus()
+  const blocks = { getBlockById() { return undefined } }
+  const commands = new CommandDispatcher(blocks, events)
+  const subscriptions = new EditorEventSubscriptions(events, commands)
+  const order = []
+  let commits = 0
+
+  commands.configureCommit(() => {
+    commits += 1
+    order.push('commit')
+  })
+  subscriptions.on(EditorEvent.WILL_CHANGE, () => {
+    order.push('will')
+    commands.execute({
+      name: 'public-will-change-reentrant',
+      apply() { order.push('reentrant') },
+    })
+  })
+
+  commands.execute({
+    name: 'outer',
+    apply() { order.push('apply') },
+  })
+
+  assert.deepEqual(order.slice(0, 4), ['will', 'reentrant', 'apply', 'commit'])
+  assert.equal(commits, 1, 'public WILL_CHANGE mutation must share the outer commit')
 })
