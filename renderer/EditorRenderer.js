@@ -92,14 +92,15 @@ export class EditorRenderer {
   }
 
   /**
-   * Register a custom block renderer
+   * Register a custom block renderer.
    * @param {import('./types').BlockRenderer} renderer
+   * @param {string} [resolvedType] Type already observed at the public boundary.
    * @returns {this}
    */
-  registerRenderer(renderer) {
-    this.#rendererRevisions.set(renderer.type, (this.#rendererRevisions.get(renderer.type) ?? 0) + 1)
-    this.#renderers.set(renderer.type, renderer)
-    this.#defaultRendererTypes.delete(renderer.type)
+  registerRenderer(renderer, resolvedType = renderer.type) {
+    this.#rendererRevisions.set(resolvedType, (this.#rendererRevisions.get(resolvedType) ?? 0) + 1)
+    this.#renderers.set(resolvedType, renderer)
+    this.#defaultRendererTypes.delete(resolvedType)
     return this
   }
 
