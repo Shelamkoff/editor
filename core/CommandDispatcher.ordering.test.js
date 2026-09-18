@@ -5,6 +5,7 @@ import { EventBus } from '@shelamkoff/event-bus'
 import { CommandDispatcher } from './CommandDispatcher.js'
 import { EditorEventSubscriptions } from './PublicEditorApi.js'
 import { EditorEvent } from './editorEvents.js'
+import { Diagnostics } from './Diagnostics.js'
 
 function createHarness() {
   const events = new EventBus()
@@ -89,4 +90,45 @@ test('notifyChange false commands still flush committed structural observations'
   })
 
   assert.deepEqual(order, ['silent'])
+})
+
+
+test('slow diagnostic observers cannot overtake terminal events', async () => {
+  const events = new EventBus()
+  const blocks = { getBlockById() { return undefined }, *[Symbol.iterator]() {} }
+  const order = []
+  let commands
+  const diagnostics = new Diagnostics(() => {
+    order.push('diagnostic')
+    commands.execute({
+      name: 'diagnostic-child',
+      markDirty: false,
+      apply() { events.emit(EditorEvent.BLOCK_ADDED, { blockId: 'b', index: 1 }) },
+    })
+  }, { commandMs: 0 })
+  commands = new CommandDispatcher(blocks, events, diagnostics)
+  commands.configureCommit(() => {})
+  const publicEvents = new EditorEventSubscriptions(events, commands)
+
+  publicEvents.on(EditorEvent.BLOCK_ADDED, ({ blockId }) => order.push(`${blockId}:added`))
+  publicEvents.on(EditorEvent.CHANGED, () => order.push('changed'))
+  publicEvents.on(EditorEvent.HISTORY_COMMIT, () => order.push('history'))
+
+  commands.execute({
+    name: 'parent',
+    markDirty: false,
+    apply() { events.emit(EditorEvent.BLOCK_ADDED, { blockId: 'a', index: 0 }) },
+  })
+
+  assert.deepEqual(order, ['a:added', 'changed', 'history'])
+  await Promise.resolve()
+  assert.deepEqual(order, [
+    'a:added',
+    'changed',
+    'history',
+    'diagnostic',
+    'b:added',
+    'changed',
+    'history',
+  ])
 })
