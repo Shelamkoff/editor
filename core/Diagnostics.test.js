@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { Diagnostics } from './Diagnostics.js'
 
-test('diagnostics are content-free, frozen and callback failures are isolated', () => {
+test('diagnostics are deferred, content-free, frozen and callback failures are isolated', async () => {
   const received = []
   const diagnostics = new Diagnostics(event => {
     received.push(event)
@@ -13,6 +13,8 @@ test('diagnostics are content-free, frozen and callback failures are isolated', 
     operation: 'block.insert',
     errorName: 'TypeError',
   }))
+  assert.equal(received.length, 0, 'diagnostic observer must not run inside editor control flow')
+  await Promise.resolve()
   assert.equal(received.length, 1)
   assert.equal(Object.isFrozen(received[0]), true)
   assert.equal(diagnostics.threshold('commandMs'), 5)
