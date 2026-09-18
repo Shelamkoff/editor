@@ -326,7 +326,7 @@ export interface PollRendererConfig {
     /** Optional server-owned result adapter; local voting is used when omitted. */
     dataSource?: PollDataSource
     /** Observes adapter, cleanup, and revision-comparator errors. */
-    onError?: (error: unknown) => void
+    onError?: (error: unknown) => void | Promise<void>
     /** Maximum retained voter records; defaults to 50. */
     maxVoters?: number
     /** Orders opaque revisions; a positive result accepts `next` as newer. */
