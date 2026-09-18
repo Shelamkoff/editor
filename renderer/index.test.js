@@ -582,3 +582,20 @@ test('async validation guard does not suppress independent invalid blocks', asyn
   renderer.destroy(second)
   renderer.destroy()
 })
+
+
+test('renderer rejects non-finite numeric block revisions', async () => {
+  const { EditorRenderer } = await import('./index.js')
+  const renderer = new EditorRenderer({ blockTypes: [] })
+  renderer.registerRenderer({
+    type: 'revision-check',
+    render() { return document.createElement('article') },
+  })
+
+  for (const revision of [Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY]) {
+    assert.throws(
+      () => renderer.renderBlock({ type: 'revision-check', revision, data: {} }),
+      /revision must be a string or finite number/,
+    )
+  }
+})
