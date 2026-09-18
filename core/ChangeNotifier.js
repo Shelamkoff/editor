@@ -9,7 +9,7 @@ export class ChangeNotifier {
   /** @type {() => import('./types').EditorDocument | Promise<import('./types').EditorDocument>} */
   #saveFn
 
-  /** @type {((data: import('./types').EditorDocument) => void) | undefined} */
+  /** @type {((data: import('./types').EditorDocument) => void | Promise<void>) | undefined} */
   #onChange
 
   /** @type {number} */
@@ -26,7 +26,7 @@ export class ChangeNotifier {
 
   /**
    * @param {() => import('./types').EditorDocument | Promise<import('./types').EditorDocument>} saveFn
-   * @param {((data: import('./types').EditorDocument) => void)} [onChange]
+   * @param {((data: import('./types').EditorDocument) => void | Promise<void>)} [onChange]
    * @param {number} [delay]
    * @param {{ setTimeout: typeof setTimeout, clearTimeout: typeof clearTimeout }} [timerHost]
    */
@@ -48,9 +48,9 @@ export class ChangeNotifier {
         const data = await this.#saveFn()
         // A later schedule owns notification even when its save settles first.
         // Never deliver an older snapshot after a newer editor change.
-        if (!this.#destroyed && generation === this.#generation) this.#onChange?.(data)
+        if (!this.#destroyed && generation === this.#generation) await this.#onChange?.(data)
       } catch (err) {
-        console.warn('[ChangeNotifier] Failed to save:', err)
+        console.warn('[ChangeNotifier] Failed to save or notify:', err)
       }
     }, this.#delay)
   }
