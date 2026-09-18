@@ -413,3 +413,23 @@ test('snapshot validation observer cannot synchronously recurse through save()',
   assert.equal(document.blocks[0].data.value, 'preserved')
   assert.equal(calls, 1)
 })
+
+
+test('snapshot validation guard survives an async observer until settlement', async () => {
+  const block = createBlock('invalid-async-reentrant', () => ({ value: 'preserved' }))
+  block.plugin.validate = () => false
+  let calls = 0
+  let store
+  store = createStore([block], {
+    validationMode: 'preserve',
+    async onValidationError() {
+      calls++
+      await Promise.resolve()
+      assert.doesNotThrow(() => store.save())
+    },
+  })
+
+  store.save()
+  for (let index = 0; index < 6; index++) await Promise.resolve()
+  assert.equal(calls, 1)
+})
