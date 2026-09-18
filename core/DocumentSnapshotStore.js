@@ -73,9 +73,19 @@ export class DocumentSnapshotStore {
   #build(isolate) {
     const startedAt = this.#diagnostics?.enabled ? this.#diagnostics.now() : 0
     const snapshots = []
+    /** @type {Array<{ block: import('./types').IBlock, issue: import('./types').BlockValidationIssue }>} */
+    const reports = []
+
     for (const block of this.#blocks) {
-      const canonical = this.#snapshotBlock(block)
+      const { data: canonical, issue } = this.#snapshotBlock(block)
       snapshots.push(isolate ? cloneEditorData(canonical) : canonical)
+      if (!issue) continue
+
+      if (this.#validationMode === 'strict') {
+        this.#reportValidation(block, issue)
+        throw new Error('Invalid block data for "' + block.type + '" (' + block.id + ')')
+      }
+      reports.push({ block, issue })
     }
 
     const document = {
@@ -83,6 +93,13 @@ export class DocumentSnapshotStore {
       version: this.#documentVersion,
       blocks: snapshots,
     }
+
+    // Consumer observers run only after the complete preserve-mode snapshot is
+    // assembled. They may inspect or even mutate the live editor, but cannot
+    // retroactively turn one save() result into a mixture of pre/post-observer
+    // block states.
+    for (const { block, issue } of reports) this.#reportValidation(block, issue)
+
     if (startedAt && this.#diagnostics) {
       const durationMs = this.#diagnostics.now() - startedAt
       if (durationMs >= this.#diagnostics.threshold('saveMs')) {
@@ -95,7 +112,7 @@ export class DocumentSnapshotStore {
   /** @param {import('./types').IBlock} block */
   #snapshotBlock(block) {
     const cached = this.#cache.get(block)
-    if (cached?.version === block.version) return cached.data
+    if (cached?.version === block.version) return { data: cached.data, issue: null }
 
     let snapshot
     try {
@@ -132,6 +149,8 @@ export class DocumentSnapshotStore {
       else delete snapshot.inline
     }
 
+    /** @type {import('./types').BlockValidationIssue | null} */
+    let issue = null
     if (typeof block.plugin.validate === 'function') {
       let valid
       try {
@@ -140,49 +159,57 @@ export class DocumentSnapshotStore {
         valid = false
       }
       if (!valid) {
-        const issue = {
+        issue = {
           blockId: block.id,
           type: block.type,
           data: cloneEditorData(snapshot.data),
-        }
-        // Reporting is observational: it must not override preserve/strict
-        // policy. Guard the same block against synchronous self-reentry (for
-        // example an observer that calls editor.save()) before this snapshot
-        // has reached the cache.
-        const observer = this.#onValidationError
-        if (typeof observer === 'function' && !this.#reportingValidation.has(block)) {
-          this.#reportingValidation.add(block)
-          let result
-          try {
-            result = observer(issue)
-          } catch (error) {
-            this.#reportingValidation.delete(block)
-            console.warn('[DocumentSnapshotStore] Validation observer failed:', error)
-          }
-          let then
-          try {
-            then = result && result.then
-          } catch (error) {
-            this.#reportingValidation.delete(block)
-            console.warn('[DocumentSnapshotStore] Validation observer failed:', error)
-            then = null
-          }
-          if (typeof then === 'function') {
-            new Promise((resolve, reject) => then.call(result, resolve, reject))
-              .catch(error => console.warn('[DocumentSnapshotStore] Validation observer failed:', error))
-              .finally(() => this.#reportingValidation.delete(block))
-          } else {
-            this.#reportingValidation.delete(block)
-          }
-        }
-        if (this.#validationMode === 'strict') {
-          throw new Error('Invalid block data for "' + block.type + '" (' + block.id + ')')
         }
       }
     }
 
     const canonical = cloneEditorData(snapshot)
-    this.#cache.set(block, { version: block.version, data: canonical })
-    return canonical
+    // Strict invalid data must never enter the cache, otherwise a later save()
+    // could reuse it without re-running the strict validation decision.
+    if (!(issue && this.#validationMode === 'strict')) {
+      this.#cache.set(block, { version: block.version, data: canonical })
+    }
+    return { data: canonical, issue }
   }
+
+  /**
+   * @param {import('./types').IBlock} block
+   * @param {import('./types').BlockValidationIssue} issue
+   */
+  #reportValidation(block, issue) {
+    const observer = this.#onValidationError
+    if (typeof observer !== 'function' || this.#reportingValidation.has(block)) return
+
+    this.#reportingValidation.add(block)
+    let result
+    try {
+      result = observer(issue)
+    } catch (error) {
+      this.#reportingValidation.delete(block)
+      console.warn('[DocumentSnapshotStore] Validation observer failed:', error)
+      return
+    }
+
+    let then
+    try {
+      then = result && /** @type {any} */ (result).then
+    } catch (error) {
+      this.#reportingValidation.delete(block)
+      console.warn('[DocumentSnapshotStore] Validation observer failed:', error)
+      return
+    }
+
+    if (typeof then === 'function') {
+      new Promise((resolve, reject) => then.call(result, resolve, reject))
+        .catch(error => console.warn('[DocumentSnapshotStore] Validation observer failed:', error))
+        .finally(() => this.#reportingValidation.delete(block))
+    } else {
+      this.#reportingValidation.delete(block)
+    }
+  }
+
 }
