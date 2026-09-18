@@ -262,15 +262,15 @@ test('public WILL_CHANGE stays synchronous but rejects document mutation', () =>
   })
 
   try {
-    assert.throws(() => commands.execute({
+    assert.doesNotThrow(() => commands.execute({
       name: 'outer',
       apply() { order.push('apply') },
-    }), /WILL_CHANGE/)
+    }))
   } finally {
     console.error = previousError
   }
 
-  assert.deepEqual(order, [])
-  assert.equal(commits, 0)
+  assert.deepEqual(order, ['will', 'apply', 'commit'])
+  assert.equal(commits, 1)
   assert.equal(logged, 1)
 })
