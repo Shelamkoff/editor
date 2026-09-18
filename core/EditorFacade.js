@@ -223,6 +223,9 @@ export class EditorFacade {
    * @param {{ focus?: boolean, notifyChange?: boolean }} [options]
    */
   render(data, caret, options = {}) {
+    if (this.#commands.inTransaction && !this.#commands.restoring) {
+      throw new Error('Cannot render document during an active command transaction')
+    }
     const startedAt = this.#diagnostics.enabled ? this.#diagnostics.now() : 0
     const normalized = this.#documentSchema.normalize(data)
     const replacement = this.#blocks.prepareReplacement(
@@ -311,6 +314,9 @@ export class EditorFacade {
    * Clear all blocks and insert an empty default block.
    */
   clear() {
+    if (this.#commands.inTransaction && !this.#commands.restoring) {
+      throw new Error('Cannot clear document during an active command transaction')
+    }
     const replacement = this.#blocks.prepareReplacement(undefined, this.#defaultBlockType, 'EditorFacade.clear')
     this.#events.emit(EditorEvent.UNDO_BATCH_START)
     try {
