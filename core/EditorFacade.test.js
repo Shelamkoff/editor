@@ -30,14 +30,14 @@ function createBlock(id, readData) {
   return block
 }
 
-function createStore(blocks) {
+function createStore(blocks, config = {}) {
   const blockReader = {
     [Symbol.iterator]() {
       return blocks[Symbol.iterator]()
     },
   }
 
-  return new DocumentSnapshotStore(/** @type {any} */ (blockReader), null, {})
+  return new DocumentSnapshotStore(/** @type {any} */ (blockReader), null, config)
 }
 
 test('snapshot cache serializes only blocks whose version changed', () => {
@@ -303,4 +303,29 @@ test('read-only transition is rejected before side effects during a command tran
   assert.throws(() => facade.setReadOnly(true), /active command transaction/i)
   assert.equal(transitions, 0)
   assert.equal(facade.readOnly, false)
+})
+
+
+test('snapshot validation contains rejected observer promises', async () => {
+  const block = createBlock('invalid', () => ({ value: 'preserved' }))
+  block.plugin.validate = () => false
+  let warnings = 0
+  const previousWarn = console.warn
+  console.warn = () => { warnings++ }
+
+  try {
+    const store = createStore([block], {
+      validationMode: 'preserve',
+      async onValidationError() {
+        throw new Error('async validation observer failure')
+      },
+    })
+    const document = store.save()
+    assert.equal(document.blocks[0].data.value, 'preserved')
+    await Promise.resolve()
+    await Promise.resolve()
+    assert.equal(warnings, 1)
+  } finally {
+    console.warn = previousWarn
+  }
 })
