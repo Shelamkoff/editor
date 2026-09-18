@@ -55,7 +55,7 @@ The third argument of `createPollRenderer(classPrefix, locale, config)` accepts 
 | Field | Meaning |
 | --- | --- |
 | `dataSource` | Optional server adapter. `load` and `vote` are required; `subscribe` is optional. Without it, voting updates renderer-local state initialized from `initialResults`. |
-| `onError` | Optional observer for load, vote, subscription, cleanup, or revision-comparator errors. The renderer still displays its localized error state. |
+| `onError` | Optional observer for load, vote, subscription, cleanup, or revision-comparator errors. It may return a Promise; throws and rejected Promises are contained. The renderer still displays its localized error state. |
 | `maxVoters` | Maximum number of voter records retained from each result. Finite values are rounded down and clamped to zero; omitted or non-finite values use `50`. |
 | `compareRevisions` | Optional `(next, current) => number` comparator for opaque server revisions. Return a positive number only when `next` is newer. Without it, unequal revisions follow arrival order. |
 
