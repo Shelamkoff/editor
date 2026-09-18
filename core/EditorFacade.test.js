@@ -433,3 +433,34 @@ test('snapshot validation guard survives an async observer until settlement', as
   for (let index = 0; index < 6; index++) await Promise.resolve()
   assert.equal(calls, 1)
 })
+
+
+test('snapshot validation contains throwing thenable accessors and releases its guard', () => {
+  const block = createBlock('invalid-hostile-thenable', () => ({ value: 'preserved' }))
+  block.plugin.validate = () => false
+  let calls = 0
+  let warnings = 0
+  const previousWarn = console.warn
+  console.warn = () => { warnings++ }
+
+  const store = createStore([block], {
+    validationMode: 'preserve',
+    onValidationError() {
+      calls++
+      return Object.defineProperty({}, 'then', {
+        get() { throw new Error('hostile then getter') },
+      })
+    },
+  })
+
+  try {
+    assert.doesNotThrow(() => store.save())
+    block.version++
+    assert.doesNotThrow(() => store.save())
+  } finally {
+    console.warn = previousWarn
+  }
+
+  assert.equal(calls, 2)
+  assert.equal(warnings, 2)
+})
