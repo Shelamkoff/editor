@@ -156,6 +156,7 @@ export class EditorBlocksApi {
     })
     events.on(EditorEvent.DESTROYED, () => {
       this.#manager = null
+      this.#commands = null
       this.#views.clear()
     })
   }
@@ -320,6 +321,7 @@ export class EditorEventSubscriptions {
     this.#commands = commands ?? null
     events.on(EditorEvent.DESTROYED, () => {
       this.#active = false
+      this.#commands = null
       this.#subscriptions.clear()
     })
   }
@@ -384,30 +386,32 @@ export class EditorEventSubscriptions {
 
 /** Minimal consumer handle; the composition facade remains core-internal. */
 export class EditorHandle {
-  /** @type {import('./EditorFacade').EditorFacade} */
+  /** @type {import('./EditorFacade').EditorFacade | null} */
   #facade
 
   /** @param {import('./EditorFacade').EditorFacade} facade */
   constructor(facade) { this.#facade = facade }
 
-  #assertActive() {
-    if (!this.#facade.isReady) throw new Error('Editor instance is destroyed')
+  #activeFacade() {
+    const facade = this.#facade
+    if (!facade?.isReady) throw new Error('Editor instance is destroyed')
+    return facade
   }
 
-  get isReady() { return this.#facade.isReady }
-  get blocks() { this.#assertActive(); return this.#facade.blocks }
-  get events() { this.#assertActive(); return this.#facade.events }
-  get rootElement() { this.#assertActive(); return this.#facade.rootElement }
-  get readOnly() { this.#assertActive(); return this.#facade.readOnly }
-  get canUndo() { this.#assertActive(); return this.#facade.canUndo }
-  get canRedo() { this.#assertActive(); return this.#facade.canRedo }
-  save() { this.#assertActive(); return this.#facade.save() }
-  render(data) { this.#assertActive(); this.#facade.render(data) }
-  clear() { this.#assertActive(); this.#facade.clear() }
-  focus() { this.#assertActive(); this.#facade.focus() }
-  undo() { this.#assertActive(); return this.#facade.undo() }
-  redo() { this.#assertActive(); return this.#facade.redo() }
-  setReadOnly(readOnly) { this.#assertActive(); this.#facade.setReadOnly(readOnly) }
+  get isReady() { return this.#facade?.isReady === true }
+  get blocks() { return this.#activeFacade().blocks }
+  get events() { return this.#activeFacade().events }
+  get rootElement() { return this.#activeFacade().rootElement }
+  get readOnly() { return this.#activeFacade().readOnly }
+  get canUndo() { return this.#activeFacade().canUndo }
+  get canRedo() { return this.#activeFacade().canRedo }
+  save() { return this.#activeFacade().save() }
+  render(data) { this.#activeFacade().render(data) }
+  clear() { this.#activeFacade().clear() }
+  focus() { this.#activeFacade().focus() }
+  undo() { return this.#activeFacade().undo() }
+  redo() { return this.#activeFacade().redo() }
+  setReadOnly(readOnly) { this.#activeFacade().setReadOnly(readOnly) }
   insertInlinePlugin(type, data) {
     this.#assertActive()
     if (typeof type !== 'string') throw new TypeError('Inline plugin type must be a string')
@@ -424,5 +428,10 @@ export class EditorHandle {
     }
     return this.#facade.insertInlinePlugin(type, data)
   }
-  destroy() { if (this.#facade.isReady) this.#facade.destroy() }
+  destroy() {
+    const facade = this.#facade
+    if (!facade) return
+    if (facade.isReady) facade.destroy()
+    this.#facade = null
+  }
 }
