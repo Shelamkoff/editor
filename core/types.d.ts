@@ -415,7 +415,7 @@ export interface EditorConfig {
   locale?: Record<string, LocaleValue>
   /** UX/behavior tuning knobs. Merged onto `DEFAULT_TUNING`. */
   tuning?: DeepPartial<EditorTuning>
-  onChange?: (data: EditorDocument) => void
+  onChange?: (data: EditorDocument) => void | Promise<void>
   onReady?: () => void
   /** Preserve invalid blocks by default; strict mode rejects save. */
   validationMode?: 'preserve' | 'strict'
