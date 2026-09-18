@@ -1,3 +1,4 @@
+import { invokeObserver } from '../../shared/invokeObserver.js'
 import { setSanitizedHtml, setTrustedHtml } from '../../core/sanitize.js'
 import { sanitizeHtml } from '../../core/sanitize.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
@@ -35,7 +36,7 @@ const ICON_SORT = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
  * @property {(context: { pollId: string, signal: AbortSignal, onUpdate(results: PollResults): void, onError(error: unknown): void }) => void | (() => void)} [subscribe] Starts live result delivery and optionally returns an idempotent unsubscribe function.
  * @typedef {Object} PollConfig
  * @property {PollDataSource} [dataSource] Backend adapter. Without it votes update the serialized `initialResults` snapshot locally; no remote load, submission, or live subscription occurs.
- * @property {(error: unknown) => void} [onError] Receives rejected load, vote, and subscription errors after the plugin updates its error state.
+ * @property {(error: unknown) => void | Promise<void>} [onError] Receives rejected load, vote, and subscription errors after the plugin updates its error state.
  * @property {number} [maxVoters=50] Maximum number of voter summaries retained and rendered. Finite values are rounded down and clamped to zero; omitted or non-finite values use 50.
  * @property {(next: string, current: string) => number} [compareRevisions] Orders opaque backend revisions. Return a positive number when `next` is newer, zero when equal, and a negative number when stale.
  * @property {boolean} [injectStyles=true] Whether the editor should load the built-in poll stylesheet.
@@ -205,7 +206,7 @@ export class Poll extends BlockPluginAbstract {
       s.voteVersion++
       s.abortController?.abort()
       try { s.unsubscribe?.() } catch (error) {
-        try { this._config.onError?.(error) } catch {}
+        invokeObserver(this._config.onError, [error])
       }
       s.abortController = null
       s.unsubscribe = null
@@ -645,7 +646,7 @@ export class Poll extends BlockPluginAbstract {
   /** @param {HTMLElement} wrapper @param {PollState} s @param {unknown} error @returns {void} */
   #reportDataSourceError(wrapper, s, error) {
     s.error = true
-    try { this._config.onError?.(error) } catch {}
+    invokeObserver(this._config.onError, [error])
     this.#replaceRuntime(wrapper, s)
   }
 
@@ -657,7 +658,7 @@ export class Poll extends BlockPluginAbstract {
 
     s.abortController?.abort()
     try { s.unsubscribe?.() } catch (error) {
-      try { this._config.onError?.(error) } catch {}
+      invokeObserver(this._config.onError, [error])
     }
     const AbortControllerCtor = wrapper.ownerDocument.defaultView?.AbortController ?? AbortController
     const controller = new AbortControllerCtor()
@@ -810,7 +811,7 @@ export class Poll extends BlockPluginAbstract {
         s.voteVersion++
         s.abortController?.abort()
         try { s.unsubscribe?.() } catch (error) {
-          try { this._config.onError?.(error) } catch {}
+          invokeObserver(this._config.onError, [error])
         }
         s.abortController = null
         s.unsubscribe = null
