@@ -416,13 +416,13 @@ export interface EditorConfig {
   /** UX/behavior tuning knobs. Merged onto `DEFAULT_TUNING`. */
   tuning?: DeepPartial<EditorTuning>
   onChange?: (data: EditorDocument) => void | Promise<void>
-  onReady?: () => void
+  onReady?: () => void | Promise<void>
   /** Preserve invalid blocks by default; strict mode rejects save. */
   validationMode?: 'preserve' | 'strict'
   /** Receives validation diagnostics without changing the saved document. */
-  onValidationError?: (issue: BlockValidationIssue) => void
+  onValidationError?: (issue: BlockValidationIssue) => void | Promise<void>
   /** Opt-in, content-free operational diagnostics. Disabled when omitted. */
-  onDiagnostic?: (diagnostic: EditorDiagnostic) => void
+  onDiagnostic?: (diagnostic: EditorDiagnostic) => void | Promise<void>
   /** Slow-operation thresholds; omitted values do not emit timing diagnostics. */
   diagnosticThresholds?: Partial<DiagnosticThresholds>
   theme?: string
