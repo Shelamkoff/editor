@@ -14,6 +14,7 @@ export class CommandDispatcher {
   /** @type {Array<() => void>} */ #postCommitQueue = []
   /** @type {boolean} */ #drainingPostCommit = false
   /** @type {boolean} */ #notifyingWillChange = false
+  /** @type {boolean} */ #committing = false
   /** @type {Set<import('./types').IBlock>} */ #affected = new Set()
   /** @type {(() => import('./types').EditorDocument) | null} */ #capture = null
   /** @type {((document: import('./types').EditorDocument) => void) | null} */ #restore = null
@@ -90,7 +91,7 @@ export class CommandDispatcher {
 
   // Includes the synchronous WILL_CHANGE prelude, where document commands and
   // history/lifecycle restoration are unsafe even though apply() has not begun.
-  get inTransaction() { return this.#notifyingWillChange || this.#depth > 0 }
+  get inTransaction() { return this.#notifyingWillChange || this.#committing || this.#depth > 0 }
 
   runForRange(range, operation) {
     return this.execute({
@@ -139,9 +140,10 @@ export class CommandDispatcher {
   execute(command) {
     if (this.#restoring) return command.apply()
 
-    if (this.#notifyingWillChange) {
-      const error = new Error('Cannot execute editor commands from WILL_CHANGE observers')
-      if (!this.#hasNestedFailure) {
+    if (this.#notifyingWillChange || this.#committing) {
+      const phase = this.#notifyingWillChange ? 'WILL_CHANGE observers' : 'the commit phase'
+      const error = new Error(`Cannot execute editor commands from ${phase}`)
+      if ((this.#notifyingWillChange || this.#depth > 0) && !this.#hasNestedFailure) {
         this.#nestedFailure = error
         this.#hasNestedFailure = true
       }
@@ -188,6 +190,7 @@ export class CommandDispatcher {
       this.#throwNestedFailure(outermost)
       if (outermost && command.notifyChange !== false) {
         committed = this.#markAndCommit(command.markDirty === false ? [] : [...this.#affected])
+        this.#throwNestedFailure(outermost)
       }
     } catch (cause) {
       // Capture this before registering a direct outer failure below. A
@@ -303,7 +306,12 @@ export class CommandDispatcher {
     }
     // Validation and history are required work, not isolated event observers.
     // Run them inside execute()'s catch boundary before announcing success.
-    this.#commit?.([...seen])
+    this.#committing = true
+    try {
+      this.#commit?.([...seen])
+    } finally {
+      this.#committing = false
+    }
     return [...seen]
   }
 
