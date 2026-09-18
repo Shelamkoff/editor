@@ -154,26 +154,31 @@ function prepareOutputData(data) {
   return /** @type {import('./types').OutputData} */ ({ ...candidate, blocks })
 }
 
-/** @param {unknown} renderer */
+/** @param {unknown} renderer @returns {string} */
 function validateCustomRenderer(renderer) {
   if (!renderer || typeof renderer !== 'object' || Array.isArray(renderer)) {
     throw new TypeError('EditorRenderer custom renderer must be an object')
   }
   const candidate = /** @type {Record<string, unknown>} */ (renderer)
-  if (typeof candidate.type !== 'string' || !candidate.type) {
+  const type = candidate.type
+  if (typeof type !== 'string' || !type) {
     throw new TypeError('EditorRenderer custom renderer must have a non-empty string type')
   }
-  if (typeof candidate.render !== 'function') {
-    throw new TypeError(`EditorRenderer custom renderer "${candidate.type}" must implement render()`)
+  const render = candidate.render
+  if (typeof render !== 'function') {
+    throw new TypeError(`EditorRenderer custom renderer "${type}" must implement render()`)
   }
-  if (candidate.styles !== undefined && (!Array.isArray(candidate.styles) || candidate.styles.some(url => typeof url !== 'string'))) {
-    throw new TypeError(`EditorRenderer custom renderer "${candidate.type}" styles must be an array of strings`)
+  const styles = candidate.styles
+  if (styles !== undefined && (!Array.isArray(styles) || styles.some(url => typeof url !== 'string'))) {
+    throw new TypeError(`EditorRenderer custom renderer "${type}" styles must be an array of strings`)
   }
   for (const method of ['destroy', 'mapTextFields']) {
-    if (candidate[method] !== undefined && typeof candidate[method] !== 'function') {
-      throw new TypeError(`EditorRenderer custom renderer "${candidate.type}" ${method} must be a function`)
+    const value = candidate[method]
+    if (value !== undefined && typeof value !== 'function') {
+      throw new TypeError(`EditorRenderer custom renderer "${type}" ${method} must be a function`)
     }
   }
+  return type
 }
 
 /** Public renderer with runtime validation matching RendererConfig declarations. */
@@ -218,8 +223,8 @@ export class EditorRenderer extends EditorRendererImpl {
 
   /** @param {import('./types').BlockRenderer} renderer @returns {this} */
   registerRenderer(renderer) {
-    validateCustomRenderer(renderer)
-    return super.registerRenderer(renderer)
+    const type = validateCustomRenderer(renderer)
+    return super.registerRenderer(renderer, type)
   }
 
   /** @param {import('./types').OutputBlockData} block */
