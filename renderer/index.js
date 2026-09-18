@@ -2,6 +2,8 @@
 import { EditorRenderer as EditorRendererImpl, getSupportedBlockTypes } from './EditorRenderer.js'
 import { cloneEditorData } from '../shared/cloneEditorData.js'
 
+const validationSourceKey = Symbol.for('@shelamkoff/rector/renderer-validation-source')
+
 /** @param {unknown} value @param {string} label */
 function assertOptionalRecord(value, label) {
   if (value !== undefined && (!value || typeof value !== 'object' || Array.isArray(value))) {
@@ -103,7 +105,14 @@ function snapshotOutputBlockEnvelope(block) {
   if (prototype !== Object.prototype && prototype !== null) {
     throw new TypeError('EditorRenderer block must be a JSON object')
   }
-  return /** @type {import('./types').OutputBlockData} */ ({ ...block })
+  const snapshot = /** @type {import('./types').OutputBlockData} */ ({ ...block })
+  Object.defineProperty(snapshot, validationSourceKey, {
+    value: block,
+    enumerable: false,
+    configurable: false,
+    writable: false,
+  })
+  return snapshot
 }
 /** @param {unknown} block */
 function validateOutputBlock(block) {
@@ -209,34 +218,6 @@ export class EditorRenderer extends EditorRendererImpl {
     }
     const ownConfig = /** @type {import('./types').RendererConfig} */ ({ ...config })
     const inlinePluginTypes = validateRendererConfig(ownConfig)
-    const validationObserver = ownConfig.onValidationError
-    if (validationObserver) {
-      let reportingValidation = false
-      ownConfig.onValidationError = issue => {
-        if (reportingValidation) return
-        reportingValidation = true
-        let result
-        try {
-          result = validationObserver(issue)
-        } catch (error) {
-          reportingValidation = false
-          throw error
-        }
-        let then
-        try {
-          then = result && result.then
-        } catch (error) {
-          reportingValidation = false
-          throw error
-        }
-        if (typeof then === 'function') {
-          return new Promise((resolve, reject) => then.call(result, resolve, reject))
-            .finally(() => { reportingValidation = false })
-        }
-        reportingValidation = false
-        return result
-      }
-    }
     super(ownConfig, inlinePluginTypes)
   }
 
