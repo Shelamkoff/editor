@@ -158,11 +158,11 @@ export class CommandDispatcher {
     const commandAffected = [...(command.affected ?? [])]
     const checkpoint = outermost && this.#capture ? this.#capture() : null
 
-    // Enter the transaction before WILL_CHANGE is published. Public and
-    // internal listeners are synchronous and may legally execute another
-    // command; that mutation must join this transaction rather than commit a
-    // second outer history step between checkpoint capture and apply().
-    this.#depth++
+    // WILL_CHANGE is a synchronous pre-transaction observation. Internal
+    // listeners such as UndoManager must still see command activity as false
+    // so they can capture the pre-change snapshot. A separate guard rejects
+    // document commands from observers until that prelude has completed.
+    let enteredTransaction = false
     let result
     let committed = null
     try {
@@ -175,6 +175,8 @@ export class CommandDispatcher {
         }
       }
       for (const block of commandAffected) this.#affected.add(block)
+      this.#depth++
+      enteredTransaction = true
       result = command.apply()
       command.notify?.(result)
       // A nested command cannot be made successful by catching its error in
@@ -205,7 +207,7 @@ export class CommandDispatcher {
       if (outermost) this.#rollback(command, checkpoint, cause, failedNestedTransaction)
       throw cause
     } finally {
-      this.#depth--
+      if (enteredTransaction) this.#depth--
       if (outermost) {
         this.#affected.clear()
         if (startedAt && this.#diagnostics) {
