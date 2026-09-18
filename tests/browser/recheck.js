@@ -1,3 +1,4 @@
+import { register as inlineOwnership } from './regressions/recheck-88-inline-ownership.js'
 import { register as rendererRealm } from './regressions/recheck-86-renderer-realm.js'
 import { register as blockPluginRealm } from './regressions/recheck-85-block-plugin-realm.js'
 import { register as crossConvertRealm } from './regressions/recheck-84-cross-convert-realm.js'
@@ -169,6 +170,7 @@ pasteInsertRealm()
 crossConvertRealm()
 blockPluginRealm()
 rendererRealm()
+inlineOwnership()
 complexBlockPluginRealm()
 imageSettingsRealm()
 toolbarRealm()
