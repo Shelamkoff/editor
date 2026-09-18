@@ -117,7 +117,7 @@ const block = {
 }
 ```
 
-Change `revision` whenever `data`, `tunes`, or `inline` changes. Reusing a revision for different content deliberately tells the renderer that the block is unchanged. The editor preserves an incoming revision while the block remains untouched and removes it after the first local mutation because it cannot mint the producer's next revision.
+Use a string or finite number for `revision`, and change it whenever `data`, `tunes`, or `inline` changes. Reusing a revision for different content deliberately tells the renderer that the block is unchanged. The editor preserves an incoming revision while the block remains untouched and removes it after the first local mutation because it cannot mint the producer's next revision.
 
 ## Registering renderers
 
