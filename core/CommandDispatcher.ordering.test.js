@@ -134,4 +134,15 @@ test('slow diagnostic observers cannot overtake terminal events', async () => {
     'changed',
     'history',
   ])
+  await Promise.resolve()
+  assert.deepEqual(order, [
+    'a:added',
+    'changed',
+    'history',
+    'diagnostic',
+    'b:added',
+    'changed',
+    'history',
+    'diagnostic',
+  ])
 })
