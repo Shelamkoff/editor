@@ -337,6 +337,7 @@ export class Code extends BlockPluginAbstract {
     codeStateMap.set(wrapper, { code, language, editMode: false, context, copyResetTimer: null })
     this.#wrappers.add(wrapper)
 
+    try {
     // ── Header bar ──
     const bar = ownerDocument.createElement('div')
     bar.className = 'oe-code-bar'
@@ -448,6 +449,10 @@ export class Code extends BlockPluginAbstract {
     }
 
     return wrapper
+    } catch (error) {
+      this.destroy(wrapper)
+      throw error
+    }
   }
 
   /**
