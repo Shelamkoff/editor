@@ -90,11 +90,6 @@ await test('Raw preview assigns TrustedHTML under require-trusted-types-for', as
   }
 })
 
-const failed = results.filter(result => result.status !== 'PASS')
-document.querySelector('#result').textContent = JSON.stringify(results, null, 2)
-document.body.dataset.status = failed.length ? 'fail' : 'pass'
-
-
 await test('multiple Rector module instances share one Trusted Types policy per realm', async () => {
   const first = await import('../../shared/sanitize/trustedHtml.js?rector-copy=one')
   const second = await import('../../shared/sanitize/trustedHtml.js?rector-copy=two')
@@ -103,3 +98,7 @@ await test('multiple Rector module instances share one Trusted Types policy per 
   assert(String(firstValue) === '<strong>one</strong>', 'first duplicated module could not use the Rector policy')
   assert(String(secondValue) === '<strong>two</strong>', 'second duplicated module could not reuse the Rector policy')
 })
+
+const failed = results.filter(result => result.status !== 'PASS')
+document.querySelector('#result').textContent = JSON.stringify(results, null, 2)
+document.body.dataset.status = failed.length ? 'fail' : 'pass'
