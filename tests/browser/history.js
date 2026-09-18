@@ -1,4 +1,5 @@
 import { createColorSwatchPlugin, createEditor } from '../../core/index.js'
+import { createEditorRenderer } from '../../renderer/index.js'
 import {
   Attaches,
   CarouselBlock,
@@ -2526,6 +2527,77 @@ async function run() {
     asyncReadyEditor?.destroy()
     console.warn = previousWarn
   }
+
+  const pollObserverHolder = document.createElement('section')
+  sandbox.appendChild(pollObserverHolder)
+  let pollEditorErrors = 0
+  const pollEditor = createEditor({
+    holder: pollObserverHolder,
+    plugins: [new Poll({
+      dataSource: {
+        async load() { throw new Error('expected poll load failure') },
+        async vote() { throw new Error('unused poll vote failure') },
+      },
+      async onError() {
+        pollEditorErrors++
+        throw new Error('expected async poll observer failure')
+      },
+    })],
+    inlineTools: [],
+    injectStyles: false,
+    data: {
+      version: 'browser-history',
+      blocks: [{
+        id: 'poll-observer',
+        type: 'poll',
+        data: {
+          pollId: 'poll-observer',
+          question: 'Question',
+          type: 'single',
+          options: [{ id: 'a', text: 'A' }],
+          resultsMode: 'always',
+        },
+      }],
+    },
+  })
+  await delay(20)
+  assert(pollEditorErrors === 1, 'editor Poll async onError was not invoked exactly once')
+  pollEditor.destroy()
+
+  let pollRendererErrors = 0
+  const pollRenderer = createEditorRenderer({
+    injectStyles: false,
+    blockTypes: ['poll'],
+    blockConfigs: {
+      poll: {
+        dataSource: {
+          async load() { throw new Error('expected renderer poll load failure') },
+          async vote() { throw new Error('unused renderer poll vote failure') },
+        },
+        async onError() {
+          pollRendererErrors++
+          throw new Error('expected async renderer poll observer failure')
+        },
+      },
+    },
+  })
+  const pollRendered = pollRenderer.render({
+    blocks: [{
+      id: 'poll-renderer-observer',
+      type: 'poll',
+      data: {
+        pollId: 'poll-renderer-observer',
+        question: 'Question',
+        type: 'single',
+        options: [{ id: 'a', text: 'A' }],
+        resultsMode: 'always',
+      },
+    }],
+  })
+  await delay(20)
+  assert(pollRendererErrors === 1, 'renderer Poll async onError was not invoked exactly once')
+  pollRenderer.destroy(pollRendered)
+  pollRenderer.destroy()
 
   for (let cycle = 0; cycle < 5; cycle++) {
     const harness = createHarness(sandbox)
