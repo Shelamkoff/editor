@@ -159,3 +159,23 @@ test('Poll renderer config and dataSource members are observed once', () => {
     maxVoters: 1,
   })
 })
+
+
+test('unused blockConfigs members are not observed', () => {
+  let pollReads = 0
+  const blockConfigs = {}
+  Object.defineProperty(blockConfigs, 'poll', {
+    enumerable: true,
+    configurable: true,
+    get() {
+      pollReads++
+      throw new Error('unused Poll config must not be read')
+    },
+  })
+
+  assert.doesNotThrow(() => new EditorRenderer({
+    blockTypes: ['paragraph'],
+    blockConfigs,
+  }))
+  assert.equal(pollReads, 0)
+})
