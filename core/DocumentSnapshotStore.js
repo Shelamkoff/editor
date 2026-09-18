@@ -1,4 +1,3 @@
-import { invokeObserver } from '../shared/invokeObserver.js'
 import { EDITOR_VERSION } from './constants.js'
 import { serializeInlineHtml } from '../shared/inlineMarshal.js'
 import { cloneEditorData } from '../shared/cloneEditorData.js'
@@ -150,15 +149,21 @@ export class DocumentSnapshotStore {
         // policy. Guard the same block against synchronous self-reentry (for
         // example an observer that calls editor.save()) before this snapshot
         // has reached the cache.
-        if (!this.#reportingValidation.has(block)) {
+        const observer = this.#onValidationError
+        if (typeof observer === 'function' && !this.#reportingValidation.has(block)) {
           this.#reportingValidation.add(block)
+          let result
           try {
-            invokeObserver(
-              this.#onValidationError,
-              [issue],
-              error => console.warn('[DocumentSnapshotStore] Validation observer failed:', error),
-            )
-          } finally {
+            result = observer(issue)
+          } catch (error) {
+            this.#reportingValidation.delete(block)
+            console.warn('[DocumentSnapshotStore] Validation observer failed:', error)
+          }
+          if (result && typeof result.then === 'function') {
+            Promise.resolve(result)
+              .catch(error => console.warn('[DocumentSnapshotStore] Validation observer failed:', error))
+              .finally(() => this.#reportingValidation.delete(block))
+          } else {
             this.#reportingValidation.delete(block)
           }
         }
