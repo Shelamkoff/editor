@@ -71,3 +71,32 @@ test('change debounce uses the supplied timer host instead of ambient timers', a
   assert.deepEqual(seen, ['owned'])
   notifier.destroy()
 })
+
+
+test('async onChange rejection is contained by the notifier', async () => {
+  const callbacks = []
+  const timerHost = {
+    setTimeout(callback) { callbacks.push(callback); return 1 },
+    clearTimeout() {},
+  }
+  let warnings = 0
+  const previousWarn = console.warn
+  console.warn = () => { warnings++ }
+  const notifier = new ChangeNotifier(
+    () => ({ version: 'test', blocks: [] }),
+    async () => { throw new Error('async callback failed') },
+    0,
+    timerHost,
+  )
+
+  try {
+    notifier.schedule()
+    await callbacks[0]()
+    await Promise.resolve()
+  } finally {
+    notifier.destroy()
+    console.warn = previousWarn
+  }
+
+  assert.equal(warnings, 1)
+})
