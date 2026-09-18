@@ -327,6 +327,9 @@ export class EditorFacade {
    * Focus the editor (first block or current block).
    */
   focus() {
+    if (this.#commands.inTransaction) {
+      throw new Error('Cannot change editor focus during an active command transaction')
+    }
     const block = this.#blocks.getCurrentBlock() || this.#blocks.getBlockByIndex(0)
     if (block) {
       block.focus()
