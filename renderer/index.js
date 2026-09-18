@@ -238,9 +238,9 @@ function snapshotPollRendererConfig(input) {
 
   return {
     ...(dataSource ? { dataSource } : {}),
-    ...(typeof onError === 'function' ? { onError: /** @type {any} */ (onError).bind(input) } : {}),
+    ...(typeof onError === 'function' ? { onError: /** @type {any} */ (onError) } : {}),
     ...(typeof compareRevisions === 'function'
-      ? { compareRevisions: /** @type {any} */ (compareRevisions).bind(input) }
+      ? { compareRevisions: /** @type {any} */ (compareRevisions) }
       : {}),
     ...(maxVoters !== undefined ? { maxVoters: /** @type {any} */ (maxVoters) } : {}),
   }
