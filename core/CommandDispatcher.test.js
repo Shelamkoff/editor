@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { CommandDispatcher } from './CommandDispatcher.js'
 import { EditorEvent } from './editorEvents.js'
+import { EventBus } from '@shelamkoff/event-bus'
 
 function harness() {
   const emitted = []
@@ -128,4 +129,71 @@ test('a nested failure forces the outer checkpoint instead of a partial inverse'
 
   assert.equal(restoredCheckpoint, true)
   assert.deepEqual(state, { outer: 'initial', nested: 'initial' })
+})
+
+
+test('reentrant command from WILL_CHANGE joins a successful outer transaction', () => {
+  const events = new EventBus()
+  const state = { outer: 'initial', reentrant: 'initial' }
+  const blocks = { getBlockById() { return undefined } }
+  const commands = new CommandDispatcher(blocks, events)
+  let commits = 0
+  let willChanges = 0
+  commands.configureCommit(() => { commits += 1 })
+
+  events.on(EditorEvent.WILL_CHANGE, () => {
+    willChanges += 1
+    if (willChanges !== 1) return
+    commands.execute({
+      name: 'will-change-reentrant',
+      apply() { state.reentrant = 'changed' },
+    })
+  })
+
+  commands.execute({
+    name: 'outer',
+    apply() { state.outer = 'changed' },
+  })
+
+  assert.deepEqual(state, { outer: 'changed', reentrant: 'changed' })
+  assert.equal(willChanges, 1, 'reentrant mutation must not start a second outer transaction')
+  assert.equal(commits, 1, 'reentrant mutation must share the outer history commit')
+})
+
+test('reentrant command from WILL_CHANGE rolls back with a failed outer transaction', () => {
+  const events = new EventBus()
+  const state = { outer: 'initial', reentrant: 'initial' }
+  const blocks = { getBlockById() { return undefined } }
+  const commands = new CommandDispatcher(blocks, events)
+  let commits = 0
+  let historyCommits = 0
+  let willChanges = 0
+
+  commands.configureRollback(
+    () => ({ version: 'test', blocks: [], state: { ...state } }),
+    checkpoint => Object.assign(state, checkpoint.state),
+  )
+  commands.configureCommit(() => { commits += 1 })
+  events.on(EditorEvent.HISTORY_COMMIT, () => { historyCommits += 1 })
+  events.on(EditorEvent.WILL_CHANGE, () => {
+    willChanges += 1
+    if (willChanges !== 1) return
+    commands.execute({
+      name: 'will-change-reentrant',
+      apply() { state.reentrant = 'changed' },
+    })
+  })
+
+  assert.throws(() => commands.execute({
+    name: 'outer',
+    apply() {
+      state.outer = 'partial'
+      throw new Error('outer failed')
+    },
+  }), /outer failed/)
+
+  assert.deepEqual(state, { outer: 'initial', reentrant: 'initial' })
+  assert.equal(willChanges, 1)
+  assert.equal(commits, 0, 'failed joined transaction must not commit history')
+  assert.equal(historyCommits, 0, 'failed joined transaction must not publish a phantom history commit')
 })
