@@ -146,3 +146,35 @@ test('slow diagnostic observers cannot overtake terminal events', async () => {
     'diagnostic',
   ])
 })
+
+
+test('external commit observers are delivered only after the commit phase', () => {
+  const events = new EventBus()
+  const block = { id: 'a', markDirty() {} }
+  const blocks = { getBlockById(id) { return id === block.id ? block : undefined } }
+  const commands = new CommandDispatcher(blocks, events)
+  const publicEvents = new EditorEventSubscriptions(events, commands)
+  const order = []
+  let observedInTransaction = null
+
+  commands.configureCommit(() => {
+    events.emit(EditorEvent.HISTORY_CHANGED, { canUndo: true, canRedo: false })
+  })
+  publicEvents.on(EditorEvent.HISTORY_CHANGED, () => {
+    observedInTransaction = commands.inTransaction
+    order.push('history:changed')
+  })
+  publicEvents.on(EditorEvent.BLOCK_CHANGED, () => order.push('block:changed'))
+  publicEvents.on(EditorEvent.CHANGED, () => order.push('editor:changed'))
+  publicEvents.on(EditorEvent.HISTORY_COMMIT, () => order.push('history:commit'))
+
+  commands.commitExternal(block)
+
+  assert.equal(observedInTransaction, false)
+  assert.deepEqual(order, [
+    'history:changed',
+    'block:changed',
+    'editor:changed',
+    'history:commit',
+  ])
+})
