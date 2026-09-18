@@ -191,11 +191,18 @@ export class EditorRenderer extends EditorRendererImpl {
       ownConfig.onValidationError = issue => {
         if (reportingValidation) return
         reportingValidation = true
+        let result
         try {
-          return validationObserver(issue)
-        } finally {
+          result = validationObserver(issue)
+        } catch (error) {
           reportingValidation = false
+          throw error
         }
+        if (result && typeof result.then === 'function') {
+          return Promise.resolve(result).finally(() => { reportingValidation = false })
+        }
+        reportingValidation = false
+        return result
       }
     }
     super(ownConfig)
