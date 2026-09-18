@@ -1,3 +1,5 @@
+import { invokeObserver } from '../shared/invokeObserver.js'
+
 /**
  * Content-free, opt-in production diagnostics.
  * Consumer callbacks are isolated and can never break editor execution.
@@ -5,8 +7,6 @@
 export class Diagnostics {
   /** @type {import('./types').EditorConfig['onDiagnostic']} */ #report
   /** @type {import('./types').DiagnosticThresholds} */ #thresholds
-  /** Prevent synchronous diagnostic-observer feedback loops. */
-  #delivering = false
 
   /**
    * @param {import('./types').EditorConfig['onDiagnostic']} report
@@ -45,30 +45,13 @@ export class Diagnostics {
    * @param {Omit<import('./types').EditorDiagnostic, 'code' | 'timestamp'>} [details]
    */
   emit(code, details = {}) {
-    if (!this.#report || this.#delivering) return
+    if (!this.#report) return
     const diagnostic = Object.freeze({
       code,
       timestamp: Date.now(),
       ...details,
     })
-    queueMicrotask(() => {
-      if (!this.#report || this.#delivering) return
-      this.#delivering = true
-      let result
-      try {
-        result = this.#report(diagnostic)
-      } catch {
-        this.#delivering = false
-        return
-      }
-      if (result && typeof result.then === 'function') {
-        Promise.resolve(result)
-          .catch(() => {})
-          .finally(() => { this.#delivering = false })
-      } else {
-        this.#delivering = false
-      }
-    })
+    queueMicrotask(() => invokeObserver(this.#report, [diagnostic]))
   }
 
   /** @param {unknown} error */
