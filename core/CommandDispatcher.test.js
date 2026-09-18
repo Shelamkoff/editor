@@ -201,3 +201,24 @@ test('a caught command rejection during commit does not poison the outer transac
 
   assert.deepEqual(state, { outer: 'changed', commitNested: 'initial' })
 })
+
+
+test('external commits cannot bypass WILL_CHANGE prelude guard', () => {
+  const events = new EventBus()
+  const block = { id: 'a', markDirty() {} }
+  const blocks = { getBlockById(id) { return id === 'a' ? block : undefined } }
+  const commands = new CommandDispatcher(blocks, events)
+  commands.configureCommit(() => {})
+
+  let rejected = false
+  events.on(EditorEvent.WILL_CHANGE, () => {
+    try {
+      commands.commitExternal(block)
+    } catch (error) {
+      rejected = /WILL_CHANGE/.test(String(error))
+    }
+  })
+
+  commands.execute({ name: 'outer', markDirty: false, apply() {} })
+  assert.equal(rejected, true)
+})
