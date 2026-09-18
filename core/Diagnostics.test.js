@@ -78,3 +78,19 @@ test('diagnostics suppress synchronous observer feedback loops', async () => {
 
   assert.deepEqual(received, ['command.slow'])
 })
+
+
+test('diagnostics suppress asynchronous observer feedback loops until settlement', async () => {
+  const received = []
+  let diagnostics
+  diagnostics = new Diagnostics(async event => {
+    received.push(event.code)
+    await Promise.resolve()
+    diagnostics.emit('command.slow', { operation: 'async-observer-child', durationMs: 1 })
+  })
+
+  diagnostics.emit('command.slow', { operation: 'parent', durationMs: 1 })
+  for (let index = 0; index < 6; index++) await Promise.resolve()
+
+  assert.deepEqual(received, ['command.slow'])
+})
