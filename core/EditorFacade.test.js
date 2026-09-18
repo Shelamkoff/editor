@@ -278,3 +278,29 @@ test('destroy rejects teardown during an active command transaction', () => {
   assert.equal(cleared, 0)
   assert.equal(removed, 0)
 })
+
+
+test('read-only transition is rejected before side effects during a command transaction', () => {
+  let transitions = 0
+  const facade = new EditorFacade(
+    /** @type {any} */ ({ remove() {} }),
+    /** @type {any} */ ({
+      blocks: {},
+      selection: {},
+      events: {},
+      defaultBlockType: 'paragraph',
+      commands: { inTransaction: true },
+      documentSchema: {},
+      diagnostics: {},
+      snapshots: {},
+      publicBlocks: {},
+      publicEvents: {},
+      readOnly: false,
+    }),
+  )
+  facade.configureReadOnlyTransition(() => { transitions++ })
+
+  assert.throws(() => facade.setReadOnly(true), /active command transaction/i)
+  assert.equal(transitions, 0)
+  assert.equal(facade.readOnly, false)
+})
