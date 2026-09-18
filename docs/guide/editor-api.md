@@ -92,7 +92,7 @@ The configured `tuning.undo.maxStack` limits retained snapshots. New edits after
 
 ## Editing and read-only modes
 
-`readOnly` reports the current mode. `setReadOnly(true)` disables interactive editing on the existing instance; `setReadOnly(false)` mounts the editing infrastructure again. Passing the current value is a no-op. Passing a non-boolean value throws a `TypeError`.
+`readOnly` reports the current mode. `setReadOnly(true)` disables interactive editing on the existing instance; `setReadOnly(false)` mounts the editing infrastructure again. Passing the current value is a no-op. Passing a non-boolean value throws a `TypeError`. Changing the mode while an editor command transaction is active is rejected before any edit-mode resources are rebuilt.
 
 ```js
 editor.setReadOnly(true)
@@ -236,7 +236,7 @@ stop()
 | `paste:applied` | `{ startBlockId?, endBlockId? }` | paste transaction committed |
 | `dragHandle:clicked` | none | drag handle activated |
 
-Events are synchronous observations. Avoid expensive work inside a handler; schedule it separately. `editor:willChange` is observational only: starting another document command from that handler is rejected because structural commands may already have captured block identities and indices for the transaction. `undo()` and `redo()` return `false` while a command transaction is active, and `destroy()` is rejected until it completes. For persistence, prefer the serialized `onChange` callback.
+Events are synchronous observations. Avoid expensive work inside a handler; schedule it separately. `editor:willChange` is observational only: starting another document command from that handler is rejected because structural commands may already have captured block identities and indices for the transaction. While a command transaction is active, `undo()` and `redo()` return `false`; `setReadOnly()` and `destroy()` are rejected until the transaction completes. For persistence, prefer the serialized `onChange` callback.
 
 `editor:ready` is emitted during composition, before `createEditor()` returns the public handle. A host that needs a readiness notification must pass `onReady` in the configuration; subscribing to `editor.events` after creation cannot observe that already completed event.
 
