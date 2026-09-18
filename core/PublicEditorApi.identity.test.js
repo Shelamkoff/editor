@@ -125,3 +125,30 @@ test('document replacement retires only views for ids absent after commit', () =
   assert.throws(() => drop.type, /no longer attached/)
   assert.strictEqual(api.getBlockById('keep'), keep)
 })
+
+
+test('checkpoint restore retires missing cached views immediately instead of leaking them to a later command', () => {
+  let items = [block('a', 'paragraph', 'old')]
+  const events = new EventBus()
+  let queued = 0
+  const commands = {
+    restoring: true,
+    afterCommit() { queued++ },
+  }
+  const manager = {
+    getBlockById(id) { return items.find(item => item.id === id) },
+    getSelectedBlocks() { return [] },
+    *[Symbol.iterator]() { yield* items },
+  }
+  const api = new EditorBlocksApi(manager, events, commands)
+  const oldView = api.getBlockById('a')
+
+  items = []
+  events.emit('document:replaced')
+  assert.equal(queued, 0, 'restore-time cache maintenance must not wait for a failed command flush')
+
+  items = [block('a', 'heading', 'restored-later')]
+  const newView = api.getBlockById('a')
+  assert.notStrictEqual(newView, oldView, 'missing identity must be evicted during checkpoint restore')
+  assert.equal(oldView.type, 'heading', 'retained stable-id view may still resolve a later block by id')
+})
