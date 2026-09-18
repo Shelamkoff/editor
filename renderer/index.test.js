@@ -408,3 +408,28 @@ test('renderer contains rejected validation observer promises', async () => {
   await Promise.resolve()
   assert.equal(calls, 1)
 })
+
+
+test('renderer validation observer cannot synchronously recurse on the same invalid block', async () => {
+  const { EditorRenderer } = await import('./index.js')
+  let calls = 0
+  let renderer
+  const block = {
+    id: 'table-reentrant',
+    type: 'table',
+    data: { content: 'invalid-table-content' },
+  }
+  renderer = new EditorRenderer({
+    blockTypes: ['table'],
+    validationMode: 'preserve',
+    onValidationError() {
+      calls++
+      assert.doesNotThrow(() => renderer.renderBlock(block))
+    },
+  })
+
+  const element = renderer.renderBlock(block)
+  assert.equal(calls, 1)
+  renderer.destroy(element)
+  renderer.destroy()
+})
