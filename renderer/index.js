@@ -185,6 +185,19 @@ export class EditorRenderer extends EditorRendererImpl {
     }
     const ownConfig = /** @type {import('./types').RendererConfig} */ ({ ...config })
     validateRendererConfig(ownConfig)
+    const validationObserver = ownConfig.onValidationError
+    if (validationObserver) {
+      let reportingValidation = false
+      ownConfig.onValidationError = issue => {
+        if (reportingValidation) return
+        reportingValidation = true
+        try {
+          return validationObserver(issue)
+        } finally {
+          reportingValidation = false
+        }
+      }
+    }
     super(ownConfig)
   }
 
