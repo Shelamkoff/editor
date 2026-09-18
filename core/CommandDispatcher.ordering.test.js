@@ -98,8 +98,11 @@ test('slow diagnostic observers cannot overtake terminal events', async () => {
   const blocks = { getBlockById() { return undefined }, *[Symbol.iterator]() {} }
   const order = []
   let commands
+  let spawnedChild = false
   const diagnostics = new Diagnostics(() => {
     order.push('diagnostic')
+    if (spawnedChild) return
+    spawnedChild = true
     commands.execute({
       name: 'diagnostic-child',
       markDirty: false,
