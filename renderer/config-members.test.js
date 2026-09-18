@@ -114,3 +114,73 @@ test('renderer config observes blockTypes and inlinePlugins entries once', () =>
   assert.equal(pluginEntryReads, 1)
   assert.equal(pluginTypeReads, 1)
 })
+
+
+test('registerRenderer executes the same validated accessor-backed methods', () => {
+  const renderer = new EditorRenderer({ blockTypes: [] })
+  let renderReads = 0
+  let destroyReads = 0
+  let renderCalls = 0
+  let destroyCalls = 0
+  const custom = {
+    type: 'stable-contract',
+    get render() {
+      renderReads++
+      if (renderReads > 1) throw new Error('render getter was observed twice')
+      return function () {
+        renderCalls++
+        const element = document.createElement('article')
+        element.textContent = 'stable'
+        return element
+      }
+    },
+    get destroy() {
+      destroyReads++
+      if (destroyReads > 1) throw new Error('destroy getter was observed twice')
+      return function () { destroyCalls++ }
+    },
+  }
+
+  renderer.registerRenderer(custom)
+  const element = renderer.renderBlock({ type: 'stable-contract', data: {} })
+  assert.equal(element.textContent, 'stable')
+  renderer.destroy(element)
+  assert.equal(renderReads, 1)
+  assert.equal(destroyReads, 1)
+  assert.equal(renderCalls, 1)
+  assert.equal(destroyCalls, 1)
+})
+
+test('inline plugin executes the same validated accessor-backed methods', () => {
+  let createReads = 0
+  let dataReads = 0
+  const plugin = {
+    type: 'stable-inline',
+    get createWidget() {
+      createReads++
+      if (createReads > 1) throw new Error('createWidget getter was observed twice')
+      return function (_data, id, context = { ownerDocument: document }) {
+        const element = context.ownerDocument.createElement('span')
+        element.dataset.inlinePlugin = 'stable-inline'
+        element.dataset.id = id || 'w'
+        element.textContent = 'widget'
+        return element
+      }
+    },
+    get getData() {
+      dataReads++
+      if (dataReads > 1) throw new Error('getData getter was observed twice')
+      return function () { return {} }
+    },
+  }
+  const renderer = new EditorRenderer({ blockTypes: ['paragraph'], inlinePlugins: [plugin] })
+  const element = renderer.renderBlock({
+    type: 'paragraph',
+    data: { text: '{{w}}' },
+    inline: { w: { type: 'stable-inline', data: {} } },
+  })
+  assert.equal(element.textContent, 'widget')
+  assert.equal(createReads, 1)
+  assert.equal(dataReads, 1)
+  renderer.destroy(element)
+})
