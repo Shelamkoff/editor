@@ -116,3 +116,46 @@ test('renderer config observes blockTypes and inlinePlugins entries once', () =>
 })
 
 
+
+
+test('Poll renderer config and dataSource members are observed once', () => {
+  const reads = {
+    poll: 0,
+    dataSource: 0,
+    load: 0,
+    vote: 0,
+    subscribe: 0,
+    onError: 0,
+    compare: 0,
+    maxVoters: 0,
+  }
+  const adapter = {
+    get load() { reads.load++; return async () => ({ total: 0, options: [] }) },
+    get vote() { reads.vote++; return async () => ({ total: 0, options: [] }) },
+    get subscribe() { reads.subscribe++; return undefined },
+  }
+  const poll = {
+    get dataSource() { reads.dataSource++; return adapter },
+    get onError() { reads.onError++; return undefined },
+    get compareRevisions() { reads.compare++; return undefined },
+    get maxVoters() { reads.maxVoters++; return 25 },
+  }
+  const blockConfigs = {}
+  Object.defineProperty(blockConfigs, 'poll', {
+    enumerable: true,
+    configurable: true,
+    get() { reads.poll++; return poll },
+  })
+
+  assert.doesNotThrow(() => new EditorRenderer({ blockTypes: ['poll'], blockConfigs }))
+  assert.deepEqual(reads, {
+    poll: 1,
+    dataSource: 1,
+    load: 1,
+    vote: 1,
+    subscribe: 1,
+    onError: 1,
+    compare: 1,
+    maxVoters: 1,
+  })
+})
