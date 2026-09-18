@@ -166,20 +166,20 @@ export class EditorFacade {
   }
 
   get canUndo() {
-    return !this.#readOnly && !this.#commands.active && Boolean(this.#history?.canUndo)
+    return !this.#readOnly && !this.#commands.inTransaction && Boolean(this.#history?.canUndo)
   }
 
   get canRedo() {
-    return !this.#readOnly && !this.#commands.active && Boolean(this.#history?.canRedo)
+    return !this.#readOnly && !this.#commands.inTransaction && Boolean(this.#history?.canRedo)
   }
 
   undo() {
-    if (this.#readOnly || this.#commands.active) return false
+    if (this.#readOnly || this.#commands.inTransaction) return false
     return this.#history?.undo() ?? false
   }
 
   redo() {
-    if (this.#readOnly || this.#commands.active) return false
+    if (this.#readOnly || this.#commands.inTransaction) return false
     return this.#history?.redo() ?? false
   }
 
@@ -366,7 +366,7 @@ export class EditorFacade {
    */
   destroy() {
     if (this.#destroyed) return
-    if (this.#commands.active) {
+    if (this.#commands.inTransaction) {
       throw new Error('Cannot destroy editor during an active command transaction')
     }
     this.#destroyed = true
