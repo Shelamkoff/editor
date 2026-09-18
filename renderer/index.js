@@ -258,6 +258,7 @@ function snapshotBlockConfigs(input, blockTypes) {
   assertOptionalRecord(input, 'blockConfigs')
   const source = /** @type {Record<string, unknown>} */ (input)
   const requested = blockTypes ?? getSupportedBlockTypes()
+  /** @type {Record<string, unknown>} */
   const snapshot = {}
   for (const type of new Set(requested)) {
     if (!Object.hasOwn(source, type)) continue
