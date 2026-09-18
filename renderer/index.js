@@ -81,7 +81,11 @@ function validateRendererConfig(config) {
       }
       if (types.has(type)) throw new Error(`Duplicate renderer inline plugin type: "${type}"`)
       types.add(type)
-      plugins.push(plugin)
+      plugins.push({
+        type,
+        createWidget: createWidget.bind(plugin),
+        getData: getData.bind(plugin),
+      })
       inlinePluginTypes.push(type)
     }
     config.inlinePlugins = plugins
@@ -182,8 +186,8 @@ function prepareOutputData(data) {
   return /** @type {import('./types').OutputData} */ ({ ...candidate, blocks })
 }
 
-/** @param {unknown} renderer @returns {string} */
-function validateCustomRenderer(renderer) {
+/** @param {unknown} renderer @returns {import('./types').BlockRenderer} */
+function snapshotCustomRenderer(renderer) {
   if (!renderer || typeof renderer !== 'object' || Array.isArray(renderer)) {
     throw new TypeError('EditorRenderer custom renderer must be an object')
   }
@@ -196,17 +200,42 @@ function validateCustomRenderer(renderer) {
   if (typeof render !== 'function') {
     throw new TypeError(`EditorRenderer custom renderer "${type}" must implement render()`)
   }
-  const styles = candidate.styles
-  if (styles !== undefined && (!Array.isArray(styles) || styles.some(url => typeof url !== 'string'))) {
-    throw new TypeError(`EditorRenderer custom renderer "${type}" styles must be an array of strings`)
-  }
-  for (const method of ['destroy', 'mapTextFields']) {
-    const value = candidate[method]
-    if (value !== undefined && typeof value !== 'function') {
-      throw new TypeError(`EditorRenderer custom renderer "${type}" ${method} must be a function`)
+
+  let styles
+  const inputStyles = candidate.styles
+  if (inputStyles !== undefined) {
+    if (!Array.isArray(inputStyles)) {
+      throw new TypeError(`EditorRenderer custom renderer "${type}" styles must be an array of strings`)
+    }
+    assertDenseArray(inputStyles, `custom renderer "${type}" styles`)
+    styles = []
+    for (let index = 0; index < inputStyles.length; index++) {
+      const url = inputStyles[index]
+      if (typeof url !== 'string') {
+        throw new TypeError(`EditorRenderer custom renderer "${type}" styles must be an array of strings`)
+      }
+      styles.push(url)
     }
   }
-  return type
+
+  const destroy = candidate.destroy
+  if (destroy !== undefined && typeof destroy !== 'function') {
+    throw new TypeError(`EditorRenderer custom renderer "${type}" destroy must be a function`)
+  }
+  const mapTextFields = candidate.mapTextFields
+  if (mapTextFields !== undefined && typeof mapTextFields !== 'function') {
+    throw new TypeError(`EditorRenderer custom renderer "${type}" mapTextFields must be a function`)
+  }
+
+  return {
+    type,
+    render: /** @type {any} */ (render).bind(renderer),
+    ...(styles ? { styles } : {}),
+    ...(typeof destroy === 'function' ? { destroy: /** @type {any} */ (destroy).bind(renderer) } : {}),
+    ...(typeof mapTextFields === 'function'
+      ? { mapTextFields: /** @type {any} */ (mapTextFields).bind(renderer) }
+      : {}),
+  }
 }
 
 /** Public renderer with runtime validation matching RendererConfig declarations. */
@@ -223,8 +252,8 @@ export class EditorRenderer extends EditorRendererImpl {
 
   /** @param {import('./types').BlockRenderer} renderer @returns {this} */
   registerRenderer(renderer) {
-    const type = validateCustomRenderer(renderer)
-    return super.registerRenderer(renderer, type)
+    const stable = snapshotCustomRenderer(renderer)
+    return super.registerRenderer(stable, stable.type)
   }
 
   /** @param {import('./types').OutputBlockData} block */
