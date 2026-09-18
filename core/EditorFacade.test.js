@@ -357,3 +357,40 @@ test('public facade focus is rejected during a command transaction', () => {
   assert.throws(() => facade.focus(), /active command transaction/)
   assert.equal(focusCalls, 0)
 })
+
+
+test('render and clear reject before staging resources during an active transaction', () => {
+  let preparations = 0
+  let normalizations = 0
+  const facade = new EditorFacade(
+    /** @type {any} */ ({ remove() {} }),
+    /** @type {any} */ ({
+      blocks: {
+        prepareReplacement() {
+          preparations++
+          throw new Error('replacement staging must not run')
+        },
+      },
+      selection: {},
+      events: {},
+      defaultBlockType: 'paragraph',
+      commands: { inTransaction: true, restoring: false },
+      documentSchema: {
+        normalize(value) {
+          normalizations++
+          return value
+        },
+      },
+      diagnostics: { enabled: false },
+      snapshots: {},
+      publicBlocks: {},
+      publicEvents: {},
+      readOnly: false,
+    }),
+  )
+
+  assert.throws(() => facade.render({ version: 'test', blocks: [] }), /active command transaction/i)
+  assert.throws(() => facade.clear(), /active command transaction/i)
+  assert.equal(normalizations, 0)
+  assert.equal(preparations, 0)
+})
