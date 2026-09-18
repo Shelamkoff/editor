@@ -147,13 +147,17 @@ export class CommandDispatcher {
     // WILL_CHANGE listener must leave the next command with a clean slate.
     const commandAffected = [...(command.affected ?? [])]
     const checkpoint = outermost && this.#capture ? this.#capture() : null
-    if (outermost && command.notifyChange !== false) this.#events.emit(EditorEvent.WILL_CHANGE)
-    for (const block of commandAffected) this.#affected.add(block)
 
+    // Enter the transaction before WILL_CHANGE is published. Public and
+    // internal listeners are synchronous and may legally execute another
+    // command; that mutation must join this transaction rather than commit a
+    // second outer history step between checkpoint capture and apply().
     this.#depth++
     let result
     let committed = null
     try {
+      if (outermost && command.notifyChange !== false) this.#events.emit(EditorEvent.WILL_CHANGE)
+      for (const block of commandAffected) this.#affected.add(block)
       result = command.apply()
       command.notify?.(result)
       // A nested command cannot be made successful by catching its error in
