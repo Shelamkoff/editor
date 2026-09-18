@@ -83,7 +83,7 @@ export class CommandDispatcher {
    * @param {() => void} observer
    */
   afterCommit(observer) {
-    if (this.active || this.#drainingPostCommit) this.#postCommitQueue.push(observer)
+    if (this.inTransaction || this.#drainingPostCommit) this.#postCommitQueue.push(observer)
     else observer()
   }
 
