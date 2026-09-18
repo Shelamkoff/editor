@@ -331,7 +331,7 @@ export function createPollRenderer(classPrefix, locale, config = {}) {
       state.voteVersion++
       state.controller?.abort()
       try { state.unsubscribe?.() } catch (error) {
-        try { config.onError?.(error) } catch {}
+        invokeObserver(config.onError, [error])
       }
       state.controller = null
       state.unsubscribe = null
