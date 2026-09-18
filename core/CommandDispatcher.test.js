@@ -222,3 +222,27 @@ test('external commits cannot bypass WILL_CHANGE prelude guard', () => {
   commands.execute({ name: 'outer', markDirty: false, apply() {} })
   assert.equal(rejected, true)
 })
+
+
+test('external commits are rejected during the commit phase', () => {
+  const events = new EventBus()
+  const block = { id: 'a', markDirty() {} }
+  const blocks = { getBlockById(id) { return id === 'a' ? block : undefined } }
+  const commands = new CommandDispatcher(blocks, events)
+  let rejected = false
+
+  commands.configureCommit(() => {
+    try {
+      commands.commitExternal(block)
+    } catch (error) {
+      rejected = /commit phase/.test(String(error))
+    }
+  })
+
+  assert.doesNotThrow(() => commands.execute({
+    name: 'outer',
+    affected: [block],
+    apply() {},
+  }))
+  assert.equal(rejected, true)
+})
