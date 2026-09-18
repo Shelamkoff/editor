@@ -51,8 +51,8 @@ class PublicBlockView {
   }
 
   get #block() {
-    this.#assertActive()
     if (this.#retired) throw new Error(`Block "${this.#id}" is no longer attached to the editor`)
+    this.#assertActive()
     const block = this.#resolveBlock(this.#id)
     if (!block) throw new Error(`Block "${this.#id}" is no longer attached to the editor`)
     return block
@@ -70,8 +70,16 @@ class PublicBlockView {
   focus() { this.#assertMutable(); this.#block.focus() }
   isEmpty() { return this.#block.isEmpty() }
 
-  /** Permanently retire this handle after committed removal of its identity. */
-  retire() { this.#retired = true }
+  /** Permanently retire this handle and release editor-owned resolver closures. */
+  retire() {
+    if (this.#retired) return
+    this.#retired = true
+    this.#resolveBlock = () => undefined
+    this.#assertActive = () => {}
+    this.#assertMutable = () => {
+      throw new Error(`Block "${this.#id}" is no longer attached to the editor`)
+    }
+  }
 }
 
 /**
@@ -112,7 +120,9 @@ export class EditorBlocksApi {
       afterCommit(() => this.#retireMissingViews())
     })
     events.on(EditorEvent.DESTROYED, () => {
+      for (const view of this.#views.values()) view.retire()
       this.#manager = null
+      this.#commands = null
       this.#views.clear()
     })
   }
