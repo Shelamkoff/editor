@@ -188,6 +188,44 @@ async function run() {
   await tick()
   renderer.destroy(container)
 
+  let cleanupObserverCalls = 0
+  let cleanupUnhandledRejections = 0
+  const onUnhandledCleanup = () => { cleanupUnhandledRejections++ }
+  window.addEventListener('unhandledrejection', onUnhandledCleanup)
+  const cleanupRenderer = new EditorRenderer({
+    blockTypes: ['poll'],
+    blockConfigs: {
+      poll: {
+        dataSource: {
+          async load() {
+            return { revision: '1', total: 0, options: [{ id: 'yes', votes: 0 }, { id: 'no', votes: 0 }] }
+          },
+          async vote() {
+            return { revision: '2', total: 0, options: [{ id: 'yes', votes: 0 }, { id: 'no', votes: 0 }] }
+          },
+          subscribe() {
+            return () => { throw new Error('cleanup failed') }
+          },
+        },
+        async onError() {
+          cleanupObserverCalls++
+          throw new Error('observer failed')
+        },
+      },
+    },
+  })
+  const cleanupContainer = document.createElement('div')
+  sandbox.appendChild(cleanupContainer)
+  cleanupRenderer.renderTo({ blocks: [{ id: 'cleanup-poll', type: 'poll', data: fixture }] }, cleanupContainer)
+  await tick()
+  assert(cleanupObserverCalls === 0, 'cleanup observer fired before cleanup')
+  cleanupRenderer.destroy(cleanupContainer)
+  await tick()
+  window.removeEventListener('unhandledrejection', onUnhandledCleanup)
+  assert(cleanupObserverCalls === 1, 'renderer cleanup error did not reach onError observer')
+  assert(cleanupUnhandledRejections === 0, 'async Poll cleanup observer leaked an unhandled rejection')
+  cleanupContainer.remove()
+
   return {
     modes: ['local', 'load', 'vote', 'subscribe', 'renderer'],
     guards: ['afterVote confirmation', 'single history step', 'configured voter retention', 'duplicate submit', 'concurrent subscription update', 'revision ordering', 'read-only side effects', 'abort', 'unsubscribe', 'safe voters'],
