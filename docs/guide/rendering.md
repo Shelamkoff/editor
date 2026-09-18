@@ -61,7 +61,7 @@ The default fails explicitly when a renderer is missing. Set `throwOnUnknown: fa
 
 Validation covers built-in data shapes and URL policies before their built-in renderers run. In `preserve` mode malformed data is replaced with the built-in type's normalized safe shape and `onValidationError` is called; in `strict` mode an `InvalidBlockDataError` is thrown instead. `onValidationError` may return a Promise; synchronous throws and rejected Promises are isolated from rendering and do not change the validation result. A custom renderer registered for the same type owns its own validation contract, so replacing a built-in renderer also disables that built-in validator.
 
-`blockConfigs.poll` accepts the same `dataSource`, `compareRevisions`, `onError`, and `maxVoters` runtime options as the Poll editor plugin. `compareRevisions(next, current)` must return a positive value only when `next` is newer; without it, unequal opaque revisions follow arrival order. The renderer loads and subscribes to current results without changing the supplied document. Call `destroy()` to abort requests and unsubscribe.
+`blockConfigs.poll` accepts the same `dataSource`, `compareRevisions`, `onError`, and `maxVoters` runtime options as the Poll editor plugin. `onError` may return a Promise; callback failures are isolated from renderer state. `compareRevisions(next, current)` must return a positive value only when `next` is newer; without it, unequal opaque revisions follow arrival order. The renderer loads and subscribes to current results without changing the supplied document. Call `destroy()` to abort requests and unsubscribe.
 
 ## TypeScript contracts
 
