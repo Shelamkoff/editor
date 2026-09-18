@@ -187,6 +187,9 @@ export class EditorFacade {
   setReadOnly(readOnly) {
     if (typeof readOnly !== 'boolean') throw new TypeError('setReadOnly() requires a boolean')
     if (readOnly === this.#readOnly) return
+    if (this.#commands.inTransaction) {
+      throw new Error('Cannot change read-only mode during an active command transaction')
+    }
     if (!this.#readOnlyTransition) throw new Error('Editor read-only transition is not configured')
     this.#readOnlyTransition(readOnly)
     this.#readOnly = readOnly
