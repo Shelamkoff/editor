@@ -55,7 +55,7 @@ function validateRendererConfig(config) {
     }
     config.blockTypes = snapshot
   }
-  config.blockConfigs = snapshotBlockConfigs(config.blockConfigs)
+  config.blockConfigs = snapshotBlockConfigs(config.blockConfigs, config.blockTypes)
   let inlinePluginTypes = null
   if (config.inlinePlugins !== undefined) {
     if (!Array.isArray(config.inlinePlugins)) {
@@ -243,13 +243,24 @@ function snapshotPollRendererConfig(input) {
   }
 }
 
-/** @param {unknown} input @returns {Record<string, unknown> | undefined} */
-function snapshotBlockConfigs(input) {
+/**
+ * Snapshot only configs for renderers that will actually be constructed.
+ * Unused accessor-backed config members must remain completely unobserved.
+ * @param {unknown} input
+ * @param {import('./types').BlockType[] | undefined} blockTypes
+ * @returns {Record<string, unknown> | undefined}
+ */
+function snapshotBlockConfigs(input, blockTypes) {
   if (input === undefined) return undefined
   assertOptionalRecord(input, 'blockConfigs')
   const source = /** @type {Record<string, unknown>} */ (input)
-  const snapshot = { ...source }
-  if (Object.hasOwn(source, 'poll')) snapshot.poll = snapshotPollRendererConfig(snapshot.poll)
+  const requested = blockTypes ?? getSupportedBlockTypes()
+  const snapshot = {}
+  for (const type of new Set(requested)) {
+    if (!Object.hasOwn(source, type)) continue
+    const value = source[type]
+    snapshot[type] = type === 'poll' ? snapshotPollRendererConfig(value) : value
+  }
   return snapshot
 }
 
