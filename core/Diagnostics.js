@@ -7,6 +7,8 @@ import { invokeObserver } from '../shared/invokeObserver.js'
 export class Diagnostics {
   /** @type {import('./types').EditorConfig['onDiagnostic']} */ #report
   /** @type {import('./types').DiagnosticThresholds} */ #thresholds
+  /** Prevent synchronous diagnostic-observer feedback loops. */
+  #delivering = false
 
   /**
    * @param {import('./types').EditorConfig['onDiagnostic']} report
@@ -45,13 +47,21 @@ export class Diagnostics {
    * @param {Omit<import('./types').EditorDiagnostic, 'code' | 'timestamp'>} [details]
    */
   emit(code, details = {}) {
-    if (!this.#report) return
+    if (!this.#report || this.#delivering) return
     const diagnostic = Object.freeze({
       code,
       timestamp: Date.now(),
       ...details,
     })
-    queueMicrotask(() => invokeObserver(this.#report, [diagnostic]))
+    queueMicrotask(() => {
+      if (!this.#report || this.#delivering) return
+      this.#delivering = true
+      try {
+        invokeObserver(this.#report, [diagnostic])
+      } finally {
+        this.#delivering = false
+      }
+    })
   }
 
   /** @param {unknown} error */
