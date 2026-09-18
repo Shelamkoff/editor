@@ -1,5 +1,5 @@
 import { EditorRenderer } from '../../../renderer/index.js'
-import { test, assert, equal } from './harness.js'
+import { test, assert, equal, pause } from './harness.js'
 
 export function register() {
   test('renderer executes snapshotted custom renderer methods', () => {
@@ -78,4 +78,105 @@ export function register() {
     renderer.destroy(element)
     renderer.destroy()
   })
+
+  test('Poll renderer executes snapshotted runtime adapter methods', async () => {
+    const reads = { dataSource: 0, load: 0, vote: 0, subscribe: 0, onError: 0, compare: 0, maxVoters: 0 }
+    let loadCalls = 0
+    let voteCalls = 0
+    const adapter = {
+      get load() {
+        reads.load++
+        if (reads.load > 1) throw new Error('Poll load getter was observed twice')
+        return async function () {
+          loadCalls++
+          return {
+            revision: '1',
+            total: 0,
+            options: [{ id: 'yes', votes: 0 }, { id: 'no', votes: 0 }],
+          }
+        }
+      },
+      get vote() {
+        reads.vote++
+        if (reads.vote > 1) throw new Error('Poll vote getter was observed twice')
+        return async function ({ optionIds }) {
+          voteCalls++
+          return {
+            revision: '2',
+            total: 1,
+            options: [
+              { id: 'yes', votes: optionIds.includes('yes') ? 1 : 0 },
+              { id: 'no', votes: optionIds.includes('no') ? 1 : 0 },
+            ],
+            currentUserVote: optionIds,
+          }
+        }
+      },
+      get subscribe() {
+        reads.subscribe++
+        if (reads.subscribe > 1) throw new Error('Poll subscribe getter was observed twice')
+        return undefined
+      },
+    }
+    const pollConfig = {
+      get dataSource() {
+        reads.dataSource++
+        if (reads.dataSource > 1) throw new Error('Poll dataSource getter was observed twice')
+        return adapter
+      },
+      get onError() {
+        reads.onError++
+        if (reads.onError > 1) throw new Error('Poll onError getter was observed twice')
+        return undefined
+      },
+      get compareRevisions() {
+        reads.compare++
+        if (reads.compare > 1) throw new Error('Poll compareRevisions getter was observed twice')
+        return undefined
+      },
+      get maxVoters() {
+        reads.maxVoters++
+        if (reads.maxVoters > 1) throw new Error('Poll maxVoters getter was observed twice')
+        return 10
+      },
+    }
+
+    const renderer = new EditorRenderer({
+      blockTypes: ['poll'],
+      blockConfigs: { poll: pollConfig },
+      injectStyles: false,
+    })
+    const element = renderer.renderBlock({
+      id: 'poll-config-snapshot',
+      type: 'poll',
+      data: {
+        pollId: 'poll-config-snapshot',
+        question: 'Choose',
+        type: 'single',
+        options: [{ id: 'yes', text: 'Yes' }, { id: 'no', text: 'No' }],
+        resultsMode: 'always',
+      },
+    })
+    document.body.appendChild(element)
+    await pause()
+    equal(loadCalls, 1)
+    const markers = element.querySelectorAll('.editor-poll__marker')
+    markers[1].click()
+    element.querySelector('.editor-poll__submit').click()
+    await pause()
+    equal(voteCalls, 1)
+    equal(reads, {
+      dataSource: 1,
+      load: 1,
+      vote: 1,
+      subscribe: 1,
+      onError: 1,
+      compare: 1,
+      maxVoters: 1,
+    })
+    renderer.destroy(element)
+    element.remove()
+    renderer.destroy()
+  })
+
 }
