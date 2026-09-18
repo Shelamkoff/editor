@@ -518,3 +518,33 @@ test('renderer validation guard survives an async observer until settlement', as
   renderer.destroy(element)
   renderer.destroy()
 })
+
+
+test('renderer validation contains hostile thenable accessors and releases its guard', async () => {
+  const { EditorRenderer } = await import('./index.js')
+  let calls = 0
+  const block = {
+    id: 'table-hostile-thenable',
+    type: 'table',
+    data: { content: 'invalid-table-content' },
+  }
+  const renderer = new EditorRenderer({
+    blockTypes: ['table'],
+    validationMode: 'preserve',
+    onValidationError() {
+      calls++
+      return Object.defineProperty({}, 'then', {
+        get() { throw new Error('hostile then getter') },
+      })
+    },
+  })
+
+  const first = renderer.renderBlock(block)
+  const second = renderer.renderBlock(block)
+  await Promise.resolve()
+  await Promise.resolve()
+  assert.equal(calls, 2)
+  renderer.destroy(first)
+  renderer.destroy(second)
+  renderer.destroy()
+})
