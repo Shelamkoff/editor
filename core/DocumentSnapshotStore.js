@@ -159,8 +159,16 @@ export class DocumentSnapshotStore {
             this.#reportingValidation.delete(block)
             console.warn('[DocumentSnapshotStore] Validation observer failed:', error)
           }
-          if (result && typeof result.then === 'function') {
-            Promise.resolve(result)
+          let then
+          try {
+            then = result && result.then
+          } catch (error) {
+            this.#reportingValidation.delete(block)
+            console.warn('[DocumentSnapshotStore] Validation observer failed:', error)
+            then = null
+          }
+          if (typeof then === 'function') {
+            new Promise((resolve, reject) => then.call(result, resolve, reject))
               .catch(error => console.warn('[DocumentSnapshotStore] Validation observer failed:', error))
               .finally(() => this.#reportingValidation.delete(block))
           } else {
