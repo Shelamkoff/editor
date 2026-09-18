@@ -59,8 +59,11 @@ export class EditorRenderer {
   /** @type {Map<Document, { owner: { destroy(): void }, key: string }>} */
   #styleOwners = new Map()
 
-  /** @param {import('./types').RendererConfig} [config] */
-  constructor(config = {}) {
+  /**
+   * @param {import('./types').RendererConfig} [config]
+   * @param {string[] | null} [resolvedInlinePluginTypes]
+   */
+  constructor(config = {}, resolvedInlinePluginTypes = null) {
     if (config.injectStyles !== undefined && typeof config.injectStyles !== 'boolean') {
       throw new TypeError('EditorRenderer injectStyles must be a boolean')
     }
@@ -87,7 +90,11 @@ export class EditorRenderer {
     // renderer-only variant.
     this.#inlinePlugins = new Map()
     if (config.inlinePlugins) {
-      for (const p of config.inlinePlugins) this.#inlinePlugins.set(p.type, p)
+      for (let index = 0; index < config.inlinePlugins.length; index++) {
+        const plugin = config.inlinePlugins[index]
+        const type = resolvedInlinePluginTypes?.[index] ?? plugin.type
+        this.#inlinePlugins.set(type, plugin)
+      }
     }
   }
 
