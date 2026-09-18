@@ -42,10 +42,11 @@ test('EditorBlocksApi emits selection changes from public selection commands', (
 
 test('EditorHandle exposes history state and preserves the documented destroyed state', () => {
   let ready = true
+  let readyReads = 0
   let undoCalls = 0
   let redoCalls = 0
   const facade = {
-    get isReady() { return ready },
+    get isReady() { readyReads += 1; return ready },
     get canUndo() { return true },
     get canRedo() { return false },
     undo() { undoCalls += 1; return true },
@@ -62,7 +63,9 @@ test('EditorHandle exposes history state and preserves the documented destroyed 
   assert.equal(redoCalls, 1)
 
   editor.destroy()
+  const readsAfterDestroy = readyReads
   assert.equal(editor.isReady, false)
+  assert.equal(readyReads, readsAfterDestroy, 'destroyed handle must release the facade reference')
   editor.destroy()
   assert.throws(() => editor.canUndo, /Editor instance is destroyed/)
   assert.throws(() => editor.undo(), /Editor instance is destroyed/)
