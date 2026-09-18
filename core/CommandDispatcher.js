@@ -88,6 +88,7 @@ export class CommandDispatcher {
   }
 
   get active() { return this.#depth > 0 }
+  get restoring() { return this.#restoring }
 
   // Includes the synchronous WILL_CHANGE prelude, where document commands and
   // history/lifecycle restoration are unsafe even though apply() has not begun.
