@@ -1,5 +1,3 @@
-import { invokeObserver } from '../shared/invokeObserver.js'
-
 /**
  * Content-free, opt-in production diagnostics.
  * Consumer callbacks are isolated and can never break editor execution.
@@ -56,9 +54,18 @@ export class Diagnostics {
     queueMicrotask(() => {
       if (!this.#report || this.#delivering) return
       this.#delivering = true
+      let result
       try {
-        invokeObserver(this.#report, [diagnostic])
-      } finally {
+        result = this.#report(diagnostic)
+      } catch {
+        this.#delivering = false
+        return
+      }
+      if (result && typeof result.then === 'function') {
+        Promise.resolve(result)
+          .catch(() => {})
+          .finally(() => { this.#delivering = false })
+      } else {
         this.#delivering = false
       }
     })
