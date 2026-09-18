@@ -117,7 +117,7 @@ export class CommandDispatcher {
 
   /** Commit a callback that already changed a known set of blocks. */
   commitExternalMany(blocks) {
-    if ((this.#notifyingWillChange || this.#committing) && this.#depth === 0) {
+    if (this.#notifyingWillChange || this.#committing) {
       const phase = this.#notifyingWillChange ? 'WILL_CHANGE observers' : 'the commit phase'
       throw new Error(`Cannot commit external editor mutations from ${phase}`)
     }
