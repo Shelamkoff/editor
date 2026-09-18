@@ -51,9 +51,9 @@ export class EditorRenderer {
   /** @type {WeakMap<Document, import('./types').InlineParser>} */
   #inlineParsers = new WeakMap()
 
-  /** Validation issues currently being reported on this synchronous stack. */
-  /** @type {Set<string>} */
-  #reportingValidation = new Set()
+  /** Source block objects whose validation issue is being reported on this stack. */
+  /** @type {WeakSet<object>} */
+  #reportingValidation = new WeakSet()
 
   /** Automatic stylesheet owners are isolated per owning document. */
   /** @type {Map<Document, { owner: { destroy(): void }, key: string }>} */
@@ -159,6 +159,9 @@ export class EditorRenderer {
    * @returns {{ element: HTMLElement, type: string, renderer?: import('./types').BlockRenderer }}
    */
   #createRenderedBlock(block, ownerDocument) {
+    // Track the caller-owned identity only for synchronous observer reentry.
+    // Rendering still clones before any renderer or validator can observe data.
+    const validationSource = block
     // A block crosses the public rendering boundary only when it is actually
     // rendered. This preserves O(1) reuse for equal producer revisions while
     // ensuring custom/default renderers never observe caller-owned JSON data.
@@ -180,13 +183,12 @@ export class EditorRenderer {
     let renderableBlock = block
     if (this.#defaultRendererTypes.has(block.type) && !validateKnownBlockData(block.type, block.data)) {
       const issue = { blockId: block.id, type: block.type }
-      const validationKey = String(block.id ?? '') + '\u0000' + block.type
-      if (!this.#reportingValidation.has(validationKey)) {
-        this.#reportingValidation.add(validationKey)
+      if (!this.#reportingValidation.has(validationSource)) {
+        this.#reportingValidation.add(validationSource)
         try {
           invokeObserver(this.#config.onValidationError, [issue])
         } finally {
-          this.#reportingValidation.delete(validationKey)
+          this.#reportingValidation.delete(validationSource)
         }
       }
       if (this.#config.validationMode === 'strict') {
