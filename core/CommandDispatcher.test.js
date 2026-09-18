@@ -133,7 +133,7 @@ test('a nested failure forces the outer checkpoint instead of a partial inverse'
 
 
 
-test('reentrant command from WILL_CHANGE is rejected and poisons the outer transaction', () => {
+test('reentrant command from WILL_CHANGE is rejected without poisoning a caught observer misuse', () => {
   const events = new EventBus()
   const state = { outer: 'initial', reentrant: 'initial' }
   const blocks = { getBlockById() { return undefined } }
@@ -150,21 +150,25 @@ test('reentrant command from WILL_CHANGE is rejected and poisons the outer trans
   events.on(EditorEvent.HISTORY_COMMIT, () => { historyCommits += 1 })
   events.on(EditorEvent.WILL_CHANGE, () => {
     willChanges += 1
-    commands.execute({
-      name: 'will-change-reentrant',
-      apply() { state.reentrant = 'changed' },
-    })
+    try {
+      commands.execute({
+        name: 'will-change-reentrant',
+        apply() { state.reentrant = 'changed' },
+      })
+    } catch {
+      // Observers may contain the guard error; no nested mutation started.
+    }
   })
 
-  assert.throws(() => commands.execute({
+  assert.doesNotThrow(() => commands.execute({
     name: 'outer',
     apply() { state.outer = 'changed' },
-  }), /WILL_CHANGE/)
+  }))
 
-  assert.deepEqual(state, { outer: 'initial', reentrant: 'initial' })
+  assert.deepEqual(state, { outer: 'changed', reentrant: 'initial' })
   assert.equal(willChanges, 1)
-  assert.equal(commits, 0)
-  assert.equal(historyCommits, 0)
+  assert.equal(commits, 1)
+  assert.equal(historyCommits, 1)
 })
 
 
