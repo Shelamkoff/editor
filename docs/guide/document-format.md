@@ -45,7 +45,7 @@ interface BlockData {
 ```
 
 - `id` is the stable identity used by selection, events, history, and application references. It must be unique inside the document.
-- `revision` is an optional producer-owned content revision or stable hash used to accelerate repeated `renderTo()` calls.
+- `revision` is an optional producer-owned content revision or stable hash used to accelerate repeated `renderTo()` calls. It may be a string or a finite number.
 - `type` selects the registered block plugin and renderer.
 - `data` is owned and validated by that block plugin.
 - `tunes` stores optional settings owned by the editor rather than one block plugin. The built-in alignment tool writes `tunes.textAlign: 'left' | 'center' | 'right' | 'justify'`, so alignment also persists for structured blocks with several text fields.
@@ -53,7 +53,7 @@ interface BlockData {
 
 Do not infer a block's identity from its array index. Indices change after insert, remove, and move operations.
 
-`revision` is not a block id and not the document-format `version`. When supplied, it must change whenever `data`, `tunes`, or `inline` changes. Rector preserves an input revision while the editor leaves that block untouched, then removes it after a local mutation because the editor cannot generate the producer's next value. Omitting `revision` is fully supported; the renderer falls back to a deep content signature.
+`revision` is not a block id and not the document-format `version`. A numeric revision must be finite. When supplied, it must change whenever `data`, `tunes`, or `inline` changes. Rector preserves an input revision while the editor leaves that block untouched, then removes it after a local mutation because the editor cannot generate the producer's next value. Omitting `revision` is fully supported; the renderer falls back to a deep content signature.
 
 ## Plugin-owned data
 
