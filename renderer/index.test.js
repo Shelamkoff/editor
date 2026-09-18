@@ -490,3 +490,31 @@ test('renderer validation observer cannot synchronously recurse on the same inva
   renderer.destroy(element)
   renderer.destroy()
 })
+
+
+test('renderer validation guard survives an async observer until settlement', async () => {
+  const { EditorRenderer } = await import('./index.js')
+  let calls = 0
+  let renderer
+  const block = {
+    id: 'table-async-reentrant',
+    type: 'table',
+    data: { content: 'invalid-table-content' },
+  }
+  renderer = new EditorRenderer({
+    blockTypes: ['table'],
+    validationMode: 'preserve',
+    async onValidationError() {
+      calls++
+      await Promise.resolve()
+      const nested = renderer.renderBlock(block)
+      renderer.destroy(nested)
+    },
+  })
+
+  const element = renderer.renderBlock(block)
+  for (let index = 0; index < 6; index++) await Promise.resolve()
+  assert.equal(calls, 1)
+  renderer.destroy(element)
+  renderer.destroy()
+})
