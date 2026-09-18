@@ -56,7 +56,7 @@ The table below is the complete public `EditorConfig` contract. A value describe
 | `onReady` | no | omitted | Microtask notification after composition succeeds. `createEditor()` itself already returns a ready handle synchronously. |
 | `validationMode` | no | `'preserve'` | Handling of a registered plugin whose `validate(data)` returns `false`: preserve and report the block, or throw during `save()`. |
 | `onValidationError` | no | omitted | Receives `{ blockId, type, data }` for invalid plugin data. It runs in both validation modes before strict mode throws. |
-| `onDiagnostic` | no | omitted | Receives content-free operational signals. When omitted, diagnostics do not call consumer code. |
+| `onDiagnostic` | no | omitted | Receives content-free operational signals in a microtask after the emitting control flow completes. When omitted, diagnostics do not call consumer code. |
 | `diagnosticThresholds` | no | no slow-operation thresholds | Enables individual `*.slow` signals when an operation exceeds a supplied duration. Omitted leaves do not have an implicit duration. |
 | `theme` | no | `'dark'` | Adds `oe-theme-{theme}` to the editor root. Rector ships `dark` and `light`; a custom name can be used with consumer-provided CSS variables and selectors. |
 
@@ -175,7 +175,7 @@ Use request cancellation or monotonically increasing revisions in the storage la
 - `preserve` applies every reachable migration and, if the chain ends early, keeps the last structurally valid document reached (which may still be the originally declared version);
 - `strict` rejects an unknown or incomplete version chain.
 
-`validationMode` controls a registered plugin whose `validate(data)` returns `false`. `onValidationError` and `onDiagnostic` are observational callbacks: they may return Promises, and their synchronous or asynchronous failures are isolated from validation and editor control flow.
+`validationMode` controls a registered plugin whose `validate(data)` returns `false`. `onValidationError` and `onDiagnostic` are observational callbacks: they may return Promises, and their synchronous or asynchronous failures are isolated from validation and editor control flow. Diagnostic delivery is deferred to a microtask so consumer code cannot re-enter an unfinished editor operation.
 
 `validationMode` then applies the following policy:
 
