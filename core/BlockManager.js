@@ -280,7 +280,8 @@ export class BlockManager {
           const tunes = blockData.tunes && typeof blockData.tunes === 'object' && !Array.isArray(blockData.tunes)
             ? blockData.tunes
             : undefined
-          const revision = typeof blockData.revision === 'string' || typeof blockData.revision === 'number'
+          const revision = typeof blockData.revision === 'string'
+            || (typeof blockData.revision === 'number' && Number.isFinite(blockData.revision))
             ? blockData.revision
             : undefined
           if (!type) {
