@@ -142,12 +142,11 @@ export class CommandDispatcher {
 
     if (this.#notifyingWillChange || this.#committing) {
       const phase = this.#notifyingWillChange ? 'WILL_CHANGE observers' : 'the commit phase'
-      const error = new Error(`Cannot execute editor commands from ${phase}`)
-      if ((this.#notifyingWillChange || this.#depth > 0) && !this.#hasNestedFailure) {
-        this.#nestedFailure = error
-        this.#hasNestedFailure = true
-      }
-      throw error
+      // The rejected command has not executed any mutation, so catching this
+      // guard error is safe and must not poison the surrounding transaction.
+      // If it escapes the observer/commit callback, the ordinary outer catch
+      // still rolls the transaction back.
+      throw new Error(`Cannot execute editor commands from ${phase}`)
     }
 
     const outermost = this.#depth === 0
