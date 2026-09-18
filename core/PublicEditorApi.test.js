@@ -233,14 +233,22 @@ test('public event subscriptions reject typos and internal bus events', () => {
 })
 
 
-test('public WILL_CHANGE remains synchronous and reentrant mutations join the command', () => {
+
+test('public WILL_CHANGE stays synchronous but rejects document mutation', () => {
   const events = new EventBus()
   const blocks = { getBlockById() { return undefined } }
   const commands = new CommandDispatcher(blocks, events)
   const subscriptions = new EditorEventSubscriptions(events, commands)
   const order = []
   let commits = 0
+  let logged = 0
+  const previousError = console.error
+  console.error = () => { logged += 1 }
 
+  commands.configureRollback(
+    () => ({ version: 'test', blocks: [], order: [...order] }),
+    checkpoint => { order.splice(0, order.length, ...checkpoint.order) },
+  )
   commands.configureCommit(() => {
     commits += 1
     order.push('commit')
@@ -253,11 +261,16 @@ test('public WILL_CHANGE remains synchronous and reentrant mutations join the co
     })
   })
 
-  commands.execute({
-    name: 'outer',
-    apply() { order.push('apply') },
-  })
+  try {
+    assert.throws(() => commands.execute({
+      name: 'outer',
+      apply() { order.push('apply') },
+    }), /WILL_CHANGE/)
+  } finally {
+    console.error = previousError
+  }
 
-  assert.deepEqual(order.slice(0, 4), ['will', 'reentrant', 'apply', 'commit'])
-  assert.equal(commits, 1, 'public WILL_CHANGE mutation must share the outer commit')
+  assert.deepEqual(order, [])
+  assert.equal(commits, 0)
+  assert.equal(logged, 1)
 })
