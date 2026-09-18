@@ -335,27 +335,34 @@ export class EditorRenderer {
       const blocks = data.blocks ?? []
       for (let index = 0; index < blocks.length; index++) {
         const block = blocks[index]
-        const baseKey = block.id ? 'id:' + block.id : 'index:' + index
+        const hasProducerRevision = typeof block.revision === 'string' || typeof block.revision === 'number'
+        // Plain JSON compatibility mode already pays for a deep signature.
+        // Take ownership first so accessor-backed input is observed exactly
+        // once; the later render clone then reads only our plain snapshot.
+        // Producer revisions keep the O(1) fast path and deliberately avoid
+        // touching deep content when the authoritative revision is unchanged.
+        const signatureBlock = hasProducerRevision ? block : cloneEditorData(block)
+        const baseKey = signatureBlock.id ? 'id:' + signatureBlock.id : 'index:' + index
         const occurrence = occurrences.get(baseKey) ?? 0
         occurrences.set(baseKey, occurrence + 1)
         const key = baseKey + '#' + occurrence
-        const revision = this.#rendererRevisions.get(block.type) ?? 0
-        const signature = this.#blockSignature(block, revision)
+        const revision = this.#rendererRevisions.get(signatureBlock.type) ?? 0
+        const signature = this.#blockSignature(signatureBlock, revision)
         const existing = previous.get(key)
 
         let element
         let owner
-        if (existing && existing.type === block.type && existing.signature === signature) {
+        if (existing && existing.type === signatureBlock.type && existing.signature === signature) {
           element = existing.element
           owner = existing.renderer
         } else {
-          const entry = this.#createRenderedBlock(block, ownerDocument)
+          const entry = this.#createRenderedBlock(signatureBlock, ownerDocument)
           owner = entry.renderer
           element = entry.element
           created.push(entry)
         }
 
-        next.set(key, { element, type: block.type, signature, renderer: owner })
+        next.set(key, { element, type: signatureBlock.type, signature, renderer: owner })
         ordered.push(element)
       }
     } catch (error) {
