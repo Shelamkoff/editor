@@ -1,3 +1,4 @@
+import { register as rendererExtensionSnapshot } from './regressions/recheck-89-renderer-extension-snapshot.js'
 import { register as inlineOwnership } from './regressions/recheck-88-inline-ownership.js'
 import { register as rendererRealm } from './regressions/recheck-86-renderer-realm.js'
 import { register as blockPluginRealm } from './regressions/recheck-85-block-plugin-realm.js'
@@ -175,4 +176,5 @@ complexBlockPluginRealm()
 imageSettingsRealm()
 toolbarRealm()
 clipboardRealm()
+rendererExtensionSnapshot()
 await run()
