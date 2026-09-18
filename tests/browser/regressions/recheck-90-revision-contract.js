@@ -1,12 +1,15 @@
-import { test, make, para, equal } from './harness.js'
+import { test, make, para, assert } from './harness.js'
 
 export function register() {
-  test('editor import discards non-finite producer revisions', () => {
+  test('editor import rejects non-finite producer revisions', () => {
     for (const revision of [Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY]) {
-      const editor = make([para('revision-block', 'A', { revision })])
-      const saved = editor.save().blocks[0]
-      equal(Object.hasOwn(saved, 'revision'), false, 'non-finite revision must not survive editor import')
-      editor.destroy()
+      let rejected = false
+      try {
+        make([para('revision-block', 'A', { revision })])
+      } catch (error) {
+        rejected = /finite JSON number/i.test(String(error))
+      }
+      assert(rejected, 'non-finite revision must be rejected at the editor JSON boundary')
     }
   })
 }
