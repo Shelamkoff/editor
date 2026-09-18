@@ -198,7 +198,7 @@ interface EditorBlockView {
 }
 ```
 
-`element` and `contentElement` are escape hatches for measurement and integration. Application code must not mutate their persisted content. `version` changes when Rector marks the block dirty and can be used as an observation token, not as a document version. A retained view resolves the current live block by ID. It throws while that ID is absent, but can resolve a later block if the same ID reappears. After a committed removal Rector evicts its own cached reference so removed IDs do not accumulate; a later `editor.blocks` lookup may therefore return a different view object for the reused ID.
+`element` and `contentElement` are escape hatches for measurement and integration. Application code must not mutate their persisted content. `version` changes when Rector marks the block dirty and can be used as an observation token, not as a document version. A retained view follows an atomic same-ID conversion, because conversion preserves the live block identity. After a committed removal, however, that retained view is permanently retired and always throws. Reusing the same string ID later creates a new public view; an old removed handle never revives for the new block.
 
 ## Event subscriptions
 
