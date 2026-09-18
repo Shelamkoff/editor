@@ -34,16 +34,19 @@ class PublicBlockView {
   /** @type {string} */ #id
   /** @type {(id: string) => import('./types').IBlock | undefined} */ #resolveBlock
   /** @type {() => void} */ #assertActive
+  /** @type {() => void} */ #assertMutable
 
   /**
    * @param {string} id
    * @param {(id: string) => import('./types').IBlock | undefined} resolveBlock
    * @param {() => void} assertActive
+   * @param {() => void} assertMutable
    */
-  constructor(id, resolveBlock, assertActive) {
+  constructor(id, resolveBlock, assertActive, assertMutable) {
     this.#id = id
     this.#resolveBlock = resolveBlock
     this.#assertActive = assertActive
+    this.#assertMutable = assertMutable
   }
 
   get #block() {
@@ -62,7 +65,7 @@ class PublicBlockView {
   get hasInlineTools() { return this.#block.hasInlineTools }
   get canMerge() { return this.#block.canMerge }
   get version() { return this.#block.version }
-  focus() { this.#block.focus() }
+  focus() { this.#assertMutable(); this.#block.focus() }
   isEmpty() { return this.#block.isEmpty() }
 }
 
@@ -77,6 +80,9 @@ export class EditorBlocksApi {
   /** @type {import('./types').IEventBus} */
   #events
 
+  /** @type {import('./CommandDispatcher').CommandDispatcher | null} */
+  #commands
+
   /** Stable public handles keyed by document block identity. */
   /** @type {Map<string, PublicBlockView>} */
   #views = new Map()
@@ -89,8 +95,9 @@ export class EditorBlocksApi {
   constructor(blocks, events, commands) {
     this.#manager = blocks
     this.#events = events
+    this.#commands = commands ?? null
 
-    const afterCommit = callback => commands ? commands.afterCommit(callback) : callback()
+    const afterCommit = callback => this.#commands ? this.#commands.afterCommit(callback) : callback()
 
     events.on(EditorEvent.BLOCK_REMOVED, ({ blockId } = {}) => {
       if (typeof blockId !== 'string') return
@@ -107,6 +114,13 @@ export class EditorBlocksApi {
 
   #assertActive() {
     if (!this.#manager) throw new Error('Editor instance is destroyed')
+  }
+
+  #assertMutableState() {
+    this.#assertActive()
+    if (this.#commands?.inTransaction) {
+      throw new Error('Cannot change editor state during an active command transaction')
+    }
   }
 
   #retireViewIfMissing(id) {
@@ -151,6 +165,7 @@ export class EditorBlocksApi {
         id,
         blockId => this.#manager?.getBlockById(blockId),
         () => this.#assertActive(),
+        () => this.#assertMutableState(),
       )
       this.#views.set(id, view)
     }
@@ -168,6 +183,7 @@ export class EditorBlocksApi {
 
   /** Focus/navigation state is safe to expose as an explicit command. */
   setCurrentIndex(index) {
+    this.#assertMutableState()
     if (!Number.isSafeInteger(index)) throw new RangeError('Block index must be a safe integer')
     const count = this.#blocks.getBlockCount()
     if (index < 0 || index >= count) throw new RangeError('Block index is out of range')
@@ -177,6 +193,7 @@ export class EditorBlocksApi {
 
   /** @param {string[]} blockIds */
   selectBlocks(blockIds) {
+    this.#assertMutableState()
     if (!Array.isArray(blockIds) || blockIds.some(id => typeof id !== 'string')) {
       throw new TypeError('blockIds must be an array of strings')
     }
@@ -187,16 +204,19 @@ export class EditorBlocksApi {
   }
 
   clearSelection() {
+    this.#assertMutableState()
     const previousBlockIds = this.#selectedBlockIds()
     this.#blocks.clearSelection()
     this.#emitSelectionChanged(previousBlockIds)
   }
 
   insert(type, data, index, id, inline) {
+    this.#assertMutableState()
     return this.#view(this.#blocks.insert(type, data, index, id, inline))
   }
 
   remove(index) {
+    this.#assertMutableState()
     const removed = this.#blocks.getBlockByIndex(index)
     const wasCurrent = removed !== undefined && removed === this.#blocks.getCurrentBlock()
     this.#blocks.remove(index)
@@ -210,6 +230,7 @@ export class EditorBlocksApi {
     }
   }
   move(fromIndex, toIndex) {
+    this.#assertMutableState()
     if (!Number.isSafeInteger(fromIndex) || !Number.isSafeInteger(toIndex)) {
       throw new RangeError('Block index must be a safe integer')
     }
@@ -223,7 +244,10 @@ export class EditorBlocksApi {
     const insertionIndex = fromIndex < finalIndex ? finalIndex + 1 : finalIndex
     this.#blocks.move(fromIndex, insertionIndex)
   }
-  convert(index, type, data) { return this.#view(this.#blocks.convert(index, type, data)) }
+  convert(index, type, data) {
+    this.#assertMutableState()
+    return this.#view(this.#blocks.convert(index, type, data))
+  }
 
   *[Symbol.iterator]() {
     for (const block of this.#blocks) yield this.#view(block)
