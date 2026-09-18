@@ -385,3 +385,26 @@ test('custom classPrefix keeps consumer classes while retaining bundled style al
   })
   assert.equal(custom.renderBlock({ type: 'custom', data: {} }).className, 'article-warning')
 })
+
+
+test('renderer contains rejected validation observer promises', async () => {
+  const { EditorRenderer } = await import('./index.js')
+  let calls = 0
+  const renderer = new EditorRenderer({
+    blockTypes: ['table'],
+    validationMode: 'preserve',
+    async onValidationError() {
+      calls++
+      throw new Error('async renderer validation failure')
+    },
+  })
+
+  assert.doesNotThrow(() => renderer.renderBlock({
+    id: 'table-async',
+    type: 'table',
+    data: { content: [['kept', 'lost'], ['ragged']] },
+  }))
+  await Promise.resolve()
+  await Promise.resolve()
+  assert.equal(calls, 1)
+})
