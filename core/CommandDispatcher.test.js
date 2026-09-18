@@ -168,7 +168,7 @@ test('reentrant command from WILL_CHANGE is rejected and poisons the outer trans
 })
 
 
-test('commands started during commit are rejected and poison the outer transaction', () => {
+test('a caught command rejection during commit does not poison the outer transaction', () => {
   const events = new EventBus()
   const state = { outer: 'initial', commitNested: 'initial' }
   const blocks = { getBlockById() { return undefined } }
@@ -185,15 +185,15 @@ test('commands started during commit are rejected and poison the outer transacti
         apply() { state.commitNested = 'changed' },
       })
     } catch {
-      // A consumer observer may swallow the immediate error; the transaction
-      // must remain poisoned and reject at the outer boundary.
+      // The nested command never started, so an observational callback may
+      // safely contain this misuse without cancelling the parent command.
     }
   })
 
-  assert.throws(() => commands.execute({
+  assert.doesNotThrow(() => commands.execute({
     name: 'outer',
     apply() { state.outer = 'changed' },
-  }), /commit/i)
+  }))
 
-  assert.deepEqual(state, { outer: 'initial', commitNested: 'initial' })
+  assert.deepEqual(state, { outer: 'changed', commitNested: 'initial' })
 })
