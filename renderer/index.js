@@ -68,6 +68,24 @@ function validateRendererConfig(config) {
   }
 }
 
+/**
+ * Snapshot one public block envelope before validation. Object spread reads
+ * each own enumerable property once, so accessor-backed API inputs cannot
+ * change between validation and ownership transfer. Deep payloads remain
+ * opaque here; producer revisions may therefore still skip deep traversal.
+ * @param {unknown} block
+ * @returns {import('./types').OutputBlockData}
+ */
+function snapshotOutputBlockEnvelope(block) {
+  if (!block || typeof block !== 'object' || Array.isArray(block)) {
+    throw new TypeError('EditorRenderer block must be an object')
+  }
+  const prototype = Object.getPrototypeOf(block)
+  if (prototype !== Object.prototype && prototype !== null) {
+    throw new TypeError('EditorRenderer block must be a JSON object')
+  }
+  return /** @type {import('./types').OutputBlockData} */ ({ ...block })
+}
 /** @param {unknown} block */
 function validateOutputBlock(block) {
   if (!block || typeof block !== 'object' || Array.isArray(block)) {
@@ -107,25 +125,30 @@ function prepareOutputData(data) {
   if (!data || typeof data !== 'object' || Array.isArray(data)) {
     throw new TypeError('EditorRenderer data must be an object')
   }
-  const candidate = /** @type {Record<string, unknown>} */ (data)
+
+  // Own the document envelope before inspecting it. The blocks property may
+  // be accessor-backed application input and must not be observed once for
+  // validation and again for rendering.
+  const candidate = /** @type {Record<string, unknown>} */ ({ ...data })
   if (!Object.hasOwn(candidate, 'blocks') || !Array.isArray(candidate.blocks)) {
     throw new TypeError('EditorRenderer blocks must be an array')
   }
-  assertDenseArray(candidate.blocks, 'blocks')
+  const inputBlocks = candidate.blocks
+  assertDenseArray(inputBlocks, 'blocks')
 
-  const blocks = candidate.blocks.map(block => {
-    validateOutputBlock(block)
-    const source = /** @type {import('./types').OutputBlockData} */ (block)
+  const blocks = inputBlocks.map(block => {
+    const source = snapshotOutputBlockEnvelope(block)
+    validateOutputBlock(source)
     if (typeof source.revision !== 'string' && typeof source.revision !== 'number') {
       const snapshot = cloneEditorData(source)
       validateOutputBlock(snapshot)
       return snapshot
     }
 
-    // Copy only own envelope fields. Keeping the payload opaque is deliberate:
-    // equal producer revisions promise that the content is unchanged, so
-    // renderTo() must be able to reuse the mounted node without reading it.
-    return /** @type {import('./types').OutputBlockData} */ ({ ...source })
+    // Keeping the payload opaque is deliberate: equal producer revisions
+    // promise that content is unchanged, so renderTo() can reuse mounted DOM
+    // without traversing data/tunes/inline.
+    return source
   })
 
   return /** @type {import('./types').OutputData} */ ({ ...candidate, blocks })
@@ -173,8 +196,9 @@ export class EditorRenderer extends EditorRendererImpl {
 
   /** @param {import('./types').OutputBlockData} block */
   renderBlock(block) {
-    validateOutputBlock(block)
-    return super.renderBlock(block)
+    const source = snapshotOutputBlockEnvelope(block)
+    validateOutputBlock(source)
+    return super.renderBlock(source)
   }
 
   /** @param {import('./types').OutputData} data */
