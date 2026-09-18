@@ -1,4 +1,3 @@
-import { invokeObserver } from '../shared/invokeObserver.js'
 // @ts-check
 import { InvalidBlockDataError, UnknownBlockTypeError } from './errors.js'
 import { createInlineParser } from './inline.js'
@@ -14,6 +13,7 @@ import { resolveValidationMode } from '../shared/validationMode.js'
 
 const baseCssUrl = new URL('./styles/base.css', import.meta.url).href
 const bundledRendererCssRoot = new URL('./renderers/', import.meta.url).href
+const validationSourceKey = Symbol.for('@shelamkoff/rector/renderer-validation-source')
 
 /**
  * Renders Rector document blocks to DOM elements.
@@ -169,7 +169,7 @@ export class EditorRenderer {
   #createRenderedBlock(block, ownerDocument) {
     // Track the caller-owned identity only for synchronous observer reentry.
     // Rendering still clones before any renderer or validator can observe data.
-    const validationSource = block
+    const validationSource = /** @type {any} */ (block)[validationSourceKey] ?? block
     // A block crosses the public rendering boundary only when it is actually
     // rendered. This preserves O(1) reuse for equal producer revisions while
     // ensuring custom/default renderers never observe caller-owned JSON data.
@@ -191,11 +191,29 @@ export class EditorRenderer {
     let renderableBlock = block
     if (this.#defaultRendererTypes.has(block.type) && !validateKnownBlockData(block.type, block.data)) {
       const issue = { blockId: block.id, type: block.type }
-      if (!this.#reportingValidation.has(validationSource)) {
+      const observer = this.#config.onValidationError
+      if (typeof observer === 'function' && !this.#reportingValidation.has(validationSource)) {
         this.#reportingValidation.add(validationSource)
+        let result
         try {
-          invokeObserver(this.#config.onValidationError, [issue])
-        } finally {
+          result = observer(issue)
+        } catch (error) {
+          this.#reportingValidation.delete(validationSource)
+          console.warn('[EditorRenderer] Validation observer failed:', error)
+        }
+        let then
+        try {
+          then = result && /** @type {any} */ (result).then
+        } catch (error) {
+          this.#reportingValidation.delete(validationSource)
+          console.warn('[EditorRenderer] Validation observer failed:', error)
+          then = null
+        }
+        if (typeof then === 'function') {
+          new Promise((resolve, reject) => then.call(result, resolve, reject))
+            .catch(error => console.warn('[EditorRenderer] Validation observer failed:', error))
+            .finally(() => this.#reportingValidation.delete(validationSource))
+        } else {
           this.#reportingValidation.delete(validationSource)
         }
       }
