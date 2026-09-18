@@ -51,7 +51,7 @@ export class Diagnostics {
       timestamp: Date.now(),
       ...details,
     })
-    invokeObserver(this.#report, [diagnostic])
+    queueMicrotask(() => invokeObserver(this.#report, [diagnostic]))
   }
 
   /** @param {unknown} error */
