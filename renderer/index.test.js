@@ -328,6 +328,35 @@ test('producer revisions skip deep signatures while JSON input keeps compatibili
   assert.notEqual(container.children[0].children[0], first)
 })
 
+test('deep-signature renderTo observes caller accessors exactly once', async () => {
+  const { EditorRenderer } = await import('./index.js')
+  let reads = 0
+  const block = {
+    id: 'accessor',
+    type: 'accessor',
+    get data() {
+      reads++
+      return { text: reads === 1 ? 'first' : 'second' }
+    },
+  }
+  const renderer = new EditorRenderer({ blockTypes: [] })
+  renderer.registerRenderer({
+    type: 'accessor',
+    render(input) {
+      const element = document.createElement('article')
+      element.textContent = input.data.text
+      return element
+    },
+  })
+
+  const container = document.createElement('main')
+  renderer.renderTo({ blocks: [block] }, container)
+
+  assert.equal(reads, 1)
+  assert.equal(container.children[0].children[0].textContent, 'first')
+  renderer.destroy(container)
+})
+
 test('block tunes participate in incremental rendering and apply safe text alignment', async () => {
   const { EditorRenderer } = await import('./index.js')
   let renderCalls = 0
