@@ -32,6 +32,10 @@ export class DocumentSnapshotStore {
   /** @type {string} */
   #documentVersion
 
+  /** Validation issues currently being reported on this synchronous stack. */
+  /** @type {Set<string>} */
+  #reportingValidation = new Set()
+
   /**
    * @param {import('./types').IBlockReader} blocks
    * @param {import('./InlinePluginRegistry').InlinePluginRegistry | null} inlinePluginRegistry
@@ -142,12 +146,23 @@ export class DocumentSnapshotStore {
           type: block.type,
           data: cloneEditorData(snapshot.data),
         }
-        // Reporting is observational: it must not override preserve/strict policy.
-        invokeObserver(
-          this.#onValidationError,
-          [issue],
-          error => console.warn('[DocumentSnapshotStore] Validation observer failed:', error),
-        )
+        // Reporting is observational: it must not override preserve/strict
+        // policy. Guard the same block against synchronous self-reentry (for
+        // example an observer that calls editor.save()) before this snapshot
+        // has reached the cache.
+        const validationKey = block.id + '\u0000' + block.type
+        if (!this.#reportingValidation.has(validationKey)) {
+          this.#reportingValidation.add(validationKey)
+          try {
+            invokeObserver(
+              this.#onValidationError,
+              [issue],
+              error => console.warn('[DocumentSnapshotStore] Validation observer failed:', error),
+            )
+          } finally {
+            this.#reportingValidation.delete(validationKey)
+          }
+        }
         if (this.#validationMode === 'strict') {
           throw new Error('Invalid block data for "' + block.type + '" (' + block.id + ')')
         }
