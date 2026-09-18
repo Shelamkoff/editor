@@ -88,6 +88,10 @@ export class CommandDispatcher {
 
   get active() { return this.#depth > 0 }
 
+  // Includes the synchronous WILL_CHANGE prelude, where document commands and
+  // history/lifecycle restoration are unsafe even though apply() has not begun.
+  get inTransaction() { return this.#notifyingWillChange || this.#depth > 0 }
+
   runForRange(range, operation) {
     return this.execute({
       name: 'inline-range',
