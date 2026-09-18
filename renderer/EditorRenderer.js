@@ -1,3 +1,4 @@
+import { invokeObserver } from '../shared/invokeObserver.js'
 // @ts-check
 import { InvalidBlockDataError, UnknownBlockTypeError } from './errors.js'
 import { createInlineParser } from './inline.js'
@@ -175,11 +176,7 @@ export class EditorRenderer {
     let renderableBlock = block
     if (this.#defaultRendererTypes.has(block.type) && !validateKnownBlockData(block.type, block.data)) {
       const issue = { blockId: block.id, type: block.type }
-      try {
-        this.#config.onValidationError?.(issue)
-      } catch {
-        // Consumer diagnostics must not break rendering or alter validation.
-      }
+      invokeObserver(this.#config.onValidationError, [issue])
       if (this.#config.validationMode === 'strict') {
         throw new InvalidBlockDataError(block.type, 'Block data does not match its schema', block.id)
       }
