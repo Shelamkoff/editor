@@ -274,3 +274,44 @@ test('public WILL_CHANGE stays synchronous but rejects document mutation', () =>
   assert.equal(commits, 1)
   assert.equal(logged, 1)
 })
+
+
+test('public block state mutations are rejected during a command transaction', () => {
+  const first = {
+    id: 'first',
+    type: 'paragraph',
+    selected: false,
+    focused: false,
+    element: {},
+    contentElement: {},
+    hasInlineTools: true,
+    canMerge: true,
+    version: 0,
+    focus() { this.focused = true },
+    isEmpty() { return false },
+  }
+  const items = [first]
+  let currentIndex = 0
+  const blocks = {
+    getBlockById(id) { return items.find(block => block.id === id) },
+    getBlockByIndex(index) { return items[index] },
+    getCurrentBlock() { return items[currentIndex] },
+    getCurrentIndex() { return currentIndex },
+    getBlockCount() { return items.length },
+    getSelectedBlocks() { return items.filter(block => block.selected) },
+    clearSelection() { for (const block of items) block.selected = false },
+    setCurrentIndex(index) { currentIndex = index },
+    *[Symbol.iterator]() { yield* items },
+  }
+  const commands = { inTransaction: true }
+  const api = new EditorBlocksApi(blocks, new EventBus(), commands)
+  const view = api.getBlockById('first')
+
+  assert.throws(() => api.setCurrentIndex(0), /active command transaction/)
+  assert.throws(() => api.selectBlocks(['first']), /active command transaction/)
+  assert.throws(() => api.clearSelection(), /active command transaction/)
+  assert.throws(() => view.focus(), /active command transaction/)
+  assert.equal(first.selected, false)
+  assert.equal(first.focused, false)
+  assert.equal(currentIndex, 0)
+})
