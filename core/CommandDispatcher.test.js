@@ -166,3 +166,34 @@ test('reentrant command from WILL_CHANGE is rejected and poisons the outer trans
   assert.equal(commits, 0)
   assert.equal(historyCommits, 0)
 })
+
+
+test('commands started during commit are rejected and poison the outer transaction', () => {
+  const events = new EventBus()
+  const state = { outer: 'initial', commitNested: 'initial' }
+  const blocks = { getBlockById() { return undefined } }
+  const commands = new CommandDispatcher(blocks, events)
+
+  commands.configureRollback(
+    () => ({ version: 'test', blocks: [], state: { ...state } }),
+    checkpoint => Object.assign(state, checkpoint.state),
+  )
+  commands.configureCommit(() => {
+    try {
+      commands.execute({
+        name: 'commit-reentrant',
+        apply() { state.commitNested = 'changed' },
+      })
+    } catch {
+      // A consumer observer may swallow the immediate error; the transaction
+      // must remain poisoned and reject at the outer boundary.
+    }
+  })
+
+  assert.throws(() => commands.execute({
+    name: 'outer',
+    apply() { state.outer = 'changed' },
+  }), /commit/i)
+
+  assert.deepEqual(state, { outer: 'initial', commitNested: 'initial' })
+})
