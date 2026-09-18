@@ -145,7 +145,10 @@ export class EditorBlocksApi {
     this.#events = events
     this.#commands = commands ?? null
 
-    const afterCommit = callback => this.#commands ? this.#commands.afterCommit(callback) : callback()
+    const afterCommit = callback => {
+      if (!this.#commands || this.#commands.restoring) callback()
+      else this.#commands.afterCommit(callback)
+    }
 
     events.on(EditorEvent.BLOCK_REMOVED, ({ blockId } = {}) => {
       if (typeof blockId !== 'string') return
