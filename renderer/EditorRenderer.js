@@ -30,6 +30,7 @@ export class EditorRenderer {
   /** Containers currently inside renderTo(); protects staged ownership from same-container reentry. */
   /** @type {WeakSet<HTMLElement>} */
   #renderingContainers = new WeakSet()
+  #activeRenderToCount = 0
 
   /** Results returned by render(); keyed by their document wrapper. */
   /** @type {Map<HTMLElement, Array<{ element: HTMLElement, type: string, renderer?: import('./types').BlockRenderer }>>} */
@@ -346,6 +347,7 @@ export class EditorRenderer {
       throw new Error('Cannot reenter renderTo() for the same container')
     }
     this.#renderingContainers.add(container)
+    this.#activeRenderToCount++
     try {
     const ownerDocument = container.ownerDocument ?? globalThis.document
     this.#ensureStyles(ownerDocument)
@@ -438,6 +440,7 @@ export class EditorRenderer {
     this.#ensureStyles(ownerDocument)
     } finally {
       this.#renderingContainers.delete(container)
+      this.#activeRenderToCount--
     }
   }
 
@@ -447,6 +450,9 @@ export class EditorRenderer {
    * @param {HTMLElement} [target]
    */
   destroy(target) {
+    if (target ? this.#renderingContainers.has(target) : this.#activeRenderToCount > 0) {
+      throw new Error('Cannot destroy renderer output during an active renderTo()')
+    }
     const containers = target
       ? (this.#mountedContainers.has(target) ? [target] : [])
       : [...this.#mountedContainers.keys()]
