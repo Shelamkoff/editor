@@ -43,7 +43,7 @@ function requestedTypes(source) {
   if (Array.isArray(source)) {
     const types = []
     for (let index = 0; index < source.length; index++) {
-      if (!Object.hasOwn(source, index)) throw new TypeError('source must be a dense array')
+      if (!Object.hasOwn(source, index)) throw new RangeError('Unknown editor preset type: undefined')
       types.push(source[index])
     }
     return [...new Set(types)]
