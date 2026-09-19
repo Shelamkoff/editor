@@ -110,7 +110,11 @@ export class DocumentSchema {
     if (this.#migrations.has(from)) {
       throw new Error(`Duplicate document migration source version "${from}"`)
     }
-    this.#migrations.set(from, migration)
+    this.#migrations.set(from, {
+      from,
+      to,
+      migrate: migrate.bind(migration),
+    })
   }
 
   /**
