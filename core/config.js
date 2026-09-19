@@ -70,6 +70,21 @@ function validateGroup(value, path) {
  * @param {import('./types').EditorConfig} config
  * @returns {void}
  */
+/**
+ * Snapshot a validated dense public array exactly once.
+ * Accessor-backed own entries may otherwise drift between validation,
+ * ownership claiming and subsystem registration.
+ * @template T
+ * @param {T[] | undefined} value
+ * @returns {T[] | undefined}
+ */
+export function snapshotConfigArray(value) {
+  if (value === undefined) return undefined
+  const snapshot = []
+  for (let index = 0; index < value.length; index++) snapshot.push(value[index])
+  return snapshot
+}
+
 export function validateEditorConfigOptions(config) {
   for (const field of ['inlineTools', 'inlinePlugins', 'migrations']) {
     const value = config[field]
