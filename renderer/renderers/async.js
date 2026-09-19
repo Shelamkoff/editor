@@ -37,6 +37,27 @@ function requireRecord(value, label) {
   return /** @type {Record<string, unknown>} */ (value)
 }
 
+
+/** @param {Record<string, import('../../shared/localeTypes').LocaleValue>} locale */
+function snapshotLocale(locale) {
+  /** @type {Record<string, import('../../shared/localeTypes').LocaleValue>} */
+  const snapshot = Object.create(null)
+  for (const key of Object.keys(locale)) {
+    const value = locale[key]
+    snapshot[key] = value && typeof value === 'object' && !Array.isArray(value)
+      ? /** @type {import('../../shared/localeTypes').LocaleValue} */ ({ ...value })
+      : value
+  }
+  return snapshot
+}
+
+/** Snapshot one renderer config without imposing a shape on renderer-specific options. */
+function snapshotRendererConfig(value) {
+  if (Array.isArray(value)) return [...value]
+  if (value && typeof value === 'object') return { .../** @type {Record<string, unknown>} */ (value) }
+  return value
+}
+
 /** @param {readonly string[] | { blocks?: readonly { type: string }[] } | undefined} source */
 function requestedTypes(source) {
   if (source === undefined) return [...BLOCK_TYPES]
@@ -104,9 +125,12 @@ export async function preloadRendererFactories(source) {
  */
 export async function createRendererAsync(type, classPrefix, locale = {}, config) {
   if (typeof classPrefix !== 'string') throw new TypeError('classPrefix must be a string')
-  const localeMap = requireRecord(locale, 'locale')
+  const localeMap = snapshotLocale(
+    /** @type {Record<string, import('../../shared/localeTypes').LocaleValue>} */ (requireRecord(locale, 'locale')),
+  )
+  const configSnapshot = snapshotRendererConfig(config)
   const factory = await loadRendererFactory(type)
-  return factory(classPrefix, /** @type {Record<string, import('../../shared/localeTypes').LocaleValue>} */ (localeMap), config)
+  return factory(classPrefix, localeMap, configSnapshot)
 }
 
 /**
@@ -121,15 +145,23 @@ export async function createRendererAsync(type, classPrefix, locale = {}, config
  */
 export async function createDefaultRenderersAsync(classPrefix, locale = {}, source, configs = {}) {
   if (typeof classPrefix !== 'string') throw new TypeError('classPrefix must be a string')
-  const localeMap = requireRecord(locale, 'locale')
+  const localeMap = snapshotLocale(
+    /** @type {Record<string, import('../../shared/localeTypes').LocaleValue>} */ (requireRecord(locale, 'locale')),
+  )
   const configMap = requireRecord(configs, 'configs')
-  const factories = await preloadRendererFactories(source)
+  const types = requestedTypes(source)
+  const configSnapshots = new Map()
+  for (const type of types) {
+    configSnapshots.set(
+      type,
+      Object.hasOwn(configMap, type) ? snapshotRendererConfig(configMap[type]) : undefined,
+    )
+  }
+
+  // Snapshot caller-owned inputs before the dynamic import boundary.
+  const factories = await preloadRendererFactories(types)
   return new Map([...factories].map(([type, factory]) => [
     type,
-    factory(
-      classPrefix,
-      /** @type {Record<string, import('../../shared/localeTypes').LocaleValue>} */ (localeMap),
-      Object.hasOwn(configMap, type) ? configMap[type] : undefined,
-    ),
+    factory(classPrefix, localeMap, configSnapshots.get(type)),
   ]))
 }
