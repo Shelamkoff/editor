@@ -131,3 +131,31 @@ test('document schema executes the same migration members it validated', () => {
   assert.deepEqual(reads, { from: 1, to: 1, migrate: 1 })
   assert.strictEqual(receiver, migration, 'migration method receiver must remain the supplied descriptor')
 })
+
+
+test('DocumentSchema snapshots standalone options and rejects sparse migrations', () => {
+  const reads = { currentVersion: 0, versionPolicy: 0, migrations: 0 }
+  const migration = { from: 'legacy', to: '2', migrate: document => document }
+  const migrations = [migration]
+  const options = {
+    get currentVersion() { reads.currentVersion++; return '2' },
+    get versionPolicy() { reads.versionPolicy++; return 'strict' },
+    get migrations() { reads.migrations++; return migrations },
+  }
+
+  const schema = new DocumentSchema(options)
+  assert.deepEqual(reads, { currentVersion: 1, versionPolicy: 1, migrations: 1 })
+  assert.equal(schema.normalize({ version: 'legacy', blocks: [] }).version, '2')
+  assert.deepEqual(reads, { currentVersion: 1, versionPolicy: 1, migrations: 1 })
+
+  const sparse = []
+  sparse.length = 1
+  assert.throws(
+    () => new DocumentSchema({ migrations: sparse }),
+    /migrations must be a dense array/,
+  )
+  assert.throws(
+    () => new DocumentSchema({ migrations: {} }),
+    /migrations must be an array/,
+  )
+})
