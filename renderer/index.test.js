@@ -626,7 +626,7 @@ test('renderTo rejects reentry for the same container before ownership can be ov
     () => renderer.renderTo({
       blocks: [{ id: 'outer', type: 'reentrant-container', data: {} }],
     }, container),
-    /Cannot reenter renderTo() for the same container/,
+    /Cannot reenter renderTo\(\) for the same container/,
   )
   assert.equal(nestedAttempts, 1)
   assert.equal(container.children.length, 0, 'failed outer render must not leave staged nested output mounted')
