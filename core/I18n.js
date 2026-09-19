@@ -14,8 +14,10 @@ import en from './locale/en.js'
  * @type {Record<string, (n: number) => 'zero' | 'one' | 'two' | 'few' | 'many' | 'other'>}
  */
 const PLURAL_RULES = {
-  en: (n) => (n === 1 ? 'one' : 'other'),
+  en: (n) => (Math.abs(n) === 1 ? 'one' : 'other'),
   ru: (n) => {
+    if (!Number.isInteger(n)) return 'other'
+    n = Math.abs(n)
     const mod10 = n % 10
     const mod100 = n % 100
     if (mod10 === 1 && mod100 !== 11) return 'one'
