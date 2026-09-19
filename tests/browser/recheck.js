@@ -1,3 +1,4 @@
+import { register as rawLifecycle } from './regressions/recheck-91-raw-lifecycle.js'
 import { register as revisionContract } from './regressions/recheck-90-revision-contract.js'
 import { register as rendererExtensionSnapshot } from './regressions/recheck-89-renderer-extension-snapshot.js'
 import { register as inlineOwnership } from './regressions/recheck-88-inline-ownership.js'
@@ -179,4 +180,5 @@ toolbarRealm()
 clipboardRealm()
 rendererExtensionSnapshot()
 revisionContract()
+rawLifecycle()
 await run()
