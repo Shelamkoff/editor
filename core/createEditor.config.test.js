@@ -98,3 +98,41 @@ test('createEditor accepts a holder from its owning browsing realm', () => {
     globalThis.HTMLElement = previous
   }
 })
+
+
+test('createEditor observes accessor-backed plugin array entries once', () => {
+  const previous = globalThis.HTMLElement
+  globalThis.HTMLElement = FakeHolder
+  let reads = 0
+  const plugin = {
+    type: 'probe',
+    title: 'Probe',
+    icon: '',
+    render() { throw new Error('render should not be reached in this synthetic config test') },
+    save() { return {} },
+  }
+  const plugins = []
+  Object.defineProperty(plugins, '0', {
+    enumerable: true,
+    configurable: true,
+    get() {
+      reads++
+      if (reads > 1) throw new Error('plugin entry was observed more than once')
+      return plugin
+    },
+  })
+  plugins.length = 1
+
+  try {
+    assert.throws(
+      () => createEditor({
+        holder: new FakeHolder(),
+        plugins,
+        defaultBlock: 'probe',
+      }),
+    )
+    assert.equal(reads, 1)
+  } finally {
+    globalThis.HTMLElement = previous
+  }
+})
