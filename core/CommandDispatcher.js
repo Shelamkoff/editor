@@ -15,6 +15,8 @@ export class CommandDispatcher {
   /** @type {boolean} */ #drainingPostCommit = false
   /** @type {boolean} */ #notifyingWillChange = false
   /** @type {boolean} */ #committing = false
+  /** Checkpoint/affected-input preparation is observational, before apply(). */
+  #preparing = false
   /** @type {Set<import('./types').IBlock>} */ #affected = new Set()
   /** @type {(() => import('./types').EditorDocument) | null} */ #capture = null
   /** @type {((document: import('./types').EditorDocument) => void) | null} */ #restore = null
@@ -92,7 +94,7 @@ export class CommandDispatcher {
 
   // Includes the synchronous WILL_CHANGE prelude, where document commands and
   // history/lifecycle restoration are unsafe even though apply() has not begun.
-  get inTransaction() { return this.#notifyingWillChange || this.#committing || this.#depth > 0 }
+  get inTransaction() { return this.#preparing || this.#notifyingWillChange || this.#committing || this.#depth > 0 }
 
   runForRange(range, operation) {
     return this.execute({
@@ -117,15 +119,26 @@ export class CommandDispatcher {
 
   /** Commit a callback that already changed a known set of blocks. */
   commitExternalMany(blocks) {
-    if (this.#notifyingWillChange || this.#committing) {
-      const phase = this.#notifyingWillChange ? 'WILL_CHANGE observers' : 'the commit phase'
+    if (this.#preparing || this.#notifyingWillChange || this.#committing) {
+      const phase = this.#preparing ? 'command preparation'
+        : this.#notifyingWillChange ? 'WILL_CHANGE observers' : 'the commit phase'
       throw new Error(`Cannot commit external editor mutations from ${phase}`)
     }
     for (const block of blocks) this.#affected.add(block)
     if (this.#depth > 0) return
     const affected = [...this.#affected]
     this.#affected.clear()
-    this.#flushPostCommit(this.#markAndCommit(affected))
+    const postCommitStart = this.#postCommitQueue.length
+    let committed
+    try {
+      committed = this.#markAndCommit(affected)
+    } catch (error) {
+      // Failed external integrations must not publish queued history/state
+      // observations as part of a later, unrelated successful command.
+      this.#postCommitQueue.length = postCommitStart
+      throw error
+    }
+    this.#flushPostCommit(committed)
   }
 
   /**
@@ -145,8 +158,9 @@ export class CommandDispatcher {
   execute(command) {
     if (this.#restoring) return command.apply()
 
-    if (this.#notifyingWillChange || this.#committing) {
-      const phase = this.#notifyingWillChange ? 'WILL_CHANGE observers' : 'the commit phase'
+    if (this.#preparing || this.#notifyingWillChange || this.#committing) {
+      const phase = this.#preparing ? 'command preparation'
+        : this.#notifyingWillChange ? 'WILL_CHANGE observers' : 'the commit phase'
       // The rejected command has not executed any mutation, so catching this
       // guard error is safe and must not poison the surrounding transaction.
       // If it escapes the observer/commit callback, the ordinary outer catch
@@ -165,8 +179,18 @@ export class CommandDispatcher {
     // Nothing below this point may mutate transaction state until the prelude
     // has completed. A throwing affected iterable, checkpoint capture, or
     // WILL_CHANGE listener must leave the next command with a clean slate.
-    const commandAffected = [...(command.affected ?? [])]
-    const checkpoint = outermost && this.#capture ? this.#capture() : null
+    let commandAffected
+    let checkpoint
+    this.#preparing = true
+    try {
+      commandAffected = [...(command.affected ?? [])]
+      checkpoint = outermost && this.#capture ? this.#capture() : null
+    } catch (error) {
+      if (outermost) this.#postCommitQueue.length = postCommitStart
+      throw error
+    } finally {
+      this.#preparing = false
+    }
 
     // WILL_CHANGE is a synchronous pre-transaction observation. Internal
     // listeners such as UndoManager must still see command activity as false

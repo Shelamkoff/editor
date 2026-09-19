@@ -3,6 +3,7 @@ import { mkdtemp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promis
 import { tmpdir } from 'node:os'
 import { basename, dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { packInstalledDependency } from './pack-installed-dependency.mjs'
 
 const editorRoot = resolve(fileURLToPath(new URL('..', import.meta.url)))
 const node = process.execPath
@@ -109,15 +110,7 @@ try {
   }
   const dependencyTarballs = []
   for (const { directory, packageRoot } of dependencyPackages) {
-    const args = [
-      npmCli,
-      'pack',
-      '--ignore-scripts',
-      '--pack-destination', dependencyPackRoot,
-      '--cache', npmCache,
-    ]
-    const output = run(node, args, packageRoot, { capture: true }).trim()
-    const dependencyTarball = join(dependencyPackRoot, basename(output.split(/\r?\n/).at(-1)))
+    const dependencyTarball = await packInstalledDependency(packageRoot, dependencyPackRoot)
     dependencyTarballs.push(dependencyTarball)
     const entries = run('tar', ['-tf', dependencyTarball], packageRoot, { capture: true }).split(/\r?\n/).filter(Boolean)
     const required = ['package/README.md', 'package/README.ru.md', 'package/LICENSE', 'package/package.json']
@@ -132,18 +125,11 @@ try {
   // DOMPurify is an ordinary npm runtime dependency rather than a sibling
   // @shelamkoff package. Resolve its exported ESM entry and move up from
   // dist/ to the package root; package.json itself is intentionally not an
-  // exported subpath. Pack that exact installed version so the consumer
-  // fixture remains genuinely offline.
+  // exported subpath. Repack exact installed bytes without invoking prepare
+  // (older npm pack releases run it even with --ignore-scripts).
   const domPurifyEntry = fileURLToPath(import.meta.resolve('dompurify'))
   const domPurifyRoot = resolve(dirname(domPurifyEntry), '..')
-  const domPurifyOutput = run(node, [
-    npmCli,
-    'pack',
-    '--ignore-scripts',
-    '--pack-destination', dependencyPackRoot,
-    '--cache', npmCache,
-  ], domPurifyRoot, { capture: true }).trim()
-  dependencyTarballs.push(join(dependencyPackRoot, basename(domPurifyOutput.split(/\r?\n/).at(-1))))
+  dependencyTarballs.push(await packInstalledDependency(domPurifyRoot, dependencyPackRoot))
 
   const consumerRoot = join(temporaryRoot, 'consumer')
   await mkdir(join(consumerRoot, 'src'), { recursive: true })

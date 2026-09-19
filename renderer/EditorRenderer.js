@@ -31,6 +31,9 @@ export class EditorRenderer {
   /** @type {WeakSet<HTMLElement>} */
   #renderingContainers = new WeakSet()
   #activeRenderToCount = 0
+  /** Targets detached from ownership while their user disposers run. */
+  /** @type {WeakSet<HTMLElement>} */
+  #destroyingTargets = new WeakSet()
 
   /** Results returned by render(); keyed by their document wrapper. */
   /** @type {Map<HTMLElement, Array<{ element: HTMLElement, type: string, renderer?: import('./types').BlockRenderer }>>} */
@@ -168,12 +171,12 @@ export class EditorRenderer {
    * exactly once by the public operation that returns or mounts the result.
    * @param {import('./types').OutputBlockData} block
    * @param {Document} ownerDocument
+   * @param {object} [validationSource] Original identity, not a signature clone.
    * @returns {{ element: HTMLElement, type: string, renderer?: import('./types').BlockRenderer }}
    */
-  #createRenderedBlock(block, ownerDocument) {
-    // Track the caller-owned identity only for synchronous observer reentry.
+  #createRenderedBlock(block, ownerDocument, validationSource = /** @type {any} */ (block)[validationSourceKey] ?? block) {
+    // Keep the caller-owned identity even through aggregate/signature clones.
     // Rendering still clones before any renderer or validator can observe data.
-    const validationSource = /** @type {any} */ (block)[validationSourceKey] ?? block
     // A block crosses the public rendering boundary only when it is actually
     // rendered. This preserves O(1) reuse for equal producer revisions while
     // ensuring custom/default renderers never observe caller-owned JSON data.
@@ -343,101 +346,104 @@ export class EditorRenderer {
    * @returns {void}
    */
   renderTo(data, container) {
-    if (this.#renderingContainers.has(container)) {
+    if (this.#renderingContainers.has(container) || this.#destroyingTargets.has(container)) {
       throw new Error('Cannot reenter renderTo() for the same container')
     }
     this.#renderingContainers.add(container)
     this.#activeRenderToCount++
     try {
-    const ownerDocument = container.ownerDocument ?? globalThis.document
-    this.#ensureStyles(ownerDocument)
-    const mounted = this.#mountedContainers.get(container)
-    const wrapper = mounted?.wrapper ?? ownerDocument.createElement('div')
-    if (!mounted) {
-      const theme = this.#config.theme
-      wrapper.className = this.#contentClassName(theme)
-    }
+      const ownerDocument = container.ownerDocument ?? globalThis.document
+      this.#ensureStyles(ownerDocument)
+      const mounted = this.#mountedContainers.get(container)
+      const wrapper = mounted?.wrapper ?? ownerDocument.createElement('div')
+      if (!mounted) {
+        const theme = this.#config.theme
+        wrapper.className = this.#contentClassName(theme)
+      }
 
-    const previous = mounted?.blocks ?? new Map()
-    /** @type {Map<string, { element: HTMLElement, type: string, signature: string, renderer?: import('./types').BlockRenderer }>} */
-    const next = new Map()
-    /** @type {HTMLElement[]} */
-    const ordered = []
-    /** @type {Array<{ element: HTMLElement, type: string, renderer?: import('./types').BlockRenderer }>} */
-    const created = []
-    /** @type {Map<string, number>} */
-    const occurrences = new Map()
+      const previous = mounted?.blocks ?? new Map()
+      /** @type {Map<string, { element: HTMLElement, type: string, signature: string, renderer?: import('./types').BlockRenderer }>} */
+      const next = new Map()
+      /** @type {HTMLElement[]} */
+      const ordered = []
+      /** @type {Array<{ element: HTMLElement, type: string, renderer?: import('./types').BlockRenderer }>} */
+      const created = []
+      /** @type {Map<string, number>} */
+      const occurrences = new Map()
 
-    try {
-      const blocks = data.blocks ?? []
-      for (let index = 0; index < blocks.length; index++) {
-        const block = blocks[index]
-        const hasProducerRevision = typeof block.revision === 'string' || typeof block.revision === 'number'
-        // Plain JSON compatibility mode already pays for a deep signature.
-        // Take ownership first so accessor-backed input is observed exactly
-        // once; the later render clone then reads only our plain snapshot.
-        // Producer revisions keep the O(1) fast path and deliberately avoid
-        // touching deep content when the authoritative revision is unchanged.
-        const signatureBlock = hasProducerRevision ? block : cloneEditorData(block)
-        const baseKey = signatureBlock.id ? 'id:' + signatureBlock.id : 'index:' + index
-        const occurrence = occurrences.get(baseKey) ?? 0
-        occurrences.set(baseKey, occurrence + 1)
-        const key = baseKey + '#' + occurrence
-        const revision = this.#rendererRevisions.get(signatureBlock.type) ?? 0
-        const signature = this.#blockSignature(signatureBlock, revision)
-        const existing = previous.get(key)
+      try {
+        const blocks = data.blocks ?? []
+        for (let index = 0; index < blocks.length; index++) {
+          const block = blocks[index]
+          const hasProducerRevision = typeof block.revision === 'string' || typeof block.revision === 'number'
+          // Plain JSON compatibility mode already pays for a deep signature.
+          // Take ownership first so accessor-backed input is observed exactly
+          // once; the later render clone then reads only our plain snapshot.
+          // Producer revisions keep the O(1) fast path and deliberately avoid
+          // touching deep content when the authoritative revision is unchanged.
+          const signatureBlock = hasProducerRevision ? block : cloneEditorData(block)
+          const baseKey = signatureBlock.id ? 'id:' + signatureBlock.id : 'index:' + index
+          const occurrence = occurrences.get(baseKey) ?? 0
+          occurrences.set(baseKey, occurrence + 1)
+          const key = baseKey + '#' + occurrence
+          const revision = this.#rendererRevisions.get(signatureBlock.type) ?? 0
+          const signature = this.#blockSignature(signatureBlock, revision)
+          const existing = previous.get(key)
 
-        let element
-        let owner
-        if (existing && existing.type === signatureBlock.type && existing.signature === signature) {
-          element = existing.element
-          owner = existing.renderer
-        } else {
-          const entry = this.#createRenderedBlock(signatureBlock, ownerDocument)
-          owner = entry.renderer
-          element = entry.element
-          created.push(entry)
+          let element
+          let owner
+          if (existing && existing.type === signatureBlock.type && existing.signature === signature) {
+            element = existing.element
+            owner = existing.renderer
+          } else {
+            const entry = this.#createRenderedBlock(
+              signatureBlock, ownerDocument,
+              /** @type {any} */ (block)[validationSourceKey] ?? block,
+            )
+            owner = entry.renderer
+            element = entry.element
+            created.push(entry)
+          }
+
+          next.set(key, { element, type: signatureBlock.type, signature, renderer: owner })
+          ordered.push(element)
         }
+      } catch (error) {
+        for (const entry of created) this.#disposeRenderedElement(entry)
+        this.#releaseAutomaticStylesIfIdle()
+        throw error
+      }
 
-        next.set(key, { element, type: signatureBlock.type, signature, renderer: owner })
-        ordered.push(element)
+      for (const [key, entry] of previous) {
+        if (next.get(key)?.element !== entry.element) {
+          this.#disposeRenderedElement(entry)
+        }
       }
-    } catch (error) {
-      for (const entry of created) this.#disposeRenderedElement(entry)
-      this.#releaseAutomaticStylesIfIdle()
-      throw error
-    }
 
-    for (const [key, entry] of previous) {
-      if (next.get(key)?.element !== entry.element) {
-        this.#disposeRenderedElement(entry)
+      // Keep unchanged nodes connected. Replacing even the same children resets
+      // iframe browsing contexts, focus, and custom-element lifecycle state.
+      const retained = new Set(ordered)
+      for (const child of Array.from(wrapper.childNodes)) {
+        if (!retained.has(/** @type {HTMLElement} */ (child))) child.remove()
       }
-    }
-
-    // Keep unchanged nodes connected. Replacing even the same children resets
-    // iframe browsing contexts, focus, and custom-element lifecycle state.
-    const retained = new Set(ordered)
-    for (const child of Array.from(wrapper.childNodes)) {
-      if (!retained.has(/** @type {HTMLElement} */ (child))) child.remove()
-    }
-    const movable = /** @type {HTMLElement & { moveBefore?: (node: Node, child: Node | null) => void }} */ (wrapper)
-    let cursor = wrapper.firstChild
-    for (const element of ordered) {
-      if (element === cursor) {
-        cursor = cursor.nextSibling
-        continue
+      const movable = /** @type {HTMLElement & { moveBefore?: (node: Node, child: Node | null) => void }} */ (wrapper)
+      let cursor = wrapper.firstChild
+      for (const element of ordered) {
+        if (element === cursor) {
+          cursor = cursor.nextSibling
+          continue
+        }
+        if (typeof movable.moveBefore === 'function' && element.isConnected && wrapper.isConnected) {
+          movable.moveBefore(element, cursor)
+        } else {
+          wrapper.insertBefore(element, cursor)
+        }
       }
-      if (typeof movable.moveBefore === 'function' && element.isConnected && wrapper.isConnected) {
-        movable.moveBefore(element, cursor)
-      } else {
-        wrapper.insertBefore(element, cursor)
+      if (wrapper.parentNode !== container || container.childNodes.length !== 1) {
+        container.replaceChildren(wrapper)
       }
-    }
-    if (wrapper.parentNode !== container || container.childNodes.length !== 1) {
-      container.replaceChildren(wrapper)
-    }
-    this.#mountedContainers.set(container, { wrapper, blocks: next })
-    this.#ensureStyles(ownerDocument)
+      this.#mountedContainers.set(container, { wrapper, blocks: next })
+      this.#ensureStyles(ownerDocument)
     } finally {
       this.#renderingContainers.delete(container)
       this.#activeRenderToCount--
@@ -456,39 +462,56 @@ export class EditorRenderer {
     const containers = target
       ? (this.#mountedContainers.has(target) ? [target] : [])
       : [...this.#mountedContainers.keys()]
-    for (const target of containers) {
-      const mounted = this.#mountedContainers.get(target)
-      if (mounted) {
-        for (const entry of mounted.blocks.values()) {
-          this.#disposeRenderedElement(entry)
-        }
-      }
-      this.#mountedContainers.delete(target)
-      target.replaceChildren()
-    }
-
     const documents = target
       ? (this.#detachedDocuments.has(target) ? [target] : [])
       : [...this.#detachedDocuments.keys()]
-    for (const wrapper of documents) {
-      for (const entry of this.#detachedDocuments.get(wrapper) ?? []) {
-        this.#disposeRenderedElement(entry)
-      }
-      this.#detachedDocuments.delete(wrapper)
-      wrapper.replaceChildren()
-    }
-
     const blocks = target
       ? (this.#detachedBlocks.has(target) ? [target] : [])
       : [...this.#detachedBlocks.keys()]
-    for (const element of blocks) {
-      const entry = this.#detachedBlocks.get(element)
-      if (entry) this.#disposeRenderedElement(entry)
-      this.#detachedBlocks.delete(element)
-      element.replaceChildren()
+    for (const container of containers) {
+      const mounted = this.#mountedContainers.get(container)
+      if (!mounted) continue
+      // Relinquish ownership before invoking extension code. A disposer may
+      // call destroy() again (including on siblings) without double release.
+      this.#mountedContainers.delete(container)
+      this.#destroyingTargets.add(container)
+      try {
+        for (const entry of mounted.blocks.values()) this.#disposeRenderedElement(entry)
+        container.replaceChildren()
+      } finally {
+        this.#destroyingTargets.delete(container)
+      }
     }
 
-    this.#releaseAutomaticStylesIfIdle(!target)
+    for (const wrapper of documents) {
+      const entries = this.#detachedDocuments.get(wrapper)
+      if (!entries) continue
+      this.#detachedDocuments.delete(wrapper)
+      this.#destroyingTargets.add(wrapper)
+      try {
+        for (const entry of entries) this.#disposeRenderedElement(entry)
+        wrapper.replaceChildren()
+      } finally {
+        this.#destroyingTargets.delete(wrapper)
+      }
+    }
+
+    for (const element of blocks) {
+      const entry = this.#detachedBlocks.get(element)
+      if (!entry) continue
+      this.#detachedBlocks.delete(element)
+      this.#destroyingTargets.add(element)
+      try {
+        this.#disposeRenderedElement(entry)
+        element.replaceChildren()
+      } finally {
+        this.#destroyingTargets.delete(element)
+      }
+    }
+
+    // A disposer may create independent output. Never release its styles just
+    // because this invocation originally requested destruction of all output.
+    this.#releaseAutomaticStylesIfIdle()
   }
 
   /**

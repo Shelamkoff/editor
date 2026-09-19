@@ -1,3 +1,4 @@
+import { register as preparationOwnership } from './regressions/recheck-93-preparation-ownership.js'
 import { register as destroyedFocus } from './regressions/recheck-92-destroyed-focus.js'
 import { register as rawLifecycle } from './regressions/recheck-91-raw-lifecycle.js'
 import { register as revisionContract } from './regressions/recheck-90-revision-contract.js'
@@ -183,4 +184,5 @@ rendererExtensionSnapshot()
 revisionContract()
 rawLifecycle()
 destroyedFocus()
+preparationOwnership()
 await run()

@@ -69,11 +69,10 @@ function freezeDictionary(dictionary) {
  */
 function interpolate(msg, params) {
   if (!params) return msg
-  let result = msg
-  for (const [k, v] of Object.entries(params)) {
-    result = result.replaceAll(`{${k}}`, String(v))
-  }
-  return result
+  const values = new Map(Object.entries(params).map(([key, value]) => [key, String(value)]))
+  // A replacement callback preserves literal dollar signs. Scan only the
+  // original message: parameter text is data, never another template.
+  return msg.replace(/\{([^{}]*)\}/g, (placeholder, key) => values.get(key) ?? placeholder)
 }
 
 /**
