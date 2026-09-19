@@ -1,6 +1,7 @@
 // @ts-check
 import { EditorRenderer as EditorRendererImpl, getSupportedBlockTypes } from './EditorRenderer.js'
 import { cloneEditorData } from '../shared/cloneEditorData.js'
+import { isPlainObjectPrototype } from '../shared/jsonData.js'
 import { snapshotPollRendererConfig } from './pollConfigSnapshot.js'
 
 const validationSourceKey = Symbol.for('@shelamkoff/rector/renderer-validation-source')
@@ -107,7 +108,7 @@ function snapshotOutputBlockEnvelope(block) {
     throw new TypeError('EditorRenderer block must be an object')
   }
   const prototype = Object.getPrototypeOf(block)
-  if (prototype !== Object.prototype && prototype !== null) {
+  if (!isPlainObjectPrototype(prototype)) {
     throw new TypeError('EditorRenderer block must be a JSON object')
   }
   const snapshot = /** @type {import('./types').OutputBlockData} */ ({ ...block })
@@ -125,7 +126,7 @@ function validateOutputBlock(block) {
     throw new TypeError('EditorRenderer block must be an object')
   }
   const prototype = Object.getPrototypeOf(block)
-  if (prototype !== Object.prototype && prototype !== null) {
+  if (!isPlainObjectPrototype(prototype)) {
     throw new TypeError('EditorRenderer block must be a JSON object')
   }
   const candidate = /** @type {Record<string, unknown>} */ (block)

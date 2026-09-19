@@ -1,6 +1,7 @@
 // @ts-nocheck
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import { runInNewContext } from 'node:vm'
 
 class FakeElement {
   constructor(tagName) {
@@ -667,3 +668,79 @@ test('renderTo prevents destroy from double-disposing the previous mounted owner
   renderer.destroy(container)
   assert.equal(oldDestroyCalls, 1, 'previous mounted owner must be disposed exactly once')
 })
+
+
+for (const operation of ['renderBlock', 'render', 'renderTo']) {
+  for (const revisioned of [false, true]) {
+    test(`${operation} accepts a foreign-realm JSON envelope (${revisioned ? 'revision' : 'deep signature'})`, async () => {
+      const { EditorRenderer } = await import('./index.js')
+      const source = runInNewContext('JSON.parse(input)', { input: JSON.stringify({
+        blocks: [{ id: 'foreign', type: 'realm-probe', data: { text: 'foreign', nested: { value: 1 } },
+          ...(revisioned ? { revision: 'r1' } : {}) }],
+      }) })
+      assert.notStrictEqual(Object.getPrototypeOf(source.blocks[0]), Object.prototype)
+      const renderer = new EditorRenderer({ blockTypes: [], injectStyles: false })
+      const container = document.createElement('main')
+      let calls = 0
+      renderer.registerRenderer({
+        type: 'realm-probe',
+        render(block) {
+          calls++
+          assert.strictEqual(Object.getPrototypeOf(block), Object.prototype)
+          assert.strictEqual(Object.getPrototypeOf(block.data), Object.prototype)
+          block.data.nested.value = 2
+          const element = document.createElement('article')
+          element.textContent = block.data.text
+          return element
+        },
+      })
+      try {
+        let element
+        if (operation === 'renderBlock') element = renderer.renderBlock(source.blocks[0])
+        else if (operation === 'render') element = renderer.render(source).children[0]
+        else {
+          renderer.renderTo(source, container)
+          element = container.children[0].children[0]
+          if (revisioned) {
+            Object.defineProperty(source.blocks[0].data, 'text', {
+              enumerable: true,
+              get() { throw new Error('unchanged foreign revision must not traverse payload') },
+            })
+          }
+          renderer.renderTo(source, container)
+          assert.strictEqual(container.children[0].children[0], element)
+        }
+        assert.equal(element.textContent, 'foreign')
+        assert.equal(calls, 1)
+        assert.equal(source.blocks[0].data.nested.value, 1, 'renderer cannot mutate caller-owned foreign JSON')
+      } finally {
+        renderer.destroy()
+      }
+    })
+  }
+}
+
+for (const operation of ['renderBlock', 'render', 'renderTo']) {
+  test(`${operation} still rejects foreign class envelopes before invoking own accessors`, async () => {
+    const { EditorRenderer } = await import('./index.js')
+    const foreign = runInNewContext(`(() => {
+      let reads = 0
+      const block = new (class Envelope {})()
+      Object.defineProperty(block, 'type', { enumerable: true, get() { reads++; return 'paragraph' } })
+      block.data = { text: 'not plain JSON' }
+      return { block, reads: () => reads }
+    })()`)
+    const renderer = new EditorRenderer({ blockTypes: [], injectStyles: false })
+    const container = document.createElement('main')
+    try {
+      assert.throws(() => {
+        if (operation === 'renderBlock') renderer.renderBlock(foreign.block)
+        else if (operation === 'render') renderer.render({ blocks: [foreign.block] })
+        else renderer.renderTo({ blocks: [foreign.block] }, container)
+      }, /block must be a JSON object/)
+      assert.equal(foreign.reads(), 0)
+    } finally {
+      renderer.destroy()
+    }
+  })
+}

@@ -6,7 +6,7 @@ const objectConstructorSource = Function.prototype.toString.call(Object)
  * Inspect descriptors instead of invoking caller-owned constructor getters.
  * @param {object | null} prototype
  */
-function isPlainObjectPrototype(prototype) {
+export function isPlainObjectPrototype(prototype) {
   if (prototype === null || prototype === Object.prototype) return true
   if (Object.getPrototypeOf(prototype) !== null) return false
   const constructor = Object.getOwnPropertyDescriptor(prototype, 'constructor')?.value
