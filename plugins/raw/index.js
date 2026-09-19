@@ -128,7 +128,9 @@ export class Raw extends BlockPluginAbstract {
 
     wrapper.append(bar, textarea, preview)
 
-    view.requestAnimationFrame(() => this.#autoResize(textarea))
+    view.requestAnimationFrame(() => {
+      if (stateMap.has(wrapper)) this.#autoResize(textarea)
+    })
     if (context.readOnly) this.#syncPreview(wrapper)
 
     return wrapper
@@ -210,6 +212,7 @@ export class Raw extends BlockPluginAbstract {
       iframe.srcdoc = /** @type {any} */ (sanitizeRawHtmlForSink(s.textarea.value, ownerDocument))
       s.preview.appendChild(iframe)
       const resizeIframe = () => {
+        if (stateMap.get(wrapper) !== s || !s.preview.contains(iframe)) return
         try {
           const h = iframe.contentDocument?.documentElement?.scrollHeight
           if (h) iframe.style.height = h + 'px'
@@ -225,7 +228,9 @@ export class Raw extends BlockPluginAbstract {
       s.textarea.style.display = ''
       s.preview.style.display = 'none'
       toggle?.classList.remove('oe-raw__toggle--active')
-      view.requestAnimationFrame(() => this.#autoResize(s.textarea))
+      view.requestAnimationFrame(() => {
+        if (stateMap.get(wrapper) === s) this.#autoResize(s.textarea)
+      })
     }
   }
 }
