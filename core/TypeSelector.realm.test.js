@@ -155,3 +155,93 @@ test('closing type selector clears only its own highlight registry', () => {
     CrossBlockSelection.hideHighlight(foreign.range)
   }
 })
+
+function lifecycleFixture() {
+  const own = createHighlightRealm()
+  const frames = []
+  const focused = { count: 0 }
+  own.view.requestAnimationFrame = callback => { frames.push(callback); return frames.length }
+  own.document.createElement = createElementFactory(own.document, focused)
+  const block = { id: 'a', type: 'paragraph', contentElement: { ownerDocument: own.document } }
+  const commands = []
+  const selector = new TypeSelector(
+    { getCurrentBlock: () => block }, {},
+    new Map([['heading', { type: 'heading', title: 'Heading', icon: '' }]]),
+    { execute(command) { commands.push(command.name) } },
+    null, { range: null }, { emit() {} }, { filterThreshold: 7 },
+  )
+  const click = element => element.listeners.get('click')({ preventDefault() {}, stopPropagation() {} })
+  const open = () => click(selector.selectButton)
+  const item = () => selector.dropdownElement.children.at(-1)
+  return { selector, own, frames, focused, commands, click, open, item }
+}
+
+test('closed type selector cannot steal focus through its queued opening frame', () => {
+  const f = lifecycleFixture()
+  try {
+    f.open(); f.selector.close()
+    f.frames.shift()()
+    assert.equal(f.focused.count, 0)
+  } finally { f.selector.destroy() }
+})
+
+test('type selector opening frames belong to one dropdown session', () => {
+  const f = lifecycleFixture()
+  try {
+    f.open(); f.selector.close(); f.open()
+    f.frames.shift()()
+    assert.equal(f.focused.count, 0, 'the first session must not focus the second session')
+    f.frames.shift()()
+    assert.equal(f.focused.count, 1, 'the live session must still receive autofocus')
+  } finally { f.selector.destroy() }
+})
+
+test('destroyed type selector releases its highlight without restoring selection', () => {
+  const f = lifecycleFixture()
+  let restored = 0
+  f.own.view.getSelection = () => ({
+    rangeCount: 1, getRangeAt: () => f.own.range,
+    removeAllRanges() { restored++ }, addRange() { restored++ },
+  })
+  f.open()
+  assert.equal(f.own.highlights.has('oe-cross-select'), true)
+  f.selector.destroy()
+  assert.equal(f.selector.isOpen, false)
+  assert.equal(f.own.highlights.has('oe-cross-select'), false)
+  assert.equal(restored, 0, 'teardown must not restore a stale document selection')
+  f.frames.shift()()
+  assert.equal(f.focused.count, 0)
+})
+
+test('a retained type-selector button cannot reopen after destruction', () => {
+  const f = lifecycleFixture()
+  f.selector.destroy()
+  f.open()
+  assert.equal(f.selector.isOpen, false)
+  assert.equal(f.frames.length, 0)
+})
+
+test('retained menu item cannot dispatch a command after the dropdown closes', () => {
+  const f = lifecycleFixture()
+  try {
+    f.open(); const item = f.item(); f.selector.close(); f.click(item)
+    assert.deepEqual(f.commands, [])
+  } finally { f.selector.destroy() }
+})
+
+test('menu items from a prior dropdown session cannot dispatch into a reopened session', () => {
+  const f = lifecycleFixture()
+  try {
+    f.open(); const oldItem = f.item(); f.selector.close(); f.open()
+    f.click(oldItem)
+    assert.deepEqual(f.commands, [])
+    f.click(f.item())
+    assert.deepEqual(f.commands, ['selection.convert'])
+  } finally { f.selector.destroy() }
+})
+
+test('retained type-selector menu items cannot dispatch after destruction', () => {
+  const f = lifecycleFixture()
+  f.open(); const item = f.item(); f.selector.destroy(); f.click(item)
+  assert.deepEqual(f.commands, [])
+})

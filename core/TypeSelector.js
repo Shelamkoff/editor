@@ -22,6 +22,9 @@ export class TypeSelector {
   /** @type {HTMLElement} */ #typeName
   /** @type {HTMLElement} */ #dropdown
   /** @type {boolean} */ #dropdownOpen = false
+  #destroyed = false
+  /** Monotonic ownership token for menu nodes and queued focus callbacks. */
+  #sessionVersion = 0
   /** @type {Range | null} */ #savedRange = null
   /** @type {(() => void) | null} */ #onConvert = null
   /** @type {import('./I18n').I18n | null} */ #i18n = null
@@ -86,6 +89,7 @@ export class TypeSelector {
   set onConvert(fn) { this.#onConvert = fn }
 
   update() {
+    if (this.#destroyed) return
     const currentBlock = this.#blocks.getCurrentBlock()
     if (!currentBlock) return
     const plugin = this.#plugins.get(currentBlock.type)
@@ -95,9 +99,10 @@ export class TypeSelector {
   close() {
     if (!this.#dropdownOpen) return
     this.#dropdownOpen = false
+    this.#sessionVersion++
     this.#dropdown.style.display = 'none'
     this.#selectBtn.setAttribute('aria-expanded', 'false')
-    if (this.#savedRange) CrossBlockSelection.hideHighlight(this.#savedRange)
+    if (this.#savedRange && !this.#savedRange.collapsed) CrossBlockSelection.hideHighlight(this.#savedRange)
     this.#restoreSelection()
     this.#savedRange = null
   }
@@ -105,12 +110,24 @@ export class TypeSelector {
   get isOpen() { return this.#dropdownOpen }
 
   destroy() {
+    if (this.#destroyed) return
+    this.#destroyed = true
+    this.#sessionVersion++
+    this.#dropdownOpen = false
+    if (this.#savedRange && !this.#savedRange.collapsed) CrossBlockSelection.hideHighlight(this.#savedRange)
+    // Teardown must not restore a Range into a retiring block/document.
+    this.#savedRange = null
+    this.#filterInput = null
+    this.#onConvert = null
+    this.#dropdown.style.display = 'none'
+    this.#selectBtn.setAttribute('aria-expanded', 'false')
     this.#dropdown.removeEventListener('keydown', this.#onDropdownKeydown)
     this.#dropdown.remove()
     this.#selectBtn.remove()
   }
 
   #onDropdownKeydown = (e) => {
+    if (this.#destroyed || !this.#dropdownOpen) return
     handleMenuKeydown(e, this.#dropdown, {
       onEscape: () => {
         this.close()
@@ -121,11 +138,13 @@ export class TypeSelector {
   }
 
   #toggleDropdown() {
+    if (this.#destroyed) return
     if (this.#dropdownOpen) this.close()
     else this.#openDropdown()
   }
 
   #openDropdown() {
+    const session = ++this.#sessionVersion
     this.#dropdownOpen = true
     this.#selectBtn.setAttribute('aria-expanded', 'true')
 
@@ -142,14 +161,11 @@ export class TypeSelector {
     this.#positionDropdown()
 
     const schedule = this.#view?.requestAnimationFrame?.bind(this.#view) ?? queueMicrotask
-    if (this.#filterInput) {
-      schedule(() => this.#filterInput?.focus())
-    } else {
-      schedule(() => {
-        const first = /** @type {HTMLElement | null} */ (this.#dropdown.querySelector('[role="menuitem"]'))
-        first?.focus()
-      })
-    }
+    const focusTarget = this.#filterInput
+      ?? /** @type {HTMLElement | null} */ (this.#dropdown.querySelector('[role="menuitem"]'))
+    schedule(() => {
+      if (!this.#destroyed && this.#dropdownOpen && this.#sessionVersion === session) focusTarget?.focus()
+    })
   }
 
   #positionDropdown() {
@@ -160,6 +176,7 @@ export class TypeSelector {
   }
 
   #buildDropdownItems() {
+    const session = this.#sessionVersion
     this.#dropdown.textContent = ''
     this.#filterInput = null
     const currentBlock = this.#blocks.getCurrentBlock()
@@ -177,8 +194,11 @@ export class TypeSelector {
         placeholder: this.#i18n?.t('toolbox.search') ?? 'Search...',
       }, this.#document)
       const typedInput = /** @type {HTMLInputElement} */ (input)
-      typedInput.addEventListener('input', () => this.#applyFilter(typedInput.value))
+      typedInput.addEventListener('input', () => {
+        if (!this.#destroyed && this.#dropdownOpen && this.#sessionVersion === session) this.#applyFilter(typedInput.value)
+      })
       typedInput.addEventListener('keydown', (e) => {
+        if (this.#destroyed || !this.#dropdownOpen || this.#sessionVersion !== session) return
         if (e.key === 'Escape') {
           typedInput.value = ''
           this.#applyFilter('')
@@ -215,7 +235,7 @@ export class TypeSelector {
       item.addEventListener('click', (e) => {
         e.preventDefault()
         e.stopPropagation()
-        this.#convertSelection(plugin.type)
+        if (this.#sessionVersion === session) this.#convertSelection(plugin.type)
       })
 
       this.#dropdown.appendChild(item)
@@ -249,6 +269,7 @@ export class TypeSelector {
   }
 
   #convertSelection(targetType, targetData) {
+    if (this.#destroyed || !this.#dropdownOpen) return
     return this.#commands.execute({
       name: 'selection.convert',
       markDirty: false,
