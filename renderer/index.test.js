@@ -599,3 +599,35 @@ test('renderer rejects non-finite numeric block revisions', async () => {
     )
   }
 })
+
+
+test('renderTo rejects reentry for the same container before ownership can be overwritten', async () => {
+  const { EditorRenderer } = await import('./index.js')
+  const renderer = new EditorRenderer({ blockTypes: [] })
+  const container = document.createElement('main')
+  let nestedAttempts = 0
+
+  renderer.registerRenderer({
+    type: 'reentrant-container',
+    render(block) {
+      nestedAttempts++
+      renderer.renderTo({
+        blocks: [{ id: 'nested', type: 'reentrant-container-leaf', data: {} }],
+      }, container)
+      return document.createElement('article')
+    },
+  })
+  renderer.registerRenderer({
+    type: 'reentrant-container-leaf',
+    render() { return document.createElement('span') },
+  })
+
+  assert.throws(
+    () => renderer.renderTo({
+      blocks: [{ id: 'outer', type: 'reentrant-container', data: {} }],
+    }, container),
+    /Cannot reenter renderTo() for the same container/,
+  )
+  assert.equal(nestedAttempts, 1)
+  assert.equal(container.children.length, 0, 'failed outer render must not leave staged nested output mounted')
+})
