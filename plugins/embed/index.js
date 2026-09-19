@@ -415,7 +415,9 @@ export class Embed extends BlockPluginAbstract {
     bar.appendChild(input)
     wrapper.appendChild(bar)
 
-    if (!s.context.readOnly && !s.data.service) view.requestAnimationFrame(() => input.focus())
+    if (!s.context.readOnly && !s.data.service) view.requestAnimationFrame(() => {
+      if (stateMap.get(wrapper) === s) input.focus()
+    })
   }
 
   /**
