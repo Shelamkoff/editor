@@ -177,6 +177,12 @@ function prepareOutputData(data) {
     validateOutputBlock(source)
     if (typeof source.revision !== 'string' && typeof source.revision !== 'number') {
       const snapshot = cloneEditorData(source)
+      Object.defineProperty(snapshot, validationSourceKey, {
+        value: /** @type {any} */ (source)[validationSourceKey] ?? block,
+        enumerable: false,
+        configurable: false,
+        writable: false,
+      })
       validateOutputBlock(snapshot)
       return snapshot
     }
