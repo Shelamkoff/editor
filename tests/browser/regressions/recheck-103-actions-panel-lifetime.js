@@ -57,7 +57,7 @@ export function register() {
 
   test('retired onMount mutation context cannot act on a newly reconstructed selection', () => {
     const mounts = []
-    const tool = { type: 'probe', title: 'Probe', icon: '', toggle() {},
+    const tool = { type: 'probe', title: 'Probe', icon: '', isActive() { return false }, toggle() {},
       onMount(_button, context) { mounts.push(context) } }
     const editor = make([para('a', 'KEEP')], { inlineTools: [tool] })
     const old = mounts[0]
