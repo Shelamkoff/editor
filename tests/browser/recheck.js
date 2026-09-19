@@ -1,3 +1,4 @@
+import { register as destroyedFocus } from './regressions/recheck-92-destroyed-focus.js'
 import { register as rawLifecycle } from './regressions/recheck-91-raw-lifecycle.js'
 import { register as revisionContract } from './regressions/recheck-90-revision-contract.js'
 import { register as rendererExtensionSnapshot } from './regressions/recheck-89-renderer-extension-snapshot.js'
@@ -181,4 +182,5 @@ clipboardRealm()
 rendererExtensionSnapshot()
 revisionContract()
 rawLifecycle()
+destroyedFocus()
 await run()
