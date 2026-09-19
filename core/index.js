@@ -30,7 +30,7 @@ import { TriggerManager } from './TriggerManager.js'
 import { InlinePatternMatcher } from './InlinePatternMatcher.js'
 import { PopupManager } from './PopupManager.js'
 import { injectStyleUrls } from './StyleInjector.js'
-import { resolveTuning, validateEditorConfigOptions } from './config.js'
+import { resolveTuning, snapshotConfigArray, validateEditorConfigOptions } from './config.js'
 import {DEFAULT_BLOCK_TYPE, DEFAULT_THEME} from './constants.js'
 import { claimPluginInstances } from './PluginOwnership.js'
 import { claimEditorHolder } from './EditorHolderOwnership.js'
@@ -503,6 +503,10 @@ export function createEditor(config) {
   }
 
   validateEditorConfigOptions(config)
+  config.plugins = snapshotConfigArray(config.plugins) ?? []
+  config.inlineTools = snapshotConfigArray(config.inlineTools)
+  config.inlinePlugins = snapshotConfigArray(config.inlinePlugins)
+  config.migrations = snapshotConfigArray(config.migrations)
 
   let readOnly = config.readOnly ?? false
   const injectStyles = config.injectStyles ?? true
