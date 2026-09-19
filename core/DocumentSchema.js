@@ -20,20 +20,27 @@ export class DocumentSchema {
    * }} [options]
    */
   constructor(options = {}) {
-    const currentVersion = options.currentVersion === undefined ? EDITOR_VERSION : options.currentVersion
+    if (!options || typeof options !== 'object' || Array.isArray(options)) {
+      throw new TypeError('DocumentSchema options must be an object')
+    }
+    const supplied = /** @type {typeof options} */ ({ ...options })
+    const currentVersion = supplied.currentVersion === undefined ? EDITOR_VERSION : supplied.currentVersion
     if (typeof currentVersion !== 'string' || !currentVersion) {
       throw new TypeError('currentVersion must be a non-empty string')
     }
     this.#currentVersion = currentVersion
-    const versionPolicy = options.versionPolicy === undefined ? 'preserve' : options.versionPolicy
+    const versionPolicy = supplied.versionPolicy === undefined ? 'preserve' : supplied.versionPolicy
     if (versionPolicy !== 'preserve' && versionPolicy !== 'strict') {
       throw new TypeError('versionPolicy must be "preserve" or "strict"')
     }
     this.#versionPolicy = versionPolicy
-    this.#diagnostics = options.diagnostics ?? null
+    this.#diagnostics = supplied.diagnostics ?? null
 
-    for (const migration of options.migrations ?? []) {
-      this.#register(migration)
+    const migrations = supplied.migrations ?? []
+    if (!Array.isArray(migrations)) throw new TypeError('migrations must be an array')
+    for (let index = 0; index < migrations.length; index++) {
+      if (!Object.hasOwn(migrations, index)) throw new TypeError('migrations must be a dense array')
+      this.#register(migrations[index])
     }
   }
 
