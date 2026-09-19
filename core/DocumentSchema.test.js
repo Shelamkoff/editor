@@ -96,3 +96,38 @@ test('document schema requires a non-empty runtime current version', () => {
     )
   }
 })
+
+
+test('document schema executes the same migration members it validated', () => {
+  const reads = { from: 0, to: 0, migrate: 0 }
+  let receiver = null
+  const migration = {
+    get from() {
+      reads.from++
+      return reads.from === 1 ? 'legacy' : 'drifted-from'
+    },
+    get to() {
+      reads.to++
+      return reads.to === 1 ? '2' : 'drifted-to'
+    },
+    get migrate() {
+      reads.migrate++
+      if (reads.migrate > 1) throw new Error('migration method was reread')
+      return function (document) {
+        receiver = this
+        return { ...document, blocks: [...document.blocks] }
+      }
+    },
+  }
+
+  const schema = new DocumentSchema({
+    currentVersion: '2',
+    versionPolicy: 'strict',
+    migrations: [migration],
+  })
+
+  const result = schema.normalize({ version: 'legacy', blocks: [] })
+  assert.equal(result.version, '2')
+  assert.deepEqual(reads, { from: 1, to: 1, migrate: 1 })
+  assert.strictEqual(receiver, migration, 'migration method receiver must remain the supplied descriptor')
+})
