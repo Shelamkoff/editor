@@ -50,6 +50,9 @@ export class SlashCommands {
   /** @type {number} */
   #activeIndex = 0
 
+  /** Monotonic ownership token for one rendered menu item list. */
+  #itemsVersion = 0
+
   /** @type {(() => void) | null} */
   #scrollCleanup = null
 
@@ -322,6 +325,9 @@ export class SlashCommands {
   }
 
   #renderItems() {
+    const version = ++this.#itemsVersion
+    const session = this.#session
+    const ownsItems = () => this.#open && this.#session === session && this.#itemsVersion === version
     this.#menuEl.textContent = ''
 
     if (this.#filteredItems.length === 0) {
@@ -346,11 +352,11 @@ export class SlashCommands {
       btn.addEventListener('mousedown', (e) => {
         e.preventDefault()
         e.stopPropagation()
-        this.#selectItem(i)
+        if (ownsItems()) this.#selectItem(i)
       })
 
       btn.addEventListener('mouseenter', () => {
-        if (this.#activeIndex === i) return
+        if (!ownsItems() || !this.#sessionIsCurrent() || this.#activeIndex === i) return
         const prev = this.#menuEl.children[this.#activeIndex]
         if (prev) prev.classList.remove('oe-slash-menu__item--active')
         this.#activeIndex = i

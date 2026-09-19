@@ -97,3 +97,29 @@ test('leaving the originating field closes the slash session', () => {
     assert.deepEqual(f.mutations, [])
   } finally { f.menu.destroy() }
 })
+
+for (const change of ['reopen', 'filter', 'keyboard redraw']) {
+  test(`retained slash item is inert after ${change} while the current item remains usable`, () => {
+    const f = fixture()
+    const activate = item => item.handlers.get('mousedown')({ preventDefault() {}, stopPropagation() {} })
+    try {
+      f.open()
+      const menu = f.root.children.at(-1)
+      const oldItem = menu.children.at(-1)
+      if (change === 'reopen') { f.menu.close(); f.open() }
+      else if (change === 'filter') {
+        f.a.contentElement.textContent = '/para'; f.open()
+      } else {
+        f.root.handlers.get('keydown')({ target: f.a.contentElement, key: 'ArrowDown', preventDefault() {}, stopPropagation() {} })
+      }
+      const currentItem = menu.children.at(-1)
+      assert.notStrictEqual(currentItem, oldItem)
+      activate(oldItem)
+      assert.deepEqual(f.mutations, [], 'obsolete DOM must not invoke the current command session')
+      assert.equal(f.menu.isOpen, true)
+      activate(currentItem)
+      assert.deepEqual(f.mutations, ['a'])
+      assert.equal(f.menu.isOpen, false)
+    } finally { f.menu.destroy() }
+  })
+}

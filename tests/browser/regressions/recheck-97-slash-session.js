@@ -28,4 +28,33 @@ export function register() {
     item.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }))
     equal(editor.save().blocks, before)
   })
+
+  for (const change of ['reopen', 'filter', 'keyboard redraw']) {
+    test(`retained slash pointer item is inert after ${change}`, () => {
+      const editor = make([para('a', '/')])
+      const field = editor.blocks.getBlockById('a').contentElement
+      const notify = () => field.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText' }))
+      select(field, 1); notify()
+      const menu = editor.rootElement.querySelector('.oe-slash-menu')
+      const oldItem = menu.querySelector('.oe-slash-menu__item')
+      assert(oldItem)
+      if (change === 'reopen') {
+        key(field, 'Escape')
+        field.textContent = '/'; select(field, 1); notify()
+      } else if (change === 'filter') {
+        field.textContent = '/para'; select(field, 5); notify()
+      } else key(field, 'ArrowDown')
+      const currentItem = menu.querySelector('.oe-slash-menu__item')
+      assert(currentItem && currentItem !== oldItem)
+      const before = editor.save().blocks
+      oldItem.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }))
+      equal(editor.save().blocks, before)
+      assert(menu.style.display !== 'none', 'stale action must not close the live menu')
+      currentItem.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }))
+      equal(texts(editor), [''])
+      equal(menu.style.display, 'none')
+      editor.undo(); equal(editor.save().blocks, before)
+    })
+  }
+
 }
