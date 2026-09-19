@@ -1,10 +1,11 @@
 import { spawn } from 'node:child_process'
-import { mkdtemp, rm } from 'node:fs/promises'
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { createServer } from 'node:net'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { editorRoot, vitePath, findChrome } from './environment.mjs'
+import { formatBrowserFailure } from './failure-report.mjs'
 
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms))
 async function freePort() {
@@ -122,7 +123,12 @@ async function runPage(client, chrome, url, label) {
       console.log(`${label}: ${last.summary ?? 'summary unavailable'}`)
       return
     }
-    if (last?.url === url && last.status === 'fail') throw new Error(`Browser gate failed for ${label}\n${last.summary}`)
+    if (last?.url === url && last.status === 'fail') {
+      const directory = join(fileURLToPath(editorRoot), 'test-results')
+      await mkdir(directory, { recursive: true })
+      await writeFile(join(directory, `browser-${label}.json`), last.summary ?? 'summary unavailable')
+      throw new Error(`Browser gate failed for ${label}\n${formatBrowserFailure(last.summary)}`)
+    }
     await pause(50)
   }
   throw new Error(`Timed out waiting for ${label}\n${JSON.stringify(last)}\n${JSON.stringify(client.errors)}\n${chrome.output()}`)
