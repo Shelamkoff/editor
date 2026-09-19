@@ -43,7 +43,8 @@ function requestedTypes(source) {
   if (Array.isArray(source)) {
     const types = []
     for (let index = 0; index < source.length; index++) {
-      types.push(Object.hasOwn(source, index) ? source[index] : undefined)
+      if (!Object.hasOwn(source, index)) throw new TypeError('source must be a dense array')
+      types.push(source[index])
     }
     return [...new Set(types)]
   }
@@ -52,11 +53,16 @@ function requestedTypes(source) {
   if (!Object.hasOwn(document, 'blocks')) return [...BLOCK_TYPES]
   const blocks = document.blocks
   if (!Array.isArray(blocks)) throw new TypeError('source.blocks must be an array')
-  const types = blocks.map(block => (
-    block && typeof block === 'object' && !Array.isArray(block) && Object.hasOwn(block, 'type')
-      ? /** @type {Record<string, unknown>} */ (block).type
-      : undefined
-  ))
+  const types = []
+  for (let index = 0; index < blocks.length; index++) {
+    if (!Object.hasOwn(blocks, index)) throw new TypeError('source.blocks must be a dense array')
+    const block = blocks[index]
+    types.push(
+      block && typeof block === 'object' && !Array.isArray(block) && Object.hasOwn(block, 'type')
+        ? /** @type {Record<string, unknown>} */ (block).type
+        : undefined,
+    )
+  }
   return [...new Set(types)]
 }
 
