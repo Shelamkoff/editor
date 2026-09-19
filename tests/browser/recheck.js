@@ -1,3 +1,4 @@
+import { register as patternOwnership } from './regressions/recheck-96-pattern-ownership.js'
 import { register as restoreLock } from './regressions/recheck-95-restore-lock.js'
 import { register as jsonRealm } from './regressions/recheck-94-json-realm.js'
 import { register as preparationOwnership } from './regressions/recheck-93-preparation-ownership.js'
@@ -189,4 +190,5 @@ destroyedFocus()
 preparationOwnership()
 jsonRealm()
 restoreLock()
+patternOwnership()
 await run()

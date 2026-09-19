@@ -2,6 +2,19 @@ import { hydrateInlineWidget } from './hydrateInlinePlugins.js'
 import { EditorEvent } from './editorEvents.js'
 import { hydrateInlinePlugins } from './hydrateInlinePlugins.js'
 
+/** Pattern replacement must use the same authored-field boundary as public
+ * inline insertion. A block's wrapper also contains UI and literal source code.
+ * @param {Text} node
+ * @param {import('./types').IBlock} block
+ */
+function ownsPatternText(node, block) {
+  if (typeof block.plugin.mapTextFields !== 'function') return false
+  const parent = node.parentElement
+  if (parent?.closest('[data-inline-plugin], input, textarea, select, button')) return false
+  const field = /** @type {HTMLElement | null | undefined} */ (parent?.closest('[contenteditable]'))
+  return field?.contentEditable === 'true' && block.contentElement.contains(field)
+}
+
 /**
  * @typedef {{ plugin: import('./types').InlinePlugin, pattern: RegExp }} PatternEntry
  */
@@ -122,8 +135,8 @@ export class InlinePatternMatcher {
     const node = sel.anchorNode
     if (!node || node.nodeType !== 3 || !editingHost.contains(node)) return
     const textNode = /** @type {import('./types').DOMText} */ (node)
-    // Skip inside inline plugin widgets
-    if (/** @type {Element | null} */ (node.parentElement)?.closest('[data-inline-plugin]')) return
+    const block = this.#blocks.getBlockByChildNode(node)
+    if (!block || !ownsPatternText(textNode, block)) return
 
     const offset = sel.anchorOffset
     const text = textNode.data
@@ -143,8 +156,6 @@ export class InlinePatternMatcher {
       if (this.#matches(pattern, word)) {
         e.preventDefault()
         e.stopPropagation()
-        const block = this.#blocks.getBlockByChildNode(node)
-        if (!block) return
         this.#mutations.runForBlock(block, () => {
           this.#replaceMatch(textNode, wordStart, offset, plugin, word)
 
@@ -170,11 +181,12 @@ export class InlinePatternMatcher {
     const matchesByBlock = new Map()
     const showText = this.#view?.NodeFilter?.SHOW_TEXT ?? 4
     for (const block of blocks) {
+      if (typeof block.plugin.mapTextFields !== 'function') continue
       const matches = []
       const walker = this.#document.createTreeWalker(block.contentElement, showText)
       while (walker.nextNode()) {
         const node = /** @type {import('./types').DOMText} */ (walker.currentNode)
-        if (node.parentElement?.closest('[data-inline-plugin]')) continue
+        if (!ownsPatternText(node, block)) continue
         this.#findMatches(node.textContent || '', node, matches)
       }
       if (matches.length > 0) matchesByBlock.set(block, matches)
