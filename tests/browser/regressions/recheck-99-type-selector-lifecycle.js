@@ -38,7 +38,7 @@ export function register() {
 
   test('read-only teardown revokes type-menu callbacks and queued autofocus', async () => {
     const { editor, button, item } = setup()
-    editor.readOnly = true
+    editor.setReadOnly(true)
     const before = editor.save().blocks
     const sentinel = document.createElement('button')
     sentinel.textContent = 'outside editor'
