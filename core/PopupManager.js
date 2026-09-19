@@ -17,6 +17,8 @@ export class PopupManager {
   /** @type {(() => void)[]} */
   #unsubscribers = []
   #destroyed = false
+  /** Newer show/hide calls supersede a replacement interrupted by cleanup. */
+  #generation = 0
   /** @type {HTMLElement | null} */
   #activePopup = null
 
@@ -94,7 +96,16 @@ export class PopupManager {
       this.#runCleanup(cleanup)
       return
     }
-    this.hidePopup()
+    const generation = ++this.#generation
+    this.#hidePopup()
+    // The previous disposer is consumer code: it can close/destroy the
+    // editor, detach the anchor, or open another popup. Do not overwrite that
+    // newer ownership or mount into a root that has become read-only.
+    if (generation !== this.#generation || this.readOnly
+        || (this.#rootEl && !this.#rootEl.contains(anchor))) {
+      this.#runCleanup(cleanup)
+      return
+    }
 
     const ownerDocument = this.#document ?? anchor.ownerDocument
     const ownerView = this.#view ?? ownerDocument.defaultView
@@ -155,6 +166,12 @@ export class PopupManager {
   }
 
   hidePopup() {
+    this.#generation++
+    this.#hidePopup()
+  }
+
+  /** Release the current owner before entering user cleanup. */
+  #hidePopup() {
     this.#anchorObserver?.disconnect()
     this.#anchorObserver = null
     this.#anchor = null

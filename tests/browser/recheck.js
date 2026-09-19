@@ -1,3 +1,4 @@
+import { register as popupReentry } from './regressions/recheck-102-popup-reentry.js'
 import { register as slashFieldBoundary } from './regressions/recheck-100-slash-field-boundary.js'
 import { register as typeSelectorLifecycle } from './regressions/recheck-99-type-selector-lifecycle.js'
 import { register as slashSession } from './regressions/recheck-97-slash-session.js'
@@ -197,4 +198,5 @@ patternOwnership()
 slashSession()
 typeSelectorLifecycle()
 slashFieldBoundary()
+popupReentry()
 await run()
