@@ -631,3 +631,39 @@ test('renderTo rejects reentry for the same container before ownership can be ov
   assert.equal(nestedAttempts, 1)
   assert.equal(container.children.length, 0, 'failed outer render must not leave staged nested output mounted')
 })
+
+
+test('renderTo prevents destroy from double-disposing the previous mounted owner', async () => {
+  const { EditorRenderer } = await import('./index.js')
+  const renderer = new EditorRenderer({ blockTypes: [] })
+  const container = document.createElement('main')
+  let oldDestroyCalls = 0
+
+  renderer.registerRenderer({
+    type: 'owned-before-reentry',
+    render() { return document.createElement('article') },
+    destroy() { oldDestroyCalls++ },
+  })
+  renderer.renderTo({
+    blocks: [{ id: 'stable', type: 'owned-before-reentry', data: {} }],
+  }, container)
+
+  renderer.registerRenderer({
+    type: 'destroy-during-render',
+    render() {
+      renderer.destroy(container)
+      return document.createElement('section')
+    },
+  })
+
+  assert.throws(
+    () => renderer.renderTo({
+      blocks: [{ id: 'next', type: 'destroy-during-render', data: {} }],
+    }, container),
+    /Cannot destroy renderer output during an active renderTo()/,
+  )
+  assert.equal(oldDestroyCalls, 0, 'previous mounted owner must remain live after rejected reentrant destroy')
+
+  renderer.destroy(container)
+  assert.equal(oldDestroyCalls, 1, 'previous mounted owner must be disposed exactly once')
+})
