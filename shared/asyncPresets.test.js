@@ -158,3 +158,32 @@ test('async Poll renderer snapshots nested adapter methods before imports settle
   assert.equal(renderers.get('poll')?.type, 'poll')
   assert.deepEqual(reads, { poll: 1, dataSource: 1, load: 1, vote: 1, subscribe: 1 })
 })
+
+
+test('async presets reject sparse type lists and document block arrays without inherited reads', async () => {
+  for (const create of [preloadBlockPlugins, preloadRendererFactories]) {
+    let listReads = 0
+    const listPrototype = Object.create(Array.prototype)
+    Object.defineProperty(listPrototype, '0', {
+      configurable: true,
+      get() { listReads++; throw new Error('inherited type entry accessed') },
+    })
+    const sparseTypes = []
+    Object.setPrototypeOf(sparseTypes, listPrototype)
+    sparseTypes.length = 1
+    await assert.rejects(() => create(sparseTypes), /source must be a dense array/)
+    assert.equal(listReads, 0)
+
+    let blockReads = 0
+    const blockPrototype = Object.create(Array.prototype)
+    Object.defineProperty(blockPrototype, '0', {
+      configurable: true,
+      get() { blockReads++; throw new Error('inherited block entry accessed') },
+    })
+    const sparseBlocks = []
+    Object.setPrototypeOf(sparseBlocks, blockPrototype)
+    sparseBlocks.length = 1
+    await assert.rejects(() => create({ blocks: sparseBlocks }), /source.blocks must be a dense array/)
+    assert.equal(blockReads, 0)
+  }
+})
