@@ -316,7 +316,9 @@ export class LinkPreview extends BlockPluginAbstract {
     bar.appendChild(input)
     wrapper.appendChild(bar)
 
-    if (!s.context.readOnly && !s.data.url) view.requestAnimationFrame(() => input.focus())
+    if (!s.context.readOnly && !s.data.url) view.requestAnimationFrame(() => {
+      if (stateMap.get(wrapper) === s) input.focus()
+    })
   }
 
   /**
