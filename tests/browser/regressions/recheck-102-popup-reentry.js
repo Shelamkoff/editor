@@ -53,4 +53,22 @@ export function register() {
       equal(nestedDisposed, 1)
     } finally { f.destroy() }
   })
+
+  test('async popup cleanup rejection is contained without interrupting replacement', async () => {
+    const f = fixture()
+    const content = document.createElement('span')
+    let calls = 0
+    try {
+      f.manager.showPopup(f.anchor, document.createElement('span'), async () => {
+        calls++
+        throw new Error('popup cleanup rejection probe')
+      })
+      f.manager.showPopup(f.anchor, content)
+      await pause()
+      equal(calls, 1)
+      assert(content.isConnected, 'replacement must still own its popup')
+      equal(f.root.querySelectorAll('.oe-ip-popup').length, 1)
+    } finally { f.destroy() }
+  })
+
 }

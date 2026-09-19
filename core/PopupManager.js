@@ -1,4 +1,5 @@
 import { EditorEvent } from './editorEvents.js'
+import { invokeObserver } from '../shared/invokeObserver.js'
 
 /** @typedef {import('./types').InlinePluginContext} InlinePluginContextContract */
 /**
@@ -195,12 +196,9 @@ export class PopupManager {
    * @param {(() => void) | null | undefined} cleanup
    */
   #runCleanup(cleanup) {
-    if (!cleanup) return
-    try {
-      cleanup()
-    } catch (error) {
+    invokeObserver(cleanup, [], error => {
       console.error('Inline popup cleanup failed', error)
-    }
+    })
   }
 
   /**
