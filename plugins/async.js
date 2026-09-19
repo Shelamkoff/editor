@@ -99,10 +99,27 @@ export async function preloadBlockPlugins(source) {
  */
 export async function createBlockPluginsAsync(source, configs = {}) {
   const configMap = requireRecord(configs, 'configs')
-  const constructors = await preloadBlockPlugins(source)
-  return [...constructors].map(([type, Plugin]) => {
-    const config = Object.hasOwn(configMap, type) ? configMap[type] : undefined
-    if (config !== undefined) requireRecord(config, `configs.${type}`)
-    return new Plugin(/** @type {Record<string, unknown> | undefined} */ (config))
-  })
+  const types = requestedTypes(source)
+  /** @type {Map<string, Record<string, unknown> | undefined>} */
+  const configSnapshots = new Map()
+  for (const type of types) {
+    if (!Object.hasOwn(configMap, type)) {
+      configSnapshots.set(type, undefined)
+      continue
+    }
+    const config = configMap[type]
+    if (config === undefined) {
+      configSnapshots.set(type, undefined)
+      continue
+    }
+    const record = requireRecord(config, `configs.${type}`)
+    configSnapshots.set(type, { ...record })
+  }
+
+  // Dynamic imports happen after every caller-owned value needed to construct
+  // the requested preset has crossed the public boundary.
+  const constructors = await preloadBlockPlugins(types)
+  return [...constructors].map(([type, Plugin]) => (
+    new Plugin(configSnapshots.get(type))
+  ))
 }
