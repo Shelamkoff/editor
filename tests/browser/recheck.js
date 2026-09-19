@@ -1,3 +1,4 @@
+import { register as actionsPanelLifetime } from './regressions/recheck-103-actions-panel-lifetime.js'
 import { register as popupReentry } from './regressions/recheck-102-popup-reentry.js'
 import { register as slashFieldBoundary } from './regressions/recheck-100-slash-field-boundary.js'
 import { register as typeSelectorLifecycle } from './regressions/recheck-99-type-selector-lifecycle.js'
@@ -199,4 +200,5 @@ slashSession()
 typeSelectorLifecycle()
 slashFieldBoundary()
 popupReentry()
+actionsPanelLifetime()
 await run()

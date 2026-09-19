@@ -268,15 +268,15 @@ export interface InlineTool {
 }
 
 export interface InlineMutationContext {
-  /** Execute one synchronous range mutation as one undo/redo step. */
-  mutate<T>(range: Range, operation: () => T): T
+  /** Execute one synchronous range mutation. Retired toolbar contexts return undefined without invoking it. */
+  mutate<T>(range: Range, operation: () => T): T | undefined
 }
 
 export interface InlineToolActionContext {
   /** Cloned selection range saved before opening the panel */
   range: Range
-  /** Execute a mutation of the saved range as one undo/redo step. */
-  mutate<T>(operation: () => T): T
+  /** Mutate the saved range once. Closed, superseded or detached contexts return undefined without invoking it. */
+  mutate<T>(operation: () => T): T | undefined
   /** Restore the saved selection (call before applying changes) */
   restoreSelection(): void
   /** Close the actions panel and return to the buttons view */

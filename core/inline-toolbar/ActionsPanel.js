@@ -38,6 +38,10 @@ export class ActionsPanel {
   /** @type {HTMLElement | null} */
   #panel = null
 
+  /** Contexts are capabilities owned by one opening, never by the next panel. */
+  #generation = 0
+  #destroyed = false
+
   /** @type {(Window & typeof globalThis) | null} */
   #view
 
@@ -54,6 +58,9 @@ export class ActionsPanel {
    *   tool wants `toggle()` semantics instead.
    */
   open(tool) {
+    if (this.#destroyed) return null
+    this.reset()
+    const generation = this.#generation
     if (!tool.renderActions) return null
 
     // Save current selection range before focus moves into the panel.
@@ -69,18 +76,41 @@ export class ActionsPanel {
     }
     if (!this.#savedRange) return null
 
+    const range = this.#savedRange
+    // A live Range may move up to the editor root when its original nodes are
+    // removed. Keep the original editing hosts as lifetime witnesses too.
+    const startHost = this.#editingHost(range.startContainer)
+    const endHost = this.#editingHost(range.endContainer)
+    const current = () => !this.#destroyed && generation === this.#generation
+    const live = () => current() && this.#ownsRange(range)
+      && (!startHost || this.#deps.rootEl.contains(startHost))
+      && (!endHost || this.#deps.rootEl.contains(endHost))
+
     /** @type {import('../types').InlineToolActionContext} */
     const ctx = {
-      range: this.#savedRange,
-      mutate: (operation) => this.#deps.mutate(/** @type {Range} */ (this.#savedRange), operation),
-      restoreSelection: () => this.#restoreSelection(),
-      close: () => this.close(),
-      showTooltip: (anchor, label) => this.#deps.tooltip.show(anchor, label),
-      hideTooltip: () => this.#deps.tooltip.hide(),
+      range,
+      mutate: (operation) => live() ? this.#deps.mutate(range, operation) : undefined,
+      restoreSelection: () => { if (live()) this.#restoreSelection(range) },
+      close: () => { if (current()) this.close({ restoreSelection: live() }) },
+      showTooltip: (anchor, label) => { if (live()) this.#deps.tooltip.show(anchor, label) },
+      hideTooltip: () => { if (current()) this.#deps.tooltip.hide() },
     }
 
-    const panel = tool.renderActions(ctx)
-    if (!panel) return null
+    let panel
+    try {
+      panel = tool.renderActions(ctx)
+    } catch (error) {
+      if (current()) this.reset()
+      throw error
+    }
+    if (!panel) {
+      if (current()) this.reset()
+      return null
+    }
+    if (!current()) {
+      panel.remove()
+      throw new Error('Inline actions panel was superseded during rendering')
+    }
 
     this.#deps.hideTypeSelector()
     this.#panel = panel
@@ -91,34 +121,55 @@ export class ActionsPanel {
    * Close the panel and restore selection.
    * No-op if no panel is open.
    */
-  close() {
+  close({ restoreSelection = true } = {}) {
     if (!this.#panel) return
-    this.#deps.tooltip.hide()
-    this.#panel.remove()
+    const panel = this.#panel
+    const range = this.#savedRange
+    this.#generation++
     this.#panel = null
-
-    this.#restoreSelection()
     this.#savedRange = null
+    this.#deps.tooltip.hide()
+    panel.remove()
+
+    if (restoreSelection) this.#restoreSelection(range)
     this.#deps.updateActiveStates()
     this.#deps.onClosed()
   }
 
   /** Discard saved range and remove any live panel without restoring. */
   reset() {
-    if (this.#panel) {
-      this.#panel.remove()
-      this.#panel = null
-    }
+    this.#generation++
+    const panel = this.#panel
+    this.#panel = null
     this.#savedRange = null
+    panel?.remove()
   }
 
-  #restoreSelection() {
-    if (!this.#savedRange) return
+  destroy() {
+    this.#destroyed = true
+    this.reset()
+  }
+
+  /** @param {Node} node */
+  #editingHost(node) {
+    const element = node.nodeType === 1 ? /** @type {Element} */ (node) : node.parentElement
+    return element?.closest('[contenteditable="true"]') ?? null
+  }
+
+  /** @param {Range | null} range */
+  #ownsRange(range) {
+    return !!range && this.#deps.rootEl.contains(range.startContainer)
+      && this.#deps.rootEl.contains(range.endContainer)
+  }
+
+  /** @param {Range | null} range */
+  #restoreSelection(range) {
+    if (!this.#ownsRange(range)) return
     // If cross-block selection is active, the tool already restored it via cbs.
     if (this.#deps.crossBlockSelection.range) return
     const sel = this.#view?.getSelection()
     if (!sel) return
-    const start = this.#savedRange.startContainer
+    const start = range.startContainer
     const startElement = start.nodeType === 1
       ? /** @type {HTMLElement} */ (start)
       : start.parentElement
@@ -134,7 +185,7 @@ export class ActionsPanel {
         editingHost.focus({ preventScroll: true })
       }
       sel.removeAllRanges()
-      sel.addRange(this.#savedRange)
+      sel.addRange(range)
     } catch {
       // Range may reference detached DOM nodes (e.g. after undo/redo).
     }

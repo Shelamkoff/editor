@@ -147,6 +147,10 @@ Each completed choice calls `ctx.mutate()` once. Opening the panel, changing foc
 
 `InlineToolActionContext` also exposes `range`, `restoreSelection()`, `close()`, `showTooltip(anchor, label)`, and `hideTooltip()`. `range` is the cloned range that was active when the panel opened. Call `restoreSelection()` immediately before applying a DOM change, then wrap the completed change in one `mutate()` call. `close()` returns from the actions panel to the tool buttons. `showTooltip()` and `hideTooltip()` reuse Rector's accessible tooltip for controls inside the panel; they do not alter selection or history.
 
+An actions context belongs to one panel opening. Closing, resetting or replacing that panel retires its callbacks; a later call cannot mutate the next panel's selection or close its UI. A detached original editing host also prevents mutation. The context supplied to `onMount()` belongs to that toolbar instance and is retired during teardown, including a read-only transition.
+
+Both mutation methods return `T | undefined`: a live call returns the operation's result, while a retired call returns `undefined` without executing the operation. Code that consumes the return value must handle that branch. Direct DOM writes remain the extension's responsibility; perform them inside the mutation callback.
+
 ### Mounted controls and cleanup
 
 `onMount(button, mutations)` is intended for a tool that adds a dropdown or other long-lived DOM next to its button. A later dropdown action is outside the normal button-click wrapper, so it must call `mutations.mutate(range, operation)` once with the saved range. Return `true` from `isDropdownOpen()` while the overlay is active so Rector does not hide the toolbar.

@@ -73,6 +73,7 @@ export class InlineToolbar {
 
   /** @type {boolean} */
   #visible = false
+  #destroyed = false
 
   /** @type {'buttons' | 'actions'} */
   #currentView = VIEW_BUTTONS
@@ -124,7 +125,11 @@ export class InlineToolbar {
     this.#tooltip = new Tooltip(ownerDocument)
     this.#mutations = commands
     this.#mutationContext = {
-      mutate: (range, operation) => this.#mutations.runForRange(range, operation),
+      mutate: (range, operation) => {
+        if (this.#destroyed || !rootEl.contains(range.startContainer)
+            || !rootEl.contains(range.endContainer)) return undefined
+        return this.#mutations.runForRange(range, operation)
+      },
     }
 
     // ── DOM scaffold ──────────────────────────────────────────────────────────
@@ -213,6 +218,7 @@ export class InlineToolbar {
   get isVisible() { return this.#visible }
 
   show() {
+    if (this.#destroyed) return
     // Don't show without a selection.
     const sel = this.#resolveSelection()
     if (!sel) return
@@ -257,6 +263,7 @@ export class InlineToolbar {
    * @param {string} toolName
    */
   openTool(toolName) {
+    if (this.#destroyed) return
     const sel = this.#resolveSelection()
     if (!sel) return
 
@@ -292,6 +299,10 @@ export class InlineToolbar {
   }
 
   destroy() {
+    if (this.#destroyed) return
+    this.#destroyed = true
+    this.#visible = false
+    this.#actionsPanel.destroy()
     this.#selectionTracker.destroy()
     this.#pluginControls.clear()
 
@@ -315,6 +326,7 @@ export class InlineToolbar {
       setTrustedHtml(btn, tool.icon)
 
       btn.addEventListener('mouseenter', () => {
+        if (this.#destroyed) return
         const active = btn.classList.contains('oe-inline-tool--active')
         const label = tool.getTitle?.(active) ?? tool.title ?? tool.type
         const shortcut = tool.shortcut ? formatShortcut(tool.shortcut) : undefined
@@ -328,6 +340,7 @@ export class InlineToolbar {
       })
 
       btn.addEventListener('click', (e) => {
+        if (this.#destroyed) return
         e.preventDefault()
         e.stopPropagation()
         this.#tooltip.hide()
