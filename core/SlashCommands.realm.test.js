@@ -73,6 +73,7 @@ test('slash command DOM, selection, scheduling and scroll stay in the editor rea
   const content = new FakeElement('p', ownerDocument)
   content.contentEditable = 'true'
   content.textContent = 'hello/'
+  content.childNodes = [textNode]
   const block = { id: 'b', type: 'paragraph', element: new FakeElement('div', ownerDocument), contentElement: content }
   const blocks = {
     getCurrentBlock() { return block },

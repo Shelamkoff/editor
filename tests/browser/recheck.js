@@ -1,3 +1,4 @@
+import { register as slashFieldBoundary } from './regressions/recheck-100-slash-field-boundary.js'
 import { register as typeSelectorLifecycle } from './regressions/recheck-99-type-selector-lifecycle.js'
 import { register as slashSession } from './regressions/recheck-97-slash-session.js'
 import { register as patternOwnership } from './regressions/recheck-96-pattern-ownership.js'
@@ -195,4 +196,5 @@ restoreLock()
 patternOwnership()
 slashSession()
 typeSelectorLifecycle()
+slashFieldBoundary()
 await run()

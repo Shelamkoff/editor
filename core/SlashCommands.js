@@ -161,7 +161,7 @@ export class SlashCommands {
     if (this.#open && (!this.#sessionIsCurrent() || this.#session?.block !== block || this.#session.field !== field)) {
       this.close()
     }
-    const text = block.contentElement.textContent || ''
+    const text = field.textContent || ''
 
     if (this.#open) {
       const slashIdx = text.lastIndexOf('/')
@@ -226,8 +226,7 @@ export class SlashCommands {
         break
 
       case 'Backspace': {
-        const block = this.#blocks.getCurrentBlock()
-        const text = block?.contentElement.textContent || ''
+        const text = this.#session.field.textContent || ''
         if (text === '/') {
           this.close()
         }
@@ -372,6 +371,7 @@ export class SlashCommands {
     if (!this.#sessionIsCurrent()) { this.close(); return }
     const item = this.#filteredItems[index]
     if (!item) return
+    const field = this.#session.field
 
     const blocks = this.#blocks
     const currentIndex = blocks.getCurrentIndex()
@@ -383,16 +383,18 @@ export class SlashCommands {
     if (item.inlineInsert && this.#inlinePluginRegistry && this.#inlinePluginCtx) {
       this.#runBatch(() => this.#commands.runForBlock(
         current,
-        () => this.#insertInlineWidget(current, item.type),
+        () => this.#insertInlineWidget(field, item.type),
       ))
       return
     }
 
     this.#runBatch(() => this.#commands.runForBlock(current, () => {
-      const slashIndex = (current.contentElement.textContent || '').lastIndexOf('/')
+      const slashIndex = (field.textContent || '').lastIndexOf('/')
 
-      if (slashIndex > 0) {
-        this.#clearSlashText()
+      // A slash command in one field must never discard the other fields or
+      // structural DOM of a composite block (Quote, Table, Columns, etc.).
+      if (slashIndex > 0 || field !== current.contentElement) {
+        this.#removeQueryText(field)
         current.markDirty()
 
         const inserted = blocks.insert(item.type, item.data, currentIndex + 1)
@@ -416,56 +418,32 @@ export class SlashCommands {
     }))
   }
 
-  #insertInlineWidget(block, pluginType) {
-    this.#removeQueryText(block)
+  #insertInlineWidget(field, pluginType) {
+    this.#removeQueryText(field)
     this.#events.emit(EditorEvent.INLINE_PLUGIN_INSERT, { type: pluginType })
   }
 
   #clearSlashText() {
-    const block = this.#blocks.getCurrentBlock()
-    if (!block) return false
-
-    return this.#removeQueryText(block)
+    const field = this.#session?.field
+    return field ? this.#removeQueryText(field) : false
   }
 
-  /**
-   * @param {import('./types').IBlock} block
+  /** Remove the complete query, even when formatting split it into text nodes.
+   * @param {HTMLElement} field
    * @returns {boolean}
    */
-  #removeQueryText(block) {
-    const ce = block.contentElement
-    const text = ce.textContent || ''
-    const slashIdx = text.lastIndexOf('/')
-    if (slashIdx < 0) return false
-
-    if (slashIdx === 0) {
-      ce.textContent = ''
-      return true
+  #removeQueryText(field) {
+    const range = createRangeFromLastTextMatch(field, '/')
+    if (!range) return false
+    range.setEnd(field, field.childNodes.length)
+    range.deleteContents()
+    range.collapse(true)
+    const selection = this.#view?.getSelection()
+    if (selection) {
+      selection.removeAllRanges()
+      selection.addRange(range)
     }
-
-    const walker = this.#document.createTreeWalker(ce, this.#view?.NodeFilter?.SHOW_TEXT ?? 4)
-    let charCount = 0
-    while (walker.nextNode()) {
-      const node = /** @type {import('./types').DOMText} */ (walker.currentNode)
-      const nodeLen = node.length
-      if (charCount + nodeLen > slashIdx) {
-        const offsetInNode = slashIdx - charCount
-        const range = this.#document.createRange()
-        range.setStart(node, offsetInNode)
-        range.setEnd(node, nodeLen)
-        range.deleteContents()
-
-        const sel = this.#view?.getSelection()
-        if (sel) {
-          range.collapse(true)
-          sel.removeAllRanges()
-          sel.addRange(range)
-        }
-        return true
-      }
-      charCount += nodeLen
-    }
-    return false
+    return true
   }
 
   #runBatch(operation) {
@@ -484,9 +462,10 @@ export class SlashCommands {
 
     const blockRect = block.element.getBoundingClientRect()
     const editorRect = this.#rootEl.getBoundingClientRect()
-    const text = block.contentElement.textContent || ''
+    const field = this.#session.field
+    const text = field.textContent || ''
     const commandRange = text.includes('/')
-      ? createRangeFromLastTextMatch(block.contentElement, '/')
+      ? createRangeFromLastTextMatch(field, '/')
       : null
     const commandRect = commandRange
       ? (commandRange.getClientRects()[0] ?? commandRange.getBoundingClientRect())
