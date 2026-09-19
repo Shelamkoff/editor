@@ -124,11 +124,23 @@ export class CommandDispatcher {
         : this.#notifyingWillChange ? 'WILL_CHANGE observers' : 'the commit phase'
       throw new Error(`Cannot commit external editor mutations from ${phase}`)
     }
-    for (const block of blocks) this.#affected.add(block)
+    // Materialize before touching the shared affected set. Iterators can throw
+    // or call consumer code, just like execute()'s affected-input preparation.
+    const postCommitStart = this.#postCommitQueue.length
+    let prepared
+    this.#preparing = true
+    try {
+      prepared = [...blocks]
+    } catch (error) {
+      this.#postCommitQueue.length = postCommitStart
+      throw error
+    } finally {
+      this.#preparing = false
+    }
+    for (const block of prepared) this.#affected.add(block)
     if (this.#depth > 0) return
     const affected = [...this.#affected]
     this.#affected.clear()
-    const postCommitStart = this.#postCommitQueue.length
     let committed
     try {
       committed = this.#markAndCommit(affected)
