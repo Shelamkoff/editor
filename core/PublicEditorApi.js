@@ -170,7 +170,7 @@ export class EditorBlocksApi {
 
   #assertMutableState() {
     this.#assertActive()
-    if (this.#commands?.inTransaction) {
+    if (this.#commands?.inTransaction || this.#commands?.restoring) {
       throw new Error('Cannot change editor state during an active command transaction')
     }
   }

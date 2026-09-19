@@ -164,7 +164,7 @@ export class UndoManager {
    * Restore the previous state.
    */
   undo() {
-    if (this.#destroyed || !this.#commandsEnabled) return false
+    if (this.#destroyed || this.#restoring || this.#commandActive() || !this.#commandsEnabled) return false
     try {
       this.#reconcileCurrentState()
     } catch (captureError) {
@@ -207,7 +207,7 @@ export class UndoManager {
    * Restore the next state.
    */
   redo() {
-    if (this.#destroyed || !this.#commandsEnabled) return false
+    if (this.#destroyed || this.#restoring || this.#commandActive() || !this.#commandsEnabled) return false
     this.#reconcileCurrentState()
 
     if (!this.canRedo) return false

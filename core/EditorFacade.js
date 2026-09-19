@@ -166,20 +166,20 @@ export class EditorFacade {
   }
 
   get canUndo() {
-    return !this.#readOnly && !this.#commands.inTransaction && Boolean(this.#history?.canUndo)
+    return !this.#readOnly && !this.#commands.inTransaction && !this.#commands.restoring && Boolean(this.#history?.canUndo)
   }
 
   get canRedo() {
-    return !this.#readOnly && !this.#commands.inTransaction && Boolean(this.#history?.canRedo)
+    return !this.#readOnly && !this.#commands.inTransaction && !this.#commands.restoring && Boolean(this.#history?.canRedo)
   }
 
   undo() {
-    if (this.#readOnly || this.#commands.inTransaction) return false
+    if (this.#readOnly || this.#commands.inTransaction || this.#commands.restoring) return false
     return this.#history?.undo() ?? false
   }
 
   redo() {
-    if (this.#readOnly || this.#commands.inTransaction) return false
+    if (this.#readOnly || this.#commands.inTransaction || this.#commands.restoring) return false
     return this.#history?.redo() ?? false
   }
 
@@ -187,7 +187,7 @@ export class EditorFacade {
   setReadOnly(readOnly) {
     if (typeof readOnly !== 'boolean') throw new TypeError('setReadOnly() requires a boolean')
     if (readOnly === this.#readOnly) return
-    if (this.#commands.inTransaction) {
+    if (this.#commands.inTransaction || this.#commands.restoring) {
       throw new Error('Cannot change read-only mode during an active command transaction')
     }
     if (!this.#readOnlyTransition) throw new Error('Editor read-only transition is not configured')
@@ -223,9 +223,18 @@ export class EditorFacade {
    * @param {{ focus?: boolean, notifyChange?: boolean }} [options]
    */
   render(data, caret, options = {}) {
-    if (this.#commands.inTransaction && !this.#commands.restoring) {
+    if (this.#commands.inTransaction || this.#commands.restoring) {
       throw new Error('Cannot render document during an active command transaction')
     }
+    return this.#renderDocument(data, caret, options)
+  }
+
+  /** Internal reconstruction path; only restoreCheckpoint may bypass public guards.
+   * @param {import('./types').EditorDocument} data
+   * @param {import('./types').CaretPosition} [caret]
+   * @param {{ focus?: boolean, notifyChange?: boolean }} [options]
+   */
+  #renderDocument(data, caret, options = {}) {
     const startedAt = this.#diagnostics.enabled ? this.#diagnostics.now() : 0
     const normalized = this.#documentSchema.normalize(data)
     const replacement = this.#blocks.prepareReplacement(
@@ -305,7 +314,7 @@ export class EditorFacade {
    * @param {import('./types').CaretPosition} [caret]
    */
   restoreCheckpoint(document, caret) {
-    const restore = () => this.#commands.restore(() => this.render(document, caret, { notifyChange: false }))
+    const restore = () => this.#commands.restore(() => this.#renderDocument(document, caret, { notifyChange: false }))
     if (this.#history) this.#history.withoutRecording(restore)
     else restore()
   }
@@ -314,7 +323,7 @@ export class EditorFacade {
    * Clear all blocks and insert an empty default block.
    */
   clear() {
-    if (this.#commands.inTransaction && !this.#commands.restoring) {
+    if (this.#commands.inTransaction || this.#commands.restoring) {
       throw new Error('Cannot clear document during an active command transaction')
     }
     const replacement = this.#blocks.prepareReplacement(undefined, this.#defaultBlockType, 'EditorFacade.clear')
@@ -333,7 +342,7 @@ export class EditorFacade {
    * Focus the editor (first block or current block).
    */
   focus() {
-    if (this.#commands.inTransaction) {
+    if (this.#commands.inTransaction || this.#commands.restoring) {
       throw new Error('Cannot change editor focus during an active command transaction')
     }
     const block = this.#blocks.getCurrentBlock() || this.#blocks.getBlockByIndex(0)
@@ -349,6 +358,9 @@ export class EditorFacade {
    * @returns {boolean} whether editor DOM was changed
    */
   insertInlinePlugin(type, data = {}) {
+    if (this.#commands.inTransaction || this.#commands.restoring) {
+      throw new Error('Cannot insert an inline plugin during an active command transaction')
+    }
     if (this.#readOnly || !this.#inlinePluginRegistry || !this.#inlinePluginCtx) return false
 
     const selection = this.#rootEl.ownerDocument.defaultView?.getSelection()
@@ -378,7 +390,7 @@ export class EditorFacade {
    */
   destroy() {
     if (this.#destroyed) return
-    if (this.#commands.inTransaction) {
+    if (this.#commands.inTransaction || this.#commands.restoring) {
       throw new Error('Cannot destroy editor during an active command transaction')
     }
     this.#destroyed = true
