@@ -34,6 +34,10 @@ export class SlashCommands {
   /** @type {boolean} */
   #open = false
 
+  /** Slash UI belongs to one live block instance and authored field. */
+  /** @type {{ block: import('./types').IBlock, content: HTMLElement, field: HTMLElement } | null} */
+  #session = null
+
   /** @type {string} */
   #filter = ''
 
@@ -118,6 +122,7 @@ export class SlashCommands {
 
     rootEl.addEventListener('keydown', this.#onKeyDown, true)
     rootEl.addEventListener('input', this.#onInput)
+    rootEl.addEventListener('focusout', this.#onFocusOut)
   }
 
   /** @returns {boolean} */
@@ -128,6 +133,7 @@ export class SlashCommands {
   close() {
     if (!this.#open) return
     this.#open = false
+    this.#session = null
     this.#filter = ''
     this.#menuEl.style.display = 'none'
     this.#removeScrollListener()
@@ -135,10 +141,12 @@ export class SlashCommands {
   }
 
   destroy() {
+    this.close()
     this.#removeScrollListener()
     this.#cancelScheduledPosition()
     this.#rootEl.removeEventListener('keydown', this.#onKeyDown, true)
     this.#rootEl.removeEventListener('input', this.#onInput)
+    this.#rootEl.removeEventListener('focusout', this.#onFocusOut)
     this.#menuEl.remove()
   }
 
@@ -149,6 +157,10 @@ export class SlashCommands {
       return
     }
 
+    const field = /** @type {HTMLElement} */ (/** @type {Element} */ (e.target).closest('[contenteditable="true"]'))
+    if (this.#open && (!this.#sessionIsCurrent() || this.#session?.block !== block || this.#session.field !== field)) {
+      this.close()
+    }
     const text = block.contentElement.textContent || ''
 
     if (this.#open) {
@@ -165,15 +177,20 @@ export class SlashCommands {
     }
 
     if (text === '/') {
-      this.#openMenu()
+      this.#openMenu(block, field)
     } else if (this.#inlinePluginRegistry && this.#inlinePluginRegistry.size > 0 && text.endsWith('/')) {
-      this.#openMenu()
+      this.#openMenu(block, field)
     }
   }
 
   #onKeyDown = (/** @type {KeyboardEvent} */ e) => {
     if (!this.#open) return
-    if (!this.#editingBlockForTarget(e.target)) return
+    const block = this.#editingBlockForTarget(e.target)
+    const field = /** @type {Element | null} */ (e.target)?.closest?.('[contenteditable="true"]')
+    if (!this.#sessionIsCurrent() || block !== this.#session?.block || field !== this.#session.field) {
+      this.close()
+      return
+    }
 
     switch (e.key) {
       case 'ArrowDown':
@@ -232,7 +249,23 @@ export class SlashCommands {
     return this.#blocks.getBlockByChildNode(editingHost) ?? null
   }
 
-  #openMenu() {
+  #onFocusOut = (/** @type {FocusEvent} */ event) => {
+    if (this.#open && !this.#session?.field.contains(/** @type {Node | null} */ (event.relatedTarget))) this.close()
+  }
+
+  #sessionIsCurrent() {
+    const session = this.#session
+    return !!session
+      && this.#blocks.getBlockById(session.block.id) === session.block
+      && this.#blocks.getCurrentBlock() === session.block
+      && session.block.contentElement === session.content
+      && session.content.contains(session.field)
+      && this.#rootEl.contains(session.field)
+  }
+
+  /** @param {import('./types').IBlock} block @param {HTMLElement} field */
+  #openMenu(block, field) {
+    this.#session = { block, content: block.contentElement, field }
     this.#open = true
     this.#filter = ''
     this.#activeIndex = 0
@@ -336,6 +369,7 @@ export class SlashCommands {
 
   /** @param {number} index */
   #selectItem(index) {
+    if (!this.#sessionIsCurrent()) { this.close(); return }
     const item = this.#filteredItems[index]
     if (!item) return
 
@@ -444,6 +478,7 @@ export class SlashCommands {
   }
 
   #position() {
+    if (!this.#sessionIsCurrent()) { this.close(); return }
     const block = this.#blocks.getCurrentBlock()
     if (!block) return
 

@@ -26,6 +26,7 @@ class FakeElement {
   addEventListener(type, handler) { this.listeners.set(type, handler) }
   removeEventListener(type, handler) { if (this.listeners.get(type) === handler) this.listeners.delete(type) }
   appendChild(child) { this.children.push(child); child.parentElement = this; return child }
+  contains(node) { return node === this || this.children.some(child => child.contains(node)) }
   scrollIntoView() {}
   remove() {}
   closest(selector) {
@@ -90,6 +91,7 @@ test('slash commands ignore input events from auxiliary native controls', () => 
   const block = { id: 'b', type: 'paragraph', element: new FakeElement('div'), contentElement: content }
   const blocks = {
     getCurrentBlock() { return block },
+    getBlockById(id) { return id === block.id ? block : undefined },
     getBlockByChildNode(node) { return node === content ? block : undefined },
   }
   const plugin = { type: 'paragraph', title: 'Paragraph', icon: '<i></i>' }

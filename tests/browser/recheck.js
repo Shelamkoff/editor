@@ -1,3 +1,4 @@
+import { register as slashSession } from './regressions/recheck-97-slash-session.js'
 import { register as patternOwnership } from './regressions/recheck-96-pattern-ownership.js'
 import { register as restoreLock } from './regressions/recheck-95-restore-lock.js'
 import { register as jsonRealm } from './regressions/recheck-94-json-realm.js'
@@ -191,4 +192,5 @@ preparationOwnership()
 jsonRealm()
 restoreLock()
 patternOwnership()
+slashSession()
 await run()
