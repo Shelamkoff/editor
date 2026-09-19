@@ -1,7 +1,7 @@
 // @ts-nocheck
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { DEFAULT_TUNING, resolveTuning } from './config.js'
+import { DEFAULT_TUNING, resolveTuning, snapshotConfigArray } from './config.js'
 
 test('resolveTuning returns an independent complete configuration', () => {
   const resolved = resolveTuning({ undo: { debounceMs: 0 } })
@@ -66,4 +66,29 @@ test('resolveTuning ignores inherited top-level tuning values without reading th
     animations: { ...DEFAULT_TUNING.animations },
   })
   assert.equal(reads, 0)
+})
+
+
+test('snapshotConfigArray observes each own entry exactly once', () => {
+  let firstReads = 0
+  let secondReads = 0
+  const values = []
+  Object.defineProperty(values, '0', {
+    enumerable: true,
+    configurable: true,
+    get() { firstReads++; return { id: 'first' } },
+  })
+  Object.defineProperty(values, '1', {
+    enumerable: true,
+    configurable: true,
+    get() { secondReads++; return { id: 'second' } },
+  })
+  values.length = 2
+
+  const snapshot = snapshotConfigArray(values)
+  assert.equal(firstReads, 1)
+  assert.equal(secondReads, 1)
+  assert.deepEqual(snapshot.map(item => item.id), ['first', 'second'])
+  assert.equal(firstReads, 1)
+  assert.equal(secondReads, 1)
 })
