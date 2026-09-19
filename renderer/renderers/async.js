@@ -1,5 +1,6 @@
 // @ts-check
 import { BLOCK_TYPES } from '../../shared/blockTypes.js'
+import { snapshotPollRendererConfig } from '../pollConfigSnapshot.js'
 
 /** @typedef {(prefix: string, locale: Record<string, import('../../shared/localeTypes').LocaleValue>, config?: unknown) => import('../types').BlockRenderer} RendererFactory */
 /** @typedef {() => Promise<RendererFactory>} RendererLoader */
@@ -52,7 +53,8 @@ function snapshotLocale(locale) {
 }
 
 /** Snapshot one renderer config without imposing a shape on renderer-specific options. */
-function snapshotRendererConfig(value) {
+function snapshotRendererConfig(type, value) {
+  if (type === 'poll') return snapshotPollRendererConfig(value, 'configs.poll')
   if (Array.isArray(value)) return [...value]
   if (value && typeof value === 'object') return { .../** @type {Record<string, unknown>} */ (value) }
   return value
@@ -128,7 +130,7 @@ export async function createRendererAsync(type, classPrefix, locale = {}, config
   const localeMap = snapshotLocale(
     /** @type {Record<string, import('../../shared/localeTypes').LocaleValue>} */ (requireRecord(locale, 'locale')),
   )
-  const configSnapshot = snapshotRendererConfig(config)
+  const configSnapshot = snapshotRendererConfig(type, config)
   const factory = await loadRendererFactory(type)
   return factory(classPrefix, localeMap, configSnapshot)
 }
@@ -154,7 +156,7 @@ export async function createDefaultRenderersAsync(classPrefix, locale = {}, sour
   for (const type of types) {
     configSnapshots.set(
       type,
-      Object.hasOwn(configMap, type) ? snapshotRendererConfig(configMap[type]) : undefined,
+      Object.hasOwn(configMap, type) ? snapshotRendererConfig(type, configMap[type]) : undefined,
     )
   }
 
