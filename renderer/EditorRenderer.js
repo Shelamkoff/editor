@@ -27,6 +27,9 @@ export class EditorRenderer {
   #inlinePlugins
   /** @type {Map<HTMLElement, { wrapper: HTMLElement, blocks: Map<string, { element: HTMLElement, type: string, signature: string, renderer?: import('./types').BlockRenderer }> }>} */
   #mountedContainers = new Map()
+  /** Containers currently inside renderTo(); protects staged ownership from same-container reentry. */
+  /** @type {WeakSet<HTMLElement>} */
+  #renderingContainers = new WeakSet()
 
   /** Results returned by render(); keyed by their document wrapper. */
   /** @type {Map<HTMLElement, Array<{ element: HTMLElement, type: string, renderer?: import('./types').BlockRenderer }>>} */
@@ -339,6 +342,11 @@ export class EditorRenderer {
    * @returns {void}
    */
   renderTo(data, container) {
+    if (this.#renderingContainers.has(container)) {
+      throw new Error('Cannot reenter renderTo() for the same container')
+    }
+    this.#renderingContainers.add(container)
+    try {
     const ownerDocument = container.ownerDocument ?? globalThis.document
     this.#ensureStyles(ownerDocument)
     const mounted = this.#mountedContainers.get(container)
@@ -428,6 +436,9 @@ export class EditorRenderer {
     }
     this.#mountedContainers.set(container, { wrapper, blocks: next })
     this.#ensureStyles(ownerDocument)
+    } finally {
+      this.#renderingContainers.delete(container)
+    }
   }
 
   /**
