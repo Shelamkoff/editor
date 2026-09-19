@@ -81,6 +81,7 @@ export function createPollRenderer(classPrefix, locale, config = {}) {
 
   /** @param {HTMLElement} wrapper @param {any} state */
   function build(wrapper, state) {
+    if (states.get(wrapper) !== state) return
     wrapper.replaceChildren()
 
     if (state.data.question) {
@@ -103,7 +104,7 @@ export function createPollRenderer(classPrefix, locale, config = {}) {
       if (state.selected.has(option.id)) marker.classList.add(`${p}__marker--selected`)
       marker.disabled = state.submitting
       marker.addEventListener('click', () => {
-        if (state.submitting) return
+        if (states.get(wrapper) !== state || state.submitting) return
         if (state.data.type === 'single') state.selected = new Set([option.id])
         else if (state.selected.has(option.id)) state.selected.delete(option.id)
         else state.selected.add(option.id)
@@ -187,7 +188,7 @@ export function createPollRenderer(classPrefix, locale, config = {}) {
 
   /** @param {HTMLElement} wrapper @param {any} state */
   function vote(wrapper, state) {
-    if (state.submitting || state.selected.size === 0) return
+    if (states.get(wrapper) !== state || state.submitting || state.selected.size === 0) return
     const selected = [...state.selected]
     if (!config.dataSource) {
       state.results = applyLocalPollVote(
@@ -275,10 +276,13 @@ export function createPollRenderer(classPrefix, locale, config = {}) {
         fail(wrapper, state, error)
       }
     }
-    void Promise.resolve().then(() => config.dataSource.load({
-      pollId: state.data.pollId,
-      signal: controller.signal,
-    })).then(result => {
+    void Promise.resolve().then(() => {
+      if (states.get(wrapper) !== state || controller.signal.aborted) return
+      return config.dataSource.load({
+        pollId: state.data.pollId,
+        signal: controller.signal,
+      })
+    }).then(result => {
       if (states.get(wrapper) === state && !controller.signal.aborted
         && connectionVersion === state.connectionVersion && loadVersion === state.loadVersion) accept(wrapper, state, result)
     }).catch(error => {
@@ -326,16 +330,20 @@ export function createPollRenderer(classPrefix, locale, config = {}) {
     destroy(element) {
       const state = states.get(element)
       if (!state) return
+      // Revoke the lease before invoking caller-owned abort/unsubscribe code.
+      // Retained controls and a reentrant destroy must see an inactive result.
+      states.delete(element)
       state.connectionVersion++
       state.loadVersion++
       state.voteVersion++
-      state.controller?.abort()
-      try { state.unsubscribe?.() } catch (error) {
-        invokeObserver(config.onError, [error])
-      }
+      const controller = state.controller
+      const unsubscribe = state.unsubscribe
       state.controller = null
       state.unsubscribe = null
-      states.delete(element)
+      controller?.abort()
+      try { unsubscribe?.() } catch (error) {
+        invokeObserver(config.onError, [error])
+      }
     },
   }
 }

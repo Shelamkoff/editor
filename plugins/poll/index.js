@@ -200,18 +200,20 @@ export class Poll extends BlockPluginAbstract {
    */
   destroy(element) {
     const s = stateMap.get(element)
-    if (s) {
-      s.connectionVersion++
-      s.loadVersion++
-      s.voteVersion++
-      s.abortController?.abort()
-      try { s.unsubscribe?.() } catch (error) {
-        invokeObserver(this._config.onError, [error])
-      }
-      s.abortController = null
-      s.unsubscribe = null
-    }
+    if (!s) return
+    // Revoke ownership before caller-owned cleanup can reenter destroy().
     stateMap.delete(element)
+    s.connectionVersion++
+    s.loadVersion++
+    s.voteVersion++
+    const controller = s.abortController
+    const unsubscribe = s.unsubscribe
+    s.abortController = null
+    s.unsubscribe = null
+    controller?.abort()
+    try { unsubscribe?.() } catch (error) {
+      invokeObserver(this._config.onError, [error])
+    }
   }
 
   // ── Private ─────────────────────────────────────────────────────────────────
@@ -318,7 +320,7 @@ export class Poll extends BlockPluginAbstract {
     marker.setAttribute('aria-pressed', String(s.selected.has(opt.id)))
     if (s.selected.has(opt.id)) marker.classList.add('oe-poll__option-marker--selected')
     if (!s.context.readOnly) marker.addEventListener('click', () => {
-      if (s.submitting) return
+      if (stateMap.get(wrapper) !== s || s.submitting) return
       if (s.data.type === 'single') {
         s.selected = new Set([opt.id])
       } else if (s.selected.has(opt.id)) {
@@ -466,6 +468,7 @@ export class Poll extends BlockPluginAbstract {
 
   /** @param {HTMLElement} wrapper @param {PollState} s @returns {void} */
   #syncSelectionUi(wrapper, s) {
+    if (stateMap.get(wrapper) !== s) return
     wrapper.querySelectorAll('.oe-poll__option-marker').forEach(element => {
       const button = /** @type {HTMLButtonElement} */ (element)
       const selected = !!button.dataset.optionId && s.selected.has(button.dataset.optionId)
@@ -476,6 +479,7 @@ export class Poll extends BlockPluginAbstract {
 
   /** @param {HTMLElement} wrapper @param {PollState} s @returns {void} */
   #replaceRuntime(wrapper, s) {
+    if (stateMap.get(wrapper) !== s) return
     wrapper.querySelector('.oe-poll__runtime')?.replaceWith(this.#buildRuntime(wrapper, s))
   }
 
@@ -554,6 +558,7 @@ export class Poll extends BlockPluginAbstract {
 
   /** @param {HTMLElement} wrapper @param {PollState} s @returns {void} */
   #submitVote(wrapper, s) {
+    if (stateMap.get(wrapper) !== s) return
     if (s.context.readOnly || s.submitting || s.selected.size === 0) return
     const optionIds = [...s.selected]
     if (!this._config.dataSource) {
@@ -694,10 +699,12 @@ export class Poll extends BlockPluginAbstract {
       }
     }
 
-    void Promise.resolve().then(() => dataSource.load({
-      pollId: /** @type {string} */ (s.data.pollId),
-      signal: controller.signal,
-    })).then(results => {
+    void Promise.resolve().then(async () => {
+      if (stateMap.get(wrapper) !== s || controller.signal.aborted) return
+      const results = await dataSource.load({
+        pollId: /** @type {string} */ (s.data.pollId),
+        signal: controller.signal,
+      })
       if (stateMap.get(wrapper) !== s || controller.signal.aborted
         || connectionVersion !== s.connectionVersion || loadVersion !== s.loadVersion) return
       this.#acceptRuntimeResults(wrapper, s, results)

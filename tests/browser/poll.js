@@ -1,3 +1,4 @@
+import { verifyPollLifetime } from './poll-lifetime.js'
 import { Poll } from '../../plugins/poll/index.js'
 import { EditorRenderer } from '../../renderer/index.js'
 
@@ -226,7 +227,10 @@ async function run() {
   assert(cleanupUnhandledRejections === 0, 'async Poll cleanup observer leaked an unhandled rejection')
   cleanupContainer.remove()
 
+  await verifyPollLifetime(fixture, sandbox)
+
   return {
+    lifetimeCases: ['destroy before load', 'retained controls', 'reentrant unsubscribe'],
     modes: ['local', 'load', 'vote', 'subscribe', 'renderer'],
     guards: ['afterVote confirmation', 'single history step', 'configured voter retention', 'duplicate submit', 'concurrent subscription update', 'revision ordering', 'read-only side effects', 'abort', 'unsubscribe', 'safe voters'],
   }
