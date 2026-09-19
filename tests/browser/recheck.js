@@ -1,3 +1,4 @@
+import { register as jsonRealm } from './regressions/recheck-94-json-realm.js'
 import { register as preparationOwnership } from './regressions/recheck-93-preparation-ownership.js'
 import { register as destroyedFocus } from './regressions/recheck-92-destroyed-focus.js'
 import { register as rawLifecycle } from './regressions/recheck-91-raw-lifecycle.js'
@@ -185,4 +186,5 @@ revisionContract()
 rawLifecycle()
 destroyedFocus()
 preparationOwnership()
+jsonRealm()
 await run()

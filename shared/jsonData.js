@@ -1,5 +1,20 @@
 // @ts-check
 
+const objectConstructorSource = Function.prototype.toString.call(Object)
+
+/** Accept the intrinsic Object prototype from any realm, not arbitrary classes.
+ * Inspect descriptors instead of invoking caller-owned constructor getters.
+ * @param {object | null} prototype
+ */
+function isPlainObjectPrototype(prototype) {
+  if (prototype === null || prototype === Object.prototype) return true
+  if (Object.getPrototypeOf(prototype) !== null) return false
+  const constructor = Object.getOwnPropertyDescriptor(prototype, 'constructor')?.value
+  return typeof constructor === 'function'
+    && Object.getOwnPropertyDescriptor(constructor, 'prototype')?.value === prototype
+    && Function.prototype.toString.call(constructor) === objectConstructorSource
+}
+
 /**
  * Clone a value while asserting that it can cross the persisted Rector
  * document boundary without changing meaning during JSON serialization.
@@ -31,7 +46,7 @@ export function cloneJsonValue(value, path = '$') {
     if (ancestors.has(current)) throw new TypeError(`${currentPath} contains a circular reference`)
 
     const prototype = Object.getPrototypeOf(current)
-    if (!Array.isArray(current) && prototype !== Object.prototype && prototype !== null) {
+    if (!Array.isArray(current) && !isPlainObjectPrototype(prototype)) {
       const constructor = Object.getOwnPropertyDescriptor(prototype, 'constructor')?.value
       const name = typeof constructor === 'function' && constructor.name ? constructor.name : 'object'
       throw new TypeError(`${currentPath} contains non-JSON object ${name}`)
