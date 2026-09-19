@@ -112,3 +112,49 @@ test('async renderer preset observes requested config and locale before the impo
   assert.equal(configReads, 1)
   assert.equal(localeReads, 1)
 })
+
+
+test('async Poll renderer snapshots nested adapter methods before imports settle', async () => {
+  const reads = { poll: 0, dataSource: 0, load: 0, vote: 0, subscribe: 0 }
+  const adapter = {
+    get load() {
+      reads.load++
+      if (reads.load > 1) throw new Error('load getter reread')
+      return async () => ({ total: 0, options: [] })
+    },
+    get vote() {
+      reads.vote++
+      if (reads.vote > 1) throw new Error('vote getter reread')
+      return async () => ({ total: 0, options: [] })
+    },
+    get subscribe() {
+      reads.subscribe++
+      if (reads.subscribe > 1) throw new Error('subscribe getter reread')
+      return undefined
+    },
+  }
+  const poll = {
+    get dataSource() {
+      reads.dataSource++
+      if (reads.dataSource > 1) throw new Error('dataSource getter reread')
+      return adapter
+    },
+  }
+  const configs = {}
+  Object.defineProperty(configs, 'poll', {
+    enumerable: true,
+    configurable: true,
+    get() {
+      reads.poll++
+      if (reads.poll > 1) throw new Error('Poll config getter reread')
+      return poll
+    },
+  })
+
+  const pending = createDefaultRenderersAsync('async-contract', {}, ['poll'], configs)
+  assert.deepEqual(reads, { poll: 1, dataSource: 1, load: 1, vote: 1, subscribe: 1 })
+
+  const renderers = await pending
+  assert.equal(renderers.get('poll')?.type, 'poll')
+  assert.deepEqual(reads, { poll: 1, dataSource: 1, load: 1, vote: 1, subscribe: 1 })
+})
