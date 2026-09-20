@@ -83,13 +83,15 @@ export class KeyboardManager {
     // Auxiliary form fields own their keys and native history. Document-backed
     // inputs opt in so code/raw plugins can delegate boundary keys and Undo.
     const formField = target.closest?.('input, textarea, select')
+    // Auxiliary fields own native Undo/Redo even when nested in a block.
+    // Document-backed code/raw/URL inputs explicitly opt in to editor history.
+    if (formField && !formField.hasAttribute('data-oe-document-input')) return
     const isBlockTarget = target === this.#rootEl || !!target.closest?.(BLOCK_SELECTOR)
 
     // Editor-scoped history must run before overlay/control routing. Buttons and
     // links own activation/navigation keys, but editor Undo/Redo must remain
     // available while focus is parked on plugin UI inside a block.
     if (isBlockTarget && this.#shortcuts.handle(e, 'editor')) return
-    if (formField && !formField.hasAttribute('data-oe-document-input')) return
     // URL-backed fields share committed document history but keep their own
     // editing keys; only code/raw surfaces delegate structural boundaries.
     if (formField && ['history', 'value'].includes(formField.getAttribute('data-oe-document-input'))) return
