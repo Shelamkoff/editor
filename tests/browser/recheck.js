@@ -1,3 +1,4 @@
+import { register as settingsMenuLifetime } from './regressions/recheck-106-settings-menu-lifetime.js'
 import { register as inlineCursor } from './regressions/recheck-105-inline-cursor.js'
 import { register as blockControlLifetime } from './regressions/recheck-104-block-control-lifetime.js'
 import { register as actionsPanelLifetime } from './regressions/recheck-103-actions-panel-lifetime.js'
@@ -205,4 +206,5 @@ popupReentry()
 actionsPanelLifetime()
 blockControlLifetime()
 inlineCursor()
+settingsMenuLifetime()
 await run()

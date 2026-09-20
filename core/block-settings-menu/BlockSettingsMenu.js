@@ -26,6 +26,15 @@ export class BlockSettingsMenu {
   /** @type {boolean} */
   #open = false
 
+  #destroyed = false
+  #generation = 0
+  /** @type {import('../types').IBlockManager} */
+  #blocks
+  /** @type {import('../types').IBlock | null} */
+  #source = null
+  /** @type {HTMLElement | null} */
+  #sourceContent = null
+
   /** @type {(() => void) | null} */
   #onCloseCallback = null
 
@@ -56,6 +65,7 @@ export class BlockSettingsMenu {
    * @param {{ mobileBreakpoint?: number }} [tuning]
    */
   constructor(rootEl, blocks, selection, plugins, i18n, events, crossBlockSelection, blockOps, defaultBlockType, duplicateBlock, commands, tuning) {
+    this.#blocks = blocks
     this.#rootEl = rootEl
     this.#document = rootEl.ownerDocument
     this.#view = /** @type {(Window & typeof globalThis) | null} */ (this.#document.defaultView)
@@ -80,6 +90,7 @@ export class BlockSettingsMenu {
     this.#builder = new MenuBuilder(this.#menuEl, {
       blocks, plugins, i18n,
       actions: this.#actions,
+      isActive: () => this.#isActive(),
       rebuildMain: (direction) => this.#builder.buildMainView(direction),
     })
 
@@ -96,6 +107,7 @@ export class BlockSettingsMenu {
   set onClose(cb) { this.#onCloseCallback = cb }
 
   toggle() {
+    if (this.#destroyed) return
     if (this.#open) this.close()
     else this.#show()
   }
@@ -104,21 +116,35 @@ export class BlockSettingsMenu {
   close(options = {}) {
     if (!this.#open) return
     const restore = options.restoreSelection ?? true
+    const range = this.#savedRange
     this.#open = false
-    this.#menuEl.style.display = 'none'
-    if (this.#savedRange) CrossBlockSelection.hideHighlight(this.#savedRange)
-    if (restore) this.#restoreSelection()
+    this.#generation++
     this.#savedRange = null
+    this.#source = null
+    this.#sourceContent = null
+    this.#builder.retire()
+    this.#menuEl.style.display = 'none'
+    if (range) CrossBlockSelection.hideHighlight(range)
+    if (restore) restoreSelection(range, this.#crossBlockSelection)
     this.#onCloseCallback?.()
   }
 
   destroy() {
+    if (this.#destroyed) return
+    this.#destroyed = true
+    // Teardown must not restore focus or invoke the toolbar's return animation.
+    this.#onCloseCallback = null
+    this.close({ restoreSelection: false })
     this.#document.removeEventListener('click', this.#onDocumentClick, true)
     this.#menuEl.removeEventListener('keydown', this.#onMenuKeydown)
     this.#menuEl.remove()
   }
 
   #show() {
+    if (this.#destroyed) return
+    const generation = ++this.#generation
+    this.#source = this.#blocks.getCurrentBlock() ?? null
+    this.#sourceContent = this.#source?.contentElement ?? null
     this.#open = true
 
     const sel = this.#view?.getSelection()
@@ -134,27 +160,39 @@ export class BlockSettingsMenu {
     }
 
     this.#builder.buildMainView()
+    if (generation !== this.#generation || !this.#isActive()) return
     this.#menuEl.style.display = ''
     this.#positioner.position()
 
     const schedule = this.#view?.requestAnimationFrame?.bind(this.#view)
       ?? requestAnimationFrame
     schedule(() => {
-      if (this.#open) this.#menuEl.focus()
+      if (generation === this.#generation && this.#isActive()) this.#menuEl.focus()
     })
   }
 
   #refreshAfterMove() {
+    if (!this.#isActive()) return
     this.#builder.buildMainView('none')
     this.#positioner.position()
   }
 
-  #restoreSelection() {
-    restoreSelection(this.#savedRange, this.#crossBlockSelection)
+  #isActive() {
+    if (this.#destroyed || !this.#open) return false
+    const current = this.#blocks.getCurrentBlock() ?? null
+    if (current !== this.#source || (current && (
+      this.#blocks.getBlockById(current.id) !== current
+      || current.contentElement !== this.#sourceContent
+    ))) {
+      this.close({ restoreSelection: false })
+      return false
+    }
+    return true
   }
 
   /** @param {KeyboardEvent} e */
   #onMenuKeydown = (e) => {
+    if (!this.#isActive()) return
     handleMenuKeydown(e, this.#menuEl, { onEscape: () => this.close() })
   }
 

@@ -10,6 +10,7 @@ import {
  * @property {Map<string, import('../types').BlockPlugin>} plugins
  * @property {import('../I18n').I18n} i18n
  * @property {import('./BlockActions.js').BlockActions} actions
+ * @property {() => boolean} [isActive]
  * @property {(direction?: 'forward' | 'back' | 'none') => void} rebuildMain
  *   Used by the convert-view back button to redraw the main view.
  */
@@ -25,6 +26,8 @@ export class MenuBuilder {
   /** @type {MenuBuilderDeps} */
   #deps
 
+  #generation = 0
+
   /** @param {HTMLElement} menuEl @param {MenuBuilderDeps} deps */
   constructor(menuEl, deps) {
     this.#menuEl = menuEl
@@ -34,6 +37,8 @@ export class MenuBuilder {
 
   /** @param {'forward' | 'back' | 'none'} [direction] */
   buildMainView(direction = 'none') {
+    if (this.#deps.isActive && !this.#deps.isActive()) return
+    const generation = ++this.#generation
     this.#menuEl.textContent = ''
     this.#applyDirection(direction)
 
@@ -57,13 +62,16 @@ export class MenuBuilder {
       } catch (err) {
         console.warn(`[MenuBuilder] Failed to render settings for "${current.type}":`, err)
       }
+      if (!this.#isCurrent(generation)) return
       const items = Array.isArray(settingsItems) ? settingsItems : settingsItems ? [settingsItems] : []
       for (const item of items) {
         if (!item) continue
         item.addEventListener('click', (e) => {
           e.preventDefault()
           e.stopPropagation()
-          this.#deps.actions.handleSettingsAction(current, plugin, item)
+          if (this.#isCurrent(generation) && this.#menuEl.contains(item)) {
+            this.#deps.actions.handleSettingsAction(current, plugin, item)
+          }
         })
         this.#menuEl.appendChild(item)
       }
@@ -81,6 +89,8 @@ export class MenuBuilder {
   }
 
   buildConvertView() {
+    if (this.#deps.isActive && !this.#deps.isActive()) return
+    this.#generation++
     this.#menuEl.textContent = ''
     this.#applyDirection('forward')
     const current = this.#deps.blocks.getCurrentBlock()
@@ -97,6 +107,17 @@ export class MenuBuilder {
       if (isActive) item.classList.add('oe-settings-menu__item--active')
       this.#menuEl.appendChild(item)
     }
+  }
+
+  /** Revoke callbacks before removing the old view, including reused plugin nodes. */
+  retire() {
+    this.#generation++
+    this.#menuEl.textContent = ''
+  }
+
+  /** @param {number} generation */
+  #isCurrent(generation) {
+    return generation === this.#generation && (this.#deps.isActive?.() ?? true)
   }
 
   /** @param {'forward' | 'back' | 'none'} direction */
@@ -147,10 +168,11 @@ export class MenuBuilder {
     btn.appendChild(labelSpan)
 
     if (!disabled) {
+      const generation = this.#generation
       btn.addEventListener('click', (e) => {
         e.preventDefault()
         e.stopPropagation()
-        handler()
+        if (this.#isCurrent(generation) && this.#menuEl.contains(btn)) handler()
       })
     }
     return btn
