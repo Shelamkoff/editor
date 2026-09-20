@@ -1,3 +1,4 @@
+import { register as toolboxKeyboard } from './regressions/recheck-109-toolbox-keyboard.js'
 import { register as auxiliaryHistory } from './regressions/recheck-108-auxiliary-history.js'
 import { register as inlineEventTarget } from './regressions/recheck-107-inline-event-target.js'
 import { register as settingsMenuLifetime } from './regressions/recheck-106-settings-menu-lifetime.js'
@@ -211,4 +212,5 @@ inlineCursor()
 settingsMenuLifetime()
 inlineEventTarget()
 auxiliaryHistory()
+toolboxKeyboard()
 await run()

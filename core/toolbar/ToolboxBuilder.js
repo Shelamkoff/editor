@@ -158,6 +158,18 @@ export class ToolboxBuilder {
     const idx = current ? items.indexOf(current) : -1
 
     switch (e.key) {
+      case 'Enter':
+      case ' ': {
+        // Menu items are LI elements: unlike buttons they have no native key
+        // activation. Enter from the search field/menu selects the first
+        // visible item, while Space in the search field remains text input.
+        const item = items[idx] ?? (e.key === 'Enter'
+          && (current === this.#filterInput || current === this.#toolboxEl) ? items[0] : null)
+        if (!item) return
+        e.preventDefault(); e.stopPropagation()
+        item.click()
+        break
+      }
       case 'ArrowDown': {
         e.preventDefault(); e.stopPropagation()
         const next = idx < items.length - 1 ? idx + 1 : 0
