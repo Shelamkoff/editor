@@ -146,3 +146,50 @@ test('serializeInlineHtml parses text in the supplied owning realm', () => {
     else globalThis.document = oldDocument
   }
 })
+
+test('nested inline deserialization cannot reset the outer placeholder cursor', () => {
+  const ownerDocument = createDocument()
+  ownerDocument.defaultView = { HTMLElement: ForeignHTMLElement }
+  const calls = []
+  let nested = false
+  const registry = new Map([['probe', {
+    createWidget(data, id) {
+      calls.push(id)
+      // Bound the old implementation too: only the first outer widget nests.
+      if (id === 'outer' && !nested) {
+        nested = true
+        const inner = deserializeInlineHtml('{{inner}}', {
+          inner: { type: 'probe', data: { label: 'INNER' } },
+        }, registry, ownerDocument)
+        assert.match(inner, /INNER/)
+      }
+      return new ForeignElement(ownerDocument, data.label)
+    },
+  }]])
+  const result = deserializeInlineHtml('before {{outer}} between {{tail}} after', {
+    outer: { type: 'probe', data: { label: 'OUTER' } },
+    tail: { type: 'probe', data: { label: 'TAIL' } },
+  }, registry, ownerDocument)
+  assert.deepEqual(calls, ['outer', 'inner', 'tail'])
+  assert.equal(result, 'before <span data-inline-plugin="probe" data-id="wid">OUTER</span> between <span data-inline-plugin="probe" data-id="wid">TAIL</span> after')
+})
+
+test('failed nested widget creation does not rewind an outer deserialization', () => {
+  const ownerDocument = createDocument()
+  ownerDocument.defaultView = { HTMLElement: ForeignHTMLElement }
+  let calls = 0
+  const registry = new Map([['probe', {
+    createWidget() {
+      if (++calls === 1) {
+        deserializeInlineHtml('{{unknown}}', {}, registry, ownerDocument)
+        throw new Error('malformed widget')
+      }
+      return new ForeignElement(ownerDocument, 'RETRY MUST NOT HAPPEN')
+    },
+  }]])
+  const result = deserializeInlineHtml('before {{outer}} after', {
+    outer: { type: 'probe', data: {} },
+  }, registry, ownerDocument)
+  assert.equal(calls, 1)
+  assert.equal(result, 'before {{outer}} after')
+})

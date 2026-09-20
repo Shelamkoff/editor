@@ -188,10 +188,10 @@ export function deserializeInlineHtml(html, inline, registry, ownerDocument = gl
     // Build a fragment: alternating plain-text runs + widget nodes.
     const frag = ownerDocument.createDocumentFragment()
     let lastIndex = 0
-    PLACEHOLDER_RE.lastIndex = 0
-    /** @type {RegExpExecArray | null} */
-    let match
-    while ((match = PLACEHOLDER_RE.exec(text)) !== null) {
+    // Each text node owns its iterator. createWidget() may render another
+    // document synchronously; a module-wide RegExp.lastIndex would let that
+    // nested call rewind this loop and duplicate widgets (or never terminate).
+    for (const match of text.matchAll(PLACEHOLDER_RE)) {
       const [token, id] = match
       const ref = Object.prototype.hasOwnProperty.call(inline, id) ? inline[id] : undefined
       if (!ref || typeof ref !== 'object' || typeof ref.type !== 'string') continue

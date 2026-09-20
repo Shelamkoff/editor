@@ -1,3 +1,4 @@
+import { register as inlineCursor } from './regressions/recheck-105-inline-cursor.js'
 import { register as blockControlLifetime } from './regressions/recheck-104-block-control-lifetime.js'
 import { register as actionsPanelLifetime } from './regressions/recheck-103-actions-panel-lifetime.js'
 import { register as popupReentry } from './regressions/recheck-102-popup-reentry.js'
@@ -203,4 +204,5 @@ slashFieldBoundary()
 popupReentry()
 actionsPanelLifetime()
 blockControlLifetime()
+inlineCursor()
 await run()
