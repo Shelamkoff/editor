@@ -19,7 +19,9 @@ export function invokeObserver(callback, args = [], onError = () => {}) {
 
   try {
     const result = callback(...args)
-    if (result && typeof result.then === 'function') {
+    if (result && (typeof result === 'object' || typeof result === 'function')) {
+      // Let Promise resolution inspect `then` once. Preflighting it here
+      // would observe an accessor twice and could adopt a different method.
       Promise.resolve(result).catch(report)
     }
   } catch (error) {
