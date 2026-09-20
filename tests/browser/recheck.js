@@ -1,3 +1,4 @@
+import { register as imageUploadFailures } from './regressions/image-upload-failures.js'
 import { register as galleryUploadFailures } from './regressions/gallery-upload-failures.js'
 import { register as pluginShortcuts } from './regressions/recheck-111-plugin-shortcuts.js'
 import { register as nativeReadOnly } from './regressions/recheck-110-read-only-native-controls.js'
@@ -219,4 +220,5 @@ toolboxKeyboard()
 nativeReadOnly()
 pluginShortcuts()
 galleryUploadFailures()
+imageUploadFailures()
 await run()

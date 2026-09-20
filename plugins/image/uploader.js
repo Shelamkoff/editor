@@ -70,6 +70,7 @@ export class ImageUploader {
       const finish = () => {
         if (settled) return
         settled = true
+        reader.onload = reader.onerror = reader.onabort = null
         signal?.removeEventListener('abort', abort)
         resolve()
       }
@@ -77,9 +78,13 @@ export class ImageUploader {
       signal?.addEventListener('abort', abort, { once: true })
 
       reader.onload = () => {
+        if (settled) return
         try {
           const url = typeof reader.result === 'string' ? sanitizeMediaUrl(reader.result) : ''
           if (!signal?.aborted && url) onResolve({ url })
+        } catch {
+          // Match the remote path's contained-failure contract. A finally
+          // alone would resolve handle() AND throw from the FileReader event.
         } finally {
           finish()
         }
