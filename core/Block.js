@@ -378,11 +378,19 @@ export class Block {
       editableElement.contentEditable = 'false'
     }
 
-    for (const field of this.#contentElement.querySelectorAll('input, textarea')) {
-      if (HTMLInputElementCtor && field instanceof HTMLInputElementCtor) field.readOnly = true
-      else if (HTMLTextAreaElementCtor && field instanceof HTMLTextAreaElementCtor) field.readOnly = true
+    // querySelectorAll excludes the root, which may itself be a form control.
+    for (const field of [this.#contentElement, ...this.#contentElement.querySelectorAll('input, textarea')]) {
+      if (HTMLInputElementCtor && field instanceof HTMLInputElementCtor) {
+        field.readOnly = true
+        // HTML readonly does not constrain non-textual inputs. Disable their
+        // native activation as well so checkbox/range/file controls cannot
+        // change the rendered document outside the guarded mutation context.
+        if (['checkbox', 'radio', 'range', 'color', 'file', 'button', 'submit', 'reset', 'image'].includes(field.type)) {
+          field.disabled = true
+        }
+      } else if (HTMLTextAreaElementCtor && field instanceof HTMLTextAreaElementCtor) field.readOnly = true
     }
-    for (const control of this.#contentElement.querySelectorAll('button, select')) {
+    for (const control of [this.#contentElement, ...this.#contentElement.querySelectorAll('button, select')]) {
       if (control.hasAttribute(READ_ONLY_INTERACTIVE_ATTRIBUTE)) continue
       if (HTMLButtonElementCtor && control instanceof HTMLButtonElementCtor) control.disabled = true
       else if (HTMLSelectElementCtor && control instanceof HTMLSelectElementCtor) control.disabled = true

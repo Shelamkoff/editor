@@ -1,3 +1,4 @@
+import { register as nativeReadOnly } from './regressions/recheck-110-read-only-native-controls.js'
 import { register as toolboxKeyboard } from './regressions/recheck-109-toolbox-keyboard.js'
 import { register as auxiliaryHistory } from './regressions/recheck-108-auxiliary-history.js'
 import { register as inlineEventTarget } from './regressions/recheck-107-inline-event-target.js'
@@ -213,4 +214,5 @@ settingsMenuLifetime()
 inlineEventTarget()
 auxiliaryHistory()
 toolboxKeyboard()
+nativeReadOnly()
 await run()
