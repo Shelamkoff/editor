@@ -103,6 +103,9 @@ export class Gallery extends BlockPluginAbstract {
       state.pendingUpload = this.#handleFiles(wrapper, files).finally(() => {
         if (this.#states.get(wrapper) === state) state.pendingUpload = null
       })
+      // Observe event-started work without replacing the original Promise:
+      // waitForPaste() must still receive a rejection for staging rollback.
+      void state.pendingUpload.catch(this.#reportUploadError)
     }
 
     return wrapper
@@ -234,7 +237,7 @@ export class Gallery extends BlockPluginAbstract {
       readOnly,
       onUploadClick: () => this.#triggerFileInput(wrapper),
       onOpenUrlEditor: () => this.#openUrlEditor(wrapper),
-      onFilesDropped: (files) => { void this.#handleFiles(wrapper, files) },
+      onFilesDropped: (files) => { void this.#handleFiles(wrapper, files).catch(this.#reportUploadError) },
       customActions: this._config.actions || [],
       runCustomAction: async (handler) => this.#runCustomAction(wrapper, handler),
     })
@@ -254,7 +257,7 @@ export class Gallery extends BlockPluginAbstract {
       reRender: () => this.#renderFilled(wrapper),
       renderEmpty: () => this.#renderEmpty(wrapper),
       mutate: (operation) => this.#mutate(wrapper, operation),
-      onFilesDropped: (files) => { void this.#handleFiles(wrapper, files) },
+      onFilesDropped: (files) => { void this.#handleFiles(wrapper, files).catch(this.#reportUploadError) },
       onTriggerFileInput: () => this.#triggerFileInput(wrapper),
       onOpenUrlEditor: () => this.#openUrlEditor(wrapper),
       onDeleteAll: () => this.#deleteAll(wrapper),
@@ -272,8 +275,13 @@ export class Gallery extends BlockPluginAbstract {
       accept: 'image/*',
       multiple: true,
       signal: this.#states.get(wrapper)?.abortController?.signal,
-      onFiles: (files) => void this.#handleFiles(wrapper, files),
+      onFiles: (files) => void this.#handleFiles(wrapper, files).catch(this.#reportUploadError),
     })
+  }
+
+  /** @param {unknown} error */
+  #reportUploadError = (error) => {
+    console.warn('[Gallery] Failed to apply uploaded images:', error)
   }
 
   /**

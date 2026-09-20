@@ -8,6 +8,7 @@ import { sanitizeMediaUrl } from '../../shared/sanitize/sanitizeUrl.js'
  * Resolve a batch of gallery images through a consumer upload callback or
  * local data URLs. The caller owns loading state and operation lifetime.
  * Result order always follows input-file order; failed files are omitted.
+ * Failure to apply a completed batch rejects handle() in both upload modes.
  */
 export class GalleryUploader {
   /** @type {UploadFn | undefined} */
@@ -71,7 +72,7 @@ export class GalleryUploader {
    * @returns {Promise<void>}
    */
   #readDataUrls(files, onAdded, signal, ownerDocument) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       /** @type {Array<{ url: string, caption: string } | null>} */
       const results = files.map(() => null)
       let remaining = files.length
@@ -80,9 +81,16 @@ export class GalleryUploader {
       const finish = () => {
         if (settled) return
         settled = true
-        const added = results.filter((item) => item !== null)
-        if (!signal?.aborted && added.length > 0) onAdded(added)
-        resolve(undefined)
+        try {
+          const added = results.filter((item) => item !== null)
+          if (!signal?.aborted && added.length > 0) onAdded(added)
+          resolve(undefined)
+        } catch (error) {
+          // FileReader events run after the Promise executor has returned.
+          // Match the remote path: reject instead of throwing from the event
+          // and leaving the caller (and its loading cleanup) pending forever.
+          reject(error)
+        }
       }
 
       const FileReaderCtor = ownerDocument?.defaultView?.FileReader ?? FileReader
@@ -92,6 +100,7 @@ export class GalleryUploader {
         const completeReader = () => {
           if (readerComplete) return
           readerComplete = true
+          reader.onload = reader.onerror = reader.onabort = null
           signal?.removeEventListener('abort', abort)
           remaining--
           if (remaining === 0) finish()
@@ -99,6 +108,7 @@ export class GalleryUploader {
         const abort = () => reader.abort()
         signal?.addEventListener('abort', abort, { once: true })
         reader.onload = () => {
+          if (readerComplete) return
           const url = typeof reader.result === 'string' ? sanitizeMediaUrl(reader.result) : ''
           if (!signal?.aborted && url) results[index] = { url, caption: '' }
           completeReader()
