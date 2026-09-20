@@ -166,3 +166,105 @@ test('registered legacy payload which failed hydration survives a live ID collis
   assert.deepEqual(saved.inline.w, preserved.w)
   assert.equal(Object.keys(saved.inline).length, 2)
 })
+
+function snapshotFixture(fields) {
+  const block = {
+    id: 'stable', type: 'fields', version: 0,
+    contentElement: { ownerDocument: document },
+    plugin: { mapTextFields(data, transform) { for (const key of Object.keys(data)) data[key] = transform(data[key]) } },
+    save() { return { id: 'stable', type: 'fields', data: { ...fields } } },
+  }
+  return { block, store: new DocumentSnapshotStore([block], registry, {}) }
+}
+
+test('snapshot invalidation does not reallocate a colliding inline ID', () => {
+  const fields = { text: 'literal {{w}} / ' + widget }
+  const { block, store } = snapshotFixture(fields)
+  const first = store.save().blocks
+  block.version++
+  assert.deepEqual(store.save().blocks, first)
+  assert.equal(fields.text, 'literal {{w}} / ' + widget, 'saving must not rewrite plugin-owned data')
+})
+
+test('remapped identity survives text editing and removal of the conflicting literal', () => {
+  const fields = { text: 'literal {{w}} / ' + widget }
+  const { block, store } = snapshotFixture(fields)
+  const ids = Object.keys(store.save().blocks[0].inline)
+  for (const text of ['edited {{w}} / ' + widget, widget]) {
+    fields.text = text
+    block.version++
+    assert.deepEqual(Object.keys(store.save().blocks[0].inline), ids)
+  }
+})
+
+test('reordering fields retains the aliases of distinct colliding widgets', () => {
+  const second = widget.replace('data-id="w"', 'data-id="x"').replace('VALUE', 'SECOND')
+  const fields = { a: 'literal {{w}} / ' + widget, b: 'literal {{x}} / ' + second }
+  const { block, store } = snapshotFixture(fields)
+  const initial = store.save().blocks[0].inline
+  const a = fields.a; delete fields.a; fields.a = a
+  block.version++
+  assert.deepEqual(store.save().blocks[0].inline, initial)
+})
+
+test('a newly authored alias lookalike stays literal and forces a fresh stable alias', () => {
+  const fields = { text: '{{w}} / ' + widget }
+  const { block, store } = snapshotFixture(fields)
+  const oldId = Object.keys(store.save().blocks[0].inline)[0]
+  fields.text = `{{${oldId}}} / ` + fields.text
+  block.version++
+  const next = store.save().blocks[0]
+  assert.ok(!Object.hasOwn(next.inline, oldId))
+  assert.equal(Object.keys(next.inline).length, 1)
+  block.version++
+  assert.deepEqual(store.save().blocks[0], next)
+})
+
+test('duplicate live IDs remain distinct and stable across snapshot invalidation', () => {
+  const { block, store } = snapshotFixture({ text: widget + widget.replace('VALUE', 'OTHER') })
+  const initial = store.save().blocks[0]
+  assert.equal(Object.keys(initial.inline).length, 2)
+  block.version++
+  assert.deepEqual(store.save().blocks[0], initial)
+})
+
+test('allocating an alias cannot steal the preferred ID of a later live widget', (t) => {
+  const random = Math.random
+  t.after(() => { Math.random = random })
+  let draws = 0
+  Math.random = () => draws++ < 2 ? 0.5 : 0.25
+  // Hand-derived generateInlineId values for 0.5 and 0.25 respectively.
+  const reserved = 'w_i00000i000'
+  const second = widget.replace('data-id="w"', `data-id="${reserved}"`).replace('VALUE', 'SECOND')
+  const { store } = snapshotFixture({ a: '{{w}} / ' + widget, b: second })
+  const saved = store.save().blocks[0]
+  assert.deepEqual(saved.inline[reserved], { type: 'probe', data: { label: 'SECOND' } })
+  assert.equal(Object.keys(saved.inline).length, 2)
+})
+
+test('a new live widget can claim an existing alias without losing either payload', () => {
+  const fields = { a: '{{w}} / ' + widget }
+  const { block, store } = snapshotFixture(fields)
+  const id = Object.keys(store.save().blocks[0].inline)[0]
+  fields.b = widget.replace('data-id="w"', `data-id="${id}"`).replace('VALUE', 'SECOND')
+  block.version++
+  const next = store.save().blocks[0]
+  assert.deepEqual(next.inline[id], { type: 'probe', data: { label: 'SECOND' } })
+  assert.equal(Object.keys(next.inline).length, 2)
+  block.version++
+  assert.deepEqual(store.save().blocks[0], next)
+})
+
+test('failed strict validation does not commit provisional inline aliases', () => {
+  const fields = { text: '{{w}} / ' + widget }
+  const { block } = snapshotFixture(fields)
+  let valid = true
+  block.plugin.validate = () => valid
+  const store = new DocumentSnapshotStore([block], registry, { validationMode: 'strict' })
+  const initial = store.save().blocks[0]
+  const id = Object.keys(initial.inline)[0]
+  valid = false; fields.text = `{{${id}}} / ` + fields.text; block.version++
+  assert.throws(() => store.save(), /Invalid block data/)
+  valid = true; fields.text = '{{w}} / ' + widget; block.version++
+  assert.deepEqual(store.save().blocks[0], initial)
+})

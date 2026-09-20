@@ -1,3 +1,4 @@
+import { register as stableSnapshots } from './regressions/inline-stable-snapshots.js'
 import { register as inlineAuthoredLiterals } from './regressions/inline-authored-literals.js'
 import { register as imageUploadFailures } from './regressions/image-upload-failures.js'
 import { register as galleryUploadFailures } from './regressions/gallery-upload-failures.js'
@@ -223,4 +224,5 @@ pluginShortcuts()
 galleryUploadFailures()
 imageUploadFailures()
 inlineAuthoredLiterals()
+stableSnapshots()
 await run()

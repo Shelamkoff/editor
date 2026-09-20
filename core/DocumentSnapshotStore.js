@@ -22,7 +22,7 @@ export class DocumentSnapshotStore {
   /** @type {import('./types').EditorConfig['onValidationError']} */
   #onValidationError
 
-  /** @type {WeakMap<import('./types').IBlock, { version: number, data: import('./types').BlockData }>} */
+  /** @type {WeakMap<import('./types').IBlock, { version: number, data: import('./types').BlockData, inlineIds: Map<string, string[]> }>} */
   #cache = new WeakMap()
 
   /** @type {import('./Diagnostics').Diagnostics | null} */
@@ -125,6 +125,7 @@ export class DocumentSnapshotStore {
       throw new Error(`[DocumentSnapshotStore] Failed to save block ${block.id} (${block.type})`, { cause })
     }
 
+    const inlineIds = { previous: cached?.inlineIds ?? new Map(), current: new Map() }
     const registry = this.#inlinePluginRegistry
     if (registry && typeof block.plugin.mapTextFields === 'function') {
       /** @type {Record<string, import('../renderer/types').InlineWidget>} */
@@ -143,7 +144,7 @@ export class DocumentSnapshotStore {
       block.plugin.mapTextFields(
         /** @type {Record<string, unknown>} */ (snapshot.data),
         (html) => {
-          const result = serializeInlineHtml(html, registry, usedInlineIds, snapshot.inline, block.contentElement.ownerDocument, liveInlineIds, true)
+          const result = serializeInlineHtml(html, registry, usedInlineIds, snapshot.inline, block.contentElement.ownerDocument, liveInlineIds, true, inlineIds)
           for (const [id, widget] of Object.entries(result.inline)) {
             Object.defineProperty(inline, id, {
               value: widget,
@@ -181,7 +182,7 @@ export class DocumentSnapshotStore {
     // Strict invalid data must never enter the cache, otherwise a later save()
     // could reuse it without re-running the strict validation decision.
     if (!(issue && this.#validationMode === 'strict')) {
-      this.#cache.set(block, { version: block.version, data: canonical })
+      this.#cache.set(block, { version: block.version, data: canonical, inlineIds: inlineIds.current })
     }
     return { data: canonical, issue }
   }

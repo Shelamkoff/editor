@@ -29,6 +29,7 @@ import { toTrustedHtml } from './sanitize/trustedHtml.js'
  * @typedef {import('../renderer/types').InlineWidget} InlineWidget
  * @typedef {import('../renderer/types').InlinePluginLike & { isCommitted?(element: HTMLElement): boolean }} MarshalInlinePlugin
  * @typedef {{ get(type: string): MarshalInlinePlugin | undefined }} PluginLookup
+ * @typedef {{ previous: Map<string, string[]>, current: Map<string, string[]> }} InlineIdState
  */
 
 /**
@@ -61,13 +62,14 @@ const RESERVED_INLINE_IDS = new Set(['__proto__', 'constructor', 'prototype'])
 /**
  * @param {string | null} preferred
  * @param {Set<string>} usedIds
+ * @param {Set<string>} reservedIds
  */
-function allocateInlineId(preferred, usedIds) {
+function allocateInlineId(preferred, usedIds, reservedIds) {
   let id = preferred
   if (!id || !INLINE_ID_RE.test(id) || RESERVED_INLINE_IDS.has(id) || usedIds.has(id)) {
     do {
       id = generateInlineId()
-    } while (usedIds.has(id) || RESERVED_INLINE_IDS.has(id))
+    } while (usedIds.has(id) || reservedIds.has(id) || RESERVED_INLINE_IDS.has(id))
   }
   usedIds.add(id)
   return id
@@ -134,9 +136,10 @@ export function collectInlineSerializationIds(html, registry, usedIds, liveIds, 
  * @param {Document} [ownerDocument] Document that owns the serialized DOM.
  * @param {Set<string>} [liveIds] Live widget IDs from all sibling text fields
  * @param {boolean} [preservedIsOpaque] True when hydration already removed all resolved entries.
+ * @param {InlineIdState} [idState] Snapshot-owned aliases, never written into live DOM or caller data.
  * @returns {{ html: string, inline: Record<string, InlineWidget> }}
  */
-export function serializeInlineHtml(html, registry, usedIds = new Set(), preserved = {}, ownerDocument = globalThis.document, liveIds = new Set(), preservedIsOpaque = false) {
+export function serializeInlineHtml(html, registry, usedIds = new Set(), preserved = {}, ownerDocument = globalThis.document, liveIds = new Set(), preservedIsOpaque = false, idState) {
   /** @type {Array<[string, InlineWidget]>} */
   const entries = []
   const source = String(html || '')
@@ -181,7 +184,20 @@ export function serializeInlineHtml(html, registry, usedIds = new Set(), preserv
       continue
     }
 
-    const id = allocateInlineId(el.getAttribute('data-id'), usedIds)
+    const preferred = el.getAttribute('data-id')
+    const key = JSON.stringify([type, preferred])
+    const assigned = idState?.current.get(key) ?? []
+    const previous = idState?.previous.get(key)?.[assigned.length]
+    // Snapshotting is observational: do not rewrite live data-id attributes.
+    // Reuse the last committed alias even after the conflicting literal is
+    // removed. A newly authored token (or a new live owner) can reserve it.
+    const reusable = previous && !usedIds.has(previous)
+      && (previous === preferred || !liveIds.has(previous))
+    const id = allocateInlineId(reusable ? previous : preferred, usedIds, liveIds)
+    if (idState) {
+      assigned.push(id)
+      idState.current.set(key, assigned)
+    }
     const data = plugin.getData(el)
     if (!data || typeof data !== 'object' || Array.isArray(data)) {
       throw new TypeError(`Inline plugin "${type}" getData() must return a data object`)
