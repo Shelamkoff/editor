@@ -17,15 +17,15 @@ test('latest selection suppression owns the delayed release in the editor window
   try {
     const calls = []
     let controlsContext
-    const block = { type: 'paragraph', contentElement: {} }
+    const block = { id: 'a', type: 'paragraph', contentElement: {} }
     const slot = new PluginControlsSlot(
       { ownerDocument: { defaultView: ownerWindow }, appendChild() {} },
       { style: {} },
       {
-        blocks: { getCurrentBlock: () => block },
+        blocks: { getCurrentBlock: () => block, getBlockById: () => block },
         getInlineControls: () => (_element, context) => {
           controlsContext = context
-          return { elements: [] }
+          return { elements: [{ remove() {} }] }
         },
         events: {},
         typeSelector: { update() {} },

@@ -182,8 +182,8 @@ export interface BlockPluginConstructor<D extends Record<string, unknown> = Reco
 export interface InlineControlContext {
   /** Call before DOM swaps to prevent toolbar from hiding */
   suppressSelectionChange(): void
-  /** Execute one synchronous block-local command as one undo/redo step. */
-  mutate<T>(operation: () => T): T
+  /** Execute one synchronous block-local command; retired control groups return undefined without running it. */
+  mutate<T>(operation: () => T): T | undefined
   /** Call after DOM swap when contentElement was replaced (e.g. heading level change) */
   onContentElementChanged(newElement: HTMLElement): void
 }

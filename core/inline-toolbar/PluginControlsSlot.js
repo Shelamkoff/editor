@@ -1,3 +1,5 @@
+import { invokeObserver } from '../../shared/invokeObserver.js'
+
 /**
  * @typedef {Object} PluginControlsSlotDeps
  * @property {import('../types').IBlockManager} blocks
@@ -38,6 +40,9 @@ export class PluginControlsSlot {
   #current = null
 
   #suppressionGeneration = 0
+  #generation = 0
+  #destroyed = false
+  #suppressed = false
 
   /**
    * @param {HTMLElement} zoneEl  container that holds the rendered controls
@@ -56,7 +61,12 @@ export class PluginControlsSlot {
    * Idempotent — clears any existing controls before rendering new ones.
    */
   refresh() {
-    this.clear()
+    if (this.#destroyed) return
+    const generation = ++this.#generation
+    this.#releaseCurrent()
+    // A previous group's disposer can open a newer group or tear down the
+    // toolbar. The interrupted refresh must never overwrite that newer owner.
+    if (this.#destroyed || generation !== this.#generation) return
 
     const currentBlock = this.#deps.blocks.getCurrentBlock()
     if (!currentBlock) return
@@ -64,9 +74,14 @@ export class PluginControlsSlot {
     const renderInlineControls = this.#deps.getInlineControls(currentBlock.type)
     if (!renderInlineControls) return
 
+    const live = () => !this.#destroyed && generation === this.#generation
+      && this.#deps.blocks.getBlockById(currentBlock.id) === currentBlock
+
     /** @type {import('../types').InlineControlContext} */
     const ctx = {
       suppressSelectionChange: () => {
+        if (!live()) return
+        this.#suppressed = true
         const generation = ++this.#suppressionGeneration
         this.#deps.setSuppressSelectionChange(true)
         // Re-enable on the second rAF — gives DOM swaps a couple of frames
@@ -74,14 +89,19 @@ export class PluginControlsSlot {
         const schedule = this.#view?.requestAnimationFrame?.bind(this.#view)
           ?? requestAnimationFrame
         schedule(() => {
+          if (generation !== this.#suppressionGeneration) return
           schedule(() => {
             if (generation !== this.#suppressionGeneration) return
+            this.#suppressed = false
             this.#deps.setSuppressSelectionChange(false)
           })
         })
       },
-      mutate: (operation) => this.#deps.mutations.runForBlock(currentBlock, operation),
+      mutate: (operation) => live()
+        ? this.#deps.mutations.runForBlock(currentBlock, () => live() ? operation() : undefined)
+        : undefined,
       onContentElementChanged: (newEl) => {
+        if (!live()) return
         const externalMutation = !this.#deps.mutations.active
         if (newEl && newEl !== currentBlock.contentElement) {
           currentBlock.replaceContentElement(newEl)
@@ -95,10 +115,15 @@ export class PluginControlsSlot {
     try {
       group = renderInlineControls(currentBlock.contentElement, ctx)
     } catch (err) {
+      if (generation === this.#generation) this.clear()
       console.warn(`[PluginControlsSlot] Failed to render controls for "${currentBlock.type}":`, err)
       return
     }
-    if (!group || !group.elements.length) return
+    if (!live() || !group || !group.elements.length) {
+      if (generation === this.#generation) this.clear()
+      this.#disposeGroup(group)
+      return
+    }
 
     this.#current = group
     for (const element of group.elements) {
@@ -111,18 +136,37 @@ export class PluginControlsSlot {
    * Tear down the active control group (if any) and hide the divider.
    */
   clear() {
-    if (this.#current) {
-      try {
-        this.#current.destroy?.()
-      } catch (err) {
-        console.warn('[PluginControlsSlot] Failed to destroy plugin controls:', err)
-      } finally {
-        for (const element of this.#current.elements) {
-          element.remove()
-        }
-        this.#current = null
-      }
-    }
+    this.#generation++
+    this.#releaseCurrent()
+  }
+
+  destroy() {
+    if (this.#destroyed) return
+    this.#destroyed = true
+    this.clear()
+  }
+
+  /** Revoke ownership before calling a group's external disposer. */
+  #releaseCurrent() {
+    const group = this.#current
+    this.#current = null
+    this.#suppressionGeneration++
     this.#dividerEl.style.display = 'none'
+    if (this.#suppressed) {
+      this.#suppressed = false
+      this.#deps.setSuppressSelectionChange(false)
+    }
+    this.#disposeGroup(group)
+  }
+
+  /** @param {import('../types').InlineControlGroup | null | undefined} group */
+  #disposeGroup(group) {
+    if (!group) return
+    // Remove this group's elements, not a newer group's elements created by
+    // cleanup reentry. Unmounted/empty groups also own their disposer.
+    for (const element of group.elements) element.remove()
+    invokeObserver(() => group.destroy?.(), [], err => {
+      console.warn('[PluginControlsSlot] Failed to destroy plugin controls:', err)
+    })
   }
 }

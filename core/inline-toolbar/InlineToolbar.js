@@ -304,7 +304,7 @@ export class InlineToolbar {
     this.#visible = false
     this.#actionsPanel.destroy()
     this.#selectionTracker.destroy()
-    this.#pluginControls.clear()
+    this.#pluginControls.destroy()
 
     for (const tool of this.#tools) {
       tool.destroy?.()

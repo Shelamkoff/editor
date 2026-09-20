@@ -144,7 +144,7 @@ interface PluginRuntimeConfig extends Record<string, unknown> {
 ```ts
 interface InlineControlContext {
   suppressSelectionChange(): void
-  mutate<T>(operation: () => T): T
+  mutate<T>(operation: () => T): T | undefined
   onContentElementChanged(newElement: HTMLElement): void
 }
 
@@ -155,6 +155,8 @@ interface InlineControlGroup {
 ```
 
 Return an `InlineControlGroup`, or `null` when the block has no controls in its current state. Rector mounts every item in `elements` into the block-specific part of the inline toolbar and calls `destroy()` when that group is removed. Use `mutate()` once per completed synchronous action. When a control replaces the plugin's content element, call `suppressSelectionChange()` before the replacement and `onContentElementChanged(newElement)` after it so Rector can keep block ownership and selection state consistent.
+
+A control context belongs to one mounted group and its original block instance. Closing or refreshing the group, replacing the block (even with the same ID), or destroying the toolbar retires that context. Retired methods are inert; `mutate()` returns `undefined` without running the operation. Live calls retain their return value. Empty groups are immediately disposed, and failed or null render results leave no active context.
 
 ### Data-aware partial conversion
 
