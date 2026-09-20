@@ -1,5 +1,6 @@
 import { hydrateInlineWidget } from './hydrateInlinePlugins.js'
 import { EditorEvent } from './editorEvents.js'
+import { editingHostForEvent } from './editableFields.js'
 import { hydrateInlinePlugins } from './hydrateInlinePlugins.js'
 
 /** Pattern replacement must use the same authored-field boundary as public
@@ -125,9 +126,8 @@ export class InlinePatternMatcher {
     // Root-level keydown also receives native controls and other editor UI.
     // Only complete patterns for the contenteditable host that actually owns
     // this key event; the native selection may still point at an older range.
-    const target = /** @type {Element | null} */ (e.target)
-    const editingHost = target?.closest?.('[contenteditable="true"]') ?? null
-    if (!editingHost || !this.#rootEl.contains(editingHost)) return
+    const editingHost = editingHostForEvent(this.#rootEl, e.target)
+    if (!editingHost) return
 
     const sel = this.#view?.getSelection()
     if (!sel || !sel.isCollapsed || !sel.rangeCount) return

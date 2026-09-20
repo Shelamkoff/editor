@@ -1,4 +1,5 @@
 import { EditorEvent } from './editorEvents.js'
+import { editingHostForEvent } from './editableFields.js'
 
 /**
  * Listens for trigger characters (e.g. '@' for mentions) in contenteditable blocks
@@ -165,9 +166,7 @@ export class TriggerManager {
 
   /** Return the contenteditable host that owns a root-level editing event. */
   #editingHostForTarget(target) {
-    const element = /** @type {Element | null} */ (target)
-    const editingHost = element?.closest?.('[contenteditable="true"]') ?? null
-    return editingHost && this.#rootEl.contains(editingHost) ? editingHost : null
+    return editingHostForEvent(this.#rootEl, target)
   }
 
   #cancelTrigger() {

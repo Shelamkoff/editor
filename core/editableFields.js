@@ -70,3 +70,20 @@ export function editableRange(block, range) {
   }
   return field
 }
+
+/** Resolve the editing host of an input/key event, not a stale DOM selection.
+ * Native controls and inline widgets may be nested inside contenteditable.
+ * Their events belong to that control even when a previous selection remains
+ * in an authored text node beside it.
+ * @param {HTMLElement} root
+ * @param {EventTarget | null} target
+ * @returns {HTMLElement | null}
+ */
+export function editingHostForEvent(root, target) {
+  const element = /** @type {Element | null} */ (target)
+  if (element?.closest?.('input, textarea, select, button, [data-inline-plugin]')) return null
+  const host = /** @type {HTMLElement | null} */ (element?.closest?.('[contenteditable="true"]') ?? null)
+  if (!host || !root.contains(host)) return null
+  const locked = element?.closest?.('[contenteditable="false"]')
+  return locked && host.contains(locked) ? null : host
+}

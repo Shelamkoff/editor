@@ -1,3 +1,4 @@
+import { register as inlineEventTarget } from './regressions/recheck-107-inline-event-target.js'
 import { register as settingsMenuLifetime } from './regressions/recheck-106-settings-menu-lifetime.js'
 import { register as inlineCursor } from './regressions/recheck-105-inline-cursor.js'
 import { register as blockControlLifetime } from './regressions/recheck-104-block-control-lifetime.js'
@@ -207,4 +208,5 @@ actionsPanelLifetime()
 blockControlLifetime()
 inlineCursor()
 settingsMenuLifetime()
+inlineEventTarget()
 await run()
