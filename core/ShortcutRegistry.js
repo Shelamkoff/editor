@@ -1,5 +1,5 @@
 export class ShortcutRegistry {
-  /** @type {Map<string, { handler: (e: KeyboardEvent) => void, scope: 'content' | 'editor' }>} */
+  /** @type {Map<string, Array<{ handler: (e: KeyboardEvent) => void, scope: 'content' | 'editor', when?: () => boolean }>>} */
   #shortcuts = new Map()
 
   /**
@@ -9,15 +9,21 @@ export class ShortcutRegistry {
    *
    * @param {string} combo — normalized combo string
    * @param {(e: KeyboardEvent) => void} handler
-   * @param {{ scope?: 'content' | 'editor' }} [options]
+   * @param {{ scope?: 'content' | 'editor', when?: () => boolean }} [options]
    * @returns {() => void} Unregister function
    */
   register(combo, handler, options = {}) {
     const key = this.#normalizeCombo(combo)
-    const entry = { handler, scope: options.scope ?? 'content' }
-    this.#shortcuts.set(key, entry)
+    const entry = { handler, scope: options.scope ?? 'content', when: options.when }
+    const entries = this.#shortcuts.get(key) ?? []
+    entries.push(entry)
+    this.#shortcuts.set(key, entries)
     return () => {
-      if (this.#shortcuts.get(key) === entry) this.#shortcuts.delete(key)
+      const current = this.#shortcuts.get(key)
+      const index = current?.indexOf(entry) ?? -1
+      if (index < 0) return
+      current.splice(index, 1)
+      if (current.length === 0) this.#shortcuts.delete(key)
     }
   }
 
@@ -31,9 +37,14 @@ export class ShortcutRegistry {
    */
   handle(e, scope = 'content') {
     const key = this.#eventToKey(e)
-    const entry = this.#shortcuts.get(key)
+    const entries = this.#shortcuts.get(key) ?? []
 
-    if (entry && (scope === 'content' || entry.scope === 'editor')) {
+    // Keep distinct block contexts and editor-level bindings available even
+    // when they share a normalized key. Only an eligible handler consumes it.
+    for (let index = entries.length - 1; index >= 0; index--) {
+      const entry = entries[index]
+      if (scope === 'editor' && entry.scope !== 'editor') continue
+      if (entry.when && !entry.when()) continue
       e.preventDefault()
       entry.handler(e)
       return true

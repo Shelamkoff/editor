@@ -368,10 +368,10 @@ function wireEditMode(deps) {
       for (const sc of plugin.shortcuts) {
         shortcuts.register(sc.combo, () => {
           const current = blocks.getCurrentBlock()
-          if (current) {
+          if (current?.type === plugin.type) {
             pluginMutations.runForBlock(current, () => sc.handler(current.contentElement))
           }
-        })
+        }, { when: () => blocks.getCurrentBlock()?.type === plugin.type })
       }
     }
   }
