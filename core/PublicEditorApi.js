@@ -1,3 +1,4 @@
+import { invokeObserver } from '../shared/invokeObserver.js'
 import { EditorEvent } from './editorEvents.js'
 
 const PUBLIC_EDITOR_EVENTS = new Set([
@@ -355,12 +356,9 @@ export class EditorEventSubscriptions {
       const deliver = () => {
         if (!listening || (!this.#active && event !== EditorEvent.DESTROYED)) return
         if (once) unsubscribe()
-        try {
-          const result = handler(publicData)
-          if (result && typeof result.then === 'function') {
-            Promise.resolve(result).catch(error => console.error(`[EditorEvents] ${event}:`, error))
-          }
-        } catch (error) { console.error(`[EditorEvents] ${event}:`, error) }
+        invokeObserver(handler, [publicData], error => {
+          console.error(`[EditorEvents] ${event}:`, error)
+        })
       }
       if (event === EditorEvent.WILL_CHANGE) deliver()
       else if (this.#commands) this.#commands.afterCommit(deliver)
