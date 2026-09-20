@@ -70,7 +70,7 @@ export function rangeClipboardContent(range, blocks, registry) {
     if (!source) continue
     // Known widgets become portable tokens as well: the receiving editor may
     // register a different set of plugins than the source editor.
-    const serialized = serializeInlineHtml(copy.innerHTML, registry, new Set(), source.inline, ownerDocument)
+    const serialized = serializeInlineHtml(copy.innerHTML, registry, new Set(), source.inline, ownerDocument, new Set(), true)
     const transferred = transferInlineContent(serialized.html, serialized.inline, occupied, ownerDocument)
     setTrustedHtml(copy, transferred.html)
     entries.push(...Object.entries(transferred.inline))

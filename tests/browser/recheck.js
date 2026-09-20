@@ -1,3 +1,4 @@
+import { register as inlineAuthoredLiterals } from './regressions/inline-authored-literals.js'
 import { register as imageUploadFailures } from './regressions/image-upload-failures.js'
 import { register as galleryUploadFailures } from './regressions/gallery-upload-failures.js'
 import { register as pluginShortcuts } from './regressions/recheck-111-plugin-shortcuts.js'
@@ -221,4 +222,5 @@ nativeReadOnly()
 pluginShortcuts()
 galleryUploadFailures()
 imageUploadFailures()
+inlineAuthoredLiterals()
 await run()

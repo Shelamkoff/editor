@@ -1,4 +1,5 @@
 import { transferInlineContent } from './transferInlineContent.js'
+import { deserializeInlineHtml } from '../shared/inlineMarshal.js'
 import { uid } from './uid.js'
 import { cloneEditorData } from '../shared/cloneEditorData.js'
 import { el } from './dom.js'
@@ -49,6 +50,9 @@ export class Block {
   /** @type {Record<string, import('../renderer/types').InlineWidget> | undefined} */
   #preservedInline
 
+  /** @type {import('./InlinePluginRegistry').InlinePluginRegistry | null} */
+  #inlinePluginRegistry
+
   /** @type {import('./CommandDispatcher').CommandDispatcher} */
   #commands
 
@@ -69,13 +73,15 @@ export class Block {
    * @param {boolean} [readOnly]
    * @param {{ tunes?: Record<string, unknown>, revision?: string | number, inline?: Record<string, import('../renderer/types').InlineWidget>, preserveInline?: boolean }} [metadata]
    * @param {Document} [ownerDocument]
+   * @param {import('./InlinePluginRegistry').InlinePluginRegistry | null} [inlinePluginRegistry]
    */
-  constructor(plugin, commands, data, id, readOnly = false, metadata = {}, ownerDocument = globalThis.document) {
+  constructor(plugin, commands, data, id, readOnly = false, metadata = {}, ownerDocument = globalThis.document, inlinePluginRegistry = null) {
     this.#id = id || uid()
     this.#type = plugin.type
     this.#plugin = plugin
     this.#readOnly = readOnly
     this.#commands = commands
+    this.#inlinePluginRegistry = inlinePluginRegistry
     this.#tunes = metadata.tunes === undefined ? undefined : cloneEditorData(metadata.tunes)
     this.#revision = metadata.revision
     this.#preservedInline = metadata.inline
@@ -225,6 +231,12 @@ export class Block {
       for (const [, id] of (node.textContent || '').matchAll(/\{\{([A-Za-z0-9_-]+)\}\}/g)) occupied.add(id)
     }
     const result = transferInlineContent(html, inline, occupied, ownerDocument)
+    if (this.#inlinePluginRegistry && Object.keys(result.inline).length) {
+      /** @type {Record<string, import('../renderer/types').InlineWidget>} */
+      const unresolved = {}
+      result.html = deserializeInlineHtml(result.html, result.inline, this.#inlinePluginRegistry, ownerDocument, unresolved)
+      result.inline = unresolved
+    }
     if (Object.keys(result.inline).length) {
       this.#preservedInline = { ...this.#preservedInline, ...result.inline }
       this.markDirty()

@@ -128,15 +128,17 @@ export class BlockManager {
 
     const blockData = data === undefined ? undefined : cloneEditorData(data)
     const blockInline = inline === undefined ? undefined : cloneEditorData(inline)
+    let preservedInline = blockInline
     if (blockInline && typeof plugin.mapTextFields === 'function' && this.#inlinePluginRegistry && blockData) {
       const registry = this.#inlinePluginRegistry
-      plugin.mapTextFields(blockData, (html) => deserializeInlineHtml(html, blockInline, registry, this.#container.ownerDocument))
+      preservedInline = {}
+      plugin.mapTextFields(blockData, (html) => deserializeInlineHtml(html, blockInline, registry, this.#container.ownerDocument, preservedInline))
     }
     const block = new Block(plugin, this.#commands, blockData, id, this.#readOnly, {
       ...metadata,
-      inline: blockInline,
+      inline: preservedInline,
       preserveInline: preserveUnknown,
-    }, this.#container.ownerDocument)
+    }, this.#container.ownerDocument, this.#inlinePluginRegistry)
     block.setStructuralCommands(this.#structuralCommands)
     if (this.#inlinePluginRegistry && this.#inlinePluginContext) {
       hydrateInlinePlugins(block.contentElement, this.#inlinePluginRegistry, this.#inlinePluginContext)

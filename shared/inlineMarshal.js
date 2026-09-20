@@ -74,6 +74,54 @@ function allocateInlineId(preferred, usedIds) {
 }
 
 /**
+ * Reserve author-written tokens across ALL text fields before assigning any
+ * widget IDs. Live-widget IDs identify stale hydrated metadata, not opaque
+ * text references. Transient widget labels will be saved as ordinary text.
+ * @param {ParentNode} root
+ * @param {PluginLookup} registry
+ * @param {Set<string>} usedIds
+ * @param {Set<string>} liveIds
+ * @param {Document} ownerDocument
+ */
+function scanInlineIds(root, registry, usedIds, liveIds, ownerDocument) {
+  for (const widget of root.querySelectorAll('[data-inline-plugin]')) {
+    const plugin = registry.get(widget.getAttribute('data-inline-plugin') || '')
+    if (!plugin) continue
+    if (plugin.isCommitted?.(/** @type {HTMLElement} */ (widget)) === false) {
+      for (const [, id] of (widget.textContent || '').matchAll(PLACEHOLDER_RE)) usedIds.add(id)
+      continue
+    }
+    const id = widget.getAttribute('data-id')
+    if (id) liveIds.add(id)
+  }
+  const walker = ownerDocument.createTreeWalker(/** @type {Node} */ (root), 4)
+  while (walker.nextNode()) {
+    const node = walker.currentNode
+    const widget = node.parentElement?.closest('[data-inline-plugin]')
+    if (widget) {
+      const plugin = registry.get(widget.getAttribute('data-inline-plugin') || '')
+      if (!plugin || plugin.isCommitted?.(/** @type {HTMLElement} */ (widget)) !== false) continue
+    }
+    for (const [, id] of (node.textContent || '').matchAll(PLACEHOLDER_RE)) usedIds.add(id)
+  }
+}
+
+/**
+ * Block-level preflight for serializers whose fields share an inline map.
+ * @param {string} html
+ * @param {PluginLookup} registry
+ * @param {Set<string>} usedIds
+ * @param {Set<string>} liveIds
+ * @param {Document} [ownerDocument]
+ * @returns {void}
+ */
+export function collectInlineSerializationIds(html, registry, usedIds, liveIds, ownerDocument = globalThis.document) {
+  const tpl = ownerDocument.createElement('template')
+  tpl.innerHTML = /** @type {any} */ (toTrustedHtml(String(html || ''), ownerDocument))
+  scanInlineIds(tpl.content, registry, usedIds, liveIds, ownerDocument)
+}
+
+/**
  * Walk `html` for inline-plugin widget spans, replace each with a
  * `{{<widget-id>}}` text placeholder, and collect their data into an
  * `inline` map keyed by widget id. Widgets without `data-id` get one
@@ -84,9 +132,11 @@ function allocateInlineId(preferred, usedIds) {
  * @param {Set<string>} [usedIds] IDs already allocated in sibling text fields
  * @param {Record<string, InlineWidget>} [preserved] Original metadata for unresolved tokens
  * @param {Document} [ownerDocument] Document that owns the serialized DOM.
+ * @param {Set<string>} [liveIds] Live widget IDs from all sibling text fields
+ * @param {boolean} [preservedIsOpaque] True when hydration already removed all resolved entries.
  * @returns {{ html: string, inline: Record<string, InlineWidget> }}
  */
-export function serializeInlineHtml(html, registry, usedIds = new Set(), preserved = {}, ownerDocument = globalThis.document) {
+export function serializeInlineHtml(html, registry, usedIds = new Set(), preserved = {}, ownerDocument = globalThis.document, liveIds = new Set(), preservedIsOpaque = false) {
   /** @type {Array<[string, InlineWidget]>} */
   const entries = []
   const source = String(html || '')
@@ -95,14 +145,19 @@ export function serializeInlineHtml(html, registry, usedIds = new Set(), preserv
   const tpl = ownerDocument.createElement('template')
   tpl.innerHTML = /** @type {any} */ (toTrustedHtml(source, ownerDocument))
 
-  // Keep unresolved tokens as opaque document data. Scan TEXT nodes, not
-  // attributes, and reserve their ids before allocating ids to live widgets.
+  scanInlineIds(tpl.content, registry, usedIds, liveIds, ownerDocument)
+
+  // Keep actual unresolved tokens as opaque data. A plain token beside a
+  // hydrated widget is author text, not a second reference to its old payload.
+  // Missing-plugin entries still own their tokens even if a new live widget
+  // happens to arrive with the same ID; that widget will be remapped.
   const textWalker = ownerDocument.createTreeWalker(tpl.content, 4)
   while (textWalker.nextNode()) {
     const node = textWalker.currentNode
     if (node.parentElement?.closest('[data-inline-plugin]')) continue
     for (const [, id] of (node.textContent || '').matchAll(PLACEHOLDER_RE)) {
       if (!Object.hasOwn(preserved, id)) continue
+      if (!preservedIsOpaque && liveIds.has(id) && registry.get(preserved[id].type)) continue
       entries.push([id, preserved[id]])
       usedIds.add(id)
     }
@@ -161,9 +216,10 @@ export function serializeInlineHtml(html, registry, usedIds = new Set(), preserv
  * @param {Record<string, InlineWidget> | null | undefined} inline
  * @param {PluginLookup | null | undefined} registry
  * @param {Document} [ownerDocument] Document that owns the rehydrated DOM.
+ * @param {Record<string, InlineWidget>} [unresolved] Collect only payloads left as opaque text, never hydrated widgets.
  * @returns {string}
  */
-export function deserializeInlineHtml(html, inline, registry, ownerDocument = globalThis.document) {
+export function deserializeInlineHtml(html, inline, registry, ownerDocument = globalThis.document, unresolved) {
   const source = String(html || '')
   if (!source) return ''
   if (!inline || typeof inline !== 'object' || !registry || !source.includes('{{')) return source
@@ -182,6 +238,7 @@ export function deserializeInlineHtml(html, inline, registry, ownerDocument = gl
   }
 
   for (const textNode of textNodes) {
+    if (textNode.parentElement?.closest('[data-inline-plugin]')) continue
     const text = textNode.data
     if (!text.includes('{{')) continue
 
@@ -195,8 +252,13 @@ export function deserializeInlineHtml(html, inline, registry, ownerDocument = gl
       const [token, id] = match
       const ref = Object.prototype.hasOwnProperty.call(inline, id) ? inline[id] : undefined
       if (!ref || typeof ref !== 'object' || typeof ref.type !== 'string') continue
+      const preserve = () => {
+        if (unresolved) Object.defineProperty(unresolved, id, {
+          value: ref, enumerable: true, configurable: true, writable: true,
+        })
+      }
       const plugin = registry.get(ref.type)
-      if (!plugin) continue   // leave untouched text — user-typed lookalike
+      if (!plugin) { preserve(); continue }
 
       let widget
       try {
@@ -206,10 +268,11 @@ export function deserializeInlineHtml(html, inline, registry, ownerDocument = gl
         widget = plugin.createWidget(data, id, { ownerDocument })
       } catch {
         // Preserve malformed legacy entries as their original plain token.
+        preserve()
         continue
       }
       const HTMLElementCtor = widget?.ownerDocument?.defaultView?.HTMLElement
-      if (!HTMLElementCtor || !(widget instanceof HTMLElementCtor)) continue
+      if (!HTMLElementCtor || !(widget instanceof HTMLElementCtor)) { preserve(); continue }
 
       // Preserve the text before the placeholder.
       if (match.index > lastIndex) {

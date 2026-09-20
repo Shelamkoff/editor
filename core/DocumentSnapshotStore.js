@@ -1,5 +1,5 @@
 import { EDITOR_VERSION } from './constants.js'
-import { serializeInlineHtml } from '../shared/inlineMarshal.js'
+import { collectInlineSerializationIds, serializeInlineHtml } from '../shared/inlineMarshal.js'
 import { cloneEditorData } from '../shared/cloneEditorData.js'
 import { resolveValidationMode } from '../shared/validationMode.js'
 
@@ -130,10 +130,20 @@ export class DocumentSnapshotStore {
       /** @type {Record<string, import('../renderer/types').InlineWidget>} */
       const inline = {}
       const usedInlineIds = new Set()
+      const liveInlineIds = new Set()
+      // A later field's literal must reserve its ID before an earlier field's
+      // widget can claim it. The preflight is non-transforming.
       block.plugin.mapTextFields(
         /** @type {Record<string, unknown>} */ (snapshot.data),
         (html) => {
-          const result = serializeInlineHtml(html, registry, usedInlineIds, snapshot.inline, block.contentElement.ownerDocument)
+          collectInlineSerializationIds(html, registry, usedInlineIds, liveInlineIds, block.contentElement.ownerDocument)
+          return html
+        },
+      )
+      block.plugin.mapTextFields(
+        /** @type {Record<string, unknown>} */ (snapshot.data),
+        (html) => {
+          const result = serializeInlineHtml(html, registry, usedInlineIds, snapshot.inline, block.contentElement.ownerDocument, liveInlineIds, true)
           for (const [id, widget] of Object.entries(result.inline)) {
             Object.defineProperty(inline, id, {
               value: widget,
