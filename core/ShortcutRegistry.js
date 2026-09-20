@@ -14,11 +14,11 @@ export class ShortcutRegistry {
    */
   register(combo, handler, options = {}) {
     const key = this.#normalizeCombo(combo)
-    this.#shortcuts.set(key, {
-      handler,
-      scope: options.scope ?? 'content',
-    })
-    return () => this.#shortcuts.delete(key)
+    const entry = { handler, scope: options.scope ?? 'content' }
+    this.#shortcuts.set(key, entry)
+    return () => {
+      if (this.#shortcuts.get(key) === entry) this.#shortcuts.delete(key)
+    }
   }
 
   /**
