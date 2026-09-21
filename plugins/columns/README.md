@@ -35,6 +35,8 @@ The registered block type is `columns`. The class is also exported by the comple
 
 Empty column strings are valid. Changing the layout preserves columns in order. Expanding from two to three columns adds an empty final column. Reducing from three to two columns appends the removed column's non-blank rich text to the second column, separated by `<br>`, so changing the layout does not discard content. Every column supports the editor's enabled inline tools and persistent inline widgets.
 
+During import, surplus columns are appended to the last supported column using the same non-blank rich-text merge policy. Missing columns are padded with empty strings; an unknown layout uses `1-1` without discarding surplus content.
+
 ## Configuration
 
 Every built-in block plugin accepts two style ownership options: `injectStyles?: boolean` defaults to `true`; set it to `false` when the host bundles that plugin's CSS. `css?: string` adds one host-provided stylesheet URL after the plugin default, or acts as the replacement URL when default injection is disabled.

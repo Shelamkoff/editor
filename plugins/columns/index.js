@@ -1,3 +1,4 @@
+import { fitColumnsToLayout } from '../../shared/columnsData.js'
 import { setSanitizedHtml, setTrustedHtml } from '../../core/sanitize.js'
 import { sanitizeHtml } from '../../core/sanitize.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
@@ -56,13 +57,11 @@ export class Columns extends BlockPluginAbstract {
     const ownerDocument = context.ownerDocument ?? globalThis.document
     const layout = LAYOUT_KEYS.includes(/** @type {any} */ (data?.layout)) ? String(data.layout) : '1-1'
     const layoutDef = /** @type {{ cols: number, grid: string, label: string }} */ (LAYOUTS[layout])
-    const columns = Array.isArray(data?.columns)
+    let columns = Array.isArray(data?.columns)
       ? data.columns.map((c) => ({ content: normalizeTextValue(c?.content) }))
       : []
 
-    // Ensure correct number of columns for layout
-    while (columns.length < layoutDef.cols) columns.push({ content: '' })
-    if (columns.length > layoutDef.cols) columns.length = layoutDef.cols
+    columns = fitColumnsToLayout(columns, layoutDef.cols)
 
     const wrapper = ownerDocument.createElement('div')
     wrapper.classList.add('oe-columns')
@@ -217,20 +216,7 @@ export class Columns extends BlockPluginAbstract {
     const s = stateMap.get(wrapper)
     if (!s) return
 
-    // Adjust columns count
-    while (s.data.columns.length < newDef.cols) {
-      s.data.columns.push({ content: '' })
-    }
-    if (s.data.columns.length > newDef.cols) {
-      // Merge overflow into last column
-      const overflow = s.data.columns.splice(newDef.cols)
-      const last = /** @type {{content: string}} */ (s.data.columns[newDef.cols - 1])
-      for (const col of overflow) {
-        if (col.content.trim()) {
-          last.content = last.content ? last.content + '<br>' + col.content : col.content
-        }
-      }
-    }
+    s.data.columns = fitColumnsToLayout(s.data.columns, newDef.cols)
 
     s.data.layout = newLayout
     this.#build(wrapper, context)

@@ -1,4 +1,5 @@
 // @ts-check
+import { fitColumnsToLayout } from './columnsData.js'
 import { normalizeCarouselData } from './carouselData.js'
 import {
   COLUMN_LAYOUT_SIZES,
@@ -118,9 +119,9 @@ export function normalizeKnownBlockData(type, input, ownerDocument = globalThis.
       const columns = Array.isArray(source.columns) ? source.columns : []
       return {
         layout,
-        columns: Array.from({ length: COLUMN_LAYOUT_SIZES[layout] }, (_, index) => ({
-          content: normalizeTextValue(record(columns[index]).content),
-        })),
+        columns: fitColumnsToLayout(columns.map(column => ({
+          content: normalizeTextValue(record(column).content),
+        })), COLUMN_LAYOUT_SIZES[layout]),
       }
     }
     case 'checklist':

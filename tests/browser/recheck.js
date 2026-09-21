@@ -1,3 +1,4 @@
+import { register as columnsOverflow } from './regressions/columns-overflow-preservation.js'
 import { register as listEmptyRangeEnter } from './regressions/list-empty-range-enter.js'
 import { register as listAtomicEnter } from './regressions/list-atomic-enter.js'
 import { register as textareaIndentBoundaries } from './regressions/textarea-indent-boundaries.js'
@@ -263,4 +264,5 @@ personPartialContent()
 textareaIndentBoundaries()
 listAtomicEnter()
 listEmptyRangeEnter()
+columnsOverflow()
 await run()
