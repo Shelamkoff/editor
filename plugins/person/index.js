@@ -6,6 +6,7 @@ import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { sanitizeUrl, setSafeUrlAttribute } from '../../shared/sanitize/sanitizeUrl.js'
 import { validatePersonData } from '../../shared/blockDataValidators.js'
 import { normalizeTextValue } from '../../shared/textFormat.js'
+import { requiresTrustedHtml } from '../../shared/sanitize/trustedHtml.js'
 
 const editorStyles = new URL('./person.css', import.meta.url).href
 const cropperStyles = cropperStylesUrl
@@ -26,7 +27,7 @@ const ICON_GRIP = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12
 /**
  * @typedef {{ avatar: string, name: string, role: string, bio: string, links: Array<{type: string, url: string}> }} PersonData
  * @typedef {Object} PersonConfig
- * @property {(file: File, context: { signal: AbortSignal }) => Promise<{ url: string }>} [uploadFile] Uploads the cropped avatar. When omitted, the cropped image is stored in the document as a data URL.
+ * @property {(file: File, context: { signal: AbortSignal }) => Promise<{ url: string }>} [uploadFile] Uploads the cropped avatar, or the original file when the cropper is unavailable in the owning realm or under Trusted Types enforcement. Without this callback the image is stored as a data URL.
  * @property {Array<{ test: RegExp | ((url: string) => boolean), type: string, icon?: string }>} [socialResolvers] Additional URL classifiers for social links. The first matching resolver supplies the persisted `type`; `icon` is trusted application SVG/HTML.
  * @property {boolean} [injectStyles=true] Whether the editor should load the built-in person and cropper stylesheets.
  * @property {string} [css] Additional stylesheet URL, or the replacement URL when `injectStyles` is `false`.
@@ -734,8 +735,10 @@ export class Person extends BlockPluginAbstract {
       // mounted into an iframe, opening that dialog would create UI in the
       // parent and reject the iframe File/HTMLElement via cross-realm
       // instanceof checks. Preserve avatar upload in that supported mounting
-      // mode by skipping only the interactive crop step.
-      if (wrapper.ownerDocument === globalThis.document) {
+      // mode by skipping only the interactive crop step. Its toolbar also
+      // uses plain innerHTML strings, so preserve the same original-file
+      // fallback under Trusted Types enforcement without weakening CSP.
+      if (wrapper.ownerDocument === globalThis.document && !requiresTrustedHtml(wrapper.ownerDocument)) {
         state.cropperDialog?.destroy()
         const dialog = new CropperDialog(file, {
           title: t('cropTitle', 'Crop avatar'),

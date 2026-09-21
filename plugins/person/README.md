@@ -56,6 +56,8 @@ Every built-in block plugin accepts two style ownership options: `injectStyles?:
 
 `uploadFile?: (file: File, context: { signal: AbortSignal }) => Promise<{ url: string }>` uploads the cropped avatar as `avatar.webp` and must stop work when the supplied signal is aborted. Without it, the cropped avatar is embedded in `persons[].avatar` as a data URL, which increases document size. `socialResolvers?: Array<{ test: RegExp | ((url: string) => boolean); type: string; icon?: string }>` extends social-link icon resolution.
 
+When the editor is mounted in a different document from the cropper module, or Trusted Types enforcement blocks the cropper toolbar, the interactive crop step is skipped. The original image is used instead, preserving its filename and MIME type for `uploadFile`. No default Trusted Types policy is installed.
+
 ## Capabilities
 
 Multiple profiles; tab reordering; avatar crop/upload; social links; read-only profile navigation; deterministic dialog cleanup.

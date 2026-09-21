@@ -1,3 +1,4 @@
+import { register as personAvatarCsp } from './regressions/person-avatar-csp.js'
 import { register as rendererNormalizationRealm } from './regressions/renderer-normalization-realm.js'
 import { register as tableRaggedInput } from './regressions/table-ragged-input.js'
 import { register as sharedRendererLifetime } from './regressions/recheck-112-shared-renderer-lifetime.js'
@@ -245,4 +246,5 @@ linkPreviewRestoreMetadata()
 sharedRendererLifetime()
 tableRaggedInput()
 rendererNormalizationRealm()
+personAvatarCsp()
 await run()
