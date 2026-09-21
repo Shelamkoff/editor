@@ -36,9 +36,12 @@ export function triggerFileInput(config) {
   }
   config.signal?.addEventListener('abort', cleanup, { once: true })
   input.addEventListener('change', () => {
+    if (cleaned) return
     const files = [...(input.files || [])]
-    if (files.length > 0) config.onFiles(files)
+    // Retire the picker before invoking application code: callbacks may
+    // throw, open another picker or synchronously dispatch another change.
     cleanup()
+    if (files.length > 0) config.onFiles(files)
   })
   input.addEventListener('cancel', cleanup, { once: true })
   ownerDocument.body.appendChild(input)
