@@ -34,6 +34,7 @@ export function createEmbedRenderer(classPrefix, locale) {
 
       // Build player using shared module (same DOM as editor plugin)
       const result = buildPlayer({
+        ownerDocument: context.ownerDocument,
         service,
         videoId,
         cover,
