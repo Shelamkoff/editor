@@ -1,3 +1,4 @@
+import { dedentTextarea } from '../shared/dedentTextarea.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { validateRawData } from '../../shared/blockDataValidators.js'
 import { normalizeTextValue } from '../../shared/textFormat.js'
@@ -91,24 +92,16 @@ export class Raw extends BlockPluginAbstract {
           const value = textarea.value
           const lineStart = value.lastIndexOf('\n', start - 1) + 1
           if (e.shiftKey) {
-            const selected = value.substring(lineStart, end)
-            const dedented = selected.replace(/^ {1,2}/gm, '')
-            if (selected === dedented) return
-            const firstIndent = selected.match(/^ {1,2}/)?.[0].length ?? 0
-            textarea.value = value.substring(0, lineStart) + dedented + value.substring(end)
-            textarea.selectionStart = Math.max(lineStart, start - firstIndent)
-            textarea.selectionEnd = end > start
-              ? lineStart + dedented.length
-              : textarea.selectionStart
+            if (!dedentTextarea(textarea, 2)) return
           } else if (start !== end && value.substring(start, end).includes('\n')) {
             const before = value.substring(0, start)
             const selected = value.substring(start, end)
             const after = value.substring(end)
             const prefix = before.substring(lineStart)
-            const indented = '  ' + (prefix + selected).replace(/\n/g, '\n  ')
+            const direction = textarea.selectionDirection
+            const indented = '  ' + (prefix + selected).replace(/\n(?!$)/g, '\n  ')
             textarea.value = before.substring(0, lineStart) + indented + after
-            textarea.selectionStart = lineStart
-            textarea.selectionEnd = lineStart + indented.length
+            textarea.setSelectionRange(lineStart, lineStart + indented.length, direction)
           } else {
             textarea.value = value.substring(0, start) + '  ' + value.substring(end)
             textarea.selectionStart = textarea.selectionEnd = start + 2

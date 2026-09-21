@@ -1,3 +1,4 @@
+import { dedentTextarea } from '../shared/dedentTextarea.js'
 import { setTrustedHtml } from '../../core/sanitize.js'
 import { getHighlightRuntime, loadHighlightRuntime } from '../../shared/highlightRuntime.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
@@ -678,10 +679,10 @@ export class Code extends BlockPluginAbstract {
           const lineStart = before.lastIndexOf('\n') + 1
           const prefix = before.substring(lineStart)
           const block = prefix + selected
-          const indented = '    ' + block.replace(/\n/g, '\n    ')
+          const direction = textarea.selectionDirection
+          const indented = '    ' + block.replace(/\n(?!$)/g, '\n    ')
           textarea.value = before.substring(0, lineStart) + indented + after
-          textarea.selectionStart = lineStart
-          textarea.selectionEnd = lineStart + indented.length
+          textarea.setSelectionRange(lineStart, lineStart + indented.length, direction)
         } else {
           textarea.value = v.substring(0, s) + '    ' + v.substring(end)
           textarea.selectionStart = textarea.selectionEnd = s + 4
@@ -697,19 +698,7 @@ export class Code extends BlockPluginAbstract {
       e.preventDefault()
       e.stopPropagation()
       hkState?.context.mutate(() => {
-        const s = textarea.selectionStart
-        const end = textarea.selectionEnd
-        const v = textarea.value
-        const lineStart = v.lastIndexOf('\n', s - 1) + 1
-        const selected = v.substring(lineStart, end)
-        const dedented = selected.replace(/^ {1,4}/gm, '')
-        if (selected === dedented) return
-        const firstIndent = selected.match(/^ {1,4}/)?.[0].length ?? 0
-        textarea.value = v.substring(0, lineStart) + dedented + v.substring(end)
-        textarea.selectionStart = Math.max(lineStart, s - firstIndent)
-        textarea.selectionEnd = end > s
-          ? lineStart + dedented.length
-          : textarea.selectionStart
+        if (!dedentTextarea(textarea, 4)) return
         hkState.code = textarea.value
         this.#highlight(wrapper)
       })
