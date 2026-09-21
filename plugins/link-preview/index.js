@@ -185,7 +185,7 @@ export class LinkPreview extends BlockPluginAbstract {
           this._renderCard(wrapper)
           const actions = wrapper.querySelector(`.${P}__actions`)
           if (actions) wrapper.appendChild(actions)
-        })
+        }).catch(this.#reportMetaError)
       }
     }
 
@@ -362,7 +362,7 @@ export class LinkPreview extends BlockPluginAbstract {
           return true
         })
         if (committed) this._renderResolvedUrl(wrapper, safeUrl)
-      })
+      }).catch(this.#reportMetaError)
       return
     }
 
@@ -379,7 +379,7 @@ export class LinkPreview extends BlockPluginAbstract {
         return true
       })
       if (committed) this._renderResolvedUrl(wrapper, safeUrl)
-    })
+    }).catch(this.#reportMetaError)
   }
 
   /**
@@ -396,6 +396,11 @@ export class LinkPreview extends BlockPluginAbstract {
     this._renderCard(wrapper)
     this._renderActions(wrapper)
     wrapper.classList.add(`${P}--filled`)
+  }
+
+  /** @param {unknown} error */
+  #reportMetaError = (error) => {
+    console.warn('[LinkPreview] Failed to apply resolved metadata:', error)
   }
 
   /**
