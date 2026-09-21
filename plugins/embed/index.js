@@ -893,13 +893,22 @@ export class Embed extends BlockPluginAbstract {
       } else {
         const s = stateMap.get(wrapper)
         if (!s) return
-        s.context.mutate(() => {
-          const URLCtor = wrapper.ownerDocument.defaultView?.URL ?? URL
-          const coverUrl = URLCtor.createObjectURL(file)
-          this.#objectUrls.set(coverUrl, URLCtor)
-          s.data.cover = coverUrl
-          this._rebuildPlayer(wrapper)
-        })
+        const URLCtor = wrapper.ownerDocument.defaultView?.URL ?? URL
+        let coverUrl
+        try {
+          s.context.mutate(() => {
+            coverUrl = URLCtor.createObjectURL(file)
+            this.#objectUrls.set(coverUrl, URLCtor)
+            s.data.cover = coverUrl
+            this._rebuildPlayer(wrapper)
+          })
+        } catch (error) {
+          // Accepted covers must outlive block replacement for Undo/Redo.
+          // A failed command never commits this URL to history, however, so
+          // release it now rather than retaining its Blob until disposal.
+          if (coverUrl && this.#objectUrls.delete(coverUrl)) URLCtor.revokeObjectURL(coverUrl)
+          throw error
+        }
       }
     }, { once: true, signal: current.viewController?.signal })
     input.click()
@@ -976,7 +985,8 @@ export class Embed extends BlockPluginAbstract {
         policy: 'media', fallback: '',
       })
       if (
-        thumbnailUrl
+        !controller.signal.aborted
+        && thumbnailUrl
         && st === s
         && st.data.videoId === videoId
         && st.playerRef === playerRef
