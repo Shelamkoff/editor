@@ -664,7 +664,7 @@ export class CarouselBlock extends BlockPluginAbstract {
     panel.appendChild(switches)
     panel.appendChild(this.#field(this._t('autoplayDelay', 'Autoplay delay, ms'), String(state.data.options.autoplayDelay), false, value => {
       const delay = Number(value)
-      if (Number.isFinite(delay) && delay > 0) state.data.options.autoplayDelay = Math.floor(delay)
+      if (Number.isFinite(delay) && delay > 0) state.data.options.autoplayDelay = Math.max(1, Math.floor(delay))
     }, wrapper, state, signal, 'number'))
     panel.appendChild(this.#field(this._t('aspectRatio', 'Aspect ratio'), state.data.options.aspectRatio || '', false, value => {
       const normalized = normalizeCarouselAspectRatio(value)
