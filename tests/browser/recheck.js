@@ -1,3 +1,4 @@
+import { register as sharedRendererLifetime } from './regressions/recheck-112-shared-renderer-lifetime.js'
 import { register as linkPreviewRestoreMetadata } from './regressions/link-preview-restore-metadata.js'
 import { register as linkPreviewMetadataFailures } from './regressions/link-preview-metadata-failures.js'
 import { register as carouselFractionalDelay } from './regressions/carousel-fractional-delay.js'
@@ -239,4 +240,5 @@ carouselPasteFailure()
 carouselFractionalDelay()
 linkPreviewMetadataFailures()
 linkPreviewRestoreMetadata()
+sharedRendererLifetime()
 await run()

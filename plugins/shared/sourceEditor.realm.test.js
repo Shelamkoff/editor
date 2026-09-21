@@ -35,14 +35,14 @@ function makeNode(ownerDocument, tag) {
     hidden: false,
     value: '',
     textContent: '',
-    append(...nodes) { this.children.push(...nodes) },
-    appendChild(node) { this.children.push(node); return node },
+    append(...nodes) { for (const node of nodes) this.appendChild(node) },
+    appendChild(node) { this.children.push(node); node.parentNode = this; return node },
     addEventListener() {},
     removeEventListener() {},
     setAttribute(name, value) { this.attributes.set(name, String(value)) },
     removeAttribute(name) { this.attributes.delete(name) },
     focus() {},
-    remove() { this.isConnected = false },
+    remove() { this.isConnected = false; this.parentNode = null },
     closest(selector) { return selector === '.oe-block' ? null : null },
   }
 }

@@ -149,8 +149,11 @@ function ensureSurface(wrapper, signal, kind) {
   }
 
   const cached = owned.get(kind)
-  if (cached?.signal === signal && cached.root.isConnected) return cached
+  if (cached?.signal === signal && cached.root.parentNode === wrapper) return cached
   cached?.destroy()
+  // Retiring the last old surface removes the wrapper's cache entry. Keep
+  // the replacement reachable even when it reuses the same per-kind map.
+  surfaces.set(wrapper, owned)
 
   const ownerDocument = wrapper.ownerDocument
   const root = ownerDocument.createElement('div')
@@ -222,12 +225,21 @@ function ensureSurface(wrapper, signal, kind) {
   root.append(backdrop, panel)
   wrapper.appendChild(root)
 
-  const layer = createPluginLayer(wrapper, signal)
+  // A surface can be replaced many times within one block lifetime. Its
+  // listeners must end with that surface, not only when the block is removed.
+  const AbortControllerCtor = ownerDocument.defaultView?.AbortController ?? AbortController
+  const controller = new AbortControllerCtor()
+  const layer = createPluginLayer(wrapper, controller.signal)
   /** @type {SourceEditorSurface} */
   let surface
+  let destroyed = false
   const destroy = () => {
+    if (destroyed) return
+    destroyed = true
+    signal.removeEventListener('abort', destroy)
     const active = activeEditors.get(wrapper)
     if (active?.surface === surface) active.close()
+    controller.abort()
     root.remove()
     if (owned?.get(kind) === surface) owned.delete(kind)
     if (owned?.size === 0) surfaces.delete(wrapper)
