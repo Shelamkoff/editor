@@ -50,6 +50,12 @@ const ICON_GRIP = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12
 /** @type {WeakMap<HTMLElement, PersonState>} */
 const stateMap = new WeakMap()
 
+/** @param {PersonData} person @returns {boolean} */
+function hasPersonContent(person) {
+  return Boolean(person.name.trim() || person.avatar || person.role.trim() || person.bio.trim()
+    || person.links.some(link => sanitizeUrl(link.url, { policy: 'link', fallback: '' })))
+}
+
 /** @param {HTMLElement} element @returns {AbortController} */
 function createAbortControllerFor(element) {
   const AbortControllerCtor = element.ownerDocument?.defaultView?.AbortController ?? AbortController
@@ -158,7 +164,7 @@ export class Person extends BlockPluginAbstract {
     const preserveDrafts = s.data.persons.length > 1
     return {
       persons: s.data.persons
-        .filter(p => preserveDrafts || p.name.trim() || p.avatar)
+        .filter(p => preserveDrafts || hasPersonContent(p))
         .map(p => ({
           ...p,
           links: p.links.flatMap(link => {
@@ -187,7 +193,7 @@ export class Person extends BlockPluginAbstract {
     const s = stateMap.get(element)
     if (!s) return true
     this._syncActiveFromDom(element)
-    return s.data.persons.every(p => !p.name.trim() && !p.avatar)
+    return s.data.persons.every(p => !hasPersonContent(p))
   }
 
   /**

@@ -1,3 +1,9 @@
+import { register as textareaIndentBoundaries } from './regressions/textarea-indent-boundaries.js'
+import { register as personPartialContent } from './regressions/person-partial-content.js'
+import { register as embedRendererLifetime } from './regressions/embed-renderer-lifetime.js'
+import { register as embedPreviewTimeout } from './regressions/embed-preview-timeout.js'
+import { register as embedCoverRollback } from './regressions/embed-cover-rollback.js'
+import { register as textareaDedent } from './regressions/textarea-dedent-boundaries.js'
 import { register as personAvatarCsp } from './regressions/person-avatar-csp.js'
 import { register as rendererNormalizationRealm } from './regressions/renderer-normalization-realm.js'
 import { register as tableRaggedInput } from './regressions/table-ragged-input.js'
@@ -247,4 +253,10 @@ sharedRendererLifetime()
 tableRaggedInput()
 rendererNormalizationRealm()
 personAvatarCsp()
+textareaDedent()
+embedCoverRollback()
+embedPreviewTimeout()
+embedRendererLifetime()
+personPartialContent()
+textareaIndentBoundaries()
 await run()

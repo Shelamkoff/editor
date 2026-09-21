@@ -40,7 +40,7 @@ The registered block type is `person`. The class is also exported by the complet
 | --- | --- | --- |
 | `persons` | yes | Non-empty array of profile cards. The saved order is the display order. |
 | `persons[].avatar` | yes | Empty string or canonical media URL. Cropping and uploading replace this value. |
-| `persons[].name` | yes | Profile name string. A profile with both an empty name and empty avatar is treated as empty by the editor. |
+| `persons[].name` | yes | Profile name string. An unnamed profile is retained when its avatar, role, biography, or a valid social link has content. |
 | `persons[].role`, `persons[].bio` | yes | Role and biography strings; empty values are allowed. |
 | `persons[].links` | yes | Array of social links; it may be empty. Every item needs a string `type` and a canonical link-policy `url`. |
 
