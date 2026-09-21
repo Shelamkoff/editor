@@ -1,3 +1,4 @@
+import { register as attachesUploadErrors } from './regressions/attaches-upload-errors.js'
 import { register as crossBlockLiveClipboard } from './regressions/cross-block-live-clipboard.js'
 import { register as stableSnapshots } from './regressions/inline-stable-snapshots.js'
 import { register as inlineAuthoredLiterals } from './regressions/inline-authored-literals.js'
@@ -227,4 +228,5 @@ imageUploadFailures()
 inlineAuthoredLiterals()
 stableSnapshots()
 crossBlockLiveClipboard()
+attachesUploadErrors()
 await run()

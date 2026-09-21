@@ -993,6 +993,11 @@ export class Attaches extends BlockPluginAbstract {
           }
         }
       }
+    } catch (error) {
+      // Upload controls start this work from DOM events, with no awaiting
+      // caller. Report a rejected application/command after its rollback;
+      // do not leave a floating rejection after cleaning up the loading state.
+      console.warn('[Attaches] Failed to apply uploaded files:', error)
     } finally {
       this.#finishTask(wrapper, s, controller)
     }
