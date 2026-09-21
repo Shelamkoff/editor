@@ -169,6 +169,9 @@ export class CarouselBlock extends BlockPluginAbstract {
       state.pendingUpload = this.#addFiles(wrapper, [pending]).finally(() => {
         if (this.#states.get(wrapper) === state) state.pendingUpload = null
       })
+      // Observe render-started work without replacing the rejection awaited
+      // by the paste staging owner.
+      void state.pendingUpload.catch(this.#reportUploadError)
     }
     return wrapper
   }
@@ -295,7 +298,7 @@ export class CarouselBlock extends BlockPluginAbstract {
       uploadText: this._t('upload', 'Upload'),
       afterText: this._t('dropzoneText', 'images or videos from your device or drag and drop them here'),
       onUploadClick: () => this.#triggerFileInput(wrapper),
-      onDrop: dataTransfer => { if (dataTransfer.files.length) void this.#addFiles(wrapper, [...dataTransfer.files]) },
+      onDrop: dataTransfer => { if (dataTransfer.files.length) void this.#addFiles(wrapper, [...dataTransfer.files]).catch(this.#reportUploadError) },
       inlineActions: [
         {
           prefix: this._t('dropzoneUrlPrefix', 'or'),
@@ -791,7 +794,7 @@ export class CarouselBlock extends BlockPluginAbstract {
       accept: 'image/*,video/*',
       multiple: true,
       signal: state.lifecycleController.signal,
-      onFiles: files => { void this.#addFiles(wrapper, files) },
+      onFiles: files => { void this.#addFiles(wrapper, files).catch(this.#reportUploadError) },
     })
   }
 
@@ -854,6 +857,11 @@ export class CarouselBlock extends BlockPluginAbstract {
         })
       },
     })
+  }
+
+  /** @param {unknown} error */
+  #reportUploadError = (error) => {
+    console.warn('[CarouselBlock] Failed to apply uploaded slides:', error)
   }
 
   /**

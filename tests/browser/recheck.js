@@ -1,3 +1,5 @@
+import { register as carouselUploadErrors } from './regressions/carousel-upload-errors.js'
+import { register as carouselPasteFailure } from './regressions/carousel-paste-failure.js'
 import { register as attachesUploadErrors } from './regressions/attaches-upload-errors.js'
 import { register as crossBlockLiveClipboard } from './regressions/cross-block-live-clipboard.js'
 import { register as stableSnapshots } from './regressions/inline-stable-snapshots.js'
@@ -229,4 +231,6 @@ inlineAuthoredLiterals()
 stableSnapshots()
 crossBlockLiveClipboard()
 attachesUploadErrors()
+carouselUploadErrors()
+carouselPasteFailure()
 await run()
