@@ -1,3 +1,4 @@
+import { register as tableRaggedInput } from './regressions/table-ragged-input.js'
 import { register as sharedRendererLifetime } from './regressions/recheck-112-shared-renderer-lifetime.js'
 import { register as linkPreviewRestoreMetadata } from './regressions/link-preview-restore-metadata.js'
 import { register as linkPreviewMetadataFailures } from './regressions/link-preview-metadata-failures.js'
@@ -241,4 +242,5 @@ carouselFractionalDelay()
 linkPreviewMetadataFailures()
 linkPreviewRestoreMetadata()
 sharedRendererLifetime()
+tableRaggedInput()
 await run()

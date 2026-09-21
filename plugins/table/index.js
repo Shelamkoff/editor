@@ -51,7 +51,8 @@ export class Table extends BlockPluginAbstract {
       ? data.content.filter(Array.isArray)
       : []
     const rows = inputRows.length || 3
-    const cols = inputRows.find(row => row.length > 0)?.length || 3
+    // Pad shorter rows instead of discarding authored cells in wider rows.
+    const cols = inputRows.reduce((width, row) => Math.max(width, row.length), 0) || 3
     const withHeadings = data?.withHeadings === true
 
     const wrapper = ownerDocument.createElement('div')
