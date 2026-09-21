@@ -14,6 +14,8 @@ const ICON_PLAY = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24
  * @returns {import('../../types').BlockRenderer<import('../../types').EmbedBlock>}
  */
 export function createEmbedRenderer(classPrefix, locale) {
+  /** @type {WeakMap<HTMLElement, () => void>} */
+  const cleanups = new WeakMap()
   /** @param {string} key @param {string} fallback */
   const t = (key, fallback) => localeText(locale, key, fallback)
   return {
@@ -49,7 +51,16 @@ export function createEmbedRenderer(classPrefix, locale) {
       // Wire play button
       /** @type {HTMLElement | null} */
       const playBtn = result.player.querySelector(`.${classPrefix}-embed__play-btn`)
-      playBtn?.addEventListener('click', () => result.play())
+      let disposed = false
+      const play = () => { if (!disposed) result.play() }
+      playBtn?.addEventListener('click', play)
+      cleanups.set(figure, () => {
+        // Retire the event before releasing the embedded browsing context.
+        // A retained button must not recreate network activity after disposal.
+        disposed = true
+        playBtn?.removeEventListener('click', play)
+        for (const frame of result.player.querySelectorAll('iframe')) frame.remove()
+      })
 
       figure.appendChild(result.player)
 
@@ -62,6 +73,13 @@ export function createEmbedRenderer(classPrefix, locale) {
       }
 
       return figure
+    },
+
+    /** @param {HTMLElement} element */
+    destroy(element) {
+      const cleanup = cleanups.get(element)
+      cleanups.delete(element)
+      cleanup?.()
     },
   }
 }
