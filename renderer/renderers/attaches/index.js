@@ -199,6 +199,8 @@ export function createAttachesRenderer(classPrefix, locale) {
   const cls = classPrefix
   /** @type {WeakMap<HTMLElement, AbortController>} */
   const archiveRequests = new WeakMap()
+  /** @type {WeakSet<HTMLElement>} */
+  const liveElements = new WeakSet()
   /** @param {string} key @param {string} fallback */
   const t = (key, fallback) => localeText(locale, key, fallback)
   /** @param {string} key @param {number} count @param {string} fallback */
@@ -223,6 +225,7 @@ export function createAttachesRenderer(classPrefix, locale) {
       const ownerDocument = context.ownerDocument
       const wrapper = ownerDocument.createElement('div')
       wrapper.className = `${cls}-attaches`
+      liveElements.add(wrapper)
       if (files.length === 0) return wrapper
 
       switch (variant) {
@@ -232,6 +235,7 @@ export function createAttachesRenderer(classPrefix, locale) {
         default:
           if (files.length === 1) wrapper.appendChild(buildCardA(files[0], cls, t, ownerDocument))
           else wrapper.appendChild(buildGroupA(files, cls, t, p, ownerDocument, () => {
+            if (!liveElements.has(wrapper)) return
             archiveRequests.get(wrapper)?.abort()
             const AbortControllerCtor = ownerDocument.defaultView?.AbortController ?? AbortController
             const controller = new AbortControllerCtor()
@@ -251,6 +255,7 @@ export function createAttachesRenderer(classPrefix, locale) {
     },
 
     destroy(wrapper) {
+      liveElements.delete(wrapper)
       archiveRequests.get(wrapper)?.abort()
       archiveRequests.delete(wrapper)
     },
