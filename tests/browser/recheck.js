@@ -1,3 +1,4 @@
+import { register as carouselFractionalDelay } from './regressions/carousel-fractional-delay.js'
 import { register as carouselUploadErrors } from './regressions/carousel-upload-errors.js'
 import { register as carouselPasteFailure } from './regressions/carousel-paste-failure.js'
 import { register as attachesUploadErrors } from './regressions/attaches-upload-errors.js'
@@ -233,4 +234,5 @@ crossBlockLiveClipboard()
 attachesUploadErrors()
 carouselUploadErrors()
 carouselPasteFailure()
+carouselFractionalDelay()
 await run()

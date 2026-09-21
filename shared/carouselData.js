@@ -66,7 +66,7 @@ export function normalizeCarouselData(input, createId, ownerDocument = globalThi
     autoplayDelay: typeof rawOptions.autoplayDelay === 'number'
       && Number.isFinite(rawOptions.autoplayDelay)
       && rawOptions.autoplayDelay > 0
-      ? Math.floor(rawOptions.autoplayDelay)
+      ? Math.max(1, Math.floor(rawOptions.autoplayDelay))
       : 3000,
     navigation: rawOptions.navigation !== false,
     pagination: rawOptions.pagination !== false,
