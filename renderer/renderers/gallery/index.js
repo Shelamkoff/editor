@@ -209,6 +209,7 @@ export function createGalleryRenderer(classPrefix, locale) {
 
       // Expose lightbox on click
       container.addEventListener('click', (e) => {
+        if (activeInstances.get(container) !== instances) return
         const target = /** @type {HTMLElement} */ (e.target)
         const item = target.closest(`.${classPrefix}-gallery__item`)
         if (!item) return
@@ -290,15 +291,16 @@ export function createGalleryRenderer(classPrefix, locale) {
      * @param {HTMLElement} element
      */
     destroy(element) {
+      const instances = activeInstances.get(element)
+      // Revoke interaction ownership before invoking resource cleanup.
+      activeInstances.delete(element)
       masonryMounts.get(element)?.destroy()
       masonryMounts.delete(element)
-      const instances = activeInstances.get(element)
       if (instances) {
         for (const expose of instances) {
           expose.destroy()
         }
         instances.clear()
-        activeInstances.delete(element)
       }
     },
   }
