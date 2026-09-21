@@ -27,6 +27,16 @@ export function register() {
         editor.redo(); equal(editor.save().blocks[0].data[field], expected)
       })
     }
+    for (const direction of ['forward', 'backward']) {
+      test(`${type} Tab selects the indented range starting with an empty first line (${direction})`, () => {
+        const { textarea } = setup('\nalpha\nbeta')
+        textarea.setSelectionRange(0, 7, direction)
+        key(textarea, 'Tab')
+        equal(textarea.value, type === 'code' ? '    \n    alpha\nbeta' : '  \n  alpha\nbeta')
+        equal([textarea.selectionStart, textarea.selectionEnd], [0, 7 + 2 * width])
+        equal(textarea.selectionDirection, direction)
+      })
+    }
     test(`${type} Tab preserves backward multiline selection direction`, () => {
       const { textarea } = setup('alpha\nbeta')
       textarea.setSelectionRange(2, 8, 'backward')

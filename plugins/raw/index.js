@@ -90,7 +90,7 @@ export class Raw extends BlockPluginAbstract {
           const start = textarea.selectionStart
           const end = textarea.selectionEnd
           const value = textarea.value
-          const lineStart = value.lastIndexOf('\n', start - 1) + 1
+          const lineStart = value.slice(0, start).lastIndexOf('\n') + 1
           if (e.shiftKey) {
             if (!dedentTextarea(textarea, 2)) return
           } else if (start !== end && value.substring(start, end).includes('\n')) {
