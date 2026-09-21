@@ -1,3 +1,4 @@
+import { registerNative as crossBlockLiveClipboardNative } from './regressions/cross-block-live-clipboard.js'
 import { registerNative as fieldInputNative } from './regressions/recheck-69-field-input-boundaries.js'
 import { registerNative as softBreakNative } from './regressions/recheck-68-soft-break.js'
 import { registerNative as singleFieldClipboardNative } from './regressions/recheck-65-single-field-clipboard.js'
@@ -137,4 +138,5 @@ fragmentInlineNative()
 singleFieldClipboardNative()
 softBreakNative()
 fieldInputNative()
+crossBlockLiveClipboardNative()
 await run()

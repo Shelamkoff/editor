@@ -46,9 +46,10 @@ export function rangeClipboardContent(range, blocks, registry) {
     : [...template.content.querySelectorAll('.oe-block[data-block-id]')]
       .filter(node => !node.closest('[data-inline-plugin]'))
       .map(copy => ({ copy, source: canonical.get(copy.getAttribute('data-block-id')) }))
-  // Native clipboard can omit a known, user-select:none widget as well.
-  // For single-field copies carry its payload rather than trusting native HTML.
-  let needsMetadata = !!singleSource && !!template.content.querySelector('[data-inline-plugin]')
+  // A live widget needs its payload even when the Range spans several
+  // blocks: the receiving editor may not register its plugin. Native HTML
+  // alone is not a lossless transfer (and must not authorize a lossy Cut).
+  let needsMetadata = !!template.content.querySelector('[data-inline-plugin]')
   // Reserve all literal tokens as well, so a copied reference cannot give an
   // unrelated user-typed lookalike (in another block) an unintended payload.
   const occupied = new Set()
