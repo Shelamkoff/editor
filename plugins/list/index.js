@@ -365,8 +365,9 @@ export class List extends BlockPluginAbstract {
 
     if (!currentLi || !endLi || currentLi.parentElement !== list || endLi.parentElement !== list) return false
 
-    // If current item is empty — remove it and let block-level handle exit
-    if ((currentLi.textContent?.trim().length ?? 0) === 0) {
+    // Atomic widgets are authored content even when their visible label is empty.
+    // Only a genuinely empty item may take the destructive exit path.
+    if (!currentLi.textContent?.trim() && !currentLi.querySelector('[data-inline-plugin]')) {
       const remainingCount = list.querySelectorAll(':scope > li').length
 
       if (remainingCount <= 1) {

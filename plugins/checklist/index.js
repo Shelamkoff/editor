@@ -227,7 +227,8 @@ export class Checklist extends BlockPluginAbstract {
     if (!context) return false
 
     const itemCount = wrapper.querySelectorAll('.oe-checklist__item').length
-    if (!currentText.textContent?.trim()) {
+    // An icon-only widget still owns persisted data; split rather than discard it.
+    if (!currentText.textContent?.trim() && !currentText.querySelector('[data-inline-plugin]')) {
       if (itemCount <= 1) {
         context.exitEmptyBlock()
         return true

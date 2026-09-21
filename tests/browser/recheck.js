@@ -1,3 +1,4 @@
+import { register as listAtomicEnter } from './regressions/list-atomic-enter.js'
 import { register as textareaIndentBoundaries } from './regressions/textarea-indent-boundaries.js'
 import { register as personPartialContent } from './regressions/person-partial-content.js'
 import { register as embedRendererLifetime } from './regressions/embed-renderer-lifetime.js'
@@ -259,4 +260,5 @@ embedPreviewTimeout()
 embedRendererLifetime()
 personPartialContent()
 textareaIndentBoundaries()
+listAtomicEnter()
 await run()
