@@ -80,6 +80,7 @@ export function createCodeRenderer(classPrefix, /** @type {Record<string, import
             copyBtn.title = t('renderer.code.copy', 'Copy code')
 
             copyBtn.addEventListener('click', async () => {
+                if (!liveElements.has(wrapper)) return
                 try {
                     await (view?.navigator ?? navigator).clipboard.writeText(code)
                     if (!liveElements.has(wrapper)) return
