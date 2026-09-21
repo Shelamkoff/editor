@@ -91,6 +91,7 @@ Native edits inside `contenteditable` are tracked by Rector. A plugin-owned butt
 | `splitBlock()` | Insert and focus the configured default block immediately after the current block. When called inside an active `mutate()`, both the plugin cleanup and the insertion belong to the same history step. |
 | `exitEmptyBlock()` | Convert the current empty non-default block to the configured default type. Returns `true` only when conversion occurred. |
 | `readOnly` | `true` when controls that change the document must not be mounted or activated. |
+| `restoring` | Creation-time flag: this render reconstructs an Undo/Redo or rollback checkpoint. Skip automatic tasks that write persisted data; keep later interactive commands enabled. |
 | `ownerDocument` | The editor's owning `Document`. Create plugin DOM, ranges, and document-bound browser objects from this realm instead of ambient `document`/`window`. |
 
 Use `splitBlock()` for a list-like control that consumes its empty trailing item and needs to continue in a normal paragraph. Use `exitEmptyBlock()` when the structured block itself is empty. Do not dispatch synthetic keyboard events to request either operation: they can be intercepted by the plugin again and do not define a reliable command boundary. Structural methods are inert when edit-mode services are unavailable. Use `ownerDocument` whenever the plugin creates DOM or accesses document-scoped browser APIs so the same plugin works when Rector is mounted in an iframe or another browsing realm.

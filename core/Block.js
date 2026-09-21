@@ -90,6 +90,7 @@ export class Block {
 
     const contentElement = plugin.render(data || {}, {
       ownerDocument,
+      restoring: Boolean(commands.restoring),
       mutate: (operation) => this.#runMutation(operation),
       splitBlock: () => {
         if (!this.#destroyed && !this.#readOnly) this.#splitBlock?.()

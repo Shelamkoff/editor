@@ -141,6 +141,12 @@ export interface BlockPlugin<D extends Record<string, unknown> = Record<string, 
 export interface BlockMutationContext {
   /** Document that owns the editor block and any DOM created for it. */
   readonly ownerDocument?: Document
+  /**
+   * This render reconstructs an Undo/Redo or rollback checkpoint. Do not
+   * restart automatic work that changes persisted content during reconstruction.
+   * This is a creation-time flag, not a lock on later interactive commands.
+   */
+  readonly restoring?: boolean
   /** Execute one synchronous block-local command as one undo/redo step. */
   mutate<T>(operation: () => T): T | undefined
   /** Split the current block through the core structural command pipeline. */

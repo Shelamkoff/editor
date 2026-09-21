@@ -74,3 +74,5 @@ Do not remove the editor holder without first calling `editor.destroy()`.
 ## Document output
 
 Use the matching renderer from `@shelamkoff/rector/renderer/renderers/link-preview`. The VitePress guide documents configuration, commands and history, extension contracts, document migrations, styling, security, and lifecycle in a sequential form.
+
+Automatic metadata enrichment does not restart when Undo, Redo, or a failed command reconstructs a checkpoint. Restored URL controls remain editable; explicitly submitting a URL can start a new request. Custom plugins can use the creation-time `context.restoring` flag to avoid repeating automatic document changes during history reconstruction.

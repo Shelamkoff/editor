@@ -169,7 +169,7 @@ export class LinkPreview extends BlockPluginAbstract {
       wrapper.classList.add(`${P}--filled`)
 
       // If URL is set but metadata is missing, fetch it now (covers paste-as-block path)
-      if (!context.readOnly && this._config.fetchMeta && !parsedData.title && !parsedData.image && !parsedData.favicon) {
+      if (!context.readOnly && !context.restoring && this._config.fetchMeta && !parsedData.title && !parsedData.image && !parsedData.favicon) {
         this._resolveMeta(wrapper, parsedData.url).then(meta => {
           if (!meta) return
           const st = stateMap.get(wrapper)

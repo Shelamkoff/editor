@@ -1,3 +1,4 @@
+import { register as linkPreviewRestoreMetadata } from './regressions/link-preview-restore-metadata.js'
 import { register as linkPreviewMetadataFailures } from './regressions/link-preview-metadata-failures.js'
 import { register as carouselFractionalDelay } from './regressions/carousel-fractional-delay.js'
 import { register as carouselUploadErrors } from './regressions/carousel-upload-errors.js'
@@ -237,4 +238,5 @@ carouselUploadErrors()
 carouselPasteFailure()
 carouselFractionalDelay()
 linkPreviewMetadataFailures()
+linkPreviewRestoreMetadata()
 await run()
