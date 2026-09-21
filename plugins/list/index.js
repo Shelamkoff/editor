@@ -367,7 +367,7 @@ export class List extends BlockPluginAbstract {
 
     // Atomic widgets are authored content even when their visible label is empty.
     // Only a genuinely empty item may take the destructive exit path.
-    if (!currentLi.textContent?.trim() && !currentLi.querySelector('[data-inline-plugin]')) {
+    if (range.collapsed && !currentLi.textContent?.trim() && !currentLi.querySelector('[data-inline-plugin]')) {
       const remainingCount = list.querySelectorAll(':scope > li').length
 
       if (remainingCount <= 1) {

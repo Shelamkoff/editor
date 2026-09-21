@@ -1,3 +1,4 @@
+import { register as listEmptyRangeEnter } from './regressions/list-empty-range-enter.js'
 import { register as listAtomicEnter } from './regressions/list-atomic-enter.js'
 import { register as textareaIndentBoundaries } from './regressions/textarea-indent-boundaries.js'
 import { register as personPartialContent } from './regressions/person-partial-content.js'
@@ -261,4 +262,5 @@ embedRendererLifetime()
 personPartialContent()
 textareaIndentBoundaries()
 listAtomicEnter()
+listEmptyRangeEnter()
 await run()
