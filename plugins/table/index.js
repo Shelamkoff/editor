@@ -1,5 +1,5 @@
 import { setSanitizedHtml, setTrustedHtml } from '../../core/sanitize.js'
-import { editableRange } from '../../core/editableFields.js'
+import { editableRange, editingHostForEvent } from '../../core/editableFields.js'
 import { tablePasteData } from './paste.js'
 import { sanitizeHtml } from '../../core/sanitize.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
@@ -83,6 +83,7 @@ export class Table extends BlockPluginAbstract {
     // editor entirely. Only a range owned by the event's actual cell is safe.
     /** @param {KeyboardEvent | InputEvent} event */
     const insertBreak = event => {
+      if (!editingHostForEvent(wrapper, event.target)) return
       if (event.defaultPrevented || !event.cancelable || event.isComposing) return
       event.preventDefault()
       event.stopPropagation()
@@ -108,6 +109,7 @@ export class Table extends BlockPluginAbstract {
       })
     }
     table.addEventListener('keydown', event => {
+      if (!editingHostForEvent(wrapper, event.target)) return
       if (event.key === 'Tab' && this.#navigateCell(table, event.shiftKey ? -1 : 1)) {
         event.preventDefault()
         event.stopPropagation()

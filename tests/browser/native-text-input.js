@@ -1,3 +1,4 @@
+import { registerNative as structuralEventOwnerNative } from './regressions/structural-event-owner.js'
 import { registerNative as crossBlockLiveClipboardNative } from './regressions/cross-block-live-clipboard.js'
 import { registerNative as fieldInputNative } from './regressions/recheck-69-field-input-boundaries.js'
 import { registerNative as softBreakNative } from './regressions/recheck-68-soft-break.js'
@@ -139,4 +140,5 @@ singleFieldClipboardNative()
 softBreakNative()
 fieldInputNative()
 crossBlockLiveClipboardNative()
+structuralEventOwnerNative()
 await run()

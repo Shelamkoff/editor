@@ -1,3 +1,4 @@
+import { register as structuralEventOwner } from './regressions/structural-event-owner.js'
 import { register as columnsOverflow } from './regressions/columns-overflow-preservation.js'
 import { register as listEmptyRangeEnter } from './regressions/list-empty-range-enter.js'
 import { register as listAtomicEnter } from './regressions/list-atomic-enter.js'
@@ -265,4 +266,5 @@ textareaIndentBoundaries()
 listAtomicEnter()
 listEmptyRangeEnter()
 columnsOverflow()
+structuralEventOwner()
 await run()

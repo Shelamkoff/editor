@@ -1,3 +1,4 @@
+import { editingHostForEvent } from '../../core/editableFields.js'
 import { setSanitizedHtml, setTrustedHtml } from '../../core/sanitize.js'
 import { sanitizeHtml } from '../../core/sanitize.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
@@ -68,6 +69,7 @@ export class Checklist extends BlockPluginAbstract {
     }
 
     wrapper.addEventListener('keydown', (e) => {
+      if (!editingHostForEvent(wrapper, e.target)) return
       if (e.key === 'Enter' && !e.shiftKey) {
         if (this.#handleEnter(wrapper)) {
           e.preventDefault()

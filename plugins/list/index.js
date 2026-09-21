@@ -1,3 +1,4 @@
+import { editingHostForEvent } from '../../core/editableFields.js'
 import { setSanitizedHtml, setTrustedHtml } from '../../core/sanitize.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { mapTextFields } from './mapTextFields.js'
@@ -69,6 +70,7 @@ export class List extends BlockPluginAbstract {
     }
 
     list.addEventListener('keydown', (e) => {
+      if (!editingHostForEvent(list, e.target)) return
       const ke = /** @type {KeyboardEvent} */ (e)
       if (ke.key === 'Enter' && !ke.shiftKey) {
         if (this.#handleEnter(list, context)) {
