@@ -227,7 +227,7 @@ export class EditorRenderer {
       if (this.#config.validationMode === 'strict') {
         throw new InvalidBlockDataError(block.type, 'Block data does not match its schema', block.id)
       }
-      renderableBlock = { ...block, data: normalizeKnownBlockData(block.type, block.data) }
+      renderableBlock = { ...block, data: normalizeKnownBlockData(block.type, block.data, ownerDocument) }
     }
 
     // Rehydrate inline widget placeholders before calling the block

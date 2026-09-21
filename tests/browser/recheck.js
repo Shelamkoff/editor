@@ -1,3 +1,4 @@
+import { register as rendererNormalizationRealm } from './regressions/renderer-normalization-realm.js'
 import { register as tableRaggedInput } from './regressions/table-ragged-input.js'
 import { register as sharedRendererLifetime } from './regressions/recheck-112-shared-renderer-lifetime.js'
 import { register as linkPreviewRestoreMetadata } from './regressions/link-preview-restore-metadata.js'
@@ -243,4 +244,5 @@ linkPreviewMetadataFailures()
 linkPreviewRestoreMetadata()
 sharedRendererLifetime()
 tableRaggedInput()
+rendererNormalizationRealm()
 await run()

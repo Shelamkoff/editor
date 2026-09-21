@@ -61,9 +61,10 @@ function stringProperties(value) {
  *
  * @param {string} type
  * @param {unknown} input
+ * @param {Document} [ownerDocument] Document that will own any sanitized output.
  * @returns {Record<string, unknown>}
  */
-export function normalizeKnownBlockData(type, input) {
+export function normalizeKnownBlockData(type, input, ownerDocument = globalThis.document) {
   const source = record(input)
   let sequence = 0
   const createId = () => `preserved-${type}-${++sequence}`
@@ -226,7 +227,7 @@ export function normalizeKnownBlockData(type, input) {
         }),
       }
     case 'carousel':
-      return normalizeCarouselData(source, createId)
+      return normalizeCarouselData(source, createId, ownerDocument)
     case 'poll':
       return normalizePollData(source, createId)
     default:
