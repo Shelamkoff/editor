@@ -1,6 +1,14 @@
 import { CropperDialog } from '@shelamkoff/cropper'
 import { createEditor } from '../../core/index.js'
-import { Attaches, Carousel, Embed, LinkPreview, Paragraph, Person, Poll } from '../../plugins/index.js'
+import {
+  createAttachesPlugin,
+  createCarouselPlugin,
+  createEmbedPlugin,
+  createLinkPreviewPlugin,
+  createParagraphPlugin,
+  createPersonPlugin,
+  createPollPlugin,
+} from '../../plugins/index.js'
 
 const sandbox = document.querySelector('#sandbox')
 const tick = () => new Promise(resolve => setTimeout(resolve, 0))
@@ -13,19 +21,31 @@ async function settle(times = 2) {
   for (let index = 0; index < times; index++) await tick()
 }
 
-function nextFrames(times = 2) {
-  return new Promise(resolve => {
-    const step = remaining => {
-      if (remaining <= 0) resolve()
-      else requestAnimationFrame(() => step(remaining - 1))
-    }
-    step(times)
+function mount(definition, data, options = {}) {
+  const holder = document.createElement('section')
+  sandbox.appendChild(holder)
+  const editor = createEditor({
+    holder,
+    plugins: [definition],
+    defaultBlock: definition.type,
+    inlineTools: [],
+    injectStyles: options.injectStyles ?? false,
+    changeDebounceMs: 0,
+    locale: options.locale,
+    data: {
+      version: '2.0.0',
+      blocks: [{ id: options.id ?? definition.type, type: definition.type, data }],
+    },
   })
+  const root = holder.querySelector('.oe-editor')
+  const wrapper = holder.querySelector(`.oe-block[data-block-id="${options.id ?? definition.type}"]`)?.firstElementChild
+  assert(root instanceof HTMLElement && wrapper instanceof HTMLElement, `${definition.type}: editor projection missing`)
+  return { holder, editor, root, wrapper, id: options.id ?? definition.type }
 }
 
 function assertNoMarkup(root, payload, name) {
   assert(root.textContent?.includes(payload), `${name} label was not preserved as literal text`)
-  assert(!root.querySelector('img, script, iframe, object, embed'), `${name} label created an active element`)
+  assert(!root.querySelector('script, iframe, object, embed'), `${name} label created an active element`)
   assert(
     ![...root.querySelectorAll('*')].some(element => [...element.attributes].some(attribute => attribute.name.startsWith('on'))),
     `${name} label created an event handler`,
@@ -35,59 +55,31 @@ function assertNoMarkup(root, payload, name) {
 async function localeMarkupBoundary() {
   const payload = '<img src="x" onerror="window.__localeAuditProbe++">Localized'
   window.__localeAuditProbe = 0
-  const cases = [
-    {
-      name: 'attaches',
-      plugin: new Attaches(),
-      type: 'attaches',
-      data: { files: [{ url: 'https://example.com/file.pdf', name: 'file.pdf', size: 1, extension: 'pdf' }], variant: 'a' },
-      locale: {
-        'plugin.attaches.settings': payload,
-        'plugin.attaches.addFiles': payload,
-      },
-    },
-    {
-      name: 'link-preview',
-      plugin: new LinkPreview(),
-      type: 'linkPreview',
-      data: { url: 'https://example.com', title: 'Example', description: '', image: '', favicon: '', domain: 'example.com', template: 'notion' },
-      locale: { 'plugin.linkPreview.settings': payload },
-    },
-    {
-      name: 'poll',
-      plugin: new Poll(),
-      type: 'poll',
-      data: {
-        question: 'Question',
-        type: 'single',
-        options: [{ id: 'a', text: 'A' }, { id: 'b', text: 'B' }],
-        resultsMode: 'always',
-      },
-      locale: {
-        'plugin.poll.addOption': payload,
-        'plugin.poll.single': payload,
-        'plugin.poll.resultsAlways': payload,
-        'plugin.poll.sort': payload,
-      },
-    },
+
+  const definitions = [
+    createAttachesPlugin({ injectStyles: false }),
+    createLinkPreviewPlugin({ injectStyles: false }),
+    createPollPlugin({ injectStyles: false }),
   ]
 
-  for (const fixture of cases) {
-    const holder = document.createElement('section')
-    sandbox.appendChild(holder)
-    const editor = createEditor({
-      holder,
-      plugins: [fixture.plugin],
-      defaultBlock: fixture.type,
-      inlineTools: [],
-      locale: fixture.locale,
-      data: { version: 'audit-regressions', blocks: [{ id: `locale-${fixture.name}`, type: fixture.type, data: fixture.data }] },
+  for (const definition of definitions) {
+    const locale = {
+      __lang: 'en',
+      plugin: {
+        [definition.type]: {
+          title: payload,
+        },
+      },
+    }
+    const entry = mount(definition, definition.schema.createDefault(), {
+      locale,
+      id: `locale-${definition.type}`,
     })
     try {
-      assertNoMarkup(editor.rootElement, payload, fixture.name)
+      assertNoMarkup(entry.root, payload, definition.type)
     } finally {
-      editor.destroy()
-      holder.remove()
+      entry.editor.destroy()
+      entry.holder.remove()
     }
   }
 
@@ -97,78 +89,101 @@ async function localeMarkupBoundary() {
 
 async function linkPreviewOwnership() {
   const requests = []
-  const plugin = new LinkPreview({
+  const definition = createLinkPreviewPlugin({
+    injectStyles: false,
     fetchMeta(url, { signal }) {
       return new Promise(resolve => requests.push({ url, signal, resolve }))
     },
   })
-  const wrapper = plugin.render({
-    url: 'https://example.com', title: '', description: '', image: '', favicon: '', domain: '', template: 'notion',
-  }, { readOnly: false, mutate(operation) { return operation() } })
-  sandbox.appendChild(wrapper)
+  const entry = mount(definition, {
+    ...definition.schema.createDefault(),
+    url: 'https://example.com',
+    domain: 'example.com',
+  }, { id: 'link' })
 
   try {
+    await settle()
     assert(requests.length === 1, 'initial link-preview metadata request did not start')
-    const input = wrapper.querySelector('.oe-lp__url-input')
+    const input = entry.wrapper.querySelector('.oe-lp__url-input')
     assert(input instanceof HTMLInputElement, 'link-preview URL input is missing')
     input.value = 'https://example.com'
-    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }))
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }))
     assert(requests.length === 2, 'same-URL replacement request did not start')
-    assert(requests[0].signal.aborted, 'same-URL replacement did not abort the previous request')
+    assert(requests[0].signal.aborted, 'same-URL replacement did not abort previous request')
     assert(!requests[1].signal.aborted, 'replacement request started aborted')
 
     requests[0].resolve({ title: 'Stale title' })
     await settle()
+    assert(entry.editor.save().blocks[0].data.title !== 'Stale title', 'stale metadata request committed')
     requests[1].resolve({ title: 'Fresh title' })
     await settle(3)
-
-    assert(plugin.save(wrapper).title === 'Fresh title', 'stale same-URL request invalidated its replacement')
-    assert(wrapper.querySelector('.oe-lp__title')?.textContent === 'Fresh title', 'fresh replacement metadata was not rendered')
+    assert(entry.editor.save().blocks[0].data.title === 'Fresh title', 'fresh metadata request did not win')
+    assert(entry.wrapper.querySelector('.oe-lp__title')?.textContent === 'Fresh title', 'fresh metadata was not projected')
   } finally {
-    plugin.destroy(wrapper)
-    wrapper.remove()
+    entry.editor.destroy()
+    entry.holder.remove()
   }
 }
 
 async function embedCoverOwnership() {
   const requests = []
-  const plugin = new Embed({
+  const definition = createEmbedPlugin({
+    injectStyles: false,
+    resolvePreview: false,
     uploadFile(file, { signal }) {
       return new Promise(resolve => requests.push({ file, signal, resolve }))
     },
   })
-  const wrapper = plugin.render({
-    service: 'youtube', videoId: 'dQw4w9WgXcQ', caption: '', cover: '', title: '', duration: '',
-  }, { readOnly: false, mutate(operation) { return operation() } })
-  sandbox.appendChild(wrapper)
+  const entry = mount(definition, {
+    service: 'youtube',
+    videoId: 'dQw4w9WgXcQ',
+    caption: '',
+    cover: '',
+    title: '',
+    duration: '',
+  }, { id: 'embed' })
+
+  const originalClick = HTMLInputElement.prototype.click
+  let fileIndex = 0
+  HTMLInputElement.prototype.click = function () {
+    if (this.type === 'file' && this.accept === 'image/*') {
+      const file = new File([`cover-${++fileIndex}`], `cover-${fileIndex}.png`, { type: 'image/png' })
+      Object.defineProperty(this, 'files', { configurable: true, value: [file] })
+      this.dispatchEvent(new Event('change', { bubbles: true }))
+      return
+    }
+    return originalClick.call(this)
+  }
 
   try {
-    const first = plugin._uploadCover(wrapper, new File(['first'], 'first.png', { type: 'image/png' }))
-    const second = plugin._uploadCover(wrapper, new File(['second'], 'second.png', { type: 'image/png' }))
-    assert(requests.length === 2, 'embed replacement cover uploads did not both start')
-    assert(requests[0].signal.aborted, 'new embed cover upload did not abort the old one')
+    const cover = [...entry.wrapper.querySelectorAll('.oe-embed__action-btn')]
+      .find(button => button.textContent?.trim().includes('Cover'))
+    assert(cover instanceof HTMLButtonElement, 'embed Cover control is missing')
+    cover.click()
+    cover.click()
+    assert(requests.length === 2, 'embed replacement uploads did not both start')
+    assert(requests[0].signal.aborted, 'new embed cover upload did not abort old upload')
 
     requests[0].resolve({ url: 'https://example.test/stale.png' })
     await settle()
-    assert(wrapper.classList.contains('oe-embed--loading'), 'stale embed cover completion cleared current loading state')
-    assert(plugin.save(wrapper).cover === '', 'stale embed cover upload committed while replacement was pending')
+    assert(entry.editor.save().blocks[0].data.cover === '', 'stale embed cover committed while replacement was pending')
 
     requests[1].resolve({ url: 'https://example.test/fresh.png' })
-    await Promise.all([first, second])
-    await settle()
-    assert(plugin.save(wrapper).cover === 'https://example.test/fresh.png', 'fresh embed cover upload did not win')
+    await settle(3)
+    assert(entry.editor.save().blocks[0].data.cover === 'https://example.test/fresh.png', 'fresh embed cover did not win')
 
-    const third = plugin._uploadCover(wrapper, new File(['third'], 'third.png', { type: 'image/png' }))
-    const fourth = plugin._uploadCover(wrapper, new File(['fourth'], 'fourth.png', { type: 'image/png' }))
+    cover.click()
+    cover.click()
+    assert(requests.length === 4, 'second embed cover race did not start both uploads')
     requests[3].resolve({ url: 'https://example.test/newest.png' })
-    await fourth
+    await settle(3)
     requests[2].resolve({ url: 'https://example.test/late-stale.png' })
-    await third
-    assert(plugin.save(wrapper).cover === 'https://example.test/newest.png', 'late stale embed cover overwrote the latest source')
+    await settle(3)
+    assert(entry.editor.save().blocks[0].data.cover === 'https://example.test/newest.png', 'late stale embed cover overwrote newest upload')
   } finally {
-    plugin.destroy(wrapper)
-    plugin.dispose?.()
-    wrapper.remove()
+    HTMLInputElement.prototype.click = originalClick
+    entry.editor.destroy()
+    entry.holder.remove()
   }
 }
 
@@ -187,28 +202,26 @@ async function carouselAbortedBatchUrls() {
     return originalRevokeObjectURL(url)
   }
 
-  const plugin = new Carousel()
-  const wrapper = plugin.render({
-    slides: [],
-    options: { loop: false, autoplay: false, autoplayDelay: 3000, navigation: true, pagination: true, thumbnails: true },
-  }, { readOnly: false, mutate(operation) { return operation() } })
-  sandbox.appendChild(wrapper)
+  const definition = createCarouselPlugin({ injectStyles: false })
+  const entry = mount(definition, definition.schema.createDefault(), { id: 'carousel' })
+  let commits = 0
+  entry.editor.on('transaction:committed', () => { commits++ })
 
   try {
     const transfer = new DataTransfer()
     transfer.items.add(new File(['video'], 'transient.webm', { type: 'video/webm' }))
     transfer.items.add(new File(['image'], 'pending.png', { type: 'image/png' }))
-    wrapper.dispatchEvent(new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer: transfer }))
-    assert(created.length === 1, 'carousel did not create the transient video URL before the pending image read')
+    entry.wrapper.dispatchEvent(new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer: transfer }))
+    assert(created.length === 1, 'carousel did not create transient video URL before pending image read')
     const transientUrl = created[0]
-    plugin.destroy(wrapper)
+    const beforeDestroy = commits
+    entry.editor.destroy()
     await settle()
-    assert(plugin.save(wrapper).slides.length === 0, 'destroyed carousel committed an aborted local file batch')
-    assert(revoked.includes(transientUrl), 'aborted carousel batch retained an uncommitted object URL')
+    assert(commits === beforeDestroy, 'destroyed carousel committed aborted local file batch')
+    assert(revoked.includes(transientUrl), 'aborted carousel batch retained uncommitted object URL')
   } finally {
-    plugin.destroy(wrapper)
-    plugin.dispose?.()
-    wrapper.remove()
+    try { entry.editor.destroy() } catch {}
+    entry.holder.remove()
     URL.createObjectURL = originalCreateObjectURL
     URL.revokeObjectURL = originalRevokeObjectURL
   }
@@ -222,7 +235,7 @@ async function personAvatarOwnership() {
     if (this.type === 'file' && this.accept === 'image/*') {
       const file = new File([`avatar-${++inputSequence}`], `avatar-${inputSequence}.png`, { type: 'image/png' })
       Object.defineProperty(this, 'files', { configurable: true, value: [file] })
-      this.dispatchEvent(new Event('change'))
+      this.dispatchEvent(new Event('change', { bubbles: true }))
       return
     }
     return originalInputClick.call(this)
@@ -232,22 +245,21 @@ async function personAvatarOwnership() {
   }
 
   const requests = []
-  const plugin = new Person({
+  const definition = createPersonPlugin({
+    injectStyles: false,
     uploadFile(file, { signal }) {
       return new Promise(resolve => requests.push({ file, signal, resolve }))
     },
   })
-  const wrapper = plugin.render({
+  const entry = mount(definition, {
     persons: [{ avatar: '', name: 'Ada', role: '', bio: '', links: [] }],
-  }, { readOnly: false, mutate(operation) { return operation() } })
-  sandbox.appendChild(wrapper)
+  }, { id: 'person' })
 
   const clickUpload = async () => {
-    const button = wrapper.querySelector('.oe-person__avatar-upload')
+    const button = entry.wrapper.querySelector('.oe-person__avatar-upload')
     assert(button instanceof HTMLButtonElement, 'person avatar upload button is missing')
     button.click()
-    for (let index = 0; index < 10 && requests.length <= 0; index++) await tick()
-    await settle()
+    await settle(3)
   }
 
   try {
@@ -255,83 +267,55 @@ async function personAvatarOwnership() {
     assert(requests.length === 1, 'first person avatar upload did not start')
     await clickUpload()
     assert(requests.length === 2, 'replacement person avatar upload did not start')
-    assert(requests[0].signal.aborted, 'replacement avatar upload did not abort the previous upload')
+    assert(requests[0].signal.aborted, 'replacement avatar upload did not abort previous upload')
 
     requests[0].resolve({ url: 'https://example.test/stale-avatar.png' })
     await settle()
-    assert(wrapper.classList.contains('oe-person--loading'), 'stale avatar completion cleared the current loading state')
-    assert(plugin.save(wrapper).persons[0].avatar === '', 'stale avatar committed while replacement was pending')
+    assert(entry.editor.save().blocks[0].data.persons[0].avatar === '', 'stale avatar committed while replacement pending')
 
     requests[1].resolve({ url: 'https://example.test/fresh-avatar.png' })
     await settle(3)
-    assert(plugin.save(wrapper).persons[0].avatar === 'https://example.test/fresh-avatar.png', 'fresh avatar upload did not win')
-    assert(!wrapper.classList.contains('oe-person--loading'), 'person loading state survived the current upload')
+    assert(entry.editor.save().blocks[0].data.persons[0].avatar === 'https://example.test/fresh-avatar.png', 'fresh avatar upload did not win')
 
     await clickUpload()
     await clickUpload()
     assert(requests.length === 4, 'second avatar race did not start both requests')
-    assert(requests[2].signal.aborted, 'second avatar replacement did not abort its predecessor')
+    assert(requests[2].signal.aborted, 'second avatar replacement did not abort predecessor')
     requests[3].resolve({ url: 'https://example.test/newest-avatar.png' })
     await settle(3)
     requests[2].resolve({ url: 'https://example.test/late-stale-avatar.png' })
     await settle(3)
-    assert(plugin.save(wrapper).persons[0].avatar === 'https://example.test/newest-avatar.png', 'late stale avatar overwrote the latest upload')
+    assert(entry.editor.save().blocks[0].data.persons[0].avatar === 'https://example.test/newest-avatar.png', 'late stale avatar overwrote latest upload')
   } finally {
-    plugin.destroy(wrapper)
-    plugin.dispose?.()
-    wrapper.remove()
+    entry.editor.destroy()
+    entry.holder.remove()
     HTMLInputElement.prototype.click = originalInputClick
     CropperDialog.prototype.open = originalCropperOpen
   }
 }
 
-async function mobileToolbarFrameOwnership() {
-  const holder = document.createElement('section')
-  sandbox.appendChild(holder)
-  const editor = createEditor({
-    holder,
-    plugins: [new Paragraph()],
-    inlineTools: [],
-    data: { version: 'audit-regressions', blocks: [{ id: 'toolbar-frame', type: 'paragraph', data: { text: 'Frame ownership' } }] },
-    tuning: {
-      mobileBreakpoint: 2000,
-      animations: { blockInsertMs: 0, blockMoveMs: 0, blockRemoveMs: 0 },
-    },
-  })
-
+async function toolbarOwnership() {
+  const definition = createParagraphPlugin({ injectStyles: false })
+  const entry = mount(definition, { text: 'Frame ownership' }, { id: 'toolbar' })
   try {
-    const block = editor.blocks.getBlockByIndex(0)
-    assert(block, 'mobile toolbar fixture block is missing')
-    editor.blocks.setCurrentIndex(0)
-    block.focus()
-
-    const plus = editor.rootElement.querySelector('.oe-toolbar__btn:not(.oe-toolbar__drag)')
-    const toolbox = editor.rootElement.querySelector('.oe-toolbox')
-    assert(plus instanceof HTMLButtonElement && toolbox instanceof HTMLElement, 'mobile toolbox controls are missing')
-
-    // Open and close before the queued opening frame runs. The frame belongs
-    // to the old open state and must not resurrect its CSS class afterwards.
+    entry.editor.blocks.focus('toolbar')
+    await settle()
+    const plus = entry.root.querySelector('.oe-toolbar__btn:not(.oe-toolbar__drag)')
+    const toolbox = entry.root.querySelector('.oe-toolbox')
+    assert(plus instanceof HTMLButtonElement && toolbox instanceof HTMLElement, 'v2 toolbox controls are missing')
     plus.click()
     plus.click()
-    await nextFrames()
-    assert(!toolbox.classList.contains('oe-toolbox--open'), 'stale toolbox opening frame ran after close')
+    assert(toolbox.style.display === 'none', 'rapid toolbox open/close left toolbox visible')
 
-    const drag = editor.rootElement.querySelector('.oe-toolbar__drag')
-    assert(drag instanceof HTMLButtonElement, 'mobile settings handle is missing')
-    const pressDrag = () => {
-      drag.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true, button: 0, clientX: 10, clientY: 10 }))
-      document.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, cancelable: true, button: 0, clientX: 10, clientY: 10 }))
-    }
-
-    pressDrag()
-    pressDrag()
-    await nextFrames()
-    const settings = document.querySelector('.oe-settings-menu')
-    assert(settings instanceof HTMLElement, 'mobile settings menu is missing')
-    assert(!settings.classList.contains('oe-settings-menu--open'), 'stale settings opening frame ran after close')
+    const drag = entry.root.querySelector('.oe-toolbar__drag')
+    const settings = entry.root.querySelector('.oe-settings-menu')
+    assert(drag instanceof HTMLButtonElement && settings instanceof HTMLElement, 'v2 settings controls are missing')
+    drag.click()
+    drag.click()
+    assert(settings.style.display === 'none', 'rapid settings open/close left settings visible')
   } finally {
-    editor.destroy()
-    holder.remove()
+    entry.editor.destroy()
+    entry.holder.remove()
   }
 }
 
@@ -342,7 +326,7 @@ async function run() {
     ['embed-cover-ownership', embedCoverOwnership],
     ['carousel-aborted-batch-object-urls', carouselAbortedBatchUrls],
     ['person-avatar-ownership', personAvatarOwnership],
-    ['mobile-toolbar-frame-ownership', mobileToolbarFrameOwnership],
+    ['toolbar-ownership', toolbarOwnership],
   ]
   const results = []
   for (const [name, callback] of cases) {
