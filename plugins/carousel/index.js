@@ -152,6 +152,16 @@ function renderCarouselSettings(context){
       if(embedded)source.input.dataset.oeEmbeddedSource='true'
       root.appendChild(source.wrapper)
 
+      const alt=field(
+        context.t(carouselLabel('alt','Alternative text')),
+        slide.alt||'',
+        value=>commit(current=>({
+          ...current,
+          slides:current.slides.map(item=>item.id===slide.id?{...item,alt:String(value)}:item),
+        })),
+      )
+      root.appendChild(alt.wrapper)
+
       if(slide.type==='video'){
         const poster=field(
           context.t(carouselLabel('poster','Poster URL')),
