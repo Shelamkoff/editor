@@ -16,7 +16,10 @@ function append(left,right){
   return left+'<br>'+right
 }
 
-/** @returns {import('../../plugin-kit/types').BlockPluginDefinition<{label:string,content:string}>} */
+/**
+ * Create the immutable Spoiler v2 definition with transient disclosure state.
+ * @returns {import('../../plugin-kit/types').BlockPluginDefinition<{label:string,content:string}>}
+ */
 export function createSpoilerPlugin(){
   const capabilities=Object.freeze({
     formatting:Object.freeze({inlineTools:true}),
