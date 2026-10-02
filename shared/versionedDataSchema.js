@@ -8,6 +8,7 @@ import { cloneEditorData } from './cloneEditorData.js'
  *   legacyVersion: number,
  *   createDefault: () => D,
  *   normalize: (input: any) => D,
+ *   mapRichText?: (data: D, transform: (html: string, fieldKey: string) => string) => void,
  *   migrations?: Array<{
  *     from: number,
  *     to: number,
@@ -57,6 +58,7 @@ export function createVersionedDataSchema(options) {
   const legacyVersion = options.legacyVersion
   const createDefault = options.createDefault
   const normalize = options.normalize
+  const mapRichText = options.mapRichText
   const suppliedMigrations = options.migrations ?? []
 
   assertVersion(currentVersion, 'currentVersion')
@@ -69,6 +71,9 @@ export function createVersionedDataSchema(options) {
   }
   if (typeof normalize !== 'function') {
     throw new TypeError('Versioned data schema requires normalize()')
+  }
+  if (mapRichText !== undefined && typeof mapRichText !== 'function') {
+    throw new TypeError('Versioned data schema mapRichText must be a function')
   }
   if (!Array.isArray(suppliedMigrations)) {
     throw new TypeError('Versioned data schema migrations must be an array')
@@ -163,6 +168,24 @@ export function createVersionedDataSchema(options) {
         dataVersion: currentVersion,
         data: normalizeOwned(data),
       }
+    },
+
+    /**
+     * Apply one rich-text transformation to every schema-declared rich field.
+     * Returns a detached, normalized value; the caller's data is never mutated.
+     * Schemas without rich fields return a detached normalized copy unchanged.
+     *
+     * @param {D} data
+     * @param {(html: string, fieldKey: string) => string} transform
+     * @returns {D}
+     */
+    mapRichText(data, transform) {
+      if (typeof transform !== 'function') {
+        throw new TypeError('Rich-text transform must be a function')
+      }
+      const owned = normalizeOwned(data)
+      if (mapRichText) mapRichText(owned, transform)
+      return normalizeOwned(owned)
     },
 
     /**
