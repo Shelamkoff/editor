@@ -56,12 +56,48 @@ export function createParagraphPlugin(config = {}) {
   if (snapshot.injectStyles !== false) styles.push(editorStyles)
   if (snapshot.css) styles.push(snapshot.css)
 
+  const capabilities = Object.freeze({
+    formatting: Object.freeze({ inlineTools: true }),
+    empty: Object.freeze({
+      isEmpty(data) {
+        return data.text.trim().length === 0
+      },
+    }),
+    merge: Object.freeze({
+      merge(target, source) {
+        return { text: target.text + source.text }
+      },
+    }),
+    conversion: Object.freeze({
+      export(data) {
+        return {
+          kind: 'rich-text',
+          data: { text: data.text },
+        }
+      },
+      canImport(payload) {
+        return payload?.kind === 'rich-text'
+          && typeof payload.data?.text === 'string'
+      },
+      import(payload) {
+        if (
+          payload?.kind !== 'rich-text'
+          || typeof payload.data?.text !== 'string'
+        ) {
+          throw new TypeError('Paragraph can only import rich-text payloads')
+        }
+        return { text: payload.data.text }
+      },
+    }),
+  })
+
   const definition = {
     type: 'paragraph',
     label: Object.freeze({ key: 'title', fallback: 'Text' }),
     icon: ICON,
     styles: Object.freeze(styles),
     schema: paragraphDataSchema,
+    capabilities,
 
     /**
      * @param {import('../../plugin-kit/types').BlockPluginRuntimeContext} runtimeContext
