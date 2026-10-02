@@ -11,10 +11,13 @@ export const GALLERY_LAYOUTS = Object.freeze([
 ])
 
 export const LINK_PREVIEW_TEMPLATES = Object.freeze([
-  'notion',
+  'horizontal',
   'compact',
-  'card',
-  'hero',
+  'large-top',
+  'minimal',
+  'twitter',
+  'notion',
+  'split',
 ])
 
 export const ATTACH_VARIANTS = Object.freeze(['a', 'b', 'f', 'g'])
