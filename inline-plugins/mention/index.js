@@ -90,7 +90,20 @@ export function createMentionPlugin(options={}){
         if(!anchor)return
         if(anchor.getAttribute('aria-controls')===listboxId)anchor.removeAttribute('aria-controls')
         anchor.removeAttribute('aria-expanded')
+        anchor.removeAttribute('aria-haspopup')
+        anchor.removeAttribute('aria-autocomplete')
         anchor.removeAttribute('aria-activedescendant')
+      }
+      const syncAria=()=>{
+        const anchor=activeSession?.anchor
+        if(!anchor||!popup)return
+        anchor.setAttribute('aria-controls',listboxId)
+        anchor.setAttribute('aria-expanded','true')
+        anchor.setAttribute('aria-haspopup','listbox')
+        anchor.setAttribute('aria-autocomplete','list')
+        const active=popup.querySelector('.oe-mention-item--active[role="option"]')
+        if(active?.id)anchor.setAttribute('aria-activedescendant',active.id)
+        else anchor.removeAttribute('aria-activedescendant')
       }
       const close=()=>{
         const session=activeSession
@@ -123,7 +136,7 @@ export function createMentionPlugin(options={}){
             empty.textContent=text
             popup.appendChild(empty)
           }
-          activeSession?.anchor.removeAttribute('aria-activedescendant')
+          syncAria()
           return
         }
 
@@ -173,9 +186,7 @@ export function createMentionPlugin(options={}){
           },{signal:runtimeContext.signal})
           popup.appendChild(row)
         })
-        const active=popup.querySelector('.oe-mention-item--active')
-        if(active?.id)activeSession?.anchor.setAttribute('aria-activedescendant',active.id)
-        else activeSession?.anchor.removeAttribute('aria-activedescendant')
+        syncAria()
       }
 
       const showLoading=()=>{
@@ -257,8 +268,7 @@ export function createMentionPlugin(options={}){
             if(popup.scrollTop+popup.clientHeight>=popup.scrollHeight-24)void load(cursor,true)
           },{signal:runtimeContext.signal})
         }
-        session.anchor.setAttribute('aria-controls',listboxId)
-        session.anchor.setAttribute('aria-expanded','true')
+        syncAria()
         runtimeContext.showPopup(session.anchor,popup,()=>{
           clearAria(session)
           if(activeSession===session){
