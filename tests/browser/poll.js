@@ -1,6 +1,5 @@
-import { verifyPollLifetime } from './poll-lifetime.js'
 import { createEditor } from '../../core/index.js'
-import { createPollPlugin } from '../../plugins/poll/index.js'
+import { createPollPlugin } from '../../plugins/index.js'
 import { EditorRenderer } from '../../renderer/index.js'
 
 const sandbox = document.querySelector('#sandbox')
@@ -18,57 +17,59 @@ function assert(value, message) {
 
 const tick = () => new Promise(resolve => setTimeout(resolve, 0))
 
-function createPollEditor(config = {}, data = fixture, { readOnly = false } = {}) {
+function makePoll(config = {}, data = fixture, options = {}) {
   const holder = document.createElement('section')
   sandbox.appendChild(holder)
+  const definition = createPollPlugin({ ...config, injectStyles: false })
   const editor = createEditor({
     holder,
-    plugins: [createPollPlugin({ ...config, injectStyles: false })],
+    plugins: [definition],
     defaultBlock: 'poll',
     injectStyles: false,
-    readOnly,
+    readOnly: options.readOnly === true,
     changeDebounceMs: 0,
-    data: { version: '2.0.0', blocks: [{ id: 'poll', type: 'poll', data: structuredClone(data) }] },
+    data: { version: '2.0.0', blocks: [{ id: options.id ?? 'poll', type: 'poll', data: structuredClone(data) }] },
   })
-  const element = holder.querySelector('.oe-poll')
-  assert(element instanceof HTMLElement, 'poll editor did not project its block')
-  return { holder, editor, element }
+  const root = holder.querySelector('.oe-poll')
+  assert(root instanceof HTMLElement, 'Poll editor projection is missing')
+  return { holder, editor, root }
 }
 
-function option(root, id) {
-  const button = root.querySelector(`[data-option-id="${id}"].oe-poll__option-marker, [data-option-id="${id}"] .oe-poll__option-marker`)
-  assert(button instanceof HTMLButtonElement, `missing poll option ${id}`)
-  return button
+function marker(holder, id) {
+  const value = holder.querySelector(`.oe-poll__option-marker[data-option-id="${id}"]`)
+  assert(value instanceof HTMLButtonElement, `Poll marker ${id} is missing`)
+  return value
 }
 
-function submit(root) {
-  const button = root.querySelector('.oe-poll__submit')
-  assert(button instanceof HTMLButtonElement, 'missing poll submit button')
-  return button
+function submit(holder) {
+  const value = holder.querySelector('.oe-poll__submit')
+  assert(value instanceof HTMLButtonElement, 'Poll submit button is missing')
+  return value
 }
 
 async function run() {
-  const afterVote = createPollEditor({}, { ...fixture, resultsMode: 'afterVote' })
-  option(afterVote.element, 'yes').click()
-  assert(!afterVote.element.querySelector('.oe-poll__result-bar'), 'afterVote exposed results before vote confirmation')
-  submit(afterVote.element).click()
-  await tick()
-  assert(afterVote.element.querySelector('.oe-poll__result-bar'), 'afterVote did not expose results after confirmed local vote')
-  afterVote.editor.destroy()
-  afterVote.holder.remove()
+  const local = makePoll({}, { ...fixture, resultsMode: 'afterVote', pollId: undefined }, { id: 'local' })
+  let localTransactions = 0
+  local.editor.on('transaction:committed', () => { localTransactions++ })
 
-  const local = createPollEditor()
-  let localCommits = 0
-  const offLocal = local.editor.on('transaction:committed', () => { localCommits++ })
-  option(local.element, 'yes').click()
-  assert(localCommits === 0, 'selecting a poll option mutated canonical history before confirmation')
-  submit(local.element).click()
+  marker(local.holder, 'yes').click()
+  assert(!local.holder.querySelector('.oe-poll__result-bar'), 'afterVote exposed results before confirmation')
+  assert(!submit(local.holder).disabled, 'selected local vote did not enable submit')
+  assert(localTransactions === 0, 'transient Poll selection entered canonical history')
+
+  submit(local.holder).click()
   await tick()
   const localSaved = local.editor.save().blocks[0].data
-  assert(localCommits === 1, 'one local vote must create exactly one canonical history transaction')
-  assert(localSaved.initialResults.currentUserVote[0] === 'yes', 'local vote was not serialized')
-  assert(localSaved.initialResults.options.find(item => item.id === 'yes').votes === 1, 'local vote count is wrong')
-  offLocal?.()
+  assert(localTransactions === 1, `local vote created ${localTransactions} transactions instead of one`)
+  assert(localSaved.initialResults?.currentUserVote?.[0] === 'yes', 'local vote was not serialized')
+  assert(localSaved.initialResults?.options?.find(option => option.id === 'yes')?.votes === 1, 'local vote count is wrong')
+  assert(local.holder.querySelector('.oe-poll__result-bar'), 'afterVote did not reveal results after local confirmation')
+
+  assert(local.editor.undo(), 'local vote undo was unavailable')
+  assert(local.editor.save().blocks[0].data.initialResults === undefined, 'undo kept local vote snapshot')
+  assert(!local.holder.querySelector('.oe-poll__result-bar'), 'undo kept afterVote results visible')
+  assert(local.editor.redo(), 'local vote redo was unavailable')
+  assert(local.editor.save().blocks[0].data.initialResults?.currentUserVote?.[0] === 'yes', 'redo did not restore local vote')
   local.editor.destroy()
   local.holder.remove()
 
@@ -79,19 +80,23 @@ async function run() {
     votersTotal: manyVoters.length,
     voters: manyVoters,
   }
-  const retained = createPollEditor({ maxVoters: 75 }, { ...fixture, initialResults })
-  assert(retained.element.querySelectorAll('.oe-poll__voters li').length === 60, 'poll truncated initial voters below configured maxVoters')
+  const retained = makePoll({ maxVoters: 75 }, { ...fixture, initialResults }, { id: 'retained' })
+  assert(retained.holder.querySelectorAll('.oe-poll__voters li').length === 60, 'Poll truncated voters below configured maxVoters')
   retained.editor.destroy()
   retained.holder.remove()
 
   const retainedRenderer = new EditorRenderer({
     blockTypes: ['poll'],
     blockConfigs: { poll: { maxVoters: 75 } },
+    injectStyles: false,
   })
   const retainedContainer = document.createElement('div')
   sandbox.appendChild(retainedContainer)
-  retainedRenderer.renderTo({ version: '2.0.0', blocks: [{ id: 'retained-poll', type: 'poll', data: { ...fixture, initialResults } }] }, retainedContainer)
-  assert(retainedContainer.querySelectorAll('.editor-poll__voters li').length === 60, 'poll renderer truncated voters below configured maxVoters')
+  retainedRenderer.renderTo({
+    version: '2.0.0',
+    blocks: [{ id: 'retained-renderer', type: 'poll', data: { ...fixture, initialResults } }],
+  }, retainedContainer)
+  assert(retainedContainer.querySelectorAll('.editor-poll__voters li').length === 60, 'Poll renderer truncated voters below configured maxVoters')
   retainedRenderer.destroy(retainedContainer)
   retainedRenderer.destroy()
   retainedContainer.remove()
@@ -109,7 +114,7 @@ async function run() {
     vote({ optionIds, signal }) {
       voteCalls++
       assert(optionIds.join(',') === 'no', 'server vote received wrong selection')
-      assert(!signal.aborted, 'server vote started with aborted signal')
+      assert(!signal.aborted, 'server vote started with an aborted signal')
       return new Promise(resolve => { resolveVote = resolve })
     },
     subscribe(context) {
@@ -118,156 +123,179 @@ async function run() {
     },
   }
   const compareRevisions = (next, current) => Number(next) - Number(current)
-  const remote = createPollEditor({ dataSource, compareRevisions }, { ...fixture, resultsMode: 'afterVote' })
-  let remoteCommits = 0
-  const offRemote = remote.editor.on('transaction:committed', () => { remoteCommits++ })
+  const remote = makePoll(
+    { dataSource, compareRevisions },
+    { ...fixture, resultsMode: 'afterVote' },
+    { id: 'remote' },
+  )
+  let remoteTransactions = 0
+  remote.editor.on('transaction:committed', () => { remoteTransactions++ })
   await tick()
-  option(remote.element, 'no').click()
-  submit(remote.element).click()
+  await tick()
+
+  marker(remote.holder, 'no').click()
+  submit(remote.holder).click()
+  assert(voteCalls === 1, 'remote vote did not start exactly once')
+  assert(submit(remote.holder).disabled, 'pending remote vote did not disable submit')
+
   subscriber.onUpdate({
-    revision: '2', total: 2,
+    revision: '2',
+    total: 2,
     options: [{ id: 'yes', votes: 1 }, { id: 'no', votes: 1 }],
     votersTotal: 1,
     voters: [{ id: 'u1', name: '<b>Ada</b>', avatar: 'javascript:alert(1)', optionIds: ['no'] }],
   })
-  assert(submit(remote.element).disabled, 'subscription update re-enabled submit while vote was pending')
-  submit(remote.element).click()
-  assert(voteCalls === 1, 'poll accepted a duplicate remote vote')
+  assert(submit(remote.holder).disabled, 'subscription update re-enabled submit while vote was pending')
+  submit(remote.holder).click()
+  assert(voteCalls === 1, 'pending remote vote accepted duplicate submit')
+
   resolveVote({
-    revision: '2', total: 2,
+    revision: '2',
+    total: 2,
     options: [{ id: 'yes', votes: 1 }, { id: 'no', votes: 1 }],
     currentUserVote: ['no'],
   })
   await tick()
-  assert(remote.element.querySelector('.oe-poll__result-bar'), 'equal-revision confirmed vote did not reveal afterVote results')
-  assert(remote.element.textContent.includes('<b>Ada</b>'), 'voter name must be displayed as text')
-  assert(!remote.element.querySelector('.oe-poll__voters img'), 'unsafe voter avatar was retained')
+  await tick()
+  assert(remote.holder.querySelector('.oe-poll__result-bar'), 'confirmed remote vote did not reveal afterVote results')
+  assert(remote.holder.textContent.includes('<b>Ada</b>'), 'voter name was not preserved as literal text')
+  assert(!remote.holder.querySelector('.oe-poll__voters img'), 'unsafe voter avatar was retained')
 
   subscriber.onUpdate({
-    revision: '3', total: 3,
+    revision: '3',
+    total: 3,
     options: [{ id: 'yes', votes: 1 }, { id: 'no', votes: 2 }],
     currentUserVote: ['no'],
   })
-  const currentPercentages = [...remote.element.querySelectorAll('.oe-poll__pct')].map(element => element.textContent).join(',')
+  const currentPercentages = [...remote.holder.querySelectorAll('.oe-poll__pct')].map(element => element.textContent).join(',')
   subscriber.onUpdate({
-    revision: '2', total: 100,
+    revision: '2',
+    total: 100,
     options: [{ id: 'yes', votes: 100 }, { id: 'no', votes: 0 }],
     currentUserVote: ['no'],
   })
-  assert([...remote.element.querySelectorAll('.oe-poll__pct')].map(element => element.textContent).join(',') === currentPercentages, 'stale poll revision replaced newer results')
-  assert(remote.editor.save().blocks[0].data.initialResults === undefined, 'remote runtime leaked into canonical document data')
-  assert(remoteCommits === 0, 'remote results entered canonical editor history')
-  offRemote?.()
+  assert([...remote.holder.querySelectorAll('.oe-poll__pct')].map(element => element.textContent).join(',') === currentPercentages, 'stale Poll revision replaced newer results')
+  assert(remote.editor.save().blocks[0].data.initialResults === undefined, 'remote runtime leaked into canonical Poll data')
+  assert(remoteTransactions === 0, 'remote runtime results entered editor history')
+
   remote.editor.destroy()
-  assert(loadSignal.aborted, 'destroy did not abort Poll data source')
-  assert(unsubscribeCalls === 1, 'destroy did not unsubscribe Poll data source')
   remote.holder.remove()
+  assert(loadSignal?.aborted, 'destroy did not abort Poll data source')
+  assert(unsubscribeCalls === 1, `Poll data source unsubscribed ${unsubscribeCalls} times`)
 
   let readOnlyVoteCalls = 0
   let readOnlySubscriber
-  const readOnlySource = {
-    async load() {
-      return { revision: '1', total: 0, options: [{ id: 'yes', votes: 0 }, { id: 'no', votes: 0 }] }
+  const readOnly = makePoll({
+    dataSource: {
+      async load() {
+        return { revision: '1', total: 0, options: [{ id: 'yes', votes: 0 }, { id: 'no', votes: 0 }] }
+      },
+      async vote() {
+        readOnlyVoteCalls++
+        return { revision: '2', total: 1, options: [{ id: 'yes', votes: 1 }, { id: 'no', votes: 0 }] }
+      },
+      subscribe(context) { readOnlySubscriber = context },
     },
-    async vote() {
-      readOnlyVoteCalls++
-      return { revision: '2', total: 1, options: [{ id: 'yes', votes: 1 }, { id: 'no', votes: 0 }] }
-    },
-    subscribe(context) { readOnlySubscriber = context },
-  }
-  const readOnly = createPollEditor({ dataSource: readOnlySource }, fixture, { readOnly: true })
+  }, fixture, { readOnly: true, id: 'readonly' })
   await tick()
-  readOnlySubscriber.onUpdate({
-    revision: '2', total: 1,
+  readOnlySubscriber?.onUpdate({
+    revision: '2',
+    total: 1,
     options: [{ id: 'yes', votes: 1 }, { id: 'no', votes: 0 }],
   })
-  assert(option(readOnly.element, 'yes').disabled, 'read-only editor enabled poll option selection')
-  assert(submit(readOnly.element).disabled, 'read-only editor enabled poll submission')
-  option(readOnly.element, 'yes').dispatchEvent(new MouseEvent('click', { bubbles: true }))
-  submit(readOnly.element).dispatchEvent(new MouseEvent('click', { bubbles: true }))
-  assert(readOnlyVoteCalls === 0, 'read-only poll invoked external vote callback')
+  assert(marker(readOnly.holder, 'yes').disabled, 'read-only Poll enabled option selection')
+  assert(submit(readOnly.holder).disabled, 'read-only Poll enabled submit')
+  marker(readOnly.holder, 'yes').dispatchEvent(new MouseEvent('click', { bubbles: true }))
+  submit(readOnly.holder).dispatchEvent(new MouseEvent('click', { bubbles: true }))
+  assert(readOnlyVoteCalls === 0, 'read-only Poll invoked external vote callback')
   readOnly.editor.destroy()
   readOnly.holder.remove()
 
+  let deferredLoads = 0
+  let deferredUnsubscribes = 0
+  const lifetime = makePoll({
+    dataSource: {
+      async load() {
+        deferredLoads++
+        return { total: 0, options: [] }
+      },
+      async vote() { throw new Error('destroyed Poll cannot submit') },
+      subscribe() { return () => { deferredUnsubscribes++ } },
+    },
+  }, fixture, { id: 'lifetime' })
+  const retainedMarker = marker(lifetime.holder, 'yes')
+  const retainedSubmit = submit(lifetime.holder)
+  lifetime.editor.destroy()
+  lifetime.holder.remove()
+  retainedMarker.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+  retainedSubmit.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+  await tick()
+  assert(deferredLoads === 0, 'deferred Poll load started after destroy')
+  assert(deferredUnsubscribes === 1, 'Poll subscription was not disposed exactly once')
+
+  let cleanupObserverCalls = 0
+  let cleanupUnhandled = 0
+  const onUnhandled = () => { cleanupUnhandled++ }
+  window.addEventListener('unhandledrejection', onUnhandled)
+  const cleanup = makePoll({
+    dataSource: {
+      async load() { return { revision: '1', total: 0, options: [{ id: 'yes', votes: 0 }, { id: 'no', votes: 0 }] } },
+      async vote() { return { revision: '2', total: 0, options: [{ id: 'yes', votes: 0 }, { id: 'no', votes: 0 }] } },
+      subscribe() { return () => { throw new Error('cleanup failed') } },
+    },
+    async onError() {
+      cleanupObserverCalls++
+      throw new Error('observer failed')
+    },
+  }, fixture, { id: 'cleanup' })
+  await tick()
+  cleanup.editor.destroy()
+  cleanup.holder.remove()
+  await tick()
+  await tick()
+  window.removeEventListener('unhandledrejection', onUnhandled)
+  assert(cleanupObserverCalls === 1, 'Poll cleanup error did not reach onError')
+  assert(cleanupUnhandled === 0, 'async Poll error observer leaked an unhandled rejection')
+
+  const rendererSource = {
+    async load() { return { revision: '1', total: 1, options: [{ id: 'yes', votes: 1 }, { id: 'no', votes: 0 }] } },
+    async vote({ optionIds }) {
+      assert(optionIds.join(',') === 'no', 'renderer vote received wrong selection')
+      return { revision: '2', total: 2, options: [{ id: 'yes', votes: 1 }, { id: 'no', votes: 1 }], currentUserVote: ['no'] }
+    },
+  }
   const renderer = new EditorRenderer({
     blockTypes: ['poll'],
-    blockConfigs: { poll: { dataSource, compareRevisions } },
+    blockConfigs: { poll: { dataSource: rendererSource, compareRevisions } },
+    injectStyles: false,
   })
   const container = document.createElement('div')
   sandbox.appendChild(container)
-  renderer.renderTo({ version: '2.0.0', blocks: [{ id: 'poll', type: 'poll', data: fixture }] }, container)
+  renderer.renderTo({ version: '2.0.0', blocks: [{ id: 'poll-renderer', type: 'poll', data: fixture }] }, container)
   await tick()
-  assert(container.querySelector('.editor-poll__submit'), 'renderer did not create interactive poll controls')
-  container.querySelectorAll('.editor-poll__marker')[1].click()
-  container.querySelector('.editor-poll__submit').click()
-  subscriber.onUpdate({
-    revision: '2', total: 2,
-    options: [{ id: 'yes', votes: 1 }, { id: 'no', votes: 1 }],
-  })
-  assert(container.querySelector('.editor-poll__submit').disabled, 'renderer subscription update re-enabled pending vote')
-  container.querySelector('.editor-poll__submit').click()
-  assert(voteCalls === 2, 'renderer accepted a duplicate vote after subscription update')
-  resolveVote({
-    revision: '2', total: 2,
-    options: [{ id: 'yes', votes: 1 }, { id: 'no', votes: 1 }],
-    currentUserVote: ['no'],
-  })
+  const rendererMarkers = container.querySelectorAll('.editor-poll__marker')
+  assert(rendererMarkers.length === 2, 'renderer Poll controls are missing')
+  rendererMarkers[1].click()
+  const rendererSubmit = container.querySelector('.editor-poll__submit')
+  assert(rendererSubmit instanceof HTMLButtonElement, 'renderer Poll submit is missing')
+  rendererSubmit.click()
   await tick()
+  assert(container.querySelector('.editor-poll__bar'), 'renderer Poll did not apply vote results')
   renderer.destroy(container)
   renderer.destroy()
   container.remove()
 
-  let cleanupObserverCalls = 0
-  let cleanupUnhandledRejections = 0
-  const onUnhandledCleanup = () => { cleanupUnhandledRejections++ }
-  window.addEventListener('unhandledrejection', onUnhandledCleanup)
-  const cleanupRenderer = new EditorRenderer({
-    blockTypes: ['poll'],
-    blockConfigs: {
-      poll: {
-        dataSource: {
-          async load() {
-            return { revision: '1', total: 0, options: [{ id: 'yes', votes: 0 }, { id: 'no', votes: 0 }] }
-          },
-          async vote() {
-            return { revision: '2', total: 0, options: [{ id: 'yes', votes: 0 }, { id: 'no', votes: 0 }] }
-          },
-          subscribe() {
-            return () => { throw new Error('cleanup failed') }
-          },
-        },
-        async onError() {
-          cleanupObserverCalls++
-          throw new Error('observer failed')
-        },
-      },
-    },
-  })
-  const cleanupContainer = document.createElement('div')
-  sandbox.appendChild(cleanupContainer)
-  cleanupRenderer.renderTo({ version: '2.0.0', blocks: [{ id: 'cleanup-poll', type: 'poll', data: fixture }] }, cleanupContainer)
-  await tick()
-  assert(cleanupObserverCalls === 0, 'cleanup observer fired before cleanup')
-  cleanupRenderer.destroy(cleanupContainer)
-  await tick()
-  window.removeEventListener('unhandledrejection', onUnhandledCleanup)
-  assert(cleanupObserverCalls === 1, 'renderer cleanup error did not reach onError observer')
-  assert(cleanupUnhandledRejections === 0, 'async Poll cleanup observer leaked an unhandled rejection')
-  cleanupRenderer.destroy()
-  cleanupContainer.remove()
-
-  await verifyPollLifetime(fixture, sandbox)
-
+  sandbox.replaceChildren()
   return {
-    lifetimeCases: ['destroy before load', 'retained controls', 'reentrant unsubscribe'],
-    modes: ['local editor', 'remote editor', 'read-only editor', 'renderer'],
-    guards: ['afterVote confirmation', 'single canonical transaction', 'configured voter retention', 'duplicate submit', 'revision ordering', 'read-only side effects', 'abort', 'unsubscribe', 'safe voters'],
+    modes: ['local', 'remote', 'read-only', 'renderer'],
+    history: ['single local transaction', 'undo', 'redo', 'remote runtime excluded'],
+    guards: ['afterVote confirmation', 'duplicate submit', 'revision ordering', 'abort', 'unsubscribe', 'safe voters', 'async observer containment'],
   }
 }
 
 try {
-  const result = await run()
-  document.querySelector('#result').textContent = JSON.stringify(result)
+  const summary = await run()
+  document.querySelector('#result').textContent = JSON.stringify(summary)
   document.body.dataset.status = 'pass'
 } catch (error) {
   document.querySelector('#result').textContent = error?.stack || String(error)
