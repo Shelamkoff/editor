@@ -1211,7 +1211,7 @@ History replay:
 
 A failed history projection leaves the history cursor and committed DocumentState at the pre-replay position.
 
-If a document.replace history record crosses between a supported document and a preserved-version document, replay also restores the corresponding documentMode.
+History never crosses the editable/preserved documentMode boundary. Entering or leaving preserved-document mode is a reset boundary: replace the canonical document atomically, clear undo/redo, publish the mode/history state change, and do not create a document.replace history record for that boundary transition.
 
 ## 15. NativeInputController
 
@@ -1510,8 +1510,9 @@ save/export semantics:
 
 Public render semantics:
 
-- editor.render(document) is one explicit document.replace transaction and one history step when replacing an already mounted supported document;
+- editor.render(document) is one explicit document.replace transaction and one history step when both the current and replacement documents are supported editable-version documents;
 - rendering/loading a document whose version cannot reach the current version under preserve policy activates preserved-document mode rather than writable v2 semantics;
+- crossing into or out of preserved-document mode is a non-history reset boundary and clears undo/redo;
 - initial createEditor data load is not a history step;
 - internal undo/redo never re-records history;
 - clear is one transaction.
@@ -2390,6 +2391,7 @@ Correctness:
 - public observations are post-commit and FIFO;
 - observer errors contained;
 - undo/redo restores logical selection;
+- history never replays across preserved/editable documentMode boundaries;
 - native input/IME history is deterministic;
 - structured editable field identities survive reorder/insert/delete;
 - live-DOM and canonical rich-text logical offsets agree for BR/widgets;
