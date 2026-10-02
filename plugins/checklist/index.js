@@ -1,6 +1,6 @@
 import { editingHostForEvent } from '../../core/editableFields.js'
-import { setSanitizedHtml, setTrustedHtml } from '../../core/sanitize.js'
-import { sanitizeHtml } from '../../core/sanitize.js'
+import { setSanitizedHtml, setTrustedHtml } from '../../plugin-kit/index.js'
+import { sanitizeHtml } from '../../plugin-kit/index.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { validateChecklistData } from '../../shared/blockDataValidators.js'
 import { mapTextFields } from './mapTextFields.js'
