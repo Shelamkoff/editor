@@ -2,7 +2,7 @@ import { setTrustedHtml } from '../sanitize.js'
 import { getTextLength } from '../../shared/textOffset.js'
 import { EditorEvent } from '../editorEvents.js'
 
-import { editableFields, editableAtBoundary } from '../editableFields.js'
+import { editableFields, editableAtBoundary } from '../../shared/editableFields.js'
 
 /** Delete a selection spanning editable fields without discarding unselected
  * fields or plugin-owned wrappers. All mutations share one command boundary.
