@@ -16,6 +16,7 @@ const sourceEditorStyles=new URL('../shared/sourceEditor.css',import.meta.url).h
 /** @typedef {(context:{signal:AbortSignal})=>Promise<ImageSourceResult|null>} ImageSourceHandler */
 
 /**
+ * Create an immutable Image block definition with optional upload/source actions and stylesheet configuration.
  * @param {{uploadFile?:ImageUpload,actions?:Array<{icon?:string,label:string,handler:ImageSourceHandler}>,injectStyles?:boolean,css?:string}} [config]
  * @returns {import('../../plugin-kit/types').BlockPluginDefinition<any>}
  */
