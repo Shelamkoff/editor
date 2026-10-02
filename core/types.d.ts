@@ -7,21 +7,41 @@ import type { LocaleValue } from '../shared/localeTypes.js'
 import type {
   BasePlugin,
   BlockMutationContext,
+  BlockPlugin,
+  BlockPluginConstructor,
+  FilePasteEvent,
   IScopedI18n,
   InlineControlContext,
   InlineControlGroup,
   InlinePlugin,
   InlinePluginContext,
+  PasteConfig,
+  PasteEvent,
+  PatternPasteEvent,
+  PluginRuntimeConfig,
+  ShortcutEntry,
+  TagPasteEvent,
+  ToolboxEntry,
 } from '../plugin-kit/types.js'
 export type { LocaleValue, PluralForms } from '../shared/localeTypes.js'
 export type {
   BasePlugin,
   BlockMutationContext,
+  BlockPlugin,
+  BlockPluginConstructor,
+  FilePasteEvent,
   IScopedI18n,
   InlineControlContext,
   InlineControlGroup,
   InlinePlugin,
   InlinePluginContext,
+  PasteConfig,
+  PasteEvent,
+  PatternPasteEvent,
+  PluginRuntimeConfig,
+  ShortcutEntry,
+  TagPasteEvent,
+  ToolboxEntry,
 } from '../plugin-kit/types.js'
 
 /** Explicit DOM aliases used by JavaScript JSDoc without colliding with Node.js types. */
@@ -55,167 +75,11 @@ export interface BlockData<
 }
 
 // ── Plugin API ───────────────────────────────────────────────────────────────
-
-/**
- * Block plugin interface.
- *
- * Required: type, title, icon, render(), save().
- * Everything else is opt-in — the editor checks for each capability
- * at runtime via `typeof plugin.method === 'function'`.
- * `BlockPluginAbstract` provides a convenient base class with i18n support.
- */
-export interface BlockPlugin<D extends Record<string, unknown> = Record<string, unknown>> extends BasePlugin {
-  readonly inlineTools?: boolean | string[]
-
-  /** Return the immutable constructor options owned by this plugin instance. */
-  getPluginConfig?(): PluginRuntimeConfig
-  /** Override the empty-state prompt of the default text block. */
-  setPlaceholder?(placeholder: string): void
-
-  // ── Core (required) ──────────────────────────────────────────────────────
-  render(data: D, context: BlockMutationContext): HTMLElement
-  save(element: HTMLElement): D
-
-  // ── Lifecycle ────────────────────────────────────────────────────────────
-  validate?(data: D): boolean
-  /** Release resources shared by all mounted blocks when the editor is destroyed. */
-  dispose?(): void
-  /** Release resources owned by one rendered block. */
-  destroy?(element: HTMLElement): void
-  isEmpty?(element: HTMLElement): boolean
-
-  // ── Toolbox & shortcuts ──────────────────────────────────────────────────
-  toolbox?: ToolboxEntry | ToolboxEntry[]
-  shortcuts?: ShortcutEntry[]
-
-  // ── Merge ────────────────────────────────────────────────────────────────
-  merge?(element: HTMLElement, data: D): void
-
-  // ── Settings UI ──────────────────────────────────────────────────────────
-  renderSettings?(element: HTMLElement): HTMLElement | HTMLElement[] | null
-  changeLevel?(element: HTMLElement, level: number): HTMLElement
-  onSettingsAction?(element: HTMLElement, action: string): Record<string, unknown> | null
-
-  // ── Paste ────────────────────────────────────────────────────────────────
-  pasteConfig?: PasteConfig
-  onPaste?(event: PasteEvent): D | null
-  /** Wait for asynchronous state created by a paste before committing history. */
-  waitForPaste?(element: HTMLElement): Promise<void>
-
-  // ── Conversion ───────────────────────────────────────────────────────────
-  /**
-   * Return neutral fields that can initialize another block type during a
-   * conversion. This is not a search-index hook: preserve meaningful text and
-   * safe inline HTML under conventional keys such as `text` where possible.
-   */
-  exportData?(element: HTMLElement): Record<string, unknown>
-  /**
-   * Describe a partial selection using plugin-owned data boundaries.
-   * The method must not mutate `element`. The core replaces the source with
-   * `remainingData` and creates the target block from `selectedData`. A plugin
-   * whose root is not itself `contenteditable="true"` must implement this
-   * method to support partial conversion; the generic HTML splitter is used
-   * only for a single editable root that serializes to `{ text }`.
-   */
-  splitSelection?(element: HTMLElement, range: Range): {
-    remainingData: D | null
-    selectedData: Record<string, unknown>
-  } | null
-
-  // ── Inline toolbar controls ──────────────────────────────────────────────
-  renderInlineControls?(contentElement: HTMLElement, ctx: InlineControlContext): InlineControlGroup | null
-
-  // ── Inline widget marshalling (text blocks only) ─────────────────────────
-  /**
-   * Walk every HTML-bearing field in `data` and apply `transform` to each.
-   * The core calls this before `render(data)` (to rehydrate placeholder
-   * tokens back into widget DOM) and after `save(element)` (to replace
-   * committed widget spans with placeholder refs while the core collects
-   * an `inline` widget map at the block level).
-   *
-   * Implement on every block that enables inline tools and stores HTML,
-   * including structured blocks with several text fields. Media-only blocks
-   * should leave this undefined; the core then skips widget marshalling.
-   *
-   * `transform` is opaque to the plugin: it hides the tokenize / rehydrate
-   * mechanism and the widget registry entirely. The plugin only knows its
-   * own data shape and where text lives in it.
-   */
-  mapTextFields?(data: D, transform: (html: string) => string): void
-}
-
-/** Common runtime options consumed by the editor composition root. */
-export interface PluginRuntimeConfig extends Record<string, unknown> {
-  /** Disable automatic injection of the plugin constructor's `styles` URLs. */
-  injectStyles?: boolean
-  /** Additional stylesheet URL injected after the plugin's default styles. */
-  css?: string
-}
-
-/** Static properties on block plugin constructors. */
-export interface BlockPluginConstructor<D extends Record<string, unknown> = Record<string, unknown>> {
-  new (): BlockPlugin<D>
-  /** CSS stylesheet URLs injected via <link> tags. */
-  styles?: string[]
-  /** Locale messages per language, merged into i18n on registration. */
-  locale?: Record<string, Record<string, LocaleValue>>
-  /**
-   * Whether this block accepts neutral rich text during conversion and can
-   * participate in text-target cross-block conversion. This does not require
-   * the plugin root itself to be contenteditable; structured text plugins use
-   * `splitSelection()` to describe partial selections.
-   */
-  isTextBlock?: boolean
-}
-
-export interface ToolboxEntry {
-  title: string
-  icon: string
-  data?: Record<string, unknown>
-}
-
-// ── Paste ────────────────────────────────────────────────────────────────────
-
-export interface PasteConfig {
-  /** HTML tags this plugin handles (e.g. ['pre', 'code'], ['h1', 'h2', 'h3']) */
-  tags?: string[]
-  /** MIME patterns for file paste (e.g. ['image/*', 'application/pdf']) */
-  files?: string[]
-  /** Regex patterns matched against plain text (e.g. URL detection) */
-  patterns?: RegExp[]
-}
-
-export interface TagPasteEvent {
-  type: 'tag'
-  /** The original DOM element from parsed clipboard HTML */
-  element: HTMLElement
-  /** Lowercase tag name */
-  tag: string
-}
-
-export interface FilePasteEvent {
-  type: 'file'
-  file: File
-}
-
-export interface PatternPasteEvent {
-  type: 'pattern'
-  /** The matched text */
-  data: string
-}
-
-export type PasteEvent = TagPasteEvent | FilePasteEvent | PatternPasteEvent
-
-// ── Shortcuts ────────────────────────────────────────────────────────────────
-
-export interface ShortcutEntry {
-  /** Normalized combo: 'Mod+Shift+1', 'Tab', 'Shift+Tab' */
-  combo: string
-  /** Handler receives the block's content element */
-  handler: (contentElement: HTMLElement) => void
-}
+// Extension-facing plugin contracts are owned by ../plugin-kit/types.js and
+// re-exported above. Core consumes the same definitions.
 
 // ── Inline Tool ──────────────────────────────────────────────────────────────
+
 
 export interface InlineTool {
   readonly type: string
