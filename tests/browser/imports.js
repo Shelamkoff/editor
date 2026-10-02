@@ -1,25 +1,25 @@
 const blockEntries = [
-  ['paragraph', 'Paragraph', 'createParagraphRenderer'],
-  ['heading', 'Heading', 'createHeaderRenderer'],
-  ['list', 'List', 'createListRenderer'],
-  ['quote', 'Quote', 'createQuoteRenderer'],
-  ['code', 'Code', 'createCodeRenderer'],
-  ['image', 'Image', 'createImageRenderer'],
-  ['delimiter', 'Delimiter', 'createDelimiterRenderer'],
-  ['table', 'Table', 'createTableRenderer'],
-  ['checklist', 'Checklist', 'createChecklistRenderer'],
-  ['warning', 'Warning', 'createWarningRenderer'],
-  ['embed', 'Embed', 'createEmbedRenderer'],
-  ['raw', 'Raw', 'createRawRenderer'],
-  ['gallery', 'Gallery', 'createGalleryRenderer'],
-  ['carousel', 'CarouselBlock', 'createCarouselRenderer'],
-  ['attaches', 'Attaches', 'createAttachesRenderer'],
-  ['link-preview', 'LinkPreview', 'createLinkPreviewRenderer'],
-  ['toggle', 'Toggle', 'createToggleRenderer'],
-  ['columns', 'Columns', 'createColumnsRenderer'],
-  ['spoiler', 'Spoiler', 'createSpoilerRenderer'],
-  ['poll', 'Poll', 'createPollRenderer'],
-  ['person', 'Person', 'createPersonRenderer'],
+  ['paragraph', 'createParagraphPlugin', 'Paragraph', 'createParagraphRenderer'],
+  ['heading', 'createHeadingPlugin', 'Heading', 'createHeaderRenderer'],
+  ['list', 'createListPlugin', 'List', 'createListRenderer'],
+  ['quote', 'createQuotePlugin', 'Quote', 'createQuoteRenderer'],
+  ['code', 'createCodePlugin', 'Code', 'createCodeRenderer'],
+  ['image', 'createImagePlugin', 'Image', 'createImageRenderer'],
+  ['delimiter', 'createDelimiterPlugin', 'Delimiter', 'createDelimiterRenderer'],
+  ['table', 'createTablePlugin', 'Table', 'createTableRenderer'],
+  ['checklist', 'createChecklistPlugin', 'Checklist', 'createChecklistRenderer'],
+  ['warning', 'createWarningPlugin', 'Warning', 'createWarningRenderer'],
+  ['embed', 'createEmbedPlugin', 'Embed', 'createEmbedRenderer'],
+  ['raw', 'createRawPlugin', 'Raw', 'createRawRenderer'],
+  ['gallery', 'createGalleryPlugin', 'Gallery', 'createGalleryRenderer'],
+  ['carousel', 'createCarouselPlugin', 'CarouselBlock', 'createCarouselRenderer'],
+  ['attaches', 'createAttachesPlugin', 'Attaches', 'createAttachesRenderer'],
+  ['link-preview', 'createLinkPreviewPlugin', 'LinkPreview', 'createLinkPreviewRenderer'],
+  ['toggle', 'createTogglePlugin', 'Toggle', 'createToggleRenderer'],
+  ['columns', 'createColumnsPlugin', 'Columns', 'createColumnsRenderer'],
+  ['spoiler', 'createSpoilerPlugin', 'Spoiler', 'createSpoilerRenderer'],
+  ['poll', 'createPollPlugin', 'Poll', 'createPollRenderer'],
+  ['person', 'createPersonPlugin', 'Person', 'createPersonRenderer'],
 ]
 
 const inlineToolPaths = [
@@ -49,6 +49,7 @@ const localePaths = [
 
 const runtimePaths = [
   '../../core/index.js',
+  '../../plugin-kit/index.js',
   '../../plugins/index.js',
   '../../plugins/async.js',
   '../../renderer/index.js',
@@ -60,8 +61,6 @@ const runtimePaths = [
   '../../inline-plugins/color.js',
   '../../inline-plugins/mention/index.js',
   '../../plugins/embed/player.js',
-  ...['paragraph', 'heading', 'list', 'quote', 'checklist']
-    .map(folder => `../../plugins/${folder}/mapTextFields.js`),
   ...blockEntries.flatMap(([folder]) => [
     `../../plugins/${folder}/index.js`,
     `../../renderer/renderers/${folder}/index.js`,
@@ -113,18 +112,23 @@ async function run() {
     try {
       imported.set(path, await import(/* @vite-ignore */ path))
     } catch (error) {
-      throw new Error(`Legacy runtime import failed: ${path}`, { cause: error })
+      throw new Error(`Runtime import failed: ${path}`, { cause: error })
     }
   }
 
   const aggregatePlugins = imported.get('../../plugins/index.js')
   const aggregateRenderers = imported.get('../../renderer/renderers/index.js')
   const stylePaths = [...staticStylePaths]
-  for (const [folder, pluginName, rendererName] of blockEntries) {
+  for (const [folder, factoryName, removedClassName, rendererName] of blockEntries) {
     const pluginModule = imported.get(`../../plugins/${folder}/index.js`)
     const rendererModule = imported.get(`../../renderer/renderers/${folder}/index.js`)
-    assert(typeof pluginModule?.[pluginName] === 'function', `${folder} legacy plugin entry lost ${pluginName}`)
-    assert(typeof aggregatePlugins?.[pluginName] === 'function', `${folder} aggregate entry lost ${pluginName}`)
+    assert(typeof pluginModule?.[factoryName] === 'function', `${folder} entry lost ${factoryName}`)
+    assert(typeof aggregatePlugins?.[factoryName] === 'function', `${folder} aggregate entry lost ${factoryName}`)
+    assert(!Object.hasOwn(pluginModule, removedClassName), `${folder} still exposes removed class API ${removedClassName}`)
+    assert(!Object.hasOwn(aggregatePlugins, removedClassName), `aggregate plugins still expose removed class API ${removedClassName}`)
+    const definition = pluginModule[factoryName]({ injectStyles: false })
+    assert(definition?.type === folder.replace('link-preview','linkPreview') || definition?.type === folder, `${factoryName} returned the wrong definition type`)
+    assert(typeof definition.setup === 'function' && definition.schema, `${factoryName} did not return a v2 definition`)
     assert(typeof rendererModule?.[rendererName] === 'function', `${folder} renderer entry lost ${rendererName}`)
     assert(typeof aggregateRenderers?.[rendererName] === 'function', `${folder} aggregate renderer lost ${rendererName}`)
 
@@ -136,48 +140,26 @@ async function run() {
     }
   }
 
-  const sharedMappers = await import('../../shared/mapTextFields.js')
-  const mapperEntries = {
-    paragraph: 'mapParagraphTextFields',
-    heading: 'mapHeadingTextFields',
-    list: 'mapListTextFields',
-    quote: 'mapQuoteTextFields',
-    checklist: 'mapChecklistTextFields',
-  }
-  for (const [folder, sharedName] of Object.entries(mapperEntries)) {
-    const legacy = imported.get(`../../plugins/${folder}/mapTextFields.js`)
-    const legacyData = folder === 'list'
-      ? { items: ['value'] }
-      : folder === 'checklist'
-        ? { items: [{ text: 'value', checked: false }] }
-        : folder === 'quote'
-          ? { text: 'value', caption: 'caption' }
-          : { text: 'value' }
-    const sharedData = structuredClone(legacyData)
-    legacy.mapTextFields(legacyData, value => `[${value}]`)
-    sharedMappers[sharedName](sharedData, value => `[${value}]`)
-    assert(JSON.stringify(legacyData) === JSON.stringify(sharedData), `${folder} mapTextFields compatibility behavior changed`)
+  const pluginKit = imported.get('../../plugin-kit/index.js')
+  for (const removed of ['BlockPluginAbstract', 'BlockPlugin', 'InlinePlugin']) {
+    assert(!Object.hasOwn(pluginKit, removed), `plugin-kit still exposes removed v1 contract ${removed}`)
   }
 
-  const sharedPlayer = await import('../../shared/embedPlayer.js')
-  const legacyPlayer = imported.get('../../plugins/embed/player.js')
-  assert(
-    Object.keys(legacyPlayer.SERVICES).join() === Object.keys(sharedPlayer.SERVICES).join(),
-    'legacy embed SERVICES contract changed',
-  )
-  assert(typeof legacyPlayer.buildPlayer === 'function', 'legacy buildPlayer export disappeared')
+  const currentPlayer = imported.get('../../plugins/embed/player.js')
+  assert(typeof currentPlayer.buildPlayer === 'function', 'current embed player export disappeared')
 
   for (const path of new Set(stylePaths)) {
     const response = await fetch(new URL(path, import.meta.url))
-    assert(response.ok, `Legacy stylesheet path failed: ${path} (${response.status})`)
-    assert((await response.text()).length > 0, `Legacy stylesheet is empty: ${path}`)
+    assert(response.ok, `Stylesheet path failed: ${path} (${response.status})`)
+    assert((await response.text()).length > 0, `Stylesheet is empty: ${path}`)
   }
 
   return {
     runtimeImportPaths: new Set(runtimePaths).size,
     stylesheetPaths: new Set(stylePaths).size,
-    blockPluginEntries: blockEntries.length,
-    compatibilityReexports: Object.keys(mapperEntries).length + 2,
+    blockFactoryEntries: blockEntries.length,
+    removedClassApisChecked: blockEntries.length,
+    dualApi: false,
   }
 }
 
