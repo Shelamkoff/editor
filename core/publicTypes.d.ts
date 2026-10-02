@@ -26,6 +26,12 @@ export interface EditorDocument extends EditorOutputData<EditorBlockData> {
   blocks: EditorBlockData[]
 }
 
+export interface DocumentMigration {
+  from: string
+  to: string
+  migrate(document: EditorDocument): EditorDocument
+}
+
 export interface EditorBlockSnapshot {
   readonly id: string
   readonly type: string
@@ -106,6 +112,7 @@ export interface EditorConfig {
   locale?: Record<string, unknown>
   validationMode?: 'preserve' | 'strict'
   documentVersionPolicy?: 'preserve' | 'strict'
+  migrations?: readonly DocumentMigration[]
   changeDebounceMs?: number
   onReady?: (editor: IEditor) => void | Promise<void>
   onChange?: (document: EditorDocument) => void | Promise<void>
