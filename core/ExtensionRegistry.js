@@ -125,7 +125,7 @@ export class ExtensionRegistry {
       }
 
       for (const definition of inline) {
-        const styles = [...(definition.styles ?? [])]
+        const styles = acquireStyles ? [...(definition.styles ?? [])] : []
         if (styles.length) this.#resources.push(acquireStyleUrls(styles, ownerDocument))
         const runtime = definition.setup({
           ownerDocument,
