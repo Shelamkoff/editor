@@ -5,6 +5,7 @@ import {
   setSafeUrlAttribute,
 } from '../../plugin-kit/index.js'
 import { carouselDataSchema } from '../../shared/blockSchemas/carousel.js'
+import { normalizeCarouselAspectRatio } from '../../shared/carouselData.js'
 import { sanitizeMediaUrl } from '../../shared/sanitize/sanitizeUrl.js'
 import { sanitizeRawHtml, setSanitizedRawHtml } from '../../shared/sanitize/index.js'
 import { triggerFileInput } from '../shared/fileInput.js'
@@ -21,6 +22,199 @@ const NAV_NEXT='›'
  * @typedef {(file:File,context:{signal:AbortSignal})=>Promise<{url:string,poster?:string}>} UploadFn
  * @typedef {{label:string,icon?:string,handler:(context:{signal:AbortSignal})=>Promise<Slide[]|null>}} SourceAction
  */
+
+
+function carouselLabel(key,fallback){
+  return Object.freeze({key,fallback})
+}
+
+/**
+ * Render model-first Carousel settings. The panel reads and writes canonical
+ * CarouselData only; it never treats the mounted block DOM as persistence.
+ * @param {import('../../plugin-kit/types').SettingsPanelContext<any>} context
+ */
+function renderCarouselSettings(context){
+  const document=context.ownerDocument
+  const root=document.createElement('div')
+  root.className='oe-carousel-block__settings-panel'
+  let selectedId=context.getData().slides[0]?.id??''
+
+  const commit=producer=>{
+    context.updateData(producer)
+    render()
+  }
+
+  const field=(label,value,onChange,{multiline=false,type='text',placeholder=''}={})=>{
+    const wrapper=document.createElement('label')
+    wrapper.className='oe-carousel-block__field'+(multiline?' oe-carousel-block__field--multiline':'')
+    const text=document.createElement('span')
+    text.textContent=label
+    const input=multiline?document.createElement('textarea'):document.createElement('input')
+    if(!multiline)input.type=type
+    input.value=value
+    if(placeholder)input.placeholder=placeholder
+    input.addEventListener('change',()=>onChange(input.value,input))
+    wrapper.append(text,input)
+    return {wrapper,input}
+  }
+
+  const render=()=>{
+    const data=context.getData()
+    root.replaceChildren()
+    if(!data.slides.length){
+      const empty=document.createElement('div')
+      empty.className='oe-carousel-block__settings-title'
+      empty.textContent=context.t(carouselLabel('emptyReadonly','No slides'))
+      root.appendChild(empty)
+      return
+    }
+    if(!data.slides.some(slide=>slide.id===selectedId))selectedId=data.slides[0].id
+    const slide=data.slides.find(item=>item.id===selectedId)??data.slides[0]
+
+    const slideTitle=document.createElement('div')
+    slideTitle.className='oe-carousel-block__settings-title'
+    slideTitle.textContent=context.t(carouselLabel('slide','Slide'))
+    root.appendChild(slideTitle)
+
+    const slidePicker=document.createElement('label')
+    slidePicker.className='oe-carousel-block__field'
+    const pickerLabel=document.createElement('span')
+    pickerLabel.textContent=context.t(carouselLabel('selectedSlide','Selected slide'))
+    const select=document.createElement('select')
+    select.className='oe-carousel-block__slide-select'
+    data.slides.forEach((item,index)=>{
+      const option=document.createElement('option')
+      option.value=item.id
+      option.textContent=String(index+1)+' · '+(item.caption||item.alt||item.type)
+      option.selected=item.id===slide.id
+      select.appendChild(option)
+    })
+    select.addEventListener('change',()=>{selectedId=select.value;render()})
+    slidePicker.append(pickerLabel,select)
+    root.appendChild(slidePicker)
+
+    if(slide.type==='html'){
+      const html=field(
+        context.t(carouselLabel('htmlEditorLabel','HTML')),
+        slide.html||'',
+        value=>{
+          const safe=sanitizeRawHtml(value,document)
+          commit(current=>({
+            ...current,
+            slides:current.slides.map(item=>item.id===slide.id?{...item,html:safe}:item),
+          }))
+        },
+        {multiline:true},
+      )
+      root.appendChild(html.wrapper)
+    }else{
+      const embedded=/^(?:data|blob):/i.test(slide.src||'')
+      const source=field(
+        context.t(carouselLabel('sourceUrl','Source URL')),
+        embedded?'':(slide.src||''),
+        (value,input)=>{
+          const url=sanitizeMediaUrl(value)
+          if(!url){
+            input.value=embedded?'':(slide.src||'')
+            return
+          }
+          commit(current=>({
+            ...current,
+            slides:current.slides.map(item=>item.id===slide.id?{...item,src:url}:item),
+          }))
+        },
+        {placeholder:embedded?context.t(carouselLabel('localFile','Local file — enter URL to replace')):'https://'},
+      )
+      if(embedded)source.input.dataset.oeEmbeddedSource='true'
+      root.appendChild(source.wrapper)
+
+      if(slide.type==='video'){
+        const poster=field(
+          context.t(carouselLabel('poster','Poster URL')),
+          slide.poster||'',
+          value=>{
+            const url=sanitizeMediaUrl(value)
+            if(!url&&String(value).trim())return
+            commit(current=>({
+              ...current,
+              slides:current.slides.map(item=>{
+                if(item.id!==slide.id)return item
+                const next={...item}
+                if(url)next.poster=url
+                else delete next.poster
+                return next
+              }),
+            }))
+          },
+          {placeholder:'https://'},
+        )
+        root.appendChild(poster.wrapper)
+      }
+    }
+
+    const behavior=document.createElement('div')
+    behavior.className='oe-carousel-block__settings-title'
+    behavior.textContent=context.t(carouselLabel('behavior','Behavior'))
+    root.appendChild(behavior)
+
+    const switches=document.createElement('div')
+    switches.className='oe-carousel-block__switches'
+    for(const key of ['loop','autoplay','navigation','pagination','thumbnails']){
+      const line=document.createElement('label')
+      line.className='oe-carousel-block__switch'
+      const text=document.createElement('span')
+      text.textContent=context.t(carouselLabel(key,key[0].toUpperCase()+key.slice(1)))
+      const input=document.createElement('input')
+      input.type='checkbox'
+      input.checked=data.options[key]===true
+      input.addEventListener('change',()=>commit(current=>({
+        ...current,
+        options:{...current.options,[key]:input.checked},
+      })))
+      line.append(text,input)
+      switches.appendChild(line)
+    }
+    root.appendChild(switches)
+
+    const delay=field(
+      context.t(carouselLabel('autoplayDelay','Autoplay delay, ms')),
+      String(data.options.autoplayDelay??3000),
+      (value,input)=>{
+        const next=Number(value)
+        if(!Number.isFinite(next)||next<=0){
+          input.value=String(data.options.autoplayDelay??3000)
+          return
+        }
+        commit(current=>({...current,options:{...current.options,autoplayDelay:Math.floor(next)}}))
+      },
+      {type:'number'},
+    )
+    root.appendChild(delay.wrapper)
+
+    const aspect=field(
+      context.t(carouselLabel('aspectRatio','Aspect ratio')),
+      data.options.aspectRatio||'',
+      (value,input)=>{
+        const normalized=normalizeCarouselAspectRatio(value)
+        if(!normalized&&String(value).trim()){
+          input.value=data.options.aspectRatio||''
+          return
+        }
+        commit(current=>{
+          const options={...current.options}
+          if(normalized)options.aspectRatio=normalized
+          else delete options.aspectRatio
+          return {...current,options}
+        })
+      },
+      {placeholder:'16 / 9'},
+    )
+    root.appendChild(aspect.wrapper)
+  }
+
+  render()
+  return root
+}
 
 /**
  * Create an immutable mixed-media Carousel block definition with optional upload and custom source actions.
@@ -42,20 +236,8 @@ export function createCarouselPlugin(config={}){
       import(){return carouselDataSchema.createDefault()},
     }),
     settings:Object.freeze({
-      kind:/** @type {'actions'} */('actions'),
-      actions(data){
-        return [
-          Object.freeze({id:'loop',label:Object.freeze({key:'loop',fallback:'Loop'}),active:data.options.loop}),
-          Object.freeze({id:'autoplay',label:Object.freeze({key:'autoplay',fallback:'Autoplay'}),active:data.options.autoplay}),
-          Object.freeze({id:'navigation',label:Object.freeze({key:'navigation',fallback:'Navigation'}),active:data.options.navigation}),
-          Object.freeze({id:'pagination',label:Object.freeze({key:'pagination',fallback:'Pagination'}),active:data.options.pagination}),
-          Object.freeze({id:'thumbnails',label:Object.freeze({key:'thumbnails',fallback:'Thumbnails'}),active:data.options.thumbnails}),
-        ]
-      },
-      apply(data,actionId){
-        if(!['loop','autoplay','navigation','pagination','thumbnails'].includes(actionId))throw new RangeError('Unknown carousel setting: '+actionId)
-        return {...data,options:{...data.options,[actionId]:!data.options[actionId]}}
-      },
+      kind:/** @type {'panel'} */('panel'),
+      render:renderCarouselSettings,
     }),
   })
 
@@ -388,10 +570,22 @@ export function createCarouselPlugin(config={}){
               actions.className='oe-carousel-block__actions'
               const add=document.createElement('button')
               add.type='button'
+              add.className='oe-carousel-block__action-btn'
               add.textContent=runtimeContext.t('add','Add')
               add.addEventListener('click',chooseFiles,{signal:context.signal})
+              const byUrl=document.createElement('button')
+              byUrl.type='button'
+              byUrl.className='oe-carousel-block__action-btn'
+              byUrl.textContent=runtimeContext.t('dropzoneUrl','URL')
+              byUrl.addEventListener('click',addUrl,{signal:context.signal})
+              const byHtml=document.createElement('button')
+              byHtml.type='button'
+              byHtml.className='oe-carousel-block__action-btn'
+              byHtml.textContent=runtimeContext.t('dropzoneHtml','HTML')
+              byHtml.addEventListener('click',addHtml,{signal:context.signal})
               const remove=document.createElement('button')
               remove.type='button'
+              remove.className='oe-carousel-block__action-btn oe-carousel-block__action-btn--danger'
               remove.textContent=runtimeContext.t('remove','Remove slide')
               remove.addEventListener('click',()=>{
                 const id=slide.id
@@ -399,18 +593,23 @@ export function createCarouselPlugin(config={}){
               },{signal:context.signal})
               const earlier=document.createElement('button')
               earlier.type='button'
+              earlier.className='oe-carousel-block__action-btn'
+              earlier.setAttribute('aria-label',runtimeContext.t('movePrevious','Move slide backward'))
               earlier.textContent='←'
               earlier.disabled=activeIndex===0
               earlier.addEventListener('click',()=>moveSlide(activeIndex,activeIndex-1),{signal:context.signal})
               const later=document.createElement('button')
               later.type='button'
+              later.className='oe-carousel-block__action-btn'
+              later.setAttribute('aria-label',runtimeContext.t('moveNext','Move slide forward'))
               later.textContent='→'
               later.disabled=activeIndex===data.slides.length-1
               later.addEventListener('click',()=>moveSlide(activeIndex,activeIndex+1),{signal:context.signal})
-              actions.appendChild(add)
+              actions.append(add,byUrl,byHtml)
               for(const action of snapshot.actions){
                 const button=document.createElement('button')
                 button.type='button'
+                button.className='oe-carousel-block__action-btn'
                 if(action.icon)insertTrustedHtml(button,'afterbegin',action.icon)
                 button.append(document.createTextNode(action.label))
                 button.addEventListener('click',()=>void runAction(action),{signal:context.signal})
