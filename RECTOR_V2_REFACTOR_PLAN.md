@@ -89,6 +89,14 @@ Focus requests use logical field coordinates rather than DOM nodes:
       offset?: number | "start" | "end"
     }
 
+Data-level capabilities that create new nested identities receive a narrow allocator:
+
+    interface DataOperationContext {
+      createId(prefix: string): string
+    }
+
+The allocator is core-owned, test-injectable, and produces non-reused opaque IDs for a live editor session. IDs are not security tokens. Migrations never use this allocator; legacy migrations remain deterministic from legacy content/position.
+
 Transaction metadata:
 
     interface TransactionMetadata {
@@ -155,7 +163,7 @@ It must enforce:
 - definition/schema type ownership is immutable for the lifetime of the registry;
 - the configured defaultBlock type is registered;
 - when defaultBlock is omitted, preserve the current policy: use paragraph when registered, otherwise the first configured block definition;
-- schema.createDefault() for the default block succeeds during setup validation before live document mutation;
+- schema.createDefault() for every toolbox-insertable block succeeds and round-trips during setup/contract validation before live document mutation;
 - the same immutable definition may be reused by separate editors;
 - duplicate registration of the same type in one editor is rejected even if the same definition object is supplied twice;
 - setup failures release already-acquired runtime/style resources through LifecycleScope.
@@ -292,7 +300,9 @@ Replace duplicated validators/migrations with a neutral block data schema used b
 
 Semantics:
 
-- createDefault returns a fresh valid canonical block payload and is deterministic;
+- createDefault returns a fresh editor-valid canonical payload;
+- createDefault output must successfully round-trip through encode/decode;
+- createDefault is deterministic unless its schema explicitly receives a core creation context in a future contract; v2 built-ins must not require randomness for their initial shape;
 - decode owns validation, legacy interpretation, migration and canonical normalization;
 - missing dataVersion is interpreted as that schema's explicit legacyVersion;
 - migration steps are private implementation details of the schema module;
@@ -313,6 +323,34 @@ Activation policy for external/imported data:
 - a later editor instance with a compatible plugin/schema may activate the same preserved record without data loss.
 
 Accordingly, "known block data is normalized" means activated known blocks. Preserved records stay opaque until a compatible schema can decode them.
+
+### 4.1.1. Editor-valid empty state
+
+Schema validity means "safe and structurally valid editor document data", not "publish-ready business content".
+
+Every registered block that can be inserted from the toolbox must have a schema.createDefault() value that is valid canonical persisted data even before the user fills the block.
+
+For v2, empty interactive states therefore become valid schema states. Examples:
+
+- Image may canonically contain an empty file URL/state until a source is selected;
+- Gallery may canonically contain an empty images array;
+- Embed may canonically contain an unconfigured service/video value;
+- Link Preview may canonically contain an empty URL;
+- Attaches may canonically contain an empty files array;
+- structured text blocks contain their minimum stable-ID field structure even when text is empty.
+
+Their EmptyCapability reports whether the state has meaningful authored content.
+
+Renderer behavior for an editor-valid empty state must be safe and deterministic. It may render an empty/placeholder representation or no meaningful content, but it must not treat the state as malformed.
+
+Do not solve empty interactive blocks with:
+
+- an invalid canonical payload tolerated until save;
+- a second persisted "pending block" model;
+- DOM-only state that save later scrapes;
+- validationMode preserve for normal newly-created blocks.
+
+Publication/completeness validation is an application concern outside the editor schema. If a future Rector API adds publish validation, it must be a separate contract from canonical document validity.
 
 Create neutral built-in schema modules outside editor-specific plugin implementations. Recommended shape:
 
@@ -810,8 +848,10 @@ Configuration rules:
 - the definition never rereads consumer accessors during editor setup;
 - mutable consumer config objects cannot mutate a live definition;
 - callback functions remain callable references but their containing config object is immutable from Rector's perspective;
-- injectStyles false suppresses built-in stylesheet URLs;
-- css is an additional/replacement stylesheet URL according to the documented built-in contract, never raw CSS text;
+- injectStyles defaults to true;
+- when injectStyles is true, definition.styles are acquired and css (if present) is acquired after them;
+- when injectStyles is false, definition.styles are not acquired and css (if present) is the only extension stylesheet URL;
+- css is a stylesheet URL, never raw CSS text;
 - style ownership/ref-counting is per ownerDocument and released when the last runtime owner is destroyed;
 - one immutable definition may be reused by several editors without sharing editor-scoped mutable state.
 
@@ -930,7 +970,7 @@ mapRichText field keys are derived from these persisted identities:
     column:<column.id>
     cell:<row.id>:<cell.id>
 
-Structural plugin operations update these arrays as model data and preserve unaffected IDs. UI code must not synthesize field identity from DOM position.
+Structural plugin operations update these arrays as model data and preserve unaffected IDs. New user-created nested items/rows/cells/columns obtain IDs from DataOperationContext.createId(). UI code must not synthesize field identity from DOM position.
 
 Offset semantics must remain deterministic across editor/renderer realms:
 
@@ -980,7 +1020,7 @@ Settings/paste/controls are model-first contracts:
       | { kind: "html"; html: string }
       | { kind: "file"; file: File }
 
-    interface PasteResolveContext {
+    interface PasteResolveContext extends DataOperationContext {
       readonly signal: AbortSignal
       readonly ownerDocument: Document
     }
@@ -1027,7 +1067,11 @@ Settings/paste/controls are model-first contracts:
         context: ExtensionUiContext
       ): readonly SettingsAction[]
 
-      apply(data: Readonly<D>, actionId: string): D
+      apply(
+        data: Readonly<D>,
+        actionId: string,
+        context: DataOperationContext
+      ): D
     }
 
     interface InlineControlsContext<D extends JsonObject>
@@ -1066,7 +1110,8 @@ Merge operates on canonical data, not by mutating another block DOM.
     interface SplitCapability<D> {
       split(
         current: Readonly<D>,
-        selection: BlockSelection
+        selection: BlockSelection,
+        context: DataOperationContext
       ): {
         current: D
         inserted: {
@@ -1086,11 +1131,16 @@ If product semantics require "Enter creates the configured default block", repre
       export(data: Readonly<D>): ConversionPayload
 
       canImport(payload: ConversionPayload): boolean
-      import(payload: ConversionPayload): D
+
+      import(
+        payload: ConversionPayload,
+        context: DataOperationContext
+      ): D
 
       splitSelection?(
         data: Readonly<D>,
-        selection: BlockSelection
+        selection: BlockSelection,
+        context: DataOperationContext
       ): SelectionConversionResult<D> | null
     }
 
@@ -1154,6 +1204,10 @@ Async work:
       -> await outside transaction
       -> verify AbortSignal
       -> updateData with resolved value
+
+The block-level signal cancels on block replacement/removal/editor destroy. Plugins that can supersede one async request with another must additionally own a per-request AbortController or monotonically increasing request generation. A stale completion must check both block lifetime and request identity before updateData.
+
+Consumer callbacks such as uploadFile/fetchMeta receive the request AbortSignal. Aborted work is not reported as an editor failure.
 
 Remove notifyChanged compatibility behavior from the v2 plugin contract.
 
@@ -2217,12 +2271,13 @@ TDD slices:
 2. canonical rich text is idempotent;
 3. invalid Paragraph data is rejected;
 4. unknown block survives unchanged;
-5. schema.createDefault returns fresh valid canonical data and omitted insert data uses it;
-6. editor/renderer both use the same Paragraph schema;
-7. preserve mode keeps malformed/future-version known data inert while strict mode rejects it;
-8. incomplete/unknown document-version migration enters preserved-document mode without relabelling the version;
-9. alignment exists only as tunes.textAlign in canonical v2 Paragraph/Heading data;
-10. matching inline placeholder references count as one logical unit while unmatched {{...}} author text remains ordinary text.
+5. schema.createDefault returns fresh editor-valid canonical data and omitted insert data uses it;
+6. empty Image/Gallery/Embed/LinkPreview/Attaches defaults are valid canonical states and EmptyCapability reports them empty;
+7. editor/renderer both use the same Paragraph schema;
+8. preserve mode keeps malformed/future-version known data inert while strict mode rejects it;
+9. incomplete/unknown document-version migration enters preserved-document mode without relabelling the version;
+10. alignment exists only as tunes.textAlign in canonical v2 Paragraph/Heading data;
+11. matching inline placeholder references count as one logical unit while unmatched {{...}} author text remains ordinary text.
 
 Exit criteria:
 
@@ -2557,6 +2612,14 @@ Native input:
 - forged data-inline-plugin markup is not adopted as a widget;
 - programmatic insertInlinePlugin commits model first and restores caret after the inserted atomic widget.
 
+Canonical empty states:
+
+- insert each toolbox block with omitted data -> schema.createDefault;
+- save/export succeeds immediately after insertion;
+- strict validation accepts editor-valid empty defaults;
+- renderer handles those defaults safely;
+- EmptyCapability semantics match structural Backspace/exit behavior.
+
 Lifecycle:
 
 - remove destroys once;
@@ -2652,7 +2715,8 @@ Architecture:
 - plugin capabilities are explicit;
 - built-in plugin configuration uses immutable reusable definitions/factories;
 - ExtensionRegistry uniquely owns registration/default/locale/style setup;
-- default block creation is schema-driven rather than implicit {};
+- all toolbox block creation is schema-driven rather than implicit {};
+- live empty blocks are valid canonical data, not tolerated invalid/pending persistence;
 - generic emptiness and formatting eligibility are data/capability driven, not DOM-probed;
 - inline widget payload is canonical model state with per-widget instances;
 - text alignment has one canonical location in tunes.textAlign;
