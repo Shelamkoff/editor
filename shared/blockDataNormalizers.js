@@ -2,10 +2,10 @@
 import { fitColumnsToLayout } from './columnsData.js'
 import { normalizeCarouselData } from './carouselData.js'
 import {
-  COLUMN_LAYOUT_SIZES,
   GALLERY_LAYOUTS,
   LINK_PREVIEW_TEMPLATES,
 } from './blockDataValidators.js'
+import { COLUMN_LAYOUT_SIZES } from './columnLayouts.js'
 import { normalizePollData } from './pollData.js'
 import { sanitizeUrl } from './sanitize/sanitizeUrl.js'
 import {
