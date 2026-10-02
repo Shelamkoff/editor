@@ -2,10 +2,10 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 
 import { paragraphDataSchema } from '../../shared/blockSchemas/paragraph.js'
-import { createParagraphDefinition } from './v2.js'
+import { createParagraphPlugin } from './v2.js'
 
 test('Paragraph v2 definition is immutable and creates isolated block instances', () => {
-  const definition = createParagraphDefinition()
+  const definition = createParagraphPlugin()
   assert.equal(definition.type, 'paragraph')
   assert.equal(definition.schema, paragraphDataSchema)
   assert.ok(Object.isFrozen(definition))
@@ -78,7 +78,7 @@ test('Paragraph v2 instance read-only transition is in-place and reversible', ()
       return node
     },
   })
-  const definition = createParagraphDefinition()
+  const definition = createParagraphPlugin()
   const runtime = definition.setup({
     ownerDocument,
     signal: new AbortController().signal,
