@@ -5,6 +5,7 @@ import { invokeObserver } from '../shared/invokeObserver.js'
 import { uid } from '../shared/uid.js'
 import en from './locale/en.js'
 import { I18n } from './I18n.js'
+import { LifecycleScope } from './LifecycleScope.js'
 import { claimEditorHolder } from './EditorHolderOwnership.js'
 import { ExtensionRegistry } from './ExtensionRegistry.js'
 import { InlinePopupHost } from './InlinePopupHost.js'
@@ -148,8 +149,12 @@ export function createEditorV2(input){
   if(!HTMLElementCtor||!(holder instanceof HTMLElementCtor))throw new TypeError('createEditor() requires an HTMLElement holder')
 
   const lease=claimEditorHolder(holder)
+  const lifecycle=new LifecycleScope()
+  lifecycle.register(lease)
+  try{
   const document=holder.ownerDocument
   const root=document.createElement('div')
+  lifecycle.register({destroy(){root.remove()}})
   root.className='oe-editor oe-theme-'+(config.theme??'light')
   root.tabIndex=-1
   if(config.minHeight!==undefined)root.style.minHeight=String(config.minHeight)+'px'
@@ -171,12 +176,12 @@ export function createEditorV2(input){
   let toolbar=null
   let destroyed=false
 
-  const popup=new InlinePopupHost({
+  const popup=lifecycle.register(new InlinePopupHost({
     root,
     isReadOnly:()=>runtime?.readOnly??(config.readOnly===true),
-  })
+  }))
 
-  const registry=new ExtensionRegistry({
+  const registry=lifecycle.register(new ExtensionRegistry({
     ownerDocument:document,
     blocks:config.plugins,
     inline:config.inlinePlugins??[],
@@ -189,9 +194,9 @@ export function createEditorV2(input){
     },
     showPopup:(anchor,content,cleanup)=>popup.showPopup(anchor,content,cleanup),
     hidePopup:()=>popup.hidePopup(),
-  })
+  }))
 
-  const styles=config.injectStyles===false?null:acquireStyleUrls(CORE_STYLE_URLS,document)
+  const styles=config.injectStyles===false?null:lifecycle.register(acquireStyleUrls(CORE_STYLE_URLS,document))
   const inlineProjection=new InlineProjectionRuntime({
     registry,
     ownerDocument:document,
@@ -205,7 +210,7 @@ export function createEditorV2(input){
 
   let keyboardRouter=null
 
-  runtime=new DocumentRuntime({
+  runtime=lifecycle.register(new DocumentRuntime({
     registry,
     data:config.data,
     ownerDocument:document,
@@ -240,23 +245,23 @@ export function createEditorV2(input){
       })
       return reconciler
     },
-  })
+  }))
 
   logicalSelection=new LogicalSelection({root,reconciler})
   interaction=new InteractionState({runtime,reconciler})
   view=new EditorViewModel({runtime,reconciler,interaction,selection:logicalSelection})
-  const crossSelection=new SelectionControllerV2({root,runtime,reconciler,view})
-  const nativeInput=new NativeInputController({root,runtime,reconciler})
+  const crossSelection=lifecycle.register(new SelectionControllerV2({root,runtime,reconciler,view}))
+  const nativeInput=lifecycle.register(new NativeInputController({root,runtime,reconciler}))
   const inlineCommands=new InlineCommandController({runtime,registry,selection:logicalSelection})
-  const triggers=new InlineTriggerController({
+  const triggers=lifecycle.register(new InlineTriggerController({
     root,
     registry,
     reconciler,
     selection:logicalSelection,
     commands:inlineCommands,
-  })
+  }))
 
-  const clipboard=new ClipboardControllerV2({
+  const clipboard=lifecycle.register(new ClipboardControllerV2({
     root,
     runtime,
     registry,
@@ -264,9 +269,9 @@ export function createEditorV2(input){
     selection:logicalSelection,
     view,
     crossSelection,
-  })
+  }))
 
-  toolbar=new BlockToolbarV2({
+  toolbar=lifecycle.register(new BlockToolbarV2({
     root,
     runtime,
     registry,
@@ -281,24 +286,24 @@ export function createEditorV2(input){
       const translated=i18n.t(key)
       return translated===key?fallback:translated
     },
-  })
+  }))
 
-  const drag=new DragControllerV2({
+  const drag=lifecycle.register(new DragControllerV2({
     runtime,
     view,
     handle:toolbar.dragHandle,
-  })
+  }))
 
-  const inlineToolbar=new InlineToolbarV2({
+  const inlineToolbar=lifecycle.register(new InlineToolbarV2({
     root,
     runtime,
     registry,
     reconciler,
     selection:logicalSelection,
     tools:config.inlineTools??[],
-  })
+  }))
 
-  keyboardRouter=new KeyboardRouter({
+  keyboardRouter=lifecycle.register(new KeyboardRouter({
     root,
     runtime,
     registry,
@@ -307,7 +312,7 @@ export function createEditorV2(input){
     view,
     inlineToolbar,
     crossSelection,
-  })
+  }))
 
   const onFocusIn=event=>{
     const blockId=reconciler.resolveBlockTarget(event.target)
@@ -317,13 +322,14 @@ export function createEditorV2(input){
     }
   }
   root.addEventListener('focusin',onFocusIn)
+  lifecycle.register({destroy(){root.removeEventListener('focusin',onFocusIn)}})
 
-  notifier=new ChangeNotifier(
+  notifier=lifecycle.register(new ChangeNotifier(
     ()=>runtime.save(),
     config.onChange,
     Number.isFinite(config.changeDebounceMs)?Math.max(0,Number(config.changeDebounceMs)):250,
     document.defaultView??globalThis,
-  )
+  ))
 
   applyReadOnly(root,runtime.readOnly)
 
@@ -332,22 +338,7 @@ export function createEditorV2(input){
   const destroy=()=>{
     if(destroyed)return
     destroyed=true
-    root.removeEventListener('focusin',onFocusIn)
-    triggers.destroy()
-    clipboard.destroy()
-    crossSelection.destroy()
-    drag.destroy()
-    inlineToolbar.destroy()
-    toolbar?.destroy()
-    keyboardRouter?.destroy()
-    nativeInput.destroy()
-    notifier.destroy()
-    popup.destroy()
-    runtime.destroy()
-    registry.destroy()
-    styles?.destroy()
-    root.remove()
-    lease.destroy()
+    lifecycle.destroy()
     emitSafe(events,'editor:destroyed')
   }
   const setReadOnly=value=>{
@@ -379,4 +370,8 @@ export function createEditorV2(input){
   })
 
   return editor
+  }catch(error){
+    lifecycle.destroy()
+    throw error
+  }
 }
