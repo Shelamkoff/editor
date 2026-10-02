@@ -182,7 +182,7 @@ async function run() {
   assert(document.querySelector('.oe-mention-item[data-index="0"]'), 'mention results did not open')
   const mainDropdown = document.querySelector('.oe-mention-dropdown')
   assert(mainDropdown?.getAttribute('role') === 'listbox', 'mention results are not exposed as a listbox')
-  assert(mainDropdown?.parentElement === main.root, 'mention dropdown does not inherit its editor theme')
+  assert(mainDropdown?.closest('.oe-editor') === main.root, 'mention dropdown escaped its editor theme scope')
   assert(
     main.content.getAttribute('aria-controls') === mainDropdown.id
       && main.content.getAttribute('aria-expanded') === 'true'
