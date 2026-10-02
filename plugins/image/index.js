@@ -1,367 +1,253 @@
+// @ts-check
+import { setSanitizedHtml, setSafeUrlAttribute } from '../../plugin-kit/index.js'
+import { imageDataSchema } from '../../shared/blockSchemas/image.js'
+import { sanitizeMediaUrl } from '../../shared/sanitize/sanitizeUrl.js'
 import { isSupportedImageFile, triggerFileInput } from '../shared/fileInput.js'
-import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
-import { validateImageData } from '../../shared/blockDataValidators.js'
+import { openSourceEditor, preloadSourceEditor } from '../shared/sourceEditor.js'
+import { ImageUploader } from './uploader.js'
 import { CSS } from './css.js'
 import { ICON } from './icons.js'
-import { ImageState, normalizeImageData, emptyImageData } from './state.js'
-import { ImageUploader } from './uploader.js'
-import { renderEmptyView } from './view-empty.js'
-import { renderFilledView } from './view-filled.js'
-import { sanitizeMediaUrl } from '../../shared/sanitize/index.js'
-import { openSourceEditor, preloadSourceEditor } from '../shared/sourceEditor.js'
 
-const editorStyles = new URL('./image.css', import.meta.url).href
-const sourceEditorStyles = new URL('../shared/sourceEditor.css', import.meta.url).href
+const editorStyles=new URL('./image.css',import.meta.url).href
+const sourceEditorStyles=new URL('../shared/sourceEditor.css',import.meta.url).href
+
+/** @typedef {{url:string,alt?:string}} ImageSourceResult */
+/** @typedef {(file:File,context:{signal:AbortSignal})=>Promise<ImageSourceResult>} ImageUpload */
+/** @typedef {(context:{signal:AbortSignal})=>Promise<ImageSourceResult|null>} ImageSourceHandler */
 
 /**
- * @typedef {{ url: string, alt?: string }} ImageSourceResult
- * @typedef {(file: File, context: { signal: AbortSignal }) => Promise<ImageSourceResult>} ImageUpload
- * @typedef {(context: { signal: AbortSignal }) => Promise<ImageSourceResult | null>} ImageSourceHandler
- * @typedef {{ icon?: string, label: string, handler: ImageSourceHandler }} ImageSourceAction
- *
- * @typedef {Object} ImageConfig
- * @property {ImageUpload} [uploadFile] Uploads a browser file. Without this callback the plugin reads the file into a data URL stored in the document.
- * @property {ImageSourceAction[]} [actions] Additional application-owned image sources. `icon` is trusted application markup; never pass user-authored HTML.
- * @property {boolean} [injectStyles=true] Whether the editor should load the built-in image stylesheet.
- * @property {string} [css] Additional stylesheet URL, or the replacement URL when `injectStyles` is `false`.
+ * Create an immutable Image block definition with optional upload/source actions and stylesheet configuration.
+ * @param {{uploadFile?:ImageUpload,actions?:Array<{icon?:string,label:string,handler:ImageSourceHandler}>,injectStyles?:boolean,css?:string}} [config]
+ * @returns {import('../../plugin-kit/types').BlockPluginDefinition<any>}
  */
+export function createImagePlugin(config={}){
+  if(!config||typeof config!=='object'||Array.isArray(config))throw new TypeError('Image configuration must be an object')
+  const snapshot=Object.freeze({
+    ...config,
+    actions:Object.freeze([...(config.actions??[])]),
+  })
+  const styles=[]
+  if(snapshot.injectStyles!==false)styles.push(editorStyles,sourceEditorStyles)
+  if(snapshot.css)styles.push(snapshot.css)
 
-/**
- * Block plugin for images. Public surface implements `BlockPlugin`.
- * Internal logic is split across:
- *  - `state.js` — per-block state container (replaces module WeakMap)
- *  - `uploader.js` — file upload pipeline (HTTP or data-URL fallback)
- *  - `view-empty.js`/`view-filled.js` — DOM rendering for the two states
- *  - `settings.js` — settings dropdown form
- *  - `styles.js` — inline style application
- *
- * @extends {BlockPluginAbstract<ImageConfig>}
- */
-export class Image extends BlockPluginAbstract {
-  static isTextBlock = false
-  static styles = [editorStyles, sourceEditorStyles]
-
-  type = 'image'
-  icon = ICON
-  inlineTools = false
-
-  pasteConfig = {
-    files: ['image/*'],
-    patterns: [/https?:\/\/\S+\.(gif|jpe?g|png|svg|webp)(\?\S*)?$/i],
-  }
-
-  #uploader
-  /** @type {ImageConfig} */
-  #config
-  /** Per-block state, keyed by wrapper element. Encapsulated to this instance. */
-  #states = /** @type {WeakMap<HTMLElement, ImageState>} */ (new WeakMap())
-  /** @type {WeakMap<HTMLElement, import('../../plugin-kit/types').BlockMutationContext>} */
-  #contexts = new WeakMap()
-  /**
-   * Create an Image instance with the supplied consumer configuration.
-   * @param {ImageConfig} [config]
-   */
-  constructor(config) {
-    super(config)
-    this.#config = /** @type {ImageConfig} */ (this.getPluginConfig())
-    this.#uploader = new ImageUploader(this.#config)
-  }
-
-  /**
-   * Return the localized toolbox label for this block.
-   * @returns {string}
-   */
-  get title() {
-    return this._t('title', 'Image')
-  }
-
-  // ── BlockPlugin contract ───────────────────────────────────────────────────
-
-  /**
-   * Create the editable DOM owned by this block instance.
-   * @param {Record<string, unknown>} data
-   * @param {import('../../plugin-kit/types').BlockMutationContext} context
-   * @returns {HTMLElement}
-   */
-  render(data, context) {
-    const ownerDocument = context.ownerDocument ?? globalThis.document
-    const blockData = normalizeImageData(data)
-    const pendingFile = /** @type {File | null} */ (/** @type {any} */ (data)?._pendingFile || null)
-
-    const wrapper = ownerDocument.createElement('div')
-    wrapper.classList.add(CSS.wrapper)
-    wrapper.contentEditable = 'false'
-    wrapper.tabIndex = -1
-
-    const state = new ImageState(blockData, pendingFile, ownerDocument)
-    this.#states.set(wrapper, state)
-    this.#contexts.set(wrapper, context)
-
-    if (blockData.withBorder) wrapper.classList.add(CSS.withBorder)
-    if (blockData.expanded) wrapper.classList.add(CSS.expanded)
-    if (blockData.withBackground) wrapper.classList.add(CSS.withBackground)
-
-    if (blockData.file.url) {
-      this.#renderFilled(wrapper)
-    } else {
-      this.#renderEmpty(wrapper)
-    }
-
-    // Drain pending file from paste (async; renders after upload completes).
-    if (state.pendingFile && !context.readOnly) {
-      const file = state.pendingFile
-      state.pendingFile = null
-      state.pendingUpload = this.#handleFile(wrapper, file).finally(() => {
-        if (this.#states.get(wrapper) === state) state.pendingUpload = null
-      })
-    }
-
-    return wrapper
-  }
-
-  /**
-   * Serialize the current block DOM into document data.
-   * @param {HTMLElement} element
-   * @returns {Record<string, unknown>}
-   */
-  save(element) {
-    const state = this.#states.get(element)
-    if (!state) return emptyImageData()
-    return { ...state.data, styles: { ...state.data.styles } }
-  }
-
-  /**
-   * Check whether serialized data satisfies this block's schema.
-   * @param {Record<string, unknown>} data
-   * @returns {boolean}
-   */
-  validate(data) {
-    return validateImageData(data)
-  }
-
-  /**
-   * Check whether the block has no meaningful user content.
-   * @param {HTMLElement} element
-   * @returns {boolean}
-   */
-  isEmpty(element) {
-    const state = this.#states.get(element)
-    return !state?.data.file.url
-  }
-
-  /**
-   * Extract neutral text that can initialize another block type.
-   * @param {HTMLElement} element
-   * @returns {Record<string, unknown>}
-   */
-  exportData(element) {
-    const state = this.#states.get(element)
-    return { text: state?.data.caption || '' }
-  }
-
-  /**
-   * Handle supported pasted content for this block.
-   * @param {import('../../types').PasteEvent} event
-   * @returns {Record<string, unknown> | null}
-   */
-  onPaste(event) {
-    if (event.type === 'file') {
-      // Pass the file through the _pendingFile marker; render() will pick it up.
-      const data = /** @type {any} */ (emptyImageData())
-      data._pendingFile = event.file
-      return data
-    }
-    if (event.type === 'pattern') {
-      const url = String(event.data)
-      if (url && /^https?:\/\/.+/i.test(url)) {
-        return { ...emptyImageData(), file: { url } }
-      }
-    }
-    return null
-  }
-
-  /**
-   * Keep a file paste inside one undo transaction until its upload finishes.
-   * @param {HTMLElement} element
-   * @returns {Promise<void>}
-   */
-  waitForPaste(element) {
-    return this.#states.get(element)?.pendingUpload ?? Promise.resolve()
-  }
-
-  /**
-   * Release listeners and resources owned by this block element.
-   * @param {HTMLElement} element
-   * @returns {void}
-   */
-  destroy(element) {
-    const state = this.#states.get(element)
-    if (!state) return
-    state.dispose()
-    this.#states.delete(element)
-    this.#contexts.delete(element)
-  }
-
-  // ── Internal coordination ──────────────────────────────────────────────────
-
-  /**
-   * Resolve a localized image-plugin message.
-   * @param {string} key Translation key scoped to the image plugin.
-   * @param {string} fallback Message returned when the key is unavailable.
-   * @returns {string}
-   */
-  #t = (key, fallback) => this._t(key, fallback)
-
-  /**
-   * Execute one completed block mutation through the editor command context.
-   * @param {HTMLElement} wrapper Image block wrapper that owns the context.
-   * @param {() => void} operation Synchronous DOM and state mutation.
-   * @returns {void}
-   */
-  #mutate = (wrapper, operation) => {
-    this.#contexts.get(wrapper)?.mutate(operation)
-  }
-
-  /** @param {HTMLElement} wrapper @returns {void} */
-  #renderEmpty(wrapper) {
-    const state = this.#states.get(wrapper)
-    if (!state) return
-    const readOnly = Boolean(this.#contexts.get(wrapper)?.readOnly)
-    renderEmptyView(wrapper, state, {
-      t: this.#t,
-      readOnly,
-      onUploadClick: () => this.#triggerFileInput(wrapper),
-      onOpenUrlEditor: () => this.#openUrlEditor(wrapper),
-      onFileDropped: (file) => { void this.#handleFile(wrapper, file) },
-      customActions: this.#config.actions || [],
-      runCustomAction: async (handler) => this.#runCustomAction(wrapper, handler),
-    })
-    if (!readOnly) preloadSourceEditor(wrapper, state.abortController.signal, ['url'])
-  }
-
-  /** @param {HTMLElement} wrapper @returns {void} */
-  #renderFilled(wrapper) {
-    const state = this.#states.get(wrapper)
-    if (!state) return
-    const readOnly = Boolean(this.#contexts.get(wrapper)?.readOnly)
-    renderFilledView(wrapper, state, {
-      t: this.#t,
-      readOnly,
-      mutate: (operation) => this.#mutate(wrapper, operation),
-      customActions: this.#config.actions || [],
-      onTriggerFileInput: () => this.#triggerFileInput(wrapper),
-      onOpenUrlEditor: () => this.#openUrlEditor(wrapper),
-      onDelete: () => this.#deleteImage(wrapper),
-      runCustomAction: async (handler) => this.#runCustomAction(wrapper, handler),
-    })
-    if (!readOnly) preloadSourceEditor(wrapper, state.abortController.signal, ['url'])
-  }
-
-  /** @param {HTMLElement} wrapper @returns {void} */
-  #triggerFileInput(wrapper) {
-    if (this.#contexts.get(wrapper)?.readOnly) return
-    triggerFileInput({
-      ownerDocument: wrapper.ownerDocument,
-      accept: 'image/*',
-      signal: this.#states.get(wrapper)?.abortController?.signal,
-      onFiles: (files) => {
-        if (files[0]) void this.#handleFile(wrapper, files[0])
+  const capabilities=Object.freeze({
+    empty:Object.freeze({isEmpty:data=>!data.file.url}),
+    conversion:Object.freeze({
+      export:data=>({kind:'rich-text',data:{text:data.caption}}),
+      canImport:payload=>payload?.kind==='rich-text'&&typeof payload.data?.text==='string',
+      import(payload){
+        if(payload?.kind!=='rich-text'||typeof payload.data?.text!=='string')throw new TypeError('Image can only import rich-text payloads')
+        return {...imageDataSchema.createDefault(),caption:payload.data.text}
       },
-    })
-  }
+    }),
+    settings:Object.freeze({
+      kind:/** @type {'actions'} */('actions'),
+      actions(data){
+        return [
+          Object.freeze({id:'border',label:Object.freeze({key:'withBorder',fallback:'Border'}),active:data.withBorder}),
+          Object.freeze({id:'expanded',label:Object.freeze({key:'expanded',fallback:'Expanded'}),active:data.expanded}),
+          Object.freeze({id:'background',label:Object.freeze({key:'withBackground',fallback:'Background'}),active:data.withBackground}),
+        ]
+      },
+      apply(data,actionId){
+        if(actionId==='border')return {...data,withBorder:!data.withBorder}
+        if(actionId==='expanded')return {...data,expanded:!data.expanded}
+        if(actionId==='background')return {...data,withBackground:!data.withBackground}
+        throw new RangeError('Unknown image setting: '+actionId)
+      },
+    }),
+    paste:Object.freeze({
+      accepts(input){
+        if(input.kind==='file')return isSupportedImageFile(input.file)
+        return input.kind==='text'&&/^https?:\/\/\S+\.(?:gif|jpe?g|png|svg|webp)(?:\?\S*)?$/i.test(input.text)
+      },
+      async resolve(input,context){
+        if(input.kind==='text'){
+          const url=sanitizeMediaUrl(input.text)
+          return url?{kind:/** @type {'block'} */('block'),data:{...imageDataSchema.createDefault(),file:{url}}}:null
+        }
+        if(input.kind!=='file'||!isSupportedImageFile(input.file))return null
+        const uploader=new ImageUploader(snapshot)
+        const box={value:/** @type {ImageSourceResult|null} */(null)}
+        await uploader.handle(input.file,value=>{box.value=value},context.signal,context.ownerDocument)
+        const result=box.value
+        if(context.signal.aborted||!result||!result.url)return null
+        return {
+          kind:/** @type {'block'} */('block'),
+          data:{
+            ...imageDataSchema.createDefault(),
+            file:{url:result.url},
+            caption:typeof result.alt==='string'?result.alt:'',
+          },
+        }
+      },
+    }),
+  })
 
-  /**
-   * @param {HTMLElement} wrapper
-   * @param {File} file
-   * @returns {Promise<void>}
-   */
-  async #handleFile(wrapper, file) {
-    const state = this.#states.get(wrapper)
-    const context = this.#contexts.get(wrapper)
-    if (!state || !context || context.readOnly || !isSupportedImageFile(file)) return
-    const controller = state.beginTask()
-    wrapper.classList.add(CSS.loading)
-    try {
-      await this.#uploader.handle(file, (result) => {
-        if (controller.signal.aborted || this.#states.get(wrapper) !== state) return
-        this.#mutate(wrapper, () => {
-          state.data.file = { url: result.url }
-          if (result.alt && !state.data.caption) state.data.caption = result.alt
-          this.#renderFilled(wrapper)
-        })
-      }, controller.signal, wrapper.ownerDocument)
-    } finally {
-      if (state.finishTask(controller)) wrapper.classList.remove(CSS.loading)
-    }
-  }
+  return Object.freeze({
+    type:'image',
+    label:Object.freeze({key:'title',fallback:'Image'}),
+    icon:ICON,
+    styles:Object.freeze(styles),
+    schema:imageDataSchema,
+    capabilities,
+    setup(runtimeContext){
+      let destroyed=false
+      const uploader=new ImageUploader(snapshot)
+      return {
+        create(initial,context){
+          if(destroyed)throw new Error('Image runtime is destroyed')
+          const document=context.ownerDocument
+          const wrapper=document.createElement('div')
+          wrapper.className=CSS.wrapper
+          wrapper.contentEditable='false'
+          wrapper.tabIndex=-1
 
-  /**
-   * @param {HTMLElement} wrapper
-   * @param {(context: { signal: AbortSignal }) => Promise<{url: string, alt?: string} | null>} handler
-   * @returns {Promise<void>}
-   */
-  async #runCustomAction(wrapper, handler) {
-    const state = this.#states.get(wrapper)
-    if (!state || this.#contexts.get(wrapper)?.readOnly) return
-    const controller = state.beginTask()
-    wrapper.classList.add(CSS.loading)
-    try {
-      const result = await handler({ signal: controller.signal })
-      const url = sanitizeMediaUrl(result?.url || '')
-      if (!controller.signal.aborted && this.#states.get(wrapper) === state && url) {
-        this.#mutate(wrapper, () => {
-          state.data.file = { url }
-          if (typeof result?.alt === 'string' && result.alt && !state.data.caption) {
-            state.data.caption = result.alt
+          const image=document.createElement('img')
+          image.className=CSS.image
+          const caption=document.createElement('div')
+          caption.className=CSS.caption
+          caption.dataset.placeholder=runtimeContext.t('caption','Caption')
+
+          const empty=document.createElement('button')
+          empty.type='button'
+          empty.className=CSS.select
+          empty.textContent=runtimeContext.t('dropzoneUpload','Upload image')
+
+          const controls=document.createElement('div')
+          controls.className=CSS.actions
+          const replace=document.createElement('button')
+          replace.type='button'
+          replace.textContent=runtimeContext.t('replace','Replace')
+          const urlButton=document.createElement('button')
+          urlButton.type='button'
+          urlButton.textContent=runtimeContext.t('dropzoneUrl','Insert by URL')
+          const remove=document.createElement('button')
+          remove.type='button'
+          remove.textContent=runtimeContext.t('delete','Delete')
+          controls.append(replace,urlButton,remove)
+
+          const container=document.createElement('div')
+          container.className=CSS.imageContainer
+          container.append(image,caption)
+          wrapper.append(empty,container,controls)
+
+          let data={
+            ...initial,
+            file:{...initial.file},
+            styles:{...initial.styles},
           }
-          this.#renderFilled(wrapper)
-        })
+          let readOnly=context.isReadOnly()
+          let dead=false
+          let requestGeneration=0
+          let taskController=null
+
+          const applyStyles=()=>{
+            wrapper.classList.toggle(CSS.withBorder,data.withBorder)
+            wrapper.classList.toggle(CSS.expanded,data.expanded)
+            wrapper.classList.toggle(CSS.withBackground,data.withBackground)
+            for(const [key,value] of Object.entries(data.styles)){
+              if(key in image.style)image.style[key]=value
+            }
+          }
+          const project=next=>{
+            data={...next,file:{...next.file},styles:{...next.styles}}
+            const hasImage=!!data.file.url
+            wrapper.classList.toggle(CSS.filled,hasImage)
+            empty.hidden=hasImage||readOnly
+            container.hidden=!hasImage
+            controls.hidden=readOnly
+            if(hasImage)setSafeUrlAttribute(image,'src',data.file.url,'media')
+            else image.removeAttribute('src')
+            if(caption.innerHTML!==data.caption){
+              if(data.caption)setSanitizedHtml(caption,data.caption)
+              else caption.textContent=''
+            }
+            caption.contentEditable=!readOnly&&hasImage?'true':'false'
+            image.alt=caption.textContent?.trim()??''
+            applyStyles()
+          }
+          const updateData=next=>{
+            context.updateData(()=>next)
+          }
+          const beginTask=()=>{
+            taskController?.abort()
+            const Ctor=document.defaultView?.AbortController??AbortController
+            taskController=new Ctor()
+            const generation=++requestGeneration
+            const abort=()=>taskController?.abort(context.signal.reason)
+            context.signal.addEventListener('abort',abort,{once:true,signal:taskController.signal})
+            return {controller:taskController,generation}
+          }
+          const finishSource=(task,result)=>{
+            if(dead||readOnly||task.controller.signal.aborted||task.generation!==requestGeneration)return
+            const url=sanitizeMediaUrl(result?.url??'')
+            if(!url)return
+            updateData({
+              ...data,
+              file:{url},
+              caption:data.caption||(typeof result?.alt==='string'?result.alt:''),
+            })
+          }
+          const uploadFile=async file=>{
+            if(readOnly||!isSupportedImageFile(file))return
+            const task=beginTask()
+            wrapper.classList.add(CSS.loading)
+            try{
+              await uploader.handle(file,result=>finishSource(task,result),task.controller.signal,document)
+            }finally{
+              if(task.generation===requestGeneration)wrapper.classList.remove(CSS.loading)
+            }
+          }
+          const chooseFile=()=>{
+            if(readOnly)return
+            triggerFileInput({
+              ownerDocument:document,
+              accept:'image/*',
+              signal:context.signal,
+              onFiles:files=>{if(files[0])void uploadFile(files[0])},
+            })
+          }
+          const openUrl=()=>{
+            if(readOnly)return
+            openSourceEditor({
+              wrapper,
+              signal:context.signal,
+              kind:'url',
+              title:runtimeContext.t('urlEditorTitle','Insert image by URL'),
+              label:runtimeContext.t('urlEditorLabel','Image URL'),
+              placeholder:'https://',
+              submitText:runtimeContext.t('insert','Insert'),
+              cancelText:runtimeContext.t('cancel','Cancel'),
+              invalidText:runtimeContext.t('invalidUrl','Invalid image URL'),
+              normalize:sanitizeMediaUrl,
+              onSubmit:url=>updateData({...data,file:{url}}),
+            })
+          }
+
+          empty.addEventListener('click',chooseFile,{signal:context.signal})
+          replace.addEventListener('click',chooseFile,{signal:context.signal})
+          urlButton.addEventListener('click',openUrl,{signal:context.signal})
+          remove.addEventListener('click',()=>{if(!readOnly)updateData(imageDataSchema.createDefault())},{signal:context.signal})
+          caption.addEventListener('input',()=>{image.alt=caption.textContent?.trim()??''},{signal:context.signal})
+          preloadSourceEditor(wrapper,context.signal,['url'])
+          project(data)
+
+          return {
+            element:wrapper,
+            read:()=>({...data,file:{...data.file},styles:{...data.styles},caption:caption.innerHTML.trim()}),
+            update(next){if(!dead)project(next)},
+            editableFields:()=>data.file.url?Object.freeze([Object.freeze({key:'caption',element:caption,mode:/** @type {'rich-text'} */('rich-text')})]):Object.freeze([]),
+            setReadOnly(value){readOnly=value;project(data)},
+            focus(){if(!dead&&!readOnly)(data.file.url?caption:empty).focus()},
+            destroy(){
+              dead=true
+              taskController?.abort()
+            },
+          }
+        },
+        destroy(){destroyed=true},
       }
-    } catch {
-      // Action was canceled or failed.
-    } finally {
-      if (state.finishTask(controller)) wrapper.classList.remove(CSS.loading)
-    }
-  }
-
-  /** @param {HTMLElement} wrapper @returns {void} */
-  #openUrlEditor(wrapper) {
-    const state = this.#states.get(wrapper)
-    if (!state || this.#contexts.get(wrapper)?.readOnly) return
-    openSourceEditor({
-      wrapper,
-      signal: state.abortController.signal,
-      kind: 'url',
-      title: this.#t('urlEditorTitle', 'Insert image by URL'),
-      label: this.#t('urlEditorLabel', 'Image URL'),
-      placeholder: this.#t('urlEditorPlaceholder', 'https://example.com/image.jpg'),
-      submitText: this.#t('sourceSubmit', 'Insert'),
-      cancelText: this.#t('sourceCancel', 'Cancel'),
-      invalidText: this.#t('invalidUrl', 'Enter a valid image URL.'),
-      normalize: sanitizeMediaUrl,
-      onSubmit: (url) => {
-        const current = this.#states.get(wrapper)
-        if (current !== state || this.#contexts.get(wrapper)?.readOnly) return
-        state.cancelTask()
-        wrapper.classList.remove(CSS.loading)
-        this.#mutate(wrapper, () => {
-          state.data.file = { url }
-          this.#renderFilled(wrapper)
-        })
-      },
-    })
-  }
-
-  /** @param {HTMLElement} wrapper @returns {void} */
-  #deleteImage(wrapper) {
-    const state = this.#states.get(wrapper)
-    if (!state) return
-    state.cancelTask()
-    wrapper.classList.remove(CSS.loading)
-    this.#mutate(wrapper, () => {
-      state.data.file = { url: '' }
-      state.data.styles = {}
-      this.#renderEmpty(wrapper)
-    })
-  }
+    },
+  })
 }
