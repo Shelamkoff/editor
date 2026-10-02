@@ -11,7 +11,7 @@ npm install @shelamkoff/rector @shelamkoff/color-picker
 ```js
 import { createEditor } from '@shelamkoff/rector'
 import { createParagraphPlugin } from '@shelamkoff/rector/plugins/paragraph'
-import { createColorSwatchPlugin } from '@shelamkoff/rector/inline-plugins/color'
+import { createColorSwatchPlugin, createColorSwatchRenderer } from '@shelamkoff/rector/inline-plugins/color'
 
 const editor = createEditor({
   holder: document.querySelector('#editor'),

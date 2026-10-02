@@ -54,6 +54,6 @@ In read-only mode the widget remains visible but does not open the picker. `edit
 
 The plugin declares the color-picker stylesheet to Rector's shared style registry. With the default `injectStyles: true`, no CSS import is needed. In bundler-managed mode, set `injectStyles: false` on `createEditor()` and import `@shelamkoff/rector/inline-plugins/color/styles.css`. The widget root uses `.oe-ip.oe-ip--color`; its dot and label use `.oe-ip__dot` and `.oe-ip__label`. Scope host overrides under the editor or renderer container.
 
-For document output, pass `createColorSwatchPlugin()` in `EditorRenderer`'s `inlinePlugins` array. The renderer uses its `createWidget()` and `getData()` subset; the picker is not mounted by the renderer.
+For document output, pass `createColorSwatchRenderer()` in `EditorRenderer`'s `inlineRenderers` array. The read-only renderer validates the saved payload through the same color widget schema and never mounts the picker.
 
 The sequential VitePress guide explains the complete inline-plugin contract, placeholder storage, security rules, command boundary, and cleanup requirements.

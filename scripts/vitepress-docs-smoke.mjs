@@ -278,15 +278,21 @@ assert(
   liveDemo.includes("plugins/shared/sourceEditor.css"),
   'Homepage demo does not load the shared URL/HTML editor styles with its component',
 )
-for (const plugin of [
-  'Paragraph', 'Heading', 'List', 'Quote', 'Code', 'Image', 'Embed', 'Gallery',
-  'CarouselBlock', 'Checklist', 'Warning', 'Raw', 'Poll', 'Person', 'Attaches',
-  'LinkPreview', 'Toggle', 'Columns', 'Spoiler', 'Delimiter', 'Table',
+for (const factory of [
+  'createParagraphPlugin', 'createHeadingPlugin', 'createListPlugin', 'createQuotePlugin',
+  'createCodePlugin', 'createImagePlugin', 'createEmbedPlugin', 'createGalleryPlugin',
+  'createCarouselPlugin', 'createChecklistPlugin', 'createWarningPlugin', 'createRawPlugin',
+  'createPollPlugin', 'createPersonPlugin', 'createAttachesPlugin', 'createLinkPreviewPlugin',
+  'createTogglePlugin', 'createColumnsPlugin', 'createSpoilerPlugin', 'createDelimiterPlugin',
+  'createTablePlugin',
 ]) {
-  assert(liveDemo.includes(`new ${plugin}(`), `Homepage demo does not register the current ${plugin} block plugin`)
+  assert(liveDemo.includes(`${factory}(`), `Homepage demo does not register the current ${factory} block definition`)
 }
-for (const inlinePlugin of ['createColorSwatchPlugin()', 'createMentionPlugin(', 'createMentionWidget()']) {
-  assert(liveDemo.includes(inlinePlugin), `Homepage demo does not use ${inlinePlugin}`)
+for (const inlineFactory of [
+  'createColorSwatchPlugin()', 'createMentionPlugin(', 'createColorSwatchRenderer()', 'createMentionRenderer()',
+]) {
+  assert(liveDemo.includes(inlineFactory), `Homepage demo does not use ${inlineFactory}`)
 }
+assert(liveDemo.includes('inlineRenderers: createRendererInlinePlugins()'), 'Homepage renderer still uses the editor inline-plugin API')
 
 console.log(JSON.stringify({ readmes: catalog.length, htmlPages: htmlFiles.length, brokenLinks: 0, npmSiteLeak: false }))

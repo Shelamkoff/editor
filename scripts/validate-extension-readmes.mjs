@@ -200,7 +200,7 @@ async function validateConsumerCoverage(relativeCollection, directory) {
     if (basename(directory) === 'mention') {
       requireDocumentedSymbols(directory, [[englishFile, english], [russianFile, russian]], [
         'createMentionPlugin',
-        'createMentionWidget',
+        'createMentionRenderer',
         'trigger',
         'searchFunction',
         'debounceDelay',
