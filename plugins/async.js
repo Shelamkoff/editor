@@ -1,32 +1,32 @@
 // @ts-check
 import { BLOCK_TYPES } from '../shared/blockTypes.js'
 
-/** @typedef {new (config?: Record<string, unknown>) => import('../plugin-kit/types').BlockPlugin} AsyncBlockPluginConstructor */
-/** @typedef {() => Promise<AsyncBlockPluginConstructor>} BlockPluginLoader */
+/** @typedef {(config?: Record<string, unknown>) => import('../plugin-kit/types').BlockPluginDefinition} BlockPluginFactory */
+/** @typedef {() => Promise<BlockPluginFactory>} BlockPluginLoader */
 
 /** @type {Record<import('../renderer/types').BlockType, BlockPluginLoader>} */
 const pluginLoaders = {
-  paragraph: () => import('./paragraph/index.js').then(module => module.Paragraph),
-  heading: () => import('./heading/index.js').then(module => module.Heading),
-  list: () => import('./list/index.js').then(module => module.List),
-  quote: () => import('./quote/index.js').then(module => module.Quote),
-  code: () => import('./code/index.js').then(module => module.Code),
-  image: () => import('./image/index.js').then(module => module.Image),
-  delimiter: () => import('./delimiter/index.js').then(module => module.Delimiter),
-  table: () => import('./table/index.js').then(module => module.Table),
-  checklist: () => import('./checklist/index.js').then(module => module.Checklist),
-  warning: () => import('./warning/index.js').then(module => module.Warning),
-  embed: () => import('./embed/index.js').then(module => module.Embed),
-  raw: () => import('./raw/index.js').then(module => module.Raw),
-  gallery: () => import('./gallery/index.js').then(module => module.Gallery),
-  carousel: () => import('./carousel/index.js').then(module => module.CarouselBlock),
-  attaches: () => import('./attaches/index.js').then(module => module.Attaches),
-  linkPreview: () => import('./link-preview/index.js').then(module => module.LinkPreview),
-  toggle: () => import('./toggle/index.js').then(module => module.Toggle),
-  columns: () => import('./columns/index.js').then(module => module.Columns),
-  spoiler: () => import('./spoiler/index.js').then(module => module.Spoiler),
-  poll: () => import('./poll/index.js').then(module => module.Poll),
-  person: () => import('./person/index.js').then(module => module.Person),
+  paragraph: () => import('./paragraph/index.js').then(module => module.createParagraphPlugin),
+  heading: () => import('./heading/index.js').then(module => module.createHeadingPlugin),
+  list: () => import('./list/index.js').then(module => module.createListPlugin),
+  quote: () => import('./quote/index.js').then(module => module.createQuotePlugin),
+  code: () => import('./code/index.js').then(module => module.createCodePlugin),
+  image: () => import('./image/index.js').then(module => module.createImagePlugin),
+  delimiter: () => import('./delimiter/index.js').then(module => module.createDelimiterPlugin),
+  table: () => import('./table/index.js').then(module => module.createTablePlugin),
+  checklist: () => import('./checklist/index.js').then(module => module.createChecklistPlugin),
+  warning: () => import('./warning/index.js').then(module => module.createWarningPlugin),
+  embed: () => import('./embed/index.js').then(module => module.createEmbedPlugin),
+  raw: () => import('./raw/index.js').then(module => module.createRawPlugin),
+  gallery: () => import('./gallery/index.js').then(module => module.createGalleryPlugin),
+  carousel: () => import('./carousel/index.js').then(module => module.createCarouselPlugin),
+  attaches: () => import('./attaches/index.js').then(module => module.createAttachesPlugin),
+  linkPreview: () => import('./link-preview/index.js').then(module => module.createLinkPreviewPlugin),
+  toggle: () => import('./toggle/index.js').then(module => module.createTogglePlugin),
+  columns: () => import('./columns/index.js').then(module => module.createColumnsPlugin),
+  spoiler: () => import('./spoiler/index.js').then(module => module.createSpoilerPlugin),
+  poll: () => import('./poll/index.js').then(module => module.createPollPlugin),
+  person: () => import('./person/index.js').then(module => module.createPersonPlugin),
 }
 
 /** @param {unknown} value @param {string} label */
@@ -57,75 +57,57 @@ function requestedTypes(source) {
   for (let index = 0; index < blocks.length; index++) {
     if (!Object.hasOwn(blocks, index)) throw new TypeError('source.blocks must be a dense array')
     const block = blocks[index]
-    types.push(
-      block && typeof block === 'object' && !Array.isArray(block) && Object.hasOwn(block, 'type')
-        ? /** @type {Record<string, unknown>} */ (block).type
-        : undefined,
-    )
+    const type = block && typeof block === 'object' && !Array.isArray(block) && typeof block.type === 'string'
+      ? block.type
+      : undefined
+    if (!type) throw new RangeError('Unknown editor block plugin type: undefined')
+    types.push(type)
   }
   return [...new Set(types)]
 }
 
-/**
- * Return every block type supported by the asynchronous plugin registry.
- * @returns {import('../renderer/types').BlockType[]}
- */
+/** @returns {import('../renderer/types').BlockType[]} */
 export function getAsyncBlockPluginTypes() {
   return [...BLOCK_TYPES]
 }
 
 /**
- * Resolve one block plugin constructor without instantiating it.
+ * Load and instantiate one immutable block-plugin definition.
  * @param {string} type
- * @returns {Promise<AsyncBlockPluginConstructor>}
+ * @param {Record<string, unknown>} [config]
+ * @returns {Promise<import('../plugin-kit/types').BlockPluginDefinition>}
  */
-export async function loadBlockPlugin(type) {
+export async function loadBlockPluginDefinition(type, config = {}) {
   if (!Object.hasOwn(pluginLoaders, type)) throw new RangeError(`Unknown editor block plugin type: ${type}`)
-  const loader = pluginLoaders[/** @type {import('../renderer/types').BlockType} */ (type)]
-  return loader()
+  const snapshot = { ...requireRecord(config, `config for ${type}`) }
+  const factory = await pluginLoaders[/** @type {import('../renderer/types').BlockType} */ (type)]()
+  return factory(snapshot)
 }
 
 /**
- * Preload unique plugin constructors for a type list or an existing document.
- * The input document remains untouched if a chunk fails to load.
- * @param {readonly string[] | { blocks?: readonly { type: string }[] }} [source]
- * @returns {Promise<Map<string, AsyncBlockPluginConstructor>>}
- */
-export async function preloadBlockPlugins(source) {
-  const types = requestedTypes(source)
-  const constructors = await Promise.all(types.map(loadBlockPlugin))
-  return new Map(types.map((type, index) => [type, constructors[index]]))
-}
-
-/**
- * Create a deterministic plugin preset after every requested chunk loaded.
+ * Preload and create unique definitions for a type list or document.
  * @param {readonly string[] | { blocks?: readonly { type: string }[] }} [source]
  * @param {Partial<Record<import('../renderer/types').BlockType, Record<string, unknown>>>} [configs]
- * @returns {Promise<import('../plugin-kit/types').BlockPlugin[]>}
+ * @returns {Promise<Map<string, import('../plugin-kit/types').BlockPluginDefinition>>}
  */
-export async function createBlockPluginsAsync(source, configs = {}) {
+export async function preloadBlockPluginDefinitions(source, configs = {}) {
   const configMap = requireRecord(configs, 'configs')
   const types = requestedTypes(source)
-  /** @type {Map<string, Record<string, unknown> | undefined>} */
-  const configSnapshots = new Map()
-  for (const type of types) {
-    if (!Object.hasOwn(configMap, type)) {
-      configSnapshots.set(type, undefined)
-      continue
-    }
-    const config = configMap[type]
-    if (config === undefined) {
-      configSnapshots.set(type, undefined)
-      continue
-    }
-    const record = requireRecord(config, `configs.${type}`)
-    configSnapshots.set(type, { ...record })
-  }
+  const definitions = await Promise.all(types.map(type => {
+    const config = Object.hasOwn(configMap, type) && configMap[type] !== undefined
+      ? { ...requireRecord(configMap[type], `configs.${type}`) }
+      : {}
+    return loadBlockPluginDefinition(type, config)
+  }))
+  return new Map(types.map((type, index) => [type, definitions[index]]))
+}
 
-  // Dynamic imports happen after every caller-owned value needed to construct
-  // the requested preset has crossed the public boundary.
-  const constructors = await preloadBlockPlugins(types)
-  return [...constructors].map(([type, Plugin]) => (
-    new Plugin(configSnapshots.get(type))
-  ))
+/**
+ * Create the deterministic async block-plugin preset.
+ * @param {readonly string[] | { blocks?: readonly { type: string }[] }} [source]
+ * @param {Partial<Record<import('../renderer/types').BlockType, Record<string, unknown>>>} [configs]
+ * @returns {Promise<import('../plugin-kit/types').BlockPluginDefinition[]>}
+ */
+export async function createBlockPluginsAsync(source, configs = {}) {
+  return [...(await preloadBlockPluginDefinitions(source, configs)).values()]
 }
