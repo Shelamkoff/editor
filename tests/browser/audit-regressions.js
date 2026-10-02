@@ -65,11 +65,7 @@ async function localeMarkupBoundary() {
   for (const definition of definitions) {
     const locale = {
       __lang: 'en',
-      plugin: {
-        [definition.type]: {
-          title: payload,
-        },
-      },
+      [`plugin.${definition.type}.title`]: payload,
     }
     const entry = mount(definition, definition.schema.createDefault(), {
       locale,
