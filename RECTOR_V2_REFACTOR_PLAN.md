@@ -130,7 +130,7 @@ Rules:
 - application-facing data must be cloned or immutable;
 - revision keeps its current producer-owned optimization meaning;
 - revision is not a schema version;
-- revision is cleared when the editor mutates that block;
+- revision is cleared when the editor changes that block's data, tunes or inline payload; move/reorder alone does not clear revision;
 - dataVersion is the schema version of one block type;
 - tunes are core-owned block metadata; known tune values are normalized by core and unknown tune keys remain inert opaque JSON;
 - text alignment has one persisted representation in v2: tunes.textAlign;
@@ -249,8 +249,10 @@ Introduce one RichTextCodec module.
 Required interface:
 
     interface RichTextCodec {
-      sanitize(input: string): string
-      canonicalize(input: string): string
+      sanitize(input: string, ownerDocument: Document): string
+      canonicalize(input: string, ownerDocument: Document): string
+
+      normalize(input: string, ownerDocument: Document): string
     }
 
 Persisted rich text follows:
@@ -263,9 +265,17 @@ Persisted rich text follows:
 
 Renderer repeats sanitization before creating active DOM. Storage is not a trust boundary.
 
-Canonicalization must be deterministic and idempotent:
+normalize is the persistence operation:
 
-    canonicalize(canonicalize(x)) === canonicalize(x)
+    normalize(x, document)
+      === canonicalize(sanitize(x, document), document)
+
+Canonicalization must be deterministic across supported realms and idempotent:
+
+    canonicalize(canonicalize(x, document), document)
+      === canonicalize(x, document)
+
+Runtime code must use the editor/render target ownerDocument. Do not borrow globalThis.document when a concrete realm is available.
 
 Define and test one canonical policy for:
 
@@ -335,11 +345,55 @@ Editor-side inline plugin contract:
 
     interface InlinePluginDefinition<D extends JsonObject = JsonObject> {
       readonly type: string
+      readonly title: string
+      readonly icon: string
+      readonly styles?: readonly string[]
+      readonly locale?: Readonly<Record<string, Readonly<Record<string, LocaleValue>>>>
+      readonly trigger?: string
+      readonly paste?: InlineWidgetPasteCapability<D>
+      readonly insertion?: InlineWidgetInsertionCapability<D>
       readonly schema: InlineWidgetSchema<D>
 
       setup(
         context: InlinePluginRuntimeContext
       ): InlinePluginRuntime<D>
+    }
+
+    interface InlineWidgetPasteCapability<D extends JsonObject> {
+      readonly patterns: readonly RegExp[]
+      fromMatch(match: string): D | null
+    }
+
+    type InlineFreshInsertion<D extends JsonObject> =
+      | { kind: "widget"; data: D }
+      | { kind: "text"; text: string }
+
+    interface InlineWidgetInsertionCapability<D extends JsonObject> {
+      createInitial(): InlineFreshInsertion<D>
+    }
+
+    interface InlinePluginRuntimeContext {
+      readonly ownerDocument: Document
+      readonly signal: AbortSignal
+
+      t(key: string, fallback?: string): string
+
+      showPopup(
+        anchor: HTMLElement,
+        content: HTMLElement,
+        cleanup?: () => void
+      ): void
+
+      hidePopup(): void
+    }
+
+    interface InlineTriggerSession<D extends JsonObject> {
+      readonly blockId: string
+      readonly fieldKey: string
+      readonly query: string
+
+      commit(data: D): void
+      cancel(): void
     }
 
     interface InlinePluginRuntime<D extends JsonObject> {
@@ -348,6 +402,9 @@ Editor-side inline plugin contract:
         initial: Readonly<D>,
         context: InlineWidgetContext<D>
       ): InlineWidgetInstance<D>
+
+      onTriggerQuery?(session: InlineTriggerSession<D>): void
+      onTriggerCancel?(): void
 
       destroy(): void
     }
@@ -384,6 +441,8 @@ Rules:
 
 - plugin definitions are stateless descriptors and may be reused;
 - setup creates one editor-scoped runtime;
+- trigger characters, paste-pattern conversion, transient autocomplete/query UI and programmatic fresh insertion remain supported through explicit definition/runtime capabilities rather than persistence hooks;
+- transient trigger/query state is not persisted until commit(data) produces one model transaction;
 - each widget occurrence has one InlineWidgetInstance;
 - widget payload changes must call InlineWidgetContext.updateData;
 - native controls inside a widget do not become persisted merely because their DOM changed;
@@ -405,12 +464,18 @@ Responsibilities:
 - reconcile widget instances by stable id;
 - preserve widget instance identity when type and canonical payload are unchanged;
 - update or replace only changed widget instances;
-- translate owned live widget nodes back to {{id}} references when synchronizing a block after native DOM editing;
+- maintain an ownership registry keyed by actual live widget element identity, not by forgeable attributes;
+- serialize the actual EditableField DOM during native synchronization and replace only registered owned widget element objects with {{id}} references;
+- never adopt a widget solely because serialized HTML contains data-inline-plugin/data-id attributes;
 - never derive widget payload from arbitrary DOM;
 - apply read-only state to live widget instances;
 - abort/destroy widget instances when their reference disappears or their containing block is destroyed.
 
 BlockDataSchema.mapRichText fieldKey values and BlockInstance.editableFields fieldKey values must describe the same stable logical fields. InlineProjectionRuntime uses this mapping; it must not guess plugin data paths.
+
+During BlockInstance.read synchronization, values returned for schema-declared rich-text fields are not trusted as the final serialization. Core serializes the matching actual EditableField.element, recognizes owned widget nodes by object identity, sanitizes/canonicalizes that field, and replaces the corresponding field in the read data through BlockDataSchema.mapRichText. This prevents forged widget attributes from becoming persistence after innerHTML stringification.
+
+A schema-declared editable rich-text field without exactly one matching live EditableField key is a contract error while the block is editable. Duplicate field keys are rejected.
 
 Inline insertion is model-first:
 
@@ -428,6 +493,7 @@ Renderer-side widget support uses the same InlineWidgetSchema but a separate rea
 
     interface InlineWidgetRenderer<D extends JsonObject> {
       readonly type: string
+      readonly styles?: readonly string[]
       readonly schema: InlineWidgetSchema<D>
 
       render(
@@ -450,13 +516,21 @@ Separate plugin definition from mounted block instance.
       readonly title: string
       readonly icon: string
       readonly styles?: readonly string[]
-      readonly locale?: Readonly<Record<string, JsonValue>>
+      readonly locale?: Readonly<Record<string, Readonly<Record<string, LocaleValue>>>>
+      readonly toolbox?: readonly ToolboxEntry[]
       readonly schema: BlockDataSchema<D>
       readonly capabilities?: BlockCapabilities<D>
 
       setup(
         context: BlockPluginRuntimeContext
       ): BlockPluginRuntime<D>
+    }
+
+    interface BlockPluginRuntimeContext {
+      readonly ownerDocument: Document
+      readonly signal: AbortSignal
+
+      t(key: string, fallback?: string): string
     }
 
     interface BlockPluginRuntime<D extends JsonObject> {
@@ -468,7 +542,9 @@ Separate plugin definition from mounted block instance.
       destroy(): void
     }
 
-A definition is an immutable descriptor and may be reused across editor instances. setup creates one editor-scoped runtime that owns editor-scoped resources and is destroyed exactly once with that editor. Configuration captured by the definition must be immutable.
+A definition is an immutable descriptor and may be reused across editor instances. setup creates one editor-scoped runtime that owns editor-scoped resources and is destroyed exactly once with that editor. Configuration captured by the definition must be immutable. Localization is supplied through the editor-scoped runtime context; do not mutate definitions with setI18n-style setters.
+
+ExtensionRegistry owns runtime setup/teardown and stylesheet reference counting per ownerDocument. Definition setup must provide a strong exception guarantee: if setup throws, it must not leak listeners, styles or external resources. Previously created runtimes are cleaned by the surrounding LifecycleScope.
 
 Each document block owns a separate BlockInstance.
 
@@ -526,8 +602,17 @@ Examples:
       text
       caption
 
+    list:
+      item:<stable-item-id>
+
+    checklist:
+      item:<stable-item-id>
+
+    columns:
+      column:<stable-column-id>
+
     table:
-      cell:<stable-row-id>:<stable-column-id>
+      cell:<stable-row-id>:<stable-cell-id>
 
 Logical selection coordinates:
 
@@ -545,6 +630,15 @@ Logical selection coordinates:
 
 A collapsed caret has equal anchor/focus. Cross-block selections are represented by different logical points and preserve direction.
 
+Variable-length structured blocks must persist subfield identity in their v2 plugin data schema. Do not use array index as a durable field identity. At minimum:
+
+- List items receive stable item IDs;
+- Checklist items receive stable item IDs;
+- Columns receive stable column IDs;
+- Table rows and cells receive stable IDs.
+
+Their v1 plugin-data migrations generate deterministic block-local IDs from legacy positions (for example legacy-item-0 / legacy-row-0 / legacy-cell-0-0). Newly inserted items/rows/cells receive fresh block-local IDs. Schemas reject duplicate live IDs. Reorder preserves IDs.
+
 Offset semantics must remain deterministic across editor/renderer realms:
 
 - offsets are UTF-16 code units for text;
@@ -553,6 +647,8 @@ Offset semantics must remain deterministic across editor/renderer realms:
 - widget labels/content never contribute to the surrounding rich-text offset.
 
 History, rollback and document replacement restore selection by blockId + stable fieldKey + logical offset, never by positional field index.
+
+Selection restoration is best-effort and must not invalidate an otherwise committed transaction. If a bookmarked block/field no longer exists, use a deterministic nearest surviving block/field fallback and clamp the logical offset.
 
 ## 8. Explicit capability contracts
 
@@ -944,7 +1040,9 @@ Canonical model remains the before-state until input is committed.
       -> browser mutates editable DOM
       -> input
       -> BlockInstance.read for affected block only
-      -> translate only core-owned inline widget nodes to canonical {{id}} references
+      -> serialize matching actual EditableField DOM
+      -> translate only owned widget element identities to canonical {{id}} references
+      -> replace schema-declared rich-text fields in the read data
       -> RichTextCodec / block schema
       -> prune locally removed widget references
       -> one block.update change
@@ -1025,6 +1123,8 @@ Projection order for a block is:
 2. reconcile canonical inline widget references for its stable editable fields;
 3. apply normalized core tunes such as textAlign;
 4. restore logical selection when requested.
+
+The alignment tool is model-first in v2: it updates tunes.textAlign for affected blocks through one transaction and lets the reconciler apply style.textAlign. TEXT_ALIGN_TUNE_ATTRIBUTE must not remain a persistence transport. Paragraph/Heading do not write alignment back into plugin data.
 
 Required behavior:
 
@@ -1138,7 +1238,7 @@ Remove mutable document DOM from the public application interface:
     EditorBlockView.contentElement
     IEditor.rootElement
 
-Applications already own the holder passed to createEditor. Internal DOM structure inside the holder is not a supported interface.
+Applications already own the holder passed to createEditor, so JavaScript in the same page can still inspect or alter descendants. The architecture guarantee is therefore not "DOM access is impossible"; it is that descendant DOM is unsupported, is not a persistence API, and cannot change canonical state merely by being mutated. save/export reads only the model. Internal DOM structure inside the holder is not a supported interface.
 
 Expose immutable snapshots.
 
@@ -1180,7 +1280,7 @@ Blocks interface:
 
 All persisted mutation methods delegate to DocumentRuntime transactions. focus is not a persisted mutation and delegates to InteractionRuntime.
 
-Application-facing snapshots cannot mutate editor state by reference. EditorBlocksApi.update cannot directly replace block.inline; inline payload/reference changes go through inline widget commands so placeholder/map invariants stay atomic.
+Application-facing snapshots cannot mutate editor state by reference. Readonly in declarations is not sufficient by itself: return detached/deep-cloned JSON values (or a deeply frozen detached representation) at consumer trust boundaries. The same rule applies to values passed into public producer callbacks. EditorBlocksApi.update cannot directly replace block.inline; inline payload/reference changes go through inline widget commands so placeholder/map invariants stay atomic.
 
 Public render semantics:
 
@@ -1232,6 +1332,8 @@ Add a source architecture gate:
 Do not add exceptions to make existing violations pass. Move required utilities to plugin-kit or a neutral shared module.
 
 Built-in source plugins import the source plugin-kit module by repository-relative path; they must not self-import the published package specifier while the package is being built. Third-party consumers use @shelamkoff/rector/plugin-kit. Both routes resolve to the same public implementation and declarations.
+
+Extension code that creates or inspects DOM uses context.ownerDocument and its defaultView. Add a source/realm regression gate against accidental global document/window use in extension paths where a concrete owner realm is available.
 
 ## 20. Keyboard architecture
 
@@ -1295,6 +1397,7 @@ Renderer contract:
 
     interface BlockRenderer<D extends JsonObject> {
       readonly type: string
+      readonly styles?: readonly string[]
       readonly schema: BlockDataSchema<D>
 
       render(
@@ -1612,7 +1715,8 @@ TDD slices:
 2. canonical rich text is idempotent;
 3. invalid Paragraph data is rejected;
 4. unknown block survives unchanged;
-5. editor/renderer both use the same Paragraph schema.
+5. editor/renderer both use the same Paragraph schema;
+6. alignment exists only as tunes.textAlign in canonical v2 Paragraph/Heading data.
 
 Exit criteria:
 
@@ -1656,9 +1760,11 @@ For every plugin prove:
 - destroy exactly once;
 - read-only transition;
 - async abort where applicable;
-- schema round trip.
+- schema round trip;
+- stable editable field keys;
+- deterministic migration of variable rich-text subfield IDs where applicable.
 
-After block plugin migration, migrate inline plugins to InlinePluginDefinition/InlinePluginRuntime/InlineWidgetInstance and model-owned payloads. Cover mention and color first, including missing-plugin preservation.
+After block plugin migration, migrate inline plugins to InlinePluginDefinition/InlinePluginRuntime/InlineWidgetInstance and model-owned payloads. Cover mention and color first, including trigger/autocomplete, paste patterns, programmatic insertion, read-only behavior and missing-plugin preservation.
 
 Delete BlockPlugin v1 and old InlinePlugin getData/hydrate persistence contracts before phase exit.
 
@@ -1903,7 +2009,8 @@ Selection:
 - caret after undo;
 - selection after convert;
 - selection after split;
-- stable fieldKey behavior after structural field changes.
+- stable fieldKey behavior after list/checklist/table/columns structural changes;
+- cross-block selection direction preserved where both endpoints survive.
 
 Native input:
 
@@ -1926,6 +2033,13 @@ Lifecycle:
 - abort prevents stale async completion;
 - inline widget destroy/abort is exactly once;
 - no style/listener/external-instance leak.
+
+Tunes/model:
+
+- Paragraph/Heading legacy data.align migrates to tunes.textAlign;
+- alignment undo/redo changes tunes only;
+- renderer/editor apply the same normalized textAlign;
+- revision clears on data/tunes/inline mutation but not move.
 
 Security:
 
@@ -1971,6 +2085,7 @@ Architecture audit must fail production usage of removed legacy symbols/interfac
     InlinePlugin.hydrate(element, ...) persistence/recovery
     ParagraphData.align v2 declaration
     HeadingData.align v2 declaration
+    TEXT_ALIGN_TUNE_ATTRIBUTE persistence transport
 
 Documentation/changelog references describing migration may remain, but runtime/type declarations must not expose legacy behavior.
 
@@ -1999,7 +2114,8 @@ Correctness:
 - observer errors contained;
 - undo/redo restores logical selection;
 - native input/IME history is deterministic;
-- unknown block data is preserved;
+- structured editable field identities survive reorder/insert/delete;
+- unknown block and unknown inline-widget data are preserved inertly;
 - migrations are deterministic.
 
 Security:
