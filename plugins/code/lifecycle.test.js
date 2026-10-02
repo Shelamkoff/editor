@@ -1,7 +1,7 @@
 // @ts-nocheck
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { Code } from './index.js'
+import { createCodePlugin } from './index.js'
 
 class FakeClassList {
   #values = new Set()
@@ -17,8 +17,9 @@ class FakeClassList {
 }
 
 class FakeElement {
-  constructor(tagName = 'div') {
+  constructor(tagName = 'div', ownerDocument) {
     this.tagName = tagName.toUpperCase()
+    this.ownerDocument = ownerDocument
     this.className = ''
     this.classList = new FakeClassList()
     this.children = []
@@ -41,7 +42,6 @@ class FakeElement {
     this.selectionStart = 0
     this.selectionEnd = 0
   }
-
   setAttribute(name, value) { this.attributes.set(name, String(value)) }
   getAttribute(name) { return this.attributes.get(name) ?? null }
   hasAttribute(name) { return this.attributes.has(name) }
@@ -51,178 +51,94 @@ class FakeElement {
     if (!handlers) this.listeners.set(type, handlers = [])
     handlers.push(handler)
   }
-  removeEventListener(type, handler) {
-    const handlers = this.listeners.get(type) ?? []
-    const index = handlers.indexOf(handler)
-    if (index >= 0) handlers.splice(index, 1)
-  }
   dispatch(type, extra = {}) {
     const event = { target: this, currentTarget: this, stopPropagation() {}, preventDefault() {}, ...extra }
     for (const handler of this.listeners.get(type) ?? []) handler(event)
     return event
   }
+  append(...children) { for (const child of children) this.appendChild(child) }
   appendChild(child) {
-    child.remove?.()
     this.children.push(child)
     child.parentNode = this
     child.parentElement = this
     return child
   }
-  prepend(child) {
-    child.remove?.()
-    this.children.unshift(child)
-    child.parentNode = this
-    child.parentElement = this
-    return child
-  }
-  remove() {
-    if (!this.parentNode) return
-    const siblings = this.parentNode.children
-    const index = siblings.indexOf(this)
-    if (index >= 0) siblings.splice(index, 1)
-    this.parentNode = null
-    this.parentElement = null
-  }
-  contains(node) {
-    for (let current = node; current; current = current.parentNode) {
-      if (current === this) return true
-    }
-    return false
-  }
   focus() {}
-  scrollIntoView() {}
-  querySelector() { return null }
-  querySelectorAll() { return [] }
 }
 
-test('Code destroy makes a pending copy completion inert', async () => {
-  const previous = {
-    document: globalThis.document,
-    HTMLElement: globalThis.HTMLElement,
-    navigatorDescriptor: Object.getOwnPropertyDescriptor(globalThis, 'navigator'),
-    setTimeout: globalThis.setTimeout,
-    clearTimeout: globalThis.clearTimeout,
-  }
-  const documentListeners = new Map()
-
-  globalThis.HTMLElement = FakeElement
-  globalThis.document = {
-    createElement: tagName => new FakeElement(tagName),
-    addEventListener(type, handler) {
-      let handlers = documentListeners.get(type)
-      if (!handlers) documentListeners.set(type, handlers = [])
-      handlers.push(handler)
-    },
-    removeEventListener(type, handler) {
-      const handlers = documentListeners.get(type) ?? []
-      const index = handlers.indexOf(handler)
-      if (index >= 0) handlers.splice(index, 1)
-    },
-  }
-
+function createHarness() {
   let resolveWrite
-  Object.defineProperty(globalThis, 'navigator', {
-    configurable: true,
-    value: {
+  let timers = 0
+  const window = {
+    AbortController,
+    navigator: {
       clipboard: {
         writeText() { return new Promise(resolve => { resolveWrite = resolve }) },
       },
     },
-  })
-  let timers = 0
-  globalThis.setTimeout = () => { timers++; return 1 }
-  globalThis.clearTimeout = () => {}
-
-  try {
-    const hljs = {
+    setTimeout() { timers += 1; return 1 },
+    clearTimeout() {},
+  }
+  const ownerDocument = {
+    defaultView: window,
+    createElement: tag => new FakeElement(tag, ownerDocument),
+  }
+  const definition = createCodePlugin({
+    hljs: {
       getLanguage() { return false },
       highlightAuto() { return { value: 'abc' } },
       highlight() { return { value: 'abc' } },
-    }
-    const plugin = new Code({ hljs })
-    const wrapper = plugin.render(
-      { code: 'abc', language: 'auto' },
-      { readOnly: false, mutate: operation => operation() },
-    )
-    const copyButton = wrapper.children[0].children[3]
+    },
+  })
+  const runtimeController = new AbortController()
+  const runtime = definition.setup({
+    ownerDocument,
+    signal: runtimeController.signal,
+    isDefaultBlock: false,
+    t: (_key, fallback = '') => fallback,
+  })
+  const instanceController = new AbortController()
+  const data = { code: 'abc', language: 'auto' }
+  const instance = runtime.create(data, {
+    ownerDocument,
+    signal: instanceController.signal,
+    createId: prefix => prefix + '-1',
+    getData: () => data,
+    updateData() {},
+    commitDomMutation(operation) { operation() },
+    requestSplit() {},
+    requestExit() {},
+    isReadOnly: () => false,
+  })
+  return { instance, runtime, runtimeController, instanceController, resolveWrite: () => resolveWrite(), timers: () => timers }
+}
 
-    copyButton.dispatch('click')
-    plugin.destroy(wrapper)
-    resolveWrite()
-    await Promise.resolve()
-    await Promise.resolve()
+test('Code preserves copy feedback and makes a pending copy completion inert after destroy', async () => {
+  const f = createHarness()
+  const copyButton = f.instance.element.children[0].children[1]
 
-    assert.equal(copyButton.classList.contains('oe-code-btn--copied'), false)
-    assert.equal(timers, 0)
-    assert.equal((documentListeners.get('mousedown') ?? []).length, 0)
-  } finally {
-    globalThis.document = previous.document
-    globalThis.HTMLElement = previous.HTMLElement
-    if (previous.navigatorDescriptor) Object.defineProperty(globalThis, 'navigator', previous.navigatorDescriptor)
-    else delete globalThis.navigator
-    globalThis.setTimeout = previous.setTimeout
-    globalThis.clearTimeout = previous.clearTimeout
-  }
+  copyButton.dispatch('click')
+  f.instance.destroy()
+  f.resolveWrite()
+  await Promise.resolve()
+  await Promise.resolve()
+
+  assert.equal(copyButton.classList.contains('oe-code-btn--copied'), false)
+  assert.equal(f.timers(), 0)
+  f.runtime.destroy()
 })
 
+test('Code copy success shows feedback and schedules one reset while the instance is live', async () => {
+  const f = createHarness()
+  const copyButton = f.instance.element.children[0].children[1]
 
-test('Code cleans document listeners when render fails after dropdown setup', () => {
-  const previous = {
-    document: globalThis.document,
-    HTMLElement: globalThis.HTMLElement,
-  }
-  const documentListeners = new Map()
-  let failAfterListener = true
+  copyButton.dispatch('click')
+  f.resolveWrite()
+  await Promise.resolve()
+  await Promise.resolve()
 
-  globalThis.HTMLElement = FakeElement
-  globalThis.document = {
-    createElement(tagName) {
-      if (
-        failAfterListener
-        && tagName === 'button'
-        && (documentListeners.get('mousedown') ?? []).length > 0
-      ) {
-        throw new Error('late render failure')
-      }
-      return new FakeElement(tagName)
-    },
-    addEventListener(type, handler) {
-      let handlers = documentListeners.get(type)
-      if (!handlers) documentListeners.set(type, handlers = [])
-      handlers.push(handler)
-    },
-    removeEventListener(type, handler) {
-      const handlers = documentListeners.get(type) ?? []
-      const index = handlers.indexOf(handler)
-      if (index >= 0) handlers.splice(index, 1)
-    },
-  }
-
-  try {
-    const hljs = {
-      getLanguage() { return false },
-      highlightAuto() { return { value: '' } },
-      highlight() { return { value: '' } },
-    }
-    const plugin = new Code({ hljs })
-
-    assert.throws(() => plugin.render(
-      { code: 'abc', language: 'auto' },
-      { readOnly: false, mutate: operation => operation() },
-    ), /late render failure/)
-    assert.equal((documentListeners.get('mousedown') ?? []).length, 0)
-
-    // The failed wrapper must also be gone from the strong wrapper registry:
-    // a later highlight-runtime refresh or normal block render must not touch it.
-    failAfterListener = false
-    const live = plugin.render(
-      { code: 'ok', language: 'auto' },
-      { readOnly: false, mutate: operation => operation() },
-    )
-    plugin.destroy(live)
-    assert.equal((documentListeners.get('mousedown') ?? []).length, 0)
-  } finally {
-    globalThis.document = previous.document
-    globalThis.HTMLElement = previous.HTMLElement
-  }
+  assert.equal(copyButton.classList.contains('oe-code-btn--copied'), true)
+  assert.equal(f.timers(), 1)
+  f.instance.destroy()
+  f.runtime.destroy()
 })

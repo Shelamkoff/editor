@@ -7,6 +7,7 @@ import { dedentTextarea } from '../shared/dedentTextarea.js'
 const editorStyles = new URL('./code.css', import.meta.url).href
 const ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 8l-4 4l4 4"/><path d="M17 8l4 4l-4 4"/><path d="M14 4l-4 16"/></svg>'
 const COPY_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>'
+const CHECK_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
 const LANGUAGES = Object.freeze(['auto','javascript','typescript','php','python','html','css','scss','json','sql','bash','shell','go','rust','java','kotlin','swift','c','cpp','csharp','xml','yaml','toml','markdown','docker','nginx','plaintext'])
 
 function highlight(element, code, language, runtime) {
@@ -139,6 +140,8 @@ export function createCodePlugin(config = {}) {
           let readOnly = context.isReadOnly()
           let editMode = !readOnly && !initial.code.trim()
           let dead = false
+          let copyResetTimer = null
+          const timerHost = document.defaultView ?? globalThis
           const refresh = () => { if (!dead) highlight(codeElement, data.code, data.language, runtime) }
           const mode = () => {
             wrapper.classList.toggle('oe-code-wrap--editing', editMode && !readOnly)
@@ -175,8 +178,21 @@ export function createCodePlugin(config = {}) {
             textarea.focus()
           }, { signal: context.signal })
           copy.addEventListener('click', () => {
+            if (dead || !data.code) return
             const clipboard = document.defaultView?.navigator?.clipboard
-            if (clipboard?.writeText) void clipboard.writeText(data.code).catch(() => {})
+            if (typeof clipboard?.writeText !== 'function') return
+            void clipboard.writeText(data.code).then(() => {
+              if (dead || context.signal.aborted) return
+              setTrustedHtml(copy, CHECK_ICON)
+              copy.classList.add('oe-code-btn--copied')
+              if (copyResetTimer !== null) timerHost.clearTimeout(copyResetTimer)
+              copyResetTimer = timerHost.setTimeout(() => {
+                copyResetTimer = null
+                if (dead || context.signal.aborted) return
+                setTrustedHtml(copy, COPY_ICON)
+                copy.classList.remove('oe-code-btn--copied')
+              }, 1800)
+            }).catch(() => {})
           }, { signal: context.signal })
           textarea.addEventListener('keydown', event => {
             if (readOnly) return
@@ -197,7 +213,15 @@ export function createCodePlugin(config = {}) {
             editableFields: () => Object.freeze([Object.freeze({ key: 'code', element: textarea, mode: /** @type {'plain-text'} */ ('plain-text') })]),
             setReadOnly(value) { readOnly = value; if (value) editMode = false; mode() },
             focus() { if (!dead && !readOnly) { editMode = true; mode(); textarea.focus() } },
-            destroy() { dead = true; refreshers.delete(refresh) },
+            destroy() {
+              if (dead) return
+              dead = true
+              refreshers.delete(refresh)
+              if (copyResetTimer !== null) {
+                timerHost.clearTimeout(copyResetTimer)
+                copyResetTimer = null
+              }
+            },
           }
         },
         destroy() { destroyed = true; refreshers.clear() },
