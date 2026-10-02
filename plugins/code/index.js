@@ -7,7 +7,7 @@ import { READ_ONLY_INTERACTIVE_ATTRIBUTE } from '../../plugin-kit/index.js'
 
 const editorStyles = new URL('./code.css', import.meta.url).href
 
-/** @type {WeakMap<HTMLElement, {code: string, language: string, editMode: boolean, context: import('../../core/types').BlockMutationContext, copyResetTimer: ReturnType<typeof setTimeout> | null}>} */
+/** @type {WeakMap<HTMLElement, {code: string, language: string, editMode: boolean, context: import('../../plugin-kit/types').BlockMutationContext, copyResetTimer: ReturnType<typeof setTimeout> | null}>} */
 const codeStateMap = new WeakMap()
 
 /** @type {WeakMap<HTMLElement, {textarea: HTMLTextAreaElement, pre: HTMLPreElement, codeEl: HTMLElement, copyBtn: HTMLElement, editBtn: HTMLElement, dropdown: HTMLElement, langLabel: HTMLElement}>} */
@@ -317,7 +317,7 @@ export class Code extends BlockPluginAbstract {
   /**
    * Create the editable DOM owned by this block instance.
    * @param {{ code?: string, language?: string }} data
-   * @param {import('../../core/types').BlockMutationContext} context
+   * @param {import('../../plugin-kit/types').BlockMutationContext} context
    * @returns {HTMLElement}
    */
   render(data, context) {
