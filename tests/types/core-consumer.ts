@@ -1,27 +1,53 @@
 import {
-  createDefaultInlineTools,
   createEditor,
   sanitizeHtml,
 } from '../../.package-tmp/declaration-tests/core/index.js'
 import type {
-  BlockPlugin,
+  BlockPluginDefinition,
   EditorConfig,
   EditorDocument,
   IEditor,
 } from '../../.package-tmp/declaration-tests/core/index.js'
 
 declare const holder: HTMLElement
-declare const element: HTMLElement
+declare const ownerDocument: Document
 
-const customPlugin: BlockPlugin<{ text: string }> = {
-  type: 'custom',
-  title: 'Custom',
-  icon: '',
-  render: data => {
-    element.textContent = data.text
-    return element
+const schema = {
+  currentVersion: 1,
+  legacyVersion: 1,
+  createDefault: () => ({ text: '' }),
+  decode(input: { dataVersion?: number; data: unknown }) {
+    const data = input.data as { text?: unknown }
+    if (typeof data?.text !== 'string') throw new TypeError('text')
+    return { dataVersion: 1, data: { text: data.text } }
   },
-  save: target => ({ text: target.textContent ?? '' }),
+  encode(data: Readonly<{ text: string }>) {
+    return { dataVersion: 1, data: { text: data.text } }
+  },
+}
+
+const customPlugin: BlockPluginDefinition<{ text: string }> = {
+  type: 'custom',
+  label: { key: 'title', fallback: 'Custom' },
+  icon: '',
+  schema,
+  setup() {
+    return {
+      create(initial, context) {
+        const element = context.ownerDocument.createElement('p')
+        element.textContent = initial.text
+        return {
+          element,
+          read: () => ({ text: element.textContent ?? '' }),
+          update(next) { element.textContent = next.text },
+          editableFields: () => [{ key: 'text', element, mode: 'plain-text' }],
+          setReadOnly(value) { element.contentEditable = value ? 'false' : 'true' },
+          destroy() {},
+        }
+      },
+      destroy() {},
+    }
+  },
 }
 
 const config: EditorConfig = {
@@ -31,10 +57,6 @@ const config: EditorConfig = {
 
 const editor: IEditor = createEditor(config)
 const document: EditorDocument = editor.save()
-const tools = createDefaultInlineTools()
-const filteredTools = createDefaultInlineTools({ types: ['bold', 'italic'] })
-void filteredTools
-
 void document
-void tools
+void ownerDocument
 void sanitizeHtml('<p>safe</p>')
