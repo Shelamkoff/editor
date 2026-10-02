@@ -19,7 +19,6 @@ import { InlineCommandController } from './InlineCommandController.js'
 import { InlineTriggerController } from './InlineTriggerController.js'
 import { EditorBlocksApiV2, EditorHandleV2 } from './PublicEditorApiV2.js'
 import { ChangeNotifier } from './ChangeNotifier.js'
-import { BUILT_IN_DOCUMENT_MIGRATIONS } from './documentMigrationsV2.js'
 
 const CORE_STYLE_URLS=Object.freeze([
   new URL('./themes/variables.css',import.meta.url).href,
@@ -64,6 +63,7 @@ function emitSafe(events,type,payload){
  *   locale?: Record<string, any>,
  *   validationMode?: 'preserve'|'strict',
  *   documentVersionPolicy?: 'preserve'|'strict',
+ *   migrations?: readonly import('./publicTypes').DocumentMigration[],
  *   onReady?: (editor:any)=>void|Promise<void>,
  *   onChange?: (document:any)=>void|Promise<void>,
  *   onValidationError?: (issue:any)=>void,
@@ -140,7 +140,7 @@ export function createEditorV2(config){
     ownerDocument:document,
     validationMode:config.validationMode,
     documentVersionPolicy:config.documentVersionPolicy,
-    migrations:BUILT_IN_DOCUMENT_MIGRATIONS,
+    migrations:config.migrations,
     readOnly:config.readOnly===true,
     createId:prefix=>prefix+'-'+uid(),
     selection:selectionPort,
