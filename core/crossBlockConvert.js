@@ -188,6 +188,7 @@ export function convertCrossBlockRange(ctx, crossRange, targetType, targetData, 
           // safer than rewriting structured DOM and keeps lifecycle ownership.
           blocks.convert(firstIdx, firstBlock.type, firstSplit.remainingData)
           focusBlock = recordConverted(blocks.insert(targetType, {
+            ...(blocks.getDefaultData(targetType) || {}),
             ...firstSplit.selectedData,
             ...(targetData || {}),
           }, firstIdx + 1, undefined, firstMetadata?.inline, firstMetadata?.tunes))
@@ -221,7 +222,10 @@ export function convertCrossBlockRange(ctx, crossRange, targetType, targetData, 
         blocks.remove(firstIdx)
       }
 
-      focusBlock = blocks.insert(targetType, /** @type {Record<string, unknown>} */ (targetData || {}), insertAt)
+      focusBlock = blocks.insert(targetType, {
+        ...(blocks.getDefaultData(targetType) || {}),
+        ...(targetData || {}),
+      }, insertAt)
     }
 
     const liveConverted = convertedBlocks
