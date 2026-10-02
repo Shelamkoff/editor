@@ -365,7 +365,7 @@ export class BlockReconciler {
       definition,
       baseContext: base,
     }
-    instance.element.classList.add('oe-block')
+    instance.element.classList?.add?.('oe-block')
     instance.element.dataset.blockId = record.id
     instance.element.dataset.blockType = record.type
     this.#blockOwners.set(instance.element, record.id)
