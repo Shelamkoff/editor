@@ -43,6 +43,59 @@ function emitSafe(events,type,payload){
   try{events.emit(type,payload)}catch(error){console.warn('[Editor] event observer failed',error)}
 }
 
+function snapshotDenseArray(value,label,{required=false}={}){
+  if(value===undefined){
+    if(required)throw new TypeError(`createEditor() requires a ${label} array`)
+    return undefined
+  }
+  if(!Array.isArray(value))throw new TypeError(`createEditor() ${label} must be an array`)
+  const snapshot=[]
+  for(let index=0;index<value.length;index++){
+    if(!Object.hasOwn(value,index))throw new TypeError(`createEditor() ${label} must be a dense array`)
+    snapshot.push(value[index])
+  }
+  return snapshot
+}
+
+function snapshotEditorConfig(input){
+  if(!input||typeof input!=='object'||Array.isArray(input))throw new TypeError('createEditor() requires a configuration object')
+  const config={...input}
+  config.plugins=snapshotDenseArray(config.plugins,'plugins',{required:true})
+  config.inlinePlugins=snapshotDenseArray(config.inlinePlugins,'inlinePlugins')
+  config.migrations=snapshotDenseArray(config.migrations,'migrations')
+
+  if(config.plugins.length===0)throw new TypeError('createEditor() requires a non-empty plugins array')
+  for(const field of ['readOnly','injectStyles','autofocus']){
+    if(config[field]!==undefined&&typeof config[field]!=='boolean')throw new TypeError(`createEditor() ${field} must be a boolean`)
+  }
+  if(config.placeholder!==undefined&&typeof config.placeholder!=='string')throw new TypeError('createEditor() placeholder must be a string')
+  if(config.defaultBlock!==undefined&&(typeof config.defaultBlock!=='string'||config.defaultBlock.length===0)){
+    throw new TypeError('createEditor() defaultBlock must be a non-empty string')
+  }
+  if(config.locale!==undefined&&(config.locale===null||typeof config.locale!=='object'||Array.isArray(config.locale))){
+    throw new TypeError('createEditor() locale must be an object')
+  }
+  for(const field of ['onReady','onChange','onValidationError']){
+    if(config[field]!==undefined&&typeof config[field]!=='function')throw new TypeError(`createEditor() ${field} must be a function`)
+  }
+  if(config.theme!==undefined&&config.theme!=='light'&&config.theme!=='dark'){
+    throw new TypeError('createEditor() theme must be "light" or "dark"')
+  }
+  if(config.minHeight!==undefined&&(!Number.isFinite(config.minHeight)||config.minHeight<0)){
+    throw new RangeError('createEditor() minHeight must be a finite number greater than or equal to 0')
+  }
+  if(config.changeDebounceMs!==undefined&&(!Number.isFinite(config.changeDebounceMs)||config.changeDebounceMs<0)){
+    throw new RangeError('createEditor() changeDebounceMs must be a finite number greater than or equal to 0')
+  }
+  if(config.validationMode!==undefined&&!['preserve','strict'].includes(config.validationMode)){
+    throw new TypeError('createEditor() validationMode must be "preserve" or "strict"')
+  }
+  if(config.documentVersionPolicy!==undefined&&!['preserve','strict'].includes(config.documentVersionPolicy)){
+    throw new TypeError('createEditor() documentVersionPolicy must be "preserve" or "strict"')
+  }
+  return config
+}
+
 /**
  * Pure v2 composition root.
  *
@@ -57,6 +110,7 @@ function emitSafe(events,type,payload){
  *   defaultBlock?: string,
  *   placeholder?: string,
  *   readOnly?: boolean,
+ *   autofocus?: boolean,
  *   injectStyles?: boolean,
  *   theme?: 'light'|'dark',
  *   minHeight?: number,
@@ -68,14 +122,13 @@ function emitSafe(events,type,payload){
  *   onChange?: (document:any)=>void|Promise<void>,
  *   onValidationError?: (issue:any)=>void,
  *   changeDebounceMs?: number,
- * }} config
+ * }} input
  */
-export function createEditorV2(config){
-  if(!config||typeof config!=='object'||Array.isArray(config))throw new TypeError('createEditor() requires a configuration object')
+export function createEditorV2(input){
+  const config=snapshotEditorConfig(input)
   const holder=config.holder
   const HTMLElementCtor=holder?.ownerDocument?.defaultView?.HTMLElement??globalThis.HTMLElement
   if(!HTMLElementCtor||!(holder instanceof HTMLElementCtor))throw new TypeError('createEditor() requires an HTMLElement holder')
-  if(!Array.isArray(config.plugins)||config.plugins.length===0)throw new TypeError('createEditor() requires a non-empty plugins array')
 
   const lease=claimEditorHolder(holder)
   const document=holder.ownerDocument
@@ -266,6 +319,8 @@ export function createEditorV2(config){
     inlineCommands,
     subscribe:(type,listener)=>events.on(type,listener),
   })
+
+  if(config.autofocus&&!runtime.readOnly)view.focus()
 
   queueMicrotask(()=>{
     if(destroyed)return

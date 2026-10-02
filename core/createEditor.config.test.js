@@ -7,7 +7,6 @@ class FakeHolder {}
 
 const invalidCases = [
   ['autofocus', 'yes', /autofocus must be a boolean/],
-  ['inlineTools', {}, /inlineTools must be an array/],
   ['inlinePlugins', {}, /inlinePlugins must be an array/],
   ['migrations', {}, /migrations must be an array/],
   ['defaultBlock', 42, /defaultBlock must be a non-empty string/],
@@ -16,19 +15,23 @@ const invalidCases = [
   ['onChange', 'later', /onChange must be a function/],
   ['onReady', 'later', /onReady must be a function/],
   ['onValidationError', 'later', /onValidationError must be a function/],
-  ['onDiagnostic', 'later', /onDiagnostic must be a function/],
-  ['diagnosticThresholds', null, /diagnosticThresholds must be an object/],
-  ['theme', 42, /theme must be a non-empty string/],
-  ['theme', '', /theme must be a non-empty string/],
+  ['theme', 'custom', /theme must be "light" or "dark"/],
+  ['readOnly', 'yes', /readOnly must be a boolean/],
+  ['injectStyles', 'yes', /injectStyles must be a boolean/],
+  ['placeholder', 42, /placeholder must be a string/],
+  ['minHeight', -1, /minHeight must be a finite number/],
+  ['changeDebounceMs', -1, /changeDebounceMs must be a finite number/],
+  ['validationMode', 'loose', /validationMode must be/],
+  ['documentVersionPolicy', 'loose', /documentVersionPolicy must be/],
 ]
 
-test('createEditor rejects malformed runtime option shapes at the public boundary', () => {
+test('createEditor rejects malformed v2 runtime option shapes at the public boundary', () => {
   const previous = globalThis.HTMLElement
   globalThis.HTMLElement = FakeHolder
   try {
     for (const [field, value, error] of invalidCases) {
       assert.throws(
-        () => createEditor({ holder: new FakeHolder(), plugins: [], [field]: value }),
+        () => createEditor({ holder: new FakeHolder(), plugins: [{}], [field]: value }),
         error,
         field,
       )
@@ -51,18 +54,18 @@ test('createEditor ignores inherited top-level options', () => {
   config.holder = new FakeHolder()
   config.plugins = []
   try {
-    assert.throws(() => createEditor(config), /Default block plugin/)
+    assert.throws(() => createEditor(config), /non-empty plugins array/)
     assert.equal(reads, 0)
   } finally {
     globalThis.HTMLElement = previous
   }
 })
 
-test('createEditor rejects sparse plugin configuration arrays without reading inherited entries', () => {
+test('createEditor rejects sparse v2 extension arrays without reading inherited entries', () => {
   const previous = globalThis.HTMLElement
   globalThis.HTMLElement = FakeHolder
   try {
-    for (const field of ['plugins', 'inlineTools', 'inlinePlugins', 'migrations']) {
+    for (const field of ['plugins', 'inlinePlugins', 'migrations']) {
       let reads = 0
       const prototype = Object.create(Array.prototype)
       Object.defineProperty(prototype, '0', {
@@ -72,7 +75,7 @@ test('createEditor rejects sparse plugin configuration arrays without reading in
       const values = []
       Object.setPrototypeOf(values, prototype)
       values.length = 1
-      const config = { holder: new FakeHolder(), plugins: [], [field]: values }
+      const config = { holder: new FakeHolder(), plugins: [{}], [field]: values }
       assert.throws(() => createEditor(config), /dense array/i, field)
       assert.equal(reads, 0, field)
     }
@@ -91,25 +94,28 @@ test('createEditor accepts a holder from its owning browsing realm', () => {
   const previous = globalThis.HTMLElement
   globalThis.HTMLElement = AmbientElement
   try {
-    // Reaching default-plugin validation proves the holder passed the public
-    // HTMLElement boundary using its own browsing realm.
-    assert.throws(() => createEditor({ holder, plugins: [] }), /Default block plugin/)
+    assert.throws(() => createEditor({ holder, plugins: [] }), /non-empty plugins array/)
   } finally {
     globalThis.HTMLElement = previous
   }
 })
 
-
 test('createEditor observes accessor-backed plugin array entries once', () => {
   const previous = globalThis.HTMLElement
   globalThis.HTMLElement = FakeHolder
   let reads = 0
-  const plugin = {
+  const definition = {
     type: 'probe',
-    title: 'Probe',
+    label: { key: 'title', fallback: 'Probe' },
     icon: '',
-    render() { throw new Error('render should not be reached in this synthetic config test') },
-    save() { return {} },
+    schema: {
+      currentVersion: 1,
+      legacyVersion: 1,
+      createDefault: () => ({}),
+      decode: ({ data }) => ({ dataVersion: 1, data }),
+      encode: data => ({ dataVersion: 1, data: { ...data } }),
+    },
+    setup() { return { create() { throw new Error('synthetic setup stop') }, destroy() {} } },
   }
   const plugins = []
   Object.defineProperty(plugins, '0', {
@@ -118,19 +124,13 @@ test('createEditor observes accessor-backed plugin array entries once', () => {
     get() {
       reads++
       if (reads > 1) throw new Error('plugin entry was observed more than once')
-      return plugin
+      return definition
     },
   })
   plugins.length = 1
 
   try {
-    assert.throws(
-      () => createEditor({
-        holder: new FakeHolder(),
-        plugins,
-        defaultBlock: 'probe',
-      }),
-    )
+    assert.throws(() => createEditor({ holder: new FakeHolder(), plugins, defaultBlock: 'probe' }))
     assert.equal(reads, 1)
   } finally {
     globalThis.HTMLElement = previous

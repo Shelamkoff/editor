@@ -106,6 +106,7 @@ export interface EditorConfig {
   defaultBlock?: string
   placeholder?: string
   readOnly?: boolean
+  autofocus?: boolean
   injectStyles?: boolean
   theme?: 'light' | 'dark'
   minHeight?: number
