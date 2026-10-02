@@ -241,11 +241,14 @@ export function createListPlugin(){
               })),
             }),
             update(next){if(!instanceDestroyed)reconcile(next)},
-            editableFields:()=>Object.freeze(data.items.map(item=>Object.freeze({
-              key:`item:${item.id}`,
-              element:nodes.get(item.id),
-              mode:/** @type {'rich-text'} */('rich-text'),
-            })).filter(field=>field.element)),
+            editableFields:()=>Object.freeze(data.items.flatMap(item=>{
+              const element=nodes.get(item.id)
+              return element?[Object.freeze({
+                key:`item:${item.id}`,
+                element,
+                mode:/** @type {'rich-text'} */('rich-text'),
+              })]:[]
+            })),
             setReadOnly(value){
               readOnly=value
               for(const node of nodes.values())node.contentEditable=value?'false':'true'
