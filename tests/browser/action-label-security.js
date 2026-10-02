@@ -1,5 +1,10 @@
 import { createEditor } from '../../core/index.js'
-import { Carousel, Embed, Gallery, Image } from '../../plugins/index.js'
+import {
+  createCarouselPlugin,
+  createEmbedPlugin,
+  createGalleryPlugin,
+  createImagePlugin,
+} from '../../plugins/index.js'
 
 const pixel = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADElEQVR42mNk+M/wHwAF/gL+Av7lWQAAAABJRU5ErkJggg=='
 const maliciousLabel = '<img src="x" onerror="window.__actionLabelProbe++">Library'
@@ -17,34 +22,28 @@ function configuredAction() {
   }
 }
 
-async function assertBoundary({ name, plugin, type, data, actionSelector, openerText }) {
+async function assertBoundary({ name, definition, data, actionSelector }) {
   const sandbox = document.querySelector('#sandbox')
   const holder = document.createElement('section')
   sandbox.appendChild(holder)
 
   const editor = createEditor({
     holder,
-    plugins: [plugin],
-    defaultBlock: type,
-    inlineTools: [],
+    plugins: [definition],
+    defaultBlock: definition.type,
+    injectStyles: false,
     data: {
-      version: 'action-label-security',
-      blocks: [{ id: `action-label-${name}`, type, data }],
+      version: '2.0.0',
+      blocks: [{ id: `action-label-${name}`, type: definition.type, data }],
     },
   })
 
   try {
-    const actions = editor.rootElement.querySelector(actionSelector)
+    const actions = holder.querySelector(actionSelector)
     assert(actions instanceof HTMLElement, `${name} action bar is missing`)
-
-    const opener = [...actions.querySelectorAll('button')]
-      .find(button => button.textContent?.includes(openerText))
-    assert(opener instanceof HTMLButtonElement, `${name} action source opener is missing`)
-    opener.click()
-
     const custom = [...actions.querySelectorAll('button')]
       .find(button => button.textContent?.includes('Library'))
-    assert(custom instanceof HTMLButtonElement, `${name} custom action is missing`)
+    assert(custom instanceof HTMLButtonElement, `${name} custom action is missing in filled state`)
     assert(custom.textContent?.includes(maliciousLabel), `${name} action label was not preserved as literal text`)
     assert(custom.querySelector('[data-trusted-action-icon="true"]') instanceof SVGElement, `${name} trusted action icon was not rendered as markup`)
     assert(!custom.querySelector('img, script, iframe, object, embed'), `${name} action label created an active element`)
@@ -61,47 +60,40 @@ async function assertBoundary({ name, plugin, type, data, actionSelector, opener
 async function run() {
   window.__actionLabelProbe = 0
 
+  const image = createImagePlugin({ injectStyles: false, actions: [configuredAction()] })
   await assertBoundary({
     name: 'image',
-    plugin: new Image({ actions: [configuredAction()] }),
-    type: 'image',
-    data: { file: { url: pixel }, caption: 'Image' },
+    definition: image,
+    data: { ...image.schema.createDefault(), file: { url: pixel }, caption: 'Image' },
     actionSelector: '.oe-image__actions',
-    openerText: 'Replace',
   })
 
+  const gallery = createGalleryPlugin({ injectStyles: false, actions: [configuredAction()] })
   await assertBoundary({
     name: 'gallery',
-    plugin: new Gallery({ actions: [configuredAction()] }),
-    type: 'gallery',
-    data: { images: [{ url: pixel, caption: 'Gallery' }], layout: 'auto' },
+    definition: gallery,
+    data: {
+      ...gallery.schema.createDefault(),
+      images: [{ id: 'gallery-image', url: pixel, caption: 'Gallery' }],
+    },
     actionSelector: '.oe-gallery__actions',
-    openerText: 'Add',
   })
 
+  const carousel = createCarouselPlugin({ injectStyles: false, actions: [configuredAction()] })
   await assertBoundary({
     name: 'carousel',
-    plugin: new Carousel({ actions: [configuredAction()] }),
-    type: 'carousel',
+    definition: carousel,
     data: {
-      slides: [{ id: 'first', type: 'image', src: pixel, alt: 'First' }],
-      options: {
-        loop: false,
-        autoplay: false,
-        autoplayDelay: 3000,
-        navigation: true,
-        pagination: true,
-        thumbnails: true,
-      },
+      ...carousel.schema.createDefault(),
+      slides: [{ id: 'first', type: 'image', src: pixel, alt: 'First', caption: '' }],
     },
     actionSelector: '.oe-carousel-block__actions',
-    openerText: 'Add',
   })
 
+  const embed = createEmbedPlugin({ injectStyles: false, actions: [configuredAction()], resolvePreview: false })
   await assertBoundary({
     name: 'embed',
-    plugin: new Embed({ actions: [configuredAction()], resolvePreview: false }),
-    type: 'embed',
+    definition: embed,
     data: {
       service: 'youtube',
       videoId: 'dQw4w9WgXcQ',
@@ -111,13 +103,12 @@ async function run() {
       duration: '',
     },
     actionSelector: '.oe-embed__actions',
-    openerText: 'Cover',
   })
 
   await new Promise(resolve => setTimeout(resolve, 30))
   assert(window.__actionLabelProbe === 0, 'an action label payload executed')
   document.querySelector('#sandbox').replaceChildren()
-  return { plugins: ['image', 'gallery', 'carousel', 'embed'], labelMode: 'text', iconMode: 'trusted markup' }
+  return { plugins: ['image', 'gallery', 'carousel', 'embed'], labelMode: 'text', iconMode: 'trusted markup', filledState: true }
 }
 
 const result = document.querySelector('#result')
