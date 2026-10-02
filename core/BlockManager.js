@@ -5,7 +5,7 @@ import { closestBlock } from './dom.js'
 import { EditorEvent } from './editorEvents.js'
 import { deserializeInlineHtml } from '../shared/inlineMarshal.js'
 import { cloneEditorData } from '../shared/cloneEditorData.js'
-import { uid } from './uid.js'
+import { uid } from '../shared/uid.js'
 import { createPreservedBlockPlugin } from './PreservedBlockPlugin.js'
 import { ownPluginDataSchema } from './pluginDataSchema.js'
 
