@@ -134,6 +134,7 @@ function assertLocalizedGuideParity() {
 }
 
 const coreTypes = parseDeclarations('core/types.d.ts')
+const pluginKitTypes = parseDeclarations('plugin-kit/types.d.ts')
 const rendererTypes = parseDeclarations('renderer/types.d.ts')
 
 assertLocalizedGuideParity()
@@ -170,7 +171,7 @@ for (const interfaceName of ['InlineTool', 'InlineMutationContext', 'InlineToolA
 
 for (const interfaceName of ['InlinePlugin', 'InlinePluginContext']) {
   assertDocumented({
-    sourceFile: coreTypes,
+    sourceFile: pluginKitTypes,
     interfaceName,
     documents: ['docs/guide/inline-extensions.md', 'docs/ru/guide/inline-extensions.md'],
   })
@@ -189,7 +190,7 @@ for (const interfaceName of [
   'ShortcutEntry',
 ]) {
   assertDocumented({
-    sourceFile: coreTypes,
+    sourceFile: pluginKitTypes,
     interfaceName,
     documents: ['docs/guide/extensions.md', 'docs/ru/guide/extensions.md'],
   })
