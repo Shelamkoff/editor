@@ -21,3 +21,14 @@ export {
   canonicalizeRichText,
   normalizeRichText,
 } from '../shared/richTextCodec.js'
+
+
+export {
+  getTextOffset,
+  getTextLength,
+  findNodeAtOffset,
+  restoreSelectionByOffsets,
+  editableTextWalker,
+} from '../shared/textOffset.js'
+
+export { handleMenuKeydown } from '../shared/menuKeyboardNav.js'
