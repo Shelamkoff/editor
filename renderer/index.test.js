@@ -744,3 +744,45 @@ for (const operation of ['renderBlock', 'render', 'renderTo']) {
     }
   })
 }
+
+
+test('renderer dataVersion invalidates reuse even when producer revision is unchanged', async () => {
+  const { EditorRenderer } = await import('./index.js')
+  let renderCalls = 0
+  const renderer = new EditorRenderer({ blockTypes: [] })
+  renderer.registerRenderer({
+    type: 'versioned',
+    render(block) {
+      renderCalls++
+      const element = document.createElement('article')
+      element.textContent = String(block.dataVersion)
+      return element
+    },
+  })
+
+  const container = document.createElement('main')
+  renderer.renderTo({
+    blocks: [{
+      id: 'stable',
+      type: 'versioned',
+      dataVersion: 1,
+      revision: 'same-revision',
+      data: { text: 'same-data' },
+    }],
+  }, container)
+  const first = container.children[0].children[0]
+
+  renderer.renderTo({
+    blocks: [{
+      id: 'stable',
+      type: 'versioned',
+      dataVersion: 2,
+      revision: 'same-revision',
+      data: { text: 'same-data' },
+    }],
+  }, container)
+
+  assert.equal(renderCalls, 2)
+  assert.notEqual(container.children[0].children[0], first)
+  renderer.destroy(container)
+})

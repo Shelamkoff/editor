@@ -169,3 +169,31 @@ test('Block passes the editor owning document to plugin render context', () => {
 
   assert.equal(receivedDocument, realm.ownerDocument)
 })
+
+
+test('Block preserves a persisted dataVersion in its saved envelope', () => {
+  const realm = createRealm()
+  const content = new ForeignHTMLElement('div', realm.ownerDocument)
+  const plugin = {
+    type: 'versioned-probe',
+    render() { return content },
+    save() { return { value: 'saved' } },
+  }
+  const commands = { runForBlock(_block, operation) { return operation() } }
+  const block = new Block(
+    plugin,
+    commands,
+    { value: 'initial' },
+    'versioned-id',
+    false,
+    { dataVersion: 7 },
+    realm.ownerDocument,
+  )
+
+  assert.deepEqual(block.save(), {
+    id: 'versioned-id',
+    type: 'versioned-probe',
+    dataVersion: 7,
+    data: { value: 'saved' },
+  })
+})
