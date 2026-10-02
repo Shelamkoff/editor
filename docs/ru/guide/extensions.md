@@ -1,368 +1,145 @@
 # Создание расширений
 
-Rector поддерживает блочные плагины, инструменты форматирования, постоянные внутристрочные плагины и рендереры блоков. Выбирайте наименьшую роль, действительно владеющую возможностью. Объединение несвязанных ролей усложняет проверку сериализации, истории и освобождения ресурсов.
+Rector v2 использует неизменяемые definitions. Definition содержит переиспользуемую конфигурацию, схемы и чистые capabilities; изменяемое состояние редактора создаётся в `setup()`, а состояние конкретного блока — в `runtime.create()`.
 
-## Выбор типа расширения
-
-| Задача | Расширение |
-| --- | --- |
-| Добавить упорядоченную единицу документа со своими данными | Блочный плагин |
-| Форматировать выделенный текст без отдельного набора данных | Внутристрочный инструмент |
-| Встроить в текст постоянный структурированный виджет | Внутристрочный плагин |
-| Отобразить блок вне редактора | Рендерер блока |
-
-У каждого опубликованного типа блока должны быть редакторский плагин и рендерер с одинаковым `type` и совместимым контрактом данных.
-
-## Контракт блочного плагина
-
-Обязательная поверхность невелика:
+## Definition блока
 
 ```ts
-interface BlockPlugin<Data> {
+interface BlockPluginDefinition<Data> {
   readonly type: string
-  readonly title: string
+  readonly label: { key: string, fallback: string }
   readonly icon: string
-  render(data: Data, context: BlockMutationContext): HTMLElement
-  save(element: HTMLElement): Data
+  readonly styles?: readonly string[]
+  readonly toolbox?: readonly ToolboxItemDefinition<Data>[]
+  readonly schema: BlockDataSchema<Data>
+  readonly capabilities?: BlockCapabilities<Data>
+  setup(context: BlockPluginRuntimeContext): BlockPluginRuntime<Data>
 }
 ```
-
-`type` — устойчивый машинный идентификатор, сохраняемый в документе. Не локализуйте и не переименовывайте его без миграции. `title` — исходная видимая подпись. `icon` — доверенная разметка расширения; используйте неизменяемый SVG, принадлежащий пакету.
-
-`render()` создаёт элемент содержимого одного блока. `save()` читает тот же элемент и возвращает данные, совместимые с JSON. Оба метода должны выдавать одинаковый результат для эквивалентного входа.
-
-### Минимальный текстовый плагин
-
-```js
-import { sanitizeHtml } from '@shelamkoff/rector'
-
-export class Callout {
-  static isTextBlock = true
-  static styles = [new URL('./callout.css', import.meta.url).href]
-
-  type = 'callout'
-  icon = '<svg viewBox="0 0 24 24" aria-hidden="true">...</svg>'
-  inlineTools = true
-  i18n = null
-
-  setI18n(i18n) {
-    this.i18n = i18n
-  }
-
-  get title() {
-    return this.i18n?.t('title') ?? 'Выноска'
-  }
-
-  render(data, context) {
-    const ownerDocument = context.ownerDocument ?? document
-    const root = ownerDocument.createElement('aside')
-    root.className = 'callout'
-    root.contentEditable = 'true'
-    root.innerHTML = sanitizeHtml(String(data.text ?? ''))
-    this.context = context
-    return root
-  }
-
-  save(root) {
-    return { text: root.innerHTML }
-  }
-
-  validate(data) {
-    return typeof data.text === 'string'
-  }
-
-  isEmpty(root) {
-    return root.textContent.trim().length === 0
-  }
-}
-```
-
-Обычный ввод в `contenteditable` отслеживается Rector автоматически. Кнопка, переключатель, выбор значения, завершённая загрузка и другое явное действие плагина должны использовать `context.mutate()`, сохранённый при вызове `render()`.
-
-### Контекст изменения блока
-
-`BlockMutationContext` отделяет изменения, принадлежащие плагину, от структурных операций редактора:
 
 | Член | Назначение |
 | --- | --- |
-| `mutate(operation)` | Выполнить одно синхронное локальное изменение плагина как один шаг истории. Возвращает результат функции или `undefined` в режиме чтения. |
-| `splitBlock()` | Вставить сразу после текущего блока стандартный тип блока и передать ему фокус. При вызове внутри активного `mutate()` очистка данных плагина и вставка входят в один шаг истории. |
-| `exitEmptyBlock()` | Преобразовать текущий пустой нестандартный блок в настроенный стандартный тип. Возвращает `true`, только если преобразование выполнено. |
-| `readOnly` | Равно `true`, когда элементы управления, меняющие документ, нельзя подключать или активировать. |
-| `restoring` | Флаг момента создания: эта отрисовка восстанавливает снимок отмены, повтора или отката. Не запускайте автоматические задачи, изменяющие сохраняемые данные; последующие действия пользователя остаются разрешёнными. |
-| `ownerDocument` | Владеющий редактором `Document`. Создавайте DOM, диапазоны и привязанные к документу браузерные объекты в контексте этого документа, а не через окружающие `document`/`window`. |
+| `type` | Стабильный машинный идентификатор в документе. |
+| `label` | Ключ локализации и fallback для UI. |
+| `icon` | Доверенная разметка иконки, принадлежащая расширению. |
+| `styles` | URL стилей definition. |
+| `toolbox` | Необязательные варианты вставки. |
+| `schema` | Версионируемый контракт канонических данных. |
+| `capabilities` | Чистые необязательные контракты поведения. |
+| `setup` | Создаёт один runtime на экземпляр редактора. |
 
-Используйте `splitBlock()` в спископодобном плагине, когда пустой последний пункт удаляется, а ввод должен продолжиться в обычном абзаце. Используйте `exitEmptyBlock()`, когда пуст весь структурированный блок. Не создавайте искусственные клавиатурные события для этих операций: плагин может повторно перехватить такое событие, а граница команды останется неявной. Структурные методы ничего не меняют, когда службы режима редактирования недоступны. Используйте `ownerDocument` при создании DOM и обращении к API, привязанным к документу, чтобы тот же плагин корректно работал при размещении Rector во встроенном фрейме или в другом контексте просмотра.
+## Runtime и экземпляр блока
 
-В режиме только для просмотра Rector по умолчанию отключает кнопки, поля ввода и другие элементы управления внутри блока. Элемент, который меняет только представление, можно оставить активным с помощью атрибута `data-oe-read-only-interactive`: например, кнопку копирования, навигацию карусели или раскрытие спойлера. Не добавляйте этот атрибут голосованию, загрузке файлов, настройкам, переходам с побочными действиями приложения и любым операциям, меняющим сохраняемые данные. Атрибут является явным обещанием безопасности элемента в режиме только для просмотра, но сам по себе не делает обработчик безопасным.
+`BlockPluginRuntime` содержит `create(initial, context)` и `destroy()`. Каждый `create()` возвращает один `BlockInstance`.
 
-### Необязательные возможности блока
+`BlockInstance` предоставляет `element`, `read()`, необязательный `update(next, previous)`, необязательный `editableFields()`, `setReadOnly(readOnly)`, необязательный `focus(target)` и `destroy()`.
 
-| Член | Назначение |
+`BlockInstanceContext` предоставляет:
+
+| Член | Использование |
 | --- | --- |
-| `inlineTools` | `true` включает общий набор редактора, массив строк задаёт разрешённые инструменты блока, а `false` отключает их |
-| `getPluginConfig()` | передать Rector неизменяемую конфигурацию конструктора, чтобы редактор мог применить общие параметры `injectStyles` и `css`, не обращаясь к закрытым полям; `BlockPluginAbstract` уже реализует этот метод |
-| `setPlaceholder(value)` | принять общий `placeholder` редактора для настроенного стандартного блока; значение, переданное непосредственно плагину, должно иметь более высокий приоритет |
-| `validate(data)` | принять или отклонить данные плагина |
-| `destroy(element)` | освободить обработчики и ресурсы блока |
-| `dispose()` | освободить общие ресурсы всех блоков плагина при уничтожении редактора-владельца |
-| `isEmpty(element)` | определить правило пустого блока |
-| `toolbox` | один или несколько вариантов вставки с исходными данными |
-| `shortcuts` | сочетания клавиш внутри блока |
-| `merge(element, data)` | объединить следующий совместимый блок с текущим |
-| `renderSettings(element)` | создать интерфейс настроек блока |
-| `changeLevel(element, level)` | заменить элемент с настраиваемым уровнем |
-| `onSettingsAction(element, action)` | применить именованное действие настроек |
-| `pasteConfig` | объявить обрабатываемые теги, файлы и текстовые шаблоны |
-| `onPaste(event)` | преобразовать совпавшую вставку в данные плагина |
-| `waitForPaste(element)` | дождаться работы плагина до записи вставки в историю |
-| `exportData(element)` | выдать нейтральные данные для преобразования блока |
-| `splitSelection(element, range)` | описать оставшиеся и переносимые данные при преобразовании части структурированного блока |
-| `renderInlineControls(element, ctx)` | добавить специальные элементы во внутристрочную панель |
-| `mapTextFields(data, transform)` | открыть все поля с HTML для переноса виджетов |
+| `ownerDocument` | Создание DOM и browser-объектов в realm редактора. |
+| `signal` | AbortSignal конкретного экземпляра блока. |
+| `getData()` | Чтение текущих канонических данных. |
+| `updateData(producer)` | Model-first транзакция данных блока. |
+| `commitDomMutation(operation)` | Перенос неизбежной plugin-owned DOM-мутации в каноническую историю. |
+| `requestSplit()` | Запрос структурного split у ядра. |
+| `requestExit()` | Запрос выхода из пустого структурированного блока. |
+| `isReadOnly()` | Можно ли сейчас изменять документ. |
 
-Реализуйте только те возможности, которыми плагин действительно владеет. Наличие необязательных методов определяется во время выполнения.
+Унаследованный `createId(prefix)` создаёт стабильные вложенные идентификаторы.
 
-#### Конфигурация плагина во время выполнения
+## Схема
 
-Плагин может открыть общие параметры через `getPluginConfig()`:
+`BlockDataSchema` владеет `currentVersion`, `legacyVersion`, `createDefault()`, `decode()`, `encode()` и необязательным `mapRichText()`.
 
-```ts
-interface PluginRuntimeConfig extends Record<string, unknown> {
-  injectStyles?: boolean
-  css?: string
-}
-```
+Внешние данные декодируются один раз на границе. Каждое model-first изменение кодируется до commit. `mapRichText()` обозначает все HTML-поля стабильными логическими ключами; через эту же границу работают inline-виджеты, структурное выделение и частичное преобразование.
 
-`BlockPluginAbstract` копирует и замораживает переданную конструктору конфигурацию. Потребитель может безопасно читать её, но изменение исходного объекта не перенастроит работающий экземпляр. Значение `injectStyles: false` отключает адреса из статического массива `styles` плагина. Поле `css` содержит адрес одной дополнительной таблицы стилей, загружаемой после статических стилей; это не строка с правилами CSS. Рядом с общими параметрами плагин может объявлять собственные поля конфигурации.
+## Capabilities
 
-#### Специальные элементы внутристрочной панели
+`BlockCapabilities` может содержать `empty`, `formatting`, `merge`, `conversion`, `selectionSlice`, `inlineControls`, `settings`, `paste` и `shortcuts`.
 
-Метод `renderInlineControls(element, context)` добавляет элементы управления, относящиеся только к активному блоку:
+- `empty.isEmpty(data)` определяет поведение пустого блока.
+- `formatting.inlineTools` равно `true` или allowlist.
+- `merge.merge(target, source)` — чистое объединение данных.
+- `conversion` экспортирует/импортирует нейтральный `ConversionPayload`.
+- `selectionSlice.slice(...)` описывает часть структурированных данных без изменения DOM.
+- `inlineControls` переиспользует model-first settings actions во внутристрочной панели.
+- `settings` — actions capability или model-first panel.
+- `paste` маршрутизирует text/HTML/files в block или rich-text result.
+- `shortcuts` возвращает действия единому keyboard router ядра.
 
-```ts
-interface InlineControlContext {
-  suppressSelectionChange(): void
-  mutate<T>(operation: () => T): T | undefined
-  onContentElementChanged(newElement: HTMLElement): void
-}
+## Настройки, вставка и клавиши
 
-interface InlineControlGroup {
-  elements: HTMLElement[]
-  destroy?(): void
-}
-```
+`SettingsActionCapability` содержит `kind`, `actions(data, context)` и `apply(data, actionId, context)`.
 
-Верните `InlineControlGroup` или `null`, если в текущем состоянии блоку нечего показывать. Rector помещает все элементы из `elements` в специальную часть внутристрочной панели и вызывает `destroy()` при удалении этой группы. Вызывайте `mutate()` один раз на одно завершённое синхронное действие. Если элемент управления заменяет элемент содержимого плагина, перед заменой вызовите `suppressSelectionChange()`, а после неё — `onContentElementChanged(newElement)`, чтобы Rector сохранил правильную принадлежность блока и состояние выделения.
+`SettingsPanelCapability` содержит `kind: 'panel'` и `render(context)`; context предоставляет `getData()` и `updateData()`.
 
-Контекст принадлежит одной группе элементов управления и исходному экземпляру блока. Закрытие или обновление группы, замена блока (даже с тем же ID) и уничтожение панели делают контекст неактивным. Его методы больше не выполняют действий; `mutate()` возвращает `undefined`, не вызывая операцию. Активный вызов сохраняет возвращаемое значение. Пустая группа сразу освобождается, а ошибка или результат `null` при создании группы не оставляют активного контекста.
+`PasteCapability` содержит `accepts(input)` и `resolve(input, context)`. Resolver получает `AbortSignal`, `ownerDocument` и `createId()`.
 
-### Преобразование части данных
+`ShortcutCapability` содержит `handle(input, data, context)`. Он возвращает `native`, `consume`, `exit`, `focus` или `update`; структурную транзакцию выполняет ядро.
 
-Обычный текстовый блок можно разделить по HTML-диапазону. Структурированный плагин, например список, должен самостоятельно описать границы данных методом `splitSelection(element, range)`:
+`SelectionSliceCapability` содержит `slice(data, start, end, context)` и возвращает `before`, нейтральный `selected` payload и `after`.
+
+## Минимальное definition
 
 ```js
-static isTextBlock = true
-
-splitSelection(element, range) {
-  const selected = readSelectedItems(element, range)
-  if (selected.length === 0) return null
-
-  const remaining = readUnselectedItems(element, range)
-  return {
-    remainingData: remaining.length
-      ? { style: element.dataset.style, items: remaining }
-      : null,
-    selectedData: {
-      text: selected.join('<br>'),
-      items: selected,
+export function createCalloutPlugin() {
+  const schema = Object.freeze({
+    currentVersion: 1,
+    legacyVersion: 1,
+    createDefault: () => ({ text: '' }),
+    decode({ data }) {
+      if (!data || typeof data.text !== 'string') throw new TypeError('Invalid callout')
+      return { dataVersion: 1, data: { text: data.text } }
     },
-  }
-}
-```
+    encode(data) {
+      if (typeof data.text !== 'string') throw new TypeError('Invalid callout')
+      return { dataVersion: 1, data: { text: data.text } }
+    },
+    mapRichText(data, transform) {
+      return { ...data, text: transform(data.text, 'text') }
+    },
+  })
 
-Метод только описывает результат и не должен менять `element`, создавать блоки, перемещать выделение или создавать события. Rector применяет возвращённые данные внутри активной команды:
-
-- `remainingData` заменяет данные исходного плагина; значение `null` удаляет полностью использованный исходный блок;
-- `selectedData` передаётся целевому типу, конструктор которого объявляет `static isTextBlock = true`;
-- нетекстовый целевой тип получает только собственные исходные данные из меню или переключателя;
-- новый блок вставляется сразу после оставшегося исходного блока или на позицию удалённого блока.
-
-Верните `null`, если диапазон нельзя безопасно представить данными плагина. Сохраняйте очищенную внутристрочную разметку и используйте те же поля, что в `save()` и `mapTextFields()`. Эталонная реализация находится в плагине List: выделенные пункты удаляются, нумерация оставшихся пунктов обновляется, а при выборе текстового типа выделенная разметка становится полем `text`.
-
-Резервный алгоритм работает только с корневым элементом плагина, у которого установлено `contenteditable="true"` и который сохраняет содержимое в поле `text`. Он никогда не перезаписывает оболочку с несколькими редактируемыми дочерними элементами. Если структурный плагин не реализует `splitSelection()` или возвращает `null`, Rector не меняет документ. Преобразование всего блока по-прежнему доступно через `exportData()`.
-
-### Обработка вставки из буфера
-
-Контракт вставки различает HTML-теги, файлы и совпавший текст:
-
-```ts
-interface PasteConfig {
-  tags?: string[]
-  files?: string[]
-  patterns?: RegExp[]
-}
-
-interface TagPasteEvent {
-  type: 'tag'
-  element: HTMLElement
-  tag: string
-}
-
-interface FilePasteEvent {
-  type: 'file'
-  file: File
-}
-
-interface PatternPasteEvent {
-  type: 'pattern'
-  data: string
-}
-
-type PasteEvent = TagPasteEvent | FilePasteEvent | PatternPasteEvent
-```
-
-```js
-pasteConfig = {
-  tags: ['aside'],
-  patterns: [/^!callout\s+/i],
-}
-
-onPaste(event) {
-  if (event.type === 'tag') {
-    return { text: event.element.innerHTML }
-  }
-  if (event.type === 'pattern') {
-    return { text: event.data.replace(/^!callout\s+/i, '') }
-  }
-  return null
-}
-```
-
-Для файлов используются шаблоны MIME, например `image/*`. Считайте HTML, текст и файлы из буфера недоверенными. `onPaste()` возвращает данные плагина и не должен самостоятельно вставлять блок или создавать события.
-
-#### Сочетания клавиш блока
-
-```ts
-interface ShortcutEntry {
-  combo: string
-  handler(contentElement: HTMLElement): void
-}
-```
-
-Каждый элемент `shortcuts` регистрирует нормализованное сочетание, например `Ctrl+Shift+K`. Rector отменяет стандартное действие браузера, передаёт в `handler()` элемент содержимого текущего блока и выполняет обработчик внутри одной транзакции изменения плагина. Обработчик сочетания должен оставаться синхронным. Если он запускает асинхронную работу, сохраните `BlockMutationContext`, полученный в `render()`, и вызовите `context.mutate()` только после завершения этой работы.
-
-### Отображение текстовых полей
-
-Текстовый плагин с постоянными внутристрочными виджетами должен перечислить каждое поле, содержащее HTML:
-
-```js
-mapTextFields(data, transform) {
-  data.text = transform(data.text)
-}
-```
-
-Для списка обработайте каждый элемент; для цитаты — текст и подпись, если оба поля поддерживают виджеты. Соответствующий рендерер обязан повторять тот же набор полей.
-
-## Контракт внутристрочного инструмента
-
-Внутристрочный инструмент проверяет сохранённое выделение и переключает форматирование. Минимально нужны `type`, `icon`, `isActive(selection)` и `toggle(selection)`.
-
-Для форматирования одним HTML-элементом используйте открытую фабрику `createSimpleInlineTool()`. Полный объектный контракт нужен инструменту с панелью выбора значения, изменяемым состоянием кнопки или собственным раскрывающимся элементом.
-
-Для панели, например формы ссылки или выбора цвета, используйте `renderActions(ctx)`. `onMount(button, mutations)` нужен только установленному элементу с прямым доступом к изменению диапазона. Одно завершённое действие должно создавать одно изменение. Освобождайте обработчики в `destroy()`.
-
-Полный запускаемый пример, все необязательные методы, правила регистрации, постоянные элементы управления и каталог встроенных типов приведены в разделе [Внутристрочные инструменты и плагины](/ru/guide/inline-extensions).
-
-## Контракт внутристрочного плагина
-
-Внутристрочный плагин сохраняет структурированные данные в тексте. Он обязан сохранить переданный в `createWidget(data, id)` идентификатор в атрибуте `data-id` корневого элемента.
-
-```ts
-interface InlinePlugin {
-  readonly type: string
-  readonly title: string
-  readonly icon: string
-  createWidget(data: Record<string, string>, id?: string, context?: { ownerDocument: Document }): HTMLElement
-  hydrate(element: HTMLElement, context: InlinePluginContext): void
-  getData(element: HTMLElement): Record<string, string>
-  isCommitted?(element: HTMLElement): boolean
-}
-```
-
-Необязательные `trigger`, `pasteConfig`, `onPatternMatch()`, `onEdit()`, `onCancel()`, `onCommit()` и `insertFresh()` поддерживают подсказки и преобразование шаблонов. Символ активации должен состоять ровно из одного символа Юникода. Редактор вызывает `onCancel()`, когда активный сеанс ввода отменён, чтобы плагин закрыл временный интерфейс и прервал незавершённую работу. Метод `isCommitted()` позволяет не сохранять незавершённый виджет как структурированные данные, оставляя его видимый текст обычным текстом. Изменения сохранённых данных виджета выполняются через `context.mutate(target, operation)`.
-
-Если передан `context.ownerDocument`, создавайте DOM виджета в этом документе, чтобы редактор во встроенном фрейме или другом контексте документа не использовал окружающие DOM-конструкторы. Один объект плагина может обслуживать много элементов виджетов. Храните состояние отдельного элемента в `WeakMap`, а не в одном общем поле.
-
-Хранение виджетов, вставка, регистрация рендерера и сравнение с инструментами форматирования описаны в разделе [Внутристрочные инструменты и плагины](/ru/guide/inline-extensions).
-
-## Контракт рендерера блока
-
-Рендерер блока превращает сохранённые данные в итоговый DOM:
-
-```js
-export function createCalloutRenderer(prefix = 'oe') {
-  return {
+  return Object.freeze({
     type: 'callout',
-    styles: [new URL('./callout-renderer.css', import.meta.url).href],
-    render(block, parseInline, context) {
-      const ownerDocument = context?.ownerDocument ?? document
-      const root = ownerDocument.createElement('aside')
-      root.className = `${prefix}-callout`
-      root.append(parseInline(String(block.data.text ?? '')))
-      return root
+    label: Object.freeze({ key: 'title', fallback: 'Callout' }),
+    icon: '<svg viewBox="0 0 24 24">...</svg>',
+    styles: Object.freeze([new URL('./callout.css', import.meta.url).href]),
+    schema,
+    capabilities: Object.freeze({
+      formatting: Object.freeze({ inlineTools: true }),
+      empty: Object.freeze({ isEmpty: data => data.text.trim() === '' }),
+    }),
+    setup() {
+      return {
+        create(initial, context) {
+          const element = context.ownerDocument.createElement('aside')
+          element.contentEditable = context.isReadOnly() ? 'false' : 'true'
+          element.textContent = initial.text
+          return {
+            element,
+            read: () => ({ text: element.innerHTML }),
+            editableFields: () => [{ key: 'text', element, mode: 'rich-text' }],
+            setReadOnly(value) { element.contentEditable = value ? 'false' : 'true' },
+            focus() { element.focus() },
+            destroy() {},
+          }
+        },
+        destroy() {},
+      }
     },
-    mapTextFields(data, transform) {
-      data.text = transform(data.text)
-    },
-  }
+  })
 }
 ```
 
-Зарегистрируйте его через `renderer.registerRenderer()`. `context.ownerDocument` указывает документ, которому принадлежит цель `renderTo()`; создавайте DOM рендерера в контексте этого документа. `parseInline()` очищает поддерживаемое форматирование и восстанавливает зарегистрированные внутристрочные виджеты. Не назначайте недоверенные данные плагина напрямую в `innerHTML`.
+## Правила владения
 
-## Стили и локализация
+Definitions неизменяемы и переиспользуемы. Таймеры, кэши и подписки конкретного редактора принадлежат `BlockPluginRuntime`; listeners, observers, requests и object URLs конкретного блока принадлежат `BlockInstance` и его `signal`.
 
-Ограничивайте таблицу стилей расширения его корневым классом. URL редакторских стилей объявляются через статическое `styles`, а URL стилей рендерера — в массиве `styles` объекта рендерера. Не включайте стили демонстрации или документации в рабочий пакет.
+Нельзя использовать DOM как хранилище. Явные controls вызывают `updateData()`; обычный ввод в editable fields синхронизирует ядро. Async-результат перед commit обязан проверить свой signal/lifetime.
 
-Ключи локализации блока должны начинаться с `plugin.<type>.*`. `createEditor()` передаёт в `setI18n()` словарь, уже ограниченный этим префиксом, поэтому вызов `i18n.t('title')` из примера обращается к ключу `plugin.callout.title`. Экспортируйте словари из пакета расширения и объединяйте выбранный язык со словарём редактора:
+## Связь с renderer
 
-```js
-import ru from '@shelamkoff/rector/locale/ru'
-import calloutRu from '@acme/rector-callout/locale/ru'
-
-createEditor({
-  holder,
-  plugins: [new Callout()],
-  locale: { ...ru, ...calloutRu },
-})
-```
-
-Если расширение поддерживает два языка, поставляйте английский и русский словари. Машинные идентификаторы, ключи конфигурации и сохраняемые значения не должны зависеть от языка.
-
-## Освобождение ресурсов и владение
-
-Освобождайте каждый ресурс там, где он принадлежит. `destroy(element)` может
-вызываться при замене, удалении или восстановлении отдельного блока из истории.
-`dispose()` вызывается один раз, когда редактор освобождает экземпляр плагина:
-
-- удаляйте обработчики блока и отменяйте его запросы в `destroy(element)`;
-- удаляйте общие обработчики и кэши плагина в `dispose()`;
-- отключайте наблюдатели и таймеры;
-- уничтожайте сторонние экземпляры;
-- сохраняйте объектные URL, используемые снимками истории, до `dispose()`, а затем отзывайте их;
-- удаляйте временные всплывающие элементы через переданный контекст;
-- игнорируйте асинхронные результаты после уничтожения или отсоединения элемента.
-
-## Проверка перед публикацией
-
-1. Опишите установку, путь импорта, конфигурацию, форму данных, стили, локализацию и освобождение ресурсов.
-2. Проверьте пустые, корректные, ошибочные и исторические данные.
-3. Проверьте устойчивость цикла `render → save → render`.
-4. Проверьте пошаговую отмену и повтор каждого элемента управления.
-5. Проверьте вставку враждебного HTML, URL и чрезмерно больших файлов.
-6. Проверьте несколько блоков и несколько экземпляров редактора.
-7. Для нового типа блока поставьте соответствующий рендерер.
-8. Экспортируйте декларации и CSS через карту `exports` пакета.
-
-Конкретные контракты собраны в [каталоге блочных плагинов](/ru/reference/editor/plugins/index), [каталоге внутристрочных плагинов](/ru/reference/editor/inline-plugins/index) и [каталоге рендереров](/ru/reference/editor/renderers/index).
+Для нового сохраняемого типа блока нужен read-only renderer с теми же type/schema semantics. DOM renderer не зависит от DOM `BlockInstance`.

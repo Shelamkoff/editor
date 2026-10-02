@@ -1,311 +1,85 @@
 # Editor API
 
-`createEditor()` returns an `IEditor` handle. It exposes document operations, a constrained block API, typed event subscriptions, the root element, and lifecycle state. Internal mutable managers are intentionally unavailable.
+`createEditor()` returns one `IEditor` handle. The public API exposes canonical data and commands; it does not expose mutable block DOM or internal managers.
 
 ## Editor handle
 
 ```ts
 interface IEditor {
-  save(): EditorDocument
-  render(data: EditorDocument): void
-  clear(): void
-  focus(): void
-  /** Restore exactly one previous committed history step. */
-  undo(): boolean
-  /** Reapply exactly one previously undone history step. */
-  redo(): boolean
-  setReadOnly(readOnly: boolean): void
-  insertInlinePlugin(type: string, data?: Record<string, string>): boolean
-  destroy(): void
-  readonly isReady: boolean
-  readonly readOnly: boolean
+  readonly blocks: EditorBlocksApi
   readonly canUndo: boolean
   readonly canRedo: boolean
-  readonly blocks: EditorBlocksApi
-  readonly events: EditorEventSubscriptions
-  readonly rootElement: HTMLElement
+  readonly readOnly: boolean
+  readonly documentMode: 'editable' | 'preserved'
+
+  save(): EditorDocument
+  render(document: EditorDocument): void
+  clear(): void
+  undo(): boolean
+  redo(): boolean
+  focus(): boolean
+  setReadOnly(readOnly: boolean): void
+  insertInlinePlugin(type: string, data?: Record<string, unknown>): boolean
+  on(type: EditorEventName, listener: (payload?: unknown) => void): () => void
+  destroy(): void
 }
 ```
 
-After `destroy()`, `isReady` remains readable and returns `false`; calling `destroy()` again is safe. Accessing any other property or method throws `Editor instance is destroyed`.
-
-## `save()`
-
-Serializes every block, validates plugin data, marshals inline widgets, and returns a detached `EditorDocument`. Saving is synchronous because block plugin `save()` methods are synchronous. Serialization and validation failures are thrown to the caller.
-
-```js
-try {
-  const document = editor.save()
-  await storage.put(document)
-} catch (error) {
-  reportSaveFailure(error)
-}
-```
-
-In strict validation mode, invalid block data throws before a document is returned. A plugin save failure is reported through diagnostics when enabled and is rethrown to the caller. If the application persists asynchronously, pass the returned snapshot to its asynchronous storage API as shown above.
-
-## `render(data)`
-
-Normalizes and replaces the complete live document. The operation is all-or-nothing: Rector prepares the replacement before committing it. It creates one history step and focuses the restored caret when supplied internally, otherwise the end of the first block. Use it after loading or selecting another document.
-
-```js
-editor.render(documentFromStorage)
-```
-
-Do not call `render()` to update one block. Use the block API or the mutation context of the owning plugin.
-
-## `clear()`
-
-Replaces the document with one empty block of `defaultBlock` type, makes it the current block, and creates one history step. The method does not request or restore browser focus. Replacing the active block detaches its DOM, so focus may be lost; call `editor.focus()` afterwards when the application needs focus to remain in the editor. Undo restores the previous complete document; redo applies the clear again.
-
-```js
-editor.clear()
-editor.focus()
-```
-
-## `focus()`
-
-Moves focus into the current editable block. It has no effect on stored data and creates no history entry.
-
-## History controls
-
-`undo()` restores the previous committed document step and `redo()` restores the next one. Each method returns `true` only when it performed a restore. It returns `false` when the corresponding stack is empty or the editor is read-only. `canUndo` and `canRedo` expose the same availability without changing the document.
-
-Availability changes immediately on input: it does not wait for `tuning.undo.debounceMs` to close the coalesced typing step. A new input branch invalidates redo immediately as well.
-
-Use `history:changed` to keep application controls synchronized. Read the getters once after creating the editor because the initial state exists before an application can subscribe.
-
-```js
-function syncHistory() {
-  undoButton.disabled = !editor.canUndo
-  redoButton.disabled = !editor.canRedo
-}
-
-undoButton.addEventListener('click', () => editor.undo())
-redoButton.addEventListener('click', () => editor.redo())
-
-const stopHistorySync = editor.events.on('history:changed', syncHistory)
-syncHistory()
-```
-
-The configured `tuning.undo.maxStack` limits retained snapshots. New edits after an undo discard the redo branch. See [Commands and history](/guide/commands-history) for transaction boundaries and text-input coalescing.
-
-## Editing and read-only modes
-
-`readOnly` reports the current mode. `setReadOnly(true)` disables interactive editing on the existing instance; `setReadOnly(false)` mounts the editing infrastructure again. Passing the current value is a no-op. Passing a non-boolean value throws a `TypeError`. Changing the mode while an editor command transaction is active is rejected before any edit-mode resources are rebuilt.
-
-```js
-editor.setReadOnly(true)
-console.log(editor.readOnly) // true
-
-editor.setReadOnly(false)
-```
-
-A mode transition commits pending text input, rebuilds plugin DOM with the new `BlockMutationContext.readOnly` value, and mounts or releases edit-only managers. The document and history stacks are preserved. The transition does not create a history step, emit a document-change notification, call `onChange`, or request or restore browser focus. Because mounted plugin elements are replaced, current focus may be lost; call `editor.focus()` after returning to edit mode when required. It emits `readOnly:changed`, followed by `history:changed` because history controls are unavailable while read-only.
-
-Read-only mode blocks user editing, plugin mutation controls, inline insertion, and history restoration. Host-authorized document methods (`save()`, `render()`, `clear()`, and `editor.blocks` structural commands) remain available so an application can load or replace content. Use the document renderer instead when no editor lifecycle or programmatic editing API is required.
-
-Programmatic document mutations performed while read-only are still recorded in history. `canUndo` and `canRedo` remain `false` and `undo()`/`redo()` remain unavailable until `setReadOnly(false)` restores editing; the recorded steps can then be restored normally.
-
-Because a transition destroys and recreates each plugin's mounted element, application code must not retain plugin-owned DOM nodes. Custom plugins must release element-specific listeners and resources in `destroy(element)` and derive interactive controls from `context.readOnly` each time `render(data, context)` runs.
-
-## `insertInlinePlugin(type, data?)`
-
-Inserts a registered inline widget at the current caret or activates its custom insertion flow. Returns `false` when the editor is read-only, the type is unknown, or no suitable caret exists.
-
-```js
-const inserted = editor.insertInlinePlugin('mention', {
-  id: '42',
-  name: 'Ada',
-})
-```
-
-The plugin owns the exact data keys. Consult its reference page before calling this method.
-
-## `rootElement`
-
-Returns Rector's root element inside the holder. Use it for layout integration, scoped application styles, or accessibility relationships. Do not remove, reorder, or replace Rector-owned descendants.
+`save()` returns a detached canonical document. `render()` replaces the document through the same schema/migration boundary used at creation. `clear()` creates one empty default block. `undo()` and `redo()` return `false` when no matching history step exists or editing is unavailable.
 
 ## Blocks API
 
-`editor.blocks` contains queries and structural commands. Returned `EditorBlockView` objects expose identity and safe view state but omit destructive internal methods.
+`editor.blocks` is identity-based; commands use block IDs, not indexes as mutation handles.
 
-### Queries
-
-| Method | Result |
+| Member | Meaning |
 | --- | --- |
-| `getBlockByIndex(index)` | block at an ordered index or `undefined` |
-| `getBlockById(id)` | block with a stable id or `undefined` |
-| `getCurrentBlock()` | current block or `undefined` |
-| `getCurrentIndex()` | current ordered index; may be `-1` while no block is current |
-| `getBlockCount()` | total block count |
-| `getBlockIndex(id)` | current index for an id, or `-1` when it is absent |
-| `getSelectedBlocks()` | selected block views |
-| `hasSelectedBlocks()` | whether a block selection exists |
+| `count` | Number of canonical blocks. |
+| `currentId` | Current interaction block ID, or `null`. |
+| `get(id)` | Immutable `EditorBlockSnapshot` by ID. |
+| `at(index)` | Immutable snapshot by current order. |
+| `list()` | Detached immutable snapshots in document order. |
+| `indexOf(id)` | Current index of an ID, or `-1`. |
+| `setCurrent(id)` | Set the interaction target. |
+| `selectedIds()` | IDs selected by the transient interaction layer. |
+| `select(ids)` | Set transient block selection. |
+| `clearSelection()` | Clear transient block selection. |
+| `insert(input, index?)` | Insert `InsertBlockInput`; returns the fresh block ID. |
+| `update(id, producer)` | Apply a model-first `BlockUpdate`. |
+| `remove(id)` | Remove one block. |
+| `move(id, to)` | Move one ID to a final index. |
+| `convert(id, target)` | Convert through registered conversion capabilities. |
+| `focus(id, target?)` | Focus a logical editable field. |
+| `Symbol.iterator` | Iterate immutable snapshots. |
 
-The API is iterable:
+## Immutable snapshots
 
-```js
-for (const block of editor.blocks) {
-  console.log(block.id, block.type)
-}
-```
+`EditorBlockSnapshot` contains `id`, `type`, `dataVersion`, `data`, optional `tunes`, optional `inline`, optional `revision`, and activation `status`.
 
-This is the public `Symbol.iterator` implementation of `EditorBlocksApi`; prefer the `for...of` form above instead of invoking it directly.
+Snapshots never expose the mounted `element`. DOM is a projection of canonical state, not a persistence API. Use block IDs plus `editor.blocks` commands for host mutations.
 
-### Selection and focus commands
+## Events
 
-```js
-editor.blocks.setCurrentIndex(0)
-editor.blocks.selectBlocks(['intro', 'body'])
-editor.blocks.clearSelection()
-```
+Subscribe through `editor.on(type, listener)`. It returns an unsubscribe function.
 
-`selectBlocks()` and `clearSelection()` emit `block:selected` only when the selected block IDs actually change. The payload contains the selected IDs in document order. `setCurrentIndex()` changes the current block used by keyboard operations, but does not change block selection and does not emit `block:selected`. `EditorBlockView.focus()` focuses that block; `isEmpty()` delegates to the plugin's emptiness contract.
+Public event names are:
 
-### Structural commands
+- `editor:ready`
+- `editor:destroyed`
+- `transaction:committed`
+- `document:changed`
+- `history:changed`
+- `readOnly:changed`
 
-```ts
-insert(type, data?, index?, id?, inline?): EditorBlockView | undefined
-remove(index): void
-move(fromIndex, toIndex): void
-convert(index, type, data?): EditorBlockView | undefined
-```
+Events are observations. Application and extension code do not emit editor events.
 
-`insert()` places the new block immediately after the current block when `index` is omitted; if no block is current, it uses the end of the document. It generates an id when `id` is omitted. Pass an `inline` map only when importing already serialized inline widgets.
+## Lifetime
 
-`remove()` and `move()` use current indices. Resolve an id immediately before the operation when document order may have changed.
+`destroy()` is idempotent. It aborts editor-scoped and block-scoped work, removes owned DOM/styles/listeners, and releases the holder lease.
 
-`convert()` asks the source plugin for exported data, merges explicitly supplied data, and mounts the target plugin while preserving block identity when conversion succeeds.
+All retained editor/block handles are revoked after destruction. Reads, writes and new subscriptions reject instead of recreating resources or exposing stale state. An unsubscribe function obtained before destruction remains safe to call.
 
-Every structural method is already a command and therefore produces its own history step. See [Commands and history](/guide/commands-history).
+## DOM ownership
 
-## Block view
+The host owns `holder`; Rector owns the nodes placed inside it while the editor is live. Do not persist references to projected block nodes across render, conversion, undo/redo, read-only transitions or document replacement.
 
-```ts
-interface EditorBlockView {
-  readonly id: string
-  readonly type: string
-  readonly element: HTMLElement
-  readonly contentElement: HTMLElement
-  readonly focused: boolean
-  readonly selected: boolean
-  readonly hasInlineTools: boolean
-  readonly canMerge: boolean
-  readonly version: number
-  focus(): void
-  isEmpty(): boolean
-}
-```
-
-`element` and `contentElement` are escape hatches for measurement and integration. Application code must not mutate their persisted content. `version` changes when Rector marks the block dirty and can be used as an observation token, not as a document version. A retained view resolves the current live block by ID. It throws while that ID is absent, but can resolve a later block if the same ID reappears. After a committed removal Rector evicts its own cached reference so removed IDs do not accumulate; a later `editor.blocks` lookup may therefore return a different view object for the reused ID.
-
-## Event subscriptions
-
-`editor.events` exposes only `on`, `off`, and `once`. `on()` and `once()` return an unsubscribe function.
-
-```js
-const stop = editor.events.on('block:moved', ({ blockId, from, to }) => {
-  console.log(blockId, from, to)
-})
-
-stop()
-```
-
-### Event catalog
-
-| Event | Payload | When emitted |
-| --- | --- | --- |
-| `block:added` | `{ blockId, index }` | block inserted |
-| `block:removed` | `{ blockId, index }` | block removed |
-| `block:moved` | `{ blockId, from, to }` | block reordered |
-| `block:converted` | `{ blockId, from, to }` | type converted |
-| `block:changed` | `{ blockId }` | affected block committed |
-| `block:focused` | `{ blockId }` | focus entered a block |
-| `block:blurred` | `{ blockId }` | focus left a block |
-| `block:selected` | `{ blockIds }` | user or Blocks API selection changed |
-| `editor:ready` | none | composition completed |
-| `editor:willChange` | none | outer command begins |
-| `editor:changed` | none | command mutation committed |
-| `history:commit` | none | one history step committed |
-| `history:changed` | `{ canUndo, canRedo }` | public history availability changed |
-| `readOnly:changed` | `{ readOnly }` | `setReadOnly()` completed a mode transition |
-| `editor:destroyed` | none | cleanup completed |
-| `toolbar:opened` | `{ type }` | block or inline toolbar opened |
-| `toolbar:closed` | `{ type }` | toolbar closed |
-| `paste:applied` | `{ startBlockId?, endBlockId? }` | paste transaction committed |
-| `dragHandle:clicked` | none | drag handle activated |
-
-Events are synchronous observations. Avoid expensive work inside a handler; schedule it separately. `editor:willChange` is observational only: mutating editor state from that handler is rejected because structural commands may already have captured block identities, indices, focus, or selection for the transaction. While a command transaction is active, public block mutations and focus changes are rejected, `undo()` and `redo()` return `false`, and `setReadOnly()` and `destroy()` are rejected until the transaction completes. For persistence, prefer the serialized `onChange` callback.
-
-`editor:ready` is emitted during composition, before `createEditor()` returns the public handle. A host that needs a readiness notification must pass `onReady` in the configuration; subscribing to `editor.events` after creation cannot observe that already completed event.
-
-## Public utilities
-
-The root entry also exports utilities used by custom integrations and extensions:
-
-| Export | Purpose |
-| --- | --- |
-| `uid()` | create a six-character identifier from cryptographically secure browser randomness |
-| `sanitizeHtml(html)` | retain Rector's supported inline-formatting subset and remove unsupported markup |
-| `escapeHtml(text)` | convert plain text to an HTML-safe string |
-| `DocumentSchema` | normalize and migrate an `EditorDocument` without mounting an editor |
-| `InlinePluginRegistry` | low-level registry for a custom editor composition |
-| `createDefaultInlineTools(options?)` | construct the built-in formatting tool set |
-| `createColorSwatchPlugin()` | construct the color-swatch inline plugin |
-| `createMentionPlugin(options?)` | construct the mention inline plugin |
-
-`uid()` produces a candidate identifier; an application assigning ids outside the editor must still check uniqueness in its document. Use `textContent` instead of HTML whenever markup is not required. `sanitizeHtml()` is limited to Rector's formatting model and is not a general authorization boundary.
-
-Normal editor integration does not instantiate `InlinePluginRegistry`. Pass plugin objects through `inlinePlugins` and let `createEditor()` own registration and cleanup. A manually created registry must contain unique plugin types and trigger characters and must be destroyed by its owner.
-
-The extension factories are available from the root entry for convenience. Their documented subpath imports remain preferable when an application wants the narrowest possible dependency boundary. See [Inline tools and plugins](/guide/inline-extensions).
-
-See [Document format](/guide/document-format) for `DocumentSchema` options and [Security and lifecycle](/guide/security-lifecycle) for sanitizer boundaries.
-
-## TypeScript entry points
-
-Use `import type` for contracts that are erased from emitted JavaScript:
-
-```ts
-import type {
-  EditorConfig,
-  EditorDocument,
-  IEditor,
-} from '@shelamkoff/rector'
-import type {
-  EditorTuning,
-  InlinePlugin,
-  InlinePluginContext,
-} from '@shelamkoff/rector/types'
-```
-
-`@shelamkoff/rector` is the normal application entry and re-exports the supported editor types. `@shelamkoff/rector/core` exposes the same editor runtime without the root convenience exports. `@shelamkoff/rector/types` is a type-only entry for extension authors and advanced adapters; it has no JavaScript runtime.
-
-The public declarations are grouped by responsibility:
-
-| Area | Main contracts |
-| --- | --- |
-| document and configuration | `EditorDocument`, `BlockData`, `EditorConfig`, `EditorTuning`, `DocumentMigration` |
-| diagnostics and validation | `EditorDiagnostic`, `EditorDiagnosticCode`, `DiagnosticThresholds`, `BlockValidationIssue` |
-| block extensions | `BasePlugin`, `BlockPlugin`, `BlockMutationContext`, `BlockPluginConstructor`, `PluginRuntimeConfig`, `ToolboxEntry`, `PasteConfig`, `PasteEvent`, `TagPasteEvent`, `FilePasteEvent`, `PatternPasteEvent`, `ShortcutEntry`, `InlineControlContext`, `InlineControlGroup` |
-| inline extensions | `InlineTool`, `InlineToolActionContext`, `InlineMutationContext`, `InlinePlugin`, `InlinePluginContext`, `InlineSelection`, `IInlinePluginRegistry` |
-| application integration | `IEditor`, `EditorBlocksApi`, `EditorBlockView`, `EditorEventSubscriptions`, `EditorEvents`, `CaretPosition` |
-| advanced composition | `IBlock`, `IBlockReader`, `IBlockManager`, `ISelectionManager`, `IBlockOperations`, `IEventBus`, `ICrossBlockSelection`, `IScopedI18n` |
-| localization | `LocaleValue`, `PluralForms`, `I18nMessages`, `MessageKey` |
-
-Application code normally needs only `IEditor`, `EditorConfig`, `EditorDocument`, and the extension contracts it implements. The manager interfaces describe dependency boundaries used by advanced composition, adapters, and tests. They do not make the editor's internal manager instances available from `createEditor()`; use `editor.blocks`, `editor.events`, and the documented `IEditor` methods for normal integration.
-
-## Lifecycle pattern
-
-```js
-const editor = createEditor(config)
-const unsubscribe = editor.events.on('history:commit', markDirty)
-
-function disposeView() {
-  unsubscribe()
-  editor.destroy()
-}
-```
-
-Destroying an editor also destroys its registered plugin instances. Do not reuse those same plugin objects in a later editor; create new instances.
+For advanced TypeScript contracts use `@shelamkoff/rector/types`.

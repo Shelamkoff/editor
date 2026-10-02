@@ -1,85 +1,8 @@
 # Inline tools and inline plugins
 
-Rector has two extension mechanisms that appear inside text but solve different problems. An inline tool changes formatting already stored in a block's HTML-bearing field. An inline plugin inserts a persistent structured widget with its own serialized data.
+Rector has two separate inline extension models: formatting tools modify a selected rich-text range, while inline plugin definitions persist structured widgets in the block's canonical `inline` map.
 
-## Choose the correct mechanism
-
-| Requirement | Inline tool | Inline plugin |
-| --- | --- | --- |
-| Bold, underline, link, font size, alignment | yes | no |
-| A mention, product token, formula, or entity reference | no | yes |
-| Own record in the document | no | yes, in `block.inline` |
-| Acts on a text selection | normally | not required |
-| Can open a suggestion popup | possible, but uncommon | yes |
-| Reconstructed by a renderer widget factory | no | yes |
-
-Formatting produced by a tool becomes part of the block plugin's normal text data, for example `{ text: 'Hello <strong>world</strong>' }`. A widget is stored as a `{{widgetId}}` token in that text and a matching entry in the block-level `inline` map.
-
-For interactive extensions, call the supplied mutation boundary once for each completed user action. Two separate clicks are two actions and therefore create two commands; one click that changes several related values is still one action.
-
-## Configure inline tools
-
-When `inlineTools` is omitted, Rector creates all built-in tools. An empty array disables the common tool set. String entries select built-in tools, while object entries register custom implementations. Array order is toolbar order.
-
-```js
-createEditor({
-  holder,
-  plugins,
-  inlineTools: ['bold', 'italic', 'link'],
-})
-```
-
-The built-in names are case-sensitive:
-
-| `type` | Behavior |
-| --- | --- |
-| `bold` | bold text |
-| `italic` | italic text |
-| `strikethrough` | struck-through text |
-| `link` | create or remove a sanitized link |
-| `code` | inline code |
-| `marker` | highlighted text using `mark` |
-| `bgcolor` | background color |
-| `fontSize` | integer font size from 1 to 200 pixels; presets are 12, 14, 16, 18, 20, 24, 28, 32, 40, 48, and 64 pixels; 16 pixels removes an explicit size |
-| `script` | superscript or subscript |
-| `align` | alignment of affected blocks |
-| `caseTransform` | toggle selected cased Unicode letters between uppercase and lowercase; digits, punctuation, and uncased scripts are unchanged |
-| `clearFormatting` | remove `b`, `i`, `s`, `code`, `mark`, `span`, `em`, `strong`, `u`, `sup`, and `sub` formatting while preserving links, inline widgets, and block alignment |
-
-`align` is grouped with inline tools because it is exposed from the selection
-toolbar, but it does not wrap the selected text in markup. It changes the whole
-affected block and persists the value only as `block.tunes.textAlign`. In document format v2 Paragraph and Heading no longer persist plugin-owned `data.align`; legacy v1 alignment is migrated into the tune.
-
-An unknown string causes `createEditor()` to throw. If the array contains the same `type` more than once, the later object replaces the earlier implementation while retaining its first toolbar position. This permits `['bold', customBold]`; use duplicate types only for an intentional replacement.
-
-## Create a tag-based tool
-
-Use the supplied factory when a tool only toggles one HTML tag. This keeps partial selections, nested formatting, selection restoration, and cleanup consistent with the built-in tools.
-
-```js
-import { createEditor } from '@shelamkoff/rector'
-import { createSimpleInlineTool } from '@shelamkoff/rector/inline-tools/utils'
-
-const underline = createSimpleInlineTool(
-  'underline',
-  'Underline',
-  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3v7a6 6 0 0 0 12 0V3"/><path d="M4 21h16"/></svg>',
-  'u',
-  'Mod+U',
-)
-
-const editor = createEditor({
-  holder,
-  plugins,
-  inlineTools: ['bold', 'italic', underline],
-})
-```
-
-The icon string is assigned to trusted editor UI through `innerHTML`. Keep it as package-owned static SVG; never build it from document or user input.
-
-## Full inline tool contract
-
-Use the object contract for behavior that cannot be represented by one tag.
+## Inline tool contract
 
 ```ts
 interface InlineTool {
@@ -88,161 +11,86 @@ interface InlineTool {
   readonly icon: string
   readonly shortcut?: string
   readonly tag?: string
-
   isActive(selection: InlineSelection): boolean
   toggle(selection: InlineSelection): void
-  renderActions?(ctx: InlineToolActionContext): HTMLElement | null
+  renderActions?(context: InlineToolActionContext): HTMLElement | null
   getIcon?(active: boolean): string
   getTitle?(active: boolean): string
   onMount?(button: HTMLElement, mutations?: InlineMutationContext): void
   isDropdownOpen?(): boolean
   destroy?(): void
 }
+```
 
-interface InlineSelection {
-  blockId: string
-  range: Range
-  text: string
+`InlineToolActionContext` contains `range`, `mutate(operation)`, `restoreSelection()`, `close()`, `showTooltip(anchor, label)`, and `hideTooltip()`. A retained context is inert after its toolbar session is retired.
+
+`InlineMutationContext` exposes `mutate(range, operation)` for mounted tool controls.
+
+Formatting tools do not own separate persisted payloads. Their DOM changes are committed through the inline toolbar transaction boundary and normalized back into the block's rich-text field.
+
+## Inline plugin definition
+
+```ts
+interface InlinePluginDefinition<Data> {
+  readonly type: string
+  readonly label: { key: string, fallback: string }
+  readonly icon: string
+  readonly styles?: readonly string[]
+  readonly trigger?: string
+  readonly schema: InlineWidgetSchema<Data>
+  readonly paste?: InlineWidgetPasteCapability<Data>
+  readonly editing?: InlineWidgetEditCapability<Data>
+  readonly insertion?: { createInitial(): InlineFreshInsertion<Data> }
+  setup(context: InlinePluginRuntimeContext): InlinePluginRuntime<Data>
 }
 ```
 
-Rector calls `isActive()` when the selection changes. It must inspect state without changing the document. A normal toolbar click wraps `toggle()` in one range command automatically, so `toggle()` changes the supplied range directly and must not start another command.
+The widget ID is owned by the document model. Rich text stores a `{{id}}` reference; the block's `inline[id]` record stores type, data version and data. Projection DOM is reconstructed from that canonical pair.
 
-`getIcon()` and `getTitle()` may reflect the current active state. `tag` describes the principal HTML tag and is metadata for compatible tools. A shortcut uses normalized names such as `Mod+U`; `Mod` means Command on macOS and Control on Windows or Linux.
+## Runtime and widget instance
 
-### Tool with an actions panel
+`InlinePluginRuntimeContext` provides `ownerDocument`, `signal`, `t(key, fallback)`, `showPopup(anchor, content, cleanup)`, and `hidePopup()`.
 
-Implement `renderActions()` when the user must enter or choose a value. Rector preserves the original range while focus is inside the panel.
+`InlinePluginRuntime` provides `create(id, initial, context)`, optional `onTriggerQuery(session)`, optional `onTriggerKeydown(event, session)`, optional `onTriggerCancel()`, and `destroy()`.
 
-```js
-const textColor = {
-  type: 'textColor',
-  title: 'Text color',
-  icon: '<svg viewBox="0 0 24 24" aria-hidden="true">...</svg>',
+Each `create()` returns an `InlineWidgetInstance` with `element`, optional `update(next, previous)`, `setReadOnly(readOnly)`, optional `focus()`, and `destroy()`.
 
-  isActive({ range }) {
-    return Boolean(range.startContainer.parentElement?.closest('[data-text-color]'))
-  },
+`InlineWidgetContext` provides `id`, `blockId`, `fieldKey`, `signal`, `getData()`, `updateData(producer)`, and `isReadOnly()`.
 
-  toggle() {},
+## Trigger sessions
 
-  renderActions(ctx) {
-    const input = document.createElement('input')
-    input.type = 'color'
+A definition may declare one Unicode-code-point `trigger`. Core owns the trigger range and passes a transient `InlineTriggerSession` to the runtime. Search/pagination UI is transient; `session.commit(data)` is the canonical insertion boundary.
 
-    input.addEventListener('change', () => {
-      ctx.restoreSelection()
-      ctx.mutate(() => applyColor(ctx.range, input.value))
-      ctx.close()
-    })
+A trigger session is invalidated by focus changes, document replacement, read-only transitions, destruction, or a newer session. Retained UI callbacks must become inert.
 
-    return input
-  },
-}
-```
+## Paste and fresh insertion
 
-Each completed choice calls `ctx.mutate()` once. Opening the panel, changing focus, or previewing a value must not create a history entry. Returning `null` from `renderActions()` tells Rector to fall back to `toggle()` for that activation.
+`paste.patterns` declares textual patterns; `fromMatch(match)` returns canonical widget data or `null`.
 
-`InlineToolActionContext` also exposes `range`, `restoreSelection()`, `close()`, `showTooltip(anchor, label)`, and `hideTooltip()`. `range` is the cloned range that was active when the panel opened. Call `restoreSelection()` immediately before applying a DOM change, then wrap the completed change in one `mutate()` call. `close()` returns from the actions panel to the tool buttons. `showTooltip()` and `hideTooltip()` reuse Rector's accessible tooltip for controls inside the panel; they do not alter selection or history.
+`insertion.createInitial()` supports programmatic insertion through `editor.insertInlinePlugin(type, data?)`. It returns either a widget payload or literal text.
 
-An actions context belongs to one panel opening. Closing, resetting or replacing that panel retires its callbacks; a later call cannot mutate the next panel's selection or close its UI. A detached original editing host also prevents mutation. The context supplied to `onMount()` belongs to that toolbar instance and is retired during teardown, including a read-only transition.
+`editing.handle(input, data)` handles model-first editing around committed widgets. It may return `update`, `remove`, or `replace-text`.
 
-Both mutation methods return `T | undefined`: a live call returns the operation's result, while a retired call returns `undefined` without executing the operation. Code that consumes the return value must handle that branch. Direct DOM writes remain the extension's responsibility; perform them inside the mutation callback.
-
-### Mounted controls and cleanup
-
-`onMount(button, mutations)` is intended for a tool that adds a dropdown or other long-lived DOM next to its button. A later dropdown action is outside the normal button-click wrapper, so it must call `mutations.mutate(range, operation)` once with the saved range. Return `true` from `isDropdownOpen()` while the overlay is active so Rector does not hide the toolbar.
-
-Use `destroy()` to remove document or window listeners, detached popups, observers, timers, and other resources created by the tool. One tool object belongs to one editor instance and must not be reused after `editor.destroy()`.
-
-## Enable tools for a block type
-
-A block plugin decides whether its editable content participates in the inline toolbar:
+## Example registration
 
 ```js
-class CodeBlock {
-  inlineTools = false
-}
-
-class Paragraph {
-  inlineTools = true
-}
-
-class Title {
-  inlineTools = ['bold', 'italic']
-}
-```
-
-Use `false` for blocks that do not expose compatible editable text. `true` or an omitted value enables the editor's configured tool set. A string array is a per-block allowlist: only tools that are both configured in the editor and named by the block are shown. An empty array disables the toolbar for that block.
-
-For a selection spanning multiple blocks, Rector shows only the intersection of their allowlists. If any selected block disables inline tools, the toolbar is hidden. Tool names that were not registered in the editor never create a button.
-
-## Configure inline plugins
-
-Register persistent widget plugins separately from formatting tools:
-
-```js
+import { createColorSwatchPlugin } from '@shelamkoff/rector/inline-plugins/color'
 import { createMentionPlugin } from '@shelamkoff/rector/inline-plugins/mention'
 
 const editor = createEditor({
   holder,
   plugins,
   inlinePlugins: [
-    createMentionPlugin({
-      searchFunction: query => searchPeople(query),
-    }),
+    createColorSwatchPlugin(),
+    createMentionPlugin({ searchFunction: searchPeople }),
   ],
 })
 ```
 
-The editor plugin and the renderer widget factory must use the same `type` and data shape. Register every inline plugin referenced by a loaded document; otherwise its token remains content that cannot be reconstructed as a widget.
+For read-only output, register separate `InlineWidgetRenderer` definitions with `EditorRenderer.inlineRenderers`. The editor runtime is never reused as a renderer persistence API.
 
-## Inline plugin contract
+## Ownership and security
 
-```ts
-interface InlinePlugin {
-  readonly type: string
-  readonly title: string
-  readonly icon: string
-  readonly styles?: readonly string[]
-  readonly trigger?: string
-  readonly pasteConfig?: { patterns: RegExp[] }
+Create DOM in `ownerDocument`, attach block/widget listeners to the supplied `signal`, and keep popup cleanup in the supplied popup host. Never derive widget data from arbitrary DOM attributes; `getData()` is the canonical source.
 
-  createWidget(data: Record<string, string>, id?: string): HTMLElement
-  mount?(rootElement: HTMLElement, ctx: InlinePluginContext): void
-  hydrate(element: HTMLElement, ctx: InlinePluginContext): void
-  getData(element: HTMLElement): Record<string, string>
-  isCommitted?(element: HTMLElement): boolean
-  onPatternMatch?(match: string): Record<string, string>
-  onEdit?(element: HTMLElement, text: string, ctx: InlinePluginContext): void
-  onCancel?(): void
-  onCommit?(element: HTMLElement, data: Record<string, string>): void
-  insertFresh?(ctx: InlinePluginContext): void
-  destroy?(): void
-}
-```
-
-`styles` declares stylesheet URLs without loading them itself. Rector combines them with base and block-plugin styles when `createEditor({ injectStyles: true })` is used; bundler-managed applications import the corresponding CSS subpath and set the flag to `false`. `createWidget()` builds the widget and must preserve a supplied id as `data-id`. `mount()` acquires editor-scoped resources after the owning root and mutation context exist. `getData()` returns JSON-compatible strings for serialization. `hydrate()` attaches behavior to restored DOM. A `trigger` must be exactly one Unicode code point. `onEdit()` receives the text between that trigger and the caret; `onCancel()` closes plugin-owned transient UI when the caret leaves the session, Escape is pressed, the trigger is removed, or the editor is destroyed. Optional paste-pattern members support automatic conversion; `insertFresh()` replaces the default programmatic insertion behavior. `destroy()` releases mounted resources and widget state when the editor is destroyed.
-
-Implement `isCommitted(element)` when a widget has a temporary state that is visible while the user is searching or editing but is not yet valid document data. Return `false` only for that temporary state. During `save()`, Rector serializes the element's visible text as ordinary text and omits its `block.inline` entry. A committed widget must return `true` (or omit the method). This prevents autosave from producing an incomplete entity while keeping the user's typed query.
-
-One plugin object can hydrate many widget elements. Store element-specific state in a `WeakMap`. Use `ctx.showPopup()` and `ctx.hidePopup()` for owned overlays, and use `ctx.mutate(target, operation)` once per completed persistent change. The target must be the widget or one of its descendants so Rector can find the owner block.
-
-`InlinePluginContext.readOnly` reports the current interaction mode. Do not mount or activate mutating controls when it is `true`. `ctx.notifyChanged(target?)` tells Rector that plugin state changed outside `ctx.mutate()` so change observers can resave it; it does not create a history snapshot and is not a replacement for `ctx.mutate()`. Prefer `ctx.mutate()` for every user action that changes persistent data. Use `notifyChanged()` only after an already committed external update or a plugin flow whose command boundary is owned elsewhere, and pass an element inside the owning block whenever possible.
-
-## Insert a widget from application code
-
-```js
-const inserted = editor.insertInlinePlugin('mention', {
-  id: 'user-42',
-  name: 'Ada Lovelace',
-})
-```
-
-The method returns `false` when the plugin is not registered or the caret is not inside a compatible text block. A plugin with `insertFresh()` may start its own interactive insertion flow instead of immediately creating a widget.
-
-## Rendering and security
-
-Formatting HTML is sanitized by Rector's inline parser. A widget is reconstructed only by a registered renderer factory; serialized data is not executed as markup. Treat plugin data, pasted strings, URLs, search results, and files as untrusted input. Escape text, sanitize URLs, and keep trusted icon SVG separate from document data.
-
-Read [Commands and history](/guide/commands-history) before implementing interactive controls, [Document format](/guide/document-format) for widget storage, and [Rendering documents](/guide/rendering) for output registration.
+Treat search results and consumer labels as text. Only package-owned icons enter trusted markup sinks.
