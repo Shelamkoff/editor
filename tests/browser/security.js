@@ -349,6 +349,7 @@ async function run() {
     },
   })
   assert((await migrationEditor.save()).blocks[0].data.text === 'Initial migration', 'initial document migration was not applied')
+  assert((await migrationEditor.save()).blocks[0].dataVersion === 2, 'migrated Paragraph did not save its current dataVersion')
   assert((await migrationEditor.save()).version === '2.0.0', 'completed migration did not save the current document version')
   migrationEditor.render({
     version: 'legacy-v0',
