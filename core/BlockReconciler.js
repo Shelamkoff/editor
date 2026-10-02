@@ -21,6 +21,7 @@ export class BlockReconciler {
   #activationResolver
   #entries = new Map()
   #fieldOwners = new WeakMap()
+  #blockOwners = new WeakMap()
   #readOnly
   #inlineProjection
   #store = null
@@ -52,6 +53,31 @@ export class BlockReconciler {
 
   getElement(id) {
     return this.#entries.get(id)?.element
+  }
+
+  get ids() {
+    return [...this.#entries.keys()]
+  }
+
+  getEditableField(id, fieldKey) {
+    return this.getEditableFields(id).find(field => field.key === fieldKey)
+  }
+
+  resolveBlockTarget(target) {
+    let node = target
+    while (node && node !== this.#container) {
+      const blockId = this.#blockOwners.get(node)
+      if (blockId) return blockId
+      node = node.parentNode
+    }
+    return null
+  }
+
+  focus(id, target) {
+    const entry = this.#entries.get(id)
+    if (!entry || entry.preserved || typeof entry.instance.focus !== 'function') return false
+    entry.instance.focus(target)
+    return true
   }
 
   getEditableFields(id) {
@@ -290,6 +316,9 @@ export class BlockReconciler {
       element.className = 'oe-preserved-block'
       element.contentEditable = 'false'
       element.dataset.oePreservedBlock = record.type
+      element.dataset.blockId = record.id
+      element.dataset.blockType = record.type
+      this.#blockOwners.set(element, record.id)
       element.textContent = `Unsupported block: ${record.type}`
       this.#inlineProjection?.destroyBlock?.(record.id)
       const instance = {
@@ -328,6 +357,9 @@ export class BlockReconciler {
       definition,
       baseContext: base,
     }
+    instance.element.dataset.blockId = record.id
+    instance.element.dataset.blockType = record.type
+    this.#blockOwners.set(instance.element, record.id)
     instance.setReadOnly(this.#readOnly)
     this.#refreshFields(record.id, entry)
     if (this.#inlineProjection) {
