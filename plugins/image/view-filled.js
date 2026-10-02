@@ -1,5 +1,5 @@
-import { setSanitizedHtml, setTrustedHtml } from '../../core/sanitize.js'
-import { sanitizeHtml } from '../../core/sanitize.js'
+import { setSanitizedHtml, setTrustedHtml } from '../../plugin-kit/index.js'
+import { sanitizeHtml } from '../../plugin-kit/index.js'
 import { escapeHtml } from '../../shared/sanitize/escapeHtml.js'
 import { setSafeUrlAttribute } from '../../shared/sanitize/sanitizeUrl.js'
 import { makeActionBtn as _makeActionBtn, makeSep as _makeSep } from '../shared/actionBar.js'
