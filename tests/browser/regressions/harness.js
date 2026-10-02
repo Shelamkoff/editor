@@ -1,6 +1,6 @@
 import { deepEqual, describe } from './deepEqual.js'
 import { createEditor } from '../../../core/index.js'
-import { Paragraph } from '../../../plugins/paragraph/index.js'
+import { createParagraphPlugin } from '../../../plugins/paragraph/index.js'
 
 const cases = []
 const editors = []
@@ -25,12 +25,8 @@ export function make(blocks = [para('a', 'A')], options = {}) {
   document.body.appendChild(holder)
   holders.push(holder)
   const editor = createEditor({
-    holder, injectStyles: false, plugins: [new Paragraph()], inlineTools: [],
+    holder, injectStyles: false, plugins: [createParagraphPlugin()],
     data: { version: '1.0.0', blocks },
-    tuning: {
-      undo: { debounceMs: 10000 }, change: { debounceMs: 10000 },
-      animations: { blockInsertMs: 0, blockMoveMs: 0, blockRemoveMs: 0 },
-    },
     ...options,
   })
   editors.push(editor)
