@@ -16,7 +16,7 @@ const ICON='<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewB
 const VARIANTS=Object.freeze(['a','b','f','g'])
 
 /**
- * @typedef {{url:string,name:string,size:number,extension:string}} FileEntry
+ * @typedef {{id:string,url:string,name:string,size:number,extension:string}} FileEntry
  * @typedef {(file:File,context:{signal:AbortSignal})=>Promise<{url:string,size?:number}>} UploadFn
  * @typedef {{label:string,icon?:string,handler:(context:{signal:AbortSignal})=>Promise<Array<{url:string,name:string,size?:number,extension?:string}>|null>}} SourceAction
  */
@@ -81,7 +81,7 @@ export function createAttachesPlugin(config={}){
           let readOnly=context.isReadOnly()
           let dead=false
           let taskController=null
-          const nameFields=[]
+          const nameFields=new Map()
 
           const updateData=next=>context.updateData(()=>next)
 
@@ -92,6 +92,7 @@ export function createAttachesPlugin(config={}){
               if(!url)return []
               const name=String(entry.name||urlName(url)||'file')
               return [{
+                id:typeof entry.id==='string'&&entry.id?entry.id:context.createId('file'),
                 url,
                 name,
                 size:Number.isFinite(entry.size)?Math.max(0,Number(entry.size)):0,
@@ -124,6 +125,7 @@ export function createAttachesPlugin(config={}){
                     const result=await snapshot.uploadFile(file,{signal:controller.signal})
                     const url=sanitizeDownloadUrl(result?.url||'')
                     if(url)resolved.push({
+                      id:context.createId('file'),
                       url,
                       name:file.name||urlName(url)||'file',
                       size:Number.isFinite(result?.size)?Math.max(0,Number(result.size)):file.size||0,
@@ -137,6 +139,7 @@ export function createAttachesPlugin(config={}){
                   const url=URLCtor.createObjectURL(file)
                   objectUrls.set(url,URLCtor)
                   resolved.push({
+                    id:context.createId('file'),
                     url,
                     name:file.name||'file',
                     size:file.size||0,
@@ -173,7 +176,7 @@ export function createAttachesPlugin(config={}){
               cancelText:runtimeContext.t('cancel','Cancel'),
               invalidText:runtimeContext.t('invalidUrl','Invalid file URL'),
               normalize:sanitizeDownloadUrl,
-              onSubmit:url=>addResolved([{url,name:urlName(url)||'file',size:0,extension:getExtension(urlName(url))}]),
+              onSubmit:url=>addResolved([{id:context.createId('file'),url,name:urlName(url)||'file',size:0,extension:getExtension(urlName(url))}]),
             })
           }
 
@@ -184,6 +187,7 @@ export function createAttachesPlugin(config={}){
               const result=await action.handler({signal:controller.signal})
               if(controller.signal.aborted||!Array.isArray(result))return
               addResolved(result.map(entry=>({
+                id:context.createId('file'),
                 url:String(entry?.url||''),
                 name:String(entry?.name||''),
                 size:Number(entry?.size)||0,
@@ -194,7 +198,7 @@ export function createAttachesPlugin(config={}){
             }
           }
 
-          const renderFile=(file,index)=>{
+          const renderFile=file=>{
             const row=document.createElement('div')
             row.className='oe-attaches__card'
             const icon=document.createElement('span')
@@ -208,7 +212,7 @@ export function createAttachesPlugin(config={}){
             name.contentEditable=readOnly?'false':'true'
             name.setAttribute('data-oe-document-input','text')
             name.textContent=file.name
-            nameFields[index]=name
+            nameFields.set(file.id,name)
             const meta=document.createElement('div')
             meta.className='oe-attaches__meta'
             meta.textContent=[file.extension?.toUpperCase(),file.size?formatSize(file.size):''].filter(Boolean).join(' · ')
@@ -230,7 +234,7 @@ export function createAttachesPlugin(config={}){
               remove.setAttribute('aria-label',runtimeContext.t('remove','Remove'))
               remove.addEventListener('click',()=>{
                 if(readOnly||dead)return
-                updateData({...data,files:data.files.filter((_,i)=>i!==index)})
+                updateData({...data,files:data.files.filter(entry=>entry.id!==file.id)})
               },{signal:context.signal})
               row.appendChild(remove)
             }
@@ -239,7 +243,7 @@ export function createAttachesPlugin(config={}){
 
           const project=next=>{
             data=cloneData(next)
-            nameFields.length=0
+            nameFields.clear()
             wrapper.className='oe-attaches'+(data.files.length?' oe-attaches--filled':'')
             wrapper.dataset.variant=data.variant
             wrapper.replaceChildren()
@@ -272,7 +276,7 @@ export function createAttachesPlugin(config={}){
             }else{
               const list=document.createElement('div')
               list.className='oe-attaches__list'
-              data.files.forEach((file,index)=>list.appendChild(renderFile(file,index)))
+              data.files.forEach(file=>list.appendChild(renderFile(file)))
               wrapper.appendChild(list)
               if(!readOnly){
                 const actions=document.createElement('div')
@@ -294,16 +298,19 @@ export function createAttachesPlugin(config={}){
             element:wrapper,
             read:()=>({
               variant:data.variant,
-              files:data.files.map((file,index)=>({...file,name:nameFields[index]?.textContent?.trim()||file.name})),
+              files:data.files.map(file=>({...file,name:nameFields.get(file.id)?.textContent?.trim()||file.name})),
             }),
             update(next){if(!dead)project(next)},
-            editableFields:()=>Object.freeze(nameFields.flatMap((element,index)=>element?[Object.freeze({
-              key:'file:'+index+':name',
-              element,
-              mode:/** @type {'plain-text'} */('plain-text'),
-            })]:[])),
+            editableFields:()=>Object.freeze(data.files.flatMap(file=>{
+              const element=nameFields.get(file.id)
+              return element?[Object.freeze({
+                key:'file:'+file.id+':name',
+                element,
+                mode:/** @type {'plain-text'} */('plain-text'),
+              })]:[]
+            })),
             setReadOnly(value){readOnly=value;project(data);if(value)taskController?.abort()},
-            focus(){if(!dead&&!readOnly)(nameFields[0]??wrapper.querySelector('button'))?.focus()},
+            focus(){if(!dead&&!readOnly)(nameFields.get(data.files[0]?.id)??wrapper.querySelector('button'))?.focus()},
             destroy(){dead=true;taskController?.abort()},
           }
         },
