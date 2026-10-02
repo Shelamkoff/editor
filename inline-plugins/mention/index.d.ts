@@ -1,4 +1,4 @@
-import type { InlinePlugin } from '../../core/types.js'
+import type { InlinePlugin } from '../../plugin-kit/types.js'
 import type { InlineWidget, InlinePluginLike } from '../../renderer/types.js'
 
 /**
