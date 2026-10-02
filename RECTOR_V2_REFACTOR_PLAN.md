@@ -324,6 +324,43 @@ Activation policy for external/imported data:
 
 Accordingly, "known block data is normalized" means activated known blocks. Preserved records stay opaque until a compatible schema can decode them.
 
+Runtime activation metadata is separate from persisted data:
+
+    type ActivationStatus =
+      | { kind: "active" }
+      | {
+          kind: "preserved"
+          reason:
+            | "unknown-type"
+            | "unsupported-version"
+            | "invalid-data"
+        }
+
+    interface RuntimeBlockRecord {
+      record: Readonly<BlockRecord>
+      activation: ActivationStatus
+    }
+
+DocumentState may keep activation metadata in a parallel immutable map or equivalent internal structure, but activation status is never serialized as block data.
+
+BlockReconciler always uses the inert PreservedBlockInstance for activation.kind === "preserved", even when a plugin with the same type name is registered.
+
+Public block snapshots expose read-only activation:
+
+    status: "active" | "preserved"
+
+Local mutation policy is stricter than external ingestion:
+
+- validationMode preserve controls ingestion/replacement of externally supplied documents;
+- once a block/widget is active, every local editor/plugin/application mutation must produce valid current canonical data or the transaction fails;
+- local mutation never converts an active block/widget into preserved state;
+- EditorBlocksApi.update rejects preserved blocks;
+- preserved blocks may be moved or removed because those operations do not interpret their opaque payload;
+- generic plugin actions/settings/formatting/inline-widget activation are unavailable for preserved blocks;
+- replacing the whole document or explicitly converting via an application-owned future API may change activation only after successful schema decode.
+
+This prevents preserve mode from hiding plugin bugs or persisting newly generated malformed state.
+
 ### 4.1.1. Editor-valid empty state
 
 Schema validity means "safe and structurally valid editor document data", not "publish-ready business content".
@@ -503,7 +540,9 @@ Introduce a neutral inline widget schema:
 
 InlineWidgetSchema has the same purity and migration rules as BlockDataSchema: it is DOM-independent, does not mutate input, treats missing dataVersion as legacyVersion, deterministically migrates known legacy versions, and either returns current canonical data or throws a typed error.
 
-A registered inline plugin is activated only when its schema decodes the payload. Unknown widget types, malformed payloads and unsupported future dataVersion values stay inert in preserve mode and are rejected in strict mode. An inert widget reference remains visible as non-active placeholder/fallback content and its canonical payload is retained.
+A registered inline plugin is activated only when its schema decodes the payload during external ingestion. Unknown widget types, malformed payloads and unsupported future dataVersion values stay inert in preserve mode and are rejected in strict mode. An inert widget reference remains visible as non-active placeholder/fallback content and its canonical payload is retained.
+
+Locally created or updated widget payloads are always validated strictly. A local widget update cannot transition an active widget to preserved state.
 
 Editor-side inline plugin contract:
 
@@ -730,11 +769,16 @@ Separate plugin definition from mounted block instance.
       fallback: string
     }
 
-    interface ToolboxItemDefinition {
+    interface ToolboxItemDefinition<
+      D extends JsonObject = JsonObject
+    > {
       id: string
       label: LocalizedLabel
       icon: string
-      data?: JsonObject
+
+      create?(
+        context: DataOperationContext
+      ): D
     }
 
     interface BlockPluginDefinition<D extends JsonObject = JsonObject> {
@@ -743,7 +787,7 @@ Separate plugin definition from mounted block instance.
       readonly icon: string
       readonly styles?: readonly string[]
       readonly locale?: Readonly<Record<string, Readonly<Record<string, LocaleValue>>>>
-      readonly toolbox?: readonly ToolboxItemDefinition[]
+      readonly toolbox?: readonly ToolboxItemDefinition<D>[]
       readonly schema: BlockDataSchema<D>
       readonly capabilities?: BlockCapabilities<D>
 
@@ -767,6 +811,14 @@ Separate plugin definition from mounted block instance.
 
       destroy(): void
     }
+
+Toolbox insertion rules:
+
+- a toolbox entry without create() uses schema.createDefault();
+- a toolbox entry with create() must return a complete payload, not a partial JSON patch;
+- the result is normalized/validated by the block schema before insertion;
+- toolbox factories may use DataOperationContext only for fresh nested IDs;
+- toolbox labels are localized by the editor runtime and definitions remain immutable.
 
 A definition is an immutable descriptor and may be reused across editor instances. setup creates one editor-scoped runtime that owns editor-scoped resources and is destroyed exactly once with that editor. Configuration captured by the definition must be immutable. Localization is supplied through the editor-scoped runtime context; do not mutate definitions with setI18n-style setters.
 
@@ -996,7 +1048,7 @@ Replace scattered optional-method discovery with an explicit capability object.
       formatting?: FormattingCapability
       settings?: SettingsCapability<D>
       inlineControls?: InlineControlsCapability<D>
-      shortcuts?: ShortcutCapability
+      shortcuts?: ShortcutCapability<D>
     }
 
 Core may branch on capability presence. It must not probe arbitrary plugin methods throughout unrelated modules.
@@ -1061,7 +1113,9 @@ Settings/paste/controls are model-first contracts:
       disabled?: boolean
     }
 
-    interface SettingsCapability<D extends JsonObject> {
+    interface SettingsActionCapability<D extends JsonObject> {
+      kind: "actions"
+
       actions(
         data: Readonly<D>,
         context: ExtensionUiContext
@@ -1073,6 +1127,24 @@ Settings/paste/controls are model-first contracts:
         context: DataOperationContext
       ): D
     }
+
+    interface SettingsPanelContext<D extends JsonObject>
+      extends ExtensionUiContext {
+      getData(): Readonly<D>
+      updateData(producer: (current: Readonly<D>) => D): void
+    }
+
+    interface SettingsPanelCapability<D extends JsonObject> {
+      kind: "panel"
+
+      render(
+        context: SettingsPanelContext<D>
+      ): HTMLElement
+    }
+
+    type SettingsCapability<D extends JsonObject> =
+      | SettingsActionCapability<D>
+      | SettingsPanelCapability<D>
 
     interface InlineControlsContext<D extends JsonObject>
       extends ExtensionUiContext {
@@ -1086,8 +1158,31 @@ Settings/paste/controls are model-first contracts:
       render(context: InlineControlsContext<D>): HTMLElement | null
     }
 
-    interface ShortcutCapability {
-      bindings(): readonly KeyboardBinding[]
+    interface BlockKeyboardContext<D extends JsonObject>
+      extends KeyboardContext {
+      readonly blockId: string
+
+      getData(): Readonly<D>
+      updateData(producer: (current: Readonly<D>) => D): void
+      requestSplit(selection?: BlockSelection): void
+      requestExit(): void
+      focus(target?: FocusTarget): void
+    }
+
+    interface BlockKeyboardBinding<D extends JsonObject> {
+      key: string
+      priority?: number
+
+      when?(context: BlockKeyboardContext<D>): boolean
+
+      handle(
+        event: KeyboardEvent,
+        context: BlockKeyboardContext<D>
+      ): "handled" | "pass"
+    }
+
+    interface ShortcutCapability<D extends JsonObject> {
+      bindings(): readonly BlockKeyboardBinding<D>[]
     }
 
 Settings/inline control UI receives scoped contexts whose persisted changes ultimately call BlockInstanceContext.updateData; UI objects do not receive managers.
@@ -1611,6 +1706,14 @@ The alignment tool is model-first in v2: it updates tunes.textAlign for affected
 
 Required behavior:
 
+### preserved block
+
+- render through PreservedBlockInstance;
+- never call the registered plugin runtime for that record;
+- expose safe inert/read-only representation;
+- preserve opaque record data exactly through save/export;
+- allow move/remove without interpreting payload.
+
 ### block.update
 
 - resolve current instance by block ID;
@@ -1739,6 +1842,7 @@ Expose immutable snapshots.
       readonly tunes?: Readonly<BlockTunes>
       readonly inline?: Readonly<Record<string, InlineWidgetRecord>>
       readonly revision?: string | number
+      readonly status: "active" | "preserved"
     }
 
     interface BlockUpdate {
@@ -1773,7 +1877,7 @@ All persisted mutation methods delegate to DocumentRuntime transactions. focus i
 
 Application-facing snapshots cannot mutate editor state by reference. Readonly in declarations is not sufficient by itself: return detached/deep-cloned JSON values (or a deeply frozen detached representation) at consumer trust boundaries. The same rule applies to values passed into public producer callbacks.
 
-BlockUpdate.data omitted means unchanged. BlockUpdate.tunes omitted means unchanged; null clears tunes. An empty update is a no-op. update cannot change type or block identity.
+BlockUpdate.data omitted means unchanged. BlockUpdate.tunes omitted means unchanged; null clears tunes. An empty update is a no-op. update cannot change type or block identity. update rejects status === "preserved"; remove/move remain available.
 
 EditorBlocksApi.update cannot directly replace block.inline; inline payload/reference changes go through inline widget commands so placeholder/map invariants stay atomic.
 
@@ -1867,9 +1971,8 @@ Evolve ShortcutRegistry into one KeyboardRouter module.
       readOnly: boolean
     }
 
-    interface KeyboardBinding {
+    interface EditorKeyboardBinding {
       key: string
-      layer: "plugin" | "block" | "editor"
       priority?: number
 
       when?(context: KeyboardContext): boolean
@@ -1879,6 +1982,8 @@ Evolve ShortcutRegistry into one KeyboardRouter module.
         context: KeyboardContext
       ): "handled" | "pass"
     }
+
+KeyboardRouter owns editor-level bindings directly and obtains block/plugin structural bindings from the active block definition's ShortcutCapability. It constructs a scoped BlockKeyboardContext from that block's mutation port; the binding never receives DocumentRuntime or BlockManager.
 
 Routing order:
 
@@ -1894,7 +1999,8 @@ Rules:
 - defaultPrevented is not the capability protocol;
 - native input, textarea, select and plugin-native controls retain native behavior unless a documented plugin binding owns the key;
 - IME/composition never triggers structural shortcuts;
-- document-structural behavior is registered through KeyboardRouter;
+- editor-global document-structural behavior is registered as EditorKeyboardBinding;
+- block-specific structural behavior is registered through ShortcutCapability and receives only BlockKeyboardContext;
 - built-in plugins must not retain separate structural keydown pipelines after migration;
 - local native-widget key listeners are allowed only when they cannot mutate document structure.
 
@@ -2134,6 +2240,7 @@ Required v2 security properties:
 20. A registered plugin type with malformed or unsupported-future-version data is not activated merely because its type name matches.
 21. Preserved inert data is never executed as editor/renderer/widget markup.
 22. An unsupported document envelope version under preserve policy is never exposed as writable current-v2 state.
+23. validationMode preserve applies only to external ingestion; locally generated invalid block/widget data always aborts the transaction.
 
 Required security regressions:
 
@@ -2274,10 +2381,11 @@ TDD slices:
 5. schema.createDefault returns fresh editor-valid canonical data and omitted insert data uses it;
 6. empty Image/Gallery/Embed/LinkPreview/Attaches defaults are valid canonical states and EmptyCapability reports them empty;
 7. editor/renderer both use the same Paragraph schema;
-8. preserve mode keeps malformed/future-version known data inert while strict mode rejects it;
-9. incomplete/unknown document-version migration enters preserved-document mode without relabelling the version;
-10. alignment exists only as tunes.textAlign in canonical v2 Paragraph/Heading data;
-11. matching inline placeholder references count as one logical unit while unmatched {{...}} author text remains ordinary text.
+8. preserve mode keeps externally ingested malformed/future-version known data inert while strict mode rejects it;
+9. local invalid mutation is rejected even when validationMode is preserve;
+10. incomplete/unknown document-version migration enters preserved-document mode without relabelling the version;
+11. alignment exists only as tunes.textAlign in canonical v2 Paragraph/Heading data;
+12. matching inline placeholder references count as one logical unit while unmatched {{...}} author text remains ordinary text.
 
 Exit criteria:
 
@@ -2518,6 +2626,8 @@ Delete old structural keydown coordination after each migrated path is covered.
 Exit criteria:
 
 - one deterministic structural key routing module;
+- block bindings mutate only through scoped BlockKeyboardContext;
+- no block shortcut handler receives BlockManager/DocumentRuntime;
 - IME/native controls pass through correctly.
 
 ### Phase 12: renderer schema integration
@@ -2642,8 +2752,9 @@ Security:
 - unsafe URL schemes rejected;
 - malformed inline payload contained;
 - unknown block inert;
-- registered block/widget with unsupported future dataVersion remains inert in preserve mode;
+- registered block/widget with unsupported future dataVersion remains inert on preserve-mode ingestion;
 - strict mode rejects unsupported/malformed activated payloads;
+- preserve mode still rejects locally generated invalid updates;
 - unknown/incomplete document version is losslessly inspectable but not writable in preserve mode;
 - setReadOnly(false) cannot bypass preserved-document mode;
 - cross-realm editing/rendering preserved.
@@ -2747,7 +2858,8 @@ Security:
 - renderer sanitizes independently;
 - mutable document DOM removed from public interface;
 - plugins cannot mutate global document managers;
-- invalid plugin data cannot enter canonical state;
+- invalid locally generated plugin/widget data cannot enter canonical state under any validation mode;
+- preserved imported records remain inert and explicitly visible as preserved status;
 - stale async work is aborted/ignored;
 - forged widget DOM cannot become canonical widget state;
 - core tunes are validated before projection.
