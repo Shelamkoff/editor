@@ -1,0 +1,89 @@
+/**
+ * Return every editable field owned by one block in DOM order.
+ * @param {HTMLElement} block
+ * @returns {HTMLElement[]}
+ */
+export function editableFields(block) {
+  const descendants = Array.from(
+    block.querySelectorAll('[contenteditable]'),
+    element => /** @type {HTMLElement} */ (element),
+  )
+  const fields = block.matches('[contenteditable]') ? [block, ...descendants] : descendants
+  return fields.filter(field => !field.closest('[data-inline-plugin]'))
+}
+
+/**
+ * Resolve the editable field that owns a range boundary. A boundary may be an
+ * element node positioned between children, so inspect that child before
+ * falling back to the first field for legacy or synthetic ranges.
+ * @param {HTMLElement} block
+ * @param {Node} container
+ * @param {number} offset
+ * @returns {{ element: HTMLElement, index: number } | null}
+ */
+export function editableAtBoundary(block, container, offset) {
+  const fields = editableFields(block)
+  if (!fields.length) return null
+
+  const containerElement = container.nodeType === 1
+    ? /** @type {HTMLElement} */ (container)
+    : container.parentElement
+  let candidate = containerElement?.closest('[contenteditable]') ?? null
+
+  if (!candidate && container.nodeType === 1) {
+    const children = container.childNodes
+    const child = children[Math.min(offset, children.length - 1)] ?? null
+    const childElement = child?.nodeType === 1
+      ? /** @type {HTMLElement} */ (child)
+      : child?.parentElement
+    candidate = childElement?.closest('[contenteditable]')
+      ?? childElement?.querySelector?.('[contenteditable]')
+      ?? null
+  }
+
+  while (candidate && !fields.includes(/** @type {HTMLElement} */ (candidate))) {
+    candidate = candidate.parentElement?.closest('[contenteditable]') ?? null
+  }
+  const editable = candidate && typeof candidate === 'object'
+    ? /** @type {HTMLElement} */ (candidate)
+    : null
+  const index = editable && block.contains(editable) ? fields.indexOf(editable) : -1
+  return index >= 0 ? { element: fields[index], index } : { element: fields[0], index: 0 }
+}
+
+
+/** A raw inline DOM mutation is safe only within one actual editing host.
+ * Unlike editableAtBoundary(), this resolver never guesses a neighboring
+ * field for a wrapper boundary or accepts a position inside a locked widget.
+ * @param {HTMLElement} block
+ * @param {Range} range
+ * @returns {HTMLElement | null}
+ */
+export function editableRange(block, range) {
+  const field = editableAtBoundary(block, range.startContainer, range.startOffset)?.element
+  if (!field || field.contentEditable !== 'true') return null
+  for (const container of [range.startContainer, range.endContainer]) {
+    const element = container.nodeType === 1
+      ? /** @type {Element} */ (container)
+      : container.parentElement
+    if (!field.contains(container) || element?.closest('[contenteditable]') !== field) return null
+  }
+  return field
+}
+
+/** Resolve the editing host of an input/key event, not a stale DOM selection.
+ * Native controls and inline widgets may be nested inside contenteditable.
+ * Their events belong to that control even when a previous selection remains
+ * in an authored text node beside it.
+ * @param {HTMLElement} root
+ * @param {EventTarget | null} target
+ * @returns {HTMLElement | null}
+ */
+export function editingHostForEvent(root, target) {
+  const element = /** @type {Element | null} */ (target)
+  if (element?.closest?.('input, textarea, select, button, [data-inline-plugin]')) return null
+  const host = /** @type {HTMLElement | null} */ (element?.closest?.('[contenteditable="true"]') ?? null)
+  if (!host || !root.contains(host)) return null
+  const locked = element?.closest?.('[contenteditable="false"]')
+  return locked && host.contains(locked) ? null : host
+}
