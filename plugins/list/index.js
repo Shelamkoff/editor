@@ -46,7 +46,7 @@ export class List extends BlockPluginAbstract {
   /**
    * Create the editable DOM owned by this block instance.
    * @param {{ items?: string[], text?: string, style?: 'ordered' | 'unordered' }} data
-   * @param {import('../../core/types').BlockMutationContext} context
+   * @param {import('../../plugin-kit/types').BlockMutationContext} context
    * @returns {HTMLElement}
    */
   render(data, context) {
@@ -343,7 +343,7 @@ export class List extends BlockPluginAbstract {
   /**
    * Handle Enter key — create new list item, or remove empty item at end.
    * @param {HTMLElement} list
-   * @param {import('../../core/types').BlockMutationContext} context
+   * @param {import('../../plugin-kit/types').BlockMutationContext} context
    * @returns {boolean} Whether the key press was handled by this list.
    */
   #handleEnter(list, context) {
@@ -450,7 +450,7 @@ export class List extends BlockPluginAbstract {
    * Handle Backspace — merge with previous item when at start, or delete empty items.
    * @param {HTMLElement} list
    * @param {KeyboardEvent} e
-   * @param {import('../../core/types').BlockMutationContext} context
+   * @param {import('../../plugin-kit/types').BlockMutationContext} context
    * @returns {void}
    */
   #handleBackspace(list, e, context) {
