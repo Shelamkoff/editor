@@ -217,7 +217,7 @@ export interface BlockPluginRuntimeContext {
 /** Block-scoped mutation/lifecycle services supplied to one instance. */
 export interface BlockInstanceContext<
   D extends Record<string, unknown> = Record<string, unknown>
-> {
+> extends DataOperationContext {
   readonly ownerDocument: Document
   readonly signal: AbortSignal
   getData(): Readonly<D>
