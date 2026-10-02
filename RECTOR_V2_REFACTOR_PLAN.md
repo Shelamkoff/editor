@@ -553,6 +553,8 @@ Introduce a neutral inline widget schema:
       readonly currentVersion: number
       readonly legacyVersion: number
 
+      createDefault(): D
+
       decode(input: {
         dataVersion?: number
         data: unknown
@@ -568,6 +570,8 @@ Introduce a neutral inline widget schema:
     }
 
 InlineWidgetSchema has the same purity and migration rules as BlockDataSchema: it is DOM-independent, does not mutate input, treats missing dataVersion as legacyVersion, deterministically migrates known legacy versions, and either returns current canonical data or throws a typed error.
+
+createDefault() returns a fresh editor-valid widget payload and round-trips through encode/decode. It is used only when programmatic insertion has neither explicit data nor an insertion capability that chooses another initial flow.
 
 A registered inline plugin is activated only when its schema decodes the payload during external ingestion. Unknown widget types, malformed payloads and unsupported future dataVersion values stay inert in preserve mode and are rejected in strict mode. An inert widget reference remains visible as non-active placeholder/fallback content and its canonical payload is retained.
 
@@ -1965,7 +1969,18 @@ IEditor retains a model-first programmatic widget insertion surface:
       data?: JsonObject
     ): boolean
 
-It resolves the current logical selection, validates the widget schema, updates canonical rich text plus block.inline in one transaction, and returns false for read-only/no-valid-selection/unknown-type cases. It does not insert widget DOM first.
+Programmatic insertion algorithm:
+
+1. resolve the current logical rich-text selection;
+2. resolve the active registered inline definition;
+3. if explicit data is supplied, strictly decode/normalize it with the widget schema;
+4. otherwise, if insertion.createInitial() exists, use its result;
+5. otherwise use schema.createDefault();
+6. for { kind: "widget" }, strictly normalize the returned widget data, allocate one stable widget ID, replace the logical selection through RichTextOperations with an inline-reference, and add block.inline[id] in the same transaction;
+7. for { kind: "text" }, replace the logical selection with canonical text and do not create block.inline data;
+8. reconcile projection and restore caret after the inserted logical content.
+
+It returns false for read-only/no-valid-selection/unknown-or-preserved-type cases. It never inserts widget DOM first.
 
 save/export semantics:
 
@@ -2805,7 +2820,9 @@ Native input:
 - plugin-native input/textarea is not consumed as document structural input;
 - deleting an inline widget prunes its canonical inline entry;
 - forged data-inline-plugin markup is not adopted as a widget;
-- programmatic insertInlinePlugin commits model first and restores caret after the inserted atomic widget.
+- programmatic insertInlinePlugin with explicit data commits model first and restores caret after the inserted atomic widget;
+- programmatic insertion without data uses insertion capability or widget schema.createDefault;
+- mention-style insertion may intentionally insert only trigger text with no widget record until selection commit.
 
 Canonical empty states:
 
