@@ -129,10 +129,15 @@ export function createVersionedDataSchema(options) {
         throw new TypeError('Versioned block data input must be an object')
       }
 
-      // Snapshot the complete envelope first so accessor-backed consumer input
-      // cannot validate one value and migrate another.
-      const owned = /** @type {{ dataVersion?: unknown, data?: unknown }} */ (cloneEditorData(input))
-      const suppliedVersion = owned.dataVersion
+      // Observe the two envelope members once. Optional dataVersion may be
+      // explicitly undefined at internal call sites; omission and undefined
+      // have the same legacy-input meaning without weakening JSON validation
+      // of the actual persisted data payload.
+      const candidate = /** @type {{ dataVersion?: unknown, data?: unknown }} */ (input)
+      const suppliedVersion = Object.hasOwn(candidate, 'dataVersion')
+        ? candidate.dataVersion
+        : undefined
+      const suppliedData = candidate.data
       const version = suppliedVersion === undefined ? legacyVersion : suppliedVersion
       assertVersion(version, 'dataVersion')
       if (Number(version) > currentVersion) {
@@ -140,7 +145,7 @@ export function createVersionedDataSchema(options) {
       }
 
       let cursor = Number(version)
-      let data = ownObject(owned.data, 'Block data input')
+      let data = ownObject(suppliedData, 'Block data input')
       while (cursor < currentVersion) {
         const migration = migrations.get(cursor)
         if (!migration) {
