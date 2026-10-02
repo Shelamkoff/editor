@@ -182,6 +182,7 @@ export function createEditorV2(input){
     inline:config.inlinePlugins??[],
     defaultBlock:config.defaultBlock,
     placeholder:config.placeholder,
+    acquireStyles:config.injectStyles!==false,
     translate:(key,fallback='')=>{
       const translated=i18n.t(key)
       return translated===key?fallback:translated

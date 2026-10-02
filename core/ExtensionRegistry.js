@@ -47,6 +47,7 @@ export class ExtensionRegistry {
    *   inline?: import('../plugin-kit/types').InlinePluginDefinition[],
    *   defaultBlock?: string,
    *   placeholder?: string,
+   *   acquireStyles?: boolean,
    *   translate?: (key: string, fallback?: string) => string,
    *   showPopup?: (anchor: HTMLElement, content: HTMLElement, cleanup?: () => void) => void,
    *   hidePopup?: () => void,
@@ -66,6 +67,7 @@ export class ExtensionRegistry {
 
     this.#ownerDocument = ownerDocument
     this.#abortController = new (ownerDocument.defaultView?.AbortController ?? AbortController)()
+    const acquireStyles = options.acquireStyles !== false
     const translate = typeof options.translate === 'function'
       ? options.translate
       : (_key, fallback = '') => fallback
@@ -107,7 +109,7 @@ export class ExtensionRegistry {
 
     try {
       for (const definition of options.blocks) {
-        const styles = [...(definition.styles ?? [])]
+        const styles = acquireStyles ? [...(definition.styles ?? [])] : []
         if (styles.length) this.#resources.push(acquireStyleUrls(styles, ownerDocument))
         const runtime = definition.setup({
           ownerDocument,

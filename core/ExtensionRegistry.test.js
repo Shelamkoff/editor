@@ -170,3 +170,22 @@ test('ExtensionRegistry rejects sparse definitions and invalid inline triggers',
     /trigger must be exactly one Unicode code point/,
   )
 })
+
+
+test('ExtensionRegistry global style acquisition may be disabled without changing definitions', () => {
+  const doc = documentStub()
+  const paragraph = blockDefinition('paragraph', { styles: ['a.css'] })
+  const mention = inlineDefinition('mention', '@', { styles: ['b.css'] })
+  const registry = new ExtensionRegistry({
+    ownerDocument: doc,
+    blocks: [paragraph],
+    inline: [mention],
+    acquireStyles: false,
+  })
+
+  assert.deepEqual(paragraph.styles, ['a.css'])
+  assert.deepEqual(mention.styles, ['b.css'])
+  assert.equal(doc.links.length, 0)
+  registry.destroy()
+  assert.equal(doc.links.length, 0)
+})
