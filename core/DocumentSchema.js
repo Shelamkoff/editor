@@ -1,5 +1,6 @@
 import { cloneEditorData } from '../shared/cloneEditorData.js'
 import { EDITOR_VERSION } from './constants.js'
+import { BUILT_IN_DOCUMENT_MIGRATIONS } from './documentMigrationsV2.js'
 
 /**
  * Validates document envelopes and applies an explicit, deterministic
@@ -36,12 +37,15 @@ export class DocumentSchema {
     this.#versionPolicy = versionPolicy
     this.#diagnostics = supplied.diagnostics ?? null
 
-    const migrations = supplied.migrations ?? []
-    if (!Array.isArray(migrations)) throw new TypeError('migrations must be an array')
-    for (let index = 0; index < migrations.length; index++) {
-      if (!Object.hasOwn(migrations, index)) throw new TypeError('migrations must be a dense array')
-      this.#register(migrations[index])
+    const suppliedMigrations = supplied.migrations ?? []
+    if (!Array.isArray(suppliedMigrations)) throw new TypeError('migrations must be an array')
+    for (let index = 0; index < suppliedMigrations.length; index++) {
+      if (!Object.hasOwn(suppliedMigrations, index)) throw new TypeError('migrations must be a dense array')
     }
+    const migrations = currentVersion === EDITOR_VERSION
+      ? [...BUILT_IN_DOCUMENT_MIGRATIONS, ...suppliedMigrations]
+      : suppliedMigrations
+    for (const migration of migrations) this.#register(migration)
   }
 
   get currentVersion() { return this.#currentVersion }

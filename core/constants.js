@@ -24,7 +24,7 @@ export const READ_ONLY_INTERACTIVE_ATTRIBUTE = 'data-oe-read-only-interactive'
 export const TEXT_ALIGN_TUNE_ATTRIBUTE = 'data-oe-text-align-tune'
 
 /** Editor document format version — shared by EditorFacade.save() and UndoManager. */
-export const EDITOR_VERSION = '1.0.0'
+export const EDITOR_VERSION = '2.0.0'
 
 /** Duration of the offcanvas slide/backdrop-fade animation (ms). */
 export const OFFCANVAS_ANIMATION_MS = 250
