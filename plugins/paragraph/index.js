@@ -1,4 +1,4 @@
-import { insertSanitizedHtml, setSanitizedHtml } from '../../core/sanitize.js'
+import { insertSanitizedHtml, setSanitizedHtml } from '../../plugin-kit/index.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { mapTextFields } from './mapTextFields.js'
 import { paragraphDataSchema } from '../../shared/blockSchemas/paragraph.js'
