@@ -1,4 +1,4 @@
-import { setTrustedHtml } from '../../core/sanitize.js'
+import { setTrustedHtml } from '../../plugin-kit/index.js'
 import { CSS } from './css.js'
 import { CHEVRON_DOWN, CHECK_ICON } from './icons.js'
 import { refreshInlineStyles } from './styles.js'
