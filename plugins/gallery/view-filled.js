@@ -1,4 +1,4 @@
-import { setTrustedHtml } from '../../core/sanitize.js'
+import { setTrustedHtml } from '../../plugin-kit/index.js'
 import { makeActionBtn as _makeActionBtn, makeSep as _makeSep } from '../shared/actionBar.js'
 import { escapeHtml } from '../../shared/sanitize/escapeHtml.js'
 import { CSS } from './css.js'
