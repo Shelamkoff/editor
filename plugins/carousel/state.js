@@ -9,7 +9,7 @@ export class CarouselState {
   /**
    * @param {Record<string, unknown>} data Serialized carousel data.
    * @param {() => string} createId Factory for missing slide identifiers.
-   * @param {import('../../core/types').BlockMutationContext} context Editor mutation and lifecycle context.
+   * @param {import('../../plugin-kit/types').BlockMutationContext} context Editor mutation and lifecycle context.
    */
   constructor(data, createId, context) {
     this.AbortControllerCtor = context.ownerDocument?.defaultView?.AbortController ?? AbortController
