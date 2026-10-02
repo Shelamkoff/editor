@@ -364,7 +364,7 @@ export function createMentionPlugin(options={}){
           }
         }finally{
           if(searchController===controller)searchController=null
-          loadingMore=false
+          if(activeSession===session)loadingMore=false
         }
       }
 
