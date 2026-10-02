@@ -208,6 +208,11 @@ export function createImagePlugin(config={}){
 
           const emptyActions=document.createElement('div')
           emptyActions.className=CSS.selectActions
+          const emptyUrlButton=document.createElement('button')
+          emptyUrlButton.type='button'
+          emptyUrlButton.className=CSS.selectAction
+          emptyUrlButton.textContent=runtimeContext.t('dropzoneUrl','Insert by URL')
+          emptyActions.appendChild(emptyUrlButton)
 
           const controls=document.createElement('div')
           controls.className=CSS.actions
@@ -282,7 +287,7 @@ export function createImagePlugin(config={}){
             const hasImage=!!data.file.url
             wrapper.classList.toggle(CSS.filled,hasImage)
             empty.hidden=hasImage||readOnly
-            emptyActions.hidden=hasImage||readOnly||snapshot.actions.length===0
+            emptyActions.hidden=hasImage||readOnly
             container.hidden=!hasImage
             controls.hidden=readOnly||!hasImage
             if(hasImage)setSafeUrlAttribute(image,'src',data.file.url,'media')
@@ -369,6 +374,7 @@ export function createImagePlugin(config={}){
 
           empty.addEventListener('click',chooseFile,{signal:context.signal})
           replace.addEventListener('click',chooseFile,{signal:context.signal})
+          emptyUrlButton.addEventListener('click',openUrl,{signal:context.signal})
           urlButton.addEventListener('click',openUrl,{signal:context.signal})
           remove.addEventListener('click',()=>{
             if(readOnly)return
