@@ -159,3 +159,41 @@ test('DocumentSchema snapshots standalone options and rejects sparse migrations'
     /migrations must be an array/,
   )
 })
+
+test('default Rector schema migrates v1 documents to the v2 envelope and core alignment tune', () => {
+  const schema = new DocumentSchema()
+  const source = {
+    time: 42,
+    version: '1.0.0',
+    blocks: [{
+      id: 'p',
+      type: 'paragraph',
+      data: { text: 'Body', align: 'center' },
+    }],
+  }
+
+  const migrated = schema.normalize(source)
+  assert.equal(schema.currentVersion, '2.0.0')
+  assert.deepEqual(migrated, {
+    time: 42,
+    version: '2.0.0',
+    blocks: [{
+      id: 'p',
+      type: 'paragraph',
+      data: { text: 'Body' },
+      tunes: { textAlign: 'center' },
+    }],
+  })
+  assert.deepEqual(source.blocks[0].data, { text: 'Body', align: 'center' })
+})
+
+test('default Rector preserve policy keeps an unknown document version instead of relabelling it as v2', () => {
+  const schema = new DocumentSchema()
+  const source = {
+    time: 7,
+    version: 'future-format',
+    blocks: [{ id: 'opaque', type: 'future', data: { value: 1 } }],
+  }
+
+  assert.deepEqual(schema.normalize(source), source)
+})
