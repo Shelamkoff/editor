@@ -1,205 +1,151 @@
+// @ts-check
 import { colorPickerStylesUrl, parseColorInput } from '@shelamkoff/color-picker'
 import { createOwnedColorPicker } from '../shared/colorPickerRealm.js'
-import { generateInlineId } from '../shared/inlineMarshal.js'
-import { normalizeTextValue } from '../shared/textFormat.js'
+import { colorWidgetSchema } from '../shared/inlineSchemas/color.js'
 
-/**
- * Color swatch inline plugin.
- * Renders as an atomic inline widget: ● #066fd1
- * Click opens a full color picker popup.
- *
- * @returns {import('../types').InlinePlugin}
- */
-export function createColorSwatchPlugin() {
-  /** @type {import('../plugin-kit/types').IScopedI18n | null} */
-  let i18n = null
-  let lifecycleController = new AbortController()
-  /** @type {typeof AbortController} */
-  let AbortControllerCtor = AbortController
-  return {
-    type: 'color',
-    styles: [colorPickerStylesUrl],
-    get title() { return i18n?.has('title') ? i18n.t('title') : 'Color' },
-    icon: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21a9 9 0 0 1 0-18c4.97 0 9 3.582 9 8c0 1.06-.474 2.078-1.318 2.828S17.938 15 16.5 15H14a2 2 0 0 0-1 3.75A1.3 1.3 0 0 1 12 21"/><circle cx="7.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="12" cy="7.5" r=".5" fill="currentColor"/><circle cx="16.5" cy="10.5" r=".5" fill="currentColor"/></svg>',
-    /** @param {import('../plugin-kit/types').IScopedI18n} _i18n */
-    setI18n(_i18n) { i18n = _i18n },
-    /** @returns {void} */
-    mount(rootElement) {
-      AbortControllerCtor = rootElement.ownerDocument?.defaultView?.AbortController ?? AbortController
-      if (lifecycleController.signal.aborted || !(lifecycleController instanceof AbortControllerCtor)) {
-        lifecycleController.abort()
-        lifecycleController = new AbortControllerCtor()
-      }
-    },
-    pasteConfig: {
-      patterns: [
-        /^#[0-9a-fA-F]{3}$/,
-        /^#[0-9a-fA-F]{6}$/,
-        /^#[0-9a-fA-F]{8}$/,
-        /^rgb\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*\)$/,
-        /^rgba\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*[\d.]+\s*\)$/,
-        /^hsl\(\s*\d{1,3}\s*,\s*\d{1,3}%\s*,\s*\d{1,3}%\s*\)$/,
-        /^hsla\(\s*\d{1,3}\s*,\s*\d{1,3}%\s*,\s*\d{1,3}%\s*,\s*[\d.]+\s*\)$/,
-      ],
-    },
-    onPatternMatch(match) {
-      return { value: match }
-    },
+const ICON='<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21a9 9 0 1 1 9-9c0 2-1 3-3 3h-4a2 2 0 1 0-1 3.7A1.3 1.3 0 0 1 12 21"/><circle cx="7.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="12" cy="7.5" r=".5" fill="currentColor"/><circle cx="16.5" cy="10.5" r=".5" fill="currentColor"/></svg>'
 
-    createWidget(data, id, context) {
-      const ownerDocument = context?.ownerDocument ?? globalThis.document
-      const value = normalizeTextValue(data.value).trim() || '#4357b4'
+const PATTERNS=Object.freeze([
+  /^#[0-9a-fA-F]{3}$/,
+  /^#[0-9a-fA-F]{6}$/,
+  /^#[0-9a-fA-F]{8}$/,
+  /^rgb\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*\)$/,
+  /^rgba\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*[\d.]+\s*\)$/,
+  /^hsl\(\s*\d{1,3}\s*,\s*\d{1,3}%\s*,\s*\d{1,3}%\s*\)$/,
+  /^hsla\(\s*\d{1,3}\s*,\s*\d{1,3}%\s*,\s*\d{1,3}%\s*,\s*[\d.]+\s*\)$/,
+])
 
-      const span = ownerDocument.createElement('span')
-      span.contentEditable = 'false'
-      span.setAttribute('data-inline-plugin', 'color')
-      span.setAttribute('data-id', id || generateInlineId())
-      span.setAttribute('data-value', value)
-      span.className = 'oe-ip oe-ip--color'
-
-      const dot = ownerDocument.createElement('span')
-      dot.className = 'oe-ip__dot'
-      dot.style.backgroundColor = value
-
-      const label = ownerDocument.createElement('span')
-      label.className = 'oe-ip__label'
-      label.textContent = value
-
-      span.appendChild(dot)
-      span.appendChild(label)
-
-      return span
-    },
-
-    hydrate(element, ctx) {
-      element.addEventListener('click', (e) => {
-        if (ctx.readOnly) return
-        e.preventDefault()
-        e.stopPropagation()
-        openColorPicker(element, ctx)
-      }, { signal: lifecycleController.signal })
-    },
-
-    getData(element) {
-      return {
-        value: element.dataset.value || '#000000',
-      }
-    },
-
-    /** @returns {void} */
-    destroy() {
-      lifecycleController.abort()
-      i18n = null
-    },
-
-  }
-}
-
-/**
- * Normalize any color value to a 6-digit hex string.
- * @param {string} value
- * @returns {string}
- */
-function normalizeToHex6(value, ownerDocument = globalThis.document) {
-  // Short hex: #rgb → #rrggbb
-  const m3 = value.match(/^#([0-9a-fA-F])([0-9a-fA-F])([0-9a-fA-F])$/)
-  if (m3) return '#' + m3[1] + m3[1] + m3[2] + m3[2] + m3[3] + m3[3]
-
-  // 8-digit hex: strip alpha
-  const m8 = value.match(/^#([0-9a-fA-F]{6})[0-9a-fA-F]{2}$/)
-  if (m8) return '#' + m8[1]
-
-  // Already 6-digit hex
-  if (/^#[0-9a-fA-F]{6}$/.test(value)) return value
-
-  // Non-hex (rgb, hsl, etc.) — convert via DOM
-  const temp = ownerDocument.createElement('span')
-  temp.style.color = value
+function normalizeToHex6(value,ownerDocument){
+  const m3=value.match(/^#([0-9a-fA-F])([0-9a-fA-F])([0-9a-fA-F])$/)
+  if(m3)return '#'+m3[1]+m3[1]+m3[2]+m3[2]+m3[3]+m3[3]
+  const m8=value.match(/^#([0-9a-fA-F]{6})[0-9a-fA-F]{2}$/)
+  if(m8)return '#'+m8[1]
+  if(/^#[0-9a-fA-F]{6}$/.test(value))return value
+  const temp=ownerDocument.createElement('span')
+  temp.style.color=value
   ownerDocument.body.appendChild(temp)
-  const computed = (ownerDocument.defaultView ?? globalThis).getComputedStyle(temp).color
+  const computed=(ownerDocument.defaultView??globalThis).getComputedStyle(temp).color
   temp.remove()
-  const m = computed.match(/(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/)
-  if (m) return '#' + [m[1], m[2], m[3]].map(n => Number(n).toString(16).padStart(2, '0')).join('')
-
-  return '#000000'
+  const m=computed.match(/(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/)
+  if(!m)return '#000000'
+  return '#'+[m[1],m[2],m[3]].map(n=>Number(n).toString(16).padStart(2,'0')).join('')
 }
 
-/**
- * @param {HTMLElement} widget
- * @param {import('../types').InlinePluginContext} ctx
- */
-function openColorPicker(widget, ctx) {
-  // Cancellation restores the exact persisted value, not the picker's display format.
-  const current = widget.dataset.value || '#000000'
-  const originalLabel = widget.querySelector('.oe-ip__label')?.textContent ?? current
-  let committed = false
+function displayValue(value,ownerDocument){
+  const parsed=parseColorInput(value)
+  if(!parsed)return '#000000'
+  return (parsed.a??1)<1?value:normalizeToHex6(value,ownerDocument)
+}
 
-  const picker = createOwnedColorPicker(widget.ownerDocument, {
-    onApply(cssColor) {
-      const next = (parseColorInput(cssColor)?.a ?? 1) < 1 ? cssColor : normalizeToHex6(cssColor, widget.ownerDocument)
-      restoreWidget(widget, current, originalLabel)
-      ctx.mutate(widget, () => updateWidget(widget, next))
-      committed = true
-      ctx.hidePopup()
+/** @returns {import('../plugin-kit/types').InlinePluginDefinition<{value:string}>} */
+export function createColorSwatchPlugin(){
+  return Object.freeze({
+    type:'color',
+    label:Object.freeze({key:'title',fallback:'Color'}),
+    icon:ICON,
+    styles:Object.freeze([colorPickerStylesUrl]),
+    schema:colorWidgetSchema,
+    paste:Object.freeze({
+      patterns:PATTERNS,
+      fromMatch(match){
+        try{return colorWidgetSchema.encode({value:match}).data}catch{return null}
+      },
+    }),
+    insertion:Object.freeze({
+      createInitial(){
+        return {kind:/** @type {'widget'} */('widget'),data:colorWidgetSchema.createDefault()}
+      },
+    }),
+    setup(runtimeContext){
+      let destroyed=false
+      return {
+        create(id,initial,context){
+          if(destroyed)throw new Error('Color inline runtime is destroyed')
+          const document=runtimeContext.ownerDocument
+          const span=document.createElement('span')
+          span.contentEditable='false'
+          span.className='oe-ip oe-ip--color'
+          span.dataset.inlinePlugin='color'
+          span.dataset.id=id
+
+          const dot=document.createElement('span')
+          dot.className='oe-ip__dot'
+          const label=document.createElement('span')
+          label.className='oe-ip__label'
+          span.append(dot,label)
+
+          let data={...initial}
+          let readOnly=context.isReadOnly()
+          let dead=false
+
+          const project=next=>{
+            data={...next}
+            dot.style.backgroundColor=data.value
+            label.textContent=data.value
+            span.dataset.value=data.value
+            span.setAttribute('aria-label',data.value)
+            span.tabIndex=readOnly?-1:0
+          }
+
+          const open=()=>{
+            if(readOnly||dead)return
+            const canonical=context.getData().value
+            let committed=false
+            const picker=createOwnedColorPicker(document,{
+              onApply(cssColor){
+                const next=displayValue(cssColor,document)
+                context.updateData(()=>({value:next}))
+                committed=true
+                runtimeContext.hidePopup()
+              },
+              onChange(cssColor){
+                const next=displayValue(cssColor,document)
+                dot.style.backgroundColor=next
+                label.textContent=next
+              },
+              onFormatChange(formatted){
+                label.textContent=formatted
+              },
+              showRemove:false,
+            })
+            const surface=picker.element
+            surface.style.display=''
+            surface.style.position='static'
+            surface.style.transform='none'
+            picker.open(parseColorInput(canonical)?canonical:normalizeToHex6(canonical,document))
+            runtimeContext.showPopup(span,surface,()=>{
+              if(!committed)project(context.getData())
+              picker.destroy()
+            })
+          }
+
+          span.addEventListener('click',event=>{
+            if(readOnly)return
+            event.preventDefault()
+            event.stopPropagation()
+            open()
+          },{signal:context.signal})
+          span.addEventListener('keydown',event=>{
+            if(readOnly)return
+            if(event.key==='Enter'||event.key===' '){
+              event.preventDefault()
+              event.stopPropagation()
+              open()
+            }
+          },{signal:context.signal})
+
+          project(data)
+
+          return {
+            element:span,
+            update(next){if(!dead)project(next)},
+            setReadOnly(value){readOnly=value;project(data)},
+            focus(){if(!dead&&!readOnly)span.focus()},
+            destroy(){dead=true},
+          }
+        },
+        destroy(){destroyed=true},
+      }
     },
-    onChange(cssColor) {
-      updateWidget(widget, (parseColorInput(cssColor)?.a ?? 1) < 1 ? cssColor : normalizeToHex6(cssColor, widget.ownerDocument))
-    },
-    onFormatChange(formatted) {
-      updateWidgetLabel(widget, formatted)
-    },
-    showRemove: false,
   })
-
-  const popupContent = picker.element
-  // Position picker as static inside popup (popup handles positioning)
-  popupContent.style.display = ''
-  popupContent.style.position = 'static'
-  popupContent.style.transform = 'none'
-
-  picker.open(parseColorInput(current) ? current : normalizeToHex6(current, widget.ownerDocument))
-
-  ctx.showPopup(widget, popupContent, () => {
-    if (!committed) restoreWidget(widget, current, originalLabel)
-    picker.destroy()
-  })
-}
-
-/**
- * @param {HTMLElement} widget
- * @param {string} value
- */
-function updateWidget(widget, value) {
-  widget.dataset.value = value
-
-  const dot = /** @type {HTMLElement | null} */ (widget.querySelector('.oe-ip__dot'))
-  if (dot) dot.style.backgroundColor = value
-
-  const label = widget.querySelector('.oe-ip__label')
-  if (label) label.textContent = value
-
-}
-
-/**
- * Restore both the stored color and the human-readable label.
- *
- * @param {HTMLElement} widget
- * @param {string} value
- * @param {string} label
- * @returns {void}
- */
-function restoreWidget(widget, value, label) {
-  updateWidget(widget, value)
-  const labelElement = widget.querySelector('.oe-ip__label')
-  if (labelElement) labelElement.textContent = label
-}
-
-/**
- * Update only the label text (e.g. when format changes in picker).
- * @param {HTMLElement} widget
- * @param {string} formatted
- */
-function updateWidgetLabel(widget, formatted) {
-  const label = widget.querySelector('.oe-ip__label')
-  if (label) label.textContent = formatted
 }
