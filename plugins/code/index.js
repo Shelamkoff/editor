@@ -1,5 +1,5 @@
 import { dedentTextarea } from '../shared/dedentTextarea.js'
-import { setTrustedHtml } from '../../core/sanitize.js'
+import { setTrustedHtml } from '../../plugin-kit/index.js'
 import { getHighlightRuntime, loadHighlightRuntime } from '../../shared/highlightRuntime.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { validateCodeData } from '../../shared/blockDataValidators.js'
