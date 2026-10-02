@@ -67,3 +67,105 @@ export interface InlinePlugin extends BasePlugin {
   destroy?(): void
   insertFresh?(ctx: InlinePluginContext): void
 }
+
+
+/** Immutable runtime configuration shared by legacy block plugins during migration. */
+export interface PluginRuntimeConfig extends Record<string, unknown> {
+  injectStyles?: boolean
+  css?: string
+}
+
+/** Toolbox entry exposed by a block plugin. */
+export interface ToolboxEntry {
+  title: string
+  icon: string
+  data?: Record<string, unknown>
+}
+
+/** Clipboard formats a block plugin can claim. */
+export interface PasteConfig {
+  tags?: string[]
+  files?: string[]
+  patterns?: RegExp[]
+}
+
+export interface TagPasteEvent {
+  type: 'tag'
+  element: HTMLElement
+  tag: string
+}
+
+export interface FilePasteEvent {
+  type: 'file'
+  file: File
+}
+
+export interface PatternPasteEvent {
+  type: 'pattern'
+  data: string
+}
+
+export type PasteEvent = TagPasteEvent | FilePasteEvent | PatternPasteEvent
+
+/** Keyboard shortcut owned by one block plugin. */
+export interface ShortcutEntry {
+  combo: string
+  handler: (contentElement: HTMLElement) => void
+}
+
+/**
+ * Legacy block plugin contract while BlockPluginDefinition/BlockInstance v2 is
+ * introduced. This is the canonical extension-facing definition; core imports
+ * and re-exports it instead of owning a duplicate copy.
+ */
+export interface BlockPlugin<
+  D extends Record<string, unknown> = Record<string, unknown>
+> extends BasePlugin {
+  readonly inlineTools?: boolean | string[]
+  getPluginConfig?(): PluginRuntimeConfig
+  setPlaceholder?(placeholder: string): void
+
+  render(data: D, context: BlockMutationContext): HTMLElement
+  save(element: HTMLElement): D
+
+  validate?(data: D): boolean
+  dispose?(): void
+  destroy?(element: HTMLElement): void
+  isEmpty?(element: HTMLElement): boolean
+
+  toolbox?: ToolboxEntry | ToolboxEntry[]
+  shortcuts?: ShortcutEntry[]
+
+  merge?(element: HTMLElement, data: D): void
+
+  renderSettings?(element: HTMLElement): HTMLElement | HTMLElement[] | null
+  changeLevel?(element: HTMLElement, level: number): HTMLElement
+  onSettingsAction?(element: HTMLElement, action: string): Record<string, unknown> | null
+
+  pasteConfig?: PasteConfig
+  onPaste?(event: PasteEvent): D | null
+  waitForPaste?(element: HTMLElement): Promise<void>
+
+  exportData?(element: HTMLElement): Record<string, unknown>
+  splitSelection?(element: HTMLElement, range: Range): {
+    remainingData: D | null
+    selectedData: Record<string, unknown>
+  } | null
+
+  renderInlineControls?(
+    contentElement: HTMLElement,
+    ctx: InlineControlContext,
+  ): InlineControlGroup | null
+
+  mapTextFields?(data: D, transform: (html: string) => string): void
+}
+
+/** Static metadata supported by legacy block plugin classes. */
+export interface BlockPluginConstructor<
+  D extends Record<string, unknown> = Record<string, unknown>
+> {
+  new (): BlockPlugin<D>
+  styles?: string[]
+  locale?: Record<string, Record<string, LocaleValue>>
+  isTextBlock?: boolean
+}
