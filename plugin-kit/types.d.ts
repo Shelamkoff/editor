@@ -257,6 +257,7 @@ export interface BlockPluginDefinition<
   readonly label: Readonly<{ key: string, fallback: string }>
   readonly icon: string
   readonly styles?: readonly string[]
+  readonly toolbox?: readonly ToolboxItemDefinition<D>[]
   readonly schema: BlockDataSchema<D>
   readonly capabilities?: BlockCapabilities<D>
   setup(context: BlockPluginRuntimeContext): BlockPluginRuntime<D>
@@ -297,6 +298,8 @@ export interface BlockCapabilities<D extends Record<string, unknown>> {
   formatting?: FormattingCapability
   merge?: MergeCapability<D>
   conversion?: ConversionCapability<D>
+  settings?: SettingsActionCapability<D>
+  paste?: PasteCapability<D>
 }
 
 
@@ -396,4 +399,65 @@ export interface InlinePluginDefinition<
     createInitial(): InlineFreshInsertion<D>
   }>
   setup(context: InlinePluginRuntimeContext): InlinePluginRuntime<D>
+}
+
+
+/** Narrow allocator available to pure data operations that create nested identities. */
+export interface DataOperationContext {
+  createId(prefix: string): string
+}
+
+export interface LocalizedLabel {
+  key: string
+  fallback: string
+}
+
+export interface ToolboxItemDefinition<
+  D extends Record<string, unknown> = Record<string, unknown>
+> {
+  id: string
+  label: LocalizedLabel
+  icon: string
+  configure?(base: Readonly<D>, context: DataOperationContext): D
+}
+
+export interface ExtensionUiContext {
+  readonly ownerDocument: Document
+  t(label: LocalizedLabel): string
+}
+
+export interface SettingsAction {
+  id: string
+  label: LocalizedLabel
+  icon?: string
+  active?: boolean
+  disabled?: boolean
+}
+
+export interface SettingsActionCapability<D extends Record<string, unknown>> {
+  kind: 'actions'
+  actions(data: Readonly<D>, context: ExtensionUiContext): readonly SettingsAction[]
+  apply(data: Readonly<D>, actionId: string, context: DataOperationContext): D
+}
+
+export type PasteInput =
+  | { kind: 'text', text: string }
+  | { kind: 'html', html: string }
+  | { kind: 'file', file: File }
+
+export interface PasteResolveContext extends DataOperationContext {
+  readonly signal: AbortSignal
+  readonly ownerDocument: Document
+}
+
+export type PasteResult<D extends Record<string, unknown>> =
+  | { kind: 'block', data: D }
+  | { kind: 'rich-text', replacement: { kind: 'text', text: string } | { kind: 'html', html: string } }
+
+export interface PasteCapability<D extends Record<string, unknown>> {
+  accepts(input: PasteInput): boolean
+  resolve(
+    input: PasteInput,
+    context: PasteResolveContext,
+  ): PasteResult<D> | null | Promise<PasteResult<D> | null>
 }
