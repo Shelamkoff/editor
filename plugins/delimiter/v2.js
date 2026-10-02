@@ -4,7 +4,10 @@ import { delimiterDataSchema } from '../../shared/blockSchemas/delimiter.js'
 const editorStyles = new URL('./delimiter.css', import.meta.url).href
 const ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h2"/><path d="M17 12h2"/><path d="M11 12h2"/></svg>'
 
-/** @returns {import('../../plugin-kit/types').BlockPluginDefinition<Record<string, never>>} */
+/**
+ * Create the immutable Delimiter v2 definition.
+ * @returns {import('../../plugin-kit/types').BlockPluginDefinition<Record<string, never>>}
+ */
 export function createDelimiterPlugin() {
   return Object.freeze({
     type: 'delimiter',
