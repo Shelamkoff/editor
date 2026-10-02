@@ -4,7 +4,7 @@ import test from 'node:test'
 
 import { el, positionPopup } from './dom.js'
 import { Tooltip } from './Tooltip.js'
-import { handleMenuKeydown } from './menuKeyboardNav.js'
+import { handleMenuKeydown } from '../shared/menuKeyboardNav.js'
 import { CrossBlockSelection } from './CrossBlockSelection.js'
 import { rangeStartsAtBeginning, rangeEndsAtEnd } from './splitConvert.js'
 
