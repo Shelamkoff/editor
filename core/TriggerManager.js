@@ -1,5 +1,5 @@
 import { EditorEvent } from './editorEvents.js'
-import { editingHostForEvent } from './editableFields.js'
+import { editingHostForEvent } from '../shared/editableFields.js'
 
 /**
  * Listens for trigger characters (e.g. '@' for mentions) in contenteditable blocks
