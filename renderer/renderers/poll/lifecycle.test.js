@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { createPollRenderer } from './index.js'
-import { Poll } from '../../../plugins/poll/index.js'
+import { createPollPlugin } from '../../../plugins/poll/index.js'
 
 // Only the synchronous DOM operations needed by Poll's view builder. Network
 // and disposal assertions below use the real renderer factory, not a mock.
@@ -111,10 +111,29 @@ test('a live Poll still loads once and disposes its subscription exactly once', 
 
 
 function editorPoll(config) {
-  const plugin = new Poll(config)
+  const doc = ownerDocument()
+  const definition = createPollPlugin(config)
+  const runtimeController = new AbortController()
+  const runtime = definition.setup({
+    ownerDocument: doc,
+    signal: runtimeController.signal,
+    isDefaultBlock: false,
+    t: (_key, fallback = '') => fallback,
+  })
+  const instanceController = new AbortController()
   const data = { ...block.data, resultsMode: 'hidden', options: [{ id: 'yes', text: '' }, { id: 'no', text: '' }] }
-  const element = plugin.render(data, { ownerDocument: ownerDocument(), readOnly: true, mutate() {} })
-  return { plugin, element }
+  const instance = runtime.create(data, {
+    ownerDocument: doc,
+    signal: instanceController.signal,
+    createId: prefix => prefix + '-1',
+    getData: () => data,
+    updateData() {},
+    commitDomMutation(operation) { operation() },
+    requestSplit() {},
+    requestExit() {},
+    isReadOnly: () => true,
+  })
+  return { runtime, instance, element: instance.element }
 }
 
 test('editor Poll does not start deferred load after destruction', async () => {
@@ -122,9 +141,10 @@ test('editor Poll does not start deferred load after destruction', async () => {
   const f = editorPoll({ dataSource: {
     async load() { loads++; return emptyResults() }, async vote() { return emptyResults() },
   } })
-  f.plugin.destroy(f.element)
+  f.instance.destroy()
   await settle()
   assert.equal(loads, 0)
+  f.runtime.destroy()
 })
 
 test('editor Poll releases ownership before reentrant subscription disposal', () => {
@@ -132,8 +152,9 @@ test('editor Poll releases ownership before reentrant subscription disposal', ()
   let f
   f = editorPoll({ dataSource: {
     async load() { return emptyResults() }, async vote() { return emptyResults() },
-    subscribe() { return () => { unsubscribes++; if (unsubscribes === 1) f.plugin.destroy(f.element) } },
+    subscribe() { return () => { unsubscribes++; if (unsubscribes === 1) f.instance.destroy() } },
   } })
-  f.plugin.destroy(f.element)
+  f.instance.destroy()
   assert.equal(unsubscribes, 1)
+  f.runtime.destroy()
 })

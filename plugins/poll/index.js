@@ -93,6 +93,7 @@ export function createPollPlugin(config={}){
           let controller=null
           let unsubscribe=null
           let connectionVersion=0
+          let loadVersion=0
 
           const report=error=>{
             if(snapshot.onError){
@@ -208,43 +209,57 @@ export function createPollPlugin(config={}){
             }))
           }
 
-          const connect=()=>{
-            unsubscribe?.()
+          const disposeSubscription=()=>{
+            const dispose=unsubscribe
             unsubscribe=null
+            if(typeof dispose!=='function')return
+            try{dispose()}catch(error){if(!dead)report(error)}
+          }
+
+          const connect=()=>{
+            disposeSubscription()
             controller?.abort()
             if(!snapshot.dataSource||!data.pollId||dead)return
             const Ctor=document.defaultView?.AbortController??AbortController
-            controller=new Ctor()
+            const connectionController=new Ctor()
+            controller=connectionController
             const version=++connectionVersion
-            const abort=()=>controller?.abort(context.signal.reason)
-            context.signal.addEventListener('abort',abort,{once:true,signal:controller.signal})
+            const pendingLoad=++loadVersion
+            const abort=()=>connectionController.abort(context.signal.reason)
+            context.signal.addEventListener('abort',abort,{once:true,signal:connectionController.signal})
             loading=true
             project()
-            void snapshot.dataSource.load({pollId:data.pollId,signal:controller.signal}).then(results=>{
-              if(dead||controller?.signal.aborted||version!==connectionVersion)return
-              if(acceptResults(results))project()
-            }).catch(error=>{
-              if(!controller?.signal.aborted)report(error)
-            }).finally(()=>{
-              if(version===connectionVersion){
-                loading=false
-                project()
-              }
-            })
             if(snapshot.dataSource.subscribe){
               try{
                 const stop=snapshot.dataSource.subscribe({
                   pollId:data.pollId,
-                  signal:controller.signal,
+                  signal:connectionController.signal,
                   onUpdate(results){
-                    if(dead||controller?.signal.aborted||version!==connectionVersion)return
+                    if(dead||connectionController.signal.aborted||version!==connectionVersion)return
+                    loadVersion++
+                    loading=false
                     if(acceptResults(results))project()
                   },
-                  onError:error=>{if(!controller?.signal.aborted)report(error)},
+                  onError:error=>{if(!dead&&!connectionController.signal.aborted&&version===connectionVersion)report(error)},
                 })
                 if(typeof stop==='function')unsubscribe=stop
-              }catch(error){report(error)}
+              }catch(error){
+                if(!dead&&!connectionController.signal.aborted&&version===connectionVersion)report(error)
+              }
             }
+            void Promise.resolve().then(()=>{
+              if(dead||connectionController.signal.aborted||version!==connectionVersion||pendingLoad!==loadVersion)return undefined
+              return snapshot.dataSource.load({pollId:data.pollId,signal:connectionController.signal})
+            }).then(results=>{
+              if(results===undefined||dead||connectionController.signal.aborted||version!==connectionVersion||pendingLoad!==loadVersion)return
+              if(acceptResults(results))project()
+            }).catch(error=>{
+              if(!dead&&!connectionController.signal.aborted&&version===connectionVersion&&pendingLoad===loadVersion)report(error)
+            }).finally(()=>{
+              if(dead||connectionController.signal.aborted||version!==connectionVersion||pendingLoad!==loadVersion)return
+              loading=false
+              project()
+            })
           }
 
           const toggleVote=async optionId=>{
@@ -283,10 +298,10 @@ export function createPollPlugin(config={}){
               })
               if(!dead&&!voteController.signal.aborted&&acceptResults(results))project()
             }catch(error){
-              if(!voteController.signal.aborted)report(error)
+              if(!dead&&!voteController.signal.aborted)report(error)
             }finally{
               submitting=false
-              project()
+              if(!dead)project()
             }
           }
 
@@ -328,7 +343,15 @@ export function createPollPlugin(config={}){
             ]),
             setReadOnly(value){readOnly=value;project()},
             focus(){if(!dead&&!readOnly)(wrapper.querySelector('.oe-poll__question'))?.focus()},
-            destroy(){dead=true;controller?.abort();unsubscribe?.();unsubscribe=null},
+            destroy(){
+              if(dead)return
+              dead=true
+              connectionVersion++
+              loadVersion++
+              controller?.abort()
+              controller=null
+              disposeSubscription()
+            },
           }
         },
         destroy(){destroyed=true},
