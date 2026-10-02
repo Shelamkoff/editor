@@ -1,0 +1,90 @@
+// @ts-check
+import { cloneEditorData } from '../shared/cloneEditorData.js'
+
+export class EditorViewModel {
+  #runtime
+  #reconciler
+  #interaction
+  #selection
+
+  constructor({ runtime, reconciler, interaction, selection }) {
+    if (!runtime?.list) throw new TypeError('EditorViewModel requires a DocumentRuntime')
+    if (!reconciler?.getElement) throw new TypeError('EditorViewModel requires a BlockReconciler')
+    if (!interaction) throw new TypeError('EditorViewModel requires InteractionState')
+    if (!selection) throw new TypeError('EditorViewModel requires LogicalSelection')
+    this.#runtime = runtime
+    this.#reconciler = reconciler
+    this.#interaction = interaction
+    this.#selection = selection
+  }
+
+  get count() { return this.#runtime.list().length }
+  get currentId() { return this.#interaction.currentId }
+  get currentIndex() { return this.#interaction.currentIndex }
+  get selectedIds() { return this.#interaction.selectedIds }
+
+  records() { return this.#runtime.list().map(record => cloneEditorData(record)) }
+  get(id) {
+    const record = this.#runtime.get(id)
+    return record ? cloneEditorData(record) : undefined
+  }
+  at(index) {
+    const record = this.#runtime.list()[index]
+    return record ? cloneEditorData(record) : undefined
+  }
+  indexOf(id) { return this.#runtime.list().findIndex(record => record.id === id) }
+
+  element(id) { return this.#reconciler.getElement(id) }
+  fields(id) { return this.#reconciler.getEditableFields(id) }
+  resolveBlockTarget(target) { return this.#reconciler.resolveBlockTarget(target) }
+
+  setCurrent(id) { this.#interaction.setCurrent(id) }
+  setCurrentIndex(index) { this.#interaction.setCurrentIndex(index) }
+  select(ids) { this.#interaction.select(ids) }
+  clearSelection() { this.#interaction.clearSelection() }
+
+  insert(type, data, index) {
+    const id = this.#runtime.insert(type, data, index)
+    this.#interaction.reconcile()
+    this.#interaction.setCurrent(id)
+    return id
+  }
+
+  update(id, producer) { this.#runtime.update(id, producer) }
+
+  remove(id) {
+    const index = this.indexOf(id)
+    this.#runtime.remove(id)
+    this.#interaction.reconcile()
+    if (this.#interaction.currentId === id) {
+      const next = this.#runtime.list()[Math.min(Math.max(index, 0), this.#runtime.list().length - 1)]
+      if (next) this.#interaction.setCurrent(next.id)
+    }
+  }
+
+  move(id, to) {
+    this.#runtime.move(id, to)
+    this.#interaction.reconcile()
+  }
+
+  convert(id, target) {
+    this.#runtime.convert(id, target)
+    this.#interaction.reconcile()
+    return this.get(id)
+  }
+
+  focus(id = this.#interaction.currentId, target) {
+    if (!id) return false
+    this.#interaction.setCurrent(id)
+    const focused = this.#interaction.focus(id, target)
+    if (target) this.#selection.setCaret(id, target)
+    return focused
+  }
+
+  setCaret(id, target) {
+    this.#interaction.setCurrent(id)
+    return this.#selection.setCaret(id, target)
+  }
+
+  reconcileInteraction() { this.#interaction.reconcile() }
+}
