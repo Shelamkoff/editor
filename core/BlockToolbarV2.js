@@ -504,6 +504,7 @@ export class BlockToolbarV2 {
     const blockRect = block.getBoundingClientRect()
     this.#toolbar.style.position = 'absolute'
     this.#toolbar.style.top = `${Math.max(0, blockRect.top - rootRect.top)}px`
+    this.#toolbar.style.right = 'auto'
     this.#toolbar.style.left = `${Math.max(0, blockRect.left - rootRect.left - 52)}px`
   }
 
