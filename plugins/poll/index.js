@@ -399,10 +399,17 @@ export function createPollPlugin(config={}){
             },
             update(next){
               const reconnect=next.pollId!==data.pollId||next.type!==data.type||next.options.map(x=>x.id).join('|')!==data.options.map(x=>x.id).join('|')
+              const initialChanged=JSON.stringify(next.initialResults??null)!==JSON.stringify(data.initialResults??null)
               data=cloneData(next)
-              runtime=normalizePollResults(data.initialResults??runtime,data.options.map(option=>option.id),maxVoters,data.type)
+              runtime=normalizePollResults(
+                initialChanged?data.initialResults:(data.initialResults??runtime),
+                data.options.map(option=>option.id),
+                maxVoters,
+                data.type,
+              )
               selected=new Set(runtime.currentUserVote??[])
-              hasVoted=(runtime.currentUserVote?.length??0)>0||hasVoted
+              if(initialChanged)hasVoted=(runtime.currentUserVote?.length??0)>0
+              else hasVoted=(runtime.currentUserVote?.length??0)>0||hasVoted
               project()
               if(reconnect)connect()
             },
