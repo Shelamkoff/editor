@@ -1,147 +1,173 @@
-import { insertSanitizedHtml, setSanitizedHtml } from '../../plugin-kit/index.js'
-import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
-import { mapTextFields } from './mapTextFields.js'
+// @ts-check
+import { setSanitizedHtml } from '../../plugin-kit/index.js'
 import { paragraphDataSchema } from '../../shared/blockSchemas/paragraph.js'
-import { normalizeTextValue } from '../../shared/textFormat.js'
 
 const editorStyles = new URL('./paragraph.css', import.meta.url).href
-
-// Tabler icon: letter-t
 const ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4l12 0"/><path d="M12 4l0 16"/></svg>'
 
-
 /**
- * Consumer configuration for {@link Paragraph}.
- * @typedef {Object} ParagraphConfig
- * @property {string} [placeholder] Text shown by an empty paragraph. The
- *   default comes from the active editor locale.
- * @property {boolean} [injectStyles=true] Whether the editor should load the
- *   built-in paragraph stylesheet.
- * @property {string} [css] Additional stylesheet URL, or the replacement URL
- *   when `injectStyles` is `false`.
+ * @typedef {Object} ParagraphV2Config
+ * @property {string} [placeholder]
+ * @property {boolean} [injectStyles=true]
+ * @property {string} [css]
  */
 
 /**
- * Editable paragraph block that stores sanitized rich text.
- * @extends {BlockPluginAbstract<ParagraphConfig>}
+ * @param {HTMLElement} element
+ * @param {string} html
  */
-export class Paragraph extends BlockPluginAbstract {
-  static dataSchema = paragraphDataSchema
-  static isTextBlock = true
-  static styles = [editorStyles]
-  type = 'paragraph'
-  icon = ICON
-  inlineTools = true
-  mapTextFields = mapTextFields
-
-  /**
-   * Create a Paragraph instance with the supplied consumer configuration.
-   * @param {ParagraphConfig} [config]
-   */
-  constructor(config) {
-    super(config)
+function projectText(element, html) {
+  if (!html) {
+    element.textContent = ''
+    return
   }
 
-  /**
-   * Return the localized toolbox label for this block.
-   * @returns {string}
-   */
-  get title() {
-    return this._t('title', 'Text')
+  // Plain text is the hot path and does not need an HTML parser. Any markup
+  // or entity-shaped input still goes through the audited sanitizer/TT sink.
+  if (!/[<&]/.test(html)) {
+    element.textContent = html
+    return
+  }
+  setSanitizedHtml(element, html)
+}
+
+/**
+ * Create the reusable immutable Paragraph v2 definition.
+ *
+ * @param {ParagraphV2Config} [config]
+ * @returns {import('../../plugin-kit/types').BlockPluginDefinition<{ text: string }>}
+ */
+export function createParagraphPlugin(config = {}) {
+  if (!config || typeof config !== 'object' || Array.isArray(config)) {
+    throw new TypeError('Paragraph configuration must be an object')
+  }
+  if (config.placeholder !== undefined && typeof config.placeholder !== 'string') {
+    throw new TypeError('Paragraph placeholder must be a string')
+  }
+  if (config.injectStyles !== undefined && typeof config.injectStyles !== 'boolean') {
+    throw new TypeError('Paragraph injectStyles must be a boolean')
+  }
+  if (config.css !== undefined && typeof config.css !== 'string') {
+    throw new TypeError('Paragraph css must be a string')
   }
 
-  /**
-   * Set placeholder from editor-level config (lower priority than constructor config).
-   * @param {string} placeholder
-   * @returns {void}
-   */
-  setPlaceholder(placeholder) {
-    if (!Object.hasOwn(this._config, 'placeholder')) {
-      this._config = /** @type {typeof this._config} */ (Object.freeze({ ...this._config, placeholder }))
-    }
+  const snapshot = Object.freeze({ ...config })
+  const styles = []
+  if (snapshot.injectStyles !== false) styles.push(editorStyles)
+  if (snapshot.css) styles.push(snapshot.css)
+
+  const capabilities = Object.freeze({
+    formatting: Object.freeze({ inlineTools: true }),
+    empty: Object.freeze({
+      isEmpty(data) {
+        return data.text.trim().length === 0
+      },
+    }),
+    merge: Object.freeze({
+      merge(target, source) {
+        return { text: target.text + source.text }
+      },
+    }),
+    conversion: Object.freeze({
+      export(data) {
+        return {
+          kind: 'rich-text',
+          data: { text: data.text },
+        }
+      },
+      canImport(payload) {
+        return payload?.kind === 'rich-text'
+          && typeof payload.data?.text === 'string'
+      },
+      import(payload) {
+        if (
+          payload?.kind !== 'rich-text'
+          || typeof payload.data?.text !== 'string'
+        ) {
+          throw new TypeError('Paragraph can only import rich-text payloads')
+        }
+        return { text: payload.data.text }
+      },
+    }),
+  })
+
+  const definition = {
+    type: 'paragraph',
+    label: Object.freeze({ key: 'title', fallback: 'Text' }),
+    icon: ICON,
+    styles: Object.freeze(styles),
+    schema: paragraphDataSchema,
+    capabilities,
+
+    /**
+     * @param {import('../../plugin-kit/types').BlockPluginRuntimeContext} runtimeContext
+     * @returns {import('../../plugin-kit/types').BlockPluginRuntime<{ text: string }>}
+     */
+    setup(runtimeContext) {
+      let destroyed = false
+      const placeholder = snapshot.placeholder
+        ?? (runtimeContext.isDefaultBlock ? runtimeContext.editorPlaceholder : undefined)
+        ?? runtimeContext.t('placeholder', '')
+
+      return {
+        create(initial, context) {
+          if (destroyed) throw new Error('Paragraph runtime is destroyed')
+          if (context.signal.aborted) throw new DOMException('Block instance is aborted', 'AbortError')
+
+          const element = context.ownerDocument.createElement('p')
+          element.className = 'oe-paragraph'
+          element.contentEditable = context.isReadOnly() ? 'false' : 'true'
+          if (placeholder) element.dataset.placeholder = placeholder
+          projectText(element, initial.text)
+
+          let instanceDestroyed = false
+
+          return {
+            element,
+
+            read() {
+              const text = typeof element.innerHTML === 'string' && element.innerHTML
+                ? element.innerHTML
+                : element.textContent ?? ''
+              return { text }
+            },
+
+            update(next) {
+              if (instanceDestroyed) return
+              projectText(element, next.text)
+            },
+
+            editableFields() {
+              return Object.freeze([Object.freeze({
+                key: 'text',
+                element,
+                mode: /** @type {'rich-text'} */ ('rich-text'),
+              })])
+            },
+
+            setReadOnly(readOnly) {
+              if (instanceDestroyed) return
+              element.contentEditable = readOnly ? 'false' : 'true'
+            },
+
+            focus() {
+              if (instanceDestroyed) return
+              element.focus()
+            },
+
+            destroy() {
+              if (instanceDestroyed) return
+              instanceDestroyed = true
+            },
+          }
+        },
+
+        destroy() {
+          destroyed = true
+        },
+      }
+    },
   }
 
-  /**
-   * Create the editable DOM owned by this block instance.
-   * @param {{ text?: string }} data
-   * @param {import('../../plugin-kit/types').BlockMutationContext} context
-   * @returns {HTMLElement}
-   */
-  render(data, context) {
-    const ownerDocument = context?.ownerDocument ?? globalThis.document
-    const p = ownerDocument.createElement('p')
-    p.classList.add('oe-paragraph')
-    p.contentEditable = 'true'
-
-    const text = normalizeTextValue(data?.text)
-    if (text) setSanitizedHtml(p, text)
-
-    // Placeholder via data attribute + CSS :empty::before
-    // Priority: explicit config > i18n locale > empty (no placeholder)
-    const placeholder = Object.hasOwn(this._config, 'placeholder')
-      ? this._config.placeholder
-      : this._t('placeholder', '')
-    if (placeholder) {
-      p.dataset.placeholder = placeholder
-    }
-
-    // No Level 1 paste handler — paragraph is a simple text block.
-    // Clipboard (Level 2) handles all paste: sanitization, multi-line splitting.
-    // Level 1 is for specialized plugins (code block, image) that need custom paste.
-
-    return p
-  }
-
-  /**
-   * Serialize the current block DOM into document data.
-   * @param {HTMLElement} element
-   * @returns {{ text: string }}
-   */
-  save(element) {
-    return { text: element.innerHTML }
-  }
-
-  /**
-   * Check whether serialized data satisfies this block's schema.
-   * @param {unknown} data
-   * @returns {boolean}
-   */
-  validate(data) {
-    try {
-      paragraphDataSchema.encode(/** @type {any} */ (data))
-      return true
-    } catch {
-      return false
-    }
-  }
-
-  /**
-   * Merge another paragraph's data into this element.
-   * @param {HTMLElement} element
-   * @param {{ text?: string }} data
-   * @returns {void}
-   */
-  merge(element, data) {
-    const text = normalizeTextValue(data.text)
-    if (text) insertSanitizedHtml(element, 'beforeend', text)
-  }
-
-  /**
-   * Extract transferable data for block type conversion.
-   * @param {HTMLElement} element
-   * @returns {{ text: string }}
-   */
-  exportData(element) {
-    return { text: element.innerHTML }
-  }
-
-  /**
-   * Check if the paragraph content is empty.
-   * @param {HTMLElement} element
-   * @returns {boolean}
-   */
-  isEmpty(element) {
-    return (element.textContent?.trim().length ?? 0) === 0
-  }
-
+  return Object.freeze(definition)
 }
