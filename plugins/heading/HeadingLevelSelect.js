@@ -16,7 +16,7 @@ const ICON_CHEVRON = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height=
  * @param {import('../../plugin-kit/types').InlineControlContext} ctx
  * @param {(key: string, fallback: string) => string} t - translation function
  * @param {ReadonlyArray<{level: number, key: string, icon: string}>} levels
- * @returns {import('../../core/types').InlineControlGroup}
+ * @returns {import('../../plugin-kit/types').InlineControlGroup}
  */
 export function createHeadingLevelSelect(plugin, element, ctx, t, levels) {
   const ownerDocument = element.ownerDocument
