@@ -21,7 +21,10 @@ function exportText(data){
   return data.rows.map(row=>row.cells.map(cell=>cell.text).filter(Boolean).join(' — ')).filter(Boolean).join('<br>')
 }
 
-/** @returns {import('../../plugin-kit/types').BlockPluginDefinition<{withHeadings:boolean,rows:Array<{id:string,cells:Array<{id:string,text:string}>}>}>} */
+/**
+ * Create the immutable Table v2 definition with stable row and cell identities.
+ * @returns {import('../../plugin-kit/types').BlockPluginDefinition<{withHeadings:boolean,rows:Array<{id:string,cells:Array<{id:string,text:string}>}>}>}
+ */
 export function createTablePlugin(){
   const capabilities=Object.freeze({
     formatting:Object.freeze({inlineTools:true}),
