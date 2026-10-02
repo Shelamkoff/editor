@@ -1,903 +1,463 @@
+// @ts-check
 import { setSanitizedHtml, setTrustedHtml } from '../../plugin-kit/index.js'
-import { sanitizeHtml } from '../../plugin-kit/index.js'
-import { CropperDialog, cropperStylesUrl } from '@shelamkoff/cropper'
-import { resolveSocialIcon, SOCIAL_ICONS } from './socialResolver.js'
-import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
+import { personDataSchema } from '../../shared/blockSchemas/person.js'
 import { sanitizeUrl, setSafeUrlAttribute } from '../../shared/sanitize/sanitizeUrl.js'
-import { validatePersonData } from '../../shared/blockDataValidators.js'
-import { normalizeTextValue } from '../../shared/textFormat.js'
 import { requiresTrustedHtml } from '../../shared/sanitize/trustedHtml.js'
+import { CropperDialog, cropperStylesUrl } from '@shelamkoff/cropper'
+import { triggerFileInput, isSupportedImageFile } from '../shared/fileInput.js'
+import { resolveSocialIcon, SOCIAL_ICONS } from './socialResolver.js'
 
-const editorStyles = new URL('./person.css', import.meta.url).href
-const cropperStyles = cropperStylesUrl
+const editorStyles=new URL('./person.css',import.meta.url).href
+const ICON='<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="10" r="3"/><path d="M6.2 18.8A6 6 0 0 1 10 16h4a6 6 0 0 1 3.8 2.8"/></svg>'
+const CAMERA='<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 20H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1a2 2 0 0 0 2-2a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1a2 2 0 0 0 2 2h1a2 2 0 0 1 2 2v3"/><circle cx="12" cy="13" r="3"/></svg>'
+const REMOVE='<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>'
 
-// Tabler icon: user-circle
-const ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M12 10m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"/><path d="M6.168 18.849a4 4 0 0 1 3.832 -2.849h4a4 4 0 0 1 3.834 2.855"/></svg>'
-
-const ICON_CAMERA = '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h-7a2 2 0 0 1 -2 -2v-9a2 2 0 0 1 2 -2h1a2 2 0 0 0 2 -2a1 1 0 0 1 1 -1h6a1 1 0 0 1 1 1a2 2 0 0 0 2 2h1a2 2 0 0 1 2 2v3.5"/><path d="M16 19h6"/><path d="M19 16v6"/><path d="M9 13a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"/></svg>'
-
-const ICON_PLUS = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>'
-
-const ICON_REMOVE = '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M18 6L6 18"/><path stroke-linecap="round" stroke-linejoin="round" d="M6 6l12 12"/></svg>'
-
-const ICON_LOADER = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 9 9"/></svg>'
-
-const ICON_GRIP = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="19" r="1"/></svg>'
-
-/**
- * @typedef {{ avatar: string, name: string, role: string, bio: string, links: Array<{type: string, url: string}> }} PersonData
- * @typedef {Object} PersonConfig
- * @property {(file: File, context: { signal: AbortSignal }) => Promise<{ url: string }>} [uploadFile] Uploads the cropped avatar, or the original file when the cropper is unavailable in the owning realm or under Trusted Types enforcement. Without this callback the image is stored as a data URL.
- * @property {Array<{ test: RegExp | ((url: string) => boolean), type: string, icon?: string }>} [socialResolvers] Additional URL classifiers for social links. The first matching resolver supplies the persisted `type`; `icon` is trusted application SVG/HTML.
- * @property {boolean} [injectStyles=true] Whether the editor should load the built-in person and cropper stylesheets.
- * @property {string} [css] Additional stylesheet URL, or the replacement URL when `injectStyles` is `false`.
- */
-
-/**
- * @typedef {{
- *   data: { persons: PersonData[] },
- *   activeIdx: number,
- *   debounceTimers: Map<string, number>,
- *   dragFromIdx: number | null,
- *   cropperDialog: CropperDialog | null,
- *   avatarTasks: Map<PersonData, AbortController>,
- *   abortController: AbortController,
- *   context: import('../../plugin-kit/types').BlockMutationContext,
- *   ownerDocument: Document,
- * }} PersonState
- */
-
-/** @type {WeakMap<HTMLElement, PersonState>} */
-const stateMap = new WeakMap()
-
-/** @param {PersonData} person @returns {boolean} */
-function hasPersonContent(person) {
-  return Boolean(person.name.trim() || person.avatar || person.role.trim() || person.bio.trim()
-    || person.links.some(link => sanitizeUrl(link.url, { policy: 'link', fallback: '' })))
+function cloneData(data){
+  return {
+    persons:data.persons.map(person=>({
+      ...person,
+      links:person.links.map(link=>({...link})),
+    })),
+  }
 }
 
-/** @param {HTMLElement} element @returns {AbortController} */
-function createAbortControllerFor(element) {
-  const AbortControllerCtor = element.ownerDocument?.defaultView?.AbortController ?? AbortController
-  return new AbortControllerCtor()
+function meaningful(person){
+  return Boolean(person.avatar||person.name.trim()||person.role.trim()||person.bio.trim()||person.links.some(link=>link.url))
 }
 
-
 /**
- * Multi-person profile block with editable biography, links, ordering, and
- * optional avatar cropping.
- * @extends {BlockPluginAbstract<PersonConfig>}
+ * @typedef {Object} PersonV2Config
+ * @property {(file:File,context:{signal:AbortSignal})=>Promise<{url:string}>} [uploadFile]
+ * @property {Array<{test:RegExp|((url:string)=>boolean),type:string,icon?:string}>} [socialResolvers]
+ * @property {boolean} [injectStyles=true]
+ * @property {string} [css]
  */
-export class Person extends BlockPluginAbstract {
-  static isTextBlock = false
-  static styles = [editorStyles, cropperStyles]
-  type = 'person'
-  icon = ICON
-  inlineTools = false
 
-  /**
-   * Create a Person instance with the supplied consumer configuration.
-   * @param {PersonConfig} [config]
-   */
-  constructor(config) {
-    super(config)
-  }
+/** @param {PersonV2Config} [config] @returns {import('../../plugin-kit/types').BlockPluginDefinition<any>} */
+export function createPersonPlugin(config={}){
+  if(!config||typeof config!=='object'||Array.isArray(config))throw new TypeError('Person configuration must be an object')
+  const snapshot=Object.freeze({
+    ...config,
+    socialResolvers:Object.freeze([...(config.socialResolvers??[])]),
+  })
+  const styles=[]
+  if(snapshot.injectStyles!==false)styles.push(editorStyles,cropperStylesUrl)
+  if(snapshot.css)styles.push(snapshot.css)
 
-  /**
-   * Return the localized toolbox label for this block.
-   * @returns {string}
-   */
-  get title() {
-    return this._t('title', 'Person')
-  }
+  const capabilities=Object.freeze({
+    empty:Object.freeze({isEmpty:data=>data.persons.every(person=>!meaningful(person))}),
+    conversion:Object.freeze({
+      export(data){
+        return {
+          kind:'rich-text',
+          data:{text:data.persons.map(person=>[person.name,person.role,person.bio].filter(Boolean).join('<br>')).filter(Boolean).join('<br>')},
+        }
+      },
+      canImport(payload){
+        return payload?.kind==='rich-text'&&typeof payload.data?.text==='string'
+      },
+      import(payload){
+        if(payload?.kind!=='rich-text'||typeof payload.data?.text!=='string')throw new TypeError('Person can only import rich-text payloads')
+        return {
+          persons:[{
+            id:'person-0',
+            avatar:'',
+            name:'',
+            role:'',
+            bio:payload.data.text,
+            links:[],
+          }],
+        }
+      },
+    }),
+  })
 
-  /** Create an empty profile for a new person tab. @returns {PersonData} */
-  _defaultPerson() {
-    return { avatar: '', name: '', role: '', bio: '', links: [] }
-  }
+  return Object.freeze({
+    type:'person',
+    label:Object.freeze({key:'title',fallback:'Person'}),
+    icon:ICON,
+    styles:Object.freeze(styles),
+    schema:personDataSchema,
+    capabilities,
+    setup(runtimeContext){
+      let destroyed=false
+      return {
+        create(initial,context){
+          if(destroyed)throw new Error('Person runtime is destroyed')
+          const document=context.ownerDocument
+          const wrapper=document.createElement('div')
+          wrapper.className='oe-person'
+          wrapper.contentEditable='false'
+          wrapper.tabIndex=-1
 
-  /** @returns {{ persons: PersonData[] }} */
-  _defaultData() {
-    return { persons: [this._defaultPerson()] }
-  }
-  /**
-   * Create the editable DOM owned by this block instance.
-   * @param {Record<string, unknown>} data
-   * @param {import('../../plugin-kit/types').BlockMutationContext} context
-   * @returns {HTMLElement}
-   */
-  render(data, context) {
-    const ownerDocument = context.ownerDocument ?? globalThis.document
-    const raw = Array.isArray(data?.persons)
-      ? /** @type {any[]} */ (data.persons).filter(person => person && typeof person === 'object' && !Array.isArray(person))
-      : []
-    const parsedData = {
-      persons: raw.length > 0
-        ? raw.map(p => ({
-            avatar: sanitizeUrl(normalizeTextValue(p?.avatar), { policy: 'media', fallback: '' }),
-            name: normalizeTextValue(p?.name),
-            role: normalizeTextValue(p?.role),
-            bio: normalizeTextValue(p?.bio),
-            links: Array.isArray(p?.links)
-              ? p.links.filter((/** @type {any} */ link) => link && typeof link === 'object' && !Array.isArray(link)).map((/** @type {any} */ l) => ({
-                  type: normalizeTextValue(l?.type) || 'website',
-                  url: sanitizeUrl(normalizeTextValue(l?.url), { policy: 'link', fallback: '' }),
-                })).filter((/** @type {{url: string}} */ link) => link.url)
-              : [],
-          }))
-        : [this._defaultPerson()],
-    }
+          const tabs=document.createElement('div')
+          tabs.className='oe-person__tabs'
+          const body=document.createElement('div')
+          body.className='oe-person__body'
+          wrapper.append(tabs,body)
 
-    const wrapper = ownerDocument.createElement('div')
-    wrapper.classList.add('oe-person')
-    wrapper.contentEditable = 'false'
-    wrapper.tabIndex = -1
+          let data=cloneData(initial)
+          let activeId=data.persons[0]?.id??''
+          let readOnly=context.isReadOnly()
+          let dead=false
+          let dragId=null
+          const avatarTasks=new Map()
+          let cropperDialog=null
 
-    stateMap.set(wrapper, {
-      data: parsedData,
-      activeIdx: 0,
-      debounceTimers: new Map(),
-      dragFromIdx: null,
-      cropperDialog: null,
-      avatarTasks: new Map(),
-      abortController: createAbortControllerFor(wrapper),
-      context,
-      ownerDocument,
-    })
+          const activePerson=()=>data.persons.find(person=>person.id===activeId)??data.persons[0]
 
-    this._rebuild(wrapper)
-    return wrapper
-  }
+          const syncVisible=()=>{
+            const person=activePerson()
+            if(!person)return
+            const name=/** @type {HTMLElement|null} */(body.querySelector('.oe-person__name'))
+            const role=/** @type {HTMLElement|null} */(body.querySelector('.oe-person__role'))
+            const bio=/** @type {HTMLElement|null} */(body.querySelector('.oe-person__bio'))
+            if(name)person.name=name.innerHTML.trim()
+            if(role)person.role=role.innerHTML.trim()
+            if(bio)person.bio=bio.innerHTML.trim()
+            for(const input of body.querySelectorAll('input[data-link-id]')){
+              const link=person.links.find(item=>item.id===input.dataset.linkId)
+              if(!link)continue
+              const safe=sanitizeUrl(input.value,{policy:'link',fallback:''})
+              link.url=safe
+              link.type=resolveSocialIcon(safe,snapshot.socialResolvers).type
+            }
+          }
 
-  /**
-   * Serialize the current block DOM into document data.
-   * @param {HTMLElement} element
-   * @returns {Record<string, unknown>}
-   */
-  save(element) {
-    const s = stateMap.get(element)
-    if (!s) return { persons: [] }
-    this._syncActiveFromDom(element)
-    // Keep an entirely empty single-person block semantically empty, while
-    // preserving additional draft tabs as structural document state so add /
-    // remove operations can be saved and undone before the user names them.
-    const preserveDrafts = s.data.persons.length > 1
-    return {
-      persons: s.data.persons
-        .filter(p => preserveDrafts || hasPersonContent(p))
-        .map(p => ({
-          ...p,
-          links: p.links.flatMap(link => {
-            const url = sanitizeUrl(link.url, { policy: 'link', fallback: '' })
-            return url ? [{ type: link.type, url }] : []
-          }),
-        })),
-    }
-  }
+          const commit=producer=>{
+            syncVisible()
+            context.updateData(current=>producer(cloneData(current)))
+          }
 
-  /**
-   * Check whether serialized data satisfies this block's schema.
-   * @param {Record<string, unknown>} data
-   * @returns {boolean}
-   */
-  validate(data) {
-    return validatePersonData(data)
-  }
+          const beginAvatarTask=personId=>{
+            avatarTasks.get(personId)?.abort()
+            const Ctor=document.defaultView?.AbortController??AbortController
+            const controller=new Ctor()
+            avatarTasks.set(personId,controller)
+            const abort=()=>controller.abort(context.signal.reason)
+            context.signal.addEventListener('abort',abort,{once:true,signal:controller.signal})
+            return controller
+          }
 
-  /**
-   * Check whether the block has no meaningful user content.
-   * @param {HTMLElement} element
-   * @returns {boolean}
-   */
-  isEmpty(element) {
-    const s = stateMap.get(element)
-    if (!s) return true
-    this._syncActiveFromDom(element)
-    return s.data.persons.every(p => !hasPersonContent(p))
-  }
-
-  /**
-   * Extract neutral text that can initialize another block type.
-   * @param {HTMLElement} element
-   * @returns {{ text: string }}
-   */
-  exportData(element) {
-    const s = stateMap.get(element)
-    if (!s) return { text: '' }
-    return { text: s.data.persons.map(p => p.name).filter(Boolean).join(', ') }
-  }
-
-  /**
-   * Release listeners and resources owned by this block element.
-   * @param {HTMLElement} element
-   * @returns {void}
-   */
-  destroy(element) {
-    const s = stateMap.get(element)
-    if (s) {
-      s.cropperDialog?.destroy()
-      s.cropperDialog = null
-      s.abortController.abort()
-      for (const controller of s.avatarTasks.values()) controller.abort()
-      s.avatarTasks.clear()
-      for (const timer of s.debounceTimers.values()) (s.ownerDocument.defaultView ?? globalThis).clearTimeout(timer)
-      s.debounceTimers.clear()
-      stateMap.delete(element)
-    }
-  }
-
-  // ── Full rebuild (tabs + card) ─────────────────────────────────────────────
-
-  /** @param {HTMLElement} wrapper @returns {void} */
-  _rebuild(wrapper) {
-    const s = stateMap.get(wrapper)
-    if (!s) return
-
-    this._clearDebounceTimers(s)
-    wrapper.textContent = ''
-
-    // Tab bar (always shown — contains "+" button)
-    wrapper.appendChild(this._buildTabs(wrapper))
-
-    // Active person card
-    this._buildCard(wrapper, wrapper)
-  }
-
-  // ── Tab bar ────────────────────────────────────────────────────────────────
-
-  /**
-   * Build a single tab element for a person.
-   * @param {HTMLElement} wrapper
-   * @param {PersonState} s
-   * @param {number} i
-   * @returns {HTMLElement}
-   */
-  _buildTab(wrapper, s, i) {
-    const ownerDocument = wrapper.ownerDocument
-    const person = s.data.persons[i]
-    if (!person) return ownerDocument.createElement('div')
-
-    const tab = ownerDocument.createElement('div')
-    tab.className = 'oe-person__tab' + (i === s.activeIdx ? ' oe-person__tab--active' : '')
-    tab.draggable = !s.context.readOnly
-
-    // Drag handle
-    const grip = ownerDocument.createElement('span')
-    grip.className = 'oe-person__tab-grip'
-    setTrustedHtml(grip, ICON_GRIP)
-    tab.appendChild(grip)
-
-    // Mini avatar
-    if (person.avatar) {
-      const mini = ownerDocument.createElement('img')
-      mini.className = 'oe-person__tab-avatar'
-      setSafeUrlAttribute(mini, 'src', person.avatar, 'media')
-      tab.appendChild(mini)
-    }
-
-    // Name
-    const label = ownerDocument.createElement('span')
-    label.className = 'oe-person__tab-label'
-    label.textContent = person.name || this._t('fallbackName', 'Person {number}', { number: i + 1 })
-    tab.appendChild(label)
-
-    // Remove button
-    if (!s.context.readOnly && s.data.persons.length > 1) {
-      const rm = ownerDocument.createElement('button')
-      rm.type = 'button'
-      rm.className = 'oe-person__tab-remove'
-      setTrustedHtml(rm, ICON_REMOVE)
-      rm.title = this._t('removePerson', 'Remove')
-      rm.setAttribute('aria-label', rm.title)
-      rm.addEventListener('mousedown', e => e.stopPropagation())
-      rm.addEventListener('click', (e) => {
-        e.stopPropagation()
-        const st = stateMap.get(wrapper)
-        if (!st) return
-        st.context.mutate(() => {
-          this._syncActiveFromDom(wrapper)
-          const removed = st.data.persons[i]
-          const task = removed ? st.avatarTasks.get(removed) : null
-          task?.abort()
-          if (removed) st.avatarTasks.delete(removed)
-          if (st.avatarTasks.size === 0) wrapper.classList.remove('oe-person--loading')
-          st.data.persons.splice(i, 1)
-          if (st.activeIdx >= st.data.persons.length) st.activeIdx = st.data.persons.length - 1
-          if (st.activeIdx < 0) st.activeIdx = 0
-          this._rebuild(wrapper)
-        })
-      })
-      tab.appendChild(rm)
-    }
-
-    // Click to switch (no full rebuild — swap active class + card only)
-    tab.addEventListener('click', () => {
-      const st = stateMap.get(wrapper)
-      if (!st || i === st.activeIdx) return
-      this._syncActiveFromDom(wrapper)
-      this._clearDebounceTimers(st)
-      st.activeIdx = i
-
-      // Toggle tab active class
-      const tabs = wrapper.querySelector('.oe-person__tabs')
-      if (tabs) {
-        tabs.querySelectorAll('.oe-person__tab').forEach((t, idx) => {
-          t.classList.toggle('oe-person__tab--active', idx === i)
-        })
-      }
-
-      // Replace card only
-      const oldCard = wrapper.querySelector('.oe-person__card')
-      if (oldCard) oldCard.remove()
-      this._buildCard(wrapper, wrapper)
-    })
-
-    // Drag events
-    tab.addEventListener('dragstart', (e) => {
-      const st = stateMap.get(wrapper)
-      if (st) st.dragFromIdx = i
-      tab.classList.add('oe-person__tab--dragging')
-      e.dataTransfer?.setData('text/plain', String(i))
-      if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move'
-    })
-    tab.addEventListener('dragend', () => {
-      const st = stateMap.get(wrapper)
-      if (st) st.dragFromIdx = null
-      tab.classList.remove('oe-person__tab--dragging')
-      const parent = tab.closest('.oe-person__tabs')
-      if (parent) parent.querySelectorAll('.oe-person__tab--dragover').forEach(t => t.classList.remove('oe-person__tab--dragover'))
-    })
-    tab.addEventListener('dragover', (e) => {
-      e.preventDefault()
-      const st = stateMap.get(wrapper)
-      if (st && st.dragFromIdx !== null && st.dragFromIdx !== i) {
-        tab.classList.add('oe-person__tab--dragover')
-      }
-    })
-    tab.addEventListener('dragleave', () => {
-      tab.classList.remove('oe-person__tab--dragover')
-    })
-    tab.addEventListener('drop', (e) => {
-      e.preventDefault()
-      tab.classList.remove('oe-person__tab--dragover')
-      const st = stateMap.get(wrapper)
-      if (!st || st.context.readOnly) return
-      const from = st.dragFromIdx
-      if (from === null || from === i) return
-      st.context.mutate(() => {
-        this._syncActiveFromDom(wrapper)
-        const moved = st.data.persons.splice(from, 1)[0]
-        if (moved) st.data.persons.splice(i, 0, moved)
-        if (st.activeIdx === from) st.activeIdx = i
-        else if (from < st.activeIdx && i >= st.activeIdx) st.activeIdx--
-        else if (from > st.activeIdx && i <= st.activeIdx) st.activeIdx++
-        this._rebuild(wrapper)
-      })
-    })
-
-    return tab
-  }
-
-  /** @param {HTMLElement} wrapper @returns {HTMLElement} */
-  _buildTabs(wrapper) {
-    const s = stateMap.get(wrapper)
-    const ownerDocument = wrapper.ownerDocument
-    if (!s) return ownerDocument.createElement('div')
-
-    const tabs = ownerDocument.createElement('div')
-    tabs.className = 'oe-person__tabs'
-
-    for (let i = 0; i < s.data.persons.length; i++) {
-      tabs.appendChild(this._buildTab(wrapper, s, i))
-    }
-
-    if (!s.context.readOnly) {
-      const addBtn = ownerDocument.createElement('button')
-      addBtn.type = 'button'
-      addBtn.className = 'oe-person__tab-add'
-      setTrustedHtml(addBtn, ICON_PLUS)
-      addBtn.title = this._t('addPerson', 'Add person')
-      addBtn.setAttribute('aria-label', addBtn.title)
-      addBtn.addEventListener('click', () => {
-        const st = stateMap.get(wrapper)
-        if (!st || st.context.readOnly) return
-        st.context.mutate(() => {
-          this._syncActiveFromDom(wrapper)
-          st.data.persons.push(this._defaultPerson())
-          st.activeIdx = st.data.persons.length - 1
-          this._rebuild(wrapper)
-        })
-      })
-      tabs.appendChild(addBtn)
-    }
-
-    return tabs
-  }
-
-  // ── Card (single active person) ────────────────────────────────────────────
-
-  /**
-   * @param {HTMLElement} wrapper
-   * @param {HTMLElement} parent
-   * @returns {void}
-   */
-  _buildCard(wrapper, parent) {
-    const ownerDocument = wrapper.ownerDocument
-    const s = stateMap.get(wrapper)
-    if (!s) return
-    const person = s.data.persons[s.activeIdx]
-    if (!person) return
-
-    const card = ownerDocument.createElement('div')
-    card.className = 'oe-person__card'
-
-    // Avatar
-    const avatarWrap = ownerDocument.createElement('div')
-    avatarWrap.className = 'oe-person__avatar-wrap'
-
-    if (person.avatar) {
-      const img = ownerDocument.createElement('img')
-      img.className = 'oe-person__avatar-img'
-      setSafeUrlAttribute(img, 'src', person.avatar, 'media')
-      img.alt = ''
-      avatarWrap.appendChild(img)
-    } else {
-      const placeholder = ownerDocument.createElement('div')
-      placeholder.className = 'oe-person__avatar-placeholder'
-      setTrustedHtml(placeholder, ICON_CAMERA)
-      avatarWrap.appendChild(placeholder)
-    }
-
-    if (!s.context.readOnly) {
-      const avatarOverlay = ownerDocument.createElement('button')
-      avatarOverlay.type = 'button'
-      avatarOverlay.className = 'oe-person__avatar-upload'
-      setTrustedHtml(avatarOverlay, ICON_CAMERA)
-      avatarOverlay.title = this._t('uploadAvatar', 'Upload avatar')
-      avatarOverlay.setAttribute('aria-label', avatarOverlay.title)
-      avatarOverlay.addEventListener('mousedown', e => e.preventDefault())
-      avatarOverlay.addEventListener('click', () => this._triggerAvatarUpload(wrapper))
-      avatarWrap.appendChild(avatarOverlay)
-    }
-    card.appendChild(avatarWrap)
-
-    // Info
-    const info = ownerDocument.createElement('div')
-    info.className = 'oe-person__info'
-
-    const name = ownerDocument.createElement('div')
-    name.className = 'oe-person__name'
-    name.contentEditable = s.context.readOnly ? 'false' : 'true'
-    name.dataset.placeholder = this._t('namePlaceholder', 'Name')
-    if (person.name) setSanitizedHtml(name, person.name)
-    this._setupEditable(name, false)
-    info.appendChild(name)
-
-    const role = ownerDocument.createElement('div')
-    role.className = 'oe-person__role'
-    role.contentEditable = s.context.readOnly ? 'false' : 'true'
-    role.dataset.placeholder = this._t('rolePlaceholder', 'Role / Position')
-    if (person.role) setSanitizedHtml(role, person.role)
-    this._setupEditable(role, false)
-    info.appendChild(role)
-
-    const bio = ownerDocument.createElement('div')
-    bio.className = 'oe-person__bio'
-    bio.contentEditable = s.context.readOnly ? 'false' : 'true'
-    bio.dataset.placeholder = this._t('bioPlaceholder', 'Short bio...')
-    if (person.bio) setSanitizedHtml(bio, person.bio)
-    this._setupEditable(bio, true)
-    info.appendChild(bio)
-
-    // Links
-    const linksSection = ownerDocument.createElement('div')
-    linksSection.className = 'oe-person__links'
-
-    const linksLabel = ownerDocument.createElement('div')
-    linksLabel.className = 'oe-person__links-label'
-    linksLabel.textContent = this._t('linksLabel', 'Links')
-    linksSection.appendChild(linksLabel)
-
-    const links = [...person.links]
-    const hasEmptyLast = links.length > 0 && !links[links.length - 1]?.url.trim()
-    if (!s.context.readOnly && !hasEmptyLast) links.push({ type: 'website', url: '' })
-    links.forEach((link, i) => {
-      linksSection.appendChild(this._createLinkRow(wrapper, link, i))
-    })
-
-    info.appendChild(linksSection)
-    card.appendChild(info)
-    parent.appendChild(card)
-
-  }
-
-  // ── Helpers ────────────────────────────────────────────────────────────────
-
-  /**
-   * @param {HTMLElement} el
-   * @param {boolean} allowMultiline
-   * @returns {void}
-   */
-  _setupEditable(el, allowMultiline) {
-    el.addEventListener('keydown', (e) => {
-      if (!allowMultiline && e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); return }
-      if (!e.ctrlKey && !e.metaKey) e.stopPropagation()
-    })
-    el.addEventListener('input', () => {
-      if (!el.textContent?.trim()) el.textContent = ''
-    })
-  }
-
-  /** @param {HTMLElement} wrapper @returns {void} */
-  _syncActiveFromDom(wrapper) {
-    const s = stateMap.get(wrapper)
-    if (!s) return
-    const person = s.data.persons[s.activeIdx]
-    if (!person) return
-
-    const nameEl = wrapper.querySelector('.oe-person__name')
-    const roleEl = wrapper.querySelector('.oe-person__role')
-    const bioEl = wrapper.querySelector('.oe-person__bio')
-    person.name = sanitizeHtml(nameEl?.innerHTML?.trim() || '', wrapper.ownerDocument)
-    person.role = sanitizeHtml(roleEl?.innerHTML?.trim() || '', wrapper.ownerDocument)
-    person.bio = sanitizeHtml(bioEl?.innerHTML?.trim() || '', wrapper.ownerDocument)
-
-    const linkRows = wrapper.querySelectorAll('.oe-person__link-row')
-    linkRows.forEach((row, i) => {
-      const link = person.links[i]
-      if (link) {
-        const input = /** @type {HTMLInputElement} */ (row.querySelector('.oe-person__link-url'))
-        const iconEl = /** @type {HTMLElement | null} */ (row.querySelector('.oe-person__link-icon'))
-        if (input) link.url = input.value
-        if (iconEl?.dataset.type) link.type = iconEl.dataset.type
-      }
-    })
-  }
-
-  /**
-   * @param {HTMLElement} wrapper
-   * @param {{ type: string, url: string }} link
-   * @param {number} index
-   * @returns {HTMLDivElement}
-   */
-  _createLinkRow(wrapper, link, index) {
-    const s = stateMap.get(wrapper)
-    const ownerDocument = wrapper.ownerDocument
-    if (!s) return ownerDocument.createElement('div')
-
-    const isEmptySlot = !link.url.trim()
-    const row = ownerDocument.createElement('div')
-    row.className = 'oe-person__link-row'
-
-    const iconEl = ownerDocument.createElement('span')
-    iconEl.className = 'oe-person__link-icon'
-    const resolved = resolveSocialIcon(link.url, this._config.socialResolvers)
-    setTrustedHtml(iconEl, link.url ? resolved.icon : (SOCIAL_ICONS.website || ''))
-    iconEl.dataset.type = link.url ? resolved.type : link.type
-    row.appendChild(iconEl)
-
-    const input = wrapper.ownerDocument.createElement('input')
-    input.type = 'text'
-    input.className = 'oe-person__link-url'
-    // Live serialized value, with native field editing and editor history.
-    input.setAttribute('data-oe-document-input', 'value')
-    input.placeholder = 'https://...'
-    input.value = link.url
-    input.readOnly = s.context.readOnly
-    if (!s.context.readOnly) input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault()
-        e.stopPropagation()
-        const state = stateMap.get(wrapper)
-        const targetPerson = state?.data.persons[state.activeIdx]
-        if (targetPerson) this._resolveIcon(wrapper, index, input.value, iconEl, targetPerson)
-        return
-      }
-      if (!e.ctrlKey && !e.metaKey) e.stopPropagation()
-    })
-
-    const person = /** @type {NonNullable<typeof s.data.persons[0]>} */ (s.data.persons[s.activeIdx])
-    let grewAlready = false
-    if (!s.context.readOnly) input.addEventListener('input', () => {
-      this._debouncedResolve(wrapper, index, input.value, iconEl)
-      if (isEmptySlot && !grewAlready && input.value.trim()) {
-        grewAlready = true
-        this._syncActiveFromDom(wrapper)
-        while (person.links.length <= index) person.links.push({ type: 'website', url: '' })
-        const personLink = person.links[index]
-        if (personLink) personLink.url = input.value
-        if (!row.querySelector('.oe-person__link-remove')) {
-          const removeBtn = ownerDocument.createElement('button')
-          removeBtn.type = 'button'
-          removeBtn.className = 'oe-person__link-remove'
-          setTrustedHtml(removeBtn, ICON_REMOVE)
-          removeBtn.setAttribute('aria-label', this._t('removeLink', 'Remove link'))
-          removeBtn.addEventListener('mousedown', e => e.preventDefault())
-          removeBtn.addEventListener('click', () => {
-            s.context.mutate(() => {
-              this._syncActiveFromDom(wrapper)
-              person.links.splice(index, 1)
-              this._rebuild(wrapper)
+          const readAvatar=async(file,signal)=>{
+            const FileReaderCtor=document.defaultView?.FileReader??FileReader
+            return await new Promise((resolve,reject)=>{
+              const reader=new FileReaderCtor()
+              const abort=()=>reader.abort()
+              signal.addEventListener('abort',abort,{once:true})
+              reader.onload=()=>resolve(typeof reader.result==='string'?reader.result:'')
+              reader.onerror=()=>reject(reader.error??new Error('Failed to read avatar'))
+              reader.onabort=()=>reject(signal.reason??new DOMException('Avatar read aborted','AbortError'))
+              reader.readAsDataURL(file)
             })
-          })
-          row.appendChild(removeBtn)
-        }
-        const newRow = this._createLinkRow(wrapper, { type: 'website', url: '' }, index + 1)
-        row.parentElement?.appendChild(newRow)
+          }
+
+          const selectAvatar=personId=>{
+            if(readOnly||dead)return
+            triggerFileInput({
+              ownerDocument:document,
+              accept:'image/*',
+              signal:context.signal,
+              onFiles:files=>{
+                const file=files[0]
+                if(!file||!isSupportedImageFile(file))return
+                void (async()=>{
+                  const controller=beginAvatarTask(personId)
+                  try{
+                    let blob=/** @type {Blob} */(file)
+                    let filename=file.name||'avatar'
+                    let mime=file.type||'application/octet-stream'
+                    if(document===globalThis.document&&!requiresTrustedHtml(document)){
+                      cropperDialog?.destroy()
+                      const dialog=new CropperDialog(file,{
+                        title:runtimeContext.t('cropTitle','Crop avatar'),
+                        confirmText:runtimeContext.t('cropConfirm','Apply'),
+                        cancelText:runtimeContext.t('cropCancel','Cancel'),
+                      })
+                      cropperDialog=dialog
+                      dialog.open()
+                      try{
+                        const cropped=await dialog.result
+                        if(!cropped||controller.signal.aborted)return
+                        blob=cropped
+                        filename='avatar.webp'
+                        mime='image/webp'
+                      }finally{
+                        if(cropperDialog===dialog)cropperDialog=null
+                      }
+                    }
+                    let url=''
+                    if(snapshot.uploadFile){
+                      const FileCtor=document.defaultView?.File??File
+                      const upload=new FileCtor([blob],filename,{type:mime})
+                      const result=await snapshot.uploadFile(upload,{signal:controller.signal})
+                      url=sanitizeUrl(result?.url??'',{policy:'media',fallback:''})
+                    }else{
+                      url=String(await readAvatar(blob,controller.signal))
+                    }
+                    if(controller.signal.aborted||!url||dead)return
+                    commit(current=>({
+                      persons:current.persons.map(person=>person.id===personId?{...person,avatar:url}:person),
+                    }))
+                  }catch{
+                    // Cancelled/failed avatar work leaves canonical data unchanged.
+                  }finally{
+                    if(avatarTasks.get(personId)===controller)avatarTasks.delete(personId)
+                  }
+                })()
+              },
+            })
+          }
+
+          const renderTabs=()=>{
+            tabs.replaceChildren()
+            for(const person of data.persons){
+              const tab=document.createElement('button')
+              tab.type='button'
+              tab.className='oe-person__tab'
+              tab.dataset.personId=person.id
+              tab.textContent=person.name.trim()||runtimeContext.t('person','Person')
+              tab.setAttribute('aria-pressed',String(person.id===activeId))
+              tab.draggable=!readOnly
+              tab.addEventListener('click',()=>{
+                syncVisible()
+                activeId=person.id
+                render()
+              },{signal:context.signal})
+              tab.addEventListener('dragstart',()=>{
+                if(!readOnly)dragId=person.id
+              },{signal:context.signal})
+              tab.addEventListener('dragover',event=>{
+                if(!readOnly)event.preventDefault()
+              },{signal:context.signal})
+              tab.addEventListener('drop',event=>{
+                if(readOnly||!dragId||dragId===person.id)return
+                event.preventDefault()
+                const from=dragId
+                dragId=null
+                commit(current=>{
+                  const persons=[...current.persons]
+                  const fromIndex=persons.findIndex(item=>item.id===from)
+                  const toIndex=persons.findIndex(item=>item.id===person.id)
+                  if(fromIndex<0||toIndex<0)return current
+                  const moved=persons.splice(fromIndex,1)[0]
+                  persons.splice(toIndex,0,moved)
+                  return {persons}
+                })
+              },{signal:context.signal})
+              tabs.appendChild(tab)
+            }
+            if(!readOnly){
+              const add=document.createElement('button')
+              add.type='button'
+              add.className='oe-person__tab oe-person__tab--add'
+              add.textContent='+'
+              add.setAttribute('aria-label',runtimeContext.t('addPerson','Add person'))
+              add.addEventListener('click',()=>{
+                const id=context.createId('person')
+                activeId=id
+                commit(current=>({
+                  persons:[...current.persons,{id,avatar:'',name:'',role:'',bio:'',links:[]}],
+                }))
+              },{signal:context.signal})
+              tabs.appendChild(add)
+            }
+          }
+
+          const createLinkRow=(person,link)=>{
+            const row=document.createElement('div')
+            row.className='oe-person__link-row'
+            const icon=document.createElement('span')
+            icon.className='oe-person__link-icon'
+            const resolved=resolveSocialIcon(link.url,snapshot.socialResolvers)
+            setTrustedHtml(icon,resolved.icon||SOCIAL_ICONS.website||'')
+            const input=document.createElement('input')
+            input.type='url'
+            input.className='oe-person__link-url'
+            input.dataset.linkId=link.id
+            input.value=link.url
+            input.readOnly=readOnly
+            input.setAttribute('data-oe-document-input','value')
+            input.addEventListener('input',()=>{
+              const current=resolveSocialIcon(input.value,snapshot.socialResolvers)
+              setTrustedHtml(icon,current.icon||SOCIAL_ICONS.website||'')
+            },{signal:context.signal})
+            row.append(icon,input)
+            if(!readOnly){
+              const remove=document.createElement('button')
+              remove.type='button'
+              remove.className='oe-person__link-remove'
+              setTrustedHtml(remove,REMOVE)
+              remove.setAttribute('aria-label',runtimeContext.t('removeLink','Remove link'))
+              remove.addEventListener('click',()=>{
+                commit(current=>({
+                  persons:current.persons.map(item=>item.id===person.id
+                    ?{...item,links:item.links.filter(candidate=>candidate.id!==link.id)}
+                    :item),
+                }))
+              },{signal:context.signal})
+              row.appendChild(remove)
+            }
+            return row
+          }
+
+          const renderBody=()=>{
+            body.replaceChildren()
+            const person=activePerson()
+            if(!person)return
+            const card=document.createElement('div')
+            card.className='oe-person__card'
+
+            const avatarWrap=document.createElement('div')
+            avatarWrap.className='oe-person__avatar-wrap'
+            if(person.avatar){
+              const image=document.createElement('img')
+              image.className='oe-person__avatar-img'
+              setSafeUrlAttribute(image,'src',person.avatar,'media')
+              image.alt=''
+              avatarWrap.appendChild(image)
+            }else{
+              const placeholder=document.createElement('div')
+              placeholder.className='oe-person__avatar-placeholder'
+              setTrustedHtml(placeholder,CAMERA)
+              avatarWrap.appendChild(placeholder)
+            }
+            if(!readOnly){
+              const upload=document.createElement('button')
+              upload.type='button'
+              upload.className='oe-person__avatar-upload'
+              setTrustedHtml(upload,CAMERA)
+              upload.setAttribute('aria-label',runtimeContext.t('uploadAvatar','Upload avatar'))
+              upload.addEventListener('click',()=>selectAvatar(person.id),{signal:context.signal})
+              avatarWrap.appendChild(upload)
+            }
+
+            const info=document.createElement('div')
+            info.className='oe-person__info'
+            const name=document.createElement('div')
+            name.className='oe-person__name'
+            name.contentEditable=readOnly?'false':'true'
+            name.dataset.placeholder=runtimeContext.t('namePlaceholder','Name')
+            if(person.name)setSanitizedHtml(name,person.name)
+
+            const role=document.createElement('div')
+            role.className='oe-person__role'
+            role.contentEditable=readOnly?'false':'true'
+            role.dataset.placeholder=runtimeContext.t('rolePlaceholder','Role / Position')
+            if(person.role)setSanitizedHtml(role,person.role)
+
+            const bio=document.createElement('div')
+            bio.className='oe-person__bio'
+            bio.contentEditable=readOnly?'false':'true'
+            bio.dataset.placeholder=runtimeContext.t('bioPlaceholder','Short bio...')
+            if(person.bio)setSanitizedHtml(bio,person.bio)
+
+            for(const element of [name,role,bio]){
+              element.addEventListener('keydown',event=>{
+                if(!event.ctrlKey&&!event.metaKey)event.stopPropagation()
+              },{signal:context.signal})
+            }
+
+            const links=document.createElement('div')
+            links.className='oe-person__links'
+            for(const link of person.links)links.appendChild(createLinkRow(person,link))
+            if(!readOnly){
+              const addLink=document.createElement('button')
+              addLink.type='button'
+              addLink.className='oe-person__link-add'
+              addLink.textContent=runtimeContext.t('addLink','Add link')
+              addLink.addEventListener('click',()=>{
+                const id=context.createId('link')
+                commit(current=>({
+                  persons:current.persons.map(item=>item.id===person.id
+                    ?{...item,links:[...item.links,{id,type:'website',url:''}]}
+                    :item),
+                }))
+              },{signal:context.signal})
+              links.appendChild(addLink)
+            }
+
+            if(!readOnly&&data.persons.length>1){
+              const remove=document.createElement('button')
+              remove.type='button'
+              remove.className='oe-person__remove'
+              remove.textContent=runtimeContext.t('removePerson','Remove person')
+              remove.addEventListener('click',()=>{
+                const removing=person.id
+                const remaining=data.persons.filter(item=>item.id!==removing)
+                activeId=remaining[0]?.id??''
+                commit(current=>({persons:current.persons.filter(item=>item.id!==removing)}))
+              },{signal:context.signal})
+              info.append(name,role,bio,links,remove)
+            }else{
+              info.append(name,role,bio,links)
+            }
+
+            card.append(avatarWrap,info)
+            body.appendChild(card)
+          }
+
+          const render=()=>{
+            if(!data.persons.some(person=>person.id===activeId))activeId=data.persons[0]?.id??''
+            renderTabs()
+            renderBody()
+          }
+
+          render()
+
+          return {
+            element:wrapper,
+            read(){
+              syncVisible()
+              return cloneData(data)
+            },
+            update(next){
+              if(dead)return
+              data=cloneData(next)
+              render()
+            },
+            editableFields(){
+              const person=activePerson()
+              if(!person)return Object.freeze([])
+              const result=[]
+              const name=/** @type {HTMLElement|null} */(body.querySelector('.oe-person__name'))
+              const role=/** @type {HTMLElement|null} */(body.querySelector('.oe-person__role'))
+              const bio=/** @type {HTMLElement|null} */(body.querySelector('.oe-person__bio'))
+              if(name)result.push(Object.freeze({key:'person:'+person.id+':name',element:name,mode:/** @type {'rich-text'} */('rich-text')}))
+              if(role)result.push(Object.freeze({key:'person:'+person.id+':role',element:role,mode:/** @type {'rich-text'} */('rich-text')}))
+              if(bio)result.push(Object.freeze({key:'person:'+person.id+':bio',element:bio,mode:/** @type {'rich-text'} */('rich-text')}))
+              for(const input of body.querySelectorAll('input[data-link-id]')){
+                result.push(Object.freeze({
+                  key:'person:'+person.id+':link:'+input.dataset.linkId+':url',
+                  element:/** @type {HTMLElement} */(input),
+                  mode:/** @type {'plain-text'} */('plain-text'),
+                }))
+              }
+              return Object.freeze(result)
+            },
+            setReadOnly(value){
+              syncVisible()
+              readOnly=value
+              render()
+            },
+            focus(target){
+              if(dead||readOnly)return
+              const key=target?.fieldKey??''
+              const selector=key.endsWith(':role')?'.oe-person__role':key.endsWith(':bio')?'.oe-person__bio':'.oe-person__name'
+              ;(/** @type {HTMLElement|null} */(body.querySelector(selector)))?.focus()
+            },
+            destroy(){
+              dead=true
+              cropperDialog?.destroy()
+              for(const controller of avatarTasks.values())controller.abort()
+              avatarTasks.clear()
+              body.replaceChildren()
+              tabs.replaceChildren()
+            },
+          }
+        },
+        destroy(){destroyed=true},
       }
-    })
-    if (!s.context.readOnly) input.addEventListener('paste', () => {
-      ;(wrapper.ownerDocument.defaultView ?? globalThis).requestAnimationFrame(() => this._resolveIcon(wrapper, index, input.value, iconEl, person))
-    })
-    row.appendChild(input)
-
-    if (!s.context.readOnly && !isEmptySlot) {
-      const removeBtn = ownerDocument.createElement('button')
-      removeBtn.type = 'button'
-      removeBtn.className = 'oe-person__link-remove'
-      setTrustedHtml(removeBtn, ICON_REMOVE)
-      removeBtn.setAttribute('aria-label', this._t('removeLink', 'Remove link'))
-      removeBtn.addEventListener('mousedown', e => e.preventDefault())
-      removeBtn.addEventListener('click', () => {
-        s.context.mutate(() => {
-          this._syncActiveFromDom(wrapper)
-          person.links.splice(index, 1)
-          this._rebuild(wrapper)
-        })
-      })
-      row.appendChild(removeBtn)
-    }
-
-    return row
-  }
-
-  /**
-   * @param {HTMLElement} wrapper
-   * @param {number} index
-   * @param {string} url
-   * @param {HTMLElement} iconEl
-   * @returns {void}
-   */
-  _debouncedResolve(wrapper, index, url, iconEl) {
-    const s = stateMap.get(wrapper)
-    if (!s) return
-    const key = `${s.activeIdx}:${index}`
-    const targetPerson = s.data.persons[s.activeIdx]
-    if (!targetPerson) return
-    const existing = s.debounceTimers.get(key)
-    if (existing) (wrapper.ownerDocument.defaultView ?? globalThis).clearTimeout(existing)
-    setTrustedHtml(iconEl, ICON_LOADER)
-    iconEl.querySelector('svg')?.classList.add('oe-person__spin')
-    const timer = (wrapper.ownerDocument.defaultView ?? globalThis).setTimeout(() => {
-      s.debounceTimers.delete(key)
-      this._resolveIcon(wrapper, index, url, iconEl, targetPerson, key)
-    }, 500)
-    s.debounceTimers.set(key, timer)
-  }
-
-  /**
-   * Cancel every pending social-link resolver owned by one rendered block.
-   * Rebuilt or replaced cards resolve their current URLs synchronously, so a
-   * timer tied to a detached input must never update a later link at the same
-   * array index.
-   * @param {PersonState} state
-   * @returns {void}
-   */
-  _clearDebounceTimers(state) {
-    for (const timer of state.debounceTimers.values()) (state.ownerDocument.defaultView ?? globalThis).clearTimeout(timer)
-    state.debounceTimers.clear()
-  }
-
-  /**
-   * @param {HTMLElement} wrapper
-   * @param {number} index
-   * @param {string} url
-   * @param {HTMLElement} iconEl
-   * @param {PersonData} targetPerson
-   * @param {string} [timerKey] Exact pending-timer key captured by the caller.
-   * @returns {void}
-   */
-  _resolveIcon(wrapper, index, url, iconEl, targetPerson, timerKey) {
-    const s = stateMap.get(wrapper)
-    if (!s) return
-    const personIndex = s.data.persons.indexOf(targetPerson)
-    if (personIndex < 0) return
-    const key = timerKey || `${personIndex}:${index}`
-    const existing = s.debounceTimers.get(key)
-    if (existing) { (wrapper.ownerDocument.defaultView ?? globalThis).clearTimeout(existing); s.debounceTimers.delete(key) }
-    const resolved = resolveSocialIcon(url, this._config.socialResolvers)
-    setTrustedHtml(iconEl, resolved.icon)
-    iconEl.dataset.type = resolved.type
-    const personLink = targetPerson.links[index]
-    if (personLink && personLink.type !== resolved.type) {
-      s.context.mutate(() => { personLink.type = resolved.type })
-    }
-  }
-
-  // ── Avatar upload ─────────────────────────────────────────────────────────
-
-  /** @param {HTMLElement} wrapper @returns {void} */
-  _triggerAvatarUpload(wrapper) {
-    const currentState = stateMap.get(wrapper)
-    if (!currentState || currentState.context.readOnly) return
-    const t = (/** @type {string} */ key, /** @type {string} */ fallback) => this._t(key, fallback)
-    const input = wrapper.ownerDocument.createElement('input')
-    input.type = 'file'
-    input.accept = 'image/*'
-    input.addEventListener('change', async () => {
-      const file = input.files?.[0]
-      if (!file) return
-      const state = stateMap.get(wrapper)
-      if (!state) return
-      const targetPerson = state.data.persons[state.activeIdx]
-      if (!targetPerson) return
-
-      let avatarBlob = /** @type {Blob} */ (file)
-      let uploadName = 'avatar.webp'
-      let uploadType = 'image/webp'
-
-      // @shelamkoff/cropper 1.x resolves DOM and platform constructors from
-      // its module realm. When Rector is loaded by a parent document but
-      // mounted into an iframe, opening that dialog would create UI in the
-      // parent and reject the iframe File/HTMLElement via cross-realm
-      // instanceof checks. Preserve avatar upload in that supported mounting
-      // mode by skipping only the interactive crop step. Its toolbar also
-      // uses plain innerHTML strings, so preserve the same original-file
-      // fallback under Trusted Types enforcement without weakening CSP.
-      if (wrapper.ownerDocument === globalThis.document && !requiresTrustedHtml(wrapper.ownerDocument)) {
-        state.cropperDialog?.destroy()
-        const dialog = new CropperDialog(file, {
-          title: t('cropTitle', 'Crop avatar'),
-          confirmText: t('cropConfirm', 'Apply'),
-          cancelText: t('cropCancel', 'Cancel'),
-        })
-        state.cropperDialog = dialog
-        dialog.open()
-
-        try {
-          avatarBlob = await dialog.result
-        } finally {
-          const current = stateMap.get(wrapper)
-          if (current?.cropperDialog === dialog) current.cropperDialog = null
-        }
-        if (!avatarBlob) return
-      } else {
-        uploadName = file.name || 'avatar'
-        uploadType = file.type || 'application/octet-stream'
-      }
-
-      if (!stateMap.has(wrapper)) return
-      this._syncActiveFromDom(wrapper)
-
-      if (this._config.uploadFile) {
-        void this._uploadAvatar(wrapper, avatarBlob, targetPerson, uploadName, uploadType)
-      } else {
-        void this._readAvatar(wrapper, avatarBlob, targetPerson)
-      }
-    })
-    input.click()
-  }
-
-  /**
-   * Start a latest-wins avatar operation for one profile without cancelling
-   * independent uploads that belong to other profile tabs.
-   * @param {HTMLElement} wrapper
-   * @param {PersonData} targetPerson
-   * @returns {{ state: PersonState, controller: AbortController } | null}
-   */
-  _beginAvatarTask(wrapper, targetPerson) {
-    const state = stateMap.get(wrapper)
-    if (!state || state.context.readOnly || !state.data.persons.includes(targetPerson)) return null
-    state.avatarTasks.get(targetPerson)?.abort()
-    const controller = createAbortControllerFor(wrapper)
-    state.avatarTasks.set(targetPerson, controller)
-    wrapper.classList.add('oe-person--loading')
-    return { state, controller }
-  }
-
-  /**
-   * Release avatar-task ownership only when the completing task is still the
-   * latest task for its target profile.
-   * @param {HTMLElement} wrapper
-   * @param {PersonState} state
-   * @param {PersonData} targetPerson
-   * @param {AbortController} controller
-   * @returns {boolean}
-   */
-  _finishAvatarTask(wrapper, state, targetPerson, controller) {
-    if (stateMap.get(wrapper) !== state || state.avatarTasks.get(targetPerson) !== controller) return false
-    state.avatarTasks.delete(targetPerson)
-    if (state.avatarTasks.size === 0) wrapper.classList.remove('oe-person--loading')
-    return true
-  }
-
-  /**
-   * Store a cropped avatar locally while preserving same-person latest-wins
-   * ownership and block lifecycle cancellation.
-   * @param {HTMLElement} wrapper
-   * @param {Blob} blob
-   * @param {PersonData} targetPerson
-   * @returns {Promise<void>}
-   */
-  async _readAvatar(wrapper, blob, targetPerson) {
-    const task = this._beginAvatarTask(wrapper, targetPerson)
-    if (!task) return
-    const { state, controller } = task
-    try {
-      const result = await new Promise((resolve, reject) => {
-        const ownerView = wrapper.ownerDocument.defaultView
-        const FileReaderCtor = ownerView?.FileReader ?? FileReader
-        const DOMExceptionCtor = ownerView?.DOMException ?? DOMException
-        const reader = new FileReaderCtor()
-        let settled = false
-        const finish = (callback) => {
-          if (settled) return
-          settled = true
-          controller.signal.removeEventListener('abort', abort)
-          callback()
-        }
-        const abort = () => {
-          if (reader.readyState === FileReaderCtor.LOADING) reader.abort()
-          else finish(() => reject(controller.signal.reason || new DOMExceptionCtor('Avatar read aborted', 'AbortError')))
-        }
-        controller.signal.addEventListener('abort', abort, { once: true })
-        reader.onload = () => finish(() => resolve(typeof reader.result === 'string' ? reader.result : ''))
-        reader.onerror = () => finish(() => reject(reader.error || new Error('Failed to read avatar')))
-        reader.onabort = () => finish(() => reject(controller.signal.reason || new DOMExceptionCtor('Avatar read aborted', 'AbortError')))
-        try { reader.readAsDataURL(blob) } catch (error) { finish(() => reject(error)) }
-      })
-      const current = stateMap.get(wrapper)
-      if (
-        controller.signal.aborted
-        || current !== state
-        || state.avatarTasks.get(targetPerson) !== controller
-        || !state.data.persons.includes(targetPerson)
-      ) return
-      state.context.mutate(() => {
-        targetPerson.avatar = String(result)
-        this._rebuild(wrapper)
-      })
-    } catch {
-      // Read was cancelled or failed.
-    } finally {
-      this._finishAvatarTask(wrapper, state, targetPerson, controller)
-    }
-  }
-
-  /**
-   * @param {HTMLElement} wrapper
-   * @param {Blob} blob
-   * @param {PersonData} targetPerson
-   * @param {string} [filename]
-   * @param {string} [mimeType]
-   * @returns {Promise<void>}
-   */
-  async _uploadAvatar(wrapper, blob, targetPerson, filename = 'avatar.webp', mimeType = 'image/webp') {
-    if (!this._config.uploadFile) return
-    const task = this._beginAvatarTask(wrapper, targetPerson)
-    if (!task) return
-    const { state, controller } = task
-    try {
-      const FileCtor = wrapper.ownerDocument.defaultView?.File ?? File
-      const file = new FileCtor([blob], filename, { type: mimeType })
-      const result = await this._config.uploadFile(file, { signal: controller.signal })
-      const url = sanitizeUrl(String(result?.url || ''), { policy: 'media', fallback: '' })
-      const current = stateMap.get(wrapper)
-      if (
-        controller.signal.aborted
-        || !url
-        || current !== state
-        || state.avatarTasks.get(targetPerson) !== controller
-        || !state.data.persons.includes(targetPerson)
-      ) return
-      state.context.mutate(() => {
-        targetPerson.avatar = url
-        this._rebuild(wrapper)
-      })
-    } catch {
-      // Upload was cancelled or failed.
-    } finally {
-      this._finishAvatarTask(wrapper, state, targetPerson, controller)
-    }
-  }
+    },
+  })
 }
