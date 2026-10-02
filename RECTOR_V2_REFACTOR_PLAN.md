@@ -26,8 +26,11 @@ Target invariants:
 14. Move/reorder does not destroy and recreate unchanged block instances.
 15. Native input correctness does not depend on a debounce timer.
 16. Public observers are post-commit observations. Observer failures cannot roll back or corrupt committed state.
-17. Core does not statically depend on the complete built-in inline-tool preset.
-18. No parallel legacy/new mutation, history, keyboard or plugin mechanism remains after the migration.
+17. Inline widget payloads are canonical model state; widget DOM is a projection and is never scraped during save.
+18. A persisted concern has one canonical location. In particular, text alignment is not duplicated between plugin data and block tunes.
+19. Undo/redo replays committed changes through the same projection machinery without creating a new history record.
+20. Core does not statically depend on the complete built-in inline-tool preset.
+21. No parallel legacy/new mutation, history, keyboard or plugin mechanism remains after the migration.
 
 Do not implement as part of this plan:
 
@@ -95,13 +98,25 @@ Introduce a canonical DocumentState.
       blocks: ReadonlyMap<string, BlockRecord>
     }
 
+    type TextAlign = "left" | "center" | "right" | "justify"
+
+    type BlockTunes = JsonObject & {
+      textAlign?: TextAlign
+    }
+
+    interface InlineWidgetRecord<D extends JsonObject = JsonObject> {
+      type: string
+      dataVersion?: number
+      data: D
+    }
+
     interface BlockRecord<D extends JsonObject = JsonObject> {
       id: string
       type: string
       dataVersion?: number
       data: D
-      tunes?: JsonObject
-      inline?: Record<string, EditorInlineWidget>
+      tunes?: BlockTunes
+      inline?: Record<string, InlineWidgetRecord>
       revision?: string | number
     }
 
@@ -117,6 +132,11 @@ Rules:
 - revision is not a schema version;
 - revision is cleared when the editor mutates that block;
 - dataVersion is the schema version of one block type;
+- tunes are core-owned block metadata; known tune values are normalized by core and unknown tune keys remain inert opaque JSON;
+- text alignment has one persisted representation in v2: tunes.textAlign;
+- ParagraphData.align and HeadingData.align are legacy v1 inputs only and are removed from v2 canonical data;
+- inline widget IDs are stable block-local identities;
+- a live inline widget is valid only when its ID is referenced by a canonical rich-text placeholder and has a matching inline map entry;
 - unknown block types preserve their opaque data, dataVersion, tunes, inline payload and revision without reinterpretation.
 
 Persisted v2 envelope:
@@ -212,6 +232,16 @@ For unknown block types, missing dataVersion remains missing. Do not invent a sc
 
 After successful load of a known block, the canonical state contains current dataVersion. Save emits the current dataVersion.
 
+The v1 -> v2 migration also removes the existing alignment duplication:
+
+- if tunes.textAlign is valid, it wins;
+- otherwise Paragraph/Heading legacy data.align is copied to tunes.textAlign;
+- data.align is removed from canonical v2 Paragraph/Heading data;
+- invalid alignment values are removed by the core tune normalizer;
+- future plugin data migrations must not own core tunes.
+
+This one-time rule belongs to the v1 document-format migration because it repairs a v1 cross-layer duplication. It is not a precedent for putting future plugin schema migrations into DocumentSchema.
+
 ## 5. Rich-text security and canonicalization
 
 Introduce one RichTextCodec module.
@@ -264,6 +294,153 @@ The public plugin-kit may expose only safe sinks/helpers:
 
 No plugin should need a private core sanitizer import.
 
+### 5.1. Inline widgets are model state
+
+The current inline-widget path must be refactored together with block persistence. A v2 save must never call a widget getData(element) method or infer persisted widget payload from live DOM.
+
+Canonical representation:
+
+    rich-text field:
+      "Hello {{w_42}}"
+
+    block.inline:
+      {
+        "w_42": {
+          type: "mention",
+          dataVersion: 2,
+          data: { ... }
+        }
+      }
+
+Introduce a neutral inline widget schema:
+
+    interface InlineWidgetSchema<D extends JsonObject> {
+      readonly currentVersion: number
+
+      decode(input: {
+        dataVersion?: number
+        data: unknown
+      }): {
+        dataVersion: number
+        data: D
+      }
+
+      encode(data: Readonly<D>): {
+        dataVersion: number
+        data: D
+      }
+    }
+
+Editor-side inline plugin contract:
+
+    interface InlinePluginDefinition<D extends JsonObject = JsonObject> {
+      readonly type: string
+      readonly schema: InlineWidgetSchema<D>
+
+      setup(
+        context: InlinePluginRuntimeContext
+      ): InlinePluginRuntime<D>
+    }
+
+    interface InlinePluginRuntime<D extends JsonObject> {
+      create(
+        id: string,
+        initial: Readonly<D>,
+        context: InlineWidgetContext<D>
+      ): InlineWidgetInstance<D>
+
+      destroy(): void
+    }
+
+    interface InlineWidgetInstance<D extends JsonObject> {
+      readonly element: HTMLElement
+
+      update?(
+        next: Readonly<D>,
+        previous: Readonly<D>
+      ): void
+
+      setReadOnly?(readOnly: boolean): void
+      focus?(): void
+      destroy(): void
+    }
+
+    interface InlineWidgetContext<D extends JsonObject> {
+      readonly id: string
+      readonly blockId: string
+      readonly fieldKey: string
+      readonly signal: AbortSignal
+
+      getData(): Readonly<D>
+
+      updateData(
+        producer: (current: Readonly<D>) => D
+      ): void
+
+      isReadOnly(): boolean
+    }
+
+Rules:
+
+- plugin definitions are stateless descriptors and may be reused;
+- setup creates one editor-scoped runtime;
+- each widget occurrence has one InlineWidgetInstance;
+- widget payload changes must call InlineWidgetContext.updateData;
+- native controls inside a widget do not become persisted merely because their DOM changed;
+- getData(element) is removed from v2 persistence;
+- hydrate(element, ...) is removed as a persistence/lifecycle primitive;
+- arbitrary elements carrying data-inline-plugin/data-id are never trusted as canonical widgets;
+- core recognizes only widget instances it created and owns;
+- deleting a widget from an editable field removes its placeholder reference and then prunes its inline record in the same transaction;
+- a missing plugin definition preserves the placeholder and payload inertly; it must not drop unknown widget data;
+- an unreferenced inline entry produced by a local edit is removed at canonicalization; opaque unknown imported data is preserved until its containing rich-text field is normalized by an operation that owns that block.
+
+### 5.2. Inline projection runtime
+
+Create one InlineProjectionRuntime owned by the editor projection layer.
+
+Responsibilities:
+
+- replace canonical {{id}} references with owned widget instances in editable fields;
+- reconcile widget instances by stable id;
+- preserve widget instance identity when type and canonical payload are unchanged;
+- update or replace only changed widget instances;
+- translate owned live widget nodes back to {{id}} references when synchronizing a block after native DOM editing;
+- never derive widget payload from arbitrary DOM;
+- apply read-only state to live widget instances;
+- abort/destroy widget instances when their reference disappears or their containing block is destroyed.
+
+BlockDataSchema.mapRichText fieldKey values and BlockInstance.editableFields fieldKey values must describe the same stable logical fields. InlineProjectionRuntime uses this mapping; it must not guess plugin data paths.
+
+Inline insertion is model-first:
+
+    resolve logical selection
+      -> allocate stable widget id
+      -> validate/encode widget payload
+      -> insert {{id}} into the selected canonical rich-text field
+      -> add block.inline[id]
+      -> commit one transaction
+      -> reconcile the widget projection
+
+Trigger-driven mention/autocomplete flows may keep transient query text in native DOM while the user is typing. Choosing a result commits one transaction that replaces the query range with a canonical placeholder and creates its inline record.
+
+Renderer-side widget support uses the same InlineWidgetSchema but a separate read-only renderer:
+
+    interface InlineWidgetRenderer<D extends JsonObject> {
+      readonly type: string
+      readonly schema: InlineWidgetSchema<D>
+
+      render(
+        id: string,
+        data: Readonly<D>,
+        context: RendererContext
+      ): HTMLElement
+
+      destroy?(element: HTMLElement): void
+    }
+
+Renderer does not reuse interactive editor widget instances.
+
 ## 6. Block plugin v2
 
 Separate plugin definition from mounted block instance.
@@ -272,16 +449,26 @@ Separate plugin definition from mounted block instance.
       readonly type: string
       readonly title: string
       readonly icon: string
+      readonly styles?: readonly string[]
+      readonly locale?: Readonly<Record<string, JsonValue>>
       readonly schema: BlockDataSchema<D>
       readonly capabilities?: BlockCapabilities<D>
 
+      setup(
+        context: BlockPluginRuntimeContext
+      ): BlockPluginRuntime<D>
+    }
+
+    interface BlockPluginRuntime<D extends JsonObject> {
       create(
         initial: Readonly<D>,
         context: BlockInstanceContext<D>
       ): BlockInstance<D>
+
+      destroy(): void
     }
 
-One definition exists per registered type.
+A definition is an immutable descriptor and may be reused across editor instances. setup creates one editor-scoped runtime that owns editor-scoped resources and is destroyed exactly once with that editor. Configuration captured by the definition must be immutable.
 
 Each document block owns a separate BlockInstance.
 
@@ -342,16 +529,30 @@ Examples:
     table:
       cell:<stable-row-id>:<stable-column-id>
 
-Selection bookmark:
+Logical selection coordinates:
 
-    interface SelectionBookmark {
+    interface LogicalPoint {
       blockId: string
       fieldKey?: string
       offset: number
       affinity?: "forward" | "backward"
     }
 
-History, rollback and document replacement restore selection by blockId + fieldKey, never by positional field index.
+    interface SelectionBookmark {
+      anchor: LogicalPoint
+      focus: LogicalPoint
+    }
+
+A collapsed caret has equal anchor/focus. Cross-block selections are represented by different logical points and preserve direction.
+
+Offset semantics must remain deterministic across editor/renderer realms:
+
+- offsets are UTF-16 code units for text;
+- BR counts as one logical unit;
+- one inline widget counts as one logical unit;
+- widget labels/content never contribute to the surrounding rich-text offset.
+
+History, rollback and document replacement restore selection by blockId + stable fieldKey + logical offset, never by positional field index.
 
 ## 8. Explicit capability contracts
 
@@ -363,7 +564,7 @@ Replace scattered optional-method discovery with an explicit capability object.
       conversion?: ConversionCapability<D>
       paste?: PasteCapability<D>
       settings?: SettingsCapability<D>
-      inline?: InlineCapability<D>
+      inlineControls?: InlineControlsCapability<D>
       shortcuts?: ShortcutCapability
     }
 
@@ -420,7 +621,6 @@ Plugins do not receive managers.
     interface BlockInstanceContext<D extends JsonObject> {
       readonly ownerDocument: Document
       readonly signal: AbortSignal
-      readonly readOnly: boolean
 
       getData(): Readonly<D>
 
@@ -434,6 +634,8 @@ Plugins do not receive managers.
 
       requestSplit(selection?: BlockSelection): void
       requestExit(): void
+
+      isReadOnly(): boolean
     }
 
 ### 9.1. updateData
@@ -567,15 +769,23 @@ Whole-document replacement may be O(N) and may store O(N) before/after data. Thi
 
 Preserve the existing CommandDispatcher atomicity guarantees but move them into the single DocumentRuntime transaction mechanism.
 
+Transaction origins:
+
+    type RecordedTransactionOrigin =
+      | "user"
+      | "native-input"
+      | "plugin"
+      | "external"
+
+    type CommitOrigin =
+      | RecordedTransactionOrigin
+      | "history"
+
 Transaction record:
 
     interface TransactionRecord {
       id: number
-      origin:
-        | "user"
-        | "native-input"
-        | "plugin"
-        | "external"
+      origin: RecordedTransactionOrigin
       name: string
       changes: readonly DocumentChange[]
       selectionBefore?: SelectionBookmark
@@ -583,25 +793,34 @@ Transaction record:
       historyGroup?: string
     }
 
-One outer transaction:
+One outer transaction operates against an isolated draft rather than mutating the committed DocumentState incrementally:
 
-1. resolves and stores logical selectionBefore;
-2. executes model changes;
-3. validates all resulting known block data;
-4. prepares required DOM projection changes;
-5. applies the projection atomically;
-6. captures selectionAfter;
-7. commits the complete record to history;
-8. publishes public observations.
+1. capture logical selectionBefore;
+2. build a draft state and reversible DocumentChange journal from the current immutable state;
+3. normalize/validate every changed known block/widget/tune while building the draft;
+4. prepare required projection changes against the draft;
+5. apply the prepared projection;
+6. atomically replace the committed DocumentState reference with the validated draft; this swap must not invoke extension/user code;
+7. capture selectionAfter on a best-effort contained path;
+8. push the complete immutable record to history;
+9. enqueue public observations and onChange scheduling.
 
-Failure before commit:
+The transaction commit point is the canonical-state swap. Everything that can invoke extension code must happen before that point or as contained post-commit observation.
 
-- model changes are reversed;
-- staged new block instances are destroyed;
-- live DOM remains at or is restored to canonical before-state;
+HistoryStore.push, canonical-state swap and internal queue bookkeeping must not invoke extension/user code.
+
+Failure before the canonical-state swap:
+
+- discard the draft;
+- destroy staged new block/widget instances;
+- recover any live projection already touched by browser input or plugin update from the committed before-state;
 - history is unchanged;
 - onChange is not scheduled;
 - public document-change events are not delivered.
+
+If an extension update partially mutates live DOM and then throws, core must not assume calling update(previous) is safe. Destroy/recreate the affected projection from the committed before-state when needed. Normal successful updates preserve identity; failure recovery may replace the affected instance.
+
+If recovery of canonical projection also fails because extension code is irrecoverably broken, mark the editor runtime failed, stop further mutations, preserve/export the last committed DocumentState, and report an AggregateError through diagnostics. Do not continue with a knowingly divergent model/DOM pair.
 
 Nested transactions:
 
@@ -638,7 +857,7 @@ Recommended v2 observations:
     transaction:committed
     readOnly:changed
 
-transaction:committed replaces the old history:commit use case without participating in internal correctness.
+transaction:committed replaces the old history:commit use case without participating in internal correctness. Its public payload is immutable and contains at least commit origin, transaction name/history action, and a sanitized change summary; it must not expose internal mutable BlockRecord references. Undo/redo observations use origin "history" with action "undo" or "redo".
 
 Public observer failures are contained and reported through diagnostics. They must not alter committed state or interrupt internal queues.
 
@@ -675,6 +894,30 @@ Adjacent native input records may coalesce only when all are true:
 
 Starting a new committed branch after undo invalidates redo immediately, independent of timers.
 
+When coalescing adjacent update records:
+
+- preserve the first record's before value and selectionBefore;
+- preserve the last record's after value and selectionAfter;
+- do not retain intermediate block payloads;
+- never coalesce across insert/remove/move/convert/document.replace.
+
+### 14.2. Undo/redo replay
+
+Undo and redo use the same validation-safe projection/recovery machinery but run in history replay mode.
+
+History replay:
+
+- does not call HistoryStore.push;
+- does not clear the opposite history branch except through the normal takeUndo/takeRedo transfer;
+- uses CommitOrigin "history" for public observations;
+- undo restores selectionBefore;
+- redo restores selectionAfter;
+- emits document:changed, transaction:committed and history:changed after successful replay;
+- schedules onChange from canonical model after successful replay;
+- does not re-run block/widget migrations because history records contain already-canonical immutable records.
+
+A failed history projection leaves the history cursor and committed DocumentState at the pre-replay position.
+
 ## 15. NativeInputController
 
 Create one module responsible for browser-owned editable mutations.
@@ -701,7 +944,9 @@ Canonical model remains the before-state until input is committed.
       -> browser mutates editable DOM
       -> input
       -> BlockInstance.read for affected block only
+      -> translate only core-owned inline widget nodes to canonical {{id}} references
       -> RichTextCodec / block schema
+      -> prune locally removed widget references
       -> one block.update change
       -> commit
 
@@ -736,7 +981,31 @@ During composition:
 - compositionend synchronizes the final affected block into one logical native-input record;
 - undo reverts the completed composition as one logical input step.
 
-### 15.4. Serialization/validation failure
+### 15.4. Clipboard and rich paste
+
+Do not rely on uncontrolled browser rich-paste DOM as a persistence path.
+
+For rich-text paste/drop:
+
+1. intercept before active markup is committed when the browser allows it;
+2. parse clipboard/drop data into a detached untrusted representation;
+3. sanitize and canonicalize rich HTML;
+4. convert recognized block/inline structures into canonical model changes;
+5. commit through DocumentRuntime;
+6. let BlockReconciler project the committed result.
+
+For multi-block paste, split/merge and cross-block deletion, Clipboard must produce DocumentTransaction operations. It must not directly reorder/remove live block DOM.
+
+Async media paste/upload:
+
+    parse request
+      -> start/await async work outside transaction
+      -> verify owning block/widget signal is still active
+      -> commit resolved canonical data in one short transaction
+
+If the platform forces a native DOM mutation before interception, the source-DOM recovery/sanitization rule in 15.2 applies before public commit.
+
+### 15.5. Serialization/validation failure
 
 If read, sanitization, canonicalization or schema normalization fails:
 
@@ -748,7 +1017,14 @@ If read, sanitization, canonicalization or schema normalization fails:
 
 ## 16. Incremental BlockReconciler
 
-BlockReconciler is the only model-to-editor-DOM projection module.
+BlockReconciler is the only block-level model-to-editor-DOM projection module. It coordinates InlineProjectionRuntime and core tune projection; block plugins do not own those cross-cutting persistence layers.
+
+Projection order for a block is:
+
+1. create/update plugin-owned block data projection;
+2. reconcile canonical inline widget references for its stable editable fields;
+3. apply normalized core tunes such as textAlign;
+4. restore logical selection when requested.
 
 Required behavior:
 
@@ -816,6 +1092,10 @@ If any preparation fails:
 
 For operations that cannot be fully staged, define a reversible projection step and test rollback explicitly.
 
+BlockInstance.update and InlineWidgetInstance.update are extension code. Their v2 contract requires a strong exception guarantee where practical, but core still contains failure by recreating the affected projection from committed canonical state rather than trusting a reverse update call.
+
+A block update that changes only block.inline must reconcile only affected inline widget instances; it must not recreate the block plugin instance.
+
 ## 17. Read-only transition
 
 setReadOnly is not a document transaction and does not create history.
@@ -825,6 +1105,7 @@ Target flow:
     validate no active mutation
       -> unmount/mount edit-only InteractionRuntime pieces as required
       -> call setReadOnly on existing BlockInstances
+      -> apply read-only to owned InlineWidgetInstances
       -> enforce core read-only DOM invariants
       -> publish readOnly:changed
       -> publish history:changed if command availability changed
@@ -844,8 +1125,10 @@ Requirements:
 Failure policy:
 
 - setReadOnly must be reversible;
-- if one instance throws, restore already-transitioned instances to the previous mode;
-- do not publish readOnly:changed on failed transition.
+- if one instance throws, attempt to restore already-transitioned instances to the previous mode;
+- if an extension cannot reverse its partial mode mutation, recreate only the affected block/widget projections from canonical state in the previous mode;
+- do not publish readOnly:changed on failed transition;
+- if canonical projection cannot be recovered, enter the same failed-runtime state defined for transaction recovery.
 
 ## 18. Public editor interface v2
 
@@ -864,8 +1147,14 @@ Expose immutable snapshots.
       readonly type: string
       readonly dataVersion?: number
       readonly data: Readonly<JsonObject>
-      readonly tunes?: Readonly<JsonObject>
+      readonly tunes?: Readonly<BlockTunes>
+      readonly inline?: Readonly<Record<string, InlineWidgetRecord>>
       readonly revision?: string | number
+    }
+
+    interface BlockUpdate {
+      data?: JsonObject
+      tunes?: BlockTunes
     }
 
 Blocks interface:
@@ -889,16 +1178,18 @@ Blocks interface:
       focus(id: string, target?: FocusTarget): void
     }
 
-All mutation methods delegate to DocumentRuntime transactions.
+All persisted mutation methods delegate to DocumentRuntime transactions. focus is not a persisted mutation and delegates to InteractionRuntime.
 
-Application-facing snapshots cannot mutate editor state by reference.
+Application-facing snapshots cannot mutate editor state by reference. EditorBlocksApi.update cannot directly replace block.inline; inline payload/reference changes go through inline widget commands so placeholder/map invariants stay atomic.
 
 Public render semantics:
 
-- editor.render(document) is one explicit document.replace transaction and one history step unless an explicitly documented option disables history for an application-level reset;
+- editor.render(document) is one explicit document.replace transaction and one history step;
 - initial createEditor data load is not a history step;
 - internal undo/redo never re-records history;
 - clear is one transaction.
+
+Do not add an ambiguous skipHistory flag to render. If a later product requirement needs a non-undoable application reset, define a separate reset(document) contract that explicitly clears history.
 
 Do not keep deprecated DOM getters as aliases.
 
@@ -939,6 +1230,8 @@ Add a source architecture gate:
     inline-plugins/** must not import private core/**
 
 Do not add exceptions to make existing violations pass. Move required utilities to plugin-kit or a neutral shared module.
+
+Built-in source plugins import the source plugin-kit module by repository-relative path; they must not self-import the published package specifier while the package is being built. Third-party consumers use @shelamkoff/rector/plugin-kit. Both routes resolve to the same public implementation and declarations.
 
 ## 20. Keyboard architecture
 
@@ -991,8 +1284,10 @@ Renderer and editor share:
 
 - BlockRecord envelope;
 - BlockDataSchema;
-- block data migrations;
+- InlineWidgetSchema;
+- block/widget data migrations;
 - RichTextCodec;
+- normalized core tune semantics;
 - URL/security policy;
 - pure formatting helpers.
 
@@ -1011,6 +1306,10 @@ Renderer contract:
     }
 
 Custom renderer registration without a schema is rejected.
+
+Inline widget renderers are registered separately by type and must use the matching InlineWidgetSchema. Unknown widget types remain inert placeholder text/data and must never execute arbitrary stored markup.
+
+Renderer applies tunes.textAlign after block rendering. It must not read legacy ParagraphData.align/HeadingData.align after v2 normalization.
 
 Do not merge editable editor DOM and static renderer DOM into one large mode-dependent implementation.
 
@@ -1042,7 +1341,9 @@ Split into:
 
 Inline persistent changes enter DocumentRuntime transactions.
 
-Remove notifyChanged compatibility after migration.
+InlineWidgetContext.updateData is the only persisted widget-data mutation path. InlineMutationContext is for rich-text range/tool operations around the containing block; it does not scrape widget DOM for persistence.
+
+Remove notifyChanged, getData(element) persistence and hydrate-as-state-recovery compatibility after migration.
 
 ## 23. Composition root
 
@@ -1115,7 +1416,7 @@ For content-only changes affecting k blocks in a document of N blocks:
 
 Structural order operations may require O(N) array/order-vector work. They must still avoid O(N) plugin lifecycle work.
 
-Full export/save is O(N) because it serializes the document model.
+Full export/save is O(N) because it serializes the document model, but it performs zero BlockInstance.read and zero InlineWidgetInstance DOM serialization calls.
 
 Whole-document replacement is O(N) by definition.
 
@@ -1174,6 +1475,9 @@ Required v2 security properties:
 14. Block destruction aborts outstanding plugin work.
 15. Stale async results after block removal/conversion/destroy cannot mutate the document.
 16. Public observer exceptions/rejections cannot escape into transaction correctness.
+17. Fake data-inline-plugin/data-id attributes inserted by untrusted DOM are not accepted as owned widget identity.
+18. A canonical inline payload is activated only by a registered plugin definition plus a canonical placeholder reference.
+19. Core tune values are validated before application to DOM.
 
 Required security regressions:
 
@@ -1186,7 +1490,10 @@ Required security regressions:
 - stale async upload after remove;
 - stale async result after conversion;
 - failed plugin update rollback;
-- renderer treatment of untrusted stored HTML.
+- renderer treatment of untrusted stored HTML;
+- forged inline-widget DOM attributes;
+- unknown inline plugin payload preservation without execution;
+- invalid tunes.textAlign.
 
 ## 27. Event ordering
 
@@ -1295,7 +1602,9 @@ Implement:
 - v1 -> v2 envelope migration;
 - Paragraph neutral schema first;
 - RichTextCodec;
-- deterministic canonicalization.
+- deterministic canonicalization;
+- core tune normalization;
+- one-time data.align -> tunes.textAlign migration.
 
 TDD slices:
 
@@ -1349,7 +1658,9 @@ For every plugin prove:
 - async abort where applicable;
 - schema round trip.
 
-Delete BlockPlugin v1 adapter before phase exit.
+After block plugin migration, migrate inline plugins to InlinePluginDefinition/InlinePluginRuntime/InlineWidgetInstance and model-owned payloads. Cover mention and color first, including missing-plugin preservation.
+
+Delete BlockPlugin v1 and old InlinePlugin getData/hydrate persistence contracts before phase exit.
 
 ### Phase 4: DocumentRuntime canonical model
 
@@ -1373,8 +1684,9 @@ Then:
 Exit criteria:
 
 - public mutations change model first;
-- save serializes model without plugin DOM traversal;
-- unsanctioned plugin DOM mutation is not persisted.
+- inline widget payload and core tunes live in the model;
+- save serializes model without block/widget DOM traversal;
+- unsanctioned plugin/widget DOM mutation is not persisted.
 
 ### Phase 5: single transaction engine
 
@@ -1406,7 +1718,10 @@ Slices:
 5. paste;
 6. IME composition;
 7. multi-field block;
-8. inline Range mutation.
+8. inline Range mutation;
+9. owned inline widget deletion;
+10. rich paste/drop;
+11. multi-block clipboard paste/delete.
 
 Exit criteria:
 
@@ -1457,7 +1772,8 @@ Slices:
 6. undo update;
 7. redo update;
 8. keyed document.replace;
-9. staging failure rollback.
+9. inline-payload-only update without block recreation;
+10. staging/update failure recovery.
 
 Exit criteria:
 
@@ -1475,6 +1791,7 @@ Test:
 - iframe/embed;
 - image;
 - carousel/stateful plugin;
+- inline widget with native controls;
 - transition failure rollback.
 
 Exit criteria:
@@ -1519,16 +1836,17 @@ Exit criteria:
 
 ### Phase 12: renderer schema integration
 
-Require shared schema at renderer registration.
+Require shared block schema at block renderer registration and shared widget schema at inline widget renderer registration.
 
-Migrate each built-in renderer.
+Migrate each built-in block and inline widget renderer.
 
 Add editor-save -> renderer contract coverage for every built-in type.
 
 Exit criteria:
 
 - one persisted data schema per block type;
-- custom renderer cannot bypass schema validation.
+- one persisted data schema per inline widget type;
+- custom block/widget renderers cannot bypass schema validation.
 
 ### Phase 13: composition root cleanup
 
@@ -1564,6 +1882,7 @@ History:
 - move -> undo;
 - convert -> undo;
 - document.render -> undo;
+- undo failure leaves history/model at pre-replay state;
 - nested failure;
 - validation failure;
 - plugin read/update failure;
@@ -1595,7 +1914,9 @@ Native input:
 - Delete;
 - paste;
 - autocorrect-compatible sequence;
-- plugin-native input/textarea is not consumed as document structural input.
+- plugin-native input/textarea is not consumed as document structural input;
+- deleting an inline widget prunes its canonical inline entry;
+- forged data-inline-plugin markup is not adopted as a widget.
 
 Lifecycle:
 
@@ -1603,6 +1924,7 @@ Lifecycle:
 - conversion destroys old instance once;
 - editor destroy destroys every live instance once;
 - abort prevents stale async completion;
+- inline widget destroy/abort is exactly once;
 - no style/listener/external-instance leak.
 
 Security:
@@ -1645,6 +1967,10 @@ Architecture audit must fail production usage of removed legacy symbols/interfac
     PublicBlockView.contentElement
     IEditor.rootElement
     notifyChanged compatibility mutation path
+    InlinePlugin.getData(element) persistence
+    InlinePlugin.hydrate(element, ...) persistence/recovery
+    ParagraphData.align v2 declaration
+    HeadingData.align v2 declaration
 
 Documentation/changelog references describing migration may remain, but runtime/type declarations must not expose legacy behavior.
 
@@ -1658,8 +1984,10 @@ Architecture:
 - BlockReconciler is incremental/keyed;
 - block plugins use per-block instances;
 - plugin capabilities are explicit;
+- inline widget payload is canonical model state with per-widget instances;
+- text alignment has one canonical location in tunes.textAlign;
 - plugin-kit is the supported extension utility interface;
-- renderer/editor share block schemas;
+- renderer/editor share block and inline-widget schemas;
 - composition root has no mandatory post-construction dependency setters;
 - one structural keyboard router exists.
 
@@ -1681,7 +2009,9 @@ Security:
 - mutable document DOM removed from public interface;
 - plugins cannot mutate global document managers;
 - invalid plugin data cannot enter canonical state;
-- stale async work is aborted/ignored.
+- stale async work is aborted/ignored;
+- forged widget DOM cannot become canonical widget state;
+- core tunes are validated before projection.
 
 Performance:
 
@@ -1690,6 +2020,8 @@ Performance:
 - move does not recreate the moved block;
 - read-only does not recreate blocks;
 - whole-document O(N) work is restricted to explicit whole-document operations/export;
+- save/export performs no DOM serialization;
+- inline-only updates do not recreate their containing block;
 - corrected bundle budgets are enforced.
 
 Testing:
@@ -1705,6 +2037,8 @@ Cleanup:
 
 - old snapshot history is removed from ordinary edit paths;
 - BlockPlugin v1 is removed;
+- old DOM-scraped InlinePlugin persistence is removed;
+- Paragraph/Heading data.align duplication is removed;
 - compatibility mutation adapters are removed;
 - batch history events are removed;
 - private core imports from extensions are removed;
