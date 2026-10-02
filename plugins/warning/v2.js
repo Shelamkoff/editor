@@ -12,7 +12,10 @@ function append(left,right){
   return left+'<br>'+right
 }
 
-/** @returns {import('../../plugin-kit/types').BlockPluginDefinition<{title:string,message:string}>} */
+/**
+ * Create the immutable Warning v2 definition with stable editable fields.
+ * @returns {import('../../plugin-kit/types').BlockPluginDefinition<{title:string,message:string}>}
+ */
 export function createWarningPlugin(){
   const capabilities=Object.freeze({
     formatting:Object.freeze({inlineTools:true}),
