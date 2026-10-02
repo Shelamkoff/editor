@@ -30,7 +30,10 @@ function caretAtStart(field,range){
   return before.toString().length===0&&before.cloneContents().childNodes.length===0
 }
 
-/** @returns {import('../../plugin-kit/types').BlockPluginDefinition<{items:Array<{id:string,text:string,checked:boolean}>}>} */
+/**
+ * Create the immutable Checklist v2 definition with stable item identities.
+ * @returns {import('../../plugin-kit/types').BlockPluginDefinition<{items:Array<{id:string,text:string,checked:boolean}>}>}
+ */
 export function createChecklistPlugin(){
   const capabilities=Object.freeze({
     formatting:Object.freeze({inlineTools:true}),
