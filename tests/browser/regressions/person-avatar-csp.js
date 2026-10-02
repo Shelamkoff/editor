@@ -1,5 +1,5 @@
-import { Person } from '../../../plugins/person/index.js'
-import { Paragraph } from '../../../plugins/paragraph/index.js'
+import { createPersonPlugin } from '../../../plugins/person/index.js'
+import { createParagraphPlugin } from '../../../plugins/paragraph/index.js'
 import { test, make, equal, assert, pause } from './harness.js'
 
 const png = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADElEQVR42mNk+M/wHwAF/gL+Av7lWQAAAABJRU5ErkJggg=='
@@ -18,7 +18,7 @@ function chooseAvatar(editor) {
     if (this.type === 'file') input = this
     else original.call(this)
   }
-  try { editor.rootElement.querySelector('.oe-person__avatar-upload').click() }
+  try { document.querySelector('.oe-person__avatar-upload').click() }
   finally { HTMLInputElement.prototype.click = original }
   assert(input, 'avatar action did not open its file chooser')
   const transfer = new DataTransfer()
@@ -36,7 +36,7 @@ export function register(enforced = false) {
   if (!enforced) {
     test('Person avatar action still opens the cropper without Trusted Types enforcement', async () => {
       let uploads = 0
-      const editor = make([person()], { plugins: [new Paragraph(), new Person({ uploadFile: async () => {
+      const editor = make([person()], { plugins: [createParagraphPlugin(), createPersonPlugin({ uploadFile: async () => {
         uploads++; return { url: 'https://example.test/photo.png' }
       } })] })
       chooseAvatar(editor)
@@ -62,7 +62,7 @@ export function register(enforced = false) {
   for (const mode of ['local', 'remote']) {
     test(`Person ${mode} avatar upload works under Trusted Types and remains undoable`, async () => {
       let uploaded
-      const editor = make([person()], { plugins: [new Paragraph(), new Person(mode === 'remote'
+      const editor = make([person()], { plugins: [createParagraphPlugin(), createPersonPlugin(mode === 'remote'
         ? { uploadFile: async value => { uploaded = value; return { url: 'https://example.test/photo.png' } } }
         : {})] })
       chooseAvatar(editor)
@@ -82,7 +82,7 @@ export function register(enforced = false) {
 
   test('Person pending avatar upload under Trusted Types cannot change replacement data', async () => {
     let finish, signal
-    const editor = make([person()], { plugins: [new Paragraph(), new Person({ uploadFile: (_file, context) => {
+    const editor = make([person()], { plugins: [createParagraphPlugin(), createPersonPlugin({ uploadFile: (_file, context) => {
       signal = context.signal; return new Promise(resolve => { finish = resolve })
     } })] })
     chooseAvatar(editor)
