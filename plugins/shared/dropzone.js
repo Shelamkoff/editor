@@ -1,4 +1,4 @@
-import { setTrustedHtml, insertTrustedHtml } from '../../core/sanitize.js'
+import { setTrustedHtml, insertTrustedHtml } from '../../plugin-kit/index.js'
 /**
  * Shared dropzone (empty-state) view for media block plugins (image, gallery).
  * Eliminates duplicate DOM construction and drag-and-drop wiring.
