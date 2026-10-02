@@ -22,7 +22,10 @@ function fitColumns(columns,size,context){
   return kept
 }
 
-/** @returns {import('../../plugin-kit/types').BlockPluginDefinition<{layout:string,columns:Array<{id:string,content:string}>}>} */
+/**
+ * Create the immutable Columns v2 definition with stable column identities.
+ * @returns {import('../../plugin-kit/types').BlockPluginDefinition<{layout:string,columns:Array<{id:string,content:string}>}>}
+ */
 export function createColumnsPlugin(){
   const capabilities=Object.freeze({
     formatting:Object.freeze({inlineTools:true}),
