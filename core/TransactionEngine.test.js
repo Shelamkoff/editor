@@ -199,3 +199,22 @@ test('single-block transaction never materializes the whole document', () => {
   assert.equal(store.get('499').data.text, '499')
   assert.equal(history.canUndo, true)
 })
+
+
+test('reset replaces the document through projection and clears history without a record', () => {
+  const { store, history, engine } = harness()
+  engine.execute({ origin: 'user', name: 'update' }, tx => {
+    tx.update('a', block('a', 'next'))
+  })
+  assert.equal(history.canUndo, true)
+
+  engine.reset({
+    version: 'future',
+    blocks: [block('x')],
+  })
+
+  assert.equal(store.version, 'future')
+  assert.deepEqual(store.list().map(item => item.id), ['x'])
+  assert.equal(history.canUndo, false)
+  assert.equal(history.canRedo, false)
+})
