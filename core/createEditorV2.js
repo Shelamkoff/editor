@@ -12,6 +12,7 @@ import { InlineProjectionRuntime } from './InlineProjectionRuntime.js'
 import { BlockReconciler } from './BlockReconciler.js'
 import { DocumentRuntime } from './DocumentRuntime.js'
 import { NativeInputController } from './NativeInputController.js'
+import { KeyboardRouter } from './KeyboardRouter.js'
 import { LogicalSelection } from './LogicalSelection.js'
 import { InteractionState } from './InteractionState.js'
 import { EditorViewModel } from './EditorViewModel.js'
@@ -184,8 +185,7 @@ export function createEditorV2(input){
     restore:bookmark=>logicalSelection?.restore(bookmark),
   }
 
-  let pendingSplit=null
-  let pendingExit=null
+  let keyboardRouter=null
 
   runtime=new DocumentRuntime({
     registry,
@@ -198,8 +198,8 @@ export function createEditorV2(input){
     createId:prefix=>prefix+'-'+uid(),
     selection:selectionPort,
     onValidationError:config.onValidationError,
-    requestSplit:id=>pendingSplit?.(id),
-    requestExit:id=>pendingExit?.(id),
+    requestSplit:id=>keyboardRouter?.split(id),
+    requestExit:id=>keyboardRouter?.exit(id),
     onCommit:event=>{
       interaction?.reconcile()
       notifier?.schedule()
@@ -237,38 +237,14 @@ export function createEditorV2(input){
     commands:inlineCommands,
   })
 
-  // Minimal structural commands for block-local v2 contexts. Full keyboard
-  // routing is layered on top of the same ports; no legacy manager participates.
-  pendingExit=id=>{
-    const record=runtime.get(id)
-    if(!record||runtime.readOnly)return
-    if(record.type!==registry.defaultBlockType){
-      runtime.convert(id,{type:registry.defaultBlockType})
-      interaction.setCurrent(id)
-      queueMicrotask(()=>view.focus(id,{offset:'start'}))
-      return
-    }
-    const index=view.indexOf(id)
-    const next=view.insert(registry.defaultBlockType,undefined,index+1)
-    queueMicrotask(()=>view.focus(next,{offset:'start'}))
-  }
-  pendingSplit=id=>{
-    const record=runtime.get(id)
-    if(!record||runtime.readOnly)return
-    const bookmark=logicalSelection.capture()
-    const point=bookmark?.focus
-    const definition=registry.getBlockDefinition(record.type)
-    if(
-      !point
-      ||point.blockId!==id
-      ||!definition?.schema?.mapRichText
-    )return
-    // Generic rich-text blocks that need custom split semantics expose them in
-    // their own instance/key handling. Core fallback inserts the default block.
-    const index=view.indexOf(id)
-    const next=view.insert(registry.defaultBlockType,undefined,index+1)
-    queueMicrotask(()=>view.focus(next,{offset:'start'}))
-  }
+  keyboardRouter=new KeyboardRouter({
+    root,
+    runtime,
+    registry,
+    reconciler,
+    selection:logicalSelection,
+    view,
+  })
 
   const onFocusIn=event=>{
     const blockId=reconciler.resolveBlockTarget(event.target)
@@ -292,6 +268,7 @@ export function createEditorV2(input){
     destroyed=true
     root.removeEventListener('focusin',onFocusIn)
     triggers.destroy()
+    keyboardRouter?.destroy()
     nativeInput.destroy()
     notifier.destroy()
     popup.destroy()
