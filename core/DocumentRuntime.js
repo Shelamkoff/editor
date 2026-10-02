@@ -1141,6 +1141,310 @@ export class DocumentRuntime {
   }
 
 
+
+  #richTextFields(definition,data,inline){
+    const fields=[]
+    if(typeof definition?.schema?.mapRichText!=='function')return fields
+    definition.schema.mapRichText(cloneEditorData(data),(html,key)=>{
+      fields.push({
+        key,
+        html,
+        length:getRichTextLogicalLength(html,inline,this.#ownerDocument),
+      })
+      return html
+    })
+    return fields
+  }
+
+  #sliceSelection(record,start,end){
+    const definition=this.#registry.getBlockDefinition(record.type)
+    if(!definition?.schema?.mapRichText)return null
+    const inline=cloneInline(record.inline)??{}
+    const fields=this.#richTextFields(definition,record.data,inline)
+    if(!fields.length)return null
+
+    const sliceField=(fieldKey,range)=>{
+      const field=fields.find(item=>item.key===fieldKey)
+      if(!field)return null
+      return sliceRichTextRange(field.html,inline,range,this.#ownerDocument)
+    }
+
+    const capability=definition.capabilities?.selectionSlice
+    if(capability?.slice){
+      const result=capability.slice(
+        cloneEditorData(record.data),
+        {fieldKey:start.fieldKey,offset:start.offset},
+        {fieldKey:end.fieldKey,offset:end.offset},
+        {
+          createId:prefix=>this.createDataId(prefix),
+          sliceField,
+        },
+      )
+      if(!result)return null
+      return {
+        definition,
+        inline,
+        before:result.before,
+        selected:result.selected,
+        after:result.after,
+      }
+    }
+
+    if(fields.length!==1||start.fieldKey!==fields[0].key||end.fieldKey!==fields[0].key)return null
+    const field=fields[0]
+    const from=Math.max(0,Math.min(start.offset,field.length))
+    const to=Math.max(from,Math.min(end.offset,field.length))
+    if(to<=from)return null
+    const sliced=sliceRichTextRange(field.html,inline,{start:from,end:to},this.#ownerDocument)
+    const withField=html=>definition.schema.mapRichText(
+      cloneEditorData(record.data),
+      (value,key)=>key===field.key?html:value,
+    )
+    return {
+      definition,
+      inline,
+      before:from>0?withField(sliced.before):null,
+      selected:{kind:/** @type {'rich-text'} */('rich-text'),data:{text:sliced.selected}},
+      after:to<field.length?withField(sliced.after):null,
+    }
+  }
+
+  #endpointSelection(record,point,side){
+    const definition=this.#registry.getBlockDefinition(record.type)
+    if(!definition?.schema?.mapRichText)return null
+    const inline=cloneInline(record.inline)??{}
+    const fields=this.#richTextFields(definition,record.data,inline)
+    if(!fields.length)return null
+    if(side==='first'){
+      const last=fields[fields.length-1]
+      return this.#sliceSelection(record,point,{fieldKey:last.key,offset:last.length})
+    }
+    const first=fields[0]
+    return this.#sliceSelection(record,{fieldKey:first.key,offset:0},point)
+  }
+
+  #targetDataFromPayload(targetDefinition,payload,target){
+    let data
+    const conversion=targetDefinition.capabilities?.conversion
+    if(payload&&conversion?.canImport?.(payload)){
+      data=conversion.import(payload)
+    }else{
+      data=targetDefinition.schema.createDefault()
+    }
+    if(target.toolboxItemId!==undefined){
+      const item=targetDefinition.toolbox?.find(entry=>entry.id===target.toolboxItemId)
+      if(!item)throw new Error(`Unknown toolbox item "${target.toolboxItemId}" for "${target.type}"`)
+      if(item.configure)data=item.configure(data,this.#dataOperationContext())
+    }
+    return data
+  }
+
+  #recordFromData(id,type,definition,data,tunes,inlineSource){
+    const encoded=this.#normalizeLocalData(definition,data)
+    const record={id,type,dataVersion:encoded.dataVersion,data:encoded.data}
+    if(tunes!==undefined)record.tunes=cloneTunes(tunes)
+    const inline=this.#filterInlineForData(definition,encoded.data,inlineSource)
+    if(inline!==undefined)record.inline=inline
+    return record
+  }
+
+  #payloadHasContent(payload){
+    if(!payload||payload.kind!=='rich-text'||typeof payload.data?.text!=='string')return true
+    return getRichTextLogicalLength(payload.data.text,{},this.#ownerDocument)>0
+  }
+
+  #convertSingleBlockSelection(start,end,target,targetDefinition){
+    const current=this.#store.get(start.blockId)
+    if(!current||this.activation(start.blockId)?.kind!=='active')return false
+    const sliced=this.#sliceSelection(current,start,end)
+    if(!sliced||!this.#payloadHasContent(sliced.selected))return false
+
+    const targetData=this.#targetDataFromPayload(targetDefinition,sliced.selected,target)
+    const sourceDefinition=sliced.definition
+    const sourceInline=sliced.inline
+    const index=this.#store.ids().indexOf(current.id)
+    const convertedIds=[]
+    let focusId
+
+    this.#engine.execute({origin:'user',name:'selection.convert'},tx=>{
+      if(sliced.before){
+        const before=this.#recordFromData(
+          current.id,current.type,sourceDefinition,sliced.before,current.tunes,sourceInline,
+        )
+        tx.update(current.id,before)
+
+        const targetId=this.#createUniqueBlockId(target.type)
+        const targetRecord=this.#recordFromData(
+          targetId,target.type,targetDefinition,targetData,current.tunes,sourceInline,
+        )
+        tx.insert(index+1,targetRecord)
+        convertedIds.push(targetId)
+        focusId=targetId
+
+        if(sliced.after){
+          const afterId=this.#createUniqueBlockId(current.type)
+          const after=this.#recordFromData(
+            afterId,current.type,sourceDefinition,sliced.after,current.tunes,sourceInline,
+          )
+          tx.insert(index+2,after)
+        }
+      }else{
+        const targetRecord=this.#recordFromData(
+          current.id,target.type,targetDefinition,targetData,current.tunes,sourceInline,
+        )
+        tx.update(current.id,targetRecord)
+        convertedIds.push(current.id)
+        focusId=current.id
+
+        if(sliced.after){
+          const afterId=this.#createUniqueBlockId(current.type)
+          const after=this.#recordFromData(
+            afterId,current.type,sourceDefinition,sliced.after,current.tunes,sourceInline,
+          )
+          tx.insert(index+1,after)
+        }
+      }
+    })
+    return focusId?{focusId,convertedIds}:false
+  }
+
+  #convertCrossBlockSelection(start,end,target,targetDefinition){
+    const ids=this.#store.ids()
+    const firstIndex=ids.indexOf(start.blockId)
+    const lastIndex=ids.indexOf(end.blockId)
+    if(firstIndex<0||lastIndex<=firstIndex)return false
+    const first=this.#store.get(start.blockId)
+    const last=this.#store.get(end.blockId)
+    if(!first||!last)return false
+
+    const firstSlice=this.#endpointSelection(first,start,'first')
+    const lastSlice=this.#endpointSelection(last,end,'last')
+    if(!firstSlice||!lastSlice)return false
+
+    const targetConversion=targetDefinition.capabilities?.conversion
+    const probe={kind:/** @type {'rich-text'} */('rich-text'),data:{text:''}}
+    const textTarget=targetConversion?.canImport?.(probe)===true
+
+    if(!textTarget){
+      const targetData=this.#targetDataFromPayload(targetDefinition,null,target)
+      const targetId=this.#createUniqueBlockId(target.type)
+      this.#engine.execute({origin:'user',name:'selection.convert'},tx=>{
+        if(firstSlice.before){
+          tx.update(first.id,this.#recordFromData(
+            first.id,first.type,firstSlice.definition,firstSlice.before,first.tunes,firstSlice.inline,
+          ))
+        }else{
+          tx.remove(first.id)
+        }
+
+        for(let index=firstIndex+1;index<lastIndex;index++){
+          const id=ids[index]
+          if(tx.get(id))tx.remove(id)
+        }
+
+        if(lastSlice.after){
+          tx.update(last.id,this.#recordFromData(
+            last.id,last.type,lastSlice.definition,lastSlice.after,last.tunes,lastSlice.inline,
+          ))
+        }else if(tx.get(last.id)){
+          tx.remove(last.id)
+        }
+
+        const live=tx.list()
+        let insertAt
+        if(firstSlice.before){
+          insertAt=live.findIndex(record=>record.id===first.id)+1
+        }else if(lastSlice.after){
+          insertAt=live.findIndex(record=>record.id===last.id)
+        }else{
+          insertAt=Math.min(firstIndex,live.length)
+        }
+        tx.insert(insertAt,this.#recordFromData(
+          targetId,target.type,targetDefinition,targetData,first.tunes,{},
+        ))
+      })
+      return {focusId:targetId,convertedIds:[targetId]}
+    }
+
+    /** @type {Array<any>} */
+    const pieces=[]
+    if(this.#payloadHasContent(firstSlice.selected)){
+      pieces.push({
+        original:first,
+        payload:firstSlice.selected,
+        inline:firstSlice.inline,
+        position:'first',
+      })
+    }
+    for(let index=firstIndex+1;index<lastIndex;index++){
+      const record=this.#store.get(ids[index])
+      if(!record||this.activation(record.id)?.kind!=='active')return false
+      const definition=this.#registry.getBlockDefinition(record.type)
+      const conversion=definition?.capabilities?.conversion
+      if(!conversion)return false
+      const payload=conversion.export(record.data)
+      if(!targetConversion?.canImport?.(payload))return false
+      pieces.push({original:record,payload,inline:cloneInline(record.inline)??{},position:'middle'})
+    }
+    if(this.#payloadHasContent(lastSlice.selected)){
+      pieces.push({
+        original:last,
+        payload:lastSlice.selected,
+        inline:lastSlice.inline,
+        position:'last',
+      })
+    }
+    if(!pieces.length)return false
+
+    for(const piece of pieces){
+      if(!targetConversion?.canImport?.(piece.payload))return false
+      piece.data=this.#targetDataFromPayload(targetDefinition,piece.payload,target)
+    }
+
+    const convertedIds=[]
+    let focusId=null
+    this.#engine.execute({origin:'user',name:'selection.convert'},tx=>{
+      if(firstSlice.before){
+        tx.update(first.id,this.#recordFromData(
+          first.id,first.type,firstSlice.definition,firstSlice.before,first.tunes,firstSlice.inline,
+        ))
+      }
+
+      for(const piece of pieces){
+        let id=piece.original.id
+        let insert=false
+        if(piece.position==='first'&&firstSlice.before){
+          id=this.#createUniqueBlockId(target.type)
+          insert=true
+        }else if(piece.position==='last'&&lastSlice.after){
+          id=this.#createUniqueBlockId(target.type)
+          insert=true
+        }
+
+        const record=this.#recordFromData(
+          id,target.type,targetDefinition,piece.data,piece.original.tunes,piece.inline,
+        )
+        if(insert){
+          const live=tx.list()
+          const anchorId=piece.position==='first'?first.id:last.id
+          const anchor=live.findIndex(item=>item.id===anchorId)
+          tx.insert(piece.position==='first'?anchor+1:anchor,record)
+        }else{
+          tx.update(piece.original.id,record)
+        }
+        convertedIds.push(id)
+        focusId=id
+      }
+
+      if(lastSlice.after){
+        tx.update(last.id,this.#recordFromData(
+          last.id,last.type,lastSlice.definition,lastSlice.after,last.tunes,lastSlice.inline,
+        ))
+      }
+    })
+    return focusId?{focusId,convertedIds}:false
+  }
+
   #orderedLogicalRange(bookmark) {
     const anchor = bookmark?.anchor
     const focus = bookmark?.focus
