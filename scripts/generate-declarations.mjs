@@ -5,7 +5,7 @@ import ts from 'typescript'
 
 const editorRoot = resolve(fileURLToPath(new URL('..', import.meta.url)))
 const workRoot = resolve(editorRoot, '..')
-const sourceRoots = ['core', 'inline-plugins', 'inline-tools', 'locale', 'plugins', 'renderer', 'shared']
+const sourceRoots = ['core', 'inline-plugins', 'inline-tools', 'locale', 'plugin-kit', 'plugins', 'renderer', 'shared']
 const excludedSegments = new Set(['tests', 'benchmarks', 'runtime', 'node_modules'])
 const handwrittenRuntimeDeclarations = new Set([
   'index.d.ts',
