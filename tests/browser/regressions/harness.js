@@ -26,7 +26,7 @@ export function make(blocks = [para('a', 'A')], options = {}) {
   holders.push(holder)
   const editor = createEditor({
     holder, injectStyles: false, plugins: [new Paragraph()], inlineTools: [],
-    data: { version: '1', blocks },
+    data: { version: '1.0.0', blocks },
     tuning: {
       undo: { debounceMs: 10000 }, change: { debounceMs: 10000 },
       animations: { blockInsertMs: 0, blockMoveMs: 0, blockRemoveMs: 0 },
