@@ -31,7 +31,6 @@ export function createImagePlugin(config={}){
 
   const capabilities=Object.freeze({
     empty:Object.freeze({isEmpty:data=>!data.file.url}),
-    formatting:Object.freeze({inlineTools:false}),
     conversion:Object.freeze({
       export:data=>({kind:'rich-text',data:{text:data.caption}}),
       canImport:payload=>payload?.kind==='rich-text'&&typeof payload.data?.text==='string',
@@ -68,15 +67,16 @@ export function createImagePlugin(config={}){
         }
         if(input.kind!=='file'||!isSupportedImageFile(input.file))return null
         const uploader=new ImageUploader(snapshot)
-        let result=null
-        await uploader.handle(input.file,value=>{result=value},context.signal,context.ownerDocument)
-        if(context.signal.aborted||!result?.url)return null
+        const box={value:/** @type {ImageSourceResult|null} */(null)}
+        await uploader.handle(input.file,value=>{box.value=value},context.signal,context.ownerDocument)
+        const result=box.value
+        if(context.signal.aborted||!result||!result.url)return null
         return {
           kind:/** @type {'block'} */('block'),
           data:{
             ...imageDataSchema.createDefault(),
             file:{url:result.url},
-            caption:result.alt??'',
+            caption:typeof result.alt==='string'?result.alt:'',
           },
         }
       },
