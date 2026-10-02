@@ -417,7 +417,7 @@ export interface InlineTriggerSession<
   readonly query: string
   readonly range: Readonly<{ start: number, end: number }>
   readonly anchor: HTMLElement
-  commit(data: D): void
+  commit(data: D): boolean
   cancel(): void
 }
 

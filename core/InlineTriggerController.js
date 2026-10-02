@@ -107,9 +107,20 @@ export class InlineTriggerController {
       range:Object.freeze({start:active.logicalStart,end:focusOffset}),
       anchor:active.anchor,
       commit:data=>{
-        if(this.#active!==active)return
-        this.#commands.commitTrigger(active.type,session,data)
-        this.#active=null
+        if(this.#active!==active)return false
+        const field=this.#reconciler.getEditableField(active.blockId,active.fieldKey)
+        const bookmark=this.#selection.capture()
+        if(
+          field?.element!==active.anchor
+          ||!active.anchor.isConnected
+          ||!this.#root.contains(active.anchor)
+          ||!bookmark
+          ||!this.#collapsedIn(bookmark,field)
+          ||bookmark.focus.offset!==session.range.end
+        )return false
+        const committed=this.#commands.commitTrigger(active.type,session,data)===true
+        if(committed)this.#active=null
+        return committed
       },
       cancel:()=>this.#cancel(),
     }

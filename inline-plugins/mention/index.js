@@ -177,9 +177,10 @@ export function createMentionPlugin(options={}){
         const item=items[selected]
         if(!session||!item)return
         const payload={id:String(item.id),name:item.name}
-        session.commit(payload)
-        snapshot.onMentionSelect?.({id:item.id,name:item.name})
-        close()
+        if(session.commit(payload)){
+          snapshot.onMentionSelect?.({id:item.id,name:item.name})
+          close()
+        }
       }
 
       const load=async(nextPageUrl=null,append=false)=>{
