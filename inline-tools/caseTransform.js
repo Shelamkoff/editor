@@ -1,5 +1,5 @@
 import { closestBlock } from '../core/dom.js'
-import { editableAtBoundary } from '../core/editableFields.js'
+import { editableAtBoundary } from '../shared/editableFields.js'
 import {
   saveSelectionOffsets,
   restoreSelectionOffsets,
