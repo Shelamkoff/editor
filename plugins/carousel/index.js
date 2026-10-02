@@ -1,6 +1,6 @@
 import { setTrustedHtml } from '../../core/sanitize.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
-import { uid } from '../../core/uid.js'
+import { uid } from '../../plugin-kit/index.js'
 import {
   normalizeCarouselAspectRatio,
   normalizeCarouselData,
