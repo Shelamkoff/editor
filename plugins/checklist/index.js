@@ -51,6 +51,39 @@ export function createChecklistPlugin(){
         return {items:[...target.items,...extra]}
       },
     }),
+    shortcuts:Object.freeze({
+      handle(input,data,context){
+        const id=input.fieldKey.startsWith('item:')?input.fieldKey.slice(5):''
+        const index=data.items.findIndex(item=>item.id===id)
+        if(index<0)return null
+        if(input.key==='Enter'&&!input.shiftKey){
+          const current=data.items[index]
+          if(!current.text.trim()){
+            if(data.items.length===1)return {kind:'exit'}
+            const next=data.items[index-1]??data.items[index+1]
+            return {
+              kind:'update',
+              data:{items:data.items.filter(item=>item.id!==id)},
+              ...(next?{focus:{fieldKey:`item:${next.id}`,offset:'end'}}:{}),
+            }
+          }
+          const parts=context.splitField(input.fieldKey,input.selection)
+          if(!parts)return null
+          const newId=context.createId('item')
+          const items=data.items.map(item=>item.id===id?{...item,text:parts.before}:item)
+          items.splice(index+1,0,{id:newId,text:parts.after,checked:false})
+          return {kind:'update',data:{items},focus:{fieldKey:`item:${newId}`,offset:'start'}}
+        }
+        if(input.key==='Backspace'&&input.selection.start===0&&input.selection.end===0&&index>0){
+          const previous=data.items[index-1]
+          const items=data.items.map(item=>({...item}))
+          items[index-1].text+=items[index].text
+          items.splice(index,1)
+          return {kind:'update',data:{items},focus:{fieldKey:`item:${previous.id}`,offset:'end'}}
+        }
+        return null
+      },
+    }),
     conversion:Object.freeze({
       export(data){
         return {kind:'rich-text',data:{text:data.items.map(item=>item.text).join('<br>')}}
@@ -144,63 +177,6 @@ export function createChecklistPlugin(){
           }
 
           reconcile(data)
-
-          wrapper.addEventListener('keydown',event=>{
-            if(readOnly||instanceDestroyed)return
-            const target=/** @type {Element|null} */(event.target)
-            const field=/** @type {HTMLElement|null} */(target?.closest?.('.oe-checklist__text')??null)
-            if(!field||!wrapper.contains(field))return
-            const row=/** @type {HTMLElement|null} */(field.closest('.oe-checklist__item'))
-            const id=row?.dataset.itemId
-            if(!id)return
-            const selection=document.defaultView?.getSelection()??null
-            if(!selection?.rangeCount)return
-            const range=selection.getRangeAt(0)
-            if(!range.collapsed||!field.contains(range.startContainer))return
-            const index=data.items.findIndex(item=>item.id===id)
-            if(index<0)return
-
-            if(event.key==='Enter'&&!event.shiftKey){
-              event.preventDefault()
-              event.stopPropagation()
-              if(!field.textContent?.trim()&&!field.querySelector('[data-inline-plugin]')){
-                if(data.items.length===1){
-                  context.requestExit()
-                  return
-                }
-                context.updateData(current=>({items:current.items.filter(item=>item.id!==id)}))
-                return
-              }
-              const parts=splitAtCaret(field,range)
-              const newId=context.createId('item')
-              context.updateData(current=>{
-                const at=current.items.findIndex(item=>item.id===id)
-                if(at<0)return current
-                const items=current.items.map(item=>item.id===id?{...item,text:parts.before}:item)
-                items.splice(at+1,0,{id:newId,text:parts.after,checked:false})
-                return {items}
-              })
-              queueMicrotask(()=>rows.get(newId)?.text.focus())
-              return
-            }
-
-            if(event.key==='Backspace'&&index>0&&caretAtStart(field,range)){
-              event.preventDefault()
-              event.stopPropagation()
-              const previous=data.items[index-1]
-              context.updateData(current=>{
-                const prevIndex=current.items.findIndex(item=>item.id===previous.id)
-                const currentIndex=current.items.findIndex(item=>item.id===id)
-                if(prevIndex<0||currentIndex<0)return current
-                const items=current.items.map(item=>({...item}))
-                items[prevIndex].text+=items[currentIndex].text
-                items.splice(currentIndex,1)
-                return {items}
-              })
-              queueMicrotask(()=>rows.get(previous.id)?.text.focus())
-            }
-          },{signal:context.signal})
-
           return {
             element:wrapper,
             read:()=>({

@@ -29,6 +29,17 @@ export function createTablePlugin(){
   const capabilities=Object.freeze({
     formatting:Object.freeze({inlineTools:true}),
     empty:Object.freeze({isEmpty:data=>data.rows.every(row=>row.cells.every(cell=>cell.text.trim().length===0))}),
+    shortcuts:Object.freeze({
+      handle(input,data){
+        if(input.key==='Enter')return {kind:'native'}
+        if(input.key!=='Tab')return null
+        const ordered=data.rows.flatMap(row=>row.cells.map(cell=>`cell:${row.id}:${cell.id}`))
+        const index=ordered.indexOf(input.fieldKey)
+        if(index<0)return null
+        const next=ordered[index+(input.shiftKey?-1:1)]
+        return next?{kind:'focus',target:{fieldKey:next,offset:'start'}}:null
+      },
+    }),
     conversion:Object.freeze({
       export(data){return {kind:'rich-text',data:{text:exportText(data)}}},
       canImport(payload){return payload?.kind==='rich-text'&&typeof payload.data?.text==='string'},
@@ -200,30 +211,6 @@ export function createTablePlugin(){
           }
 
           reconcile(data)
-
-          table.addEventListener('keydown',event=>{
-            if(readOnly||instanceDestroyed)return
-            const target=/** @type {Element|null} */(event.target)
-            const cell=/** @type {HTMLElement|null} */(target?.closest?.('td[data-cell-id],th[data-cell-id]')??null)
-            if(!cell||!table.contains(cell))return
-            if(event.key==='Enter'){
-              event.stopPropagation()
-              return
-            }
-            if(event.key!=='Tab')return
-            const ordered=data.rows.flatMap(row=>row.cells.map(item=>cellKey(row.id,item.id)))
-            const rowId=cell.dataset.rowId
-            const id=cell.dataset.cellId
-            const currentKey=rowId&&id?cellKey(rowId,id):''
-            const index=currentKey?ordered.indexOf(currentKey):-1
-            if(index<0)return
-            const next=ordered[index+(event.shiftKey?-1:1)]
-            if(!next)return
-            event.preventDefault()
-            event.stopPropagation()
-            cells.get(next)?.focus()
-          },{signal:context.signal})
-
           return {
             element:wrapper,
             read:()=>({

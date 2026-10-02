@@ -300,8 +300,43 @@ export interface BlockCapabilities<D extends Record<string, unknown>> {
   conversion?: ConversionCapability<D>
   settings?: SettingsActionCapability<D>
   paste?: PasteCapability<D>
+  shortcuts?: ShortcutCapability<D>
 }
 
+
+/** Logical keyboard input resolved by core for one editable field. */
+export interface BlockShortcutInput {
+  readonly key: string
+  readonly shiftKey: boolean
+  readonly altKey: boolean
+  readonly ctrlKey: boolean
+  readonly metaKey: boolean
+  readonly fieldKey: string
+  readonly selection: Readonly<{ start: number, end: number }>
+  readonly fieldLength: number
+}
+
+export type BlockShortcutAction<D extends Record<string, unknown>> =
+  | { kind: 'native' }
+  | { kind: 'consume' }
+  | { kind: 'exit' }
+  | { kind: 'focus', target: FocusTarget }
+  | { kind: 'update', data: D, focus?: FocusTarget }
+
+export interface ShortcutOperationContext extends DataOperationContext {
+  splitField(fieldKey: string, range: Readonly<{ start: number, end: number }>): {
+    before: string
+    after: string
+  } | null
+}
+
+export interface ShortcutCapability<D extends Record<string, unknown>> {
+  handle(
+    input: BlockShortcutInput,
+    data: Readonly<D>,
+    context: ShortcutOperationContext,
+  ): BlockShortcutAction<D> | null
+}
 
 /** Pure versioned schema for canonical inline-widget payloads. */
 export interface InlineWidgetSchema<

@@ -79,6 +79,31 @@ export class KeyboardRouter {
     const range = sameEditableRange(this.#selection.capture(), owner)
     if (!range) return
 
+    const record = this.#runtime.get(owner.blockId)
+    const definition = record ? this.#registry.getBlockDefinition(record.type) : null
+    const shortcut = definition?.capabilities?.shortcuts?.handle
+    if (typeof shortcut === 'function') {
+      const action = shortcut({
+        key,
+        shiftKey: event?.shiftKey === true,
+        altKey: event?.altKey === true,
+        ctrlKey: event?.ctrlKey === true,
+        metaKey: event?.metaKey === true,
+        fieldKey: owner.fieldKey,
+        selection: range,
+        fieldLength: fieldLength(owner),
+      }, record.data, {
+        createId: prefix => this.#runtime.createDataId(prefix),
+        splitField: (fieldKey, selection) => this.#runtime.splitRichTextField(owner.blockId, fieldKey, selection),
+      })
+      if (action) {
+        const prevent = action.kind !== 'native'
+        const handled = this.#applyShortcut(owner.blockId, action)
+        if (handled && prevent) event.preventDefault?.()
+        if (handled) return
+      }
+    }
+
     if (key === 'Enter' && !event?.shiftKey) {
       const handled = this.#runtime.isEmpty(owner.blockId)
         ? this.exit(owner.blockId)
@@ -144,6 +169,27 @@ export class KeyboardRouter {
 
   destroy() {
     this.#controller.abort()
+  }
+
+  #applyShortcut(blockId, action) {
+    switch (action.kind) {
+      case 'native':
+      case 'consume':
+        return true
+      case 'exit':
+        return this.exit(blockId)
+      case 'focus':
+        queueMicrotask(() => this.#view.focus(blockId, action.target))
+        return true
+      case 'update':
+        this.#runtime.update(blockId, () => action.data)
+        this.#view.reconcileInteraction()
+        this.#view.setCurrent(blockId)
+        if (action.focus) queueMicrotask(() => this.#view.focus(blockId, action.focus))
+        return true
+      default:
+        return false
+    }
   }
 
   #mergeBackward(blockId) {
