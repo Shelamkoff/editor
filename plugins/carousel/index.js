@@ -73,8 +73,13 @@ function renderCarouselSettings(context){
     wrapper.className='oe-carousel-block__field'+(multiline?' oe-carousel-block__field--multiline':'')
     const text=document.createElement('span')
     text.textContent=label
-    const input=multiline?document.createElement('textarea'):document.createElement('input')
-    if(!multiline)input.type=type
+    let input
+    if(multiline){
+      input=document.createElement('textarea')
+    }else{
+      input=document.createElement('input')
+      input.type=type
+    }
     input.value=value
     if(placeholder)input.placeholder=placeholder
     input.addEventListener('change',()=>onChange(input.value,input))
