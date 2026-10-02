@@ -81,7 +81,11 @@
     "./plugins/*/styles.css": "./dist/styles/plugins/*.css",
     "./styles/themes/*.css": "./dist/core/themes/*.css",
     "./styles/themes/*": "./dist/core/themes/*.css",
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./plugin-kit": {
+      "types": "./dist/plugin-kit/index.d.ts",
+      "import": "./dist/plugin-kit/index.js"
+    }
   },
   "files": [
     "dist",
