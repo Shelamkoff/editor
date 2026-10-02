@@ -5,6 +5,7 @@ import { createParagraphPlugin } from '../../../plugins/paragraph/index.js'
 const cases = []
 const editors = []
 const holders = []
+const holderByEditor = new WeakMap()
 let activeErrors = null
 
 /** Declare exactly one intentional browser event error in the current test. */
@@ -26,11 +27,36 @@ export function make(blocks = [para('a', 'A')], options = {}) {
   holders.push(holder)
   const editor = createEditor({
     holder, injectStyles: false, plugins: [createParagraphPlugin()],
-    data: { version: '1.0.0', blocks },
+    data: { version: '2.0.0', blocks },
     ...options,
   })
   editors.push(editor)
+  holderByEditor.set(editor, holder)
   return editor
+}
+export function editorHolder(editor) {
+  const holder = holderByEditor.get(editor)
+  if (!holder) throw new Error('Unknown audit editor')
+  return holder
+}
+export function editorRoot(editor) {
+  const root = editorHolder(editor).querySelector('.oe-editor')
+  if (!(root instanceof HTMLElement)) throw new Error('Editor root is missing')
+  return root
+}
+export function blockElement(editor, idOrIndex = 0) {
+  const record = typeof idOrIndex === 'number' ? editor.blocks.at(idOrIndex) : editor.blocks.get(idOrIndex)
+  if (!record) throw new Error(`Unknown audit block: ${idOrIndex}`)
+  const block = editorRoot(editor).querySelector(`.oe-block[data-block-id="${record.id}"]`)
+  if (!(block instanceof HTMLElement)) throw new Error(`Block DOM is missing: ${record.id}`)
+  return block
+}
+export function editableField(editor, idOrIndex = 0, selector = '[contenteditable="true"]') {
+  const block = blockElement(editor, idOrIndex)
+  if (block.matches(selector)) return block
+  const field = block.querySelector(selector)
+  if (!(field instanceof HTMLElement)) throw new Error(`Editable field is missing: ${idOrIndex} ${selector}`)
+  return field
 }
 export function select(element, start, end = start) {
   element.focus()

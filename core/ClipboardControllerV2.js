@@ -1,4 +1,5 @@
 // @ts-check
+import { toTrustedHtml } from '../shared/sanitize/trustedHtml.js'
 
 function stripClipboardProjection(root) {
   for (const element of root.querySelectorAll('button,input,select,textarea,.oe-source-editor,.oe-settings-menu,.oe-toolbar,.oe-toolbox')) {
@@ -225,6 +226,22 @@ export class ClipboardControllerV2 {
 
     const html = data.getData('text/html')
     const text = data.getData('text/plain')
+    const blockRecords = html ? this.#htmlBlockRecords(html) : null
+    if (blockRecords) {
+      event.preventDefault()
+      try {
+        const inserted = this.#runtime.insertExternalBlocks(owner.blockId, blockRecords, {
+          replaceEmpty: range.start === 0 && range.end === 0,
+        })
+        this.#view.reconcileInteraction()
+        const last = inserted.at(-1)
+        if (last) {
+          this.#view.setCurrent(last)
+          queueMicrotask(() => this.#view.focus(last, { offset: 'end' }))
+        }
+        return
+      } catch {}
+    }
     const input = html
       ? { kind: /** @type {'html'} */ ('html'), html }
       : { kind: /** @type {'text'} */ ('text'), text }
@@ -248,6 +265,76 @@ export class ClipboardControllerV2 {
       fieldKey: owner.fieldKey,
       offset: range.start + text.length,
     }))
+  }
+
+
+  #htmlBlockRecords(html) {
+    const document = this.#root.ownerDocument
+    const template = document.createElement('template')
+    template.innerHTML = /** @type {any} */ (toTrustedHtml(String(html ?? ''), document))
+    const elements = [...template.content.children]
+    if (!elements.length) return null
+
+    const records = []
+    const paragraph = this.#registry.getBlockDefinition('paragraph')
+    const heading = this.#registry.getBlockDefinition('heading')
+    const quote = this.#registry.getBlockDefinition('quote')
+    const list = this.#registry.getBlockDefinition('list')
+
+    const appendElement = element => {
+      const tag = element.tagName.toLowerCase()
+      if ((tag === 'p' || tag === 'div') && element.querySelector(':scope > blockquote')) {
+        if (!quote) return false
+        const blockquote = element.querySelector(':scope > blockquote')
+        const cite = element.querySelector(':scope > cite')
+        records.push({
+          type: 'quote',
+          data: { text: blockquote?.innerHTML ?? '', caption: cite?.innerHTML ?? '' },
+        })
+        return true
+      }
+      if (tag === 'p' || tag === 'div') {
+        if (!paragraph) return false
+        if (tag === 'div' && element.children.length > 1) {
+          const nested = [...element.children]
+          if (nested.every(child => appendElement(child))) return true
+          return false
+        }
+        records.push({ type: 'paragraph', data: { text: element.innerHTML } })
+        return true
+      }
+      const headingMatch = /^h([2-6])$/.exec(tag)
+      if (headingMatch) {
+        if (!heading) return false
+        records.push({
+          type: 'heading',
+          data: { text: element.innerHTML, level: Number(headingMatch[1]) },
+        })
+        return true
+      }
+      if (tag === 'blockquote') {
+        if (!quote) return false
+        records.push({ type: 'quote', data: { text: element.innerHTML, caption: '' } })
+        return true
+      }
+      if (tag === 'ul' || tag === 'ol') {
+        if (!list) return false
+        records.push({
+          type: 'list',
+          data: {
+            style: tag === 'ol' ? 'ordered' : 'unordered',
+            items: [...element.querySelectorAll(':scope > li')].map(li => li.innerHTML),
+          },
+        })
+        return true
+      }
+      return false
+    }
+
+    for (const element of elements) {
+      if (!appendElement(element)) return null
+    }
+    return records.length ? records : null
   }
 
   #route(input, blockId) {
