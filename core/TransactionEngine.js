@@ -191,6 +191,55 @@ export class TransactionEngine {
     this.#history.clear()
   }
 
+  reset(document) {
+    if (this.#phase !== 'idle') {
+      throw new Error(`Cannot reset document during ${this.#phase} phase`)
+    }
+    const draft = this.#store.createDraft()
+    draft.replace(document)
+    const changes = draft.changes
+
+    let prepared
+    try {
+      this.#phase = 'preparing-projection'
+      prepared = this.#projector.prepare({
+        store: this.#store,
+        draft,
+        changes: cloneEditorData(changes),
+        origin: 'external',
+        name: 'document.reset',
+        action: 'reset',
+      })
+      if (!prepared || typeof prepared.apply !== 'function' || typeof prepared.recover !== 'function') {
+        throw new TypeError('Projector prepare() must return apply() and recover()')
+      }
+      this.#phase = 'applying-projection'
+      prepared.apply()
+    } catch (error) {
+      if (prepared && typeof prepared.recover === 'function') {
+        try { prepared.recover() }
+        catch (recoveryError) {
+          this.#phase = 'idle'
+          throw new AggregateError([error, recoveryError], 'Document reset failed and recovery also failed')
+        }
+      }
+      this.#phase = 'idle'
+      throw error
+    }
+
+    this.#phase = 'committing'
+    this.#store.commit(draft)
+    this.#history.clear()
+
+    this.#phase = 'publishing'
+    this.#publish({
+      origin: 'external',
+      action: 'reset',
+      changes: cloneEditorData(changes),
+    })
+    this.#phase = 'idle'
+  }
+
   #createContext(draft) {
     return Object.freeze({
       get: id => draft.get(id),
