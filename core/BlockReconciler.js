@@ -18,18 +18,22 @@ export class BlockReconciler {
   #container
   #registry
   #contextFactory
+  #activationResolver
   #entries = new Map()
   #readOnly
   #store = null
   #destroyed = false
 
-  constructor({ container, registry, contextFactory, readOnly = false }) {
+  constructor({ container, registry, contextFactory, activationResolver, readOnly = false }) {
     if (!container?.ownerDocument) throw new TypeError('BlockReconciler requires a container')
     if (!registry) throw new TypeError('BlockReconciler requires an ExtensionRegistry')
     if (typeof contextFactory !== 'function') throw new TypeError('BlockReconciler requires contextFactory')
     this.#container = container
     this.#registry = registry
     this.#contextFactory = contextFactory
+    this.#activationResolver = typeof activationResolver === 'function'
+      ? activationResolver
+      : (_id, record) => registry.hasBlock(record.type)
     this.#readOnly = readOnly === true
   }
 
@@ -227,7 +231,7 @@ export class BlockReconciler {
     const ownerDocument = this.#container.ownerDocument
     const AbortControllerCtor = ownerDocument.defaultView?.AbortController ?? globalThis.AbortController
 
-    if (!this.#registry.hasBlock(record.type)) {
+    if (!this.#registry.hasBlock(record.type) || !this.#activationResolver(record.id, record)) {
       const element = ownerDocument.createElement('div')
       element.className = 'oe-preserved-block'
       element.contentEditable = 'false'
