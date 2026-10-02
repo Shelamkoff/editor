@@ -208,6 +208,81 @@ export class DocumentRuntime {
     return id
   }
 
+
+  /**
+   * Insert copied external block records in one canonical transaction.
+   * Producer ids/revisions are never reused; invalid optional tunes are ignored.
+   * @param {string} anchorId
+   * @param {unknown[]} inputs
+   * @param {{replaceEmpty?:boolean}} [options]
+   * @returns {string[]}
+   */
+  insertExternalBlocks(anchorId,inputs,options={}){
+    this.#assertWritable()
+    if(!Array.isArray(inputs)||inputs.length===0)return []
+    const ids=this.#store.ids()
+    const anchorIndex=ids.indexOf(anchorId)
+    if(anchorIndex<0)throw new Error(`Unknown block id: ${anchorId}`)
+
+    const reserved=new Set(ids)
+    const allocate=prefix=>{
+      for(let attempt=0;attempt<1000;attempt++){
+        const id=this.#createId(prefix)
+        if(typeof id!=='string'||!id)throw new TypeError('createId() must return a non-empty string')
+        if(!reserved.has(id)){reserved.add(id);return id}
+      }
+      throw new Error('Could not allocate a unique pasted block id')
+    }
+
+    const records=[]
+    for(const raw of inputs){
+      if(!raw||typeof raw!=='object'||Array.isArray(raw)||typeof raw.type!=='string'){
+        throw new TypeError('Clipboard block must contain a type')
+      }
+      const definition=this.#registry.getBlockDefinition(raw.type)
+      if(!definition)throw new Error(`Unknown clipboard block type: ${raw.type}`)
+      const encoded=this.#normalizeDecodedData(definition,{
+        dataVersion:raw.dataVersion,
+        data:raw.data,
+      })
+      const record={
+        id:allocate(raw.type),
+        type:raw.type,
+        dataVersion:encoded.dataVersion,
+        data:encoded.data,
+      }
+      try{
+        const tunes=cloneTunes(raw.tunes)
+        if(tunes!==undefined)record.tunes=tunes
+      }catch{}
+      try{
+        const inline=this.#normalizeExternalInline(raw.inline,{strict:false})
+        const filtered=this.#filterInlineForData(definition,encoded.data,inline)
+        if(filtered!==undefined)record.inline=filtered
+      }catch{}
+      records.push(record)
+    }
+
+    const replaceEmpty=options.replaceEmpty===true&&this.isEmpty(anchorId)
+    const inserted=[]
+    this.#engine.execute({origin:'user',name:'clipboard.blocks'},tx=>{
+      let offset=1
+      let start=0
+      if(replaceEmpty){
+        const first={...records[0],id:anchorId}
+        tx.update(anchorId,first)
+        inserted.push(anchorId)
+        start=1
+      }
+      for(let index=start;index<records.length;index++){
+        tx.insert(anchorIndex+offset,records[index])
+        inserted.push(records[index].id)
+        offset++
+      }
+    })
+    return inserted
+  }
+
   isEmpty(id) {
     const current = this.#store.get(id)
     if (!current || this.activation(id)?.kind !== 'active') return false

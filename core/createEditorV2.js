@@ -176,6 +176,7 @@ export function createEditorV2(input){
   let view
   let notifier
   let toolbar=null
+  let clipboard=null
   let destroyed=false
 
   const popup=lifecycle.register(new InlinePopupHost({
@@ -227,6 +228,7 @@ export function createEditorV2(input){
     requestExit:id=>keyboardRouter?.exit(id),
     onCommit:event=>{
       interaction?.reconcile()
+      clipboard?.handleTransaction(event)
       notifier?.schedule()
       emitSafe(events,'transaction:committed',event)
       emitSafe(events,'document:changed',{
@@ -295,7 +297,7 @@ export function createEditorV2(input){
     },
   }))
 
-  const clipboard=lifecycle.register(new ClipboardControllerV2({
+  clipboard=lifecycle.register(new ClipboardControllerV2({
     root,
     runtime,
     registry,

@@ -1,5 +1,37 @@
 // @ts-check
 
+function stripClipboardProjection(root) {
+  for (const element of root.querySelectorAll('button,input,select,textarea,.oe-source-editor,.oe-settings-menu,.oe-toolbar,.oe-toolbox')) {
+    element.remove()
+  }
+  for (const element of [root, ...root.querySelectorAll('*')]) {
+    for (const attribute of [...element.attributes]) {
+      if (
+        attribute.name === 'class'
+        || attribute.name === 'contenteditable'
+        || attribute.name === 'tabindex'
+        || attribute.name === 'role'
+        || attribute.name.startsWith('data-')
+        || attribute.name.startsWith('aria-')
+      ) element.removeAttribute(attribute.name)
+    }
+  }
+  return root
+}
+
+function clipboardHtmlFromShell(shell, ownerDocument) {
+  const source = shell?.firstElementChild ?? shell
+  if (!source) return ''
+  const clone = /** @type {HTMLElement} */ (source.cloneNode(true))
+  stripClipboardProjection(clone)
+  if (
+    clone.tagName === 'DIV'
+    && clone.childElementCount === 1
+    && ![...clone.childNodes].some(node => node.nodeType === 3 && node.textContent?.trim())
+  ) return clone.firstElementChild?.outerHTML ?? ''
+  return clone.outerHTML
+}
+
 function selectionRange(bookmark, owner) {
   const anchor = bookmark?.anchor
   const focus = bookmark?.focus
@@ -26,6 +58,7 @@ export class ClipboardControllerV2 {
   #crossSelection
   #controller
   #task = null
+  #taskAnchorId = null
 
   constructor({ root, runtime, registry, reconciler, selection, view, crossSelection = null }) {
     this.#root = root
@@ -48,17 +81,61 @@ export class ClipboardControllerV2 {
   destroy() {
     this.#task?.abort()
     this.#task = null
+    this.#taskAnchorId = null
     this.#controller.abort()
+  }
+
+  handleTransaction(event) {
+    if (!this.#task) return
+    const name = event?.record?.name ?? event?.name
+    if (
+      event?.origin === 'history'
+      || name === 'document.render'
+      || name === 'document.clear'
+      || name === 'document.reset'
+    ) {
+      this.#task.abort()
+      return
+    }
+    const anchorId = this.#taskAnchorId
+    if (!anchorId) return
+    const changes = event?.record?.changes ?? event?.changes ?? []
+    if (changes.some(change => (
+      change.kind === 'document.replace'
+      || (change.kind === 'block.remove' && change.block?.id === anchorId)
+    ))) this.#task.abort()
   }
 
   #onCopy(event) {
     if (!this.#crossSelection?.active || event.defaultPrevented || !event.clipboardData) return
     event.preventDefault()
-    event.clipboardData.setData('text/plain', this.#crossSelection.text())
+    const ownerDocument = this.#root.ownerDocument
     const whole = this.#crossSelection.wholeBlockIds
     if (whole.length) {
       const records = whole.map(id => this.#runtime.get(id)).filter(Boolean)
+      const html = []
+      const plain = []
+      for (const id of whole) {
+        const fragment = clipboardHtmlFromShell(this.#reconciler.getElement(id), ownerDocument)
+        if (!fragment) continue
+        html.push(fragment)
+        const template = ownerDocument.createElement('template')
+        template.innerHTML = fragment
+        plain.push(template.content.textContent ?? '')
+      }
+      event.clipboardData.setData('text/html', html.join(''))
+      event.clipboardData.setData('text/plain', plain.join('\n'))
       event.clipboardData.setData('application/x-rector-editor', JSON.stringify(records))
+      return
+    }
+
+    event.clipboardData.setData('text/plain', this.#crossSelection.text())
+    const range = this.#crossSelection.range
+    if (range) {
+      const container = ownerDocument.createElement('div')
+      container.appendChild(range.cloneContents())
+      stripClipboardProjection(container)
+      event.clipboardData.setData('text/html', container.innerHTML)
     }
   }
 
@@ -93,6 +170,47 @@ export class ClipboardControllerV2 {
     if (!range) return
     const data = event.clipboardData
     if (!data) return
+
+    const internal = data.getData('application/x-rector-editor')
+    if (internal) {
+      let records
+      try {
+        const parsed = JSON.parse(internal)
+        if (!Array.isArray(parsed) || parsed.length === 0) throw new TypeError('Clipboard MIME must be a non-empty array')
+        records = parsed
+      } catch {
+        records = null
+      }
+      if (records) {
+        event.preventDefault()
+        try {
+          const inserted = this.#runtime.insertExternalBlocks(owner.blockId, records, {
+            replaceEmpty: range.start === 0 && range.end === 0,
+          })
+          this.#view.reconcileInteraction()
+          const last = inserted.at(-1)
+          if (last) {
+            this.#view.setCurrent(last)
+            queueMicrotask(() => this.#view.focus(last, { offset: 'end' }))
+          }
+          return
+        } catch (error) {
+          const fallbackHtml = data.getData('text/html')
+          const fallbackText = data.getData('text/plain')
+          if (!fallbackHtml && !fallbackText) return
+          this.#runtime.replaceRichText(
+            owner.blockId,
+            owner.fieldKey,
+            range,
+            fallbackHtml ? { kind: 'html', html: fallbackHtml } : { kind: 'text', text: fallbackText },
+          )
+          this.#view.reconcileInteraction()
+          this.#view.setCurrent(owner.blockId)
+          queueMicrotask(() => this.#view.focus(owner.blockId, { fieldKey: owner.fieldKey }))
+          return
+        }
+      }
+    }
 
     const files = [...(data.files ?? [])]
     if (files.length) {
@@ -154,6 +272,7 @@ export class ClipboardControllerV2 {
     const AbortControllerCtor = this.#root.ownerDocument.defaultView?.AbortController ?? AbortController
     const task = new AbortControllerCtor()
     this.#task = task
+    this.#taskAnchorId = owner.blockId
     const abort = () => task.abort(this.#controller.signal.reason)
     this.#controller.signal.addEventListener('abort', abort, { once: true, signal: task.signal })
 
@@ -198,7 +317,10 @@ export class ClipboardControllerV2 {
         }
       }
     })().finally(() => {
-      if (this.#task === task) this.#task = null
+      if (this.#task === task) {
+        this.#task = null
+        this.#taskAnchorId = null
+      }
     })
   }
 }
