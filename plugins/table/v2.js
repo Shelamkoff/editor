@@ -125,6 +125,7 @@ export function createTablePlugin(){
           let instanceDestroyed=false
           const rows=new Map()
           const cells=new Map()
+          const cellKey=(rowId,cellId)=>`${rowId}:${cellId}`
 
           const createRow=rowData=>{
             const row=document.createElement('tr')
@@ -140,12 +141,12 @@ export function createTablePlugin(){
             cell.dataset.rowId=rowData.id
             cell.contentEditable=readOnly?'false':'true'
             if(cellData.text)setSanitizedHtml(cell,cellData.text)
-            cells.set(cellData.id,cell)
+            cells.set(cellKey(rowData.id,cellData.id),cell)
             return cell
           }
 
           const ensureCellTag=(rowData,cellData,rowIndex)=>{
-            let cell=cells.get(cellData.id)
+            let cell=cells.get(cellKey(rowData.id,cellData.id))
             const desired=data.withHeadings&&rowIndex===0?'TH':'TD'
             if(cell&&cell.tagName!==desired){
               const replacement=document.createElement(desired.toLowerCase())
@@ -155,7 +156,7 @@ export function createTablePlugin(){
               replacement.contentEditable=readOnly?'false':'true'
               while(cell.firstChild)replacement.appendChild(cell.firstChild)
               cell.replaceWith(replacement)
-              cells.set(cellData.id,replacement)
+              cells.set(cellKey(rowData.id,cellData.id),replacement)
               cell=replacement
             }
             return cell
@@ -172,8 +173,8 @@ export function createTablePlugin(){
               const row=rows.get(rowData.id)??createRow(rowData)
               table.appendChild(row)
               rowData.cells.forEach(cellData=>{
-                liveCells.add(cellData.id)
-                let cell=cells.get(cellData.id)??createCell(rowData,cellData,rowIndex)
+                liveCells.add(cellKey(rowData.id,cellData.id))
+                let cell=cells.get(cellKey(rowData.id,cellData.id))??createCell(rowData,cellData,rowIndex)
                 if(previousHeadings!==data.withHeadings)cell=ensureCellTag(rowData,cellData,rowIndex)??cell
                 cell.contentEditable=readOnly?'false':'true'
                 if(cell.innerHTML!==cellData.text){
@@ -226,13 +227,13 @@ export function createTablePlugin(){
                 id:row.id,
                 cells:row.cells.map(cell=>({
                   id:cell.id,
-                  text:cells.get(cell.id)?.innerHTML.trim()??cell.text,
+                  text:cells.get(cellKey(row.id,cell.id))?.innerHTML.trim()??cell.text,
                 })),
               })),
             }),
             update(next){if(!instanceDestroyed)reconcile(next)},
             editableFields:()=>Object.freeze(data.rows.flatMap(row=>row.cells.flatMap(cell=>{
-              const element=cells.get(cell.id)
+              const element=cells.get(cellKey(row.id,cell.id))
               return element?[Object.freeze({
                 key:`cell:${row.id}:${cell.id}`,
                 element,
@@ -247,12 +248,15 @@ export function createTablePlugin(){
               if(instanceDestroyed||readOnly)return
               const key=target?.fieldKey
               if(key?.startsWith('cell:')){
-                const id=key.split(':').at(-1)
-                cells.get(id)?.focus()
+                const parts=key.split(':')
+                const rowId=parts[1]
+                const cellId=parts.slice(2).join(':')
+                cells.get(cellKey(rowId,cellId))?.focus()
                 return
               }
-              const first=data.rows[0]?.cells[0]?.id
-              if(first)cells.get(first)?.focus()
+              const firstRow=data.rows[0]
+              const first=firstRow?.cells[0]?.id
+              if(firstRow&&first)cells.get(cellKey(firstRow.id,first))?.focus()
             },
             destroy(){instanceDestroyed=true;rows.clear();cells.clear()},
           }
