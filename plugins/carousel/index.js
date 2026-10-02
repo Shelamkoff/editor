@@ -19,7 +19,7 @@ import { triggerFileInput } from '../shared/fileInput.js'
 import { createPluginLayer } from '../shared/layer.js'
 import { openSourceEditor, preloadSourceEditor } from '../shared/sourceEditor.js'
 import { CarouselState } from './state.js'
-import { READ_ONLY_INTERACTIVE_ATTRIBUTE } from '../../core/constants.js'
+import { READ_ONLY_INTERACTIVE_ATTRIBUTE } from '../../plugin-kit/index.js'
 import {
   ICON, ICON_BACK, ICON_CHEVRON, ICON_CODE, ICON_NEXT, ICON_PREVIOUS,
   ICON_REPLACE, ICON_SELECT, ICON_SETTINGS, ICON_TRASH, ICON_UPLOAD, ICON_URL,
