@@ -65,6 +65,33 @@ async function run() {
     'rich-text normalization ignored the supplied ownerDocument realm',
   )
 
+  const canonicalSaveHolder = document.createElement('section')
+  sandbox.appendChild(canonicalSaveHolder)
+  const canonicalSaveEditor = createEditor({
+    holder: canonicalSaveHolder,
+    plugins: [new Paragraph()],
+    inlineTools: [],
+    data: {
+      version: '2.0.0',
+      blocks: [{
+        id: 'canonical-save',
+        type: 'paragraph',
+        dataVersion: 2,
+        data: { text: '' },
+      }],
+    },
+  })
+  const canonicalSaveBlock = canonicalSaveEditor.blocks.getBlockById('canonical-save')
+  canonicalSaveBlock.contentElement.innerHTML = '<strong>one</strong><b>two</b><em>three</em><i>four</i><span style="font-size: 12px; color: red">styled</span>'
+  canonicalSaveBlock.contentElement.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText' }))
+  const canonicalSavedBlock = canonicalSaveEditor.save().blocks[0]
+  assert(
+    canonicalSavedBlock.data.text === '<b>onetwo</b><i>threefour</i><span style="color: red; font-size: 12px;">styled</span>',
+    `editor save did not canonicalize schema-declared rich text: ${canonicalSavedBlock.data.text}`,
+  )
+  assert(canonicalSavedBlock.dataVersion === 2, 'canonical rich-text save lost block dataVersion')
+  canonicalSaveEditor.destroy()
+
 
   const previousBoldAllowlist = Object.getOwnPropertyDescriptor(Object.prototype, 'b')
   Object.defineProperty(Object.prototype, 'b', {
