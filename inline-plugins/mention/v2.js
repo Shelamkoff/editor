@@ -116,9 +116,10 @@ export function createMentionPluginV2(options={}){
         items.forEach((item,index)=>{
           let row=snapshot.renderItem?.(item,index,index===selected)
           if(!isElement(row,runtimeContext.ownerDocument)){
-            row=runtimeContext.ownerDocument.createElement('button')
-            row.type='button'
-            row.className='oe-mention-item'
+            const button=runtimeContext.ownerDocument.createElement('button')
+            button.type='button'
+            button.className='oe-mention-item'
+            row=button
             if(item.avatar){
               const image=runtimeContext.ownerDocument.createElement('img')
               image.className='oe-mention-avatar'
