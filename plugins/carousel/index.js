@@ -24,6 +24,30 @@ const NAV_NEXT='›'
  */
 
 
+
+function carouselFileType(file){
+  const type=String(file?.type||'').toLowerCase()
+  if(type.startsWith('image/'))return 'image'
+  if(type.startsWith('video/'))return 'video'
+  const name=String(file?.name||'')
+  if(!type&&/\.(?:avif|bmp|gif|jpe?g|png|svg|webp)$/i.test(name))return 'image'
+  if(!type&&/\.(?:m4v|mov|mp4|ogg|ogv|webm)$/i.test(name))return 'video'
+  return null
+}
+
+function readCarouselDataUrl(file,signal,ownerDocument){
+  return new Promise((resolve,reject)=>{
+    const Reader=ownerDocument.defaultView?.FileReader??FileReader
+    const reader=new Reader()
+    const abort=()=>reader.abort()
+    signal.addEventListener('abort',abort,{once:true})
+    reader.onload=()=>{signal.removeEventListener('abort',abort);resolve(typeof reader.result==='string'?reader.result:'')}
+    reader.onerror=()=>{signal.removeEventListener('abort',abort);reject(reader.error||new Error('Failed to read file'))}
+    reader.onabort=()=>{signal.removeEventListener('abort',abort);reject(signal.reason||new Error('Aborted'))}
+    reader.readAsDataURL(file)
+  })
+}
+
 function carouselLabel(key,fallback){
   return Object.freeze({key,fallback})
 }
@@ -239,6 +263,40 @@ export function createCarouselPlugin(config={}){
       kind:/** @type {'panel'} */('panel'),
       render:renderCarouselSettings,
     }),
+    paste:Object.freeze({
+      accepts(input){
+        return input.kind==='file'&&carouselFileType(input.file)!==null
+      },
+      async resolve(input,context){
+        if(input.kind!=='file')return null
+        const type=carouselFileType(input.file)
+        if(!type)return null
+        let src=''
+        let poster=''
+        if(snapshot.uploadFile){
+          const result=await snapshot.uploadFile(input.file,{signal:context.signal})
+          src=sanitizeMediaUrl(result?.url||'')
+          poster=sanitizeMediaUrl(result?.poster||'')
+        }else{
+          src=sanitizeMediaUrl(String(await readCarouselDataUrl(input.file,context.signal,context.ownerDocument)))
+        }
+        if(context.signal.aborted||!src)return null
+        return {
+          kind:/** @type {'block'} */('block'),
+          data:{
+            ...carouselDataSchema.createDefault(),
+            slides:[{
+              id:context.createId('slide'),
+              type,
+              src,
+              ...(type==='video'&&poster?{poster}:{}),
+              alt:input.file.name||'',
+              caption:'',
+            }],
+          },
+        }
+      },
+    }),
   })
 
   return Object.freeze({
@@ -327,25 +385,6 @@ export function createCarouselPlugin(config={}){
             }))
           }
 
-          const fileType=file=>{
-            const type=(file.type||'').toLowerCase()
-            if(type.startsWith('image/'))return 'image'
-            if(type.startsWith('video/'))return 'video'
-            if(!type&&/\.(?:avif|bmp|gif|jpe?g|png|svg|webp)$/i.test(file.name))return 'image'
-            if(!type&&/\.(?:m4v|mov|mp4|ogg|ogv|webm)$/i.test(file.name))return 'video'
-            return null
-          }
-
-          const readDataUrl=(file,signal)=>new Promise((resolve,reject)=>{
-            const Reader=document.defaultView?.FileReader??FileReader
-            const reader=new Reader()
-            const abort=()=>reader.abort()
-            signal.addEventListener('abort',abort,{once:true})
-            reader.onload=()=>{signal.removeEventListener('abort',abort);resolve(typeof reader.result==='string'?reader.result:'')}
-            reader.onerror=()=>{signal.removeEventListener('abort',abort);reject(reader.error||new Error('Failed to read file'))}
-            reader.onabort=()=>{signal.removeEventListener('abort',abort);reject(signal.reason||new Error('Aborted'))}
-            reader.readAsDataURL(file)
-          })
 
           const resolveFiles=async files=>{
             if(readOnly||dead)return
@@ -354,7 +393,7 @@ export function createCarouselPlugin(config={}){
             const slides=[]
             for(const file of files){
               if(controller.signal.aborted)break
-              const type=fileType(file)
+              const type=carouselFileType(file)
               if(!type)continue
               try{
                 let src=''
@@ -364,7 +403,7 @@ export function createCarouselPlugin(config={}){
                   src=sanitizeMediaUrl(result?.url||'')
                   poster=sanitizeMediaUrl(result?.poster||'')
                 }else if(type==='image'){
-                  src=sanitizeMediaUrl(String(await readDataUrl(file,controller.signal)))
+                  src=sanitizeMediaUrl(String(await readCarouselDataUrl(file,controller.signal,document)))
                 }else{
                   const URLCtor=document.defaultView?.URL??URL
                   src=URLCtor.createObjectURL(file)
@@ -649,6 +688,22 @@ export function createCarouselPlugin(config={}){
               if(index>=0)activeIndex=index
             })
           }
+
+          wrapper.addEventListener('dragover',event=>{
+            if(readOnly)return
+            const files=[...(event.dataTransfer?.files??[])]
+            if(files.some(file=>carouselFileType(file))){
+              event.preventDefault()
+              event.dataTransfer.dropEffect='copy'
+            }
+          },{signal:context.signal})
+          wrapper.addEventListener('drop',event=>{
+            if(readOnly)return
+            const files=[...(event.dataTransfer?.files??[])].filter(file=>carouselFileType(file))
+            if(!files.length)return
+            event.preventDefault()
+            void resolveFiles(files)
+          },{signal:context.signal})
 
           wrapper.addEventListener('focusout',event=>{
             const target=/** @type {HTMLElement|null} */(event.target)
