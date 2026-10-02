@@ -1,9 +1,18 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 
-import { Embed } from './index.js'
+import { createEmbedPlugin } from './index.js'
 
-const paste = url => new Embed().onPaste({ type: 'pattern', data: url })
+const definition = createEmbedPlugin()
+const paste = url => {
+  const input = { kind: 'text', text: url }
+  if (!definition.capabilities.paste.accepts(input)) return null
+  return definition.capabilities.paste.resolve(input, {
+    ownerDocument: /** @type {Document} */ ({}),
+    signal: new AbortController().signal,
+    createId: prefix => prefix + '-1',
+  })?.data ?? null
+}
 
 test('Embed accepts supported provider URL forms and extracts canonical ids', () => {
   assert.deepEqual(paste('https://www.youtube.com/watch?feature=share&v=dQw4w9WgXcQ'), {

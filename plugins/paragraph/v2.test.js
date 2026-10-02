@@ -2,7 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 
 import { paragraphDataSchema } from '../../shared/blockSchemas/paragraph.js'
-import { createParagraphPlugin } from './v2.js'
+import { createParagraphPlugin } from './index.js'
 
 test('Paragraph v2 definition is immutable and creates isolated block instances', () => {
   const definition = createParagraphPlugin()

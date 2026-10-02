@@ -1,12 +1,12 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 
-import { createDelimiterPlugin } from './delimiter/v2.js'
-import { createRawPlugin } from './raw/v2.js'
-import { createQuotePlugin } from './quote/v2.js'
-import { createWarningPlugin } from './warning/v2.js'
-import { createTogglePlugin } from './toggle/v2.js'
-import { createSpoilerPlugin } from './spoiler/v2.js'
+import { createDelimiterPlugin } from './delimiter/index.js'
+import { createRawPlugin } from './raw/index.js'
+import { createQuotePlugin } from './quote/index.js'
+import { createWarningPlugin } from './warning/index.js'
+import { createTogglePlugin } from './toggle/index.js'
+import { createSpoilerPlugin } from './spoiler/index.js'
 
 const definitions = [
   createDelimiterPlugin(),

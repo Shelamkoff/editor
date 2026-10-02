@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { Heading } from './index.js'
+import { createHeadingPlugin } from './index.js'
 
 class FakeElement {
   constructor(tag, ownerDocument) {
@@ -16,75 +16,70 @@ class FakeElement {
     this.className = ''
     this.textContent = ''
     this.innerHTML = ''
+    this.contentEditable = 'inherit'
     this._attrs = new Map()
-    this.classList = { add() {} }
   }
   setAttribute(name, value) { this._attrs.set(name, String(value)) }
   appendChild(child) {
     this.children.push(child)
-    this.firstChild ??= child
+    this.firstChild = this.children[0] ?? null
     child.parentNode = this
     return child
   }
-  replaceWith(node) { this.replacedWith = node }
+  replaceWith(node) {
+    const parent = this.parentNode
+    if (!parent) return
+    const index = parent.children.indexOf(this)
+    if (index >= 0) parent.children[index] = node
+    node.parentNode = parent
+    parent.firstChild = parent.children[0] ?? null
+    this.parentNode = null
+  }
   focus() { this.focused = true }
 }
 
 function createRealm() {
   const created = []
-  const range = {
-    collapsed: true,
-    startContainer: null,
-    endContainer: null,
-    startOffset: 0,
-    endOffset: 0,
-    setStart(node, offset) { this.startContainer = node; this.startOffset = offset },
-    setEnd(node, offset) { this.endContainer = node; this.endOffset = offset },
-    collapse() { this.collapsed = true },
-  }
-  const selection = {
-    rangeCount: 0,
-    getRangeAt() { return range },
-    removeAllRanges() {},
-    addRange() {},
-  }
-  const ownerWindow = { getSelection() { return selection } }
   const ownerDocument = {
-    defaultView: ownerWindow,
     createElement(tag) {
       created.push(tag)
       return new FakeElement(tag, ownerDocument)
     },
-    createRange() { return range },
   }
-  return { ownerDocument, ownerWindow, selection, created }
+  return { ownerDocument, created }
 }
 
-test('heading element-dependent UI and level changes stay in the heading owning realm', () => {
+test('heading projection and level changes stay in the heading owning realm', () => {
   const realm = createRealm()
-  const heading = new Heading()
-  const element = new FakeElement('h2', realm.ownerDocument)
+  const definition = createHeadingPlugin()
+  const runtime = definition.setup({
+    ownerDocument: realm.ownerDocument,
+    signal: new AbortController().signal,
+    isDefaultBlock: false,
+    t: (_key, fallback = '') => fallback,
+  })
+  const data = { text: '', level: 2 }
+  const instance = runtime.create(data, {
+    ownerDocument: realm.ownerDocument,
+    signal: new AbortController().signal,
+    createId: prefix => prefix + '-1',
+    getData: () => data,
+    updateData() {},
+    commitDomMutation(operation) { operation() },
+    requestSplit() {},
+    requestExit() {},
+    isReadOnly: () => false,
+  })
 
-  const names = ['document', 'window']
-  const descriptors = new Map(names.map(name => [name, Object.getOwnPropertyDescriptor(globalThis, name)]))
-  const poison = new Proxy({}, { get(_target, key) { throw new Error(`ambient ${String(key)} must not be used`) } })
-  try {
-    Object.defineProperty(globalThis, 'document', { configurable: true, writable: true, value: poison })
-    Object.defineProperty(globalThis, 'window', { configurable: true, writable: true, value: poison })
+  assert.equal(instance.element.firstChild.tagName, 'H2')
+  assert.equal(instance.element.firstChild.ownerDocument, realm.ownerDocument)
 
-    const settings = heading.renderSettings(element)
-    assert.equal(settings.length, 5)
-    assert.ok(settings.every(node => node.ownerDocument === realm.ownerDocument))
+  const next = definition.capabilities.settings.apply(data, 'h3', { createId: prefix => prefix + '-1' })
+  instance.update(next, data)
 
-    const changed = heading.changeLevel(element, 3)
-    assert.equal(changed.tagName, 'H3')
-    assert.equal(changed.ownerDocument, realm.ownerDocument)
-    assert.equal(element.replacedWith, changed)
-  } finally {
-    for (const name of names) {
-      const descriptor = descriptors.get(name)
-      if (descriptor) Object.defineProperty(globalThis, name, descriptor)
-      else delete globalThis[name]
-    }
-  }
+  assert.equal(instance.element.firstChild.tagName, 'H3')
+  assert.equal(instance.element.firstChild.ownerDocument, realm.ownerDocument)
+  assert.deepEqual(realm.created, ['div', 'h2', 'h3'])
+
+  instance.destroy(); runtime.destroy()
 })
