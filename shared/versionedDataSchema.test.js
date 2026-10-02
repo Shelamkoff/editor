@@ -158,4 +158,4 @@ test('versioned data schema rejects non-JSON defaults, inputs and normalized out
     () => schema.decode({ data: { value: Number.POSITIVE_INFINITY } }),
     /finite JSON number/,
   )
-)
+})
