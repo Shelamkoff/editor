@@ -2,17 +2,26 @@
 import { createVersionedDataSchema } from '../versionedDataSchema.js'
 import { canonicalUrl, isRecord, text } from './helpers.js'
 
-function normalizePerson(person) {
+function normalizePerson(person,personIds) {
   if (!isRecord(person)) throw new TypeError('Person entry must be an object')
+  if(typeof person.id!=='string'||!person.id)throw new TypeError('Person entry requires a stable id')
+  if(personIds.has(person.id))throw new Error('Duplicate person id: '+person.id)
+  personIds.add(person.id)
   if (!Array.isArray(person.links)) throw new TypeError('Person links must be an array')
+  const linkIds=new Set()
   return {
+    id:person.id,
     avatar: canonicalUrl(typeof person.avatar === 'string' ? person.avatar : '', 'media'),
     name: text(person.name),
     role: text(person.role),
     bio: text(person.bio),
     links: person.links.map(link => {
       if (!isRecord(link)) throw new TypeError('Person link must be an object')
+      if(typeof link.id!=='string'||!link.id)throw new TypeError('Person link requires a stable id')
+      if(linkIds.has(link.id))throw new Error('Duplicate person link id: '+link.id)
+      linkIds.add(link.id)
       return {
+        id:link.id,
         type: text(link.type),
         url: canonicalUrl(typeof link.url === 'string' ? link.url : '', 'link', { allowEmpty: false }),
       }
@@ -21,21 +30,38 @@ function normalizePerson(person) {
 }
 
 export const personDataSchema = createVersionedDataSchema({
-  currentVersion: 1,
+  currentVersion: 2,
   legacyVersion: 1,
   createDefault: () => ({
-    persons: [{ avatar: '', name: '', role: '', bio: '', links: [] }],
+    persons: [{ id:'person-0', avatar: '', name: '', role: '', bio: '', links: [] }],
   }),
   normalize(input) {
     if (!isRecord(input) || !Array.isArray(input.persons) || input.persons.length === 0) {
       throw new TypeError('Person data must contain at least one person')
     }
-    return { persons: input.persons.map(normalizePerson) }
+    const ids=new Set()
+    return { persons: input.persons.map(person=>normalizePerson(person,ids)) }
   },
   mapRichText(data, transform) {
-    data.persons = data.persons.map((person, index) => ({
+    data.persons = data.persons.map(person => ({
       ...person,
-      bio: transform(person.bio, 'person:' + index + ':bio'),
+      bio: transform(person.bio, 'person:' + person.id + ':bio'),
     }))
   },
+  migrations:[{
+    from:1,
+    to:2,
+    migrate(input){
+      if(!Array.isArray(input?.persons))throw new TypeError('Legacy persons must be an array')
+      return {
+        persons:input.persons.map((person,personIndex)=>({
+          ...person,
+          id:'legacy-person-'+personIndex,
+          links:Array.isArray(person?.links)
+            ? person.links.map((link,linkIndex)=>({...link,id:'legacy-link-'+personIndex+'-'+linkIndex}))
+            :[],
+        })),
+      }
+    },
+  }],
 })
