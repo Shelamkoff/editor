@@ -1,405 +1,273 @@
-import { setSanitizedHtml, setTrustedHtml } from '../../plugin-kit/index.js'
-import { editableRange, editingHostForEvent } from '../../shared/editableFields.js'
-import { tablePasteData } from './paste.js'
-import { sanitizeHtml } from '../../plugin-kit/index.js'
-import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
-import { validateTableData } from '../../shared/blockDataValidators.js'
-import { mapTableTextFields } from '../../shared/mapTextFields.js'
+// @ts-check
+import { setSanitizedHtml } from '../../plugin-kit/index.js'
+import { tableDataSchema } from '../../shared/blockSchemas/table.js'
 
-const editorStyles = new URL('./table.css', import.meta.url).href
-const ELEMENT_NODE = 1
+const editorStyles=new URL('./table.css',import.meta.url).href
+const ICON='<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-14z"/><path d="M3 10h18"/><path d="M10 3v18"/></svg>'
+const ICON_ROW_ADD='<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6v4a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1z"/><path d="M12 15v4"/><path d="M10 17h4"/></svg>'
+const ICON_ROW_DEL='<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6v4a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1z"/><path d="M10 17h4"/></svg>'
+const ICON_COL_ADD='<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 4v16a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1z"/><path d="M17 10v4"/><path d="M15 12h4"/></svg>'
+const ICON_COL_DEL='<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 4v16a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1z"/><path d="M15 12h4"/></svg>'
+const ICON_HEADER='<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5z"/><path d="M3 10h18"/><path d="M10 3v7"/></svg>'
 
-// Tabler icon: table
-const ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-14z"/><path d="M3 10h18"/><path d="M10 3v18"/></svg>'
-
-// Tabler icons for settings
-const ICON_ROW_ADD = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6v4a1 1 0 0 1 -1 1h-14a1 1 0 0 1 -1 -1v-4a1 1 0 0 1 1 -1h14a1 1 0 0 1 1 1z"/><path d="M12 15l0 4"/><path d="M10 17l4 0"/></svg>'
-const ICON_ROW_DEL = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6v4a1 1 0 0 1 -1 1h-14a1 1 0 0 1 -1 -1v-4a1 1 0 0 1 1 -1h14a1 1 0 0 1 1 1z"/><path d="M10 17l4 0"/></svg>'
-const ICON_COL_ADD = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4v16a1 1 0 0 0 1 1h4a1 1 0 0 0 1 -1v-16a1 1 0 0 0 -1 -1h-4a1 1 0 0 0 -1 1z"/><path d="M17 10l0 4"/><path d="M15 12l4 0"/></svg>'
-const ICON_COL_DEL = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4v16a1 1 0 0 0 1 1h4a1 1 0 0 0 1 -1v-16a1 1 0 0 0 -1 -1h-4a1 1 0 0 0 -1 1z"/><path d="M15 12l4 0"/></svg>'
-const ICON_HEADER = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-14z"/><path d="M3 10h18"/><path d="M10 3v7"/></svg>'
-
-/** Editable rich-text table with row, column, and heading controls. */
-export class Table extends BlockPluginAbstract {
-  static isTextBlock = false
-  static styles = [editorStyles]
-  type = 'table'
-  icon = ICON
-  inlineTools = true
-  mapTextFields = mapTableTextFields
-  pasteConfig = {
-    tags: ['table'],
+function cloneData(data){
+  return {
+    withHeadings:data.withHeadings,
+    rows:data.rows.map(row=>({id:row.id,cells:row.cells.map(cell=>({...cell}))})),
   }
+}
 
-  /**
-   * Return the localized toolbox label for this block.
-   * @returns {string}
-   */
-  get title() {
-    return this._t('title', 'Table')
-  }
+function exportText(data){
+  return data.rows.map(row=>row.cells.map(cell=>cell.text).filter(Boolean).join(' — ')).filter(Boolean).join('<br>')
+}
 
-  /**
-   * Create the editable DOM owned by this block instance.
-   * @param {{ content?: string[][], withHeadings?: boolean }} data
-   * @param {import('../../plugin-kit/types').BlockMutationContext} context
-   * @returns {HTMLElement}
-   */
-  render(data, context) {
-    const ownerDocument = context.ownerDocument ?? globalThis.document
-    const inputRows = Array.isArray(data?.content)
-      ? data.content.filter(Array.isArray)
-      : []
-    const rows = inputRows.length || 3
-    // Pad shorter rows instead of discarding authored cells in wider rows.
-    const cols = inputRows.reduce((width, row) => Math.max(width, row.length), 0) || 3
-    const withHeadings = data?.withHeadings === true
-
-    const wrapper = ownerDocument.createElement('div')
-    wrapper.classList.add('oe-table-wrapper')
-    wrapper.dataset.headings = String(withHeadings)
-
-    const table = ownerDocument.createElement('table')
-    table.classList.add('oe-table')
-
-    for (let r = 0; r < rows; r++) {
-      const tr = table.ownerDocument.createElement('tr')
-      for (let c = 0; c < cols; c++) {
-        const isHeader = withHeadings && r === 0
-        const cell = table.ownerDocument.createElement(isHeader ? 'th' : 'td')
-        cell.classList.add('oe-table__cell')
-        cell.contentEditable = 'true'
-        const candidate = inputRows[r]?.[c]
-        const text = typeof candidate === 'string' ? candidate : ''
-        if (text) {
-          setSanitizedHtml(cell, text)
+/**
+ * Create the immutable Table v2 definition with stable row and cell identities.
+ * @returns {import('../../plugin-kit/types').BlockPluginDefinition<{withHeadings:boolean,rows:Array<{id:string,cells:Array<{id:string,text:string}>}>}>}
+ */
+export function createTablePlugin(){
+  const capabilities=Object.freeze({
+    formatting:Object.freeze({inlineTools:true}),
+    empty:Object.freeze({isEmpty:data=>data.rows.every(row=>row.cells.every(cell=>cell.text.trim().length===0))}),
+    conversion:Object.freeze({
+      export(data){return {kind:'rich-text',data:{text:exportText(data)}}},
+      canImport(payload){return payload?.kind==='rich-text'&&typeof payload.data?.text==='string'},
+      import(payload){
+        if(payload?.kind!=='rich-text'||typeof payload.data?.text!=='string')throw new TypeError('Table can only import rich-text payloads')
+        return {withHeadings:false,rows:[{id:'row-0',cells:[{id:'cell-0-0',text:payload.data.text}]}]}
+      },
+    }),
+    settings:Object.freeze({
+      kind:/** @type {'actions'} */('actions'),
+      actions(data){
+        const width=data.rows[0]?.cells.length??1
+        return [
+          Object.freeze({id:'header',label:Object.freeze({key:'toggleHeader',fallback:'Toggle header'}),icon:ICON_HEADER,active:data.withHeadings}),
+          Object.freeze({id:'row-add',label:Object.freeze({key:'addRow',fallback:'Add row'}),icon:ICON_ROW_ADD}),
+          Object.freeze({id:'row-del',label:Object.freeze({key:'deleteRow',fallback:'Delete row'}),icon:ICON_ROW_DEL,disabled:data.rows.length<=1}),
+          Object.freeze({id:'col-add',label:Object.freeze({key:'addColumn',fallback:'Add column'}),icon:ICON_COL_ADD}),
+          Object.freeze({id:'col-del',label:Object.freeze({key:'deleteColumn',fallback:'Delete column'}),icon:ICON_COL_DEL,disabled:width<=1}),
+        ]
+      },
+      apply(data,actionId,context){
+        const next=cloneData(data)
+        switch(actionId){
+          case 'header':
+            next.withHeadings=!next.withHeadings
+            return next
+          case 'row-add':{
+            const width=next.rows[0]?.cells.length??1
+            next.rows.push({
+              id:context.createId('row'),
+              cells:Array.from({length:width},()=>({id:context.createId('cell'),text:''})),
+            })
+            return next
+          }
+          case 'row-del':
+            if(next.rows.length>1)next.rows.pop()
+            return next
+          case 'col-add':
+            for(const row of next.rows)row.cells.push({id:context.createId('cell'),text:''})
+            return next
+          case 'col-del':
+            if((next.rows[0]?.cells.length??0)>1){
+              for(const row of next.rows)row.cells.pop()
+            }
+            return next
+          default:
+            throw new RangeError(`Unknown table setting: ${actionId}`)
         }
-        tr.appendChild(cell)
+      },
+    }),
+    paste:Object.freeze({
+      accepts(input){return input.kind==='html'&&/<table(?:\s|>)/i.test(input.html)},
+      resolve(input,context){
+        if(input.kind!=='html')return null
+        const template=context.ownerDocument.createElement('template')
+        template.innerHTML=input.html
+        const table=template.content.querySelector('table')
+        if(!table)return null
+        const rowElements=[...table.querySelectorAll('tr')]
+        const rows=rowElements.map(row=>({
+          id:context.createId('row'),
+          cells:[...row.querySelectorAll(':scope > th, :scope > td')].map(cell=>({
+            id:context.createId('cell'),
+            text:cell.innerHTML,
+          })),
+        })).filter(row=>row.cells.length>0)
+        if(rows.length===0)return null
+        const width=rows[0].cells.length
+        if(width===0||rows.some(row=>row.cells.length!==width))return null
+        const withHeadings=[...rowElements[0].children].some(cell=>cell.tagName==='TH')
+        return {kind:/** @type {'block'} */('block'),data:{withHeadings,rows}}
+      },
+    }),
+  })
+
+  return Object.freeze({
+    type:'table',
+    label:Object.freeze({key:'title',fallback:'Table'}),
+    icon:ICON,
+    styles:Object.freeze([editorStyles]),
+    schema:tableDataSchema,
+    capabilities,
+    setup(){
+      let destroyed=false
+      return {
+        create(initial,context){
+          if(destroyed)throw new Error('Table runtime is destroyed')
+          const document=context.ownerDocument
+          const wrapper=document.createElement('div')
+          wrapper.className='oe-table-wrapper'
+          const table=document.createElement('table')
+          table.className='oe-table'
+          wrapper.appendChild(table)
+
+          let data=cloneData(initial)
+          let readOnly=context.isReadOnly()
+          let instanceDestroyed=false
+          const rows=new Map()
+          const cells=new Map()
+          const cellKey=(rowId,cellId)=>`${rowId}:${cellId}`
+
+          const createRow=rowData=>{
+            const row=document.createElement('tr')
+            row.dataset.rowId=rowData.id
+            rows.set(rowData.id,row)
+            return row
+          }
+          const createCell=(rowData,cellData,rowIndex)=>{
+            const tag=data.withHeadings&&rowIndex===0?'th':'td'
+            const cell=document.createElement(tag)
+            cell.className='oe-table__cell'
+            cell.dataset.cellId=cellData.id
+            cell.dataset.rowId=rowData.id
+            cell.contentEditable=readOnly?'false':'true'
+            if(cellData.text)setSanitizedHtml(cell,cellData.text)
+            cells.set(cellKey(rowData.id,cellData.id),cell)
+            return cell
+          }
+
+          const ensureCellTag=(rowData,cellData,rowIndex)=>{
+            let cell=cells.get(cellKey(rowData.id,cellData.id))
+            const desired=data.withHeadings&&rowIndex===0?'TH':'TD'
+            if(cell&&cell.tagName!==desired){
+              const replacement=document.createElement(desired.toLowerCase())
+              replacement.className='oe-table__cell'
+              replacement.dataset.cellId=cellData.id
+              replacement.dataset.rowId=rowData.id
+              replacement.contentEditable=readOnly?'false':'true'
+              while(cell.firstChild)replacement.appendChild(cell.firstChild)
+              cell.replaceWith(replacement)
+              cells.set(cellKey(rowData.id,cellData.id),replacement)
+              cell=replacement
+            }
+            return cell
+          }
+
+          const reconcile=next=>{
+            const previousHeadings=data.withHeadings
+            data=cloneData(next)
+            wrapper.dataset.headings=String(data.withHeadings)
+            const liveRows=new Set()
+            const liveCells=new Set()
+            data.rows.forEach((rowData,rowIndex)=>{
+              liveRows.add(rowData.id)
+              const row=rows.get(rowData.id)??createRow(rowData)
+              table.appendChild(row)
+              rowData.cells.forEach(cellData=>{
+                liveCells.add(cellKey(rowData.id,cellData.id))
+                let cell=cells.get(cellKey(rowData.id,cellData.id))??createCell(rowData,cellData,rowIndex)
+                if(previousHeadings!==data.withHeadings)cell=ensureCellTag(rowData,cellData,rowIndex)??cell
+                cell.contentEditable=readOnly?'false':'true'
+                if(cell.innerHTML!==cellData.text){
+                  if(cellData.text)setSanitizedHtml(cell,cellData.text)
+                  else cell.textContent=''
+                }
+                row.appendChild(cell)
+              })
+            })
+            for(const [id,cell] of cells){
+              if(liveCells.has(id))continue
+              cell.remove()
+              cells.delete(id)
+            }
+            for(const [id,row] of rows){
+              if(liveRows.has(id))continue
+              row.remove()
+              rows.delete(id)
+            }
+          }
+
+          reconcile(data)
+
+          table.addEventListener('keydown',event=>{
+            if(readOnly||instanceDestroyed)return
+            const target=/** @type {Element|null} */(event.target)
+            const cell=/** @type {HTMLElement|null} */(target?.closest?.('td[data-cell-id],th[data-cell-id]')??null)
+            if(!cell||!table.contains(cell))return
+            if(event.key==='Enter'){
+              event.stopPropagation()
+              return
+            }
+            if(event.key!=='Tab')return
+            const ordered=data.rows.flatMap(row=>row.cells.map(item=>cellKey(row.id,item.id)))
+            const rowId=cell.dataset.rowId
+            const id=cell.dataset.cellId
+            const currentKey=rowId&&id?cellKey(rowId,id):''
+            const index=currentKey?ordered.indexOf(currentKey):-1
+            if(index<0)return
+            const next=ordered[index+(event.shiftKey?-1:1)]
+            if(!next)return
+            event.preventDefault()
+            event.stopPropagation()
+            cells.get(next)?.focus()
+          },{signal:context.signal})
+
+          return {
+            element:wrapper,
+            read:()=>({
+              withHeadings:data.withHeadings,
+              rows:data.rows.map(row=>({
+                id:row.id,
+                cells:row.cells.map(cell=>({
+                  id:cell.id,
+                  text:cells.get(cellKey(row.id,cell.id))?.innerHTML.trim()??cell.text,
+                })),
+              })),
+            }),
+            update(next){if(!instanceDestroyed)reconcile(next)},
+            editableFields:()=>Object.freeze(data.rows.flatMap(row=>row.cells.flatMap(cell=>{
+              const element=cells.get(cellKey(row.id,cell.id))
+              return element?[Object.freeze({
+                key:`cell:${row.id}:${cell.id}`,
+                element,
+                mode:/** @type {'rich-text'} */('rich-text'),
+              })]:[]
+            }))),
+            setReadOnly(value){
+              readOnly=value
+              for(const cell of cells.values())cell.contentEditable=value?'false':'true'
+            },
+            focus(target){
+              if(instanceDestroyed||readOnly)return
+              const key=target?.fieldKey
+              if(key?.startsWith('cell:')){
+                const parts=key.split(':')
+                const rowId=parts[1]
+                const cellId=parts.slice(2).join(':')
+                cells.get(cellKey(rowId,cellId))?.focus()
+                return
+              }
+              const firstRow=data.rows[0]
+              const first=firstRow?.cells[0]?.id
+              if(firstRow&&first)cells.get(cellKey(firstRow.id,first))?.focus()
+            },
+            destroy(){instanceDestroyed=true;rows.clear();cells.clear()},
+          }
+        },
+        destroy(){destroyed=true},
       }
-      table.appendChild(tr)
-    }
-
-    // Native Range.deleteContents() may remove TD/TR nodes or leave this
-    // editor entirely. Only a range owned by the event's actual cell is safe.
-    /** @param {KeyboardEvent | InputEvent} event */
-    const insertBreak = event => {
-      if (!editingHostForEvent(wrapper, event.target)) return
-      if (event.defaultPrevented || !event.cancelable || event.isComposing) return
-      event.preventDefault()
-      event.stopPropagation()
-      const ownerDocument = wrapper.ownerDocument
-      const selection = ownerDocument.defaultView?.getSelection() ?? null
-      if (!selection?.rangeCount) return
-      const range = selection.getRangeAt(0)
-      const cell = editableRange(wrapper, range)
-      const eventTarget = event.target
-      const targetElement = eventTarget && typeof eventTarget === 'object' && 'closest' in eventTarget
-        ? /** @type {Element} */ (eventTarget)
-        : null
-      const targetField = targetElement?.closest('[contenteditable]') ?? null
-      if (!cell?.matches('td, th') || cell.closest('table') !== table || targetField !== cell) return
-      context.mutate(() => {
-        range.deleteContents()
-        const br = ownerDocument.createElement('br')
-        range.insertNode(br)
-        range.setStartAfter(br)
-        range.collapse(true)
-        selection.removeAllRanges()
-        selection.addRange(range)
-      })
-    }
-    table.addEventListener('keydown', event => {
-      if (!editingHostForEvent(wrapper, event.target)) return
-      if (event.key === 'Tab' && this.#navigateCell(table, event.shiftKey ? -1 : 1)) {
-        event.preventDefault()
-        event.stopPropagation()
-      }
-      if (event.key === 'Enter') insertBreak(event)
-    })
-    table.addEventListener('beforeinput', event => {
-      if (event.inputType === 'insertParagraph' || event.inputType === 'insertLineBreak') insertBreak(event)
-    })
-
-    wrapper.appendChild(table)
-    return wrapper
-  }
-
-  /**
-   * Render block settings controls (add/remove row/col, toggle header).
-   * @param {HTMLElement} element
-   * @returns {HTMLElement[]}
-   */
-  renderSettings(element) {
-    const withHeadings = element.dataset.headings === 'true'
-    const t = (/** @type {string} */ key, /** @type {string} */ fallback) => this._t(key, fallback)
-    const defs = [
-      { icon: ICON_HEADER, label: t('toggleHeader', 'Toggle header'), action: 'header', active: withHeadings },
-      { icon: ICON_ROW_ADD, label: t('addRow', 'Add row'), action: 'row-add' },
-      { icon: ICON_ROW_DEL, label: t('deleteRow', 'Delete row'), action: 'row-del' },
-      { icon: ICON_COL_ADD, label: t('addColumn', 'Add column'), action: 'col-add' },
-      { icon: ICON_COL_DEL, label: t('deleteColumn', 'Delete column'), action: 'col-del' },
-    ]
-
-    return defs.map(item => {
-      const btn = element.ownerDocument.createElement('li')
-      btn.setAttribute('role', 'menuitem')
-      btn.setAttribute('tabindex', '-1')
-      btn.className = 'oe-settings-menu__item'
-      if (item.active) btn.classList.add('oe-settings-menu__item--active')
-
-      const ic = element.ownerDocument.createElement('span')
-      ic.className = 'oe-settings-menu__icon'
-      setTrustedHtml(ic, item.icon)
-      btn.appendChild(ic)
-
-      const lb = element.ownerDocument.createElement('span')
-      lb.className = 'oe-settings-menu__label'
-      lb.textContent = item.label
-      btn.appendChild(lb)
-
-      btn.dataset.action = item.action
-      return btn
-    })
-  }
-
-  /**
-   * Handle settings action for table operations.
-   * @param {HTMLElement} element — the table wrapper
-   * @param {string} action
-   * @returns {null}
-   */
-  onSettingsAction(element, action) {
-    const table = element.querySelector('table')
-    if (!table) return null
-
-    switch (action) {
-      case 'header':
-        this.#toggleHeader(element, table)
-        break
-      case 'row-add':
-        this.#addRow(table)
-        break
-      case 'row-del':
-        this.#deleteRow(table)
-        break
-      case 'col-add':
-        this.#addColumn(table)
-        break
-      case 'col-del':
-        this.#deleteColumn(table)
-        break
-    }
-
-    return null
-  }
-
-  /**
-   * Serialize the current block DOM into document data.
-   * @param {HTMLElement} element
-   * @returns {{ content: string[][], withHeadings: boolean }}
-   */
-  save(element) {
-    const table = element.querySelector('table')
-    if (!table) return { content: [['']], withHeadings: false }
-
-    const content = []
-    for (const tr of table.rows) {
-      const row = []
-      for (const cell of tr.cells) {
-        row.push(cell.innerHTML.trim())
-      }
-      content.push(row)
-    }
-
-    return {
-      content,
-      withHeadings: element.dataset.headings === 'true',
-    }
-  }
-
-  /**
-   * Check whether serialized data satisfies this block's schema.
-   * @param {{ content?: string[][] }} data
-   * @returns {boolean}
-   */
-  validate(data) {
-    return validateTableData(data)
-  }
-
-  /**
-   * Extract neutral text that can initialize another block type.
-   * @param {HTMLElement} element
-   * @returns {{ text: string }}
-   */
-  exportData(element) {
-    const table = element.querySelector('table')
-    if (!table) return { text: '' }
-    const rows = [...table.rows].map(row => (
-      [...row.cells]
-        .map(cell => sanitizeHtml(cell.innerHTML.trim(), element.ownerDocument))
-        .filter(Boolean)
-        .join(' — ')
-    )).filter(Boolean)
-    return { text: rows.join('<br>') }
-  }
-
-  /**
-   * Check whether the block has no meaningful user content.
-   * @param {HTMLElement} element
-   * @returns {boolean}
-   */
-  isEmpty(element) {
-    const table = element.querySelector('table')
-    if (!table) return true
-    for (const cell of table.querySelectorAll('td, th')) {
-      if ((cell.textContent?.trim().length ?? 0) > 0) return false
-    }
-    return true
-  }
-
-  /**
-   * Handle pasted table elements.
-   * @param {import('../../types').TagPasteEvent} event
-   * @returns {{ content: string[][], withHeadings: boolean } | null}
-   */
-  onPaste(event) {
-    if (event.type !== 'tag') return null
-    const table = event.element.tagName === 'TABLE'
-      ? event.element
-      : event.element.querySelector('table')
-    if (!table) return null
-
-    return tablePasteData(/** @type {HTMLTableElement} */ (table))
-  }
-
-  // ── Private — table operations ─────────────────────────────────────────────
-
-  /**
-   * Toggle header row (th ↔ td for first row).
-   * @param {HTMLElement} wrapper
-   * @param {HTMLTableElement} table
-   * @returns {void}
-   */
-  #toggleHeader(wrapper, table) {
-    const firstRow = table.rows[0]
-    if (!firstRow) return
-
-    const isHeader = wrapper.dataset.headings === 'true'
-    const newIsHeader = !isHeader
-    wrapper.dataset.headings = String(newIsHeader)
-
-    const newTag = newIsHeader ? 'th' : 'td'
-    for (const cell of [...firstRow.cells]) {
-      const newCell = table.ownerDocument.createElement(newTag)
-      newCell.className = 'oe-table__cell'
-      newCell.contentEditable = 'true'
-      setTrustedHtml(newCell, cell.innerHTML)
-      cell.replaceWith(newCell)
-    }
-  }
-
-  /**
-   * Add a row at the end.
-   * @param {HTMLTableElement} table
-   * @returns {void}
-   */
-  #addRow(table) {
-    const cols = table.rows[0]?.cells.length || 1
-    const tr = table.ownerDocument.createElement('tr')
-    for (let c = 0; c < cols; c++) {
-      const td = table.ownerDocument.createElement('td')
-      td.className = 'oe-table__cell'
-      td.contentEditable = 'true'
-      tr.appendChild(td)
-    }
-    table.appendChild(tr)
-  }
-
-  /**
-   * Delete the last row (keep at least 1).
-   * @param {HTMLTableElement} table
-   * @returns {void}
-   */
-  #deleteRow(table) {
-    if (table.rows.length <= 1) return
-    table.deleteRow(table.rows.length - 1)
-  }
-
-  /**
-   * Add a column at the end.
-   * @param {HTMLTableElement} table
-   * @returns {void}
-   */
-  #addColumn(table) {
-    const wrapper = /** @type {HTMLElement | null} */ (table.closest('.oe-table-wrapper'))
-    const isHeader = wrapper ? wrapper.dataset.headings === 'true' : false
-
-    for (let r = 0; r < table.rows.length; r++) {
-      const row = table.rows[r]
-      if (!row) continue
-      const tag = (isHeader && r === 0) ? 'th' : 'td'
-      const cell = table.ownerDocument.createElement(tag)
-      cell.className = 'oe-table__cell'
-      cell.contentEditable = 'true'
-      row.appendChild(cell)
-    }
-  }
-
-  /**
-   * Delete the last column (keep at least 1).
-   * @param {HTMLTableElement} table
-   * @returns {void}
-   */
-  #deleteColumn(table) {
-    const cols = table.rows[0]?.cells.length || 0
-    if (cols <= 1) return
-
-    for (const row of table.rows) {
-      row.deleteCell(row.cells.length - 1)
-    }
-  }
-
-  /**
-   * Navigate to adjacent cell.
-   * @param {HTMLTableElement} table
-   * @param {number} direction — 1 for forward, -1 for backward
-   * @returns {boolean} Whether focus moved to another cell.
-   */
-  #navigateCell(table, direction) {
-    const cells = /** @type {HTMLElement[]} */ ([...table.querySelectorAll('td, th')])
-    const ownerDocument = table.ownerDocument
-    const sel = ownerDocument.defaultView?.getSelection() ?? null
-    if (!sel || sel.rangeCount === 0) return false
-
-    const activeCell = /** @type {HTMLElement | null} */ (
-      sel.anchorNode?.nodeType === ELEMENT_NODE
-        ? /** @type {HTMLElement} */ (sel.anchorNode).closest('td, th')
-        : sel.anchorNode?.parentElement?.closest('td, th')
-    )
-
-    if (!activeCell || !table.contains(activeCell)) {
-      const first = cells[0]
-      if (!first) return false
-      first.focus()
-      return true
-    }
-
-    const idx = cells.indexOf(activeCell)
-    const next = cells[idx + direction]
-    if (next) {
-      next.focus()
-      // Place caret at start or end
-      const range = ownerDocument.createRange()
-      if (direction > 0) {
-        range.setStart(next, 0)
-      } else {
-        range.selectNodeContents(next)
-        range.collapse(false)
-      }
-      sel.removeAllRanges()
-      sel.addRange(range)
-      return true
-    }
-    return false
-  }
+    },
+  })
 }
