@@ -1,4 +1,4 @@
-import { editableRange } from './editableFields.js'
+import { editableRange } from '../shared/editableFields.js'
 import { EditorEvent } from './editorEvents.js'
 import { hydrateInlinePlugins } from './hydrateInlinePlugins.js'
 import { insertInlinePluginAtCaret } from './inlinePluginInsert.js'
