@@ -46,6 +46,14 @@ export function createPersonPlugin(config={}){
 
   const capabilities=Object.freeze({
     empty:Object.freeze({isEmpty:data=>data.persons.every(person=>!meaningful(person))}),
+    shortcuts:Object.freeze({
+      handle(input){
+        const textField=input.fieldKey.startsWith('person:')
+          && (input.fieldKey.endsWith(':name')||input.fieldKey.endsWith(':role')||input.fieldKey.endsWith(':bio'))
+        if(textField&&['Enter','Backspace','Delete'].includes(input.key))return {kind:'native'}
+        return null
+      },
+    }),
     conversion:Object.freeze({
       export(data){
         return {
@@ -351,12 +359,6 @@ export function createPersonPlugin(config={}){
             bio.contentEditable=readOnly?'false':'true'
             bio.dataset.placeholder=runtimeContext.t('bioPlaceholder','Short bio...')
             if(person.bio)setSanitizedHtml(bio,person.bio)
-
-            for(const element of [name,role,bio]){
-              element.addEventListener('keydown',event=>{
-                if(!event.ctrlKey&&!event.metaKey)event.stopPropagation()
-              },{signal:context.signal})
-            }
 
             const links=document.createElement('div')
             links.className='oe-person__links'

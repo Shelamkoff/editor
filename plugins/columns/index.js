@@ -30,6 +30,12 @@ export function createColumnsPlugin(){
   const capabilities=Object.freeze({
     formatting:Object.freeze({inlineTools:true}),
     empty:Object.freeze({isEmpty:data=>data.columns.every(column=>column.content.trim().length===0)}),
+    shortcuts:Object.freeze({
+      handle(input){
+        if(input.fieldKey.startsWith('column:')&&['Enter','Backspace','Delete'].includes(input.key))return {kind:'native'}
+        return null
+      },
+    }),
     conversion:Object.freeze({
       export(data){
         return {kind:'rich-text',data:{text:data.columns.map(column=>column.content).filter(Boolean).join('<br>')}}
@@ -102,14 +108,6 @@ export function createColumnsPlugin(){
             element.dataset.columnId=column.id
             element.contentEditable=readOnly?'false':'true'
             if(column.content)setSanitizedHtml(element,column.content)
-            element.addEventListener('keydown',event=>{
-              if(readOnly)return
-              if(event.key==='Enter'&&!event.shiftKey){
-                event.stopPropagation()
-                return
-              }
-              if(!event.ctrlKey&&!event.metaKey)event.stopPropagation()
-            },{signal:context.signal})
             nodes.set(column.id,element)
             return element
           }
