@@ -48,6 +48,8 @@ export class ExtensionRegistry {
    *   defaultBlock?: string,
    *   placeholder?: string,
    *   translate?: (key: string, fallback?: string) => string,
+   *   showPopup?: (anchor: HTMLElement, content: HTMLElement, cleanup?: () => void) => void,
+   *   hidePopup?: () => void,
    * }} options
    */
   constructor(options) {
@@ -127,8 +129,8 @@ export class ExtensionRegistry {
           ownerDocument,
           signal: this.#abortController.signal,
           t: (key, fallback = '') => translate(`inline.${definition.type}.${key}`, fallback),
-          showPopup() {},
-          hidePopup() {},
+          showPopup: typeof options.showPopup === 'function' ? options.showPopup : () => {},
+          hidePopup: typeof options.hidePopup === 'function' ? options.hidePopup : () => {},
         })
         if (!runtime || typeof runtime.create !== 'function' || typeof runtime.destroy !== 'function') {
           throw new TypeError(`Inline definition "${definition.type}" returned an invalid runtime`)
