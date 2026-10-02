@@ -220,3 +220,24 @@ test('unknown block types stay inert and never call a plugin runtime', () => {
   assert.equal(reconciler.getElement('x').dataset.oePreservedBlock, 'future')
   assert.equal(reconciler.getElement('x').contentEditable, 'false')
 })
+
+
+test('preserve activation keeps a registered block type inert', () => {
+  const { document, registry, counters } = setup(1)
+  const container = document.createElement('div')
+  const store = new DocumentStore({
+    version: '2.0.0',
+    blocks: [{ id: 'x', type: 'paragraph', data: { text: 'opaque' } }],
+  })
+  counters.create = 0
+  const reconciler = new BlockReconciler({
+    container,
+    registry,
+    activationResolver: id => id !== 'x',
+    contextFactory: () => ({}),
+  })
+  reconciler.mount(store)
+
+  assert.equal(counters.create, 0)
+  assert.equal(reconciler.getElement('x').dataset.oePreservedBlock, 'paragraph')
+})
