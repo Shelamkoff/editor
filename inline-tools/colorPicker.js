@@ -41,8 +41,8 @@ function findBgSpan(rangeHint = null, ownerDocument = rangeHint?.startContainer?
 /**
  * Create the background color inline tool with a custom color picker dropdown.
  * @param {string} label
- * @param {import('../types').ICrossBlockSelection | null} [cbs]
- * @returns {import('../types').InlineTool}
+ * @param {import('./types').CrossBlockSelectionPort | null} [cbs]
+ * @returns {import('./types').InlineTool}
  */
 export function createBgColorTool(label, cbs = null) {
   let lastColor = '#ffffff'

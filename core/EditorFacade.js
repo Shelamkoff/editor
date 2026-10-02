@@ -238,7 +238,7 @@ export class EditorFacade {
     const startedAt = this.#diagnostics.enabled ? this.#diagnostics.now() : 0
     const normalized = this.#documentSchema.normalize(data)
     const replacement = this.#blocks.prepareReplacement(
-      normalized.blocks,
+      /** @type {import('./types').BlockData[]} */ (normalized.blocks),
       this.#defaultBlockType,
       'EditorFacade',
     )

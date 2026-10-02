@@ -514,7 +514,7 @@ export function getEditorRoot(node) {
 /**
  * Clear the stored cross-block range (call after DOM mutations that
  * invalidate the range's node references).
- * @param {import('../types').ICrossBlockSelection | null} [cbs]
+ * @param {import('./types').CrossBlockSelectionPort | null} [cbs]
  * @param {Node} [contextNode] - any node inside the editor for scoping
  * @returns {void}
  */
@@ -576,7 +576,7 @@ export function saveCrossBlockOffsets(range) {
 
 /**
  * Restore cross-block range from saved offsets. Updates CrossBlockSelection and CSS Highlight.
- * @param {import('../types').ICrossBlockSelection | null} cbs
+ * @param {import('./types').CrossBlockSelectionPort | null} cbs
  * @param {{ editorRoot: HTMLElement, startBlockId: string, endBlockId: string, startFieldIndex?: number, endFieldIndex?: number, startOffset: number, endOffset: number }} offsets
  * @returns {Range | null}
  */
@@ -633,7 +633,7 @@ export function restoreCrossBlockRange(cbs, offsets) {
 
 /**
  * Check if a selection spans multiple .oe-block elements.
- * @param {import('../types').ICrossBlockSelection | null} [cbs]
+ * @param {import('./types').CrossBlockSelectionPort | null} [cbs]
  * @param {Range | null} [rangeHint] - saved owning range when no cross-block range is active
  * @returns {HTMLElement[] | null} Array of plugin-owned block roots, or null if single-block
  */
@@ -687,8 +687,8 @@ export function notifyEditorChanged(contextNode) {
  * @param {string} icon
  * @param {string} tag
  * @param {string} [shortcut]
- * @param {import('../types').ICrossBlockSelection} [cbs]
- * @returns {import('../types').InlineTool}
+ * @param {import('./types').CrossBlockSelectionPort} [cbs]
+ * @returns {import('./types').InlineTool}
  */
 export function createSimpleInlineTool(type, title, icon, tag, shortcut, cbs) {
   return {
@@ -887,7 +887,7 @@ export function saveSelectionOffsets(range) {
 
 /**
  * Restore selection from saved offsets after DOM mutation.
- * @param {import('../types').ICrossBlockSelection | null} cbs
+ * @param {import('./types').CrossBlockSelectionPort | null} cbs
  * @param {SavedOffsets} saved
  * @returns {void}
  */

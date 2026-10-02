@@ -141,8 +141,8 @@ function wrapRangeWithFontSize(range, fontSize) {
 /**
  * Create font size inline tool as a select-style dropdown.
  * @param {string} label
- * @param {import('../types').ICrossBlockSelection | null} [cbs]
- * @returns {import('../types').InlineTool}
+ * @param {import('./types').CrossBlockSelectionPort | null} [cbs]
+ * @returns {import('./types').InlineTool}
  */
 export function createFontSizeTool(label, cbs = null) {
   /** @type {HTMLElement | null} */

@@ -23,8 +23,8 @@ const ALIGNMENTS = [
  * participating in the current selection.
  *
  * @param {{ left: string, center: string, right: string, justify: string }} labels
- * @param {import('../types').ICrossBlockSelection | null} [cbs]
- * @returns {import('../types').InlineTool}
+ * @param {import('./types').CrossBlockSelectionPort | null} [cbs]
+ * @returns {import('./types').InlineTool}
  */
 export function createAlignTool(labels, cbs = null) {
   /** @type {Document | null} */

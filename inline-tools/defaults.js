@@ -13,8 +13,8 @@ import { createClearFormattingTool } from './clearFormatting.js'
 
 /**
  * Create the default set of inline tools.
- * @param {{ i18n?: import('../I18n').I18n, crossBlockSelection?: import('../types').ICrossBlockSelection, types?: string[] }} [options]
- * @returns {import('../types').InlineTool[]}
+ * @param {{ i18n?: import('../I18n').I18n, crossBlockSelection?: import('./types').CrossBlockSelectionPort, types?: string[] }} [options]
+ * @returns {import('./types').InlineTool[]}
  */
 export function createDefaultInlineTools(options = {}) {
   if (!options || typeof options !== 'object' || Array.isArray(options)) {
@@ -23,10 +23,10 @@ export function createDefaultInlineTools(options = {}) {
   const ownOptions = { ...options }
   const i18n = ownOptions.i18n
   const cbs = ownOptions.crossBlockSelection ?? null
-  /** @param {import('../types').MessageKey} key @param {string} fallback @returns {string} */
+  /** @param {string} key @param {string} fallback @returns {string} */
   const t = (key, fallback) => i18n?.t(key) ?? fallback
 
-  /** @type {Array<[string, () => import('../types').InlineTool]>} */
+  /** @type {Array<[string, () => import('./types').InlineTool]>} */
   const factories = [
     ['bold', () => createBoldTool(t('inline.bold', 'Bold'), cbs)],
     ['italic', () => createItalicTool(t('inline.italic', 'Italic'), cbs)],

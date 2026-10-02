@@ -48,8 +48,8 @@ function hasClearableWrapper(range, tag) {
  * Create an inline tool that removes ordinary text formatting from exactly
  * the selected characters. Links and inline-plugin widgets are preserved.
  * @param {string} label
- * @param {import('../types').ICrossBlockSelection | null} [cbs]
- * @returns {import('../types').InlineTool}
+ * @param {import('./types').CrossBlockSelectionPort | null} [cbs]
+ * @returns {import('./types').InlineTool}
  */
 export function createClearFormattingTool(label, cbs = null) {
   return {

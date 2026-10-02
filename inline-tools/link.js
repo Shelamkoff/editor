@@ -61,8 +61,8 @@ function getIntersectingLinks(range) {
  * @param {string} linkPlaceholder — i18n placeholder for the input
  * @param {string} linkLabel — i18n label for the tool
  * @param {{ apply?: string, unlink?: string }} [actionLabels]
- * @param {import('../types').ICrossBlockSelection | null} [cbs]
- * @returns {import('../types').InlineTool}
+ * @param {import('./types').CrossBlockSelectionPort | null} [cbs]
+ * @returns {import('./types').InlineTool}
  */
 export function createLinkTool(linkPlaceholder, linkLabel, actionLabels = {}, cbs = null) {
   return {
@@ -108,7 +108,7 @@ export function createLinkTool(linkPlaceholder, linkLabel, actionLabels = {}, cb
     /**
      * Render the drill-down panel with URL input, apply, unlink buttons.
      * Returns null when active (links in selection) — signals toggle behavior instead.
-     * @param {import('../types').InlineToolActionContext} ctx
+     * @param {import('./types').InlineToolActionContext} ctx
      * @returns {HTMLElement | null}
      */
     renderActions(ctx) {

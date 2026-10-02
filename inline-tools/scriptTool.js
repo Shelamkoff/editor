@@ -55,8 +55,8 @@ function removeAllScriptTags(range) {
 /**
  * Create combined superscript/subscript tool with a dropdown panel.
  * @param {{ sup: string, sub: string, none: string }} labels
- * @param {import('../types').ICrossBlockSelection | null} [cbs]
- * @returns {import('../types').InlineTool}
+ * @param {import('./types').CrossBlockSelectionPort | null} [cbs]
+ * @returns {import('./types').InlineTool}
  */
 export function createScriptTool(labels, cbs = null) {
   /** @type {Document | null} */

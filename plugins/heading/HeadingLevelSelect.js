@@ -11,7 +11,7 @@ const ICON_CHEVRON = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height=
  * Inline toolbar control for changing heading level.
  * Extracted from Heading.renderInlineControls() for SRP.
  *
- * @param {import('./index.js').Heading} plugin
+ * @param {{ getLevel(element: HTMLElement): number, changeLevel(element: HTMLElement, level: number): HTMLElement }} plugin
  * @param {HTMLElement} element - heading content element
  * @param {import('../../plugin-kit/types').InlineControlContext} ctx
  * @param {(key: string, fallback: string) => string} t - translation function
