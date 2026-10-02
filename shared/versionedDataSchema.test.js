@@ -71,6 +71,13 @@ test('versioned data schema treats missing dataVersion as legacyVersion and foll
     data: { value: 'v:2:3' },
   })
   assert.deepEqual(calls, ['1->2', '2->3'])
+
+  calls.length = 0
+  assert.deepEqual(schema.decode({ dataVersion: undefined, data: { value: 'v' } }), {
+    dataVersion: 3,
+    data: { value: 'v:2:3' },
+  })
+  assert.deepEqual(calls, ['1->2', '2->3'])
 })
 
 test('versioned data schema isolates migration input and output from caller-owned values', () => {
