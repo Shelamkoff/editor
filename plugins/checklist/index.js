@@ -52,7 +52,7 @@ export function createChecklistPlugin(){
         return {items:[...target.items,...extra]}
       },
     }),
-    shortcuts:Object.freeze({
+    shortcuts:Object.freeze(/** @type {import('../../plugin-kit/types').ShortcutCapability<any>} */ ({
       handle(input,data,context){
         const id=input.fieldKey.startsWith('item:')?input.fieldKey.slice(5):''
         const index=data.items.findIndex(item=>item.id===id)
@@ -84,7 +84,7 @@ export function createChecklistPlugin(){
         }
         return null
       },
-    }),
+    })),
     conversion:Object.freeze({
       export(data){
         return {kind:'rich-text',data:{text:data.items.map(item=>item.text).join('<br>')}}

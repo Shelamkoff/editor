@@ -35,7 +35,7 @@ export function createTogglePlugin(){
         }
       },
     }),
-    shortcuts:Object.freeze({
+    shortcuts:Object.freeze(/** @type {import('../../plugin-kit/types').ShortcutCapability<any>} */ ({
       handle(input,data){
         if(input.fieldKey==='title'&&input.key==='Enter'&&!input.shiftKey){
           return {kind:'update',data:{...data,open:true},focus:{fieldKey:'content',offset:'start'}}
@@ -43,7 +43,7 @@ export function createTogglePlugin(){
         if(input.fieldKey==='content'&&input.key==='Enter'&&!input.shiftKey)return {kind:'native'}
         return null
       },
-    }),
+    })),
     conversion:Object.freeze({
       export(data){
         return {kind:'rich-text',data:{text:[data.title,data.content].filter(Boolean).join('<br>')}}

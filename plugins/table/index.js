@@ -30,7 +30,7 @@ export function createTablePlugin(){
   const capabilities=Object.freeze({
     formatting:Object.freeze({inlineTools:true}),
     empty:Object.freeze({isEmpty:data=>data.rows.every(row=>row.cells.every(cell=>cell.text.trim().length===0))}),
-    shortcuts:Object.freeze({
+    shortcuts:Object.freeze(/** @type {import('../../plugin-kit/types').ShortcutCapability<any>} */ ({
       handle(input,data){
         if(input.key==='Enter')return {kind:'native'}
         if(input.key!=='Tab')return null
@@ -40,7 +40,7 @@ export function createTablePlugin(){
         const next=ordered[index+(input.shiftKey?-1:1)]
         return next?{kind:'focus',target:{fieldKey:next,offset:'start'}}:null
       },
-    }),
+    })),
     conversion:Object.freeze({
       export(data){return {kind:'rich-text',data:{text:exportText(data)}}},
       canImport(payload){return payload?.kind==='rich-text'&&typeof payload.data?.text==='string'},

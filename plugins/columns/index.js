@@ -31,12 +31,12 @@ export function createColumnsPlugin(){
   const capabilities=Object.freeze({
     formatting:Object.freeze({inlineTools:true}),
     empty:Object.freeze({isEmpty:data=>data.columns.every(column=>column.content.trim().length===0)}),
-    shortcuts:Object.freeze({
+    shortcuts:Object.freeze(/** @type {import('../../plugin-kit/types').ShortcutCapability<any>} */ ({
       handle(input){
         if(input.fieldKey.startsWith('column:')&&['Enter','Backspace','Delete'].includes(input.key))return {kind:'native'}
         return null
       },
-    }),
+    })),
     conversion:Object.freeze({
       export(data){
         return {kind:'rich-text',data:{text:data.columns.map(column=>column.content).filter(Boolean).join('<br>')}}

@@ -26,7 +26,7 @@ export function createWarningPlugin(){
         return {title:append(target.title,source.title),message:append(target.message,source.message)}
       },
     }),
-    shortcuts:Object.freeze({
+    shortcuts:Object.freeze(/** @type {import('../../plugin-kit/types').ShortcutCapability<any>} */ ({
       handle(input){
         if(input.fieldKey==='title'&&((input.key==='Enter'&&!input.shiftKey)||(input.key==='Tab'&&!input.shiftKey))){
           return {kind:'focus',target:{fieldKey:'message',offset:'start'}}
@@ -37,7 +37,7 @@ export function createWarningPlugin(){
         if(input.fieldKey==='message'&&input.key==='Enter'&&!input.shiftKey)return {kind:'native'}
         return null
       },
-    }),
+    })),
     conversion:Object.freeze({
       export(data){
         return {kind:'rich-text',data:{text:[data.title,data.message].filter(Boolean).join('<br>')}}

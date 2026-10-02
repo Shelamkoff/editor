@@ -47,14 +47,14 @@ export function createPersonPlugin(config={}){
   /** @type {import('../../plugin-kit/types').BlockCapabilities<any>} */
   const capabilities=Object.freeze({
     empty:Object.freeze({isEmpty:data=>data.persons.every(person=>!meaningful(person))}),
-    shortcuts:Object.freeze({
+    shortcuts:Object.freeze(/** @type {import('../../plugin-kit/types').ShortcutCapability<any>} */ ({
       handle(input){
         const textField=input.fieldKey.startsWith('person:')
           && (input.fieldKey.endsWith(':name')||input.fieldKey.endsWith(':role')||input.fieldKey.endsWith(':bio'))
         if(textField&&['Enter','Backspace','Delete'].includes(input.key))return {kind:'native'}
         return null
       },
-    }),
+    })),
     conversion:Object.freeze({
       export(data){
         return {

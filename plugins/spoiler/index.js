@@ -30,7 +30,7 @@ export function createSpoilerPlugin(){
         return {label:append(target.label,source.label),content:append(target.content,source.content)}
       },
     }),
-    shortcuts:Object.freeze({
+    shortcuts:Object.freeze(/** @type {import('../../plugin-kit/types').ShortcutCapability<any>} */ ({
       handle(input){
         if(input.fieldKey==='label'&&input.key==='Enter'&&!input.shiftKey){
           return {kind:'focus',target:{fieldKey:'content',offset:'start'}}
@@ -38,7 +38,7 @@ export function createSpoilerPlugin(){
         if(input.fieldKey==='content'&&input.key==='Enter'&&!input.shiftKey)return {kind:'native'}
         return null
       },
-    }),
+    })),
     conversion:Object.freeze({
       export(data){
         return {kind:'rich-text',data:{text:[data.label,data.content].filter(Boolean).join('<br>')}}

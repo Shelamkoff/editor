@@ -28,14 +28,14 @@ export function createQuotePlugin() {
         }
       },
     }),
-    shortcuts:Object.freeze({
+    shortcuts:Object.freeze(/** @type {import('../../plugin-kit/types').ShortcutCapability<any>} */ ({
       handle(input){
         if(input.key!=='Tab')return null
         if(!input.shiftKey&&input.fieldKey==='text')return {kind:'focus',target:{fieldKey:'caption',offset:'start'}}
         if(input.shiftKey&&input.fieldKey==='caption')return {kind:'focus',target:{fieldKey:'text',offset:'end'}}
         return null
       },
-    }),
+    })),
     conversion:Object.freeze({
       export(data){
         return {kind:'rich-text',data:{text:[data.text,data.caption].filter(Boolean).join('<br>')}}
