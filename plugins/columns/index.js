@@ -1,224 +1,177 @@
-import { fitColumnsToLayout } from '../../shared/columnsData.js'
-import { setSanitizedHtml, setTrustedHtml } from '../../plugin-kit/index.js'
-import { sanitizeHtml } from '../../plugin-kit/index.js'
-import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
-import { validateColumnsData } from '../../shared/blockDataValidators.js'
-import { normalizeTextValue } from '../../shared/textFormat.js'
-import { mapColumnsTextFields } from '../../shared/mapTextFields.js'
+// @ts-check
+import { setSanitizedHtml } from '../../plugin-kit/index.js'
+import { columnsDataSchema } from '../../shared/blockSchemas/columns.js'
+import {
+  COLUMNS_ICON,
+  COLUMNS_STYLES,
+  COLUMN_LAYOUT_ICONS,
+  COLUMN_LAYOUT_KEYS,
+  COLUMN_LAYOUTS,
+} from './metadata.js'
 
-const editorStyles = new URL('./columns.css', import.meta.url).href
-
-// Tabler icon: columns-2
-const ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3m0 1a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><path d="M12 3v18"/></svg>'
-
-
-const LAYOUTS = {
-  '1-1':   { cols: 2, grid: '1fr 1fr', label: '50 / 50' },
-  '1-2':   { cols: 2, grid: '1fr 2fr', label: '33 / 67' },
-  '2-1':   { cols: 2, grid: '2fr 1fr', label: '67 / 33' },
-  '1-1-1': { cols: 3, grid: '1fr 1fr 1fr', label: '33 / 33 / 33' },
+function fitColumns(columns,size,context){
+  const kept=columns.slice(0,size).map(column=>({...column}))
+  while(kept.length<size){
+    kept.push({id:context.createId('column'),content:''})
+  }
+  const last=kept[size-1]
+  for(const column of columns.slice(size)){
+    if(!column.content.trim())continue
+    last.content=last.content?last.content+'<br>'+column.content:column.content
+  }
+  return kept
 }
-/** @type {(keyof typeof LAYOUTS)[]} */
-const LAYOUT_KEYS = ['1-1', '1-2', '2-1', '1-1-1']
-// Layout preview icons (small SVGs for selector)
-/** @type {Record<string, string>} */
-const LAYOUT_ICONS = {
-  '1-1':   '<svg width="20" height="14" viewBox="0 0 20 14"><rect x="0.5" y="0.5" width="9" height="13" rx="1" fill="none" stroke="currentColor" stroke-width="1"/><rect x="10.5" y="0.5" width="9" height="13" rx="1" fill="none" stroke="currentColor" stroke-width="1"/></svg>',
-  '1-2':   '<svg width="20" height="14" viewBox="0 0 20 14"><rect x="0.5" y="0.5" width="6" height="13" rx="1" fill="none" stroke="currentColor" stroke-width="1"/><rect x="7.5" y="0.5" width="12" height="13" rx="1" fill="none" stroke="currentColor" stroke-width="1"/></svg>',
-  '2-1':   '<svg width="20" height="14" viewBox="0 0 20 14"><rect x="0.5" y="0.5" width="12" height="13" rx="1" fill="none" stroke="currentColor" stroke-width="1"/><rect x="13.5" y="0.5" width="6" height="13" rx="1" fill="none" stroke="currentColor" stroke-width="1"/></svg>',
-  '1-1-1': '<svg width="20" height="14" viewBox="0 0 20 14"><rect x="0.5" y="0.5" width="5.67" height="13" rx="1" fill="none" stroke="currentColor" stroke-width="1"/><rect x="7.17" y="0.5" width="5.67" height="13" rx="1" fill="none" stroke="currentColor" stroke-width="1"/><rect x="13.83" y="0.5" width="5.67" height="13" rx="1" fill="none" stroke="currentColor" stroke-width="1"/></svg>',
-}
-/** @type {WeakMap<HTMLElement, { data: { columns: Array<{content: string}>, layout: string } }>} */
-const stateMap = new WeakMap()
-/** Editable two- or three-column rich-text layout block. */
-export class Columns extends BlockPluginAbstract {
-  static isTextBlock = false
-  static styles = [editorStyles]
-  type = 'columns'
-  icon = ICON
-  inlineTools = true
-  mapTextFields = mapColumnsTextFields
 
-  /**
-   * Return the localized toolbox label for this block.
-   * @returns {string}
-   */
-  get title() {
-    return this._t('title', 'Columns')
-  }
+/**
+ * Create the immutable Columns v2 definition with stable column identities.
+ * @returns {import('../../plugin-kit/types').BlockPluginDefinition<{layout:string,columns:Array<{id:string,content:string}>}>}
+ */
+export function createColumnsPlugin(){
+  const capabilities=Object.freeze({
+    formatting:Object.freeze({inlineTools:true}),
+    empty:Object.freeze({isEmpty:data=>data.columns.every(column=>column.content.trim().length===0)}),
+    conversion:Object.freeze({
+      export(data){
+        return {kind:'rich-text',data:{text:data.columns.map(column=>column.content).filter(Boolean).join('<br>')}}
+      },
+      canImport(payload){
+        return payload?.kind==='rich-text'&&typeof payload.data?.text==='string'
+      },
+      import(payload){
+        if(payload?.kind!=='rich-text'||typeof payload.data?.text!=='string'){
+          throw new TypeError('Columns can only import rich-text payloads')
+        }
+        return {
+          layout:'1-1',
+          columns:[
+            {id:'column-0',content:payload.data.text},
+            {id:'column-1',content:''},
+          ],
+        }
+      },
+    }),
+    settings:Object.freeze({
+      kind:/** @type {'actions'} */('actions'),
+      actions(data){
+        return COLUMN_LAYOUT_KEYS.map(key=>Object.freeze({
+          id:key,
+          label:Object.freeze({key:`layout.${key}`,fallback:COLUMN_LAYOUTS[key].label}),
+          icon:COLUMN_LAYOUT_ICONS[key],
+          active:data.layout===key,
+        }))
+      },
+      apply(data,actionId,context){
+        if(!Object.hasOwn(COLUMN_LAYOUTS,actionId))throw new RangeError(`Unknown columns layout: ${actionId}`)
+        return {
+          layout:actionId,
+          columns:fitColumns(data.columns,COLUMN_LAYOUTS[actionId].cols,context),
+        }
+      },
+    }),
+  })
 
-  /**
-   * Create the editable DOM owned by this block instance.
-   * @param {Record<string, unknown>} data
-   * @param {import('../../plugin-kit/types').BlockMutationContext} context
-   * @returns {HTMLElement}
-   */
-  render(data, context) {
-    const ownerDocument = context.ownerDocument ?? globalThis.document
-    const layout = LAYOUT_KEYS.includes(/** @type {any} */ (data?.layout)) ? String(data.layout) : '1-1'
-    const layoutDef = /** @type {{ cols: number, grid: string, label: string }} */ (LAYOUTS[layout])
-    let columns = Array.isArray(data?.columns)
-      ? data.columns.map((c) => ({ content: normalizeTextValue(c?.content) }))
-      : []
+  return Object.freeze({
+    type:'columns',
+    label:Object.freeze({key:'title',fallback:'Columns'}),
+    icon:COLUMNS_ICON,
+    styles:COLUMNS_STYLES,
+    schema:columnsDataSchema,
+    capabilities,
+    setup(runtimeContext){
+      let destroyed=false
+      return {
+        create(initial,context){
+          if(destroyed)throw new Error('Columns runtime is destroyed')
+          const document=context.ownerDocument
+          const wrapper=document.createElement('div')
+          wrapper.className='oe-columns'
+          wrapper.contentEditable='false'
+          wrapper.tabIndex=-1
+          const grid=document.createElement('div')
+          grid.className='oe-columns__grid'
+          wrapper.appendChild(grid)
 
-    columns = fitColumnsToLayout(columns, layoutDef.cols)
+          let data={layout:initial.layout,columns:initial.columns.map(column=>({...column}))}
+          let readOnly=context.isReadOnly()
+          let instanceDestroyed=false
+          const nodes=new Map()
 
-    const wrapper = ownerDocument.createElement('div')
-    wrapper.classList.add('oe-columns')
-    wrapper.contentEditable = 'false'
-    wrapper.tabIndex = -1
+          const createColumn=column=>{
+            const element=document.createElement('div')
+            element.className='oe-columns__col'
+            element.dataset.columnId=column.id
+            element.contentEditable=readOnly?'false':'true'
+            if(column.content)setSanitizedHtml(element,column.content)
+            element.addEventListener('keydown',event=>{
+              if(readOnly)return
+              if(event.key==='Enter'&&!event.shiftKey){
+                event.stopPropagation()
+                return
+              }
+              if(!event.ctrlKey&&!event.metaKey)event.stopPropagation()
+            },{signal:context.signal})
+            nodes.set(column.id,element)
+            return element
+          }
 
-    stateMap.set(wrapper, { data: { columns, layout } })
+          const reconcile=next=>{
+            const layout=COLUMN_LAYOUTS[next.layout]??COLUMN_LAYOUTS['1-1']
+            grid.style.gridTemplateColumns=layout.grid
+            const live=new Set()
+            next.columns.forEach((column,index)=>{
+              live.add(column.id)
+              const element=nodes.get(column.id)??createColumn(column)
+              element.contentEditable=readOnly?'false':'true'
+              element.dataset.placeholder=`${runtimeContext.t('colPlaceholder','Column')} ${index+1}`
+              if(element.innerHTML!==column.content){
+                if(column.content)setSanitizedHtml(element,column.content)
+                else element.textContent=''
+              }
+              grid.appendChild(element)
+            })
+            for(const [id,node] of nodes){
+              if(live.has(id))continue
+              node.remove()
+              nodes.delete(id)
+            }
+            data={layout:next.layout,columns:next.columns.map(column=>({...column}))}
+          }
 
-    this.#build(wrapper, context)
-    return wrapper
-  }
+          reconcile(data)
 
-  /**
-   * Serialize the current block DOM into document data.
-   * @param {HTMLElement} element @returns {{ columns: Array<{ content: string }>, layout: string }}
-   */
-  save(element) {
-    this.#syncFromDom(element)
-    const s = stateMap.get(element)
-    if (!s) return { columns: [], layout: '1-1' }
-    return {
-      columns: s.data.columns.map((c) => ({ ...c })),
-      layout: s.data.layout,
-    }
-  }
-
-  /**
-   * Check whether serialized data satisfies this block's schema.
-   * @param {Record<string, unknown>} data @returns {boolean}
-   */
-  validate(data) {
-    return validateColumnsData(data)
-  }
-
-  /**
-   * Check whether the block has no meaningful user content.
-   * @param {HTMLElement} element @returns {boolean}
-   */
-  isEmpty(element) {
-    this.#syncFromDom(element)
-    const s = stateMap.get(element)
-    if (!s) return true
-    return s.data.columns.every((c) => !c.content.trim())
-  }
-
-  /**
-   * Extract neutral rich text that can initialize another block type.
-   * @param {HTMLElement} element @returns {{ text: string }}
-   */
-  exportData(element) {
-    this.#syncFromDom(element)
-    const s = stateMap.get(element)
-    if (!s) return { text: '' }
-    return { text: s.data.columns.map((c) => c.content).filter(Boolean).join('<br>') }
-  }
-
-  /**
-   * Release listeners and resources owned by this block element.
-   * @param {HTMLElement} element @returns {void}
-   */
-  destroy(element) {
-    stateMap.delete(element)
-  }
-
-  // ── Private ─────────────────────────────────────────────────────────────────
-
-  /** @param {HTMLElement} wrapper @returns {void} */
-  #syncFromDom(wrapper) {
-    const s = stateMap.get(wrapper)
-    if (!s) return
-    const colEls = wrapper.querySelectorAll('.oe-columns__col')
-    colEls.forEach((el, i) => {
-      const col = s.data.columns[i]
-      if (col) {
-        col.content = sanitizeHtml(el.innerHTML?.trim() || '', wrapper.ownerDocument)
+          return {
+            element:wrapper,
+            read:()=>({
+              layout:data.layout,
+              columns:data.columns.map(column=>({
+                id:column.id,
+                content:nodes.get(column.id)?.innerHTML.trim()??column.content,
+              })),
+            }),
+            update(next){if(!instanceDestroyed)reconcile(next)},
+            editableFields:()=>Object.freeze(data.columns.flatMap(column=>{
+              const element=nodes.get(column.id)
+              return element?[Object.freeze({
+                key:`column:${column.id}`,
+                element,
+                mode:/** @type {'rich-text'} */('rich-text'),
+              })]:[]
+            })),
+            setReadOnly(value){
+              readOnly=value
+              for(const node of nodes.values())node.contentEditable=value?'false':'true'
+            },
+            focus(target){
+              if(instanceDestroyed||readOnly)return
+              const key=target?.fieldKey
+              const id=key?.startsWith('column:')?key.slice(7):data.columns[0]?.id
+              nodes.get(id)?.focus()
+            },
+            destroy(){instanceDestroyed=true;nodes.clear()},
+          }
+        },
+        destroy(){destroyed=true},
       }
-    })
-  }
-
-  /**
-   * @param {HTMLElement} wrapper
-   * @param {import('../../plugin-kit/types').BlockMutationContext} context
-   * @returns {void}
-   */
-  #build(wrapper, context) {
-    const s = stateMap.get(wrapper)
-    if (!s) return
-    const ownerDocument = wrapper.ownerDocument ?? context.ownerDocument ?? globalThis.document
-    wrapper.textContent = ''
-
-    const layoutDef = /** @type {{ cols: number, grid: string, label: string }} */ (LAYOUTS[s.data.layout] || LAYOUTS['1-1'])
-
-    // Grid container
-    const grid = ownerDocument.createElement('div')
-    grid.className = 'oe-columns__grid'
-    grid.style.gridTemplateColumns = layoutDef.grid
-
-    for (let i = 0; i < s.data.columns.length; i++) {
-      const colData = /** @type {{content: string}} */ (s.data.columns[i])
-      const col = ownerDocument.createElement('div')
-      col.className = 'oe-columns__col'
-      col.contentEditable = 'true'
-      col.dataset.placeholder = `${this._t('colPlaceholder', 'Column')} ${i + 1}`
-      if (colData.content) {
-        setSanitizedHtml(col, colData.content)
-      }
-      col.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) { e.stopPropagation(); return }
-        // Let modifier combos (Ctrl+Z, Ctrl+A, etc.) bubble to ShortcutRegistry
-        if (!e.ctrlKey && !e.metaKey) e.stopPropagation()
-      })
-      grid.appendChild(col)
-    }
-
-    wrapper.appendChild(grid)
-
-    // Layout selector
-    const actions = ownerDocument.createElement('div')
-    actions.className = 'oe-columns__actions'
-
-    for (const key of LAYOUT_KEYS) {
-      const btn = ownerDocument.createElement('button')
-      btn.type = 'button'
-      btn.className = `oe-columns__layout-btn${s.data.layout === key ? ' oe-columns__layout-btn--active' : ''}`
-      setTrustedHtml(btn, LAYOUT_ICONS[key] || '')
-      btn.title = LAYOUTS[key]?.label || ''
-      btn.setAttribute('aria-label', `${this._t('layout', 'Layout')} ${btn.title}`)
-      btn.setAttribute('aria-pressed', String(s.data.layout === key))
-      btn.addEventListener('mousedown', (e) => e.preventDefault())
-      btn.addEventListener('click', () => {
-        context.mutate(() => {
-          this.#syncFromDom(wrapper)
-          this.#changeLayout(wrapper, key, context)
-        })
-      })
-      actions.appendChild(btn)
-    }
-
-    wrapper.appendChild(actions)
-  }
-
-  /**
-   * @param {HTMLElement} wrapper
-   * @param {string} newLayout
-   * @param {import('../../plugin-kit/types').BlockMutationContext} context
-   * @returns {void}
-   */
-  #changeLayout(wrapper, newLayout, context) {
-    const newDef = LAYOUTS[newLayout]
-    if (!newDef) return
-
-    const s = stateMap.get(wrapper)
-    if (!s) return
-
-    s.data.columns = fitColumnsToLayout(s.data.columns, newDef.cols)
-
-    s.data.layout = newLayout
-    this.#build(wrapper, context)
-  }
+    },
+  })
 }
