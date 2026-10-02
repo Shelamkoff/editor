@@ -151,7 +151,7 @@ export class CarouselBlock extends BlockPluginAbstract {
   /**
    * Create the editable DOM owned by this block instance.
    * @param {Record<string, unknown>} data Serialized carousel data.
-   * @param {import('../../core/types').BlockMutationContext} context Editor mutation and lifecycle context.
+   * @param {import('../../plugin-kit/types').BlockMutationContext} context Editor mutation and lifecycle context.
    * @returns {HTMLElement} Root element owned by this block render.
    */
   render(data, context) {
