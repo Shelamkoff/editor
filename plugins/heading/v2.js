@@ -44,7 +44,7 @@ export function createHeadingPlugin(){
         if(payload?.kind!=='rich-text'||typeof payload.data?.text!=='string'){
           throw new TypeError('Heading can only import rich-text payloads')
         }
-        return {text:payload.data.text,level:2}
+        return {text:payload.data.text,level:/** @type {2} */(2)}
       },
     }),
     settings:Object.freeze({
