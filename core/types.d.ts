@@ -5,15 +5,23 @@ import type {
 } from '../shared/documentTypes.js'
 import type { LocaleValue } from '../shared/localeTypes.js'
 import type {
+  BasePlugin,
   BlockMutationContext,
+  IScopedI18n,
   InlineControlContext,
   InlineControlGroup,
+  InlinePlugin,
+  InlinePluginContext,
 } from '../plugin-kit/types.js'
 export type { LocaleValue, PluralForms } from '../shared/localeTypes.js'
 export type {
+  BasePlugin,
   BlockMutationContext,
+  IScopedI18n,
   InlineControlContext,
   InlineControlGroup,
+  InlinePlugin,
+  InlinePluginContext,
 } from '../plugin-kit/types.js'
 
 /** Explicit DOM aliases used by JavaScript JSDoc without colliding with Node.js types. */
@@ -47,17 +55,6 @@ export interface BlockData<
 }
 
 // ── Plugin API ───────────────────────────────────────────────────────────────
-
-/** Shared base for all plugin types (block plugins, inline widget plugins). */
-export interface BasePlugin {
-  readonly type: string
-  readonly title: string
-  readonly icon: string
-  /** Locale metadata for composition roots that aggregate dictionaries. */
-  readonly locale?: Record<string, Record<string, LocaleValue>>
-  /** Receive i18n instance for localized titles, labels, and placeholders. */
-  setI18n?(i18n: { t(key: string): string }): void
-}
 
 /**
  * Block plugin interface.
@@ -456,17 +453,6 @@ export interface I18nMessages extends CoreMessages {}
 /** Union of all known message keys (core + every loaded plugin). */
 export type MessageKey = keyof I18nMessages
 
-/**
- * Plugin-facing i18n surface — auto-prefixes every key with the plugin's
- * namespace. Backward-compatible with full keys (passed through untouched).
- */
-export interface IScopedI18n {
-  t(key: string, params?: Record<string, string | number>): string
-  has(key: string): boolean
-  plural(key: string, count: number, params?: Record<string, string | number>): string
-  scope(sub: string): IScopedI18n
-}
-
 // ── Block Instance ───────────────────────────────────────────────────────────
 
 export interface IBlock {
@@ -671,57 +657,6 @@ export interface IEditor {
 }
 
 // ── Inline Plugins ───────────────────────────────────────────────────────────
-
-export interface InlinePlugin extends BasePlugin {
-  /** Stylesheets declaratively owned by this plugin. */
-  readonly styles?: readonly string[]
-  /** Optional activation trigger. Must contain exactly one Unicode code point. */
-  readonly trigger?: string
-  /** Patterns that auto-convert pasted/typed text into this widget. */
-  readonly pasteConfig?: { patterns: RegExp[] }
-  /** Extract widget data from a matched pattern string. */
-  onPatternMatch?(match: string): Record<string, string>
-
-  /**
-   * Build a live widget DOM from saved data. `id` is the widget's stable
-   * instance identity (an `{{id}}` placeholder references it). When
-   * provided, the factory MUST set it on the root element as `data-id`;
-   * when omitted, the factory generates a fresh id (via `generateInlineId`).
-   */
-  createWidget(data: Record<string, string>, id?: string, context?: { readonly ownerDocument: Document }): HTMLElement
-  /** Acquire editor-scoped resources after the editor root and context exist. */
-  mount?(rootElement: HTMLElement, ctx: InlinePluginContext): void
-  hydrate(element: HTMLElement, ctx: InlinePluginContext): void
-  getData(element: HTMLElement): Record<string, string>
-  /** Return false for an in-progress widget that must be serialized as plain text. */
-  isCommitted?(element: HTMLElement): boolean
-  onEdit?(element: HTMLElement, text: string, ctx: InlinePluginContext): void
-  /** Called when the editor cancels an active trigger session. */
-  onCancel?(): void
-  onCommit?(element: HTMLElement, data: Record<string, string>): void
-  destroy?(): void
-
-  /**
-   * Optional custom insertion hook for programmatic "+" (toolbox) clicks.
-   *
-   * When defined, `insertInlinePluginAtCaret` calls this INSTEAD of the
-   * default `createWidget`-based flow. Useful for trigger-based plugins
-   * (mention, hashtag, …) that want `+` to feel exactly like typing the
-   * trigger character manually — inserting just the trigger text and
-   * letting the usual onEdit / dropdown flow take over from there.
-   */
-  insertFresh?(ctx: InlinePluginContext): void
-}
-
-export interface InlinePluginContext {
-  /** Current editor interaction mode. Mutation methods are inert when true. */
-  readonly readOnly: boolean
-  showPopup(anchor: HTMLElement, content: HTMLElement, cleanup?: () => void): void
-  hidePopup(): void
-  /** Execute one widget-local command as one undo/redo step. */
-  mutate<T>(target: DOMNode, operation: () => T): T | undefined
-  notifyChanged(target?: DOMNode): void
-}
 
 export interface IInlinePluginRegistry {
   register(plugin: InlinePlugin): void
