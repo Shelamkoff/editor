@@ -148,6 +148,7 @@ try {
 
   const consumerSource = `
 import { createEditor, DocumentSchema } from '@shelamkoff/rector'
+import { normalizeRichText, sanitizeHtml as sanitizePluginHtml } from '@shelamkoff/rector/plugin-kit'
 import { Attaches, CarouselBlock, Embed, LinkPreview, Paragraph, Person, Poll } from '@shelamkoff/rector/plugins'
 import { createBlockPluginsAsync } from '@shelamkoff/rector/plugins/async'
 import { createMentionPlugin } from '@shelamkoff/rector/inline-plugins/mention'
@@ -204,7 +205,7 @@ function usePublicEditorApi(editor = createEditor({
   void editor.setReadOnly(!editor.readOnly)
   return available
 }
-void [createEditor, DocumentSchema, Paragraph, Person, configuredPlugins, createBlockPluginsAsync, mentionPlugin, createBoldTool, createEditorRenderer, createDefaultRenderersAsync, EventBus, ColorPicker, parseColorInput, Carousel, Cropper, Expose, colorPickerStylesUrl, carouselStylesUrl, cropperStylesUrl, exposeStylesUrl, usePublicEditorApi]
+void [createEditor, DocumentSchema, normalizeRichText, sanitizePluginHtml, Paragraph, Person, configuredPlugins, createBlockPluginsAsync, mentionPlugin, createBoldTool, createEditorRenderer, createDefaultRenderersAsync, EventBus, ColorPicker, parseColorInput, Carousel, Cropper, Expose, colorPickerStylesUrl, carouselStylesUrl, cropperStylesUrl, exposeStylesUrl, usePublicEditorApi]
 `
   await writeFile(join(consumerRoot, 'src/main.js'), consumerSource, 'utf8')
   const consumerTypeSource = `${consumerSource}
