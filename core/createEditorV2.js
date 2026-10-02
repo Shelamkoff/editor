@@ -21,6 +21,7 @@ import { InlineTriggerController } from './InlineTriggerController.js'
 import { EditorBlocksApiV2, EditorHandleV2 } from './PublicEditorApiV2.js'
 import { ChangeNotifier } from './ChangeNotifier.js'
 import { BlockToolbarV2 } from './BlockToolbarV2.js'
+import { ClipboardControllerV2 } from './ClipboardControllerV2.js'
 
 const CORE_STYLE_URLS=Object.freeze([
   new URL('./themes/variables.css',import.meta.url).href,
@@ -239,6 +240,15 @@ export function createEditorV2(input){
     commands:inlineCommands,
   })
 
+  const clipboard=new ClipboardControllerV2({
+    root,
+    runtime,
+    registry,
+    reconciler,
+    selection:logicalSelection,
+    view,
+  })
+
   toolbar=new BlockToolbarV2({
     root,
     runtime,
@@ -290,6 +300,7 @@ export function createEditorV2(input){
     destroyed=true
     root.removeEventListener('focusin',onFocusIn)
     triggers.destroy()
+    clipboard.destroy()
     toolbar?.destroy()
     keyboardRouter?.destroy()
     nativeInput.destroy()

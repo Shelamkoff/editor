@@ -445,6 +445,25 @@ export class DocumentRuntime {
     })
   }
 
+  replaceBlock(id, type, data) {
+    this.#assertWritable()
+    const current = this.#store.get(id)
+    if (!current) throw new Error(`Unknown block id: ${id}`)
+    const definition = this.#registry.getBlockDefinition(type)
+    if (!definition) throw new Error(`Unknown block type: ${type}`)
+    const encoded = this.#normalizeLocalData(definition, data)
+    const next = {
+      id,
+      type,
+      dataVersion: encoded.dataVersion,
+      data: encoded.data,
+    }
+    if (current.tunes !== undefined) next.tunes = cloneTunes(current.tunes)
+    this.#engine.execute({ origin: 'external', name: 'block.replace' }, tx => {
+      tx.update(id, next)
+    })
+  }
+
   convert(id, target) {
     this.#assertWritable()
     const current = this.#store.get(id)
