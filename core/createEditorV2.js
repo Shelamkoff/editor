@@ -20,6 +20,7 @@ import { InlineCommandController } from './InlineCommandController.js'
 import { InlineTriggerController } from './InlineTriggerController.js'
 import { EditorBlocksApiV2, EditorHandleV2 } from './PublicEditorApiV2.js'
 import { ChangeNotifier } from './ChangeNotifier.js'
+import { BlockToolbarV2 } from './BlockToolbarV2.js'
 
 const CORE_STYLE_URLS=Object.freeze([
   new URL('./themes/variables.css',import.meta.url).href,
@@ -152,6 +153,7 @@ export function createEditorV2(input){
   let interaction
   let view
   let notifier
+  let toolbar=null
   let destroyed=false
 
   const popup=new InlinePopupHost({
@@ -237,6 +239,23 @@ export function createEditorV2(input){
     commands:inlineCommands,
   })
 
+  toolbar=new BlockToolbarV2({
+    root,
+    runtime,
+    registry,
+    view,
+    selection:logicalSelection,
+    inlineCommands,
+    translate:(key,fallback='')=>{
+      const translated=i18n.t(key)
+      return translated===key?fallback:translated
+    },
+    t:(key,fallback='')=>{
+      const translated=i18n.t(key)
+      return translated===key?fallback:translated
+    },
+  })
+
   keyboardRouter=new KeyboardRouter({
     root,
     runtime,
@@ -248,7 +267,10 @@ export function createEditorV2(input){
 
   const onFocusIn=event=>{
     const blockId=reconciler.resolveBlockTarget(event.target)
-    if(blockId)interaction.setCurrent(blockId)
+    if(blockId){
+      interaction.setCurrent(blockId)
+      toolbar?.showFor(blockId)
+    }
   }
   root.addEventListener('focusin',onFocusIn)
 
@@ -268,6 +290,7 @@ export function createEditorV2(input){
     destroyed=true
     root.removeEventListener('focusin',onFocusIn)
     triggers.destroy()
+    toolbar?.destroy()
     keyboardRouter?.destroy()
     nativeInput.destroy()
     notifier.destroy()
@@ -283,6 +306,7 @@ export function createEditorV2(input){
     runtime.setReadOnly(value)
     popup.setReadOnly(runtime.readOnly)
     applyReadOnly(root,runtime.readOnly)
+    toolbar?.setReadOnly(runtime.readOnly)
     emitSafe(events,'readOnly:changed',{readOnly:runtime.readOnly})
     emitSafe(events,'history:changed',{canUndo:runtime.canUndo,canRedo:runtime.canRedo})
   }

@@ -321,7 +321,7 @@ export class BlockReconciler {
 
     if (!this.#registry.hasBlock(record.type) || !this.#activationResolver(record.id, record)) {
       const element = ownerDocument.createElement('div')
-      element.className = 'oe-preserved-block'
+      element.className = 'oe-block oe-preserved-block'
       element.contentEditable = 'false'
       element.dataset.oePreservedBlock = record.type
       element.dataset.blockId = record.id
@@ -365,6 +365,7 @@ export class BlockReconciler {
       definition,
       baseContext: base,
     }
+    instance.element.classList.add('oe-block')
     instance.element.dataset.blockId = record.id
     instance.element.dataset.blockType = record.type
     this.#blockOwners.set(instance.element, record.id)
