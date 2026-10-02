@@ -1,4 +1,4 @@
-import { editableFields, editableAtBoundary } from './editableFields.js'
+import { editableFields, editableAtBoundary } from '../shared/editableFields.js'
 import { getTextOffset, getTextLength, findNodeAtOffset } from '../shared/textOffset.js'
 
 /** @typedef {import('./types').ISelectionManager} ISelectionManagerContract */
