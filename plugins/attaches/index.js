@@ -48,7 +48,7 @@ const VARIANT_META = {
  *   viewController: AbortController | null,
  *   taskControllers: Set<AbortController>,
  *   expanded: boolean,
- *   context: import('../../core/types').BlockMutationContext,
+ *   context: import('../../plugin-kit/types').BlockMutationContext,
  * }} AttachesState
  */
 
@@ -118,7 +118,7 @@ export class Attaches extends BlockPluginAbstract {
   /**
    * Create the editable DOM owned by this block instance.
    * @param {Record<string, unknown>} data
-   * @param {import('../../core/types').BlockMutationContext} context
+   * @param {import('../../plugin-kit/types').BlockMutationContext} context
    * @returns {HTMLElement}
    */
   render(data, context) {
