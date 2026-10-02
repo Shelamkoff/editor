@@ -1,6 +1,6 @@
-import { setSanitizedHtml, setTrustedHtml } from '../../core/sanitize.js'
+import { setSanitizedHtml, setTrustedHtml } from '../../plugin-kit/index.js'
 import { appendMergeField } from '../shared/appendMergeField.js'
-import { sanitizeHtml } from '../../core/sanitize.js'
+import { sanitizeHtml } from '../../plugin-kit/index.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { validateToggleData } from '../../shared/blockDataValidators.js'
 import { mapToggleTextFields } from '../../shared/mapTextFields.js'
