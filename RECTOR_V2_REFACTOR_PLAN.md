@@ -240,7 +240,19 @@ Persisted/exported envelope:
       version: "2.0.0"
     }
 
-time is export metadata, not canonical document state. DocumentState/history/equality do not store or compare time. export/save may attach the current serialization timestamp.
+time is export metadata, not editable canonical document state. DocumentState/history/equality do not compare time.
+
+For current editable documents, save/export attaches the current serialization timestamp.
+
+For preserved-document mode, retain the normalized source envelope metadata separately:
+
+    interface PreservedDocumentMetadata {
+      time?: number
+    }
+
+Because preserved-document mode forbids persisted mutation, export returns the preserved version/blocks and the original valid finite time value when one existed. It does not replace that time with Date.now() until the document has been successfully migrated/replaced into editable current-version state.
+
+"Lossless preserve" means lossless for the supported normalized envelope fields (version, blocks, valid time) and opaque block/widget JSON. Unknown top-level properties are not part of the EditorDocument contract and are not implicitly preserved.
 
 DocumentSchema owns only:
 
@@ -258,7 +270,7 @@ Retain the existing documentVersionPolicy semantics:
 
 A preserved document whose envelope version is not the current supported version enters preserved-document mode:
 
-- the canonical JSON document remains exportable losslessly;
+- the normalized supported document envelope remains exportable without changing its declared version, blocks, opaque payloads or valid input time;
 - persisted mutations and history commands are disabled while that document is active;
 - setReadOnly(false) is rejected;
 - safely decodable known blocks may be projected for inspection, but unknown/future envelope semantics are never interpreted as current-v2 writable state;
@@ -488,6 +500,8 @@ Define and test one canonical policy for:
 - browser-generated formatting markup.
 
 Do not persist element.innerHTML directly from Paragraph, Heading or other rich-text plugins.
+
+RichTextCodec applies only to fields declared by BlockDataSchema.mapRichText. Raw/code/plain-text payloads keep their own explicit schema/security policy. In particular, the Raw block uses the separate sanitized-raw-HTML policy at active rendering boundaries; do not run Raw HTML through the inline-formatting RichTextCodec allowlist and silently change its semantics.
 
 Trusted Types and HTML sinks remain centralized.
 
@@ -799,6 +813,8 @@ Separate plugin definition from mounted block instance.
     interface BlockPluginRuntimeContext {
       readonly ownerDocument: Document
       readonly signal: AbortSignal
+      readonly isDefaultBlock: boolean
+      readonly editorPlaceholder?: string
 
       t(key: string, fallback?: string): string
     }
@@ -892,7 +908,7 @@ Common style configuration:
 
 Each built-in config extends ExtensionStyleConfig with its domain options. Existing capabilities such as uploadFile, custom actions, preview resolvers, placeholders and plugin-specific options must remain expressible through the corresponding v2 factory.
 
-Editor-level placeholder remains composition configuration. ExtensionRegistry passes it through the runtime context only to the configured default block definition when that definition supports a placeholder option; an explicitly configured plugin placeholder retains priority. Do not reintroduce a mutable setPlaceholder setter.
+Editor-level placeholder remains composition configuration. ExtensionRegistry sets isDefaultBlock and editorPlaceholder on BlockPluginRuntimeContext. A built-in definition that supports placeholders resolves an explicitly captured plugin placeholder first, then editorPlaceholder when it is the default block. Do not reintroduce a mutable setPlaceholder setter.
 
 Configuration rules:
 
@@ -901,8 +917,10 @@ Configuration rules:
 - mutable consumer config objects cannot mutate a live definition;
 - callback functions remain callable references but their containing config object is immutable from Rector's perspective;
 - injectStyles defaults to true;
-- when injectStyles is true, definition.styles are acquired and css (if present) is acquired after them;
-- when injectStyles is false, definition.styles are not acquired and css (if present) is the only extension stylesheet URL;
+- the factory resolves injectStyles/css into the immutable definition.styles list exactly once;
+- when injectStyles is true, definition.styles contains built-in stylesheet URLs followed by css when present;
+- when injectStyles is false, definition.styles contains only css when present;
+- ExtensionRegistry only acquires definition.styles; it does not reread hidden plugin config;
 - css is a stylesheet URL, never raw CSS text;
 - style ownership/ref-counting is per ownerDocument and released when the last runtime owner is destroyed;
 - one immutable definition may be reused by several editors without sharing editor-scoped mutable state.
@@ -1899,7 +1917,8 @@ It resolves the current logical selection, validates the widget schema, updates 
 save/export semantics:
 
 - save/export materializes block order from canonical DocumentState and deep-clones JSON for the caller;
-- save/export may set time = Date.now() at serialization time;
+- editable-mode save/export sets time = Date.now() at serialization time;
+- preserved-document-mode save/export retains PreservedDocumentMetadata.time;
 - time never creates a history difference and never causes a block/document update.
 
 Public render semantics:
@@ -2755,7 +2774,8 @@ Security:
 - registered block/widget with unsupported future dataVersion remains inert on preserve-mode ingestion;
 - strict mode rejects unsupported/malformed activated payloads;
 - preserve mode still rejects locally generated invalid updates;
-- unknown/incomplete document version is losslessly inspectable but not writable in preserve mode;
+- unknown/incomplete document version is inspectable but not writable in preserve mode;
+- preserved export retains the original valid input time while editable export generates a fresh serialization time;
 - setReadOnly(false) cannot bypass preserved-document mode;
 - cross-realm editing/rendering preserved.
 
@@ -2850,7 +2870,8 @@ Correctness:
 - live-DOM and canonical rich-text logical offsets agree for BR/widgets;
 - unknown, malformed-preserved and unsupported-future block/widget data are preserved inertly;
 - migrations are deterministic and never downgrade unsupported future versions;
-- documentVersionPolicy preserve/strict semantics remain explicit and unknown envelope versions are never silently promoted to v2.
+- documentVersionPolicy preserve/strict semantics remain explicit and unknown envelope versions are never silently promoted to v2;
+- preserved-document export does not mutate supported source metadata such as a valid input time.
 
 Security:
 
