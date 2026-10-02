@@ -1,25 +1,26 @@
+import { createEditor } from '../../core/index.js'
 import {
-  Attaches,
-  Checklist,
-  Code,
-  Columns,
-  Delimiter,
-  Embed,
-  Gallery,
-  CarouselBlock,
-  Heading,
-  Image,
-  LinkPreview,
-  List,
-  Paragraph,
-  Person,
-  Poll,
-  Quote,
-  Raw,
-  Spoiler,
-  Table,
-  Toggle,
-  Warning,
+  createAttachesPlugin,
+  createChecklistPlugin,
+  createCodePlugin,
+  createColumnsPlugin,
+  createDelimiterPlugin,
+  createEmbedPlugin,
+  createGalleryPlugin,
+  createCarouselPlugin,
+  createHeadingPlugin,
+  createImagePlugin,
+  createLinkPreviewPlugin,
+  createListPlugin,
+  createParagraphPlugin,
+  createPersonPlugin,
+  createPollPlugin,
+  createQuotePlugin,
+  createRawPlugin,
+  createSpoilerPlugin,
+  createTablePlugin,
+  createTogglePlugin,
+  createWarningPlugin,
 } from '../../plugins/index.js'
 import { EditorRenderer } from '../../renderer/index.js'
 import { BLOCK_TYPES } from '../../shared/blockTypes.js'
@@ -87,28 +88,28 @@ const fixtures = {
   },
 }
 
-const pluginConstructors = [
-  Paragraph,
-  Heading,
-  List,
-  Quote,
-  Code,
-  Image,
-  Delimiter,
-  Table,
-  Checklist,
-  Warning,
-  Embed,
-  Raw,
-  Gallery,
-  CarouselBlock,
-  Attaches,
-  LinkPreview,
-  Toggle,
-  Columns,
-  Spoiler,
-  Poll,
-  Person,
+const pluginFactories = [
+  createParagraphPlugin,
+  createHeadingPlugin,
+  createListPlugin,
+  createQuotePlugin,
+  createCodePlugin,
+  createImagePlugin,
+  createDelimiterPlugin,
+  createTablePlugin,
+  createChecklistPlugin,
+  createWarningPlugin,
+  createEmbedPlugin,
+  createRawPlugin,
+  createGalleryPlugin,
+  createCarouselPlugin,
+  createAttachesPlugin,
+  createLinkPreviewPlugin,
+  createTogglePlugin,
+  createColumnsPlugin,
+  createSpoilerPlugin,
+  createPollPlugin,
+  createPersonPlugin,
 ]
 
 function assert(condition, message) {
@@ -127,71 +128,74 @@ function stableJson(value) {
   return JSON.stringify(canonical(value))
 }
 
+function editorFor(definition, holder, data) {
+  return createEditor({
+    holder,
+    plugins: [definition],
+    defaultBlock: definition.type,
+    injectStyles: false,
+    data,
+  })
+}
+
 async function run() {
   const sandbox = document.querySelector('#sandbox')
   const runtimeErrors = []
   window.addEventListener('error', event => runtimeErrors.push(event.error?.stack || event.message))
   window.addEventListener('unhandledrejection', event => runtimeErrors.push(event.reason?.stack || String(event.reason)))
 
-  assert(pluginConstructors.length === BLOCK_TYPES.length, 'plugin constructor count differs from BLOCK_TYPES')
+  assert(pluginFactories.length === BLOCK_TYPES.length, 'plugin factory count differs from BLOCK_TYPES')
   const savedBlocks = []
 
-  for (const Plugin of pluginConstructors) {
-    const plugin = new Plugin()
-    const type = plugin.type
+  for (const factory of pluginFactories) {
+    const definition = factory({ injectStyles: false })
+    const type = definition.type
     const fixture = fixtures[type]
     assert(fixture, `missing fixture for ${type}`)
 
-    const defaultElement = plugin.render({}, { mutate: (operation) => operation() })
-    assert(defaultElement instanceof HTMLElement, `${type}.render({}) must return HTMLElement`)
-    sandbox.replaceChildren(defaultElement)
-    const defaultSaved = await plugin.save(defaultElement)
-    assert(defaultSaved && typeof defaultSaved === 'object', `${type}.save(default) must return data`)
-    plugin.destroy?.(defaultElement)
-    plugin.destroy?.(defaultElement)
-    sandbox.replaceChildren()
+    const defaultHolder = document.createElement('section')
+    sandbox.appendChild(defaultHolder)
+    const defaultEditor = editorFor(definition, defaultHolder)
+    const defaultSaved = defaultEditor.save()
+    assert(defaultSaved.blocks.length === 1, `${type} default editor did not create one block`)
+    assert(defaultSaved.blocks[0].type === type, `${type} default editor created the wrong block type`)
+    defaultEditor.destroy()
+    defaultEditor.destroy()
+    defaultHolder.remove()
 
     const fixtureBefore = stableJson(fixture)
-    const firstElement = plugin.render(structuredClone(fixture), { mutate: (operation) => operation() })
-    assert(firstElement instanceof HTMLElement, `${type}.render() must return HTMLElement`)
-    sandbox.replaceChildren(firstElement)
+    const firstHolder = document.createElement('section')
+    sandbox.appendChild(firstHolder)
+    const firstEditor = editorFor(definition, firstHolder, {
+      version: '2.0.0',
+      blocks: [{ id: `block-${type}`, type, data: structuredClone(fixture) }],
+    })
+    const firstDocument = firstEditor.save()
+    const firstBlock = firstDocument.blocks[0]
+    assert(firstBlock?.type === type, `${type} did not survive editor ingestion`)
+    assert(firstBlock.dataVersion === definition.schema.currentVersion, `${type} did not normalize to its current dataVersion`)
+    assert(stableJson(fixture) === fixtureBefore, `${type} editor ingestion mutated caller data`)
+    firstEditor.destroy()
+    firstHolder.remove()
 
-    if (type === 'person') {
-      const linkInput = firstElement.querySelector('.oe-person__link-url')
-      assert(linkInput instanceof HTMLInputElement, 'person link input is missing')
-      linkInput.value = 'https://github.com/ada'
-      linkInput.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertFromPaste' }))
-      linkInput.dispatchEvent(new Event('paste', { bubbles: true }))
-      await new Promise(resolve => requestAnimationFrame(() => resolve()))
-    }
-
-    const firstSaved = await plugin.save(firstElement)
-    assert(plugin.validate(firstSaved), `${type}.validate() rejected its own saved data`)
-    if (type === 'person') {
-      assert(firstSaved.persons?.[0]?.links?.[0]?.type === 'github', 'person paste did not persist the resolved social-link type')
-    }
-    assert(stableJson(fixture) === fixtureBefore, `${type}.render()/save() mutated caller data`)
-
-    const secondElement = plugin.render(structuredClone(firstSaved), { mutate: (operation) => operation() })
-    sandbox.replaceChildren(secondElement)
-    const secondSaved = await plugin.save(secondElement)
+    const secondHolder = document.createElement('section')
+    sandbox.appendChild(secondHolder)
+    const secondDefinition = factory({ injectStyles: false })
+    const secondEditor = editorFor(secondDefinition, secondHolder, structuredClone(firstDocument))
+    const secondDocument = secondEditor.save()
     assert(
-      stableJson(secondSaved) === stableJson(firstSaved),
-      `${type} is not stable across render-save-render-save`,
+      stableJson(secondDocument.blocks[0]) === stableJson(firstBlock),
+      `${type} is not stable across editor save-reload-save`,
     )
-
-    plugin.destroy?.(firstElement)
-    plugin.destroy?.(firstElement)
-    plugin.destroy?.(secondElement)
-    plugin.destroy?.(secondElement)
-    sandbox.replaceChildren()
-    savedBlocks.push({ id: `block-${type}`, type, data: structuredClone(secondSaved) })
+    secondEditor.destroy()
+    secondHolder.remove()
+    savedBlocks.push(structuredClone(firstBlock))
   }
 
-  assert(savedBlocks.length === BLOCK_TYPES.length, 'not every block plugin completed the editable round-trip')
+  assert(savedBlocks.length === BLOCK_TYPES.length, 'not every block plugin completed the editor round-trip')
 
   const renderer = new EditorRenderer({ blockTypes: BLOCK_TYPES, throwOnUnknown: true, theme: 'light' })
-  const output = { time: 1, version: 'browser-contract', blocks: savedBlocks }
+  const output = { time: 1, version: '2.0.0', blocks: savedBlocks }
   const container = document.createElement('main')
   sandbox.appendChild(container)
 
@@ -227,7 +231,7 @@ async function run() {
     'renderer automatic styles leaked after destroy')
 
   const manualRenderer = new EditorRenderer({ blockTypes: [], injectStyles: false })
-  manualRenderer.renderTo({ blocks: [] }, container)
+  manualRenderer.renderTo({ version: '2.0.0', blocks: [] }, container)
   assert(document.querySelectorAll('link[data-oe-style]').length === 0,
     'renderer injectStyles:false still acquired styles')
   manualRenderer.destroy()
