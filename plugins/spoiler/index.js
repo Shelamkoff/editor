@@ -29,6 +29,15 @@ export function createSpoilerPlugin(){
         return {label:append(target.label,source.label),content:append(target.content,source.content)}
       },
     }),
+    shortcuts:Object.freeze({
+      handle(input){
+        if(input.fieldKey==='label'&&input.key==='Enter'&&!input.shiftKey){
+          return {kind:'focus',target:{fieldKey:'content',offset:'start'}}
+        }
+        if(input.fieldKey==='content'&&input.key==='Enter'&&!input.shiftKey)return {kind:'native'}
+        return null
+      },
+    }),
     conversion:Object.freeze({
       export(data){
         return {kind:'rich-text',data:{text:[data.label,data.content].filter(Boolean).join('<br>')}}
@@ -102,18 +111,6 @@ export function createSpoilerPlugin(){
             event.stopPropagation()
             if(!instanceDestroyed)projectOpen(!open)
           },{signal:context.signal})
-          label.addEventListener('keydown',event=>{
-            if(readOnly||instanceDestroyed)return
-            if(event.key==='Enter'&&!event.shiftKey){
-              event.preventDefault()
-              event.stopPropagation()
-              projectOpen(true)
-              content.focus()
-            }
-          },{signal:context.signal})
-          content.addEventListener('keydown',event=>{
-            if(!readOnly&&event.key==='Enter'&&!event.shiftKey)event.stopPropagation()
-          },{signal:context.signal})
 
           applyReadOnly(readOnly)
 
@@ -132,6 +129,7 @@ export function createSpoilerPlugin(){
             setReadOnly:applyReadOnly,
             focus(target){
               if(instanceDestroyed||readOnly)return
+              if(target?.fieldKey==='content')projectOpen(true)
               ;(target?.fieldKey==='content'?content:label).focus()
             },
             destroy(){instanceDestroyed=true},

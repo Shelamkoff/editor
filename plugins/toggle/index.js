@@ -34,6 +34,15 @@ export function createTogglePlugin(){
         }
       },
     }),
+    shortcuts:Object.freeze({
+      handle(input,data){
+        if(input.fieldKey==='title'&&input.key==='Enter'&&!input.shiftKey){
+          return {kind:'update',data:{...data,open:true},focus:{fieldKey:'content',offset:'start'}}
+        }
+        if(input.fieldKey==='content'&&input.key==='Enter'&&!input.shiftKey)return {kind:'native'}
+        return null
+      },
+    }),
     conversion:Object.freeze({
       export(data){
         return {kind:'rich-text',data:{text:[data.title,data.content].filter(Boolean).join('<br>')}}
@@ -117,18 +126,6 @@ export function createTogglePlugin(){
             event.stopPropagation()
             if(instanceDestroyed)return
             commitOpen(!viewOpen)
-          },{signal:context.signal})
-          title.addEventListener('keydown',event=>{
-            if(readOnly||instanceDestroyed)return
-            if(event.key==='Enter'&&!event.shiftKey){
-              event.preventDefault()
-              event.stopPropagation()
-              commitOpen(true)
-              body.focus()
-            }
-          },{signal:context.signal})
-          body.addEventListener('keydown',event=>{
-            if(!readOnly&&event.key==='Enter'&&!event.shiftKey)event.stopPropagation()
           },{signal:context.signal})
 
           applyReadOnly(readOnly)
