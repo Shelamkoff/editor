@@ -23,6 +23,7 @@ import { ChangeNotifier } from './ChangeNotifier.js'
 import { BlockToolbarV2 } from './BlockToolbarV2.js'
 import { ClipboardControllerV2 } from './ClipboardControllerV2.js'
 import { DragControllerV2 } from './DragControllerV2.js'
+import { InlineToolbarV2 } from './InlineToolbarV2.js'
 
 const CORE_STYLE_URLS=Object.freeze([
   new URL('./themes/variables.css',import.meta.url).href,
@@ -66,9 +67,19 @@ function snapshotEditorConfig(input){
   const config={...input}
   config.plugins=snapshotDenseArray(config.plugins,'plugins',{required:true})
   config.inlinePlugins=snapshotDenseArray(config.inlinePlugins,'inlinePlugins')
+  config.inlineTools=snapshotDenseArray(config.inlineTools,'inlineTools')
   config.migrations=snapshotDenseArray(config.migrations,'migrations')
 
   if(config.plugins.length===0)throw new TypeError('createEditor() requires a non-empty plugins array')
+  if(config.inlineTools){
+    const types=new Set()
+    for(const tool of config.inlineTools){
+      if(!tool||typeof tool!=='object'||typeof tool.type!=='string'||!tool.type)throw new TypeError('createEditor() inline tool must have a non-empty string type')
+      if(typeof tool.icon!=='string'||typeof tool.isActive!=='function'||typeof tool.toggle!=='function')throw new TypeError(`createEditor() inline tool "${tool.type}" is invalid`)
+      if(types.has(tool.type))throw new Error(`Duplicate inline tool type: ${tool.type}`)
+      types.add(tool.type)
+    }
+  }
   for(const field of ['readOnly','injectStyles','autofocus']){
     if(config[field]!==undefined&&typeof config[field]!=='boolean')throw new TypeError(`createEditor() ${field} must be a boolean`)
   }
@@ -110,6 +121,7 @@ function snapshotEditorConfig(input){
  *   holder: HTMLElement,
  *   plugins: import('../plugin-kit/types').BlockPluginDefinition[],
  *   inlinePlugins?: import('../plugin-kit/types').InlinePluginDefinition[],
+ *   inlineTools?: import('../inline-tools/types').InlineTool[],
  *   data?: unknown,
  *   defaultBlock?: string,
  *   placeholder?: string,
@@ -273,6 +285,15 @@ export function createEditorV2(input){
     handle:toolbar.dragHandle,
   })
 
+  const inlineToolbar=new InlineToolbarV2({
+    root,
+    runtime,
+    registry,
+    reconciler,
+    selection:logicalSelection,
+    tools:config.inlineTools??[],
+  })
+
   keyboardRouter=new KeyboardRouter({
     root,
     runtime,
@@ -280,6 +301,7 @@ export function createEditorV2(input){
     reconciler,
     selection:logicalSelection,
     view,
+    inlineToolbar,
   })
 
   const onFocusIn=event=>{
@@ -309,6 +331,7 @@ export function createEditorV2(input){
     triggers.destroy()
     clipboard.destroy()
     drag.destroy()
+    inlineToolbar.destroy()
     toolbar?.destroy()
     keyboardRouter?.destroy()
     nativeInput.destroy()
@@ -326,6 +349,7 @@ export function createEditorV2(input){
     popup.setReadOnly(runtime.readOnly)
     applyReadOnly(root,runtime.readOnly)
     toolbar?.setReadOnly(runtime.readOnly)
+    inlineToolbar.setReadOnly(runtime.readOnly)
     emitSafe(events,'readOnly:changed',{readOnly:runtime.readOnly})
     emitSafe(events,'history:changed',{canUndo:runtime.canUndo,canRedo:runtime.canRedo})
   }

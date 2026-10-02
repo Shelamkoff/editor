@@ -31,8 +31,9 @@ export class KeyboardRouter {
   #selection
   #view
   #controller
+  #inlineToolbar
 
-  constructor({ root, runtime, registry, reconciler, selection, view }) {
+  constructor({ root, runtime, registry, reconciler, selection, view, inlineToolbar = null }) {
     if (!root?.addEventListener) throw new TypeError('KeyboardRouter requires an event root')
     if (!runtime?.splitBlock || !runtime?.mergeAdjacent) throw new TypeError('KeyboardRouter requires a DocumentRuntime')
     if (!registry?.getBlockDefinition) throw new TypeError('KeyboardRouter requires an ExtensionRegistry')
@@ -46,6 +47,7 @@ export class KeyboardRouter {
     this.#reconciler = reconciler
     this.#selection = selection
     this.#view = view
+    this.#inlineToolbar = inlineToolbar
 
     const AbortControllerCtor = root.ownerDocument?.defaultView?.AbortController ?? AbortController
     this.#controller = new AbortControllerCtor()
@@ -60,6 +62,7 @@ export class KeyboardRouter {
     const mod = event?.metaKey === true || event?.ctrlKey === true
 
     if (mod && !event?.altKey) {
+      if(this.#inlineToolbar?.handleShortcut?.(event))return
       if (lower === 'z') {
         event.preventDefault?.()
         if (event?.shiftKey) this.#redo()

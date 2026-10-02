@@ -73,6 +73,7 @@ async function initEditor() {
     { createTablePlugin },
     { createColorSwatchPlugin, createColorSwatchRenderer },
     { createMentionPlugin, createMentionRenderer },
+    { createDefaultInlineTools },
     localeModule,
     { EditorRenderer },
   ] = await Promise.all([
@@ -100,6 +101,7 @@ async function initEditor() {
     import('../../../../plugins/table/index.js'),
     import('../../../../inline-plugins/color.js'),
     import('../../../../inline-plugins/mention/index.js'),
+    import('../../../../inline-tools/defaults.js'),
     props.lang === 'ru'
       ? import('../../../../locale/ru.js')
       : import('../../../../locale/en.js'),
@@ -153,6 +155,7 @@ async function initEditor() {
       createDelimiterPlugin({ injectStyles: false }), createTablePlugin({ injectStyles: false }),
     ],
     inlinePlugins: [createColorSwatchPlugin(), mention],
+    inlineTools: createDefaultInlineTools(),
     minHeight: 280,
     onChange(data: any) {
       jsonOutput.value = highlightJson(data)

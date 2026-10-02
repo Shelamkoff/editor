@@ -4,13 +4,14 @@ import type {
   FocusTarget,
   InlinePluginDefinition,
 } from '../plugin-kit/types.js'
+import type { InlineTool } from '../inline-tools/types.js'
 import type {
   EditorBlockData,
   EditorInlineWidget,
   EditorOutputData,
 } from '../shared/documentTypes.js'
 
-export type { BlockPluginDefinition, ConversionPayload, FocusTarget, InlinePluginDefinition }
+export type { BlockPluginDefinition, ConversionPayload, FocusTarget, InlinePluginDefinition, InlineTool }
 export type { EditorBlockData, EditorInlineWidget, EditorOutputData }
 
 export type DocumentMode = 'editable' | 'preserved'
@@ -102,6 +103,7 @@ export interface EditorConfig {
   holder: HTMLElement
   plugins: readonly BlockPluginDefinition[]
   inlinePlugins?: readonly InlinePluginDefinition[]
+  inlineTools?: readonly InlineTool[]
   data?: EditorDocument
   defaultBlock?: string
   placeholder?: string
