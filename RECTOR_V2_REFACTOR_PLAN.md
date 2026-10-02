@@ -193,16 +193,20 @@ Rules:
 Canonical whole-document value used by replacement/history:
 
     interface CanonicalDocument {
-      version: "2.0.0"
+      version: string
       blocks: readonly BlockRecord[]
     }
 
-Persisted/exported v2 envelope:
+Persisted/exported envelope:
 
-    interface EditorDocumentV2 {
-      version: "2.0.0"
+    interface EditorDocument {
+      version: string
       time?: number
       blocks: BlockRecord[]
+    }
+
+    interface EditorDocumentV2 extends EditorDocument {
+      version: "2.0.0"
     }
 
 time is export metadata, not canonical document state. DocumentState/history/equality do not store or compare time. export/save may attach the current serialization timestamp.
@@ -214,6 +218,23 @@ DocumentSchema owns only:
 - JSON compatibility;
 - duplicate ID rejection;
 - structural document invariants.
+
+Retain the existing documentVersionPolicy semantics:
+
+- strict requires a complete migration path to the current document version;
+- preserve applies every reachable migration and keeps the last structurally valid declared version when the chain is incomplete or unknown;
+- preserve never relabels an unknown document version as 2.0.0.
+
+A preserved document whose envelope version is not the current supported version enters preserved-document mode:
+
+- the canonical JSON document remains exportable losslessly;
+- persisted mutations and history commands are disabled while that document is active;
+- setReadOnly(false) is rejected;
+- safely decodable known blocks may be projected for inspection, but unknown/future envelope semantics are never interpreted as current-v2 writable state;
+- renderer sanitization/security rules still apply;
+- replacing the document with a supported/current document leaves preserved-document mode.
+
+Preserved-document mode is runtime state, not a persisted field.
 
 DocumentSchema must not contain plugin-specific data migrations.
 
@@ -260,7 +281,7 @@ Activation policy for external/imported data:
 
 - a registered type is activated only after its schema successfully decodes the supplied version/data;
 - an unsupported future dataVersion is never coerced to currentVersion;
-- in validationMode "preserve", unknown types, unsupported future versions and malformed known payloads remain byte/JSON-preserved as inert read-only blocks and report the validation issue;
+- in validationMode "preserve", unknown types, unsupported future versions and malformed known JSON payloads remain JSON-preserved as inert read-only blocks and report the validation issue;
 - in validationMode "strict", those cases reject the document operation;
 - preservation status is runtime metadata and is not written into the persisted block envelope;
 - a later editor instance with a compatible plugin/schema may activate the same preserved record without data loss.
@@ -949,7 +970,7 @@ Internal interface consumed by EditorFacade and InteractionRuntime:
     interface DocumentRuntime {
       get(id: string): Readonly<BlockRecord> | undefined
       list(): readonly Readonly<BlockRecord>[]
-      export(): EditorDocumentV2
+      export(): EditorDocument
 
       transact<T>(
         metadata: TransactionMetadata,
@@ -957,7 +978,7 @@ Internal interface consumed by EditorFacade and InteractionRuntime:
       ): T
 
       replace(
-        document: EditorDocumentV2,
+        document: EditorDocument,
         metadata: TransactionMetadata
       ): void
 
@@ -1189,6 +1210,8 @@ History replay:
 - does not re-run block/widget migrations because history records contain already-canonical immutable records.
 
 A failed history projection leaves the history cursor and committed DocumentState at the pre-replay position.
+
+If a document.replace history record crosses between a supported document and a preserved-version document, replay also restores the corresponding documentMode.
 
 ## 15. NativeInputController
 
@@ -1464,6 +1487,12 @@ BlockUpdate.data omitted means unchanged. BlockUpdate.tunes omitted means unchan
 
 EditorBlocksApi.update cannot directly replace block.inline; inline payload/reference changes go through inline widget commands so placeholder/map invariants stay atomic.
 
+IEditor exposes whether the active document is writable:
+
+    readonly documentMode: "editable" | "preserved"
+
+This is separate from readOnly interaction mode. A preserved document is always effectively read-only.
+
 IEditor retains a model-first programmatic widget insertion surface:
 
     insertInlinePlugin(
@@ -1481,7 +1510,8 @@ save/export semantics:
 
 Public render semantics:
 
-- editor.render(document) is one explicit document.replace transaction and one history step;
+- editor.render(document) is one explicit document.replace transaction and one history step when replacing an already mounted supported document;
+- rendering/loading a document whose version cannot reach the current version under preserve policy activates preserved-document mode rather than writable v2 semantics;
 - initial createEditor data load is not a history step;
 - internal undo/redo never re-records history;
 - clear is one transaction.
@@ -1812,6 +1842,7 @@ Required v2 security properties:
 19. Core tune values are validated before application to DOM.
 20. A registered plugin type with malformed or unsupported-future-version data is not activated merely because its type name matches.
 21. Preserved inert data is never executed as editor/renderer/widget markup.
+22. An unsupported document envelope version under preserve policy is never exposed as writable current-v2 state.
 
 Required security regressions:
 
@@ -1951,8 +1982,9 @@ TDD slices:
 4. unknown block survives unchanged;
 5. editor/renderer both use the same Paragraph schema;
 6. preserve mode keeps malformed/future-version known data inert while strict mode rejects it;
-7. alignment exists only as tunes.textAlign in canonical v2 Paragraph/Heading data;
-8. matching inline placeholder references count as one logical unit while unmatched {{...}} author text remains ordinary text.
+7. incomplete/unknown document-version migration enters preserved-document mode without relabelling the version;
+8. alignment exists only as tunes.textAlign in canonical v2 Paragraph/Heading data;
+9. matching inline placeholder references count as one logical unit while unmatched {{...}} author text remains ordinary text.
 
 Exit criteria:
 
@@ -2290,6 +2322,8 @@ Security:
 - unknown block inert;
 - registered block/widget with unsupported future dataVersion remains inert in preserve mode;
 - strict mode rejects unsupported/malformed activated payloads;
+- unknown/incomplete document version is losslessly inspectable but not writable in preserve mode;
+- setReadOnly(false) cannot bypass preserved-document mode;
 - cross-realm editing/rendering preserved.
 
 ## 32. CI and architecture gates
@@ -2360,7 +2394,8 @@ Correctness:
 - structured editable field identities survive reorder/insert/delete;
 - live-DOM and canonical rich-text logical offsets agree for BR/widgets;
 - unknown, malformed-preserved and unsupported-future block/widget data are preserved inertly;
-- migrations are deterministic and never downgrade unsupported future versions.
+- migrations are deterministic and never downgrade unsupported future versions;
+- documentVersionPolicy preserve/strict semantics remain explicit and unknown envelope versions are never silently promoted to v2.
 
 Security:
 
