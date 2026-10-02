@@ -612,6 +612,96 @@ export class DocumentRuntime {
    * @param {{kind:'text',text:string}|{kind:'html',html:string}} [replacement]
    * @returns {{blockId:string,fieldKey:string,offset:number}|false}
    */
+
+  /**
+   * Execute one block slash command as a single canonical history step.
+   * The authored /query range is removed from its schema field first. If the
+   * remaining source block is empty it is replaced in place; otherwise the
+   * source is preserved and the requested block is inserted immediately after.
+   *
+   * @param {string} blockId
+   * @param {string} fieldKey
+   * @param {{start:number,end:number}} range
+   * @param {{type:string,toolboxItemId?:string}} target
+   * @returns {string|false}
+   */
+  applySlashBlockCommand(blockId, fieldKey, range, target) {
+    this.#assertWritable()
+    const current = this.#store.get(blockId)
+    if (!current || this.activation(blockId)?.kind !== 'active') return false
+    if (!target || typeof target.type !== 'string') return false
+
+    const sourceDefinition = this.#registry.getBlockDefinition(current.type)
+    const targetDefinition = this.#registry.getBlockDefinition(target.type)
+    if (!sourceDefinition?.schema?.mapRichText || !targetDefinition) return false
+
+    const inline = cloneInline(current.inline) ?? {}
+    let matched = false
+    const sourceData = sourceDefinition.schema.mapRichText(
+      cloneEditorData(current.data),
+      (html, key) => {
+        if (key !== fieldKey) return html
+        matched = true
+        return replaceRichTextRange(
+          html,
+          inline,
+          range,
+          { kind: 'text', text: '' },
+          this.#ownerDocument,
+        )
+      },
+    )
+    if (!matched) return false
+
+    const sourceEncoded = this.#normalizeLocalData(sourceDefinition, sourceData)
+    const sourceInline = this.#filterInlineForData(sourceDefinition, sourceEncoded.data, inline)
+    const sourceNext = {
+      ...current,
+      dataVersion: sourceEncoded.dataVersion,
+      data: sourceEncoded.data,
+    }
+    if (sourceInline === undefined) delete sourceNext.inline
+    else sourceNext.inline = sourceInline
+    delete sourceNext.revision
+
+    let targetData = targetDefinition.schema.createDefault()
+    if (target.toolboxItemId) {
+      const item = targetDefinition.toolbox?.find(candidate => candidate.id === target.toolboxItemId)
+      if (!item) return false
+      if (item.configure) targetData = item.configure(targetData, {
+        createId: prefix => this.createDataId(prefix),
+      })
+    }
+    const targetEncoded = this.#normalizeLocalData(targetDefinition, targetData)
+    const sourceEmpty = sourceDefinition.capabilities?.empty?.isEmpty?.(sourceEncoded.data) === true
+
+    if (sourceEmpty) {
+      const next = {
+        id: blockId,
+        type: target.type,
+        dataVersion: targetEncoded.dataVersion,
+        data: targetEncoded.data,
+      }
+      if (current.tunes !== undefined) next.tunes = cloneTunes(current.tunes)
+      this.#engine.execute({ origin: 'user', name: 'slash.block' }, tx => tx.update(blockId, next))
+      return blockId
+    }
+
+    const id = this.#createUniqueBlockId(target.type)
+    const next = {
+      id,
+      type: target.type,
+      dataVersion: targetEncoded.dataVersion,
+      data: targetEncoded.data,
+    }
+    const index = this.#store.ids().indexOf(blockId)
+    this.#engine.execute({ origin: 'user', name: 'slash.block' }, tx => {
+      tx.update(blockId, sourceNext)
+      tx.insert(index + 1, next)
+    })
+    return id
+  }
+
   replaceLogicalRange(bookmark, replacement = { kind: 'text', text: '' }) {
     this.#assertWritable()
     const ordered = this.#orderedLogicalRange(bookmark)

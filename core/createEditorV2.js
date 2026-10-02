@@ -20,6 +20,7 @@ import { InteractionState } from './InteractionState.js'
 import { EditorViewModel } from './EditorViewModel.js'
 import { InlineCommandController } from './InlineCommandController.js'
 import { InlineTriggerController } from './InlineTriggerController.js'
+import { SlashCommandControllerV2 } from './SlashCommandControllerV2.js'
 import { EditorBlocksApiV2, EditorHandleV2 } from './PublicEditorApiV2.js'
 import { ChangeNotifier } from './ChangeNotifier.js'
 import { BlockToolbarV2 } from './BlockToolbarV2.js'
@@ -259,6 +260,24 @@ export function createEditorV2(input){
     reconciler,
     selection:logicalSelection,
     commands:inlineCommands,
+  }))
+
+  const slashCommands=lifecycle.register(new SlashCommandControllerV2({
+    root,
+    runtime,
+    registry,
+    reconciler,
+    selection:logicalSelection,
+    view,
+    inlineCommands,
+    translate:(key,fallback='')=>{
+      const translated=i18n.t(key)
+      return translated===key?fallback:translated
+    },
+    t:(key,fallback='')=>{
+      const translated=i18n.t(key)
+      return translated===key?fallback:translated
+    },
   }))
 
   const clipboard=lifecycle.register(new ClipboardControllerV2({
