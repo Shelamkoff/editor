@@ -92,6 +92,9 @@ function createRegistry(document, counters) {
   }
   return {
     hasBlock(type) { return runtimes.has(type) },
+    getBlockDefinition(type) {
+      return runtimes.has(type) ? { type } : undefined
+    },
     getBlockRuntime(type) { return runtimes.get(type) },
   }
 }
