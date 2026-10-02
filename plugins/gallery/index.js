@@ -20,6 +20,104 @@ const sourceEditorStyles=new URL('../shared/sourceEditor.css',import.meta.url).h
  * @typedef {{label:string,icon?:string,handler:(context:{signal:AbortSignal})=>Promise<Array<{url:string,alt?:string}>|null>}} SourceAction
  */
 
+
+function galleryLabel(key,fallback){return Object.freeze({key,fallback})}
+
+function renderGallerySettings(context){
+  const document=context.ownerDocument
+  const root=document.createElement('div')
+  root.className='oe-gallery__style-form'
+  const optionKeys=['loop','zoom','navigation','captions','fullscreen','thumbnails']
+  const commit=producer=>{context.updateData(producer);render()}
+  const line=(label,control)=>{
+    const wrapper=document.createElement('label')
+    wrapper.className='oe-gallery__style-label'
+    const text=document.createElement('span')
+    text.textContent=label
+    wrapper.append(text,control)
+    return wrapper
+  }
+  const input=(value,onChange,{type='text',placeholder=''}={})=>{
+    const element=document.createElement('input')
+    element.type=type
+    element.className='oe-gallery__style-input'
+    element.value=value??''
+    if(placeholder)element.placeholder=placeholder
+    element.addEventListener('change',()=>onChange(element.value,element))
+    return element
+  }
+  const checkbox=(checked,onChange)=>{
+    const element=document.createElement('input')
+    element.type='checkbox'
+    element.checked=checked
+    element.addEventListener('change',()=>onChange(element.checked))
+    return element
+  }
+
+  const render=()=>{
+    const data=context.getData()
+    root.replaceChildren()
+
+    const layoutSelect=document.createElement('select')
+    layoutSelect.className='oe-gallery__style-input'
+    for(const value of GALLERY_LAYOUTS){
+      const option=document.createElement('option')
+      option.value=value
+      option.textContent=value
+      option.selected=value===data.layout
+      layoutSelect.appendChild(option)
+    }
+    layoutSelect.addEventListener('change',()=>commit(current=>({...current,layout:layoutSelect.value})))
+    root.appendChild(line(context.t(galleryLabel('layout','Layout')),layoutSelect))
+
+    const switches=document.createElement('div')
+    switches.className='oe-gallery__switch-row'
+    for(const key of optionKeys){
+      switches.appendChild(line(
+        context.t(galleryLabel(key,key[0].toUpperCase()+key.slice(1))),
+        checkbox(data.options[key]===true,value=>commit(current=>({
+          ...current,
+          options:{...current.options,[key]:value},
+        }))),
+      ))
+    }
+    root.appendChild(switches)
+
+    root.appendChild(line(context.t(galleryLabel('autoplayInterval','Autoplay interval, ms')),input(
+      data.options.autoplayInterval?String(data.options.autoplayInterval):'',
+      (value,element)=>{
+        const numeric=Number(value)
+        if(String(value).trim()&&(!Number.isFinite(numeric)||numeric<=0)){
+          element.value=data.options.autoplayInterval?String(data.options.autoplayInterval):''
+          return
+        }
+        commit(current=>{
+          const options={...current.options}
+          if(String(value).trim())options.autoplayInterval=Math.floor(numeric)
+          else delete options.autoplayInterval
+          return {...current,options}
+        })
+      },
+      {type:'number',placeholder:'3000'},
+    )))
+
+    for(const [key,label] of [['gap','Gap'],['borderRadius','Border radius'],['height','Height']]){
+      root.appendChild(line(
+        context.t(galleryLabel(key,label)),
+        input(data.styles[key]??'',value=>commit(current=>{
+          const styles={...current.styles}
+          if(String(value).trim())styles[key]=String(value).trim()
+          else delete styles[key]
+          return {...current,styles}
+        })),
+      ))
+    }
+  }
+
+  render()
+  return root
+}
+
 /**
  * Create an immutable Gallery block definition with stable image identities and optional upload/source actions.
  * @param {{uploadFile?:UploadFn,actions?:SourceAction[],injectStyles?:boolean,css?:string}} [config]
@@ -41,34 +139,8 @@ export function createGalleryPlugin(config={}){
       import(){return galleryDataSchema.createDefault()},
     }),
     settings:Object.freeze({
-      kind:/** @type {'actions'} */('actions'),
-      actions(data){
-        return [
-          ...GALLERY_LAYOUTS.map(layout=>Object.freeze({
-            id:'layout:'+layout,
-            label:Object.freeze({key:'layout.'+layout,fallback:'Layout '+layout}),
-            active:data.layout===layout,
-          })),
-          ...optionKeys.map(key=>Object.freeze({
-            id:'option:'+key,
-            label:Object.freeze({key,fallback:key[0].toUpperCase()+key.slice(1)}),
-            active:data.options[key]===true,
-          })),
-        ]
-      },
-      apply(data,actionId){
-        if(actionId.startsWith('layout:')){
-          const layout=actionId.slice(7)
-          if(!GALLERY_LAYOUTS.includes(layout))throw new RangeError('Unknown gallery layout: '+layout)
-          return {...data,layout}
-        }
-        if(actionId.startsWith('option:')){
-          const key=actionId.slice(7)
-          if(!optionKeys.includes(key))throw new RangeError('Unknown gallery option: '+key)
-          return {...data,options:{...data.options,[key]:!data.options[key]}}
-        }
-        throw new RangeError('Unknown gallery setting: '+actionId)
-      },
+      kind:/** @type {'panel'} */('panel'),
+      render:renderGallerySettings,
     }),
     paste:Object.freeze({
       accepts(input){return input.kind==='file'&&isSupportedImageFile(input.file)},
@@ -270,6 +342,7 @@ export function createGalleryPlugin(config={}){
             wrapper.className=CSS.wrapper+(data.images.length?' '+CSS.filled:'')
             syncLoading()
             wrapper.dataset.layout=data.layout
+            wrapper.style.cssText=''
             for(const [key,value] of Object.entries(data.styles)){
               if(key in wrapper.style)wrapper.style[key]=value
             }
