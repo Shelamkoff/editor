@@ -1,4 +1,4 @@
-import { sanitizeHtml, insertTrustedHtml } from '../../core/sanitize.js'
+import { sanitizeHtml, insertTrustedHtml } from '../../plugin-kit/index.js'
 import { normalizeTextValue } from '../../shared/textFormat.js'
 
 /** Append one authored field without recreating existing interactive DOM.
