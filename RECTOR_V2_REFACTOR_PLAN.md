@@ -225,7 +225,8 @@ Rules:
 - text alignment has one persisted representation in v2: tunes.textAlign;
 - ParagraphData.align and HeadingData.align are legacy v1 inputs only and are removed from v2 canonical data;
 - inline widget IDs are stable block-local identities;
-- a live inline widget is valid only when its ID is referenced by a canonical rich-text placeholder and has a matching inline map entry;
+- a live inline widget is valid only when its ID is referenced by exactly one canonical rich-text placeholder and has exactly one matching inline map entry;
+- active known blocks maintain a one-to-one relation between block.inline keys and widget references across all schema-declared rich-text fields;
 - unknown block types preserve their opaque data, dataVersion, tunes, inline payload and revision without reinterpretation.
 
 Canonical whole-document value used by replacement/history:
@@ -696,6 +697,11 @@ Rules:
 - core recognizes only widget instances it created and owns;
 - deleting a widget from an editable field removes its placeholder reference and then prunes its inline record in the same transaction;
 - a {{id}} token is interpreted as a widget reference only when block.inline has that exact own-property id; otherwise it remains ordinary author text;
+- before serializing owned widget DOM, collect placeholder-shaped tokens from ordinary author text across every rich-text field and reserve those literal IDs;
+- generated widget IDs must never collide with reserved literal tokens or another widget ID;
+- if an existing owned widget ID now collides with newly-authored literal text, atomically remap that widget to a fresh ID, update its one placeholder/reference and move its inline map entry;
+- duplicate active references to one inline ID or orphan inline entries make an externally ingested known block invalid; strict mode rejects it and preserve mode keeps the block inert rather than guessing;
+- local editor operations always repair/prune their own removed references and never create duplicate/orphan widget records;
 - a missing plugin definition preserves the matching placeholder and payload inertly; it must not drop unknown widget data;
 - an unreferenced inline entry produced by a local edit is removed at canonicalization; opaque unknown imported data is preserved until its containing rich-text field is normalized by an operation that owns that block.
 
@@ -725,7 +731,8 @@ A schema-declared editable rich-text field without exactly one matching live Edi
 Inline insertion is model-first:
 
     resolve logical selection
-      -> allocate stable widget id
+      -> collect/reserve literal placeholder tokens in all rich-text fields
+      -> allocate a stable widget id that cannot collide with them
       -> validate/encode widget payload
       -> insert {{id}} into the selected canonical rich-text field
       -> add block.inline[id]
@@ -779,8 +786,9 @@ Logical positions use the same rules as SelectionBookmark:
 
 - UTF-16 units for ordinary text;
 - BR is one unit;
-- a {{id}} reference is one unit only when id has a corresponding canonical inline entry;
-- an unmatched {{...}} token is ordinary author text, not an active widget.
+- a {{id}} reference is one unit only when id has a corresponding canonical inline entry and the block-level reference graph is valid;
+- an unmatched {{...}} token is ordinary author text, not an active widget;
+- literal placeholder-shaped author text reserves its token value against future widget-ID allocation.
 
 RichTextReplacement supports sanitized text/HTML and a dedicated inline-reference replacement. Inline widget insertion never concatenates {{id}} directly into arbitrary HTML.
 
@@ -2344,6 +2352,8 @@ Required security regressions:
 - renderer treatment of untrusted stored HTML;
 - forged inline-widget DOM attributes;
 - unknown inline plugin payload preservation without execution;
+- literal {{id}} author text colliding with an existing widget id;
+- duplicate widget references and orphan inline-map entries;
 - invalid tunes.textAlign;
 - known type with unsupported future block/widget dataVersion;
 - malformed known payload in preserve versus strict mode.
@@ -2819,6 +2829,8 @@ Native input:
 - autocorrect-compatible sequence;
 - plugin-native input/textarea is not consumed as document structural input;
 - deleting an inline widget prunes its canonical inline entry;
+- typing literal {{existing-widget-id}} remaps the widget ID and preserves the literal author text;
+- duplicate/orphan external inline references are rejected or preserved inert according to validation mode;
 - forged data-inline-plugin markup is not adopted as a widget;
 - programmatic insertInlinePlugin with explicit data commits model first and restores caret after the inserted atomic widget;
 - programmatic insertion without data uses insertion capability or widget schema.createDefault;
@@ -2968,6 +2980,7 @@ Security:
 - preserved imported records remain inert and explicitly visible as preserved status;
 - stale async work is aborted/ignored;
 - forged widget DOM cannot become canonical widget state;
+- inline reference graph is one-to-one and literal placeholder collisions cannot activate/duplicate widgets;
 - core tunes are validated before projection.
 
 Performance:
