@@ -31,6 +31,10 @@ function cloneInline(inline) {
   return cloneEditorData(inline)
 }
 
+function sameJson(left, right) {
+  try { return JSON.stringify(left) === JSON.stringify(right) } catch { return false }
+}
+
 function issueReason(error) {
   const message = String(error?.message ?? error)
   return /future data version/i.test(message) ? 'unsupported-version' : 'invalid-data'
@@ -234,6 +238,12 @@ export class DocumentRuntime {
     else next.tunes = nextTunes
     delete next.revision
 
+    if (
+      current.dataVersion === next.dataVersion
+      && sameJson(current.data, next.data)
+      && sameJson(current.tunes, next.tunes)
+    ) return
+
     this.#engine.execute({ origin: 'external', name: 'block.update' }, tx => {
       tx.update(id, next)
     })
@@ -394,11 +404,16 @@ export class DocumentRuntime {
         data: encoded.data,
       }
       delete next.revision
+      if (
+        current.dataVersion === next.dataVersion
+        && sameJson(current.data, next.data)
+      ) return
       this.#engine.execute({
         origin: metadata.origin ?? 'native-input',
         name: metadata.name ?? 'native-input',
         historyGroup: metadata.historyGroup,
         coalesce: metadata.coalesce === true,
+        sourceBlockId: metadata.preserveSourceProjection === true ? id : undefined,
       }, tx => tx.update(id, next))
     } catch (error) {
       this.#projector?.restore?.(this.#store)
