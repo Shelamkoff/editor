@@ -586,8 +586,14 @@ export function createMentionPlugin(options={}){
       const handleSessionKeydown=(event,session)=>{
         if(destroyed||session!==activeSession)return 'pass'
         if(event.key==='ArrowDown'){
-          if(items.length)selected=(selected+1)%items.length
-          render()
+          if(items.length){
+            if(selected===items.length-1&&cursor&&!loadingMore){
+              void load(cursor,true)
+            }else{
+              selected=(selected+1)%items.length
+              render()
+            }
+          }
           return 'handled'
         }
         if(event.key==='ArrowUp'){
