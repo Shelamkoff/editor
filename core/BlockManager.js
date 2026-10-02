@@ -5,6 +5,7 @@ import { closestBlock } from './dom.js'
 import { EditorEvent } from './editorEvents.js'
 import { deserializeInlineHtml } from '../shared/inlineMarshal.js'
 import { cloneEditorData } from '../shared/cloneEditorData.js'
+import { getBuiltInBlockDataSchema } from '../shared/blockSchemas/index.js'
 import { uid } from './uid.js'
 import { createPreservedBlockPlugin } from './PreservedBlockPlugin.js'
 
@@ -126,7 +127,25 @@ export class BlockManager {
     }
     if (!plugin) throw new Error(`[BlockManager] Unknown block type: "${type}"`)
 
-    const blockData = data === undefined ? undefined : cloneEditorData(data)
+    let blockData = data === undefined ? undefined : cloneEditorData(data)
+    let resolvedDataVersion = metadata.dataVersion
+    const schema = preserveUnknown ? undefined : getBuiltInBlockDataSchema(type)
+    if (schema) {
+      if (blockData === undefined) {
+        blockData = schema.createDefault()
+        resolvedDataVersion = schema.currentVersion
+      } else {
+        try {
+          const decoded = schema.decode({ dataVersion: resolvedDataVersion, data: blockData })
+          blockData = decoded.data
+          resolvedDataVersion = decoded.dataVersion
+        } catch {
+          // Preserve current behavior until activation-status handling is wired:
+          // malformed/future data remains owned by the existing plugin path.
+        }
+      }
+    }
+
     const blockInline = inline === undefined ? undefined : cloneEditorData(inline)
     let preservedInline = blockInline
     if (blockInline && typeof plugin.mapTextFields === 'function' && this.#inlinePluginRegistry && blockData) {
@@ -136,6 +155,7 @@ export class BlockManager {
     }
     const block = new Block(plugin, this.#commands, blockData, id, this.#readOnly, {
       ...metadata,
+      dataVersion: resolvedDataVersion,
       inline: preservedInline,
       preserveInline: preserveUnknown,
     }, this.#container.ownerDocument, this.#inlinePluginRegistry)
