@@ -20,6 +20,7 @@ export class BlockReconciler {
   #contextFactory
   #activationResolver
   #entries = new Map()
+  #fieldOwners = new WeakMap()
   #readOnly
   #store = null
   #destroyed = false
@@ -52,8 +53,20 @@ export class BlockReconciler {
   }
 
   getEditableFields(id) {
-    const fields = this.#entries.get(id)?.instance.editableFields?.() ?? []
-    return [...fields]
+    const entry = this.#entries.get(id)
+    if (!entry) return []
+    this.#refreshFields(id, entry)
+    return [...(entry.instance.editableFields?.() ?? [])]
+  }
+
+  resolveEditableTarget(target) {
+    let node = target
+    while (node && node !== this.#container) {
+      const owner = this.#fieldOwners.get(node)
+      if (owner) return { ...owner }
+      node = node.parentNode
+    }
+    return null
   }
 
   readBlock(id) {
@@ -63,7 +76,7 @@ export class BlockReconciler {
   }
 
 
-  prepare({ store, draft, changes }) {
+  prepare({ store, draft, changes, sourceBlockId }) {
     this.#assertLive()
     this.#store = store
     const changedIds = new Set()
@@ -140,8 +153,11 @@ export class BlockReconciler {
         const nextEntries = new Map(this.#entries)
 
         for (const item of updates) {
-          if (item.dataChanged) item.entry.instance.update(item.after.data, item.before.data)
+          if (item.dataChanged && item.id !== sourceBlockId) {
+            item.entry.instance.update(item.after.data, item.before.data)
+          }
           item.entry.record = item.after
+          this.#refreshFields(item.id, item.entry)
           this.#applyTunes(item.entry, item.after)
         }
 
@@ -284,8 +300,22 @@ export class BlockReconciler {
       preserved: false,
     }
     instance.setReadOnly(this.#readOnly)
+    this.#refreshFields(record.id, entry)
     this.#applyTunes(entry, record)
     return entry
+  }
+
+  #refreshFields(id, entry) {
+    const fields = entry.instance.editableFields?.() ?? []
+    for (const field of fields) {
+      if (!field?.element || typeof field.key !== 'string' || !field.key) continue
+      this.#fieldOwners.set(field.element, {
+        blockId: id,
+        fieldKey: field.key,
+        element: field.element,
+        mode: field.mode,
+      })
+    }
   }
 
   #applyTunes(entry, record) {
