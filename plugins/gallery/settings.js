@@ -1,4 +1,4 @@
-import { setTrustedHtml } from '../../core/sanitize.js'
+import { setTrustedHtml } from '../../plugin-kit/index.js'
 import { CSS } from './css.js'
 import { LAYOUT_ICONS } from './icons.js'
 import { ALL_LAYOUTS } from './layout.js'
