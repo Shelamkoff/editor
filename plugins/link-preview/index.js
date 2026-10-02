@@ -1,4 +1,4 @@
-import { setTrustedHtml } from '../../core/sanitize.js'
+import { setTrustedHtml } from '../../plugin-kit/index.js'
 import { sanitizeUrl, setSafeUrlAttribute } from '../../shared/sanitize/sanitizeUrl.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { validateLinkPreviewData } from '../../shared/blockDataValidators.js'
