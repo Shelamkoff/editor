@@ -149,7 +149,15 @@ try {
   const consumerSource = `
 import { createEditor, DocumentSchema } from '@shelamkoff/rector'
 import { normalizeRichText, sanitizeHtml as sanitizePluginHtml } from '@shelamkoff/rector/plugin-kit'
-import { Attaches, CarouselBlock, Embed, LinkPreview, Paragraph, Person, Poll } from '@shelamkoff/rector/plugins'
+import {
+  createAttachesPlugin,
+  createCarouselPlugin,
+  createEmbedPlugin,
+  createLinkPreviewPlugin,
+  createParagraphPlugin,
+  createPersonPlugin,
+  createPollPlugin,
+} from '@shelamkoff/rector/plugins'
 import { createBlockPluginsAsync } from '@shelamkoff/rector/plugins/async'
 import { createMentionPlugin } from '@shelamkoff/rector/inline-plugins/mention'
 import { createBoldTool } from '@shelamkoff/rector/inline-tools/bold'
@@ -165,61 +173,64 @@ import '@shelamkoff/rector/styles/editor.css'
 import '@shelamkoff/rector/plugins/person/styles.css'
 import '@shelamkoff/rector/inline-plugins/color/styles.css'
 import '@shelamkoff/rector/renderer/renderers/carousel/styles.css'
+
 const configuredPlugins = [
-  new CarouselBlock({
+  createCarouselPlugin({
     uploadFile: async (file, { signal }) => ({ url: signal.aborted ? '' : URL.createObjectURL(file) }),
     actions: [{ label: 'Library', handler: async ({ signal }) => signal.aborted ? null : [{ id: 'slide-1', type: 'image', src: 'https://example.com/slide.jpg' }] }],
   }),
-  new Attaches({
+  createAttachesPlugin({
     uploadFile: async (file, { signal }) => ({ url: signal.aborted ? '' : URL.createObjectURL(file), size: file.size }),
     actions: [{ label: 'Library', handler: async ({ signal }) => signal.aborted ? null : [{ url: 'https://example.com/file.pdf', name: 'file.pdf', extension: 'pdf' }] }],
   }),
-  new Embed({
+  createEmbedPlugin({
     actions: [{ icon: '', label: 'Library', handler: async ({ signal }) => signal.aborted ? null : ({ url: 'https://example.com/cover.jpg' }) }],
     resolvePreview: async ({ signal }) => signal.aborted ? null : ({ thumbnailUrl: 'https://example.com/thumb.jpg' }),
   }),
-  new LinkPreview({ fetchMeta: async (url, { signal }) => signal.aborted ? {} : ({ title: url, domain: 'example.com' }) }),
-  new Person({
+  createLinkPreviewPlugin({ fetchMeta: async (url, { signal }) => signal.aborted ? {} : ({ title: url, domain: 'example.com' }) }),
+  createPersonPlugin({
     uploadFile: async (file, { signal }) => ({ url: signal.aborted ? '' : URL.createObjectURL(file) }),
     socialResolvers: [{ test: url => url.includes('example.com'), type: 'website' }],
   }),
-  new Poll({
+  createPollPlugin({
     dataSource: {
       load: async () => ({ revision: '1', total: 0, options: [] }),
       vote: async ({ optionIds }) => ({ revision: '2', total: optionIds.length, options: optionIds.map(id => ({ id, votes: 1 })) }),
     },
   }),
 ]
+
 const mentionPlugin = createMentionPlugin({
   searchFunction: async (_query, _nextPageUrl, { signal }) => signal.aborted ? [] : [{ id: '1', name: 'Ada' }],
 })
+
 function usePublicEditorApi(editor = createEditor({
   holder: document.createElement('div'),
-  plugins: [new Paragraph()],
-  inlineTools: [],
+  plugins: [createParagraphPlugin()],
+  inlinePlugins: [mentionPlugin],
   injectStyles: false,
 })) {
-  const available = [editor.readOnly, editor.canUndo, editor.canRedo]
+  const available = [editor.readOnly, editor.canUndo, editor.canRedo, editor.documentMode]
   editor.undo()
   editor.redo()
-  void editor.setReadOnly(!editor.readOnly)
+  editor.setReadOnly(!editor.readOnly)
   return available
 }
-void [createEditor, DocumentSchema, normalizeRichText, sanitizePluginHtml, Paragraph, Person, configuredPlugins, createBlockPluginsAsync, mentionPlugin, createBoldTool, createEditorRenderer, createDefaultRenderersAsync, EventBus, ColorPicker, parseColorInput, Carousel, Cropper, Expose, colorPickerStylesUrl, carouselStylesUrl, cropperStylesUrl, exposeStylesUrl, usePublicEditorApi]
+
+void [createEditor, DocumentSchema, normalizeRichText, sanitizePluginHtml, createParagraphPlugin, createPersonPlugin, configuredPlugins, createBlockPluginsAsync, mentionPlugin, createBoldTool, createEditorRenderer, createDefaultRenderersAsync, EventBus, ColorPicker, parseColorInput, Carousel, Cropper, Expose, colorPickerStylesUrl, carouselStylesUrl, cropperStylesUrl, exposeStylesUrl, usePublicEditorApi]
 `
   await writeFile(join(consumerRoot, 'src/main.js'), consumerSource, 'utf8')
   const consumerTypeSource = `${consumerSource}
-import type { EditorConfig, IEditor } from '@shelamkoff/rector'
-import type { EditorTuning, InlinePlugin } from '@shelamkoff/rector/types'
+import type { BlockPluginDefinition, EditorConfig, IEditor, InlinePluginDefinition } from '@shelamkoff/rector/types'
 import type { OutputData, ParagraphBlock, RendererConfig } from '@shelamkoff/rector/renderer/types'
 declare const publicEditor: IEditor
 declare const editorConfig: EditorConfig
-declare const tuning: EditorTuning
-declare const inlinePlugin: InlinePlugin
+declare const blockPlugin: BlockPluginDefinition
+declare const inlinePlugin: InlinePluginDefinition
 declare const output: OutputData
 declare const paragraph: ParagraphBlock
 declare const rendererConfig: RendererConfig
-void [publicEditor, editorConfig, tuning, inlinePlugin, output, paragraph, rendererConfig]
+void [publicEditor, editorConfig, blockPlugin, inlinePlugin, output, paragraph, rendererConfig]
 `
   await writeFile(join(consumerRoot, 'src/main.ts'), consumerTypeSource, 'utf8')
   await writeFile(join(consumerRoot, 'index.html'), '<script type="module" src="/src/main.js"></script>\n', 'utf8')
