@@ -97,3 +97,23 @@ test('whole-document replacement is one reversible change', () => {
   draft.applyChanges(draft.changes, 'backward')
   assert.deepEqual(draft.list().map(item => item.id), ['a'])
 })
+
+
+test('unchanged canonical records retain identity across draft commit', () => {
+  const store = new DocumentStore({
+    version: '2.0.0',
+    blocks: [block('a'), block('b'), block('c')],
+  })
+  const aBefore = store.peek('a')
+  const cBefore = store.peek('c')
+  const draft = store.createDraft()
+
+  draft.update('b', block('b', 'changed'))
+  store.commit(draft)
+
+  assert.equal(store.peek('a'), aBefore)
+  assert.equal(store.peek('c'), cBefore)
+  assert.notEqual(store.peek('b'), undefined)
+  assert.ok(Object.isFrozen(store.peek('a')))
+  assert.ok(Object.isFrozen(store.peek('a').data))
+})
