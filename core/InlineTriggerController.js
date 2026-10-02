@@ -110,12 +110,19 @@ export class InlineTriggerController {
         if(this.#active!==active)return false
         const field=this.#reconciler.getEditableField(active.blockId,active.fieldKey)
         const bookmark=this.#selection.capture()
+        const owner=field?{
+          blockId:active.blockId,
+          fieldKey:field.key,
+          element:field.element,
+          mode:field.mode,
+        }:null
         if(
           field?.element!==active.anchor
           ||!active.anchor.isConnected
           ||!this.#root.contains(active.anchor)
           ||!bookmark
-          ||!this.#collapsedIn(bookmark,field)
+          ||!owner
+          ||!this.#collapsedIn(bookmark,owner)
           ||bookmark.focus.offset!==session.range.end
         )return false
         const committed=this.#commands.commitTrigger(active.type,session,data)===true
