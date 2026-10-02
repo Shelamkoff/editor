@@ -1,4 +1,4 @@
-import { setTrustedHtml } from '../../core/sanitize.js'
+import { setTrustedHtml } from '../../plugin-kit/index.js'
 /**
  * Shared action bar utilities for block plugins (image, gallery, etc.).
  * Eliminates duplicate makeActionBtn/makeSep across plugin view-filled files.
