@@ -128,6 +128,19 @@ export class BlockManager {
     this.#readOnly = readOnly
   }
 
+  /**
+   * Return a fresh canonical default for one registered v2 block type.
+   * Transitional conversion code uses this until conversion capabilities move
+   * onto the v2 plugin definition. Custom/legacy plugins return undefined.
+   * @param {string} type
+   * @returns {Record<string, unknown> | undefined}
+   */
+  getDefaultData(type) {
+    const plugin = this.#plugins.get(type)
+    const schema = plugin ? ownPluginDataSchema(plugin) : undefined
+    return schema ? schema.createDefault() : undefined
+  }
+
   /** Build a block without mutating the live manager. */
   #createBlock(type, data, id, inline, metadata = {}, preserveUnknown = false) {
     if (!this.#commands) throw new Error('[BlockManager] CommandDispatcher is not configured')
