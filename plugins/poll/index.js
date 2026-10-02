@@ -88,6 +88,7 @@ export function createPollPlugin(config={}){
           let dead=false
           let runtime=normalizePollResults(data.initialResults,data.options.map(option=>option.id),maxVoters,data.type)
           let selected=new Set(runtime.currentUserVote??[])
+          let hasVoted=(runtime.currentUserVote?.length??0)>0
           let loading=false
           let submitting=false
           let controller=null
@@ -108,10 +109,11 @@ export function createPollPlugin(config={}){
             if(!shouldAcceptPollRevision(normalized.revision,runtime.revision,snapshot.compareRevisions))return false
             runtime=normalized
             selected=new Set(normalized.currentUserVote??selected)
+            hasVoted ||= (normalized.currentUserVote?.length??0)>0
             return true
           }
 
-          const resultVisible=()=>data.resultsMode==='always'||(data.resultsMode==='afterVote'&&selected.size>0)
+          const resultVisible=()=>data.resultsMode==='always'||(data.resultsMode==='afterVote'&&hasVoted)
 
           const project=()=>{
             wrapper.replaceChildren()
@@ -136,11 +138,12 @@ export function createPollPlugin(config={}){
 
               const choice=document.createElement('button')
               choice.type='button'
-              choice.className='oe-poll__choice'
+              choice.className='oe-poll__choice oe-poll__option-marker oe-poll__option-marker--'+data.type
               choice.setAttribute('aria-pressed',String(selected.has(option.id)))
               choice.textContent=selected.has(option.id)?'✓':'○'
-              choice.disabled=!readOnly||loading||submitting
-              choice.addEventListener('click',()=>void toggleVote(option.id),{signal:context.signal})
+              choice.classList.toggle('oe-poll__option-marker--selected',selected.has(option.id))
+              choice.disabled=readOnly||loading||submitting
+              choice.addEventListener('click',()=>toggleSelection(option.id),{signal:context.signal})
 
               const text=document.createElement('div')
               text.className='oe-poll__option-text'
@@ -163,17 +166,70 @@ export function createPollPlugin(config={}){
                 row.appendChild(remove)
               }
 
-              if(resultVisible()){
-                const votes=byId.get(option.id)??0
-                const result=document.createElement('div')
-                result.className='oe-poll__result'
-                const percent=total>0?Math.round(votes/total*100):0
-                result.textContent=`${votes} · ${percent}%`
-                row.appendChild(result)
-              }
+
               list.appendChild(row)
             })
             wrapper.appendChild(list)
+
+            if(resultVisible()&&!loading){
+              const results=document.createElement('div')
+              results.className='oe-poll__results'
+              for(const option of data.options){
+                const row=document.createElement('div')
+                row.className='oe-poll__result-row'
+                const label=document.createElement('span')
+                label.className='oe-poll__result-label'
+                label.textContent=option.text||'—'
+                const bar=document.createElement('div')
+                bar.className='oe-poll__result-bar'
+                const fill=document.createElement('div')
+                fill.className='oe-poll__result-fill'
+                const votes=byId.get(option.id)??0
+                const percent=total>0?Math.round(votes/total*100):0
+                fill.style.width=percent+'%'
+                bar.appendChild(fill)
+                const pct=document.createElement('span')
+                pct.className='oe-poll__pct oe-poll__result-pct'
+                pct.textContent=percent+'%'
+                row.append(label,bar,pct)
+                results.appendChild(row)
+              }
+              wrapper.appendChild(results)
+
+              if(runtime.voters?.length){
+                const section=document.createElement('div')
+                section.className='oe-poll__voters'
+                const list=document.createElement('ul')
+                for(const voter of runtime.voters){
+                  const item=document.createElement('li')
+                  if(voter.avatar){
+                    try{
+                      const url=new URL(voter.avatar,document.baseURI)
+                      if(['http:','https:','data:','blob:'].includes(url.protocol)){
+                        const avatar=document.createElement('img')
+                        avatar.src=url.href
+                        avatar.alt=''
+                        item.appendChild(avatar)
+                      }
+                    }catch{}
+                  }
+                  const name=document.createElement('span')
+                  name.textContent=voter.name||runtimeContext.t('anonymousVoter','Anonymous voter')
+                  item.appendChild(name)
+                  list.appendChild(item)
+                }
+                section.appendChild(list)
+                wrapper.appendChild(section)
+              }
+            }
+
+            const submit=document.createElement('button')
+            submit.type='button'
+            submit.className='oe-poll__submit'
+            submit.disabled=readOnly||loading||submitting||selected.size===0
+            submit.textContent=submitting?runtimeContext.t('submitting','Submitting…'):runtimeContext.t('vote','Vote')
+            submit.addEventListener('click',()=>void submitVote(),{signal:context.signal})
+            wrapper.appendChild(submit)
 
             if(!readOnly){
               const add=document.createElement('button')
@@ -262,8 +318,8 @@ export function createPollPlugin(config={}){
             })
           }
 
-          const toggleVote=async optionId=>{
-            if(!readOnly||dead||submitting)return
+          const toggleSelection=optionId=>{
+            if(readOnly||dead||submitting)return
             const next=new Set(selected)
             if(data.type==='single'){
               next.clear()
@@ -273,11 +329,18 @@ export function createPollPlugin(config={}){
             }else{
               next.add(optionId)
             }
-            const previous=[...selected]
-            const optionIds=[...next]
+            selected=next
+            project()
+          }
+
+          const submitVote=async ()=>{
+            if(readOnly||dead||submitting||selected.size===0)return
+            const previous=[...(runtime.currentUserVote??[])]
+            const optionIds=[...selected]
             if(!snapshot.dataSource||!data.pollId){
               runtime=applyLocalPollVote(runtime,previous,optionIds,data.options.map(option=>option.id))
               selected=new Set(optionIds)
+              hasVoted=true
               context.updateData(current=>({...current,initialResults:runtime}))
               project()
               return
@@ -296,7 +359,11 @@ export function createPollPlugin(config={}){
                 revision:runtime.revision,
                 signal:voteController.signal,
               })
-              if(!dead&&!voteController.signal.aborted&&acceptResults(results))project()
+              if(!dead&&!voteController.signal.aborted){
+                hasVoted=true
+                acceptResults(results)
+                project()
+              }
             }catch(error){
               if(!dead&&!voteController.signal.aborted)report(error)
             }finally{
@@ -331,6 +398,7 @@ export function createPollPlugin(config={}){
               data=cloneData(next)
               runtime=normalizePollResults(data.initialResults??runtime,data.options.map(option=>option.id),maxVoters,data.type)
               selected=new Set(runtime.currentUserVote??[])
+              hasVoted=(runtime.currentUserVote?.length??0)>0||hasVoted
               project()
               if(reconnect)connect()
             },
