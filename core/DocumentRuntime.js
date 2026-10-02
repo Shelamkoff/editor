@@ -646,7 +646,7 @@ export class DocumentRuntime {
           html,
           inline,
           range,
-          { kind: 'text', text: '' },
+          { kind: /** @type {'text'} */ ('text'), text: '' },
           this.#ownerDocument,
         )
       },
