@@ -1,4 +1,4 @@
-import { setSanitizedHtml, setTrustedHtml } from '../../core/sanitize.js'
+import { setSanitizedHtml, setTrustedHtml } from '../../plugin-kit/index.js'
 import { appendMergeField } from '../shared/appendMergeField.js'
 // =============================================================================
 // Spoiler — hidden text revealed on click
@@ -6,7 +6,7 @@ import { appendMergeField } from '../shared/appendMergeField.js'
 // Data: { label: string, content: string }
 // =============================================================================
 
-import { sanitizeHtml } from '../../core/sanitize.js'
+import { sanitizeHtml } from '../../plugin-kit/index.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { validateSpoilerData } from '../../shared/blockDataValidators.js'
 import { mapSpoilerTextFields } from '../../shared/mapTextFields.js'
