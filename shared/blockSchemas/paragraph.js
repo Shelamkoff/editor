@@ -1,5 +1,6 @@
 // @ts-check
 import { createVersionedDataSchema } from '../versionedDataSchema.js'
+import { mapParagraphTextFields } from '../mapTextFields.js'
 
 /**
  * @param {any} input
@@ -20,6 +21,9 @@ export const paragraphDataSchema = createVersionedDataSchema({
   legacyVersion: 1,
   createDefault: () => ({ text: '' }),
   normalize: normalizeParagraph,
+  mapRichText(data, transform) {
+    mapParagraphTextFields(data, html => transform(html, 'text'))
+  },
   migrations: [{
     from: 1,
     to: 2,
