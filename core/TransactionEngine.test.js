@@ -15,7 +15,7 @@ function harness(options = {}) {
   const projections = []
   const projector = options.projector ?? {
     prepare(change) {
-      projections.push(['prepare', change.after.blocks.map(item => item.id)])
+      projections.push(['prepare', change.draft.ids()])
       return {
         apply() { projections.push(['apply']) },
         recover() { projections.push(['recover']) },
@@ -174,4 +174,28 @@ test('selection and observer failures are contained after canonical commit', () 
   engine.undo()
   assert.equal(store.get('a').data.text, 'a')
   assert.ok(diagnostics.includes('selection restore failed'))
+})
+
+
+test('single-block transaction never materializes the whole document', () => {
+  const blocks = Array.from({ length: 1000 }, (_, index) => block(String(index)))
+  const store = new DocumentStore({ version: '2.0.0', blocks })
+  const history = new HistoryStore()
+  const engine = new TransactionEngine({ store, history })
+
+  store.export = () => {
+    throw new Error('full export is forbidden in ordinary transactions')
+  }
+
+  engine.execute({ origin: 'user', name: 'single update' }, tx => {
+    const current = tx.get('500')
+    tx.update('500', {
+      ...current,
+      data: { text: 'changed' },
+    })
+  })
+
+  assert.equal(store.get('500').data.text, 'changed')
+  assert.equal(store.get('499').data.text, '499')
+  assert.equal(history.canUndo, true)
 })
