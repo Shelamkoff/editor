@@ -1,6 +1,6 @@
 import { setTrustedHtml } from '../sanitize.js'
 import { editableAtBoundary } from '../editableFields.js'
-import { getTextLength } from '../textOffset.js'
+import { getTextLength } from '../../shared/textOffset.js'
 
 /** @typedef {{ html: string, metadata: import('../types').BlockData }} PasteTail */
 
