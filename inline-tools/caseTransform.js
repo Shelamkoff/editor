@@ -5,7 +5,7 @@ import {
   restoreSelectionOffsets,
   clearCrossBlockRange,
 } from './utils.js'
-import { editableTextWalker, getTextOffset } from '../core/textOffset.js'
+import { editableTextWalker, getTextOffset } from '../shared/textOffset.js'
 
 const ELEMENT_NODE = 1
 
