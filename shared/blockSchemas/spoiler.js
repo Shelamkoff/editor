@@ -12,6 +12,7 @@ export const spoilerDataSchema = createVersionedDataSchema({
     return { label: input.label, content: input.content }
   },
   mapRichText(data, transform) {
-    mapSpoilerTextFields(data, (html) => transform(html, 'content'))
+    data.label = transform(data.label, 'label')
+    data.content = transform(data.content, 'content')
   },
 })
