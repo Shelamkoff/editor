@@ -150,6 +150,10 @@ export function createAttachesPlugin(config={}){
                 }else{
                   const URLCtor=document.defaultView?.URL??URL
                   const url=URLCtor.createObjectURL(file)
+                  if(controller.signal.aborted||dead){
+                    URLCtor.revokeObjectURL(url)
+                    break
+                  }
                   objectUrls.set(url,URLCtor)
                   resolved.push({
                     id:context.createId('file'),
