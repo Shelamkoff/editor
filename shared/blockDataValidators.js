@@ -49,7 +49,7 @@ function isNonEmptyString(value) {
 export function validateParagraphData(data) {
   if (!isRecord(data)) return false
   try {
-    paragraphDataSchema.encode(data)
+    paragraphDataSchema.encode(/** @type {any} */ (data))
     return true
   } catch {
     return false
@@ -60,7 +60,7 @@ export function validateParagraphData(data) {
 export function validateHeadingData(data) {
   if (!isRecord(data)) return false
   try {
-    headingDataSchema.encode(data)
+    headingDataSchema.encode(/** @type {any} */ (data))
     return true
   } catch {
     return false

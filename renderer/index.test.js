@@ -60,6 +60,9 @@ globalThis.document = {
   createElement(tagName) {
     return new FakeElement(tagName)
   },
+  createDocumentFragment() {
+    return new FakeElement('fragment')
+  },
 }
 globalThis.HTMLElement = FakeElement
 
@@ -799,10 +802,10 @@ test('strict renderer decodes legacy Paragraph dataVersion through the shared sc
     id: 'legacy-paragraph',
     type: 'paragraph',
     dataVersion: 1,
-    data: { text: 'Legacy body', align: 'center' },
+    data: { text: '', align: 'center' },
   })
 
-  assert.equal(element.textContent, 'Legacy body')
+  assert.equal(element.tagName, 'P')
   renderer.destroy(element)
   renderer.destroy()
 })

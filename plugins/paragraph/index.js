@@ -102,12 +102,12 @@ export class Paragraph extends BlockPluginAbstract {
 
   /**
    * Check whether serialized data satisfies this block's schema.
-   * @param {{ text: string }} data
+   * @param {unknown} data
    * @returns {boolean}
    */
   validate(data) {
     try {
-      paragraphDataSchema.encode(data)
+      paragraphDataSchema.encode(/** @type {any} */ (data))
       return true
     } catch {
       return false

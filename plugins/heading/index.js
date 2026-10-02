@@ -173,12 +173,12 @@ export class Heading extends BlockPluginAbstract {
 
   /**
    * Check whether serialized data satisfies this block's schema.
-   * @param {{ text: string, level?: number }} data
+   * @param {unknown} data
    * @returns {boolean}
    */
   validate(data) {
     try {
-      headingDataSchema.encode(data)
+      headingDataSchema.encode(/** @type {any} */ (data))
       return true
     } catch {
       return false
