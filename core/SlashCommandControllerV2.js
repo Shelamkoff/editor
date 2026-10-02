@@ -28,6 +28,7 @@ export class SlashCommandControllerV2 {
   #items = []
   #filtered = []
   #activeIndex = 0
+  #itemsVersion = 0
 
   constructor({ root, runtime, registry, reconciler, selection, view, inlineCommands, translate, t }) {
     this.#root = root
@@ -66,6 +67,7 @@ export class SlashCommandControllerV2 {
   }
 
   close() {
+    this.#itemsVersion++
     this.#session = null
     this.#filtered = []
     this.#activeIndex = 0
@@ -180,6 +182,10 @@ export class SlashCommandControllerV2 {
 
   #onKeydown(event) {
     if (!this.#session) return
+    if (!this.#sessionIsCurrent()) {
+      this.close()
+      return
+    }
     const owner = this.#reconciler.resolveEditableTarget(event.target)
     if (
       !owner
@@ -245,6 +251,13 @@ export class SlashCommandControllerV2 {
   }
 
   #render() {
+    const version = ++this.#itemsVersion
+    const session = this.#session
+    const ownsItems = () => (
+      this.#session === session
+      && this.#itemsVersion === version
+      && this.#sessionIsCurrent()
+    )
     this.#menu.replaceChildren()
     if (!this.#filtered.length) {
       const empty = this.#document.createElement('li')
@@ -273,10 +286,10 @@ export class SlashCommandControllerV2 {
       element.addEventListener('mousedown', event => {
         event.preventDefault()
         event.stopPropagation()
-        this.#select(index)
+        if (ownsItems()) this.#select(index)
       }, { signal: this.#controller.signal })
       element.addEventListener('mouseenter', () => {
-        if (!this.#session) return
+        if (!ownsItems()) return
         this.#activeIndex = index
         this.#render()
       }, { signal: this.#controller.signal })
@@ -288,7 +301,7 @@ export class SlashCommandControllerV2 {
   #select(index) {
     const session = this.#session
     const item = this.#filtered[index]
-    if (!session || !item) return
+    if (!session || !item || !this.#sessionIsCurrent()) return
     this.close()
 
     if (item.kind === 'inline') {
@@ -310,6 +323,13 @@ export class SlashCommandControllerV2 {
     this.#view.reconcileInteraction()
     this.#view.setCurrent(id)
     queueMicrotask(() => this.#view.focus(id, { offset: 'start' }))
+  }
+
+  #sessionIsCurrent() {
+    const session = this.#session
+    if (!session || !session.element.isConnected || !this.#root.contains(session.element)) return false
+    const field = this.#reconciler.getEditableField(session.blockId, session.fieldKey)
+    return field?.element === session.element
   }
 
   #textBeforeCaret(element, node, offset) {
