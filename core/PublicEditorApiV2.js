@@ -75,7 +75,9 @@ export class EditorBlocksApiV2 {
   move(id, to) { this.#assertLive(); this.#view.move(id, to) }
   convert(id, target) { this.#assertLive(); return this.#view.convert(id, target) }
   focus(id, target) {
-    this.#assertLive() this.#assertLive(); return this.#view.focus(id, target) }
+    this.#assertLive()
+    return this.#view.focus(id, target)
+  }
 
   *[Symbol.iterator]() {
     this.#assertLive()
@@ -115,7 +117,9 @@ export class EditorHandleV2 {
   get documentMode() { this.#assertLive(); return this.#runtime.documentMode }
 
   save() {
-    this.#assertLive() return cloneEditorData(this.#runtime.save()) }
+    this.#assertLive()
+    return cloneEditorData(this.#runtime.save())
+  }
   render(document) {
     this.#assertLive()
     this.#runtime.render(document)
@@ -138,9 +142,14 @@ export class EditorHandleV2 {
     if (changed) this.#view.reconcileInteraction()
     return changed
   }
-  focus() { return this.#view.focus() }
+  focus() {
+    this.#assertLive()
+    return this.#view.focus()
+  }
   setReadOnly(value) {
-    this.#assertLive() return this.#setReadOnly(value) }
+    this.#assertLive()
+    return this.#setReadOnly(value)
+  }
 
   insertInlinePlugin(type, data) {
     this.#assertLive()
