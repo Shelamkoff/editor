@@ -204,6 +204,8 @@ Introduce a canonical DocumentState.
 
 Rules:
 
+- editable current-version DocumentState always contains at least one block;
+- preserved-document mode may retain an empty blocks array exactly as supplied;
 - order is the only source of persisted block ordering;
 - blocks is the only source of persisted block content;
 - DOM order does not define document order;
@@ -280,6 +282,14 @@ A preserved document whose envelope version is not the current supported version
 Preserved-document mode is runtime state, not a persisted field.
 
 DocumentSchema must not contain plugin-specific data migrations.
+
+Editable empty-document normalization:
+
+- initial/current-version input with blocks: [] materializes one default block from the registered default schema;
+- editor.clear() atomically replaces content with one fresh default block;
+- removing the final editable block atomically inserts/replaces it with one fresh default block in the same transaction;
+- this normalization does not run in preserved-document mode because preserved input must not be rewritten;
+- renderer alone continues to support a genuinely empty document.
 
 ## 4. Block data schema contract
 
@@ -1874,9 +1884,20 @@ Blocks interface:
 
     interface EditorBlocksApi {
       get(id: string): EditorBlockSnapshot | undefined
+      at(index: number): EditorBlockSnapshot | undefined
       list(): readonly EditorBlockSnapshot[]
 
-      insert(input: InsertBlockInput): string
+      readonly count: number
+      indexOf(id: string): number
+
+      readonly currentId: string | null
+      setCurrent(id: string): void
+
+      selectedIds(): readonly string[]
+      select(ids: readonly string[]): void
+      clearSelection(): void
+
+      insert(input: InsertBlockInput, index?: number): string
 
       update(
         id: string,
@@ -1888,16 +1909,23 @@ Blocks interface:
       remove(id: string): void
       move(id: string, to: number): void
       convert(id: string, type: string): void
+
       focus(id: string, target?: FocusTarget): void
+
+      [Symbol.iterator](): IterableIterator<EditorBlockSnapshot>
     }
 
-All persisted mutation methods delegate to DocumentRuntime transactions. focus is not a persisted mutation and delegates to InteractionRuntime.
+All persisted mutation methods delegate to DocumentRuntime transactions. focus, setCurrent, select and clearSelection are interaction-state operations and delegate to InteractionRuntime.
+
+Index arguments are query/insertion conveniences only; persisted identity is always block ID. move(id, to) treats to as the final zero-based block index and rejects invalid indices rather than keeping the old insertion-boundary compatibility alias.
 
 Application-facing snapshots cannot mutate editor state by reference. Readonly in declarations is not sufficient by itself: return detached/deep-cloned JSON values (or a deeply frozen detached representation) at consumer trust boundaries. The same rule applies to values passed into public producer callbacks.
 
 BlockUpdate.data omitted means unchanged. BlockUpdate.tunes omitted means unchanged; null clears tunes. An empty update is a no-op. update cannot change type or block identity. update rejects status === "preserved"; remove/move remain available.
 
 EditorBlocksApi.update cannot directly replace block.inline; inline payload/reference changes go through inline widget commands so placeholder/map invariants stay atomic.
+
+Selection/current-block state is not persisted, does not create history, and does not schedule onChange. Selection events publish IDs in document order only when the selected-ID set/order actually changes.
 
 IEditor exposes whether the active document is writable:
 
@@ -1928,7 +1956,8 @@ Public render semantics:
 - crossing into or out of preserved-document mode is a non-history reset boundary and clears undo/redo;
 - initial createEditor data load is not a history step;
 - internal undo/redo never re-records history;
-- clear is one transaction.
+- clear is one transaction that leaves exactly one fresh default block;
+- removing the final editable block also leaves one fresh default block in the same history step.
 
 Do not add an ambiguous skipHistory flag to render. If a later product requirement needs a non-undoable application reset, define a separate reset(document) contract that explicitly clears history.
 
@@ -2692,6 +2721,14 @@ Extend verify.yml with enforced architecture, package-resolution, docs-generatio
 ## 31. Browser acceptance matrix
 
 Before completion, browser coverage must include:
+
+Editor cardinality/public queries:
+
+- current-version blocks: [] initializes one default block;
+- clear leaves one fresh default block;
+- remove final block leaves one fresh default block in the same history step;
+- preserved blocks: [] remains empty and unmodified;
+- at/list/count/indexOf/currentId/selectedIds return detached snapshot/query data without DOM handles.
 
 History:
 
