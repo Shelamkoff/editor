@@ -94,7 +94,7 @@ export class BlockOperations {
         const fragmentHtml = this.#selection.extractFragmentAfterCaret()
         if (fragmentHtml === null) return
         const currentIndex = blocks.getCurrentIndex()
-        const data = fragmentHtml ? { text: fragmentHtml } : {}
+        const data = fragmentHtml ? { text: fragmentHtml } : undefined
         const inserted = blocks.insert(this.#defaultBlockType, data, currentIndex + 1, undefined, metadata.inline, metadata.tunes)
         blocks.setCurrentIndex(currentIndex + 1)
         inserted.focus()
