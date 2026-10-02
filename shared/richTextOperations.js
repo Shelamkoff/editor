@@ -94,3 +94,105 @@ export function replaceRichTextRange(html,inline,range,replacement,ownerDocument
   collapseReferences(template.content,ownerDocument)
   return normalizeRichText(template.innerHTML,ownerDocument)
 }
+
+/**
+ * Split one canonical rich-text field at a logical selection. Matching inline
+ * references remain atomic. A non-collapsed range is removed before the split,
+ * matching native Enter behavior after replacing the current selection.
+ *
+ * @param {string} html
+ * @param {Record<string, unknown> | undefined} inline
+ * @param {{start:number,end?:number}} range
+ * @param {Document} ownerDocument
+ * @returns {{ before: string, after: string }}
+ */
+export function splitRichTextRange(html, inline, range, ownerDocument) {
+  const start = Math.max(0, Math.trunc(range?.start) || 0)
+  const end = Math.max(start, Math.trunc(range?.end ?? start) || 0)
+  const collapsed = replaceRichTextRange(
+    html,
+    inline,
+    { start, end },
+    { kind: 'text', text: '' },
+    ownerDocument,
+  )
+  return {
+    before: replaceRichTextRange(
+      collapsed,
+      inline,
+      { start, end: Number.MAX_SAFE_INTEGER },
+      { kind: 'text', text: '' },
+      ownerDocument,
+    ),
+    after: replaceRichTextRange(
+      collapsed,
+      inline,
+      { start: 0, end: start },
+      { kind: 'text', text: '' },
+      ownerDocument,
+    ),
+  }
+}
+
+/**
+ * Scan placeholder-shaped tokens in canonical rich text without trusting raw
+ * HTML attributes. References are tokens with an own matching inline entry;
+ * all other tokens remain literal author text.
+ *
+ * @param {string} html
+ * @param {Record<string, unknown> | undefined} inline
+ * @param {Document} ownerDocument
+ * @returns {{ references: Set<string>, literals: Set<string> }}
+ */
+export function scanRichTextPlaceholders(html, inline, ownerDocument) {
+  if (!ownerDocument?.createElement) throw new TypeError('RichTextOperations requires an ownerDocument')
+  const ownedInline = ownInline(inline)
+  const template = ownerDocument.createElement('template')
+  template.innerHTML = /** @type {any} */ (toTrustedHtml(
+    normalizeRichText(String(html ?? ''), ownerDocument),
+    ownerDocument,
+  ))
+  const references = new Set()
+  const literals = new Set()
+  const walker = ownerDocument.createTreeWalker(template.content, 4)
+  for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+    const text = /** @type {Text} */ (node)
+    for (const match of text.data.matchAll(PLACEHOLDER_RE)) {
+      const id = match[1]
+      if (Object.hasOwn(ownedInline, id)) references.add(id)
+      else literals.add(id)
+    }
+  }
+  return { references, literals }
+}
+
+/**
+ * Remap canonical inline references in text nodes only. Placeholder-shaped
+ * author text and HTML attributes are never rewritten.
+ *
+ * @param {string} html
+ * @param {Record<string, unknown> | undefined} inline
+ * @param {Map<string, string>} remap
+ * @param {Document} ownerDocument
+ * @returns {string}
+ */
+export function remapRichTextReferences(html, inline, remap, ownerDocument) {
+  if (!remap?.size) return normalizeRichText(String(html ?? ''), ownerDocument)
+  const ownedInline = ownInline(inline)
+  const template = ownerDocument.createElement('template')
+  template.innerHTML = /** @type {any} */ (toTrustedHtml(
+    normalizeRichText(String(html ?? ''), ownerDocument),
+    ownerDocument,
+  ))
+  const walker = ownerDocument.createTreeWalker(template.content, 4)
+  for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+    const text = /** @type {Text} */ (node)
+    if (!text.data.includes('{{')) continue
+    text.data = text.data.replace(PLACEHOLDER_RE, (token, id) => {
+      if (!Object.hasOwn(ownedInline, id)) return token
+      const next = remap.get(id)
+      return next ? `{{${next}}}` : token
+    })
+  }
+  return normalizeRichText(template.innerHTML, ownerDocument)
+}

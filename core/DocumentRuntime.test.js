@@ -236,3 +236,31 @@ test('convert uses source and target capabilities instead of arbitrary data merg
   assert.deepEqual(converted.data, { text: 'Hello', level: 2 })
   runtime.destroy()
 })
+
+test('mergeAdjacent commits data merge and source removal as one undoable transaction', () => {
+  const definition = paragraphDefinition()
+  definition.capabilities.merge = {
+    merge(target, source) {
+      return { text: target.text + source.text }
+    },
+  }
+  const runtime = new DocumentRuntime({
+    registry: registry([definition]),
+    data: {
+      version: '2.0.0',
+      blocks: [block('a', { text: 'A' }), block('b', { text: 'B' })],
+    },
+  })
+
+  assert.equal(runtime.mergeAdjacent('a', 'b'), true)
+  assert.deepEqual(runtime.list().map(item => [item.id, item.data.text]), [['a', 'AB']])
+  assert.equal(runtime.canUndo, true)
+
+  assert.equal(runtime.undo(), true)
+  assert.deepEqual(runtime.list().map(item => [item.id, item.data.text]), [['a', 'A'], ['b', 'B']])
+  assert.equal(runtime.canRedo, true)
+
+  assert.equal(runtime.redo(), true)
+  assert.deepEqual(runtime.list().map(item => [item.id, item.data.text]), [['a', 'AB']])
+  runtime.destroy()
+})

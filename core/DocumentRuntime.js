@@ -1,7 +1,7 @@
 // @ts-check
 import { cloneEditorData } from '../shared/cloneEditorData.js'
 import { normalizeRichText } from '../shared/richTextCodec.js'
-import { replaceRichTextRange } from '../shared/richTextOperations.js'
+import { remapRichTextReferences, replaceRichTextRange, scanRichTextPlaceholders, splitRichTextRange } from '../shared/richTextOperations.js'
 import { resolveValidationMode } from '../shared/validationMode.js'
 import { uid } from '../shared/uid.js'
 import { DocumentSchema } from './DocumentSchema.js'
@@ -206,6 +206,170 @@ export class DocumentRuntime {
       tx.insert(index, record)
     })
     return id
+  }
+
+  isEmpty(id) {
+    const current = this.#store.get(id)
+    if (!current || this.activation(id)?.kind !== 'active') return false
+    const definition = this.#registry.getBlockDefinition(current.type)
+    return definition?.capabilities?.empty?.isEmpty?.(current.data) === true
+  }
+
+  createDataId(prefix) {
+    const id = this.#createId(prefix)
+    if (typeof id !== 'string' || !id) throw new TypeError('createId() must return a non-empty string')
+    return id
+  }
+
+  splitRichTextField(id, fieldKey, range) {
+    const current = this.#store.get(id)
+    if (!current || this.activation(id)?.kind !== 'active') return null
+    const definition = this.#registry.getBlockDefinition(current.type)
+    if (!definition?.schema?.mapRichText || !this.#ownerDocument) return null
+    let result = null
+    definition.schema.mapRichText(current.data, (html, key) => {
+      if (key === fieldKey) {
+        result = splitRichTextRange(html, current.inline ?? {}, range ?? { start: 0, end: 0 }, this.#ownerDocument)
+      }
+      return html
+    })
+    return result
+  }
+
+  /**
+   * Atomically split one schema-declared rich-text field into the configured
+   * default block. A selected range is deleted before the split. Inline
+   * widget references are partitioned between the two block-local maps.
+   *
+   * @param {string} id
+   * @param {string} fieldKey
+   * @param {{ start: number, end?: number }} range
+   * @returns {string | false}
+   */
+  splitBlock(id, fieldKey, range) {
+    this.#assertWritable()
+    const current = this.#store.get(id)
+    if (!current) throw new Error(`Unknown block id: ${id}`)
+    if (this.activation(id)?.kind !== 'active') throw new Error(`Preserved block cannot be split: ${id}`)
+    const sourceDefinition = this.#registry.getBlockDefinition(current.type)
+    if (!sourceDefinition?.schema?.mapRichText) return false
+
+    const defaultType = this.#registry.defaultBlockType
+    const targetDefinition = this.#registry.getBlockDefinition(defaultType)
+    if (!targetDefinition?.schema?.mapRichText) return false
+
+    const inline = cloneInline(current.inline) ?? {}
+    const start = Math.max(0, Math.trunc(range?.start) || 0)
+    const end = Math.max(start, Math.trunc(range?.end ?? start) || 0)
+    let matched = false
+    let trailing = ''
+    const sourceData = sourceDefinition.schema.mapRichText(current.data, (html, key) => {
+      if (key !== fieldKey) return html
+      matched = true
+      const split = splitRichTextRange(html, inline, { start, end }, this.#ownerDocument)
+      trailing = split.after
+      return split.before
+    })
+    if (!matched) return false
+
+    let targetData = targetDefinition.schema.createDefault()
+    let targetField = false
+    const defaultLiteralIds = this.#scanBlockRichText(targetDefinition, targetData, {}).literals
+    const trailingRefs = scanRichTextPlaceholders(trailing, inline, this.#ownerDocument).references
+    const targetRemap = new Map()
+    const occupied = new Set(defaultLiteralIds)
+    for (const inlineId of trailingRefs) {
+      const nextId = occupied.has(inlineId)
+        ? this.#allocateInlineId(occupied)
+        : inlineId
+      occupied.add(nextId)
+      if (nextId !== inlineId) targetRemap.set(inlineId, nextId)
+    }
+    if (targetRemap.size) {
+      trailing = remapRichTextReferences(trailing, inline, targetRemap, this.#ownerDocument)
+    }
+
+    targetData = targetDefinition.schema.mapRichText(targetData, (html) => {
+      if (targetField) return html
+      targetField = true
+      return trailing
+    })
+    if (!targetField) return false
+
+    const sourceEncoded = this.#normalizeLocalData(sourceDefinition, sourceData)
+    const targetEncoded = this.#normalizeLocalData(targetDefinition, targetData)
+    const sourceInline = this.#filterInlineForData(sourceDefinition, sourceEncoded.data, inline)
+    const targetSourceInline = this.#remapInlinePayload(inline, targetRemap)
+    const targetInline = this.#filterInlineForData(targetDefinition, targetEncoded.data, targetSourceInline)
+    const newId = this.#createUniqueBlockId(defaultType)
+    const sourceRecord = {
+      ...current,
+      dataVersion: sourceEncoded.dataVersion,
+      data: sourceEncoded.data,
+    }
+    if (sourceInline === undefined) delete sourceRecord.inline
+    else sourceRecord.inline = sourceInline
+    delete sourceRecord.revision
+
+    const targetRecord = {
+      id: newId,
+      type: defaultType,
+      dataVersion: targetEncoded.dataVersion,
+      data: targetEncoded.data,
+    }
+    if (current.tunes !== undefined) targetRecord.tunes = cloneTunes(current.tunes)
+    if (targetInline !== undefined) targetRecord.inline = targetInline
+
+    const index = this.#store.ids().indexOf(id)
+    this.#engine.execute({ origin: 'user', name: 'block.split' }, tx => {
+      tx.update(id, sourceRecord)
+      tx.insert(index + 1, targetRecord)
+    })
+    return newId
+  }
+
+  /**
+   * Atomically merge the immediately following source block into target using
+   * the block definition's pure merge capability. Cross-block inline id and
+   * literal-token collisions are remapped before the data merge.
+   *
+   * @param {string} targetId
+   * @param {string} sourceId
+   * @returns {boolean}
+   */
+  mergeAdjacent(targetId, sourceId) {
+    this.#assertWritable()
+    const ids = this.#store.ids()
+    const targetIndex = ids.indexOf(targetId)
+    const sourceIndex = ids.indexOf(sourceId)
+    if (targetIndex < 0 || sourceIndex !== targetIndex + 1) return false
+
+    const target = this.#store.get(targetId)
+    const source = this.#store.get(sourceId)
+    if (!target || !source || target.type !== source.type) return false
+    if (this.activation(targetId)?.kind !== 'active' || this.activation(sourceId)?.kind !== 'active') return false
+    const definition = this.#registry.getBlockDefinition(target.type)
+    const merge = definition?.capabilities?.merge?.merge
+    if (typeof merge !== 'function') return false
+
+    const prepared = this.#prepareInlineMerge(definition, target, source)
+    const mergedData = merge(prepared.targetData, prepared.sourceData)
+    const encoded = this.#normalizeLocalData(definition, mergedData)
+    const mergedInline = this.#filterInlineForData(definition, encoded.data, prepared.inline)
+    const next = {
+      ...target,
+      dataVersion: encoded.dataVersion,
+      data: encoded.data,
+    }
+    if (mergedInline === undefined) delete next.inline
+    else next.inline = mergedInline
+    delete next.revision
+
+    this.#engine.execute({ origin: 'user', name: 'block.merge' }, tx => {
+      tx.update(targetId, next)
+      tx.remove(sourceId)
+    })
+    return true
   }
 
   update(id, producer) {
@@ -706,6 +870,88 @@ export class DocumentRuntime {
       }
     }
     return Object.keys(result).length ? result : undefined
+  }
+
+  #scanBlockRichText(definition, data, inline) {
+    const references = new Set()
+    const literals = new Set()
+    if (typeof definition?.schema?.mapRichText !== 'function') return { references, literals }
+    definition.schema.mapRichText(data, html => {
+      const scan = scanRichTextPlaceholders(html, inline, this.#ownerDocument)
+      for (const id of scan.references) references.add(id)
+      for (const id of scan.literals) literals.add(id)
+      return html
+    })
+    return { references, literals }
+  }
+
+  #filterInlineForData(definition, data, inline) {
+    if (!inline || typeof inline !== 'object' || Array.isArray(inline)) return undefined
+    const { references } = this.#scanBlockRichText(definition, data, inline)
+    const result = {}
+    for (const id of references) {
+      if (Object.hasOwn(inline, id)) result[id] = cloneEditorData(inline[id])
+    }
+    return Object.keys(result).length ? result : undefined
+  }
+
+  #remapInlinePayload(inline, remap) {
+    const result = {}
+    for (const [id, value] of Object.entries(inline ?? {})) {
+      result[remap.get(id) ?? id] = cloneEditorData(value)
+    }
+    return result
+  }
+
+  #remapBlockRichText(definition, data, inline, remap) {
+    if (!remap.size || typeof definition?.schema?.mapRichText !== 'function') return cloneEditorData(data)
+    return definition.schema.mapRichText(data, html => (
+      remapRichTextReferences(html, inline, remap, this.#ownerDocument)
+    ))
+  }
+
+  #allocateInlineId(reserved) {
+    for (let attempt = 0; attempt < 1000; attempt++) {
+      const id = this.#createId('inline')
+      if (typeof id !== 'string' || !id) throw new TypeError('createId() must return a non-empty string')
+      if (!reserved.has(id)) return id
+    }
+    throw new Error('Could not allocate a unique inline widget id')
+  }
+
+  #prepareInlineMerge(definition, target, source) {
+    const targetInline = cloneInline(target.inline) ?? {}
+    const sourceInline = cloneInline(source.inline) ?? {}
+    const targetScan = this.#scanBlockRichText(definition, target.data, targetInline)
+    const sourceScan = this.#scanBlockRichText(definition, source.data, sourceInline)
+    const reserved = new Set([...targetScan.literals, ...sourceScan.literals])
+
+    const targetRemap = new Map()
+    for (const id of targetScan.references) {
+      if (!Object.hasOwn(targetInline, id)) continue
+      const next = reserved.has(id) ? this.#allocateInlineId(reserved) : id
+      reserved.add(next)
+      if (next !== id) targetRemap.set(id, next)
+    }
+
+    const sourceRemap = new Map()
+    for (const id of sourceScan.references) {
+      if (!Object.hasOwn(sourceInline, id)) continue
+      const next = reserved.has(id) ? this.#allocateInlineId(reserved) : id
+      reserved.add(next)
+      if (next !== id) sourceRemap.set(id, next)
+    }
+
+    const targetData = this.#remapBlockRichText(definition, target.data, targetInline, targetRemap)
+    const sourceData = this.#remapBlockRichText(definition, source.data, sourceInline, sourceRemap)
+    const inline = {}
+    for (const id of targetScan.references) {
+      if (Object.hasOwn(targetInline, id)) inline[targetRemap.get(id) ?? id] = cloneEditorData(targetInline[id])
+    }
+    for (const id of sourceScan.references) {
+      if (Object.hasOwn(sourceInline, id)) inline[sourceRemap.get(id) ?? id] = cloneEditorData(sourceInline[id])
+    }
+    return { targetData, sourceData, inline }
   }
 
   #createUniqueInlineId(blockDefinition, data, inline) {
