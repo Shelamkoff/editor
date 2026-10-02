@@ -227,6 +227,7 @@ async function testSettingsPanels() {
     ...attachesDefinition.schema.createDefault(),
     files: [{ id: 'file-1', url: 'https://example.com/file.pdf', name: 'file.pdf', size: 0, extension: 'pdf' }],
   }, 'attaches-settings')
+  const initialVariant = attaches.editor.save().blocks[0].data.variant
   menu = await openSettings(attaches)
   const variantB = [...menu.querySelectorAll('[role="menuitem"]')]
     .find(item => item.textContent?.includes('Variant B'))
@@ -234,7 +235,7 @@ async function testSettingsPanels() {
   variantB.click()
   assert(attaches.editor.save().blocks[0].data.variant === 'b', 'attaches: variant setting was not persisted')
   assert(attaches.editor.undo(), 'attaches: variant change did not enter history')
-  assert(attaches.editor.save().blocks[0].data.variant === 'a', 'attaches: variant undo failed')
+  assert(attaches.editor.save().blocks[0].data.variant === initialVariant, 'attaches: variant undo failed')
   unmount(attaches)
 }
 
