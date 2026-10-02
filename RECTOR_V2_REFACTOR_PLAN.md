@@ -2537,20 +2537,19 @@ For every plugin prove:
 
 After block plugin migration, migrate inline plugins to InlinePluginDefinition/InlinePluginRuntime/InlineWidgetInstance and model-owned payloads. Cover mention and color first, including trigger/autocomplete, paste patterns, programmatic insertion, read-only behavior and missing-plugin preservation.
 
-Migration must stay implementable in small commits without making legacy compatibility public.
+Migration is a direct cutover. Compatibility with the v1 plugin API is not a requirement.
 
-A temporary internal migration bridge is permitted only during Phase 3 so createEditor can host not-yet-migrated built-ins while one plugin at a time is converted. The bridge:
+Rules:
 
-- is not exported;
-- accepts only repository-owned v1 built-ins, not third-party v1 plugins;
-- is marked internal and covered only as migration scaffolding;
-- must not introduce a second history/model path;
-- adapts lifecycle calls into the v2 runtime boundary while persistence remains on the existing runtime until the v2 cutover;
-- is deleted before Phase 3 exit.
+- do not add a v1-to-v2 runtime adapter, bridge, facade or dual registration path;
+- createEditor must switch atomically to BlockPluginDefinition/InlinePluginDefinition contracts;
+- built-ins are migrated before they are registered by the new composition root;
+- a built-in that has not been migrated is temporarily unavailable in an intermediate commit rather than being hosted through v1 compatibility;
+- third-party v1 plugins are not accepted by the v2 editor;
+- BlockPlugin v1, BlockPluginAbstract, class-instance ownership, setI18n/setPlaceholder, DOM-based save/isEmpty/merge, InlinePlugin getData/hydrate/notifyChanged and the old registries are removed from the final tree;
+- tests/docs/package declarations are updated in the same cutover and must not describe both APIs.
 
-Alternatively, an implementation may keep the v2 plugin runtime unselected until all built-ins are migrated, provided each migrated definition is testable through an internal composition harness and createEditor switches atomically. Do not ship a mixed public v1/v2 extension API.
-
-Delete BlockPlugin v1, the temporary bridge, and old InlinePlugin getData/hydrate persistence contracts before phase exit.
+Delete the v1 plugin/inline-plugin contracts and all supporting runtime code during Phase 3; no compatibility layer remains after the composition-root switch.
 
 ### Phase 4: DocumentRuntime canonical model
 
