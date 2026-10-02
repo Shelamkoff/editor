@@ -1,276 +1,159 @@
-import { insertSanitizedHtml, setSanitizedHtml, setTrustedHtml } from '../../plugin-kit/index.js'
-import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
-import { createHeadingLevelSelect } from './HeadingLevelSelect.js'
-import { mapTextFields } from './mapTextFields.js'
+// @ts-check
+import { setSanitizedHtml } from '../../plugin-kit/index.js'
 import { headingDataSchema } from '../../shared/blockSchemas/heading.js'
-import { normalizeHeadingLevel, normalizeTextAlign, normalizeTextValue } from '../../shared/textFormat.js'
+import { HEADING_ICON, HEADING_LEVELS, HEADING_STYLES } from './metadata.js'
 
-const editorStyles = new URL('./heading.css', import.meta.url).href
+function levelLabel(level){
+  const item=HEADING_LEVELS.find(entry=>entry.level===level)
+  return item??HEADING_LEVELS[0]
+}
 
-// Tabler icon: heading
-const ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 12h10"/><path d="M7 5v14"/><path d="M17 5v14"/><path d="M15 19h4"/><path d="M15 5h4"/><path d="M5 19h4"/><path d="M5 5h4"/></svg>'
-
-const ICON_H2 = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 12a2 2 0 1 1 4 0c0 .591-.417 1.318-.816 1.858L17 18h4"/><path d="M4 6v12"/><path d="M12 6v12"/><path d="M11 18h2"/><path d="M3 18h2"/><path d="M4 12h8"/><path d="M3 6h2"/><path d="M11 6h2"/></svg>'
-const ICON_H3 = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14a2 2 0 1 0 -2 -2"/><path d="M17 16a2 2 0 1 0 2 -2"/><path d="M4 6v12"/><path d="M12 6v12"/><path d="M11 18h2"/><path d="M3 18h2"/><path d="M4 12h8"/><path d="M3 6h2"/><path d="M11 6h2"/></svg>'
-const ICON_H4 = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 18v-8l-4 6h5"/><path d="M4 6v12"/><path d="M12 6v12"/><path d="M11 18h2"/><path d="M3 18h2"/><path d="M4 12h8"/><path d="M3 6h2"/><path d="M11 6h2"/></svg>'
-// Tabler: h5
-const ICON_H5 = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 18h2a2 2 0 1 0 0 -4h-2v-4h4"/><path d="M4 6v12"/><path d="M12 6v12"/><path d="M11 18h2"/><path d="M3 18h2"/><path d="M4 12h8"/><path d="M3 6h2"/><path d="M11 6h2"/></svg>'
-// Tabler: h6
-const ICON_H6 = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14a2 2 0 1 0 0 4a2 2 0 0 0 0 -4z"/><path d="M21 12a2 2 0 1 0 -4 0v4"/><path d="M4 6v12"/><path d="M12 6v12"/><path d="M11 18h2"/><path d="M3 18h2"/><path d="M4 12h8"/><path d="M3 6h2"/><path d="M11 6h2"/></svg>'
+function mergeText(left,right){
+  if(!left)return right
+  if(!right)return left
+  return left+right
+}
 
 /**
- * Immutable metadata for the heading levels exposed by the plugin UI.
- * Consumers may reuse it to build controls that stay aligned with Rector's
- * supported H2-H6 range; `key` is the plugin-local localization key.
- * @type {ReadonlyArray<{ level: number, key: string, icon: string }>}
+ * Create the immutable Heading v2 definition with model-first level controls.
+ * @returns {import('../../plugin-kit/types').BlockPluginDefinition<{text:string,level:2|3|4|5|6}>}
  */
-export const HEADING_LEVELS = Object.freeze([
-  Object.freeze({ level: 2, key: 'h2', icon: ICON_H2 }),
-  Object.freeze({ level: 3, key: 'h3', icon: ICON_H3 }),
-  Object.freeze({ level: 4, key: 'h4', icon: ICON_H4 }),
-  Object.freeze({ level: 5, key: 'h5', icon: ICON_H5 }),
-  Object.freeze({ level: 6, key: 'h6', icon: ICON_H6 }),
-])
+export function createHeadingPlugin(){
+  const toolbox=Object.freeze(HEADING_LEVELS.map(item=>Object.freeze({
+    id:`h${item.level}`,
+    label:Object.freeze({key:item.key,fallback:item.fallback}),
+    icon:item.icon,
+    configure(base){
+      return {...base,level:/** @type {2|3|4|5|6} */(item.level)}
+    },
+  })))
 
-/** Editable H2-H6 heading block with alignment and inline formatting. */
-export class Heading extends BlockPluginAbstract {
-  static dataSchema = headingDataSchema
-  static isTextBlock = true
-  static styles = [editorStyles]
-  type = 'heading'
-  icon = ICON
-  inlineTools = true
-  mapTextFields = mapTextFields
-  pasteConfig = {
-    tags: ['h2', 'h3', 'h4', 'h5', 'h6'],
-  }
-
-  /**
-   * Return the localized toolbox label for this block.
-   * @returns {string}
-   */
-  get title() {
-    return this._t('title', 'Heading')
-  }
-
-  /**
-   * Get localized placeholder for heading.
-   * @param {number} level
-   * @returns {string}
-   */
-  #placeholder(level) {
-    return this._t('placeholder', `Heading ${level}`, { level })
-  }
-
-  /**
-   * Create the editable DOM owned by this block instance.
-   * @param {{ text?: string, level?: number }} data
-   * @param {import('../../plugin-kit/types').BlockMutationContext} context
-   * @returns {HTMLElement}
-   */
-  render(data, context) {
-    const ownerDocument = context?.ownerDocument ?? globalThis.document
-    const level = normalizeHeadingLevel(data?.level)
-    const tag = `h${level}`
-    const heading = ownerDocument.createElement(tag)
-    heading.classList.add('oe-heading', `oe-heading--${tag}`)
-    heading.contentEditable = 'true'
-
-    const text = normalizeTextValue(data?.text)
-    if (text) {
-      setSanitizedHtml(heading, text)
-    }
-
-    heading.dataset.placeholder = this.#placeholder(level)
-
-    return heading
-  }
-
-  /**
-   * Change heading level in-place (preserves caret position).
-   * Returns the new element (replaces old in DOM).
-   * @param {HTMLElement} element — current heading element
-   * @param {number} newLevel
-   * @returns {HTMLElement}
-   */
-  changeLevel(element, newLevel) {
-    const level = normalizeHeadingLevel(newLevel)
-    const tag = `h${level}`
-
-    // If already at this level, do nothing
-    if (element.tagName.toLowerCase() === tag) return element
-
-    const ownerDocument = element.ownerDocument
-    const ownerWindow = ownerDocument.defaultView
-
-    // Save full selection range (not just caret) so inline tools keep working
-    const sel = ownerWindow?.getSelection?.()
-    let startNode = null, startOffset = 0
-    let endNode = null, endOffset = 0
-    let wasCollapsed = true
-    if (sel && sel.rangeCount > 0) {
-      const range = sel.getRangeAt(0)
-      startNode = range.startContainer
-      startOffset = range.startOffset
-      endNode = range.endContainer
-      endOffset = range.endOffset
-      wasCollapsed = range.collapsed
-    }
-
-    // Create new element with same content
-    const newEl = ownerDocument.createElement(tag)
-    newEl.className = `oe-heading oe-heading--${tag}`
-    newEl.contentEditable = 'true'
-    newEl.dataset.placeholder = this.#placeholder(level)
-    newEl.style.textAlign = normalizeTextAlign(element.style.textAlign)
-
-    // Move all children (nodes are moved, not cloned — refs stay valid)
-    while (element.firstChild) {
-      newEl.appendChild(element.firstChild)
-    }
-
-    // Replace in DOM
-    element.replaceWith(newEl)
-
-    // Restore full selection range
-    if (sel && startNode) {
-      try {
-        const range = ownerDocument.createRange()
-        range.setStart(startNode, startOffset)
-        if (!wasCollapsed && endNode) {
-          range.setEnd(endNode, endOffset)
-        } else {
-          range.collapse(true)
+  const capabilities=Object.freeze({
+    formatting:Object.freeze({inlineTools:true}),
+    empty:Object.freeze({isEmpty:data=>data.text.trim().length===0}),
+    merge:Object.freeze({
+      merge(target,source){
+        return {...target,text:mergeText(target.text,source.text)}
+      },
+    }),
+    conversion:Object.freeze({
+      export(data){
+        return {kind:'rich-text',data:{text:data.text}}
+      },
+      canImport(payload){
+        return payload?.kind==='rich-text'&&typeof payload.data?.text==='string'
+      },
+      import(payload){
+        if(payload?.kind!=='rich-text'||typeof payload.data?.text!=='string'){
+          throw new TypeError('Heading can only import rich-text payloads')
         }
-        sel.removeAllRanges()
-        sel.addRange(range)
-      } catch {
-        // Node may be detached in edge cases — fall back to focusing element
-        newEl.focus()
+        return {text:payload.data.text,level:/** @type {2} */(2)}
+      },
+    }),
+    settings:Object.freeze({
+      kind:/** @type {'actions'} */('actions'),
+      actions(data){
+        return HEADING_LEVELS.map(item=>Object.freeze({
+          id:`h${item.level}`,
+          label:Object.freeze({key:item.key,fallback:item.fallback}),
+          icon:item.icon,
+          active:data.level===item.level,
+        }))
+      },
+      apply(data,actionId){
+        const match=/^h([2-6])$/.exec(actionId)
+        if(!match)throw new RangeError(`Unknown heading setting: ${actionId}`)
+        return {...data,level:/** @type {2|3|4|5|6} */(Number(match[1]))}
+      },
+    }),
+    paste:Object.freeze({
+      accepts(input){
+        return input.kind==='html'&&/<h[2-6](?:\s|>)/i.test(input.html)
+      },
+      resolve(input,context){
+        if(input.kind!=='html')return null
+        const template=context.ownerDocument.createElement('template')
+        template.innerHTML=input.html
+        const element=template.content.querySelector('h2,h3,h4,h5,h6')
+        if(!element)return null
+        const level=Number(element.tagName.slice(1))
+        return {
+          kind:/** @type {'block'} */('block'),
+          data:{
+            text:element.innerHTML,
+            level:/** @type {2|3|4|5|6} */(level),
+          },
+        }
+      },
+    }),
+  })
+
+  return Object.freeze({
+    type:'heading',
+    label:Object.freeze({key:'title',fallback:'Heading'}),
+    icon:HEADING_ICON,
+    styles:HEADING_STYLES,
+    toolbox,
+    schema:headingDataSchema,
+    capabilities,
+    setup(runtimeContext){
+      let destroyed=false
+      return {
+        create(initial,context){
+          if(destroyed)throw new Error('Heading runtime is destroyed')
+          const document=context.ownerDocument
+          const host=document.createElement('div')
+          host.className='oe-heading-host'
+          let current
+          let data={...initial}
+          let readOnly=context.isReadOnly()
+          let instanceDestroyed=false
+
+          const build=value=>{
+            const item=levelLabel(value.level)
+            const heading=document.createElement(`h${item.level}`)
+            heading.className=`oe-heading oe-heading--h${item.level}`
+            heading.contentEditable=readOnly?'false':'true'
+            heading.dataset.placeholder=runtimeContext.t('placeholder',item.fallback)
+            if(value.text)setSanitizedHtml(heading,value.text)
+            return heading
+          }
+
+          current=build(data)
+          host.appendChild(current)
+
+          const project=next=>{
+            if(instanceDestroyed)return
+            if(next.level!==data.level){
+              const replacement=build(next)
+              current.replaceWith(replacement)
+              current=replacement
+            }else if(current.innerHTML!==next.text){
+              if(next.text)setSanitizedHtml(current,next.text)
+              else current.textContent=''
+            }
+            data={...next}
+          }
+
+          return {
+            element:host,
+            read:()=>({text:current.innerHTML,level:data.level}),
+            update:project,
+            editableFields:()=>Object.freeze([
+              Object.freeze({key:'text',element:current,mode:/** @type {'rich-text'} */('rich-text')}),
+            ]),
+            setReadOnly(value){
+              readOnly=value
+              current.contentEditable=value?'false':'true'
+            },
+            focus(){
+              if(!instanceDestroyed&&!readOnly)current.focus()
+            },
+            destroy(){instanceDestroyed=true},
+          }
+        },
+        destroy(){destroyed=true},
       }
-    }
-
-    return newEl
-  }
-
-  /**
-   * Get current level from element.
-   * @param {HTMLElement} element
-   * @returns {number}
-   */
-  getLevel(element) {
-    const tag = element.tagName.toLowerCase()
-    return parseInt(tag.charAt(1), 10) || 2
-  }
-
-  /**
-   * Serialize the current block DOM into document data.
-   * @param {HTMLElement} element
-   * @returns {{ text: string, level: number }}
-   */
-  save(element) {
-    return { text: element.innerHTML, level: this.getLevel(element) }
-  }
-
-  /**
-   * Check whether serialized data satisfies this block's schema.
-   * @param {unknown} data
-   * @returns {boolean}
-   */
-  validate(data) {
-    try {
-      headingDataSchema.encode(/** @type {any} */ (data))
-      return true
-    } catch {
-      return false
-    }
-  }
-
-  /**
-   * Merge incoming text into the current block.
-   * @param {HTMLElement} element
-   * @param {{ text?: string }} data
-   * @returns {void}
-   */
-  merge(element, data) {
-    const text = normalizeTextValue(data.text)
-    if (text) {
-      insertSanitizedHtml(element, 'beforeend', text)
-    }
-  }
-
-  /**
-   * Extract neutral rich text and heading metadata for block conversion.
-   * @param {HTMLElement} element
-   * @returns {{ text: string, level: number }}
-   */
-  exportData(element) {
-    return { text: element.innerHTML, level: this.getLevel(element) }
-  }
-
-  /**
-   * Check whether the block has no meaningful user content.
-   * @param {HTMLElement} element
-   * @returns {boolean}
-   */
-  isEmpty(element) {
-    return (element.textContent?.trim().length ?? 0) === 0
-  }
-
-  /**
-   * Render settings items for the block settings menu.
-   * Returns H2-H6 buttons shown directly in the main settings view.
-   * @param {HTMLElement} element
-   * @returns {HTMLElement[]}
-   */
-  renderSettings(element) {
-    const ownerDocument = element.ownerDocument
-    const currentLevel = this.getLevel(element)
-    return HEADING_LEVELS.map(({ level, key, icon }) => {
-      const btn = ownerDocument.createElement('li')
-      btn.setAttribute('role', 'menuitem')
-      btn.setAttribute('tabindex', '-1')
-      btn.className = 'oe-settings-menu__item'
-      if (level === currentLevel) {
-        btn.classList.add('oe-settings-menu__item--active')
-      }
-      btn.dataset.level = String(level)
-
-      const iconSpan = ownerDocument.createElement('span')
-      iconSpan.className = 'oe-settings-menu__icon'
-      setTrustedHtml(iconSpan, icon)
-      btn.appendChild(iconSpan)
-
-      const labelSpan = ownerDocument.createElement('span')
-      labelSpan.className = 'oe-settings-menu__label'
-      labelSpan.textContent = this._t(key, `Heading ${level}`)
-      btn.appendChild(labelSpan)
-
-      return btn
-    })
-  }
-
-  /**
-   * Render heading level select dropdown for the inline toolbar.
-   * @param {HTMLElement} element
-   * @param {import('../../types').InlineControlContext} ctx
-   * @returns {import('../../types').InlineControlGroup}
-   */
-  renderInlineControls(element, ctx) {
-    return createHeadingLevelSelect(this, element, ctx, (key, fallback) => this._t(key, fallback), HEADING_LEVELS)
-  }
-
-  /**
-   * Handle pasted heading elements.
-   * @param {import('../../types').TagPasteEvent} event
-   * @returns {{ text: string, level: number } | null}
-   */
-  onPaste(event) {
-    if (event.type !== 'tag') return null
-    const tag = event.tag.toLowerCase()
-    const level = parseInt(tag.charAt(1), 10)
-    if (level < 2 || level > 6) return null
-    return { text: event.element.innerHTML, level }
-  }
-
+    },
+  })
 }
