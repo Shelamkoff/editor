@@ -1,4 +1,4 @@
-import { setTrustedHtml, insertTrustedHtml } from '../../core/sanitize.js'
+import { setTrustedHtml, insertTrustedHtml } from '../../plugin-kit/index.js'
 import { triggerFileInput } from '../shared/fileInput.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { getFileIcon, getExtension, formatSize, EXT_COLORS } from '../../shared/fileUtils.js'
