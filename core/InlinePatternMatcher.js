@@ -1,6 +1,6 @@
 import { hydrateInlineWidget } from './hydrateInlinePlugins.js'
 import { EditorEvent } from './editorEvents.js'
-import { editingHostForEvent } from './editableFields.js'
+import { editingHostForEvent } from '../shared/editableFields.js'
 import { hydrateInlinePlugins } from './hydrateInlinePlugins.js'
 
 /** Pattern replacement must use the same authored-field boundary as public
