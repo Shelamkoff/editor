@@ -80,6 +80,14 @@ function checkCallable(node, sourceFile, label, { requireDescription = false } =
 function inspect(file) {
   const relative = path.relative(root, file).replaceAll('\\', '/')
   const source = fs.readFileSync(file, 'utf8')
+
+  if (relative.startsWith('plugins/') || relative.startsWith('inline-plugins/')) {
+    const privateCoreImport = /(?:from\s+|import\(\s*)['"](?:\.\.\/)+core\//g
+    for (const match of source.matchAll(privateCoreImport)) {
+      const line = source.slice(0, match.index).split(/\r?\n/).length
+      errors.push(`${relative}:${line}: extension source must use plugin-kit/shared instead of private core imports`)
+    }
+  }
   const sourceFile = ts.createSourceFile(relative, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS)
   const packageEntry = path.basename(file) === 'index.js'
     || relative.startsWith('inline-tools/')
