@@ -48,7 +48,8 @@ function submit(holder) {
 }
 
 async function run() {
-  const local = makePoll({}, { ...fixture, resultsMode: 'afterVote', pollId: undefined }, { id: 'local' })
+  const { pollId: _remotePollId, ...localFixture } = fixture
+  const local = makePoll({}, { ...localFixture, resultsMode: 'afterVote' }, { id: 'local' })
   let localTransactions = 0
   local.editor.on('transaction:committed', () => { localTransactions++ })
 
