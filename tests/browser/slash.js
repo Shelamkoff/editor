@@ -174,9 +174,9 @@ async function run() {
   setCaretAtEnd(staleField)
   staleField.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText' }))
   await delay()
-  const filteredBefore = structuredClone(stale.editor.save())
+  const filteredBefore = structuredClone(stale.editor.save().blocks)
   oldItem.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }))
-  assert(JSON.stringify(stale.editor.save()) === JSON.stringify(filteredBefore), 'retained slash item acted after filter redraw')
+  assert(JSON.stringify(stale.editor.save().blocks) === JSON.stringify(filteredBefore), 'retained slash item acted after filter redraw')
   const currentItem = staleMenu.querySelector('.oe-slash-menu__item')
   assert(currentItem instanceof HTMLElement && currentItem !== oldItem, 'slash filter did not replace menu item ownership')
   currentItem.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }))
@@ -199,9 +199,9 @@ async function run() {
     blocks: [{ id: 'stale', type: 'paragraph', data: { text: 'replacement' } }],
   })
   await delay()
-  const afterRenderBefore = structuredClone(stale.editor.save())
+  const afterRenderBefore = structuredClone(stale.editor.save().blocks)
   retainedAfterRender.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }))
-  assert(JSON.stringify(stale.editor.save()) === JSON.stringify(afterRenderBefore), 'retained slash item acted on replacement block generation')
+  assert(JSON.stringify(stale.editor.save().blocks) === JSON.stringify(afterRenderBefore), 'retained slash item acted on replacement block generation')
   stale.editor.destroy()
   stale.holder.remove()
 
