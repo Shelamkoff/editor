@@ -1,6 +1,7 @@
 // @ts-check
 import { cloneEditorData } from '../shared/cloneEditorData.js'
 import { normalizeRichText } from '../shared/richTextCodec.js'
+import { replaceRichTextRange } from '../shared/richTextOperations.js'
 import { resolveValidationMode } from '../shared/validationMode.js'
 import { uid } from '../shared/uid.js'
 import { DocumentSchema } from './DocumentSchema.js'
@@ -185,7 +186,7 @@ export class DocumentRuntime {
     return document
   }
 
-  insert(type, data, index = this.#store.ids().length) {
+  insert(type, data, index = this.#store.ids().length, options = {}) {
     this.#assertWritable()
     const definition = this.#registry.getBlockDefinition(type)
     if (!definition) throw new Error(`Unknown block type: ${type}`)
@@ -197,6 +198,10 @@ export class DocumentRuntime {
       dataVersion: encoded.dataVersion,
       data: encoded.data,
     }
+    const tunes = cloneTunes(options.tunes)
+    if (tunes !== undefined) record.tunes = tunes
+    const inline = options.inline === undefined ? undefined : this.#normalizeExternalInline(options.inline, { strict: true })
+    if (inline !== undefined) record.inline = inline
     this.#engine.execute({ origin: 'external', name: 'block.insert' }, tx => {
       tx.insert(index, record)
     })
@@ -385,6 +390,75 @@ export class DocumentRuntime {
     this.#readOnly = next
   }
 
+  replaceRichText(blockId, fieldKey, range, replacement) {
+    this.#assertWritable()
+    const current = this.#store.get(blockId)
+    if (!current) throw new Error(`Unknown block id: ${blockId}`)
+    if (this.activation(blockId)?.kind !== 'active') throw new Error(`Preserved block cannot be updated: ${blockId}`)
+    const definition = this.#registry.getBlockDefinition(current.type)
+    if (!definition?.schema?.mapRichText) throw new Error(`Block type has no rich-text fields: ${current.type}`)
+    const data = cloneEditorData(current.data)
+    let matched = false
+    const inline = cloneInline(current.inline) ?? {}
+    const nextData = definition.schema.mapRichText(data, (html, key) => {
+      if (key !== fieldKey) return html
+      matched = true
+      return replaceRichTextRange(html, inline, range, replacement, this.#ownerDocument)
+    })
+    if (!matched) throw new Error(`Unknown rich-text field "${fieldKey}" for block "${blockId}"`)
+    const encoded = this.#normalizeLocalData(definition, nextData)
+    const next = { ...current, dataVersion: encoded.dataVersion, data: encoded.data }
+    delete next.revision
+    this.#engine.execute({ origin: 'plugin', name: 'rich-text.replace' }, tx => tx.update(blockId, next))
+  }
+
+  insertInlineWidget(blockId, fieldKey, range, type, data) {
+    this.#assertWritable()
+    const current = this.#store.get(blockId)
+    if (!current) throw new Error(`Unknown block id: ${blockId}`)
+    if (this.activation(blockId)?.kind !== 'active') throw new Error(`Preserved block cannot be updated: ${blockId}`)
+    const blockDefinition = this.#registry.getBlockDefinition(current.type)
+    if (!blockDefinition?.schema?.mapRichText) throw new Error(`Block type has no rich-text fields: ${current.type}`)
+    const inlineDefinition = this.#registry.getInlineDefinition(type)
+    if (!inlineDefinition) throw new Error(`Unknown inline widget type: ${type}`)
+
+    const encodedWidget = inlineDefinition.schema.encode(
+      data === undefined ? inlineDefinition.schema.createDefault() : data,
+    )
+    const inline = cloneInline(current.inline) ?? {}
+    const id = this.#createUniqueInlineId(blockDefinition, current.data, inline)
+    inline[id] = {
+      type,
+      dataVersion: encodedWidget.dataVersion,
+      data: encodedWidget.data,
+    }
+
+    const blockData = cloneEditorData(current.data)
+    let matched = false
+    const nextData = blockDefinition.schema.mapRichText(blockData, (html, key) => {
+      if (key !== fieldKey) return html
+      matched = true
+      return replaceRichTextRange(
+        html,
+        inline,
+        range,
+        { kind: 'inline-reference', id },
+        this.#ownerDocument,
+      )
+    })
+    if (!matched) throw new Error(`Unknown rich-text field "${fieldKey}" for block "${blockId}"`)
+    const encodedBlock = this.#normalizeLocalData(blockDefinition, nextData)
+    const next = {
+      ...current,
+      dataVersion: encodedBlock.dataVersion,
+      data: encodedBlock.data,
+      inline,
+    }
+    delete next.revision
+    this.#engine.execute({ origin: 'plugin', name: 'inline-widget.insert' }, tx => tx.update(blockId, next))
+    return id
+  }
+
   updateInlineWidget(blockId, inlineId, producer) {
     this.#assertWritable()
     if (typeof producer !== 'function') throw new TypeError('Inline widget update producer must be a function')
@@ -514,7 +588,7 @@ export class DocumentRuntime {
         const tunes = cloneTunes(block.tunes)
         if (tunes === undefined) delete block.tunes
         else block.tunes = tunes
-        if (block.inline !== undefined) block.inline = cloneInline(block.inline)
+        if (block.inline !== undefined) block.inline = this.#normalizeExternalInline(block.inline, { strict: this.#validationMode === 'strict' })
         blocks.push(block)
       } catch (error) {
         if (this.#validationMode === 'strict') {
@@ -605,6 +679,51 @@ export class DocumentRuntime {
     if (this.#documentMode === 'preserved') {
       throw new Error('Preserved documents are not writable')
     }
+  }
+
+  #normalizeExternalInline(value, { strict }) {
+    const source = cloneInline(value)
+    if (source === undefined) return undefined
+    const result = {}
+    for (const [id, raw] of Object.entries(source)) {
+      if (!raw || typeof raw !== 'object' || Array.isArray(raw) || typeof raw.type !== 'string') {
+        if (strict) throw new TypeError(`Invalid inline widget entry: ${id}`)
+        result[id] = raw
+        continue
+      }
+      const definition = this.#registry.getInlineDefinition(raw.type)
+      if (!definition) {
+        result[id] = raw
+        continue
+      }
+      try {
+        const decoded = definition.schema.decode({ dataVersion: raw.dataVersion, data: raw.data })
+        result[id] = { type: raw.type, dataVersion: decoded.dataVersion, data: decoded.data }
+      } catch (error) {
+        if (strict) throw error
+        result[id] = raw
+      }
+    }
+    return Object.keys(result).length ? result : undefined
+  }
+
+  #createUniqueInlineId(blockDefinition, data, inline) {
+    const reserved = new Set(Object.keys(inline))
+    if (typeof blockDefinition.schema.mapRichText === 'function') {
+      const owned = cloneEditorData(data)
+      blockDefinition.schema.mapRichText(owned, html => {
+        for (const match of String(html ?? '').matchAll(/\{\{([A-Za-z0-9_-]+)\}\}/g)) {
+          reserved.add(match[1])
+        }
+        return html
+      })
+    }
+    for (let attempt = 0; attempt < 1000; attempt++) {
+      const id = this.#createId('inline')
+      if (typeof id !== 'string' || !id) throw new TypeError('createId() must return a non-empty string')
+      if (!reserved.has(id)) return id
+    }
+    throw new Error('Could not allocate a unique inline widget id')
   }
 
   #createUniqueBlockId(prefix, additional = []) {
