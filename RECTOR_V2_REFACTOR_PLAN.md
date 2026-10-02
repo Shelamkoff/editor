@@ -731,6 +731,52 @@ Required invariants:
 
 BlockInstance.read is not used by save. It is only a synchronization seam for native DOM editing or an explicit plugin DOM mutation.
 
+### 6.1. Public plugin construction and configuration
+
+Do not keep the v1 convention "application constructs one mutable plugin instance and the editor owns it".
+
+EditorConfig v2 accepts immutable definitions:
+
+    interface EditorConfigV2 {
+      plugins: readonly BlockPluginDefinition[]
+      inlinePlugins?: readonly InlinePluginDefinition[]
+      // existing non-extension editor options continue separately
+    }
+
+Built-in extensions export factories that snapshot consumer configuration into immutable definitions:
+
+    createParagraphPlugin(config?)
+    createImagePlugin(config?)
+    createGalleryPlugin(config?)
+    createEmbedPlugin(config?)
+    ...
+
+The existing class constructors may be removed from the v2 public surface. Do not expose both a class-instance API and definition-factory API for the same built-in plugin.
+
+Common style configuration:
+
+    interface ExtensionStyleConfig {
+      injectStyles?: boolean
+      css?: string
+    }
+
+Each built-in config extends ExtensionStyleConfig with its domain options. Existing capabilities such as uploadFile, custom actions, preview resolvers, placeholders and plugin-specific options must remain expressible through the corresponding v2 factory.
+
+Configuration rules:
+
+- factory input is snapshotted/cloned synchronously;
+- the definition never rereads consumer accessors during editor setup;
+- mutable consumer config objects cannot mutate a live definition;
+- callback functions remain callable references but their containing config object is immutable from Rector's perspective;
+- injectStyles false suppresses built-in stylesheet URLs;
+- css is an additional/replacement stylesheet URL according to the documented built-in contract, never raw CSS text;
+- style ownership/ref-counting is per ownerDocument and released when the last runtime owner is destroyed;
+- one immutable definition may be reused by several editors without sharing editor-scoped mutable state.
+
+Async loaders return definitions, not live runtimes/instances.
+
+Package exports and declaration consumer tests must cover the definition factories and plugin-kit contracts.
+
 ## 7. Stable editable fields and selection bookmarks
 
 Replace fieldIndex as the durable field identity.
@@ -787,6 +833,63 @@ Variable-length structured blocks must persist subfield identity in their v2 plu
 
 Their v1 plugin-data migrations generate deterministic block-local IDs from legacy positions (for example legacy-item-0 / legacy-row-0 / legacy-cell-0-0). Newly inserted items/rows/cells receive fresh block-local IDs. Schemas reject duplicate live IDs. Reorder preserves IDs.
 
+The v2 persisted shapes for variable rich-text structures are explicit:
+
+    interface ListItemV2 {
+      id: string
+      text: string
+    }
+
+    interface ListDataV2 {
+      style: "ordered" | "unordered"
+      items: ListItemV2[]
+    }
+
+    interface ChecklistItemV2 {
+      id: string
+      text: string
+      checked: boolean
+    }
+
+    interface ChecklistDataV2 {
+      items: ChecklistItemV2[]
+    }
+
+    interface ColumnItemV2 {
+      id: string
+      content: string
+    }
+
+    interface ColumnsDataV2 {
+      columns: ColumnItemV2[]
+      layout: "1-1" | "1-2" | "2-1" | "1-1-1"
+    }
+
+    interface TableCellV2 {
+      id: string
+      text: string
+    }
+
+    interface TableRowV2 {
+      id: string
+      cells: TableCellV2[]
+    }
+
+    interface TableDataV2 {
+      withHeadings?: boolean
+      rows: TableRowV2[]
+    }
+
+The old ListData.items: string[], ChecklistItem without id, ColumnsData column objects without id, and TableData.content: string[][] are legacy schema inputs only.
+
+mapRichText field keys are derived from these persisted identities:
+
+    item:<item.id>
+    column:<column.id>
+    cell:<row.id>:<cell.id>
+
+Structural plugin operations update these arrays as model data and preserve unaffected IDs. UI code must not synthesize field identity from DOM position.
+
 Offset semantics must remain deterministic across editor/renderer realms:
 
 - offsets are UTF-16 code units for text;
@@ -816,15 +919,37 @@ Core may branch on capability presence. It must not probe arbitrary plugin metho
 
 Settings/paste/controls are model-first contracts:
 
-    interface PasteInput {
-      kind: "text" | "html" | "file"
-      text?: string
-      html?: string
-      file?: File
+    type PasteInput =
+      | { kind: "text"; text: string }
+      | { kind: "html"; html: string }
+      | { kind: "file"; file: File }
+
+    interface PasteResolveContext {
+      readonly signal: AbortSignal
+      readonly ownerDocument: Document
     }
 
+    interface PasteInsert<D extends JsonObject> {
+      kind: "block"
+      data: D
+    }
+
+    interface PasteReplaceSelection {
+      kind: "rich-text"
+      replacement: RichTextReplacement
+    }
+
+    type PasteResult<D extends JsonObject> =
+      | PasteInsert<D>
+      | PasteReplaceSelection
+
     interface PasteCapability<D extends JsonObject> {
-      parse(input: PasteInput): D | null
+      accepts(input: PasteInput): boolean
+
+      resolve(
+        input: PasteInput,
+        context: PasteResolveContext
+      ): PasteResult<D> | null | Promise<PasteResult<D> | null>
     }
 
     interface SettingsAction {
@@ -855,6 +980,8 @@ Settings/paste/controls are model-first contracts:
     }
 
 Settings/inline control UI receives scoped contexts whose persisted changes ultimately call BlockInstanceContext.updateData; UI objects do not receive managers.
+
+Paste resolve may be asynchronous, but no document transaction remains open while awaiting it. Clipboard owns an AbortController/task token, awaits resolve outside DocumentRuntime, then validates the returned result against the current plugin schema and commits one short transaction.
 
 ### 8.1. Merge
 
@@ -1309,10 +1436,28 @@ For multi-block paste, split/merge and cross-block deletion, Clipboard must prod
 
 Async media paste/upload:
 
-    parse request
+    capture a stable PasteAnchor
       -> start/await async work outside transaction
-      -> verify owning block/widget signal is still active
+      -> verify task signal and anchor are still valid
+      -> validate/normalize the resolved result
       -> commit resolved canonical data in one short transaction
+
+PasteAnchor is logical, not an array index:
+
+    type PasteAnchor =
+      | {
+          kind: "block"
+          blockId: string
+          side: "before" | "after"
+        }
+      | {
+          kind: "selection"
+          selection: SelectionBookmark
+        }
+
+If the anchor block/field no longer exists or the editor document generation has been replaced, cancel the task rather than inserting at a stale numeric index.
+
+Optional loading UI for an async paste is transient InteractionRuntime state. It is not a persisted placeholder block and is not added to history.
 
 If the platform forces a native DOM mutation before interception, the source-DOM recovery/sanitization rule in 15.2 applies before public commit.
 
@@ -1422,6 +1567,12 @@ Target flow:
       -> enforce core read-only DOM invariants
       -> publish readOnly:changed
       -> publish history:changed if command availability changed
+
+Semantics:
+
+- readOnly disables user/native/plugin mutation and history commands;
+- host-authorized public document methods (render, clear, EditorBlocksApi mutations) remain available for supported editable-version documents, matching the current API distinction between interaction mode and application authority;
+- preserved-document mode overrides this: no persisted mutation API is allowed until a supported document replaces it.
 
 Requirements:
 
@@ -2045,11 +2196,26 @@ For every plugin prove:
 - async abort where applicable;
 - schema round trip;
 - stable editable field keys;
-- deterministic migration of variable rich-text subfield IDs where applicable.
+- deterministic migration of variable rich-text subfield IDs where applicable;
+- exact v2 List/Checklist/Columns/Table data shapes;
+- immutable definition-factory configuration and multi-editor reuse.
 
 After block plugin migration, migrate inline plugins to InlinePluginDefinition/InlinePluginRuntime/InlineWidgetInstance and model-owned payloads. Cover mention and color first, including trigger/autocomplete, paste patterns, programmatic insertion, read-only behavior and missing-plugin preservation.
 
-Delete BlockPlugin v1 and old InlinePlugin getData/hydrate persistence contracts before phase exit.
+Migration must stay implementable in small commits without making legacy compatibility public.
+
+A temporary internal migration bridge is permitted only during Phase 3 so createEditor can host not-yet-migrated built-ins while one plugin at a time is converted. The bridge:
+
+- is not exported;
+- accepts only repository-owned v1 built-ins, not third-party v1 plugins;
+- is marked internal and covered only as migration scaffolding;
+- must not introduce a second history/model path;
+- adapts lifecycle calls into the v2 runtime boundary while persistence remains on the existing runtime until the v2 cutover;
+- is deleted before Phase 3 exit.
+
+Alternatively, an implementation may keep the v2 plugin runtime unselected until all built-ins are migrated, provided each migrated definition is testable through an internal composition harness and createEditor switches atomically. Do not ship a mixed public v1/v2 extension API.
+
+Delete BlockPlugin v1, the temporary bridge, and old InlinePlugin getData/hydrate persistence contracts before phase exit.
 
 ### Phase 4: DocumentRuntime canonical model
 
@@ -2111,7 +2277,8 @@ Slices:
 8. inline Range mutation;
 9. owned inline widget deletion;
 10. rich paste/drop;
-11. multi-block clipboard paste/delete.
+11. async file paste resolves outside transaction and cancels on stale PasteAnchor;
+12. multi-block clipboard paste/delete.
 
 Exit criteria:
 
@@ -2309,6 +2476,7 @@ Native input:
 - Backspace;
 - Delete;
 - paste;
+- async file paste/upload with document mutation before resolve cancels stale insertion;
 - autocorrect-compatible sequence;
 - plugin-native input/textarea is not consumed as document structural input;
 - deleting an inline widget prunes its canonical inline entry;
@@ -2393,6 +2561,7 @@ Architecture:
 - BlockReconciler is incremental/keyed;
 - block plugins use per-block instances;
 - plugin capabilities are explicit;
+- built-in plugin configuration uses immutable reusable definitions/factories;
 - inline widget payload is canonical model state with per-widget instances;
 - text alignment has one canonical location in tunes.textAlign;
 - plugin-kit is the supported extension utility interface;
