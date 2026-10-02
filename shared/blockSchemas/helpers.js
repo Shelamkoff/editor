@@ -40,3 +40,23 @@ export function stringMap(value) {
   }
   return result
 }
+
+
+/**
+ * Require a canonical URL string. Empty strings are accepted for editor-valid
+ * empty states unless allowEmpty is false.
+ *
+ * @param {unknown} value
+ * @param {'link'|'external'|'media'|'download'} policy
+ * @param {{ allowEmpty?: boolean }} [options]
+ */
+export function canonicalUrl(value, policy, options = {}) {
+  const allowEmpty = options.allowEmpty !== false
+  if (typeof value !== 'string') throw new TypeError('URL value must be a string')
+  if (!value && allowEmpty) return ''
+  const normalized = safeUrl(value, policy)
+  if (!normalized || normalized !== value) {
+    throw new TypeError('URL value is not canonical for policy "' + policy + '"')
+  }
+  return normalized
+}
