@@ -35,8 +35,8 @@ await test('editor text blocks render under require-trusted-types-for', () => {
   })
   try {
     const saved = editor.save()
-    assert(saved.blocks[0].data.text === '<strong>Safe</strong>', 'paragraph sanitizer did not preserve the expected safe subset')
-    assert(saved.blocks[1].data.text === '<em>Heading</em>bad()', 'heading sanitizer did not preserve text from an unsupported element')
+    assert(saved.blocks[0].data.text === '<b>Safe</b>', 'paragraph sanitizer did not preserve the expected safe subset')
+    assert(saved.blocks[1].data.text === '<i>Heading</i>bad()', 'heading sanitizer did not preserve text from an unsupported element')
     editor.blocks.convert(0, 'heading', { level: 3 })
     assert(editor.blocks.getBlockByIndex(0).type === 'heading', 'programmatic conversion failed under Trusted Types')
   } finally {
