@@ -1,6 +1,6 @@
 import { createColorSwatchPlugin, createEditor } from '../../core/index.js'
-import { createMentionPlugin, createMentionWidget } from '../../inline-plugins/mention/index.js'
-import { Paragraph } from '../../plugins/paragraph/index.js'
+import { createMentionPlugin, createMentionRenderer } from '../../inline-plugins/mention/index.js'
+import { createParagraphPlugin } from '../../plugins/paragraph/index.js'
 import { EditorRenderer } from '../../renderer/index.js'
 
 const sandbox = document.querySelector('#sandbox')
@@ -16,20 +16,20 @@ function createMentionEditor(searchFunction, onMentionSelect = undefined, mentio
   sandbox.appendChild(holder)
   const editor = createEditor({
     holder,
-    plugins: [new Paragraph()],
+    plugins: [createParagraphPlugin({ injectStyles: false })],
     inlineTools: [],
     inlinePlugins: [
       createColorSwatchPlugin(),
       createMentionPlugin({ ...mentionOptions, debounceDelay: 0, searchFunction, onMentionSelect }),
     ],
-    data: { version: 'mention-browser', blocks: [{ id: 'paragraph', type: 'paragraph', data: { text: '' } }] },
-    tuning: {
-      undo: { debounceMs: 0, maxStack: 20 },
-      change: { debounceMs: 0 },
-      animations: { blockInsertMs: 0, blockMoveMs: 0, blockRemoveMs: 0 },
-    },
+    injectStyles: false,
+    changeDebounceMs: 0,
+    data: { version: '2.0.0', blocks: [{ id: 'paragraph', type: 'paragraph', data: { text: '' } }] },
   })
-  return { editor, holder, content: editor.blocks.getBlockByIndex(0).contentElement }
+  const root = holder.querySelector('.oe-editor')
+  const content = holder.querySelector('.oe-block[data-block-id="paragraph"] [contenteditable="true"]')
+  assert(root instanceof HTMLElement && content instanceof HTMLElement, 'mention editor did not project its paragraph')
+  return { editor, holder, root, content }
 }
 
 function ensureTextCaret(content) {
@@ -168,11 +168,11 @@ async function run() {
   foreignCaret.remove()
 
   assert(
-    main.editor.rootElement.querySelector('[data-plugin-type="mention"] .oe-toolbox__label')?.textContent === 'Mention',
+    main.root.querySelector('[data-plugin-type="mention"] .oe-toolbox__label')?.textContent === 'Mention',
     'missing default locale exposed the mention translation key',
   )
   assert(
-    main.editor.rootElement.querySelector('[data-plugin-type="color"] .oe-toolbox__label')?.textContent === 'Color',
+    main.root.querySelector('[data-plugin-type="color"] .oe-toolbox__label')?.textContent === 'Color',
     'missing default locale exposed the color translation key',
   )
 
@@ -182,7 +182,7 @@ async function run() {
   assert(document.querySelector('.oe-mention-item[data-index="0"]'), 'mention results did not open')
   const mainDropdown = document.querySelector('.oe-mention-dropdown')
   assert(mainDropdown?.getAttribute('role') === 'listbox', 'mention results are not exposed as a listbox')
-  assert(mainDropdown?.parentElement === main.editor.rootElement, 'mention dropdown does not inherit its editor theme')
+  assert(mainDropdown?.parentElement === main.root, 'mention dropdown does not inherit its editor theme')
   assert(
     main.content.getAttribute('aria-controls') === mainDropdown.id
       && main.content.getAttribute('aria-expanded') === 'true'
@@ -202,18 +202,18 @@ async function run() {
 
   historyShortcut(main.content)
   await delay()
-  let liveContent = main.editor.blocks.getBlockByIndex(0).contentElement
+  let liveContent = main.holder.querySelector('.oe-block[data-block-id="paragraph"] [contenteditable="true"]')
   assert(!liveContent.querySelector('[data-inline-plugin="mention"]'), 'undo did not remove the committed mention')
   historyShortcut(liveContent, true)
   await delay()
-  liveContent = main.editor.blocks.getBlockByIndex(0).contentElement
+  liveContent = main.holder.querySelector('.oe-block[data-block-id="paragraph"] [contenteditable="true"]')
   assert(liveContent.querySelector('[data-inline-plugin="mention"]'), 'redo did not restore the committed mention')
 
   const output = document.createElement('section')
   sandbox.appendChild(output)
   const renderer = new EditorRenderer({
     blockTypes: ['paragraph'],
-    inlinePlugins: [createMentionWidget()],
+    inlineRenderers: [createMentionRenderer()],
   })
   renderer.renderTo(saved, output)
   assert(output.querySelector('[data-inline-plugin="mention"]')?.textContent === '@Ada Lovelace', 'renderer did not restore mention data')
@@ -293,7 +293,7 @@ async function run() {
   const emojiOutput = document.createElement('section')
   const emojiRenderer = new EditorRenderer({
     blockTypes: ['paragraph'],
-    inlinePlugins: [createMentionWidget('💡')],
+    inlineRenderers: [createMentionRenderer('💡')],
   })
   emojiRenderer.renderTo(emoji.editor.save(), emojiOutput)
   assert(emojiOutput.querySelector('[data-inline-plugin="mention"]')?.textContent === '💡Light', 'renderer lost the configured mention trigger')
