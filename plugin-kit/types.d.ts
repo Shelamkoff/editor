@@ -169,3 +169,94 @@ export interface BlockPluginConstructor<
   locale?: Record<string, Record<string, LocaleValue>>
   isTextBlock?: boolean
 }
+
+
+/** Pure versioned schema shared by editor plugins and renderers. */
+export interface BlockDataSchema<
+  D extends Record<string, unknown> = Record<string, unknown>
+> {
+  readonly currentVersion: number
+  readonly legacyVersion: number
+  createDefault(): D
+  decode(input: { dataVersion?: number, data: unknown }): {
+    dataVersion: number
+    data: D
+  }
+  encode(data: Readonly<D>): {
+    dataVersion: number
+    data: D
+  }
+  mapRichText?(
+    data: D,
+    transform: (html: string, fieldKey: string) => string,
+  ): D
+}
+
+/** Stable logical editable field exposed by one mounted block instance. */
+export interface EditableField {
+  readonly key: string
+  readonly element: HTMLElement
+  readonly mode: 'rich-text' | 'plain-text'
+}
+
+/** Logical focus request independent of DOM identity. */
+export interface FocusTarget {
+  fieldKey?: string
+  offset?: number | 'start' | 'end'
+}
+
+/** Editor-scoped services supplied once when a definition is activated. */
+export interface BlockPluginRuntimeContext {
+  readonly ownerDocument: Document
+  readonly signal: AbortSignal
+  readonly isDefaultBlock: boolean
+  readonly editorPlaceholder?: string
+  t(key: string, fallback?: string): string
+}
+
+/** Block-scoped mutation/lifecycle services supplied to one instance. */
+export interface BlockInstanceContext<
+  D extends Record<string, unknown> = Record<string, unknown>
+> {
+  readonly ownerDocument: Document
+  readonly signal: AbortSignal
+  getData(): Readonly<D>
+  updateData(producer: (current: Readonly<D>) => D): void
+  commitDomMutation(operation: () => void): void
+  requestSplit(): void
+  requestExit(): void
+  isReadOnly(): boolean
+}
+
+/** One mounted block occurrence. Mutable state belongs here, not on the definition. */
+export interface BlockInstance<
+  D extends Record<string, unknown> = Record<string, unknown>
+> {
+  readonly element: HTMLElement
+  read(): D
+  update?(next: Readonly<D>, previous: Readonly<D>): void
+  editableFields?(): readonly EditableField[]
+  setReadOnly(readOnly: boolean): void
+  focus?(target?: FocusTarget): void
+  destroy(): void
+}
+
+/** Per-editor runtime created from one reusable immutable definition. */
+export interface BlockPluginRuntime<
+  D extends Record<string, unknown> = Record<string, unknown>
+> {
+  create(initial: Readonly<D>, context: BlockInstanceContext<D>): BlockInstance<D>
+  destroy(): void
+}
+
+/** Reusable immutable block plugin v2 definition. */
+export interface BlockPluginDefinition<
+  D extends Record<string, unknown> = Record<string, unknown>
+> {
+  readonly type: string
+  readonly label: Readonly<{ key: string, fallback: string }>
+  readonly icon: string
+  readonly styles?: readonly string[]
+  readonly schema: BlockDataSchema<D>
+  setup(context: BlockPluginRuntimeContext): BlockPluginRuntime<D>
+}
