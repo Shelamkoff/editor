@@ -385,6 +385,46 @@ export class DocumentRuntime {
     this.#readOnly = next
   }
 
+  updateInlineWidget(blockId, inlineId, producer) {
+    this.#assertWritable()
+    if (typeof producer !== 'function') throw new TypeError('Inline widget update producer must be a function')
+    const current = this.#store.get(blockId)
+    if (!current) throw new Error(`Unknown block id: ${blockId}`)
+    if (this.activation(blockId)?.kind !== 'active') throw new Error(`Preserved block cannot be updated: ${blockId}`)
+    const inline = cloneInline(current.inline) ?? {}
+    const ref = Object.hasOwn(inline, inlineId) ? inline[inlineId] : undefined
+    if (!ref || typeof ref !== 'object' || Array.isArray(ref) || typeof ref.type !== 'string') {
+      throw new Error(`Unknown inline widget id: ${inlineId}`)
+    }
+    const definition = this.#registry.getInlineDefinition(ref.type)
+    if (!definition) throw new Error(`Unknown inline widget type: ${ref.type}`)
+    const decoded = definition.schema.decode({ dataVersion: ref.dataVersion, data: ref.data })
+    const nextData = producer(cloneEditorData(decoded.data))
+    const encoded = definition.schema.encode(nextData)
+    inline[inlineId] = {
+      type: ref.type,
+      dataVersion: encoded.dataVersion,
+      data: encoded.data,
+    }
+    const next = { ...current, inline }
+    delete next.revision
+    this.#engine.execute({ origin: 'plugin', name: 'inline-widget.update' }, tx => tx.update(blockId, next))
+  }
+
+  removeInlineWidget(blockId, inlineId) {
+    this.#assertWritable()
+    const current = this.#store.get(blockId)
+    if (!current) throw new Error(`Unknown block id: ${blockId}`)
+    const inline = cloneInline(current.inline) ?? {}
+    if (!Object.hasOwn(inline, inlineId)) return
+    delete inline[inlineId]
+    const next = { ...current }
+    if (Object.keys(inline).length) next.inline = inline
+    else delete next.inline
+    delete next.revision
+    this.#engine.execute({ origin: 'plugin', name: 'inline-widget.remove' }, tx => tx.update(blockId, next))
+  }
+
   syncBlockFromProjection(id, operation, metadata = {}) {
     this.#assertWritable()
     if (typeof operation !== 'function') throw new TypeError('DOM mutation operation must be a function')
@@ -395,18 +435,25 @@ export class DocumentRuntime {
 
     try {
       operation()
-      const read = this.#projector?.readBlock?.(id)
-      if (!read) throw new Error('Projection reader is unavailable')
-      const encoded = this.#normalizeLocalData(definition, read)
+      const projection = this.#projector?.readBlock?.(id)
+      if (!projection) throw new Error('Projection reader is unavailable')
+      const readData = Object.hasOwn(projection, 'data') ? projection.data : projection
+      const encoded = this.#normalizeLocalData(definition, readData)
       const next = {
         ...current,
         dataVersion: encoded.dataVersion,
         data: encoded.data,
       }
+      if (Object.hasOwn(projection, 'inline')) {
+        const nextInline = projection.inline === undefined ? undefined : cloneInline(projection.inline)
+        if (nextInline === undefined) delete next.inline
+        else next.inline = nextInline
+      }
       delete next.revision
       if (
         current.dataVersion === next.dataVersion
         && sameJson(current.data, next.data)
+        && sameJson(current.inline, next.inline)
       ) return
       this.#engine.execute({
         origin: metadata.origin ?? 'native-input',
@@ -600,6 +647,30 @@ export class DocumentRuntime {
         if (!this.readOnly) this.#requestExit?.(id)
       },
       createId: prefix => this.#createId(prefix),
+      createInlineWidgetContext: (fieldKey, inlineId, inlineType, inlineSignal) => ({
+        id: inlineId,
+        blockId: id,
+        fieldKey,
+        signal: inlineSignal,
+        getData: () => {
+          const record = this.#store.get(id)
+          const ref = record?.inline?.[inlineId]
+          if (!record || record.type !== type || !ref || ref.type !== inlineType) {
+            throw new Error(`Inline widget is no longer active: ${inlineId}`)
+          }
+          const definition = this.#registry.getInlineDefinition(inlineType)
+          if (!definition) throw new Error(`Unknown inline widget type: ${inlineType}`)
+          return cloneEditorData(definition.schema.decode({
+            dataVersion: ref.dataVersion,
+            data: ref.data,
+          }).data)
+        },
+        updateData: producer => {
+          if (this.readOnly) return
+          this.updateInlineWidget(id, inlineId, producer)
+        },
+        isReadOnly: () => this.readOnly,
+      }),
       signal,
     }
   }
