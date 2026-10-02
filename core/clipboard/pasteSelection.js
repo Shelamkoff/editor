@@ -1,4 +1,4 @@
-import { editableAtBoundary } from '../editableFields.js'
+import { editableAtBoundary } from '../../shared/editableFields.js'
 import { getTextOffset } from '../../shared/textOffset.js'
 
 /** Preserve the insertion target across a failed paste's document rollback.
