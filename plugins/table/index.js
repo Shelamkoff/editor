@@ -1,5 +1,5 @@
 import { setSanitizedHtml, setTrustedHtml } from '../../plugin-kit/index.js'
-import { editableRange, editingHostForEvent } from '../../core/editableFields.js'
+import { editableRange, editingHostForEvent } from '../../shared/editableFields.js'
 import { tablePasteData } from './paste.js'
 import { sanitizeHtml } from '../../plugin-kit/index.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
