@@ -3,7 +3,7 @@ import { appendMergeField } from '../shared/appendMergeField.js'
 // Quote — blockquote with optional caption
 // =============================================================================
 
-import { setSanitizedHtml } from '../../core/sanitize.js'
+import { setSanitizedHtml } from '../../plugin-kit/index.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { mapTextFields } from './mapTextFields.js'
 import { validateQuoteData } from '../../shared/blockDataValidators.js'
