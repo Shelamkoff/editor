@@ -2,9 +2,10 @@
 import { fitColumnsToLayout } from './columnsData.js'
 import { normalizeCarouselData } from './carouselData.js'
 import {
+  ATTACH_VARIANTS,
   GALLERY_LAYOUTS,
   LINK_PREVIEW_TEMPLATES,
-} from './blockDataValidators.js'
+} from './blockOptions.js'
 import { COLUMN_LAYOUT_SIZES } from './columnLayouts.js'
 import { normalizePollData } from './pollData.js'
 import { sanitizeUrl } from './sanitize/sanitizeUrl.js'
@@ -13,7 +14,7 @@ import {
   normalizeTextValue,
 } from './textFormat.js'
 
-const ATTACH_VARIANTS = new Set(['a', 'b', 'f', 'g'])
+const ATTACH_VARIANT_SET = new Set(ATTACH_VARIANTS)
 const GALLERY_BOOLEAN_OPTIONS = [
   'loop', 'zoom', 'navigation', 'captions', 'thumbnails', 'fullscreen',
 ]
@@ -203,7 +204,7 @@ export function normalizeKnownBlockData(type, input, ownerDocument = globalThis.
             size: nonNegativeNumber(file.size),
           }]
         }),
-        variant: typeof source.variant === 'string' && ATTACH_VARIANTS.has(source.variant)
+        variant: typeof source.variant === 'string' && ATTACH_VARIANT_SET.has(source.variant)
           ? source.variant
           : 'f',
       }
