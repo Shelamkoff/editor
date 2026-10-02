@@ -1,6 +1,6 @@
 import { fitColumnsToLayout } from '../../shared/columnsData.js'
-import { setSanitizedHtml, setTrustedHtml } from '../../core/sanitize.js'
-import { sanitizeHtml } from '../../core/sanitize.js'
+import { setSanitizedHtml, setTrustedHtml } from '../../plugin-kit/index.js'
+import { sanitizeHtml } from '../../plugin-kit/index.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { validateColumnsData } from '../../shared/blockDataValidators.js'
 import { normalizeTextValue } from '../../shared/textFormat.js'
