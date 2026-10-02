@@ -4,7 +4,7 @@ import { createVersionedDataSchema } from '../versionedDataSchema.js'
 import { canonicalUrl, isRecord, positiveNumber, stringMap, text } from './helpers.js'
 
 /** @typedef {{ loop:boolean, zoom:boolean, navigation:boolean, captions:boolean, fullscreen:boolean, thumbnails:boolean, autoplayInterval?:number }} GalleryOptions */
-/** @typedef {{ images:Array<{url:string,caption:string}>, layout:string, styles:Record<string,string>, options:GalleryOptions }} GalleryData */
+/** @typedef {{ images:Array<{id:string,url:string,caption:string}>, layout:string, styles:Record<string,string>, options:GalleryOptions }} GalleryData */
 
 /** @type {Readonly<GalleryOptions>} */
 const DEFAULT_OPTIONS = Object.freeze({
@@ -18,31 +18,29 @@ const DEFAULT_OPTIONS = Object.freeze({
 
 /** @returns {GalleryData} */
 function createDefault() {
-  return {
-    images: [],
-    layout: 'auto',
-    styles: {},
-    options: { ...DEFAULT_OPTIONS },
-  }
+  return { images: [], layout: 'auto', styles: {}, options: { ...DEFAULT_OPTIONS } }
 }
 
 export const galleryDataSchema = createVersionedDataSchema({
-  currentVersion: 1,
+  currentVersion: 2,
   legacyVersion: 1,
   createDefault,
   normalize(input) {
     if (!isRecord(input)) throw new TypeError('Gallery data must be an object')
     if (!Array.isArray(input.images)) throw new TypeError('Gallery images must be an array')
+    const ids=new Set()
     const images = input.images.map(image => {
       if (!isRecord(image)) throw new TypeError('Gallery image must be an object')
+      if(typeof image.id!=='string'||!image.id)throw new TypeError('Gallery image requires a stable id')
+      if(ids.has(image.id))throw new Error('Duplicate gallery image id: '+image.id)
+      ids.add(image.id)
       return {
+        id:image.id,
         url: canonicalUrl(typeof image.url === 'string' ? image.url : '', 'media', { allowEmpty: false }),
         caption: text(image.caption),
       }
     })
-    const layout = typeof input.layout === 'string' && GALLERY_LAYOUTS.includes(input.layout)
-      ? input.layout
-      : 'auto'
+    const layout = typeof input.layout === 'string' && GALLERY_LAYOUTS.includes(input.layout) ? input.layout : 'auto'
     const sourceOptions = isRecord(input.options) ? input.options : {}
     /** @type {GalleryOptions} */
     const options = { ...DEFAULT_OPTIONS }
@@ -55,9 +53,20 @@ export const galleryDataSchema = createVersionedDataSchema({
     return { images, layout, styles: stringMap(input.styles), options }
   },
   mapRichText(data, transform) {
-    data.images = data.images.map((image, index) => ({
+    data.images = data.images.map(image => ({
       ...image,
-      caption: transform(image.caption, 'caption:' + index),
+      caption: transform(image.caption, 'image:' + image.id + ':caption'),
     }))
   },
+  migrations:[{
+    from:1,
+    to:2,
+    migrate(input){
+      if(!Array.isArray(input?.images))throw new TypeError('Legacy gallery images must be an array')
+      return {
+        ...input,
+        images:input.images.map((image,index)=>({...image,id:'legacy-image-'+index})),
+      }
+    },
+  }],
 })
