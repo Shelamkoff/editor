@@ -42,7 +42,7 @@ const ICON_GRIP = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12
  *   cropperDialog: CropperDialog | null,
  *   avatarTasks: Map<PersonData, AbortController>,
  *   abortController: AbortController,
- *   context: import('../../core/types').BlockMutationContext,
+ *   context: import('../../plugin-kit/types').BlockMutationContext,
  *   ownerDocument: Document,
  * }} PersonState
  */
@@ -103,7 +103,7 @@ export class Person extends BlockPluginAbstract {
   /**
    * Create the editable DOM owned by this block instance.
    * @param {Record<string, unknown>} data
-   * @param {import('../../core/types').BlockMutationContext} context
+   * @param {import('../../plugin-kit/types').BlockMutationContext} context
    * @returns {HTMLElement}
    */
   render(data, context) {
