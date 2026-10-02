@@ -50,6 +50,7 @@ export function createListPlugin(){
     }),
   ])
 
+  /** @type {import('../../plugin-kit/types').BlockCapabilities<{style:'ordered'|'unordered',items:Array<{id:string,text:string}>}>} */
   const capabilities=Object.freeze({
     formatting:Object.freeze({inlineTools:true}),
     empty:Object.freeze({

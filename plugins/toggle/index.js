@@ -22,6 +22,7 @@ function append(left,right){
  * @returns {import('../../plugin-kit/types').BlockPluginDefinition<{title:string,content:string,open:boolean}>}
  */
 export function createTogglePlugin(){
+  /** @type {import('../../plugin-kit/types').BlockCapabilities<{title:string,content:string,open:boolean}>} */
   const capabilities=Object.freeze({
     formatting:Object.freeze({inlineTools:true}),
     empty:Object.freeze({isEmpty:data=>!data.title.trim()&&!data.content.trim()}),

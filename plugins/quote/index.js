@@ -16,6 +16,7 @@ function mergeField(left, right, separator = '') {
  * @returns {import('../../plugin-kit/types').BlockPluginDefinition<{text:string, caption:string}>}
  */
 export function createQuotePlugin() {
+  /** @type {import('../../plugin-kit/types').BlockCapabilities<{text:string,caption:string}>} */
   const capabilities=Object.freeze({
     formatting:Object.freeze({inlineTools:true}),
     empty:Object.freeze({isEmpty:data=>!data.text.trim()&&!data.caption.trim()}),

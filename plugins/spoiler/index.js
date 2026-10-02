@@ -21,6 +21,7 @@ function append(left,right){
  * @returns {import('../../plugin-kit/types').BlockPluginDefinition<{label:string,content:string}>}
  */
 export function createSpoilerPlugin(){
+  /** @type {import('../../plugin-kit/types').BlockCapabilities<{label:string,content:string}>} */
   const capabilities=Object.freeze({
     formatting:Object.freeze({inlineTools:true}),
     empty:Object.freeze({isEmpty:data=>!data.label.trim()&&!data.content.trim()}),

@@ -27,6 +27,7 @@ function fitColumns(columns,size,context){
  * @returns {import('../../plugin-kit/types').BlockPluginDefinition<{layout:string,columns:Array<{id:string,content:string}>}>}
  */
 export function createColumnsPlugin(){
+  /** @type {import('../../plugin-kit/types').BlockCapabilities<{layout:string,columns:Array<{id:string,content:string}>}>} */
   const capabilities=Object.freeze({
     formatting:Object.freeze({inlineTools:true}),
     empty:Object.freeze({isEmpty:data=>data.columns.every(column=>column.content.trim().length===0)}),

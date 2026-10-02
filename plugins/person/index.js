@@ -44,6 +44,7 @@ export function createPersonPlugin(config={}){
   if(snapshot.injectStyles!==false)styles.push(editorStyles,cropperStylesUrl)
   if(snapshot.css)styles.push(snapshot.css)
 
+  /** @type {import('../../plugin-kit/types').BlockCapabilities<any>} */
   const capabilities=Object.freeze({
     empty:Object.freeze({isEmpty:data=>data.persons.every(person=>!meaningful(person))}),
     shortcuts:Object.freeze({

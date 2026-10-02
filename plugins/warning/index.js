@@ -17,6 +17,7 @@ function append(left,right){
  * @returns {import('../../plugin-kit/types').BlockPluginDefinition<{title:string,message:string}>}
  */
 export function createWarningPlugin(){
+  /** @type {import('../../plugin-kit/types').BlockCapabilities<{title:string,message:string}>} */
   const capabilities=Object.freeze({
     formatting:Object.freeze({inlineTools:true}),
     empty:Object.freeze({isEmpty:data=>!data.title.trim()&&!data.message.trim()}),

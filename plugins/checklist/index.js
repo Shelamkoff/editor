@@ -35,6 +35,7 @@ function caretAtStart(field,range){
  * @returns {import('../../plugin-kit/types').BlockPluginDefinition<{items:Array<{id:string,text:string,checked:boolean}>}>}
  */
 export function createChecklistPlugin(){
+  /** @type {import('../../plugin-kit/types').BlockCapabilities<{items:Array<{id:string,text:string,checked:boolean}>}>} */
   const capabilities=Object.freeze({
     formatting:Object.freeze({inlineTools:true}),
     empty:Object.freeze({isEmpty:data=>data.items.every(item=>item.text.trim().length===0)}),
