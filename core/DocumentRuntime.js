@@ -68,7 +68,7 @@ export class DocumentRuntime {
    *   ownerDocument?: Document,
    *   validationMode?: 'preserve'|'strict',
    *   documentVersionPolicy?: 'preserve'|'strict',
-   *   migrations?: any[],
+   *   migrations?: readonly any[],
    *   readOnly?: boolean,
    *   createId?: (prefix: string) => string,
    *   projector?: any,
@@ -684,6 +684,7 @@ export class DocumentRuntime {
   #normalizeExternalInline(value, { strict }) {
     const source = cloneInline(value)
     if (source === undefined) return undefined
+    /** @type {Record<string, import('../shared/documentTypes').EditorInlineWidget>} */
     const result = {}
     for (const [id, raw] of Object.entries(source)) {
       if (!raw || typeof raw !== 'object' || Array.isArray(raw) || typeof raw.type !== 'string') {
