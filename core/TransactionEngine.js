@@ -35,6 +35,12 @@ function normalizeMetadata(metadata) {
     }
     result.historyGroup = metadata.historyGroup
   }
+  if (metadata.sourceBlockId !== undefined) {
+    if (typeof metadata.sourceBlockId !== 'string' || !metadata.sourceBlockId) {
+      throw new TypeError('sourceBlockId must be a non-empty string when provided')
+    }
+    result.sourceBlockId = metadata.sourceBlockId
+  }
   return result
 }
 
@@ -127,6 +133,7 @@ export class TransactionEngine {
         changes: cloneEditorData(changes),
         origin: metadata.origin,
         name: metadata.name,
+        sourceBlockId: metadata.sourceBlockId,
       })
       if (!prepared || typeof prepared.apply !== 'function' || typeof prepared.recover !== 'function') {
         throw new TypeError('Projector prepare() must return apply() and recover()')
