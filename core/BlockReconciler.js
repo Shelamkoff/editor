@@ -355,20 +355,23 @@ export class BlockReconciler {
       try { instance?.destroy?.() } catch {}
       throw new TypeError(`Block runtime "${record.type}" returned an invalid instance`)
     }
+    const element = ownerDocument.createElement('div')
+    element.className = 'oe-block'
+    element.dataset.blockId = record.id
+    element.dataset.blockType = record.type
+    element.appendChild(instance.element)
+
     const entry = {
       type: record.type,
       record,
-      element: instance.element,
+      element,
       instance,
       controller,
       preserved: false,
       definition,
       baseContext: base,
     }
-    instance.element.classList?.add?.('oe-block')
-    instance.element.dataset.blockId = record.id
-    instance.element.dataset.blockType = record.type
-    this.#blockOwners.set(instance.element, record.id)
+    this.#blockOwners.set(element, record.id)
     instance.setReadOnly(this.#readOnly)
     this.#refreshFields(record.id, entry)
     if (this.#inlineProjection) {

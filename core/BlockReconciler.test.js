@@ -266,3 +266,57 @@ test('document replacement recreates same-id block instances and aborts their li
   assert.equal(counters.update, 0)
   assert.equal(counters.destroy, 2)
 })
+
+
+test('core shell survives plugin className rewrites and keeps block identity', () => {
+  const ownerDocument = createFakeDocument()
+  const registry = {
+    hasBlock: type => type === 'probe',
+    getBlockDefinition: () => ({
+      type: 'probe',
+      schema: {
+        createDefault: () => ({ text: '' }),
+        encode: data => ({ dataVersion: 1, data }),
+      },
+    }),
+    getBlockRuntime: () => ({
+      create(data) {
+        const element = ownerDocument.createElement('section')
+        element.className = 'probe'
+        return {
+          element,
+          read: () => data,
+          update() {},
+          editableFields: () => [],
+          setReadOnly() {
+            element.className = 'probe'
+          },
+          destroy() {},
+        }
+      },
+    }),
+  }
+  const container = ownerDocument.createElement('div')
+  const reconciler = new BlockReconciler({
+    container,
+    registry,
+    contextFactory: () => ({}),
+    activationResolver: () => true,
+  })
+  const store = new DocumentStore({
+    version: '2.0.0',
+    blocks: [{ id: 'a', type: 'probe', dataVersion: 1, data: { text: '' } }],
+  })
+
+  reconciler.mount(store)
+  const shell = reconciler.getElement('a')
+  assert.equal(shell.className, 'oe-block')
+  assert.equal(shell.dataset.blockId, 'a')
+  assert.equal(shell.dataset.blockType, 'probe')
+  assert.equal(shell.firstElementChild.className, 'probe')
+
+  reconciler.setReadOnly(true)
+  assert.equal(shell.className, 'oe-block')
+  assert.equal(shell.firstElementChild.className, 'probe')
+  assert.equal(reconciler.resolveBlockTarget(shell.firstElementChild), 'a')
+})
