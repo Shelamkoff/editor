@@ -1,0 +1,235 @@
+import { createEditor } from '../../core/index.js'
+import {
+  createHeadingPlugin,
+  createListPlugin,
+  createParagraphPlugin,
+} from '../../plugins/index.js'
+
+const sandbox = document.querySelector('#sandbox')
+const delay = (ms = 0) => new Promise(resolve => setTimeout(resolve, ms))
+const assert = (condition, message) => { if (!condition) throw new Error(message) }
+
+function mount(blocks) {
+  const holder = document.createElement('section')
+  sandbox.appendChild(holder)
+  const editor = createEditor({
+    holder,
+    plugins: [
+      createParagraphPlugin({ injectStyles: false }),
+      createHeadingPlugin(),
+      createListPlugin(),
+    ],
+    defaultBlock: 'paragraph',
+    injectStyles: true,
+    changeDebounceMs: 0,
+    data: { version: '2.0.0', blocks },
+  })
+  return { holder, editor }
+}
+
+function editable(entry, id, selector = '[contenteditable="true"]') {
+  const element = entry.holder.querySelector(`.oe-block[data-block-id="${id}"] ${selector}`)
+  assert(element instanceof HTMLElement, `missing editable ${id} ${selector}`)
+  return element
+}
+
+function firstText(element) {
+  const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT)
+  const node = walker.nextNode()
+  assert(node instanceof Text, 'selection fixture needs text node')
+  return node
+}
+
+function selectRange(startElement, startOffset, endElement = startElement, endOffset = startOffset) {
+  const start = firstText(startElement)
+  const end = firstText(endElement)
+  const range = document.createRange()
+  range.setStart(start, Math.min(startOffset, start.data.length))
+  range.setEnd(end, Math.min(endOffset, end.data.length))
+  const selection = window.getSelection()
+  startElement.focus()
+  selection.removeAllRanges()
+  selection.addRange(range)
+  document.dispatchEvent(new Event('selectionchange'))
+  return range
+}
+
+async function openType(entry) {
+  await delay()
+  const button = entry.holder.querySelector('.oe-inline-toolbar__type-select')
+  assert(button instanceof HTMLButtonElement && !button.hidden, 'v2 type selector is missing')
+  button.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }))
+  button.click()
+  await delay()
+  const dropdown = entry.holder.querySelector('.oe-inline-toolbar__type-dropdown')
+  assert(dropdown instanceof HTMLElement && dropdown.style.display !== 'none', 'v2 type dropdown did not open')
+  return dropdown
+}
+
+function chooseType(dropdown, type) {
+  const item = dropdown.querySelector(`.oe-inline-toolbar__type-item[data-plugin-type="${type}"]`)
+  assert(item instanceof HTMLElement, `type selector lost ${type}`)
+  item.click()
+  return item
+}
+
+async function run() {
+  const paragraph = mount([
+    { id: 'p', type: 'paragraph', data: { text: 'Alpha Beta Gamma' } },
+  ])
+  const p = editable(paragraph, 'p')
+  selectRange(p, 6, p, 10)
+  let dropdown = await openType(paragraph)
+  chooseType(dropdown, 'heading')
+  await delay()
+  let saved = paragraph.editor.save()
+  assert(saved.blocks.length === 3, 'partial paragraph conversion did not split into three blocks')
+  assert(saved.blocks[0].type === 'paragraph' && saved.blocks[0].data.text === 'Alpha ', 'paragraph prefix was not preserved')
+  assert(saved.blocks[1].type === 'heading' && saved.blocks[1].data.text === 'Beta', 'selected paragraph fragment was not converted')
+  assert(saved.blocks[2].type === 'paragraph' && saved.blocks[2].data.text === ' Gamma', 'paragraph suffix was not preserved')
+  paragraph.editor.undo()
+  await delay()
+  saved = paragraph.editor.save()
+  assert(saved.blocks.length === 1 && saved.blocks[0].data.text === 'Alpha Beta Gamma', 'partial paragraph undo was not atomic')
+  paragraph.editor.redo()
+  await delay()
+  assert(paragraph.editor.save().blocks[1].data.text === 'Beta', 'partial paragraph redo failed')
+  paragraph.editor.destroy()
+  paragraph.holder.remove()
+
+  const list = mount([
+    {
+      id: 'list',
+      type: 'list',
+      dataVersion: 2,
+      data: {
+        style: 'ordered',
+        items: [
+          { id: 'one', text: 'One' },
+          { id: 'two', text: 'Two' },
+        ],
+      },
+    },
+  ])
+  const firstItem = editable(list, 'list', '[data-item-id="one"]')
+  selectRange(firstItem, 0, firstItem, 3)
+  dropdown = await openType(list)
+  chooseType(dropdown, 'paragraph')
+  await delay()
+  saved = list.editor.save()
+  assert(saved.blocks.length === 2, 'List partial conversion did not preserve remainder')
+  assert(saved.blocks[0].type === 'paragraph' && saved.blocks[0].data.text === 'One', 'List selected item did not convert to paragraph')
+  assert(saved.blocks[1].type === 'list', 'List remainder changed type')
+  assert(saved.blocks[1].data.style === 'ordered', 'List remainder lost ordered style')
+  assert(saved.blocks[1].data.items.length === 1 && saved.blocks[1].data.items[0].text === 'Two', 'List remainder lost unselected item')
+  list.editor.undo()
+  await delay()
+  saved = list.editor.save()
+  assert(saved.blocks.length === 1 && saved.blocks[0].type === 'list' && saved.blocks[0].data.items.length === 2, 'List partial conversion undo was not atomic')
+  list.editor.destroy()
+  list.holder.remove()
+
+  const cross = mount([
+    { id: 'a', type: 'paragraph', data: { text: 'FIRST' } },
+    { id: 'b', type: 'paragraph', data: { text: 'SECOND' } },
+  ])
+  const a = editable(cross, 'a')
+  const b = editable(cross, 'b')
+  selectRange(a, 2, b, 3)
+  dropdown = await openType(cross)
+  chooseType(dropdown, 'heading')
+  await delay()
+  saved = cross.editor.save()
+  assert(saved.blocks.map(block => block.type).join(',') === 'paragraph,heading,heading,paragraph', 'cross-block text conversion shape is wrong')
+  assert(saved.blocks[0].data.text === 'FI', 'cross-block conversion lost first prefix')
+  assert(saved.blocks[1].data.text === 'RST', 'cross-block conversion lost first selected tail')
+  assert(saved.blocks[2].data.text === 'SEC', 'cross-block conversion lost last selected head')
+  assert(saved.blocks[3].data.text === 'OND', 'cross-block conversion lost last suffix')
+  cross.editor.undo()
+  await delay()
+  saved = cross.editor.save()
+  assert(saved.blocks.length === 2 && saved.blocks[0].data.text === 'FIRST' && saved.blocks[1].data.text === 'SECOND', 'cross-block conversion undo was not atomic')
+  cross.editor.destroy()
+  cross.holder.remove()
+
+  const stale = mount([
+    { id: 's', type: 'paragraph', data: { text: 'KEEP' } },
+  ])
+  const s = editable(stale, 's')
+  selectRange(s, 0, s, 4)
+  dropdown = await openType(stale)
+  const oldHeading = dropdown.querySelector('[data-plugin-type="heading"]')
+  assert(oldHeading instanceof HTMLElement, 'stale type item fixture missing')
+  const typeButton = stale.holder.querySelector('.oe-inline-toolbar__type-select')
+  typeButton.click()
+  typeButton.click()
+  await delay()
+  const beforeStale = JSON.stringify(stale.editor.save())
+  oldHeading.click()
+  assert(JSON.stringify(stale.editor.save()) === beforeStale, 'retired type selector item changed document')
+  const currentHeading = stale.holder.querySelector('.oe-inline-toolbar__type-dropdown [data-plugin-type="heading"]')
+  assert(currentHeading instanceof HTMLElement && currentHeading !== oldHeading, 'type selector did not replace item session')
+  currentHeading.click()
+  await delay()
+  assert(stale.editor.save().blocks.some(block => block.type === 'heading'), 'current type selector item did not convert')
+  stale.editor.undo()
+  stale.editor.setReadOnly(true)
+  const readonlyBefore = JSON.stringify(stale.editor.save())
+  currentHeading.click()
+  assert(JSON.stringify(stale.editor.save()) === readonlyBefore, 'retired type selector item acted in read-only mode')
+  stale.editor.destroy()
+  stale.holder.remove()
+
+  const heading = mount([
+    { id: 'h1', type: 'heading', data: { text: 'FIRST', level: 2 } },
+    { id: 'h2', type: 'heading', data: { text: 'SECOND', level: 2 } },
+  ])
+  const h1 = editable(heading, 'h1')
+  selectRange(h1, 0, h1, 5)
+  await delay()
+  const levelButton = heading.holder.querySelector('.oe-inline-toolbar__level-select')
+  assert(levelButton instanceof HTMLButtonElement && !levelButton.hidden, 'Heading inline level control is missing')
+  levelButton.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }))
+  levelButton.click()
+  await delay()
+  const level3 = heading.holder.querySelector('.oe-inline-toolbar__level-dropdown [data-level="3"]')
+  assert(level3 instanceof HTMLButtonElement, 'Heading level 3 action is missing')
+  level3.click()
+  await delay()
+  assert(heading.editor.blocks.get('h1').data.level === 3, 'Heading inline level control did not update canonical data')
+  heading.editor.undo()
+  await delay()
+  assert(heading.editor.blocks.get('h1').data.level === 2, 'Heading level control undo failed')
+  heading.editor.redo()
+  await delay()
+  assert(heading.editor.blocks.get('h1').data.level === 3, 'Heading level control redo failed')
+
+  const retiredLevel = level3
+  const h2 = editable(heading, 'h2')
+  selectRange(h2, 0, h2, 6)
+  await delay()
+  const beforeRetired = JSON.stringify(heading.editor.save())
+  retiredLevel.click()
+  assert(JSON.stringify(heading.editor.save()) === beforeRetired, 'retired Heading level control edited a different block')
+  heading.editor.setReadOnly(true)
+  retiredLevel.click()
+  assert(JSON.stringify(heading.editor.save()) === beforeRetired, 'retired Heading control acted after read-only transition')
+  heading.editor.destroy()
+  heading.holder.remove()
+
+  sandbox.replaceChildren()
+  return {
+    conversions: ['paragraph partial', 'List data-aware', 'cross-block'],
+    controls: ['type selector', 'Heading level'],
+    history: 'atomic undo/redo',
+    staleCallbacks: 'inert',
+  }
+}
+
+try {
+  document.querySelector('#result').textContent = JSON.stringify(await run())
+  document.body.dataset.status = 'pass'
+} catch (error) {
+  document.querySelector('#result').textContent = error?.stack || String(error)
+  document.body.dataset.status = 'fail'
+}
