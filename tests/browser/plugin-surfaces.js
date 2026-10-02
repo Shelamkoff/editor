@@ -199,7 +199,7 @@ async function testSettingsPanels() {
   }
   changeValue(controlByLabel(panel, 'Gap'), '12px')
   assert(gallery.editor.save().blocks[0].data.styles.gap === '12px', 'gallery: gap setting was not persisted')
-  assert(gallery.block.style.gap === '12px', 'gallery: gap setting was not projected')
+  assert(gallery.block.querySelector('.oe-gallery')?.style.gap === '12px', 'gallery: gap setting was not projected')
   assert(gallery.editor.undo(), 'gallery: settings change did not enter history')
   assert(gallery.editor.save().blocks[0].data.styles.gap === undefined, 'gallery: settings undo failed')
   unmount(gallery)
