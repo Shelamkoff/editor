@@ -1,59 +1,31 @@
 export type {
-  EditorDocument,
-  BlockData,
-  DocumentMigration,
-  EditorDiagnostic,
-  EditorDiagnosticCode,
-  DiagnosticThresholds,
-  BasePlugin,
-  BlockPlugin,
-  BlockMutationContext,
-  BlockPluginConstructor,
-  ToolboxEntry,
-  PasteConfig,
-  PasteEvent,
-  TagPasteEvent,
-  FilePasteEvent,
-  PatternPasteEvent,
-  ShortcutEntry,
-  InlineTool,
-  InlineToolActionContext,
-  CaretPosition,
-  InlineSelection,
-  EditorEvents,
-  EditorConfig,
-  I18nMessages,
-  IBlock,
-  IBlockReader,
-  IBlockManager,
-  ISelectionManager,
-  IBlockOperations,
-  IEventBus,
-  EditorBlockView,
+  BlockActivationStatus,
+  BlockPluginDefinition,
+  BlockTunes,
+  BlockUpdate,
+  ConversionPayload,
+  ConversionTarget,
+  DocumentMode,
+  EditorBlockSnapshot,
   EditorBlocksApi,
-  EditorEventSubscriptions,
+  EditorConfig,
+  EditorDocument,
+  EditorEventName,
+  EditorInlineWidget,
+  EditorOutputData,
+  EditorValidationIssue,
+  FocusTarget,
   IEditor,
-  ICrossBlockSelection,
-  InlineControlContext,
-  InlineControlGroup,
-} from './types.js'
+  InlinePluginDefinition,
+  InsertBlockInput,
+  TextAlign,
+} from './publicTypes.js'
 
-export function createEditor(config: import('./types.js').EditorConfig): import('./types.js').IEditor
-export function createDefaultInlineTools(options?: { i18n?: import('./I18n.js').I18n, crossBlockSelection?: import('./types.js').ICrossBlockSelection, types?: string[] }): import('./types.js').InlineTool[]
+export function createEditor(config: import('./publicTypes.js').EditorConfig): import('./publicTypes.js').IEditor
 export function uid(): string
 export function sanitizeHtml(html: string, ownerDocument?: Document): string
 export function escapeHtml(text: string): string
 
 export { DocumentSchema } from './DocumentSchema.js'
-export { InlinePluginRegistry } from './InlinePluginRegistry.js'
 export { createColorSwatchPlugin } from '../inline-plugins/color.js'
 export { createMentionPlugin } from '../inline-plugins/mention/index.js'
-export type {
-  MentionItem,
-  MentionSearchResult,
-  MentionSearchFunction,
-  MentionRenderItem,
-  MentionRenderNoResults,
-  MentionRenderLoading,
-  MentionPluginOptions,
-} from '../inline-plugins/mention/index.js'
