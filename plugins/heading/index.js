@@ -65,7 +65,7 @@ export class Heading extends BlockPluginAbstract {
   /**
    * Create the editable DOM owned by this block instance.
    * @param {{ text?: string, level?: number }} data
-   * @param {import('../../core/types').BlockMutationContext} context
+   * @param {import('../../plugin-kit/types').BlockMutationContext} context
    * @returns {HTMLElement}
    */
   render(data, context) {
