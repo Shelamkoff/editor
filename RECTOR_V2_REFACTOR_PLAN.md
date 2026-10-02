@@ -223,6 +223,7 @@ Replace duplicated validators/migrations with a neutral block data schema used b
 
     interface BlockDataSchema<D extends JsonObject> {
       readonly currentVersion: number
+      readonly legacyVersion: number
 
       decode(input: {
         dataVersion?: number
@@ -246,6 +247,7 @@ Replace duplicated validators/migrations with a neutral block data schema used b
 Semantics:
 
 - decode owns validation, legacy interpretation, migration and canonical normalization;
+- missing dataVersion is interpreted as that schema's explicit legacyVersion;
 - migration steps are private implementation details of the schema module;
 - decode must either return current canonical data or throw a typed validation/migration error;
 - migration must make monotonic progress and must not loop;
@@ -253,6 +255,17 @@ Semantics:
 - schema functions do not mutate input;
 - schema functions do not depend on DOM;
 - unknown block types do not execute any registered schema belonging to another type.
+
+Activation policy for external/imported data:
+
+- a registered type is activated only after its schema successfully decodes the supplied version/data;
+- an unsupported future dataVersion is never coerced to currentVersion;
+- in validationMode "preserve", unknown types, unsupported future versions and malformed known payloads remain byte/JSON-preserved as inert read-only blocks and report the validation issue;
+- in validationMode "strict", those cases reject the document operation;
+- preservation status is runtime metadata and is not written into the persisted block envelope;
+- a later editor instance with a compatible plugin/schema may activate the same preserved record without data loss.
+
+Accordingly, "known block data is normalized" means activated known blocks. Preserved records stay opaque until a compatible schema can decode them.
 
 Create neutral built-in schema modules outside editor-specific plugin implementations. Recommended shape:
 
@@ -387,6 +400,7 @@ Introduce a neutral inline widget schema:
 
     interface InlineWidgetSchema<D extends JsonObject> {
       readonly currentVersion: number
+      readonly legacyVersion: number
 
       decode(input: {
         dataVersion?: number
@@ -402,7 +416,9 @@ Introduce a neutral inline widget schema:
       }
     }
 
-InlineWidgetSchema has the same purity and migration rules as BlockDataSchema: it is DOM-independent, does not mutate input, deterministically migrates known legacy versions, and either returns current canonical data or throws a typed error.
+InlineWidgetSchema has the same purity and migration rules as BlockDataSchema: it is DOM-independent, does not mutate input, treats missing dataVersion as legacyVersion, deterministically migrates known legacy versions, and either returns current canonical data or throws a typed error.
+
+A registered inline plugin is activated only when its schema decodes the payload. Unknown widget types, malformed payloads and unsupported future dataVersion values stay inert in preserve mode and are rejected in strict mode. An inert widget reference remains visible as non-active placeholder/fallback content and its canonical payload is retained.
 
 Editor-side inline plugin contract:
 
@@ -799,6 +815,14 @@ Settings/paste/controls are model-first contracts:
     interface SettingsCapability<D extends JsonObject> {
       actions(data: Readonly<D>): readonly SettingsAction[]
       apply(data: Readonly<D>, actionId: string): D
+    }
+
+    interface InlineControlsContext<D extends JsonObject> {
+      readonly ownerDocument: Document
+      readonly selection: BlockSelection | null
+
+      getData(): Readonly<D>
+      updateData(producer: (current: Readonly<D>) => D): void
     }
 
     interface InlineControlsCapability<D extends JsonObject> {
@@ -1681,6 +1705,38 @@ Do not create a second verification workflow. Extend the existing verify.yml.
 
 Do not reduce measured size by changing the benchmark to exclude code consumers actually receive.
 
+### 24.2. Third-party runtime packaging
+
+Remove checked-in generated third-party runtime bundles from source where an ordinary package dependency can provide the same runtime:
+
+    shared/runtime/highlightBundle.js
+    shared/runtime/jszip.js
+
+Replace them with lazy dynamic imports behind the existing narrow runtime loaders.
+
+Requirements:
+
+- use declared package dependencies with versions resolved by the repository lockfile;
+- do not load from a CDN;
+- preserve lazy loading so highlight/ZIP code is absent from the initial editor payload unless requested;
+- keep runtime loader injection/test seams for deterministic tests;
+- package-consumer tests prove the dependencies resolve from the packed package;
+- license/NOTICE generation or maintenance remains accurate;
+- dependency updates become visible to standard dependency/security tooling instead of requiring manual regeneration of vendored bundles.
+
+If a concrete packaging constraint makes one vendored artifact unavoidable, document that constraint and add a reproducible generation script plus byte/source/version verification. Do not keep an opaque checked-in bundle with no reproducible provenance.
+
+### 24.3. Generated documentation artifacts
+
+docs/reference and docs/ru/reference are generated by the documentation sync pipeline and are already ignored as generated output. Remove tracked generated copies from the v2 source tree unless GitHub Pages deployment demonstrably requires them in git.
+
+CI/docs gates must:
+
+- generate references from canonical README sources;
+- build/smoke-test generated docs;
+- fail if generation would require committed source edits;
+- keep one source of truth for extension documentation.
+
 ## 25. Complexity and performance contracts
 
 For content-only changes affecting k blocks in a document of N blocks:
@@ -1754,6 +1810,8 @@ Required v2 security properties:
 17. Fake data-inline-plugin/data-id attributes inserted by untrusted DOM are not accepted as owned widget identity.
 18. A canonical inline payload is activated only by a registered plugin definition plus a canonical placeholder reference.
 19. Core tune values are validated before application to DOM.
+20. A registered plugin type with malformed or unsupported-future-version data is not activated merely because its type name matches.
+21. Preserved inert data is never executed as editor/renderer/widget markup.
 
 Required security regressions:
 
@@ -1769,7 +1827,9 @@ Required security regressions:
 - renderer treatment of untrusted stored HTML;
 - forged inline-widget DOM attributes;
 - unknown inline plugin payload preservation without execution;
-- invalid tunes.textAlign.
+- invalid tunes.textAlign;
+- known type with unsupported future block/widget dataVersion;
+- malformed known payload in preserve versus strict mode.
 
 ## 27. Event ordering
 
@@ -1890,8 +1950,9 @@ TDD slices:
 3. invalid Paragraph data is rejected;
 4. unknown block survives unchanged;
 5. editor/renderer both use the same Paragraph schema;
-6. alignment exists only as tunes.textAlign in canonical v2 Paragraph/Heading data;
-7. matching inline placeholder references count as one logical unit while unmatched {{...}} author text remains ordinary text.
+6. preserve mode keeps malformed/future-version known data inert while strict mode rejects it;
+7. alignment exists only as tunes.textAlign in canonical v2 Paragraph/Heading data;
+8. matching inline placeholder references count as one logical unit while unmatched {{...}} author text remains ordinary text.
 
 Exit criteria:
 
@@ -2141,15 +2202,19 @@ Only after the target interfaces above are stable:
 
 Do not perform this phase early and then rewrite wiring again during contract changes.
 
-### Phase 14: bundle/preset cleanup
+### Phase 14: bundle/preset and generated-artifact cleanup
 
 Remove static complete inline-tool dependency from core.
 
 Introduce explicit/lazy preset.
 
+Replace opaque checked-in highlight.js/JSZip runtime bundles with lazy package dependencies, or add reproducible provenance verification only if vendoring is proven necessary.
+
+Remove tracked generated docs/reference outputs when the docs pipeline does not require them as source.
+
 Correct benchmark semantics.
 
-Extend verify.yml with enforced architecture and bundle gates.
+Extend verify.yml with enforced architecture, package-resolution, docs-generation and bundle gates.
 
 ## 31. Browser acceptance matrix
 
@@ -2223,6 +2288,8 @@ Security:
 - unsafe URL schemes rejected;
 - malformed inline payload contained;
 - unknown block inert;
+- registered block/widget with unsupported future dataVersion remains inert in preserve mode;
+- strict mode rejects unsupported/malformed activated payloads;
 - cross-realm editing/rendering preserved.
 
 ## 32. CI and architecture gates
@@ -2292,8 +2359,8 @@ Correctness:
 - native input/IME history is deterministic;
 - structured editable field identities survive reorder/insert/delete;
 - live-DOM and canonical rich-text logical offsets agree for BR/widgets;
-- unknown block and unknown inline-widget data are preserved inertly;
-- migrations are deterministic.
+- unknown, malformed-preserved and unsupported-future block/widget data are preserved inertly;
+- migrations are deterministic and never downgrade unsupported future versions.
 
 Security:
 
@@ -2315,7 +2382,8 @@ Performance:
 - whole-document O(N) work is restricted to explicit whole-document operations/export;
 - save/export performs no DOM serialization;
 - inline-only updates do not recreate their containing block;
-- corrected bundle budgets are enforced.
+- corrected bundle budgets are enforced;
+- optional highlight/ZIP runtimes remain lazy and are package-resolvable without opaque vendored source blobs.
 
 Testing:
 
@@ -2337,4 +2405,6 @@ Cleanup:
 - batch history events are removed;
 - private core imports from extensions are removed;
 - stale docs/types for removed interfaces are removed;
+- generated reference docs have one canonical source and are not simultaneously ignored and maintained as source artifacts;
+- opaque vendored runtimes are removed or reproducibly generated/verified;
 - there is no second way to perform the same persisted document mutation.
