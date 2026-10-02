@@ -80,10 +80,11 @@ export function createAttachesPlugin(config={}){
           let data=cloneData(initial)
           let readOnly=context.isReadOnly()
           let dead=false
-          let taskController=null
+          const taskControllers=new Set()
           const nameFields=new Map()
 
           const updateData=next=>context.updateData(()=>next)
+          const syncLoading=()=>wrapper.classList.toggle('oe-attaches--loading',taskControllers.size>0)
 
           const addResolved=entries=>{
             if(dead||readOnly||entries.length===0)return
@@ -99,22 +100,34 @@ export function createAttachesPlugin(config={}){
                 extension:String(entry.extension||getExtension(name)),
               }]
             })
-            if(safe.length)updateData({...data,files:[...data.files,...safe]})
+            if(safe.length)context.updateData(current=>({
+              ...current,
+              files:[...current.files,...safe],
+            }))
           }
 
           const beginTask=()=>{
-            taskController?.abort()
             const Ctor=document.defaultView?.AbortController??AbortController
-            taskController=new Ctor()
-            const abort=()=>taskController?.abort(context.signal.reason)
-            context.signal.addEventListener('abort',abort,{once:true,signal:taskController.signal})
-            return taskController
+            const controller=new Ctor()
+            taskControllers.add(controller)
+            const abort=()=>controller.abort(context.signal.reason)
+            context.signal.addEventListener('abort',abort,{once:true,signal:controller.signal})
+            syncLoading()
+            return controller
+          }
+          const finishTask=controller=>{
+            taskControllers.delete(controller)
+            syncLoading()
+          }
+          const abortTasks=()=>{
+            for(const controller of taskControllers)controller.abort()
+            taskControllers.clear()
+            syncLoading()
           }
 
           const resolveFiles=async files=>{
             if(readOnly||dead||files.length===0)return
             const controller=beginTask()
-            wrapper.classList.add('oe-attaches--loading')
             try{
               /** @type {FileEntry[]} */
               const resolved=[]
@@ -149,7 +162,7 @@ export function createAttachesPlugin(config={}){
               }
               if(!controller.signal.aborted)addResolved(resolved)
             }finally{
-              if(taskController===controller)wrapper.classList.remove('oe-attaches--loading')
+              finishTask(controller)
             }
           }
 
@@ -195,6 +208,8 @@ export function createAttachesPlugin(config={}){
               })))
             }catch(error){
               if(!controller.signal.aborted)console.warn('[Attaches] Source action failed',error)
+            }finally{
+              finishTask(controller)
             }
           }
 
@@ -245,6 +260,7 @@ export function createAttachesPlugin(config={}){
             data=cloneData(next)
             nameFields.clear()
             wrapper.className='oe-attaches'+(data.files.length?' oe-attaches--filled':'')
+            syncLoading()
             wrapper.dataset.variant=data.variant
             wrapper.replaceChildren()
 
@@ -309,9 +325,9 @@ export function createAttachesPlugin(config={}){
                 mode:/** @type {'plain-text'} */('plain-text'),
               })]:[]
             })),
-            setReadOnly(value){readOnly=value;project(data);if(value)taskController?.abort()},
+            setReadOnly(value){readOnly=value;if(value)abortTasks();project(data)},
             focus(){if(!dead&&!readOnly)(nameFields.get(data.files[0]?.id)??wrapper.querySelector('button'))?.focus()},
-            destroy(){dead=true;taskController?.abort()},
+            destroy(){dead=true;abortTasks()},
           }
         },
         destroy(){

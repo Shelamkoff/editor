@@ -115,17 +115,28 @@ export function createGalleryPlugin(config={}){
           let data=cloneData(initial)
           let readOnly=context.isReadOnly()
           let dead=false
-          let taskController=null
+          const taskControllers=new Set()
           const captionFields=new Map()
 
           const updateData=next=>context.updateData(()=>next)
+          const syncLoading=()=>wrapper.classList.toggle(CSS.loading,taskControllers.size>0)
           const beginTask=()=>{
-            taskController?.abort()
             const Ctor=document.defaultView?.AbortController??AbortController
-            taskController=new Ctor()
-            const abort=()=>taskController?.abort(context.signal.reason)
-            context.signal.addEventListener('abort',abort,{once:true,signal:taskController.signal})
-            return taskController
+            const controller=new Ctor()
+            taskControllers.add(controller)
+            const abort=()=>controller.abort(context.signal.reason)
+            context.signal.addEventListener('abort',abort,{once:true,signal:controller.signal})
+            syncLoading()
+            return controller
+          }
+          const finishTask=controller=>{
+            taskControllers.delete(controller)
+            syncLoading()
+          }
+          const abortTasks=()=>{
+            for(const controller of taskControllers)controller.abort()
+            taskControllers.clear()
+            syncLoading()
           }
 
           const addImages=images=>{
@@ -138,7 +149,10 @@ export function createGalleryPlugin(config={}){
                 caption:typeof image?.caption==='string'?image.caption:typeof image?.alt==='string'?image.alt:'',
               }]:[]
             })
-            if(added.length)updateData({...data,images:[...data.images,...added]})
+            if(added.length)context.updateData(current=>({
+              ...current,
+              images:[...current.images,...added],
+            }))
           }
 
           const resolveFiles=async files=>{
@@ -146,7 +160,6 @@ export function createGalleryPlugin(config={}){
             const accepted=files.filter(isSupportedImageFile)
             if(!accepted.length)return
             const controller=beginTask()
-            wrapper.classList.add(CSS.loading)
             try{
               await uploader.handle(accepted,images=>{
                 if(!controller.signal.aborted)addImages(images)
@@ -154,7 +167,7 @@ export function createGalleryPlugin(config={}){
             }catch(error){
               if(!controller.signal.aborted)console.warn('[Gallery] Upload failed',error)
             }finally{
-              if(taskController===controller)wrapper.classList.remove(CSS.loading)
+              finishTask(controller)
             }
           }
 
@@ -194,6 +207,8 @@ export function createGalleryPlugin(config={}){
               if(!controller.signal.aborted&&Array.isArray(result))addImages(result)
             }catch(error){
               if(!controller.signal.aborted)console.warn('[Gallery] Source action failed',error)
+            }finally{
+              finishTask(controller)
             }
           }
 
@@ -253,6 +268,7 @@ export function createGalleryPlugin(config={}){
             captionFields.clear()
             wrapper.replaceChildren()
             wrapper.className=CSS.wrapper+(data.images.length?' '+CSS.filled:'')
+            syncLoading()
             wrapper.dataset.layout=data.layout
             for(const [key,value] of Object.entries(data.styles)){
               if(key in wrapper.style)wrapper.style[key]=value
@@ -336,9 +352,9 @@ export function createGalleryPlugin(config={}){
                 mode:/** @type {'rich-text'} */('rich-text'),
               })]:[]
             })),
-            setReadOnly(value){readOnly=value;project(data);if(value)taskController?.abort()},
+            setReadOnly(value){readOnly=value;if(value)abortTasks();project(data)},
             focus(){if(!dead&&!readOnly)(captionFields.get(data.images[0]?.id)??wrapper.querySelector('button'))?.focus()},
-            destroy(){dead=true;taskController?.abort();captionFields.clear()},
+            destroy(){dead=true;abortTasks();captionFields.clear()},
           }
         },
         destroy(){destroyed=true},
