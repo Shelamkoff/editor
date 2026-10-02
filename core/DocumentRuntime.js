@@ -1,7 +1,7 @@
 // @ts-check
 import { cloneEditorData } from '../shared/cloneEditorData.js'
 import { normalizeRichText } from '../shared/richTextCodec.js'
-import { remapRichTextReferences, replaceRichTextRange, scanRichTextPlaceholders, splitRichTextRange } from '../shared/richTextOperations.js'
+import { getRichTextLogicalLength, remapRichTextReferences, replaceRichTextRange, scanRichTextPlaceholders, sliceRichTextRange, splitRichTextRange } from '../shared/richTextOperations.js'
 import { resolveValidationMode } from '../shared/validationMode.js'
 import { uid } from '../shared/uid.js'
 import { DocumentSchema } from './DocumentSchema.js'
@@ -544,6 +544,39 @@ export class DocumentRuntime {
     this.#engine.execute({ origin: 'external', name: 'block.convert' }, tx => {
       tx.update(id, next)
     })
+  }
+
+
+  /**
+   * Atomically convert one logical selection. Partial selections preserve
+   * unselected source fragments, while a non-text target replaces the selected
+   * interval with one default target block.
+   *
+   * @param {{anchor:{blockId:string,fieldKey:string,offset:number},focus:{blockId:string,fieldKey:string,offset:number}}} bookmark
+   * @param {{type:string,toolboxItemId?:string}} target
+   * @returns {{focusId:string,convertedIds:string[]}|false}
+   */
+  convertLogicalSelection(bookmark,target){
+    this.#assertWritable()
+    const ordered=this.#orderedLogicalRange(bookmark)
+    if(!ordered||!target||typeof target.type!=='string')return false
+    const {start,end}=ordered
+    const targetDefinition=this.#registry.getBlockDefinition(target.type)
+    if(!targetDefinition)return false
+
+    if(
+      start.blockId===end.blockId
+      && start.fieldKey===end.fieldKey
+      && start.offset===end.offset
+    ){
+      this.convert(start.blockId,target)
+      return {focusId:start.blockId,convertedIds:[start.blockId]}
+    }
+
+    if(start.blockId===end.blockId){
+      return this.#convertSingleBlockSelection(start,end,target,targetDefinition)
+    }
+    return this.#convertCrossBlockSelection(start,end,target,targetDefinition)
   }
 
   undo() {

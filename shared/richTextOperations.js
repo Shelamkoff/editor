@@ -1,5 +1,5 @@
 // @ts-check
-import { findNodeAtOffset } from './textOffset.js'
+import { findNodeAtOffset, getTextLength } from './textOffset.js'
 import { normalizeRichText } from './richTextCodec.js'
 import { toTrustedHtml } from './sanitize/trustedHtml.js'
 
@@ -61,6 +61,22 @@ function replacementNode(replacement,inline,ownerDocument){
     return template.content
   }
   throw new TypeError('Unknown rich-text replacement kind')
+}
+
+/**
+ * Count logical UTF-16 positions in canonical rich text. Inline references are
+ * atomic and count as one position, matching selection/history offsets.
+ *
+ * @param {string} html
+ * @param {Record<string, unknown> | undefined} inline
+ * @param {Document} ownerDocument
+ */
+export function getRichTextLogicalLength(html,inline,ownerDocument){
+  const ownedInline=ownInline(inline)
+  const template=ownerDocument.createElement('template')
+  template.innerHTML=/** @type {any} */(toTrustedHtml(normalizeRichText(String(html??''),ownerDocument),ownerDocument))
+  expandReferences(template.content,ownedInline,ownerDocument)
+  return getTextLength(template.content)
 }
 
 /**
