@@ -5,13 +5,27 @@ import { closestBlock } from './dom.js'
 import { EditorEvent } from './editorEvents.js'
 import { deserializeInlineHtml } from '../shared/inlineMarshal.js'
 import { cloneEditorData } from '../shared/cloneEditorData.js'
-import { getBuiltInBlockDataSchema } from '../shared/blockSchemas/index.js'
 import { uid } from './uid.js'
 import { createPreservedBlockPlugin } from './PreservedBlockPlugin.js'
 
 /** @param {number} index */
 function assertBlockIndex(index) {
   if (!Number.isSafeInteger(index)) throw new RangeError('Block index must be a safe integer')
+}
+
+/**
+ * During the v2 migration only repository-owned built-ins opt in to their
+ * neutral schema through an own static property. A subclass with the same
+ * public type remains a custom plugin until it supplies its own v2 contract;
+ * type-name matching must not silently strip extension-specific data.
+ * @param {import('./types').BlockPlugin} plugin
+ * @returns {any}
+ */
+function ownPluginDataSchema(plugin) {
+  const constructor = /** @type {any} */ (plugin.constructor)
+  return constructor && Object.hasOwn(constructor, 'dataSchema')
+    ? constructor.dataSchema
+    : undefined
 }
 
 /** @typedef {import('./types').IBlockManager} IBlockManagerContract */
@@ -129,7 +143,7 @@ export class BlockManager {
 
     let blockData = data === undefined ? undefined : cloneEditorData(data)
     let resolvedDataVersion = metadata.dataVersion
-    const schema = preserveUnknown ? undefined : getBuiltInBlockDataSchema(type)
+    const schema = preserveUnknown ? undefined : ownPluginDataSchema(plugin)
     if (schema) {
       if (blockData === undefined) {
         blockData = schema.createDefault()
