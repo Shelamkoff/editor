@@ -27,7 +27,11 @@ export function splitAndConvert(blocks, selection, currentIndex, currentType, co
 
   if (pluginSplit) {
     const transferable = targetIsText ? pluginSplit.selectedData : {}
-    const newData = { ...transferable, ...(targetData || {}) }
+    const newData = {
+      ...(blocks.getDefaultData(targetType) || {}),
+      ...transferable,
+      ...(targetData || {}),
+    }
     let insertIndex = currentIndex + 1
 
     if (pluginSplit.remainingData) {
@@ -74,7 +78,11 @@ export function splitAndConvert(blocks, selection, currentIndex, currentType, co
 
   if (!selectedHtml) return false
 
-  const mergedData = { text: selectedHtml, ...(targetData || {}) }
+  const mergedData = {
+    ...(blocks.getDefaultData(targetType) || {}),
+    text: selectedHtml,
+    ...(targetData || {}),
+  }
 
   if (!beforeHtml && !afterHtml) {
     const converted = blocks.convert(currentIndex, targetType, mergedData)
