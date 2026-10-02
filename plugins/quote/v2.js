@@ -11,7 +11,10 @@ function mergeField(left, right, separator = '') {
   return left + separator + right
 }
 
-/** @returns {import('../../plugin-kit/types').BlockPluginDefinition<{text:string, caption:string}>} */
+/**
+ * Create the immutable Quote v2 definition with stable rich-text fields.
+ * @returns {import('../../plugin-kit/types').BlockPluginDefinition<{text:string, caption:string}>}
+ */
 export function createQuotePlugin() {
   const capabilities=Object.freeze({
     formatting:Object.freeze({inlineTools:true}),
