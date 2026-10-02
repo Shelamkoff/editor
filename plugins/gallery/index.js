@@ -1,385 +1,361 @@
+// @ts-check
+import {
+  insertTrustedHtml,
+  setSafeUrlAttribute,
+} from '../../plugin-kit/index.js'
+import { galleryDataSchema } from '../../shared/blockSchemas/gallery.js'
+import { GALLERY_LAYOUTS } from '../../shared/blockOptions.js'
+import { sanitizeMediaUrl } from '../../shared/sanitize/sanitizeUrl.js'
 import { isSupportedImageFile, triggerFileInput } from '../shared/fileInput.js'
-import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
-import { validateGalleryData } from '../../shared/blockDataValidators.js'
+import { openSourceEditor, preloadSourceEditor } from '../shared/sourceEditor.js'
+import { GalleryUploader } from './uploader.js'
 import { CSS } from './css.js'
 import { ICON } from './icons.js'
-import { GalleryState, normalizeGalleryData, emptyGalleryData } from './state.js'
-import { GalleryUploader } from './uploader.js'
-import { renderEmptyView } from './view-empty.js'
-import { renderFilledView } from './view-filled.js'
-import { sanitizeMediaUrl } from '../../shared/sanitize/sanitizeUrl.js'
-import { openSourceEditor, preloadSourceEditor } from '../shared/sourceEditor.js'
 
-const editorStyles = new URL('./gallery.css', import.meta.url).href
-const sourceEditorStyles = new URL('../shared/sourceEditor.css', import.meta.url).href
+const editorStyles=new URL('./gallery.css',import.meta.url).href
+const sourceEditorStyles=new URL('../shared/sourceEditor.css',import.meta.url).href
 
 /**
- * @typedef {(file: File, context: { signal: AbortSignal }) => Promise<{ url: string, alt?: string }>} UploadFn
- *
- * @typedef {Object} GalleryConfig
- * @property {UploadFn} [uploadFile] Uploads one browser file. Without this callback the plugin reads each file into a data URL stored in the document.
- * @property {Array<{ icon?: string, label: string, handler: (context: { signal: AbortSignal }) => Promise<Array<{url: string, alt?: string}> | null> }>} [actions] Additional application-owned image sources. `icon` is trusted application markup; never pass user-authored HTML.
- * @property {boolean} [injectStyles=true] Whether the editor should load the built-in gallery stylesheet.
- * @property {string} [css] Additional stylesheet URL, or the replacement URL when `injectStyles` is `false`.
+ * @typedef {(file:File,context:{signal:AbortSignal})=>Promise<{url:string,alt?:string}>} UploadFn
+ * @typedef {{label:string,icon?:string,handler:(context:{signal:AbortSignal})=>Promise<Array<{url:string,alt?:string}>|null>}} SourceAction
  */
 
 /**
- * Editable image gallery with upload-source extensions, ordering, and layout controls.
- * Internal logic is split across:
- *  - `state.js`     — per-block state container (replaces module WeakMap)
- *  - `uploader.js`  — multi-file upload pipeline
- *  - `layout.js`    — layout selection algorithms
- *  - `slot.js`      — slot/overflow item DOM builders + drag handling
- *  - `view-empty.js`/ `view-filled.js` — DOM rendering for the two states
- *  - `settings.js`  — settings dropdown form
- *  - `styles.js`    — gallery-level inline style application
- * @extends {BlockPluginAbstract<GalleryConfig>}
+ * Create an immutable Gallery block definition with stable image identities and optional upload/source actions.
+ * @param {{uploadFile?:UploadFn,actions?:SourceAction[],injectStyles?:boolean,css?:string}} [config]
+ * @returns {import('../../plugin-kit/types').BlockPluginDefinition<any>}
  */
-export class Gallery extends BlockPluginAbstract {
-  static isTextBlock = false
-  static styles = [editorStyles, sourceEditorStyles]
+export function createGalleryPlugin(config={}){
+  if(!config||typeof config!=='object'||Array.isArray(config))throw new TypeError('Gallery configuration must be an object')
+  const snapshot=Object.freeze({...config,actions:Object.freeze([...(config.actions??[])])})
+  const styles=[]
+  if(snapshot.injectStyles!==false)styles.push(editorStyles,sourceEditorStyles)
+  if(snapshot.css)styles.push(snapshot.css)
 
-  type = 'gallery'
-  icon = ICON
-  inlineTools = false
-
-  pasteConfig = {
-    files: ['image/*'],
-  }
-
-  #uploader
-  /** Per-block state, encapsulated to this plugin instance. */
-  #states = /** @type {WeakMap<HTMLElement, GalleryState>} */ (new WeakMap())
-  /** @type {WeakMap<HTMLElement, import('../../plugin-kit/types').BlockMutationContext>} */
-  #contexts = new WeakMap()
-  /**
-   * Create a Gallery instance with the supplied consumer configuration.
-   * @param {GalleryConfig} [config]
-   */
-  constructor(config) {
-    super(config)
-    this.#uploader = new GalleryUploader(this._config)
-  }
-
-  /**
-   * Return the localized toolbox label for this block.
-   * @returns {string}
-   */
-  get title() {
-    return this._t('title', 'Gallery')
-  }
-
-  // ── BlockPlugin contract ───────────────────────────────────────────────────
-
-  /**
-   * Create the editable DOM owned by this block instance.
-   * @param {Record<string, unknown>} data
-   * @param {import('../../plugin-kit/types').BlockMutationContext} context
-   * @returns {HTMLElement}
-   */
-  render(data, context) {
-    const ownerDocument = context.ownerDocument ?? globalThis.document
-    const blockData = normalizeGalleryData(data)
-    const pendingFile = /** @type {File | null} */ (/** @type {any} */ (data)?._pendingFile || null)
-
-    const wrapper = ownerDocument.createElement('div')
-    wrapper.classList.add(CSS.wrapper)
-    wrapper.contentEditable = 'false'
-    wrapper.tabIndex = -1
-
-    const state = new GalleryState(blockData, pendingFile ? [pendingFile] : [], ownerDocument)
-    this.#states.set(wrapper, state)
-    this.#contexts.set(wrapper, context)
-
-    if (blockData.images.length > 0) {
-      this.#renderFilled(wrapper)
-    } else {
-      this.#renderEmpty(wrapper)
-    }
-
-    if (state.pendingFiles.length > 0 && !context.readOnly) {
-      const files = state.pendingFiles
-      state.pendingFiles = []
-      state.pendingUpload = this.#handleFiles(wrapper, files).finally(() => {
-        if (this.#states.get(wrapper) === state) state.pendingUpload = null
-      })
-      // Observe event-started work without replacing the original Promise:
-      // waitForPaste() must still receive a rejection for staging rollback.
-      void state.pendingUpload.catch(this.#reportUploadError)
-    }
-
-    return wrapper
-  }
-
-  /**
-   * Serialize the current block DOM into document data.
-   * @param {HTMLElement} element
-   * @returns {Record<string, unknown>}
-   */
-  save(element) {
-    const state = this.#states.get(element)
-    if (!state) return emptyGalleryData()
-    this.#syncCaptions(element)
-    return {
-      images: state.data.images.map((img) => ({ ...img })),
-      layout: state.data.layout,
-      styles: { ...state.data.styles },
-      options: { ...state.data.options },
-    }
-  }
-
-  /**
-   * Check whether serialized data satisfies this block's schema.
-   * @param {Record<string, unknown>} data
-   * @returns {boolean}
-   */
-  validate(data) {
-    return validateGalleryData(data)
-  }
-
-  /**
-   * Check whether the block has no meaningful user content.
-   * @param {HTMLElement} element
-   * @returns {boolean}
-   */
-  isEmpty(element) {
-    const state = this.#states.get(element)
-    return !state || state.data.images.length === 0
-  }
-
-  /**
-   * Extract neutral text that can initialize another block type.
-   * @param {HTMLElement} element
-   * @returns {Record<string, unknown>}
-   */
-  exportData(element) {
-    const state = this.#states.get(element)
-    return { text: state?.data.images.map(image => image.caption).filter(Boolean).join(' ') || '' }
-  }
-
-  /**
-   * Handle supported pasted content for this block.
-   * @param {import('../../types').PasteEvent} event
-   * @returns {Record<string, unknown> | null}
-   */
-  onPaste(event) {
-    if (event.type === 'file') {
-      // Files dropped via paste — push immediately into the new block.
-      // Render path will then upload via the wrapper bound to this default data.
-      const data = /** @type {any} */ (emptyGalleryData())
-      data._pendingFile = event.file
-      return data
-    }
-    return null
-  }
-
-  /**
-   * Keep pasted files inside one undo transaction until upload completes.
-   * @param {HTMLElement} element
-   * @returns {Promise<void>}
-   */
-  waitForPaste(element) {
-    return this.#states.get(element)?.pendingUpload ?? Promise.resolve()
-  }
-
-  /**
-   * Release listeners and resources owned by this block element.
-   * @param {HTMLElement} element
-   * @returns {void}
-   */
-  destroy(element) {
-    const state = this.#states.get(element)
-    if (!state) return
-    state.dispose()
-    this.#states.delete(element)
-    this.#contexts.delete(element)
-  }
-
-  // ── Internal coordination ──────────────────────────────────────────────────
-
-  /** @param {string} key @param {string} fallback @returns {string} */
-  #t = (key, fallback) => this._t(key, fallback)
-
-  /** @param {HTMLElement} wrapper @param {() => void} operation @returns {void} */
-  #mutate = (wrapper, operation) => {
-    this.#contexts.get(wrapper)?.mutate(operation)
-  }
-
-  /**
-   * Flush in-flight contenteditable caption text into state before any
-   * mutation that would re-render and tear down the live caption nodes.
-   *
-   * @param {HTMLElement} wrapper
-   * @returns {void}
-   */
-  #syncCaptions(wrapper) {
-    const state = this.#states.get(wrapper)
-    if (!state) return
-    const slots = wrapper.querySelectorAll(`.${CSS.slot}.${CSS.slotFilled}`)
-    slots.forEach((slotEl) => {
-      const slot = /** @type {HTMLElement} */ (slotEl)
-      const idx = parseInt(slot.dataset.slot || slot.dataset.index || '0', 10)
-      const img = state.data.images[idx]
-      if (img) {
-        const caption = slot.querySelector(`.${CSS.slotCaption}`)
-        img.caption = caption?.textContent?.trim() || ''
-      }
-    })
-  }
-
-  /** @param {HTMLElement} wrapper @returns {void} */
-  #renderEmpty(wrapper) {
-    const state = this.#states.get(wrapper)
-    if (!state) return
-    const readOnly = Boolean(this.#contexts.get(wrapper)?.readOnly)
-    renderEmptyView(wrapper, state, {
-      t: this.#t,
-      readOnly,
-      onUploadClick: () => this.#triggerFileInput(wrapper),
-      onOpenUrlEditor: () => this.#openUrlEditor(wrapper),
-      onFilesDropped: (files) => { void this.#handleFiles(wrapper, files).catch(this.#reportUploadError) },
-      customActions: this._config.actions || [],
-      runCustomAction: async (handler) => this.#runCustomAction(wrapper, handler),
-    })
-    if (!readOnly) preloadSourceEditor(wrapper, state.abortController.signal, ['url'])
-  }
-
-  /** @param {HTMLElement} wrapper @returns {void} */
-  #renderFilled(wrapper) {
-    const state = this.#states.get(wrapper)
-    if (!state) return
-    const readOnly = Boolean(this.#contexts.get(wrapper)?.readOnly)
-    renderFilledView(wrapper, state, {
-      t: this.#t,
-      readOnly,
-      syncCaptions: () => this.#syncCaptions(wrapper),
-      getState: () => this.#states.get(wrapper),
-      reRender: () => this.#renderFilled(wrapper),
-      renderEmpty: () => this.#renderEmpty(wrapper),
-      mutate: (operation) => this.#mutate(wrapper, operation),
-      onFilesDropped: (files) => { void this.#handleFiles(wrapper, files).catch(this.#reportUploadError) },
-      onTriggerFileInput: () => this.#triggerFileInput(wrapper),
-      onOpenUrlEditor: () => this.#openUrlEditor(wrapper),
-      onDeleteAll: () => this.#deleteAll(wrapper),
-      customActions: this._config.actions || [],
-      runCustomAction: async (handler) => this.#runCustomAction(wrapper, handler),
-    })
-    if (!readOnly) preloadSourceEditor(wrapper, state.abortController.signal, ['url'])
-  }
-
-  /** @param {HTMLElement} wrapper @returns {void} */
-  #triggerFileInput(wrapper) {
-    if (this.#contexts.get(wrapper)?.readOnly) return
-    triggerFileInput({
-      ownerDocument: wrapper.ownerDocument,
-      accept: 'image/*',
-      multiple: true,
-      signal: this.#states.get(wrapper)?.abortController?.signal,
-      onFiles: (files) => void this.#handleFiles(wrapper, files).catch(this.#reportUploadError),
-    })
-  }
-
-  /** @param {unknown} error */
-  #reportUploadError = (error) => {
-    console.warn('[Gallery] Failed to apply uploaded images:', error)
-  }
-
-  /**
-   * @param {HTMLElement} wrapper
-   * @param {File[]} files
-   * @returns {Promise<void>}
-   */
-  async #handleFiles(wrapper, files) {
-    const state = this.#states.get(wrapper)
-    const context = this.#contexts.get(wrapper)
-    if (!state || !context || context.readOnly) return
-    const accepted = files.filter(isSupportedImageFile)
-    if (accepted.length === 0) return
-    const controller = state.beginTask()
-    wrapper.classList.add(CSS.loading)
-    try {
-      await this.#uploader.handle(accepted, (added) => {
-        if (controller.signal.aborted || this.#states.get(wrapper) !== state) return
-        this.#mutate(wrapper, () => {
-          this.#syncCaptions(wrapper)
-          state.data.images.push(...added)
-          this.#renderFilled(wrapper)
-        })
-      }, controller.signal, wrapper.ownerDocument)
-    } finally {
-      if (state.finishTask(controller)) wrapper.classList.remove(CSS.loading)
-    }
-  }
-
-  /**
-   * @param {HTMLElement} wrapper
-   * @param {(context: { signal: AbortSignal }) => Promise<Array<{url: string, alt?: string}> | null>} handler
-   * @returns {Promise<void>}
-   */
-  async #runCustomAction(wrapper, handler) {
-    const state = this.#states.get(wrapper)
-    if (!state || this.#contexts.get(wrapper)?.readOnly) return
-    const controller = state.beginTask()
-    wrapper.classList.add(CSS.loading)
-    try {
-      const result = await handler({ signal: controller.signal })
-      if (!controller.signal.aborted && this.#states.get(wrapper) === state && Array.isArray(result) && result.length > 0) {
-        const added = result.flatMap(item => {
-          const url = sanitizeMediaUrl(item?.url || '')
-          if (!url) return []
-          return [{ url, caption: typeof item?.alt === 'string' ? item.alt : '' }]
-        })
-        if (!added.length) return
-        this.#mutate(wrapper, () => {
-          this.#syncCaptions(wrapper)
-          state.data.images.push(...added)
-          this.#renderFilled(wrapper)
-        })
-      }
-    } catch {
-      // Action cancelled or failed.
-    } finally {
-      if (state.finishTask(controller)) wrapper.classList.remove(CSS.loading)
-    }
-  }
-
-  /** @param {HTMLElement} wrapper @returns {void} */
-  #openUrlEditor(wrapper) {
-    const state = this.#states.get(wrapper)
-    const signal = state?.abortController?.signal
-    if (!state || !signal || this.#contexts.get(wrapper)?.readOnly) return
-    openSourceEditor({
-      wrapper,
-      signal,
-      kind: 'url',
-      title: this.#t('urlEditorTitle', 'Insert image by URL'),
-      label: this.#t('urlEditorLabel', 'Image URL'),
-      placeholder: this.#t('urlEditorPlaceholder', 'https://example.com/image.jpg'),
-      submitText: this.#t('sourceSubmit', 'Insert'),
-      cancelText: this.#t('sourceCancel', 'Cancel'),
-      invalidText: this.#t('invalidUrl', 'Enter a valid image URL.'),
-      normalize: sanitizeMediaUrl,
-      onSubmit: (url) => {
-        const current = this.#states.get(wrapper)
-        if (current !== state || this.#contexts.get(wrapper)?.readOnly) return
-        this.#mutate(wrapper, () => {
-          this.#syncCaptions(wrapper)
-          state.data.images.push({ url, caption: '' })
-          this.#renderFilled(wrapper)
-        })
+  const optionKeys=['loop','zoom','navigation','captions','fullscreen','thumbnails']
+  const capabilities=Object.freeze({
+    empty:Object.freeze({isEmpty:data=>data.images.length===0}),
+    conversion:Object.freeze({
+      export:data=>({kind:'rich-text',data:{text:data.images.map(image=>image.caption).filter(Boolean).join('<br>')}}),
+      canImport:payload=>payload?.kind==='rich-text'&&typeof payload.data?.text==='string',
+      import(){return galleryDataSchema.createDefault()},
+    }),
+    settings:Object.freeze({
+      kind:/** @type {'actions'} */('actions'),
+      actions(data){
+        return [
+          ...GALLERY_LAYOUTS.map(layout=>Object.freeze({
+            id:'layout:'+layout,
+            label:Object.freeze({key:'layout.'+layout,fallback:'Layout '+layout}),
+            active:data.layout===layout,
+          })),
+          ...optionKeys.map(key=>Object.freeze({
+            id:'option:'+key,
+            label:Object.freeze({key,fallback:key[0].toUpperCase()+key.slice(1)}),
+            active:data.options[key]===true,
+          })),
+        ]
       },
-    })
-  }
+      apply(data,actionId){
+        if(actionId.startsWith('layout:')){
+          const layout=actionId.slice(7)
+          if(!GALLERY_LAYOUTS.includes(layout))throw new RangeError('Unknown gallery layout: '+layout)
+          return {...data,layout}
+        }
+        if(actionId.startsWith('option:')){
+          const key=actionId.slice(7)
+          if(!optionKeys.includes(key))throw new RangeError('Unknown gallery option: '+key)
+          return {...data,options:{...data.options,[key]:!data.options[key]}}
+        }
+        throw new RangeError('Unknown gallery setting: '+actionId)
+      },
+    }),
+    paste:Object.freeze({
+      accepts(input){return input.kind==='file'&&isSupportedImageFile(input.file)},
+      async resolve(input,context){
+        if(input.kind!=='file'||!isSupportedImageFile(input.file))return null
+        const uploader=new GalleryUploader(snapshot)
+        const box={images:/** @type {Array<{url:string,caption:string}>} */([])}
+        await uploader.handle([input.file],images=>{box.images=images},context.signal,context.ownerDocument)
+        if(context.signal.aborted||box.images.length===0)return null
+        return {
+          kind:/** @type {'block'} */('block'),
+          data:{
+            ...galleryDataSchema.createDefault(),
+            images:box.images.map(image=>({
+              id:context.createId('image'),
+              url:image.url,
+              caption:image.caption,
+            })),
+          },
+        }
+      },
+    }),
+  })
 
-  /** @param {HTMLElement} wrapper @returns {void} */
-  #deleteAll(wrapper) {
-    const state = this.#states.get(wrapper)
-    if (!state) return
-    state.cancelTasks()
-    wrapper.classList.remove(CSS.loading)
-    this.#mutate(wrapper, () => {
-      state.data.images = []
-      this.#renderEmpty(wrapper)
-    })
+  return Object.freeze({
+    type:'gallery',
+    label:Object.freeze({key:'title',fallback:'Gallery'}),
+    icon:ICON,
+    styles:Object.freeze(styles),
+    schema:galleryDataSchema,
+    capabilities,
+    setup(runtimeContext){
+      let destroyed=false
+      const uploader=new GalleryUploader(snapshot)
+      return {
+        create(initial,context){
+          if(destroyed)throw new Error('Gallery runtime is destroyed')
+          const document=context.ownerDocument
+          const wrapper=document.createElement('div')
+          wrapper.className=CSS.wrapper
+          wrapper.contentEditable='false'
+          wrapper.tabIndex=-1
+
+          let data=cloneData(initial)
+          let readOnly=context.isReadOnly()
+          let dead=false
+          let taskController=null
+          const captionFields=new Map()
+
+          const updateData=next=>context.updateData(()=>next)
+          const beginTask=()=>{
+            taskController?.abort()
+            const Ctor=document.defaultView?.AbortController??AbortController
+            taskController=new Ctor()
+            const abort=()=>taskController?.abort(context.signal.reason)
+            context.signal.addEventListener('abort',abort,{once:true,signal:taskController.signal})
+            return taskController
+          }
+
+          const addImages=images=>{
+            if(dead||readOnly)return
+            const added=images.flatMap(image=>{
+              const url=sanitizeMediaUrl(image?.url||'')
+              return url?[{
+                id:context.createId('image'),
+                url,
+                caption:typeof image?.caption==='string'?image.caption:typeof image?.alt==='string'?image.alt:'',
+              }]:[]
+            })
+            if(added.length)updateData({...data,images:[...data.images,...added]})
+          }
+
+          const resolveFiles=async files=>{
+            if(readOnly||dead)return
+            const accepted=files.filter(isSupportedImageFile)
+            if(!accepted.length)return
+            const controller=beginTask()
+            wrapper.classList.add(CSS.loading)
+            try{
+              await uploader.handle(accepted,images=>{
+                if(!controller.signal.aborted)addImages(images)
+              },controller.signal,document)
+            }catch(error){
+              if(!controller.signal.aborted)console.warn('[Gallery] Upload failed',error)
+            }finally{
+              if(taskController===controller)wrapper.classList.remove(CSS.loading)
+            }
+          }
+
+          const chooseFiles=()=>{
+            if(readOnly)return
+            triggerFileInput({
+              ownerDocument:document,
+              accept:'image/*',
+              multiple:true,
+              signal:context.signal,
+              onFiles:files=>void resolveFiles([...files]),
+            })
+          }
+
+          const addUrl=()=>{
+            if(readOnly)return
+            openSourceEditor({
+              wrapper,
+              signal:context.signal,
+              kind:'url',
+              title:runtimeContext.t('urlEditorTitle','Insert image by URL'),
+              label:runtimeContext.t('urlEditorLabel','Image URL'),
+              placeholder:'https://',
+              submitText:runtimeContext.t('sourceSubmit','Insert'),
+              cancelText:runtimeContext.t('sourceCancel','Cancel'),
+              invalidText:runtimeContext.t('invalidUrl','Enter a valid image URL.'),
+              normalize:sanitizeMediaUrl,
+              onSubmit:url=>addImages([{url,caption:''}]),
+            })
+          }
+
+          const runAction=async action=>{
+            if(readOnly||dead)return
+            const controller=beginTask()
+            try{
+              const result=await action.handler({signal:controller.signal})
+              if(!controller.signal.aborted&&Array.isArray(result))addImages(result)
+            }catch(error){
+              if(!controller.signal.aborted)console.warn('[Gallery] Source action failed',error)
+            }
+          }
+
+          const move=(from,to)=>{
+            if(readOnly||to<0||to>=data.images.length||from===to)return
+            context.updateData(current=>{
+              const images=current.images.map(image=>({...image}))
+              const [item]=images.splice(from,1)
+              if(item)images.splice(to,0,item)
+              return {...current,images}
+            })
+          }
+
+          const renderImage=(image,index)=>{
+            const slot=document.createElement('div')
+            slot.className=CSS.slot+' '+CSS.slotFilled
+            slot.dataset.imageId=image.id
+
+            const img=document.createElement('img')
+            img.className=CSS.slotImg
+            setSafeUrlAttribute(img,'src',image.url,'media')
+            img.alt=image.caption?stripText(image.caption):''
+
+            const caption=document.createElement('div')
+            caption.className=CSS.slotCaption
+            caption.contentEditable=readOnly?'false':'true'
+            caption.dataset.imageId=image.id
+            caption.setAttribute('data-oe-document-input','text')
+            caption.textContent=stripText(image.caption)
+            captionFields.set(image.id,caption)
+            slot.append(img,caption)
+
+            if(!readOnly){
+              const remove=document.createElement('button')
+              remove.type='button'
+              remove.className=CSS.slotRemove
+              remove.textContent='×'
+              remove.addEventListener('click',()=>updateData({...data,images:data.images.filter(item=>item.id!==image.id)}),{signal:context.signal})
+
+              const earlier=document.createElement('button')
+              earlier.type='button'
+              earlier.textContent='←'
+              earlier.disabled=index===0
+              earlier.addEventListener('click',()=>move(index,index-1),{signal:context.signal})
+              const later=document.createElement('button')
+              later.type='button'
+              later.textContent='→'
+              later.disabled=index===data.images.length-1
+              later.addEventListener('click',()=>move(index,index+1),{signal:context.signal})
+              slot.append(remove,earlier,later)
+            }
+            return slot
+          }
+
+          const project=next=>{
+            data=cloneData(next)
+            captionFields.clear()
+            wrapper.replaceChildren()
+            wrapper.className=CSS.wrapper+(data.images.length?' '+CSS.filled:'')
+            wrapper.dataset.layout=data.layout
+            for(const [key,value] of Object.entries(data.styles)){
+              if(key in wrapper.style)wrapper.style[key]=value
+            }
+
+            if(!data.images.length){
+              const empty=document.createElement('div')
+              empty.className=CSS.select
+              if(readOnly){
+                empty.textContent=runtimeContext.t('emptyReadonly','No images')
+              }else{
+                const upload=document.createElement('button')
+                upload.type='button'
+                upload.textContent=runtimeContext.t('upload','Upload')
+                upload.addEventListener('click',chooseFiles,{signal:context.signal})
+                const url=document.createElement('button')
+                url.type='button'
+                url.textContent=runtimeContext.t('dropzoneUrl','Insert URL')
+                url.addEventListener('click',addUrl,{signal:context.signal})
+                empty.append(upload,url)
+                for(const action of snapshot.actions){
+                  const button=document.createElement('button')
+                  button.type='button'
+                  button.className=CSS.selectAction
+                  if(action.icon)insertTrustedHtml(button,'afterbegin',action.icon)
+                  button.append(document.createTextNode(action.label))
+                  button.addEventListener('click',()=>void runAction(action),{signal:context.signal})
+                  empty.appendChild(button)
+                }
+              }
+              wrapper.appendChild(empty)
+              return
+            }
+
+            const grid=document.createElement('div')
+            grid.className=CSS.grid
+            data.images.forEach((image,index)=>grid.appendChild(renderImage(image,index)))
+            wrapper.appendChild(grid)
+
+            if(!readOnly){
+              const actions=document.createElement('div')
+              actions.className=CSS.actions
+              const add=document.createElement('button')
+              add.type='button'
+              add.className=CSS.actionBtn
+              add.textContent=runtimeContext.t('add','Add images')
+              add.addEventListener('click',chooseFiles,{signal:context.signal})
+              actions.appendChild(add)
+              wrapper.appendChild(actions)
+            }
+          }
+
+          wrapper.addEventListener('focusout',event=>{
+            if(readOnly)return
+            const target=/** @type {HTMLElement|null} */(event.target)
+            if(!target?.classList.contains(CSS.slotCaption))return
+            const id=target.dataset.imageId
+            if(!id)return
+            const caption=target.innerHTML.trim()
+            context.updateData(current=>({...current,images:current.images.map(image=>image.id===id?{...image,caption}:image)}))
+          },{signal:context.signal})
+
+          preloadSourceEditor(wrapper,context.signal,['url'])
+          project(data)
+
+          return {
+            element:wrapper,
+            read:()=>({
+              ...cloneData(data),
+              images:data.images.map(image=>({
+                ...image,
+                caption:captionFields.get(image.id)?.innerHTML.trim()??image.caption,
+              })),
+            }),
+            update(next){if(!dead)project(next)},
+            editableFields:()=>Object.freeze(data.images.flatMap(image=>{
+              const element=captionFields.get(image.id)
+              return element?[Object.freeze({
+                key:'image:'+image.id+':caption',
+                element,
+                mode:/** @type {'rich-text'} */('rich-text'),
+              })]:[]
+            })),
+            setReadOnly(value){readOnly=value;project(data);if(value)taskController?.abort()},
+            focus(){if(!dead&&!readOnly)(captionFields.get(data.images[0]?.id)??wrapper.querySelector('button'))?.focus()},
+            destroy(){dead=true;taskController?.abort();captionFields.clear()},
+          }
+        },
+        destroy(){destroyed=true},
+      }
+    },
+  })
+}
+
+function cloneData(data){
+  return {
+    images:data.images.map(image=>({...image})),
+    layout:data.layout,
+    styles:{...data.styles},
+    options:{...data.options},
   }
+}
+
+function stripText(html){
+  return String(html||'').replace(/<[^>]*>/g,'').trim()
 }
