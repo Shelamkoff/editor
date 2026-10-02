@@ -238,7 +238,8 @@ The v1 -> v2 migration also removes the existing alignment duplication:
 - otherwise Paragraph/Heading legacy data.align is copied to tunes.textAlign;
 - data.align is removed from canonical v2 Paragraph/Heading data;
 - invalid alignment values are removed by the core tune normalizer;
-- future plugin data migrations must not own core tunes.
+- future plugin data migrations must not own core tunes;
+- the old TEXT_ALIGN_TUNE_ATTRIBUTE may be used transiently during migration only; it is removed from the final v2 persistence path.
 
 This one-time rule belongs to the v1 document-format migration because it repairs a v1 cross-layer duplication. It is not a precedent for putting future plugin schema migrations into DocumentSchema.
 
@@ -341,6 +342,8 @@ Introduce a neutral inline widget schema:
       }
     }
 
+InlineWidgetSchema has the same purity and migration rules as BlockDataSchema: it is DOM-independent, does not mutate input, deterministically migrates known legacy versions, and either returns current canonical data or throws a typed error.
+
 Editor-side inline plugin contract:
 
     interface InlinePluginDefinition<D extends JsonObject = JsonObject> {
@@ -391,6 +394,11 @@ Editor-side inline plugin contract:
       readonly blockId: string
       readonly fieldKey: string
       readonly query: string
+      readonly range: {
+        start: number
+        end: number
+      }
+      readonly anchor: HTMLElement
 
       commit(data: D): void
       cancel(): void
@@ -417,7 +425,7 @@ Editor-side inline plugin contract:
         previous: Readonly<D>
       ): void
 
-      setReadOnly?(readOnly: boolean): void
+      setReadOnly(readOnly: boolean): void
       focus?(): void
       destroy(): void
     }
@@ -440,9 +448,10 @@ Editor-side inline plugin contract:
 Rules:
 
 - plugin definitions are stateless descriptors and may be reused;
-- setup creates one editor-scoped runtime;
+- setup creates one editor-scoped runtime and follows the same exception-safe setup/teardown rule as block plugin runtimes;
 - trigger characters, paste-pattern conversion, transient autocomplete/query UI and programmatic fresh insertion remain supported through explicit definition/runtime capabilities rather than persistence hooks;
-- transient trigger/query state is not persisted until commit(data) produces one model transaction;
+- transient trigger/query state is not persisted as widget state until commit(data) produces one model transaction;
+- RegExp paste patterns are treated as immutable definitions; matching must clone/reset stateful expressions so reusable definitions do not leak lastIndex across calls/editors;
 - each widget occurrence has one InlineWidgetInstance;
 - widget payload changes must call InlineWidgetContext.updateData;
 - native controls inside a widget do not become persisted merely because their DOM changed;
@@ -451,7 +460,8 @@ Rules:
 - arbitrary elements carrying data-inline-plugin/data-id are never trusted as canonical widgets;
 - core recognizes only widget instances it created and owns;
 - deleting a widget from an editable field removes its placeholder reference and then prunes its inline record in the same transaction;
-- a missing plugin definition preserves the placeholder and payload inertly; it must not drop unknown widget data;
+- a {{id}} token is interpreted as a widget reference only when block.inline has that exact own-property id; otherwise it remains ordinary author text;
+- a missing plugin definition preserves the matching placeholder and payload inertly; it must not drop unknown widget data;
 - an unreferenced inline entry produced by a local edit is removed at canonicalization; opaque unknown imported data is preserved until its containing rich-text field is normalized by an operation that owns that block.
 
 ### 5.2. Inline projection runtime
@@ -506,6 +516,42 @@ Renderer-side widget support uses the same InlineWidgetSchema but a separate rea
     }
 
 Renderer does not reuse interactive editor widget instances.
+
+### 5.3. Canonical rich-text operations
+
+Model-first widget insertion and trigger replacement require logical-offset operations on canonical HTML. Do not manipulate the HTML string by character index.
+
+Introduce a neutral RichTextOperations helper that operates on sanitized canonical rich text in a detached document.
+
+Required semantics:
+
+    interface RichTextOperations {
+      replaceRange(
+        html: string,
+        inline: Readonly<Record<string, InlineWidgetRecord>> | undefined,
+        range: { start: number; end: number },
+        replacement: RichTextReplacement,
+        ownerDocument: Document
+      ): string
+    }
+
+Logical positions use the same rules as SelectionBookmark:
+
+- UTF-16 units for ordinary text;
+- BR is one unit;
+- a {{id}} reference is one unit only when id has a corresponding canonical inline entry;
+- an unmatched {{...}} token is ordinary author text, not an active widget.
+
+RichTextReplacement supports sanitized text/HTML and a dedicated inline-reference replacement. Inline widget insertion never concatenates {{id}} directly into arbitrary HTML.
+
+The result is sanitized/canonicalized before entering DocumentState.
+
+Use this helper for at least:
+
+- programmatic inline-widget insertion;
+- trigger/autocomplete commit;
+- canonical range deletion/replacement where a model-first path is used;
+- tests that round-trip logical selection offsets between live DOM and canonical HTML.
 
 ## 6. Block plugin v2
 
@@ -1254,7 +1300,14 @@ Expose immutable snapshots.
 
     interface BlockUpdate {
       data?: JsonObject
+      tunes?: BlockTunes | null
+    }
+
+    interface InsertBlockInput {
+      type: string
+      data?: JsonObject
       tunes?: BlockTunes
+      inline?: Record<string, InlineWidgetRecord>
     }
 
 Blocks interface:
@@ -1280,7 +1333,20 @@ Blocks interface:
 
 All persisted mutation methods delegate to DocumentRuntime transactions. focus is not a persisted mutation and delegates to InteractionRuntime.
 
-Application-facing snapshots cannot mutate editor state by reference. Readonly in declarations is not sufficient by itself: return detached/deep-cloned JSON values (or a deeply frozen detached representation) at consumer trust boundaries. The same rule applies to values passed into public producer callbacks. EditorBlocksApi.update cannot directly replace block.inline; inline payload/reference changes go through inline widget commands so placeholder/map invariants stay atomic.
+Application-facing snapshots cannot mutate editor state by reference. Readonly in declarations is not sufficient by itself: return detached/deep-cloned JSON values (or a deeply frozen detached representation) at consumer trust boundaries. The same rule applies to values passed into public producer callbacks.
+
+BlockUpdate.data omitted means unchanged. BlockUpdate.tunes omitted means unchanged; null clears tunes. An empty update is a no-op. update cannot change type or block identity.
+
+EditorBlocksApi.update cannot directly replace block.inline; inline payload/reference changes go through inline widget commands so placeholder/map invariants stay atomic.
+
+IEditor retains a model-first programmatic widget insertion surface:
+
+    insertInlinePlugin(
+      type: string,
+      data?: JsonObject
+    ): boolean
+
+It resolves the current logical selection, validates the widget schema, updates canonical rich text plus block.inline in one transaction, and returns false for read-only/no-valid-selection/unknown-type cases. It does not insert widget DOM first.
 
 Public render semantics:
 
@@ -1706,6 +1772,7 @@ Implement:
 - Paragraph neutral schema first;
 - RichTextCodec;
 - deterministic canonicalization;
+- RichTextOperations with shared logical-offset semantics;
 - core tune normalization;
 - one-time data.align -> tunes.textAlign migration.
 
@@ -1716,7 +1783,8 @@ TDD slices:
 3. invalid Paragraph data is rejected;
 4. unknown block survives unchanged;
 5. editor/renderer both use the same Paragraph schema;
-6. alignment exists only as tunes.textAlign in canonical v2 Paragraph/Heading data.
+6. alignment exists only as tunes.textAlign in canonical v2 Paragraph/Heading data;
+7. matching inline placeholder references count as one logical unit while unmatched {{...}} author text remains ordinary text.
 
 Exit criteria:
 
@@ -2023,7 +2091,8 @@ Native input:
 - autocorrect-compatible sequence;
 - plugin-native input/textarea is not consumed as document structural input;
 - deleting an inline widget prunes its canonical inline entry;
-- forged data-inline-plugin markup is not adopted as a widget.
+- forged data-inline-plugin markup is not adopted as a widget;
+- programmatic insertInlinePlugin commits model first and restores caret after the inserted atomic widget.
 
 Lifecycle:
 
@@ -2115,6 +2184,7 @@ Correctness:
 - undo/redo restores logical selection;
 - native input/IME history is deterministic;
 - structured editable field identities survive reorder/insert/delete;
+- live-DOM and canonical rich-text logical offsets agree for BR/widgets;
 - unknown block and unknown inline-widget data are preserved inertly;
 - migrations are deterministic.
 
