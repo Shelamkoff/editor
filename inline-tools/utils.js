@@ -1,7 +1,7 @@
 import { setTrustedHtml } from '../core/sanitize.js'
 import { hasInlineContent, removeEmptyInlineTags } from './inlineContent.js'
 export { removeEmptyInlineTags } from './inlineContent.js'
-import { editableFields, editableAtBoundary } from '../core/editableFields.js'
+import { editableFields, editableAtBoundary } from '../shared/editableFields.js'
 import { BLOCK_CLASS } from '../core/constants.js'
 import { CrossBlockSelection } from '../core/CrossBlockSelection.js'
 import { closestBlock, el } from '../core/dom.js'
