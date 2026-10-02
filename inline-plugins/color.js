@@ -11,7 +11,7 @@ import { normalizeTextValue } from '../shared/textFormat.js'
  * @returns {import('../types').InlinePlugin}
  */
 export function createColorSwatchPlugin() {
-  /** @type {import('../core/types').IScopedI18n | null} */
+  /** @type {import('../plugin-kit/types').IScopedI18n | null} */
   let i18n = null
   let lifecycleController = new AbortController()
   /** @type {typeof AbortController} */
@@ -21,7 +21,7 @@ export function createColorSwatchPlugin() {
     styles: [colorPickerStylesUrl],
     get title() { return i18n?.has('title') ? i18n.t('title') : 'Color' },
     icon: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21a9 9 0 0 1 0-18c4.97 0 9 3.582 9 8c0 1.06-.474 2.078-1.318 2.828S17.938 15 16.5 15H14a2 2 0 0 0-1 3.75A1.3 1.3 0 0 1 12 21"/><circle cx="7.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="12" cy="7.5" r=".5" fill="currentColor"/><circle cx="16.5" cy="10.5" r=".5" fill="currentColor"/></svg>',
-    /** @param {import('../core/types').IScopedI18n} _i18n */
+    /** @param {import('../plugin-kit/types').IScopedI18n} _i18n */
     setI18n(_i18n) { i18n = _i18n },
     /** @returns {void} */
     mount(rootElement) {
