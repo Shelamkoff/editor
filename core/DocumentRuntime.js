@@ -573,6 +573,138 @@ export class DocumentRuntime {
     this.#readOnly = next
   }
 
+
+  /**
+   * Atomically replace a logical selection that may span multiple blocks.
+   * The start/end fragments stay canonical; intermediate blocks are removed in
+   * the same transaction. Compatible endpoint blocks are merged through the
+   * target block's pure MergeCapability.
+   *
+   * @param {{anchor:{blockId:string,fieldKey:string,offset:number},focus:{blockId:string,fieldKey:string,offset:number}}} bookmark
+   * @param {{kind:'text',text:string}|{kind:'html',html:string}} [replacement]
+   * @returns {{blockId:string,fieldKey:string,offset:number}|false}
+   */
+  replaceLogicalRange(bookmark, replacement = { kind: 'text', text: '' }) {
+    this.#assertWritable()
+    const ordered = this.#orderedLogicalRange(bookmark)
+    if (!ordered) return false
+    const { start, end } = ordered
+
+    if (start.blockId === end.blockId) {
+      if (start.fieldKey !== end.fieldKey) return false
+      this.replaceRichText(
+        start.blockId,
+        start.fieldKey,
+        { start: start.offset, end: end.offset },
+        replacement,
+      )
+      return { blockId: start.blockId, fieldKey: start.fieldKey, offset: start.offset }
+    }
+
+    const ids = this.#store.ids()
+    const startIndex = ids.indexOf(start.blockId)
+    const endIndex = ids.indexOf(end.blockId)
+    if (startIndex < 0 || endIndex <= startIndex) return false
+
+    const startCurrent = this.#store.get(start.blockId)
+    const endCurrent = this.#store.get(end.blockId)
+    if (!startCurrent || !endCurrent) return false
+    if (
+      this.activation(start.blockId)?.kind !== 'active'
+      || this.activation(end.blockId)?.kind !== 'active'
+    ) return false
+
+    const startDefinition = this.#registry.getBlockDefinition(startCurrent.type)
+    const endDefinition = this.#registry.getBlockDefinition(endCurrent.type)
+    if (!startDefinition?.schema?.mapRichText || !endDefinition?.schema?.mapRichText) return false
+
+    const startInline = cloneInline(startCurrent.inline) ?? {}
+    const endInline = cloneInline(endCurrent.inline) ?? {}
+
+    let startMatched = false
+    const startData = startDefinition.schema.mapRichText(
+      cloneEditorData(startCurrent.data),
+      (html, key) => {
+        if (key !== start.fieldKey) return html
+        startMatched = true
+        return replaceRichTextRange(
+          html,
+          startInline,
+          { start: start.offset, end: Number.MAX_SAFE_INTEGER },
+          replacement,
+          this.#ownerDocument,
+        )
+      },
+    )
+
+    let endMatched = false
+    const endData = endDefinition.schema.mapRichText(
+      cloneEditorData(endCurrent.data),
+      (html, key) => {
+        if (key !== end.fieldKey) return html
+        endMatched = true
+        return replaceRichTextRange(
+          html,
+          endInline,
+          { start: 0, end: end.offset },
+          { kind: 'text', text: '' },
+          this.#ownerDocument,
+        )
+      },
+    )
+    if (!startMatched || !endMatched) return false
+
+    const startEncoded = this.#normalizeLocalData(startDefinition, startData)
+    const endEncoded = this.#normalizeLocalData(endDefinition, endData)
+    const startNext = {
+      ...startCurrent,
+      dataVersion: startEncoded.dataVersion,
+      data: startEncoded.data,
+    }
+    const startFilteredInline = this.#filterInlineForData(startDefinition, startEncoded.data, startInline)
+    if (startFilteredInline === undefined) delete startNext.inline
+    else startNext.inline = startFilteredInline
+    delete startNext.revision
+
+    const endNext = {
+      ...endCurrent,
+      dataVersion: endEncoded.dataVersion,
+      data: endEncoded.data,
+    }
+    const endFilteredInline = this.#filterInlineForData(endDefinition, endEncoded.data, endInline)
+    if (endFilteredInline === undefined) delete endNext.inline
+    else endNext.inline = endFilteredInline
+    delete endNext.revision
+
+    let merged = null
+    if (startNext.type === endNext.type) {
+      const merge = startDefinition.capabilities?.merge?.merge
+      if (typeof merge === 'function') {
+        const prepared = this.#prepareInlineMerge(startDefinition, startNext, endNext)
+        const mergedData = merge(prepared.targetData, prepared.sourceData)
+        const encoded = this.#normalizeLocalData(startDefinition, mergedData)
+        const inline = this.#filterInlineForData(startDefinition, encoded.data, prepared.inline)
+        merged = {
+          ...startNext,
+          dataVersion: encoded.dataVersion,
+          data: encoded.data,
+        }
+        if (inline === undefined) delete merged.inline
+        else merged.inline = inline
+        delete merged.revision
+      }
+    }
+
+    this.#engine.execute({ origin: 'user', name: 'selection.replace' }, tx => {
+      tx.update(start.blockId, merged ?? startNext)
+      for (let index = startIndex + 1; index < endIndex; index++) tx.remove(ids[index])
+      if (merged) tx.remove(end.blockId)
+      else tx.update(end.blockId, endNext)
+    })
+
+    return { blockId: start.blockId, fieldKey: start.fieldKey, offset: start.offset }
+  }
+
   replaceRichText(blockId, fieldKey, range, replacement) {
     this.#assertWritable()
     const current = this.#store.get(blockId)
@@ -855,6 +987,49 @@ export class DocumentRuntime {
       reason: issueReason(error),
     })
     try { this.#onValidationError(issue) } catch {}
+  }
+
+
+  #orderedLogicalRange(bookmark) {
+    const anchor = bookmark?.anchor
+    const focus = bookmark?.focus
+    if (!anchor || !focus) return null
+    const ids = this.#store.ids()
+    const anchorBlock = ids.indexOf(anchor.blockId)
+    const focusBlock = ids.indexOf(focus.blockId)
+    if (anchorBlock < 0 || focusBlock < 0) return null
+
+    const compare = (left, right, leftIndex, rightIndex) => {
+      if (leftIndex !== rightIndex) return leftIndex - rightIndex
+      const record = this.#store.get(left.blockId)
+      if (!record) return 0
+      const definition = this.#registry.getBlockDefinition(record.type)
+      const fields = []
+      definition?.schema?.mapRichText?.(cloneEditorData(record.data), (html, key) => {
+        fields.push(key)
+        return html
+      })
+      const leftField = fields.indexOf(left.fieldKey)
+      const rightField = fields.indexOf(right.fieldKey)
+      if (leftField !== rightField) return leftField - rightField
+      return (Number(left.offset) || 0) - (Number(right.offset) || 0)
+    }
+
+    const direction = compare(anchor, focus, anchorBlock, focusBlock)
+    const first = direction <= 0 ? anchor : focus
+    const last = direction <= 0 ? focus : anchor
+    return {
+      start: {
+        blockId: first.blockId,
+        fieldKey: first.fieldKey,
+        offset: Math.max(0, Math.trunc(first.offset) || 0),
+      },
+      end: {
+        blockId: last.blockId,
+        fieldKey: last.fieldKey,
+        offset: Math.max(0, Math.trunc(last.offset) || 0),
+      },
+    }
   }
 
   #assertWritable() {
