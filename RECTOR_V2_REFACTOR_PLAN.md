@@ -1115,14 +1115,28 @@ If an extension update partially mutates live DOM and then throws, core must not
 
 If recovery of canonical projection also fails because extension code is irrecoverably broken, mark the editor runtime failed, stop further mutations, preserve/export the last committed DocumentState, and report an AggregateError through diagnostics. Do not continue with a knowingly divergent model/DOM pair.
 
-Nested transactions:
+Transaction phases are explicit:
 
-- join the outer record;
-- never create an independent history entry;
+    idle
+    -> building
+    -> preparing-projection
+    -> applying-projection
+    -> committing
+    -> publishing
+    -> idle
+
+Nested transactions are allowed only from the building phase of an existing user/plugin transaction:
+
+- they join the outer record;
+- they never create an independent history entry;
 - nested failure poisons the outer transaction;
 - catching a nested exception inside plugin/application code does not convert the outer transaction to success.
 
-Reentrant transaction from a post-commit observer is a new transaction and is queued after the current transaction's public observations.
+Persisted mutation requests from schema decode/migration, projection preparation, BlockInstance.create/update, InlineWidgetInstance.create/update, tune application, history replay projection, commit bookkeeping or read-only transition are rejected before executing the requested mutation. Context mutation methods are phase-guarded.
+
+This preserves the current CommandDispatcher guarantee that extension code cannot start a new document command from preparation/commit phases.
+
+Reentrant transaction from a contained post-commit observer is a new transaction and is queued after the current transaction's public observations.
 
 ## 13. Remove event-driven internal history coordination
 
@@ -2075,7 +2089,8 @@ Slices:
 4. nested failure poisoning;
 5. schema failure rollback;
 6. plugin exception rollback;
-7. post-commit reentrant transaction ordering.
+7. projection/update callback attempting a document mutation is rejected and rolls back the outer operation;
+8. post-commit reentrant transaction ordering.
 
 Exit criteria:
 
@@ -2263,6 +2278,7 @@ History:
 - document.render -> undo;
 - undo failure leaves history/model at pre-replay state;
 - nested failure;
+- mutation attempted from projection/update callback;
 - validation failure;
 - plugin read/update failure;
 - post-commit observer starting another transaction.
@@ -2388,6 +2404,7 @@ Correctness:
 
 - atomic rollback preserved;
 - nested failure poisoning preserved;
+- prepare/projection/commit phase mutation guards preserved;
 - public observations are post-commit and FIFO;
 - observer errors contained;
 - undo/redo restores logical selection;
