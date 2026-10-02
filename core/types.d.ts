@@ -553,6 +553,8 @@ export interface IBlockReader {
 /** Full block CRUD. Extends IBlockReader. */
 export interface IBlockManager extends IBlockReader {
   setReadOnly(readOnly: boolean): void
+  /** Fresh canonical v2 default for a schema-enabled registered block type. */
+  getDefaultData(type: string): Record<string, unknown> | undefined
   insert(
     type: string,
     data?: Record<string, unknown>,
