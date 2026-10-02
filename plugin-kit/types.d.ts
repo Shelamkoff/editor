@@ -258,5 +258,43 @@ export interface BlockPluginDefinition<
   readonly icon: string
   readonly styles?: readonly string[]
   readonly schema: BlockDataSchema<D>
+  readonly capabilities?: BlockCapabilities<D>
   setup(context: BlockPluginRuntimeContext): BlockPluginRuntime<D>
+}
+
+
+/** Pure empty-state capability used by generic structural commands. */
+export interface EmptyCapability<D extends Record<string, unknown>> {
+  isEmpty(data: Readonly<D>): boolean
+}
+
+/** Inline formatting eligibility for one block type. */
+export interface FormattingCapability {
+  inlineTools: true | readonly string[]
+}
+
+/** Pure data merge capability. */
+export interface MergeCapability<D extends Record<string, unknown>> {
+  merge(target: Readonly<D>, source: Readonly<D>): D
+}
+
+/** Neutral conversion payload exchanged between block types. */
+export interface ConversionPayload {
+  kind: string
+  data: Record<string, unknown>
+}
+
+/** Pure block conversion capability. */
+export interface ConversionCapability<D extends Record<string, unknown>> {
+  export(data: Readonly<D>): ConversionPayload
+  canImport(payload: ConversionPayload): boolean
+  import(payload: ConversionPayload): D
+}
+
+/** Capabilities implemented independently from mounted block lifecycle. */
+export interface BlockCapabilities<D extends Record<string, unknown>> {
+  empty?: EmptyCapability<D>
+  formatting?: FormattingCapability
+  merge?: MergeCapability<D>
+  conversion?: ConversionCapability<D>
 }
