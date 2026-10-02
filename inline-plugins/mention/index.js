@@ -230,7 +230,7 @@ export function createMentionPlugin(options={}){
         query=session.query
         if(!popup){
           popup=runtimeContext.ownerDocument.createElement('div')
-          popup.className=['oe-mention-dropdown',snapshot.dropdownClass??''].filter(Boolean).join(' ')
+          popup.className=['oe-mention-dropdown','oe-mention-dropdown--active',snapshot.dropdownClass??''].filter(Boolean).join(' ')
           popup.setAttribute('role','listbox')
           popup.addEventListener('scroll',()=>{
             if(!cursor||loadingMore||!popup)return
