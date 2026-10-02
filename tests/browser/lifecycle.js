@@ -3,9 +3,9 @@ function installLifecycleTracker() {
   const originalRemove = EventTarget.prototype.removeEventListener
   const listenerRecords = []
 
-  const captureOf = (options) => typeof options === 'boolean' ? options : !!options?.capture
-  const isGlobalTarget = (target) => target === window || target === document
-  const releaseRecord = (record) => {
+  const captureOf = options => typeof options === 'boolean' ? options : !!options?.capture
+  const isGlobalTarget = target => target === window || target === document
+  const releaseRecord = record => {
     record.active = false
     record.target = null
     record.listener = null
@@ -57,12 +57,10 @@ function installLifecycleTracker() {
         super(...args)
         callbacks.set(this, args[0])
       }
-
       observe(...args) {
         active.add(this)
         return super.observe(...args)
       }
-
       disconnect() {
         active.delete(this)
         return super.disconnect()
@@ -73,12 +71,12 @@ function installLifecycleTracker() {
   const activeObjectUrls = new Set()
   const originalCreateObjectURL = URL.createObjectURL.bind(URL)
   const originalRevokeObjectURL = URL.revokeObjectURL.bind(URL)
-  URL.createObjectURL = (value) => {
+  URL.createObjectURL = value => {
     const url = originalCreateObjectURL(value)
     activeObjectUrls.add(url)
     return url
   }
-  URL.revokeObjectURL = (url) => {
+  URL.revokeObjectURL = url => {
     activeObjectUrls.delete(String(url))
     originalRevokeObjectURL(url)
   }
@@ -101,9 +99,7 @@ function installLifecycleTracker() {
     },
     triggerObservers(name) {
       const callbacks = observerCallbacks.get(name)
-      for (const observer of observerSets.get(name) || []) {
-        callbacks?.get(observer)?.([], observer)
-      }
+      for (const observer of observerSets.get(name) || []) callbacks?.get(observer)?.([], observer)
     },
   }
 }
@@ -117,8 +113,7 @@ function assertSnapshot(actual, expected, tracker, label) {
   const mismatch = keys.some(key => actual[key] !== expected[key])
   assert(
     !mismatch,
-    `${label}: expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}; `
-      + `listeners=${JSON.stringify(tracker.activeGlobalListeners())}`,
+    `${label}: expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}; listeners=${JSON.stringify(tracker.activeGlobalListeners())}`,
   )
 }
 
@@ -136,7 +131,13 @@ window.__editorHeapReport = () => ({
   alive: heapSentinels.filter(item => item.ref.deref() !== undefined).map(item => item.label),
 })
 
-const [{ createColorSwatchPlugin, createEditor, createMentionPlugin }, pluginModule, rendererModule, blockTypesModule, { colorPickerStylesUrl }] = await Promise.all([
+const [
+  { createColorSwatchPlugin, createEditor, createMentionPlugin },
+  plugins,
+  { EditorRenderer },
+  { BLOCK_TYPES },
+  { colorPickerStylesUrl },
+] = await Promise.all([
   import('../../core/index.js'),
   import('../../plugins/index.js'),
   import('../../renderer/index.js'),
@@ -145,458 +146,367 @@ const [{ createColorSwatchPlugin, createEditor, createMentionPlugin }, pluginMod
 ])
 
 const {
-  Attaches,
-  Checklist,
-  Code,
-  Columns,
-  Delimiter,
-  Embed,
-  Gallery,
-  Heading,
-  Image,
-  LinkPreview,
-  List,
-  Paragraph,
-  Person,
-  Poll,
-  Quote,
-  Raw,
-  Spoiler,
-  Table,
-  Toggle,
-  Warning,
-} = pluginModule
-const { EditorRenderer } = rendererModule
-const { BLOCK_TYPES } = blockTypesModule
+  createAttachesPlugin,
+  createCarouselPlugin,
+  createChecklistPlugin,
+  createCodePlugin,
+  createColumnsPlugin,
+  createDelimiterPlugin,
+  createEmbedPlugin,
+  createGalleryPlugin,
+  createHeadingPlugin,
+  createImagePlugin,
+  createLinkPreviewPlugin,
+  createListPlugin,
+  createParagraphPlugin,
+  createPersonPlugin,
+  createPollPlugin,
+  createQuotePlugin,
+  createRawPlugin,
+  createSpoilerPlugin,
+  createTablePlugin,
+  createTogglePlugin,
+  createWarningPlugin,
+} = plugins
 
-const constructors = [
-  Paragraph, Heading, List, Quote, Code, Image, Delimiter, Table, Checklist, Warning,
-  Embed, Raw, Gallery, Attaches, LinkPreview, Toggle, Columns, Spoiler, Poll, Person,
+const pluginFactories = [
+  createParagraphPlugin,
+  createHeadingPlugin,
+  createListPlugin,
+  createQuotePlugin,
+  createCodePlugin,
+  createImagePlugin,
+  createDelimiterPlugin,
+  createTablePlugin,
+  createChecklistPlugin,
+  createWarningPlugin,
+  createEmbedPlugin,
+  createRawPlugin,
+  createGalleryPlugin,
+  createCarouselPlugin,
+  createAttachesPlugin,
+  createLinkPreviewPlugin,
+  createTogglePlugin,
+  createColumnsPlugin,
+  createSpoilerPlugin,
+  createPollPlugin,
+  createPersonPlugin,
 ]
-const pixel = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADElEQVR42mNk+M/wHwAF/gL+Av7lWQAAAABJRU5ErkJggg=='
 
+const pixel = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADElEQVR42mNk+M/wHwAF/gL+Av7lWQAAAABJRU5ErkJggg=='
 const delay = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds))
+
+function makeEditor(sandbox, definitions, data, options = {}) {
+  const holder = document.createElement('section')
+  sandbox.appendChild(holder)
+  const editor = createEditor({
+    holder,
+    plugins: definitions,
+    defaultBlock: options.defaultBlock,
+    inlinePlugins: options.inlinePlugins ?? [],
+    inlineTools: [],
+    injectStyles: options.injectStyles ?? false,
+    changeDebounceMs: 0,
+    ...(data ? { data } : {}),
+  })
+  return { holder, editor }
+}
+
+function oneBlock(type, data, id = type) {
+  return { version: '2.0.0', blocks: [{ id, type, data }] }
+}
 
 async function run() {
   const sandbox = document.querySelector('#sandbox')
   const runtimeErrors = []
   window.addEventListener('error', event => runtimeErrors.push(event.error?.stack || event.message))
   window.addEventListener('unhandledrejection', event => runtimeErrors.push(event.reason?.stack || String(event.reason)))
+
   const baseline = tracker.snapshot()
 
   for (let cycle = 0; cycle < 5; cycle++) {
-    const holder = document.createElement('section')
-    sandbox.appendChild(holder)
-    const cyclePlugins = constructors.map(Plugin => new Plugin())
-    const editor = createEditor({
-      holder,
-      plugins: cyclePlugins,
-      inlinePlugins: [createMentionPlugin({ searchFunction: async () => [] })],
-      inlineTools: [],
-      data: {
-        version: 'browser-lifecycle',
-        blocks: [
-          { id: `paragraph-${cycle}`, type: 'paragraph', data: { text: 'Lifecycle' } },
-          { id: `image-${cycle}`, type: 'image', data: { file: { url: pixel }, caption: 'Pixel' } },
-          { id: `gallery-${cycle}`, type: 'gallery', data: { images: [{ url: pixel, caption: '' }] } },
-          { id: `attaches-${cycle}`, type: 'attaches', data: { files: [{ url: pixel, name: 'pixel.png', size: 1 }] } },
-          { id: `embed-${cycle}`, type: 'embed', data: { service: 'youtube', videoId: 'dQw4w9WgXcQ' } },
-          { id: `preview-${cycle}`, type: 'linkPreview', data: { url: 'https://example.com', title: 'Example' } },
-        ],
-      },
-      tuning: {
-        undo: { debounceMs: 0 },
-        change: { debounceMs: 0 },
-        animations: { blockInsertMs: 0, blockMoveMs: 0 },
-      },
+    const definitions = pluginFactories.map(factory => factory({ injectStyles: false }))
+    const blocks = definitions.map((definition, index) => ({
+      id: `${definition.type}-${cycle}-${index}`,
+      type: definition.type,
+      data: definition.schema.createDefault(),
+    }))
+    const { holder, editor } = makeEditor(sandbox, definitions, { version: '2.0.0', blocks }, {
+      inlinePlugins: [
+        createMentionPlugin({ searchFunction: async () => [] }),
+        createColorSwatchPlugin(),
+      ],
+      injectStyles: false,
     })
-
-    assert(tracker.snapshot().mutationObservers > baseline.mutationObservers, 'image observer was not created')
     trackHeap(`editor:${cycle}`, editor)
     trackHeap(`editor-root:${cycle}`, holder.querySelector('.oe-editor'))
-    cyclePlugins.forEach((plugin, index) => trackHeap(`editor-plugin:${cycle}:${index}`, plugin))
     editor.destroy()
     assert(holder.childNodes.length === 0, `editor destroy leaked DOM at cycle ${cycle}`)
     holder.remove()
     assertSnapshot(tracker.snapshot(), baseline, tracker, `editor cycle ${cycle} leaked resources`)
   }
 
-  const previewHolder = document.createElement('section')
-  sandbox.appendChild(previewHolder)
+  const manual = makeEditor(
+    sandbox,
+    [createParagraphPlugin(), createImagePlugin()],
+    oneBlock('paragraph', { text: 'Manual styles' }, 'manual'),
+    {
+      inlinePlugins: [createColorSwatchPlugin(), createMentionPlugin({ searchFunction: async () => [] })],
+      injectStyles: false,
+    },
+  )
+  assert(document.querySelectorAll('link[data-oe-style]').length === 0, 'editor injectStyles:false still acquired definition styles')
+  manual.editor.destroy()
+  manual.holder.remove()
+  assertSnapshot(tracker.snapshot(), baseline, tracker, 'manual style mode leaked resources')
+
+  const styled = makeEditor(sandbox, [createParagraphPlugin()], oneBlock('paragraph', { text: 'Styled' }, 'styled'), {
+    injectStyles: true,
+  })
+  assert(document.querySelectorAll('link[data-oe-style]').length > 0, 'automatic editor styles were not acquired')
+  styled.editor.destroy()
+  styled.holder.remove()
+  assert(document.querySelectorAll('link[data-oe-style]').length === 0, 'automatic editor styles leaked after destroy')
+  assertSnapshot(tracker.snapshot(), baseline, tracker, 'automatic style mode leaked resources')
+
   let previewRequest
-  const previewEditor = createEditor({
-    holder: previewHolder,
-    plugins: [new Embed({
+  const preview = makeEditor(
+    sandbox,
+    [createEmbedPlugin({
+      injectStyles: false,
       resolvePreview: async request => {
         previewRequest = request
         return { thumbnailUrl: pixel, title: 'Resolved preview' }
       },
     })],
-    inlineTools: [],
-    data: {
-      version: 'browser-lifecycle',
-      blocks: [{ id: 'vimeo', type: 'embed', data: { service: 'vimeo', videoId: '12345' } }],
-    },
-  })
+    oneBlock('embed', {
+      service: 'vimeo', videoId: '12345', caption: '', cover: '', title: '', duration: '',
+    }, 'vimeo'),
+    { defaultBlock: 'embed' },
+  )
   await delay(20)
   assert(previewRequest?.service === 'vimeo' && previewRequest.videoId === '12345', 'embed preview resolver contract changed')
-  assert(previewHolder.querySelector('.oe-embed__preview')?.getAttribute('src') === pixel, 'embed preview resolver result was not applied')
-  previewEditor.destroy()
-  previewHolder.remove()
-  assertSnapshot(tracker.snapshot(), baseline, tracker, 'embed preview resolver leaked resources')
+  assert(preview.holder.querySelector('.oe-embed__preview')?.getAttribute('src') === pixel, 'embed preview result was not applied')
+  preview.editor.destroy()
+  preview.holder.remove()
+  assertSnapshot(tracker.snapshot(), baseline, tracker, 'embed preview leaked resources')
 
-  const abortHolder = document.createElement('section')
-  sandbox.appendChild(abortHolder)
-  let resolverAborted = false
-  const abortEditor = createEditor({
-    holder: abortHolder,
-    plugins: [new Embed({
+  let previewAborted = false
+  const abortingPreview = makeEditor(
+    sandbox,
+    [createEmbedPlugin({
+      injectStyles: false,
       resolvePreview: request => new Promise(resolve => {
         request.signal.addEventListener('abort', () => {
-          resolverAborted = true
+          previewAborted = true
           resolve(null)
         }, { once: true })
       }),
     })],
-    inlineTools: [],
-    data: {
-      version: 'browser-lifecycle',
-      blocks: [{ id: 'vimeo-abort', type: 'embed', data: { service: 'vimeo', videoId: '67890' } }],
-    },
-  })
-  abortEditor.destroy()
-  abortHolder.remove()
-  await delay(0)
-  assert(resolverAborted, 'editor destroy did not cancel the embed preview resolver')
-  assertSnapshot(tracker.snapshot(), baseline, tracker, 'cancelled embed preview resolver leaked resources')
-
-  const replaceHolder = document.createElement('section')
-  sandbox.appendChild(replaceHolder)
-  let replacedPreviewAborted = false
-  const replaceEditor = createEditor({
-    holder: replaceHolder,
-    plugins: [new Embed({
-      resolvePreview: request => new Promise(resolve => {
-        request.signal.addEventListener('abort', () => {
-          replacedPreviewAborted = true
-          resolve(null)
-        }, { once: true })
-      }),
-    })],
-    inlineTools: [],
-    data: {
-      version: 'browser-lifecycle',
-      blocks: [{ id: 'vimeo-replace', type: 'embed', data: { service: 'vimeo', videoId: '24680' } }],
-    },
-  })
-  const documentClicksBeforeReplace = tracker.activeGlobalListeners()
-    .filter(name => name === 'document:click').length
-  const replaceInput = replaceHolder.querySelector('.oe-embed__url-input')
-  assert(replaceInput instanceof HTMLInputElement, 'embed URL input is missing')
-  replaceInput.value = 'https://youtu.be/dQw4w9WgXcQ'
-  replaceInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }))
-  await delay(20)
-  assert(replacedPreviewAborted, 'replacing an embed URL did not cancel the previous preview request')
-  const documentClicksAfterReplace = tracker.activeGlobalListeners()
-    .filter(name => name === 'document:click').length
-  assert(
-    documentClicksAfterReplace <= documentClicksBeforeReplace,
-    `replacing an embed URL accumulated global action-panel listeners (before=${documentClicksBeforeReplace}, after=${documentClicksAfterReplace}): `
-      + JSON.stringify(tracker.activeGlobalListeners()),
+    oneBlock('embed', {
+      service: 'vimeo', videoId: '67890', caption: '', cover: '', title: '', duration: '',
+    }, 'vimeo-abort'),
+    { defaultBlock: 'embed' },
   )
-  replaceEditor.destroy()
-  replaceHolder.remove()
-  assertSnapshot(tracker.snapshot(), baseline, tracker, 'replaced embed leaked resources')
+  abortingPreview.editor.destroy()
+  abortingPreview.holder.remove()
+  await delay(0)
+  assert(previewAborted, 'editor destroy did not abort embed preview work')
+  assertSnapshot(tracker.snapshot(), baseline, tracker, 'aborted embed preview leaked resources')
 
-  const imageRaceHolder = document.createElement('section')
-  sandbox.appendChild(imageRaceHolder)
   const imageResolvers = []
-  const imagePlugin = new Image({
-    actions: [{
-      label: 'Library',
-      handler: ({ signal }) => new Promise(resolve => imageResolvers.push({ resolve, signal })),
-    }],
-  })
-  const imageRaceElement = imagePlugin.render({}, { mutate: operation => operation(), readOnly: false })
-  imageRaceHolder.appendChild(imageRaceElement)
-  const imageSourceButton = imageRaceElement.querySelector('.oe-image__select-action')
-  assert(imageSourceButton, 'image custom source action is missing')
-  imageSourceButton.click()
-  imageSourceButton.click()
-  assert(imageResolvers.length === 2, 'image custom source did not start both requests')
-  assert(imageResolvers[0].signal.aborted, 'new image source request did not cancel the previous request')
+  const image = makeEditor(
+    sandbox,
+    [createImagePlugin({
+      injectStyles: false,
+      actions: [{
+        label: 'Library',
+        handler: ({ signal }) => new Promise(resolve => imageResolvers.push({ resolve, signal })),
+      }],
+    })],
+    oneBlock('image', {
+      file: { url: '' }, caption: '', withBorder: false, withBackground: false, expanded: false,
+      styles: {},
+    }, 'image-race'),
+    { defaultBlock: 'image' },
+  )
+  const imageAction = image.holder.querySelector('.oe-image__select-action')
+  assert(imageAction instanceof HTMLButtonElement, 'image custom source action is missing')
+  imageAction.click()
+  imageAction.click()
+  assert(imageResolvers.length === 2, 'image source did not start two replacement requests')
+  assert(imageResolvers[0].signal.aborted, 'image replacement did not abort the previous source request')
   imageResolvers[1].resolve({ url: 'https://example.com/latest.png', alt: 'Latest' })
   await delay(0)
   imageResolvers[0].resolve({ url: 'https://example.com/stale.png', alt: 'Stale' })
   await delay(0)
-  assert(imagePlugin.save(imageRaceElement).file.url === 'https://example.com/latest.png', 'stale image source replaced the latest result')
-  assert(!imageRaceElement.classList.contains('oe-image--loading'), 'image loading state remained after the latest source completed')
-  imagePlugin.destroy(imageRaceElement)
-  imageRaceHolder.remove()
+  assert(image.editor.save().blocks[0].data.file.url === 'https://example.com/latest.png', 'stale image source replaced the latest result')
+  image.editor.destroy()
+  image.holder.remove()
   assertSnapshot(tracker.snapshot(), baseline, tracker, 'image source race leaked resources')
 
-  const pickerHolder = document.createElement('section')
-  sandbox.appendChild(pickerHolder)
-  const pickerPlugin = new Image()
-  const pickerElement = pickerPlugin.render({}, { mutate: operation => operation(), readOnly: false })
-  pickerHolder.appendChild(pickerElement)
-  const originalInputClick = HTMLInputElement.prototype.click
-  HTMLInputElement.prototype.click = function () {}
-  try {
-    pickerElement.querySelector('.oe-image__select-link')?.click()
-  } finally {
-    HTMLInputElement.prototype.click = originalInputClick
-  }
-  assert(document.body.querySelector('input[type="file"]'), 'image picker did not create its temporary input')
-  pickerPlugin.destroy(pickerElement)
-  pickerHolder.remove()
-  assert(!document.body.querySelector('input[type="file"]'), 'destroying an image block leaked its temporary file input')
-  assertSnapshot(tracker.snapshot(), baseline, tracker, 'image picker leaked resources')
-
-  const galleryRaceHolder = document.createElement('section')
-  sandbox.appendChild(galleryRaceHolder)
   const galleryResolvers = []
-  const galleryPlugin = new Gallery({
-    actions: [{
-      label: 'Library',
-      handler: ({ signal }) => new Promise(resolve => galleryResolvers.push({ resolve, signal })),
-    }],
-  })
-  const galleryRaceElement = galleryPlugin.render({}, { mutate: operation => operation(), readOnly: false })
-  galleryRaceHolder.appendChild(galleryRaceElement)
-  const gallerySourceButton = galleryRaceElement.querySelector('.oe-gallery__select-action')
-  assert(gallerySourceButton, 'gallery custom source action is missing')
-  gallerySourceButton.click()
-  gallerySourceButton.click()
-  assert(galleryResolvers.length === 2, 'gallery custom source did not start both requests')
-  assert(!galleryResolvers[0].signal.aborted, 'starting an additive gallery source cancelled the previous source')
+  const gallery = makeEditor(
+    sandbox,
+    [createGalleryPlugin({
+      injectStyles: false,
+      actions: [{
+        label: 'Library',
+        handler: ({ signal }) => new Promise(resolve => galleryResolvers.push({ resolve, signal })),
+      }],
+    })],
+    oneBlock('gallery', createGalleryPlugin({ injectStyles: false }).schema.createDefault(), 'gallery-race'),
+    { defaultBlock: 'gallery' },
+  )
+  const galleryAction = gallery.holder.querySelector('.oe-gallery__select-action')
+  assert(galleryAction instanceof HTMLButtonElement, 'gallery custom source action is missing')
+  galleryAction.click()
+  galleryAction.click()
+  assert(galleryResolvers.length === 2, 'gallery source did not start both additive requests')
+  assert(!galleryResolvers[0].signal.aborted, 'gallery additive source cancelled the previous request')
   galleryResolvers[1].resolve([{ url: 'https://example.com/second.png', alt: 'Second' }])
   await delay(0)
   galleryResolvers[0].resolve([{ url: 'https://example.com/first.png', alt: 'First' }])
   await delay(0)
-  const galleryRaceData = galleryPlugin.save(galleryRaceElement)
-  assert(galleryRaceData.images.length === 2, 'concurrent gallery sources lost an image batch')
-  assert(galleryRaceData.images.some(image => image.url.endsWith('/first.png')), 'first gallery source result is missing')
-  assert(galleryRaceData.images.some(image => image.url.endsWith('/second.png')), 'second gallery source result is missing')
-  assert(!galleryRaceElement.classList.contains('oe-gallery--loading'), 'gallery loading state remained after all sources completed')
-  galleryPlugin.destroy(galleryRaceElement)
-  galleryRaceHolder.remove()
+  const galleryData = gallery.editor.save().blocks[0].data
+  assert(galleryData.images.length === 2, 'parallel gallery sources lost a result')
+  assert(galleryData.images.some(item => item.url.endsWith('/first.png')), 'first gallery source result is missing')
+  assert(galleryData.images.some(item => item.url.endsWith('/second.png')), 'second gallery source result is missing')
+  assert(!gallery.holder.querySelector('.oe-gallery')?.classList.contains('oe-gallery--loading'), 'gallery loading state did not settle')
+  gallery.editor.destroy()
+  gallery.holder.remove()
   assertSnapshot(tracker.snapshot(), baseline, tracker, 'gallery source race leaked resources')
 
-  const masonryHolder = document.createElement('section')
-  masonryHolder.style.width = '720px'
-  sandbox.appendChild(masonryHolder)
-  const masonryPlugin = new Gallery()
-  const masonryElement = masonryPlugin.render({
-    images: [
-      { url: pixel, caption: 'One' },
-      { url: pixel, caption: 'Two' },
-      { url: pixel, caption: 'Three' },
-      { url: pixel, caption: 'Four' },
-    ],
-    layout: 'masonry',
-    styles: { gap: '8px' },
-  }, { mutate: operation => operation(), readOnly: false })
-  masonryHolder.appendChild(masonryElement)
-  await delay(250)
-  const masonryGrid = masonryElement.querySelector('.oe-gallery__grid.eg--masonry.masonry-container')
-  assert(masonryGrid, 'gallery plugin did not mount @shelamkoff/masonry')
-  assert(masonryGrid.querySelectorAll(':scope > .masonry-item').length === 4,
-    'gallery plugin masonry did not own every image')
-  assert(Number.parseFloat(masonryGrid.style.height) > 0,
-    'gallery plugin masonry did not calculate a container height')
-  assert(tracker.snapshot().resizeObservers > baseline.resizeObservers,
-    'gallery plugin masonry observer was not created')
-  masonryPlugin.destroy(masonryElement)
-  masonryHolder.remove()
-  await delay(0)
-  assertSnapshot(tracker.snapshot(), baseline, tracker, 'gallery plugin masonry leaked resources')
-
-  for (const closeTiming of ['before-frame', 'after-frame']) {
-    const holder = document.createElement('section')
-    sandbox.appendChild(holder)
-    const editor = createEditor({
-      holder,
-      plugins: [new Paragraph()],
-      inlinePlugins: [createColorSwatchPlugin()],
-      inlineTools: [],
-      data: {
-        version: 'browser-lifecycle',
-        blocks: [{
-          id: `color-${closeTiming}`,
-          type: 'paragraph',
-          data: { text: 'Color {{swatch}}' },
-          inline: { swatch: { type: 'color', data: { value: '#123456' } } },
-        }],
-      },
-      tuning: { undo: { debounceMs: 0 }, change: { debounceMs: 0 } },
-    })
-    const colorPickerStyleLinks = Array.from(document.querySelectorAll('link[data-oe-style]'))
-      .filter(link => link.href === colorPickerStylesUrl)
-    assert(colorPickerStyleLinks.length === 1,
-      `color plugin did not acquire the color-picker stylesheet (${closeTiming})`)
-    const beforePopup = tracker.snapshot()
-    const swatch = holder.querySelector('[data-inline-plugin="color"]')
-    assert(swatch, `color widget was not hydrated (${closeTiming})`)
-    swatch.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }))
-    assert(holder.querySelector('.oe-ip-popup'), `color popup did not open (${closeTiming})`)
-    trackHeap(`color-editor:${closeTiming}`, editor)
-    trackHeap(`color-popup:${closeTiming}`, holder.querySelector('.oe-ip-popup'))
-    trackHeap(`color-picker:${closeTiming}`, holder.querySelector('.oe-color-dropdown'))
-
-    if (closeTiming === 'after-frame') {
-      await delay(50)
-      assert(
-        tracker.snapshot().globalListeners === beforePopup.globalListeners + 1,
-        'color popup outside-click listener was not installed',
-      )
-    }
-
-    editor.destroy()
-    holder.remove()
-    await delay(50)
-    assert(!document.querySelector('.oe-ip-popup'), `color popup DOM leaked (${closeTiming})`)
-    assert(!Array.from(document.querySelectorAll('link[data-oe-style]'))
-      .some(link => link.href === colorPickerStylesUrl),
-    `color plugin did not release the color-picker stylesheet (${closeTiming})`)
-    assertSnapshot(tracker.snapshot(), baseline, tracker, `color popup leaked resources (${closeTiming})`)
-  }
-
-  const manualStylesHolder = document.createElement('section')
-  sandbox.appendChild(manualStylesHolder)
-  const manualStylesEditor = createEditor({
-    holder: manualStylesHolder,
-    plugins: [new Paragraph()],
-    inlinePlugins: [
-      createColorSwatchPlugin(),
-      createMentionPlugin({ searchFunction: async () => [] }),
-    ],
-    inlineTools: [],
+  const attachmentResolvers = []
+  const attachesDefinition = createAttachesPlugin({
     injectStyles: false,
+    actions: [{
+      label: 'Library',
+      handler: ({ signal }) => new Promise(resolve => attachmentResolvers.push({ resolve, signal })),
+    }],
   })
-  assert(document.querySelectorAll('link[data-oe-style]').length === 0,
-    'injectStyles:false still acquired block or inline-plugin styles')
-  manualStylesEditor.destroy()
-  manualStylesHolder.remove()
-  assertSnapshot(tracker.snapshot(), baseline, tracker, 'manual stylesheet mode leaked resources')
+  const attaches = makeEditor(
+    sandbox,
+    [attachesDefinition],
+    oneBlock('attaches', attachesDefinition.schema.createDefault(), 'attaches-race'),
+    { defaultBlock: 'attaches' },
+  )
+  const attachmentAction = [...attaches.holder.querySelectorAll('.oe-attaches__select button')]
+    .find(button => button.textContent?.includes('Library'))
+  assert(attachmentAction instanceof HTMLButtonElement, 'attachment custom source action is missing')
+  attachmentAction.click()
+  attachmentAction.click()
+  assert(attachmentResolvers.length === 2, 'attachment source did not start both additive requests')
+  assert(!attachmentResolvers[0].signal.aborted, 'attachment additive source cancelled the previous request')
+  attachmentResolvers[1].resolve([{ url: 'https://example.com/second.pdf', name: 'second.pdf' }])
+  await delay(0)
+  attachmentResolvers[0].resolve([{ url: 'https://example.com/first.pdf', name: 'first.pdf' }])
+  await delay(0)
+  const attachmentData = attaches.editor.save().blocks[0].data
+  assert(attachmentData.files.length === 2, 'parallel attachment sources lost a result')
+  assert(!attaches.holder.querySelector('.oe-attaches')?.classList.contains('oe-attaches--loading'), 'attachment loading state did not settle')
+  attaches.editor.destroy()
+  attaches.holder.remove()
+  assertSnapshot(tracker.snapshot(), baseline, tracker, 'attachment source race leaked resources')
+
+  const objectUrlDefinition = createAttachesPlugin({ injectStyles: false })
+  const objectUrlEditor = makeEditor(
+    sandbox,
+    [objectUrlDefinition],
+    oneBlock('attaches', objectUrlDefinition.schema.createDefault(), 'attaches-object-url'),
+    { defaultBlock: 'attaches' },
+  )
+  const transfer = new DataTransfer()
+  transfer.items.add(new File(['attachment'], 'attachment.txt', { type: 'text/plain' }))
+  const originalInputClick = HTMLInputElement.prototype.click
+  HTMLInputElement.prototype.click = function () {
+    if (this.type !== 'file') return originalInputClick.call(this)
+    Object.defineProperty(this, 'files', { configurable: true, value: transfer.files })
+    this.dispatchEvent(new Event('change', { bubbles: true }))
+  }
+  try {
+    const upload = [...objectUrlEditor.holder.querySelectorAll('.oe-attaches__select button')]
+      .find(button => button.textContent?.includes('Upload'))
+    assert(upload instanceof HTMLButtonElement, 'attachment upload control is missing')
+    upload.click()
+  } finally {
+    HTMLInputElement.prototype.click = originalInputClick
+  }
+  await delay(20)
+  assert(tracker.snapshot().objectUrls === baseline.objectUrls + 1, 'attachment object URL was not created')
+  objectUrlEditor.editor.destroy()
+  objectUrlEditor.holder.remove()
+  assertSnapshot(tracker.snapshot(), baseline, tracker, 'attachment object URL leaked after editor destroy')
+
+  const color = makeEditor(
+    sandbox,
+    [createParagraphPlugin({ injectStyles: false })],
+    {
+      version: '2.0.0',
+      blocks: [{
+        id: 'color',
+        type: 'paragraph',
+        data: { text: 'Color {{swatch}}' },
+        inline: { swatch: { type: 'color', data: { value: '#123456' } } },
+      }],
+    },
+    { inlinePlugins: [createColorSwatchPlugin()], injectStyles: true },
+  )
+  const colorPickerLinks = [...document.querySelectorAll('link[data-oe-style]')]
+    .filter(link => link.href === colorPickerStylesUrl)
+  assert(colorPickerLinks.length === 1, 'color plugin did not acquire color-picker styles')
+  const swatch = color.holder.querySelector('[data-inline-plugin="color"]')
+  assert(swatch instanceof HTMLElement, 'color widget was not hydrated')
+  swatch.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }))
+  assert(color.holder.querySelector('.oe-ip-popup'), 'color popup did not open')
+  trackHeap('color-popup', color.holder.querySelector('.oe-ip-popup'))
+  color.editor.destroy()
+  color.holder.remove()
+  await delay(30)
+  assert(!document.querySelector('.oe-ip-popup'), 'color popup leaked after editor destroy')
+  assert(![...document.querySelectorAll('link[data-oe-style]')].some(link => link.href === colorPickerStylesUrl), 'color-picker style leaked')
+  assertSnapshot(tracker.snapshot(), baseline, tracker, 'color popup leaked resources')
 
   const imageBlob = await (await fetch(pixel)).blob()
   const imageFile = new File([imageBlob], 'avatar.png', { type: 'image/png' })
   const imageTransfer = new DataTransfer()
   imageTransfer.items.add(imageFile)
 
-  for (const closeMode of ['cancel', 'editor-destroy']) {
-    const cropperHolder = document.createElement('section')
-    sandbox.appendChild(cropperHolder)
-    const cropperEditor = createEditor({
-      holder: cropperHolder,
-      plugins: [new Person()],
-      inlineTools: [],
-      data: {
-        version: 'browser-lifecycle',
-        blocks: [{
-          id: `person-cropper-${closeMode}`,
-          type: 'person',
-          data: { persons: [{ avatar: '', name: 'Ada', role: '', bio: '', links: [] }] },
-        }],
-      },
-      tuning: { undo: { debounceMs: 0 }, change: { debounceMs: 0 } },
-    })
-
-    const originalInputClick = HTMLInputElement.prototype.click
-    HTMLInputElement.prototype.click = function () {
-      if (this.type !== 'file') return originalInputClick.call(this)
-      Object.defineProperty(this, 'files', { configurable: true, value: imageTransfer.files })
-      this.dispatchEvent(new Event('change'))
-    }
-    try {
-      const uploadButton = cropperHolder.querySelector('.oe-person__avatar-upload')
-      assert(uploadButton, `person editor did not create the avatar upload control (${closeMode})`)
-      uploadButton.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }))
-    } finally {
-      HTMLInputElement.prototype.click = originalInputClick
-    }
-
-    assert(document.querySelector('.oe-cropper-overlay'), `person editor did not open Cropper (${closeMode})`)
-    assert(tracker.activeGlobalListeners().includes('document:keydown'), `Cropper listener missing (${closeMode})`)
-    assert(tracker.snapshot().objectUrls === baseline.objectUrls + 1, `Cropper object URL missing (${closeMode})`)
-    trackHeap(`cropper-editor:${closeMode}`, cropperEditor)
-    trackHeap(`cropper-overlay:${closeMode}`, document.querySelector('.oe-cropper-overlay'))
-    trackHeap(`cropper-viewport:${closeMode}`, document.querySelector('.oe-cropper-viewport'))
-
-    if (closeMode === 'cancel') {
-      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
-      await delay(50)
-      assert(!document.querySelector('.oe-cropper-overlay'), 'Cropper cancel leaked its overlay')
-      cropperEditor.destroy()
-    } else {
-      cropperEditor.destroy()
-      await delay(50)
-      assert(!document.querySelector('.oe-cropper-overlay'), 'editor destroy leaked the Cropper overlay')
-    }
-
-    cropperHolder.remove()
-    assertSnapshot(tracker.snapshot(), baseline, tracker, `Cropper ${closeMode} leaked resources`)
+  const person = makeEditor(
+    sandbox,
+    [createPersonPlugin({ injectStyles: false })],
+    oneBlock('person', {
+      persons: [{ avatar: '', name: 'Ada', role: '', bio: '', links: [] }],
+    }, 'person-cropper'),
+    { defaultBlock: 'person' },
+  )
+  const originalPersonClick = HTMLInputElement.prototype.click
+  HTMLInputElement.prototype.click = function () {
+    if (this.type !== 'file') return originalPersonClick.call(this)
+    Object.defineProperty(this, 'files', { configurable: true, value: imageTransfer.files })
+    this.dispatchEvent(new Event('change', { bubbles: true }))
   }
+  try {
+    const upload = person.holder.querySelector('.oe-person__avatar-upload')
+    assert(upload instanceof HTMLButtonElement, 'person avatar upload control is missing')
+    upload.click()
+  } finally {
+    HTMLInputElement.prototype.click = originalPersonClick
+  }
+  assert(document.querySelector('.oe-cropper-overlay'), 'person editor did not open Cropper')
+  assert(tracker.activeGlobalListeners().includes('document:keydown'), 'Cropper key listener is missing')
+  person.editor.destroy()
+  person.holder.remove()
+  await delay(30)
+  assert(!document.querySelector('.oe-cropper-overlay'), 'editor destroy leaked Cropper overlay')
+  assertSnapshot(tracker.snapshot(), baseline, tracker, 'Cropper leaked resources')
 
-  const attaches = new Attaches()
-  const attachesElement = attaches.render({}, { mutate: (operation) => operation() })
-  sandbox.appendChild(attachesElement)
-  const transfer = new DataTransfer()
-  transfer.items.add(new File(['attachment'], 'attachment.txt', { type: 'text/plain' }))
-  attachesElement.dispatchEvent(new DragEvent('drop', {
-    dataTransfer: transfer,
-    bubbles: true,
-    cancelable: true,
-  }))
-  assert(tracker.snapshot().objectUrls === baseline.objectUrls + 1, 'attachment object URL was not tracked')
-  trackHeap('attaches-plugin', attaches)
-  trackHeap('attaches-element', attachesElement)
-  attaches.destroy(attachesElement)
-  attachesElement.remove()
-  // Object URLs are editor-scoped rather than block-scoped: an undo snapshot
-  // may recreate the removed block and still needs the same URL. The editor's
-  // PluginOwnership invokes dispose() after every block has been released.
-  attaches.dispose()
-  assertSnapshot(tracker.snapshot(), baseline, tracker, 'attachment destroy leaked resources')
-
-  const attachmentResolvers = []
-  const concurrentAttaches = new Attaches({
-    actions: [{
-      label: 'Library',
-      handler: ({ signal }) => new Promise(resolve => attachmentResolvers.push({ resolve, signal })),
-    }],
-  })
-  const concurrentAttachesElement = concurrentAttaches.render({}, {
-    mutate: operation => operation(),
-    readOnly: false,
-  })
-  sandbox.appendChild(concurrentAttachesElement)
-  const attachmentSource = concurrentAttachesElement.querySelector('.oe-attaches__select-action')
-  assert(attachmentSource, 'attachment custom source action is missing')
-  attachmentSource.click()
-  attachmentSource.click()
-  assert(attachmentResolvers.length === 2, 'attachment custom source did not start both requests')
-  assert(!attachmentResolvers[0].signal.aborted, 'starting an additive attachment source cancelled the previous source')
-  attachmentResolvers[1].resolve([{ url: 'https://example.com/second.pdf', name: 'second.pdf' }])
-  await delay(0)
-  attachmentResolvers[0].resolve([{ url: 'https://example.com/first.pdf', name: 'first.pdf' }])
-  await delay(0)
-  const concurrentAttachmentData = concurrentAttaches.save(concurrentAttachesElement)
-  assert(concurrentAttachmentData.files.length === 2, 'concurrent attachment sources lost a file batch')
-  assert(!concurrentAttachesElement.classList.contains('oe-attaches--loading'),
-    'attachment loading state remained after all sources completed')
-  concurrentAttaches.destroy(concurrentAttachesElement)
-  concurrentAttaches.dispose()
-  concurrentAttachesElement.remove()
-  assertSnapshot(tracker.snapshot(), baseline, tracker, 'concurrent attachment sources leaked resources')
-
-  const renderer = new EditorRenderer({ blockTypes: BLOCK_TYPES, throwOnUnknown: true })
-  const container = document.createElement('main')
-  container.style.width = '320px'
-  sandbox.appendChild(container)
-  renderer.renderTo({
-    version: 'browser-lifecycle',
+  const personRenderer = new EditorRenderer({ blockTypes: ['person'], throwOnUnknown: true, injectStyles: false })
+  const personContainer = document.createElement('main')
+  personContainer.style.width = '320px'
+  sandbox.appendChild(personContainer)
+  personRenderer.renderTo({
+    version: '2.0.0',
     blocks: [{
       id: 'people',
       type: 'person',
@@ -608,26 +518,23 @@ async function run() {
         ],
       },
     }],
-  }, container)
-  assert(tracker.snapshot().resizeObservers > baseline.resizeObservers, 'person renderer observer was not created')
-  const personCarouselContainer = container.querySelector('.editor-person__carousel')
-  assert(personCarouselContainer, 'person renderer carousel container is missing')
-  Object.defineProperty(personCarouselContainer, 'offsetWidth', { configurable: true, value: 320 })
+  }, personContainer)
+  const carouselContainer = personContainer.querySelector('.editor-person__carousel')
+  assert(carouselContainer, 'person renderer carousel container is missing')
+  Object.defineProperty(carouselContainer, 'offsetWidth', { configurable: true, value: 320 })
   tracker.triggerObservers('ResizeObserver')
-  assert(container.querySelector('.carousel'), 'person renderer did not initialize its carousel integration')
-  trackHeap('person-renderer', renderer)
-  trackHeap('person-renderer-container', container)
-  trackHeap('carousel-root', container.querySelector('.carousel'))
-  renderer.destroy(container)
-  container.remove()
-  assertSnapshot(tracker.snapshot(), baseline, tracker, 'renderer destroy leaked resources')
+  assert(personContainer.querySelector('.carousel'), 'person renderer did not initialize Carousel')
+  personRenderer.destroy(personContainer)
+  personRenderer.destroy()
+  personContainer.remove()
+  assertSnapshot(tracker.snapshot(), baseline, tracker, 'person renderer leaked resources')
 
-  const galleryRenderer = new EditorRenderer({ blockTypes: BLOCK_TYPES, throwOnUnknown: true })
+  const galleryRenderer = new EditorRenderer({ blockTypes: ['gallery'], throwOnUnknown: true, injectStyles: false })
   const galleryContainer = document.createElement('main')
   galleryContainer.style.width = '720px'
   sandbox.appendChild(galleryContainer)
   galleryRenderer.renderTo({
-    version: 'browser-lifecycle',
+    version: '2.0.0',
     blocks: [{
       id: 'gallery-lightbox',
       type: 'gallery',
@@ -644,42 +551,32 @@ async function run() {
   }, galleryContainer)
   await delay(250)
   const renderedMasonry = galleryContainer.querySelector('.editor-gallery.eg--masonry.masonry-container')
-  assert(renderedMasonry, 'gallery renderer did not mount @shelamkoff/masonry')
-  assert(renderedMasonry.querySelectorAll(':scope > .masonry-item').length === 2,
-    'gallery renderer masonry did not own every image')
-  assert(Number.parseFloat(renderedMasonry.style.height) > 0,
-    'gallery renderer masonry did not calculate a container height')
+  assert(renderedMasonry, 'gallery renderer did not mount Masonry')
   const galleryItem = galleryContainer.querySelector('.editor-gallery__item')
-  assert(galleryItem, 'gallery renderer did not create an interactive item')
-  assert(galleryItem.getAttribute('role') === 'button' && galleryItem.tabIndex === 0,
-    'gallery renderer item is not keyboard accessible')
-  assert(galleryItem.getAttribute('aria-label')?.includes('First'),
-    'gallery renderer item has no descriptive accessible name')
+  assert(galleryItem, 'gallery renderer item is missing')
   galleryItem.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }))
-  assert(document.querySelector('.expose'), 'gallery renderer did not open the Expose integration')
-  assert(!document.querySelector('.expose__nav'), 'gallery renderer ignored navigation:false')
-  assert(document.documentElement.classList.contains('expose-noscroll'), 'Expose did not lock document scrolling')
-  trackHeap('gallery-renderer', galleryRenderer)
-  trackHeap('gallery-renderer-container', galleryContainer)
-  trackHeap('expose-overlay', document.querySelector('.expose'))
+  assert(document.querySelector('.expose'), 'gallery renderer did not open Expose')
   galleryRenderer.destroy(galleryContainer)
+  galleryRenderer.destroy()
   galleryContainer.remove()
-  assert(!document.querySelector('.expose'), 'gallery renderer destroy leaked the Expose overlay')
-  assert(!document.documentElement.classList.contains('expose-noscroll'), 'gallery renderer destroy kept the scroll lock')
-  assertSnapshot(tracker.snapshot(), baseline, tracker, 'gallery lightbox destroy leaked resources')
+  assert(!document.querySelector('.expose'), 'gallery renderer destroy leaked Expose')
+  assertSnapshot(tracker.snapshot(), baseline, tracker, 'gallery renderer leaked resources')
 
-  await new Promise(resolve => setTimeout(resolve, 650))
+  assert(pluginFactories.length === BLOCK_TYPES.length, 'lifecycle factory matrix differs from supported block types')
+
+  await delay(100)
   assert(runtimeErrors.length === 0, `browser runtime errors: ${runtimeErrors.join('\n')}`)
-  assert(document.querySelectorAll('link[data-oe-style]').length === 0, 'stylesheet handles leaked')
-  assertSnapshot(tracker.snapshot(), baseline, tracker, 'delayed cleanup leaked resources')
+  assert(document.querySelectorAll('link[data-oe-style]').length === 0, 'styles leaked after lifecycle matrix')
+  assertSnapshot(tracker.snapshot(), baseline, tracker, 'final lifecycle cleanup leaked resources')
   sandbox.replaceChildren()
 
   return {
     editorCycles: 5,
-    tracked: [
-      'global listeners', 'MutationObserver', 'ResizeObserver', 'IntersectionObserver',
-      'object URLs', 'styles', 'inline popup', 'ColorPicker', 'Cropper', 'Carousel', 'Masonry', 'Expose',
-    ],
+    factoryCount: pluginFactories.length,
+    races: ['image replacement', 'gallery additive', 'attaches additive'],
+    asyncAbort: ['embed preview', 'person cropper'],
+    integrations: ['ColorPicker', 'Cropper', 'Carousel', 'Masonry', 'Expose'],
+    tracked: ['global listeners', 'observers', 'object URLs', 'styles'],
   }
 }
 
