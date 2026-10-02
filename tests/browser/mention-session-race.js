@@ -1,6 +1,6 @@
 import { createEditor } from '../../core/index.js'
 import { createMentionPlugin } from '../../inline-plugins/mention/index.js'
-import { Paragraph } from '../../plugins/paragraph/index.js'
+import { createParagraphPlugin } from '../../plugins/paragraph/index.js'
 
 const sandbox = document.querySelector('#sandbox')
 const result = document.querySelector('#result')
@@ -82,17 +82,15 @@ async function runSessionRace() {
 
   const editor = createEditor({
     holder,
-    plugins: [new Paragraph()],
+    plugins: [createParagraphPlugin({ injectStyles: false })],
     inlineTools: [],
+    injectStyles: false,
     inlinePlugins: [createMentionPlugin({ debounceDelay: 0, searchFunction })],
-    data: { version: 'mention-session-race', blocks: [{ id: 'paragraph', type: 'paragraph', data: { text: '' } }] },
-    tuning: {
-      undo: { debounceMs: 0, maxStack: 20 },
-      change: { debounceMs: 0 },
-      animations: { blockInsertMs: 0, blockMoveMs: 0, blockRemoveMs: 0 },
-    },
+    changeDebounceMs: 0,
+    data: { version: '2.0.0', blocks: [{ id: 'paragraph', type: 'paragraph', data: { text: '' } }] },
   })
-  const content = editor.blocks.getBlockByIndex(0).contentElement
+  const content = holder.querySelector('.oe-block[data-block-id="paragraph"] [contenteditable="true"]')
+  assert(content instanceof HTMLElement, 'mention session paragraph projection is missing')
 
   try {
     await typeText(content, '@a')
@@ -143,7 +141,7 @@ async function runOwningRealm() {
     editor = createEditor({
       holder,
       injectStyles: false,
-      plugins: [new Paragraph()],
+      plugins: [createParagraphPlugin({ injectStyles: false })],
       inlineTools: [],
       inlinePlugins: [createMentionPlugin({
         debounceDelay: 0,
@@ -153,17 +151,14 @@ async function runOwningRealm() {
         },
       })],
       data: {
-        version: 'mention-realm',
+        version: '2.0.0',
         blocks: [{ id: 'paragraph', type: 'paragraph', data: { text: 'Hi ' } }],
       },
-      tuning: {
-        undo: { debounceMs: 10000, maxStack: 20 },
-        change: { debounceMs: 10000 },
-        animations: { blockInsertMs: 0, blockMoveMs: 0, blockRemoveMs: 0 },
-      },
+      changeDebounceMs: 10000,
     })
 
-    const content = editor.blocks.getBlockByIndex(0).contentElement
+    const content = holder.querySelector('.oe-block[data-block-id="paragraph"] [contenteditable="true"]')
+    assert(content instanceof view.HTMLElement, 'iframe mention paragraph projection is missing')
     const text = content.firstChild
     content.focus()
     const range = doc.createRange()
@@ -178,7 +173,7 @@ async function runOwningRealm() {
     await delay(20)
 
     assert(content.textContent.includes('@'), 'mention trigger used the ambient selection')
-    const dropdown = editor.rootElement.querySelector('.oe-mention-dropdown')
+    const dropdown = holder.querySelector('.oe-mention-dropdown')
     assert(dropdown, 'mention dropdown did not open in iframe')
     assert(dropdown.ownerDocument === doc, 'mention dropdown escaped the editor document')
     assert(dropdown.classList.contains('oe-mention-dropdown--active'), 'mention dropdown did not become active')
