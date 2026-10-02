@@ -9,6 +9,7 @@ const ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" vie
 let rawSequence = 0
 
 /**
+ * Create the immutable Raw HTML v2 definition with instance-local preview state.
  * @returns {import('../../plugin-kit/types').BlockPluginDefinition<{ html: string }>}
  */
 export function createRawPlugin() {
