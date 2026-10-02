@@ -4,19 +4,15 @@ import { validateCarouselData } from './carouselData.js'
 import { paragraphDataSchema } from './blockSchemas/paragraph.js'
 import { headingDataSchema } from './blockSchemas/heading.js'
 import { COLUMN_LAYOUT_SIZES } from './columnLayouts.js'
+import {
+  ATTACH_VARIANTS,
+  GALLERY_LAYOUTS,
+  LINK_PREVIEW_TEMPLATES,
+} from './blockOptions.js'
 
+export { GALLERY_LAYOUTS, LINK_PREVIEW_TEMPLATES } from './blockOptions.js'
 
-export const GALLERY_LAYOUTS = Object.freeze([
-  'auto', '1', '2', '3a', '3b', '3c', '4a', '4b', '4c',
-  '5a', '5b', '5c', '6a', '6b', '6c', 'triptych', 'masonry',
-  'poly-5', 'poly-3arch', 'poly-5flat', 'poly-3steps',
-])
-
-export const LINK_PREVIEW_TEMPLATES = Object.freeze([
-  'horizontal', 'compact', 'large-top', 'minimal', 'twitter', 'notion', 'split',
-])
-
-const ATTACH_VARIANTS = new Set(['a', 'b', 'f', 'g'])
+const ATTACH_VARIANT_SET = new Set(ATTACH_VARIANTS)
 const GALLERY_BOOLEAN_OPTIONS = [
   'loop', 'zoom', 'navigation', 'captions', 'thumbnails', 'fullscreen',
 ]
@@ -244,7 +240,7 @@ export function validateImageData(data) {
 export function validateAttachesData(data) {
   if (!isRecord(data)) return false
   const value = /** @type {Record<string, unknown>} */ (data)
-  if (value.variant !== undefined && (typeof value.variant !== 'string' || !ATTACH_VARIANTS.has(value.variant))) return false
+  if (value.variant !== undefined && (typeof value.variant !== 'string' || !ATTACH_VARIANT_SET.has(value.variant))) return false
   const files = Array.isArray(value.files)
     ? value.files
     : (isRecord(value.file) ? [value.file] : null)
