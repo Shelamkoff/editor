@@ -1,167 +1,144 @@
-import { setSanitizedHtml, setTrustedHtml } from '../../plugin-kit/index.js'
-import { appendMergeField } from '../shared/appendMergeField.js'
-// =============================================================================
-// Spoiler — hidden text revealed on click
-//
-// Data: { label: string, content: string }
-// =============================================================================
+// @ts-check
+import {
+  READ_ONLY_INTERACTIVE_ATTRIBUTE,
+  setSanitizedHtml,
+  setTrustedHtml,
+} from '../../plugin-kit/index.js'
+import { spoilerDataSchema } from '../../shared/blockSchemas/spoiler.js'
 
-import { sanitizeHtml } from '../../plugin-kit/index.js'
-import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
-import { validateSpoilerData } from '../../shared/blockDataValidators.js'
-import { mapSpoilerTextFields } from '../../shared/mapTextFields.js'
-import { normalizeTextValue } from '../../shared/textFormat.js'
-import { READ_ONLY_INTERACTIVE_ATTRIBUTE } from '../../plugin-kit/index.js'
+const editorStyles=new URL('./spoiler.css',import.meta.url).href
+const ICON='<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.585 10.587a2 2 0 0 0 2.829 2.828"/><path d="M16.681 16.673a8.717 8.717 0 0 1-4.681 1.327c-3.6 0-6.6-2-9-6 1.272-2.12 2.712-3.678 4.32-4.674m2.86-1.146a9.055 9.055 0 0 1 1.82-.18c3.6 0 6.6 2 9 6-.666 1.11-1.379 2.067-2.138 2.87"/><path d="M3 3l18 18"/></svg>'
+let sequence=0
 
-const editorStyles = new URL('./spoiler.css', import.meta.url).href
+function append(left,right){
+  if(!left)return right
+  if(!right)return left
+  return left+'<br>'+right
+}
 
-// Tabler icon: eye-off
-const ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.585 10.587a2 2 0 0 0 2.829 2.828"/><path d="M16.681 16.673a8.717 8.717 0 0 1-4.681 1.327c-3.6 0-6.6-2-9-6 1.272-2.12 2.712-3.678 4.32-4.674m2.86-1.146a9.055 9.055 0 0 1 1.82-.18c3.6 0 6.6 2 9 6-.666 1.11-1.379 2.067-2.138 2.87"/><path d="M3 3l18 18"/></svg>'
-let spoilerSequence = 0
+/**
+ * Create the immutable Spoiler v2 definition with transient disclosure state.
+ * @returns {import('../../plugin-kit/types').BlockPluginDefinition<{label:string,content:string}>}
+ */
+export function createSpoilerPlugin(){
+  const capabilities=Object.freeze({
+    formatting:Object.freeze({inlineTools:true}),
+    empty:Object.freeze({isEmpty:data=>!data.label.trim()&&!data.content.trim()}),
+    merge:Object.freeze({
+      merge(target,source){
+        return {label:append(target.label,source.label),content:append(target.content,source.content)}
+      },
+    }),
+    conversion:Object.freeze({
+      export(data){
+        return {kind:'rich-text',data:{text:[data.label,data.content].filter(Boolean).join('<br>')}}
+      },
+      canImport(payload){
+        return payload?.kind==='rich-text'&&typeof payload.data?.text==='string'
+      },
+      import(payload){
+        if(payload?.kind!=='rich-text'||typeof payload.data?.text!=='string'){
+          throw new TypeError('Spoiler can only import rich-text payloads')
+        }
+        return {label:'',content:payload.data.text}
+      },
+    }),
+  })
+  return Object.freeze({
+    type:'spoiler',
+    label:Object.freeze({key:'title',fallback:'Spoiler'}),
+    icon:ICON,
+    styles:Object.freeze([editorStyles]),
+    schema:spoilerDataSchema,
+    capabilities,
+    setup(runtimeContext){
+      let destroyed=false
+      return {
+        create(initial,context){
+          if(destroyed)throw new Error('Spoiler runtime is destroyed')
+          const document=context.ownerDocument
+          const wrapper=document.createElement('div')
+          wrapper.className='oe-spoiler'
+          const label=document.createElement('div')
+          label.className='oe-spoiler__label'
+          label.dataset.placeholder=runtimeContext.t('labelPlaceholder','Spoiler label...')
+          if(initial.label)setSanitizedHtml(label,initial.label)
+          const toggle=document.createElement('button')
+          toggle.type='button'
+          toggle.className='oe-spoiler__toggle'
+          setTrustedHtml(toggle,ICON)
+          toggle.setAttribute('aria-label',runtimeContext.t('toggle','Toggle spoiler'))
+          toggle.setAttribute(READ_ONLY_INTERACTIVE_ATTRIBUTE,'')
+          const header=document.createElement('div')
+          header.className='oe-spoiler__header'
+          header.append(toggle,label)
+          const content=document.createElement('div')
+          content.className='oe-spoiler__content'
+          content.id=`oe-spoiler-content-${++sequence}`
+          content.dataset.placeholder=runtimeContext.t('contentPlaceholder','Hidden content...')
+          if(initial.content)setSanitizedHtml(content,initial.content)
+          toggle.setAttribute('aria-controls',content.id)
+          wrapper.append(header,content)
 
-/** Collapsible rich-text disclosure block with an editable label. */
-export class Spoiler extends BlockPluginAbstract {
-  static isTextBlock = false
-  static styles = [editorStyles]
-  type = 'spoiler'
-  icon = ICON
-  inlineTools = true
-  mapTextFields = mapSpoilerTextFields
+          let readOnly=context.isReadOnly()
+          let open=!readOnly
+          let instanceDestroyed=false
 
-  /**
-   * Return the localized toolbox label for this block.
-   * @returns {string}
-   */
-  get title() {
-    return this._t('title', 'Spoiler')
-  }
+          const projectOpen=value=>{
+            open=value
+            wrapper.classList.toggle('oe-spoiler--open',value)
+            toggle.setAttribute('aria-expanded',String(value))
+            content.hidden=!value
+          }
+          const applyReadOnly=value=>{
+            readOnly=value
+            label.contentEditable=value?'false':'true'
+            content.contentEditable=value?'false':'true'
+            projectOpen(!value)
+          }
 
-  /**
-   * Create the editable DOM owned by this block instance.
-   * @param {{ label?: string, content?: string }} data
-   * @param {import('../../plugin-kit/types').BlockMutationContext} context
-   * @returns {HTMLElement}
-   */
-  render(data, context) {
-    const ownerDocument = context.ownerDocument ?? globalThis.document
-    const wrapper = ownerDocument.createElement('div')
-    wrapper.classList.add('oe-spoiler')
+          toggle.addEventListener('mousedown',event=>event.preventDefault(),{signal:context.signal})
+          toggle.addEventListener('click',event=>{
+            event.stopPropagation()
+            if(!instanceDestroyed)projectOpen(!open)
+          },{signal:context.signal})
+          label.addEventListener('keydown',event=>{
+            if(readOnly||instanceDestroyed)return
+            if(event.key==='Enter'&&!event.shiftKey){
+              event.preventDefault()
+              event.stopPropagation()
+              projectOpen(true)
+              content.focus()
+            }
+          },{signal:context.signal})
+          content.addEventListener('keydown',event=>{
+            if(!readOnly&&event.key==='Enter'&&!event.shiftKey)event.stopPropagation()
+          },{signal:context.signal})
 
-    // Label (always visible)
-    const label = ownerDocument.createElement('div')
-    label.className = 'oe-spoiler__label'
-    label.contentEditable = 'true'
-    label.dataset.placeholder = this._t('labelPlaceholder', 'Spoiler label...')
-    const labelText = normalizeTextValue(data?.label)
-    if (labelText) setSanitizedHtml(label, labelText)
-    label.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault()
-        e.stopPropagation()
-        const content = wrapper.querySelector('.oe-spoiler__content')
-        if (content) /** @type {HTMLElement} */ (content).focus()
+          applyReadOnly(readOnly)
+
+          return {
+            element:wrapper,
+            read:()=>({label:label.innerHTML.trim(),content:content.innerHTML.trim()}),
+            update(next){
+              if(instanceDestroyed)return
+              if(label.innerHTML!==next.label)setSanitizedHtml(label,next.label)
+              if(content.innerHTML!==next.content)setSanitizedHtml(content,next.content)
+            },
+            editableFields:()=>Object.freeze([
+              Object.freeze({key:'label',element:label,mode:/** @type {'rich-text'} */('rich-text')}),
+              Object.freeze({key:'content',element:content,mode:/** @type {'rich-text'} */('rich-text')}),
+            ]),
+            setReadOnly:applyReadOnly,
+            focus(target){
+              if(instanceDestroyed||readOnly)return
+              ;(target?.fieldKey==='content'?content:label).focus()
+            },
+            destroy(){instanceDestroyed=true},
+          }
+        },
+        destroy(){destroyed=true},
       }
-    })
-
-    // Toggle button
-    const toggle = ownerDocument.createElement('button')
-    toggle.type = 'button'
-    toggle.className = 'oe-spoiler__toggle'
-    setTrustedHtml(toggle, ICON)
-    toggle.title = this._t('toggle', 'Toggle spoiler')
-    toggle.setAttribute('aria-label', this._t('toggle', 'Toggle spoiler'))
-    toggle.setAttribute(READ_ONLY_INTERACTIVE_ATTRIBUTE, '')
-    toggle.setAttribute('aria-expanded', String(!context.readOnly))
-    toggle.querySelector('svg')?.setAttribute('aria-hidden', 'true')
-    toggle.addEventListener('mousedown', (e) => e.preventDefault())
-    toggle.addEventListener('click', (e) => {
-      e.stopPropagation()
-      const open = wrapper.classList.toggle('oe-spoiler--open')
-      toggle.setAttribute('aria-expanded', String(open))
-      content.hidden = !open
-    })
-
-    // Header row
-    const header = ownerDocument.createElement('div')
-    header.className = 'oe-spoiler__header'
-    header.append(toggle, label)
-
-    // Hidden content
-    const content = ownerDocument.createElement('div')
-    content.className = 'oe-spoiler__content'
-    content.id = `oe-spoiler-content-${++spoilerSequence}`
-    toggle.setAttribute('aria-controls', content.id)
-    content.contentEditable = 'true'
-    content.dataset.placeholder = this._t('contentPlaceholder', 'Hidden content...')
-    const contentText = normalizeTextValue(data?.content)
-    if (contentText) setSanitizedHtml(content, contentText)
-    content.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.stopPropagation()
-      }
-    })
-
-    wrapper.append(header, content)
-
-    // Editing starts expanded; read-only display starts collapsed but remains
-    // revealable through a presentation-only control.
-    wrapper.classList.toggle('oe-spoiler--open', !context.readOnly)
-    content.hidden = context.readOnly
-
-    return wrapper
-  }
-
-  /**
-   * Serialize the current block DOM into document data.
-   * @param {HTMLElement} element
-   * @returns {{ label: string, content: string }}
-   */
-  save(element) {
-    const label = element.querySelector('.oe-spoiler__label')
-    const content = element.querySelector('.oe-spoiler__content')
-    return {
-      label: sanitizeHtml(label?.innerHTML?.trim() || '', element.ownerDocument),
-      content: sanitizeHtml(content?.innerHTML?.trim() || '', element.ownerDocument),
-    }
-  }
-
-  /**
-   * Check whether serialized data satisfies this block's schema.
-   * @param {Record<string, unknown>} data @returns {boolean}
-   */
-  validate(data) {
-    return validateSpoilerData(data)
-  }
-
-  /**
-   * Check whether the block has no meaningful user content.
-   * @param {HTMLElement} element @returns {boolean}
-   */
-  isEmpty(element) {
-    const label = element.querySelector('.oe-spoiler__label')
-    const content = element.querySelector('.oe-spoiler__content')
-    return !label?.textContent?.trim() && !content?.textContent?.trim()
-  }
-
-  /**
-   * Extract neutral rich text that can initialize another block type.
-   * @param {HTMLElement} element @returns {{ text: string }}
-   */
-  exportData(element) {
-    const label = sanitizeHtml(element.querySelector('.oe-spoiler__label')?.innerHTML?.trim() || '', element.ownerDocument)
-    const content = sanitizeHtml(element.querySelector('.oe-spoiler__content')?.innerHTML?.trim() || '', element.ownerDocument)
-    return { text: [label, content].filter(Boolean).join('<br>') }
-  }
-
-  /**
-   * Merge incoming text into the current block.
-   * @param {HTMLElement} element
-   * @param {Record<string, unknown>} data
-   * @returns {void}
-   */
-  merge(element, data) {
-    appendMergeField(element, '.oe-spoiler__label', data?.label)
-    appendMergeField(element, '.oe-spoiler__content', data?.content ?? data?.text)
-  }
-
+    },
+  })
 }
