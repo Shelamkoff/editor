@@ -75,6 +75,11 @@ Block-local selection used by split/conversion capabilities:
       data: JsonObject
     }
 
+    interface ConversionTarget {
+      type: string
+      toolboxItemId?: string
+    }
+
     interface SelectionConversionResult<
       D extends JsonObject
     > {
@@ -800,7 +805,8 @@ Separate plugin definition from mounted block instance.
       label: LocalizedLabel
       icon: string
 
-      create?(
+      configure?(
+        base: Readonly<D>,
         context: DataOperationContext
       ): D
     }
@@ -840,11 +846,14 @@ Separate plugin definition from mounted block instance.
 
 Toolbox insertion rules:
 
-- a toolbox entry without create() uses schema.createDefault();
-- a toolbox entry with create() must return a complete payload, not a partial JSON patch;
-- the result is normalized/validated by the block schema before insertion;
-- toolbox factories may use DataOperationContext only for fresh nested IDs;
+- start from schema.createDefault();
+- if the selected toolbox entry has configure(), pass that complete canonical base value to configure();
+- configure() returns a complete payload, never a partial JSON patch;
+- normalize/validate the configured result before insertion;
+- configure() may use DataOperationContext only for fresh nested IDs;
 - toolbox labels are localized by the editor runtime and definitions remain immutable.
+
+The same configure() function is reused after conversion import so a toolbox variant such as ordered-list style or heading level has one definition. Core never shallow-merges arbitrary target data.
 
 A definition is an immutable descriptor and may be reused across editor instances. setup creates one editor-scoped runtime that owns editor-scoped resources and is destroyed exactly once with that editor. Configuration captured by the definition must be immutable. Localization is supplied through the editor-scoped runtime context; do not mutate definitions with setI18n-style setters.
 
@@ -1268,6 +1277,20 @@ If product semantics require "Enter creates the configured default block", repre
     }
 
 Core must not know plugin-specific data shapes. Compatibility is decided by canImport(payload), not by a hard-coded text property or isTextBlock flag. Built-in text-carrying blocks should use a shared "rich-text" conversion payload where appropriate.
+
+Full-block conversion algorithm:
+
+1. resolve the active source and registered target definition;
+2. if source EmptyCapability reports empty, start target data from target.schema.createDefault() without requiring source export;
+3. otherwise require source ConversionCapability.export(), target ConversionCapability.canImport() and target import();
+4. if ConversionTarget.toolboxItemId is present, resolve that exact target toolbox item and apply its configure() to the imported/default target data;
+5. normalize/validate target data strictly;
+6. retain source block ID and core-owned compatible tunes where the target supports them;
+7. reconcile the block instance as one type-conversion change.
+
+Unknown/preserved source data is never generically converted because core cannot safely interpret/export it.
+
+Partial-selection conversion requires source splitSelection() plus target canImport/import. Arbitrary source/target JSON shallow merging is forbidden.
 
 ## 9. Block instance mutation context
 
@@ -1908,7 +1931,7 @@ Blocks interface:
 
       remove(id: string): void
       move(id: string, to: number): void
-      convert(id: string, type: string): void
+      convert(id: string, target: ConversionTarget): void
 
       focus(id: string, target?: FocusTarget): void
 
@@ -1918,6 +1941,8 @@ Blocks interface:
 All persisted mutation methods delegate to DocumentRuntime transactions. focus, setCurrent, select and clearSelection are interaction-state operations and delegate to InteractionRuntime.
 
 Index arguments are query/insertion conveniences only; persisted identity is always block ID. move(id, to) treats to as the final zero-based block index and rejects invalid indices rather than keeping the old insertion-boundary compatibility alias.
+
+convert(id, target) uses the ConversionCapability/ToolboxItemDefinition pipeline above. It never accepts arbitrary extraData to be shallow-merged into target plugin data.
 
 Application-facing snapshots cannot mutate editor state by reference. Readonly in declarations is not sufficient by itself: return detached/deep-cloned JSON values (or a deeply frozen detached representation) at consumer trust boundaries. The same rule applies to values passed into public producer callbacks.
 
@@ -2517,7 +2542,9 @@ Then:
 - insert;
 - remove;
 - move;
-- convert;
+- convert with compatible payload;
+- empty-source conversion to target default;
+- toolbox-variant conversion without arbitrary data merge;
 - export/save;
 - render/replace.
 
@@ -2736,7 +2763,9 @@ History:
 - split -> undo;
 - merge -> undo;
 - move -> undo;
-- convert -> undo;
+- compatible convert -> undo;
+- empty-source conversion to toolbox variant -> undo;
+- incompatible non-empty conversion is rejected without mutation;
 - document.render -> undo;
 - undo failure leaves history/model at pre-replay state;
 - nested failure;
@@ -2868,6 +2897,7 @@ Architecture audit must fail production usage of removed legacy symbols/interfac
     ParagraphData.align v2 declaration
     HeadingData.align v2 declaration
     TEXT_ALIGN_TUNE_ATTRIBUTE persistence transport
+    public convert(..., extraData) arbitrary merge contract
 
 Documentation/changelog references describing migration may remain, but runtime/type declarations must not expose legacy behavior.
 
@@ -2886,6 +2916,7 @@ Architecture:
 - all toolbox block creation is schema-driven rather than implicit {};
 - live empty blocks are valid canonical data, not tolerated invalid/pending persistence;
 - generic emptiness and formatting eligibility are data/capability driven, not DOM-probed;
+- conversion compatibility and toolbox variants are explicit capabilities, never arbitrary JSON merges;
 - inline widget payload is canonical model state with per-widget instances;
 - text alignment has one canonical location in tunes.textAlign;
 - plugin-kit is the supported extension utility interface;
