@@ -22,10 +22,11 @@ export class BlockReconciler {
   #entries = new Map()
   #fieldOwners = new WeakMap()
   #readOnly
+  #inlineProjection
   #store = null
   #destroyed = false
 
-  constructor({ container, registry, contextFactory, activationResolver, readOnly = false }) {
+  constructor({ container, registry, contextFactory, activationResolver, inlineProjection = null, readOnly = false }) {
     if (!container?.ownerDocument) throw new TypeError('BlockReconciler requires a container')
     if (!registry) throw new TypeError('BlockReconciler requires an ExtensionRegistry')
     if (typeof contextFactory !== 'function') throw new TypeError('BlockReconciler requires contextFactory')
@@ -35,6 +36,7 @@ export class BlockReconciler {
     this.#activationResolver = typeof activationResolver === 'function'
       ? activationResolver
       : (_id, record) => registry.hasBlock(record.type)
+    this.#inlineProjection = inlineProjection
     this.#readOnly = readOnly === true
   }
 
@@ -72,7 +74,17 @@ export class BlockReconciler {
   readBlock(id) {
     const entry = this.#entries.get(id)
     if (!entry) throw new Error(`Unknown projected block id: ${id}`)
-    return cloneEditorData(entry.instance.read())
+    const data = cloneEditorData(entry.instance.read())
+    if (!this.#inlineProjection || entry.preserved) {
+      return { data, inline: entry.record.inline === undefined ? undefined : cloneEditorData(entry.record.inline) }
+    }
+    return this.#inlineProjection.serializeBlock(
+      id,
+      entry.record,
+      entry.definition,
+      entry.instance.editableFields?.() ?? [],
+      data,
+    )
   }
 
 
@@ -158,6 +170,16 @@ export class BlockReconciler {
           }
           item.entry.record = item.after
           this.#refreshFields(item.id, item.entry)
+          if (this.#inlineProjection && !item.entry.preserved) {
+            this.#inlineProjection.reconcileBlock(
+              item.id,
+              item.after,
+              item.entry.definition,
+              item.entry.instance.editableFields?.() ?? [],
+              item.entry.baseContext,
+              { preserveSourceProjection: item.id === sourceBlockId },
+            )
+          }
           this.#applyTunes(item.entry, item.after)
         }
 
@@ -173,6 +195,7 @@ export class BlockReconciler {
         for (const item of removals) {
           item.entry.element.remove()
           nextEntries.delete(item.id)
+          this.#inlineProjection?.destroyBlock?.(item.id)
         }
 
         if (finalOrder) {
@@ -212,6 +235,7 @@ export class BlockReconciler {
         entry.instance.setReadOnly(next)
         changed.push(entry)
       }
+      this.#inlineProjection?.setReadOnly?.(next)
       this.#readOnly = next
     } catch (error) {
       let recoveryError = null
@@ -234,6 +258,7 @@ export class BlockReconciler {
     this.#destroyed = true
     for (const entry of this.#entries.values()) this.#destroyEntry(entry)
     this.#entries.clear()
+    this.#inlineProjection?.destroy?.()
     this.#container.replaceChildren()
   }
 
@@ -266,17 +291,19 @@ export class BlockReconciler {
       element.contentEditable = 'false'
       element.dataset.oePreservedBlock = record.type
       element.textContent = `Unsupported block: ${record.type}`
+      this.#inlineProjection?.destroyBlock?.(record.id)
       const instance = {
         element,
         read: () => cloneEditorData(record.data),
         setReadOnly() {},
         destroy() {},
       }
-      return { type: record.type, record, element, instance, controller: null, preserved: true }
+      return { type: record.type, record, element, instance, controller: null, preserved: true, definition: null, baseContext: null }
     }
 
+    const definition = this.#registry.getBlockDefinition(record.type)
     const runtime = this.#registry.getBlockRuntime(record.type)
-    if (!runtime) throw new Error(`Missing runtime for block type: ${record.type}`)
+    if (!definition || !runtime) throw new Error(`Missing runtime for block type: ${record.type}`)
     const controller = new AbortControllerCtor()
     const base = this.#contextFactory(record.id, record.type, controller.signal) ?? {}
     const context = Object.freeze({
@@ -298,9 +325,20 @@ export class BlockReconciler {
       instance,
       controller,
       preserved: false,
+      definition,
+      baseContext: base,
     }
     instance.setReadOnly(this.#readOnly)
     this.#refreshFields(record.id, entry)
+    if (this.#inlineProjection) {
+      this.#inlineProjection.reconcileBlock(
+        record.id,
+        record,
+        definition,
+        instance.editableFields?.() ?? [],
+        base,
+      )
+    }
     this.#applyTunes(entry, record)
     return entry
   }
@@ -329,6 +367,10 @@ export class BlockReconciler {
     const fresh = this.#stageAll(store)
     const oldEntries = new Set([...this.#entries.values(), ...extraEntries.values()])
     this.#container.replaceChildren(...store.ids().map(id => fresh.get(id).element))
+    const freshIds = new Set(store.ids())
+    for (const [id] of this.#entries) {
+      if (!freshIds.has(id)) this.#inlineProjection?.destroyBlock?.(id)
+    }
     this.#entries = fresh
     for (const entry of oldEntries) this.#destroyEntry(entry)
   }
