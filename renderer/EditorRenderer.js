@@ -7,6 +7,7 @@ import { cloneEditorData } from '../shared/cloneEditorData.js'
 import defaultLocale from './locale/en.js'
 import { acquireStyleUrls } from '../shared/styleRegistry.js'
 import { validateKnownBlockData } from '../shared/blockDataValidators.js'
+import { getBuiltInBlockDataSchema } from '../shared/blockSchemas/index.js'
 import { normalizeKnownBlockData } from '../shared/blockDataNormalizers.js'
 import { normalizeTextAlign } from '../shared/textFormat.js'
 import { resolveValidationMode } from '../shared/validationMode.js'
@@ -196,7 +197,29 @@ export class EditorRenderer {
     }
 
     let renderableBlock = block
-    if (this.#defaultRendererTypes.has(block.type) && !validateKnownBlockData(block.type, block.data)) {
+    let invalidBuiltIn = false
+    if (this.#defaultRendererTypes.has(block.type)) {
+      const schema = getBuiltInBlockDataSchema(block.type)
+      if (schema) {
+        try {
+          const decoded = schema.decode({
+            dataVersion: block.dataVersion,
+            data: block.data,
+          })
+          renderableBlock = {
+            ...block,
+            dataVersion: decoded.dataVersion,
+            data: decoded.data,
+          }
+        } catch {
+          invalidBuiltIn = true
+        }
+      } else if (!validateKnownBlockData(block.type, block.data)) {
+        invalidBuiltIn = true
+      }
+    }
+
+    if (invalidBuiltIn) {
       const issue = { blockId: block.id, type: block.type }
       const observer = this.#config.onValidationError
       if (typeof observer === 'function' && !this.#reportingValidation.has(validationSource)) {
