@@ -1,7 +1,7 @@
 import { setTrustedHtml } from './sanitize.js'
 import { el, positionPopup } from './dom.js'
 import { EditorEvent } from './editorEvents.js'
-import { createRangeFromLastTextMatch } from './textOffset.js'
+import { createRangeFromLastTextMatch } from '../shared/textOffset.js'
 
 export class SlashCommands {
   /** @type {HTMLElement} */
