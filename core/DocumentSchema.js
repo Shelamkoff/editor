@@ -6,17 +6,25 @@ import { BUILT_IN_DOCUMENT_MIGRATIONS } from './documentMigrationsV2.js'
  * Validates document envelopes and applies an explicit, deterministic
  * migration chain before data reaches plugins or the live block model.
  */
+/**
+ * @typedef {{
+ *   from: string,
+ *   to: string,
+ *   migrate(document: import('./publicTypes').EditorDocument): import('./publicTypes').EditorDocument,
+ * }} DocumentMigration
+ */
+
 export class DocumentSchema {
   /** @type {string} */ #currentVersion
   /** @type {'preserve' | 'strict'} */ #versionPolicy
-  /** @type {Map<string, import('./types').DocumentMigration>} */ #migrations = new Map()
+  /** @type {Map<string, DocumentMigration>} */ #migrations = new Map()
   /** @type {import('./Diagnostics').Diagnostics | null} */ #diagnostics
 
   /**
    * @param {{
    *   currentVersion?: string,
    *   versionPolicy?: 'preserve' | 'strict',
-   *   migrations?: import('./types').DocumentMigration[],
+   *   migrations?: readonly DocumentMigration[],
    *   diagnostics?: import('./Diagnostics').Diagnostics,
    * }} [options]
    */
@@ -54,7 +62,7 @@ export class DocumentSchema {
    * Return an isolated, structurally valid document suitable for rendering.
    * Consumer input and each migration stage remain ownership boundaries.
    * @param {unknown} input
-   * @returns {import('./types').EditorDocument}
+   * @returns {import('./publicTypes').EditorDocument}
    */
   normalize(input) {
     let document = this.#normalizeEnvelope(input)
@@ -105,7 +113,7 @@ export class DocumentSchema {
     return document
   }
 
-  /** @param {import('./types').DocumentMigration} migration */
+  /** @param {DocumentMigration} migration */
   #register(migration) {
     if (!migration || typeof migration !== 'object') {
       throw new TypeError('Document migrations must be objects')
@@ -131,7 +139,7 @@ export class DocumentSchema {
   /**
    * @param {unknown} input
    * @param {string} [forcedVersion]
-   * @returns {import('./types').EditorDocument}
+   * @returns {import('./publicTypes').EditorDocument}
    */
   #normalizeEnvelope(input, forcedVersion) {
     if (!input || typeof input !== 'object' || Array.isArray(input)) {
@@ -154,10 +162,10 @@ export class DocumentSchema {
     const version = typeof declaredVersion === 'string' && declaredVersion
       ? declaredVersion
       : this.#currentVersion
-    const normalizedBlocks = /** @type {import('./types').BlockData[]} */ (
+    const normalizedBlocks = /** @type {import('../shared/documentTypes').EditorBlockData[]} */ (
       cloneEditorData(blocks)
     )
-    /** @type {import('./types').EditorDocument} */
+    /** @type {import('./publicTypes').EditorDocument} */
     const normalized = {
       version,
       blocks: normalizedBlocks,
