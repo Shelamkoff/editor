@@ -96,7 +96,7 @@ export function createTablePlugin(){
         const width=rows[0].cells.length
         if(width===0||rows.some(row=>row.cells.length!==width))return null
         const withHeadings=[...rowElements[0].children].some(cell=>cell.tagName==='TH')
-        return {kind:'block',data:{withHeadings,rows}}
+        return {kind:/** @type {'block'} */('block'),data:{withHeadings,rows}}
       },
     }),
   })
@@ -208,9 +208,11 @@ export function createTablePlugin(){
               return
             }
             if(event.key!=='Tab')return
-            const ordered=data.rows.flatMap(row=>row.cells.map(item=>item.id))
+            const ordered=data.rows.flatMap(row=>row.cells.map(item=>cellKey(row.id,item.id)))
+            const rowId=cell.dataset.rowId
             const id=cell.dataset.cellId
-            const index=id?ordered.indexOf(id):-1
+            const currentKey=rowId&&id?cellKey(rowId,id):''
+            const index=currentKey?ordered.indexOf(currentKey):-1
             if(index<0)return
             const next=ordered[index+(event.shiftKey?-1:1)]
             if(!next)return
