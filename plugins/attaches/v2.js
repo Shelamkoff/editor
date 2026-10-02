@@ -203,7 +203,7 @@ export function createAttachesPlugin(config={}){
             row.className='oe-attaches__card'
             const icon=document.createElement('span')
             icon.className='oe-attaches__icon'
-            setTrustedHtml(icon,getFileIcon(file.extension)||ICON)
+            setTrustedHtml(icon,getFileIcon(file.extension).svg||ICON)
 
             const info=document.createElement('div')
             info.className='oe-attaches__info'
