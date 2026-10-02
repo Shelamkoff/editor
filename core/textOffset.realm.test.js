@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { restoreSelectionByOffsets } from './textOffset.js'
+import { restoreSelectionByOffsets } from '../shared/textOffset.js'
 
 test('selection offset restoration uses the element owning document', () => {
   const text = { nodeType: 3, textContent: 'abcd', data: 'abcd', length: 4 }
