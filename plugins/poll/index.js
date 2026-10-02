@@ -98,7 +98,10 @@ export function createPollPlugin(config={}){
 
           const report=error=>{
             if(snapshot.onError){
-              try{void snapshot.onError(error)}catch{}
+              try{
+                const observed=snapshot.onError(error)
+                Promise.resolve(observed).catch(()=>{})
+              }catch{}
             }else{
               console.warn('[Poll] Runtime operation failed',error)
             }
@@ -139,6 +142,7 @@ export function createPollPlugin(config={}){
               const choice=document.createElement('button')
               choice.type='button'
               choice.className='oe-poll__choice oe-poll__option-marker oe-poll__option-marker--'+data.type
+              choice.dataset.optionId=option.id
               choice.setAttribute('aria-pressed',String(selected.has(option.id)))
               choice.textContent=selected.has(option.id)?'✓':'○'
               choice.classList.toggle('oe-poll__option-marker--selected',selected.has(option.id))
@@ -269,7 +273,7 @@ export function createPollPlugin(config={}){
             const dispose=unsubscribe
             unsubscribe=null
             if(typeof dispose!=='function')return
-            try{dispose()}catch(error){if(!dead)report(error)}
+            try{dispose()}catch(error){report(error)}
           }
 
           const connect=()=>{
