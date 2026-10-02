@@ -23,17 +23,16 @@ The registered block type is `paragraph`. The class is also exported by the comp
 ## Data
 
 ```json
-{ "text": "Hello <strong>world</strong>", "align": "left" }
+{ "text": "Hello <strong>world</strong>" }
 ```
 
 ### Field reference
 
 | Field | Required | Meaning and constraints |
 | --- | --- | --- |
-| `text` | yes | Non-blank sanitized inline HTML. Serialized text may contain placeholders whose data lives in the block's `inline` map. |
-| `align` | no | `left`, `center`, `right`, or `justify`. When omitted, the editor and renderer use their normal text alignment. |
+| `text` | yes | Sanitized inline HTML. The empty string is a valid editor state. Serialized text may contain placeholders whose data lives in the block's `inline` map. |
 
-An empty paragraph may exist temporarily while the user is editing. It is not valid persisted paragraph data in strict validation mode.
+Alignment is not plugin-owned data in document format v2. The block envelope stores it as `tunes.textAlign` with `left`, `center`, `right`, or `justify`.
 
 ## Configuration
 

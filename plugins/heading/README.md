@@ -25,18 +25,17 @@ The same subpath exports `HEADING_LEVELS`, a read-only array of `{ level, key, i
 ## Data
 
 ```json
-{ "text": "Section", "level": 2, "align": "left" }
+{ "text": "Section", "level": 2 }
 ```
 
 ### Field reference
 
 | Field | Required | Meaning and constraints |
 | --- | --- | --- |
-| `text` | yes | Non-blank sanitized inline HTML. It may reference values from the block's `inline` map. |
+| `text` | yes | Sanitized inline HTML. The empty string is a valid editor state. It may reference values from the block's `inline` map. |
 | `level` | yes | Integer from `2` through `6`. A newly inserted heading starts at level `2`. |
-| `align` | no | `left`, `center`, `right`, or `justify`; omitted means normal text alignment. |
 
-An empty heading may exist as an editing draft, but strict document validation rejects it until `text` is non-blank.
+Alignment is not plugin-owned data in document format v2. The block envelope stores it as `tunes.textAlign`.
 
 ## Configuration
 
