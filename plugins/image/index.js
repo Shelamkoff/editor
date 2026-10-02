@@ -1,5 +1,5 @@
 // @ts-check
-import { setSanitizedHtml, setSafeUrlAttribute } from '../../plugin-kit/index.js'
+import { insertTrustedHtml, setSanitizedHtml, setSafeUrlAttribute } from '../../plugin-kit/index.js'
 import { imageDataSchema } from '../../shared/blockSchemas/image.js'
 import { sanitizeMediaUrl } from '../../shared/sanitize/sanitizeUrl.js'
 import { isSupportedImageFile, triggerFileInput } from '../shared/fileInput.js'
@@ -114,6 +114,9 @@ export function createImagePlugin(config={}){
           empty.className=CSS.select
           empty.textContent=runtimeContext.t('dropzoneUpload','Upload image')
 
+          const emptyActions=document.createElement('div')
+          emptyActions.className=CSS.selectActions
+
           const controls=document.createElement('div')
           controls.className=CSS.actions
           const replace=document.createElement('button')
@@ -125,12 +128,31 @@ export function createImagePlugin(config={}){
           const remove=document.createElement('button')
           remove.type='button'
           remove.textContent=runtimeContext.t('delete','Delete')
-          controls.append(replace,urlButton,remove)
+          controls.append(replace,urlButton)
+
+          const customActionButtons=[]
+          for(const action of snapshot.actions){
+            const emptyButton=document.createElement('button')
+            emptyButton.type='button'
+            emptyButton.className=CSS.selectAction
+            if(action.icon)insertTrustedHtml(emptyButton,'afterbegin',action.icon)
+            emptyButton.append(document.createTextNode(action.label))
+            emptyActions.appendChild(emptyButton)
+
+            const filledButton=document.createElement('button')
+            filledButton.type='button'
+            filledButton.className=CSS.actionBtn
+            if(action.icon)insertTrustedHtml(filledButton,'afterbegin',action.icon)
+            filledButton.append(document.createTextNode(action.label))
+            controls.appendChild(filledButton)
+            customActionButtons.push({action,emptyButton,filledButton})
+          }
+          controls.append(remove)
 
           const container=document.createElement('div')
           container.className=CSS.imageContainer
           container.append(image,caption)
-          wrapper.append(empty,container,controls)
+          wrapper.append(empty,emptyActions,container,controls)
 
           let data={
             ...initial,
@@ -155,8 +177,9 @@ export function createImagePlugin(config={}){
             const hasImage=!!data.file.url
             wrapper.classList.toggle(CSS.filled,hasImage)
             empty.hidden=hasImage||readOnly
+            emptyActions.hidden=hasImage||readOnly||snapshot.actions.length===0
             container.hidden=!hasImage
-            controls.hidden=readOnly
+            controls.hidden=readOnly||!hasImage
             if(hasImage)setSafeUrlAttribute(image,'src',data.file.url,'media')
             else image.removeAttribute('src')
             if(caption.innerHTML!==data.caption){
@@ -173,11 +196,12 @@ export function createImagePlugin(config={}){
           const beginTask=()=>{
             taskController?.abort()
             const Ctor=document.defaultView?.AbortController??AbortController
-            taskController=new Ctor()
+            const controller=new Ctor()
+            taskController=controller
             const generation=++requestGeneration
-            const abort=()=>taskController?.abort(context.signal.reason)
-            context.signal.addEventListener('abort',abort,{once:true,signal:taskController.signal})
-            return {controller:taskController,generation}
+            const abort=()=>controller.abort(context.signal.reason)
+            context.signal.addEventListener('abort',abort,{once:true,signal:controller.signal})
+            return {controller,generation}
           }
           const finishSource=(task,result)=>{
             if(dead||readOnly||task.controller.signal.aborted||task.generation!==requestGeneration)return
@@ -188,6 +212,19 @@ export function createImagePlugin(config={}){
               file:{url},
               caption:data.caption||(typeof result?.alt==='string'?result.alt:''),
             })
+          }
+          const runCustomAction=async action=>{
+            if(readOnly||dead)return
+            const task=beginTask()
+            wrapper.classList.add(CSS.loading)
+            try{
+              const result=await action.handler({signal:task.controller.signal})
+              finishSource(task,result)
+            }catch(error){
+              if(!task.controller.signal.aborted)console.warn('[Image] Source action failed',error)
+            }finally{
+              if(task.generation===requestGeneration)wrapper.classList.remove(CSS.loading)
+            }
           }
           const uploadFile=async file=>{
             if(readOnly||!isSupportedImageFile(file))return
@@ -228,7 +265,16 @@ export function createImagePlugin(config={}){
           empty.addEventListener('click',chooseFile,{signal:context.signal})
           replace.addEventListener('click',chooseFile,{signal:context.signal})
           urlButton.addEventListener('click',openUrl,{signal:context.signal})
-          remove.addEventListener('click',()=>{if(!readOnly)updateData(imageDataSchema.createDefault())},{signal:context.signal})
+          remove.addEventListener('click',()=>{
+            if(readOnly)return
+            taskController?.abort()
+            wrapper.classList.remove(CSS.loading)
+            updateData(imageDataSchema.createDefault())
+          },{signal:context.signal})
+          for(const {action,emptyButton,filledButton} of customActionButtons){
+            emptyButton.addEventListener('click',()=>void runCustomAction(action),{signal:context.signal})
+            filledButton.addEventListener('click',()=>void runCustomAction(action),{signal:context.signal})
+          }
           caption.addEventListener('input',()=>{image.alt=caption.textContent?.trim()??''},{signal:context.signal})
           preloadSourceEditor(wrapper,context.signal,['url'])
           project(data)
