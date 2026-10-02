@@ -1,6 +1,6 @@
 import { transferInlineContent } from './transferInlineContent.js'
 import { deserializeInlineHtml } from '../shared/inlineMarshal.js'
-import { uid } from './uid.js'
+import { uid } from '../shared/uid.js'
 import { cloneEditorData } from '../shared/cloneEditorData.js'
 import { el } from './dom.js'
 import {
