@@ -1,4 +1,6 @@
 import { EDITOR_VERSION } from './constants.js'
+import { ownPluginDataSchema } from './pluginDataSchema.js'
+import { normalizeRichText } from '../shared/richTextCodec.js'
 import { collectInlineSerializationIds, serializeInlineHtml } from '../shared/inlineMarshal.js'
 import { cloneEditorData } from '../shared/cloneEditorData.js'
 import { resolveValidationMode } from '../shared/validationMode.js'
@@ -158,6 +160,20 @@ export class DocumentSnapshotStore {
       )
       if (Object.keys(inline).length > 0) snapshot.inline = inline
       else delete snapshot.inline
+    }
+
+    const dataSchema = ownPluginDataSchema(block.plugin)
+    if (dataSchema) {
+      let schemaData = /** @type {any} */ (snapshot.data)
+      if (typeof dataSchema.mapRichText === 'function') {
+        schemaData = dataSchema.mapRichText(
+          schemaData,
+          (html) => normalizeRichText(html, block.contentElement.ownerDocument),
+        )
+      }
+      const encoded = dataSchema.encode(schemaData)
+      snapshot.data = encoded.data
+      snapshot.dataVersion = encoded.dataVersion
     }
 
     /** @type {import('./types').BlockValidationIssue | null} */
