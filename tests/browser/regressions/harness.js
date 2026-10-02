@@ -82,8 +82,22 @@ export async function run() {
     window.addEventListener('error', capture)
     window.addEventListener('unhandledrejection', capture)
     const failures = []
-    try { await run() }
-    catch (error) { failures.push(error?.stack ?? String(error)) }
+    let timer
+    try {
+      await Promise.race([
+        Promise.resolve().then(run),
+        new Promise((_, reject) => {
+          timer = setTimeout(
+            () => reject(new Error(`Audit case timed out: ${name}`)),
+            10_000,
+          )
+        }),
+      ])
+    } catch (error) {
+      failures.push(error?.stack ?? String(error))
+    } finally {
+      if (timer) clearTimeout(timer)
+    }
     finally {
       // Allow native rejection reporting and the opening event's microtasks.
       await pause()
