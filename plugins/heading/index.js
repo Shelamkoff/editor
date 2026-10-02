@@ -34,6 +34,7 @@ export const HEADING_LEVELS = Object.freeze([
 
 /** Editable H2-H6 heading block with alignment and inline formatting. */
 export class Heading extends BlockPluginAbstract {
+  static dataSchema = headingDataSchema
   static isTextBlock = true
   static styles = [editorStyles]
   type = 'heading'
