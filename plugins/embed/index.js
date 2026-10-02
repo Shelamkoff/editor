@@ -1,5 +1,5 @@
-import { setSanitizedHtml, setTrustedHtml } from '../../core/sanitize.js'
-import { sanitizeHtml, escapeHtml } from '../../core/sanitize.js'
+import { setSanitizedHtml, setTrustedHtml } from '../../plugin-kit/index.js'
+import { sanitizeHtml, escapeHtml } from '../../plugin-kit/index.js'
 import { SERVICES, buildPlayer } from './player.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { validateEmbedData } from '../../shared/blockDataValidators.js'
