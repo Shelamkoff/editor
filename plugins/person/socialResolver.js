@@ -36,7 +36,7 @@ const DEFAULT_MATCHERS = [
  * Resolve a URL to a social network type and icon.
  * Custom resolvers are checked first, then built-in hostname matchers.
  * @param {string} url
- * @param {Array<{ test: RegExp | ((url: string) => boolean), type: string, icon?: string }>} [customResolvers]
+ * @param {readonly { test: RegExp | ((url: string) => boolean), type: string, icon?: string }[]} [customResolvers]
  * @returns {{ type: string, icon: string }}
  */
 export function resolveSocialIcon(url, customResolvers) {
