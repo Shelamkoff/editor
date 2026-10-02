@@ -11,7 +11,7 @@ const editorStyles = new URL('./toggle.css', import.meta.url).href
 
 let toggleSequence = 0
 
-/** @type {WeakMap<HTMLElement, { open: boolean, context: import('../../core/types').BlockMutationContext }>} */
+/** @type {WeakMap<HTMLElement, { open: boolean, context: import('../../plugin-kit/types').BlockMutationContext }>} */
 const stateMap = new WeakMap()
 
 // Tabler icon: chevron-right (rotates when open)
@@ -39,7 +39,7 @@ export class Toggle extends BlockPluginAbstract {
   /**
    * Create the editable DOM owned by this block instance.
    * @param {{ title?: string, content?: string, open?: boolean }} data
-   * @param {import('../../core/types').BlockMutationContext} context
+   * @param {import('../../plugin-kit/types').BlockMutationContext} context
    * @returns {HTMLElement}
    */
   render(data, context) {
