@@ -23,7 +23,7 @@ rendererStyles.destroy()
 ## Typical data
 
 ```json
-{ "text": "Hello <strong>world</strong>", "align": "left" }
+{ "text": "Hello <strong>world</strong>" }
 ```
 
 The `text` field uses the shared inline parser, including supported inline widgets. The renderer declares one stylesheet and creates no listeners or external instances.
