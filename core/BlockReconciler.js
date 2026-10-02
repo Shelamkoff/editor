@@ -56,6 +56,13 @@ export class BlockReconciler {
     return [...fields]
   }
 
+  readBlock(id) {
+    const entry = this.#entries.get(id)
+    if (!entry) throw new Error(`Unknown projected block id: ${id}`)
+    return cloneEditorData(entry.instance.read())
+  }
+
+
   prepare({ store, draft, changes }) {
     this.#assertLive()
     this.#store = store
