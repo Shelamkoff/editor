@@ -50,7 +50,7 @@ export class Columns extends BlockPluginAbstract {
   /**
    * Create the editable DOM owned by this block instance.
    * @param {Record<string, unknown>} data
-   * @param {import('../../core/types').BlockMutationContext} context
+   * @param {import('../../plugin-kit/types').BlockMutationContext} context
    * @returns {HTMLElement}
    */
   render(data, context) {
@@ -143,7 +143,7 @@ export class Columns extends BlockPluginAbstract {
 
   /**
    * @param {HTMLElement} wrapper
-   * @param {import('../../core/types').BlockMutationContext} context
+   * @param {import('../../plugin-kit/types').BlockMutationContext} context
    * @returns {void}
    */
   #build(wrapper, context) {
@@ -206,7 +206,7 @@ export class Columns extends BlockPluginAbstract {
   /**
    * @param {HTMLElement} wrapper
    * @param {string} newLayout
-   * @param {import('../../core/types').BlockMutationContext} context
+   * @param {import('../../plugin-kit/types').BlockMutationContext} context
    * @returns {void}
    */
   #changeLayout(wrapper, newLayout, context) {
