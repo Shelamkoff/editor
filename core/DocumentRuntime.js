@@ -702,7 +702,7 @@ export class DocumentRuntime {
     return id
   }
 
-  replaceLogicalRange(bookmark, replacement = { kind: 'text', text: '' }) {
+  replaceLogicalRange(bookmark, replacement = /** @type {{kind:'text',text:string}|{kind:'html',html:string}} */ ({ kind: 'text', text: '' })) {
     this.#assertWritable()
     const ordered = this.#orderedLogicalRange(bookmark)
     if (!ordered) return false
