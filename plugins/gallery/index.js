@@ -50,7 +50,7 @@ export class Gallery extends BlockPluginAbstract {
   #uploader
   /** Per-block state, encapsulated to this plugin instance. */
   #states = /** @type {WeakMap<HTMLElement, GalleryState>} */ (new WeakMap())
-  /** @type {WeakMap<HTMLElement, import('../../core/types').BlockMutationContext>} */
+  /** @type {WeakMap<HTMLElement, import('../../plugin-kit/types').BlockMutationContext>} */
   #contexts = new WeakMap()
   /**
    * Create a Gallery instance with the supplied consumer configuration.
@@ -74,7 +74,7 @@ export class Gallery extends BlockPluginAbstract {
   /**
    * Create the editable DOM owned by this block instance.
    * @param {Record<string, unknown>} data
-   * @param {import('../../core/types').BlockMutationContext} context
+   * @param {import('../../plugin-kit/types').BlockMutationContext} context
    * @returns {HTMLElement}
    */
   render(data, context) {
