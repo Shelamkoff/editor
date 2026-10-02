@@ -1,4 +1,5 @@
 // @ts-check
+import { uid } from '../../plugin-kit/index.js'
 import { setSafeUrlAttribute } from '../../shared/sanitize/sanitizeUrl.js'
 import { mentionWidgetSchema } from '../../shared/inlineSchemas/mention.js'
 
@@ -69,6 +70,7 @@ export function createMentionPlugin(options={}){
       let searchController=null
       let timer=null
       let loadingMore=false
+      const listboxId='oe-mention-'+uid()
 
       const view=runtimeContext.ownerDocument.defaultView??globalThis
       const clearTimer=()=>{
@@ -83,13 +85,22 @@ export function createMentionPlugin(options={}){
         clearTimer()
         loadingMore=false
       }
+      const clearAria=session=>{
+        const anchor=session?.anchor
+        if(!anchor)return
+        if(anchor.getAttribute('aria-controls')===listboxId)anchor.removeAttribute('aria-controls')
+        anchor.removeAttribute('aria-expanded')
+        anchor.removeAttribute('aria-activedescendant')
+      }
       const close=()=>{
+        const session=activeSession
         abortSearch()
         activeSession=null
         items=[]
         selected=0
         cursor=null
         query=''
+        clearAria(session)
         runtimeContext.hidePopup()
         popup?.remove()
         popup=null
@@ -103,13 +114,16 @@ export function createMentionPlugin(options={}){
           const custom=snapshot.renderNoResults?.(text)
           if(isElement(custom,runtimeContext.ownerDocument)){
             custom.classList.add('oe-mention-no-results')
+            custom.setAttribute('role','status')
             popup.appendChild(custom)
           }else{
             const empty=runtimeContext.ownerDocument.createElement('div')
             empty.className='oe-mention-item oe-mention-no-results'
+            empty.setAttribute('role','status')
             empty.textContent=text
             popup.appendChild(empty)
           }
+          activeSession?.anchor.removeAttribute('aria-activedescendant')
           return
         }
 
@@ -149,6 +163,7 @@ export function createMentionPlugin(options={}){
           row.classList.add('oe-mention-item')
           row.classList.toggle('oe-mention-item--active',index===selected)
           row.dataset.index=String(index)
+          row.id=`${listboxId}-option-${index}`
           row.setAttribute('role','option')
           row.setAttribute('aria-selected',String(index===selected))
           row.addEventListener('mousedown',event=>event.preventDefault(),{signal:runtimeContext.signal})
@@ -158,6 +173,9 @@ export function createMentionPlugin(options={}){
           },{signal:runtimeContext.signal})
           popup.appendChild(row)
         })
+        const active=popup.querySelector('.oe-mention-item--active')
+        if(active?.id)activeSession?.anchor.setAttribute('aria-activedescendant',active.id)
+        else activeSession?.anchor.removeAttribute('aria-activedescendant')
       }
 
       const showLoading=()=>{
@@ -231,6 +249,7 @@ export function createMentionPlugin(options={}){
         query=session.query
         if(!popup){
           popup=runtimeContext.ownerDocument.createElement('div')
+          popup.id=listboxId
           popup.className=['oe-mention-dropdown','oe-mention-dropdown--active',snapshot.dropdownClass??''].filter(Boolean).join(' ')
           popup.setAttribute('role','listbox')
           popup.addEventListener('scroll',()=>{
@@ -238,7 +257,10 @@ export function createMentionPlugin(options={}){
             if(popup.scrollTop+popup.clientHeight>=popup.scrollHeight-24)void load(cursor,true)
           },{signal:runtimeContext.signal})
         }
+        session.anchor.setAttribute('aria-controls',listboxId)
+        session.anchor.setAttribute('aria-expanded','true')
         runtimeContext.showPopup(session.anchor,popup,()=>{
+          clearAria(session)
           if(activeSession===session){
             abortSearch()
             activeSession=null
