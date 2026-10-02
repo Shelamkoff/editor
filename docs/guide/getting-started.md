@@ -41,14 +41,14 @@ Register every block type that the document may contain. The default `injectStyl
 
 ```js
 import { createEditor } from '@shelamkoff/rector'
-import { Paragraph } from '@shelamkoff/rector/plugins/paragraph'
-import { Heading } from '@shelamkoff/rector/plugins/heading'
+import { createParagraphPlugin } from '@shelamkoff/rector/plugins/paragraph'
+import { createHeadingPlugin } from '@shelamkoff/rector/plugins/heading'
 
 const holder = document.querySelector('#editor')
 
 const editor = createEditor({
   holder,
-  plugins: [new Paragraph(), new Heading()],
+  plugins: [createParagraphPlugin(), createHeadingPlugin()],
   data: {
     version: '2.0.0',
     blocks: [

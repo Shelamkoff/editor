@@ -23,9 +23,9 @@ Rector does not assume a backend, storage provider, or media-library UI. A file-
 The following adapter is application code. `openMediaLibrary()` may show any modal, query any API, and return the user's selection. Rector only owns the callback contract and the resulting document mutation.
 
 ```js
-import { Image } from '@shelamkoff/rector/plugins/image'
-import { Gallery } from '@shelamkoff/rector/plugins/gallery'
-import { CarouselBlock } from '@shelamkoff/rector/plugins/carousel'
+import { createImagePlugin } from '@shelamkoff/rector/plugins/image'
+import { createGalleryPlugin } from '@shelamkoff/rector/plugins/gallery'
+import { createCarouselPlugin } from '@shelamkoff/rector/plugins/carousel'
 
 const mediaLibraryAction = {
   label: 'Media library',
@@ -40,7 +40,7 @@ const mediaLibraryAction = {
   },
 }
 
-const image = new Image({
+const image = createImagePlugin({
   actions: [{
     ...mediaLibraryAction,
     async handler(context) {
@@ -51,7 +51,7 @@ const image = new Image({
   }],
 })
 
-const gallery = new Gallery({
+const gallery = createGalleryPlugin({
   actions: [{
     ...mediaLibraryAction,
     async handler(context) {
@@ -62,7 +62,7 @@ const gallery = new Gallery({
   }],
 })
 
-const carousel = new CarouselBlock({
+const carousel = createCarouselPlugin({
   actions: [{
     ...mediaLibraryAction,
     async handler(context) {
@@ -92,7 +92,7 @@ An action icon is optional. When supplied, pass markup from the same trusted ico
 ## Uploading device files
 
 ```js
-const image = new Image({
+const image = createImagePlugin({
   async uploadFile(file, { signal }) {
     const body = new FormData()
     body.append('file', file)
@@ -117,7 +117,7 @@ Without `uploadFile`, `Image` and `Gallery` use data URLs, while `CarouselBlock`
 ### Carousel
 
 ```js
-new CarouselBlock({
+createCarouselPlugin({
   uploadFile: persistCarouselFile,
   actions: [{
     label: 'Media library',
@@ -136,9 +136,9 @@ Each carousel slide requires a stable, unique `id`. Rector sanitizes media URLs 
 ### Attachments
 
 ```js
-import { Attaches } from '@shelamkoff/rector/plugins/attaches'
+import { createAttachesPlugin } from '@shelamkoff/rector/plugins/attaches'
 
-new Attaches({
+createAttachesPlugin({
   uploadFile: persistDownload,
   actions: [{
     label: 'File library',

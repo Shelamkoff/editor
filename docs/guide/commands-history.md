@@ -185,23 +185,23 @@ Native undo remains available in ordinary `input` and `textarea` controls owned 
 
 History is last-in, first-out. If a block is inserted and formatting is then applied, the first undo removes the formatting and the second undo removes the inserted block. Redo replays them in the opposite direction.
 
-Continuous text input is coalesced within `tuning.undo.debounceMs`, which defaults to 300 ms. A command boundary, selection-changing action, structural operation, paste, or toolbar action closes the typing group.
+Continuous native text input is coalesced by the canonical history engine. Explicit commands, selection-changing actions, structural operations, paste, and toolbar actions always form command boundaries.
 
 `canUndo` and `history:changed` react as soon as the first input event opens that group; application buttons therefore do not wait for the debounce timer. Starting a new input branch also makes `canRedo` false immediately.
 
-The history stack stores at most `tuning.undo.maxStack` entries, which defaults to 100. Committing a new action after undo discards the redo branch.
+Committing a new action after undo discards the redo branch. History capacity and internal coalescing are implementation details rather than public configuration.
 
 ## Events are observations, not commands
 
 `editor.events` is subscription-only. Events report completed behavior and must not be emitted by application or plugin code.
 
 ```js
-const stopHistoryState = editor.events.on('history:changed', ({ canUndo, canRedo }) => {
+const stopHistoryState = editor.on('history:changed', ({ canUndo, canRedo }) => {
   undoButton.disabled = !canUndo
   redoButton.disabled = !canRedo
 })
 
-const stopDirtyState = editor.events.on('history:commit', () => {
+const stopDirtyState = editor.on('history:commit', () => {
   markDocumentDirty()
 })
 

@@ -23,9 +23,9 @@ Rector не предполагает наличие сервера, опреде
 Следующий адаптер относится к приложению. `openMediaLibrary()` может показать любое модальное окно, обратиться к любому API и вернуть выбор пользователя. Rector отвечает только за контракт обработчика и изменение документа.
 
 ```js
-import { Image } from '@shelamkoff/rector/plugins/image'
-import { Gallery } from '@shelamkoff/rector/plugins/gallery'
-import { CarouselBlock } from '@shelamkoff/rector/plugins/carousel'
+import { createImagePlugin } from '@shelamkoff/rector/plugins/image'
+import { createGalleryPlugin } from '@shelamkoff/rector/plugins/gallery'
+import { createCarouselPlugin } from '@shelamkoff/rector/plugins/carousel'
 
 const mediaLibraryAction = {
   label: 'Медиатека',
@@ -40,7 +40,7 @@ const mediaLibraryAction = {
   },
 }
 
-const image = new Image({
+const image = createImagePlugin({
   actions: [{
     ...mediaLibraryAction,
     async handler(context) {
@@ -51,7 +51,7 @@ const image = new Image({
   }],
 })
 
-const gallery = new Gallery({
+const gallery = createGalleryPlugin({
   actions: [{
     ...mediaLibraryAction,
     async handler(context) {
@@ -62,7 +62,7 @@ const gallery = new Gallery({
   }],
 })
 
-const carousel = new CarouselBlock({
+const carousel = createCarouselPlugin({
   actions: [{
     ...mediaLibraryAction,
     async handler(context) {
@@ -92,7 +92,7 @@ const carousel = new CarouselBlock({
 ## Загрузка файлов с устройства
 
 ```js
-const image = new Image({
+const image = createImagePlugin({
   async uploadFile(file, { signal }) {
     const body = new FormData()
     body.append('file', file)
@@ -117,7 +117,7 @@ const image = new Image({
 ### Карусель
 
 ```js
-new CarouselBlock({
+createCarouselPlugin({
   uploadFile: persistCarouselFile,
   actions: [{
     label: 'Медиатека',
@@ -136,9 +136,9 @@ new CarouselBlock({
 ### Прикреплённые файлы
 
 ```js
-import { Attaches } from '@shelamkoff/rector/plugins/attaches'
+import { createAttachesPlugin } from '@shelamkoff/rector/plugins/attaches'
 
-new Attaches({
+createAttachesPlugin({
   uploadFile: persistDownload,
   actions: [{
     label: 'Библиотека файлов',

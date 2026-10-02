@@ -172,8 +172,7 @@ assertNamesDocumented({
   documents: ['docs/guide/editor-api.md', 'docs/ru/guide/editor-api.md'],
   label: 'public editor contract',
   names: [
-    'EditorDocument', 'EditorConfig', 'DocumentMigration', 'EditorBlockSnapshot',
-    'EditorBlocksApi', 'EditorEventName', 'IEditor',
+    'EditorDocument', 'EditorBlockSnapshot', 'EditorBlocksApi', 'EditorEventName', 'IEditor',
   ],
 })
 assertTextDocumented({
