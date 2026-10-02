@@ -16,7 +16,8 @@ export function register() {
       equal(saved.map(block => block.data.text), start ? ['A', 'BC', 'DE'] : ['ABC', 'DE'])
       for (const remainder of saved.filter(block => block.type === 'heading')) {
         equal(remainder.data.level, 4)
-        equal(remainder.data.align, 'right')
+        equal(remainder.data.align, undefined)
+        equal(remainder.tunes?.textAlign, 'right')
       }
       equal(saved.find(block => block.type === 'paragraph').data.level, undefined, 'source-only properties must not leak to a neutral target')
       editor.undo(); equal(editor.save().blocks, before)
@@ -32,8 +33,10 @@ export function register() {
     convertSelection(editor, 'paragraph')
     const saved = editor.save().blocks
     equal(saved.map(block => block.data.text), ['A', 'BCDE', 'FG', 'HIJ'])
-    equal(saved[0].data, { text: 'A', level: 4, align: 'right' })
-    equal(saved[3].data, { text: 'HIJ', level: 5, align: 'center' })
+    equal(saved[0].data, { text: 'A', level: 4 })
+    equal(saved[0].tunes, { textAlign: 'right' })
+    equal(saved[3].data, { text: 'HIJ', level: 5 })
+    equal(saved[3].tunes, { textAlign: 'center' })
   })
   test('source remainder retains plugin-specific settings as well as opaque inline metadata', () => {
     class ConfiguredHeading extends Heading {
