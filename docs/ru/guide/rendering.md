@@ -40,7 +40,7 @@ interface RendererConfig {
     poll?: PollRendererConfig
     [type: string]: unknown
   }
-  inlinePlugins?: InlinePluginLike[]
+  inlineRenderers?: InlineWidgetRenderer[]
 }
 ```
 
@@ -55,7 +55,7 @@ interface RendererConfig {
 | `locale` | встроенный английский | плоский словарь сообщений `renderer.*` |
 | `blockTypes` | все встроенные | создать только выбранные встроенные рендереры |
 | `blockConfigs` | нет | оперативная конфигурация по типу встроенного блока |
-| `inlinePlugins` | нет | фабрики для восстановления постоянных внутристрочных виджетов |
+| `inlineRenderers` | нет | read-only проекции внутристрочных виджетов, проверяемые той же схемой виджета, что и в редакторе |
 
 По умолчанию отсутствие рендерера приводит к явной ошибке. Устанавливайте `throwOnUnknown: false` только тогда, когда приложение со смешанными версиями намеренно допускает заглушку вместо неподдерживаемого блока. Заглушка получает класс `<classPrefix>-unknown` и атрибут `data-block-type`, но не воспроизводит отсутствующее содержимое.
 
@@ -74,6 +74,7 @@ import type {
   OutputData,
   ParagraphBlock,
   RendererConfig,
+  InlineWidgetRenderer,
 } from '@shelamkoff/rector/renderer/types'
 ```
 
@@ -82,7 +83,7 @@ import type {
 - оболочку документа `OutputData`, общую форму блока `OutputBlockData` и `InlineWidget`;
 - `Block`, `BlockType` и отдельный псевдоним наподобие `ParagraphBlock`, `ImageBlock` или `PollBlock` для каждого встроенного рендерера;
 - соответствующие контракты данных, включая `ParagraphData`, `ImageData`, `GalleryData`, `CarouselData`, `PollData` и `PersonData`;
-- контракты расширения `BlockRenderer`, `InlineParser`, `InlinePluginLike` и `RendererConfig`;
+- контракты расширения `BlockRenderer`, `InlineParser`, `InlineWidgetRenderer` и `RendererConfig`;
 - контракты интеграции опроса `PollDataSource`, `PollResults`, `PollVoter` и `PollRendererConfig`.
 
 Используйте `OutputData`, если приложение только отображает документы и не зависит от типов редактора. `EditorDocument` из `editor.save()` структурно совместим с ним и не требует преобразования. Для рендерера известного встроенного типа используйте соответствующий псевдоним блока, а для собственного типа приложения — `OutputBlockData<'callout', CalloutData>`.

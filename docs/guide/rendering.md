@@ -40,7 +40,7 @@ interface RendererConfig {
     poll?: PollRendererConfig
     [type: string]: unknown
   }
-  inlinePlugins?: InlinePluginLike[]
+  inlineRenderers?: InlineWidgetRenderer[]
 }
 ```
 
@@ -55,7 +55,7 @@ interface RendererConfig {
 | `locale` | built-in English | flat `renderer.*` message dictionary |
 | `blockTypes` | all built-ins | construct only selected built-in renderers |
 | `blockConfigs` | none | runtime configuration keyed by built-in block type |
-| `inlinePlugins` | none | factories used to restore persistent inline widgets |
+| `inlineRenderers` | none | read-only inline widget projections validated through the same widget schemas as the editor |
 
 The default fails explicitly when a renderer is missing. Set `throwOnUnknown: false` only when a mixed-version application intentionally accepts a placeholder for unsupported blocks. The placeholder has the class `<classPrefix>-unknown` and a `data-block-type` attribute; it does not reproduce the missing content.
 
@@ -74,6 +74,7 @@ import type {
   OutputData,
   ParagraphBlock,
   RendererConfig,
+  InlineWidgetRenderer,
 } from '@shelamkoff/rector/renderer/types'
 ```
 
@@ -82,7 +83,7 @@ The type entry exports:
 - the document envelope `OutputData`, the generic block shape `OutputBlockData`, and `InlineWidget`;
 - `Block`, `BlockType`, and a named block alias such as `ParagraphBlock`, `ImageBlock`, or `PollBlock` for every built-in renderer;
 - the matching data contracts such as `ParagraphData`, `ImageData`, `GalleryData`, `CarouselData`, `PollData`, and `PersonData`;
-- extension contracts `BlockRenderer`, `InlineParser`, `InlinePluginLike`, and `RendererConfig`;
+- extension contracts `BlockRenderer`, `InlineParser`, `InlineWidgetRenderer`, and `RendererConfig`;
 - poll integration contracts `PollDataSource`, `PollResults`, `PollVoter`, and `PollRendererConfig`.
 
 Use `OutputData` when a renderer-only application does not depend on editor types. An `EditorDocument` returned by `editor.save()` is structurally compatible and does not need conversion. Use a named block alias when implementing a renderer for a known built-in data shape; use `OutputBlockData<'callout', CalloutData>` for an application-defined type.

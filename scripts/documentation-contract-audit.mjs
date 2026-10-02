@@ -196,7 +196,7 @@ for (const interfaceName of [
   })
 }
 
-for (const interfaceName of ['RendererConfig', 'BlockRenderer', 'InlinePluginLike']) {
+for (const interfaceName of ['RendererConfig', 'BlockRenderer', 'InlineWidgetRenderer']) {
   assertDocumented({
     sourceFile: rendererTypes,
     interfaceName,
@@ -236,7 +236,7 @@ assertNamesDocumented({
     'OutputData', 'OutputBlockData', 'InlineWidget', 'Block', 'BlockType',
     'ParagraphBlock', 'ImageBlock', 'PollBlock', 'ParagraphData', 'ImageData',
     'GalleryData', 'CarouselData', 'PollData', 'PersonData', 'BlockRenderer',
-    'InlineParser', 'InlinePluginLike', 'RendererConfig', 'PollDataSource',
+    'InlineParser', 'InlineWidgetRenderer', 'RendererConfig', 'PollDataSource',
     'PollResults', 'PollVoter', 'PollRendererConfig',
   ],
 })
