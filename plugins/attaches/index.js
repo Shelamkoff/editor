@@ -672,7 +672,7 @@ export class Attaches extends BlockPluginAbstract {
     ownerDocument.addEventListener('click', (e) => {
       const target = e.target
       if (!target || typeof target !== 'object' || !('nodeType' in target)) return
-      if (!dropdown.contains(/** @type {import('../../core/types').DOMNode} */ (target))) setOpen(false)
+      if (!dropdown.contains(/** @type {Node} */ (target))) setOpen(false)
     }, { signal })
     ownerDocument.addEventListener('keydown', (event) => {
       if (event.key !== 'Escape' || !dropdown.classList.contains('oe-attaches__dropdown--open')) return
