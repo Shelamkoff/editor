@@ -376,6 +376,7 @@ export interface InlinePluginRuntime<
     context: InlineWidgetContext<D>,
   ): InlineWidgetInstance<D>
   onTriggerQuery?(session: InlineTriggerSession<D>): void
+  onTriggerKeydown?(event: KeyboardEvent, session: InlineTriggerSession<D>): 'handled' | 'pass'
   onTriggerCancel?(): void
   destroy(): void
 }
@@ -384,6 +385,11 @@ export interface InlinePluginRuntime<
 export type InlineFreshInsertion<D extends Record<string, unknown>> =
   | { kind: 'widget', data: D }
   | { kind: 'text', text: string }
+
+export interface InlineWidgetPasteCapability<D extends Record<string, unknown>> {
+  readonly patterns: readonly RegExp[]
+  fromMatch(match: string): D | null
+}
 
 /** Immutable inline-plugin v2 definition. */
 export interface InlinePluginDefinition<
@@ -395,6 +401,7 @@ export interface InlinePluginDefinition<
   readonly styles?: readonly string[]
   readonly trigger?: string
   readonly schema: InlineWidgetSchema<D>
+  readonly paste?: InlineWidgetPasteCapability<D>
   readonly insertion?: Readonly<{
     createInitial(): InlineFreshInsertion<D>
   }>
