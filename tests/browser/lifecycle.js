@@ -330,7 +330,8 @@ async function run() {
     }, 'image-race'),
     { defaultBlock: 'image' },
   )
-  const imageAction = image.holder.querySelector('.oe-image__select-action')
+  const imageAction = [...image.holder.querySelectorAll('.oe-image__select-action')]
+    .find(button => button.textContent?.trim().includes('Library'))
   assert(imageAction instanceof HTMLButtonElement, 'image custom source action is missing')
   imageAction.click()
   imageAction.click()
