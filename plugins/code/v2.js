@@ -34,6 +34,7 @@ function highlight(element, code, language, runtime) {
 }
 
 /**
+ * Create an immutable Code block definition with optional syntax-highlighting runtime and stylesheet configuration.
  * @param {{hljs?: import('../../shared/highlightRuntime').HighlightRuntime, injectStyles?: boolean, css?: string}} [config]
  * @returns {import('../../plugin-kit/types').BlockPluginDefinition<{code:string,language:string}>}
  */
