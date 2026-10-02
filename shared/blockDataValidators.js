@@ -3,13 +3,8 @@ import { validatePollData } from './pollData.js'
 import { validateCarouselData } from './carouselData.js'
 import { paragraphDataSchema } from './blockSchemas/paragraph.js'
 import { headingDataSchema } from './blockSchemas/heading.js'
+import { COLUMN_LAYOUT_SIZES } from './columnLayouts.js'
 
-export const COLUMN_LAYOUT_SIZES = Object.freeze({
-  '1-1': 2,
-  '1-2': 2,
-  '2-1': 2,
-  '1-1-1': 3,
-})
 
 export const GALLERY_LAYOUTS = Object.freeze([
   'auto', '1', '2', '3a', '3b', '3c', '4a', '4b', '4c',
