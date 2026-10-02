@@ -40,7 +40,7 @@ export class Warning extends BlockPluginAbstract {
   /**
    * Create the editable DOM owned by this block instance.
    * @param {{ title?: string, message?: string }} data
-   * @param {import('../../core/types').BlockMutationContext} context
+   * @param {import('../../plugin-kit/types').BlockMutationContext} context
    * @returns {HTMLElement}
    */
   render(data, context) {
