@@ -23,10 +23,10 @@ rendererStyles.destroy()
 ## Typical data
 
 ```json
-{ "text": "Section", "level": 2, "align": "left" }
+{ "text": "Section", "level": 2 }
 ```
 
-The `text` field uses the shared inline parser; validated `level` and `align` values control the element and alignment. The renderer declares one stylesheet and creates no listeners or external instances.
+The `text` field uses the shared inline parser and validated `level` controls the heading element. Block alignment is read from `block.tunes.textAlign`, not heading data. The renderer declares one stylesheet and creates no listeners or external instances.
 
 When styles are declared, the explicit `EditorRenderer.injectStyles()` call shown above acquires them and its returned owner releases them.
 
