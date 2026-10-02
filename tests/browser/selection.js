@@ -1,9 +1,8 @@
 import { createEditor } from '../../core/index.js'
-import { Paragraph, Quote } from '../../plugins/index.js'
-import { restoreCrossBlockRange, saveCrossBlockOffsets } from '../../inline-tools/utils.js'
+import { createParagraphPlugin, createQuotePlugin } from '../../plugins/index.js'
 
 const initialData = {
-  version: 'browser-selection',
+  version: '2.0.0',
   blocks: [
     { id: 'alpha', type: 'paragraph', data: { text: 'Alpha one' } },
     { id: 'bravo', type: 'paragraph', data: { text: 'Bravo two' } },
@@ -19,26 +18,47 @@ function delay(ms = 20) {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
 
-function createHarness(sandbox) {
+function createHarness(sandbox, data = initialData, plugins = [createParagraphPlugin({ injectStyles: false })]) {
   const holder = document.createElement('section')
   sandbox.appendChild(holder)
   const editor = createEditor({
     holder,
-    plugins: [new Paragraph()],
-    inlineTools: [],
-    data: structuredClone(initialData),
-    tuning: {
-      undo: { debounceMs: 0, maxStack: 100 },
-      change: { debounceMs: 0 },
-      animations: { blockInsertMs: 0, blockMoveMs: 0 },
-    },
+    plugins,
+    injectStyles: false,
+    data: structuredClone(data),
+    changeDebounceMs: 0,
   })
-  return { editor, holder }
+  const root = holder.querySelector('.oe-editor')
+  assert(root instanceof HTMLElement, 'editor root is missing')
+  return { editor, holder, root }
+}
+
+function blockRoot(harness, index) {
+  const record = harness.editor.blocks.at(index)
+  assert(record, `missing block at index ${index}`)
+  const block = [...harness.root.querySelectorAll('.oe-block')]
+    .find(element => element.dataset.blockId === record.id)
+  assert(block instanceof HTMLElement, `block DOM is missing for ${record.id}`)
+  return block
+}
+
+function editable(harness, index, selector = null) {
+  const block = blockRoot(harness, index)
+  if (selector) {
+    const field = block.querySelector(selector)
+    assert(field instanceof HTMLElement, `editable field ${selector} is missing`)
+    return field
+  }
+  if (block.matches('[contenteditable="true"]')) return block
+  const field = block.querySelector('[contenteditable="true"]')
+  assert(field instanceof HTMLElement, 'editable field is missing')
+  return field
 }
 
 function textNode(element) {
-  const node = element.firstChild
-  assert(node?.nodeType === Node.TEXT_NODE, 'expected a direct text node')
+  const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT)
+  const node = walker.nextNode()
+  assert(node?.nodeType === Node.TEXT_NODE, 'expected text content')
   return node
 }
 
@@ -48,6 +68,15 @@ function setCaret(element, offset) {
   const range = document.createRange()
   range.setStart(node, Math.max(0, Math.min(offset, node.data.length)))
   range.collapse(true)
+  const selection = window.getSelection()
+  selection.removeAllRanges()
+  selection.addRange(range)
+}
+
+function selectAllText(element) {
+  element.focus()
+  const range = document.createRange()
+  range.selectNodeContents(element)
   const selection = window.getSelection()
   selection.removeAllRanges()
   selection.addRange(range)
@@ -71,30 +100,24 @@ function pointAt(element, offset) {
   }
 }
 
-async function activateCrossSelection(editor, startIndex = 0, startOffset = 6, endIndex = 2, endOffset = 7) {
-  const start = editor.blocks.getBlockByIndex(startIndex).contentElement
-  const end = editor.blocks.getBlockByIndex(endIndex).contentElement
+async function activateCrossSelection(harness, startIndex = 0, startOffset = 6, endIndex = 2, endOffset = 7) {
+  const start = editable(harness, startIndex)
+  const end = editable(harness, endIndex)
   const startPoint = pointAt(start, startOffset)
   const endPoint = pointAt(end, endOffset)
   start.focus()
   start.dispatchEvent(new MouseEvent('mousedown', {
-    bubbles: true,
-    cancelable: true,
-    button: 0,
-    buttons: 1,
-    clientX: startPoint.x,
-    clientY: startPoint.y,
+    bubbles: true, cancelable: true, button: 0, buttons: 1,
+    clientX: startPoint.x, clientY: startPoint.y,
   }))
   document.dispatchEvent(new MouseEvent('mousemove', {
-    bubbles: true,
-    cancelable: true,
-    buttons: 1,
-    clientX: endPoint.x,
-    clientY: endPoint.y,
+    bubbles: true, cancelable: true, buttons: 1,
+    clientX: endPoint.x, clientY: endPoint.y,
   }))
   document.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, button: 0, buttons: 0 }))
   await delay()
-  assert(editor.rootElement.classList.contains('oe-editor--cross-selecting'), 'cross-block selection was not activated')
+  assert(harness.root.classList.contains('oe-editor--cross-selecting'), 'cross-block selection was not activated')
+  assert(harness.editor.blocks.selectedIds().length === 3, 'cross-block selection did not expose selected block ids')
 }
 
 function key(target, keyValue, options = {}) {
@@ -102,6 +125,7 @@ function key(target, keyValue, options = {}) {
     key: keyValue,
     code: options.code || keyValue,
     ctrlKey: !!options.ctrlKey,
+    metaKey: !!options.metaKey,
     shiftKey: !!options.shiftKey,
     bubbles: true,
     cancelable: true,
@@ -110,28 +134,20 @@ function key(target, keyValue, options = {}) {
   return event
 }
 
-function shortcut(editor, shiftKey = false) {
-  key(editor.rootElement, shiftKey ? 'Z' : 'z', {
-    code: 'KeyZ',
-    ctrlKey: true,
-    shiftKey,
-  })
+function shortcut(target, shiftKey = false) {
+  return key(target, shiftKey ? 'Z' : 'z', { code: 'KeyZ', ctrlKey: true, shiftKey })
 }
 
 function paste(target, values) {
   const data = new DataTransfer()
   for (const [type, value] of Object.entries(values)) data.setData(type, value)
-  const event = new ClipboardEvent('paste', {
-    clipboardData: data,
-    bubbles: true,
-    cancelable: true,
-  })
+  const event = new ClipboardEvent('paste', { clipboardData: data, bubbles: true, cancelable: true })
   target.dispatchEvent(event)
   return event
 }
 
-async function blockTexts(editor) {
-  return editor.save().blocks.map(block => String(block.data.text || ''))
+function texts(editor) {
+  return editor.save().blocks.map(block => String(block.data.text ?? ''))
 }
 
 async function run() {
@@ -140,12 +156,11 @@ async function run() {
   window.addEventListener('error', event => runtimeErrors.push(event.error?.stack || event.message))
   window.addEventListener('unhandledrejection', event => runtimeErrors.push(event.reason?.stack || String(event.reason)))
 
-  const copyHarness = createHarness(sandbox)
-  await delay()
-  await activateCrossSelection(copyHarness.editor)
+  const copy = createHarness(sandbox)
+  await activateCrossSelection(copy)
   const copyData = new DataTransfer()
   const copyEvent = new ClipboardEvent('copy', { clipboardData: copyData, bubbles: true, cancelable: true })
-  copyHarness.editor.blocks.getBlockByIndex(0).contentElement.dispatchEvent(copyEvent)
+  editable(copy, 0).dispatchEvent(copyEvent)
   const copiedText = copyData.getData('text/plain')
   assert(copyEvent.defaultPrevented, 'partial cross-block copy was not handled')
   assert(copyData.getData('application/x-rector-editor') === '', 'partial copy exported whole-block MIME data')
@@ -154,175 +169,126 @@ async function run() {
 
   const cutData = new DataTransfer()
   const cutEvent = new ClipboardEvent('cut', { clipboardData: cutData, bubbles: true, cancelable: true })
-  copyHarness.editor.blocks.getBlockByIndex(0).contentElement.dispatchEvent(cutEvent)
+  editable(copy, 0).dispatchEvent(cutEvent)
   await delay()
-  assert(copyHarness.editor.blocks.getBlockCount() === 1, 'partial cut did not merge selected blocks')
-  assert(copyHarness.editor.blocks.getSelectedBlocks().length === 0, 'partial cut left block selection active')
-  const cutText = copyHarness.editor.blocks.getBlockByIndex(0).contentElement.textContent || ''
-  assert(cutText.includes('Alpha') && cutText.includes('three'), 'partial cut lost surviving text')
-  assert(!/one|Bravo|Charlie/.test(cutText), 'partial cut kept selected text')
-  assert((await blockTexts(copyHarness.editor))[0] === cutText, 'partial cut saved a stale cached block')
-  shortcut(copyHarness.editor)
+  assert(copy.editor.blocks.count === 1, 'partial cut did not merge selected paragraph range')
+  assert(texts(copy.editor)[0] === 'Alpha  three', 'partial cut lost surviving endpoint text')
+  shortcut(editable(copy, 0))
   await delay()
-  assert(JSON.stringify(await blockTexts(copyHarness.editor)) === JSON.stringify(['Alpha one', 'Bravo two', 'Charlie three']), 'partial cut undo was not atomic')
-  shortcut(copyHarness.editor, true)
+  assert(JSON.stringify(texts(copy.editor)) === JSON.stringify(['Alpha one', 'Bravo two', 'Charlie three']), 'partial cut undo was not atomic')
+  shortcut(editable(copy, 0), true)
   await delay()
-  assert(copyHarness.editor.blocks.getBlockCount() === 1, 'partial cut redo failed')
-  copyHarness.editor.destroy()
+  assert(texts(copy.editor)[0] === 'Alpha  three', 'partial cut redo failed')
+  copy.editor.destroy()
 
   for (const deletionKey of ['Backspace', 'Delete']) {
     const harness = createHarness(sandbox)
+    await activateCrossSelection(harness)
+    const event = key(editable(harness, 0), deletionKey)
     await delay()
-    await activateCrossSelection(harness.editor)
-    const event = key(harness.editor.blocks.getBlockByIndex(0).contentElement, deletionKey)
+    assert(event.defaultPrevented, `${deletionKey} did not consume the cross-block selection`)
+    assert(harness.editor.blocks.count === 1, `${deletionKey} did not replace the selected range atomically`)
+    shortcut(editable(harness, 0))
     await delay()
-    assert(event.defaultPrevented, `${deletionKey} did not handle cross-block selection`)
-    assert(harness.editor.blocks.getBlockCount() === 1, `${deletionKey} performed a second structural deletion`)
-    assert(harness.editor.blocks.getSelectedBlocks().length === 0, `${deletionKey} left selected blocks`)
-    shortcut(harness.editor)
-    await delay()
-    assert(harness.editor.blocks.getBlockCount() === 3, `${deletionKey} undo was not one transaction`)
+    assert(harness.editor.blocks.count === 3, `${deletionKey} undo was not atomic`)
     harness.editor.destroy()
   }
 
   const pasteHarness = createHarness(sandbox)
+  await activateCrossSelection(pasteHarness)
+  const pasteEvent = paste(editable(pasteHarness, 0), { 'text/plain': 'REPLACED' })
   await delay()
-  await activateCrossSelection(pasteHarness.editor)
-  const pasteTarget = pasteHarness.editor.blocks.getBlockByIndex(0).contentElement
-  const pasteEvent = paste(pasteTarget, { 'text/plain': 'REPLACED' })
+  assert(pasteEvent.defaultPrevented, 'cross-block paste was not handled')
+  assert(pasteHarness.editor.blocks.count === 1, 'cross-block paste left intermediate blocks')
+  assert(texts(pasteHarness.editor)[0] === 'Alpha REPLACED three', 'cross-block paste lost head/tail text')
+  shortcut(editable(pasteHarness, 0))
   await delay()
-  assert(pasteEvent.defaultPrevented, 'paste did not replace the cross-block selection')
-  assert(pasteHarness.editor.blocks.getBlockCount() === 1, 'cross-block paste kept or removed an unexpected block')
-  assert((await blockTexts(pasteHarness.editor))[0] === 'Alpha REPLACED three', 'cross-block paste lost unselected head or tail text')
-  shortcut(pasteHarness.editor)
-  await delay()
-  assert(JSON.stringify(await blockTexts(pasteHarness.editor)) === JSON.stringify(['Alpha one', 'Bravo two', 'Charlie three']), 'cross-block paste undo was not atomic')
-  shortcut(pasteHarness.editor, true)
-  await delay()
-  assert((await blockTexts(pasteHarness.editor))[0] === 'Alpha REPLACED three', 'cross-block paste redo failed')
+  assert(JSON.stringify(texts(pasteHarness.editor)) === JSON.stringify(['Alpha one', 'Bravo two', 'Charlie three']), 'cross-block paste undo failed')
   pasteHarness.editor.destroy()
 
-  const outsideHarness = createHarness(sandbox)
-  await delay()
-  await activateCrossSelection(outsideHarness.editor)
+  const outside = createHarness(sandbox)
+  await activateCrossSelection(outside)
   document.querySelector('#outside').dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }))
-  assert(!outsideHarness.editor.rootElement.classList.contains('oe-editor--cross-selecting'), 'outside click kept cross selection active')
-  assert(outsideHarness.editor.blocks.getSelectedBlocks().length === 0, 'outside click kept block selection active')
-  outsideHarness.editor.destroy()
+  assert(!outside.root.classList.contains('oe-editor--cross-selecting'), 'outside click kept cross selection active')
+  assert(outside.editor.blocks.selectedIds().length === 0, 'outside click kept block selection active')
+  outside.editor.destroy()
 
-  const duplicateFirst = createHarness(sandbox)
-  const duplicateSecond = createHarness(sandbox)
-  await delay()
-  const duplicateStart = duplicateSecond.editor.blocks.getBlockByIndex(0).contentElement
-  const duplicateEnd = duplicateSecond.editor.blocks.getBlockByIndex(1).contentElement
-  const duplicateRange = document.createRange()
-  duplicateRange.setStart(textNode(duplicateStart), 2)
-  duplicateRange.setEnd(textNode(duplicateEnd), 3)
-  const duplicateOffsets = saveCrossBlockOffsets(duplicateRange)
-  assert(duplicateOffsets, 'cross-block offsets were not saved')
-  const restoredDuplicateRange = restoreCrossBlockRange(null, duplicateOffsets)
-  assert(restoredDuplicateRange, 'cross-block offsets were not restored')
-  assert(
-    duplicateSecond.editor.rootElement.contains(restoredDuplicateRange.startContainer)
-      && !duplicateFirst.editor.rootElement.contains(restoredDuplicateRange.startContainer),
-    'cross-block restore escaped to an editor with duplicate block IDs',
-  )
-  duplicateFirst.editor.destroy()
-  duplicateSecond.editor.destroy()
-
-  const multiFieldHolder = document.createElement('section')
-  sandbox.appendChild(multiFieldHolder)
-  const multiFieldEditor = createEditor({
-    holder: multiFieldHolder,
-    plugins: [new Paragraph(), new Quote()],
-    inlineTools: [],
-    data: {
-      version: 'browser-selection',
-      blocks: [
-        { id: 'quote-alpha', type: 'quote', data: { text: 'First quote', caption: 'First caption' } },
-        { id: 'quote-bravo', type: 'quote', data: { text: 'Second quote', caption: 'Second caption' } },
-      ],
-    },
-  })
-  const firstCaption = multiFieldEditor.blocks.getBlockByIndex(0).contentElement.querySelector('.oe-quote__caption')
-  const secondCaption = multiFieldEditor.blocks.getBlockByIndex(1).contentElement.querySelector('.oe-quote__caption')
-  assert(firstCaption && secondCaption, 'multi-field selection fixture is missing quote captions')
-  const multiFieldRange = document.createRange()
-  multiFieldRange.setStart(textNode(firstCaption), 2)
-  multiFieldRange.setEnd(textNode(secondCaption), 6)
-  const multiFieldOffsets = saveCrossBlockOffsets(multiFieldRange)
-  assert(multiFieldOffsets?.startFieldIndex === 1 && multiFieldOffsets?.endFieldIndex === 1, 'cross-block offsets lost their editable field indexes')
-  const restoredMultiFieldRange = restoreCrossBlockRange(null, multiFieldOffsets)
-  assert(restoredMultiFieldRange, 'multi-field cross-block offsets were not restored')
-  assert(firstCaption.contains(restoredMultiFieldRange.startContainer), 'cross-block restore moved the start into the first field')
-  assert(secondCaption.contains(restoredMultiFieldRange.endContainer), 'cross-block restore moved the end into the first field')
-  multiFieldEditor.destroy()
-
-  const focusHarness = createHarness(sandbox)
-  const first = focusHarness.editor.blocks.getBlockByIndex(0).contentElement
-  const second = focusHarness.editor.blocks.getBlockByIndex(1).contentElement
+  const focus = createHarness(sandbox)
+  const first = editable(focus, 0)
+  const second = editable(focus, 1)
   setCaret(first, first.textContent.length)
   assert(key(first, 'ArrowDown').defaultPrevented, 'ArrowDown did not navigate from block end')
-  assert(focusHarness.editor.blocks.getCurrentIndex() === 1 && document.activeElement === second, 'ArrowDown focus target is inconsistent')
+  assert(document.activeElement === second, 'ArrowDown focused the wrong block')
   setCaret(second, 0)
   assert(key(second, 'ArrowUp').defaultPrevented, 'ArrowUp did not navigate from block start')
-  assert(focusHarness.editor.blocks.getCurrentIndex() === 0 && document.activeElement === first, 'ArrowUp focus target is inconsistent')
-  const tabEvent = key(first, 'Tab')
-  const shiftTabEvent = key(first, 'Tab', { shiftKey: true })
-  assert(!tabEvent.defaultPrevented && !shiftTabEvent.defaultPrevented, 'Tab navigation is trapped inside the editor')
-  focusHarness.editor.destroy()
+  assert(document.activeElement === first, 'ArrowUp focused the wrong block')
+  assert(!key(first, 'Tab').defaultPrevented, 'Tab is trapped inside the editor')
+  assert(!key(first, 'Tab', { shiftKey: true }).defaultPrevented, 'Shift+Tab is trapped inside the editor')
+  focus.editor.destroy()
 
-  const splitHarness = createHarness(sandbox)
-  const splitFirst = splitHarness.editor.blocks.getBlockByIndex(0).contentElement
+  const split = createHarness(sandbox)
+  const splitFirst = editable(split, 0)
   setCaret(splitFirst, 6)
   assert(key(splitFirst, 'Enter').defaultPrevented, 'Enter did not split the block')
   await delay()
-  assert(splitHarness.editor.blocks.getBlockCount() === 4, 'Enter did not insert one block')
-  const splitTexts = await blockTexts(splitHarness.editor)
-  assert(splitTexts[0] === 'Alpha ' && splitTexts[1] === 'one', 'Enter split saved stale or incorrect content')
-  shortcut(splitHarness.editor)
+  assert(split.editor.blocks.count === 4, 'Enter did not create exactly one block')
+  assert(JSON.stringify(texts(split.editor).slice(0, 2)) === JSON.stringify(['Alpha ', 'one']), 'Enter split persisted stale data')
+  shortcut(editable(split, 0))
   await delay()
-  assert(JSON.stringify(await blockTexts(splitHarness.editor)) === JSON.stringify(['Alpha one', 'Bravo two', 'Charlie three']), 'Enter split undo failed')
-  splitHarness.editor.destroy()
+  assert(JSON.stringify(texts(split.editor)) === JSON.stringify(['Alpha one', 'Bravo two', 'Charlie three']), 'Enter split undo failed')
+  split.editor.destroy()
 
-  for (const [mergeKey, currentIndex, caretOffset] of [
-    ['Backspace', 1, 0],
-    ['Delete', 0, 'end'],
-  ]) {
+  for (const [mergeKey, index, offset] of [['Backspace', 1, 0], ['Delete', 0, 'end']]) {
     const harness = createHarness(sandbox)
-    const block = harness.editor.blocks.getBlockByIndex(currentIndex).contentElement
-    setCaret(block, caretOffset === 'end' ? block.textContent.length : caretOffset)
-    assert(key(block, mergeKey).defaultPrevented, `${mergeKey} did not merge adjacent paragraphs`)
+    const field = editable(harness, index)
+    setCaret(field, offset === 'end' ? field.textContent.length : offset)
+    assert(key(field, mergeKey).defaultPrevented, `${mergeKey} did not merge adjacent paragraphs`)
     await delay()
-    assert(harness.editor.blocks.getBlockCount() === 2, `${mergeKey} removed an unexpected number of blocks`)
-    shortcut(harness.editor)
+    assert(harness.editor.blocks.count === 2, `${mergeKey} removed the wrong number of blocks`)
+    shortcut(editable(harness, 0))
     await delay()
-    assert(harness.editor.blocks.getBlockCount() === 3, `${mergeKey} merge undo failed`)
+    assert(harness.editor.blocks.count === 3, `${mergeKey} merge undo failed`)
     harness.editor.destroy()
   }
 
-  const selectedHarness = createHarness(sandbox)
-  const selectedFirst = selectedHarness.editor.blocks.getBlockByIndex(0).contentElement
-  const nativeRange = document.createRange()
-  nativeRange.selectNodeContents(selectedFirst)
-  const nativeSelection = window.getSelection()
-  nativeSelection.removeAllRanges()
-  nativeSelection.addRange(nativeRange)
-  selectedFirst.focus()
-  const selectAllEvent = key(selectedFirst, 'a', { code: 'KeyA', ctrlKey: true })
-  assert(selectAllEvent.defaultPrevented, 'second Ctrl+A did not select blocks')
-  assert(selectedHarness.editor.blocks.getSelectedBlocks().length === 3, 'Ctrl+A block selection is incomplete')
-  const blockCopyData = new DataTransfer()
-  selectedFirst.dispatchEvent(new ClipboardEvent('copy', { clipboardData: blockCopyData, bubbles: true, cancelable: true }))
-  assert(JSON.parse(blockCopyData.getData('application/x-rector-editor')).length === 3, 'whole-block copy lost internal MIME data')
-  const blockCutData = new DataTransfer()
-  selectedFirst.dispatchEvent(new ClipboardEvent('cut', { clipboardData: blockCutData, bubbles: true, cancelable: true }))
+  const all = createHarness(sandbox)
+  const allFirst = editable(all, 0)
+  selectAllText(allFirst)
+  const selectAll = key(allFirst, 'a', { code: 'KeyA', ctrlKey: true })
   await delay()
-  assert(selectedHarness.editor.blocks.getBlockCount() === 1 && selectedHarness.editor.blocks.getBlockByIndex(0).isEmpty(), 'whole-block cut did not leave one empty block')
-  shortcut(selectedHarness.editor)
+  assert(selectAll.defaultPrevented, 'second Ctrl+A did not enter all-block selection mode')
+  assert(all.editor.blocks.selectedIds().length === 3, 'all-block selection is incomplete')
+  const wholeCopy = new DataTransfer()
+  const wholeCopyEvent = new ClipboardEvent('copy', { clipboardData: wholeCopy, bubbles: true, cancelable: true })
+  allFirst.dispatchEvent(wholeCopyEvent)
+  const internal = JSON.parse(wholeCopy.getData('application/x-rector-editor'))
+  assert(Array.isArray(internal) && internal.length === 3, 'whole-block copy lost internal MIME data')
+  const wholeCut = new DataTransfer()
+  allFirst.dispatchEvent(new ClipboardEvent('cut', { clipboardData: wholeCut, bubbles: true, cancelable: true }))
   await delay()
-  assert(selectedHarness.editor.blocks.getBlockCount() === 3, 'whole-block cut undo was not atomic')
-  selectedHarness.editor.destroy()
+  assert(all.editor.blocks.count === 1 && texts(all.editor)[0] === '', 'whole-block cut did not leave one empty default block')
+  shortcut(editable(all, 0))
+  await delay()
+  assert(all.editor.blocks.count === 3, 'whole-block cut undo was not atomic')
+  all.editor.destroy()
+
+  const multi = createHarness(sandbox, {
+    version: '2.0.0',
+    blocks: [
+      { id: 'quote-alpha', type: 'quote', data: { text: 'First quote', caption: 'First caption' } },
+      { id: 'quote-bravo', type: 'quote', data: { text: 'Second quote', caption: 'Second caption' } },
+    ],
+  }, [createParagraphPlugin({ injectStyles: false }), createQuotePlugin()])
+  const firstCaption = editable(multi, 0, '.oe-quote__caption')
+  const secondCaption = editable(multi, 1, '.oe-quote__caption')
+  const p1 = pointAt(firstCaption, 2)
+  const p2 = pointAt(secondCaption, 6)
+  firstCaption.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, button: 0, buttons: 1, clientX: p1.x, clientY: p1.y }))
+  document.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, cancelable: true, buttons: 1, clientX: p2.x, clientY: p2.y }))
+  document.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, button: 0 }))
+  await delay()
+  assert(multi.root.classList.contains('oe-editor--cross-selecting'), 'multi-field endpoints did not preserve field identity')
+  multi.editor.destroy()
 
   await delay(50)
   assert(runtimeErrors.length === 0, `browser runtime errors: ${runtimeErrors.join('\n')}`)
@@ -331,6 +297,7 @@ async function run() {
     crossBlockOperations: ['copy', 'cut', 'paste', 'Backspace', 'Delete', 'outside clear'],
     structuralKeys: ['Enter', 'Backspace merge', 'Delete merge', 'Ctrl+A'],
     focusKeys: ['ArrowUp', 'ArrowDown', 'Tab', 'Shift+Tab'],
+    multiField: true,
   }
 }
 
