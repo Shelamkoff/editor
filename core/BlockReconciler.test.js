@@ -143,7 +143,7 @@ test('single update among 1000 blocks touches only one mounted instance', () => 
 
 test('move preserves block instance and DOM identity', () => {
   const { store, reconciler, container, counters } = setup(3)
-  counters.create = counters.update = counters.destroy = 0
+  counters.create = counters.update = counters.destroy = counters.readOnly = 0
   const moved = reconciler.getElement('0')
 
   const draft = store.createDraft()
