@@ -40,3 +40,36 @@ test('split marks and publishes the source block exactly once', () => {
     1,
   )
 })
+
+
+test('split with an empty tail delegates default data creation to the block schema', () => {
+  const events = { emit() {} }
+  const current = {
+    id: 'source',
+    type: 'paragraph',
+    save() { return { data: { text: 'left' }, dataVersion: 2 } },
+    markDirty() {},
+  }
+  const inserted = { id: 'inserted', focus() {} }
+  let insertedData = Symbol('not-called')
+  const blocks = {
+    getCurrentBlock() { return current },
+    getCurrentIndex() { return 0 },
+    getBlockById(id) { return id === current.id ? current : undefined },
+    insert(_type, data) {
+      insertedData = data
+      return inserted
+    },
+    setCurrentIndex() {},
+  }
+  const selection = {
+    extractFragmentAfterCaret() { return '' },
+    setCaretToBlock() {},
+  }
+  const commands = new CommandDispatcher(blocks, events)
+  const operations = new BlockOperations(blocks, selection, 'paragraph', events, commands)
+
+  operations.splitBlock()
+
+  assert.equal(insertedData, undefined)
+})
