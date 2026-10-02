@@ -1,229 +1,166 @@
+// @ts-check
 import { dedentTextarea } from '../shared/dedentTextarea.js'
-import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
-import { validateRawData } from '../../shared/blockDataValidators.js'
-import { normalizeTextValue } from '../../shared/textFormat.js'
+import { rawDataSchema } from '../../shared/blockSchemas/raw.js'
 import { sanitizeRawHtmlForSink } from '../../shared/sanitize/sanitizeRawHtml.js'
 
 const editorStyles = new URL('./raw.css', import.meta.url).href
-
 const ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 16v-8l2 5l2-5v8"/><path d="M1 16v-8"/><path d="M5 8v8"/><path d="M1 12h4"/><path d="M7 8h4"/><path d="M9 8v8"/><path d="M20 8v8h3"/></svg>'
 
-
-const stateMap = new WeakMap()
 let rawSequence = 0
-/** Raw HTML source block with an optional sanitized editor preview. */
-export class Raw extends BlockPluginAbstract {
-  static isTextBlock = false
-  static styles = [editorStyles]
-  type = 'raw'
-  icon = ICON
-  inlineTools = false
 
-  /**
-   * Return the localized toolbox label for this block.
-   * @returns {string}
-   */
-  get title() {
-    return this._t('title', 'Raw HTML')
-  }
-
-  /**
-   * Create the editable DOM owned by this block instance.
-   * @param {{ html?: string }} data
-   * @param {import('../../plugin-kit/types').BlockMutationContext} context
-   * @returns {HTMLElement}
-   */
-  render(data, context) {
-    const ownerDocument = context.ownerDocument ?? globalThis.document
-    const view = ownerDocument.defaultView ?? globalThis
-    const previewId = `oe-raw-preview-${++rawSequence}`
-    const wrapper = ownerDocument.createElement('div')
-    wrapper.classList.add('oe-raw')
-    wrapper.contentEditable = 'false'
-    wrapper.tabIndex = -1
-
-    // Header bar
-    const bar = ownerDocument.createElement('div')
-    bar.className = 'oe-raw__bar'
-
-    const label = ownerDocument.createElement('span')
-    label.className = 'oe-raw__label'
-    label.textContent = 'HTML'
-
-    const toggleBtn = ownerDocument.createElement('button')
-    toggleBtn.type = 'button'
-    toggleBtn.className = 'oe-raw__toggle'
-    toggleBtn.textContent = this._t('preview', 'Preview')
-    toggleBtn.setAttribute('aria-pressed', 'false')
-    toggleBtn.setAttribute('aria-controls', previewId)
-    toggleBtn.hidden = context.readOnly
-    toggleBtn.disabled = context.readOnly
-    toggleBtn.addEventListener('mousedown', (e) => e.preventDefault())
-    toggleBtn.addEventListener('click', () => {
-      const s = stateMap.get(wrapper)
-      if (s) {
-        s.showPreview = !s.showPreview
-        toggleBtn.setAttribute('aria-pressed', String(s.showPreview))
-        this.#syncPreview(wrapper)
-      }
-    })
-
-    bar.append(label, toggleBtn)
-
-    // Textarea (code input)
-    const textarea = ownerDocument.createElement('textarea')
-    textarea.setAttribute('data-oe-document-input', '')
-    textarea.className = 'oe-raw__textarea'
-    textarea.placeholder = this._t('placeholder', 'Paste HTML code...')
-    textarea.value = normalizeTextValue(data?.html)
-    textarea.spellcheck = false
-    textarea.readOnly = context.readOnly
-    textarea.addEventListener('input', () => {
-      this.#autoResize(textarea)
-    })
-    textarea.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') e.stopPropagation()
-      if (e.key === 'Tab') {
-        e.preventDefault()
-        e.stopPropagation()
-        context.mutate(() => {
-          const start = textarea.selectionStart
-          const end = textarea.selectionEnd
-          const value = textarea.value
-          const lineStart = value.slice(0, start).lastIndexOf('\n') + 1
-          if (e.shiftKey) {
-            if (!dedentTextarea(textarea, 2)) return
-          } else if (start !== end && value.substring(start, end).includes('\n')) {
-            const before = value.substring(0, start)
-            const selected = value.substring(start, end)
-            const after = value.substring(end)
-            const prefix = before.substring(lineStart)
-            const direction = textarea.selectionDirection
-            const indented = '  ' + (prefix + selected).replace(/\n(?!$)/g, '\n  ')
-            textarea.value = before.substring(0, lineStart) + indented + after
-            textarea.setSelectionRange(lineStart, lineStart + indented.length, direction)
-          } else {
-            textarea.value = value.substring(0, start) + '  ' + value.substring(end)
-            textarea.selectionStart = textarea.selectionEnd = start + 2
+/**
+ * Create the immutable Raw HTML v2 definition with instance-local preview state.
+ * @returns {import('../../plugin-kit/types').BlockPluginDefinition<{ html: string }>}
+ */
+export function createRawPlugin() {
+  return Object.freeze({
+    type: 'raw',
+    label: Object.freeze({ key: 'title', fallback: 'Raw HTML' }),
+    icon: ICON,
+    styles: Object.freeze([editorStyles]),
+    schema: rawDataSchema,
+    capabilities: Object.freeze({
+      empty: Object.freeze({ isEmpty: data => data.html.trim().length === 0 }),
+      conversion: Object.freeze({
+        export: data => ({ kind: 'plain-text', data: { text: data.html } }),
+        canImport: payload => payload?.kind === 'plain-text' && typeof payload.data?.text === 'string',
+        import(payload) {
+          if (payload?.kind !== 'plain-text' || typeof payload.data?.text !== 'string') {
+            throw new TypeError('Raw can only import plain-text payloads')
           }
-          this.#autoResize(textarea)
-        })
+          return { html: payload.data.text }
+        },
+      }),
+    }),
+    setup(runtimeContext) {
+      let destroyed = false
+      return {
+        create(initial, context) {
+          if (destroyed) throw new Error('Raw runtime is destroyed')
+          const document = context.ownerDocument
+          const wrapper = document.createElement('div')
+          wrapper.className = 'oe-raw'
+          wrapper.contentEditable = 'false'
+          wrapper.tabIndex = -1
+
+          const bar = document.createElement('div')
+          bar.className = 'oe-raw__bar'
+          const label = document.createElement('span')
+          label.className = 'oe-raw__label'
+          label.textContent = 'HTML'
+          const toggle = document.createElement('button')
+          toggle.type = 'button'
+          toggle.className = 'oe-raw__toggle'
+          toggle.textContent = runtimeContext.t('preview', 'Preview')
+
+          const textarea = document.createElement('textarea')
+          textarea.setAttribute('data-oe-document-input', '')
+          textarea.className = 'oe-raw__textarea'
+          textarea.placeholder = runtimeContext.t('placeholder', 'Paste HTML code...')
+          textarea.value = initial.html
+          textarea.spellcheck = false
+
+          const preview = document.createElement('div')
+          preview.className = 'oe-raw__preview'
+          preview.id = `oe-raw-preview-${++rawSequence}`
+          toggle.setAttribute('aria-controls', preview.id)
+
+          bar.append(label, toggle)
+          wrapper.append(bar, textarea, preview)
+
+          let readOnly = context.isReadOnly()
+          let showPreview = readOnly
+          let instanceDestroyed = false
+
+          const resize = () => {
+            textarea.style.height = 'auto'
+            textarea.style.height = textarea.scrollHeight + 'px'
+          }
+
+          const renderPreview = () => {
+            toggle.setAttribute('aria-pressed', String(showPreview))
+            textarea.style.display = showPreview ? 'none' : ''
+            preview.style.display = showPreview ? '' : 'none'
+            preview.replaceChildren()
+            if (!showPreview) {
+              runtimeContext.ownerDocument.defaultView?.requestAnimationFrame(resize)
+              return
+            }
+            const iframe = document.createElement('iframe')
+            iframe.sandbox = ''
+            iframe.title = runtimeContext.t('previewFrame', 'HTML preview')
+            iframe.style.cssText = 'width:100%;border:none;min-height:100px'
+            iframe.srcdoc = /** @type {any} */ (sanitizeRawHtmlForSink(textarea.value, document))
+            preview.appendChild(iframe)
+          }
+
+          toggle.addEventListener('mousedown', event => event.preventDefault(), { signal: context.signal })
+          toggle.addEventListener('click', () => {
+            if (readOnly || instanceDestroyed) return
+            showPreview = !showPreview
+            renderPreview()
+          }, { signal: context.signal })
+
+          textarea.addEventListener('input', resize, { signal: context.signal })
+          textarea.addEventListener('keydown', event => {
+            if (event.key === 'Enter') event.stopPropagation()
+            if (event.key !== 'Tab' || readOnly) return
+            event.preventDefault()
+            event.stopPropagation()
+            context.commitDomMutation(() => {
+              const start = textarea.selectionStart
+              const end = textarea.selectionEnd
+              if (event.shiftKey) {
+                dedentTextarea(textarea, 2)
+              } else {
+                textarea.setRangeText('  ', start, end, 'end')
+              }
+              resize()
+            })
+          }, { signal: context.signal })
+
+          const applyReadOnly = value => {
+            readOnly = value
+            textarea.readOnly = value
+            toggle.hidden = value
+            toggle.disabled = value
+            if (value) showPreview = true
+            renderPreview()
+          }
+
+          applyReadOnly(readOnly)
+          document.defaultView?.requestAnimationFrame(resize)
+
+          return {
+            element: wrapper,
+            read: () => ({ html: textarea.value }),
+            update(next) {
+              if (instanceDestroyed || textarea.value === next.html) return
+              textarea.value = next.html
+              resize()
+              if (showPreview) renderPreview()
+            },
+            editableFields() {
+              return Object.freeze([Object.freeze({
+                key: 'html',
+                element: textarea,
+                mode: /** @type {'plain-text'} */ ('plain-text'),
+              })])
+            },
+            setReadOnly: applyReadOnly,
+            focus() {
+              if (!instanceDestroyed && !readOnly) textarea.focus()
+            },
+            destroy() {
+              instanceDestroyed = true
+              preview.replaceChildren()
+            },
+          }
+        },
+        destroy() {
+          destroyed = true
+        },
       }
-    })
-
-    // Preview container
-    const preview = ownerDocument.createElement('div')
-    preview.className = 'oe-raw__preview'
-    preview.id = previewId
-    preview.style.display = 'none'
-
-    stateMap.set(wrapper, { textarea, preview, showPreview: context.readOnly })
-
-    wrapper.append(bar, textarea, preview)
-
-    view.requestAnimationFrame(() => {
-      if (stateMap.has(wrapper)) this.#autoResize(textarea)
-    })
-    if (context.readOnly) this.#syncPreview(wrapper)
-
-    return wrapper
-  }
-
-  /**
-   * Serialize the current block DOM into document data.
-   * @param {HTMLElement} element
-   * @returns {{ html: string }}
-   */
-  save(element) {
-    const s = stateMap.get(element)
-    return { html: s?.textarea?.value || '' }
-  }
-
-  /**
-   * Check whether serialized data satisfies this block's schema.
-   * @param {{ html?: string }} data
-   * @returns {boolean}
-   */
-  validate(data) {
-    return validateRawData(data)
-  }
-
-  /**
-   * Check whether the block has no meaningful user content.
-   * @param {HTMLElement} element
-   * @returns {boolean}
-   */
-  isEmpty(element) {
-    const s = stateMap.get(element)
-    return !s?.textarea?.value?.trim()
-  }
-
-  /**
-   * Extract neutral text that can initialize another block type.
-   * @param {HTMLElement} element
-   * @returns {{ text: string }}
-   */
-  exportData(element) {
-    const s = stateMap.get(element)
-    return { text: s?.textarea?.value || '' }
-  }
-
-  /**
-   * Release listeners and resources owned by this block element.
-   * @param {HTMLElement} element
-   * @returns {void}
-   */
-  destroy(element) {
-    stateMap.delete(element)
-  }
-
-  // ── Private ─────────────────────────────────────────────────────────────────
-
-  /** @param {HTMLTextAreaElement} textarea @returns {void} */
-  #autoResize(textarea) {
-    textarea.style.height = 'auto'
-    textarea.style.height = textarea.scrollHeight + 'px'
-  }
-
-  /** @param {HTMLElement} wrapper @returns {void} */
-  #syncPreview(wrapper) {
-    const s = stateMap.get(wrapper)
-    if (!s) return
-    const ownerDocument = wrapper.ownerDocument ?? globalThis.document
-    const view = ownerDocument?.defaultView ?? globalThis
-    const toggle = /** @type {HTMLButtonElement | null} */ (wrapper.querySelector('.oe-raw__toggle'))
-    toggle?.setAttribute('aria-pressed', String(s.showPreview))
-
-    if (s.showPreview) {
-      s.textarea.style.display = 'none'
-      s.preview.style.display = ''
-      s.preview.textContent = ''
-      const iframe = ownerDocument.createElement('iframe')
-      iframe.sandbox = ''
-      iframe.title = this._t('previewFrame', 'HTML preview')
-      iframe.style.cssText = 'width:100%;border:none;min-height:100px'
-      iframe.srcdoc = /** @type {any} */ (sanitizeRawHtmlForSink(s.textarea.value, ownerDocument))
-      s.preview.appendChild(iframe)
-      const resizeIframe = () => {
-        if (stateMap.get(wrapper) !== s || !s.preview.contains(iframe)) return
-        try {
-          const h = iframe.contentDocument?.documentElement?.scrollHeight
-          if (h) iframe.style.height = h + 'px'
-        } catch {
-          // A sandboxed srcdoc intentionally has an opaque origin in browsers
-          // that enforce it here. The minimum height remains the safe fallback.
-        }
-      }
-      iframe.addEventListener('load', resizeIframe)
-      view.requestAnimationFrame(resizeIframe)
-      toggle?.classList.add('oe-raw__toggle--active')
-    } else {
-      s.textarea.style.display = ''
-      s.preview.style.display = 'none'
-      toggle?.classList.remove('oe-raw__toggle--active')
-      view.requestAnimationFrame(() => {
-        if (stateMap.get(wrapper) === s) this.#autoResize(s.textarea)
-      })
-    }
-  }
+    },
+  })
 }
