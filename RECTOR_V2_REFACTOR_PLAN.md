@@ -364,7 +364,6 @@ Replace scattered optional-method discovery with an explicit capability object.
       paste?: PasteCapability<D>
       settings?: SettingsCapability<D>
       inline?: InlineCapability<D>
-      richText?: RichTextCapability<D>
       shortcuts?: ShortcutCapability
     }
 
@@ -413,23 +412,6 @@ If product semantics require "Enter creates the configured default block", repre
     }
 
 Core must not know plugin-specific data shapes.
-
-### 8.4. Rich-text mapping
-
-    interface RichTextCapability<D> {
-      map(
-        data: D,
-        transform: (html: string, fieldKey: string) => string
-      ): D
-    }
-
-Use it for:
-
-- inline widget marshalling;
-- sanitizer/canonicalizer passes;
-- renderer preparation;
-- migrations where required;
-- contract tests.
 
 ## 9. Block instance mutation context
 
@@ -608,8 +590,8 @@ One outer transaction:
 3. validates all resulting known block data;
 4. prepares required DOM projection changes;
 5. applies the projection atomically;
-6. commits the record to history;
-7. stores selectionAfter;
+6. captures selectionAfter;
+7. commits the complete record to history;
 8. publishes public observations.
 
 Failure before commit:
@@ -741,7 +723,9 @@ For that source instance:
 - save still serializes canonical model;
 - undo/redo/rollback/external updates must project canonical state back through update or recreate.
 
-This prevents caret loss and unnecessary DOM rewriting while removing DOM from persistence.
+The optimization is allowed only when the native mutation cannot leave untrusted active markup in the live DOM. Plain text insertion, deletion and composition may use the source projection path after validation. Paste, drop, rich HTML insertion and any input class that can introduce markup must either sanitize before DOM insertion or reconcile the affected field to sanitized canonical DOM before the transaction is publicly committed. If sanitization removes an element, attribute, URL or other active content, the source DOM must be rewritten before post-commit observers run.
+
+This prevents caret loss and unnecessary DOM rewriting without weakening the HTML trust boundary.
 
 ### 15.3. IME
 
@@ -902,6 +886,7 @@ Blocks interface:
       remove(id: string): void
       move(id: string, to: number): void
       convert(id: string, type: string): void
+      focus(id: string, target?: FocusTarget): void
     }
 
 All mutation methods delegate to DocumentRuntime transactions.
