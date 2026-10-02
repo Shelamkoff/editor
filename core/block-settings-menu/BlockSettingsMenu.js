@@ -1,6 +1,6 @@
 import { el } from '../dom.js'
 import { CrossBlockSelection } from '../CrossBlockSelection.js'
-import { handleMenuKeydown } from '../menuKeyboardNav.js'
+import { handleMenuKeydown } from '../../shared/menuKeyboardNav.js'
 import { restoreSelection } from '../splitConvert.js'
 import { BlockActions } from './BlockActions.js'
 import { MenuBuilder } from './MenuBuilder.js'
