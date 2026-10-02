@@ -139,6 +139,11 @@ function validateOutputBlock(block) {
   if (Object.hasOwn(candidate, 'id') && candidate.id !== undefined && typeof candidate.id !== 'string') {
     throw new TypeError('EditorRenderer block id must be a string')
   }
+  if (Object.hasOwn(candidate, 'dataVersion') && candidate.dataVersion !== undefined) {
+    if (!Number.isSafeInteger(candidate.dataVersion) || Number(candidate.dataVersion) < 1) {
+      throw new TypeError('EditorRenderer block dataVersion must be a positive safe integer')
+    }
+  }
   if (Object.hasOwn(candidate, 'revision') && candidate.revision !== undefined) {
     const revision = candidate.revision
     if (typeof revision !== 'string'

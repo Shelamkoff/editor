@@ -44,6 +44,9 @@ export class Block {
   /** @type {Record<string, unknown> | undefined} */
   #tunes
 
+  /** @type {number | undefined} */
+  #dataVersion
+
   /** @type {string | number | undefined} */
   #revision
 
@@ -71,7 +74,7 @@ export class Block {
    * @param {Record<string, unknown>} [data]
    * @param {string} [id]
    * @param {boolean} [readOnly]
-   * @param {{ tunes?: Record<string, unknown>, revision?: string | number, inline?: Record<string, import('../renderer/types').InlineWidget>, preserveInline?: boolean }} [metadata]
+   * @param {{ dataVersion?: number, tunes?: Record<string, unknown>, revision?: string | number, inline?: Record<string, import('../renderer/types').InlineWidget>, preserveInline?: boolean }} [metadata]
    * @param {Document} [ownerDocument]
    * @param {import('./InlinePluginRegistry').InlinePluginRegistry | null} [inlinePluginRegistry]
    */
@@ -83,6 +86,7 @@ export class Block {
     this.#commands = commands
     this.#inlinePluginRegistry = inlinePluginRegistry
     this.#tunes = metadata.tunes === undefined ? undefined : cloneEditorData(metadata.tunes)
+    this.#dataVersion = metadata.dataVersion
     this.#revision = metadata.revision
     this.#preservedInline = metadata.inline
       ? cloneEditorData(metadata.inline)
@@ -190,6 +194,7 @@ export class Block {
     }
     const data = cloneEditorData(this.#cachedData)
     const result = { id: this.#id, type: this.#type, data }
+    if (this.#dataVersion !== undefined) result.dataVersion = this.#dataVersion
     if (this.#revision !== undefined) result.revision = this.#revision
     if (this.#tunes !== undefined) result.tunes = cloneEditorData(this.#tunes)
     if (this.#preservedInline !== undefined) result.inline = cloneEditorData(this.#preservedInline)

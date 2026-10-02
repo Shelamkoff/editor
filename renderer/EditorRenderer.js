@@ -327,11 +327,12 @@ export class EditorRenderer {
    */
   #blockSignature(block, rendererRevision) {
     if (typeof block.revision === 'string' || typeof block.revision === 'number') {
-      return JSON.stringify([rendererRevision, block.type, block.revision])
+      return JSON.stringify([rendererRevision, block.type, block.dataVersion ?? null, block.revision])
     }
     return JSON.stringify([
       rendererRevision,
       block.type,
+      block.dataVersion ?? null,
       block.data,
       block.tunes ?? null,
       block.inline ?? null,

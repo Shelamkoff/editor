@@ -13,6 +13,8 @@ export interface EditorBlockData<
   Data extends object = Record<string, unknown>,
 > {
   id?: string
+  /** Current schema version of this block type's persisted data. */
+  dataVersion?: number
   /**
    * Optional producer-owned content revision (or stable content hash).
    * When present, incremental renderers can compare blocks in O(1).

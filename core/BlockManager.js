@@ -255,9 +255,9 @@ export class BlockManager {
       for (const block of staged) block.destroy()
     }
 
-    const add = (type, data, requestedId, inline, tunes, revision, preserveUnknown) => {
+    const add = (type, data, requestedId, inline, dataVersion, tunes, revision, preserveUnknown) => {
       const id = this.#uniqueId(requestedId, stagedMap)
-      const block = this.#createBlock(type, data, id, inline, { tunes, revision }, preserveUnknown)
+      const block = this.#createBlock(type, data, id, inline, { dataVersion, tunes, revision }, preserveUnknown)
       staged.push(block)
       stagedMap.set(id, block)
     }
@@ -279,6 +279,9 @@ export class BlockManager {
           const inline = blockData.inline && typeof blockData.inline === 'object' && !Array.isArray(blockData.inline)
             ? blockData.inline
             : undefined
+          const dataVersion = Number.isSafeInteger(blockData.dataVersion) && Number(blockData.dataVersion) > 0
+            ? Number(blockData.dataVersion)
+            : undefined
           const tunes = blockData.tunes && typeof blockData.tunes === 'object' && !Array.isArray(blockData.tunes)
             ? blockData.tunes
             : undefined
@@ -294,11 +297,11 @@ export class BlockManager {
           if (preserveUnknown) {
             console.warn(`[${logPrefix}] Preserving unregistered block type "${type}" as read-only`)
           }
-          add(type, data, id, inline, tunes, revision, preserveUnknown)
+          add(type, data, id, inline, dataVersion, tunes, revision, preserveUnknown)
         }
       }
 
-      if (staged.length === 0) add(defaultBlockType, undefined, undefined, undefined, undefined, undefined, false)
+      if (staged.length === 0) add(defaultBlockType, undefined, undefined, undefined, undefined, undefined, undefined, false)
     } catch (error) {
       disposeStaged()
       settled = true
