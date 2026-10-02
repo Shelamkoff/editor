@@ -39,7 +39,7 @@ export class Spoiler extends BlockPluginAbstract {
   /**
    * Create the editable DOM owned by this block instance.
    * @param {{ label?: string, content?: string }} data
-   * @param {import('../../core/types').BlockMutationContext} context
+   * @param {import('../../plugin-kit/types').BlockMutationContext} context
    * @returns {HTMLElement}
    */
   render(data, context) {
