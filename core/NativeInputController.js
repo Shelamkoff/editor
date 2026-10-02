@@ -42,6 +42,15 @@ export class NativeInputController {
     root.addEventListener('compositionend', event => this.handleCompositionEnd(event), { signal })
   }
 
+  get isComposing() { return this.#composition !== null }
+
+  setReadOnly(value) {
+    if (value === true) {
+      this.#composition = null
+      this.#endingComposition = null
+    }
+  }
+
   handleBeforeInput(event) {
     if (this.#runtime.readOnly) return
     const owner = this.#resolve(event?.target)

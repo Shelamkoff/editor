@@ -349,6 +349,7 @@ export function createEditorV2(input){
     view,
     inlineToolbar,
     crossSelection,
+    isComposing:()=>nativeInput.isComposing,
   }))
 
   const onFocusIn=event=>{
@@ -384,6 +385,7 @@ export function createEditorV2(input){
     applyReadOnly(root,runtime.readOnly)
     toolbar?.setReadOnly(runtime.readOnly)
     inlineToolbar.setReadOnly(runtime.readOnly)
+    nativeInput.setReadOnly(runtime.readOnly)
     emitSafe(events,'readOnly:changed',{readOnly:runtime.readOnly})
     emitSafe(events,'history:changed',{canUndo:runtime.canUndo,canRedo:runtime.canRedo})
   }

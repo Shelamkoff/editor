@@ -33,8 +33,9 @@ export class KeyboardRouter {
   #crossSelection
   #controller
   #inlineToolbar
+  #isComposing
 
-  constructor({ root, runtime, registry, reconciler, selection, view, inlineToolbar = null, crossSelection = null }) {
+  constructor({ root, runtime, registry, reconciler, selection, view, inlineToolbar = null, crossSelection = null, isComposing = () => false }) {
     if (!root?.addEventListener) throw new TypeError('KeyboardRouter requires an event root')
     if (!runtime?.splitBlock || !runtime?.mergeAdjacent) throw new TypeError('KeyboardRouter requires a DocumentRuntime')
     if (!registry?.getBlockDefinition) throw new TypeError('KeyboardRouter requires an ExtensionRegistry')
@@ -50,6 +51,7 @@ export class KeyboardRouter {
     this.#view = view
     this.#crossSelection = crossSelection
     this.#inlineToolbar = inlineToolbar
+    this.#isComposing = typeof isComposing === 'function' ? isComposing : () => false
 
     const AbortControllerCtor = root.ownerDocument?.defaultView?.AbortController ?? AbortController
     this.#controller = new AbortControllerCtor()
@@ -57,7 +59,7 @@ export class KeyboardRouter {
   }
 
   handleKeydown(event) {
-    if (this.#runtime.readOnly || event?.defaultPrevented || event?.isComposing) return
+    if (this.#runtime.readOnly || event?.defaultPrevented || event?.isComposing || event?.keyCode === 229 || this.#isComposing()) return
 
     const key = String(event?.key ?? '')
     const lower = key.toLowerCase()
