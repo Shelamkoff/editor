@@ -298,7 +298,7 @@ export interface BlockCapabilities<D extends Record<string, unknown>> {
   formatting?: FormattingCapability
   merge?: MergeCapability<D>
   conversion?: ConversionCapability<D>
-  settings?: SettingsActionCapability<D>
+  settings?: SettingsCapability<D>
   paste?: PasteCapability<D>
   shortcuts?: ShortcutCapability<D>
 }
@@ -481,6 +481,21 @@ export interface SettingsActionCapability<D extends Record<string, unknown>> {
   actions(data: Readonly<D>, context: ExtensionUiContext): readonly SettingsAction[]
   apply(data: Readonly<D>, actionId: string, context: DataOperationContext): D
 }
+
+export interface SettingsPanelContext<D extends Record<string, unknown>>
+  extends ExtensionUiContext {
+  getData(): Readonly<D>
+  updateData(producer: (current: Readonly<D>) => D): void
+}
+
+export interface SettingsPanelCapability<D extends Record<string, unknown>> {
+  kind: 'panel'
+  render(context: SettingsPanelContext<D>): HTMLElement
+}
+
+export type SettingsCapability<D extends Record<string, unknown>> =
+  | SettingsActionCapability<D>
+  | SettingsPanelCapability<D>
 
 export type PasteInput =
   | { kind: 'text', text: string }

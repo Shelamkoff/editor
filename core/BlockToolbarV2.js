@@ -371,6 +371,27 @@ export class BlockToolbarV2 {
         ))
       }
       if (actions.length) this.#settings.append(this.#separator())
+    } else if (settings?.kind === 'panel') {
+      const shell = document.createElement('li')
+      shell.className = 'oe-settings-menu__panel'
+      shell.setAttribute('role', 'none')
+      const panel = settings.render({
+        ownerDocument: document,
+        t: label => this.#label('plugin', record.type, label),
+        getData: () => this.#runtime.get(id)?.data ?? record.data,
+        updateData: producer => {
+          if (typeof producer !== 'function') throw new TypeError('Settings panel updateData requires a producer')
+          this.#runtime.update(id, current => ({ data: producer(current.data) }))
+          this.#view.reconcileInteraction()
+          this.#view.setCurrent(id)
+        },
+      })
+      const HTMLElementCtor = document.defaultView?.HTMLElement ?? globalThis.HTMLElement
+      if (!HTMLElementCtor || !(panel instanceof HTMLElementCtor)) {
+        throw new TypeError(`Settings panel for "${record.type}" must return an HTMLElement`)
+      }
+      shell.appendChild(panel)
+      this.#settings.append(shell, this.#separator())
     }
 
     this.#settings.append(this.#settingsItem(
