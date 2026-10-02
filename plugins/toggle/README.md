@@ -10,11 +10,11 @@ npm install @shelamkoff/rector
 
 ```js
 import { createEditor } from '@shelamkoff/rector'
-import { Toggle } from '@shelamkoff/rector/plugins/toggle'
+import { createTogglePlugin } from '@shelamkoff/rector/plugins/toggle'
 
 const editor = createEditor({
   holder: document.querySelector('#editor'),
-  plugins: [new Toggle()],
+  plugins: [createTogglePlugin()],
 })
 ```
 

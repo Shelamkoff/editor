@@ -10,11 +10,11 @@ npm install @shelamkoff/rector
 
 ```js
 import { createEditor } from '@shelamkoff/rector'
-import { Image } from '@shelamkoff/rector/plugins/image'
+import { createImagePlugin } from '@shelamkoff/rector/plugins/image'
 
 const editor = createEditor({
   holder: document.querySelector('#editor'),
-  plugins: [new Image()],
+  plugins: [createImagePlugin()],
 })
 ```
 
@@ -60,7 +60,7 @@ Use `uploadFile` when the user selects a browser `File`. Use `actions` to add ap
 `openMediaLibrary` in this example belongs to the consuming application; Rector does not prescribe its UI or transport:
 
 ```js
-const image = new Image({
+const image = createImagePlugin({
   actions: [{
     label: 'Media library',
     async handler({ signal }) {

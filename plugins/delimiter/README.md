@@ -10,11 +10,11 @@ npm install @shelamkoff/rector
 
 ```js
 import { createEditor } from '@shelamkoff/rector'
-import { Delimiter } from '@shelamkoff/rector/plugins/delimiter'
+import { createDelimiterPlugin } from '@shelamkoff/rector/plugins/delimiter'
 
 const editor = createEditor({
   holder: document.querySelector('#editor'),
-  plugins: [new Delimiter()],
+  plugins: [createDelimiterPlugin()],
 })
 ```
 

@@ -10,11 +10,11 @@ npm install @shelamkoff/rector
 
 ```js
 import { createEditor } from '@shelamkoff/rector'
-import { Embed } from '@shelamkoff/rector/plugins/embed'
+import { createEmbedPlugin } from '@shelamkoff/rector/plugins/embed'
 
 const editor = createEditor({
   holder: document.querySelector('#editor'),
-  plugins: [new Embed()],
+  plugins: [createEmbedPlugin()],
 })
 ```
 
@@ -48,7 +48,7 @@ Every built-in block plugin accepts two style ownership options: `injectStyles?:
 `uploadFile` and `actions` apply to the video cover only; the video itself is selected with a supported YouTube or Vimeo URL. Use an action to add a media library, cloud drive, or another application-owned image source.
 
 ```js
-const embed = new Embed({
+const embed = createEmbedPlugin({
   actions: [{
     label: 'Media library',
     async handler({ signal }) {

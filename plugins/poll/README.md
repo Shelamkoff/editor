@@ -10,11 +10,11 @@ npm install @shelamkoff/rector
 
 ```js
 import { createEditor } from '@shelamkoff/rector'
-import { Poll } from '@shelamkoff/rector/plugins/poll'
+import { createPollPlugin } from '@shelamkoff/rector/plugins/poll'
 
 const editor = createEditor({
   holder: document.querySelector('#editor'),
-  plugins: [new Poll()],
+  plugins: [createPollPlugin()],
 })
 ```
 
@@ -57,7 +57,7 @@ Every built-in block plugin accepts two style ownership options: `injectStyles?:
 `dataSource?: PollDataSource` supplies required `load` and `vote` callbacks and an optional `subscribe` callback for server-owned results. Every callback receives an `AbortSignal`; `vote` also receives the current `revision`. Every result must contain `total` and one `{ id, votes }` entry for every current option. `total` is the number of ballots and is the percentage denominator; multiple-choice percentages may add up to more than 100%. `compareRevisions?: (next, current) => number` orders opaque revision strings when the backend can deliver updates out of order; without it, unequal revisions follow arrival order. `onError?: (error) => void | Promise<void>` observes data-source failures. Synchronous throws and rejected Promises from the observer are contained and do not alter poll state. `maxVoters?: number` limits retained voter details; finite values are rounded down and clamped to zero, while an omitted or non-finite value uses `50`.
 
 ```js
-const poll = new Poll({
+const poll = createPollPlugin({
   dataSource: {
     async load({ pollId, signal }) {
       return api.getPollResults(pollId, { signal })

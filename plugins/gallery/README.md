@@ -10,11 +10,11 @@ npm install @shelamkoff/rector
 
 ```js
 import { createEditor } from '@shelamkoff/rector'
-import { Gallery } from '@shelamkoff/rector/plugins/gallery'
+import { createGalleryPlugin } from '@shelamkoff/rector/plugins/gallery'
 
 const editor = createEditor({
   holder: document.querySelector('#editor'),
-  plugins: [new Gallery()],
+  plugins: [createGalleryPlugin()],
 })
 ```
 
@@ -56,7 +56,7 @@ Every built-in block plugin accepts two style ownership options: `injectStyles?:
 Use `uploadFile` for browser `File` objects and `actions` for existing assets selected from a media library, cloud drive, or another application-owned catalog. An action may return several images; the complete selection becomes one undo/redo step.
 
 ```js
-const gallery = new Gallery({
+const gallery = createGalleryPlugin({
   actions: [{
     label: 'Media library',
     async handler({ signal }) {

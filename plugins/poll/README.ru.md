@@ -10,11 +10,11 @@ npm install @shelamkoff/rector
 
 ```js
 import { createEditor } from '@shelamkoff/rector'
-import { Poll } from '@shelamkoff/rector/plugins/poll'
+import { createPollPlugin } from '@shelamkoff/rector/plugins/poll'
 
 const editor = createEditor({
   holder: document.querySelector('#editor'),
-  plugins: [new Poll()],
+  plugins: [createPollPlugin()],
 })
 ```
 
@@ -57,7 +57,7 @@ const editor = createEditor({
 `dataSource` содержит обязательные методы `load` и `vote` и необязательный `subscribe`; каждый получает `AbortSignal`, а `vote` также получает текущую `revision`. Каждый результат должен содержать `total` и по одному элементу `{ id, votes }` для каждого текущего варианта. `total` — число бюллетеней и знаменатель процентов; при множественном выборе сумма процентов может превышать 100%. `compareRevisions(next, current)` упорядочивает непрозрачные строки ревизий, если сервер может прислать обновления не по порядку; без неё разные ревизии применяются в порядке получения. `onError` наблюдает ошибки источника и может вернуть `Promise`; синхронные исключения и отклонения `Promise` этого обработчика изолируются и не меняют состояние опроса. `maxVoters` ограничивает число сохраняемых сведений о проголосовавших: конечное значение округляется вниз и ограничивается снизу нулём, а при отсутствии или некорректном значении используется `50`.
 
 ```js
-const poll = new Poll({
+const poll = createPollPlugin({
   dataSource: {
     async load({ pollId, signal }) {
       return api.getPollResults(pollId, { signal })

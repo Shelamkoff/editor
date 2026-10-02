@@ -10,11 +10,11 @@ npm install @shelamkoff/rector
 
 ```js
 import { createEditor } from '@shelamkoff/rector'
-import { Embed } from '@shelamkoff/rector/plugins/embed'
+import { createEmbedPlugin } from '@shelamkoff/rector/plugins/embed'
 
 const editor = createEditor({
   holder: document.querySelector('#editor'),
-  plugins: [new Embed()],
+  plugins: [createEmbedPlugin()],
 })
 ```
 
@@ -48,7 +48,7 @@ const editor = createEditor({
 Параметры `uploadFile` и `actions` относятся только к обложке видео; само видео выбирается по поддерживаемому адресу YouTube или Vimeo. Через `actions` можно добавить медиатеку, облачный диск или другой источник изображений приложения.
 
 ```js
-const embed = new Embed({
+const embed = createEmbedPlugin({
   actions: [{
     label: 'Медиатека',
     async handler({ signal }) {

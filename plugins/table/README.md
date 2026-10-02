@@ -10,11 +10,11 @@ npm install @shelamkoff/rector
 
 ```js
 import { createEditor } from '@shelamkoff/rector'
-import { Table } from '@shelamkoff/rector/plugins/table'
+import { createTablePlugin } from '@shelamkoff/rector/plugins/table'
 
 const editor = createEditor({
   holder: document.querySelector('#editor'),
-  plugins: [new Table()],
+  plugins: [createTablePlugin()],
 })
 ```
 

@@ -10,11 +10,11 @@ npm install @shelamkoff/rector
 
 ```js
 import { createEditor } from '@shelamkoff/rector'
-import { Gallery } from '@shelamkoff/rector/plugins/gallery'
+import { createGalleryPlugin } from '@shelamkoff/rector/plugins/gallery'
 
 const editor = createEditor({
   holder: document.querySelector('#editor'),
-  plugins: [new Gallery()],
+  plugins: [createGalleryPlugin()],
 })
 ```
 
@@ -56,7 +56,7 @@ const editor = createEditor({
 Используйте `uploadFile` для браузерных объектов `File`, а `actions` — для материалов из медиатеки, облачного диска или другого каталога приложения. Одно действие может вернуть несколько изображений; весь выбор становится одним шагом отмены и повтора.
 
 ```js
-const gallery = new Gallery({
+const gallery = createGalleryPlugin({
   actions: [{
     label: 'Медиатека',
     async handler({ signal }) {

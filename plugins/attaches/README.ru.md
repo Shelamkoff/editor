@@ -10,11 +10,11 @@ npm install @shelamkoff/rector
 
 ```js
 import { createEditor } from '@shelamkoff/rector'
-import { Attaches } from '@shelamkoff/rector/plugins/attaches'
+import { createAttachesPlugin } from '@shelamkoff/rector/plugins/attaches'
 
 const editor = createEditor({
   holder: document.querySelector('#editor'),
-  plugins: [new Attaches()],
+  plugins: [createAttachesPlugin()],
 })
 ```
 
@@ -52,7 +52,7 @@ const editor = createEditor({
 Используйте `uploadFile` для браузерных объектов `File`, а `actions` — для готовых файлов из файловой библиотеки, облачного диска или другого каталога приложения. Одно действие может вернуть несколько файлов.
 
 ```js
-const attaches = new Attaches({
+const attaches = createAttachesPlugin({
   actions: [{
     label: 'Библиотека файлов',
     async handler({ signal }) {

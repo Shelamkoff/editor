@@ -10,11 +10,11 @@ npm install @shelamkoff/rector
 
 ```js
 import { createEditor } from '@shelamkoff/rector'
-import { Image } from '@shelamkoff/rector/plugins/image'
+import { createImagePlugin } from '@shelamkoff/rector/plugins/image'
 
 const editor = createEditor({
   holder: document.querySelector('#editor'),
-  plugins: [new Image()],
+  plugins: [createImagePlugin()],
 })
 ```
 
@@ -60,7 +60,7 @@ const editor = createEditor({
 Функция `openMediaLibrary` в примере принадлежит приложению: Rector не задаёт её интерфейс и способ получения данных.
 
 ```js
-const image = new Image({
+const image = createImagePlugin({
   actions: [{
     label: 'Медиатека',
     async handler({ signal }) {

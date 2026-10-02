@@ -10,11 +10,11 @@ npm install @shelamkoff/rector
 
 ```js
 import { createEditor } from '@shelamkoff/rector'
-import { Heading } from '@shelamkoff/rector/plugins/heading'
+import { createHeadingPlugin } from '@shelamkoff/rector/plugins/heading'
 
 const editor = createEditor({
   holder: document.querySelector('#editor'),
-  plugins: [new Heading()],
+  plugins: [createHeadingPlugin()],
 })
 ```
 

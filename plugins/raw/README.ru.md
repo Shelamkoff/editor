@@ -10,11 +10,11 @@ npm install @shelamkoff/rector
 
 ```js
 import { createEditor } from '@shelamkoff/rector'
-import { Raw } from '@shelamkoff/rector/plugins/raw'
+import { createRawPlugin } from '@shelamkoff/rector/plugins/raw'
 
 const editor = createEditor({
   holder: document.querySelector('#editor'),
-  plugins: [new Raw()],
+  plugins: [createRawPlugin()],
 })
 ```
 

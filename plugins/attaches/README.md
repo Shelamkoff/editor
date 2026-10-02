@@ -10,11 +10,11 @@ npm install @shelamkoff/rector
 
 ```js
 import { createEditor } from '@shelamkoff/rector'
-import { Attaches } from '@shelamkoff/rector/plugins/attaches'
+import { createAttachesPlugin } from '@shelamkoff/rector/plugins/attaches'
 
 const editor = createEditor({
   holder: document.querySelector('#editor'),
-  plugins: [new Attaches()],
+  plugins: [createAttachesPlugin()],
 })
 ```
 
@@ -52,7 +52,7 @@ Every built-in block plugin accepts two style ownership options: `injectStyles?:
 Use `uploadFile` for browser `File` objects and `actions` for existing downloads selected from a file library, cloud drive, or another application-owned catalog. An action may return several files in one selection.
 
 ```js
-const attaches = new Attaches({
+const attaches = createAttachesPlugin({
   actions: [{
     label: 'File library',
     async handler({ signal }) {

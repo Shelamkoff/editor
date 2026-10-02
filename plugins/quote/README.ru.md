@@ -10,11 +10,11 @@ npm install @shelamkoff/rector
 
 ```js
 import { createEditor } from '@shelamkoff/rector'
-import { Quote } from '@shelamkoff/rector/plugins/quote'
+import { createQuotePlugin } from '@shelamkoff/rector/plugins/quote'
 
 const editor = createEditor({
   holder: document.querySelector('#editor'),
-  plugins: [new Quote()],
+  plugins: [createQuotePlugin()],
 })
 ```
 

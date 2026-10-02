@@ -10,11 +10,11 @@ npm install @shelamkoff/rector
 
 ```js
 import { createEditor } from '@shelamkoff/rector'
-import { CarouselBlock } from '@shelamkoff/rector/plugins/carousel'
+import { createCarouselPlugin } from '@shelamkoff/rector/plugins/carousel'
 
 const editor = createEditor({
   holder: document.querySelector('#editor'),
-  plugins: [new CarouselBlock()],
+  plugins: [createCarouselPlugin()],
 })
 ```
 
@@ -61,7 +61,7 @@ Every built-in block plugin accepts two style ownership options: `injectStyles?:
 Use `uploadFile` for image or video `File` objects and `actions` for existing slides selected from a media library, cloud drive, or another application-owned catalog. One action may return mixed image, video, and HTML slides.
 
 ```js
-const carousel = new CarouselBlock({
+const carousel = createCarouselPlugin({
   actions: [{
     label: 'Media library',
     async handler({ signal }) {

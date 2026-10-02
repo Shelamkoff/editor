@@ -10,11 +10,11 @@ npm install @shelamkoff/rector
 
 ```js
 import { createEditor } from '@shelamkoff/rector'
-import { Spoiler } from '@shelamkoff/rector/plugins/spoiler'
+import { createSpoilerPlugin } from '@shelamkoff/rector/plugins/spoiler'
 
 const editor = createEditor({
   holder: document.querySelector('#editor'),
-  plugins: [new Spoiler()],
+  plugins: [createSpoilerPlugin()],
 })
 ```
 

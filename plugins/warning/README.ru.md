@@ -10,11 +10,11 @@ npm install @shelamkoff/rector
 
 ```js
 import { createEditor } from '@shelamkoff/rector'
-import { Warning } from '@shelamkoff/rector/plugins/warning'
+import { createWarningPlugin } from '@shelamkoff/rector/plugins/warning'
 
 const editor = createEditor({
   holder: document.querySelector('#editor'),
-  plugins: [new Warning()],
+  plugins: [createWarningPlugin()],
 })
 ```
 

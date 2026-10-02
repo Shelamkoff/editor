@@ -10,11 +10,11 @@ npm install @shelamkoff/rector
 
 ```js
 import { createEditor } from '@shelamkoff/rector'
-import { CarouselBlock } from '@shelamkoff/rector/plugins/carousel'
+import { createCarouselPlugin } from '@shelamkoff/rector/plugins/carousel'
 
 const editor = createEditor({
   holder: document.querySelector('#editor'),
-  plugins: [new CarouselBlock()],
+  plugins: [createCarouselPlugin()],
 })
 ```
 
@@ -61,7 +61,7 @@ const editor = createEditor({
 Используйте `uploadFile` для браузерных объектов `File` с изображениями и видео, а `actions` — для готовых слайдов из медиатеки, облачного диска или другого каталога приложения. Одно действие может вернуть изображения, видео и HTML-слайды вместе.
 
 ```js
-const carousel = new CarouselBlock({
+const carousel = createCarouselPlugin({
   actions: [{
     label: 'Медиатека',
     async handler({ signal }) {

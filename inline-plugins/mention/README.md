@@ -6,7 +6,7 @@ Trigger-driven entity search with keyboard navigation, cursor pagination, custom
 
 ```js
 import { createEditor } from '@shelamkoff/rector'
-import { Paragraph } from '@shelamkoff/rector/plugins/paragraph'
+import { createParagraphPlugin } from '@shelamkoff/rector/plugins/paragraph'
 import { createMentionPlugin } from '@shelamkoff/rector/inline-plugins/mention'
 
 const mention = createMentionPlugin({
@@ -20,7 +20,7 @@ const mention = createMentionPlugin({
 
 const editor = createEditor({
   holder: document.querySelector('#editor'),
-  plugins: [new Paragraph()],
+  plugins: [createParagraphPlugin()],
   inlinePlugins: [mention],
 })
 ```

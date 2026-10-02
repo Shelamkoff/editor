@@ -10,11 +10,11 @@ npm install @shelamkoff/rector
 
 ```js
 import { createEditor } from '@shelamkoff/rector'
-import { Paragraph } from '@shelamkoff/rector/plugins/paragraph'
+import { createParagraphPlugin } from '@shelamkoff/rector/plugins/paragraph'
 
 const editor = createEditor({
   holder: document.querySelector('#editor'),
-  plugins: [new Paragraph()],
+  plugins: [createParagraphPlugin()],
 })
 ```
 
