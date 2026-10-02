@@ -336,6 +336,7 @@ export function createCarouselPlugin(config={}){
           let data=cloneData(initial)
           let readOnly=context.isReadOnly()
           let dead=false
+          const preloadEditors=()=>{if(!readOnly)preloadSourceEditor(wrapper,context.signal,['url','html'])}
           let activeIndex=0
           const taskControllers=new Set()
           let autoplayTimer=null
@@ -572,6 +573,7 @@ export function createCarouselPlugin(config={}){
                 }
               }
               wrapper.appendChild(empty)
+              preloadEditors()
               return
             }
 
@@ -691,6 +693,7 @@ export function createCarouselPlugin(config={}){
               wrapper.appendChild(thumbs)
             }
             scheduleAutoplay()
+            preloadEditors()
           }
 
           const moveSlide=(from,to)=>{
@@ -733,7 +736,6 @@ export function createCarouselPlugin(config={}){
             context.updateData(current=>({...current,slides:current.slides.map(slide=>slide.id===id?{...slide,caption:value}:slide)}))
           },{signal:context.signal})
 
-          preloadSourceEditor(wrapper,context.signal,['url','html'])
           project()
 
           return {
