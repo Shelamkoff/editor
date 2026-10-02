@@ -1,4 +1,4 @@
-import { insertSanitizedHtml, setSanitizedHtml, setTrustedHtml } from '../../core/sanitize.js'
+import { insertSanitizedHtml, setSanitizedHtml, setTrustedHtml } from '../../plugin-kit/index.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { createHeadingLevelSelect } from './HeadingLevelSelect.js'
 import { mapTextFields } from './mapTextFields.js'
