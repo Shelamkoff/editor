@@ -27,6 +27,14 @@ export function createQuotePlugin() {
         }
       },
     }),
+    shortcuts:Object.freeze({
+      handle(input){
+        if(input.key!=='Tab')return null
+        if(!input.shiftKey&&input.fieldKey==='text')return {kind:'focus',target:{fieldKey:'caption',offset:'start'}}
+        if(input.shiftKey&&input.fieldKey==='caption')return {kind:'focus',target:{fieldKey:'text',offset:'end'}}
+        return null
+      },
+    }),
     conversion:Object.freeze({
       export(data){
         return {kind:'rich-text',data:{text:[data.text,data.caption].filter(Boolean).join('<br>')}}
@@ -72,19 +80,6 @@ export function createQuotePlugin() {
 
           let readOnly=context.isReadOnly()
           let instanceDestroyed=false
-          wrapper.addEventListener('keydown',event=>{
-            if(readOnly||event.key!=='Tab') return
-            const active=document.activeElement
-            if(!event.shiftKey&&(active===text||text.contains(/** @type {Node} */(active)))){
-              event.preventDefault()
-              event.stopPropagation()
-              caption.focus()
-            }else if(event.shiftKey&&(active===caption||caption.contains(/** @type {Node} */(active)))){
-              event.preventDefault()
-              event.stopPropagation()
-              text.focus()
-            }
-          },{signal:context.signal})
 
           return {
             element:wrapper,

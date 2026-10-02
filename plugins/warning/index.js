@@ -25,6 +25,18 @@ export function createWarningPlugin(){
         return {title:append(target.title,source.title),message:append(target.message,source.message)}
       },
     }),
+    shortcuts:Object.freeze({
+      handle(input){
+        if(input.fieldKey==='title'&&((input.key==='Enter'&&!input.shiftKey)||(input.key==='Tab'&&!input.shiftKey))){
+          return {kind:'focus',target:{fieldKey:'message',offset:'start'}}
+        }
+        if(input.fieldKey==='message'&&input.key==='Tab'&&input.shiftKey){
+          return {kind:'focus',target:{fieldKey:'title',offset:'end'}}
+        }
+        if(input.fieldKey==='message'&&input.key==='Enter'&&!input.shiftKey)return {kind:'native'}
+        return null
+      },
+    }),
     conversion:Object.freeze({
       export(data){
         return {kind:'rich-text',data:{text:[data.title,data.message].filter(Boolean).join('<br>')}}
@@ -77,24 +89,6 @@ export function createWarningPlugin(){
 
           let readOnly=context.isReadOnly()
           let instanceDestroyed=false
-          title.addEventListener('keydown',event=>{
-            if(readOnly)return
-            if((event.key==='Enter'&&!event.shiftKey)||(event.key==='Tab'&&!event.shiftKey)){
-              event.preventDefault()
-              event.stopPropagation()
-              message.focus()
-            }
-          },{signal:context.signal})
-          message.addEventListener('keydown',event=>{
-            if(readOnly)return
-            if(event.key==='Tab'&&event.shiftKey){
-              event.preventDefault()
-              event.stopPropagation()
-              title.focus()
-            }else if(event.key==='Enter'&&!event.shiftKey){
-              event.stopPropagation()
-            }
-          },{signal:context.signal})
 
           return {
             element:wrapper,
