@@ -1,4 +1,4 @@
-import { editingHostForEvent } from '../../core/editableFields.js'
+import { editingHostForEvent } from '../../shared/editableFields.js'
 import { setSanitizedHtml, setTrustedHtml } from '../../plugin-kit/index.js'
 import { sanitizeHtml } from '../../plugin-kit/index.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
