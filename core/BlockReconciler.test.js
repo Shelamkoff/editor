@@ -244,3 +244,25 @@ test('preserve activation keeps a registered block type inert', () => {
   assert.equal(counters.create, 0)
   assert.equal(reconciler.getElement('x').dataset.oePreservedBlock, 'paragraph')
 })
+
+
+test('document replacement recreates same-id block instances and aborts their lifetime', () => {
+  const { store, reconciler, counters } = setup(2)
+  counters.create = counters.update = counters.destroy = counters.readOnly = 0
+  const before = reconciler.getElement('0')
+
+  const draft = store.createDraft()
+  draft.replace({
+    version: '2.0.0',
+    blocks: [block('0', 'replacement'), block('1', '1')],
+  })
+  const prepared = reconciler.prepare({ store, draft, changes: draft.changes })
+  prepared.apply()
+  store.commit(draft)
+
+  assert.notEqual(reconciler.getElement('0'), before)
+  assert.equal(reconciler.getElement('0').textContent, 'replacement')
+  assert.equal(counters.create, 2)
+  assert.equal(counters.update, 0)
+  assert.equal(counters.destroy, 2)
+})

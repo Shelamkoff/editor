@@ -129,6 +129,7 @@ export class BlockReconciler {
       }
     }
 
+    const replaceDocument = changes.some(change => change.kind === 'document.replace')
     const staged = new Map()
     const updates = []
     const removals = []
@@ -150,6 +151,13 @@ export class BlockReconciler {
           const entry = this.#createEntry(after)
           staged.set(id, entry)
           insertions.push({ id, entry })
+          continue
+        }
+
+        if (replaceDocument) {
+          const entry = this.#createEntry(after)
+          staged.set(id, entry)
+          replacements.push({ id, before: current, after: entry })
           continue
         }
 
