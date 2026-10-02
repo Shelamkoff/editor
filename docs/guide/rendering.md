@@ -57,6 +57,8 @@ interface RendererConfig {
 | `blockConfigs` | none | runtime configuration keyed by built-in block type |
 | `inlineRenderers` | none | read-only inline widget projections validated through the same widget schemas as the editor |
 
+`InlineWidgetRenderer.schema` is the same versioned inline-widget schema used by the editor definition. The renderer decodes and validates the canonical payload through that schema before calling `InlineWidgetRenderer.render()`; unknown, malformed, or unsupported widget data is never activated as markup.
+
 The default fails explicitly when a renderer is missing. Set `throwOnUnknown: false` only when a mixed-version application intentionally accepts a placeholder for unsupported blocks. The placeholder has the class `<classPrefix>-unknown` and a `data-block-type` attribute; it does not reproduce the missing content.
 
 Validation covers built-in data shapes and URL policies before their built-in renderers run. In `preserve` mode malformed data is replaced with the built-in type's normalized safe shape and `onValidationError` is called; in `strict` mode an `InvalidBlockDataError` is thrown instead. `onValidationError` may return a Promise; synchronous throws and rejected Promises are isolated from rendering and do not change the validation result. A custom renderer registered for the same type owns its own validation contract, so replacing a built-in renderer also disables that built-in validator.
