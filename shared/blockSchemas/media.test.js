@@ -38,7 +38,7 @@ test('media schemas reject unsafe local URLs instead of silently preserving them
   }), /canonical/)
 
   assert.throws(() => attachesDataSchema.encode({
-    files: [{ url: 'javascript:alert(1)', name: 'x', extension: 'txt', size: 1 }],
+    files: [{ id: 'f1', url: 'javascript:alert(1)', name: 'x', extension: 'txt', size: 1 }],
     variant: 'f',
   }), /canonical/)
 })
@@ -67,8 +67,8 @@ test('gallery and carousel rich-text captions use deterministic field keys', () 
   const gallery = galleryDataSchema.encode({
     ...galleryDataSchema.createDefault(),
     images: [
-      { url: 'https://example.com/a.jpg', caption: 'A' },
-      { url: 'https://example.com/b.jpg', caption: 'B' },
+      { id: 'g1', url: 'https://example.com/a.jpg', caption: 'A' },
+      { id: 'g2', url: 'https://example.com/b.jpg', caption: 'B' },
     ],
   }).data
   const galleryKeys = []
@@ -76,7 +76,7 @@ test('gallery and carousel rich-text captions use deterministic field keys', () 
     galleryKeys.push(key)
     return html
   })
-  assert.deepEqual(galleryKeys, ['caption:0', 'caption:1'])
+  assert.deepEqual(galleryKeys, ['image:g1:caption', 'image:g2:caption'])
 
   const carousel = carouselDataSchema.encode({
     ...carouselDataSchema.createDefault(),
@@ -90,4 +90,62 @@ test('gallery and carousel rich-text captions use deterministic field keys', () 
     return html
   })
   assert.deepEqual(carouselKeys, ['slide:s1:caption'])
+})
+
+
+test('gallery, attaches and person v1 data migrate to stable identities', () => {
+  assert.deepEqual(
+    galleryDataSchema.decode({
+      dataVersion: 1,
+      data: {
+        ...galleryDataSchema.createDefault(),
+        images: [{ url: 'https://example.com/a.jpg', caption: 'A' }],
+      },
+    }).data.images,
+    [{ id: 'legacy-image-0', url: 'https://example.com/a.jpg', caption: 'A' }],
+  )
+
+  assert.deepEqual(
+    attachesDataSchema.decode({
+      dataVersion: 1,
+      data: {
+        files: [{ url: 'https://example.com/a.pdf', name: 'A', extension: 'pdf', size: 10 }],
+        variant: 'f',
+      },
+    }).data.files,
+    [{ id: 'legacy-file-0', url: 'https://example.com/a.pdf', name: 'A', extension: 'pdf', size: 10 }],
+  )
+
+  const person = personDataSchema.decode({
+    dataVersion: 1,
+    data: {
+      persons: [{
+        avatar: '',
+        name: 'A',
+        role: '',
+        bio: '',
+        links: [{ type: 'website', url: 'https://example.com/' }],
+      }],
+    },
+  }).data.persons[0]
+  assert.equal(person.id, 'legacy-person-0')
+  assert.equal(person.links[0].id, 'legacy-link-0-0')
+})
+
+test('gallery, attaches and person reject duplicate stable identities', () => {
+  assert.throws(() => galleryDataSchema.encode({
+    ...galleryDataSchema.createDefault(),
+    images: [
+      { id: 'x', url: 'https://example.com/a.jpg', caption: '' },
+      { id: 'x', url: 'https://example.com/b.jpg', caption: '' },
+    ],
+  }), /Duplicate gallery image id/)
+
+  assert.throws(() => attachesDataSchema.encode({
+    files: [
+      { id: 'x', url: 'https://example.com/a.pdf', name: 'A', extension: 'pdf', size: 1 },
+      { id: 'x', url: 'https://example.com/b.pdf', name: 'B', extension: 'pdf', size: 1 },
+    ],
+    variant: 'f',
+  }), /Duplicate attachment file id/)
 })
