@@ -187,6 +187,7 @@ export function createGalleryPlugin(config={}){
           let data=cloneData(initial)
           let readOnly=context.isReadOnly()
           let dead=false
+          const preloadEditors=()=>{if(!readOnly)preloadSourceEditor(wrapper,context.signal,['url'])}
           const taskControllers=new Set()
           const captionFields=new Map()
 
@@ -373,6 +374,7 @@ export function createGalleryPlugin(config={}){
                 }
               }
               wrapper.appendChild(empty)
+              preloadEditors()
               return
             }
 
@@ -401,6 +403,7 @@ export function createGalleryPlugin(config={}){
               }
               wrapper.appendChild(actions)
             }
+            preloadEditors()
           }
 
           wrapper.addEventListener('focusout',event=>{
@@ -413,7 +416,6 @@ export function createGalleryPlugin(config={}){
             context.updateData(current=>({...current,images:current.images.map(image=>image.id===id?{...image,caption}:image)}))
           },{signal:context.signal})
 
-          preloadSourceEditor(wrapper,context.signal,['url'])
           project(data)
 
           return {
