@@ -109,3 +109,33 @@ test('Paragraph v2 instance read-only transition is in-place and reversible', ()
   instance.destroy()
   runtime.destroy()
 })
+
+
+test('Paragraph v2 capabilities are pure and data-driven', () => {
+  const definition = createParagraphPlugin()
+  const capabilities = definition.capabilities
+
+  assert.equal(capabilities?.formatting?.inlineTools, true)
+  assert.equal(capabilities?.empty?.isEmpty({ text: '' }), true)
+  assert.equal(capabilities?.empty?.isEmpty({ text: 'x' }), false)
+
+  assert.deepEqual(
+    capabilities?.merge?.merge({ text: 'A' }, { text: '<b>B</b>' }),
+    { text: 'A<b>B</b>' },
+  )
+
+  const payload = capabilities?.conversion?.export({ text: '<i>Text</i>' })
+  assert.deepEqual(payload, {
+    kind: 'rich-text',
+    data: { text: '<i>Text</i>' },
+  })
+  assert.equal(capabilities?.conversion?.canImport(payload), true)
+  assert.equal(
+    capabilities?.conversion?.canImport({ kind: 'other', data: { text: 'x' } }),
+    false,
+  )
+  assert.deepEqual(
+    capabilities?.conversion?.import({ kind: 'rich-text', data: { text: 'Imported' } }),
+    { text: 'Imported' },
+  )
+})
