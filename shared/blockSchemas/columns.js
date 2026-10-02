@@ -1,6 +1,6 @@
 // @ts-check
 import { createVersionedDataSchema } from '../versionedDataSchema.js'
-import { COLUMN_LAYOUT_SIZES } from '../blockDataValidators.js'
+import { COLUMN_LAYOUT_SIZES } from '../columnLayouts.js'
 
 function defaultColumns(layout){
   const size=COLUMN_LAYOUT_SIZES[layout]
