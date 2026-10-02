@@ -23,18 +23,22 @@ export class ClipboardControllerV2 {
   #reconciler
   #selection
   #view
+  #crossSelection
   #controller
   #task = null
 
-  constructor({ root, runtime, registry, reconciler, selection, view }) {
+  constructor({ root, runtime, registry, reconciler, selection, view, crossSelection = null }) {
     this.#root = root
     this.#runtime = runtime
     this.#registry = registry
     this.#reconciler = reconciler
     this.#selection = selection
     this.#view = view
+    this.#crossSelection = crossSelection
     const AbortControllerCtor = root.ownerDocument?.defaultView?.AbortController ?? AbortController
     this.#controller = new AbortControllerCtor()
+    root.addEventListener('copy', event => this.#onCopy(event), { capture: true, signal: this.#controller.signal })
+    root.addEventListener('cut', event => this.#onCut(event), { capture: true, signal: this.#controller.signal })
     root.addEventListener('paste', event => this.#onPaste(event), {
       capture: true,
       signal: this.#controller.signal,
@@ -47,8 +51,30 @@ export class ClipboardControllerV2 {
     this.#controller.abort()
   }
 
+  #onCopy(event) {
+    if (!this.#crossSelection?.active || event.defaultPrevented || !event.clipboardData) return
+    event.preventDefault()
+    event.clipboardData.setData('text/plain', this.#crossSelection.text())
+  }
+
+  #onCut(event) {
+    if (this.#runtime.readOnly || !this.#crossSelection?.active || event.defaultPrevented || !event.clipboardData) return
+    event.preventDefault()
+    event.clipboardData.setData('text/plain', this.#crossSelection.text())
+    this.#crossSelection.replace({ kind: 'text', text: '' })
+  }
+
   #onPaste(event) {
     if (this.#runtime.readOnly || event.defaultPrevented) return
+    if (this.#crossSelection?.active) {
+      const data = event.clipboardData
+      if (!data) return
+      const html = data.getData('text/html')
+      const text = data.getData('text/plain')
+      event.preventDefault()
+      this.#crossSelection.replace(html ? { kind: 'html', html } : { kind: 'text', text })
+      return
+    }
     const owner = this.#reconciler.resolveEditableTarget(event.target)
     if (!owner) return
     const range = selectionRange(this.#selection.capture(), owner)

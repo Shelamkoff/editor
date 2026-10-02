@@ -30,10 +30,11 @@ export class KeyboardRouter {
   #reconciler
   #selection
   #view
+  #crossSelection
   #controller
   #inlineToolbar
 
-  constructor({ root, runtime, registry, reconciler, selection, view, inlineToolbar = null }) {
+  constructor({ root, runtime, registry, reconciler, selection, view, inlineToolbar = null, crossSelection = null }) {
     if (!root?.addEventListener) throw new TypeError('KeyboardRouter requires an event root')
     if (!runtime?.splitBlock || !runtime?.mergeAdjacent) throw new TypeError('KeyboardRouter requires a DocumentRuntime')
     if (!registry?.getBlockDefinition) throw new TypeError('KeyboardRouter requires an ExtensionRegistry')
@@ -47,6 +48,7 @@ export class KeyboardRouter {
     this.#reconciler = reconciler
     this.#selection = selection
     this.#view = view
+    this.#crossSelection = crossSelection
     this.#inlineToolbar = inlineToolbar
 
     const AbortControllerCtor = root.ownerDocument?.defaultView?.AbortController ?? AbortController
@@ -77,6 +79,11 @@ export class KeyboardRouter {
     }
 
     if (event?.metaKey || event?.ctrlKey || event?.altKey) return
+    if (this.#crossSelection?.active && (key === 'Backspace' || key === 'Delete')) {
+      event.preventDefault?.()
+      this.#crossSelection.replace({ kind: 'text', text: '' })
+      return
+    }
     const owner = this.#reconciler.resolveEditableTarget(event?.target)
     if (!owner) return
     const range = sameEditableRange(this.#selection.capture(), owner)
@@ -117,6 +124,35 @@ export class KeyboardRouter {
 
     if (key === 'Backspace' && !event?.shiftKey && range.start === 0 && range.end === 0) {
       if (this.#mergeBackward(owner.blockId)) event.preventDefault?.()
+      return
+    }
+
+    if (key === 'ArrowUp' && !event?.shiftKey && range.start === 0 && range.end === 0) {
+      const records = this.#runtime.list()
+      const index = records.findIndex(record => record.id === owner.blockId)
+      if (index > 0) {
+        event.preventDefault?.()
+        const previous = records[index - 1]
+        this.#view.setCurrent(previous.id)
+        this.#view.focus(previous.id, { offset: 'end' })
+      }
+      return
+    }
+
+    if (
+      key === 'ArrowDown'
+      && !event?.shiftKey
+      && range.start === range.end
+      && range.end === fieldLength(owner)
+    ) {
+      const records = this.#runtime.list()
+      const index = records.findIndex(record => record.id === owner.blockId)
+      if (index >= 0 && index < records.length - 1) {
+        event.preventDefault?.()
+        const next = records[index + 1]
+        this.#view.setCurrent(next.id)
+        this.#view.focus(next.id, { offset: 'start' })
+      }
       return
     }
 

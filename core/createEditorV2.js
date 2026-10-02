@@ -14,6 +14,7 @@ import { DocumentRuntime } from './DocumentRuntime.js'
 import { NativeInputController } from './NativeInputController.js'
 import { KeyboardRouter } from './KeyboardRouter.js'
 import { LogicalSelection } from './LogicalSelection.js'
+import { SelectionControllerV2 } from './SelectionControllerV2.js'
 import { InteractionState } from './InteractionState.js'
 import { EditorViewModel } from './EditorViewModel.js'
 import { InlineCommandController } from './InlineCommandController.js'
@@ -243,6 +244,7 @@ export function createEditorV2(input){
   logicalSelection=new LogicalSelection({root,reconciler})
   interaction=new InteractionState({runtime,reconciler})
   view=new EditorViewModel({runtime,reconciler,interaction,selection:logicalSelection})
+  const crossSelection=new SelectionControllerV2({root,runtime,reconciler,view})
   const nativeInput=new NativeInputController({root,runtime,reconciler})
   const inlineCommands=new InlineCommandController({runtime,registry,selection:logicalSelection})
   const triggers=new InlineTriggerController({
@@ -260,6 +262,7 @@ export function createEditorV2(input){
     reconciler,
     selection:logicalSelection,
     view,
+    crossSelection,
   })
 
   toolbar=new BlockToolbarV2({
@@ -302,6 +305,7 @@ export function createEditorV2(input){
     selection:logicalSelection,
     view,
     inlineToolbar,
+    crossSelection,
   })
 
   const onFocusIn=event=>{
@@ -330,6 +334,7 @@ export function createEditorV2(input){
     root.removeEventListener('focusin',onFocusIn)
     triggers.destroy()
     clipboard.destroy()
+    crossSelection.destroy()
     drag.destroy()
     inlineToolbar.destroy()
     toolbar?.destroy()
