@@ -105,7 +105,7 @@ export function createListPlugin(){
           text:li.innerHTML,
         }))
         if(items.length===0)return null
-        return {kind:'block',data:{style:list.tagName==='OL'?'ordered':'unordered',items}}
+        return {kind:/** @type {'block'} */('block'),data:{style:list.tagName==='OL'?/** @type {'ordered'} */('ordered'):/** @type {'unordered'} */('unordered'),items}}
       },
     }),
   })
