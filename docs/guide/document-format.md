@@ -15,7 +15,7 @@ interface EditorDocument {
 ```json
 {
   "time": 1783846522956,
-  "version": "1.0.0",
+  "version": "2.0.0",
   "blocks": [
     {
       "id": "intro",
@@ -29,13 +29,14 @@ interface EditorDocument {
 }
 ```
 
-`version` is required after normalization. The current version is `1.0.0`. `time` is optional metadata and must be a finite number when present. `blocks` preserves document order.
+`version` is required after normalization. The current version is `2.0.0`. Documents at `1.0.0` are migrated through Rector's built-in v1→v2 migration. `time` is optional metadata and must be a finite number when present. `blocks` preserves document order.
 
 ## Block data
 
 ```ts
 interface BlockData {
   id: string
+  dataVersion?: number
   revision?: string | number
   type: string
   data: Record<string, unknown>
@@ -45,6 +46,7 @@ interface BlockData {
 ```
 
 - `id` is the stable identity used by selection, events, history, and application references. It must be unique inside the document.
+- `dataVersion` is the schema version of the block type's plugin-owned `data`; migrated built-in text blocks currently save version `2`.
 - `revision` is an optional producer-owned content revision or stable hash used to accelerate repeated `renderTo()` calls. It may be a string or a finite number.
 - `type` selects the registered block plugin and renderer.
 - `data` is owned and validated by that block plugin.
@@ -62,22 +64,15 @@ Every plugin defines its own `data` shape. For example:
 ```ts
 type ParagraphData = {
   text: string
-  align?: 'left' | 'center' | 'right' | 'justify'
 }
 
 type HeadingData = {
   text: string
   level: 2 | 3 | 4 | 5 | 6
-  align?: 'left' | 'center' | 'right' | 'justify'
 }
 ```
 
-`ParagraphData.align` and `HeadingData.align` remain part of those plugins'
-data contracts. The built-in alignment control additionally writes the
-editor-owned `tunes.textAlign` value so the same control works for every block
-with a text-bearing root, including structured blocks. When both values are
-present, `tunes.textAlign` is the document-wide override applied by the editor
-and renderer after the plugin creates its element.
+Alignment is core-owned in document format v2. Paragraph and Heading no longer persist an `align` field in plugin data. The built-in alignment control writes only `tunes.textAlign`, and the editor and renderer apply that tune after the plugin/renderer creates its element. The v1→v2 migration moves valid legacy Paragraph/Heading `data.align` values into the tune.
 
 Use the plugin reference page as the source of truth for its fields and defaults. Unknown keys should not be used for application metadata: the plugin may discard them during its save round trip. Store document-level application metadata outside `EditorDocument` unless an explicit plugin contract owns it.
 
@@ -130,7 +125,7 @@ Application code may run the same envelope and migration pipeline before mountin
 import { DocumentSchema } from '@shelamkoff/rector'
 
 const schema = new DocumentSchema({
-  currentVersion: '1.0.0',
+  currentVersion: '2.0.0',
   versionPolicy: 'strict',
   migrations,
 })

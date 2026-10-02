@@ -50,7 +50,7 @@ const editor = createEditor({
   holder,
   plugins: [new Paragraph(), new Heading()],
   data: {
-    version: '1.0.0',
+    version: '2.0.0',
     blocks: [
       {
         id: 'intro',
@@ -91,7 +91,7 @@ Rector does not send content to a server and does not choose a storage format be
 
 ```js
 editor.render({
-  version: '1.0.0',
+  version: '2.0.0',
   blocks: [
     { id: 'loaded', type: 'paragraph', data: { text: 'Loaded content' } },
   ],

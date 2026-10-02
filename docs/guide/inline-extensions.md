@@ -48,9 +48,7 @@ The built-in names are case-sensitive:
 
 `align` is grouped with inline tools because it is exposed from the selection
 toolbar, but it does not wrap the selected text in markup. It changes the whole
-affected block and persists the value as `block.tunes.textAlign`. For Paragraph
-and Heading, the plugin-owned `data.align` field remains supported; the tune is
-the cross-plugin override when both values exist.
+affected block and persists the value only as `block.tunes.textAlign`. In document format v2 Paragraph and Heading no longer persist plugin-owned `data.align`; legacy v1 alignment is migrated into the tune.
 
 An unknown string causes `createEditor()` to throw. If the array contains the same `type` more than once, the later object replaces the earlier implementation while retaining its first toolbar position. This permits `['bold', customBold]`; use duplicate types only for an intentional replacement.
 
