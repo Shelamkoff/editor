@@ -367,7 +367,11 @@ export function createCarouselPlugin(config={}){
 
           const normalizeSlide=slide=>{
             try{
-              const encoded=carouselDataSchema.encode({...data,slides:[slide]}).data.slides[0]
+              const candidate=slide?.type==='html'
+                ? {...slide,html:sanitizeRawHtml(String(slide.html??''),document).trim()}
+                : slide
+              if(candidate?.type==='html'&&!candidate.html)return null
+              const encoded=carouselDataSchema.encode({...data,slides:[candidate]}).data.slides[0]
               return encoded??null
             }catch{return null}
           }
