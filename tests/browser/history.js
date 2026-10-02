@@ -1200,7 +1200,7 @@ async function run() {
 
   const alignRemoval = createHarness(sandbox, {
     version: 'browser-history',
-    blocks: [{ id: 'align-remove', type: 'paragraph', data: { text: 'Aligned value', align: 'center' } }],
+    blocks: [{ id: 'align-remove', type: 'paragraph', data: { text: 'Aligned value' }, tunes: { textAlign: 'center' } }],
   }, { inlineTools: ['align'] })
   await assertUndoRedo(alignRemoval.editor, 'align reset', async () => {
     const block = alignRemoval.editor.blocks.getBlockByIndex(0)

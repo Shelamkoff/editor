@@ -351,9 +351,8 @@ export class Block {
   }
 
   /**
-   * Copy an alignment explicitly changed by the toolbar into block tunes.
-   * Plugin-owned `data.align` remains readable and writable for Paragraph and
-   * Heading, while the tune gives every other text block one stable contract.
+   * Copy alignment explicitly changed by the toolbar into the core-owned
+   * `tunes.textAlign` contract. Block plugin data never persists alignment.
    */
   #syncTextAlignTune() {
     if (!this.#contentElement.hasAttribute(TEXT_ALIGN_TUNE_ATTRIBUTE)) return

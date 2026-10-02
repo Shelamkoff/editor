@@ -2,7 +2,7 @@ import { insertSanitizedHtml, setSanitizedHtml, setTrustedHtml } from '../../cor
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { createHeadingLevelSelect } from './HeadingLevelSelect.js'
 import { mapTextFields } from './mapTextFields.js'
-import { validateHeadingData } from '../../shared/blockDataValidators.js'
+import { headingDataSchema } from '../../shared/blockSchemas/heading.js'
 import { normalizeHeadingLevel, normalizeTextAlign, normalizeTextValue } from '../../shared/textFormat.js'
 
 const editorStyles = new URL('./heading.css', import.meta.url).href
@@ -63,7 +63,7 @@ export class Heading extends BlockPluginAbstract {
 
   /**
    * Create the editable DOM owned by this block instance.
-   * @param {{ text?: string, level?: number, align?: string }} data
+   * @param {{ text?: string, level?: number }} data
    * @param {import('../../core/types').BlockMutationContext} context
    * @returns {HTMLElement}
    */
@@ -78,10 +78,6 @@ export class Heading extends BlockPluginAbstract {
     const text = normalizeTextValue(data?.text)
     if (text) {
       setSanitizedHtml(heading, text)
-    }
-    const align = normalizeTextAlign(data?.align)
-    if (align) {
-      heading.style.textAlign = align
     }
 
     heading.dataset.placeholder = this.#placeholder(level)
@@ -169,12 +165,10 @@ export class Heading extends BlockPluginAbstract {
   /**
    * Serialize the current block DOM into document data.
    * @param {HTMLElement} element
-   * @returns {{ text: string, level: number, align?: string }}
+   * @returns {{ text: string, level: number }}
    */
   save(element) {
-    const data = { text: element.innerHTML, level: this.getLevel(element) }
-    if (element.style.textAlign) data.align = element.style.textAlign
-    return data
+    return { text: element.innerHTML, level: this.getLevel(element) }
   }
 
   /**
@@ -183,7 +177,12 @@ export class Heading extends BlockPluginAbstract {
    * @returns {boolean}
    */
   validate(data) {
-    return validateHeadingData(data)
+    try {
+      headingDataSchema.encode(data)
+      return true
+    } catch {
+      return false
+    }
   }
 
   /**
@@ -202,12 +201,10 @@ export class Heading extends BlockPluginAbstract {
   /**
    * Extract neutral rich text and heading metadata for block conversion.
    * @param {HTMLElement} element
-   * @returns {{ text: string, level: number, align?: string }}
+   * @returns {{ text: string, level: number }}
    */
   exportData(element) {
-    const data = { text: element.innerHTML, level: this.getLevel(element) }
-    if (element.style.textAlign) data.align = element.style.textAlign
-    return data
+    return { text: element.innerHTML, level: this.getLevel(element) }
   }
 
   /**

@@ -1,8 +1,8 @@
 import { insertSanitizedHtml, setSanitizedHtml } from '../../core/sanitize.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { mapTextFields } from './mapTextFields.js'
-import { validateParagraphData } from '../../shared/blockDataValidators.js'
-import { normalizeTextAlign, normalizeTextValue } from '../../shared/textFormat.js'
+import { paragraphDataSchema } from '../../shared/blockSchemas/paragraph.js'
+import { normalizeTextValue } from '../../shared/textFormat.js'
 
 const editorStyles = new URL('./paragraph.css', import.meta.url).href
 
@@ -22,7 +22,7 @@ const ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" vie
  */
 
 /**
- * Editable paragraph block that stores sanitized rich text and alignment.
+ * Editable paragraph block that stores sanitized rich text.
  * @extends {BlockPluginAbstract<ParagraphConfig>}
  */
 export class Paragraph extends BlockPluginAbstract {
@@ -62,7 +62,7 @@ export class Paragraph extends BlockPluginAbstract {
 
   /**
    * Create the editable DOM owned by this block instance.
-   * @param {{ text?: string, align?: string }} data
+   * @param {{ text?: string }} data
    * @param {import('../../core/types').BlockMutationContext} context
    * @returns {HTMLElement}
    */
@@ -74,10 +74,6 @@ export class Paragraph extends BlockPluginAbstract {
 
     const text = normalizeTextValue(data?.text)
     if (text) setSanitizedHtml(p, text)
-    const align = normalizeTextAlign(data?.align)
-    if (align) {
-      p.style.textAlign = align
-    }
 
     // Placeholder via data attribute + CSS :empty::before
     // Priority: explicit config > i18n locale > empty (no placeholder)
@@ -98,12 +94,10 @@ export class Paragraph extends BlockPluginAbstract {
   /**
    * Serialize the current block DOM into document data.
    * @param {HTMLElement} element
-   * @returns {{ text: string, align?: string }}
+   * @returns {{ text: string }}
    */
   save(element) {
-    const data = { text: element.innerHTML }
-    if (element.style.textAlign) data.align = element.style.textAlign
-    return data
+    return { text: element.innerHTML }
   }
 
   /**
@@ -112,35 +106,32 @@ export class Paragraph extends BlockPluginAbstract {
    * @returns {boolean}
    */
   validate(data) {
-    return validateParagraphData(data)
+    try {
+      paragraphDataSchema.encode(data)
+      return true
+    } catch {
+      return false
+    }
   }
 
   /**
    * Merge another paragraph's data into this element.
    * @param {HTMLElement} element
-   * @param {{ text?: string, align?: string }} data
+   * @param {{ text?: string }} data
    * @returns {void}
    */
   merge(element, data) {
     const text = normalizeTextValue(data.text)
     if (text) insertSanitizedHtml(element, 'beforeend', text)
-    // Preserve alignment from merged block if current has none
-    const align = normalizeTextAlign(data.align)
-    if (align && !element.style.textAlign) {
-      element.style.textAlign = align
-    }
   }
 
   /**
    * Extract transferable data for block type conversion.
    * @param {HTMLElement} element
-   * @returns {{ text: string, align?: string }}
+   * @returns {{ text: string }}
    */
   exportData(element) {
-    /** @type {{ text: string, align?: string }} */
-    const data = { text: element.innerHTML }
-    if (element.style.textAlign) data.align = element.style.textAlign
-    return data
+    return { text: element.innerHTML }
   }
 
   /**
