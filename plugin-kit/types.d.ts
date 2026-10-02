@@ -298,3 +298,102 @@ export interface BlockCapabilities<D extends Record<string, unknown>> {
   merge?: MergeCapability<D>
   conversion?: ConversionCapability<D>
 }
+
+
+/** Pure versioned schema for canonical inline-widget payloads. */
+export interface InlineWidgetSchema<
+  D extends Record<string, unknown> = Record<string, unknown>
+> {
+  readonly currentVersion: number
+  readonly legacyVersion: number
+  createDefault(): D
+  decode(input: { dataVersion?: number, data: unknown }): {
+    dataVersion: number
+    data: D
+  }
+  encode(data: Readonly<D>): {
+    dataVersion: number
+    data: D
+  }
+}
+
+/** One mounted interactive inline widget occurrence. */
+export interface InlineWidgetInstance<
+  D extends Record<string, unknown> = Record<string, unknown>
+> {
+  readonly element: HTMLElement
+  update?(next: Readonly<D>, previous: Readonly<D>): void
+  setReadOnly(readOnly: boolean): void
+  focus?(): void
+  destroy(): void
+}
+
+/** Widget-scoped mutation/lifecycle services. */
+export interface InlineWidgetContext<
+  D extends Record<string, unknown> = Record<string, unknown>
+> {
+  readonly id: string
+  readonly blockId: string
+  readonly fieldKey: string
+  readonly signal: AbortSignal
+  getData(): Readonly<D>
+  updateData(producer: (current: Readonly<D>) => D): void
+  isReadOnly(): boolean
+}
+
+/** Trigger/autocomplete session owned by an inline plugin runtime. */
+export interface InlineTriggerSession<
+  D extends Record<string, unknown> = Record<string, unknown>
+> {
+  readonly blockId: string
+  readonly fieldKey: string
+  readonly query: string
+  readonly range: Readonly<{ start: number, end: number }>
+  readonly anchor: HTMLElement
+  commit(data: D): void
+  cancel(): void
+}
+
+/** Editor-scoped services for one inline-plugin definition. */
+export interface InlinePluginRuntimeContext {
+  readonly ownerDocument: Document
+  readonly signal: AbortSignal
+  t(key: string, fallback?: string): string
+  showPopup(anchor: HTMLElement, content: HTMLElement, cleanup?: () => void): void
+  hidePopup(): void
+}
+
+/** Per-editor inline runtime. */
+export interface InlinePluginRuntime<
+  D extends Record<string, unknown> = Record<string, unknown>
+> {
+  create(
+    id: string,
+    initial: Readonly<D>,
+    context: InlineWidgetContext<D>,
+  ): InlineWidgetInstance<D>
+  onTriggerQuery?(session: InlineTriggerSession<D>): void
+  onTriggerCancel?(): void
+  destroy(): void
+}
+
+/** Programmatic fresh insertion result. */
+export type InlineFreshInsertion<D extends Record<string, unknown>> =
+  | { kind: 'widget', data: D }
+  | { kind: 'text', text: string }
+
+/** Immutable inline-plugin v2 definition. */
+export interface InlinePluginDefinition<
+  D extends Record<string, unknown> = Record<string, unknown>
+> {
+  readonly type: string
+  readonly label: Readonly<{ key: string, fallback: string }>
+  readonly icon: string
+  readonly styles?: readonly string[]
+  readonly trigger?: string
+  readonly schema: InlineWidgetSchema<D>
+  readonly insertion?: Readonly<{
+    createInitial(): InlineFreshInsertion<D>
+  }>
+  setup(context: InlinePluginRuntimeContext): InlinePluginRuntime<D>
+}
