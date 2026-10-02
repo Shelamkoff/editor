@@ -4,7 +4,7 @@ import { test } from 'node:test'
 import {
   createBlockPluginsAsync,
   getAsyncBlockPluginTypes,
-  preloadBlockPlugins,
+  preloadBlockPluginDefinitions,
 } from '../plugins/async.js'
 import {
   createDefaultRenderersAsync,
@@ -29,8 +29,8 @@ test('async plugin preset preloads only unique document types', async () => {
       { type: 'paragraph', data: { text: 'two' } },
     ],
   }
-  const constructors = await preloadBlockPlugins(document)
-  assert.deepEqual([...constructors.keys()], ['paragraph', 'delimiter'])
+  const definitions = await preloadBlockPluginDefinitions(document)
+  assert.deepEqual([...definitions.keys()], ['paragraph', 'delimiter'])
 
   const plugins = await createBlockPluginsAsync(document)
   assert.deepEqual(plugins.map(plugin => plugin.type), ['paragraph', 'delimiter'])
@@ -53,7 +53,7 @@ test('async renderer preset preloads only unique document types', async () => {
 })
 
 test('unknown async types fail before a preset is created', async () => {
-  await assert.rejects(() => preloadBlockPlugins(['paragraph', 'missing']), /Unknown editor block plugin type: missing/)
+  await assert.rejects(() => preloadBlockPluginDefinitions(['paragraph', 'missing']), /Unknown editor block plugin type: missing/)
   await assert.rejects(() => preloadRendererFactories(['paragraph', 'missing']), /Unknown editor renderer type: missing/)
 })
 
@@ -66,8 +66,36 @@ test('async plugin preset snapshots requested configs before dynamic imports set
   paragraphConfig.placeholder = 'mutated'
   configs.paragraph = { placeholder: 'replacement' }
 
-  const [plugin] = await pending
-  assert.equal(plugin.getPluginConfig().placeholder, 'before')
+  const [definition] = await pending
+  const ownerDocument = {
+    createElement() {
+      return {
+        className: '', dataset: {}, textContent: '', innerHTML: '',
+        contentEditable: 'true', focus() {},
+      }
+    },
+  }
+  const runtime = definition.setup({
+    ownerDocument,
+    signal: new AbortController().signal,
+    isDefaultBlock: true,
+    editorPlaceholder: 'editor',
+    t: (_key, fallback = '') => fallback,
+  })
+  const instance = runtime.create({ text: '' }, {
+    ownerDocument,
+    signal: new AbortController().signal,
+    isReadOnly: () => false,
+    getData: () => ({ text: '' }),
+    updateData() {},
+    commitDomMutation(operation) { operation() },
+    requestSplit() {},
+    requestExit() {},
+    createId: prefix => prefix + '-1',
+  })
+  assert.equal(instance.element.dataset.placeholder, 'before')
+  instance.destroy()
+  runtime.destroy()
 })
 
 test('async renderer preset observes requested config and locale before the import boundary', async () => {
@@ -161,7 +189,7 @@ test('async Poll renderer snapshots nested adapter methods before imports settle
 
 
 test('async presets reject sparse type lists and document block arrays without inherited reads', async () => {
-  for (const create of [preloadBlockPlugins, preloadRendererFactories]) {
+  for (const create of [preloadBlockPluginDefinitions, preloadRendererFactories]) {
     let listReads = 0
     const listPrototype = Object.create(Array.prototype)
     Object.defineProperty(listPrototype, '0', {

@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { loadBlockPlugin, preloadBlockPlugins, createBlockPluginsAsync } from '../plugins/async.js'
+import { loadBlockPluginDefinition, preloadBlockPluginDefinitions, createBlockPluginsAsync } from '../plugins/async.js'
 import { loadRendererFactory, preloadRendererFactories, createDefaultRenderersAsync } from '../renderer/renderers/async.js'
 
 for (const type of ['constructor', 'toString', '__proto__', 'valueOf', 'hasOwnProperty', '__defineGetter__', 'missing', '']) {
   test(`async plugin APIs reject unsupported own/prototype key ${JSON.stringify(type)}`, async () => {
-    await assert.rejects(() => loadBlockPlugin(type), RangeError)
-    await assert.rejects(() => preloadBlockPlugins(['paragraph', type]), RangeError)
+    await assert.rejects(() => loadBlockPluginDefinition(type), RangeError)
+    await assert.rejects(() => preloadBlockPluginDefinitions(['paragraph', type]), RangeError)
     await assert.rejects(() => createBlockPluginsAsync([type]), RangeError)
   })
   test(`async renderer APIs reject unsupported own/prototype key ${JSON.stringify(type)}`, async () => {
@@ -16,8 +16,8 @@ for (const type of ['constructor', 'toString', '__proto__', 'valueOf', 'hasOwnPr
   })
 }
 test('ordinary async loaders still return the requested usable types', async () => {
-  const Paragraph = await loadBlockPlugin('paragraph')
-  assert.equal(new Paragraph().type, 'paragraph')
+  const paragraph = await loadBlockPluginDefinition('paragraph')
+  assert.equal(paragraph.type, 'paragraph')
   const factory = await loadRendererFactory('paragraph')
   assert.equal(factory('test', {}).type, 'paragraph')
 })

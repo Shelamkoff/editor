@@ -57,7 +57,7 @@ function requestedTypes(source) {
   for (let index = 0; index < blocks.length; index++) {
     if (!Object.hasOwn(blocks, index)) throw new TypeError('source.blocks must be a dense array')
     const block = blocks[index]
-    const type = block && typeof block === 'object' && !Array.isArray(block) && typeof block.type === 'string'
+    const type = block && typeof block === 'object' && !Array.isArray(block) && Object.hasOwn(block, 'type') && typeof block.type === 'string'
       ? block.type
       : undefined
     if (!type) throw new RangeError('Unknown editor block plugin type: undefined')

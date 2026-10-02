@@ -17,7 +17,7 @@ const NAV_PREV='‹'
 const NAV_NEXT='›'
 
 /**
- * @typedef {{id:string,type:'image'|'video'|'html',src?:string,poster?:string,alt?:string,html?:string,caption:string}} Slide
+ * @typedef {{id:string,type:'image'|'video'|'html',src?:string,poster?:string,alt?:string,html?:string,caption?:string}} Slide
  * @typedef {(file:File,context:{signal:AbortSignal})=>Promise<{url:string,poster?:string}>} UploadFn
  * @typedef {{label:string,icon?:string,handler:(context:{signal:AbortSignal})=>Promise<Slide[]|null>}} SourceAction
  */

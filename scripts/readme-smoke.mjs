@@ -2,7 +2,7 @@ import { access, readFile } from 'node:fs/promises'
 import { dirname, join, relative, resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import ts from 'typescript'
-import { loadBlockPlugin } from '../plugins/async.js'
+import { loadBlockPluginDefinition } from '../plugins/async.js'
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)))
 const workspace = resolve(root, '..')
@@ -248,8 +248,7 @@ for (const file of readmes) {
 // JSON that the runtime would later reject.
 for (const directory of blockPaths) {
   const type = directory === 'link-preview' ? 'linkPreview' : directory
-  const Plugin = await loadBlockPlugin(type)
-  const plugin = new Plugin()
+  const definition = await loadBlockPluginDefinition(type)
   for (const file of [
     join(root, 'plugins', directory, 'README.md'),
     join(root, 'renderer', 'renderers', directory, 'README.md'),
@@ -258,8 +257,10 @@ for (const directory of blockPaths) {
     if (examples.length !== 1) {
       throw new Error(`${relative(root, file)}: expected exactly one document-data JSON example`)
     }
-    if (!plugin.validate(examples[0])) {
-      throw new Error(`${relative(root, file)}: documented data example fails the ${type} validator`)
+    try {
+      definition.schema.decode({ data: examples[0] })
+    } catch {
+      throw new Error(`${relative(root, file)}: documented data example fails the ${type} schema`)
     }
   }
 }
