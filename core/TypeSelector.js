@@ -3,7 +3,7 @@ import { resolveBlockRange } from './selectionRange.js'
 import { el, positionPopup } from './dom.js'
 import { convertCrossBlockRange, isTextType } from './crossBlockConvert.js'
 import { CrossBlockSelection } from './CrossBlockSelection.js'
-import { handleMenuKeydown } from './menuKeyboardNav.js'
+import { handleMenuKeydown } from '../shared/menuKeyboardNav.js'
 import { splitAndConvert, isFullBlockSelected, restoreSelection } from './splitConvert.js'
 import { EditorEvent } from './editorEvents.js'
 
