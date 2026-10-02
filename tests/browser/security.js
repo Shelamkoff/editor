@@ -6,6 +6,7 @@ import {
 import { EditorRenderer } from '../../renderer/index.js'
 import { deserializeInlineHtml, serializeInlineHtml } from '../../shared/inlineMarshal.js'
 import { sanitizeHtml, sanitizeRawHtml, setSanitizedRawHtml } from '../../shared/sanitize/index.js'
+import { normalizeRichText } from '../../shared/richTextCodec.js'
 
 const pixel = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADElEQVR42mNk+M/wHwAF/gL+Av7lWQAAAABJRU5ErkJggg=='
 
@@ -45,6 +46,24 @@ async function run() {
   assert(sanitizedHost.querySelector('a')?.getAttribute('href') === '#', 'inline sanitizer kept a dangerous URL')
   assert(!sanitized.includes('background-image'), 'inline sanitizer kept a dangerous CSS property')
   assert(window.__editorSecurityProbe === 0, 'inline sanitizer executed an inert payload')
+
+  const normalizedRichText = normalizeRichText(
+    '<strong>one</strong><b>two</b><em>three</em><i>four</i><strike>five</strike><s>six</s><span style="font-size: 12px; color: red; background-image:url(javascript:alert(1))">styled</span><script>bad()</script>',
+    document,
+  )
+  assert(
+    normalizedRichText === '<b>onetwo</b><i>threefour</i><s>fivesix</s><span style="color: red; font-size: 12px;">styled</span>bad()',
+    `rich-text canonicalization is unstable: ${normalizedRichText}`,
+  )
+  assert(
+    normalizeRichText(normalizedRichText, document) === normalizedRichText,
+    'rich-text canonicalization is not idempotent',
+  )
+  const crossRealmRichText = document.implementation.createHTMLDocument('rich-text-realm')
+  assert(
+    normalizeRichText('<strong>realm</strong>', crossRealmRichText) === '<b>realm</b>',
+    'rich-text normalization ignored the supplied ownerDocument realm',
+  )
 
 
   const previousBoldAllowlist = Object.getOwnPropertyDescriptor(Object.prototype, 'b')
