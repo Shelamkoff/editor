@@ -1,5 +1,5 @@
 // @ts-check
-import { READ_ONLY_INTERACTIVE_ATTRIBUTE, setSanitizedHtml } from '../../plugin-kit/index.js'
+import { READ_ONLY_INTERACTIVE_ATTRIBUTE, insertTrustedHtml, setSanitizedHtml } from '../../plugin-kit/index.js'
 import { embedDataSchema } from '../../shared/blockSchemas/embed.js'
 import { sanitizeMediaUrl } from '../../shared/sanitize/sanitizeUrl.js'
 import { isSupportedImageFile, triggerFileInput } from '../shared/fileInput.js'
@@ -261,7 +261,8 @@ export function createEmbedPlugin(config = {}) {
             const button = document.createElement('button')
             button.type = 'button'
             button.className = 'oe-embed__action-btn'
-            button.textContent = action.label
+            if (action.icon) insertTrustedHtml(button, 'afterbegin', action.icon)
+            button.append(document.createTextNode(action.label))
             button.addEventListener('click', () => {
               if (readOnly || dead) return
               const Ctor = document.defaultView?.AbortController ?? AbortController

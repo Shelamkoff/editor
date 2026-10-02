@@ -82,7 +82,7 @@ export function createCarouselPlugin(config={}){
           let readOnly=context.isReadOnly()
           let dead=false
           let activeIndex=0
-          let taskController=null
+          const taskControllers=new Set()
           let autoplayTimer=null
           const captionFields=new Map()
 
@@ -110,12 +110,19 @@ export function createCarouselPlugin(config={}){
           const updateData=next=>context.updateData(()=>next)
 
           const beginTask=()=>{
-            taskController?.abort()
             const Ctor=document.defaultView?.AbortController??AbortController
-            taskController=new Ctor()
-            const abort=()=>taskController?.abort(context.signal.reason)
-            context.signal.addEventListener('abort',abort,{once:true,signal:taskController.signal})
-            return taskController
+            const controller=new Ctor()
+            taskControllers.add(controller)
+            const abort=()=>controller.abort(context.signal.reason)
+            context.signal.addEventListener('abort',abort,{once:true,signal:controller.signal})
+            return controller
+          }
+          const finishTask=controller=>{
+            taskControllers.delete(controller)
+          }
+          const abortTasks=()=>{
+            for(const controller of taskControllers)controller.abort()
+            taskControllers.clear()
           }
 
           const normalizeSlide=slide=>{
@@ -132,7 +139,10 @@ export function createCarouselPlugin(config={}){
               return normalized?[normalized]:[]
             })
             if(valid.length===0)return
-            updateData({...data,slides:[...data.slides,...valid]})
+            context.updateData(current=>({
+              ...current,
+              slides:[...current.slides,...valid],
+            }))
           }
 
           const fileType=file=>{
@@ -190,7 +200,11 @@ export function createCarouselPlugin(config={}){
                 if(!controller.signal.aborted)console.warn('[Carousel] File resolution failed',error)
               }
             }
-            if(!controller.signal.aborted)addSlides(slides)
+            try{
+              if(!controller.signal.aborted)addSlides(slides)
+            }finally{
+              finishTask(controller)
+            }
           }
 
           const chooseFiles=()=>{
@@ -254,6 +268,8 @@ export function createCarouselPlugin(config={}){
               }
             }catch(error){
               if(!controller.signal.aborted)console.warn('[Carousel] Source action failed',error)
+            }finally{
+              finishTask(controller)
             }
           }
 
@@ -391,7 +407,16 @@ export function createCarouselPlugin(config={}){
               later.textContent='→'
               later.disabled=activeIndex===data.slides.length-1
               later.addEventListener('click',()=>moveSlide(activeIndex,activeIndex+1),{signal:context.signal})
-              actions.append(add,remove,earlier,later)
+              actions.appendChild(add)
+              for(const action of snapshot.actions){
+                const button=document.createElement('button')
+                button.type='button'
+                if(action.icon)insertTrustedHtml(button,'afterbegin',action.icon)
+                button.append(document.createTextNode(action.label))
+                button.addEventListener('click',()=>void runAction(action),{signal:context.signal})
+                actions.appendChild(button)
+              }
+              actions.append(remove,earlier,later)
               wrapper.appendChild(actions)
             }
 
@@ -459,9 +484,9 @@ export function createCarouselPlugin(config={}){
               element,
               mode:/** @type {'plain-text'} */('plain-text'),
             }))),
-            setReadOnly(value){readOnly=value;project();if(value)taskController?.abort()},
+            setReadOnly(value){readOnly=value;if(value)abortTasks();project()},
             focus(){if(!dead&&!readOnly)(captionFields.get(data.slides[activeIndex]?.id)??wrapper.querySelector('button'))?.focus()},
-            destroy(){dead=true;clearAutoplay();taskController?.abort();captionFields.clear()},
+            destroy(){dead=true;clearAutoplay();abortTasks();captionFields.clear()},
           }
         },
         destroy(){

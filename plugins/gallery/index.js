@@ -317,6 +317,15 @@ export function createGalleryPlugin(config={}){
               add.textContent=runtimeContext.t('add','Add images')
               add.addEventListener('click',chooseFiles,{signal:context.signal})
               actions.appendChild(add)
+              for(const action of snapshot.actions){
+                const button=document.createElement('button')
+                button.type='button'
+                button.className=CSS.actionBtn
+                if(action.icon)insertTrustedHtml(button,'afterbegin',action.icon)
+                button.append(document.createTextNode(action.label))
+                button.addEventListener('click',()=>void runAction(action),{signal:context.signal})
+                actions.appendChild(button)
+              }
               wrapper.appendChild(actions)
             }
           }
