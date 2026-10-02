@@ -19,7 +19,7 @@
  * @template {object} [TConfig=Record<string, any>]
  */
 export class BlockPluginAbstract {
-  /** @type {import('../core/types').IScopedI18n | null} */
+  /** @type {import('../plugin-kit/types').IScopedI18n | null} */
   #i18n = null
 
   /** @type {TConfig} */
@@ -63,7 +63,7 @@ export class BlockPluginAbstract {
    * full key, ScopedI18n detects the matching prefix and passes through
    * untouched.
    *
-   * @param {import('../core/types').IScopedI18n} i18n
+   * @param {import('../plugin-kit/types').IScopedI18n} i18n
    * @returns {void}
    */
   setI18n(i18n) {
@@ -113,7 +113,7 @@ export class BlockPluginAbstract {
    * pass it to nested helpers.
    *
    * @protected
-   * @returns {import('../core/types').IScopedI18n | null}
+   * @returns {import('../plugin-kit/types').IScopedI18n | null}
    */
   get _i18n() {
     return this.#i18n
