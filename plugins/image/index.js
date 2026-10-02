@@ -55,7 +55,7 @@ export class Image extends BlockPluginAbstract {
   #config
   /** Per-block state, keyed by wrapper element. Encapsulated to this instance. */
   #states = /** @type {WeakMap<HTMLElement, ImageState>} */ (new WeakMap())
-  /** @type {WeakMap<HTMLElement, import('../../core/types').BlockMutationContext>} */
+  /** @type {WeakMap<HTMLElement, import('../../plugin-kit/types').BlockMutationContext>} */
   #contexts = new WeakMap()
   /**
    * Create an Image instance with the supplied consumer configuration.
@@ -80,7 +80,7 @@ export class Image extends BlockPluginAbstract {
   /**
    * Create the editable DOM owned by this block instance.
    * @param {Record<string, unknown>} data
-   * @param {import('../../core/types').BlockMutationContext} context
+   * @param {import('../../plugin-kit/types').BlockMutationContext} context
    * @returns {HTMLElement}
    */
   render(data, context) {
