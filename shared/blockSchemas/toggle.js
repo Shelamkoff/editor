@@ -15,6 +15,7 @@ export const toggleDataSchema = createVersionedDataSchema({
     return { title: input.title, content: input.content, open: Boolean(input.open) }
   },
   mapRichText(data, transform) {
-    mapToggleTextFields(data, (html) => transform(html, 'content'))
+    data.title = transform(data.title, 'title')
+    data.content = transform(data.content, 'content')
   },
 })
