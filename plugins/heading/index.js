@@ -28,6 +28,23 @@ export function createHeadingPlugin(){
     },
   })))
 
+  const levelSettings=Object.freeze({
+    kind:/** @type {'actions'} */('actions'),
+    actions(data){
+      return HEADING_LEVELS.map(item=>Object.freeze({
+        id:`h${item.level}`,
+        label:Object.freeze({key:item.key,fallback:item.fallback}),
+        icon:item.icon,
+        active:data.level===item.level,
+      }))
+    },
+    apply(data,actionId){
+      const match=/^h([2-6])$/.exec(actionId)
+      if(!match)throw new RangeError(`Unknown heading setting: ${actionId}`)
+      return {...data,level:/** @type {2|3|4|5|6} */(Number(match[1]))}
+    },
+  })
+
   const capabilities=Object.freeze({
     formatting:Object.freeze({inlineTools:true}),
     empty:Object.freeze({isEmpty:data=>data.text.trim().length===0}),
@@ -50,22 +67,8 @@ export function createHeadingPlugin(){
         return {text:payload.data.text,level:/** @type {2} */(2)}
       },
     }),
-    settings:Object.freeze({
-      kind:/** @type {'actions'} */('actions'),
-      actions(data){
-        return HEADING_LEVELS.map(item=>Object.freeze({
-          id:`h${item.level}`,
-          label:Object.freeze({key:item.key,fallback:item.fallback}),
-          icon:item.icon,
-          active:data.level===item.level,
-        }))
-      },
-      apply(data,actionId){
-        const match=/^h([2-6])$/.exec(actionId)
-        if(!match)throw new RangeError(`Unknown heading setting: ${actionId}`)
-        return {...data,level:/** @type {2|3|4|5|6} */(Number(match[1]))}
-      },
-    }),
+    inlineControls:levelSettings,
+    settings:levelSettings,
     paste:Object.freeze({
       accepts(input){
         return input.kind==='html'&&/<h[2-6](?:\s|>)/i.test(input.html)

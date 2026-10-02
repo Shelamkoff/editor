@@ -299,6 +299,7 @@ export interface BlockCapabilities<D extends Record<string, unknown>> {
   merge?: MergeCapability<D>
   conversion?: ConversionCapability<D>
   selectionSlice?: SelectionSliceCapability<D>
+  inlineControls?: SettingsActionCapability<D>
   settings?: SettingsCapability<D>
   paste?: PasteCapability<D>
   shortcuts?: ShortcutCapability<D>

@@ -319,6 +319,7 @@ export function createEditorV2(input){
     registry,
     reconciler,
     selection:logicalSelection,
+    view,
     tools:config.inlineTools??[],
   }))
 
