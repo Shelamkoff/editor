@@ -12,6 +12,7 @@ export const warningDataSchema = createVersionedDataSchema({
     return { title: input.title, message: input.message }
   },
   mapRichText(data, transform) {
-    mapWarningTextFields(data, (html) => transform(html, 'message'))
+    data.title = transform(data.title, 'title')
+    data.message = transform(data.message, 'message')
   },
 })
