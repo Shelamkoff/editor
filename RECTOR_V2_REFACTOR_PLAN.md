@@ -70,13 +70,16 @@ Block-local selection used by split/conversion capabilities:
       end: number
     }
 
-    type ConversionData = JsonObject
+    interface ConversionPayload {
+      kind: string
+      data: JsonObject
+    }
 
     interface SelectionConversionResult<
       D extends JsonObject
     > {
       remaining: D | null
-      selected: ConversionData
+      selected: ConversionPayload
     }
 
 Focus requests use logical field coordinates rather than DOM nodes:
@@ -138,6 +141,26 @@ Renderer is a separate runtime:
       +-- renderer-specific DOM implementations
 
 Renderer must not import editing runtime modules.
+
+### 2.1. ExtensionRegistry invariants
+
+ExtensionRegistry snapshots and validates configured definitions before any document is mounted.
+
+It must enforce:
+
+- plugins is a dense non-empty array;
+- every block type is a non-empty unique string;
+- every inline plugin type is a non-empty unique string;
+- inline trigger characters are unique and exactly one Unicode code point;
+- definition/schema type ownership is immutable for the lifetime of the registry;
+- the configured defaultBlock type is registered;
+- when defaultBlock is omitted, preserve the current policy: use paragraph when registered, otherwise the first configured block definition;
+- schema.createDefault() for the default block succeeds during setup validation before live document mutation;
+- the same immutable definition may be reused by separate editors;
+- duplicate registration of the same type in one editor is rejected even if the same definition object is supplied twice;
+- setup failures release already-acquired runtime/style resources through LifecycleScope.
+
+ExtensionRegistry localizes definition labels/toolbox labels per editor runtime. Definitions themselves are never mutated for locale.
 
 ## 3. Canonical document model
 
@@ -246,6 +269,8 @@ Replace duplicated validators/migrations with a neutral block data schema used b
       readonly currentVersion: number
       readonly legacyVersion: number
 
+      createDefault(): D
+
       decode(input: {
         dataVersion?: number
         data: unknown
@@ -267,6 +292,7 @@ Replace duplicated validators/migrations with a neutral block data schema used b
 
 Semantics:
 
+- createDefault returns a fresh valid canonical block payload and is deterministic;
 - decode owns validation, legacy interpretation, migration and canonical normalization;
 - missing dataVersion is interpreted as that schema's explicit legacyVersion;
 - migration steps are private implementation details of the schema module;
@@ -445,7 +471,7 @@ Editor-side inline plugin contract:
 
     interface InlinePluginDefinition<D extends JsonObject = JsonObject> {
       readonly type: string
-      readonly title: string
+      readonly label: LocalizedLabel
       readonly icon: string
       readonly styles?: readonly string[]
       readonly locale?: Readonly<Record<string, Readonly<Record<string, LocaleValue>>>>
@@ -541,6 +567,8 @@ Editor-side inline plugin contract:
 
       isReadOnly(): boolean
     }
+
+BlockInstanceContext mutation methods return/throw according to one rule: in read-only interaction mode they are inert/no-op for plugin-originated UI actions; during forbidden transaction phases they throw a phase error because that is a programming/reentrancy violation.
 
 Rules:
 
@@ -659,13 +687,25 @@ Use this helper for at least:
 
 Separate plugin definition from mounted block instance.
 
+    interface LocalizedLabel {
+      key: string
+      fallback: string
+    }
+
+    interface ToolboxItemDefinition {
+      id: string
+      label: LocalizedLabel
+      icon: string
+      data?: JsonObject
+    }
+
     interface BlockPluginDefinition<D extends JsonObject = JsonObject> {
       readonly type: string
-      readonly title: string
+      readonly label: LocalizedLabel
       readonly icon: string
       readonly styles?: readonly string[]
       readonly locale?: Readonly<Record<string, Readonly<Record<string, LocaleValue>>>>
-      readonly toolbox?: readonly ToolboxEntry[]
+      readonly toolbox?: readonly ToolboxItemDefinition[]
       readonly schema: BlockDataSchema<D>
       readonly capabilities?: BlockCapabilities<D>
 
@@ -761,6 +801,8 @@ Common style configuration:
     }
 
 Each built-in config extends ExtensionStyleConfig with its domain options. Existing capabilities such as uploadFile, custom actions, preview resolvers, placeholders and plugin-specific options must remain expressible through the corresponding v2 factory.
+
+Editor-level placeholder remains composition configuration. ExtensionRegistry passes it through the runtime context only to the configured default block definition when that definition supports a placeholder option; an explicitly configured plugin placeholder retains priority. Do not reintroduce a mutable setPlaceholder setter.
 
 Configuration rules:
 
@@ -910,12 +952,26 @@ Replace scattered optional-method discovery with an explicit capability object.
       split?: SplitCapability<D>
       conversion?: ConversionCapability<D>
       paste?: PasteCapability<D>
+      empty?: EmptyCapability<D>
+      formatting?: FormattingCapability
       settings?: SettingsCapability<D>
       inlineControls?: InlineControlsCapability<D>
       shortcuts?: ShortcutCapability
     }
 
 Core may branch on capability presence. It must not probe arbitrary plugin methods throughout unrelated modules.
+
+Core structural logic uses canonical data, not DOM, for emptiness and inline-tool policy:
+
+    interface EmptyCapability<D extends JsonObject> {
+      isEmpty(data: Readonly<D>): boolean
+    }
+
+    interface FormattingCapability {
+      inlineTools: true | readonly string[]
+    }
+
+Blocks without EmptyCapability are not treated as empty by generic Backspace/exit logic. Blocks without FormattingCapability do not expose the generic inline formatting toolbar.
 
 Settings/paste/controls are model-first contracts:
 
@@ -952,19 +1008,30 @@ Settings/paste/controls are model-first contracts:
       ): PasteResult<D> | null | Promise<PasteResult<D> | null>
     }
 
+    interface ExtensionUiContext {
+      readonly ownerDocument: Document
+      t(label: LocalizedLabel): string
+    }
+
     interface SettingsAction {
       id: string
-      title: string
+      label: LocalizedLabel
       icon?: string
+      active?: boolean
+      disabled?: boolean
     }
 
     interface SettingsCapability<D extends JsonObject> {
-      actions(data: Readonly<D>): readonly SettingsAction[]
+      actions(
+        data: Readonly<D>,
+        context: ExtensionUiContext
+      ): readonly SettingsAction[]
+
       apply(data: Readonly<D>, actionId: string): D
     }
 
-    interface InlineControlsContext<D extends JsonObject> {
-      readonly ownerDocument: Document
+    interface InlineControlsContext<D extends JsonObject>
+      extends ExtensionUiContext {
       readonly selection: BlockSelection | null
 
       getData(): Readonly<D>
@@ -1016,8 +1083,10 @@ If product semantics require "Enter creates the configured default block", repre
 ### 8.3. Conversion
 
     interface ConversionCapability<D> {
-      export(data: Readonly<D>): ConversionData
-      import(data: ConversionData): D
+      export(data: Readonly<D>): ConversionPayload
+
+      canImport(payload: ConversionPayload): boolean
+      import(payload: ConversionPayload): D
 
       splitSelection?(
         data: Readonly<D>,
@@ -1025,7 +1094,7 @@ If product semantics require "Enter creates the configured default block", repre
       ): SelectionConversionResult<D> | null
     }
 
-Core must not know plugin-specific data shapes.
+Core must not know plugin-specific data shapes. Compatibility is decided by canImport(payload), not by a hard-coded text property or isTextBlock flag. Built-in text-carrying blocks should use a shared "rich-text" conversion payload where appropriate.
 
 ## 9. Block instance mutation context
 
@@ -1124,6 +1193,8 @@ DocumentTransaction provides only model operations:
       tunes?: BlockTunes
       inline?: Record<string, InlineWidgetRecord>
     }
+
+When data is omitted for a registered type, DocumentRuntime uses that type's schema.createDefault(). Omitted data is not equivalent to an empty object. Inserting an unregistered/opaque type requires explicit data because core has no schema/default contract for it.
 
     interface DocumentTransaction {
       insert(index: number, block: NewBlockInput): string
@@ -2146,11 +2217,12 @@ TDD slices:
 2. canonical rich text is idempotent;
 3. invalid Paragraph data is rejected;
 4. unknown block survives unchanged;
-5. editor/renderer both use the same Paragraph schema;
-6. preserve mode keeps malformed/future-version known data inert while strict mode rejects it;
-7. incomplete/unknown document-version migration enters preserved-document mode without relabelling the version;
-8. alignment exists only as tunes.textAlign in canonical v2 Paragraph/Heading data;
-9. matching inline placeholder references count as one logical unit while unmatched {{...}} author text remains ordinary text.
+5. schema.createDefault returns fresh valid canonical data and omitted insert data uses it;
+6. editor/renderer both use the same Paragraph schema;
+7. preserve mode keeps malformed/future-version known data inert while strict mode rejects it;
+8. incomplete/unknown document-version migration enters preserved-document mode without relabelling the version;
+9. alignment exists only as tunes.textAlign in canonical v2 Paragraph/Heading data;
+10. matching inline placeholder references count as one logical unit while unmatched {{...}} author text remains ordinary text.
 
 Exit criteria:
 
@@ -2198,6 +2270,8 @@ For every plugin prove:
 - stable editable field keys;
 - deterministic migration of variable rich-text subfield IDs where applicable;
 - exact v2 List/Checklist/Columns/Table data shapes;
+- pure EmptyCapability behavior for every built-in block that participates in generic structural logic;
+- FormattingCapability parity with current inlineTools behavior;
 - immutable definition-factory configuration and multi-editor reuse.
 
 After block plugin migration, migrate inline plugins to InlinePluginDefinition/InlinePluginRuntime/InlineWidgetInstance and model-owned payloads. Cover mention and color first, including trigger/autocomplete, paste patterns, programmatic insertion, read-only behavior and missing-plugin preservation.
@@ -2511,6 +2585,21 @@ Security:
 - setReadOnly(false) cannot bypass preserved-document mode;
 - cross-realm editing/rendering preserved.
 
+## 31.1. Declaration source-of-truth
+
+Do not recreate the audit's JSDoc/manual-declaration drift risk while introducing v2.
+
+Rules:
+
+- runtime JavaScript APIs use JSDoc as the declaration source and generated .d.ts output;
+- genuinely type-only contracts may live in source .d.ts modules;
+- do not maintain a handwritten .d.ts mirror next to a runtime .js implementation unless the existing declaration generator explicitly designates that file as a required facade;
+- add plugin-kit and preset entries to declaration generation/package export parity checks;
+- NodeNext and Bundler consumer fixtures import the actual published entry points;
+- public runtime exports and generated declarations remain parity-gated.
+
+Where an existing handwritten facade becomes unnecessary after v2, remove it rather than adding another parity test around duplicate definitions.
+
 ## 32. CI and architecture gates
 
 Keep the existing verify.yml. Do not add a duplicate verification workflow.
@@ -2562,6 +2651,9 @@ Architecture:
 - block plugins use per-block instances;
 - plugin capabilities are explicit;
 - built-in plugin configuration uses immutable reusable definitions/factories;
+- ExtensionRegistry uniquely owns registration/default/locale/style setup;
+- default block creation is schema-driven rather than implicit {};
+- generic emptiness and formatting eligibility are data/capability driven, not DOM-probed;
 - inline widget payload is canonical model state with per-widget instances;
 - text alignment has one canonical location in tunes.textAlign;
 - plugin-kit is the supported extension utility interface;
