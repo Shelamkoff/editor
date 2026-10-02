@@ -12,10 +12,10 @@ export function register() {
     editor.render({ version: 'v2', blocks: [para('b', 'New')] })
     equal(received, [['v2', ['New']]])
     editor.undo()
-    equal(editor.save().version, '1')
+    equal(editor.save().version, '2.0.0')
     editor.redo()
     equal(editor.save().version, 'v2')
-    equal(received, [['v2', ['New']], ['1', ['Old']], ['v2', ['New']]])
+    equal(received, [['v2', ['New']], ['2.0.0', ['Old']], ['v2', ['New']]])
   })
 
   test('a render requested by a change observer is not overwritten by the outer envelope', () => {
@@ -45,7 +45,7 @@ export function register() {
     let error
     try { editor.render({ version: 'v2', blocks: [para('b', 'Reject')] }) } catch (cause) { error = cause }
     assert(error instanceof Error, 'replacement must propagate its persistence failure')
-    equal([editor.save().version, editor.save().blocks[0].data.text], ['1', 'Old'])
+    equal([editor.save().version, editor.save().blocks[0].data.text], ['2.0.0', 'Old'])
     equal(changes, 0)
     equal(editor.canUndo, false)
   })
