@@ -349,13 +349,13 @@ async function run() {
     },
   })
   assert((await migrationEditor.save()).blocks[0].data.text === 'Initial migration', 'initial document migration was not applied')
-  assert((await migrationEditor.save()).version === '1.0.0', 'completed migration did not save the current document version')
+  assert((await migrationEditor.save()).version === '2.0.0', 'completed migration did not save the current document version')
   migrationEditor.render({
     version: 'legacy-v0',
     blocks: [{ id: 'render-migrated', type: 'paragraph', data: { body: 'Render migration' } }],
   })
   assert((await migrationEditor.save()).blocks[0].data.text === 'Render migration', 'render() bypassed document migrations')
-  assert((await migrationEditor.save()).version === '1.0.0', 'render migration did not update the saved version')
+  assert((await migrationEditor.save()).version === '2.0.0', 'render migration did not update the saved version')
   const beforeUnknownVersion = JSON.stringify((await migrationEditor.save()).blocks)
   let unknownVersionRejected = false
   try {
