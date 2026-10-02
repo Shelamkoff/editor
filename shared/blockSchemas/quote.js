@@ -12,7 +12,7 @@ export const quoteDataSchema = createVersionedDataSchema({
     return { text: input.text, caption: input.caption }
   },
   mapRichText(data, transform) {
-    mapQuoteTextFields(data, html => transform(html, 'text'))
+    data.text = transform(data.text, 'text')
     data.caption = transform(data.caption, 'caption')
   },
 })
