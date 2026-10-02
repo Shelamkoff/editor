@@ -763,7 +763,7 @@ export function createEditor(config) {
 export { DocumentSchema } from './DocumentSchema.js'
 
 // ── Public API ──────────────────────────────────────────────────────────────
-export { uid } from './uid.js'
+export { uid } from '../shared/uid.js'
 export { sanitizeHtml, escapeHtml } from './sanitize.js'
 export { createDefaultInlineTools } from '../inline-tools/defaults.js'
 export { InlinePluginRegistry } from './InlinePluginRegistry.js'
