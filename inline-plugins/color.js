@@ -37,7 +37,7 @@ function displayValue(value,ownerDocument){
   return (parsed.a??1)<1?value:normalizeToHex6(value,ownerDocument)
 }
 
-/** @returns {import('../plugin-kit/types').InlinePluginDefinition<{value:string}>} */
+/** Create the immutable inline color-swatch widget definition.\n * @returns {import('../plugin-kit/types').InlinePluginDefinition<{value:string}>}\n */
 export function createColorSwatchPlugin(){
   return Object.freeze({
     type:'color',

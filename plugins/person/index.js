@@ -27,13 +27,13 @@ function meaningful(person){
 
 /**
  * @typedef {Object} PersonV2Config
- * @property {(file:File,context:{signal:AbortSignal})=>Promise<{url:string}>} [uploadFile]
- * @property {Array<{test:RegExp|((url:string)=>boolean),type:string,icon?:string}>} [socialResolvers]
- * @property {boolean} [injectStyles=true]
- * @property {string} [css]
+ * @property {(file:File,context:{signal:AbortSignal})=>Promise<{url:string}>} [uploadFile] Upload a person avatar image.
+ * @property {Array<{test:RegExp|((url:string)=>boolean),type:string,icon?:string}>} [socialResolvers] Custom URL-to-social-type resolvers.
+ * @property {boolean} [injectStyles=true] Whether to acquire the built-in Person styles.
+ * @property {string} [css] Additional stylesheet URL acquired with the definition.
  */
 
-/** @param {PersonV2Config} [config] @returns {import('../../plugin-kit/types').BlockPluginDefinition<any>} */
+/** Create an immutable Person block definition.\n * @param {PersonV2Config} [config] Consumer-owned configuration snapshotted by the factory.\n * @returns {import('../../plugin-kit/types').BlockPluginDefinition<any>}\n */
 export function createPersonPlugin(config={}){
   if(!config||typeof config!=='object'||Array.isArray(config))throw new TypeError('Person configuration must be an object')
   const snapshot=Object.freeze({

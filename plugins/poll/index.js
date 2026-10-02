@@ -12,9 +12,9 @@ const ICON='<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewB
 /**
  * @typedef {import('../../shared/pollData').PollResults} PollResults
  * @typedef {Object} PollDataSource
- * @property {(context:{pollId:string,signal:AbortSignal})=>Promise<PollResults>} load
- * @property {(context:{pollId:string,optionIds:string[],revision?:string,signal:AbortSignal})=>Promise<PollResults>} vote
- * @property {(context:{pollId:string,signal:AbortSignal,onUpdate(results:PollResults):void,onError(error:unknown):void})=>void|(()=>void)} [subscribe]
+ * @property {(context:{pollId:string,signal:AbortSignal})=>Promise<PollResults>} load Load the latest results for a poll.
+ * @property {(context:{pollId:string,optionIds:string[],revision?:string,signal:AbortSignal})=>Promise<PollResults>} vote Submit a vote and return the resulting poll state.
+ * @property {(context:{pollId:string,signal:AbortSignal,onUpdate(results:PollResults):void,onError(error:unknown):void})=>void|(()=>void)} [subscribe] Subscribe to live poll result updates; return an optional disposer.
  */
 
 /**

@@ -27,18 +27,18 @@ function normalizeResult(raw){
 
 /**
  * @typedef {Object} MentionV2Options
- * @property {string} [trigger='@']
- * @property {(query:string,nextPageUrl:string|null,context:{signal:AbortSignal})=>Promise<any>} [searchFunction]
- * @property {number} [debounceDelay=300]
- * @property {string} [noResultsText]
- * @property {string} [dropdownClass]
- * @property {(data:{id:string|number,name:string})=>void} [onMentionSelect]
- * @property {(data:any,index:number,isActive:boolean)=>HTMLElement|null|undefined} [renderItem]
- * @property {(text:string)=>HTMLElement|null|undefined} [renderNoResults]
- * @property {()=>HTMLElement|null|undefined} [renderLoading]
+ * @property {string} [trigger='@'] Single-code-point trigger that starts mention search.
+ * @property {(query:string,nextPageUrl:string|null,context:{signal:AbortSignal})=>Promise<any>} [searchFunction] Resolve mention candidates for the current query and optional next page.
+ * @property {number} [debounceDelay=300] Delay in milliseconds before invoking mention search.
+ * @property {string} [noResultsText] Fallback label shown when search returns no candidates.
+ * @property {string} [dropdownClass] Additional class applied to the mention results popup.
+ * @property {(data:{id:string|number,name:string})=>void} [onMentionSelect] Observer invoked after a mention is committed.
+ * @property {(data:any,index:number,isActive:boolean)=>HTMLElement|null|undefined} [renderItem] Render one search-result row in the editor owner document.
+ * @property {(text:string)=>HTMLElement|null|undefined} [renderNoResults] Render custom empty-search content.
+ * @property {()=>HTMLElement|null|undefined} [renderLoading] Render custom loading content while fetching more results.
  */
 
-/** @param {MentionV2Options} [options] @returns {import('../../plugin-kit/types').InlinePluginDefinition<{id:string,name:string}>} */
+/** Create an immutable inline mention-widget definition.\n * @param {MentionV2Options} [options] Consumer-owned options snapshotted by the factory.\n * @returns {import('../../plugin-kit/types').InlinePluginDefinition<{id:string,name:string}>}\n */
 export function createMentionPlugin(options={}){
   if(!options||typeof options!=='object'||Array.isArray(options))throw new TypeError('Mention options must be an object')
   const trigger=options.trigger??'@'

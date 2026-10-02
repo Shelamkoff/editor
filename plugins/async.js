@@ -66,7 +66,7 @@ function requestedTypes(source) {
   return [...new Set(types)]
 }
 
-/** @returns {import('../renderer/types').BlockType[]} */
+/** Return the canonical block types supported by the async plugin preset.\n * @returns {import('../renderer/types').BlockType[]}\n */
 export function getAsyncBlockPluginTypes() {
   return [...BLOCK_TYPES]
 }

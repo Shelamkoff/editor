@@ -13,12 +13,12 @@ const PLACEHOLDER = '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="
 
 /**
  * @typedef {Object} EmbedV2Config
- * @property {(file: File, context: { signal: AbortSignal }) => Promise<{ url: string }>} [uploadFile]
- * @property {Array<{ icon?: string, label: string, handler: (context: { signal: AbortSignal }) => Promise<{ url: string } | null> }>} [actions]
- * @property {false | ((request: { service: 'vimeo', videoId: string, url: string, signal: AbortSignal }) => Promise<{ thumbnailUrl: string, title?: string } | null>)} [resolvePreview]
- * @property {number} [previewTimeoutMs]
- * @property {boolean} [injectStyles=true]
- * @property {string} [css]
+ * @property {(file: File, context: { signal: AbortSignal }) => Promise<{ url: string }>} [uploadFile] Upload an image used as a custom video cover.
+ * @property {Array<{ icon?: string, label: string, handler: (context: { signal: AbortSignal }) => Promise<{ url: string } | null> }>} [actions] Additional cover-source actions shown by the block.
+ * @property {false | ((request: { service: 'vimeo', videoId: string, url: string, signal: AbortSignal }) => Promise<{ thumbnailUrl: string, title?: string } | null>)} [resolvePreview] Resolve Vimeo preview metadata, or disable preview resolution with false.
+ * @property {number} [previewTimeoutMs] Timeout for the built-in Vimeo preview request.
+ * @property {boolean} [injectStyles=true] Whether to acquire the built-in Embed stylesheet.
+ * @property {string} [css] Additional stylesheet URL acquired with the definition.
  */
 
 function emptyData() {
@@ -30,7 +30,7 @@ function vimeoUrl(videoId) {
   return 'https://vimeo.com/' + encodeURIComponent(videoId)
 }
 
-/** @param {EmbedV2Config} [config] @returns {import('../../plugin-kit/types').BlockPluginDefinition<{service:string,videoId:string,caption:string,cover:string,title:string,duration:string}>} */
+/** Create an immutable Embed block definition.\n * @param {EmbedV2Config} [config] Consumer-owned configuration snapshotted by the factory.\n * @returns {import('../../plugin-kit/types').BlockPluginDefinition<{service:string,videoId:string,caption:string,cover:string,title:string,duration:string}>}\n */
 export function createEmbedPlugin(config = {}) {
   if (!config || typeof config !== 'object' || Array.isArray(config)) {
     throw new TypeError('Embed configuration must be an object')
