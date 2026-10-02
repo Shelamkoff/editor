@@ -1,5 +1,5 @@
 import { createEditor, sanitizeHtml } from '../../core/index.js'
-import { Heading, Paragraph, Raw } from '../../plugins/index.js'
+import { createHeadingPlugin, createParagraphPlugin, createRawPlugin } from '../../plugins/index.js'
 import { createEditorRenderer } from '../../renderer/index.js'
 
 const results = []
@@ -21,12 +21,12 @@ await test('editor text blocks render under require-trusted-types-for', () => {
   document.querySelector('#sandbox').appendChild(holder)
   const editor = createEditor({
     holder,
-    plugins: [new Paragraph(), new Heading()],
+    plugins: [createParagraphPlugin({ injectStyles: false }), createHeadingPlugin({ injectStyles: false })],
     defaultBlock: 'paragraph',
     inlineTools: [],
     injectStyles: false,
     data: {
-      version: '1.0',
+      version: '2.0.0',
       blocks: [
         { id: 'p', type: 'paragraph', data: { text: '<strong>Safe</strong><img src=x onerror=bad()>' } },
         { id: 'h', type: 'heading', data: { text: '<em>Heading</em><script>bad()</script>', level: 2 } },
@@ -37,8 +37,9 @@ await test('editor text blocks render under require-trusted-types-for', () => {
     const saved = editor.save()
     assert(saved.blocks[0].data.text === '<b>Safe</b>', 'paragraph sanitizer did not preserve the expected safe subset')
     assert(saved.blocks[1].data.text === '<i>Heading</i>bad()', 'heading sanitizer did not preserve text from an unsupported element')
-    editor.blocks.convert(0, 'heading', { level: 3 })
-    assert(editor.blocks.getBlockByIndex(0).type === 'heading', 'programmatic conversion failed under Trusted Types')
+    const firstId = editor.blocks.at(0).id
+    editor.blocks.convert(firstId, { type: 'heading', toolboxItemId: 'h3' })
+    assert(editor.blocks.at(0).type === 'heading', 'programmatic conversion failed under Trusted Types')
   } finally {
     editor.destroy()
     holder.remove()
@@ -50,7 +51,7 @@ await test('document renderer handles inline HTML under Trusted Types enforcemen
   let root
   try {
     root = renderer.render({
-      version: '1.0',
+      version: '2.0.0'
       blocks: [
         { id: 'p', type: 'paragraph', data: { text: '<strong>Rendered</strong><img src=x onerror=bad()>' } },
         { id: 'h', type: 'heading', data: { text: '<em>Title</em>', level: 2 } },
@@ -66,27 +67,27 @@ await test('document renderer handles inline HTML under Trusted Types enforcemen
 })
 
 await test('Raw preview assigns TrustedHTML under require-trusted-types-for', async () => {
-  const raw = new Raw()
-  let wrapper = null
+  const holder = document.createElement('section')
+  document.querySelector('#sandbox').appendChild(holder)
+  const editor = createEditor({
+    holder,
+    plugins: [createRawPlugin({ injectStyles: false })],
+    defaultBlock: 'raw',
+    injectStyles: false,
+    readOnly: true,
+    data: {
+      version: '2.0.0',
+      blocks: [{ id: 'raw', type: 'raw', data: { html: '<p style="color:red" onclick="bad()">safe</p><script>bad()</script>' } }],
+    },
+  })
   try {
-    wrapper = raw.render(
-      { html: '<p style="color:red" onclick="bad()">safe</p><script>bad()</script>' },
-      {
-        ownerDocument: document,
-        readOnly: true,
-        mutate(fn) { return fn() },
-      },
-    )
-    document.body.appendChild(wrapper)
-    const frame = wrapper.querySelector('iframe')
+    const frame = holder.querySelector('.oe-raw__preview iframe')
     assert(frame, 'Raw preview iframe missing')
     assert(frame.srcdoc.includes('safe'), 'safe Raw content missing from preview')
     assert(!/onclick|<script/i.test(frame.srcdoc), 'unsafe Raw content survived preview sanitization')
   } finally {
-    if (wrapper) {
-      raw.destroy(wrapper)
-      wrapper.remove()
-    }
+    editor.destroy()
+    holder.remove()
   }
 })
 
