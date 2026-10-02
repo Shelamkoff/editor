@@ -1,5 +1,5 @@
 import { setTrustedHtml } from '../sanitize.js'
-import { getTextLength } from '../textOffset.js'
+import { getTextLength } from '../../shared/textOffset.js'
 import { EditorEvent } from '../editorEvents.js'
 
 import { editableFields, editableAtBoundary } from '../editableFields.js'
