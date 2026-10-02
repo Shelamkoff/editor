@@ -27,7 +27,7 @@ import { toTrustedHtml } from './sanitize/trustedHtml.js'
 
 /**
  * @typedef {import('../renderer/types').InlineWidget} InlineWidget
- * @typedef {import('../renderer/types').InlinePluginLike & { isCommitted?(element: HTMLElement): boolean }} MarshalInlinePlugin
+ * @typedef {{ createWidget(data: Record<string, unknown>, id?: string, context?: { readonly ownerDocument: Document }): HTMLElement, getData(element: HTMLElement): Record<string, unknown>, isCommitted?(element: HTMLElement): boolean }} MarshalInlinePlugin
  * @typedef {{ get(type: string): MarshalInlinePlugin | undefined }} PluginLookup
  * @typedef {{ previous: Map<string, string[]>, current: Map<string, string[]> }} InlineIdState
  */

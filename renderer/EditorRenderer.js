@@ -2,7 +2,7 @@
 import { InvalidBlockDataError, UnknownBlockTypeError } from './errors.js'
 import { createInlineParser } from './inline.js'
 import { createDefaultRenderers, getSupportedBlockTypes } from './renderers/index.js'
-import { deserializeInlineHtml } from '../shared/inlineMarshal.js'
+import { renderInlineWidgets } from './inlineWidgets.js'
 import { cloneEditorData } from '../shared/cloneEditorData.js'
 import defaultLocale from './locale/en.js'
 import { acquireStyleUrls } from '../shared/styleRegistry.js'
@@ -24,8 +24,8 @@ export class EditorRenderer {
   #config
   /** @type {Map<string, import('./types').BlockRenderer>} */
   #renderers
-  /** @type {Map<string, import('./types').InlinePluginLike>} */
-  #inlinePlugins
+  /** @type {Map<string, import('./types').InlineWidgetRenderer>} */
+  #inlineRenderers
   /** @type {Map<HTMLElement, { wrapper: HTMLElement, blocks: Map<string, { element: HTMLElement, type: string, signature: string, renderer?: import('./types').BlockRenderer }> }>} */
   #mountedContainers = new Map()
   /** Containers currently inside renderTo(); protects staged ownership from same-container reentry. */
@@ -69,9 +69,8 @@ export class EditorRenderer {
 
   /**
    * @param {import('./types').RendererConfig} [config]
-   * @param {string[] | null} [resolvedInlinePluginTypes]
    */
-  constructor(config = {}, resolvedInlinePluginTypes = null) {
+  constructor(config = {}) {
     if (config.injectStyles !== undefined && typeof config.injectStyles !== 'boolean') {
       throw new TypeError('EditorRenderer injectStyles must be a boolean')
     }
@@ -92,16 +91,10 @@ export class EditorRenderer {
     )
     this.#defaultRendererTypes = new Set(this.#renderers.keys())
 
-    // Inline plugin registry (for rehydrating `{{<id>}}` placeholder
-    // tokens into real widget DOM). Caller supplies lightweight widget
-    // factories — see `createMentionWidget()` for the canonical
-    // renderer-only variant.
-    this.#inlinePlugins = new Map()
-    if (config.inlinePlugins) {
-      for (let index = 0; index < config.inlinePlugins.length; index++) {
-        const plugin = config.inlinePlugins[index]
-        const type = resolvedInlinePluginTypes?.[index] ?? plugin.type
-        this.#inlinePlugins.set(type, plugin)
+    this.#inlineRenderers = new Map()
+    if (config.inlineRenderers) {
+      for (const inlineRenderer of config.inlineRenderers) {
+        this.#inlineRenderers.set(inlineRenderer.type, inlineRenderer)
       }
     }
   }
@@ -256,14 +249,14 @@ export class EditorRenderer {
     // Rehydrate inline widget placeholders before calling the block
     // renderer — mirrors editor-side `BlockManager.insert` behavior.
     // Only text renderers that opted in (`mapTextFields`) participate.
-    if (renderableBlock.inline && typeof renderer.mapTextFields === 'function' && this.#inlinePlugins.size > 0) {
+    if (renderableBlock.inline && typeof renderer.mapTextFields === 'function' && this.#inlineRenderers.size > 0) {
       const inline = renderableBlock.inline
-      const registry = this.#inlinePlugins
+      const registry = this.#inlineRenderers
       // Clone `data` so we don't mutate the caller's object with hydrated HTML.
       const hydratedData = cloneEditorData(renderableBlock.data)
       renderer.mapTextFields(
         /** @type {Record<string, unknown>} */ (hydratedData),
-        (html) => deserializeInlineHtml(html, inline, registry, ownerDocument),
+        (html) => renderInlineWidgets(html, inline, registry, ownerDocument),
       )
       renderableBlock = { ...renderableBlock, data: hydratedData }
     }
@@ -606,6 +599,9 @@ export class EditorRenderer {
       if (renderer.styles) {
         for (const url of renderer.styles) urls.add(url)
       }
+    }
+    for (const inlineRenderer of this.#inlineRenderers.values()) {
+      if (inlineRenderer.styles) for (const url of inlineRenderer.styles) urls.add(url)
     }
 
     return [...urls]

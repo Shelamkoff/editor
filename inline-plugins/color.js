@@ -149,3 +149,32 @@ export function createColorSwatchPlugin(){
     },
   })
 }
+
+
+/**
+ * Create a read-only color-swatch renderer that shares the editor widget schema.
+ * @returns {import('../renderer/types').InlineWidgetRenderer<{value:string}>}
+ */
+export function createColorSwatchRenderer(){
+  return Object.freeze({
+    type:'color',
+    styles:Object.freeze([colorPickerStylesUrl]),
+    schema:colorWidgetSchema,
+    render(_id,data,context){
+      const document=context.ownerDocument
+      const span=document.createElement('span')
+      span.className='oe-ip oe-ip--color'
+      const dot=document.createElement('span')
+      dot.className='oe-ip__dot'
+      dot.style.backgroundColor=data.value
+      const label=document.createElement('span')
+      label.className='oe-ip__label'
+      label.textContent=data.value
+      span.dataset.value=data.value
+      span.setAttribute('aria-label',data.value)
+      span.tabIndex=-1
+      span.append(dot,label)
+      return span
+    },
+  })
+}

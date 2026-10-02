@@ -314,3 +314,5 @@ export function createMentionPlugin(options={}){
     },
   })
 }
+
+export { createMentionRenderer } from './widget.js'

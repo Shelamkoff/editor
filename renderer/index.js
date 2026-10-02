@@ -22,7 +22,7 @@ function assertDenseArray(value, label) {
   }
 }
 
-/** @param {import('./types').RendererConfig} config @returns {string[] | null} */
+/** @param {import('./types').RendererConfig} config @returns {void} */
 function validateRendererConfig(config) {
   if (config.injectStyles !== undefined && typeof config.injectStyles !== 'boolean') {
     throw new TypeError('EditorRenderer injectStyles must be a boolean')
@@ -58,41 +58,51 @@ function validateRendererConfig(config) {
     config.blockTypes = snapshot
   }
   config.blockConfigs = snapshotBlockConfigs(config.blockConfigs, config.blockTypes)
-  let inlinePluginTypes = null
-  if (config.inlinePlugins !== undefined) {
-    if (!Array.isArray(config.inlinePlugins)) {
-      throw new TypeError('EditorRenderer inlinePlugins must be an array')
+  if (config.inlineRenderers !== undefined) {
+    if (!Array.isArray(config.inlineRenderers)) {
+      throw new TypeError('EditorRenderer inlineRenderers must be an array')
     }
-    assertDenseArray(config.inlinePlugins, 'inlinePlugins')
+    assertDenseArray(config.inlineRenderers, 'inlineRenderers')
     const types = new Set()
-    const plugins = []
-    inlinePluginTypes = []
-    for (let index = 0; index < config.inlinePlugins.length; index++) {
-      const plugin = config.inlinePlugins[index]
-      if (!plugin || typeof plugin !== 'object') {
-        throw new TypeError('EditorRenderer inline plugin must have a non-empty string type')
+    const renderers = []
+    for (let index = 0; index < config.inlineRenderers.length; index++) {
+      const source = config.inlineRenderers[index]
+      if (!source || typeof source !== 'object' || Array.isArray(source)) {
+        throw new TypeError('EditorRenderer inline renderer must have a non-empty string type')
       }
-      const type = plugin.type
+      const type = source.type
       if (typeof type !== 'string' || !type) {
-        throw new TypeError('EditorRenderer inline plugin must have a non-empty string type')
+        throw new TypeError('EditorRenderer inline renderer must have a non-empty string type')
       }
-      const createWidget = plugin.createWidget
-      const getData = plugin.getData
-      if (typeof createWidget !== 'function' || typeof getData !== 'function') {
-        throw new TypeError(`EditorRenderer inline plugin "${type}" must implement createWidget() and getData()`)
+      const schema = source.schema
+      if (!schema || typeof schema !== 'object' || typeof schema.decode !== 'function') {
+        throw new TypeError(`EditorRenderer inline renderer "${type}" must provide a schema`)
       }
-      if (types.has(type)) throw new Error(`Duplicate renderer inline plugin type: "${type}"`)
+      const render = source.render
+      if (typeof render !== 'function') {
+        throw new TypeError(`EditorRenderer inline renderer "${type}" must implement render()`)
+      }
+      let styles
+      if (source.styles !== undefined) {
+        if (!Array.isArray(source.styles)) throw new TypeError(`EditorRenderer inline renderer "${type}" styles must be an array of strings`)
+        assertDenseArray(source.styles, `inline renderer "${type}" styles`)
+        styles = source.styles.map(url => {
+          if (typeof url !== 'string') throw new TypeError(`EditorRenderer inline renderer "${type}" styles must be an array of strings`)
+          return url
+        })
+      }
+      if (types.has(type)) throw new Error(`Duplicate renderer inline renderer type: "${type}"`)
       types.add(type)
-      plugins.push({
+      renderers.push(Object.freeze({
         type,
-        createWidget: createWidget.bind(plugin),
-        getData: getData.bind(plugin),
-      })
-      inlinePluginTypes.push(type)
+        schema,
+        render: render.bind(source),
+        ...(styles ? { styles: Object.freeze(styles) } : {}),
+      }))
     }
-    config.inlinePlugins = plugins
+    config.inlineRenderers = renderers
   }
-  return inlinePluginTypes
+
 }
 
 /**
@@ -284,8 +294,8 @@ export class EditorRenderer extends EditorRendererImpl {
       throw new TypeError('EditorRenderer config must be an object')
     }
     const ownConfig = /** @type {import('./types').RendererConfig} */ ({ ...config })
-    const inlinePluginTypes = validateRendererConfig(ownConfig)
-    super(ownConfig, inlinePluginTypes)
+    validateRendererConfig(ownConfig)
+    super(ownConfig)
   }
 
   /** @param {import('./types').BlockRenderer} renderer @returns {this} */

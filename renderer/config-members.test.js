@@ -3,25 +3,25 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { EditorRenderer } from './index.js'
 
-test('renderer config rejects unknown block types and malformed inline plugin entries', () => {
+test('renderer config rejects unknown block types and malformed inline renderer entries', () => {
   assert.throws(
     () => new EditorRenderer({ blockTypes: ['missing'] }),
     /unknown block type/i,
   )
   assert.throws(
-    () => new EditorRenderer({ inlinePlugins: [{}] }),
-    /inline plugin.*non-empty string type/i,
+    () => new EditorRenderer({ inlineRenderers: [{}] }),
+    /inline renderer.*non-empty string type/i,
   )
   assert.throws(
-    () => new EditorRenderer({ inlinePlugins: [{ type: 'mention', createWidget() {} }] }),
-    /inline plugin "mention" must implement createWidget\(\) and getData\(\)/i,
+    () => new EditorRenderer({ inlineRenderers: [{ type: 'mention', schema: { decode() {} } }] }),
+    /inline renderer "mention" must implement render\(\)/i,
   )
   assert.throws(
-    () => new EditorRenderer({ inlinePlugins: [
-      { type: 'mention', createWidget() {}, getData() {} },
-      { type: 'mention', createWidget() {}, getData() {} },
+    () => new EditorRenderer({ inlineRenderers: [
+      { type: 'mention', schema: { decode() {} }, render() {} },
+      { type: 'mention', schema: { decode() {} }, render() {} },
     ] }),
-    /duplicate renderer inline plugin type/i,
+    /duplicate renderer inline renderer type/i,
   )
 })
 
@@ -48,7 +48,7 @@ test('renderer config ignores inherited top-level options', () => {
 })
 
 test('renderer config rejects sparse public arrays without reading inherited entries', () => {
-  for (const field of ['blockTypes', 'inlinePlugins']) {
+  for (const field of ['blockTypes', 'inlineRenderers']) {
     let reads = 0
     const prototype = Object.create(Array.prototype)
     Object.defineProperty(prototype, '0', {
@@ -84,7 +84,7 @@ test('registerRenderer observes accessor-backed type once', () => {
 })
 
 
-test('renderer config observes blockTypes and inlinePlugins entries once', () => {
+test('renderer config observes blockTypes and inlineRenderers entries once', () => {
   let blockEntryReads = 0
   const blockTypes = []
   Object.defineProperty(blockTypes, '0', {
@@ -98,18 +98,18 @@ test('renderer config observes blockTypes and inlinePlugins entries once', () =>
   let pluginTypeReads = 0
   const plugin = {
     get type() { pluginTypeReads++; return 'probe' },
-    createWidget() { return /** @type {any} */ ({}) },
-    getData() { return {} },
+    schema: { decode() { return { dataVersion: 1, data: {} } } },
+    render() { return /** @type {any} */ ({}) },
   }
-  const inlinePlugins = []
-  Object.defineProperty(inlinePlugins, '0', {
+  const inlineRenderers = []
+  Object.defineProperty(inlineRenderers, '0', {
     enumerable: true,
     configurable: true,
     get() { pluginEntryReads++; return plugin },
   })
-  inlinePlugins.length = 1
+  inlineRenderers.length = 1
 
-  assert.doesNotThrow(() => new EditorRenderer({ blockTypes, inlinePlugins }))
+  assert.doesNotThrow(() => new EditorRenderer({ blockTypes, inlineRenderers }))
   assert.equal(blockEntryReads, 1)
   assert.equal(pluginEntryReads, 1)
   assert.equal(pluginTypeReads, 1)

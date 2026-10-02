@@ -15,7 +15,7 @@ test('renderer rejects runtime config values outside its public type contract', 
     [{ locale: [] }, /locale must be an object/],
     [{ blockTypes: 'paragraph' }, /blockTypes must be an array/],
     [{ blockConfigs: [] }, /blockConfigs must be an object/],
-    [{ inlinePlugins: {} }, /inlinePlugins must be an array/],
+    [{ inlineRenderers: {} }, /inlineRenderers must be an array/],
   ]
 
   for (const [config, pattern] of invalid) {
@@ -30,6 +30,6 @@ test('renderer rejects runtime config values outside its public type contract', 
     onValidationError() {},
     locale: {},
     blockConfigs: {},
-    inlinePlugins: [],
+    inlineRenderers: [],
   }))
 })

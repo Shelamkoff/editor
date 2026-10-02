@@ -1,4 +1,5 @@
 import type { InlinePluginDefinition } from '../../plugin-kit/types.js'
+import type { InlineWidgetRenderer } from '../../renderer/types.js'
 
 export interface MentionItem {
   id: string | number
@@ -55,3 +56,7 @@ export interface MentionWidgetData extends Record<string, unknown> {
 export function createMentionPlugin(
   options?: MentionPluginOptions,
 ): InlinePluginDefinition<MentionWidgetData>
+
+export function createMentionRenderer(
+  trigger?: string,
+): InlineWidgetRenderer<MentionWidgetData>

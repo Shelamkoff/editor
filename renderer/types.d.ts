@@ -4,6 +4,7 @@ import type {
     EditorOutputData,
 } from '../shared/documentTypes.js'
 import type { LocaleValue } from '../shared/localeTypes.js'
+import type { InlineWidgetSchema } from '../plugin-kit/types.js'
 export type { LocaleValue, PluralForms } from '../shared/localeTypes.js'
 
 /**
@@ -26,9 +27,9 @@ export interface OutputData extends EditorOutputData<OutputBlockData> {
  * a single inline widget (mention, color swatch, …) that was embedded in
  * one of the block's text fields. Placeholder markup in the text field is
  * a plain text token: `{{<id>}}`. The renderer / editor rehydrates real
- * widget DOM from `inline[<id>]` via the registered inline plugin's
- * `createWidget(data, id)`, passing the id through so the widget preserves
- * its stable identity across save / load round-trips.
+ * widget DOM from `inline[<id>]` via a registered read-only inline renderer.
+ * The renderer validates payloads through the same `InlineWidgetSchema` used
+ * by the editor before projecting them to DOM.
  */
 export interface OutputBlockData<
     Type extends string = string,
@@ -41,8 +42,7 @@ export interface OutputBlockData<
 }
 
 /**
- * Opaque reference to a committed inline widget — its plugin type (so the
- * runtime can dispatch to the right `InlinePlugin.createWidget`) plus an
+ * Opaque reference to a committed inline widget — its plugin type plus an
  * arbitrary, plugin-specific `data` payload. Parallels `OutputBlockData<T, D>`.
  *
  * Concrete inline plugins declare their own `Data` shape:
@@ -443,27 +443,16 @@ export interface RendererConfig {
         poll?: PollRendererConfig
         [type: string]: unknown
     }
-    /**
-     * Inline plugins the renderer should use when rehydrating inline widget
-     * placeholder tokens (`{{<id>}}`). Read-only rendering only needs each
-     * plugin's `createWidget` + `getData` — see `createMentionWidget()`
-     * for a lightweight factory suitable here.
-     */
-    inlinePlugins?: InlinePluginLike[]
+    /** Read-only inline widget renderers used to project canonical inline records. */
+    inlineRenderers?: InlineWidgetRenderer[]
 }
 
-/**
- * Minimal contract for inline widget rehydration on the renderer side.
- * Structurally a subset of the editor-side `InlinePlugin` (core types) —
- * defined here so the renderer package does not depend on editor runtime.
- *
- * `createWidget(data, id)` — when `id` is provided, the widget MUST set
- * `data-id="<id>"` on its root element so the id survives the next save
- * round-trip. When omitted (fresh programmatic insertion), the factory
- * generates one itself.
- */
-export interface InlinePluginLike {
+/** Read-only projection contract for one canonical inline-widget type. */
+export interface InlineWidgetRenderer<
+    Data extends Record<string, unknown> = Record<string, unknown>
+> {
     readonly type: string
-    createWidget(data: Record<string, unknown>, id?: string, context?: { readonly ownerDocument: Document }): HTMLElement
-    getData(element: HTMLElement): Record<string, unknown>
+    readonly styles?: readonly string[]
+    readonly schema: InlineWidgetSchema<Data>
+    render(id: string, data: Readonly<Data>, context: { readonly ownerDocument: Document }): HTMLElement
 }
