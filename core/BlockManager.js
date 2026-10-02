@@ -480,7 +480,17 @@ export class BlockManager {
       : block.save().data
 
     const metadata = block.save()
-    const newData = { ...oldData, ...extraData }
+    // Built-in v2 schemas define a valid target default. Seed conversion data
+    // from that default before applying transferable source data and explicit
+    // toolbox/settings overrides. Without this, converting Paragraph ->
+    // Heading produces legacy { text } without the required level, causing
+    // schema activation to fail until a later undo/redo restore.
+    const targetSchema = ownPluginDataSchema(plugin)
+    const newData = {
+      ...(targetSchema ? targetSchema.createDefault() : {}),
+      ...oldData,
+      ...extraData,
+    }
     const oldType = block.type
     const blockId = block.id
 
