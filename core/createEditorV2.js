@@ -368,7 +368,7 @@ export function createEditorV2(input){
 
   applyReadOnly(root,runtime.readOnly)
 
-  const blocks=new EditorBlocksApiV2({runtime,view})
+  const blocks=new EditorBlocksApiV2({runtime,view,isDestroyed:()=>destroyed})
   let editor
   const destroy=()=>{
     if(destroyed)return
@@ -394,6 +394,7 @@ export function createEditorV2(input){
     setReadOnly,
     inlineCommands,
     subscribe:(type,listener)=>events.on(type,listener),
+    isDestroyed:()=>destroyed,
   })
 
   if(config.autofocus&&!runtime.readOnly)view.focus()
