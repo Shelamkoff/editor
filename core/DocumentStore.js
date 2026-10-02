@@ -1,6 +1,13 @@
 // @ts-check
 import { cloneEditorData } from '../shared/cloneEditorData.js'
 
+function freezeJson(value) {
+  if (!value || typeof value !== 'object') return value
+  if (Object.isFrozen(value)) return value
+  for (const item of Array.isArray(value) ? value : Object.values(value)) freezeJson(item)
+  return Object.freeze(value)
+}
+
 function ownBlock(input) {
   const block = cloneEditorData(input)
   if (!block || typeof block !== 'object' || Array.isArray(block)) {
@@ -15,7 +22,7 @@ function ownBlock(input) {
   if (!Object.hasOwn(block, 'data')) {
     throw new TypeError(`Block "${block.id}" must contain data`)
   }
-  return block
+  return freezeJson(block)
 }
 
 function ownDocument(input) {
@@ -53,6 +60,14 @@ function stateFromDocument(document) {
   }
 }
 
+function cloneState(state) {
+  return {
+    version: state.version,
+    order: [...state.order],
+    blocks: new Map(state.blocks),
+  }
+}
+
 function exportState(state) {
   return {
     version: state.version,
@@ -73,12 +88,12 @@ export class DocumentDraft {
   #blocks
   #changes = []
 
-  constructor(owner, document) {
+  constructor(owner, source, { state = false } = {}) {
     this.#owner = owner
-    const state = stateFromDocument(document)
-    this.#version = state.version
-    this.#order = state.order
-    this.#blocks = state.blocks
+    const next = state ? cloneState(source) : stateFromDocument(source)
+    this.#version = next.version
+    this.#order = next.order
+    this.#blocks = next.blocks
   }
 
   isOwnedBy(owner) {
@@ -98,12 +113,31 @@ export class DocumentDraft {
     return block ? cloneEditorData(block) : undefined
   }
 
+  /** Internal read-only canonical record for projector/reconciler code. */
+  peek(id) {
+    return this.#blocks.get(id)
+  }
+
+  /** Internal final order snapshot. Structural consumers only. */
+  ids() {
+    return [...this.#order]
+  }
+
   list() {
     return this.#order.map(id => cloneEditorData(this.#blocks.get(id)))
   }
 
   export() {
     return exportState({
+      version: this.#version,
+      order: this.#order,
+      blocks: this.#blocks,
+    })
+  }
+
+  snapshotState(owner) {
+    if (owner !== this.#owner) throw new TypeError('Draft owner mismatch')
+    return cloneState({
       version: this.#version,
       order: this.#order,
       blocks: this.#blocks,
@@ -125,12 +159,12 @@ export class DocumentDraft {
     if (!current) throw new Error(`Unknown block id: ${id}`)
     const next = ownBlock(input)
     if (next.id !== id) throw new Error('Block update cannot change block id')
-    const before = cloneEditorData(current)
+    if (next === current) return
     this.#blocks.set(id, next)
     this.#changes.push({
       kind: 'block.update',
       id,
-      before,
+      before: cloneEditorData(current),
       after: cloneEditorData(next),
     })
   }
@@ -182,18 +216,12 @@ export class DocumentDraft {
   #applyChange(change, direction) {
     switch (change.kind) {
       case 'block.insert':
-        if (direction === 'forward') {
-          this.#insertReplay(change.index, change.block)
-        } else {
-          this.#removeReplay(change.block.id, change.index)
-        }
+        if (direction === 'forward') this.#insertReplay(change.index, change.block)
+        else this.#removeReplay(change.block.id, change.index)
         return
       case 'block.remove':
-        if (direction === 'forward') {
-          this.#removeReplay(change.block.id, change.index)
-        } else {
-          this.#insertReplay(change.index, change.block)
-        }
+        if (direction === 'forward') this.#removeReplay(change.block.id, change.index)
+        else this.#insertReplay(change.index, change.block)
         return
       case 'block.update':
         this.#updateReplay(change.id, direction === 'forward' ? change.after : change.before)
@@ -268,6 +296,15 @@ export class DocumentStore {
     return block ? cloneEditorData(block) : undefined
   }
 
+  /** Internal immutable canonical record for reconciler/runtime code. */
+  peek(id) {
+    return this.#blocks.get(id)
+  }
+
+  ids() {
+    return [...this.#order]
+  }
+
   list() {
     return this.#order.map(id => cloneEditorData(this.#blocks.get(id)))
   }
@@ -281,7 +318,11 @@ export class DocumentStore {
   }
 
   createDraft() {
-    return new DocumentDraft(this, this.export())
+    return new DocumentDraft(this, {
+      version: this.#version,
+      order: this.#order,
+      blocks: this.#blocks,
+    }, { state: true })
   }
 
   createDraftFrom(document) {
@@ -292,7 +333,7 @@ export class DocumentStore {
     if (!(draft instanceof DocumentDraft) || !draft.isOwnedBy(this)) {
       throw new TypeError('Cannot commit a draft owned by another DocumentStore')
     }
-    const state = stateFromDocument(draft.export())
+    const state = draft.snapshotState(this)
     this.#version = state.version
     this.#order = state.order
     this.#blocks = state.blocks
