@@ -236,27 +236,31 @@ export class DocumentRuntime {
 
     const records=[]
     for(const raw of inputs){
-      if(!raw||typeof raw!=='object'||Array.isArray(raw)||typeof raw.type!=='string'){
+      if(!raw||typeof raw!=='object'||Array.isArray(raw)){
         throw new TypeError('Clipboard block must contain a type')
       }
-      const definition=this.#registry.getBlockDefinition(raw.type)
-      if(!definition)throw new Error(`Unknown clipboard block type: ${raw.type}`)
+      const input=/** @type {Record<string, any>} */(raw)
+      if(typeof input.type!=='string'||!input.type){
+        throw new TypeError('Clipboard block must contain a type')
+      }
+      const definition=this.#registry.getBlockDefinition(input.type)
+      if(!definition)throw new Error(`Unknown clipboard block type: ${input.type}`)
       const encoded=this.#normalizeDecodedData(definition,{
-        dataVersion:raw.dataVersion,
-        data:raw.data,
+        dataVersion:input.dataVersion,
+        data:input.data,
       })
-      const record={
-        id:allocate(raw.type),
-        type:raw.type,
+      const record=/** @type {any} */({
+        id:allocate(input.type),
+        type:input.type,
         dataVersion:encoded.dataVersion,
         data:encoded.data,
-      }
+      })
       try{
-        const tunes=cloneTunes(raw.tunes)
+        const tunes=cloneTunes(input.tunes)
         if(tunes!==undefined)record.tunes=tunes
       }catch{}
       try{
-        const inline=this.#normalizeExternalInline(raw.inline,{strict:false})
+        const inline=this.#normalizeExternalInline(input.inline,{strict:false})
         const filtered=this.#filterInlineForData(definition,encoded.data,inline)
         if(filtered!==undefined)record.inline=filtered
       }catch{}
