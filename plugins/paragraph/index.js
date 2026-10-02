@@ -26,6 +26,7 @@ const ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" vie
  * @extends {BlockPluginAbstract<ParagraphConfig>}
  */
 export class Paragraph extends BlockPluginAbstract {
+  static dataSchema = paragraphDataSchema
   static isTextBlock = true
   static styles = [editorStyles]
   type = 'paragraph'
