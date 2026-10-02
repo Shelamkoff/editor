@@ -261,7 +261,13 @@ export function createEditorV2(input){
     selection:logicalSelection,
   }))
   const nativeInput=lifecycle.register(new NativeInputController({root,runtime,reconciler}))
-  const inlineCommands=new InlineCommandController({runtime,registry,selection:logicalSelection})
+  let triggerController=null
+  const inlineCommands=new InlineCommandController({
+    runtime,
+    registry,
+    selection:logicalSelection,
+    onFreshText:()=>queueMicrotask(()=>triggerController?.refresh()),
+  })
   const triggers=lifecycle.register(new InlineTriggerController({
     root,
     registry,
@@ -269,6 +275,7 @@ export function createEditorV2(input){
     selection:logicalSelection,
     commands:inlineCommands,
   }))
+  triggerController=triggers
 
   const slashCommands=lifecycle.register(new SlashCommandControllerV2({
     root,

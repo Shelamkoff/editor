@@ -39,6 +39,32 @@ export class InlineTriggerController {
     this.#cancel()
   }
 
+  refresh(){
+    const bookmark=this.#selection.capture()
+    const point=bookmark?.focus
+    if(!bookmark||!point){
+      this.#cancel()
+      return false
+    }
+    const field=this.#reconciler.getEditableField(point.blockId,point.fieldKey)
+    if(!field||field.mode!=='rich-text'){
+      this.#cancel()
+      return false
+    }
+    const owner={
+      blockId:point.blockId,
+      fieldKey:point.fieldKey,
+      element:field.element,
+      mode:field.mode,
+    }
+    if(!this.#collapsedIn(bookmark,owner)){
+      this.#cancel()
+      return false
+    }
+    this.#refreshOwner(owner,bookmark)
+    return this.#active!==null
+  }
+
   #onInput(event){
     const owner=this.#reconciler.resolveEditableTarget(event.target)
     if(!owner||owner.mode!=='rich-text'){
@@ -50,7 +76,10 @@ export class InlineTriggerController {
       this.#cancel()
       return
     }
+    this.#refreshOwner(owner,bookmark)
+  }
 
+  #refreshOwner(owner,bookmark){
     const text=this.#textBeforeCaret(owner.element)
     if(text===null){
       this.#cancel()

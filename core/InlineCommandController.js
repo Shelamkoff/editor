@@ -4,14 +4,16 @@ export class InlineCommandController {
   #runtime
   #registry
   #selection
+  #onFreshText
 
-  constructor({ runtime, registry, selection }) {
+  constructor({ runtime, registry, selection, onFreshText = null }) {
     if (!runtime?.insertInlineWidget) throw new TypeError('InlineCommandController requires a DocumentRuntime')
     if (!registry?.getInlineDefinition) throw new TypeError('InlineCommandController requires an ExtensionRegistry')
     if (!selection?.capture) throw new TypeError('InlineCommandController requires LogicalSelection')
     this.#runtime = runtime
     this.#registry = registry
     this.#selection = selection
+    this.#onFreshText = typeof onFreshText === 'function' ? onFreshText : null
   }
 
   insert(type, explicitData) {
@@ -51,6 +53,11 @@ export class InlineCommandController {
       this.#selection.setCaret(target.blockId, {
         fieldKey: target.fieldKey,
         offset: target.range.start + fresh.text.length,
+      })
+      this.#onFreshText?.({
+        type,
+        blockId: target.blockId,
+        fieldKey: target.fieldKey,
       })
       return true
     }
