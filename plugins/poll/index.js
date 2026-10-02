@@ -2,7 +2,7 @@ import { invokeObserver } from '../../shared/invokeObserver.js'
 import { setSanitizedHtml, setTrustedHtml } from '../../plugin-kit/index.js'
 import { sanitizeHtml } from '../../plugin-kit/index.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
-import { uid } from '../../core/uid.js'
+import { uid } from '../../plugin-kit/index.js'
 import {
   applyLocalPollVote,
   normalizePollData,
