@@ -674,9 +674,14 @@ async function run() {
   assert(stable(await snapshot(enterHistory.editor)) === stable(beforeEnterBold), 'Enter-history undo removed a block instead of Bold')
   assert(enterHistory.editor.blocks.getBlockById(enterUpper.id), 'Enter-history undo removed the upper block')
   assert(enterHistory.editor.blocks.getBlockById(enterLower.id), 'Enter-history undo removed the lower block')
+  assert(enterHistory.editor.canRedo, 'Enter-history redo was unavailable immediately after undo')
   shortcut(enterHistory.editor, { shift: true, target: enterHistory.editor.blocks.getBlockById(enterLower.id).contentElement })
   await delay()
-  assert(stable(await snapshot(enterHistory.editor)) === stable(afterEnterBold), 'Enter-history Bold redo failed')
+  const afterEnterRedo = await snapshot(enterHistory.editor)
+  assert(
+    stable(afterEnterRedo) === stable(afterEnterBold),
+    `Enter-history Bold redo failed: expected=${stable(afterEnterBold)} actual=${stable(afterEnterRedo)} canRedo=${enterHistory.editor.canRedo}`,
+  )
   enterHistory.editor.destroy()
 
   const crossInlineHistory = createHarness(sandbox, {
