@@ -14,7 +14,10 @@ function mergeText(left,right){
   return left+right
 }
 
-/** @returns {import('../../plugin-kit/types').BlockPluginDefinition<{text:string,level:2|3|4|5|6}>} */
+/**
+ * Create the immutable Heading v2 definition with model-first level controls.
+ * @returns {import('../../plugin-kit/types').BlockPluginDefinition<{text:string,level:2|3|4|5|6}>}
+ */
 export function createHeadingPlugin(){
   const toolbox=Object.freeze(HEADING_LEVELS.map(item=>Object.freeze({
     id:`h${item.level}`,
