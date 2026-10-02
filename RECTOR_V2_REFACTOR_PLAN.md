@@ -45,6 +45,57 @@ Do not implement as part of this plan:
 
 The architecture must permit later operation replication without making collaboration a v2 deliverable.
 
+### 1.1. Common contract types
+
+Use explicit JSON-safe values at persistence boundaries.
+
+    type JsonPrimitive = null | boolean | number | string
+
+    type JsonValue =
+      | JsonPrimitive
+      | JsonValue[]
+      | { [key: string]: JsonValue }
+
+    type JsonObject = {
+      [key: string]: JsonValue
+    }
+
+Runtime validation must additionally reject non-finite numbers, accessors/prototypes that violate the existing JSON trust-boundary policy, sparse/invalid arrays, and values JSON cannot represent.
+
+Block-local selection used by split/conversion capabilities:
+
+    interface BlockSelection {
+      fieldKey: string
+      start: number
+      end: number
+    }
+
+    type ConversionData = JsonObject
+
+    interface SelectionConversionResult<
+      D extends JsonObject
+    > {
+      remaining: D | null
+      selected: ConversionData
+    }
+
+Focus requests use logical field coordinates rather than DOM nodes:
+
+    interface FocusTarget {
+      fieldKey?: string
+      offset?: number | "start" | "end"
+    }
+
+Transaction metadata:
+
+    interface TransactionMetadata {
+      origin: RecordedTransactionOrigin
+      name: string
+      historyGroup?: string
+    }
+
+These are target v2 contracts. Reuse an existing project type only when its semantics are exactly equivalent; do not keep two names for the same concept.
+
 ## 2. Module architecture
 
 The refactoring must produce deep modules: callers depend on small interfaces while transaction, history, rollback, projection and lifecycle complexity remains inside the implementation.
@@ -139,13 +190,22 @@ Rules:
 - a live inline widget is valid only when its ID is referenced by a canonical rich-text placeholder and has a matching inline map entry;
 - unknown block types preserve their opaque data, dataVersion, tunes, inline payload and revision without reinterpretation.
 
-Persisted v2 envelope:
+Canonical whole-document value used by replacement/history:
+
+    interface CanonicalDocument {
+      version: "2.0.0"
+      blocks: readonly BlockRecord[]
+    }
+
+Persisted/exported v2 envelope:
 
     interface EditorDocumentV2 {
       version: "2.0.0"
       time?: number
       blocks: BlockRecord[]
     }
+
+time is export metadata, not canonical document state. DocumentState/history/equality do not store or compare time. export/save may attach the current serialization timestamp.
 
 DocumentSchema owns only:
 
@@ -523,6 +583,11 @@ Model-first widget insertion and trigger replacement require logical-offset oper
 
 Introduce a neutral RichTextOperations helper that operates on sanitized canonical rich text in a detached document.
 
+    type RichTextReplacement =
+      | { kind: "text"; text: string }
+      | { kind: "html"; html: string }
+      | { kind: "inline-reference"; id: string }
+
 Required semantics:
 
     interface RichTextOperations {
@@ -712,6 +777,40 @@ Replace scattered optional-method discovery with an explicit capability object.
 
 Core may branch on capability presence. It must not probe arbitrary plugin methods throughout unrelated modules.
 
+Settings/paste/controls are model-first contracts:
+
+    interface PasteInput {
+      kind: "text" | "html" | "file"
+      text?: string
+      html?: string
+      file?: File
+    }
+
+    interface PasteCapability<D extends JsonObject> {
+      parse(input: PasteInput): D | null
+    }
+
+    interface SettingsAction {
+      id: string
+      title: string
+      icon?: string
+    }
+
+    interface SettingsCapability<D extends JsonObject> {
+      actions(data: Readonly<D>): readonly SettingsAction[]
+      apply(data: Readonly<D>, actionId: string): D
+    }
+
+    interface InlineControlsCapability<D extends JsonObject> {
+      render(context: InlineControlsContext<D>): HTMLElement | null
+    }
+
+    interface ShortcutCapability {
+      bindings(): readonly KeyboardBinding[]
+    }
+
+Settings/inline control UI receives scoped contexts whose persisted changes ultimately call BlockInstanceContext.updateData; UI objects do not receive managers.
+
 ### 8.1. Merge
 
     interface MergeCapability<D> {
@@ -835,7 +934,7 @@ Internal interface consumed by EditorFacade and InteractionRuntime:
 
       replace(
         document: EditorDocumentV2,
-        metadata: ReplaceMetadata
+        metadata: TransactionMetadata
       ): void
 
       undo(): boolean
@@ -846,6 +945,13 @@ Internal interface consumed by EditorFacade and InteractionRuntime:
     }
 
 DocumentTransaction provides only model operations:
+
+    interface NewBlockInput {
+      type: string
+      data?: JsonObject
+      tunes?: BlockTunes
+      inline?: Record<string, InlineWidgetRecord>
+    }
 
     interface DocumentTransaction {
       insert(index: number, block: NewBlockInput): string
@@ -886,8 +992,8 @@ History and rollback use one change representation rather than duplicated forwar
         }
       | {
           kind: "document.replace"
-          before: EditorDocumentV2
-          after: EditorDocumentV2
+          before: CanonicalDocument
+          after: CanonicalDocument
         }
 
 A change can be applied forward or backward.
@@ -905,7 +1011,7 @@ document.replace is allowed only for:
 
 Ordinary editing, plugin operations, conversion, split, merge, move and native input must not use document.replace.
 
-Whole-document replacement may be O(N) and may store O(N) before/after data. This is an explicit exceptional operation, not the normal history representation.
+Whole-document replacement may be O(N) and may store O(N) before/after canonical data. It does not store export time metadata. This is an explicit exceptional operation, not the normal history representation.
 
 ## 12. Single transaction engine
 
@@ -1303,12 +1409,7 @@ Expose immutable snapshots.
       tunes?: BlockTunes | null
     }
 
-    interface InsertBlockInput {
-      type: string
-      data?: JsonObject
-      tunes?: BlockTunes
-      inline?: Record<string, InlineWidgetRecord>
-    }
+    type InsertBlockInput = NewBlockInput
 
 Blocks interface:
 
@@ -1347,6 +1448,12 @@ IEditor retains a model-first programmatic widget insertion surface:
     ): boolean
 
 It resolves the current logical selection, validates the widget schema, updates canonical rich text plus block.inline in one transaction, and returns false for read-only/no-valid-selection/unknown-type cases. It does not insert widget DOM first.
+
+save/export semantics:
+
+- save/export materializes block order from canonical DocumentState and deep-clones JSON for the caller;
+- save/export may set time = Date.now() at serialization time;
+- time never creates a history difference and never causes a block/document update.
 
 Public render semantics:
 
@@ -1916,7 +2023,7 @@ Slices:
 5. convert undo/redo;
 6. typing coalescing;
 7. redo invalidation;
-8. explicit document.replace undo/redo.
+8. explicit document.replace undo/redo without persisting/exporting time metadata.
 
 Delete snapshot history for ordinary changes.
 
@@ -2221,6 +2328,7 @@ Testing:
 
 Cleanup:
 
+- target contract types have one canonical definition; no duplicate legacy/v2 aliases remain;
 - old snapshot history is removed from ordinary edit paths;
 - BlockPlugin v1 is removed;
 - old DOM-scraped InlinePlugin persistence is removed;
