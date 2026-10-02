@@ -17,6 +17,7 @@ class FakeElement {
     this.contentEditable = 'inherit'
   }
   get firstChild() { return this.children[0] ?? null }
+  get firstElementChild() { return this.children[0] ?? null }
   appendChild(child) {
     if (child.parentNode) child.parentNode.removeChild(child)
     this.children.push(child)
@@ -141,7 +142,7 @@ test('single update among 1000 blocks touches only one mounted instance', () => 
   assert.equal(counters.create, 0)
   assert.equal(counters.destroy, 0)
   assert.equal(reconciler.getElement('499'), unrelated)
-  assert.equal(reconciler.getElement('500').textContent, 'changed')
+  assert.equal(reconciler.getElement('500').firstElementChild.textContent, 'changed')
 })
 
 test('move preserves block instance and DOM identity', () => {
@@ -155,7 +156,7 @@ test('move preserves block instance and DOM identity', () => {
   store.commit(draft)
 
   assert.equal(reconciler.getElement('0'), moved)
-  assert.deepEqual(container.children.map(node => node.textContent), ['1', '2', '0'])
+  assert.deepEqual(container.children.map(node => node.firstElementChild.textContent), ['1', '2', '0'])
   assert.deepEqual(counters, { create: 0, update: 0, destroy: 0, readOnly: 0 })
 })
 
@@ -172,7 +173,7 @@ test('type conversion replaces only the affected instance', () => {
 
   assert.equal(reconciler.getElement('0'), unrelated)
   assert.notEqual(reconciler.getElement('1'), old)
-  assert.equal(reconciler.getElement('1').tagName, 'H2')
+  assert.equal(reconciler.getElement('1').firstElementChild.tagName, 'H2')
   assert.equal(counters.create, 1)
   assert.equal(counters.destroy, 1)
 })
@@ -204,8 +205,8 @@ test('failed update can recover committed projection', () => {
   prepared.recover()
 
   assert.equal(store.get('1').data.text, '1')
-  assert.equal(reconciler.getElement('1').textContent, '1')
-  assert.equal(reconciler.getElement('0').textContent, '0')
+  assert.equal(reconciler.getElement('1').firstElementChild.textContent, '1')
+  assert.equal(reconciler.getElement('0').firstElementChild.textContent, '0')
 })
 
 test('unknown block types stay inert and never call a plugin runtime', () => {
@@ -261,7 +262,7 @@ test('document replacement recreates same-id block instances and aborts their li
   store.commit(draft)
 
   assert.notEqual(reconciler.getElement('0'), before)
-  assert.equal(reconciler.getElement('0').textContent, 'replacement')
+  assert.equal(reconciler.getElement('0').firstElementChild.textContent, 'replacement')
   assert.equal(counters.create, 2)
   assert.equal(counters.update, 0)
   assert.equal(counters.destroy, 2)
@@ -269,7 +270,7 @@ test('document replacement recreates same-id block instances and aborts their li
 
 
 test('core shell survives plugin className rewrites and keeps block identity', () => {
-  const ownerDocument = createFakeDocument()
+  const ownerDocument = new FakeDocument()
   const registry = {
     hasBlock: type => type === 'probe',
     getBlockDefinition: () => ({
