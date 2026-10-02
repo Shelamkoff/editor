@@ -1,4 +1,4 @@
-import { setTrustedHtml } from '../../core/sanitize.js'
+import { setTrustedHtml } from '../../plugin-kit/index.js'
 import { CSS } from './css.js'
 import { setSafeUrlAttribute } from '../../shared/sanitize/sanitizeUrl.js'
 import { isSupportedImageFile } from '../shared/fileInput.js'
