@@ -51,7 +51,6 @@ after(async () => rm(fileURLToPath(declarationRoot), { recursive: true, force: t
 
 const publicPairs = [
   ['core/index.js', 'core/index.d.ts'],
-  ['core/EditorFacade.js', 'core/EditorFacade.d.ts'],
   ['plugin-kit/index.js', 'plugin-kit/index.d.ts'],
   ['plugins/index.js', 'plugins/index.d.ts'],
   ['plugins/async.js', 'plugins/async.d.ts'],
@@ -179,37 +178,36 @@ test('public declarations compile for NodeNext and Bundler consumers', () => {
   }
 })
 
-test('core and renderer derive document shapes from the neutral shared contract', async () => {
-  const [coreTypes, rendererTypes, sharedTypes] = await Promise.all([
-    readFile(new URL('core/types.d.ts', declarationRoot), 'utf8'),
+test('public editor and renderer derive document shapes from the neutral shared contract', async () => {
+  const [publicTypes, rendererTypes, sharedTypes] = await Promise.all([
+    readFile(new URL('core/publicTypes.d.ts', declarationRoot), 'utf8'),
     readFile(new URL('renderer/types.d.ts', declarationRoot), 'utf8'),
     readFile(new URL('shared/documentTypes.d.ts', declarationRoot), 'utf8'),
   ])
 
-  assert.doesNotMatch(coreTypes, /from ['"]\.\.\/renderer\//)
-  assert.match(coreTypes, /from ['"]\.\.\/shared\/documentTypes\.js['"]/)
+  assert.doesNotMatch(publicTypes, /from ['"]\.\.\/renderer\//)
+  assert.match(publicTypes, /from ['"]\.\.\/shared\/documentTypes\.js['"]/)
   assert.match(rendererTypes, /from ['"]\.\.\/shared\/documentTypes\.js['"]/)
   assert.match(sharedTypes, /export interface EditorOutputData/)
   assert.match(sharedTypes, /export interface EditorBlockData/)
   assert.match(sharedTypes, /export interface EditorInlineWidget/)
 })
 
-test('public editor declarations hide composition internals and match block insert data', async () => {
-  const [coreEntry, facadeDeclaration, coreTypes] = await Promise.all([
+test('public editor declarations expose only the v2 model API', async () => {
+  const [coreEntry, publicTypes, rootTypes] = await Promise.all([
     readFile(new URL('core/index.d.ts', declarationRoot), 'utf8'),
-    readFile(new URL('core/EditorFacade.d.ts', declarationRoot), 'utf8'),
-    readFile(new URL('core/types.d.ts', declarationRoot), 'utf8'),
+    readFile(new URL('core/publicTypes.d.ts', declarationRoot), 'utf8'),
+    readFile(new URL('types.d.ts', declarationRoot), 'utf8'),
   ])
 
-  assert.doesNotMatch(coreEntry, /export\s*\{\s*EditorFacade/)
-  assert.match(coreEntry, /createEditor\([\s\S]*?\):\s*import\('\.\/types\.js'\)\.IEditor/)
-  assert.doesNotMatch(facadeDeclaration, /captureSnapshotSync/)
-  assert.match(coreTypes, /insert\([\s\S]*?inline\?:\s*Record<string,\s*EditorInlineWidget>[\s\S]*?\):\s*IBlock/)
-  assert.match(coreTypes, /readonly events:\s*EditorEventSubscriptions/)
-  assert.match(coreTypes, /readonly readOnly:\s*boolean/)
-  assert.match(coreTypes, /readonly canUndo:\s*boolean/)
-  assert.match(coreTypes, /readonly canRedo:\s*boolean/)
-  assert.match(coreTypes, /undo\(\):\s*boolean/)
-  assert.match(coreTypes, /redo\(\):\s*boolean/)
-  assert.match(coreTypes, /setReadOnly\(readOnly:\s*boolean\):\s*void/)
+  assert.doesNotMatch(coreEntry, /EditorFacade|BlockManager|UndoManager|CommandDispatcher|InlinePluginRegistry/)
+  assert.match(coreEntry, /createEditor\(config:[\s\S]*EditorConfig\):[\s\S]*IEditor/)
+  assert.match(publicTypes, /readonly blocks:\s*EditorBlocksApi/)
+  assert.match(publicTypes, /readonly documentMode:\s*DocumentMode/)
+  assert.match(publicTypes, /insert\(input:\s*InsertBlockInput/)
+  assert.match(publicTypes, /update\(id:\s*string,[\s\S]*BlockUpdate/)
+  assert.match(publicTypes, /insertInlinePlugin\(type:\s*string/)
+  assert.doesNotMatch(publicTypes, /rootElement|contentElement|EditorBlockView|IBlockManager|ISelectionManager/)
+  assert.match(rootTypes, /core\/publicTypes\.js/)
+  assert.match(rootTypes, /plugin-kit\/types\.js/)
 })
