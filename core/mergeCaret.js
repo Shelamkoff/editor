@@ -1,4 +1,4 @@
-import { editableFields } from './editableFields.js'
+import { editableFields } from '../shared/editableFields.js'
 import { getTextLength } from '../shared/textOffset.js'
 
 /** Capture field-local joins before a plugin appends data. Fixed-field blocks
