@@ -2874,7 +2874,7 @@ Security:
 - setReadOnly(false) cannot bypass preserved-document mode;
 - cross-realm editing/rendering preserved.
 
-## 31.1. Declaration source-of-truth
+### 31.1. Declaration source-of-truth
 
 Do not recreate the audit's JSDoc/manual-declaration drift risk while introducing v2.
 
