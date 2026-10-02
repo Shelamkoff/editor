@@ -1,4 +1,4 @@
-import { setTrustedHtml } from '../../core/sanitize.js'
+import { setTrustedHtml } from '../../plugin-kit/index.js'
 // @ts-check
 /**
  * Mention inline plugin.
