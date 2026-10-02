@@ -1,5 +1,6 @@
 // @ts-check
 import { createVersionedDataSchema } from '../versionedDataSchema.js'
+import { mapHeadingTextFields } from '../mapTextFields.js'
 
 /**
  * @param {any} input
@@ -26,6 +27,9 @@ export const headingDataSchema = createVersionedDataSchema({
   legacyVersion: 1,
   createDefault: () => ({ text: '', level: /** @type {2} */ (2) }),
   normalize: normalizeHeading,
+  mapRichText(data, transform) {
+    mapHeadingTextFields(data, html => transform(html, 'text'))
+  },
   migrations: [{
     from: 1,
     to: 2,
