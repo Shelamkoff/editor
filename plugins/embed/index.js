@@ -5,7 +5,7 @@ import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { validateEmbedData } from '../../shared/blockDataValidators.js'
 import { sanitizeUrl } from '../../shared/sanitize/sanitizeUrl.js'
 import { normalizeTextValue } from '../../shared/textFormat.js'
-import { READ_ONLY_INTERACTIVE_ATTRIBUTE } from '../../core/constants.js'
+import { READ_ONLY_INTERACTIVE_ATTRIBUTE } from '../../plugin-kit/index.js'
 
 const editorStyles = new URL('./embed.css', import.meta.url).href
 
