@@ -4,6 +4,8 @@ export interface EditorInlineWidget<
   Data extends Record<string, unknown> = Record<string, unknown>,
 > {
   type: Type
+  /** Current schema version of this inline widget's persisted data. */
+  dataVersion?: number
   data: Data
 }
 
