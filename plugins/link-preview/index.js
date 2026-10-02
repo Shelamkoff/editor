@@ -78,7 +78,7 @@ const P = 'oe-lp' // CSS prefix
  *   pendingUrl: string | null,
  *   urlIconEl: HTMLElement | null,
  *   inputTimer: ReturnType<typeof setTimeout> | null,
- *   context: import('../../core/types').BlockMutationContext,
+ *   context: import('../../plugin-kit/types').BlockMutationContext,
  * }} LinkPreviewState
  */
 
@@ -127,7 +127,7 @@ export class LinkPreview extends BlockPluginAbstract {
   /**
    * Create the editable DOM owned by this block instance.
    * @param {Record<string, unknown>} data
-   * @param {import('../../core/types').BlockMutationContext} context
+   * @param {import('../../plugin-kit/types').BlockMutationContext} context
    * @returns {HTMLElement}
    */
   render(data, context) {
