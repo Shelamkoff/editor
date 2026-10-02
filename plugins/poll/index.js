@@ -54,7 +54,7 @@ const ICON_SORT = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
  *   voteVersion: number,
  *   abortController: AbortController | null,
  *   unsubscribe: (() => void) | null,
- *   context: import('../../core/types').BlockMutationContext,
+ *   context: import('../../plugin-kit/types').BlockMutationContext,
  * }} PollState
  */
 /** @type {WeakMap<HTMLElement, PollState>} */
@@ -109,7 +109,7 @@ export class Poll extends BlockPluginAbstract {
   /**
    * Create the editable DOM owned by this block instance.
    * @param {Record<string, unknown>} data
-   * @param {import('../../core/types').BlockMutationContext} context
+   * @param {import('../../plugin-kit/types').BlockMutationContext} context
    * @returns {HTMLElement}
    */
   render(data, context) {
