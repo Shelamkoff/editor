@@ -30,7 +30,10 @@ function atStart(item,range){
   return before.toString().length===0&&before.cloneContents().childNodes.length===0
 }
 
-/** @returns {import('../../plugin-kit/types').BlockPluginDefinition<{style:'ordered'|'unordered',items:Array<{id:string,text:string}>}>} */
+/**
+ * Create the immutable List v2 definition with stable item identities.
+ * @returns {import('../../plugin-kit/types').BlockPluginDefinition<{style:'ordered'|'unordered',items:Array<{id:string,text:string}>}>}
+ */
 export function createListPlugin(){
   const toolbox=Object.freeze([
     Object.freeze({
