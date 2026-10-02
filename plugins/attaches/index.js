@@ -80,6 +80,7 @@ export function createAttachesPlugin(config={}){
           let data=cloneData(initial)
           let readOnly=context.isReadOnly()
           let dead=false
+          const preloadEditors=()=>{if(!readOnly)preloadSourceEditor(wrapper,context.signal,['url'])}
           const taskControllers=new Set()
           const nameFields=new Map()
 
@@ -309,9 +310,9 @@ export function createAttachesPlugin(config={}){
                 wrapper.appendChild(actions)
               }
             }
+            preloadEditors()
           }
 
-          preloadSourceEditor(wrapper,context.signal,['url'])
           project(data)
 
           return {
