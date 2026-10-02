@@ -179,6 +179,12 @@ export class BlockReconciler {
     }
   }
 
+  restore(store) {
+    this.#assertLive()
+    this.#store = store
+    this.#restore(store, new Map())
+  }
+
   setReadOnly(value) {
     this.#assertLive()
     const next = value === true
