@@ -27,8 +27,8 @@ import { BLOCK_TYPES } from '../../shared/blockTypes.js'
 const pixel = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADElEQVR42mNk+M/wHwAF/gL+Av7lWQAAAABJRU5ErkJggg=='
 
 const fixtures = {
-  paragraph: { text: 'Hello <b>world</b>', align: 'center' },
-  heading: { text: 'Stable heading', level: 3, align: 'left' },
+  paragraph: { text: 'Hello <b>world</b>' },
+  heading: { text: 'Stable heading', level: 3 },
   list: { style: 'unordered', items: ['First', 'Second'] },
   quote: { text: 'A useful quote', caption: 'Author' },
   code: { code: 'const answer = 42', language: 'javascript' },

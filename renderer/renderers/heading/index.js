@@ -22,13 +22,10 @@ export function createHeaderRenderer(classPrefix, _locale) {
      * @returns {HTMLElement}
      */
     render(block, parseInline, context = { ownerDocument: globalThis.document }) {
-      const { level, text, align } = block.data
+      const { level, text } = block.data
 
       const heading = context.ownerDocument.createElement(`h${level}`)
       heading.className = `${classPrefix}-header ${classPrefix}-header--level-${level}`
-      if (align && align !== 'left') {
-        heading.style.textAlign = align
-      }
       heading.appendChild(parseInline(text))
 
       return heading

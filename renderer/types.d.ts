@@ -60,13 +60,11 @@ export interface InlineWidget<
 
 export interface ParagraphData {
     text: string
-    align?: 'left' | 'center' | 'right' | 'justify'
 }
 
 export interface HeadingData {
     text: string
     level: 2 | 3 | 4 | 5 | 6
-    align?: 'left' | 'center' | 'right'
 }
 
 export interface ListData {

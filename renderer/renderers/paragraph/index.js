@@ -23,10 +23,7 @@ export function createParagraphRenderer(classPrefix, _locale) {
     render(block, parseInline, context = { ownerDocument: globalThis.document }) {
       const p = context.ownerDocument.createElement('p')
       p.className = `${classPrefix}-paragraph`
-      const { text, align } = block.data
-      if (align && align !== 'left') {
-        p.style.textAlign = align
-      }
+      const { text } = block.data
       p.appendChild(parseInline(text))
       return p
     },
