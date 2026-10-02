@@ -1,4 +1,4 @@
-import { setSanitizedHtml, setTrustedHtml } from '../../core/sanitize.js'
+import { setSanitizedHtml, setTrustedHtml } from '../../plugin-kit/index.js'
 import { appendMergeField } from '../shared/appendMergeField.js'
 // =============================================================================
 // Warning — callout/notice block with title and message
@@ -6,7 +6,7 @@ import { appendMergeField } from '../shared/appendMergeField.js'
 // Data: { title: string, message: string }
 // =============================================================================
 
-import { sanitizeHtml } from '../../core/sanitize.js'
+import { sanitizeHtml } from '../../plugin-kit/index.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
 import { validateWarningData } from '../../shared/blockDataValidators.js'
 import { normalizeTextValue } from '../../shared/textFormat.js'
