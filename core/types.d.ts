@@ -4,7 +4,17 @@ import type {
   EditorOutputData,
 } from '../shared/documentTypes.js'
 import type { LocaleValue } from '../shared/localeTypes.js'
+import type {
+  BlockMutationContext,
+  InlineControlContext,
+  InlineControlGroup,
+} from '../plugin-kit/types.js'
 export type { LocaleValue, PluralForms } from '../shared/localeTypes.js'
+export type {
+  BlockMutationContext,
+  InlineControlContext,
+  InlineControlGroup,
+} from '../plugin-kit/types.js'
 
 /** Explicit DOM aliases used by JavaScript JSDoc without colliding with Node.js types. */
 export type DOMNode = Node
@@ -137,30 +147,6 @@ export interface BlockPlugin<D extends Record<string, unknown> = Record<string, 
   mapTextFields?(data: D, transform: (html: string) => string): void
 }
 
-/** Runtime services available to a block plugin's interactive handlers. */
-export interface BlockMutationContext {
-  /** Document that owns the editor block and any DOM created for it. */
-  readonly ownerDocument?: Document
-  /**
-   * This render reconstructs an Undo/Redo or rollback checkpoint. Do not
-   * restart automatic work that changes persisted content during reconstruction.
-   * This is a creation-time flag, not a lock on later interactive commands.
-   */
-  readonly restoring?: boolean
-  /** Execute one synchronous block-local command as one undo/redo step. */
-  mutate<T>(operation: () => T): T | undefined
-  /** Split the current block through the core structural command pipeline. */
-  splitBlock(): void
-  /** Convert the current empty non-default block to the default block type. */
-  exitEmptyBlock(): boolean
-  /**
-   * True when document mutations and application side effects are forbidden.
-   * A presentation-only button may remain enabled by adding
-   * `data-oe-read-only-interactive` to that control.
-   */
-  readonly readOnly: boolean
-}
-
 /** Common runtime options consumed by the editor composition root. */
 export interface PluginRuntimeConfig extends Record<string, unknown> {
   /** Disable automatic injection of the plugin constructor's `styles` URLs. */
@@ -183,22 +169,6 @@ export interface BlockPluginConstructor<D extends Record<string, unknown> = Reco
    * `splitSelection()` to describe partial selections.
    */
   isTextBlock?: boolean
-}
-
-export interface InlineControlContext {
-  /** Call before DOM swaps to prevent toolbar from hiding */
-  suppressSelectionChange(): void
-  /** Execute one synchronous block-local command; retired control groups return undefined without running it. */
-  mutate<T>(operation: () => T): T | undefined
-  /** Call after DOM swap when contentElement was replaced (e.g. heading level change) */
-  onContentElementChanged(newElement: HTMLElement): void
-}
-
-export interface InlineControlGroup {
-  /** Elements to render in the plugin controls zone (plugin manages its own events) */
-  elements: HTMLElement[]
-  /** Called when plugin controls are removed from the toolbar */
-  destroy?(): void
 }
 
 export interface ToolboxEntry {
