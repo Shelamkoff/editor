@@ -55,12 +55,24 @@ export class ClipboardControllerV2 {
     if (!this.#crossSelection?.active || event.defaultPrevented || !event.clipboardData) return
     event.preventDefault()
     event.clipboardData.setData('text/plain', this.#crossSelection.text())
+    const whole = this.#crossSelection.wholeBlockIds
+    if (whole.length) {
+      const records = whole.map(id => this.#runtime.get(id)).filter(Boolean)
+      event.clipboardData.setData('application/x-rector-editor', JSON.stringify(records))
+    }
   }
 
   #onCut(event) {
     if (this.#runtime.readOnly || !this.#crossSelection?.active || event.defaultPrevented || !event.clipboardData) return
     event.preventDefault()
     event.clipboardData.setData('text/plain', this.#crossSelection.text())
+    const whole = this.#crossSelection.wholeBlockIds
+    if (whole.length) {
+      const records = whole.map(id => this.#runtime.get(id)).filter(Boolean)
+      event.clipboardData.setData('application/x-rector-editor', JSON.stringify(records))
+      this.#crossSelection.removeWholeBlocks()
+      return
+    }
     this.#crossSelection.replace({ kind: 'text', text: '' })
   }
 

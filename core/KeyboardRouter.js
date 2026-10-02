@@ -65,6 +65,18 @@ export class KeyboardRouter {
 
     if (mod && !event?.altKey) {
       if(this.#inlineToolbar?.handleShortcut?.(event))return
+      if (lower === 'a' && !event?.shiftKey) {
+        const owner = this.#reconciler.resolveEditableTarget(event?.target)
+        const bookmark = owner ? this.#selection.capture() : null
+        const range = owner ? sameEditableRange(bookmark, owner) : null
+        if (
+          this.#crossSelection?.active
+          || (range && range.start === 0 && range.end === fieldLength(owner))
+        ) {
+          if (this.#crossSelection?.selectAllBlocks()) event.preventDefault?.()
+          return
+        }
+      }
       if (lower === 'z') {
         event.preventDefault?.()
         if (event?.shiftKey) this.#redo()

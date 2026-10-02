@@ -18,6 +18,7 @@ export class SelectionControllerV2 {
   #dragStart = null
   #bookmark = null
   #range = null
+  #wholeBlocks = false
 
   constructor({ root, runtime, reconciler, view }) {
     if (!root?.ownerDocument) throw new TypeError('SelectionControllerV2 requires an editor root')
@@ -48,6 +49,10 @@ export class SelectionControllerV2 {
     return Boolean(this.#bookmark && this.#range && this.#bookmark.anchor.blockId !== this.#bookmark.focus.blockId)
   }
 
+  get wholeBlockIds() {
+    return this.#wholeBlocks ? this.#runtime.list().map(record => record.id) : []
+  }
+
   get bookmark() {
     if (!this.#bookmark) return null
     return { anchor: clonePoint(this.#bookmark.anchor), focus: clonePoint(this.#bookmark.focus) }
@@ -70,6 +75,21 @@ export class SelectionControllerV2 {
     const built = this.#buildRange(bookmark)
     if (!built) return false
     this.#activate(bookmark, built.range)
+    return true
+  }
+
+  removeWholeBlocks() {
+    const ids = this.wholeBlockIds
+    if (!ids.length) return false
+    const result = this.#runtime.removeBlocks(ids)
+    if (!result) return false
+    this.#deactivate()
+    this.#view.reconcileInteraction()
+    const current = this.#runtime.list()[0]
+    if (current) {
+      this.#view.setCurrent(current.id)
+      queueMicrotask(() => this.#view.focus(current.id, { offset: 'start' }))
+    }
     return true
   }
 
@@ -102,7 +122,9 @@ export class SelectionControllerV2 {
       anchor: { blockId: firstId, fieldKey: first.key, offset: 0 },
       focus: { blockId: lastId, fieldKey: last.key, offset: getTextLength(last.element) },
     }
-    return this.restore(bookmark)
+    const restored = this.restore(bookmark)
+    if (restored) this.#wholeBlocks = true
+    return restored
   }
 
   destroy() {
@@ -113,6 +135,7 @@ export class SelectionControllerV2 {
   #deactivate() {
     this.#bookmark = null
     this.#range = null
+    this.#wholeBlocks = false
     this.#root.classList.remove('oe-editor--cross-selecting')
     this.#view.clearSelection()
     this.#hideHighlight()

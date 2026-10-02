@@ -445,6 +445,34 @@ export class DocumentRuntime {
     })
   }
 
+
+  removeBlocks(blockIds) {
+    this.#assertWritable()
+    if (!Array.isArray(blockIds)) throw new TypeError('removeBlocks() requires an array of block ids')
+    const ids = this.#store.ids()
+    const requested = new Set(blockIds)
+    const removals = ids.filter(id => requested.has(id))
+    if (!removals.length) return false
+
+    let fallback = null
+    if (removals.length === ids.length) {
+      const definition = this.#registry.getBlockDefinition(this.#registry.defaultBlockType)
+      const encoded = this.#normalizeLocalData(definition, definition.schema.createDefault())
+      fallback = {
+        id: this.#createUniqueBlockId(this.#registry.defaultBlockType),
+        type: this.#registry.defaultBlockType,
+        dataVersion: encoded.dataVersion,
+        data: encoded.data,
+      }
+    }
+
+    this.#engine.execute({ origin: 'user', name: 'blocks.remove' }, tx => {
+      for (const id of removals) tx.remove(id)
+      if (fallback) tx.insert(0, fallback)
+    })
+    return fallback?.id ?? true
+  }
+
   replaceBlock(id, type, data) {
     this.#assertWritable()
     const current = this.#store.get(id)
