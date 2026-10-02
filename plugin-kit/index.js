@@ -32,3 +32,7 @@ export {
 } from '../shared/textOffset.js'
 
 export { handleMenuKeydown } from '../shared/menuKeyboardNav.js'
+
+
+export { uid } from '../shared/uid.js'
+export { READ_ONLY_INTERACTIVE_ATTRIBUTE } from '../shared/extensionConstants.js'
