@@ -393,7 +393,7 @@ export function createMentionPlugin(options = {}) {
 
   // handleBeforeInput is attached to the owning editor root by mount().
 
-  /** @type {import('../../core/types').IScopedI18n | null} */
+  /** @type {import('../../plugin-kit/types').IScopedI18n | null} */
   let i18n = null
   /**
    * Scoped i18n lookup — the editor passes an I18n instance pre-scoped to
@@ -1731,7 +1731,7 @@ export function createMentionPlugin(options = {}) {
 
     icon: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-3.92 7.94"/></svg>',
 
-    /** @param {import('../../core/types').IScopedI18n} _i18n */
+    /** @param {import('../../plugin-kit/types').IScopedI18n} _i18n */
     setI18n(_i18n) { i18n = _i18n },
 
     /**
