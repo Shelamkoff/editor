@@ -13,6 +13,7 @@ export {
   setSanitizedHtml,
   insertSanitizedHtml,
   setTrustedHtml,
+  insertTrustedHtml,
 } from '../shared/sanitize/sanitizeHtml.js'
 
 export { escapeHtml } from '../shared/sanitize/escapeHtml.js'
