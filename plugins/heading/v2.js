@@ -75,7 +75,7 @@ export function createHeadingPlugin(){
         if(!element)return null
         const level=Number(element.tagName.slice(1))
         return {
-          kind:'block',
+          kind:/** @type {'block'} */('block'),
           data:{
             text:element.innerHTML,
             level:/** @type {2|3|4|5|6} */(level),
