@@ -15,6 +15,110 @@ const sourceEditorStyles=new URL('../shared/sourceEditor.css',import.meta.url).h
 /** @typedef {(file:File,context:{signal:AbortSignal})=>Promise<ImageSourceResult>} ImageUpload */
 /** @typedef {(context:{signal:AbortSignal})=>Promise<ImageSourceResult|null>} ImageSourceHandler */
 
+
+function imageLabel(key,fallback){return Object.freeze({key,fallback})}
+
+function renderImageSettings(context){
+  const document=context.ownerDocument
+  const root=document.createElement('div')
+  root.className='oe-image__style-form'
+  const commit=producer=>{context.updateData(producer);render()}
+  const row=(label,control)=>{
+    const wrapper=document.createElement('label')
+    wrapper.className='oe-image__style-label'
+    const text=document.createElement('span')
+    text.textContent=label
+    wrapper.append(text,control)
+    return wrapper
+  }
+  const input=(value,onChange,{type='text',placeholder=''}={})=>{
+    const element=document.createElement('input')
+    element.type=type
+    element.className='oe-image__style-input'
+    element.value=value??''
+    if(placeholder)element.placeholder=placeholder
+    element.addEventListener('change',()=>onChange(element.value,element))
+    return element
+  }
+  const select=(value,values,onChange)=>{
+    const element=document.createElement('select')
+    element.className='oe-image__style-input'
+    for(const item of values){
+      const option=document.createElement('option')
+      option.value=item
+      option.textContent=item||context.t(imageLabel('value.none','None'))
+      option.selected=item===value
+      element.appendChild(option)
+    }
+    element.addEventListener('change',()=>onChange(element.value))
+    return element
+  }
+  const checkbox=(checked,onChange)=>{
+    const element=document.createElement('input')
+    element.type='checkbox'
+    element.checked=checked
+    element.addEventListener('change',()=>onChange(element.checked))
+    return element
+  }
+  const updateStyle=(key,value)=>commit(current=>{
+    const styles={...current.styles}
+    if(String(value).trim())styles[key]=String(value).trim()
+    else delete styles[key]
+    return {...current,styles}
+  })
+
+  const render=()=>{
+    const data=context.getData()
+    const styles=data.styles??{}
+    root.replaceChildren()
+
+    const toggles=document.createElement('div')
+    toggles.className='oe-image__switch-row'
+    toggles.append(
+      row(context.t(imageLabel('expanded','Expanded')),checkbox(data.expanded===true,value=>commit(current=>({...current,expanded:value})))),
+      row(context.t(imageLabel('withBackground','Background')),checkbox(data.withBackground===true,value=>commit(current=>({...current,withBackground:value})))),
+      row(context.t(imageLabel('withBorder','Border')),checkbox(data.withBorder===true,value=>commit(current=>({...current,withBorder:value})))),
+    )
+    root.appendChild(toggles)
+
+    const dimensions=document.createElement('div')
+    dimensions.className='oe-image__style-group'
+    const dimensionsTitle=document.createElement('div')
+    dimensionsTitle.className='oe-image__style-group-title'
+    dimensionsTitle.textContent=context.t(imageLabel('dimensions','Dimensions'))
+    dimensions.append(
+      dimensionsTitle,
+      row(context.t(imageLabel('width','Width')),input(styles.width??'',value=>updateStyle('width',value))),
+      row(context.t(imageLabel('height','Height')),input(styles.height??'',value=>updateStyle('height',value))),
+      row(context.t(imageLabel('minWidth','Min width')),input(styles.minWidth??'',value=>updateStyle('minWidth',value))),
+      row(context.t(imageLabel('minHeight','Min height')),input(styles.minHeight??'',value=>updateStyle('minHeight',value))),
+      row(context.t(imageLabel('maxWidth','Max width')),input(styles.maxWidth??'',value=>updateStyle('maxWidth',value))),
+      row(context.t(imageLabel('maxHeight','Max height')),input(styles.maxHeight??'',value=>updateStyle('maxHeight',value))),
+    )
+    root.appendChild(dimensions)
+
+    const display=document.createElement('div')
+    display.className='oe-image__style-group'
+    const displayTitle=document.createElement('div')
+    displayTitle.className='oe-image__style-group-title'
+    displayTitle.textContent=context.t(imageLabel('display','Display'))
+    display.append(
+      displayTitle,
+      row(context.t(imageLabel('objectFit','Fit')),select(styles.objectFit??'', ['', 'none','cover','contain','fill','scale-down'],value=>updateStyle('objectFit',value))),
+      row(context.t(imageLabel('objectPosition','Position')),input(styles.objectPosition??'',value=>updateStyle('objectPosition',value))),
+      row(context.t(imageLabel('backgroundColor','Background color')),input(styles.backgroundColor||'#000000',value=>updateStyle('backgroundColor',value),{type:'color'})),
+      row(context.t(imageLabel('borderStyle','Border style')),select(styles.borderStyle??'', ['', 'none','solid','dashed'],value=>updateStyle('borderStyle',value))),
+      row(context.t(imageLabel('borderColor','Border color')),input(styles.borderColor||'#000000',value=>updateStyle('borderColor',value),{type:'color'})),
+      row(context.t(imageLabel('borderWidth','Border width')),input(styles.borderWidth??'',value=>updateStyle('borderWidth',value))),
+      row(context.t(imageLabel('borderRadius','Border radius')),input(styles.borderRadius??'',value=>updateStyle('borderRadius',value))),
+    )
+    root.appendChild(display)
+  }
+
+  render()
+  return root
+}
+
 /**
  * Create an immutable Image block definition with optional upload/source actions and stylesheet configuration.
  * @param {{uploadFile?:ImageUpload,actions?:Array<{icon?:string,label:string,handler:ImageSourceHandler}>,injectStyles?:boolean,css?:string}} [config]
@@ -41,20 +145,8 @@ export function createImagePlugin(config={}){
       },
     }),
     settings:Object.freeze({
-      kind:/** @type {'actions'} */('actions'),
-      actions(data){
-        return [
-          Object.freeze({id:'border',label:Object.freeze({key:'withBorder',fallback:'Border'}),active:data.withBorder}),
-          Object.freeze({id:'expanded',label:Object.freeze({key:'expanded',fallback:'Expanded'}),active:data.expanded}),
-          Object.freeze({id:'background',label:Object.freeze({key:'withBackground',fallback:'Background'}),active:data.withBackground}),
-        ]
-      },
-      apply(data,actionId){
-        if(actionId==='border')return {...data,withBorder:!data.withBorder}
-        if(actionId==='expanded')return {...data,expanded:!data.expanded}
-        if(actionId==='background')return {...data,withBackground:!data.withBackground}
-        throw new RangeError('Unknown image setting: '+actionId)
-      },
+      kind:/** @type {'panel'} */('panel'),
+      render:renderImageSettings,
     }),
     paste:Object.freeze({
       accepts(input){
@@ -168,9 +260,22 @@ export function createImagePlugin(config={}){
             wrapper.classList.toggle(CSS.withBorder,data.withBorder)
             wrapper.classList.toggle(CSS.expanded,data.expanded)
             wrapper.classList.toggle(CSS.withBackground,data.withBackground)
-            for(const [key,value] of Object.entries(data.styles)){
-              if(key in image.style)image.style[key]=value
+            image.style.cssText=''
+            container.style.cssText=''
+            const styles=data.styles??{}
+            for(const key of ['objectFit','objectPosition','height','maxHeight','minHeight']){
+              if(styles[key])image.style[key]=styles[key]
             }
+            if(!data.expanded){
+              for(const key of ['width','maxWidth','minWidth'])if(styles[key])image.style[key]=styles[key]
+            }
+            if(styles.borderStyle&&styles.borderStyle!=='none'){
+              image.style.borderStyle=styles.borderStyle
+              image.style.borderWidth=styles.borderWidth||'1px'
+              image.style.borderColor=styles.borderColor||'#2e2e35'
+            }
+            if(styles.borderRadius)image.style.borderRadius=styles.borderRadius
+            if(data.withBackground&&styles.backgroundColor)container.style.backgroundColor=styles.backgroundColor
           }
           const project=next=>{
             data={...next,file:{...next.file},styles:{...next.styles}}
