@@ -70,9 +70,57 @@ export function createMentionPlugin(options={}){
       let searchController=null
       let timer=null
       let loadingMore=false
+      const widgetEntries=new Map()
       const listboxId='oe-mention-'+uid()
 
       const view=runtimeContext.ownerDocument.defaultView??globalThis
+      const codePointStartBefore=(text,offset)=>{
+        if(offset<=0)return 0
+        const last=text.charCodeAt(offset-1)
+        if(last>=0xDC00&&last<=0xDFFF&&offset>1){
+          const lead=text.charCodeAt(offset-2)
+          if(lead>=0xD800&&lead<=0xDBFF)return offset-2
+        }
+        return offset-1
+      }
+      const codePointEndAt=(text,offset)=>{
+        if(offset>=text.length)return text.length
+        const lead=text.charCodeAt(offset)
+        if(lead>=0xD800&&lead<=0xDBFF&&offset+1<text.length){
+          const tail=text.charCodeAt(offset+1)
+          if(tail>=0xDC00&&tail<=0xDFFF)return offset+2
+        }
+        return offset+1
+      }
+      const setCaret=(node,offset)=>{
+        const selection=runtimeContext.ownerDocument.defaultView?.getSelection?.()
+        if(!selection)return
+        const range=runtimeContext.ownerDocument.createRange()
+        try{
+          range.setStart(node,offset)
+          range.collapse(true)
+          selection.removeAllRanges()
+          selection.addRange(range)
+        }catch{}
+      }
+      const fieldForSpan=span=>span.parentElement?.closest?.('[contenteditable="true"]')??span.parentElement??span
+      const ownedAtCaret=()=>{
+        const selection=runtimeContext.ownerDocument.defaultView?.getSelection?.()
+        const node=selection?.anchorNode
+        if(!node)return null
+        const element=node.nodeType===1?node:node.parentElement
+        const span=element?.closest?.('[data-inline-plugin="mention"]')
+        const entry=span?widgetEntries.get(span):null
+        return entry&&span.isConnected?entry:null
+      }
+      const caretOffsetInSpan=(entry)=>{
+        const selection=runtimeContext.ownerDocument.defaultView?.getSelection?.()
+        const node=selection?.anchorNode
+        if(!selection||!node)return null
+        if(node.nodeType===3&&node.parentElement===entry.span)return selection.anchorOffset
+        if(node===entry.span)return selection.anchorOffset===0?0:(entry.span.textContent??'').length
+        return null
+      }
       const clearTimer=()=>{
         if(timer!==null){
           view.clearTimeout(timer)
@@ -107,6 +155,12 @@ export function createMentionPlugin(options={}){
       }
       const close=()=>{
         const session=activeSession
+        if(session?.editEntry){
+          const entry=session.editEntry
+          if(!entry.dead&&entry.span.isConnected){
+            try{entry.project(entry.context.getData())}catch{}
+          }
+        }
         abortSearch()
         activeSession=null
         items=[]
@@ -254,6 +308,193 @@ export function createMentionPlugin(options={}){
         }
       }
 
+      const startEditSession=(entry,nextText,nextOffset)=>{
+        if(entry.dead||entry.readOnly||!entry.span.isConnected)return
+        const field=fieldForSpan(entry.span)
+        if(!field)return
+        const query=nextText.startsWith(trigger)?nextText.slice(trigger.length):nextText
+        const session={
+          blockId:entry.context.blockId,
+          fieldKey:entry.context.fieldKey,
+          query,
+          range:Object.freeze({start:0,end:0}),
+          anchor:field,
+          editEntry:entry,
+          commit(payload){
+            if(entry.dead||entry.readOnly||!entry.span.isConnected)return false
+            try{
+              entry.context.updateData(()=>payload)
+              return true
+            }catch{return false}
+          },
+          cancel(){close()},
+        }
+        schedule(session)
+        const text=entry.span.firstChild
+        if(text?.nodeType===3)setCaret(text,Math.min(nextOffset,text.data.length))
+      }
+
+      const removeMention=(entry)=>{
+        close()
+        const span=entry.span
+        const field=fieldForSpan(span)
+        entry.context.commitDomMutation(()=>{
+          const previous=span.previousSibling
+          const next=span.nextSibling
+          span.remove()
+          if(previous?.nodeType===3){
+            setCaret(previous,previous.textContent?.length??0)
+          }else if(next){
+            const range=runtimeContext.ownerDocument.createRange()
+            const selection=runtimeContext.ownerDocument.defaultView?.getSelection?.()
+            try{
+              range.setStartBefore(next)
+              range.collapse(true)
+              selection?.removeAllRanges()
+              selection?.addRange(range)
+            }catch{}
+          }else if(field){
+            const range=runtimeContext.ownerDocument.createRange()
+            const selection=runtimeContext.ownerDocument.defaultView?.getSelection?.()
+            try{
+              range.selectNodeContents(field)
+              range.collapse(false)
+              selection?.removeAllRanges()
+              selection?.addRange(range)
+            }catch{}
+          }
+        })
+      }
+
+      const unwrapMention=(entry,text,offset=0)=>{
+        close()
+        const span=entry.span
+        entry.context.commitDomMutation(()=>{
+          const node=runtimeContext.ownerDocument.createTextNode(text)
+          span.replaceWith(node)
+          setCaret(node,Math.min(offset,node.data.length))
+        })
+      }
+
+      const handleWidgetBeforeInput=event=>{
+        const entry=ownedAtCaret()
+        if(!entry||entry.readOnly||entry.dead)return
+        const offset=caretOffsetInSpan(entry)
+        if(offset===null)return
+        const span=entry.span
+        const text=span.textContent??''
+        const atStart=offset===0
+        const atEnd=offset===text.length
+
+        if(event.inputType==='deleteContentBackward'){
+          event.preventDefault()
+          if(text===trigger){
+            removeMention(entry)
+            return
+          }
+          if(atStart){
+            const previous=span.previousSibling
+            if(previous?.nodeType===3&&(previous.textContent?.length??0)>0){
+              entry.context.commitDomMutation(()=>{
+                const value=previous.textContent??''
+                const start=codePointStartBefore(value,value.length)
+                previous.textContent=value.slice(0,start)
+                setCaret(previous,start)
+              })
+            }
+            return
+          }
+          if(offset===trigger.length&&text.startsWith(trigger)){
+            unwrapMention(entry,text.slice(trigger.length),0)
+            return
+          }
+          const start=codePointStartBefore(text,offset)
+          const next=text.slice(0,start)+text.slice(offset)
+          entry.context.commitDomMutation(()=>{
+            span.textContent=next
+            const node=span.firstChild
+            if(node?.nodeType===3)setCaret(node,start)
+          })
+          startEditSession(entry,next,start)
+          return
+        }
+
+        if(event.inputType==='deleteContentForward'){
+          event.preventDefault()
+          if(atEnd){
+            const next=span.nextSibling
+            if(next?.nodeType===3&&(next.textContent?.length??0)>0){
+              entry.context.commitDomMutation(()=>{
+                const value=next.textContent??''
+                next.textContent=value.slice(codePointEndAt(value,0))
+                setCaret(span.firstChild??span,text.length)
+              })
+            }
+            return
+          }
+          const end=codePointEndAt(text,offset)
+          const nextText=text.slice(0,offset)+text.slice(end)
+          if(!nextText){
+            removeMention(entry)
+            return
+          }
+          if(offset===0&&!nextText.startsWith(trigger)){
+            unwrapMention(entry,nextText,0)
+            return
+          }
+          entry.context.commitDomMutation(()=>{
+            span.textContent=nextText
+            const node=span.firstChild
+            if(node?.nodeType===3)setCaret(node,offset)
+          })
+          startEditSession(entry,nextText,offset)
+          return
+        }
+
+        if(
+          (event.inputType==='insertText'||event.inputType==='insertCompositionText')
+          &&typeof event.data==='string'
+        ){
+          if(atStart||atEnd&&!activeSession?.editEntry){
+            event.preventDefault()
+            entry.context.commitDomMutation(()=>{
+              const node=runtimeContext.ownerDocument.createTextNode(event.data)
+              if(atStart)span.before(node)
+              else span.after(node)
+              setCaret(node,event.data.length)
+            })
+            return
+          }
+          event.preventDefault()
+          const next=text.slice(0,offset)+event.data+text.slice(offset)
+          const nextOffset=offset+event.data.length
+          entry.context.commitDomMutation(()=>{
+            span.textContent=next
+            const node=span.firstChild
+            if(node?.nodeType===3)setCaret(node,nextOffset)
+          })
+          startEditSession(entry,next,nextOffset)
+          return
+        }
+
+        if(event.inputType==='insertLineBreak'||event.inputType==='insertParagraph'){
+          if(activeSession?.editEntry===entry&&items.length){
+            event.preventDefault()
+            commitSelected()
+          }
+        }
+      }
+
+      const handleEditKeydown=event=>{
+        const entry=ownedAtCaret()
+        if(!entry||activeSession?.editEntry!==entry)return
+        const result=handleSessionKeydown(event,activeSession)
+        if(result==='handled'){
+          event.preventDefault()
+          event.stopPropagation()
+        }
+      }
+
       const schedule=session=>{
         abortSearch()
         activeSession=session
@@ -282,6 +523,39 @@ export function createMentionPlugin(options={}){
         },delay)
       }
 
+      const handleSessionKeydown=(event,session)=>{
+        if(destroyed||session!==activeSession)return 'pass'
+        if(event.key==='ArrowDown'){
+          if(items.length)selected=(selected+1)%items.length
+          render()
+          return 'handled'
+        }
+        if(event.key==='ArrowUp'){
+          if(items.length)selected=(selected-1+items.length)%items.length
+          render()
+          return 'handled'
+        }
+        if(event.key==='Enter'&&items.length){
+          commitSelected()
+          return 'handled'
+        }
+        if(event.key==='Escape'){
+          session.cancel()
+          close()
+          return 'handled'
+        }
+        return 'pass'
+      }
+
+      runtimeContext.ownerDocument.addEventListener('beforeinput',handleWidgetBeforeInput,{
+        capture:true,
+        signal:runtimeContext.signal,
+      })
+      runtimeContext.ownerDocument.addEventListener('keydown',handleEditKeydown,{
+        capture:true,
+        signal:runtimeContext.signal,
+      })
+
       return {
         create(id,initial,context){
           if(destroyed)throw new Error('Mention inline runtime is destroyed')
@@ -293,48 +567,38 @@ export function createMentionPlugin(options={}){
           let data={...initial}
           let readOnly=context.isReadOnly()
           let dead=false
+          const entry={span,context,readOnly,dead,project:null}
+          widgetEntries.set(span,entry)
 
           const project=next=>{
             data={...next}
             span.dataset.value=data.id
             span.textContent=trigger+data.name
+            span.contentEditable=readOnly?'false':'true'
             span.tabIndex=readOnly?-1:0
+            entry.readOnly=readOnly
           }
+          entry.project=project
           project(data)
 
           return {
             element:span,
             update(next){if(!dead)project(next)},
-            setReadOnly(value){readOnly=value;project(data)},
+            setReadOnly(value){readOnly=value;entry.readOnly=readOnly;project(data)},
             focus(){if(!dead&&!readOnly)span.focus()},
-            destroy(){dead=true},
+            destroy(){
+              dead=true
+              entry.dead=true
+              widgetEntries.delete(span)
+              if(activeSession?.editEntry===entry)close()
+            },
           }
         },
         onTriggerQuery(session){
           if(!destroyed)schedule(session)
         },
         onTriggerKeydown(event,session){
-          if(destroyed||session!==activeSession)return 'pass'
-          if(event.key==='ArrowDown'){
-            if(items.length)selected=(selected+1)%items.length
-            render()
-            return 'handled'
-          }
-          if(event.key==='ArrowUp'){
-            if(items.length)selected=(selected-1+items.length)%items.length
-            render()
-            return 'handled'
-          }
-          if(event.key==='Enter'&&items.length){
-            commitSelected()
-            return 'handled'
-          }
-          if(event.key==='Escape'){
-            session.cancel()
-            close()
-            return 'handled'
-          }
-          return 'pass'
+          return handleSessionKeydown(event,session)
         },
         onTriggerCancel(){
           close()
