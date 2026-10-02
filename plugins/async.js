@@ -1,7 +1,7 @@
 // @ts-check
 import { BLOCK_TYPES } from '../shared/blockTypes.js'
 
-/** @typedef {new (config?: Record<string, unknown>) => import('../core/types').BlockPlugin} AsyncBlockPluginConstructor */
+/** @typedef {new (config?: Record<string, unknown>) => import('../plugin-kit/types').BlockPlugin} AsyncBlockPluginConstructor */
 /** @typedef {() => Promise<AsyncBlockPluginConstructor>} BlockPluginLoader */
 
 /** @type {Record<import('../renderer/types').BlockType, BlockPluginLoader>} */
@@ -101,7 +101,7 @@ export async function preloadBlockPlugins(source) {
  * Create a deterministic plugin preset after every requested chunk loaded.
  * @param {readonly string[] | { blocks?: readonly { type: string }[] }} [source]
  * @param {Partial<Record<import('../renderer/types').BlockType, Record<string, unknown>>>} [configs]
- * @returns {Promise<import('../core/types').BlockPlugin[]>}
+ * @returns {Promise<import('../plugin-kit/types').BlockPlugin[]>}
  */
 export async function createBlockPluginsAsync(source, configs = {}) {
   const configMap = requireRecord(configs, 'configs')
