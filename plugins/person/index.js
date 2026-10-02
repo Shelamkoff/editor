@@ -1,5 +1,5 @@
-import { setSanitizedHtml, setTrustedHtml } from '../../core/sanitize.js'
-import { sanitizeHtml } from '../../core/sanitize.js'
+import { setSanitizedHtml, setTrustedHtml } from '../../plugin-kit/index.js'
+import { sanitizeHtml } from '../../plugin-kit/index.js'
 import { CropperDialog, cropperStylesUrl } from '@shelamkoff/cropper'
 import { resolveSocialIcon, SOCIAL_ICONS } from './socialResolver.js'
 import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
