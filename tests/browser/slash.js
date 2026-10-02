@@ -161,6 +161,71 @@ async function run() {
   composite.editor.destroy()
   composite.holder.remove()
 
+  const stale = mount({
+    version: '2.0.0',
+    blocks: [{ id: 'stale', type: 'paragraph', data: { text: '' } }],
+  })
+  const staleField = editable(stale, 'stale')
+  await typeText(staleField, '/')
+  const staleMenu = slashMenu(stale)
+  const oldItem = staleMenu.querySelector('.oe-slash-menu__item')
+  assert(oldItem instanceof HTMLElement, 'slash stale-item fixture did not open')
+  staleField.textContent = '/para'
+  setCaretAtEnd(staleField)
+  staleField.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText' }))
+  await delay()
+  const filteredBefore = structuredClone(stale.editor.save())
+  oldItem.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }))
+  assert(JSON.stringify(stale.editor.save()) === JSON.stringify(filteredBefore), 'retained slash item acted after filter redraw')
+  const currentItem = staleMenu.querySelector('.oe-slash-menu__item')
+  assert(currentItem instanceof HTMLElement && currentItem !== oldItem, 'slash filter did not replace menu item ownership')
+  currentItem.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }))
+  await delay()
+  assert(staleMenu.style.display === 'none', 'current slash item did not close live menu')
+
+  stale.editor.render({
+    version: '2.0.0',
+    blocks: [{ id: 'stale', type: 'paragraph', data: { text: '/' } }],
+  })
+  await delay()
+  const replacementField = editable(stale, 'stale')
+  setCaretAtEnd(replacementField)
+  replacementField.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText' }))
+  await delay()
+  const retainedAfterRender = slashMenu(stale).querySelector('.oe-slash-menu__item')
+  assert(retainedAfterRender instanceof HTMLElement, 'slash render-replacement fixture did not open')
+  stale.editor.render({
+    version: '2.0.0',
+    blocks: [{ id: 'stale', type: 'paragraph', data: { text: 'replacement' } }],
+  })
+  await delay()
+  const afterRenderBefore = structuredClone(stale.editor.save())
+  retainedAfterRender.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }))
+  assert(JSON.stringify(stale.editor.save()) === JSON.stringify(afterRenderBefore), 'retained slash item acted on replacement block generation')
+  stale.editor.destroy()
+  stale.holder.remove()
+
+  const focusAway = mount({
+    version: '2.0.0',
+    blocks: [
+      { id: 'focus-a', type: 'paragraph', data: { text: '' } },
+      { id: 'focus-b', type: 'paragraph', data: { text: 'KEEP' } },
+    ],
+  })
+  const focusA = editable(focusAway, 'focus-a')
+  const focusB = editable(focusAway, 'focus-b')
+  await typeText(focusA, '/')
+  assert(slashMenu(focusAway).style.display !== 'none', 'slash focus fixture did not open')
+  focusB.focus()
+  setCaretAtEnd(focusB)
+  await delay()
+  assert(slashMenu(focusAway).style.display === 'none', 'moving focus did not close slash session')
+  key(focusB, 'Enter')
+  await delay()
+  assert(focusAway.editor.save().blocks[0].data.text === '/', 'closed slash session modified previous block')
+  focusAway.editor.destroy()
+  focusAway.holder.remove()
+
   const escape = mount({
     version: '2.0.0',
     blocks: [{ id: 'p4', type: 'paragraph', data: { text: 'Keep ' } }],
@@ -179,7 +244,7 @@ async function run() {
 
   sandbox.replaceChildren()
   return {
-    flows: ['convert', 'insert', 'inline', 'composite field', 'escape'],
+    flows: ['convert', 'insert', 'inline', 'composite field', 'stale session', 'focus change', 'escape'],
     atomicUndo: true,
     dualRegistry: false,
   }
