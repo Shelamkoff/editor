@@ -17,7 +17,10 @@ function append(left,right){
   return left+'<br>'+right
 }
 
-/** @returns {import('../../plugin-kit/types').BlockPluginDefinition<{title:string,content:string,open:boolean}>} */
+/**
+ * Create the immutable Toggle v2 definition with model-owned open state.
+ * @returns {import('../../plugin-kit/types').BlockPluginDefinition<{title:string,content:string,open:boolean}>}
+ */
 export function createTogglePlugin(){
   const capabilities=Object.freeze({
     formatting:Object.freeze({inlineTools:true}),
