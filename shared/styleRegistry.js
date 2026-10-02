@@ -3,7 +3,7 @@ const entriesByDocument = new WeakMap()
 
 /**
  * Acquire stylesheet URLs for one owning document.
- * @param {string[]} urls
+ * @param {readonly string[]} urls
  * @param {Document | undefined | null} [ownerDocument]
  */
 export function acquireStyleUrls(urls, ownerDocument = globalThis.document) {
