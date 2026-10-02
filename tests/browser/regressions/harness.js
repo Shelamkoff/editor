@@ -97,8 +97,6 @@ export async function run() {
       failures.push(error?.stack ?? String(error))
     } finally {
       if (timer) clearTimeout(timer)
-    }
-    finally {
       // Allow native rejection reporting and the opening event's microtasks.
       await pause()
       for (const editor of editors.splice(0)) {
