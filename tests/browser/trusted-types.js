@@ -51,7 +51,7 @@ await test('document renderer handles inline HTML under Trusted Types enforcemen
   let root
   try {
     root = renderer.render({
-      version: '2.0.0'
+      version: '2.0.0',
       blocks: [
         { id: 'p', type: 'paragraph', data: { text: '<strong>Rendered</strong><img src=x onerror=bad()>' } },
         { id: 'h', type: 'heading', data: { text: '<em>Title</em>', level: 2 } },
