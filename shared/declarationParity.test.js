@@ -11,7 +11,7 @@ await generateDeclarations(fileURLToPath(declarationRoot))
 const consumerRoot = new URL('consumer-tests/', declarationRoot)
 await mkdir(consumerRoot, { recursive: true })
 
-for (const file of ['core-consumer.ts', 'public-consumer.ts']) {
+for (const file of ['core-consumer.ts', 'plugin-kit-consumer.ts', 'public-consumer.ts']) {
   const source = await readFile(new URL(`tests/types/${file}`, editorRoot), 'utf8')
   await writeFile(
     new URL(file, consumerRoot),
@@ -36,7 +36,7 @@ await Promise.all([
       module: 'NodeNext',
       moduleResolution: 'NodeNext',
     },
-    include: ['core-consumer.ts', 'public-consumer.ts'],
+    include: ['core-consumer.ts', 'plugin-kit-consumer.ts', 'public-consumer.ts'],
   }, null, 2)),
   writeFile(new URL('tsconfig.bundler.json', consumerRoot), JSON.stringify({
     compilerOptions: {
@@ -44,7 +44,7 @@ await Promise.all([
       module: 'ESNext',
       moduleResolution: 'Bundler',
     },
-    include: ['core-consumer.ts', 'public-consumer.ts'],
+    include: ['core-consumer.ts', 'plugin-kit-consumer.ts', 'public-consumer.ts'],
   }, null, 2)),
 ])
 after(async () => rm(fileURLToPath(declarationRoot), { recursive: true, force: true }))
@@ -52,6 +52,7 @@ after(async () => rm(fileURLToPath(declarationRoot), { recursive: true, force: t
 const publicPairs = [
   ['core/index.js', 'core/index.d.ts'],
   ['core/EditorFacade.js', 'core/EditorFacade.d.ts'],
+  ['plugin-kit/index.js', 'plugin-kit/index.d.ts'],
   ['plugins/index.js', 'plugins/index.d.ts'],
   ['plugins/async.js', 'plugins/async.d.ts'],
   ['inline-plugins/color.js', 'inline-plugins/color.d.ts'],
