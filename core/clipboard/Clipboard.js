@@ -1,5 +1,5 @@
 import { FRAGMENT_MIME, rangeClipboardContent, parseClipboardFragment } from './rangeClipboard.js'
-import { editableAtBoundary, editableRange } from '../editableFields.js'
+import { editableAtBoundary, editableRange } from '../../shared/editableFields.js'
 import { blockClipboardHtml } from './clipboardHtml.js'
 import { captureFilePasteTarget } from './filePasteTarget.js'
 import { capturePasteSelection } from './pasteSelection.js'
