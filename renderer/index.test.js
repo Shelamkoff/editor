@@ -792,20 +792,31 @@ test('renderer dataVersion invalidates reuse even when producer revision is unch
 
 test('strict renderer decodes legacy Paragraph dataVersion through the shared schema', async () => {
   const { EditorRenderer } = await import('./index.js')
+  let seenData
   const renderer = new EditorRenderer({
     blockTypes: ['paragraph'],
     validationMode: 'strict',
     injectStyles: false,
+  })
+  renderer.registerRenderer({
+    type: 'paragraph',
+    render(block) {
+      seenData = block.data
+      const element = document.createElement('p')
+      element.textContent = block.data.text
+      return element
+    },
   })
 
   const element = renderer.renderBlock({
     id: 'legacy-paragraph',
     type: 'paragraph',
     dataVersion: 1,
-    data: { text: '', align: 'center' },
+    data: { text: 'Legacy body', align: 'center' },
   })
 
-  assert.equal(element.tagName, 'P')
+  assert.equal(element.textContent, 'Legacy body')
+  assert.deepEqual(seenData, { text: 'Legacy body' })
   renderer.destroy(element)
   renderer.destroy()
 })
