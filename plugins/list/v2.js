@@ -76,7 +76,7 @@ export function createListPlugin(){
         if(payload?.kind!=='rich-text'||typeof payload.data?.text!=='string'){
           throw new TypeError('List can only import rich-text payloads')
         }
-        return {style:'unordered',items:[{id:'item-0',text:payload.data.text}]}
+        return {style:/** @type {'unordered'} */('unordered'),items:[{id:'item-0',text:payload.data.text}]}
       },
     }),
     settings:Object.freeze({
