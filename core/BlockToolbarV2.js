@@ -101,6 +101,10 @@ export class BlockToolbarV2 {
     document.addEventListener('click', this.#documentClick, true)
   }
 
+  get dragHandle() {
+    return this.#settingsButton
+  }
+
   showFor(blockId) {
     if (this.#destroyed || this.#runtime.readOnly) return
     if (!this.#runtime.get(blockId)) return

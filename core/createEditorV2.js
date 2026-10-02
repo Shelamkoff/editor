@@ -22,6 +22,7 @@ import { EditorBlocksApiV2, EditorHandleV2 } from './PublicEditorApiV2.js'
 import { ChangeNotifier } from './ChangeNotifier.js'
 import { BlockToolbarV2 } from './BlockToolbarV2.js'
 import { ClipboardControllerV2 } from './ClipboardControllerV2.js'
+import { DragControllerV2 } from './DragControllerV2.js'
 
 const CORE_STYLE_URLS=Object.freeze([
   new URL('./themes/variables.css',import.meta.url).href,
@@ -266,6 +267,12 @@ export function createEditorV2(input){
     },
   })
 
+  const drag=new DragControllerV2({
+    runtime,
+    view,
+    handle:toolbar.dragHandle,
+  })
+
   keyboardRouter=new KeyboardRouter({
     root,
     runtime,
@@ -301,6 +308,7 @@ export function createEditorV2(input){
     root.removeEventListener('focusin',onFocusIn)
     triggers.destroy()
     clipboard.destroy()
+    drag.destroy()
     toolbar?.destroy()
     keyboardRouter?.destroy()
     nativeInput.destroy()
