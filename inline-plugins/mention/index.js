@@ -30,8 +30,8 @@ import { setTrustedHtml } from '../../plugin-kit/index.js'
  * @typedef {import('./index').MentionRenderNoResults} MentionRenderNoResults
  * @typedef {import('./index').MentionRenderLoading} MentionRenderLoading
  * @typedef {import('./index').MentionPluginOptions} MentionPluginOptions
- * @typedef {import('../../core/types').InlinePlugin} InlinePlugin
- * @typedef {import('../../core/types').InlinePluginContext} InlinePluginContext
+ * @typedef {import('../../plugin-kit/types').InlinePlugin} InlinePlugin
+ * @typedef {import('../../plugin-kit/types').InlinePluginContext} InlinePluginContext
  */
 
 import { createMentionWidget } from './widget.js'
