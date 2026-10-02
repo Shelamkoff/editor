@@ -46,6 +46,7 @@ export class TransactionEngine {
   #onCommit
   #onDiagnostic
   #phase = 'idle'
+  /** @type {{ draft: any, context: any, failed: unknown } | null} */
   #current = null
   #sequence = 0
 
@@ -93,7 +94,6 @@ export class TransactionEngine {
 
     const metadata = normalizeMetadata(metadataInput)
     const selectionBefore = this.#captureSelection()
-    const before = this.#store.export()
     const draft = this.#store.createDraft()
     const context = this.#createContext(draft)
     const current = { draft, context, failed: null }
@@ -118,13 +118,12 @@ export class TransactionEngine {
       return result
     }
 
-    const after = draft.export()
     let prepared
     try {
       this.#phase = 'preparing-projection'
       prepared = this.#projector.prepare({
-        before: cloneEditorData(before),
-        after: cloneEditorData(after),
+        store: this.#store,
+        draft,
         changes: cloneEditorData(changes),
         origin: metadata.origin,
         name: metadata.name,
@@ -138,7 +137,7 @@ export class TransactionEngine {
     } catch (error) {
       if (prepared && typeof prepared.recover === 'function') {
         try {
-          prepared.recover(cloneEditorData(before))
+          prepared.recover()
         } catch (recoveryError) {
           this.#current = null
           this.#phase = 'idle'
@@ -214,18 +213,16 @@ export class TransactionEngine {
       : this.#history.peekRedo()
     if (!record) return false
 
-    const before = this.#store.export()
     const draft = this.#store.createDraft()
     const direction = action === 'undo' ? 'backward' : 'forward'
     draft.applyChanges(record.changes, direction)
-    const after = draft.export()
 
     let prepared
     try {
       this.#phase = 'preparing-projection'
       prepared = this.#projector.prepare({
-        before: cloneEditorData(before),
-        after: cloneEditorData(after),
+        store: this.#store,
+        draft,
         changes: cloneEditorData(record.changes),
         origin: 'history',
         name: record.name,
@@ -241,7 +238,7 @@ export class TransactionEngine {
     } catch (error) {
       if (prepared && typeof prepared.recover === 'function') {
         try {
-          prepared.recover(cloneEditorData(before))
+          prepared.recover()
         } catch (recoveryError) {
           this.#phase = 'idle'
           throw new AggregateError([error, recoveryError], 'History projection failed and recovery also failed')
