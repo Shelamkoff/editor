@@ -6,6 +6,9 @@ import { createVersionedDataSchema } from '../versionedDataSchema.js'
  * @returns {{ text: string, level: 2 | 3 | 4 | 5 | 6 }}
  */
 function normalizeHeading(input) {
+  if (Object.hasOwn(input, 'align')) {
+    throw new TypeError('Heading alignment must use block tunes')
+  }
   if (typeof input.text !== 'string') {
     throw new TypeError('Heading text must be a string')
   }

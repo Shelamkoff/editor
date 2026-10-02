@@ -10,7 +10,6 @@ import { normalizePollData } from './pollData.js'
 import { sanitizeUrl } from './sanitize/sanitizeUrl.js'
 import {
   normalizeHeadingLevel,
-  normalizeTextAlign,
   normalizeTextValue,
 } from './textFormat.js'
 
@@ -72,12 +71,11 @@ export function normalizeKnownBlockData(type, input, ownerDocument = globalThis.
 
   switch (type) {
     case 'paragraph':
-      return { text: normalizeTextValue(source.text), align: normalizeTextAlign(source.align) }
+      return { text: normalizeTextValue(source.text) }
     case 'heading':
       return {
         text: normalizeTextValue(source.text),
         level: normalizeHeadingLevel(source.level),
-        align: normalizeTextAlign(source.align),
       }
     case 'list':
       return {

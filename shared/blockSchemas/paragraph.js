@@ -6,6 +6,9 @@ import { createVersionedDataSchema } from '../versionedDataSchema.js'
  * @returns {{ text: string }}
  */
 function normalizeParagraph(input) {
+  if (Object.hasOwn(input, 'align')) {
+    throw new TypeError('Paragraph alignment must use block tunes')
+  }
   if (typeof input.text !== 'string') {
     throw new TypeError('Paragraph text must be a string')
   }

@@ -1,7 +1,8 @@
 import { sanitizeUrl } from './sanitize/sanitizeUrl.js'
 import { validatePollData } from './pollData.js'
 import { validateCarouselData } from './carouselData.js'
-import { isTextAlign } from './textFormat.js'
+import { paragraphDataSchema } from './blockSchemas/paragraph.js'
+import { headingDataSchema } from './blockSchemas/heading.js'
 
 export const COLUMN_LAYOUT_SIZES = Object.freeze({
   '1-1': 2,
@@ -44,26 +45,26 @@ function isNonEmptyString(value) {
   return typeof value === 'string' && value.trim().length > 0
 }
 
-/** @param {unknown} value */
-function isOptionalTextAlign(value) {
-  return value === undefined || isTextAlign(value)
-}
-
 /** @param {unknown} data */
 export function validateParagraphData(data) {
-  return isRecord(data)
-    && isNonEmptyString(data.text)
-    && isOptionalTextAlign(data.align)
+  if (!isRecord(data)) return false
+  try {
+    paragraphDataSchema.encode(data)
+    return true
+  } catch {
+    return false
+  }
 }
 
 /** @param {unknown} data */
 export function validateHeadingData(data) {
-  return isRecord(data)
-    && isNonEmptyString(data.text)
-    && Number.isInteger(data.level)
-    && Number(data.level) >= 2
-    && Number(data.level) <= 6
-    && isOptionalTextAlign(data.align)
+  if (!isRecord(data)) return false
+  try {
+    headingDataSchema.encode(data)
+    return true
+  } catch {
+    return false
+  }
 }
 
 /** @param {unknown} data */

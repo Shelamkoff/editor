@@ -54,3 +54,15 @@ test('text block schema defaults are detached values', () => {
   first.text = 'changed'
   assert.deepEqual(second, { text: '' })
 })
+
+
+test('current Paragraph and Heading schemas reject plugin-owned alignment', () => {
+  assert.throws(
+    () => paragraphDataSchema.encode({ text: 'Body', align: 'center' }),
+    /Paragraph alignment must use block tunes/,
+  )
+  assert.throws(
+    () => headingDataSchema.encode({ text: 'Title', level: 2, align: 'right' }),
+    /Heading alignment must use block tunes/,
+  )
+})

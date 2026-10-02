@@ -28,10 +28,13 @@ test('known block validation ignores inherited registry keys', () => {
 })
 
 test('text and structural validators reject values their renderers would coerce', () => {
-  assert.equal(BLOCK_DATA_VALIDATORS.paragraph({ text: 'body', align: 'justify' }), true)
-  assert.equal(BLOCK_DATA_VALIDATORS.paragraph({ text: 'body', align: 'diagonal' }), false)
+  assert.equal(BLOCK_DATA_VALIDATORS.paragraph({ text: 'body' }), true)
+  assert.equal(BLOCK_DATA_VALIDATORS.paragraph({ text: '' }), true)
+  assert.equal(BLOCK_DATA_VALIDATORS.paragraph({ text: 'body', align: 'justify' }), false)
   assert.equal(BLOCK_DATA_VALIDATORS.heading({ text: 'title', level: 2 }), true)
+  assert.equal(BLOCK_DATA_VALIDATORS.heading({ text: '', level: 2 }), true)
   assert.equal(BLOCK_DATA_VALIDATORS.heading({ text: 'title', level: 1 }), false)
+  assert.equal(BLOCK_DATA_VALIDATORS.heading({ text: 'title', level: 2, align: 'right' }), false)
   assert.equal(BLOCK_DATA_VALIDATORS.list({ items: ['one'], style: 'unordered' }), true)
   assert.equal(BLOCK_DATA_VALIDATORS.list({ items: ['one'], style: 'invalid' }), false)
   assert.equal(BLOCK_DATA_VALIDATORS.quote({ text: 'quote', caption: '' }), true)
