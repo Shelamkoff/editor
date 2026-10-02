@@ -106,6 +106,34 @@ export function replaceRichTextRange(html,inline,range,replacement,ownerDocument
  * @param {Document} ownerDocument
  * @returns {{ before: string, after: string }}
  */
+/**
+ * Slice one canonical rich-text field into before/selected/after fragments.
+ * Inline references stay atomic and author-authored placeholder literals remain text.
+ *
+ * @param {string} html
+ * @param {Record<string, unknown> | undefined} inline
+ * @param {{start:number,end:number}} range
+ * @param {Document} ownerDocument
+ * @returns {{before:string,selected:string,after:string}}
+ */
+export function sliceRichTextRange(html, inline, range, ownerDocument) {
+  const start=Math.max(0,Math.trunc(range?.start)||0)
+  const end=Math.max(start,Math.trunc(range?.end)||0)
+  const before=replaceRichTextRange(
+    html,inline,{start,end:Number.MAX_SAFE_INTEGER},{kind:'text',text:''},ownerDocument,
+  )
+  const after=replaceRichTextRange(
+    html,inline,{start:0,end},{kind:'text',text:''},ownerDocument,
+  )
+  let selected=replaceRichTextRange(
+    html,inline,{start:end,end:Number.MAX_SAFE_INTEGER},{kind:'text',text:''},ownerDocument,
+  )
+  selected=replaceRichTextRange(
+    selected,inline,{start:0,end:start},{kind:'text',text:''},ownerDocument,
+  )
+  return {before,selected,after}
+}
+
 export function splitRichTextRange(html, inline, range, ownerDocument) {
   const start = Math.max(0, Math.trunc(range?.start) || 0)
   const end = Math.max(start, Math.trunc(range?.end ?? start) || 0)

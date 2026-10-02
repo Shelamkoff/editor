@@ -298,11 +298,39 @@ export interface BlockCapabilities<D extends Record<string, unknown>> {
   formatting?: FormattingCapability
   merge?: MergeCapability<D>
   conversion?: ConversionCapability<D>
+  selectionSlice?: SelectionSliceCapability<D>
   settings?: SettingsCapability<D>
   paste?: PasteCapability<D>
   shortcuts?: ShortcutCapability<D>
 }
 
+
+export interface LogicalFieldPoint {
+  readonly fieldKey: string
+  readonly offset: number
+}
+
+export interface SelectionSliceContext extends DataOperationContext {
+  sliceField(
+    fieldKey: string,
+    range: Readonly<{ start: number, end: number }>,
+  ): { before: string, selected: string, after: string } | null
+}
+
+export interface SelectionSliceResult<D extends Record<string, unknown>> {
+  before: D | null
+  selected: ConversionPayload
+  after: D | null
+}
+
+export interface SelectionSliceCapability<D extends Record<string, unknown>> {
+  slice(
+    data: Readonly<D>,
+    start: LogicalFieldPoint,
+    end: LogicalFieldPoint,
+    context: SelectionSliceContext,
+  ): SelectionSliceResult<D> | null
+}
 
 /** Logical keyboard input resolved by core for one editable field. */
 export interface BlockShortcutInput {
