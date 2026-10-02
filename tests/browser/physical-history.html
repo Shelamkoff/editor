@@ -25,11 +25,11 @@
   <main id="editor"></main>
   <script type="module">
     import { createEditor } from '../../core/index.js'
-    import { Paragraph } from '../../plugins/paragraph/index.js'
+    import { createParagraphPlugin } from '../../plugins/paragraph/index.js'
 
     createEditor({
       holder: document.querySelector('#editor'),
-      plugins: [new Paragraph()],
+      plugins: [createParagraphPlugin()],
       theme: 'dark',
       autofocus: true,
       minHeight: 350,
