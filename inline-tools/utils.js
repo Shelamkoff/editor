@@ -6,7 +6,7 @@ import { BLOCK_CLASS } from '../core/constants.js'
 import { CrossBlockSelection } from '../core/CrossBlockSelection.js'
 import { closestBlock, el } from '../core/dom.js'
 import { createSvgIcon, ICON_BACK } from '../core/icons.js'
-import { getTextOffset, getTextLength, findNodeAtOffset as findLogicalPosition, editableTextWalker } from '../core/textOffset.js'
+import { getTextOffset, getTextLength, findNodeAtOffset as findLogicalPosition, editableTextWalker } from '../shared/textOffset.js'
 
 const ELEMENT_NODE = 1
 const TEXT_NODE = 3
