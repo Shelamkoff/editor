@@ -1,430 +1,238 @@
-import { editingHostForEvent } from '../../shared/editableFields.js'
+// @ts-check
 import { setSanitizedHtml, setTrustedHtml } from '../../plugin-kit/index.js'
-import { sanitizeHtml } from '../../plugin-kit/index.js'
-import { BlockPluginAbstract } from '../BlockPluginAbstract.js'
-import { validateChecklistData } from '../../shared/blockDataValidators.js'
-import { mapTextFields } from './mapTextFields.js'
-import { normalizeTextValue } from '../../shared/textFormat.js'
+import { checklistDataSchema } from '../../shared/blockSchemas/checklist.js'
 
-const editorStyles = new URL('./checklist.css', import.meta.url).href
+const editorStyles=new URL('./checklist.css',import.meta.url).href
+const ICON='<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 5.5l1.5 1.5l2.5-2.5"/><path d="M3.5 11.5l1.5 1.5l2.5-2.5"/><path d="M3.5 17.5l1.5 1.5l2.5-2.5"/><path d="M11 6h9"/><path d="M11 12h9"/><path d="M11 18h9"/></svg>'
+const CHECK_SVG='<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
 
-// Tabler icon: list-check
-const ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 5.5l1.5 1.5l2.5-2.5"/><path d="M3.5 11.5l1.5 1.5l2.5-2.5"/><path d="M3.5 17.5l1.5 1.5l2.5-2.5"/><path d="M11 6h9"/><path d="M11 12h9"/><path d="M11 18h9"/></svg>'
+function fragmentHtml(range,root){
+  const container=root.ownerDocument.createElement('div')
+  container.appendChild(range.cloneContents())
+  return container.innerHTML
+}
 
-// Check icon inside checkbox
-const TEXT_NODE = 3
+function splitAtCaret(field,range){
+  const document=field.ownerDocument
+  const before=document.createRange()
+  before.selectNodeContents(field)
+  before.setEnd(range.startContainer,range.startOffset)
+  const after=document.createRange()
+  after.selectNodeContents(field)
+  after.setStart(range.startContainer,range.startOffset)
+  return {before:fragmentHtml(before,field),after:fragmentHtml(after,field)}
+}
 
-const CHECK_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
+function caretAtStart(field,range){
+  const before=field.ownerDocument.createRange()
+  before.selectNodeContents(field)
+  before.setEnd(range.startContainer,range.startOffset)
+  return before.toString().length===0&&before.cloneContents().childNodes.length===0
+}
 
-
-const mutationContexts = new WeakMap()
-/** Editable checklist block with independently toggleable rich-text items. */
-export class Checklist extends BlockPluginAbstract {
-  static isTextBlock = true
-  static styles = [editorStyles]
-  type = 'checklist'
-  icon = ICON
-  inlineTools = true
-  mapTextFields = mapTextFields
-
-  /**
-   * Return the localized toolbox label for this block.
-   * @returns {string}
-   */
-  get title() {
-    return this._t('title', 'Checklist')
-  }
-
-  /**
-   * Create the editable DOM owned by this block instance.
-   * @param {{ items?: Array<{ text: string, checked: boolean } | string>, text?: string }} data
-   * @param {import('../../plugin-kit/types').BlockMutationContext} context
-   * @returns {HTMLElement}
-   */
-  render(data, context) {
-    const ownerDocument = context.ownerDocument ?? globalThis.document
-    const wrapper = ownerDocument.createElement('div')
-    wrapper.classList.add('oe-checklist')
-    mutationContexts.set(wrapper, context)
-
-    const serializedItems = Array.isArray(data?.items)
-      ? data.items.flatMap(item => {
-        if (typeof item === 'string') return [{ text: item, checked: false }]
-        if (item && typeof item === 'object' && !Array.isArray(item)) {
-          return [{
-            text: typeof item.text === 'string' ? item.text : '',
-            checked: item.checked === true,
-          }]
+/**
+ * Create the immutable Checklist v2 definition with stable item identities.
+ * @returns {import('../../plugin-kit/types').BlockPluginDefinition<{items:Array<{id:string,text:string,checked:boolean}>}>}
+ */
+export function createChecklistPlugin(){
+  const capabilities=Object.freeze({
+    formatting:Object.freeze({inlineTools:true}),
+    empty:Object.freeze({isEmpty:data=>data.items.every(item=>item.text.trim().length===0)}),
+    merge:Object.freeze({
+      merge(target,source){
+        const occupied=new Set(target.items.map(item=>item.id))
+        const extra=source.items.map((item,index)=>{
+          let id=item.id
+          let suffix=0
+          while(occupied.has(id))id=`merged-${index}-${suffix++}-${item.id}`
+          occupied.add(id)
+          return {...item,id}
+        })
+        return {items:[...target.items,...extra]}
+      },
+    }),
+    conversion:Object.freeze({
+      export(data){
+        return {kind:'rich-text',data:{text:data.items.map(item=>item.text).join('<br>')}}
+      },
+      canImport(payload){
+        return payload?.kind==='rich-text'&&typeof payload.data?.text==='string'
+      },
+      import(payload){
+        if(payload?.kind!=='rich-text'||typeof payload.data?.text!=='string'){
+          throw new TypeError('Checklist can only import rich-text payloads')
         }
-        return []
-      })
-      : []
-    const transferredText = normalizeTextValue(data?.text)
-    const items = serializedItems.length > 0
-      ? serializedItems
-      : [{ text: transferredText, checked: false }]
+        return {items:[{id:'item-0',text:payload.data.text,checked:false}]}
+      },
+    }),
+  })
 
-    for (const item of items) {
-      this.#addItem(wrapper, typeof item.text === 'string' ? item.text : '', item.checked === true)
-    }
+  return Object.freeze({
+    type:'checklist',
+    label:Object.freeze({key:'title',fallback:'Checklist'}),
+    icon:ICON,
+    styles:Object.freeze([editorStyles]),
+    schema:checklistDataSchema,
+    capabilities,
+    setup(runtimeContext){
+      let destroyed=false
+      return {
+        create(initial,context){
+          if(destroyed)throw new Error('Checklist runtime is destroyed')
+          const document=context.ownerDocument
+          const wrapper=document.createElement('div')
+          wrapper.className='oe-checklist'
+          let data={items:initial.items.map(item=>({...item}))}
+          let readOnly=context.isReadOnly()
+          let instanceDestroyed=false
+          const rows=new Map()
 
-    wrapper.addEventListener('keydown', (e) => {
-      if (!editingHostForEvent(wrapper, e.target)) return
-      if (e.key === 'Enter' && !e.shiftKey) {
-        if (this.#handleEnter(wrapper)) {
-          e.preventDefault()
-          e.stopPropagation()
-        }
-      }
-      if (e.key === 'Backspace') {
-        this.#handleBackspace(wrapper, e)
-      }
-    })
+          const createRow=item=>{
+            const row=document.createElement('div')
+            row.className='oe-checklist__item'
+            row.dataset.itemId=item.id
+            const checkbox=document.createElement('button')
+            checkbox.type='button'
+            checkbox.className='oe-checklist__checkbox'
+            checkbox.setAttribute('aria-label',runtimeContext.t('toggle','Toggle checklist item'))
+            setTrustedHtml(checkbox,CHECK_SVG)
+            const text=document.createElement('div')
+            text.className='oe-checklist__text'
+            text.contentEditable=readOnly?'false':'true'
+            if(item.text)setSanitizedHtml(text,item.text)
+            row.append(checkbox,text)
 
-    return wrapper
-  }
+            checkbox.addEventListener('mousedown',event=>event.preventDefault(),{signal:context.signal})
+            checkbox.addEventListener('click',event=>{
+              event.stopPropagation()
+              if(readOnly||instanceDestroyed)return
+              context.updateData(current=>({
+                items:current.items.map(entry=>entry.id===item.id?{...entry,checked:!entry.checked}:entry),
+              }))
+            },{signal:context.signal})
 
-  /**
-   * Release the block-scoped mutation context when this DOM is disposed.
-   * @param {HTMLElement} element
-   * @returns {void}
-   */
-  destroy(element) {
-    mutationContexts.delete(element)
-  }
-
-  /**
-   * Serialize the current block DOM into document data.
-   * @param {HTMLElement} element
-   * @returns {{ items: Array<{ text: string, checked: boolean }> }}
-   */
-  save(element) {
-    const items = []
-    for (const item of element.querySelectorAll('.oe-checklist__item')) {
-      const text = item.querySelector('.oe-checklist__text')
-      const checked = item.classList.contains('oe-checklist__item--checked')
-      items.push({
-        text: sanitizeHtml(text?.innerHTML?.trim() || '', element.ownerDocument),
-        checked,
-      })
-    }
-    return { items }
-  }
-
-  /**
-   * Check whether serialized data satisfies this block's schema.
-   * @param {{ items?: Array<{ text: string, checked: boolean }> }} data
-   * @returns {boolean}
-   */
-  validate(data) {
-    return validateChecklistData(data)
-  }
-
-  /**
-   * Check whether the block has no meaningful user content.
-   * @param {HTMLElement} element
-   * @returns {boolean}
-   */
-  isEmpty(element) {
-    const items = element.querySelectorAll('.oe-checklist__item')
-    if (items.length === 0) return true
-    if (items.length === 1) {
-      const text = items[0]?.querySelector('.oe-checklist__text')
-      return !text?.textContent?.trim()
-    }
-    return false
-  }
-
-  /**
-   * Extract neutral text that can initialize another block type.
-   * @param {HTMLElement} element
-   * @returns {{ text: string }}
-   */
-  exportData(element) {
-    const texts = []
-    for (const item of element.querySelectorAll('.oe-checklist__text')) {
-      const t = sanitizeHtml(item.innerHTML?.trim() || '', element.ownerDocument)
-      if (t) texts.push(t)
-    }
-    return { text: texts.join('<br>') }
-  }
-
-  /**
-   * Merge incoming text into the current block.
-   * @param {HTMLElement} element
-   * @param {Record<string, unknown>} data
-   * @returns {void}
-   */
-  merge(element, data) {
-    if (Array.isArray(data?.items)) {
-      for (const item of data.items) {
-        if (!item || typeof item !== 'object' || Array.isArray(item)) continue
-        this.#addItem(element, typeof item.text === 'string' ? item.text : '', item.checked === true)
-      }
-    } else {
-      const text = normalizeTextValue(data?.text)
-      if (text) this.#addItem(element, text, false)
-    }
-    const lastText = /** @type {HTMLElement | null} */ (element.querySelector('.oe-checklist__item:last-child .oe-checklist__text'))
-    if (lastText) {
-      lastText.focus()
-      const ownerDocument = element.ownerDocument ?? globalThis.document
-      const sel = ownerDocument.defaultView?.getSelection() ?? null
-      if (sel) {
-        const range = ownerDocument.createRange()
-        range.selectNodeContents(lastText)
-        range.collapse(false)
-        sel.removeAllRanges()
-        sel.addRange(range)
-      }
-    }
-  }
-
-  // ── Private ─────────────────────────────────────────────────────────────────
-
-  /**
-   * @param {HTMLElement} wrapper
-   * @param {string} text
-   * @param {boolean} checked
-   * @returns {void}
-   */
-  #addItem(wrapper, text, checked) {
-    const ownerDocument = wrapper.ownerDocument ?? globalThis.document
-    const item = ownerDocument.createElement('div')
-    item.className = `oe-checklist__item${checked ? ' oe-checklist__item--checked' : ''}`
-
-    const checkbox = this.#createCheckbox(wrapper, item, checked)
-
-    const content = ownerDocument.createElement('div')
-    content.className = 'oe-checklist__text'
-    content.contentEditable = 'true'
-    if (text) setSanitizedHtml(content, text)
-
-    item.append(checkbox, content)
-    wrapper.appendChild(item)
-  }
-
-  /** @param {HTMLElement} wrapper @returns {boolean} Whether the key press was handled by this checklist. */
-  #handleEnter(wrapper) {
-    const ownerDocument = wrapper.ownerDocument ?? globalThis.document
-    const sel = ownerDocument.defaultView?.getSelection() ?? null
-    if (!sel?.rangeCount) return false
-
-    const range = sel.getRangeAt(0)
-    const currentText = /** @type {HTMLElement | null} */ (
-      range.startContainer.nodeType === TEXT_NODE
-        ? range.startContainer.parentElement?.closest('.oe-checklist__text') ?? null
-        : /** @type {HTMLElement} */ (range.startContainer).closest('.oe-checklist__text')
-    )
-    const endText = range.endContainer.nodeType === TEXT_NODE
-      ? range.endContainer.parentElement?.closest('.oe-checklist__text')
-      : /** @type {HTMLElement} */ (range.endContainer).closest('.oe-checklist__text')
-    if (!currentText || !endText || !wrapper.contains(currentText) || !wrapper.contains(endText)) return false
-
-    const currentItem = currentText.closest('.oe-checklist__item')
-    const endItem = endText.closest('.oe-checklist__item')
-    if (!currentItem || !endItem || currentItem.parentElement !== wrapper || endItem.parentElement !== wrapper) return false
-
-    const context = mutationContexts.get(wrapper)
-    if (!context) return false
-
-    const itemCount = wrapper.querySelectorAll('.oe-checklist__item').length
-    // An icon-only widget still owns persisted data; split rather than discard it.
-    if (range.collapsed && !currentText.textContent?.trim() && !currentText.querySelector('[data-inline-plugin]')) {
-      if (itemCount <= 1) {
-        context.exitEmptyBlock()
-        return true
-      }
-
-      context.mutate(() => {
-        const isLast = currentItem === wrapper.lastElementChild
-        const nextItem = currentItem.nextElementSibling
-        currentItem.remove()
-
-        if (isLast) {
-          const lastText = /** @type {HTMLElement | null} */ (
-            wrapper.querySelector('.oe-checklist__item:last-child .oe-checklist__text')
-          )
-          if (lastText) {
-            lastText.focus()
-            const end = ownerDocument.createRange()
-            end.selectNodeContents(lastText)
-            end.collapse(false)
-            sel.removeAllRanges()
-            sel.addRange(end)
+            const record={row,checkbox,text}
+            rows.set(item.id,record)
+            return record
           }
-          context.splitBlock()
-          return
-        }
 
-        const nextText = /** @type {HTMLElement | null} */ (nextItem?.querySelector('.oe-checklist__text'))
-        if (nextText) {
-          nextText.focus()
-          const start = ownerDocument.createRange()
-          start.setStart(nextText, 0)
-          start.collapse(true)
-          sel.removeAllRanges()
-          sel.addRange(start)
-        }
-      })
-      return true
-    }
+          const projectRow=(record,item)=>{
+            record.row.classList.toggle('oe-checklist__item--checked',item.checked)
+            record.checkbox.setAttribute('aria-pressed',String(item.checked))
+            record.checkbox.disabled=readOnly
+            record.text.contentEditable=readOnly?'false':'true'
+            if(record.text.innerHTML!==item.text){
+              if(item.text)setSanitizedHtml(record.text,item.text)
+              else record.text.textContent=''
+            }
+          }
 
-    context.mutate(() => {
-      const selectionEnd = ownerDocument.createRange()
-      selectionEnd.setStart(range.endContainer, range.endOffset)
-      selectionEnd.setEnd(endText, endText.childNodes.length)
-      const afterFrag = selectionEnd.extractContents()
+          const reconcile=next=>{
+            const live=new Set()
+            for(const item of next.items){
+              live.add(item.id)
+              const record=rows.get(item.id)??createRow(item)
+              projectRow(record,item)
+              wrapper.appendChild(record.row)
+            }
+            for(const [id,record] of rows){
+              if(live.has(id))continue
+              record.row.remove()
+              rows.delete(id)
+            }
+            data={items:next.items.map(item=>({...item}))}
+          }
 
-      if (currentItem === endItem) {
-        range.deleteContents()
-      } else {
-        const selectedStart = ownerDocument.createRange()
-        selectedStart.setStart(range.startContainer, range.startOffset)
-        selectedStart.setEnd(currentText, currentText.childNodes.length)
-        selectedStart.deleteContents()
+          reconcile(data)
 
-        let item = currentItem.nextElementSibling
-        while (item) {
-          const next = item.nextElementSibling
-          const reachedEnd = item === endItem
-          item.remove()
-          if (reachedEnd) break
-          item = next
-        }
+          wrapper.addEventListener('keydown',event=>{
+            if(readOnly||instanceDestroyed)return
+            const target=/** @type {Element|null} */(event.target)
+            const field=/** @type {HTMLElement|null} */(target?.closest?.('.oe-checklist__text')??null)
+            if(!field||!wrapper.contains(field))return
+            const row=/** @type {HTMLElement|null} */(field.closest('.oe-checklist__item'))
+            const id=row?.dataset.itemId
+            if(!id)return
+            const selection=document.defaultView?.getSelection()??null
+            if(!selection?.rangeCount)return
+            const range=selection.getRangeAt(0)
+            if(!range.collapsed||!field.contains(range.startContainer))return
+            const index=data.items.findIndex(item=>item.id===id)
+            if(index<0)return
+
+            if(event.key==='Enter'&&!event.shiftKey){
+              event.preventDefault()
+              event.stopPropagation()
+              if(!field.textContent?.trim()&&!field.querySelector('[data-inline-plugin]')){
+                if(data.items.length===1){
+                  context.requestExit()
+                  return
+                }
+                context.updateData(current=>({items:current.items.filter(item=>item.id!==id)}))
+                return
+              }
+              const parts=splitAtCaret(field,range)
+              const newId=context.createId('item')
+              context.updateData(current=>{
+                const at=current.items.findIndex(item=>item.id===id)
+                if(at<0)return current
+                const items=current.items.map(item=>item.id===id?{...item,text:parts.before}:item)
+                items.splice(at+1,0,{id:newId,text:parts.after,checked:false})
+                return {items}
+              })
+              queueMicrotask(()=>rows.get(newId)?.text.focus())
+              return
+            }
+
+            if(event.key==='Backspace'&&index>0&&caretAtStart(field,range)){
+              event.preventDefault()
+              event.stopPropagation()
+              const previous=data.items[index-1]
+              context.updateData(current=>{
+                const prevIndex=current.items.findIndex(item=>item.id===previous.id)
+                const currentIndex=current.items.findIndex(item=>item.id===id)
+                if(prevIndex<0||currentIndex<0)return current
+                const items=current.items.map(item=>({...item}))
+                items[prevIndex].text+=items[currentIndex].text
+                items.splice(currentIndex,1)
+                return {items}
+              })
+              queueMicrotask(()=>rows.get(previous.id)?.text.focus())
+            }
+          },{signal:context.signal})
+
+          return {
+            element:wrapper,
+            read:()=>({
+              items:data.items.map(item=>({
+                id:item.id,
+                text:rows.get(item.id)?.text.innerHTML.trim()??item.text,
+                checked:item.checked,
+              })),
+            }),
+            update(next){if(!instanceDestroyed)reconcile(next)},
+            editableFields:()=>Object.freeze(data.items.flatMap(item=>{
+              const element=rows.get(item.id)?.text
+              return element?[Object.freeze({key:`item:${item.id}`,element,mode:/** @type {'rich-text'} */('rich-text')})]:[]
+            })),
+            setReadOnly(value){
+              readOnly=value
+              for(const record of rows.values()){
+                record.checkbox.disabled=value
+                record.text.contentEditable=value?'false':'true'
+              }
+            },
+            focus(target){
+              if(instanceDestroyed||readOnly)return
+              const key=target?.fieldKey
+              const id=key?.startsWith('item:')?key.slice(5):data.items[0]?.id
+              rows.get(id)?.text.focus()
+            },
+            destroy(){instanceDestroyed=true;rows.clear()},
+          }
+        },
+        destroy(){destroyed=true},
       }
-
-      const afterText = ownerDocument.createElement('div')
-      afterText.appendChild(afterFrag)
-      const newText = afterText.innerHTML.trim()
-
-      // Create new item after current
-      const newItem = ownerDocument.createElement('div')
-      newItem.className = 'oe-checklist__item'
-
-      const checkbox = this.#createCheckbox(wrapper, newItem, false)
-
-      const content = ownerDocument.createElement('div')
-      content.className = 'oe-checklist__text'
-      content.contentEditable = 'true'
-      if (newText) setTrustedHtml(content, newText)
-
-      newItem.append(checkbox, content)
-      currentItem.after(newItem)
-
-      // Focus new item
-      content.focus()
-      const newRange = ownerDocument.createRange()
-      newRange.setStart(content, 0)
-      newRange.collapse(true)
-      sel.removeAllRanges()
-      sel.addRange(newRange)
-    })
-    return true
-  }
-
-  /**
-   * @param {HTMLElement} wrapper
-   * @param {HTMLElement} item
-   * @param {boolean} checked
-   * @returns {HTMLButtonElement}
-   */
-  #createCheckbox(wrapper, item, checked) {
-    const checkbox = (wrapper.ownerDocument ?? globalThis.document).createElement('button')
-    checkbox.type = 'button'
-    checkbox.className = 'oe-checklist__checkbox'
-    setTrustedHtml(checkbox, CHECK_SVG)
-    checkbox.setAttribute('aria-label', this._t('toggle', 'Toggle checklist item'))
-    checkbox.setAttribute('aria-pressed', String(checked))
-    checkbox.addEventListener('mousedown', (event) => event.preventDefault())
-    checkbox.addEventListener('click', (event) => {
-      event.stopPropagation()
-      mutationContexts.get(wrapper)?.mutate(() => {
-        const next = !item.classList.contains('oe-checklist__item--checked')
-        item.classList.toggle('oe-checklist__item--checked', next)
-        checkbox.setAttribute('aria-pressed', String(next))
-      })
-    })
-    return checkbox
-  }
-
-  /**
-   * @param {HTMLElement} wrapper
-   * @param {KeyboardEvent} e
-   * @returns {void}
-   */
-  #handleBackspace(wrapper, e) {
-    const items = wrapper.querySelectorAll('.oe-checklist__item')
-    if (items.length <= 1) return
-
-    const ownerDocument = wrapper.ownerDocument ?? globalThis.document
-    const sel = ownerDocument.defaultView?.getSelection() ?? null
-    if (!sel?.rangeCount) return
-    const range = sel.getRangeAt(0)
-    if (!range.collapsed) return
-
-    const currentText = /** @type {HTMLElement | null} */ (
-      range.startContainer.nodeType === TEXT_NODE
-        ? range.startContainer.parentElement?.closest('.oe-checklist__text') ?? null
-        : /** @type {HTMLElement} */ (range.startContainer).closest('.oe-checklist__text')
-    )
-    if (!currentText || !wrapper.contains(currentText)) return
-
-    if (!this.#isCaretAtStart(currentText, range)) return
-
-    const currentItem = currentText.closest('.oe-checklist__item')
-    if (!currentItem || currentItem.parentElement !== wrapper) return
-    const prevItem = currentItem?.previousElementSibling
-    if (!prevItem) return
-
-    e.preventDefault()
-    e.stopPropagation()
-
-    const prevText = /** @type {HTMLElement | null} */ (prevItem.querySelector('.oe-checklist__text'))
-    if (!prevText) return
-
-    const context = mutationContexts.get(wrapper)
-    if (!context) return
-
-    context.mutate(() => {
-      // Merge into previous
-      const mergePoint = prevText.childNodes.length
-      while (currentText.firstChild) {
-        prevText.appendChild(currentText.firstChild)
-      }
-      currentItem.remove()
-
-      // Set caret at merge point
-      prevText.focus()
-      const newRange = ownerDocument.createRange()
-      if (prevText.childNodes[mergePoint]) {
-        newRange.setStartBefore(prevText.childNodes[mergePoint])
-      } else {
-        newRange.setStart(prevText, prevText.childNodes.length)
-      }
-      newRange.collapse(true)
-      sel.removeAllRanges()
-      sel.addRange(newRange)
-    })
-  }
-
-  /**
-   * @param {HTMLElement} text
-   * @param {Range} range
-   * @returns {boolean}
-   */
-  #isCaretAtStart(text, range) {
-    const { startContainer, startOffset } = range
-    if (startContainer === text && startOffset === 0) return true
-    if (startContainer.nodeType !== TEXT_NODE || startOffset !== 0) return false
-
-    /** @type {Node | null} */
-    let node = startContainer
-    while (node && node !== text) {
-      if (node.previousSibling) return false
-      node = node.parentNode
-    }
-    return node === text
-  }
-
+    },
+  })
 }
