@@ -1684,6 +1684,14 @@ export class DocumentRuntime {
           if (this.readOnly) return
           this.updateInlineWidget(id, inlineId, producer)
         },
+        commitDomMutation: operation => {
+          if (this.readOnly || typeof operation !== 'function') return
+          this.syncBlockFromProjection(id, operation, {
+            origin: 'plugin',
+            name: 'inline-widget.dom-mutation',
+            preserveSourceProjection: true,
+          })
+        },
         isReadOnly: () => this.readOnly,
       }),
       signal,
