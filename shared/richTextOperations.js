@@ -211,6 +211,33 @@ export function scanRichTextPlaceholders(html, inline, ownerDocument) {
 }
 
 /**
+ * Replace one owned inline reference token in text nodes only.
+ * Raw HTML attributes and unmatched author-authored placeholder literals are untouched.
+ *
+ * @param {string} html
+ * @param {Record<string, unknown> | undefined} inline
+ * @param {string} id
+ * @param {string} replacement
+ * @param {Document} ownerDocument
+ */
+export function replaceRichTextReference(html,inline,id,replacement,ownerDocument){
+  const ownedInline=ownInline(inline)
+  if(!Object.hasOwn(ownedInline,id))return normalizeRichText(String(html??''),ownerDocument)
+  const template=ownerDocument.createElement('template')
+  template.innerHTML=/** @type {any} */(toTrustedHtml(
+    normalizeRichText(String(html??''),ownerDocument),
+    ownerDocument,
+  ))
+  const walker=ownerDocument.createTreeWalker(template.content,4)
+  for(let node=walker.nextNode();node;node=walker.nextNode()){
+    const text=/** @type {Text} */(node)
+    if(!text.data.includes('{{'))continue
+    text.data=text.data.replace(PLACEHOLDER_RE,(token,tokenId)=>tokenId===id?replacement:token)
+  }
+  return normalizeRichText(template.innerHTML,ownerDocument)
+}
+
+/**
  * Remap canonical inline references in text nodes only. Placeholder-shaped
  * author text and HTML attributes are never rewritten.
  *

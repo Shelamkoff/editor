@@ -384,6 +384,23 @@ export interface InlineWidgetSchema<
   }
 }
 
+export interface InlineWidgetEditInput {
+  readonly inputType: string
+  readonly position: 'inside' | 'before' | 'after'
+  readonly offset: number
+  readonly text: string
+  readonly data: string | null
+}
+
+export type InlineWidgetEditAction<D extends Record<string, unknown>> =
+  | { kind: 'update', data: D }
+  | { kind: 'remove' }
+  | { kind: 'replace-text', text: string }
+
+export interface InlineWidgetEditCapability<D extends Record<string, unknown>> {
+  handle(input: InlineWidgetEditInput, data: Readonly<D>): InlineWidgetEditAction<D> | null
+}
+
 /** One mounted interactive inline widget occurrence. */
 export interface InlineWidgetInstance<
   D extends Record<string, unknown> = Record<string, unknown>
@@ -466,6 +483,7 @@ export interface InlinePluginDefinition<
   readonly trigger?: string
   readonly schema: InlineWidgetSchema<D>
   readonly paste?: InlineWidgetPasteCapability<D>
+  readonly editing?: InlineWidgetEditCapability<D>
   readonly insertion?: Readonly<{
     createInitial(): InlineFreshInsertion<D>
   }>

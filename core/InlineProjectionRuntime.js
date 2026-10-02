@@ -1,5 +1,6 @@
 // @ts-check
 import { cloneEditorData } from '../shared/cloneEditorData.js'
+import { getTextOffset } from '../shared/textOffset.js'
 import { normalizeRichText } from '../shared/richTextCodec.js'
 import { toTrustedHtml } from '../shared/sanitize/trustedHtml.js'
 
@@ -125,6 +126,70 @@ export class InlineProjectionRuntime {
     return {
       data,
       inline:Object.keys(nextInline).length?nextInline:undefined,
+    }
+  }
+
+  resolveWidgetInputTarget(selection,inputType){
+    this.#assertLive()
+    if(!selection?.isCollapsed||!selection.anchorNode)return null
+
+    const ownedEntry=node=>{
+      for(let current=node;current;current=current.parentNode){
+        const meta=this.#owned.get(current)
+        if(meta){
+          const entry=this.#blocks.get(meta.blockId)?.widgets.get(meta.id)
+          return entry?{meta,entry}:null
+        }
+      }
+      return null
+    }
+
+    let resolved=ownedEntry(selection.anchorNode)
+    let position='inside'
+    let offset=0
+
+    if(resolved){
+      try{offset=getTextOffset(resolved.entry.element,selection.anchorNode,selection.anchorOffset)}
+      catch{offset=resolved.entry.element.textContent?.length??0}
+    }else{
+      let candidate=null
+      if(inputType==='deleteContentBackward'){
+        if(selection.anchorNode.nodeType===3&&selection.anchorOffset===0){
+          candidate=selection.anchorNode.previousSibling
+        }else if(selection.anchorNode.nodeType===1&&selection.anchorOffset>0){
+          candidate=selection.anchorNode.childNodes[selection.anchorOffset-1]??null
+        }
+        position='after'
+      }else if(inputType==='deleteContentForward'){
+        if(selection.anchorNode.nodeType===3&&selection.anchorOffset===(selection.anchorNode.textContent?.length??0)){
+          candidate=selection.anchorNode.nextSibling
+        }else if(selection.anchorNode.nodeType===1){
+          candidate=selection.anchorNode.childNodes[selection.anchorOffset]??null
+        }
+        position='before'
+      }
+      if(candidate)resolved=ownedEntry(candidate)
+      if(resolved)offset=position==='after'
+        ?(resolved.entry.element.textContent?.length??0)
+        :0
+    }
+
+    if(!resolved)return null
+    const {meta,entry}=resolved
+    const field=entry.element.closest('[contenteditable="true"]')
+    if(!field)return null
+    let logicalOffset=0
+    try{logicalOffset=getTextOffset(field,entry.element,0)}catch{}
+    return {
+      blockId:meta.blockId,
+      inlineId:meta.id,
+      type:entry.type,
+      fieldKey:entry.fieldKey,
+      element:entry.element,
+      data:cloneEditorData(entry.data),
+      position,
+      offset,
+      logicalOffset,
     }
   }
 

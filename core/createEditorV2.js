@@ -20,6 +20,7 @@ import { InteractionState } from './InteractionState.js'
 import { EditorViewModel } from './EditorViewModel.js'
 import { InlineCommandController } from './InlineCommandController.js'
 import { InlineTriggerController } from './InlineTriggerController.js'
+import { InlineWidgetInputController } from './InlineWidgetInputController.js'
 import { SlashCommandControllerV2 } from './SlashCommandControllerV2.js'
 import { EditorBlocksApiV2, EditorHandleV2 } from './PublicEditorApiV2.js'
 import { ChangeNotifier } from './ChangeNotifier.js'
@@ -252,6 +253,13 @@ export function createEditorV2(input){
   interaction=new InteractionState({runtime,reconciler})
   view=new EditorViewModel({runtime,reconciler,interaction,selection:logicalSelection})
   const crossSelection=lifecycle.register(new SelectionControllerV2({root,runtime,reconciler,view}))
+  const inlineWidgetInput=lifecycle.register(new InlineWidgetInputController({
+    root,
+    runtime,
+    registry,
+    projection:inlineProjection,
+    selection:logicalSelection,
+  }))
   const nativeInput=lifecycle.register(new NativeInputController({root,runtime,reconciler}))
   const inlineCommands=new InlineCommandController({runtime,registry,selection:logicalSelection})
   const triggers=lifecycle.register(new InlineTriggerController({

@@ -1,7 +1,7 @@
 // @ts-check
 import { cloneEditorData } from '../shared/cloneEditorData.js'
 import { normalizeRichText } from '../shared/richTextCodec.js'
-import { getRichTextLogicalLength, remapRichTextReferences, replaceRichTextRange, scanRichTextPlaceholders, sliceRichTextRange, splitRichTextRange } from '../shared/richTextOperations.js'
+import { getRichTextLogicalLength, remapRichTextReferences, replaceRichTextRange, replaceRichTextReference, scanRichTextPlaceholders, sliceRichTextRange, splitRichTextRange } from '../shared/richTextOperations.js'
 import { resolveValidationMode } from '../shared/validationMode.js'
 import { uid } from '../shared/uid.js'
 import { DocumentSchema } from './DocumentSchema.js'
@@ -951,18 +951,38 @@ export class DocumentRuntime {
     this.#engine.execute({ origin: 'plugin', name: 'inline-widget.update' }, tx => tx.update(blockId, next))
   }
 
-  removeInlineWidget(blockId, inlineId) {
+  replaceInlineWidgetWithText(blockId, inlineId, text = '') {
     this.#assertWritable()
     const current = this.#store.get(blockId)
     if (!current) throw new Error(`Unknown block id: ${blockId}`)
+    if (this.activation(blockId)?.kind !== 'active') return false
     const inline = cloneInline(current.inline) ?? {}
-    if (!Object.hasOwn(inline, inlineId)) return
+    if (!Object.hasOwn(inline, inlineId)) return false
+    const definition = this.#registry.getBlockDefinition(current.type)
+    if (!definition?.schema?.mapRichText) return false
+    const scan = this.#scanBlockRichText(definition, current.data, inline)
+    if (!scan.references.has(inlineId)) return false
+
+    const data = definition.schema.mapRichText(cloneEditorData(current.data), html => (
+      replaceRichTextReference(html, inline, inlineId, String(text ?? ''), this.#ownerDocument)
+    ))
     delete inline[inlineId]
-    const next = { ...current }
-    if (Object.keys(inline).length) next.inline = inline
-    else delete next.inline
+    const encoded = this.#normalizeLocalData(definition, data)
+    const filtered = this.#filterInlineForData(definition, encoded.data, inline)
+    const next = {
+      ...current,
+      dataVersion: encoded.dataVersion,
+      data: encoded.data,
+    }
+    if (filtered === undefined) delete next.inline
+    else next.inline = filtered
     delete next.revision
-    this.#engine.execute({ origin: 'plugin', name: 'inline-widget.remove' }, tx => tx.update(blockId, next))
+    this.#engine.execute({ origin: 'plugin', name: 'inline-widget.replace' }, tx => tx.update(blockId, next))
+    return true
+  }
+
+  removeInlineWidget(blockId, inlineId) {
+    return this.replaceInlineWidgetWithText(blockId, inlineId, '')
   }
 
   syncBlockFromProjection(id, operation, metadata = {}) {

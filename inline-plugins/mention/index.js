@@ -54,6 +54,66 @@ export function createMentionPlugin(options={}){
     styles:Object.freeze([STYLES_URL]),
     trigger,
     schema:mentionWidgetSchema,
+    editing:Object.freeze({
+      handle(input,data){
+        const display=trigger+data.name
+        const backward=input.inputType==='deleteContentBackward'
+        const forward=input.inputType==='deleteContentForward'
+        if(!backward&&!forward)return null
+
+        const previousIndex=(text,index)=>{
+          const at=Math.max(0,Math.min(index,text.length))
+          if(at>=2){
+            const last=text.charCodeAt(at-1)
+            const prev=text.charCodeAt(at-2)
+            if(last>=0xDC00&&last<=0xDFFF&&prev>=0xD800&&prev<=0xDBFF)return at-2
+          }
+          return Math.max(0,at-1)
+        }
+        const nextIndex=(text,index)=>{
+          const at=Math.max(0,Math.min(index,text.length))
+          if(at+1<text.length){
+            const first=text.charCodeAt(at)
+            const next=text.charCodeAt(at+1)
+            if(first>=0xD800&&first<=0xDBFF&&next>=0xDC00&&next<=0xDFFF)return at+2
+          }
+          return Math.min(text.length,at+1)
+        }
+
+        let offset=input.offset
+        if(input.position==='after')offset=display.length
+        if(input.position==='before')offset=0
+
+        if(backward){
+          if(offset<=0)return null
+          if(display===trigger&&offset>=trigger.length)return {kind:/** @type {'remove'} */('remove')}
+          if(offset===trigger.length&&display.startsWith(trigger)){
+            return {kind:/** @type {'replace-text'} */('replace-text'),text:data.name}
+          }
+          if(offset>trigger.length){
+            const nameOffset=offset-trigger.length
+            const from=previousIndex(data.name,nameOffset)
+            return {
+              kind:/** @type {'update'} */('update'),
+              data:{...data,name:data.name.slice(0,from)+data.name.slice(nameOffset)},
+            }
+          }
+          return null
+        }
+
+        if(offset>=display.length)return null
+        if(offset<trigger.length){
+          return data.name
+            ?{kind:/** @type {'replace-text'} */('replace-text'),text:data.name}
+            :{kind:/** @type {'remove'} */('remove')}
+        }
+        const nameOffset=offset-trigger.length
+        const to=nextIndex(data.name,nameOffset)
+        const nextName=data.name.slice(0,nameOffset)+data.name.slice(to)
+        if(!nextName&&trigger.length===0)return {kind:/** @type {'remove'} */('remove')}
+        return {kind:/** @type {'update'} */('update'),data:{...data,name:nextName}}
+      },
+    }),
     insertion:Object.freeze({
       createInitial(){
         return {kind:/** @type {'text'} */('text'),text:trigger}
@@ -560,7 +620,6 @@ export function createMentionPlugin(options={}){
         create(id,initial,context){
           if(destroyed)throw new Error('Mention inline runtime is destroyed')
           const span=runtimeContext.ownerDocument.createElement('span')
-          span.contentEditable='false'
           span.className='oe-ip oe-ip--mention'
           span.dataset.inlinePlugin='mention'
           span.dataset.id=id
@@ -575,6 +634,8 @@ export function createMentionPlugin(options={}){
             span.dataset.value=data.id
             span.textContent=trigger+data.name
             span.contentEditable=readOnly?'false':'true'
+            if(readOnly)span.contentEditable='false'
+            else span.removeAttribute('contenteditable')
             span.tabIndex=readOnly?-1:0
             entry.readOnly=readOnly
           }
