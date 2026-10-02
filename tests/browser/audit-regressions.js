@@ -76,7 +76,15 @@ async function localeMarkupBoundary() {
       id: `locale-${definition.type}`,
     })
     try {
-      assertNoMarkup(entry.root, payload, definition.type)
+      entry.editor.blocks.focus(entry.id)
+      await settle()
+      const plus = entry.root.querySelector('.oe-toolbar__btn:not(.oe-toolbar__drag)')
+      const toolbox = entry.root.querySelector('.oe-toolbox')
+      assert(plus instanceof HTMLButtonElement && toolbox instanceof HTMLElement, `${definition.type}: v2 toolbox is missing`)
+      plus.click()
+      await settle()
+      assert(toolbox.style.display !== 'none', `${definition.type}: v2 toolbox did not open`)
+      assertNoMarkup(toolbox, payload, definition.type)
     } finally {
       entry.editor.destroy()
       entry.holder.remove()
