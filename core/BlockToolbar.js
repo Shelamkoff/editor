@@ -1,5 +1,5 @@
 // @ts-check
-import { setTrustedHtml } from '../plugin-kit/index.js'
+import { setTrustedHtml } from '../shared/sanitize/sanitizeHtml.js'
 import {
   ICON_DELETE,
   ICON_DOWN,
