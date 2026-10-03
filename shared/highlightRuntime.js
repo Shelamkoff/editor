@@ -27,7 +27,7 @@ export function setHighlightRuntime(value) {
 }
 
 /**
- * Load the browser-native local bundle once.
+ * Lazily load highlight.js from the declared package dependency once.
  * @returns {Promise<HighlightRuntime>}
  */
 export function loadHighlightRuntime() {
@@ -35,7 +35,7 @@ export function loadHighlightRuntime() {
   if (current) return Promise.resolve(current)
   if (loadPromise) return loadPromise
 
-  loadPromise = import('./runtime/highlightBundle.js')
+  loadPromise = import('highlight.js')
     .then(module => {
       const loaded = /** @type {HighlightRuntime} */ (module.default || module)
       runtime = loaded
