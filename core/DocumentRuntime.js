@@ -4,7 +4,16 @@ import { decodeCurrentBlock, decodeCurrentDocument, decodeCurrentInlineMap } fro
 import { DOCUMENT_FORMAT_VERSION } from '../shared/documentFormat.js'
 import { invokeObserver } from '../shared/invokeObserver.js'
 import { normalizeRichText } from '../shared/richTextCodec.js'
-import { getRichTextLogicalLength, remapRichTextReferences, replaceRichTextRange, replaceRichTextReference, scanRichTextPlaceholders, sliceRichTextRange, splitRichTextRange } from '../shared/richTextOperations.js'
+import { getRichTextLogicalLength, replaceRichTextRange, replaceRichTextReference, sliceRichTextRange, splitRichTextRange } from '../shared/richTextOperations.js'
+import {
+  assembleCanonicalRecord,
+  filterCanonicalInline,
+  prepareCanonicalInlineMerge,
+  remapCanonicalFragment,
+  remapCanonicalInline,
+  remapCanonicalRichText,
+  scanCanonicalRichText,
+} from './CanonicalTransforms.js'
 import { uid } from '../shared/uid.js'
 import { DocumentStore } from './DocumentStore.js'
 import { HistoryStore } from './HistoryStore.js'
@@ -331,20 +340,15 @@ export class DocumentRuntime {
 
     let targetData = targetDefinition.schema.createDefault()
     let targetField = false
-    const defaultLiteralIds = this.#scanBlockRichText(targetDefinition, targetData, {}).literals
-    const trailingRefs = scanRichTextPlaceholders(trailing, inline, this.#ownerDocument).references
-    const targetRemap = new Map()
-    const occupied = new Set(defaultLiteralIds)
-    for (const inlineId of trailingRefs) {
-      const nextId = occupied.has(inlineId)
-        ? this.#allocateInlineId(occupied)
-        : inlineId
-      occupied.add(nextId)
-      if (nextId !== inlineId) targetRemap.set(inlineId, nextId)
-    }
-    if (targetRemap.size) {
-      trailing = remapRichTextReferences(trailing, inline, targetRemap, this.#ownerDocument)
-    }
+    const defaultTokens = this.#scanBlockRichText(targetDefinition, targetData, {})
+    const remappedTrailing = remapCanonicalFragment({
+      html: trailing,
+      inline,
+      reservedIds: [...defaultTokens.references, ...defaultTokens.literals],
+      ownerDocument: this.#ownerDocument,
+      allocateInlineId: reserved => this.#allocateInlineId(reserved),
+    })
+    trailing = remappedTrailing.html
 
     targetData = targetDefinition.schema.mapRichText(targetData, (html) => {
       if (targetField) return html
@@ -353,29 +357,13 @@ export class DocumentRuntime {
     })
     if (!targetField) return false
 
-    const sourceEncoded = this.#normalizeLocalData(sourceDefinition, sourceData)
-    const targetEncoded = this.#normalizeLocalData(targetDefinition, targetData)
-    const sourceInline = this.#filterInlineForData(sourceDefinition, sourceEncoded.data, inline)
-    const targetSourceInline = this.#remapInlinePayload(inline, targetRemap)
-    const targetInline = this.#filterInlineForData(targetDefinition, targetEncoded.data, targetSourceInline)
     const newId = this.#createUniqueBlockId(defaultType)
-    const sourceRecord = {
-      ...current,
-      dataVersion: sourceEncoded.dataVersion,
-      data: sourceEncoded.data,
-    }
-    if (sourceInline === undefined) delete sourceRecord.inline
-    else sourceRecord.inline = sourceInline
-    delete sourceRecord.revision
-
-    const targetRecord = {
-      id: newId,
-      type: defaultType,
-      dataVersion: targetEncoded.dataVersion,
-      data: targetEncoded.data,
-    }
-    if (current.tunes !== undefined) targetRecord.tunes = cloneTunes(current.tunes)
-    if (targetInline !== undefined) targetRecord.inline = targetInline
+    const sourceRecord = this.#recordFromData(
+      current.id, current.type, sourceDefinition, sourceData, current.tunes, inline,
+    )
+    const targetRecord = this.#recordFromData(
+      newId, defaultType, targetDefinition, targetData, current.tunes, remappedTrailing.inline,
+    )
 
     const index = this.#store.ids().indexOf(id)
     this.#engine.execute({ origin: 'user', name: 'block.split' }, tx => {
@@ -411,16 +399,9 @@ export class DocumentRuntime {
 
     const prepared = this.#prepareInlineMerge(definition, target, source)
     const mergedData = merge(prepared.targetData, prepared.sourceData)
-    const encoded = this.#normalizeLocalData(definition, mergedData)
-    const mergedInline = this.#filterInlineForData(definition, encoded.data, prepared.inline)
-    const next = {
-      ...target,
-      dataVersion: encoded.dataVersion,
-      data: encoded.data,
-    }
-    if (mergedInline === undefined) delete next.inline
-    else next.inline = mergedInline
-    delete next.revision
+    const next = this.#recordFromData(
+      target.id, target.type, definition, mergedData, target.tunes, prepared.inline,
+    )
 
     this.#engine.execute({ origin: 'user', name: 'block.merge' }, tx => {
       tx.update(targetId, next)
@@ -536,14 +517,9 @@ export class DocumentRuntime {
     if (!current) throw new Error(`Unknown block id: ${id}`)
     const definition = this.#registry.getBlockDefinition(type)
     if (!definition) throw new Error(`Unknown block type: ${type}`)
-    const encoded = this.#normalizeLocalData(definition, data)
-    const next = {
-      id,
-      type,
-      dataVersion: encoded.dataVersion,
-      data: encoded.data,
-    }
-    if (current.tunes !== undefined) next.tunes = cloneTunes(current.tunes)
+    const next = this.#recordFromData(
+      id, type, definition, data, current.tunes, current.inline,
+    )
     this.#engine.execute({ origin: 'external', name: 'block.replace' }, tx => {
       tx.update(id, next)
     })
@@ -589,14 +565,9 @@ export class DocumentRuntime {
       }
     }
 
-    const encoded = this.#normalizeLocalData(targetDefinition, targetData)
-    const next = {
-      id,
-      type: target.type,
-      dataVersion: encoded.dataVersion,
-      data: encoded.data,
-    }
-    if (current.tunes !== undefined) next.tunes = cloneTunes(current.tunes)
+    const next = this.#recordFromData(
+      id, target.type, targetDefinition, targetData, current.tunes, current.inline,
+    )
 
     this.#engine.execute({ origin: 'external', name: 'block.convert' }, tx => {
       tx.update(id, next)
@@ -1547,12 +1518,17 @@ export class DocumentRuntime {
   }
 
   #recordFromData(id,type,definition,data,tunes,inlineSource){
-    const encoded=this.#normalizeLocalData(definition,data)
-    const record={id,type,dataVersion:encoded.dataVersion,data:encoded.data}
-    if(tunes!==undefined)record.tunes=cloneTunes(tunes)
-    const inline=this.#filterInlineForData(definition,encoded.data,inlineSource)
-    if(inline!==undefined)record.inline=inline
-    return record
+    return assembleCanonicalRecord({
+      id,
+      type,
+      definition,
+      data,
+      tunes,
+      inlineSource,
+      ownerDocument:this.#ownerDocument,
+      normalizeData:(targetDefinition,targetData)=>this.#normalizeLocalData(targetDefinition,targetData),
+      normalizeTunes:cloneTunes,
+    })
   }
 
   #payloadHasContent(payload){
@@ -1803,41 +1779,19 @@ export class DocumentRuntime {
   }
 
   #scanBlockRichText(definition, data, inline) {
-    const references = new Set()
-    const literals = new Set()
-    if (typeof definition?.schema?.mapRichText !== 'function') return { references, literals }
-    definition.schema.mapRichText(data, html => {
-      const scan = scanRichTextPlaceholders(html, inline, this.#ownerDocument)
-      for (const id of scan.references) references.add(id)
-      for (const id of scan.literals) literals.add(id)
-      return html
-    })
-    return { references, literals }
+    return scanCanonicalRichText(definition, data, inline, this.#ownerDocument)
   }
 
   #filterInlineForData(definition, data, inline) {
-    if (!inline || typeof inline !== 'object' || Array.isArray(inline)) return undefined
-    const { references } = this.#scanBlockRichText(definition, data, inline)
-    const result = {}
-    for (const id of references) {
-      if (Object.hasOwn(inline, id)) result[id] = cloneEditorData(inline[id])
-    }
-    return Object.keys(result).length ? result : undefined
+    return filterCanonicalInline(definition, data, inline, this.#ownerDocument)
   }
 
   #remapInlinePayload(inline, remap) {
-    const result = {}
-    for (const [id, value] of Object.entries(inline ?? {})) {
-      result[remap.get(id) ?? id] = cloneEditorData(value)
-    }
-    return result
+    return remapCanonicalInline(inline, remap)
   }
 
   #remapBlockRichText(definition, data, inline, remap) {
-    if (!remap.size || typeof definition?.schema?.mapRichText !== 'function') return cloneEditorData(data)
-    return definition.schema.mapRichText(data, html => (
-      remapRichTextReferences(html, inline, remap, this.#ownerDocument)
-    ))
+    return remapCanonicalRichText(definition, data, inline, remap, this.#ownerDocument)
   }
 
   #allocateInlineId(reserved) {
@@ -1850,38 +1804,13 @@ export class DocumentRuntime {
   }
 
   #prepareInlineMerge(definition, target, source) {
-    const targetInline = cloneInline(target.inline) ?? {}
-    const sourceInline = cloneInline(source.inline) ?? {}
-    const targetScan = this.#scanBlockRichText(definition, target.data, targetInline)
-    const sourceScan = this.#scanBlockRichText(definition, source.data, sourceInline)
-    const reserved = new Set([...targetScan.literals, ...sourceScan.literals])
-
-    const targetRemap = new Map()
-    for (const id of targetScan.references) {
-      if (!Object.hasOwn(targetInline, id)) continue
-      const next = reserved.has(id) ? this.#allocateInlineId(reserved) : id
-      reserved.add(next)
-      if (next !== id) targetRemap.set(id, next)
-    }
-
-    const sourceRemap = new Map()
-    for (const id of sourceScan.references) {
-      if (!Object.hasOwn(sourceInline, id)) continue
-      const next = reserved.has(id) ? this.#allocateInlineId(reserved) : id
-      reserved.add(next)
-      if (next !== id) sourceRemap.set(id, next)
-    }
-
-    const targetData = this.#remapBlockRichText(definition, target.data, targetInline, targetRemap)
-    const sourceData = this.#remapBlockRichText(definition, source.data, sourceInline, sourceRemap)
-    const inline = {}
-    for (const id of targetScan.references) {
-      if (Object.hasOwn(targetInline, id)) inline[targetRemap.get(id) ?? id] = cloneEditorData(targetInline[id])
-    }
-    for (const id of sourceScan.references) {
-      if (Object.hasOwn(sourceInline, id)) inline[sourceRemap.get(id) ?? id] = cloneEditorData(sourceInline[id])
-    }
-    return { targetData, sourceData, inline }
+    return prepareCanonicalInlineMerge({
+      definition,
+      target,
+      source,
+      ownerDocument:this.#ownerDocument,
+      allocateInlineId:reserved=>this.#allocateInlineId(reserved),
+    })
   }
 
   #createUniqueInlineId(blockDefinition, data, inline) {

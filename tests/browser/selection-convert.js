@@ -4,6 +4,7 @@ import {
   createListPlugin,
   createParagraphPlugin,
 } from '../../plugins/index.js'
+import { createColorSwatchPlugin } from '../../inline-plugins/color.js'
 
 const sandbox = document.querySelector('#sandbox')
 const delay = (ms = 0) => new Promise(resolve => setTimeout(resolve, ms))
@@ -19,6 +20,7 @@ function mount(blocks) {
       createHeadingPlugin(),
       createListPlugin(),
     ],
+    inlinePlugins: [createColorSwatchPlugin()],
     defaultBlock: 'paragraph',
     injectStyles: true,
     changeDebounceMs: 0,
@@ -97,6 +99,38 @@ function chooseType(dropdown, type) {
 }
 
 async function run() {
+  const wholeInline = mount([
+    {
+      id: 'whole-inline',
+      type: 'paragraph',
+      dataVersion: 2,
+      data: { text: 'Before {{color-1}} after' },
+      inline: {
+        'color-1': {
+          type: 'color',
+          dataVersion: 1,
+          data: { value: '#123456' },
+        },
+      },
+    },
+  ])
+  const wholeBefore = JSON.stringify(wholeInline.editor.save().blocks)
+  const convertedWhole = wholeInline.editor.blocks.convert('whole-inline', { type: 'heading' })
+  assert(convertedWhole?.type === 'heading', 'whole conversion did not produce Heading')
+  let wholeSaved = wholeInline.editor.save()
+  assert(wholeSaved.blocks[0].data.text === 'Before {{color-1}} after', 'whole conversion changed inline token text')
+  assert(wholeSaved.blocks[0].inline?.['color-1']?.type === 'color', 'whole conversion lost inline sidecar')
+  assert(wholeSaved.blocks[0].inline?.['color-1']?.data.value === '#123456', 'whole conversion changed inline payload')
+  wholeInline.editor.undo()
+  await delay()
+  assert(JSON.stringify(wholeInline.editor.save().blocks) === wholeBefore, 'whole inline conversion undo did not restore graph')
+  wholeInline.editor.redo()
+  await delay()
+  wholeSaved = wholeInline.editor.save()
+  assert(wholeSaved.blocks[0].inline?.['color-1']?.data.value === '#123456', 'whole inline conversion redo lost payload')
+  wholeInline.editor.destroy()
+  wholeInline.holder.remove()
+
   const paragraph = mount([
     { id: 'p', type: 'paragraph', dataVersion: 2, data: { text: 'Alpha Beta Gamma' } },
   ])

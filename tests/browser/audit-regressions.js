@@ -1,6 +1,10 @@
 import { CropperDialog } from '@shelamkoff/cropper'
 import { createEditor } from '../../core/index.js'
 import {
+  assembleCanonicalRecord,
+  prepareCanonicalInlineMerge,
+} from '../../core/CanonicalTransforms.js'
+import {
   createAttachesPlugin,
   createCarouselPlugin,
   createEmbedPlugin,
@@ -15,6 +19,53 @@ const tick = () => new Promise(resolve => setTimeout(resolve, 0))
 
 function assert(condition, message) {
   if (!condition) throw new Error(message)
+}
+
+function canonicalTransformProof() {
+  const definition = {
+    schema: {
+      mapRichText(data, transform) {
+        return { ...data, text: transform(data.text, 'text') }
+      },
+    },
+  }
+  let sequence = 0
+  const prepared = prepareCanonicalInlineMerge({
+    definition,
+    target: { data: { text: 'literal {{same}}' } },
+    source: {
+      data: { text: 'reference {{same}}' },
+      inline: {
+        same: { type: 'future-inline', dataVersion: 7, data: { opaque: true } },
+      },
+    },
+    ownerDocument: document,
+    allocateInlineId(reserved) {
+      let id
+      do { id = `generated-${++sequence}` } while (reserved.has(id))
+      return id
+    },
+  })
+  assert(prepared.targetData.text === 'literal {{same}}', 'literal placeholder was rewritten during merge preparation')
+  assert(prepared.sourceData.text === 'reference {{generated-1}}', 'colliding owned reference was not remapped')
+  assert(!Object.hasOwn(prepared.inline, 'same'), 'colliding source reference kept literal id')
+  assert(prepared.inline['generated-1']?.data?.opaque === true, 'remapped opaque inline payload was lost')
+
+  const record = assembleCanonicalRecord({
+    id: 'record',
+    type: 'probe',
+    definition,
+    data: { text: 'keep {{owned}} literal {{literal}}' },
+    inlineSource: {
+      owned: { type: 'future-inline', dataVersion: 7, data: { value: 1 } },
+      unused: { type: 'future-inline', dataVersion: 7, data: { value: 2 } },
+    },
+    ownerDocument: document,
+    normalizeData: (_definition, data) => ({ dataVersion: 1, data: { ...data } }),
+    normalizeTunes: tunes => tunes,
+  })
+  assert(Object.keys(record.inline ?? {}).join(',') === 'owned', 'canonical assembly did not prune unused sidecar entries')
+  assert(record.data.text.includes('{{literal}}'), 'literal placeholder was not preserved as text')
 }
 
 async function settle(times = 2) {
@@ -324,6 +375,7 @@ async function toolbarOwnership() {
 }
 
 async function run() {
+  canonicalTransformProof()
   const cases = [
     ['locale-markup-boundary', localeMarkupBoundary],
     ['link-preview-request-ownership', linkPreviewOwnership],
