@@ -357,6 +357,7 @@ export function createEditorRuntime(input){
     root,
     runtime,
     reconciler,
+    crossSelection,
     coalesceMs:config.historyCoalesceMs??300,
   }))
   let triggerController=null
