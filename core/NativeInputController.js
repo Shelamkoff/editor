@@ -15,6 +15,7 @@ export class NativeInputController {
   #root
   #runtime
   #reconciler
+  #crossSelection
   #controller
   #composition = null
   #endingComposition = null
@@ -23,7 +24,7 @@ export class NativeInputController {
   #groupSequence = 0
   #lastGroup = null
 
-  constructor({ root, runtime, reconciler, coalesceMs = 300 }) {
+  constructor({ root, runtime, reconciler, crossSelection = null, coalesceMs = 300 }) {
     if (!root?.addEventListener) throw new TypeError('NativeInputController requires an event root')
     if (!runtime?.syncBlockFromProjection) throw new TypeError('NativeInputController requires a DocumentRuntime')
     if (!reconciler?.resolveEditableTarget) throw new TypeError('NativeInputController requires a BlockReconciler')
@@ -34,6 +35,7 @@ export class NativeInputController {
     this.#root = root
     this.#runtime = runtime
     this.#reconciler = reconciler
+    this.#crossSelection = crossSelection
     this.#coalesceMs = coalesceMs
     const performanceNow = root.ownerDocument?.defaultView?.performance?.now?.bind(root.ownerDocument.defaultView.performance)
     this.#now = performanceNow ?? Date.now
@@ -60,9 +62,24 @@ export class NativeInputController {
 
   handleBeforeInput(event) {
     if (this.#runtime.readOnly) return
+    if (event?.isComposing || this.#composition) return
+    const inputType = typeof event?.inputType === 'string' ? event.inputType : ''
+    if (
+      this.#crossSelection?.active
+      && (inputType === 'insertText' || inputType === 'insertReplacementText')
+    ) {
+      event.preventDefault?.()
+      event.stopImmediatePropagation?.()
+      this.#endingComposition = null
+      this.#lastGroup = null
+      this.#crossSelection.replace({
+        kind: 'text',
+        text: typeof event?.data === 'string' ? event.data : '',
+      })
+      return
+    }
     const owner = this.#resolve(event?.target)
     if (!owner) return
-    if (event?.isComposing || this.#composition) return
     this.#endingComposition = null
   }
 
