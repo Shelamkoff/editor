@@ -1,5 +1,6 @@
 // @ts-check
 import { cloneEditorData } from '../shared/cloneEditorData.js'
+import { ProjectionAnimator } from './ProjectionAnimator.js'
 
 function sameJson(left, right) {
   try { return JSON.stringify(left) === JSON.stringify(right) } catch { return false }
@@ -25,9 +26,18 @@ export class BlockReconciler {
   #readOnly
   #inlineProjection
   #store = null
+  #animator
   #destroyed = false
 
-  constructor({ container, registry, contextFactory, activationResolver, inlineProjection = null, readOnly = false }) {
+  constructor({
+    container,
+    registry,
+    contextFactory,
+    activationResolver,
+    inlineProjection = null,
+    readOnly = false,
+    animationDurations,
+  }) {
     if (!container?.ownerDocument) throw new TypeError('BlockReconciler requires a container')
     if (!registry) throw new TypeError('BlockReconciler requires an ExtensionRegistry')
     if (typeof contextFactory !== 'function') throw new TypeError('BlockReconciler requires contextFactory')
@@ -39,6 +49,7 @@ export class BlockReconciler {
       : (_id, record) => registry.hasBlock(record.type)
     this.#inlineProjection = inlineProjection
     this.#readOnly = readOnly === true
+    this.#animator = new ProjectionAnimator(animationDurations)
   }
 
   mount(store) {
@@ -49,6 +60,7 @@ export class BlockReconciler {
     this.#entries = fresh
     this.#store = store
     for (const entry of previous.values()) this.#destroyEntry(entry)
+    this.#animator.enable()
   }
 
   getElement(id) {
@@ -117,6 +129,8 @@ export class BlockReconciler {
   prepare({ store, draft, changes, sourceBlockId }) {
     this.#assertLive()
     this.#store = store
+    const structuralChange = hasStructuralChange(changes)
+    const firstRects = structuralChange ? this.#animator.capture(this.#entries) : new Map()
     const changedIds = new Set()
     for (const change of changes) {
       if (change.kind === 'document.replace') {
@@ -190,7 +204,16 @@ export class BlockReconciler {
       throw error
     }
 
-    const finalOrder = hasStructuralChange(changes) ? draft.ids() : null
+    const finalOrder = structuralChange ? draft.ids() : null
+    const storeOrder = structuralChange ? store.ids() : []
+    const storeIndexes = new Map(storeOrder.map((id, index) => [id, index]))
+    const removalSnapshots = removals.flatMap(item => {
+      const snapshot = this.#animator.captureRemoval(
+        item.entry.element,
+        storeIndexes.get(item.id) ?? storeOrder.length,
+      )
+      return snapshot ? [snapshot] : []
+    })
     let applied = false
 
     return {
@@ -245,6 +268,10 @@ export class BlockReconciler {
 
         for (const item of replacements) this.#destroyEntry(item.before)
         for (const item of removals) this.#destroyEntry(item.entry)
+
+        this.#animator.animateRemovals(this.#container, removalSnapshots)
+        this.#animator.animateMoves(nextEntries, firstRects)
+        for (const item of insertions) this.#animator.animateInsert(item.entry.element)
       },
       recover: () => {
         this.#restore(store, staged)
@@ -293,6 +320,7 @@ export class BlockReconciler {
     for (const entry of this.#entries.values()) this.#destroyEntry(entry)
     this.#entries.clear()
     this.#inlineProjection?.destroy?.()
+    this.#animator.destroy()
     this.#container.replaceChildren()
   }
 
