@@ -1,3 +1,6 @@
+/** CSS class applied to canonical block wrapper elements. */
+export const BLOCK_CLASS = 'oe-block'
+
 /** CSS selector for canonical block wrapper elements. */
 export const BLOCK_SELECTOR = '.oe-block'
 
