@@ -2,6 +2,8 @@
 import { handleMenuKeydown } from '../plugin-kit/index.js'
 import { setTrustedHtml } from '../shared/sanitize/sanitizeHtml.js'
 
+const INLINE_TOOL_OWNERS = new WeakMap()
+
 function matchesShortcut(combo, event) {
   if (!combo || typeof combo !== 'string') return false
   const parts = combo.split('+')
@@ -158,6 +160,15 @@ export class InlineToolbar {
     })
 
     for (const tool of this.#tools) {
+      if (!tool || typeof tool !== 'object') throw new TypeError('Inline tools must be objects')
+      if (INLINE_TOOL_OWNERS.has(tool)) {
+        throw new Error(`Inline tool instance is already mounted: ${tool.type ?? 'unknown'}`)
+      }
+    }
+    for (const tool of this.#tools) INLINE_TOOL_OWNERS.set(tool, this)
+
+    try {
+    for (const tool of this.#tools) {
       tool.bindSelectionPort?.(this.#selectionPort)
       const button = document.createElement('button')
       button.type = 'button'
@@ -180,6 +191,13 @@ export class InlineToolbar {
       tool.onMount?.(button, {
         mutate: (range, operation) => this.#mutate(range, operation, tool.type),
       })
+    }
+    } catch (error) {
+      for (const tool of this.#tools) {
+        try { tool.bindSelectionPort?.(null) } catch {}
+        if (INLINE_TOOL_OWNERS.get(tool) === this) INLINE_TOOL_OWNERS.delete(tool)
+      }
+      throw error
     }
 
     this.#onSelectionChange = () => {
@@ -283,6 +301,7 @@ export class InlineToolbar {
     for (const tool of this.#tools) {
       tool.bindSelectionPort?.(null)
       tool.destroy?.()
+      if (INLINE_TOOL_OWNERS.get(tool) === this) INLINE_TOOL_OWNERS.delete(tool)
     }
     this.#element.remove()
   }
