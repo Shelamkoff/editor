@@ -1,7 +1,7 @@
 // @ts-check
 import { EditorRenderer as EditorRendererImpl, getSupportedBlockTypes } from './EditorRenderer.js'
 import { cloneEditorData } from '../shared/cloneEditorData.js'
-import { isPlainObjectPrototype } from '../shared/jsonData.js'
+import { snapshotCurrentBlockEnvelope, snapshotCurrentDocumentEnvelope } from '../shared/DocumentSchema.js'
 import { snapshotPollRendererConfig } from './pollConfigSnapshot.js'
 
 const validationSourceKey = Symbol.for('@shelamkoff/rector/renderer-validation-source')
@@ -24,6 +24,9 @@ function assertDenseArray(value, label) {
 
 /** @param {import('./types').RendererConfig} config @returns {void} */
 function validateRendererConfig(config) {
+  if(Object.hasOwn(config,'validationMode')){
+    throw new TypeError('EditorRenderer validationMode is no longer supported')
+  }
   if (config.injectStyles !== undefined && typeof config.injectStyles !== 'boolean') {
     throw new TypeError('EditorRenderer injectStyles must be a boolean')
   }
@@ -129,14 +132,7 @@ function validateRendererConfig(config) {
  * @returns {import('./types').OutputBlockData}
  */
 function snapshotOutputBlockEnvelope(block) {
-  if (!block || typeof block !== 'object' || Array.isArray(block)) {
-    throw new TypeError('EditorRenderer block must be an object')
-  }
-  const prototype = Object.getPrototypeOf(block)
-  if (!isPlainObjectPrototype(prototype)) {
-    throw new TypeError('EditorRenderer block must be a JSON object')
-  }
-  const snapshot = /** @type {import('./types').OutputBlockData} */ ({ ...block })
+  const snapshot = snapshotCurrentBlockEnvelope(block, 'EditorRenderer block')
   Object.defineProperty(snapshot, validationSourceKey, {
     value: block,
     enumerable: false,
@@ -144,40 +140,6 @@ function snapshotOutputBlockEnvelope(block) {
     writable: false,
   })
   return snapshot
-}
-/** @param {unknown} block */
-function validateOutputBlock(block) {
-  if (!block || typeof block !== 'object' || Array.isArray(block)) {
-    throw new TypeError('EditorRenderer block must be an object')
-  }
-  const prototype = Object.getPrototypeOf(block)
-  if (!isPlainObjectPrototype(prototype)) {
-    throw new TypeError('EditorRenderer block must be a JSON object')
-  }
-  const candidate = /** @type {Record<string, unknown>} */ (block)
-  if (!Object.hasOwn(candidate, 'type') || typeof candidate.type !== 'string' || !candidate.type) {
-    throw new TypeError('EditorRenderer block type must be a non-empty string')
-  }
-  if (!Object.hasOwn(candidate, 'data') || !candidate.data || typeof candidate.data !== 'object' || Array.isArray(candidate.data)) {
-    throw new TypeError('EditorRenderer block data must be an object')
-  }
-  if (Object.hasOwn(candidate, 'id') && candidate.id !== undefined && typeof candidate.id !== 'string') {
-    throw new TypeError('EditorRenderer block id must be a string')
-  }
-  if (Object.hasOwn(candidate, 'dataVersion') && candidate.dataVersion !== undefined) {
-    if (!Number.isSafeInteger(candidate.dataVersion) || Number(candidate.dataVersion) < 1) {
-      throw new TypeError('EditorRenderer block dataVersion must be a positive safe integer')
-    }
-  }
-  if (Object.hasOwn(candidate, 'revision') && candidate.revision !== undefined) {
-    const revision = candidate.revision
-    if (typeof revision !== 'string'
-        && (typeof revision !== 'number' || !Number.isFinite(revision))) {
-      throw new TypeError('EditorRenderer block revision must be a string or finite number')
-    }
-  }
-  if (Object.hasOwn(candidate, 'tunes')) assertOptionalRecord(candidate.tunes, 'block tunes')
-  if (Object.hasOwn(candidate, 'inline')) assertOptionalRecord(candidate.inline, 'block inline data')
 }
 
 /**
@@ -189,39 +151,23 @@ function validateOutputBlock(block) {
  * @returns {import('./types').OutputData}
  */
 function prepareOutputData(data) {
-  if (!data || typeof data !== 'object' || Array.isArray(data)) {
-    throw new TypeError('EditorRenderer data must be an object')
-  }
+  const candidate = snapshotCurrentDocumentEnvelope(data, {
+    snapshotBlock: snapshotOutputBlockEnvelope,
+  })
 
-  // Own the document envelope before inspecting it. The blocks property may
-  // be accessor-backed application input and must not be observed once for
-  // validation and again for rendering.
-  const candidate = /** @type {Record<string, unknown>} */ ({ ...data })
-  if (!Object.hasOwn(candidate, 'blocks') || !Array.isArray(candidate.blocks)) {
-    throw new TypeError('EditorRenderer blocks must be an array')
-  }
-  const inputBlocks = candidate.blocks
-  assertDenseArray(inputBlocks, 'blocks')
-
-  const blocks = inputBlocks.map(block => {
-    const source = snapshotOutputBlockEnvelope(block)
-    validateOutputBlock(source)
-    if (typeof source.revision !== 'string' && typeof source.revision !== 'number') {
-      const snapshot = cloneEditorData(source)
+  const blocks = candidate.blocks.map(block => {
+    if (typeof block.revision !== 'string' && typeof block.revision !== 'number') {
+      const snapshot = cloneEditorData(block)
       Object.defineProperty(snapshot, validationSourceKey, {
-        value: /** @type {any} */ (source)[validationSourceKey] ?? block,
+        value: /** @type {any} */ (block)[validationSourceKey] ?? block,
         enumerable: false,
         configurable: false,
         writable: false,
       })
-      validateOutputBlock(snapshot)
+      snapshotCurrentBlockEnvelope(snapshot, 'EditorRenderer block')
       return snapshot
     }
-
-    // Keeping the payload opaque is deliberate: equal producer revisions
-    // promise that content is unchanged, so renderTo() can reuse mounted DOM
-    // without traversing data/tunes/inline.
-    return source
+    return block
   })
 
   return /** @type {import('./types').OutputData} */ ({ ...candidate, blocks })
@@ -268,6 +214,9 @@ function snapshotCustomRenderer(renderer) {
       || typeof schema.encode !== 'function'
       || typeof schema.createDefault !== 'function') {
     throw new TypeError(`EditorRenderer custom renderer "${type}" must provide a block data schema`)
+  }
+  if (!Number.isSafeInteger(schema.currentVersion) || Number(schema.currentVersion) < 1) {
+    throw new TypeError(`EditorRenderer custom renderer "${type}" schema currentVersion must be a positive safe integer`)
   }
   const render = candidate.render
   if (typeof render !== 'function') {
@@ -325,7 +274,6 @@ export class EditorRenderer extends EditorRendererImpl {
   /** @param {import('./types').OutputBlockData} block */
   renderBlock(block) {
     const source = snapshotOutputBlockEnvelope(block)
-    validateOutputBlock(source)
     return super.renderBlock(source)
   }
 
