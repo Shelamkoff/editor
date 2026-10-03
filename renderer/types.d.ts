@@ -430,11 +430,6 @@ export interface BlockRenderer<T extends OutputBlockData = OutputBlockData> {
     render(block: T, parseInline: InlineParser, context?: RendererContext): HTMLElement
     /** Release observers, global listeners, and third-party instances. */
     destroy?(element: HTMLElement): void
-    /**
-     * Walk HTML-bearing fields and apply `transform` before static rendering.
-     * Canonical field identity and migration remain owned by the schema.
-     */
-    mapTextFields?(data: T['data'], transform: (html: string) => string): void
 }
 
 /** Public renderer registration bound to the same canonical schema as editing. */
