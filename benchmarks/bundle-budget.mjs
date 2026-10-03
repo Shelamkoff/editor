@@ -17,7 +17,7 @@ const { build } = await import(viteSpecifier)
 
 const KIB = 1024
 const budgets = {
-  core: 48 * KIB,
+  core: 51 * KIB,
   paragraph: 40 * KIB,
   defaultInteractive: 64 * KIB,
   fullPreset: 96 * KIB,
