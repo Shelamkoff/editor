@@ -193,6 +193,14 @@ Rector использует один приватный MIME `application/x-rect
 
 Paste поверх составного выделения сначала подготавливает и валидирует fragment и target plan, затем выполняет одну транзакцию. Один Undo восстанавливает исходный target. Обычные внешние HTML/text/file данные обрабатываются только когда current private MIME отсутствует.
 
+## Буфер обмена и составные выделения
+
+Rector использует один private MIME — `application/x-rector-fragment` с `version: 2`. Fragment строится из канонической модели, а не из DOM clone: rich-text parts сохраняют marks и только реально используемые inline-sidecar entries; whole/structured block parts не содержат block ID и producer revision. Если текущий private MIME присутствует, он имеет приоритет над `text/html` и `text/plain`. Ошибочная, старая или будущая версия private fragment отклоняет Paste без fallback к стандартным представлениям.
+
+Для составных блоков `BlockCapabilities.clipboard.slice(data, context)` одновременно определяет экспортируемые `parts` и `remaining`. Поэтому Copy и Cut используют одну границу данных: обнаруживаемая ошибка подготовки или записи обязательного private MIME не удаляет source content. List, Checklist, Columns, Table, Quote, Warning, Toggle и Spoiler сохраняют свою структуру; generic rich-text path применяется только к одному простому выбранному rich-text field.
+
+Paste поверх составного выделения сначала проверяет fragment и captured target plan с generation/revision, а затем выполняет одну транзакцию. Один Undo возвращает исходный target. Обычные внешние HTML/text/file данные рассматриваются только при отсутствии текущего private MIME; async text/file resolvers завершаются полностью до первой document mutation.
+
 ## Управление отменой и повтором
 
 Внутри корневого элемента редактора зарегистрированы сочетания клавиш с учётом платформы:
