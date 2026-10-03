@@ -1,4 +1,4 @@
-import { DocumentSnapshotStore } from '../core/DocumentSnapshotStore.js'
+import { DocumentStore } from '../core/DocumentStore.js'
 
 const SIZES = [10, 100, 500, 1000]
 
@@ -21,46 +21,42 @@ function measure(operation, iterations) {
 }
 
 function fixture(size) {
-  let saveCalls = 0
   const blocks = Array.from({ length: size }, (_, index) => ({
     id: `block-${index}`,
     type: 'paragraph',
-    version: 0,
-    plugin: { type: 'paragraph', validate: () => true },
-    save() {
-      saveCalls++
-      return {
-        id: this.id,
-        type: this.type,
-        data: { text: `Paragraph ${index}`, nested: { index } },
-      }
-    },
+    dataVersion: 1,
+    data: { text: `Paragraph ${index}`, nested: { index } },
   }))
-  const reader = { [Symbol.iterator]: () => blocks[Symbol.iterator]() }
-  const snapshots = new DocumentSnapshotStore(reader, null, {})
-  snapshots.capture()
-  return { blocks, snapshots, get saveCalls() { return saveCalls } }
+  return new DocumentStore({ version: '2.0.0', blocks })
 }
 
 const rows = []
 for (const size of SIZES) {
-  const corpus = fixture(size)
-  const callsAfterWarmup = corpus.saveCalls
-  const cached = measure(() => corpus.snapshots.capture(), 200)
-  const publicSave = measure(() => corpus.snapshots.save(), 50)
-  const changed = measure((iteration) => {
-    corpus.blocks[iteration % corpus.blocks.length].version++
-    corpus.snapshots.capture()
+  const store = fixture(size)
+
+  const exportDocument = measure(() => store.export(), 50)
+  const createDraft = measure(() => store.createDraft(), 200)
+  const oneChanged = measure(iteration => {
+    const id = `block-${iteration % size}`
+    const current = store.get(id)
+    const draft = store.createDraft()
+    draft.update(id, {
+      ...current,
+      data: {
+        ...current.data,
+        nested: { index: current.data.nested.index, revision: iteration },
+      },
+    })
+    store.commit(draft)
   }, 100)
-  const finalSnapshot = corpus.snapshots.capture()
+  const finalDocument = store.export()
 
   rows.push({
     blocks: size,
-    cachedP95Ms: cached.p95Ms,
-    publicSaveP95Ms: publicSave.p95Ms,
-    oneChangedP95Ms: changed.p95Ms,
-    noOpPluginSaves: corpus.saveCalls - callsAfterWarmup - 100,
-    jsonKiB: (JSON.stringify(finalSnapshot).length / 1024).toFixed(1),
+    exportP95Ms: exportDocument.p95Ms,
+    draftP95Ms: createDraft.p95Ms,
+    oneChangedCommitP95Ms: oneChanged.p95Ms,
+    jsonKiB: (JSON.stringify(finalDocument).length / 1024).toFixed(1),
   })
 }
 
