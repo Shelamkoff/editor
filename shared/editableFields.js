@@ -13,9 +13,9 @@ export function editableFields(block) {
 }
 
 /**
- * Resolve the editable field that owns a range boundary. A boundary may be an
- * element node positioned between children, so inspect that child before
- * falling back to the first field for legacy or synthetic ranges.
+ * Resolve the registered editable field that owns a range boundary. A boundary may be an
+ * element node positioned between children, so inspect that child. Unknown wrapper
+ * boundaries stay unowned; core never guesses a neighboring field.
  * @param {HTMLElement} block
  * @param {Node} container
  * @param {number} offset
@@ -48,7 +48,7 @@ export function editableAtBoundary(block, container, offset) {
     ? /** @type {HTMLElement} */ (candidate)
     : null
   const index = editable && block.contains(editable) ? fields.indexOf(editable) : -1
-  return index >= 0 ? { element: fields[index], index } : { element: fields[0], index: 0 }
+  return index >= 0 ? { element: fields[index], index } : null
 }
 
 
