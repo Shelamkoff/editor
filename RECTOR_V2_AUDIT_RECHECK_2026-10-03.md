@@ -1,150 +1,84 @@
-# Rector v2 — аудит: повторная проверка перед исправлениями
+# Rector v2 — повторная проверка с отказом от legacy-совместимости
 
-## Область и доказательства
+## Основание и проверенный срез
 
-Этот документ актуализирует замечания R1–R11 архитектурного аудита от 3 октября 2026 года и добавляет R12 по изменениям, сделанным после него. Исторический финальный срез аудита — `a5530bd2e57b717a09faf39a763229aebc529e41`; повторно проверенный срез — **`6bd93c5598981e92b2f7fc8142708dc729918990`**. Между ними 28 коммитов. Сравнительная база v1 — `62038cefd8817a849c1a476a8c076b6bf535670b` из [исходной спецификации](RECTOR_V2_REFACTOR_PLAN.md). Позднейшие изменения исходников не следует автоматически считать проверенными этим отчётом.
+Уточнение заказчика: **обратная совместимость с legacy-форматами и кодом не нужна**. Ни миграции старых документов, ни старые plugin/API contracts не являются критериями приёмки. Пользовательские возможности и сохранность допустимых текущих данных остаются требованиями.
 
-[Спецификация устранения замечаний](RECTOR_V2_REMEDIATION_SPEC.md) определяет целевую архитектуру. Этот аудит описывает наблюдаемое состояние, а не заменяет нормативные контракты спецификации.
+Действующая [спецификация исправлений](RECTOR_V2_REMEDIATION_SPEC.md) пересмотрена целиком: ограничения, типы/состояния, владельцы, ошибки, dependencies, карта удаления, этапы и proofs. [Предыдущая редакция аудита](https://github.com/Shelamkoff/editor/blob/bf19263b1135745ee4e6a6479597cb2c4e5c0eb4/RECTOR_V2_AUDIT_RECHECK_2026-10-03.md) и [предыдущий план исправлений](https://github.com/Shelamkoff/editor/blob/bf19263b1135745ee4e6a6479597cb2c4e5c0eb4/RECTOR_V2_REMEDIATION_SPEC.md) сохранены в Git для воспроизводимости. Их требования поддерживать v1/migrations/preserved-document mode отменены, а не перенесены в новую реализацию.
 
-Исходники и зависимости получены из [CI run 37141477062](https://github.com/Shelamkoff/editor/actions/runs/37141477062), artifact `11280856694`. PAX-заголовок `source.tar` содержит проверенный SHA. SHA-256 архива исходников: `55361b89f10a0b346ae9d9a48798acb5f10a7f318294940c76414e4744e80035`. Локальная среда — Node 22.16.0. Production-код перед проверками не исправлялся.
+HEAD перед правкой: **`bf19263b1135745ee4e6a6479597cb2c4e5c0eb4`**. Его parent — `6bd93c5598981e92b2f7fc8142708dc729918990`; коммит добавил только два Markdown-документа. Production-код с момента предыдущей проверки не менялся. Исходники получены из архивированного CI source.tar с PAX comment `6bd93c5598981e92b2f7fc8142708dc729918990`; SHA-256 `55361b89f10a0b346ae9d9a48798acb5f10a7f318294940c76414e4744e80035`. Прежние spec/audit из локального evidence archive сверены по Git blob SHA `9a8ecb5a93491cb351ff8e28581f600962775043` и `6fdf41a32750c17f3cb3484990d3a3d1aca10bcf`.
 
-Проверены дельта исходников, владельцы затронутых контрактов, публичные типы, сборка runtime, схемы, обработчики clipboard/keyboard/selection, жизненный цикл, прежние воспроизведения и CI соответствующего SHA. Дополнительные проверки используют реальные классы модели/контроллеров и тестовые двойники DOM, clipboardData и pointer-геометрии. Это не локальный прогон браузера и не подтверждение записи в системный clipboard. Браузерный результат ниже взят из CI; отдельный локальный browser-прогон при этой повторной проверке не выполнялся.
+Ни production-код, ни dependency manifest перед запуском не исправлялись. Локальный Node — 22.16.0. Воспроизведения используют реальные model/controller classes и управляемые doubles DOM/clipboard/pointer; это не локальный browser/system-clipboard proof.
 
-## Результаты текущего среза
+## Фактически повторённые проверки
 
-| Проверка | Результат | Основание |
+| Проверка | Результат | Интерпретация |
 |---|---|---|
-| `npm test` | 380 passed, 0 failed, 0 skipped | Локальный повторный запуск |
-| `npm run typecheck` | FAIL, две ошибки TS2554 | Локально и Node 20.19/22/24 в CI |
-| `npm run test:docs` | FAIL, два отсутствующих описания нового API | Локально и docs job CI |
-| Package gate | PASS | CI job `111256865845` |
-| Browser gate | PASS | CI job `111256865902`; не доказательство закрытия отсутствующих сценариев |
-| Size gate | PASS при текущих бюджетах | CI job `111256865913` |
-| Прежние 13 адресных проверок | Все 13 по-прежнему выявляют нарушение ожидаемого инварианта | Повторный локальный запуск на неизменённом текущем срезе |
-| Две дополнительные clipboard-проверки | Обе выявляют нарушение | Частичный Cut без HTML; cross-selection Paste не читает внутренний MIME |
+| `npm test` | 380 passed, 0 failed, 0 skipped | Штатный baseline на неизменённом коде. |
+| `npm run typecheck` | Две TS2554 | `inline-tools/utils.js:559` — Expected 0 arguments, got 1; `:652` — Expected 1, got 2. |
+| `npm run test:docs` | Два нарушения documentation contract | `InlineTool.bindSelectionPort` отсутствует в `docs/guide/inline-extensions.md` и `docs/ru/guide/inline-extensions.md`. README/source/locale предварительные проверки проходят. |
+| 13 прежних invariant assertions | 13 fail | Старые наблюдения воспроизведены, не 13 ошибок штатного набора. AUDIT-02/03 после изменения требований заменяются rejection proofs, а не должны стать зелёными для preserved mode. |
+| RECHECK-14/15 clipboard | 2 fail | Cut удаляет selection без HTML; cross-paste не читает внутренний MIME. |
+| 6 новых current-only policy probes | 6 fail | Текущий код ещё принимает старые/неполные формы. Это доказательство объёма новой задачи, а не шесть дополнительно найденных регрессий по прежнему контракту. |
 
-15 неуспешных адресных assertions — **не** 15 падений штатного набора и **не** 15 независимых критических ошибок. Соответствие группам замечаний приведено ниже.
+Новые probes проверили: отсутствие document version; envelope `1.0.0`; future envelope `99.0.0`; отсутствие List dataVersion со string items; explicit List dataVersion=1 со string items; Gallery dataVersion=2 с прежним layout `grid`. Во всех шести случаях ожидаемого новым контрактом отказа пока нет.
 
-Текущие ошибки typecheck:
+Браузерный/package/size результат из [CI исходного среза](https://github.com/Shelamkoff/editor/actions/runs/37141477062) остаётся **историческим подтверждением того же production-кода**, не новым локальным прогоном и не проверкой коммита этой правки документации. В этом CI browser/package/size прошли, typecheck/docs не прошли. Size baseline: 50.7 KiB gzip, текущий порог 51 KiB; прежние 48 KiB больше не являются действующим порогом. Он был повышен, а не достигнут оптимизацией.
 
-```text
-inline-tools/utils.js(559,20): TS2554: Expected 0 arguments, but got 1.
-inline-tools/utils.js(652,25): TS2554: Expected 1 arguments, but got 2.
-```
+## Что изменилось в требованиях к замечаниям аудита
 
-Текущие ошибки документации:
+| Замечание | Текущий код / proof | Решение новой спецификации |
+|---|---|---|
+| R1: whole conversion теряет inline | AUDIT-01 продолжает падать | C2: единая сборка data/tunes/inline, включая unknown current extension payload и literal collision rules. |
+| R2: mode присваивается после reset/projection/events | AUDIT-02/03 подтверждают прежний дефект | Глобальные document modes и version-reset branch **удаляются**. Unsupported input отклоняется до mutation. Согласованность обычной замены/current history решается C1 без лишней state machine. |
+| R3: clipboard fragments/Cut | RECHECK-14/15 и текущий ClipboardController | Один новый fragment codec и atomic insertion. Старая fragment-v1/application/x-rector-editor совместимость не сохраняется. |
+| R4: local List проходит legacy decode | AUDIT-09 продолжает падать | Exact-version serialized boundary + отдельный LocalBlockInput/encode. Старые List/Table shapes не мигрируются. |
+| R5: auxiliary native history | AUDIT-11 продолжает падать | C6 target ownership до Mod+Z/Y и formatting dispatch. |
+| R6: drag index/cleanup | AUDIT-12/13 продолжают падать | Gap без dragged ID и scoped pointer session. |
+| R7: inline locale namespace | AUDIT-10 продолжает падать | Только inlinePlugin namespace; убрать duplicate/compat I18n путь. |
+| R8: partial mount scope | AUDIT-07 продолжает падать | Scope до callback и единый stage/recovery/finalize protocol. |
+| R9: stale context/mutable definitions/missing decode | AUDIT-04/05/06 продолжают падать | Revocable lifetime, exact schema validation, immutable dispatch metadata. Async tasks явно захватывают отменяемые права. |
+| R10: ID-only list clones | AUDIT-08 продолжает падать | Внутренний metadata query port; внешние snapshots отделены. |
+| R11: size gate | Текущий порог 51 KiB проходит | Не заявлять старое падение и не повышать бюджеты ради будущей реализации. |
+| R12: multi-field API/wiring | Typecheck/docs failures воспроизведены; статически отсутствует полное production wiring нового port | C6 реальный lifecycle binding, guarded mutation и same-block multi-field; tests через createEditor/toolbar, не ручной bind. |
 
-```text
-docs/guide/inline-extensions.md: InlineTool.bindSelectionPort is not documented
-docs/ru/guide/inline-extensions.md: InlineTool.bindSelectionPort is not documented
-```
+В этой проверке исходники только прочитаны и запущены. Таблица не означает, что перечисленные дефекты исправлены в production-коде.
 
-Синтаксическое повреждение `InlineCommandController.js`, встречавшееся в начальном срезе старого аудита `160c9783`, исправлено. Оно не является открытым замечанием текущей ветки.
+## Дополнительная карта legacy-путей
 
-## Реестр замечаний
+Проверены не только слова в документе, но и реальные владельцы старого поведения:
 
-### R1 — потеря inline-sidecar при полной конвертации; P1, открыто
+| Источник | Найденное поведение и конечная судьба |
+|---|---|
+| `core/DocumentSchema.js`, `core/documentMigrations.js` | Default preserve, присвоение текущей версии отсутствующему envelope и migrateV1DocumentToV2. Заменяются общим current-only validator, migration module удаляется. |
+| `shared/versionedDataSchema.js` | legacyVersion, optional dataVersion и forward migration chain. Удаляются; decode требует точного explicit currentVersion. |
+| `shared/blockSchemas/*`, `shared/inlineSchemas/*` | Legacy options и миграции stable identities/align. Удаляются; актуальные schema versions сохраняются, включая currentVersion=1. |
+| `core/publicTypes.d.ts`, runtime/config и `shared/documentTypes.d.ts` | Migration types/options, documentMode, optional serialized versions. Убираются/ужесточаются вместе с callers и declarations. |
+| `renderer/index.js`, `EditorRenderer.js`, `inlineWidgets.js` | Собственная частичная boundary validation и разрешённая отсутствующая dataVersion. Переводятся на общую exact boundary; renderer не должен обходить редакторный отказ версии. |
+| `shared/pollData.js`, `renderer/renderers/poll/index.js` | Преобразование прежних option.votes и fallback-генерация IDs. Compatibility-части удаляются; актуальные runtime results и создание новых options остаются. |
+| `shared/carouselData.js`, `renderer/renderers/carousel/index.js` | Восстановление отсутствующих/дублированных persisted IDs. На decode/render запрещается; новое authoring добавление получает ID явно через allocator. |
+| `shared/blockSchemas/gallery.js`, `renderer/renderers/gallery/index.js` | Невалидный layout нормализуется в auto; отдельный LEGACY_AUTO. Старые явно заданные values отклоняются, legacy remap удаляется. |
+| `shared/sanitize/allowlist.js`, `walker.js` | Особое сохранение legacy inline-widget data-* markup. Внешний input не восстанавливает виджет из атрибутов; текущая projection имеет отдельное host ownership. |
+| `shared/editableFields.js`, inline-tools callers | Fallback к первому полю при неразрешённой boundary. Заменяется явной field ownership, не переносится как compatibility helper. |
+| `core/I18n.js` | ScopedI18n full-key bypass для старых callers. В прочитанных runtime-каталогах его consumers вне самого класса не найдены; карта удаления требует окончательного подтверждения экспортов/types/docs перед удалением. |
 
-**Источник:** [DocumentRuntime.convert](https://github.com/Shelamkoff/editor/blob/6bd93c5598981e92b2f7fc8142708dc729918990/core/DocumentRuntime.js#L593-L644).
+Слово legacy не является достаточным основанием удаления. Caret API feature detection, deep-signature comparison без producer revision, CSS/URL attack rejection и число currentVersion=1 — не поддержка прежнего Rector API/JSON. Массовая замена по regexp повредила бы нужные browser/security возможности.
 
-Параграф содержит `Hello {{w}}` и `inline.w` с mention. После `convert(id, {type: 'heading'})` строка со ссылкой остаётся, а таблица `inline` отсутствует. AUDIT-01 повторно подтверждает это. Новая запись вручную собирается без sidecar; другие пути конвертации используют иную сборку.
+## Исправленные противоречия самой спецификации
 
-Нарушение находится в канонических данных, не только в DOM. Требуется единый инвариант сборки data/tunes/inline для полной, частичной и межблочной конвертации, split/merge и вставки; сохранение opaque inline и защита литеральных `{{id}}` от случайного связывания.
+1. **Legacy P2 против прямого требования заказчика.** Убраны положительные обязательства читать v1, мигрировать persisted data и поддерживать unknown document versions. Первоначальный план заменён указателем на единственный действующий документ; полный старый текст доступен по неизменяемой Git-ссылке.
+2. **Неизвестное расширение против несовместимой версии.** C0 разрешает лишь inert payload незарегистрированного type в текущем explicit envelope. Известный type с неподдерживаемой версией отклоняется, а не переименовывается в unknown. Это поддерживает независимость plugins без legacy reader.
+3. **Document block ID против transfer block без ID.** Это два явно разных текущих контракта. Fragment полностью проверяется до выделения новых IDs; документ с пропущенным id не получает побочный обход проверки.
+4. **Copy exporter без определённого владельца удаления сложной структуры.** C4 slice возвращает parts и remaining вместе. Структура List/Table/Columns принадлежит plugin capability; core не угадывает их data для Cut/Paste и не экспортирует невыбранное содержимое.
+5. **Живой instance после readOnly true→false против отмены прежней async-работы.** C5 добавляет явный DataTask, полученный до async-вызова; host не выдаёт обычную проверку instance signal за task cancellation.
+6. **Равные данные: no-op или новый lifetime.** C1 различает ordinary no-op и намеренный render/clear replacement. History и generation больше не требуют взаимоисключающих исходов.
+7. **Strict ingress в S1 против оставленных local producers до позднего этапа.** Local callers переводятся на encode в S1; последующий HTML этап заменяет алгоритм маршрутизации, не откладывает согласование входного контракта.
+8. **Range против backward selection.** C6 не предполагает, что Range хранит направление; оно берётся из согласованных anchor/focus/logical bookmark. Whole-block selection не зависит от editable endpoints.
+9. **Неподдерживаемый private MIME против lossy fallback.** Присутствующий текущий MIME с неверной версией/структурой отвергается. Стандартный внешний HTML/text путь используется, когда текущего MIME нет, а не для скрытой миграции его старой версии.
+10. **Проверка только editor.** C0 охватывает renderer, async presets, renderBlock и declarations; иначе старый формат продолжал бы поддерживаться через соседний entry point.
 
-### R2 — замена документа не атомарна с режимом и событиями; P1, открыто
+## Ограничения и вывод
 
-**Источники:** [DocumentRuntime](https://github.com/Shelamkoff/editor/blob/6bd93c5598981e92b2f7fc8142708dc729918990/core/DocumentRuntime.js), [TransactionEngine](https://github.com/Shelamkoff/editor/blob/6bd93c5598981e92b2f7fc8142708dc729918990/core/TransactionEngine.js), [composition root](https://github.com/Shelamkoff/editor/blob/6bd93c5598981e92b2f7fc8142708dc729918990/core/createEditorRuntime.js).
+Аудит не объявляет новые интерфейсы реализованными. 380 зелёных штатных тестов не доказывают целевой current-only контракт: шесть новых probes прямо показывают его отсутствие. Адресные doubles не доказывают физический clipboard, полный UI/IME или performance latency; необходимые browser/conformance/failure proofs перечислены в спецификации.
 
-`render()` вызывает `engine.reset(next.document)` раньше обновления `#documentMode`. Подготовка проекции и публикация видят старый режим. AUDIT-02: future/preserved → supported/editable оставляет `oe-preserved-block` при активной канонической записи. AUDIT-03: observer видит новый документ со старым `mode/readOnly`.
-
-Дополнительно `reset` публикует `changes` на верхнем уровне, а адаптер `document:changed` читает `event.record?.changes`, формируя пустой список. Это проверено по связанной цепочке вызовов; не отдельное 16-е воспроизведение.
-
-Нужна общая commit-граница документа, mode/time и влияющих на проекцию метаданных; единая форма события и отдельная семантика host-authorized команд и пользовательского readOnly.
-
-### R3 — неполный перенос clipboard-фрагментов; P1, открыто
-
-**Источник:** [ClipboardController](https://github.com/Shelamkoff/editor/blob/6bd93c5598981e92b2f7fc8142708dc729918990/core/ClipboardController.js#L114-L255). **Сравнительная база:** [v1 rangeClipboard](https://github.com/Shelamkoff/editor/blob/62038cefd8817a849c1a476a8c076b6bf535670b/core/clipboard/rangeClipboard.js).
-
-Частичный Cut записывает только plain text, затем удаляет выделение. Частичный Copy формирует HTML без канонического inline-payload. При активном межблочном выделении Paste читает HTML/plain text и выходит до разбора внутреннего MIME.
-
-RECHECK-14 подтверждает отсутствие HTML перед удалением; RECHECK-15 подтверждает отсутствие чтения внутреннего MIME. Наличие v1 `application/x-rector-fragment` с HTML и sidecar, защита opaque payload и сохранение обрамляющего форматирования подтверждены исходником v1. Полное покрытие этих сценариев прежним числом зелёных browser-тестов не доказано.
-
-Нужен один канонический формат выбранного содержимого и один import/replace путь независимо от способа выделения. Cut и Copy используют общий сериализатор. Обнаруживаемая ошибка записи достаточного представления не разрешает удаление; при этом нельзя обещать транзакцию между моделью и системным clipboard.
-
-### R4 — актуальные List DTO декодируются как legacy; P1, открыто
-
-**Источники:** [ClipboardController.#htmlBlockRecords](https://github.com/Shelamkoff/editor/blob/6bd93c5598981e92b2f7fc8142708dc729918990/core/ClipboardController.js), [list schema](https://github.com/Shelamkoff/editor/blob/6bd93c5598981e92b2f7fc8142708dc729918990/shared/blockSchemas/list.js).
-
-HTML-обработчик создаёт `items: [{id, text}]`, но не задаёт `dataVersion`. `insertExternalBlocks` отправляет этот локальный актуальный объект в decode, где отсутствие версии означает v1 и ожидаются строки. AUDIT-09: ошибка `List item text must be a string`.
-
-После ошибки возможен переход к whole-input plugin resolver, извлекающему только вложенный список и не учитывающему соседние части HTML. Риск потери соседних узлов установлен статически, не выдан за полный локальный browser-repro.
-
-Нужны разные контракты local/current и serialized/external; структурная HTML-маршрутизация должна учитывать все исходные узлы, не содержать в core таблицу форматов конкретных встроенных блоков и не продолжать другой resolver после частичного побочного эффекта.
-
-### R5 — нативная история вспомогательного input перехватывается редактором; P1, открыто
-
-**Источник:** [KeyboardRouter](https://github.com/Shelamkoff/editor/blob/6bd93c5598981e92b2f7fc8142708dc729918990/core/KeyboardRouter.js#L62-L96). **База:** [v1 history ownership tests](https://github.com/Shelamkoff/editor/blob/62038cefd8817a849c1a476a8c076b6bf535670b/core/KeyboardManager.history-target.test.js).
-
-Mod+Z/Y обрабатываются до определения владельца поля. AUDIT-11: при отсутствии зарегистрированного editable owner вызываются document undo и preventDefault. В v1 вспомогательные input/textarea/select сохраняли native history, а document-backed поля маршрутизировались отдельно.
-
-Нужна общая классификация владельца события до выполнения любых shortcut/clipboard/formatting операций; ближайший вложенный native control не наследует владение внешнего rich-text host.
-
-### R6 — ошибка конечного drag-индекса и утечка pointer-сессии; P2, открыто
-
-**Источник:** [DragController](https://github.com/Shelamkoff/editor/blob/6bd93c5598981e92b2f7fc8142708dc729918990/core/DragController.js).
-
-AUDIT-12: A в A/B/C/D при drop между B и C перемещается в индекс 2 вместо 1. AUDIT-13: destroy во время жеста оставляет на document pointermove/up/cancel listeners. Нужны расчёт относительно порядка без dragged ID и единый scope активного pointerId, освобождаемый на всех завершениях.
-
-### R7 — несовпадающий namespace inline-локализации; P2, открыто
-
-**Источники:** [ExtensionRegistry](https://github.com/Shelamkoff/editor/blob/6bd93c5598981e92b2f7fc8142708dc729918990/core/ExtensionRegistry.js), [locale](https://github.com/Shelamkoff/editor/tree/6bd93c5598981e92b2f7fc8142708dc729918990/locale).
-
-Registry обращается к `inline.mention.noResults`, словари содержат `inlinePlugin.mention.noResults`. AUDIT-10 получает английский fallback вместо `Ничего не найдено`. Нужен один правильный namespace и тест фактической сборки runtime с ru/en, не только сравнение деревьев словарей.
-
-### R8 — незавершённый mount не освобождает все ресурсы; P2, открыто
-
-**Источники:** [BlockReconciler](https://github.com/Shelamkoff/editor/blob/6bd93c5598981e92b2f7fc8142708dc729918990/core/BlockReconciler.js), [InlineProjectionRuntime](https://github.com/Shelamkoff/editor/blob/6bd93c5598981e92b2f7fc8142708dc729918990/core/InlineProjectionRuntime.js).
-
-AUDIT-07: `runtime.create()` бросает исключение, но переданный ему signal остаётся неотменённым, поскольку ownership entry ещё не зарегистрирован. Проверены также соседние стадии setReadOnly/fields/inline hydration, требующие такой же гарантии освобождения при исключении.
-
-Нужен scope до первого вызова расширения, передача владения только после успешного stage и освобождение частично созданных block/inline instances. Ошибка recovery должна иметь определённый безопасный исход, а не возвращать редактор в обычный idle с неизвестной проекцией.
-
-### R9 — слабая защита расширяемых контрактов; P2, открыто
-
-**Источники:** [DocumentRuntime contexts](https://github.com/Shelamkoff/editor/blob/6bd93c5598981e92b2f7fc8142708dc729918990/core/DocumentRuntime.js), [ExtensionRegistry](https://github.com/Shelamkoff/editor/blob/6bd93c5598981e92b2f7fc8142708dc729918990/core/ExtensionRegistry.js).
-
-AUDIT-04: сохранённый callback отменённого context изменяет запись нового документа с тем же ID. AUDIT-05: caller меняет definition.type, а registry продолжает хранить тот же объект под прежним ключом. AUDIT-06: схема без обязательного decode принимается регистрацией.
-
-Это недостаточная защита host boundary. Это не утверждение, что все встроенные uploaders игнорируют отмену: у них есть собственные проходящие проверки. Нужны revocable capabilities, поколение документа/экземпляра, snapshot descriptor и полный ранний schema contract check. AbortSignal и request-order guards на стороне расширения остаются необходимы.
-
-### R10 — полное клонирование payload для ID-only запросов; P2, открыто
-
-**Источники:** [InteractionState](https://github.com/Shelamkoff/editor/blob/6bd93c5598981e92b2f7fc8142708dc729918990/core/InteractionState.js), [DocumentStore](https://github.com/Shelamkoff/editor/blob/6bd93c5598981e92b2f7fc8142708dc729918990/core/DocumentStore.js).
-
-AUDIT-08: один reconcile при подключённом onChange выполняет три runtime.list(), каждый клонирует записи. Это не измерение задержки в миллисекундах, а подтверждение обхода всех payload на пути, которому нужны ID.
-
-Нужен внутренний неизменяемый query port; внешние detached snapshots/save сохраняются. Точечный DOM не делает всю операцию O(1): draft/commit пока копируют индексы, и эту отдельную стоимость нельзя скрывать в отчётности.
-
-### R11 — прежний красный size gate больше не актуален; изменение политики
-
-**Источник:** [bundle-budget](https://github.com/Shelamkoff/editor/blob/6bd93c5598981e92b2f7fc8142708dc729918990/benchmarks/bundle-budget.mjs).
-
-На a5530bd2 core был 50.3 KiB gzip при пороге 48. На текущем срезе core — **50.7 KiB**, порог — **51 KiB**, gate зелёный. Это увеличение бюджета, не уменьшение bundle. Остальные текущие бюджеты: paragraph 40, defaultInteractive 64, fullPreset 96 KiB gzip. В плане нельзя оставлять это как нынешнее падение или повышать пороги автоматически при следующих изменениях.
-
-### R12 — новый контракт межполевого форматирования не доведён до runtime; P1/P2, открыто
-
-**Источники:** [inline-tools/types](https://github.com/Shelamkoff/editor/blob/6bd93c5598981e92b2f7fc8142708dc729918990/inline-tools/types.d.ts), [utils](https://github.com/Shelamkoff/editor/blob/6bd93c5598981e92b2f7fc8142708dc729918990/inline-tools/utils.js), [InlineToolbar](https://github.com/Shelamkoff/editor/blob/6bd93c5598981e92b2f7fc8142708dc729918990/core/InlineToolbar.js), [composition](https://github.com/Shelamkoff/editor/blob/6bd93c5598981e92b2f7fc8142708dc729918990/core/createEditorRuntime.js).
-
-Новый `CrossEditableSelectionPort` задаёт activate(range) и deactivate(), но utils передаёт старые дополнительные аргументы. Это две фактические ошибки TS2554. Новый `InlineTool.bindSelectionPort` отсутствует в двух guide; это фактическое падение docs gate.
-
-Более существенная часть проверена по связанной сборке: production-вызовов bindSelectionPort не найдено; новый syncBlocksFromProjection не имеет production consumer; InlineToolbar ограничивает mutation/formatting selection одним полем/блоком. Тест fontSize вручную связывает порт, что не доказывает его привязку реальным createEditor. Метод многоблочной синхронизации выполняет переданную DOM-операцию до входа в engine, поэтому простое подключение не даёт полной транзакционной гарантии.
-
-Требуется один транзакционно защищённый путь single/multi-field форматирования, фактическая lifecycle-привязка selection port, корректное хранение alignment только в tunes и end-to-end proof через toolbar/shortcut, а не прямой вызов внутреннего метода. Отсутствие UI-wiring — статическое заключение, не отдельный локально воспроизведённый browser-result.
-
-## Сохранённые достижения и границы вывода
-
-DocumentStore, history изменений, фабрики block/inline runtimes, общие versioned schemas editor/renderer и новый публичный API уже существуют. Нельзя планировать их создание заново или возвращение прежнего BlockPlugin/EditorFacade runtime. Сохранены 21 block type и 12 default inline tools; их наличие не доказывает эквивалентность всех операций. Обычные undo/redo, roundtrip и browser-группы CI проходят, однако перечисленные дополнительные условия штатными gate не доказаны.
-
-Изменение API в пользу новых границ допустимо. Потеря пользовательского содержимого не является допустимым побочным эффектом breaking change. Чтение уже поддерживаемых v1/v2 документов и inert-preserve неизвестного содержимого сохраняются; это не требует совместимого старого editing runtime.
-
-**Вывод повторной проверки:** R1–R10 остаются открытыми; прежнее описание R11 как красного gate снято и заменено фактом изменения бюджета; R12 добавлен из текущей дельты. Нужна реализация [целевой спецификации](RECTOR_V2_REMEDIATION_SPEC.md), после которой паритет доказывается по пользовательским сценариям и инвариантам, а не по одному общему числу зелёных тестов.
+План теперь содержит current-only контракты, удаления без aliases, десять зависимых этапов с условиями завершения и матрицу доказательств. Старые форматы присутствуют только как исторические данные и отрицательные тестовые примеры. Исполнение следует [действующей спецификации](RECTOR_V2_REMEDIATION_SPEC.md), не рекомендациям предыдущей редакции, написанной до отказа от обратной совместимости.
