@@ -45,38 +45,56 @@ export class InlineProjectionRuntime {
 
   reconcileBlock(blockId,record,definition,fields,baseContext,{preserveSourceProjection=false}={}){
     this.#assertLive()
-    const richFields=new Map((fields??[]).filter(field=>field?.mode==='rich-text'&&field.element).map(field=>[field.key,field.element]))
-    const canonical=richFieldMap(definition,record.data)
-    const inline=object(record.inline)
-    const counts=new Map()
-    for(const html of canonical.values())collectTokens(html,counts)
-
     let state=this.#blocks.get(blockId)
     if(!state){
       state={widgets:new Map()}
       this.#blocks.set(blockId,state)
     }
+    this.#projectState(
+      blockId,state,record,definition,fields,baseContext,{preserveSourceProjection},
+    )
+  }
 
-    const live=new Set()
+  prepareBlock(blockId,record,definition,fields,baseContext){
+    this.#assertLive()
+    const previous=this.#blocks.get(blockId)
+    const state={widgets:new Map()}
+    this.#projectState(
+      blockId,state,record,definition,fields,baseContext,{preserveSourceProjection:false},
+    )
 
-    for(const [fieldKey,element] of richFields){
-      const html=canonical.get(fieldKey)
-      if(html===undefined)continue
+    let applied=false
+    let finished=false
+    const destroyCandidate=()=>this.#destroyState(state)
 
-      if(!preserveSourceProjection){
-        const template=this.#ownerDocument.createElement('template')
-        template.innerHTML=/** @type {any} */(toTrustedHtml(normalizeRichText(html,this.#ownerDocument),this.#ownerDocument))
-        element.replaceChildren(...template.content.childNodes)
-      }
-
-      this.#hydrateField(blockId,fieldKey,element,inline,counts,state,baseContext,live)
-    }
-
-    for(const [id,entry] of state.widgets){
-      if(live.has(id))continue
-      this.#destroyWidget(entry)
-      state.widgets.delete(id)
-    }
+    return Object.freeze({
+      apply:()=>{
+        if(finished||applied)throw new Error('Prepared inline projection cannot be applied twice')
+        this.#blocks.set(blockId,state)
+        applied=true
+      },
+      recover:()=>{
+        if(finished)return
+        if(applied){
+          if(previous)this.#blocks.set(blockId,previous)
+          else this.#blocks.delete(blockId)
+        }
+        destroyCandidate()
+        finished=true
+      },
+      finalize:()=>{
+        if(finished)return
+        if(!applied)throw new Error('Cannot finalize an unapplied inline projection')
+        if(previous&&previous!==state)this.#destroyState(previous)
+        finished=true
+      },
+      discard:()=>{
+        if(finished)return
+        if(applied)throw new Error('Applied inline projection must recover or finalize')
+        destroyCandidate()
+        finished=true
+      },
+    })
   }
 
   serializeBlock(blockId,record,definition,fields,readData){
@@ -204,8 +222,7 @@ export class InlineProjectionRuntime {
   destroyBlock(blockId){
     const state=this.#blocks.get(blockId)
     if(!state)return
-    for(const entry of state.widgets.values())this.#destroyWidget(entry)
-    state.widgets.clear()
+    this.#destroyState(state)
     this.#blocks.delete(blockId)
   }
 
@@ -213,6 +230,34 @@ export class InlineProjectionRuntime {
     if(this.#destroyed)return
     this.#destroyed=true
     for(const blockId of [...this.#blocks.keys()])this.destroyBlock(blockId)
+  }
+
+  #projectState(blockId,state,record,definition,fields,baseContext,{preserveSourceProjection=false}={}){
+    const richFields=new Map((fields??[]).filter(field=>field?.mode==='rich-text'&&field.element).map(field=>[field.key,field.element]))
+    const canonical=richFieldMap(definition,record.data)
+    const inline=object(record.inline)
+    const counts=new Map()
+    for(const html of canonical.values())collectTokens(html,counts)
+    const live=new Set()
+
+    for(const [fieldKey,element] of richFields){
+      const html=canonical.get(fieldKey)
+      if(html===undefined)continue
+
+      if(!preserveSourceProjection){
+        const template=this.#ownerDocument.createElement('template')
+        template.innerHTML=/** @type {any} */(toTrustedHtml(normalizeRichText(html,this.#ownerDocument),this.#ownerDocument))
+        element.replaceChildren(...template.content.childNodes)
+      }
+
+      this.#hydrateField(blockId,fieldKey,element,inline,counts,state,baseContext,live)
+    }
+
+    for(const [id,entry] of state.widgets){
+      if(live.has(id))continue
+      this.#destroyWidget(entry)
+      state.widgets.delete(id)
+    }
   }
 
   #hydrateField(blockId,fieldKey,element,inline,counts,state,baseContext,live){
@@ -316,6 +361,12 @@ export class InlineProjectionRuntime {
     }
     append(field,container)
     return normalizeRichText(container.innerHTML,this.#ownerDocument)
+  }
+
+  #destroyState(state){
+    if(!state)return
+    for(const entry of state.widgets.values())this.#destroyWidget(entry)
+    state.widgets.clear()
   }
 
   #destroyWidget(entry){
