@@ -3,6 +3,7 @@ import test from 'node:test'
 
 import {
   mapColumnsTextFields,
+  mapListTextFields,
   mapSpoilerTextFields,
   mapTableTextFields,
   mapToggleTextFields,
@@ -11,12 +12,34 @@ import {
 
 const mark = (html) => `[${html}]`
 
-test('table mapper transforms every string cell without reshaping invalid entries', () => {
-  const data = { content: [['a', 'b'], ['c'], 'invalid-row'] }
+test('list mapper transforms v2 item text while preserving stable ids', () => {
+  const data = { items: [{ id: 'a', text: 'one' }, { id: 'b', text: 'two' }, 'invalid-item'] }
+
+  mapListTextFields(data, mark)
+
+  assert.deepEqual(data.items, [
+    { id: 'a', text: '[one]' },
+    { id: 'b', text: '[two]' },
+    'invalid-item',
+  ])
+})
+
+test('table mapper transforms v2 cell text while preserving row and cell ids', () => {
+  const data = {
+    rows: [
+      { id: 'r1', cells: [{ id: 'c1', text: 'a' }, { id: 'c2', text: 'b' }] },
+      { id: 'r2', cells: [{ id: 'c3', text: 'c' }] },
+      'invalid-row',
+    ],
+  }
 
   mapTableTextFields(data, mark)
 
-  assert.deepEqual(data.content, [['[a]', '[b]'], ['[c]'], 'invalid-row'])
+  assert.deepEqual(data.rows, [
+    { id: 'r1', cells: [{ id: 'c1', text: '[a]' }, { id: 'c2', text: '[b]' }] },
+    { id: 'r2', cells: [{ id: 'c3', text: '[c]' }] },
+    'invalid-row',
+  ])
 })
 
 test('columns mapper transforms every rich-text column without reshaping invalid entries', () => {
