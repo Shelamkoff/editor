@@ -43,10 +43,13 @@ function isExportedBy(packageManifest, specifier) {
 
 function isExported(specifier) { return isExportedBy(manifest, specifier) }
 
+if (Object.hasOwn(manifest.exports, './core')) {
+  throw new Error('Legacy duplicate package export @shelamkoff/rector/core must not return')
+}
+
 function sourceModuleFor(specifier) {
   const subpath = specifier.slice(manifest.name.length)
   if (!subpath) return join(root, 'index.js')
-  if (subpath === '/core') return join(root, 'core', 'index.js')
   if (subpath === '/plugins') return join(root, 'plugins', 'index.js')
   if (subpath === '/plugins/async') return join(root, 'plugins', 'async.js')
   if (subpath.startsWith('/plugins/')) return join(root, subpath, 'index.js')
