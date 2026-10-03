@@ -1,5 +1,6 @@
 // @ts-check
-import { handleMenuKeydown, setTrustedHtml } from '../plugin-kit/index.js'
+import { handleMenuKeydown } from '../plugin-kit/index.js'
+import { setTrustedHtml } from '../shared/sanitize/sanitizeHtml.js'
 
 function matchesShortcut(combo, event) {
   if (!combo || typeof combo !== 'string') return false
