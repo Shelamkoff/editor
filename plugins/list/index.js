@@ -185,7 +185,7 @@ export function createListPlugin(){
           items,
         }
       },
-    }),,
+    }),
   })
 
   return Object.freeze({
