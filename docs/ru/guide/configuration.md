@@ -27,6 +27,10 @@ interface EditorConfig {
   historyCoalesceMs?: number
   dragThreshold?: number
   toolboxFilterThreshold?: number
+  mobileBreakpoint?: number
+  blockInsertAnimationMs?: number
+  blockMoveAnimationMs?: number
+  blockRemoveAnimationMs?: number
   onReady?: (editor: IEditor) => void | Promise<void>
   onChange?: (document: EditorDocument) => void | Promise<void>
   onValidationError?: (issue: EditorValidationIssue) => void
@@ -60,6 +64,10 @@ interface EditorConfig {
 | `historyCoalesceMs` | нет | `300` | Максимальная пауза для объединения последовательного нативного ввода в один шаг undo. |
 | `dragThreshold` | нет | `5` | Смещение указателя в пикселях, после которого начинается перетаскивание блока. |
 | `toolboxFilterThreshold` | нет | `7` | Показывать поиск toolbox только при превышении этого числа элементов. |
+| `mobileBreakpoint` | нет | `768` | Ширина viewport в пикселях, ниже которой core toolbar/toolbox переходят в мобильный режим. |
+| `blockInsertAnimationMs` | нет | `350` | Длительность анимации появления нового блока; `0` отключает её. |
+| `blockMoveAnimationMs` | нет | `200` | Длительность FLIP-анимации перемещения блоков; `0` отключает её. |
+| `blockRemoveAnimationMs` | нет | `350` | Длительность безопасного схлопывания места удалённого блока; удалённый plugin DOM отсоединяется синхронно. |
 | `onReady` | нет | не задан | Наблюдатель после успешной сборки. Его ошибка не ломает редактор. |
 | `onChange` | нет | не задан | Наблюдатель канонических изменений с отделённым документом. |
 | `onValidationError` | нет | не задан | Наблюдатель ошибок сохранения/проверки данных. |
@@ -103,7 +111,7 @@ const editor = createEditor({
 
 `editor.setReadOnly(true)` меняет режим работающего runtime без создания шага истории. Экземпляры определений получают переход через `setReadOnly()`. Ядро также отключает структурные клавиши, вставку, перетаскивание, изменения настроек, inline-команды, отмена и повтор.
 
-`minHeight` задаёт только оболочку редактора. Компоновка расширения принадлежит его стилям.
+`minHeight` задаёт только оболочку редактора. `mobileBreakpoint` управляет классом мобильного режима core UI без дублирующего media-query контракта. Анимации структурных изменений принадлежат projection layer и автоматически подавляются при `prefers-reduced-motion`. Компоновка расширения принадлежит его стилям.
 
 ## Обработчики
 
