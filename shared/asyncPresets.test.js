@@ -23,10 +23,11 @@ test('async presets share the canonical full block type order', () => {
 
 test('async plugin preset preloads only unique document types', async () => {
   const document = {
+    version: '2.0.0',
     blocks: [
-      { type: 'paragraph', data: { text: 'one' } },
-      { type: 'delimiter', data: {} },
-      { type: 'paragraph', data: { text: 'two' } },
+      { id: 'p1', type: 'paragraph', dataVersion: 2, data: { text: 'one' } },
+      { id: 'd1', type: 'delimiter', dataVersion: 1, data: {} },
+      { id: 'p2', type: 'paragraph', dataVersion: 2, data: { text: 'two' } },
     ],
   }
   const definitions = await preloadBlockPluginDefinitions(document)
@@ -38,10 +39,11 @@ test('async plugin preset preloads only unique document types', async () => {
 
 test('async renderer preset preloads only unique document types', async () => {
   const document = {
+    version: '2.0.0',
     blocks: [
-      { type: 'paragraph', data: { text: 'one' } },
-      { type: 'delimiter', data: {} },
-      { type: 'paragraph', data: { text: 'two' } },
+      { id: 'p1', type: 'paragraph', dataVersion: 2, data: { text: 'one' } },
+      { id: 'd1', type: 'delimiter', dataVersion: 1, data: {} },
+      { id: 'p2', type: 'paragraph', dataVersion: 2, data: { text: 'two' } },
     ],
   }
   const factories = await preloadRendererFactories(document)
@@ -211,7 +213,7 @@ test('async presets reject sparse type lists and document block arrays without i
     const sparseBlocks = []
     Object.setPrototypeOf(sparseBlocks, blockPrototype)
     sparseBlocks.length = 1
-    await assert.rejects(() => create({ blocks: sparseBlocks }), /source.blocks must be a dense array/)
+    await assert.rejects(() => create({ blocks: sparseBlocks }), /blocks must be a dense array/)
     assert.equal(blockReads, 0)
   }
 })
