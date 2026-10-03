@@ -74,7 +74,7 @@ interface IEditor {
 
 `currentBlock:changed` передаёт текущий ID после фактической смены блока. `selection:changed` передаёт выбранные ID в порядке документа только при изменении набора/порядка выделения.
 
-`transaction:committed` получает один неизменяемый payload `TransactionCommitted`: `{ sequence, origin, action, name, changes, history }`. `sequence` — зафиксированная ревизия документа; она возрастает при обычном commit, undo и redo. `document:changed` передаёт те же sequence/origin/action/name/changes без вложенного history record, а `history:changed` — уже зафиксированное состояние `{ canUndo, canRedo }`. Observers вызываются только после общей commit point модели, курсора истории и проекции.
+`transaction:committed` получает один неизменяемый payload `TransactionCommitted`: `{ sequence, origin, action, name, changes, history }`. `sequence` — зафиксированная ревизия документа; она возрастает при обычном commit, undo и redo. `document:changed` передаёт только `{ origin, action, changes }` из того же зафиксированного события, а `history:changed` — уже зафиксированное состояние `{ canUndo, canRedo }`. Observers вызываются только после общей commit point модели, курсора истории и проекции.
 
 События только наблюдают за завершёнными действиями. Код приложения и расширений не создаёт события редактора самостоятельно.
 
