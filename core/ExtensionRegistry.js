@@ -205,11 +205,14 @@ function snapshotBlockDefinition(source,index){
   validateType(type,'Block definition')
   const label=`Block definition "${type}"`
   const setup=bindMethod(source,'setup',label)
-  const schema=snapshotSchema(source.schema,label,{richText:true})
+  const schemaSource=source.schema
+  const schema=snapshotSchema(schemaSource,label,{richText:true})
+  const labelSource=source.label
+  const icon=source.icon
   const definition={
     type,
-    label:snapshotLabel(source.label,label),
-    icon:typeof source.icon==='string'?source.icon:'',
+    label:snapshotLabel(labelSource,label),
+    icon:typeof icon==='string'?icon:'',
     schema,
     setup,
   }
@@ -241,11 +244,14 @@ function snapshotInlineDefinition(source,index){
   validateType(type,'Inline definition')
   const label=`Inline definition "${type}"`
   const setup=bindMethod(source,'setup',label)
+  const labelSource=source.label
+  const icon=source.icon
+  const schemaSource=source.schema
   const definition={
     type,
-    label:snapshotLabel(source.label,label),
-    icon:typeof source.icon==='string'?source.icon:'',
-    schema:snapshotSchema(source.schema,label),
+    label:snapshotLabel(labelSource,label),
+    icon:typeof icon==='string'?icon:'',
+    schema:snapshotSchema(schemaSource,label),
     setup,
   }
   const styles=snapshotStyles(source.styles,label)
@@ -270,29 +276,31 @@ function snapshotInlineDefinition(source,index){
 }
 
 function snapshotBlockRuntime(runtime,label){
+  const create=runtime&&typeof runtime==='object'?runtime.create:undefined
   const destroy=runtime&&typeof runtime==='object'?runtime.destroy:undefined
-  if(!runtime||typeof runtime!=='object'||typeof runtime.create!=='function'||typeof destroy!=='function'){
+  if(!runtime||typeof runtime!=='object'||typeof create!=='function'||typeof destroy!=='function'){
     if(typeof destroy==='function'){
       try{destroy.call(runtime)}catch{}
     }
     throw new TypeError(`${label} returned an invalid runtime`)
   }
   return Object.freeze({
-    create:runtime.create.bind(runtime),
+    create:create.bind(runtime),
     destroy:destroy.bind(runtime),
   })
 }
 
 function snapshotInlineRuntime(runtime,label){
+  const create=runtime&&typeof runtime==='object'?runtime.create:undefined
   const destroy=runtime&&typeof runtime==='object'?runtime.destroy:undefined
-  if(!runtime||typeof runtime!=='object'||typeof runtime.create!=='function'||typeof destroy!=='function'){
+  if(!runtime||typeof runtime!=='object'||typeof create!=='function'||typeof destroy!=='function'){
     if(typeof destroy==='function'){
       try{destroy.call(runtime)}catch{}
     }
     throw new TypeError(`${label} returned an invalid runtime`)
   }
   const result={
-    create:runtime.create.bind(runtime),
+    create:create.bind(runtime),
     destroy:destroy.bind(runtime),
   }
   for(const key of ['onTriggerQuery','onTriggerKeydown','onTriggerCancel']){
@@ -330,7 +338,13 @@ export class ExtensionRegistry {
     this.#ownerDocument=ownerDocument
     this.#abortController=new (ownerDocument.defaultView?.AbortController??AbortController)()
     const acquireStyles=options.acquireStyles!==false
-    const translate=typeof options.translate==='function'?options.translate:(_key,fallback='')=>fallback
+    const translateSource=options.translate
+    const translate=typeof translateSource==='function'?translateSource:(_key,fallback='')=>fallback
+    const placeholder=options.placeholder
+    const showPopupSource=options.showPopup
+    const hidePopupSource=options.hidePopup
+    const showPopup=typeof showPopupSource==='function'?showPopupSource:()=>{}
+    const hidePopup=typeof hidePopupSource==='function'?hidePopupSource:()=>{}
 
     for(const definition of blocks){
       if(this.#blockDefinitions.has(definition.type))throw new Error(`Duplicate block definition type: ${definition.type}`)
@@ -358,7 +372,7 @@ export class ExtensionRegistry {
           ownerDocument,
           signal:this.#abortController.signal,
           isDefaultBlock:definition.type===defaultBlock,
-          editorPlaceholder:definition.type===defaultBlock?options.placeholder:undefined,
+          editorPlaceholder:definition.type===defaultBlock?placeholder:undefined,
           t:(key,fallback='')=>translate(`plugin.${definition.type}.${key}`,fallback),
         }),`Block definition "${definition.type}"`)
         this.#blockRuntimes.set(definition.type,runtime)
@@ -371,8 +385,8 @@ export class ExtensionRegistry {
           ownerDocument,
           signal:this.#abortController.signal,
           t:(key,fallback='')=>translate(`inlinePlugin.${definition.type}.${key}`,fallback),
-          showPopup:typeof options.showPopup==='function'?options.showPopup:()=>{},
-          hidePopup:typeof options.hidePopup==='function'?options.hidePopup:()=>{},
+          showPopup,
+          hidePopup,
         }),`Inline definition "${definition.type}"`)
         this.#inlineRuntimes.set(definition.type,runtime)
       }
