@@ -160,7 +160,7 @@ for (const interfaceName of [
   })
 }
 
-for (const interfaceName of ['RendererConfig', 'BlockRenderer', 'InlineWidgetRenderer']) {
+for (const interfaceName of ['RendererConfig', 'BlockRenderer', 'BlockRendererDefinition', 'InlineWidgetRenderer']) {
   assertDocumented({
     sourceFile: rendererTypes,
     interfaceName,
