@@ -158,7 +158,7 @@ export class ClipboardController {
 
   #onPaste(event) {
     if (this.#runtime.readOnly || event.defaultPrevented) return
-    const startedAt = this.#diagnostics?.enabled ? this.#diagnostics.now() : 0
+    const startedAt = this.#diagnostics ? this.#diagnostics.now() : 0
     try {
       return this.#applyPaste(event)
     } catch (error) {
@@ -391,7 +391,7 @@ export class ClipboardController {
 
   #beginAsync(owner, range, items) {
     this.#task?.abort()
-    const startedAt = this.#diagnostics?.enabled ? this.#diagnostics.now() : 0
+    const startedAt = this.#diagnostics ? this.#diagnostics.now() : 0
     const AbortControllerCtor = this.#root.ownerDocument.defaultView?.AbortController ?? AbortController
     const task = new AbortControllerCtor()
     this.#task = task
