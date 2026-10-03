@@ -73,7 +73,7 @@ export class EditorBlocksApi {
 
   remove(id) { this.#assertLive(); this.#view.remove(id, 'host') }
   move(id, to) { this.#assertLive(); this.#view.move(id, to, 'host') }
-  convert(id, target) { this.#assertLive(); return this.#view.convert(id, target) }
+  convert(id, target) { this.#assertLive(); return this.#view.convert(id, target, 'host') }
   focus(id, target) {
     this.#assertLive()
     return this.#view.focus(id, target)
