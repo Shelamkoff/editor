@@ -234,6 +234,12 @@ async function run() {
     'renderer did not automatically acquire styles')
   assert(wrapper?.children.length === BLOCK_TYPES.length, 'read-only renderer did not render every block')
   assert(!container.querySelector('[contenteditable="true"]'), 'read-only renderer created editable content')
+  const renderedList = container.querySelector('[data-block-id="block-list"]')
+  assert(renderedList?.textContent?.includes('First') && renderedList.textContent.includes('Second'),
+    'v2 list data was not rendered from canonical item objects')
+  const renderedTable = container.querySelector('[data-block-id="block-table"]')
+  assert(renderedTable?.textContent?.includes('Name') && renderedTable.textContent.includes('Answer'),
+    'v2 table rows/cells were not rendered from canonical data')
   const firstNodes = [...wrapper.children]
 
   renderer.renderTo(structuredClone(output), container)
