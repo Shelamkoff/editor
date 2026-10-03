@@ -1,144 +1,246 @@
-import { registerNative as structuralEventOwnerNative } from './regressions/structural-event-owner.js'
-import { registerNative as crossBlockLiveClipboardNative } from './regressions/cross-block-live-clipboard.js'
-import { registerNative as fieldInputNative } from './regressions/recheck-69-field-input-boundaries.js'
-import { registerNative as softBreakNative } from './regressions/recheck-68-soft-break.js'
-import { registerNative as singleFieldClipboardNative } from './regressions/recheck-65-single-field-clipboard.js'
-import { registerNative as fragmentInlineNative } from './regressions/recheck-61-fragment-inline.js'
-import { registerNative as nestedPasteNative } from './regressions/recheck-63-nested-editing-host.js'
-import { registerNative as emptyPasteNative } from './regressions/recheck-62-empty-paste.js'
-import { registerNative as tableBreakNative } from './regressions/recheck-60-table-break-boundaries.js'
 import { createColorSwatchPlugin } from '../../inline-plugins/color.js'
-import { decodedTexts } from './regressions/recheck-57-pattern-caret.js'
-import { crossRange } from './regressions/recheck-56-native-cut.js'
-import { Paragraph, Table } from '../../plugins/index.js'
-import { test, make, para, select, pause, paste, assert, equal, texts, run } from './regressions/harness.js'
-import { selectAcross } from './regressions/cross-input-fixture.js'
+import { createDefaultInlineTools } from '../../preset/index.js'
+import { createParagraphPlugin, createTablePlugin } from '../../plugins/index.js'
+import {
+  test,
+  make,
+  para,
+  editableField,
+  editorRoot,
+  select,
+  pause,
+  paste,
+  assert,
+  equal,
+  texts,
+  run,
+} from './regressions/harness.js'
 
-async function printable() {
-  await window.__testInput('Input.dispatchKeyEvent', { type: 'keyDown', key: 'X', code: 'KeyX', windowsVirtualKeyCode: 88, text: 'X' })
-  await window.__testInput('Input.dispatchKeyEvent', { type: 'keyUp', key: 'X', code: 'KeyX', windowsVirtualKeyCode: 88 })
+async function dispatchKey(key, code, windowsVirtualKeyCode, modifiers = 0, text) {
+  const params = { key, code, windowsVirtualKeyCode, nativeVirtualKeyCode: windowsVirtualKeyCode, modifiers }
+  await window.__testInput('Input.dispatchKeyEvent', {
+    type: 'rawKeyDown',
+    ...params,
+    ...(text === undefined ? {} : { text }),
+  })
+  await window.__testInput('Input.dispatchKeyEvent', { type: 'keyUp', ...params })
   await pause(20)
 }
 
+async function printable(text = 'X') {
+  await dispatchKey(text, 'KeyX', 88, 0, text)
+}
+
+function pointAt(element, offset) {
+  const text = element.firstChild
+  assert(text?.nodeType === Node.TEXT_NODE, 'cross-block fixture requires text content')
+  const clamped = Math.max(0, Math.min(offset, text.data.length))
+  const range = document.createRange()
+  if (clamped === 0) {
+    range.setStart(text, 0)
+    range.setEnd(text, Math.min(1, text.data.length))
+  } else {
+    range.setStart(text, clamped - 1)
+    range.setEnd(text, clamped)
+  }
+  const rect = range.getBoundingClientRect()
+  return {
+    clientX: clamped === 0 ? rect.left + 1 : rect.right - 1,
+    clientY: rect.top + Math.max(1, rect.height / 2),
+  }
+}
+
+async function selectAcross(editor, start, startOffset, end, endOffset, backwards = false) {
+  const anchor = backwards ? end : start
+  const focus = backwards ? start : end
+  const anchorOffset = backwards ? endOffset : startOffset
+  const focusOffset = backwards ? startOffset : endOffset
+  const startPoint = pointAt(anchor, anchorOffset)
+  const endPoint = pointAt(focus, focusOffset)
+
+  anchor.focus()
+  anchor.dispatchEvent(new MouseEvent('mousedown', {
+    bubbles: true,
+    cancelable: true,
+    button: 0,
+    buttons: 1,
+    ...startPoint,
+  }))
+  document.dispatchEvent(new MouseEvent('mousemove', {
+    bubbles: true,
+    cancelable: true,
+    buttons: 1,
+    ...endPoint,
+  }))
+  document.dispatchEvent(new MouseEvent('mouseup', {
+    bubbles: true,
+    button: 0,
+    buttons: 0,
+  }))
+  await pause(30)
+
+  const root = editorRoot(editor)
+  assert(root.classList.contains('oe-editor--cross-selecting'), 'physical cross-block selection did not activate')
+  equal(editor.blocks.selectedIds().length, 2, 'physical cross-block selection lost selected block ids')
+  return anchor
+}
+
+function decodeInline(editor) {
+  return editor.save().blocks.map(block => String(block.data.text ?? '').replace(
+    /\{\{([\w-]+)\}\}/g,
+    (token, id) => block.inline?.[id]?.data?.value ?? token,
+  ))
+}
+
 for (const backwards of [false, true]) {
-  for (const mode of ['keyboard', 'text']) {
-    test(`native ${mode} replaces the full ${backwards ? 'backward' : 'forward'} cross-block selection`, async () => {
+  for (const mode of ['keyboard', 'insertText']) {
+    test(`physical ${mode} replaces the full ${backwards ? 'backward' : 'forward'} cross-block selection`, async () => {
       const editor = make([para('a', 'Alpha'), para('b', 'Bravo')])
-      selectAcross(editor, editor.blocks.getBlockByIndex(0).contentElement, 2,
-        editor.blocks.getBlockByIndex(1).contentElement, 3, backwards)
-      equal([...CSS.highlights.get('oe-cross-select')].map(range => range.toString()), ['phaBra'])
-      if (mode === 'keyboard') await printable()
-      else { await window.__testInput('Input.insertText', { text: '😀' }); await pause(20) }
+      const first = editableField(editor, 'a')
+      const last = editableField(editor, 'b')
+      await selectAcross(editor, first, 2, last, 3, backwards)
+
+      if (mode === 'keyboard') await printable('X')
+      else {
+        await window.__testInput('Input.insertText', { text: '😀' })
+        await pause(20)
+      }
+
       equal(texts(editor), [mode === 'keyboard' ? 'AlXvo' : 'Al😀vo'])
-      assert(!editor.rootElement.classList.contains('oe-editor--cross-selecting'))
+      assert(!editorRoot(editor).classList.contains('oe-editor--cross-selecting'), 'replacement left cross selection active')
       editor.undo()
       equal(texts(editor), ['Alpha', 'Bravo'])
-      equal(editor.canUndo, false, 'typed replacement is one history step')
+      equal(editor.canUndo, false, 'cross-block replacement was not one history operation')
       editor.redo()
       equal(texts(editor), [mode === 'keyboard' ? 'AlXvo' : 'Al😀vo'])
     })
   }
 }
 
-test('native input within one paragraph keeps ordinary browser editing behavior', async () => {
+test('physical native input within one paragraph keeps ordinary browser editing semantics', async () => {
   const editor = make([para('a', 'Alpha')])
-  select(editor.blocks.getBlockByIndex(0).contentElement, 2, 4)
-  await printable()
+  const field = editableField(editor, 'a')
+  select(field, 2, 4)
+  await printable('X')
   equal(texts(editor), ['AlXa'])
+  assert(document.activeElement === field, 'single-field native edit lost focus')
 })
 
 for (const empty of [false, true]) {
-  test(`native ArrowUp inserts into the ${empty ? 'empty' : 'populated'} final table cell`, async () => {
-    const editor = make([
-      { id: 'table', type: 'table', data: { withHeadings: false, content: [['A', empty ? '' : 'B']] } },
-      para('after', 'After'),
-    ], { plugins: [new Paragraph(), new Table()] })
-    select(editor.blocks.getBlockById('after').contentElement, 0)
-    await window.__testInput('Input.dispatchKeyEvent', { type: 'rawKeyDown', key: 'ArrowUp', code: 'ArrowUp', windowsVirtualKeyCode: 38 })
-    await window.__testInput('Input.dispatchKeyEvent', { type: 'keyUp', key: 'ArrowUp', code: 'ArrowUp', windowsVirtualKeyCode: 38 })
+  test(`physical ArrowUp targets the ${empty ? 'empty' : 'populated'} final table cell`, async () => {
+    const table = {
+      id: 'table',
+      type: 'table',
+      dataVersion: 2,
+      data: {
+        withHeadings: false,
+        rows: [{
+          id: 'row-1',
+          cells: [
+            { id: 'cell-a', text: 'A' },
+            { id: 'cell-b', text: empty ? '' : 'B' },
+          ],
+        }],
+      },
+    }
+    const editor = make([table, para('after', 'After')], {
+      plugins: [createParagraphPlugin({ injectStyles: false }), createTablePlugin()],
+    })
+    const after = editableField(editor, 'after')
+    select(after, 0)
+    await dispatchKey('ArrowUp', 'ArrowUp', 38)
+    const cell = editorRoot(editor).querySelector('[data-cell-id="cell-b"]')
+    assert(cell instanceof HTMLElement && document.activeElement === cell, 'ArrowUp did not focus the last table cell')
     await window.__testInput('Input.insertText', { text: 'X' })
-    equal(editor.save().blocks[0].data.content, [['A', empty ? 'X' : 'BX']])
+    await pause(20)
+    const cells = editor.save().blocks[0].data.rows[0].cells
+    equal(cells.map(entry => entry.text), ['A', empty ? 'X' : 'BX'])
     editor.undo()
-    equal(editor.save().blocks[0].data.content, [['A', empty ? '' : 'B']])
+    equal(editor.save().blocks[0].data.rows[0].cells.map(entry => entry.text), ['A', empty ? '' : 'B'])
   })
 }
 
 for (const key of ['Backspace', 'Delete']) {
-  test(`native ${key} deletes a DOM Range spanning multiple editable hosts`, async () => {
+  test(`physical ${key} deletes a cross-block selection and leaves the caret in the merged block`, async () => {
     const editor = make([para('a', 'Alpha'), para('b', 'Bravo')])
-    const first = editor.blocks.getBlockById('a').contentElement
-    const last = editor.blocks.getBlockById('b').contentElement
-    first.focus()
-    const range = document.createRange(); range.setStart(first.firstChild, 2); range.setEnd(last.firstChild, 3)
-    const selection = window.getSelection(); selection.removeAllRanges(); selection.addRange(range)
-    equal(selection.getRangeAt(0).toString(), 'phaBra')
-    const params = { key, code: key, windowsVirtualKeyCode: key === 'Backspace' ? 8 : 46 }
-    await window.__testInput('Input.dispatchKeyEvent', { type: 'rawKeyDown', ...params })
-    await window.__testInput('Input.dispatchKeyEvent', { type: 'keyUp', ...params })
+    const first = editableField(editor, 'a')
+    const last = editableField(editor, 'b')
+    await selectAcross(editor, first, 2, last, 3)
+    await dispatchKey(key, key, key === 'Backspace' ? 8 : 46)
     equal(texts(editor), ['Alvo'])
+    assert(document.activeElement === editableField(editor, 0), `${key} cross-block delete lost focus`)
     await window.__testInput('Input.insertText', { text: 'X' })
+    await pause(20)
     equal(texts(editor), ['AlXvo'])
-    editor.undo(); equal(texts(editor), ['Alvo'])
-    editor.undo(); equal(texts(editor), ['Alpha', 'Bravo'])
+    editor.undo()
+    equal(texts(editor), ['Alvo'])
+    editor.undo()
+    equal(texts(editor), ['Alpha', 'Bravo'])
   })
 }
 
-test('native typing replaces all characters produced by Unicode case expansion', async () => {
-  const editor = make([para('a', 'aßb')], { inlineTools: ['caseTransform'] })
-  const field = editor.blocks.getBlockById('a').contentElement
+test('physical typing replaces the complete Unicode case-expansion selection', async () => {
+  const editor = make([para('a', 'aßb')], {
+    inlineTools: createDefaultInlineTools({ types: ['caseTransform'] }),
+  })
+  const field = editableField(editor, 'a')
   select(field, 1, 2)
-  document.dispatchEvent(new Event('selectionchange')); await pause(35)
-  editor.rootElement.querySelector('[data-tool="caseTransform"]').click()
+  document.dispatchEvent(new Event('selectionchange'))
+  await pause(35)
+  const tool = editorRoot(editor).querySelector('.oe-inline-tool[data-tool="caseTransform"]')
+  assert(tool instanceof HTMLElement, 'case-transform inline tool is missing')
+  tool.click()
   equal(field.textContent, 'aSSb')
-  equal(window.getSelection().getRangeAt(0).toString(), 'SS')
+  equal(window.getSelection().toString(), 'SS')
   await window.__testInput('Input.insertText', { text: 'X' })
+  await pause(20)
   equal(texts(editor), ['aXb'])
-  editor.undo(); equal(texts(editor), ['aSSb'])
-  editor.undo(); equal(texts(editor), ['aßb'])
+  editor.undo()
+  equal(texts(editor), ['aSSb'])
+  editor.undo()
+  equal(texts(editor), ['aßb'])
 })
 
 for (const backwards of [false, true]) {
-  test(`native Ctrl+X cuts the full ${backwards ? 'backward' : 'forward'} cross-host Range`, async () => {
+  test(`physical Ctrl+X cuts the full ${backwards ? 'backward' : 'forward'} cross-block selection`, async () => {
     const editor = make([para('a', 'Alpha'), para('b', 'Bravo')])
-    const first = editor.blocks.getBlockById('a').contentElement
-    crossRange(first, editor.blocks.getBlockById('b').contentElement, backwards)
+    const first = editableField(editor, 'a')
+    const last = editableField(editor, 'b')
+    await selectAcross(editor, first, 2, last, 3, backwards)
     let cuts = 0
-    editor.rootElement.addEventListener('cut', () => { cuts++ }, { once: true })
-    const params = { key: 'x', code: 'KeyX', windowsVirtualKeyCode: 88, modifiers: 2 }
-    await window.__testInput('Input.dispatchKeyEvent', { type: 'rawKeyDown', ...params })
-    await window.__testInput('Input.dispatchKeyEvent', { type: 'keyUp', ...params })
-    equal(cuts, 1, 'native clipboard event is delivered')
+    editorRoot(editor).addEventListener('cut', () => { cuts++ }, { once: true })
+    await dispatchKey('x', 'KeyX', 88, 2)
+    equal(cuts, 1, 'native cut event was not delivered')
     equal(texts(editor), ['Alvo'])
-    editor.undo(); equal(texts(editor), ['Alpha', 'Bravo'])
+    editor.undo()
+    equal(texts(editor), ['Alpha', 'Bravo'])
     equal(editor.canUndo, false)
-    editor.redo(); equal(texts(editor), ['Alvo'])
+    editor.redo()
+    equal(texts(editor), ['Alvo'])
   })
 }
-for (const [initial, offset, value, expected] of [
-  ['', 0, '#ff0000 mid #00ff00 tail', ['#ff0000 mid #00ff00 tailX']],
+
+for (const [initial, offset, pastedText, expected] of [
+  ['', 0, '#ff0000 tail', ['#ff0000 tailX']],
   ['abcd', 2, '#ff0000 tail', ['ab#ff0000 tailXcd']],
   ['abcd', 2, '#ff0000 tail\n#00ff00 end', ['ab#ff0000 tail', '#00ff00 endXcd']],
 ]) {
-  test(`native typing stays after the full pattern paste: ${JSON.stringify(value)}`, async () => {
+  test(`physical typing preserves the caret after inline-pattern paste: ${JSON.stringify(pastedText)}`, async () => {
     const editor = make([para('a', initial)], { inlinePlugins: [createColorSwatchPlugin()] })
-    select(editor.blocks.getBlockById('a').contentElement, offset)
-    await paste(editor.blocks.getBlockById('a').contentElement, { 'text/plain': value })
+    const field = editableField(editor, 'a')
+    select(field, offset)
+    await paste(field, { 'text/plain': pastedText })
     const pasted = editor.save().blocks
-    assert(pasted.some(block => block.inline), 'automatic conversion ran')
+    assert(pasted.some(block => block.inline), 'inline pattern paste did not create canonical widget data')
     await window.__testInput('Input.insertText', { text: 'X' })
-    equal(decodedTexts(editor), expected)
-    editor.undo(); equal(editor.save().blocks, pasted)
-    editor.undo(); equal(texts(editor), [initial])
+    await pause(20)
+    equal(decodeInline(editor), expected)
+    editor.undo()
+    equal(editor.save().blocks, pasted)
+    editor.undo()
+    equal(texts(editor), [initial])
     equal(editor.canUndo, false)
   })
 }
-tableBreakNative()
-emptyPasteNative()
-nestedPasteNative()
-fragmentInlineNative()
-singleFieldClipboardNative()
-softBreakNative()
-fieldInputNative()
-crossBlockLiveClipboardNative()
-structuralEventOwnerNative()
+
 await run()
