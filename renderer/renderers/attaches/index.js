@@ -1,5 +1,6 @@
 import { setTrustedHtml } from '../../../shared/sanitize/sanitizeHtml.js'
 // @ts-check
+import { attachesDataSchema } from '../../../shared/blockSchemas/attaches.js'
 import { getFileIcon, getExtension, formatSize, EXT_COLORS } from '../../../shared/fileUtils.js'
 import { sanitizeDownloadUrl, setSafeUrlAttribute } from '../../../shared/sanitize/sanitizeUrl.js'
 import { loadZipRuntime } from '../../../shared/zipRuntime.js'
@@ -193,7 +194,7 @@ export async function downloadArchive(files, { signal, ownerDocument = globalThi
  * Create the attachment-list renderer and its archive-download lifecycle.
  * @param {string} classPrefix
  * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} locale
- * @returns {import('../../types').BlockRenderer<import('../../types').AttachesBlock>}
+ * @returns {import('../../types').BlockRendererDefinition<import('../../types').AttachesBlock>}
  */
 export function createAttachesRenderer(classPrefix, locale) {
   const cls = classPrefix
@@ -208,6 +209,7 @@ export function createAttachesRenderer(classPrefix, locale) {
 
   return {
     type: 'attaches',
+    schema: attachesDataSchema,
     styles: [styles],
 
     render(block, _parseInline, context = { ownerDocument: globalThis.document }) {
