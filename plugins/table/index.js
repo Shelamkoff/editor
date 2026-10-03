@@ -49,6 +49,50 @@ export function createTablePlugin(){
         return {withHeadings:false,rows:[{id:'row-0',cells:[{id:'cell-0-0',text:payload.data.text}]}]}
       },
     }),
+    clipboard:Object.freeze({
+      slice(data,context){
+        const hits=[]
+        for(let rowIndex=0;rowIndex<data.rows.length;rowIndex++){
+          const row=data.rows[rowIndex]
+          for(let columnIndex=0;columnIndex<row.cells.length;columnIndex++){
+            const cell=row.cells[columnIndex]
+            const field=context.field(`cell:${row.id}:${cell.id}`)
+            if(field)hits.push({rowIndex,columnIndex,field})
+          }
+        }
+        if(!hits.length)throw new Error('Table clipboard selection is empty')
+        const minRow=Math.min(...hits.map(hit=>hit.rowIndex))
+        const maxRow=Math.max(...hits.map(hit=>hit.rowIndex))
+        const minColumn=Math.min(...hits.map(hit=>hit.columnIndex))
+        const maxColumn=Math.max(...hits.map(hit=>hit.columnIndex))
+        const selectedRows=[]
+        for(let rowIndex=minRow;rowIndex<=maxRow;rowIndex++){
+          const sourceRow=data.rows[rowIndex]
+          selectedRows.push({
+            id:sourceRow.id,
+            cells:sourceRow.cells.slice(minColumn,maxColumn+1).map((cell,offset)=>{
+              const field=context.field(`cell:${sourceRow.id}:${cell.id}`)
+              return {...cell,text:field?.selected??''}
+            }),
+          })
+        }
+        const remainingRows=data.rows.map(row=>({
+          ...row,
+          cells:row.cells.map(cell=>{
+            const field=context.field(`cell:${row.id}:${cell.id}`)
+            return field?{...cell,text:field.before+field.after}:{...cell}
+          }),
+        }))
+        return {
+          parts:[{kind:'local-block',data:{
+            withHeadings:data.withHeadings&&minRow===0,
+            rows:selectedRows,
+          }}],
+          remaining:{withHeadings:data.withHeadings,rows:remainingRows},
+          focus:null,
+        }
+      },
+    }),
     settings:Object.freeze({
       kind:/** @type {'actions'} */('actions'),
       actions(data){
