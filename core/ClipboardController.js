@@ -178,7 +178,7 @@ export class ClipboardController {
       inline: fragment.inline,
     }])
     const template = ownerDocument.createElement('template')
-    template.innerHTML = /** @type {any} */ (toTrustedHtml(fragment, ownerDocument)).html
+    template.innerHTML = /** @type {any} */ (toTrustedHtml(fragment.html, ownerDocument))
     event.clipboardData.setData('text/html', fragment.html)
     event.clipboardData.setData('text/plain', template.content.textContent ?? '')
     event.clipboardData.setData(CLIPBOARD_FRAGMENT_MIME, encodeClipboardFragment(privateFragment))
@@ -225,7 +225,7 @@ export class ClipboardController {
       inline: fragment.inline,
     }])
     const template = this.#root.ownerDocument.createElement('template')
-    template.innerHTML = /** @type {any} */ (toTrustedHtml(fragment, ownerDocument)).html
+    template.innerHTML = /** @type {any} */ (toTrustedHtml(fragment.html, ownerDocument))
     event.clipboardData.setData('text/html', fragment.html)
     event.clipboardData.setData('text/plain', template.content.textContent ?? '')
     event.clipboardData.setData(CLIPBOARD_FRAGMENT_MIME, encodeClipboardFragment(privateFragment))
