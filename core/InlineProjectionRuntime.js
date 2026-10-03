@@ -218,9 +218,28 @@ export class InlineProjectionRuntime {
 
   setReadOnly(value){
     this.#assertLive()
-    this.#readOnly=value===true
-    for(const state of this.#blocks.values()){
-      for(const entry of state.widgets.values())entry.instance.setReadOnly(this.#readOnly)
+    const next=value===true
+    if(next===this.#readOnly)return
+
+    const changed=[]
+    try{
+      for(const state of this.#blocks.values()){
+        for(const entry of state.widgets.values()){
+          entry.instance.setReadOnly(next)
+          changed.push(entry)
+        }
+      }
+      this.#readOnly=next
+    }catch(error){
+      const failures=[error]
+      for(let index=changed.length-1;index>=0;index--){
+        try{changed[index].instance.setReadOnly(this.#readOnly)}
+        catch(recoveryError){failures.push(recoveryError)}
+      }
+      if(failures.length>1){
+        throw new AggregateError(failures,'Inline read-only transition and recovery failed')
+      }
+      throw error
     }
   }
 
