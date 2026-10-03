@@ -183,6 +183,30 @@ export class DocumentRuntime {
     return this.#store.version
   }
 
+  get size() {
+    return this.#store.size
+  }
+
+  has(id) {
+    return this.#store.has(id)
+  }
+
+  idAt(index) {
+    return this.#store.idAt(index)
+  }
+
+  indexOf(id) {
+    return this.#store.indexOf(id)
+  }
+
+  ids() {
+    return this.#store.ids()
+  }
+
+  peek(id) {
+    return this.#store.peek(id)
+  }
+
   get(id) {
     return this.#store.get(id)
   }
