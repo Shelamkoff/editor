@@ -133,7 +133,8 @@
     "@tabler/icons-vue": "^3.41.1",
     "typescript": "~5.9.3",
     "vite": "^7.0.0",
-    "vitepress": "2.0.0-alpha.17"
+    "vitepress": "2.0.0-alpha.17",
+    "@types/node": "^24.0.0"
   },
   "engines": {
     "node": "^20.19.0 || >=22.12.0"
