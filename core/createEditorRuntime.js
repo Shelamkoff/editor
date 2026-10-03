@@ -1,5 +1,6 @@
 // @ts-check
 import { EventBus } from '@shelamkoff/event-bus'
+import { cloneEditorData } from '../shared/cloneEditorData.js'
 import { acquireStyleUrls } from '../shared/styleRegistry.js'
 import { invokeObserver } from '../shared/invokeObserver.js'
 import { uid } from '../shared/uid.js'
@@ -46,6 +47,17 @@ function applyReadOnly(root,value){
   root.classList.toggle('oe-editor--read-only',value)
   if(value)root.setAttribute('aria-readonly','true')
   else root.removeAttribute('aria-readonly')
+}
+
+function immutableEventPayload(payload){
+  if(payload===undefined)return undefined
+  const owned=cloneEditorData(payload)
+  const freeze=value=>{
+    if(!value||typeof value!=='object'||Object.isFrozen(value))return value
+    for(const item of Array.isArray(value)?value:Object.values(value))freeze(item)
+    return Object.freeze(value)
+  }
+  return freeze(owned)
 }
 
 function emitSafe(events,type,payload,onError){
@@ -231,7 +243,7 @@ export function createEditorRuntime(input){
   holder.replaceChildren(root)
 
   const events=new EventBus()
-  const emit=(type,payload)=>emitSafe(events,type,payload,error=>reportDiagnostic('command.failed',`event:${type}`,error))
+  const emit=(type,payload)=>emitSafe(events,type,immutableEventPayload(payload),error=>reportDiagnostic('command.failed',`event:${type}`,error))
   const i18n=initI18n(config)
   const configuredInlineTools=config.inlineTools??[]
   let runtime
@@ -492,7 +504,9 @@ export function createEditorRuntime(input){
     destroy,
     setReadOnly,
     inlineCommands,
-    subscribe:(type,listener)=>events.on(type,listener),
+    subscribe:(type,listener)=>events.on(type,payload=>{
+      invokeObserver(listener,[payload],error=>reportDiagnostic('command.failed',`event:${type}`,error))
+    }),
     isReady:()=>ready,
     isDestroyed:()=>destroyed,
   })
