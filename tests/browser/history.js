@@ -205,6 +205,10 @@ async function run() {
   const readOnlyHarness = createHarness(sandbox)
   const readOnlyEditor = readOnlyHarness.editor
   const readOnlyHolder = readOnlyHarness.holder
+  const readOnlyTransactions = []
+  const readOnlyHistoryEvents = []
+  readOnlyEditor.on('transaction:committed', event => readOnlyTransactions.push(event))
+  readOnlyEditor.on('history:changed', event => readOnlyHistoryEvents.push(event))
   readOnlyEditor.setReadOnly(true)
   assert(readOnlyEditor.canUndo === false && readOnlyEditor.canRedo === false, 'read-only exposed history commands')
 
@@ -235,6 +239,15 @@ async function run() {
   assert(readOnlyEditor.blocks.count === 1, 'host clear was blocked by read-only')
   assert(readOnlyEditor.readOnly === true, 'host mutation changed requested read-only state')
   assert(readOnlyEditor.canUndo === false, 'read-only exposed history after host mutations')
+  assert(readOnlyTransactions.length > 0, 'read-only host mutations did not publish committed events')
+  assert(
+    readOnlyTransactions.every(event => event.history.canUndo === false && event.history.canRedo === false),
+    'read-only transaction event exposed unavailable history',
+  )
+  assert(
+    readOnlyHistoryEvents.every(event => event.canUndo === false && event.canRedo === false),
+    'read-only history event exposed unavailable history',
+  )
 
   readOnlyEditor.setReadOnly(false)
   assert(readOnlyEditor.canUndo === true, 'history did not become available after leaving read-only')
