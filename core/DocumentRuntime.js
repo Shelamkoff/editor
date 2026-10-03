@@ -1953,7 +1953,6 @@ export class DocumentRuntime {
       remaining=this.#recordFromData(
         record.id,record.type,definition,result.remaining,record.tunes,record.inline,
       )
-      if(this.#isClipboardResidualEmpty(remaining))remaining=null
     }
     const focus=result.focus&&typeof result.focus==='object'
       ?cloneEditorData(result.focus)
