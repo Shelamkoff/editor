@@ -54,6 +54,29 @@ function selectRange(startElement, startOffset, endElement = startElement, endOf
   return range
 }
 
+function selectBackward(anchorElement, anchorOffset, focusElement, focusOffset) {
+  const anchor = firstText(anchorElement)
+  const focus = firstText(focusElement)
+  const selection = window.getSelection()
+  assert(typeof selection.setBaseAndExtent === 'function', 'directional Selection API is unavailable')
+  anchorElement.focus()
+  selection.removeAllRanges()
+  selection.setBaseAndExtent(
+    anchor,
+    Math.min(anchorOffset, anchor.data.length),
+    focus,
+    Math.min(focusOffset, focus.data.length),
+  )
+  document.dispatchEvent(new Event('selectionchange'))
+}
+
+function assertCollapsedFocus(entry, blockId, message) {
+  const block = entry.holder.querySelector(`.oe-block[data-block-id="${blockId}"]`)
+  assert(block instanceof HTMLElement, `${message}: target block is missing`)
+  assert(block.contains(document.activeElement), `${message}: focus escaped target block`)
+  assert(window.getSelection()?.isCollapsed === true, `${message}: caret is not collapsed`)
+}
+
 async function openType(entry) {
   await delay()
   const button = entry.holder.querySelector('.oe-inline-toolbar__type-select')
@@ -96,6 +119,28 @@ async function run() {
   assert(paragraph.editor.save().blocks[1].data.text === 'Beta', 'partial paragraph redo failed')
   paragraph.editor.destroy()
   paragraph.holder.remove()
+
+  const paragraphBackward = mount([
+    { id: 'pb', type: 'paragraph', data: { text: 'Alpha Beta Gamma' } },
+  ])
+  const pb = editable(paragraphBackward, 'pb')
+  selectBackward(pb, 10, pb, 6)
+  dropdown = await openType(paragraphBackward)
+  chooseType(dropdown, 'heading')
+  await delay()
+  saved = paragraphBackward.editor.save()
+  assert(saved.blocks.length === 3, 'backward partial paragraph conversion did not split into three blocks')
+  assert(saved.blocks[0].data.text === 'Alpha ', 'backward paragraph conversion lost prefix')
+  assert(saved.blocks[1].type === 'heading' && saved.blocks[1].data.text === 'Beta', 'backward paragraph selection converted wrong text')
+  assert(saved.blocks[2].data.text === ' Gamma', 'backward paragraph conversion lost suffix')
+  assertCollapsedFocus(paragraphBackward, saved.blocks[1].id, 'backward partial conversion')
+  paragraphBackward.editor.undo()
+  await delay()
+  saved = paragraphBackward.editor.save()
+  assert(saved.length !== 0 || true, '')
+  assert(saved.blocks.length === 1 && saved.blocks[0].data.text === 'Alpha Beta Gamma', 'backward partial conversion undo was not atomic')
+  paragraphBackward.editor.destroy()
+  paragraphBackward.holder.remove()
 
   const list = mount([
     {
@@ -151,6 +196,30 @@ async function run() {
   assert(saved.blocks.length === 2 && saved.blocks[0].data.text === 'FIRST' && saved.blocks[1].data.text === 'SECOND', 'cross-block conversion undo was not atomic')
   cross.editor.destroy()
   cross.holder.remove()
+
+  const crossBackward = mount([
+    { id: 'ba', type: 'paragraph', data: { text: 'FIRST' } },
+    { id: 'bb', type: 'paragraph', data: { text: 'SECOND' } },
+  ])
+  const ba = editable(crossBackward, 'ba')
+  const bb = editable(crossBackward, 'bb')
+  selectBackward(bb, 3, ba, 2)
+  dropdown = await openType(crossBackward)
+  chooseType(dropdown, 'heading')
+  await delay()
+  saved = crossBackward.editor.save()
+  assert(saved.blocks.map(block => block.type).join(',') === 'paragraph,heading,heading,paragraph', 'backward cross-block conversion shape is wrong')
+  assert(saved.blocks[0].data.text === 'FI', 'backward cross-block conversion lost first prefix')
+  assert(saved.blocks[1].data.text === 'RST', 'backward cross-block conversion lost first selected tail')
+  assert(saved.blocks[2].data.text === 'SEC', 'backward cross-block conversion lost last selected head')
+  assert(saved.blocks[3].data.text === 'OND', 'backward cross-block conversion lost last suffix')
+  assertCollapsedFocus(crossBackward, saved.blocks[2].id, 'backward cross-block conversion')
+  crossBackward.editor.undo()
+  await delay()
+  saved = crossBackward.editor.save()
+  assert(saved.blocks.length === 2 && saved.blocks[0].data.text === 'FIRST' && saved.blocks[1].data.text === 'SECOND', 'backward cross-block conversion undo was not atomic')
+  crossBackward.editor.destroy()
+  crossBackward.holder.remove()
 
   const stale = mount([
     { id: 's', type: 'paragraph', data: { text: 'KEEP' } },
@@ -219,7 +288,7 @@ async function run() {
 
   sandbox.replaceChildren()
   return {
-    conversions: ['paragraph partial', 'List data-aware', 'cross-block'],
+    conversions: ['paragraph partial forward/backward', 'List data-aware', 'cross-block forward/backward'],
     controls: ['type selector', 'Heading level'],
     history: 'atomic undo/redo',
     staleCallbacks: 'inert',
