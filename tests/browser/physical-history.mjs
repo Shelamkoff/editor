@@ -356,7 +356,7 @@ try {
   const historyMatrix = await waitForHistoryMatrix(client)
 
   // Real browser insertion must cover beforeinput paths without a keydown.
-  // The page builds its range through MouseSelectionManager; CDP types into it.
+  // The page builds its logical cross-block range through SelectionController; CDP types into it.
   await client.send('Runtime.addBinding', { name: '__rectorTestInput' })
   client.on('Runtime.bindingCalled', ({ name, payload }) => {
     if (name !== '__rectorTestInput') return
