@@ -1,6 +1,5 @@
 // @ts-check
 import { createVersionedDataSchema } from '../versionedDataSchema.js'
-import { mapSpoilerTextFields } from '../mapTextFields.js'
 
 export const spoilerDataSchema = createVersionedDataSchema({
   currentVersion: 1,
