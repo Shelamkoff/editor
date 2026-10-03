@@ -1,5 +1,6 @@
 // @ts-check
 import { BLOCK_TYPES } from '../../shared/blockTypes.js'
+import { getBuiltInBlockDataSchema } from '../../shared/blockSchemas/index.js'
 import { snapshotPollRendererConfig } from '../pollConfigSnapshot.js'
 
 /** @typedef {(prefix: string, locale: Record<string, import('../../shared/localeTypes').LocaleValue>, config?: unknown) => import('../types').BlockRenderer} RendererFactory */
@@ -58,6 +59,17 @@ function snapshotRendererConfig(type, value) {
   if (Array.isArray(value)) return [...value]
   if (value && typeof value === 'object') return { .../** @type {Record<string, unknown>} */ (value) }
   return value
+}
+
+/**
+ * @param {string} type
+ * @param {import('../types').BlockRenderer} renderer
+ * @returns {import('../types').BlockRendererDefinition}
+ */
+function bindBuiltInSchema(type, renderer) {
+  const schema = getBuiltInBlockDataSchema(type)
+  if (!schema) throw new Error(`Missing canonical block schema for renderer "${type}"`)
+  return Object.freeze({ ...renderer, schema })
 }
 
 /** @param {readonly string[] | { blocks?: readonly { type: string }[] } | undefined} source */
@@ -129,7 +141,7 @@ export async function preloadRendererFactories(source) {
  * @param {string} classPrefix
  * @param {Record<string, import('../../shared/localeTypes').LocaleValue>} [locale]
  * @param {unknown} [config]
- * @returns {Promise<import('../types').BlockRenderer>}
+ * @returns {Promise<import('../types').BlockRendererDefinition>}
  */
 export async function createRendererAsync(type, classPrefix, locale = {}, config) {
   if (typeof classPrefix !== 'string') throw new TypeError('classPrefix must be a string')
@@ -138,7 +150,7 @@ export async function createRendererAsync(type, classPrefix, locale = {}, config
   )
   const configSnapshot = snapshotRendererConfig(type, config)
   const factory = await loadRendererFactory(type)
-  return factory(classPrefix, localeMap, configSnapshot)
+  return bindBuiltInSchema(type, factory(classPrefix, localeMap, configSnapshot))
 }
 
 /**
@@ -149,7 +161,7 @@ export async function createRendererAsync(type, classPrefix, locale = {}, config
  * @param {Record<string, import('../../shared/localeTypes').LocaleValue>} [locale]
  * @param {readonly string[] | { blocks?: readonly { type: string }[] }} [source]
  * @param {Record<string, unknown>} [configs]
- * @returns {Promise<Map<string, import('../types').BlockRenderer>>}
+ * @returns {Promise<Map<string, import('../types').BlockRendererDefinition>>}
  */
 export async function createDefaultRenderersAsync(classPrefix, locale = {}, source, configs = {}) {
   if (typeof classPrefix !== 'string') throw new TypeError('classPrefix must be a string')
@@ -170,6 +182,6 @@ export async function createDefaultRenderersAsync(classPrefix, locale = {}, sour
   const factories = await preloadRendererFactories(types)
   return new Map([...factories].map(([type, factory]) => [
     type,
-    factory(classPrefix, localeMap, configSnapshots.get(type)),
+    bindBuiltInSchema(type, factory(classPrefix, localeMap, configSnapshots.get(type))),
   ]))
 }
