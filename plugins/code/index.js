@@ -1,5 +1,6 @@
 // @ts-check
-import { READ_ONLY_INTERACTIVE_ATTRIBUTE, setTrustedHtml } from '../../plugin-kit/index.js'
+import { READ_ONLY_INTERACTIVE_ATTRIBUTE } from '../../plugin-kit/index.js'
+import { setTrustedHtml } from '../../shared/sanitize/sanitizeHtml.js'
 import { codeDataSchema } from '../../shared/blockSchemas/code.js'
 import { getHighlightRuntime, loadHighlightRuntime } from '../../shared/highlightRuntime.js'
 import { dedentTextarea } from '../shared/dedentTextarea.js'
