@@ -157,6 +157,31 @@ export function createListPlugin(){
         return {style:/** @type {'unordered'} */('unordered'),items:[{id:'item-0',text:payload.data.text}]}
       },
     }),
+    clipboard:Object.freeze({
+      slice(data,context){
+        const selected=[]
+        const remaining=[]
+        for(const item of data.items){
+          const field=context.field(`item:${item.id}`)
+          if(!field){
+            remaining.push({...item})
+            continue
+          }
+          if(field.whole||field.selected){
+            selected.push({...item,text:field.selected})
+          }
+          const text=field.before+field.after
+          if(text)remaining.push({...item,text})
+        }
+        if(!selected.length)throw new Error('List clipboard selection is empty')
+        if(!remaining.length)remaining.push({id:context.createId('item'),text:''})
+        return {
+          parts:[{kind:'local-block',data:{style:data.style,items:selected}}],
+          remaining:{style:data.style,items:remaining},
+          focus:null,
+        }
+      },
+    }),
     settings:Object.freeze({
       kind:/** @type {'actions'} */('actions'),
       actions(data){
