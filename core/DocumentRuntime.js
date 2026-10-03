@@ -163,6 +163,14 @@ export class DocumentRuntime {
     return this.#engine?.health ?? 'ready'
   }
 
+  get generation() {
+    return this.#store?.generation ?? 0
+  }
+
+  get revision() {
+    return this.#store?.revision ?? 0
+  }
+
   get canUndo() {
     return this.health === 'ready' && !this.#readOnly && this.#engine.canUndo
   }
@@ -240,6 +248,77 @@ export class DocumentRuntime {
    * @param {{replaceEmpty?:boolean,name?:string}} [options]
    * @returns {string[]}
    */
+  applyPasteResults(blockId,fieldKey,range,entries){
+    this.#assertInteractionMutation()
+    if(!Array.isArray(entries)||entries.length===0)throw new TypeError('Paste results must be a non-empty array')
+    const current=this.#store.get(blockId)
+    if(!current)throw new Error(`Unknown block id: ${blockId}`)
+    if(this.activation(blockId)?.kind!=='active')throw new Error(`Unregistered block cannot receive paste results: ${blockId}`)
+
+    let rich=null
+    const local=[]
+    for(let index=0;index<entries.length;index++){
+      if(!Object.hasOwn(entries,index))throw new TypeError('Paste results must be dense')
+      const entry=entries[index]
+      const result=entry?.result
+      if(!result||typeof result!=='object'||Array.isArray(result))throw new TypeError('Paste resolver returned an invalid result')
+      if(result.kind==='rich-text'){
+        if(rich)throw new Error('Paste plan may contain at most one rich-text result')
+        if(!result.replacement||typeof result.replacement!=='object')throw new TypeError('Paste rich-text result is invalid')
+        rich=result.replacement
+        continue
+      }
+      if(result.kind!=='block')throw new TypeError('Paste result kind must be block or rich-text')
+      if(typeof entry.type!=='string'||!entry.type)throw new TypeError('Paste block result is missing a type')
+      const definition=this.#registry.getBlockDefinition(entry.type)
+      if(!definition)throw new Error(`Paste block type is not registered: ${entry.type}`)
+      // Validate local data before allocating any persisted block identity.
+      this.#normalizeLocalData(definition,result.data)
+      local.push({type:entry.type,definition,data:result.data})
+    }
+
+    let targetNext=current
+    if(rich){
+      targetNext=this.#replaceBlockRichTextRange(
+        current,
+        {blockId,fieldKey,offset:Math.max(0,Math.trunc(range?.start)||0)},
+        {blockId,fieldKey,offset:Math.max(0,Math.trunc(range?.end)||0)},
+        rich,
+      )
+      if(!targetNext)throw new Error('Paste target is not a valid rich-text range')
+    }
+
+    const replaceEmpty=!rich&&local.length>0&&this.isEmpty(blockId)
+    const reserved=new Set(this.#store.ids())
+    const prepared=local.map((entry,index)=>{
+      const id=replaceEmpty&&index===0?blockId:this.#allocateId(entry.type,reserved)
+      return this.#recordFromData(id,entry.type,entry.definition,entry.data,undefined,undefined)
+    })
+
+    const anchorIndex=this.#store.ids().indexOf(blockId)
+    const inserted=[]
+    this.#engine.execute({origin:'user',name:'clipboard.paste'},tx=>{
+      if(rich)tx.update(blockId,targetNext)
+      let start=0
+      if(replaceEmpty){
+        tx.update(blockId,prepared[0])
+        inserted.push(blockId)
+        start=1
+      }
+      let offset=1
+      for(let index=start;index<prepared.length;index++){
+        tx.insert(anchorIndex+offset,prepared[index])
+        inserted.push(prepared[index].id)
+        offset++
+      }
+    })
+
+    return {
+      blockId:inserted.at(-1)??blockId,
+      inserted,
+    }
+  }
+
   insertLocalBlocks(anchorId,inputs,options={}){
     this.#assertInteractionMutation()
     if(!Array.isArray(inputs)||inputs.length===0)return []
