@@ -3,6 +3,7 @@ import {
   createHeadingPlugin,
   createListPlugin,
   createParagraphPlugin,
+  createQuotePlugin,
 } from '../../plugins/index.js'
 
 const delay = (ms = 20) => new Promise(resolve => setTimeout(resolve, ms))
@@ -42,6 +43,7 @@ function createHarness(sandbox, data = {
       createParagraphPlugin({ injectStyles: false }),
       createHeadingPlugin(),
       createListPlugin(),
+      createQuotePlugin(),
     ],
     data: structuredClone(data),
   })
@@ -72,6 +74,44 @@ function setCaret(element, offset) {
   const selection = getSelection()
   selection.removeAllRanges()
   selection.addRange(range)
+}
+
+function selectBetween(startElement, startOffset, endElement, endOffset, { backward = false } = {}) {
+  const text = element => {
+    const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT)
+    let node = walker.nextNode()
+    if (!node) {
+      node = document.createTextNode('')
+      element.append(node)
+    }
+    return node
+  }
+  const start = text(startElement)
+  const end = text(endElement)
+  const selection = getSelection()
+  selection.removeAllRanges()
+  if (backward && typeof selection.setBaseAndExtent === 'function') {
+    selection.setBaseAndExtent(
+      end, Math.min(endOffset, end.data.length),
+      start, Math.min(startOffset, start.data.length),
+    )
+  } else {
+    const range = document.createRange()
+    range.setStart(start, Math.min(startOffset, start.data.length))
+    range.setEnd(end, Math.min(endOffset, end.data.length))
+    selection.addRange(range)
+  }
+  startElement.focus()
+  document.dispatchEvent(new Event('selectionchange'))
+}
+
+async function clickInlineTool(holder, type) {
+  await delay()
+  const button = holder.querySelector(`.oe-inline-toolbar [data-tool="${type}"]`)
+  assert(button instanceof HTMLButtonElement && !button.hidden, `inline tool ${type} is unavailable`)
+  button.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }))
+  button.click()
+  await delay()
 }
 
 function key(element, key, options = {}) {
@@ -123,6 +163,61 @@ async function run() {
     const event = key(target, 'Enter')
     assert(event.defaultPrevented, 'KeyboardRouter did not own structural Enter')
   })
+
+  editor.render({
+    version: '2.0.0',
+    blocks: [{
+      id: 'quote-format',
+      type: 'quote',
+      dataVersion: 1,
+      data: { text: 'Quote text', caption: 'Quote caption' },
+    }],
+  })
+  const quoteText = holder.querySelector('.oe-block[data-block-id="quote-format"] .oe-quote__text')
+  const quoteCaption = holder.querySelector('.oe-block[data-block-id="quote-format"] .oe-quote__caption')
+  assert(quoteText instanceof HTMLElement && quoteCaption instanceof HTMLElement, 'quote multi-field fixture is missing')
+  selectBetween(quoteText, 0, quoteCaption, quoteCaption.textContent.length)
+  const quoteBefore = stable(semantic(editor.save()))
+  await clickInlineTool(holder, 'bold')
+  const quoteAfter = editor.save().blocks[0]
+  assert(quoteAfter.data.text.includes('<b>'), 'same-block multi-field formatting missed quote text')
+  assert(quoteAfter.data.caption.includes('<b>'), 'same-block multi-field formatting missed quote caption')
+  assert(editor.undo() === true, 'same-block multi-field formatting is not one undoable command')
+  await delay()
+  assert(stable(semantic(editor.save())) === quoteBefore, 'same-block multi-field undo did not restore the whole block')
+
+  editor.render({
+    version: '2.0.0',
+    blocks: [
+      { id: 'format-a', type: 'paragraph', dataVersion: 2, data: { text: 'Alpha' } },
+      { id: 'format-b', type: 'paragraph', dataVersion: 2, data: { text: 'Bravo' } },
+    ],
+  })
+  const formatA = editable(holder, 'format-a')
+  const formatB = editable(holder, 'format-b')
+  selectBetween(formatA, 0, formatB, formatB.textContent.length)
+  const crossBefore = stable(semantic(editor.save()))
+  await clickInlineTool(holder, 'bold')
+  let formatted = editor.save().blocks
+  assert(formatted.every(block => block.data.text.includes('<b>')), 'cross-block formatting did not update every selected block')
+  assert(editor.undo() === true, 'cross-block formatting is not one undoable command')
+  await delay()
+  assert(stable(semantic(editor.save())) === crossBefore, 'cross-block formatting undo was not atomic')
+
+  selectBetween(formatA, 0, formatB, formatB.textContent.length, { backward: true })
+  await clickInlineTool(holder, 'align')
+  const alignPanel = holder.querySelector('.oe-inline-toolbar__align-panel')
+  assert(alignPanel instanceof HTMLElement, 'alignment panel did not open')
+  const alignActions = [...alignPanel.querySelectorAll('.oe-inline-tool')]
+  assert(alignActions.length >= 5, 'alignment actions are incomplete')
+  alignActions[2].click()
+  await delay()
+  formatted = editor.save().blocks
+  assert(formatted.every(block => block.tunes?.textAlign === 'center'), 'alignment was not persisted in tunes for every selected block')
+  assert(formatted.every(block => !Object.hasOwn(block.data, 'align')), 'alignment leaked into plugin data')
+  assert(editor.undo() === true, 'alignment is not one undoable command')
+  await delay()
+  assert(editor.save().blocks.every(block => block.tunes?.textAlign === undefined), 'alignment undo did not clear tunes')
 
   await assertUndoRedo(editor, 'public insert', () => {
     editor.blocks.insert({ type: 'paragraph', dataVersion: 2, data: { text: 'Inserted' } }, 1)
@@ -191,6 +286,17 @@ async function run() {
   await delay()
   assert(redoEvent.defaultPrevented, 'Mod+Shift+Z was not claimed by KeyboardRouter')
   assert(stable(semantic(editor.save())) === stable(afterShortcutInsert), 'Mod+Shift+Z restored the wrong state')
+
+  const auxiliary = document.createElement('input')
+  auxiliary.value = 'auxiliary'
+  holder.querySelector('.oe-editor')?.appendChild(auxiliary)
+  auxiliary.focus()
+  const auxiliaryBefore = stable(semantic(editor.save()))
+  const auxiliaryUndo = key(auxiliary, 'z', { code: 'KeyZ', ctrlKey: true })
+  await delay()
+  assert(!auxiliaryUndo.defaultPrevented, 'auxiliary native input lost native Mod+Z')
+  assert(stable(semantic(editor.save())) === auxiliaryBefore, 'auxiliary Mod+Z changed document history')
+  auxiliary.remove()
 
   const beforeMode = stable(semantic(editor.save()))
   editor.setReadOnly(true)
