@@ -40,6 +40,15 @@ export interface BlockPluginRuntimeContext {
   t(key: string, fallback?: string): string
 }
 
+/** Revocable authority for one asynchronous persisted-data operation. */
+export interface DataTask<
+  D extends Record<string, unknown> = Record<string, unknown>
+> {
+  readonly signal: AbortSignal
+  commit(producer: (current: Readonly<D>) => D): boolean
+  cancel(): void
+}
+
 /** Block-scoped mutation/lifecycle services supplied to one instance. */
 export interface BlockInstanceContext<
   D extends Record<string, unknown> = Record<string, unknown>
@@ -49,6 +58,7 @@ export interface BlockInstanceContext<
   getData(): Readonly<D>
   updateData(producer: (current: Readonly<D>) => D): void
   commitDomMutation(operation: () => void): void
+  beginTask(): DataTask<D>
   requestSplit(): void
   requestExit(): void
   isReadOnly(): boolean
@@ -247,6 +257,7 @@ export interface InlineWidgetContext<
   readonly signal: AbortSignal
   getData(): Readonly<D>
   updateData(producer: (current: Readonly<D>) => D): void
+  beginTask(): DataTask<D>
   isReadOnly(): boolean
 }
 
