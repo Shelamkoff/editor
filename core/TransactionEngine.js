@@ -368,7 +368,7 @@ export class TransactionEngine {
   }
 
   #observeCommand(operation, run) {
-    const startedAt = this.#diagnostics?.enabled ? this.#diagnostics.now() : 0
+    const startedAt = this.#diagnostics ? this.#diagnostics.now() : 0
     try {
       return run()
     } catch (error) {
