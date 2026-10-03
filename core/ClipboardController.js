@@ -56,7 +56,21 @@ function selectionRange(bookmark, owner) {
     start: Math.min(anchor.offset, focus.offset),
     end: Math.max(anchor.offset, focus.offset),
   }
+}function sameBookmark(left,right){
+  const samePoint=(a,b)=>(
+    a?.blockId===b?.blockId
+    &&a?.fieldKey===b?.fieldKey
+    &&Number(a?.offset)===Number(b?.offset)
+  )
+  return !!left&&!!right&&samePoint(left.anchor,right.anchor)&&samePoint(left.focus,right.focus)
 }
+
+function sameIds(left,right){
+  return Array.isArray(left)&&Array.isArray(right)
+    &&left.length===right.length
+    &&left.every((id,index)=>id===right[index])
+}
+
 
 export class ClipboardController {
   #root
@@ -225,11 +239,19 @@ export class ClipboardController {
           kind:'block',
           block:transferBlockFromRecord(record),
         })))
+        const generation=this.#runtime.generation
+        const revision=this.#runtime.revision
+        const selected=[...whole]
+        event.preventDefault()
         if(!this.#writeCanonicalClipboard(event.clipboardData,fragment,{
           html:html.join(''),
           text:plain.join('\n'),
         }))return
-        event.preventDefault()
+        if(
+          generation!==this.#runtime.generation
+          ||revision!==this.#runtime.revision
+          ||!sameIds(selected,this.#crossSelection?.wholeBlockIds)
+        )return
         this.#crossSelection.removeWholeBlocks()
         return
       }
@@ -247,11 +269,12 @@ export class ClipboardController {
         stripClipboardProjection(container)
         html=container.innerHTML
       }
+      event.preventDefault()
       if(!this.#writeCanonicalClipboard(event.clipboardData,fragment,{
         html,
         text:this.#crossSelection.text(),
       }))return
-      event.preventDefault()
+      if(!sameBookmark(plan.bookmark,this.#crossSelection?.bookmark))return
       const result=this.#runtime.applyPreparedClipboardCut(plan)
       this.#crossSelection.clear()
       this.#view.reconcileInteraction()
@@ -276,11 +299,12 @@ export class ClipboardController {
     const html=first?.kind==='rich-text'?first.html:''
     const template=ownerDocument.createElement('template')
     template.innerHTML=/** @type {any} */(toTrustedHtml(html,ownerDocument))
+    event.preventDefault()
     if(!this.#writeCanonicalClipboard(event.clipboardData,fragment,{
       html,
       text:template.content.textContent??'',
     }))return
-    event.preventDefault()
+    if(!sameBookmark(plan.bookmark,this.#selection.capture()))return
     const result=this.#runtime.applyPreparedClipboardCut(plan)
     this.#view.reconcileInteraction()
     if(result?.blockId){
