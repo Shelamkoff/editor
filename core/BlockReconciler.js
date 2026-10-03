@@ -88,7 +88,7 @@ export class BlockReconciler {
 
   focus(id, target) {
     const entry = this.#entries.get(id)
-    if (!entry || entry.preserved || typeof entry.instance.focus !== 'function') return false
+    if (!entry || entry.unregistered || typeof entry.instance.focus !== 'function') return false
     entry.instance.focus(target)
     return true
   }
@@ -114,7 +114,7 @@ export class BlockReconciler {
     const entry = this.#entries.get(id)
     if (!entry) throw new Error(`Unknown projected block id: ${id}`)
     const data = cloneEditorData(entry.instance.read())
-    if (!this.#inlineProjection || entry.preserved) {
+    if (!this.#inlineProjection || entry.unregistered) {
       return { data, inline: entry.record.inline === undefined ? undefined : cloneEditorData(entry.record.inline) }
     }
     return this.#inlineProjection.serializeBlock(
@@ -228,7 +228,7 @@ export class BlockReconciler {
           }
           item.entry.record = item.after
           this.#refreshFields(item.id, item.entry)
-          if (this.#inlineProjection && !item.entry.preserved) {
+          if (this.#inlineProjection && !item.entry.unregistered) {
             this.#inlineProjection.reconcileBlock(
               item.id,
               item.after,
@@ -353,13 +353,13 @@ export class BlockReconciler {
 
     if (!this.#registry.hasBlock(record.type) || !this.#activationResolver(record.id, record)) {
       const element = ownerDocument.createElement('div')
-      element.className = 'oe-block oe-preserved-block'
+      element.className = 'oe-block oe-unregistered-block'
       element.contentEditable = 'false'
-      element.dataset.oePreservedBlock = record.type
+      element.dataset.oeUnregisteredBlock = record.type
       element.dataset.blockId = record.id
       element.dataset.blockType = record.type
       this.#blockOwners.set(element, record.id)
-      element.textContent = `Unsupported block: ${record.type}`
+      element.textContent = `Unregistered block: ${record.type}`
       this.#inlineProjection?.destroyBlock?.(record.id)
       const instance = {
         element,
@@ -367,7 +367,7 @@ export class BlockReconciler {
         setReadOnly() {},
         destroy() {},
       }
-      return { type: record.type, record, element, instance, controller: null, preserved: true, definition: null, baseContext: null }
+      return { type: record.type, record, element, instance, controller: null, unregistered: true, definition: null, baseContext: null }
     }
 
     const definition = this.#registry.getBlockDefinition(record.type)
@@ -399,7 +399,7 @@ export class BlockReconciler {
       element,
       instance,
       controller,
-      preserved: false,
+      unregistered: false,
       definition,
       baseContext: base,
     }

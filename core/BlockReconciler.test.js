@@ -234,7 +234,7 @@ test('unknown block types stay inert and never call a plugin runtime', () => {
   reconciler.mount(store)
 
   assert.equal(counters.create, 0)
-  assert.equal(reconciler.getElement('x').dataset.oePreservedBlock, 'future')
+  assert.equal(reconciler.getElement('x').dataset.oeUnregisteredBlock, 'future')
   assert.equal(reconciler.getElement('x').contentEditable, 'false')
 })
 
@@ -256,7 +256,7 @@ test('preserve activation keeps a registered block type inert', () => {
   reconciler.mount(store)
 
   assert.equal(counters.create, 0)
-  assert.equal(reconciler.getElement('x').dataset.oePreservedBlock, 'paragraph')
+  assert.equal(reconciler.getElement('x').dataset.oeUnregisteredBlock, 'paragraph')
 })
 
 
