@@ -1829,6 +1829,7 @@ export class DocumentRuntime {
       createInlineWidgetContext: (fieldKey, inlineId, inlineType, inlineSignal, inlineScope) => {
         if (!inlineScope?.createAuthority) throw new TypeError('Inline instance scope is unavailable')
         inlineScope.configure({
+          generation: scope.generation,
           readOnly: this.#readOnly,
           health: () => this.health,
           phase: () => this.#engine?.phase ?? 'idle',
