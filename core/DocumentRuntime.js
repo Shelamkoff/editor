@@ -1112,7 +1112,7 @@ export class DocumentRuntime {
     this.#assertCurrentClipboardPlan(plan)
     if(!Array.isArray(parts)||parts.length===0)throw new TypeError('Clipboard parts must be a non-empty array')
 
-    if(!plan.compound){
+    if(!plan.compound&&!parts.some(part=>part?.kind==='local-block')){
       return this.replaceLogicalRangeWithClipboardParts(plan.bookmark,parts)
     }
 
@@ -1120,7 +1120,15 @@ export class DocumentRuntime {
     const incoming=parts.map(part=>{
       if(part?.kind==='block')return this.#materializeClipboardBlock(part.block,reserved)
       if(part?.kind==='rich-text')return this.#materializeClipboardRichText(part,reserved)
-      throw new TypeError('Clipboard part must be block or rich-text')
+      if(part?.kind==='local-block'){
+        if(typeof part.type!=='string'||!part.type)throw new TypeError('Local clipboard block is missing a type')
+        const definition=this.#registry.getBlockDefinition(part.type)
+        if(!definition)throw new Error(`Local clipboard block type is not registered: ${part.type}`)
+        this.#normalizeLocalData(definition,part.data)
+        const id=this.#allocateId(part.type,reserved)
+        return this.#recordFromData(id,part.type,definition,part.data,undefined,undefined)
+      }
+      throw new TypeError('Clipboard part must be block, local-block, or rich-text')
     })
 
     this.#engine.execute({origin:'user',name:'clipboard.fragment'},tx=>{
