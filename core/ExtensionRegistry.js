@@ -2,429 +2,501 @@
 import { cloneEditorData } from '../shared/cloneEditorData.js'
 import { acquireStyleUrls } from '../shared/styleRegistry.js'
 
-function assertDenseArray(value,label,{allowEmpty=true}={}){
-  if(!Array.isArray(value)||(!allowEmpty&&value.length===0)){
-    throw new TypeError(`${label} must be a dense ${allowEmpty?'':'non-empty '}array`)
+function assertDenseArray(value, label, { allowEmpty = true } = {}) {
+  if (!Array.isArray(value) || (!allowEmpty && value.length === 0)) {
+    throw new TypeError(`${label} must be a dense ${allowEmpty ? '' : 'non-empty '}array`)
   }
-  const result=[]
-  for(let index=0;index<value.length;index++){
-    if(!Object.hasOwn(value,index)){
-      throw new TypeError(`${label} must be a dense ${allowEmpty?'':'non-empty '}array`)
+  for (let index = 0; index < value.length; index++) {
+    if (!Object.hasOwn(value, index)) {
+      throw new TypeError(`${label} must be a dense ${allowEmpty ? '' : 'non-empty '}array`)
     }
-    result.push(value[index])
   }
-  return result
 }
 
-function validateType(type,label){
-  if(typeof type!=='string'||type.length===0)throw new TypeError(`${label} type must be a non-empty string`)
-}
-
-function bindMethod(source,key,label,{optional=false}={}){
-  const value=source?.[key]
-  if(value===undefined&&optional)return undefined
-  if(typeof value!=='function')throw new TypeError(`${label} ${key} must be a function`)
-  return value.bind(source)
-}
-
-function snapshotLabel(value,label){
-  if(!value||typeof value!=='object'||Array.isArray(value))throw new TypeError(`${label} label must be an object`)
-  const key=value.key
-  const fallback=value.fallback
-  if(typeof key!=='string'||!key||typeof fallback!=='string'){
-    throw new TypeError(`${label} label requires string key and fallback`)
+function validateType(type, label) {
+  if (typeof type !== 'string' || type.length === 0) {
+    throw new TypeError(`${label} type must be a non-empty string`)
   }
-  return Object.freeze({key,fallback})
 }
 
-function snapshotStyles(value,label){
-  if(value===undefined)return undefined
-  const styles=assertDenseArray(value,`${label} styles`)
-  return Object.freeze(styles.map(style=>{
-    if(typeof style!=='string')throw new TypeError(`${label} styles must contain strings`)
-    return style
-  }))
-}
-
-function ownSchemaResult(result,currentVersion,label){
-  if(!result||typeof result!=='object'||Array.isArray(result)){
-    throw new TypeError(`${label} schema result must be an object`)
+function ownObject(value, label) {
+  const owned = cloneEditorData(value)
+  if (!owned || typeof owned !== 'object' || Array.isArray(owned)) {
+    throw new TypeError(`${label} must be a JSON object`)
   }
-  if(result.dataVersion!==currentVersion){
-    throw new TypeError(`${label} schema result must emit captured currentVersion`)
-  }
-  return {dataVersion:currentVersion,data:cloneEditorData(result.data)}
+  return owned
 }
 
-function snapshotSchema(source,label,{richText=false}={}){
-  if(!source||typeof source!=='object'||Array.isArray(source)){
+function bindMethod(receiver, method, label, { optional = false } = {}) {
+  if (method === undefined && optional) return undefined
+  if (typeof method !== 'function') throw new TypeError(`${label} must be a function`)
+  return (...args) => Reflect.apply(method, receiver, args)
+}
+
+function snapshotLabel(input, label) {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) {
+    throw new TypeError(`${label} must be an object`)
+  }
+  const value = { ...input }
+  if (typeof value.key !== 'string' || !value.key || typeof value.fallback !== 'string') {
+    throw new TypeError(`${label} must contain key and fallback strings`)
+  }
+  return Object.freeze({ key: value.key, fallback: value.fallback })
+}
+
+function snapshotSchema(source, label, { richText = false } = {}) {
+  if (!source || typeof source !== 'object' || Array.isArray(source)) {
     throw new TypeError(`${label} must provide a current exact-version data schema`)
   }
-  if(Object.hasOwn(source,'legacyVersion')||Object.hasOwn(source,'migrations')){
-    throw new TypeError(`${label} schema contains removed compatibility options`)
+  if (Object.hasOwn(source, 'legacyVersion') || Object.hasOwn(source, 'migrations')) {
+    throw new TypeError(`${label} schema contains removed compatibility members`)
+  }
+  const currentVersion = source.currentVersion
+  const createDefault = bindMethod(source, source.createDefault, `${label} schema createDefault`)
+  const decode = bindMethod(source, source.decode, `${label} schema decode`)
+  const encode = bindMethod(source, source.encode, `${label} schema encode`)
+  const mapRichText = richText
+    ? bindMethod(source, source.mapRichText, `${label} schema mapRichText`, { optional: true })
+    : undefined
+
+  if (!Number.isSafeInteger(currentVersion) || currentVersion < 1) {
+    throw new TypeError(`${label} schema currentVersion must be a positive safe integer`)
   }
 
-  const currentVersion=source.currentVersion
-  if(!Number.isSafeInteger(currentVersion)||currentVersion<1){
-    throw new TypeError(`${label} must provide a current exact-version data schema`)
-  }
-  const createDefault=bindMethod(source,'createDefault',`${label} schema`)
-  const decode=bindMethod(source,'decode',`${label} schema`)
-  const encode=bindMethod(source,'encode',`${label} schema`)
-  const mapRichText=richText?bindMethod(source,'mapRichText',`${label} schema`,{optional:true}):undefined
-
-  const schema={
+  const schema = {
     currentVersion,
-    createDefault(){
-      return cloneEditorData(createDefault())
+
+    createDefault() {
+      return ownObject(createDefault(), `${label} schema default`)
     },
-    decode(input){
-      return ownSchemaResult(decode(input),currentVersion,label)
+
+    decode(input) {
+      if (!input || typeof input !== 'object' || Array.isArray(input)) {
+        throw new TypeError(`${label} schema decode input must be an object`)
+      }
+      const candidate = { ...input }
+      if (candidate.dataVersion !== currentVersion) {
+        throw new RangeError(
+          `Unsupported ${label} data version ${String(candidate.dataVersion)}; current version is ${currentVersion}`,
+        )
+      }
+      const result = decode({
+        dataVersion: currentVersion,
+        data: cloneEditorData(candidate.data),
+      })
+      if (!result || typeof result !== 'object' || Array.isArray(result)
+          || result.dataVersion !== currentVersion) {
+        throw new TypeError(`${label} schema decode() must preserve currentVersion`)
+      }
+      return {
+        dataVersion: currentVersion,
+        data: ownObject(result.data, `${label} schema decoded data`),
+      }
     },
-    encode(data){
-      return ownSchemaResult(encode(data),currentVersion,label)
+
+    encode(data) {
+      const result = encode(ownObject(data, `${label} schema local data`))
+      if (!result || typeof result !== 'object' || Array.isArray(result)
+          || result.dataVersion !== currentVersion) {
+        throw new TypeError(`${label} schema encode() must emit currentVersion`)
+      }
+      return {
+        dataVersion: currentVersion,
+        data: ownObject(result.data, `${label} schema encoded data`),
+      }
     },
-  }
-  if(mapRichText){
-    schema.mapRichText=(data,transform)=>cloneEditorData(mapRichText(data,transform))
   }
 
-  const initial=schema.createDefault()
-  const encoded=schema.encode(initial)
-  const decoded=schema.decode({dataVersion:currentVersion,data:encoded.data})
-  if(JSON.stringify(encoded.data)!==JSON.stringify(decoded.data)){
-    throw new TypeError(`${label} schema default must round-trip canonically`)
+  if (mapRichText) {
+    schema.mapRichText = (data, transform) => {
+      if (typeof transform !== 'function') throw new TypeError('Rich-text transform must be a function')
+      return ownObject(
+        mapRichText(ownObject(data, `${label} rich-text data`), transform),
+        `${label} rich-text result`,
+      )
+    }
   }
+
+  const initial = schema.createDefault()
+  const encoded = schema.encode(initial)
+  const decoded = schema.decode(encoded)
+  if (JSON.stringify(decoded.data) !== JSON.stringify(encoded.data)) {
+    throw new TypeError(`${label} default must round-trip through encode/decode`)
+  }
+
   return Object.freeze(schema)
 }
 
-function snapshotFormatting(value,label){
-  if(value===undefined)return undefined
-  if(value===true)return Object.freeze({inlineTools:true})
-  if(!value||typeof value!=='object'||Array.isArray(value))throw new TypeError(`${label} formatting must be an object`)
-  const inlineTools=value.inlineTools
-  if(inlineTools===true)return Object.freeze({inlineTools:true})
-  const tools=assertDenseArray(inlineTools,`${label} formatting.inlineTools`).map(tool=>{
-    if(typeof tool!=='string'||!tool)throw new TypeError(`${label} formatting inlineTools must contain strings`)
-    return tool
-  })
-  return Object.freeze({inlineTools:Object.freeze(tools)})
-}
-
-function snapshotActions(value,label){
-  if(value===undefined)return undefined
-  if(!value||typeof value!=='object'||Array.isArray(value))throw new TypeError(`${label} must be an object`)
-  const kind=value.kind
-  if(kind==='actions'){
-    return Object.freeze({
-      kind,
-      actions:bindMethod(value,'actions',label),
-      apply:bindMethod(value,'apply',label),
-    })
+function snapshotFormatting(source, label) {
+  if (!source || typeof source !== 'object' || Array.isArray(source)) {
+    throw new TypeError(`${label} formatting capability must be an object`)
   }
-  if(kind==='panel'){
-    return Object.freeze({kind,render:bindMethod(value,'render',label)})
+  const inlineTools = source.inlineTools
+  if (inlineTools !== true) {
+    assertDenseArray(inlineTools, `${label} formatting inlineTools`)
+    for (const tool of inlineTools) {
+      if (typeof tool !== 'string' || !tool) {
+        throw new TypeError(`${label} formatting inlineTools must contain non-empty strings`)
+      }
+    }
   }
-  throw new TypeError(`${label} kind must be actions or panel`)
-}
-
-function snapshotPaste(value,label){
-  if(value===undefined)return undefined
-  if(!value||typeof value!=='object'||Array.isArray(value))throw new TypeError(`${label} paste must be an object`)
   return Object.freeze({
-    accepts:bindMethod(value,'accepts',`${label} paste`),
-    resolve:bindMethod(value,'resolve',`${label} paste`),
+    inlineTools: inlineTools === true ? true : Object.freeze([...inlineTools]),
   })
 }
 
-function snapshotCapabilities(value,label){
-  if(value===undefined)return undefined
-  if(!value||typeof value!=='object'||Array.isArray(value))throw new TypeError(`${label} capabilities must be an object`)
-  const result={}
-
-  const empty=value.empty
-  if(empty!==undefined)result.empty=Object.freeze({isEmpty:bindMethod(empty,'isEmpty',`${label} empty capability`)})
-
-  const formatting=value.formatting
-  if(formatting!==undefined)result.formatting=snapshotFormatting(formatting,`${label} capability`)
-
-  const merge=value.merge
-  if(merge!==undefined)result.merge=Object.freeze({merge:bindMethod(merge,'merge',`${label} merge capability`)})
-
-  const conversion=value.conversion
-  if(conversion!==undefined){
-    result.conversion=Object.freeze({
-      export:bindMethod(conversion,'export',`${label} conversion capability`),
-      canImport:bindMethod(conversion,'canImport',`${label} conversion capability`),
-      import:bindMethod(conversion,'import',`${label} conversion capability`),
-    })
+function snapshotCapabilityObject(source, label, methods) {
+  if (!source || typeof source !== 'object' || Array.isArray(source)) {
+    throw new TypeError(`${label} capability must be an object`)
   }
-
-  const selectionSlice=value.selectionSlice
-  if(selectionSlice!==undefined){
-    result.selectionSlice=Object.freeze({slice:bindMethod(selectionSlice,'slice',`${label} selectionSlice capability`)})
-  }
-
-  const inlineControls=value.inlineControls
-  if(inlineControls!==undefined)result.inlineControls=snapshotActions(inlineControls,`${label} inlineControls capability`)
-
-  const settings=value.settings
-  if(settings!==undefined)result.settings=snapshotActions(settings,`${label} settings capability`)
-
-  const paste=value.paste
-  if(paste!==undefined)result.paste=snapshotPaste(paste,label)
-
-  const shortcuts=value.shortcuts
-  if(shortcuts!==undefined){
-    result.shortcuts=Object.freeze({handle:bindMethod(shortcuts,'handle',`${label} shortcuts capability`)})
+  const result = {}
+  for (const [name, optional] of methods) {
+    const method = bindMethod(source, source[name], `${label} capability ${name}`, { optional })
+    if (method) result[name] = method
   }
   return Object.freeze(result)
 }
 
-function snapshotToolbox(value,label){
-  if(value===undefined)return undefined
-  const items=assertDenseArray(value,`${label} toolbox`)
-  return Object.freeze(items.map((source,index)=>{
-    if(!source||typeof source!=='object'||Array.isArray(source))throw new TypeError(`${label} toolbox[${index}] must be an object`)
-    const id=source.id
-    const icon=source.icon
-    if(typeof id!=='string'||!id||typeof icon!=='string')throw new TypeError(`${label} toolbox item is invalid`)
-    const configure=bindMethod(source,'configure',`${label} toolbox item`,{optional:true})
+function snapshotPasteCapability(source, label) {
+  if (!source || typeof source !== 'object' || Array.isArray(source)) {
+    throw new TypeError(`${label} paste capability must be an object`)
+  }
+  return Object.freeze({
+    accepts: bindMethod(source, source.accepts, `${label} paste accepts`),
+    resolve: bindMethod(source, source.resolve, `${label} paste resolve`),
+  })
+}
+
+function snapshotSettings(source, label) {
+  if (!source || typeof source !== 'object' || Array.isArray(source)) {
+    throw new TypeError(`${label} settings capability must be an object`)
+  }
+  const kind = source.kind
+  if (kind === 'actions') {
     return Object.freeze({
-      id,
-      label:snapshotLabel(source.label,`${label} toolbox item`),
-      icon,
-      ...(configure?{configure}:{}),
+      kind,
+      actions: bindMethod(source, source.actions, `${label} settings actions`),
+      apply: bindMethod(source, source.apply, `${label} settings apply`),
     })
+  }
+  if (kind === 'panel') {
+    return Object.freeze({
+      kind,
+      render: bindMethod(source, source.render, `${label} settings render`),
+    })
+  }
+  throw new TypeError(`${label} settings kind must be actions or panel`)
+}
+
+function snapshotCapabilities(source, label) {
+  if (source === undefined) return undefined
+  if (!source || typeof source !== 'object' || Array.isArray(source)) {
+    throw new TypeError(`${label} capabilities must be an object`)
+  }
+  const result = {}
+  if (source.empty !== undefined) {
+    result.empty = snapshotCapabilityObject(source.empty, `${label} empty`, [['isEmpty', false]])
+  }
+  if (source.formatting !== undefined) result.formatting = snapshotFormatting(source.formatting, label)
+  if (source.merge !== undefined) {
+    result.merge = snapshotCapabilityObject(source.merge, `${label} merge`, [['merge', false]])
+  }
+  if (source.conversion !== undefined) {
+    result.conversion = snapshotCapabilityObject(source.conversion, `${label} conversion`, [
+      ['export', false], ['canImport', false], ['import', false],
+    ])
+  }
+  if (source.selectionSlice !== undefined) {
+    result.selectionSlice = snapshotCapabilityObject(
+      source.selectionSlice, `${label} selectionSlice`, [['slice', false]],
+    )
+  }
+  if (source.inlineControls !== undefined) {
+    result.inlineControls = snapshotSettings(source.inlineControls, `${label} inlineControls`)
+  }
+  if (source.settings !== undefined) result.settings = snapshotSettings(source.settings, label)
+  if (source.paste !== undefined) result.paste = snapshotPasteCapability(source.paste, label)
+  if (source.shortcuts !== undefined) {
+    result.shortcuts = snapshotCapabilityObject(source.shortcuts, `${label} shortcuts`, [['handle', false]])
+  }
+  return Object.freeze(result)
+}
+
+function snapshotToolbox(source, label) {
+  if (source === undefined) return undefined
+  assertDenseArray(source, `${label} toolbox`)
+  const ids = new Set()
+  return Object.freeze(source.map((item, index) => {
+    if (!item || typeof item !== 'object' || Array.isArray(item)) {
+      throw new TypeError(`${label} toolbox[${index}] must be an object`)
+    }
+    const candidate = { ...item }
+    if (typeof candidate.id !== 'string' || !candidate.id || ids.has(candidate.id)) {
+      throw new TypeError(`${label} toolbox item id must be unique and non-empty`)
+    }
+    ids.add(candidate.id)
+    if (typeof candidate.icon !== 'string') {
+      throw new TypeError(`${label} toolbox item icon must be a string`)
+    }
+    const result = {
+      id: candidate.id,
+      label: snapshotLabel(candidate.label, `${label} toolbox item label`),
+      icon: candidate.icon,
+    }
+    const configure = bindMethod(item, candidate.configure, `${label} toolbox configure`, { optional: true })
+    if (configure) result.configure = configure
+    return Object.freeze(result)
   }))
 }
 
-function snapshotBlockDefinition(source,index){
-  if(!source||typeof source!=='object'||Array.isArray(source))throw new TypeError(`Block definition[${index}] must be an object`)
-  const type=source.type
-  validateType(type,'Block definition')
-  const label=`Block definition "${type}"`
-  const setup=bindMethod(source,'setup',label)
-  const schemaSource=source.schema
-  const schema=snapshotSchema(schemaSource,label,{richText:true})
-  const labelSource=source.label
-  const icon=source.icon
-  const definition={
-    type,
-    label:snapshotLabel(labelSource,label),
-    icon:typeof icon==='string'?icon:'',
-    schema,
-    setup,
+function snapshotBlockDefinition(source) {
+  if (!source || typeof source !== 'object' || Array.isArray(source)) {
+    throw new TypeError('Block definition must be an object')
   }
-  const styles=snapshotStyles(source.styles,label)
-  const toolbox=snapshotToolbox(source.toolbox,label)
-  const capabilities=snapshotCapabilities(source.capabilities,label)
-  if(styles)definition.styles=styles
-  if(toolbox)definition.toolbox=toolbox
-  if(capabilities)definition.capabilities=capabilities
-  return Object.freeze(definition)
-}
-
-function snapshotInlinePaste(value,label){
-  if(value===undefined)return undefined
-  if(!value||typeof value!=='object'||Array.isArray(value))throw new TypeError(`${label} paste must be an object`)
-  const patterns=assertDenseArray(value.patterns,`${label} paste.patterns`).map(pattern=>{
-    if(!(pattern instanceof RegExp))throw new TypeError(`${label} paste patterns must be RegExp values`)
-    return new RegExp(pattern.source,pattern.flags)
-  })
-  return Object.freeze({
-    patterns:Object.freeze(patterns),
-    fromMatch:bindMethod(value,'fromMatch',`${label} paste`),
-  })
-}
-
-function snapshotInlineDefinition(source,index){
-  if(!source||typeof source!=='object'||Array.isArray(source))throw new TypeError(`Inline definition[${index}] must be an object`)
-  const type=source.type
-  validateType(type,'Inline definition')
-  const label=`Inline definition "${type}"`
-  const setup=bindMethod(source,'setup',label)
-  const labelSource=source.label
-  const icon=source.icon
-  const schemaSource=source.schema
-  const definition={
-    type,
-    label:snapshotLabel(labelSource,label),
-    icon:typeof icon==='string'?icon:'',
-    schema:snapshotSchema(schemaSource,label),
-    setup,
-  }
-  const styles=snapshotStyles(source.styles,label)
-  if(styles)definition.styles=styles
-
-  const trigger=source.trigger
-  if(trigger!==undefined){
-    if(typeof trigger!=='string'||[...trigger].length!==1)throw new TypeError(`${label} trigger must be exactly one Unicode code point`)
-    definition.trigger=trigger
-  }
-
-  const paste=snapshotInlinePaste(source.paste,label)
-  if(paste)definition.paste=paste
-
-  const editing=source.editing
-  if(editing!==undefined)definition.editing=Object.freeze({handle:bindMethod(editing,'handle',`${label} editing`)})
-
-  const insertion=source.insertion
-  if(insertion!==undefined)definition.insertion=Object.freeze({createInitial:bindMethod(insertion,'createInitial',`${label} insertion`)})
-
-  return Object.freeze(definition)
-}
-
-function snapshotBlockRuntime(runtime,label){
-  const create=runtime&&typeof runtime==='object'?runtime.create:undefined
-  const destroy=runtime&&typeof runtime==='object'?runtime.destroy:undefined
-  if(!runtime||typeof runtime!=='object'||typeof create!=='function'||typeof destroy!=='function'){
-    if(typeof destroy==='function'){
-      try{destroy.call(runtime)}catch{}
-    }
-    throw new TypeError(`${label} returned an invalid runtime`)
+  const candidate = { ...source }
+  validateType(candidate.type, 'Block definition')
+  if (typeof candidate.icon !== 'string') throw new TypeError(`Block definition "${candidate.type}" icon must be a string`)
+  const styles = candidate.styles ?? []
+  assertDenseArray(styles, `Block definition "${candidate.type}" styles`)
+  for (const url of styles) {
+    if (typeof url !== 'string') throw new TypeError(`Block definition "${candidate.type}" styles must be strings`)
   }
   return Object.freeze({
-    create:create.bind(runtime),
-    destroy:destroy.bind(runtime),
+    type: candidate.type,
+    label: snapshotLabel(candidate.label, `Block definition "${candidate.type}" label`),
+    icon: candidate.icon,
+    styles: Object.freeze([...styles]),
+    schema: snapshotSchema(candidate.schema, `Block definition "${candidate.type}"`, { richText: true }),
+    ...(candidate.toolbox === undefined ? {} : { toolbox: snapshotToolbox(candidate.toolbox, `Block definition "${candidate.type}"`) }),
+    ...(candidate.capabilities === undefined ? {} : { capabilities: snapshotCapabilities(candidate.capabilities, `Block definition "${candidate.type}"`) }),
+    setup: bindMethod(source, candidate.setup, `Block definition "${candidate.type}" setup`),
   })
 }
 
-function snapshotInlineRuntime(runtime,label){
-  const create=runtime&&typeof runtime==='object'?runtime.create:undefined
-  const destroy=runtime&&typeof runtime==='object'?runtime.destroy:undefined
-  if(!runtime||typeof runtime!=='object'||typeof create!=='function'||typeof destroy!=='function'){
-    if(typeof destroy==='function'){
-      try{destroy.call(runtime)}catch{}
+function snapshotInlineDefinition(source) {
+  if (!source || typeof source !== 'object' || Array.isArray(source)) {
+    throw new TypeError('Inline definition must be an object')
+  }
+  const candidate = { ...source }
+  validateType(candidate.type, 'Inline definition')
+  if (typeof candidate.icon !== 'string') throw new TypeError(`Inline definition "${candidate.type}" icon must be a string`)
+  const styles = candidate.styles ?? []
+  assertDenseArray(styles, `Inline definition "${candidate.type}" styles`)
+  for (const url of styles) {
+    if (typeof url !== 'string') throw new TypeError(`Inline definition "${candidate.type}" styles must be strings`)
+  }
+
+  let trigger
+  if (candidate.trigger !== undefined) {
+    if (typeof candidate.trigger !== 'string' || [...candidate.trigger].length !== 1) {
+      throw new TypeError(`Inline definition "${candidate.type}" trigger must be exactly one Unicode code point`)
     }
+    trigger = candidate.trigger
+  }
+
+  let paste
+  if (candidate.paste !== undefined) {
+    if (!candidate.paste || typeof candidate.paste !== 'object' || Array.isArray(candidate.paste)) {
+      throw new TypeError(`Inline definition "${candidate.type}" paste must be an object`)
+    }
+    const patterns = candidate.paste.patterns
+    assertDenseArray(patterns, `Inline definition "${candidate.type}" paste patterns`)
+    const ownedPatterns = patterns.map(pattern => {
+      if (!(pattern instanceof RegExp)) throw new TypeError('Inline paste patterns must be RegExp values')
+      return new RegExp(pattern.source, pattern.flags)
+    })
+    paste = Object.freeze({
+      patterns: Object.freeze(ownedPatterns),
+      fromMatch: bindMethod(candidate.paste, candidate.paste.fromMatch, `Inline definition "${candidate.type}" paste fromMatch`),
+    })
+  }
+
+  let editing
+  if (candidate.editing !== undefined) {
+    editing = snapshotCapabilityObject(
+      candidate.editing, `Inline definition "${candidate.type}" editing`, [['handle', false]],
+    )
+  }
+
+  let insertion
+  if (candidate.insertion !== undefined) {
+    insertion = snapshotCapabilityObject(
+      candidate.insertion, `Inline definition "${candidate.type}" insertion`, [['createInitial', false]],
+    )
+  }
+
+  return Object.freeze({
+    type: candidate.type,
+    label: snapshotLabel(candidate.label, `Inline definition "${candidate.type}" label`),
+    icon: candidate.icon,
+    styles: Object.freeze([...styles]),
+    schema: snapshotSchema(candidate.schema, `Inline definition "${candidate.type}"`),
+    ...(trigger === undefined ? {} : { trigger }),
+    ...(paste ? { paste } : {}),
+    ...(editing ? { editing } : {}),
+    ...(insertion ? { insertion } : {}),
+    setup: bindMethod(source, candidate.setup, `Inline definition "${candidate.type}" setup`),
+  })
+}
+
+function snapshotBlockRuntime(source, label) {
+  if (!source || typeof source !== 'object' || Array.isArray(source)) {
     throw new TypeError(`${label} returned an invalid runtime`)
   }
-  const result={
-    create:create.bind(runtime),
-    destroy:destroy.bind(runtime),
+  const create = bindMethod(source, source.create, `${label} runtime create`)
+  const destroy = bindMethod(source, source.destroy, `${label} runtime destroy`)
+  return Object.freeze({ create, destroy })
+}
+
+function snapshotInlineRuntime(source, label) {
+  if (!source || typeof source !== 'object' || Array.isArray(source)) {
+    throw new TypeError(`${label} returned an invalid runtime`)
   }
-  for(const key of ['onTriggerQuery','onTriggerKeydown','onTriggerCancel']){
-    const method=runtime[key]
-    if(method!==undefined){
-      if(typeof method!=='function')throw new TypeError(`${label} runtime ${key} must be a function`)
-      result[key]=method.bind(runtime)
-    }
+  const runtime = {
+    create: bindMethod(source, source.create, `${label} runtime create`),
+    destroy: bindMethod(source, source.destroy, `${label} runtime destroy`),
   }
-  return Object.freeze(result)
+  for (const name of ['onTriggerQuery', 'onTriggerKeydown', 'onTriggerCancel']) {
+    const method = bindMethod(source, source[name], `${label} runtime ${name}`, { optional: true })
+    if (method) runtime[name] = method
+  }
+  return Object.freeze(runtime)
 }
 
 export class ExtensionRegistry {
   #ownerDocument
   #abortController
-  #blockDefinitions=new Map()
-  #blockRuntimes=new Map()
-  #inlineDefinitions=new Map()
-  #inlineRuntimes=new Map()
-  #inlineTriggers=new Map()
-  #resources=[]
-  #destroyed=false
+  #blockDefinitions = new Map()
+  #blockRuntimes = new Map()
+  #inlineDefinitions = new Map()
+  #inlineRuntimes = new Map()
+  #inlineTriggers = new Map()
+  #resources = []
+  #destroyed = false
   #defaultBlockType
 
-  constructor(options){
-    if(!options||typeof options!=='object')throw new TypeError('ExtensionRegistry options must be an object')
-    const ownerDocument=options.ownerDocument
-    if(!ownerDocument?.createElement)throw new TypeError('ExtensionRegistry requires an ownerDocument')
+  constructor(options) {
+    if (!options || typeof options !== 'object') throw new TypeError('ExtensionRegistry options must be an object')
+    const ownerDocument = options.ownerDocument
+    if (!ownerDocument?.createElement) throw new TypeError('ExtensionRegistry requires an ownerDocument')
+    assertDenseArray(options.blocks, 'blocks', { allowEmpty: false })
+    const inline = options.inline ?? []
+    assertDenseArray(inline, 'inline')
 
-    const blockSources=assertDenseArray(options.blocks,'blocks',{allowEmpty:false})
-    const inlineSources=assertDenseArray(options.inline??[],'inline')
-    const blocks=blockSources.map(snapshotBlockDefinition)
-    const inline=inlineSources.map(snapshotInlineDefinition)
+    this.#ownerDocument = ownerDocument
+    this.#abortController = new (ownerDocument.defaultView?.AbortController ?? AbortController)()
+    const acquireStyles = options.acquireStyles !== false
+    const translate = typeof options.translate === 'function'
+      ? options.translate
+      : (_key, fallback = '') => fallback
 
-    this.#ownerDocument=ownerDocument
-    this.#abortController=new (ownerDocument.defaultView?.AbortController??AbortController)()
-    const acquireStyles=options.acquireStyles!==false
-    const translateSource=options.translate
-    const translate=typeof translateSource==='function'?translateSource:(_key,fallback='')=>fallback
-    const placeholder=options.placeholder
-    const showPopupSource=options.showPopup
-    const hidePopupSource=options.hidePopup
-    const showPopup=typeof showPopupSource==='function'?showPopupSource:()=>{}
-    const hidePopup=typeof hidePopupSource==='function'?hidePopupSource:()=>{}
+    const blocks = options.blocks.map(snapshotBlockDefinition)
+    const inlines = inline.map(snapshotInlineDefinition)
 
-    for(const definition of blocks){
-      if(this.#blockDefinitions.has(definition.type))throw new Error(`Duplicate block definition type: ${definition.type}`)
-      this.#blockDefinitions.set(definition.type,definition)
+    for (const definition of blocks) {
+      if (this.#blockDefinitions.has(definition.type)) {
+        throw new Error(`Duplicate block definition type: ${definition.type}`)
+      }
+      this.#blockDefinitions.set(definition.type, definition)
     }
 
-    const defaultBlock=options.defaultBlock??(this.#blockDefinitions.has('paragraph')?'paragraph':blocks[0].type)
-    if(!this.#blockDefinitions.has(defaultBlock))throw new Error(`Default block type is not registered: ${defaultBlock}`)
-    this.#defaultBlockType=defaultBlock
+    const defaultBlock = options.defaultBlock
+      ?? (this.#blockDefinitions.has('paragraph') ? 'paragraph' : blocks[0].type)
+    if (!this.#blockDefinitions.has(defaultBlock)) {
+      throw new Error(`Default block type is not registered: ${defaultBlock}`)
+    }
+    this.#defaultBlockType = defaultBlock
 
-    for(const definition of inline){
-      if(this.#inlineDefinitions.has(definition.type))throw new Error(`Duplicate inline definition type: ${definition.type}`)
-      if(definition.trigger!==undefined){
-        if(this.#inlineTriggers.has(definition.trigger))throw new Error(`Duplicate inline trigger: ${definition.trigger}`)
-        this.#inlineTriggers.set(definition.trigger,definition)
+    for (const definition of inlines) {
+      if (this.#inlineDefinitions.has(definition.type)) {
+        throw new Error(`Duplicate inline definition type: ${definition.type}`)
       }
-      this.#inlineDefinitions.set(definition.type,definition)
+      if (definition.trigger !== undefined) {
+        if (this.#inlineTriggers.has(definition.trigger)) throw new Error(`Duplicate inline trigger: ${definition.trigger}`)
+        this.#inlineTriggers.set(definition.trigger, definition)
+      }
+      this.#inlineDefinitions.set(definition.type, definition)
     }
 
-    try{
-      for(const definition of blocks){
-        const styles=acquireStyles?[...(definition.styles??[])]:[]
-        if(styles.length)this.#resources.push(acquireStyleUrls(styles,ownerDocument))
-        const runtime=snapshotBlockRuntime(definition.setup({
-          ownerDocument,
-          signal:this.#abortController.signal,
-          isDefaultBlock:definition.type===defaultBlock,
-          editorPlaceholder:definition.type===defaultBlock?placeholder:undefined,
-          t:(key,fallback='')=>translate(`plugin.${definition.type}.${key}`,fallback),
-        }),`Block definition "${definition.type}"`)
-        this.#blockRuntimes.set(definition.type,runtime)
+    try {
+      for (const definition of blocks) {
+        if (acquireStyles && definition.styles.length) {
+          const resource = acquireStyleUrls(definition.styles, ownerDocument)
+          this.#resources.push(resource)
+        }
+        let runtimeSource
+        try {
+          runtimeSource = definition.setup({
+            ownerDocument,
+            signal: this.#abortController.signal,
+            isDefaultBlock: definition.type === defaultBlock,
+            editorPlaceholder: definition.type === defaultBlock ? options.placeholder : undefined,
+            t: (key, fallback = '') => translate(`plugin.${definition.type}.${key}`, fallback),
+          })
+          const runtime = snapshotBlockRuntime(runtimeSource, `Block definition "${definition.type}"`)
+          this.#blockRuntimes.set(definition.type, runtime)
+        } catch (error) {
+          try { runtimeSource?.destroy?.() } catch {}
+          throw error
+        }
       }
 
-      for(const definition of inline){
-        const styles=acquireStyles?[...(definition.styles??[])]:[]
-        if(styles.length)this.#resources.push(acquireStyleUrls(styles,ownerDocument))
-        const runtime=snapshotInlineRuntime(definition.setup({
-          ownerDocument,
-          signal:this.#abortController.signal,
-          t:(key,fallback='')=>translate(`inlinePlugin.${definition.type}.${key}`,fallback),
-          showPopup,
-          hidePopup,
-        }),`Inline definition "${definition.type}"`)
-        this.#inlineRuntimes.set(definition.type,runtime)
+      for (const definition of inlines) {
+        if (acquireStyles && definition.styles.length) {
+          const resource = acquireStyleUrls(definition.styles, ownerDocument)
+          this.#resources.push(resource)
+        }
+        let runtimeSource
+        try {
+          runtimeSource = definition.setup({
+            ownerDocument,
+            signal: this.#abortController.signal,
+            t: (key, fallback = '') => translate(`inlinePlugin.${definition.type}.${key}`, fallback),
+            showPopup: typeof options.showPopup === 'function' ? options.showPopup : () => {},
+            hidePopup: typeof options.hidePopup === 'function' ? options.hidePopup : () => {},
+          })
+          const runtime = snapshotInlineRuntime(runtimeSource, `Inline definition "${definition.type}"`)
+          this.#inlineRuntimes.set(definition.type, runtime)
+        } catch (error) {
+          try { runtimeSource?.destroy?.() } catch {}
+          throw error
+        }
       }
-    }catch(error){
+    } catch (error) {
       this.destroy()
       throw error
     }
   }
 
-  get defaultBlockType(){return this.#defaultBlockType}
-  get blockTypes(){return [...this.#blockDefinitions.keys()]}
-  get inlineTypes(){return [...this.#inlineDefinitions.keys()]}
-  getBlockDefinition(type){return this.#blockDefinitions.get(type)}
-  getBlockRuntime(type){return this.#blockRuntimes.get(type)}
-  getInlineDefinition(type){return this.#inlineDefinitions.get(type)}
-  getInlineRuntime(type){return this.#inlineRuntimes.get(type)}
-  getInlineByTrigger(trigger){return this.#inlineTriggers.get(trigger)}
-  hasBlock(type){return this.#blockDefinitions.has(type)}
-  hasInline(type){return this.#inlineDefinitions.has(type)}
+  get defaultBlockType() { return this.#defaultBlockType }
+  get blockTypes() { return [...this.#blockDefinitions.keys()] }
+  get inlineTypes() { return [...this.#inlineDefinitions.keys()] }
+  getBlockDefinition(type) { return this.#blockDefinitions.get(type) }
+  getBlockRuntime(type) { return this.#blockRuntimes.get(type) }
+  getInlineDefinition(type) { return this.#inlineDefinitions.get(type) }
+  getInlineRuntime(type) { return this.#inlineRuntimes.get(type) }
+  getInlineByTrigger(trigger) { return this.#inlineTriggers.get(trigger) }
+  hasBlock(type) { return this.#blockDefinitions.has(type) }
+  hasInline(type) { return this.#inlineDefinitions.has(type) }
 
-  destroy(){
-    if(this.#destroyed)return
-    this.#destroyed=true
+  destroy() {
+    if (this.#destroyed) return
+    this.#destroyed = true
     this.#abortController.abort()
 
-    for(const runtime of [...this.#inlineRuntimes.values()].reverse()){
-      try{runtime.destroy()}catch{}
+    for (const runtime of [...this.#inlineRuntimes.values()].reverse()) {
+      try { runtime.destroy() } catch {}
     }
     this.#inlineRuntimes.clear()
 
-    for(const runtime of [...this.#blockRuntimes.values()].reverse()){
-      try{runtime.destroy()}catch{}
+    for (const runtime of [...this.#blockRuntimes.values()].reverse()) {
+      try { runtime.destroy() } catch {}
     }
     this.#blockRuntimes.clear()
 
-    for(let index=this.#resources.length-1;index>=0;index--){
-      try{this.#resources[index]?.destroy()}catch{}
+    for (let index = this.#resources.length - 1; index >= 0; index--) {
+      try { this.#resources[index]?.destroy() } catch {}
     }
-    this.#resources=[]
+    this.#resources = []
   }
 }
