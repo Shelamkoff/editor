@@ -1,5 +1,6 @@
 // @ts-check
 import { cloneEditorData } from '../shared/cloneEditorData.js'
+import { invokeObserver } from '../shared/invokeObserver.js'
 import { normalizeRichText } from '../shared/richTextCodec.js'
 import { getRichTextLogicalLength, remapRichTextReferences, replaceRichTextRange, replaceRichTextReference, scanRichTextPlaceholders, sliceRichTextRange, splitRichTextRange } from '../shared/richTextOperations.js'
 import { resolveValidationMode } from '../shared/validationMode.js'
@@ -82,7 +83,7 @@ export class DocumentRuntime {
    *   onCommit?: (event: any) => void,
    *   diagnostics?: import('./Diagnostics').Diagnostics,
    *   onDiagnostic?: (error: unknown) => void,
-   *   onValidationError?: (issue: any) => void,
+   *   onValidationError?: (issue: any) => void | Promise<void>,
    *   richTextNormalizer?: (html: string) => string,
    *   requestSplit?: (id: string) => void,
    *   requestExit?: (id: string) => void,
@@ -1266,7 +1267,12 @@ export class DocumentRuntime {
       type: block.type,
       reason: issueReason(error),
     })
-    try { this.#onValidationError(issue) } catch {}
+    invokeObserver(this.#onValidationError, [issue], observerError => {
+      this.#diagnostics?.emit('command.failed', {
+        operation: 'onValidationError',
+        errorName: this.#diagnostics.errorName(observerError),
+      })
+    })
   }
 
 
