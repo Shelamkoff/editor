@@ -50,6 +50,26 @@ export function createQuotePlugin() {
         return {text:payload.data.text,caption:''}
       },
     }),
+    clipboard:Object.freeze({
+      slice(data,context){
+        const text=context.field('text')
+        const caption=context.field('caption')
+        if(!text&&!caption)throw new Error('Quote clipboard selection does not intersect a field')
+        const selected={
+          text:text?.selected??'',
+          caption:caption?.selected??'',
+        }
+        const remaining={
+          text:text?text.before+text.after:data.text,
+          caption:caption?caption.before+caption.after:data.caption,
+        }
+        return {
+          parts:[{kind:'local-block',data:selected}],
+          remaining:(!remaining.text.trim()&&!remaining.caption.trim())?null:remaining,
+          focus:null,
+        }
+      },
+    }),
     htmlImport:Object.freeze({
       matchesRoot(element){
         return element.tagName==='BLOCKQUOTE'
