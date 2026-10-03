@@ -16,7 +16,7 @@ function snapshot(runtime, record) {
   })
 }
 
-export class EditorBlocksApiV2 {
+export class EditorBlocksApi {
   #runtime
   #view
   #isDestroyed
@@ -85,7 +85,7 @@ export class EditorBlocksApiV2 {
   }
 }
 
-export class EditorHandleV2 {
+export class EditorHandle {
   #runtime
   #view
   #blocks
