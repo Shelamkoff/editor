@@ -177,6 +177,13 @@ const removedRuntimeSymbols = [
   'BlockToolbarV2',
   'DragControllerV2',
   'InlineToolbarV2',
+  'notifyChanged',
+  'rootElement',
+  'contentElement',
+  'getData(element)',
+  'hydrate(element',
+  'ParagraphData.align',
+  'HeadingData.align',
 ]
 const removedSymbolSources = sourceFilesUnder('core').concat(sourceFilesUnder('plugins'), sourceFilesUnder('inline-plugins'))
 for (const symbol of removedRuntimeSymbols) {
