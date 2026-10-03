@@ -20,14 +20,6 @@ export class LifecycleScope {
     this.#onError = typeof onError === 'function' ? onError : null
   }
 
-  /** @type {((error: unknown) => void) | null} */
-  #onError
-
-  /** @param {(error: unknown) => void} [onError] */
-  constructor(onError) {
-    this.#onError = typeof onError === 'function' ? onError : null
-  }
-
   /**
    * @template T
    * @param {T & { destroy(): void }} resource
