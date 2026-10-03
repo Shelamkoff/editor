@@ -118,147 +118,174 @@ export class ClipboardController {
     ))) this.#task.abort()
   }
 
+  #writeCanonicalClipboard(data,fragment,{html='',text=''}={}){
+    const encoded=encodeClipboardFragment(fragment)
+    try{
+      data.setData('text/plain',String(text??''))
+      if(html)data.setData('text/html',String(html))
+      data.setData(CLIPBOARD_FRAGMENT_MIME,encoded)
+      return data.getData(CLIPBOARD_FRAGMENT_MIME)===encoded
+    }catch{
+      return false
+    }
+  }
+
   #onCopy(event) {
     if (event.defaultPrevented || !event.clipboardData) return
     const ownerDocument = this.#root.ownerDocument
 
     if (this.#crossSelection?.active) {
-      event.preventDefault()
       const whole = this.#crossSelection.wholeBlockIds
       if (whole.length) {
         const records = whole.map(id => this.#runtime.get(id)).filter(Boolean)
         const html = []
         const plain = []
         for (const id of whole) {
-          const fragment = clipboardHtmlFromShell(this.#reconciler.getElement(id), ownerDocument)
-          if (!fragment) continue
-          html.push(fragment)
+          const projection = clipboardHtmlFromShell(this.#reconciler.getElement(id), ownerDocument)
+          if (!projection) continue
+          html.push(projection)
           const template = ownerDocument.createElement('template')
-          template.innerHTML = /** @type {any} */ (toTrustedHtml(fragment, ownerDocument))
+          template.innerHTML = /** @type {any} */ (toTrustedHtml(projection, ownerDocument))
           plain.push(template.content.textContent ?? '')
         }
         const fragment = createClipboardFragment(records.map(record => ({
           kind: 'block',
           block: transferBlockFromRecord(record),
         })))
-        event.clipboardData.setData('text/html', html.join(''))
-        event.clipboardData.setData('text/plain', plain.join('\n'))
-        event.clipboardData.setData(CLIPBOARD_FRAGMENT_MIME, encodeClipboardFragment(fragment))
+        if(!this.#writeCanonicalClipboard(event.clipboardData,fragment,{
+          html:html.join(''),
+          text:plain.join('\n'),
+        }))return
+        event.preventDefault()
         return
       }
 
-      const parts = this.#runtime.exportLogicalClipboardParts(this.#crossSelection.bookmark)
-      if (!parts) return
-      const fragment = createClipboardFragment(parts.map(part => part.kind === 'block'
-        ? { kind: 'block', block: transferBlockFromRecord(part.block) }
-        : { kind: 'rich-text', html: part.html, inline: part.inline }))
-      event.clipboardData.setData(CLIPBOARD_FRAGMENT_MIME, encodeClipboardFragment(fragment))
-      event.clipboardData.setData('text/plain', this.#crossSelection.text())
-      const range = this.#crossSelection.range
-      if (range) {
-        const container = ownerDocument.createElement('div')
+      const plan=this.#runtime.prepareLogicalClipboardSlice(this.#crossSelection.bookmark)
+      if(!plan)return
+      const fragment=createClipboardFragment(plan.parts.map(part=>part.kind==='block'
+        ?{kind:'block',block:transferBlockFromRecord(part.block)}
+        :{kind:'rich-text',html:part.html,inline:part.inline}))
+      const range=this.#crossSelection.range
+      let html=''
+      if(range){
+        const container=ownerDocument.createElement('div')
         container.appendChild(range.cloneContents())
         stripClipboardProjection(container)
-        event.clipboardData.setData('text/html', container.innerHTML)
+        html=container.innerHTML
       }
+      if(!this.#writeCanonicalClipboard(event.clipboardData,fragment,{
+        html,
+        text:this.#crossSelection.text(),
+      }))return
+      event.preventDefault()
       return
     }
 
     const owner = this.#reconciler.resolveEditableTarget(event.target)
     if (!owner || owner.mode !== 'rich-text') return
-    const range = selectionRange(this.#selection.capture(), owner)
+    const bookmark=this.#selection.capture()
+    const range = selectionRange(bookmark, owner)
     if (!range || range.start === range.end) return
-
-    let fragment
-    try {
-      fragment = this.#runtime.exportRichTextFragment(
-        owner.blockId, owner.fieldKey, range,
-      )
-    } catch {
-      return
-    }
+    const plan=this.#runtime.prepareLogicalClipboardSlice(bookmark)
+    if(!plan)return
+    const fragment=createClipboardFragment(plan.parts.map(part=>part.kind==='block'
+      ?{kind:'block',block:transferBlockFromRecord(part.block)}
+      :{kind:'rich-text',html:part.html,inline:part.inline}))
+    const first=fragment.parts[0]
+    const html=first?.kind==='rich-text'?first.html:''
+    const template=ownerDocument.createElement('template')
+    template.innerHTML=/** @type {any} */(toTrustedHtml(html,ownerDocument))
+    if(!this.#writeCanonicalClipboard(event.clipboardData,fragment,{
+      html,
+      text:template.content.textContent??'',
+    }))return
     event.preventDefault()
-    const privateFragment = createClipboardFragment([{
-      kind: 'rich-text',
-      html: fragment.html,
-      inline: fragment.inline,
-    }])
-    const template = ownerDocument.createElement('template')
-    template.innerHTML = /** @type {any} */ (toTrustedHtml(fragment.html, ownerDocument))
-    event.clipboardData.setData('text/html', fragment.html)
-    event.clipboardData.setData('text/plain', template.content.textContent ?? '')
-    event.clipboardData.setData(CLIPBOARD_FRAGMENT_MIME, encodeClipboardFragment(privateFragment))
   }
 
   #onCut(event) {
     if (this.#runtime.readOnly || event.defaultPrevented || !event.clipboardData) return
+    const ownerDocument=this.#root.ownerDocument
 
     if (this.#crossSelection?.active) {
       const whole = this.#crossSelection.wholeBlockIds
-      let fragment
       if (whole.length) {
         const records = whole.map(id => this.#runtime.get(id)).filter(Boolean)
-        fragment = createClipboardFragment(records.map(record => ({
-          kind: 'block',
-          block: transferBlockFromRecord(record),
-        })))
-      } else {
-        const parts = this.#runtime.exportLogicalClipboardParts(this.#crossSelection.bookmark)
-        if (!parts) {
-          event.preventDefault()
-          return
+        const html=[]
+        const plain=[]
+        for(const id of whole){
+          const projection=clipboardHtmlFromShell(this.#reconciler.getElement(id),ownerDocument)
+          if(!projection)continue
+          html.push(projection)
+          const template=ownerDocument.createElement('template')
+          template.innerHTML=/** @type {any} */(toTrustedHtml(projection,ownerDocument))
+          plain.push(template.content.textContent??'')
         }
-        fragment = createClipboardFragment(parts.map(part => part.kind === 'block'
-          ? { kind: 'block', block: transferBlockFromRecord(part.block) }
-          : { kind: 'rich-text', html: part.html, inline: part.inline }))
+        const fragment=createClipboardFragment(records.map(record=>({
+          kind:'block',
+          block:transferBlockFromRecord(record),
+        })))
+        if(!this.#writeCanonicalClipboard(event.clipboardData,fragment,{
+          html:html.join(''),
+          text:plain.join('\n'),
+        }))return
+        event.preventDefault()
+        this.#crossSelection.removeWholeBlocks()
+        return
       }
 
-      event.preventDefault()
-      event.clipboardData.setData(CLIPBOARD_FRAGMENT_MIME, encodeClipboardFragment(fragment))
-      event.clipboardData.setData('text/plain', this.#crossSelection.text())
-      const range = this.#crossSelection.range
-      if (range) {
-        const container = this.#root.ownerDocument.createElement('div')
+      const plan=this.#runtime.prepareLogicalClipboardSlice(this.#crossSelection.bookmark)
+      if(!plan)return
+      const fragment=createClipboardFragment(plan.parts.map(part=>part.kind==='block'
+        ?{kind:'block',block:transferBlockFromRecord(part.block)}
+        :{kind:'rich-text',html:part.html,inline:part.inline}))
+      const range=this.#crossSelection.range
+      let html=''
+      if(range){
+        const container=ownerDocument.createElement('div')
         container.appendChild(range.cloneContents())
         stripClipboardProjection(container)
-        event.clipboardData.setData('text/html', container.innerHTML)
+        html=container.innerHTML
       }
-      if (whole.length) this.#crossSelection.removeWholeBlocks()
-      else this.#crossSelection.replace({ kind: 'text', text: '' })
+      if(!this.#writeCanonicalClipboard(event.clipboardData,fragment,{
+        html,
+        text:this.#crossSelection.text(),
+      }))return
+      event.preventDefault()
+      const result=this.#runtime.applyPreparedClipboardCut(plan)
+      this.#crossSelection.clear()
+      this.#view.reconcileInteraction()
+      if(result?.blockId){
+        this.#view.setCurrent(result.blockId)
+        queueMicrotask(()=>this.#view.focus(result.blockId,result.focus??{offset:'start'}))
+      }
       return
     }
 
     const owner = this.#reconciler.resolveEditableTarget(event.target)
     if (!owner || owner.mode !== 'rich-text') return
-    const range = selectionRange(this.#selection.capture(), owner)
+    const bookmark=this.#selection.capture()
+    const range = selectionRange(bookmark, owner)
     if (!range || range.start === range.end) return
-    let fragment
-    try {
-      fragment = this.#runtime.exportRichTextFragment(
-        owner.blockId, owner.fieldKey, range,
-      )
-    } catch {
-      return
-    }
-
+    const plan=this.#runtime.prepareLogicalClipboardSlice(bookmark)
+    if(!plan)return
+    const fragment=createClipboardFragment(plan.parts.map(part=>part.kind==='block'
+      ?{kind:'block',block:transferBlockFromRecord(part.block)}
+      :{kind:'rich-text',html:part.html,inline:part.inline}))
+    const first=fragment.parts[0]
+    const html=first?.kind==='rich-text'?first.html:''
+    const template=ownerDocument.createElement('template')
+    template.innerHTML=/** @type {any} */(toTrustedHtml(html,ownerDocument))
+    if(!this.#writeCanonicalClipboard(event.clipboardData,fragment,{
+      html,
+      text:template.content.textContent??'',
+    }))return
     event.preventDefault()
-    const privateFragment = createClipboardFragment([{
-      kind: 'rich-text',
-      html: fragment.html,
-      inline: fragment.inline,
-    }])
-    const template = this.#root.ownerDocument.createElement('template')
-    template.innerHTML = /** @type {any} */ (toTrustedHtml(fragment.html, this.#root.ownerDocument))
-    event.clipboardData.setData('text/html', fragment.html)
-    event.clipboardData.setData('text/plain', template.content.textContent ?? '')
-    event.clipboardData.setData(CLIPBOARD_FRAGMENT_MIME, encodeClipboardFragment(privateFragment))
-    this.#runtime.replaceRichText(
-      owner.blockId,
-      owner.fieldKey,
-      range,
-      { kind: 'text', text: '' },
-    )
+    const result=this.#runtime.applyPreparedClipboardCut(plan)
     this.#view.reconcileInteraction()
+    if(result?.blockId){
+      this.#view.setCurrent(result.blockId)
+      queueMicrotask(()=>this.#view.focus(result.blockId,result.focus??{offset:'start'}))
+    }
   }
 
   #onPaste(event) {
