@@ -216,8 +216,16 @@ function makeEditor(sandbox, definitions, data, options = {}) {
   return { holder, editor }
 }
 
+const CURRENT_DATA_VERSION=Object.freeze({
+  paragraph:2,heading:2,list:2,quote:1,code:1,image:1,delimiter:1,table:2,checklist:2,
+  warning:1,embed:1,raw:1,gallery:2,carousel:1,attaches:2,linkPreview:1,toggle:1,
+  columns:2,spoiler:1,poll:1,person:2,
+})
+
 function oneBlock(type, data, id = type) {
-  return { version: '2.0.0', blocks: [{ id, type, data }] }
+  const dataVersion=CURRENT_DATA_VERSION[type]
+  if(!dataVersion)throw new Error(`Missing current dataVersion for ${type}`)
+  return { version: '2.0.0', blocks: [{ id, type, dataVersion, data }] }
 }
 
 async function run() {
@@ -233,6 +241,7 @@ async function run() {
     const blocks = definitions.map((definition, index) => ({
       id: `${definition.type}-${cycle}-${index}`,
       type: definition.type,
+      dataVersion: definition.schema.currentVersion,
       data: definition.schema.createDefault(),
     }))
     const { holder, editor } = makeEditor(sandbox, definitions, { version: '2.0.0', blocks }, {
@@ -451,8 +460,9 @@ async function run() {
       blocks: [{
         id: 'color',
         type: 'paragraph',
+        dataVersion: 2,
         data: { text: 'Color {{swatch}}' },
-        inline: { swatch: { type: 'color', data: { value: '#123456' } } },
+        inline: { swatch: { type: 'color', dataVersion: 1, data: { value: '#123456' } } },
       }],
     },
     { inlinePlugins: [createColorSwatchPlugin()], injectStyles: true },
@@ -481,7 +491,7 @@ async function run() {
     sandbox,
     [createPersonPlugin({ injectStyles: false })],
     oneBlock('person', {
-      persons: [{ avatar: '', name: 'Ada', role: '', bio: '', links: [] }],
+      persons: [{ id: 'person-ada', avatar: '', name: 'Ada', role: '', bio: '', links: [] }],
     }, 'person-cropper'),
     { defaultBlock: 'person' },
   )
@@ -515,11 +525,12 @@ async function run() {
     blocks: [{
       id: 'people',
       type: 'person',
+      dataVersion: 2,
       data: {
         persons: [
-          { name: 'Ada', role: 'Engineer', links: [] },
-          { name: 'Grace', role: 'Scientist', links: [] },
-          { name: 'Linus', role: 'Engineer', links: [] },
+          { id: 'person-ada', name: 'Ada', role: 'Engineer', links: [] },
+          { id: 'person-grace', name: 'Grace', role: 'Scientist', links: [] },
+          { id: 'person-linus', name: 'Linus', role: 'Engineer', links: [] },
         ],
       },
     }],
@@ -543,10 +554,11 @@ async function run() {
     blocks: [{
       id: 'gallery-lightbox',
       type: 'gallery',
+      dataVersion: 2,
       data: {
         images: [
-          { url: pixel, caption: 'First' },
-          { url: pixel, caption: 'Second' },
+          { id: 'gallery-first', url: pixel, caption: 'First' },
+          { id: 'gallery-second', url: pixel, caption: 'Second' },
         ],
         layout: 'masonry',
         styles: { gap: '8px' },
