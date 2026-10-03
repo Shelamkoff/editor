@@ -138,13 +138,13 @@ for (const plugin of ['image', 'gallery', 'carousel', 'embed', 'attaches']) {
 
 const editorApiGuide = await readFile(join(docsRoot, 'guide', 'editor-api.md'), 'utf8')
 for (const member of [
-  'save()', 'render(data)', 'clear()', 'focus()',
-  'insertInlinePlugin(type, data?)', 'destroy()', 'isReady', 'blocks', 'events',
-  'rootElement', 'uid()', 'sanitizeHtml', 'escapeHtml', 'DocumentSchema',
-  'InlinePluginRegistry', 'createDefaultInlineTools', 'createColorSwatchPlugin',
-  'createMentionPlugin',
+  'save()', 'render(document', 'clear()', 'undo()', 'redo()', 'focus()',
+  'setReadOnly(', 'insertInlinePlugin(', 'on(', 'destroy()', 'blocks',
 ]) {
   assert(editorApiGuide.includes(member), `Editor API guide does not document IEditor.${member}`)
+}
+for (const utility of ['uid()', 'sanitizeHtml', 'escapeHtml', 'DocumentSchema']) {
+  assert(editorApiGuide.includes(utility) || configurationGuide.includes(utility) || (await readFile(join(root, 'README.md'), 'utf8')).includes(utility), `Public utility is not documented: ${utility}`)
 }
 
 const renderingGuide = await readFile(join(docsRoot, 'guide', 'rendering.md'), 'utf8')
