@@ -12,6 +12,14 @@ export class LifecycleScope {
   /** @type {boolean} */
   #destroyed = false
 
+  /** @type {((error: unknown) => void) | null} */
+  #onError
+
+  /** @param {(error: unknown) => void} [onError] */
+  constructor(onError) {
+    this.#onError = typeof onError === 'function' ? onError : null
+  }
+
   /**
    * @template T
    * @param {T & { destroy(): void }} resource
@@ -33,7 +41,8 @@ export class LifecycleScope {
       try {
         this.#resources[index]?.destroy()
       } catch (error) {
-        console.warn('[LifecycleScope] Failed to destroy a resource:', error)
+        if (this.#onError) this.#onError(error)
+        else console.warn('[LifecycleScope] Failed to destroy a resource:', error)
       }
     }
     this.#resources = []
