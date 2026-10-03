@@ -26,10 +26,12 @@
   <script type="module">
     import { createEditor } from '../../core/index.js'
     import { createParagraphPlugin } from '../../plugins/paragraph/index.js'
+    import { createDefaultInlineTools } from '../../preset/index.js'
 
     createEditor({
       holder: document.querySelector('#editor'),
       plugins: [createParagraphPlugin()],
+      inlineTools: createDefaultInlineTools({ types: ['bold', 'italic'] }),
       theme: 'dark',
       autofocus: true,
       minHeight: 350,
