@@ -59,6 +59,7 @@ export class DocumentRuntime {
   #destroyed = false
   #requestSplit
   #requestExit
+  #diagnostics
 
   /**
    * Create the canonical v2 document runtime.
@@ -79,6 +80,7 @@ export class DocumentRuntime {
    *   }) => any,
    *   selection?: any,
    *   onCommit?: (event: any) => void,
+   *   diagnostics?: import('./Diagnostics').Diagnostics,
    *   onDiagnostic?: (error: unknown) => void,
    *   onValidationError?: (issue: any) => void,
    *   richTextNormalizer?: (html: string) => string,
@@ -101,6 +103,7 @@ export class DocumentRuntime {
       : null
     this.#requestSplit = typeof options.requestSplit === 'function' ? options.requestSplit : null
     this.#requestExit = typeof options.requestExit === 'function' ? options.requestExit : null
+    this.#diagnostics = options.diagnostics ?? null
     this.#richTextNormalizer = typeof options.richTextNormalizer === 'function'
       ? options.richTextNormalizer
       : (this.#ownerDocument
@@ -111,6 +114,7 @@ export class DocumentRuntime {
       currentVersion: EDITOR_VERSION,
       versionPolicy: options.documentVersionPolicy ?? 'preserve',
       migrations: options.migrations ?? [],
+      diagnostics: this.#diagnostics ?? undefined,
     })
 
     const initial = this.#ingest(options.data ?? { version: EDITOR_VERSION, blocks: [] })
@@ -135,6 +139,7 @@ export class DocumentRuntime {
       projector: this.#projector ?? undefined,
       selection: options.selection,
       onCommit: options.onCommit,
+      diagnostics: this.#diagnostics ?? undefined,
       onDiagnostic: options.onDiagnostic,
     })
 
@@ -177,13 +182,28 @@ export class DocumentRuntime {
   }
 
   save() {
-    const document = this.#store.export()
-    if (this.#documentMode === 'preserved') {
-      if (this.#preservedTime !== undefined) document.time = this.#preservedTime
+    const startedAt = this.#diagnostics?.enabled ? this.#diagnostics.now() : 0
+    try {
+      const document = this.#store.export()
+      if (this.#documentMode === 'preserved') {
+        if (this.#preservedTime !== undefined) document.time = this.#preservedTime
+        return document
+      }
+      document.time = Date.now()
       return document
+    } catch (error) {
+      this.#diagnostics?.emit('save.failed', {
+        errorName: this.#diagnostics.errorName(error),
+      })
+      throw error
+    } finally {
+      if (startedAt && this.#diagnostics) {
+        const durationMs = this.#diagnostics.now() - startedAt
+        if (durationMs >= this.#diagnostics.threshold('saveMs')) {
+          this.#diagnostics.emit('save.slow', { durationMs })
+        }
+      }
     }
-    document.time = Date.now()
-    return document
   }
 
   insert(type, data, index = this.#store.ids().length, options = {}) {
@@ -687,20 +707,30 @@ export class DocumentRuntime {
   }
 
   render(input) {
-    const next = this.#ingest(input)
-    const crossingMode = next.mode !== this.#documentMode
-    if (crossingMode || this.#documentMode === 'preserved' || next.mode === 'preserved') {
-      this.#engine.reset(next.document)
-      this.#documentMode = next.mode
-      this.#preservedTime = next.time
-      this.#projector?.setReadOnly?.(this.readOnly)
-      return
-    }
+    const startedAt = this.#diagnostics?.enabled ? this.#diagnostics.now() : 0
+    try {
+      const next = this.#ingest(input)
+      const crossingMode = next.mode !== this.#documentMode
+      if (crossingMode || this.#documentMode === 'preserved' || next.mode === 'preserved') {
+        this.#engine.reset(next.document)
+        this.#documentMode = next.mode
+        this.#preservedTime = next.time
+        this.#projector?.setReadOnly?.(this.readOnly)
+        return
+      }
 
-    this.#engine.execute({ origin: 'external', name: 'document.render' }, tx => {
-      tx.replace(next.document)
-    })
-    this.#preservedTime = undefined
+      this.#engine.execute({ origin: 'external', name: 'document.render' }, tx => {
+        tx.replace(next.document)
+      })
+      this.#preservedTime = undefined
+    } finally {
+      if (startedAt && this.#diagnostics) {
+        const durationMs = this.#diagnostics.now() - startedAt
+        if (durationMs >= this.#diagnostics.threshold('renderMs')) {
+          this.#diagnostics.emit('render.slow', { durationMs })
+        }
+      }
+    }
   }
 
   setReadOnly(value) {
