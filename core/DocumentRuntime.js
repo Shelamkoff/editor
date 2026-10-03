@@ -449,14 +449,16 @@ export class DocumentRuntime {
     this.#engine.execute({ origin: 'external', name: 'block.remove' }, tx => {
       tx.remove(id)
       if (ids.length === 1) {
-        const definition = this.#registry.getBlockDefinition(this.#registry.defaultBlockType)
-        const encoded = this.#normalizeLocalData(definition, definition.schema.createDefault())
-        tx.insert(0, {
-          id: this.#createUniqueBlockId(this.#registry.defaultBlockType),
-          type: this.#registry.defaultBlockType,
-          dataVersion: encoded.dataVersion,
-          data: encoded.data,
-        })
+        const type = this.#registry.defaultBlockType
+        const definition = this.#registry.getBlockDefinition(type)
+        tx.insert(0, this.#recordFromData(
+          this.#createUniqueBlockId(type),
+          type,
+          definition,
+          definition.schema.createDefault(),
+          undefined,
+          undefined,
+        ))
       }
     })
   }
@@ -472,14 +474,16 @@ export class DocumentRuntime {
 
     let fallback = null
     if (removals.length === ids.length) {
-      const definition = this.#registry.getBlockDefinition(this.#registry.defaultBlockType)
-      const encoded = this.#normalizeLocalData(definition, definition.schema.createDefault())
-      fallback = {
-        id: this.#createUniqueBlockId(this.#registry.defaultBlockType),
-        type: this.#registry.defaultBlockType,
-        dataVersion: encoded.dataVersion,
-        data: encoded.data,
-      }
+      const type = this.#registry.defaultBlockType
+      const definition = this.#registry.getBlockDefinition(type)
+      fallback = this.#recordFromData(
+        this.#createUniqueBlockId(type),
+        type,
+        definition,
+        definition.schema.createDefault(),
+        undefined,
+        undefined,
+      )
     }
 
     this.#engine.execute({ origin: 'user', name: 'blocks.remove' }, tx => {
@@ -597,16 +601,18 @@ export class DocumentRuntime {
 
   clear() {
     this.#assertWritable()
-    const definition = this.#registry.getBlockDefinition(this.#registry.defaultBlockType)
-    const encoded = this.#normalizeLocalData(definition, definition.schema.createDefault())
+    const type = this.#registry.defaultBlockType
+    const definition = this.#registry.getBlockDefinition(type)
     const document = {
       version: DOCUMENT_FORMAT_VERSION,
-      blocks: [{
-        id: this.#createUniqueBlockId(this.#registry.defaultBlockType),
-        type: this.#registry.defaultBlockType,
-        dataVersion: encoded.dataVersion,
-        data: encoded.data,
-      }],
+      blocks: [this.#recordFromData(
+        this.#createUniqueBlockId(type),
+        type,
+        definition,
+        definition.schema.createDefault(),
+        undefined,
+        undefined,
+      )],
     }
     this.#engine.execute({ origin: 'external', name: 'document.clear' }, tx => {
       tx.replace(document)
@@ -1221,15 +1227,17 @@ export class DocumentRuntime {
   }
 
   #createNewDocument() {
-    const definition=this.#registry.getBlockDefinition(this.#registry.defaultBlockType)
-    if(!definition)throw new Error(`Unknown default block type: ${this.#registry.defaultBlockType}`)
-    const encoded=this.#normalizeLocalData(definition,definition.schema.createDefault())
-    return {version:DOCUMENT_FORMAT_VERSION,blocks:[{
-      id:this.#createUniqueBlockId(this.#registry.defaultBlockType),
-      type:this.#registry.defaultBlockType,
-      dataVersion:encoded.dataVersion,
-      data:encoded.data,
-    }]}
+    const type=this.#registry.defaultBlockType
+    const definition=this.#registry.getBlockDefinition(type)
+    if(!definition)throw new Error(`Unknown default block type: ${type}`)
+    return {version:DOCUMENT_FORMAT_VERSION,blocks:[this.#recordFromData(
+      this.#createUniqueBlockId(type),
+      type,
+      definition,
+      definition.schema.createDefault(),
+      undefined,
+      undefined,
+    )]}
   }
 
   #ingest(input) {
@@ -1695,16 +1703,12 @@ export class DocumentRuntime {
   }
 
   #createUniqueInlineId(blockDefinition, data, inline) {
-    const reserved = new Set(Object.keys(inline))
-    if (typeof blockDefinition.schema.mapRichText === 'function') {
-      const owned = cloneEditorData(data)
-      blockDefinition.schema.mapRichText(owned, html => {
-        for (const match of String(html ?? '').matchAll(/\{\{([A-Za-z0-9_-]+)\}\}/g)) {
-          reserved.add(match[1])
-        }
-        return html
-      })
-    }
+    const scan=this.#scanBlockRichText(blockDefinition,data,inline)
+    const reserved=new Set([
+      ...Object.keys(inline),
+      ...scan.references,
+      ...scan.literals,
+    ])
     return this.#allocateId('inline',reserved)
   }
 
