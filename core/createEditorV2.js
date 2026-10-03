@@ -28,7 +28,6 @@ import { BlockToolbarV2 } from './BlockToolbarV2.js'
 import { ClipboardControllerV2 } from './ClipboardControllerV2.js'
 import { DragControllerV2 } from './DragControllerV2.js'
 import { InlineToolbarV2 } from './InlineToolbarV2.js'
-import { createDefaultInlineTools } from '../inline-tools/defaults.js'
 
 const CORE_STYLE_URLS=Object.freeze([
   new URL('./themes/variables.css',import.meta.url).href,
@@ -117,10 +116,7 @@ function snapshotEditorConfig(input){
 }
 
 /**
- * Pure v2 composition root.
- *
- * This factory intentionally imports none of the legacy BlockManager/Block/
- * UndoManager/CommandDispatcher/InlinePluginRegistry stack.
+ * Editor composition root for the canonical document runtime.
  *
  * @param {{
  *   holder: HTMLElement,
@@ -170,7 +166,7 @@ export function createEditorV2(input){
 
   const events=new EventBus()
   const i18n=initI18n(config)
-  const configuredInlineTools=config.inlineTools??createDefaultInlineTools({i18n})
+  const configuredInlineTools=config.inlineTools??[]
   let runtime
   let reconciler
   let logicalSelection
