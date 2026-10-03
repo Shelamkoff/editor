@@ -249,7 +249,7 @@ async function run() {
   })
   editable(failedCutHarness, 0).dispatchEvent(failedCutEvent)
   await delay()
-  assert(!failedCutEvent.defaultPrevented, 'failed clipboard write claimed Cut')
+  assert(failedCutEvent.defaultPrevented, 'failed clipboard write did not fail closed')
   assert(
     JSON.stringify(failedCutHarness.editor.save()) === failedCutBefore,
     'failed clipboard write deleted source selection',
