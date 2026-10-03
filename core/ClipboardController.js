@@ -158,6 +158,26 @@ export class ClipboardController {
 
   #onPaste(event) {
     if (this.#runtime.readOnly || event.defaultPrevented) return
+    const startedAt = this.#diagnostics?.enabled ? this.#diagnostics.now() : 0
+    try {
+      return this.#applyPaste(event)
+    } catch (error) {
+      this.#diagnostics?.emit('paste.failed', {
+        operation: 'clipboard.paste',
+        errorName: this.#diagnostics.errorName(error),
+      })
+      throw error
+    } finally {
+      if (startedAt && this.#diagnostics && !this.#task) {
+        const durationMs = this.#diagnostics.now() - startedAt
+        if (durationMs >= this.#diagnostics.threshold('pasteMs')) {
+          this.#diagnostics.emit('paste.slow', { operation: 'clipboard.paste', durationMs })
+        }
+      }
+    }
+  }
+
+  #applyPaste(event) {
     if (this.#crossSelection?.active) {
       const data = event.clipboardData
       if (!data) return
@@ -242,7 +262,12 @@ export class ClipboardController {
           queueMicrotask(() => this.#view.focus(last, { offset: 'end' }))
         }
         return
-      } catch {}
+      } catch (error) {
+        this.#diagnostics?.emit('paste.failed', {
+          operation: 'clipboard.html-blocks',
+          errorName: this.#diagnostics.errorName(error),
+        })
+      }
     }
     const input = html
       ? { kind: /** @type {'html'} */ ('html'), html }
@@ -354,7 +379,12 @@ export class ClipboardController {
       if (!paste) continue
       try {
         if (paste.accepts(input)) return { type, definition, paste }
-      } catch {}
+      } catch (error) {
+        this.#diagnostics?.emit('paste.failed', {
+          operation: `clipboard.accepts:${type}`,
+          errorName: this.#diagnostics.errorName(error),
+        })
+      }
     }
     return null
   }
