@@ -1,5 +1,5 @@
 import { setTrustedHtml } from '../shared/sanitize/sanitizeHtml.js'
-import { el } from '../core/dom.js'
+import { el } from '../shared/editorDom.js'
 import { sanitizeUrl } from '../shared/sanitize/sanitizeUrl.js'
 import {
   createSelectionPortBinding,
