@@ -133,6 +133,10 @@ async function run() {
     assert(typeof aggregateRenderers?.[rendererName] === 'function', `${folder} aggregate renderer lost ${rendererName}`)
 
     const renderer = rendererModule[rendererName]('editor', {})
+    assert(renderer?.schema && typeof renderer.schema.decode === 'function',
+      `${folder} renderer did not expose its canonical block schema`)
+    assert(renderer.schema === definition.schema,
+      `${folder} editor and renderer do not share the same schema object`)
     assert(Array.isArray(renderer.styles), `${folder} renderer styles metadata must be an array`)
     for (const stylesheet of renderer.styles) {
       assert(typeof stylesheet === 'string' && stylesheet.length > 0, `${folder} renderer declared an invalid stylesheet URL`)
