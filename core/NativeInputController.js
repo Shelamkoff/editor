@@ -178,6 +178,7 @@ export class NativeInputController {
       return target === owner.element || owner.element.contains?.(target) ? owner : null
     }
     if (owner.mode !== 'rich-text') return null
+    if (typeof target.closest !== 'function') return owner
     return editingHostForEvent(this.#root, target) === owner.element ? owner : null
   }
 
