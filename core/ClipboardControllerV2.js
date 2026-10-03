@@ -49,7 +49,7 @@ function selectionRange(bookmark, owner) {
   }
 }
 
-export class ClipboardControllerV2 {
+export class ClipboardController {
   #root
   #runtime
   #registry
