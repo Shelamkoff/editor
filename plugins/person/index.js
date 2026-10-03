@@ -1,5 +1,6 @@
 // @ts-check
-import { setSanitizedHtml, setTrustedHtml } from '../../plugin-kit/index.js'
+import { setSanitizedHtml } from '../../plugin-kit/index.js'
+import { setTrustedHtml } from '../../shared/sanitize/sanitizeHtml.js'
 import { personDataSchema } from '../../shared/blockSchemas/person.js'
 import { sanitizeUrl, setSafeUrlAttribute } from '../../shared/sanitize/sanitizeUrl.js'
 import { requiresTrustedHtml } from '../../shared/sanitize/trustedHtml.js'
