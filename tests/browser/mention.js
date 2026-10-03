@@ -1,4 +1,5 @@
-import { createColorSwatchPlugin, createEditor } from '../../core/index.js'
+import { createEditor } from '../../core/index.js'
+import { createColorSwatchPlugin } from '../../inline-plugins/color.js'
 import { createMentionPlugin, createMentionRenderer } from '../../inline-plugins/mention/index.js'
 import { createParagraphPlugin } from '../../plugins/paragraph/index.js'
 import { EditorRenderer } from '../../renderer/index.js'
