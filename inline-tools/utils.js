@@ -709,16 +709,18 @@ export function getSelectedBlockElements(cbs, rangeHint = null) {
  * @param {string} icon
  * @param {string} tag
  * @param {string} [shortcut]
- * @param {import('./types').CrossEditableSelectionPort} [cbs]
  * @returns {import('./types').InlineTool}
  */
-export function createSimpleInlineTool(type, title, icon, tag, shortcut, cbs) {
+export function createSimpleInlineTool(type, title, icon, tag, shortcut) {
+  const selection = createSelectionPortBinding()
+  const cbs = selection.port
   return {
     type,
     title,
     icon,
     tag,
     shortcut,
+    bindSelectionPort: selection.bind,
 
     isActive(selection) {
       const range = selection?.range
