@@ -517,6 +517,7 @@ export class BlockReconciler {
     if (!definition || !runtime) throw new Error(`Missing runtime for block type: ${record.type}`)
     const AbortControllerCtor = ownerDocument.defaultView?.AbortController ?? globalThis.AbortController
     const controller = new AbortControllerCtor()
+    let sourceInstance = null
     let instance = null
     let element = null
 
@@ -531,7 +532,7 @@ export class BlockReconciler {
           ? base.isReadOnly
           : () => this.#readOnly,
       })
-      const sourceInstance = runtime.create(record.data, context)
+      sourceInstance = runtime.create(record.data, context)
       instance = snapshotBlockInstance(sourceInstance, record.type)
       element = ownerDocument.createElement('div')
       element.className = 'oe-block'
@@ -569,7 +570,10 @@ export class BlockReconciler {
     } catch (error) {
       try { scope.revoke() } catch {}
       try { controller.abort() } catch {}
-      try { instance?.destroy?.() } catch {}
+      try {
+        if (instance) instance.destroy()
+        else if (typeof sourceInstance?.destroy === 'function') sourceInstance.destroy()
+      } catch {}
       try { element?.remove?.() } catch {}
       throw error
     }
