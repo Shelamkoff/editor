@@ -212,6 +212,11 @@ function snapshotCapabilities(source, label) {
       ['matchesRoot', false], ['importRoot', false],
     ])
   }
+  if (candidate.clipboard !== undefined) {
+    result.clipboard = snapshotCapabilityObject(
+      candidate.clipboard, `${label} clipboard`, [['slice', false]],
+    )
+  }
   if (candidate.selectionSlice !== undefined) {
     result.selectionSlice = snapshotCapabilityObject(
       candidate.selectionSlice, `${label} selectionSlice`, [['slice', false]],
