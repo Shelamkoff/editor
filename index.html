@@ -612,7 +612,7 @@
           <!-- Tabler: arrow-back-up -->
           <div class="feat__ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14l-4-4 4-4"/><path d="M5 10h11a4 4 0 0 1 0 8h-1"/></svg></div>
           <h3 class="feat__name" data-i18n="f.5.t">Undo / Redo</h3>
-          <p class="feat__txt" data-i18n="f.5.d">Snapshot-based history with debounce. Ctrl+Z / Ctrl+Shift+Z across all operations.</p>
+          <p class="feat__txt" data-i18n="f.5.d">Operation-based history with bounded native-input coalescing. Ctrl+Z / Ctrl+Shift+Z across all operations.</p>
         </article>
         <article class="feat">
           <!-- Tabler: braces -->
@@ -684,23 +684,27 @@
 
       <div class="code-frame animation">
         <div class="code-frame__head">app.js</div>
-        <pre><code><span class="k">import</span> { createEditor, Paragraph, Heading } <span class="k">from</span> <span class="s">'rectorjs'</span>
+        <pre><code><span class="k">import</span> { createEditor } <span class="k">from</span> <span class="s">'@shelamkoff/rector'</span>
+<span class="k">import</span> { createParagraphPlugin, createHeadingPlugin } <span class="k">from</span> <span class="s">'@shelamkoff/rector/plugins'</span>
+<span class="k">import</span> { createDefaultInlineTools } <span class="k">from</span> <span class="s">'@shelamkoff/rector/preset'</span>
+<span class="k">import</span> localeEn <span class="k">from</span> <span class="s">'@shelamkoff/rector/locale/en'</span>
 
 <span class="k">const</span> editor = <span class="f">createEditor</span>({
   holder: document.<span class="f">getElementById</span>(<span class="s">'editor'</span>),
   plugins: [
-    <span class="k">new</span> <span class="f">Paragraph</span>(),
-    <span class="k">new</span> <span class="f">Heading</span>(),
+    <span class="f">createParagraphPlugin</span>(),
+    <span class="f">createHeadingPlugin</span>(),
   ],
-  locale: <span class="s">'en'</span>,
+  inlineTools: <span class="f">createDefaultInlineTools</span>(),
+  locale: localeEn,
   theme: <span class="s">'dark'</span>,
   <span class="f">onChange</span>(data) {
     console.<span class="f">log</span>(data)
   },
 })
 
-<span class="c">// Save content as JSON</span>
-<span class="k">const</span> data = <span class="k">await</span> editor.<span class="f">save</span>()</code></pre>
+<span class="c">// Save canonical content as JSON</span>
+<span class="k">const</span> data = editor.<span class="f">save</span>()</code></pre>
       </div>
     </div>
   </section>
@@ -741,27 +745,30 @@
 
   <script type="module">
     import { createEditor } from './core/index.js'
-    import { Paragraph } from './plugins/paragraph/index.js'
-    import { Heading } from './plugins/heading/index.js'
-    import { List } from './plugins/list/index.js'
-    import { Quote } from './plugins/quote/index.js'
-    import { Code } from './plugins/code/index.js'
-    import { Image } from './plugins/image/index.js'
-    import { Embed } from './plugins/embed/index.js'
-    import { Gallery } from './plugins/gallery/index.js'
-    import { CarouselBlock } from './plugins/carousel/index.js'
-    import { Checklist } from './plugins/checklist/index.js'
-    import { Warning } from './plugins/warning/index.js'
-    import { Raw } from './plugins/raw/index.js'
-    import { Poll } from './plugins/poll/index.js'
-    import { Person } from './plugins/person/index.js'
-    import { Attaches } from './plugins/attaches/index.js'
-    import { LinkPreview } from './plugins/link-preview/index.js'
-    import { Toggle } from './plugins/toggle/index.js'
-    import { Columns } from './plugins/columns/index.js'
-    import { Spoiler } from './plugins/spoiler/index.js'
-    import { Delimiter } from './plugins/delimiter/index.js'
-    import { Table } from './plugins/table/index.js'
+    import {
+      createParagraphPlugin,
+      createHeadingPlugin,
+      createListPlugin,
+      createQuotePlugin,
+      createCodePlugin,
+      createImagePlugin,
+      createEmbedPlugin,
+      createGalleryPlugin,
+      createCarouselPlugin,
+      createChecklistPlugin,
+      createWarningPlugin,
+      createRawPlugin,
+      createPollPlugin,
+      createPersonPlugin,
+      createAttachesPlugin,
+      createLinkPreviewPlugin,
+      createTogglePlugin,
+      createColumnsPlugin,
+      createSpoilerPlugin,
+      createDelimiterPlugin,
+      createTablePlugin,
+    } from './plugins/index.js'
+    import { createDefaultInlineTools } from './preset/index.js'
     import localeEn from './locale/en.js'
     import localeRu from './locale/ru.js'
 
@@ -778,7 +785,7 @@
         'f.2.t':'21+ Plugins','f.2.d':'Image, gallery, embed, code, table, checklist, quote, toggle, columns, poll. Build your own with a simple API.',
         'f.3.t':'Inline Tools','f.3.d':'Bold, italic, links, code, font size, text color, alignment — floating toolbar and keyboard shortcuts.',
         'f.4.t':'Drag & Drop','f.4.d':'Reorder blocks with smooth FLIP animations. Drag handle on every block for intuitive management.',
-        'f.5.t':'Undo / Redo','f.5.d':'Snapshot-based history with debounce. Ctrl+Z / Ctrl+Shift+Z across all operations.',
+        'f.5.t':'Undo / Redo','f.5.d':'Operation-based history with bounded native-input coalescing. Ctrl+Z / Ctrl+Shift+Z across all operations.',
         'f.6.t':'Clean JSON','f.6.d':'Structured block data. Each block stores type + data. Serialize, store, and render on any platform.',
         'f.7.t':'i18n','f.7.d':'Built-in English and Russian. Add any language with a translation dictionary.',
         'f.8.t':'Themes','f.8.d':'CSS custom properties for full theming. Dark and light modes at runtime. Build your own theme.',
@@ -793,7 +800,7 @@
         'api.render':'Replaces content with provided data.',
         'api.clear':'Clears all blocks.',
         'api.destroy':'Destroys editor, cleans up DOM.',
-        'api.events':'Subscribe to block:added, block:removed, etc.',
+        'api.events':'Subscribe to transaction:committed, document:changed, selection:changed, and other post-state events.',
         'api.blocks':'Read-only block list access.',
         'demo.preview':'Preview','demo.edit':'Edit','demo.output':'Output JSON',
         'star.title':'Support the project','star.desc':'If RectorJs is useful to you, give it a star on GitHub. It helps the project grow.','star.btn':'Star on GitHub',
@@ -809,7 +816,7 @@
         'f.2.t':'21+ плагин','f.2.d':'Изображения, галерея, видео, код, таблицы, чеклисты, цитаты, аккордеон, колонки, опросы. Создавайте свои.',
         'f.3.t':'Инлайн-инструменты','f.3.d':'Жирный, курсив, ссылки, код, размер шрифта, цвет текста, выравнивание — плавающая панель.',
         'f.4.t':'Drag & Drop','f.4.d':'Перестановка блоков с FLIP-анимацией. Ручка перетаскивания на каждом блоке.',
-        'f.5.t':'Отмена / Повтор','f.5.d':'Snapshot-история. Ctrl+Z / Ctrl+Shift+Z для всех операций.',
+        'f.5.t':'Отмена / Повтор','f.5.d':'История на основе операций с ограниченным объединением нативного ввода. Ctrl+Z / Ctrl+Shift+Z для всех операций.',
         'f.6.t':'Чистый JSON','f.6.d':'Структурированный формат. Тип + данные. Легко сериализовать, хранить и рендерить.',
         'f.7.t':'i18n','f.7.d':'Встроенные English и Русский. Добавляйте любой язык.',
         'f.8.t':'Темы','f.8.d':'CSS-переменные для темизации. Тёмная и светлая темы в рантайме.',
@@ -824,7 +831,7 @@
         'api.render':'Заменяет содержимое переданными данными.',
         'api.clear':'Очищает все блоки.',
         'api.destroy':'Уничтожает редактор, очищает DOM.',
-        'api.events':'Подписка на block:added, block:removed и др.',
+        'api.events':'Подписка на transaction:committed, document:changed, selection:changed и другие post-state события.',
         'api.blocks':'Read-only доступ к блокам.',
         'demo.preview':'Превью','demo.edit':'Редактор','demo.output':'JSON на выходе',
         'star.title':'Поддержите проект','star.desc':'Если RectorJs оказался полезен, поставьте звезду на GitHub. Это помогает проекту расти.','star.btn':'Звезда на GitHub',
@@ -892,7 +899,7 @@
     function highlightJS(code) {
       return escapeHtml(code)
         .replace(/\b(const|let|var|new|await|import|from|export)\b/g, '<span class="k">$1</span>')
-        .replace(/\b(createEditor|getElementById|Paragraph|Heading|save)\b/g, '<span class="f">$1</span>')
+        .replace(/\b(createEditor|getElementById|createParagraphPlugin|createHeadingPlugin|createDefaultInlineTools|save)\b/g, '<span class="f">$1</span>')
         .replace(/'([^']*)'/g, '\'<span class="s">$1</span>\'')
         .replace(/(\/\/.*)/g, '<span class="c">$1</span>')
     }
@@ -900,11 +907,22 @@
     /* ── Plugins grid ──────────────────────────────────────────────────── */
 
     const plugins = [
-      new Paragraph(), new Heading(), new List(), new Quote(),
-      new Code(), new Image(), new Embed(), new Gallery(), new CarouselBlock(),
-      new Checklist(), new Warning(), new Raw(), new Poll(),
-      new Person(), new Attaches(),
-      new LinkPreview({
+      createParagraphPlugin(),
+      createHeadingPlugin(),
+      createListPlugin(),
+      createQuotePlugin(),
+      createCodePlugin(),
+      createImagePlugin(),
+      createEmbedPlugin(),
+      createGalleryPlugin(),
+      createCarouselPlugin(),
+      createChecklistPlugin(),
+      createWarningPlugin(),
+      createRawPlugin(),
+      createPollPlugin(),
+      createPersonPlugin(),
+      createAttachesPlugin(),
+      createLinkPreviewPlugin({
         async fetchMeta(url) {
           try {
             const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`)
@@ -925,17 +943,20 @@
           } catch {
             return {}
           }
-        }
+        },
       }),
-      new Toggle(), new Columns(), new Spoiler(),
-      new Delimiter(), new Table(),
+      createTogglePlugin(),
+      createColumnsPlugin(),
+      createSpoilerPlugin(),
+      createDelimiterPlugin(),
+      createTablePlugin(),
     ]
 
     const grid = document.getElementById('plugGrid')
     for (const p of plugins) {
       const card = document.createElement('div')
       card.className = 'plug'
-      card.innerHTML = `<div class="plug__ico" aria-hidden="true">${p.icon}</div><div class="plug__name">${p.title || p.type}</div>`
+      card.innerHTML = `<div class="plug__ico" aria-hidden="true">${p.icon}</div><div class="plug__name">${p.label?.fallback || p.type}</div>`
       grid.appendChild(card)
     }
 
@@ -945,15 +966,17 @@
     const editor = createEditor({
       holder: document.getElementById('editorHolder'),
       plugins,
+      inlineTools: createDefaultInlineTools(),
       locale: lang === 'ru' ? localeRu : localeEn,
       theme: initialEditorTheme,
       autofocus: false,
       minHeight: 280,
       data: {
+        version: '2.0.0',
         blocks: [
-          { type: 'heading', data: { text: 'Welcome to RectorJs', level: 2 } },
-          { type: 'paragraph', data: { text: 'A <b>modern block editor</b> for the web. Hover over a block to see the <code>+</code> button and drag handle on the right.' } },
-          { type: 'paragraph', data: { text: 'Select text to see the <i>inline toolbar</i>. Press <code>/</code> in an empty block for slash commands.' } },
+          { id: 'welcome-heading', type: 'heading', dataVersion: 2, data: { text: 'Welcome to RectorJs', level: 2 } },
+          { id: 'welcome-paragraph', type: 'paragraph', dataVersion: 2, data: { text: 'A <b>modern block editor</b> for the web. Hover over a block to see the <code>+</code> button and drag handle on the right.' } },
+          { id: 'toolbar-paragraph', type: 'paragraph', dataVersion: 2, data: { text: 'Select text to see the <i>inline toolbar</i>. Press <code>/</code> in an empty block for slash commands.' } },
         ],
       },
     })
