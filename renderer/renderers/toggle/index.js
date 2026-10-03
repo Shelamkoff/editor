@@ -1,5 +1,6 @@
 import { setTrustedHtml } from '../../../shared/sanitize/sanitizeHtml.js'
 // @ts-check
+import { toggleDataSchema } from '../../../shared/blockSchemas/toggle.js'
 
 const styles = new URL('./styles.css', import.meta.url).href
 
@@ -10,11 +11,12 @@ const ICON_CHEVRON = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height=
  * Toggle (accordion) block renderer
  * @param {string} classPrefix
  * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} _locale
- * @returns {import('../../types').BlockRenderer<import('../../types').ToggleBlock>}
+ * @returns {import('../../types').BlockRendererDefinition<import('../../types').ToggleBlock>}
  */
 export function createToggleRenderer(classPrefix, _locale) {
     return {
         type: 'toggle',
+    schema: toggleDataSchema,
         styles: [styles],
 
         /**
