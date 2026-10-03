@@ -153,7 +153,7 @@ try {
     'node_modules/inherits',
     'node_modules/isarray',
     'node_modules/process-nextick-args',
-    'node_modules/string_decoder',
+    'node_modules/jszip/node_modules/string_decoder',
     'node_modules/util-deprecate',
   ]
   for (const relativeRoot of nestedRuntimePackages) {
