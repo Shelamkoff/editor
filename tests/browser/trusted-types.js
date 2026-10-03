@@ -1,4 +1,4 @@
-import { createEditor,  } from '../../core/index.js'
+import { createEditor } from '../../core/index.js'
 import { sanitizeHtml } from '../../plugin-kit/index.js'
 import { createHeadingPlugin, createParagraphPlugin, createRawPlugin } from '../../plugins/index.js'
 import { createEditorRenderer } from '../../renderer/index.js'
