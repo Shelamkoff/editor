@@ -156,11 +156,11 @@ export class DocumentRuntime {
   }
 
   get canUndo() {
-    return this.#engine.canUndo
+    return this.health === 'ready' && !this.#readOnly && this.#engine.canUndo
   }
 
   get canRedo() {
-    return this.#engine.canRedo
+    return this.health === 'ready' && !this.#readOnly && this.#engine.canRedo
   }
 
   get version() {
@@ -202,8 +202,8 @@ export class DocumentRuntime {
     }
   }
 
-  insert(type, data, index = this.#store.ids().length, options = {}) {
-    this.#assertWritable()
+  insert(type, data, index = this.#store.ids().length, options = {}, authority = 'interaction') {
+    this.#assertMutationAuthority(authority)
     const definition = this.#registry.getBlockDefinition(type)
     if (!definition) throw new Error(`Unknown block type: ${type}`)
     const id = this.#createUniqueBlockId(type)
@@ -232,7 +232,7 @@ export class DocumentRuntime {
    * @returns {string[]}
    */
   insertExternalBlocks(anchorId,inputs,options={}){
-    this.#assertWritable()
+    this.#assertInteractionMutation()
     if(!Array.isArray(inputs)||inputs.length===0)return []
     const ids=this.#store.ids()
     const anchorIndex=ids.indexOf(anchorId)
@@ -310,7 +310,7 @@ export class DocumentRuntime {
    * @returns {string | false}
    */
   splitBlock(id, fieldKey, range) {
-    this.#assertWritable()
+    this.#assertInteractionMutation()
     const current = this.#store.get(id)
     if (!current) throw new Error(`Unknown block id: ${id}`)
     if (this.activation(id)?.kind !== 'active') throw new Error(`Unregistered block cannot be split: ${id}`)
@@ -380,7 +380,7 @@ export class DocumentRuntime {
    * @returns {boolean}
    */
   mergeAdjacent(targetId, sourceId) {
-    this.#assertWritable()
+    this.#assertInteractionMutation()
     const ids = this.#store.ids()
     const targetIndex = ids.indexOf(targetId)
     const sourceIndex = ids.indexOf(sourceId)
@@ -407,8 +407,8 @@ export class DocumentRuntime {
     return true
   }
 
-  update(id, producer) {
-    this.#assertWritable()
+  update(id, producer, authority = 'interaction') {
+    this.#assertMutationAuthority(authority)
     if (typeof producer !== 'function') throw new TypeError('Block update producer must be a function')
     const current = this.#store.get(id)
     if (!current) throw new Error(`Unknown block id: ${id}`)
@@ -446,15 +446,15 @@ export class DocumentRuntime {
     })
   }
 
-  move(id, to) {
-    this.#assertWritable()
+  move(id, to, authority = 'interaction') {
+    this.#assertMutationAuthority(authority)
     this.#engine.execute({ origin: 'external', name: 'block.move' }, tx => {
       tx.move(id, to)
     })
   }
 
-  remove(id) {
-    this.#assertWritable()
+  remove(id, authority = 'interaction') {
+    this.#assertMutationAuthority(authority)
     const ids = this.#store.ids()
     if (!ids.includes(id)) throw new Error(`Unknown block id: ${id}`)
 
@@ -476,8 +476,8 @@ export class DocumentRuntime {
   }
 
 
-  removeBlocks(blockIds) {
-    this.#assertWritable()
+  removeBlocks(blockIds, authority = 'interaction') {
+    this.#assertMutationAuthority(authority)
     if (!Array.isArray(blockIds)) throw new TypeError('removeBlocks() requires an array of block ids')
     const ids = this.#store.ids()
     const requested = new Set(blockIds)
@@ -505,8 +505,8 @@ export class DocumentRuntime {
     return fallback?.id ?? true
   }
 
-  replaceBlock(id, type, data) {
-    this.#assertWritable()
+  replaceBlock(id, type, data, authority = 'interaction') {
+    this.#assertMutationAuthority(authority)
     const current = this.#store.get(id)
     if (!current) throw new Error(`Unknown block id: ${id}`)
     const definition = this.#registry.getBlockDefinition(type)
@@ -519,8 +519,8 @@ export class DocumentRuntime {
     })
   }
 
-  convert(id, target) {
-    this.#assertWritable()
+  convert(id, target, authority = 'interaction') {
+    this.#assertMutationAuthority(authority)
     const current = this.#store.get(id)
     if (!current) throw new Error(`Unknown block id: ${id}`)
     if (this.activation(id)?.kind !== 'active') {
@@ -583,7 +583,7 @@ export class DocumentRuntime {
    * @returns {{focusId:string,convertedIds:string[]}|false}
    */
   convertLogicalSelection(bookmark,target){
-    this.#assertWritable()
+    this.#assertInteractionMutation()
     const ordered=this.#orderedLogicalRange(bookmark)
     if(!ordered||!target||typeof target.type!=='string')return false
     const {start,end}=ordered
@@ -606,17 +606,17 @@ export class DocumentRuntime {
   }
 
   undo() {
-    this.#assertWritable()
+    this.#assertInteractionMutation()
     return this.#engine.undo()
   }
 
   redo() {
-    this.#assertWritable()
+    this.#assertInteractionMutation()
     return this.#engine.redo()
   }
 
   clear() {
-    this.#assertWritable()
+    this.#assertHostMutation()
     const type = this.#registry.defaultBlockType
     const definition = this.#registry.getBlockDefinition(type)
     const document = {
@@ -636,6 +636,7 @@ export class DocumentRuntime {
   }
 
   render(input) {
+    this.#assertHostMutation()
     const startedAt = this.#diagnostics ? this.#diagnostics.now() : 0
     try {
       const next = this.#ingest(input)
@@ -691,7 +692,7 @@ export class DocumentRuntime {
    * @returns {string|false}
    */
   applySlashBlockCommand(blockId, fieldKey, range, target) {
-    this.#assertWritable()
+    this.#assertInteractionMutation()
     const current = this.#store.get(blockId)
     if (!current || this.activation(blockId)?.kind !== 'active') return false
     if (!target || typeof target.type !== 'string') return false
@@ -753,7 +754,7 @@ export class DocumentRuntime {
   }
 
   replaceLogicalRange(bookmark, replacement = /** @type {{kind:'text',text:string}|{kind:'html',html:string}} */ ({ kind: 'text', text: '' })) {
-    this.#assertWritable()
+    this.#assertInteractionMutation()
     const ordered = this.#orderedLogicalRange(bookmark)
     if (!ordered) return false
     const { start, end } = ordered
@@ -857,7 +858,7 @@ export class DocumentRuntime {
   }
 
   replaceRichText(blockId, fieldKey, range, replacement) {
-    this.#assertWritable()
+    this.#assertInteractionMutation()
     const current = this.#store.get(blockId)
     if (!current) throw new Error(`Unknown block id: ${blockId}`)
     if (this.activation(blockId)?.kind !== 'active') throw new Error(`Unregistered block cannot be updated: ${blockId}`)
@@ -879,7 +880,7 @@ export class DocumentRuntime {
   }
 
   replaceRichTextWithInlineSegments(blockId, fieldKey, range, segments) {
-    this.#assertWritable()
+    this.#assertInteractionMutation()
     if (!Array.isArray(segments) || segments.length === 0) return false
     const current = this.#store.get(blockId)
     if (!current) throw new Error(`Unknown block id: ${blockId}`)
@@ -1057,7 +1058,7 @@ export class DocumentRuntime {
   }
 
   insertInlineWidget(blockId, fieldKey, range, type, data) {
-    this.#assertWritable()
+    this.#assertInteractionMutation()
     const current = this.#store.get(blockId)
     if (!current) throw new Error(`Unknown block id: ${blockId}`)
     if (this.activation(blockId)?.kind !== 'active') throw new Error(`Unregistered block cannot be updated: ${blockId}`)
@@ -1099,7 +1100,7 @@ export class DocumentRuntime {
   }
 
   updateInlineWidget(blockId, inlineId, producer) {
-    this.#assertWritable()
+    this.#assertInteractionMutation()
     if (typeof producer !== 'function') throw new TypeError('Inline widget update producer must be a function')
     const current = this.#store.get(blockId)
     if (!current) throw new Error(`Unknown block id: ${blockId}`)
@@ -1127,7 +1128,7 @@ export class DocumentRuntime {
   }
 
   replaceInlineWidgetWithText(blockId, inlineId, text = '') {
-    this.#assertWritable()
+    this.#assertInteractionMutation()
     const current = this.#store.get(blockId)
     if (!current) throw new Error(`Unknown block id: ${blockId}`)
     if (this.activation(blockId)?.kind !== 'active') return false
@@ -1154,7 +1155,7 @@ export class DocumentRuntime {
   }
 
   syncBlocksFromProjection(ids, operation, metadata = {}) {
-    this.#assertWritable()
+    this.#assertInteractionMutation()
     if (!Array.isArray(ids) || ids.length === 0) return
     if (typeof operation !== 'function') throw new TypeError('DOM mutation operation must be a function')
 
@@ -1207,7 +1208,7 @@ export class DocumentRuntime {
   }
 
   syncBlockFromProjection(id, operation, metadata = {}) {
-    this.#assertWritable()
+    this.#assertInteractionMutation()
     if (typeof operation !== 'function') throw new TypeError('DOM mutation operation must be a function')
     const current = this.#store.get(id)
     if (!current) throw new Error(`Unknown block id: ${id}`)
@@ -1714,9 +1715,23 @@ export class DocumentRuntime {
     }
   }
 
-  #assertWritable() {
+  #assertHostMutation() {
     if (this.#destroyed) throw new Error('DocumentRuntime is destroyed')
     if (this.health === 'failed') throw new Error('DocumentRuntime is failed')
+  }
+
+  #assertInteractionMutation() {
+    this.#assertHostMutation()
+    if (this.#readOnly) throw new Error('DocumentRuntime is read-only')
+  }
+
+  #assertMutationAuthority(authority) {
+    if (authority === 'host') {
+      this.#assertHostMutation()
+      return
+    }
+    if (authority !== 'interaction') throw new TypeError('Unknown mutation authority')
+    this.#assertInteractionMutation()
   }
 
   #normalizeExternalInline(value) {

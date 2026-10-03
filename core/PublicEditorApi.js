@@ -52,7 +52,7 @@ export class EditorBlocksApi {
     const id = this.#runtime.insert(input.type, input.data, index, {
       tunes: input.tunes,
       inline: input.inline,
-    })
+    }, 'host')
     this.#view.reconcileInteraction()
     this.#view.setCurrent(id)
     return id
@@ -68,11 +68,11 @@ export class EditorBlocksApi {
         throw new TypeError('blocks.update() producer must return an object')
       }
       return patch
-    })
+    }, 'host')
   }
 
-  remove(id) { this.#assertLive(); this.#view.remove(id) }
-  move(id, to) { this.#assertLive(); this.#view.move(id, to) }
+  remove(id) { this.#assertLive(); this.#view.remove(id, 'host') }
+  move(id, to) { this.#assertLive(); this.#view.move(id, to, 'host') }
   convert(id, target) { this.#assertLive(); return this.#view.convert(id, target) }
   focus(id, target) {
     this.#assertLive()

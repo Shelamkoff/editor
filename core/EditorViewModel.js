@@ -43,18 +43,18 @@ export class EditorViewModel {
   select(ids) { this.#interaction.select(ids) }
   clearSelection() { this.#interaction.clearSelection() }
 
-  insert(type, data, index) {
-    const id = this.#runtime.insert(type, data, index)
+  insert(type, data, index, authority = 'interaction') {
+    const id = this.#runtime.insert(type, data, index, {}, authority)
     this.#interaction.reconcile()
     this.#interaction.setCurrent(id)
     return id
   }
 
-  update(id, producer) { this.#runtime.update(id, producer) }
+  update(id, producer, authority = 'interaction') { this.#runtime.update(id, producer, authority) }
 
-  remove(id) {
+  remove(id, authority = 'interaction') {
     const index = this.indexOf(id)
-    this.#runtime.remove(id)
+    this.#runtime.remove(id, authority)
     this.#interaction.reconcile()
     if (this.#interaction.currentId === id) {
       const next = this.#runtime.list()[Math.min(Math.max(index, 0), this.#runtime.list().length - 1)]
@@ -62,13 +62,13 @@ export class EditorViewModel {
     }
   }
 
-  move(id, to) {
-    this.#runtime.move(id, to)
+  move(id, to, authority = 'interaction') {
+    this.#runtime.move(id, to, authority)
     this.#interaction.reconcile()
   }
 
-  convert(id, target) {
-    this.#runtime.convert(id, target)
+  convert(id, target, authority = 'interaction') {
+    this.#runtime.convert(id, target, authority)
     this.#interaction.reconcile()
     return this.get(id)
   }
