@@ -329,3 +329,26 @@ test('committed event is direct immutable data with monotonic revision sequence'
   assert.equal(Object.isFrozen(seen[0]), true)
   assert.equal(Object.isFrozen(seen[0].changes), true)
 })
+
+
+test('undo publishes applied inverse changes in application order and redo publishes forward changes', () => {
+  const seen = []
+  const { engine } = harness({ onCommit: event => seen.push(event) })
+  engine.execute({ origin: 'user', name: 'compound' }, tx => {
+    tx.insert(1, block('b'))
+    tx.update('a', block('a', 'next'))
+  })
+
+  seen.length = 0
+  assert.equal(engine.undo(), true)
+  assert.deepEqual(seen[0].changes.map(change => change.kind), ['block.update', 'block.remove'])
+  assert.equal(seen[0].changes[0].before.data.text, 'next')
+  assert.equal(seen[0].changes[0].after.data.text, 'a')
+  assert.equal(seen[0].changes[1].block.id, 'b')
+
+  seen.length = 0
+  assert.equal(engine.redo(), true)
+  assert.deepEqual(seen[0].changes.map(change => change.kind), ['block.insert', 'block.update'])
+  assert.equal(seen[0].changes[1].before.data.text, 'a')
+  assert.equal(seen[0].changes[1].after.data.text, 'next')
+})
