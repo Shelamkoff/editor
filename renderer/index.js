@@ -244,9 +244,12 @@ function snapshotCustomRenderer(renderer) {
   if (typeof type !== 'string' || !type) {
     throw new TypeError('EditorRenderer custom renderer must have a non-empty string type')
   }
-  const schema = candidate.schema
-  if (!schema || typeof schema !== 'object'
-      || typeof schema.decode !== 'function'
+  const schemaValue = candidate.schema
+  if (!schemaValue || typeof schemaValue !== 'object' || Array.isArray(schemaValue)) {
+    throw new TypeError(`EditorRenderer custom renderer "${type}" must provide a block data schema`)
+  }
+  const schema = /** @type {Record<string, unknown>} */ (schemaValue)
+  if (typeof schema.decode !== 'function'
       || typeof schema.encode !== 'function'
       || typeof schema.createDefault !== 'function') {
     throw new TypeError(`EditorRenderer custom renderer "${type}" must provide a block data schema`)
