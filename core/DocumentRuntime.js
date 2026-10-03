@@ -1303,6 +1303,65 @@ export class DocumentRuntime {
     return this.replaceInlineWidgetWithText(blockId, inlineId, '')
   }
 
+  syncBlocksFromProjection(ids, operation, metadata = {}) {
+    this.#assertWritable()
+    if (!Array.isArray(ids) || ids.length === 0) return
+    if (typeof operation !== 'function') throw new TypeError('DOM mutation operation must be a function')
+
+    const ordered = []
+    const seen = new Set()
+    for (let index = 0; index < ids.length; index++) {
+      if (!Object.hasOwn(ids, index)) throw new TypeError('Projection block ids must be a dense array')
+      const id = ids[index]
+      if (typeof id !== 'string' || !id) throw new TypeError('Projection block id must be a non-empty string')
+      if (seen.has(id)) continue
+      const current = this.#store.get(id)
+      if (!current) throw new Error(`Unknown block id: ${id}`)
+      if (this.activation(id)?.kind !== 'active') throw new Error(`Preserved block cannot be synchronized: ${id}`)
+      seen.add(id)
+      ordered.push(id)
+    }
+
+    try {
+      operation()
+      const updates = []
+      for (const id of ordered) {
+        const current = this.#store.get(id)
+        const definition = this.#registry.getBlockDefinition(current.type)
+        const projection = this.#projector?.readBlock?.(id)
+        if (!projection) throw new Error('Projection reader is unavailable')
+        const readData = Object.hasOwn(projection, 'data') ? projection.data : projection
+        const encoded = this.#normalizeLocalData(definition, readData)
+        const next = {
+          ...current,
+          dataVersion: encoded.dataVersion,
+          data: encoded.data,
+        }
+        if (Object.hasOwn(projection, 'inline')) {
+          const nextInline = projection.inline === undefined ? undefined : cloneInline(projection.inline)
+          if (nextInline === undefined) delete next.inline
+          else next.inline = nextInline
+        }
+        delete next.revision
+        if (
+          current.dataVersion !== next.dataVersion
+          || !sameJson(current.data, next.data)
+          || !sameJson(current.inline, next.inline)
+        ) updates.push([id, next])
+      }
+      if (!updates.length) return
+      this.#engine.execute({
+        origin: metadata.origin ?? 'user',
+        name: metadata.name ?? 'projection.sync',
+      }, tx => {
+        for (const [id, next] of updates) tx.update(id, next)
+      })
+    } catch (error) {
+      this.#projector?.restore?.(this.#store)
+      throw error
+    }
+  }
+
   syncBlockFromProjection(id, operation, metadata = {}) {
     this.#assertWritable()
     if (typeof operation !== 'function') throw new TypeError('DOM mutation operation must be a function')
