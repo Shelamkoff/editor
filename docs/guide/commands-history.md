@@ -88,6 +88,8 @@ Choosing a block entry converts the current block when it contains only `/query`
 
 The type selector can convert a selection without replacing the entire source block. Plain text blocks are split into content before the selection, the new block, and content after the selection. The whole operation is one history step.
 
+Whole and partial conversions are lossless for linked inline widgets: Rector preserves the referenced sidecar entries and placeholder identities when the target can represent them. If the target conversion would turn a linked widget into literal text or otherwise drop its payload, the conversion is rejected before the document or history changes. Placeholder-shaped text without a matching sidecar entry remains literal text.
+
 The List plugin applies data-aware rules instead of splitting `<li>` markup as generic HTML:
 
 1. selected list content is removed from the source list;
