@@ -28,6 +28,8 @@ interface InlineTool {
 
 Formatting tools do not own separate persisted payloads. Their DOM changes are committed through the inline toolbar transaction boundary and normalized back into the block's rich-text field.
 
+The built-in preset exposes `bold`, `italic`, `strikethrough`, `link`, `code`, `marker`, `bgcolor`, `fontSize`, `script`, `align`, `caseTransform`, and `clearFormatting`.
+
 ## Inline plugin definition
 
 ```ts
