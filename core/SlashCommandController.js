@@ -1,6 +1,6 @@
 // @ts-check
 import { findNodeAtOffset } from '../shared/textOffset.js'
-import { setTrustedHtml } from '../plugin-kit/index.js'
+import { setTrustedHtml } from '../shared/sanitize/sanitizeHtml.js'
 
 function localizedLabel(definition, scope, translate) {
   const label = definition?.label
