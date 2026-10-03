@@ -181,7 +181,7 @@ export class DocumentRuntime {
   }
 
   save() {
-    const startedAt = this.#diagnostics?.enabled ? this.#diagnostics.now() : 0
+    const startedAt = this.#diagnostics ? this.#diagnostics.now() : 0
     try {
       const document = this.#store.export()
       if (this.#documentMode === 'preserved') {
@@ -706,7 +706,7 @@ export class DocumentRuntime {
   }
 
   render(input) {
-    const startedAt = this.#diagnostics?.enabled ? this.#diagnostics.now() : 0
+    const startedAt = this.#diagnostics ? this.#diagnostics.now() : 0
     try {
       const next = this.#ingest(input)
       const crossingMode = next.mode !== this.#documentMode
