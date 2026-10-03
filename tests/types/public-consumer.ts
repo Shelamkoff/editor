@@ -34,7 +34,7 @@ import {
 } from '../../.package-tmp/declaration-tests/renderer/index.js'
 import { createRendererAsync } from '../../.package-tmp/declaration-tests/renderer/async.js'
 import type { BlockPluginDefinition } from '../../.package-tmp/declaration-tests/core/index.js'
-import type { BlockRenderer, OutputBlockData } from '../../.package-tmp/declaration-tests/renderer/types.js'
+import type { BlockRendererDefinition, OutputBlockData } from '../../.package-tmp/declaration-tests/renderer/types.js'
 import { CropperDialog } from '@shelamkoff/cropper'
 
 const factories = [
@@ -82,8 +82,22 @@ const configuredPlugins = [
 ] satisfies BlockPluginDefinition[]
 
 const renderer: EditorRenderer = createEditorRenderer({ validationMode: 'strict' })
-const customRenderer: BlockRenderer<OutputBlockData<'custom', { text: string }>> = {
+const customSchema = {
+  currentVersion: 1,
+  legacyVersion: 1,
+  createDefault: () => ({ text: '' }),
+  decode(input: { dataVersion?: number; data: unknown }) {
+    const data = input.data as { text?: unknown }
+    if (typeof data?.text !== 'string') throw new TypeError('text')
+    return { dataVersion: 1, data: { text: data.text } }
+  },
+  encode(data: Readonly<{ text: string }>) {
+    return { dataVersion: 1, data: { text: data.text } }
+  },
+}
+const customRenderer: BlockRendererDefinition<OutputBlockData<'custom', { text: string }>> = {
   type: 'custom',
+  schema: customSchema,
   render: block => {
     const element = document.createElement('p')
     element.textContent = block.data.text
