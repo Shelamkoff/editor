@@ -89,6 +89,14 @@ export function createParagraphPlugin(config = {}) {
         return { text: payload.data.text }
       },
     }),
+    htmlImport: Object.freeze({
+      matchesRoot(element) {
+        return element.tagName === 'P'
+      },
+      importRoot(element, context) {
+        return { text: context.serializeRichText(element) }
+      },
+    }),
   })
 
   const definition = {
