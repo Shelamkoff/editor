@@ -2,6 +2,7 @@ import { setTrustedHtml } from '../shared/sanitize/sanitizeHtml.js'
 import { el } from '../core/dom.js'
 import { createSvgIcon } from '../core/icons.js'
 import {
+  createSelectionPortBinding,
   ICON_CHECK,
   getContentEditable,
   getWalkRoot,
@@ -141,10 +142,11 @@ function wrapRangeWithFontSize(range, fontSize) {
 /**
  * Create font size inline tool as a select-style dropdown.
  * @param {string} label
- * @param {import('./types').CrossBlockSelectionPort | null} [cbs]
  * @returns {import('./types').InlineTool}
  */
-export function createFontSizeTool(label, cbs = null) {
+export function createFontSizeTool(label) {
+  const selection = createSelectionPortBinding()
+  const cbs = selection.port
   /** @type {HTMLElement | null} */
   let selectBtn = null
   /** @type {HTMLElement | null} */
@@ -489,6 +491,7 @@ export function createFontSizeTool(label, cbs = null) {
 
   return {
     type: 'fontSize',
+    bindSelectionPort: selection.bind,
     title: label,
     icon: '',
     tag: 'span',
