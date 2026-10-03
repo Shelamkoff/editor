@@ -1,4 +1,5 @@
 // @ts-check
+import { headingDataSchema } from '../../../shared/blockSchemas/heading.js'
 
 const styles = new URL('./styles.css', import.meta.url).href
 
@@ -7,11 +8,12 @@ const styles = new URL('./styles.css', import.meta.url).href
  * Block type: 'heading' (not 'header')
  * @param {string} classPrefix
  * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} _locale
- * @returns {import('../../types').BlockRenderer<import('../../types').HeadingBlock>}
+ * @returns {import('../../types').BlockRendererDefinition<import('../../types').HeadingBlock>}
  */
 export function createHeaderRenderer(classPrefix, _locale) {
   return {
     type: 'heading',
+    schema: headingDataSchema,
     styles: [styles],
 
     /**
