@@ -22,12 +22,12 @@ export class InteractionState {
 
   get selectedIds() {
     const selected = this.#selected
-    return this.#runtime.list().map(record => record.id).filter(id => selected.has(id))
+    return this.#runtime.ids().filter(id => selected.has(id))
   }
 
   get currentIndex() {
     if (!this.#currentId) return -1
-    return this.#runtime.list().findIndex(record => record.id === this.#currentId)
+    return this.#runtime.indexOf(this.#currentId)
   }
 
   setCurrent(id) {
@@ -38,24 +38,22 @@ export class InteractionState {
       this.#notify(previousCurrentId, previousSelectedIds)
       return
     }
-    if (!this.#runtime.get(id)) throw new Error(`Unknown block id: ${id}`)
+    if (!this.#runtime.has(id)) throw new Error(`Unknown block id: ${id}`)
     this.#currentId = id
     this.#notify(previousCurrentId, previousSelectedIds)
   }
 
   setCurrentIndex(index) {
-    const records = this.#runtime.list()
-    if (!Number.isInteger(index) || index < 0 || index >= records.length) {
-      throw new RangeError('Current block index is out of range')
-    }
-    this.setCurrent(records[index].id)
+    const id=this.#runtime.idAt(index)
+    if (!id) throw new RangeError('Current block index is out of range')
+    this.setCurrent(id)
   }
 
   select(ids) {
     if (!Array.isArray(ids)) throw new TypeError('Selected block ids must be an array')
     const previousCurrentId = this.#currentId
     const previousSelectedIds = this.selectedIds
-    const known = new Set(this.#runtime.list().map(record => record.id))
+    const known = new Set(this.#runtime.ids())
     const next = new Set()
     for (const id of ids) {
       if (typeof id !== 'string' || !known.has(id)) throw new Error(`Unknown block id: ${id}`)
@@ -74,7 +72,7 @@ export class InteractionState {
 
   focus(id = this.#currentId, target) {
     if (!id) return false
-    if (!this.#runtime.get(id)) return false
+    if (!this.#runtime.has(id)) return false
     this.#currentId = id
     return this.#reconciler.focus(id, target)
   }
@@ -86,7 +84,7 @@ export class InteractionState {
   reconcile({ notify = true } = {}) {
     const previousCurrentId = this.#currentId
     const previousSelectedIds = this.selectedIds
-    const ids = this.#runtime.list().map(record => record.id)
+    const ids = this.#runtime.ids()
     const known = new Set(ids)
     this.#selected = new Set([...this.#selected].filter(id => known.has(id)))
     if (!this.#currentId || !known.has(this.#currentId)) {
