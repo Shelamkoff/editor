@@ -20,12 +20,12 @@ interface IEditor {
   focus(): boolean
   setReadOnly(readOnly: boolean): void
   insertInlinePlugin(type: string, data?: Record<string, unknown>): boolean
-  on(type: EditorEventName, listener: (payload?: unknown) => void): () => void
+  on<K extends keyof EditorEventMap>(type: K, listener: (payload: EditorEventMap[K]) => void | Promise<void>): () => void
   destroy(): void
 }
 ```
 
-`save()` возвращает отделённый канонический документ. `render()` заменяет документ через те же схемы и миграции, что используются при создании. `clear()` создаёт один пустой блок по умолчанию. `undo()` и `redo()` возвращают `false`, если подходящего шага истории нет или редактирование недоступно.
+`save()` возвращает отделённый канонический документ. `render()` заменяет документ через ту же current-format границу схем, что используется при создании. `clear()` создаёт один пустой блок по умолчанию. `undo()` и `redo()` являются interaction-командами и недоступны в режиме чтения.
 
 ## API блоков
 
@@ -77,6 +77,8 @@ interface IEditor {
 `transaction:committed` получает один неизменяемый payload `TransactionCommitted`: `{ sequence, origin, action, name, changes, history }`. `sequence` — зафиксированная ревизия документа; она возрастает при обычном commit, undo и redo. `document:changed` передаёт только `{ origin, action, changes }` из того же зафиксированного события, а `history:changed` — уже зафиксированное состояние `{ canUndo, canRedo }`. Observers вызываются только после общей commit point модели, курсора истории и проекции.
 
 События только наблюдают за завершёнными действиями. Код приложения и расширений не создаёт события редактора самостоятельно.
+
+Режим чтения ограничивает полномочия взаимодействия, а не владение host-приложения. При `readOnly === true` блокируются пользовательские, native, clipboard и plugin mutations, а также undo/redo, но host по-прежнему может вызывать `render()`, `clear()` и `editor.blocks.insert/update/remove/move/convert()`. Эти host mutations проходят каноническую транзакцию и снова доступны для undo после возврата в режим редактирования; во время read-only `canUndo` и `canRedo` равны `false`.
 
 ## Жизненный цикл
 
