@@ -1,5 +1,4 @@
 // @ts-check
-import { mapListTextFields as mapTextFields } from '../../../shared/mapTextFields.js'
 
 const styles = new URL('./styles.css', import.meta.url).href
 
@@ -14,7 +13,6 @@ export function createListRenderer(classPrefix, _locale) {
   return {
     type: 'list',
     styles: [styles],
-    mapTextFields,
 
     /**
      * @param {import('../../types').ListBlock} block
