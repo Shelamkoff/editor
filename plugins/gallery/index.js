@@ -284,14 +284,14 @@ export function createGalleryPlugin(config={}){
 
           const runAction=async action=>{
             if(readOnly||dead)return
-            const controller=beginTask()
+            const task=beginTask()
             try{
               const result=await action.handler({signal:task.signal})
               if(!task.signal.aborted&&Array.isArray(result))addImages(result,task)
             }catch(error){
               if(!task.signal.aborted)console.warn('[Gallery] Source action failed',error)
             }finally{
-              finishTask(controller)
+              finishTask(task)
             }
           }
 
