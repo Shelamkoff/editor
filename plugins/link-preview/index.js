@@ -115,7 +115,7 @@ export function createLinkPreviewPlugin(config={}){
           let data={...initial}
           let readOnly=context.isReadOnly()
           let dead=false
-          let requestController=null
+          let currentTask=null
           let generation=0
 
           const project=next=>{
@@ -141,29 +141,28 @@ export function createLinkPreviewPlugin(config={}){
           }
 
           const resolveMeta=async url=>{
-            requestController?.abort()
+            currentTask?.cancel()
             if(!snapshot.fetchMeta||!url||readOnly||dead)return
-            const Ctor=document.defaultView?.AbortController??AbortController
-            const controller=new Ctor()
-            requestController=controller
+            const task=context.beginTask()
+            currentTask=task
             const current=++generation
-            const abort=()=>controller.abort(context.signal.reason)
-            context.signal.addEventListener('abort',abort,{once:true,signal:controller.signal})
             try{
-              const result=await snapshot.fetchMeta(url,{signal:controller.signal})
-              if(dead||controller.signal.aborted||current!==generation)return
+              const result=await snapshot.fetchMeta(url,{signal:task.signal})
+              if(dead||task.signal.aborted||current!==generation)return
               const meta=result&&typeof result==='object'?result:{}
-              context.updateData(previous=>({
+              task.commit(previous=>previous.url===url?({
                 ...previous,
-                url,
                 title:typeof meta.title==='string'?meta.title:previous.title,
                 description:typeof meta.description==='string'?meta.description:previous.description,
                 image:typeof meta.image==='string'?meta.image:previous.image,
                 favicon:typeof meta.favicon==='string'?meta.favicon:previous.favicon,
                 domain:typeof meta.domain==='string'?meta.domain:previous.domain||host(url),
-              }))
+              }):previous)
             }catch(error){
-              if(!controller.signal.aborted)console.warn('[LinkPreview] Metadata resolution failed',error)
+              if(!task.signal.aborted)console.warn('[LinkPreview] Metadata resolution failed',error)
+            }finally{
+              task.cancel()
+              if(currentTask===task)currentTask=null
             }
           }
 
@@ -187,16 +186,18 @@ export function createLinkPreviewPlugin(config={}){
           input.addEventListener('change',commitUrl,{signal:context.signal})
 
           project(data)
-          if(data.url&&!data.title&&!data.image&&!data.favicon)void resolveMeta(data.url)
+          if(data.url&&!data.title&&!data.image&&!data.favicon){
+            queueMicrotask(()=>{if(!dead&&!readOnly)void resolveMeta(data.url)})
+          }
 
           return {
             element:wrapper,
             read:()=>({...data,url:input.value.trim()}),
             update(next){if(!dead)project(next)},
             editableFields:()=>Object.freeze([Object.freeze({key:'url',element:input,mode:/** @type {'plain-text'} */('plain-text')})]),
-            setReadOnly(value){readOnly=value;project(data);if(value)requestController?.abort()},
+            setReadOnly(value){readOnly=value;project(data)},
             focus(){if(!dead&&!readOnly)input.focus()},
-            destroy(){dead=true;requestController?.abort()},
+            destroy(){dead=true;currentTask?.cancel();currentTask=null},
           }
         },
         destroy(){destroyed=true},
