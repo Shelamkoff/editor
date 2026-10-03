@@ -7,6 +7,7 @@
 ```ts
 interface IEditor {
   readonly blocks: EditorBlocksApi
+  readonly isReady: boolean
   readonly canUndo: boolean
   readonly canRedo: boolean
   readonly readOnly: boolean
@@ -69,10 +70,16 @@ interface IEditor {
 - `document:changed`
 - `history:changed`
 - `readOnly:changed`
+- `currentBlock:changed`
+- `selection:changed`
+
+`currentBlock:changed` передаёт текущий ID после фактической смены блока. `selection:changed` передаёт выбранные ID в порядке документа только при изменении набора/порядка выделения.
 
 События только наблюдают за завершёнными действиями. Код приложения и расширений не создаёт события редактора самостоятельно.
 
 ## Жизненный цикл
+
+`isReady` становится `true` после успешной сборки и доставки ready-microtask. Это единственное состояние дескриптора, которое остаётся читаемым после `destroy()`; после уничтожения оно возвращает `false`.
 
 `destroy()` идемпотентен. Он отменяет работу редактора и блоков, удаляет принадлежащие редактору DOM, стили и обработчики и освобождает `holder`.
 
