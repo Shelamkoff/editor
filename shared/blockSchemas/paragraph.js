@@ -1,6 +1,5 @@
 // @ts-check
 import { createVersionedDataSchema } from '../versionedDataSchema.js'
-import { mapParagraphTextFields } from '../mapTextFields.js'
 
 /**
  * @param {any} input
