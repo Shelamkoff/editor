@@ -1,4 +1,5 @@
 // @ts-check
+import { carouselDataSchema } from '../../../shared/blockSchemas/carousel.js'
 import {
   Carousel,
   carouselStylesUrl,
@@ -21,7 +22,7 @@ const styles = new URL('./styles.css', import.meta.url).href
  * Create the mixed-media carousel renderer and own its Carousel instances.
  * @param {string} classPrefix
  * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} locale
- * @returns {import('../../types').BlockRenderer<import('../../types').CarouselBlock>}
+ * @returns {import('../../types').BlockRendererDefinition<import('../../types').CarouselBlock>}
  */
 export function createCarouselRenderer(classPrefix, locale) {
   const p = `${classPrefix}-carousel-block`
@@ -32,6 +33,7 @@ export function createCarouselRenderer(classPrefix, locale) {
 
   return {
     type: 'carousel',
+    schema: carouselDataSchema,
     styles: [styles, carouselStylesUrl],
     render(block, _parseInline, context = { ownerDocument: globalThis.document }) {
       let fallback = 0
