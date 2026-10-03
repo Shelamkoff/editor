@@ -6,7 +6,7 @@ import { generateDeclarations } from './generate-declarations.mjs'
 
 const editorRoot = resolve(fileURLToPath(new URL('..', import.meta.url)))
 const distRoot = join(editorRoot, 'dist')
-const sourceRoots = ['core', 'inline-plugins', 'inline-tools', 'locale', 'plugin-kit', 'plugins', 'renderer', 'shared']
+const sourceRoots = ['core', 'inline-plugins', 'inline-tools', 'locale', 'plugin-kit', 'plugins', 'preset', 'renderer', 'shared']
 const blockTypes = [
   'paragraph', 'heading', 'list', 'quote', 'code', 'image', 'delimiter', 'table',
   'checklist', 'warning', 'embed', 'raw', 'gallery', 'carousel', 'attaches', 'link-preview',
