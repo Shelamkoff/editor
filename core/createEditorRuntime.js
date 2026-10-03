@@ -341,7 +341,6 @@ export function createEditorRuntime(input){
       const translated=i18n.t(key)
       return translated===key?fallback:translated
     },
-    filterThreshold:config.toolboxFilterThreshold??7,
   }))
 
   clipboard=lifecycle.register(new ClipboardController({
@@ -369,6 +368,7 @@ export function createEditorRuntime(input){
       const translated=i18n.t(key)
       return translated===key?fallback:translated
     },
+    filterThreshold:config.toolboxFilterThreshold??7,
   }))
 
   const drag=lifecycle.register(new DragController({
@@ -436,7 +436,7 @@ export function createEditorRuntime(input){
     toolbar?.setReadOnly(runtime.readOnly)
     inlineToolbar.setReadOnly(runtime.readOnly)
     nativeInput.setReadOnly(runtime.readOnly)
-    emitSafe(events,'readOnly:changed',{readOnly:runtime.readOnly})
+    emit('readOnly:changed',{readOnly:runtime.readOnly})
     emit('history:changed',{canUndo:runtime.canUndo,canRedo:runtime.canRedo})
   }
 
