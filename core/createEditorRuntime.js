@@ -66,11 +66,9 @@ function createDiagnostics(report,thresholds={}){
   }
   const enabled=typeof report==='function'
   return {
-    enabled,
     threshold:name=>limits[name],
     now:()=>globalThis.performance?.now?.()??Date.now(),
     emit(code,details={}){
-      if(!enabled)return
       const diagnostic=Object.freeze({code,timestamp:Date.now(),...details})
       queueMicrotask(()=>invokeObserver(report,[diagnostic]))
     },
@@ -193,8 +191,8 @@ function snapshotEditorConfig(input){
  */
 export function createEditorRuntime(input){
   const config=snapshotEditorConfig(input)
-  const diagnostics=createDiagnostics(config.onDiagnostic,config.diagnosticThresholds)
-  const reportDiagnostic=(code,operation,error)=>diagnostics.emit(code,{
+  const diagnostics=config.onDiagnostic?createDiagnostics(config.onDiagnostic,config.diagnosticThresholds):null
+  const reportDiagnostic=(code,operation,error)=>diagnostics?.emit(code,{
     operation,
     errorName:diagnostics.errorName(error),
   })
