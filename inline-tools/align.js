@@ -1,4 +1,4 @@
-import { setTrustedHtml } from '../core/sanitize.js'
+import { setTrustedHtml } from '../shared/sanitize/sanitizeHtml.js'
 import { el, closestBlock } from '../core/dom.js'
 import {
   ICON_ALIGN_LEFT,
