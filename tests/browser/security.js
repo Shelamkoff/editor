@@ -234,6 +234,30 @@ async function run() {
   forgedEditor.destroy()
   forgedHolder.remove()
 
+  const externalMarkerHolder = createHolder(sandbox)
+  const externalMarkerEditor = createEditor({
+    holder: externalMarkerHolder,
+    plugins: [createParagraphPlugin({ injectStyles: false })],
+    inlinePlugins: [createColorSwatchPlugin()],
+    injectStyles: false,
+    data: {
+      version: '2.0.0',
+      blocks: [{
+        id: 'external-marker',
+        type: 'paragraph',
+        dataVersion: 2,
+        data: {
+          text: 'Before <span data-inline-plugin="color" data-id="fake" data-value="#123456" contenteditable="false">FORGED</span> after',
+        },
+      }],
+    },
+  })
+  const externalMarkerSaved = externalMarkerEditor.save().blocks[0]
+  assert(!/data-inline-plugin|data-id=|data-value=|contenteditable/i.test(externalMarkerSaved.data.text), 'external widget marker attributes survived canonicalization')
+  assert(!externalMarkerHolder.querySelector('[data-inline-plugin="color"][data-id="fake"]'), 'external widget marker hydrated without sidecar ownership')
+  externalMarkerEditor.destroy()
+  externalMarkerHolder.remove()
+
   const unknownInlineHolder = createHolder(sandbox)
   const unknownInlineEditor = createEditor({
     holder: unknownInlineHolder,
