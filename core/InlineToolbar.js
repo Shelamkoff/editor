@@ -42,6 +42,7 @@ export class InlineToolbar {
   #readOnly = false
   #onSelectionChange
   #documentClick
+  #selectionVersion = 0
 
   #typeSelect
   #typeName
@@ -181,7 +182,10 @@ export class InlineToolbar {
       })
     }
 
-    this.#onSelectionChange = () => this.#refreshFromSelection()
+    this.#onSelectionChange = () => {
+      this.#selectionVersion++
+      this.#refreshFromSelection()
+    }
     document.addEventListener('selectionchange', this.#onSelectionChange)
     this.#documentClick = event => {
       if (this.#element.contains(event.target)) return
@@ -219,12 +223,19 @@ export class InlineToolbar {
 
     if (tool.renderActions) {
       const range = selection.range.cloneRange()
+      const lease = this.#selectionVersion
       const panel = tool.renderActions({
         range,
-        mutate: operation => this.#mutate(range, operation, tool.type),
-        getTextAlign: () => this.#runtime.getTextAlign(selection.blockIds),
-        setTextAlign: value => this.#runtime.setTextAlign(selection.blockIds, value),
-        restoreSelection: () => this.#restoreSelection(selection.bookmark, range),
+        mutate: operation => this.#mutate(range, operation, tool.type, lease),
+        getTextAlign: () => lease === this.#selectionVersion
+          ? this.#runtime.getTextAlign(selection.blockIds)
+          : 'mixed',
+        setTextAlign: value => lease === this.#selectionVersion
+          ? this.#runtime.setTextAlign(selection.blockIds, value)
+          : false,
+        restoreSelection: () => {
+          if (lease === this.#selectionVersion) this.#restoreSelection(selection.bookmark, range)
+        },
         close: () => this.#closeActions(),
         showTooltip: (anchor, label) => anchor.setAttribute('title', label),
         hideTooltip: () => {},
@@ -239,7 +250,7 @@ export class InlineToolbar {
       }
     }
 
-    this.#mutate(selection.range, () => tool.toggle(selection), tool.type)
+    this.#mutate(selection.range, () => tool.toggle(selection), tool.type, this.#selectionVersion)
     this.#updateActiveStates()
     return true
   }
@@ -267,6 +278,7 @@ export class InlineToolbar {
     document.removeEventListener('mousedown', this.#documentClick, true)
     this.#typeVersion++
     this.#controlVersion++
+    this.#selectionVersion++
     this.#closeActions()
     for (const tool of this.#tools) {
       tool.bindSelectionPort?.(null)
@@ -624,8 +636,8 @@ export class InlineToolbar {
     this.#controlBookmark = null
   }
 
-  #mutate(range, operation, type) {
-    if (this.#readOnly || this.#destroyed) return undefined
+  #mutate(range, operation, type, lease = this.#selectionVersion) {
+    if (this.#readOnly || this.#destroyed || lease !== this.#selectionVersion) return undefined
     const start = this.#reconciler.resolveEditableTarget(range.startContainer)
     const end = this.#reconciler.resolveEditableTarget(range.endContainer)
     if (!start || !end) return undefined
