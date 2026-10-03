@@ -23,9 +23,15 @@ interface EditorConfig {
   documentVersionPolicy?: 'preserve' | 'strict'
   migrations?: readonly DocumentMigration[]
   changeDebounceMs?: number
+  historyMaxStack?: number
+  historyCoalesceMs?: number
+  dragThreshold?: number
+  toolboxFilterThreshold?: number
   onReady?: (editor: IEditor) => void | Promise<void>
   onChange?: (document: EditorDocument) => void | Promise<void>
   onValidationError?: (issue: EditorValidationIssue) => void
+  onDiagnostic?: (diagnostic: EditorDiagnostic) => void | Promise<void>
+  diagnosticThresholds?: Partial<DiagnosticThresholds>
 }
 ```
 
@@ -50,9 +56,15 @@ interface EditorConfig {
 | `documentVersionPolicy` | нет | `preserve` | Неполная/будущая версия документа сохраняется либо отклоняется в `strict`. |
 | `migrations` | нет | `[]` | Направленные синхронные миграции документа. |
 | `changeDebounceMs` | нет | `250` | Задержка перед передачей отделённого снимка в `onChange`. |
+| `historyMaxStack` | нет | `100` | Максимальное число записей operation-based истории отмены. |
+| `historyCoalesceMs` | нет | `300` | Максимальная пауза для объединения последовательного нативного ввода в один шаг undo. |
+| `dragThreshold` | нет | `5` | Смещение указателя в пикселях, после которого начинается перетаскивание блока. |
+| `toolboxFilterThreshold` | нет | `7` | Показывать поиск toolbox только при превышении этого числа элементов. |
 | `onReady` | нет | не задан | Наблюдатель после успешной сборки. Его ошибка не ломает редактор. |
 | `onChange` | нет | не задан | Наблюдатель канонических изменений с отделённым документом. |
 | `onValidationError` | нет | не задан | Наблюдатель ошибок сохранения/проверки данных. |
+| `onDiagnostic` | нет | не задан | Служебные диагностические сигналы без содержимого документа; ошибки callback изолируются. |
+| `diagnosticThresholds` | нет | пороги не заданы | Неотрицательные пороги для диагностик command/save/render/paste. |
 
 ## Определения плагинов
 
@@ -95,7 +107,7 @@ const editor = createEditor({
 
 ## Обработчики
 
-`onReady`, `onChange` и `onValidationError` — наблюдатели, а не части транзакции. Ошибка наблюдателя изолируется от канонического состояния.
+`onReady`, `onChange`, `onValidationError` и `onDiagnostic` — наблюдатели, а не части транзакции. Ошибка наблюдателя изолируется от канонического состояния. Диагностика никогда не содержит данные документа или payload расширений.
 
 `onChange` планируется только после зафиксированных изменений документа и получает отделённый документ. Более новая фиксация может заменить ещё не доставленное старое уведомление.
 
