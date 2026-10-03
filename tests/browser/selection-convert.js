@@ -4,7 +4,8 @@ import {
   createListPlugin,
   createParagraphPlugin,
 } from '../../plugins/index.js'
-import { createColorSwatchPlugin } from '../../inline-plugins/color.js'
+import { createColorSwatchPlugin, createColorSwatchRenderer } from '../../inline-plugins/color.js'
+import { EditorRenderer } from '../../renderer/index.js'
 
 const sandbox = document.querySelector('#sandbox')
 const delay = (ms = 0) => new Promise(resolve => setTimeout(resolve, ms))
@@ -104,7 +105,7 @@ async function run() {
       id: 'whole-inline',
       type: 'paragraph',
       dataVersion: 2,
-      data: { text: 'Before {{color-1}} after' },
+      data: { text: 'Before {{color-1}} literal {{literal-token}} after' },
       inline: {
         'color-1': {
           type: 'color',
@@ -118,7 +119,7 @@ async function run() {
   const convertedWhole = wholeInline.editor.blocks.convert('whole-inline', { type: 'heading' })
   assert(convertedWhole?.type === 'heading', 'whole conversion did not produce Heading')
   let wholeSaved = wholeInline.editor.save()
-  assert(wholeSaved.blocks[0].data.text === 'Before {{color-1}} after', 'whole conversion changed inline token text')
+  assert(wholeSaved.blocks[0].data.text === 'Before {{color-1}} literal {{literal-token}} after', 'whole conversion changed inline/literal token text')
   assert(wholeSaved.blocks[0].inline?.['color-1']?.type === 'color', 'whole conversion lost inline sidecar')
   assert(wholeSaved.blocks[0].inline?.['color-1']?.data.value === '#123456', 'whole conversion changed inline payload')
   wholeInline.editor.undo()
@@ -128,6 +129,29 @@ async function run() {
   await delay()
   wholeSaved = wholeInline.editor.save()
   assert(wholeSaved.blocks[0].inline?.['color-1']?.data.value === '#123456', 'whole inline conversion redo lost payload')
+  assert(wholeSaved.blocks[0].data.text.includes('{{literal-token}}'), 'whole inline conversion rewrote literal token')
+
+  const reloadedWhole = mount(wholeSaved.blocks)
+  const reloadedWholeSaved = reloadedWhole.editor.save().blocks[0]
+  assert(reloadedWholeSaved.type === 'heading', 'converted document reload changed block type')
+  assert(reloadedWholeSaved.inline?.['color-1']?.data.value === '#123456', 'converted document reload lost inline payload')
+  assert(reloadedWholeSaved.data.text.includes('{{literal-token}}'), 'converted document reload changed literal token')
+  reloadedWhole.editor.destroy()
+  reloadedWhole.holder.remove()
+
+  const renderer = new EditorRenderer({
+    blockTypes: ['heading'],
+    inlineRenderers: [createColorSwatchRenderer()],
+    injectStyles: false,
+  })
+  const renderedWhole = renderer.render(wholeSaved)
+  const renderedColor = renderedWhole.querySelector('.oe-ip--color')
+  assert(renderedColor instanceof HTMLElement, 'renderer did not hydrate converted inline widget')
+  assert(renderedColor.dataset.value === '#123456', 'renderer changed converted inline widget payload')
+  assert(renderedWhole.textContent.includes('{{literal-token}}'), 'renderer consumed literal placeholder-shaped text')
+  renderer.destroy(renderedWhole)
+  renderer.destroy()
+
   wholeInline.editor.destroy()
   wholeInline.holder.remove()
 
@@ -158,6 +182,14 @@ async function run() {
   opaqueInline.editor.redo()
   await delay()
   assert(JSON.stringify(opaqueInline.editor.save().blocks[0].inline?.['future-1']) === JSON.stringify(opaqueBefore), 'opaque inline redo lost payload')
+  const opaqueRoundTrip = opaqueInline.editor.save()
+  const opaqueReload = mount(opaqueRoundTrip.blocks)
+  assert(
+    JSON.stringify(opaqueReload.editor.save().blocks[0].inline?.['future-1']) === JSON.stringify(opaqueBefore),
+    'opaque inline reload lost payload',
+  )
+  opaqueReload.editor.destroy()
+  opaqueReload.holder.remove()
   opaqueInline.editor.destroy()
   opaqueInline.holder.remove()
 
@@ -351,7 +383,7 @@ async function run() {
 
   sandbox.replaceChildren()
   return {
-    conversions: ['paragraph partial forward/backward', 'List data-aware', 'cross-block forward/backward'],
+    conversions: ['whole inline roundtrip/renderer', 'paragraph partial forward/backward', 'List data-aware', 'cross-block forward/backward'],
     controls: ['type selector', 'Heading level'],
     history: 'atomic undo/redo',
     staleCallbacks: 'inert',
