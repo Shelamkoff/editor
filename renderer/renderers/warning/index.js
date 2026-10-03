@@ -1,5 +1,6 @@
 import { setTrustedHtml } from '../../../shared/sanitize/sanitizeHtml.js'
 // @ts-check
+import { warningDataSchema } from '../../../shared/blockSchemas/warning.js'
 
 const styles = new URL('./styles.css', import.meta.url).href
 
@@ -10,11 +11,12 @@ const ICON_WARNING = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height=
  * Warning block renderer
  * @param {string} classPrefix
  * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} _locale
- * @returns {import('../../types').BlockRenderer<import('../../types').WarningBlock>}
+ * @returns {import('../../types').BlockRendererDefinition<import('../../types').WarningBlock>}
  */
 export function createWarningRenderer(classPrefix, _locale) {
     return {
         type: 'warning',
+    schema: warningDataSchema,
         styles: [styles],
 
         /**
