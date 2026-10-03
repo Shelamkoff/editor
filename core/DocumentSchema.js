@@ -18,14 +18,14 @@ export class DocumentSchema {
   /** @type {string} */ #currentVersion
   /** @type {'preserve' | 'strict'} */ #versionPolicy
   /** @type {Map<string, DocumentMigration>} */ #migrations = new Map()
-  /** @type {import('./Diagnostics').Diagnostics | null} */ #diagnostics
+  /** @type {import('./types').DiagnosticsSink | null} */ #diagnostics
 
   /**
    * @param {{
    *   currentVersion?: string,
    *   versionPolicy?: 'preserve' | 'strict',
    *   migrations?: readonly DocumentMigration[],
-   *   diagnostics?: import('./Diagnostics').Diagnostics,
+   *   diagnostics?: import('./types').DiagnosticsSink,
    * }} [options]
    */
   constructor(options = {}) {
