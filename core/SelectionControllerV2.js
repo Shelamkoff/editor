@@ -7,7 +7,7 @@ function clonePoint(point) {
   return point ? { blockId: point.blockId, fieldKey: point.fieldKey, offset: point.offset } : null
 }
 
-export class SelectionControllerV2 {
+export class SelectionController {
   #root
   #runtime
   #reconciler
@@ -21,7 +21,7 @@ export class SelectionControllerV2 {
   #wholeBlocks = false
 
   constructor({ root, runtime, reconciler, view }) {
-    if (!root?.ownerDocument) throw new TypeError('SelectionControllerV2 requires an editor root')
+    if (!root?.ownerDocument) throw new TypeError('SelectionController requires an editor root')
     this.#root = root
     this.#runtime = runtime
     this.#reconciler = reconciler
