@@ -234,7 +234,7 @@ function snapshotBlockConfigs(input, blockTypes) {
   return snapshot
 }
 
-/** @param {unknown} renderer @returns {import('./types').BlockRenderer} */
+/** @param {unknown} renderer @returns {import('./types').BlockRendererDefinition} */
 function snapshotCustomRenderer(renderer) {
   if (!renderer || typeof renderer !== 'object' || Array.isArray(renderer)) {
     throw new TypeError('EditorRenderer custom renderer must be an object')
@@ -243,6 +243,13 @@ function snapshotCustomRenderer(renderer) {
   const type = candidate.type
   if (typeof type !== 'string' || !type) {
     throw new TypeError('EditorRenderer custom renderer must have a non-empty string type')
+  }
+  const schema = candidate.schema
+  if (!schema || typeof schema !== 'object'
+      || typeof schema.decode !== 'function'
+      || typeof schema.encode !== 'function'
+      || typeof schema.createDefault !== 'function') {
+    throw new TypeError(`EditorRenderer custom renderer "${type}" must provide a block data schema`)
   }
   const render = candidate.render
   if (typeof render !== 'function') {
@@ -277,6 +284,7 @@ function snapshotCustomRenderer(renderer) {
 
   return {
     type,
+    schema: /** @type {any} */ (schema),
     render: /** @type {any} */ (render).bind(renderer),
     ...(styles ? { styles } : {}),
     ...(typeof destroy === 'function' ? { destroy: /** @type {any} */ (destroy).bind(renderer) } : {}),
@@ -298,7 +306,7 @@ export class EditorRenderer extends EditorRendererImpl {
     super(ownConfig)
   }
 
-  /** @param {import('./types').BlockRenderer} renderer @returns {this} */
+  /** @param {import('./types').BlockRendererDefinition} renderer @returns {this} */
   registerRenderer(renderer) {
     const stable = snapshotCustomRenderer(renderer)
     return super.registerRenderer(stable, stable.type)
