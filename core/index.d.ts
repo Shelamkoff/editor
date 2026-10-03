@@ -27,5 +27,3 @@ export function sanitizeHtml(html: string, ownerDocument?: Document): string
 export function escapeHtml(text: string): string
 
 export { DocumentSchema } from './DocumentSchema.js'
-export { createColorSwatchPlugin } from '../inline-plugins/color.js'
-export { createMentionPlugin } from '../inline-plugins/mention/index.js'
