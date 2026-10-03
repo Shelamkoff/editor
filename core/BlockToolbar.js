@@ -22,6 +22,7 @@ export class BlockToolbar {
   #toolbar
   #toolbox
   #settings
+  #backdrop
   #plus
   #settingsButton
   #currentId = null
@@ -79,7 +80,15 @@ export class BlockToolbar {
     this.#settings.tabIndex = -1
     this.#settings.style.display = 'none'
 
-    root.append(this.#toolbar, this.#toolbox, this.#settings)
+    this.#backdrop = document.createElement('div')
+    this.#backdrop.className = 'oe-offcanvas-backdrop'
+    this.#backdrop.setAttribute('aria-hidden', 'true')
+    this.#backdrop.addEventListener('click', () => {
+      this.closeToolbox()
+      this.closeSettings()
+    })
+
+    root.append(this.#toolbar, this.#toolbox, this.#settings, this.#backdrop)
     this.#buildToolbox()
 
     this.#plus.addEventListener('mousedown', () => {
@@ -143,13 +152,17 @@ export class BlockToolbar {
     if (this.#runtime.readOnly) return
     this.closeSettings()
     this.#toolbox.style.display = ''
+    this.#toolbox.classList.add('oe-toolbox--open')
     this.#plus.setAttribute('aria-expanded', 'true')
     this.#positionPopup(this.#toolbox)
+    this.#syncBackdrop()
   }
 
   closeToolbox() {
     this.#toolbox.style.display = 'none'
+    this.#toolbox.classList.remove('oe-toolbox--open')
     this.#plus.setAttribute('aria-expanded', 'false')
+    this.#syncBackdrop()
   }
 
   openSettings() {
@@ -157,13 +170,17 @@ export class BlockToolbar {
     this.closeToolbox()
     this.#buildSettings()
     this.#settings.style.display = ''
+    this.#settings.classList.add('oe-settings-menu--open')
     this.#settingsButton.setAttribute('aria-expanded', 'true')
     this.#positionPopup(this.#settings)
+    this.#syncBackdrop()
   }
 
   closeSettings() {
     this.#settings.style.display = 'none'
+    this.#settings.classList.remove('oe-settings-menu--open')
     this.#settingsButton.setAttribute('aria-expanded', 'false')
+    this.#syncBackdrop()
   }
 
   destroy() {
@@ -173,6 +190,7 @@ export class BlockToolbar {
     this.#toolbar.remove()
     this.#toolbox.remove()
     this.#settings.remove()
+    this.#backdrop.remove()
   }
 
   #label(scope, type, label) {
@@ -502,6 +520,13 @@ export class BlockToolbar {
       this.#view.focus(duplicate)
       this.showFor(duplicate)
     })
+  }
+
+  #syncBackdrop() {
+    const open = this.#toolbox.classList.contains('oe-toolbox--open')
+      || this.#settings.classList.contains('oe-settings-menu--open')
+    this.#backdrop.classList.toggle('oe-offcanvas-backdrop--visible', open)
+    this.#backdrop.setAttribute('aria-hidden', String(!open))
   }
 
   #position(block) {
