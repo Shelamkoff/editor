@@ -243,10 +243,12 @@ export class BlockReconciler {
         }
 
         if (finalOrder) {
+          let cursor = this.#container.firstChild
           for (const id of finalOrder) {
             const entry = nextEntries.get(id)
             if (!entry) throw new Error(`Projection is missing block entry: ${id}`)
-            this.#container.appendChild(entry.element)
+            if (entry.element === cursor) cursor = cursor.nextSibling
+            else this.#container.insertBefore(entry.element, cursor)
           }
         }
 
