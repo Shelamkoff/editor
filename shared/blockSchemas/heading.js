@@ -28,7 +28,7 @@ export const headingDataSchema = createVersionedDataSchema({
   createDefault: () => ({ text: '', level: /** @type {2} */ (2) }),
   normalize: normalizeHeading,
   mapRichText(data, transform) {
-    mapHeadingTextFields(data, html => transform(html, 'text'))
+    data.text = transform(data.text, 'text')
   },
   migrations: [{
     from: 1,
