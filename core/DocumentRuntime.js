@@ -901,7 +901,7 @@ export class DocumentRuntime {
     return { blockId: start.blockId, fieldKey: start.fieldKey, offset: start.offset }
   }
 
-  exportLogicalClipboardParts(bookmark){
+  prepareLogicalClipboardSlice(bookmark){
     const ordered=this.#orderedLogicalRange(bookmark)
     if(!ordered)return null
     const {start,end}=ordered
@@ -909,62 +909,166 @@ export class DocumentRuntime {
     const startIndex=ids.indexOf(start.blockId)
     const endIndex=ids.indexOf(end.blockId)
     if(startIndex<0||endIndex<startIndex)return null
+
     const parts=[]
+    const blocks=[]
+    let compound=false
+    let focus={blockId:start.blockId,fieldKey:start.fieldKey,offset:start.offset}
 
-    for(let index=startIndex;index<=endIndex;index++){
-      const id=ids[index]
-      const record=this.#store.get(id)
+    if(startIndex===endIndex){
+      const record=this.#store.get(start.blockId)
       if(!record)return null
-      const definition=this.#registry.getBlockDefinition(record.type)
-      const inline=cloneInline(record.inline)??{}
-      const fields=this.#richTextFields(definition,record.data,inline)
+      const slice=this.#prepareClipboardBlockSlice(record,start,end)
+      if(!slice)return null
+      parts.push(...slice.parts)
+      blocks.push({id:record.id,remaining:slice.remaining})
+      compound=slice.compound
+      if(slice.focus)focus={blockId:record.id,...slice.focus}
+    }else{
+      const startRecord=this.#store.get(start.blockId)
+      const endRecord=this.#store.get(end.blockId)
+      if(!startRecord||!endRecord)return null
+      const startDefinition=this.#registry.getBlockDefinition(startRecord.type)
+      const endDefinition=this.#registry.getBlockDefinition(endRecord.type)
+      const startFields=this.#richTextFields(
+        startDefinition,startRecord.data,cloneInline(startRecord.inline)??{},
+      )
+      const endFields=this.#richTextFields(
+        endDefinition,endRecord.data,cloneInline(endRecord.inline)??{},
+      )
+      if(!startFields.length||!endFields.length)return null
 
-      if(index>startIndex&&index<endIndex){
+      const startSlice=this.#prepareClipboardBlockSlice(
+        startRecord,
+        start,
+        {
+          blockId:start.blockId,
+          fieldKey:startFields.at(-1).key,
+          offset:startFields.at(-1).length,
+        },
+      )
+      const endSlice=this.#prepareClipboardBlockSlice(
+        endRecord,
+        {blockId:end.blockId,fieldKey:endFields[0].key,offset:0},
+        end,
+      )
+      if(!startSlice||!endSlice)return null
+      parts.push(...startSlice.parts)
+      blocks.push({id:startRecord.id,remaining:startSlice.remaining})
+      compound=compound||startSlice.compound
+      if(startSlice.focus)focus={blockId:startRecord.id,...startSlice.focus}
+
+      for(let index=startIndex+1;index<endIndex;index++){
+        const record=this.#store.get(ids[index])
+        if(!record)return null
         parts.push({kind:'block',block:record})
-        continue
+        blocks.push({id:record.id,remaining:null})
       }
 
-      if(!fields.length){
-        if(startIndex===endIndex)return null
-        parts.push({kind:'block',block:record})
-        continue
-      }
-
-      const first=fields[0]
-      const last=fields[fields.length-1]
-      const from=index===startIndex
-        ?start
-        :{blockId:id,fieldKey:first.key,offset:0}
-      const to=index===endIndex
-        ?end
-        :{blockId:id,fieldKey:last.key,offset:last.length}
-      const fromIndex=fields.findIndex(field=>field.key===from.fieldKey)
-      const toIndex=fields.findIndex(field=>field.key===to.fieldKey)
-      if(fromIndex<0||toIndex<fromIndex)return null
-
-      const whole=fromIndex===0
-        &&toIndex===fields.length-1
-        &&from.offset===0
-        &&to.offset>=last.length
-      if(whole){
-        parts.push({kind:'block',block:record})
-        continue
-      }
-
-      for(let fieldIndex=fromIndex;fieldIndex<=toIndex;fieldIndex++){
-        const field=fields[fieldIndex]
-        const range={
-          start:fieldIndex===fromIndex?from.offset:0,
-          end:fieldIndex===toIndex?to.offset:field.length,
-        }
-        if(range.end<=range.start)continue
-        const fragment=this.exportRichTextFragment(id,field.key,range)
-        if(fragment.html||fragment.inline){
-          parts.push({kind:'rich-text',html:fragment.html,inline:fragment.inline})
-        }
-      }
+      parts.push(...endSlice.parts)
+      blocks.push({id:endRecord.id,remaining:endSlice.remaining})
+      compound=compound||endSlice.compound
     }
-    return parts.length?parts:null
+
+    if(!parts.length)return null
+    return Object.freeze({
+      generation:this.#store.generation,
+      revision:this.#store.revision,
+      bookmark:cloneEditorData(bookmark),
+      startIndex,
+      parts:cloneEditorData(parts),
+      blocks:blocks.map(entry=>Object.freeze({
+        id:entry.id,
+        remaining:entry.remaining===null?null:cloneEditorData(entry.remaining),
+      })),
+      focus:Object.freeze({...focus}),
+      compound,
+    })
+  }
+
+  exportLogicalClipboardParts(bookmark){
+    return this.prepareLogicalClipboardSlice(bookmark)?.parts??null
+  }
+
+  applyPreparedClipboardCut(plan){
+    this.#assertInteractionMutation()
+    this.#assertCurrentClipboardPlan(plan)
+    const removals=new Set(plan.blocks.filter(entry=>entry.remaining===null).map(entry=>entry.id))
+    const survivors=this.#store.ids().filter(id=>!removals.has(id))
+    let fallback=null
+    if(!survivors.length){
+      const type=this.#registry.defaultBlockType
+      const definition=this.#registry.getBlockDefinition(type)
+      fallback=this.#recordFromData(
+        this.#allocateId(type,new Set(this.#store.ids())),
+        type,
+        definition,
+        definition.schema.createDefault(),
+        undefined,
+        undefined,
+      )
+    }
+
+    this.#engine.execute({origin:'user',name:'clipboard.cut'},tx=>{
+      for(const entry of plan.blocks){
+        if(entry.remaining===null){
+          if(tx.get(entry.id))tx.remove(entry.id)
+        }else{
+          tx.update(entry.id,entry.remaining)
+        }
+      }
+      if(fallback&&tx.list().length===0)tx.insert(0,fallback)
+    })
+
+    const preferred=plan.blocks.find(entry=>entry.remaining!==null)?.id
+      ??fallback?.id
+      ??this.#store.ids()[Math.min(plan.startIndex,this.#store.ids().length-1)]
+      ??this.#store.ids().at(-1)
+      ??null
+    return preferred?{blockId:preferred,focus:plan.focus}:null
+  }
+
+  replacePreparedClipboardSlice(plan,parts){
+    this.#assertInteractionMutation()
+    this.#assertCurrentClipboardPlan(plan)
+    if(!Array.isArray(parts)||parts.length===0)throw new TypeError('Clipboard parts must be a non-empty array')
+
+    if(!plan.compound){
+      return this.replaceLogicalRangeWithClipboardParts(plan.bookmark,parts)
+    }
+
+    const reserved=new Set(this.#store.ids())
+    const incoming=parts.map(part=>{
+      if(part?.kind==='block')return this.#materializeClipboardBlock(part.block,reserved)
+      if(part?.kind==='rich-text')return this.#materializeClipboardRichText(part,reserved)
+      throw new TypeError('Clipboard part must be block or rich-text')
+    })
+
+    this.#engine.execute({origin:'user',name:'clipboard.fragment'},tx=>{
+      for(const entry of plan.blocks){
+        if(entry.remaining===null){
+          if(tx.get(entry.id))tx.remove(entry.id)
+        }else{
+          tx.update(entry.id,entry.remaining)
+        }
+      }
+
+      const startEntry=plan.blocks[0]
+      const live=tx.list()
+      let insertAt
+      if(startEntry?.remaining!==null&&tx.get(startEntry.id)){
+        insertAt=live.findIndex(record=>record.id===startEntry.id)+1
+      }else{
+        insertAt=Math.min(plan.startIndex,live.length)
+      }
+      for(const record of incoming)tx.insert(insertAt++,record)
+    })
+
+    const blockId=incoming.at(-1)?.id
+      ??plan.blocks.find(entry=>entry.remaining!==null)?.id
+      ??this.#store.ids()[Math.min(plan.startIndex,this.#store.ids().length-1)]
+      ??this.#store.ids().at(-1)
+    return blockId?{blockId,inserted:incoming.map(record=>record.id)}:false
   }
 
 
@@ -1764,6 +1868,111 @@ export class DocumentRuntime {
   }
 
 
+
+  #assertCurrentClipboardPlan(plan){
+    if(!plan||typeof plan!=='object')throw new TypeError('Clipboard plan is invalid')
+    if(plan.generation!==this.#store.generation||plan.revision!==this.#store.revision){
+      throw new Error('Clipboard target is stale')
+    }
+  }
+
+  #prepareClipboardBlockSlice(record,start,end){
+    if(this.activation(record.id)?.kind!=='active')return null
+    const definition=this.#registry.getBlockDefinition(record.type)
+    if(!definition?.schema?.mapRichText)return null
+    const inline=cloneInline(record.inline)??{}
+    const fields=this.#richTextFields(definition,record.data,inline)
+    const startIndex=fields.findIndex(field=>field.key===start.fieldKey)
+    const endIndex=fields.findIndex(field=>field.key===end.fieldKey)
+    if(startIndex<0||endIndex<startIndex)return null
+
+    const selected=new Map()
+    for(let index=startIndex;index<=endIndex;index++){
+      const field=fields[index]
+      const range={
+        start:index===startIndex?Math.max(0,start.offset):0,
+        end:index===endIndex?Math.max(0,end.offset):field.length,
+      }
+      const slice=sliceRichTextRange(field.html,inline,range,this.#ownerDocument)
+      selected.set(field.key,Object.freeze({
+        fieldKey:field.key,
+        before:slice.before,
+        selected:slice.selected,
+        after:slice.after,
+        whole:range.start===0&&range.end>=field.length,
+      }))
+    }
+
+    const capability=definition.capabilities?.clipboard
+    if(!capability){
+      if(selected.size!==1)return null
+      const field=selected.values().next().value
+      const part=this.#clipboardRichTextPart(field.selected,inline)
+      const remaining=this.#replaceBlockRichTextRange(
+        record,start,end,{kind:'text',text:''},
+      )
+      if(!remaining)return null
+      return {
+        parts:[part],
+        remaining:this.#isClipboardResidualEmpty(remaining)?null:remaining,
+        focus:{fieldKey:start.fieldKey,offset:start.offset},
+        compound:false,
+      }
+    }
+
+    const result=capability.slice(cloneEditorData(record.data),{
+      createId:prefix=>this.createDataId(prefix),
+      field:key=>selected.get(key)??null,
+    })
+    if(!result||typeof result!=='object'||Array.isArray(result)){
+      throw new TypeError(`Clipboard capability for "${record.type}" returned an invalid result`)
+    }
+    if(!Array.isArray(result.parts)||result.parts.length===0){
+      throw new TypeError(`Clipboard capability for "${record.type}" must return parts`)
+    }
+    for(let index=0;index<result.parts.length;index++){
+      if(!Object.hasOwn(result.parts,index))throw new TypeError('Clipboard capability parts must be dense')
+    }
+
+    const parts=result.parts.map(part=>{
+      if(part?.kind==='rich-text'){
+        if(typeof part.html!=='string')throw new TypeError('Clipboard rich-text part must contain html')
+        return this.#clipboardRichTextPart(part.html,inline)
+      }
+      if(part?.kind==='local-block'){
+        const local=this.#recordFromData(
+          record.id,record.type,definition,part.data,record.tunes,record.inline,
+        )
+        return {kind:'block',block:local}
+      }
+      throw new TypeError('Clipboard capability part must be local-block or rich-text')
+    })
+
+    let remaining=null
+    if(result.remaining!==null){
+      remaining=this.#recordFromData(
+        record.id,record.type,definition,result.remaining,record.tunes,record.inline,
+      )
+      if(this.#isClipboardResidualEmpty(remaining))remaining=null
+    }
+    const focus=result.focus&&typeof result.focus==='object'
+      ?cloneEditorData(result.focus)
+      :{fieldKey:start.fieldKey,offset:start.offset}
+    return {parts,remaining,focus,compound:true}
+  }
+
+  #clipboardRichTextPart(html,inline){
+    const scan=scanRichTextPlaceholders(html,inline,this.#ownerDocument)
+    const selectedInline={}
+    for(const id of scan.references){
+      if(Object.hasOwn(inline,id))selectedInline[id]=cloneEditorData(inline[id])
+    }
+    return {
+      kind:'rich-text',
+      html,
+      ...(Object.keys(selectedInline).length?{inline:selectedInline}:{}),
+    }
+  }
 
   #materializeClipboardBlock(input,reserved){
     if(!input||typeof input!=='object'||Array.isArray(input))throw new TypeError('Clipboard block part is invalid')
