@@ -338,7 +338,7 @@ export function createCarouselPlugin(config={}){
           let dead=false
           const preloadEditors=()=>{if(!readOnly)preloadSourceEditor(wrapper,context.signal,['url','html'])}
           let activeIndex=0
-          const taskControllers=new Set()
+          const tasks=new Set()
           let autoplayTimer=null
           const captionFields=new Map()
 
@@ -366,85 +366,97 @@ export function createCarouselPlugin(config={}){
           const updateData=next=>context.updateData(()=>next)
 
           const beginTask=()=>{
-            const Ctor=document.defaultView?.AbortController??AbortController
-            const controller=new Ctor()
-            taskControllers.add(controller)
-            const abort=()=>controller.abort(context.signal.reason)
-            context.signal.addEventListener('abort',abort,{once:true,signal:controller.signal})
-            return controller
+            const task=context.beginTask()
+            tasks.add(task)
+            task.signal.addEventListener('abort',()=>tasks.delete(task),{once:true})
+            return task
           }
-          const finishTask=controller=>{
-            taskControllers.delete(controller)
+          const finishTask=task=>{
+            task.cancel()
+            tasks.delete(task)
           }
           const abortTasks=()=>{
-            for(const controller of taskControllers)controller.abort()
-            taskControllers.clear()
+            for(const task of tasks)task.cancel()
+            tasks.clear()
           }
 
-          const normalizeSlide=slide=>{
+          const normalizeSlide=(slide,current)=>{
             try{
-              const candidate=slide?.type==='html'
-                ? {...slide,html:sanitizeRawHtml(String(slide.html??''),document).trim()}
-                : slide
-              if(candidate?.type==='html'&&!candidate.html)return null
-              const encoded=carouselDataSchema.encode({...data,slides:[candidate]}).data.slides[0]
+              const withId={
+                ...slide,
+                id:typeof slide?.id==='string'&&slide.id?slide.id:context.createId('slide'),
+              }
+              const candidate=withId.type==='html'
+                ? {...withId,html:sanitizeRawHtml(String(withId.html??''),document).trim()}
+                : withId
+              if(candidate.type==='html'&&!candidate.html)return null
+              const encoded=carouselDataSchema.encode({...current,slides:[candidate]}).data.slides[0]
               return encoded??null
             }catch{return null}
           }
 
-          const addSlides=slides=>{
-            if(dead||readOnly)return
-            const valid=slides.flatMap(slide=>{
-              const normalized=normalizeSlide(slide)
-              return normalized?[normalized]:[]
-            })
-            if(valid.length===0)return
-            context.updateData(current=>({
-              ...current,
-              slides:[...current.slides,...valid],
-            }))
+          const addSlides=(slides,task=null)=>{
+            if(dead||readOnly)return false
+            const producer=current=>{
+              const valid=slides.flatMap(slide=>{
+                const normalized=normalizeSlide(slide,current)
+                return normalized?[normalized]:[]
+              })
+              return valid.length?{...current,slides:[...current.slides,...valid]}:current
+            }
+            if(task)return task.commit(producer)
+            context.updateData(producer)
+            return true
           }
 
 
           const resolveFiles=async files=>{
             if(readOnly||dead)return
-            const controller=beginTask()
+            const task=beginTask()
             /** @type {Slide[]} */
             const slides=[]
-            for(const file of files){
-              if(controller.signal.aborted)break
-              const type=carouselFileType(file)
-              if(!type)continue
-              try{
-                let src=''
-                let poster=''
-                if(snapshot.uploadFile){
-                  const result=await snapshot.uploadFile(file,{signal:controller.signal})
-                  src=sanitizeMediaUrl(result?.url||'')
-                  poster=sanitizeMediaUrl(result?.poster||'')
-                }else if(type==='image'){
-                  src=sanitizeMediaUrl(String(await readCarouselDataUrl(file,controller.signal,document)))
-                }else{
-                  const URLCtor=document.defaultView?.URL??URL
-                  src=URLCtor.createObjectURL(file)
-                  objectUrls.set(src,URLCtor)
-                }
-                if(src)slides.push({
-                  id:context.createId('slide'),
-                  type,
-                  src,
-                  ...(poster?{poster}:{}),
-                  alt:file.name||'',
-                  caption:'',
-                })
-              }catch(error){
-                if(!controller.signal.aborted)console.warn('[Carousel] File resolution failed',error)
-              }
-            }
+            const createdObjectUrls=[]
             try{
-              if(!controller.signal.aborted)addSlides(slides)
+              for(const file of files){
+                if(task.signal.aborted)break
+                const type=carouselFileType(file)
+                if(!type)continue
+                try{
+                  let src=''
+                  let poster=''
+                  if(snapshot.uploadFile){
+                    const result=await snapshot.uploadFile(file,{signal:task.signal})
+                    src=sanitizeMediaUrl(result?.url||'')
+                    poster=sanitizeMediaUrl(result?.poster||'')
+                  }else if(type==='image'){
+                    src=sanitizeMediaUrl(String(await readCarouselDataUrl(file,task.signal,document)))
+                  }else{
+                    const URLCtor=document.defaultView?.URL??URL
+                    src=URLCtor.createObjectURL(file)
+                    objectUrls.set(src,URLCtor)
+                    createdObjectUrls.push(src)
+                  }
+                  if(src)slides.push({
+                    id:'',
+                    type,
+                    src,
+                    ...(poster?{poster}:{}),
+                    alt:file.name||'',
+                    caption:'',
+                  })
+                }catch(error){
+                  if(!task.signal.aborted)console.warn('[Carousel] File resolution failed',error)
+                }
+              }
+              const committed=!task.signal.aborted&&addSlides(slides,task)
+              if(!committed){
+                for(const url of createdObjectUrls){
+                  objectUrls.get(url)?.revokeObjectURL(url)
+                  objectUrls.delete(url)
+                }
+              }
             }finally{
-              finishTask(controller)
+              finishTask(task)
             }
           }
 
@@ -473,7 +485,7 @@ export function createCarouselPlugin(config={}){
               invalidText:runtimeContext.t('invalidUrl','Invalid media URL'),
               normalize:sanitizeMediaUrl,
               onSubmit:url=>addSlides([{
-                id:context.createId('slide'),
+                id:'',
                 type:/\.(?:m4v|mov|mp4|ogg|ogv|webm)(?:[?#]|$)/i.test(url)?'video':'image',
                 src:url,
                 alt:'',
@@ -495,22 +507,20 @@ export function createCarouselPlugin(config={}){
               cancelText:runtimeContext.t('cancel','Cancel'),
               invalidText:runtimeContext.t('invalidHtml','Invalid HTML'),
               normalize:value=>sanitizeRawHtml(value,document),
-              onSubmit:html=>addSlides([{id:context.createId('slide'),type:'html',html,caption:''}]),
+              onSubmit:html=>addSlides([{id:'',type:'html',html,caption:''}]),
             })
           }
 
           const runAction=async action=>{
             if(readOnly||dead)return
-            const controller=beginTask()
+            const task=beginTask()
             try{
-              const result=await action.handler({signal:controller.signal})
-              if(!controller.signal.aborted&&Array.isArray(result)){
-                addSlides(result.map(slide=>({...slide,id:slide.id||context.createId('slide')})))
-              }
+              const result=await action.handler({signal:task.signal})
+              if(!task.signal.aborted&&Array.isArray(result))addSlides(result,task)
             }catch(error){
-              if(!controller.signal.aborted)console.warn('[Carousel] Source action failed',error)
+              if(!task.signal.aborted)console.warn('[Carousel] Source action failed',error)
             }finally{
-              finishTask(controller)
+              finishTask(task)
             }
           }
 
@@ -759,7 +769,7 @@ export function createCarouselPlugin(config={}){
               element,
               mode:/** @type {'plain-text'} */('plain-text'),
             }))),
-            setReadOnly(value){readOnly=value;if(value)abortTasks();project()},
+            setReadOnly(value){readOnly=value;project()},
             focus(){if(!dead&&!readOnly)(captionFields.get(data.slides[activeIndex]?.id)??wrapper.querySelector('button'))?.focus()},
             destroy(){dead=true;clearAutoplay();abortTasks();captionFields.clear()},
           }
