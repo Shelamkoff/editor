@@ -986,6 +986,77 @@ export class DocumentRuntime {
     this.#engine.execute({ origin: 'plugin', name: 'rich-text.replace' }, tx => tx.update(blockId, next))
   }
 
+  replaceRichTextWithInlineSegments(blockId, fieldKey, range, segments) {
+    this.#assertWritable()
+    if (!Array.isArray(segments) || segments.length === 0) return false
+    const current = this.#store.get(blockId)
+    if (!current) throw new Error(`Unknown block id: ${blockId}`)
+    if (this.activation(blockId)?.kind !== 'active') {
+      throw new Error(`Preserved block cannot be updated: ${blockId}`)
+    }
+    const blockDefinition = this.#registry.getBlockDefinition(current.type)
+    if (!blockDefinition?.schema?.mapRichText) {
+      throw new Error(`Block type has no rich-text fields: ${current.type}`)
+    }
+
+    const inline = cloneInline(current.inline) ?? {}
+    let replacement = ''
+    let logicalLength = 0
+    for (const segment of segments) {
+      if (!segment || typeof segment !== 'object') throw new TypeError('Inline paste segment must be an object')
+      if (segment.kind === 'text') {
+        const text = String(segment.text ?? '')
+        replacement += text
+        logicalLength += text.length
+        continue
+      }
+      if (segment.kind !== 'widget' || typeof segment.type !== 'string' || !segment.type) {
+        throw new TypeError('Inline paste segment must be text or widget')
+      }
+      const definition = this.#registry.getInlineDefinition(segment.type)
+      if (!definition) throw new Error(`Unknown inline widget type: ${segment.type}`)
+      const encoded = definition.schema.encode(segment.data)
+      const id = this.#createUniqueInlineId(blockDefinition, current.data, inline)
+      inline[id] = {
+        type: segment.type,
+        dataVersion: encoded.dataVersion,
+        data: encoded.data,
+      }
+      replacement += `{{${id}}}`
+      logicalLength++
+    }
+
+    let matched = false
+    const nextData = blockDefinition.schema.mapRichText(
+      cloneEditorData(current.data),
+      (html, key) => {
+        if (key !== fieldKey) return html
+        matched = true
+        return replaceRichTextRange(
+          html,
+          inline,
+          range,
+          { kind: 'text', text: replacement },
+          this.#ownerDocument,
+        )
+      },
+    )
+    if (!matched) throw new Error(`Unknown rich-text field "${fieldKey}" for block "${blockId}"`)
+    const encodedBlock = this.#normalizeLocalData(blockDefinition, nextData)
+    const filteredInline = this.#filterInlineForData(blockDefinition, encodedBlock.data, inline)
+    const next = {
+      ...current,
+      dataVersion: encodedBlock.dataVersion,
+      data: encodedBlock.data,
+    }
+    if (filteredInline === undefined) delete next.inline
+    else next.inline = filteredInline
+    delete next.revision
+
+    this.#engine.execute({ origin: 'user', name: 'inline-paste' }, tx => tx.update(blockId, next))
+    return { offset: Math.max(0, Math.trunc(range?.start) || 0) + logicalLength }
+  }
+
   insertInlineWidget(blockId, fieldKey, range, type, data) {
     this.#assertWritable()
     const current = this.#store.get(blockId)
