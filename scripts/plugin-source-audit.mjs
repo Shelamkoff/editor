@@ -169,6 +169,14 @@ const removedRuntimeSymbols = [
   'BlockPluginAbstract',
   'PublicBlockView',
   'TEXT_ALIGN_TUNE_ATTRIBUTE',
+  'createEditorV2',
+  'PublicEditorApiV2',
+  'SelectionControllerV2',
+  'SlashCommandControllerV2',
+  'ClipboardControllerV2',
+  'BlockToolbarV2',
+  'DragControllerV2',
+  'InlineToolbarV2',
 ]
 for (const symbol of removedRuntimeSymbols) {
   for (const file of sourceFilesUnder('core').concat(sourceFilesUnder('plugins'), sourceFilesUnder('inline-plugins'))) {
