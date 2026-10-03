@@ -50,7 +50,6 @@ export class TransactionEngine {
   #projector
   #selection
   #onCommit
-  #onDiagnostic
   #diagnostics
   #phase = 'idle'
   /** @type {{ draft: any, context: any, failed: unknown } | null} */
@@ -66,7 +65,6 @@ export class TransactionEngine {
     this.#projector = options.projector ?? noopProjector()
     this.#selection = options.selection ?? null
     this.#onCommit = typeof options.onCommit === 'function' ? options.onCommit : null
-    this.#onDiagnostic = typeof options.onDiagnostic === 'function' ? options.onDiagnostic : null
     this.#diagnostics = options.diagnostics ?? null
   }
 
@@ -392,9 +390,6 @@ export class TransactionEngine {
       operation,
       errorName: this.#diagnostics.errorName(error),
     })
-    if (this.#onDiagnostic) {
-      try { this.#onDiagnostic(error) } catch {}
-    }
   }
 
   #reportCommandDuration(operation, startedAt) {
@@ -410,7 +405,5 @@ export class TransactionEngine {
       operation: 'transaction.observer',
       errorName: this.#diagnostics.errorName(error),
     })
-    if (!this.#onDiagnostic) return
-    try { this.#onDiagnostic(error) } catch {}
   }
 }
