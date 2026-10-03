@@ -28,7 +28,6 @@ import { BlockToolbar } from './BlockToolbar.js'
 import { ClipboardController } from './ClipboardController.js'
 import { DragController } from './DragController.js'
 import { InlineToolbar } from './InlineToolbar.js'
-import { Diagnostics } from './Diagnostics.js'
 
 const CORE_STYLE_URLS=Object.freeze([
   new URL('./themes/variables.css',import.meta.url).href,
@@ -53,6 +52,29 @@ function emitSafe(events,type,payload,onError){
   try{events.emit(type,payload)}catch(error){
     if(typeof onError==='function')onError(error)
     else console.warn('[Editor] event observer failed',error)
+  }
+}
+
+function createDiagnostics(report,thresholds={}){
+  const supplied={...thresholds}
+  const limits={commandMs:Infinity,saveMs:Infinity,renderMs:Infinity,pasteMs:Infinity}
+  for(const name of Object.keys(limits)){
+    const value=supplied[name]
+    if(value===undefined)continue
+    if(!Number.isFinite(value)||value<0)throw new RangeError(`diagnosticThresholds.${name} must be a finite number greater than or equal to 0`)
+    limits[name]=value
+  }
+  const enabled=typeof report==='function'
+  return {
+    enabled,
+    threshold:name=>limits[name],
+    now:()=>globalThis.performance?.now?.()??Date.now(),
+    emit(code,details={}){
+      if(!enabled)return
+      const diagnostic=Object.freeze({code,timestamp:Date.now(),...details})
+      queueMicrotask(()=>invokeObserver(report,[diagnostic]))
+    },
+    errorName:error=>error instanceof Error&&error.name?error.name:'UnknownError',
   }
 }
 
@@ -171,7 +193,7 @@ function snapshotEditorConfig(input){
  */
 export function createEditorRuntime(input){
   const config=snapshotEditorConfig(input)
-  const diagnostics=new Diagnostics(config.onDiagnostic,config.diagnosticThresholds)
+  const diagnostics=createDiagnostics(config.onDiagnostic,config.diagnosticThresholds)
   const reportDiagnostic=(code,operation,error)=>diagnostics.emit(code,{
     operation,
     errorName:diagnostics.errorName(error),
