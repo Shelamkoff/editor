@@ -57,18 +57,25 @@ export function createCodePlugin(config = {}) {
         return { code: payload.data.text, language: 'auto' }
       },
     }),
+    htmlImport: Object.freeze({
+      matchesRoot(element) {
+        return element.tagName === 'PRE' || element.tagName === 'CODE'
+      },
+      importRoot(element) {
+        const code = element.tagName === 'PRE'
+          ? (element.querySelector(':scope > code') ?? element)
+          : element
+        return { code: code.textContent ?? '', language: 'auto' }
+      },
+    }),
     paste: Object.freeze({
       accepts(input) {
-        return input.kind === 'html' ? /<(?:pre|code)(?:\s|>)/i.test(input.html) : input.kind === 'text' && /(^#!|^<\?(?:php|=)|^import\s|^SELECT\s|^#include\s)/im.test(input.text)
+        return input.kind === 'text' && /(^#!|^<\?(?:php|=)|^import\s|^SELECT\s|^#include\s)/im.test(input.text)
       },
-      resolve(input, context) {
-        if (input.kind === 'html') {
-          const template = context.ownerDocument.createElement('template')
-          template.innerHTML = input.html
-          const node = template.content.querySelector('pre,code')
-          return node ? { kind: /** @type {'block'} */ ('block'), data: { code: node.textContent ?? '', language: 'auto' } } : null
-        }
-        return input.kind === 'text' ? { kind: /** @type {'block'} */ ('block'), data: { code: input.text, language: 'auto' } } : null
+      resolve(input) {
+        return input.kind === 'text'
+          ? { kind: /** @type {'block'} */ ('block'), data: { code: input.text, language: 'auto' } }
+          : null
       },
     }),
   })
