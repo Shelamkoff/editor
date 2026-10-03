@@ -311,50 +311,22 @@ export class ClipboardController {
       const range = selectionRange(this.#selection.capture(), owner)
       if (!range) return
 
-      if (fragment.parts.length === 1 && fragment.parts[0].kind === 'rich-text') {
-        try {
-          this.#runtime.replaceRichTextFragment(
-            owner.blockId,
-            owner.fieldKey,
-            range,
-            fragment.parts[0],
-          )
-          this.#view.reconcileInteraction()
-          this.#view.setCurrent(owner.blockId)
-          queueMicrotask(() => this.#view.focus(owner.blockId, { fieldKey: owner.fieldKey }))
-        } catch (error) {
-          this.#diagnostics?.emit('paste.failed', {
-            operation: 'clipboard.private-rich-text',
-            errorName: this.#diagnostics.errorName(error),
-          })
-        }
-        return
+      try {
+        const result = this.#runtime.insertClipboardParts(
+          owner.blockId,
+          owner.fieldKey,
+          range,
+          fragment.parts,
+        )
+        this.#view.reconcileInteraction()
+        this.#view.setCurrent(result.blockId)
+        queueMicrotask(() => this.#view.focus(result.blockId, { offset: 'end' }))
+      } catch (error) {
+        this.#diagnostics?.emit('paste.failed', {
+          operation: 'clipboard.private-fragment',
+          errorName: this.#diagnostics.errorName(error),
+        })
       }
-
-      if (fragment.parts.every(part => part.kind === 'block')) {
-        try {
-          const inserted = this.#runtime.insertExternalBlocks(
-            owner.blockId,
-            fragment.parts.map(part => part.block),
-            { replaceEmpty: range.start === 0 && range.end === 0 },
-          )
-          this.#view.reconcileInteraction()
-          const last = inserted.at(-1)
-          if (last) {
-            this.#view.setCurrent(last)
-            queueMicrotask(() => this.#view.focus(last, { offset: 'end' }))
-          }
-        } catch (error) {
-          this.#diagnostics?.emit('paste.failed', {
-            operation: 'clipboard.private-blocks',
-            errorName: this.#diagnostics.errorName(error),
-          })
-        }
-        return
-      }
-
-      // Mixed fragments require the composite placement policy. Presence of
-      // the current private MIME forbids falling back to standard projections.
       return
     }
 
