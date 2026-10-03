@@ -138,3 +138,74 @@ test('prepared store commit is inert until commit and advances revision monotoni
   assert.equal(store.revision, 2)
   assert.equal(store.generation, 2)
 })
+
+
+test('metadata queries do not read block payloads on a 1000-block document', () => {
+  const blocks = Array.from({ length: 1000 }, (_, index) => ({
+    id: `block-${index}`,
+    type: 'table',
+    dataVersion: 2,
+    data: {
+      rows: Array.from({ length: 8 }, (__, row) => ({
+        id: `r-${index}-${row}`,
+        cells: Array.from({ length: 8 }, (___, column) => ({
+          id: `c-${index}-${row}-${column}`,
+          text: 'x'.repeat(64),
+        })),
+      })),
+    },
+  }))
+  const store = new DocumentStore({ version: '2.0.0', blocks })
+
+  const originalGet = Map.prototype.get
+  let result
+  try {
+    Map.prototype.get = function forbiddenPayloadRead() {
+      throw new Error('metadata query read a block record')
+    }
+    result = {
+      size: store.size,
+      has: store.has('block-999'),
+      missing: store.has('missing'),
+      first: store.idAt(0),
+      last: store.idAt(999),
+      invalidLow: store.idAt(-1),
+      invalidHigh: store.idAt(1000),
+      index: store.indexOf('block-777'),
+      missingIndex: store.indexOf('missing'),
+      ids: store.ids(),
+    }
+  } finally {
+    Map.prototype.get = originalGet
+  }
+
+  assert.equal(result.size, 1000)
+  assert.equal(result.has, true)
+  assert.equal(result.missing, false)
+  assert.equal(result.first, 'block-0')
+  assert.equal(result.last, 'block-999')
+  assert.equal(result.invalidLow, undefined)
+  assert.equal(result.invalidHigh, undefined)
+  assert.equal(result.index, 777)
+  assert.equal(result.missingIndex, -1)
+  assert.equal(result.ids.length, 1000)
+  assert.equal(result.ids[500], 'block-500')
+})
+
+test('peek is an internal frozen identity while detached snapshot APIs remain isolated', () => {
+  const store = new DocumentStore({ version: '2.0.0', blocks: [block('a')] })
+  const canonical = store.peek('a')
+  assert.ok(canonical)
+  assert.ok(Object.isFrozen(canonical))
+  assert.ok(Object.isFrozen(canonical.data))
+  assert.equal(store.peek('a'), canonical)
+
+  const detached = store.get('a')
+  assert.notEqual(detached, canonical)
+  detached.data.text = 'consumer'
+  assert.equal(store.peek('a').data.text, 'a')
+
+  const listed = store.list()
+  listed[0].data.text = 'consumer-list'
+  assert.equal(store.peek('a').data.text, 'a')
+})
