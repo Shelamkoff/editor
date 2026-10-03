@@ -180,9 +180,9 @@ const removedRuntimeSymbols = [
 ]
 for (const symbol of removedRuntimeSymbols) {
   for (const file of sourceFilesUnder('core').concat(sourceFilesUnder('plugins'), sourceFilesUnder('inline-plugins'))) {
-    const relative = path.relative(root, file).replaceAll('\\\\', '/')
+    const relative = path.relative(root, file).split(path.sep).join('/')
     const source = fs.readFileSync(file, 'utf8')
-    if (new RegExp('\\\\b' + symbol + '\\\\b').test(source)) {
+    if (source.includes(symbol)) {
       errors.push(`${relative}: removed runtime symbol \`${symbol}\` must not return`)
     }
   }
