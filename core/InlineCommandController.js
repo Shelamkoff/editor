@@ -211,8 +211,8 @@ export class InlineCommandController {
       segments,
     )
     if (!result) return false
-    this.#selection.setCaret(target.blockId, {
-      fieldKey: target.fieldKey,
+    this.#selection.setCaret(result.blockId, {
+      fieldKey: result.fieldKey,
       offset: result.offset,
     })
     return true
