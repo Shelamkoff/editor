@@ -5,14 +5,11 @@ export interface InlineSelection {
   readonly text?: string
 }
 
-/** Minimal cross-editable selection port consumed by formatting helpers. */
-export interface CrossBlockSelectionPort {
+/** Editor-owned cross-editable selection port bound after editor composition. */
+export interface CrossEditableSelectionPort {
   readonly range: Range | null
-  set(range: Range): void
-  clear(): void
-  clone(): Range | null
-  activate(range: Range, rootElement: HTMLElement): void
-  deactivate(rootElement?: HTMLElement): void
+  activate(range: Range): boolean
+  deactivate(): void
 }
 
 /** Mutation gate supplied to a mounted inline control. */
@@ -45,6 +42,7 @@ export interface InlineTool {
   getTitle?(active: boolean): string
   onMount?(button: HTMLElement, mutations?: InlineMutationContext): void
   isDropdownOpen?(): boolean
+  bindSelectionPort?(port: CrossEditableSelectionPort | null): void
   destroy?(): void
 }
 
