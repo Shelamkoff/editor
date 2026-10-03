@@ -198,7 +198,7 @@ export class TransactionEngine {
       if (this.#phase === 'committing' || this.#phase === 'finalizing' || this.#phase === 'publishing') {
         this.#fail(error)
       }
-      this.#rollbackPrepared(prepared, error, 'Projection failed and recovery also failed')
+      this.#rollbackPrepared(prepared, error, 'Projection failed and recovery also failed', selectionBefore)
     }
   }
 
@@ -230,6 +230,7 @@ export class TransactionEngine {
   }
 
   #replayObserved(action) {
+    const selectionBeforeReplay = this.#captureSelection()
     const historyCommit = this.#history.prepareReplay(action)
     if (!historyCommit) return false
     const record = historyCommit.record
@@ -273,12 +274,14 @@ export class TransactionEngine {
 
       const selection = action === 'undo' ? record.selectionBefore : record.selectionAfter
       this.#restoreSelection(selection)
+      const committedGeneration = storeCommit.generation
       const committedRevision = storeCommit.revision
       if (selection) {
         queueMicrotask(() => {
           if (
             this.#health !== 'ready'
             || this.#phase !== 'idle'
+            || this.#store.generation !== committedGeneration
             || this.#store.revision !== committedRevision
           ) return
           this.#restoreSelection(selection)
@@ -296,7 +299,7 @@ export class TransactionEngine {
       if (this.#phase === 'committing' || this.#phase === 'finalizing' || this.#phase === 'publishing') {
         this.#fail(error)
       }
-      this.#rollbackPrepared(prepared, error, 'History projection failed and recovery also failed')
+      this.#rollbackPrepared(prepared, error, 'History projection failed and recovery also failed', selectionBeforeReplay)
     }
   }
 
@@ -315,7 +318,7 @@ export class TransactionEngine {
     return prepared
   }
 
-  #rollbackPrepared(prepared, original, message) {
+  #rollbackPrepared(prepared, original, message, selectionBefore = null) {
     const failures = [original]
     if (prepared) {
       try { prepared.recover() } catch (error) { failures.push(error) }
@@ -325,6 +328,7 @@ export class TransactionEngine {
       const aggregate = new AggregateError(failures, message)
       this.#fail(aggregate)
     }
+    this.#restoreSelection(selectionBefore)
     this.#phase = 'idle'
     throw original
   }
