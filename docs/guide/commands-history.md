@@ -133,19 +133,34 @@ If an action replaces the block's editable element, call `ctx.suppressSelectionC
 
 ## Commands from inline widgets
 
-Persistent inline plugins receive `InlinePluginContext`. Pass the widget or one of its descendants as `target` so Rector can associate the command with its owner block.
+Each mounted inline widget receives an `InlineWidgetContext`. Widget state is model-owned: read it with `getData()` and commit one completed interaction with one `updateData()` call.
 
 ```js
-hydrate(element, ctx) {
-  const remove = element.querySelector('[data-remove]')
+create(id, initial, context) {
+  const button = document.createElement('button')
+  button.textContent = initial.enabled ? 'On' : 'Off'
 
-  remove.addEventListener('click', () => {
-    ctx.mutate(element, () => element.remove())
-  })
+  button.addEventListener('click', () => {
+    context.updateData(current => ({
+      ...current,
+      enabled: !current.enabled,
+    }))
+  }, { signal: context.signal })
+
+  return {
+    element: button,
+    update(next) {
+      button.textContent = next.enabled ? 'On' : 'Off'
+    },
+    setReadOnly(readOnly) {
+      button.disabled = readOnly
+    },
+    destroy() {},
+  }
 }
 ```
 
-`notifyChanged()` exists for compatibility with changes that have already occurred, but new code should prefer `mutate()` so the before-state is captured correctly.
+The widget DOM is a projection of canonical data. Do not mutate DOM first and later try to notify Rector; commit through `updateData()` so the before/after states, undo/redo and stale-callback protection stay atomic.
 
 ## Asynchronous work
 
