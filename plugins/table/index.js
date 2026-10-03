@@ -91,27 +91,24 @@ export function createTablePlugin(){
         }
       },
     }),
-    paste:Object.freeze({
-      accepts(input){return input.kind==='html'&&/<table(?:\s|>)/i.test(input.html)},
-      resolve(input,context){
-        if(input.kind!=='html')return null
-        const template=context.ownerDocument.createElement('template')
-        template.innerHTML=input.html
-        const table=template.content.querySelector('table')
-        if(!table)return null
+    htmlImport:Object.freeze({
+      matchesRoot(element){return element.tagName==='TABLE'},
+      importRoot(table,context){
         const rowElements=[...table.querySelectorAll('tr')]
         const rows=rowElements.map(row=>({
           id:context.createId('row'),
           cells:[...row.querySelectorAll(':scope > th, :scope > td')].map(cell=>({
             id:context.createId('cell'),
-            text:cell.innerHTML,
+            text:context.serializeRichText(cell),
           })),
         })).filter(row=>row.cells.length>0)
-        if(rows.length===0)return null
+        if(rows.length===0)throw new TypeError('Imported table must contain rows')
         const width=rows[0].cells.length
-        if(width===0||rows.some(row=>row.cells.length!==width))return null
+        if(width===0||rows.some(row=>row.cells.length!==width)){
+          throw new TypeError('Imported table rows must have equal non-zero width')
+        }
         const withHeadings=[...rowElements[0].children].some(cell=>cell.tagName==='TH')
-        return {kind:/** @type {'block'} */('block'),data:{withHeadings,rows}}
+        return {withHeadings,rows}
       },
     }),
   })
