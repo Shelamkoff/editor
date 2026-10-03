@@ -301,6 +301,24 @@ export class DocumentStore {
     return this.#revision
   }
 
+  get size() {
+    return this.#order.length
+  }
+
+  has(id) {
+    return typeof id === 'string' && this.#blocks.has(id)
+  }
+
+  idAt(index) {
+    return Number.isInteger(index) && index >= 0 && index < this.#order.length
+      ? this.#order[index]
+      : undefined
+  }
+
+  indexOf(id) {
+    return typeof id === 'string' ? this.#order.indexOf(id) : -1
+  }
+
   get(id) {
     const block = this.#blocks.get(id)
     return block ? cloneEditorData(block) : undefined
