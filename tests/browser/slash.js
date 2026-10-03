@@ -81,7 +81,7 @@ function slashMenu(entry) {
 async function run() {
   const convert = mount({
     version: '2.0.0',
-    blocks: [{ id: 'p1', type: 'paragraph', data: { text: '' } }],
+    blocks: [{ id: 'p1', type: 'paragraph', dataVersion: 2, data: { text: '' } }],
   })
   const p1 = editable(convert, 'p1')
   await typeText(p1, '/hea')
@@ -101,7 +101,7 @@ async function run() {
 
   const insert = mount({
     version: '2.0.0',
-    blocks: [{ id: 'p2', type: 'paragraph', data: { text: 'Before ' } }],
+    blocks: [{ id: 'p2', type: 'paragraph', dataVersion: 2, data: { text: 'Before ' } }],
   })
   const p2 = editable(insert, 'p2')
   await typeText(p2, '/quote')
@@ -121,7 +121,7 @@ async function run() {
 
   const inline = mount({
     version: '2.0.0',
-    blocks: [{ id: 'p3', type: 'paragraph', data: { text: 'Color ' } }],
+    blocks: [{ id: 'p3', type: 'paragraph', dataVersion: 2, data: { text: 'Color ' } }],
   })
   const p3 = editable(inline, 'p3')
   await typeText(p3, '/col')
@@ -142,8 +142,7 @@ async function run() {
     version: '2.0.0',
     blocks: [{
       id: 'q1',
-      type: 'quote',
-      data: { text: 'Quoted text', caption: 'By ' },
+      type: 'quote', dataVersion: 1, data: { text: 'Quoted text', caption: 'By ' },
     }],
   })
   const caption = editable(composite, 'q1', '.oe-quote__caption')
@@ -164,7 +163,7 @@ async function run() {
 
   const stale = mount({
     version: '2.0.0',
-    blocks: [{ id: 'stale', type: 'paragraph', data: { text: '' } }],
+    blocks: [{ id: 'stale', type: 'paragraph', dataVersion: 2, data: { text: '' } }],
   })
   const staleField = editable(stale, 'stale')
   await typeText(staleField, '/')
@@ -186,7 +185,7 @@ async function run() {
 
   stale.editor.render({
     version: '2.0.0',
-    blocks: [{ id: 'stale', type: 'paragraph', data: { text: '/' } }],
+    blocks: [{ id: 'stale', type: 'paragraph', dataVersion: 2, data: { text: '/' } }],
   })
   await delay()
   const replacementField = editable(stale, 'stale')
@@ -197,7 +196,7 @@ async function run() {
   assert(retainedAfterRender instanceof HTMLElement, 'slash render-replacement fixture did not open')
   stale.editor.render({
     version: '2.0.0',
-    blocks: [{ id: 'stale', type: 'paragraph', data: { text: 'replacement' } }],
+    blocks: [{ id: 'stale', type: 'paragraph', dataVersion: 2, data: { text: 'replacement' } }],
   })
   await delay()
   const afterRenderBefore = structuredClone(stale.editor.save().blocks)
@@ -209,8 +208,8 @@ async function run() {
   const focusAway = mount({
     version: '2.0.0',
     blocks: [
-      { id: 'focus-a', type: 'paragraph', data: { text: '' } },
-      { id: 'focus-b', type: 'paragraph', data: { text: 'KEEP' } },
+      { id: 'focus-a', type: 'paragraph', dataVersion: 2, data: { text: '' } },
+      { id: 'focus-b', type: 'paragraph', dataVersion: 2, data: { text: 'KEEP' } },
     ],
   })
   const focusA = editable(focusAway, 'focus-a')
@@ -229,7 +228,7 @@ async function run() {
 
   const escape = mount({
     version: '2.0.0',
-    blocks: [{ id: 'p4', type: 'paragraph', data: { text: 'Keep ' } }],
+    blocks: [{ id: 'p4', type: 'paragraph', dataVersion: 2, data: { text: 'Keep ' } }],
   })
   const p4 = editable(escape, 'p4')
   await typeText(p4, '/head')

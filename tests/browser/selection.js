@@ -4,9 +4,9 @@ import { createParagraphPlugin, createQuotePlugin } from '../../plugins/index.js
 const initialData = {
   version: '2.0.0',
   blocks: [
-    { id: 'alpha', type: 'paragraph', data: { text: 'Alpha one' } },
-    { id: 'bravo', type: 'paragraph', data: { text: 'Bravo two' } },
-    { id: 'charlie', type: 'paragraph', data: { text: 'Charlie three' } },
+    { id: 'alpha', type: 'paragraph', dataVersion: 2, data: { text: 'Alpha one' } },
+    { id: 'bravo', type: 'paragraph', dataVersion: 2, data: { text: 'Bravo two' } },
+    { id: 'charlie', type: 'paragraph', dataVersion: 2, data: { text: 'Charlie three' } },
   ],
 }
 
@@ -275,8 +275,8 @@ async function run() {
   const multi = createHarness(sandbox, {
     version: '2.0.0',
     blocks: [
-      { id: 'quote-alpha', type: 'quote', data: { text: 'First quote', caption: 'First caption' } },
-      { id: 'quote-bravo', type: 'quote', data: { text: 'Second quote', caption: 'Second caption' } },
+      { id: 'quote-alpha', type: 'quote', dataVersion: 1, data: { text: 'First quote', caption: 'First caption' } },
+      { id: 'quote-bravo', type: 'quote', dataVersion: 1, data: { text: 'Second quote', caption: 'Second caption' } },
     ],
   }, [createParagraphPlugin({ injectStyles: false }), createQuotePlugin()])
   const firstCaption = editable(multi, 0, '.oe-quote__caption')

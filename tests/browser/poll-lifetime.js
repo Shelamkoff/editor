@@ -35,7 +35,7 @@ export async function verifyPollLifetime(fixture, sandbox) {
           plugins: [createPollPlugin({ ...config, injectStyles: false })],
           defaultBlock: 'poll',
           injectStyles: false,
-          data: { version: '2.0.0', blocks: [{ id: 'poll-lifetime', type: 'poll', data }] },
+          data: { version: '2.0.0', blocks: [{ id: 'poll-lifetime', type: 'poll', dataVersion: 1, data }] },
         })
         editor.on('transaction:committed', () => { mutations++ })
         element = holder.querySelector('.oe-poll')
@@ -44,7 +44,7 @@ export async function verifyPollLifetime(fixture, sandbox) {
         dispose = () => editor.destroy()
       } else {
         const renderer = new EditorRenderer({ blockTypes: ['poll'], blockConfigs: { poll: config }, injectStyles: false })
-        element = renderer.renderBlock({ type: 'poll', data })
+        element = renderer.renderBlock({ id: 'poll-lifetime-renderer', type: 'poll', dataVersion: 1, data })
         marker = element.querySelector('.editor-poll__marker')
         submit = element.querySelector('.editor-poll__submit')
         dispose = () => {

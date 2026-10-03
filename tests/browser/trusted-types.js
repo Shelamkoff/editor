@@ -29,8 +29,8 @@ await test('editor text blocks render under require-trusted-types-for', () => {
     data: {
       version: '2.0.0',
       blocks: [
-        { id: 'p', type: 'paragraph', data: { text: '<strong>Safe</strong><img src=x onerror=bad()>' } },
-        { id: 'h', type: 'heading', data: { text: '<em>Heading</em><script>bad()</script>', level: 2 } },
+        { id: 'p', type: 'paragraph', dataVersion: 2, data: { text: '<strong>Safe</strong><img src=x onerror=bad()>' } },
+        { id: 'h', type: 'heading', dataVersion: 2, data: { text: '<em>Heading</em><script>bad()</script>', level: 2 } },
       ],
     },
   })
@@ -54,8 +54,8 @@ await test('document renderer handles inline HTML under Trusted Types enforcemen
     root = renderer.render({
       version: '2.0.0',
       blocks: [
-        { id: 'p', type: 'paragraph', data: { text: '<strong>Rendered</strong><img src=x onerror=bad()>' } },
-        { id: 'h', type: 'heading', data: { text: '<em>Title</em>', level: 2 } },
+        { id: 'p', type: 'paragraph', dataVersion: 2, data: { text: '<strong>Rendered</strong><img src=x onerror=bad()>' } },
+        { id: 'h', type: 'heading', dataVersion: 2, data: { text: '<em>Title</em>', level: 2 } },
       ],
     })
     assert(root.textContent.includes('Rendered'), 'renderer paragraph content missing')
@@ -78,7 +78,7 @@ await test('Raw preview assigns TrustedHTML under require-trusted-types-for', as
     readOnly: true,
     data: {
       version: '2.0.0',
-      blocks: [{ id: 'raw', type: 'raw', data: { html: '<p style="color:red" onclick="bad()">safe</p><script>bad()</script>' } }],
+      blocks: [{ id: 'raw', type: 'raw', dataVersion: 1, data: { html: '<p style="color:red" onclick="bad()">safe</p><script>bad()</script>' } }],
     },
   })
   try {

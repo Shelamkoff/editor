@@ -28,7 +28,7 @@ function makePoll(config = {}, data = fixture, options = {}) {
     injectStyles: false,
     readOnly: options.readOnly === true,
     changeDebounceMs: 0,
-    data: { version: '2.0.0', blocks: [{ id: options.id ?? 'poll', type: 'poll', data: structuredClone(data) }] },
+    data: { version: '2.0.0', blocks: [{ id: options.id ?? 'poll', type: 'poll', dataVersion: definition.schema.currentVersion, data: structuredClone(data) }] },
   })
   const root = holder.querySelector('.oe-poll')
   assert(root instanceof HTMLElement, 'Poll editor projection is missing')
@@ -95,7 +95,7 @@ async function run() {
   sandbox.appendChild(retainedContainer)
   retainedRenderer.renderTo({
     version: '2.0.0',
-    blocks: [{ id: 'retained-renderer', type: 'poll', data: { ...fixture, initialResults } }],
+    blocks: [{ id: 'retained-renderer', type: 'poll', dataVersion: 1, data: { ...fixture, initialResults } }],
   }, retainedContainer)
   assert(retainedContainer.querySelectorAll('.editor-poll__voters li').length === 60, 'Poll renderer truncated voters below configured maxVoters')
   retainedRenderer.destroy(retainedContainer)
@@ -272,7 +272,7 @@ async function run() {
   })
   const container = document.createElement('div')
   sandbox.appendChild(container)
-  renderer.renderTo({ version: '2.0.0', blocks: [{ id: 'poll-renderer', type: 'poll', data: fixture }] }, container)
+  renderer.renderTo({ version: '2.0.0', blocks: [{ id: 'poll-renderer', type: 'poll', dataVersion: 1, data: fixture }] }, container)
   await tick()
   const rendererMarkers = container.querySelectorAll('.editor-poll__marker')
   assert(rendererMarkers.length === 2, 'renderer Poll controls are missing')
