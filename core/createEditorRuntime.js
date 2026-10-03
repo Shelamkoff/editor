@@ -494,6 +494,7 @@ export function createEditorRuntime(input){
     toolbar?.setReadOnly(runtime.readOnly)
     inlineToolbar.setReadOnly(runtime.readOnly)
     nativeInput.setReadOnly(runtime.readOnly)
+    drag.setReadOnly(runtime.readOnly)
     emit('readOnly:changed',{readOnly:runtime.readOnly})
     emit('history:changed',{canUndo:runtime.canUndo,canRedo:runtime.canRedo})
   }
