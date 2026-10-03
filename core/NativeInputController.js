@@ -1,4 +1,5 @@
 // @ts-check
+import { editingHostForEvent } from '../shared/editableFields.js'
 
 const SOURCE_PROJECTION_INPUTS = new Set([
   'insertText',
@@ -64,6 +65,15 @@ export class NativeInputController {
     if (this.#runtime.readOnly) return
     if (event?.isComposing || this.#composition) return
     const inputType = typeof event?.inputType === 'string' ? event.inputType : ''
+    if (inputType === 'historyUndo' || inputType === 'historyRedo') {
+      const owner = this.#resolve(event?.target)
+      if (!owner) return
+      event.preventDefault?.()
+      if (inputType === 'historyUndo') this.#runtime.undo()
+      else this.#runtime.redo()
+      this.#lastGroup = null
+      return
+    }
     if (
       this.#crossSelection?.active
       && (inputType === 'insertText' || inputType === 'insertReplacementText')
@@ -162,7 +172,13 @@ export class NativeInputController {
 
   #resolve(target) {
     if (!target || typeof target !== 'object') return null
-    return this.#reconciler.resolveEditableTarget(target)
+    const owner = this.#reconciler.resolveEditableTarget(target)
+    if (!owner) return null
+    if (owner.mode === 'plain-text') {
+      return target === owner.element || owner.element.contains?.(target) ? owner : null
+    }
+    if (owner.mode !== 'rich-text') return null
+    return editingHostForEvent(this.#root, target) === owner.element ? owner : null
   }
 
   #commit(owner, { group, preserveSourceProjection }) {
