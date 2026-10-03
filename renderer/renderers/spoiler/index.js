@@ -1,5 +1,6 @@
 import { setTrustedHtml } from '../../../shared/sanitize/sanitizeHtml.js'
 // @ts-check
+import { spoilerDataSchema } from '../../../shared/blockSchemas/spoiler.js'
 import { localeText } from '../locale.js'
 
 const styles = new URL('./styles.css', import.meta.url).href
@@ -14,7 +15,7 @@ let spoilerSequence = 0
  *
  * @param {string} classPrefix
  * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} locale
- * @returns {import('../../types').BlockRenderer<import('../../types').SpoilerBlock>}
+ * @returns {import('../../types').BlockRendererDefinition<import('../../types').SpoilerBlock>}
  */
 export function createSpoilerRenderer(classPrefix, /** @type {Record<string, import('../../../shared/localeTypes').LocaleValue>} */ locale) {
     const t = (/** @type {string} */ key, /** @type {string} */ fallback) => localeText(locale, key, fallback)
@@ -22,6 +23,7 @@ export function createSpoilerRenderer(classPrefix, /** @type {Record<string, imp
 
     return {
         type: 'spoiler',
+    schema: spoilerDataSchema,
         styles: [styles],
 
         /**
