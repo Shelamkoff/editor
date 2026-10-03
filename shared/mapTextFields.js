@@ -31,9 +31,12 @@ export function mapHeadingTextFields(data, transform) {
  * @returns {void}
  */
 export function mapListTextFields(data, transform) {
-  if (Array.isArray(data.items)) {
-    data.items = data.items.map(item => typeof item === 'string' ? transform(item) : item)
-  }
+  if (!Array.isArray(data.items)) return
+  data.items = data.items.map(item => (
+    item && typeof item === 'object' && typeof item.text === 'string'
+      ? { ...item, text: transform(item.text) }
+      : item
+  ))
 }
 
 /**
@@ -62,15 +65,23 @@ export function mapChecklistTextFields(data, transform) {
 }
 
 /**
- * @param {{ content?: unknown }} data
+ * @param {{ rows?: unknown }} data
  * @param {(html: string) => string} transform
  * @returns {void}
  */
 export function mapTableTextFields(data, transform) {
-  if (!Array.isArray(data.content)) return
-  data.content = data.content.map(row => Array.isArray(row)
-    ? row.map(cell => typeof cell === 'string' ? transform(cell) : cell)
-    : row)
+  if (!Array.isArray(data.rows)) return
+  data.rows = data.rows.map(row => {
+    if (!row || typeof row !== 'object' || !Array.isArray(row.cells)) return row
+    return {
+      ...row,
+      cells: row.cells.map(cell => (
+        cell && typeof cell === 'object' && typeof cell.text === 'string'
+          ? { ...cell, text: transform(cell.text) }
+          : cell
+      )),
+    }
+  })
 }
 
 /**
