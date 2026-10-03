@@ -2,8 +2,8 @@
 import {
   READ_ONLY_INTERACTIVE_ATTRIBUTE,
   setSanitizedHtml,
-  setTrustedHtml,
 } from '../../plugin-kit/index.js'
+import { setTrustedHtml } from '../../shared/sanitize/sanitizeHtml.js'
 import { spoilerDataSchema } from '../../shared/blockSchemas/spoiler.js'
 
 const editorStyles=new URL('./spoiler.css',import.meta.url).href
