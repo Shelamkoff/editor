@@ -114,6 +114,21 @@ async function clickInlineTool(holder, type) {
   await delay()
 }
 
+function pointer(target,type,options={}){
+  const event=new PointerEvent(type,{
+    pointerId:options.pointerId??1,
+    isPrimary:options.isPrimary??true,
+    button:options.button??0,
+    buttons:options.buttons??(type==='pointerup'||type==='pointercancel'?0:1),
+    clientX:options.clientX??0,
+    clientY:options.clientY??0,
+    bubbles:true,
+    cancelable:true,
+  })
+  target.dispatchEvent(event)
+  return event
+}
+
 function key(element, key, options = {}) {
   const event = new KeyboardEvent('keydown', {
     key,
@@ -361,6 +376,87 @@ async function run() {
   assert(readOnlyEditor.save().blocks[0].id === 'host-render', 'undo after read-only restored wrong host state')
   readOnlyEditor.destroy()
 
+  const dragHarness=createHarness(sandbox,{
+    version:'2.0.0',
+    blocks:[
+      {id:'drag-a',type:'paragraph',dataVersion:2,data:{text:'A'}},
+      {id:'drag-b',type:'paragraph',dataVersion:2,data:{text:'B'}},
+      {id:'drag-c',type:'paragraph',dataVersion:2,data:{text:'C'}},
+    ],
+  })
+  const dragEditor=dragHarness.editor
+  const dragHolder=dragHarness.holder
+  dragEditor.blocks.focus('drag-a',{offset:'start'})
+  await delay()
+  const dragHandle=dragHolder.querySelector('.oe-toolbar__drag')
+  assert(dragHandle instanceof HTMLElement,'drag handle is missing')
+  const shell=id=>dragHolder.querySelector(`.oe-block[data-block-id="${id}"]`)
+  const aShell=shell('drag-a')
+  const bShell=shell('drag-b')
+  const cShell=shell('drag-c')
+  assert(aShell&&bShell&&cShell,'drag fixture shells are missing')
+  const aRect=aShell.getBoundingClientRect()
+  const bRect=bShell.getBoundingClientRect()
+  const cRect=cShell.getBoundingClientRect()
+  const bMid=bRect.top+bRect.height/2
+  const cMid=cRect.top+cRect.height/2
+  const gapY=(bMid+cMid)/2
+
+  pointer(dragHandle,'pointerdown',{
+    pointerId:71,
+    clientX:aRect.left+1,
+    clientY:aRect.top+aRect.height/2,
+  })
+  const dragMove=pointer(document,'pointermove',{
+    pointerId:71,
+    clientX:aRect.left+20,
+    clientY:gapY,
+  })
+  assert(dragMove.defaultPrevented,'active drag did not own pointermove')
+  pointer(document,'pointerup',{
+    pointerId:71,
+    clientX:aRect.left+20,
+    clientY:gapY,
+    buttons:0,
+  })
+  await delay()
+  assert(
+    dragEditor.blocks.list().map(block=>block.id).join(',')==='drag-b,drag-a,drag-c',
+    'drag gap produced the wrong order',
+  )
+  assert(shell('drag-a')===aShell&&shell('drag-b')===bShell&&shell('drag-c')===cShell,'drag recreated block DOM identity')
+  assert(dragEditor.undo()===true,'drag move did not create one undo step')
+  await delay()
+  assert(dragEditor.blocks.list().map(block=>block.id).join(',')==='drag-a,drag-b,drag-c','drag undo restored wrong order')
+  assert(dragEditor.redo()===true,'drag move redo failed')
+  await delay()
+  assert(dragEditor.blocks.list().map(block=>block.id).join(',')==='drag-b,drag-a,drag-c','drag redo restored wrong order')
+
+  const firstClick=new MouseEvent('click',{bubbles:true,cancelable:true})
+  dragHandle.dispatchEvent(firstClick)
+  assert(firstClick.defaultPrevented,'drag gesture did not suppress its synthetic click')
+  await delay(5)
+  const laterClick=new MouseEvent('click',{bubbles:true,cancelable:true})
+  dragHandle.dispatchEvent(laterClick)
+  assert(!laterClick.defaultPrevented,'drag click suppression outlived its gesture')
+
+  const foreignBefore=dragEditor.blocks.list().map(block=>block.id).join(',')
+  pointer(dragHandle,'pointerdown',{pointerId:81,clientX:1,clientY:1})
+  pointer(document,'pointermove',{pointerId:82,clientX:20,clientY:gapY})
+  pointer(document,'pointerup',{pointerId:82,clientX:20,clientY:gapY,buttons:0})
+  pointer(document,'pointercancel',{pointerId:81,buttons:0})
+  await delay()
+  assert(dragEditor.blocks.list().map(block=>block.id).join(',')===foreignBefore,'foreign pointer completed a drag')
+
+  pointer(dragHandle,'pointerdown',{pointerId:91,clientX:1,clientY:1})
+  pointer(document,'pointermove',{pointerId:91,clientX:30,clientY:gapY})
+  dragEditor.setReadOnly(true)
+  assert(!document.body.classList.contains('oe-editor-dragging'),'read-only transition left drag session active')
+  pointer(document,'pointerup',{pointerId:91,clientX:30,clientY:gapY,buttons:0})
+  dragEditor.setReadOnly(false)
+  assert(dragEditor.blocks.list().map(block=>block.id).join(',')===foreignBefore,'late pointerup moved a read-only-cancelled drag')
+  dragEditor.destroy()
+
   const eventHarness = createHarness(sandbox)
   const transactionEvents = []
   const documentEvents = []
@@ -433,6 +529,7 @@ async function run() {
       'toolbar insert',
       'keyboard undo/redo',
       'read-only transition',
+      'pointer drag session',
       'read-only host authority',
       'direct/inverse transaction events',
     ],
