@@ -10,7 +10,7 @@ function localizedLabel(definition, scope, translate) {
   return value === key ? label.fallback : value
 }
 
-export class SlashCommandControllerV2 {
+export class SlashCommandController {
   #root
   #runtime
   #registry
