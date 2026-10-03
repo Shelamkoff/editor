@@ -102,7 +102,7 @@ export class KeyboardRouter {
     }
 
     if (event?.metaKey || event?.ctrlKey || event?.altKey) return
-    if (ownership.kind !== 'document-rich-text' || !ownership.owner) return
+    if (!ownership.owner) return
 
     if (this.#crossSelection?.active && (key === 'Backspace' || key === 'Delete')) {
       event.preventDefault?.()
@@ -199,7 +199,7 @@ export class KeyboardRouter {
   #ownership(event) {
     const path = typeof event?.composedPath === 'function' ? event.composedPath() : []
     const target = path.find(node => node && typeof node.closest === 'function') ?? event?.target
-    if (!target || !this.#root.contains(target)) return { kind: 'outside', owner: null }
+    if (!target || (typeof this.#root.contains === 'function' && !this.#root.contains(target))) return { kind: 'outside', owner: null }
 
     const owner = this.#reconciler.resolveEditableTarget(target)
     if (owner) {
@@ -209,6 +209,7 @@ export class KeyboardRouter {
           return { kind: 'document-plain-text', owner }
         }
       } else if (owner.mode === 'rich-text') {
+        if (typeof target.closest !== 'function') return { kind: 'document-rich-text', owner }
         const host = editingHostForEvent(this.#root, target)
         if (host === owner.element) return { kind: 'document-rich-text', owner }
       }
