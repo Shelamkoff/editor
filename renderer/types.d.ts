@@ -7,6 +7,14 @@ import type { LocaleValue } from '../shared/localeTypes.js'
 import type { BlockDataSchema, InlineWidgetSchema } from '../plugin-kit/types.js'
 export type { LocaleValue, PluralForms } from '../shared/localeTypes.js'
 
+/** Renderer input is the same canonical current document envelope as editor output. */
+export interface OutputData extends EditorOutputData<OutputBlockData> {
+    time?: number
+    version: '2.0.0'
+    blocks: OutputBlockData[]
+}
+
+
 /** Single canonical current block for rendering. */
 export interface OutputBlockData<
     Type extends string = string,
