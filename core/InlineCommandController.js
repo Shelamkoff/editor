@@ -79,98 +79,38 @@ export class InlineCommandController {
       const definition = this.#registry.getInlineDefinition(type)
       const paste = definition?.paste
       if (!paste?.patterns?.length || typeof paste.fromMatch !== 'function') continue
+
       for (const pattern of paste.patterns) {
         if (!(pattern instanceof RegExp)) continue
         let source = pattern.source
         if (source.startsWith('^')) source = source.slice(1)
-        if (source.endsWith('
-    if (this.#runtime.readOnly) return false
-    const definition = this.#registry.getInlineDefinition(type)
-    if (!definition) return false
-    const encoded = definition.schema.encode(data)
-    this.#runtime.insertInlineWidget(
-      session.blockId,
-      session.fieldKey,
-      session.range,
-      type,
-      encoded.data,
-    )
-    this.#selection.setCaret(session.blockId, {
-      fieldKey: session.fieldKey,
-      offset: session.range.start + 1,
-    })
-    return true
-  }
-
-  #currentRange() {
-    const bookmark = this.#selection.capture()
-    if (!bookmark?.anchor || !bookmark?.focus) return null
-    if (
-      bookmark.anchor.blockId !== bookmark.focus.blockId
-      || bookmark.anchor.fieldKey !== bookmark.focus.fieldKey
-    ) return null
-    return {
-      blockId: bookmark.anchor.blockId,
-      fieldKey: bookmark.anchor.fieldKey,
-      range: {
-        start: Math.min(bookmark.anchor.offset, bookmark.focus.offset),
-        end: Math.max(bookmark.anchor.offset, bookmark.focus.offset),
-      },
-    }
-  }
-}
-) && !source.endsWith('\\
-    if (this.#runtime.readOnly) return false
-    const definition = this.#registry.getInlineDefinition(type)
-    if (!definition) return false
-    const encoded = definition.schema.encode(data)
-    this.#runtime.insertInlineWidget(
-      session.blockId,
-      session.fieldKey,
-      session.range,
-      type,
-      encoded.data,
-    )
-    this.#selection.setCaret(session.blockId, {
-      fieldKey: session.fieldKey,
-      offset: session.range.start + 1,
-    })
-    return true
-  }
-
-  #currentRange() {
-    const bookmark = this.#selection.capture()
-    if (!bookmark?.anchor || !bookmark?.focus) return null
-    if (
-      bookmark.anchor.blockId !== bookmark.focus.blockId
-      || bookmark.anchor.fieldKey !== bookmark.focus.fieldKey
-    ) return null
-    return {
-      blockId: bookmark.anchor.blockId,
-      fieldKey: bookmark.anchor.fieldKey,
-      range: {
-        start: Math.min(bookmark.anchor.offset, bookmark.focus.offset),
-        end: Math.max(bookmark.anchor.offset, bookmark.focus.offset),
-      },
-    }
-  }
-}
-)) source = source.slice(0, -1)
+        if (source.endsWith('$')) source = source.slice(0, -1)
         if (!source) continue
-        const flags = [...pattern.flags].filter(flag => flag !== 'g' && flag !== 'y').join('') + 'g'
+
+        const flags = [...pattern.flags]
+          .filter(flag => flag !== 'g' && flag !== 'y')
+          .join('') + 'g'
+
         let search
-        try { search = new RegExp(source, flags) } catch { continue }
+        try { search = new RegExp(source, flags) }
+        catch { continue }
+
         for (const match of text.matchAll(search)) {
           const value = match[0]
           if (!value) continue
+
           pattern.lastIndex = 0
           let accepted = false
-          try { accepted = pattern.test(value) } catch {}
+          try { accepted = pattern.test(value) }
+          catch {}
           pattern.lastIndex = 0
           if (!accepted) continue
+
           let data
-          try { data = paste.fromMatch(value) } catch { data = null }
+          try { data = paste.fromMatch(value) }
+          catch { data = null }
           if (!data) continue
+
           matches.push({
             start: match.index ?? 0,
             end: (match.index ?? 0) + value.length,
@@ -181,8 +121,8 @@ export class InlineCommandController {
         }
       }
     }
-    if (!matches.length) return false
 
+    if (!matches.length) return false
     matches.sort((left, right) => (
       left.start - right.start
       || (right.end - right.start) - (left.end - left.start)
