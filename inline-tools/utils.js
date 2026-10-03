@@ -12,6 +12,29 @@ const TEXT_NODE = 3
 const DOCUMENT_FRAGMENT_NODE = 11
 const CROSS_HIGHLIGHT_KEY = 'oe-cross-select-v2'
 
+/**
+ * Create a late-bound cross-editable selection proxy for one inline tool.
+ * Core binds the live SelectionController after editor composition, keeping
+ * inline-tool factories independent from private core modules.
+ *
+ * @returns {{
+ *   port: import('./types').CrossEditableSelectionPort,
+ *   bind: (port: import('./types').CrossEditableSelectionPort | null) => void,
+ * }}
+ */
+export function createSelectionPortBinding() {
+  /** @type {import('./types').CrossEditableSelectionPort | null} */
+  let current = null
+  return {
+    port: {
+      get range() { return current?.range ?? null },
+      activate(range) { return current?.activate(range) === true },
+      deactivate() { current?.deactivate() },
+    },
+    bind(port) { current = port ?? null },
+  }
+}
+
 function showCrossHighlight(range) {
   const view = range?.startContainer?.ownerDocument?.defaultView
   const HighlightCtor = view?.Highlight
@@ -526,7 +549,7 @@ export function getEditorRoot(node) {
 /**
  * Clear the stored cross-block range (call after DOM mutations that
  * invalidate the range's node references).
- * @param {import('./types').CrossBlockSelectionPort | null} [cbs]
+ * @param {import('./types').CrossEditableSelectionPort | null} [cbs]
  * @param {Node} [contextNode] - any node inside the editor for scoping
  * @returns {void}
  */
@@ -590,7 +613,7 @@ export function saveCrossBlockOffsets(range) {
 
 /**
  * Restore cross-block range from saved offsets and refresh the editor-owned CSS Highlight.
- * @param {import('./types').CrossBlockSelectionPort | null} cbs
+ * @param {import('./types').CrossEditableSelectionPort | null} cbs
  * @param {{ editorRoot: HTMLElement, startBlockId: string, endBlockId: string, startFieldIndex?: number, endFieldIndex?: number, startOffset: number, endOffset: number }} offsets
  * @returns {Range | null}
  */
@@ -647,7 +670,7 @@ export function restoreCrossBlockRange(cbs, offsets) {
 
 /**
  * Check if a selection spans multiple .oe-block elements.
- * @param {import('./types').CrossBlockSelectionPort | null} [cbs]
+ * @param {import('./types').CrossEditableSelectionPort | null} [cbs]
  * @param {Range | null} [rangeHint] - saved owning range when no cross-block range is active
  * @returns {HTMLElement[] | null} Array of plugin-owned block roots, or null if single-block
  */
@@ -686,7 +709,7 @@ export function getSelectedBlockElements(cbs, rangeHint = null) {
  * @param {string} icon
  * @param {string} tag
  * @param {string} [shortcut]
- * @param {import('./types').CrossBlockSelectionPort} [cbs]
+ * @param {import('./types').CrossEditableSelectionPort} [cbs]
  * @returns {import('./types').InlineTool}
  */
 export function createSimpleInlineTool(type, title, icon, tag, shortcut, cbs) {
@@ -886,7 +909,7 @@ export function saveSelectionOffsets(range) {
 
 /**
  * Restore selection from saved offsets after DOM mutation.
- * @param {import('./types').CrossBlockSelectionPort | null} cbs
+ * @param {import('./types').CrossEditableSelectionPort | null} cbs
  * @param {SavedOffsets} saved
  * @returns {void}
  */
