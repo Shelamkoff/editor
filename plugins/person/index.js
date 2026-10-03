@@ -113,6 +113,7 @@ export function createPersonPlugin(config={}){
           let dragId=null
           const avatarTasks=new Map()
           let cropperDialog=null
+          let cropperTask=null
 
           const activePerson=()=>data.persons.find(person=>person.id===activeId)??data.persons[0]
 
@@ -140,13 +141,18 @@ export function createPersonPlugin(config={}){
           }
 
           const beginAvatarTask=personId=>{
-            avatarTasks.get(personId)?.abort()
-            const Ctor=document.defaultView?.AbortController??AbortController
-            const controller=new Ctor()
-            avatarTasks.set(personId,controller)
-            const abort=()=>controller.abort(context.signal.reason)
-            context.signal.addEventListener('abort',abort,{once:true,signal:controller.signal})
-            return controller
+            avatarTasks.get(personId)?.cancel()
+            const task=context.beginTask()
+            avatarTasks.set(personId,task)
+            task.signal.addEventListener('abort',()=>{
+              if(avatarTasks.get(personId)===task)avatarTasks.delete(personId)
+              if(cropperTask===task){
+                cropperDialog?.destroy()
+                cropperDialog=null
+                cropperTask=null
+              }
+            },{once:true})
+            return task
           }
 
           const readAvatar=async(file,signal)=>{
@@ -172,7 +178,7 @@ export function createPersonPlugin(config={}){
                 const file=files[0]
                 if(!file||!isSupportedImageFile(file))return
                 void (async()=>{
-                  const controller=beginAvatarTask(personId)
+                  const task=beginAvatarTask(personId)
                   try{
                     let blob=/** @type {Blob} */(file)
                     let filename=file.name||'avatar'
@@ -185,34 +191,37 @@ export function createPersonPlugin(config={}){
                         cancelText:runtimeContext.t('cropCancel','Cancel'),
                       })
                       cropperDialog=dialog
+                      cropperTask=task
                       dialog.open()
                       try{
                         const cropped=await dialog.result
-                        if(!cropped||controller.signal.aborted)return
+                        if(!cropped||task.signal.aborted)return
                         blob=cropped
                         filename='avatar.webp'
                         mime='image/webp'
                       }finally{
                         if(cropperDialog===dialog)cropperDialog=null
+                        if(cropperTask===task)cropperTask=null
                       }
                     }
                     let url=''
                     if(snapshot.uploadFile){
                       const FileCtor=document.defaultView?.File??File
                       const upload=new FileCtor([blob],filename,{type:mime})
-                      const result=await snapshot.uploadFile(upload,{signal:controller.signal})
+                      const result=await snapshot.uploadFile(upload,{signal:task.signal})
                       url=sanitizeUrl(result?.url??'',{policy:'media',fallback:''})
                     }else{
-                      url=String(await readAvatar(blob,controller.signal))
+                      url=String(await readAvatar(blob,task.signal))
                     }
-                    if(controller.signal.aborted||!url||dead)return
-                    commit(current=>({
+                    if(task.signal.aborted||!url||dead)return
+                    task.commit(current=>({
                       persons:current.persons.map(person=>person.id===personId?{...person,avatar:url}:person),
                     }))
                   }catch{
                     // Cancelled/failed avatar work leaves canonical data unchanged.
                   }finally{
-                    if(avatarTasks.get(personId)===controller)avatarTasks.delete(personId)
+                    task.cancel()
+                    if(avatarTasks.get(personId)===task)avatarTasks.delete(personId)
                   }
                 })()
               },
@@ -453,7 +462,7 @@ export function createPersonPlugin(config={}){
             destroy(){
               dead=true
               cropperDialog?.destroy()
-              for(const controller of avatarTasks.values())controller.abort()
+              for(const task of avatarTasks.values())task.cancel()
               avatarTasks.clear()
               body.replaceChildren()
               tabs.replaceChildren()
