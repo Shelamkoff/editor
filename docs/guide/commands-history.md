@@ -183,7 +183,7 @@ button.addEventListener('click', async () => {
 })
 ```
 
-Protect asynchronous handlers against stale results and destruction. An extension should ignore a response when its element is detached, a newer request superseded it, or its `destroy()` method has run.
+For asynchronous work that will persist document data, capture `const task = context.beginTask()` before starting the operation, pass `task.signal` outward, and commit with `task.commit(current => next)`. Replacement/destroy, generation changes, and a `readOnly: false → true` transition revoke the task. A stale task returns `false` without invoking its producer; returning to editable mode never revives it.
 
 ## Clipboard and composite selections
 
