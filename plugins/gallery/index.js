@@ -186,59 +186,71 @@ export function createGalleryPlugin(config={}){
           let readOnly=context.isReadOnly()
           let dead=false
           const preloadEditors=()=>{if(!readOnly)preloadSourceEditor(wrapper,context.signal,['url'])}
-          const taskControllers=new Set()
+          const tasks=new Set()
           const captionFields=new Map()
 
           const updateData=next=>context.updateData(()=>next)
-          const syncLoading=()=>wrapper.classList.toggle(CSS.loading,taskControllers.size>0)
+          const syncLoading=()=>wrapper.classList.toggle(CSS.loading,tasks.size>0)
           const beginTask=()=>{
-            const Ctor=document.defaultView?.AbortController??AbortController
-            const controller=new Ctor()
-            taskControllers.add(controller)
-            const abort=()=>controller.abort(context.signal.reason)
-            context.signal.addEventListener('abort',abort,{once:true,signal:controller.signal})
+            const task=context.beginTask()
+            tasks.add(task)
+            task.signal.addEventListener('abort',()=>{
+              tasks.delete(task)
+              syncLoading()
+            },{once:true})
             syncLoading()
-            return controller
+            return task
           }
-          const finishTask=controller=>{
-            taskControllers.delete(controller)
+          const finishTask=task=>{
+            task.cancel()
+            tasks.delete(task)
             syncLoading()
           }
           const abortTasks=()=>{
-            for(const controller of taskControllers)controller.abort()
-            taskControllers.clear()
+            for(const task of tasks)task.cancel()
+            tasks.clear()
             syncLoading()
           }
 
-          const addImages=images=>{
-            if(dead||readOnly)return
-            const added=images.flatMap(image=>{
+          const addImages=(images,task=null)=>{
+            if(dead||readOnly)return false
+            const safe=images.flatMap(image=>{
               const url=sanitizeMediaUrl(image?.url||'')
               return url?[{
-                id:context.createId('image'),
+                id:typeof image?.id==='string'&&image.id?image.id:null,
                 url,
                 caption:typeof image?.caption==='string'?image.caption:typeof image?.alt==='string'?image.alt:'',
               }]:[]
             })
-            if(added.length)context.updateData(current=>({
+            if(!safe.length)return false
+            const producer=current=>({
               ...current,
-              images:[...current.images,...added],
-            }))
+              images:[
+                ...current.images,
+                ...safe.map(image=>({
+                  ...image,
+                  id:image.id??context.createId('image'),
+                })),
+              ],
+            })
+            if(task)return task.commit(producer)
+            context.updateData(producer)
+            return true
           }
 
           const resolveFiles=async files=>{
             if(readOnly||dead)return
             const accepted=files.filter(isSupportedImageFile)
             if(!accepted.length)return
-            const controller=beginTask()
+            const task=beginTask()
             try{
               await uploader.handle(accepted,images=>{
-                if(!controller.signal.aborted)addImages(images)
-              },controller.signal,document)
+                if(!task.signal.aborted)addImages(images,task)
+              },task.signal,document)
             }catch(error){
-              if(!controller.signal.aborted)console.warn('[Gallery] Upload failed',error)
+              if(!task.signal.aborted)console.warn('[Gallery] Upload failed',error)
             }finally{
-              finishTask(controller)
+              finishTask(task)
             }
           }
 
@@ -274,10 +286,10 @@ export function createGalleryPlugin(config={}){
             if(readOnly||dead)return
             const controller=beginTask()
             try{
-              const result=await action.handler({signal:controller.signal})
-              if(!controller.signal.aborted&&Array.isArray(result))addImages(result)
+              const result=await action.handler({signal:task.signal})
+              if(!task.signal.aborted&&Array.isArray(result))addImages(result,task)
             }catch(error){
-              if(!controller.signal.aborted)console.warn('[Gallery] Source action failed',error)
+              if(!task.signal.aborted)console.warn('[Gallery] Source action failed',error)
             }finally{
               finishTask(controller)
             }
@@ -434,7 +446,7 @@ export function createGalleryPlugin(config={}){
                 mode:/** @type {'rich-text'} */('rich-text'),
               })]:[]
             })),
-            setReadOnly(value){readOnly=value;if(value)abortTasks();project(data)},
+            setReadOnly(value){readOnly=value;project(data)},
             focus(){if(!dead&&!readOnly)(captionFields.get(data.images[0]?.id)??wrapper.querySelector('button'))?.focus()},
             destroy(){dead=true;abortTasks();captionFields.clear()},
           }
