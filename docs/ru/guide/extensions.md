@@ -41,7 +41,8 @@ interface BlockPluginDefinition<Data> {
 | `ownerDocument` | Создание DOM и browser-объектов в realm редактора. |
 | `signal` | AbortSignal конкретного экземпляра блока. |
 | `getData()` | Чтение текущих канонических данных. |
-| `updateData(producer)` | Model-first транзакция данных блока. |
+| `updateData(producer)` | Синхронная model-first транзакция данных блока. |
+| `beginTask()` | Создать отзывную authority для одного асинхронного persisted-результата. |
 | `commitDomMutation(operation)` | Перенос неизбежной plugin-owned DOM-мутации в каноническую историю. |
 | `requestSplit()` | Запрос структурного split у ядра. |
 | `requestExit()` | Запрос выхода из пустого структурированного блока. |
@@ -138,7 +139,7 @@ export function createCalloutPlugin() {
 
 Definitions неизменяемы и переиспользуемы. Таймеры, кэши и подписки конкретного редактора принадлежат `BlockPluginRuntime`; listeners, observers, requests и object URLs конкретного блока принадлежат `BlockInstance` и его `signal`.
 
-Нельзя использовать DOM как хранилище. Явные controls вызывают `updateData()`; обычный ввод в editable fields синхронизирует ядро. Async-результат перед commit обязан проверить свой signal/lifetime.
+Нельзя использовать DOM как хранилище. Явные синхронные controls вызывают `updateData()`; обычный ввод в editable fields синхронизирует ядро. Для асинхронной операции, которая позже меняет persisted data, захватите `const task = context.beginTask()`, передайте `task.signal` во внешнюю работу и завершите её через `task.commit(current => next)`. Producer вызывается только для всё ещё живого экземпляра, с последними committed данными. Replacement/destroy, смена generation и переход `readOnly: false → true` отзывают task; возврат обратно в edit не оживляет старую task. `cancel()` идемпотентен. Presentation-only запросы, которые не меняют persisted data, могут использовать обычный lifecycle `signal`.
 
 ## Связь с renderer
 
