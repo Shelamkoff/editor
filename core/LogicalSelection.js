@@ -83,6 +83,10 @@ export class LogicalSelection {
     const f=findNodeAtOffset(focus.owner.element,focus.offset,'end')
 
     try{
+      // A DOM Selection does not restore document.activeElement after a
+      // focused editing host was removed and recreated by undo/redo.
+      // Focus the anchor host first, then restore the logical range.
+      anchor.owner.element.focus?.({ preventScroll: true })
       if(typeof selection.setBaseAndExtent==='function'){
         selection.setBaseAndExtent(a.node,a.offset,f.node,f.offset)
       }else{
