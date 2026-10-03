@@ -581,8 +581,9 @@ export class InlineToolbar {
       origin: 'user',
       name: `inline.${type}`,
     })
+    const nextBookmark = this.#selection.capture() ?? bookmark
     queueMicrotask(() => {
-      if (bookmark) this.#selection.restore(bookmark)
+      if (nextBookmark) this.#selection.restore(nextBookmark)
       this.show()
     })
     return result
