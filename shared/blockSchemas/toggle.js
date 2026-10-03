@@ -1,6 +1,5 @@
 // @ts-check
 import { createVersionedDataSchema } from '../versionedDataSchema.js'
-import { mapToggleTextFields } from '../mapTextFields.js'
 
 export const toggleDataSchema = createVersionedDataSchema({
   currentVersion: 1,
