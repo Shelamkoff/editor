@@ -228,21 +228,6 @@ export class I18n {
     return interpolate(form, merged)
   }
 
-  /**
-   * Create a scoped wrapper that auto-prefixes every key with `prefix.`
-   * (e.g. `i18n.scope('plugin.heading')` makes `t('title')` resolve `plugin.heading.title`).
-   *
-   * Backward-compat: keys that already start with `prefix.` are passed through
-   * untouched, so legacy plugin code using full keys keeps working alongside
-   * new code using short keys.
-   *
-   * @param {string} prefix
-   * @returns {ScopedI18n}
-   */
-  scope(prefix) {
-    return new ScopedI18n(this, prefix)
-  }
-
   // ── private ────────────────────────────────────────────────────────────────
 
   /**
@@ -263,72 +248,5 @@ export class I18n {
     if (typeof console !== 'undefined' && console.warn) {
       console.warn(`[I18n] Missing translation key: "${key}"`)
     }
-  }
-}
-
-/**
- * Plugin-facing i18n wrapper. Auto-prefixes every key with the plugin's
- * namespace, so plugin code can write `_t('title')` instead of
- * `_t('plugin.heading.title')`.
- *
- * Backward-compat: if a caller passes a key that already starts with the
- * prefix, it's left untouched. This lets old code coexist with new code
- * during incremental migration.
- */
-export class ScopedI18n {
-  /** @type {I18n} */
-  #parent
-
-  /** @type {string} */
-  #prefix
-
-  /**
-   * @param {I18n} parent
-   * @param {string} prefix
-   */
-  constructor(parent, prefix) {
-    this.#parent = parent
-    this.#prefix = prefix
-  }
-
-  /** @param {string} key */
-  #fullKey(key) {
-    return key.startsWith(this.#prefix + '.') ? key : `${this.#prefix}.${key}`
-  }
-
-  /**
-   * @param {string} key
-   * @param {Record<string, string | number>} [params]
-   * @returns {string}
-   */
-  t(key, params) {
-    return this.#parent.t(this.#fullKey(key), params)
-  }
-
-  /**
-   * @param {string} key
-   * @returns {boolean}
-   */
-  has(key) {
-    return this.#parent.has(this.#fullKey(key))
-  }
-
-  /**
-   * @param {string} key
-   * @param {number} count
-   * @param {Record<string, string | number>} [params]
-   * @returns {string}
-   */
-  plural(key, count, params) {
-    return this.#parent.plural(this.#fullKey(key), count, params)
-  }
-
-  /**
-   * Create a sub-scope under the current prefix.
-   * @param {string} sub
-   * @returns {ScopedI18n}
-   */
-  scope(sub) {
-    return new ScopedI18n(this.#parent, `${this.#prefix}.${sub}`)
   }
 }
