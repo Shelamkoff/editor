@@ -6,6 +6,7 @@ import {
   encodeClipboardFragment,
   transferBlockFromRecord,
 } from './ClipboardFragment.js'
+import { toTrustedHtml } from '../shared/sanitize/trustedHtml.js'
 import { prepareHtmlImport } from './HtmlImportRouter.js'
 
 function stripClipboardProjection(root) {
@@ -133,7 +134,7 @@ export class ClipboardController {
           if (!fragment) continue
           html.push(fragment)
           const template = ownerDocument.createElement('template')
-          template.innerHTML = fragment
+          template.innerHTML = /** @type {any} */ (toTrustedHtml(fragment, ownerDocument))
           plain.push(template.content.textContent ?? '')
         }
         const fragment = createClipboardFragment(records.map(record => ({
@@ -177,7 +178,7 @@ export class ClipboardController {
       inline: fragment.inline,
     }])
     const template = ownerDocument.createElement('template')
-    template.innerHTML = fragment.html
+    template.innerHTML = /** @type {any} */ (toTrustedHtml(fragment, ownerDocument)).html
     event.clipboardData.setData('text/html', fragment.html)
     event.clipboardData.setData('text/plain', template.content.textContent ?? '')
     event.clipboardData.setData(CLIPBOARD_FRAGMENT_MIME, encodeClipboardFragment(privateFragment))
@@ -224,7 +225,7 @@ export class ClipboardController {
       inline: fragment.inline,
     }])
     const template = this.#root.ownerDocument.createElement('template')
-    template.innerHTML = fragment.html
+    template.innerHTML = /** @type {any} */ (toTrustedHtml(fragment, ownerDocument)).html
     event.clipboardData.setData('text/html', fragment.html)
     event.clipboardData.setData('text/plain', template.content.textContent ?? '')
     event.clipboardData.setData(CLIPBOARD_FRAGMENT_MIME, encodeClipboardFragment(privateFragment))
