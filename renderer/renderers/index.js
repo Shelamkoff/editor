@@ -21,10 +21,9 @@ import { createSpoilerRenderer } from './spoiler/index.js'
 import { createPollRenderer } from './poll/index.js'
 import { createPersonRenderer } from './person/index.js'
 import { BLOCK_TYPES } from '../../shared/blockTypes.js'
-import { getBuiltInBlockDataSchema } from '../../shared/blockSchemas/index.js'
 
 /**
- * @typedef {(prefix: string, locale: Record<string, import('../../shared/localeTypes').LocaleValue>, config?: unknown) => import('../types').BlockRenderer} RendererFactory
+ * @typedef {(prefix: string, locale: Record<string, import('../../shared/localeTypes').LocaleValue>, config?: unknown) => import('../types').BlockRendererDefinition} RendererFactory
  */
 
 // Factory functions map for Rector document block types.
@@ -51,18 +50,6 @@ const rendererFactories = {
   spoiler: createSpoilerRenderer,
   poll: createPollRenderer,
   person: createPersonRenderer,
-}
-
-/**
- * Bind one built-in renderer to the canonical editor/renderer data schema.
- * @param {import('../types').BlockType} type
- * @param {import('../types').BlockRenderer} renderer
- * @returns {import('../types').BlockRendererDefinition}
- */
-function bindBuiltInSchema(type, renderer) {
-  const schema = getBuiltInBlockDataSchema(type)
-  if (!schema) throw new Error(`Missing canonical block schema for renderer "${type}"`)
-  return Object.freeze({ ...renderer, schema })
 }
 
 /**
@@ -94,7 +81,7 @@ export function createDefaultRenderers(classPrefix, locale, types = getSupported
     if (!Object.hasOwn(rendererFactories, type)) continue
     const factory = rendererFactories[type]
     if (!factory) continue
-    renderers.set(type, bindBuiltInSchema(type, factory(classPrefix, locale, Object.hasOwn(configs, type) ? configs[type] : undefined)))
+    renderers.set(type, factory(classPrefix, locale, Object.hasOwn(configs, type) ? configs[type] : undefined))
   }
 
   return renderers
@@ -117,7 +104,7 @@ export function createRenderer(type, classPrefix, locale, config) {
     return null
   }
 
-  return /** @type {import('../types').BlockRendererDefinition<T>} */ (bindBuiltInSchema(/** @type {import('../types').BlockType} */ (type), factory(classPrefix, locale || {}, config)))
+  return /** @type {import('../types').BlockRendererDefinition<T>} */ (factory(classPrefix, locale || {}, config))
 }
 
 export {
