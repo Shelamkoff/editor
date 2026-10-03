@@ -76,7 +76,7 @@ function inlineDefinition(type, trigger, options = {}) {
   })
 }
 
-test('ExtensionRegistry accepts only unique immutable definition identities', () => {
+test('ExtensionRegistry accepts only unique definition types', () => {
   const doc = documentStub()
   assert.throws(
     () => new ExtensionRegistry({
@@ -308,5 +308,146 @@ test('ExtensionRegistry uses inlinePlugin locale namespace without inline alias 
     },
   })
   assert.deepEqual(keys, ['inlinePlugin.mention.title'])
+  registry.destroy()
+})
+
+
+test('ExtensionRegistry snapshots mutable descriptor, schema and capability members once', () => {
+  const doc = documentStub()
+  const reads = Object.create(null)
+  const seen = []
+  const schema = {}
+  for (const [key, value] of Object.entries({
+    currentVersion: 1,
+    createDefault() { return { value: '' } },
+    encode(data) { return { dataVersion: 1, data: { value: String(data.value ?? '') } } },
+    decode(input) { return { dataVersion: 1, data: { value: String(input.data?.value ?? '') } } },
+  })) {
+    Object.defineProperty(schema, key, {
+      enumerable: true,
+      configurable: true,
+      get() {
+        reads['schema.' + key] = (reads['schema.' + key] ?? 0) + 1
+        return value
+      },
+    })
+  }
+
+  const empty = {}
+  Object.defineProperty(empty, 'isEmpty', {
+    enumerable: true,
+    configurable: true,
+    get() {
+      reads['empty.isEmpty'] = (reads['empty.isEmpty'] ?? 0) + 1
+      return function(data) {
+        seen.push(this === empty)
+        return data.value === ''
+      }
+    },
+  })
+
+  const definition = {}
+  const members = {
+    type: 'probe',
+    label: { key: 'title', fallback: 'Probe' },
+    icon: '',
+    styles: [],
+    schema,
+    capabilities: { empty },
+    setup() {
+      seen.push(this === definition)
+      return {
+        create() { throw new Error('not used') },
+        destroy() {},
+      }
+    },
+  }
+  for (const [key, value] of Object.entries(members)) {
+    Object.defineProperty(definition, key, {
+      enumerable: true,
+      configurable: true,
+      get() {
+        reads['definition.' + key] = (reads['definition.' + key] ?? 0) + 1
+        return value
+      },
+    })
+  }
+
+  const registry = new ExtensionRegistry({ ownerDocument: doc, blocks: [definition] })
+  const snap = registry.getBlockDefinition('probe')
+  assert.equal(snap.type, 'probe')
+  assert.equal(snap.schema.currentVersion, 1)
+  assert.equal(snap.capabilities.empty.isEmpty({ value: '' }), true)
+  assert.deepEqual(seen, [true, true])
+
+  for (const [key, count] of Object.entries(reads)) {
+    assert.equal(count, 1, key + ' was observed more than once')
+  }
+
+  Object.defineProperty(definition, 'type', { enumerable: true, value: 'mutated' })
+  Object.defineProperty(schema, 'currentVersion', { enumerable: true, value: 99 })
+  empty.isEmpty = () => false
+
+  assert.equal(registry.getBlockDefinition('probe').type, 'probe')
+  assert.equal(registry.getBlockDefinition('probe').schema.currentVersion, 1)
+  assert.equal(registry.getBlockDefinition('probe').capabilities.empty.isEmpty({ value: '' }), true)
+  registry.destroy()
+})
+
+test('ExtensionRegistry uses inlinePlugin locale namespace', () => {
+  const doc = documentStub()
+  let translated = null
+  const inline = inlineDefinition('mention', '@')
+  const source = { ...inline }
+  source.setup = context => {
+    translated = context.t('title', 'fallback')
+    return {
+      create() { throw new Error('not used') },
+      destroy() {},
+    }
+  }
+  const registry = new ExtensionRegistry({
+    ownerDocument: doc,
+    blocks: [blockDefinition('paragraph')],
+    inline: [source],
+    translate(key, fallback) {
+      return key === 'inlinePlugin.mention.title' ? 'Mention translated' : fallback
+    },
+  })
+
+  assert.equal(translated, 'Mention translated')
+  registry.destroy()
+})
+
+test('ExtensionRegistry exact schema wrapper rejects later wrong-version results', () => {
+  const doc = documentStub()
+  let bad = false
+  const schema = {
+    currentVersion: 1,
+    createDefault() { return { value: '' } },
+    encode(data) {
+      return { dataVersion: bad ? 2 : 1, data: { value: String(data.value ?? '') } }
+    },
+    decode(input) {
+      return { dataVersion: bad ? 2 : 1, data: { value: String(input.data?.value ?? '') } }
+    },
+  }
+  const definition = {
+    type: 'probe',
+    label: { key: 'title', fallback: 'Probe' },
+    icon: '',
+    schema,
+    setup() {
+      return { create() { throw new Error('not used') }, destroy() {} }
+    },
+  }
+  const registry = new ExtensionRegistry({ ownerDocument: doc, blocks: [definition] })
+  bad = true
+  const snap = registry.getBlockDefinition('probe')
+  assert.throws(() => snap.schema.encode({ value: 'x' }), /emit currentVersion/)
+  assert.throws(
+    () => snap.schema.decode({ dataVersion: 1, data: { value: 'x' } }),
+    /preserve currentVersion/,
+  )
   registry.destroy()
 })
