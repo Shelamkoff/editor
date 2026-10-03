@@ -1,5 +1,6 @@
 // @ts-check
-import { insertTrustedHtml, setSanitizedHtml, setSafeUrlAttribute } from '../../plugin-kit/index.js'
+import { setSanitizedHtml, setSafeUrlAttribute } from '../../plugin-kit/index.js'
+import { insertTrustedHtml } from '../../shared/sanitize/sanitizeHtml.js'
 import { imageDataSchema } from '../../shared/blockSchemas/image.js'
 import { sanitizeMediaUrl } from '../../shared/sanitize/sanitizeUrl.js'
 import { isSupportedImageFile, triggerFileInput } from '../shared/fileInput.js'
