@@ -31,13 +31,13 @@ export class EditorBlocksApi {
     if (this.#isDestroyed()) throw new Error('Editor is destroyed')
   }
 
-  get count() { this.#assertLive(); return this.#runtime.list().length }
+  get count() { this.#assertLive(); return this.#runtime.size }
   get currentId() { this.#assertLive(); return this.#view.currentId }
 
   get(id) { this.#assertLive(); return snapshot(this.#runtime, this.#runtime.get(id)) }
-  at(index) { this.#assertLive(); return snapshot(this.#runtime, this.#runtime.list()[index]) }
+  at(index) { this.#assertLive(); const id=this.#runtime.idAt(index); return snapshot(this.#runtime, id?this.#runtime.get(id):undefined) }
   list() { this.#assertLive(); return Object.freeze(this.#runtime.list().map(record => snapshot(this.#runtime, record))) }
-  indexOf(id) { this.#assertLive(); return this.#runtime.list().findIndex(record => record.id === id) }
+  indexOf(id) { this.#assertLive(); return this.#runtime.indexOf(id) }
   selectedIds() { this.#assertLive(); return Object.freeze([...this.#view.selectedIds]) }
 
   setCurrent(id) { this.#assertLive(); this.#view.setCurrent(id) }
