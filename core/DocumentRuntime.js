@@ -924,6 +924,79 @@ export class DocumentRuntime {
     return { blockId: start.blockId, fieldKey: start.fieldKey, offset: start.offset }
   }
 
+  exportRichTextFragment(blockId,fieldKey,range){
+    const current=this.#store.get(blockId)
+    if(!current)throw new Error(`Unknown block id: ${blockId}`)
+    if(this.activation(blockId)?.kind!=='active')throw new Error(`Unregistered block cannot export rich text: ${blockId}`)
+    const definition=this.#registry.getBlockDefinition(current.type)
+    if(!definition?.schema?.mapRichText)throw new Error(`Block type has no rich-text fields: ${current.type}`)
+    const inline=cloneInline(current.inline)??{}
+    let selected=null
+    definition.schema.mapRichText(cloneEditorData(current.data),(html,key)=>{
+      if(key===fieldKey)selected=sliceRichTextRange(html,inline,range,this.#ownerDocument).selected
+      return html
+    })
+    if(selected===null)throw new Error(`Unknown rich-text field "${fieldKey}" for block "${blockId}"`)
+    const scan=scanRichTextPlaceholders(selected,inline,this.#ownerDocument)
+    const selectedInline={}
+    for(const id of scan.references){
+      if(Object.hasOwn(inline,id))selectedInline[id]=cloneEditorData(inline[id])
+    }
+    return {
+      html:selected,
+      ...(Object.keys(selectedInline).length?{inline:selectedInline}:{}),
+    }
+  }
+
+  replaceRichTextFragment(blockId,fieldKey,range,fragment){
+    this.#assertInteractionMutation()
+    if(!fragment||typeof fragment!=='object'||Array.isArray(fragment)||typeof fragment.html!=='string'){
+      throw new TypeError('Rich-text clipboard fragment must contain html')
+    }
+    const current=this.#store.get(blockId)
+    if(!current)throw new Error(`Unknown block id: ${blockId}`)
+    if(this.activation(blockId)?.kind!=='active')throw new Error(`Unregistered block cannot be updated: ${blockId}`)
+    const definition=this.#registry.getBlockDefinition(current.type)
+    if(!definition?.schema?.mapRichText)throw new Error(`Block type has no rich-text fields: ${current.type}`)
+
+    const currentInline=cloneInline(current.inline)??{}
+    const sourceInline=fragment.inline===undefined
+      ?{}
+      :this.#normalizeExternalInline(fragment.inline)??{}
+    const scan=this.#scanBlockRichText(definition,current.data,currentInline)
+    const reserved=new Set([
+      ...Object.keys(currentInline),
+      ...scan.references,
+      ...scan.literals,
+    ])
+    const remapped=remapCanonicalFragment({
+      html:fragment.html,
+      inline:sourceInline,
+      reservedIds:reserved,
+      ownerDocument:this.#ownerDocument,
+      allocateInlineId:ids=>this.#allocateInlineId(ids),
+    })
+    const inline={...currentInline,...remapped.inline}
+    let matched=false
+    const nextData=definition.schema.mapRichText(cloneEditorData(current.data),(html,key)=>{
+      if(key!==fieldKey)return html
+      matched=true
+      return replaceRichTextRange(
+        html,
+        currentInline,
+        range,
+        {kind:'html',html:remapped.html},
+        this.#ownerDocument,
+      )
+    })
+    if(!matched)throw new Error(`Unknown rich-text field "${fieldKey}" for block "${blockId}"`)
+    const next=this.#recordFromData(
+      current.id,current.type,definition,nextData,current.tunes,inline,
+    )
+    this.#engine.execute({origin:'user',name:'clipboard.rich-text'},tx=>tx.update(blockId,next))
+    return true
+  }
+
   replaceRichText(blockId, fieldKey, range, replacement) {
     this.#assertInteractionMutation()
     const current = this.#store.get(blockId)
