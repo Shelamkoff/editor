@@ -1,4 +1,5 @@
 // @ts-check
+import { columnsDataSchema } from '../../../shared/blockSchemas/columns.js'
 
 const styles = new URL('./styles.css', import.meta.url).href
 
@@ -14,11 +15,12 @@ const LAYOUT_GRIDS = {
  * Columns layout block renderer
  * @param {string} classPrefix
  * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} _locale
- * @returns {import('../../types').BlockRenderer<import('../../types').ColumnsBlock>}
+ * @returns {import('../../types').BlockRendererDefinition<import('../../types').ColumnsBlock>}
  */
 export function createColumnsRenderer(classPrefix, _locale) {
     return {
         type: 'columns',
+    schema: columnsDataSchema,
         styles: [styles],
 
         /**
