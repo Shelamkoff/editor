@@ -328,16 +328,15 @@ export class ClipboardController {
       }
 
       if (this.#crossSelection?.active) {
+        const plan=this.#runtime.prepareLogicalClipboardSlice(this.#crossSelection.bookmark)
+        if(!plan)return
         try {
-          const result = this.#runtime.replaceLogicalRangeWithClipboardParts(
-            this.#crossSelection.bookmark,
-            fragment.parts,
-          )
-          if (result) {
+          const result=this.#runtime.replacePreparedClipboardSlice(plan,fragment.parts)
+          if(result){
             this.#crossSelection.clear()
             this.#view.reconcileInteraction()
             this.#view.setCurrent(result.blockId)
-            queueMicrotask(() => this.#view.focus(result.blockId, { offset: 'end' }))
+            queueMicrotask(()=>this.#view.focus(result.blockId,{offset:'end'}))
           }
         } catch (error) {
           this.#diagnostics?.emit('paste.failed', {
