@@ -73,6 +73,31 @@ test('change debounce uses the supplied timer host instead of ambient timers', a
 })
 
 
+test('change observer failures are routed through the configured error sink', async () => {
+  const callbacks = []
+  const timerHost = {
+    setTimeout(callback) { callbacks.push(callback); return 1 },
+    clearTimeout() {},
+  }
+  const errors = []
+  const notifier = new ChangeNotifier(
+    () => ({ version: 'test', blocks: [] }),
+    async () => { throw new TypeError('observer failed') },
+    0,
+    timerHost,
+    error => errors.push(error),
+  )
+
+  notifier.schedule()
+  await callbacks[0]()
+  await Promise.resolve()
+
+  assert.equal(errors.length, 1)
+  assert.equal(errors[0]?.name, 'TypeError')
+  assert.equal(errors[0]?.message, 'observer failed')
+  notifier.destroy()
+})
+
 test('async onChange rejection is contained by the notifier', async () => {
   const callbacks = []
   const timerHost = {
