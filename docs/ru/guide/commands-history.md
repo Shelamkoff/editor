@@ -185,6 +185,14 @@ button.addEventListener('click', async () => {
 
 Асинхронный обработчик обязан защищаться от устаревшего результата и уничтожения. Расширение должно проигнорировать ответ, если его элемент уже отсоединён, появился более новый запрос или был вызван `destroy()`.
 
+## Clipboard и составные выделения
+
+Rector использует один приватный MIME `application/x-rector-fragment` с `version: 2`. Fragment строится из канонической модели, а не из DOM clone: rich-text parts сохраняют marks и только реально связанные inline sidecar entries; whole/structured parts не переносят block ID и producer revision. Если текущий private MIME присутствует, он имеет приоритет над `text/html` и `text/plain`. Невалидная, старая или будущая private-версия отклоняет Paste без fallback к стандартным representations.
+
+Для составных блоков `BlockCapabilities.clipboard.slice(data, context)` одновременно определяет экспортируемые parts и `remaining`. Поэтому Copy и Cut используют одну границу данных: detectable ошибка подготовки или записи в системный clipboard не удаляет исходное содержимое. List, Table и другие structured blocks сохраняют свою структуру; generic rich-text path применяется только когда block не объявляет специальную capability.
+
+Paste поверх составного выделения сначала подготавливает и валидирует fragment и target plan, затем выполняет одну транзакцию. Один Undo восстанавливает исходный target. Обычные внешние HTML/text/file данные обрабатываются только когда current private MIME отсутствует.
+
 ## Управление отменой и повтором
 
 Внутри корневого элемента редактора зарегистрированы сочетания клавиш с учётом платформы:
