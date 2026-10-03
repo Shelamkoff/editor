@@ -2,9 +2,8 @@ import { setTrustedHtml } from '../shared/sanitize/sanitizeHtml.js'
 import { hasInlineContent, removeEmptyInlineTags } from './inlineContent.js'
 export { removeEmptyInlineTags } from './inlineContent.js'
 import { editableFields, editableAtBoundary } from '../shared/editableFields.js'
-import { BLOCK_CLASS } from '../core/constants.js'
-import { closestBlock, el } from '../core/dom.js'
-import { createSvgIcon, ICON_BACK } from '../core/icons.js'
+import { BLOCK_CLASS, closestBlock, el } from '../shared/editorDom.js'
+import { createSvgIcon, ICON_BACK } from '../shared/editorIcons.js'
 import { getTextOffset, getTextLength, findNodeAtOffset as findLogicalPosition, editableTextWalker } from '../shared/textOffset.js'
 
 const ELEMENT_NODE = 1
