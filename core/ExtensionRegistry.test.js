@@ -33,9 +33,11 @@ function blockDefinition(type, options = {}) {
     schema: {
       createDefault() { return { value: '' } },
       encode(data) { return { dataVersion: 1, data: { value: String(data.value ?? '') } } },
-      decode(input) { return { dataVersion: 1, data: { value: String(input.data?.value ?? '') } } },
+      decode(input) {
+        if (input.dataVersion !== 1) throw new RangeError('unsupported data version')
+        return { dataVersion: 1, data: { value: String(input.data?.value ?? '') } }
+      },
       currentVersion: 1,
-      legacyVersion: 1,
     },
     setup(context) {
       calls.push(['setup', type, context.isDefaultBlock, context.editorPlaceholder])
@@ -58,9 +60,11 @@ function inlineDefinition(type, trigger, options = {}) {
     schema: {
       createDefault() { return { value: '' } },
       encode(data) { return { dataVersion: 1, data: { value: String(data.value ?? '') } } },
-      decode(input) { return { dataVersion: 1, data: { value: String(input.data?.value ?? '') } } },
+      decode(input) {
+        if (input.dataVersion !== 1) throw new RangeError('unsupported data version')
+        return { dataVersion: 1, data: { value: String(input.data?.value ?? '') } }
+      },
       currentVersion: 1,
-      legacyVersion: 1,
     },
     setup() {
       calls.push(['setup-inline', type])
