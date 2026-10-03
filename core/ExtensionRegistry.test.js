@@ -451,3 +451,39 @@ test('ExtensionRegistry exact schema wrapper rejects later wrong-version results
   )
   registry.destroy()
 })
+
+
+test('ExtensionRegistry snapshots structural htmlImport capability methods', () => {
+  const doc = documentStub()
+  let matches = 0
+  let imports = 0
+  const htmlImport = {
+    matchesRoot(element) {
+      matches++
+      return element?.tagName === 'P'
+    },
+    importRoot(element, context) {
+      imports++
+      return { value: context.serializeRichText(element) }
+    },
+  }
+  const source = {
+    ...blockDefinition('probe'),
+    capabilities: { htmlImport },
+  }
+  const registry = new ExtensionRegistry({
+    ownerDocument: doc,
+    blocks: [source],
+    acquireStyles: false,
+  })
+  const snap = registry.getBlockDefinition('probe').capabilities.htmlImport
+  htmlImport.matchesRoot = () => false
+  htmlImport.importRoot = () => ({ value: 'mutated' })
+
+  const element = { tagName: 'P' }
+  assert.equal(snap.matchesRoot(element), true)
+  assert.equal(snap.importRoot(element, { serializeRichText: () => 'safe' }).value, 'safe')
+  assert.equal(matches, 1)
+  assert.equal(imports, 1)
+  registry.destroy()
+})
