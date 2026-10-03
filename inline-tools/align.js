@@ -56,7 +56,6 @@ export function createAlignTool(labels, cbs = null) {
   /** @param {HTMLElement} blockRoot @param {string} value */
   function setAlignment(blockRoot, value) {
     blockRoot.style.textAlign = value
-    blockRoot.dispatchEvent(new CustomEvent('rector:text-align', { bubbles: true, detail: { value } }))
   }
 
   return {
