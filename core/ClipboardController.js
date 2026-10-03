@@ -248,7 +248,7 @@ export class ClipboardController {
       inline: fragment.inline,
     }])
     const template = this.#root.ownerDocument.createElement('template')
-    template.innerHTML = /** @type {any} */ (toTrustedHtml(fragment.html, ownerDocument))
+    template.innerHTML = /** @type {any} */ (toTrustedHtml(fragment.html, this.#root.ownerDocument))
     event.clipboardData.setData('text/html', fragment.html)
     event.clipboardData.setData('text/plain', template.content.textContent ?? '')
     event.clipboardData.setData(CLIPBOARD_FRAGMENT_MIME, encodeClipboardFragment(privateFragment))
