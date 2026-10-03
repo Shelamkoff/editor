@@ -3,7 +3,11 @@
     "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "Bundler",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "allowJs": true,
     "checkJs": true,
     "noEmit": true,
@@ -24,6 +28,7 @@
     "locale/**/*.d.ts",
     "plugins/**/*.js",
     "plugins/**/*.d.ts",
+    "preset/**/*.js",
     "renderer/**/*.js",
     "renderer/**/*.d.ts",
     "shared/**/*.js",
