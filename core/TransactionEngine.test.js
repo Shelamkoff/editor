@@ -28,7 +28,6 @@ function harness(options = {}) {
     projector,
     selection: options.selection,
     onCommit: options.onCommit,
-    onDiagnostic: options.onDiagnostic,
     diagnostics: options.diagnostics,
   })
   return { store, history, engine, projections }
@@ -150,9 +149,15 @@ test('failed undo leaves canonical state and history cursor unchanged', () => {
 })
 
 test('selection and observer failures are contained after canonical commit', () => {
-  const diagnostics = []
+  const events = []
+  const diagnostics = {
+    enabled: false,
+    errorName(error) { return error?.name ?? 'UnknownError' },
+    emit(code, details) { events.push({ code, ...details }) },
+  }
   let captures = 0
   const { store, history, engine } = harness({
+    diagnostics,
     selection: {
       capture() {
         captures++
@@ -162,7 +167,6 @@ test('selection and observer failures are contained after canonical commit', () 
       restore() { throw new Error('selection restore failed') },
     },
     onCommit() { throw new Error('observer failed') },
-    onDiagnostic(error) { diagnostics.push(error.message) },
   })
 
   engine.execute({ origin: 'user', name: 'update' }, tx => {
@@ -170,11 +174,11 @@ test('selection and observer failures are contained after canonical commit', () 
   })
   assert.equal(store.get('a').data.text, 'next')
   assert.equal(history.canUndo, true)
-  assert.deepEqual(diagnostics, ['selection capture failed', 'observer failed'])
+  assert.equal(events.filter(event => event.operation === 'transaction.observer').length, 2)
 
   engine.undo()
   assert.equal(store.get('a').data.text, 'a')
-  assert.ok(diagnostics.includes('selection restore failed'))
+  assert.ok(events.filter(event => event.operation === 'transaction.observer').length >= 3)
 })
 
 
@@ -188,11 +192,7 @@ test('structured diagnostics report command failure and slow operations once', a
     errorName(error) { return error?.name ?? 'UnknownError' },
     emit(code, details) { events.push({ code, ...details }) },
   }
-  const raw = []
-  const { engine } = harness({
-    diagnostics,
-    onDiagnostic(error) { raw.push(error.message) },
-  })
+  const { engine } = harness({ diagnostics })
 
   assert.throws(() => engine.execute({ origin: 'user', name: 'broken-command' }, () => {
     throw new TypeError('boom')
@@ -202,7 +202,6 @@ test('structured diagnostics report command failure and slow operations once', a
   assert.equal(events.find(event => event.code === 'command.failed')?.operation, 'broken-command')
   assert.equal(events.find(event => event.code === 'command.failed')?.errorName, 'TypeError')
   assert.equal(events.filter(event => event.code === 'command.slow').length, 1)
-  assert.deepEqual(raw, ['boom'])
 })
 
 test('contained observer failures use structured diagnostics without affecting the commit', () => {
