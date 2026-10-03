@@ -78,83 +78,97 @@ export function createAttachesPlugin(config={}){
           let readOnly=context.isReadOnly()
           let dead=false
           const preloadEditors=()=>{if(!readOnly)preloadSourceEditor(wrapper,context.signal,['url'])}
-          const taskControllers=new Set()
+          const tasks=new Set()
           const nameFields=new Map()
 
           const updateData=next=>context.updateData(()=>next)
-          const syncLoading=()=>wrapper.classList.toggle('oe-attaches--loading',taskControllers.size>0)
+          const syncLoading=()=>wrapper.classList.toggle('oe-attaches--loading',tasks.size>0)
 
-          const addResolved=entries=>{
-            if(dead||readOnly||entries.length===0)return
+          const addResolved=(entries,task=null)=>{
+            if(dead||readOnly||entries.length===0)return false
             const safe=entries.flatMap(entry=>{
               const url=sanitizeDownloadUrl(entry.url)
               if(!url)return []
               const name=String(entry.name||urlName(url)||'file')
               return [{
-                id:typeof entry.id==='string'&&entry.id?entry.id:context.createId('file'),
+                id:typeof entry.id==='string'&&entry.id?entry.id:null,
                 url,
                 name,
                 size:Number.isFinite(entry.size)?Math.max(0,Number(entry.size)):0,
                 extension:String(entry.extension||getExtension(name)),
               }]
             })
-            if(safe.length)context.updateData(current=>({
+            if(!safe.length)return false
+            const producer=current=>({
               ...current,
-              files:[...current.files,...safe],
-            }))
+              files:[
+                ...current.files,
+                ...safe.map(entry=>({
+                  ...entry,
+                  id:entry.id??context.createId('file'),
+                })),
+              ],
+            })
+            if(task)return task.commit(producer)
+            context.updateData(producer)
+            return true
           }
 
           const beginTask=()=>{
-            const Ctor=document.defaultView?.AbortController??AbortController
-            const controller=new Ctor()
-            taskControllers.add(controller)
-            const abort=()=>controller.abort(context.signal.reason)
-            context.signal.addEventListener('abort',abort,{once:true,signal:controller.signal})
+            const task=context.beginTask()
+            tasks.add(task)
+            task.signal.addEventListener('abort',()=>{
+              tasks.delete(task)
+              syncLoading()
+            },{once:true})
             syncLoading()
-            return controller
+            return task
           }
-          const finishTask=controller=>{
-            taskControllers.delete(controller)
+          const finishTask=task=>{
+            task.cancel()
+            tasks.delete(task)
             syncLoading()
           }
           const abortTasks=()=>{
-            for(const controller of taskControllers)controller.abort()
-            taskControllers.clear()
+            for(const task of tasks)task.cancel()
+            tasks.clear()
             syncLoading()
           }
 
           const resolveFiles=async files=>{
             if(readOnly||dead||files.length===0)return
-            const controller=beginTask()
+            const task=beginTask()
+            const createdObjectUrls=[]
             try{
               /** @type {FileEntry[]} */
               const resolved=[]
               for(const file of files){
-                if(controller.signal.aborted)break
+                if(task.signal.aborted)break
                 if(snapshot.uploadFile){
                   try{
-                    const result=await snapshot.uploadFile(file,{signal:controller.signal})
+                    const result=await snapshot.uploadFile(file,{signal:task.signal})
                     const url=sanitizeDownloadUrl(result?.url||'')
                     if(url)resolved.push({
-                      id:context.createId('file'),
+                      id:'',
                       url,
                       name:file.name||urlName(url)||'file',
                       size:Number.isFinite(result?.size)?Math.max(0,Number(result.size)):file.size||0,
                       extension:getExtension(file.name||urlName(url)),
                     })
                   }catch(error){
-                    if(!controller.signal.aborted)console.warn('[Attaches] Upload failed',error)
+                    if(!task.signal.aborted)console.warn('[Attaches] Upload failed',error)
                   }
                 }else{
                   const URLCtor=document.defaultView?.URL??URL
                   const url=URLCtor.createObjectURL(file)
-                  if(controller.signal.aborted||dead){
+                  if(task.signal.aborted||dead){
                     URLCtor.revokeObjectURL(url)
                     break
                   }
                   objectUrls.set(url,URLCtor)
+                  createdObjectUrls.push(url)
                   resolved.push({
-                    id:context.createId('file'),
+                    id:'',
                     url,
                     name:file.name||'file',
                     size:file.size||0,
@@ -162,9 +176,15 @@ export function createAttachesPlugin(config={}){
                   })
                 }
               }
-              if(!controller.signal.aborted)addResolved(resolved)
+              const committed=!task.signal.aborted&&addResolved(resolved,task)
+              if(!committed){
+                for(const url of createdObjectUrls){
+                  objectUrls.get(url)?.revokeObjectURL(url)
+                  objectUrls.delete(url)
+                }
+              }
             }finally{
-              finishTask(controller)
+              finishTask(task)
             }
           }
 
@@ -197,21 +217,21 @@ export function createAttachesPlugin(config={}){
 
           const runAction=async action=>{
             if(readOnly||dead)return
-            const controller=beginTask()
+            const task=beginTask()
             try{
-              const result=await action.handler({signal:controller.signal})
-              if(controller.signal.aborted||!Array.isArray(result))return
+              const result=await action.handler({signal:task.signal})
+              if(task.signal.aborted||!Array.isArray(result))return
               addResolved(result.map(entry=>({
-                id:context.createId('file'),
+                id:'',
                 url:String(entry?.url||''),
                 name:String(entry?.name||''),
                 size:Number(entry?.size)||0,
                 extension:String(entry?.extension||''),
-              })))
+              })),task)
             }catch(error){
-              if(!controller.signal.aborted)console.warn('[Attaches] Source action failed',error)
+              if(!task.signal.aborted)console.warn('[Attaches] Source action failed',error)
             }finally{
-              finishTask(controller)
+              finishTask(task)
             }
           }
 
@@ -327,7 +347,7 @@ export function createAttachesPlugin(config={}){
                 mode:/** @type {'plain-text'} */('plain-text'),
               })]:[]
             })),
-            setReadOnly(value){readOnly=value;if(value)abortTasks();project(data)},
+            setReadOnly(value){readOnly=value;project(data)},
             focus(){if(!dead&&!readOnly)(nameFields.get(data.files[0]?.id)??wrapper.querySelector('button'))?.focus()},
             destroy(){dead=true;abortTasks()},
           }
