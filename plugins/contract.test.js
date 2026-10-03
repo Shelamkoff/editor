@@ -43,9 +43,10 @@ test('editable plugin definitions, output types and read-only renderers stay in 
     const renderer = renderers.get(definition.type)
     assert.equal(renderer?.type, definition.type)
     assert.equal(typeof renderer?.render, 'function')
+    assert.strictEqual(renderer?.schema, definition.schema, `${definition.type} editor and renderer must share one schema object`)
     assert.ok(Array.isArray(renderer?.styles), `${definition.type} renderer must publish a style URL list`)
     if (definition.capabilities?.formatting?.inlineTools) {
-      assert.equal(typeof renderer?.mapTextFields, 'function', `${definition.type} renderer must mirror editor text-field marshalling`)
+      assert.equal(typeof definition.schema.mapRichText, 'function', `${definition.type} schema must own rich-text traversal`)
     }
   }
 })
