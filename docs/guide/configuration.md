@@ -33,7 +33,7 @@ interface EditorConfig {
   blockRemoveAnimationMs?: number
   onReady?: (editor: IEditor) => void | Promise<void>
   onChange?: (document: EditorDocument) => void | Promise<void>
-  onValidationError?: (issue: EditorValidationIssue) => void
+  onValidationError?: (issue: EditorValidationIssue) => void | Promise<void>
   onDiagnostic?: (diagnostic: EditorDiagnostic) => void | Promise<void>
   diagnosticThresholds?: Partial<DiagnosticThresholds>
 }
@@ -115,7 +115,7 @@ Use `minHeight` only for the editor shell. `mobileBreakpoint` drives the core mo
 
 ## Callbacks
 
-`onReady`, `onChange`, `onValidationError`, and `onDiagnostic` are observers, not transaction hooks. Rector isolates observer failures from canonical state. Diagnostics never contain document or plugin payload data.
+`onReady`, `onChange`, `onValidationError`, and `onDiagnostic` are observers, not transaction hooks. Synchronous throws and rejected Promises are contained consistently. Rector isolates observer failures from canonical state. Diagnostics never contain document or plugin payload data.
 
 `onChange` is scheduled only after committed document mutations and receives a detached document. A newer commit can supersede an older pending notification.
 
