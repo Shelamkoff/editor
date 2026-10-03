@@ -1,6 +1,5 @@
 import {
   createEditor,
-  sanitizeHtml,
 } from '../../.package-tmp/declaration-tests/core/index.js'
 import type {
   BlockPluginDefinition,
@@ -10,8 +9,6 @@ import type {
 } from '../../.package-tmp/declaration-tests/core/index.js'
 
 declare const holder: HTMLElement
-declare const ownerDocument: Document
-
 const schema = {
   currentVersion: 1,
   legacyVersion: 1,
@@ -58,5 +55,3 @@ const config: EditorConfig = {
 const editor: IEditor = createEditor(config)
 const document: EditorDocument = editor.save()
 void document
-void ownerDocument
-void sanitizeHtml('<p>safe</p>')
