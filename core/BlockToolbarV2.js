@@ -10,7 +10,7 @@ import {
   ICON_UP,
 } from './icons.js'
 
-export class BlockToolbarV2 {
+export class BlockToolbar {
   #root
   #runtime
   #registry
