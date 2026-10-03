@@ -7,6 +7,7 @@
 ```ts
 interface IEditor {
   readonly blocks: EditorBlocksApi
+  readonly isReady: boolean
   readonly canUndo: boolean
   readonly canRedo: boolean
   readonly readOnly: boolean
@@ -69,10 +70,16 @@ Public event names are:
 - `document:changed`
 - `history:changed`
 - `readOnly:changed`
+- `currentBlock:changed`
+- `selection:changed`
+
+`currentBlock:changed` reports the current block ID only after the interaction target actually changes. `selection:changed` reports selected IDs in document order only when the selected set/order changes.
 
 Events are observations. Application and extension code do not emit editor events.
 
 ## Lifetime
+
+`isReady` becomes `true` after successful composition reaches the ready microtask. It is the one handle state that remains readable after `destroy()` and then returns `false`.
 
 `destroy()` is idempotent. It aborts editor-scoped and block-scoped work, removes owned DOM/styles/listeners, and releases the holder lease.
 
