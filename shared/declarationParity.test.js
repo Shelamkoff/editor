@@ -202,7 +202,7 @@ test('public editor declarations expose only the v2 model API', async () => {
     readFile(new URL('types.d.ts', declarationRoot), 'utf8'),
   ])
 
-  assert.doesNotMatch(coreEntry, /EditorFacade|BlockManager|UndoManager|CommandDispatcher|InlinePluginRegistry/)
+  assert.doesNotMatch(coreEntry, /EditorFacade|BlockManager|UndoManager|CommandDispatcher|InlinePluginRegistry|DocumentMode|DocumentMigration/)
   assert.match(coreEntry, /createEditor\(config:[\s\S]*EditorConfig\):[\s\S]*IEditor/)
   assert.match(publicTypes, /readonly blocks:\s*EditorBlocksApi/)
   assert.doesNotMatch(publicTypes, /DocumentMode|documentMode|DocumentMigration|documentVersionPolicy|validationMode|migrations/)

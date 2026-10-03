@@ -11,7 +11,6 @@ interface IEditor {
   readonly canUndo: boolean
   readonly canRedo: boolean
   readonly readOnly: boolean
-  readonly documentMode: 'editable' | 'preserved'
 
   save(): EditorDocument
   render(document: EditorDocument): void

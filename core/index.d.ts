@@ -5,7 +5,6 @@ export type {
   BlockUpdate,
   ConversionPayload,
   ConversionTarget,
-  DocumentMode,
   EditorBlockSnapshot,
   EditorBlocksApi,
   EditorConfig,
