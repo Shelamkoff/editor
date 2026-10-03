@@ -1,5 +1,4 @@
 // @ts-check
-import { mapHeadingTextFields as mapTextFields } from '../../../shared/mapTextFields.js'
 
 const styles = new URL('./styles.css', import.meta.url).href
 
@@ -14,7 +13,6 @@ export function createHeaderRenderer(classPrefix, _locale) {
   return {
     type: 'heading',
     styles: [styles],
-    mapTextFields,
 
     /**
      * @param {import('../../types').HeadingBlock} block
