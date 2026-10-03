@@ -19,5 +19,17 @@ export type {
   EditorDiagnosticCode,
 } from './publicTypes.js'
 
+/** Narrow internal contract consumed by runtime modules. */
+export interface DiagnosticsSink {
+  readonly enabled: boolean
+  threshold(name: keyof import('./publicTypes.js').DiagnosticThresholds): number
+  now(): number
+  emit(
+    code: import('./publicTypes.js').EditorDiagnosticCode,
+    details?: Omit<import('./publicTypes.js').EditorDiagnostic, 'code' | 'timestamp'>,
+  ): void
+  errorName(error: unknown): string
+}
+
 /** Internal alias used by implementation modules. */
 export interface EditorConfig extends PublicEditorConfig {}
