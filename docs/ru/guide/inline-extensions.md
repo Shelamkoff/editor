@@ -28,6 +28,8 @@ interface InlineTool {
 
 Инструмент форматирования не имеет отдельного persisted payload. Его DOM-изменение проходит через транзакционную границу inline toolbar и нормализуется обратно в rich-text поле блока.
 
+Встроенный набор предоставляет `bold`, `italic`, `strikethrough`, `link`, `code`, `marker`, `bgcolor`, `fontSize`, `script`, `align`, `caseTransform` и `clearFormatting`.
+
 ## Definition inline plugin
 
 ```ts
