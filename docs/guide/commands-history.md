@@ -185,6 +185,14 @@ button.addEventListener('click', async () => {
 
 Protect asynchronous handlers against stale results and destruction. An extension should ignore a response when its element is detached, a newer request superseded it, or its `destroy()` method has run.
 
+## Clipboard and composite selections
+
+Rector uses one private MIME, `application/x-rector-fragment`, with `version: 2`. The fragment is derived from the canonical model rather than a DOM clone: rich-text parts retain formatting and only actually referenced inline sidecar entries, while whole/structured parts omit block IDs and producer revisions. When the current private MIME is present it takes precedence over `text/html` and `text/plain`. Invalid, old, or future private versions reject Paste without falling back to the standard representations.
+
+For composite blocks, `BlockCapabilities.clipboard.slice(data, context)` defines exported parts and `remaining` together. Copy and Cut therefore use the same data boundary: a detectable preparation or system-clipboard write failure never deletes source content. List, Table, and other structured blocks preserve their structure; the generic rich-text path is used only when a block does not declare a specialized capability.
+
+Pasting over a composite selection prepares and validates both the fragment and target plan before one transaction is committed. One Undo restores the original target. Ordinary external HTML/text/file data is considered only when the current private MIME is absent.
+
 ## Undo and redo controls
 
 The editor registers platform-aware keyboard shortcuts inside its root:
