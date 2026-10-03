@@ -15,6 +15,7 @@ import {
 import { uid } from '../shared/uid.js'
 import { DocumentStore } from './DocumentStore.js'
 import { HistoryStore } from './HistoryStore.js'
+import { createInstanceAuthority, runInstanceMutation } from './InstanceAuthority.js'
 import { TransactionEngine } from './TransactionEngine.js'
 
 const VALID_ALIGN = new Set(['left', 'center', 'right', 'justify'])
@@ -1794,58 +1795,76 @@ export class DocumentRuntime {
       return record
     }
 
-    return {
-      getData: () => cloneEditorData(currentRecord().data),
+    let context
+    const authority = createInstanceAuthority({
+      readData: () => currentRecord().data,
       updateData: producer => {
-        if (this.readOnly) return
         this.update(id, current => ({
-          data: producer(cloneEditorData(current.data)),
+          data: producer(current.data),
         }))
       },
       commitDomMutation: operation => {
-        if (this.readOnly) return
-        this.syncBlockFromProjection(id, operation, { origin: 'plugin', name: 'plugin.dom-mutation' })
-      },
-      requestSplit: () => {
-        if (!this.readOnly) this.#requestSplit?.(id)
-      },
-      requestExit: () => {
-        if (!this.readOnly) this.#requestExit?.(id)
+        this.syncBlockFromProjection(id, operation, {
+          origin: 'plugin',
+          name: 'plugin.dom-mutation',
+        })
       },
       createId: prefix => this.createDataId(prefix),
-      createInlineWidgetContext: (fieldKey, inlineId, inlineType, inlineSignal) => ({
-        id: inlineId,
-        blockId: id,
-        fieldKey,
-        signal: inlineSignal,
-        getData: () => {
-          const record = currentRecord()
-          const ref = record.inline?.[inlineId]
-          if (!ref || ref.type !== inlineType) {
-            throw new Error(`Inline widget is no longer active: ${inlineId}`)
-          }
-          const definition = this.#registry.getInlineDefinition(inlineType)
-          if (!definition) throw new Error(`Unknown inline widget type: ${inlineType}`)
-          return cloneEditorData(definition.schema.decode({
-            dataVersion: ref.dataVersion,
-            data: ref.data,
-          }).data)
-        },
-        updateData: producer => {
-          if (this.readOnly) return
-          this.updateInlineWidget(id, inlineId, producer)
-        },
-        commitDomMutation: operation => {
-          if (this.readOnly || typeof operation !== 'function') return
-          this.syncBlockFromProjection(id, operation, {
-            origin: 'plugin',
-            name: 'inline-widget.dom-mutation',
-            preserveSourceProjection: true,
-          })
-        },
-        isReadOnly: () => this.readOnly,
-      }),
+      readOnly: this.#readOnly,
+      health: () => this.health,
+      phase: () => this.#engine?.phase ?? 'idle',
+      generation: this.#store.generation,
+      currentGeneration: () => this.#store.generation,
       signal,
-    }
-  }
+    })
+
+    context = Object.freeze({
+      ...authority,
+      ownerDocument: this.#ownerDocument,
+      signal,
+      requestSplit: () => runInstanceMutation(context, () => this.#requestSplit?.(id)),
+      requestExit: () => runInstanceMutation(context, () => this.#requestExit?.(id)),
+      createInlineWidgetContext: (fieldKey, inlineId, inlineType, inlineSignal) => {
+        const inlineAuthority = createInstanceAuthority({
+          readData: () => {
+            const record = currentRecord()
+            const ref = record.inline?.[inlineId]
+            if (!ref || ref.type !== inlineType) {
+              throw new Error(`Inline widget is no longer active: ${inlineId}`)
+            }
+            const definition = this.#registry.getInlineDefinition(inlineType)
+            if (!definition) throw new Error(`Unknown inline widget type: ${inlineType}`)
+            return definition.schema.decode({
+              dataVersion: ref.dataVersion,
+              data: ref.data,
+            }).data
+          },
+          updateData: producer => this.updateInlineWidget(id, inlineId, producer),
+          commitDomMutation: operation => {
+            this.syncBlockFromProjection(id, operation, {
+              origin: 'plugin',
+              name: 'inline-widget.dom-mutation',
+              preserveSourceProjection: true,
+            })
+          },
+          createId: prefix => this.createDataId(prefix),
+          readOnly: this.#readOnly,
+          health: () => this.health,
+          phase: () => this.#engine?.phase ?? 'idle',
+          generation: this.#store.generation,
+          currentGeneration: () => this.#store.generation,
+          signal: inlineSignal,
+          parent: context,
+        })
+        return Object.freeze({
+          ...inlineAuthority,
+          id: inlineId,
+          blockId: id,
+          fieldKey,
+          signal: inlineSignal,
+        })
+      },
+    })
+    return context
+  }}
 }
