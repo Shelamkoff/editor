@@ -145,7 +145,7 @@ export interface EditorConfig {
   readOnly?: boolean
   autofocus?: boolean
   injectStyles?: boolean
-  theme?: 'light' | 'dark'
+  theme?: string
   minHeight?: number
   locale?: Record<string, unknown>
   validationMode?: 'preserve' | 'strict'
