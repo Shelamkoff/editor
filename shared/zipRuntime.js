@@ -31,7 +31,7 @@ export function setZipRuntime(value) {
 }
 
 /**
- * Load the browser-native local distribution once.
+ * Lazily load JSZip from the declared package dependency once.
  * @returns {Promise<ZipRuntime>}
  */
 export function loadZipRuntime() {
@@ -39,10 +39,10 @@ export function loadZipRuntime() {
   if (current) return Promise.resolve(current)
   if (loadPromise) return loadPromise
 
-  loadPromise = import('./runtime/jszip.js')
-    .then(() => {
-      const loaded = getZipRuntime()
-      if (!loaded) throw new Error('JSZip runtime failed to initialize')
+  loadPromise = import('jszip')
+    .then(module => {
+      const loaded = /** @type {ZipRuntime} */ (module.default || module)
+      runtime = loaded
       return loaded
     })
     .catch(error => {
