@@ -39,10 +39,6 @@
       "import": "./dist/inline-plugins/mention/index.js"
     },
     "./inline-plugins/*/styles.css": "./dist/styles/inline-plugins/*.css",
-    "./inline-tools": {
-      "types": "./dist/inline-tools/defaults.d.ts",
-      "import": "./dist/inline-tools/defaults.js"
-    },
     "./inline-tools/*": {
       "types": "./dist/inline-tools/*.d.ts",
       "import": "./dist/inline-tools/*.js"
