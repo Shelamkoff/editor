@@ -58,7 +58,7 @@ Decode external input once at the boundary. Encode every model-first update befo
 
 ## Capabilities
 
-`BlockCapabilities` can contain `empty`, `formatting`, `merge`, `conversion`, `selectionSlice`, `inlineControls`, `settings`, `paste`, and `shortcuts`.
+`BlockCapabilities` can contain `empty`, `formatting`, `merge`, `conversion`, `htmlImport`, `selectionSlice`, `inlineControls`, `settings`, `paste`, and `shortcuts`.
 
 - `empty.isEmpty(data)` defines structural empty-block behavior.
 - `formatting.inlineTools` is `true` or an allowlist.
@@ -67,7 +67,8 @@ Decode external input once at the boundary. Encode every model-first update befo
 - `selectionSlice.slice(...)` describes partial structured selection without mutating DOM.
 - `inlineControls` reuses model-first settings actions inside the inline toolbar.
 - `settings` is either an actions capability or a model-first panel.
-- `paste` routes text/HTML/files to block or rich-text results.
+- `htmlImport.matchesRoot/importRoot` synchronously imports one safe structural HTML root into local current data for that block type; it must consume the whole root and have no side effects.
+- `paste` routes only text/file inputs to block or rich-text results; structural HTML is not passed to it.
 - `shortcuts` returns structural/model actions to the single core keyboard router.
 
 ## Settings, paste and shortcuts
@@ -76,7 +77,9 @@ Decode external input once at the boundary. Encode every model-first update befo
 
 `SettingsPanelCapability` has `kind: 'panel'` and `render(context)`; its context exposes `getData()` and `updateData()`.
 
-`PasteCapability` has `accepts(input)` and `resolve(input, context)`. The resolver receives `AbortSignal`, `ownerDocument`, and `createId()`.
+`HtmlImportCapability` has `matchesRoot(element)` and `importRoot(element, context)`. Its context exposes `ownerDocument`, `createId()`, and `serializeRichText(element)` using the normal rich-text codec. Core sanitizes and plans the complete HTML input first; if any accepted root fails, the entire import is rejected before mutation.
+
+`PasteCapability` has `accepts(input)` and `resolve(input, context)` for text/file input only. The resolver receives `AbortSignal`, `ownerDocument`, and `createId()`.
 
 `ShortcutCapability` has one `handle(input, data, context)` method. Return `native`, `consume`, `exit`, `focus`, or `update`; core owns the actual structural transaction.
 
