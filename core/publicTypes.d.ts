@@ -14,6 +14,12 @@ import type {
 export type { BlockPluginDefinition, ConversionPayload, FocusTarget, InlinePluginDefinition, InlineTool }
 export type { EditorBlockData, EditorInlineWidget, EditorOutputData }
 
+export type DeepReadonly<T> =
+  T extends (...args: never[]) => unknown ? T :
+  T extends readonly (infer U)[] ? readonly DeepReadonly<U>[] :
+  T extends object ? { readonly [K in keyof T]: DeepReadonly<T[K]> } :
+  T
+
 export type BlockActivationStatus = 'active' | 'unregistered'
 export type TextAlign = 'left' | 'center' | 'right' | 'justify'
 
@@ -88,15 +94,15 @@ export interface TransactionCommitted {
   readonly origin: 'user' | 'native-input' | 'plugin' | 'external' | 'history'
   readonly action: 'commit' | 'undo' | 'redo'
   readonly name: string
-  readonly changes: readonly DocumentChange[]
-  readonly history: Readonly<{ canUndo: boolean; canRedo: boolean }>
+  readonly changes: DeepReadonly<readonly DocumentChange[]>
+  readonly history: DeepReadonly<{ canUndo: boolean; canRedo: boolean }>
 }
 
 export interface EditorEventMap {
   'editor:ready': undefined
   'editor:destroyed': undefined
-  'transaction:committed': TransactionCommitted
-  'document:changed': Pick<TransactionCommitted, 'origin' | 'action' | 'changes'>
+  'transaction:committed': DeepReadonly<TransactionCommitted>
+  'document:changed': DeepReadonly<Pick<TransactionCommitted, 'origin' | 'action' | 'changes'>>
   'history:changed': Readonly<{ canUndo: boolean; canRedo: boolean }>
   'readOnly:changed': Readonly<{ readOnly: boolean }>
   'currentBlock:changed': Readonly<{ currentId: string | null }>
