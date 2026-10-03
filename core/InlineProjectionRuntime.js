@@ -59,9 +59,14 @@ export class InlineProjectionRuntime {
     this.#assertLive()
     const previous=this.#blocks.get(blockId)
     const state={widgets:new Map()}
-    this.#projectState(
-      blockId,state,record,definition,fields,baseContext,{preserveSourceProjection:false},
-    )
+    try{
+      this.#projectState(
+        blockId,state,record,definition,fields,baseContext,{preserveSourceProjection:false},
+      )
+    }catch(error){
+      this.#destroyState(state)
+      throw error
+    }
 
     let applied=false
     let finished=false
