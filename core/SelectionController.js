@@ -78,6 +78,25 @@ export class SelectionController {
     return true
   }
 
+  activate(range) {
+    if (!range || range.collapsed) return false
+    const start = this.#logicalPoint(range.startContainer, range.startOffset)
+    const end = this.#logicalPoint(range.endContainer, range.endOffset)
+    if (!start || !end || start.blockId === end.blockId) return false
+    const backwards = this.#bookmark
+      ? this.#comparePoints(this.#bookmark.anchor, this.#bookmark.focus) > 0
+      : false
+    this.#activate(
+      backwards ? { anchor: end, focus: start } : { anchor: start, focus: end },
+      range,
+    )
+    return true
+  }
+
+  deactivate() {
+    this.#deactivate()
+  }
+
   removeWholeBlocks() {
     const ids = this.wholeBlockIds
     if (!ids.length) return false
