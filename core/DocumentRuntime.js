@@ -7,6 +7,7 @@ import { normalizeRichText } from '../shared/richTextCodec.js'
 import { getRichTextLogicalLength, replaceRichTextRange, replaceRichTextReference, sliceRichTextRange, splitRichTextRange } from '../shared/richTextOperations.js'
 import {
   assembleCanonicalRecord,
+  createSessionIdAllocator,
   prepareCanonicalInlineMerge,
   remapCanonicalFragment,
   scanCanonicalRichText,
@@ -58,6 +59,7 @@ export class DocumentRuntime {
   #ownerDocument
   #readOnly
   #createId
+  #allocateId
   #onValidationError
   #richTextNormalizer
   #destroyed = false
@@ -97,6 +99,7 @@ export class DocumentRuntime {
     this.#createId = typeof options.createId === 'function'
       ? options.createId
       : prefix => `${prefix}-${uid()}`
+    this.#allocateId = createSessionIdAllocator(this.#createId)
     this.#onValidationError = typeof options.onValidationError === 'function'
       ? options.onValidationError
       : null
@@ -223,14 +226,7 @@ export class DocumentRuntime {
     const anchorIndex=ids.indexOf(anchorId)
     if(anchorIndex<0)throw new Error(`Unknown block id: ${anchorId}`)
     const reserved=new Set(ids)
-    const allocate=prefix=>{
-      for(let attempt=0;attempt<1000;attempt++){
-        const id=this.#createId(prefix)
-        if(typeof id!=='string'||!id)throw new TypeError('createId() must return a non-empty string')
-        if(!reserved.has(id)){reserved.add(id);return id}
-      }
-      throw new Error('Could not allocate a unique pasted block id')
-    }
+    const allocate=prefix=>this.#allocateId(prefix,reserved)
     const records=[]
     for(const raw of inputs){
       if(!raw||typeof raw!=='object'||Array.isArray(raw))throw new TypeError('Clipboard block must contain a type')
@@ -273,9 +269,7 @@ export class DocumentRuntime {
   }
 
   createDataId(prefix) {
-    const id = this.#createId(prefix)
-    if (typeof id !== 'string' || !id) throw new TypeError('createId() must return a non-empty string')
-    return id
+    return this.#allocateId(prefix)
   }
 
   splitRichTextField(id, fieldKey, range) {
@@ -422,20 +416,19 @@ export class DocumentRuntime {
     }
 
     const nextData = Object.hasOwn(patch, 'data') ? patch.data : current.data
-    const encoded = this.#normalizeLocalData(definition, nextData)
     const nextTunes = Object.hasOwn(patch, 'tunes')
-      ? (patch.tunes === null ? undefined : cloneTunes(patch.tunes))
+      ? (patch.tunes === null ? undefined : patch.tunes)
       : current.tunes
-
-    if (
-      current.dataVersion === encoded.dataVersion
-      && sameJson(current.data, encoded.data)
-      && sameJson(current.tunes, nextTunes)
-    ) return
-
     const next = this.#recordFromData(
       id, current.type, definition, nextData, nextTunes, current.inline,
     )
+
+    if (
+      current.dataVersion === next.dataVersion
+      && sameJson(current.data, next.data)
+      && sameJson(current.tunes, next.tunes)
+      && sameJson(current.inline, next.inline)
+    ) return
     this.#engine.execute({ origin: 'external', name: 'block.update' }, tx => {
       tx.update(id, next)
     })
@@ -989,17 +982,7 @@ export class DocumentRuntime {
 
     const records = []
     const occupiedBlocks = new Set(this.#store.ids())
-    const allocateBlockId = () => {
-      for (let attempt = 0; attempt < 1000; attempt++) {
-        const id = this.#createId(defaultType)
-        if (typeof id !== 'string' || !id) throw new TypeError('createId() must return a non-empty string')
-        if (!occupiedBlocks.has(id)) {
-          occupiedBlocks.add(id)
-          return id
-        }
-      }
-      throw new Error('Could not allocate a unique pasted block id')
-    }
+    const allocateBlockId = () => this.#allocateId(defaultType, occupiedBlocks)
 
     let finalFieldKey = null
     for (let index = 1; index < serialized.length; index++) {
@@ -1273,6 +1256,12 @@ export class DocumentRuntime {
       if(tunes===undefined)delete next.tunes
       else next.tunes=tunes
       if(block.inline!==undefined)next.inline=this.#normalizeExternalInline(block.inline)
+      if(
+        block.dataVersion!==next.dataVersion
+        || !sameJson(block.data,next.data)
+        || !sameJson(block.tunes,next.tunes)
+        || !sameJson(block.inline,next.inline)
+      )delete next.revision
       return next
     })
     if(blocks.length===0)return this.#createNewDocument()
@@ -1692,12 +1681,7 @@ export class DocumentRuntime {
   }
 
   #allocateInlineId(reserved) {
-    for (let attempt = 0; attempt < 1000; attempt++) {
-      const id = this.#createId('inline')
-      if (typeof id !== 'string' || !id) throw new TypeError('createId() must return a non-empty string')
-      if (!reserved.has(id)) return id
-    }
-    throw new Error('Could not allocate a unique inline widget id')
+    return this.#allocateId('inline',reserved)
   }
 
   #prepareInlineMerge(definition, target, source) {
@@ -1721,27 +1705,17 @@ export class DocumentRuntime {
         return html
       })
     }
-    for (let attempt = 0; attempt < 1000; attempt++) {
-      const id = this.#createId('inline')
-      if (typeof id !== 'string' || !id) throw new TypeError('createId() must return a non-empty string')
-      if (!reserved.has(id)) return id
-    }
-    throw new Error('Could not allocate a unique inline widget id')
+    return this.#allocateId('inline',reserved)
   }
 
   #createUniqueBlockId(prefix, additional = []) {
     const occupied = new Set(this.#store ? this.#store.ids() : additional.map(block => block.id))
-    for (let attempt = 0; attempt < 1000; attempt++) {
-      const id = this.#createId(prefix)
-      if (typeof id !== 'string' || !id) throw new TypeError('createId() must return a non-empty string')
-      if (!occupied.has(id)) return id
-    }
-    throw new Error('Could not allocate a unique block id')
+    return this.#allocateId(prefix,occupied)
   }
 
   #dataOperationContext() {
     return Object.freeze({
-      createId: prefix => this.#createId(prefix),
+      createId: prefix => this.createDataId(prefix),
     })
   }
 
@@ -1768,7 +1742,7 @@ export class DocumentRuntime {
       requestExit: () => {
         if (!this.readOnly) this.#requestExit?.(id)
       },
-      createId: prefix => this.#createId(prefix),
+      createId: prefix => this.createDataId(prefix),
       createInlineWidgetContext: (fieldKey, inlineId, inlineType, inlineSignal) => ({
         id: inlineId,
         blockId: id,

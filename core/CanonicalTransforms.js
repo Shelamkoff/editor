@@ -3,6 +3,33 @@ import { cloneEditorData } from '../shared/cloneEditorData.js'
 import { remapRichTextReferences, scanRichTextPlaceholders } from '../shared/richTextOperations.js'
 
 /**
+ * Wrap the host id source with editor-session uniqueness. A value already
+ * issued by this allocator is never returned again, even after the owning
+ * block/widget/item has been removed. Caller-owned persisted ids belong in
+ * the reserved set and are not implicitly claimed as issued values.
+ *
+ * @param {(prefix:string)=>string} createId
+ */
+export function createSessionIdAllocator(createId) {
+  if (typeof createId !== 'function') throw new TypeError('Session id allocator requires createId()')
+  const issued = new Set()
+
+  return (prefix, reserved = new Set()) => {
+    if (typeof prefix !== 'string' || !prefix) throw new TypeError('ID prefix must be a non-empty string')
+    const occupied = reserved instanceof Set ? reserved : new Set(reserved ?? [])
+    for (let attempt = 0; attempt < 1000; attempt++) {
+      const id = createId(prefix)
+      if (typeof id !== 'string' || !id) throw new TypeError('createId() must return a non-empty string')
+      if (issued.has(id) || occupied.has(id)) continue
+      issued.add(id)
+      occupied.add(id)
+      return id
+    }
+    throw new Error('Could not allocate a unique session id')
+  }
+}
+
+/**
  * Scan all schema-declared rich-text fields. Placeholder-shaped text is a
  * reference only when the block owns a matching inline sidecar entry.
  *
