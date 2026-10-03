@@ -8,8 +8,11 @@ import {
   createAttachesPlugin,
   createCarouselPlugin,
   createEmbedPlugin,
+  createHeadingPlugin,
   createLinkPreviewPlugin,
+  createListPlugin,
   createParagraphPlugin,
+  createQuotePlugin,
   createPersonPlugin,
   createPollPlugin,
 } from '../../plugins/index.js'
@@ -192,6 +195,126 @@ async function taskLifetimeOwnership() {
   } finally {
     entry.editor.destroy()
     entry.holder.remove()
+  }
+}
+
+async function structuredHtmlImport() {
+  const paragraph = createParagraphPlugin({ injectStyles: false })
+  const heading = createHeadingPlugin()
+  const list = createListPlugin()
+  const quote = createQuotePlugin()
+
+  const failing = Object.freeze({
+    type: 'html-failure',
+    label: Object.freeze({ key: 'title', fallback: 'Failure' }),
+    icon: '',
+    schema: Object.freeze({
+      currentVersion: 1,
+      createDefault: () => ({ value: '' }),
+      decode(input) {
+        if (input.dataVersion !== 1) throw new RangeError('unsupported html-failure data version')
+        return { dataVersion: 1, data: { value: String(input.data?.value ?? '') } }
+      },
+      encode(data) {
+        return { dataVersion: 1, data: { value: String(data?.value ?? '') } }
+      },
+    }),
+    capabilities: Object.freeze({
+      htmlImport: Object.freeze({
+        matchesRoot(element) { return element.tagName === 'ARTICLE' },
+        importRoot() { throw new Error('late html import failure') },
+      }),
+    }),
+    setup() {
+      return {
+        create(initial, context) {
+          const element = context.ownerDocument.createElement('div')
+          element.textContent = initial.value
+          return {
+            element,
+            read: () => ({ value: element.textContent ?? '' }),
+            setReadOnly() {},
+            destroy() {},
+          }
+        },
+        destroy() {},
+      }
+    },
+  })
+
+  const holder = document.createElement('section')
+  sandbox.appendChild(holder)
+  const editor = createEditor({
+    holder,
+    plugins: [paragraph, heading, list, quote, failing],
+    defaultBlock: 'paragraph',
+    inlineTools: [],
+    injectStyles: false,
+    changeDebounceMs: 0,
+    data: {
+      version: '2.0.0',
+      blocks: [{
+        id: 'html-anchor',
+        type: 'paragraph',
+        dataVersion: paragraph.schema.currentVersion,
+        data: paragraph.schema.createDefault(),
+      }],
+    },
+  })
+
+  const pasteHtml = async html => {
+    editor.blocks.focus('html-anchor', { fieldKey: 'text', offset: 'start' })
+    await settle()
+    const target = holder.querySelector('.oe-block[data-block-id="html-anchor"] [contenteditable="true"]')
+    assert(target instanceof HTMLElement, 'HTML import target field is missing')
+    const transfer = new DataTransfer()
+    transfer.setData('text/html', html)
+    transfer.setData('text/plain', 'plain fallback must not win')
+    const event = new ClipboardEvent('paste', {
+      bubbles: true,
+      cancelable: true,
+      clipboardData: transfer,
+    })
+    target.dispatchEvent(event)
+    await settle(3)
+    return event
+  }
+
+  try {
+    const before = JSON.stringify(editor.save())
+    const event = await pasteHtml(
+      '<p onclick="window.__htmlImportProbe=1">One <b>bold</b><script>window.__htmlImportProbe=2</script></p>'
+      + '<section><h3>Nested heading</h3><ol><li>A</li><li>B <i>two</i></li></ol></section>'
+      + 'tail <i>text</i>'
+      + '<blockquote cite="javascript:alert(1)">Quote <a href="javascript:alert(2)">unsafe link</a></blockquote>',
+    )
+    assert(event.defaultPrevented, 'structured HTML paste was not owned by Rector')
+    const blocks = editor.save().blocks
+    assert(
+      blocks.map(block => block.type).join(',') === 'paragraph,heading,list,paragraph,quote',
+      'structured HTML roots were not imported in DOM order',
+    )
+    assert(blocks[0].id === 'html-anchor', 'empty anchor was not replaced by first imported block')
+    assert(blocks[0].data.text.includes('<b>bold</b>'), 'paragraph rich text was lost')
+    assert(!blocks[0].data.text.includes('script') && !blocks[0].data.text.includes('onclick'), 'unsafe paragraph markup survived import')
+    assert(blocks[1].data.level === 3 && blocks[1].data.text === 'Nested heading', 'heading root import is incorrect')
+    assert(blocks[2].data.style === 'ordered' && blocks[2].data.items.length === 2, 'list root import is incorrect')
+    assert(blocks[2].data.items[1].text.includes('<i>two</i>'), 'list rich text was flattened')
+    assert(blocks[3].data.text.includes('tail') && blocks[3].data.text.includes('<i>text</i>'), 'text sibling was not materialized')
+    assert(!blocks[4].data.text.includes('javascript:'), 'unsafe quote URL survived structural sanitization')
+    assert(window.__htmlImportProbe === undefined, 'unsafe HTML import executed script')
+
+    assert(editor.undo() === true, 'structured HTML import is not one history step')
+    await settle()
+    assert(JSON.stringify(editor.save()) === before, 'structured HTML undo did not restore original document')
+
+    const failureBefore = JSON.stringify(editor.save())
+    const failed = await pasteHtml('<p>Prepared first</p><article>fail late</article>')
+    assert(failed.defaultPrevented, 'failed accepted HTML import was not consumed')
+    assert(JSON.stringify(editor.save()) === failureBefore, 'late HTML import failure partially mutated document')
+  } finally {
+    editor.destroy()
+    holder.remove()
   }
 }
 
@@ -469,6 +592,7 @@ async function toolbarOwnership() {
 async function run() {
   canonicalTransformProof()
   const cases = [
+    ['structured-html-import', structuredHtmlImport],
     ['locale-markup-boundary', localeMarkupBoundary],
     ['link-preview-request-ownership', linkPreviewOwnership],
     ['embed-cover-ownership', embedCoverOwnership],
