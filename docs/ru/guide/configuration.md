@@ -33,7 +33,7 @@ interface EditorConfig {
   blockRemoveAnimationMs?: number
   onReady?: (editor: IEditor) => void | Promise<void>
   onChange?: (document: EditorDocument) => void | Promise<void>
-  onValidationError?: (issue: EditorValidationIssue) => void
+  onValidationError?: (issue: EditorValidationIssue) => void | Promise<void>
   onDiagnostic?: (diagnostic: EditorDiagnostic) => void | Promise<void>
   diagnosticThresholds?: Partial<DiagnosticThresholds>
 }
@@ -115,7 +115,7 @@ const editor = createEditor({
 
 ## Обработчики
 
-`onReady`, `onChange`, `onValidationError` и `onDiagnostic` — наблюдатели, а не части транзакции. Ошибка наблюдателя изолируется от канонического состояния. Диагностика никогда не содержит данные документа или payload расширений.
+`onReady`, `onChange`, `onValidationError` и `onDiagnostic` — наблюдатели, а не части транзакции. Синхронные исключения и отклонённые `Promise` изолируются одинаково. Ошибка наблюдателя изолируется от канонического состояния. Диагностика никогда не содержит данные документа или payload расширений.
 
 `onChange` планируется только после зафиксированных изменений документа и получает отделённый документ. Более новая фиксация может заменить ещё не доставленное старое уведомление.
 
