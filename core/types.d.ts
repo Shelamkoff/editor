@@ -21,7 +21,6 @@ export type {
 
 /** Narrow internal contract consumed by runtime modules. */
 export interface DiagnosticsSink {
-  readonly enabled: boolean
   threshold(name: keyof import('./publicTypes.js').DiagnosticThresholds): number
   now(): number
   emit(
