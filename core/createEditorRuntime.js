@@ -174,7 +174,7 @@ export function createEditorRuntime(input){
   if(!HTMLElementCtor||!(holder instanceof HTMLElementCtor))throw new TypeError('createEditor() requires an HTMLElement holder')
 
   const lease=claimEditorHolder(holder)
-  const lifecycle=new LifecycleScope()
+  const lifecycle=new LifecycleScope(error=>reportDiagnostic('cleanup.failed','lifecycle.destroy',error))
   lifecycle.register(lease)
   try{
   const document=holder.ownerDocument
