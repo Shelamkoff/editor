@@ -6,9 +6,6 @@ import { renderInlineWidgets } from './inlineWidgets.js'
 import { cloneEditorData } from '../shared/cloneEditorData.js'
 import defaultLocale from './locale/en.js'
 import { acquireStyleUrls } from '../shared/styleRegistry.js'
-import { validateKnownBlockData } from '../shared/blockDataValidators.js'
-import { getBuiltInBlockDataSchema } from '../shared/blockSchemas/index.js'
-import { normalizeKnownBlockData } from '../shared/blockDataNormalizers.js'
 import { normalizeTextAlign } from '../shared/textFormat.js'
 import { resolveValidationMode } from '../shared/validationMode.js'
 
@@ -22,11 +19,11 @@ const validationSourceKey = Symbol.for('@shelamkoff/rector/renderer-validation-s
 export class EditorRenderer {
   /** @type {{ injectStyles: boolean, classPrefix: string, throwOnUnknown: boolean, theme: 'dark' | 'light', validationMode: 'preserve' | 'strict', onValidationError?: (issue: { blockId?: string, type: string }) => void | Promise<void> }} */
   #config
-  /** @type {Map<string, import('./types').BlockRenderer>} */
+  /** @type {Map<string, import('./types').BlockRendererDefinition>} */
   #renderers
   /** @type {Map<string, import('./types').InlineWidgetRenderer>} */
   #inlineRenderers
-  /** @type {Map<HTMLElement, { wrapper: HTMLElement, blocks: Map<string, { element: HTMLElement, type: string, signature: string, renderer?: import('./types').BlockRenderer }> }>} */
+  /** @type {Map<HTMLElement, { wrapper: HTMLElement, blocks: Map<string, { element: HTMLElement, type: string, signature: string, renderer?: import('./types').BlockRendererDefinition }> }>} */
   #mountedContainers = new Map()
   /** Containers currently inside renderTo(); protects staged ownership from same-container reentry. */
   /** @type {WeakSet<HTMLElement>} */
@@ -37,11 +34,11 @@ export class EditorRenderer {
   #destroyingTargets = new WeakSet()
 
   /** Results returned by render(); keyed by their document wrapper. */
-  /** @type {Map<HTMLElement, Array<{ element: HTMLElement, type: string, renderer?: import('./types').BlockRenderer }>>} */
+  /** @type {Map<HTMLElement, Array<{ element: HTMLElement, type: string, renderer?: import('./types').BlockRendererDefinition }>>} */
   #detachedDocuments = new Map()
 
   /** Results returned directly by renderBlock(). */
-  /** @type {Map<HTMLElement, { element: HTMLElement, type: string, renderer?: import('./types').BlockRenderer }>} */
+  /** @type {Map<HTMLElement, { element: HTMLElement, type: string, renderer?: import('./types').BlockRendererDefinition }>} */
   #detachedBlocks = new Map()
 
   /** @type {Map<string, number>} */
@@ -49,12 +46,9 @@ export class EditorRenderer {
 
   /** Exact renderer owners of created results, including staged results.
    * Count by renderer rather than scanning every live block on each render.
-   * @type {Map<import('./types').BlockRenderer, number>}
+   * @type {Map<import('./types').BlockRendererDefinition, number>}
    */
   #liveRenderers = new Map()
-
-  /** Built-in types use the same neutral validators as their editor plugins. */
-  #defaultRendererTypes = new Set()
 
   /** @type {WeakMap<Document, import('./types').InlineParser>} */
   #inlineParsers = new WeakMap()
@@ -89,8 +83,6 @@ export class EditorRenderer {
       config.blockTypes,
       config.blockConfigs,
     )
-    this.#defaultRendererTypes = new Set(this.#renderers.keys())
-
     this.#inlineRenderers = new Map()
     if (config.inlineRenderers) {
       for (const inlineRenderer of config.inlineRenderers) {
@@ -101,14 +93,13 @@ export class EditorRenderer {
 
   /**
    * Register a custom block renderer.
-   * @param {import('./types').BlockRenderer} renderer
+   * @param {import('./types').BlockRendererDefinition} renderer
    * @param {string} [resolvedType] Type already observed at the public boundary.
    * @returns {this}
    */
   registerRenderer(renderer, resolvedType = renderer.type) {
     this.#rendererRevisions.set(resolvedType, (this.#rendererRevisions.get(resolvedType) ?? 0) + 1)
     this.#renderers.set(resolvedType, renderer)
-    this.#defaultRendererTypes.delete(resolvedType)
     return this
   }
 
@@ -120,7 +111,6 @@ export class EditorRenderer {
   unregisterRenderer(type) {
     this.#rendererRevisions.set(type, (this.#rendererRevisions.get(type) ?? 0) + 1)
     this.#renderers.delete(type)
-    this.#defaultRendererTypes.delete(type)
     return this
   }
 
@@ -166,7 +156,7 @@ export class EditorRenderer {
    * @param {import('./types').OutputBlockData} block
    * @param {Document} ownerDocument
    * @param {object} [validationSource] Original identity, not a signature clone.
-   * @returns {{ element: HTMLElement, type: string, renderer?: import('./types').BlockRenderer }}
+   * @returns {{ element: HTMLElement, type: string, renderer?: import('./types').BlockRendererDefinition }}
    */
   #createRenderedBlock(block, ownerDocument, validationSource = /** @type {any} */ (block)[validationSourceKey] ?? block) {
     // Keep the caller-owned identity even through aggregate/signature clones.
@@ -189,30 +179,18 @@ export class EditorRenderer {
       return { element: placeholder, type: block.type }
     }
 
-    let renderableBlock = block
-    let invalidBuiltIn = false
-    if (this.#defaultRendererTypes.has(block.type)) {
-      const schema = getBuiltInBlockDataSchema(block.type)
-      if (schema) {
-        try {
-          const decoded = schema.decode({
-            dataVersion: block.dataVersion,
-            data: block.data,
-          })
-          renderableBlock = {
-            ...block,
-            dataVersion: decoded.dataVersion,
-            data: decoded.data,
-          }
-        } catch {
-          invalidBuiltIn = true
-        }
-      } else if (!validateKnownBlockData(block.type, block.data)) {
-        invalidBuiltIn = true
+    let renderableBlock
+    try {
+      const decoded = renderer.schema.decode({
+        dataVersion: block.dataVersion,
+        data: block.data,
+      })
+      renderableBlock = {
+        ...block,
+        dataVersion: decoded.dataVersion,
+        data: decoded.data,
       }
-    }
-
-    if (invalidBuiltIn) {
+    } catch {
       const issue = { blockId: block.id, type: block.type }
       const observer = this.#config.onValidationError
       if (typeof observer === 'function' && !this.#reportingValidation.has(validationSource)) {
@@ -243,7 +221,7 @@ export class EditorRenderer {
       if (this.#config.validationMode === 'strict') {
         throw new InvalidBlockDataError(block.type, 'Block data does not match its schema', block.id)
       }
-      renderableBlock = { ...block, data: normalizeKnownBlockData(block.type, block.data, ownerDocument) }
+      return this.#createPreservedBlock(block, ownerDocument)
     }
 
     // Rehydrate inline widget placeholders before calling the block
@@ -284,6 +262,23 @@ export class EditorRenderer {
   }
 
   /**
+   * Create an inert projection for malformed or unsupported-version payloads.
+   * Preserved payload bytes are never executed as renderer markup.
+   * @param {import('./types').OutputBlockData} block
+   * @param {Document} ownerDocument
+   */
+  #createPreservedBlock(block, ownerDocument) {
+    const element = ownerDocument.createElement('div')
+    element.className = this.#withStableClass(`${this.#config.classPrefix}-preserved`)
+    element.dataset.blockStatus = 'preserved'
+    element.dataset.blockType = block.type
+    if (block.id) element.dataset.blockId = block.id
+    const textAlign = normalizeTextAlign(block.tunes?.textAlign)
+    if (textAlign) element.style.textAlign = textAlign
+    return { element, type: block.type }
+  }
+
+  /**
    * Render all blocks into a wrapper element with CSS variable scope.
    * @param {import('./types').OutputData} data
    * @returns {HTMLElement}
@@ -295,7 +290,7 @@ export class EditorRenderer {
     const theme = this.#config.theme
     wrapper.className = this.#contentClassName(theme)
 
-    /** @type {Array<{ element: HTMLElement, type: string, renderer?: import('./types').BlockRenderer }>} */
+    /** @type {Array<{ element: HTMLElement, type: string, renderer?: import('./types').BlockRendererDefinitionDefinition }>} */
     const created = []
     try {
       const blocks = data.blocks
@@ -318,7 +313,7 @@ export class EditorRenderer {
 
   /**
    * Release resources owned by one rendered block.
-   * @param {{ element: HTMLElement, type: string, renderer?: import('./types').BlockRenderer }} entry
+   * @param {{ element: HTMLElement, type: string, renderer?: import('./types').BlockRendererDefinition }} entry
    */
   #disposeRenderedElement(entry) {
     try {
@@ -379,11 +374,11 @@ export class EditorRenderer {
       }
 
       const previous = mounted?.blocks ?? new Map()
-      /** @type {Map<string, { element: HTMLElement, type: string, signature: string, renderer?: import('./types').BlockRenderer }>} */
+      /** @type {Map<string, { element: HTMLElement, type: string, signature: string, renderer?: import('./types').BlockRendererDefinition }>} */
       const next = new Map()
       /** @type {HTMLElement[]} */
       const ordered = []
-      /** @type {Array<{ element: HTMLElement, type: string, renderer?: import('./types').BlockRenderer }>} */
+      /** @type {Array<{ element: HTMLElement, type: string, renderer?: import('./types').BlockRendererDefinition }>} */
       const created = []
       /** @type {Map<string, number>} */
       const occurrences = new Map()
