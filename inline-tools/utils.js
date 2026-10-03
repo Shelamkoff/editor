@@ -680,21 +680,6 @@ export function getSelectedBlockElements(cbs, rangeHint = null) {
 }
 
 /**
- * Dispatch a synthetic input event on the nearest contenteditable to trigger
- * undo/redo snapshot via EditorFacade.onInput → editor:changed.
- * @param {Node} [contextNode] - any node inside the editor for scoping
- * @returns {void}
- */
-export function notifyEditorChanged(contextNode) {
-  const element = contextNode?.nodeType === ELEMENT_NODE
-    ? /** @type {Element} */ (contextNode)
-    : contextNode?.parentElement
-  const ce = element?.closest('[contenteditable="true"]')
-  const InputEventCtor = ce?.ownerDocument?.defaultView?.InputEvent
-  if (ce && InputEventCtor) ce.dispatchEvent(new InputEventCtor('input', { bubbles: true }))
-}
-
-/**
  * Create a simple tag-based inline tool.
  * @param {string} type
  * @param {string} title
