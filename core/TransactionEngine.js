@@ -51,6 +51,7 @@ export class TransactionEngine {
   #selection
   #onCommit
   #onDiagnostic
+  #diagnostics
   #phase = 'idle'
   /** @type {{ draft: any, context: any, failed: unknown } | null} */
   #current = null
@@ -66,6 +67,7 @@ export class TransactionEngine {
     this.#selection = options.selection ?? null
     this.#onCommit = typeof options.onCommit === 'function' ? options.onCommit : null
     this.#onDiagnostic = typeof options.onDiagnostic === 'function' ? options.onDiagnostic : null
+    this.#diagnostics = options.diagnostics ?? null
   }
 
   get phase() {
@@ -99,6 +101,7 @@ export class TransactionEngine {
     }
 
     const metadata = normalizeMetadata(metadataInput)
+    const startedAt = this.#diagnostics?.enabled ? this.#diagnostics.now() : 0
     const selectionBefore = this.#captureSelection()
     const draft = this.#store.createDraft()
     const context = this.#createContext(draft)
@@ -114,6 +117,8 @@ export class TransactionEngine {
     } catch (error) {
       this.#current = null
       this.#phase = 'idle'
+      this.#reportCommandFailure(metadata.name, error)
+      this.#reportCommandDuration(metadata.name, startedAt)
       throw error
     }
 
@@ -121,6 +126,7 @@ export class TransactionEngine {
     if (changes.length === 0) {
       this.#current = null
       this.#phase = 'idle'
+      this.#reportCommandDuration(metadata.name, startedAt)
       return result
     }
 
@@ -148,11 +154,16 @@ export class TransactionEngine {
         } catch (recoveryError) {
           this.#current = null
           this.#phase = 'idle'
-          throw new AggregateError([error, recoveryError], 'Projection failed and recovery also failed')
+          const aggregate = new AggregateError([error, recoveryError], 'Projection failed and recovery also failed')
+          this.#reportCommandFailure(metadata.name, aggregate)
+          this.#reportCommandDuration(metadata.name, startedAt)
+          throw aggregate
         }
       }
       this.#current = null
       this.#phase = 'idle'
+      this.#reportCommandFailure(metadata.name, error)
+      this.#reportCommandDuration(metadata.name, startedAt)
       throw error
     }
 
@@ -182,6 +193,7 @@ export class TransactionEngine {
       record: cloneEditorData(record),
     })
     this.#phase = 'idle'
+    this.#reportCommandDuration(metadata.name, startedAt)
     return result
   }
 
@@ -202,6 +214,8 @@ export class TransactionEngine {
     if (this.#phase !== 'idle') {
       throw new Error(`Cannot reset document during ${this.#phase} phase`)
     }
+    const operationName = 'document.reset'
+    const startedAt = this.#diagnostics?.enabled ? this.#diagnostics.now() : 0
     const draft = this.#store.createDraft()
     draft.replace(document)
     const changes = draft.changes
@@ -227,10 +241,15 @@ export class TransactionEngine {
         try { prepared.recover() }
         catch (recoveryError) {
           this.#phase = 'idle'
-          throw new AggregateError([error, recoveryError], 'Document reset failed and recovery also failed')
+          const aggregate = new AggregateError([error, recoveryError], 'Document reset failed and recovery also failed')
+          this.#reportCommandFailure(operationName, aggregate)
+          this.#reportCommandDuration(operationName, startedAt)
+          throw aggregate
         }
       }
       this.#phase = 'idle'
+      this.#reportCommandFailure(operationName, error)
+      this.#reportCommandDuration(operationName, startedAt)
       throw error
     }
 
@@ -245,6 +264,7 @@ export class TransactionEngine {
       changes: cloneEditorData(changes),
     })
     this.#phase = 'idle'
+    this.#reportCommandDuration(operationName, startedAt)
   }
 
   #createContext(draft) {
@@ -263,11 +283,16 @@ export class TransactionEngine {
     if (this.#phase !== 'idle') {
       throw new Error(`Cannot ${action} during ${this.#phase} phase`)
     }
+    const operationName = `history.${action}`
+    const startedAt = this.#diagnostics?.enabled ? this.#diagnostics.now() : 0
 
     const record = action === 'undo'
       ? this.#history.peekUndo()
       : this.#history.peekRedo()
-    if (!record) return false
+    if (!record) {
+      this.#reportCommandDuration(operationName, startedAt)
+      return false
+    }
 
     const draft = this.#store.createDraft()
     const direction = action === 'undo' ? 'backward' : 'forward'
@@ -297,10 +322,15 @@ export class TransactionEngine {
           prepared.recover()
         } catch (recoveryError) {
           this.#phase = 'idle'
-          throw new AggregateError([error, recoveryError], 'History projection failed and recovery also failed')
+          const aggregate = new AggregateError([error, recoveryError], 'History projection failed and recovery also failed')
+          this.#reportCommandFailure(operationName, aggregate)
+          this.#reportCommandDuration(operationName, startedAt)
+          throw aggregate
         }
       }
       this.#phase = 'idle'
+      this.#reportCommandFailure(operationName, error)
+      this.#reportCommandDuration(operationName, startedAt)
       throw error
     }
 
@@ -325,6 +355,7 @@ export class TransactionEngine {
       record: cloneEditorData(record),
     })
     this.#phase = 'idle'
+    this.#reportCommandDuration(operationName, startedAt)
     return true
   }
 
@@ -353,6 +384,22 @@ export class TransactionEngine {
       this.#onCommit(Object.freeze(event))
     } catch (error) {
       this.#diagnostic(error)
+    }
+  }
+
+  #reportCommandFailure(operation, error) {
+    this.#diagnostics?.emit('command.failed', {
+      operation,
+      errorName: this.#diagnostics.errorName(error),
+    })
+    this.#diagnostic(error)
+  }
+
+  #reportCommandDuration(operation, startedAt) {
+    if (!startedAt || !this.#diagnostics) return
+    const durationMs = this.#diagnostics.now() - startedAt
+    if (durationMs >= this.#diagnostics.threshold('commandMs')) {
+      this.#diagnostics.emit('command.slow', { operation, durationMs })
     }
   }
 
