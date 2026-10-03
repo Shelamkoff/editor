@@ -290,7 +290,7 @@ export class EditorRenderer {
     const theme = this.#config.theme
     wrapper.className = this.#contentClassName(theme)
 
-    /** @type {Array<{ element: HTMLElement, type: string, renderer?: import('./types').BlockRendererDefinitionDefinition }>} */
+    /** @type {Array<{ element: HTMLElement, type: string, renderer?: import('./types').BlockRendererDefinition }>} */
     const created = []
     try {
       const blocks = data.blocks
