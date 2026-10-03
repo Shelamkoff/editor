@@ -491,6 +491,77 @@ async function run() {
   retryEditor.destroy()
   initialFailureHolder.remove()
 
+  const inlineRollbackHolder = createHolder(sandbox)
+  const inlineRollbackEditor = createEditor({
+    holder: inlineRollbackHolder,
+    plugins: [
+      createParagraphPlugin({ injectStyles: false }),
+      failingDefinition,
+    ],
+    inlinePlugins: [createColorSwatchPlugin()],
+    defaultBlock: 'paragraph',
+    injectStyles: false,
+    data: {
+      version: '2.0.0',
+      blocks: [{
+        id: 'inline-stable',
+        type: 'paragraph',
+        dataVersion: 2,
+        data: { text: 'Stable {{color-stable}}' },
+        inline: {
+          'color-stable': {
+            type: 'color',
+            dataVersion: 1,
+            data: { value: '#123456' },
+          },
+        },
+      }],
+    },
+  })
+  const inlineBefore = JSON.stringify(inlineRollbackEditor.save().blocks)
+  const inlineElementBefore = inlineRollbackHolder.querySelector(
+    '[data-inline-plugin="color"][data-id="color-stable"]',
+  )
+  assert(inlineElementBefore instanceof HTMLElement, 'inline rollback fixture did not hydrate')
+  let lateRenderRejected = false
+  try {
+    inlineRollbackEditor.render({
+      version: '2.0.0',
+      blocks: [
+        {
+          id: 'inline-stable',
+          type: 'paragraph',
+          dataVersion: 2,
+          data: { text: 'Candidate {{color-stable}}' },
+          inline: {
+            'color-stable': {
+              type: 'color',
+              dataVersion: 1,
+              data: { value: '#654321' },
+            },
+          },
+        },
+        {
+          id: 'late-broken',
+          type: 'transactional',
+          dataVersion: 1,
+          data: { text: 'Broken' },
+        },
+      ],
+    })
+  } catch {
+    lateRenderRejected = true
+  }
+  assert(lateRenderRejected, 'late render failure was not rejected')
+  assert(JSON.stringify(inlineRollbackEditor.save().blocks) === inlineBefore, 'late render failure changed canonical inline graph')
+  assert(
+    inlineRollbackHolder.querySelector('[data-inline-plugin="color"][data-id="color-stable"]') === inlineElementBefore,
+    'late render preparation replaced committed inline owner',
+  )
+  assert(inlineElementBefore.dataset.value === '#123456', 'late render failure changed committed inline payload')
+  inlineRollbackEditor.destroy()
+  inlineRollbackHolder.remove()
+
   const transactionHolder = createHolder(sandbox)
   const transactionEditor = createEditor({
     holder: transactionHolder,
@@ -537,7 +608,7 @@ async function run() {
     editor: ['canonical native input', 'no mutable Block DOM', 'forged widget rejection'],
     currentBoundary: ['unregistered block', 'unknown inline', 'known version rejection', 'future document rejection'],
     validation: ['known malformed', 'known future inline', 'non-JSON', 'duplicate ids', 'duplicate definitions'],
-    lifecycle: ['initial mount rollback/lease release', 'reusable immutable definitions', 'projection rollback'],
+    lifecycle: ['initial mount rollback/lease release', 'reusable immutable definitions', 'inline owner rollback', 'projection rollback'],
   }
 }
 
