@@ -224,17 +224,15 @@ export class EditorRenderer {
       return this.#createPreservedBlock(block, ownerDocument)
     }
 
-    // Rehydrate inline widget placeholders before calling the block
-    // renderer — mirrors editor-side `BlockManager.insert` behavior.
-    // Only text renderers that opted in (`mapTextFields`) participate.
-    if (renderableBlock.inline && typeof renderer.mapTextFields === 'function' && this.#inlineRenderers.size > 0) {
+    // Rehydrate inline widget placeholders through the same canonical schema
+    // traversal used by the editor. Renderers do not own a second field map.
+    if (renderableBlock.inline && typeof renderer.schema.mapRichText === 'function' && this.#inlineRenderers.size > 0) {
       const inline = renderableBlock.inline
       const registry = this.#inlineRenderers
-      // Clone `data` so we don't mutate the caller's object with hydrated HTML.
       const hydratedData = cloneEditorData(renderableBlock.data)
-      renderer.mapTextFields(
+      renderer.schema.mapRichText(
         /** @type {Record<string, unknown>} */ (hydratedData),
-        (html) => renderInlineWidgets(html, inline, registry, ownerDocument),
+        html => renderInlineWidgets(html, inline, registry, ownerDocument),
       )
       renderableBlock = { ...renderableBlock, data: hydratedData }
     }
