@@ -312,7 +312,7 @@ export class BlockToolbar {
         data = definition?.schema.createDefault()
         if (item?.configure) data = item.configure(data, { createId: prefix => this.#runtime.createDataId(prefix) })
       }
-      const index = currentId ? this.#view.indexOf(currentId) + 1 : this.#runtime.list().length
+      const index = currentId ? this.#view.indexOf(currentId) + 1 : this.#runtime.size
       id = this.#runtime.insert(type, data, index)
     }
     this.#view.reconcileInteraction()
@@ -342,7 +342,7 @@ export class BlockToolbar {
       return
     }
 
-    const index = currentId ? this.#view.indexOf(currentId) + 1 : this.#runtime.list().length
+    const index = currentId ? this.#view.indexOf(currentId) + 1 : this.#runtime.size
     const id = this.#runtime.insert(this.#registry.defaultBlockType, undefined, index)
     this.#view.reconcileInteraction()
     this.#view.setCurrent(id)
@@ -360,12 +360,11 @@ export class BlockToolbar {
     if (!id) return
     const record = this.#runtime.get(id)
     if (!record) return
-    const index = this.#view.indexOf(id)
-    const records = this.#runtime.list()
+    const index=this.#runtime.indexOf(id)
 
     this.#settings.append(
-      this.#settingsItem(this.#t('block.moveUp', 'Move up'), ICON_UP, () => this.#move(id, index - 1), index === 0),
-      this.#settingsItem(this.#t('block.moveDown', 'Move down'), ICON_DOWN, () => this.#move(id, index + 1), index === records.length - 1),
+      this.#settingsItem(this.#t('block.moveUp','Move up'),ICON_UP,()=>this.#move(id,index-1),index===0),
+      this.#settingsItem(this.#t('block.moveDown','Move down'),ICON_DOWN,()=>this.#move(id,index+1),index===this.#runtime.size-1),
       this.#separator(),
     )
 
@@ -494,7 +493,7 @@ export class BlockToolbar {
   }
 
   #move(id, to) {
-    if (to < 0 || to >= this.#runtime.list().length) return
+    if (to < 0 || to >= this.#runtime.size) return
     this.#runtime.move(id, to)
     this.#view.reconcileInteraction()
     this.#view.setCurrent(id)
