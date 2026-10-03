@@ -4,7 +4,7 @@ import { decodeCurrentBlock, decodeCurrentDocument, decodeCurrentInlineMap } fro
 import { DOCUMENT_FORMAT_VERSION } from '../shared/documentFormat.js'
 import { invokeObserver } from '../shared/invokeObserver.js'
 import { normalizeRichText } from '../shared/richTextCodec.js'
-import { getRichTextLogicalLength, replaceRichTextRange, replaceRichTextReference, sliceRichTextRange, splitRichTextRange } from '../shared/richTextOperations.js'
+import { getRichTextLogicalLength, replaceRichTextRange, replaceRichTextReference, scanRichTextPlaceholders, sliceRichTextRange, splitRichTextRange } from '../shared/richTextOperations.js'
 import {
   assembleCanonicalRecord,
   createSessionIdAllocator,
@@ -523,6 +523,7 @@ export class DocumentRuntime {
     if (!targetDefinition) throw new Error(`Unknown block type: ${target.type}`)
 
     let targetData
+    let sourcePayload = null
     const sourceEmpty = sourceDefinition?.capabilities?.empty?.isEmpty?.(current.data) === true
     if (sourceEmpty) {
       targetData = targetDefinition.schema.createDefault()
@@ -532,11 +533,11 @@ export class DocumentRuntime {
       if (!sourceConversion || !targetConversion) {
         throw new Error(`Block conversion is not supported: ${current.type} -> ${target.type}`)
       }
-      const payload = sourceConversion.export(current.data)
-      if (!targetConversion.canImport(payload)) {
+      sourcePayload = sourceConversion.export(current.data)
+      if (!targetConversion.canImport(sourcePayload)) {
         throw new Error(`Block conversion payload is not supported by "${target.type}"`)
       }
-      targetData = targetConversion.import(payload)
+      targetData = targetConversion.import(sourcePayload)
     }
 
     if (target.toolboxItemId !== undefined) {
@@ -549,6 +550,9 @@ export class DocumentRuntime {
 
     const next = this.#recordFromData(
       id, target.type, targetDefinition, targetData, current.tunes, current.inline,
+    )
+    this.#assertConversionInlinePreserved(
+      sourcePayload,current.inline,targetDefinition,next,
     )
 
     this.#engine.execute({ origin: 'external', name: 'block.convert' }, tx => {
@@ -1452,49 +1456,41 @@ export class DocumentRuntime {
     const sourceDefinition=sliced.definition
     const sourceInline=sliced.inline
     const index=this.#store.ids().indexOf(current.id)
-    const convertedIds=[]
-    let focusId
 
-    this.#engine.execute({origin:'user',name:'selection.convert'},tx=>{
-      if(sliced.before){
-        const before=this.#recordFromData(
+    const before=sliced.before
+      ?this.#recordFromData(
           current.id,current.type,sourceDefinition,sliced.before,current.tunes,sourceInline,
         )
+      :null
+    const targetId=before?this.#createUniqueBlockId(target.type):current.id
+    const targetRecord=this.#recordFromData(
+      targetId,target.type,targetDefinition,targetData,current.tunes,sourceInline,
+    )
+    this.#assertConversionInlinePreserved(
+      sliced.selected,sourceInline,targetDefinition,targetRecord,
+    )
+    const after=sliced.after
+      ?this.#recordFromData(
+          this.#createUniqueBlockId(current.type),
+          current.type,
+          sourceDefinition,
+          sliced.after,
+          current.tunes,
+          sourceInline,
+        )
+      :null
+
+    this.#engine.execute({origin:'user',name:'selection.convert'},tx=>{
+      if(before){
         tx.update(current.id,before)
-
-        const targetId=this.#createUniqueBlockId(target.type)
-        const targetRecord=this.#recordFromData(
-          targetId,target.type,targetDefinition,targetData,current.tunes,sourceInline,
-        )
         tx.insert(index+1,targetRecord)
-        convertedIds.push(targetId)
-        focusId=targetId
-
-        if(sliced.after){
-          const afterId=this.#createUniqueBlockId(current.type)
-          const after=this.#recordFromData(
-            afterId,current.type,sourceDefinition,sliced.after,current.tunes,sourceInline,
-          )
-          tx.insert(index+2,after)
-        }
+        if(after)tx.insert(index+2,after)
       }else{
-        const targetRecord=this.#recordFromData(
-          current.id,target.type,targetDefinition,targetData,current.tunes,sourceInline,
-        )
         tx.update(current.id,targetRecord)
-        convertedIds.push(current.id)
-        focusId=current.id
-
-        if(sliced.after){
-          const afterId=this.#createUniqueBlockId(current.type)
-          const after=this.#recordFromData(
-            afterId,current.type,sourceDefinition,sliced.after,current.tunes,sourceInline,
-          )
-          tx.insert(index+1,after)
-        }
+        if(after)tx.insert(index+1,after)
       }
     })
-    return focusId?{focusId,convertedIds}:false
+    return {focusId:targetId,convertedIds:[targetId]}
   }
 
   #convertCrossBlockSelection(start,end,target,targetDefinition){
@@ -1585,9 +1581,23 @@ export class DocumentRuntime {
     }
     if(!pieces.length)return false
 
+    const occupiedIds=new Set(this.#store.ids())
     for(const piece of pieces){
       if(!targetConversion?.canImport?.(piece.payload))return false
       piece.data=this.#targetDataFromPayload(targetDefinition,piece.payload,target)
+      piece.insert=(
+        (piece.position==='first'&&firstSlice.before)
+        ||(piece.position==='last'&&lastSlice.after)
+      )
+      piece.id=piece.insert
+        ?this.#allocateId(target.type,occupiedIds)
+        :piece.original.id
+      piece.record=this.#recordFromData(
+        piece.id,target.type,targetDefinition,piece.data,piece.original.tunes,piece.inline,
+      )
+      this.#assertConversionInlinePreserved(
+        piece.payload,piece.inline,targetDefinition,piece.record,
+      )
     }
 
     const convertedIds=[]
@@ -1600,29 +1610,16 @@ export class DocumentRuntime {
       }
 
       for(const piece of pieces){
-        let id=piece.original.id
-        let insert=false
-        if(piece.position==='first'&&firstSlice.before){
-          id=this.#createUniqueBlockId(target.type)
-          insert=true
-        }else if(piece.position==='last'&&lastSlice.after){
-          id=this.#createUniqueBlockId(target.type)
-          insert=true
-        }
-
-        const record=this.#recordFromData(
-          id,target.type,targetDefinition,piece.data,piece.original.tunes,piece.inline,
-        )
-        if(insert){
+        if(piece.insert){
           const live=tx.list()
           const anchorId=piece.position==='first'?first.id:last.id
           const anchor=live.findIndex(item=>item.id===anchorId)
-          tx.insert(piece.position==='first'?anchor+1:anchor,record)
+          tx.insert(piece.position==='first'?anchor+1:anchor,piece.record)
         }else{
-          tx.update(piece.original.id,record)
+          tx.update(piece.original.id,piece.record)
         }
-        convertedIds.push(id)
-        focusId=id
+        convertedIds.push(piece.id)
+        focusId=piece.id
       }
 
       if(lastSlice.after){
@@ -1632,6 +1629,28 @@ export class DocumentRuntime {
       }
     })
     return focusId?{focusId,convertedIds}:false
+  }
+
+  #assertConversionInlinePreserved(payload,inline,targetDefinition,targetRecord){
+    if(payload?.kind!=='rich-text'||typeof payload.data?.text!=='string')return
+    const references=scanRichTextPlaceholders(
+      payload.data.text,
+      inline,
+      this.#ownerDocument,
+    ).references
+    if(!references.size)return
+
+    const targetInline=targetRecord.inline??{}
+    const targetScan=this.#scanBlockRichText(
+      targetDefinition,targetRecord.data,targetInline,
+    )
+    for(const id of references){
+      if(!Object.hasOwn(targetInline,id)||!targetScan.references.has(id)){
+        throw new Error(
+          `Block conversion cannot preserve inline reference "${id}" in target "${targetRecord.type}"`,
+        )
+      }
+    }
   }
 
   #orderedLogicalRange(bookmark) {

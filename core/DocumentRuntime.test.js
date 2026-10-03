@@ -270,6 +270,50 @@ test('convert uses source and target capabilities instead of arbitrary data merg
   runtime.destroy()
 })
 
+test('whole conversion rejects targets that cannot preserve linked inline data', () => {
+  const source=paragraphDefinition()
+  const code={
+    type:'code',
+    schema:schema({
+      createDefault:()=>({text:''}),
+      decode(input){return {dataVersion:1,data:{text:String(input.data?.text??'')}}},
+      encode(data){return {dataVersion:1,data:{text:String(data.text??'')}}},
+      mapRichText:null,
+    }),
+    capabilities:{
+      conversion:{
+        export:data=>({kind:'plain-text',data:{text:data.text}}),
+        canImport:payload=>payload?.kind==='rich-text'&&typeof payload.data?.text==='string',
+        import:payload=>({text:payload.data.text}),
+      },
+    },
+  }
+  const runtime=new DocumentRuntime({
+    registry:{
+      ...registry([source,code]),
+      getInlineDefinition(){return undefined},
+    },
+    data:{
+      version:'2.0.0',
+      blocks:[{
+        id:'a',
+        type:'paragraph',
+        dataVersion:1,
+        data:{text:'Before {{opaque}} after'},
+        inline:{opaque:{type:'future-inline',dataVersion:7,data:{value:1}}},
+      }],
+    },
+  })
+  const before=runtime.save().blocks
+  assert.throws(
+    ()=>runtime.convert('a',{type:'code'}),
+    /cannot preserve inline reference "opaque"/,
+  )
+  assert.deepEqual(runtime.save().blocks,before)
+  assert.equal(runtime.canUndo,false)
+  runtime.destroy()
+})
+
 test('mergeAdjacent commits data merge and source removal as one undoable transaction', () => {
   const definition = paragraphDefinition()
   definition.capabilities.merge = {
