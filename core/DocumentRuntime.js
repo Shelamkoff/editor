@@ -1229,7 +1229,7 @@ export class DocumentRuntime {
       let insertAt
       if(beforeKeep){
         insertAt=live.findIndex(record=>record.id===start.blockId)+1
-      }else if(afterKeep){
+      }else if(start.blockId!==end.blockId&&afterKeep){
         insertAt=live.findIndex(record=>record.id===end.blockId)
       }else{
         insertAt=Math.min(startIndex,live.length)
