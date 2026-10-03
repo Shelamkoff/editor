@@ -22,11 +22,11 @@ interface InlineTool {
 }
 ```
 
-`InlineToolActionContext` contains `range`, `mutate(operation)`, `restoreSelection()`, `close()`, `showTooltip(anchor, label)`, and `hideTooltip()`. A retained context is inert after its toolbar session is retired.
+`InlineToolActionContext` contains `range`, `mutate(operation)`, `getTextAlign()`, `setTextAlign(value)`, `restoreSelection()`, `close()`, `showTooltip(anchor, label)`, and `hideTooltip()`. Any new selection change revokes the saved toolbar lease, so a retained action context cannot mutate a newer selection.
 
 `InlineMutationContext` exposes `mutate(range, operation)` for mounted tool controls.
 
-Formatting tools do not own separate persisted payloads. Their DOM changes are committed through the inline toolbar transaction boundary and normalized back into the block's rich-text field.
+Formatting tools do not own separate persisted payloads. One selection may span multiple registered rich-text fields in one or more blocks; a tool is eligible only when every touched block allows it. The DOM edit crosses one protected transaction boundary and is normalized back into every affected block. Registered `plain-text` fields and auxiliary native controls are never partially formatted. Alignment is model-first: `setTextAlign()` changes only block `tunes.textAlign`, never wrapper CSS or plugin `data.align`.
 
 The built-in preset exposes `bold`, `italic`, `strikethrough`, `link`, `code`, `marker`, `bgcolor`, `fontSize`, `script`, `align`, `caseTransform`, and `clearFormatting`.
 
