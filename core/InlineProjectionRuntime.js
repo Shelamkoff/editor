@@ -1,6 +1,7 @@
 // @ts-check
 import { cloneEditorData } from '../shared/cloneEditorData.js'
 import { getTextOffset } from '../shared/textOffset.js'
+import { InstanceScope } from './InstanceScope.js'
 import { normalizeRichText } from '../shared/richTextCodec.js'
 import { toTrustedHtml } from '../shared/sanitize/trustedHtml.js'
 
@@ -47,7 +48,7 @@ export class InlineProjectionRuntime {
     this.#assertLive()
     let state=this.#blocks.get(blockId)
     if(!state){
-      state={widgets:new Map()}
+      state={widgets:new Map(),staged:false}
       this.#blocks.set(blockId,state)
     }
     this.#projectState(
@@ -58,7 +59,7 @@ export class InlineProjectionRuntime {
   prepareBlock(blockId,record,definition,fields,baseContext){
     this.#assertLive()
     const previous=this.#blocks.get(blockId)
-    const state={widgets:new Map()}
+    const state={widgets:new Map(),staged:true}
     try{
       this.#projectState(
         blockId,state,record,definition,fields,baseContext,{preserveSourceProjection:false},
@@ -90,6 +91,8 @@ export class InlineProjectionRuntime {
       finalize:()=>{
         if(finished)return
         if(!applied)throw new Error('Cannot finalize an unapplied inline projection')
+        state.staged=false
+        for(const entry of state.widgets.values())entry.scope?.activate?.()
         if(previous&&previous!==state)this.#destroyState(previous)
         finished=true
       },
@@ -324,16 +327,17 @@ export class InlineProjectionRuntime {
         if(!entry){
           const Ctor=this.#ownerDocument.defaultView?.AbortController??AbortController
           const controller=new Ctor()
+          const scope=new InstanceScope({staged:state.staged===true})
           const makeContext=baseContext?.createInlineWidgetContext
           if(typeof makeContext!=='function')throw new Error('Block context does not provide inline widget mutations')
-          const context=makeContext(fieldKey,id,type,controller.signal)
+          const context=makeContext(fieldKey,id,type,controller.signal,scope)
           const instance=runtime.create(id,decoded.data,context)
           if(!instance?.element||typeof instance.setReadOnly!=='function'||typeof instance.destroy!=='function'){
             controller.abort()
             try{instance?.destroy?.()}catch{}
             throw new TypeError('Inline runtime "'+type+'" returned an invalid widget instance')
           }
-          entry={id,type,fieldKey,instance,element:instance.element,controller,data:decoded.data}
+          entry={id,type,fieldKey,instance,element:instance.element,controller,scope,data:decoded.data}
           state.widgets.set(id,entry)
           this.#owned.set(entry.element,{blockId,id})
           instance.setReadOnly(this.#readOnly)
@@ -394,6 +398,7 @@ export class InlineProjectionRuntime {
   }
 
   #destroyWidget(entry){
+    try{entry.scope?.revoke?.()}catch{}
     try{entry.controller?.abort()}catch{}
     try{entry.instance?.destroy?.()}catch{}
     try{entry.element?.remove?.()}catch{}
