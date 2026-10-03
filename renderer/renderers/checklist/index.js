@@ -1,4 +1,5 @@
 // @ts-check
+import { checklistDataSchema } from '../../../shared/blockSchemas/checklist.js'
 
 const styles = new URL('./styles.css', import.meta.url).href
 
@@ -6,11 +7,12 @@ const styles = new URL('./styles.css', import.meta.url).href
  * Checklist block renderer
  * @param {string} classPrefix
  * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} _locale
- * @returns {import('../../types').BlockRenderer<import('../../types').ChecklistBlock>}
+ * @returns {import('../../types').BlockRendererDefinition<import('../../types').ChecklistBlock>}
  */
 export function createChecklistRenderer(classPrefix, _locale) {
   return {
     type: 'checklist',
+    schema: checklistDataSchema,
     styles: [styles],
 
     /**
