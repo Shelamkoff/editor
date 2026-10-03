@@ -10,7 +10,7 @@ const allowedRussianGuideLatin = new Set([
   // Ecosystem names and the guide's technical glossary, not arbitrary prose.
   'vite', 'nuxt', 'inline', 'subpath', 'runtime', 'browser', 'native',
   'id', 'svg', 'es', 'raw', 'gallery', 'person', 'v2', 'ui',
-  'definitions', 'definition', 'capabilities', 'fallback', 'realm', 'model', 'first', 'plugin', 'owned', 'split', 'commit', 'allowlist', 'settings', 'actions', 'capability', 'panel', 'text', 'files', 'block', 'rich', 'result', 'keyboard', 'router', 'context', 'resolver', 'payload', 'listeners', 'observers', 'requests', 'object', 'urls', 'controls', 'editable', 'fields', 'async', 'signal', 'lifetime', 'renderer', 'read', 'only', 'type', 'schema', 'semantics',
+  'definitions', 'definition', 'capabilities', 'fallback', 'realm', 'model', 'first', 'plugin', 'owned', 'split', 'commit', 'allowlist', 'settings', 'actions', 'capability', 'panel', 'text', 'files', 'block', 'rich', 'result', 'keyboard', 'router', 'context', 'resolver', 'payload', 'listeners', 'observers', 'requests', 'object', 'urls', 'controls', 'editable', 'fields', 'async', 'signal', 'lifetime', 'renderer', 'read', 'only', 'type', 'schema', 'semantics', 'tool', 'persisted', 'toolbar', 'trigger', 'unicode', 'point', 'pagination', 'callbacks', 'paste', 'patterns', 'persistence', 'cleanup', 'popup', 'host', 'labels', 'trusted', 'markup', 'sinks', 'package', 'icons',
 ])
 
 
