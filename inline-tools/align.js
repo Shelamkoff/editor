@@ -1,6 +1,7 @@
 import { setTrustedHtml } from '../shared/sanitize/sanitizeHtml.js'
 import { el, closestBlock } from '../core/dom.js'
 import {
+  createSelectionPortBinding,
   ICON_ALIGN_LEFT,
   ICON_ALIGN_CENTER,
   ICON_ALIGN_RIGHT,
@@ -22,10 +23,11 @@ const ALIGNMENTS = [
  * participating in the current selection.
  *
  * @param {{ left: string, center: string, right: string, justify: string }} labels
- * @param {import('./types').CrossBlockSelectionPort | null} [cbs]
  * @returns {import('./types').InlineTool}
  */
-export function createAlignTool(labels, cbs = null) {
+export function createAlignTool(labels) {
+  const selection = createSelectionPortBinding()
+  const cbs = selection.port
   /** @type {Document | null} */
   let ownerDocument = null
   /** @type {Record<string, { icon: string, title: string }>} */
@@ -60,6 +62,7 @@ export function createAlignTool(labels, cbs = null) {
 
   return {
     type: 'align',
+    bindSelectionPort: selection.bind,
     title: labels.left,
     icon: ICON_ALIGN_LEFT,
     tag: 'div',
