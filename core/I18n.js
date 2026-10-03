@@ -82,14 +82,12 @@ function interpolate(msg, params) {
  *  - fallback chain (primary → fallback language → key)
  *  - explicit `has()` for missing-key detection
  *  - plural rules per language (CLDR categories)
- *  - scoped sub-instances for plugin namespacing
  *  - immutable freeze after init
  *  - dev-mode warnings on missing keys
  *
  * Architecturally: ONE instance per editor, shared by core and all plugins.
- * Plugins receive a `ScopedI18n` wrapper that auto-prefixes keys with their
- * type (e.g. `plugin.heading.*`), so plugin code uses short local keys
- * without worrying about cross-plugin collisions.
+ * Extension namespace resolution is owned by the registry, which calls this
+ * dictionary with fully resolved `plugin.*` or `inlinePlugin.*` keys.
  */
 export class I18n {
   /** @type {Record<string, LocaleValue>} */
