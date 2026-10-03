@@ -93,9 +93,10 @@ export class EditorHandle {
   #setReadOnly
   #inlineCommands
   #subscribe
+  #isReady
   #isDestroyed
 
-  constructor({ runtime, view, blocks, destroy, setReadOnly, inlineCommands, subscribe, isDestroyed = () => false }) {
+  constructor({ runtime, view, blocks, destroy, setReadOnly, inlineCommands, subscribe, isReady = () => true, isDestroyed = () => false }) {
     this.#runtime = runtime
     this.#view = view
     this.#blocks = blocks
@@ -103,6 +104,7 @@ export class EditorHandle {
     this.#setReadOnly = setReadOnly
     this.#inlineCommands = inlineCommands
     this.#subscribe = subscribe
+    this.#isReady = isReady
     this.#isDestroyed = isDestroyed
   }
 
@@ -111,6 +113,7 @@ export class EditorHandle {
   }
 
   get blocks() { this.#assertLive(); return this.#blocks }
+  get isReady() { return !this.#isDestroyed() && this.#isReady() }
   get canUndo() { this.#assertLive(); return this.#runtime.canUndo }
   get canRedo() { this.#assertLive(); return this.#runtime.canRedo }
   get readOnly() { this.#assertLive(); return this.#runtime.readOnly }
