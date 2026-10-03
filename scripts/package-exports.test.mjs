@@ -12,7 +12,7 @@ test('theme CSS exports support explicit extensions without breaking extensionle
 
 test('default inline tools live behind the explicit preset entry', () => {
   assert.deepEqual(manifest.exports['./preset'], {
-    types: './dist/preset/index.d.ts',
+    types: './dist/preset/index.js',
     import: './dist/preset/index.js',
   })
 })
