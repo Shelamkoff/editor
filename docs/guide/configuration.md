@@ -47,7 +47,7 @@ interface EditorConfig {
 | `data` | no | empty default block | Initial versioned document. Input is cloned and normalized at the ownership boundary. |
 | `defaultBlock` | no | `paragraph` when registered, otherwise first block definition | Type used for an empty document and generic structural editing. |
 | `placeholder` | no | extension/localized default | Editor-level placeholder exposed to the default block runtime. |
-| `readOnly` | no | `false` | Initial interaction mode. User/document mutations are disabled while read-only. |
+| `readOnly` | no | `false` | Initial interaction authority. User/native/clipboard/plugin persistence and undo/redo are disabled; host document commands remain available. |
 | `autofocus` | no | `false` | Focus the first editable field after successful creation. |
 | `injectStyles` | no | `true` | Acquire core and registered definition styles through the shared style registry. |
 | `theme` | no | `dark` | Non-empty theme identifier. `light` and `dark` are built in; custom `oe-theme-*` classes may be styled by the host. |
@@ -101,7 +101,7 @@ The removed `validationMode`, `documentVersionPolicy`, and `migrations` options 
 
 ## Read-only and layout
 
-`editor.setReadOnly(true)` changes the live runtime mode without creating a history entry. Definition instances receive the transition through `setReadOnly()`. Core controllers also stop structural keyboard commands, paste, drag, settings mutations, inline commands, undo and redo.
+`editor.setReadOnly(true)` changes interaction authority without creating a document history entry. Definition instances receive the transition through `setReadOnly()`. Core controllers stop structural keyboard commands, paste, drag, settings mutations, inline commands, undo and redo. Host calls to `render()`, `clear()`, and `editor.blocks.*` mutations remain available; their history is retained, while `canUndo`/`canRedo` stay `false` until read-only is disabled.
 
 Use `minHeight` only for the editor shell. `mobileBreakpoint` drives the core mobile-mode class instead of a duplicate hard-coded media-query contract. Structural animations live in the projection layer and are automatically suppressed by `prefers-reduced-motion`. Extension layout belongs in extension styles.
 
