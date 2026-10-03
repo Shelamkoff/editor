@@ -132,14 +132,18 @@ window.__editorHeapReport = () => ({
 })
 
 const [
-  { createColorSwatchPlugin, createEditor, createMentionPlugin },
+  { createEditor },
   plugins,
+  { createColorSwatchPlugin },
+  { createMentionPlugin },
   { EditorRenderer },
   { BLOCK_TYPES },
   { colorPickerStylesUrl },
 ] = await Promise.all([
   import('../../core/index.js'),
   import('../../plugins/index.js'),
+  import('../../inline-plugins/color.js'),
+  import('../../inline-plugins/mention/index.js'),
   import('../../renderer/index.js'),
   import('../../shared/blockTypes.js'),
   import('@shelamkoff/color-picker'),
