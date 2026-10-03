@@ -507,13 +507,16 @@ export class ClipboardController {
     const task = new AbortControllerCtor()
     this.#task = task
     this.#taskAnchorId = owner.blockId
+    const generation=this.#runtime.generation
+    const revision=this.#runtime.revision
+    const selectionKey=JSON.stringify(this.#selection.capture())
     const abort = () => task.abort(this.#controller.signal.reason)
     this.#controller.signal.addEventListener('abort', abort, { once: true, signal: task.signal })
 
     void (async () => {
-      let anchorId = owner.blockId
+      const resolved=[]
       for (const { input, route } of items) {
-        if (task.signal.aborted || !this.#runtime.get(anchorId)) return
+        if (task.signal.aborted || !this.#runtime.get(owner.blockId)) return
         let result
         try {
           result = await route.paste.resolve(input, {
@@ -534,29 +537,31 @@ export class ClipboardController {
           }
           return
         }
-        if (task.signal.aborted || !result || !this.#runtime.get(anchorId)) return
+        if (task.signal.aborted || !result) return
+        resolved.push({type:route.type,result})
+      }
 
-        if (result.kind === 'rich-text') {
-          if (anchorId !== owner.blockId) return
-          this.#runtime.replaceRichText(owner.blockId, owner.fieldKey, range, result.replacement)
-          this.#view.reconcileInteraction()
-          this.#view.setCurrent(owner.blockId)
-          queueMicrotask(() => this.#view.focus(owner.blockId, { fieldKey: owner.fieldKey }))
-          continue
-        }
+      if(
+        task.signal.aborted
+        ||this.#runtime.generation!==generation
+        ||this.#runtime.revision!==revision
+        ||JSON.stringify(this.#selection.capture())!==selectionKey
+        ||!this.#runtime.get(owner.blockId)
+      )return
 
-        if (result.kind === 'block') {
-          const current = this.#runtime.get(anchorId)
-          if (!current) return
-          if (this.#runtime.isEmpty(anchorId)) {
-            this.#runtime.replaceBlock(anchorId, route.type, result.data)
-          } else {
-            const index = this.#runtime.list().findIndex(record => record.id === anchorId)
-            anchorId = this.#runtime.insert(route.type, result.data, index + 1)
-          }
-          this.#view.reconcileInteraction()
-          this.#view.setCurrent(anchorId)
-          queueMicrotask(() => this.#view.focus(anchorId, { offset: 'end' }))
+      try{
+        const applied=this.#runtime.applyPasteResults(
+          owner.blockId,owner.fieldKey,range,resolved,
+        )
+        this.#view.reconcileInteraction()
+        this.#view.setCurrent(applied.blockId)
+        queueMicrotask(()=>this.#view.focus(applied.blockId,{offset:'end'}))
+      }catch(error){
+        if(!task.signal.aborted){
+          this.#diagnostics?.emit('paste.failed',{
+            operation:'clipboard.paste-commit',
+            errorName:this.#diagnostics.errorName(error),
+          })
         }
       }
     })().finally(() => {
