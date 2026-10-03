@@ -156,6 +156,10 @@ export interface EditorConfig {
   historyCoalesceMs?: number
   dragThreshold?: number
   toolboxFilterThreshold?: number
+  mobileBreakpoint?: number
+  blockInsertAnimationMs?: number
+  blockMoveAnimationMs?: number
+  blockRemoveAnimationMs?: number
   onReady?: (editor: IEditor) => void | Promise<void>
   onChange?: (document: EditorDocument) => void | Promise<void>
   onValidationError?: (issue: EditorValidationIssue) => void
