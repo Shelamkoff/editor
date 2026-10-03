@@ -1,5 +1,4 @@
 // @ts-check
-import { mapColumnsTextFields as mapTextFields } from '../../../shared/mapTextFields.js'
 
 const styles = new URL('./styles.css', import.meta.url).href
 
@@ -21,7 +20,6 @@ export function createColumnsRenderer(classPrefix, _locale) {
     return {
         type: 'columns',
         styles: [styles],
-        mapTextFields,
 
         /**
          * @param {import('../../types').ColumnsBlock} block
