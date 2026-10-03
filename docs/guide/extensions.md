@@ -58,7 +58,7 @@ Decode external input once at the boundary. Encode every model-first update befo
 
 ## Capabilities
 
-`BlockCapabilities` can contain `empty`, `formatting`, `merge`, `conversion`, `htmlImport`, `selectionSlice`, `inlineControls`, `settings`, `paste`, and `shortcuts`.
+`BlockCapabilities` can contain `empty`, `formatting`, `merge`, `conversion`, `htmlImport`, `clipboard`, `selectionSlice`, `inlineControls`, `settings`, `paste`, and `shortcuts`.
 
 - `empty.isEmpty(data)` defines structural empty-block behavior.
 - `formatting.inlineTools` is `true` or an allowlist.
@@ -68,6 +68,7 @@ Decode external input once at the boundary. Encode every model-first update befo
 - `inlineControls` reuses model-first settings actions inside the inline toolbar.
 - `settings` is either an actions capability or a model-first panel.
 - `htmlImport.matchesRoot/importRoot` synchronously imports one safe structural HTML root into local current data for that block type; it must consume the whole root and have no side effects.
+- `clipboard.slice(data, context)` lets a composite block return exported `parts`, the canonical `remaining` value after Cut, and an optional `focus`. `context.field(key)` exposes only actually selected rich-text intervals (`before/selected/after/whole`). Export and remaining come from the same pure capability, so core never guesses the block's data shape.
 - `paste` routes only text/file inputs to block or rich-text results; structural HTML is not passed to it.
 - `shortcuts` returns structural/model actions to the single core keyboard router.
 
