@@ -1,6 +1,5 @@
 import { setTrustedHtml } from '../../../shared/sanitize/sanitizeHtml.js'
 // @ts-check
-import { mapSpoilerTextFields as mapTextFields } from '../../../shared/mapTextFields.js'
 import { localeText } from '../locale.js'
 
 const styles = new URL('./styles.css', import.meta.url).href
@@ -24,7 +23,6 @@ export function createSpoilerRenderer(classPrefix, /** @type {Record<string, imp
     return {
         type: 'spoiler',
         styles: [styles],
-        mapTextFields,
 
         /**
          * @param {import('../../types').SpoilerBlock} block
