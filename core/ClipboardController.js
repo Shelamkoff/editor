@@ -60,8 +60,9 @@ export class ClipboardController {
   #controller
   #task = null
   #taskAnchorId = null
+  #diagnostics
 
-  constructor({ root, runtime, registry, reconciler, selection, view, crossSelection = null }) {
+  constructor({ root, runtime, registry, reconciler, selection, view, crossSelection = null, diagnostics = null }) {
     this.#root = root
     this.#runtime = runtime
     this.#registry = registry
@@ -69,6 +70,7 @@ export class ClipboardController {
     this.#selection = selection
     this.#view = view
     this.#crossSelection = crossSelection
+    this.#diagnostics = diagnostics
     const AbortControllerCtor = root.ownerDocument?.defaultView?.AbortController ?? AbortController
     this.#controller = new AbortControllerCtor()
     root.addEventListener('copy', event => this.#onCopy(event), { capture: true, signal: this.#controller.signal })
@@ -356,6 +358,7 @@ export class ClipboardController {
 
   #beginAsync(owner, range, items) {
     this.#task?.abort()
+    const startedAt = this.#diagnostics?.enabled ? this.#diagnostics.now() : 0
     const AbortControllerCtor = this.#root.ownerDocument.defaultView?.AbortController ?? AbortController
     const task = new AbortControllerCtor()
     this.#task = task
@@ -375,7 +378,16 @@ export class ClipboardController {
             createId: prefix => this.#runtime.createDataId(prefix),
           })
         } catch (error) {
-          if (!task.signal.aborted) console.warn('[Clipboard] paste resolver failed', error)
+          if (!task.signal.aborted) {
+            if (this.#diagnostics) {
+              this.#diagnostics.emit('paste.failed', {
+                operation: 'clipboard.paste',
+                errorName: this.#diagnostics.errorName(error),
+              })
+            } else {
+              console.warn('[Clipboard] paste resolver failed', error)
+            }
+          }
           return
         }
         if (task.signal.aborted || !result || !this.#runtime.get(anchorId)) return
@@ -404,6 +416,12 @@ export class ClipboardController {
         }
       }
     })().finally(() => {
+      if (startedAt && this.#diagnostics) {
+        const durationMs = this.#diagnostics.now() - startedAt
+        if (durationMs >= this.#diagnostics.threshold('pasteMs')) {
+          this.#diagnostics.emit('paste.slow', { operation: 'clipboard.paste', durationMs })
+        }
+      }
       if (this.#task === task) {
         this.#task = null
         this.#taskAnchorId = null
