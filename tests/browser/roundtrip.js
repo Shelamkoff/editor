@@ -194,6 +194,35 @@ async function run() {
 
   assert(savedBlocks.length === BLOCK_TYPES.length, 'not every block plugin completed the editor round-trip')
 
+  const apiHolder = document.createElement('section')
+  sandbox.appendChild(apiHolder)
+  const apiEditor = editorFor(createParagraphPlugin({ injectStyles: false }), apiHolder, {
+    version: '2.0.0',
+    blocks: [
+      { id: 'api-a', type: 'paragraph', dataVersion: 2, data: { text: 'A' } },
+      { id: 'api-b', type: 'paragraph', dataVersion: 2, data: { text: 'B' } },
+    ],
+  })
+  assert(apiEditor.isReady === false, 'isReady became true before the ready microtask')
+  const interactionEvents = []
+  apiEditor.on('selection:changed', payload => interactionEvents.push(['selection', [...payload.selectedIds]]))
+  apiEditor.on('currentBlock:changed', payload => interactionEvents.push(['current', payload.currentId]))
+  apiEditor.blocks.select(['api-a', 'api-b'])
+  apiEditor.blocks.setCurrent('api-b')
+  await Promise.resolve()
+  assert(apiEditor.isReady === true, 'isReady did not become true after successful composition')
+  assert(
+    interactionEvents.some(([kind, ids]) => kind === 'selection' && ids.join(',') === 'api-a,api-b'),
+    'selection:changed did not publish document-ordered ids',
+  )
+  assert(
+    interactionEvents.some(([kind, id]) => kind === 'current' && id === 'api-b'),
+    'currentBlock:changed did not publish the new current block',
+  )
+  apiEditor.destroy()
+  assert(apiEditor.isReady === false, 'isReady must remain readable and false after destroy')
+  apiHolder.remove()
+
   const renderer = new EditorRenderer({ blockTypes: BLOCK_TYPES, throwOnUnknown: true, theme: 'light' })
   const output = { time: 1, version: '2.0.0', blocks: savedBlocks }
   const container = document.createElement('main')
