@@ -1,6 +1,5 @@
 import { setTrustedHtml } from '../../../shared/sanitize/sanitizeHtml.js'
 // @ts-check
-import { mapToggleTextFields as mapTextFields } from '../../../shared/mapTextFields.js'
 
 const styles = new URL('./styles.css', import.meta.url).href
 
@@ -17,7 +16,6 @@ export function createToggleRenderer(classPrefix, _locale) {
     return {
         type: 'toggle',
         styles: [styles],
-        mapTextFields,
 
         /**
          * @param {import('../../types').ToggleBlock} block
