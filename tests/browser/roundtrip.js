@@ -30,18 +30,24 @@ const pixel = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcS
 const fixtures = {
   paragraph: { text: 'Hello <b>world</b>' },
   heading: { text: 'Stable heading', level: 3 },
-  list: { style: 'unordered', items: ['First', 'Second'] },
+  list: { style: 'unordered', items: [{ id: 'list-first', text: 'First' }, { id: 'list-second', text: 'Second' }] },
   quote: { text: 'A useful quote', caption: 'Author' },
   code: { code: 'const answer = 42', language: 'javascript' },
   image: { file: { url: pixel }, caption: 'Pixel', withBorder: true },
   delimiter: {},
-  table: { withHeadings: true, content: [['Name', 'Value'], ['Answer', '42']] },
-  checklist: { items: [{ text: 'Done', checked: true }, { text: 'Pending', checked: false }] },
+  table: {
+    withHeadings: true,
+    rows: [
+      { id: 'row-heading', cells: [{ id: 'cell-name', text: 'Name' }, { id: 'cell-value', text: 'Value' }] },
+      { id: 'row-answer', cells: [{ id: 'cell-answer', text: 'Answer' }, { id: 'cell-42', text: '42' }] },
+    ],
+  },
+  checklist: { items: [{ id: 'check-done', text: 'Done', checked: true }, { id: 'check-pending', text: 'Pending', checked: false }] },
   warning: { title: 'Heads up', message: 'Stable warning' },
   embed: { service: 'youtube', videoId: 'dQw4w9WgXcQ', caption: 'Video' },
   raw: { html: '<p>Safe <strong>HTML</strong></p>' },
   gallery: {
-    images: [{ url: pixel, caption: 'Pixel' }],
+    images: [{ id: 'gallery-pixel', url: pixel, caption: 'Pixel' }],
     layout: '1',
     styles: { gap: '4px', borderRadius: '2px' },
     options: { loop: false, zoom: true, navigation: true, captions: true },
@@ -54,7 +60,7 @@ const fixtures = {
     options: { loop: true, autoplay: false, autoplayDelay: 3000, navigation: true, pagination: true, thumbnails: false, aspectRatio: '16 / 9' },
   },
   attaches: {
-    files: [{ url: '/hello.txt', name: 'hello.txt', size: 5, extension: 'txt' }],
+    files: [{ id: 'file-hello', url: '/hello.txt', name: 'hello.txt', size: 5, extension: 'txt' }],
     variant: 'f',
   },
   linkPreview: {
@@ -67,7 +73,7 @@ const fixtures = {
     template: 'horizontal',
   },
   toggle: { title: 'Details', content: '<p>Visible content</p>', open: true },
-  columns: { columns: [{ content: '<p>Left</p>' }, { content: '<p>Right</p>' }], layout: '1-1' },
+  columns: { columns: [{ id: 'column-left', content: '<p>Left</p>' }, { id: 'column-right', content: '<p>Right</p>' }], layout: '1-1' },
   spoiler: { label: 'Spoiler', content: '<p>Secret</p>' },
   poll: {
     pollId: 'roundtrip-poll',
@@ -79,11 +85,12 @@ const fixtures = {
   },
   person: {
     persons: [{
+      id: 'person-ada',
       avatar: pixel,
       name: 'Ada Lovelace',
       role: 'Engineer',
       bio: 'A short biography',
-      links: [{ type: 'website', url: 'https://example.com' }],
+      links: [{ id: 'link-website', type: 'website', url: 'https://example.com' }],
     }],
   },
 }
@@ -168,12 +175,12 @@ async function run() {
     sandbox.appendChild(firstHolder)
     const firstEditor = editorFor(definition, firstHolder, {
       version: '2.0.0',
-      blocks: [{ id: `block-${type}`, type, data: structuredClone(fixture) }],
+      blocks: [{ id: `block-${type}`, type, dataVersion: definition.schema.currentVersion, data: structuredClone(fixture) }],
     })
     const firstDocument = firstEditor.save()
     const firstBlock = firstDocument.blocks[0]
     assert(firstBlock?.type === type, `${type} did not survive editor ingestion`)
-    assert(firstBlock.dataVersion === definition.schema.currentVersion, `${type} did not normalize to its current dataVersion`)
+    assert(firstBlock.dataVersion === definition.schema.currentVersion, `${type} did not preserve its current dataVersion`)
     assert(stableJson(fixture) === fixtureBefore, `${type} editor ingestion mutated caller data`)
     firstEditor.destroy()
     firstHolder.remove()
