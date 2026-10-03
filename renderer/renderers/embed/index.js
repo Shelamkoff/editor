@@ -1,4 +1,5 @@
 // @ts-check
+import { embedDataSchema } from '../../../shared/blockSchemas/embed.js'
 import { buildPlayer } from '../../../shared/embedPlayer.js'
 import { localeText } from '../locale.js'
 
@@ -11,7 +12,7 @@ const ICON_PLAY = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24
  * Data: { service, videoId, caption?, cover?, title?, duration? }
  * @param {string} classPrefix
  * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} locale
- * @returns {import('../../types').BlockRenderer<import('../../types').EmbedBlock>}
+ * @returns {import('../../types').BlockRendererDefinition<import('../../types').EmbedBlock>}
  */
 export function createEmbedRenderer(classPrefix, locale) {
   /** @type {WeakMap<HTMLElement, () => void>} */
@@ -20,6 +21,7 @@ export function createEmbedRenderer(classPrefix, locale) {
   const t = (key, fallback) => localeText(locale, key, fallback)
   return {
     type: 'embed',
+    schema: embedDataSchema,
     styles: [styles],
 
     /**
