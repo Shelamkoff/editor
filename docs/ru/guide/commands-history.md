@@ -133,19 +133,34 @@ renderActions(ctx) {
 
 ## Команды из внутристрочных виджетов
 
-Постоянный внутристрочный плагин получает `InlinePluginContext`. Передайте сам виджет или его дочерний узел как `target`, чтобы Rector связал команду с блоком-владельцем.
+Каждый смонтированный внутристрочный виджет получает `InlineWidgetContext`. Состояние принадлежит модели: читайте его через `getData()`, а одно завершённое действие фиксируйте одним вызовом `updateData()`.
 
 ```js
-hydrate(element, ctx) {
-  const remove = element.querySelector('[data-remove]')
+create(id, initial, context) {
+  const button = document.createElement('button')
+  button.textContent = initial.enabled ? 'Вкл.' : 'Выкл.'
 
-  remove.addEventListener('click', () => {
-    ctx.mutate(element, () => element.remove())
-  })
+  button.addEventListener('click', () => {
+    context.updateData(current => ({
+      ...current,
+      enabled: !current.enabled,
+    }))
+  }, { signal: context.signal })
+
+  return {
+    element: button,
+    update(next) {
+      button.textContent = next.enabled ? 'Вкл.' : 'Выкл.'
+    },
+    setReadOnly(readOnly) {
+      button.disabled = readOnly
+    },
+    destroy() {},
+  }
 }
 ```
 
-`notifyChanged()` сохранён для совместимости с изменениями, уже выполненными до уведомления. В новом коде используйте `mutate()`, чтобы предыдущее состояние было зафиксировано правильно.
+DOM виджета — только проекция канонических данных. Не изменяйте DOM с последующим уведомлением Rector; фиксируйте изменение через `updateData()`, чтобы before/after состояния, undo/redo и защита от устаревших callback оставались атомарными.
 
 ## Асинхронная работа
 
