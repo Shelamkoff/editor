@@ -999,62 +999,201 @@ export class DocumentRuntime {
       throw new Error(`Block type has no rich-text fields: ${current.type}`)
     }
 
+    const defaultType = this.#registry.defaultBlockType
+    const defaultDefinition = this.#registry.getBlockDefinition(defaultType)
     const inline = cloneInline(current.inline) ?? {}
-    let replacement = ''
-    let logicalLength = 0
-    for (const segment of segments) {
-      if (!segment || typeof segment !== 'object') throw new TypeError('Inline paste segment must be an object')
-      if (segment.kind === 'text') {
-        const text = String(segment.text ?? '')
-        replacement += text
-        logicalLength += text.length
+    const reservedInline = new Set(Object.keys(inline))
+    for (const id of this.#scanBlockRichText(blockDefinition, current.data, inline).literals) {
+      reservedInline.add(id)
+    }
+    if (defaultDefinition?.schema?.mapRichText) {
+      for (const id of this.#scanBlockRichText(
+        defaultDefinition,
+        defaultDefinition.schema.createDefault(),
+        {},
+      ).literals) reservedInline.add(id)
+    }
+
+    const lines = [[]]
+    for (const raw of segments) {
+      if (!raw || typeof raw !== 'object') throw new TypeError('Inline paste segment must be an object')
+      if (raw.kind === 'text') {
+        const parts = String(raw.text ?? '').split(/\r\n?|\n/)
+        for (let index = 0; index < parts.length; index++) {
+          if (parts[index]) lines.at(-1).push({ kind: 'text', text: parts[index] })
+          if (index < parts.length - 1) lines.push([])
+        }
         continue
       }
-      if (segment.kind !== 'widget' || typeof segment.type !== 'string' || !segment.type) {
+      if (raw.kind !== 'widget' || typeof raw.type !== 'string' || !raw.type) {
         throw new TypeError('Inline paste segment must be text or widget')
       }
-      const definition = this.#registry.getInlineDefinition(segment.type)
-      if (!definition) throw new Error(`Unknown inline widget type: ${segment.type}`)
-      const encoded = definition.schema.encode(segment.data)
-      const id = this.#createUniqueInlineId(blockDefinition, current.data, inline)
+      const definition = this.#registry.getInlineDefinition(raw.type)
+      if (!definition) throw new Error(`Unknown inline widget type: ${raw.type}`)
+      const encoded = definition.schema.encode(raw.data)
+      const id = this.#allocateInlineId(reservedInline)
+      reservedInline.add(id)
       inline[id] = {
-        type: segment.type,
+        type: raw.type,
         dataVersion: encoded.dataVersion,
         data: encoded.data,
       }
-      replacement += `{{${id}}}`
-      logicalLength++
+      lines.at(-1).push({ kind: 'reference', id })
     }
 
-    let matched = false
-    const nextData = blockDefinition.schema.mapRichText(
+    const serialized = lines.map(line => {
+      let text = ''
+      let logicalLength = 0
+      for (const segment of line) {
+        if (segment.kind === 'text') {
+          text += segment.text
+          logicalLength += segment.text.length
+        } else {
+          text += `{{${segment.id}}}`
+          logicalLength++
+        }
+      }
+      return { text, logicalLength }
+    })
+
+    const startOffset = Math.max(0, Math.trunc(range?.start) || 0)
+    const endOffset = Math.max(startOffset, Math.trunc(range?.end ?? startOffset) || 0)
+
+    if (serialized.length === 1 || !defaultDefinition?.schema?.mapRichText) {
+      let matched = false
+      const nextData = blockDefinition.schema.mapRichText(
+        cloneEditorData(current.data),
+        (html, key) => {
+          if (key !== fieldKey) return html
+          matched = true
+          return replaceRichTextRange(
+            html,
+            inline,
+            { start: startOffset, end: endOffset },
+            { kind: 'text', text: serialized.map(line => line.text).join('\n') },
+            this.#ownerDocument,
+          )
+        },
+      )
+      if (!matched) throw new Error(`Unknown rich-text field "${fieldKey}" for block "${blockId}"`)
+      const encodedBlock = this.#normalizeLocalData(blockDefinition, nextData)
+      const filteredInline = this.#filterInlineForData(blockDefinition, encodedBlock.data, inline)
+      const next = {
+        ...current,
+        dataVersion: encodedBlock.dataVersion,
+        data: encodedBlock.data,
+      }
+      if (filteredInline === undefined) delete next.inline
+      else next.inline = filteredInline
+      delete next.revision
+      this.#engine.execute({ origin: 'user', name: 'inline-paste' }, tx => tx.update(blockId, next))
+      return {
+        blockId,
+        fieldKey,
+        offset: startOffset + serialized.reduce((sum, line, index) => (
+          sum + line.logicalLength + (index ? 1 : 0)
+        ), 0),
+      }
+    }
+
+    let suffix = ''
+    let sourceMatched = false
+    const sourceData = blockDefinition.schema.mapRichText(
       cloneEditorData(current.data),
       (html, key) => {
         if (key !== fieldKey) return html
-        matched = true
+        sourceMatched = true
+        suffix = splitRichTextRange(
+          html,
+          inline,
+          { start: startOffset, end: endOffset },
+          this.#ownerDocument,
+        ).after
         return replaceRichTextRange(
           html,
           inline,
-          range,
-          { kind: 'text', text: replacement },
+          { start: startOffset, end: Number.MAX_SAFE_INTEGER },
+          { kind: 'text', text: serialized[0].text },
           this.#ownerDocument,
         )
       },
     )
-    if (!matched) throw new Error(`Unknown rich-text field "${fieldKey}" for block "${blockId}"`)
-    const encodedBlock = this.#normalizeLocalData(blockDefinition, nextData)
-    const filteredInline = this.#filterInlineForData(blockDefinition, encodedBlock.data, inline)
-    const next = {
-      ...current,
-      dataVersion: encodedBlock.dataVersion,
-      data: encodedBlock.data,
-    }
-    if (filteredInline === undefined) delete next.inline
-    else next.inline = filteredInline
-    delete next.revision
+    if (!sourceMatched) throw new Error(`Unknown rich-text field "${fieldKey}" for block "${blockId}"`)
 
-    this.#engine.execute({ origin: 'user', name: 'inline-paste' }, tx => tx.update(blockId, next))
-    return { offset: Math.max(0, Math.trunc(range?.start) || 0) + logicalLength }
+    const sourceEncoded = this.#normalizeLocalData(blockDefinition, sourceData)
+    const sourceInline = this.#filterInlineForData(blockDefinition, sourceEncoded.data, inline)
+    const sourceNext = {
+      ...current,
+      dataVersion: sourceEncoded.dataVersion,
+      data: sourceEncoded.data,
+    }
+    if (sourceInline === undefined) delete sourceNext.inline
+    else sourceNext.inline = sourceInline
+    delete sourceNext.revision
+
+    const records = []
+    const occupiedBlocks = new Set(this.#store.ids())
+    const allocateBlockId = () => {
+      for (let attempt = 0; attempt < 1000; attempt++) {
+        const id = this.#createId(defaultType)
+        if (typeof id !== 'string' || !id) throw new TypeError('createId() must return a non-empty string')
+        if (!occupiedBlocks.has(id)) {
+          occupiedBlocks.add(id)
+          return id
+        }
+      }
+      throw new Error('Could not allocate a unique pasted block id')
+    }
+
+    let finalFieldKey = null
+    for (let index = 1; index < serialized.length; index++) {
+      const line = serialized[index]
+      const isLast = index === serialized.length - 1
+      let fieldKeyForBlock = null
+      const data = defaultDefinition.schema.mapRichText(
+        defaultDefinition.schema.createDefault(),
+        (html, key) => {
+          if (fieldKeyForBlock !== null) return html
+          fieldKeyForBlock = key
+          const base = isLast ? suffix : ''
+          return replaceRichTextRange(
+            base,
+            inline,
+            { start: 0, end: 0 },
+            { kind: 'text', text: line.text },
+            this.#ownerDocument,
+          )
+        },
+      )
+      if (fieldKeyForBlock === null) {
+        throw new Error(`Default block type has no rich-text field: ${defaultType}`)
+      }
+      finalFieldKey = fieldKeyForBlock
+      const encoded = this.#normalizeLocalData(defaultDefinition, data)
+      const filteredInline = this.#filterInlineForData(defaultDefinition, encoded.data, inline)
+      const record = {
+        id: allocateBlockId(),
+        type: defaultType,
+        dataVersion: encoded.dataVersion,
+        data: encoded.data,
+      }
+      if (current.tunes !== undefined) record.tunes = cloneTunes(current.tunes)
+      if (filteredInline !== undefined) record.inline = filteredInline
+      records.push(record)
+    }
+
+    const sourceIndex = this.#store.ids().indexOf(blockId)
+    this.#engine.execute({ origin: 'user', name: 'inline-paste' }, tx => {
+      tx.update(blockId, sourceNext)
+      records.forEach((record, index) => tx.insert(sourceIndex + index + 1, record))
+    })
+
+    const last = records.at(-1)
+    return {
+      blockId: last.id,
+      fieldKey: finalFieldKey,
+      offset: serialized.at(-1).logicalLength,
+    }
   }
 
   insertInlineWidget(blockId, fieldKey, range, type, data) {
