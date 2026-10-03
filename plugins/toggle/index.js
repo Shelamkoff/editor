@@ -2,8 +2,8 @@
 import {
   READ_ONLY_INTERACTIVE_ATTRIBUTE,
   setSanitizedHtml,
-  setTrustedHtml,
 } from '../../plugin-kit/index.js'
+import { setTrustedHtml } from '../../shared/sanitize/sanitizeHtml.js'
 import { toggleDataSchema } from '../../shared/blockSchemas/toggle.js'
 
 const editorStyles=new URL('./toggle.css',import.meta.url).href
