@@ -50,6 +50,25 @@ export function createQuotePlugin() {
         return {text:payload.data.text,caption:''}
       },
     }),
+    htmlImport:Object.freeze({
+      matchesRoot(element){
+        return element.tagName==='BLOCKQUOTE'
+          ||(element.tagName==='FIGURE'&&!!element.querySelector(':scope > blockquote'))
+      },
+      importRoot(element,context){
+        const blockquote=element.tagName==='BLOCKQUOTE'
+          ?element
+          :element.querySelector(':scope > blockquote')
+        if(!blockquote)throw new TypeError('Quote HTML root is missing blockquote content')
+        const caption=element.tagName==='FIGURE'
+          ?element.querySelector(':scope > figcaption, :scope > cite')
+          :null
+        return {
+          text:context.serializeRichText(blockquote),
+          caption:caption?context.serializeRichText(caption):'',
+        }
+      },
+    }),
   })
 
   return Object.freeze({
