@@ -52,6 +52,30 @@ function block(id, data = { text: id }, extra = {}) {
   return { id, type: 'paragraph', data, ...extra }
 }
 
+test('DocumentRuntime emits save/render timing diagnostics through the canonical sink', () => {
+  const events = []
+  let clock = 100
+  const diagnostics = {
+    enabled: true,
+    now() { return clock++ },
+    threshold(name) { return name === 'saveMs' || name === 'renderMs' ? 0 : Infinity },
+    errorName(error) { return error?.name ?? 'UnknownError' },
+    emit(code, details) { events.push({ code, ...details }) },
+  }
+  const runtime = new DocumentRuntime({
+    registry: registry([paragraphDefinition()]),
+    diagnostics,
+    data: { version: '2.0.0', blocks: [block('a')] },
+  })
+
+  runtime.save()
+  runtime.render({ version: '2.0.0', blocks: [block('a', { text: 'next' })] })
+
+  assert.equal(events.some(event => event.code === 'save.slow'), true)
+  assert.equal(events.some(event => event.code === 'render.slow'), true)
+  runtime.destroy()
+})
+
 test('DocumentRuntime decodes known external blocks into current canonical schema data', () => {
   const runtime = new DocumentRuntime({
     registry: registry([paragraphDefinition({ currentVersion: 2 })]),
