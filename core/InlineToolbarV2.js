@@ -21,7 +21,7 @@ function cloneBookmark(bookmark) {
   }
 }
 
-export class InlineToolbarV2 {
+export class InlineToolbar {
   #root
   #runtime
   #registry
