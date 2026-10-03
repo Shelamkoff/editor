@@ -1,6 +1,6 @@
 import { cloneEditorData } from '../shared/cloneEditorData.js'
 import { EDITOR_VERSION } from './constants.js'
-import { BUILT_IN_DOCUMENT_MIGRATIONS } from './documentMigrationsV2.js'
+import { BUILT_IN_DOCUMENT_MIGRATIONS } from './documentMigrations.js'
 
 /**
  * Validates document envelopes and applies an explicit, deterministic
