@@ -22,11 +22,11 @@ interface InlineTool {
 }
 ```
 
-`InlineToolActionContext` содержит `range`, `mutate(operation)`, `restoreSelection()`, `close()`, `showTooltip(anchor, label)` и `hideTooltip()`. После завершения сессии сохранённый context становится инертным.
+`InlineToolActionContext` содержит `range`, `mutate(operation)`, `getTextAlign()`, `setTextAlign(value)`, `restoreSelection()`, `close()`, `showTooltip(anchor, label)` и `hideTooltip()`. После любого нового selectionchange сохранённая toolbar-сессия отзывается: retained context не может изменить новое выделение.
 
 `InlineMutationContext` предоставляет `mutate(range, operation)` для смонтированного control.
 
-Инструмент форматирования не имеет отдельного persisted payload. Его DOM-изменение проходит через транзакционную границу inline toolbar и нормализуется обратно в rich-text поле блока.
+Инструмент форматирования не имеет отдельного persisted payload. Одна selection может охватывать несколько зарегистрированных rich-text fields одного или нескольких блоков; tool доступен только если каждый затронутый блок разрешает его. DOM-изменение проходит через одну protected транзакцию и нормализуется обратно во все затронутые блоки. Registered `plain-text` поля и auxiliary inputs не форматируются частично. Alignment — исключение на уровне хранения: `setTextAlign()` изменяет только `tunes.textAlign` выбранных block IDs и не пишет CSS или `data.align` в plugin data.
 
 Встроенный набор предоставляет `bold`, `italic`, `strikethrough`, `link`, `code`, `marker`, `bgcolor`, `fontSize`, `script`, `align`, `caseTransform` и `clearFormatting`.
 
