@@ -402,6 +402,7 @@ export function createEditorRuntime(input){
     selection:logicalSelection,
     view,
     crossSelection,
+    inlineCommands,
     diagnostics,
   }))
 
