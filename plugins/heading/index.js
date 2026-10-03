@@ -80,7 +80,7 @@ export function createHeadingPlugin(){
           level:/** @type {2|3|4|5|6} */(level),
         }
       },
-    }),,
+    }),
   })
 
   return Object.freeze({
