@@ -28,6 +28,7 @@ export class InlineToolbar {
   #registry
   #reconciler
   #selection
+  #selectionPort
   #view
   #tools
   #element
@@ -56,12 +57,13 @@ export class InlineToolbar {
   #controlBookmark = null
   #controlBlockId = null
 
-  constructor({ root, runtime, registry, reconciler, selection, view, tools = [] }) {
+  constructor({ root, runtime, registry, reconciler, selection, selectionPort = null, view, tools = [] }) {
     this.#root = root
     this.#runtime = runtime
     this.#registry = registry
     this.#reconciler = reconciler
     this.#selection = selection
+    this.#selectionPort = selectionPort
     this.#view = view
     this.#tools = [...tools]
     this.#readOnly = runtime.readOnly
@@ -155,6 +157,7 @@ export class InlineToolbar {
     })
 
     for (const tool of this.#tools) {
+      tool.bindSelectionPort?.(this.#selectionPort)
       const button = document.createElement('button')
       button.type = 'button'
       button.className = 'oe-inline-tool'
@@ -211,7 +214,7 @@ export class InlineToolbar {
     if (!tool) return false
     const selection = this.#resolveFormattingSelection()
     if (!selection) return false
-    const allowed = this.#allowedTools(selection.blockId)
+    const allowed = this.#allowedTools(selection.blockIds)
     if (allowed && !allowed.has(type)) return false
 
     if (tool.renderActions) {
@@ -219,7 +222,9 @@ export class InlineToolbar {
       const panel = tool.renderActions({
         range,
         mutate: operation => this.#mutate(range, operation, tool.type),
-        restoreSelection: () => this.#restoreNativeRange(range),
+        getTextAlign: () => this.#runtime.getTextAlign(selection.blockIds),
+        setTextAlign: value => this.#runtime.setTextAlign(selection.blockIds, value),
+        restoreSelection: () => this.#restoreSelection(selection.bookmark, range),
         close: () => this.#closeActions(),
         showTooltip: (anchor, label) => anchor.setAttribute('title', label),
         hideTooltip: () => {},
@@ -263,7 +268,10 @@ export class InlineToolbar {
     this.#typeVersion++
     this.#controlVersion++
     this.#closeActions()
-    for (const tool of this.#tools) tool.destroy?.()
+    for (const tool of this.#tools) {
+      tool.bindSelectionPort?.(null)
+      tool.destroy?.()
+    }
     this.#element.remove()
   }
 
@@ -280,17 +288,36 @@ export class InlineToolbar {
 
   #resolveSelection() {
     const native = this.#root.ownerDocument.defaultView?.getSelection()
-    if (!native || native.isCollapsed || native.rangeCount === 0) return null
-    const range = native.getRangeAt(0)
+    const stored = this.#selectionPort?.range ?? null
+    const range = stored ?? (
+      native && !native.isCollapsed && native.rangeCount > 0
+        ? native.getRangeAt(0)
+        : null
+    )
+    if (!range || range.collapsed) return null
     if (!this.#root.contains(range.startContainer) || !this.#root.contains(range.endContainer)) return null
-    const bookmark = this.#selection.capture()
-    if (!bookmark?.anchor || !bookmark?.focus) return null
+
     const start = this.#reconciler.resolveEditableTarget(range.startContainer)
     const end = this.#reconciler.resolveEditableTarget(range.endContainer)
     if (!start || !end) return null
+
+    if (
+      !stored
+      && (start.blockId !== end.blockId || start.fieldKey !== end.fieldKey)
+      && this.#selectionPort?.activate
+    ) {
+      this.#selectionPort.activate(range)
+    }
+
+    const bookmark = cloneBookmark(this.#selectionPort?.bookmark ?? this.#selection.capture())
+    if (!bookmark?.anchor || !bookmark?.focus) return null
+    const blockIds = this.#blockIdsBetween(bookmark.anchor.blockId, bookmark.focus.blockId)
+    if (!blockIds.length) return null
+
     return {
-      range,
+      range: (this.#selectionPort?.range ?? range).cloneRange(),
       bookmark,
+      blockIds,
       blockId: bookmark.focus.blockId,
       fieldKey: bookmark.anchor.blockId === bookmark.focus.blockId
         && bookmark.anchor.fieldKey === bookmark.focus.fieldKey
@@ -299,24 +326,56 @@ export class InlineToolbar {
       sameBlock: bookmark.anchor.blockId === bookmark.focus.blockId,
       sameField: bookmark.anchor.blockId === bookmark.focus.blockId
         && bookmark.anchor.fieldKey === bookmark.focus.fieldKey,
-      text: native.toString(),
+      text: native?.toString?.() ?? range.toString(),
     }
   }
 
-  #resolveFormattingSelection() {
-    const selection = this.#resolveSelection()
-    if (!selection?.sameField) return null
-    const definition = this.#registry.getBlockDefinition(this.#runtime.get(selection.blockId)?.type)
-    if (!definition?.capabilities?.formatting?.inlineTools) return null
-    return selection
+  #blockIdsBetween(leftId, rightId) {
+    const records = this.#runtime.list()
+    const left = records.findIndex(record => record.id === leftId)
+    const right = records.findIndex(record => record.id === rightId)
+    if (left < 0 || right < 0) return []
+    const from = Math.min(left, right)
+    const to = Math.max(left, right)
+    return records.slice(from, to + 1).map(record => record.id)
   }
 
-  #allowedTools(blockId) {
-    const record = this.#runtime.get(blockId)
-    const definition = record ? this.#registry.getBlockDefinition(record.type) : null
-    const policy = definition?.capabilities?.formatting?.inlineTools
-    if (policy === true) return null
-    return Array.isArray(policy) ? new Set(policy) : new Set()
+  #formattingBlockIds(range, blockIds) {
+    const result = []
+    for (const id of blockIds) {
+      const record = this.#runtime.get(id)
+      const definition = record ? this.#registry.getBlockDefinition(record.type) : null
+      if (!definition?.capabilities?.formatting?.inlineTools) return null
+
+      const fields = this.#reconciler.getEditableFields(id)
+      const touched = fields.filter(field => {
+        try { return range.intersectsNode(field.element) } catch { return false }
+      })
+      if (!touched.length || touched.some(field => field.mode !== 'rich-text')) return null
+      result.push(id)
+    }
+    return result
+  }
+
+  #resolveFormattingSelection(resolved = null) {
+    const selection = resolved ?? this.#resolveSelection()
+    if (!selection) return null
+    const blockIds = this.#formattingBlockIds(selection.range, selection.blockIds)
+    return blockIds ? { ...selection, blockIds } : null
+  }
+
+  #allowedTools(blockIds) {
+    let allowed = null
+    for (const id of blockIds) {
+      const record = this.#runtime.get(id)
+      const definition = record ? this.#registry.getBlockDefinition(record.type) : null
+      const policy = definition?.capabilities?.formatting?.inlineTools
+      if (policy === true) continue
+      const current = new Set(Array.isArray(policy) ? policy : [])
+      if (allowed === null) allowed = current
+      else allowed = new Set([...allowed].filter(type => current.has(type)))
+    }
+    return allowed
   }
 
   #show(selection) {
@@ -330,11 +389,8 @@ export class InlineToolbar {
       : ''
     this.#typeSelect.hidden = this.#registry.blockTypes.length < 2
 
-    const formatting = selection.sameField
-      && definition?.capabilities?.formatting?.inlineTools
-      ? selection
-      : null
-    const allowed = formatting ? this.#allowedTools(selection.blockId) : new Set()
+    const formatting = this.#resolveFormattingSelection(selection)
+    const allowed = formatting ? this.#allowedTools(formatting.blockIds) : new Set()
     for (const tool of this.#tools) {
       const button = this.#buttons.get(tool.type)
       if (!button) continue
@@ -364,7 +420,7 @@ export class InlineToolbar {
   #updateActiveStates(resolved) {
     const selection = resolved ?? this.#resolveFormattingSelection()
     if (!selection) return
-    const allowed = this.#allowedTools(selection.blockId)
+    const allowed = this.#allowedTools(selection.blockIds)
     for (const tool of this.#tools) {
       const button = this.#buttons.get(tool.type)
       if (!button || (allowed && !allowed.has(tool.type))) continue
@@ -572,22 +628,43 @@ export class InlineToolbar {
     if (this.#readOnly || this.#destroyed) return undefined
     const start = this.#reconciler.resolveEditableTarget(range.startContainer)
     const end = this.#reconciler.resolveEditableTarget(range.endContainer)
-    if (!start || !end || start.blockId !== end.blockId) return undefined
-    const bookmark = this.#selection.capture()
+    if (!start || !end) return undefined
+    const blockIds = this.#blockIdsBetween(start.blockId, end.blockId)
+    const formattingIds = this.#formattingBlockIds(range, blockIds)
+    if (!formattingIds) return undefined
+    const allowed = this.#allowedTools(formattingIds)
+    if (allowed && !allowed.has(type)) return undefined
+
+    const bookmark = cloneBookmark(this.#selectionPort?.bookmark ?? this.#selection.capture())
     let result
-    this.#runtime.syncBlockFromProjection(start.blockId, () => {
-      result = operation()
-    }, {
-      origin: 'user',
-      name: `inline.${type}`,
-      preserveSourceProjection: true,
-    })
-    const nextBookmark = this.#selection.capture() ?? bookmark
-    queueMicrotask(() => {
-      if (nextBookmark) this.#selection.restore(nextBookmark)
-      this.show()
-    })
+    try {
+      result = this.#runtime.syncBlocksFromProjection(formattingIds, () => {
+        result = operation()
+        return result
+      }, {
+        origin: 'user',
+        name: `inline.${type}`,
+        preserveSourceProjection: formattingIds.length === 1,
+      })
+    } catch (error) {
+      if (bookmark) this.#restoreSelection(bookmark, range)
+      throw error
+    }
+
+    const nextBookmark = cloneBookmark(
+      this.#selectionPort?.bookmark ?? this.#selection.capture() ?? bookmark,
+    )
+    if (nextBookmark) this.#restoreSelection(nextBookmark, range)
+    this.show()
     return result
+  }
+
+  #restoreSelection(bookmark, range) {
+    if (bookmark && typeof this.#selectionPort?.restore === 'function') {
+      if (this.#selectionPort.restore(bookmark)) return
+    }
+    if (bookmark && this.#selection.restore(bookmark)) return
+    this.#restoreNativeRange(range)
   }
 
   #restoreNativeRange(range) {
