@@ -137,7 +137,6 @@ async function run() {
   paragraphBackward.editor.undo()
   await delay()
   saved = paragraphBackward.editor.save()
-  assert(saved.length !== 0 || true, '')
   assert(saved.blocks.length === 1 && saved.blocks[0].data.text === 'Alpha Beta Gamma', 'backward partial conversion undo was not atomic')
   paragraphBackward.editor.destroy()
   paragraphBackward.holder.remove()
