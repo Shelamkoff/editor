@@ -3,7 +3,6 @@ import { hasInlineContent, removeEmptyInlineTags } from './inlineContent.js'
 export { removeEmptyInlineTags } from './inlineContent.js'
 import { editableFields, editableAtBoundary } from '../shared/editableFields.js'
 import { BLOCK_CLASS } from '../core/constants.js'
-import { CrossBlockSelection } from '../core/CrossBlockSelection.js'
 import { closestBlock, el } from '../core/dom.js'
 import { createSvgIcon, ICON_BACK } from '../core/icons.js'
 import { getTextOffset, getTextLength, findNodeAtOffset as findLogicalPosition, editableTextWalker } from '../shared/textOffset.js'
@@ -11,6 +10,19 @@ import { getTextOffset, getTextLength, findNodeAtOffset as findLogicalPosition, 
 const ELEMENT_NODE = 1
 const TEXT_NODE = 3
 const DOCUMENT_FRAGMENT_NODE = 11
+const CROSS_HIGHLIGHT_KEY = 'oe-cross-select-v2'
+
+function showCrossHighlight(range) {
+  const view = range?.startContainer?.ownerDocument?.defaultView
+  const HighlightCtor = view?.Highlight
+  const highlights = view?.CSS?.highlights
+  if (HighlightCtor && highlights) highlights.set(CROSS_HIGHLIGHT_KEY, new HighlightCtor(range))
+}
+
+function hideCrossHighlight(node) {
+  const document = node?.ownerDocument ?? node?.startContainer?.ownerDocument
+  document?.defaultView?.CSS?.highlights?.delete?.(CROSS_HIGHLIGHT_KEY)
+}
 
 /** SVG markup for the standard back-navigation icon used in action panels. */
 export { ICON_BACK }
@@ -524,8 +536,10 @@ export function clearCrossBlockRange(cbs, contextNode) {
     cbs.deactivate(editor ?? undefined)
   } else {
     const editor = getEditorRoot(contextNode)
-    if (editor) editor.classList.remove('oe-editor--cross-selecting')
-    CrossBlockSelection.hideHighlight()
+    if (editor) {
+      editor.classList.remove('oe-editor--cross-selecting')
+      hideCrossHighlight(editor)
+    }
   }
 }
 
@@ -575,7 +589,7 @@ export function saveCrossBlockOffsets(range) {
 }
 
 /**
- * Restore cross-block range from saved offsets. Updates CrossBlockSelection and CSS Highlight.
+ * Restore cross-block range from saved offsets and refresh the editor-owned CSS Highlight.
  * @param {import('./types').CrossBlockSelectionPort | null} cbs
  * @param {{ editorRoot: HTMLElement, startBlockId: string, endBlockId: string, startFieldIndex?: number, endFieldIndex?: number, startOffset: number, endOffset: number }} offsets
  * @returns {Range | null}
@@ -615,7 +629,7 @@ export function restoreCrossBlockRange(cbs, offsets) {
     cbs.activate(range, editorRoot)
   } else {
     editorRoot.classList.add('oe-editor--cross-selecting')
-    CrossBlockSelection.showHighlight(range)
+    showCrossHighlight(range)
   }
 
   // Place native caret at end of cross-block range
