@@ -264,13 +264,9 @@ void [publicEditor, editorConfig, blockPlugin, inlinePlugin, output, paragraph, 
     run(node, [tscCli, '-p', `tsconfig.${moduleResolution.toLowerCase()}.json`], consumerRoot)
   }
 
-  await writeFile(join(consumerRoot, 'src/lazy-runtime.js'), `
-import { loadHighlightRuntime } from '@shelamkoff/rector/shared/highlightRuntime.js'
-import { loadZipRuntime } from '@shelamkoff/rector/shared/zipRuntime.js'
-void Promise.all([loadHighlightRuntime(), loadZipRuntime()])
-`, 'utf8')
   run(node, [viteCli, 'build'], consumerRoot)
   run(node, ['--input-type=module', '-e', "import('@shelamkoff/rector').then(m => { if (typeof m.createEditor !== 'function') process.exit(1) })"], consumerRoot)
+  run(node, ['--input-type=module', '-e', "Promise.all([import('highlight.js'), import('jszip')]).then(([h,z]) => { if (!h.default || !z.default) process.exit(1) })"], consumerRoot)
   console.log(JSON.stringify({ tarball: basename(tarball), typeModes: ['Bundler', 'NodeNext'], vite: 'passed', import: 'passed' }))
 } finally {
   await rm(temporaryRoot, { recursive: true, force: true })
