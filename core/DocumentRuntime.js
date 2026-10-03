@@ -232,6 +232,65 @@ export class DocumentRuntime {
 
 
   /**
+   * Insert registered local block data in one canonical transaction.
+   * This is the constructor path for capabilities such as structural HTML import:
+   * local data is encoded by the current schema and never external-decoded.
+   * @param {string} anchorId
+   * @param {Array<{type:string,data:unknown,tunes?:unknown,inline?:Record<string,unknown>}>} inputs
+   * @param {{replaceEmpty?:boolean,name?:string}} [options]
+   * @returns {string[]}
+   */
+  insertLocalBlocks(anchorId,inputs,options={}){
+    this.#assertInteractionMutation()
+    if(!Array.isArray(inputs)||inputs.length===0)return []
+    const ids=this.#store.ids()
+    const anchorIndex=ids.indexOf(anchorId)
+    if(anchorIndex<0)throw new Error(`Unknown block id: ${anchorId}`)
+
+    const validated=inputs.map((input,index)=>{
+      if(!input||typeof input!=='object'||Array.isArray(input)){
+        throw new TypeError(`Local block input[${index}] must be an object`)
+      }
+      if(typeof input.type!=='string'||!input.type){
+        throw new TypeError(`Local block input[${index}] must contain a type`)
+      }
+      const definition=this.#registry.getBlockDefinition(input.type)
+      if(!definition)throw new Error(`Local block type is not registered: ${input.type}`)
+      // Validate the complete local payload before allocating persisted block ids.
+      this.#normalizeLocalData(definition,input.data)
+      const tunes=input.tunes===undefined?undefined:cloneTunes(input.tunes)
+      const inline=input.inline===undefined?undefined:this.#normalizeExternalInline(input.inline)
+      return {type:input.type,definition,data:input.data,tunes,inline}
+    })
+
+    const reserved=new Set(ids)
+    const records=validated.map(input=>{
+      const id=this.#allocateId(input.type,reserved)
+      return this.#recordFromData(
+        id,input.type,input.definition,input.data,input.tunes,input.inline,
+      )
+    })
+
+    const replaceEmpty=options.replaceEmpty===true&&this.isEmpty(anchorId)
+    const inserted=[]
+    this.#engine.execute({origin:'user',name:options.name??'blocks.insert-local'},tx=>{
+      let offset=1,start=0
+      if(replaceEmpty){
+        const first={...records[0],id:anchorId}
+        tx.update(anchorId,first)
+        inserted.push(anchorId)
+        start=1
+      }
+      for(let index=start;index<records.length;index++){
+        tx.insert(anchorIndex+offset,records[index])
+        inserted.push(records[index].id)
+        offset++
+      }
+    })
+    return inserted
+  }
+
+  /**
    * Insert copied external block records in one canonical transaction.
    * Producer ids/revisions are never reused; invalid optional tunes are ignored.
    * @param {string} anchorId
