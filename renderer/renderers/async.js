@@ -1,9 +1,8 @@
 // @ts-check
 import { BLOCK_TYPES } from '../../shared/blockTypes.js'
-import { getBuiltInBlockDataSchema } from '../../shared/blockSchemas/index.js'
 import { snapshotPollRendererConfig } from '../pollConfigSnapshot.js'
 
-/** @typedef {(prefix: string, locale: Record<string, import('../../shared/localeTypes').LocaleValue>, config?: unknown) => import('../types').BlockRenderer} RendererFactory */
+/** @typedef {(prefix: string, locale: Record<string, import('../../shared/localeTypes').LocaleValue>, config?: unknown) => import('../types').BlockRendererDefinition} RendererFactory */
 /** @typedef {() => Promise<RendererFactory>} RendererLoader */
 
 /** @type {Record<import('../types').BlockType, RendererLoader>} */
@@ -59,17 +58,6 @@ function snapshotRendererConfig(type, value) {
   if (Array.isArray(value)) return [...value]
   if (value && typeof value === 'object') return { .../** @type {Record<string, unknown>} */ (value) }
   return value
-}
-
-/**
- * @param {string} type
- * @param {import('../types').BlockRenderer} renderer
- * @returns {import('../types').BlockRendererDefinition}
- */
-function bindBuiltInSchema(type, renderer) {
-  const schema = getBuiltInBlockDataSchema(type)
-  if (!schema) throw new Error(`Missing canonical block schema for renderer "${type}"`)
-  return Object.freeze({ ...renderer, schema })
 }
 
 /** @param {readonly string[] | { blocks?: readonly { type: string }[] } | undefined} source */
@@ -150,7 +138,7 @@ export async function createRendererAsync(type, classPrefix, locale = {}, config
   )
   const configSnapshot = snapshotRendererConfig(type, config)
   const factory = await loadRendererFactory(type)
-  return bindBuiltInSchema(type, factory(classPrefix, localeMap, configSnapshot))
+  return factory(classPrefix, localeMap, configSnapshot)
 }
 
 /**
@@ -182,6 +170,6 @@ export async function createDefaultRenderersAsync(classPrefix, locale = {}, sour
   const factories = await preloadRendererFactories(types)
   return new Map([...factories].map(([type, factory]) => [
     type,
-    bindBuiltInSchema(type, factory(classPrefix, localeMap, configSnapshots.get(type))),
+    factory(classPrefix, localeMap, configSnapshots.get(type)),
   ]))
 }
