@@ -7,11 +7,8 @@ import { normalizeRichText } from '../shared/richTextCodec.js'
 import { getRichTextLogicalLength, replaceRichTextRange, replaceRichTextReference, sliceRichTextRange, splitRichTextRange } from '../shared/richTextOperations.js'
 import {
   assembleCanonicalRecord,
-  filterCanonicalInline,
   prepareCanonicalInlineMerge,
   remapCanonicalFragment,
-  remapCanonicalInline,
-  remapCanonicalRichText,
   scanCanonicalRichText,
 } from './CanonicalTransforms.js'
 import { uid } from '../shared/uid.js'
@@ -194,18 +191,16 @@ export class DocumentRuntime {
     this.#assertWritable()
     const definition = this.#registry.getBlockDefinition(type)
     if (!definition) throw new Error(`Unknown block type: ${type}`)
-    const encoded = this.#normalizeLocalData(definition, data === undefined ? definition.schema.createDefault() : data)
     const id = this.#createUniqueBlockId(type)
-    const record = {
+    const inline = options.inline === undefined ? undefined : this.#normalizeExternalInline(options.inline)
+    const record = this.#recordFromData(
       id,
       type,
-      dataVersion: encoded.dataVersion,
-      data: encoded.data,
-    }
-    const tunes = cloneTunes(options.tunes)
-    if (tunes !== undefined) record.tunes = tunes
-    const inline = options.inline === undefined ? undefined : this.#normalizeExternalInline(options.inline)
-    if (inline !== undefined) record.inline = inline
+      definition,
+      data === undefined ? definition.schema.createDefault() : data,
+      options.tunes,
+      inline,
+    )
     this.#engine.execute({ origin: 'external', name: 'block.insert' }, tx => {
       tx.insert(index, record)
     })
@@ -249,15 +244,11 @@ export class DocumentRuntime {
         getInlineSchema:type=>this.#registry.getInlineDefinition(type)?.schema,
       })
       const definition=this.#registry.getBlockDefinition(record.type)
-      if(definition){
-        const encoded=this.#normalizeLocalData(definition,record.data)
-        record.dataVersion=encoded.dataVersion
-        record.data=encoded.data
-        const filtered=this.#filterInlineForData(definition,encoded.data,record.inline)
-        if(filtered===undefined)delete record.inline
-        else record.inline=filtered
-      }
-      records.push(record)
+      records.push(definition
+        ? this.#recordFromData(
+            record.id, record.type, definition, record.data, record.tunes, record.inline,
+          )
+        : record)
     }
     const replaceEmpty=options.replaceEmpty===true&&this.isEmpty(anchorId)
     const inserted=[]
@@ -436,21 +427,15 @@ export class DocumentRuntime {
       ? (patch.tunes === null ? undefined : cloneTunes(patch.tunes))
       : current.tunes
 
-    const next = {
-      ...current,
-      dataVersion: encoded.dataVersion,
-      data: encoded.data,
-    }
-    if (nextTunes === undefined) delete next.tunes
-    else next.tunes = nextTunes
-    delete next.revision
-
     if (
-      current.dataVersion === next.dataVersion
-      && sameJson(current.data, next.data)
-      && sameJson(current.tunes, next.tunes)
+      current.dataVersion === encoded.dataVersion
+      && sameJson(current.data, encoded.data)
+      && sameJson(current.tunes, nextTunes)
     ) return
 
+    const next = this.#recordFromData(
+      id, current.type, definition, nextData, nextTunes, current.inline,
+    )
     this.#engine.execute({ origin: 'external', name: 'block.update' }, tx => {
       tx.update(id, next)
     })
@@ -711,16 +696,9 @@ export class DocumentRuntime {
     )
     if (!matched) return false
 
-    const sourceEncoded = this.#normalizeLocalData(sourceDefinition, sourceData)
-    const sourceInline = this.#filterInlineForData(sourceDefinition, sourceEncoded.data, inline)
-    const sourceNext = {
-      ...current,
-      dataVersion: sourceEncoded.dataVersion,
-      data: sourceEncoded.data,
-    }
-    if (sourceInline === undefined) delete sourceNext.inline
-    else sourceNext.inline = sourceInline
-    delete sourceNext.revision
+    const sourceNext = this.#recordFromData(
+      current.id, current.type, sourceDefinition, sourceData, current.tunes, inline,
+    )
 
     let targetData = targetDefinition.schema.createDefault()
     if (target.toolboxItemId) {
@@ -730,28 +708,20 @@ export class DocumentRuntime {
         createId: prefix => this.createDataId(prefix),
       })
     }
-    const targetEncoded = this.#normalizeLocalData(targetDefinition, targetData)
-    const sourceEmpty = sourceDefinition.capabilities?.empty?.isEmpty?.(sourceEncoded.data) === true
+    const sourceEmpty = sourceDefinition.capabilities?.empty?.isEmpty?.(sourceNext.data) === true
 
     if (sourceEmpty) {
-      const next = {
-        id: blockId,
-        type: target.type,
-        dataVersion: targetEncoded.dataVersion,
-        data: targetEncoded.data,
-      }
-      if (current.tunes !== undefined) next.tunes = cloneTunes(current.tunes)
+      const next = this.#recordFromData(
+        blockId, target.type, targetDefinition, targetData, current.tunes, undefined,
+      )
       this.#engine.execute({ origin: 'user', name: 'slash.block' }, tx => tx.update(blockId, next))
       return blockId
     }
 
     const id = this.#createUniqueBlockId(target.type)
-    const next = {
-      id,
-      type: target.type,
-      dataVersion: targetEncoded.dataVersion,
-      data: targetEncoded.data,
-    }
+    const next = this.#recordFromData(
+      id, target.type, targetDefinition, targetData, undefined, undefined,
+    )
     const index = this.#store.ids().indexOf(blockId)
     this.#engine.execute({ origin: 'user', name: 'slash.block' }, tx => {
       tx.update(blockId, sourceNext)
@@ -830,27 +800,12 @@ export class DocumentRuntime {
     )
     if (!startMatched || !endMatched) return false
 
-    const startEncoded = this.#normalizeLocalData(startDefinition, startData)
-    const endEncoded = this.#normalizeLocalData(endDefinition, endData)
-    const startNext = {
-      ...startCurrent,
-      dataVersion: startEncoded.dataVersion,
-      data: startEncoded.data,
-    }
-    const startFilteredInline = this.#filterInlineForData(startDefinition, startEncoded.data, startInline)
-    if (startFilteredInline === undefined) delete startNext.inline
-    else startNext.inline = startFilteredInline
-    delete startNext.revision
-
-    const endNext = {
-      ...endCurrent,
-      dataVersion: endEncoded.dataVersion,
-      data: endEncoded.data,
-    }
-    const endFilteredInline = this.#filterInlineForData(endDefinition, endEncoded.data, endInline)
-    if (endFilteredInline === undefined) delete endNext.inline
-    else endNext.inline = endFilteredInline
-    delete endNext.revision
+    const startNext = this.#recordFromData(
+      startCurrent.id, startCurrent.type, startDefinition, startData, startCurrent.tunes, startInline,
+    )
+    const endNext = this.#recordFromData(
+      endCurrent.id, endCurrent.type, endDefinition, endData, endCurrent.tunes, endInline,
+    )
 
     let merged = null
     if (startNext.type === endNext.type) {
@@ -858,16 +813,14 @@ export class DocumentRuntime {
       if (typeof merge === 'function') {
         const prepared = this.#prepareInlineMerge(startDefinition, startNext, endNext)
         const mergedData = merge(prepared.targetData, prepared.sourceData)
-        const encoded = this.#normalizeLocalData(startDefinition, mergedData)
-        const inline = this.#filterInlineForData(startDefinition, encoded.data, prepared.inline)
-        merged = {
-          ...startNext,
-          dataVersion: encoded.dataVersion,
-          data: encoded.data,
-        }
-        if (inline === undefined) delete merged.inline
-        else merged.inline = inline
-        delete merged.revision
+        merged = this.#recordFromData(
+          startNext.id,
+          startNext.type,
+          startDefinition,
+          mergedData,
+          startNext.tunes,
+          prepared.inline,
+        )
       }
     }
 
@@ -897,9 +850,9 @@ export class DocumentRuntime {
       return replaceRichTextRange(html, inline, range, replacement, this.#ownerDocument)
     })
     if (!matched) throw new Error(`Unknown rich-text field "${fieldKey}" for block "${blockId}"`)
-    const encoded = this.#normalizeLocalData(definition, nextData)
-    const next = { ...current, dataVersion: encoded.dataVersion, data: encoded.data }
-    delete next.revision
+    const next = this.#recordFromData(
+      current.id, current.type, definition, nextData, current.tunes, inline,
+    )
     this.#engine.execute({ origin: 'plugin', name: 'rich-text.replace' }, tx => tx.update(blockId, next))
   }
 
@@ -993,16 +946,9 @@ export class DocumentRuntime {
         },
       )
       if (!matched) throw new Error(`Unknown rich-text field "${fieldKey}" for block "${blockId}"`)
-      const encodedBlock = this.#normalizeLocalData(blockDefinition, nextData)
-      const filteredInline = this.#filterInlineForData(blockDefinition, encodedBlock.data, inline)
-      const next = {
-        ...current,
-        dataVersion: encodedBlock.dataVersion,
-        data: encodedBlock.data,
-      }
-      if (filteredInline === undefined) delete next.inline
-      else next.inline = filteredInline
-      delete next.revision
+      const next = this.#recordFromData(
+        current.id, current.type, blockDefinition, nextData, current.tunes, inline,
+      )
       this.#engine.execute({ origin: 'user', name: 'inline-paste' }, tx => tx.update(blockId, next))
       return {
         blockId,
@@ -1037,16 +983,9 @@ export class DocumentRuntime {
     )
     if (!sourceMatched) throw new Error(`Unknown rich-text field "${fieldKey}" for block "${blockId}"`)
 
-    const sourceEncoded = this.#normalizeLocalData(blockDefinition, sourceData)
-    const sourceInline = this.#filterInlineForData(blockDefinition, sourceEncoded.data, inline)
-    const sourceNext = {
-      ...current,
-      dataVersion: sourceEncoded.dataVersion,
-      data: sourceEncoded.data,
-    }
-    if (sourceInline === undefined) delete sourceNext.inline
-    else sourceNext.inline = sourceInline
-    delete sourceNext.revision
+    const sourceNext = this.#recordFromData(
+      current.id, current.type, blockDefinition, sourceData, current.tunes, inline,
+    )
 
     const records = []
     const occupiedBlocks = new Set(this.#store.ids())
@@ -1086,17 +1025,9 @@ export class DocumentRuntime {
         throw new Error(`Default block type has no rich-text field: ${defaultType}`)
       }
       finalFieldKey = fieldKeyForBlock
-      const encoded = this.#normalizeLocalData(defaultDefinition, data)
-      const filteredInline = this.#filterInlineForData(defaultDefinition, encoded.data, inline)
-      const record = {
-        id: allocateBlockId(),
-        type: defaultType,
-        dataVersion: encoded.dataVersion,
-        data: encoded.data,
-      }
-      if (current.tunes !== undefined) record.tunes = cloneTunes(current.tunes)
-      if (filteredInline !== undefined) record.inline = filteredInline
-      records.push(record)
+      records.push(this.#recordFromData(
+        allocateBlockId(), defaultType, defaultDefinition, data, current.tunes, inline,
+      ))
     }
 
     const sourceIndex = this.#store.ids().indexOf(blockId)
@@ -1148,14 +1079,9 @@ export class DocumentRuntime {
       )
     })
     if (!matched) throw new Error(`Unknown rich-text field "${fieldKey}" for block "${blockId}"`)
-    const encodedBlock = this.#normalizeLocalData(blockDefinition, nextData)
-    const next = {
-      ...current,
-      dataVersion: encodedBlock.dataVersion,
-      data: encodedBlock.data,
-      inline,
-    }
-    delete next.revision
+    const next = this.#recordFromData(
+      current.id, current.type, blockDefinition, nextData, current.tunes, inline,
+    )
     this.#engine.execute({ origin: 'plugin', name: 'inline-widget.insert' }, tx => tx.update(blockId, next))
     return id
   }
@@ -1181,8 +1107,10 @@ export class DocumentRuntime {
       dataVersion: encoded.dataVersion,
       data: encoded.data,
     }
-    const next = { ...current, inline }
-    delete next.revision
+    const blockDefinition = this.#registry.getBlockDefinition(current.type)
+    const next = this.#recordFromData(
+      current.id, current.type, blockDefinition, current.data, current.tunes, inline,
+    )
     this.#engine.execute({ origin: 'plugin', name: 'inline-widget.update' }, tx => tx.update(blockId, next))
   }
 
@@ -1202,16 +1130,9 @@ export class DocumentRuntime {
       replaceRichTextReference(html, inline, inlineId, String(text ?? ''), this.#ownerDocument)
     ))
     delete inline[inlineId]
-    const encoded = this.#normalizeLocalData(definition, data)
-    const filtered = this.#filterInlineForData(definition, encoded.data, inline)
-    const next = {
-      ...current,
-      dataVersion: encoded.dataVersion,
-      data: encoded.data,
-    }
-    if (filtered === undefined) delete next.inline
-    else next.inline = filtered
-    delete next.revision
+    const next = this.#recordFromData(
+      current.id, current.type, definition, data, current.tunes, inline,
+    )
     this.#engine.execute({ origin: 'plugin', name: 'inline-widget.replace' }, tx => tx.update(blockId, next))
     return true
   }
@@ -1248,18 +1169,12 @@ export class DocumentRuntime {
         const projection = this.#projector?.readBlock?.(id)
         if (!projection) throw new Error('Projection reader is unavailable')
         const readData = Object.hasOwn(projection, 'data') ? projection.data : projection
-        const encoded = this.#normalizeLocalData(definition, readData)
-        const next = {
-          ...current,
-          dataVersion: encoded.dataVersion,
-          data: encoded.data,
-        }
-        if (Object.hasOwn(projection, 'inline')) {
-          const nextInline = projection.inline === undefined ? undefined : cloneInline(projection.inline)
-          if (nextInline === undefined) delete next.inline
-          else next.inline = nextInline
-        }
-        delete next.revision
+        const inlineSource = Object.hasOwn(projection, 'inline')
+          ? (projection.inline === undefined ? undefined : cloneInline(projection.inline))
+          : current.inline
+        const next = this.#recordFromData(
+          current.id, current.type, definition, readData, current.tunes, inlineSource,
+        )
         if (
           current.dataVersion !== next.dataVersion
           || !sameJson(current.data, next.data)
@@ -1292,18 +1207,12 @@ export class DocumentRuntime {
       const projection = this.#projector?.readBlock?.(id)
       if (!projection) throw new Error('Projection reader is unavailable')
       const readData = Object.hasOwn(projection, 'data') ? projection.data : projection
-      const encoded = this.#normalizeLocalData(definition, readData)
-      const next = {
-        ...current,
-        dataVersion: encoded.dataVersion,
-        data: encoded.data,
-      }
-      if (Object.hasOwn(projection, 'inline')) {
-        const nextInline = projection.inline === undefined ? undefined : cloneInline(projection.inline)
-        if (nextInline === undefined) delete next.inline
-        else next.inline = nextInline
-      }
-      delete next.revision
+      const inlineSource = Object.hasOwn(projection, 'inline')
+        ? (projection.inline === undefined ? undefined : cloneInline(projection.inline))
+        : current.inline
+      const next = this.#recordFromData(
+        current.id, current.type, definition, readData, current.tunes, inlineSource,
+      )
       if (
         current.dataVersion === next.dataVersion
         && sameJson(current.data, next.data)
@@ -1780,18 +1689,6 @@ export class DocumentRuntime {
 
   #scanBlockRichText(definition, data, inline) {
     return scanCanonicalRichText(definition, data, inline, this.#ownerDocument)
-  }
-
-  #filterInlineForData(definition, data, inline) {
-    return filterCanonicalInline(definition, data, inline, this.#ownerDocument)
-  }
-
-  #remapInlinePayload(inline, remap) {
-    return remapCanonicalInline(inline, remap)
-  }
-
-  #remapBlockRichText(definition, data, inline, remap) {
-    return remapCanonicalRichText(definition, data, inline, remap, this.#ownerDocument)
   }
 
   #allocateInlineId(reserved) {
