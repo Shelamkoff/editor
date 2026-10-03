@@ -99,7 +99,7 @@ Persistent widgets are separated from HTML-bearing text. A text field contains a
 }
 ```
 
-The owning text plugin implements `mapTextFields()` so Rector can replace live widget DOM with placeholders during save and restore it during load. Application code should treat placeholder syntax as an internal part of the documented serialization contract and should not edit it independently from the `inline` map.
+The owning block schema implements `BlockDataSchema.mapRichText()`. Rector uses that single canonical field traversal for editor mutations, inline-widget references, migrations, serialization, and read-only rendering. Application code should treat placeholder syntax as an internal part of the serialization contract and must not edit it independently from the `inline` map.
 
 ## HTML-bearing fields
 
