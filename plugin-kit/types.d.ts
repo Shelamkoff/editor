@@ -135,6 +135,7 @@ export interface BlockCapabilities<D extends Record<string, unknown>> {
   merge?: MergeCapability<D>
   conversion?: ConversionCapability<D>
   htmlImport?: HtmlImportCapability<D>
+  clipboard?: ClipboardCapability<D>
   selectionSlice?: SelectionSliceCapability<D>
   inlineControls?: SettingsActionCapability<D>
   settings?: SettingsCapability<D>
@@ -146,6 +147,32 @@ export interface BlockCapabilities<D extends Record<string, unknown>> {
 export interface LogicalFieldPoint {
   readonly fieldKey: string
   readonly offset: number
+}
+
+export interface SelectedFieldSlice {
+  readonly fieldKey: string
+  readonly before: string
+  readonly selected: string
+  readonly after: string
+  readonly whole: boolean
+}
+
+export interface ClipboardSliceContext extends DataOperationContext {
+  field(fieldKey: string): SelectedFieldSlice | null
+}
+
+export type ClipboardSlicePart<D extends Record<string, unknown>> =
+  | { kind: 'local-block', data: D }
+  | { kind: 'rich-text', html: string }
+
+export interface ClipboardSlice<D extends Record<string, unknown>> {
+  readonly parts: readonly ClipboardSlicePart<D>[]
+  readonly remaining: D | null
+  readonly focus: FocusTarget | null
+}
+
+export interface ClipboardCapability<D extends Record<string, unknown>> {
+  slice(data: Readonly<D>, context: ClipboardSliceContext): ClipboardSlice<D>
 }
 
 export interface HtmlImportContext extends DataOperationContext {
