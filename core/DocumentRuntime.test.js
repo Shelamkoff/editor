@@ -274,12 +274,15 @@ test('whole conversion rejects targets that cannot preserve linked inline data',
   const source=paragraphDefinition()
   const code={
     type:'code',
-    schema:schema({
+    schema:{
+      currentVersion:1,
       createDefault:()=>({text:''}),
-      decode(input){return {dataVersion:1,data:{text:String(input.data?.text??'')}}},
+      decode(input){
+        if(input.dataVersion!==1)throw new RangeError('unsupported data version')
+        return {dataVersion:1,data:{text:String(input.data?.text??'')}}
+      },
       encode(data){return {dataVersion:1,data:{text:String(data.text??'')}}},
-      mapRichText:null,
-    }),
+    },
     capabilities:{
       conversion:{
         export:data=>({kind:'plain-text',data:{text:data.text}}),

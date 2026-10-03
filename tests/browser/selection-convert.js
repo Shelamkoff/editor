@@ -1,5 +1,6 @@
 import { createEditor } from '../../core/index.js'
 import {
+  createCodePlugin,
   createHeadingPlugin,
   createListPlugin,
   createParagraphPlugin,
@@ -20,6 +21,7 @@ function mount(blocks) {
       createParagraphPlugin({ injectStyles: false }),
       createHeadingPlugin(),
       createListPlugin(),
+      createCodePlugin(),
     ],
     inlinePlugins: [createColorSwatchPlugin()],
     defaultBlock: 'paragraph',
@@ -192,6 +194,34 @@ async function run() {
   opaqueReload.holder.remove()
   opaqueInline.editor.destroy()
   opaqueInline.holder.remove()
+
+  const lossyInline = mount([
+    {
+      id: 'lossy-inline',
+      type: 'paragraph',
+      dataVersion: 2,
+      data: { text: 'Keep {{color-lossy}} intact' },
+      inline: {
+        'color-lossy': {
+          type: 'color',
+          dataVersion: 1,
+          data: { value: '#654321' },
+        },
+      },
+    },
+  ])
+  const lossyBefore = JSON.stringify(lossyInline.editor.save().blocks)
+  let lossyRejected = false
+  try {
+    lossyInline.editor.blocks.convert('lossy-inline', { type: 'code' })
+  } catch (error) {
+    lossyRejected = /cannot preserve inline reference/.test(String(error))
+  }
+  assert(lossyRejected, 'conversion to a non-rich target accepted lossy inline data')
+  assert(JSON.stringify(lossyInline.editor.save().blocks) === lossyBefore, 'lossy conversion changed the document')
+  assert(lossyInline.editor.canUndo === false, 'rejected lossy conversion created history')
+  lossyInline.editor.destroy()
+  lossyInline.holder.remove()
 
   const paragraph = mount([
     { id: 'p', type: 'paragraph', dataVersion: 2, data: { text: 'Alpha Beta Gamma' } },
@@ -383,7 +413,7 @@ async function run() {
 
   sandbox.replaceChildren()
   return {
-    conversions: ['whole inline roundtrip/renderer', 'paragraph partial forward/backward', 'List data-aware', 'cross-block forward/backward'],
+    conversions: ['whole inline roundtrip/renderer', 'lossy inline rejection', 'paragraph partial forward/backward', 'List data-aware', 'cross-block forward/backward'],
     controls: ['type selector', 'Heading level'],
     history: 'atomic undo/redo',
     staleCallbacks: 'inert',
