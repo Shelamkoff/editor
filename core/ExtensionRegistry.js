@@ -193,31 +193,32 @@ function snapshotCapabilities(source, label) {
   if (!source || typeof source !== 'object' || Array.isArray(source)) {
     throw new TypeError(`${label} capabilities must be an object`)
   }
+  const candidate = { ...source }
   const result = {}
-  if (source.empty !== undefined) {
-    result.empty = snapshotCapabilityObject(source.empty, `${label} empty`, [['isEmpty', false]])
+  if (candidate.empty !== undefined) {
+    result.empty = snapshotCapabilityObject(candidate.empty, `${label} empty`, [['isEmpty', false]])
   }
-  if (source.formatting !== undefined) result.formatting = snapshotFormatting(source.formatting, label)
-  if (source.merge !== undefined) {
-    result.merge = snapshotCapabilityObject(source.merge, `${label} merge`, [['merge', false]])
+  if (candidate.formatting !== undefined) result.formatting = snapshotFormatting(candidate.formatting, label)
+  if (candidate.merge !== undefined) {
+    result.merge = snapshotCapabilityObject(candidate.merge, `${label} merge`, [['merge', false]])
   }
-  if (source.conversion !== undefined) {
-    result.conversion = snapshotCapabilityObject(source.conversion, `${label} conversion`, [
+  if (candidate.conversion !== undefined) {
+    result.conversion = snapshotCapabilityObject(candidate.conversion, `${label} conversion`, [
       ['export', false], ['canImport', false], ['import', false],
     ])
   }
-  if (source.selectionSlice !== undefined) {
+  if (candidate.selectionSlice !== undefined) {
     result.selectionSlice = snapshotCapabilityObject(
-      source.selectionSlice, `${label} selectionSlice`, [['slice', false]],
+      candidate.selectionSlice, `${label} selectionSlice`, [['slice', false]],
     )
   }
-  if (source.inlineControls !== undefined) {
-    result.inlineControls = snapshotSettings(source.inlineControls, `${label} inlineControls`)
+  if (candidate.inlineControls !== undefined) {
+    result.inlineControls = snapshotSettings(candidate.inlineControls, `${label} inlineControls`)
   }
-  if (source.settings !== undefined) result.settings = snapshotSettings(source.settings, label)
-  if (source.paste !== undefined) result.paste = snapshotPasteCapability(source.paste, label)
-  if (source.shortcuts !== undefined) {
-    result.shortcuts = snapshotCapabilityObject(source.shortcuts, `${label} shortcuts`, [['handle', false]])
+  if (candidate.settings !== undefined) result.settings = snapshotSettings(candidate.settings, label)
+  if (candidate.paste !== undefined) result.paste = snapshotPasteCapability(candidate.paste, label)
+  if (candidate.shortcuts !== undefined) {
+    result.shortcuts = snapshotCapabilityObject(candidate.shortcuts, `${label} shortcuts`, [['handle', false]])
   }
   return Object.freeze(result)
 }
