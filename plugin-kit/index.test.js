@@ -9,4 +9,5 @@ test('plugin-kit is a public core-independent extension boundary', async () => {
   assert.doesNotMatch(source, /from\s+['"]\.\.\/core\//)
   assert.match(source, /shared\/sanitize/)
   assert.match(source, /shared\/richTextCodec/)
+  assert.doesNotMatch(source, /setTrustedHtml|insertTrustedHtml/)
 })
