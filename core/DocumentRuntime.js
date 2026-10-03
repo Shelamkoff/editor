@@ -1186,7 +1186,6 @@ export class DocumentRuntime {
     if(
       consumedFirst
       &&insertedRecords.length===0
-      &&start.blockId!==end.blockId
       &&before
       &&after
       &&before.type===after.type
