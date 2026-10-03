@@ -57,6 +57,26 @@ export function createColumnsPlugin(){
         }
       },
     }),
+    clipboard:Object.freeze({
+      slice(data,context){
+        let any=false
+        const selected=data.columns.map(column=>{
+          const field=context.field(`column:${column.id}`)
+          if(field)any=true
+          return {...column,content:field?.selected??''}
+        })
+        if(!any)throw new Error('Columns clipboard selection is empty')
+        const remaining=data.columns.map(column=>{
+          const field=context.field(`column:${column.id}`)
+          return field?{...column,content:field.before+field.after}:{...column}
+        })
+        return {
+          parts:[{kind:'local-block',data:{layout:data.layout,columns:selected}}],
+          remaining:{layout:data.layout,columns:remaining},
+          focus:null,
+        }
+      },
+    }),
     settings:Object.freeze({
       kind:/** @type {'actions'} */('actions'),
       actions(data){
