@@ -22,3 +22,16 @@ test('registering after destruction releases the resource immediately', () => {
   )
   assert.equal(destroyed, 1)
 })
+
+test('LifecycleScope routes cleanup failures through its error sink and keeps destroying', () => {
+  const errors = []
+  const calls = []
+  const scope = new LifecycleScope(error => errors.push(error.message))
+  scope.register({ destroy() { calls.push('first') } })
+  scope.register({ destroy() { calls.push('broken'); throw new Error('cleanup failed') } })
+  scope.register({ destroy() { calls.push('last') } })
+
+  assert.doesNotThrow(() => scope.destroy())
+  assert.deepEqual(calls, ['last', 'broken', 'first'])
+  assert.deepEqual(errors, ['cleanup failed'])
+})
