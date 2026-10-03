@@ -1144,8 +1144,22 @@ export class DocumentRuntime {
       before=split?.before??null
     }
 
+    const lastPart=parts.at(-1)
+    const consumedLast=parts.length>(consumedFirst?1:0)&&lastPart?.kind==='rich-text'
     let after
-    if(start.blockId===end.blockId){
+    if(consumedLast){
+      after=this.#recordWithRichTextFragment(
+        endRecord,end.fieldKey,{start:0,end:end.offset},lastPart,
+      )
+      if(endFieldIndex>0){
+        after=this.#replaceBlockRichTextRange(
+          after,
+          {blockId:after.id,fieldKey:endFields[0].key,offset:0},
+          {blockId:after.id,fieldKey:endFields[endFieldIndex-1].key,offset:endFields[endFieldIndex-1].length},
+          {kind:'text',text:''},
+        )
+      }
+    }else if(start.blockId===end.blockId){
       const split=this.#splitClipboardResiduals(startRecord,start,end)
       after=split?.after??null
     }else{
@@ -1159,7 +1173,8 @@ export class DocumentRuntime {
 
     const reserved=new Set(ids)
     const insertedRecords=[]
-    for(let index=consumedFirst?1:0;index<parts.length;index++){
+    const partEnd=consumedLast?parts.length-1:parts.length
+    for(let index=consumedFirst?1:0;index<partEnd;index++){
       const part=parts[index]
       if(part?.kind==='block')insertedRecords.push(this.#materializeClipboardBlock(part.block,reserved))
       else if(part?.kind==='rich-text')insertedRecords.push(this.#materializeClipboardRichText(part,reserved))
@@ -1190,6 +1205,13 @@ export class DocumentRuntime {
     const beforeKeep=before&&!this.#isClipboardResidualEmpty(before)
     const afterKeep=after&&!this.#isClipboardResidualEmpty(after)
     const inserted=[]
+    let sameBlockAfter=null
+    if(start.blockId===end.blockId&&afterKeep){
+      sameBlockAfter={
+        ...after,
+        id:this.#allocateId(after.type,reserved),
+      }
+    }
 
     this.#engine.execute({origin:'user',name:'clipboard.fragment'},tx=>{
       if(beforeKeep)tx.update(start.blockId,before)
@@ -1217,10 +1239,9 @@ export class DocumentRuntime {
         inserted.push(record.id)
       }
 
-      if(start.blockId===end.blockId&&afterKeep){
-        const afterRecord={...after,id:this.#allocateId(after.type,new Set(tx.list().map(record=>record.id)))}
-        tx.insert(insertAt,afterRecord)
-        inserted.push(afterRecord.id)
+      if(sameBlockAfter){
+        tx.insert(insertAt,sameBlockAfter)
+        inserted.push(sameBlockAfter.id)
       }
     })
 
