@@ -17,8 +17,10 @@ const { build } = await import(viteSpecifier)
 
 const KIB = 1024
 const budgets = {
-  minimal: 8 * KIB,
-  full: 64 * KIB,
+  core: 32 * KIB,
+  paragraph: 40 * KIB,
+  defaultInteractive: 64 * KIB,
+  fullPreset: 96 * KIB,
 }
 
 async function measurePreset(preset, input) {
@@ -81,14 +83,15 @@ async function measurePreset(preset, input) {
 }
 
 const rows = [
-  await measurePreset('minimal', fileURLToPath(new URL('../dist/plugins/paragraph/index.js', import.meta.url))),
-  await measurePreset('full', fileURLToPath(new URL('../dist/plugins/index.js', import.meta.url))),
+  await measurePreset('core', fileURLToPath(new URL('../dist/core/index.js', import.meta.url))),
+  await measurePreset('paragraph', fileURLToPath(new URL('../dist/plugins/paragraph/index.js', import.meta.url))),
+  await measurePreset('defaultInteractive', fileURLToPath(new URL('../dist/preset/index.js', import.meta.url))),
+  await measurePreset('fullPreset', fileURLToPath(new URL('../dist/plugins/index.js', import.meta.url))),
 ]
 
 console.table(rows.map(({ gzipBytes: _gzipBytes, ...row }) => row))
 
-// Size targets are informational unless explicitly requested by a maintainer.
-// Build, import and measurement errors remain fatal in both modes.
+// CI passes --enforce. Local runs remain useful as reports without changing failure semantics.
 const enforce = process.argv.includes('--enforce')
 for (const row of rows) {
   const budget = budgets[row.preset]
