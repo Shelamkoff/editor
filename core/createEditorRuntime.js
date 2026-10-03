@@ -297,10 +297,8 @@ export function createEditorRuntime(input){
       notifier?.schedule()
       emit('transaction:committed',event)
       emit('document:changed',{
-        sequence:event.sequence,
         origin:event.origin,
         action:event.action,
-        name:event.name,
         changes:event.changes,
       })
       emit('history:changed',event.history)
