@@ -1,5 +1,1 @@
 export { createEditorRuntime as createEditor } from './createEditorRuntime.js'
-export { DocumentSchema } from './DocumentSchema.js'
-export { uid } from '../shared/uid.js'
-export { sanitizeHtml } from '../shared/sanitize/sanitizeHtml.js'
-export { escapeHtml } from '../shared/sanitize/escapeHtml.js'
