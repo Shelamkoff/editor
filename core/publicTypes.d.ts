@@ -96,7 +96,7 @@ export interface EditorEventMap {
   'editor:ready': undefined
   'editor:destroyed': undefined
   'transaction:committed': TransactionCommitted
-  'document:changed': Pick<TransactionCommitted, 'sequence' | 'origin' | 'action' | 'name' | 'changes'>
+  'document:changed': Pick<TransactionCommitted, 'origin' | 'action' | 'changes'>
   'history:changed': Readonly<{ canUndo: boolean; canRedo: boolean }>
   'readOnly:changed': Readonly<{ readOnly: boolean }>
   'currentBlock:changed': Readonly<{ currentId: string | null }>
@@ -199,6 +199,6 @@ export interface IEditor {
   focus(): boolean
   setReadOnly(readOnly: boolean): void
   insertInlinePlugin(type: string, data?: Record<string, unknown>): boolean
-  on<K extends keyof EditorEventMap>(type: K, listener: (payload: EditorEventMap[K]) => void): () => void
+  on<K extends keyof EditorEventMap>(type: K, listener: (payload: EditorEventMap[K]) => void | Promise<void>): () => void
   destroy(): void
 }
