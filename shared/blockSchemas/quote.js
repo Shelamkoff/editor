@@ -1,6 +1,5 @@
 // @ts-check
 import { createVersionedDataSchema } from '../versionedDataSchema.js'
-import { mapQuoteTextFields } from '../mapTextFields.js'
 
 export const quoteDataSchema = createVersionedDataSchema({
   currentVersion: 1,
