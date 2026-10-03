@@ -994,52 +994,97 @@ export class DocumentRuntime {
 
   replaceRichTextFragment(blockId,fieldKey,range,fragment){
     this.#assertInteractionMutation()
-    if(!fragment||typeof fragment!=='object'||Array.isArray(fragment)||typeof fragment.html!=='string'){
-      throw new TypeError('Rich-text clipboard fragment must contain html')
-    }
     const current=this.#store.get(blockId)
     if(!current)throw new Error(`Unknown block id: ${blockId}`)
-    if(this.activation(blockId)?.kind!=='active')throw new Error(`Unregistered block cannot be updated: ${blockId}`)
-    const definition=this.#registry.getBlockDefinition(current.type)
-    if(!definition?.schema?.mapRichText)throw new Error(`Block type has no rich-text fields: ${current.type}`)
-
-    const currentInline=cloneInline(current.inline)??{}
-    const sourceInline=fragment.inline===undefined
-      ?{}
-      :this.#normalizeExternalInline(fragment.inline)??{}
-    const scan=this.#scanBlockRichText(definition,current.data,currentInline)
-    const reserved=new Set([
-      ...Object.keys(currentInline),
-      ...scan.references,
-      ...scan.literals,
-    ])
-    const remapped=remapCanonicalFragment({
-      html:fragment.html,
-      inline:sourceInline,
-      reservedIds:reserved,
-      ownerDocument:this.#ownerDocument,
-      allocateInlineId:ids=>this.#allocateInlineId(ids),
-    })
-    const inline={...currentInline,...remapped.inline}
-    let matched=false
-    const nextData=definition.schema.mapRichText(cloneEditorData(current.data),(html,key)=>{
-      if(key!==fieldKey)return html
-      matched=true
-      return replaceRichTextRange(
-        html,
-        currentInline,
-        range,
-        {kind:'html',html:remapped.html},
-        this.#ownerDocument,
-      )
-    })
-    if(!matched)throw new Error(`Unknown rich-text field "${fieldKey}" for block "${blockId}"`)
-    const next=this.#recordFromData(
-      current.id,current.type,definition,nextData,current.tunes,inline,
-    )
+    const next=this.#recordWithRichTextFragment(current,fieldKey,range,fragment)
     this.#engine.execute({origin:'user',name:'clipboard.rich-text'},tx=>tx.update(blockId,next))
     return true
   }
+
+  insertClipboardParts(blockId,fieldKey,range,parts){
+    this.#assertInteractionMutation()
+    if(!Array.isArray(parts)||parts.length===0)throw new TypeError('Clipboard parts must be a non-empty array')
+    const current=this.#store.get(blockId)
+    if(!current)throw new Error(`Unknown block id: ${blockId}`)
+    if(this.activation(blockId)?.kind!=='active')throw new Error(`Unregistered block cannot receive clipboard data: ${blockId}`)
+
+    const reserved=new Set(this.#store.ids())
+    const preparedBlocks=[]
+    let targetNext=current
+    let partIndex=0
+
+    if(parts[0]?.kind==='rich-text'){
+      targetNext=this.#recordWithRichTextFragment(current,fieldKey,range,parts[0])
+      partIndex=1
+    }else if((Math.trunc(range?.end)||0)>(Math.trunc(range?.start)||0)){
+      targetNext=this.#replaceBlockRichTextRange(
+        current,
+        {blockId,fieldKey,offset:Math.max(0,Math.trunc(range.start)||0)},
+        {blockId,fieldKey,offset:Math.max(0,Math.trunc(range.end)||0)},
+        {kind:'text',text:''},
+      )
+      if(!targetNext)throw new Error('Clipboard target selection is not a rich-text range')
+    }
+
+    for(;partIndex<parts.length;partIndex++){
+      const part=parts[partIndex]
+      if(part?.kind==='block'){
+        const input=part.block
+        if(!input||typeof input!=='object'||Array.isArray(input))throw new TypeError('Clipboard block part is invalid')
+        if(typeof input.type!=='string'||!input.type)throw new TypeError('Clipboard block type must be non-empty')
+        const id=this.#allocateId(input.type,reserved)
+        const candidate={id,type:input.type,dataVersion:input.dataVersion,data:input.data}
+        if(Object.hasOwn(input,'tunes'))candidate.tunes=input.tunes
+        if(Object.hasOwn(input,'inline'))candidate.inline=input.inline
+        const decoded=decodeCurrentBlock(candidate,{
+          getBlockSchema:type=>this.#registry.getBlockDefinition(type)?.schema,
+          getInlineSchema:type=>this.#registry.getInlineDefinition(type)?.schema,
+        })
+        const definition=this.#registry.getBlockDefinition(decoded.type)
+        preparedBlocks.push(definition
+          ?this.#recordFromData(
+              decoded.id,decoded.type,definition,decoded.data,decoded.tunes,decoded.inline,
+            )
+          :decoded)
+        continue
+      }
+
+      if(part?.kind!=='rich-text'||typeof part.html!=='string'){
+        throw new TypeError('Clipboard part must be block or rich-text')
+      }
+      preparedBlocks.push(this.#materializeClipboardRichText(part,reserved))
+    }
+
+    const targetChanged=!sameJson(current,targetNext)
+    const replaceEmpty=parts[0]?.kind==='block'
+      &&range.start===range.end
+      &&this.isEmpty(blockId)
+      &&preparedBlocks.length>0
+    const anchorIndex=this.#store.ids().indexOf(blockId)
+    const inserted=[]
+    this.#engine.execute({origin:'user',name:'clipboard.fragment'},tx=>{
+      let offset=1
+      let start=0
+      if(replaceEmpty){
+        const first={...preparedBlocks[0],id:blockId}
+        tx.update(blockId,first)
+        inserted.push(blockId)
+        start=1
+      }else if(targetChanged){
+        tx.update(blockId,targetNext)
+      }
+      for(let index=start;index<preparedBlocks.length;index++){
+        tx.insert(anchorIndex+offset,preparedBlocks[index])
+        inserted.push(preparedBlocks[index].id)
+        offset++
+      }
+    })
+    return {
+      blockId:inserted.at(-1)??blockId,
+      inserted,
+    }
+  }
+
 
   replaceRichText(blockId, fieldKey, range, replacement) {
     this.#assertInteractionMutation()
@@ -1556,6 +1601,68 @@ export class DocumentRuntime {
     })
   }
 
+
+
+  #recordWithRichTextFragment(current,fieldKey,range,fragment){
+    if(!fragment||typeof fragment!=='object'||Array.isArray(fragment)||typeof fragment.html!=='string'){
+      throw new TypeError('Rich-text clipboard fragment must contain html')
+    }
+    if(this.activation(current.id)?.kind!=='active'){
+      throw new Error(`Unregistered block cannot be updated: ${current.id}`)
+    }
+    const definition=this.#registry.getBlockDefinition(current.type)
+    if(!definition?.schema?.mapRichText)throw new Error(`Block type has no rich-text fields: ${current.type}`)
+    const currentInline=cloneInline(current.inline)??{}
+    const sourceInline=fragment.inline===undefined
+      ?{}
+      :this.#normalizeExternalInline(fragment.inline)??{}
+    const scan=this.#scanBlockRichText(definition,current.data,currentInline)
+    const reserved=new Set([
+      ...Object.keys(currentInline),
+      ...scan.references,
+      ...scan.literals,
+    ])
+    const remapped=remapCanonicalFragment({
+      html:fragment.html,
+      inline:sourceInline,
+      reservedIds:reserved,
+      ownerDocument:this.#ownerDocument,
+      allocateInlineId:ids=>this.#allocateInlineId(ids),
+    })
+    const inline={...currentInline,...remapped.inline}
+    let matched=false
+    const nextData=definition.schema.mapRichText(cloneEditorData(current.data),(html,key)=>{
+      if(key!==fieldKey)return html
+      matched=true
+      return replaceRichTextRange(
+        html,currentInline,range,{kind:'html',html:remapped.html},this.#ownerDocument,
+      )
+    })
+    if(!matched)throw new Error(`Unknown rich-text field "${fieldKey}" for block "${current.id}"`)
+    return this.#recordFromData(
+      current.id,current.type,definition,nextData,current.tunes,inline,
+    )
+  }
+
+  #materializeClipboardRichText(part,reserved){
+    const inline=part.inline===undefined?{}:this.#normalizeExternalInline(part.inline)??{}
+    const payload={kind:/** @type {'rich-text'} */('rich-text'),data:{text:part.html}}
+    const ordered=[
+      this.#registry.defaultBlockType,
+      ...this.#registry.blockTypes.filter(type=>type!==this.#registry.defaultBlockType),
+    ]
+    for(const type of ordered){
+      const definition=this.#registry.getBlockDefinition(type)
+      const conversion=definition?.capabilities?.conversion
+      if(!conversion?.canImport?.(payload))continue
+      const data=conversion.import(payload)
+      const id=this.#allocateId(type,reserved)
+      const record=this.#recordFromData(id,type,definition,data,undefined,inline)
+      this.#assertConversionInlinePreserved(payload,inline,definition,record)
+      return record
+    }
+    throw new Error('No registered block type can materialize clipboard rich-text')
+  }
 
 
   #replaceBlockRichTextRange(record,start,end,replacement){
