@@ -1,6 +1,6 @@
 // @ts-check
 
-export class DragControllerV2 {
+export class DragController {
   #runtime
   #view
   #handle
@@ -10,7 +10,7 @@ export class DragControllerV2 {
   #onPointerDown
 
   constructor({ runtime, view, handle }) {
-    if (!handle?.addEventListener) throw new TypeError('DragControllerV2 requires a drag handle')
+    if (!handle?.addEventListener) throw new TypeError('DragController requires a drag handle')
     this.#runtime = runtime
     this.#view = view
     this.#handle = handle
