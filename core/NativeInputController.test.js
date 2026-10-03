@@ -3,8 +3,9 @@ import assert from 'node:assert/strict'
 
 import { NativeInputController } from './NativeInputController.js'
 
-function harness() {
+function harness(options = {}) {
   const calls = []
+  let now = 0
   const field = { parentNode: null }
   const child = { parentNode: field }
   const reconciler = {
@@ -28,11 +29,23 @@ function harness() {
     },
   }
   const root = {
-    ownerDocument: { defaultView: { AbortController } },
+    ownerDocument: { defaultView: { AbortController, performance: { now: () => now } } },
     addEventListener() {},
   }
-  const controller = new NativeInputController({ root, runtime, reconciler })
-  return { calls, field, child, runtime, controller }
+  const controller = new NativeInputController({
+    root,
+    runtime,
+    reconciler,
+    coalesceMs: options.coalesceMs ?? 300,
+  })
+  return {
+    calls,
+    field,
+    child,
+    runtime,
+    controller,
+    advance(ms) { now += ms },
+  }
 }
 
 test('plain text input keeps the browser-owned source projection in place', () => {
@@ -54,11 +67,25 @@ test('plain text input keeps the browser-owned source projection in place', () =
     metadata: {
       origin: 'native-input',
       name: 'native-input',
-      historyGroup: 'native:b1:text',
+      historyGroup: 'native:b1:text:1',
       coalesce: true,
       preserveSourceProjection: true,
     },
   })
+})
+
+test('typing coalesces only inside the configured history window', () => {
+  const { calls, child, controller, advance } = harness({ coalesceMs: 300 })
+
+  controller.handleInput({ target: child, inputType: 'insertText', isComposing: false })
+  advance(299)
+  controller.handleInput({ target: child, inputType: 'insertText', isComposing: false })
+  advance(301)
+  controller.handleInput({ target: child, inputType: 'insertText', isComposing: false })
+
+  assert.equal(calls[0].metadata.historyGroup, 'native:b1:text:1')
+  assert.equal(calls[1].metadata.historyGroup, 'native:b1:text:1')
+  assert.equal(calls[2].metadata.historyGroup, 'native:b1:text:2')
 })
 
 test('paste and drop never trust the mutated source projection', () => {
@@ -93,7 +120,7 @@ test('IME composition commits once after compositionend', async () => {
   await Promise.resolve()
 
   assert.equal(calls.length, 1)
-  assert.equal(calls[0].metadata.historyGroup, 'native:b1:text:composition')
+  assert.equal(calls[0].metadata.historyGroup, 'native:b1:text:composition:1')
   assert.equal(calls[0].metadata.preserveSourceProjection, true)
 })
 
