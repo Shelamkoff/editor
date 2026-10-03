@@ -15,19 +15,19 @@ import { DocumentRuntime } from './DocumentRuntime.js'
 import { NativeInputController } from './NativeInputController.js'
 import { KeyboardRouter } from './KeyboardRouter.js'
 import { LogicalSelection } from './LogicalSelection.js'
-import { SelectionControllerV2 } from './SelectionControllerV2.js'
+import { SelectionController } from './SelectionController.js'
 import { InteractionState } from './InteractionState.js'
 import { EditorViewModel } from './EditorViewModel.js'
 import { InlineCommandController } from './InlineCommandController.js'
 import { InlineTriggerController } from './InlineTriggerController.js'
 import { InlineWidgetInputController } from './InlineWidgetInputController.js'
-import { SlashCommandControllerV2 } from './SlashCommandControllerV2.js'
-import { EditorBlocksApiV2, EditorHandleV2 } from './PublicEditorApiV2.js'
+import { SlashCommandController } from './SlashCommandController.js'
+import { EditorBlocksApi, EditorHandle } from './PublicEditorApiV2.js'
 import { ChangeNotifier } from './ChangeNotifier.js'
-import { BlockToolbarV2 } from './BlockToolbarV2.js'
-import { ClipboardControllerV2 } from './ClipboardControllerV2.js'
-import { DragControllerV2 } from './DragControllerV2.js'
-import { InlineToolbarV2 } from './InlineToolbarV2.js'
+import { BlockToolbar } from './BlockToolbar.js'
+import { ClipboardController } from './ClipboardController.js'
+import { DragController } from './DragController.js'
+import { InlineToolbar } from './InlineToolbar.js'
 
 const CORE_STYLE_URLS=Object.freeze([
   new URL('./themes/variables.css',import.meta.url).href,
@@ -141,7 +141,7 @@ function snapshotEditorConfig(input){
  *   changeDebounceMs?: number,
  * }} input
  */
-export function createEditorV2(input){
+export function createEditorRuntime(input){
   const config=snapshotEditorConfig(input)
   const holder=config.holder
   const HTMLElementCtor=holder?.ownerDocument?.defaultView?.HTMLElement??globalThis.HTMLElement
@@ -252,7 +252,7 @@ export function createEditorV2(input){
   logicalSelection=new LogicalSelection({root,reconciler})
   interaction=new InteractionState({runtime,reconciler})
   view=new EditorViewModel({runtime,reconciler,interaction,selection:logicalSelection})
-  const crossSelection=lifecycle.register(new SelectionControllerV2({root,runtime,reconciler,view}))
+  const crossSelection=lifecycle.register(new SelectionController({root,runtime,reconciler,view}))
   const inlineWidgetInput=lifecycle.register(new InlineWidgetInputController({
     root,
     runtime,
@@ -277,7 +277,7 @@ export function createEditorV2(input){
   }))
   triggerController=triggers
 
-  const slashCommands=lifecycle.register(new SlashCommandControllerV2({
+  const slashCommands=lifecycle.register(new SlashCommandController({
     root,
     runtime,
     registry,
@@ -295,7 +295,7 @@ export function createEditorV2(input){
     },
   }))
 
-  clipboard=lifecycle.register(new ClipboardControllerV2({
+  clipboard=lifecycle.register(new ClipboardController({
     root,
     runtime,
     registry,
@@ -305,7 +305,7 @@ export function createEditorV2(input){
     crossSelection,
   }))
 
-  toolbar=lifecycle.register(new BlockToolbarV2({
+  toolbar=lifecycle.register(new BlockToolbar({
     root,
     runtime,
     registry,
@@ -322,13 +322,13 @@ export function createEditorV2(input){
     },
   }))
 
-  const drag=lifecycle.register(new DragControllerV2({
+  const drag=lifecycle.register(new DragController({
     runtime,
     view,
     handle:toolbar.dragHandle,
   }))
 
-  const inlineToolbar=lifecycle.register(new InlineToolbarV2({
+  const inlineToolbar=lifecycle.register(new InlineToolbar({
     root,
     runtime,
     registry,
@@ -369,7 +369,7 @@ export function createEditorV2(input){
 
   applyReadOnly(root,runtime.readOnly)
 
-  const blocks=new EditorBlocksApiV2({runtime,view,isDestroyed:()=>destroyed})
+  const blocks=new EditorBlocksApi({runtime,view,isDestroyed:()=>destroyed})
   let editor
   const destroy=()=>{
     if(destroyed)return
@@ -388,7 +388,7 @@ export function createEditorV2(input){
     emitSafe(events,'history:changed',{canUndo:runtime.canUndo,canRedo:runtime.canRedo})
   }
 
-  editor=new EditorHandleV2({
+  editor=new EditorHandle({
     runtime,
     view,
     blocks,
