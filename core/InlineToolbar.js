@@ -580,6 +580,7 @@ export class InlineToolbar {
     }, {
       origin: 'user',
       name: `inline.${type}`,
+      preserveSourceProjection: true,
     })
     const nextBookmark = this.#selection.capture() ?? bookmark
     queueMicrotask(() => {
