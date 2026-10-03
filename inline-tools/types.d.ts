@@ -1,6 +1,7 @@
 /** Selection information visible to one inline formatting tool. */
 export interface InlineSelection {
   readonly blockId?: string
+  readonly blockIds?: readonly string[]
   readonly range: Range
   readonly text?: string
 }
@@ -21,6 +22,8 @@ export interface InlineMutationContext {
 export interface InlineToolActionContext {
   readonly range: Range
   mutate<T>(operation: () => T): T | undefined
+  getTextAlign(): 'left' | 'center' | 'right' | 'justify' | 'mixed'
+  setTextAlign(value: 'left' | 'center' | 'right' | 'justify' | null): boolean
   restoreSelection(): void
   close(): void
   showTooltip(anchor: HTMLElement, label: string): void
