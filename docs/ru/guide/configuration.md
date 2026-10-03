@@ -18,7 +18,6 @@ interface EditorConfig {
   injectStyles?: boolean
   theme?: 'light' | 'dark'
   minHeight?: number
-  tuning?: Record<string, unknown>
   locale?: Record<string, unknown>
   validationMode?: 'preserve' | 'strict'
   documentVersionPolicy?: 'preserve' | 'strict'
@@ -46,7 +45,6 @@ interface EditorConfig {
 | `injectStyles` | нет | `true` | Подключение стилей ядра и зарегистрированных определений через общий реестр. |
 | `theme` | нет | `light` | Встроенная тема: `light` или `dark`. |
 | `minHeight` | нет | CSS | Конечная неотрицательная минимальная высота редактора в пикселях. |
-| `tuning` | нет | `{}` | Настройки взаимодействия и поведения редактора, не относящиеся к данным документа. |
 | `locale` | нет | встроенный английский | Плоский словарь сообщений ядра и расширений. |
 | `validationMode` | нет | `preserve` | Ошибочные данные известного блока/виджета сохраняются инертно либо отклоняются в `strict`. |
 | `documentVersionPolicy` | нет | `preserve` | Неполная/будущая версия документа сохраняется либо отклоняется в `strict`. |
