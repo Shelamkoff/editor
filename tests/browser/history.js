@@ -465,7 +465,7 @@ async function run() {
   assert(!document.body.classList.contains('oe-editor-dragging'),'read-only transition left drag session active')
   pointer(document,'pointerup',{pointerId:91,clientX:30,clientY:gapY,buttons:0})
   dragEditor.setReadOnly(false)
-  assert(dragEditor.blocks.list().map(block=>block.id).join(',')===foreignBefore,'late pointerup moved a read-only-cancelled drag')
+  assert(dragEditor.blocks.list().map(block=>block.id).join(',')===afterConcurrentHost,'late pointerup moved a read-only-cancelled drag')
   dragEditor.destroy()
 
   const eventHarness = createHarness(sandbox)
