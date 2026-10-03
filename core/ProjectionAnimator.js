@@ -25,7 +25,9 @@ export class ProjectionAnimator {
 
   capture(entries) {
     const result = new Map()
-    if (!this.#enabled || this.#moveMs === 0) return result
+    if (!this.#enabled) return result
+    this.#clearSpacers()
+    if (this.#moveMs === 0) return result
     for (const [id, entry] of entries) {
       const element = entry?.element
       if (!this.#canAnimate(element)) continue
@@ -79,7 +81,7 @@ export class ProjectionAnimator {
     if (!this.#enabled || this.#removeMs === 0) return
     for (const snapshot of snapshots) {
       const spacer = snapshot.ownerDocument.createElement('div')
-      spacer.className = 'oe-block oe-block--removal-spacer'
+      spacer.className = 'oe-block-removal-spacer'
       spacer.setAttribute('aria-hidden', 'true')
       spacer.inert = true
       Object.assign(spacer.style, {
@@ -112,6 +114,10 @@ export class ProjectionAnimator {
 
   destroy() {
     this.#enabled = false
+    this.#clearSpacers()
+  }
+
+  #clearSpacers() {
     for (const spacer of this.#spacers) spacer.remove?.()
     this.#spacers.clear()
   }
