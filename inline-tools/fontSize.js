@@ -1,4 +1,4 @@
-import { setTrustedHtml } from '../core/sanitize.js'
+import { setTrustedHtml } from '../shared/sanitize/sanitizeHtml.js'
 import { el } from '../core/dom.js'
 import { createSvgIcon } from '../core/icons.js'
 import {
