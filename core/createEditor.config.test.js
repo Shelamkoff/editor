@@ -27,6 +27,10 @@ const invalidCases = [
   ['dragThreshold', -1, /dragThreshold must be a finite number/],
   ['historyMaxStack', 0, /historyMaxStack must be a positive safe integer/],
   ['toolboxFilterThreshold', -1, /toolboxFilterThreshold must be a non-negative safe integer/],
+  ['mobileBreakpoint', -1, /mobileBreakpoint must be a finite number/],
+  ['blockInsertAnimationMs', -1, /blockInsertAnimationMs must be a finite number/],
+  ['blockMoveAnimationMs', Number.NaN, /blockMoveAnimationMs must be a finite number/],
+  ['blockRemoveAnimationMs', Number.POSITIVE_INFINITY, /blockRemoveAnimationMs must be a finite number/],
   ['validationMode', 'loose', /validationMode must be/],
   ['documentVersionPolicy', 'loose', /documentVersionPolicy must be/],
 ]
