@@ -159,6 +159,22 @@ function inspect(file) {
 }
 
 
+const removedLegacyFiles = [
+  'shared/blockDataValidators.js',
+  'shared/blockDataNormalizers.js',
+  'shared/mapTextFields.js',
+]
+for (const relative of removedLegacyFiles) {
+  if (fs.existsSync(path.join(root, relative))) {
+    errors.push(`${relative}: removed legacy schema helper must not return`)
+  }
+}
+
+const manifest = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'))
+if (Object.hasOwn(manifest.exports ?? {}, './core')) {
+  errors.push('package.json: duplicate legacy ./core package export must not return')
+}
+
 const removedRuntimeSymbols = [
   'UNDO_BATCH_START',
   'UNDO_BATCH_END',
