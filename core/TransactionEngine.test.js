@@ -151,7 +151,8 @@ test('failed undo leaves canonical state and history cursor unchanged', () => {
 test('selection and observer failures are contained after canonical commit', () => {
   const events = []
   const diagnostics = {
-    enabled: false,
+    now() { return 1 },
+    threshold() { return Infinity },
     errorName(error) { return error?.name ?? 'UnknownError' },
     emit(code, details) { events.push({ code, ...details }) },
   }
@@ -186,7 +187,6 @@ test('structured diagnostics report command failure and slow operations once', a
   const events = []
   let clock = 10
   const diagnostics = {
-    enabled: true,
     now() { return clock++ },
     threshold(name) { return name === 'commandMs' ? 0 : Infinity },
     errorName(error) { return error?.name ?? 'UnknownError' },
