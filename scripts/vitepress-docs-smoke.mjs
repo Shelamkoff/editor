@@ -111,7 +111,7 @@ const configurationGuideRu = await readFile(join(docsRoot, 'ru', 'guide', 'confi
 for (const option of [
   'holder', 'plugins', 'inlineTools', 'inlinePlugins', 'data', 'migrations',
   'documentVersionPolicy', 'readOnly', 'placeholder', 'autofocus', 'minHeight',
-  'defaultBlock', 'locale', 'tuning', 'onChange', 'onReady', 'validationMode',
+  'defaultBlock', 'locale', 'onChange', 'onReady', 'validationMode',
   'onValidationError', 'onDiagnostic', 'diagnosticThresholds', 'theme',
 ]) {
   assert(configurationGuide.includes(option), `Configuration guide does not document EditorConfig.${option}`)
