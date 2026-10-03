@@ -147,8 +147,13 @@ export class KeyboardRouter {
       if (index > 0) {
         event.preventDefault?.()
         const previous = records[index - 1]
+        const fields = this.#reconciler.getEditableFields(previous.id)
+        const fieldKey = fields.at(-1)?.key
         this.#view.setCurrent(previous.id)
-        this.#view.focus(previous.id, { offset: 'end' })
+        this.#view.focus(previous.id, {
+          ...(fieldKey ? { fieldKey } : {}),
+          offset: 'end',
+        })
       }
       return
     }
