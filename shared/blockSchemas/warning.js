@@ -1,6 +1,5 @@
 // @ts-check
 import { createVersionedDataSchema } from '../versionedDataSchema.js'
-import { mapWarningTextFields } from '../mapTextFields.js'
 
 export const warningDataSchema = createVersionedDataSchema({
   currentVersion: 1,
