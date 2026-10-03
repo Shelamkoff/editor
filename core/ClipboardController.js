@@ -92,19 +92,18 @@ export class ClipboardController {
 
   handleTransaction(event) {
     if (!this.#task) return
-    const name = event?.record?.name ?? event?.name
+    const name = event?.name
     if (
       event?.origin === 'history'
       || name === 'document.render'
       || name === 'document.clear'
-      || name === 'document.reset'
     ) {
       this.#task.abort()
       return
     }
     const anchorId = this.#taskAnchorId
     if (!anchorId) return
-    const changes = event?.record?.changes ?? event?.changes ?? []
+    const changes = event?.changes ?? []
     if (changes.some(change => (
       change.kind === 'document.replace'
       || (change.kind === 'block.remove' && change.block?.id === anchorId)
