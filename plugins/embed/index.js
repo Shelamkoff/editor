@@ -101,7 +101,7 @@ export function createEmbedPlugin(config = {}) {
           let readOnly = context.isReadOnly()
           let dead = false
           let previewController = null
-          let coverController = null
+          let coverTask = null
 
           const urlBar = document.createElement('div')
           urlBar.className = 'oe-embed__url-bar'
@@ -145,6 +145,8 @@ export function createEmbedPlugin(config = {}) {
             if (readOnly || dead) return
             const parsed = parseEmbedUrl(input.value)
             if (!parsed) return
+            coverTask?.cancel()
+            coverTask = null
             commit({ ...emptyData(), ...parsed })
           }
 
@@ -199,29 +201,52 @@ export function createEmbedPlugin(config = {}) {
             }
           }
 
+          const beginCoverTask = () => {
+            coverTask?.cancel()
+            const task = context.beginTask()
+            coverTask = task
+            task.signal.addEventListener('abort', () => {
+              if (coverTask === task) coverTask = null
+            }, { once: true })
+            return task
+          }
+
           const startCoverUpload = file => {
             if (readOnly || !isSupportedImageFile(file)) return
-            coverController?.abort()
-            const Ctor = document.defaultView?.AbortController ?? AbortController
-            const controller = new Ctor()
-            coverController = controller
-            const abort = () => controller.abort(context.signal.reason)
-            context.signal.addEventListener('abort', abort, { once: true, signal: controller.signal })
+            const task = beginCoverTask()
 
             const run = async () => {
+              let objectUrl = ''
               try {
                 let url = ''
                 if (snapshot.uploadFile) {
-                  const result = await snapshot.uploadFile(file, { signal: controller.signal })
+                  const result = await snapshot.uploadFile(file, { signal: task.signal })
                   url = sanitizeMediaUrl(result?.url ?? '')
                 } else {
                   const URLCtor = document.defaultView?.URL ?? URL
                   url = URLCtor.createObjectURL(file)
+                  objectUrl = url
                   objectUrls.add(url)
                 }
-                if (!controller.signal.aborted && url) commit({ ...data, cover: url })
+                const committed = !task.signal.aborted && !!url && task.commit(current => ({
+                  ...current,
+                  cover: url,
+                }))
+                if (!committed && objectUrl) {
+                  const URLCtor = document.defaultView?.URL ?? URL
+                  URLCtor.revokeObjectURL(objectUrl)
+                  objectUrls.delete(objectUrl)
+                }
               } catch {
+                if (objectUrl) {
+                  const URLCtor = document.defaultView?.URL ?? URL
+                  URLCtor.revokeObjectURL(objectUrl)
+                  objectUrls.delete(objectUrl)
+                }
                 // Upload failure is contained.
+              } finally {
+                task.cancel()
+                if (coverTask === task) coverTask = null
               }
             }
             void run()
@@ -255,7 +280,10 @@ export function createEmbedPlugin(config = {}) {
           }, { signal: context.signal })
           cover.addEventListener('click', chooseCover, { signal: context.signal })
           remove.addEventListener('click', () => {
-            if (!readOnly) commit(emptyData())
+            if (readOnly) return
+            coverTask?.cancel()
+            coverTask = null
+            commit(emptyData())
           }, { signal: context.signal })
 
           for (const action of snapshot.actions ?? []) {
@@ -266,21 +294,26 @@ export function createEmbedPlugin(config = {}) {
             button.append(document.createTextNode(action.label))
             button.addEventListener('click', () => {
               if (readOnly || dead) return
-              const Ctor = document.defaultView?.AbortController ?? AbortController
-              const controller = new Ctor()
-              const abort = () => controller.abort(context.signal.reason)
-              context.signal.addEventListener('abort', abort, { once: true, signal: controller.signal })
-              void Promise.resolve(action.handler({ signal: controller.signal })).then(result => {
-                if (controller.signal.aborted || !result) return
+              const task = beginCoverTask()
+              void Promise.resolve(action.handler({ signal: task.signal })).then(result => {
+                if (task.signal.aborted || !result) return
                 const safe = sanitizeMediaUrl(result.url)
-                if (safe) commit({ ...data, cover: safe })
-              }).catch(() => {})
+                if (safe) task.commit(current => ({ ...current, cover: safe }))
+              }).catch(() => {}).finally(() => {
+                task.cancel()
+                if (coverTask === task) coverTask = null
+              })
             }, { signal: context.signal })
             actions.insertBefore(button, remove)
           }
 
           const project = next => {
+            const sourceChanged = data.service !== next.service || data.videoId !== next.videoId
             data = { ...next }
+            if (sourceChanged) {
+              coverTask?.cancel()
+              coverTask = null
+            }
             previewController?.abort()
             view.replaceChildren()
             const configured = !!data.service && !!data.videoId
@@ -334,6 +367,10 @@ export function createEmbedPlugin(config = {}) {
             },
             setReadOnly(value) {
               readOnly = value
+              if (value) {
+                coverTask?.cancel()
+                coverTask = null
+              }
               project(data)
             },
             focus() {
@@ -344,7 +381,8 @@ export function createEmbedPlugin(config = {}) {
             destroy() {
               dead = true
               previewController?.abort()
-              coverController?.abort()
+              coverTask?.cancel()
+              coverTask = null
               view.replaceChildren()
             },
           }
