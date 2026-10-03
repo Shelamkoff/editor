@@ -583,14 +583,14 @@ export function findNodeAtOffset(container, charOffset, bias = 'start') {
 }
 
 /**
- * Save cross-block range as block IDs + character offsets (survives DOM mutations).
+ * Save a cross-editable range (multiple fields and/or blocks) as logical offsets.
  * @param {Range} range
  * @returns {{ editorRoot: HTMLElement, startBlockId: string, endBlockId: string, startFieldIndex: number, endFieldIndex: number, startOffset: number, endOffset: number } | null}
  */
 export function saveCrossBlockOffsets(range) {
   const startBlock = closestBlock(range.startContainer)
   const endBlock = closestBlock(range.endContainer)
-  if (!startBlock || !endBlock || startBlock === endBlock) return null
+  if (!startBlock || !endBlock) return null
 
   const editorRoot = getEditorRoot(startBlock)
   if (!editorRoot || getEditorRoot(endBlock) !== editorRoot) return null
@@ -598,6 +598,7 @@ export function saveCrossBlockOffsets(range) {
   const startField = editableAtBoundary(startBlock, range.startContainer, range.startOffset)
   const endField = editableAtBoundary(endBlock, range.endContainer, range.endOffset)
   if (!startField || !endField) return null
+  if (startBlock === endBlock && startField.index === endField.index) return null
 
   return {
     editorRoot,
