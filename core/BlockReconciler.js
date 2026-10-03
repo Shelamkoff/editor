@@ -1,5 +1,6 @@
 // @ts-check
 import { cloneEditorData } from '../shared/cloneEditorData.js'
+import { ProjectionAnimator } from './ProjectionAnimator.js'
 
 function sameJson(left, right) {
   try { return JSON.stringify(left) === JSON.stringify(right) } catch { return false }
@@ -24,6 +25,7 @@ export class BlockReconciler {
   #blockOwners = new WeakMap()
   #readOnly
   #inlineProjection
+  #animator
   #store = null
   #destroyed = false
 
@@ -47,6 +49,7 @@ export class BlockReconciler {
       : (_id, record) => registry.hasBlock(record.type)
     this.#inlineProjection = inlineProjection
     this.#readOnly = readOnly === true
+    this.#animator = new ProjectionAnimator(animationDurations)
 
   }
 
@@ -58,6 +61,7 @@ export class BlockReconciler {
     this.#entries = fresh
     this.#store = store
     for (const entry of previous.values()) this.#destroyEntry(entry)
+    this.#animator.enable()
   }
 
   getElement(id) {
@@ -127,6 +131,9 @@ export class BlockReconciler {
     this.#assertLive()
     this.#store = store
     const structuralChange = hasStructuralChange(changes)
+    const firstRects = structuralChange ? this.#animator.capture(this.#entries) : new Map()
+    const currentOrder = structuralChange ? store.ids() : []
+    const currentIndexes = new Map(currentOrder.map((id, index) => [id, index]))
     const changedIds = new Set()
     for (const change of changes) {
       if (change.kind === 'document.replace') {
@@ -201,6 +208,13 @@ export class BlockReconciler {
     }
 
     const finalOrder = structuralChange ? draft.ids() : null
+    const removalSnapshots = removals.flatMap(item => {
+      const snapshot = this.#animator.captureRemoval(
+        item.entry.element,
+        currentIndexes.get(item.id) ?? currentOrder.length,
+      )
+      return snapshot ? [snapshot] : []
+    })
     let applied = false
 
     return {
@@ -258,6 +272,10 @@ export class BlockReconciler {
         for (const item of replacements) this.#destroyEntry(item.before)
         for (const item of removals) this.#destroyEntry(item.entry)
 
+        this.#animator.animateRemovals(this.#container, removalSnapshots)
+        this.#animator.animateMoves(nextEntries, firstRects)
+        for (const item of insertions) this.#animator.animateInsert(item.entry.element)
+
       },
       recover: () => {
         this.#restore(store, staged)
@@ -306,6 +324,7 @@ export class BlockReconciler {
     for (const entry of this.#entries.values()) this.#destroyEntry(entry)
     this.#entries.clear()
     this.#inlineProjection?.destroy?.()
+    this.#animator.destroy()
     this.#container.replaceChildren()
   }
 
