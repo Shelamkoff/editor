@@ -1,4 +1,4 @@
-export { createEditorV2 as createEditor } from './createEditorV2.js'
+export { createEditorRuntime as createEditor } from './createEditorRuntime.js'
 export { DocumentSchema } from './DocumentSchema.js'
 export { uid } from '../shared/uid.js'
 export { sanitizeHtml } from '../shared/sanitize/sanitizeHtml.js'
