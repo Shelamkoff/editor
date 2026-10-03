@@ -1164,7 +1164,7 @@ export class DocumentRuntime {
 
   syncBlocksFromProjection(ids, operation, metadata = {}) {
     this.#assertInteractionMutation()
-    if (!Array.isArray(ids) || ids.length === 0) return
+    if (!Array.isArray(ids) || ids.length === 0) return undefined
     if (typeof operation !== 'function') throw new TypeError('DOM mutation operation must be a function')
 
     const ordered = []
@@ -1182,7 +1182,11 @@ export class DocumentRuntime {
     }
 
     try {
-      operation()
+      const result = operation()
+      if (result && typeof result === 'object' && typeof result.then === 'function') {
+        throw new TypeError('Projection edit operation must be synchronous')
+      }
+
       const updates = []
       for (const id of ordered) {
         const current = this.#store.get(id)
@@ -1202,13 +1206,21 @@ export class DocumentRuntime {
           || !sameJson(current.inline, next.inline)
         ) updates.push([id, next])
       }
-      if (!updates.length) return
-      this.#engine.execute({
-        origin: metadata.origin ?? 'user',
-        name: metadata.name ?? 'projection.sync',
-      }, tx => {
-        for (const [id, next] of updates) tx.update(id, next)
-      })
+
+      if (updates.length) {
+        this.#engine.execute({
+          origin: metadata.origin ?? 'user',
+          name: metadata.name ?? 'projection.sync',
+          historyGroup: metadata.historyGroup,
+          coalesce: metadata.coalesce === true,
+          sourceBlockId: metadata.preserveSourceProjection === true && ordered.length === 1
+            ? ordered[0]
+            : undefined,
+        }, tx => {
+          for (const [id, next] of updates) tx.update(id, next)
+        })
+      }
+      return result
     } catch (error) {
       this.#projector?.restore?.(this.#store)
       throw error
@@ -1216,40 +1228,52 @@ export class DocumentRuntime {
   }
 
   syncBlockFromProjection(id, operation, metadata = {}) {
-    this.#assertInteractionMutation()
-    if (typeof operation !== 'function') throw new TypeError('DOM mutation operation must be a function')
-    const current = this.#store.get(id)
-    if (!current) throw new Error(`Unknown block id: ${id}`)
-    if (this.activation(id)?.kind !== 'active') throw new Error(`Unregistered block cannot be synchronized: ${id}`)
-    const definition = this.#registry.getBlockDefinition(current.type)
+    return this.syncBlocksFromProjection([id], operation, metadata)
+  }
 
-    try {
-      operation()
-      const projection = this.#projector?.readBlock?.(id)
-      if (!projection) throw new Error('Projection reader is unavailable')
-      const readData = Object.hasOwn(projection, 'data') ? projection.data : projection
-      const inlineSource = Object.hasOwn(projection, 'inline')
-        ? (projection.inline === undefined ? undefined : cloneInline(projection.inline))
-        : current.inline
-      const next = this.#recordFromData(
-        current.id, current.type, definition, readData, current.tunes, inlineSource,
-      )
-      if (
-        current.dataVersion === next.dataVersion
-        && sameJson(current.data, next.data)
-        && sameJson(current.inline, next.inline)
-      ) return
-      this.#engine.execute({
-        origin: metadata.origin ?? 'native-input',
-        name: metadata.name ?? 'native-input',
-        historyGroup: metadata.historyGroup,
-        coalesce: metadata.coalesce === true,
-        sourceBlockId: metadata.preserveSourceProjection === true ? id : undefined,
-      }, tx => tx.update(id, next))
-    } catch (error) {
-      this.#projector?.restore?.(this.#store)
-      throw error
+  getTextAlign(ids) {
+    const unique = [...new Set(ids ?? [])]
+    if (!unique.length) return 'left'
+    let value = null
+    for (const id of unique) {
+      const record = this.#store.get(id)
+      if (!record) throw new Error(`Unknown block id: ${id}`)
+      const align = ['center', 'right', 'justify'].includes(record.tunes?.textAlign)
+        ? record.tunes.textAlign
+        : 'left'
+      if (value === null) value = align
+      else if (value !== align) return 'mixed'
     }
+    return value ?? 'left'
+  }
+
+  setTextAlign(ids, value) {
+    this.#assertInteractionMutation()
+    if (value !== null && !['left', 'center', 'right', 'justify'].includes(value)) {
+      throw new TypeError('Text alignment must be left, center, right, justify, or null')
+    }
+    const ordered = [...new Set(ids ?? [])]
+    const updates = []
+    for (const id of ordered) {
+      const current = this.#store.get(id)
+      if (!current) throw new Error(`Unknown block id: ${id}`)
+      if (this.activation(id)?.kind !== 'active') throw new Error(`Unregistered block cannot be aligned: ${id}`)
+      const definition = this.#registry.getBlockDefinition(current.type)
+      const tunes = cloneTunes(current.tunes) ?? {}
+      if (value === null || value === 'left') delete tunes.textAlign
+      else tunes.textAlign = value
+      const next = this.#recordFromData(
+        id, current.type, definition, current.data,
+        Object.keys(tunes).length ? tunes : undefined,
+        current.inline,
+      )
+      if (!sameJson(current.tunes, next.tunes)) updates.push([id, next])
+    }
+    if (!updates.length) return false
+    this.#engine.execute({ origin: 'user', name: 'format.text-align' }, tx => {
+      for (const [id, next] of updates) tx.update(id, next)
+    })
+    return true
   }
 
   destroy() {
