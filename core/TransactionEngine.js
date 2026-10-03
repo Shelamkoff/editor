@@ -392,7 +392,9 @@ export class TransactionEngine {
       operation,
       errorName: this.#diagnostics.errorName(error),
     })
-    this.#diagnostic(error)
+    if (this.#onDiagnostic) {
+      try { this.#onDiagnostic(error) } catch {}
+    }
   }
 
   #reportCommandDuration(operation, startedAt) {
@@ -404,6 +406,10 @@ export class TransactionEngine {
   }
 
   #diagnostic(error) {
+    this.#diagnostics?.emit('command.failed', {
+      operation: 'transaction.observer',
+      errorName: this.#diagnostics.errorName(error),
+    })
     if (!this.#onDiagnostic) return
     try { this.#onDiagnostic(error) } catch {}
   }
