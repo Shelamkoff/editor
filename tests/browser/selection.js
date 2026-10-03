@@ -251,6 +251,89 @@ async function run() {
     harness.editor.destroy()
   }
 
+  const literalCollision = createHarness(sandbox, {
+    version: '2.0.0',
+    blocks: [
+      {
+        id: 'literal-target',
+        type: 'paragraph',
+        dataVersion: 2,
+        data: { text: 'Target {{same}}' },
+        inline: {
+          same: { type: 'future-inline', dataVersion: 7, data: { owner: 'target' } },
+        },
+      },
+      {
+        id: 'literal-source',
+        type: 'paragraph',
+        dataVersion: 2,
+        data: { text: '{{same}} literal' },
+      },
+    ],
+  })
+  const literalTarget = editable(literalCollision, 0)
+  setCaret(literalTarget, literalTarget.textContent.length)
+  assert(key(literalTarget, 'Delete').defaultPrevented, 'literal collision merge was not handled')
+  await delay()
+  let collisionSaved = literalCollision.editor.save()
+  assert(collisionSaved.blocks.length === 1, 'literal collision merge did not remove source block')
+  const literalMerged = collisionSaved.blocks[0]
+  const literalKeys = Object.keys(literalMerged.inline ?? {})
+  assert(literalKeys.length === 1, 'literal collision merge changed sidecar cardinality')
+  assert(literalKeys[0] !== 'same', 'linked reference aliased author literal token')
+  assert(literalMerged.data.text.includes(`{{${literalKeys[0]}}}`), 'remapped reference token is missing')
+  assert(literalMerged.data.text.includes('{{same}} literal'), 'author literal token was rewritten')
+  assert(literalMerged.inline[literalKeys[0]].data.owner === 'target', 'remapped opaque payload changed')
+  shortcut(editable(literalCollision, 0))
+  await delay()
+  collisionSaved = literalCollision.editor.save()
+  assert(collisionSaved.blocks.length === 2, 'literal collision merge undo was not atomic')
+  assert(collisionSaved.blocks[0].inline?.same?.data.owner === 'target', 'literal collision undo did not restore original sidecar')
+  shortcut(editable(literalCollision, 0), true)
+  await delay()
+  collisionSaved = literalCollision.editor.save()
+  assert(Object.keys(collisionSaved.blocks[0].inline ?? {})[0] === literalKeys[0], 'literal collision redo changed remapped identity')
+  literalCollision.editor.destroy()
+
+  const duplicateReference = createHarness(sandbox, {
+    version: '2.0.0',
+    blocks: [
+      {
+        id: 'duplicate-target',
+        type: 'paragraph',
+        dataVersion: 2,
+        data: { text: 'Left {{dup}}' },
+        inline: {
+          dup: { type: 'future-inline', dataVersion: 7, data: { owner: 'left' } },
+        },
+      },
+      {
+        id: 'duplicate-source',
+        type: 'paragraph',
+        dataVersion: 2,
+        data: { text: '{{dup}} Right' },
+        inline: {
+          dup: { type: 'future-inline', dataVersion: 7, data: { owner: 'right' } },
+        },
+      },
+    ],
+  })
+  const duplicateTarget = editable(duplicateReference, 0)
+  setCaret(duplicateTarget, duplicateTarget.textContent.length)
+  assert(key(duplicateTarget, 'Delete').defaultPrevented, 'duplicate reference merge was not handled')
+  await delay()
+  const duplicateSaved = duplicateReference.editor.save().blocks[0]
+  const duplicateKeys = Object.keys(duplicateSaved.inline ?? {})
+  assert(duplicateKeys.length === 2, 'duplicate reference merge aliased two payloads')
+  assert(duplicateKeys.includes('dup'), 'target reference identity changed without a collision need')
+  const remappedDuplicate = duplicateKeys.find(id => id !== 'dup')
+  assert(remappedDuplicate, 'source duplicate reference was not remapped')
+  assert(duplicateSaved.inline.dup.data.owner === 'left', 'target duplicate payload changed')
+  assert(duplicateSaved.inline[remappedDuplicate].data.owner === 'right', 'source duplicate payload was aliased')
+  assert(duplicateSaved.data.text.includes('{{dup}}'), 'target duplicate token was lost')
+  assert(duplicateSaved.data.text.includes(`{{${remappedDuplicate}}}`), 'source duplicate token was not remapped')
+  duplicateReference.editor.destroy()
+
   const all = createHarness(sandbox)
   const allFirst = editable(all, 0)
   selectAllText(allFirst)
@@ -295,7 +378,7 @@ async function run() {
   sandbox.replaceChildren()
   return {
     crossBlockOperations: ['copy', 'cut', 'paste', 'Backspace', 'Delete', 'outside clear'],
-    structuralKeys: ['Enter', 'Backspace merge', 'Delete merge', 'Ctrl+A'],
+    structuralKeys: ['Enter', 'Backspace merge', 'Delete merge', 'inline collision merge', 'Ctrl+A'],
     focusKeys: ['ArrowUp', 'ArrowDown', 'Tab', 'Shift+Tab'],
     multiField: true,
   }
