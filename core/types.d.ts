@@ -13,42 +13,11 @@ type CoreMessages = { [K in keyof typeof enLocale]: LocaleValue }
 export interface I18nMessages extends CoreMessages {}
 export type MessageKey = keyof I18nMessages
 
-/** Internal diagnostics codes. Diagnostics are content-free and never expose document payloads. */
-export type EditorDiagnosticCode =
-  | 'command.failed'
-  | 'command.slow'
-  | 'paste.failed'
-  | 'paste.slow'
-  | 'migration.applied'
-  | 'migration.failed'
-  | 'migration.unavailable'
-  | 'save.failed'
-  | 'save.slow'
-  | 'render.slow'
-  | 'editor.create.failed'
-  | 'cleanup.failed'
+export type {
+  DiagnosticThresholds,
+  EditorDiagnostic,
+  EditorDiagnosticCode,
+} from './publicTypes.js'
 
-export interface DiagnosticThresholds {
-  commandMs: number
-  saveMs: number
-  renderMs: number
-  pasteMs: number
-}
-
-export interface EditorDiagnostic {
-  code: EditorDiagnosticCode
-  timestamp: number
-  durationMs?: number
-  operation?: string
-  pluginType?: string
-  blockType?: string
-  fromVersion?: string
-  toVersion?: string
-  errorName?: string
-}
-
-/** Internal config augmentation consumed only by the diagnostics utility. */
-export interface EditorConfig extends PublicEditorConfig {
-  onDiagnostic?: (diagnostic: EditorDiagnostic) => void | Promise<void>
-  diagnosticThresholds?: Partial<DiagnosticThresholds>
-}
+/** Internal alias used by implementation modules. */
+export interface EditorConfig extends PublicEditorConfig {}
