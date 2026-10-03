@@ -260,7 +260,7 @@ export function createImagePlugin(config={}){
           let readOnly=context.isReadOnly()
           let dead=false
           let requestGeneration=0
-          let taskController=null
+          let currentTask=null
 
           const applyStyles=()=>{
             wrapper.classList.toggle(CSS.withBorder,data.withBorder)
@@ -305,35 +305,34 @@ export function createImagePlugin(config={}){
             context.updateData(()=>next)
           }
           const beginTask=()=>{
-            taskController?.abort()
-            const Ctor=document.defaultView?.AbortController??AbortController
-            const controller=new Ctor()
-            taskController=controller
+            currentTask?.cancel()
+            const task=context.beginTask()
             const generation=++requestGeneration
-            const abort=()=>controller.abort(context.signal.reason)
-            context.signal.addEventListener('abort',abort,{once:true,signal:controller.signal})
-            return {controller,generation}
+            currentTask=task
+            return {task,generation}
           }
-          const finishSource=(task,result)=>{
-            if(dead||readOnly||task.controller.signal.aborted||task.generation!==requestGeneration)return
+          const finishSource=(request,result)=>{
+            if(dead||readOnly||request.task.signal.aborted||request.generation!==requestGeneration)return false
             const url=sanitizeMediaUrl(result?.url??'')
-            if(!url)return
-            updateData({
-              ...data,
+            if(!url)return false
+            return request.task.commit(current=>({
+              ...current,
               file:{url},
-              caption:data.caption||(typeof result?.alt==='string'?result.alt:''),
-            })
+              caption:current.caption||(typeof result?.alt==='string'?result.alt:''),
+            }))
           }
           const runCustomAction=async action=>{
             if(readOnly||dead)return
             const task=beginTask()
             wrapper.classList.add(CSS.loading)
             try{
-              const result=await action.handler({signal:task.controller.signal})
+              const result=await action.handler({signal:task.task.signal})
               finishSource(task,result)
             }catch(error){
-              if(!task.controller.signal.aborted)console.warn('[Image] Source action failed',error)
+              if(!task.task.signal.aborted)console.warn('[Image] Source action failed',error)
             }finally{
+              task.task.cancel()
+              if(currentTask===task.task)currentTask=null
               if(task.generation===requestGeneration)wrapper.classList.remove(CSS.loading)
             }
           }
@@ -342,8 +341,10 @@ export function createImagePlugin(config={}){
             const task=beginTask()
             wrapper.classList.add(CSS.loading)
             try{
-              await uploader.handle(file,result=>finishSource(task,result),task.controller.signal,document)
+              await uploader.handle(file,result=>finishSource(task,result),task.task.signal,document)
             }finally{
+              task.task.cancel()
+              if(currentTask===task.task)currentTask=null
               if(task.generation===requestGeneration)wrapper.classList.remove(CSS.loading)
             }
           }
@@ -379,7 +380,8 @@ export function createImagePlugin(config={}){
           urlButton.addEventListener('click',openUrl,{signal:context.signal})
           remove.addEventListener('click',()=>{
             if(readOnly)return
-            taskController?.abort()
+            currentTask?.cancel()
+            currentTask=null
             wrapper.classList.remove(CSS.loading)
             updateData(imageDataSchema.createDefault())
           },{signal:context.signal})
@@ -400,7 +402,8 @@ export function createImagePlugin(config={}){
             focus(){if(!dead&&!readOnly)(data.file.url?caption:empty).focus()},
             destroy(){
               dead=true
-              taskController?.abort()
+              currentTask?.cancel()
+              currentTask=null
             },
           }
         },
