@@ -361,14 +361,13 @@ export class InlineToolbar {
     }
   }
 
-  #blockIdsBetween(leftId, rightId) {
-    const records = this.#runtime.list()
-    const left = records.findIndex(record => record.id === leftId)
-    const right = records.findIndex(record => record.id === rightId)
-    if (left < 0 || right < 0) return []
-    const from = Math.min(left, right)
-    const to = Math.max(left, right)
-    return records.slice(from, to + 1).map(record => record.id)
+  #blockIdsBetween(leftId,rightId){
+    const left=this.#runtime.indexOf(leftId)
+    const right=this.#runtime.indexOf(rightId)
+    if(left<0||right<0)return []
+    const from=Math.min(left,right)
+    const to=Math.max(left,right)
+    return this.#runtime.ids().slice(from,to+1)
   }
 
   #formattingBlockIds(range, blockIds) {
