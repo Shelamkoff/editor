@@ -178,8 +178,9 @@ const removedRuntimeSymbols = [
   'DragControllerV2',
   'InlineToolbarV2',
 ]
+const removedSymbolSources = sourceFilesUnder('core').concat(sourceFilesUnder('plugins'), sourceFilesUnder('inline-plugins'))
 for (const symbol of removedRuntimeSymbols) {
-  for (const file of sourceFilesUnder('core').concat(sourceFilesUnder('plugins'), sourceFilesUnder('inline-plugins'))) {
+  for (const file of removedSymbolSources) {
     const relative = path.relative(root, file).split(path.sep).join('/')
     const source = fs.readFileSync(file, 'utf8')
     if (source.includes(symbol)) {
