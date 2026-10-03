@@ -85,6 +85,10 @@
     "./plugin-kit": {
       "types": "./dist/plugin-kit/index.d.ts",
       "import": "./dist/plugin-kit/index.js"
+    },
+    "./preset": {
+      "types": "./dist/preset/index.d.ts",
+      "import": "./dist/preset/index.js"
     }
   },
   "files": [
