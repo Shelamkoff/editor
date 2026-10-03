@@ -5,7 +5,7 @@ const styles = new URL('./styles.css', import.meta.url).href
 
 /**
  * List block renderer for the Rector document format.
- * Data: { style: 'ordered' | 'unordered', items: string[] }
+ * Data: { style: 'ordered' | 'unordered', items: Array<{ id: string, text: string }> }
  * @param {string} classPrefix
  * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} _locale
  * @returns {import('../../types').BlockRenderer<import('../../types').ListBlock>}
@@ -31,7 +31,7 @@ export function createListRenderer(classPrefix, _locale) {
       for (const item of items) {
         const li = context.ownerDocument.createElement('li')
         li.className = `${classPrefix}-list__item`
-        li.appendChild(parseInline(item))
+        li.appendChild(parseInline(item.text))
         list.appendChild(li)
       }
 
