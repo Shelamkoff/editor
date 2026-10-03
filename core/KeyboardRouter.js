@@ -1,4 +1,5 @@
 // @ts-check
+import { editingHostForEvent } from '../shared/editableFields.js'
 import { getTextLength } from '../shared/textOffset.js'
 
 function sameEditableRange(bookmark, owner) {
@@ -61,16 +62,23 @@ export class KeyboardRouter {
   handleKeydown(event) {
     if (this.#runtime.readOnly || event?.defaultPrevented || event?.isComposing || event?.keyCode === 229 || this.#isComposing()) return
 
+    const ownership = this.#ownership(event)
+    if (ownership.kind === 'outside' || ownership.kind === 'auxiliary-native') return
+
     const key = String(event?.key ?? '')
     const lower = key.toLowerCase()
     const mod = event?.metaKey === true || event?.ctrlKey === true
 
     if (mod && !event?.altKey) {
-      if(this.#inlineToolbar?.handleShortcut?.(event))return
-      if (lower === 'a' && !event?.shiftKey) {
-        const owner = this.#reconciler.resolveEditableTarget(event?.target)
-        const bookmark = owner ? this.#selection.capture() : null
-        const range = owner ? sameEditableRange(bookmark, owner) : null
+      if (
+        ownership.kind === 'document-rich-text'
+        && this.#inlineToolbar?.handleShortcut?.(event)
+      ) return
+
+      if (lower === 'a' && !event?.shiftKey && ownership.owner) {
+        const owner = ownership.owner
+        const bookmark = this.#selection.capture()
+        const range = sameEditableRange(bookmark, owner)
         if (
           this.#crossSelection?.active
           || (range && range.start === 0 && range.end === fieldLength(owner))
@@ -79,6 +87,7 @@ export class KeyboardRouter {
           return
         }
       }
+
       if (lower === 'z') {
         event.preventDefault?.()
         if (event?.shiftKey) this.#redo()
@@ -93,13 +102,15 @@ export class KeyboardRouter {
     }
 
     if (event?.metaKey || event?.ctrlKey || event?.altKey) return
+    if (ownership.kind !== 'document-rich-text' || !ownership.owner) return
+
     if (this.#crossSelection?.active && (key === 'Backspace' || key === 'Delete')) {
       event.preventDefault?.()
       this.#crossSelection.replace({ kind: 'text', text: '' })
       return
     }
-    const owner = this.#reconciler.resolveEditableTarget(event?.target)
-    if (!owner) return
+
+    const owner = ownership.owner
     const range = sameEditableRange(this.#selection.capture(), owner)
     if (!range) return
 
@@ -183,6 +194,37 @@ export class KeyboardRouter {
     ) {
       if (this.#mergeForward(owner.blockId, range.end)) event.preventDefault?.()
     }
+  }
+
+  #ownership(event) {
+    const path = typeof event?.composedPath === 'function' ? event.composedPath() : []
+    const target = path.find(node => node && typeof node.closest === 'function') ?? event?.target
+    if (!target || !this.#root.contains(target)) return { kind: 'outside', owner: null }
+
+    const owner = this.#reconciler.resolveEditableTarget(target)
+    if (owner) {
+      if (owner.mode === 'plain-text') {
+        const element = /** @type {Element} */ (target)
+        if (target === owner.element || owner.element.contains?.(element)) {
+          return { kind: 'document-plain-text', owner }
+        }
+      } else if (owner.mode === 'rich-text') {
+        const host = editingHostForEvent(this.#root, target)
+        if (host === owner.element) return { kind: 'document-rich-text', owner }
+      }
+    }
+
+    const element = /** @type {Element} */ (target)
+    if (element.closest?.('.oe-toolbar, .oe-inline-toolbar, .oe-toolbox, .oe-settings-menu, .oe-slash-menu')) {
+      return { kind: 'editor-chrome', owner: null }
+    }
+    if (
+      element.closest?.('input, textarea, select, [contenteditable="true"], [data-inline-plugin]')
+      || this.#reconciler.resolveBlockTarget(target)
+    ) {
+      return { kind: 'auxiliary-native', owner: null }
+    }
+    return { kind: 'editor-chrome', owner: null }
   }
 
   split(blockId, fieldKey, range) {
