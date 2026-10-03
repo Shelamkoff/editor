@@ -61,7 +61,7 @@ export function createBgColorTool(label) {
 
   /** @type {ReturnType<typeof createOwnedColorPicker> | null} */
   let picker = null
-  /** @type {import('../core/types').InlineMutationContext | null} */
+  /** @type {import('./types').InlineMutationContext | null} */
   let mutations = null
 
   /** @param {Range | null} [range] @returns {Document | null} */
