@@ -67,9 +67,14 @@ export interface HeadingData {
     level: 2 | 3 | 4 | 5 | 6
 }
 
+export interface ListItem {
+    id: string
+    text: string
+}
+
 export interface ListData {
     style: 'ordered' | 'unordered'
-    items: string[]
+    items: ListItem[]
 }
 
 export interface QuoteData {
@@ -115,12 +120,23 @@ export interface ImageData {
 
 export interface DelimiterData {}
 
+export interface TableCell {
+    id: string
+    text: string
+}
+
+export interface TableRow {
+    id: string
+    cells: TableCell[]
+}
+
 export interface TableData {
     withHeadings?: boolean
-    content: string[][]
+    rows: TableRow[]
 }
 
 export interface ChecklistItem {
+    id: string
     text: string
     checked: boolean
 }
@@ -148,8 +164,9 @@ export interface RawData {
 }
 
 export interface GalleryImage {
+    id: string
     url: string
-    caption?: string
+    caption: string
 }
 
 export type GalleryLayout =
@@ -212,6 +229,7 @@ export interface CarouselData extends Record<string, unknown> {
 }
 
 export interface AttachesFile {
+    id: string
     url: string
     name: string
     size: number
@@ -219,11 +237,8 @@ export interface AttachesFile {
 }
 
 export interface AttachesData {
-    /** Multi-file format (current) */
-    files?: AttachesFile[]
-    /** Legacy single-file format */
-    file?: AttachesFile
-    variant?: 'a' | 'b' | 'f' | 'g'
+    files: AttachesFile[]
+    variant: 'a' | 'b' | 'f' | 'g'
 }
 
 export type LinkPreviewTemplate = 'horizontal' | 'compact' | 'large-top' | 'minimal' | 'twitter' | 'notion' | 'split'
@@ -245,6 +260,7 @@ export interface ToggleData {
 }
 
 export interface ColumnItem {
+    id: string
     content: string
 }
 
@@ -332,11 +348,13 @@ export interface PollRendererConfig {
 }
 
 export interface PersonLink {
+    id: string
     type: string
     url: string
 }
 
 export interface PersonItem {
+    id: string
     avatar: string
     name: string
     role: string
