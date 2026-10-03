@@ -20,12 +20,12 @@ interface IEditor {
   focus(): boolean
   setReadOnly(readOnly: boolean): void
   insertInlinePlugin(type: string, data?: Record<string, unknown>): boolean
-  on(type: EditorEventName, listener: (payload?: unknown) => void): () => void
+  on<K extends keyof EditorEventMap>(type: K, listener: (payload: EditorEventMap[K]) => void | Promise<void>): () => void
   destroy(): void
 }
 ```
 
-`save()` returns a detached canonical document. `render()` replaces the document through the same schema/migration boundary used at creation. `clear()` creates one empty default block. `undo()` and `redo()` return `false` when no matching history step exists or editing is unavailable.
+`save()` returns a detached canonical document. `render()` replaces the document through the same current-format schema boundary used at creation. `clear()` creates one empty default block. `undo()` and `redo()` are interaction commands and are unavailable while the editor is read-only.
 
 ## Blocks API
 
@@ -77,6 +77,8 @@ Public event names are:
 `transaction:committed` receives one immutable `TransactionCommitted` payload: `{ sequence, origin, action, name, changes, history }`. `sequence` is the committed document revision and increases for commits, undo and redo. `document:changed` exposes only `{ origin, action, changes }` from that same committed event; `history:changed` is the already-committed `{ canUndo, canRedo }` state. Observers run only after model, history cursor and projection have crossed the commit point.
 
 Events are observations. Application and extension code do not emit editor events.
+
+Read-only controls interaction authority, not host ownership. While `readOnly === true`, user/native/clipboard/plugin mutations and undo/redo are blocked, but the host may still call `render()`, `clear()`, and `editor.blocks.insert/update/remove/move/convert()`. Host mutations remain canonical, observable, and undoable once editing is enabled again; `canUndo` and `canRedo` are `false` while read-only.
 
 ## Lifetime
 
