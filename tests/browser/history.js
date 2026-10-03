@@ -419,7 +419,13 @@ async function run() {
     clientY:gapY,
     buttons:0,
   })
+  const firstClick=new MouseEvent('click',{bubbles:true,cancelable:true})
+  dragHandle.dispatchEvent(firstClick)
+  assert(firstClick.defaultPrevented,'drag gesture did not suppress its synthetic click')
   await delay()
+  const laterClick=new MouseEvent('click',{bubbles:true,cancelable:true})
+  dragHandle.dispatchEvent(laterClick)
+  assert(!laterClick.defaultPrevented,'drag click suppression outlived its gesture')
   assert(
     dragEditor.blocks.list().map(block=>block.id).join(',')==='drag-b,drag-a,drag-c',
     'drag gap produced the wrong order',
@@ -432,14 +438,6 @@ async function run() {
   await delay()
   assert(dragEditor.blocks.list().map(block=>block.id).join(',')==='drag-b,drag-a,drag-c','drag redo restored wrong order')
 
-  const firstClick=new MouseEvent('click',{bubbles:true,cancelable:true})
-  dragHandle.dispatchEvent(firstClick)
-  assert(firstClick.defaultPrevented,'drag gesture did not suppress its synthetic click')
-  await delay(5)
-  const laterClick=new MouseEvent('click',{bubbles:true,cancelable:true})
-  dragHandle.dispatchEvent(laterClick)
-  assert(!laterClick.defaultPrevented,'drag click suppression outlived its gesture')
-
   const foreignBefore=dragEditor.blocks.list().map(block=>block.id).join(',')
   pointer(dragHandle,'pointerdown',{pointerId:81,clientX:1,clientY:1})
   pointer(document,'pointermove',{pointerId:82,clientX:20,clientY:gapY})
@@ -447,6 +445,19 @@ async function run() {
   pointer(document,'pointercancel',{pointerId:81,buttons:0})
   await delay()
   assert(dragEditor.blocks.list().map(block=>block.id).join(',')===foreignBefore,'foreign pointer completed a drag')
+
+  const concurrentBefore=dragEditor.blocks.list().map(block=>block.id).join(',')
+  pointer(dragHandle,'pointerdown',{pointerId:86,clientX:1,clientY:1})
+  pointer(document,'pointermove',{pointerId:86,clientX:30,clientY:gapY})
+  dragEditor.blocks.move('drag-c',0)
+  const afterConcurrentHost=dragEditor.blocks.list().map(block=>block.id).join(',')
+  pointer(document,'pointerup',{pointerId:86,clientX:30,clientY:gapY,buttons:0})
+  await delay()
+  assert(
+    dragEditor.blocks.list().map(block=>block.id).join(',')===afterConcurrentHost,
+    'stale drag overwrote a concurrent reorder',
+  )
+  assert(afterConcurrentHost!==concurrentBefore,'concurrent reorder fixture did not change order')
 
   pointer(dragHandle,'pointerdown',{pointerId:91,clientX:1,clientY:1})
   pointer(document,'pointermove',{pointerId:91,clientX:30,clientY:gapY})
