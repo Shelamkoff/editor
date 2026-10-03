@@ -22,7 +22,7 @@ export const paragraphDataSchema = createVersionedDataSchema({
   createDefault: () => ({ text: '' }),
   normalize: normalizeParagraph,
   mapRichText(data, transform) {
-    mapParagraphTextFields(data, html => transform(html, 'text'))
+    data.text = transform(data.text, 'text')
   },
   migrations: [{
     from: 1,
