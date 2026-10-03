@@ -1,6 +1,7 @@
 import { setTrustedHtml } from '../shared/sanitize/sanitizeHtml.js'
 import { editSelectedAncestors } from './selectedAncestors.js'
 import {
+  createSelectionPortBinding,
   toggleTag,
   removeEmptyInlineTags,
   saveSelectionOffsets,
@@ -55,10 +56,11 @@ function removeAllScriptTags(range) {
 /**
  * Create combined superscript/subscript tool with a dropdown panel.
  * @param {{ sup: string, sub: string, none: string }} labels
- * @param {import('./types').CrossBlockSelectionPort | null} [cbs]
  * @returns {import('./types').InlineTool}
  */
-export function createScriptTool(labels, cbs = null) {
+export function createScriptTool(labels) {
+  const selection = createSelectionPortBinding()
+  const cbs = selection.port
   /** @type {Document | null} */
   let ownerDocument = null
 
@@ -70,6 +72,7 @@ export function createScriptTool(labels, cbs = null) {
 
   return {
     type: 'script',
+    bindSelectionPort: selection.bind,
     title: labels.sup,
     icon: ICON_SUP,
 
