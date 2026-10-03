@@ -58,14 +58,15 @@ export class BlockReconciler {
     const previousStore = this.#store
     const previousEntries = this.#entries
     this.#store = store
-    const fresh = this.#stageAll(store, { candidate: false, hydrateInline: false })
+    const fresh = this.#stageAll(store, { candidate: false, stageInline: true })
 
     try {
       this.#container.replaceChildren(...store.ids().map(id => fresh.get(id).element))
       this.#entries = fresh
-      for (const entry of fresh.values()) this.#hydrateEntry(entry)
+      for (const entry of fresh.values()) this.#applyPreparedInline(entry)
+      for (const entry of fresh.values()) this.#finalizePreparedInline(entry)
     } catch (error) {
-      for (const id of store.ids()) this.#inlineProjection?.destroyBlock?.(id)
+      for (const entry of fresh.values()) this.#recoverPreparedInline(entry)
       for (const entry of fresh.values()) this.#destroyEntry(entry)
       this.#entries = previousEntries
       this.#store = previousStore
@@ -183,14 +184,14 @@ export class BlockReconciler {
         }
 
         if (!before || !current) {
-          const entry = this.#createEntry(after, { candidate: true, hydrateInline: false })
+          const entry = this.#createEntry(after, { candidate: true, stageInline: true })
           staged.set(id, entry)
           insertions.push({ id, entry, after })
           continue
         }
 
         if (replaceDocument || before.type !== after.type) {
-          const entry = this.#createEntry(after, { candidate: true, hydrateInline: false })
+          const entry = this.#createEntry(after, { candidate: true, stageInline: true })
           staged.set(id, entry)
           replacements.push({ id, before: current, after: entry, beforeRecord: before, afterRecord: after })
           continue
@@ -198,7 +199,7 @@ export class BlockReconciler {
 
         const dataChanged = !sameJson(before.data, after.data)
         if (dataChanged && typeof current.instance.update !== 'function') {
-          const entry = this.#createEntry(after, { candidate: true, hydrateInline: false })
+          const entry = this.#createEntry(after, { candidate: true, stageInline: true })
           staged.set(id, entry)
           replacements.push({ id, before: current, after: entry, beforeRecord: before, afterRecord: after })
           continue
@@ -259,17 +260,19 @@ export class BlockReconciler {
         }
 
         for (const item of replacements) {
-          this.#inlineProjection?.destroyBlock?.(item.id)
+          this.#applyPreparedInline(item.after)
           item.before.element.replaceWith(item.after.element)
           nextEntries.set(item.id, item.after)
         }
 
-        for (const item of insertions) nextEntries.set(item.id, item.entry)
+        for (const item of insertions) {
+          this.#applyPreparedInline(item.entry)
+          nextEntries.set(item.id, item.entry)
+        }
 
         for (const item of removals) {
           item.entry.element.remove()
           nextEntries.delete(item.id)
-          this.#inlineProjection?.destroyBlock?.(item.id)
         }
 
         if (finalOrder) {
@@ -283,8 +286,6 @@ export class BlockReconciler {
         }
 
         this.#entries = nextEntries
-        for (const item of replacements) this.#hydrateEntry(item.after)
-        for (const item of insertions) this.#hydrateEntry(item.entry)
       },
 
       recover: () => {
@@ -295,31 +296,27 @@ export class BlockReconciler {
           return
         }
 
-        const candidates = new Set([
-          ...previousEntries.values(),
-          ...this.#entries.values(),
-          ...staged.values(),
-        ])
+        for (const item of replacements) this.#recoverPreparedInline(item.after)
+        for (const item of insertions) this.#recoverPreparedInline(item.entry)
+
+        const damagedIds = new Set(updates.map(item => item.id))
         const restored = new Map()
         try {
-          for (const id of changedIds) {
+          for (const id of damagedIds) {
             const record = store.peek(id)
             if (!record) continue
-            restored.set(id, this.#createEntry(record, { candidate: false, hydrateInline: false }))
+            restored.set(id, this.#createEntry(record, {
+              candidate: false,
+              stageInline: true,
+            }))
           }
         } catch (error) {
           for (const entry of restored.values()) this.#destroyEntry(entry)
           throw error
         }
 
-        for (const id of changedIds) this.#inlineProjection?.destroyBlock?.(id)
-
         const nextEntries = new Map(previousEntries)
-        for (const id of changedIds) {
-          const entry = restored.get(id)
-          if (entry) nextEntries.set(id, entry)
-          else nextEntries.delete(id)
-        }
+        for (const [id, entry] of restored) nextEntries.set(id, entry)
 
         this.#container.replaceChildren(...store.ids().map(id => {
           const entry = nextEntries.get(id)
@@ -327,9 +324,16 @@ export class BlockReconciler {
           return entry.element
         }))
         this.#entries = nextEntries
-        for (const entry of restored.values()) this.#hydrateEntry(entry)
+
+        for (const entry of restored.values()) this.#applyPreparedInline(entry)
+        for (const entry of restored.values()) this.#finalizePreparedInline(entry)
 
         const keep = new Set(nextEntries.values())
+        const candidates = new Set([
+          ...this.#entries.values(),
+          ...staged.values(),
+          ...previousEntries.values(),
+        ])
         for (const entry of candidates) if (!keep.has(entry)) this.#destroyEntry(entry)
         recovered = true
       },
@@ -339,11 +343,19 @@ export class BlockReconciler {
         if (!applied) throw new Error('Cannot finalize an unapplied block projection')
 
         for (const item of updates) item.entry.lifetime.candidate = null
-        for (const item of replacements) item.after.lifetime.candidate = null
-        for (const item of insertions) item.entry.lifetime.candidate = null
-
-        for (const item of replacements) this.#destroyEntry(item.before)
-        for (const item of removals) this.#destroyEntry(item.entry)
+        for (const item of replacements) {
+          item.after.lifetime.candidate = null
+          this.#finalizePreparedInline(item.after)
+          this.#destroyEntry(item.before)
+        }
+        for (const item of insertions) {
+          item.entry.lifetime.candidate = null
+          this.#finalizePreparedInline(item.entry)
+        }
+        for (const item of removals) {
+          this.#inlineProjection?.destroyBlock?.(item.id)
+          this.#destroyEntry(item.entry)
+        }
 
         this.#animator.animateRemovals(this.#container, removalSnapshots)
         this.#animator.animateMoves(this.#entries, firstRects)
@@ -409,13 +421,13 @@ export class BlockReconciler {
     if (this.#destroyed) throw new Error('BlockReconciler is destroyed')
   }
 
-  #stageAll(source, { candidate = false, hydrateInline = false } = {}) {
+  #stageAll(source, { candidate = false, stageInline = false } = {}) {
     const staged = new Map()
     try {
       for (const id of source.ids()) {
         const record = source.peek(id)
         if (!record) throw new Error(`Canonical block is missing: ${id}`)
-        staged.set(id, this.#createEntry(record, { candidate, hydrateInline }))
+        staged.set(id, this.#createEntry(record, { candidate, stageInline }))
       }
       return staged
     } catch (error) {
@@ -424,7 +436,7 @@ export class BlockReconciler {
     }
   }
 
-  #createEntry(record, { candidate = false, hydrateInline = false } = {}) {
+  #createEntry(record, { candidate = false, stageInline = false } = {}) {
     const ownerDocument = this.#container.ownerDocument
     const lifetime = { candidate: candidate ? record : null }
 
@@ -498,10 +510,17 @@ export class BlockReconciler {
       instance.setReadOnly(this.#readOnly)
       this.#refreshFields(record.id, entry)
       this.#applyTunes(entry, record)
-      if (hydrateInline) this.#hydrateEntry(entry)
+      if (stageInline && this.#inlineProjection) {
+        entry.inlinePrepared = this.#inlineProjection.prepareBlock(
+          record.id,
+          record,
+          definition,
+          instance.editableFields?.() ?? [],
+          base,
+        )
+      }
       return entry
     } catch (error) {
-      try { this.#inlineProjection?.destroyBlock?.(record.id) } catch {}
       try { controller.abort() } catch {}
       try { instance?.destroy?.() } catch {}
       try { element?.remove?.() } catch {}
@@ -509,15 +528,23 @@ export class BlockReconciler {
     }
   }
 
-  #hydrateEntry(entry) {
-    if (!this.#inlineProjection || entry.unregistered) return
-    this.#inlineProjection.reconcileBlock(
-      entry.record.id,
-      entry.record,
-      entry.definition,
-      entry.instance.editableFields?.() ?? [],
-      entry.baseContext,
-    )
+  #applyPreparedInline(entry) {
+    entry?.inlinePrepared?.apply?.()
+  }
+
+  #recoverPreparedInline(entry) {
+    if (!entry?.inlinePrepared) return
+    try { entry.inlinePrepared.recover() } finally { entry.inlinePrepared = null }
+  }
+
+  #finalizePreparedInline(entry) {
+    if (!entry?.inlinePrepared) return
+    try { entry.inlinePrepared.finalize() } finally { entry.inlinePrepared = null }
+  }
+
+  #discardPreparedInline(entry) {
+    if (!entry?.inlinePrepared) return
+    try { entry.inlinePrepared.discard() } finally { entry.inlinePrepared = null }
   }
 
   #refreshFields(id, entry) {
@@ -541,15 +568,16 @@ export class BlockReconciler {
   }
 
   #restore(store, extraEntries) {
-    const fresh = this.#stageAll(store, { candidate: false, hydrateInline: false })
+    const fresh = this.#stageAll(store, { candidate: false, stageInline: true })
     const oldEntries = new Set([...this.#entries.values(), ...extraEntries.values()])
-    for (const id of this.#entries.keys()) this.#inlineProjection?.destroyBlock?.(id)
 
     try {
       this.#container.replaceChildren(...store.ids().map(id => fresh.get(id).element))
       this.#entries = fresh
-      for (const entry of fresh.values()) this.#hydrateEntry(entry)
+      for (const entry of fresh.values()) this.#applyPreparedInline(entry)
+      for (const entry of fresh.values()) this.#finalizePreparedInline(entry)
     } catch (error) {
+      for (const entry of fresh.values()) this.#recoverPreparedInline(entry)
       for (const entry of fresh.values()) this.#destroyEntry(entry)
       throw error
     }
@@ -559,6 +587,7 @@ export class BlockReconciler {
 
   #destroyEntry(entry) {
     if (!entry) return
+    try { this.#discardPreparedInline(entry) } catch {}
     try { entry.controller?.abort() } catch {}
     try { entry.instance?.destroy?.() } catch {}
     try { entry.element?.remove?.() } catch {}
