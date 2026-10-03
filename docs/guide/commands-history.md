@@ -127,9 +127,9 @@ The complete tool contract, registration rules, built-in names, action panels, a
 
 ## Commands from block inline controls
 
-`renderInlineControls(contentElement, ctx)` is for block-specific controls displayed in the inline toolbar, such as changing a heading level. Its `ctx.mutate()` creates the history entry.
+Block-specific controls shown in the inline toolbar reuse the block's model-first `inlineControls` capability. Each action receives canonical block data and returns updated data through the same `SettingsActionCapability` contract used by block settings.
 
-If an action replaces the block's editable element, call `ctx.suppressSelectionChange()` before the replacement and `ctx.onContentElementChanged(newElement)` afterwards. These methods preserve selection ownership; they do not create history by themselves.
+The control never owns an editable DOM element and does not notify Rector after mutating projection state. Rector commits the returned data as one transaction and then reconciles the projection, so selection ownership and history stay inside the document runtime.
 
 ## Commands from inline widgets
 
