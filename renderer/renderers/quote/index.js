@@ -1,5 +1,6 @@
 import { setTrustedHtml } from '../../../shared/sanitize/sanitizeHtml.js'
 // @ts-check
+import { quoteDataSchema } from '../../../shared/blockSchemas/quote.js'
 
 const styles = new URL('./styles.css', import.meta.url).href
 
@@ -10,11 +11,12 @@ const ICON_QUOTE = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="2
  * Quote block renderer — callout style with icon
  * @param {string} classPrefix
  * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} _locale
- * @returns {import('../../types').BlockRenderer<import('../../types').QuoteBlock>}
+ * @returns {import('../../types').BlockRendererDefinition<import('../../types').QuoteBlock>}
  */
 export function createQuoteRenderer(classPrefix, _locale) {
   return {
     type: 'quote',
+    schema: quoteDataSchema,
     styles: [styles],
 
     /**
