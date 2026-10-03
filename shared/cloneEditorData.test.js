@@ -1,17 +1,17 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { cloneEditorData } from './cloneEditorData.js'
-import { mapChecklistTextFields } from './mapTextFields.js'
+import { checklistDataSchema } from './blockSchemas/checklist.js'
 
 test('cloneEditorData isolates nested block data before hydration', () => {
   const source = {
     items: [
-      { text: 'before', checked: false },
+      { id: 'item-1', text: 'before', checked: false },
     ],
   }
 
   const owned = cloneEditorData(source)
-  mapChecklistTextFields(owned, text => text.toUpperCase())
+  checklistDataSchema.mapRichText(owned, text => text.toUpperCase())
 
   assert.equal(owned.items[0].text, 'BEFORE')
   assert.equal(source.items[0].text, 'before')
