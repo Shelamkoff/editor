@@ -1,6 +1,7 @@
 import { closestBlock } from '../core/dom.js'
 import { editableAtBoundary } from '../shared/editableFields.js'
 import {
+  createSelectionPortBinding,
   saveSelectionOffsets,
   restoreSelectionOffsets,
   clearCrossBlockRange,
@@ -72,12 +73,14 @@ function caseReplacements(targets, upper) {
  * Create inline tool that toggles selected text between UPPERCASE and lowercase.
  *
  * @param {string} label
- * @param {import('./types').CrossBlockSelectionPort | null} [cbs]
  * @returns {import('./types').InlineTool}
  */
-export function createCaseTransformTool(label, cbs = null) {
+export function createCaseTransformTool(label) {
+  const selectionPort = createSelectionPortBinding()
+  const cbs = selectionPort.port
   return {
     type: 'caseTransform',
+    bindSelectionPort: selectionPort.bind,
     title: label,
     icon: ICON,
 
