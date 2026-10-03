@@ -262,6 +262,11 @@ async function run() {
   eventHarness.editor.on('transaction:committed', event => transactionEvents.push(event))
   eventHarness.editor.on('document:changed', event => documentEvents.push(event))
   eventHarness.editor.on('history:changed', event => historyEvents.push(event))
+  let observerAfterFailure = 0
+  eventHarness.editor.on('document:changed', async () => {
+    throw new Error('intentional async event observer failure')
+  })
+  eventHarness.editor.on('document:changed', () => { observerAfterFailure++ })
   const eventInserted = eventHarness.editor.blocks.insert({
     type: 'paragraph',
     data: { text: 'Event insert' },
@@ -276,6 +281,9 @@ async function run() {
     'document:changed exposes fields outside its contract',
   )
   assert(historyEvents.at(-1).canUndo === true && historyEvents.at(-1).canRedo === false, 'history event did not expose committed cursor')
+
+  await delay()
+  assert(observerAfterFailure > 0, 'failed async event observer prevented later listeners')
 
   assert(eventHarness.editor.undo() === true, 'event insert undo failed')
   const undoTransaction = transactionEvents.at(-1)
