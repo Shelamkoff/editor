@@ -166,18 +166,7 @@ try {
     }
   }
 
-  const safeBufferEntry = fileURLToPath(import.meta.resolve('safe-buffer', import.meta.url))
-  let safeBufferRoot = dirname(safeBufferEntry)
-  while (dirname(safeBufferRoot) !== safeBufferRoot) {
-    try {
-      const manifest = JSON.parse(await readFile(join(safeBufferRoot, 'package.json'), 'utf8'))
-      if (manifest.name === 'safe-buffer') break
-    } catch {}
-    safeBufferRoot = dirname(safeBufferRoot)
-  }
-  if (!dependencyTarballs.some(path => basename(path) === 'safe-buffer-5.1.2.tgz' || basename(path) === 'safe-buffer-5.2.1.tgz')) {
-    dependencyTarballs.push(await packInstalledDependency(safeBufferRoot, dependencyPackRoot))
-  }
+
 
   const consumerRoot = join(temporaryRoot, 'consumer')
   await mkdir(join(consumerRoot, 'src'), { recursive: true })
