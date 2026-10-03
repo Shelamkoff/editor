@@ -223,6 +223,33 @@ async function run() {
   assert(apiEditor.isReady === false, 'isReady must remain readable and false after destroy')
   apiHolder.remove()
 
+  const mobileHolder = document.createElement('section')
+  sandbox.appendChild(mobileHolder)
+  const mobileDefinition = createParagraphPlugin({ injectStyles: false })
+  const mobileEditor = createEditor({
+    holder: mobileHolder,
+    plugins: [mobileDefinition],
+    defaultBlock: 'paragraph',
+    injectStyles: false,
+    mobileBreakpoint: 100000,
+  })
+  const mobileRoot = mobileHolder.querySelector('.oe-editor')
+  assert(mobileRoot?.classList.contains('oe-editor--mobile'), 'configured mobile breakpoint did not activate mobile mode')
+  const mobileId = mobileEditor.blocks.at(0)?.id
+  assert(mobileId, 'mobile editor default block is missing')
+  mobileEditor.blocks.focus(mobileId)
+  await Promise.resolve()
+  const mobilePlus = mobileRoot.querySelector('.oe-toolbar__btn:not(.oe-toolbar__drag)')
+  const mobileToolbox = mobileRoot.querySelector('.oe-toolbox')
+  const mobileBackdrop = mobileRoot.querySelector('.oe-offcanvas-backdrop')
+  mobilePlus.click()
+  assert(mobileToolbox.classList.contains('oe-toolbox--open'), 'mobile toolbox did not enter open state')
+  assert(mobileBackdrop.classList.contains('oe-offcanvas-backdrop--visible'), 'mobile toolbox backdrop did not open')
+  mobileBackdrop.click()
+  assert(!mobileToolbox.classList.contains('oe-toolbox--open'), 'mobile backdrop did not close toolbox')
+  mobileEditor.destroy()
+  mobileHolder.remove()
+
   const renderer = new EditorRenderer({ blockTypes: BLOCK_TYPES, throwOnUnknown: true, theme: 'light' })
   const output = { time: 1, version: '2.0.0', blocks: savedBlocks }
   const container = document.createElement('main')
