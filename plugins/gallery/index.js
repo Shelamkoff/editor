@@ -1,8 +1,6 @@
 // @ts-check
-import {
-  insertTrustedHtml,
-  setSafeUrlAttribute,
-} from '../../plugin-kit/index.js'
+import { setSafeUrlAttribute } from '../../plugin-kit/index.js'
+import { insertTrustedHtml } from '../../shared/sanitize/sanitizeHtml.js'
 import { galleryDataSchema } from '../../shared/blockSchemas/gallery.js'
 import { GALLERY_LAYOUTS } from '../../shared/blockOptions.js'
 import { sanitizeMediaUrl } from '../../shared/sanitize/sanitizeUrl.js'
