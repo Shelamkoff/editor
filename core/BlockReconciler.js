@@ -16,6 +16,41 @@ function hasStructuralChange(changes) {
   ))
 }
 
+function snapshotBlockInstance(source, type) {
+  if (!source || typeof source !== 'object' || Array.isArray(source)) {
+    throw new TypeError(`Block runtime "${type}" returned an invalid instance`)
+  }
+  const element = source.element
+  const read = typeof source.read === 'function' ? source.read.bind(source) : null
+  const update = typeof source.update === 'function' ? source.update.bind(source) : undefined
+  const editableFields = typeof source.editableFields === 'function'
+    ? source.editableFields.bind(source)
+    : undefined
+  const setReadOnly = typeof source.setReadOnly === 'function'
+    ? source.setReadOnly.bind(source)
+    : null
+  const focus = typeof source.focus === 'function' ? source.focus.bind(source) : undefined
+  const destroySource = typeof source.destroy === 'function' ? source.destroy.bind(source) : null
+  if (!element || !read || !setReadOnly || !destroySource) {
+    throw new TypeError(`Block runtime "${type}" returned an invalid instance`)
+  }
+  let destroyed = false
+  const instance = {
+    element,
+    read,
+    setReadOnly,
+    destroy() {
+      if (destroyed) return
+      destroyed = true
+      destroySource()
+    },
+  }
+  if (update) instance.update = update
+  if (editableFields) instance.editableFields = editableFields
+  if (focus) instance.focus = focus
+  return Object.freeze(instance)
+}
+
 export class BlockReconciler {
   #container
   #registry
@@ -59,7 +94,7 @@ export class BlockReconciler {
     const previousStore = this.#store
     const previousEntries = this.#entries
     this.#store = store
-    const fresh = this.#stageAll(store, { candidate: true, stageInline: true })
+    const fresh = this.#stageAll(store, { candidate: true, stageInline: true, generation: store.generation })
 
     try {
       this.#container.replaceChildren(...store.ids().map(id => fresh.get(id).element))
@@ -147,7 +182,7 @@ export class BlockReconciler {
   }
 
 
-  prepare({ store, draft, changes, sourceBlockId }) {
+  prepare({ store, draft, changes, sourceBlockId, generation }) {
     this.#assertLive()
     this.#store = store
     const structuralChange = hasStructuralChange(changes)
@@ -186,14 +221,14 @@ export class BlockReconciler {
         }
 
         if (!before || !current) {
-          const entry = this.#createEntry(after, { candidate: true, stageInline: true })
+          const entry = this.#createEntry(after, { candidate: true, stageInline: true, generation })
           staged.set(id, entry)
           insertions.push({ id, entry, after })
           continue
         }
 
         if (replaceDocument || before.type !== after.type) {
-          const entry = this.#createEntry(after, { candidate: true, stageInline: true })
+          const entry = this.#createEntry(after, { candidate: true, stageInline: true, generation })
           staged.set(id, entry)
           replacements.push({ id, before: current, after: entry, beforeRecord: before, afterRecord: after })
           continue
@@ -201,7 +236,7 @@ export class BlockReconciler {
 
         const dataChanged = !sameJson(before.data, after.data)
         if (dataChanged && typeof current.instance.update !== 'function') {
-          const entry = this.#createEntry(after, { candidate: true, stageInline: true })
+          const entry = this.#createEntry(after, { candidate: true, stageInline: true, generation })
           staged.set(id, entry)
           replacements.push({ id, before: current, after: entry, beforeRecord: before, afterRecord: after })
           continue
@@ -310,6 +345,7 @@ export class BlockReconciler {
             restored.set(id, this.#createEntry(record, {
               candidate: false,
               stageInline: true,
+              generation: store.generation,
             }))
           }
         } catch (error) {
@@ -328,6 +364,7 @@ export class BlockReconciler {
         this.#entries = nextEntries
 
         for (const entry of restored.values()) this.#applyPreparedInline(entry)
+        for (const entry of restored.values()) this.#activateEntry(entry)
         for (const entry of restored.values()) this.#finalizePreparedInline(entry)
 
         const keep = new Set(nextEntries.values())
@@ -394,6 +431,7 @@ export class BlockReconciler {
         changed.push(entry)
       }
       this.#inlineProjection?.setReadOnly?.(next)
+      for (const entry of this.#entries.values()) entry.scope?.setReadOnly?.(next)
       this.#readOnly = next
     } catch (error) {
       let recoveryError = null
@@ -425,13 +463,13 @@ export class BlockReconciler {
     if (this.#destroyed) throw new Error('BlockReconciler is destroyed')
   }
 
-  #stageAll(source, { candidate = false, stageInline = false } = {}) {
+  #stageAll(source, { candidate = false, stageInline = false, generation = source.generation } = {}) {
     const staged = new Map()
     try {
       for (const id of source.ids()) {
         const record = source.peek(id)
         if (!record) throw new Error(`Canonical block is missing: ${id}`)
-        staged.set(id, this.#createEntry(record, { candidate, stageInline }))
+        staged.set(id, this.#createEntry(record, { candidate, stageInline, generation }))
       }
       return staged
     } catch (error) {
@@ -440,10 +478,10 @@ export class BlockReconciler {
     }
   }
 
-  #createEntry(record, { candidate = false, stageInline = false } = {}) {
+  #createEntry(record, { candidate = false, stageInline = false, generation = this.#store?.generation ?? 0 } = {}) {
     const ownerDocument = this.#container.ownerDocument
     const lifetime = { candidate: candidate ? record : null }
-    const scope = new InstanceScope({ staged: candidate })
+    const scope = new InstanceScope({ staged: true, generation, readOnly: this.#readOnly })
 
     if (!this.#registry.hasBlock(record.type) || !this.#activationResolver(record.id, record)) {
       const element = ownerDocument.createElement('div')
@@ -487,14 +525,14 @@ export class BlockReconciler {
       const base = this.#contextFactory(record.id, record.type, controller.signal, readRecord, scope) ?? {}
       const context = Object.freeze({
         ...base,
-        ownerDocument,
-        signal: controller.signal,
-        isReadOnly: () => this.#readOnly,
+        ownerDocument: base.ownerDocument ?? ownerDocument,
+        signal: base.signal ?? controller.signal,
+        isReadOnly: typeof base.isReadOnly === 'function'
+          ? base.isReadOnly
+          : () => this.#readOnly,
       })
-      instance = runtime.create(record.data, context)
-      if (!instance?.element || typeof instance.read !== 'function' || typeof instance.setReadOnly !== 'function' || typeof instance.destroy !== 'function') {
-        throw new TypeError(`Block runtime "${record.type}" returned an invalid instance`)
-      }
+      const sourceInstance = runtime.create(record.data, context)
+      instance = snapshotBlockInstance(sourceInstance, record.type)
       element = ownerDocument.createElement('div')
       element.className = 'oe-block'
       element.dataset.blockId = record.id
@@ -509,7 +547,7 @@ export class BlockReconciler {
         controller,
         unregistered: false,
         definition,
-        baseContext: base,
+        baseContext: context,
         lifetime,
         scope,
       }
@@ -523,7 +561,8 @@ export class BlockReconciler {
           record,
           definition,
           instance.editableFields?.() ?? [],
-          base,
+          context,
+          generation,
         )
       }
       return entry
@@ -580,13 +619,14 @@ export class BlockReconciler {
   }
 
   #restore(store, extraEntries) {
-    const fresh = this.#stageAll(store, { candidate: false, stageInline: true })
+    const fresh = this.#stageAll(store, { candidate: false, stageInline: true, generation: store.generation })
     const oldEntries = new Set([...this.#entries.values(), ...extraEntries.values()])
 
     try {
       this.#container.replaceChildren(...store.ids().map(id => fresh.get(id).element))
       this.#entries = fresh
       for (const entry of fresh.values()) this.#applyPreparedInline(entry)
+      for (const entry of fresh.values()) this.#activateEntry(entry)
       for (const entry of fresh.values()) this.#finalizePreparedInline(entry)
     } catch (error) {
       for (const entry of fresh.values()) this.#recoverPreparedInline(entry)
