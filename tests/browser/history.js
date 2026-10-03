@@ -202,6 +202,80 @@ async function run() {
   assert(editor.readOnly === false, 'setReadOnly(false) did not restore editing')
   assert(stable(semantic(editor.save())) === beforeMode, 'read-only transition changed document data')
 
+  const readOnlyHarness = createHarness(sandbox)
+  const readOnlyEditor = readOnlyHarness.editor
+  const readOnlyHolder = readOnlyHarness.holder
+  readOnlyEditor.setReadOnly(true)
+  assert(readOnlyEditor.canUndo === false && readOnlyEditor.canRedo === false, 'read-only exposed history commands')
+
+  const readOnlyBefore = stable(semantic(readOnlyEditor.save()))
+  const readOnlyShell = readOnlyHolder.querySelector('.oe-block[data-block-id="alpha"]')
+  const blockedUndo = key(readOnlyShell, 'z', { code: 'KeyZ', ctrlKey: true })
+  await delay()
+  assert(!blockedUndo.defaultPrevented, 'read-only KeyboardRouter claimed Mod+Z')
+  assert(stable(semantic(readOnlyEditor.save())) === readOnlyBefore, 'read-only keyboard history changed the document')
+
+  const hostInserted = readOnlyEditor.blocks.insert({
+    type: 'paragraph',
+    data: { text: 'Host insert while read-only' },
+  })
+  readOnlyEditor.blocks.update(hostInserted, current => ({
+    data: { ...current.data, text: 'Host updated while read-only' },
+  }))
+  readOnlyEditor.blocks.move(hostInserted, 0)
+  assert(readOnlyEditor.blocks.at(0)?.id === hostInserted, 'host move was blocked by read-only')
+  readOnlyEditor.blocks.remove(hostInserted)
+
+  readOnlyEditor.render({
+    version: '2.0.0',
+    blocks: [{ id: 'host-render', type: 'paragraph', dataVersion: 2, data: { text: 'Host render' } }],
+  })
+  assert(readOnlyEditor.save().blocks[0].id === 'host-render', 'host render was blocked by read-only')
+  readOnlyEditor.clear()
+  assert(readOnlyEditor.blocks.count === 1, 'host clear was blocked by read-only')
+  assert(readOnlyEditor.readOnly === true, 'host mutation changed requested read-only state')
+  assert(readOnlyEditor.canUndo === false, 'read-only exposed history after host mutations')
+
+  readOnlyEditor.setReadOnly(false)
+  assert(readOnlyEditor.canUndo === true, 'history did not become available after leaving read-only')
+  assert(readOnlyEditor.undo() === true, 'host clear was not undoable after leaving read-only')
+  assert(readOnlyEditor.save().blocks[0].id === 'host-render', 'undo after read-only restored wrong host state')
+  readOnlyEditor.destroy()
+
+  const eventHarness = createHarness(sandbox)
+  const transactionEvents = []
+  const documentEvents = []
+  const historyEvents = []
+  eventHarness.editor.on('transaction:committed', event => transactionEvents.push(event))
+  eventHarness.editor.on('document:changed', event => documentEvents.push(event))
+  eventHarness.editor.on('history:changed', event => historyEvents.push(event))
+  const eventInserted = eventHarness.editor.blocks.insert({
+    type: 'paragraph',
+    data: { text: 'Event insert' },
+  })
+  assert(transactionEvents.at(-1).action === 'commit', 'insert event action is wrong')
+  assert(transactionEvents.at(-1).changes[0].kind === 'block.insert', 'insert event lost forward change')
+  assert(!Object.hasOwn(transactionEvents.at(-1), 'record'), 'transaction event still exposes nested record')
+  assert(Object.isFrozen(transactionEvents.at(-1)), 'transaction event is mutable')
+  assert(Object.isFrozen(transactionEvents.at(-1).changes), 'transaction changes are mutable')
+  assert(
+    Object.keys(documentEvents.at(-1)).sort().join(',') === 'action,changes,origin',
+    'document:changed exposes fields outside its contract',
+  )
+  assert(historyEvents.at(-1).canUndo === true && historyEvents.at(-1).canRedo === false, 'history event did not expose committed cursor')
+
+  assert(eventHarness.editor.undo() === true, 'event insert undo failed')
+  const undoTransaction = transactionEvents.at(-1)
+  assert(undoTransaction.action === 'undo', 'undo event action is wrong')
+  assert(undoTransaction.changes[0].kind === 'block.remove', 'undo did not publish applied inverse change')
+  assert(undoTransaction.changes[0].block.id === eventInserted, 'undo inverse change targets wrong block')
+
+  assert(eventHarness.editor.redo() === true, 'event insert redo failed')
+  const redoTransaction = transactionEvents.at(-1)
+  assert(redoTransaction.action === 'redo', 'redo event action is wrong')
+  assert(redoTransaction.changes[0].kind === 'block.insert', 'redo did not publish forward change')
+  eventHarness.editor.destroy()
+
   const changes = []
   const stop = editor.on('document:changed', event => changes.push(event))
   const inserted = editor.blocks.insert({ type: 'paragraph', dataVersion: 2, data: { text: 'Observed' } })
@@ -232,8 +306,10 @@ async function run() {
       'toolbar insert',
       'keyboard undo/redo',
       'read-only transition',
+      'read-only host authority',
+      'direct/inverse transaction events',
     ],
-    publicEvents: ['document:changed'],
+    publicEvents: ['transaction:committed', 'document:changed', 'history:changed'],
   }
 }
 
