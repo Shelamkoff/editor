@@ -69,26 +69,18 @@ export function createHeadingPlugin(){
     }),
     inlineControls:levelSettings,
     settings:levelSettings,
-    paste:Object.freeze({
-      accepts(input){
-        return input.kind==='html'&&/<h[2-6](?:\s|>)/i.test(input.html)
+    htmlImport:Object.freeze({
+      matchesRoot(element){
+        return /^H[2-6]$/.test(element.tagName)
       },
-      resolve(input,context){
-        if(input.kind!=='html')return null
-        const template=context.ownerDocument.createElement('template')
-        template.innerHTML=input.html
-        const element=template.content.querySelector('h2,h3,h4,h5,h6')
-        if(!element)return null
+      importRoot(element,context){
         const level=Number(element.tagName.slice(1))
         return {
-          kind:/** @type {'block'} */('block'),
-          data:{
-            text:element.innerHTML,
-            level:/** @type {2|3|4|5|6} */(level),
-          },
+          text:context.serializeRichText(element),
+          level:/** @type {2|3|4|5|6} */(level),
         }
       },
-    }),
+    }),,
   })
 
   return Object.freeze({
