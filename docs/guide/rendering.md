@@ -50,7 +50,7 @@ interface RendererConfig {
 | `classPrefix` | `editor` | namespace used by generated renderer classes |
 | `throwOnUnknown` | `true` | throw for an unregistered block instead of rendering a placeholder |
 | `theme` | `dark` | renderer theme tokens |
-| `validationMode` | `preserve` | normalize malformed built-in data, or throw before rendering it in `strict` mode |
+| `validationMode` | `preserve` | keep malformed or unsupported-version registered blocks inert, or throw before rendering them in `strict` mode |
 | `onValidationError` | none | receive a content-free `{ blockId?, type }` notice for invalid built-in data |
 | `locale` | built-in English | flat `renderer.*` message dictionary |
 | `blockTypes` | all built-ins | construct only selected built-in renderers |
@@ -59,9 +59,11 @@ interface RendererConfig {
 
 `InlineWidgetRenderer.schema` is the same versioned inline-widget schema used by the editor definition. The renderer decodes and validates the canonical payload through that schema before calling `InlineWidgetRenderer.render()`; unknown, malformed, or unsupported widget data is never activated as markup.
 
+Every registered block renderer is likewise a `BlockRendererDefinition` with a `schema`. Built-in definitions are bound to the exact `BlockDataSchema` used by the matching editor plugin, so migrations, current `dataVersion`, validation, and rich-text field traversal have one source of truth.
+
 The default fails explicitly when a renderer is missing. Set `throwOnUnknown: false` only when a mixed-version application intentionally accepts a placeholder for unsupported blocks. The placeholder has the class `<classPrefix>-unknown` and a `data-block-type` attribute; it does not reproduce the missing content.
 
-Validation covers built-in data shapes and URL policies before their built-in renderers run. In `preserve` mode malformed data is replaced with the built-in type's normalized safe shape and `onValidationError` is called; in `strict` mode an `InvalidBlockDataError` is thrown instead. `onValidationError` may return a Promise; synchronous throws and rejected Promises are isolated from rendering and do not change the validation result. A custom renderer registered for the same type owns its own validation contract, so replacing a built-in renderer also disables that built-in validator.
+Before any registered renderer runs, Rector decodes the block through that renderer definition's schema. In `preserve` mode malformed or unsupported-version payloads produce an inert `<classPrefix>-preserved` element and `onValidationError` is called; the preserved payload is never executed as renderer markup. In `strict` mode an `InvalidBlockDataError` is thrown instead. `onValidationError` may return a Promise; synchronous throws and rejected Promises are isolated from rendering and do not change the validation result. Custom renderers must provide a schema, so replacing a built-in renderer cannot bypass validation.
 
 `blockConfigs.poll` accepts the same `dataSource`, `compareRevisions`, `onError`, and `maxVoters` runtime options as the Poll editor plugin. `onError` may return a Promise; callback failures are isolated from renderer state. `compareRevisions(next, current)` must return a positive value only when `next` is newer; without it, unequal opaque revisions follow arrival order. The renderer loads and subscribes to current results without changing the supplied document. Call `destroy()` to abort requests and unsubscribe.
 
@@ -73,6 +75,7 @@ Import renderer values from `@shelamkoff/rector/renderer` and renderer-only decl
 import { createEditorRenderer } from '@shelamkoff/rector/renderer'
 import type {
   BlockRenderer,
+  BlockRendererDefinition,
   OutputData,
   ParagraphBlock,
   RendererConfig,
@@ -85,7 +88,7 @@ The type entry exports:
 - the document envelope `OutputData`, the generic block shape `OutputBlockData`, and `InlineWidget`;
 - `Block`, `BlockType`, and a named block alias such as `ParagraphBlock`, `ImageBlock`, or `PollBlock` for every built-in renderer;
 - the matching data contracts such as `ParagraphData`, `ImageData`, `GalleryData`, `CarouselData`, `PollData`, and `PersonData`;
-- extension contracts `BlockRenderer`, `InlineParser`, `InlineWidgetRenderer`, and `RendererConfig`;
+- extension contracts `BlockRenderer`, schema-bound `BlockRendererDefinition`, `InlineParser`, `InlineWidgetRenderer`, and `RendererConfig`;
 - poll integration contracts `PollDataSource`, `PollResults`, `PollVoter`, and `PollRendererConfig`.
 
 Use `OutputData` when a renderer-only application does not depend on editor types. An `EditorDocument` returned by `editor.save()` is structurally compatible and does not need conversion. Use a named block alias when implementing a renderer for a known built-in data shape; use `OutputBlockData<'callout', CalloutData>` for an application-defined type.
@@ -124,17 +127,25 @@ Use a string or finite number for `revision`, and change it whenever `data`, `tu
 
 ## Registering renderers
 
-Built-in renderers are registered by default. Add or replace one by matching the stored block `type`:
+Built-in renderers are registered by default. A custom registration must bind rendering to a canonical schema:
 
 ```js
-renderer.registerRenderer(createCalloutRenderer('article'))
+renderer.registerRenderer({
+  type: 'callout',
+  schema: calloutDataSchema,
+  render(block, parseInline, context) {
+    const element = context.ownerDocument.createElement('aside')
+    element.append(parseInline(block.data.text))
+    return element
+  },
+})
 
 renderer.hasRenderer('callout')       // true
 renderer.getRegisteredTypes()         // string[]
 renderer.unregisterRenderer('callout')
 ```
 
-Registering the same type replaces the previous renderer for future output. Release already mounted output before removing a renderer whose `destroy(element)` method owns resources.
+The schema is mandatory and is evaluated before `render()`. Registering the same type replaces the previous renderer for future output. Release already mounted output before removing a renderer whose `destroy(element)` method owns resources.
 
 ## Loading only used block types
 
@@ -154,9 +165,9 @@ The asynchronous helpers use known public block types. An unknown type rejects r
 
 Every block renderer receives `parseInline(text)`. It sanitizes supported inline markup and returns a `DocumentFragment`; append the fragment instead of assigning `innerHTML`.
 
-Persistent widgets also require a lightweight renderer-side plugin with `type`, `createWidget(data, id)`, and `getData(element)`. Its `createWidget()` must preserve the supplied id as `data-id`.
+Persistent widgets use an `InlineWidgetRenderer` with `type`, the same canonical widget `schema` as the editor extension, and `render(id, data, context)`.
 
-The block renderer's `mapTextFields()` must identify exactly the same HTML-bearing fields as the editor plugin. Rector expands <code>&#123;&#123;id&#125;&#125;</code> placeholders before calling the renderer.
+HTML-bearing block fields are traversed by `BlockDataSchema.mapRichText()`. Rector therefore expands <code>&#123;&#123;id&#125;&#125;</code> placeholders through the same field map used by the editor instead of maintaining a second renderer-specific field contract.
 
 ## Styles
 
