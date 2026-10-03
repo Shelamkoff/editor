@@ -49,6 +49,20 @@ class ForeignHTMLElement {
   }
 }
 
+const passthroughSchema = Object.freeze({
+  currentVersion: 1,
+  legacyVersion: 1,
+  createDefault: () => ({}),
+  decode({ data }) {
+    if (!data || typeof data !== 'object' || Array.isArray(data)) throw new TypeError('data must be an object')
+    return { dataVersion: 1, data: { ...data } }
+  },
+  encode(data) {
+    if (!data || typeof data !== 'object' || Array.isArray(data)) throw new TypeError('data must be an object')
+    return { dataVersion: 1, data: { ...data } }
+  },
+})
+
 function createRealm() {
   const links = []
   const ownerWindow = { HTMLElement: ForeignHTMLElement }
@@ -75,6 +89,7 @@ test('renderTo keeps custom DOM and automatic styles in the target owning docume
   let contextDocument = null
   const renderer = new EditorRenderer({ blockTypes: [] })
   renderer.registerRenderer({
+    schema: passthroughSchema,
     type: 'foreign',
     styles: ['/foreign.css'],
     render(block, _parseInline, context) {
