@@ -19,10 +19,24 @@ class FakeElement {
 globalThis.HTMLElement = FakeElement
 globalThis.document = { createElement: tagName => new FakeElement(tagName) }
 
+const passthroughSchema = Object.freeze({
+  currentVersion: 1,
+  legacyVersion: 1,
+  createDefault: () => ({}),
+  decode({ data }) {
+    if (!data || typeof data !== 'object' || Array.isArray(data)) throw new TypeError('data must be an object')
+    return { dataVersion: 1, data: structuredClone(data) }
+  },
+  encode(data) {
+    if (!data || typeof data !== 'object' || Array.isArray(data)) throw new TypeError('data must be an object')
+    return { dataVersion: 1, data: structuredClone(data) }
+  },
+})
+
 test('renderer public methods reject malformed document envelopes and blocks', async () => {
   const { EditorRenderer } = await import('./index.js')
   const renderer = new EditorRenderer({ blockTypes: [], throwOnUnknown: false, injectStyles: false })
-  renderer.registerRenderer({ type: 'custom', render() { return document.createElement('article') } })
+  renderer.registerRenderer({ type: 'custom', schema: passthroughSchema, render() { return document.createElement('article') } })
   const container = document.createElement('main')
 
   assert.throws(() => renderer.render({ blocks: 'custom' }), /blocks must be an array/)
@@ -56,6 +70,7 @@ test('renderer snapshots the JSON block boundary before custom renderers observe
   const renderer = new EditorRenderer({ blockTypes: [], injectStyles: false })
   let seen
   renderer.registerRenderer({
+    schema: passthroughSchema,
     type: 'custom',
     render(block) { seen = block; return document.createElement('article') },
   })
