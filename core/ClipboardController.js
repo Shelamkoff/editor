@@ -147,6 +147,12 @@ export class ClipboardController {
         return
       }
 
+      const parts = this.#runtime.exportLogicalClipboardParts(this.#crossSelection.bookmark)
+      if (!parts) return
+      const fragment = createClipboardFragment(parts.map(part => part.kind === 'block'
+        ? { kind: 'block', block: transferBlockFromRecord(part.block) }
+        : { kind: 'rich-text', html: part.html, inline: part.inline }))
+      event.clipboardData.setData(CLIPBOARD_FRAGMENT_MIME, encodeClipboardFragment(fragment))
       event.clipboardData.setData('text/plain', this.#crossSelection.text())
       const range = this.#crossSelection.range
       if (range) {
@@ -188,20 +194,37 @@ export class ClipboardController {
     if (this.#runtime.readOnly || event.defaultPrevented || !event.clipboardData) return
 
     if (this.#crossSelection?.active) {
-      event.preventDefault()
-      event.clipboardData.setData('text/plain', this.#crossSelection.text())
       const whole = this.#crossSelection.wholeBlockIds
+      let fragment
       if (whole.length) {
         const records = whole.map(id => this.#runtime.get(id)).filter(Boolean)
-        const fragment = createClipboardFragment(records.map(record => ({
+        fragment = createClipboardFragment(records.map(record => ({
           kind: 'block',
           block: transferBlockFromRecord(record),
         })))
-        event.clipboardData.setData(CLIPBOARD_FRAGMENT_MIME, encodeClipboardFragment(fragment))
-        this.#crossSelection.removeWholeBlocks()
-        return
+      } else {
+        const parts = this.#runtime.exportLogicalClipboardParts(this.#crossSelection.bookmark)
+        if (!parts) {
+          event.preventDefault()
+          return
+        }
+        fragment = createClipboardFragment(parts.map(part => part.kind === 'block'
+          ? { kind: 'block', block: transferBlockFromRecord(part.block) }
+          : { kind: 'rich-text', html: part.html, inline: part.inline }))
       }
-      this.#crossSelection.replace({ kind: 'text', text: '' })
+
+      event.preventDefault()
+      event.clipboardData.setData(CLIPBOARD_FRAGMENT_MIME, encodeClipboardFragment(fragment))
+      event.clipboardData.setData('text/plain', this.#crossSelection.text())
+      const range = this.#crossSelection.range
+      if (range) {
+        const container = this.#root.ownerDocument.createElement('div')
+        container.appendChild(range.cloneContents())
+        stripClipboardProjection(container)
+        event.clipboardData.setData('text/html', container.innerHTML)
+      }
+      if (whole.length) this.#crossSelection.removeWholeBlocks()
+      else this.#crossSelection.replace({ kind: 'text', text: '' })
       return
     }
 
