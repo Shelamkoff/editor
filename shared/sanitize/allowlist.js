@@ -14,23 +14,9 @@ export const ALLOWED_TAGS = new Set([
  */
 export const ALLOWED_ATTRS = {
   a: new Set(['href', 'target', 'rel']),
-  span: new Set(['class', 'style', 'data-inline-plugin', 'data-id', 'data-value', 'contenteditable']),
+  span: new Set(['class', 'style']),
   code: new Set(['class', 'lang']),
 }
-/**
- * Attributes required to recover a legacy inline-widget DOM representation.
- * Event handlers and arbitrary plugin-owned attributes must never bypass the
- * normal allowlist.
- */
-export const INLINE_PLUGIN_ATTRS = new Set([
-  'class',
-  'data-inline-plugin',
-  'data-id',
-  'data-value',
-  'contenteditable',
-])
-
-
 /** CSS properties allowed in inline style attributes. */
 export const ALLOWED_STYLE_PROPS = new Set([
   'background-color', 'color', 'font-size',
