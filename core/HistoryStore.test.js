@@ -99,3 +99,24 @@ test('HistoryStore coalesces compatible records preserving first before and last
   assert.equal(stored.changes[0].before.data.text, 'a')
   assert.equal(stored.changes[0].after.data.text, 'c')
 })
+
+test('prepared history record does not mutate cursor before commit', () => {
+  const history = new HistoryStore()
+  const prepared = history.prepareRecord(record(1))
+  assert.equal(history.canUndo, false)
+  assert.deepEqual(prepared.history, { canUndo: true, canRedo: false })
+  prepared.commit()
+  assert.equal(history.peekUndo().id, 1)
+})
+
+test('prepared replay does not move cursor until commit', () => {
+  const history = new HistoryStore()
+  history.push(record(1))
+  const prepared = history.prepareReplay('undo')
+  assert.equal(prepared.record.id, 1)
+  assert.equal(history.canUndo, true)
+  assert.equal(history.canRedo, false)
+  prepared.commit()
+  assert.equal(history.canUndo, false)
+  assert.equal(history.canRedo, true)
+})

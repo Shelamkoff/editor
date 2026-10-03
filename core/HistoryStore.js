@@ -47,57 +47,103 @@ export class HistoryStore {
     this.#maxStack = maxStack
   }
 
-  get canUndo() {
-    return this.#undo.length > 0
-  }
+  get canUndo() { return this.#undo.length > 0 }
+  get canRedo() { return this.#redo.length > 0 }
+  get undoDepth() { return this.#undo.length }
+  get redoDepth() { return this.#redo.length }
 
-  get canRedo() {
-    return this.#redo.length > 0
-  }
+  /**
+   * Validate and prepare the next history state without mutating the cursor.
+   * commit() only swaps already-prepared arrays and cannot invoke user/schema code.
+   */
+  prepareRecord(record, { coalesce = false } = {}) {
+    const next = ownRecord(record)
+    let undo = [...this.#undo]
+    const redo = []
+    let coalesced = false
 
-  get undoDepth() {
-    return this.#undo.length
-  }
+    const previous = undo[undo.length - 1]
+    if (coalesce && previous && compatibleUpdate(previous, next)) {
+      const previousChange = previous.changes[0]
+      const nextChange = next.changes[0]
+      const merged = ownRecord({
+        ...next,
+        changes: [{
+          kind: 'block.update',
+          id: previousChange.id,
+          before: cloneEditorData(previousChange.before),
+          after: cloneEditorData(nextChange.after),
+        }],
+        selectionBefore: Object.hasOwn(previous, 'selectionBefore')
+          ? cloneEditorData(previous.selectionBefore)
+          : null,
+        selectionAfter: Object.hasOwn(next, 'selectionAfter')
+          ? cloneEditorData(next.selectionAfter)
+          : null,
+      })
+      undo[undo.length - 1] = merged
+      coalesced = true
+    } else {
+      undo.push(next)
+      if (undo.length > this.#maxStack) undo = undo.slice(undo.length - this.#maxStack)
+    }
 
-  get redoDepth() {
-    return this.#redo.length
-  }
-
-  push(record) {
-    const owned = ownRecord(record)
-    this.#undo.push(owned)
-    if (this.#undo.length > this.#maxStack) this.#undo.shift()
-    this.#redo = []
+    let committed = false
+    return Object.freeze({
+      coalesced,
+      history: Object.freeze({ canUndo: undo.length > 0, canRedo: false }),
+      commit: () => {
+        if (committed) return
+        this.#undo = undo
+        this.#redo = redo
+        committed = true
+      },
+    })
   }
 
   /**
-   * Merge a compatible update record into the current undo head.
-   * Returns false when the records cannot be safely coalesced.
+   * Prepare an undo/redo cursor move and return the detached record to replay.
+   * No cursor mutation occurs before commit().
    */
-  coalesce(record) {
-    const next = ownRecord(record)
-    const previous = this.#undo[this.#undo.length - 1]
-    if (!previous || !compatibleUpdate(previous, next)) return false
-
-    const previousChange = previous.changes[0]
-    const nextChange = next.changes[0]
-    const merged = {
-      ...next,
-      changes: [{
-        kind: 'block.update',
-        id: previousChange.id,
-        before: cloneEditorData(previousChange.before),
-        after: cloneEditorData(nextChange.after),
-      }],
-      selectionBefore: Object.hasOwn(previous, 'selectionBefore')
-        ? cloneEditorData(previous.selectionBefore)
-        : null,
-      selectionAfter: Object.hasOwn(next, 'selectionAfter')
-        ? cloneEditorData(next.selectionAfter)
-        : null,
+  prepareReplay(action) {
+    if (action !== 'undo' && action !== 'redo') {
+      throw new TypeError('History replay action must be undo or redo')
     }
-    this.#undo[this.#undo.length - 1] = ownRecord(merged)
-    this.#redo = []
+    const source = action === 'undo' ? this.#undo : this.#redo
+    const current = source[source.length - 1]
+    if (!current) return null
+
+    const record = cloneEditorData(current)
+    const undo = [...this.#undo]
+    const redo = [...this.#redo]
+    if (action === 'undo') {
+      redo.push(undo.pop())
+    } else {
+      undo.push(redo.pop())
+      if (undo.length > this.#maxStack) undo.shift()
+    }
+
+    let committed = false
+    return Object.freeze({
+      record,
+      history: Object.freeze({ canUndo: undo.length > 0, canRedo: redo.length > 0 }),
+      commit: () => {
+        if (committed) return
+        this.#undo = undo
+        this.#redo = redo
+        committed = true
+      },
+    })
+  }
+
+  push(record) {
+    this.prepareRecord(record).commit()
+  }
+
+  coalesce(record) {
+    const prepared = this.prepareRecord(record, { coalesce: true })
+    if (!prepared.coalesced) return false
+    prepared.commit()
     return true
   }
 
@@ -112,17 +158,16 @@ export class HistoryStore {
   }
 
   commitUndo() {
-    if (!this.#undo.length) return false
-    const record = this.#undo.pop()
-    this.#redo.push(record)
+    const prepared = this.prepareReplay('undo')
+    if (!prepared) return false
+    prepared.commit()
     return true
   }
 
   commitRedo() {
-    if (!this.#redo.length) return false
-    const record = this.#redo.pop()
-    this.#undo.push(record)
-    if (this.#undo.length > this.#maxStack) this.#undo.shift()
+    const prepared = this.prepareReplay('redo')
+    if (!prepared) return false
+    prepared.commit()
     return true
   }
 

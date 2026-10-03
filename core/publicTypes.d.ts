@@ -76,6 +76,33 @@ export interface EditorBlocksApi extends Iterable<EditorBlockSnapshot> {
   focus(id: string, target?: FocusTarget): boolean
 }
 
+export type DocumentChange =
+  | { kind: 'block.insert'; index: number; block: EditorBlockData }
+  | { kind: 'block.remove'; index: number; block: EditorBlockData }
+  | { kind: 'block.update'; id: string; before: EditorBlockData; after: EditorBlockData }
+  | { kind: 'block.move'; id: string; from: number; to: number }
+  | { kind: 'document.replace'; before: EditorDocument; after: EditorDocument }
+
+export interface TransactionCommitted {
+  readonly sequence: number
+  readonly origin: 'user' | 'native-input' | 'plugin' | 'external' | 'history'
+  readonly action: 'commit' | 'undo' | 'redo'
+  readonly name: string
+  readonly changes: readonly DocumentChange[]
+  readonly history: Readonly<{ canUndo: boolean; canRedo: boolean }>
+}
+
+export interface EditorEventMap {
+  'editor:ready': undefined
+  'editor:destroyed': undefined
+  'transaction:committed': TransactionCommitted
+  'document:changed': Pick<TransactionCommitted, 'sequence' | 'origin' | 'action' | 'name' | 'changes'>
+  'history:changed': Readonly<{ canUndo: boolean; canRedo: boolean }>
+  'readOnly:changed': Readonly<{ readOnly: boolean }>
+  'currentBlock:changed': Readonly<{ currentId: string | null }>
+  'selection:changed': Readonly<{ selectedIds: readonly string[] }>
+}
+
 export type EditorEventName =
   | 'editor:ready'
   | 'editor:destroyed'
@@ -172,6 +199,6 @@ export interface IEditor {
   focus(): boolean
   setReadOnly(readOnly: boolean): void
   insertInlinePlugin(type: string, data?: Record<string, unknown>): boolean
-  on(type: EditorEventName, listener: (payload?: unknown) => void): () => void
+  on<K extends keyof EditorEventMap>(type: K, listener: (payload: EditorEventMap[K]) => void): () => void
   destroy(): void
 }

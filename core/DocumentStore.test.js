@@ -117,3 +117,24 @@ test('unchanged canonical records retain identity across draft commit', () => {
   assert.ok(Object.isFrozen(store.peek('a')))
   assert.ok(Object.isFrozen(store.peek('a').data))
 })
+
+test('prepared store commit is inert until commit and advances revision monotonically', () => {
+  const store = new DocumentStore({ version: '2.0.0', blocks: [block('a')] })
+  const draft = store.createDraft()
+  draft.update('a', block('a', 'next'))
+  const prepared = store.prepareCommit(draft)
+
+  assert.equal(store.revision, 0)
+  assert.equal(store.generation, 1)
+  assert.equal(store.get('a').data.text, 'a')
+  assert.equal(prepared.revision, 1)
+  prepared.commit()
+  assert.equal(store.revision, 1)
+  assert.equal(store.get('a').data.text, 'next')
+
+  const replacement = store.createDraft()
+  replacement.replace({ version: '2.0.0', blocks: [block('b')] })
+  store.commit(replacement, { newGeneration: true })
+  assert.equal(store.revision, 2)
+  assert.equal(store.generation, 2)
+})

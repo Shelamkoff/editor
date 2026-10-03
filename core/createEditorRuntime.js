@@ -196,6 +196,8 @@ export function createEditorRuntime(input){
     throw error
   }
 
+  const originalHolderChildren=[...holder.childNodes]
+
   let lease
   try{
     lease=claimEditorHolder(holder)
@@ -295,11 +297,13 @@ export function createEditorRuntime(input){
       notifier?.schedule()
       emit('transaction:committed',event)
       emit('document:changed',{
+        sequence:event.sequence,
         origin:event.origin,
         action:event.action,
-        changes:event.record?.changes??[],
+        name:event.name,
+        changes:event.changes,
       })
-      emit('history:changed',{canUndo:runtime?.canUndo===true,canRedo:runtime?.canRedo===true})
+      emit('history:changed',event.history)
     },
     projectorFactory:({activationResolver,contextFactory})=>{
       reconciler=new BlockReconciler({
@@ -507,6 +511,7 @@ export function createEditorRuntime(input){
   return editor
   }catch(error){
     lifecycle.destroy()
+    holder.replaceChildren(...originalHolderChildren)
     reportDiagnostic('editor.create.failed','createEditor',error)
     throw error
   }

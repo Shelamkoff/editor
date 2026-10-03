@@ -150,6 +150,7 @@ test('single update among 1000 blocks touches only one mounted instance', () => 
   const prepared = reconciler.prepare({ store, draft, changes: draft.changes })
   prepared.apply()
   store.commit(draft)
+  prepared.finalize()
 
   assert.equal(counters.update, 1)
   assert.equal(counters.create, 0)
@@ -165,8 +166,10 @@ test('move preserves block instance and DOM identity', () => {
 
   const draft = store.createDraft()
   draft.move('0', 2)
-  reconciler.prepare({ store, draft, changes: draft.changes }).apply()
+  const prepared = reconciler.prepare({ store, draft, changes: draft.changes })
+  prepared.apply()
   store.commit(draft)
+  prepared.finalize()
 
   assert.equal(reconciler.getElement('0'), moved)
   assert.deepEqual(container.children.map(node => node.firstElementChild.textContent), ['1', '2', '0'])
@@ -181,8 +184,11 @@ test('type conversion replaces only the affected instance', () => {
 
   const draft = store.createDraft()
   draft.update('1', block('1', 'heading', 'heading'))
-  reconciler.prepare({ store, draft, changes: draft.changes }).apply()
+  const prepared = reconciler.prepare({ store, draft, changes: draft.changes })
+  prepared.apply()
+  assert.equal(counters.destroy, 0, 'superseded owner must stay alive before commit')
   store.commit(draft)
+  prepared.finalize()
 
   assert.equal(reconciler.getElement('0'), unrelated)
   assert.notEqual(reconciler.getElement('1'), old)
@@ -206,6 +212,7 @@ test('read-only transition does not recreate block instances', () => {
 test('failed update can recover committed projection', () => {
   const { store, reconciler, counters } = setup(3)
   counters.create = counters.update = counters.destroy = 0
+  const unrelated = reconciler.getElement('0')
   const draft = store.createDraft()
   draft.update('1', {
     id: '1',
@@ -219,6 +226,7 @@ test('failed update can recover committed projection', () => {
 
   assert.equal(store.get('1').data.text, '1')
   assert.equal(reconciler.getElement('1').firstElementChild.textContent, '1')
+  assert.equal(reconciler.getElement('0'), unrelated, 'recovery recreated an untouched block')
   assert.equal(reconciler.getElement('0').firstElementChild.textContent, '0')
 })
 
@@ -239,7 +247,7 @@ test('unknown block types stay inert and never call a plugin runtime', () => {
 })
 
 
-test('preserve activation keeps a registered block type inert', () => {
+test('activation resolver can keep a registered block type unregistered', () => {
   const { document, registry, counters } = setup(1)
   const container = document.createElement('div')
   const store = new DocumentStore({
@@ -272,7 +280,9 @@ test('document replacement recreates same-id block instances and aborts their li
   })
   const prepared = reconciler.prepare({ store, draft, changes: draft.changes })
   prepared.apply()
-  store.commit(draft)
+  assert.equal(counters.destroy, 0, 'document replacement destroyed old lifetime before commit')
+  store.commit(draft, { newGeneration: true })
+  prepared.finalize()
 
   assert.notEqual(reconciler.getElement('0'), before)
   assert.equal(reconciler.getElement('0').firstElementChild.textContent, 'replacement')

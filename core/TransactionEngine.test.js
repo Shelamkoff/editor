@@ -11,7 +11,7 @@ function block(id, text = id) {
 
 function harness(options = {}) {
   const store = new DocumentStore({ version: '2.0.0', blocks: [block('a')] })
-  const history = new HistoryStore()
+  const history = options.history ?? new HistoryStore()
   const projections = []
   const projector = options.projector ?? {
     prepare(change) {
@@ -19,6 +19,8 @@ function harness(options = {}) {
       return {
         apply() { projections.push(['apply']) },
         recover() { projections.push(['recover']) },
+        finalize() { projections.push(['finalize']) },
+        discard() { projections.push(['discard']) },
       }
     },
   }
@@ -47,6 +49,7 @@ test('TransactionEngine commits draft only after projection succeeds', () => {
   assert.deepEqual(projections, [
     ['prepare', ['a', 'b']],
     ['apply'],
+    ['finalize'],
   ])
   assert.equal(engine.phase, 'idle')
 })
@@ -94,6 +97,8 @@ test('mutation from projection phase is rejected and failed projection recovers'
           })
         },
         recover() { events.push('recover') },
+        finalize() { events.push('finalize') },
+        discard() { events.push('discard') },
       }
     },
   }
@@ -108,7 +113,7 @@ test('mutation from projection phase is rejected and failed projection recovers'
   )
   assert.equal(setup.store.get('a').data.text, 'a')
   assert.equal(setup.history.canUndo, false)
-  assert.deepEqual(events, ['apply', 'recover'])
+  assert.deepEqual(events, ['apply', 'recover', 'discard'])
 })
 
 test('undo and redo move history cursor only after successful replay', () => {
@@ -133,6 +138,8 @@ test('failed undo leaves canonical state and history cursor unchanged', () => {
       return {
         apply() { if (fail) throw new Error('projection failed') },
         recover() {},
+        finalize() {},
+        discard() {},
       }
     },
   }
@@ -255,21 +262,70 @@ test('single-block transaction never materializes the whole document', () => {
   assert.equal(history.canUndo, true)
 })
 
+test('history preparation failure after projection apply recovers before commit', () => {
+  const events = []
+  class FailingHistory extends HistoryStore {
+    prepareRecord() { throw new Error('history prepare failed') }
+  }
+  const projector = {
+    prepare() {
+      return {
+        apply() { events.push('apply') },
+        recover() { events.push('recover') },
+        finalize() { events.push('finalize') },
+        discard() {},
+      }
+    },
+  }
+  const { store, engine } = harness({ history: new FailingHistory(), projector })
+  const beforeRevision = store.revision
 
-test('reset replaces the document through projection and clears history without a record', () => {
-  const { store, history, engine } = harness()
-  engine.execute({ origin: 'user', name: 'update' }, tx => {
+  assert.throws(() => engine.execute({ origin: 'user', name: 'update' }, tx => {
     tx.update('a', block('a', 'next'))
-  })
-  assert.equal(history.canUndo, true)
+  }), /history prepare failed/)
 
-  engine.reset({
-    version: 'future',
-    blocks: [block('x')],
-  })
+  assert.equal(store.get('a').data.text, 'a')
+  assert.equal(store.revision, beforeRevision)
+  assert.equal(engine.health, 'ready')
+  assert.deepEqual(events, ['apply', 'recover'])
+})
 
-  assert.equal(store.version, 'future')
-  assert.deepEqual(store.list().map(item => item.id), ['x'])
-  assert.equal(history.canUndo, false)
-  assert.equal(history.canRedo, false)
+test('recovery failure poisons the engine while committed model remains readable', () => {
+  const projector = {
+    prepare() {
+      return {
+        apply() { throw new Error('apply failed') },
+        recover() { throw new Error('recover failed') },
+        finalize() {},
+        discard() {},
+      }
+    },
+  }
+  const { store, engine } = harness({ projector })
+  assert.throws(() => engine.execute({ origin: 'user', name: 'update' }, tx => {
+    tx.update('a', block('a', 'next'))
+  }), /Projection failed and recovery also failed/)
+  assert.equal(engine.health, 'failed')
+  assert.equal(engine.phase, 'failed')
+  assert.equal(store.get('a').data.text, 'a')
+  assert.throws(
+    () => engine.execute({ origin: 'user', name: 'later' }, () => {}),
+    /TransactionEngine is failed/,
+  )
+})
+
+test('committed event is direct immutable data with monotonic revision sequence', () => {
+  const seen = []
+  const { store, engine } = harness({ onCommit: event => seen.push(event) })
+  engine.execute({ origin: 'user', name: 'first' }, tx => tx.update('a', block('a', 'one')))
+  engine.execute({ origin: 'external', name: 'second' }, tx => tx.update('a', block('a', 'two')))
+
+  assert.deepEqual(seen.map(event => event.sequence), [1, 2])
+  assert.equal(store.revision, 2)
+  assert.equal(seen[0].name, 'first')
+  assert.equal(seen[0].action, 'commit')
+  assert.equal(seen[0].changes[0].kind, 'block.update')
+  assert.deepEqual(seen[0].history, { canUndo: true, canRedo: false })
+  assert.equal(Object.isFrozen(seen[0]), true)
+  assert.equal(Object.isFrozen(seen[0].changes), true)
 })

@@ -459,6 +459,38 @@ async function run() {
   duplicateDefinitionHolder.remove()
 
   const failingDefinition = createFailingDefinition()
+
+  const initialFailureHolder = createHolder(sandbox)
+  const originalHostNode = document.createElement('p')
+  originalHostNode.textContent = 'host-owned-before-editor'
+  initialFailureHolder.appendChild(originalHostNode)
+  let initialMountRejected = false
+  try {
+    createEditor({
+      holder: initialFailureHolder,
+      plugins: [failingDefinition],
+      defaultBlock: 'transactional',
+      injectStyles: false,
+      data: oneBlock('transactional', { text: 'Broken' }, 'broken-initial'),
+    })
+  } catch {
+    initialMountRejected = true
+  }
+  assert(initialMountRejected, 'failing initial plugin projection was accepted')
+  assert(
+    initialFailureHolder.childNodes.length === 1 && initialFailureHolder.firstChild === originalHostNode,
+    'failed initial editor creation did not restore host-owned holder contents',
+  )
+  const retryEditor = createEditor({
+    holder: initialFailureHolder,
+    plugins: [failingDefinition],
+    defaultBlock: 'transactional',
+    injectStyles: false,
+    data: oneBlock('transactional', { text: 'Stable' }, 'retry-stable'),
+  })
+  retryEditor.destroy()
+  initialFailureHolder.remove()
+
   const transactionHolder = createHolder(sandbox)
   const transactionEditor = createEditor({
     holder: transactionHolder,
@@ -505,7 +537,7 @@ async function run() {
     editor: ['canonical native input', 'no mutable Block DOM', 'forged widget rejection'],
     currentBoundary: ['unregistered block', 'unknown inline', 'known version rejection', 'future document rejection'],
     validation: ['known malformed', 'known future inline', 'non-JSON', 'duplicate ids', 'duplicate definitions'],
-    lifecycle: ['reusable immutable definitions', 'projection rollback'],
+    lifecycle: ['initial mount rollback/lease release', 'reusable immutable definitions', 'projection rollback'],
   }
 }
 

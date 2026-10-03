@@ -279,6 +279,8 @@ export class DocumentStore {
   #version
   #order
   #blocks
+  #generation = 1
+  #revision = 0
 
   constructor(document) {
     const state = stateFromDocument(document)
@@ -289,6 +291,14 @@ export class DocumentStore {
 
   get version() {
     return this.#version
+  }
+
+  get generation() {
+    return this.#generation
+  }
+
+  get revision() {
+    return this.#revision
   }
 
   get(id) {
@@ -329,13 +339,33 @@ export class DocumentStore {
     return new DocumentDraft(this, document)
   }
 
-  commit(draft) {
+  prepareCommit(draft, { newGeneration = false } = {}) {
     if (!(draft instanceof DocumentDraft) || !draft.isOwnedBy(this)) {
       throw new TypeError('Cannot commit a draft owned by another DocumentStore')
     }
     const state = draft.snapshotState(this)
-    this.#version = state.version
-    this.#order = state.order
-    this.#blocks = state.blocks
+    const generation = this.#generation + (newGeneration ? 1 : 0)
+    const revision = this.#revision + 1
+    let committed = false
+
+    return Object.freeze({
+      generation,
+      revision,
+      commit: () => {
+        if (committed) return
+        this.#version = state.version
+        this.#order = state.order
+        this.#blocks = state.blocks
+        this.#generation = generation
+        this.#revision = revision
+        committed = true
+      },
+    })
+  }
+
+  commit(draft, options) {
+    const prepared = this.prepareCommit(draft, options)
+    prepared.commit()
+    return prepared
   }
 }

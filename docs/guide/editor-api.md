@@ -74,6 +74,8 @@ Public event names are:
 
 `currentBlock:changed` reports the current block ID only after the interaction target actually changes. `selection:changed` reports selected IDs in document order only when the selected set/order changes.
 
+`transaction:committed` receives one immutable `TransactionCommitted` payload: `{ sequence, origin, action, name, changes, history }`. `sequence` is the committed document revision and increases for commits, undo and redo. `document:changed` exposes the same sequence/origin/action/name/changes without a nested history record; `history:changed` is the already-committed `{ canUndo, canRedo }` state. Observers run only after model, history cursor and projection have crossed the commit point.
+
 Events are observations. Application and extension code do not emit editor events.
 
 ## Lifetime

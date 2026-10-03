@@ -3,12 +3,20 @@ import { cloneEditorData } from '../shared/cloneEditorData.js'
 
 const EXECUTE_ORIGINS = new Set(['user', 'native-input', 'plugin', 'external'])
 
+function deepFreeze(value) {
+  if (!value || typeof value !== 'object' || Object.isFrozen(value)) return value
+  for (const item of Array.isArray(value) ? value : Object.values(value)) deepFreeze(item)
+  return Object.freeze(value)
+}
+
 function noopProjector() {
   return {
     prepare() {
       return {
         apply() {},
         recover() {},
+        finalize() {},
+        discard() {},
       }
     },
   }
@@ -52,9 +60,9 @@ export class TransactionEngine {
   #onCommit
   #diagnostics
   #phase = 'idle'
+  #health = 'ready'
   /** @type {{ draft: any, context: any, failed: unknown } | null} */
   #current = null
-  #sequence = 0
 
   constructor(options) {
     if (!options?.store || !options?.history) {
@@ -68,20 +76,14 @@ export class TransactionEngine {
     this.#diagnostics = options.diagnostics ?? null
   }
 
-  get phase() {
-    return this.#phase
-  }
-
-  get canUndo() {
-    return this.#history.canUndo
-  }
-
-  get canRedo() {
-    return this.#history.canRedo
-  }
+  get phase() { return this.#phase }
+  get health() { return this.#health }
+  get canUndo() { return this.#history.canUndo }
+  get canRedo() { return this.#history.canRedo }
 
   execute(metadataInput, operation) {
     if (typeof operation !== 'function') throw new TypeError('Transaction operation must be a function')
+    this.#assertHealthy()
 
     if (this.#phase === 'building' && this.#current) {
       try {
@@ -93,10 +95,7 @@ export class TransactionEngine {
         throw error
       }
     }
-
-    if (this.#phase !== 'idle') {
-      throw new Error(`Cannot mutate document during ${this.#phase} phase`)
-    }
+    if (this.#phase !== 'idle') throw new Error(`Cannot mutate document during ${this.#phase} phase`)
 
     const metadata = normalizeMetadata(metadataInput)
     return this.#observeCommand(metadata.name, () => this.#executeOuter(metadata, operation))
@@ -110,7 +109,6 @@ export class TransactionEngine {
 
     this.#current = current
     this.#phase = 'building'
-
     let result
     try {
       result = operation(context)
@@ -120,139 +118,83 @@ export class TransactionEngine {
       this.#phase = 'idle'
       throw error
     }
+    this.#current = null
 
     const changes = draft.changes
     if (changes.length === 0) {
-      this.#current = null
       this.#phase = 'idle'
       return result
     }
 
-    let prepared
+    const ownedChanges = cloneEditorData(changes)
+    const replacesDocument = ownedChanges.some(change => change.kind === 'document.replace')
+    const storeCommit = this.#store.prepareCommit(draft, { newGeneration: replacesDocument })
+    let prepared = null
+    let historyCommit = null
+
     try {
       this.#phase = 'preparing-projection'
-      prepared = this.#projector.prepare({
+      prepared = this.#prepareProjection({
         store: this.#store,
         draft,
-        changes: cloneEditorData(changes),
+        changes: ownedChanges,
         origin: metadata.origin,
         name: metadata.name,
         sourceBlockId: metadata.sourceBlockId,
+        generation: storeCommit.generation,
+        revision: storeCommit.revision,
       })
-      if (!prepared || typeof prepared.apply !== 'function' || typeof prepared.recover !== 'function') {
-        throw new TypeError('Projector prepare() must return apply() and recover()')
-      }
 
       this.#phase = 'applying-projection'
       prepared.apply()
-    } catch (error) {
-      if (prepared && typeof prepared.recover === 'function') {
-        try {
-          prepared.recover()
-        } catch (recoveryError) {
-          this.#current = null
-          this.#phase = 'idle'
-          throw new AggregateError([error, recoveryError], 'Projection failed and recovery also failed')
-        }
+
+      const selectionAfter = this.#captureSelection()
+      const record = {
+        id: storeCommit.revision,
+        origin: metadata.origin,
+        name: metadata.name,
+        changes: ownedChanges,
+        selectionBefore,
+        selectionAfter,
       }
-      this.#current = null
+      if (metadata.historyGroup !== undefined) record.historyGroup = metadata.historyGroup
+      historyCommit = this.#history.prepareRecord(record, { coalesce: metadata.coalesce })
+
+      const event = this.#event({
+        sequence: storeCommit.revision,
+        origin: metadata.origin,
+        action: 'commit',
+        name: metadata.name,
+        changes: ownedChanges,
+        history: historyCommit.history,
+      })
+
+      this.#phase = 'committing'
+      storeCommit.commit()
+      historyCommit.commit()
+
+      this.#phase = 'finalizing'
+      this.#finalize(prepared)
+
+      this.#phase = 'publishing'
+      this.#publish(event)
       this.#phase = 'idle'
-      throw error
+      return result
+    } catch (error) {
+      if (this.#phase === 'committing' || this.#phase === 'finalizing' || this.#phase === 'publishing') {
+        this.#fail(error)
+      }
+      this.#rollbackPrepared(prepared, error, 'Projection failed and recovery also failed')
     }
-
-    this.#phase = 'committing'
-    this.#store.commit(draft)
-    const selectionAfter = this.#captureSelection()
-
-    const record = {
-      id: ++this.#sequence,
-      origin: metadata.origin,
-      name: metadata.name,
-      changes: cloneEditorData(changes),
-      selectionBefore,
-      selectionAfter,
-    }
-    if (metadata.historyGroup !== undefined) record.historyGroup = metadata.historyGroup
-
-    if (!(metadata.coalesce && this.#history.coalesce(record))) {
-      this.#history.push(record)
-    }
-
-    this.#current = null
-    this.#phase = 'publishing'
-    this.#publish({
-      origin: metadata.origin,
-      action: 'commit',
-      record: cloneEditorData(record),
-    })
-    this.#phase = 'idle'
-    return result
   }
 
-  undo() {
-    return this.#replay('undo')
-  }
-
-  redo() {
-    return this.#replay('redo')
-  }
+  undo() { return this.#replay('undo') }
+  redo() { return this.#replay('redo') }
 
   clearHistory() {
+    this.#assertHealthy()
     if (this.#phase !== 'idle') throw new Error(`Cannot clear history during ${this.#phase} phase`)
     this.#history.clear()
-  }
-
-  reset(document) {
-    if (this.#phase !== 'idle') {
-      throw new Error(`Cannot reset document during ${this.#phase} phase`)
-    }
-    return this.#observeCommand('document.reset', () => this.#reset(document))
-  }
-
-  #reset(document) {
-    const draft = this.#store.createDraft()
-    draft.replace(document)
-    const changes = draft.changes
-
-    let prepared
-    try {
-      this.#phase = 'preparing-projection'
-      prepared = this.#projector.prepare({
-        store: this.#store,
-        draft,
-        changes: cloneEditorData(changes),
-        origin: 'external',
-        name: 'document.reset',
-        action: 'reset',
-      })
-      if (!prepared || typeof prepared.apply !== 'function' || typeof prepared.recover !== 'function') {
-        throw new TypeError('Projector prepare() must return apply() and recover()')
-      }
-      this.#phase = 'applying-projection'
-      prepared.apply()
-    } catch (error) {
-      if (prepared && typeof prepared.recover === 'function') {
-        try { prepared.recover() }
-        catch (recoveryError) {
-          this.#phase = 'idle'
-          throw new AggregateError([error, recoveryError], 'Document reset failed and recovery also failed')
-        }
-      }
-      this.#phase = 'idle'
-      throw error
-    }
-
-    this.#phase = 'committing'
-    this.#store.commit(draft)
-    this.#history.clear()
-
-    this.#phase = 'publishing'
-    this.#publish({
-      origin: 'external',
-      action: 'reset',
-      changes: cloneEditorData(changes),
-    })
-    this.#phase = 'idle'
   }
 
   #createContext(draft) {
@@ -268,26 +210,25 @@ export class TransactionEngine {
   }
 
   #replay(action) {
-    if (this.#phase !== 'idle') {
-      throw new Error(`Cannot ${action} during ${this.#phase} phase`)
-    }
+    this.#assertHealthy()
+    if (this.#phase !== 'idle') throw new Error(`Cannot ${action} during ${this.#phase} phase`)
     return this.#observeCommand(`history.${action}`, () => this.#replayObserved(action))
   }
 
   #replayObserved(action) {
-    const record = action === 'undo'
-      ? this.#history.peekUndo()
-      : this.#history.peekRedo()
-    if (!record) return false
-
+    const historyCommit = this.#history.prepareReplay(action)
+    if (!historyCommit) return false
+    const record = historyCommit.record
     const draft = this.#store.createDraft()
     const direction = action === 'undo' ? 'backward' : 'forward'
     draft.applyChanges(record.changes, direction)
+    const replacesDocument = record.changes.some(change => change.kind === 'document.replace')
+    const storeCommit = this.#store.prepareCommit(draft, { newGeneration: replacesDocument })
+    let prepared = null
 
-    let prepared
     try {
       this.#phase = 'preparing-projection'
-      prepared = this.#projector.prepare({
+      prepared = this.#prepareProjection({
         store: this.#store,
         draft,
         changes: cloneEditorData(record.changes),
@@ -295,48 +236,101 @@ export class TransactionEngine {
         name: record.name,
         action,
         direction,
+        generation: storeCommit.generation,
+        revision: storeCommit.revision,
       })
-      if (!prepared || typeof prepared.apply !== 'function' || typeof prepared.recover !== 'function') {
-        throw new TypeError('Projector prepare() must return apply() and recover()')
-      }
 
       this.#phase = 'applying-projection'
       prepared.apply()
-    } catch (error) {
-      if (prepared && typeof prepared.recover === 'function') {
-        try {
-          prepared.recover()
-        } catch (recoveryError) {
-          this.#phase = 'idle'
-          throw new AggregateError([error, recoveryError], 'History projection failed and recovery also failed')
-        }
-      }
-      this.#phase = 'idle'
-      throw error
-    }
 
-    this.#phase = 'committing'
-    this.#store.commit(draft)
-    if (action === 'undo') this.#history.commitUndo()
-    else this.#history.commitRedo()
-
-    const selection = action === 'undo' ? record.selectionBefore : record.selectionAfter
-    this.#restoreSelection(selection)
-    if (selection) {
-      queueMicrotask(() => {
-        if (this.#phase !== 'idle') return
-        this.#restoreSelection(selection)
+      const event = this.#event({
+        sequence: storeCommit.revision,
+        origin: 'history',
+        action,
+        name: record.name,
+        changes: record.changes,
+        history: historyCommit.history,
       })
-    }
 
-    this.#phase = 'publishing'
-    this.#publish({
-      origin: 'history',
-      action,
-      record: cloneEditorData(record),
-    })
+      this.#phase = 'committing'
+      storeCommit.commit()
+      historyCommit.commit()
+
+      const selection = action === 'undo' ? record.selectionBefore : record.selectionAfter
+      this.#restoreSelection(selection)
+      const committedRevision = storeCommit.revision
+      if (selection) {
+        queueMicrotask(() => {
+          if (
+            this.#health !== 'ready'
+            || this.#phase !== 'idle'
+            || this.#store.revision !== committedRevision
+          ) return
+          this.#restoreSelection(selection)
+        })
+      }
+
+      this.#phase = 'finalizing'
+      this.#finalize(prepared)
+
+      this.#phase = 'publishing'
+      this.#publish(event)
+      this.#phase = 'idle'
+      return true
+    } catch (error) {
+      if (this.#phase === 'committing' || this.#phase === 'finalizing' || this.#phase === 'publishing') {
+        this.#fail(error)
+      }
+      this.#rollbackPrepared(prepared, error, 'History projection failed and recovery also failed')
+    }
+  }
+
+  #prepareProjection(input) {
+    const prepared = this.#projector.prepare(input)
+    if (
+      !prepared
+      || typeof prepared.apply !== 'function'
+      || typeof prepared.recover !== 'function'
+      || typeof prepared.finalize !== 'function'
+      || typeof prepared.discard !== 'function'
+    ) {
+      try { prepared?.discard?.() } catch {}
+      throw new TypeError('Projector prepare() must return apply(), recover(), finalize(), and discard()')
+    }
+    return prepared
+  }
+
+  #rollbackPrepared(prepared, original, message) {
+    const failures = [original]
+    if (prepared) {
+      try { prepared.recover() } catch (error) { failures.push(error) }
+      try { prepared.discard() } catch (error) { failures.push(error) }
+    }
+    if (failures.length > 1) {
+      const aggregate = new AggregateError(failures, message)
+      this.#fail(aggregate)
+    }
     this.#phase = 'idle'
-    return true
+    throw original
+  }
+
+  #finalize(prepared) {
+    try {
+      prepared.finalize()
+    } catch (error) {
+      this.#diagnostic(error, 'transaction.finalize')
+    }
+  }
+
+  #fail(error) {
+    this.#health = 'failed'
+    this.#phase = 'failed'
+    this.#current = null
+    throw error
+  }
+
+  #assertHealthy() {
+    if (this.#health !== 'ready') throw new Error('TransactionEngine is failed')
   }
 
   #captureSelection() {
@@ -358,10 +352,21 @@ export class TransactionEngine {
     }
   }
 
+  #event(input) {
+    return deepFreeze(cloneEditorData({
+      sequence: input.sequence,
+      origin: input.origin,
+      action: input.action,
+      name: input.name,
+      changes: input.changes,
+      history: input.history,
+    }))
+  }
+
   #publish(event) {
     if (!this.#onCommit) return
     try {
-      this.#onCommit(Object.freeze(event))
+      this.#onCommit(event)
     } catch (error) {
       this.#diagnostic(error)
     }
@@ -387,9 +392,9 @@ export class TransactionEngine {
     }
   }
 
-  #diagnostic(error) {
+  #diagnostic(error, operation = 'transaction.observer') {
     this.#diagnostics?.emit('command.failed', {
-      operation: 'transaction.observer',
+      operation,
       errorName: this.#diagnostics.errorName(error),
     })
   }

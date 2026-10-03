@@ -116,7 +116,7 @@ export class DocumentRuntime {
     this.#store = new DocumentStore(initial)
     this.#history = new HistoryStore(options.history)
 
-    const contextFactory = (id, type, signal) => this.#blockContext(id, type, signal)
+    const contextFactory = (id, type, signal, readRecord) => this.#blockContext(id, type, signal, readRecord)
     const activationResolver = (id, record) => this.#canActivate(id, record)
     this.#projector = options.projectorFactory
       ? options.projectorFactory({
@@ -141,6 +141,11 @@ export class DocumentRuntime {
 
   get readOnly() {
     return this.#readOnly
+  }
+
+  get health() {
+    if (this.#destroyed) return 'destroyed'
+    return this.#engine?.health ?? 'ready'
   }
 
   get canUndo() {
@@ -641,6 +646,8 @@ export class DocumentRuntime {
   }
 
   setReadOnly(value) {
+    if (this.#destroyed) throw new Error('DocumentRuntime is destroyed')
+    if (this.#engine.health !== 'ready') throw new Error('DocumentRuntime is failed')
     const next = value === true
     if (next === this.#readOnly) return
     this.#projector?.setReadOnly?.(next)
@@ -1697,6 +1704,7 @@ export class DocumentRuntime {
 
   #assertWritable() {
     if (this.#destroyed) throw new Error('DocumentRuntime is destroyed')
+    if (this.#engine?.health === 'failed') throw new Error('DocumentRuntime is failed')
   }
 
   #normalizeExternalInline(value) {
@@ -1742,13 +1750,17 @@ export class DocumentRuntime {
     })
   }
 
-  #blockContext(id, type, signal) {
+  #blockContext(id, type, signal, readRecord) {
+    const currentRecord = () => {
+      const record = typeof readRecord === 'function'
+        ? readRecord()
+        : this.#store.get(id)
+      if (!record || record.type !== type) throw new Error(`Block is no longer active: ${id}`)
+      return record
+    }
+
     return {
-      getData: () => {
-        const record = this.#store.get(id)
-        if (!record || record.type !== type) throw new Error(`Block is no longer active: ${id}`)
-        return cloneEditorData(record.data)
-      },
+      getData: () => cloneEditorData(currentRecord().data),
       updateData: producer => {
         if (this.readOnly) return
         this.update(id, current => ({
@@ -1772,9 +1784,9 @@ export class DocumentRuntime {
         fieldKey,
         signal: inlineSignal,
         getData: () => {
-          const record = this.#store.get(id)
-          const ref = record?.inline?.[inlineId]
-          if (!record || record.type !== type || !ref || ref.type !== inlineType) {
+          const record = currentRecord()
+          const ref = record.inline?.[inlineId]
+          if (!ref || ref.type !== inlineType) {
             throw new Error(`Inline widget is no longer active: ${inlineId}`)
           }
           const definition = this.#registry.getInlineDefinition(inlineType)
