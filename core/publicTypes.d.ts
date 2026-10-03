@@ -90,6 +90,8 @@ export type EditorEventName =
   | 'document:changed'
   | 'history:changed'
   | 'readOnly:changed'
+  | 'currentBlock:changed'
+  | 'selection:changed'
 
 export interface EditorValidationIssue {
   blockId?: string
@@ -97,6 +99,39 @@ export interface EditorValidationIssue {
   type?: string
   reason?: string
   error?: unknown
+}
+
+export type EditorDiagnosticCode =
+  | 'command.failed'
+  | 'command.slow'
+  | 'paste.failed'
+  | 'paste.slow'
+  | 'migration.applied'
+  | 'migration.failed'
+  | 'migration.unavailable'
+  | 'save.failed'
+  | 'save.slow'
+  | 'render.slow'
+  | 'editor.create.failed'
+  | 'cleanup.failed'
+
+export interface DiagnosticThresholds {
+  commandMs: number
+  saveMs: number
+  renderMs: number
+  pasteMs: number
+}
+
+export interface EditorDiagnostic {
+  code: EditorDiagnosticCode
+  timestamp: number
+  durationMs?: number
+  operation?: string
+  pluginType?: string
+  blockType?: string
+  fromVersion?: string
+  toVersion?: string
+  errorName?: string
 }
 
 export interface EditorConfig {
@@ -117,13 +152,20 @@ export interface EditorConfig {
   documentVersionPolicy?: 'preserve' | 'strict'
   migrations?: readonly DocumentMigration[]
   changeDebounceMs?: number
+  historyMaxStack?: number
+  historyCoalesceMs?: number
+  dragThreshold?: number
+  toolboxFilterThreshold?: number
   onReady?: (editor: IEditor) => void | Promise<void>
   onChange?: (document: EditorDocument) => void | Promise<void>
   onValidationError?: (issue: EditorValidationIssue) => void
+  onDiagnostic?: (diagnostic: EditorDiagnostic) => void | Promise<void>
+  diagnosticThresholds?: Partial<DiagnosticThresholds>
 }
 
 export interface IEditor {
   readonly blocks: EditorBlocksApi
+  readonly isReady: boolean
   readonly canUndo: boolean
   readonly canRedo: boolean
   readonly readOnly: boolean
