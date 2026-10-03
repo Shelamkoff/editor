@@ -158,6 +158,28 @@ function inspect(file) {
   }
 }
 
+
+const removedRuntimeSymbols = [
+  'UNDO_BATCH_START',
+  'UNDO_BATCH_END',
+  'configureCommandActivity',
+  'configureCommit',
+  'configureRollback',
+  'setCommandDispatcher',
+  'BlockPluginAbstract',
+  'PublicBlockView',
+  'TEXT_ALIGN_TUNE_ATTRIBUTE',
+]
+for (const symbol of removedRuntimeSymbols) {
+  for (const file of sourceFilesUnder('core').concat(sourceFilesUnder('plugins'), sourceFilesUnder('inline-plugins'))) {
+    const relative = path.relative(root, file).replaceAll('\\\\', '/')
+    const source = fs.readFileSync(file, 'utf8')
+    if (new RegExp('\\\\b' + symbol + '\\\\b').test(source)) {
+      errors.push(`${relative}: removed runtime symbol \`${symbol}\` must not return`)
+    }
+  }
+}
+
 for (const file of auditedSourceFiles()) inspect(file)
 
 if (errors.length > 0) {
