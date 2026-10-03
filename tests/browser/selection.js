@@ -1,5 +1,5 @@
 import { createEditor } from '../../core/index.js'
-import { createParagraphPlugin, createQuotePlugin } from '../../plugins/index.js'
+import { createListPlugin, createParagraphPlugin, createQuotePlugin, createTablePlugin } from '../../plugins/index.js'
 
 const initialData = {
   version: '2.0.0',
@@ -136,6 +136,21 @@ async function activateFieldSelection(harness, start, startOffset, end, endOffse
   assert(harness.root.classList.contains('oe-editor--cross-selecting'), 'cross-field selection was not activated')
 }
 
+
+async function activateFieldSelection(harness,start,startOffset,end,endOffset){
+  const p1=pointAt(start,startOffset)
+  const p2=pointAt(end,endOffset)
+  start.focus()
+  start.dispatchEvent(new MouseEvent('mousedown',{
+    bubbles:true,cancelable:true,button:0,buttons:1,clientX:p1.x,clientY:p1.y,
+  }))
+  document.dispatchEvent(new MouseEvent('mousemove',{
+    bubbles:true,cancelable:true,buttons:1,clientX:p2.x,clientY:p2.y,
+  }))
+  document.dispatchEvent(new MouseEvent('mouseup',{bubbles:true,button:0,buttons:0}))
+  await delay()
+  assert(harness.root.classList.contains('oe-editor--cross-selecting'),'multi-field selection was not activated')
+}
 
 function key(target, keyValue, options = {}) {
   const event = new KeyboardEvent('keydown', {
@@ -559,6 +574,111 @@ async function run() {
   quoteClipboardSource.editor.destroy()
   quoteClipboardTarget.editor.destroy()
 
+  const listClipboard=createHarness(sandbox,{
+    version:'2.0.0',
+    blocks:[{
+      id:'list-clipboard',
+      type:'list',
+      dataVersion:2,
+      data:{
+        style:'ordered',
+        items:[
+          {id:'i1',text:'Alpha'},
+          {id:'i2',text:'Bravo'},
+          {id:'i3',text:'Charlie'},
+        ],
+      },
+    }],
+  },[createParagraphPlugin({injectStyles:false}),createListPlugin()])
+  const listFields=[...blockRoot(listClipboard,0).querySelectorAll('.oe-list__item')]
+  assert(listFields.length===3,'list clipboard fixture fields are missing')
+  await activateFieldSelection(listClipboard,listFields[0],2,listFields[1],2)
+  const listCopyData=new DataTransfer()
+  listFields[0].dispatchEvent(new ClipboardEvent('copy',{
+    clipboardData:listCopyData,bubbles:true,cancelable:true,
+  }))
+  const listFragment=JSON.parse(listCopyData.getData('application/x-rector-fragment'))
+  assert(listFragment.version===2&&listFragment.parts.length===1,'list copy fragment is malformed')
+  assert(listFragment.parts[0].kind==='block'&&listFragment.parts[0].block.type==='list','list selection did not export local block part')
+  assert(listFragment.parts[0].block.data.style==='ordered','list style was lost from clipboard slice')
+  assert(
+    JSON.stringify(listFragment.parts[0].block.data.items.map(item=>item.text))===JSON.stringify(['pha','Br']),
+    'list selected slices are incorrect',
+  )
+
+  const listCutData=new DataTransfer()
+  listFields[0].dispatchEvent(new ClipboardEvent('cut',{
+    clipboardData:listCutData,bubbles:true,cancelable:true,
+  }))
+  await delay()
+  let listSaved=listClipboard.editor.save().blocks[0]
+  assert(
+    JSON.stringify(listSaved.data.items.map(item=>item.text))===JSON.stringify(['Al','avo','Charlie']),
+    'list cut remaining diverged from exported slice',
+  )
+  assert(listClipboard.editor.undo()===true,'list clipboard cut is not undoable')
+  await delay()
+  listSaved=listClipboard.editor.save().blocks[0]
+  assert(
+    JSON.stringify(listSaved.data.items.map(item=>item.text))===JSON.stringify(['Alpha','Bravo','Charlie']),
+    'list cut undo did not restore source',
+  )
+  listClipboard.editor.destroy()
+
+  const tableClipboard=createHarness(sandbox,{
+    version:'2.0.0',
+    blocks:[{
+      id:'table-clipboard',
+      type:'table',
+      dataVersion:2,
+      data:{
+        withHeadings:true,
+        rows:[
+          {id:'r1',cells:[{id:'c11',text:'A1'},{id:'c12',text:'A2'}]},
+          {id:'r2',cells:[{id:'c21',text:'B1'},{id:'c22',text:'B2'}]},
+        ],
+      },
+    }],
+  },[createParagraphPlugin({injectStyles:false}),createTablePlugin()])
+  const tableFields=[...blockRoot(tableClipboard,0).querySelectorAll('.oe-table__cell')]
+  assert(tableFields.length===4,'table clipboard fixture cells are missing')
+  await activateFieldSelection(
+    tableClipboard,
+    tableFields[0],0,
+    tableFields[3],tableFields[3].textContent.length,
+  )
+  const tableCopyData=new DataTransfer()
+  tableFields[0].dispatchEvent(new ClipboardEvent('copy',{
+    clipboardData:tableCopyData,bubbles:true,cancelable:true,
+  }))
+  const tableFragment=JSON.parse(tableCopyData.getData('application/x-rector-fragment'))
+  const tablePart=tableFragment.parts[0]?.block
+  assert(tablePart?.type==='table','table selection did not export local block part')
+  assert(tablePart.data.withHeadings===true,'table heading flag was lost')
+  assert(tablePart.data.rows.length===2&&tablePart.data.rows.every(row=>row.cells.length===2),'table clipboard rectangle is incorrect')
+  assert(
+    JSON.stringify(tablePart.data.rows.flatMap(row=>row.cells.map(cell=>cell.text)))
+      ===JSON.stringify(['A1','A2','B1','B2']),
+    'table selected cell values are incorrect',
+  )
+
+  const tableCutData=new DataTransfer()
+  tableFields[0].dispatchEvent(new ClipboardEvent('cut',{
+    clipboardData:tableCutData,bubbles:true,cancelable:true,
+  }))
+  await delay()
+  let tableSaved=tableClipboard.editor.save().blocks[0]
+  assert(
+    tableSaved.type==='table'
+      &&tableSaved.data.rows.flatMap(row=>row.cells).every(cell=>cell.text===''),
+    'table cut did not preserve grid while clearing selected intervals',
+  )
+  assert(tableClipboard.editor.undo()===true,'table clipboard cut is not undoable')
+  await delay()
+  tableSaved=tableClipboard.editor.save().blocks[0]
+  assert(tableSaved.data.rows[1].cells[1].text==='B2','table cut undo did not restore source')
+  tableClipboard.editor.destroy()
+
   const multi = createHarness(sandbox, {
     version: '2.0.0',
     blocks: [
@@ -584,7 +704,7 @@ async function run() {
     crossBlockOperations: ['copy', 'cut', 'paste', 'private rich-text roundtrip', 'Backspace', 'Delete', 'outside clear'],
     structuralKeys: ['Enter', 'Backspace merge', 'Delete merge', 'inline collision merge', 'Ctrl+A'],
     focusKeys: ['ArrowUp', 'ArrowDown', 'Tab', 'Shift+Tab'],
-    multiField: true,
+    multiField: ['selection', 'list clipboard slice', 'table clipboard slice'],
   }
 }
 
