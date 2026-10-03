@@ -9,6 +9,20 @@ function deepFreeze(value) {
   return Object.freeze(value)
 }
 
+function replayChanges(changes, direction) {
+  if (direction === 'forward') return cloneEditorData(changes)
+  return [...changes].reverse().map(change => {
+    switch (change.kind) {
+      case 'block.insert': return { kind:'block.remove', index:change.index, block:cloneEditorData(change.block) }
+      case 'block.remove': return { kind:'block.insert', index:change.index, block:cloneEditorData(change.block) }
+      case 'block.update': return { kind:'block.update', id:change.id, before:cloneEditorData(change.after), after:cloneEditorData(change.before) }
+      case 'block.move': return { kind:'block.move', id:change.id, from:change.to, to:change.from }
+      case 'document.replace': return { kind:'document.replace', before:cloneEditorData(change.after), after:cloneEditorData(change.before) }
+      default: throw new TypeError(`Unknown document change: ${change?.kind}`)
+    }
+  })
+}
+
 function noopProjector() {
   return {
     prepare() {
@@ -222,7 +236,8 @@ export class TransactionEngine {
     const draft = this.#store.createDraft()
     const direction = action === 'undo' ? 'backward' : 'forward'
     draft.applyChanges(record.changes, direction)
-    const replacesDocument = record.changes.some(change => change.kind === 'document.replace')
+    const appliedChanges = replayChanges(record.changes, direction)
+    const replacesDocument = appliedChanges.some(change => change.kind === 'document.replace')
     const storeCommit = this.#store.prepareCommit(draft, { newGeneration: replacesDocument })
     let prepared = null
 
@@ -231,7 +246,7 @@ export class TransactionEngine {
       prepared = this.#prepareProjection({
         store: this.#store,
         draft,
-        changes: cloneEditorData(record.changes),
+        changes: appliedChanges,
         origin: 'history',
         name: record.name,
         action,
@@ -248,7 +263,7 @@ export class TransactionEngine {
         origin: 'history',
         action,
         name: record.name,
-        changes: record.changes,
+        changes: appliedChanges,
         history: historyCommit.history,
       })
 
