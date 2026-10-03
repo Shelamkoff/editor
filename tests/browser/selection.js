@@ -177,6 +177,34 @@ async function run() {
   assert(copiedText.includes('one') && copiedText.includes('Bravo two') && copiedText.includes('Charlie'), 'partial copy lost selected text')
   assert(!copiedText.includes('Alpha ') && !copiedText.includes(' three'), 'partial copy included unselected text')
 
+  const compositeTarget = createHarness(sandbox, {
+    version: '2.0.0',
+    blocks: [
+      { id: 'target-head', type: 'paragraph', dataVersion: 2, data: { text: 'HEAD__old' } },
+      { id: 'target-middle', type: 'paragraph', dataVersion: 2, data: { text: 'REMOVE ME' } },
+      { id: 'target-tail', type: 'paragraph', dataVersion: 2, data: { text: 'TAIL___suffix' } },
+    ],
+  })
+  await activateCrossSelection(compositeTarget, 0, 6, 2, 7)
+  const compositeBefore = JSON.stringify(compositeTarget.editor.save())
+  const compositePaste = paste(editable(compositeTarget, 0), {
+    'application/x-rector-fragment': copyData.getData('application/x-rector-fragment'),
+    'text/html': '<p>lossy fallback</p>',
+    'text/plain': 'lossy fallback',
+  })
+  await delay()
+  assert(compositePaste.defaultPrevented, 'composite private paste was not owned')
+  assert(
+    JSON.stringify(texts(compositeTarget.editor)) === JSON.stringify(['HEAD__one', 'Bravo two', 'Charliesuffix']),
+    'composite private paste placed endpoint parts incorrectly',
+  )
+  assert(compositeTarget.editor.blocks.count === 3, 'composite private paste created extra residual blocks')
+  assert(!JSON.stringify(compositeTarget.editor.save()).includes('lossy fallback'), 'composite private paste used standard fallback')
+  assert(compositeTarget.editor.undo() === true, 'composite private paste is not one history step')
+  await delay()
+  assert(JSON.stringify(compositeTarget.editor.save()) === compositeBefore, 'composite private paste undo did not restore target')
+  compositeTarget.editor.destroy()
+
   const cutData = new DataTransfer()
   const cutEvent = new ClipboardEvent('cut', { clipboardData: cutData, bubbles: true, cancelable: true })
   editable(copy, 0).dispatchEvent(cutEvent)
