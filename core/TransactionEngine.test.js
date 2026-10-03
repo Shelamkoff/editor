@@ -352,3 +352,47 @@ test('undo publishes applied inverse changes in application order and redo publi
   assert.equal(seen[0].changes[1].before.data.text, 'a')
   assert.equal(seen[0].changes[1].after.data.text, 'next')
 })
+
+
+test('failed prepared commit restores the pre-command logical selection', () => {
+  class FailingHistory extends HistoryStore {
+    prepareRecord() { throw new Error('history prepare failed') }
+  }
+  let captures = 0
+  const restored = []
+  const before = { anchor: { blockId: 'a', offset: 1 }, focus: { blockId: 'a', offset: 1 } }
+  const after = { anchor: { blockId: 'a', offset: 4 }, focus: { blockId: 'a', offset: 4 } }
+  const { engine } = harness({
+    history: new FailingHistory(),
+    selection: {
+      capture() { return captures++ === 0 ? before : after },
+      restore(bookmark) { restored.push(bookmark) },
+    },
+  })
+
+  assert.throws(() => engine.execute({ origin: 'user', name: 'update' }, tx => {
+    tx.update('a', block('a', 'next'))
+  }), /history prepare failed/)
+
+  assert.deepEqual(restored, [before])
+})
+
+test('deferred history selection restore is guarded by committed revision', async () => {
+  const restored = []
+  const bookmark = { anchor: { blockId: 'a', offset: 1 }, focus: { blockId: 'a', offset: 1 } }
+  const { engine } = harness({
+    selection: {
+      capture() { return bookmark },
+      restore(value) { restored.push(value) },
+    },
+  })
+  engine.execute({ origin: 'user', name: 'first' }, tx => tx.update('a', block('a', 'one')))
+  restored.length = 0
+
+  assert.equal(engine.undo(), true)
+  assert.equal(restored.length, 1, 'undo did not restore selection synchronously')
+
+  engine.execute({ origin: 'user', name: 'later' }, tx => tx.update('a', block('a', 'later')))
+  await Promise.resolve()
+  assert.equal(restored.length, 1, 'stale deferred selection overwrote a later revision')
+})
