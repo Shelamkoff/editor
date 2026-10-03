@@ -52,7 +52,24 @@ export function createWarningPlugin(){
         }
         return {title:'',message:payload.data.text}
       },
+    }),    clipboard:Object.freeze({
+      slice(data,context){
+        const title=context.field('title')
+        const message=context.field('message')
+        if(!title&&!message)throw new Error('Warning clipboard selection does not intersect a field')
+        const selected={title:title?.selected??'',message:message?.selected??''}
+        const remaining={
+          title:title?title.before+title.after:data.title,
+          message:message?message.before+message.after:data.message,
+        }
+        return {
+          parts:[{kind:'local-block',data:selected}],
+          remaining:(!remaining.title.trim()&&!remaining.message.trim())?null:remaining,
+          focus:null,
+        }
+      },
     }),
+
   })
   return Object.freeze({
     type:'warning',
