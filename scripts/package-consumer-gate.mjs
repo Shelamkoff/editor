@@ -248,14 +248,14 @@ function usePublicEditorApi(editor = createEditor({
   inlinePlugins: [mentionPlugin],
   injectStyles: false,
 })) {
-  const available = [editor.isReady, editor.readOnly, editor.canUndo, editor.canRedo, editor.documentMode]
+  const available = [editor.isReady, editor.readOnly, editor.canUndo, editor.canRedo]
   editor.undo()
   editor.redo()
   editor.setReadOnly(!editor.readOnly)
   return available
 }
 
-if ('DocumentSchema' in rectorRoot || 'uid' in rectorRoot || 'sanitizeHtml' in rectorRoot || 'escapeHtml' in rectorRoot) {
+if ('DocumentSchema' in rectorRoot || 'DocumentMigration' in rectorRoot || 'uid' in rectorRoot || 'sanitizeHtml' in rectorRoot || 'escapeHtml' in rectorRoot) {
   throw new Error('root package leaked extension/internal utility exports')
 }
 

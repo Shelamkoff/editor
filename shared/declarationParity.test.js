@@ -191,6 +191,8 @@ test('public editor and renderer derive document shapes from the neutral shared 
   assert.match(sharedTypes, /export interface EditorOutputData/)
   assert.match(sharedTypes, /export interface EditorBlockData/)
   assert.match(sharedTypes, /export interface EditorInlineWidget/)
+  assert.match(sharedTypes, /version:\s*'2\.0\.0'/)
+  assert.match(sharedTypes, /dataVersion:\s*number/)
 })
 
 test('public editor declarations expose only the v2 model API', async () => {
@@ -203,7 +205,7 @@ test('public editor declarations expose only the v2 model API', async () => {
   assert.doesNotMatch(coreEntry, /EditorFacade|BlockManager|UndoManager|CommandDispatcher|InlinePluginRegistry/)
   assert.match(coreEntry, /createEditor\(config:[\s\S]*EditorConfig\):[\s\S]*IEditor/)
   assert.match(publicTypes, /readonly blocks:\s*EditorBlocksApi/)
-  assert.match(publicTypes, /readonly documentMode:\s*DocumentMode/)
+  assert.doesNotMatch(publicTypes, /DocumentMode|documentMode|DocumentMigration|documentVersionPolicy|validationMode|migrations/)
   assert.match(publicTypes, /insert\(input:\s*InsertBlockInput/)
   assert.match(publicTypes, /update\(id:\s*string,[\s\S]*BlockUpdate/)
   assert.match(publicTypes, /insertInlinePlugin\(type:\s*string/)

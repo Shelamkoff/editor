@@ -11,9 +11,9 @@ import type {
 declare const holder: HTMLElement
 const schema = {
   currentVersion: 1,
-  legacyVersion: 1,
   createDefault: () => ({ text: '' }),
-  decode(input: { dataVersion?: number; data: unknown }) {
+  decode(input: { dataVersion: number; data: unknown }) {
+    if (input.dataVersion !== 1) throw new RangeError('dataVersion')
     const data = input.data as { text?: unknown }
     if (typeof data?.text !== 'string') throw new TypeError('text')
     return { dataVersion: 1, data: { text: data.text } }
