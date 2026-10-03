@@ -23,9 +23,15 @@ interface EditorConfig {
   documentVersionPolicy?: 'preserve' | 'strict'
   migrations?: readonly DocumentMigration[]
   changeDebounceMs?: number
+  historyMaxStack?: number
+  historyCoalesceMs?: number
+  dragThreshold?: number
+  toolboxFilterThreshold?: number
   onReady?: (editor: IEditor) => void | Promise<void>
   onChange?: (document: EditorDocument) => void | Promise<void>
   onValidationError?: (issue: EditorValidationIssue) => void
+  onDiagnostic?: (diagnostic: EditorDiagnostic) => void | Promise<void>
+  diagnosticThresholds?: Partial<DiagnosticThresholds>
 }
 ```
 
@@ -50,9 +56,15 @@ interface EditorConfig {
 | `documentVersionPolicy` | no | `preserve` | Incomplete/future document-version paths are preserved or rejected strictly. |
 | `migrations` | no | `[]` | Directed synchronous document migrations. |
 | `changeDebounceMs` | no | `250` | Delay before the detached `onChange` snapshot is delivered. |
+| `historyMaxStack` | no | `100` | Maximum number of undo records retained by operation-based history. |
+| `historyCoalesceMs` | no | `300` | Maximum idle interval for grouping consecutive native edits in one undo step. |
+| `dragThreshold` | no | `5` | Pointer movement in pixels required before block dragging starts. |
+| `toolboxFilterThreshold` | no | `7` | Show toolbox search only when the registered item count exceeds this value. |
 | `onReady` | no | omitted | Observer invoked after successful composition. Callback failures do not invalidate the editor. |
 | `onChange` | no | omitted | Debounced observer receiving a detached saved document after canonical commits. |
 | `onValidationError` | no | omitted | Observer for preservation/validation issues. |
+| `onDiagnostic` | no | omitted | Content-free operational diagnostics; callback failures are isolated. |
+| `diagnosticThresholds` | no | no slow-operation thresholds | Optional non-negative thresholds for command/save/render/paste diagnostics. |
 
 ## Plugin definitions
 
@@ -95,7 +107,7 @@ Use `minHeight` only for the editor shell. Extension layout belongs in extension
 
 ## Callbacks
 
-`onReady`, `onChange`, and `onValidationError` are observers, not transaction hooks. Rector isolates observer failures from canonical state.
+`onReady`, `onChange`, `onValidationError`, and `onDiagnostic` are observers, not transaction hooks. Rector isolates observer failures from canonical state. Diagnostics never contain document or plugin payload data.
 
 `onChange` is scheduled only after committed document mutations and receives a detached document. A newer commit can supersede an older pending notification.
 
