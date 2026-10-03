@@ -1,4 +1,5 @@
-import { createColorSwatchPlugin, createEditor } from '../../core/index.js'
+import { createEditor } from '../../core/index.js'
+import { createColorSwatchPlugin } from '../../inline-plugins/color.js'
 import { createHeadingPlugin, createParagraphPlugin, createQuotePlugin } from '../../plugins/index.js'
 
 const sandbox = document.querySelector('#sandbox')
