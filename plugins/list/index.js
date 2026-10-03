@@ -170,22 +170,22 @@ export function createListPlugin(){
         return {...data,style:actionId}
       },
     }),
-    paste:Object.freeze({
-      accepts(input){return input.kind==='html'&&/<(?:ul|ol)(?:\s|>)/i.test(input.html)},
-      resolve(input,context){
-        if(input.kind!=='html')return null
-        const template=context.ownerDocument.createElement('template')
-        template.innerHTML=input.html
-        const list=template.content.querySelector('ul,ol')
-        if(!list)return null
-        const items=[...list.querySelectorAll(':scope > li')].map(li=>({
-          id:context.createId('item'),
-          text:li.innerHTML,
-        }))
-        if(items.length===0)return null
-        return {kind:/** @type {'block'} */('block'),data:{style:list.tagName==='OL'?/** @type {'ordered'} */('ordered'):/** @type {'unordered'} */('unordered'),items}}
+    htmlImport:Object.freeze({
+      matchesRoot(element){
+        return element.tagName==='UL'||element.tagName==='OL'
       },
-    }),
+      importRoot(element,context){
+        const items=[...element.children].filter(child=>child.tagName==='LI').map(li=>({
+          id:context.createId('item'),
+          text:context.serializeRichText(li),
+        }))
+        if(!items.length)throw new TypeError('Imported list root must contain list items')
+        return {
+          style:element.tagName==='OL'?/** @type {'ordered'} */('ordered'):/** @type {'unordered'} */('unordered'),
+          items,
+        }
+      },
+    }),,
   })
 
   return Object.freeze({
