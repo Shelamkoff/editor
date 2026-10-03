@@ -163,13 +163,25 @@ async function run() {
   editable(copy, 0).dispatchEvent(copyEvent)
   const copiedText = copyData.getData('text/plain')
   assert(copyEvent.defaultPrevented, 'partial cross-block copy was not handled')
-  assert(copyData.getData('application/x-rector-fragment') === '', 'partial cross-block copy exported unsupported private fragment')
+  const partialFragment = JSON.parse(copyData.getData('application/x-rector-fragment'))
+  assert(partialFragment.version === 2, 'partial copy did not export current private fragment')
+  assert(
+    partialFragment.parts.map(part => part.kind).join(',') === 'rich-text,block,rich-text',
+    'partial composite fragment shape is incorrect',
+  )
+  assert(partialFragment.parts[0].html.includes('one'), 'partial fragment lost first endpoint content')
+  assert(partialFragment.parts[1].block.data.text === 'Bravo two', 'partial fragment lost whole middle block')
+  assert(partialFragment.parts[2].html.includes('Charlie'), 'partial fragment lost last endpoint content')
+  assert(!JSON.stringify(partialFragment).includes('Alpha '), 'partial fragment leaked unselected start content')
+  assert(!JSON.stringify(partialFragment).includes(' three'), 'partial fragment leaked unselected end content')
   assert(copiedText.includes('one') && copiedText.includes('Bravo two') && copiedText.includes('Charlie'), 'partial copy lost selected text')
   assert(!copiedText.includes('Alpha ') && !copiedText.includes(' three'), 'partial copy included unselected text')
 
   const cutData = new DataTransfer()
   const cutEvent = new ClipboardEvent('cut', { clipboardData: cutData, bubbles: true, cancelable: true })
   editable(copy, 0).dispatchEvent(cutEvent)
+  const cutFragment = JSON.parse(cutData.getData('application/x-rector-fragment'))
+  assert(cutFragment.version === 2 && cutFragment.parts.length === 3, 'partial cut did not publish canonical private fragment')
   await delay()
   assert(copy.editor.blocks.count === 1, 'partial cut did not merge selected paragraph range')
   assert(texts(copy.editor)[0] === 'Alpha  three', 'partial cut lost surviving endpoint text')
