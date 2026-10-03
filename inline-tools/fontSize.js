@@ -1,6 +1,6 @@
 import { setTrustedHtml } from '../shared/sanitize/sanitizeHtml.js'
-import { el } from '../core/dom.js'
-import { createSvgIcon } from '../core/icons.js'
+import { el } from '../shared/editorDom.js'
+import { createSvgIcon } from '../shared/editorIcons.js'
 import {
   createSelectionPortBinding,
   ICON_CHECK,
@@ -164,7 +164,7 @@ export function createFontSizeTool(label) {
   let isOpen = false
   /** @type {number | null} */
   let focusFrame = null
-  /** @type {import('../core/types').InlineMutationContext | null} */
+  /** @type {import('./types').InlineMutationContext | null} */
   let mutations = null
 
   /** @param {Range | null} [range] @returns {Document | null} */
