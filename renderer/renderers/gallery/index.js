@@ -1,4 +1,5 @@
 // @ts-check
+import { galleryDataSchema } from '../../../shared/blockSchemas/gallery.js'
 import {
   Expose,
   createCaptions,
@@ -91,7 +92,7 @@ function selectAutoTemplate(count, orientations) {
  * Create the gallery renderer and own every opened Expose instance.
  * @param {string} classPrefix
  * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} locale
- * @returns {import('../../types').BlockRenderer<import('../../types').GalleryBlock>}
+ * @returns {import('../../types').BlockRendererDefinition<import('../../types').GalleryBlock>}
  */
 export function createGalleryRenderer(classPrefix, locale) {
   /** @type {WeakMap<HTMLElement, Set<{ destroy(): void }>>} */
@@ -100,6 +101,7 @@ export function createGalleryRenderer(classPrefix, locale) {
   const masonryMounts = new WeakMap()
   return {
     type: 'gallery',
+    schema: galleryDataSchema,
     styles: [styles, exposeStyles],
 
     /**
