@@ -28,6 +28,33 @@ function richFieldMap(definition,data){
   return fields
 }
 
+function snapshotInlineInstance(source,type){
+  if(!source||typeof source!=='object'||Array.isArray(source)){
+    throw new TypeError('Inline runtime "'+type+'" returned an invalid widget instance')
+  }
+  const element=source.element
+  const update=typeof source.update==='function'?source.update.bind(source):undefined
+  const setReadOnly=typeof source.setReadOnly==='function'?source.setReadOnly.bind(source):null
+  const focus=typeof source.focus==='function'?source.focus.bind(source):undefined
+  const destroySource=typeof source.destroy==='function'?source.destroy.bind(source):null
+  if(!element||!setReadOnly||!destroySource){
+    throw new TypeError('Inline runtime "'+type+'" returned an invalid widget instance')
+  }
+  let destroyed=false
+  const instance={
+    element,
+    setReadOnly,
+    destroy(){
+      if(destroyed)return
+      destroyed=true
+      destroySource()
+    },
+  }
+  if(update)instance.update=update
+  if(focus)instance.focus=focus
+  return Object.freeze(instance)
+}
+
 export class InlineProjectionRuntime {
   #registry
   #ownerDocument
@@ -56,10 +83,10 @@ export class InlineProjectionRuntime {
     )
   }
 
-  prepareBlock(blockId,record,definition,fields,baseContext){
+  prepareBlock(blockId,record,definition,fields,baseContext,generation){
     this.#assertLive()
     const previous=this.#blocks.get(blockId)
-    const state={widgets:new Map(),staged:true}
+    const state={widgets:new Map(),staged:true,generation}
     try{
       this.#projectState(
         blockId,state,record,definition,fields,baseContext,{preserveSourceProjection:false},
@@ -232,6 +259,7 @@ export class InlineProjectionRuntime {
           changed.push(entry)
         }
       }
+      for(const entry of changed)entry.scope?.setReadOnly?.(next)
       this.#readOnly=next
     }catch(error){
       const failures=[error]
@@ -327,15 +355,24 @@ export class InlineProjectionRuntime {
         if(!entry){
           const Ctor=this.#ownerDocument.defaultView?.AbortController??AbortController
           const controller=new Ctor()
-          const scope=new InstanceScope({staged:state.staged===true})
+          const scope=new InstanceScope({
+            staged:state.staged===true,
+            generation:state.generation??0,
+            readOnly:this.#readOnly,
+          })
           const makeContext=baseContext?.createInlineWidgetContext
           if(typeof makeContext!=='function')throw new Error('Block context does not provide inline widget mutations')
           const context=makeContext(fieldKey,id,type,controller.signal,scope)
-          const instance=runtime.create(id,decoded.data,context)
-          if(!instance?.element||typeof instance.setReadOnly!=='function'||typeof instance.destroy!=='function'){
-            controller.abort()
-            try{instance?.destroy?.()}catch{}
-            throw new TypeError('Inline runtime "'+type+'" returned an invalid widget instance')
+          let sourceInstance
+          let instance
+          try{
+            sourceInstance=runtime.create(id,decoded.data,context)
+            instance=snapshotInlineInstance(sourceInstance,type)
+          }catch(error){
+            try{scope.revoke()}catch{}
+            try{controller.abort()}catch{}
+            try{sourceInstance?.destroy?.()}catch{}
+            throw error
           }
           entry={id,type,fieldKey,instance,element:instance.element,controller,scope,data:decoded.data}
           state.widgets.set(id,entry)
