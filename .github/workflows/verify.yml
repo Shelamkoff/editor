@@ -84,7 +84,7 @@ jobs:
             browser) npm run test:browser 2>&1 | tee test-results/browser.log ;;
             package) npm run test:package 2>&1 | tee test-results/package.log ;;
             docs) { npm run test:docs && npm run docs:check; } 2>&1 | tee test-results/docs.log ;;
-            size-report) node benchmarks/bundle-budget.mjs 2>&1 | tee test-results/size-report.log ;;
+            size-report) node benchmarks/bundle-budget.mjs --enforce 2>&1 | tee test-results/size-report.log ;;
             *) exit 2 ;;
           esac
       - name: Upload release gate results
