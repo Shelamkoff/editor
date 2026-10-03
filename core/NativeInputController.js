@@ -11,10 +11,6 @@ const SOURCE_PROJECTION_INPUTS = new Set([
   'insertCompositionText',
 ])
 
-function historyGroup(owner, suffix = '') {
-  return `native:${owner.blockId}:${owner.fieldKey}${suffix}`
-}
-
 export class NativeInputController {
   #root
   #runtime
@@ -22,15 +18,25 @@ export class NativeInputController {
   #controller
   #composition = null
   #endingComposition = null
+  #coalesceMs
+  #now
+  #groupSequence = 0
+  #lastGroup = null
 
-  constructor({ root, runtime, reconciler }) {
+  constructor({ root, runtime, reconciler, coalesceMs = 300 }) {
     if (!root?.addEventListener) throw new TypeError('NativeInputController requires an event root')
     if (!runtime?.syncBlockFromProjection) throw new TypeError('NativeInputController requires a DocumentRuntime')
     if (!reconciler?.resolveEditableTarget) throw new TypeError('NativeInputController requires a BlockReconciler')
+    if (!Number.isFinite(coalesceMs) || coalesceMs < 0) {
+      throw new RangeError('Native input coalesce interval must be a finite number greater than or equal to 0')
+    }
 
     this.#root = root
     this.#runtime = runtime
     this.#reconciler = reconciler
+    this.#coalesceMs = coalesceMs
+    const performanceNow = root.ownerDocument?.defaultView?.performance?.now?.bind(root.ownerDocument.defaultView.performance)
+    this.#now = performanceNow ?? Date.now
 
     const AbortControllerCtor = root.ownerDocument?.defaultView?.AbortController ?? AbortController
     this.#controller = new AbortControllerCtor()
@@ -48,6 +54,7 @@ export class NativeInputController {
     if (value === true) {
       this.#composition = null
       this.#endingComposition = null
+      this.#lastGroup = null
     }
   }
 
@@ -75,7 +82,7 @@ export class NativeInputController {
 
     const inputType = typeof event?.inputType === 'string' ? event.inputType : ''
     this.#commit(owner, {
-      group: historyGroup(owner),
+      group: this.#historyGroup(owner),
       preserveSourceProjection: SOURCE_PROJECTION_INPUTS.has(inputType),
     })
   }
@@ -110,7 +117,7 @@ export class NativeInputController {
       ) return
       this.#endingComposition = null
       this.#commit(owner, {
-        group: historyGroup(owner, ':composition'),
+        group: this.#historyGroup(owner, ':composition'),
         preserveSourceProjection: true,
       })
     })
@@ -120,6 +127,20 @@ export class NativeInputController {
     this.#controller.abort()
     this.#composition = null
     this.#endingComposition = null
+    this.#lastGroup = null
+  }
+
+  #historyGroup(owner, suffix = '') {
+    const key = `${owner.blockId}:${owner.fieldKey}${suffix}`
+    const now = this.#now()
+    const previous = this.#lastGroup
+    if (previous && previous.key === key && now - previous.at <= this.#coalesceMs) {
+      previous.at = now
+      return previous.group
+    }
+    const group = `native:${key}:${++this.#groupSequence}`
+    this.#lastGroup = { key, group, at: now }
+    return group
   }
 
   #resolve(target) {
