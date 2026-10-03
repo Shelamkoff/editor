@@ -487,3 +487,37 @@ test('ExtensionRegistry snapshots structural htmlImport capability methods', () 
   assert.equal(imports, 1)
   registry.destroy()
 })
+
+
+test('ExtensionRegistry snapshots clipboard slice capability methods', () => {
+  const doc = documentStub()
+  let calls = 0
+  const clipboard = {
+    slice(data, context) {
+      calls++
+      return {
+        parts: [{ kind: 'local-block', data: { value: data.value } }],
+        remaining: null,
+        focus: context.field('value') ? { fieldKey: 'value', offset: 0 } : null,
+      }
+    },
+  }
+  const source = {
+    ...blockDefinition('probe'),
+    capabilities: { clipboard },
+  }
+  const registry = new ExtensionRegistry({
+    ownerDocument: doc,
+    blocks: [source],
+    acquireStyles: false,
+  })
+  const snap = registry.getBlockDefinition('probe').capabilities.clipboard
+  clipboard.slice = () => { throw new Error('mutated') }
+  const result = snap.slice(
+    { value: 'owned' },
+    { createId: prefix => prefix + '-id', field: () => ({ selected: 'x' }) },
+  )
+  assert.equal(result.parts[0].data.value, 'owned')
+  assert.equal(calls, 1)
+  registry.destroy()
+})
