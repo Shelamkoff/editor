@@ -1,4 +1,4 @@
-import { setTrustedHtml } from '../core/sanitize.js'
+import { setTrustedHtml } from '../shared/sanitize/sanitizeHtml.js'
 import { hasInlineContent, removeEmptyInlineTags } from './inlineContent.js'
 export { removeEmptyInlineTags } from './inlineContent.js'
 import { editableFields, editableAtBoundary } from '../shared/editableFields.js'
