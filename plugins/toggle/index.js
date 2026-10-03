@@ -57,7 +57,25 @@ export function createTogglePlugin(){
         }
         return {title:'',content:payload.data.text,open:true}
       },
+    }),    clipboard:Object.freeze({
+      slice(data,context){
+        const title=context.field('title')
+        const content=context.field('content')
+        if(!title&&!content)throw new Error('Toggle clipboard selection does not intersect a field')
+        const selected={title:title?.selected??'',content:content?.selected??'',open:data.open}
+        const remaining={
+          title:title?title.before+title.after:data.title,
+          content:content?content.before+content.after:data.content,
+          open:data.open,
+        }
+        return {
+          parts:[{kind:'local-block',data:selected}],
+          remaining:(!remaining.title.trim()&&!remaining.content.trim())?null:remaining,
+          focus:null,
+        }
+      },
     }),
+
   })
 
   return Object.freeze({
