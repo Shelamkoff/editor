@@ -28,7 +28,7 @@ const editor = createEditor({
 })
 ```
 
-A plugin owns `createWidget(data, id)` and `getData(element)`. It may additionally implement `hydrate`, `onEdit`, `onCommit`, `pasteConfig`, `destroy`, and a matching renderer widget. Preserve the id supplied to `createWidget`; changing it breaks the token-to-data relation.
+An inline plugin is an immutable `InlinePluginDefinition`: it owns a versioned `schema`, optional `paste`, `editing`, `insertion` and trigger capabilities, and a `setup()` factory. The per-editor runtime creates widget instances through `create(id, initial, context)`. Widget mutations use `context.updateData()`, while the stable widget id remains owned by the document model.
 
 Mounted changes must use the mutation context supplied by Rector so one completed interaction produces one undo step. Release popup DOM, timers, requests, listeners, and object URLs from the plugin lifecycle.
 
