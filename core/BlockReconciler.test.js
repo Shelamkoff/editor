@@ -344,3 +344,63 @@ test('core shell survives plugin className rewrites and keeps block identity', (
   assert.equal(shell.firstElementChild.className, 'probe')
   assert.equal(reconciler.resolveBlockTarget(shell.firstElementChild), 'a')
 })
+
+
+test('staged replacement context reads candidate data before store commit', () => {
+  const ownerDocument = new FakeDocument()
+  const container = ownerDocument.createElement('div')
+  let candidateRead = null
+
+  const runtimeFor = type => ({
+    create(initial, context) {
+      if (type === 'heading') candidateRead = context.getData().text
+      const element = ownerDocument.createElement(type === 'heading' ? 'h2' : 'p')
+      element.textContent = initial.text
+      return {
+        element,
+        read: () => ({ text: element.textContent }),
+        update() {},
+        editableFields: () => [{ key: 'text', element, mode: 'rich-text' }],
+        setReadOnly() {},
+        destroy() {},
+      }
+    },
+    destroy() {},
+  })
+
+  const registry = {
+    hasBlock: type => type === 'paragraph' || type === 'heading',
+    getBlockDefinition: type => ({ type }),
+    getBlockRuntime: type => runtimeFor(type),
+  }
+  const store = new DocumentStore({
+    version: '2.0.0',
+    blocks: [block('a', 'committed', 'paragraph')],
+  })
+  const reconciler = new BlockReconciler({
+    container,
+    registry,
+    contextFactory(_id, _type, _signal, readRecord) {
+      return {
+        getData: () => readRecord().data,
+        updateData() {},
+        commitDomMutation(fn) { fn() },
+        requestSplit() {},
+        requestExit() {},
+        createId(prefix) { return prefix + '-id' },
+      }
+    },
+  })
+  reconciler.mount(store)
+
+  const draft = store.createDraft()
+  draft.update('a', block('a', 'candidate', 'heading'))
+  const prepared = reconciler.prepare({ store, draft, changes: draft.changes })
+
+  assert.equal(candidateRead, 'candidate')
+  assert.equal(store.get('a').data.text, 'committed')
+  assert.equal(reconciler.getElement('a').firstElementChild.tagName, 'P')
+
+  prepared.discard()
+  reconciler.destroy()
+})
