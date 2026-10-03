@@ -1,5 +1,6 @@
 // @ts-check
-import { setSanitizedHtml, setTrustedHtml } from '../../plugin-kit/index.js'
+import { setSanitizedHtml } from '../../plugin-kit/index.js'
+import { setTrustedHtml } from '../../shared/sanitize/sanitizeHtml.js'
 import { warningDataSchema } from '../../shared/blockSchemas/warning.js'
 
 const editorStyles=new URL('./warning.css',import.meta.url).href
