@@ -229,9 +229,8 @@ export class EditorRenderer {
     if (renderableBlock.inline && typeof renderer.schema.mapRichText === 'function' && this.#inlineRenderers.size > 0) {
       const inline = renderableBlock.inline
       const registry = this.#inlineRenderers
-      const hydratedData = cloneEditorData(renderableBlock.data)
-      renderer.schema.mapRichText(
-        /** @type {Record<string, unknown>} */ (hydratedData),
+      const hydratedData = renderer.schema.mapRichText(
+        /** @type {Record<string, unknown>} */ (renderableBlock.data),
         html => renderInlineWidgets(html, inline, registry, ownerDocument),
       )
       renderableBlock = { ...renderableBlock, data: hydratedData }
