@@ -21,8 +21,23 @@ import { ColorPicker, parseColorInput } from '@shelamkoff/color-picker'
  * @returns {{ element: HTMLElement, open(color: string, alpha?: number): void, close(): void, destroy(): void }}
  */
 export function createOwnedColorPicker(ownerDocument, options = {}) {
-  if (ownerDocument === globalThis.document) return new ColorPicker(/** @type {any} */ (options))
+  if (ownerDocument === globalThis.document && !requiresTrustedHtml(ownerDocument)) {
+    return new ColorPicker(/** @type {any} */ (options))
+  }
   return new NativeRealmColorPicker(ownerDocument, options)
+}
+
+/** @param {Document} ownerDocument */
+function requiresTrustedHtml(ownerDocument) {
+  const view = ownerDocument.defaultView
+  if (!view?.trustedTypes) return false
+  try {
+    const probe = ownerDocument.createElement('template')
+    probe.innerHTML = ''
+    return false
+  } catch {
+    return true
+  }
 }
 
 class NativeRealmColorPicker {
