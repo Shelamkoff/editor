@@ -36,6 +36,13 @@ function harness() {
   const reconciler = {
     resolveEditableTarget(target) { return target === field ? owner : null },
     getEditableField(blockId, fieldKey) { return blockId === 'b' && fieldKey === 'text' ? owner : null },
+    getEditableFields(blockId) {
+      if (blockId === 'a') return [
+        { key: 'first', element: {}, mode: 'rich-text' },
+        { key: 'last', element: {}, mode: 'rich-text' },
+      ]
+      return blockId === 'b' ? [owner] : []
+    },
   }
   let bookmark = {
     anchor: { blockId: 'b', fieldKey: 'text', offset: 1 },
@@ -69,6 +76,23 @@ test('Enter delegates an editable split to one runtime transaction', () => {
   router.handleKeydown(e)
   assert.equal(e.prevented, true)
   assert.deepEqual(calls[0], ['split', 'b', 'text', { start: 1, end: 1 }])
+  router.destroy()
+})
+
+test('ArrowUp from block start focuses the previous block last editable field', () => {
+  const { router, viewCalls, event, setBookmark } = harness()
+  setBookmark({
+    anchor: { blockId: 'b', fieldKey: 'text', offset: 0 },
+    focus: { blockId: 'b', fieldKey: 'text', offset: 0 },
+  })
+  const e = event('ArrowUp')
+  router.handleKeydown(e)
+
+  assert.equal(e.prevented, true)
+  assert.deepEqual(viewCalls.slice(-2), [
+    ['current', 'a'],
+    ['focus', 'a', { fieldKey: 'last', offset: 'end' }],
+  ])
   router.destroy()
 })
 
