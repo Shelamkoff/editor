@@ -14,7 +14,7 @@ function harness() {
       const logicalLength = segments.reduce((total, segment) => (
         total + (segment.kind === 'widget' ? 1 : segment.text.length)
       ), 0)
-      return { offset: range.start + logicalLength }
+      return { blockId, fieldKey, offset: range.start + logicalLength }
     },
   }
   const definition = {
