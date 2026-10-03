@@ -554,8 +554,7 @@ export function getEditorRoot(node) {
  */
 export function clearCrossBlockRange(cbs, contextNode) {
   if (cbs) {
-    const editor = getEditorRoot(contextNode ?? cbs.range?.startContainer)
-    cbs.deactivate(editor ?? undefined)
+    cbs.deactivate()
   } else {
     const editor = getEditorRoot(contextNode)
     if (editor) {
@@ -649,7 +648,7 @@ export function restoreCrossBlockRange(cbs, offsets) {
 
   // Update stored range and visual highlight
   if (cbs) {
-    cbs.activate(range, editorRoot)
+    cbs.activate(range)
   } else {
     editorRoot.classList.add('oe-editor--cross-selecting')
     showCrossHighlight(range)
