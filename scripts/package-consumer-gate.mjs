@@ -134,7 +134,13 @@ try {
   for (const dependency of ['highlight.js', 'jszip']) {
     const entry = fileURLToPath(import.meta.resolve(dependency))
     let packageRoot = dirname(entry)
-    while (basename(packageRoot) !== dependency && dirname(packageRoot) !== packageRoot) packageRoot = dirname(packageRoot)
+    while (dirname(packageRoot) !== packageRoot) {
+      try {
+        const manifest = JSON.parse(await readFile(join(packageRoot, 'package.json'), 'utf8'))
+        if (manifest.name === dependency) break
+      } catch {}
+      packageRoot = dirname(packageRoot)
+    }
     dependencyTarballs.push(await packInstalledDependency(packageRoot, dependencyPackRoot))
   }
 
