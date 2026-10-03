@@ -441,6 +441,7 @@ export function createEditorRuntime(input){
     registry,
     reconciler,
     selection:logicalSelection,
+    selectionPort:crossSelection,
     view,
     tools:configuredInlineTools,
   }))
