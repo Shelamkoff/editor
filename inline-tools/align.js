@@ -8,7 +8,6 @@ import {
   getSelectedBlockElements,
   createBackButton,
 } from './utils.js'
-import { TEXT_ALIGN_TUNE_ATTRIBUTE } from '../core/constants.js'
 
 const ELEMENT_NODE = 1
 const ALIGNMENTS = [
@@ -57,7 +56,7 @@ export function createAlignTool(labels, cbs = null) {
   /** @param {HTMLElement} blockRoot @param {string} value */
   function setAlignment(blockRoot, value) {
     blockRoot.style.textAlign = value
-    blockRoot.setAttribute(TEXT_ALIGN_TUNE_ATTRIBUTE, value)
+    blockRoot.dispatchEvent(new CustomEvent('rector:text-align', { bubbles: true, detail: { value } }))
   }
 
   return {
