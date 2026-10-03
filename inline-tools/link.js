@@ -2,6 +2,7 @@ import { setTrustedHtml } from '../shared/sanitize/sanitizeHtml.js'
 import { el } from '../core/dom.js'
 import { sanitizeUrl } from '../shared/sanitize/sanitizeUrl.js'
 import {
+  createSelectionPortBinding,
   ICON_LINK, ICON_CHECK, ICON_UNLINK,
   removeEmptyInlineTags,
   saveSelectionOffsets,
@@ -61,12 +62,14 @@ function getIntersectingLinks(range) {
  * @param {string} linkPlaceholder — i18n placeholder for the input
  * @param {string} linkLabel — i18n label for the tool
  * @param {{ apply?: string, unlink?: string }} [actionLabels]
- * @param {import('./types').CrossBlockSelectionPort | null} [cbs]
  * @returns {import('./types').InlineTool}
  */
-export function createLinkTool(linkPlaceholder, linkLabel, actionLabels = {}, cbs = null) {
+export function createLinkTool(linkPlaceholder, linkLabel, actionLabels = {}) {
+  const selection = createSelectionPortBinding()
+  const cbs = selection.port
   return {
     type: 'link',
+    bindSelectionPort: selection.bind,
     title: linkLabel,
     icon: ICON_LINK,
     tag: 'a',
