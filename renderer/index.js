@@ -277,20 +277,12 @@ function snapshotCustomRenderer(renderer) {
   if (destroy !== undefined && typeof destroy !== 'function') {
     throw new TypeError(`EditorRenderer custom renderer "${type}" destroy must be a function`)
   }
-  const mapTextFields = candidate.mapTextFields
-  if (mapTextFields !== undefined && typeof mapTextFields !== 'function') {
-    throw new TypeError(`EditorRenderer custom renderer "${type}" mapTextFields must be a function`)
-  }
-
   return {
     type,
     schema: /** @type {any} */ (schema),
     render: /** @type {any} */ (render).bind(renderer),
     ...(styles ? { styles } : {}),
     ...(typeof destroy === 'function' ? { destroy: /** @type {any} */ (destroy).bind(renderer) } : {}),
-    ...(typeof mapTextFields === 'function'
-      ? { mapTextFields: /** @type {any} */ (mapTextFields).bind(renderer) }
-      : {}),
   }
 }
 
