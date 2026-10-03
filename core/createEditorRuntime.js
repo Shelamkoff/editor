@@ -110,7 +110,10 @@ function snapshotEditorConfig(input){
   if(config.minHeight!==undefined&&(!Number.isFinite(config.minHeight)||config.minHeight<0)){
     throw new RangeError('createEditor() minHeight must be a finite number greater than or equal to 0')
   }
-  for(const field of ['changeDebounceMs','historyCoalesceMs','dragThreshold']){
+  for(const field of [
+    'changeDebounceMs','historyCoalesceMs','dragThreshold','mobileBreakpoint',
+    'blockInsertAnimationMs','blockMoveAnimationMs','blockRemoveAnimationMs',
+  ]){
     if(config[field]!==undefined&&(!Number.isFinite(config[field])||config[field]<0)){
       throw new RangeError(`createEditor() ${field} must be a finite number greater than or equal to 0`)
     }
@@ -160,6 +163,10 @@ function snapshotEditorConfig(input){
  *   historyCoalesceMs?: number,
  *   dragThreshold?: number,
  *   toolboxFilterThreshold?: number,
+ *   mobileBreakpoint?: number,
+ *   blockInsertAnimationMs?: number,
+ *   blockMoveAnimationMs?: number,
+ *   blockRemoveAnimationMs?: number,
  * }} input
  */
 export function createEditorRuntime(input){
@@ -193,6 +200,15 @@ export function createEditorRuntime(input){
   root.className='oe-editor oe-theme-'+(config.theme??'light')
   root.tabIndex=-1
   if(config.minHeight!==undefined)root.style.minHeight=String(config.minHeight)+'px'
+  const mobileBreakpoint=config.mobileBreakpoint??768
+  const updateViewportMode=()=>root.classList.toggle(
+    'oe-editor--mobile',
+    (document.defaultView?.innerWidth??Infinity)<mobileBreakpoint,
+  )
+  updateViewportMode()
+  const onViewportResize=()=>updateViewportMode()
+  document.defaultView?.addEventListener?.('resize',onViewportResize)
+  lifecycle.register({destroy(){document.defaultView?.removeEventListener?.('resize',onViewportResize)}})
   const blocksElement=document.createElement('div')
   blocksElement.className='oe-blocks'
   const clickArea=document.createElement('div')
@@ -284,6 +300,11 @@ export function createEditorRuntime(input){
         activationResolver,
         inlineProjection,
         readOnly:config.readOnly===true,
+        animationDurations:{
+          insertMs:config.blockInsertAnimationMs??350,
+          moveMs:config.blockMoveAnimationMs??200,
+          removeMs:config.blockRemoveAnimationMs??350,
+        },
       })
       return reconciler
     },
