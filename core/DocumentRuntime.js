@@ -82,7 +82,6 @@ export class DocumentRuntime {
    *   selection?: any,
    *   onCommit?: (event: any) => void,
    *   diagnostics?: import('./Diagnostics').Diagnostics,
-   *   onDiagnostic?: (error: unknown) => void,
    *   onValidationError?: (issue: any) => void | Promise<void>,
    *   richTextNormalizer?: (html: string) => string,
    *   requestSplit?: (id: string) => void,
@@ -141,7 +140,6 @@ export class DocumentRuntime {
       selection: options.selection,
       onCommit: options.onCommit,
       diagnostics: this.#diagnostics ?? undefined,
-      onDiagnostic: options.onDiagnostic,
     })
 
     this.#projector?.mount?.(this.#store)
