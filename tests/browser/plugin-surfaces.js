@@ -26,7 +26,7 @@ function mount(definition, data, id = definition.type) {
     changeDebounceMs: 0,
     data: {
       version: '2.0.0',
-      blocks: [{ id, type: definition.type, data: structuredClone(data) }],
+      blocks: [{ id, type: definition.type, dataVersion: definition.schema.currentVersion, data: structuredClone(data) }],
     },
   })
   const block = holder.querySelector(`.oe-block[data-block-id="${id}"]`)

@@ -34,7 +34,7 @@ async function assertBoundary({ name, definition, data, actionSelector }) {
     injectStyles: false,
     data: {
       version: '2.0.0',
-      blocks: [{ id: `action-label-${name}`, type: definition.type, data }],
+      blocks: [{ id: `action-label-${name}`, type: definition.type, dataVersion: definition.schema.currentVersion, data }],
     },
   })
 

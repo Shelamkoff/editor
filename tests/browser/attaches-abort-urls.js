@@ -26,7 +26,7 @@ try {
     injectStyles: false,
     data: {
       version: '2.0.0',
-      blocks: [{ id: 'attaches', type: 'attaches', data: definition.schema.createDefault() }],
+      blocks: [{ id: 'attaches', type: 'attaches', dataVersion: definition.schema.currentVersion, data: definition.schema.createDefault() }],
     },
   })
 

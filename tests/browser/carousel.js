@@ -43,7 +43,7 @@ function mount(config = {}, data = { slides: [], options }, readOnly = false) {
     injectStyles: true,
     readOnly,
     changeDebounceMs: 0,
-    data: { version: '2.0.0', blocks: [{ id: 'carousel', type: 'carousel', data: structuredClone(data) }] },
+    data: { version: '2.0.0', blocks: [{ id: 'carousel', type: 'carousel', dataVersion: definition.schema.currentVersion, data: structuredClone(data) }] },
   })
   const element = holder.querySelector('.oe-carousel-block')
   assert(element instanceof HTMLElement, 'carousel editor did not project its block')
@@ -298,7 +298,7 @@ async function run() {
   const renderer = new EditorRenderer({ blockTypes: ['carousel'] })
   const container = document.createElement('div')
   sandbox.appendChild(container)
-  renderer.renderTo({ version: '2.0.0', blocks: [{ id: 'carousel', type: 'carousel', data: saved }] }, container)
+  renderer.renderTo({ version: '2.0.0', blocks: [{ id: 'carousel', type: 'carousel', dataVersion: 1, data: saved }] }, container)
   assert(container.querySelector('.carousel'), 'carousel renderer did not mount external instance')
   const renderedViewport = container.querySelector('.carousel__viewport')
   const renderedImage = container.querySelector('.editor-carousel-block__slide img')

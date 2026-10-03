@@ -87,7 +87,7 @@ async function runSessionRace() {
     injectStyles: false,
     inlinePlugins: [createMentionPlugin({ debounceDelay: 0, searchFunction })],
     changeDebounceMs: 0,
-    data: { version: '2.0.0', blocks: [{ id: 'paragraph', type: 'paragraph', data: { text: '' } }] },
+    data: { version: '2.0.0', blocks: [{ id: 'paragraph', type: 'paragraph', dataVersion: 2, data: { text: '' } }] },
   })
   const content = holder.querySelector('.oe-block[data-block-id="paragraph"] [contenteditable="true"]')
   assert(content instanceof HTMLElement, 'mention session paragraph projection is missing')
@@ -152,7 +152,7 @@ async function runOwningRealm() {
       })],
       data: {
         version: '2.0.0',
-        blocks: [{ id: 'paragraph', type: 'paragraph', data: { text: 'Hi ' } }],
+        blocks: [{ id: 'paragraph', type: 'paragraph', dataVersion: 2, data: { text: 'Hi ' } }],
       },
       changeDebounceMs: 10000,
     })

@@ -25,7 +25,7 @@ function createMentionEditor(searchFunction, onMentionSelect = undefined, mentio
     ],
     injectStyles: false,
     changeDebounceMs: 0,
-    data: { version: '2.0.0', blocks: [{ id: 'paragraph', type: 'paragraph', data: { text: '' } }] },
+    data: { version: '2.0.0', blocks: [{ id: 'paragraph', type: 'paragraph', dataVersion: 2, data: { text: '' } }] },
   })
   const root = holder.querySelector('.oe-editor')
   const content = holder.querySelector('.oe-block[data-block-id="paragraph"] [contenteditable="true"]')

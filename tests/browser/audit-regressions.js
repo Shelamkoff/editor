@@ -34,7 +34,7 @@ function mount(definition, data, options = {}) {
     locale: options.locale,
     data: {
       version: '2.0.0',
-      blocks: [{ id: options.id ?? definition.type, type: definition.type, data }],
+      blocks: [{ id: options.id ?? definition.type, type: definition.type, dataVersion: definition.schema.currentVersion, data }],
     },
   })
   const root = holder.querySelector('.oe-editor')

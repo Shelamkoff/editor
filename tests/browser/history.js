@@ -28,8 +28,8 @@ function stable(value) {
 function createHarness(sandbox, data = {
   version: '2.0.0',
   blocks: [
-    { id: 'alpha', type: 'paragraph', data: { text: 'Alpha' } },
-    { id: 'beta', type: 'paragraph', data: { text: 'Beta' } },
+    { id: 'alpha', type: 'paragraph', dataVersion: 2, data: { text: 'Alpha' } },
+    { id: 'beta', type: 'paragraph', dataVersion: 2, data: { text: 'Beta' } },
   ],
 }) {
   const holder = document.createElement('section')
@@ -125,7 +125,7 @@ async function run() {
   })
 
   await assertUndoRedo(editor, 'public insert', () => {
-    editor.blocks.insert({ type: 'paragraph', data: { text: 'Inserted' } }, 1)
+    editor.blocks.insert({ type: 'paragraph', dataVersion: 2, data: { text: 'Inserted' } }, 1)
   })
 
   let movableId = editor.blocks.at(0)?.id
@@ -152,15 +152,15 @@ async function run() {
     editor.render({
       version: '2.0.0',
       blocks: [
-        { id: 'render-heading', type: 'heading', data: { text: 'Rendered', level: 3 } },
-        { id: 'render-paragraph', type: 'paragraph', data: { text: 'Document' } },
+        { id: 'render-heading', type: 'heading', dataVersion: 2, data: { text: 'Rendered', level: 3 } },
+        { id: 'render-paragraph', type: 'paragraph', dataVersion: 2, data: { text: 'Document' } },
       ],
     })
   })
 
   editor.render({
     version: '2.0.0',
-    blocks: [{ id: 'toolbar-origin', type: 'paragraph', data: { text: 'Origin' } }],
+    blocks: [{ id: 'toolbar-origin', type: 'paragraph', dataVersion: 2, data: { text: 'Origin' } }],
   })
   editor.blocks.focus('toolbar-origin', { offset: 'end' })
   await delay()
@@ -181,7 +181,7 @@ async function run() {
 
   const shortcutTarget = editable(holder, editor.blocks.at(0).id)
   const beforeShortcutUndo = semantic(editor.save())
-  editor.blocks.insert({ type: 'paragraph', data: { text: 'Shortcut' } })
+  editor.blocks.insert({ type: 'paragraph', dataVersion: 2, data: { text: 'Shortcut' } })
   const afterShortcutInsert = semantic(editor.save())
   const undoEvent = key(shortcutTarget, 'z', { code: 'KeyZ', ctrlKey: true })
   await delay()
@@ -204,7 +204,7 @@ async function run() {
 
   const changes = []
   const stop = editor.on('document:changed', event => changes.push(event))
-  const inserted = editor.blocks.insert({ type: 'paragraph', data: { text: 'Observed' } })
+  const inserted = editor.blocks.insert({ type: 'paragraph', dataVersion: 2, data: { text: 'Observed' } })
   await delay()
   assert(changes.length > 0, 'document:changed was not published after mutation')
   assert(changes.at(-1).changes.length > 0, 'document:changed did not carry canonical changes')
