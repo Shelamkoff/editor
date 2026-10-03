@@ -207,6 +207,11 @@ function snapshotCapabilities(source, label) {
       ['export', false], ['canImport', false], ['import', false],
     ])
   }
+  if (candidate.htmlImport !== undefined) {
+    result.htmlImport = snapshotCapabilityObject(candidate.htmlImport, `${label} htmlImport`, [
+      ['matchesRoot', false], ['importRoot', false],
+    ])
+  }
   if (candidate.selectionSlice !== undefined) {
     result.selectionSlice = snapshotCapabilityObject(
       candidate.selectionSlice, `${label} selectionSlice`, [['slice', false]],
