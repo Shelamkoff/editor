@@ -104,8 +104,8 @@ function snapshotEditorConfig(input){
   if(config.diagnosticThresholds!==undefined&&(config.diagnosticThresholds===null||typeof config.diagnosticThresholds!=='object'||Array.isArray(config.diagnosticThresholds))){
     throw new TypeError('createEditor() diagnosticThresholds must be an object')
   }
-  if(config.theme!==undefined&&config.theme!=='light'&&config.theme!=='dark'){
-    throw new TypeError('createEditor() theme must be "light" or "dark"')
+  if(config.theme!==undefined&&(typeof config.theme!=='string'||config.theme.length===0)){
+    throw new TypeError('createEditor() theme must be a non-empty string')
   }
   if(config.minHeight!==undefined&&(!Number.isFinite(config.minHeight)||config.minHeight<0)){
     throw new RangeError('createEditor() minHeight must be a finite number greater than or equal to 0')
@@ -147,7 +147,7 @@ function snapshotEditorConfig(input){
  *   readOnly?: boolean,
  *   autofocus?: boolean,
  *   injectStyles?: boolean,
- *   theme?: 'light'|'dark',
+ *   theme?: string,
  *   minHeight?: number,
  *   locale?: Record<string, any>,
  *   validationMode?: 'preserve'|'strict',
@@ -197,7 +197,7 @@ export function createEditorRuntime(input){
   const document=holder.ownerDocument
   const root=document.createElement('div')
   lifecycle.register({destroy(){root.remove()}})
-  root.className='oe-editor oe-theme-'+(config.theme??'light')
+  root.className='oe-editor oe-theme-'+(config.theme??'dark')
   root.tabIndex=-1
   if(config.minHeight!==undefined)root.style.minHeight=String(config.minHeight)+'px'
   const mobileBreakpoint=config.mobileBreakpoint??768
