@@ -237,6 +237,25 @@ async function run() {
   assert(JSON.stringify(compositeTarget.editor.save()) === compositeBefore, 'composite private paste undo did not restore target')
   compositeTarget.editor.destroy()
 
+  const failedCutHarness = createHarness(sandbox)
+  await activateCrossSelection(failedCutHarness)
+  const failedCutBefore = JSON.stringify(failedCutHarness.editor.save())
+  const failedCutEvent = new Event('cut', { bubbles: true, cancelable: true })
+  Object.defineProperty(failedCutEvent, 'clipboardData', {
+    value: {
+      setData() { throw new Error('clipboard unavailable') },
+      getData() { return '' },
+    },
+  })
+  editable(failedCutHarness, 0).dispatchEvent(failedCutEvent)
+  await delay()
+  assert(!failedCutEvent.defaultPrevented, 'failed clipboard write claimed Cut')
+  assert(
+    JSON.stringify(failedCutHarness.editor.save()) === failedCutBefore,
+    'failed clipboard write deleted source selection',
+  )
+  failedCutHarness.editor.destroy()
+
   const cutData = new DataTransfer()
   const cutEvent = new ClipboardEvent('cut', { clipboardData: cutData, bubbles: true, cancelable: true })
   editable(copy, 0).dispatchEvent(cutEvent)
@@ -526,9 +545,16 @@ async function run() {
     clipboardData: quoteCopyData, bubbles: true, cancelable: true,
   }))
   const quoteFragment = JSON.parse(quoteCopyData.getData('application/x-rector-fragment'))
+  const quotePart = quoteFragment.parts[0]?.block
   assert(
-    quoteFragment.version === 2 && quoteFragment.parts.map(part => part.kind).join(',') === 'rich-text,rich-text',
-    'same-block multi-field copy did not export two rich-text parts',
+    quoteFragment.version === 2 && quoteFragment.parts.length === 1
+      && quoteFragment.parts[0].kind === 'block'
+      && quotePart?.type === 'quote',
+    'quote clipboard capability did not export one structured block part',
+  )
+  assert(
+    quotePart.data.text === 'rst quote' && quotePart.data.caption === 'First',
+    'quote clipboard capability exported the wrong selected fields',
   )
 
   const quoteCutData = new DataTransfer()
@@ -565,9 +591,19 @@ async function run() {
   await delay()
   assert(quotePaste.defaultPrevented, 'same-block private fragment paste was not owned')
   const quotePasted = quoteClipboardTarget.editor.save()
-  assert(quotePasted.blocks.length === 1, 'same-block private paste split quote into multiple blocks')
-  assert(quotePasted.blocks[0].data.text === 'AArst quote', 'same-block private paste misplaced first rich-text part')
-  assert(quotePasted.blocks[0].data.caption === 'FirstZZ', 'same-block private paste misplaced last rich-text part')
+  assert(quotePasted.blocks.length === 2, 'structured quote fragment placement did not preserve target remaining')
+  assert(
+    quotePasted.blocks[0].type === 'quote'
+      && quotePasted.blocks[0].data.text === 'AA'
+      && quotePasted.blocks[0].data.caption === 'ZZ',
+    'quote target remaining diverged from clipboard capability',
+  )
+  assert(
+    quotePasted.blocks[1].type === 'quote'
+      && quotePasted.blocks[1].data.text === 'rst quote'
+      && quotePasted.blocks[1].data.caption === 'First',
+    'structured quote fragment was not inserted as one block',
+  )
   assert(quoteClipboardTarget.editor.undo() === true, 'same-block private paste is not one history step')
   await delay()
   assert(JSON.stringify(quoteClipboardTarget.editor.save()) === quoteTargetBefore, 'same-block private paste undo failed')
