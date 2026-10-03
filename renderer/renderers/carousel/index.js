@@ -10,7 +10,6 @@ import {
   createSwipe,
   createThumbnails,
 } from '@shelamkoff/carousel'
-import { normalizeCarouselData } from '../../../shared/carouselData.js'
 import { setSanitizedRawHtml } from '../../../shared/sanitize/sanitizeRawHtml.js'
 import { setSafeUrlAttribute } from '../../../shared/sanitize/sanitizeUrl.js'
 import { requiresTrustedHtml } from '../../../shared/sanitize/trustedHtml.js'
@@ -36,8 +35,7 @@ export function createCarouselRenderer(classPrefix, locale) {
     schema: carouselDataSchema,
     styles: [styles, carouselStylesUrl],
     render(block, _parseInline, context = { ownerDocument: globalThis.document }) {
-      let fallback = 0
-      const data = normalizeCarouselData(block.data, () => `legacy-slide-${++fallback}`, context.ownerDocument)
+      const data = block.data
       const root = context.ownerDocument.createElement('div')
       root.className = p
       root.setAttribute('aria-label', t('label', 'Content carousel'))
@@ -85,8 +83,7 @@ export function createCarouselRenderer(classPrefix, locale) {
         }
       })
 
-      // Preserve mode may intentionally pass a normalized empty carousel.
-      // Avoid constructing a runtime instance with no navigable slides.
+      // Empty current carousels are valid authoring data and need no runtime instance.
       if (!slides.length) return root
 
       // @shelamkoff/carousel 1.x resolves DOM constructors from its module

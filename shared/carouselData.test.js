@@ -3,7 +3,6 @@ import assert from 'node:assert/strict'
 
 import {
   normalizeCarouselAspectRatio,
-  normalizeCarouselData,
   validateCarouselData,
 } from './carouselData.js'
 
@@ -40,11 +39,4 @@ test('carousel aspect ratio normalization rejects zero and malformed components'
   assert.equal(normalizeCarouselAspectRatio('0 / 9'), undefined)
   assert.equal(normalizeCarouselAspectRatio('16 / 0'), undefined)
   assert.equal(normalizeCarouselAspectRatio('Infinity / 9'), undefined)
-
-  let id = 0
-  const normalized = normalizeCarouselData({
-    slides: [],
-    options: { ...options, aspectRatio: '0 / 0' },
-  }, () => `slide-${++id}`)
-  assert.equal(normalized.options.aspectRatio, undefined)
 })

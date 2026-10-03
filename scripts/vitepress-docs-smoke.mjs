@@ -109,9 +109,9 @@ for (const file of (await walk(join(docsRoot, 'ru'))).filter(path => extname(pat
 const configurationGuide = await readFile(join(docsRoot, 'guide', 'configuration.md'), 'utf8')
 const configurationGuideRu = await readFile(join(docsRoot, 'ru', 'guide', 'configuration.md'), 'utf8')
 for (const option of [
-  'holder', 'plugins', 'inlineTools', 'inlinePlugins', 'data', 'migrations',
-  'documentVersionPolicy', 'readOnly', 'placeholder', 'autofocus', 'minHeight',
-  'defaultBlock', 'locale', 'onChange', 'onReady', 'validationMode',
+  'holder', 'plugins', 'inlineTools', 'inlinePlugins', 'data',
+  'readOnly', 'placeholder', 'autofocus', 'minHeight',
+  'defaultBlock', 'locale', 'onChange', 'onReady',
   'changeDebounceMs', 'historyMaxStack', 'historyCoalesceMs', 'dragThreshold',
   'toolboxFilterThreshold', 'mobileBreakpoint', 'blockInsertAnimationMs',
   'blockMoveAnimationMs', 'blockRemoveAnimationMs', 'onValidationError', 'onDiagnostic',
@@ -119,6 +119,10 @@ for (const option of [
 ]) {
   assert(configurationGuide.includes(option), `Configuration guide does not document EditorConfig.${option}`)
   assert(configurationGuideRu.includes(option), `Russian configuration guide does not document EditorConfig.${option}`)
+}
+for (const removed of ['validationMode', 'documentVersionPolicy', 'migrations']) {
+  assert(!configurationGuide.includes(`| \`${removed}\` |`), `Configuration guide still documents removed EditorConfig.${removed}`)
+  assert(!configurationGuideRu.includes(`| \`${removed}\` |`), `Russian configuration guide still documents removed EditorConfig.${removed}`)
 }
 const fileSourcesGuide = await readFile(join(docsRoot, 'guide', 'file-sources.md'), 'utf8')
 const fileSourcesGuideRu = await readFile(join(docsRoot, 'ru', 'guide', 'file-sources.md'), 'utf8')

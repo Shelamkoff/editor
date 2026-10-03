@@ -4,7 +4,6 @@ import { canonicalUrl, isRecord, text } from './helpers.js'
 
 export const embedDataSchema = createVersionedDataSchema({
   currentVersion: 1,
-  legacyVersion: 1,
   createDefault: () => ({
     service: '',
     videoId: '',

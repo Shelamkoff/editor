@@ -3,7 +3,6 @@ import { createVersionedDataSchema } from '../versionedDataSchema.js'
 
 export const codeDataSchema=createVersionedDataSchema({
   currentVersion:1,
-  legacyVersion:1,
   createDefault:()=>({code:'',language:'auto'}),
   normalize(input){
     if(typeof input?.code!=='string')throw new TypeError('Code value must be a string')

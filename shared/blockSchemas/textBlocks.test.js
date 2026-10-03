@@ -7,12 +7,14 @@ import { headingDataSchema } from './heading.js'
 test('Paragraph v2 schema removes legacy alignment and emits current dataVersion', () => {
   assert.deepEqual(paragraphDataSchema.createDefault(), { text: '' })
 
-  assert.deepEqual(paragraphDataSchema.decode({
-    data: { text: 'Body', align: 'center' },
-  }), {
-    dataVersion: 2,
-    data: { text: 'Body' },
-  })
+  assert.throws(
+    () => paragraphDataSchema.decode({ data: { text: 'Body' } }),
+    /dataVersion is required/,
+  )
+  assert.throws(
+    () => paragraphDataSchema.decode({ dataVersion: 1, data: { text: 'Body', align: 'center' } }),
+    /Unsupported data version 1/,
+  )
 
   assert.deepEqual(paragraphDataSchema.encode({ text: 'Body' }), {
     dataVersion: 2,
@@ -23,13 +25,13 @@ test('Paragraph v2 schema removes legacy alignment and emits current dataVersion
 test('Heading v2 schema removes legacy alignment and validates levels', () => {
   assert.deepEqual(headingDataSchema.createDefault(), { text: '', level: 2 })
 
-  assert.deepEqual(headingDataSchema.decode({
-    dataVersion: 1,
-    data: { text: 'Title', level: 4, align: 'right' },
-  }), {
-    dataVersion: 2,
-    data: { text: 'Title', level: 4 },
-  })
+  assert.throws(
+    () => headingDataSchema.decode({
+      dataVersion: 1,
+      data: { text: 'Title', level: 4, align: 'right' },
+    }),
+    /Unsupported data version 1/,
+  )
 
   assert.throws(
     () => headingDataSchema.encode({ text: 'Title', level: 1 }),

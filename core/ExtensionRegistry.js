@@ -20,11 +20,23 @@ function validateType(type, label) {
 
 function validateSchema(definition, label) {
   const schema = definition?.schema
-  if (!schema || typeof schema.createDefault !== 'function' || typeof schema.encode !== 'function') {
-    throw new TypeError(`${label} must provide a data schema`)
+  if (!schema
+      || !Number.isSafeInteger(schema.currentVersion)
+      || schema.currentVersion < 1
+      || typeof schema.createDefault !== 'function'
+      || typeof schema.decode !== 'function'
+      || typeof schema.encode !== 'function') {
+    throw new TypeError(`${label} must provide a current exact-version data schema`)
   }
   const initial = schema.createDefault()
-  schema.encode(initial)
+  const encoded = schema.encode(initial)
+  if (!encoded || encoded.dataVersion !== schema.currentVersion) {
+    throw new TypeError(`${label} schema encode() must emit currentVersion`)
+  }
+  const decoded = schema.decode({ dataVersion: schema.currentVersion, data: encoded.data })
+  if (!decoded || decoded.dataVersion !== schema.currentVersion) {
+    throw new TypeError(`${label} schema decode() must preserve currentVersion`)
+  }
 }
 
 export class ExtensionRegistry {

@@ -23,7 +23,6 @@ function createDefault() {
 
 export const galleryDataSchema = createVersionedDataSchema({
   currentVersion: 2,
-  legacyVersion: 1,
   createDefault,
   normalize(input) {
     if (!isRecord(input)) throw new TypeError('Gallery data must be an object')
@@ -40,7 +39,13 @@ export const galleryDataSchema = createVersionedDataSchema({
         caption: text(image.caption),
       }
     })
-    const layout = typeof input.layout === 'string' && GALLERY_LAYOUTS.includes(input.layout) ? input.layout : 'auto'
+    let layout = 'auto'
+    if (input.layout !== undefined) {
+      if (typeof input.layout !== 'string' || !GALLERY_LAYOUTS.includes(input.layout)) {
+        throw new TypeError('Gallery layout is invalid')
+      }
+      layout = input.layout
+    }
     const sourceOptions = isRecord(input.options) ? input.options : {}
     /** @type {GalleryOptions} */
     const options = { ...DEFAULT_OPTIONS }
@@ -58,15 +63,4 @@ export const galleryDataSchema = createVersionedDataSchema({
       caption: transform(image.caption, 'image:' + image.id + ':caption'),
     }))
   },
-  migrations:[{
-    from:1,
-    to:2,
-    migrate(input){
-      if(!Array.isArray(input?.images))throw new TypeError('Legacy gallery images must be an array')
-      return {
-        ...input,
-        images:input.images.map((image,index)=>({...image,id:'legacy-image-'+index})),
-      }
-    },
-  }],
 })

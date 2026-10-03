@@ -51,9 +51,9 @@ class ForeignHTMLElement {
 
 const passthroughSchema = Object.freeze({
   currentVersion: 1,
-  legacyVersion: 1,
   createDefault: () => ({}),
-  decode({ data }) {
+  decode({ dataVersion, data }) {
+    if (dataVersion !== 1) throw new RangeError('unsupported data version')
     if (!data || typeof data !== 'object' || Array.isArray(data)) throw new TypeError('data must be an object')
     return { dataVersion: 1, data: { ...data } }
   },
@@ -105,7 +105,7 @@ test('renderTo keeps custom DOM and automatic styles in the target owning docume
   globalThis.document = new Proxy({}, { get() { throw new Error('ambient document must not be used') } })
   globalThis.HTMLElement = class AmbientHTMLElement {}
   try {
-    renderer.renderTo({ blocks: [{ id: 'a', type: 'foreign', data: { text: 'A' } }] }, container)
+    renderer.renderTo({ blocks: [{ id: 'a', type: 'foreign', dataVersion: 1, data: { text: 'A' } }] }, container)
     const wrapper = container.children[0]
     assert.equal(contextDocument, realm.ownerDocument)
     assert.equal(wrapper.ownerDocument, realm.ownerDocument)

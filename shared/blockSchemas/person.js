@@ -31,7 +31,6 @@ function normalizePerson(person,personIds) {
 
 export const personDataSchema = createVersionedDataSchema({
   currentVersion: 2,
-  legacyVersion: 1,
   createDefault: () => ({
     persons: [{ id:'person-0', avatar: '', name: '', role: '', bio: '', links: [] }],
   }),
@@ -48,20 +47,4 @@ export const personDataSchema = createVersionedDataSchema({
       bio: transform(person.bio, 'person:' + person.id + ':bio'),
     }))
   },
-  migrations:[{
-    from:1,
-    to:2,
-    migrate(input){
-      if(!Array.isArray(input?.persons))throw new TypeError('Legacy persons must be an array')
-      return {
-        persons:input.persons.map((person,personIndex)=>({
-          ...person,
-          id:'legacy-person-'+personIndex,
-          links:Array.isArray(person?.links)
-            ? person.links.map((link,linkIndex)=>({...link,id:'legacy-link-'+personIndex+'-'+linkIndex}))
-            :[],
-        })),
-      }
-    },
-  }],
 })

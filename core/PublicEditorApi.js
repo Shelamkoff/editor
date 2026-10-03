@@ -12,7 +12,7 @@ function snapshot(runtime, record) {
     tunes: value.tunes,
     inline: value.inline,
     revision: value.revision,
-    status: runtime.activation(value.id)?.kind === 'active' ? 'active' : 'preserved',
+    status: runtime.activation(value.id)?.kind === 'active' ? 'active' : 'unregistered',
   })
 }
 
@@ -117,7 +117,6 @@ export class EditorHandle {
   get canUndo() { this.#assertLive(); return this.#runtime.canUndo }
   get canRedo() { this.#assertLive(); return this.#runtime.canRedo }
   get readOnly() { this.#assertLive(); return this.#runtime.readOnly }
-  get documentMode() { this.#assertLive(); return this.#runtime.documentMode }
 
   save() {
     this.#assertLive()

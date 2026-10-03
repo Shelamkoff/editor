@@ -5,7 +5,6 @@ import { isRecord, text } from './helpers.js'
 
 export const pollDataSchema=createVersionedDataSchema({
   currentVersion:1,
-  legacyVersion:1,
   createDefault:()=>({
     question:'',
     type:'single',
@@ -17,18 +16,27 @@ export const pollDataSchema=createVersionedDataSchema({
   }),
   normalize(input){
     if(!isRecord(input))throw new TypeError('Poll data must be an object')
-    const type=input.type==='multiple'?'multiple':'single'
+    let type='single'
+    if(input.type!==undefined){
+      if(input.type!=='single'&&input.type!=='multiple')throw new TypeError('Poll type must be single or multiple')
+      type=input.type
+    }
     if(!Array.isArray(input.options)||input.options.length<2)throw new TypeError('Poll requires at least two options')
     const ids=new Set()
     const options=input.options.map(option=>{
       if(!isRecord(option)||typeof option.id!=='string'||!option.id)throw new TypeError('Poll option requires a stable id')
+      if(Object.hasOwn(option,'votes'))throw new TypeError('Poll option votes are not part of canonical poll data')
       if(ids.has(option.id))throw new Error('Duplicate poll option id: '+option.id)
       ids.add(option.id)
       return {id:option.id,text:text(option.text)}
     })
-    const resultsMode=typeof input.resultsMode==='string'&&POLL_RESULTS_MODES.includes(input.resultsMode)
-      ? input.resultsMode
-      :'always'
+    let resultsMode='always'
+    if(input.resultsMode!==undefined){
+      if(typeof input.resultsMode!=='string'||!POLL_RESULTS_MODES.includes(input.resultsMode)){
+        throw new TypeError('Poll resultsMode is invalid')
+      }
+      resultsMode=input.resultsMode
+    }
     const data={
       question:text(input.question),
       type,

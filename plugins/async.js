@@ -1,5 +1,7 @@
 // @ts-check
 import { BLOCK_TYPES } from '../shared/blockTypes.js'
+import { decodeCurrentBlock, snapshotCurrentDocumentEnvelope } from '../shared/DocumentSchema.js'
+import { getBuiltInBlockDataSchema } from '../shared/blockSchemas/index.js'
 
 /** @typedef {(config?: Record<string, unknown>) => import('../plugin-kit/types').BlockPluginDefinition} BlockPluginFactory */
 /** @typedef {() => Promise<BlockPluginFactory>} BlockPluginLoader */
@@ -37,7 +39,7 @@ function requireRecord(value, label) {
   return /** @type {Record<string, unknown>} */ (value)
 }
 
-/** @param {readonly string[] | { blocks?: readonly { type: string }[] } | undefined} source */
+/** @param {readonly string[] | { version: '2.0.0', blocks: readonly import('../shared/documentTypes').EditorBlockData[] } | undefined} source */
 function requestedTypes(source) {
   if (source === undefined) return [...BLOCK_TYPES]
   if (Array.isArray(source)) {
@@ -48,20 +50,16 @@ function requestedTypes(source) {
     }
     return [...new Set(types)]
   }
-  if (!source || typeof source !== 'object') throw new TypeError('source must be an array or document object')
-  const document = /** @type {Record<string, unknown>} */ (source)
-  if (!Object.hasOwn(document, 'blocks')) return [...BLOCK_TYPES]
-  const blocks = document.blocks
-  if (!Array.isArray(blocks)) throw new TypeError('source.blocks must be an array')
+
+  const document = snapshotCurrentDocumentEnvelope(source)
+  const supported = new Set(BLOCK_TYPES)
   const types = []
-  for (let index = 0; index < blocks.length; index++) {
-    if (!Object.hasOwn(blocks, index)) throw new TypeError('source.blocks must be a dense array')
-    const block = blocks[index]
-    const type = block && typeof block === 'object' && !Array.isArray(block) && Object.hasOwn(block, 'type') && typeof block.type === 'string'
-      ? block.type
-      : undefined
-    if (!type) throw new RangeError('Unknown editor block plugin type: undefined')
-    types.push(type)
+  for (const block of document.blocks) {
+    if (!supported.has(block.type)) continue
+    decodeCurrentBlock(block, {
+      getBlockSchema: type => getBuiltInBlockDataSchema(type),
+    })
+    types.push(block.type)
   }
   return [...new Set(types)]
 }

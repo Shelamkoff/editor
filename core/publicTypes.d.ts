@@ -14,8 +14,7 @@ import type {
 export type { BlockPluginDefinition, ConversionPayload, FocusTarget, InlinePluginDefinition, InlineTool }
 export type { EditorBlockData, EditorInlineWidget, EditorOutputData }
 
-export type DocumentMode = 'editable' | 'preserved'
-export type BlockActivationStatus = 'active' | 'preserved'
+export type BlockActivationStatus = 'active' | 'unregistered'
 export type TextAlign = 'left' | 'center' | 'right' | 'justify'
 
 export interface BlockTunes extends Record<string, unknown> {
@@ -23,20 +22,14 @@ export interface BlockTunes extends Record<string, unknown> {
 }
 
 export interface EditorDocument extends EditorOutputData<EditorBlockData> {
-  version: string
+  version: '2.0.0'
   blocks: EditorBlockData[]
-}
-
-export interface DocumentMigration {
-  from: string
-  to: string
-  migrate(document: EditorDocument): EditorDocument
 }
 
 export interface EditorBlockSnapshot {
   readonly id: string
   readonly type: string
-  readonly dataVersion?: number
+  readonly dataVersion: number
   readonly data: Readonly<Record<string, unknown>>
   readonly tunes?: Readonly<BlockTunes>
   readonly inline?: Readonly<Record<string, EditorInlineWidget>>
@@ -93,12 +86,17 @@ export type EditorEventName =
   | 'currentBlock:changed'
   | 'selection:changed'
 
+export type EditorValidationReason =
+  | 'invalid-input'
+  | 'unsupported-document-version'
+  | 'unsupported-data-version'
+  | 'invalid-data'
+
 export interface EditorValidationIssue {
   blockId?: string
   inlineId?: string
   type?: string
-  reason?: string
-  error?: unknown
+  reason?: EditorValidationReason
 }
 
 export type EditorDiagnosticCode =
@@ -106,9 +104,6 @@ export type EditorDiagnosticCode =
   | 'command.slow'
   | 'paste.failed'
   | 'paste.slow'
-  | 'migration.applied'
-  | 'migration.failed'
-  | 'migration.unavailable'
   | 'save.failed'
   | 'save.slow'
   | 'render.slow'
@@ -129,8 +124,6 @@ export interface EditorDiagnostic {
   operation?: string
   pluginType?: string
   blockType?: string
-  fromVersion?: string
-  toVersion?: string
   errorName?: string
 }
 
@@ -148,9 +141,6 @@ export interface EditorConfig {
   theme?: string
   minHeight?: number
   locale?: Record<string, unknown>
-  validationMode?: 'preserve' | 'strict'
-  documentVersionPolicy?: 'preserve' | 'strict'
-  migrations?: readonly DocumentMigration[]
   changeDebounceMs?: number
   historyMaxStack?: number
   historyCoalesceMs?: number
@@ -173,7 +163,6 @@ export interface IEditor {
   readonly canUndo: boolean
   readonly canRedo: boolean
   readonly readOnly: boolean
-  readonly documentMode: DocumentMode
 
   save(): EditorDocument
   render(document: EditorDocument): void

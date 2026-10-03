@@ -16,6 +16,7 @@ test('renderer rejects runtime config values outside its public type contract', 
     [{ blockTypes: 'paragraph' }, /blockTypes must be an array/],
     [{ blockConfigs: [] }, /blockConfigs must be an object/],
     [{ inlineRenderers: {} }, /inlineRenderers must be an array/],
+    [{ validationMode: undefined }, /validationMode is no longer supported/],
   ]
 
   for (const [config, pattern] of invalid) {

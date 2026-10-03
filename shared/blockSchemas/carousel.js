@@ -5,7 +5,6 @@ import { canonicalUrl, isRecord, text } from './helpers.js'
 
 export const carouselDataSchema=createVersionedDataSchema({
   currentVersion:1,
-  legacyVersion:1,
   createDefault:()=>({
     slides:[],
     options:{

@@ -3,7 +3,6 @@ import { createVersionedDataSchema } from '../versionedDataSchema.js'
 
 export const spoilerDataSchema = createVersionedDataSchema({
   currentVersion: 1,
-  legacyVersion: 1,
   createDefault: () => ({ label: '', content: '' }),
   normalize(input) {
     if (typeof input?.label !== 'string') throw new TypeError('Spoiler label must be a string')

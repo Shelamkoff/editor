@@ -93,43 +93,71 @@ test('gallery and carousel rich-text captions use deterministic field keys', () 
 })
 
 
-test('gallery, attaches and person v1 data migrate to stable identities', () => {
-  assert.deepEqual(
-    galleryDataSchema.decode({
+test('media schemas reject removed legacy shapes and versions', () => {
+  assert.throws(
+    () => galleryDataSchema.decode({
       dataVersion: 1,
       data: {
         ...galleryDataSchema.createDefault(),
         images: [{ url: 'https://example.com/a.jpg', caption: 'A' }],
       },
-    }).data.images,
-    [{ id: 'legacy-image-0', url: 'https://example.com/a.jpg', caption: 'A' }],
+    }),
+    /Unsupported data version 1/,
   )
 
-  assert.deepEqual(
-    attachesDataSchema.decode({
-      dataVersion: 1,
+  assert.throws(
+    () => galleryDataSchema.decode({
+      dataVersion: 2,
+      data: {
+        ...galleryDataSchema.createDefault(),
+        layout: 'grid',
+      },
+    }),
+    /Gallery layout is invalid/,
+  )
+
+  assert.throws(
+    () => attachesDataSchema.decode({
+      dataVersion: 2,
       data: {
         files: [{ url: 'https://example.com/a.pdf', name: 'A', extension: 'pdf', size: 10 }],
         variant: 'f',
       },
-    }).data.files,
-    [{ id: 'legacy-file-0', url: 'https://example.com/a.pdf', name: 'A', extension: 'pdf', size: 10 }],
+    }),
+    /stable id/,
   )
 
-  const person = personDataSchema.decode({
-    dataVersion: 1,
-    data: {
-      persons: [{
-        avatar: '',
-        name: 'A',
-        role: '',
-        bio: '',
-        links: [{ type: 'website', url: 'https://example.com/' }],
-      }],
-    },
-  }).data.persons[0]
-  assert.equal(person.id, 'legacy-person-0')
-  assert.equal(person.links[0].id, 'legacy-link-0-0')
+  assert.throws(
+    () => personDataSchema.decode({
+      dataVersion: 2,
+      data: {
+        persons: [{
+          avatar: '',
+          name: 'A',
+          role: '',
+          bio: '',
+          links: [],
+        }],
+      },
+    }),
+    /stable id/,
+  )
+
+  assert.throws(
+    () => pollDataSchema.decode({
+      dataVersion: 1,
+      data: {
+        question: 'Q',
+        type: 'single',
+        options: [
+          { id: 'a', text: 'A', votes: 1 },
+          { id: 'b', text: 'B' },
+        ],
+        resultsMode: 'always',
+      },
+    }),
+    /votes are not part of canonical poll data/,
+  )
 })
 
 test('gallery, attaches and person reject duplicate stable identities', () => {

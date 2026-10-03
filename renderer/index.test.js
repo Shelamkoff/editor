@@ -72,9 +72,9 @@ globalThis.HTMLElement = FakeElement
 
 const passthroughSchema = Object.freeze({
   currentVersion: 1,
-  legacyVersion: 1,
   createDefault: () => ({}),
-  decode({ data }) {
+  decode({ dataVersion, data }) {
+    if (dataVersion !== 1) throw new RangeError('unsupported data version')
     if (!data || typeof data !== 'object' || Array.isArray(data)) throw new TypeError('data must be an object')
     return { dataVersion: 1, data: { ...data } }
   },
@@ -84,26 +84,65 @@ const passthroughSchema = Object.freeze({
   },
 })
 
+
+const CURRENT_DATA_VERSION=Object.freeze({
+  paragraph:2,heading:2,list:2,checklist:2,table:2,columns:2,gallery:2,attaches:2,person:2,
+})
+let currentFixtureId=0
+function currentBlock(value){
+  if(!value||typeof value!=='object'||Array.isArray(value))return value
+  const block={...value}
+  if(!Object.hasOwn(block,'id'))block.id=`fixture-${++currentFixtureId}`
+  if(!Object.hasOwn(block,'dataVersion'))block.dataVersion=CURRENT_DATA_VERSION[block.type]??1
+  return block
+}
+function currentDocument(value){
+  if(!value||typeof value!=='object'||Array.isArray(value))return value
+  const document={...value}
+  if(!Object.hasOwn(document,'version'))document.version='2.0.0'
+  if(Array.isArray(document.blocks)){
+    const blocks=[]
+    for(let index=0;index<document.blocks.length;index++){
+      if(!Object.hasOwn(document.blocks,index)){
+        blocks.length=document.blocks.length
+        continue
+      }
+      blocks[index]=currentBlock(document.blocks[index])
+    }
+    document.blocks=blocks
+  }
+  return document
+}
+function CurrentFixtureRenderer(Base){
+  return class extends Base{
+    renderBlock(block){return super.renderBlock(currentBlock(block))}
+    render(data){return super.render(currentDocument(data))}
+    renderTo(data,container){return super.renderTo(currentDocument(data),container)}
+  }
+}
+
 test('strict renderer validation rejects lossy built-in data with a content-free issue', async () => {
-  const { EditorRenderer } = await import('./index.js')
+  const { EditorRenderer: BaseEditorRenderer } = await import('./index.js')
+  const EditorRenderer=CurrentFixtureRenderer(BaseEditorRenderer)
   const issues = []
   const renderer = new EditorRenderer({
     blockTypes: ['table'],
-    validationMode: 'strict',
     onValidationError: issue => issues.push(issue),
   })
 
   assert.throws(() => renderer.renderBlock({
     id: 'table-1',
     type: 'table',
+    dataVersion: 2,
     data: { content: [['kept', 'lost'], ['ragged']] },
   }), /does not match its schema/)
-  assert.deepEqual(issues, [{ blockId: 'table-1', type: 'table' }])
+  assert.deepEqual(issues.map(({blockId,type})=>({blockId,type})), [{ blockId: 'table-1', type: 'table' }])
   assert.equal(JSON.stringify(issues).includes('kept'), false)
 })
 
 test('custom renderer registration requires a canonical schema', async () => {
-  const { EditorRenderer } = await import('./index.js')
+  const { EditorRenderer: BaseEditorRenderer } = await import('./index.js')
+  const EditorRenderer=CurrentFixtureRenderer(BaseEditorRenderer)
   const renderer = new EditorRenderer({ blockTypes: [] })
   assert.throws(() => renderer.registerRenderer({
     type: 'missing-schema',
@@ -112,7 +151,8 @@ test('custom renderer registration requires a canonical schema', async () => {
 })
 
 test('render observes the blocks collection once', async () => {
-  const { EditorRenderer } = await import('./index.js')
+  const { EditorRenderer: BaseEditorRenderer } = await import('./index.js')
+  const EditorRenderer=CurrentFixtureRenderer(BaseEditorRenderer)
   let reads = 0
   const renderer = new EditorRenderer({ blockTypes: [] })
   renderer.registerRenderer({
@@ -141,7 +181,8 @@ test('render observes the blocks collection once', async () => {
 })
 
 test('renderTo reuses, reorders, replaces and disposes keyed blocks', async () => {
-  const { EditorRenderer } = await import('./index.js')
+  const { EditorRenderer: BaseEditorRenderer } = await import('./index.js')
+  const EditorRenderer=CurrentFixtureRenderer(BaseEditorRenderer)
   let renderCalls = 0
   const destroyed = []
 
@@ -213,7 +254,8 @@ test('renderTo reuses, reorders, replaces and disposes keyed blocks', async () =
 })
 
 test('repeated render and destroy cycles release every renderer-owned resource', async () => {
-  const { EditorRenderer } = await import('./index.js')
+  const { EditorRenderer: BaseEditorRenderer } = await import('./index.js')
+  const EditorRenderer=CurrentFixtureRenderer(BaseEditorRenderer)
   const live = new Set()
   let created = 0
   let destroyed = 0
@@ -254,7 +296,8 @@ test('repeated render and destroy cycles release every renderer-owned resource',
 })
 
 test('render and renderBlock results retain explicit resource ownership', async () => {
-  const { EditorRenderer } = await import('./index.js')
+  const { EditorRenderer: BaseEditorRenderer } = await import('./index.js')
+  const EditorRenderer=CurrentFixtureRenderer(BaseEditorRenderer)
   const destroyed = []
   const renderer = new EditorRenderer({ blockTypes: [] })
   renderer.registerRenderer({
@@ -287,7 +330,8 @@ test('render and renderBlock results retain explicit resource ownership', async 
 })
 
 test('failed detached document rendering disposes blocks created before the failure', async () => {
-  const { EditorRenderer } = await import('./index.js')
+  const { EditorRenderer: BaseEditorRenderer } = await import('./index.js')
+  const EditorRenderer=CurrentFixtureRenderer(BaseEditorRenderer)
   const destroyed = []
   const renderer = new EditorRenderer({ blockTypes: [] })
   renderer.registerRenderer({
@@ -310,7 +354,8 @@ test('failed detached document rendering disposes blocks created before the fail
 })
 
 test('renderer replacement and unregister invalidate mounted blocks and keep the owning disposer', async () => {
-  const { EditorRenderer } = await import('./index.js')
+  const { EditorRenderer: BaseEditorRenderer } = await import('./index.js')
+  const EditorRenderer=CurrentFixtureRenderer(BaseEditorRenderer)
   const disposedByOld = []
   const disposedByNew = []
   const renderer = new EditorRenderer({ blockTypes: [], throwOnUnknown: false })
@@ -358,7 +403,8 @@ test('renderer replacement and unregister invalidate mounted blocks and keep the
 })
 
 test('producer revisions skip deep signatures while JSON input keeps compatibility fallback', async () => {
-  const { EditorRenderer } = await import('./index.js')
+  const { EditorRenderer: BaseEditorRenderer } = await import('./index.js')
+  const EditorRenderer=CurrentFixtureRenderer(BaseEditorRenderer)
   let renderCalls = 0
   const renderer = new EditorRenderer({ blockTypes: [] })
   renderer.registerRenderer({
@@ -396,7 +442,8 @@ test('producer revisions skip deep signatures while JSON input keeps compatibili
 })
 
 test('deep-signature renderTo observes caller accessors exactly once', async () => {
-  const { EditorRenderer } = await import('./index.js')
+  const { EditorRenderer: BaseEditorRenderer } = await import('./index.js')
+  const EditorRenderer=CurrentFixtureRenderer(BaseEditorRenderer)
   let reads = 0
   const block = {
     id: 'accessor',
@@ -426,7 +473,8 @@ test('deep-signature renderTo observes caller accessors exactly once', async () 
 })
 
 test('block tunes participate in incremental rendering and apply safe text alignment', async () => {
-  const { EditorRenderer } = await import('./index.js')
+  const { EditorRenderer: BaseEditorRenderer } = await import('./index.js')
+  const EditorRenderer=CurrentFixtureRenderer(BaseEditorRenderer)
   let renderCalls = 0
   const renderer = new EditorRenderer({ blockTypes: [] })
   renderer.registerRenderer({
@@ -463,7 +511,8 @@ test('block tunes participate in incremental rendering and apply safe text align
 })
 
 test('custom classPrefix keeps consumer classes while retaining bundled style aliases', async () => {
-  const { EditorRenderer } = await import('./index.js')
+  const { EditorRenderer: BaseEditorRenderer } = await import('./index.js')
+  const EditorRenderer=CurrentFixtureRenderer(BaseEditorRenderer)
   const renderer = new EditorRenderer({ classPrefix: 'article', blockTypes: ['delimiter'], injectStyles: false })
   const wrapper = renderer.render({
     blocks: [{ id: 'd', type: 'delimiter', data: {} }],
@@ -487,22 +536,23 @@ test('custom classPrefix keeps consumer classes while retaining bundled style al
 
 
 test('renderer contains rejected validation observer promises', async () => {
-  const { EditorRenderer } = await import('./index.js')
+  const { EditorRenderer: BaseEditorRenderer } = await import('./index.js')
+  const EditorRenderer=CurrentFixtureRenderer(BaseEditorRenderer)
   let calls = 0
   const renderer = new EditorRenderer({
     blockTypes: ['table'],
-    validationMode: 'preserve',
     async onValidationError() {
       calls++
       throw new Error('async renderer validation failure')
     },
   })
 
-  assert.doesNotThrow(() => renderer.renderBlock({
+  assert.throws(() => renderer.renderBlock({
     id: 'table-async',
     type: 'table',
+    dataVersion: 2,
     data: { content: 'invalid-table-content' },
-  }))
+  }), /current schema/)
   await Promise.resolve()
   await Promise.resolve()
   assert.equal(calls, 1)
@@ -510,69 +560,69 @@ test('renderer contains rejected validation observer promises', async () => {
 
 
 test('renderer validation observer cannot synchronously recurse on the same invalid block', async () => {
-  const { EditorRenderer } = await import('./index.js')
+  const { EditorRenderer: BaseEditorRenderer } = await import('./index.js')
+  const EditorRenderer=CurrentFixtureRenderer(BaseEditorRenderer)
   let calls = 0
   let renderer
   const block = {
     id: 'table-reentrant',
     type: 'table',
+    dataVersion: 2,
     data: { content: 'invalid-table-content' },
   }
   renderer = new EditorRenderer({
     blockTypes: ['table'],
-    validationMode: 'preserve',
     onValidationError() {
       calls++
-      assert.doesNotThrow(() => renderer.renderBlock(block))
+      assert.throws(() => renderer.renderBlock(block), /current schema/)
     },
   })
 
-  const element = renderer.renderBlock(block)
+  assert.throws(() => renderer.renderBlock(block), /current schema/)
   assert.equal(calls, 1)
-  renderer.destroy(element)
   renderer.destroy()
 })
 
 
 test('renderer validation guard survives an async observer until settlement', async () => {
-  const { EditorRenderer } = await import('./index.js')
+  const { EditorRenderer: BaseEditorRenderer } = await import('./index.js')
+  const EditorRenderer=CurrentFixtureRenderer(BaseEditorRenderer)
   let calls = 0
   let renderer
   const block = {
     id: 'table-async-reentrant',
     type: 'table',
+    dataVersion: 2,
     data: { content: 'invalid-table-content' },
   }
   renderer = new EditorRenderer({
     blockTypes: ['table'],
-    validationMode: 'preserve',
     async onValidationError() {
       calls++
       await Promise.resolve()
-      const nested = renderer.renderBlock(block)
-      renderer.destroy(nested)
+      assert.throws(() => renderer.renderBlock(block), /current schema/)
     },
   })
 
-  const element = renderer.renderBlock(block)
+  assert.throws(() => renderer.renderBlock(block), /current schema/)
   for (let index = 0; index < 6; index++) await Promise.resolve()
   assert.equal(calls, 1)
-  renderer.destroy(element)
   renderer.destroy()
 })
 
 
 test('renderer validation contains hostile thenable accessors and releases its guard', async () => {
-  const { EditorRenderer } = await import('./index.js')
+  const { EditorRenderer: BaseEditorRenderer } = await import('./index.js')
+  const EditorRenderer=CurrentFixtureRenderer(BaseEditorRenderer)
   let calls = 0
   const block = {
     id: 'table-hostile-thenable',
     type: 'table',
+    dataVersion: 2,
     data: { content: 'invalid-table-content' },
   }
   const renderer = new EditorRenderer({
     blockTypes: ['table'],
-    validationMode: 'preserve',
     onValidationError() {
       calls++
       return Object.defineProperty({}, 'then', {
@@ -581,53 +631,52 @@ test('renderer validation contains hostile thenable accessors and releases its g
     },
   })
 
-  const first = renderer.renderBlock(block)
-  const second = renderer.renderBlock(block)
+  assert.throws(() => renderer.renderBlock(block), /current schema/)
+  assert.throws(() => renderer.renderBlock(block), /current schema/)
   await Promise.resolve()
   await Promise.resolve()
   assert.equal(calls, 2)
-  renderer.destroy(first)
-  renderer.destroy(second)
   renderer.destroy()
 })
 
 
 test('async validation guard does not suppress independent invalid blocks', async () => {
-  const { EditorRenderer } = await import('./index.js')
+  const { EditorRenderer: BaseEditorRenderer } = await import('./index.js')
+  const EditorRenderer=CurrentFixtureRenderer(BaseEditorRenderer)
   const seen = []
   let releaseFirst
   const firstPending = new Promise(resolve => { releaseFirst = resolve })
   const renderer = new EditorRenderer({
     blockTypes: ['table'],
-    validationMode: 'preserve',
     async onValidationError(issue) {
       seen.push(issue.blockId)
       if (issue.blockId === 'table-a') await firstPending
     },
   })
 
-  const first = renderer.renderBlock({
+  assert.throws(() => renderer.renderBlock({
     id: 'table-a',
     type: 'table',
+    dataVersion: 2,
     data: { content: 'invalid-a' },
-  })
-  const second = renderer.renderBlock({
+  }), /current schema/)
+  assert.throws(() => renderer.renderBlock({
     id: 'table-b',
     type: 'table',
+    dataVersion: 2,
     data: { content: 'invalid-b' },
-  })
+  }), /current schema/)
 
   assert.deepEqual(seen, ['table-a', 'table-b'])
   releaseFirst()
   for (let index = 0; index < 4; index++) await Promise.resolve()
-  renderer.destroy(first)
-  renderer.destroy(second)
   renderer.destroy()
 })
 
 
 test('renderer rejects non-finite numeric block revisions', async () => {
-  const { EditorRenderer } = await import('./index.js')
+  const { EditorRenderer: BaseEditorRenderer } = await import('./index.js')
+  const EditorRenderer=CurrentFixtureRenderer(BaseEditorRenderer)
   const renderer = new EditorRenderer({ blockTypes: [] })
   renderer.registerRenderer({
     schema: passthroughSchema,
@@ -645,7 +694,8 @@ test('renderer rejects non-finite numeric block revisions', async () => {
 
 
 test('renderTo rejects reentry for the same container before ownership can be overwritten', async () => {
-  const { EditorRenderer } = await import('./index.js')
+  const { EditorRenderer: BaseEditorRenderer } = await import('./index.js')
+  const EditorRenderer=CurrentFixtureRenderer(BaseEditorRenderer)
   const renderer = new EditorRenderer({ blockTypes: [] })
   const container = document.createElement('main')
   let nestedAttempts = 0
@@ -679,7 +729,8 @@ test('renderTo rejects reentry for the same container before ownership can be ov
 
 
 test('renderTo prevents destroy from double-disposing the previous mounted owner', async () => {
-  const { EditorRenderer } = await import('./index.js')
+  const { EditorRenderer: BaseEditorRenderer } = await import('./index.js')
+  const EditorRenderer=CurrentFixtureRenderer(BaseEditorRenderer)
   const renderer = new EditorRenderer({ blockTypes: [] })
   const container = document.createElement('main')
   let oldDestroyCalls = 0
@@ -719,9 +770,11 @@ test('renderTo prevents destroy from double-disposing the previous mounted owner
 for (const operation of ['renderBlock', 'render', 'renderTo']) {
   for (const revisioned of [false, true]) {
     test(`${operation} accepts a foreign-realm JSON envelope (${revisioned ? 'revision' : 'deep signature'})`, async () => {
-      const { EditorRenderer } = await import('./index.js')
+      const { EditorRenderer: BaseEditorRenderer } = await import('./index.js')
+  const EditorRenderer=CurrentFixtureRenderer(BaseEditorRenderer)
       const source = runInNewContext('JSON.parse(input)', { input: JSON.stringify({
-        blocks: [{ id: 'foreign', type: 'realm-probe', data: { text: 'foreign', nested: { value: 1 } },
+        version: '2.0.0',
+        blocks: [{ id: 'foreign', type: 'realm-probe', dataVersion: 1, data: { text: 'foreign', nested: { value: 1 } },
           ...(revisioned ? { revision: 'r1' } : {}) }],
       }) })
       assert.notStrictEqual(Object.getPrototypeOf(source.blocks[0]), Object.prototype)
@@ -769,7 +822,8 @@ for (const operation of ['renderBlock', 'render', 'renderTo']) {
 
 for (const operation of ['renderBlock', 'render', 'renderTo']) {
   test(`${operation} still rejects foreign class envelopes before invoking own accessors`, async () => {
-    const { EditorRenderer } = await import('./index.js')
+    const { EditorRenderer: BaseEditorRenderer } = await import('./index.js')
+  const EditorRenderer=CurrentFixtureRenderer(BaseEditorRenderer)
     const foreign = runInNewContext(`(() => {
       let reads = 0
       const block = new (class Envelope {})()
@@ -782,8 +836,8 @@ for (const operation of ['renderBlock', 'render', 'renderTo']) {
     try {
       assert.throws(() => {
         if (operation === 'renderBlock') renderer.renderBlock(foreign.block)
-        else if (operation === 'render') renderer.render({ blocks: [foreign.block] })
-        else renderer.renderTo({ blocks: [foreign.block] }, container)
+        else if (operation === 'render') renderer.render({ version: '2.0.0', blocks: [foreign.block] })
+        else renderer.renderTo({ version: '2.0.0', blocks: [foreign.block] }, container)
       }, /block must be a JSON object/)
       assert.equal(foreign.reads(), 0)
     } finally {
@@ -793,8 +847,9 @@ for (const operation of ['renderBlock', 'render', 'renderTo']) {
 }
 
 
-test('renderer dataVersion invalidates reuse even when producer revision is unchanged', async () => {
-  const { EditorRenderer } = await import('./index.js')
+test('renderer rejects a non-current dataVersion even when producer revision is unchanged', async () => {
+  const { EditorRenderer: BaseEditorRenderer } = await import('./index.js')
+  const EditorRenderer=CurrentFixtureRenderer(BaseEditorRenderer)
   let renderCalls = 0
   const renderer = new EditorRenderer({ blockTypes: [] })
   renderer.registerRenderer({
@@ -820,7 +875,7 @@ test('renderer dataVersion invalidates reuse even when producer revision is unch
   }, container)
   const first = container.children[0].children[0]
 
-  renderer.renderTo({
+  assert.throws(() => renderer.renderTo({
     blocks: [{
       id: 'stable',
       type: 'versioned',
@@ -828,29 +883,26 @@ test('renderer dataVersion invalidates reuse even when producer revision is unch
       revision: 'same-revision',
       data: { text: 'same-data' },
     }],
-  }, container)
+  }, container), /current schema/)
 
-  assert.equal(renderCalls, 2)
-  assert.notEqual(container.children[0].children[0], first)
+  assert.equal(renderCalls, 1)
+  assert.equal(container.children[0].children[0], first)
   renderer.destroy(container)
 })
 
-test('strict renderer decodes legacy Paragraph dataVersion through the shared schema', async () => {
-  const { EditorRenderer } = await import('./index.js')
+test('renderer rejects legacy Paragraph dataVersion through the shared schema', async () => {
+  const { EditorRenderer: BaseEditorRenderer } = await import('./index.js')
+  const EditorRenderer=CurrentFixtureRenderer(BaseEditorRenderer)
   const renderer = new EditorRenderer({
     blockTypes: ['paragraph'],
-    validationMode: 'strict',
     injectStyles: false,
   })
 
-  const element = renderer.renderBlock({
+  assert.throws(() => renderer.renderBlock({
     id: 'legacy-paragraph',
     type: 'paragraph',
     dataVersion: 1,
     data: { text: '', align: 'center' },
-  })
-
-  assert.equal(element.tagName, 'P')
-  renderer.destroy(element)
+  }), /current schema/)
   renderer.destroy()
 })

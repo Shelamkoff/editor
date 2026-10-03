@@ -89,61 +89,6 @@ export function normalizePollResults(input, optionIds, maxVoters = 50, selection
   return result
 }
 
-/**
- * @param {unknown} input
- * @param {() => string} createId
- * @returns {PollData}
- */
-export function normalizePollData(input, createId) {
-  const source = isRecord(input) ? /** @type {Record<string, unknown>} */ (input) : {}
-  const used = new Set()
-  const rawOptions = Array.isArray(source.options) ? source.options : []
-  const options = rawOptions.map(option => {
-    const record = isRecord(option) ? option : {}
-    let id = typeof record.id === 'string' && record.id ? record.id : createId()
-    while (used.has(id)) id = createId()
-    used.add(id)
-    return { id, text: typeof record.text === 'string' ? record.text : '' }
-  })
-  while (options.length < 2) {
-    let id = createId()
-    while (used.has(id)) id = createId()
-    used.add(id)
-    options.push({ id, text: '' })
-  }
-
-  const data = {
-    question: typeof source.question === 'string' ? source.question : '',
-    type: source.type === 'multiple' ? /** @type {'multiple'} */ ('multiple') : /** @type {'single'} */ ('single'),
-    options,
-    resultsMode: POLL_RESULTS_MODES.includes(/** @type {any} */ (source.resultsMode))
-      ? /** @type {'always' | 'afterVote' | 'hidden'} */ (source.resultsMode)
-      : /** @type {'always'} */ ('always'),
-  }
-  if (typeof source.pollId === 'string' && source.pollId) data.pollId = source.pollId
-
-  let initial = source.initialResults
-  // One-way normalization for documents produced by the old editor: votes
-  // become an initial runtime snapshot instead of remaining on author options.
-  if (!initial && rawOptions.some(option => isRecord(option) && Number(option.votes) > 0)) {
-    initial = {
-      total: rawOptions.reduce((sum, option) => sum + Math.max(0, Number(isRecord(option) ? option.votes : 0) || 0), 0),
-      options: options.map((option, index) => ({
-        id: option.id,
-        votes: Math.max(0, Number(isRecord(rawOptions[index]) ? rawOptions[index].votes : 0) || 0),
-      })),
-    }
-  }
-  if (initial) {
-    data.initialResults = normalizePollResults(
-      initial,
-      options.map(option => option.id),
-      retainedVoterLimit(initial),
-      data.type,
-    )
-  }
-  return data
-}
 
 /** @param {unknown} data */
 export function validatePollData(data) {

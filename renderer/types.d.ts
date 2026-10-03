@@ -7,35 +7,13 @@ import type { LocaleValue } from '../shared/localeTypes.js'
 import type { BlockDataSchema, InlineWidgetSchema } from '../plugin-kit/types.js'
 export type { LocaleValue, PluralForms } from '../shared/localeTypes.js'
 
-/**
- * Renderer input data. Compatible with EditorDocument from the editor core —
- * the renderer accepts any editor output as-is. Fields are optional because
- * the renderer only needs `blocks`; callers may omit metadata.
- */
-export interface OutputData extends EditorOutputData<OutputBlockData> {
-    time?: number
-    version?: string
-    blocks: OutputBlockData[]
-}
-
-/**
- * Single block for rendering. Unlike core BlockData, `id` and `tunes` are
- * optional because the renderer does not require them.
- *
- * Text-carrying blocks (paragraph, heading, list, quote, checklist, …) may
- * carry an `inline` map keyed by widget instance ids. Each entry describes
- * a single inline widget (mention, color swatch, …) that was embedded in
- * one of the block's text fields. Placeholder markup in the text field is
- * a plain text token: `{{<id>}}`. The renderer / editor rehydrates real
- * widget DOM from `inline[<id>]` via a registered read-only inline renderer.
- * The renderer validates payloads through the same `InlineWidgetSchema` used
- * by the editor before projecting them to DOM.
- */
+/** Single canonical current block for rendering. */
 export interface OutputBlockData<
     Type extends string = string,
     Data extends object = object
 > extends EditorBlockData<Type, Data> {
-    id?: string
+    id: string
+    dataVersion: number
     type: Type
     data: Data
     inline?: Record<string, InlineWidget>
@@ -447,8 +425,6 @@ export interface RendererConfig {
     throwOnUnknown?: boolean
     /** Theme for the rendered output. Default: 'dark'. */
     theme?: 'dark' | 'light'
-    /** Validate built-in block data before rendering. Default: 'preserve'. */
-    validationMode?: 'preserve' | 'strict'
     /** Content-free notification for malformed built-in block data. */
     onValidationError?: (issue: { blockId?: string; type: string }) => void | Promise<void>
     /** Flat locale dictionary for renderer strings. Keys use `renderer.*` prefix. */

@@ -3,7 +3,6 @@ import { createVersionedDataSchema } from '../versionedDataSchema.js'
 
 export const warningDataSchema = createVersionedDataSchema({
   currentVersion: 1,
-  legacyVersion: 1,
   createDefault: () => ({ title: '', message: '' }),
   normalize(input) {
     if (typeof input?.title !== 'string') throw new TypeError('Warning title must be a string')

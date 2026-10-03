@@ -3,7 +3,6 @@ import { createVersionedDataSchema } from '../versionedDataSchema.js'
 
 export const quoteDataSchema = createVersionedDataSchema({
   currentVersion: 1,
-  legacyVersion: 1,
   createDefault: () => ({ text: '', caption: '' }),
   normalize(input) {
     if (typeof input?.text !== 'string') throw new TypeError('Quote text must be a string')

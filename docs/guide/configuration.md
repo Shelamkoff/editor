@@ -19,9 +19,6 @@ interface EditorConfig {
   theme?: string
   minHeight?: number
   locale?: Record<string, unknown>
-  validationMode?: 'preserve' | 'strict'
-  documentVersionPolicy?: 'preserve' | 'strict'
-  migrations?: readonly DocumentMigration[]
   changeDebounceMs?: number
   historyMaxStack?: number
   historyCoalesceMs?: number
@@ -56,9 +53,6 @@ interface EditorConfig {
 | `theme` | no | `dark` | Non-empty theme identifier. `light` and `dark` are built in; custom `oe-theme-*` classes may be styled by the host. |
 | `minHeight` | no | CSS default | Finite non-negative minimum editor height in pixels. |
 | `locale` | no | built-in English | Flat message dictionary used by core and definitions. |
-| `validationMode` | no | `preserve` | Invalid known block/inline data is preserved inertly or rejected strictly. |
-| `documentVersionPolicy` | no | `preserve` | Incomplete/future document-version paths are preserved or rejected strictly. |
-| `migrations` | no | `[]` | Directed synchronous document migrations. |
 | `changeDebounceMs` | no | `250` | Delay before the detached `onChange` snapshot is delivered. |
 | `historyMaxStack` | no | `100` | Maximum number of undo records retained by operation-based history. |
 | `historyCoalesceMs` | no | `300` | Maximum idle interval for grouping consecutive native edits in one undo step. |
@@ -70,7 +64,7 @@ interface EditorConfig {
 | `blockRemoveAnimationMs` | no | `350` | Safe removal-slot collapse duration; removed plugin DOM is detached synchronously. |
 | `onReady` | no | omitted | Observer invoked after successful composition. Callback failures do not invalidate the editor. |
 | `onChange` | no | omitted | Debounced observer receiving a detached saved document after canonical commits. |
-| `onValidationError` | no | omitted | Observer for preservation/validation issues. |
+| `onValidationError` | no | omitted | Content-free observer for rejected current-format input. Observer failures are isolated. |
 | `onDiagnostic` | no | omitted | Content-free operational diagnostics; callback failures are isolated. |
 | `diagnosticThresholds` | no | no slow-operation thresholds | Optional non-negative thresholds for command/save/render/paste diagnostics. |
 
@@ -101,11 +95,9 @@ Core does not statically install the complete inline-tool set. Import `createDef
 
 ## Initial document and version policy
 
-`data` is decoded through the registered schemas before projection. `documentVersionPolicy: 'preserve'` applies every reachable migration and keeps the last structurally valid document when the chain cannot reach the current version. `strict` requires a complete supported path.
+`data` accepts only the current explicit `2.0.0` document envelope. Every serialized block and inline widget must carry its exact current `dataVersion`; known types with missing, older, or future versions are rejected before projection. An unregistered type with valid current-envelope metadata remains inert and can round-trip without executing extension code.
 
-`validationMode: 'preserve'` keeps malformed or future known payloads inert so they round-trip without executing extension code. `strict` rejects them.
-
-See [Document format](/guide/document-format) for the canonical envelope and migration rules.
+The removed `validationMode`, `documentVersionPolicy`, and `migrations` options are rejected when supplied. See [Document format](/guide/document-format) for the canonical boundary.
 
 ## Read-only and layout
 

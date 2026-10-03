@@ -3,7 +3,6 @@ import { invokeObserver } from '../../../shared/invokeObserver.js'
 import { pollDataSchema } from '../../../shared/blockSchemas/poll.js'
 import {
   applyLocalPollVote,
-  normalizePollData,
   normalizePollResults,
   shouldAcceptPollRevision,
 } from '../../../shared/pollData.js'
@@ -303,8 +302,7 @@ export function createPollRenderer(classPrefix, locale, config = {}) {
     schema: pollDataSchema,
     styles: [styles],
     render(block, parseInline, context = { ownerDocument: globalThis.document }) {
-      let fallbackIndex = 0
-      const data = normalizePollData(block.data, () => `legacy-option-${++fallbackIndex}`)
+      const data = block.data
       const results = normalizePollResults(data.initialResults, data.options.map(option => option.id), config.maxVoters, data.type)
       const wrapper = context.ownerDocument.createElement('div')
       wrapper.className = p

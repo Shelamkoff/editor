@@ -40,13 +40,8 @@ export function renderInlineWidgets(html, inline, registry, ownerDocument) {
       const renderer = registry.get(ref.type)
       if (!renderer) continue
 
-      let element
-      try {
-        const decoded = renderer.schema.decode({ dataVersion: ref.dataVersion, data: ref.data })
-        element = renderer.render(id, decoded.data, { ownerDocument })
-      } catch {
-        continue
-      }
+      const decoded = renderer.schema.decode({ dataVersion: ref.dataVersion, data: ref.data })
+      const element = renderer.render(id, decoded.data, { ownerDocument })
       const HTMLElementCtor = ownerDocument.defaultView?.HTMLElement ?? globalThis.HTMLElement
       if (!HTMLElementCtor || !(element instanceof HTMLElementCtor)) continue
 

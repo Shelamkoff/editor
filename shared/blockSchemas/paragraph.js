@@ -17,15 +17,9 @@ function normalizeParagraph(input) {
 
 export const paragraphDataSchema = createVersionedDataSchema({
   currentVersion: 2,
-  legacyVersion: 1,
   createDefault: () => ({ text: '' }),
   normalize: normalizeParagraph,
   mapRichText(data, transform) {
     data.text = transform(data.text, 'text')
   },
-  migrations: [{
-    from: 1,
-    to: 2,
-    migrate: input => ({ text: input.text }),
-  }],
 })

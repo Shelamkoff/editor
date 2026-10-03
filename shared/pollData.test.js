@@ -3,30 +3,11 @@ import assert from 'node:assert/strict'
 
 import {
   applyLocalPollVote,
-  normalizePollData,
   normalizePollResults,
   shouldAcceptPollRevision,
   validatePollData,
 } from './pollData.js'
 
-test('poll normalization creates stable unique option identities and migrates legacy votes', () => {
-  let next = 0
-  const data = normalizePollData({
-    question: 'Choose',
-    type: 'single',
-    options: [{ text: 'A', votes: 2 }, { id: 'b', text: 'B', votes: 1 }],
-  }, () => `generated-${++next}`)
-
-  assert.deepEqual(data.options, [
-    { id: 'generated-1', text: 'A' },
-    { id: 'b', text: 'B' },
-  ])
-  assert.deepEqual(data.initialResults, {
-    total: 3,
-    options: [{ id: 'generated-1', votes: 2 }, { id: 'b', votes: 1 }],
-  })
-  assert.equal(validatePollData(data), true)
-})
 
 test('poll schema rejects duplicate options, incomplete choices and mismatched results', () => {
   const base = {

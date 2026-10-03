@@ -3,9 +3,8 @@ export interface BlockDataSchema<
   D extends Record<string, unknown> = Record<string, unknown>
 > {
   readonly currentVersion: number
-  readonly legacyVersion: number
   createDefault(): D
-  decode(input: { dataVersion?: number, data: unknown }): {
+  decode(input: { dataVersion: number, data: unknown }): {
     dataVersion: number
     data: D
   }
@@ -199,9 +198,8 @@ export interface InlineWidgetSchema<
   D extends Record<string, unknown> = Record<string, unknown>
 > {
   readonly currentVersion: number
-  readonly legacyVersion: number
   createDefault(): D
-  decode(input: { dataVersion?: number, data: unknown }): {
+  decode(input: { dataVersion: number, data: unknown }): {
     dataVersion: number
     data: D
   }

@@ -21,9 +21,9 @@ globalThis.document = { createElement: tagName => new FakeElement(tagName) }
 
 const passthroughSchema = Object.freeze({
   currentVersion: 1,
-  legacyVersion: 1,
   createDefault: () => ({}),
-  decode({ data }) {
+  decode({ dataVersion, data }) {
+    if (dataVersion !== 1) throw new RangeError('unsupported data version')
     if (!data || typeof data !== 'object' || Array.isArray(data)) throw new TypeError('data must be an object')
     return { dataVersion: 1, data: structuredClone(data) }
   },
@@ -33,20 +33,33 @@ const passthroughSchema = Object.freeze({
   },
 })
 
-test('renderer public methods reject malformed document envelopes and blocks', async () => {
+const block = (overrides = {}) => ({
+  id: 'block-1',
+  type: 'custom',
+  dataVersion: 1,
+  data: {},
+  ...overrides,
+})
+
+const documentData = blocks => ({ version: '2.0.0', blocks })
+
+test('renderer public methods enforce the canonical current document and block envelope', async () => {
   const { EditorRenderer } = await import('./index.js')
   const renderer = new EditorRenderer({ blockTypes: [], throwOnUnknown: false, injectStyles: false })
   renderer.registerRenderer({ type: 'custom', schema: passthroughSchema, render() { return document.createElement('article') } })
   const container = document.createElement('main')
 
-  assert.throws(() => renderer.render({ blocks: 'custom' }), /blocks must be an array/)
-  assert.throws(() => renderer.renderTo({ blocks: {} }, container), /blocks must be an array/)
-  assert.throws(() => renderer.renderBlock(null), /block must be an object/)
-  assert.throws(() => renderer.renderBlock({ type: '', data: {} }), /block type must be a non-empty string/)
-  assert.throws(() => renderer.renderBlock({ type: 'custom', data: null }), /block data must be an object/)
-  assert.throws(() => renderer.renderBlock({ type: 'custom', data: [] }), /block data must be an object/)
+  assert.throws(() => renderer.render({ blocks: [] }), /version is required/)
+  assert.throws(() => renderer.render({ version: '1.0.0', blocks: [] }), RangeError)
+  assert.throws(() => renderer.renderTo({ version: '2.0.0', blocks: {} }, container), /blocks must be an array/)
+  assert.throws(() => renderer.renderBlock(null), /block must be a JSON object/)
+  assert.throws(() => renderer.renderBlock(block({ id: '' })), /id must be a non-empty string/)
+  assert.throws(() => renderer.renderBlock(block({ type: '' })), /type must be a non-empty string/)
+  assert.throws(() => renderer.renderBlock({ id: 'x', type: 'custom', data: {} }), /dataVersion is required/)
+  assert.throws(() => renderer.renderBlock(block({ data: null })), /data must be a JSON object/)
+  assert.throws(() => renderer.renderBlock(block({ data: [] })), /data must be a JSON object/)
 
-  assert.equal(renderer.render({ blocks: [{ type: 'custom', data: {} }] }).children.length, 1)
+  assert.equal(renderer.render(documentData([block()])).children.length, 1)
 })
 
 test('renderer document boundary rejects sparse block arrays without reading inherited entries', async () => {
@@ -61,7 +74,7 @@ test('renderer document boundary rejects sparse block arrays without reading inh
   const blocks = []
   Object.setPrototypeOf(blocks, prototype)
   blocks.length = 1
-  assert.throws(() => renderer.render({ blocks }), /dense array/i)
+  assert.throws(() => renderer.render(documentData(blocks)), /dense array/i)
   assert.equal(reads, 0)
 })
 
@@ -72,11 +85,11 @@ test('renderer snapshots the JSON block boundary before custom renderers observe
   renderer.registerRenderer({
     schema: passthroughSchema,
     type: 'custom',
-    render(block) { seen = block; return document.createElement('article') },
+    render(input) { seen = input; return document.createElement('article') },
   })
 
   assert.throws(
-    () => renderer.renderBlock({ type: 'custom', data: { value: undefined } }),
+    () => renderer.renderBlock(block({ data: { value: undefined } })),
     /non-JSON undefined/,
   )
   assert.equal(seen, undefined)
@@ -87,8 +100,10 @@ test('renderer snapshots the JSON block boundary before custom renderers observe
     configurable: true,
     get() { reads++; throw new Error('inherited block type accessed') },
   })
-  const block = Object.create(prototype)
-  block.data = {}
-  assert.throws(() => renderer.renderBlock(block), /JSON object/)
+  const invalid = Object.create(prototype)
+  invalid.id = 'foreign-class'
+  invalid.dataVersion = 1
+  invalid.data = {}
+  assert.throws(() => renderer.renderBlock(invalid), /JSON object/)
   assert.equal(reads, 0)
 })

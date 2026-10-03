@@ -32,7 +32,6 @@ interface RendererConfig {
   classPrefix?: string
   throwOnUnknown?: boolean
   theme?: 'dark' | 'light'
-  validationMode?: 'preserve' | 'strict'
   onValidationError?: (issue: { blockId?: string; type: string }) => void | Promise<void>
   locale?: Record<string, LocaleValue>
   blockTypes?: BlockType[]
@@ -50,7 +49,6 @@ interface RendererConfig {
 | `classPrefix` | `editor` | namespace used by generated renderer classes |
 | `throwOnUnknown` | `true` | throw for an unregistered block instead of rendering a placeholder |
 | `theme` | `dark` | renderer theme tokens |
-| `validationMode` | `preserve` | keep malformed or unsupported-version registered blocks inert, or throw before rendering them in `strict` mode |
 | `onValidationError` | none | receive a content-free `{ blockId?, type }` notice for invalid built-in data |
 | `locale` | built-in English | flat `renderer.*` message dictionary |
 | `blockTypes` | all built-ins | construct only selected built-in renderers |
@@ -59,11 +57,11 @@ interface RendererConfig {
 
 `InlineWidgetRenderer.schema` is the same versioned inline-widget schema used by the editor definition. The renderer decodes and validates the canonical payload through that schema before calling `InlineWidgetRenderer.render()`; unknown, malformed, or unsupported widget data is never activated as markup.
 
-Every registered block renderer is likewise a `BlockRendererDefinition` with a `schema`. Built-in definitions are bound to the exact `BlockDataSchema` used by the matching editor plugin, so migrations, current `dataVersion`, validation, and rich-text field traversal have one source of truth.
+Every registered block renderer is likewise a `BlockRendererDefinition` with a `schema`. Built-in definitions are bound to the exact `BlockDataSchema` used by the matching editor plugin, so the current `dataVersion`, validation, and rich-text field traversal have one source of truth.
 
-The default fails explicitly when a renderer is missing. Set `throwOnUnknown: false` only when a mixed-version application intentionally accepts a placeholder for unsupported blocks. The placeholder has the class `<classPrefix>-unknown` and a `data-block-type` attribute; it does not reproduce the missing content.
+The default fails explicitly when a renderer is missing. Set `throwOnUnknown: false` only when the host intentionally accepts an inert placeholder for an unregistered current-format block. The placeholder has the class `<classPrefix>-unknown` and a `data-block-type` attribute; it does not reproduce the missing content.
 
-Before any registered renderer runs, Rector decodes the block through that renderer definition's schema. In `preserve` mode malformed or unsupported-version payloads produce an inert `<classPrefix>-preserved` element and `onValidationError` is called; the preserved payload is never executed as renderer markup. In `strict` mode an `InvalidBlockDataError` is thrown instead. `onValidationError` may return a Promise; synchronous throws and rejected Promises are isolated from rendering and do not change the validation result. Custom renderers must provide a schema, so replacing a built-in renderer cannot bypass validation.
+Before any registered renderer runs, Rector validates the current block envelope and exact `dataVersion`, then decodes the block through that renderer definition's schema. Malformed data or a version mismatch calls the content-free `onValidationError` observer and throws `InvalidBlockDataError`; it is never converted into an inert known block. `onValidationError` may return a Promise; synchronous throws and rejected Promises are isolated from rendering and do not change rejection. Custom renderers must provide an exact-version schema, so replacing a built-in renderer cannot bypass validation.
 
 `blockConfigs.poll` accepts the same `dataSource`, `compareRevisions`, `onError`, and `maxVoters` runtime options as the Poll editor plugin. `onError` may return a Promise; callback failures are isolated from renderer state. `compareRevisions(next, current)` must return a positive value only when `next` is newer; without it, unequal opaque revisions follow arrival order. The renderer loads and subscribes to current results without changing the supplied document. Call `destroy()` to abort requests and unsubscribe.
 

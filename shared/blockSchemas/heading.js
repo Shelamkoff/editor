@@ -23,15 +23,9 @@ function normalizeHeading(input) {
 
 export const headingDataSchema = createVersionedDataSchema({
   currentVersion: 2,
-  legacyVersion: 1,
   createDefault: () => ({ text: '', level: /** @type {2} */ (2) }),
   normalize: normalizeHeading,
   mapRichText(data, transform) {
     data.text = transform(data.text, 'text')
   },
-  migrations: [{
-    from: 1,
-    to: 2,
-    migrate: input => ({ text: input.text, level: input.level }),
-  }],
 })

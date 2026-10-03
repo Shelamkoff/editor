@@ -3,7 +3,6 @@ import { createVersionedDataSchema } from '../versionedDataSchema.js'
 
 export const delimiterDataSchema = createVersionedDataSchema({
   currentVersion: 1,
-  legacyVersion: 1,
   createDefault: () => ({}),
   normalize(input) {
     if (!input || typeof input !== 'object' || Array.isArray(input)) {

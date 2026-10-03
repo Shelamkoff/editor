@@ -3,7 +3,6 @@ import { createVersionedDataSchema } from '../versionedDataSchema.js'
 
 export const checklistDataSchema=createVersionedDataSchema({
   currentVersion:2,
-  legacyVersion:1,
   createDefault:()=>({items:[{id:'item-0',text:'',checked:false}]}),
   normalize(input){
     if(!Array.isArray(input?.items)||input.items.length===0)throw new TypeError('Checklist items must be a non-empty array')
@@ -22,18 +21,4 @@ export const checklistDataSchema=createVersionedDataSchema({
   mapRichText(data,transform){
     data.items=data.items.map(item=>({...item,text:transform(item.text,`item:${item.id}`)}))
   },
-  migrations:[{
-    from:1,
-    to:2,
-    migrate(input){
-      if(!Array.isArray(input?.items))throw new TypeError('Legacy checklist items must be an array')
-      return {
-        items:input.items.map((item,index)=>({
-          id:`legacy-item-${index}`,
-          text:item?.text,
-          checked:item?.checked,
-        })),
-      }
-    },
-  }],
 })

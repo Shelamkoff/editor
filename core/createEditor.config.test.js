@@ -8,7 +8,6 @@ class FakeHolder {}
 const invalidCases = [
   ['autofocus', 'yes', /autofocus must be a boolean/],
   ['inlinePlugins', {}, /inlinePlugins must be an array/],
-  ['migrations', {}, /migrations must be an array/],
   ['defaultBlock', 42, /defaultBlock must be a non-empty string/],
   ['defaultBlock', '', /defaultBlock must be a non-empty string/],
   ['locale', [], /locale must be an object/],
@@ -32,8 +31,6 @@ const invalidCases = [
   ['blockInsertAnimationMs', -1, /blockInsertAnimationMs must be a finite number/],
   ['blockMoveAnimationMs', Number.NaN, /blockMoveAnimationMs must be a finite number/],
   ['blockRemoveAnimationMs', Number.POSITIVE_INFINITY, /blockRemoveAnimationMs must be a finite number/],
-  ['validationMode', 'loose', /validationMode must be/],
-  ['documentVersionPolicy', 'loose', /documentVersionPolicy must be/],
 ]
 
 test('createEditor rejects malformed v2 runtime option shapes at the public boundary', () => {
@@ -45,6 +42,21 @@ test('createEditor rejects malformed v2 runtime option shapes at the public boun
         () => createEditor({ holder: new FakeHolder(), plugins: [{}], [field]: value }),
         error,
         field,
+      )
+    }
+  } finally {
+    globalThis.HTMLElement = previous
+  }
+})
+
+test('createEditor rejects removed legacy configuration keys even when explicitly undefined', () => {
+  const previous = globalThis.HTMLElement
+  globalThis.HTMLElement = FakeHolder
+  try {
+    for (const field of ['validationMode', 'documentVersionPolicy', 'migrations']) {
+      assert.throws(
+        () => createEditor({ holder: new FakeHolder(), plugins: [{}], [field]: undefined }),
+        new RegExp(`${field} is no longer supported`),
       )
     }
   } finally {
@@ -76,7 +88,7 @@ test('createEditor rejects sparse v2 extension arrays without reading inherited 
   const previous = globalThis.HTMLElement
   globalThis.HTMLElement = FakeHolder
   try {
-    for (const field of ['plugins', 'inlinePlugins', 'migrations']) {
+    for (const field of ['plugins', 'inlinePlugins']) {
       let reads = 0
       const prototype = Object.create(Array.prototype)
       Object.defineProperty(prototype, '0', {
@@ -121,7 +133,6 @@ test('createEditor observes accessor-backed plugin array entries once', () => {
     icon: '',
     schema: {
       currentVersion: 1,
-      legacyVersion: 1,
       createDefault: () => ({}),
       decode: ({ data }) => ({ dataVersion: 1, data }),
       encode: data => ({ dataVersion: 1, data: { ...data } }),

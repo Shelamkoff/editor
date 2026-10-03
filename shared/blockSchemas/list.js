@@ -19,7 +19,6 @@ function createDefault(){
 
 export const listDataSchema=createVersionedDataSchema({
   currentVersion:2,
-  legacyVersion:1,
   createDefault,
   normalize(input){
     if(input?.style!=='ordered'&&input?.style!=='unordered')throw new TypeError('List style must be ordered or unordered')
@@ -33,15 +32,4 @@ export const listDataSchema=createVersionedDataSchema({
   mapRichText(data,transform){
     data.items=data.items.map(item=>({...item,text:transform(item.text,`item:${item.id}`)}))
   },
-  migrations:[{
-    from:1,
-    to:2,
-    migrate(input){
-      if(!Array.isArray(input?.items))throw new TypeError('Legacy list items must be an array')
-      return {
-        style:input.style,
-        items:input.items.map((text,index)=>({id:`legacy-item-${index}`,text})),
-      }
-    },
-  }],
 })

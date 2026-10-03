@@ -5,7 +5,6 @@ import { canonicalUrl, isRecord, nonNegativeNumber, text } from './helpers.js'
 
 export const attachesDataSchema = createVersionedDataSchema({
   currentVersion: 2,
-  legacyVersion: 1,
   createDefault: () => ({ files: [], variant: 'f' }),
   normalize(input) {
     if (!isRecord(input)) throw new TypeError('Attaches data must be an object')
@@ -27,12 +26,4 @@ export const attachesDataSchema = createVersionedDataSchema({
     const variant = typeof input.variant === 'string' && ATTACH_VARIANTS.includes(input.variant) ? input.variant : 'f'
     return { files, variant }
   },
-  migrations:[{
-    from:1,
-    to:2,
-    migrate(input){
-      if(!Array.isArray(input?.files))throw new TypeError('Legacy attachment files must be an array')
-      return {...input,files:input.files.map((file,index)=>({...file,id:'legacy-file-'+index}))}
-    },
-  }],
 })

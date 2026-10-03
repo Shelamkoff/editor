@@ -5,15 +5,9 @@ import { cloneEditorData } from './cloneEditorData.js'
  * @template {Record<string, unknown>} D
  * @typedef {{
  *   currentVersion: number,
- *   legacyVersion: number,
  *   createDefault: () => D,
  *   normalize: (input: any) => D,
  *   mapRichText?: (data: D, transform: (html: string, fieldKey: string) => string) => void,
- *   migrations?: Array<{
- *     from: number,
- *     to: number,
- *     migrate: (input: any) => unknown,
- *   }>,
  * }} VersionedDataSchemaOptions
  */
 
@@ -22,6 +16,7 @@ function assertVersion(value, label) {
   if (!Number.isSafeInteger(value) || Number(value) < 1) {
     throw new RangeError(`${label} must be a positive safe integer`)
   }
+  return Number(value)
 }
 
 /**
@@ -40,11 +35,11 @@ function ownObject(value, label) {
 }
 
 /**
- * Build one immutable versioned JSON-data schema.
+ * Build one immutable exact-version JSON-data schema.
  *
- * The helper owns every trust-boundary value before user supplied schema code
- * can mutate it. Migrations form a single strictly-forward chain keyed by
- * their source version; missing links and future versions are rejected.
+ * Serialized values must declare the schema's current dataVersion exactly.
+ * Local values use encode(). No migration, implicit-version, or compatibility
+ * path exists at this boundary.
  *
  * @template {Record<string, unknown>} D
  * @param {VersionedDataSchemaOptions<D>} options
@@ -54,18 +49,18 @@ export function createVersionedDataSchema(options) {
     throw new TypeError('Versioned data schema options must be an object')
   }
 
-  const currentVersion = options.currentVersion
-  const legacyVersion = options.legacyVersion
-  const createDefault = options.createDefault
-  const normalize = options.normalize
-  const mapRichText = options.mapRichText
-  const suppliedMigrations = options.migrations ?? []
-
-  assertVersion(currentVersion, 'currentVersion')
-  assertVersion(legacyVersion, 'legacyVersion')
-  if (legacyVersion > currentVersion) {
-    throw new RangeError('legacyVersion cannot be greater than currentVersion')
+  const supplied = /** @type {VersionedDataSchemaOptions<D> & Record<string, unknown>} */ ({ ...options })
+  for (const key of Object.keys(supplied)) {
+    if (!['currentVersion', 'createDefault', 'normalize', 'mapRichText'].includes(key)) {
+      throw new TypeError(`Unknown versioned data schema option: ${key}`)
+    }
   }
+
+  const currentVersion = assertVersion(supplied.currentVersion, 'currentVersion')
+  const createDefault = supplied.createDefault
+  const normalize = supplied.normalize
+  const mapRichText = supplied.mapRichText
+
   if (typeof createDefault !== 'function') {
     throw new TypeError('Versioned data schema requires createDefault()')
   }
@@ -74,40 +69,6 @@ export function createVersionedDataSchema(options) {
   }
   if (mapRichText !== undefined && typeof mapRichText !== 'function') {
     throw new TypeError('Versioned data schema mapRichText must be a function')
-  }
-  if (!Array.isArray(suppliedMigrations)) {
-    throw new TypeError('Versioned data schema migrations must be an array')
-  }
-
-  /** @type {Map<number, { to: number, migrate: (input: any) => unknown }>} */
-  const migrations = new Map()
-  for (let index = 0; index < suppliedMigrations.length; index++) {
-    if (!Object.hasOwn(suppliedMigrations, index)) {
-      throw new TypeError('Versioned data schema migrations must be a dense array')
-    }
-    const descriptor = suppliedMigrations[index]
-    if (!descriptor || typeof descriptor !== 'object' || Array.isArray(descriptor)) {
-      throw new TypeError('Data migrations must be objects')
-    }
-
-    const from = descriptor.from
-    const to = descriptor.to
-    const migrate = descriptor.migrate
-    assertVersion(from, 'Data migration from')
-    assertVersion(to, 'Data migration to')
-    if (to <= from) {
-      throw new RangeError(`Data migration ${from} -> ${to} must advance to a greater version`)
-    }
-    if (to > currentVersion) {
-      throw new RangeError(`Data migration ${from} -> ${to} exceeds current version ${currentVersion}`)
-    }
-    if (typeof migrate !== 'function') {
-      throw new TypeError(`Data migration ${from} -> ${to} requires migrate()`)
-    }
-    if (migrations.has(from)) {
-      throw new Error(`Duplicate data migration source version ${from}`)
-    }
-    migrations.set(from, { to, migrate: migrate.bind(descriptor) })
   }
 
   /** @param {unknown} input @returns {D} */
@@ -118,7 +79,6 @@ export function createVersionedDataSchema(options) {
 
   const schema = {
     currentVersion,
-    legacyVersion,
 
     /** @returns {D} */
     createDefault() {
@@ -126,47 +86,27 @@ export function createVersionedDataSchema(options) {
     },
 
     /**
-     * @param {{ dataVersion?: number, data: unknown }} input
+     * @param {{ dataVersion: number, data: unknown }} input
      * @returns {{ dataVersion: number, data: D }}
      */
     decode(input) {
       if (!input || typeof input !== 'object' || Array.isArray(input)) {
         throw new TypeError('Versioned block data input must be an object')
       }
-
-      // Observe the two envelope members once. Optional dataVersion may be
-      // explicitly undefined at internal call sites; omission and undefined
-      // have the same legacy-input meaning without weakening JSON validation
-      // of the actual persisted data payload.
-      const candidate = /** @type {{ dataVersion?: unknown, data?: unknown }} */ (input)
-      const suppliedVersion = Object.hasOwn(candidate, 'dataVersion')
-        ? candidate.dataVersion
-        : undefined
-      const suppliedData = candidate.data
-      const version = suppliedVersion === undefined ? legacyVersion : suppliedVersion
-      assertVersion(version, 'dataVersion')
-      if (Number(version) > currentVersion) {
-        throw new Error(`Unsupported future data version ${version}; current version is ${currentVersion}`)
+      const candidate = /** @type {{ dataVersion?: unknown, data?: unknown }} */ ({ ...input })
+      if (!Object.hasOwn(candidate, 'dataVersion')) {
+        throw new TypeError('dataVersion is required')
       }
-
-      let cursor = Number(version)
-      let data = ownObject(suppliedData, 'Block data input')
-      while (cursor < currentVersion) {
-        const migration = migrations.get(cursor)
-        if (!migration) {
-          throw new Error(`No data migration from version ${cursor} to ${currentVersion}`)
-        }
-        const migrationInput = ownObject(data, `Data migration ${cursor} input`)
-        data = ownObject(
-          migration.migrate(migrationInput),
-          `Data migration ${cursor} -> ${migration.to} result`,
-        )
-        cursor = migration.to
+      const version = assertVersion(candidate.dataVersion, 'dataVersion')
+      if (version !== currentVersion) {
+        throw new RangeError(`Unsupported data version ${version}; current version is ${currentVersion}`)
       }
-
+      if (!Object.hasOwn(candidate, 'data')) {
+        throw new TypeError('Versioned block data input must contain data')
+      }
       return {
         dataVersion: currentVersion,
-        data: normalizeOwned(data),
+        data: normalizeOwned(candidate.data),
       }
     },
 

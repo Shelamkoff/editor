@@ -50,9 +50,9 @@ function createHolder(sandbox) {
 function createFailingDefinition() {
   const schema = Object.freeze({
     currentVersion: 1,
-    legacyVersion: 1,
     createDefault: () => ({ text: '' }),
     decode(input) {
+      if (input.dataVersion !== 1) throw new RangeError('unsupported data version')
       if (typeof input.data?.text !== 'string') throw new TypeError('text required')
       return { dataVersion: 1, data: { text: input.data.text } }
     },
@@ -136,7 +136,7 @@ async function run() {
     injectStyles: false,
     data: {
       version: '2.0.0',
-      blocks: [{ id: 'canonical-save', type: 'paragraph', data: { text: '' } }],
+      blocks: [{ id: 'canonical-save', type: 'paragraph', dataVersion: paragraph.schema.currentVersion, data: { text: '' } }],
     },
   })
   const canonicalField = editable(canonicalHolder, 'canonical-save')
@@ -203,18 +203,21 @@ async function run() {
   rawHolder.remove()
 
   const forgedHolder = createHolder(sandbox)
+  const forgedParagraph = createParagraphPlugin({ injectStyles: false })
+  const forgedColor = createColorSwatchPlugin()
   const forgedEditor = createEditor({
     holder: forgedHolder,
-    plugins: [createParagraphPlugin({ injectStyles: false })],
-    inlinePlugins: [createColorSwatchPlugin()],
+    plugins: [forgedParagraph],
+    inlinePlugins: [forgedColor],
     injectStyles: false,
     data: {
       version: '2.0.0',
       blocks: [{
         id: 'forged',
         type: 'paragraph',
+        dataVersion: forgedParagraph.schema.currentVersion,
         data: { text: 'Owned {{owned}}' },
-        inline: { owned: { type: 'color', data: { value: '#123456' } } },
+        inline: { owned: { type: 'color', dataVersion: forgedColor.schema.currentVersion, data: { value: '#123456' } } },
       }],
     },
   })
@@ -236,12 +239,12 @@ async function run() {
     holder: unknownInlineHolder,
     plugins: [createParagraphPlugin({ injectStyles: false })],
     injectStyles: false,
-    validationMode: 'preserve',
     data: {
       version: '2.0.0',
       blocks: [{
         id: 'unknown-inline',
         type: 'paragraph',
+        dataVersion: 2,
         data: { text: 'Before {{future}} after' },
         inline: { future: { type: 'future-widget', dataVersion: 9, data: { html: '<img onerror=bad()>' } } },
       }],
@@ -254,48 +257,20 @@ async function run() {
 
   const colorDefinition = createColorSwatchPlugin()
   const futureInlineHolder = createHolder(sandbox)
-  const futureInlineEditor = createEditor({
-    holder: futureInlineHolder,
-    plugins: [createParagraphPlugin({ injectStyles: false })],
-    inlinePlugins: [colorDefinition],
-    injectStyles: false,
-    validationMode: 'preserve',
-    data: {
-      version: '2.0.0',
-      blocks: [{
-        id: 'future-inline',
-        type: 'paragraph',
-        data: { text: 'Future {{future}}' },
-        inline: {
-          future: {
-            type: 'color',
-            dataVersion: colorDefinition.schema.currentVersion + 1,
-            data: { value: '#123456' },
-          },
-        },
-      }],
-    },
-  })
-  assert(!futureInlineHolder.querySelector('[data-inline-plugin="color"]'), 'future registered inline payload was activated')
-  assert(futureInlineEditor.save().blocks[0].inline.future.dataVersion === colorDefinition.schema.currentVersion + 1, 'future inline payload was rewritten')
-  futureInlineEditor.destroy()
-  futureInlineHolder.remove()
-
-  const strictFutureInlineHolder = createHolder(sandbox)
-  let strictFutureInlineRejected = false
+  let futureInlineRejected = false
   try {
     createEditor({
-      holder: strictFutureInlineHolder,
+      holder: futureInlineHolder,
       plugins: [createParagraphPlugin({ injectStyles: false })],
-      inlinePlugins: [createColorSwatchPlugin()],
+      inlinePlugins: [colorDefinition],
       injectStyles: false,
-      validationMode: 'strict',
       data: {
         version: '2.0.0',
         blocks: [{
-          id: 'strict-future-inline',
+          id: 'future-inline',
           type: 'paragraph',
-          data: { text: '{{future}}' },
+          dataVersion: 2,
+          data: { text: 'Future {{future}}' },
           inline: {
             future: {
               type: 'color',
@@ -307,10 +282,10 @@ async function run() {
       },
     })
   } catch {
-    strictFutureInlineRejected = true
+    futureInlineRejected = true
   }
-  assert(strictFutureInlineRejected && strictFutureInlineHolder.childNodes.length === 0, 'strict mode accepted future inline payload')
-  strictFutureInlineHolder.remove()
+  assert(futureInlineRejected && futureInlineHolder.childNodes.length === 0, 'known future inline payload was accepted')
+  futureInlineHolder.remove()
 
   const invalidJsonHolder = createHolder(sandbox)
   let invalidJsonRejected = false
@@ -337,8 +312,8 @@ async function run() {
       data: {
         version: '2.0.0',
         blocks: [
-          { id: 'duplicate', type: 'paragraph', data: { text: 'First' } },
-          { id: 'duplicate', type: 'paragraph', data: { text: 'Second' } },
+          { id: 'duplicate', type: 'paragraph', dataVersion: 2, data: { text: 'First' } },
+          { id: 'duplicate', type: 'paragraph', dataVersion: 2, data: { text: 'Second' } },
         ],
       },
     })
@@ -348,24 +323,43 @@ async function run() {
   assert(duplicateIdRejected && duplicateIdHolder.childNodes.length === 0, 'duplicate block IDs were not rejected atomically')
   duplicateIdHolder.remove()
 
-  const preservedHolder = createHolder(sandbox)
-  const preservedParagraph = createParagraphPlugin({ injectStyles: false })
-  const futureVersion = preservedParagraph.schema.currentVersion + 1
-  const preservedEditor = createEditor({
-    holder: preservedHolder,
-    plugins: [preservedParagraph],
+  const currentBoundaryHolder = createHolder(sandbox)
+  const currentParagraph = createParagraphPlugin({ injectStyles: false })
+  let knownVersionRejected = false
+  try {
+    createEditor({
+      holder: currentBoundaryHolder,
+      plugins: [currentParagraph],
+      injectStyles: false,
+      data: {
+        version: '2.0.0',
+        blocks: [{
+          id: 'bad-known',
+          type: 'paragraph',
+          dataVersion: currentParagraph.schema.currentVersion + 1,
+          data: { text: '<script>opaque()</script>' },
+        }],
+      },
+    })
+  } catch {
+    knownVersionRejected = true
+  }
+  assert(knownVersionRejected && currentBoundaryHolder.childNodes.length === 0, 'known non-current block version was accepted')
+  currentBoundaryHolder.remove()
+
+  const unregisteredHolder = createHolder(sandbox)
+  const unregisteredEditor = createEditor({
+    holder: unregisteredHolder,
+    plugins: [currentParagraph],
     injectStyles: false,
-    validationMode: 'preserve',
     data: {
       version: '2.0.0',
       blocks: [
-        { id: 'safe', type: 'paragraph', data: { text: unsafeInline } },
         {
-          id: 'bad-known',
+          id: 'safe',
           type: 'paragraph',
-          dataVersion: futureVersion,
-          data: { text: '<script>opaque()</script>' },
-          revision: 'r1',
+          dataVersion: currentParagraph.schema.currentVersion,
+          data: { text: unsafeInline },
         },
         {
           id: 'future',
@@ -374,21 +368,19 @@ async function run() {
           revision: 'producer-r2',
           tunes: { custom: { value: 1 } },
           data: { html: '<img onerror="window.__editorSecurityProbe++">' },
-          inline: { x: { type: 'future-widget', data: { payload: 1 } } },
+          inline: { x: { type: 'future-widget', dataVersion: 7, data: { payload: 1 } } },
         },
       ],
     },
   })
-  assert(preservedEditor.blocks.get('safe').status === 'active', 'valid known block was not active')
-  assert(preservedEditor.blocks.get('bad-known').status === 'preserved', 'future known block was activated')
-  assert(preservedEditor.blocks.get('future').status === 'preserved', 'unknown block was activated')
-  assert(preservedHolder.querySelectorAll('.oe-preserved-block').length === 2, 'preserved blocks were not projected inertly')
-  assertNoActiveMarkup(editorRoot(preservedHolder), 'preserved block projection')
-  const preservedSaved = preservedEditor.save()
-  assert(preservedSaved.blocks.find(block => block.id === 'future')?.revision === 'producer-r2', 'preserved revision was lost')
-  assert(preservedSaved.blocks.find(block => block.id === 'future')?.inline?.x?.type === 'future-widget', 'preserved inline payload was lost')
-  preservedEditor.destroy()
-  preservedHolder.remove()
+  assert(unregisteredEditor.blocks.get('safe').status === 'active', 'valid known block was not active')
+  assert(unregisteredEditor.blocks.get('future').status === 'unregistered', 'unknown current block was not inert')
+  assertNoActiveMarkup(editorRoot(unregisteredHolder), 'unregistered block projection')
+  const unregisteredSaved = unregisteredEditor.save()
+  assert(unregisteredSaved.blocks.find(block => block.id === 'future')?.revision === 'producer-r2', 'unregistered revision was lost')
+  assert(unregisteredSaved.blocks.find(block => block.id === 'future')?.inline?.x?.type === 'future-widget', 'unregistered inline payload was lost')
+  unregisteredEditor.destroy()
+  unregisteredHolder.remove()
 
   const strictKnownHolder = createHolder(sandbox)
   let strictKnownRejected = false
@@ -397,44 +389,35 @@ async function run() {
       holder: strictKnownHolder,
       plugins: [createParagraphPlugin({ injectStyles: false })],
       injectStyles: false,
-      validationMode: 'strict',
       data: {
         version: '2.0.0',
-        blocks: [{ id: 'bad-known', type: 'paragraph', data: { nope: true } }],
+        blocks: [{ id: 'bad-known', type: 'paragraph', dataVersion: 2, data: { nope: true } }],
       },
     })
   } catch {
     strictKnownRejected = true
   }
-  assert(strictKnownRejected && strictKnownHolder.childNodes.length === 0, 'strict mode accepted malformed known block')
+  assert(strictKnownRejected && strictKnownHolder.childNodes.length === 0, 'current boundary accepted malformed known block')
   strictKnownHolder.remove()
 
-  const documentModeHolder = createHolder(sandbox)
-  const sourceTime = 123456789
-  const documentModeEditor = createEditor({
-    holder: documentModeHolder,
-    plugins: [createParagraphPlugin({ injectStyles: false })],
-    injectStyles: false,
-    documentVersionPolicy: 'preserve',
-    data: {
-      version: 'future-envelope',
-      time: sourceTime,
-      blocks: [{ id: 'opaque', type: 'paragraph', data: { text: '<b>opaque</b>' } }],
-    },
-  })
-  assert(documentModeEditor.documentMode === 'preserved' && documentModeEditor.readOnly, 'unknown document version was exposed as writable')
-  const preservedEnvelope = documentModeEditor.save()
-  assert(preservedEnvelope.version === 'future-envelope' && preservedEnvelope.time === sourceTime, 'preserved document envelope metadata changed')
-  let writableBypassRejected = false
-  try { documentModeEditor.setReadOnly(false) } catch { writableBypassRejected = true }
-  assert(writableBypassRejected, 'setReadOnly(false) bypassed preserved document mode')
-  documentModeEditor.render({
-    version: '2.0.0',
-    blocks: [{ id: 'current', type: 'paragraph', data: { text: 'Current' } }],
-  })
-  assert(documentModeEditor.documentMode === 'editable' && !documentModeEditor.readOnly, 'current document did not leave preserved mode')
-  documentModeEditor.destroy()
-  documentModeHolder.remove()
+  const futureEnvelopeHolder = createHolder(sandbox)
+  let futureEnvelopeRejected = false
+  try {
+    createEditor({
+      holder: futureEnvelopeHolder,
+      plugins: [createParagraphPlugin({ injectStyles: false })],
+      injectStyles: false,
+      data: {
+        version: 'future-envelope',
+        time: 123456789,
+        blocks: [{ id: 'opaque', type: 'paragraph', dataVersion: 2, data: { text: '<b>opaque</b>' } }],
+      },
+    })
+  } catch {
+    futureEnvelopeRejected = true
+  }
+  assert(futureEnvelopeRejected && futureEnvelopeHolder.childNodes.length === 0, 'future document envelope was accepted')
+  futureEnvelopeHolder.remove()
 
   const defaultHolder = createHolder(sandbox)
   const heading = createHeadingPlugin({ injectStyles: false })
@@ -504,8 +487,8 @@ async function run() {
   renderer.renderTo({
     version: '2.0.0',
     blocks: [
-      { id: 'render-paragraph', type: 'paragraph', data: { text: unsafeInline } },
-      { id: 'render-raw', type: 'raw', data: { html: unsafeRaw } },
+      { id: 'render-paragraph', type: 'paragraph', dataVersion: 2, data: { text: unsafeInline } },
+      { id: 'render-raw', type: 'raw', dataVersion: 1, data: { html: unsafeRaw } },
     ],
   }, rendererContainer)
   assertNoActiveMarkup(rendererContainer, 'renderer')
@@ -520,14 +503,17 @@ async function run() {
   return {
     sanitizers: ['rich text', 'raw html', 'renderer'],
     editor: ['canonical native input', 'no mutable Block DOM', 'forged widget rejection'],
-    preservation: ['unknown block', 'future known block', 'unknown/future inline', 'future document'],
-    validation: ['strict known', 'strict inline', 'non-JSON', 'duplicate ids', 'duplicate definitions'],
+    currentBoundary: ['unregistered block', 'unknown inline', 'known version rejection', 'future document rejection'],
+    validation: ['known malformed', 'known future inline', 'non-JSON', 'duplicate ids', 'duplicate definitions'],
     lifecycle: ['reusable immutable definitions', 'projection rollback'],
   }
 }
 
 function oneBlock(type, data, id = type) {
-  return { version: '2.0.0', blocks: [{ id, type, data }] }
+  const versions = { raw: 1, transactional: 1 }
+  const dataVersion = versions[type]
+  if (!dataVersion) throw new Error(`Missing current test dataVersion for ${type}`)
+  return { version: '2.0.0', blocks: [{ id, type, dataVersion, data }] }
 }
 
 const result = document.querySelector('#result')

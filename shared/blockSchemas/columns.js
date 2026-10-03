@@ -9,7 +9,6 @@ function defaultColumns(layout){
 
 export const columnsDataSchema=createVersionedDataSchema({
   currentVersion:2,
-  legacyVersion:1,
   createDefault:()=>({layout:'1-1',columns:defaultColumns('1-1')}),
   normalize(input){
     if(typeof input?.layout!=='string'||!Object.hasOwn(COLUMN_LAYOUT_SIZES,input.layout)){
@@ -32,18 +31,4 @@ export const columnsDataSchema=createVersionedDataSchema({
   mapRichText(data,transform){
     data.columns=data.columns.map(column=>({...column,content:transform(column.content,`column:${column.id}`)}))
   },
-  migrations:[{
-    from:1,
-    to:2,
-    migrate(input){
-      if(!Array.isArray(input?.columns))throw new TypeError('Legacy columns must be an array')
-      return {
-        layout:input.layout,
-        columns:input.columns.map((column,index)=>({
-          id:`legacy-column-${index}`,
-          content:column?.content,
-        })),
-      }
-    },
-  }],
 })

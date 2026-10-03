@@ -75,8 +75,23 @@ function validateRendererConfig(config) {
         throw new TypeError('EditorRenderer inline renderer must have a non-empty string type')
       }
       const schema = source.schema
-      if (!schema || typeof schema !== 'object' || typeof schema.decode !== 'function') {
-        throw new TypeError(`EditorRenderer inline renderer "${type}" must provide a schema`)
+      if (!schema
+          || typeof schema !== 'object'
+          || !Number.isSafeInteger(schema.currentVersion)
+          || schema.currentVersion < 1
+          || typeof schema.createDefault !== 'function'
+          || typeof schema.decode !== 'function'
+          || typeof schema.encode !== 'function') {
+        throw new TypeError(`EditorRenderer inline renderer "${type}" must provide a current exact-version schema`)
+      }
+      const inlineDefault=schema.createDefault()
+      const inlineEncoded=schema.encode(inlineDefault)
+      if(!inlineEncoded||inlineEncoded.dataVersion!==schema.currentVersion){
+        throw new TypeError(`EditorRenderer inline renderer "${type}" schema encode() must emit currentVersion`)
+      }
+      const inlineDecoded=schema.decode({dataVersion:schema.currentVersion,data:inlineEncoded.data})
+      if(!inlineDecoded||inlineDecoded.dataVersion!==schema.currentVersion){
+        throw new TypeError(`EditorRenderer inline renderer "${type}" schema decode() must preserve currentVersion`)
       }
       const render = source.render
       if (typeof render !== 'function') {

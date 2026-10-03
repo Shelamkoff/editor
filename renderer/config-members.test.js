@@ -5,9 +5,9 @@ import { EditorRenderer } from './index.js'
 
 const passthroughSchema = Object.freeze({
   currentVersion: 1,
-  legacyVersion: 1,
   createDefault: () => ({}),
-  decode({ data }) {
+  decode({ dataVersion, data }) {
+    if (dataVersion !== 1) throw new RangeError('unsupported data version')
     if (!data || typeof data !== 'object' || Array.isArray(data)) throw new TypeError('data must be an object')
     return { dataVersion: 1, data: { ...data } }
   },
@@ -28,12 +28,12 @@ test('renderer config rejects unknown block types and malformed inline renderer 
   )
   assert.throws(
     () => new EditorRenderer({ inlineRenderers: [{ type: 'mention', schema: { decode() {} } }] }),
-    /inline renderer "mention" must implement render\(\)/i,
+    /current exact-version schema/i,
   )
   assert.throws(
     () => new EditorRenderer({ inlineRenderers: [
-      { type: 'mention', schema: { decode() {} }, render() {} },
-      { type: 'mention', schema: { decode() {} }, render() {} },
+      { type: 'mention', schema: passthroughSchema, render() {} },
+      { type: 'mention', schema: passthroughSchema, render() {} },
     ] }),
     /duplicate renderer inline renderer type/i,
   )
@@ -114,7 +114,7 @@ test('renderer config observes blockTypes and inlineRenderers entries once', () 
   let pluginTypeReads = 0
   const plugin = {
     get type() { pluginTypeReads++; return 'probe' },
-    schema: { decode() { return { dataVersion: 1, data: {} } } },
+    schema: passthroughSchema,
     render() { return /** @type {any} */ ({}) },
   }
   const inlineRenderers = []

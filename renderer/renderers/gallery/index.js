@@ -24,9 +24,6 @@ const MAX_VISIBLE = 6
  * @typedef {'L' | 'P' | 'S'} Orientation
  */
 
-/** Legacy layout values that should be treated as 'auto' */
-const LEGACY_AUTO = new Set(['grid', 'grid-2', 'grid-3', 'grid-4', 'slider'])
-
 /**
  * @param {HTMLImageElement} img
  * @returns {Orientation}
@@ -113,12 +110,7 @@ export function createGalleryRenderer(classPrefix, locale) {
     render(block, _parseInline, context = { ownerDocument: globalThis.document }) {
       const { images, styles, options } = block.data
       const ownerDocument = context.ownerDocument
-      // Normalize legacy layouts to 'auto'
-      const rawLayout = block.data.layout
-      /** @type {import('../../types').GalleryLayout} */
-      const layout = (!rawLayout || LEGACY_AUTO.has(/** @type {string} */ (rawLayout)))
-        ? 'auto'
-        : rawLayout
+      const layout = block.data.layout
 
       const container = ownerDocument.createElement('div')
       /** @type {Set<{ destroy(): void }>} */

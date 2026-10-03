@@ -4,7 +4,6 @@ import { canonicalUrl, isRecord, positiveNumber, stringMap, text } from './helpe
 
 export const imageDataSchema = createVersionedDataSchema({
   currentVersion: 1,
-  legacyVersion: 1,
   createDefault: () => ({
     file: { url: '' },
     caption: '',

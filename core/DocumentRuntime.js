@@ -1,12 +1,11 @@
 // @ts-check
 import { cloneEditorData } from '../shared/cloneEditorData.js'
+import { decodeCurrentBlock, decodeCurrentDocument, decodeCurrentInlineMap } from '../shared/DocumentSchema.js'
+import { DOCUMENT_FORMAT_VERSION } from '../shared/documentFormat.js'
 import { invokeObserver } from '../shared/invokeObserver.js'
 import { normalizeRichText } from '../shared/richTextCodec.js'
 import { getRichTextLogicalLength, remapRichTextReferences, replaceRichTextRange, replaceRichTextReference, scanRichTextPlaceholders, sliceRichTextRange, splitRichTextRange } from '../shared/richTextOperations.js'
-import { resolveValidationMode } from '../shared/validationMode.js'
 import { uid } from '../shared/uid.js'
-import { DocumentSchema } from './DocumentSchema.js'
-import { EDITOR_VERSION } from './constants.js'
 import { DocumentStore } from './DocumentStore.js'
 import { HistoryStore } from './HistoryStore.js'
 import { TransactionEngine } from './TransactionEngine.js'
@@ -39,24 +38,22 @@ function sameJson(left, right) {
 
 function issueReason(error) {
   const message = String(error?.message ?? error)
-  return /future data version/i.test(message) ? 'unsupported-version' : 'invalid-data'
+  if (error instanceof RangeError && /document version/i.test(message)) return 'unsupported-document-version'
+  if (error instanceof RangeError && /data version/i.test(message)) return 'unsupported-data-version'
+  return error instanceof TypeError ? 'invalid-input' : 'invalid-data'
 }
 
 export class DocumentRuntime {
   #registry
-  #schema
   #store
   #history
   #engine
   #projector
   #ownerDocument
-  #validationMode
-  #documentMode
   #readOnly
   #createId
   #onValidationError
   #richTextNormalizer
-  #preservedTime
   #destroyed = false
   #requestSplit
   #requestExit
@@ -68,9 +65,6 @@ export class DocumentRuntime {
    *   registry: any,
    *   data?: unknown,
    *   ownerDocument?: Document,
-   *   validationMode?: 'preserve'|'strict',
-   *   documentVersionPolicy?: 'preserve'|'strict',
-   *   migrations?: readonly any[],
    *   readOnly?: boolean,
    *   createId?: (prefix: string) => string,
    *   projector?: any,
@@ -93,7 +87,6 @@ export class DocumentRuntime {
     if (!options?.registry) throw new TypeError('DocumentRuntime requires an ExtensionRegistry')
     this.#registry = options.registry
     this.#ownerDocument = options.ownerDocument ?? globalThis.document
-    this.#validationMode = resolveValidationMode(options.validationMode)
     this.#readOnly = options.readOnly === true
     this.#createId = typeof options.createId === 'function'
       ? options.createId
@@ -110,17 +103,8 @@ export class DocumentRuntime {
           ? html => normalizeRichText(html, this.#ownerDocument)
           : html => String(html ?? ''))
 
-    this.#schema = new DocumentSchema({
-      currentVersion: EDITOR_VERSION,
-      versionPolicy: options.documentVersionPolicy ?? 'preserve',
-      migrations: options.migrations ?? [],
-      diagnostics: this.#diagnostics ?? undefined,
-    })
-
-    const initial = this.#ingest(options.data ?? { version: EDITOR_VERSION, blocks: [] })
-    this.#documentMode = initial.mode
-    this.#preservedTime = initial.time
-    this.#store = new DocumentStore(initial.document)
+    const initial = options.data === undefined ? this.#createNewDocument() : this.#ingest(options.data)
+    this.#store = new DocumentStore(initial)
     this.#history = new HistoryStore(options.history)
 
     const contextFactory = (id, type, signal) => this.#blockContext(id, type, signal)
@@ -146,20 +130,16 @@ export class DocumentRuntime {
     this.#projector?.setReadOnly?.(this.readOnly)
   }
 
-  get documentMode() {
-    return this.#documentMode
-  }
-
   get readOnly() {
-    return this.#documentMode === 'preserved' || this.#readOnly
+    return this.#readOnly
   }
 
   get canUndo() {
-    return this.#documentMode === 'editable' && this.#engine.canUndo
+    return this.#engine.canUndo
   }
 
   get canRedo() {
-    return this.#documentMode === 'editable' && this.#engine.canRedo
+    return this.#engine.canRedo
   }
 
   get version() {
@@ -184,10 +164,6 @@ export class DocumentRuntime {
     const startedAt = this.#diagnostics ? this.#diagnostics.now() : 0
     try {
       const document = this.#store.export()
-      if (this.#documentMode === 'preserved') {
-        if (this.#preservedTime !== undefined) document.time = this.#preservedTime
-        return document
-      }
       document.time = Date.now()
       return document
     } catch (error) {
@@ -219,7 +195,7 @@ export class DocumentRuntime {
     }
     const tunes = cloneTunes(options.tunes)
     if (tunes !== undefined) record.tunes = tunes
-    const inline = options.inline === undefined ? undefined : this.#normalizeExternalInline(options.inline, { strict: true })
+    const inline = options.inline === undefined ? undefined : this.#normalizeExternalInline(options.inline)
     if (inline !== undefined) record.inline = inline
     this.#engine.execute({ origin: 'external', name: 'block.insert' }, tx => {
       tx.insert(index, record)
@@ -242,7 +218,6 @@ export class DocumentRuntime {
     const ids=this.#store.ids()
     const anchorIndex=ids.indexOf(anchorId)
     if(anchorIndex<0)throw new Error(`Unknown block id: ${anchorId}`)
-
     const reserved=new Set(ids)
     const allocate=prefix=>{
       for(let attempt=0;attempt<1000;attempt++){
@@ -252,55 +227,39 @@ export class DocumentRuntime {
       }
       throw new Error('Could not allocate a unique pasted block id')
     }
-
     const records=[]
     for(const raw of inputs){
-      if(!raw||typeof raw!=='object'||Array.isArray(raw)){
-        throw new TypeError('Clipboard block must contain a type')
-      }
+      if(!raw||typeof raw!=='object'||Array.isArray(raw))throw new TypeError('Clipboard block must contain a type')
       const input=/** @type {Record<string, any>} */(raw)
-      if(typeof input.type!=='string'||!input.type){
-        throw new TypeError('Clipboard block must contain a type')
+      if(typeof input.type!=='string'||!input.type)throw new TypeError('Clipboard block must contain a type')
+      const candidate={id:allocate(input.type),type:input.type,dataVersion:input.dataVersion,data:input.data}
+      if(Object.hasOwn(input,'tunes'))candidate.tunes=input.tunes
+      if(Object.hasOwn(input,'inline'))candidate.inline=input.inline
+      const record=decodeCurrentBlock(candidate,{
+        getBlockSchema:type=>this.#registry.getBlockDefinition(type)?.schema,
+        getInlineSchema:type=>this.#registry.getInlineDefinition(type)?.schema,
+      })
+      const definition=this.#registry.getBlockDefinition(record.type)
+      if(definition){
+        const encoded=this.#normalizeLocalData(definition,record.data)
+        record.dataVersion=encoded.dataVersion
+        record.data=encoded.data
+        const filtered=this.#filterInlineForData(definition,encoded.data,record.inline)
+        if(filtered===undefined)delete record.inline
+        else record.inline=filtered
       }
-      const definition=this.#registry.getBlockDefinition(input.type)
-      if(!definition)throw new Error(`Unknown clipboard block type: ${input.type}`)
-      const encoded=this.#normalizeDecodedData(definition,{
-        dataVersion:input.dataVersion,
-        data:input.data,
-      })
-      const record=/** @type {any} */({
-        id:allocate(input.type),
-        type:input.type,
-        dataVersion:encoded.dataVersion,
-        data:encoded.data,
-      })
-      try{
-        const tunes=cloneTunes(input.tunes)
-        if(tunes!==undefined)record.tunes=tunes
-      }catch{}
-      try{
-        const inline=this.#normalizeExternalInline(input.inline,{strict:false})
-        const filtered=this.#filterInlineForData(definition,encoded.data,inline)
-        if(filtered!==undefined)record.inline=filtered
-      }catch{}
       records.push(record)
     }
-
     const replaceEmpty=options.replaceEmpty===true&&this.isEmpty(anchorId)
     const inserted=[]
     this.#engine.execute({origin:'user',name:'clipboard.blocks'},tx=>{
-      let offset=1
-      let start=0
+      let offset=1,start=0
       if(replaceEmpty){
         const first={...records[0],id:anchorId}
-        tx.update(anchorId,first)
-        inserted.push(anchorId)
-        start=1
+        tx.update(anchorId,first);inserted.push(anchorId);start=1
       }
       for(let index=start;index<records.length;index++){
-        tx.insert(anchorIndex+offset,records[index])
-        inserted.push(records[index].id)
-        offset++
+        tx.insert(anchorIndex+offset,records[index]);inserted.push(records[index].id);offset++
       }
     })
     return inserted
@@ -348,7 +307,7 @@ export class DocumentRuntime {
     this.#assertWritable()
     const current = this.#store.get(id)
     if (!current) throw new Error(`Unknown block id: ${id}`)
-    if (this.activation(id)?.kind !== 'active') throw new Error(`Preserved block cannot be split: ${id}`)
+    if (this.activation(id)?.kind !== 'active') throw new Error(`Unregistered block cannot be split: ${id}`)
     const sourceDefinition = this.#registry.getBlockDefinition(current.type)
     if (!sourceDefinition?.schema?.mapRichText) return false
 
@@ -476,7 +435,7 @@ export class DocumentRuntime {
     const current = this.#store.get(id)
     if (!current) throw new Error(`Unknown block id: ${id}`)
     if (this.activation(id)?.kind !== 'active') {
-      throw new Error(`Preserved block cannot be updated: ${id}`)
+      throw new Error(`Unregistered block cannot be updated: ${id}`)
     }
     const definition = this.#registry.getBlockDefinition(current.type)
     if (!definition) throw new Error(`Unknown block type: ${current.type}`)
@@ -595,7 +554,7 @@ export class DocumentRuntime {
     const current = this.#store.get(id)
     if (!current) throw new Error(`Unknown block id: ${id}`)
     if (this.activation(id)?.kind !== 'active') {
-      throw new Error(`Preserved block cannot be converted: ${id}`)
+      throw new Error(`Unregistered block cannot be converted: ${id}`)
     }
     if (!target || typeof target !== 'object' || typeof target.type !== 'string') {
       throw new TypeError('Conversion target requires a type')
@@ -692,7 +651,7 @@ export class DocumentRuntime {
     const definition = this.#registry.getBlockDefinition(this.#registry.defaultBlockType)
     const encoded = this.#normalizeLocalData(definition, definition.schema.createDefault())
     const document = {
-      version: EDITOR_VERSION,
+      version: DOCUMENT_FORMAT_VERSION,
       blocks: [{
         id: this.#createUniqueBlockId(this.#registry.defaultBlockType),
         type: this.#registry.defaultBlockType,
@@ -709,19 +668,9 @@ export class DocumentRuntime {
     const startedAt = this.#diagnostics ? this.#diagnostics.now() : 0
     try {
       const next = this.#ingest(input)
-      const crossingMode = next.mode !== this.#documentMode
-      if (crossingMode || this.#documentMode === 'preserved' || next.mode === 'preserved') {
-        this.#engine.reset(next.document)
-        this.#documentMode = next.mode
-        this.#preservedTime = next.time
-        this.#projector?.setReadOnly?.(this.readOnly)
-        return
-      }
-
       this.#engine.execute({ origin: 'external', name: 'document.render' }, tx => {
-        tx.replace(next.document)
+        tx.replace(next)
       })
-      this.#preservedTime = undefined
     } finally {
       if (startedAt && this.#diagnostics) {
         const durationMs = this.#diagnostics.now() - startedAt
@@ -733,9 +682,6 @@ export class DocumentRuntime {
   }
 
   setReadOnly(value) {
-    if (this.#documentMode === 'preserved' && value === false) {
-      throw new Error('Preserved documents are always read-only')
-    }
     const next = value === true
     if (next === this.#readOnly) return
     this.#projector?.setReadOnly?.(next)
@@ -968,7 +914,7 @@ export class DocumentRuntime {
     this.#assertWritable()
     const current = this.#store.get(blockId)
     if (!current) throw new Error(`Unknown block id: ${blockId}`)
-    if (this.activation(blockId)?.kind !== 'active') throw new Error(`Preserved block cannot be updated: ${blockId}`)
+    if (this.activation(blockId)?.kind !== 'active') throw new Error(`Unregistered block cannot be updated: ${blockId}`)
     const definition = this.#registry.getBlockDefinition(current.type)
     if (!definition?.schema?.mapRichText) throw new Error(`Block type has no rich-text fields: ${current.type}`)
     const data = cloneEditorData(current.data)
@@ -992,7 +938,7 @@ export class DocumentRuntime {
     const current = this.#store.get(blockId)
     if (!current) throw new Error(`Unknown block id: ${blockId}`)
     if (this.activation(blockId)?.kind !== 'active') {
-      throw new Error(`Preserved block cannot be updated: ${blockId}`)
+      throw new Error(`Unregistered block cannot be updated: ${blockId}`)
     }
     const blockDefinition = this.#registry.getBlockDefinition(current.type)
     if (!blockDefinition?.schema?.mapRichText) {
@@ -1200,7 +1146,7 @@ export class DocumentRuntime {
     this.#assertWritable()
     const current = this.#store.get(blockId)
     if (!current) throw new Error(`Unknown block id: ${blockId}`)
-    if (this.activation(blockId)?.kind !== 'active') throw new Error(`Preserved block cannot be updated: ${blockId}`)
+    if (this.activation(blockId)?.kind !== 'active') throw new Error(`Unregistered block cannot be updated: ${blockId}`)
     const blockDefinition = this.#registry.getBlockDefinition(current.type)
     if (!blockDefinition?.schema?.mapRichText) throw new Error(`Block type has no rich-text fields: ${current.type}`)
     const inlineDefinition = this.#registry.getInlineDefinition(type)
@@ -1248,7 +1194,7 @@ export class DocumentRuntime {
     if (typeof producer !== 'function') throw new TypeError('Inline widget update producer must be a function')
     const current = this.#store.get(blockId)
     if (!current) throw new Error(`Unknown block id: ${blockId}`)
-    if (this.activation(blockId)?.kind !== 'active') throw new Error(`Preserved block cannot be updated: ${blockId}`)
+    if (this.activation(blockId)?.kind !== 'active') throw new Error(`Unregistered block cannot be updated: ${blockId}`)
     const inline = cloneInline(current.inline) ?? {}
     const ref = Object.hasOwn(inline, inlineId) ? inline[inlineId] : undefined
     if (!ref || typeof ref !== 'object' || Array.isArray(ref) || typeof ref.type !== 'string') {
@@ -1317,7 +1263,7 @@ export class DocumentRuntime {
       if (seen.has(id)) continue
       const current = this.#store.get(id)
       if (!current) throw new Error(`Unknown block id: ${id}`)
-      if (this.activation(id)?.kind !== 'active') throw new Error(`Preserved block cannot be synchronized: ${id}`)
+      if (this.activation(id)?.kind !== 'active') throw new Error(`Unregistered block cannot be synchronized: ${id}`)
       seen.add(id)
       ordered.push(id)
     }
@@ -1367,7 +1313,7 @@ export class DocumentRuntime {
     if (typeof operation !== 'function') throw new TypeError('DOM mutation operation must be a function')
     const current = this.#store.get(id)
     if (!current) throw new Error(`Unknown block id: ${id}`)
-    if (this.activation(id)?.kind !== 'active') throw new Error(`Preserved block cannot be synchronized: ${id}`)
+    if (this.activation(id)?.kind !== 'active') throw new Error(`Unregistered block cannot be synchronized: ${id}`)
     const definition = this.#registry.getBlockDefinition(current.type)
 
     try {
@@ -1411,76 +1357,46 @@ export class DocumentRuntime {
     this.#projector?.destroy?.()
   }
 
+  #createNewDocument() {
+    const definition=this.#registry.getBlockDefinition(this.#registry.defaultBlockType)
+    if(!definition)throw new Error(`Unknown default block type: ${this.#registry.defaultBlockType}`)
+    const encoded=this.#normalizeLocalData(definition,definition.schema.createDefault())
+    return {version:DOCUMENT_FORMAT_VERSION,blocks:[{
+      id:this.#createUniqueBlockId(this.#registry.defaultBlockType),
+      type:this.#registry.defaultBlockType,
+      dataVersion:encoded.dataVersion,
+      data:encoded.data,
+    }]}
+  }
+
   #ingest(input) {
-    const normalized = this.#schema.normalize(input)
-    const time = normalized.time
-    if (normalized.version !== EDITOR_VERSION) {
-      return {
-        mode: 'preserved',
-        time,
-        document: {
-          version: normalized.version,
-          blocks: cloneEditorData(normalized.blocks),
-        },
-      }
-    }
-
-    const blocks = []
-    for (const inputBlock of normalized.blocks) {
-      if (!inputBlock || typeof inputBlock !== 'object' || Array.isArray(inputBlock)) {
-        throw new TypeError('Document blocks must be objects')
-      }
-      const block = cloneEditorData(inputBlock)
-      if (typeof block.id !== 'string' || !block.id) throw new TypeError('Block id must be a non-empty string')
-      if (typeof block.type !== 'string' || !block.type) throw new TypeError('Block type must be a non-empty string')
-      if (!Object.hasOwn(block, 'data')) throw new TypeError(`Block "${block.id}" must contain data`)
-
-      const definition = this.#registry.getBlockDefinition(block.type)
-      if (!definition) {
-        blocks.push(block)
-        continue
-      }
-
-      try {
-        const decoded = this.#normalizeDecodedData(definition, {
-          dataVersion: block.dataVersion,
-          data: block.data,
-        })
-        block.dataVersion = decoded.dataVersion
-        block.data = decoded.data
-        const tunes = cloneTunes(block.tunes)
-        if (tunes === undefined) delete block.tunes
-        else block.tunes = tunes
-        if (block.inline !== undefined) block.inline = this.#normalizeExternalInline(block.inline, { strict: this.#validationMode === 'strict' })
-        blocks.push(block)
-      } catch (error) {
-        if (this.#validationMode === 'strict') {
-          throw new Error(`Invalid block data for "${block.type}" (${block.id})`, { cause: error })
-        }
-        this.#reportValidation(block, error)
-        blocks.push(block)
-      }
-    }
-
-    if (blocks.length === 0) {
-      const definition = this.#registry.getBlockDefinition(this.#registry.defaultBlockType)
-      const encoded = this.#normalizeLocalData(definition, definition.schema.createDefault())
-      blocks.push({
-        id: this.#createUniqueBlockId(this.#registry.defaultBlockType, blocks),
-        type: this.#registry.defaultBlockType,
-        dataVersion: encoded.dataVersion,
-        data: encoded.data,
+    let normalized
+    try{
+      normalized=decodeCurrentDocument(input,{
+        getBlockSchema:type=>this.#registry.getBlockDefinition(type)?.schema,
+        getInlineSchema:type=>this.#registry.getInlineDefinition(type)?.schema,
       })
+    }catch(error){
+      this.#reportValidation({},error)
+      throw error
     }
-
-    return {
-      mode: 'editable',
-      time: undefined,
-      document: {
-        version: EDITOR_VERSION,
-        blocks,
-      },
-    }
+    const blocks=normalized.blocks.map(block=>{
+      const definition=this.#registry.getBlockDefinition(block.type)
+      if(!definition)return block
+      let data=block.data
+      if(typeof definition.schema.mapRichText==='function'){
+        data=definition.schema.mapRichText(data,html=>this.#richTextNormalizer(html))
+      }
+      const encoded=definition.schema.encode(data)
+      const next={...block,dataVersion:encoded.dataVersion,data:encoded.data}
+      const tunes=cloneTunes(block.tunes)
+      if(tunes===undefined)delete next.tunes
+      else next.tunes=tunes
+      if(block.inline!==undefined)next.inline=this.#normalizeExternalInline(block.inline)
+      return next
+    })
+    if(blocks.length===0)return this.#createNewDocument()
+    return {version:DOCUMENT_FORMAT_VERSION,blocks}
   }
 
   #normalizeDecodedData(definition, input) {
@@ -1507,20 +1423,9 @@ export class DocumentRuntime {
   }
 
   #activationFor(record) {
-    if (this.#documentMode === 'preserved') {
-      return { kind: 'preserved', reason: 'unsupported-version' }
-    }
-    const definition = this.#registry.getBlockDefinition(record.type)
-    if (!definition) return { kind: 'preserved', reason: 'unknown-type' }
-    try {
-      definition.schema.decode({
-        dataVersion: record.dataVersion,
-        data: record.data,
-      })
-      return { kind: 'active' }
-    } catch (error) {
-      return { kind: 'preserved', reason: issueReason(error) }
-    }
+    const definition=this.#registry.getBlockDefinition(record.type)
+    if(!definition)return {kind:'unregistered',reason:'unknown-type'}
+    return {kind:'active'}
   }
 
   #canActivate(_id, record) {
@@ -1891,36 +1796,10 @@ export class DocumentRuntime {
 
   #assertWritable() {
     if (this.#destroyed) throw new Error('DocumentRuntime is destroyed')
-    if (this.#documentMode === 'preserved') {
-      throw new Error('Preserved documents are not writable')
-    }
   }
 
-  #normalizeExternalInline(value, { strict }) {
-    const source = cloneInline(value)
-    if (source === undefined) return undefined
-    /** @type {Record<string, import('../shared/documentTypes').EditorInlineWidget>} */
-    const result = {}
-    for (const [id, raw] of Object.entries(source)) {
-      if (!raw || typeof raw !== 'object' || Array.isArray(raw) || typeof raw.type !== 'string') {
-        if (strict) throw new TypeError(`Invalid inline widget entry: ${id}`)
-        result[id] = raw
-        continue
-      }
-      const definition = this.#registry.getInlineDefinition(raw.type)
-      if (!definition) {
-        result[id] = raw
-        continue
-      }
-      try {
-        const decoded = definition.schema.decode({ dataVersion: raw.dataVersion, data: raw.data })
-        result[id] = { type: raw.type, dataVersion: decoded.dataVersion, data: decoded.data }
-      } catch (error) {
-        if (strict) throw error
-        result[id] = raw
-      }
-    }
-    return Object.keys(result).length ? result : undefined
+  #normalizeExternalInline(value) {
+    return decodeCurrentInlineMap(value,{getInlineSchema:type=>this.#registry.getInlineDefinition(type)?.schema})
   }
 
   #scanBlockRichText(definition, data, inline) {

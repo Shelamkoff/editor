@@ -3,7 +3,6 @@ import { createVersionedDataSchema } from '../versionedDataSchema.js'
 
 export const tableDataSchema=createVersionedDataSchema({
   currentVersion:2,
-  legacyVersion:1,
   createDefault:()=>({
     withHeadings:false,
     rows:[{id:'row-0',cells:[{id:'cell-0-0',text:''}]}],
@@ -45,23 +44,4 @@ export const tableDataSchema=createVersionedDataSchema({
       })),
     }))
   },
-  migrations:[{
-    from:1,
-    to:2,
-    migrate(input){
-      if(!Array.isArray(input?.content))throw new TypeError('Legacy table content must be an array')
-      return {
-        withHeadings:Boolean(input.withHeadings),
-        rows:input.content.map((cells,rowIndex)=>({
-          id:`legacy-row-${rowIndex}`,
-          cells:Array.isArray(cells)
-            ? cells.map((text,cellIndex)=>({
-                id:`legacy-cell-${rowIndex}-${cellIndex}`,
-                text,
-              }))
-            : [],
-        })),
-      }
-    },
-  }],
 })

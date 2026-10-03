@@ -7,17 +7,22 @@ import { cloneEditorData } from '../shared/cloneEditorData.js'
 import defaultLocale from './locale/en.js'
 import { acquireStyleUrls } from '../shared/styleRegistry.js'
 import { normalizeTextAlign } from '../shared/textFormat.js'
-import { resolveValidationMode } from '../shared/validationMode.js'
 
 const baseCssUrl = new URL('./styles/base.css', import.meta.url).href
 const bundledRendererCssRoot = new URL('./renderers/', import.meta.url).href
 const validationSourceKey = Symbol.for('@shelamkoff/rector/renderer-validation-source')
 
+function validationReason(error) {
+  const message=String(error?.message??error)
+  if(error instanceof RangeError&&/data version/i.test(message))return 'unsupported-data-version'
+  return error instanceof TypeError?'invalid-input':'invalid-data'
+}
+
 /**
  * Renders Rector document blocks to DOM elements.
  */
 export class EditorRenderer {
-  /** @type {{ injectStyles: boolean, classPrefix: string, throwOnUnknown: boolean, theme: 'dark' | 'light', validationMode: 'preserve' | 'strict', onValidationError?: (issue: { blockId?: string, type: string }) => void | Promise<void> }} */
+  /** @type {{ injectStyles: boolean, classPrefix: string, throwOnUnknown: boolean, theme: 'dark' | 'light', onValidationError?: (issue: { blockId?: string, type: string, reason?: string }) => void | Promise<void> }} */
   #config
   /** @type {Map<string, import('./types').BlockRendererDefinition>} */
   #renderers
@@ -73,7 +78,6 @@ export class EditorRenderer {
       classPrefix: config.classPrefix ?? 'editor',
       throwOnUnknown: config.throwOnUnknown ?? true,
       theme: config.theme ?? 'dark',
-      validationMode: resolveValidationMode(config.validationMode),
       onValidationError: config.onValidationError,
     }
     const locale = { ...defaultLocale, ...config.locale }
@@ -190,8 +194,8 @@ export class EditorRenderer {
         dataVersion: decoded.dataVersion,
         data: decoded.data,
       }
-    } catch {
-      const issue = { blockId: block.id, type: block.type }
+    } catch (error) {
+      const issue = { blockId: block.id, type: block.type, reason: validationReason(error) }
       const observer = this.#config.onValidationError
       if (typeof observer === 'function' && !this.#reportingValidation.has(validationSource)) {
         this.#reportingValidation.add(validationSource)
@@ -218,10 +222,9 @@ export class EditorRenderer {
           this.#reportingValidation.delete(validationSource)
         }
       }
-      if (this.#config.validationMode === 'strict') {
-        throw new InvalidBlockDataError(block.type, 'Block data does not match its schema', block.id)
-      }
-      return this.#createPreservedBlock(block, ownerDocument)
+      const invalid = new InvalidBlockDataError(block.type, 'Block data does not match its current schema', block.id)
+      invalid.cause = error
+      throw invalid
     }
 
     // Rehydrate inline widget placeholders through the same canonical schema
@@ -258,22 +261,6 @@ export class EditorRenderer {
     return { element, type: block.type, renderer }
   }
 
-  /**
-   * Create an inert projection for malformed or unsupported-version payloads.
-   * Preserved payload bytes are never executed as renderer markup.
-   * @param {import('./types').OutputBlockData} block
-   * @param {Document} ownerDocument
-   */
-  #createPreservedBlock(block, ownerDocument) {
-    const element = ownerDocument.createElement('div')
-    element.className = this.#withStableClass(`${this.#config.classPrefix}-preserved`)
-    element.dataset.blockStatus = 'preserved'
-    element.dataset.blockType = block.type
-    if (block.id) element.dataset.blockId = block.id
-    const textAlign = normalizeTextAlign(block.tunes?.textAlign)
-    if (textAlign) element.style.textAlign = textAlign
-    return { element, type: block.type }
-  }
 
   /**
    * Render all blocks into a wrapper element with CSS variable scope.
@@ -335,7 +322,7 @@ export class EditorRenderer {
    */
   #blockSignature(block, rendererRevision) {
     if (typeof block.revision === 'string' || typeof block.revision === 'number') {
-      return JSON.stringify([rendererRevision, block.type, block.dataVersion ?? null, block.revision])
+      return JSON.stringify([rendererRevision, block.type, block.dataVersion, block.revision])
     }
     return JSON.stringify([
       rendererRevision,

@@ -34,48 +34,6 @@ export function normalizeCarouselAspectRatio(value) {
     : undefined
 }
 
-/** @param {unknown} input @param {() => string} createId @param {Document} [ownerDocument] @returns {CarouselData} */
-export function normalizeCarouselData(input, createId, ownerDocument = globalThis.document) {
-  const source = isRecord(input) ? /** @type {Record<string, unknown>} */ (input) : {}
-  const seen = new Set()
-  const slides = (Array.isArray(source.slides) ? source.slides : []).flatMap(raw => {
-    if (!isRecord(raw)) return []
-    const type = raw.type === 'video' || raw.type === 'html' ? raw.type : 'image'
-    let id = typeof raw.id === 'string' && raw.id ? raw.id : createId()
-    while (seen.has(id)) id = createId()
-    seen.add(id)
-    /** @type {CarouselSlide} */
-    const slide = { id, type }
-    if (type === 'html') {
-      slide.html = sanitizeRawHtml(typeof raw.html === 'string' ? raw.html : '', ownerDocument)
-    } else {
-      slide.src = sanitizeUrl(typeof raw.src === 'string' ? raw.src : '', { policy: 'media', fallback: '' })
-      if (type === 'video') {
-        slide.poster = sanitizeUrl(typeof raw.poster === 'string' ? raw.poster : '', { policy: 'media', fallback: '' })
-      }
-      if (typeof raw.alt === 'string') slide.alt = raw.alt
-    }
-    if (typeof raw.caption === 'string') slide.caption = raw.caption
-    return [slide]
-  })
-  const rawOptions = isRecord(source.options) ? source.options : {}
-  /** @type {CarouselOptions} */
-  const options = {
-    loop: rawOptions.loop === true,
-    autoplay: rawOptions.autoplay === true,
-    autoplayDelay: typeof rawOptions.autoplayDelay === 'number'
-      && Number.isFinite(rawOptions.autoplayDelay)
-      && rawOptions.autoplayDelay > 0
-      ? Math.max(1, Math.floor(rawOptions.autoplayDelay))
-      : 3000,
-    navigation: rawOptions.navigation !== false,
-    pagination: rawOptions.pagination !== false,
-    thumbnails: rawOptions.thumbnails === true,
-  }
-  const aspectRatio = normalizeCarouselAspectRatio(rawOptions.aspectRatio)
-  if (aspectRatio) options.aspectRatio = aspectRatio
-  return { slides, options }
-}
 
 /** @param {unknown} data */
 export function validateCarouselData(data) {

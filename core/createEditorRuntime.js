@@ -95,7 +95,9 @@ function snapshotEditorConfig(input){
   config.plugins=snapshotDenseArray(config.plugins,'plugins',{required:true})
   config.inlinePlugins=snapshotDenseArray(config.inlinePlugins,'inlinePlugins')
   config.inlineTools=snapshotDenseArray(config.inlineTools,'inlineTools')
-  config.migrations=snapshotDenseArray(config.migrations,'migrations')
+  for(const removed of ['validationMode','documentVersionPolicy','migrations']){
+    if(Object.hasOwn(config,removed))throw new TypeError(`createEditor() ${removed} is no longer supported`)
+  }
 
   if(config.plugins.length===0)throw new TypeError('createEditor() requires a non-empty plugins array')
   if(config.inlineTools){
@@ -143,12 +145,6 @@ function snapshotEditorConfig(input){
   if(config.toolboxFilterThreshold!==undefined&&(!Number.isSafeInteger(config.toolboxFilterThreshold)||config.toolboxFilterThreshold<0)){
     throw new RangeError('createEditor() toolboxFilterThreshold must be a non-negative safe integer')
   }
-  if(config.validationMode!==undefined&&!['preserve','strict'].includes(config.validationMode)){
-    throw new TypeError('createEditor() validationMode must be "preserve" or "strict"')
-  }
-  if(config.documentVersionPolicy!==undefined&&!['preserve','strict'].includes(config.documentVersionPolicy)){
-    throw new TypeError('createEditor() documentVersionPolicy must be "preserve" or "strict"')
-  }
   return config
 }
 
@@ -169,9 +165,6 @@ function snapshotEditorConfig(input){
  *   theme?: string,
  *   minHeight?: number,
  *   locale?: Record<string, any>,
- *   validationMode?: 'preserve'|'strict',
- *   documentVersionPolicy?: 'preserve'|'strict',
- *   migrations?: readonly import('./publicTypes').DocumentMigration[],
  *   onReady?: (editor:any)=>void|Promise<void>,
  *   onChange?: (document:any)=>void|Promise<void>,
  *   onValidationError?: (issue:any)=>void,
@@ -288,9 +281,6 @@ export function createEditorRuntime(input){
     registry,
     data:config.data,
     ownerDocument:document,
-    validationMode:config.validationMode,
-    documentVersionPolicy:config.documentVersionPolicy,
-    migrations:config.migrations,
     readOnly:config.readOnly===true,
     createId:prefix=>prefix+'-'+uid(),
     selection:selectionPort,

@@ -64,9 +64,9 @@ globalThis.HTMLElement = FakeElement
 
 const passthroughSchema = Object.freeze({
   currentVersion: 1,
-  legacyVersion: 1,
   createDefault: () => ({}),
-  decode({ data }) {
+  decode({ dataVersion, data }) {
+    if (dataVersion !== 1) throw new RangeError('unsupported data version')
     if (!data || typeof data !== 'object' || Array.isArray(data)) throw new TypeError('data must be an object')
     return { dataVersion: 1, data: { ...data } }
   },
@@ -92,12 +92,12 @@ for (const kind of ['block', 'document', 'container']) {
         if (calls === 1) renderer.destroy(target)
       },
     })
-    const block = { id: 'a', type: 'dispose-probe', data: {} }
+    const block = { id: 'a', type: 'dispose-probe', dataVersion: 1, data: {} }
     if (kind === 'block') target = renderer.renderBlock(block)
-    else if (kind === 'document') target = renderer.render({ blocks: [block] })
+    else if (kind === 'document') target = renderer.render({ version: '2.0.0', blocks: [block] })
     else {
       target = document.createElement('main')
-      renderer.renderTo({ blocks: [block] }, target)
+      renderer.renderTo({ version: '2.0.0', blocks: [block] }, target)
     }
     renderer.destroy(target)
     assert.equal(calls, 1, 'one owned element must be disposed exactly once')
@@ -111,10 +111,10 @@ test('renderTo keeps the original validation identity through the signature snap
   const { EditorRenderer } = await import('./index.js')
   const first = document.createElement('main')
   const second = document.createElement('main')
-  const input = { blocks: [{ id: 'invalid', type: 'table', data: { content: 'invalid' } }] }
+  const input = { version: '2.0.0', blocks: [{ id: 'invalid', type: 'table', dataVersion: 2, data: { content: 'invalid' } }] }
   let reports = 0
   const renderer = new EditorRenderer({
-    blockTypes: ['table'], injectStyles: false, validationMode: 'strict',
+    blockTypes: ['table'], injectStyles: false,
     onValidationError() {
       reports++
       if (reports === 1) assert.throws(() => renderer.renderTo(input, second), /does not match its schema/)
@@ -139,12 +139,12 @@ test('full destroy tolerates sibling disposal and preserves newly created indepe
       disposed.push(element.textContent)
       if (element.textContent === 'first') {
         renderer.destroy(second)
-        replacement = renderer.renderBlock({ id: 'replacement', type: 'owner', data: {} })
+        replacement = renderer.renderBlock({ id: 'replacement', type: 'owner', dataVersion: 1, data: {} })
       }
     },
   })
-  renderer.renderTo({ blocks: [{ id: 'first', type: 'owner', data: {} }] }, document.createElement('main'))
-  second = renderer.renderBlock({ id: 'second', type: 'owner', data: {} })
+  renderer.renderTo({ version: '2.0.0', blocks: [{ id: 'first', type: 'owner', dataVersion: 1, data: {} }] }, document.createElement('main'))
+  second = renderer.renderBlock({ id: 'second', type: 'owner', dataVersion: 1, data: {} })
   renderer.destroy()
   assert.deepEqual(disposed, ['first', 'second'])
   assert.equal(replacement.textContent, 'replacement')
@@ -161,11 +161,11 @@ test('renderTo cannot remount a container from its disposer', async () => {
     schema: passthroughSchema,
     type: 'owner', render() { return document.createElement('article') },
     destroy() {
-      try { renderer.renderTo({ blocks: [] }, container) }
+      try { renderer.renderTo({ version: '2.0.0', blocks: [] }, container) }
       catch (error) { rejected = /Cannot reenter renderTo/.test(String(error)) }
     },
   })
-  renderer.renderTo({ blocks: [{ type: 'owner', data: {} }] }, container)
+  renderer.renderTo({ version: '2.0.0', blocks: [{ id: 'owner-1', type: 'owner', dataVersion: 1, data: {} }] }, container)
   renderer.destroy(container)
   assert.equal(rejected, true)
   renderer.renderTo({ blocks: [] }, container)

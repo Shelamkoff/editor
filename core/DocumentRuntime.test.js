@@ -6,7 +6,6 @@ import { DocumentRuntime } from './DocumentRuntime.js'
 function schema(options = {}) {
   return {
     currentVersion: options.currentVersion ?? 1,
-    legacyVersion: 1,
     createDefault: options.createDefault ?? (() => ({ text: '' })),
     decode(input) {
       if (options.decode) return options.decode(input)
@@ -30,6 +29,7 @@ function registry(definitions) {
     defaultBlockType: definitions[0].type,
     hasBlock(type) { return map.has(type) },
     getBlockDefinition(type) { return map.get(type) },
+    getInlineDefinition() { return undefined },
   }
 }
 
@@ -49,7 +49,7 @@ function paragraphDefinition(options = {}) {
 }
 
 function block(id, data = { text: id }, extra = {}) {
-  return { id, type: 'paragraph', data, ...extra }
+  return { id, type: 'paragraph', dataVersion: 1, data, ...extra }
 }
 
 test('DocumentRuntime emits save/render timing diagnostics through the canonical sink', () => {
@@ -76,16 +76,32 @@ test('DocumentRuntime emits save/render timing diagnostics through the canonical
   runtime.destroy()
 })
 
-test('DocumentRuntime decodes known external blocks into current canonical schema data', () => {
-  const runtime = new DocumentRuntime({
-    registry: registry([paragraphDefinition({ currentVersion: 2 })]),
+test('DocumentRuntime rejects a known non-current dataVersion before schema decode', () => {
+  let decodeCalls = 0
+  const definition = paragraphDefinition({
+    currentVersion: 2,
+    decode(input) {
+      decodeCalls++
+      return { dataVersion: 2, data: { text: input.data.text } }
+    },
+  })
+
+  assert.throws(() => new DocumentRuntime({
+    registry: registry([definition]),
     data: {
       version: '2.0.0',
       blocks: [block('a', { text: 'A' }, { dataVersion: 1 })],
     },
-  })
+  }), /Unsupported block "paragraph" data version 1/)
+  assert.equal(decodeCalls, 0)
 
-  assert.equal(runtime.documentMode, 'editable')
+  const runtime = new DocumentRuntime({
+    registry: registry([definition]),
+    data: {
+      version: '2.0.0',
+      blocks: [block('a', { text: 'A' }, { dataVersion: 2 })],
+    },
+  })
   assert.deepEqual(runtime.get('a'), {
     id: 'a',
     type: 'paragraph',
@@ -95,34 +111,31 @@ test('DocumentRuntime decodes known external blocks into current canonical schem
   runtime.destroy()
 })
 
-test('preserve ingestion keeps invalid known and unknown blocks inert without rewriting opaque payloads', () => {
-  const issues = []
-  const runtime = new DocumentRuntime({
+test('invalid registered data is rejected while an unregistered current block remains inert', () => {
+  assert.throws(() => new DocumentRuntime({
     registry: registry([paragraphDefinition()]),
-    validationMode: 'preserve',
-    onValidationError: issue => issues.push(issue),
     data: {
       version: '2.0.0',
-      blocks: [
-        { id: 'bad', type: 'paragraph', data: { nope: true }, dataVersion: 1 },
-        { id: 'future', type: 'future-block', data: { html: '<img onerror=bad()>' }, dataVersion: 9 },
-      ],
+      blocks: [{ id: 'bad', type: 'paragraph', dataVersion: 1, data: { nope: true } }],
+    },
+  }), /text required/)
+
+  const runtime = new DocumentRuntime({
+    registry: registry([paragraphDefinition()]),
+    data: {
+      version: '2.0.0',
+      blocks: [{ id: 'future', type: 'future-block', dataVersion: 9, data: { x: 1 } }],
     },
   })
-
-  assert.equal(runtime.activation('bad').kind, 'preserved')
-  assert.equal(runtime.activation('future').kind, 'preserved')
-  assert.deepEqual(runtime.get('bad').data, { nope: true })
-  assert.deepEqual(runtime.get('future').data, { html: '<img onerror=bad()>' })
-  assert.equal(issues.length, 1)
+  assert.equal(runtime.activation('future').kind, 'unregistered')
+  assert.deepEqual(runtime.get('future').data, { x: 1 })
   runtime.destroy()
 })
 
-test('validation observers may reject asynchronously without breaking preserved ingestion', async () => {
+test('validation observer failures are isolated from current-format rejection', async () => {
   const diagnostics = []
-  const runtime = new DocumentRuntime({
+  assert.throws(() => new DocumentRuntime({
     registry: registry([paragraphDefinition()]),
-    validationMode: 'preserve',
     diagnostics: {
       enabled: false,
       errorName(error) { return error?.name ?? 'UnknownError' },
@@ -133,11 +146,10 @@ test('validation observers may reject asynchronously without breaking preserved 
     },
     data: {
       version: '2.0.0',
-      blocks: [{ id: 'bad', type: 'paragraph', data: { nope: true }, dataVersion: 1 }],
+      blocks: [{ id: 'bad', type: 'paragraph', dataVersion: 1, data: { nope: true } }],
     },
-  })
+  }), /text required/)
 
-  assert.equal(runtime.activation('bad').kind, 'preserved')
   await Promise.resolve()
   await Promise.resolve()
   assert.equal(diagnostics.some(event => (
@@ -145,35 +157,11 @@ test('validation observers may reject asynchronously without breaking preserved 
     && event.operation === 'onValidationError'
     && event.errorName === 'TypeError'
   )), true)
-  runtime.destroy()
 })
 
-test('strict ingestion rejects invalid known data but still preserves unknown types inertly', () => {
-  assert.throws(() => new DocumentRuntime({
-    registry: registry([paragraphDefinition()]),
-    validationMode: 'strict',
-    data: {
-      version: '2.0.0',
-      blocks: [{ id: 'bad', type: 'paragraph', data: { nope: true } }],
-    },
-  }), /Invalid block data for "paragraph"/)
-
+test('local update remains schema-strict', () => {
   const runtime = new DocumentRuntime({
     registry: registry([paragraphDefinition()]),
-    validationMode: 'strict',
-    data: {
-      version: '2.0.0',
-      blocks: [{ id: 'future', type: 'future-block', data: { x: 1 } }],
-    },
-  })
-  assert.equal(runtime.activation('future').kind, 'preserved')
-  runtime.destroy()
-})
-
-test('local update is always strict even when external validation mode is preserve', () => {
-  const runtime = new DocumentRuntime({
-    registry: registry([paragraphDefinition()]),
-    validationMode: 'preserve',
     data: { version: '2.0.0', blocks: [block('a')] },
   })
 
@@ -186,13 +174,13 @@ test('local update is always strict even when external validation mode is preser
   runtime.destroy()
 })
 
-test('preserved blocks may move and remove but cannot be updated', () => {
+test('unregistered blocks may move and remove but cannot be updated internally', () => {
   const runtime = new DocumentRuntime({
     registry: registry([paragraphDefinition()]),
     data: {
       version: '2.0.0',
       blocks: [
-        { id: 'future', type: 'future', data: { x: 1 } },
+        { id: 'future', type: 'future', dataVersion: 9, data: { x: 1 } },
         block('a'),
       ],
     },
@@ -200,7 +188,7 @@ test('preserved blocks may move and remove but cannot be updated', () => {
 
   assert.throws(
     () => runtime.update('future', () => ({ data: { x: 2 } })),
-    /Preserved block cannot be updated: future/,
+    /Unregistered block cannot be updated: future/,
   )
 
   runtime.move('future', 1)
@@ -229,30 +217,21 @@ test('editable empty documents and final-block removal materialize one default b
   runtime.destroy()
 })
 
-test('unsupported document versions enter preserved-document mode and form a history reset boundary', () => {
+test('failed render of a non-current document is atomic and keeps history', () => {
   const runtime = new DocumentRuntime({
     registry: registry([paragraphDefinition()]),
-    documentVersionPolicy: 'preserve',
-    data: {
-      version: 'future-9',
-      time: 123,
-      blocks: [{ id: 'future', type: 'future', data: { x: 1 } }],
-    },
+    data: { version: '2.0.0', blocks: [block('a')] },
   })
+  runtime.update('a', () => ({ data: { text: 'changed' } }))
+  assert.equal(runtime.canUndo, true)
 
-  assert.equal(runtime.documentMode, 'preserved')
-  assert.equal(runtime.readOnly, true)
-  assert.throws(() => runtime.insert('paragraph'), /Preserved documents are not writable/)
-  assert.deepEqual(runtime.save(), {
+  assert.throws(() => runtime.render({
     version: 'future-9',
-    time: 123,
-    blocks: [{ id: 'future', type: 'future', data: { x: 1 } }],
-  })
+    blocks: [{ id: 'future', type: 'future', dataVersion: 9, data: { x: 1 } }],
+  }), /Unsupported document version/)
 
-  runtime.render({ version: '2.0.0', blocks: [block('a')] })
-  assert.equal(runtime.documentMode, 'editable')
-  assert.equal(runtime.canUndo, false)
-  assert.equal(runtime.get('a').data.text, 'a')
+  assert.deepEqual(runtime.list().map(item => [item.id, item.data.text]), [['a', 'changed']])
+  assert.equal(runtime.canUndo, true)
   runtime.destroy()
 })
 

@@ -1,5 +1,7 @@
 // @ts-check
 import { BLOCK_TYPES } from '../../shared/blockTypes.js'
+import { decodeCurrentBlock, snapshotCurrentDocumentEnvelope } from '../../shared/DocumentSchema.js'
+import { getBuiltInBlockDataSchema } from '../../shared/blockSchemas/index.js'
 import { snapshotPollRendererConfig } from '../pollConfigSnapshot.js'
 
 /** @typedef {(prefix: string, locale: Record<string, import('../../shared/localeTypes').LocaleValue>, config?: unknown) => import('../types').BlockRendererDefinition} RendererFactory */
@@ -60,31 +62,27 @@ function snapshotRendererConfig(type, value) {
   return value
 }
 
-/** @param {readonly string[] | { blocks?: readonly { type: string }[] } | undefined} source */
+/** @param {readonly string[] | import('../types').OutputData | undefined} source */
 function requestedTypes(source) {
   if (source === undefined) return [...BLOCK_TYPES]
   if (Array.isArray(source)) {
     const types = []
     for (let index = 0; index < source.length; index++) {
-      if (!Object.hasOwn(source, index)) throw new RangeError('Unknown editor renderer type: undefined')
+      if (!Object.hasOwn(source, index)) throw new RangeError('Unknown editor block renderer type: undefined')
       types.push(source[index])
     }
     return [...new Set(types)]
   }
-  if (!source || typeof source !== 'object') throw new TypeError('source must be an array or document object')
-  const document = /** @type {Record<string, unknown>} */ (source)
-  if (!Object.hasOwn(document, 'blocks')) return [...BLOCK_TYPES]
-  const blocks = document.blocks
-  if (!Array.isArray(blocks)) throw new TypeError('source.blocks must be an array')
+
+  const document = snapshotCurrentDocumentEnvelope(source)
+  const supported = new Set(BLOCK_TYPES)
   const types = []
-  for (let index = 0; index < blocks.length; index++) {
-    if (!Object.hasOwn(blocks, index)) throw new TypeError('source.blocks must be a dense array')
-    const block = blocks[index]
-    types.push(
-      block && typeof block === 'object' && !Array.isArray(block) && Object.hasOwn(block, 'type')
-        ? /** @type {Record<string, unknown>} */ (block).type
-        : undefined,
-    )
+  for (const block of document.blocks) {
+    if (!supported.has(block.type)) continue
+    decodeCurrentBlock(block, {
+      getBlockSchema: type => getBuiltInBlockDataSchema(type),
+    })
+    types.push(block.type)
   }
   return [...new Set(types)]
 }
