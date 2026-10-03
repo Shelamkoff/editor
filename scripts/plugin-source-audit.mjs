@@ -175,6 +175,13 @@ if (Object.hasOwn(manifest.exports ?? {}, './core')) {
   errors.push('package.json: duplicate legacy ./core package export must not return')
 }
 
+const pluginKitSource = fs.readFileSync(path.join(root, 'plugin-kit', 'index.js'), 'utf8')
+for (const unsafeSink of ['setTrustedHtml', 'insertTrustedHtml']) {
+  if (pluginKitSource.includes(unsafeSink)) {
+    errors.push(`plugin-kit/index.js: unsafe trusted sink ${unsafeSink} must remain internal`)
+  }
+}
+
 const removedRuntimeSymbols = [
   'UNDO_BATCH_START',
   'UNDO_BATCH_END',
