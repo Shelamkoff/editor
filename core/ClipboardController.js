@@ -57,12 +57,13 @@ export class ClipboardController {
   #selection
   #view
   #crossSelection
+  #inlineCommands
   #controller
   #task = null
   #taskAnchorId = null
   #diagnostics
 
-  constructor({ root, runtime, registry, reconciler, selection, view, crossSelection = null, diagnostics = null }) {
+  constructor({ root, runtime, registry, reconciler, selection, view, crossSelection = null, inlineCommands = null, diagnostics = null }) {
     this.#root = root
     this.#runtime = runtime
     this.#registry = registry
@@ -70,6 +71,7 @@ export class ClipboardController {
     this.#selection = selection
     this.#view = view
     this.#crossSelection = crossSelection
+    this.#inlineCommands = inlineCommands
     this.#diagnostics = diagnostics
     const AbortControllerCtor = root.ownerDocument?.defaultView?.AbortController ?? AbortController
     this.#controller = new AbortControllerCtor()
@@ -248,6 +250,14 @@ export class ClipboardController {
 
     const html = data.getData('text/html')
     const text = data.getData('text/plain')
+    if (!html && text && this.#inlineCommands?.pasteText?.(text, {
+      blockId: owner.blockId,
+      fieldKey: owner.fieldKey,
+      range,
+    })) {
+      event.preventDefault()
+      return
+    }
     const blockRecords = html ? this.#htmlBlockRecords(html) : null
     if (blockRecords) {
       event.preventDefault()
