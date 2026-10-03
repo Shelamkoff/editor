@@ -39,7 +39,7 @@ export function loadZipRuntime() {
   if (current) return Promise.resolve(current)
   if (loadPromise) return loadPromise
 
-  loadPromise = import('jszip')
+  loadPromise = import('jszip/dist/jszip.min.js')
     .then(module => {
       const loaded = /** @type {ZipRuntime} */ (module.default || module)
       runtime = loaded
