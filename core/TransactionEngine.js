@@ -311,6 +311,12 @@ export class TransactionEngine {
 
     const selection = action === 'undo' ? record.selectionBefore : record.selectionAfter
     this.#restoreSelection(selection)
+    if (selection) {
+      queueMicrotask(() => {
+        if (this.#phase !== 'idle') return
+        this.#restoreSelection(selection)
+      })
+    }
 
     this.#phase = 'publishing'
     this.#publish({
