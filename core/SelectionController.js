@@ -94,13 +94,19 @@ export class SelectionController {
       || !end
       || (start.blockId === end.blockId && start.fieldKey === end.fieldKey)
     ) return false
-    const backwards = this.#bookmark
-      ? this.#comparePoints(this.#bookmark.anchor, this.#bookmark.focus) > 0
-      : false
-    this.#activate(
-      backwards ? { anchor: end, focus: start } : { anchor: start, focus: end },
-      range,
-    )
+
+    const native = this.#window?.getSelection?.() ?? null
+    const nativeAnchor = native?.anchorNode
+      ? this.#logicalPoint(native.anchorNode, native.anchorOffset)
+      : null
+    const nativeFocus = native?.focusNode
+      ? this.#logicalPoint(native.focusNode, native.focusOffset)
+      : null
+    const bookmark = nativeAnchor && nativeFocus
+      ? { anchor: nativeAnchor, focus: nativeFocus }
+      : { anchor: start, focus: end }
+
+    this.#activate(bookmark, range)
     return true
   }
 
