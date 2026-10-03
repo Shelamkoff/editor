@@ -75,6 +75,10 @@ const editor = createEditor({
 
 A definition may be reused by multiple editor instances. Per-editor state belongs to the runtime returned by `setup()`; per-block state belongs to the `BlockInstance` returned by that runtime.
 
+## Inline-tool preset
+
+Core does not statically install the complete inline-tool set. Import `createDefaultInlineTools` from `@shelamkoff/rector/preset` and pass the result through `inlineTools` when the standard preset is wanted. Individual tools remain available from their dedicated subpath exports.
+
 ## Initial document and version policy
 
 `data` is decoded through the registered schemas before projection. `documentVersionPolicy: 'preserve'` applies every reachable migration and keeps the last structurally valid document when the chain cannot reach the current version. `strict` requires a complete supported path.
