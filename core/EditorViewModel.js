@@ -18,7 +18,7 @@ export class EditorViewModel {
     this.#selection = selection
   }
 
-  get count() { return this.#runtime.list().length }
+  get count() { return this.#runtime.size }
   get currentId() { return this.#interaction.currentId }
   get currentIndex() { return this.#interaction.currentIndex }
   get selectedIds() { return this.#interaction.selectedIds }
@@ -29,10 +29,11 @@ export class EditorViewModel {
     return record ? cloneEditorData(record) : undefined
   }
   at(index) {
-    const record = this.#runtime.list()[index]
+    const id=this.#runtime.idAt(index)
+    const record=id?this.#runtime.get(id):undefined
     return record ? cloneEditorData(record) : undefined
   }
-  indexOf(id) { return this.#runtime.list().findIndex(record => record.id === id) }
+  indexOf(id) { return this.#runtime.indexOf(id) }
 
   element(id) { return this.#reconciler.getElement(id) }
   fields(id) { return this.#reconciler.getEditableFields(id) }
@@ -57,8 +58,8 @@ export class EditorViewModel {
     this.#runtime.remove(id, authority)
     this.#interaction.reconcile()
     if (this.#interaction.currentId === id) {
-      const next = this.#runtime.list()[Math.min(Math.max(index, 0), this.#runtime.list().length - 1)]
-      if (next) this.#interaction.setCurrent(next.id)
+      const nextId=this.#runtime.idAt(Math.min(Math.max(index,0),this.#runtime.size-1))
+      if(nextId)this.#interaction.setCurrent(nextId)
     }
   }
 
