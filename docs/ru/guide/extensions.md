@@ -58,7 +58,7 @@ interface BlockPluginDefinition<Data> {
 
 ## Capabilities
 
-`BlockCapabilities` может содержать `empty`, `formatting`, `merge`, `conversion`, `selectionSlice`, `inlineControls`, `settings`, `paste` и `shortcuts`.
+`BlockCapabilities` может содержать `empty`, `formatting`, `merge`, `conversion`, `htmlImport`, `selectionSlice`, `inlineControls`, `settings`, `paste` и `shortcuts`.
 
 - `empty.isEmpty(data)` определяет поведение пустого блока.
 - `formatting.inlineTools` равно `true` или allowlist.
@@ -67,7 +67,8 @@ interface BlockPluginDefinition<Data> {
 - `selectionSlice.slice(...)` описывает часть структурированных данных без изменения DOM.
 - `inlineControls` переиспользует model-first settings actions во внутристрочной панели.
 - `settings` — actions capability или model-first panel.
-- `paste` маршрутизирует text/HTML/files в block или rich-text result.
+- `htmlImport.matchesRoot/importRoot` синхронно импортирует один безопасный структурный HTML root в local current data конкретного block type; capability обязана потреблять весь root и не выполнять side effects.
+- `paste` маршрутизирует только text/file inputs в block или rich-text result; structural HTML ему не передаётся.
 - `shortcuts` возвращает действия единому keyboard router ядра.
 
 ## Настройки, вставка и клавиши
@@ -76,7 +77,9 @@ interface BlockPluginDefinition<Data> {
 
 `SettingsPanelCapability` содержит `kind: 'panel'` и `render(context)`; context предоставляет `getData()` и `updateData()`.
 
-`PasteCapability` содержит `accepts(input)` и `resolve(input, context)`. Resolver получает `AbortSignal`, `ownerDocument` и `createId()`.
+`HtmlImportCapability` содержит `matchesRoot(element)` и `importRoot(element, context)`. Context предоставляет `ownerDocument`, `createId()` и `serializeRichText(element)` для обычного rich-text codec. Core сначала безопасно разбирает весь HTML и строит полный plan; ошибка любого принятого root отклоняет весь import до mutation.
+
+`PasteCapability` содержит `accepts(input)` и `resolve(input, context)` только для text/file input. Resolver получает `AbortSignal`, `ownerDocument` и `createId()`.
 
 `ShortcutCapability` содержит `handle(input, data, context)`. Он возвращает `native`, `consume`, `exit`, `focus` или `update`; структурную транзакцию выполняет ядро.
 
