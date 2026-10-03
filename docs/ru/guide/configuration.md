@@ -16,7 +16,7 @@ interface EditorConfig {
   readOnly?: boolean
   autofocus?: boolean
   injectStyles?: boolean
-  theme?: 'light' | 'dark'
+  theme?: string
   minHeight?: number
   locale?: Record<string, unknown>
   validationMode?: 'preserve' | 'strict'
@@ -53,7 +53,7 @@ interface EditorConfig {
 | `readOnly` | нет | `false` | Исходный режим взаимодействия. В режиме чтения пользовательские изменения документа запрещены. |
 | `autofocus` | нет | `false` | Фокус первого редактируемого поля после успешного создания. |
 | `injectStyles` | нет | `true` | Подключение стилей ядра и зарегистрированных определений через общий реестр. |
-| `theme` | нет | `light` | Встроенная тема: `light` или `dark`. |
+| `theme` | нет | `dark` | Непустой идентификатор темы. Встроены `light` и `dark`; пользовательский `oe-theme-*` можно оформить своими стилями. |
 | `minHeight` | нет | CSS | Конечная неотрицательная минимальная высота редактора в пикселях. |
 | `locale` | нет | встроенный английский | Плоский словарь сообщений ядра и расширений. |
 | `validationMode` | нет | `preserve` | Ошибочные данные известного блока/виджета сохраняются инертно либо отклоняются в `strict`. |
