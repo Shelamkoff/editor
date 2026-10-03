@@ -64,7 +64,6 @@ function createDiagnostics(report,thresholds={}){
     if(!Number.isFinite(value)||value<0)throw new RangeError(`diagnosticThresholds.${name} must be a finite number greater than or equal to 0`)
     limits[name]=value
   }
-  const enabled=typeof report==='function'
   return {
     threshold:name=>limits[name],
     now:()=>globalThis.performance?.now?.()??Date.now(),
