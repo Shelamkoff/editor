@@ -825,22 +825,10 @@ export class DocumentRuntime {
     const ordered = this.#orderedLogicalRange(bookmark)
     if (!ordered) return false
     const { start, end } = ordered
-
-    if (start.blockId === end.blockId) {
-      if (start.fieldKey !== end.fieldKey) return false
-      this.replaceRichText(
-        start.blockId,
-        start.fieldKey,
-        { start: start.offset, end: end.offset },
-        replacement,
-      )
-      return { blockId: start.blockId, fieldKey: start.fieldKey, offset: start.offset }
-    }
-
     const ids = this.#store.ids()
     const startIndex = ids.indexOf(start.blockId)
     const endIndex = ids.indexOf(end.blockId)
-    if (startIndex < 0 || endIndex <= startIndex) return false
+    if (startIndex < 0 || endIndex < startIndex) return false
 
     const startCurrent = this.#store.get(start.blockId)
     const endCurrent = this.#store.get(end.blockId)
@@ -850,56 +838,46 @@ export class DocumentRuntime {
       || this.activation(end.blockId)?.kind !== 'active'
     ) return false
 
+    if (start.blockId === end.blockId) {
+      const next = this.#replaceBlockRichTextRange(
+        startCurrent,start,end,replacement,
+      )
+      if (!next) return false
+      this.#engine.execute({ origin: 'user', name: 'selection.replace' }, tx => {
+        tx.update(start.blockId,next)
+      })
+      return { blockId: start.blockId, fieldKey: start.fieldKey, offset: start.offset }
+    }
+
     const startDefinition = this.#registry.getBlockDefinition(startCurrent.type)
     const endDefinition = this.#registry.getBlockDefinition(endCurrent.type)
-    if (!startDefinition?.schema?.mapRichText || !endDefinition?.schema?.mapRichText) return false
-
-    const startInline = cloneInline(startCurrent.inline) ?? {}
-    const endInline = cloneInline(endCurrent.inline) ?? {}
-
-    let startMatched = false
-    const startData = startDefinition.schema.mapRichText(
-      cloneEditorData(startCurrent.data),
-      (html, key) => {
-        if (key !== start.fieldKey) return html
-        startMatched = true
-        return replaceRichTextRange(
-          html,
-          startInline,
-          { start: start.offset, end: Number.MAX_SAFE_INTEGER },
-          replacement,
-          this.#ownerDocument,
-        )
-      },
+    const startFields = this.#richTextFields(
+      startDefinition,startCurrent.data,cloneInline(startCurrent.inline)??{},
     )
+    const endFields = this.#richTextFields(
+      endDefinition,endCurrent.data,cloneInline(endCurrent.inline)??{},
+    )
+    if (!startFields.length || !endFields.length) return false
 
-    let endMatched = false
-    const endData = endDefinition.schema.mapRichText(
-      cloneEditorData(endCurrent.data),
-      (html, key) => {
-        if (key !== end.fieldKey) return html
-        endMatched = true
-        return replaceRichTextRange(
-          html,
-          endInline,
-          { start: 0, end: end.offset },
-          { kind: 'text', text: '' },
-          this.#ownerDocument,
-        )
-      },
+    const lastStartField = startFields[startFields.length - 1]
+    const firstEndField = endFields[0]
+    const startNext = this.#replaceBlockRichTextRange(
+      startCurrent,
+      start,
+      { blockId:start.blockId, fieldKey:lastStartField.key, offset:lastStartField.length },
+      replacement,
     )
-    if (!startMatched || !endMatched) return false
-
-    const startNext = this.#recordFromData(
-      startCurrent.id, startCurrent.type, startDefinition, startData, startCurrent.tunes, startInline,
+    const endNext = this.#replaceBlockRichTextRange(
+      endCurrent,
+      { blockId:end.blockId, fieldKey:firstEndField.key, offset:0 },
+      end,
+      { kind:'text', text:'' },
     )
-    const endNext = this.#recordFromData(
-      endCurrent.id, endCurrent.type, endDefinition, endData, endCurrent.tunes, endInline,
-    )
+    if (!startNext || !endNext) return false
 
     let merged = null
     if (startNext.type === endNext.type) {
-      const merge = startDefinition.capabilities?.merge?.merge
+      const merge = startDefinition?.capabilities?.merge?.merge
       if (typeof merge === 'function') {
         const prepared = this.#prepareInlineMerge(startDefinition, startNext, endNext)
         const mergedData = merge(prepared.targetData, prepared.sourceData)
@@ -920,9 +898,75 @@ export class DocumentRuntime {
       if (merged) tx.remove(end.blockId)
       else tx.update(end.blockId, endNext)
     })
-
     return { blockId: start.blockId, fieldKey: start.fieldKey, offset: start.offset }
   }
+
+  exportLogicalClipboardParts(bookmark){
+    const ordered=this.#orderedLogicalRange(bookmark)
+    if(!ordered)return null
+    const {start,end}=ordered
+    const ids=this.#store.ids()
+    const startIndex=ids.indexOf(start.blockId)
+    const endIndex=ids.indexOf(end.blockId)
+    if(startIndex<0||endIndex<startIndex)return null
+    const parts=[]
+
+    for(let index=startIndex;index<=endIndex;index++){
+      const id=ids[index]
+      const record=this.#store.get(id)
+      if(!record)return null
+      const definition=this.#registry.getBlockDefinition(record.type)
+      const inline=cloneInline(record.inline)??{}
+      const fields=this.#richTextFields(definition,record.data,inline)
+
+      if(index>startIndex&&index<endIndex){
+        parts.push({kind:'block',block:record})
+        continue
+      }
+
+      if(!fields.length){
+        if(startIndex===endIndex)return null
+        parts.push({kind:'block',block:record})
+        continue
+      }
+
+      const first=fields[0]
+      const last=fields[fields.length-1]
+      const from=index===startIndex
+        ?start
+        :{blockId:id,fieldKey:first.key,offset:0}
+      const to=index===endIndex
+        ?end
+        :{blockId:id,fieldKey:last.key,offset:last.length}
+      const fromIndex=fields.findIndex(field=>field.key===from.fieldKey)
+      const toIndex=fields.findIndex(field=>field.key===to.fieldKey)
+      if(fromIndex<0||toIndex<fromIndex)return null
+
+      const whole=fromIndex===0
+        &&toIndex===fields.length-1
+        &&from.offset===0
+        &&to.offset>=last.length
+      if(whole){
+        parts.push({kind:'block',block:record})
+        continue
+      }
+
+      for(let fieldIndex=fromIndex;fieldIndex<=toIndex;fieldIndex++){
+        const field=fields[fieldIndex]
+        const range={
+          start:fieldIndex===fromIndex?from.offset:0,
+          end:fieldIndex===toIndex?to.offset:field.length,
+        }
+        if(range.end<=range.start)continue
+        const fragment=this.exportRichTextFragment(id,field.key,range)
+        if(fragment.html||fragment.inline){
+          parts.push({kind:'rich-text',html:fragment.html,inline:fragment.inline})
+        }
+      }
+    }
+    return parts.length?parts:null
+  }
+
 
   exportRichTextFragment(blockId,fieldKey,range){
     const current=this.#store.get(blockId)
@@ -1512,6 +1556,45 @@ export class DocumentRuntime {
     })
   }
 
+
+
+  #replaceBlockRichTextRange(record,start,end,replacement){
+    const definition=this.#registry.getBlockDefinition(record.type)
+    if(!definition?.schema?.mapRichText)return null
+    const inline=cloneInline(record.inline)??{}
+    const fields=this.#richTextFields(definition,record.data,inline)
+    const startIndex=fields.findIndex(field=>field.key===start.fieldKey)
+    const endIndex=fields.findIndex(field=>field.key===end.fieldKey)
+    if(startIndex<0||endIndex<startIndex)return null
+    const nextData=definition.schema.mapRichText(
+      cloneEditorData(record.data),
+      (html,key)=>{
+        const index=fields.findIndex(field=>field.key===key)
+        if(index<startIndex||index>endIndex)return html
+        if(startIndex===endIndex){
+          return replaceRichTextRange(
+            html,inline,{start:start.offset,end:end.offset},replacement,this.#ownerDocument,
+          )
+        }
+        if(index===startIndex){
+          return replaceRichTextRange(
+            html,inline,{start:start.offset,end:Number.MAX_SAFE_INTEGER},replacement,this.#ownerDocument,
+          )
+        }
+        if(index===endIndex){
+          return replaceRichTextRange(
+            html,inline,{start:0,end:end.offset},{kind:'text',text:''},this.#ownerDocument,
+          )
+        }
+        return replaceRichTextRange(
+          html,inline,{start:0,end:Number.MAX_SAFE_INTEGER},{kind:'text',text:''},this.#ownerDocument,
+        )
+      },
+    )
+    return this.#recordFromData(
+      record.id,record.type,definition,nextData,record.tunes,inline,
+    )
+  }
 
 
   #richTextFields(definition,data,inline){
