@@ -18,9 +18,22 @@ class FakeElement {
   }
   get firstChild() { return this.children[0] ?? null }
   get firstElementChild() { return this.children[0] ?? null }
+  get nextSibling() {
+    if (!this.parentNode) return null
+    const index = this.parentNode.children.indexOf(this)
+    return index >= 0 ? this.parentNode.children[index + 1] ?? null : null
+  }
   appendChild(child) {
     if (child.parentNode) child.parentNode.removeChild(child)
     this.children.push(child)
+    child.parentNode = this
+    return child
+  }
+  insertBefore(child, anchor) {
+    if (child.parentNode) child.parentNode.removeChild(child)
+    const index = anchor === null ? this.children.length : this.children.indexOf(anchor)
+    if (index < 0) throw new Error('insertBefore anchor is not a child')
+    this.children.splice(index, 0, child)
     child.parentNode = this
     return child
   }
