@@ -136,6 +136,7 @@ const [
   plugins,
   { createColorSwatchPlugin },
   { createMentionPlugin },
+  { createBoldTool },
   { EditorRenderer },
   { BLOCK_TYPES },
   { colorPickerStylesUrl },
@@ -144,6 +145,7 @@ const [
   import('../../plugins/index.js'),
   import('../../inline-plugins/color.js'),
   import('../../inline-plugins/mention/index.js'),
+  import('../../inline-tools/bold.js'),
   import('../../renderer/index.js'),
   import('../../shared/blockTypes.js'),
   import('@shelamkoff/color-picker'),
@@ -208,7 +210,7 @@ function makeEditor(sandbox, definitions, data, options = {}) {
     plugins: definitions,
     defaultBlock: options.defaultBlock,
     inlinePlugins: options.inlinePlugins ?? [],
-    inlineTools: [],
+    inlineTools: options.inlineTools ?? [],
     injectStyles: options.injectStyles ?? false,
     changeDebounceMs: 0,
     ...(data ? { data } : {}),
@@ -258,6 +260,43 @@ async function run() {
     holder.remove()
     assertSnapshot(tracker.snapshot(), baseline, tracker, `editor cycle ${cycle} leaked resources`)
   }
+
+  const sharedTool = createBoldTool('Bold')
+  const toolOwner = makeEditor(
+    sandbox,
+    [createParagraphPlugin({ injectStyles: false })],
+    oneBlock('paragraph', { text: 'Tool owner' }, 'tool-owner'),
+    { inlineTools: [sharedTool] },
+  )
+  const rejectedHolder = document.createElement('section')
+  sandbox.appendChild(rejectedHolder)
+  let sharedToolRejected = false
+  try {
+    createEditor({
+      holder: rejectedHolder,
+      plugins: [createParagraphPlugin({ injectStyles: false })],
+      inlineTools: [sharedTool],
+      injectStyles: false,
+      data: oneBlock('paragraph', { text: 'Second owner' }, 'tool-second'),
+    })
+  } catch (error) {
+    sharedToolRejected = /already mounted/.test(String(error))
+  }
+  assert(sharedToolRejected, 'same inline tool instance mounted into two live editors')
+  assert(rejectedHolder.childNodes.length === 0, 'rejected inline tool reuse left editor DOM')
+  toolOwner.editor.destroy()
+  toolOwner.holder.remove()
+
+  const toolReuse = makeEditor(
+    sandbox,
+    [createParagraphPlugin({ injectStyles: false })],
+    oneBlock('paragraph', { text: 'Tool reused after destroy' }, 'tool-reuse'),
+    { inlineTools: [sharedTool] },
+  )
+  toolReuse.editor.destroy()
+  toolReuse.holder.remove()
+  rejectedHolder.remove()
+  assertSnapshot(tracker.snapshot(), baseline, tracker, 'inline tool ownership leaked resources')
 
   const manual = makeEditor(
     sandbox,
@@ -592,7 +631,7 @@ async function run() {
     factoryCount: pluginFactories.length,
     races: ['image replacement', 'gallery additive', 'attaches additive'],
     asyncAbort: ['embed preview', 'person cropper'],
-    integrations: ['ColorPicker', 'Cropper', 'Carousel', 'Masonry', 'Expose'],
+    integrations: ['inline tool ownership', 'ColorPicker', 'Cropper', 'Carousel', 'Masonry', 'Expose'],
     tracked: ['global listeners', 'observers', 'object URLs', 'styles'],
   }
 }
