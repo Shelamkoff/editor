@@ -1,4 +1,5 @@
 // @ts-check
+import { delimiterDataSchema } from '../../../shared/blockSchemas/delimiter.js'
 
 const styles = new URL('./styles.css', import.meta.url).href
 
@@ -6,11 +7,12 @@ const styles = new URL('./styles.css', import.meta.url).href
  * Delimiter block renderer
  * @param {string} classPrefix
  * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} _locale
- * @returns {import('../../types').BlockRenderer<import('../../types').DelimiterBlock>}
+ * @returns {import('../../types').BlockRendererDefinition<import('../../types').DelimiterBlock>}
  */
 export function createDelimiterRenderer(classPrefix, _locale) {
   return {
     type: 'delimiter',
+    schema: delimiterDataSchema,
     styles: [styles],
 
     /**
