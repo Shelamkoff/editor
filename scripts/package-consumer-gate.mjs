@@ -131,8 +131,10 @@ try {
   const domPurifyRoot = resolve(dirname(domPurifyEntry), '..')
   dependencyTarballs.push(await packInstalledDependency(domPurifyRoot, dependencyPackRoot))
 
-  for (const dependency of ['highlight.js', 'jszip']) {
-    const entry = fileURLToPath(import.meta.resolve(dependency))
+  const transitiveRuntimeDependencies = ['highlight.js', 'jszip', 'lie', 'immediate', 'pako', 'readable-stream', 'setimmediate', 'core-util-is', 'inherits', 'isarray', 'process-nextick-args', 'safe-buffer', 'string_decoder', 'util-deprecate']
+  for (const dependency of transitiveRuntimeDependencies) {
+    let entry
+    try { entry = fileURLToPath(import.meta.resolve(dependency)) } catch { continue }
     let packageRoot = dirname(entry)
     while (dirname(packageRoot) !== packageRoot) {
       try {
