@@ -2,7 +2,7 @@ import { execFileSync } from 'node:child_process'
 import { mkdtemp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { basename, dirname, join, resolve } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import { packInstalledDependency } from './pack-installed-dependency.mjs'
 
 const editorRoot = resolve(fileURLToPath(new URL('..', import.meta.url)))
@@ -146,6 +146,20 @@ try {
     dependencyTarballs.push(await packInstalledDependency(packageRoot, dependencyPackRoot))
   }
 
+  const jszipReadableRoot = join(editorRoot, 'node_modules/jszip/node_modules/readable-stream')
+  dependencyTarballs.push(await packInstalledDependency(jszipReadableRoot, dependencyPackRoot))
+  for (const dependency of ['core-util-is', 'inherits', 'isarray', 'process-nextick-args', 'safe-buffer', 'string_decoder', 'util-deprecate']) {
+    const entry = fileURLToPath(import.meta.resolve(dependency, pathToFileURL(join(jszipReadableRoot, 'package.json')).href))
+    let packageRoot = dirname(entry)
+    while (dirname(packageRoot) !== packageRoot) {
+      try {
+        const manifest = JSON.parse(await readFile(join(packageRoot, 'package.json'), 'utf8'))
+        if (manifest.name === dependency) break
+      } catch {}
+      packageRoot = dirname(packageRoot)
+    }
+    dependencyTarballs.push(await packInstalledDependency(packageRoot, dependencyPackRoot))
+  }
 
   const consumerRoot = join(temporaryRoot, 'consumer')
   await mkdir(join(consumerRoot, 'src'), { recursive: true })
