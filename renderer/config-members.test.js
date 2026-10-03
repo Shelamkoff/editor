@@ -3,6 +3,20 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { EditorRenderer } from './index.js'
 
+const passthroughSchema = Object.freeze({
+  currentVersion: 1,
+  legacyVersion: 1,
+  createDefault: () => ({}),
+  decode({ data }) {
+    if (!data || typeof data !== 'object' || Array.isArray(data)) throw new TypeError('data must be an object')
+    return { dataVersion: 1, data: { ...data } }
+  },
+  encode(data) {
+    if (!data || typeof data !== 'object' || Array.isArray(data)) throw new TypeError('data must be an object')
+    return { dataVersion: 1, data: { ...data } }
+  },
+})
+
 test('renderer config rejects unknown block types and malformed inline renderer entries', () => {
   assert.throws(
     () => new EditorRenderer({ blockTypes: ['missing'] }),
@@ -28,9 +42,10 @@ test('renderer config rejects unknown block types and malformed inline renderer 
 test('registerRenderer rejects malformed custom renderer contracts before registration', () => {
   const renderer = new EditorRenderer({ blockTypes: [] })
   assert.throws(() => renderer.registerRenderer(null), /custom renderer must be an object/i)
-  assert.throws(() => renderer.registerRenderer({ type: '', render() {} }), /non-empty string type/i)
-  assert.throws(() => renderer.registerRenderer({ type: 'custom' }), /must implement render\(\)/i)
-  assert.throws(() => renderer.registerRenderer({ type: 'custom', render() {}, styles: 'x.css' }), /styles must be an array of strings/i)
+  assert.throws(() => renderer.registerRenderer({ type: '', schema: passthroughSchema, render() {} }), /non-empty string type/i)
+  assert.throws(() => renderer.registerRenderer({ type: 'custom', render() {} }), /must provide a block data schema/i)
+  assert.throws(() => renderer.registerRenderer({ type: 'custom', schema: passthroughSchema }), /must implement render\(\)/i)
+  assert.throws(() => renderer.registerRenderer({ type: 'custom', schema: passthroughSchema, render() {}, styles: 'x.css' }), /styles must be an array of strings/i)
   assert.equal(renderer.hasRenderer('custom'), false)
 })
 
@@ -68,6 +83,7 @@ test('registerRenderer observes accessor-backed type once', () => {
   const editorRenderer = new EditorRenderer({ blockTypes: [] })
   let reads = 0
   const custom = {
+    schema: passthroughSchema,
     get type() {
       reads++
       return reads === 1 ? 'stable-custom' : 'drifted-custom'
