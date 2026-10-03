@@ -1,9 +1,9 @@
 // @ts-check
 import {
   READ_ONLY_INTERACTIVE_ATTRIBUTE,
-  insertTrustedHtml,
   setSafeUrlAttribute,
 } from '../../plugin-kit/index.js'
+import { insertTrustedHtml } from '../../shared/sanitize/sanitizeHtml.js'
 import { carouselDataSchema } from '../../shared/blockSchemas/carousel.js'
 import { normalizeCarouselAspectRatio } from '../../shared/carouselData.js'
 import { sanitizeMediaUrl } from '../../shared/sanitize/sanitizeUrl.js'
