@@ -1,5 +1,4 @@
 // @ts-check
-import { mapChecklistTextFields as mapTextFields } from '../../../shared/mapTextFields.js'
 
 const styles = new URL('./styles.css', import.meta.url).href
 
@@ -13,7 +12,6 @@ export function createChecklistRenderer(classPrefix, _locale) {
   return {
     type: 'checklist',
     styles: [styles],
-    mapTextFields,
 
     /**
      * @param {import('../../types').ChecklistBlock} block
