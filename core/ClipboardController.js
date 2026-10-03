@@ -1,4 +1,11 @@
 // @ts-check
+import {
+  CLIPBOARD_FRAGMENT_MIME,
+  createClipboardFragment,
+  decodeClipboardFragment,
+  encodeClipboardFragment,
+  transferBlockFromRecord,
+} from './ClipboardFragment.js'
 import { prepareHtmlImport } from './HtmlImportRouter.js'
 
 function stripClipboardProjection(root) {
@@ -111,50 +118,123 @@ export class ClipboardController {
   }
 
   #onCopy(event) {
-    if (!this.#crossSelection?.active || event.defaultPrevented || !event.clipboardData) return
-    event.preventDefault()
+    if (event.defaultPrevented || !event.clipboardData) return
     const ownerDocument = this.#root.ownerDocument
-    const whole = this.#crossSelection.wholeBlockIds
-    if (whole.length) {
-      const records = whole.map(id => this.#runtime.get(id)).filter(Boolean)
-      const html = []
-      const plain = []
-      for (const id of whole) {
-        const fragment = clipboardHtmlFromShell(this.#reconciler.getElement(id), ownerDocument)
-        if (!fragment) continue
-        html.push(fragment)
-        const template = ownerDocument.createElement('template')
-        template.innerHTML = fragment
-        plain.push(template.content.textContent ?? '')
+
+    if (this.#crossSelection?.active) {
+      event.preventDefault()
+      const whole = this.#crossSelection.wholeBlockIds
+      if (whole.length) {
+        const records = whole.map(id => this.#runtime.get(id)).filter(Boolean)
+        const html = []
+        const plain = []
+        for (const id of whole) {
+          const fragment = clipboardHtmlFromShell(this.#reconciler.getElement(id), ownerDocument)
+          if (!fragment) continue
+          html.push(fragment)
+          const template = ownerDocument.createElement('template')
+          template.innerHTML = fragment
+          plain.push(template.content.textContent ?? '')
+        }
+        const fragment = createClipboardFragment(records.map(record => ({
+          kind: 'block',
+          block: transferBlockFromRecord(record),
+        })))
+        event.clipboardData.setData('text/html', html.join(''))
+        event.clipboardData.setData('text/plain', plain.join('\n'))
+        event.clipboardData.setData(CLIPBOARD_FRAGMENT_MIME, encodeClipboardFragment(fragment))
+        return
       }
-      event.clipboardData.setData('text/html', html.join(''))
-      event.clipboardData.setData('text/plain', plain.join('\n'))
-      event.clipboardData.setData('application/x-rector-editor', JSON.stringify(records))
+
+      event.clipboardData.setData('text/plain', this.#crossSelection.text())
+      const range = this.#crossSelection.range
+      if (range) {
+        const container = ownerDocument.createElement('div')
+        container.appendChild(range.cloneContents())
+        stripClipboardProjection(container)
+        event.clipboardData.setData('text/html', container.innerHTML)
+      }
       return
     }
 
-    event.clipboardData.setData('text/plain', this.#crossSelection.text())
-    const range = this.#crossSelection.range
-    if (range) {
-      const container = ownerDocument.createElement('div')
-      container.appendChild(range.cloneContents())
-      stripClipboardProjection(container)
-      event.clipboardData.setData('text/html', container.innerHTML)
+    const owner = this.#reconciler.resolveEditableTarget(event.target)
+    if (!owner || owner.mode !== 'rich-text') return
+    const range = selectionRange(this.#selection.capture(), owner)
+    if (!range || range.start === range.end) return
+
+    let fragment
+    try {
+      fragment = this.#runtime.exportRichTextFragment(
+        owner.blockId, owner.fieldKey, range,
+      )
+    } catch {
+      return
     }
+    event.preventDefault()
+    const privateFragment = createClipboardFragment([{
+      kind: 'rich-text',
+      html: fragment.html,
+      inline: fragment.inline,
+    }])
+    const template = ownerDocument.createElement('template')
+    template.innerHTML = fragment.html
+    event.clipboardData.setData('text/html', fragment.html)
+    event.clipboardData.setData('text/plain', template.content.textContent ?? '')
+    event.clipboardData.setData(CLIPBOARD_FRAGMENT_MIME, encodeClipboardFragment(privateFragment))
   }
 
   #onCut(event) {
-    if (this.#runtime.readOnly || !this.#crossSelection?.active || event.defaultPrevented || !event.clipboardData) return
-    event.preventDefault()
-    event.clipboardData.setData('text/plain', this.#crossSelection.text())
-    const whole = this.#crossSelection.wholeBlockIds
-    if (whole.length) {
-      const records = whole.map(id => this.#runtime.get(id)).filter(Boolean)
-      event.clipboardData.setData('application/x-rector-editor', JSON.stringify(records))
-      this.#crossSelection.removeWholeBlocks()
+    if (this.#runtime.readOnly || event.defaultPrevented || !event.clipboardData) return
+
+    if (this.#crossSelection?.active) {
+      event.preventDefault()
+      event.clipboardData.setData('text/plain', this.#crossSelection.text())
+      const whole = this.#crossSelection.wholeBlockIds
+      if (whole.length) {
+        const records = whole.map(id => this.#runtime.get(id)).filter(Boolean)
+        const fragment = createClipboardFragment(records.map(record => ({
+          kind: 'block',
+          block: transferBlockFromRecord(record),
+        })))
+        event.clipboardData.setData(CLIPBOARD_FRAGMENT_MIME, encodeClipboardFragment(fragment))
+        this.#crossSelection.removeWholeBlocks()
+        return
+      }
+      this.#crossSelection.replace({ kind: 'text', text: '' })
       return
     }
-    this.#crossSelection.replace({ kind: 'text', text: '' })
+
+    const owner = this.#reconciler.resolveEditableTarget(event.target)
+    if (!owner || owner.mode !== 'rich-text') return
+    const range = selectionRange(this.#selection.capture(), owner)
+    if (!range || range.start === range.end) return
+    let fragment
+    try {
+      fragment = this.#runtime.exportRichTextFragment(
+        owner.blockId, owner.fieldKey, range,
+      )
+    } catch {
+      return
+    }
+
+    event.preventDefault()
+    const privateFragment = createClipboardFragment([{
+      kind: 'rich-text',
+      html: fragment.html,
+      inline: fragment.inline,
+    }])
+    const template = this.#root.ownerDocument.createElement('template')
+    template.innerHTML = fragment.html
+    event.clipboardData.setData('text/html', fragment.html)
+    event.clipboardData.setData('text/plain', template.content.textContent ?? '')
+    event.clipboardData.setData(CLIPBOARD_FRAGMENT_MIME, encodeClipboardFragment(privateFragment))
+    this.#runtime.replaceRichText(
+      owner.blockId,
+      owner.fieldKey,
+      range,
+      { kind: 'text', text: '' },
+    )
+    this.#view.reconcileInteraction()
   }
 
   #onPaste(event) {
@@ -179,62 +259,93 @@ export class ClipboardController {
   }
 
   #applyPaste(event) {
-    if (this.#crossSelection?.active) {
-      const data = event.clipboardData
-      if (!data) return
-      const html = data.getData('text/html')
-      const text = data.getData('text/plain')
-      event.preventDefault()
-      this.#crossSelection.replace(html ? { kind: 'html', html } : { kind: 'text', text })
-      return
-    }
-    const owner = this.#reconciler.resolveEditableTarget(event.target)
-    if (!owner) return
-    const range = selectionRange(this.#selection.capture(), owner)
-    if (!range) return
     const data = event.clipboardData
     if (!data) return
 
-    const internal = data.getData('application/x-rector-editor')
-    if (internal) {
-      let records
+    const privatePayload = data.getData(CLIPBOARD_FRAGMENT_MIME)
+    if (privatePayload) {
+      event.preventDefault()
+      let fragment
       try {
-        const parsed = JSON.parse(internal)
-        if (!Array.isArray(parsed) || parsed.length === 0) throw new TypeError('Clipboard MIME must be a non-empty array')
-        records = parsed
-      } catch {
-        records = null
+        fragment = decodeClipboardFragment(privatePayload)
+      } catch (error) {
+        this.#diagnostics?.emit('paste.failed', {
+          operation: 'clipboard.private-fragment',
+          errorName: this.#diagnostics.errorName(error),
+        })
+        return
       }
-      if (records) {
-        event.preventDefault()
+
+      if (this.#crossSelection?.active) {
+        // Composite target replacement is handled only by the canonical
+        // selection-fragment path. Never fall back to lossy HTML/plain data.
+        return
+      }
+
+      const owner = this.#reconciler.resolveEditableTarget(event.target)
+      if (!owner) return
+      const range = selectionRange(this.#selection.capture(), owner)
+      if (!range) return
+
+      if (fragment.parts.length === 1 && fragment.parts[0].kind === 'rich-text') {
         try {
-          const inserted = this.#runtime.insertExternalBlocks(owner.blockId, records, {
-            replaceEmpty: range.start === 0 && range.end === 0,
+          this.#runtime.replaceRichTextFragment(
+            owner.blockId,
+            owner.fieldKey,
+            range,
+            fragment.parts[0],
+          )
+          this.#view.reconcileInteraction()
+          this.#view.setCurrent(owner.blockId)
+          queueMicrotask(() => this.#view.focus(owner.blockId, { fieldKey: owner.fieldKey }))
+        } catch (error) {
+          this.#diagnostics?.emit('paste.failed', {
+            operation: 'clipboard.private-rich-text',
+            errorName: this.#diagnostics.errorName(error),
           })
+        }
+        return
+      }
+
+      if (fragment.parts.every(part => part.kind === 'block')) {
+        try {
+          const inserted = this.#runtime.insertExternalBlocks(
+            owner.blockId,
+            fragment.parts.map(part => part.block),
+            { replaceEmpty: range.start === 0 && range.end === 0 },
+          )
           this.#view.reconcileInteraction()
           const last = inserted.at(-1)
           if (last) {
             this.#view.setCurrent(last)
             queueMicrotask(() => this.#view.focus(last, { offset: 'end' }))
           }
-          return
         } catch (error) {
-          const fallbackHtml = data.getData('text/html')
-          const fallbackText = data.getData('text/plain')
-          if (!fallbackHtml && !fallbackText) return
-          this.#runtime.replaceRichText(
-            owner.blockId,
-            owner.fieldKey,
-            range,
-            fallbackHtml ? { kind: 'html', html: fallbackHtml } : { kind: 'text', text: fallbackText },
-          )
-          this.#view.reconcileInteraction()
-          this.#view.setCurrent(owner.blockId)
-          queueMicrotask(() => this.#view.focus(owner.blockId, { fieldKey: owner.fieldKey }))
-          return
+          this.#diagnostics?.emit('paste.failed', {
+            operation: 'clipboard.private-blocks',
+            errorName: this.#diagnostics.errorName(error),
+          })
         }
+        return
       }
+
+      // Mixed fragments require the composite placement policy. Presence of
+      // the current private MIME forbids falling back to standard projections.
+      return
     }
+
+    if (this.#crossSelection?.active) {
+      const html = data.getData('text/html')
+      const text = data.getData('text/plain')
+      event.preventDefault()
+      this.#crossSelection.replace(html ? { kind: 'html', html } : { kind: 'text', text })
+      return
+    }
+
+    const owner = this.#reconciler.resolveEditableTarget(event.target)
+    if (!owner) return
+    const range = selectionRange(this.#selection.capture(), owner)
+    if (!range) return
 
     const files = [...(data.files ?? [])]
     if (files.length) {
