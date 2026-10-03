@@ -386,7 +386,7 @@ test('ExtensionRegistry snapshots mutable descriptor, schema and capability memb
 
   Object.defineProperty(definition, 'type', { enumerable: true, value: 'mutated' })
   Object.defineProperty(schema, 'currentVersion', { enumerable: true, value: 99 })
-  empty.isEmpty = () => false
+  Object.defineProperty(empty, 'isEmpty', { enumerable: true, value: () => false })
 
   assert.equal(registry.getBlockDefinition('probe').type, 'probe')
   assert.equal(registry.getBlockDefinition('probe').schema.currentVersion, 1)
