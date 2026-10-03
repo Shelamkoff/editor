@@ -46,7 +46,14 @@ export class SelectionController {
   }
 
   get active() {
-    return Boolean(this.#bookmark && this.#range && this.#bookmark.anchor.blockId !== this.#bookmark.focus.blockId)
+    return Boolean(
+      this.#bookmark
+      && this.#range
+      && (
+        this.#bookmark.anchor.blockId !== this.#bookmark.focus.blockId
+        || this.#bookmark.anchor.fieldKey !== this.#bookmark.focus.fieldKey
+      )
+    )
   }
 
   get wholeBlockIds() {
@@ -82,7 +89,11 @@ export class SelectionController {
     if (!range || range.collapsed) return false
     const start = this.#logicalPoint(range.startContainer, range.startOffset)
     const end = this.#logicalPoint(range.endContainer, range.endOffset)
-    if (!start || !end || start.blockId === end.blockId) return false
+    if (
+      !start
+      || !end
+      || (start.blockId === end.blockId && start.fieldKey === end.fieldKey)
+    ) return false
     const backwards = this.#bookmark
       ? this.#comparePoints(this.#bookmark.anchor, this.#bookmark.focus) > 0
       : false
