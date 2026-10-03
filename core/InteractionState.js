@@ -5,13 +5,15 @@ export class InteractionState {
   #reconciler
   #currentId = null
   #selected = new Set()
+  #onChange
 
-  constructor({ runtime, reconciler }) {
+  constructor({ runtime, reconciler, onChange }) {
     if (!runtime?.list) throw new TypeError('InteractionState requires a DocumentRuntime')
     if (!reconciler?.focus) throw new TypeError('InteractionState requires a BlockReconciler')
     this.#runtime = runtime
     this.#reconciler = reconciler
-    this.reconcile()
+    this.#onChange = typeof onChange === 'function' ? onChange : null
+    this.reconcile({ notify: false })
   }
 
   get currentId() {
@@ -29,12 +31,16 @@ export class InteractionState {
   }
 
   setCurrent(id) {
+    const previousCurrentId = this.#currentId
+    const previousSelectedIds = this.selectedIds
     if (id === null) {
       this.#currentId = null
+      this.#notify(previousCurrentId, previousSelectedIds)
       return
     }
     if (!this.#runtime.get(id)) throw new Error(`Unknown block id: ${id}`)
     this.#currentId = id
+    this.#notify(previousCurrentId, previousSelectedIds)
   }
 
   setCurrentIndex(index) {
@@ -42,11 +48,13 @@ export class InteractionState {
     if (!Number.isInteger(index) || index < 0 || index >= records.length) {
       throw new RangeError('Current block index is out of range')
     }
-    this.#currentId = records[index].id
+    this.setCurrent(records[index].id)
   }
 
   select(ids) {
     if (!Array.isArray(ids)) throw new TypeError('Selected block ids must be an array')
+    const previousCurrentId = this.#currentId
+    const previousSelectedIds = this.selectedIds
     const known = new Set(this.#runtime.list().map(record => record.id))
     const next = new Set()
     for (const id of ids) {
@@ -54,10 +62,14 @@ export class InteractionState {
       next.add(id)
     }
     this.#selected = next
+    this.#notify(previousCurrentId, previousSelectedIds)
   }
 
   clearSelection() {
+    const previousCurrentId = this.#currentId
+    const previousSelectedIds = this.selectedIds
     this.#selected.clear()
+    this.#notify(previousCurrentId, previousSelectedIds)
   }
 
   focus(id = this.#currentId, target) {
@@ -71,12 +83,30 @@ export class InteractionState {
     return this.#reconciler.resolveBlockTarget(target)
   }
 
-  reconcile() {
+  reconcile({ notify = true } = {}) {
+    const previousCurrentId = this.#currentId
+    const previousSelectedIds = this.selectedIds
     const ids = this.#runtime.list().map(record => record.id)
     const known = new Set(ids)
     this.#selected = new Set([...this.#selected].filter(id => known.has(id)))
     if (!this.#currentId || !known.has(this.#currentId)) {
       this.#currentId = ids[0] ?? null
     }
+    if (notify) this.#notify(previousCurrentId, previousSelectedIds)
+  }
+
+  #notify(previousCurrentId, previousSelectedIds) {
+    if (!this.#onChange) return
+    const selectedIds = this.selectedIds
+    const currentChanged = previousCurrentId !== this.#currentId
+    const selectionChanged = previousSelectedIds.length !== selectedIds.length
+      || previousSelectedIds.some((id, index) => id !== selectedIds[index])
+    if (!currentChanged && !selectionChanged) return
+    this.#onChange(Object.freeze({
+      currentId: this.#currentId,
+      selectedIds: Object.freeze([...selectedIds]),
+      previousCurrentId,
+      previousSelectedIds: Object.freeze([...previousSelectedIds]),
+    }))
   }
 }
