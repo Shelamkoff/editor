@@ -182,7 +182,8 @@ try {
   ], consumerRoot)
 
   const consumerSource = `
-import { createEditor, DocumentSchema } from '@shelamkoff/rector'
+import { createEditor } from '@shelamkoff/rector'
+import * as rectorRoot from '@shelamkoff/rector'
 import { normalizeRichText, sanitizeHtml as sanitizePluginHtml } from '@shelamkoff/rector/plugin-kit'
 import {
   createAttachesPlugin,
@@ -246,14 +247,18 @@ function usePublicEditorApi(editor = createEditor({
   inlinePlugins: [mentionPlugin],
   injectStyles: false,
 })) {
-  const available = [editor.readOnly, editor.canUndo, editor.canRedo, editor.documentMode]
+  const available = [editor.isReady, editor.readOnly, editor.canUndo, editor.canRedo, editor.documentMode]
   editor.undo()
   editor.redo()
   editor.setReadOnly(!editor.readOnly)
   return available
 }
 
-void [createEditor, DocumentSchema, normalizeRichText, sanitizePluginHtml, createParagraphPlugin, createPersonPlugin, configuredPlugins, createBlockPluginsAsync, mentionPlugin, createBoldTool, createDefaultInlineTools, createEditorRenderer, createDefaultRenderersAsync, EventBus, ColorPicker, parseColorInput, Carousel, Cropper, Expose, colorPickerStylesUrl, carouselStylesUrl, cropperStylesUrl, exposeStylesUrl, usePublicEditorApi]
+if ('DocumentSchema' in rectorRoot || 'uid' in rectorRoot || 'sanitizeHtml' in rectorRoot || 'escapeHtml' in rectorRoot) {
+  throw new Error('root package leaked extension/internal utility exports')
+}
+
+void [createEditor, normalizeRichText, sanitizePluginHtml, createParagraphPlugin, createPersonPlugin, configuredPlugins, createBlockPluginsAsync, mentionPlugin, createBoldTool, createDefaultInlineTools, createEditorRenderer, createDefaultRenderersAsync, EventBus, ColorPicker, parseColorInput, Carousel, Cropper, Expose, colorPickerStylesUrl, carouselStylesUrl, cropperStylesUrl, exposeStylesUrl, usePublicEditorApi]
 `
   await writeFile(join(consumerRoot, 'src/main.js'), consumerSource, 'utf8')
   const consumerTypeSource = `${consumerSource}
