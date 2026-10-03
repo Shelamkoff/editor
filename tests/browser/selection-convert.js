@@ -131,6 +131,36 @@ async function run() {
   wholeInline.editor.destroy()
   wholeInline.holder.remove()
 
+  const opaqueInline = mount([
+    {
+      id: 'whole-opaque-inline',
+      type: 'paragraph',
+      dataVersion: 2,
+      data: { text: 'Opaque {{future-1}} payload' },
+      inline: {
+        'future-1': {
+          type: 'future-inline',
+          dataVersion: 7,
+          data: { nested: { value: 42 }, label: 'opaque' },
+        },
+      },
+    },
+  ])
+  const opaqueBefore = structuredClone(opaqueInline.editor.save().blocks[0].inline['future-1'])
+  const opaqueConverted = opaqueInline.editor.blocks.convert('whole-opaque-inline', { type: 'heading' })
+  assert(opaqueConverted?.type === 'heading', 'opaque inline whole conversion did not produce Heading')
+  const opaqueSaved = opaqueInline.editor.save().blocks[0]
+  assert(opaqueSaved.data.text === 'Opaque {{future-1}} payload', 'opaque inline conversion changed token text')
+  assert(JSON.stringify(opaqueSaved.inline?.['future-1']) === JSON.stringify(opaqueBefore), 'opaque inline payload was not preserved')
+  opaqueInline.editor.undo()
+  await delay()
+  assert(JSON.stringify(opaqueInline.editor.save().blocks[0].inline?.['future-1']) === JSON.stringify(opaqueBefore), 'opaque inline undo lost payload')
+  opaqueInline.editor.redo()
+  await delay()
+  assert(JSON.stringify(opaqueInline.editor.save().blocks[0].inline?.['future-1']) === JSON.stringify(opaqueBefore), 'opaque inline redo lost payload')
+  opaqueInline.editor.destroy()
+  opaqueInline.holder.remove()
+
   const paragraph = mount([
     { id: 'p', type: 'paragraph', dataVersion: 2, data: { text: 'Alpha Beta Gamma' } },
   ])
