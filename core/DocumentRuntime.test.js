@@ -344,3 +344,32 @@ test('mergeAdjacent commits data merge and source removal as one undoable transa
   assert.deepEqual(runtime.list().map(item => [item.id, item.data.text]), [['a', 'AB']])
   runtime.destroy()
 })
+
+test('unrecoverable read-only transition fails runtime but preserves committed save', () => {
+  let fail = false
+  const projector = {
+    mount() {},
+    prepare() {
+      return { apply() {}, recover() {}, finalize() {}, discard() {} }
+    },
+    setReadOnly() {
+      if (fail) throw new AggregateError([new Error('apply'), new Error('recover')], 'readOnly recovery failed')
+    },
+    destroy() {},
+  }
+  const runtime = new DocumentRuntime({
+    registry: registry([paragraphDefinition()]),
+    projector,
+    data: { version: '2.0.0', blocks: [block('a')] },
+  })
+
+  fail = true
+  assert.throws(() => runtime.setReadOnly(true), /readOnly recovery failed/)
+  assert.equal(runtime.health, 'failed')
+  assert.equal(runtime.save().blocks[0].data.text, 'a')
+  assert.throws(
+    () => runtime.update('a', () => ({ data: { text: 'later' } })),
+    /DocumentRuntime is failed/,
+  )
+  runtime.destroy()
+})

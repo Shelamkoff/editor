@@ -63,6 +63,7 @@ export class DocumentRuntime {
   #onValidationError
   #richTextNormalizer
   #destroyed = false
+  #controlFailed = false
   #requestSplit
   #requestExit
   #diagnostics
@@ -135,8 +136,13 @@ export class DocumentRuntime {
       diagnostics: this.#diagnostics ?? undefined,
     })
 
-    this.#projector?.mount?.(this.#store)
-    this.#projector?.setReadOnly?.(this.readOnly)
+    try {
+      this.#projector?.mount?.(this.#store)
+      this.#projector?.setReadOnly?.(this.readOnly)
+    } catch (error) {
+      try { this.#projector?.destroy?.() } catch {}
+      throw error
+    }
   }
 
   get readOnly() {
@@ -145,6 +151,7 @@ export class DocumentRuntime {
 
   get health() {
     if (this.#destroyed) return 'destroyed'
+    if (this.#controlFailed) return 'failed'
     return this.#engine?.health ?? 'ready'
   }
 
@@ -647,11 +654,16 @@ export class DocumentRuntime {
 
   setReadOnly(value) {
     if (this.#destroyed) throw new Error('DocumentRuntime is destroyed')
-    if (this.#engine.health !== 'ready') throw new Error('DocumentRuntime is failed')
+    if (this.health !== 'ready') throw new Error('DocumentRuntime is failed')
     const next = value === true
     if (next === this.#readOnly) return
-    this.#projector?.setReadOnly?.(next)
-    this.#readOnly = next
+    try {
+      this.#projector?.setReadOnly?.(next)
+      this.#readOnly = next
+    } catch (error) {
+      if (error instanceof AggregateError) this.#controlFailed = true
+      throw error
+    }
   }
 
 
@@ -1704,7 +1716,7 @@ export class DocumentRuntime {
 
   #assertWritable() {
     if (this.#destroyed) throw new Error('DocumentRuntime is destroyed')
-    if (this.#engine?.health === 'failed') throw new Error('DocumentRuntime is failed')
+    if (this.health === 'failed') throw new Error('DocumentRuntime is failed')
   }
 
   #normalizeExternalInline(value) {
