@@ -1,5 +1,6 @@
 import { setTrustedHtml } from '../../../shared/sanitize/sanitizeHtml.js'
 // @ts-check
+import { codeDataSchema } from '../../../shared/blockSchemas/code.js'
 import {
     getHighlightRuntime,
     highlightCode as highlightWithRuntime,
@@ -35,7 +36,7 @@ const ICON_CHECK = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="1
  * @see https://highlightjs.org/
  * @param {string} classPrefix
  * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} locale
- * @returns {import('../../types').BlockRenderer<import('../../types').CodeBlock>}
+ * @returns {import('../../types').BlockRendererDefinition<import('../../types').CodeBlock>}
  */
 export function createCodeRenderer(classPrefix, /** @type {Record<string, import('../../../shared/localeTypes').LocaleValue>} */ locale) {
     /** @type {WeakMap<HTMLElement, number>} */
@@ -45,6 +46,7 @@ export function createCodeRenderer(classPrefix, /** @type {Record<string, import
     const t = (/** @type {string} */ key, /** @type {string} */ fallback) => localeText(locale, key, fallback)
     return {
         type: 'code',
+    schema: codeDataSchema,
         styles: [styles],
 
         /**
