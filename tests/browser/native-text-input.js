@@ -28,7 +28,16 @@ async function dispatchKey(key, code, windowsVirtualKeyCode, modifiers = 0, text
 }
 
 async function printable(text = 'X') {
-  await dispatchKey(text, 'KeyX', 88, 0, text)
+  const params = {
+    key: text,
+    code: 'KeyX',
+    windowsVirtualKeyCode: 88,
+    nativeVirtualKeyCode: 88,
+    text,
+  }
+  await window.__testInput('Input.dispatchKeyEvent', { type: 'keyDown', ...params })
+  await window.__testInput('Input.dispatchKeyEvent', { type: 'keyUp', ...params })
+  await pause(20)
 }
 
 function pointAt(element, offset) {
