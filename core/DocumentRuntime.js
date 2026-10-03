@@ -15,7 +15,6 @@ import {
 import { uid } from '../shared/uid.js'
 import { DocumentStore } from './DocumentStore.js'
 import { HistoryStore } from './HistoryStore.js'
-import { createInstanceAuthority, runInstanceMutation } from './InstanceAuthority.js'
 import { TransactionEngine } from './TransactionEngine.js'
 
 const VALID_ALIGN = new Set(['left', 'center', 'right', 'justify'])
@@ -118,7 +117,7 @@ export class DocumentRuntime {
     this.#store = new DocumentStore(initial)
     this.#history = new HistoryStore(options.history)
 
-    const contextFactory = (id, type, signal, readRecord) => this.#blockContext(id, type, signal, readRecord)
+    const contextFactory = (id, type, signal, readRecord, scope) => this.#blockContext(id, type, signal, readRecord, scope)
     const activationResolver = (id, record) => this.#canActivate(id, record)
     this.#projector = options.projectorFactory
       ? options.projectorFactory({
@@ -1786,7 +1785,16 @@ export class DocumentRuntime {
     })
   }
 
-  #blockContext(id, type, signal, readRecord) {
+  #blockContext(id, type, signal, readRecord, scope) {
+    if (!scope?.createAuthority) throw new TypeError('Block instance scope is unavailable')
+    scope.configure({
+      readOnly: this.#readOnly,
+      health: () => this.health,
+      phase: () => this.#engine?.phase ?? 'idle',
+      currentGeneration: () => this.#store.generation,
+      signal,
+    })
+
     const currentRecord = () => {
       const record = typeof readRecord === 'function'
         ? readRecord()
@@ -1795,8 +1803,7 @@ export class DocumentRuntime {
       return record
     }
 
-    let context
-    const authority = createInstanceAuthority({
+    const authority = scope.createAuthority({
       readData: () => currentRecord().data,
       updateData: producer => {
         this.update(id, current => ({
@@ -1810,22 +1817,26 @@ export class DocumentRuntime {
         })
       },
       createId: prefix => this.createDataId(prefix),
-      readOnly: this.#readOnly,
-      health: () => this.health,
-      phase: () => this.#engine?.phase ?? 'idle',
-      generation: this.#store.generation,
-      currentGeneration: () => this.#store.generation,
-      signal,
     })
 
+    let context
     context = Object.freeze({
       ...authority,
       ownerDocument: this.#ownerDocument,
       signal,
-      requestSplit: () => runInstanceMutation(context, () => this.#requestSplit?.(id)),
-      requestExit: () => runInstanceMutation(context, () => this.#requestExit?.(id)),
-      createInlineWidgetContext: (fieldKey, inlineId, inlineType, inlineSignal) => {
-        const inlineAuthority = createInstanceAuthority({
+      requestSplit: () => scope.runMutation(() => this.#requestSplit?.(id)),
+      requestExit: () => scope.runMutation(() => this.#requestExit?.(id)),
+      createInlineWidgetContext: (fieldKey, inlineId, inlineType, inlineSignal, inlineScope) => {
+        if (!inlineScope?.createAuthority) throw new TypeError('Inline instance scope is unavailable')
+        inlineScope.configure({
+          readOnly: this.#readOnly,
+          health: () => this.health,
+          phase: () => this.#engine?.phase ?? 'idle',
+          currentGeneration: () => this.#store.generation,
+          signal: inlineSignal,
+          parent: scope,
+        })
+        const inlineAuthority = inlineScope.createAuthority({
           readData: () => {
             const record = currentRecord()
             const ref = record.inline?.[inlineId]
@@ -1848,13 +1859,6 @@ export class DocumentRuntime {
             })
           },
           createId: prefix => this.createDataId(prefix),
-          readOnly: this.#readOnly,
-          health: () => this.health,
-          phase: () => this.#engine?.phase ?? 'idle',
-          generation: this.#store.generation,
-          currentGeneration: () => this.#store.generation,
-          signal: inlineSignal,
-          parent: context,
         })
         return Object.freeze({
           ...inlineAuthority,
@@ -1866,5 +1870,5 @@ export class DocumentRuntime {
       },
     })
     return context
-  }}
+  }
 }
