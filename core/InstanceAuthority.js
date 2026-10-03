@@ -214,6 +214,15 @@ export function createInstanceAuthority(options) {
   return authority
 }
 
+export function runInstanceMutation(context, operation) {
+  if (typeof operation !== 'function') throw new TypeError('Instance mutation requires an operation')
+  const state = stateFor(context)
+  if (!state) return operation()
+  if (!assertActiveMutation(state)) return false
+  operation()
+  return true
+}
+
 export function activateInstanceContext(context, generation) {
   const state = stateFor(context)
   if (state) activateState(state, generation)
