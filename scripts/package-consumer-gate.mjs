@@ -144,6 +144,7 @@ try {
     dependencyTarballs.push(await packInstalledDependency(packageRoot, dependencyPackRoot))
   }
 
+
   const consumerRoot = join(temporaryRoot, 'consumer')
   await mkdir(join(consumerRoot, 'src'), { recursive: true })
   await writeJson(join(consumerRoot, 'package.json'), { private: true, type: 'module' })
@@ -266,7 +267,7 @@ void [publicEditor, editorConfig, blockPlugin, inlinePlugin, output, paragraph, 
 
   run(node, [viteCli, 'build'], consumerRoot)
   run(node, ['--input-type=module', '-e', "import('@shelamkoff/rector').then(m => { if (typeof m.createEditor !== 'function') process.exit(1) })"], consumerRoot)
-  run(node, ['--input-type=module', '-e', "Promise.all([import('highlight.js'), import('jszip/dist/jszip.min.js')]).then(([h,z]) => { if (!h.default || !z.default) process.exit(1) })"], consumerRoot)
+  run(node, ['--input-type=module', '-e', "Promise.all([import('highlight.js'), import('jszip')]).then(([h,z]) => { if (!h.default || !z.default) process.exit(1) })"], consumerRoot)
   console.log(JSON.stringify({ tarball: basename(tarball), typeModes: ['Bundler', 'NodeNext'], vite: 'passed', import: 'passed' }))
 } finally {
   await rm(temporaryRoot, { recursive: true, force: true })
