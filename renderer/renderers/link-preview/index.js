@@ -1,5 +1,6 @@
 import { setTrustedHtml } from '../../../shared/sanitize/sanitizeHtml.js'
 // @ts-check
+import { linkPreviewDataSchema } from '../../../shared/blockSchemas/linkPreview.js'
 import { sanitizeUrl, setSafeUrlAttribute } from '../../../shared/sanitize/sanitizeUrl.js'
 
 const styles = new URL('./styles.css', import.meta.url).href
@@ -15,13 +16,14 @@ const TEMPLATES = ['horizontal', 'compact', 'large-top', 'minimal', 'twitter', '
  *
  * @param {string} classPrefix
  * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} _locale
- * @returns {import('../../types').BlockRenderer<import('../../types').LinkPreviewBlock>}
+ * @returns {import('../../types').BlockRendererDefinition<import('../../types').LinkPreviewBlock>}
  */
 export function createLinkPreviewRenderer(classPrefix, _locale) {
     const p = `${classPrefix}-link-preview`
 
     return {
         type: 'linkPreview',
+    schema: linkPreviewDataSchema,
         styles: [styles],
 
         /**
