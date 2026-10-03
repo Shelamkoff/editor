@@ -161,6 +161,7 @@ import {
 import { createBlockPluginsAsync } from '@shelamkoff/rector/plugins/async'
 import { createMentionPlugin } from '@shelamkoff/rector/inline-plugins/mention'
 import { createBoldTool } from '@shelamkoff/rector/inline-tools/bold'
+import { createDefaultInlineTools } from '@shelamkoff/rector/preset'
 import { createEditorRenderer } from '@shelamkoff/rector/renderer'
 import { createDefaultRenderersAsync } from '@shelamkoff/rector/renderer/renderers/async'
 import { EventBus } from '@shelamkoff/event-bus'
@@ -217,7 +218,7 @@ function usePublicEditorApi(editor = createEditor({
   return available
 }
 
-void [createEditor, DocumentSchema, normalizeRichText, sanitizePluginHtml, createParagraphPlugin, createPersonPlugin, configuredPlugins, createBlockPluginsAsync, mentionPlugin, createBoldTool, createEditorRenderer, createDefaultRenderersAsync, EventBus, ColorPicker, parseColorInput, Carousel, Cropper, Expose, colorPickerStylesUrl, carouselStylesUrl, cropperStylesUrl, exposeStylesUrl, usePublicEditorApi]
+void [createEditor, DocumentSchema, normalizeRichText, sanitizePluginHtml, createParagraphPlugin, createPersonPlugin, configuredPlugins, createBlockPluginsAsync, mentionPlugin, createBoldTool, createDefaultInlineTools, createEditorRenderer, createDefaultRenderersAsync, EventBus, ColorPicker, parseColorInput, Carousel, Cropper, Expose, colorPickerStylesUrl, carouselStylesUrl, cropperStylesUrl, exposeStylesUrl, usePublicEditorApi]
 `
   await writeFile(join(consumerRoot, 'src/main.js'), consumerSource, 'utf8')
   const consumerTypeSource = `${consumerSource}
