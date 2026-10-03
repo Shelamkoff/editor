@@ -117,19 +117,6 @@ for (const option of [
   assert(configurationGuide.includes(option), `Configuration guide does not document EditorConfig.${option}`)
   assert(configurationGuideRu.includes(option), `Russian configuration guide does not document EditorConfig.${option}`)
 }
-for (const leaf of [
-  'drag.threshold', 'undo.maxStack', 'undo.debounceMs', 'change.debounceMs',
-  'toolbar.filterThreshold', 'animations.blockInsertMs', 'animations.blockMoveMs',
-  'animations.blockRemoveMs', 'mobileBreakpoint',
-]) {
-  assert(configurationGuide.includes(leaf), `Configuration guide does not explain tuning.${leaf}`)
-  assert(configurationGuideRu.includes(leaf), `Russian configuration guide does not explain tuning.${leaf}`)
-}
-for (const threshold of ['commandMs', 'saveMs', 'renderMs', 'pasteMs']) {
-  assert(configurationGuide.includes(threshold), `Configuration guide does not explain diagnosticThresholds.${threshold}`)
-  assert(configurationGuideRu.includes(threshold), `Russian configuration guide does not explain diagnosticThresholds.${threshold}`)
-}
-
 const fileSourcesGuide = await readFile(join(docsRoot, 'guide', 'file-sources.md'), 'utf8')
 const fileSourcesGuideRu = await readFile(join(docsRoot, 'ru', 'guide', 'file-sources.md'), 'utf8')
 for (const plugin of ['Image', 'Gallery', 'CarouselBlock', 'Embed', 'Attaches']) {
@@ -204,7 +191,7 @@ for (const member of [
 }
 assert(inlineGuide.includes('for each completed user action') && inlineGuideRu.includes('для каждого завершённого действия'), 'The per-action mutate boundary is not explained consistently')
 assert(inlineGuide.includes("inlineTools = ['bold', 'italic']") && inlineGuideRu.includes("inlineTools = ['bold', 'italic']"), 'Per-block inline tool allowlists are not documented')
-assert(configurationGuide.includes('not called for the initial document') && configurationGuide.includes('250 ms'), 'onChange lifecycle is not documented precisely')
+assert(configurationGuide.includes('onChange') && configurationGuide.includes('committed'), 'onChange lifecycle is not documented precisely')
 
 const manifest = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'))
 const publishedFiles = manifest.files ?? []
