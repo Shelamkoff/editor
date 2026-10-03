@@ -153,15 +153,14 @@ export class KeyboardRouter {
     }
 
     if (key === 'ArrowUp' && !event?.shiftKey && range.start === 0 && range.end === 0) {
-      const records = this.#runtime.list()
-      const index = records.findIndex(record => record.id === owner.blockId)
-      if (index > 0) {
+      const index=this.#runtime.indexOf(owner.blockId)
+      const previousId=this.#runtime.idAt(index-1)
+      if(index>0&&previousId){
         event.preventDefault?.()
-        const previous = records[index - 1]
-        const fields = this.#reconciler.getEditableFields(previous.id)
-        const fieldKey = fields.at(-1)?.key
-        this.#view.setCurrent(previous.id)
-        this.#view.focus(previous.id, {
+        const fields=this.#reconciler.getEditableFields(previousId)
+        const fieldKey=fields.at(-1)?.key
+        this.#view.setCurrent(previousId)
+        this.#view.focus(previousId,{
           ...(fieldKey ? { fieldKey } : {}),
           offset: 'end',
         })
@@ -175,13 +174,12 @@ export class KeyboardRouter {
       && range.start === range.end
       && range.end === fieldLength(owner)
     ) {
-      const records = this.#runtime.list()
-      const index = records.findIndex(record => record.id === owner.blockId)
-      if (index >= 0 && index < records.length - 1) {
+      const index=this.#runtime.indexOf(owner.blockId)
+      const nextId=this.#runtime.idAt(index+1)
+      if(index>=0&&nextId){
         event.preventDefault?.()
-        const next = records[index + 1]
-        this.#view.setCurrent(next.id)
-        this.#view.focus(next.id, { offset: 'start' })
+        this.#view.setCurrent(nextId)
+        this.#view.focus(nextId,{offset:'start'})
       }
       return
     }
@@ -294,43 +292,41 @@ export class KeyboardRouter {
   }
 
   #mergeBackward(blockId) {
-    const records = this.#runtime.list()
-    const index = records.findIndex(record => record.id === blockId)
-    if (index <= 0) return false
-    const previous = records[index - 1]
+    const index=this.#runtime.indexOf(blockId)
+    const previousId=this.#runtime.idAt(index-1)
+    if(index<=0||!previousId)return false
 
-    if (this.#runtime.mergeAdjacent(previous.id, blockId)) {
+    if(this.#runtime.mergeAdjacent(previousId,blockId)){
       this.#view.reconcileInteraction()
-      this.#view.setCurrent(previous.id)
-      queueMicrotask(() => this.#view.focus(previous.id, { offset: 'end' }))
+      this.#view.setCurrent(previousId)
+      queueMicrotask(()=>this.#view.focus(previousId,{offset:'end'}))
       return true
     }
 
     if (this.#runtime.isEmpty(blockId)) {
       this.#runtime.remove(blockId)
       this.#view.reconcileInteraction()
-      this.#view.setCurrent(previous.id)
-      queueMicrotask(() => this.#view.focus(previous.id, { offset: 'end' }))
+      this.#view.setCurrent(previousId)
+      queueMicrotask(()=>this.#view.focus(previousId,{offset:'end'}))
       return true
     }
     return false
   }
 
   #mergeForward(blockId, caretOffset) {
-    const records = this.#runtime.list()
-    const index = records.findIndex(record => record.id === blockId)
-    if (index < 0 || index >= records.length - 1) return false
-    const next = records[index + 1]
+    const index=this.#runtime.indexOf(blockId)
+    const nextId=this.#runtime.idAt(index+1)
+    if(index<0||!nextId)return false
 
-    if (this.#runtime.mergeAdjacent(blockId, next.id)) {
+    if(this.#runtime.mergeAdjacent(blockId,nextId)){
       this.#view.reconcileInteraction()
       this.#view.setCurrent(blockId)
       queueMicrotask(() => this.#view.focus(blockId, { offset: caretOffset }))
       return true
     }
 
-    if (this.#runtime.isEmpty(next.id)) {
-      this.#runtime.remove(next.id)
+    if(this.#runtime.isEmpty(nextId)){
+      this.#runtime.remove(nextId)
       this.#view.reconcileInteraction()
       this.#view.setCurrent(blockId)
       queueMicrotask(() => this.#view.focus(blockId, { offset: caretOffset }))
