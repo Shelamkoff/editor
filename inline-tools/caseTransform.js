@@ -1,4 +1,4 @@
-import { closestBlock } from '../core/dom.js'
+import { closestBlock } from '../shared/editorDom.js'
 import { editableAtBoundary } from '../shared/editableFields.js'
 import {
   createSelectionPortBinding,
