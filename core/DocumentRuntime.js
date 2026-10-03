@@ -81,7 +81,7 @@ export class DocumentRuntime {
    *   }) => any,
    *   selection?: any,
    *   onCommit?: (event: any) => void,
-   *   diagnostics?: import('./Diagnostics').Diagnostics,
+   *   diagnostics?: import('./types').DiagnosticsSink,
    *   onValidationError?: (issue: any) => void | Promise<void>,
    *   richTextNormalizer?: (html: string) => string,
    *   requestSplit?: (id: string) => void,
