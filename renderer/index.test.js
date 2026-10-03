@@ -70,6 +70,20 @@ globalThis.document = {
 }
 globalThis.HTMLElement = FakeElement
 
+const passthroughSchema = Object.freeze({
+  currentVersion: 1,
+  legacyVersion: 1,
+  createDefault: () => ({}),
+  decode({ data }) {
+    if (!data || typeof data !== 'object' || Array.isArray(data)) throw new TypeError('data must be an object')
+    return { dataVersion: 1, data: { ...data } }
+  },
+  encode(data) {
+    if (!data || typeof data !== 'object' || Array.isArray(data)) throw new TypeError('data must be an object')
+    return { dataVersion: 1, data: { ...data } }
+  },
+})
+
 test('strict renderer validation rejects lossy built-in data with a content-free issue', async () => {
   const { EditorRenderer } = await import('./index.js')
   const issues = []
@@ -88,11 +102,21 @@ test('strict renderer validation rejects lossy built-in data with a content-free
   assert.equal(JSON.stringify(issues).includes('kept'), false)
 })
 
+test('custom renderer registration requires a canonical schema', async () => {
+  const { EditorRenderer } = await import('./index.js')
+  const renderer = new EditorRenderer({ blockTypes: [] })
+  assert.throws(() => renderer.registerRenderer({
+    type: 'missing-schema',
+    render() { return document.createElement('article') },
+  }), /must provide a block data schema/)
+})
+
 test('render observes the blocks collection once', async () => {
   const { EditorRenderer } = await import('./index.js')
   let reads = 0
   const renderer = new EditorRenderer({ blockTypes: [] })
   renderer.registerRenderer({
+    schema: passthroughSchema,
     type: 'single-read',
     render(block) {
       const element = document.createElement('article')
@@ -123,6 +147,7 @@ test('renderTo reuses, reorders, replaces and disposes keyed blocks', async () =
 
   const renderer = new EditorRenderer({ blockTypes: [] })
   renderer.registerRenderer({
+    schema: passthroughSchema,
     type: 'test',
     render(block) {
       renderCalls++
@@ -194,6 +219,7 @@ test('repeated render and destroy cycles release every renderer-owned resource',
   let destroyed = 0
   const renderer = new EditorRenderer({ blockTypes: [] })
   renderer.registerRenderer({
+    schema: passthroughSchema,
     type: 'leak-contract',
     render(block) {
       const element = document.createElement('article')
@@ -232,6 +258,7 @@ test('render and renderBlock results retain explicit resource ownership', async 
   const destroyed = []
   const renderer = new EditorRenderer({ blockTypes: [] })
   renderer.registerRenderer({
+    schema: passthroughSchema,
     type: 'owned',
     render(block) {
       const element = document.createElement('article')
@@ -264,6 +291,7 @@ test('failed detached document rendering disposes blocks created before the fail
   const destroyed = []
   const renderer = new EditorRenderer({ blockTypes: [] })
   renderer.registerRenderer({
+    schema: passthroughSchema,
     type: 'transactional',
     render(block) {
       if (block.data.fail) throw new Error('intentional render failure')
@@ -288,6 +316,7 @@ test('renderer replacement and unregister invalidate mounted blocks and keep the
   const renderer = new EditorRenderer({ blockTypes: [], throwOnUnknown: false })
 
   renderer.registerRenderer({
+    schema: passthroughSchema,
     type: 'dynamic',
     render() {
       const element = document.createElement('article')
@@ -303,6 +332,7 @@ test('renderer replacement and unregister invalidate mounted blocks and keep the
   const oldElement = container.children[0].children[0]
 
   renderer.registerRenderer({
+    schema: passthroughSchema,
     type: 'dynamic',
     render() {
       const element = document.createElement('section')
@@ -332,6 +362,7 @@ test('producer revisions skip deep signatures while JSON input keeps compatibili
   let renderCalls = 0
   const renderer = new EditorRenderer({ blockTypes: [] })
   renderer.registerRenderer({
+    schema: passthroughSchema,
     type: 'revisioned',
     render(block) {
       renderCalls++
@@ -377,6 +408,7 @@ test('deep-signature renderTo observes caller accessors exactly once', async () 
   }
   const renderer = new EditorRenderer({ blockTypes: [] })
   renderer.registerRenderer({
+    schema: passthroughSchema,
     type: 'accessor',
     render(input) {
       const element = document.createElement('article')
@@ -398,6 +430,7 @@ test('block tunes participate in incremental rendering and apply safe text align
   let renderCalls = 0
   const renderer = new EditorRenderer({ blockTypes: [] })
   renderer.registerRenderer({
+    schema: passthroughSchema,
     type: 'tuned',
     render() {
       renderCalls++
@@ -441,6 +474,7 @@ test('custom classPrefix keeps consumer classes while retaining bundled style al
 
   const custom = new EditorRenderer({ classPrefix: 'article', blockTypes: [], injectStyles: false })
   custom.registerRenderer({
+    schema: passthroughSchema,
     type: 'custom',
     render() {
       const element = document.createElement('article')
@@ -596,6 +630,7 @@ test('renderer rejects non-finite numeric block revisions', async () => {
   const { EditorRenderer } = await import('./index.js')
   const renderer = new EditorRenderer({ blockTypes: [] })
   renderer.registerRenderer({
+    schema: passthroughSchema,
     type: 'revision-check',
     render() { return document.createElement('article') },
   })
@@ -616,6 +651,7 @@ test('renderTo rejects reentry for the same container before ownership can be ov
   let nestedAttempts = 0
 
   renderer.registerRenderer({
+    schema: passthroughSchema,
     type: 'reentrant-container',
     render(block) {
       nestedAttempts++
@@ -626,6 +662,7 @@ test('renderTo rejects reentry for the same container before ownership can be ov
     },
   })
   renderer.registerRenderer({
+    schema: passthroughSchema,
     type: 'reentrant-container-leaf',
     render() { return document.createElement('span') },
   })
@@ -648,6 +685,7 @@ test('renderTo prevents destroy from double-disposing the previous mounted owner
   let oldDestroyCalls = 0
 
   renderer.registerRenderer({
+    schema: passthroughSchema,
     type: 'owned-before-reentry',
     render() { return document.createElement('article') },
     destroy() { oldDestroyCalls++ },
@@ -657,6 +695,7 @@ test('renderTo prevents destroy from double-disposing the previous mounted owner
   }, container)
 
   renderer.registerRenderer({
+    schema: passthroughSchema,
     type: 'destroy-during-render',
     render() {
       renderer.destroy(container)
@@ -690,6 +729,7 @@ for (const operation of ['renderBlock', 'render', 'renderTo']) {
       const container = document.createElement('main')
       let calls = 0
       renderer.registerRenderer({
+        schema: passthroughSchema,
         type: 'realm-probe',
         render(block) {
           calls++
@@ -758,6 +798,7 @@ test('renderer dataVersion invalidates reuse even when producer revision is unch
   let renderCalls = 0
   const renderer = new EditorRenderer({ blockTypes: [] })
   renderer.registerRenderer({
+    schema: passthroughSchema,
     type: 'versioned',
     render(block) {
       renderCalls++
