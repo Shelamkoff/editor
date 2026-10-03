@@ -1,4 +1,5 @@
 import {
+  createSelectionPortBinding,
   ICON_CLEAR,
   restoreSelectionOffsets,
   saveSelectionOffsets,
@@ -48,12 +49,14 @@ function hasClearableWrapper(range, tag) {
  * Create an inline tool that removes ordinary text formatting from exactly
  * the selected characters. Links and inline-plugin widgets are preserved.
  * @param {string} label
- * @param {import('./types').CrossBlockSelectionPort | null} [cbs]
  * @returns {import('./types').InlineTool}
  */
-export function createClearFormattingTool(label, cbs = null) {
+export function createClearFormattingTool(label) {
+  const selectionPort = createSelectionPortBinding()
+  const cbs = selectionPort.port
   return {
     type: 'clearFormatting',
+    bindSelectionPort: selectionPort.bind,
     title: label,
     icon: ICON_CLEAR,
     isActive: () => false,
