@@ -171,9 +171,19 @@ export function createEditorRuntime(input){
   })
   const holder=config.holder
   const HTMLElementCtor=holder?.ownerDocument?.defaultView?.HTMLElement??globalThis.HTMLElement
-  if(!HTMLElementCtor||!(holder instanceof HTMLElementCtor))throw new TypeError('createEditor() requires an HTMLElement holder')
+  if(!HTMLElementCtor||!(holder instanceof HTMLElementCtor)){
+    const error=new TypeError('createEditor() requires an HTMLElement holder')
+    reportDiagnostic('editor.create.failed','createEditor',error)
+    throw error
+  }
 
-  const lease=claimEditorHolder(holder)
+  let lease
+  try{
+    lease=claimEditorHolder(holder)
+  }catch(error){
+    reportDiagnostic('editor.create.failed','createEditor',error)
+    throw error
+  }
   const lifecycle=new LifecycleScope(error=>reportDiagnostic('cleanup.failed','lifecycle.destroy',error))
   lifecycle.register(lease)
   try{
