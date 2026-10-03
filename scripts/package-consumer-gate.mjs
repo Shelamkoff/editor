@@ -148,14 +148,12 @@ try {
 
   const nestedRuntimePackages = [
     'node_modules/jszip/node_modules/readable-stream',
-    'node_modules/jszip/node_modules/readable-stream/node_modules/safe-buffer',
+    'node_modules/jszip/node_modules/safe-buffer',
     'node_modules/core-util-is',
     'node_modules/inherits',
     'node_modules/isarray',
     'node_modules/process-nextick-args',
-    'node_modules/safe-buffer',
     'node_modules/string_decoder',
-    'node_modules/string_decoder/node_modules/safe-buffer',
     'node_modules/util-deprecate',
   ]
   for (const relativeRoot of nestedRuntimePackages) {
