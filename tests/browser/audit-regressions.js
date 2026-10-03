@@ -103,6 +103,98 @@ function assertNoMarkup(root, payload, name) {
   )
 }
 
+function taskProbeDefinition(tasks) {
+  const schema = Object.freeze({
+    currentVersion: 1,
+    createDefault: () => ({ value: 0 }),
+    decode(input) {
+      if (input.dataVersion !== 1) throw new RangeError('unsupported task-probe data version')
+      return { dataVersion: 1, data: { value: Number(input.data?.value) || 0 } }
+    },
+    encode(data) {
+      return { dataVersion: 1, data: { value: Number(data?.value) || 0 } }
+    },
+  })
+  return Object.freeze({
+    type: 'task-probe',
+    label: Object.freeze({ key: 'title', fallback: 'Task probe' }),
+    icon: '',
+    schema,
+    setup() {
+      return {
+        create(initial, context) {
+          let data = { ...initial }
+          let readOnly = context.isReadOnly()
+          const button = document.createElement('button')
+          button.type = 'button'
+          button.textContent = 'Start task'
+          button.addEventListener('click', () => {
+            if (readOnly) return
+            tasks.push(context.beginTask())
+          }, { signal: context.signal })
+          return {
+            element: button,
+            read: () => ({ ...data }),
+            update(next) { data = { ...next } },
+            editableFields: () => Object.freeze([]),
+            setReadOnly(value) { readOnly = value === true; button.disabled = readOnly },
+            destroy() {},
+          }
+        },
+        destroy() {},
+      }
+    },
+  })
+}
+
+async function taskLifetimeOwnership() {
+  const tasks = []
+  const definition = taskProbeDefinition(tasks)
+  const entry = mount(definition, { value: 1 }, { id: 'same' })
+  try {
+    const start = () => {
+      const button = entry.holder.querySelector('.oe-block[data-block-id="same"] button')
+      assert(button instanceof HTMLButtonElement, 'task probe button is missing')
+      button.click()
+      return tasks.at(-1)
+    }
+
+    const staleByReplacement = start()
+    assert(staleByReplacement && !staleByReplacement.signal.aborted, 'task probe did not start')
+    entry.editor.render({
+      version: '2.0.0',
+      blocks: [{ id: 'same', type: 'task-probe', dataVersion: 1, data: { value: 7 } }],
+    })
+    assert(staleByReplacement.signal.aborted, 'same-id render did not revoke old task scope')
+    let staleProducerCalls = 0
+    assert(staleByReplacement.commit(current => {
+      staleProducerCalls++
+      return { ...current, value: 99 }
+    }) === false, 'revoked replacement task committed')
+    assert(staleProducerCalls === 0, 'revoked replacement task invoked producer')
+    assert(entry.editor.save().blocks[0].data.value === 7, 'revoked replacement task changed model')
+
+    const staleByReadOnly = start()
+    entry.editor.setReadOnly(true)
+    assert(staleByReadOnly.signal.aborted, 'read-only transition did not cancel task')
+    entry.editor.setReadOnly(false)
+    let epochProducerCalls = 0
+    assert(staleByReadOnly.commit(current => {
+      epochProducerCalls++
+      return { ...current, value: 88 }
+    }) === false, 'pre-readOnly task revived after readOnly false')
+    assert(epochProducerCalls === 0, 'pre-readOnly task invoked producer after epoch change')
+
+    const fresh = start()
+    assert(fresh.commit(current => ({ ...current, value: 8 })) === true, 'fresh post-readOnly task did not commit')
+    await settle()
+    assert(entry.editor.save().blocks[0].data.value === 8, 'fresh post-readOnly task result was not persisted')
+  } finally {
+    entry.editor.destroy()
+    entry.holder.remove()
+  }
+}
+
 async function localeMarkupBoundary() {
   const payload = '<img src="x" onerror="window.__localeAuditProbe++">Localized'
   window.__localeAuditProbe = 0
@@ -382,6 +474,7 @@ async function run() {
     ['embed-cover-ownership', embedCoverOwnership],
     ['carousel-aborted-batch-object-urls', carouselAbortedBatchUrls],
     ['person-avatar-ownership', personAvatarOwnership],
+    ['task-lifetime-ownership', taskLifetimeOwnership],
     ['toolbar-ownership', toolbarOwnership],
   ]
   const results = []
