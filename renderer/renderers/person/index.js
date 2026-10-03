@@ -1,5 +1,6 @@
 import { setTrustedHtml } from '../../../shared/sanitize/sanitizeHtml.js'
 // @ts-check
+import { personDataSchema } from '../../../shared/blockSchemas/person.js'
 import { Carousel, createSwipe, carouselStylesUrl } from '@shelamkoff/carousel'
 import { setSafeUrlAttribute } from '../../../shared/sanitize/sanitizeUrl.js'
 import { requiresTrustedHtml } from '../../../shared/sanitize/trustedHtml.js'
@@ -24,7 +25,7 @@ const SOCIAL_ICONS = Object.assign(Object.create(null), {
  * Person/author card block renderer — supports multi-person with carousel
  * @param {string} classPrefix
  * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} locale
- * @returns {import('../../types').BlockRenderer<import('../../types').PersonBlock>}
+ * @returns {import('../../types').BlockRendererDefinition<import('../../types').PersonBlock>}
  */
 export function createPersonRenderer(classPrefix, /** @type {Record<string, import('../../../shared/localeTypes').LocaleValue>} */ locale) {
     const t = (/** @type {string} */ key, /** @type {string} */ fallback) => localeText(locale, key, fallback)
@@ -33,6 +34,7 @@ export function createPersonRenderer(classPrefix, /** @type {Record<string, impo
 
     return {
         type: 'person',
+    schema: personDataSchema,
         styles: [styles, carouselStyles],
 
         /**
