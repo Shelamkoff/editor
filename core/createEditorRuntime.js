@@ -251,7 +251,7 @@ export function createEditorRuntime(input){
     selection:selectionPort,
     onValidationError:config.onValidationError,
     history:{maxStack:config.historyMaxStack??100},
-    onDiagnostic:error=>reportDiagnostic('command.failed','transaction',error),
+    diagnostics,
     requestSplit:id=>keyboardRouter?.split(id),
     requestExit:id=>keyboardRouter?.exit(id),
     onCommit:event=>{
@@ -351,6 +351,7 @@ export function createEditorRuntime(input){
     selection:logicalSelection,
     view,
     crossSelection,
+    diagnostics,
   }))
 
   toolbar=lifecycle.register(new BlockToolbar({
