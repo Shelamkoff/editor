@@ -15,6 +15,9 @@ export class ChangeNotifier {
   /** @type {number} */
   #delay
 
+  /** @type {((error: unknown) => void) | undefined} */
+  #onError
+
   /** @type {boolean} */
   #destroyed = false
 
@@ -29,12 +32,14 @@ export class ChangeNotifier {
    * @param {((data: import('./types').EditorDocument) => void | Promise<void>)} [onChange]
    * @param {number} [delay]
    * @param {{ setTimeout: typeof setTimeout, clearTimeout: typeof clearTimeout }} [timerHost]
+   * @param {(error: unknown) => void} [onError]
    */
-  constructor(saveFn, onChange, delay = 250, timerHost = globalThis) {
+  constructor(saveFn, onChange, delay = 250, timerHost = globalThis, onError) {
     this.#saveFn = saveFn
     this.#onChange = onChange
     this.#delay = delay
     this.#timerHost = timerHost
+    this.#onError = onError
   }
 
   schedule() {
@@ -50,7 +55,8 @@ export class ChangeNotifier {
         // Never deliver an older snapshot after a newer editor change.
         if (!this.#destroyed && generation === this.#generation) await this.#onChange?.(data)
       } catch (err) {
-        console.warn('[ChangeNotifier] Failed to save or notify:', err)
+        if (this.#onError) this.#onError(err)
+        else console.warn('[ChangeNotifier] Failed to save or notify:', err)
       }
     }, this.#delay)
   }
