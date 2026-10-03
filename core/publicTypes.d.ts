@@ -162,7 +162,7 @@ export interface EditorConfig {
   blockRemoveAnimationMs?: number
   onReady?: (editor: IEditor) => void | Promise<void>
   onChange?: (document: EditorDocument) => void | Promise<void>
-  onValidationError?: (issue: EditorValidationIssue) => void
+  onValidationError?: (issue: EditorValidationIssue) => void | Promise<void>
   onDiagnostic?: (diagnostic: EditorDiagnostic) => void | Promise<void>
   diagnosticThresholds?: Partial<DiagnosticThresholds>
 }
