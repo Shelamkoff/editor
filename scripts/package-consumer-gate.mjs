@@ -131,6 +131,13 @@ try {
   const domPurifyRoot = resolve(dirname(domPurifyEntry), '..')
   dependencyTarballs.push(await packInstalledDependency(domPurifyRoot, dependencyPackRoot))
 
+  for (const dependency of ['highlight.js', 'jszip']) {
+    const entry = fileURLToPath(import.meta.resolve(dependency))
+    let packageRoot = dirname(entry)
+    while (basename(packageRoot) !== dependency && dirname(packageRoot) !== packageRoot) packageRoot = dirname(packageRoot)
+    dependencyTarballs.push(await packInstalledDependency(packageRoot, dependencyPackRoot))
+  }
+
   const consumerRoot = join(temporaryRoot, 'consumer')
   await mkdir(join(consumerRoot, 'src'), { recursive: true })
   await writeJson(join(consumerRoot, 'package.json'), { private: true, type: 'module' })
