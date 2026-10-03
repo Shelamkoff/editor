@@ -1,5 +1,5 @@
 // @ts-check
-import { toTrustedHtml } from '../shared/sanitize/trustedHtml.js'
+import { prepareHtmlImport } from './HtmlImportRouter.js'
 
 function stripClipboardProjection(root) {
   for (const element of root.querySelectorAll('button,input,select,textarea,.oe-source-editor,.oe-settings-menu,.oe-toolbar,.oe-toolbox')) {
@@ -257,12 +257,45 @@ export class ClipboardController {
       event.preventDefault()
       return
     }
-    const blockRecords = html ? this.#htmlBlockRecords(html) : null
-    if (blockRecords) {
-      event.preventDefault()
+
+    if (html) {
+      let plan
       try {
-        const inserted = this.#runtime.insertExternalBlocks(owner.blockId, blockRecords, {
+        plan = prepareHtmlImport(html, {
+          ownerDocument: this.#root.ownerDocument,
+          registry: this.#registry,
+          currentType: this.#runtime.get(owner.blockId)?.type ?? null,
+          createId: prefix => this.#runtime.createDataId(prefix),
+        })
+      } catch (error) {
+        event.preventDefault()
+        this.#diagnostics?.emit('paste.failed', {
+          operation: 'clipboard.html-import',
+          errorName: this.#diagnostics.errorName(error),
+        })
+        return
+      }
+
+      if (plan) {
+        event.preventDefault()
+        if (plan.kind === 'inline') {
+          this.#runtime.replaceRichText(
+            owner.blockId,
+            owner.fieldKey,
+            range,
+            { kind: 'html', html: plan.html },
+          )
+          this.#view.reconcileInteraction()
+          this.#view.setCurrent(owner.blockId)
+          queueMicrotask(() => this.#view.focus(owner.blockId, {
+            fieldKey: owner.fieldKey,
+          }))
+          return
+        }
+
+        const inserted = this.#runtime.insertLocalBlocks(owner.blockId, plan.blocks, {
           replaceEmpty: range.start === 0 && range.end === 0,
+          name: 'clipboard.html-import',
         })
         this.#view.reconcileInteraction()
         const last = inserted.at(-1)
@@ -271,17 +304,10 @@ export class ClipboardController {
           queueMicrotask(() => this.#view.focus(last, { offset: 'end' }))
         }
         return
-      } catch (error) {
-        this.#diagnostics?.emit('paste.failed', {
-          operation: 'clipboard.html-blocks',
-          errorName: this.#diagnostics.errorName(error),
-        })
       }
     }
-    const input = html
-      ? { kind: /** @type {'html'} */ ('html'), html }
-      : { kind: /** @type {'text'} */ ('text'), text }
 
+    const input = { kind: /** @type {'text'} */ ('text'), text }
     const route = this.#route(input, owner.blockId)
     event.preventDefault()
     if (route) {
@@ -293,7 +319,7 @@ export class ClipboardController {
       owner.blockId,
       owner.fieldKey,
       range,
-      html ? { kind: 'html', html } : { kind: 'text', text },
+      { kind: 'text', text },
     )
     this.#view.reconcileInteraction()
     this.#view.setCurrent(owner.blockId)
@@ -303,78 +329,6 @@ export class ClipboardController {
     }))
   }
 
-
-  #htmlBlockRecords(html) {
-    const document = this.#root.ownerDocument
-    const template = document.createElement('template')
-    template.innerHTML = /** @type {any} */ (toTrustedHtml(String(html ?? ''), document))
-    const elements = [...template.content.children]
-    if (!elements.length) return null
-
-    const records = []
-    const paragraph = this.#registry.getBlockDefinition('paragraph')
-    const heading = this.#registry.getBlockDefinition('heading')
-    const quote = this.#registry.getBlockDefinition('quote')
-    const list = this.#registry.getBlockDefinition('list')
-
-    const appendElement = element => {
-      const tag = element.tagName.toLowerCase()
-      if ((tag === 'p' || tag === 'div') && element.querySelector(':scope > blockquote')) {
-        if (!quote) return false
-        const blockquote = element.querySelector(':scope > blockquote')
-        const cite = element.querySelector(':scope > cite')
-        records.push({
-          type: 'quote',
-          data: { text: blockquote?.innerHTML ?? '', caption: cite?.innerHTML ?? '' },
-        })
-        return true
-      }
-      if (tag === 'p' || tag === 'div') {
-        if (!paragraph) return false
-        if (tag === 'div' && element.children.length > 1) {
-          const nested = [...element.children]
-          if (nested.every(child => appendElement(child))) return true
-          return false
-        }
-        records.push({ type: 'paragraph', data: { text: element.innerHTML } })
-        return true
-      }
-      const headingMatch = /^h([2-6])$/.exec(tag)
-      if (headingMatch) {
-        if (!heading) return false
-        records.push({
-          type: 'heading',
-          data: { text: element.innerHTML, level: Number(headingMatch[1]) },
-        })
-        return true
-      }
-      if (tag === 'blockquote') {
-        if (!quote) return false
-        records.push({ type: 'quote', data: { text: element.innerHTML, caption: '' } })
-        return true
-      }
-      if (tag === 'ul' || tag === 'ol') {
-        if (!list) return false
-        records.push({
-          type: 'list',
-          data: {
-            style: tag === 'ol' ? 'ordered' : 'unordered',
-            items: [...element.querySelectorAll(':scope > li')].map(li => ({
-              id: this.#runtime.createDataId('item'),
-              text: li.innerHTML,
-            })),
-          },
-        })
-        return true
-      }
-      return false
-    }
-
-    for (const element of elements) {
-      if (!appendElement(element)) return null
-    }
-    return records.length ? records : null
-  }
 
   #route(input, blockId) {
     const current = this.#runtime.get(blockId)
