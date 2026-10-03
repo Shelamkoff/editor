@@ -132,7 +132,15 @@ export class DocumentRuntime {
       history: this.#history,
       projector: this.#projector ?? undefined,
       selection: options.selection,
-      onCommit: options.onCommit,
+      onCommit: typeof options.onCommit === 'function'
+        ? event => options.onCommit(Object.freeze({
+            ...event,
+            history: Object.freeze({
+              canUndo: this.canUndo,
+              canRedo: this.canRedo,
+            }),
+          }))
+        : undefined,
       diagnostics: this.#diagnostics ?? undefined,
     })
 
