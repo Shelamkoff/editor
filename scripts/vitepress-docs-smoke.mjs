@@ -112,7 +112,9 @@ for (const option of [
   'holder', 'plugins', 'inlineTools', 'inlinePlugins', 'data', 'migrations',
   'documentVersionPolicy', 'readOnly', 'placeholder', 'autofocus', 'minHeight',
   'defaultBlock', 'locale', 'onChange', 'onReady', 'validationMode',
-  'onValidationError', 'theme',
+  'changeDebounceMs', 'historyMaxStack', 'historyCoalesceMs', 'dragThreshold',
+  'toolboxFilterThreshold', 'onValidationError', 'onDiagnostic',
+  'diagnosticThresholds', 'theme',
 ]) {
   assert(configurationGuide.includes(option), `Configuration guide does not document EditorConfig.${option}`)
   assert(configurationGuideRu.includes(option), `Russian configuration guide does not document EditorConfig.${option}`)
@@ -139,11 +141,14 @@ for (const plugin of ['image', 'gallery', 'carousel', 'embed', 'attaches']) {
 const editorApiGuide = await readFile(join(docsRoot, 'guide', 'editor-api.md'), 'utf8')
 for (const member of [
   'save()', 'render(document', 'clear()', 'undo()', 'redo()', 'focus()',
-  'setReadOnly(', 'insertInlinePlugin(', 'on(', 'destroy()', 'blocks',
+  'setReadOnly(', 'insertInlinePlugin(', 'on(', 'destroy()', 'blocks', 'isReady',
 ]) {
   assert(editorApiGuide.includes(member), `Editor API guide does not document IEditor.${member}`)
 }
 
+for (const eventName of ['currentBlock:changed', 'selection:changed']) {
+  assert(editorApiGuide.includes(eventName), `Editor API guide does not document ${eventName}`)
+}
 
 const renderingGuide = await readFile(join(docsRoot, 'guide', 'rendering.md'), 'utf8')
 for (const member of [
