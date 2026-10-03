@@ -27,6 +27,10 @@ interface EditorConfig {
   historyCoalesceMs?: number
   dragThreshold?: number
   toolboxFilterThreshold?: number
+  mobileBreakpoint?: number
+  blockInsertAnimationMs?: number
+  blockMoveAnimationMs?: number
+  blockRemoveAnimationMs?: number
   onReady?: (editor: IEditor) => void | Promise<void>
   onChange?: (document: EditorDocument) => void | Promise<void>
   onValidationError?: (issue: EditorValidationIssue) => void
@@ -60,6 +64,10 @@ interface EditorConfig {
 | `historyCoalesceMs` | no | `300` | Maximum idle interval for grouping consecutive native edits in one undo step. |
 | `dragThreshold` | no | `5` | Pointer movement in pixels required before block dragging starts. |
 | `toolboxFilterThreshold` | no | `7` | Show toolbox search only when the registered item count exceeds this value. |
+| `mobileBreakpoint` | no | `768` | Viewport width in pixels below which core toolbar/toolbox use mobile mode. |
+| `blockInsertAnimationMs` | no | `350` | New-block projection animation duration; `0` disables it. |
+| `blockMoveAnimationMs` | no | `200` | FLIP movement animation duration; `0` disables it. |
+| `blockRemoveAnimationMs` | no | `350` | Safe removal-slot collapse duration; removed plugin DOM is detached synchronously. |
 | `onReady` | no | omitted | Observer invoked after successful composition. Callback failures do not invalidate the editor. |
 | `onChange` | no | omitted | Debounced observer receiving a detached saved document after canonical commits. |
 | `onValidationError` | no | omitted | Observer for preservation/validation issues. |
@@ -103,7 +111,7 @@ See [Document format](/guide/document-format) for the canonical envelope and mig
 
 `editor.setReadOnly(true)` changes the live runtime mode without creating a history entry. Definition instances receive the transition through `setReadOnly()`. Core controllers also stop structural keyboard commands, paste, drag, settings mutations, inline commands, undo and redo.
 
-Use `minHeight` only for the editor shell. Extension layout belongs in extension styles.
+Use `minHeight` only for the editor shell. `mobileBreakpoint` drives the core mobile-mode class instead of a duplicate hard-coded media-query contract. Structural animations live in the projection layer and are automatically suppressed by `prefers-reduced-motion`. Extension layout belongs in extension styles.
 
 ## Callbacks
 
