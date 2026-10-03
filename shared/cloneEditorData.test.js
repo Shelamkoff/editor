@@ -11,9 +11,10 @@ test('cloneEditorData isolates nested block data before hydration', () => {
   }
 
   const owned = cloneEditorData(source)
-  checklistDataSchema.mapRichText(owned, text => text.toUpperCase())
+  const hydrated = checklistDataSchema.mapRichText(owned, text => text.toUpperCase())
 
-  assert.equal(owned.items[0].text, 'BEFORE')
+  assert.equal(hydrated.items[0].text, 'BEFORE')
+  assert.equal(owned.items[0].text, 'before')
   assert.equal(source.items[0].text, 'before')
 })
 
