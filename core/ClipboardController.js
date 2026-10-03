@@ -325,7 +325,10 @@ export class ClipboardController {
           type: 'list',
           data: {
             style: tag === 'ol' ? 'ordered' : 'unordered',
-            items: [...element.querySelectorAll(':scope > li')].map(li => li.innerHTML),
+            items: [...element.querySelectorAll(':scope > li')].map(li => ({
+              id: this.#runtime.createDataId('item'),
+              text: li.innerHTML,
+            })),
           },
         })
         return true
