@@ -1,5 +1,6 @@
 // @ts-check
 import { cloneEditorData } from '../shared/cloneEditorData.js'
+import { InstanceScope } from './InstanceScope.js'
 import { ProjectionAnimator } from './ProjectionAnimator.js'
 
 function sameJson(left, right) {
@@ -58,12 +59,13 @@ export class BlockReconciler {
     const previousStore = this.#store
     const previousEntries = this.#entries
     this.#store = store
-    const fresh = this.#stageAll(store, { candidate: false, stageInline: true })
+    const fresh = this.#stageAll(store, { candidate: true, stageInline: true })
 
     try {
       this.#container.replaceChildren(...store.ids().map(id => fresh.get(id).element))
       this.#entries = fresh
       for (const entry of fresh.values()) this.#applyPreparedInline(entry)
+      for (const entry of fresh.values()) this.#activateEntry(entry)
       for (const entry of fresh.values()) this.#finalizePreparedInline(entry)
     } catch (error) {
       for (const entry of fresh.values()) this.#recoverPreparedInline(entry)
@@ -345,11 +347,13 @@ export class BlockReconciler {
         for (const item of updates) item.entry.lifetime.candidate = null
         for (const item of replacements) {
           item.after.lifetime.candidate = null
+          this.#activateEntry(item.after)
           this.#finalizePreparedInline(item.after)
           this.#destroyEntry(item.before)
         }
         for (const item of insertions) {
           item.entry.lifetime.candidate = null
+          this.#activateEntry(item.entry)
           this.#finalizePreparedInline(item.entry)
         }
         for (const item of removals) {
@@ -439,6 +443,7 @@ export class BlockReconciler {
   #createEntry(record, { candidate = false, stageInline = false } = {}) {
     const ownerDocument = this.#container.ownerDocument
     const lifetime = { candidate: candidate ? record : null }
+    const scope = new InstanceScope({ staged: candidate })
 
     if (!this.#registry.hasBlock(record.type) || !this.#activationResolver(record.id, record)) {
       const element = ownerDocument.createElement('div')
@@ -465,6 +470,7 @@ export class BlockReconciler {
         definition: null,
         baseContext: null,
         lifetime,
+        scope: null,
       }
     }
 
@@ -478,7 +484,7 @@ export class BlockReconciler {
 
     try {
       const readRecord = () => lifetime.candidate ?? this.#store?.peek(record.id) ?? record
-      const base = this.#contextFactory(record.id, record.type, controller.signal, readRecord) ?? {}
+      const base = this.#contextFactory(record.id, record.type, controller.signal, readRecord, scope) ?? {}
       const context = Object.freeze({
         ...base,
         ownerDocument,
@@ -505,6 +511,7 @@ export class BlockReconciler {
         definition,
         baseContext: base,
         lifetime,
+        scope,
       }
       this.#blockOwners.set(element, record.id)
       instance.setReadOnly(this.#readOnly)
@@ -521,11 +528,16 @@ export class BlockReconciler {
       }
       return entry
     } catch (error) {
+      try { scope.revoke() } catch {}
       try { controller.abort() } catch {}
       try { instance?.destroy?.() } catch {}
       try { element?.remove?.() } catch {}
       throw error
     }
+  }
+
+  #activateEntry(entry) {
+    entry?.scope?.activate?.()
   }
 
   #applyPreparedInline(entry) {
@@ -588,6 +600,7 @@ export class BlockReconciler {
   #destroyEntry(entry) {
     if (!entry) return
     try { this.#discardPreparedInline(entry) } catch {}
+    try { entry.scope?.revoke?.() } catch {}
     try { entry.controller?.abort() } catch {}
     try { entry.instance?.destroy?.() } catch {}
     try { entry.element?.remove?.() } catch {}
