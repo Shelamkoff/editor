@@ -57,7 +57,7 @@ export class SelectionController {
   }
 
   get wholeBlockIds() {
-    return this.#wholeBlocks ? this.#runtime.list().map(record => record.id) : []
+    return this.#wholeBlocks ? this.#runtime.ids() : []
   }
 
   get bookmark() {
@@ -121,10 +121,10 @@ export class SelectionController {
     if (!result) return false
     this.#deactivate()
     this.#view.reconcileInteraction()
-    const current = this.#runtime.list()[0]
-    if (current) {
-      this.#view.setCurrent(current.id)
-      queueMicrotask(() => this.#view.focus(current.id, { offset: 'start' }))
+    const currentId=this.#runtime.idAt(0)
+    if(currentId){
+      this.#view.setCurrent(currentId)
+      queueMicrotask(()=>this.#view.focus(currentId,{offset:'start'}))
     }
     return true
   }
@@ -145,10 +145,10 @@ export class SelectionController {
   }
 
   selectAllBlocks() {
-    const records = this.#runtime.list()
-    if (!records.length) return false
-    const firstId = records[0].id
-    const lastId = records[records.length - 1].id
+    if(!this.#runtime.size)return false
+    const firstId=this.#runtime.idAt(0)
+    const lastId=this.#runtime.idAt(this.#runtime.size-1)
+    if(!firstId||!lastId)return false
     const firstFields = this.#reconciler.getEditableFields(firstId)
     const lastFields = this.#reconciler.getEditableFields(lastId)
     const first = firstFields[0]
@@ -224,13 +224,12 @@ export class SelectionController {
     this.#root.classList.add('oe-editor--cross-selecting')
     this.#showHighlight(range)
 
-    const records = this.#runtime.list()
-    const anchorIndex = records.findIndex(record => record.id === bookmark.anchor.blockId)
-    const focusIndex = records.findIndex(record => record.id === bookmark.focus.blockId)
-    if (anchorIndex >= 0 && focusIndex >= 0) {
-      const from = Math.min(anchorIndex, focusIndex)
-      const to = Math.max(anchorIndex, focusIndex)
-      this.#view.select(records.slice(from, to + 1).map(record => record.id))
+    const anchorIndex=this.#runtime.indexOf(bookmark.anchor.blockId)
+    const focusIndex=this.#runtime.indexOf(bookmark.focus.blockId)
+    if(anchorIndex>=0&&focusIndex>=0){
+      const from=Math.min(anchorIndex,focusIndex)
+      const to=Math.max(anchorIndex,focusIndex)
+      this.#view.select(this.#runtime.ids().slice(from,to+1))
     }
   }
 
@@ -272,9 +271,8 @@ export class SelectionController {
   }
 
   #comparePoints(left, right) {
-    const records = this.#runtime.list()
-    const leftBlock = records.findIndex(record => record.id === left.blockId)
-    const rightBlock = records.findIndex(record => record.id === right.blockId)
+    const leftBlock=this.#runtime.indexOf(left.blockId)
+    const rightBlock=this.#runtime.indexOf(right.blockId)
     if (leftBlock !== rightBlock) return leftBlock - rightBlock
     const fields = this.#reconciler.getEditableFields(left.blockId)
     const leftField = fields.findIndex(field => field.key === left.fieldKey)
