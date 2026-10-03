@@ -1,5 +1,4 @@
 // @ts-check
-import { mapTableTextFields as mapTextFields } from '../../../shared/mapTextFields.js'
 
 const styles = new URL('./styles.css', import.meta.url).href
 
@@ -13,7 +12,6 @@ export function createTableRenderer(classPrefix, _locale) {
   return {
     type: 'table',
     styles: [styles],
-    mapTextFields,
 
     /**
      * @param {import('../../types').TableBlock} block
