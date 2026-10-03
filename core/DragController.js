@@ -7,13 +7,16 @@ export class DragController {
   #document
   #dragging = null
   #destroyed = false
+  #threshold
   #onPointerDown
 
-  constructor({ runtime, view, handle }) {
+  constructor({ runtime, view, handle, threshold = 5 }) {
     if (!handle?.addEventListener) throw new TypeError('DragController requires a drag handle')
+    if (!Number.isFinite(threshold) || threshold < 0) throw new RangeError('Drag threshold must be a finite number greater than or equal to 0')
     this.#runtime = runtime
     this.#view = view
     this.#handle = handle
+    this.#threshold = threshold
     this.#document = handle.ownerDocument
 
     this.#onPointerDown = event => {
@@ -40,7 +43,7 @@ export class DragController {
       const move = moveEvent => {
         if (this.#dragging !== state) return
         const distance = Math.hypot(moveEvent.clientX - state.startX, moveEvent.clientY - state.startY)
-        if (!state.active && distance < 4) return
+        if (!state.active && distance < this.#threshold) return
         if (!state.active) {
           state.active = true
           state.element.classList?.add('oe-block--dragging')
