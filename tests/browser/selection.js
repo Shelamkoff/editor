@@ -119,6 +119,23 @@ async function activateCrossSelection(harness, startIndex = 0, startOffset = 6, 
   assert(harness.root.classList.contains('oe-editor--cross-selecting'), 'cross-block selection was not activated')
   assert(harness.editor.blocks.selectedIds().length === 3, 'cross-block selection did not expose selected block ids')
 }
+async function activateFieldSelection(harness, start, startOffset, end, endOffset) {
+  const startPoint = pointAt(start, startOffset)
+  const endPoint = pointAt(end, endOffset)
+  start.focus()
+  start.dispatchEvent(new MouseEvent('mousedown', {
+    bubbles: true, cancelable: true, button: 0, buttons: 1,
+    clientX: startPoint.x, clientY: startPoint.y,
+  }))
+  document.dispatchEvent(new MouseEvent('mousemove', {
+    bubbles: true, cancelable: true, buttons: 1,
+    clientX: endPoint.x, clientY: endPoint.y,
+  }))
+  document.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, button: 0, buttons: 0 }))
+  await delay()
+  assert(harness.root.classList.contains('oe-editor--cross-selecting'), 'cross-field selection was not activated')
+}
+
 
 function key(target, keyValue, options = {}) {
   const event = new KeyboardEvent('keydown', {
@@ -476,6 +493,71 @@ async function run() {
   await delay()
   assert(all.editor.blocks.count === 3, 'whole-block cut undo was not atomic')
   all.editor.destroy()
+
+  const quoteClipboardSource = createHarness(sandbox, {
+    version: '2.0.0',
+    blocks: [{
+      id: 'quote-source',
+      type: 'quote',
+      dataVersion: 1,
+      data: { text: 'First quote', caption: 'First caption' },
+    }],
+  }, [createParagraphPlugin({ injectStyles: false }), createQuotePlugin()])
+  const quoteSourceText = editable(quoteClipboardSource, 0, '.oe-quote__text')
+  const quoteSourceCaption = editable(quoteClipboardSource, 0, '.oe-quote__caption')
+  await activateFieldSelection(quoteClipboardSource, quoteSourceText, 2, quoteSourceCaption, 5)
+  const quoteCopyData = new DataTransfer()
+  quoteSourceText.dispatchEvent(new ClipboardEvent('copy', {
+    clipboardData: quoteCopyData, bubbles: true, cancelable: true,
+  }))
+  const quoteFragment = JSON.parse(quoteCopyData.getData('application/x-rector-fragment'))
+  assert(
+    quoteFragment.version === 2 && quoteFragment.parts.map(part => part.kind).join(',') === 'rich-text,rich-text',
+    'same-block multi-field copy did not export two rich-text parts',
+  )
+
+  const quoteCutData = new DataTransfer()
+  quoteSourceText.dispatchEvent(new ClipboardEvent('cut', {
+    clipboardData: quoteCutData, bubbles: true, cancelable: true,
+  }))
+  await delay()
+  let quoteCutSaved = quoteClipboardSource.editor.save()
+  assert(quoteCutSaved.blocks.length === 1, 'same-block multi-field cut split the source block')
+  assert(quoteCutSaved.blocks[0].data.text === 'Fi', 'same-block cut lost text prefix')
+  assert(quoteCutSaved.blocks[0].data.caption === ' caption', 'same-block cut lost caption suffix')
+  assert(quoteClipboardSource.editor.undo() === true, 'same-block multi-field cut is not one history step')
+  await delay()
+  quoteCutSaved = quoteClipboardSource.editor.save()
+  assert(quoteCutSaved.blocks[0].data.text === 'First quote' && quoteCutSaved.blocks[0].data.caption === 'First caption', 'same-block cut undo failed')
+
+  const quoteClipboardTarget = createHarness(sandbox, {
+    version: '2.0.0',
+    blocks: [{
+      id: 'quote-target',
+      type: 'quote',
+      dataVersion: 1,
+      data: { text: 'AAold', caption: 'oldZZ' },
+    }],
+  }, [createParagraphPlugin({ injectStyles: false }), createQuotePlugin()])
+  const quoteTargetText = editable(quoteClipboardTarget, 0, '.oe-quote__text')
+  const quoteTargetCaption = editable(quoteClipboardTarget, 0, '.oe-quote__caption')
+  await activateFieldSelection(quoteClipboardTarget, quoteTargetText, 2, quoteTargetCaption, 3)
+  const quoteTargetBefore = JSON.stringify(quoteClipboardTarget.editor.save())
+  const quotePaste = paste(quoteTargetText, {
+    'application/x-rector-fragment': quoteCopyData.getData('application/x-rector-fragment'),
+    'text/plain': 'fallback must not win',
+  })
+  await delay()
+  assert(quotePaste.defaultPrevented, 'same-block private fragment paste was not owned')
+  const quotePasted = quoteClipboardTarget.editor.save()
+  assert(quotePasted.blocks.length === 1, 'same-block private paste split quote into multiple blocks')
+  assert(quotePasted.blocks[0].data.text === 'AArst quote', 'same-block private paste misplaced first rich-text part')
+  assert(quotePasted.blocks[0].data.caption === 'FirstZZ', 'same-block private paste misplaced last rich-text part')
+  assert(quoteClipboardTarget.editor.undo() === true, 'same-block private paste is not one history step')
+  await delay()
+  assert(JSON.stringify(quoteClipboardTarget.editor.save()) === quoteTargetBefore, 'same-block private paste undo failed')
+  quoteClipboardSource.editor.destroy()
+  quoteClipboardTarget.editor.destroy()
 
   const multi = createHarness(sandbox, {
     version: '2.0.0',
