@@ -1,5 +1,6 @@
 import { invokeObserver } from '../../../shared/invokeObserver.js'
 // @ts-check
+import { pollDataSchema } from '../../../shared/blockSchemas/poll.js'
 import {
   applyLocalPollVote,
   normalizePollData,
@@ -17,7 +18,7 @@ const styles = new URL('./styles.css', import.meta.url).href
  * @param {string} classPrefix
  * @param {Record<string, any>} locale
  * @param {import('../../types').PollRendererConfig} [config]
- * @returns {import('../../types').BlockRenderer<import('../../types').PollBlock>}
+ * @returns {import('../../types').BlockRendererDefinition<import('../../types').PollBlock>}
  */
 export function createPollRenderer(classPrefix, locale, config = {}) {
   const p = `${classPrefix}-poll`
@@ -299,6 +300,7 @@ export function createPollRenderer(classPrefix, locale, config = {}) {
 
   return {
     type: 'poll',
+    schema: pollDataSchema,
     styles: [styles],
     render(block, parseInline, context = { ownerDocument: globalThis.document }) {
       let fallbackIndex = 0
