@@ -1,9 +1,6 @@
 // @ts-check
-import {
-  insertTrustedHtml,
-  setSafeUrlAttribute,
-  setTrustedHtml,
-} from '../../plugin-kit/index.js'
+import { setSafeUrlAttribute } from '../../plugin-kit/index.js'
+import { insertTrustedHtml, setTrustedHtml } from '../../shared/sanitize/sanitizeHtml.js'
 import { attachesDataSchema } from '../../shared/blockSchemas/attaches.js'
 import { sanitizeDownloadUrl } from '../../shared/sanitize/sanitizeUrl.js'
 import { formatSize, getExtension, getFileIcon } from '../../shared/fileUtils.js'
