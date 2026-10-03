@@ -51,7 +51,7 @@ interface BlockPluginDefinition<Data> {
 
 ## Схема
 
-`BlockDataSchema` владеет `currentVersion`, `legacyVersion`, `createDefault()`, `decode()`, `encode()` и необязательным `mapRichText()`.
+`BlockDataSchema` владеет `currentVersion`, `createDefault()`, exact-version `decode()`, `encode()` и необязательным `mapRichText()`.
 
 Внешние данные декодируются один раз на границе. Каждое model-first изменение кодируется до commit. `mapRichText()` обозначает все HTML-поля стабильными логическими ключами; через эту же границу работают inline-виджеты, структурное выделение и частичное преобразование.
 
@@ -87,9 +87,9 @@ interface BlockPluginDefinition<Data> {
 export function createCalloutPlugin() {
   const schema = Object.freeze({
     currentVersion: 1,
-    legacyVersion: 1,
     createDefault: () => ({ text: '' }),
-    decode({ data }) {
+    decode({ dataVersion, data }) {
+      if (dataVersion !== 1) throw new RangeError('Unsupported callout dataVersion')
       if (!data || typeof data.text !== 'string') throw new TypeError('Invalid callout')
       return { dataVersion: 1, data: { text: data.text } }
     },

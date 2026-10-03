@@ -17,7 +17,7 @@ const texts = {
     { title: 'Inline Tools', description: 'Twelve default tools for formatting, links, code, color, font size, alignment, scripts, case, and cleanup.' },
     { title: 'Drag & Drop', description: 'Reorder blocks with keyboard-accessible controls, drag handles, selection, and configurable animation.' },
     { title: 'Undo / Redo', description: 'One completed action is one ordered history step across formatting, widgets, paste, split/merge, and block commands.' },
-    { title: 'Versioned JSON', description: 'A stable document contract with deterministic migrations, validation modes, and plugin-owned data.' },
+    { title: 'Versioned JSON', description: 'A strict current document contract with explicit schema versions and plugin-owned data.' },
     { title: 'i18n', description: 'Built-in English and Russian dictionaries with scoped localization contracts for extensions.' },
     { title: 'Themes', description: 'Light and dark editor themes built on CSS custom properties and runtime-selectable appearance.' },
     { title: 'Framework Agnostic', description: 'Browser-native ESM that integrates with any application stack without coupling the editor to a UI framework.' },

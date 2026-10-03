@@ -51,7 +51,7 @@ The inherited `createId(prefix)` allocator creates nested stable identities.
 
 ## Schema
 
-`BlockDataSchema` owns `currentVersion`, `legacyVersion`, `createDefault()`, `decode()`, `encode()`, and optional `mapRichText()`.
+`BlockDataSchema` owns `currentVersion`, `createDefault()`, exact-version `decode()`, `encode()`, and optional `mapRichText()`.
 
 Decode external input once at the boundary. Encode every model-first update before commit. `mapRichText()` identifies every HTML-bearing field by a stable logical field key; it is also the boundary used by inline widgets, structural selection and partial conversion.
 
@@ -87,9 +87,9 @@ Decode external input once at the boundary. Encode every model-first update befo
 export function createCalloutPlugin() {
   const schema = Object.freeze({
     currentVersion: 1,
-    legacyVersion: 1,
     createDefault: () => ({ text: '' }),
-    decode({ data }) {
+    decode({ dataVersion, data }) {
+      if (dataVersion !== 1) throw new RangeError('Unsupported callout dataVersion')
       if (!data || typeof data.text !== 'string') throw new TypeError('Invalid callout')
       return { dataVersion: 1, data: { text: data.text } }
     },
