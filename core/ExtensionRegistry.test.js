@@ -207,7 +207,7 @@ test('ExtensionRegistry snapshots mutable descriptor members and schema identity
   }
   const schema = {}
   Object.defineProperties(schema, {
-    currentVersion: { enumerable: true, get() { reads.currentVersion++; return 1 } },
+    currentVersion: { enumerable: true, configurable: true, get() { reads.currentVersion++; return 1 } },
     createDefault: { enumerable: true, get() { reads.createDefault++; return () => ({ value: '' }) } },
     decode: { enumerable: true, get() { reads.decode++; return input => ({ dataVersion: 1, data: { value: String(input.data?.value ?? '') } }) } },
     encode: { enumerable: true, get() { reads.encode++; return data => ({ dataVersion: 1, data: { value: String(data.value ?? '') } }) } },
