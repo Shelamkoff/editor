@@ -52,7 +52,24 @@ export function createSpoilerPlugin(){
         }
         return {label:'',content:payload.data.text}
       },
+    }),    clipboard:Object.freeze({
+      slice(data,context){
+        const label=context.field('label')
+        const content=context.field('content')
+        if(!label&&!content)throw new Error('Spoiler clipboard selection does not intersect a field')
+        const selected={label:label?.selected??'',content:content?.selected??''}
+        const remaining={
+          label:label?label.before+label.after:data.label,
+          content:content?content.before+content.after:data.content,
+        }
+        return {
+          parts:[{kind:'local-block',data:selected}],
+          remaining:(!remaining.label.trim()&&!remaining.content.trim())?null:remaining,
+          focus:null,
+        }
+      },
     }),
+
   })
   return Object.freeze({
     type:'spoiler',
