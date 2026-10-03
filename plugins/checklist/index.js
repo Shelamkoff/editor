@@ -86,6 +86,31 @@ export function createChecklistPlugin(){
         return null
       },
     })),
+    clipboard:Object.freeze({
+      slice(data,context){
+        const selected=[]
+        const remaining=[]
+        for(const item of data.items){
+          const field=context.field(`item:${item.id}`)
+          if(!field){
+            remaining.push({...item})
+            continue
+          }
+          if(field.whole||field.selected){
+            selected.push({...item,text:field.selected})
+          }
+          const text=field.before+field.after
+          if(text)remaining.push({...item,text})
+        }
+        if(!selected.length)throw new Error('Checklist clipboard selection is empty')
+        if(!remaining.length)remaining.push({id:context.createId('item'),text:'',checked:false})
+        return {
+          parts:[{kind:'local-block',data:{items:selected}}],
+          remaining:{items:remaining},
+          focus:null,
+        }
+      },
+    }),
     conversion:Object.freeze({
       export(data){
         return {kind:'rich-text',data:{text:data.items.map(item=>item.text).join('<br>')}}
