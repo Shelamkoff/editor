@@ -36,6 +36,7 @@ function harness(options = {}) {
     root,
     runtime,
     reconciler,
+    crossSelection: options.crossSelection ?? null,
     coalesceMs: options.coalesceMs ?? 300,
   })
   return {
@@ -47,6 +48,53 @@ function harness(options = {}) {
     advance(ms) { now += ms },
   }
 }
+
+test('beforeinput replaces an active cross-block selection atomically', () => {
+  const replacements = []
+  const crossSelection = {
+    active: true,
+    replace(replacement) {
+      replacements.push(replacement)
+      return true
+    },
+  }
+  const { calls, child, controller } = harness({ crossSelection })
+  let prevented = 0
+  let stopped = 0
+
+  controller.handleBeforeInput({
+    target: child,
+    inputType: 'insertText',
+    data: 'X',
+    isComposing: false,
+    preventDefault() { prevented++ },
+    stopImmediatePropagation() { stopped++ },
+  })
+
+  assert.deepEqual(replacements, [{ kind: 'text', text: 'X' }])
+  assert.equal(prevented, 1)
+  assert.equal(stopped, 1)
+  assert.equal(calls.length, 0)
+})
+
+test('ordinary beforeinput does not consume a collapsed single-field edit', () => {
+  const crossSelection = {
+    active: false,
+    replace() { throw new Error('inactive cross selection must not replace input') },
+  }
+  const { child, controller } = harness({ crossSelection })
+  let prevented = false
+
+  controller.handleBeforeInput({
+    target: child,
+    inputType: 'insertText',
+    data: 'X',
+    isComposing: false,
+    preventDefault() { prevented = true },
+  })
+
+  assert.equal(prevented, false)
+})
 
 test('plain text input keeps the browser-owned source projection in place', () => {
   const { calls, child, controller } = harness()
