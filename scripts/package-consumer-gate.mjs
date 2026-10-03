@@ -131,7 +131,7 @@ try {
   const domPurifyRoot = resolve(dirname(domPurifyEntry), '..')
   dependencyTarballs.push(await packInstalledDependency(domPurifyRoot, dependencyPackRoot))
 
-  const transitiveRuntimeDependencies = ['highlight.js', 'jszip', 'lie', 'immediate', 'pako', 'readable-stream', 'setimmediate', 'core-util-is', 'inherits', 'isarray', 'process-nextick-args', 'safe-buffer', 'string_decoder', 'util-deprecate']
+  const transitiveRuntimeDependencies = ['highlight.js', 'jszip', 'lie', 'immediate', 'pako', 'setimmediate']
   for (const dependency of transitiveRuntimeDependencies) {
     let entry
     try { entry = fileURLToPath(import.meta.resolve(dependency)) } catch { continue }
