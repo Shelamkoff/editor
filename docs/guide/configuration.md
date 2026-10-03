@@ -18,6 +18,7 @@ interface EditorConfig {
   injectStyles?: boolean
   theme?: 'light' | 'dark'
   minHeight?: number
+  tuning?: Record<string, unknown>
   locale?: Record<string, unknown>
   validationMode?: 'preserve' | 'strict'
   documentVersionPolicy?: 'preserve' | 'strict'
@@ -45,6 +46,7 @@ interface EditorConfig {
 | `injectStyles` | no | `true` | Acquire core and registered definition styles through the shared style registry. |
 | `theme` | no | `light` | Built-in theme: `light` or `dark`. |
 | `minHeight` | no | CSS default | Finite non-negative minimum editor height in pixels. |
+| `tuning` | no | `{}` | Interaction/runtime tuning that does not become document data. |
 | `locale` | no | built-in English | Flat message dictionary used by core and definitions. |
 | `validationMode` | no | `preserve` | Invalid known block/inline data is preserved inertly or rejected strictly. |
 | `documentVersionPolicy` | no | `preserve` | Incomplete/future document-version paths are preserved or rejected strictly. |
