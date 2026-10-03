@@ -301,8 +301,23 @@ export class ClipboardController {
       }
 
       if (this.#crossSelection?.active) {
-        // Composite target replacement is handled only by the canonical
-        // selection-fragment path. Never fall back to lossy HTML/plain data.
+        try {
+          const result = this.#runtime.replaceLogicalRangeWithClipboardParts(
+            this.#crossSelection.bookmark,
+            fragment.parts,
+          )
+          if (result) {
+            this.#crossSelection.clear()
+            this.#view.reconcileInteraction()
+            this.#view.setCurrent(result.blockId)
+            queueMicrotask(() => this.#view.focus(result.blockId, { offset: 'end' }))
+          }
+        } catch (error) {
+          this.#diagnostics?.emit('paste.failed', {
+            operation: 'clipboard.private-composite',
+            errorName: this.#diagnostics.errorName(error),
+          })
+        }
         return
       }
 
