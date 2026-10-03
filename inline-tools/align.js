@@ -1,144 +1,86 @@
 import { setTrustedHtml } from '../shared/sanitize/sanitizeHtml.js'
-import { el, closestBlock } from '../core/dom.js'
 import {
-  createSelectionPortBinding,
   ICON_ALIGN_LEFT,
   ICON_ALIGN_CENTER,
   ICON_ALIGN_RIGHT,
   ICON_ALIGN_JUSTIFY,
-  getSelectedBlockElements,
   createBackButton,
 } from './utils.js'
 
-const ELEMENT_NODE = 1
 const ALIGNMENTS = [
-  { value: '',        icon: ICON_ALIGN_LEFT,    key: 'left' },
-  { value: 'center',  icon: ICON_ALIGN_CENTER,  key: 'center' },
-  { value: 'right',   icon: ICON_ALIGN_RIGHT,   key: 'right' },
-  { value: 'justify', icon: ICON_ALIGN_JUSTIFY,  key: 'justify' },
+  { value: /** @type {'left'} */ ('left'), icon: ICON_ALIGN_LEFT, key: 'left' },
+  { value: /** @type {'center'} */ ('center'), icon: ICON_ALIGN_CENTER, key: 'center' },
+  { value: /** @type {'right'} */ ('right'), icon: ICON_ALIGN_RIGHT, key: 'right' },
+  { value: /** @type {'justify'} */ ('justify'), icon: ICON_ALIGN_JUSTIFY, key: 'justify' },
 ]
 
 /**
- * Create the toolbar control that applies one text alignment to every block
- * participating in the current selection.
+ * Create the model-first alignment control. Alignment belongs to block tunes,
+ * never to plugin DOM or data fields.
  *
  * @param {{ left: string, center: string, right: string, justify: string }} labels
  * @returns {import('./types').InlineTool}
  */
 export function createAlignTool(labels) {
-  const selection = createSelectionPortBinding()
-  const cbs = selection.port
-  /** @type {Document | null} */
-  let ownerDocument = null
-  /** @type {Record<string, { icon: string, title: string }>} */
   const alignMap = {
-    '':        { icon: ICON_ALIGN_LEFT,    title: labels.left },
-    'left':    { icon: ICON_ALIGN_LEFT,    title: labels.left },
-    'center':  { icon: ICON_ALIGN_CENTER,  title: labels.center },
-    'right':   { icon: ICON_ALIGN_RIGHT,   title: labels.right },
-    'justify': { icon: ICON_ALIGN_JUSTIFY, title: labels.justify },
+    left: { icon: ICON_ALIGN_LEFT, title: labels.left },
+    center: { icon: ICON_ALIGN_CENTER, title: labels.center },
+    right: { icon: ICON_ALIGN_RIGHT, title: labels.right },
+    justify: { icon: ICON_ALIGN_JUSTIFY, title: labels.justify },
+    mixed: { icon: ICON_ALIGN_LEFT, title: labels.left },
   }
-
-  /** @param {Range | null} [rangeHint] @returns {HTMLElement | null} */
-  function getBlockContent(rangeHint = null) {
-    const anchor = rangeHint?.startContainer
-      ?? ownerDocument?.defaultView?.getSelection?.()?.anchorNode
-      ?? null
-    const block = closestBlock(anchor)
-    const content = block?.firstElementChild
-    return content?.nodeType === ELEMENT_NODE ? /** @type {HTMLElement} */ (content) : null
-  }
-
-  /** @param {Range | null} [rangeHint] */
-  function getCurrentAlign(rangeHint = null) {
-    const block = getBlockContent(rangeHint)
-    return block?.style.textAlign || ''
-  }
-
-  /** @param {HTMLElement} blockRoot @param {string} value */
-  function setAlignment(blockRoot, value) {
-    blockRoot.style.textAlign = value
-  }
+  let lastAlign = /** @type {'left'|'center'|'right'|'justify'|'mixed'} */ ('left')
 
   return {
     type: 'align',
-    bindSelectionPort: selection.bind,
     title: labels.left,
     icon: ICON_ALIGN_LEFT,
     tag: 'div',
 
-    /** Dynamic icon - reflects current alignment */
     getIcon() {
-      const entry = alignMap[getCurrentAlign(cbs?.range)] ?? alignMap['']
-      return entry?.icon ?? ICON_ALIGN_LEFT
+      return alignMap[lastAlign]?.icon ?? ICON_ALIGN_LEFT
     },
 
-    /** Dynamic label for tooltip */
     getTitle() {
-      const entry = alignMap[getCurrentAlign(cbs?.range)] ?? alignMap['']
-      return entry?.title ?? labels.left
+      return alignMap[lastAlign]?.title ?? labels.left
     },
 
-    isActive(selection) {
-      const range = cbs?.range || selection?.range || null
-      if (range?.startContainer?.ownerDocument) ownerDocument = range.startContainer.ownerDocument
-      const align = getCurrentAlign(range)
-      return !!align && align !== 'left'
+    isActive() {
+      return lastAlign !== 'left' && lastAlign !== 'mixed'
     },
 
-    toggle() {
-      // no-op: opens renderActions
-    },
-
-    onMount(button) {
-      ownerDocument = button.ownerDocument
-    },
-
-    destroy() {
-      ownerDocument = null
-    },
+    toggle() {},
 
     renderActions(ctx) {
       const doc = ctx.range.startContainer.ownerDocument
-      ownerDocument = doc
-      const panel = el('div', 'oe-inline-toolbar__panel oe-inline-toolbar__align-panel', undefined, doc)
-
+      const panel = doc.createElement('div')
+      panel.className = 'oe-inline-toolbar__panel oe-inline-toolbar__align-panel'
       panel.appendChild(createBackButton(ctx))
 
-      const currentAlign = getCurrentAlign(cbs?.range || ctx.range)
-
+      lastAlign = ctx.getTextAlign()
       for (const alignment of ALIGNMENTS) {
-        const info = /** @type {{ icon: string, title: string }} */ (alignMap[alignment.value] ?? alignMap[''])
-        const btn = el('button', 'oe-inline-tool', { type: 'button' }, doc)
-        setTrustedHtml(btn, alignment.icon)
-        if (currentAlign === alignment.value || (!currentAlign && alignment.value === '')) {
-          btn.classList.add('oe-inline-tool--active')
-        }
-        btn.addEventListener('mouseenter', () => ctx.showTooltip(btn, info.title))
-        btn.addEventListener('mouseleave', () => ctx.hideTooltip())
-        btn.addEventListener('mousedown', (e) => { e.preventDefault(); e.stopPropagation() })
-        btn.addEventListener('click', (e) => {
-          e.preventDefault()
-          e.stopPropagation()
+        const info = alignMap[alignment.value]
+        const button = doc.createElement('button')
+        button.type = 'button'
+        button.className = 'oe-inline-tool'
+        setTrustedHtml(button, alignment.icon)
+        if (lastAlign === alignment.value) button.classList.add('oe-inline-tool--active')
+        button.addEventListener('mouseenter', () => ctx.showTooltip(button, info.title))
+        button.addEventListener('mouseleave', () => ctx.hideTooltip())
+        button.addEventListener('mousedown', event => {
+          event.preventDefault()
+          event.stopPropagation()
+        })
+        button.addEventListener('click', event => {
+          event.preventDefault()
+          event.stopPropagation()
+          const changed = ctx.setTextAlign(alignment.value === 'left' ? null : alignment.value)
+          if (changed) lastAlign = alignment.value
           ctx.restoreSelection()
-
-          ctx.mutate(() => {
-            const activeRange = cbs?.range || ctx.range
-            const crossBlocks = getSelectedBlockElements(cbs, activeRange)
-            if (crossBlocks) {
-              for (const blockEl of crossBlocks) {
-                setAlignment(blockEl, alignment.value)
-              }
-            } else {
-              const target = getBlockContent(activeRange)
-              if (target) setAlignment(target, alignment.value)
-            }
-          })
           ctx.close()
         })
-        panel.appendChild(btn)
+        panel.appendChild(button)
       }
-
       return panel
     },
   }
