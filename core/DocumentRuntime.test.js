@@ -118,6 +118,36 @@ test('preserve ingestion keeps invalid known and unknown blocks inert without re
   runtime.destroy()
 })
 
+test('validation observers may reject asynchronously without breaking preserved ingestion', async () => {
+  const diagnostics = []
+  const runtime = new DocumentRuntime({
+    registry: registry([paragraphDefinition()]),
+    validationMode: 'preserve',
+    diagnostics: {
+      enabled: false,
+      errorName(error) { return error?.name ?? 'UnknownError' },
+      emit(code, details) { diagnostics.push({ code, ...details }) },
+    },
+    async onValidationError() {
+      throw new TypeError('validation observer failed')
+    },
+    data: {
+      version: '2.0.0',
+      blocks: [{ id: 'bad', type: 'paragraph', data: { nope: true }, dataVersion: 1 }],
+    },
+  })
+
+  assert.equal(runtime.activation('bad').kind, 'preserved')
+  await Promise.resolve()
+  await Promise.resolve()
+  assert.equal(diagnostics.some(event => (
+    event.code === 'command.failed'
+    && event.operation === 'onValidationError'
+    && event.errorName === 'TypeError'
+  )), true)
+  runtime.destroy()
+})
+
 test('strict ingestion rejects invalid known data but still preserves unknown types inertly', () => {
   assert.throws(() => new DocumentRuntime({
     registry: registry([paragraphDefinition()]),
