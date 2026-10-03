@@ -13,7 +13,7 @@ test('declarations build in a standalone checkout with an arbitrary directory na
   t.after(() => rm(temporaryRoot, { recursive: true, force: true }))
   const checkout = join(temporaryRoot, 'custom editor name')
   await mkdir(checkout)
-  for (const path of ['core', 'plugin-kit', 'plugins', 'inline-tools', 'inline-plugins', 'locale', 'shared', 'renderer',
+  for (const path of ['core', 'plugin-kit', 'plugins', 'preset', 'inline-tools', 'inline-plugins', 'locale', 'shared', 'renderer',
     'scripts', 'package.json', 'index.d.ts', 'types.d.ts', 'I18n.d.ts']) {
     await cp(join(sourceRoot, path), join(checkout, path), { recursive: true })
   }
