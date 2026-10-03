@@ -1,4 +1,5 @@
 // @ts-check
+import { tableDataSchema } from '../../../shared/blockSchemas/table.js'
 
 const styles = new URL('./styles.css', import.meta.url).href
 
@@ -6,11 +7,12 @@ const styles = new URL('./styles.css', import.meta.url).href
  * Table block renderer
  * @param {string} classPrefix
  * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} _locale
- * @returns {import('../../types').BlockRenderer<import('../../types').TableBlock>}
+ * @returns {import('../../types').BlockRendererDefinition<import('../../types').TableBlock>}
  */
 export function createTableRenderer(classPrefix, _locale) {
   return {
     type: 'table',
+    schema: tableDataSchema,
     styles: [styles],
 
     /**
