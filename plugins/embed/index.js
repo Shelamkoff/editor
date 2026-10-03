@@ -1,5 +1,6 @@
 // @ts-check
-import { READ_ONLY_INTERACTIVE_ATTRIBUTE, insertTrustedHtml, setSanitizedHtml } from '../../plugin-kit/index.js'
+import { READ_ONLY_INTERACTIVE_ATTRIBUTE, setSanitizedHtml } from '../../plugin-kit/index.js'
+import { insertTrustedHtml } from '../../shared/sanitize/sanitizeHtml.js'
 import { embedDataSchema } from '../../shared/blockSchemas/embed.js'
 import { sanitizeMediaUrl } from '../../shared/sanitize/sanitizeUrl.js'
 import { isSupportedImageFile, triggerFileInput } from '../shared/fileInput.js'
