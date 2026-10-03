@@ -185,6 +185,7 @@ try {
 import { createEditor } from '@shelamkoff/rector'
 import * as rectorRoot from '@shelamkoff/rector'
 import { normalizeRichText, sanitizeHtml as sanitizePluginHtml } from '@shelamkoff/rector/plugin-kit'
+import * as pluginKit from '@shelamkoff/rector/plugin-kit'
 import {
   createAttachesPlugin,
   createCarouselPlugin,
@@ -256,6 +257,10 @@ function usePublicEditorApi(editor = createEditor({
 
 if ('DocumentSchema' in rectorRoot || 'uid' in rectorRoot || 'sanitizeHtml' in rectorRoot || 'escapeHtml' in rectorRoot) {
   throw new Error('root package leaked extension/internal utility exports')
+}
+
+if ('setTrustedHtml' in pluginKit || 'insertTrustedHtml' in pluginKit) {
+  throw new Error('plugin-kit leaked an unsanitized trusted HTML sink')
 }
 
 void [createEditor, normalizeRichText, sanitizePluginHtml, createParagraphPlugin, createPersonPlugin, configuredPlugins, createBlockPluginsAsync, mentionPlugin, createBoldTool, createDefaultInlineTools, createEditorRenderer, createDefaultRenderersAsync, EventBus, ColorPicker, parseColorInput, Carousel, Cropper, Expose, colorPickerStylesUrl, carouselStylesUrl, cropperStylesUrl, exposeStylesUrl, usePublicEditorApi]
