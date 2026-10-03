@@ -1,6 +1,5 @@
 import { setTrustedHtml } from '../../../shared/sanitize/sanitizeHtml.js'
 // @ts-check
-import { mapWarningTextFields as mapTextFields } from '../../../shared/mapTextFields.js'
 
 const styles = new URL('./styles.css', import.meta.url).href
 
@@ -17,7 +16,6 @@ export function createWarningRenderer(classPrefix, _locale) {
     return {
         type: 'warning',
         styles: [styles],
-        mapTextFields,
 
         /**
          * @param {import('../../types').WarningBlock} block
