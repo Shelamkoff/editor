@@ -187,13 +187,13 @@ for (const type of [
 for (const member of [
   'isActive(selection', 'toggle(selection', 'renderActions?', 'getIcon?',
   'getTitle?', 'onMount?', 'isDropdownOpen?', 'destroy?',
-  'InlineWidgetSchema', 'create(id', 'onTriggerQuery?', 'onTriggerKeydown?',
-  'onTriggerCancel?', 'paste?', 'editing?', 'insertion?',
+  'InlineWidgetSchema', 'create(id', 'onTriggerQuery(session)', 'onTriggerKeydown(event',
+  'onTriggerCancel()', 'paste?', 'editing?', 'insertion?',
 ]) {
   assert(inlineGuide.includes(member), `Inline guide does not document ${member}`)
   assert(inlineGuideRu.includes(member), `Russian inline guide does not document ${member}`)
 }
-assert(inlineGuide.includes('canonical insertion boundary') && inlineGuideRu.includes('канонической границей вставки'), 'The inline insertion boundary is not explained consistently')
+assert(inlineGuide.includes('canonical insertion boundary') && inlineGuideRu.includes('создаёт каноническую вставку'), 'The inline insertion boundary is not explained consistently')
 assert(configurationGuide.includes('onChange') && configurationGuide.includes('committed'), 'onChange lifecycle is not documented precisely')
 
 const manifest = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'))
