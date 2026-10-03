@@ -29,6 +29,7 @@ function harness(options = {}) {
     selection: options.selection,
     onCommit: options.onCommit,
     onDiagnostic: options.onDiagnostic,
+    diagnostics: options.diagnostics,
   })
   return { store, history, engine, projections }
 }
@@ -176,6 +177,61 @@ test('selection and observer failures are contained after canonical commit', () 
   assert.ok(diagnostics.includes('selection restore failed'))
 })
 
+
+test('structured diagnostics report command failure and slow operations once', async () => {
+  const events = []
+  let clock = 10
+  const diagnostics = {
+    enabled: true,
+    now() { return clock++ },
+    threshold(name) { return name === 'commandMs' ? 0 : Infinity },
+    errorName(error) { return error?.name ?? 'UnknownError' },
+    emit(code, details) { events.push({ code, ...details }) },
+  }
+  const raw = []
+  const { engine } = harness({
+    diagnostics,
+    onDiagnostic(error) { raw.push(error.message) },
+  })
+
+  assert.throws(() => engine.execute({ origin: 'user', name: 'broken-command' }, () => {
+    throw new TypeError('boom')
+  }), /boom/)
+
+  assert.equal(events.filter(event => event.code === 'command.failed').length, 1)
+  assert.equal(events.find(event => event.code === 'command.failed')?.operation, 'broken-command')
+  assert.equal(events.find(event => event.code === 'command.failed')?.errorName, 'TypeError')
+  assert.equal(events.filter(event => event.code === 'command.slow').length, 1)
+  assert.deepEqual(raw, ['boom'])
+})
+
+test('contained observer failures use structured diagnostics without affecting the commit', () => {
+  const events = []
+  const diagnostics = {
+    enabled: true,
+    now() { return 1 },
+    threshold() { return Infinity },
+    errorName(error) { return error?.name ?? 'UnknownError' },
+    emit(code, details) { events.push({ code, ...details }) },
+  }
+  const { store, engine } = harness({
+    diagnostics,
+    selection: {
+      capture() { throw new Error('selection probe') },
+    },
+  })
+
+  engine.execute({ origin: 'user', name: 'update' }, tx => {
+    tx.update('a', block('a', 'next'))
+  })
+
+  assert.equal(store.get('a').data.text, 'next')
+  assert.equal(events.some(event => (
+    event.code === 'command.failed'
+    && event.operation === 'transaction.observer'
+    && event.errorName === 'Error'
+  )), true)
+})
 
 test('single-block transaction never materializes the whole document', () => {
   const blocks = Array.from({ length: 1000 }, (_, index) => block(String(index)))
