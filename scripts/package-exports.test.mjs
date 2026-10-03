@@ -16,3 +16,9 @@ test('default inline tools live behind the explicit preset entry', () => {
     import: './dist/preset/index.js',
   })
 })
+
+
+test('default inline tools are exposed only through preset', () => {
+  assert.equal(manifest.exports['./inline-tools'], undefined)
+  assert.ok(manifest.exports['./preset'])
+})
