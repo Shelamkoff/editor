@@ -13,7 +13,7 @@ try {
     const renderer = createGalleryRenderer('audit', {})
     const wrapper = renderer.render({
       type: 'gallery',
-      data: {
+      dataVersion: 2, data: {
         images: [
           { url: pixel, caption: 'One' },
           { url: pixel, caption: 'Two' },

@@ -98,7 +98,7 @@ function chooseType(dropdown, type) {
 
 async function run() {
   const paragraph = mount([
-    { id: 'p', type: 'paragraph', data: { text: 'Alpha Beta Gamma' } },
+    { id: 'p', type: 'paragraph', dataVersion: 2, data: { text: 'Alpha Beta Gamma' } },
   ])
   const p = editable(paragraph, 'p')
   selectRange(p, 6, p, 10)
@@ -121,7 +121,7 @@ async function run() {
   paragraph.holder.remove()
 
   const paragraphBackward = mount([
-    { id: 'pb', type: 'paragraph', data: { text: 'Alpha Beta Gamma' } },
+    { id: 'pb', type: 'paragraph', dataVersion: 2, data: { text: 'Alpha Beta Gamma' } },
   ])
   const pb = editable(paragraphBackward, 'pb')
   selectBackward(pb, 10, pb, 6)
@@ -174,8 +174,8 @@ async function run() {
   list.holder.remove()
 
   const cross = mount([
-    { id: 'a', type: 'paragraph', data: { text: 'FIRST' } },
-    { id: 'b', type: 'paragraph', data: { text: 'SECOND' } },
+    { id: 'a', type: 'paragraph', dataVersion: 2, data: { text: 'FIRST' } },
+    { id: 'b', type: 'paragraph', dataVersion: 2, data: { text: 'SECOND' } },
   ])
   const a = editable(cross, 'a')
   const b = editable(cross, 'b')
@@ -197,8 +197,8 @@ async function run() {
   cross.holder.remove()
 
   const crossBackward = mount([
-    { id: 'ba', type: 'paragraph', data: { text: 'FIRST' } },
-    { id: 'bb', type: 'paragraph', data: { text: 'SECOND' } },
+    { id: 'ba', type: 'paragraph', dataVersion: 2, data: { text: 'FIRST' } },
+    { id: 'bb', type: 'paragraph', dataVersion: 2, data: { text: 'SECOND' } },
   ])
   const ba = editable(crossBackward, 'ba')
   const bb = editable(crossBackward, 'bb')
@@ -221,7 +221,7 @@ async function run() {
   crossBackward.holder.remove()
 
   const stale = mount([
-    { id: 's', type: 'paragraph', data: { text: 'KEEP' } },
+    { id: 's', type: 'paragraph', dataVersion: 2, data: { text: 'KEEP' } },
   ])
   const s = editable(stale, 's')
   selectRange(s, 0, s, 4)
@@ -249,8 +249,8 @@ async function run() {
   stale.holder.remove()
 
   const heading = mount([
-    { id: 'h1', type: 'heading', data: { text: 'FIRST', level: 2 } },
-    { id: 'h2', type: 'heading', data: { text: 'SECOND', level: 2 } },
+    { id: 'h1', type: 'heading', dataVersion: 2, data: { text: 'FIRST', level: 2 } },
+    { id: 'h2', type: 'heading', dataVersion: 2, data: { text: 'SECOND', level: 2 } },
   ])
   const h1 = editable(heading, 'h1')
   selectRange(h1, 0, h1, 5)

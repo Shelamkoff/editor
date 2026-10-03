@@ -12,7 +12,7 @@ try {
     const renderer = createPersonRenderer('audit', {})
     const wrapper = renderer.render({
       type: 'person',
-      data: {
+      dataVersion: 2, data: {
         persons: [{
           avatar: '',
           name: 'Ada',

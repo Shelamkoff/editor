@@ -3,7 +3,7 @@ import { createParagraphPlugin } from '../../../plugins/paragraph/index.js'
 import { test, make, equal, assert, pause } from './harness.js'
 
 const png = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADElEQVR42mNk+M/wHwAF/gL+Av7lWQAAAABJRU5ErkJggg=='
-const person = () => ({ id: 'person', type: 'person', data: { persons: [
+const person = () => ({ id: 'person', type: 'person', dataVersion: 2, data: { persons: [
   { avatar: '', name: 'Example', role: '', bio: '', links: [] },
 ] } })
 const file = () => new File([Uint8Array.from(atob(png), char => char.charCodeAt(0))], 'photo.png', { type: 'image/png' })

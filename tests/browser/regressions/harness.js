@@ -15,7 +15,7 @@ export function expectError(pattern) {
 }
 
 export const pause = (ms = 0) => new Promise(resolve => setTimeout(resolve, ms))
-export const para = (id, text, extra = {}) => ({ id, type: 'paragraph', data: { text }, ...extra })
+export const para = (id, text, extra = {}) => ({ id, type: 'paragraph', dataVersion: 2, data: { text }, ...extra })
 export function test(name, run) { cases.push({ name, run }) }
 export function assert(value, message = 'Assertion failed') { if (!value) throw new Error(message) }
 export function equal(actual, expected, message = '') {
