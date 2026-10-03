@@ -1,5 +1,6 @@
 import { editSelectedAncestors } from './selectedAncestors.js'
 import {
+  createSelectionPortBinding,
   getContentEditable,
   getWalkRoot,
   collectTextTargets,
@@ -41,10 +42,11 @@ function findBgSpan(rangeHint = null, ownerDocument = rangeHint?.startContainer?
 /**
  * Create the background color inline tool with a custom color picker dropdown.
  * @param {string} label
- * @param {import('./types').CrossBlockSelectionPort | null} [cbs]
  * @returns {import('./types').InlineTool}
  */
-export function createBgColorTool(label, cbs = null) {
+export function createBgColorTool(label) {
+  const selection = createSelectionPortBinding()
+  const cbs = selection.port
   let lastColor = '#ffffff'
 
   /** @type {HTMLElement | null} */
@@ -233,6 +235,7 @@ export function createBgColorTool(label, cbs = null) {
 
   return {
     type: 'bgcolor',
+    bindSelectionPort: selection.bind,
     title: label,
     icon: '<span class="oe-inline-tool__color-dot"></span>',
     tag: 'span',
