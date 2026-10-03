@@ -6,6 +6,7 @@ import {
   encodeClipboardFragment,
   transferBlockFromRecord,
 } from './ClipboardFragment.js'
+import { escapeHtml } from '../shared/sanitize/escapeHtml.js'
 import { toTrustedHtml } from '../shared/sanitize/trustedHtml.js'
 import { prepareHtmlImport } from './HtmlImportRouter.js'
 
@@ -372,10 +373,61 @@ export class ClipboardController {
     }
 
     if (this.#crossSelection?.active) {
-      const html = data.getData('text/html')
-      const text = data.getData('text/plain')
+      const html=data.getData('text/html')
+      const text=data.getData('text/plain')
+      const plan=this.#runtime.prepareLogicalClipboardSlice(this.#crossSelection.bookmark)
+      if(!plan)return
+
+      let parts=null
+      if(html){
+        try{
+          const imported=prepareHtmlImport(html,{
+            ownerDocument:this.#root.ownerDocument,
+            registry:this.#registry,
+            currentType:this.#runtime.get(plan.focus.blockId)?.type??null,
+            createId:prefix=>this.#runtime.createDataId(prefix),
+          })
+          if(imported?.kind==='inline'){
+            parts=[{kind:'rich-text',html:imported.html}]
+          }else if(imported?.kind==='blocks'){
+            parts=imported.blocks.map(block=>({
+              kind:'local-block',
+              type:block.type,
+              data:block.data,
+            }))
+          }
+        }catch(error){
+          event.preventDefault()
+          this.#diagnostics?.emit('paste.failed',{
+            operation:'clipboard.html-selection',
+            errorName:this.#diagnostics.errorName(error),
+          })
+          return
+        }
+      }
+      if(!parts&&text){
+        parts=[{
+          kind:'rich-text',
+          html:escapeHtml(text).replace(/\r\n?|\n/g,'<br>'),
+        }]
+      }
+      if(!parts?.length)return
+
       event.preventDefault()
-      this.#crossSelection.replace(html ? { kind: 'html', html } : { kind: 'text', text })
+      try{
+        const result=this.#runtime.replacePreparedClipboardSlice(plan,parts)
+        if(result){
+          this.#crossSelection.clear()
+          this.#view.reconcileInteraction()
+          this.#view.setCurrent(result.blockId)
+          queueMicrotask(()=>this.#view.focus(result.blockId,{offset:'end'}))
+        }
+      }catch(error){
+        this.#diagnostics?.emit('paste.failed',{
+          operation:'clipboard.selection-paste',
+          errorName:this.#diagnostics.errorName(error),
+        })
+      }
       return
     }
 
