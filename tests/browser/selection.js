@@ -163,7 +163,7 @@ async function run() {
   editable(copy, 0).dispatchEvent(copyEvent)
   const copiedText = copyData.getData('text/plain')
   assert(copyEvent.defaultPrevented, 'partial cross-block copy was not handled')
-  assert(copyData.getData('application/x-rector-editor') === '', 'partial copy exported whole-block MIME data')
+  assert(copyData.getData('application/x-rector-fragment') === '', 'partial cross-block copy exported unsupported private fragment')
   assert(copiedText.includes('one') && copiedText.includes('Bravo two') && copiedText.includes('Charlie'), 'partial copy lost selected text')
   assert(!copiedText.includes('Alpha ') && !copiedText.includes(' three'), 'partial copy included unselected text')
 
@@ -334,6 +334,86 @@ async function run() {
   assert(duplicateSaved.data.text.includes(`{{${remappedDuplicate}}}`), 'source duplicate token was not remapped')
   duplicateReference.editor.destroy()
 
+  const sourceClipboard = createHarness(sandbox, {
+    version: '2.0.0',
+    blocks: [{
+      id: 'copy-source',
+      type: 'paragraph',
+      dataVersion: 2,
+      data: { text: 'Source {{opaque}} literal {{literal}}' },
+      inline: {
+        opaque: { type: 'future-inline', dataVersion: 7, data: { owner: 'source' } },
+      },
+    }],
+  })
+  const sourceField = editable(sourceClipboard, 0)
+  selectAllText(sourceField)
+  const partialData = new DataTransfer()
+  const partialCopyEvent = new ClipboardEvent('copy', {
+    clipboardData: partialData,
+    bubbles: true,
+    cancelable: true,
+  })
+  sourceField.dispatchEvent(partialCopyEvent)
+  assert(partialCopyEvent.defaultPrevented, 'single-field canonical copy was not handled')
+  const privateText = partialData.getData('application/x-rector-fragment')
+  const privateParsed = JSON.parse(privateText)
+  assert(privateParsed.version === 2 && privateParsed.parts.length === 1, 'single-field private fragment is malformed')
+  assert(privateParsed.parts[0].kind === 'rich-text', 'single-field copy did not export rich-text part')
+  assert(privateParsed.parts[0].inline?.opaque?.data.owner === 'source', 'single-field copy lost opaque sidecar')
+  assert(privateParsed.parts[0].html.includes('{{literal}}'), 'single-field copy lost literal placeholder text')
+
+  const targetClipboard = createHarness(sandbox, {
+    version: '2.0.0',
+    blocks: [{
+      id: 'copy-target',
+      type: 'paragraph',
+      dataVersion: 2,
+      data: { text: 'Target {{opaque}} literal {{literal}} ' },
+      inline: {
+        opaque: { type: 'future-inline', dataVersion: 7, data: { owner: 'target' } },
+      },
+    }],
+  })
+  const targetField = editable(targetClipboard, 0)
+  setCaret(targetField, targetField.textContent.length)
+  const targetBefore = JSON.stringify(targetClipboard.editor.save())
+  const privatePaste = paste(targetField, {
+    'application/x-rector-fragment': privateText,
+    'text/html': '<b>lossy fallback must not be used</b>',
+    'text/plain': 'lossy fallback must not be used',
+  })
+  await delay()
+  assert(privatePaste.defaultPrevented, 'current private fragment paste was not owned')
+  const privateSaved = targetClipboard.editor.save().blocks[0]
+  const owners = Object.entries(privateSaved.inline ?? {}).map(([id, ref]) => [id, ref.data.owner])
+  assert(owners.some(([id, owner]) => id === 'opaque' && owner === 'target'), 'target inline identity was overwritten')
+  const sourceEntry = owners.find(([, owner]) => owner === 'source')
+  assert(sourceEntry && sourceEntry[0] !== 'opaque', 'source inline collision was not remapped')
+  assert(privateSaved.data.text.includes(`{{${sourceEntry[0]}}}`), 'remapped source reference token is missing')
+  assert(privateSaved.data.text.includes('{{literal}}'), 'literal placeholder text was rewritten during paste')
+  assert(!privateSaved.data.text.includes('lossy fallback'), 'standard fallback won over valid private MIME')
+  assert(targetClipboard.editor.undo() === true, 'private rich-text paste is not undoable')
+  await delay()
+  assert(JSON.stringify(targetClipboard.editor.save()) === targetBefore, 'private rich-text paste undo did not restore target')
+
+  setCaret(targetField, targetField.textContent.length)
+  const invalidBefore = JSON.stringify(targetClipboard.editor.save())
+  const invalidPrivate = paste(targetField, {
+    'application/x-rector-fragment': JSON.stringify({
+      version: 1,
+      parts: [{ kind: 'rich-text', html: 'old' }],
+    }),
+    'text/html': '<p>fallback html</p>',
+    'text/plain': 'fallback text',
+  })
+  await delay()
+  assert(invalidPrivate.defaultPrevented, 'invalid private MIME was not rejected explicitly')
+  assert(JSON.stringify(targetClipboard.editor.save()) === invalidBefore, 'invalid private MIME fell back to standard representations')
+
+  sourceClipboard.editor.destroy()
+  targetClipboard.editor.destroy()
+
   const all = createHarness(sandbox)
   const allFirst = editable(all, 0)
   selectAllText(allFirst)
@@ -344,8 +424,10 @@ async function run() {
   const wholeCopy = new DataTransfer()
   const wholeCopyEvent = new ClipboardEvent('copy', { clipboardData: wholeCopy, bubbles: true, cancelable: true })
   allFirst.dispatchEvent(wholeCopyEvent)
-  const internal = JSON.parse(wholeCopy.getData('application/x-rector-editor'))
-  assert(Array.isArray(internal) && internal.length === 3, 'whole-block copy lost internal MIME data')
+  const internal = JSON.parse(wholeCopy.getData('application/x-rector-fragment'))
+  assert(internal.version === 2 && internal.parts.length === 3, 'whole-block copy lost current private fragment')
+  assert(internal.parts.every(part => part.kind === 'block'), 'whole-block fragment contains non-block parts')
+  assert(internal.parts.every(part => !Object.hasOwn(part.block, 'id') && !Object.hasOwn(part.block, 'revision')), 'whole-block fragment leaked producer identity')
   const wholeCut = new DataTransfer()
   allFirst.dispatchEvent(new ClipboardEvent('cut', { clipboardData: wholeCut, bubbles: true, cancelable: true }))
   await delay()
@@ -377,7 +459,7 @@ async function run() {
   assert(runtimeErrors.length === 0, `browser runtime errors: ${runtimeErrors.join('\n')}`)
   sandbox.replaceChildren()
   return {
-    crossBlockOperations: ['copy', 'cut', 'paste', 'Backspace', 'Delete', 'outside clear'],
+    crossBlockOperations: ['copy', 'cut', 'paste', 'private rich-text roundtrip', 'Backspace', 'Delete', 'outside clear'],
     structuralKeys: ['Enter', 'Backspace merge', 'Delete merge', 'inline collision merge', 'Ctrl+A'],
     focusKeys: ['ArrowUp', 'ArrowDown', 'Tab', 'Shift+Tab'],
     multiField: true,
