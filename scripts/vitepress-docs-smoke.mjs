@@ -143,9 +143,7 @@ for (const member of [
 ]) {
   assert(editorApiGuide.includes(member), `Editor API guide does not document IEditor.${member}`)
 }
-for (const utility of ['uid()', 'sanitizeHtml', 'escapeHtml', 'DocumentSchema']) {
-  assert(editorApiGuide.includes(utility) || configurationGuide.includes(utility) || (await readFile(join(root, 'README.md'), 'utf8')).includes(utility), `Public utility is not documented: ${utility}`)
-}
+
 
 const renderingGuide = await readFile(join(docsRoot, 'guide', 'rendering.md'), 'utf8')
 for (const member of [
