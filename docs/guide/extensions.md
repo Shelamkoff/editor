@@ -41,7 +41,8 @@ A `BlockInstance` exposes `element`, `read()`, optional `update(next, previous)`
 | `ownerDocument` | Create DOM and browser objects in the editor's realm. |
 | `signal` | Abort signal for this block occurrence. |
 | `getData()` | Read current canonical block data. |
-| `updateData(producer)` | Commit a model-first block-data transaction. |
+| `updateData(producer)` | Commit a synchronous model-first block-data transaction. |
+| `beginTask()` | Create revocable authority for one asynchronous persisted result. |
 | `commitDomMutation(operation)` | Commit an unavoidable plugin-owned DOM mutation through canonical history. |
 | `requestSplit()` | Ask core structural editing to split the block. |
 | `requestExit()` | Ask core to exit an empty structured block. |
@@ -138,7 +139,7 @@ export function createCalloutPlugin() {
 
 Definitions are immutable and reusable. Per-editor timers, caches and subscriptions belong to `BlockPluginRuntime`; per-block listeners, observers, requests and object URLs belong to `BlockInstance` and its `signal`.
 
-Never persist DOM as data. Explicit controls should call `updateData()`; native editable-field input is reconciled by core. Async results must verify their signal/lifetime before committing.
+Never persist DOM as data. Synchronous explicit controls should call `updateData()`; native editable-field input is reconciled by core. For asynchronous work that later changes persisted data, capture `const task = context.beginTask()`, pass `task.signal` to the external operation, and finish with `task.commit(current => next)`. The producer runs only while the same instance authority is still live and receives the latest committed data. Replacement/destroy, a generation change, or `readOnly: false → true` revokes the task; returning to editable mode never revives an older task. `cancel()` is idempotent. Presentation-only requests that do not persist document data may use the ordinary lifecycle `signal`.
 
 ## Renderer pairing
 
