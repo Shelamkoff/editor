@@ -1,6 +1,5 @@
 // @ts-check
 import { createVersionedDataSchema } from '../versionedDataSchema.js'
-import { mapHeadingTextFields } from '../mapTextFields.js'
 
 /**
  * @param {any} input
