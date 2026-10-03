@@ -4,7 +4,7 @@ import type {
     EditorOutputData,
 } from '../shared/documentTypes.js'
 import type { LocaleValue } from '../shared/localeTypes.js'
-import type { InlineWidgetSchema } from '../plugin-kit/types.js'
+import type { BlockDataSchema, InlineWidgetSchema } from '../plugin-kit/types.js'
 export type { LocaleValue, PluralForms } from '../shared/localeTypes.js'
 
 /**
@@ -431,12 +431,16 @@ export interface BlockRenderer<T extends OutputBlockData = OutputBlockData> {
     /** Release observers, global listeners, and third-party instances. */
     destroy?(element: HTMLElement): void
     /**
-     * Symmetric with `BlockPlugin.mapTextFields`. Walk the block's
-     * HTML-bearing fields and apply `transform` to each. The renderer
-     * pipeline calls this to expand `{{<id>}}` placeholder tokens into
-     * full widget DOM before invoking `render`. Omit for non-text blocks.
+     * Walk HTML-bearing fields and apply `transform` before static rendering.
+     * Canonical field identity and migration remain owned by the schema.
      */
     mapTextFields?(data: T['data'], transform: (html: string) => string): void
+}
+
+/** Public renderer registration bound to the same canonical schema as editing. */
+export interface BlockRendererDefinition<T extends OutputBlockData = OutputBlockData>
+    extends BlockRenderer<T> {
+    readonly schema: BlockDataSchema<any>
 }
 
 export interface RendererConfig {
