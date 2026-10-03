@@ -1,4 +1,5 @@
 // @ts-check
+import { imageDataSchema } from '../../../shared/blockSchemas/image.js'
 import { setSafeUrlAttribute } from '../../../shared/sanitize/sanitizeUrl.js'
 
 const styles = new URL('./styles.css', import.meta.url).href
@@ -40,11 +41,12 @@ function applyInlineStyles(img, figure, styles, expanded, withBackground) {
  * Image block renderer
  * @param {string} classPrefix
  * @param {Record<string, import('../../../shared/localeTypes').LocaleValue>} _locale
- * @returns {import('../../types').BlockRenderer<import('../../types').ImageBlock>}
+ * @returns {import('../../types').BlockRendererDefinition<import('../../types').ImageBlock>}
  */
 export function createImageRenderer(classPrefix, _locale) {
   return {
     type: 'image',
+    schema: imageDataSchema,
     styles: [styles],
 
     /**
