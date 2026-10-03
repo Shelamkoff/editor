@@ -213,16 +213,8 @@ export function createAttachesRenderer(classPrefix, locale) {
     styles: [styles],
 
     render(block, _parseInline, context = { ownerDocument: globalThis.document }) {
-      /** @type {Array<{url: string, name: string, size: number, extension: string}>} */
-      let files
-      if (block.data.file && !block.data.files) {
-        const f = /** @type {any} */ (block.data.file)
-        files = f.url ? [f] : []
-      } else {
-        files = /** @type {any[]} */ (block.data.files || []).filter(f => f?.url)
-      }
-
-      const variant = /** @type {string} */ (/** @type {any} */ (block.data).variant) || 'f'
+      const files = block.data.files.filter(file => file.url)
+      const variant = block.data.variant
 
       const ownerDocument = context.ownerDocument
       const wrapper = ownerDocument.createElement('div')
