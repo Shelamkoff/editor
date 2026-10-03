@@ -16,7 +16,7 @@ interface EditorConfig {
   readOnly?: boolean
   autofocus?: boolean
   injectStyles?: boolean
-  theme?: 'light' | 'dark'
+  theme?: string
   minHeight?: number
   locale?: Record<string, unknown>
   validationMode?: 'preserve' | 'strict'
@@ -53,7 +53,7 @@ interface EditorConfig {
 | `readOnly` | no | `false` | Initial interaction mode. User/document mutations are disabled while read-only. |
 | `autofocus` | no | `false` | Focus the first editable field after successful creation. |
 | `injectStyles` | no | `true` | Acquire core and registered definition styles through the shared style registry. |
-| `theme` | no | `light` | Built-in theme: `light` or `dark`. |
+| `theme` | no | `dark` | Non-empty theme identifier. `light` and `dark` are built in; custom `oe-theme-*` classes may be styled by the host. |
 | `minHeight` | no | CSS default | Finite non-negative minimum editor height in pixels. |
 | `locale` | no | built-in English | Flat message dictionary used by core and definitions. |
 | `validationMode` | no | `preserve` | Invalid known block/inline data is preserved inertly or rejected strictly. |
