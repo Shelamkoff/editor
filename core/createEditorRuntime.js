@@ -28,6 +28,7 @@ import { BlockToolbar } from './BlockToolbar.js'
 import { ClipboardController } from './ClipboardController.js'
 import { DragController } from './DragController.js'
 import { InlineToolbar } from './InlineToolbar.js'
+import { Diagnostics } from './Diagnostics.js'
 
 const CORE_STYLE_URLS=Object.freeze([
   new URL('./themes/variables.css',import.meta.url).href,
@@ -48,8 +49,11 @@ function applyReadOnly(root,value){
   else root.removeAttribute('aria-readonly')
 }
 
-function emitSafe(events,type,payload){
-  try{events.emit(type,payload)}catch(error){console.warn('[Editor] event observer failed',error)}
+function emitSafe(events,type,payload,onError){
+  try{events.emit(type,payload)}catch(error){
+    if(typeof onError==='function')onError(error)
+    else console.warn('[Editor] event observer failed',error)
+  }
 }
 
 function snapshotDenseArray(value,label,{required=false}={}){
@@ -94,8 +98,11 @@ function snapshotEditorConfig(input){
   if(config.locale!==undefined&&(config.locale===null||typeof config.locale!=='object'||Array.isArray(config.locale))){
     throw new TypeError('createEditor() locale must be an object')
   }
-  for(const field of ['onReady','onChange','onValidationError']){
+  for(const field of ['onReady','onChange','onValidationError','onDiagnostic']){
     if(config[field]!==undefined&&typeof config[field]!=='function')throw new TypeError(`createEditor() ${field} must be a function`)
+  }
+  if(config.diagnosticThresholds!==undefined&&(config.diagnosticThresholds===null||typeof config.diagnosticThresholds!=='object'||Array.isArray(config.diagnosticThresholds))){
+    throw new TypeError('createEditor() diagnosticThresholds must be an object')
   }
   if(config.theme!==undefined&&config.theme!=='light'&&config.theme!=='dark'){
     throw new TypeError('createEditor() theme must be "light" or "dark"')
@@ -103,8 +110,16 @@ function snapshotEditorConfig(input){
   if(config.minHeight!==undefined&&(!Number.isFinite(config.minHeight)||config.minHeight<0)){
     throw new RangeError('createEditor() minHeight must be a finite number greater than or equal to 0')
   }
-  if(config.changeDebounceMs!==undefined&&(!Number.isFinite(config.changeDebounceMs)||config.changeDebounceMs<0)){
-    throw new RangeError('createEditor() changeDebounceMs must be a finite number greater than or equal to 0')
+  for(const field of ['changeDebounceMs','historyCoalesceMs','dragThreshold']){
+    if(config[field]!==undefined&&(!Number.isFinite(config[field])||config[field]<0)){
+      throw new RangeError(`createEditor() ${field} must be a finite number greater than or equal to 0`)
+    }
+  }
+  if(config.historyMaxStack!==undefined&&(!Number.isSafeInteger(config.historyMaxStack)||config.historyMaxStack<1)){
+    throw new RangeError('createEditor() historyMaxStack must be a positive safe integer')
+  }
+  if(config.toolboxFilterThreshold!==undefined&&(!Number.isSafeInteger(config.toolboxFilterThreshold)||config.toolboxFilterThreshold<0)){
+    throw new RangeError('createEditor() toolboxFilterThreshold must be a non-negative safe integer')
   }
   if(config.validationMode!==undefined&&!['preserve','strict'].includes(config.validationMode)){
     throw new TypeError('createEditor() validationMode must be "preserve" or "strict"')
@@ -138,11 +153,22 @@ function snapshotEditorConfig(input){
  *   onReady?: (editor:any)=>void|Promise<void>,
  *   onChange?: (document:any)=>void|Promise<void>,
  *   onValidationError?: (issue:any)=>void,
+ *   onDiagnostic?: (diagnostic:import('./publicTypes').EditorDiagnostic)=>void|Promise<void>,
+ *   diagnosticThresholds?: Partial<import('./publicTypes').DiagnosticThresholds>,
  *   changeDebounceMs?: number,
+ *   historyMaxStack?: number,
+ *   historyCoalesceMs?: number,
+ *   dragThreshold?: number,
+ *   toolboxFilterThreshold?: number,
  * }} input
  */
 export function createEditorRuntime(input){
   const config=snapshotEditorConfig(input)
+  const diagnostics=new Diagnostics(config.onDiagnostic,config.diagnosticThresholds)
+  const reportDiagnostic=(code,operation,error)=>diagnostics.emit(code,{
+    operation,
+    errorName:diagnostics.errorName(error),
+  })
   const holder=config.holder
   const HTMLElementCtor=holder?.ownerDocument?.defaultView?.HTMLElement??globalThis.HTMLElement
   if(!HTMLElementCtor||!(holder instanceof HTMLElementCtor))throw new TypeError('createEditor() requires an HTMLElement holder')
@@ -165,6 +191,7 @@ export function createEditorRuntime(input){
   holder.replaceChildren(root)
 
   const events=new EventBus()
+  const emit=(type,payload)=>emitSafe(events,type,payload,error=>reportDiagnostic('command.failed',`event:${type}`,error))
   const i18n=initI18n(config)
   const configuredInlineTools=config.inlineTools??[]
   let runtime
@@ -176,6 +203,7 @@ export function createEditorRuntime(input){
   let toolbar=null
   let clipboard=null
   let destroyed=false
+  let ready=false
 
   const popup=lifecycle.register(new InlinePopupHost({
     root,
@@ -222,19 +250,21 @@ export function createEditorRuntime(input){
     createId:prefix=>prefix+'-'+uid(),
     selection:selectionPort,
     onValidationError:config.onValidationError,
+    history:{maxStack:config.historyMaxStack??100},
+    onDiagnostic:error=>reportDiagnostic('command.failed','transaction',error),
     requestSplit:id=>keyboardRouter?.split(id),
     requestExit:id=>keyboardRouter?.exit(id),
     onCommit:event=>{
       interaction?.reconcile()
       clipboard?.handleTransaction(event)
       notifier?.schedule()
-      emitSafe(events,'transaction:committed',event)
-      emitSafe(events,'document:changed',{
+      emit('transaction:committed',event)
+      emit('document:changed',{
         origin:event.origin,
         action:event.action,
         changes:event.record?.changes??[],
       })
-      emitSafe(events,'history:changed',{canUndo:runtime?.canUndo===true,canRedo:runtime?.canRedo===true})
+      emit('history:changed',{canUndo:runtime?.canUndo===true,canRedo:runtime?.canRedo===true})
     },
     projectorFactory:({activationResolver,contextFactory})=>{
       reconciler=new BlockReconciler({
@@ -250,7 +280,20 @@ export function createEditorRuntime(input){
   }))
 
   logicalSelection=new LogicalSelection({root,reconciler})
-  interaction=new InteractionState({runtime,reconciler})
+  interaction=new InteractionState({
+    runtime,
+    reconciler,
+    onChange:change=>{
+      if(change.previousCurrentId!==change.currentId){
+        emit('currentBlock:changed',{currentId:change.currentId})
+      }
+      const previous=change.previousSelectedIds
+      const selected=change.selectedIds
+      if(previous.length!==selected.length||previous.some((id,index)=>id!==selected[index])){
+        emit('selection:changed',{selectedIds:selected})
+      }
+    },
+  })
   view=new EditorViewModel({runtime,reconciler,interaction,selection:logicalSelection})
   const crossSelection=lifecycle.register(new SelectionController({root,runtime,reconciler,view}))
   const inlineWidgetInput=lifecycle.register(new InlineWidgetInputController({
@@ -260,7 +303,12 @@ export function createEditorRuntime(input){
     projection:inlineProjection,
     selection:logicalSelection,
   }))
-  const nativeInput=lifecycle.register(new NativeInputController({root,runtime,reconciler}))
+  const nativeInput=lifecycle.register(new NativeInputController({
+    root,
+    runtime,
+    reconciler,
+    coalesceMs:config.historyCoalesceMs??300,
+  }))
   let triggerController=null
   const inlineCommands=new InlineCommandController({
     runtime,
@@ -293,6 +341,7 @@ export function createEditorRuntime(input){
       const translated=i18n.t(key)
       return translated===key?fallback:translated
     },
+    filterThreshold:config.toolboxFilterThreshold??7,
   }))
 
   clipboard=lifecycle.register(new ClipboardController({
@@ -326,6 +375,7 @@ export function createEditorRuntime(input){
     runtime,
     view,
     handle:toolbar.dragHandle,
+    threshold:config.dragThreshold??5,
   }))
 
   const inlineToolbar=lifecycle.register(new InlineToolbar({
@@ -365,6 +415,7 @@ export function createEditorRuntime(input){
     config.onChange,
     Number.isFinite(config.changeDebounceMs)?Math.max(0,Number(config.changeDebounceMs)):250,
     document.defaultView??globalThis,
+    error=>reportDiagnostic('save.failed','onChange',error),
   ))
 
   applyReadOnly(root,runtime.readOnly)
@@ -374,8 +425,9 @@ export function createEditorRuntime(input){
   const destroy=()=>{
     if(destroyed)return
     destroyed=true
+    ready=false
     lifecycle.destroy()
-    emitSafe(events,'editor:destroyed')
+    emit('editor:destroyed')
   }
   const setReadOnly=value=>{
     runtime.setReadOnly(value)
@@ -385,7 +437,7 @@ export function createEditorRuntime(input){
     inlineToolbar.setReadOnly(runtime.readOnly)
     nativeInput.setReadOnly(runtime.readOnly)
     emitSafe(events,'readOnly:changed',{readOnly:runtime.readOnly})
-    emitSafe(events,'history:changed',{canUndo:runtime.canUndo,canRedo:runtime.canRedo})
+    emit('history:changed',{canUndo:runtime.canUndo,canRedo:runtime.canRedo})
   }
 
   editor=new EditorHandle({
@@ -396,6 +448,7 @@ export function createEditorRuntime(input){
     setReadOnly,
     inlineCommands,
     subscribe:(type,listener)=>events.on(type,listener),
+    isReady:()=>ready,
     isDestroyed:()=>destroyed,
   })
 
@@ -403,13 +456,15 @@ export function createEditorRuntime(input){
 
   queueMicrotask(()=>{
     if(destroyed)return
-    emitSafe(events,'editor:ready')
-    invokeObserver(config.onReady,[editor],error=>console.warn('[Editor] onReady observer failed:',error))
+    ready=true
+    emit('editor:ready')
+    invokeObserver(config.onReady,[editor],error=>reportDiagnostic('command.failed','onReady',error))
   })
 
   return editor
   }catch(error){
     lifecycle.destroy()
+    reportDiagnostic('editor.create.failed','createEditor',error)
     throw error
   }
 }
