@@ -113,7 +113,8 @@ for (const option of [
   'documentVersionPolicy', 'readOnly', 'placeholder', 'autofocus', 'minHeight',
   'defaultBlock', 'locale', 'onChange', 'onReady', 'validationMode',
   'changeDebounceMs', 'historyMaxStack', 'historyCoalesceMs', 'dragThreshold',
-  'toolboxFilterThreshold', 'onValidationError', 'onDiagnostic',
+  'toolboxFilterThreshold', 'mobileBreakpoint', 'blockInsertAnimationMs',
+  'blockMoveAnimationMs', 'blockRemoveAnimationMs', 'onValidationError', 'onDiagnostic',
   'diagnosticThresholds', 'theme',
 ]) {
   assert(configurationGuide.includes(option), `Configuration guide does not document EditorConfig.${option}`)
