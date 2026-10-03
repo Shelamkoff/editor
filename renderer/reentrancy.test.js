@@ -62,6 +62,20 @@ globalThis.document = {
 }
 globalThis.HTMLElement = FakeElement
 
+const passthroughSchema = Object.freeze({
+  currentVersion: 1,
+  legacyVersion: 1,
+  createDefault: () => ({}),
+  decode({ data }) {
+    if (!data || typeof data !== 'object' || Array.isArray(data)) throw new TypeError('data must be an object')
+    return { dataVersion: 1, data: { ...data } }
+  },
+  encode(data) {
+    if (!data || typeof data !== 'object' || Array.isArray(data)) throw new TypeError('data must be an object')
+    return { dataVersion: 1, data: { ...data } }
+  },
+})
+
 
 for (const kind of ['block', 'document', 'container']) {
   test(`destroy(${kind}) detaches ownership before calling a reentrant disposer`, async () => {
@@ -70,6 +84,7 @@ for (const kind of ['block', 'document', 'container']) {
     let target
     let calls = 0
     renderer.registerRenderer({
+      schema: passthroughSchema,
       type: 'dispose-probe',
       render() { return document.createElement('article') },
       destroy() {
@@ -117,6 +132,7 @@ test('full destroy tolerates sibling disposal and preserves newly created indepe
   let second
   let replacement
   renderer.registerRenderer({
+    schema: passthroughSchema,
     type: 'owner',
     render(block) { const element = document.createElement('article'); element.textContent = block.id; return element },
     destroy(element) {
@@ -142,6 +158,7 @@ test('renderTo cannot remount a container from its disposer', async () => {
   const container = document.createElement('main')
   let rejected = false
   renderer.registerRenderer({
+    schema: passthroughSchema,
     type: 'owner', render() { return document.createElement('article') },
     destroy() {
       try { renderer.renderTo({ blocks: [] }, container) }
