@@ -26,16 +26,21 @@ export class BlockToolbar {
   #settingsButton
   #currentId = null
   #bookmark = null
+  #filterThreshold
   #destroyed = false
   #documentClick
 
-  constructor({ root, runtime, registry, view, selection, inlineCommands, translate, t }) {
+  constructor({ root, runtime, registry, view, selection, inlineCommands, translate, t, filterThreshold = 7 }) {
+    if (!Number.isSafeInteger(filterThreshold) || filterThreshold < 0) {
+      throw new RangeError('Toolbox filter threshold must be a non-negative safe integer')
+    }
     this.#root = root
     this.#runtime = runtime
     this.#registry = registry
     this.#view = view
     this.#selection = selection
     this.#inlineCommands = inlineCommands
+    this.#filterThreshold = filterThreshold
     this.#translate = typeof translate === 'function' ? translate : (_key, fallback = '') => fallback
     this.#t = typeof t === 'function' ? t : (_key, fallback = '') => fallback
 
@@ -181,7 +186,7 @@ export class BlockToolbar {
     const document = this.#root.ownerDocument
     this.#toolbox.replaceChildren()
     const count = this.#registry.blockTypes.length + this.#registry.inlineTypes.length
-    if (count > 7) {
+    if (count > this.#filterThreshold) {
       const filter = document.createElement('li')
       filter.className = 'oe-toolbox__filter'
       filter.setAttribute('role', 'none')
