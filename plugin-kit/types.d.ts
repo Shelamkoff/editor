@@ -134,6 +134,7 @@ export interface BlockCapabilities<D extends Record<string, unknown>> {
   formatting?: FormattingCapability
   merge?: MergeCapability<D>
   conversion?: ConversionCapability<D>
+  htmlImport?: HtmlImportCapability<D>
   selectionSlice?: SelectionSliceCapability<D>
   inlineControls?: SettingsActionCapability<D>
   settings?: SettingsCapability<D>
@@ -145,6 +146,16 @@ export interface BlockCapabilities<D extends Record<string, unknown>> {
 export interface LogicalFieldPoint {
   readonly fieldKey: string
   readonly offset: number
+}
+
+export interface HtmlImportContext extends DataOperationContext {
+  readonly ownerDocument: Document
+  serializeRichText(node: Node): string
+}
+
+export interface HtmlImportCapability<D extends Record<string, unknown>> {
+  matchesRoot(element: Element): boolean
+  importRoot(element: Element, context: HtmlImportContext): D
 }
 
 export interface SelectionSliceContext extends DataOperationContext {
@@ -382,7 +393,6 @@ export type SettingsCapability<D extends Record<string, unknown>> =
 
 export type PasteInput =
   | { kind: 'text', text: string }
-  | { kind: 'html', html: string }
   | { kind: 'file', file: File }
 
 export interface PasteResolveContext extends DataOperationContext {
