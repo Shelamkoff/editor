@@ -1,0 +1,88 @@
+file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149
+    if (result.status === 'fail') throw new Error(`History matrix failed: ${result.summary}`)
+                                        ^
+
+Error: History matrix failed: [
+  {
+    "name": "Embed Settings edits title and its visible overlay with one history step",
+    "status": "PASS"
+  },
+  {
+    "name": "Embed Settings edits duration and its visible overlay with one history step",
+    "status": "PASS"
+  },
+  {
+    "name": "Carousel inline Settings changes thumbnails visibly and preserves native history",
+    "status": "PASS"
+  },
+  {
+    "name": "Image inline Settings edits actual dimensions and preserves one native Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Image Settings fits a short narrow viewport and keeps every input inside its panel",
+    "status": "PASS"
+  },
+  {
+    "name": "Gallery Settings fits a short narrow viewport and keeps every input inside its panel",
+    "status": "PASS"
+  },
+  {
+    "name": "Carousel Settings fits a short narrow viewport and keeps every input inside its panel",
+    "status": "PASS"
+  },
+  {
+    "name": "Embed Settings fits a short narrow viewport and keeps every input inside its panel",
+    "status": "PASS"
+  },
+  {
+    "name": "Image Settings stays inside a short viewport and its styled switches keep native history",
+    "status": "PASS"
+  },
+  {
+    "name": "Gallery Settings closes with native Escape immediately after mouse opening",
+    "status": "PASS"
+  },
+  {
+    "name": "Carousel Settings closes with native Escape immediately after mouse opening",
+    "status": "FAIL",
+    "error": "Error: Mouse-opened settings ignore keyboard Escape\nexpected \"false\", got \"true\"\n    at equal (http://127.0.0.1:51516/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:51516/tests/browser/native-plugin-media.js:408:3\n    at async run (http://127.0.0.1:51516/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:51516/tests/browser/native-plugin-media.js:484:1"
+  },
+  {
+    "name": "Attaches Settings closes with native Escape immediately after mouse opening",
+    "status": "FAIL",
+    "error": "Error: Mouse-opened settings ignore keyboard Escape\nexpected \"false\", got \"true\"\n    at equal (http://127.0.0.1:51516/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:51516/tests/browser/native-plugin-media.js:408:3\n    at async run (http://127.0.0.1:51516/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:51516/tests/browser/native-plugin-media.js:484:1"
+  },
+  {
+    "name": "Image open Settings follows viewport resizing without changing author content",
+    "status": "FAIL",
+    "error": "Error: Open Settings escapes the resized viewport: {\"x\":52.9375,\"y\":365,\"width\":288,\"height\":384,\"top\":365,\"right\":340.9375,\"bottom\":749,\"left\":52.9375}\n    at assert (http://127.0.0.1:51516/tests/browser/regressions/harness.js:20:81)\n    at http://127.0.0.1:51516/tests/browser/native-plugin-media.js:429:5\n    at async run (http://127.0.0.1:51516/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:51516/tests/browser/native-plugin-media.js:484:1"
+  },
+  {
+    "name": "Carousel open Settings follows viewport resizing without changing author content",
+    "status": "FAIL",
+    "error": "Error: Open Settings escapes the resized viewport: {\"x\":24,\"y\":-67.4375,\"width\":288,\"height\":340.4375,\"top\":-67.4375,\"right\":312,\"bottom\":273,\"left\":24}\n    at assert (http://127.0.0.1:51516/tests/browser/regressions/harness.js:20:81)\n    at http://127.0.0.1:51516/tests/browser/native-plugin-media.js:429:5\n    at async run (http://127.0.0.1:51516/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:51516/tests/browser/native-plugin-media.js:484:1"
+  },
+  {
+    "name": "Embed open Settings follows viewport resizing without changing author content",
+    "status": "FAIL",
+    "error": "Error: Open Settings escapes the resized viewport: {\"x\":113.734375,\"y\":341.5,\"width\":256,\"height\":66,\"top\":341.5,\"right\":369.734375,\"bottom\":407.5,\"left\":113.734375}\n    at assert (http://127.0.0.1:51516/tests/browser/regressions/harness.js:20:81)\n    at http://127.0.0.1:51516/tests/browser/native-plugin-media.js:429:5\n    at async run (http://127.0.0.1:51516/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:51516/tests/browser/native-plugin-media.js:484:1"
+  },
+  {
+    "name": "Attaches open Settings follows viewport resizing without changing author content",
+    "status": "PASS"
+  },
+  {
+    "name": "Gallery open Settings follows viewport resizing without changing author content",
+    "status": "PASS"
+  },
+  {
+    "name": "Gallery Settings remains clickable above a previously focused neighboring block",
+    "status": "PASS"
+  }
+]
+    at waitForHistoryMatrix (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149:41)
+    at async runNativePage (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:273:30)
+    at async file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:310:48
+
+Node.js v24.9.0

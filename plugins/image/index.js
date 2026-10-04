@@ -14,7 +14,7 @@ import { CSS } from './css.js'
 import { ICON, ICON_SELECT, ICON_SETTINGS, ICON_REPLACE, ICON_TRASH, ICON_UPLOAD, ICON_URL, ICON_BACK, ICON_CHEVRON_RIGHT } from './icons.js'
 import { createMediaDropzone } from '../shared/mediaDropzone.js'
 import { createPluginLayer } from '../shared/layer.js'
-import { positionPluginPanel } from '../shared/positionPluginPanel.js'
+import { createPluginPanelPositioner } from '../shared/positionPluginPanel.js'
 
 const editorStyles=new URL('./image.css',import.meta.url).href
 const sourceEditorStyles=new URL('../shared/sourceEditor.css',import.meta.url).href
@@ -244,11 +244,12 @@ export function createImagePlugin(config={}){
           panel.setAttribute('role','group');panel.setAttribute('aria-label',runtimeContext.t('settings','Settings'))
           dropdown.append(settings,panel)
           const layer=createPluginLayer(wrapper,context.signal)
-          const closeSettings=()=>{dropdown.classList.remove(CSS.dropdownOpen);settings.setAttribute('aria-expanded','false');layer.close()}
+          const positioner=createPluginPanelPositioner(panel,dropdown,{signal:context.signal})
+          const closeSettings=()=>{dropdown.classList.remove(CSS.dropdownOpen);settings.setAttribute('aria-expanded','false');layer.close();positioner.close()}
           settings.addEventListener('click',()=>{
             if(settings.getAttribute('aria-expanded')==='true'){closeSettings();return}
             layer.open();dropdown.classList.add(CSS.dropdownOpen);settings.setAttribute('aria-expanded','true')
-            positionPluginPanel(panel,dropdown)
+            positioner.open()
           },{signal:context.signal})
           document.addEventListener('click',event=>{if(!dropdown.contains(event.target))closeSettings()},{signal:context.signal})
           dropdown.addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();event.stopPropagation();closeSettings();settings.focus()}},{signal:context.signal})

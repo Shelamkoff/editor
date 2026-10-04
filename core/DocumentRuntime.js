@@ -64,6 +64,7 @@ export class DocumentRuntime {
   #richTextNormalizer
   #destroyed = false
   #controlFailed = false
+  #editingProjection = false
   #requestSplit
   #requestExit
   #diagnostics
@@ -873,8 +874,7 @@ export class DocumentRuntime {
   }
 
   setReadOnly(value) {
-    if (this.#destroyed) throw new Error('DocumentRuntime is destroyed')
-    if (this.health !== 'ready') throw new Error('DocumentRuntime is failed')
+    this.#assertHostMutation()
     const next = value === true
     if (next === this.#readOnly) return
     try {
@@ -1895,6 +1895,7 @@ export class DocumentRuntime {
       ordered.push(id)
     }
 
+    this.#editingProjection = true
     try {
       const result = operation()
       if (result && typeof result === 'object' && typeof result.then === 'function') {
@@ -1922,6 +1923,7 @@ export class DocumentRuntime {
       }
 
       if (updates.length) {
+        this.#editingProjection = false
         this.#engine.execute({
           origin: metadata.origin ?? 'user',
           name: metadata.name ?? 'projection.sync',
@@ -1938,8 +1940,15 @@ export class DocumentRuntime {
       }
       return result
     } catch (error) {
-      this.#projector?.restore?.(this.#store)
+      try {
+        this.#projector?.restore?.(this.#store)
+      } catch (recoveryError) {
+        this.#controlFailed = true
+        throw new AggregateError([error, recoveryError], 'Projection edit failed and recovery also failed')
+      }
       throw error
+    } finally {
+      this.#editingProjection = false
     }
   }
 
@@ -2765,6 +2774,7 @@ export class DocumentRuntime {
   #assertHostMutation() {
     if (this.#destroyed) throw new Error('DocumentRuntime is destroyed')
     if (this.health === 'failed') throw new Error('DocumentRuntime is failed')
+    if (this.#editingProjection) throw new Error('Cannot mutate document during protected projection edit')
   }
 
   #assertInteractionMutation() {

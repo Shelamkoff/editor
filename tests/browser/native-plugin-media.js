@@ -394,4 +394,91 @@ test('Image Settings stays inside a short viewport and its styled switches keep 
   } finally { await window.__testInput('Viewport.reset') }
 })
 
+for (const [name, factory, data, field] of [
+  ['Gallery', createGalleryPlugin, { images: [{ id: 'first', url: pixel, caption: 'Alpha' }], layout: '1' }, '.oe-gallery__slot-caption'],
+  ['Carousel', createCarouselPlugin, carouselData, '.oe-carousel-block__caption'],
+  ['Attaches', createAttachesPlugin, { files: [{ id: 'first', url: '/a.txt', name: 'Alpha', extension: 'txt', size: 5 }], variant: 'a' }, '.oe-attaches__name'],
+]) {
+test(`${name} Settings closes with native Escape immediately after mouse opening`, async () => {
+  const editor = mount(factory(), data)
+  const before = editor.save().blocks
+  await clickNative(blockElement(editor, 'a').querySelector(field))
+  await clickNative(button(editor, 'Settings'))
+  await dispatchKey('Escape', 'Escape', 27)
+  equal(button(editor, 'Settings').getAttribute('aria-expanded'), 'false', 'Mouse-opened settings ignore keyboard Escape')
+  equal(editor.save().blocks, before)
+  equal(editor.canUndo, false)
+})
+}
+
+for (const [name, factory, data, selector] of [
+  ['Image', createImagePlugin, { file: { url: pixel }, styles: { height: '260px' } }, '.oe-image__dropdown-panel'],
+  ['Carousel', createCarouselPlugin, { ...carouselData, options: { ...carouselData.options, aspectRatio: '16/9' } }, '.oe-carousel-block__dropdown-panel'],
+  ['Embed', () => createEmbedPlugin({ resolvePreview: false }), filled, '.oe-embed__dropdown-panel'],
+  ['Attaches', createAttachesPlugin, { files: [{ id: 'first', url: '/a.txt', name: 'Alpha', extension: 'txt', size: 5 }], variant: 'a' }, '.oe-attaches__dropdown-panel'],
+]) {
+test(`${name} open Settings follows viewport resizing without changing author content`, async () => {
+  await window.__testInput('Viewport.set', { width: 900, height: 900 })
+  try {
+    const editor = mount(factory(), data)
+    const before = editor.save().blocks
+    await clickNative(button(editor, 'Settings'))
+    await window.__testInput('Viewport.set', { width: 320, height: 500 })
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))
+    const rect = blockElement(editor, 'a').querySelector(selector).getBoundingClientRect()
+    assert(rect.top >= 8 && rect.bottom <= 492 && rect.left >= 8 && rect.right <= 312,
+      `Open Settings escapes the resized viewport: ${JSON.stringify(rect.toJSON())}`)
+    assert(rect.height >= 48, 'Open Settings collapsed instead of remaining usable')
+    equal(editor.save().blocks, before)
+    equal(editor.canUndo, false)
+  } finally { await window.__testInput('Viewport.reset') }
+})
+}
+
+test('Gallery open Settings follows viewport resizing without changing author content', async () => {
+  await window.__testInput('Viewport.set', { width: 900, height: 900 })
+  try {
+    const editor = mount(createGalleryPlugin(), { images: [{ id: 'first', url: pixel, caption: 'Alpha' }], layout: '1' })
+    const before = editor.save().blocks
+    await clickNative(button(editor, 'Settings'))
+    await window.__testInput('Viewport.set', { width: 320, height: 300 })
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))
+    const panel = blockElement(editor, 'a').querySelector('.oe-gallery__dropdown-panel')
+    const rect = panel.getBoundingClientRect()
+    assert(rect.top >= 8 && rect.bottom <= 292 && rect.left >= 8 && rect.right <= 312,
+      `Open Settings escapes the resized viewport: ${JSON.stringify(rect.toJSON())}`)
+    assert(rect.height >= 48, 'Open Settings collapsed instead of remaining usable')
+    equal(editor.save().blocks, before)
+    equal(editor.canUndo, false)
+  } finally { await window.__testInput('Viewport.reset') }
+})
+
+test('Gallery Settings remains clickable above a previously focused neighboring block', async () => {
+  await window.__testInput('Viewport.set', { width: 900, height: 900 })
+  try {
+    const definition = createGalleryPlugin()
+    const editor = make([
+      { id: 'before', type: 'paragraph', dataVersion: 2, data: { text: Array(14).fill('Neighboring author content').join('<br>') } },
+      { id: 'a', type: 'gallery', dataVersion: definition.schema.currentVersion,
+        data: { ...definition.schema.createDefault(), images: [{ id: 'first', url: pixel, caption: 'Alpha' }], layout: '1' } },
+    ], { injectStyles: true, plugins: [createParagraphPlugin(), definition] })
+    await waitForStyles(document)
+    const before = editor.save().blocks
+    await clickNative(blockElement(editor, 'before').querySelector('.oe-paragraph'))
+    await clickNative(button(editor, 'Settings'))
+    const panel = blockElement(editor, 'a').querySelector('.oe-gallery__dropdown-panel')
+    const choice = panel.querySelector('.oe-gallery__layout-btn')
+    const box = choice.getBoundingClientRect()
+    const x = box.left + box.width / 2
+    const y = box.top + box.height / 2
+    const neighbor = blockElement(editor, 'before').getBoundingClientRect()
+    assert(y > neighbor.top && y < neighbor.bottom, 'Fixture must overlap the neighboring block')
+    const hit = document.elementFromPoint(x, y)
+    assert(choice.contains(hit), 'Neighboring block covers the open Gallery Settings control')
+    await clickNative(choice)
+    equal(editor.save().blocks[1].data.layout, 'auto', 'Visible Settings choice is not clickable')
+    await history(editor, before, editor.save().blocks)
+  } finally { await window.__testInput('Viewport.reset') }
+})
+
 await run()

@@ -461,6 +461,8 @@ Local private rich paste в зарегистрированный plain-text host
 
 ### 10.2. Один protected projection edit
 
+На время DOM-обработчика и подготовки его данных действует единая защита от повторного входа: вложенные persisted commands и mode transitions отклоняются до producer. Ошибка чтения/валидации восстанавливает committed projection без нового history step; отказ этого восстановления переводит runtime в failed, оставляет committed save доступным и сохраняет обе причины в AggregateError.
+
 ```ts
 interface LogicalPoint {blockId:string; fieldKey:string; offset:number}
 interface LogicalBookmark {anchor:LogicalPoint; focus:LogicalPoint}

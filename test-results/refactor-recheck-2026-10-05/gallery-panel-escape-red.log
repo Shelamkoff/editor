@@ -1,0 +1,16 @@
+file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149
+    if (result.status === 'fail') throw new Error(`History matrix failed: ${result.summary}`)
+                                        ^
+
+Error: History matrix failed: [
+  {
+    "name": "Gallery Settings closes with native Escape immediately after mouse opening",
+    "status": "FAIL",
+    "error": "Error: Mouse-opened settings ignore keyboard Escape\nexpected \"false\", got \"true\"\n    at equal (http://127.0.0.1:50179/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:50179/tests/browser/native-plugin-media.js:403:3\n    at async run (http://127.0.0.1:50179/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:50179/tests/browser/native-plugin-media.js:454:1"
+  }
+]
+    at waitForHistoryMatrix (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149:41)
+    at async runNativePage (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:273:30)
+    at async file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:310:48
+
+Node.js v24.9.0

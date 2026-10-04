@@ -261,6 +261,33 @@ async function run() {
     assertSnapshot(tracker.snapshot(), baseline, tracker, `editor cycle ${cycle} leaked resources`)
   }
 
+  for (const [type, factory, data, selector] of [
+    ['image', createImagePlugin, { file: { url: pixel } }, '.oe-image__dropdown-panel'],
+    ['gallery', createGalleryPlugin, { images: [{ id: 'first', url: pixel, caption: 'Alpha' }], layout: '1' }, '.oe-gallery__dropdown-panel'],
+    ['carousel', createCarouselPlugin, { slides: [{ id: 'first', type: 'image', src: pixel, caption: 'Alpha', alt: '' }] }, '.oe-carousel-block__dropdown-panel'],
+    ['attaches', createAttachesPlugin, { files: [{ id: 'first', url: '/a.txt', name: 'Alpha', extension: 'txt', size: 5 }], variant: 'a' }, '.oe-attaches__dropdown-panel'],
+    ['embed', createEmbedPlugin, { service: 'youtube', videoId: 'dQw4w9WgXcQ', caption: 'Alpha' }, '.oe-embed__dropdown-panel'],
+  ]) {
+    const definition = factory({ injectStyles: false, resolvePreview: false })
+    const { holder, editor } = makeEditor(sandbox, [definition],
+      oneBlock(type, { ...definition.schema.createDefault(), ...data }), { defaultBlock: type })
+    const before = editor.save().blocks
+    const settings = () => [...holder.querySelectorAll('button')].find(button => button.textContent.trim() === 'Settings')
+    settings().click()
+    assert(settings().getAttribute('aria-expanded') === 'true', `${type} settings did not open`)
+    trackHeap(`media-panel:${type}`, holder.querySelector(selector))
+    editor.setReadOnly(true)
+    assert(!holder.querySelector('[aria-expanded="true"]'), `${type} left author settings open in read-only mode`)
+    editor.setReadOnly(false)
+    settings().click()
+    trackHeap(`reopened-media-panel:${type}`, holder.querySelector(selector))
+    assert(JSON.stringify(editor.save().blocks) === JSON.stringify(before), `${type} settings lifecycle changed author data`)
+    editor.destroy()
+    holder.remove()
+    await delay(30)
+    assertSnapshot(tracker.snapshot(), baseline, tracker, `${type} open settings leaked resources after destroy`)
+  }
+
   const sharedTool = createBoldTool('Bold')
   const toolOwner = makeEditor(
     sandbox,
@@ -632,6 +659,7 @@ async function run() {
     races: ['image replacement', 'gallery additive', 'attaches additive'],
     asyncAbort: ['embed preview', 'person cropper'],
     integrations: ['inline tool ownership', 'ColorPicker', 'Cropper', 'Carousel', 'Masonry', 'Expose'],
+    mediaSettingsLifecycle: ['image', 'gallery', 'carousel', 'attaches', 'embed'],
     tracked: ['global listeners', 'observers', 'object URLs', 'styles'],
   }
 }

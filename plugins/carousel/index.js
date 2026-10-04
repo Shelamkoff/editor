@@ -15,7 +15,8 @@ import { sanitizeRawHtml, setSanitizedRawHtml } from '../../shared/sanitize/inde
 import { triggerFileInput } from '../shared/fileInput.js'
 import { openSourceEditor, preloadSourceEditor } from '../shared/sourceEditor.js'
 import { createMediaDropzone } from '../shared/mediaDropzone.js'
-import { positionPluginPanel } from '../shared/positionPluginPanel.js'
+import { createPluginPanelPositioner } from '../shared/positionPluginPanel.js'
+import { createPluginLayer } from '../shared/layer.js'
 import { ICON, ICON_SETTINGS, ICON_REPLACE, ICON_CHEVRON, ICON_BACK, ICON_UPLOAD, ICON_URL, ICON_CODE } from './icons.js'
 
 const editorStyles=new URL('./carousel.css',import.meta.url).href
@@ -684,11 +685,14 @@ export function createCarouselPlugin(config={}){
                   return retainControlFocus(wrapper,()=>context.updateData(producer))
                 },
               }))
+              const settingsLayer=createPluginLayer(wrapper,viewSignal)
+              const positioner=createPluginPanelPositioner(panel,dropdown,{signal:viewSignal,preferAbove:true})
               const setOpen=open=>{
                 dropdown.classList.toggle('oe-carousel-block__dropdown--open',open)
                 settings.setAttribute('aria-expanded',String(open))
                 panel.inert=!open
-                if(open)positionPluginPanel(panel,dropdown,{preferAbove:true})
+                if(open){settingsLayer.open();positioner.open();settings.focus({preventScroll:true})}
+                else{settingsLayer.close();positioner.close()}
               }
               settings.addEventListener('mousedown',event=>event.preventDefault(),{signal:viewSignal})
               settings.addEventListener('click',()=>setOpen(settings.getAttribute('aria-expanded')!=='true'),{signal:viewSignal})

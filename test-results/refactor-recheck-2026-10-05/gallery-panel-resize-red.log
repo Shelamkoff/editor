@@ -1,0 +1,16 @@
+file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149
+    if (result.status === 'fail') throw new Error(`History matrix failed: ${result.summary}`)
+                                        ^
+
+Error: History matrix failed: [
+  {
+    "name": "Gallery open Settings follows viewport resizing without changing author content",
+    "status": "FAIL",
+    "error": "Error: Open Settings escapes the resized viewport: {\"x\":47.40625,\"y\":161,\"width\":288,\"height\":384,\"top\":161,\"right\":335.40625,\"bottom\":545,\"left\":47.40625}\n    at assert (http://127.0.0.1:65280/tests/browser/regressions/harness.js:20:81)\n    at http://127.0.0.1:65280/tests/browser/native-plugin-media.js:407:5\n    at async run (http://127.0.0.1:65280/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:65280/tests/browser/native-plugin-media.js:443:1"
+  }
+]
+    at waitForHistoryMatrix (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149:41)
+    at async runNativePage (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:273:30)
+    at async file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:310:48
+
+Node.js v24.9.0

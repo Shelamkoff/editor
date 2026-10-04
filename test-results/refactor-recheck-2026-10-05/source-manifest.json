@@ -1,0 +1,88 @@
+{
+  "base": "4e5ba54857844422827d6db74de88b370af3c772",
+  "branch": "refactor/rector-v2-architecture",
+  "generatedAt": "2026-10-04T23:43:45.830Z",
+  "hashBasis": "Working-tree file bytes before Git line-ending normalization",
+  "files": [
+    {
+      "path": "LOCAL-VERIFICATION.md",
+      "sha256": "1FF3066672D460F96D522C7F75F0D9CAFBD9CDF370032780A79A7033818D30CC"
+    },
+    {
+      "path": "RECTOR_V2_CORE_PARITY_2026-10-04.md",
+      "sha256": "608C8096A1475A5235EA349FB232D7FD0234C762A82028919466AF109CD20218"
+    },
+    {
+      "path": "RECTOR_V2_LOCAL_VERIFICATION_2026-10-04.md",
+      "sha256": "2370B4CF280B1BCB12C242286E498C86E33BA4A5299223CFC08CE4CFFE8ABE33"
+    },
+    {
+      "path": "RECTOR_V2_PLUGIN_PARITY_2026-10-04.md",
+      "sha256": "FD1C3C7DFBC48E6D9DA19CC0884AED0CCA43CEFC88A40A12630EEEB46937BFCE"
+    },
+    {
+      "path": "RECTOR_V2_RECHECK_2026-10-05.md",
+      "sha256": "075B9A2DEE7FC94727C167C3C6E1E67DBD8107871B17837B9684FF548B5AC947"
+    },
+    {
+      "path": "RECTOR_V2_REMEDIATION_SPEC.md",
+      "sha256": "DE8100B914213783B34480E75D47503E83D47D5E064405684557458B584A2EFF"
+    },
+    {
+      "path": "core/DocumentRuntime.js",
+      "sha256": "6F44259B78B9C2DDAEB03515BC1EA39006D7932BFC21F103FB6CFF9BD384F10D"
+    },
+    {
+      "path": "core/DocumentRuntime.test.js",
+      "sha256": "AF9844A50B6964F016397461A93A2422C22661AFD28329B8AF0C9CF85E9DD80A"
+    },
+    {
+      "path": "docs/guide/commands-history.md",
+      "sha256": "EC074F6472EB8C8F35F3D6007EC154CE99F88A501BF8DE88AA8A98AB9553FD78"
+    },
+    {
+      "path": "docs/ru/guide/commands-history.md",
+      "sha256": "CC4E8B3A3A2C812A3DD2654EF0146802A0507A8EA7519A02D452C894F36D568D"
+    },
+    {
+      "path": "plugins/attaches/index.js",
+      "sha256": "D98AB50DB4B77DC978200F9CBD0355063BDB468E5CCEC60E2F49E5789F440081"
+    },
+    {
+      "path": "plugins/carousel/index.js",
+      "sha256": "1763C4D3ADF7CD73AB7E5F8EF94CDBF8C1A8D2E9F0F2F71E0C1AABD3AC59CEA4"
+    },
+    {
+      "path": "plugins/embed/index.js",
+      "sha256": "479B2A773B40E9DB5DEA631668BD1A3F1224C54E54EF60158F82418EED0B6233"
+    },
+    {
+      "path": "plugins/gallery/index.js",
+      "sha256": "EF5C99344D614C70038660ABA61E280DB7958D8055D2F63B71998A70F05E1E67"
+    },
+    {
+      "path": "plugins/image/index.js",
+      "sha256": "0E8865F92C13F34F7F7ACE0C7684ADE8C8B604867356F32E943EF023E0F773BA"
+    },
+    {
+      "path": "plugins/shared/positionPluginPanel.js",
+      "sha256": "61FC3B3EE4277D3C438FCA9315D1467BEEB86FB50B2E86C7F2771D75555B55C0"
+    },
+    {
+      "path": "tests/browser/README.md",
+      "sha256": "E97212C2F25EBB09B5FA01ACF3F4A1F65CAE4D1C0A5483D63A6F87CA89D098A7"
+    },
+    {
+      "path": "tests/browser/lifecycle.js",
+      "sha256": "0118472338A7324362C5A31E9B79CB31190C0E38F4C8701CC0DEC8793A34CEBE"
+    },
+    {
+      "path": "tests/browser/native-plugin-media.js",
+      "sha256": "951DFED9F6F0C7567FF842E07E0C1049167F45591B72CB202E6127B946BC7048"
+    },
+    {
+      "path": "tests/browser/runtime-contracts.js",
+      "sha256": "A76398C1BA4647E57DC7F410C110188260223AF7C5EC91C6B6B3ABCC9455D533"
+    }
+  ]
+}

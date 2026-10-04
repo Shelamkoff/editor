@@ -52,6 +52,102 @@ function block(id, data = { text: id }, extra = {}) {
   return { id, type: 'paragraph', dataVersion: 1, data, ...extra }
 }
 
+test('failed protected projection recovery stops mutation while committed data remains readable', () => {
+  let projected = { text: 'Committed' }
+  const restoreError = new Error('Cannot restore the invalid plugin projection')
+  const runtime = new DocumentRuntime({
+    registry: registry([paragraphDefinition()]),
+    data: { version: '2.0.0', blocks: [block('a', projected)] },
+    projector: {
+      readBlock() { return { data: projected } },
+      restore() { throw restoreError },
+    },
+  })
+  const before = runtime.save().blocks
+  const revision = runtime.revision
+  let failure
+  try {
+    runtime.syncBlockFromProjection('a', () => { projected = { text: 123 } })
+  } catch (error) { failure = error }
+  assert.ok(failure)
+  assert.equal(runtime.health, 'failed', 'Divergent projection must not retain mutation authority')
+  assert.deepEqual(runtime.save().blocks, before)
+  assert.equal(runtime.revision, revision)
+  assert.equal(runtime.canUndo, false)
+  assert.equal(runtime.canRedo, false)
+  assert.ok(failure instanceof AggregateError)
+  assert.match(failure.errors[0].message, /text required/)
+  assert.equal(failure.errors[1], restoreError)
+  let producerCalls = 0
+  assert.throws(() => runtime.update('a', () => { producerCalls++; return { data: { text: 'Late' } } }), /failed/)
+  assert.equal(producerCalls, 0)
+  runtime.destroy()
+})
+
+test('protected projection edits reject nested persisted writes before invoking their producer', () => {
+  let projected = { text: 'Committed' }
+  const runtime = new DocumentRuntime({
+    registry: registry([paragraphDefinition()]),
+    data: { version: '2.0.0', blocks: [block('a', projected), block('b', { text: 'Untouched' })] },
+    projector: {
+      readBlock() { return { data: projected } },
+      restore(store) { projected = { ...store.get('a').data } },
+      prepare({ draft }) {
+        const before = projected
+        return {
+          apply() { projected = { ...draft.get('a').data } },
+          recover() { projected = before },
+          finalize() {},
+          discard() {},
+        }
+      },
+    },
+  })
+  const before = runtime.save().blocks
+  let producerCalls = 0
+  assert.throws(() => runtime.syncBlockFromProjection('a', () => {
+    projected = { text: 'Uncommitted' }
+    runtime.update('b', () => { producerCalls++; return { data: { text: 'Nested write' } } })
+  }), /protected projection edit/)
+  assert.equal(producerCalls, 0)
+  assert.deepEqual(runtime.save().blocks, before)
+  assert.deepEqual(projected, before[0].data)
+  assert.equal(runtime.revision, 0)
+  assert.equal(runtime.canUndo, false)
+  assert.equal(runtime.health, 'ready')
+  runtime.syncBlockFromProjection('a', () => { projected = { text: 'Accepted' } })
+  assert.equal(runtime.get('a').data.text, 'Accepted')
+  assert.equal(runtime.undo(), true)
+  assert.deepEqual(runtime.save().blocks, before)
+  runtime.destroy()
+})
+
+test('protected projection edits cannot change read-only mode midway through the operation', () => {
+  let projected = { text: 'Committed' }
+  const runtime = new DocumentRuntime({
+    registry: registry([paragraphDefinition()]),
+    data: { version: '2.0.0', blocks: [block('a', projected)] },
+    projector: {
+      readBlock() { return { data: projected } },
+      setReadOnly() {},
+      restore(store) { projected = { ...store.get('a').data } },
+      prepare() { return { apply() {}, recover() {}, finalize() {}, discard() {} } },
+    },
+  })
+  const before = runtime.save().blocks
+  assert.throws(() => runtime.syncBlockFromProjection('a', () => {
+    projected = { text: 'Uncommitted' }
+    runtime.setReadOnly(true)
+  }), /protected projection edit/)
+  assert.equal(runtime.readOnly, false)
+  assert.deepEqual(runtime.save().blocks, before)
+  assert.deepEqual(projected, before[0].data)
+  assert.equal(runtime.canUndo, false)
+  runtime.setReadOnly(true)
+  assert.equal(runtime.readOnly, true)
+  runtime.destroy()
+})
+
 test('DocumentRuntime emits save/render timing diagnostics through the canonical sink', () => {
   const events = []
   let clock = 100

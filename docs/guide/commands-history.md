@@ -49,6 +49,8 @@ function createCounterInstance(initial, context) {
 
 Use `context.commitDomMutation(operation)` only for synchronous protected edits to registered rich-text fields. Core serializes and validates affected fields inside the transaction. Focus, hover and opening menus do not create history.
 
+Do not call persisted-data commands or switch read-only mode from that DOM callback. Rector rejects nested writes before invoking their data producer and restores the committed projection. If validation or reading fails and the projection cannot be restored, further mutations stop; `save()` still returns the committed model. The thrown `AggregateError` retains both the original and recovery errors.
+
 `context.requestSplit()` and `context.requestExit()` request structural behavior; never imitate them with keyboard events. Composite editing capabilities return data and structural intent together for one transaction.
 
 ## Slash commands

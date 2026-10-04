@@ -1,5 +1,7 @@
 # Сверка поведения ядра Rector v1 → v2 — 2026-10-04
 
+Актуальный итог — [повторная проверка 05.10.2026](RECTOR_V2_RECHECK_2026-10-05.md): исправлены protected-edit reentry, смена read-only внутри callback и unrecoverable recovery. Матрица ниже сохраняется и повторно пройдена в общем прогоне 934 native cases; прежние логи отражают опубликованный checkpoint `4e5ba54`.
+
 База сравнения: локальный `master`, коммит `5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340`. Проверяемая ветка: `refactor/rector-v2-architecture`, HEAD `eff8a06692e2f80d4c6c2e33abc1d626fa4ef1aa` с незакоммиченными исправлениями. Старое ядро используется как источник контракта при чтении, а не как runtime или adapter в v2.
 
 Продолжение [сверки плагинов](RECTOR_V2_PLUGIN_PARITY_2026-10-04.md). Команды, итоговые gates и запуск демо — в [локальном отчёте](RECTOR_V2_LOCAL_VERIFICATION_2026-10-04.md). Нормативная спецификация: [RECTOR_V2_REMEDIATION_SPEC.md](RECTOR_V2_REMEDIATION_SPEC.md).

@@ -33,3 +33,47 @@ export function positionPluginPanel(panel, anchor, { preferAbove = false } = {})
     ? margin - bounds.left
     : Math.min(0, viewportWidth - margin - bounds.right)) + 'px'
 }
+
+/**
+ * Reposition an open panel when its owner's viewport or scroll position changes.
+ * All listeners and scheduled work belong to the supplied projection lifecycle.
+ * @param {HTMLElement} panel
+ * @param {HTMLElement} anchor
+ * @param {{signal:AbortSignal,preferAbove?:boolean}} options
+ * @returns {{open:()=>void,close:()=>void}}
+ */
+export function createPluginPanelPositioner(panel, anchor, { signal, preferAbove = false }) {
+  const view = panel.ownerDocument.defaultView
+  let opened = false
+  /** @type {number | null} */
+  let frame = null
+  const close = () => {
+    opened = false
+    observer?.disconnect()
+    if (frame !== null) view?.cancelAnimationFrame(frame)
+    frame = null
+  }
+  const update = () => {
+    if (opened && !signal.aborted && panel.isConnected) positionPluginPanel(panel, anchor, { preferAbove })
+  }
+  const schedule = () => {
+    if (!opened || frame !== null || signal.aborted || !view) return
+    frame = view.requestAnimationFrame(() => { frame = null; update() })
+  }
+  const observer = view?.ResizeObserver ? new view.ResizeObserver(schedule) : null
+  if (!signal.aborted) {
+    view?.addEventListener('resize', schedule, { signal })
+    view?.addEventListener('scroll', schedule, { signal, capture: true, passive: true })
+    signal.addEventListener('abort', close, { once: true })
+  }
+  return {
+    open() {
+      if (signal.aborted) return
+      opened = true
+      observer?.observe(anchor.closest('.oe-block') ?? anchor)
+      update()
+      schedule()
+    },
+    close,
+  }
+}

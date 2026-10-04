@@ -8,6 +8,8 @@ import { formatSize, getExtension, getFileIcon, EXT_COLORS } from '../../shared/
 import { triggerFileInput } from '../shared/fileInput.js'
 import { openSourceEditor, preloadSourceEditor } from '../shared/sourceEditor.js'
 import { createMediaDropzone } from '../shared/mediaDropzone.js'
+import { createPluginLayer } from '../shared/layer.js'
+import { createPluginPanelPositioner } from '../shared/positionPluginPanel.js'
 
 const editorStyles=new URL('./attaches.css',import.meta.url).href
 const sourceEditorStyles=new URL('../shared/sourceEditor.css',import.meta.url).href
@@ -397,9 +399,13 @@ export function createAttachesPlugin(config={}){
                 panel.setAttribute('aria-label',runtimeContext.t('template','Template'))
                 const grid=document.createElement('div')
                 grid.className='oe-attaches__tpl-grid'
+                const settingsLayer=createPluginLayer(wrapper,menuSignal)
+                const positioner=createPluginPanelPositioner(panel,dropdown,{signal:menuSignal,preferAbove:true})
                 const setOpen=open=>{
                   dropdown.classList.toggle('oe-attaches__dropdown--open',open)
                   settings.setAttribute('aria-expanded',String(open))
+                  if(open){settingsLayer.open();positioner.open();settings.focus({preventScroll:true})}
+                  else{settingsLayer.close();positioner.close()}
                 }
                 settings.addEventListener('mousedown',event=>event.preventDefault(),{signal:menuSignal})
                 settings.addEventListener('click',()=>setOpen(settings.getAttribute('aria-expanded')!=='true'),{signal:menuSignal})

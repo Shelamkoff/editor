@@ -6,7 +6,8 @@ import { acceptsTextPayload, richTextFromPayload } from '../shared/textConversio
 import { createTextSelectionSlice } from '../shared/textSelectionSlice.js'
 import { createTextClipboardSlice } from '../shared/textClipboardSlice.js'
 import { retainControlFocus } from '../shared/retainControlFocus.js'
-import { positionPluginPanel } from '../shared/positionPluginPanel.js'
+import { createPluginPanelPositioner } from '../shared/positionPluginPanel.js'
+import { createPluginLayer } from '../shared/layer.js'
 import { openSourceEditor, preloadSourceEditor } from '../shared/sourceEditor.js'
 import { sanitizeMediaUrl } from '../../shared/sanitize/sanitizeUrl.js'
 import { isSupportedImageFile, triggerFileInput } from '../shared/fileInput.js'
@@ -183,17 +184,22 @@ export function createEmbedPlugin(config = {}) {
             settingsPanel.append(row)
             settingInputs.set(key, field)
           }
+          const settingsLayer = createPluginLayer(wrapper, context.signal)
+          const positioner = createPluginPanelPositioner(settingsPanel, settings, { signal: context.signal })
           const closeSettings = () => {
             settings.classList.remove('oe-embed__dropdown--open')
             settingsButton.setAttribute('aria-expanded', 'false')
+            settingsLayer.close()
+            positioner.close()
           }
           settingsButton.addEventListener('click', () => {
             const open = !settings.classList.contains('oe-embed__dropdown--open')
             settings.classList.toggle('oe-embed__dropdown--open', open)
             settingsButton.setAttribute('aria-expanded', String(open))
             if (open) {
-              positionPluginPanel(settingsPanel, settings)
-            }
+              settingsLayer.open()
+              positioner.open()
+            } else { settingsLayer.close(); positioner.close() }
           }, { signal: context.signal })
           settings.addEventListener('keydown', event => {
             if (event.key !== 'Escape') return

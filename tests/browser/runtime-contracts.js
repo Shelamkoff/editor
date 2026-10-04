@@ -1,5 +1,6 @@
 import { DocumentRuntime } from '../../core/DocumentRuntime.js'
-import { test, assert as check, equal, run } from './regressions/harness.js'
+import { test, assert as check, equal, run, make, blockElement } from './regressions/harness.js'
+import { createParagraphPlugin } from '../../plugins/paragraph/index.js'
 
 const assert = {
   equal,
@@ -191,5 +192,97 @@ test('prepared cross-block cut merges endpoint residuals through the declared me
   runtime.destroy()
 })
 
+
+function protectedParagraph({ edit, failed, beforeCreate = () => {}, beforeRead = () => {} }) {
+  const definition = createParagraphPlugin()
+  return {
+    ...definition,
+    setup(runtimeContext) {
+      const runtime = definition.setup(runtimeContext)
+      return {
+        ...runtime,
+        create(initial, context) {
+          beforeCreate()
+          const instance = runtime.create(initial, context)
+          const wrapper = document.createElement('div')
+          const control = document.createElement('button')
+          control.type = 'button'
+          control.textContent = 'Protected edit'
+          control.addEventListener('click', () => {
+            try {
+              context.commitDomMutation(() => { instance.element.textContent = 'Uncommitted'; edit() })
+            } catch (error) { failed(error) }
+          }, { signal: context.signal })
+          wrapper.append(instance.element, control)
+          return { ...instance, element: wrapper, read() { beforeRead(); return instance.read() } }
+        },
+      }
+    },
+  }
+}
+
+test('mounted plugin protected edit cannot persist a nested host write or alter history', () => {
+  let editor
+  let failure
+  let producerCalls = 0
+  const definition = protectedParagraph({
+    edit() { editor.blocks.update('b', () => { producerCalls++; return { data: { text: 'Nested write' } } }) },
+    failed(error) { failure = error },
+  })
+  editor = make([
+    { id: 'a', type: 'paragraph', dataVersion: 2, data: { text: 'Alpha' } },
+    { id: 'b', type: 'paragraph', dataVersion: 2, data: { text: 'Bravo' } },
+  ], { plugins: [definition] })
+  const before = editor.save().blocks
+  blockElement(editor, 'a').querySelector('button').click()
+  assert.ok(/protected projection edit/.test(String(failure)))
+  assert.equal(producerCalls, 0)
+  assert.deepEqual(editor.save().blocks, before)
+  assert.equal(blockElement(editor, 'a').querySelector('.oe-paragraph').textContent, 'Alpha')
+  assert.equal(editor.canUndo, false)
+  editor.blocks.update('b', current => ({ data: { ...current.data, text: 'Accepted' } }))
+  assert.equal(editor.save().blocks[1].data.text, 'Accepted')
+})
+
+test('mounted plugin protected edit cannot switch the editor to read-only midway', () => {
+  let editor
+  let failure
+  const definition = protectedParagraph({
+    edit() { editor.setReadOnly(true) },
+    failed(error) { failure = error },
+  })
+  editor = make([{ id: 'a', type: 'paragraph', dataVersion: 2, data: { text: 'Alpha' } }], { plugins: [definition] })
+  const before = editor.save().blocks
+  blockElement(editor, 'a').querySelector('button').click()
+  assert.ok(/protected projection edit/.test(String(failure)))
+  assert.equal(editor.readOnly, false)
+  assert.deepEqual(editor.save().blocks, before)
+  assert.equal(blockElement(editor, 'a').querySelector('.oe-paragraph').textContent, 'Alpha')
+  assert.equal(editor.canUndo, false)
+  editor.setReadOnly(true)
+  assert.equal(editor.readOnly, true)
+})
+
+test('failed recovery of a mounted plugin projection preserves save and blocks future producers', () => {
+  let failProjection = false
+  let failure
+  const definition = protectedParagraph({
+    edit() { failProjection = true },
+    failed(error) { failure = error },
+    beforeRead() { if (failProjection) throw new Error('Plugin read failed') },
+    beforeCreate() { if (failProjection) throw new Error('Plugin recovery mount failed') },
+  })
+  const editor = make([{ id: 'a', type: 'paragraph', dataVersion: 2, data: { text: 'Alpha' } }], { plugins: [definition] })
+  const before = editor.save().blocks
+  blockElement(editor, 'a').querySelector('button').click()
+  assert.ok(failure instanceof AggregateError)
+  assert.equal(failure.errors[0].message, 'Plugin read failed')
+  assert.equal(failure.errors[1].message, 'Plugin recovery mount failed')
+  assert.deepEqual(editor.save().blocks, before)
+  let producerCalls = 0
+  assert.throws(() => editor.blocks.update('a', () => { producerCalls++; return { data: { text: 'Late' } } }), /failed/)
+  assert.equal(producerCalls, 0)
+  assert.equal(editor.canUndo, false)
+})
 
 await run()
