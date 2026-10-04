@@ -98,7 +98,7 @@ function dragHarness(){
   document.body=new FakeEventTarget()
   document.defaultView={
     AbortController,
-    setTimeout(fn){ fn(); return 1 },
+    setTimeout(){ return 1 },
     clearTimeout(){},
   }
   document.createElement=()=>{
