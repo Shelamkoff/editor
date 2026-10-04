@@ -195,6 +195,18 @@ test('public editor and renderer derive document shapes from the neutral shared 
   assert.match(sharedTypes, /dataVersion:\s*number/)
 })
 
+test('async preset declarations require the current document envelope', async () => {
+  const [pluginAsync, rendererAsync] = await Promise.all([
+    readFile(new URL('plugins/async.d.ts', declarationRoot), 'utf8'),
+    readFile(new URL('renderer/renderers/async.d.ts', declarationRoot), 'utf8'),
+  ])
+  for (const source of [pluginAsync, rendererAsync]) {
+    assert.match(source, /version:\s*["']2\.0\.0["']/)
+    assert.match(source, /blocks:\s*readonly/)
+    assert.doesNotMatch(source, /blocks\?:/)
+  }
+})
+
 test('public editor declarations expose only the v2 model API', async () => {
   const [coreEntry, publicTypes, rootTypes] = await Promise.all([
     readFile(new URL('core/index.d.ts', declarationRoot), 'utf8'),
