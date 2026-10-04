@@ -4,6 +4,7 @@ import { createMentionPlugin, createMentionRenderer } from '../../inline-plugins
 import { createParagraphPlugin } from '../../plugins/paragraph/index.js'
 import { EditorRenderer } from '../../renderer/index.js'
 import ru from '../../locale/ru.js'
+import ru from '../../locale/ru.js'
 
 const sandbox = document.querySelector('#sandbox')
 
@@ -178,6 +179,29 @@ async function run() {
     main.root.querySelector('[data-plugin-type="color"] .oe-toolbox__label')?.textContent === 'Color',
     'missing default locale exposed the color translation key',
   )
+
+  const russian = createMentionEditor(
+    async () => [],
+    undefined,
+    {},
+    { locale: ru },
+  )
+  assert(
+    russian.root.querySelector('[data-plugin-type="mention"] .oe-toolbox__label')?.textContent === ru['inlinePlugin.mention.title'],
+    'Russian inline-plugin title did not use inlinePlugin namespace',
+  )
+  assert(
+    russian.root.querySelector('[data-plugin-type="color"] .oe-toolbox__label')?.textContent === ru['inlinePlugin.color.title'],
+    'Russian color title did not use inlinePlugin namespace',
+  )
+  await typeText(russian.content, '@none')
+  await delay()
+  assert(
+    document.querySelector('.oe-mention-no-results')?.textContent === ru['inlinePlugin.mention.noResults'],
+    'Russian mention no-results text fell back outside inlinePlugin namespace',
+  )
+  russian.content.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }))
+  russian.editor.destroy()
 
   const russian = createMentionEditor(async () => [], undefined, {}, { locale: ru })
   assert(
