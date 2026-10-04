@@ -68,7 +68,7 @@ Decode external input once at the boundary. Encode every model-first update befo
 - `inlineControls` reuses model-first settings actions inside the inline toolbar.
 - `settings` is either an actions capability or a model-first panel.
 - `htmlImport.matchesRoot/importRoot` synchronously imports one safe structural HTML root into local current data for that block type; it must consume the whole root and have no side effects.
-- `clipboard.slice(data, context)` lets a composite block return exported `parts`, the canonical `remaining` value after Cut, and an optional `focus`. `context.field(key)` exposes only actually selected rich-text intervals (`before/selected/after/whole`). Export and remaining come from the same pure capability, so core never guesses the block's data shape.
+- `ClipboardCapability` (`clipboard.slice(data, context)`) lets a composite block return exported `parts`, the canonical `remaining` value after Cut, and an optional `focus`. `context.field(key)` exposes only actually selected rich-text intervals (`before/selected/after/whole`). Export and remaining come from the same pure capability, so core never guesses the block's data shape.
 - `paste` routes only text/file inputs to block or rich-text results; structural HTML is not passed to it.
 - `shortcuts` returns structural/model actions to the single core keyboard router.
 
@@ -143,7 +143,7 @@ export function createCalloutPlugin() {
 
 Definitions are immutable and reusable. Per-editor timers, caches and subscriptions belong to `BlockPluginRuntime`; per-block listeners, observers, requests and object URLs belong to `BlockInstance` and its `signal`.
 
-Never persist DOM as data. Synchronous explicit controls should call `updateData()`; native editable-field input is reconciled by core. For asynchronous work that later changes persisted data, capture `const task = context.beginTask()`, pass `task.signal` to the external operation, and finish with `task.commit(current => next)`. The producer runs only while the same instance authority is still live and receives the latest committed data. Replacement/destroy, a generation change, or `readOnly: false → true` revokes the task; returning to editable mode never revives an older task. `cancel()` is idempotent. Presentation-only requests that do not persist document data may use the ordinary lifecycle `signal`.
+Never persist DOM as data. Synchronous explicit controls should call `updateData()`; native editable-field input is reconciled by core. For asynchronous work that later changes persisted data, use the `DataTask` contract: capture `const task = context.beginTask()`, pass `task.signal` to the external operation, and finish with `task.commit(current => next)`. The producer runs only while the same instance authority is still live and receives the latest committed data. Replacement/destroy, a generation change, or `readOnly: false → true` revokes the task; returning to editable mode never revives an older task. `cancel()` is idempotent. Presentation-only requests that do not persist document data may use the ordinary lifecycle `signal`.
 
 ## Renderer pairing
 
