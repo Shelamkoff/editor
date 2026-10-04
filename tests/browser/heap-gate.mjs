@@ -169,6 +169,7 @@ const vite = spawn(process.execPath, [
 ], {
   cwd: fileURLToPath(editorRoot),
   stdio: 'ignore',
+  windowsHide: true,
 })
 
 let chrome = null
@@ -183,7 +184,7 @@ try {
     `--remote-debugging-port=${debugPort}`,
     `--user-data-dir=${userDataDir}`,
     pageUrl,
-  ], { stdio: 'ignore' })
+  ], { stdio: 'ignore', windowsHide: true })
 
   const target = await findPageTarget(debugPort, pageUrl, chrome)
   client = await CdpClient.connect(target.webSocketDebuggerUrl)

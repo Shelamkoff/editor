@@ -11,6 +11,7 @@ interface InlineTool {
   readonly icon: string
   readonly shortcut?: string
   readonly tag?: string
+  bindSelectionPort?(port: CrossEditableSelectionPort | null): void
   isActive(selection: InlineSelection): boolean
   toggle(selection: InlineSelection): void
   renderActions?(context: InlineToolActionContext): HTMLElement | null
@@ -23,6 +24,8 @@ interface InlineTool {
 ```
 
 `InlineToolActionContext` contains `range`, `mutate(operation)`, `getTextAlign()`, `setTextAlign(value)`, `restoreSelection()`, `close()`, `showTooltip(anchor, label)`, and `hideTooltip()`. Any new selection change revokes the saved toolbar lease, so a retained action context cannot mutate a newer selection.
+
+Core calls `bindSelectionPort(port)` when mounting a tool and `bindSelectionPort(null)` when destroying it. The port supplies the live cross-field range; each editor needs its own mutable tool instances.
 
 `InlineMutationContext` exposes `mutate(range, operation)` for mounted tool controls.
 
@@ -51,13 +54,13 @@ The widget ID is owned by the document model. Rich text stores a `{{id}}` refere
 
 ## Runtime and widget instance
 
-`InlinePluginRuntimeContext` provides `ownerDocument`, `signal`, `t(key, fallback)`, `showPopup(anchor, content, cleanup)`, and `hidePopup()`.
+`InlinePluginRuntimeContext` provides `ownerDocument`, `signal`, `t(key, fallback, params?)`, `showPopup(anchor, content, cleanup)`, and `hidePopup()`. Translation parameters replace placeholders such as `{level}` through the editor's shared dictionary.
 
 `InlinePluginRuntime` provides `create(id, initial, context)`, optional `onTriggerQuery(session)`, optional `onTriggerKeydown(event, session)`, optional `onTriggerCancel()`, and `destroy()`.
 
 Each `create()` returns an `InlineWidgetInstance` with `element`, optional `update(next, previous)`, `setReadOnly(readOnly)`, optional `focus()`, and `destroy()`.
 
-`InlineWidgetContext` provides `id`, `blockId`, `fieldKey`, `signal`, `getData()`, `updateData(producer)`, and `isReadOnly()`.
+`InlineWidgetContext` provides `id`, `blockId`, `fieldKey`, `signal`, `getData()`, `updateData(producer)`, `beginTask()`, and `isReadOnly()`.
 
 ## Trigger sessions
 

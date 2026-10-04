@@ -52,7 +52,7 @@ function requestedTypes(source) {
   }
 
   const document = snapshotCurrentDocumentEnvelope(source)
-  const supported = new Set(BLOCK_TYPES)
+  const supported = new Set(/** @type {readonly string[]} */ (BLOCK_TYPES))
   const types = []
   for (const block of document.blocks) {
     if (!supported.has(block.type)) continue

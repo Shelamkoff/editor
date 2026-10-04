@@ -54,7 +54,8 @@ for (const entry of entries) {
 
   const source = await collectJavaScript(directory)
   const shortKeys = new Set(
-    [...source.matchAll(/(?:this\.)?_(?:t|p)\(\s*['"]([^'"]+)['"]/g)]
+    [...source.matchAll(/(?:this\.)?_(?:t|p)\(\s*['"]([^'"]+)['"]/g),
+      ...source.matchAll(/(?:runtimeContext\.t|\w+Label)\(\s*['"]([^'"]+)['"]\s*[,)]/g)]
       .map(match => match[1]),
   )
   for (const shortKey of shortKeys) {

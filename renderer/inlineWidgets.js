@@ -1,25 +1,19 @@
 // @ts-check
-import { toTrustedHtml } from '../shared/sanitize/trustedHtml.js'
-
 const PLACEHOLDER_RE = /\{\{([A-Za-z0-9_-]+)\}\}/g
 
 /**
  * Project canonical inline widget references into read-only widget DOM.
  * Unknown, malformed, unsupported or failed widgets remain literal tokens.
  *
- * @param {string} html
+ * @param {DocumentFragment} fragment
  * @param {Record<string, import('./types').InlineWidget> | null | undefined} inline
  * @param {Map<string, import('./types').InlineWidgetRenderer>} registry
  * @param {Document} ownerDocument
- * @returns {string}
+ * @returns {DocumentFragment}
  */
-export function renderInlineWidgets(html, inline, registry, ownerDocument) {
-  const source = String(html || '')
-  if (!source || !inline || typeof inline !== 'object' || registry.size === 0 || !source.includes('{{')) return source
-
-  const template = ownerDocument.createElement('template')
-  template.innerHTML = /** @type {any} */ (toTrustedHtml(source, ownerDocument))
-  const walker = ownerDocument.createTreeWalker(template.content, 4)
+export function renderInlineWidgets(fragment, inline, registry, ownerDocument) {
+  if (!inline || typeof inline !== 'object' || registry.size === 0) return fragment
+  const walker = ownerDocument.createTreeWalker(fragment, 4)
   /** @type {Text[]} */
   const textNodes = []
   for (let node = walker.nextNode(); node; node = walker.nextNode()) textNodes.push(/** @type {Text} */ (node))
@@ -29,7 +23,7 @@ export function renderInlineWidgets(html, inline, registry, ownerDocument) {
     const text = textNode.data
     if (!text.includes('{{')) continue
 
-    const fragment = ownerDocument.createDocumentFragment()
+    const replacement = ownerDocument.createDocumentFragment()
     let lastIndex = 0
     let projected = false
 
@@ -45,19 +39,19 @@ export function renderInlineWidgets(html, inline, registry, ownerDocument) {
       const HTMLElementCtor = ownerDocument.defaultView?.HTMLElement ?? globalThis.HTMLElement
       if (!HTMLElementCtor || !(element instanceof HTMLElementCtor)) continue
 
-      if (match.index > lastIndex) fragment.append(ownerDocument.createTextNode(text.slice(lastIndex, match.index)))
+      if (match.index > lastIndex) replacement.append(ownerDocument.createTextNode(text.slice(lastIndex, match.index)))
       element.setAttribute('data-inline-plugin', ref.type)
       element.setAttribute('data-id', id)
       element.contentEditable = 'false'
-      fragment.append(element)
+      replacement.append(element)
       lastIndex = match.index + token.length
       projected = true
     }
 
     if (!projected) continue
-    if (lastIndex < text.length) fragment.append(ownerDocument.createTextNode(text.slice(lastIndex)))
-    textNode.replaceWith(fragment)
+    if (lastIndex < text.length) replacement.append(ownerDocument.createTextNode(text.slice(lastIndex)))
+    textNode.replaceWith(replacement)
   }
 
-  return template.innerHTML
+  return fragment
 }

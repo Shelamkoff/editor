@@ -51,6 +51,8 @@ interface IEditor {
 | `focus(id, target?)` | Focus a logical editable field. |
 | `Symbol.iterator` | Iterate immutable snapshots. |
 
+`blocks.select(ids)` defines a whole-block interaction selection in document order. Delete, Cut, typing, paste and IME replace only those blocks, preserving unselected gaps. `clearSelection()` cancels that intent; `render()` also revokes it when replacing the document, even if IDs are reused. `selectedIds()` may also report blocks touched by a partial text range, so a nonempty result alone does not imply whole-block selection.
+
 ## Immutable snapshots
 
 `EditorBlockSnapshot` contains `id`, `type`, `dataVersion`, `data`, optional `tunes`, optional `inline`, optional `revision`, and activation `status`.
@@ -61,7 +63,7 @@ Snapshots never expose the mounted `element`. DOM is a projection of canonical s
 
 Subscribe through `editor.on(type, listener)`. It returns an unsubscribe function.
 
-Public event names are:
+The `EditorEventName` union contains these public event names:
 
 - `editor:ready`
 - `editor:destroyed`

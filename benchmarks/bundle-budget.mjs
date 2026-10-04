@@ -22,6 +22,8 @@ const budgets = {
   defaultInteractive: 64 * KIB,
   fullPreset: 96 * KIB,
 }
+// The core size is reported, but is not a completion gate (owner decision, 2026-10-04).
+const enforcedPresets = new Set(['paragraph', 'defaultInteractive', 'fullPreset'])
 
 async function measurePreset(preset, input) {
   // Separate builds prevent Rollup from moving code shared by the minimal and
@@ -98,7 +100,7 @@ for (const row of rows) {
   if (budget === undefined) throw new Error(`Missing bundle budget for ${row.preset}`)
   if (row.gzipBytes > budget) {
     const message = `${row.preset} entry is ${(row.gzipBytes / KIB).toFixed(1)} KiB gzip; reference target is ${(budget / KIB).toFixed(0)} KiB`
-    if (enforce) throw new Error(message)
+    if (enforce && enforcedPresets.has(row.preset)) throw new Error(message)
     console.warn(`${message} (informational)`)
   }
 }

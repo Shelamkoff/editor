@@ -281,7 +281,7 @@ async function structuredHtmlImport() {
   }
 
   try {
-    const before = JSON.stringify(editor.save())
+    const before = JSON.stringify(editor.save().blocks)
     const event = await pasteHtml(
       '<p onclick="window.__htmlImportProbe=1">One <b>bold</b><script>window.__htmlImportProbe=2</script></p>'
       + '<section><h3>Nested heading</h3><ol><li>A</li><li>B <i>two</i></li></ol></section>'
@@ -306,12 +306,12 @@ async function structuredHtmlImport() {
 
     assert(editor.undo() === true, 'structured HTML import is not one history step')
     await settle()
-    assert(JSON.stringify(editor.save()) === before, 'structured HTML undo did not restore original document')
+    assert(JSON.stringify(editor.save().blocks) === before, 'structured HTML undo did not restore original document')
 
-    const failureBefore = JSON.stringify(editor.save())
+    const failureBefore = JSON.stringify(editor.save().blocks)
     const failed = await pasteHtml('<p>Prepared first</p><article>fail late</article>')
     assert(failed.defaultPrevented, 'failed accepted HTML import was not consumed')
-    assert(JSON.stringify(editor.save()) === failureBefore, 'late HTML import failure partially mutated document')
+    assert(JSON.stringify(editor.save().blocks) === failureBefore, 'late HTML import failure partially mutated document')
   } finally {
     editor.destroy()
     holder.remove()
@@ -429,8 +429,13 @@ async function embedCoverOwnership() {
     const cover = [...entry.wrapper.querySelectorAll('.oe-embed__action-btn')]
       .find(button => button.textContent?.trim().includes('Cover'))
     assert(cover instanceof HTMLButtonElement, 'embed Cover control is missing')
+    const upload = [...entry.wrapper.querySelectorAll('.oe-embed__action-btn')]
+      .find(button => button.textContent?.trim() === 'Upload')
+    assert(upload instanceof HTMLButtonElement, 'embed cover Upload control is missing')
     cover.click()
+    upload.click()
     cover.click()
+    upload.click()
     assert(requests.length === 2, 'embed replacement uploads did not both start')
     assert(requests[0].signal.aborted, 'new embed cover upload did not abort old upload')
 
@@ -443,7 +448,9 @@ async function embedCoverOwnership() {
     assert(entry.editor.save().blocks[0].data.cover === 'https://example.test/fresh.png', 'fresh embed cover did not win')
 
     cover.click()
+    upload.click()
     cover.click()
+    upload.click()
     assert(requests.length === 4, 'second embed cover race did not start both uploads')
     requests[3].resolve({ url: 'https://example.test/newest.png' })
     await settle(3)
@@ -522,7 +529,7 @@ async function personAvatarOwnership() {
     },
   })
   const entry = mount(definition, {
-    persons: [{ avatar: '', name: 'Ada', role: '', bio: '', links: [] }],
+    persons: [{ id: 'person-1', avatar: '', name: 'Ada', role: '', bio: '', links: [] }],
   }, { id: 'person' })
 
   const clickUpload = async () => {

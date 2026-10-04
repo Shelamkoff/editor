@@ -84,6 +84,8 @@ Decode external input once at the boundary. Encode every model-first update befo
 
 `ShortcutCapability` has one `handle(input, data, context)` method. Return `native`, `consume`, `exit`, `focus`, or `update`; core owns the actual structural transaction.
 
+Its context provides `createId()`, `splitField(fieldKey, range)`, and `fieldLength(fieldKey)`. Field lengths use logical UTF-16 units, with one unit per line break or atomic widget. Use the original target field length to keep a merge caret at the join rather than the end of the merged text. An `update` action returns block data plus an optional focus target; core records that target for Undo/Redo. An `exit` action without data converts the current block to the default type. With `data`, it updates the retained block and inserts a default block immediately after it as one history entry; list-like tools use this to exit their last empty item.
+
 `SelectionSliceCapability` has `slice(data, start, end, context)` and returns `before`, a neutral `selected` payload, and `after`.
 
 ## Minimal definition

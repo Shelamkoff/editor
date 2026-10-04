@@ -1,4 +1,5 @@
 export default {
+  'plugin.code.language': 'Язык',
   'plugin.code.title': 'Код',
   'plugin.code.placeholder': '// Введите код...',
   'plugin.code.copy': 'Копировать',

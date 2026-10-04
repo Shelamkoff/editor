@@ -5,9 +5,36 @@ import { DocumentStore } from './DocumentStore.js'
 import { HistoryStore } from './HistoryStore.js'
 import { TransactionEngine } from './TransactionEngine.js'
 
+test('prepared post-action selection is replayed instead of the menu or removed host selection', () => {
+  const before = { anchor: { blockId: 'a', fieldKey: 'text', offset: 1 }, focus: { blockId: 'a', fieldKey: 'text', offset: 1 } }
+  const after = { anchor: { blockId: 'b', fieldKey: 'text', offset: 0 }, focus: { blockId: 'b', fieldKey: 'text', offset: 0 } }
+  const restored = []
+  const store = new DocumentStore({ version: '2.0.0', blocks: [block('a')] })
+  const engine = new TransactionEngine({ store, history: new HistoryStore(), selection: { capture: () => before, restore: value => restored.push(value) } })
+  engine.execute({ origin: 'user', name: 'block.insert', selectionAfter: () => after }, tx => tx.insert(1, block('b')))
+  engine.undo()
+  assert.deepEqual(restored.at(-1), before)
+  engine.redo()
+  assert.deepEqual(restored.at(-1), after)
+})
+
 function block(id, text = id) {
   return { id, type: 'paragraph', data: { text } }
 }
+
+test('native history uses the caret captured before the browser mutation and the committed caret for Redo', () => {
+  const point = offset => ({ anchor: { blockId: 'a', fieldKey: 'text', offset }, focus: { blockId: 'a', fieldKey: 'text', offset } })
+  const restored = []
+  const store = new DocumentStore({ version: '2.0.0', blocks: [block('a', 'Alpha')] })
+  const engine = new TransactionEngine({ store, history: new HistoryStore(), selection: { capture: () => point(3), restore: value => restored.push(value) } })
+  const before = point(2)
+  engine.execute({ origin: 'native-input', name: 'native-input', selectionBefore: before }, tx => tx.update('a', block('a', 'AlXpha')))
+  before.anchor.offset = 99
+  engine.undo()
+  assert.deepEqual(restored.at(-1), point(2))
+  engine.redo()
+  assert.deepEqual(restored.at(-1), point(3))
+})
 
 function harness(options = {}) {
   const store = new DocumentStore({ version: '2.0.0', blocks: [block('a')] })

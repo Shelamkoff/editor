@@ -1,0 +1,16 @@
+file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149
+    if (result.status === 'fail') throw new Error(`History matrix failed: ${result.summary}`)
+                                        ^
+
+Error: History matrix failed: [
+  {
+    "name": "Delete removes host-selected disjoint whole blocks as in v1",
+    "status": "FAIL",
+    "error": "Error: Delete ignored the explicit whole-block selection\nexpected [{\"id\":\"a\",\"type\":\"paragraph\",\"dataVersion\":2,\"data\":{\"text\":\"Alpha\"}},{\"id\":\"c\",\"type\":\"paragraph\",\"dataVersion\":2,\"data\":{\"text\":\"Charlie\"}}], got [{\"id\":\"a\",\"type\":\"paragraph\",\"dataVersion\":2,\"data\":{\"text\":\"Alha\"}},{\"id\":\"b\",\"type\":\"paragraph\",\"dataVersion\":2,\"data\":{\"text\":\"Bravo\"}},{\"id\":\"c\",\"type\":\"paragraph\",\"dataVersion\":2,\"data\":{\"text\":\"Charlie\"}},{\"id\":\"d\",\"type\":\"paragraph\",\"dataVersion\":2,\"data\":{\"text\":\"Delta\"}}]\n    at equal (http://127.0.0.1:62303/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:62303/tests/browser/native-core-behavior.js:130:3\n    at async run (http://127.0.0.1:62303/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:62303/tests/browser/native-core-behavior.js:139:1"
+  }
+]
+    at waitForHistoryMatrix (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149:41)
+    at async runNativePage (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:273:30)
+    at async file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:310:48
+
+Node.js v24.9.0

@@ -129,7 +129,7 @@ function validateRendererConfig(config) {
  * change between validation and ownership transfer. Deep payloads remain
  * opaque here; producer revisions may therefore still skip deep traversal.
  * @param {unknown} block
- * @returns {import('./types').OutputBlockData}
+ * @returns {import('../shared/documentTypes').EditorBlockData}
  */
 function snapshotOutputBlockEnvelope(block) {
   const snapshot = snapshotCurrentBlockEnvelope(block, 'EditorRenderer block')

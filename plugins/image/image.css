@@ -228,10 +228,11 @@
 }
 
 .oe-image__dropdown-panel {
+  box-sizing: border-box;
   display: none;
   position: absolute;
   left: 0;
-  width: 20rem;
+  width: min(20rem, calc(100vw - 2rem));
   max-height: 24rem;
   overflow-y: auto;
   background: var(--oe-card, #111);
@@ -293,6 +294,7 @@
 }
 
 .oe-image__style-input {
+  box-sizing: border-box;
   width: 100%;
   min-width: 0;
   height: 22px;
@@ -462,6 +464,8 @@
 }
 
 .oe-image__switch {
+  appearance: none;
+  margin: 0;
   position: relative;
   width: 28px;
   height: 16px;

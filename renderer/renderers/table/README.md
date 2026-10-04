@@ -23,7 +23,37 @@ rendererStyles.destroy()
 ## Typical data
 
 ```json
-{ "withHeadings": true, "content": [["Name", "Value"], ["A", "1"]] }
+{
+  "withHeadings": true,
+  "rows": [
+    {
+      "id": "row-1",
+      "cells": [
+        {
+          "id": "cell-1",
+          "text": "Name"
+        },
+        {
+          "id": "cell-2",
+          "text": "Value"
+        }
+      ]
+    },
+    {
+      "id": "row-2",
+      "cells": [
+        {
+          "id": "cell-1",
+          "text": "A"
+        },
+        {
+          "id": "cell-2",
+          "text": "1"
+        }
+      ]
+    }
+  ]
+}
 ```
 
 Every cell uses the shared inline parser and the validated rectangular shape controls the rows and columns. The renderer declares one stylesheet and creates no listeners or external instances.

@@ -13,77 +13,14 @@ import {
 } from '@shelamkoff/expose'
 import { setSafeUrlAttribute } from '../../../shared/sanitize/sanitizeUrl.js'
 import { mountGalleryMasonry } from '../../../shared/galleryMasonry.js'
+import { gallerySlotCount as getSlotsCount, autoGalleryLayout as selectAutoTemplate, galleryOrientation as detectOrientation } from '../../../shared/galleryLayout.js'
 import { localeText } from '../locale.js'
 
 const styles = new URL('./styles.css', import.meta.url).href
 const exposeStyles = exposeStylesUrl
 
 const MAX_VISIBLE = 6
-
-/**
- * @typedef {'L' | 'P' | 'S'} Orientation
- */
-
-/**
- * @param {HTMLImageElement} img
- * @returns {Orientation}
- */
-function detectOrientation(img) {
-  const r = img.naturalWidth / img.naturalHeight
-  if (r > 1.2) return 'L'
-  if (r < 1 / 1.2) return 'P'
-  return 'S'
-}
-
-/** @type {Record<string, number>} */
-const POLY_SLOTS = {
-  'poly-5': 5, 'poly-3arch': 3, 'poly-5flat': 5, 'poly-3steps': 3,
-}
-
-/**
- * @param {import('../../types').GalleryLayout} layout
- * @returns {number}
- */
-function getSlotsCount(layout) {
-  if (layout === 'auto' || layout === 'masonry') return Infinity
-  if (layout === 'triptych') return 3
-  if (Object.hasOwn(POLY_SLOTS, layout)) return POLY_SLOTS[layout] ?? 6
-  const m = layout.match(/^(\d)/)
-  return m && m[1] ? parseInt(m[1], 10) : 6
-}
-
-/**
- * @param {number} count
- * @param {Orientation[]} orientations
- * @returns {string}
- */
-function selectAutoTemplate(count, orientations) {
-  if (count <= 1) return '1'
-  if (count === 2) return '2'
-  const firstP = orientations[0] === 'P'
-  const lastP = orientations[orientations.length - 1] === 'P'
-  const allLS = orientations.every(o => o !== 'P')
-  const n = Math.min(count, MAX_VISIBLE)
-  switch (n) {
-    case 3:
-      if (firstP) return '3a'
-      if (lastP) return '3b'
-      return '3c'
-    case 4:
-      if (firstP) return '4b'
-      if (allLS) return '4c'
-      return '4a'
-    case 5:
-      if (firstP) return '5b'
-      if (allLS) return '5c'
-      return '5a'
-    case 6:
-    default:
-      if (firstP) return '6b'
-      if (allLS) return '6c'
-      return '6a'
-  }
-}
+/** @typedef {'L' | 'P' | 'S'} Orientation */
 
 /**
  * Create the gallery renderer and own every opened Expose instance.

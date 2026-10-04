@@ -48,29 +48,21 @@ export class InlineWidgetInputController {
     event.stopImmediatePropagation?.()
 
     if(action.kind==='update'){
-      this.#runtime.updateInlineWidget(target.blockId,target.inlineId,()=>action.data)
-      queueMicrotask(()=>this.#selection.setCaret(target.blockId,{
-        fieldKey:target.fieldKey,
-        offset:target.logicalOffset+1,
-      }))
+      this.#withCaret(target,target.logicalOffset+1,()=>this.#runtime.updateInlineWidget(target.blockId,target.inlineId,()=>action.data))
       return
     }
     if(action.kind==='remove'){
-      if(this.#runtime.removeInlineWidget(target.blockId,target.inlineId)){
-        queueMicrotask(()=>this.#selection.setCaret(target.blockId,{
-          fieldKey:target.fieldKey,
-          offset:target.logicalOffset,
-        }))
-      }
+      this.#withCaret(target,target.logicalOffset,()=>this.#runtime.removeInlineWidget(target.blockId,target.inlineId))
       return
     }
     if(action.kind==='replace-text'){
-      if(this.#runtime.replaceInlineWidgetWithText(target.blockId,target.inlineId,action.text)){
-        queueMicrotask(()=>this.#selection.setCaret(target.blockId,{
-          fieldKey:target.fieldKey,
-          offset:target.logicalOffset,
-        }))
-      }
+      this.#withCaret(target,target.logicalOffset,()=>this.#runtime.replaceInlineWidgetWithText(target.blockId,target.inlineId,action.text))
     }
+  }
+
+  #withCaret(target,offset,operation){
+    const point={blockId:target.blockId,fieldKey:target.fieldKey,offset}
+    const result=this.#runtime.interact('inline.edit',operation,()=>({anchor:point,focus:{...point}}))
+    if(result!==false)queueMicrotask(()=>this.#selection.setCaret(target.blockId,{fieldKey:target.fieldKey,offset}))
   }
 }

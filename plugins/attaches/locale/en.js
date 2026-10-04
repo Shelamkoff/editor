@@ -1,4 +1,9 @@
 export default {
+  'plugin.attaches.insert': 'Insert',
+  'plugin.attaches.cancel': 'Cancel',
+  'plugin.attaches.open': 'Open',
+  'plugin.attaches.remove': 'Remove',
+  'plugin.attaches.add': 'Add',
   'plugin.attaches.title': 'File',
   'plugin.attaches.upload': 'Upload',
   'plugin.attaches.dropzoneUpload': 'Upload',

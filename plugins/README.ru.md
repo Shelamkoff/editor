@@ -1,6 +1,6 @@
 # Блочные плагины
 
-Пакет содержит 21 блок. Импортируйте один класс из `@shelamkoff/rector/plugins/<path>`, полный синхронный набор из `@shelamkoff/rector/plugins` или набор по типам документа из `@shelamkoff/rector/plugins/async`.
+Пакет содержит 21 блок. Импортируйте фабрику одного блока из `@shelamkoff/rector/plugins/<path>`, полный синхронный набор из `@shelamkoff/rector/plugins` или набор по типам документа из `@shelamkoff/rector/plugins/async`.
 
 | Плагин | Тип | Назначение |
 | --- | --- | --- |

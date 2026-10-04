@@ -76,7 +76,7 @@
 
 /* Cross-block selection via CSS Highlight API — renders across
    contenteditable boundaries where native ::selection won't. */
-::highlight(oe-cross-select) {
+::highlight(oe-cross-select-v2) {
   background: var(--oe-selection-bg, rgba(255, 255, 255, 0.15));
 }
 
@@ -304,6 +304,7 @@
 
 
 .oe-toolbox {
+  box-sizing: border-box;
   padding: 6px;
   margin: 0;
   list-style: none;
@@ -318,12 +319,15 @@
   position: absolute;
   z-index: 20;
   min-width: 180px;
+  width: 240px;
+  max-width: calc(100vw - 16px);
   max-height: 300px;
   overflow-y: auto;
 }
 
 .oe-toolbox__item,
 .oe-settings-menu__item {
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -366,6 +370,8 @@
 
 .oe-toolbox__label {
   flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 
@@ -915,6 +921,7 @@
 
 
 .oe-settings-menu {
+  box-sizing: border-box;
   padding: 6px;
   margin: 0;
   list-style: none;
@@ -929,16 +936,35 @@
   position: absolute;
   z-index: 40;
   min-width: 180px;
+  width: 240px;
+  max-width: calc(100vw - 16px);
   max-height: 320px;
   overflow-y: auto;
 }
 
 
-.oe-settings-menu--forward {
+.oe-editor:not(.oe-editor--mobile) .oe-settings-menu:has(.oe-settings-menu__panel) {
+  width: min(25rem, calc(100vw - 16px));
+}
+
+/* Instance views switch states with hidden; author display rules must honor it. */
+.oe-editor [hidden] {
+  display: none !important;
+}
+
+.oe-settings-menu__panel,
+.oe-settings-menu__panel > * {
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+.oe-editor:not(.oe-editor--mobile) .oe-settings-menu--forward,
+.oe-editor:not(.oe-editor--mobile) .oe-toolbox--forward {
   animation: oe-drilldown-in 0.15s ease-out;
 }
 
-.oe-settings-menu--back {
+.oe-editor:not(.oe-editor--mobile) .oe-settings-menu--back,
+.oe-editor:not(.oe-editor--mobile) .oe-toolbox--back {
   animation: oe-drilldown-back 0.15s ease-out;
 }
 
@@ -985,16 +1011,20 @@
 
 .oe-settings-menu__label {
   flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
-.oe-settings-menu__arrow {
+.oe-settings-menu__arrow,
+.oe-toolbox__arrow {
   display: flex;
   align-items: center;
   color: var(--oe-text-3);
   margin-left: auto;
 }
 
-.oe-settings-menu__arrow svg {
+.oe-settings-menu__arrow svg,
+.oe-toolbox__arrow svg {
   width: 14px;
   height: 14px;
 }

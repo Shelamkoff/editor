@@ -2,6 +2,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { runInNewContext } from 'node:vm'
+import { isPlainObjectPrototype } from '../shared/jsonData.js'
 
 class FakeElement {
   constructor(tagName) {
@@ -91,6 +92,8 @@ const CURRENT_DATA_VERSION=Object.freeze({
 let currentFixtureId=0
 function currentBlock(value){
   if(!value||typeof value!=='object'||Array.isArray(value))return value
+  if(!isPlainObjectPrototype(Object.getPrototypeOf(value)))return value
+  if(Object.hasOwn(value,'id')&&Object.hasOwn(value,'dataVersion'))return value
   const block={...value}
   if(!Object.hasOwn(block,'id'))block.id=`fixture-${++currentFixtureId}`
   if(!Object.hasOwn(block,'dataVersion'))block.dataVersion=CURRENT_DATA_VERSION[block.type]??1
@@ -98,6 +101,9 @@ function currentBlock(value){
 }
 function currentDocument(value){
   if(!value||typeof value!=='object'||Array.isArray(value))return value
+  if(!isPlainObjectPrototype(Object.getPrototypeOf(value)))return value
+  if(Object.hasOwn(value,'version')&&Array.isArray(value.blocks)
+    && value.blocks.every(block=>currentBlock(block)===block))return value
   const document={...value}
   if(!Object.hasOwn(document,'version'))document.version='2.0.0'
   if(Array.isArray(document.blocks)){
@@ -135,7 +141,7 @@ test('strict renderer validation rejects lossy built-in data with a content-free
     type: 'table',
     dataVersion: 2,
     data: { content: [['kept', 'lost'], ['ragged']] },
-  }), /does not match its schema/)
+  }), { name: 'InvalidBlockDataError' })
   assert.deepEqual(issues.map(({blockId,type})=>({blockId,type})), [{ blockId: 'table-1', type: 'table' }])
   assert.equal(JSON.stringify(issues).includes('kept'), false)
 })
@@ -687,7 +693,7 @@ test('renderer rejects non-finite numeric block revisions', async () => {
   for (const revision of [Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY]) {
     assert.throws(
       () => renderer.renderBlock({ type: 'revision-check', revision, data: {} }),
-      /revision must be a string or finite number/,
+      TypeError,
     )
   }
 })

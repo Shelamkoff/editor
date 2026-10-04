@@ -1,0 +1,359 @@
+file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149
+    if (result.status === 'fail') throw new Error(`History matrix failed: ${result.summary}`)
+                                        ^
+
+Error: History matrix failed: [
+  {
+    "name": "Paragraph: light theme at 640px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Heading: light theme at 640px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "List: light theme at 640px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Quote: light theme at 640px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Code: light theme at 640px keeps v1 design in filled, empty and read-only states",
+    "status": "FAIL",
+    "error": "Error: Authoring text is invisible\n    at assert (http://127.0.0.1:54014/tests/browser/regressions/harness.js:20:81)\n    at designContract (http://127.0.0.1:54014/tests/browser/native-plugin-design.js:51:5)\n    at http://127.0.0.1:54014/tests/browser/native-plugin-design.js:98:11\n    at async run (http://127.0.0.1:54014/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:54014/tests/browser/native-plugin-design.js:105:3"
+  },
+  {
+    "name": "Image: light theme at 640px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Delimiter: light theme at 640px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Table: light theme at 640px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Checklist: light theme at 640px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Warning: light theme at 640px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Embed: light theme at 640px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Raw: light theme at 640px keeps v1 design in filled, empty and read-only states",
+    "status": "FAIL",
+    "error": "Error: Visible authoring field escapes the block\n    at assert (http://127.0.0.1:54014/tests/browser/regressions/harness.js:20:81)\n    at designContract (http://127.0.0.1:54014/tests/browser/native-plugin-design.js:50:5)\n    at http://127.0.0.1:54014/tests/browser/native-plugin-design.js:98:11\n    at async run (http://127.0.0.1:54014/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:54014/tests/browser/native-plugin-design.js:105:3"
+  },
+  {
+    "name": "Gallery: light theme at 640px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Carousel: light theme at 640px keeps v1 design in filled, empty and read-only states",
+    "status": "FAIL",
+    "error": "Error: Visible authoring field escapes the block\n    at assert (http://127.0.0.1:54014/tests/browser/regressions/harness.js:20:81)\n    at designContract (http://127.0.0.1:54014/tests/browser/native-plugin-design.js:50:5)\n    at http://127.0.0.1:54014/tests/browser/native-plugin-design.js:98:11\n    at async run (http://127.0.0.1:54014/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:54014/tests/browser/native-plugin-design.js:105:3"
+  },
+  {
+    "name": "Attaches: light theme at 640px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "LinkPreview: light theme at 640px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Toggle: light theme at 640px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Columns: light theme at 640px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Spoiler: light theme at 640px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll: light theme at 640px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Person: light theme at 640px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Paragraph: dark theme at 640px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Heading: dark theme at 640px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "List: dark theme at 640px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Quote: dark theme at 640px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Code: dark theme at 640px keeps v1 design in filled, empty and read-only states",
+    "status": "FAIL",
+    "error": "Error: Authoring text is invisible\n    at assert (http://127.0.0.1:54014/tests/browser/regressions/harness.js:20:81)\n    at designContract (http://127.0.0.1:54014/tests/browser/native-plugin-design.js:51:5)\n    at http://127.0.0.1:54014/tests/browser/native-plugin-design.js:98:11\n    at async run (http://127.0.0.1:54014/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:54014/tests/browser/native-plugin-design.js:105:3"
+  },
+  {
+    "name": "Image: dark theme at 640px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Delimiter: dark theme at 640px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Table: dark theme at 640px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Checklist: dark theme at 640px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Warning: dark theme at 640px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Embed: dark theme at 640px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Raw: dark theme at 640px keeps v1 design in filled, empty and read-only states",
+    "status": "FAIL",
+    "error": "Error: Visible authoring field escapes the block\n    at assert (http://127.0.0.1:54014/tests/browser/regressions/harness.js:20:81)\n    at designContract (http://127.0.0.1:54014/tests/browser/native-plugin-design.js:50:5)\n    at http://127.0.0.1:54014/tests/browser/native-plugin-design.js:98:11\n    at async run (http://127.0.0.1:54014/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:54014/tests/browser/native-plugin-design.js:105:3"
+  },
+  {
+    "name": "Gallery: dark theme at 640px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Carousel: dark theme at 640px keeps v1 design in filled, empty and read-only states",
+    "status": "FAIL",
+    "error": "Error: Visible authoring field escapes the block\n    at assert (http://127.0.0.1:54014/tests/browser/regressions/harness.js:20:81)\n    at designContract (http://127.0.0.1:54014/tests/browser/native-plugin-design.js:50:5)\n    at http://127.0.0.1:54014/tests/browser/native-plugin-design.js:98:11\n    at async run (http://127.0.0.1:54014/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:54014/tests/browser/native-plugin-design.js:105:3"
+  },
+  {
+    "name": "Attaches: dark theme at 640px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "LinkPreview: dark theme at 640px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Toggle: dark theme at 640px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Columns: dark theme at 640px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Spoiler: dark theme at 640px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll: dark theme at 640px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Person: dark theme at 640px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Paragraph: light theme at 288px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Heading: light theme at 288px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "List: light theme at 288px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Quote: light theme at 288px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Code: light theme at 288px keeps v1 design in filled, empty and read-only states",
+    "status": "FAIL",
+    "error": "Error: Authoring text is invisible\n    at assert (http://127.0.0.1:54014/tests/browser/regressions/harness.js:20:81)\n    at designContract (http://127.0.0.1:54014/tests/browser/native-plugin-design.js:51:5)\n    at http://127.0.0.1:54014/tests/browser/native-plugin-design.js:98:11\n    at async run (http://127.0.0.1:54014/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:54014/tests/browser/native-plugin-design.js:105:3"
+  },
+  {
+    "name": "Image: light theme at 288px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Delimiter: light theme at 288px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Table: light theme at 288px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Checklist: light theme at 288px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Warning: light theme at 288px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Embed: light theme at 288px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Raw: light theme at 288px keeps v1 design in filled, empty and read-only states",
+    "status": "FAIL",
+    "error": "Error: Visible authoring field escapes the block\n    at assert (http://127.0.0.1:54014/tests/browser/regressions/harness.js:20:81)\n    at designContract (http://127.0.0.1:54014/tests/browser/native-plugin-design.js:50:5)\n    at http://127.0.0.1:54014/tests/browser/native-plugin-design.js:98:11\n    at async run (http://127.0.0.1:54014/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:54014/tests/browser/native-plugin-design.js:105:3"
+  },
+  {
+    "name": "Gallery: light theme at 288px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Carousel: light theme at 288px keeps v1 design in filled, empty and read-only states",
+    "status": "FAIL",
+    "error": "Error: Plugin overflows its authoring width: 422 > 288\n    at assert (http://127.0.0.1:54014/tests/browser/regressions/harness.js:20:81)\n    at designContract (http://127.0.0.1:54014/tests/browser/native-plugin-design.js:44:3)\n    at http://127.0.0.1:54014/tests/browser/native-plugin-design.js:98:11\n    at async run (http://127.0.0.1:54014/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:54014/tests/browser/native-plugin-design.js:105:3"
+  },
+  {
+    "name": "Attaches: light theme at 288px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "LinkPreview: light theme at 288px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Toggle: light theme at 288px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Columns: light theme at 288px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Spoiler: light theme at 288px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll: light theme at 288px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Person: light theme at 288px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Paragraph: dark theme at 288px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Heading: dark theme at 288px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "List: dark theme at 288px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Quote: dark theme at 288px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Code: dark theme at 288px keeps v1 design in filled, empty and read-only states",
+    "status": "FAIL",
+    "error": "Error: Authoring text is invisible\n    at assert (http://127.0.0.1:54014/tests/browser/regressions/harness.js:20:81)\n    at designContract (http://127.0.0.1:54014/tests/browser/native-plugin-design.js:51:5)\n    at http://127.0.0.1:54014/tests/browser/native-plugin-design.js:98:11\n    at async run (http://127.0.0.1:54014/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:54014/tests/browser/native-plugin-design.js:105:3"
+  },
+  {
+    "name": "Image: dark theme at 288px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Delimiter: dark theme at 288px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Table: dark theme at 288px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Checklist: dark theme at 288px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Warning: dark theme at 288px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Embed: dark theme at 288px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Raw: dark theme at 288px keeps v1 design in filled, empty and read-only states",
+    "status": "FAIL",
+    "error": "Error: Visible authoring field escapes the block\n    at assert (http://127.0.0.1:54014/tests/browser/regressions/harness.js:20:81)\n    at designContract (http://127.0.0.1:54014/tests/browser/native-plugin-design.js:50:5)\n    at http://127.0.0.1:54014/tests/browser/native-plugin-design.js:98:11\n    at async run (http://127.0.0.1:54014/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:54014/tests/browser/native-plugin-design.js:105:3"
+  },
+  {
+    "name": "Gallery: dark theme at 288px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Carousel: dark theme at 288px keeps v1 design in filled, empty and read-only states",
+    "status": "FAIL",
+    "error": "Error: Plugin overflows its authoring width: 422 > 288\n    at assert (http://127.0.0.1:54014/tests/browser/regressions/harness.js:20:81)\n    at designContract (http://127.0.0.1:54014/tests/browser/native-plugin-design.js:44:3)\n    at http://127.0.0.1:54014/tests/browser/native-plugin-design.js:98:11\n    at async run (http://127.0.0.1:54014/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:54014/tests/browser/native-plugin-design.js:105:3"
+  },
+  {
+    "name": "Attaches: dark theme at 288px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "LinkPreview: dark theme at 288px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Toggle: dark theme at 288px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Columns: dark theme at 288px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Spoiler: dark theme at 288px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll: dark theme at 288px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  },
+  {
+    "name": "Person: dark theme at 288px keeps v1 design in filled, empty and read-only states",
+    "status": "PASS"
+  }
+]
+    at waitForHistoryMatrix (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149:41)
+    at async runNativePage (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:273:30)
+    at async file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:310:48
+
+Node.js v24.9.0

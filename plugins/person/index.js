@@ -2,6 +2,10 @@
 import { setSanitizedHtml } from '../../plugin-kit/index.js'
 import { setTrustedHtml } from '../../shared/sanitize/sanitizeHtml.js'
 import { personDataSchema } from '../../shared/blockSchemas/person.js'
+import { acceptsTextPayload, richTextFromPayload } from '../shared/textConversion.js'
+import { createTextSelectionSlice } from '../shared/textSelectionSlice.js'
+import { createTextClipboardSlice } from '../shared/textClipboardSlice.js'
+import { retainControlFocus } from '../shared/retainControlFocus.js'
 import { sanitizeUrl, setSafeUrlAttribute } from '../../shared/sanitize/sanitizeUrl.js'
 import { requiresTrustedHtml } from '../../shared/sanitize/trustedHtml.js'
 import { CropperDialog, cropperStylesUrl } from '@shelamkoff/cropper'
@@ -47,11 +51,14 @@ export function createPersonPlugin(config={}){
 
   /** @type {import('../../plugin-kit/types').BlockCapabilities<any>} */
   const capabilities=Object.freeze({
+    selectionSlice:createTextSelectionSlice(personDataSchema),
+    clipboard:createTextClipboardSlice(personDataSchema),
     empty:Object.freeze({isEmpty:data=>data.persons.every(person=>!meaningful(person))}),
     shortcuts:Object.freeze(/** @type {import('../../plugin-kit/types').ShortcutCapability<any>} */ ({
       handle(input){
         const textField=input.fieldKey.startsWith('person:')
           && (input.fieldKey.endsWith(':name')||input.fieldKey.endsWith(':role')||input.fieldKey.endsWith(':bio'))
+        if(textField&&input.key==='Enter'&&!input.fieldKey.endsWith(':bio'))return {kind:'consume'}
         if(textField&&['Enter','Backspace','Delete'].includes(input.key))return {kind:'native'}
         return null
       },
@@ -64,17 +71,16 @@ export function createPersonPlugin(config={}){
         }
       },
       canImport(payload){
-        return payload?.kind==='rich-text'&&typeof payload.data?.text==='string'
+        return acceptsTextPayload(payload)
       },
       import(payload){
-        if(payload?.kind!=='rich-text'||typeof payload.data?.text!=='string')throw new TypeError('Person can only import rich-text payloads')
         return {
           persons:[{
             id:'person-0',
             avatar:'',
             name:'',
             role:'',
-            bio:payload.data.text,
+            bio:richTextFromPayload(payload),
             links:[],
           }],
         }
@@ -137,7 +143,7 @@ export function createPersonPlugin(config={}){
 
           const commit=producer=>{
             syncVisible()
-            context.updateData(current=>producer(cloneData(current)))
+            retainControlFocus(wrapper,()=>context.updateData(current=>producer(cloneData(current))))
           }
 
           const beginAvatarTask=personId=>{
@@ -202,6 +208,9 @@ export function createPersonPlugin(config={}){
                       }finally{
                         if(cropperDialog===dialog)cropperDialog=null
                         if(cropperTask===task)cropperTask=null
+                        if(!dead&&!readOnly&&!task.signal.aborted&&document.activeElement===document.body&&document.hasFocus()){
+                          wrapper.focus({preventScroll:true})
+                        }
                       }
                     }
                     let url=''
@@ -214,9 +223,9 @@ export function createPersonPlugin(config={}){
                       url=String(await readAvatar(blob,task.signal))
                     }
                     if(task.signal.aborted||!url||dead)return
-                    task.commit(current=>({
+                    retainControlFocus(wrapper,()=>task.commit(current=>({
                       persons:current.persons.map(person=>person.id===personId?{...person,avatar:url}:person),
-                    }))
+                    })))
                   }catch{
                     // Cancelled/failed avatar work leaves canonical data unchanged.
                   }finally{
@@ -242,6 +251,7 @@ export function createPersonPlugin(config={}){
                 syncVisible()
                 activeId=person.id
                 render()
+                wrapper.focus({preventScroll:true})
               },{signal:context.signal})
               tab.addEventListener('dragstart',()=>{
                 if(!readOnly)dragId=person.id
@@ -297,6 +307,12 @@ export function createPersonPlugin(config={}){
             input.value=link.url
             input.readOnly=readOnly
             input.setAttribute('data-oe-document-input','value')
+            input.addEventListener('keydown',event=>{
+              if(event.key==='Enter'){
+                event.preventDefault()
+                event.stopPropagation()
+              }
+            },{signal:context.signal})
             input.addEventListener('input',()=>{
               const current=resolveSocialIcon(input.value,snapshot.socialResolvers)
               setTrustedHtml(icon,current.icon||SOCIAL_ICONS.website||'')
@@ -456,6 +472,18 @@ export function createPersonPlugin(config={}){
             focus(target){
               if(dead||readOnly)return
               const key=target?.fieldKey??''
+              const requested=data.persons.find(person=>['name','role','bio'].some(field=>key===`person:${person.id}:${field}`)
+                ||person.links.some(link=>key===`person:${person.id}:link:${link.id}:url`))
+              if(requested&&requested.id!==activeId){
+                syncVisible()
+                activeId=requested.id
+                render()
+              }
+              const link=requested?.links.find(link=>key===`person:${requested.id}:link:${link.id}:url`)
+              if(link){
+                ;([...body.querySelectorAll('input[data-link-id]')].find(input=>input.dataset.linkId===link.id))?.focus()
+                return
+              }
               const selector=key.endsWith(':role')?'.oe-person__role':key.endsWith(':bio')?'.oe-person__bio':'.oe-person__name'
               ;(/** @type {HTMLElement|null} */(body.querySelector(selector)))?.focus()
             },

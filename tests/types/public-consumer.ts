@@ -114,6 +114,10 @@ void getSupportedBlockTypes()
 void getAsyncBlockPluginTypes()
 void loadBlockPluginDefinition('paragraph')
 void preloadBlockPluginDefinitions(['paragraph'])
+// @ts-expect-error document sources require a current version and blocks
+void preloadBlockPluginDefinitions({ blocks: [] })
+// @ts-expect-error legacy versions cannot enter current preset loaders
+void preloadBlockPluginDefinitions({ version: '1.0.0', blocks: [] })
 void createBlockPluginsAsync(['paragraph'])
 void createRendererAsync('paragraph', 'editor')
 

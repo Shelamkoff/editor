@@ -125,6 +125,7 @@
 }
 
 .oe-embed--playing .oe-embed__preview {
+  pointer-events: none;
   animation-name: oe-embed-bounceOut;
   animation-duration: 1.5s;
   animation-fill-mode: both;
@@ -421,10 +422,12 @@
 }
 
 .oe-embed__dropdown-panel {
+  box-sizing: border-box;
   display: none;
   position: absolute;
   left: 0;
-  width: 16rem;
+  width: min(16rem, calc(100vw - 2rem));
+  overflow-y: auto;
   background: var(--oe-card, #111);
   border: 1px solid var(--oe-border-hover, #2a2a2a);
   border-radius: 8px;

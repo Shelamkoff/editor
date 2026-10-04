@@ -23,7 +23,19 @@ The registered block type is `columns`. The class is also exported by the comple
 ## Data
 
 ```json
-{ "columns": [{ "content": "Left" }, { "content": "Right" }], "layout": "1-1" }
+{
+  "columns": [
+    {
+      "id": "column-1",
+      "content": "Left"
+    },
+    {
+      "id": "column-2",
+      "content": "Right"
+    }
+  ],
+  "layout": "1-1"
+}
 ```
 
 ### Field reference
@@ -47,10 +59,10 @@ Layout controls; editable column content; validation and document rendering.
 
 ## Undo, lifecycle, and styles
 
-User actions exposed by the plugin enter the command pipeline through the supplied `context.mutate()` capability, so each completed action is one undo/redo step. The editor reference-counts the plugin's declared stylesheet URLs. Removing a block calls its cleanup hook; removing the editor calls `destroy()` for every remaining block and then releases shared plugin resources.
+Each mounted block receives a scoped context. Use `context.updateData(producer)` for data changes, `context.commitDomMutation(operation)` for protected rich-text edits, and `context.beginTask()` for asynchronous results. Each completed action creates one history step. The block instance and its per-editor runtime release their resources through `destroy()`; Rector releases owned styles when their final owner is removed.
 
 Do not remove the editor holder without first calling `editor.destroy()`.
 
 ## Document output
 
-Use the matching renderer from `@shelamkoff/rector/renderer/renderers/columns`. The VitePress guide documents configuration, commands and history, extension contracts, document migrations, styling, security, and lifecycle in a sequential form.
+Use the matching renderer from `@shelamkoff/rector/renderer/renderers/columns`. The VitePress guide documents configuration, commands and history, extension contracts, the current document format, styling, security, and lifecycle in a sequential form.

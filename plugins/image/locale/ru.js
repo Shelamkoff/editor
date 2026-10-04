@@ -34,6 +34,7 @@ export default {
   'plugin.image.color': 'Цвет',
   'plugin.image.border': 'Рамка',
   'plugin.image.width': 'Ширина',
+  'plugin.image.height': 'Высота',
   'plugin.image.radius': 'Радиус',
   'plugin.image.value.none': 'Нет',
   'plugin.image.value.cover': 'Заполнить область',

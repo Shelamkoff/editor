@@ -20,7 +20,7 @@ async function freePort() {
 }
 
 function start(executable, args) {
-  const child = spawn(executable, args, { cwd: fileURLToPath(editorRoot), stdio: ['ignore', 'pipe', 'pipe'] })
+  const child = spawn(executable, args, { cwd: fileURLToPath(editorRoot), stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true })
   let output = '', failure = null
   const capture = data => { output = (output + data).slice(-24_000) }
   child.stdout.on('data', capture)
@@ -142,7 +142,7 @@ async function stop(process) {
   try { await closed } finally { clearTimeout(timer) }
 }
 
-const labels = ['harness-contract.html', 'roundtrip.html', 'roundtrip-trusted-types.html', 'person-avatar-csp.html', 'history.html', 'selection.html', 'lifecycle.html', 'security.html', 'trusted-types.htm', 'action-label-security.html', 'audit-regressions.html', 'attaches-abort-urls.html', 'embed-service-registry.html', 'person-social-registry.html', 'gallery-layout-registry.html', 'mention.html', 'mention-session-race.html', 'poll.html', 'carousel.html', 'plugin-surfaces.html', 'imports.html', 'slash.html', 'selection-convert.html']
+const labels = ['harness-contract.html', 'runtime-contracts.html', 'roundtrip.html', 'roundtrip-trusted-types.html', 'person-avatar-csp.html', 'history.html', 'selection.html', 'lifecycle.html', 'security.html', 'trusted-types.htm', 'action-label-security.html', 'audit-regressions.html', 'attaches-abort-urls.html', 'embed-service-registry.html', 'person-social-registry.html', 'gallery-layout-registry.html', 'mention.html', 'mention-session-race.html', 'poll.html', 'carousel.html', 'plugin-surfaces.html', 'imports.html', 'slash.html', 'selection-convert.html']
 const pages = process.env.EDITOR_BROWSER_PAGE ? labels.filter(label => label === process.env.EDITOR_BROWSER_PAGE) : labels
 if (!pages.length) throw new Error(`Unknown browser page: ${process.env.EDITOR_BROWSER_PAGE}`)
 const chromePath = findChrome()
@@ -160,7 +160,7 @@ try {
   }
   // Real time and a visible page target allow rAF and ResizeObserver delivery.
   // No bundle injection, CSS aggregation or virtual-time shortcut is involved.
-  chrome = start(chromePath, ['--headless=new', '--disable-gpu', '--no-sandbox', '--disable-dev-shm-usage', '--window-size=1400,1000', `--remote-debugging-port=${debugPort}`, `--user-data-dir=${profile}`, 'about:blank'])
+  chrome = start(chromePath, ['--headless=new', '--disable-gpu', '--no-sandbox', '--disable-dev-shm-usage', '--window-size=1400,1000', `--remote-debugging-port=${debugPort}`, `--user-data-dir=${profile}`, `http://127.0.0.1:${port}/tests/browser/${pages[0]}`])
   const target = await waitForJson(`http://127.0.0.1:${debugPort}/json/list`, chrome, targets => targets.find(target => target.type === 'page' && target.webSocketDebuggerUrl))
   client = await CdpClient.connect(target.webSocketDebuggerUrl)
   await client.send('Page.enable')

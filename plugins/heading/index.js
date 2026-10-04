@@ -1,6 +1,7 @@
 // @ts-check
 import { setSanitizedHtml } from '../../plugin-kit/index.js'
 import { headingDataSchema } from '../../shared/blockSchemas/heading.js'
+import { acceptsTextPayload, richTextFromPayload } from '../shared/textConversion.js'
 import { HEADING_ICON, HEADING_LEVELS, HEADING_STYLES } from './metadata.js'
 
 function levelLabel(level){
@@ -58,13 +59,10 @@ export function createHeadingPlugin(){
         return {kind:'rich-text',data:{text:data.text}}
       },
       canImport(payload){
-        return payload?.kind==='rich-text'&&typeof payload.data?.text==='string'
+        return acceptsTextPayload(payload)
       },
       import(payload){
-        if(payload?.kind!=='rich-text'||typeof payload.data?.text!=='string'){
-          throw new TypeError('Heading can only import rich-text payloads')
-        }
-        return {text:payload.data.text,level:/** @type {2} */(2)}
+        return {text:richTextFromPayload(payload),level:/** @type {2} */(2)}
       },
     }),
     inlineControls:levelSettings,
@@ -109,7 +107,7 @@ export function createHeadingPlugin(){
             const heading=document.createElement(`h${item.level}`)
             heading.className=`oe-heading oe-heading--h${item.level}`
             heading.contentEditable=readOnly?'false':'true'
-            heading.dataset.placeholder=runtimeContext.t('placeholder',item.fallback)
+            heading.dataset.placeholder=runtimeContext.t('placeholder',item.fallback,{level:item.level})
             if(value.text)setSanitizedHtml(heading,value.text)
             return heading
           }

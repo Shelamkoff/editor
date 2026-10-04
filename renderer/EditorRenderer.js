@@ -227,19 +227,13 @@ export class EditorRenderer {
       throw invalid
     }
 
-    // Rehydrate inline widget placeholders through the same canonical schema
-    // traversal used by the editor. Renderers do not own a second field map.
-    if (renderableBlock.inline && typeof renderer.schema.mapRichText === 'function' && this.#inlineRenderers.size > 0) {
-      const inline = renderableBlock.inline
-      const registry = this.#inlineRenderers
-      const hydratedData = renderer.schema.mapRichText(
-        /** @type {Record<string, unknown>} */ (renderableBlock.data),
-        html => renderInlineWidgets(html, inline, registry, ownerDocument),
-      )
-      renderableBlock = { ...renderableBlock, data: hydratedData }
-    }
-
-    const element = renderer.render(renderableBlock, this.#inlineParserFor(ownerDocument), { ownerDocument })
+    // Sanitize document HTML first, then mount schema-decoded widget DOM.
+    // Package-owned widget attributes must not cross the external HTML sanitizer.
+    const baseParser = this.#inlineParserFor(ownerDocument)
+    const inlineParser = renderableBlock.inline && this.#inlineRenderers.size > 0
+      ? html => renderInlineWidgets(baseParser(html), renderableBlock.inline, this.#inlineRenderers, ownerDocument)
+      : baseParser
+    const element = renderer.render(renderableBlock, inlineParser, { ownerDocument })
     const HTMLElementCtor = element?.ownerDocument?.defaultView?.HTMLElement
       ?? ownerDocument.defaultView?.HTMLElement
       ?? globalThis.HTMLElement

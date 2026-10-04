@@ -6,6 +6,7 @@ export class InteractionState {
   #currentId = null
   #selected = new Set()
   #onChange
+  #generation
 
   constructor({ runtime, reconciler, onChange }) {
     if (!runtime?.list) throw new TypeError('InteractionState requires a DocumentRuntime')
@@ -85,6 +86,8 @@ export class InteractionState {
     const previousCurrentId = this.#currentId
     const previousSelectedIds = this.selectedIds
     const ids = this.#runtime.ids()
+    if (this.#generation !== this.#runtime.generation) this.#selected.clear()
+    this.#generation = this.#runtime.generation
     const known = new Set(ids)
     this.#selected = new Set([...this.#selected].filter(id => known.has(id)))
     if (!this.#currentId || !known.has(this.#currentId)) {

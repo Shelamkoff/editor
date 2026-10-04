@@ -1,72 +1,55 @@
 # Commands and history
 
-Rector treats one completed user action as one command and one history step. This rule covers structural changes, inline formatting, block settings, paste, splitting and merging, and plugin-owned controls.
-
-Understanding the command boundary is essential when integrating application controls or writing an interactive extension.
+One completed interaction creates one history step, including formatting across multiple blocks, settings, clipboard, splits, merges and plugin controls.
 
 ## What a command means
 
-A command is a synchronous transaction around a document mutation. Rector captures the document state at the outer command boundary, applies the mutation, marks affected blocks, emits change events, and commits exactly one history entry.
+A command synchronously prepares canonical data, projection and history before one commit point. A failure restores the previous model and projection without adding history. Failed projection recovery stops mutations; committed data remains available through `save()`.
 
-If the mutation throws, Rector rolls the complete command back and does not add a history entry. Nested mutations join the outer transaction; catching a nested failure does not turn the outer command into a successful one.
-
-The internal command dispatcher and command objects are not public API. Application code uses `editor` and `editor.blocks`. Extension code uses the `mutate(...)` function supplied in its context.
+Synchronous reentry during preparation, application or committed-event notification is rejected. Applications use `editor` and `editor.blocks`; extension instances receive scoped capabilities.
 
 ## Commands from application code
 
-The public structural methods already enter the command pipeline. Do not emit editor events or modify block wrapper DOM to imitate an operation.
+Commands address stable block IDs. Each call below creates one history step:
 
 ```js
-const inserted = editor.blocks.insert(
-  'paragraph',
-  { text: 'New paragraph' },
-  editor.blocks.getBlockCount(),
+const insertedId = editor.blocks.insert(
+  { type: 'paragraph', data: { text: 'New paragraph' } },
+  editor.blocks.count,
 )
-
-if (inserted) {
-  editor.blocks.convert(
-    editor.blocks.getBlockIndex(inserted.id),
-    'heading',
-    { level: 2 },
-  )
-}
+editor.blocks.convert(insertedId, { type: 'heading', toolboxItemId: 'h2' })
 ```
 
-Each call above is one distinct history step. The same applies to `remove()` and `move()`.
-
-`render()` and `clear()` replace the document through the editor composition boundary. Use them for document-level application actions, not for implementing plugin controls.
+`render(document)` accepts only the current format and atomically replaces the document. `clear()` creates an empty default block. Host commands remain available in read-only mode; user commands and Undo/Redo are blocked.
 
 ## Commands from block plugins
 
-`render(data, context)` receives a `BlockMutationContext`. An event handler that changes persistent block state or DOM calls `context.mutate()` once **for each completed user action**. Every new click in the example below is a new action, so every click starts one new command and produces one new history step.
+`create(initial, context)` receives a `BlockInstanceContext`. Call `context.updateData(producer)` once per completed data action. The synchronous producer receives current data; its result is schema-encoded and projected after commit.
 
 ```js
-render(data, context) {
-  const root = document.createElement('div')
-  const button = document.createElement('button')
-  const value = document.createElement('span')
-
-  value.textContent = String(data.count ?? 0)
-  button.textContent = 'Increment'
-
+function createCounterInstance(initial, context) {
+  const root = context.ownerDocument.createElement('div')
+  const button = context.ownerDocument.createElement('button')
+  const value = context.ownerDocument.createElement('span')
+  button.textContent = '+1'
+  const project = data => { value.textContent = String(data.count) }
+  project(initial)
   button.addEventListener('click', () => {
-    context.mutate(() => {
-      value.textContent = String(Number(value.textContent) + 1)
-    })
-  })
-
+    context.updateData(current => ({ ...current, count: current.count + 1 }))
+  }, { signal: context.signal })
   root.append(value, button)
-  return root
+  return {
+    element: root,
+    update: project,
+    setReadOnly: readOnly => { button.disabled = readOnly },
+    destroy() {},
+  }
 }
 ```
 
-Do not interpret "once" as once during the plugin lifetime. It means one command boundary around one logical action: a click that changes several related fields still uses one `mutate()` call, while two separate clicks use two calls and create two history steps.
+Use `context.commitDomMutation(operation)` only for synchronous protected edits to registered rich-text fields. Core serializes and validates affected fields inside the transaction. Focus, hover and opening menus do not create history.
 
-Rector saves the plugin DOM before and after the mutation. Undo restores the previous serialized document; redo restores the next one. The plugin's `save()` and `render()` therefore must form a stable round trip.
-
-Do not call `mutate()` for focus, hover, opening a menu, or another transient UI state that is not part of the document.
-
-List-like plugins sometimes need a core structural operation after changing their own data. `context.splitBlock()` inserts the configured default block after the current block; `context.exitEmptyBlock()` converts an empty non-default block to that default type. Call `splitBlock()` inside the same `mutate()` that removes an empty trailing item so both effects are one compound history step. `exitEmptyBlock()` already enters the structural command pipeline and reports whether conversion occurred. These methods replace synthetic Enter or Backspace events; plugins must not emulate keyboard input to request editor structure changes.
+`context.requestSplit()` and `context.requestExit()` request structural behavior; never imitate them with keyboard events. Composite editing capabilities return data and structural intent together for one transaction.
 
 ## Slash commands
 
@@ -99,7 +82,7 @@ The List plugin applies data-aware rules instead of splitting `<li>` markup as g
 5. when the target is not a text block, the selection is removed and the target starts with that plugin's initial data;
 6. if the selection consumes every item, the source list is removed and the target takes its position.
 
-Undo and redo restore both the list and the inserted block atomically. Extension authors can opt into the same behavior with `splitSelection()` as described in [Creating extensions](/guide/extensions#data-aware-partial-conversion).
+Undo and redo restore both the list and the inserted block atomically. Extension authors can opt into the same behavior with `capabilities.conversion.partial` as described in [Creating extensions](/guide/extensions#data-aware-partial-conversion).
 
 ## Commands from inline tools
 
@@ -166,24 +149,23 @@ The widget DOM is a projection of canonical data. Do not mutate DOM first and la
 
 ## Asynchronous work
 
-The callback passed to `mutate()` must be synchronous. Do not make it `async` and do not leave a promise running inside it. Perform network, file, or media work first, then commit the resolved result in one short mutation.
+Persist asynchronous results through a revocable `DataTask`; data producers and protected DOM operations stay synchronous.
 
 ```js
 button.addEventListener('click', async () => {
+  const task = context.beginTask()
   button.disabled = true
   try {
-    const uploaded = await uploadFile(file)
-    context.mutate(() => {
-      preview.src = uploaded.url
-      preview.dataset.fileId = uploaded.id
-    })
+    const uploaded = await uploadFile(file, { signal: task.signal })
+    task.commit(current => ({ ...current, url: uploaded.url }))
   } finally {
-    button.disabled = false
+    task.cancel()
+    if (!context.signal.aborted) button.disabled = context.isReadOnly()
   }
-})
+}, { signal: context.signal })
 ```
 
-For asynchronous work that will persist document data, capture `const task = context.beginTask()` before starting the operation, pass `task.signal` outward, and commit with `task.commit(current => next)`. Replacement/destroy, generation changes, and a `readOnly: false → true` transition revoke the task. A stale task returns `false` without invoking its producer; returning to editable mode never revives it.
+Replacement, destruction, generation changes and entry into read-only mode revoke the task. A stale task returns `false` without invoking its producer; enabling editing never revives it.
 
 ## Clipboard and composite selections
 
@@ -214,11 +196,11 @@ Continuous native text input is coalesced by the canonical history engine. Expli
 
 `canUndo` and `history:changed` react as soon as the first input event opens that group; application buttons therefore do not wait for the debounce timer. Starting a new input branch also makes `canRedo` false immediately.
 
-Committing a new action after undo discards the redo branch. History capacity and internal coalescing are implementation details rather than public configuration.
+Committing a new action after undo discards the redo branch. Configure history capacity with `historyMaxStack` and native input grouping with `historyCoalesceMs`.
 
 ## Events are observations, not commands
 
-`editor.events` is subscription-only. Events report completed behavior and must not be emitted by application or plugin code.
+`editor.on()` is subscription-only. Events report completed behavior and must not be emitted by application or plugin code.
 
 ```js
 const stopHistoryState = editor.on('history:changed', ({ canUndo, canRedo }) => {
@@ -226,7 +208,7 @@ const stopHistoryState = editor.on('history:changed', ({ canUndo, canRedo }) => 
   redoButton.disabled = !canRedo
 })
 
-const stopDirtyState = editor.on('history:commit', () => {
+const stopDirtyState = editor.on('transaction:committed', () => {
   markDocumentDirty()
 })
 
@@ -235,7 +217,7 @@ stopHistoryState()
 stopDirtyState()
 ```
 
-Use `history:changed` to observe command availability, `history:commit` to observe a committed step, and `editor:changed` to observe a document mutation. `onChange` is the debounced serialized notification intended for persistence. Mode transitions emit `history:changed`, but do not emit `history:commit`, `editor:changed`, or `onChange`.
+Use `history:changed` to observe command availability, `transaction:committed` to observe a committed step, and `document:changed` to observe a document mutation. `onChange` is the debounced serialized notification intended for persistence. Mode transitions emit `history:changed`, but do not emit `transaction:committed`, `document:changed`, or `onChange`.
 
 ## Extension checklist
 

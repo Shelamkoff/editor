@@ -1,4 +1,9 @@
 export default {
+  'plugin.embed.invalidCoverUrl': 'Enter a valid image URL',
+  'plugin.embed.insert': 'Insert',
+  'plugin.embed.video': 'Video',
+  'plugin.embed.captionPlaceholder': 'Caption',
+  'plugin.embed.urlPlaceholder': 'https://youtube.com/watch?v=...',
   'plugin.embed.title': 'Video',
   'plugin.embed.url': 'URL',
   'plugin.embed.urlPrompt': 'Video URL (YouTube or Vimeo):',

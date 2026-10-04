@@ -1,0 +1,21 @@
+
+> @shelamkoff/rector@1.0.5 test:docs
+> npm run docs:validate-readmes && npm run test:plugin-source && npm run test:plugin-locales && node scripts/documentation-contract-audit.mjs && node scripts/readme-smoke.mjs
+
+
+> @shelamkoff/rector@1.0.5 docs:validate-readmes
+> node scripts/validate-extension-readmes.mjs
+
+{"localizedReadmePairs":47}
+
+> @shelamkoff/rector@1.0.5 test:plugin-source
+> node scripts/plugin-source-audit.mjs
+
+Plugin source audit passed
+
+> @shelamkoff/rector@1.0.5 test:plugin-locales
+> node scripts/plugin-locale-audit.mjs
+
+Plugin locale audit passed
+Documentation contract audit passed
+{"readmes":94,"languages":["en","ru"],"examples":53,"json":44,"links":62,"imports":true,"encoding":true,"packageReadmeCopiesChecked":92}

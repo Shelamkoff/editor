@@ -160,7 +160,7 @@ async function initEditor() {
     onChange(data: any) {
       jsonOutput.value = highlightJson(data)
     },
-    data: { version: '1.0.0', blocks: props.lang === 'ru' ? demoData.ru : demoData.en },
+    data: { version: '2.0.0', blocks: props.lang === 'ru' ? demoData.ru : demoData.en },
   })
 
   const data = editor.save()
@@ -171,7 +171,7 @@ async function renderPreview() {
   if (!editor || !renderer || !previewEl.value) return
   const data = editor.save()
 
-  renderer.destroy(previewEl.value)
+  renderer.destroy()
   previewEl.value.replaceChildren()
 
   const { EditorRenderer } = await import('../../../../renderer/index.js')
@@ -207,7 +207,7 @@ onMounted(async () => {
 
 onUnmounted(() => {
   editor?.destroy()
-  if (renderer && previewEl.value) renderer.destroy(previewEl.value)
+  renderer?.destroy()
 })
 
 // Sync theme

@@ -1,0 +1,23 @@
+✔ beforeinput replaces an active cross-block selection atomically (4.0753ms)
+✔ beforeinput historyUndo/historyRedo route only for registered document fields (0.5145ms)
+✔ ordinary beforeinput does not consume a collapsed single-field edit (0.4091ms)
+✔ keyless beforeinput deletion consumes the entire active document range (0.6923ms)
+✔ auxiliary beforeinput retains native ownership while a cross-block range is active (0.5576ms)
+✔ plain text input keeps the browser-owned source projection in place (1.0914ms)
+✔ typing coalesces only inside the configured history window (0.4401ms)
+✔ paste and drop never trust the mutated source projection (0.2929ms)
+✔ input without beforeinput still synchronizes the owning field (0.2853ms)
+✔ IME composition commits once after compositionend (0.6686ms)
+✔ events outside registered editable fields are ignored (0.2256ms)
+✔ composition completion is revoked by a read-only epoch (0.3668ms)
+✔ composition completion cannot commit after the document revision changes (2.4483ms)
+✔ auxiliary IME keys do not prepare a retained document selection (0.454ms)
+✔ read-only runtime ignores native input (0.1473ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 187.4483

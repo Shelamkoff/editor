@@ -23,7 +23,19 @@ rendererStyles.destroy()
 ## Typical data
 
 ```json
-{ "style": "unordered", "items": ["One", "Two"] }
+{
+  "style": "unordered",
+  "items": [
+    {
+      "id": "item-1",
+      "text": "One"
+    },
+    {
+      "id": "item-2",
+      "text": "Two"
+    }
+  ]
+}
 ```
 
 Every item uses the shared inline parser. The renderer creates only ordered or unordered list markup, declares one stylesheet, and creates no listeners or external instances.

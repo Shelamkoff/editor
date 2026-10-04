@@ -2,6 +2,8 @@
 import { setSanitizedHtml } from '../../plugin-kit/index.js'
 import { setTrustedHtml } from '../../shared/sanitize/sanitizeHtml.js'
 import { checklistDataSchema } from '../../shared/blockSchemas/checklist.js'
+import { acceptsTextPayload, richTextFromPayload } from '../shared/textConversion.js'
+import { createTextSelectionSlice } from '../shared/textSelectionSlice.js'
 
 const editorStyles=new URL('./checklist.css',import.meta.url).href
 const ICON='<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 5.5l1.5 1.5l2.5-2.5"/><path d="M3.5 11.5l1.5 1.5l2.5-2.5"/><path d="M3.5 17.5l1.5 1.5l2.5-2.5"/><path d="M11 6h9"/><path d="M11 12h9"/><path d="M11 18h9"/></svg>'
@@ -38,6 +40,7 @@ function caretAtStart(field,range){
 export function createChecklistPlugin(){
   /** @type {import('../../plugin-kit/types').BlockCapabilities<{items:Array<{id:string,text:string,checked:boolean}>}>} */
   const capabilities=Object.freeze({
+    selectionSlice:createTextSelectionSlice(checklistDataSchema),
     formatting:Object.freeze({inlineTools:true}),
     empty:Object.freeze({isEmpty:data=>data.items.every(item=>item.text.trim().length===0)}),
     merge:Object.freeze({
@@ -62,11 +65,13 @@ export function createChecklistPlugin(){
           const current=data.items[index]
           if(!current.text.trim()){
             if(data.items.length===1)return {kind:'exit'}
-            const next=data.items[index-1]??data.items[index+1]
+            const remaining={items:data.items.filter(item=>item.id!==id)}
+            if(index===data.items.length-1)return {kind:'exit',data:remaining}
+            const next=data.items[index+1]
             return {
               kind:'update',
-              data:{items:data.items.filter(item=>item.id!==id)},
-              ...(next?{focus:{fieldKey:`item:${next.id}`,offset:'end'}}:{}),
+              data:remaining,
+              focus:{fieldKey:`item:${next.id}`,offset:'start'},
             }
           }
           const parts=context.splitField(input.fieldKey,input.selection)
@@ -81,7 +86,7 @@ export function createChecklistPlugin(){
           const items=data.items.map(item=>({...item}))
           items[index-1].text+=items[index].text
           items.splice(index,1)
-          return {kind:'update',data:{items},focus:{fieldKey:`item:${previous.id}`,offset:'end'}}
+          return {kind:'update',data:{items},focus:{fieldKey:`item:${previous.id}`,offset:context.fieldLength(`item:${previous.id}`)}}
         }
         return null
       },
@@ -105,7 +110,7 @@ export function createChecklistPlugin(){
         if(!selected.length)throw new Error('Checklist clipboard selection is empty')
         if(!remaining.length)remaining.push({id:context.createId('item'),text:'',checked:false})
         return {
-          parts:[{kind:'local-block',data:{items:selected}}],
+          parts:[{kind:/** @type {'local-block'} */ ('local-block'),data:{items:selected}}],
           remaining:{items:remaining},
           focus:null,
         }
@@ -116,13 +121,10 @@ export function createChecklistPlugin(){
         return {kind:'rich-text',data:{text:data.items.map(item=>item.text).join('<br>')}}
       },
       canImport(payload){
-        return payload?.kind==='rich-text'&&typeof payload.data?.text==='string'
+        return acceptsTextPayload(payload)
       },
       import(payload){
-        if(payload?.kind!=='rich-text'||typeof payload.data?.text!=='string'){
-          throw new TypeError('Checklist can only import rich-text payloads')
-        }
-        return {items:[{id:'item-0',text:payload.data.text,checked:false}]}
+        return {items:[{id:'item-0',text:richTextFromPayload(payload),checked:false}]}
       },
     }),
   })
@@ -189,11 +191,12 @@ export function createChecklistPlugin(){
 
           const reconcile=next=>{
             const live=new Set()
-            for(const item of next.items){
+            for(const [index,item] of next.items.entries()){
               live.add(item.id)
               const record=rows.get(item.id)??createRow(item)
               projectRow(record,item)
-              wrapper.appendChild(record.row)
+              const at=wrapper.children[index]
+              if(at!==record.row)wrapper.insertBefore(record.row,at??null)
             }
             for(const [id,record] of rows){
               if(live.has(id))continue

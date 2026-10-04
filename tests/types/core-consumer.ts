@@ -32,6 +32,15 @@ const schema = {
 }
 
 const capabilities: BlockCapabilities<{ text: string }> = {
+  shortcuts: {
+    handle(event, data, context) {
+      const length: number = context.fieldLength('text')
+      if (event.key === 'Enter') return { kind: 'exit', data }
+      return event.key === 'Backspace'
+        ? { kind: 'update', data, focus: { fieldKey: 'text', offset: length } }
+        : null
+    },
+  },
   htmlImport: {
     matchesRoot(element) { return element.tagName === 'P' },
     importRoot(element, context) {
@@ -56,12 +65,14 @@ const customPlugin: BlockPluginDefinition<{ text: string }> = {
   icon: '',
   schema,
   capabilities,
-  setup() {
+  setup(runtimeContext) {
+    const placeholder = runtimeContext.t('placeholder', 'Custom 3', { level: 3 })
     return {
       create(initial, context) {
         const task: DataTask<{ text: string }> = context.beginTask()
         task.cancel()
         const element = context.ownerDocument.createElement('p')
+        element.dataset.placeholder = placeholder
         element.textContent = initial.text
         return {
           element,
@@ -85,8 +96,17 @@ const config: EditorConfig = {
 const editor: IEditor = createEditor(config)
 const document: EditorDocument = editor.save()
 const unsubscribe = editor.on('transaction:committed', (event: TransactionCommitted) => {
+  // @ts-expect-error committed observer payloads are immutable
+  event.changes.push({ kind: 'block.move', id: 'a', from: 0, to: 1 })
+  // @ts-expect-error nested history state is immutable
+  event.history.canUndo = false
   const origin: EditorEventMap['transaction:committed']['origin'] = event.origin
   void origin
 })
 unsubscribe()
 void document
+
+// @ts-expect-error document version is mandatory
+editor.render({ blocks: [] })
+// @ts-expect-error only the current format is accepted
+editor.render({ version: '1.0.0', blocks: [] })

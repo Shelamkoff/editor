@@ -50,6 +50,7 @@ export class InstanceScope{
   get interactionEpoch(){return this.#interactionEpoch}
   get readOnly(){return this.#state==='revoked'||this.#readOnly}
 
+  /** @param {{generation?:number,readOnly?:boolean,health?:()=>string,phase?:()=>string,currentGeneration?:()=>number,signal?:AbortSignal,parent?:InstanceScope}} [options] */
   configure({generation,readOnly,health,phase,currentGeneration,signal,parent}={}){
     if(this.#state==='revoked')throw createAbortError()
     if(Number.isSafeInteger(generation)&&generation>0)this.#generation=generation
@@ -92,7 +93,7 @@ export class InstanceScope{
     this.#cancelTasks()
     for(const child of [...this.#children])child.revoke()
     this.#children.clear()
-    this.#parent?.#children.delete(this)
+    if(this.#parent)this.#parent.#children.delete(this)
     this.#parent=null
     if(this.#signal&&this.#abortListener){
       try{this.#signal.removeEventListener('abort',this.#abortListener)}catch{}

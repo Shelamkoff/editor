@@ -29,8 +29,9 @@ export class SlashCommandController {
   #filtered = []
   #activeIndex = 0
   #itemsVersion = 0
+  #isComposing
 
-  constructor({ root, runtime, registry, reconciler, selection, view, inlineCommands, translate, t }) {
+  constructor({ root, runtime, registry, reconciler, selection, view, inlineCommands, translate, t, isComposing = () => false }) {
     this.#root = root
     this.#runtime = runtime
     this.#registry = registry
@@ -38,6 +39,7 @@ export class SlashCommandController {
     this.#selection = selection
     this.#view = view
     this.#inlineCommands = inlineCommands
+    this.#isComposing = isComposing
     this.#translate = typeof translate === 'function' ? translate : (_key, fallback = '') => fallback
     this.#t = typeof t === 'function' ? t : (_key, fallback = '') => fallback
     this.#document = root.ownerDocument
@@ -56,6 +58,7 @@ export class SlashCommandController {
     this.#items = this.#buildItems()
 
     root.addEventListener('input', event => this.#onInput(event), { signal })
+    root.addEventListener('compositionstart', () => this.close(), { signal })
     root.addEventListener('keydown', event => this.#onKeydown(event), { capture: true, signal })
     root.addEventListener('focusout', event => this.#onFocusOut(event), { signal })
     this.#document.addEventListener('scroll', () => this.#position(), { capture: true, passive: true, signal })
@@ -112,7 +115,7 @@ export class SlashCommandController {
     for (const type of this.#registry.inlineTypes) {
       const definition = this.#registry.getInlineDefinition(type)
       if (!definition) continue
-      const label = localizedLabel(definition, 'inline', this.#translate)
+      const label = localizedLabel(definition, 'inlinePlugin', this.#translate)
       result.push({
         kind: 'inline',
         type,
@@ -125,7 +128,7 @@ export class SlashCommandController {
   }
 
   #onInput(event) {
-    if (this.#runtime.readOnly) {
+    if (this.#runtime.readOnly || event.isComposing || this.#isComposing()) {
       this.close()
       return
     }
@@ -181,6 +184,7 @@ export class SlashCommandController {
   }
 
   #onKeydown(event) {
+    if (event.defaultPrevented || event.isComposing || event.keyCode === 229 || this.#isComposing()) return
     if (!this.#session) return
     if (!this.#sessionIsCurrent()) {
       this.close()
@@ -216,12 +220,13 @@ export class SlashCommandController {
       event.stopPropagation()
       const session = this.#session
       this.close()
-      this.#runtime.replaceRichText(
+      const point = { blockId: session.blockId, fieldKey: session.fieldKey, offset: session.start }
+      this.#runtime.interact('slash.cancel', () => this.#runtime.replaceRichText(
         session.blockId,
         session.fieldKey,
         { start: session.start, end: session.end },
         { kind: 'text', text: '' },
-      )
+      ), () => ({ anchor: point, focus: { ...point } }))
       this.#view.reconcileInteraction()
       this.#selection.setCaret(session.blockId, {
         fieldKey: session.fieldKey,
@@ -313,12 +318,17 @@ export class SlashCommandController {
       return
     }
 
-    const id = this.#runtime.applySlashBlockCommand(
+    const id = this.#runtime.interact('slash.block', () => this.#runtime.applySlashBlockCommand(
       session.blockId,
       session.fieldKey,
       { start: session.start, end: session.end },
       { type: item.type, ...(item.toolboxItemId ? { toolboxItemId: item.toolboxItemId } : {}) },
-    )
+    ), blockId => {
+      if (!blockId) return null
+      const field = this.#reconciler.getEditableFields(blockId)[0]
+      const point = { blockId, fieldKey: field?.key ?? '', offset: 0 }
+      return { anchor: point, focus: { ...point } }
+    })
     if (!id) return
     this.#view.reconcileInteraction()
     this.#view.setCurrent(id)

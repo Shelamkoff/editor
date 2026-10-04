@@ -19,11 +19,13 @@ function snapshot(runtime, record) {
 export class EditorBlocksApi {
   #runtime
   #view
+  #selection
   #isDestroyed
 
-  constructor({ runtime, view, isDestroyed = () => false }) {
+  constructor({ runtime, view, selection = null, isDestroyed = () => false }) {
     this.#runtime = runtime
     this.#view = view
+    this.#selection = selection
     this.#isDestroyed = isDestroyed
   }
 
@@ -41,8 +43,16 @@ export class EditorBlocksApi {
   selectedIds() { this.#assertLive(); return Object.freeze([...this.#view.selectedIds]) }
 
   setCurrent(id) { this.#assertLive(); this.#view.setCurrent(id) }
-  select(ids) { this.#assertLive(); this.#view.select([...ids]) }
-  clearSelection() { this.#assertLive(); this.#view.clearSelection() }
+  select(ids) {
+    this.#assertLive()
+    if (this.#selection) this.#selection.selectBlocks([...ids])
+    else this.#view.select([...ids])
+  }
+  clearSelection() {
+    this.#assertLive()
+    if (this.#selection) this.#selection.clear()
+    else this.#view.clearSelection()
+  }
 
   insert(input, index) {
     this.#assertLive()

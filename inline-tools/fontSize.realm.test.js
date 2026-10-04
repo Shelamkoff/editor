@@ -6,6 +6,7 @@ import { createFontSizeTool } from './fontSize.js'
 
 class FakeElement {
   constructor(tag, ownerDocument) {
+    this.nodeType = 1
     this.tagName = tag.toUpperCase()
     this.ownerDocument = ownerDocument
     this.children = []
@@ -33,6 +34,7 @@ class FakeElement {
   }
 
   getAttribute(name) { return this._attrs.get(name) ?? null }
+  hasAttribute(name) { return this._attrs.has(name) }
   removeAttribute(name) { this._attrs.delete(name) }
 
   appendChild(child) {
@@ -51,7 +53,11 @@ class FakeElement {
   removeEventListener(type) { this._listeners.delete(type) }
   querySelectorAll() { return [] }
   querySelector() { return null }
-  closest(selector) { return selector === '.oe-inline-toolbar' ? this._toolbar : null }
+  closest(selector) {
+    if (selector === '.oe-inline-toolbar') return this._toolbar
+    if (selector === '[contenteditable="true"]' && this.getAttribute('contenteditable') === 'true') return this
+    return null
+  }
   contains(node) { return node === this || this.children.some(child => child.contains?.(node)) }
   remove() { this.isConnected = false }
   focus() {}
@@ -91,6 +97,8 @@ test('font size UI uses the mounted toolbar realm for DOM, listeners and animati
   const range = {
     startContainer: anchor,
     startOffset: 0,
+    endContainer: anchor,
+    endOffset: 0,
     cloneRange() { return this },
   }
   const tool = createFontSizeTool('Font size')

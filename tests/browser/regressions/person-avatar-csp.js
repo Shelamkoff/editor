@@ -4,7 +4,7 @@ import { test, make, equal, assert, pause } from './harness.js'
 
 const png = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADElEQVR42mNk+M/wHwAF/gL+Av7lWQAAAABJRU5ErkJggg=='
 const person = () => ({ id: 'person', type: 'person', dataVersion: 2, data: { persons: [
-  { avatar: '', name: 'Example', role: '', bio: '', links: [] },
+  { id: 'example', avatar: '', name: 'Example', role: '', bio: '', links: [] },
 ] } })
 const file = () => new File([Uint8Array.from(atob(png), char => char.charCodeAt(0))], 'photo.png', { type: 'image/png' })
 const avatar = editor => editor.save().blocks[0].data.persons[0].avatar
@@ -88,7 +88,7 @@ export function register(enforced = false) {
     chooseAvatar(editor)
     await until(() => !!finish)
     assert(finish, 'upload did not reach the consumer')
-    editor.render({ blocks: [person()] })
+    editor.render({ version: '2.0.0', blocks: [person()] })
     assert(signal.aborted, 'replacement did not cancel the previous avatar operation')
     finish({ url: 'https://example.test/stale.png' })
     await pause(20)

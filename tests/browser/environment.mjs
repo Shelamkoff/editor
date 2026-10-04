@@ -1,4 +1,6 @@
 import { execFileSync } from 'node:child_process'
+import { statSync } from 'node:fs'
+import { isAbsolute } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 export const editorRoot = new URL('../../', import.meta.url)
@@ -15,8 +17,14 @@ export function findChrome() {
       : ['google-chrome', 'google-chrome-stable', 'chromium', 'chromium-browser']
   for (const candidate of candidates) {
     try {
-      execFileSync(candidate, ['--version'], { stdio: 'ignore', timeout: 5000 })
-      return candidate
+      const path = isAbsolute(candidate) || candidate.includes('/') || candidate.includes('\\')
+        ? candidate
+        : execFileSync(process.platform === 'win32' ? 'where.exe' : 'which', [candidate], {
+            encoding: 'utf8', timeout: 5000, windowsHide: true, stdio: ['ignore', 'pipe', 'ignore'],
+          }).trim().split(/\r?\n/)[0]
+      // Locating a browser must never start it. On Windows, chrome --version
+      // can open a normal window instead of printing a version.
+      if (statSync(path).isFile()) return path
     } catch { /* Try the next installed executable. */ }
   }
   throw new Error('Chrome/Chromium was not found. Set EDITOR_CHROME_PATH to its executable.')

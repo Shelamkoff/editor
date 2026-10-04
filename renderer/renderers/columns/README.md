@@ -23,7 +23,19 @@ rendererStyles.destroy()
 ## Typical data
 
 ```json
-{ "columns": [{ "content": "Left" }, { "content": "Right" }], "layout": "1-1" }
+{
+  "columns": [
+    {
+      "id": "column-1",
+      "content": "Left"
+    },
+    {
+      "id": "column-2",
+      "content": "Right"
+    }
+  ],
+  "layout": "1-1"
+}
 ```
 
 Every column uses the shared inline parser and the validated layout controls the number and proportions of columns. The renderer declares one stylesheet and creates no listeners or external instances.

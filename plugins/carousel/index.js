@@ -2,15 +2,21 @@
 import {
   READ_ONLY_INTERACTIVE_ATTRIBUTE,
   setSafeUrlAttribute,
+  setSanitizedHtml,
 } from '../../plugin-kit/index.js'
 import { insertTrustedHtml } from '../../shared/sanitize/sanitizeHtml.js'
 import { carouselDataSchema } from '../../shared/blockSchemas/carousel.js'
+import { createTextSelectionSlice } from '../shared/textSelectionSlice.js'
+import { createTextClipboardSlice } from '../shared/textClipboardSlice.js'
+import { retainControlFocus } from '../shared/retainControlFocus.js'
 import { normalizeCarouselAspectRatio } from '../../shared/carouselData.js'
 import { sanitizeMediaUrl } from '../../shared/sanitize/sanitizeUrl.js'
 import { sanitizeRawHtml, setSanitizedRawHtml } from '../../shared/sanitize/index.js'
 import { triggerFileInput } from '../shared/fileInput.js'
 import { openSourceEditor, preloadSourceEditor } from '../shared/sourceEditor.js'
-import { ICON } from './icons.js'
+import { createMediaDropzone } from '../shared/mediaDropzone.js'
+import { positionPluginPanel } from '../shared/positionPluginPanel.js'
+import { ICON, ICON_SETTINGS, ICON_REPLACE, ICON_CHEVRON, ICON_BACK, ICON_UPLOAD, ICON_URL, ICON_CODE } from './icons.js'
 
 const editorStyles=new URL('./carousel.css',import.meta.url).href
 const sourceEditorStyles=new URL('../shared/sourceEditor.css',import.meta.url).href
@@ -102,7 +108,7 @@ function renderCarouselSettings(context){
 
     const slideTitle=document.createElement('div')
     slideTitle.className='oe-carousel-block__settings-title'
-    slideTitle.textContent=context.t(carouselLabel('slide','Slide'))
+    slideTitle.textContent=context.t(carouselLabel('currentSlide','Slide'))
     root.appendChild(slideTitle)
 
     const slidePicker=document.createElement('label')
@@ -139,7 +145,7 @@ function renderCarouselSettings(context){
     }else{
       const embedded=/^(?:data|blob):/i.test(slide.src||'')
       const source=field(
-        context.t(carouselLabel('sourceUrl','Source URL')),
+        context.t(carouselLabel('source','Source URL')),
         embedded?'':(slide.src||''),
         (value,input)=>{
           const url=sanitizeMediaUrl(value)
@@ -152,7 +158,7 @@ function renderCarouselSettings(context){
             slides:current.slides.map(item=>item.id===slide.id?{...item,src:url}:item),
           }))
         },
-        {placeholder:embedded?context.t(carouselLabel('localFile','Local file — enter URL to replace')):'https://'},
+        {placeholder:embedded?context.t(carouselLabel('embeddedSource','Local file — enter URL to replace')):'https://'},
       )
       if(embedded)source.input.dataset.oeEmbeddedSource='true'
       root.appendChild(source.wrapper)
@@ -268,6 +274,8 @@ export function createCarouselPlugin(config={}){
   if(snapshot.css)styles.push(snapshot.css)
 
   const capabilities=Object.freeze({
+    selectionSlice:createTextSelectionSlice(carouselDataSchema),
+    clipboard:createTextClipboardSlice(carouselDataSchema),
     empty:Object.freeze({isEmpty:data=>data.slides.length===0}),
     conversion:Object.freeze({
       export:data=>({kind:'rich-text',data:{text:data.slides.map(slide=>slide.caption||slide.alt||'').filter(Boolean).join('<br>')}}),
@@ -340,6 +348,7 @@ export function createCarouselPlugin(config={}){
           let activeIndex=0
           const tasks=new Set()
           let autoplayTimer=null
+          let viewController=null
           const captionFields=new Map()
 
           const clearAutoplay=()=>{
@@ -359,9 +368,12 @@ export function createCarouselPlugin(config={}){
           }
           const activate=index=>{
             if(data.slides.length===0){activeIndex=0;return}
+            const focused=document.activeElement
+            const chromeFocused=wrapper.contains(focused)&&!focused.closest?.('input,textarea,select,[contenteditable="true"]')
             if(data.options.loop)activeIndex=(index+data.slides.length)%data.slides.length
             else activeIndex=Math.max(0,Math.min(index,data.slides.length-1))
             project()
+            if(chromeFocused)wrapper.focus({preventScroll:true})
           }
           const updateData=next=>context.updateData(()=>next)
 
@@ -404,8 +416,8 @@ export function createCarouselPlugin(config={}){
               })
               return valid.length?{...current,slides:[...current.slides,...valid]}:current
             }
-            if(task)return task.commit(producer)
-            context.updateData(producer)
+            if(task)return retainControlFocus(wrapper,()=>task.commit(producer))
+            retainControlFocus(wrapper,()=>context.updateData(producer))
             return true
           }
 
@@ -549,39 +561,23 @@ export function createCarouselPlugin(config={}){
           }
 
           const project=()=>{
+            viewController?.abort()
+            const Ctor=document.defaultView?.AbortController??AbortController
+            viewController=new Ctor()
+            const viewSignal=viewController.signal
             clearAutoplay()
             captionFields.clear()
             wrapper.replaceChildren()
             wrapper.classList.toggle('oe-carousel-block--filled',data.slides.length>0)
 
             if(data.slides.length===0){
-              const empty=document.createElement('div')
-              empty.className='oe-carousel-block__empty'
-              if(readOnly){
-                empty.textContent=runtimeContext.t('emptyReadonly','No slides')
-              }else{
-                const upload=document.createElement('button')
-                upload.type='button'
-                upload.textContent=runtimeContext.t('upload','Upload')
-                upload.addEventListener('click',chooseFiles,{signal:context.signal})
-                const byUrl=document.createElement('button')
-                byUrl.type='button'
-                byUrl.textContent=runtimeContext.t('dropzoneUrl','Insert URL')
-                byUrl.addEventListener('click',addUrl,{signal:context.signal})
-                const byHtml=document.createElement('button')
-                byHtml.type='button'
-                byHtml.textContent=runtimeContext.t('dropzoneHtml','Insert HTML')
-                byHtml.addEventListener('click',addHtml,{signal:context.signal})
-                empty.append(upload,byUrl,byHtml)
-                for(const action of snapshot.actions){
-                  const button=document.createElement('button')
-                  button.type='button'
-                  if(action.icon)insertTrustedHtml(button,'afterbegin',action.icon)
-                  button.append(document.createTextNode(action.label))
-                  button.addEventListener('click',()=>void runAction(action),{signal:context.signal})
-                  empty.appendChild(button)
-                }
-              }
+              const empty=createMediaDropzone({ownerDocument:document,prefix:'oe-carousel-block',icon:ICON,
+                uploadText:runtimeContext.t('upload','Upload'),afterText:runtimeContext.t('dropzoneText','images or videos from your device or drag and drop them here'),
+                urlPrefix:runtimeContext.t('dropzoneUrlPrefix','or'),emptyText:runtimeContext.t('emptyReadonly','No slides'),readOnly,signal:viewSignal,
+                onUpload:chooseFiles,inlineActions:[{label:runtimeContext.t('dropzoneUrl','Insert URL'),onSelect:addUrl},{label:runtimeContext.t('dropzoneHtml','Insert HTML'),onSelect:addHtml}],
+                actions:snapshot.actions.map(action=>({...action,onSelect:()=>void runAction(action)})),
+              })
+              empty.classList.add('oe-carousel-block__empty')
               wrapper.appendChild(empty)
               preloadEditors()
               return
@@ -593,29 +589,38 @@ export function createCarouselPlugin(config={}){
             stage.className='oe-carousel-block__stage'
             if(data.options.aspectRatio&&data.options.aspectRatio!=='auto')stage.style.aspectRatio=data.options.aspectRatio
             renderMedia(slide,stage)
+            const counter=document.createElement('span')
+            counter.className='oe-carousel-block__counter'
+            counter.setAttribute('aria-live','polite')
+            counter.textContent=`${activeIndex+1} / ${data.slides.length}`
+            stage.appendChild(counter)
 
             const caption=document.createElement('div')
             caption.className='oe-carousel-block__caption'
             caption.contentEditable=readOnly?'false':'true'
             caption.dataset.slideId=slide.id
             caption.setAttribute('data-oe-document-input','text')
-            caption.textContent=slide.caption||''
+            if(slide.caption)setSanitizedHtml(caption,slide.caption)
             captionFields.set(slide.id,caption)
             stage.appendChild(caption)
 
             if(data.options.navigation&&data.slides.length>1){
               const prev=document.createElement('button')
               prev.type='button'
-              prev.className='oe-carousel-block__nav oe-carousel-block__nav--prev'
+              prev.className='oe-carousel-block__nav oe-carousel-block__nav--prev oe-carousel-block__nav--previous'
               prev.setAttribute(READ_ONLY_INTERACTIVE_ATTRIBUTE,'')
+              prev.setAttribute('aria-label',runtimeContext.t('previous','Previous slide'))
+              prev.disabled=!data.options.loop&&activeIndex===0
               prev.textContent=NAV_PREV
-              prev.addEventListener('click',()=>activate(activeIndex-1),{signal:context.signal})
+              prev.addEventListener('click',()=>activate(activeIndex-1),{signal:viewSignal})
               const next=document.createElement('button')
               next.type='button'
               next.className='oe-carousel-block__nav oe-carousel-block__nav--next'
               next.setAttribute(READ_ONLY_INTERACTIVE_ATTRIBUTE,'')
+              next.setAttribute('aria-label',runtimeContext.t('next','Next slide'))
+              next.disabled=!data.options.loop&&activeIndex===data.slides.length-1
               next.textContent=NAV_NEXT
-              next.addEventListener('click',()=>activate(activeIndex+1),{signal:context.signal})
+              next.addEventListener('click',()=>activate(activeIndex+1),{signal:viewSignal})
               stage.append(prev,next)
             }
 
@@ -628,7 +633,9 @@ export function createCarouselPlugin(config={}){
                 dot.setAttribute(READ_ONLY_INTERACTIVE_ATTRIBUTE,'')
                 dot.className='oe-carousel-block__dot'
                 dot.classList.toggle('oe-carousel-block__dot--active',index===activeIndex)
-                dot.addEventListener('click',()=>activate(index),{signal:context.signal})
+                dot.setAttribute('aria-label',runtimeContext.t('goToSlide','Go to slide {index}').replace('{index}',String(index+1)))
+                dot.setAttribute('aria-current',String(index===activeIndex))
+                dot.addEventListener('click',()=>activate(index),{signal:viewSignal})
                 dots.appendChild(dot)
               })
               stage.appendChild(dots)
@@ -638,54 +645,124 @@ export function createCarouselPlugin(config={}){
             if(!readOnly){
               const actions=document.createElement('div')
               actions.className='oe-carousel-block__actions'
+              const mainView=document.createElement('div')
+              mainView.className='oe-carousel-block__actions-view'
+              const sourceView=document.createElement('div')
+              sourceView.className='oe-carousel-block__actions-view'
+              sourceView.hidden=true
+              const showSources=open=>{mainView.hidden=open;sourceView.hidden=!open}
+              const sourceButton=(label,icon,callback)=>{
+                const button=document.createElement('button')
+                button.type='button';button.className='oe-carousel-block__action-btn'
+                insertTrustedHtml(button,'afterbegin',icon)
+                button.append(document.createTextNode(label))
+                button.addEventListener('click',()=>{showSources(false);callback()},{signal:viewSignal})
+                return button
+              }
+              sourceView.append(
+                sourceButton(runtimeContext.t('back','Back'),ICON_BACK,()=>{}),
+                sourceButton(runtimeContext.t('upload','Upload'),ICON_UPLOAD,chooseFiles),
+              )
+              const dropdown=document.createElement('div')
+              dropdown.className='oe-carousel-block__dropdown'
+              const settings=document.createElement('button')
+              settings.type='button'
+              settings.className='oe-carousel-block__action-btn'
+              insertTrustedHtml(settings,'afterbegin',ICON_SETTINGS)
+              settings.append(document.createTextNode(runtimeContext.t('settings','Settings')))
+              settings.setAttribute('aria-haspopup','true')
+              settings.setAttribute('aria-expanded','false')
+              const panel=document.createElement('div')
+              panel.className='oe-carousel-block__dropdown-panel'
+              panel.inert=true
+              panel.appendChild(renderCarouselSettings({
+                ownerDocument:document,
+                getData:()=>context.getData(),
+                t:label=>runtimeContext.t(label.key,label.fallback),
+                updateData:producer=>{
+                  wrapper.focus({preventScroll:true})
+                  return retainControlFocus(wrapper,()=>context.updateData(producer))
+                },
+              }))
+              const setOpen=open=>{
+                dropdown.classList.toggle('oe-carousel-block__dropdown--open',open)
+                settings.setAttribute('aria-expanded',String(open))
+                panel.inert=!open
+                if(open)positionPluginPanel(panel,dropdown,{preferAbove:true})
+              }
+              settings.addEventListener('mousedown',event=>event.preventDefault(),{signal:viewSignal})
+              settings.addEventListener('click',()=>setOpen(settings.getAttribute('aria-expanded')!=='true'),{signal:viewSignal})
+              dropdown.addEventListener('keydown',event=>{
+                if(event.key==='Escape'){event.preventDefault();event.stopPropagation();setOpen(false);wrapper.focus({preventScroll:true})}
+              },{signal:viewSignal})
+              document.addEventListener('click',event=>{if(!dropdown.contains(event.target))setOpen(false)},{signal:viewSignal})
+              dropdown.append(settings,panel)
+              mainView.appendChild(dropdown)
               const add=document.createElement('button')
               add.type='button'
               add.className='oe-carousel-block__action-btn'
-              add.textContent=runtimeContext.t('add','Add')
-              add.addEventListener('click',chooseFiles,{signal:context.signal})
+              insertTrustedHtml(add,'afterbegin',ICON_REPLACE)
+              add.append(document.createTextNode(runtimeContext.t('add','Add')))
+              insertTrustedHtml(add,'beforeend',ICON_CHEVRON)
+              add.addEventListener('click',()=>{setOpen(false);showSources(true)},{signal:viewSignal})
               const byUrl=document.createElement('button')
               byUrl.type='button'
               byUrl.className='oe-carousel-block__action-btn'
-              byUrl.textContent=runtimeContext.t('dropzoneUrl','URL')
-              byUrl.addEventListener('click',addUrl,{signal:context.signal})
+              insertTrustedHtml(byUrl,'afterbegin',ICON_URL)
+              byUrl.append(document.createTextNode('URL'))
+              byUrl.addEventListener('click',()=>{showSources(false);addUrl()},{signal:viewSignal})
               const byHtml=document.createElement('button')
               byHtml.type='button'
               byHtml.className='oe-carousel-block__action-btn'
-              byHtml.textContent=runtimeContext.t('dropzoneHtml','HTML')
-              byHtml.addEventListener('click',addHtml,{signal:context.signal})
+              insertTrustedHtml(byHtml,'afterbegin',ICON_CODE)
+              byHtml.append(document.createTextNode('HTML'))
+              byHtml.addEventListener('click',()=>{showSources(false);addHtml()},{signal:viewSignal})
               const remove=document.createElement('button')
               remove.type='button'
               remove.className='oe-carousel-block__action-btn oe-carousel-block__action-btn--danger'
               remove.textContent=runtimeContext.t('remove','Remove slide')
               remove.addEventListener('click',()=>{
                 const id=slide.id
-                context.updateData(current=>({...current,slides:current.slides.filter(item=>item.id!==id)}))
-              },{signal:context.signal})
+                retainControlFocus(wrapper,()=>context.updateData(current=>({...current,slides:current.slides.filter(item=>item.id!==id)})))
+              },{signal:viewSignal})
               const earlier=document.createElement('button')
               earlier.type='button'
               earlier.className='oe-carousel-block__action-btn'
               earlier.setAttribute('aria-label',runtimeContext.t('movePrevious','Move slide backward'))
               earlier.textContent='←'
               earlier.disabled=activeIndex===0
-              earlier.addEventListener('click',()=>moveSlide(activeIndex,activeIndex-1),{signal:context.signal})
+              earlier.addEventListener('click',()=>moveSlide(activeIndex,activeIndex-1),{signal:viewSignal})
               const later=document.createElement('button')
               later.type='button'
               later.className='oe-carousel-block__action-btn'
               later.setAttribute('aria-label',runtimeContext.t('moveNext','Move slide forward'))
               later.textContent='→'
               later.disabled=activeIndex===data.slides.length-1
-              later.addEventListener('click',()=>moveSlide(activeIndex,activeIndex+1),{signal:context.signal})
-              actions.append(add,byUrl,byHtml)
+              later.addEventListener('click',()=>moveSlide(activeIndex,activeIndex+1),{signal:viewSignal})
+              mainView.appendChild(add)
               for(const action of snapshot.actions){
                 const button=document.createElement('button')
                 button.type='button'
                 button.className='oe-carousel-block__action-btn'
                 if(action.icon)insertTrustedHtml(button,'afterbegin',action.icon)
                 button.append(document.createTextNode(action.label))
-                button.addEventListener('click',()=>void runAction(action),{signal:context.signal})
-                actions.appendChild(button)
+                button.addEventListener('click',()=>{showSources(false);void runAction(action)},{signal:viewSignal})
+                sourceView.appendChild(button)
               }
-              actions.append(remove,earlier,later)
+              sourceView.append(byUrl,byHtml)
+              mainView.append(remove,earlier,later)
+              const clear=document.createElement('button')
+              clear.type='button'
+              clear.className='oe-carousel-block__action-btn oe-carousel-block__action-btn--danger'
+              clear.setAttribute('aria-label',runtimeContext.t('deleteAll','Remove all slides'))
+              clear.textContent=runtimeContext.t('deleteAll','Remove all slides')
+              clear.addEventListener('click',()=>{
+                abortTasks()
+                activeIndex=0
+                retainControlFocus(wrapper,()=>context.updateData(current=>({...current,slides:[]})))
+              },{signal:viewSignal})
+              mainView.appendChild(clear)
+              actions.append(mainView,sourceView)
               wrapper.appendChild(actions)
             }
 
@@ -696,11 +773,22 @@ export function createCarouselPlugin(config={}){
                 const button=document.createElement('button')
                 button.type='button'
                 button.setAttribute(READ_ONLY_INTERACTIVE_ATTRIBUTE,'')
-                button.textContent=String(index+1)
-                button.addEventListener('click',()=>activate(index),{signal:context.signal})
+                button.className='oe-carousel-block__thumbnail'
+                button.classList.toggle('oe-carousel-block__thumbnail--active',index===activeIndex)
+                button.setAttribute('aria-label',runtimeContext.t('goToSlide','Go to slide {index}').replace('{index}',String(index+1)))
+                button.setAttribute('aria-current',String(index===activeIndex))
+                const imageUrl=item.type==='image'?item.src:item.type==='video'?item.poster:''
+                if(imageUrl){
+                  const image=document.createElement('img')
+                  image.alt=item.alt||''
+                  image.draggable=false
+                  setSafeUrlAttribute(image,'src',imageUrl,'media')
+                  button.appendChild(image)
+                }else button.textContent=item.type==='html'?runtimeContext.t('html','HTML'):runtimeContext.t('video','Video slide')
+                button.addEventListener('click',()=>activate(index),{signal:viewSignal})
                 thumbs.appendChild(button)
               })
-              wrapper.appendChild(thumbs)
+              stage.appendChild(thumbs)
             }
             scheduleAutoplay()
             preloadEditors()
@@ -709,12 +797,12 @@ export function createCarouselPlugin(config={}){
           const moveSlide=(from,to)=>{
             if(readOnly||from===to||to<0||to>=data.slides.length)return
             const activeId=data.slides[activeIndex]?.id
-            context.updateData(current=>{
+            retainControlFocus(wrapper,()=>context.updateData(current=>{
               const slides=current.slides.map(slide=>({...slide}))
               const [moved]=slides.splice(from,1)
               if(moved)slides.splice(to,0,moved)
               return {...current,slides}
-            })
+            }))
             queueMicrotask(()=>{
               const index=data.slides.findIndex(slide=>slide.id===activeId)
               if(index>=0)activeIndex=index
@@ -737,15 +825,6 @@ export function createCarouselPlugin(config={}){
             void resolveFiles(files)
           },{signal:context.signal})
 
-          wrapper.addEventListener('focusout',event=>{
-            const target=/** @type {HTMLElement|null} */(event.target)
-            if(readOnly||!target?.classList.contains('oe-carousel-block__caption'))return
-            const id=target.dataset.slideId
-            if(!id)return
-            const value=target.textContent?.trim()||''
-            context.updateData(current=>({...current,slides:current.slides.map(slide=>slide.id===id?{...slide,caption:value}:slide)}))
-          },{signal:context.signal})
-
           project()
 
           return {
@@ -753,7 +832,7 @@ export function createCarouselPlugin(config={}){
             read:()=>({
               slides:data.slides.map(slide=>{
                 const field=captionFields.get(slide.id)
-                return field?{...slide,caption:field.textContent?.trim()||''}:{...slide}
+                return field?{...slide,caption:field.innerHTML.trim()}:{...slide}
               }),
               options:{...data.options},
             }),
@@ -767,11 +846,16 @@ export function createCarouselPlugin(config={}){
             editableFields:()=>Object.freeze([...captionFields].map(([id,element])=>Object.freeze({
               key:'slide:'+id+':caption',
               element,
-              mode:/** @type {'plain-text'} */('plain-text'),
+              mode:/** @type {'rich-text'} */('rich-text'),
             }))),
             setReadOnly(value){readOnly=value;project()},
-            focus(){if(!dead&&!readOnly)(captionFields.get(data.slides[activeIndex]?.id)??wrapper.querySelector('button'))?.focus()},
-            destroy(){dead=true;clearAutoplay();abortTasks();captionFields.clear()},
+            focus(target){
+              if(dead||readOnly)return
+              const index=data.slides.findIndex(slide=>target?.fieldKey===`slide:${slide.id}:caption`)
+              if(index>=0&&index!==activeIndex)activate(index)
+              ;(captionFields.get(data.slides[activeIndex]?.id)??wrapper.querySelector('button'))?.focus()
+            },
+            destroy(){dead=true;viewController?.abort();clearAutoplay();abortTasks();captionFields.clear()},
           }
         },
         destroy(){

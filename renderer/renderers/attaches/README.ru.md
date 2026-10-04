@@ -24,7 +24,15 @@ rendererStyles.destroy()
 
 ```json
 {
-  "files": [{ "url": "https://cdn.example/a.pdf", "name": "a.pdf", "size": 1024, "extension": "pdf" }],
+  "files": [
+    {
+      "id": "file-1",
+      "url": "https://cdn.example/a.pdf",
+      "name": "a.pdf",
+      "size": 1024,
+      "extension": "pdf"
+    }
+  ],
   "variant": "f"
 }
 ```

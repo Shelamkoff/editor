@@ -117,10 +117,10 @@ test('renderTo keeps the original validation identity through the signature snap
     blockTypes: ['table'], injectStyles: false,
     onValidationError() {
       reports++
-      if (reports === 1) assert.throws(() => renderer.renderTo(input, second), /does not match its schema/)
+      if (reports === 1) assert.throws(() => renderer.renderTo(input, second), { name: 'InvalidBlockDataError' })
     },
   })
-  assert.throws(() => renderer.renderTo(input, first), /does not match its schema/)
+  assert.throws(() => renderer.renderTo(input, first), { name: 'InvalidBlockDataError' })
   assert.equal(reports, 1, 'same source block must not recursively report through a second container')
   renderer.destroy()
 })
@@ -168,6 +168,6 @@ test('renderTo cannot remount a container from its disposer', async () => {
   renderer.renderTo({ version: '2.0.0', blocks: [{ id: 'owner-1', type: 'owner', dataVersion: 1, data: {} }] }, container)
   renderer.destroy(container)
   assert.equal(rejected, true)
-  renderer.renderTo({ blocks: [] }, container)
+  renderer.renderTo({ version: '2.0.0', blocks: [] }, container)
   renderer.destroy(container)
 })

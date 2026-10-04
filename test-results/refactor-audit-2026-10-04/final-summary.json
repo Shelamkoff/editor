@@ -1,0 +1,17 @@
+{
+  "base": "eff8a06692e2f80d4c6c2e33abc1d626fa4ef1aa",
+  "branch": "refactor/rector-v2-architecture",
+  "sourceFiles": 286,
+  "sourceHashMismatches": 0,
+  "missingLinks": [],
+  "nativeCases": 925,
+  "nativeFailures": 0,
+  "cliPages": 24,
+  "heap": {
+    "sentinels": 11,
+    "retained": 0,
+    "usedHeapMiB": 12.32,
+    "embedderHeapMiB": 1.31,
+    "snapshotMiB": 24.26
+  }
+}

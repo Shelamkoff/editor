@@ -127,14 +127,25 @@ async function waitForEditor(client) {
   throw new Error('Timed out waiting for demo editor')
 }
 
+const pendingNativeInput = new Set()
+let nativeInputError = null
+
+async function waitForNativeInput() {
+  while (pendingNativeInput.size) await Promise.all([...pendingNativeInput])
+  if (nativeInputError) throw nativeInputError
+}
+
 async function waitForHistoryMatrix(client) {
-  const deadline = Date.now() + 30_000
+  const deadline = Date.now() + 120_000
   while (Date.now() < deadline) {
     const result = await evaluate(client, `({
       status: document.body?.dataset.status ?? 'loading',
       summary: document.querySelector('#result')?.textContent ?? '',
     })`)
-    if (result.status === 'pass') return result.summary
+    if (result.status === 'pass') {
+      await waitForNativeInput()
+      return result.summary
+    }
     if (result.status === 'fail') throw new Error(`History matrix failed: ${result.summary}`)
     await delay(100)
   }
@@ -208,6 +219,62 @@ async function stopProcess(process) {
   await Promise.race([closed, delay(5000)])
 }
 
+async function installNativeInput(client) {
+  await client.send('Runtime.addBinding', { name: '__rectorTestInput' })
+  client.on('Runtime.bindingCalled', ({ name, payload }) => {
+    if (name !== '__rectorTestInput') return
+    const request = JSON.parse(payload)
+    const respond = (ok, result) => evaluate(client,
+      `window.__resolveTestInput(${JSON.stringify(request.id)}, ${ok}, ${JSON.stringify(result)})`)
+    const allowed = ['Input.dispatchKeyEvent', 'Input.insertText', 'Input.imeSetComposition']
+    const operation = request.method === 'Input.click'
+      ? (async () => {
+          await client.send('Input.dispatchMouseEvent', { type: 'mouseMoved', ...request.params })
+          await client.send('Input.dispatchMouseEvent', { type: 'mousePressed', ...request.params, button: 'left', buttons: 1, clickCount: 1 })
+          await client.send('Input.dispatchMouseEvent', { type: 'mouseReleased', ...request.params, button: 'left', buttons: 0, clickCount: 1 })
+        })()
+      : request.method === 'Input.drag'
+      ? (async () => {
+          const { from, to, via = [] } = request.params
+          await client.send('Input.dispatchMouseEvent', { type: 'mouseMoved', ...from })
+          await client.send('Input.dispatchMouseEvent', { type: 'mousePressed', ...from, button: 'left', buttons: 1, clickCount: 1 })
+          let previous = from
+          for (const next of [...via, to]) {
+            for (let step = 1; step <= 10; step++) {
+              await client.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: previous.x + (next.x - previous.x) * step / 10, y: previous.y + (next.y - previous.y) * step / 10, button: 'left', buttons: 1 })
+            }
+            previous = next
+          }
+          await client.send('Input.dispatchMouseEvent', { type: 'mouseReleased', ...to, button: 'left', buttons: 0, clickCount: 1 })
+        })()
+      : request.method === 'Viewport.set'
+      ? client.send('Emulation.setDeviceMetricsOverride', { ...request.params, deviceScaleFactor: 1, mobile: false })
+      : request.method === 'Viewport.reset'
+      ? client.send('Emulation.clearDeviceMetricsOverride')
+      : allowed.includes(request.method)
+      ? client.send(request.method, request.params)
+      : Promise.reject(new Error('Unsupported fixture input method'))
+    const pending = operation.then(result => respond(true, result), error => respond(false, String(error)))
+      .catch(error => { nativeInputError = error })
+      .finally(() => pendingNativeInput.delete(pending))
+    pendingNativeInput.add(pending)
+  })
+}
+
+async function runNativePage(client, pageUrl, page) {
+  const url = new URL(`/tests/browser/${page}`, pageUrl)
+  if (process.env.EDITOR_NATIVE_FILTER) url.searchParams.set('test-filter', process.env.EDITOR_NATIVE_FILTER)
+  await client.send('Page.navigate', { url: url.href })
+  const deadline = Date.now() + 20_000
+  while (!await evaluate(client, `location.pathname.endsWith(${JSON.stringify('/' + page)}) && typeof window.__resolveTestInput === "function"`)) {
+    if (Date.now() > deadline) throw new Error(`Timed out loading ${page}`)
+    await delay(50)
+  }
+  const results = JSON.parse(await waitForHistoryMatrix(client))
+  assert(Array.isArray(results) && results.length > 0, `No native cases ran for ${page}`)
+  return results
+}
+
 const vitePort = await freePort()
 const debugPort = await freePort()
 const pageUrl = `http://127.0.0.1:${vitePort}/tests/browser/physical-history.html`
@@ -215,6 +282,7 @@ const userDataDir = await mkdtemp(join(tmpdir(), 'ophire-editor-physical-history
 const vite = spawn(process.execPath, [vitePath, '--host', '127.0.0.1', '--port', String(vitePort), '--strictPort'], {
   cwd: fileURLToPath(editorRoot),
   stdio: 'ignore',
+  windowsHide: true,
 })
 
 let chrome
@@ -230,11 +298,17 @@ try {
     `--remote-debugging-port=${debugPort}`,
     `--user-data-dir=${userDataDir}`,
     pageUrl,
-  ], { stdio: 'ignore' })
+  ], { stdio: 'ignore', windowsHide: true })
 
   const target = await findPageTarget(debugPort, pageUrl, chrome)
   client = await CdpClient.connect(target.webSocketDebuggerUrl)
   await client.send('Runtime.enable')
+  await installNativeInput(client)
+  const nativePage = process.env.EDITOR_NATIVE_PAGE
+  if (nativePage) {
+    if (!/^native-[a-z-]+\.html$/.test(nativePage)) throw new Error('Expected a native fixture filename')
+    console.log(JSON.stringify({ [nativePage]: await runNativePage(client, pageUrl, nativePage) }))
+  } else {
   await waitForEditor(client)
 
   await click(client, '.oe-block [contenteditable=true]')
@@ -357,19 +431,6 @@ try {
 
   // Real browser insertion must cover beforeinput paths without a keydown.
   // The page builds its logical cross-block range through SelectionController; CDP types into it.
-  await client.send('Runtime.addBinding', { name: '__rectorTestInput' })
-  client.on('Runtime.bindingCalled', ({ name, payload }) => {
-    if (name !== '__rectorTestInput') return
-    const request = JSON.parse(payload)
-    const respond = (ok, result) => evaluate(client,
-      `window.__resolveTestInput(${JSON.stringify(request.id)}, ${ok}, ${JSON.stringify(result)})`)
-    const allowed = ['Input.dispatchKeyEvent', 'Input.insertText']
-    const operation = allowed.includes(request.method)
-      ? client.send(request.method, request.params)
-      : Promise.reject(new Error('Unsupported fixture input method'))
-    void operation.then(result => respond(true, result), error => respond(false, String(error)))
-      .catch(error => console.error('Native input fixture failed:', error))
-  })
   await client.send('Page.navigate', { url: new URL('/tests/browser/native-text-input.html', pageUrl).href })
   // Wait for navigation rather than accepting the previous page's pass marker.
   const nativeDeadline = Date.now() + 20_000
@@ -378,6 +439,57 @@ try {
     await delay(50)
   }
   const nativeTextInput = JSON.parse(await waitForHistoryMatrix(client))
+
+  await client.send('Page.navigate', { url: new URL('/tests/browser/native-tools.html', pageUrl).href })
+  const toolsDeadline = Date.now() + 20_000
+  while (!await evaluate(client, 'location.pathname.endsWith("/native-tools.html") && typeof window.__resolveTestInput === "function"')) {
+    if (Date.now() > toolsDeadline) throw new Error('Timed out loading native tools fixture')
+    await delay(50)
+  }
+  const nativeTools = JSON.parse(await waitForHistoryMatrix(client))
+
+  await client.send('Page.navigate', { url: new URL('/tests/browser/native-clipboard.html', pageUrl).href })
+  const clipboardDeadline = Date.now() + 20_000
+  while (!await evaluate(client, 'location.pathname.endsWith("/native-clipboard.html") && typeof window.__resolveTestInput === "function"')) {
+    if (Date.now() > clipboardDeadline) throw new Error('Timed out loading native clipboard fixture')
+    await delay(50)
+  }
+  const nativeClipboard = JSON.parse(await waitForHistoryMatrix(client))
+
+  await client.send('Page.navigate', { url: new URL('/tests/browser/native-ime.html', pageUrl).href })
+  const imeDeadline = Date.now() + 20_000
+  while (!await evaluate(client, 'location.pathname.endsWith("/native-ime.html") && typeof window.__resolveTestInput === "function"')) {
+    if (Date.now() > imeDeadline) throw new Error('Timed out loading native IME fixture')
+    await delay(50)
+  }
+  const nativeIme = JSON.parse(await waitForHistoryMatrix(client))
+
+  await client.send('Page.navigate', { url: new URL('/tests/browser/native-conversion.html', pageUrl).href })
+  const conversionDeadline = Date.now() + 20_000
+  while (!await evaluate(client, 'location.pathname.endsWith("/native-conversion.html") && typeof window.__resolveTestInput === "function"')) {
+    if (Date.now() > conversionDeadline) throw new Error('Timed out loading native conversion fixture')
+    await delay(50)
+  }
+  const nativeConversion = JSON.parse(await waitForHistoryMatrix(client))
+
+  await client.send('Page.navigate', { url: new URL('/tests/browser/native-block-menus.html', pageUrl).href })
+  const menusDeadline = Date.now() + 20_000
+  while (!await evaluate(client, 'location.pathname.endsWith("/native-block-menus.html") && typeof window.__resolveTestInput === "function"')) {
+    if (Date.now() > menusDeadline) throw new Error('Timed out loading native block menu fixture')
+    await delay(50)
+  }
+  const nativeBlockMenus = JSON.parse(await waitForHistoryMatrix(client))
+  const nativeStructural = await runNativePage(client, pageUrl, 'native-structural.html')
+  const nativeCrossSelection = await runNativePage(client, pageUrl, 'native-cross-selection.html')
+  const nativeCoreBehavior = await runNativePage(client, pageUrl, 'native-core-behavior.html')
+  const nativePluginParity = await runNativePage(client, pageUrl, 'native-plugin-parity.html')
+  const nativePluginControls = await runNativePage(client, pageUrl, 'native-plugin-controls.html')
+  const nativePluginRanges = await runNativePage(client, pageUrl, 'native-plugin-ranges.html')
+  const nativePluginLocalRanges = await runNativePage(client, pageUrl, 'native-plugin-local-ranges.html')
+  const nativePluginClipboard = await runNativePage(client, pageUrl, 'native-plugin-clipboard.html')
+  const nativePluginFieldClipboard = await runNativePage(client, pageUrl, 'native-plugin-field-clipboard.html')
+  const nativePluginMedia = await runNativePage(client, pageUrl, 'native-plugin-media.html')
+  const nativePluginDesign = await runNativePage(client, pageUrl, 'native-plugin-design.html')
 
   console.log(JSON.stringify({
     enterScenario: { beforeBold, afterBold, afterUndo, afterRedo, afterRemoveBold, afterUndoRemoval },
@@ -393,7 +505,24 @@ try {
     },
     historyMatrix: JSON.parse(historyMatrix),
     nativeTextInput,
+    nativeTools,
+    nativeClipboard,
+    nativeIme,
+    nativeConversion,
+    nativeBlockMenus,
+    nativeStructural,
+    nativeCrossSelection,
+    nativeCoreBehavior,
+    nativePluginParity,
+    nativePluginControls,
+    nativePluginRanges,
+    nativePluginLocalRanges,
+    nativePluginClipboard,
+    nativePluginFieldClipboard,
+    nativePluginMedia,
+    nativePluginDesign,
   }))
+  }
 } finally {
   client?.close()
   await Promise.all([stopProcess(chrome), stopProcess(vite)])

@@ -4,6 +4,8 @@ Target branch: `refactor/rector-v2-architecture`.
 
 Normative specification: [RECTOR_V2_REMEDIATION_SPEC.md](RECTOR_V2_REMEDIATION_SPEC.md).
 
+**Later local verification:** [RECTOR_V2_LOCAL_VERIFICATION_2026-10-04.md](RECTOR_V2_LOCAL_VERIFICATION_2026-10-04.md) records the checkout, subsequent fixes and executed gates. The source-only conclusions and unavailable-checkout limitations below describe the earlier inspection; they are not the latest acceptance status. Native Chrome clipboard, heap and browser-engine composition are now verified. User screenshots exposed gaps in the earlier parity matrix; visible mixed selection, margins, toolbar controls and structural keyboard behavior now have native regression cases. Further checks restored click-below-document insertion, Enter exits from List/Checklist and preservation of an existing cross-field range on Shift+Left/Right. The expanded full run passed 138 native cases and all package/documentation gates. S10 is not declared closed; the current report records the evidence boundaries and the unverified physical OS IME session.
+
 This recheck records the implemented source state. It does **not** claim green CI: GitHub Actions has no workflow/status result for the inspected branch SHA, and the current execution environment cannot resolve `github.com` for a local checkout, so the project command matrix could not be executed here.
 
 ## S1 — current-only document format
@@ -113,7 +115,7 @@ Implemented.
 - Interaction state, current index/selection, drag and public count/at/index paths use metadata rather than cloning whole document payloads for IDs.
 - Public `get/list/save` remain detached snapshots.
 - Instrumented 1000-block/large-payload test forbids payload `Map#get` during metadata queries.
-- Existing gzip targets remain 51/40/64/96 KiB; budgets were not raised.
+- Paragraph/default/full gzip limits remain 40/64/96 KiB. The owner waived the core-size completion gate on 2026-10-04; its 51 KiB reference target remains informational.
 
 ## S10 — convergence recheck
 
@@ -129,6 +131,8 @@ Source-level convergence completed.
 - Browser acceptance includes real ru/en inline-plugin labels/no-results, lifecycle/task ownership, structured HTML/clipboard, formatting ownership, drag, events/recovery and security/Trusted Types boundaries.
 
 ## Verification limitation
+
+**Historical note:** the limitation below describes the earlier source-only recheck. Local execution subsequently became available. The actual Windows/Chrome runs, fixes, source manifest and remaining evidence limits are recorded in [RECTOR_V2_LOCAL_VERIFICATION_2026-10-04.md](RECTOR_V2_LOCAL_VERIFICATION_2026-10-04.md); plugin-by-plugin behavior is recorded in [RECTOR_V2_PLUGIN_PARITY_2026-10-04.md](RECTOR_V2_PLUGIN_PARITY_2026-10-04.md). Do not use this older limitation as the current execution status.
 
 The normative command matrix is still required on a machine/CI runner with the repository checkout:
 

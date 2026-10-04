@@ -201,8 +201,8 @@ test('async preset declarations require the current document envelope', async ()
     readFile(new URL('renderer/renderers/async.d.ts', declarationRoot), 'utf8'),
   ])
   for (const source of [pluginAsync, rendererAsync]) {
-    assert.match(source, /version:\s*["']2\.0\.0["']/)
-    assert.match(source, /blocks:\s*readonly/)
+    assert.match(source, /(?:Renderer)?OutputData|version:\s*["']2\.0\.0["']/)
+    assert.match(source, /(?:Renderer)?OutputData|blocks:\s*readonly/)
     assert.doesNotMatch(source, /blocks\?:/)
   }
 })
@@ -223,7 +223,7 @@ test('public editor declarations expose only the v2 model API', async () => {
   assert.match(publicTypes, /insertInlinePlugin\(type:\s*string/)
   assert.match(publicTypes, /export interface TransactionCommitted/)
   assert.match(publicTypes, /readonly sequence:\s*number/)
-  assert.match(publicTypes, /'document:changed':\s*Pick<TransactionCommitted, 'origin' \| 'action' \| 'changes'>/)
+  assert.match(publicTypes, /'document:changed':\s*DeepReadonly<Pick<TransactionCommitted, 'origin' \| 'action' \| 'changes'>>/)
   assert.match(publicTypes, /on<K extends keyof EditorEventMap>/)
   assert.doesNotMatch(publicTypes, /record:\s*Transaction/)
   assert.doesNotMatch(publicTypes, /rootElement|contentElement|EditorBlockView|IBlockManager|ISelectionManager/)

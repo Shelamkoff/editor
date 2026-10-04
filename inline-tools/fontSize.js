@@ -157,6 +157,8 @@ export function createFontSizeTool(label) {
   let inputEl = null
   /** @type {Range | null} */
   let savedRange = null
+  /** @type {import('./utils.js').SavedOffsets | null} */
+  let savedOffsets = null
   /** @type {Document | null} */
   let ownerDocument = null
   /** @type {(Window & typeof globalThis) | null} */
@@ -205,6 +207,7 @@ export function createFontSizeTool(label) {
   function openDropdown() {
     if (!dropdownEl || !inputEl) return
     savedRange = null
+    savedOffsets = null
     const cbsRange = cbs?.range
     if (cbsRange) {
       savedRange = cbsRange.cloneRange()
@@ -215,6 +218,8 @@ export function createFontSizeTool(label) {
       }
     }
     if (!savedRange) return
+
+    savedOffsets = saveSelectionOffsets(savedRange)
 
     isOpen = true
     dropdownEl.style.display = ''
@@ -263,6 +268,10 @@ export function createFontSizeTool(label) {
         : start.parentElement
       const editable = /** @type {HTMLElement | null | undefined} */ (startElement?.closest('[contenteditable="true"]'))
       editable?.focus({ preventScroll: true })
+      if (savedOffsets) {
+        restoreSelectionOffsets(cbs, savedOffsets)
+        return
+      }
       sel.removeAllRanges()
       sel.addRange(savedRange)
     } catch {
@@ -275,6 +284,7 @@ export function createFontSizeTool(label) {
     const sel = selectionFor(cbs?.range ?? savedRange)
     if (sel && sel.rangeCount > 0 && !sel.isCollapsed) {
       savedRange = sel.getRangeAt(0).cloneRange()
+      savedOffsets = saveSelectionOffsets(savedRange)
     }
   }
 

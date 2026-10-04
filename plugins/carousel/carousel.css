@@ -119,13 +119,16 @@
 
 /* Compact Image/Gallery-style action bar. */
 .oe-carousel-block__actions {
+  box-sizing: border-box;
+  max-width: 100%;
+  flex-wrap: wrap;
   position: relative;
   display: inline-flex; align-items: center; gap: 0;
   margin-top: 0.5rem; padding: 0.1875rem;
   border: 1px solid var(--oe-border, #1a1a1f); border-radius: 0.5rem;
   background: var(--oe-surface, #0e0e10);
 }
-.oe-carousel-block__actions-view { display: inline-flex; align-items: center; }
+.oe-carousel-block__actions-view { display: contents; }
 .oe-carousel-block__actions-view[hidden] { display: none; }
 .oe-carousel-block__action-btn {
   position: relative;

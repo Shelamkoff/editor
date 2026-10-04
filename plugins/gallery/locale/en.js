@@ -1,4 +1,5 @@
 export default {
+  'plugin.gallery.add': 'Add',
   'plugin.gallery.title': 'Gallery',
   'plugin.gallery.upload': 'Upload',
   'plugin.gallery.url': 'URL',

@@ -9,6 +9,8 @@ import {
 import { escapeHtml } from '../shared/sanitize/escapeHtml.js'
 import { toTrustedHtml } from '../shared/sanitize/trustedHtml.js'
 import { prepareHtmlImport } from './HtmlImportRouter.js'
+import { getTextLength } from '../shared/textOffset.js'
+import { editingHostForEvent } from '../shared/editableFields.js'
 
 function stripClipboardProjection(root) {
   for (const element of root.querySelectorAll('button,input,select,textarea,.oe-source-editor,.oe-settings-menu,.oe-toolbar,.oe-toolbox')) {
@@ -146,7 +148,7 @@ export class ClipboardController {
   }
 
   #onCopy(event) {
-    if (event.defaultPrevented || !event.clipboardData) return
+    if (event.defaultPrevented || !event.clipboardData || !this.#ownsEvent(event)) return
     const ownerDocument = this.#root.ownerDocument
 
     if (this.#crossSelection?.active) {
@@ -218,7 +220,7 @@ export class ClipboardController {
   }
 
   #onCut(event) {
-    if (this.#runtime.readOnly || event.defaultPrevented || !event.clipboardData) return
+    if (this.#runtime.readOnly || event.defaultPrevented || !event.clipboardData || !this.#ownsEvent(event)) return
     const ownerDocument=this.#root.ownerDocument
 
     if (this.#crossSelection?.active) {
@@ -275,7 +277,7 @@ export class ClipboardController {
         text:this.#crossSelection.text(),
       }))return
       if(!sameBookmark(plan.bookmark,this.#crossSelection?.bookmark))return
-      const result=this.#runtime.applyPreparedClipboardCut(plan)
+      const result=this.#mutateCut(() => this.#runtime.applyPreparedClipboardCut(plan))
       this.#crossSelection.clear()
       this.#view.reconcileInteraction()
       if(result?.blockId){
@@ -305,7 +307,7 @@ export class ClipboardController {
       text:template.content.textContent??'',
     }))return
     if(!sameBookmark(plan.bookmark,this.#selection.capture()))return
-    const result=this.#runtime.applyPreparedClipboardCut(plan)
+    const result=this.#mutateCut(() => this.#runtime.applyPreparedClipboardCut(plan))
     this.#view.reconcileInteraction()
     if(result?.blockId){
       this.#view.setCurrent(result.blockId)
@@ -314,7 +316,9 @@ export class ClipboardController {
   }
 
   #onPaste(event) {
-    if (this.#runtime.readOnly || event.defaultPrevented) return
+    if (this.#runtime.readOnly || event.defaultPrevented || !this.#ownsEvent(event)) return
+    const owner = this.#reconciler.resolveEditableTarget(event.target)
+    if (owner?.mode === 'plain-text' && !this.#crossSelection?.active) return
     const startedAt = this.#diagnostics ? this.#diagnostics.now() : 0
     try {
       return this.#applyPaste(event)
@@ -353,15 +357,15 @@ export class ClipboardController {
       }
 
       if (this.#crossSelection?.active) {
-        const plan=this.#runtime.prepareLogicalClipboardSlice(this.#crossSelection.bookmark)
+        const plan=this.#runtime.prepareLogicalClipboardSlice(this.#crossSelection.bookmark, this.#crossSelection.wholeBlockIds)
         if(!plan)return
         try {
-          const result=this.#runtime.replacePreparedClipboardSlice(plan,fragment.parts)
+          const result=this.#mutatePaste(() => this.#runtime.replacePreparedClipboardSlice(plan,fragment.parts))
           if(result){
             this.#crossSelection.clear()
             this.#view.reconcileInteraction()
             this.#view.setCurrent(result.blockId)
-            queueMicrotask(()=>this.#view.focus(result.blockId,{offset:'end'}))
+            queueMicrotask(()=>this.#view.focus(result.blockId,result.focus??{offset:'end'}))
           }
         } catch (error) {
           this.#diagnostics?.emit('paste.failed', {
@@ -378,15 +382,15 @@ export class ClipboardController {
       if (!range) return
 
       try {
-        const result = this.#runtime.insertClipboardParts(
+        const result = this.#mutatePaste(() => this.#runtime.insertClipboardParts(
           owner.blockId,
           owner.fieldKey,
           range,
           fragment.parts,
-        )
+        ))
         this.#view.reconcileInteraction()
         this.#view.setCurrent(result.blockId)
-        queueMicrotask(() => this.#view.focus(result.blockId, { offset: 'end' }))
+        queueMicrotask(() => this.#view.focus(result.blockId, result.focus ?? { offset: 'end' }))
       } catch (error) {
         this.#diagnostics?.emit('paste.failed', {
           operation: 'clipboard.private-fragment',
@@ -399,7 +403,7 @@ export class ClipboardController {
     if (this.#crossSelection?.active) {
       const html=data.getData('text/html')
       const text=data.getData('text/plain')
-      const plan=this.#runtime.prepareLogicalClipboardSlice(this.#crossSelection.bookmark)
+      const plan=this.#runtime.prepareLogicalClipboardSlice(this.#crossSelection.bookmark, this.#crossSelection.wholeBlockIds)
       if(!plan)return
 
       let parts=null
@@ -439,12 +443,12 @@ export class ClipboardController {
 
       event.preventDefault()
       try{
-        const result=this.#runtime.replacePreparedClipboardSlice(plan,parts)
+        const result=this.#mutatePaste(() => this.#runtime.replacePreparedClipboardSlice(plan,parts))
         if(result){
           this.#crossSelection.clear()
           this.#view.reconcileInteraction()
           this.#view.setCurrent(result.blockId)
-          queueMicrotask(()=>this.#view.focus(result.blockId,{offset:'end'}))
+          queueMicrotask(()=>this.#view.focus(result.blockId,result.focus??{offset:'end'}))
         }
       }catch(error){
         this.#diagnostics?.emit('paste.failed',{
@@ -503,24 +507,14 @@ export class ClipboardController {
       if (plan) {
         event.preventDefault()
         if (plan.kind === 'inline') {
-          this.#runtime.replaceRichText(
-            owner.blockId,
-            owner.fieldKey,
-            range,
-            { kind: 'html', html: plan.html },
-          )
-          this.#view.reconcileInteraction()
-          this.#view.setCurrent(owner.blockId)
-          queueMicrotask(() => this.#view.focus(owner.blockId, {
-            fieldKey: owner.fieldKey,
-          }))
+          this.#replaceLocal(owner, range, { kind: 'html', html: plan.html })
           return
         }
 
-        const inserted = this.#runtime.insertLocalBlocks(owner.blockId, plan.blocks, {
+        const inserted = this.#mutatePaste(() => this.#runtime.insertLocalBlocks(owner.blockId, plan.blocks, {
           replaceEmpty: range.start === 0 && range.end === 0,
           name: 'clipboard.html-import',
-        })
+        }))
         this.#view.reconcileInteraction()
         const last = inserted.at(-1)
         if (last) {
@@ -539,18 +533,66 @@ export class ClipboardController {
       return
     }
 
-    this.#runtime.replaceRichText(
-      owner.blockId,
-      owner.fieldKey,
-      range,
-      { kind: 'text', text },
-    )
+    const lines = text.split(/\r\n?|\n/).filter(line => line.length > 0)
+    if (lines.length > 1) {
+      const result = this.#mutatePaste(() => this.#runtime.insertClipboardParts(
+        owner.blockId, owner.fieldKey, range,
+        lines.map(line => ({ kind: 'rich-text', html: escapeHtml(line) })),
+      ))
+      this.#view.reconcileInteraction()
+      this.#view.setCurrent(result.blockId)
+      queueMicrotask(() => this.#view.focus(result.blockId, result.focus ?? { offset: 'end' }))
+      return
+    }
+    this.#replaceLocal(owner, range, { kind: 'text', text })
+  }
+
+  #ownsEvent(event) {
+    const path = typeof event.composedPath === 'function' ? event.composedPath() : []
+    const target = path.find(node => node && typeof node.closest === 'function') ?? event.target
+    if (!target || !this.#root.contains(target)) return false
+    const owner = this.#reconciler.resolveEditableTarget(target)
+    if (owner?.mode === 'plain-text' && (target === owner.element || owner.element.contains(target))) return true
+    if (owner?.mode === 'rich-text' && editingHostForEvent(this.#root, target) === owner.element) return true
+    return !target.closest?.('input, textarea, select, [contenteditable="true"], [data-inline-plugin]')
+  }
+
+  #mutateCut(operation) {
+    return this.#runtime.interact('clipboard.cut', operation, result => {
+      if (!result?.blockId) return null
+      const fields = this.#reconciler.getEditableFields(result.blockId)
+      const field = fields.find(field => field.key === result.focus?.fieldKey) ?? fields[0]
+      const point = { blockId: result.blockId, fieldKey: field?.key ?? '', offset: result.focus?.offset ?? 0 }
+      return { anchor: point, focus: { ...point } }
+    })
+  }
+
+  #mutatePaste(operation) {
+    return this.#runtime.interact('clipboard.paste', operation, result => {
+      const blockId = Array.isArray(result) ? result.at(-1) : result?.blockId
+      if (!blockId) return null
+      const fields = this.#reconciler.getEditableFields(blockId)
+      const field = result?.focus ? fields.find(field => field.key === result.focus.fieldKey) : fields[0]
+      const offset = result?.focus?.offset ?? (field?.mode === 'plain-text' ? field.element.value.length
+        : field ? getTextLength(field.element) : 0)
+      const point = { blockId, fieldKey: result?.focus?.fieldKey ?? field?.key ?? '', offset }
+      return { anchor: point, focus: { ...point } }
+    })
+  }
+
+  #replaceLocal(owner, range, replacement) {
+    const point = offset => ({ blockId: owner.blockId, fieldKey: owner.fieldKey, offset })
+    const result = this.#runtime.interact('clipboard.paste', () => this.#runtime.replaceLogicalRange(
+      { anchor: point(range.start), focus: point(range.end) }, replacement,
+    ), caret => caret ? { anchor: caret, focus: { ...caret } } : null)
+    if (!result) return false
     this.#view.reconcileInteraction()
-    this.#view.setCurrent(owner.blockId)
-    queueMicrotask(() => this.#view.focus(owner.blockId, {
-      fieldKey: owner.fieldKey,
-      offset: range.start + text.length,
+    this.#view.setCurrent(result.blockId)
+    queueMicrotask(() => this.#view.focus(result.blockId, {
+      fieldKey: result.fieldKey,
+      offset: result.offset,
     }))
+    return true
   }
 
 
@@ -626,12 +668,12 @@ export class ClipboardController {
       )return
 
       try{
-        const applied=this.#runtime.applyPasteResults(
+        const applied=this.#mutatePaste(() => this.#runtime.applyPasteResults(
           owner.blockId,owner.fieldKey,range,resolved,
-        )
+        ))
         this.#view.reconcileInteraction()
         this.#view.setCurrent(applied.blockId)
-        queueMicrotask(()=>this.#view.focus(applied.blockId,{offset:'end'}))
+        queueMicrotask(()=>this.#view.focus(applied.blockId,applied.focus??{offset:'end'}))
       }catch(error){
         if(!task.signal.aborted){
           this.#diagnostics?.emit('paste.failed',{

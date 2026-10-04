@@ -581,10 +581,26 @@ export function findNodeAtOffset(container, charOffset, bias = 'start') {
   return findLogicalPosition(container, charOffset, bias)
 }
 
+/** @param {Range} range @returns {boolean} */
+function isBackwardRange(range) {
+  const document = range.startContainer.ownerDocument
+  const native = document?.defaultView?.getSelection?.()
+  if (!document || !native?.anchorNode || !native.focusNode || native.isCollapsed) return false
+  try {
+    const anchor = document.createRange()
+    anchor.setStart(native.anchorNode, native.anchorOffset)
+    anchor.collapse(true)
+    const focus = document.createRange()
+    focus.setStart(native.focusNode, native.focusOffset)
+    focus.collapse(true)
+    return anchor.compareBoundaryPoints(0, focus) > 0
+  } catch { return false }
+}
+
 /**
  * Save a cross-editable range (multiple fields and/or blocks) as logical offsets.
  * @param {Range} range
- * @returns {{ editorRoot: HTMLElement, startBlockId: string, endBlockId: string, startFieldIndex: number, endFieldIndex: number, startOffset: number, endOffset: number } | null}
+ * @returns {{ editorRoot: HTMLElement, startBlockId: string, endBlockId: string, startFieldIndex: number, endFieldIndex: number, startOffset: number, endOffset: number, backward: boolean } | null}
  */
 export function saveCrossBlockOffsets(range) {
   const startBlock = closestBlock(range.startContainer)
@@ -607,13 +623,14 @@ export function saveCrossBlockOffsets(range) {
     endFieldIndex: endField.index,
     startOffset: getTextOffset(startField.element, range.startContainer, range.startOffset),
     endOffset: getTextOffset(endField.element, range.endContainer, range.endOffset),
+    backward: isBackwardRange(range),
   }
 }
 
 /**
  * Restore cross-block range from saved offsets and refresh the editor-owned CSS Highlight.
  * @param {import('./types').CrossEditableSelectionPort | null} cbs
- * @param {{ editorRoot: HTMLElement, startBlockId: string, endBlockId: string, startFieldIndex?: number, endFieldIndex?: number, startOffset: number, endOffset: number }} offsets
+ * @param {{ editorRoot: HTMLElement, startBlockId: string, endBlockId: string, startFieldIndex?: number, endFieldIndex?: number, startOffset: number, endOffset: number, backward?: boolean }} offsets
  * @returns {Range | null}
  */
 export function restoreCrossBlockRange(cbs, offsets) {
@@ -646,6 +663,20 @@ export function restoreCrossBlockRange(cbs, offsets) {
     range.setEnd(end.node, end.offset)
   } catch { return null }
 
+  // Keep the native range non-collapsed: collapsing it revokes the cross-field
+  // selection port and makes multi-step tools operate on only the last field.
+  try {
+    const sel = ownerDocument.defaultView?.getSelection?.() ?? null
+    const anchor = offsets.backward ? end : start
+    const focus = offsets.backward ? start : end
+    ;(offsets.backward ? endCe : startCe).focus({ preventScroll: true })
+    if (typeof sel?.setBaseAndExtent === 'function') sel.setBaseAndExtent(anchor.node, anchor.offset, focus.node, focus.offset)
+    else {
+      sel?.removeAllRanges()
+      sel?.addRange(range)
+    }
+  } catch { /* detached */ }
+
   // Update stored range and visual highlight
   if (cbs) {
     cbs.activate(range)
@@ -653,16 +684,6 @@ export function restoreCrossBlockRange(cbs, offsets) {
     editorRoot.classList.add('oe-editor--cross-selecting')
     showCrossHighlight(range)
   }
-
-  // Place native caret at end of cross-block range
-  try {
-    const sel = ownerDocument.defaultView?.getSelection?.() ?? null
-    const caret = ownerDocument.createRange()
-    caret.setStart(range.endContainer, range.endOffset)
-    caret.collapse(true)
-    sel?.removeAllRanges()
-    sel?.addRange(caret)
-  } catch { /* detached */ }
 
   return range
 }
@@ -879,8 +900,8 @@ export function normalizeAfterEdit(singleCe, walkRoot) {
 
 /**
  * @typedef {Object} SavedOffsets
- * @property {{ editorRoot: HTMLElement, startBlockId: string, endBlockId: string, startFieldIndex: number, endFieldIndex: number, startOffset: number, endOffset: number } | null} crossOffsets - Serialized selection spanning multiple editable block fields.
- * @property {{ ce: Node, start: number, end: number } | null} singleOffsets - Text offsets and owning editable node for a selection contained in one field.
+ * @property {{ editorRoot: HTMLElement, startBlockId: string, endBlockId: string, startFieldIndex: number, endFieldIndex: number, startOffset: number, endOffset: number, backward?: boolean } | null} crossOffsets - Serialized selection spanning multiple editable block fields.
+ * @property {{ ce: Node, start: number, end: number, backward?: boolean } | null} singleOffsets - Text offsets and owning editable node for a selection contained in one field.
  */
 
 /**
@@ -890,7 +911,7 @@ export function normalizeAfterEdit(singleCe, walkRoot) {
  */
 export function saveSelectionOffsets(range) {
   const crossOffsets = saveCrossBlockOffsets(range)
-  /** @type {{ ce: Node, start: number, end: number } | null} */
+  /** @type {{ ce: Node, start: number, end: number, backward?: boolean } | null} */
   let singleOffsets = null
   if (!crossOffsets) {
     const startEl = range.startContainer.nodeType === ELEMENT_NODE
@@ -902,6 +923,7 @@ export function saveSelectionOffsets(range) {
         ce,
         start: getTextOffset(ce, range.startContainer, range.startOffset),
         end: getTextOffset(ce, range.endContainer, range.endOffset),
+        backward: isBackwardRange(range),
       }
     }
   }
@@ -918,7 +940,7 @@ export function restoreSelectionOffsets(cbs, saved) {
   if (saved.crossOffsets) {
     restoreCrossBlockRange(cbs, saved.crossOffsets)
   } else if (saved.singleOffsets) {
-    const { ce, start, end } = saved.singleOffsets
+    const { ce, start, end, backward } = saved.singleOffsets
     const s = findNodeAtOffset(ce, start)
     const e = findNodeAtOffset(ce, end, 'end')
     if (s && e) {
@@ -929,8 +951,14 @@ export function restoreSelectionOffsets(cbs, saved) {
         const r = ownerDocument.createRange()
         r.setStart(s.node, s.offset)
         r.setEnd(e.node, e.offset)
-        sel?.removeAllRanges()
-        sel?.addRange(r)
+        if (typeof sel.setBaseAndExtent === 'function') {
+          const anchor = backward ? e : s
+          const focus = backward ? s : e
+          sel.setBaseAndExtent(anchor.node, anchor.offset, focus.node, focus.offset)
+        } else {
+          sel.removeAllRanges()
+          sel.addRange(r)
+        }
       } catch { /* detached */ }
     }
   }

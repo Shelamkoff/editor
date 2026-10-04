@@ -2,6 +2,7 @@ export default {
   'plugin.linkPreview.title': 'Превью ссылки',
   'plugin.linkPreview.placeholder': 'Вставьте ссылку...',
   'plugin.linkPreview.settings': 'Настройки',
+  'plugin.linkPreview.delete': 'Удалить',
   'plugin.linkPreview.template': 'Шаблон',
   'plugin.linkPreview.template.horizontal': 'Горизонтальная карточка',
   'plugin.linkPreview.template.compact': 'Компактная карточка',

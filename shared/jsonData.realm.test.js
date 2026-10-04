@@ -2,15 +2,15 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { runInNewContext } from 'node:vm'
 import { cloneEditorData } from './cloneEditorData.js'
-import { DocumentSchema } from '../core/DocumentSchema.js'
+import { decodeCurrentDocument } from './DocumentSchema.js'
 
 test('JSON data accepts plain objects created in a different realm', () => {
-  const foreign = runInNewContext('({ blocks: [{ id: "a", type: "paragraph", data: { text: "foreign" } }], version: "1" })')
+  const foreign = runInNewContext('({ blocks: [{ id: "a", type: "paragraph", dataVersion: 2, data: { text: "foreign" } }], version: "2.0.0" })')
   const cloned = cloneEditorData(foreign)
-  assert.deepEqual(cloned, { blocks: [{ id: 'a', type: 'paragraph', data: { text: 'foreign' } }], version: '1' })
+  assert.deepEqual(cloned, { blocks: [{ id: 'a', type: 'paragraph', dataVersion: 2, data: { text: 'foreign' } }], version: '2.0.0' })
   assert.equal(Object.getPrototypeOf(cloned), Object.prototype)
   assert.notStrictEqual(cloned.blocks[0].data, foreign.blocks[0].data)
-  assert.equal(new DocumentSchema({ currentVersion: '1' }).normalize(foreign).blocks[0].data.text, 'foreign')
+  assert.equal(decodeCurrentDocument(foreign).blocks[0].data.text, 'foreign')
 })
 
 test('cross-realm JSON support must not admit exotic or class instances', () => {

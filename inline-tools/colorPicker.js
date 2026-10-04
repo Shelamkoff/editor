@@ -55,6 +55,8 @@ export function createBgColorTool(label) {
   let btnEl = null
   /** @type {Range | null} */
   let savedRange = null
+  /** @type {import('./utils.js').SavedOffsets | null} */
+  let savedOffsets = null
   /** @type {Document | null} */
   let ownerDocument = null
   let pickerOpen = false
@@ -87,6 +89,7 @@ export function createBgColorTool(label) {
   function openPicker() {
     if (!picker) return
     savedRange = null
+    savedOffsets = null
     // Use cross-block range if available (native is clipped).
     // Clone to avoid mutation when addRange clips cross-block ranges.
     const crossRange = cbs?.range
@@ -99,6 +102,8 @@ export function createBgColorTool(label) {
       }
     }
     if (!savedRange) return
+
+    savedOffsets = saveSelectionOffsets(savedRange)
 
     const existing = findBgSpan(savedRange, documentFor(savedRange))
     let hex = '#ffffff'
@@ -120,6 +125,10 @@ export function createBgColorTool(label) {
 
   function restoreRange() {
     if (!savedRange) return
+    if (savedOffsets) {
+      restoreSelectionOffsets(cbs, savedOffsets)
+      return
+    }
     const sel = selectionFor(savedRange)
     if (sel) {
       try {
@@ -136,7 +145,7 @@ export function createBgColorTool(label) {
   function prepareSelectionContext() {
     if (!savedRange) return null
     const range = cbs?.range?.cloneRange() || savedRange
-    const saved = saveSelectionOffsets(range)
+    const saved = savedOffsets ?? saveSelectionOffsets(range)
     restoreRange()
 
     return {
@@ -159,6 +168,7 @@ export function createBgColorTool(label) {
       const sel = selectionFor(savedRange)
       if (sel && sel.rangeCount > 0) {
         savedRange = sel.getRangeAt(0).cloneRange()
+        savedOffsets = saveSelectionOffsets(savedRange)
       }
     }
     closePicker()

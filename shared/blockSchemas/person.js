@@ -23,7 +23,7 @@ function normalizePerson(person,personIds) {
       return {
         id:link.id,
         type: text(link.type),
-        url: canonicalUrl(typeof link.url === 'string' ? link.url : '', 'link', { allowEmpty: false }),
+        url: canonicalUrl(typeof link.url === 'string' ? link.url : '', 'link'),
       }
     }),
   }
@@ -44,6 +44,8 @@ export const personDataSchema = createVersionedDataSchema({
   mapRichText(data, transform) {
     data.persons = data.persons.map(person => ({
       ...person,
+      name: transform(person.name, 'person:' + person.id + ':name'),
+      role: transform(person.role, 'person:' + person.id + ':role'),
       bio: transform(person.bio, 'person:' + person.id + ':bio'),
     }))
   },

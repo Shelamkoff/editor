@@ -7,7 +7,7 @@ const DOCUMENT_KEYS = new Set(['version', 'time', 'blocks'])
 const BLOCK_KEYS = new Set(['id', 'type', 'dataVersion', 'data', 'tunes', 'inline', 'revision'])
 const INLINE_KEYS = new Set(['type', 'dataVersion', 'data'])
 
-/** @param {unknown} value @param {string} label */
+/** @param {unknown} value @param {string} label @returns {asserts value is Record<string, unknown>} */
 function assertPlainJsonObject(value, label) {
   if (!value || typeof value !== 'object' || Array.isArray(value) || !isPlainObjectPrototype(Object.getPrototypeOf(value))) {
     throw new TypeError(`${label} must be a JSON object`)
@@ -84,7 +84,7 @@ export function snapshotCurrentBlockEnvelope(input, label = 'Editor block') {
     }
   }
 
-  return /** @type {import('./documentTypes').EditorBlockData} */ (candidate)
+  return /** @type {import('./documentTypes').EditorBlockData} */ (/** @type {unknown} */ (candidate))
 }
 
 /**
@@ -173,7 +173,7 @@ export function decodeCurrentInlineMap(input, resolvers = {}) {
 
     const schema = resolvers.getInlineSchema?.(candidate.type)
     if (!schema) {
-      result[id] = /** @type {import('./documentTypes').EditorInlineWidget} */ (candidate)
+      result[id] = { type: candidate.type, dataVersion: version, data: candidate.data }
       continue
     }
 

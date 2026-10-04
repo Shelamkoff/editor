@@ -242,6 +242,12 @@ export class DocumentRuntime {
     }
   }
 
+  /** Commit a controller action with its planned caret after projection. */
+  interact(name, operation, selectionAfter) {
+    this.#assertInteractionMutation()
+    return this.#engine.execute({ origin: 'user', name, selectionAfter }, operation)
+  }
+
   insert(type, data, index = this.#store.ids().length, options = {}, authority = 'interaction') {
     this.#assertMutationAuthority(authority)
     const definition = this.#registry.getBlockDefinition(type)
@@ -264,13 +270,12 @@ export class DocumentRuntime {
 
 
   /**
-   * Insert registered local block data in one canonical transaction.
-   * This is the constructor path for capabilities such as structural HTML import:
-   * local data is encoded by the current schema and never external-decoded.
-   * @param {string} anchorId
-   * @param {Array<{type:string,data:unknown,tunes?:unknown,inline?:Record<string,unknown>}>} inputs
-   * @param {{replaceEmpty?:boolean,name?:string}} [options]
-   * @returns {string[]}
+   * Apply fully prepared text/file resolver results in one paste transaction.
+   * @param {string} blockId
+   * @param {string} fieldKey
+   * @param {{start:number,end:number}} range
+   * @param {Array<{type:string,result:import('../plugin-kit/types').PasteResult<Record<string,unknown>>}>} entries
+   * @returns {{blockId:string,inserted:string[],focus?:{fieldKey:string,offset:number}}}
    */
   applyPasteResults(blockId,fieldKey,range,entries){
     this.#assertInteractionMutation()
@@ -337,9 +342,15 @@ export class DocumentRuntime {
       }
     })
 
+    const focus = rich && !inserted.length ? {
+      fieldKey,
+      offset: Math.max(0, Math.trunc(range.start) || 0)
+        + (rich.kind === 'text' ? rich.text.length : getRichTextLogicalLength(rich.html, {}, this.#ownerDocument)),
+    } : undefined
     return {
       blockId:inserted.at(-1)??blockId,
       inserted,
+      ...(focus ? { focus } : {}),
     }
   }
 
@@ -481,9 +492,15 @@ export class DocumentRuntime {
    */
   splitBlock(id, fieldKey, range) {
     this.#assertInteractionMutation()
-    const current = this.#store.get(id)
+    return this.#engine.execute({ origin: 'user', name: 'block.split' }, tx => this.#splitBlockDraft(tx,id,fieldKey,range))
+  }
+
+  #splitBlockDraft(tx,id,fieldKey,range) {
+    // A preceding range replacement can already have changed this block in
+    // the current transaction. Read its draft, so Enter remains one action.
+    const current = tx.get(id)
     if (!current) throw new Error(`Unknown block id: ${id}`)
-    if (this.activation(id)?.kind !== 'active') throw new Error(`Unregistered block cannot be split: ${id}`)
+    if (this.#activationFor(current)?.kind !== 'active') throw new Error(`Unregistered block cannot be split: ${id}`)
     const sourceDefinition = this.#registry.getBlockDefinition(current.type)
     if (!sourceDefinition?.schema?.mapRichText) return false
 
@@ -532,11 +549,9 @@ export class DocumentRuntime {
       newId, defaultType, targetDefinition, targetData, current.tunes, remappedTrailing.inline,
     )
 
-    const index = this.#store.ids().indexOf(id)
-    this.#engine.execute({ origin: 'user', name: 'block.split' }, tx => {
-      tx.update(id, sourceRecord)
-      tx.insert(index + 1, targetRecord)
-    })
+    const index = tx.list().findIndex(block => block.id === id)
+    tx.update(id, sourceRecord)
+    tx.insert(index + 1, targetRecord)
     return newId
   }
 
@@ -627,22 +642,23 @@ export class DocumentRuntime {
     this.#assertMutationAuthority(authority)
     const ids = this.#store.ids()
     if (!ids.includes(id)) throw new Error(`Unknown block id: ${id}`)
+    const index = ids.indexOf(id)
+    let focusId = ids[index + 1] ?? ids[index - 1]
+    let fallback = null
+    if (ids.length === 1) {
+      const type = this.#registry.defaultBlockType
+      const definition = this.#registry.getBlockDefinition(type)
+      fallback = this.#recordFromData(
+        this.#createUniqueBlockId(type), type, definition, definition.schema.createDefault(), undefined, undefined,
+      )
+      focusId = fallback.id
+    }
 
     this.#engine.execute({ origin: 'external', name: 'block.remove' }, tx => {
       tx.remove(id)
-      if (ids.length === 1) {
-        const type = this.#registry.defaultBlockType
-        const definition = this.#registry.getBlockDefinition(type)
-        tx.insert(0, this.#recordFromData(
-          this.#createUniqueBlockId(type),
-          type,
-          definition,
-          definition.schema.createDefault(),
-          undefined,
-          undefined,
-        ))
-      }
+      if (fallback) tx.insert(0, fallback)
     })
+    return focusId
   }
 
 
@@ -673,6 +689,39 @@ export class DocumentRuntime {
       if (fallback) tx.insert(0, fallback)
     })
     return fallback?.id ?? true
+  }
+
+  /**
+   * Replace a whole-document interaction selection with one default block.
+   * @param {{kind:'text',text:string}|{kind:'html',html:string}} replacement
+   * @returns {{blockId:string,fieldKey:string,offset:number}|false}
+   */
+  replaceWholeDocument(replacement, blockIds = this.#store.ids()) {
+    this.#assertInteractionMutation()
+    const selected = new Set(blockIds)
+    const ids = this.#store.ids().filter(id => selected.has(id))
+    if (!ids.length) return false
+    const index = this.#store.ids().indexOf(ids[0])
+    const type = this.#registry.defaultBlockType
+    const definition = this.#registry.getBlockDefinition(type)
+    if (!definition?.schema?.mapRichText) return false
+    let fieldKey = null
+    const data = definition.schema.mapRichText(definition.schema.createDefault(), (html, key) => {
+      if (fieldKey !== null) return html
+      fieldKey = key
+      return replaceRichTextRange('', {}, { start: 0, end: 0 }, replacement, this.#ownerDocument)
+    })
+    if (fieldKey === null) return false
+    const blockId = this.#createUniqueBlockId(type)
+    const record = this.#recordFromData(blockId, type, definition, data, undefined, undefined)
+    this.#engine.execute({ origin: 'user', name: 'selection.replace-all' }, tx => {
+      for (const id of ids) tx.remove(id)
+      tx.insert(index, record)
+    })
+    return {
+      blockId, fieldKey,
+      offset: replacement.kind === 'text' ? replacement.text.length : getRichTextLogicalLength(replacement.html, {}, this.#ownerDocument),
+    }
   }
 
   replaceBlock(id, type, data, authority = 'interaction') {
@@ -941,6 +990,10 @@ export class DocumentRuntime {
       || this.activation(end.blockId)?.kind !== 'active'
     ) return false
 
+    const caretOffset = start.offset + (replacement.kind === 'text'
+      ? replacement.text.length
+      : getRichTextLogicalLength(replacement.html, {}, this.#ownerDocument))
+
     if (start.blockId === end.blockId) {
       const next = this.#replaceBlockRichTextRange(
         startCurrent,start,end,replacement,
@@ -949,7 +1002,7 @@ export class DocumentRuntime {
       this.#engine.execute({ origin: 'user', name: 'selection.replace' }, tx => {
         tx.update(start.blockId,next)
       })
-      return { blockId: start.blockId, fieldKey: start.fieldKey, offset: start.offset }
+      return { blockId: start.blockId, fieldKey: start.fieldKey, offset: caretOffset }
     }
 
     const startDefinition = this.#registry.getBlockDefinition(startCurrent.type)
@@ -1001,14 +1054,31 @@ export class DocumentRuntime {
       if (merged) tx.remove(end.blockId)
       else tx.update(end.blockId, endNext)
     })
-    return { blockId: start.blockId, fieldKey: start.fieldKey, offset: start.offset }
+    return { blockId: start.blockId, fieldKey: start.fieldKey, offset: caretOffset }
   }
 
-  prepareLogicalClipboardSlice(bookmark){
+  prepareLogicalClipboardSlice(bookmark, wholeBlockIds = []){
+    const ids=this.#store.ids()
+    if (wholeBlockIds.length) {
+      const selected = ids.filter(id => wholeBlockIds.includes(id))
+      if (selected.length !== wholeBlockIds.length || selected.some((id, index) => id !== wholeBlockIds[index])) return null
+      const first = this.#store.get(selected[0])
+      const definition = this.#registry.getBlockDefinition(first.type)
+      const field = this.#richTextFields(definition, first.data, cloneInline(first.inline) ?? {})[0]
+      return Object.freeze({
+        generation: this.#store.generation,
+        revision: this.#store.revision,
+        bookmark: bookmark ? cloneEditorData(bookmark) : null,
+        startIndex: ids.indexOf(first.id),
+        parts: selected.map(id => ({ kind: 'block', block: this.#store.get(id) })),
+        blocks: selected.map(id => Object.freeze({ id, remaining: null })),
+        focus: Object.freeze({ blockId: first.id, fieldKey: field?.key ?? '', offset: 0 }),
+        compound: true,
+      })
+    }
     const ordered=this.#orderedLogicalRange(bookmark)
     if(!ordered)return null
     const {start,end}=ordered
-    const ids=this.#store.ids()
     const startIndex=ids.indexOf(start.blockId)
     const endIndex=ids.indexOf(end.blockId)
     if(startIndex<0||endIndex<startIndex)return null
@@ -1309,9 +1379,15 @@ export class DocumentRuntime {
         offset++
       }
     })
+    const focus = !inserted.length && parts[0]?.kind === 'rich-text' ? {
+      fieldKey,
+      offset: Math.max(0, Math.trunc(range.start) || 0)
+        + getRichTextLogicalLength(parts[0].html, parts[0].inline, this.#ownerDocument),
+    } : undefined
     return {
       blockId:inserted.at(-1)??blockId,
       inserted,
+      ...(focus ? { focus } : {}),
     }
   }
 
@@ -1345,7 +1421,10 @@ export class DocumentRuntime {
         if(!next)return false
       }
       this.#engine.execute({origin:'user',name:'clipboard.fragment'},tx=>tx.update(current.id,next))
-      return {blockId:current.id,inserted:[]}
+      return {blockId:current.id,inserted:[],focus:{
+        fieldKey:start.fieldKey,
+        offset:start.offset+getRichTextLogicalLength(parts[0].html,parts[0].inline,this.#ownerDocument),
+      }}
     }
 
     const ids=this.#store.ids()
@@ -1490,6 +1569,12 @@ export class DocumentRuntime {
       }
     })
 
+    if(parts.length===1&&firstPart?.kind==='rich-text'&&beforeKeep){
+      return {blockId:start.blockId,inserted,focus:{
+        fieldKey:start.fieldKey,
+        offset:start.offset+getRichTextLogicalLength(firstPart.html,firstPart.inline,this.#ownerDocument),
+      }}
+    }
     const focusId=inserted.at(-1)??(afterKeep&&start.blockId!==end.blockId?end.blockId:start.blockId)
     return {blockId:focusId,inserted}
   }
@@ -1840,6 +1925,8 @@ export class DocumentRuntime {
         this.#engine.execute({
           origin: metadata.origin ?? 'user',
           name: metadata.name ?? 'projection.sync',
+          selectionBefore: metadata.selectionBefore,
+          selectionAfter: metadata.selectionAfter,
           historyGroup: metadata.historyGroup,
           coalesce: metadata.coalesce === true,
           sourceBlockId: metadata.preserveSourceProjection === true && ordered.length === 1
@@ -1858,6 +1945,17 @@ export class DocumentRuntime {
 
   syncBlockFromProjection(id, operation, metadata = {}) {
     return this.syncBlocksFromProjection([id], operation, metadata)
+  }
+
+  discardProjectionEdits() {
+    this.#assertHostMutation()
+    if (this.#engine.phase !== 'idle') throw new Error(`Cannot restore projection during ${this.#engine.phase} phase`)
+    try {
+      this.#projector?.restore?.(this.#store)
+    } catch (error) {
+      this.#controlFailed = true
+      throw error
+    }
   }
 
   getTextAlign(ids) {
@@ -2403,6 +2501,28 @@ export class DocumentRuntime {
     const sourceDefinition=sliced.definition
     const sourceInline=sliced.inline
     const index=this.#store.ids().indexOf(current.id)
+
+    // A compound owner keeps its assets and stable item identities once. The
+    // owning clipboard capability already describes removing this exact text
+    // interval without duplicating the surrounding card, rows or media.
+    if((sliced.before||sliced.after)&&sourceDefinition.capabilities?.clipboard){
+      const residual=this.#prepareClipboardBlockSlice(current,start,end)
+      if(!residual)return false
+      const targetId=residual.remaining?this.#createUniqueBlockId(target.type):current.id
+      const targetRecord=this.#recordFromData(
+        targetId,target.type,targetDefinition,targetData,current.tunes,sourceInline,
+      )
+      this.#assertConversionInlinePreserved(
+        sliced.selected,sourceInline,targetDefinition,targetRecord,
+      )
+      this.#engine.execute({origin:'user',name:'selection.convert'},tx=>{
+        if(residual.remaining){
+          tx.update(current.id,residual.remaining)
+          tx.insert(index+1,targetRecord)
+        }else tx.update(current.id,targetRecord)
+      })
+      return {focusId:targetId,convertedIds:[targetId]}
+    }
 
     const before=sliced.before
       ?this.#recordFromData(

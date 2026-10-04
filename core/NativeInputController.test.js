@@ -124,6 +124,43 @@ test('ordinary beforeinput does not consume a collapsed single-field edit', () =
   assert.equal(prevented, false)
 })
 
+test('keyless beforeinput deletion consumes the entire active document range', () => {
+  for (const inputType of ['deleteContentBackward', 'deleteContentForward', 'deleteWordBackward', 'deleteWordForward']) {
+    const replacements = []
+    const { child, controller, calls } = harness({ crossSelection: {
+      active: true,
+      replace(value) { replacements.push(value); return true },
+    } })
+    let prevented = false
+    controller.handleBeforeInput({ target: child, inputType,
+      preventDefault() { prevented = true }, stopImmediatePropagation() {},
+    })
+    assert.equal(prevented, true, inputType)
+    assert.deepEqual(replacements, [{ kind: 'text', text: '' }])
+    assert.deepEqual(calls, [])
+    controller.destroy()
+  }
+})
+
+test('auxiliary beforeinput retains native ownership while a cross-block range is active', () => {
+  const replacements = []
+  const { calls, controller } = harness({ crossSelection: {
+    active: true,
+    replace(value) { replacements.push(value) },
+  } })
+  let prevented = false
+  let stopped = false
+  controller.handleBeforeInput({
+    target: { parentNode: null }, inputType: 'insertText', data: '24',
+    preventDefault() { prevented = true },
+    stopImmediatePropagation() { stopped = true },
+  })
+  assert.deepEqual(replacements, [])
+  assert.deepEqual(calls, [])
+  assert.equal(prevented, false)
+  assert.equal(stopped, false)
+})
+
 test('plain text input keeps the browser-owned source projection in place', () => {
   const { calls, child, controller } = harness()
   controller.handleBeforeInput({
@@ -208,6 +245,38 @@ test('events outside registered editable fields are ignored', () => {
     isComposing: false,
   })
   assert.equal(calls.length, 0)
+})
+
+test('composition completion is revoked by a read-only epoch', async () => {
+  const { calls, child, controller, runtime } = harness()
+  controller.handleCompositionStart({ target: child })
+  controller.handleCompositionEnd({ target: child, data: '日本' })
+  runtime.readOnly = true
+  controller.setReadOnly(true)
+  runtime.readOnly = false
+  controller.setReadOnly(false)
+  await Promise.resolve()
+  controller.handleCompositionEnd({ target: child, data: 'stale' })
+  await Promise.resolve()
+  assert.deepEqual(calls, [])
+})
+
+test('composition completion cannot commit after the document revision changes', async () => {
+  const { calls, child, controller, runtime } = harness()
+  runtime.revision = 0
+  controller.handleCompositionStart({ target: child })
+  controller.handleCompositionEnd({ target: child, data: '日本' })
+  runtime.revision = 1
+  await Promise.resolve()
+  assert.deepEqual(calls, [])
+})
+
+test('auxiliary IME keys do not prepare a retained document selection', () => {
+  const { controller } = harness({ crossSelection: {
+    active: true,
+    beginComposition() { throw new Error('auxiliary input cannot consume the document range') },
+  } })
+  controller.handleCompositionKey({ target: { parentNode: null }, keyCode: 229 })
 })
 
 test('read-only runtime ignores native input', () => {

@@ -1,6 +1,7 @@
 // @ts-check
 import { handleMenuKeydown } from '../plugin-kit/index.js'
 import { setTrustedHtml } from '../shared/sanitize/sanitizeHtml.js'
+import { shortcutKey } from '../shared/shortcutKey.js'
 
 const INLINE_TOOL_OWNERS = new WeakMap()
 
@@ -8,7 +9,7 @@ function matchesShortcut(combo, event) {
   if (!combo || typeof combo !== 'string') return false
   const parts = combo.split('+')
   const key = parts.at(-1)?.toLowerCase()
-  if (!key || String(event.key ?? '').toLowerCase() !== key) return false
+  if (!key || shortcutKey(event) !== key) return false
   const mod = event.ctrlKey === true || event.metaKey === true
   if (parts.includes('Mod') !== mod) return false
   if (parts.includes('Shift') !== (event.shiftKey === true)) return false
@@ -33,6 +34,8 @@ export class InlineToolbar {
   #selectionPort
   #view
   #tools
+  #buttonIcons = new Map()
+  #translate
   #element
   #buttonsPanel
   #actions = null
@@ -43,6 +46,8 @@ export class InlineToolbar {
   #destroyed = false
   #readOnly = false
   #onSelectionChange
+  #onMouseUp
+  #pendingDragSelection = false
   #documentClick
   #selectionVersion = 0
 
@@ -60,7 +65,7 @@ export class InlineToolbar {
   #controlBookmark = null
   #controlBlockId = null
 
-  constructor({ root, runtime, registry, reconciler, selection, selectionPort = null, view, tools = [] }) {
+  constructor({ root, runtime, registry, reconciler, selection, selectionPort = null, view, tools = [], translate = (_key, fallback = '') => fallback }) {
     this.#root = root
     this.#runtime = runtime
     this.#registry = registry
@@ -69,6 +74,7 @@ export class InlineToolbar {
     this.#selectionPort = selectionPort
     this.#view = view
     this.#tools = [...tools]
+    this.#translate = translate
     this.#readOnly = runtime.readOnly
 
     const document = root.ownerDocument
@@ -176,6 +182,7 @@ export class InlineToolbar {
       button.dataset.tool = tool.type
       button.title = tool.title ?? tool.type
       setTrustedHtml(button, tool.icon)
+      this.#buttonIcons.set(tool.type, tool.icon)
       button.addEventListener('mousedown', event => {
         event.preventDefault()
         event.stopPropagation()
@@ -201,10 +208,17 @@ export class InlineToolbar {
     }
 
     this.#onSelectionChange = () => {
+      if (this.#element.contains(document.activeElement)) return
       this.#selectionVersion++
       this.#refreshFromSelection()
     }
     document.addEventListener('selectionchange', this.#onSelectionChange)
+    this.#onMouseUp = () => {
+      if (!this.#pendingDragSelection) return
+      this.#pendingDragSelection = false
+      this.#refreshFromSelection()
+    }
+    document.addEventListener('mouseup', this.#onMouseUp)
     this.#documentClick = event => {
       if (this.#element.contains(event.target)) return
       this.#closeTypeDropdown()
@@ -215,6 +229,7 @@ export class InlineToolbar {
 
   setReadOnly(value) {
     this.#readOnly = value === true
+    this.#selectionVersion++
     this.#typeVersion++
     this.#controlVersion++
     if (this.#readOnly) this.hide()
@@ -224,7 +239,12 @@ export class InlineToolbar {
     if (this.#readOnly || event.defaultPrevented) return false
     const tool = this.#tools.find(candidate => matchesShortcut(candidate.shortcut, event))
     if (!tool) return false
-    if (!this.#resolveFormattingSelection()) return false
+    if (!this.#resolveFormattingSelection()) {
+      if (!this.#selectionPort?.active) return false
+      // Browser formatting must not partially edit an ineligible mixed range.
+      event.preventDefault?.()
+      return true
+    }
     event.preventDefault?.()
     this.openTool(tool.type)
     return true
@@ -293,6 +313,7 @@ export class InlineToolbar {
     this.#destroyed = true
     const document = this.#root.ownerDocument
     document.removeEventListener('selectionchange', this.#onSelectionChange)
+    document.removeEventListener('mouseup', this.#onMouseUp)
     document.removeEventListener('mousedown', this.#documentClick, true)
     this.#typeVersion++
     this.#controlVersion++
@@ -308,6 +329,12 @@ export class InlineToolbar {
 
   #refreshFromSelection() {
     if (this.#readOnly || this.#destroyed) return
+    if (this.#selectionPort?.dragging) {
+      // A toolbar above the growing range can intercept the next mouse move.
+      this.#pendingDragSelection = true
+      this.hide()
+      return
+    }
     if (this.#element.contains(this.#root.ownerDocument.activeElement)) return
     const selection = this.#resolveSelection()
     if (!selection) {
@@ -319,12 +346,18 @@ export class InlineToolbar {
 
   #resolveSelection() {
     const native = this.#root.ownerDocument.defaultView?.getSelection()
-    const stored = this.#selectionPort?.range ?? null
-    const range = stored ?? (
+    let stored = this.#selectionPort?.range ?? null
+    const nativeRange = (
       native && !native.isCollapsed && native.rangeCount > 0
         ? native.getRangeAt(0)
         : null
     )
+    const ownsNativeRange = nativeRange
+      && this.#root.contains(nativeRange.startContainer)
+      && this.#root.contains(nativeRange.endContainer)
+    const range = this.#selectionPort?.wholeBlockIds?.length
+      ? stored
+      : ownsNativeRange ? nativeRange : stored
     if (!range || range.collapsed) return null
     if (!this.#root.contains(range.startContainer) || !this.#root.contains(range.endContainer)) return null
 
@@ -333,11 +366,14 @@ export class InlineToolbar {
     if (!start || !end) return null
 
     if (
-      !stored
+      ownsNativeRange
       && (start.blockId !== end.blockId || start.fieldKey !== end.fieldKey)
       && this.#selectionPort?.activate
     ) {
       this.#selectionPort.activate(range)
+    } else if (ownsNativeRange && stored) {
+      this.#selectionPort?.deactivate?.()
+      stored = null
     }
 
     const bookmark = cloneBookmark(this.#selectionPort?.bookmark ?? this.#selection.capture())
@@ -349,7 +385,7 @@ export class InlineToolbar {
       range: (this.#selectionPort?.range ?? range).cloneRange(),
       bookmark,
       blockIds,
-      blockId: bookmark.focus.blockId,
+      blockId: bookmark.anchor.blockId,
       fieldKey: bookmark.anchor.blockId === bookmark.focus.blockId
         && bookmark.anchor.fieldKey === bookmark.focus.fieldKey
         ? bookmark.focus.fieldKey
@@ -368,6 +404,19 @@ export class InlineToolbar {
     const from=Math.min(left,right)
     const to=Math.max(left,right)
     return this.#runtime.ids().slice(from,to+1)
+  }
+
+  #isBackward(bookmark) {
+    const { anchor, focus } = bookmark
+    if (anchor.blockId !== focus.blockId) {
+      return this.#runtime.indexOf(anchor.blockId) > this.#runtime.indexOf(focus.blockId)
+    }
+    if (anchor.fieldKey !== focus.fieldKey) {
+      const fields = this.#reconciler.getEditableFields(anchor.blockId)
+      return fields.findIndex(field => field.key === anchor.fieldKey)
+        > fields.findIndex(field => field.key === focus.fieldKey)
+    }
+    return anchor.offset > focus.offset
   }
 
   #formattingBlockIds(range, blockIds) {
@@ -395,6 +444,7 @@ export class InlineToolbar {
   }
 
   #allowedTools(blockIds) {
+    /** @type {Set<string> | null} */
     let allowed = null
     for (const id of blockIds) {
       const record = this.#runtime.get(id)
@@ -428,23 +478,33 @@ export class InlineToolbar {
     }
     if (formatting) this.#updateActiveStates(formatting)
     this.#updateBlockControls(selection)
-    this.#position(selection.range)
     this.#element.style.display = 'flex'
+    this.#position(selection.range)
   }
 
   #label(scope, type, label) {
     if (!label) return type
     const fallback = label.fallback ?? type
     const key = `${scope}.${type}.${label.key}`
-    return fallback || key
+    const value = this.#translate(key, fallback)
+    return value === key ? fallback : value
   }
 
   #position(range) {
     const rect = range.getBoundingClientRect()
     const rootRect = this.#root.getBoundingClientRect()
+    const width = this.#element.offsetWidth
+    const height = this.#element.offsetHeight
+    const viewportWidth = this.#root.ownerDocument.defaultView?.innerWidth ?? rootRect.right
+    const minLeft = Math.max(4, rootRect.left + 4)
+    const maxLeft = Math.min(viewportWidth - 4, rootRect.right - 4) - width
+    const left = Math.max(minLeft, Math.min(rect.left + rect.width / 2 - width / 2, maxLeft))
+    const below = rect.top < height + 16
     this.#element.style.position = 'absolute'
-    this.#element.style.top = `${Math.max(0, rect.top - rootRect.top - 44)}px`
-    this.#element.style.left = `${Math.max(0, rect.left - rootRect.left + rect.width / 2)}px`
+    this.#element.style.top = `${(below ? rect.bottom : rect.top) - rootRect.top}px`
+    this.#element.style.left = `${left + width / 2 - rootRect.left}px`
+    this.#element.style.transform = below ? 'translateX(-50%)' : 'translateX(-50%) translateY(-100%)'
+    this.#element.style.marginTop = below ? '8px' : '-8px'
   }
 
   #updateActiveStates(resolved) {
@@ -457,7 +517,13 @@ export class InlineToolbar {
       let active = false
       try { active = tool.isActive(selection) === true } catch {}
       button.classList.toggle('oe-inline-tool--active', active)
-      if (tool.getIcon) setTrustedHtml(button, tool.getIcon(active))
+      if (tool.getIcon) {
+        const icon = tool.getIcon(active)
+        if (this.#buttonIcons.get(tool.type) !== icon) {
+          setTrustedHtml(button, icon)
+          this.#buttonIcons.set(tool.type, icon)
+        }
+      }
       const title = tool.getTitle?.(active) ?? tool.title
       if (title) button.title = title
     }
@@ -479,7 +545,7 @@ export class InlineToolbar {
       const input = this.#root.ownerDocument.createElement('input')
       input.className = 'oe-inline-toolbar__type-filter-input'
       input.type = 'text'
-      input.placeholder = 'Search'
+      input.placeholder = this.#translate('toolbox.search', 'Search...')
       input.addEventListener('input', () => {
         if (version !== this.#typeVersion) return
         const query = input.value.trim().toLocaleLowerCase()
@@ -491,7 +557,7 @@ export class InlineToolbar {
       this.#typeDropdown.append(filter)
     }
 
-    const currentType = this.#runtime.get(bookmark.focus.blockId)?.type
+    const currentType = this.#runtime.get(bookmark.anchor.blockId)?.type
     for (const type of this.#registry.blockTypes) {
       const definition = this.#registry.getBlockDefinition(type)
       if (!definition) continue
@@ -553,11 +619,6 @@ export class InlineToolbar {
     this.#controlBookmark = null
     this.#controlBlockId = null
 
-    if (!selection.sameBlock) {
-      this.#controlSelect.hidden = true
-      this.#controlDivider.hidden = true
-      return
-    }
     const record = this.#runtime.get(selection.blockId)
     const definition = record ? this.#registry.getBlockDefinition(record.type) : null
     const capability = definition?.capabilities?.inlineControls
@@ -568,7 +629,7 @@ export class InlineToolbar {
     }
     const actions = capability.actions(record.data, {
       ownerDocument: this.#root.ownerDocument,
-      t: label => label.fallback,
+      t: label => this.#label('plugin', record.type, label),
     })
     const active = actions.find(action => action.active) ?? actions[0]
     if (!active) {
@@ -579,7 +640,7 @@ export class InlineToolbar {
     this.#controlBlockId = selection.blockId
     this.#controlLabel.textContent = /^h[2-6]$/.test(active.id)
       ? active.id.toUpperCase()
-      : active.label.fallback
+      : this.#label('plugin', record.type, active.label)
     this.#controlSelect.hidden = false
     this.#controlDivider.hidden = false
   }
@@ -599,7 +660,7 @@ export class InlineToolbar {
     this.#controlDropdown.replaceChildren()
     const actions = capability.actions(record.data, {
       ownerDocument: this.#root.ownerDocument,
-      t: label => label.fallback,
+      t: label => this.#label('plugin', record.type, label),
     })
     for (const action of actions) {
       const item = this.#root.ownerDocument.createElement('button')
@@ -615,7 +676,7 @@ export class InlineToolbar {
         item.append(icon)
       }
       const label = this.#root.ownerDocument.createElement('span')
-      label.textContent = action.label.fallback
+      label.textContent = this.#label('plugin', record.type, action.label)
       item.append(label)
       item.disabled = action.disabled === true
       item.addEventListener('mousedown', event => event.preventDefault())
@@ -628,15 +689,15 @@ export class InlineToolbar {
           || this.#destroyed
           || this.#runtime.get(blockId)?.type !== record.type
         ) return
-        this.#runtime.update(blockId, current => ({
+        this.#runtime.interact('block.inline-control', () => this.#runtime.update(blockId, current => ({
           data: capability.apply(current.data, action.id, {
             createId: prefix => this.#runtime.createDataId(prefix),
           }),
-        }))
+        })), () => bookmark)
         this.#view.reconcileInteraction()
         this.#closeControlDropdown()
         queueMicrotask(() => {
-          this.#selection.restore(bookmark)
+          this.#restoreSelection(bookmark)
           this.show()
         })
       })
@@ -684,17 +745,22 @@ export class InlineToolbar {
     const nextBookmark = cloneBookmark(
       this.#selectionPort?.bookmark ?? this.#selection.capture() ?? bookmark,
     )
+    if (bookmark && nextBookmark && this.#isBackward(bookmark) !== this.#isBackward(nextBookmark)) {
+      const anchor = nextBookmark.anchor
+      nextBookmark.anchor = nextBookmark.focus
+      nextBookmark.focus = anchor
+    }
     if (nextBookmark) this.#restoreSelection(nextBookmark, range)
     this.show()
     return result
   }
 
-  #restoreSelection(bookmark, range) {
+  #restoreSelection(bookmark, range = null) {
     if (bookmark && typeof this.#selectionPort?.restore === 'function') {
       if (this.#selectionPort.restore(bookmark)) return
     }
     if (bookmark && this.#selection.restore(bookmark)) return
-    this.#restoreNativeRange(range)
+    if (range) this.#restoreNativeRange(range)
   }
 
   #restoreNativeRange(range) {

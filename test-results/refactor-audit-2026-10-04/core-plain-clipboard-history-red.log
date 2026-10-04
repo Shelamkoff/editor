@@ -1,0 +1,21 @@
+file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149
+    if (result.status === 'fail') throw new Error(`History matrix failed: ${result.summary}`)
+                                        ^
+
+Error: History matrix failed: [
+  {
+    "name": "Native plain Code Paste is a separate history action between typing bursts",
+    "status": "FAIL",
+    "error": "Error: Undo of subsequent typing also undid clipboard/preceding typing\nexpected [{\"id\":\"a\",\"type\":\"code\",\"dataVersion\":1,\"data\":{\"code\":\"AlXYaX\",\"language\":\"plaintext\"}}], got [{\"id\":\"a\",\"type\":\"code\",\"dataVersion\":1,\"data\":{\"code\":\"Alpha\",\"language\":\"plaintext\"}}]\n    at equal (http://127.0.0.1:52651/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:52651/tests/browser/native-core-behavior.js:729:3\n    at async run (http://127.0.0.1:52651/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:52651/tests/browser/native-core-behavior.js:741:1"
+  },
+  {
+    "name": "Native plain Code Cut is a separate history action between typing bursts",
+    "status": "FAIL",
+    "error": "Error: Undo of subsequent typing also undid clipboard/preceding typing\nexpected [{\"id\":\"a\",\"type\":\"code\",\"dataVersion\":1,\"data\":{\"code\":\"AlaX\",\"language\":\"plaintext\"}}], got [{\"id\":\"a\",\"type\":\"code\",\"dataVersion\":1,\"data\":{\"code\":\"Alpha\",\"language\":\"plaintext\"}}]\n    at equal (http://127.0.0.1:52651/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:52651/tests/browser/native-core-behavior.js:729:3\n    at async run (http://127.0.0.1:52651/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:52651/tests/browser/native-core-behavior.js:741:1"
+  }
+]
+    at waitForHistoryMatrix (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149:41)
+    at async runNativePage (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:273:30)
+    at async file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:310:48
+
+Node.js v24.9.0

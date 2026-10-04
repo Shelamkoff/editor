@@ -82,6 +82,8 @@ function createHarness() {
   const ownerDocument = {
     defaultView: window,
     createElement: tag => new FakeElement(tag, ownerDocument),
+    addEventListener() {},
+    removeEventListener() {},
   }
   const definition = createCodePlugin({
     hljs: {

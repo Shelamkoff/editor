@@ -1,4 +1,5 @@
 export default {
+  'plugin.person.person': 'Персона',
   'plugin.person.title': 'Персона',
   'plugin.person.namePlaceholder': 'Имя',
   'plugin.person.rolePlaceholder': 'Должность / Роль',

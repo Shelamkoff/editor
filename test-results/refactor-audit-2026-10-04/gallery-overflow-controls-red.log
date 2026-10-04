@@ -1,0 +1,16 @@
+file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149
+    if (result.status === 'fail') throw new Error(`History matrix failed: ${result.summary}`)
+                                        ^
+
+Error: History matrix failed: [
+  {
+    "name": "Gallery overflow controls stay separate from its editable caption and reorder with one history step",
+    "status": "FAIL",
+    "error": "Error: Gallery controls overlap one another\n    at assert (http://127.0.0.1:64347/tests/browser/regressions/harness.js:20:81)\n    at http://127.0.0.1:64347/tests/browser/native-plugin-media.js:281:5\n    at async run (http://127.0.0.1:64347/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:64347/tests/browser/native-plugin-media.js:338:1"
+  }
+]
+    at waitForHistoryMatrix (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149:41)
+    at async runNativePage (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:273:30)
+    at async file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:310:48
+
+Node.js v24.9.0

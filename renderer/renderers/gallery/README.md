@@ -25,10 +25,28 @@ rendererStyles.destroy()
 
 ```json
 {
-  "images": [{ "url": "https://cdn.example/a.jpg", "caption": "A" }],
+  "images": [
+    {
+      "id": "image-1",
+      "url": "https://cdn.example/a.jpg",
+      "caption": "A"
+    }
+  ],
   "layout": "auto",
-  "styles": { "gap": "8px", "borderRadius": "8px", "height": "420px" },
-  "options": { "loop": true, "zoom": true, "navigation": true, "captions": true, "thumbnails": true, "fullscreen": true, "autoplayInterval": 3000 }
+  "styles": {
+    "gap": "8px",
+    "borderRadius": "8px",
+    "height": "420px"
+  },
+  "options": {
+    "loop": true,
+    "zoom": true,
+    "navigation": true,
+    "captions": true,
+    "thumbnails": true,
+    "fullscreen": true,
+    "autoplayInterval": 3000
+  }
 }
 ```
 

@@ -1,4 +1,5 @@
 import { createEditor } from '../../core/index.js'
+import { createDefaultInlineTools } from '../../preset/index.js'
 import {
   createHeadingPlugin,
   createListPlugin,
@@ -38,6 +39,7 @@ function createHarness(sandbox, data = {
   const editor = createEditor({
     holder,
     injectStyles: false,
+    inlineTools: createDefaultInlineTools(),
     changeDebounceMs: 0,
     plugins: [
       createParagraphPlugin({ injectStyles: false }),
@@ -77,6 +79,7 @@ function setCaret(element, offset) {
 }
 
 function selectBetween(startElement, startOffset, endElement, endOffset, { backward = false } = {}) {
+  startElement.focus()
   const text = element => {
     const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT)
     let node = walker.nextNode()
@@ -101,7 +104,6 @@ function selectBetween(startElement, startOffset, endElement, endOffset, { backw
     range.setEnd(end, Math.min(endOffset, end.data.length))
     selection.addRange(range)
   }
-  startElement.focus()
   document.dispatchEvent(new Event('selectionchange'))
 }
 
@@ -214,12 +216,28 @@ async function run() {
   const crossBefore = stable(semantic(editor.save()))
   await clickInlineTool(holder, 'bold')
   let formatted = editor.save().blocks
-  assert(formatted.every(block => block.data.text.includes('<b>')), 'cross-block formatting did not update every selected block')
+  assert(formatted.every(block => block.data.text.includes('<b>')), `cross-block formatting did not update every selected block: ${JSON.stringify(formatted)}`)
   assert(editor.undo() === true, 'cross-block formatting is not one undoable command')
   await delay()
   assert(stable(semantic(editor.save())) === crossBefore, 'cross-block formatting undo was not atomic')
 
-  selectBetween(formatA, 0, formatB, formatB.textContent.length, { backward: true })
+  selectBetween(editable(holder, 'format-a'), 1, editable(holder, 'format-a'), 3)
+  await clickInlineTool(holder, 'italic')
+  formatted = editor.save().blocks
+  assert(formatted[0].data.text === 'A<i>lp</i>ha', 'new single-field selection reused an older cross-block range')
+  assert(formatted[1].data.text === 'Bravo', 'single-field formatting changed a previously selected block')
+  assert(editor.undo() === true, 'single-field formatting after cross-block selection was not undoable')
+  await delay()
+
+  const caretBefore = stable(semantic(editor.save()))
+  setCaret(editable(holder, 'format-a'), 2)
+  document.dispatchEvent(new Event('selectionchange'))
+  await delay()
+  holder.querySelector('.oe-inline-tool[data-tool="bold"]').click()
+  await delay()
+  assert(stable(semantic(editor.save())) === caretBefore, 'collapsed caret reused an older formatting selection')
+
+  selectBetween(editable(holder, 'format-a'), 0, editable(holder, 'format-b'), 5, { backward: true })
   await clickInlineTool(holder, 'align')
   const alignPanel = holder.querySelector('.oe-inline-toolbar__align-panel')
   assert(alignPanel instanceof HTMLElement, 'alignment panel did not open')
@@ -280,6 +298,9 @@ async function run() {
   const headingItem = holder.querySelector('.oe-toolbox__item[data-plugin-type="heading"]')
   assert(headingItem instanceof HTMLElement, 'heading toolbox item is missing')
   headingItem.click()
+  const headingLevel = holder.querySelector('.oe-toolbox__item[data-toolbox-item="h2"]')
+  assert(headingLevel instanceof HTMLElement, 'heading toolbox drill-down did not expose levels')
+  headingLevel.click()
   await delay()
   assert(editor.blocks.count === 2, 'toolbox did not insert a block after current content')
   assert(editor.blocks.at(1)?.type === 'heading', 'toolbox inserted the wrong block type')

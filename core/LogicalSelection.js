@@ -20,6 +20,11 @@ export class LogicalSelection {
     const document = this.#root.ownerDocument
     const active = document.activeElement
     const activeOwner = active ? this.#reconciler.resolveEditableTarget(active) : null
+    const focusedBlock=active&&!activeOwner?this.#reconciler.resolveBlockTarget?.(active):null
+    if(focusedBlock&&!this.#reconciler.getEditableFields(focusedBlock).length){
+      const point={blockId:focusedBlock,fieldKey:'',offset:0}
+      return {anchor:point,focus:{...point}}
+    }
 
     if (
       activeOwner
@@ -57,6 +62,23 @@ export class LogicalSelection {
 
   restore(bookmark) {
     if (!bookmark?.anchor || !bookmark?.focus) return false
+    if(bookmark.anchor.blockId===bookmark.focus.blockId
+      &&bookmark.anchor.fieldKey===''&&bookmark.focus.fieldKey===''
+      &&!this.#reconciler.getEditableFields(bookmark.anchor.blockId).length){
+      const block=this.#reconciler.getElement(bookmark.anchor.blockId)
+      if(!block)return false
+      // A plugin's default focus may be an auxiliary URL/file chooser. History
+      // restores ownership of the block command, not that control's DOM history.
+      block.tabIndex=-1
+      block.focus({preventScroll:true})
+      return this.#root.ownerDocument.activeElement===block
+    }
+    const target = this.#resolvePoint(bookmark.anchor)
+    if (target && this.#root.ownerDocument.activeElement !== target.owner.element) {
+      // The plugin must expose a hidden editing host before native focus can
+      // restore its caret (Code view, Raw preview, closed Spoiler content).
+      this.#reconciler.focus?.(bookmark.anchor.blockId, { fieldKey: bookmark.anchor.fieldKey })
+    }
     const anchor = this.#resolvePoint(bookmark.anchor)
     const focus = this.#resolvePoint(bookmark.focus)
     if (!anchor || !focus) return false
@@ -80,7 +102,9 @@ export class LogicalSelection {
     if(!selection)return false
 
     const a=findNodeAtOffset(anchor.owner.element,anchor.offset,'start')
-    const f=findNodeAtOffset(focus.owner.element,focus.offset,'end')
+    const f=anchor.owner.element===focus.owner.element&&anchor.offset===focus.offset
+      ? a
+      : findNodeAtOffset(focus.owner.element,focus.offset,'end')
 
     try{
       // A DOM Selection does not restore document.activeElement after a
@@ -108,8 +132,8 @@ export class LogicalSelection {
       ? fields.find(field=>field.key===target.fieldKey)
       : fields[0]
     if(!owner)return false
-    const length=owner.mode==='plain-text'
-      ? String(owner.element.value??'').length
+    const length=owner.mode==='plain-text'&&typeof owner.element.value==='string'
+      ? owner.element.value.length
       : getTextLength(owner.element)
     const offset=target.offset==='end'
       ? length
@@ -135,8 +159,8 @@ export class LogicalSelection {
     if(!fields.length)return null
     let owner=fields.find(field=>field.key===point.fieldKey)
     if(!owner)owner=fields[0]
-    const length=owner.mode==='plain-text'
-      ? String(owner.element.value??'').length
+    const length=owner.mode==='plain-text'&&typeof owner.element.value==='string'
+      ? owner.element.value.length
       : getTextLength(owner.element)
     return {
       owner:{

@@ -11,6 +11,7 @@ interface InlineTool {
   readonly icon: string
   readonly shortcut?: string
   readonly tag?: string
+  bindSelectionPort?(port: CrossEditableSelectionPort | null): void
   isActive(selection: InlineSelection): boolean
   toggle(selection: InlineSelection): void
   renderActions?(context: InlineToolActionContext): HTMLElement | null
@@ -22,11 +23,13 @@ interface InlineTool {
 }
 ```
 
-`InlineToolActionContext` содержит `range`, `mutate(operation)`, `getTextAlign()`, `setTextAlign(value)`, `restoreSelection()`, `close()`, `showTooltip(anchor, label)` и `hideTooltip()`. После любого нового selectionchange сохранённая toolbar-сессия отзывается: retained context не может изменить новое выделение.
+`InlineToolActionContext` содержит `range`, `mutate(operation)`, `getTextAlign()`, `setTextAlign(value)`, `restoreSelection()`, `close()`, `showTooltip(anchor, label)` и `hideTooltip()`. Новое изменение выделения отзывает сохранённый контекст панели; ранее полученный контекст не может изменить новое выделение.
+
+При подключении инструмента ядро вызывает `bindSelectionPort(port)`, а при уничтожении — `bindSelectionPort(null)`. Контекст выделения передаёт текущий диапазон между полями. Каждому редактору нужны собственные изменяемые экземпляры инструментов.
 
 `InlineMutationContext` предоставляет `mutate(range, operation)` для смонтированного control.
 
-Инструмент форматирования не имеет отдельного persisted payload. Одна selection может охватывать несколько зарегистрированных rich-text fields одного или нескольких блоков; tool доступен только если каждый затронутый блок разрешает его. DOM-изменение проходит через одну protected транзакцию и нормализуется обратно во все затронутые блоки. Registered `plain-text` поля и auxiliary inputs не форматируются частично. Alignment — исключение на уровне хранения: `setTextAlign()` изменяет только `tunes.textAlign` выбранных block IDs и не пишет CSS или `data.align` в plugin data.
+Инструмент форматирования не хранит отдельные данные. Выделение может охватывать несколько зарегистрированных полей форматированного текста одного или нескольких блоков; инструмент доступен только при разрешении каждого затронутого блока. Изменение DOM проходит одной защищённой транзакцией и нормализуется во все затронутые блоки. Поля `plain-text` и вспомогательные поля ввода не форматируются частично. `setTextAlign()` изменяет только `tunes.textAlign` выбранных блоков, не записывая CSS или `data.align` в данные плагина.
 
 Встроенный набор предоставляет `bold`, `italic`, `strikethrough`, `link`, `code`, `marker`, `bgcolor`, `fontSize`, `script`, `align`, `caseTransform` и `clearFormatting`.
 
@@ -51,13 +54,13 @@ ID виджета принадлежит модели документа. Rich t
 
 ## Runtime и экземпляр виджета
 
-`InlinePluginRuntimeContext` предоставляет `ownerDocument`, `signal`, `t(key, fallback)`, `showPopup(anchor, content, cleanup)` и `hidePopup()`.
+`InlinePluginRuntimeContext` предоставляет `ownerDocument`, `signal`, `t(key, fallback, params?)`, `showPopup(anchor, content, cleanup)` и `hidePopup()`. Параметры перевода подставляются вместо шаблонов вроде `{level}` через общий словарь редактора.
 
 `InlinePluginRuntime` предоставляет `create(id, initial, context)`, необязательные `onTriggerQuery(session)`, `onTriggerKeydown(event, session)`, `onTriggerCancel()` и `destroy()`.
 
 Каждый `create()` возвращает `InlineWidgetInstance` с `element`, необязательным `update(next, previous)`, `setReadOnly(readOnly)`, необязательным `focus()` и `destroy()`.
 
-`InlineWidgetContext` предоставляет `id`, `blockId`, `fieldKey`, `signal`, `getData()`, `updateData(producer)` и `isReadOnly()`.
+`InlineWidgetContext` предоставляет `id`, `blockId`, `fieldKey`, `signal`, `getData()`, `updateData(producer)`, `beginTask()` и `isReadOnly()`.
 
 ## Trigger-сессии
 

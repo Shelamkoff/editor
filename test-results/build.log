@@ -1,0 +1,10 @@
+
+> @shelamkoff/rector@1.0.5 build
+> npm run docs:validate-readmes && node scripts/build-package.mjs
+
+
+> @shelamkoff/rector@1.0.5 docs:validate-readmes
+> node scripts/validate-extension-readmes.mjs
+
+{"localizedReadmePairs":47}
+{"runtimeDeclarations":271,"sourceDiagnostics":0,"sourceDiagnosticDetails":[],"dist":"dist"}

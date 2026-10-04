@@ -1,6 +1,8 @@
 // @ts-check
 import { setSanitizedHtml } from '../../plugin-kit/index.js'
 import { columnsDataSchema } from '../../shared/blockSchemas/columns.js'
+import { acceptsTextPayload, richTextFromPayload } from '../shared/textConversion.js'
+import { createTextSelectionSlice } from '../shared/textSelectionSlice.js'
 import {
   COLUMNS_ICON,
   COLUMNS_STYLES,
@@ -29,6 +31,7 @@ function fitColumns(columns,size,context){
 export function createColumnsPlugin(){
   /** @type {import('../../plugin-kit/types').BlockCapabilities<{layout:string,columns:Array<{id:string,content:string}>}>} */
   const capabilities=Object.freeze({
+    selectionSlice:createTextSelectionSlice(columnsDataSchema),
     formatting:Object.freeze({inlineTools:true}),
     empty:Object.freeze({isEmpty:data=>data.columns.every(column=>column.content.trim().length===0)}),
     shortcuts:Object.freeze(/** @type {import('../../plugin-kit/types').ShortcutCapability<any>} */ ({
@@ -42,16 +45,13 @@ export function createColumnsPlugin(){
         return {kind:'rich-text',data:{text:data.columns.map(column=>column.content).filter(Boolean).join('<br>')}}
       },
       canImport(payload){
-        return payload?.kind==='rich-text'&&typeof payload.data?.text==='string'
+        return acceptsTextPayload(payload)
       },
       import(payload){
-        if(payload?.kind!=='rich-text'||typeof payload.data?.text!=='string'){
-          throw new TypeError('Columns can only import rich-text payloads')
-        }
         return {
           layout:'1-1',
           columns:[
-            {id:'column-0',content:payload.data.text},
+            {id:'column-0',content:richTextFromPayload(payload)},
             {id:'column-1',content:''},
           ],
         }
@@ -71,7 +71,7 @@ export function createColumnsPlugin(){
           return field?{...column,content:field.before+field.after}:{...column}
         })
         return {
-          parts:[{kind:'local-block',data:{layout:data.layout,columns:selected}}],
+          parts:[{kind:/** @type {'local-block'} */ ('local-block'),data:{layout:data.layout,columns:selected}}],
           remaining:{layout:data.layout,columns:remaining},
           focus:null,
         }

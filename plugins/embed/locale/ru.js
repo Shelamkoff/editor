@@ -1,4 +1,9 @@
 export default {
+  'plugin.embed.invalidCoverUrl': 'Введите корректный URL изображения',
+  'plugin.embed.insert': 'Вставить',
+  'plugin.embed.video': 'Видео',
+  'plugin.embed.captionPlaceholder': 'Подпись',
+  'plugin.embed.urlPlaceholder': 'https://youtube.com/watch?v=...',
   'plugin.embed.title': 'Видео',
   'plugin.embed.url': 'URL',
   'plugin.embed.urlPrompt': 'Ссылка на видео (YouTube или Vimeo):',

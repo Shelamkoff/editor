@@ -2,12 +2,19 @@
 import { READ_ONLY_INTERACTIVE_ATTRIBUTE, setSanitizedHtml } from '../../plugin-kit/index.js'
 import { insertTrustedHtml } from '../../shared/sanitize/sanitizeHtml.js'
 import { embedDataSchema } from '../../shared/blockSchemas/embed.js'
+import { acceptsTextPayload, richTextFromPayload } from '../shared/textConversion.js'
+import { createTextSelectionSlice } from '../shared/textSelectionSlice.js'
+import { createTextClipboardSlice } from '../shared/textClipboardSlice.js'
+import { retainControlFocus } from '../shared/retainControlFocus.js'
+import { positionPluginPanel } from '../shared/positionPluginPanel.js'
+import { openSourceEditor, preloadSourceEditor } from '../shared/sourceEditor.js'
 import { sanitizeMediaUrl } from '../../shared/sanitize/sanitizeUrl.js'
 import { isSupportedImageFile, triggerFileInput } from '../shared/fileInput.js'
 import { buildPlayer } from './player.js'
 import { parseEmbedUrl } from './url.js'
 
 const editorStyles = new URL('./embed.css', import.meta.url).href
+const sourceEditorStyles = new URL('../shared/sourceEditor.css', import.meta.url).href
 const ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M16 3l-4 4l-4-4"/></svg>'
 const PLAY_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M6 4v16l13-8z"/></svg>'
 const PLACEHOLDER = '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M10 8l6 4l-6 4z"/></svg>'
@@ -41,19 +48,18 @@ export function createEmbedPlugin(config = {}) {
     actions: Object.freeze([...(config.actions ?? [])]),
   })
   const styles = []
-  if (snapshot.injectStyles !== false) styles.push(editorStyles)
+  if (snapshot.injectStyles !== false) styles.push(editorStyles, sourceEditorStyles)
   if (snapshot.css) styles.push(snapshot.css)
 
   const capabilities = Object.freeze({
+    selectionSlice: createTextSelectionSlice(embedDataSchema),
+    clipboard: createTextClipboardSlice(embedDataSchema),
     empty: Object.freeze({ isEmpty: data => !data.videoId }),
     conversion: Object.freeze({
       export: data => ({ kind: 'rich-text', data: { text: data.caption } }),
-      canImport: payload => payload?.kind === 'rich-text' && typeof payload.data?.text === 'string',
+      canImport: acceptsTextPayload,
       import(payload) {
-        if (payload?.kind !== 'rich-text' || typeof payload.data?.text !== 'string') {
-          throw new TypeError('Embed can only import rich-text payloads')
-        }
-        return { ...emptyData(), caption: payload.data.text }
+        return { ...emptyData(), caption: richTextFromPayload(payload) }
       },
     }),
     paste: Object.freeze({
@@ -102,6 +108,13 @@ export function createEmbedPlugin(config = {}) {
           let dead = false
           let previewController = null
           let coverTask = null
+          let inputTimer = null
+          let playerController = null
+          const timerHost = document.defaultView ?? globalThis
+          const clearInputTimer = () => {
+            if (inputTimer !== null) timerHost.clearTimeout(inputTimer)
+            inputTimer = null
+          }
 
           const urlBar = document.createElement('div')
           urlBar.className = 'oe-embed__url-bar'
@@ -136,18 +149,121 @@ export function createEmbedPlugin(config = {}) {
 
           const actions = document.createElement('div')
           actions.className = 'oe-embed__actions'
-          actions.append(replace, cover, remove)
+          const mainActions = document.createElement('div')
+          mainActions.className = 'oe-embed__actions-view'
+          mainActions.append(replace, cover, remove)
+          actions.append(mainActions)
           wrapper.append(actions)
+          preloadSourceEditor(wrapper, context.signal, ['url'])
+
+          const settings = document.createElement('div')
+          settings.className = 'oe-embed__dropdown'
+          const settingsButton = document.createElement('button')
+          settingsButton.type = 'button'
+          settingsButton.className = 'oe-embed__action-btn'
+          settingsButton.textContent = runtimeContext.t('settings', 'Settings')
+          settingsButton.setAttribute('aria-haspopup', 'true')
+          settingsButton.setAttribute('aria-expanded', 'false')
+          const settingsPanel = document.createElement('div')
+          settingsPanel.className = 'oe-embed__dropdown-panel oe-embed__style-form'
+          settingsPanel.setAttribute('role', 'group')
+          const settingInputs = new Map()
+          for (const [key, label] of [['title', runtimeContext.t('videoTitle', 'Title')], ['duration', runtimeContext.t('duration', 'Duration')]]) {
+            const row = document.createElement('label')
+            row.className = 'oe-embed__style-label'
+            const text = document.createElement('span')
+            text.textContent = label
+            const field = document.createElement('input')
+            field.className = 'oe-embed__style-input'
+            field.dataset.setting = key
+            field.addEventListener('change', () => {
+              if (!readOnly && !dead) context.updateData(current => ({ ...current, [key]: field.value }))
+            }, { signal: context.signal })
+            row.append(text, field)
+            settingsPanel.append(row)
+            settingInputs.set(key, field)
+          }
+          const closeSettings = () => {
+            settings.classList.remove('oe-embed__dropdown--open')
+            settingsButton.setAttribute('aria-expanded', 'false')
+          }
+          settingsButton.addEventListener('click', () => {
+            const open = !settings.classList.contains('oe-embed__dropdown--open')
+            settings.classList.toggle('oe-embed__dropdown--open', open)
+            settingsButton.setAttribute('aria-expanded', String(open))
+            if (open) {
+              positionPluginPanel(settingsPanel, settings)
+            }
+          }, { signal: context.signal })
+          settings.addEventListener('keydown', event => {
+            if (event.key !== 'Escape') return
+            event.preventDefault()
+            event.stopPropagation()
+            closeSettings()
+            wrapper.focus({ preventScroll: true })
+          }, { signal: context.signal })
+          document.addEventListener('mousedown', event => {
+            if (!settings.contains(event.target)) closeSettings()
+          }, { signal: context.signal })
+          settings.append(settingsButton, settingsPanel)
+          mainActions.insertBefore(settings, cover)
+
+          const coverActions = document.createElement('div')
+          coverActions.className = 'oe-embed__actions-view oe-embed__actions-view--cover'
+          coverActions.hidden = true
+          coverActions.style.display = 'none'
+          const closeCover = () => {
+            if (coverActions.contains(document.activeElement)) wrapper.focus({ preventScroll: true })
+            coverActions.hidden = true
+            coverActions.style.display = 'none'
+            mainActions.style.display = 'contents'
+          }
+          const coverButton = (label, handler) => {
+            const button = document.createElement('button')
+            button.type = 'button'
+            button.className = 'oe-embed__action-btn'
+            button.textContent = label
+            button.addEventListener('click', () => { if (!readOnly && !dead) handler() }, { signal: context.signal })
+            coverActions.append(button)
+            return button
+          }
+          coverButton(runtimeContext.t('back', 'Back'), closeCover)
+          coverButton(runtimeContext.t('uploadCover', 'Upload'), () => { closeCover(); chooseCover() })
+          coverButton(runtimeContext.t('url', 'URL'), () => {
+            closeCover()
+            openSourceEditor({
+              wrapper, signal: context.signal, kind: 'url',
+              title: runtimeContext.t('cover', 'Cover'), label: runtimeContext.t('coverUrlPrompt', 'Cover image URL:'),
+              placeholder: 'https://', submitText: runtimeContext.t('insert', 'Insert'),
+              cancelText: runtimeContext.t('back', 'Back'), invalidText: runtimeContext.t('invalidCoverUrl', 'Enter a valid image URL'),
+              normalize: sanitizeMediaUrl,
+              onSubmit: url => {
+                coverTask?.cancel()
+                wrapper.focus({ preventScroll: true })
+                context.updateData(current => ({ ...current, cover: url }))
+              },
+            })
+          })
+          const removeCover = coverButton(runtimeContext.t('removeCover', 'Remove'), () => {
+            coverTask?.cancel()
+            closeCover()
+            wrapper.focus({ preventScroll: true })
+            context.updateData(current => ({ ...current, cover: '' }))
+          })
+          actions.append(coverActions)
 
           const commit = next => context.updateData(() => next)
 
           const parseInput = () => {
+            clearInputTimer()
             if (readOnly || dead) return
             const parsed = parseEmbedUrl(input.value)
-            if (!parsed) return
+            if (!parsed && !data.service) return
+            if (parsed?.service === data.service && parsed?.videoId === data.videoId) return
             coverTask?.cancel()
             coverTask = null
-            commit({ ...emptyData(), ...parsed })
+            wrapper.focus({ preventScroll: true })
+            commit({ ...data, ...(parsed ?? { service: '', videoId: '' }) })
           }
 
           const beginPreview = () => {
@@ -228,10 +344,10 @@ export function createEmbedPlugin(config = {}) {
                   objectUrl = url
                   objectUrls.add(url)
                 }
-                const committed = !task.signal.aborted && !!url && task.commit(current => ({
+                const committed = !task.signal.aborted && !!url && retainControlFocus(wrapper, () => task.commit(current => ({
                   ...current,
                   cover: url,
-                }))
+                })))
                 if (!committed && objectUrl) {
                   const URLCtor = document.defaultView?.URL ?? URL
                   URLCtor.revokeObjectURL(objectUrl)
@@ -273,16 +389,33 @@ export function createEmbedPlugin(config = {}) {
               parseInput()
             }
           }, { signal: context.signal })
+          input.addEventListener('input', () => {
+            clearInputTimer()
+            if (!readOnly && !dead) inputTimer = timerHost.setTimeout(parseInput, 500)
+          }, { signal: context.signal })
+          input.addEventListener('paste', event => {
+            event.stopPropagation()
+            clearInputTimer()
+            if (!readOnly && !dead) inputTimer = timerHost.setTimeout(parseInput, 0)
+          }, { signal: context.signal })
           replace.addEventListener('click', () => {
             if (readOnly) return
             input.value = ''
             input.focus()
           }, { signal: context.signal })
-          cover.addEventListener('click', chooseCover, { signal: context.signal })
+          cover.addEventListener('click', () => {
+            if (readOnly) return
+            closeSettings()
+            mainActions.style.display = 'none'
+            coverActions.hidden = false
+            coverActions.style.display = 'contents'
+          }, { signal: context.signal })
           remove.addEventListener('click', () => {
             if (readOnly) return
             coverTask?.cancel()
             coverTask = null
+            clearInputTimer()
+            wrapper.focus({ preventScroll: true })
             commit(emptyData())
           }, { signal: context.signal })
 
@@ -298,16 +431,22 @@ export function createEmbedPlugin(config = {}) {
               void Promise.resolve(action.handler({ signal: task.signal })).then(result => {
                 if (task.signal.aborted || !result) return
                 const safe = sanitizeMediaUrl(result.url)
-                if (safe) task.commit(current => ({ ...current, cover: safe }))
+                if (safe) retainControlFocus(wrapper, () => task.commit(current => ({ ...current, cover: safe })))
               }).catch(() => {}).finally(() => {
                 task.cancel()
                 if (coverTask === task) coverTask = null
               })
             }, { signal: context.signal })
-            actions.insertBefore(button, remove)
+            button.addEventListener('click', closeCover, { signal: context.signal })
+            coverActions.insertBefore(button, removeCover)
           }
 
           const project = next => {
+            clearInputTimer()
+            playerController?.abort()
+            const Ctor = document.defaultView?.AbortController ?? AbortController
+            playerController = new Ctor()
+            wrapper.classList.remove('oe-embed--playing')
             const sourceChanged = data.service !== next.service || data.videoId !== next.videoId
             data = { ...next }
             if (sourceChanged) {
@@ -317,12 +456,17 @@ export function createEmbedPlugin(config = {}) {
             previewController?.abort()
             view.replaceChildren()
             const configured = !!data.service && !!data.videoId
-            urlBar.hidden = configured || readOnly
+            urlBar.hidden = false
+            insert.hidden = readOnly
+            input.value = configured ? (data.service === 'youtube' ? 'https://youtu.be/' : 'https://vimeo.com/') + data.videoId : ''
+            input.readOnly = readOnly
             actions.hidden = readOnly || !configured
+            removeCover.hidden = !data.cover
+            for (const [key, field] of settingInputs) if (document.activeElement !== field) field.value = data[key]
+            if (readOnly || !configured) { closeSettings(); closeCover() }
             wrapper.classList.toggle('oe-embed--filled', configured)
 
-            if (!configured) return
-
+            if (configured) {
             const built = buildPlayer({
               service: data.service,
               videoId: data.videoId,
@@ -336,9 +480,16 @@ export function createEmbedPlugin(config = {}) {
               videoLabel: runtimeContext.t('video', 'Video'),
               ownerDocument: document,
             })
-            built.player.querySelector('button')?.setAttribute(READ_ONLY_INTERACTIVE_ATTRIBUTE, '')
+            const play = built.player.querySelector('button')
+            play?.setAttribute(READ_ONLY_INTERACTIVE_ATTRIBUTE, '')
+            play?.addEventListener('click', () => {
+              built.play()
+              wrapper.classList.add('oe-embed--playing')
+            }, { signal: playerController.signal })
             view.appendChild(built.player)
             void resolvePreview(built)
+            }
+            if (!configured && !data.caption) return
 
             const caption = document.createElement('div')
             caption.className = 'oe-embed__caption'
@@ -366,6 +517,7 @@ export function createEmbedPlugin(config = {}) {
                 : Object.freeze([])
             },
             setReadOnly(value) {
+              clearInputTimer()
               readOnly = value
               if (value) {
                 coverTask?.cancel()
@@ -380,6 +532,8 @@ export function createEmbedPlugin(config = {}) {
             },
             destroy() {
               dead = true
+              clearInputTimer()
+              playerController?.abort()
               previewController?.abort()
               coverTask?.cancel()
               coverTask = null

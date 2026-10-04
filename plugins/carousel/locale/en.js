@@ -1,4 +1,6 @@
 export default {
+  'plugin.carousel.insert': 'Insert',
+  'plugin.carousel.cancel': 'Cancel',
   'plugin.carousel.title': 'Carousel',
   'plugin.carousel.addMedia': 'Add media',
   'plugin.carousel.addUrl': 'Add URL',
@@ -42,6 +44,7 @@ export default {
   'plugin.carousel.video': 'Video slide',
   'plugin.carousel.settings': 'Settings',
   'plugin.carousel.currentSlide': 'Current slide',
+  'plugin.carousel.selectedSlide': 'Selected slide',
   'plugin.carousel.behavior': 'Behavior',
   'plugin.carousel.loop': 'Loop',
   'plugin.carousel.autoplay': 'Autoplay',

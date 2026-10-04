@@ -5,6 +5,8 @@ import {
 } from '../../plugin-kit/index.js'
 import { setTrustedHtml } from '../../shared/sanitize/sanitizeHtml.js'
 import { spoilerDataSchema } from '../../shared/blockSchemas/spoiler.js'
+import { acceptsTextPayload, richTextFromPayload } from '../shared/textConversion.js'
+import { createTextSelectionSlice } from '../shared/textSelectionSlice.js'
 
 const editorStyles=new URL('./spoiler.css',import.meta.url).href
 const ICON='<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.585 10.587a2 2 0 0 0 2.829 2.828"/><path d="M16.681 16.673a8.717 8.717 0 0 1-4.681 1.327c-3.6 0-6.6-2-9-6 1.272-2.12 2.712-3.678 4.32-4.674m2.86-1.146a9.055 9.055 0 0 1 1.82-.18c3.6 0 6.6 2 9 6-.666 1.11-1.379 2.067-2.138 2.87"/><path d="M3 3l18 18"/></svg>'
@@ -23,6 +25,7 @@ function append(left,right){
 export function createSpoilerPlugin(){
   /** @type {import('../../plugin-kit/types').BlockCapabilities<{label:string,content:string}>} */
   const capabilities=Object.freeze({
+    selectionSlice:createTextSelectionSlice(spoilerDataSchema),
     formatting:Object.freeze({inlineTools:true}),
     empty:Object.freeze({isEmpty:data=>!data.label.trim()&&!data.content.trim()}),
     merge:Object.freeze({
@@ -44,13 +47,10 @@ export function createSpoilerPlugin(){
         return {kind:'rich-text',data:{text:[data.label,data.content].filter(Boolean).join('<br>')}}
       },
       canImport(payload){
-        return payload?.kind==='rich-text'&&typeof payload.data?.text==='string'
+        return acceptsTextPayload(payload)
       },
       import(payload){
-        if(payload?.kind!=='rich-text'||typeof payload.data?.text!=='string'){
-          throw new TypeError('Spoiler can only import rich-text payloads')
-        }
-        return {label:'',content:payload.data.text}
+        return {label:'',content:richTextFromPayload(payload)}
       },
     }),
     clipboard:Object.freeze({
@@ -64,7 +64,7 @@ export function createSpoilerPlugin(){
           content:content?content.before+content.after:data.content,
         }
         return {
-          parts:[{kind:'local-block',data:selected}],
+          parts:[{kind:/** @type {'local-block'} */ ('local-block'),data:selected}],
           remaining:(!remaining.label.trim()&&!remaining.content.trim())?null:remaining,
           focus:null,
         }

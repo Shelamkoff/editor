@@ -1,0 +1,16 @@
+file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149
+    if (result.status === 'fail') throw new Error(`History matrix failed: ${result.summary}`)
+                                        ^
+
+Error: History matrix failed: [
+  {
+    "name": "Native inline-pattern paste restores its atom and suffix caret on Redo",
+    "status": "FAIL",
+    "error": "Error: \nexpected 8, got 0\n    at equal (http://127.0.0.1:56676/tests/browser/regressions/harness.js:22:43)\n    at caret (http://127.0.0.1:56676/tests/browser/native-core-behavior.js:14:3)\n    at http://127.0.0.1:56676/tests/browser/native-core-behavior.js:482:5\n    at async run (http://127.0.0.1:56676/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:56676/tests/browser/native-core-behavior.js:486:1"
+  }
+]
+    at waitForHistoryMatrix (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149:41)
+    at async runNativePage (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:273:30)
+    at async file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:310:48
+
+Node.js v24.9.0

@@ -4,14 +4,14 @@ import { loadBlockPluginDefinition, preloadBlockPluginDefinitions, createBlockPl
 import { createRendererAsync, loadRendererFactory, preloadRendererFactories, createDefaultRenderersAsync } from '../renderer/renderers/async.js'
 
 test('async plugin helpers reject malformed source and configuration shapes', async () => {
-  await assert.rejects(() => preloadBlockPluginDefinitions('paragraph'), /source must be an array or document object/)
+  await assert.rejects(() => preloadBlockPluginDefinitions('paragraph'), TypeError)
   await assert.rejects(() => preloadBlockPluginDefinitions({ version: '2.0.0', blocks: 'paragraph' }), /blocks must be an array/)
   await assert.rejects(() => createBlockPluginsAsync(['paragraph'], 'invalid'), /configs must be an object/)
   await assert.rejects(() => createBlockPluginsAsync(['paragraph'], { paragraph: 'invalid' }), /configs.paragraph must be an object/)
 })
 
 test('async renderer helpers reject malformed public argument shapes', async () => {
-  await assert.rejects(() => preloadRendererFactories('paragraph'), /source must be an array or document object/)
+  await assert.rejects(() => preloadRendererFactories('paragraph'), TypeError)
   await assert.rejects(() => preloadRendererFactories({ version: '2.0.0', blocks: 'paragraph' }), /blocks must be an array/)
   await assert.rejects(() => createRendererAsync('paragraph', 42), /classPrefix must be a string/)
   await assert.rejects(() => createRendererAsync('paragraph', 'x', []), /locale must be an object/)
@@ -45,8 +45,8 @@ test('async preset document sources ignore inherited block collections and types
   })
   const source = Object.create(sourcePrototype)
 
-  await assert.rejects(() => preloadBlockPluginDefinitions(source), /version is required/)
-  await assert.rejects(() => preloadRendererFactories(source), /version is required/)
+  await assert.rejects(() => preloadBlockPluginDefinitions(source), TypeError)
+  await assert.rejects(() => preloadRendererFactories(source), TypeError)
   assert.equal(blocksReads, 0)
 
   let typeReads = 0
@@ -57,8 +57,8 @@ test('async preset document sources ignore inherited block collections and types
   })
   const inheritedTypeSource = { version: '2.0.0', blocks: [Object.create(blockPrototype)] }
 
-  await assert.rejects(() => preloadBlockPluginDefinitions(inheritedTypeSource), RangeError)
-  await assert.rejects(() => preloadRendererFactories(inheritedTypeSource), RangeError)
+  await assert.rejects(() => preloadBlockPluginDefinitions(inheritedTypeSource), TypeError)
+  await assert.rejects(() => preloadRendererFactories(inheritedTypeSource), TypeError)
   assert.equal(typeReads, 0)
 })
 

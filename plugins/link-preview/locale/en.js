@@ -2,6 +2,7 @@ export default {
   'plugin.linkPreview.title': 'Link Preview',
   'plugin.linkPreview.placeholder': 'Paste a link...',
   'plugin.linkPreview.settings': 'Settings',
+  'plugin.linkPreview.delete': 'Delete',
   'plugin.linkPreview.template': 'Template',
   'plugin.linkPreview.template.horizontal': 'Horizontal card',
   'plugin.linkPreview.template.compact': 'Compact card',

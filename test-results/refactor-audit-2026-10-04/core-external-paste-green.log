@@ -1,0 +1,1 @@
+{"native-core-behavior.html":[{"name":"Native external plain-text paste replaces a local range and preserves the insertion caret on Redo","status":"PASS"},{"name":"Native external HTML paste replaces a local range and preserves the insertion caret on Redo","status":"PASS"}]}

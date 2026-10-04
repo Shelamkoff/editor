@@ -55,6 +55,16 @@ class FakeElement {
     node.parentElement = this
     return node
   }
+  insertBefore(node, reference) {
+    if (node === reference) return node
+    node.remove?.()
+    const index = reference == null ? this.children.length : this.children.indexOf(reference)
+    if (index < 0) throw new Error('Reference is not a child')
+    this.children.splice(index, 0, node)
+    node.parentNode = this
+    node.parentElement = this
+    return node
+  }
   remove() {
     if (!this.parentNode) return
     const siblings = this.parentNode.children

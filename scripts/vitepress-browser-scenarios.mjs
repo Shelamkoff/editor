@@ -203,7 +203,7 @@ try {
     `--remote-debugging-port=${debugPort}`,
     `--user-data-dir=${profile}`,
     pageUrl,
-  ], { stdio: ['ignore', 'pipe', 'pipe'] })
+  ], { stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true })
 
   const target = await findPageTarget(debugPort, pageUrl, chrome)
   client = await CdpClient.connect(target.webSocketDebuggerUrl)

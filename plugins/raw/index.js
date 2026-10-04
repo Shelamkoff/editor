@@ -1,5 +1,6 @@
 // @ts-check
 import { dedentTextarea } from '../shared/dedentTextarea.js'
+import { indentTextarea } from '../shared/indentTextarea.js'
 import { rawDataSchema } from '../../shared/blockSchemas/raw.js'
 import { sanitizeRawHtmlForSink } from '../../shared/sanitize/sanitizeRawHtml.js'
 
@@ -79,6 +80,7 @@ export function createRawPlugin() {
 
           const renderPreview = () => {
             toggle.setAttribute('aria-pressed', String(showPreview))
+            toggle.classList.toggle('oe-raw__toggle--active', showPreview)
             textarea.style.display = showPreview ? 'none' : ''
             preview.style.display = showPreview ? '' : 'none'
             preview.replaceChildren()
@@ -92,6 +94,15 @@ export function createRawPlugin() {
             iframe.style.cssText = 'width:100%;border:none;min-height:100px'
             iframe.srcdoc = /** @type {any} */ (sanitizeRawHtmlForSink(textarea.value, document))
             preview.appendChild(iframe)
+            const resizeFrame = () => {
+              if (instanceDestroyed || !iframe.isConnected) return
+              try {
+                const height = iframe.contentDocument?.documentElement?.scrollHeight
+                if (height) iframe.style.height = height + 'px'
+              } catch { /* Opaque sandbox origins retain the safe minimum height. */ }
+            }
+            iframe.addEventListener('load', resizeFrame, { signal: context.signal })
+            document.defaultView?.requestAnimationFrame(resizeFrame)
           }
 
           toggle.addEventListener('mousedown', event => event.preventDefault(), { signal: context.signal })
@@ -108,12 +119,10 @@ export function createRawPlugin() {
             event.preventDefault()
             event.stopPropagation()
             context.commitDomMutation(() => {
-              const start = textarea.selectionStart
-              const end = textarea.selectionEnd
               if (event.shiftKey) {
                 dedentTextarea(textarea, 2)
               } else {
-                textarea.setRangeText('  ', start, end, 'end')
+                indentTextarea(textarea, 2)
               }
               resize()
             })
@@ -149,7 +158,10 @@ export function createRawPlugin() {
             },
             setReadOnly: applyReadOnly,
             focus() {
-              if (!instanceDestroyed && !readOnly) textarea.focus()
+              if (!instanceDestroyed && !readOnly) {
+                if (showPreview) { showPreview = false; renderPreview() }
+                textarea.focus()
+              }
             },
             destroy() {
               instanceDestroyed = true

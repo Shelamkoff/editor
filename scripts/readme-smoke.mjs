@@ -261,7 +261,7 @@ for (const directory of blockPaths) {
       throw new Error(`${relative(root, file)}: expected exactly one document-data JSON example`)
     }
     try {
-      definition.schema.decode({ data: examples[0] })
+      definition.schema.decode({ dataVersion: definition.schema.currentVersion, data: examples[0] })
     } catch {
       throw new Error(`${relative(root, file)}: documented data example fails the ${type} schema`)
     }

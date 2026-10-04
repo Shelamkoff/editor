@@ -1,6 +1,8 @@
 // @ts-check
 import { setSanitizedHtml } from '../../plugin-kit/index.js'
 import { tableDataSchema } from '../../shared/blockSchemas/table.js'
+import { acceptsTextPayload, richTextFromPayload } from '../shared/textConversion.js'
+import { createTextSelectionSlice } from '../shared/textSelectionSlice.js'
 
 const editorStyles=new URL('./table.css',import.meta.url).href
 const ICON='<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-14z"/><path d="M3 10h18"/><path d="M10 3v18"/></svg>'
@@ -28,25 +30,34 @@ function exportText(data){
 export function createTablePlugin(){
   /** @type {import('../../plugin-kit/types').BlockCapabilities<{withHeadings:boolean,rows:Array<{id:string,cells:Array<{id:string,text:string}>}>}>} */
   const capabilities=Object.freeze({
+    selectionSlice:createTextSelectionSlice(tableDataSchema),
     formatting:Object.freeze({inlineTools:true}),
     empty:Object.freeze({isEmpty:data=>data.rows.every(row=>row.cells.every(cell=>cell.text.trim().length===0))}),
     shortcuts:Object.freeze(/** @type {import('../../plugin-kit/types').ShortcutCapability<any>} */ ({
-      handle(input,data){
+      handle(input,data,context){
+        if(input.key==='Enter'&&!input.shiftKey){
+          const parts=context.splitField(input.fieldKey,input.selection)
+          return {
+            kind:'update',
+            data:{...data,rows:data.rows.map(row=>({...row,cells:row.cells.map(cell=>
+              `cell:${row.id}:${cell.id}`===input.fieldKey?{...cell,text:parts.before+'<br>'+parts.after}:cell)}))},
+            focus:{fieldKey:input.fieldKey,offset:input.selection.start+1},
+          }
+        }
         if(input.key==='Enter')return {kind:'native'}
         if(input.key!=='Tab')return null
         const ordered=data.rows.flatMap(row=>row.cells.map(cell=>`cell:${row.id}:${cell.id}`))
         const index=ordered.indexOf(input.fieldKey)
         if(index<0)return null
         const next=ordered[index+(input.shiftKey?-1:1)]
-        return next?{kind:'focus',target:{fieldKey:next,offset:'start'}}:null
+        return next?{kind:'focus',target:{fieldKey:next,offset:input.shiftKey?'end':'start'}}:null
       },
     })),
     conversion:Object.freeze({
       export(data){return {kind:'rich-text',data:{text:exportText(data)}}},
-      canImport(payload){return payload?.kind==='rich-text'&&typeof payload.data?.text==='string'},
+      canImport:acceptsTextPayload,
       import(payload){
-        if(payload?.kind!=='rich-text'||typeof payload.data?.text!=='string')throw new TypeError('Table can only import rich-text payloads')
-        return {withHeadings:false,rows:[{id:'row-0',cells:[{id:'cell-0-0',text:payload.data.text}]}]}
+        return {withHeadings:false,rows:[{id:'row-0',cells:[{id:'cell-0-0',text:richTextFromPayload(payload)}]}]}
       },
     }),
     clipboard:Object.freeze({
@@ -84,7 +95,7 @@ export function createTablePlugin(){
           }),
         }))
         return {
-          parts:[{kind:'local-block',data:{
+          parts:[{kind:/** @type {'local-block'} */ ('local-block'),data:{
             withHeadings:data.withHeadings&&minRow===0,
             rows:selectedRows,
           }}],

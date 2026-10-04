@@ -64,6 +64,7 @@ export function openSourceEditor(config) {
 
   const surface = ensureSurface(config.wrapper, config.signal, config.kind)
   if (!surface) return { close() {} }
+  const returnFocus = config.wrapper.ownerDocument.activeElement
   const view = config.wrapper.ownerDocument.defaultView
   const AbortControllerCtor = view?.AbortController ?? AbortController
   const controller = new AbortControllerCtor()
@@ -89,6 +90,13 @@ export function openSourceEditor(config) {
     if (activeEditors.get(config.wrapper)?.close === close) activeEditors.delete(config.wrapper)
     controller.abort()
     surface.layer.close()
+    if (!config.signal.aborted && config.wrapper.isConnected && root.contains(config.wrapper.ownerDocument.activeElement)) {
+      const target = returnFocus?.isConnected && config.wrapper.contains(returnFocus)
+        && !returnFocus.closest('[hidden],[inert]') && returnFocus.getClientRects().length
+        ? returnFocus : config.wrapper
+      if ('focus' in target && typeof target.focus === 'function') target.focus({ preventScroll: true })
+      else config.wrapper.focus({ preventScroll: true })
+    }
     setSurfaceVisible(surface, false)
   }
   activeEditors.set(config.wrapper, { close, surface })

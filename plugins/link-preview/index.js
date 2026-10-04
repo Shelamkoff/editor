@@ -3,6 +3,8 @@ import { setSafeUrlAttribute } from '../../plugin-kit/index.js'
 import { linkPreviewDataSchema } from '../../shared/blockSchemas/linkPreview.js'
 import { LINK_PREVIEW_TEMPLATES } from '../../shared/blockOptions.js'
 import { sanitizeUrl } from '../../shared/sanitize/sanitizeUrl.js'
+import { setTrustedHtml } from '../../shared/sanitize/sanitizeHtml.js'
+import { TEMPLATE_ICONS } from './templateIcons.js'
 
 const editorStyles=new URL('./link-preview.css',import.meta.url).href
 const ICON='<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 15l6-6"/><path d="M11 6l.463-.536a5 5 0 0 1 7.071 7.072L18 13"/><path d="M13 18l-.397.534a5.068 5.068 0 0 1-7.127 0 4.972 4.972 0 0 1 0-7.071L6 11"/></svg>'
@@ -92,33 +94,101 @@ export function createLinkPreviewPlugin(config={}){
           input.setAttribute('data-oe-document-input','value')
           input.placeholder=runtimeContext.t('placeholder','Paste a link...')
 
+          const urlBar=document.createElement('div')
+          urlBar.className='oe-lp__url-bar'
+          const urlIcon=document.createElement('span')
+          urlIcon.className='oe-lp__url-icon'
+          const urlFavicon=document.createElement('img')
+          urlFavicon.alt=''
+          urlIcon.appendChild(urlFavicon)
+          urlBar.append(urlIcon,input)
           const card=document.createElement('a')
           card.className='oe-lp__card'
           card.target='_blank'
           card.rel='noopener noreferrer'
 
           const image=document.createElement('img')
-          image.className='oe-lp__image'
           image.alt=''
+          const imageWrap=document.createElement('div')
+          imageWrap.className='oe-lp__image'
+          imageWrap.appendChild(image)
           const body=document.createElement('div')
-          body.className='oe-lp__body'
+          body.className='oe-lp__content'
           const title=document.createElement('div')
           title.className='oe-lp__title'
           const description=document.createElement('div')
-          description.className='oe-lp__description'
+          description.className='oe-lp__desc'
           const domain=document.createElement('div')
           domain.className='oe-lp__domain'
+          const favicon=document.createElement('img')
+          favicon.className='oe-lp__favicon'
+          favicon.alt=''
+          domain.appendChild(favicon)
+          const domainText=document.createElement('span')
+          domain.appendChild(domainText)
+          const largeFavicon=document.createElement('img')
+          largeFavicon.className='oe-lp__favicon-large'
+          largeFavicon.alt=''
           body.append(title,description,domain)
-          card.append(image,body)
-          wrapper.append(input,card)
+          card.append(largeFavicon,body,imageWrap)
+          const actions=document.createElement('div')
+          actions.className='oe-lp__actions'
+          const dropdown=document.createElement('div')
+          dropdown.className='oe-lp__dropdown'
+          const settings=document.createElement('button')
+          settings.type='button'
+          settings.className='oe-lp__action-btn'
+          settings.textContent=runtimeContext.t('settings','Settings')
+          settings.setAttribute('aria-expanded','false')
+          const panel=document.createElement('div')
+          panel.className='oe-lp__dropdown-panel'
+          panel.setAttribute('role','group')
+          panel.setAttribute('aria-label',runtimeContext.t('template','Template'))
+          panel.style.top='100%'
+          const templateGrid=document.createElement('div')
+          templateGrid.className='oe-lp__tpl-grid'
+          const templateButtons=new Map()
+          for(const template of LINK_PREVIEW_TEMPLATES){
+            const button=document.createElement('button')
+            button.type='button'
+            button.className='oe-lp__tpl-btn'
+            const templateKey='template.'+template
+            button.title=runtimeContext.t(templateKey,TEMPLATE_LABELS[template])
+            button.setAttribute('aria-label',button.title)
+            setTrustedHtml(button,TEMPLATE_ICONS[template])
+            button.dataset.template=template
+            button.addEventListener('mousedown',event=>event.preventDefault(),{signal:context.signal})
+            button.addEventListener('click',()=>{
+              if(readOnly||dead)return
+              context.updateData(current=>({...current,template}))
+              input.focus()
+            },{signal:context.signal})
+            templateButtons.set(template,button)
+            templateGrid.appendChild(button)
+          }
+          panel.appendChild(templateGrid)
+          dropdown.append(settings,panel)
+          const remove=document.createElement('button')
+          remove.type='button'
+          remove.className='oe-lp__action-btn oe-lp__action-btn--danger'
+          remove.textContent=runtimeContext.t('delete','Delete')
+          actions.append(dropdown,remove)
+          wrapper.append(urlBar,card,actions)
 
           let data={...initial}
           let readOnly=context.isReadOnly()
           let dead=false
           let currentTask=null
           let generation=0
+          let inputTimer=null
+          const timerHost=document.defaultView??globalThis
+          const clearInputTimer=()=>{
+            if(inputTimer!==null)timerHost.clearTimeout(inputTimer)
+            inputTimer=null
+          }
 
           const project=next=>{
+            clearInputTimer()
             data={...next}
             input.value=data.url
             input.readOnly=readOnly
@@ -126,16 +196,30 @@ export function createLinkPreviewPlugin(config={}){
             const filled=!!data.url
             wrapper.classList.toggle('oe-lp--filled',filled)
             card.hidden=!filled
+            actions.hidden=readOnly||!filled
+            urlBar.hidden=false
+            card.className='oe-lp__card oe-lp__card--'+data.template
+            for(const [template,button] of templateButtons){
+              button.classList.toggle('oe-lp__tpl-btn--active',template===data.template)
+              button.setAttribute('aria-pressed',String(template===data.template))
+            }
             if(filled)setSafeUrlAttribute(card,'href',data.url,'external')
             else card.removeAttribute('href')
             title.textContent=data.title||data.url
             description.textContent=data.description
-            domain.textContent=data.domain||host(data.url)
+            domainText.textContent=data.domain||host(data.url)
+            for(const element of [favicon,largeFavicon,urlFavicon]){
+              element.hidden=!data.favicon
+              if(data.favicon)setSafeUrlAttribute(element,'src',data.favicon,'media')
+              else element.removeAttribute('src')
+            }
+            largeFavicon.hidden=!data.favicon||data.template!=='notion'
+            favicon.hidden=!data.favicon||data.template==='notion'
             if(data.image){
-              image.hidden=false
+              imageWrap.hidden=['minimal','notion'].includes(data.template)
               setSafeUrlAttribute(image,'src',data.image,'media')
             }else{
-              image.hidden=true
+              imageWrap.hidden=true
               image.removeAttribute('src')
             }
           }
@@ -167,12 +251,36 @@ export function createLinkPreviewPlugin(config={}){
           }
 
           const commitUrl=()=>{
+            clearInputTimer()
             if(readOnly||dead)return
             const url=sanitizeUrl(input.value,{policy:'external',allowRelative:false,fallback:''})
-            const next=url?{...data,url,domain:host(url)}:{...linkPreviewDataSchema.createDefault(),template:data.template}
-            context.updateData(()=>next)
+            context.updateData(current=>url?{...(url===current.url?current:{...linkPreviewDataSchema.createDefault(),template:current.template}),url,domain:host(url)}:{...linkPreviewDataSchema.createDefault(),template:current.template})
             if(url)void resolveMeta(url)
           }
+
+          const setOpen=open=>{
+            dropdown.classList.toggle('oe-lp__dropdown--open',open)
+            settings.setAttribute('aria-expanded',String(open))
+          }
+          settings.addEventListener('mousedown',event=>event.preventDefault(),{signal:context.signal})
+          settings.addEventListener('click',()=>{if(!readOnly)setOpen(settings.getAttribute('aria-expanded')!=='true')},{signal:context.signal})
+          document.addEventListener('click',event=>{if(!dropdown.contains(event.target))setOpen(false)},{signal:context.signal})
+          dropdown.addEventListener('keydown',event=>{
+            if(event.key==='Escape'){
+              event.preventDefault();event.stopPropagation();setOpen(false);settings.focus()
+            }
+          },{signal:context.signal})
+          remove.addEventListener('mousedown',event=>event.preventDefault(),{signal:context.signal})
+          remove.addEventListener('click',()=>{
+            if(readOnly||dead)return
+            clearInputTimer()
+            currentTask?.cancel()
+            currentTask=null
+            ++generation
+            setOpen(false)
+            context.updateData(()=>linkPreviewDataSchema.createDefault())
+            input.focus()
+          },{signal:context.signal})
 
           input.addEventListener('keydown',event=>{
             if(event.key==='Enter'){
@@ -184,6 +292,11 @@ export function createLinkPreviewPlugin(config={}){
             }
           },{signal:context.signal})
           input.addEventListener('change',commitUrl,{signal:context.signal})
+          input.addEventListener('input',()=>{
+            clearInputTimer()
+            if(readOnly||dead)return
+            inputTimer=timerHost.setTimeout(commitUrl,500)
+          },{signal:context.signal})
 
           project(data)
           if(data.url&&!data.title&&!data.image&&!data.favicon){
@@ -192,12 +305,15 @@ export function createLinkPreviewPlugin(config={}){
 
           return {
             element:wrapper,
-            read:()=>({...data,url:input.value.trim()}),
+            read:()=>{
+              const url=input.value.trim()?sanitizeUrl(input.value,{policy:'external',allowRelative:false,fallback:data.url}):''
+              return url===data.url?{...data}:{...linkPreviewDataSchema.createDefault(),template:data.template,url,domain:host(url)}
+            },
             update(next){if(!dead)project(next)},
             editableFields:()=>Object.freeze([Object.freeze({key:'url',element:input,mode:/** @type {'plain-text'} */('plain-text')})]),
             setReadOnly(value){readOnly=value;project(data)},
             focus(){if(!dead&&!readOnly)input.focus()},
-            destroy(){dead=true;currentTask?.cancel();currentTask=null},
+            destroy(){dead=true;clearInputTimer();currentTask?.cancel();currentTask=null},
           }
         },
         destroy(){destroyed=true},

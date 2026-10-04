@@ -1,0 +1,30 @@
+file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149
+    if (result.status === 'fail') throw new Error(`History matrix failed: ${result.summary}`)
+                                        ^
+
+Error: History matrix failed: [
+  {
+    "name": "Image Settings fits a short narrow viewport and keeps every input inside its panel",
+    "status": "PASS"
+  },
+  {
+    "name": "Gallery Settings fits a short narrow viewport and keeps every input inside its panel",
+    "status": "FAIL",
+    "error": "Error: Settings escapes the viewport: {\"x\":8,\"y\":161,\"width\":310,\"height\":331,\"top\":161,\"right\":318,\"bottom\":492,\"left\":8}\n    at assert (http://127.0.0.1:51218/tests/browser/regressions/harness.js:20:81)\n    at http://127.0.0.1:51218/tests/browser/native-plugin-media.js:365:7\n    at async run (http://127.0.0.1:51218/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:51218/tests/browser/native-plugin-media.js:397:1"
+  },
+  {
+    "name": "Carousel Settings fits a short narrow viewport and keeps every input inside its panel",
+    "status": "FAIL",
+    "error": "Error: Settings escapes the viewport: {\"x\":8,\"y\":370,\"width\":288,\"height\":340.4375,\"top\":370,\"right\":296,\"bottom\":710.4375,\"left\":8}\n    at assert (http://127.0.0.1:51218/tests/browser/regressions/harness.js:20:81)\n    at http://127.0.0.1:51218/tests/browser/native-plugin-media.js:365:7\n    at async run (http://127.0.0.1:51218/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:51218/tests/browser/native-plugin-media.js:397:1"
+  },
+  {
+    "name": "Embed Settings fits a short narrow viewport and keeps every input inside its panel",
+    "status": "FAIL",
+    "error": "Error: Settings escapes the viewport: {\"x\":113.734375,\"y\":341.5,\"width\":278,\"height\":66,\"top\":341.5,\"right\":391.734375,\"bottom\":407.5,\"left\":113.734375}\n    at assert (http://127.0.0.1:51218/tests/browser/regressions/harness.js:20:81)\n    at http://127.0.0.1:51218/tests/browser/native-plugin-media.js:365:7\n    at async run (http://127.0.0.1:51218/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:51218/tests/browser/native-plugin-media.js:397:1"
+  }
+]
+    at waitForHistoryMatrix (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149:41)
+    at async runNativePage (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:273:30)
+    at async file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:310:48
+
+Node.js v24.9.0

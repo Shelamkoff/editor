@@ -1,0 +1,3489 @@
+
+> @shelamkoff/rector@1.0.5 test:browser
+> node tests/browser/run.mjs && node tests/browser/physical-history.mjs && node tests/browser/heap-gate.mjs
+
+harness-contract.html: {
+  "correct": true,
+  "want": [
+    "FAIL",
+    "FAIL",
+    "FAIL",
+    "PASS",
+    "FAIL",
+    "FAIL",
+    "FAIL",
+    "PASS"
+  ],
+  "outcomes": [
+    {
+      "name": "unexpected DOM handler exception",
+      "status": "FAIL",
+      "error": "Error: unexpected event\n    at HTMLButtonElement.<anonymous> (http://127.0.0.1:59003/tests/browser/harness-contract.js:6:50)\n    at eventError (http://127.0.0.1:59003/tests/browser/harness-contract.js:7:10)\n    at http://127.0.0.1:59003/tests/browser/harness-contract.js:9:50\n    at Module.run (http://127.0.0.1:59003/tests/browser/regressions/harness.js:85:17)\n    at http://127.0.0.1:59003/tests/browser/harness-contract.js:29:9"
+    },
+    {
+      "name": "unexpected rejected promise",
+      "status": "FAIL",
+      "error": "Error: unexpected rejection\n    at http://127.0.0.1:59003/tests/browser/harness-contract.js:11:23\n    at Module.run (http://127.0.0.1:59003/tests/browser/regressions/harness.js:85:17)\n    at async http://127.0.0.1:59003/tests/browser/harness-contract.js:29:1"
+    },
+    {
+      "name": "synchronous assertion failure",
+      "status": "FAIL",
+      "error": "Error: assertion witness\n    at http://127.0.0.1:59003/tests/browser/harness-contract.js:14:55\n    at Module.run (http://127.0.0.1:59003/tests/browser/regressions/harness.js:85:17)\n    at async http://127.0.0.1:59003/tests/browser/harness-contract.js:29:1"
+    },
+    {
+      "name": "expected event is observed",
+      "status": "PASS"
+    },
+    {
+      "name": "missing expected event is a failure",
+      "status": "FAIL",
+      "error": "Expected browser error was not raised: /never raised/"
+    },
+    {
+      "name": "wrong event cannot satisfy an expectation",
+      "status": "FAIL",
+      "error": "Error: wrong message\n    at HTMLButtonElement.<anonymous> (http://127.0.0.1:59003/tests/browser/harness-contract.js:6:50)\n    at eventError (http://127.0.0.1:59003/tests/browser/harness-contract.js:7:10)\n    at http://127.0.0.1:59003/tests/browser/harness-contract.js:22:3\n    at Module.run (http://127.0.0.1:59003/tests/browser/regressions/harness.js:85:17)\n    at async http://127.0.0.1:59003/tests/browser/harness-contract.js:29:1\nExpected browser error was not raised: /expected message/"
+    },
+    {
+      "name": "one expectation does not swallow two events",
+      "status": "FAIL",
+      "error": "Error: same message\n    at HTMLButtonElement.<anonymous> (http://127.0.0.1:59003/tests/browser/harness-contract.js:6:50)\n    at eventError (http://127.0.0.1:59003/tests/browser/harness-contract.js:7:10)\n    at http://127.0.0.1:59003/tests/browser/harness-contract.js:26:31\n    at Module.run (http://127.0.0.1:59003/tests/browser/regressions/harness.js:85:17)\n    at async http://127.0.0.1:59003/tests/browser/harness-contract.js:29:1"
+    },
+    {
+      "name": "later clean case is independent",
+      "status": "PASS"
+    }
+  ]
+}
+roundtrip.html: {"plugins":["paragraph","heading","list","quote","code","image","delimiter","table","checklist","warning","embed","raw","gallery","carousel","attaches","linkPreview","toggle","columns","spoiler","poll","person"],"defaultRenders":21,"editableRoundTrips":21,"rendererBlocks":21,"lifecycleCycles":10}
+roundtrip-trusted-types.html: {"plugins":["paragraph","heading","list","quote","code","image","delimiter","table","checklist","warning","embed","raw","gallery","carousel","attaches","linkPreview","toggle","columns","spoiler","poll","person"],"defaultRenders":21,"editableRoundTrips":21,"rendererBlocks":21,"lifecycleCycles":10}
+person-avatar-csp.html: [
+  {
+    "name": "avatar CSP test page enforces TrustedHTML without a permissive default policy",
+    "status": "PASS"
+  },
+  {
+    "name": "Person local avatar upload works under Trusted Types and remains undoable",
+    "status": "PASS"
+  },
+  {
+    "name": "Person remote avatar upload works under Trusted Types and remains undoable",
+    "status": "PASS"
+  },
+  {
+    "name": "Person pending avatar upload under Trusted Types cannot change replacement data",
+    "status": "PASS"
+  }
+]
+history.html: {"historyCases":["typing","split block","insert","sequential insert","toolbar sequential insert","move","convert","remove","clear","public render","sequential inline formatting","partial cross-block conversion","structured endpoint cross-block conversion","ordered partial list conversion","unordered partial list conversion","partial list conversion to a non-text block","slash command caret positioning","slash block insertion after existing text","inline block duplicate"],"pasteCases":["plain text paste","HTML paste","internal block paste","malformed internal MIME fallback","plain/HTML multi-block paste + inline undo","global RegExp inline paste","internal inline block paste","file paste","file paste (data URL)","gallery file paste","gallery file paste (data URL)","slow file paste with concurrent edit"],"pluginPasteRoutes":["heading tag paste","list tag paste","quote tag paste","code tag paste","table tag paste","image pattern paste","embed pattern paste","link preview pattern paste"],"pluginCommandCases":["raw Tab","raw multiline Shift+Tab","code Tab","list item split","list selected range replacement","list empty last item exit","single empty list exit","checklist toggle","checklist empty last item exit","checklist selected range replacement","checklist nested Backspace merge","single empty checklist exit","table line break","quote focus navigation","rapid toggle ordering","columns layout","poll add option","image delete","gallery remove image","carousel remove slide","attachment remove","link preview delete","embed delete","person add"],"inlineCases":["inline widget insert","sequential Bold/Italic","toolbar Bold/Italic","structural + inline ordering","default toolbar ordering","Enter + inline ordering","cross-block inline ordering","Bold history across all inline-capable block plugins","bold apply/remove","italic apply/remove","strikethrough apply/remove","code apply/remove","marker apply/remove","case transform upper/lower","clear formatting","align apply/reset","script apply/remove","background color apply/remove","link action formatting","link removal","font-size apply/remove","heading inline control","color widget preview/cancel/apply/read-only","per-block inline tool allowlist","inline tool replacement by type"],"lifecycleCycles":5,"callbackCases":["onReady microtask","onChange mutation notification"],"publicApiCases":["undo/redo state","pending history state","history events","dynamic read-only","read-only host history","mode lifecycle","all-plugin mode transition","holder ownership","numeric validation"]}
+selection.html: {"crossBlockOperations":["copy","cut","paste","Backspace","Delete","outside clear"],"structuralKeys":["Enter","Backspace merge","Delete merge","Ctrl+A"],"focusKeys":["ArrowUp","ArrowDown","Tab","Shift+Tab"]}
+lifecycle.html: {"editorCycles":5,"tracked":["global listeners","MutationObserver","ResizeObserver","IntersectionObserver","object URLs","styles","inline popup","ColorPicker","Cropper","Carousel","Masonry","Expose"]}
+security.html: {"inlineWidgets":3,"nestedInlineBlocks":2,"malformedBlocksPreserved":2,"securitySurfaces":["inline HTML","Raw HTML","paste","inline marshal","renderer URLs","renderer preserve mode","upload callback URLs","application file sources"]}
+trusted-types.htm: [
+  {
+    "name": "inline sanitizer remains a string API under Trusted Types enforcement",
+    "status": "PASS"
+  },
+  {
+    "name": "editor text blocks render under require-trusted-types-for",
+    "status": "PASS"
+  },
+  {
+    "name": "document renderer handles inline HTML under Trusted Types enforcement",
+    "status": "PASS"
+  },
+  {
+    "name": "Raw preview assigns TrustedHTML under require-trusted-types-for",
+    "status": "PASS"
+  },
+  {
+    "name": "multiple Rector module instances share one Trusted Types policy per realm",
+    "status": "PASS"
+  }
+]
+action-label-security.html: {"plugins":["image","gallery","carousel","embed"],"labelMode":"text","iconMode":"trusted markup"}
+audit-regressions.html: ["locale-markup-boundary","link-preview-request-ownership","embed-cover-ownership","carousel-aborted-batch-object-urls","person-avatar-ownership","mobile-toolbar-frame-ownership"]
+attaches-abort-urls.html: {"created":1,"revoked":1}
+embed-service-registry.html: {"prototypeServices":3}
+person-social-registry.html: {"prototypeTypes":4}
+gallery-layout-registry.html: {"prototypeLayouts":4}
+mention.html: {"flows":["option validation","search","search cancellation","failed commit","keyboard commit","click semantics","pagination","custom rows","serialize","undo","redo","renderer","empty","query reset","last-trigger deletion","unicode trigger","aria","theme inheritance","multi-editor","destroy"],"queries":["","a","ad","","n","no","non","none"]}
+mention-session-race.html: mention pagination and realm ownership remain isolated
+poll.html: {"lifetimeCases":["destroy before load","retained controls","reentrant unsubscribe"],"modes":["local","load","vote","subscribe","renderer"],"guards":["afterVote confirmation","single history step","configured voter retention","duplicate submit","concurrent subscription update","revision ordering","read-only side effects","abort","unsubscribe","safe voters"]}
+carousel.html: {"operations":["source","empty source","reorder","settings","remove","read-only","upload abort","drop validation","extension fallback","render/destroy"],"mutations":5}
+plugin-surfaces.html: {"urlEditors":4,"htmlEditors":1,"settingsLayers":4,"nestedDropdowns":1,"pasteSpinners":1,"editorOverlayLayers":1}
+imports.html: {"runtimeImportPaths":131,"stylesheetPaths":48,"blockPluginEntries":21,"compatibilityReexports":7}
+audit.html: [
+  {
+    "name": "opening a document without its inline plugin preserves referenced widget data",
+    "status": "PASS"
+  },
+  {
+    "name": "deleting an unresolved inline token removes its data on save",
+    "status": "PASS"
+  },
+  {
+    "name": "tokens in attributes do not keep otherwise unused widget data alive",
+    "status": "PASS"
+  },
+  {
+    "name": "an unresolved token and a registered widget retain independent data",
+    "status": "PASS"
+  },
+  {
+    "name": "pending built-in image upload cannot mutate the document after render",
+    "status": "PASS"
+  },
+  {
+    "name": "pending built-in image upload cannot mutate the document after clear",
+    "status": "PASS"
+  },
+  {
+    "name": "pending built-in image upload cannot mutate the document after undo",
+    "status": "PASS"
+  },
+  {
+    "name": "a pending upload still completes when an unrelated block is inserted",
+    "status": "PASS"
+  },
+  {
+    "name": "failed nested mutation restores content without adding an undo state",
+    "status": "PASS"
+  },
+  {
+    "name": "rollback preserves an existing redo branch",
+    "status": "PASS"
+  },
+  {
+    "name": "rollback restores the pre-command caret rather than focusing the end",
+    "status": "PASS"
+  },
+  {
+    "name": "input inside a failed command does not leave pending history",
+    "status": "PASS"
+  },
+  {
+    "name": "a new block whose save fails makes insert fail and rolls back",
+    "status": "PASS"
+  },
+  {
+    "name": "strict validation failure rolls back DOM mutation before change is published",
+    "status": "PASS"
+  },
+  {
+    "name": "split render failure preserves the extracted tail and the prior history",
+    "status": "PASS"
+  },
+  {
+    "name": "failed multi-block MIME paste rolls back before plain-text fallback",
+    "status": "PASS"
+  },
+  {
+    "name": "fallback replaces the original selection after rolling back MIME mutations",
+    "status": "PASS"
+  },
+  {
+    "name": "a failed MIME paste without fallback leaves the selected blocks unchanged",
+    "status": "PASS"
+  },
+  {
+    "name": "Enter replaces selected text before splitting the paragraph",
+    "status": "PASS"
+  },
+  {
+    "name": "Enter at a collapsed caret still preserves both halves",
+    "status": "PASS"
+  },
+  {
+    "name": "undo preserves the previous document version even when only the envelope changed",
+    "status": "PASS"
+  },
+  {
+    "name": "capture time alone does not create an undo step",
+    "status": "PASS"
+  },
+  {
+    "name": "Undo restores the latest valid checkpoint when live validation fails",
+    "status": "PASS"
+  },
+  {
+    "name": "Undo restores the latest valid checkpoint when live save fails",
+    "status": "PASS"
+  },
+  {
+    "name": "recovering an invalid edit preserves an already valid redo branch",
+    "status": "PASS"
+  },
+  {
+    "name": "renderer preserves connected state when updating same",
+    "status": "PASS"
+  },
+  {
+    "name": "renderer preserves connected state when updating neighbor",
+    "status": "PASS"
+  },
+  {
+    "name": "renderer preserves connected state when updating reorder",
+    "status": "PASS"
+  },
+  {
+    "name": "insert rejects non-integer indices without changing the model or DOM",
+    "status": "PASS"
+  },
+  {
+    "name": "moveFrom rejects non-integer indices without changing the model or DOM",
+    "status": "PASS"
+  },
+  {
+    "name": "moveTo rejects non-integer indices without changing the model or DOM",
+    "status": "PASS"
+  },
+  {
+    "name": "remove rejects non-integer indices without changing the model or DOM",
+    "status": "PASS"
+  },
+  {
+    "name": "convert rejects non-integer indices without changing the model or DOM",
+    "status": "PASS"
+  },
+  {
+    "name": "focus rejects non-integer indices without changing the model or DOM",
+    "status": "PASS"
+  },
+  {
+    "name": "inline widgets remain interactive after merge",
+    "status": "PASS"
+  },
+  {
+    "name": "inline widgets remain interactive after split",
+    "status": "PASS"
+  },
+  {
+    "name": "inline widgets remain interactive after convert",
+    "status": "PASS"
+  },
+  {
+    "name": "inline widgets remain interactive after insert",
+    "status": "PASS"
+  },
+  {
+    "name": "fresh inline insertion is hydrated once even when its command commits",
+    "status": "PASS"
+  },
+  {
+    "name": "recreated markup is hydrated despite a serialized data-hydrated attribute",
+    "status": "PASS"
+  },
+  {
+    "name": "built-in color popup still opens after merging paragraphs",
+    "status": "PASS"
+  },
+  {
+    "name": "logical positions count widgets once and preserve both sides of a BR",
+    "status": "PASS"
+  },
+  {
+    "name": "Delete at the end of a block containing a widget merges the next block",
+    "status": "PASS"
+  },
+  {
+    "name": "Backspace after a leading widget is not mistaken for the beginning of the block",
+    "status": "PASS"
+  },
+  {
+    "name": "undo restores the caret after BR rather than before it",
+    "status": "PASS"
+  },
+  {
+    "name": "focusing the end of a widget-only block never enters its noneditable label",
+    "status": "PASS"
+  },
+  {
+    "name": "retained block API cannot recreate resources after editor destruction",
+    "status": "PASS"
+  },
+  {
+    "name": "retained readers, block views and event subscriptions respect editor lifetime",
+    "status": "PASS"
+  },
+  {
+    "name": "composition Enter and legacy IME key events do not split a paragraph",
+    "status": "PASS"
+  },
+  {
+    "name": "composition lifecycle shields plugin handlers and resumes after completion",
+    "status": "PASS"
+  },
+  {
+    "name": "composition does not consume selected blocks or history shortcuts",
+    "status": "PASS"
+  },
+  {
+    "name": "composition state is scoped to one editor and released on mode changes",
+    "status": "PASS"
+  },
+  {
+    "name": "internal MIME preserves block tunes through paste, undo and redo",
+    "status": "PASS"
+  },
+  {
+    "name": "internal MIME ignores malformed tunes instead of corrupting block metadata",
+    "status": "PASS"
+  },
+  {
+    "name": "HTML-only transfer preserves selected paragraph boundaries",
+    "status": "PASS"
+  },
+  {
+    "name": "HTML export retains heading and quotation semantics without editor attributes",
+    "status": "PASS"
+  },
+  {
+    "name": "HTML export excludes plugin controls and keeps authored editable content",
+    "status": "PASS"
+  },
+  {
+    "name": "cross-block Cut preserves the document when both clipboard writes fail",
+    "status": "PASS"
+  },
+  {
+    "name": "cross-block Cut waits for a successful write and remains one undo step",
+    "status": "PASS"
+  },
+  {
+    "name": "cross-block Cut can fall back to plain text after rich write rejection",
+    "status": "PASS"
+  },
+  {
+    "name": "pending Cut is cancelled by input",
+    "status": "PASS"
+  },
+  {
+    "name": "pending Cut is cancelled by render",
+    "status": "PASS"
+  },
+  {
+    "name": "pending Cut is cancelled by selection",
+    "status": "PASS"
+  },
+  {
+    "name": "pending Cut is cancelled by destroy",
+    "status": "PASS"
+  },
+  {
+    "name": "native Cut without writable clipboardData does not delete selected blocks",
+    "status": "PASS"
+  }
+]
+recheck.html: [
+  {
+    "name": "Undo must notify onChange after a fully delivered edit",
+    "status": "PASS"
+  },
+  {
+    "name": "Redo must emit editor:changed and notify onChange",
+    "status": "PASS"
+  },
+  {
+    "name": "partial conversion failure leaves the entire original paragraph intact",
+    "status": "PASS"
+  },
+  {
+    "name": "multi-block conversion failure rolls back every converted block",
+    "status": "PASS"
+  },
+  {
+    "name": "removing the last block is atomic when the fallback plugin fails",
+    "status": "PASS"
+  },
+  {
+    "name": "mutation requested by a synchronous change observer invalidates its block cache",
+    "status": "PASS"
+  },
+  {
+    "name": "duplicating a Quote through its settings preserves custom tunes",
+    "status": "PASS"
+  },
+  {
+    "name": "rejected render disposes staged resources if capturing the current document fails",
+    "status": "PASS"
+  },
+  {
+    "name": "discarded inline callbacks cannot mutate a replacement with the same block ID",
+    "status": "PASS"
+  },
+  {
+    "name": "destroy publishes a non-ready editor before DESTROYED callbacks",
+    "status": "PASS"
+  },
+  {
+    "name": "destroy remains idempotent inside a destroyed-event observer",
+    "status": "PASS"
+  },
+  {
+    "name": "failed replacement does not emit phantom block additions",
+    "status": "PASS"
+  },
+  {
+    "name": "observers of failed insertion receive a document-restored notification",
+    "status": "PASS"
+  },
+  {
+    "name": "once subscriptions survive rolled-back events and fire on the next committed addition",
+    "status": "PASS"
+  },
+  {
+    "name": "validation diagnostics callback cannot invalidate otherwise-preservable content",
+    "status": "PASS"
+  },
+  {
+    "name": "R3-07 native auxiliary input should own Enter and text editing",
+    "status": "PASS"
+  },
+  {
+    "name": "R3-07 native auxiliary textarea should own Enter and text editing",
+    "status": "PASS"
+  },
+  {
+    "name": "R3-07 built-in Image URL field retains native Enter",
+    "status": "PASS"
+  },
+  {
+    "name": "R3-07 built-in Image URL field retains native paste",
+    "status": "PASS"
+  },
+  {
+    "name": "document-backed LinkPreview URL field delegates Undo without structural keys",
+    "status": "PASS"
+  },
+  {
+    "name": "document-backed Embed URL field restores a deleted player with Undo",
+    "status": "PASS"
+  },
+  {
+    "name": "R3-10 HTML clipboard exports meaningful image content",
+    "status": "PASS"
+  },
+  {
+    "name": "R3-10 HTML clipboard exports meaningful delimiter content",
+    "status": "PASS"
+  },
+  {
+    "name": "R3-10 HTML clipboard exports meaningful code content",
+    "status": "PASS"
+  },
+  {
+    "name": "R3-03 HTML clipboard wrappers preserve nested paragraph boundaries",
+    "status": "PASS"
+  },
+  {
+    "name": "transparent nested HTML wrappers preserve inline groups and routed lists",
+    "status": "PASS"
+  },
+  {
+    "name": "R3-04 history restores the caret in the correct empty table cell [\"\",\"B\"]",
+    "status": "PASS"
+  },
+  {
+    "name": "R3-04 history restores the caret in the correct empty table cell [\"A\",\"\"]",
+    "status": "PASS"
+  },
+  {
+    "name": "R3-02 unresolved inline metadata survives split",
+    "status": "PASS"
+  },
+  {
+    "name": "R3-02 unresolved inline metadata survives merge",
+    "status": "PASS"
+  },
+  {
+    "name": "R3-02 unresolved inline metadata survives convert",
+    "status": "PASS"
+  },
+  {
+    "name": "merging unresolved tokens with colliding IDs preserves both payloads",
+    "status": "PASS"
+  },
+  {
+    "name": "partial conversion carries unresolved tokens into both resulting blocks",
+    "status": "PASS"
+  },
+  {
+    "name": "R3-15 cross-block deletion ending inside quote caption preserves its suffix",
+    "status": "PASS"
+  },
+  {
+    "name": "R3-15 cross-block deletion from quote caption preserves earlier quote text",
+    "status": "PASS"
+  },
+  {
+    "name": "cross-block deletion retains fields following the end point",
+    "status": "PASS"
+  },
+  {
+    "name": "Enter replaces a native cross-block range as one undoable command",
+    "status": "PASS"
+  },
+  {
+    "name": "Enter replaces a forward mouse cross-block selection",
+    "status": "PASS"
+  },
+  {
+    "name": "Enter replaces a backward mouse cross-block selection",
+    "status": "PASS"
+  },
+  {
+    "name": "cross-block Enter from a quote caption does not move its earlier field",
+    "status": "PASS"
+  },
+  {
+    "name": "cross-block Enter retains fields following the selection endpoint",
+    "status": "PASS"
+  },
+  {
+    "name": "cross-block Enter rolls back the deletion if the new paragraph cannot render",
+    "status": "PASS"
+  },
+  {
+    "name": "Enter refuses a range extending outside the editor without inserting a block",
+    "status": "PASS"
+  },
+  {
+    "name": "multiline plain text places the original suffix after the final inserted paragraph",
+    "status": "PASS"
+  },
+  {
+    "name": "multiline plain text replaces the selection without moving its suffix before the pasted content",
+    "status": "PASS"
+  },
+  {
+    "name": "multiline plain text preserves formatting and unresolved widget data in the suffix",
+    "status": "PASS"
+  },
+  {
+    "name": "multiline plain text uses the active quote caption rather than the plugin wrapper",
+    "status": "PASS"
+  },
+  {
+    "name": "multiline HTML places the original suffix after the final inserted paragraph",
+    "status": "PASS"
+  },
+  {
+    "name": "multiline HTML replaces the selection without moving its suffix before the pasted content",
+    "status": "PASS"
+  },
+  {
+    "name": "multiline HTML preserves formatting and unresolved widget data in the suffix",
+    "status": "PASS"
+  },
+  {
+    "name": "multiline HTML uses the active quote caption rather than the plugin wrapper",
+    "status": "PASS"
+  },
+  {
+    "name": "HTML paste into an empty quote field leaves the other editable field and wrapper intact",
+    "status": "PASS"
+  },
+  {
+    "name": "multiline paste from a table cell preserves unselected neighboring cells",
+    "status": "PASS"
+  },
+  {
+    "name": "a routed heading followed by a paragraph is inserted between the prefix and suffix",
+    "status": "PASS"
+  },
+  {
+    "name": "a final routed media block keeps the original suffix in a separate paragraph",
+    "status": "PASS"
+  },
+  {
+    "name": "failed multiline paste restores the extracted suffix and the original document",
+    "status": "PASS"
+  },
+  {
+    "name": "single-line paste still inserts between the original prefix and suffix",
+    "status": "PASS"
+  },
+  {
+    "name": "Backspace merges every authored quote field and roundtrips through history",
+    "status": "PASS"
+  },
+  {
+    "name": "Delete merges every authored quote field and roundtrips through history",
+    "status": "PASS"
+  },
+  {
+    "name": "quote merge preserves live handlers and rich markup in the destination",
+    "status": "PASS"
+  },
+  {
+    "name": "Backspace merges every authored warning field and roundtrips through history",
+    "status": "PASS"
+  },
+  {
+    "name": "Delete merges every authored warning field and roundtrips through history",
+    "status": "PASS"
+  },
+  {
+    "name": "warning merge preserves live handlers and rich markup in the destination",
+    "status": "PASS"
+  },
+  {
+    "name": "Backspace merges every authored toggle field and roundtrips through history",
+    "status": "PASS"
+  },
+  {
+    "name": "Delete merges every authored toggle field and roundtrips through history",
+    "status": "PASS"
+  },
+  {
+    "name": "toggle merge preserves live handlers and rich markup in the destination",
+    "status": "PASS"
+  },
+  {
+    "name": "Backspace merges every authored spoiler field and roundtrips through history",
+    "status": "PASS"
+  },
+  {
+    "name": "Delete merges every authored spoiler field and roundtrips through history",
+    "status": "PASS"
+  },
+  {
+    "name": "spoiler merge preserves live handlers and rich markup in the destination",
+    "status": "PASS"
+  },
+  {
+    "name": "a Quote merge retains a caption when its incoming body is empty",
+    "status": "PASS"
+  },
+  {
+    "name": "Warning merge carries unresolved widgets from both incoming fields",
+    "status": "PASS"
+  },
+  {
+    "name": "render change observers read the new version and blocks as one state",
+    "status": "PASS"
+  },
+  {
+    "name": "a render requested by a change observer is not overwritten by the outer envelope",
+    "status": "PASS"
+  },
+  {
+    "name": "failed replacement restores both version and blocks without announcing success",
+    "status": "PASS"
+  },
+  {
+    "name": "a word separator survives split at 5, Undo/Redo and merge",
+    "status": "PASS"
+  },
+  {
+    "name": "a word separator survives split at 6, Undo/Redo and merge",
+    "status": "PASS"
+  },
+  {
+    "name": "ordinary word fragments still merge without an invented separator",
+    "status": "PASS"
+  },
+  {
+    "name": "save, render and read-only transitions preserve authored boundary whitespace",
+    "status": "PASS"
+  },
+  {
+    "name": "conversion between paragraph and heading preserves boundary separators",
+    "status": "PASS"
+  },
+  {
+    "name": "text input \"X\" replaces the full forward mouse selection",
+    "status": "PASS"
+  },
+  {
+    "name": "text input \"😀\" replaces the full forward mouse selection",
+    "status": "PASS"
+  },
+  {
+    "name": "text input \"<b>X</b>\" replaces the full forward mouse selection",
+    "status": "PASS"
+  },
+  {
+    "name": "text input \"X\" replaces the full backward mouse selection",
+    "status": "PASS"
+  },
+  {
+    "name": "text input \"😀\" replaces the full backward mouse selection",
+    "status": "PASS"
+  },
+  {
+    "name": "text input \"<b>X</b>\" replaces the full backward mouse selection",
+    "status": "PASS"
+  },
+  {
+    "name": "replacement text from input methods without keydown replaces the stored selection",
+    "status": "PASS"
+  },
+  {
+    "name": "text replacement starts in the actual Quote caption and preserves its main field",
+    "status": "PASS"
+  },
+  {
+    "name": "a native cross-block range receives the same atomic text replacement",
+    "status": "PASS"
+  },
+  {
+    "name": "single-host text input remains under native editing control",
+    "status": "PASS"
+  },
+  {
+    "name": "retained cross selections do not intercept input in a plugin form",
+    "status": "PASS"
+  },
+  {
+    "name": "composition and noncancelable input are not replaced as ordinary typed text",
+    "status": "PASS"
+  },
+  {
+    "name": "a failing input replacement restores the full selected document",
+    "status": "PASS"
+  },
+  {
+    "name": "pending selected-block image paste is cancelled after target edit",
+    "status": "PASS"
+  },
+  {
+    "name": "pending selected-block image paste is cancelled after target same-id-replacement",
+    "status": "PASS"
+  },
+  {
+    "name": "pending selected-block image paste is cancelled after target remove",
+    "status": "PASS"
+  },
+  {
+    "name": "pending selected-block image paste is cancelled after target selection",
+    "status": "PASS"
+  },
+  {
+    "name": "pending cross-range image paste is cancelled after endpoint-edit",
+    "status": "PASS"
+  },
+  {
+    "name": "pending cross-range image paste is cancelled after middle-edit",
+    "status": "PASS"
+  },
+  {
+    "name": "pending cross-range image paste is cancelled after insert-between",
+    "status": "PASS"
+  },
+  {
+    "name": "pending cross-range image paste is cancelled after selection",
+    "status": "PASS"
+  },
+  {
+    "name": "an unchanged selected-block target still replaces once and remains undoable",
+    "status": "PASS"
+  },
+  {
+    "name": "editing an unrelated block does not cancel a valid selected-block replacement",
+    "status": "PASS"
+  },
+  {
+    "name": "a non-replacing upload survives text entered into its nonempty anchor",
+    "status": "PASS"
+  },
+  {
+    "name": "a formerly empty anchor with a later whitespace edit is not replaced by an upload",
+    "status": "PASS"
+  },
+  {
+    "name": "quote Backspace merge keeps the next input at the field-local join",
+    "status": "PASS"
+  },
+  {
+    "name": "quote Delete merge keeps the next input at the field-local join",
+    "status": "PASS"
+  },
+  {
+    "name": "warning Backspace merge keeps the next input at the field-local join",
+    "status": "PASS"
+  },
+  {
+    "name": "warning Delete merge keeps the next input at the field-local join",
+    "status": "PASS"
+  },
+  {
+    "name": "toggle Backspace merge keeps the next input at the field-local join",
+    "status": "PASS"
+  },
+  {
+    "name": "toggle Delete merge keeps the next input at the field-local join",
+    "status": "PASS"
+  },
+  {
+    "name": "spoiler Backspace merge keeps the next input at the field-local join",
+    "status": "PASS"
+  },
+  {
+    "name": "spoiler Delete merge keeps the next input at the field-local join",
+    "status": "PASS"
+  },
+  {
+    "name": "append-only list Backspace merge stays at the end of its last preexisting item",
+    "status": "PASS"
+  },
+  {
+    "name": "append-only list Delete merge stays at the end of its last preexisting item",
+    "status": "PASS"
+  },
+  {
+    "name": "append-only checklist Backspace merge stays at the end of its last preexisting item",
+    "status": "PASS"
+  },
+  {
+    "name": "append-only checklist Delete merge stays at the end of its last preexisting item",
+    "status": "PASS"
+  },
+  {
+    "name": "a paragraph merge with inline markup retains its logical boundary",
+    "status": "PASS"
+  },
+  {
+    "name": "internal clipboard preserves an unregistered block as an opaque read-only block",
+    "status": "PASS"
+  },
+  {
+    "name": "copying Image to a limited editor keeps the image data instead of choosing a lossy HTML fallback",
+    "status": "PASS"
+  },
+  {
+    "name": "mixed known and unregistered clipboard blocks preserve order in one undo/redo step",
+    "status": "PASS"
+  },
+  {
+    "name": "opaque clipboard data remains usable after the missing plugin is registered by the recipient",
+    "status": "PASS"
+  },
+  {
+    "name": "opaque clipboard copies remap duplicate block IDs without merging their payloads",
+    "status": "PASS"
+  },
+  {
+    "name": "public insert still rejects an unregistered plugin rather than enabling opaque import implicitly",
+    "status": "PASS"
+  },
+  {
+    "name": "Image URL draft keeps producer revision, canonical data and history unchanged",
+    "status": "PASS"
+  },
+  {
+    "name": "submitting the Image URL draft still creates a real undoable document change",
+    "status": "PASS"
+  },
+  {
+    "name": "auxiliary input input does not invalidate its owning block",
+    "status": "PASS"
+  },
+  {
+    "name": "auxiliary textarea input does not invalidate its owning block",
+    "status": "PASS"
+  },
+  {
+    "name": "auxiliary select input does not invalidate its owning block",
+    "status": "PASS"
+  },
+  {
+    "name": "code document textarea still invalidates data and supports editor Undo",
+    "status": "PASS"
+  },
+  {
+    "name": "raw document textarea still invalidates data and supports editor Undo",
+    "status": "PASS"
+  },
+  {
+    "name": "embed URL history ownership does not turn draft input into a document change",
+    "status": "PASS"
+  },
+  {
+    "name": "linkPreview URL history ownership does not turn draft input into a document change",
+    "status": "PASS"
+  },
+  {
+    "name": "Person link inputs remain document-backed without delegating structural keys",
+    "status": "PASS"
+  },
+  {
+    "name": "quote: Backspace inside a later/earlier field does not merge past empty neighboring fields",
+    "status": "PASS"
+  },
+  {
+    "name": "quote: Delete inside a later/earlier field does not merge past empty neighboring fields",
+    "status": "PASS"
+  },
+  {
+    "name": "warning: Backspace inside a later/earlier field does not merge past empty neighboring fields",
+    "status": "PASS"
+  },
+  {
+    "name": "warning: Delete inside a later/earlier field does not merge past empty neighboring fields",
+    "status": "PASS"
+  },
+  {
+    "name": "toggle: Backspace inside a later/earlier field does not merge past empty neighboring fields",
+    "status": "PASS"
+  },
+  {
+    "name": "toggle: Delete inside a later/earlier field does not merge past empty neighboring fields",
+    "status": "PASS"
+  },
+  {
+    "name": "spoiler: Backspace inside a later/earlier field does not merge past empty neighboring fields",
+    "status": "PASS"
+  },
+  {
+    "name": "spoiler: Delete inside a later/earlier field does not merge past empty neighboring fields",
+    "status": "PASS"
+  },
+  {
+    "name": "navigation does not jump to another block from a non-boundary empty table cell",
+    "status": "PASS"
+  },
+  {
+    "name": "genuine first/last field boundaries still allow merging through empty edge fields",
+    "status": "PASS"
+  },
+  {
+    "name": "native cross-block selection: single-line text replaces the whole range without detached blocks",
+    "status": "PASS"
+  },
+  {
+    "name": "native cross-block selection: single paragraph HTML replaces the whole range without detached blocks",
+    "status": "PASS"
+  },
+  {
+    "name": "native cross-block selection: multiline text replaces the whole range without detached blocks",
+    "status": "PASS"
+  },
+  {
+    "name": "native cross-block selection: multiple HTML paragraphs replaces the whole range without detached blocks",
+    "status": "PASS"
+  },
+  {
+    "name": "native cross-block paste preserves the unselected caption after the end field",
+    "status": "PASS"
+  },
+  {
+    "name": "a paste whose selection ends outside its editor does not mutate either document",
+    "status": "PASS"
+  },
+  {
+    "name": "native cross-block paste rolls back the whole replacement if new text fails validation",
+    "status": "PASS"
+  },
+  {
+    "name": "a selection spanning two fields of one block cannot detach the field structure on paste",
+    "status": "PASS"
+  },
+  {
+    "name": "failed custom MIME paste restores a native cross-block range before text fallback",
+    "status": "PASS"
+  },
+  {
+    "name": "partial forward cross conversion transfers payloads and tunes to both endpoint fragments",
+    "status": "PASS"
+  },
+  {
+    "name": "partial backward cross conversion transfers payloads and tunes to both endpoint fragments",
+    "status": "PASS"
+  },
+  {
+    "name": "registered inline widgets and opaque widgets survive different endpoint fragments",
+    "status": "PASS"
+  },
+  {
+    "name": "non-text cross conversion preserves metadata on its unselected suffix",
+    "status": "PASS"
+  },
+  {
+    "name": "failed endpoint conversion rolls back the document with all opaque metadata intact",
+    "status": "PASS"
+  },
+  {
+    "name": "forward native cross-block conversion consumes each selected fragment exactly once",
+    "status": "PASS"
+  },
+  {
+    "name": "backward native cross-block conversion consumes each selected fragment exactly once",
+    "status": "PASS"
+  },
+  {
+    "name": "settings native cross-block conversion consumes each selected fragment exactly once",
+    "status": "PASS"
+  },
+  {
+    "name": "conversion refuses a range ending in another editor",
+    "status": "PASS"
+  },
+  {
+    "name": "conversion refuses a range ending in another editor with a colliding block ID",
+    "status": "PASS"
+  },
+  {
+    "name": "native partial cross conversion rolls back every endpoint on a render error",
+    "status": "PASS"
+  },
+  {
+    "name": "explicit whole-block selection is not replaced by a leftover single-field caret",
+    "status": "PASS"
+  },
+  {
+    "name": "partial heading conversion retains source schema on the prefix-selection remainder",
+    "status": "PASS"
+  },
+  {
+    "name": "partial heading conversion retains source schema on the middle-selection remainder",
+    "status": "PASS"
+  },
+  {
+    "name": "both unselected cross-block heading remainders keep their own schema",
+    "status": "PASS"
+  },
+  {
+    "name": "source remainder retains plugin-specific settings as well as opaque inline metadata",
+    "status": "PASS"
+  },
+  {
+    "name": "failure rendering a source remainder rolls back the complete conversion",
+    "status": "PASS"
+  },
+  {
+    "name": "inline insertion refuses cross-fields before changing document data or revision",
+    "status": "PASS"
+  },
+  {
+    "name": "inline insertion refuses wrapper before changing document data or revision",
+    "status": "PASS"
+  },
+  {
+    "name": "inline insertion cannot nest a new widget inside a noneditable existing widget",
+    "status": "PASS"
+  },
+  {
+    "name": "inline insertion in a valid caption survives save, undo and redo",
+    "status": "PASS"
+  },
+  {
+    "name": "inline insertion in a valid empty-cell survives save, undo and redo",
+    "status": "PASS"
+  },
+  {
+    "name": "fresh-insertion hooks are not called for a range outside one authored field",
+    "status": "PASS"
+  },
+  {
+    "name": "cross-block inline insertion does not delete or merge either block",
+    "status": "PASS"
+  },
+  {
+    "name": "splitBlock from a context retired by remove cannot edit another live block",
+    "status": "PASS"
+  },
+  {
+    "name": "exitEmptyBlock from a context retired by remove cannot edit another live block",
+    "status": "PASS"
+  },
+  {
+    "name": "splitBlock from a context retired by convert cannot edit another live block",
+    "status": "PASS"
+  },
+  {
+    "name": "exitEmptyBlock from a context retired by convert cannot edit another live block",
+    "status": "PASS"
+  },
+  {
+    "name": "splitBlock from a context retired by render cannot edit another live block",
+    "status": "PASS"
+  },
+  {
+    "name": "exitEmptyBlock from a context retired by render cannot edit another live block",
+    "status": "PASS"
+  },
+  {
+    "name": "splitBlock from a context retired by readOnly cannot edit another live block",
+    "status": "PASS"
+  },
+  {
+    "name": "exitEmptyBlock from a context retired by readOnly cannot edit another live block",
+    "status": "PASS"
+  },
+  {
+    "name": "live structural context still splits its active block and can be undone",
+    "status": "PASS"
+  },
+  {
+    "name": "live structural context still exits an empty non-default block",
+    "status": "PASS"
+  },
+  {
+    "name": "all retained context mutations are inert after editor destruction",
+    "status": "PASS"
+  },
+  {
+    "name": "document replacement cancels a pressed gesture even when every ID is reused",
+    "status": "PASS"
+  },
+  {
+    "name": "document replacement cancels a dragging gesture even when every ID is reused",
+    "status": "PASS"
+  },
+  {
+    "name": "a dragged block replaced by convert cannot move its new same-ID owner",
+    "status": "PASS"
+  },
+  {
+    "name": "a dragged block replaced by reinsert cannot move its new same-ID owner",
+    "status": "PASS"
+  },
+  {
+    "name": "ordinary drag remains one undoable move and survives replacement of an unrelated editor",
+    "status": "PASS"
+  },
+  {
+    "name": "destruction and read-only transitions remove active drag state",
+    "status": "PASS"
+  },
+  {
+    "name": "navigation focuses the populated start table field before restoring the caret",
+    "status": "PASS"
+  },
+  {
+    "name": "navigation focuses the empty start table field before restoring the caret",
+    "status": "PASS"
+  },
+  {
+    "name": "navigation focuses the populated end table field before restoring the caret",
+    "status": "PASS"
+  },
+  {
+    "name": "navigation focuses the empty end table field before restoring the caret",
+    "status": "PASS"
+  },
+  {
+    "name": "ArrowUp into Quote selects its empty caption end",
+    "status": "PASS"
+  },
+  {
+    "name": "ArrowUp into Quote selects its populated caption end",
+    "status": "PASS"
+  },
+  {
+    "name": "removing an empty following paragraph puts the caret in the preceding last cell",
+    "status": "PASS"
+  },
+  {
+    "name": "internal paste focuses the final field of a newly inserted table",
+    "status": "PASS"
+  },
+  {
+    "name": "Duplicate retains end-of-block focus in the last field of its new table",
+    "status": "PASS"
+  },
+  {
+    "name": "navigation to a paragraph still inserts after its existing text",
+    "status": "PASS"
+  },
+  {
+    "name": "old renderBlock results retain their actual styles until their last owner is destroyed",
+    "status": "PASS"
+  },
+  {
+    "name": "old render results retain their actual styles until their last owner is destroyed",
+    "status": "PASS"
+  },
+  {
+    "name": "old renderTo results retain their actual styles until their last owner is destroyed",
+    "status": "PASS"
+  },
+  {
+    "name": "several results from one retired renderer share ownership until the last result ends",
+    "status": "PASS"
+  },
+  {
+    "name": "incremental replacement releases old mounted CSS but not CSS needed by a detached result",
+    "status": "PASS"
+  },
+  {
+    "name": "failed replacement rendering cannot strip CSS from the previous live document",
+    "status": "PASS"
+  },
+  {
+    "name": "retired stylesheet references remain independent across renderer instances",
+    "status": "PASS"
+  },
+  {
+    "name": "manual styles stay explicitly owned when automatic injection is disabled",
+    "status": "PASS"
+  },
+  {
+    "name": "bold: removing formatting preserves an unselected before line break",
+    "status": "PASS"
+  },
+  {
+    "name": "bold: removing formatting preserves an unselected after line break",
+    "status": "PASS"
+  },
+  {
+    "name": "italic: removing formatting preserves an unselected before line break",
+    "status": "PASS"
+  },
+  {
+    "name": "italic: removing formatting preserves an unselected after line break",
+    "status": "PASS"
+  },
+  {
+    "name": "formatting across nested wrappers keeps non-text suffixes and their order",
+    "status": "PASS"
+  },
+  {
+    "name": "unbolding neighboring text preserves the built-in color indicator and live listener",
+    "status": "PASS"
+  },
+  {
+    "name": "empty-tag cleanup preserves icon-only widgets",
+    "status": "PASS"
+  },
+  {
+    "name": "empty-tag cleanup preserves icon-only widgets and enclosing formatting",
+    "status": "PASS"
+  },
+  {
+    "name": "unbolding text before an icon-only suffix preserves its atomic content",
+    "status": "PASS"
+  },
+  {
+    "name": "partial conversion preserves the live unselected prefix widget: {{w}}ABCD",
+    "status": "PASS"
+  },
+  {
+    "name": "partial conversion preserves the live unselected prefix widget: <em>{{w}}ABCD</em>",
+    "status": "PASS"
+  },
+  {
+    "name": "partial conversion preserves the live unselected prefix widget: {{w}}ABC",
+    "status": "PASS"
+  },
+  {
+    "name": "widgets in the selected fragment and the suffix hydrate while the prefix is retained",
+    "status": "PASS"
+  },
+  {
+    "name": "keydown: native cross-block deletion Backward replaces the entire range once",
+    "status": "PASS"
+  },
+  {
+    "name": "beforeinput: native cross-block deletion Backward replaces the entire range once",
+    "status": "PASS"
+  },
+  {
+    "name": "keydown: native cross-block deletion Forward replaces the entire range once",
+    "status": "PASS"
+  },
+  {
+    "name": "beforeinput: native cross-block deletion Forward replaces the entire range once",
+    "status": "PASS"
+  },
+  {
+    "name": "native deletion retains unselected quote fields after the endpoint",
+    "status": "PASS"
+  },
+  {
+    "name": "single-field and composing deletion remain native",
+    "status": "PASS"
+  },
+  {
+    "name": "popup closes when render replaces its widget owner",
+    "status": "PASS"
+  },
+  {
+    "name": "popup closes when undo replaces its widget owner",
+    "status": "PASS"
+  },
+  {
+    "name": "popup closes when remove replaces its widget owner",
+    "status": "PASS"
+  },
+  {
+    "name": "popup closes when convert replaces its widget owner",
+    "status": "PASS"
+  },
+  {
+    "name": "an unrelated edit and a live block move do not close a valid popup",
+    "status": "PASS"
+  },
+  {
+    "name": "detaching a popup anchor releases its cleanup exactly once",
+    "status": "PASS"
+  },
+  {
+    "name": "font sizing only changes selected text across adjacent styled spans",
+    "status": "PASS"
+  },
+  {
+    "name": "font sizing only changes selected text across nested styled spans",
+    "status": "PASS"
+  },
+  {
+    "name": "changing size preserves unselected siblings and unrelated background styling",
+    "status": "PASS"
+  },
+  {
+    "name": "font size in a single existing span leaves both unselected edges unchanged",
+    "status": "PASS"
+  },
+  {
+    "name": "script sup to none changes only the selected middle character",
+    "status": "PASS"
+  },
+  {
+    "name": "script sup to sub changes only the selected middle character",
+    "status": "PASS"
+  },
+  {
+    "name": "script sub to none changes only the selected middle character",
+    "status": "PASS"
+  },
+  {
+    "name": "script sub to sup changes only the selected middle character",
+    "status": "PASS"
+  },
+  {
+    "name": "script removal isolates text inside nested ordinary formatting",
+    "status": "PASS"
+  },
+  {
+    "name": "script removal clips both sides of a multi-wrapper selection",
+    "status": "PASS"
+  },
+  {
+    "name": "script removal clears nested script ancestors only for selected text",
+    "status": "PASS"
+  },
+  {
+    "name": "background application keeps the unselected edges colored",
+    "status": "PASS"
+  },
+  {
+    "name": "background removal keeps the unselected edges colored",
+    "status": "PASS"
+  },
+  {
+    "name": "background removal preserves other properties and formatting of nested selected text",
+    "status": "PASS"
+  },
+  {
+    "name": "removal clears all inherited background spans only in the selected fragment",
+    "status": "PASS"
+  },
+  {
+    "name": "removing background across spans clips both boundary wrappers",
+    "status": "PASS"
+  },
+  {
+    "name": "removing neighboring text background leaves an atomic color widget untouched",
+    "status": "PASS"
+  },
+  {
+    "name": "case transformation retains the full selected replacement for aßb",
+    "status": "PASS"
+  },
+  {
+    "name": "case transformation retains the full selected replacement for aﬃb",
+    "status": "PASS"
+  },
+  {
+    "name": "case transformation retains the full selected replacement for aİb",
+    "status": "PASS"
+  },
+  {
+    "name": "case transformation retains the full selected replacement for abcd",
+    "status": "PASS"
+  },
+  {
+    "name": "case expansion sums changes across differently formatted selected text nodes",
+    "status": "PASS"
+  },
+  {
+    "name": "case expansion after a widget preserves logical positions and its payload",
+    "status": "PASS"
+  },
+  {
+    "name": "case expansion respects distinct field offsets for a forward cross-block range",
+    "status": "PASS"
+  },
+  {
+    "name": "case expansion respects distinct field offsets for a backward cross-block range",
+    "status": "PASS"
+  },
+  {
+    "name": "deep comparison rejects NaN and null",
+    "status": "PASS"
+  },
+  {
+    "name": "deep comparison rejects missing and undefined",
+    "status": "PASS"
+  },
+  {
+    "name": "deep comparison rejects different maps",
+    "status": "PASS"
+  },
+  {
+    "name": "deep comparison rejects different sets",
+    "status": "PASS"
+  },
+  {
+    "name": "deep comparison rejects array holes",
+    "status": "PASS"
+  },
+  {
+    "name": "deep comparison rejects negative zero",
+    "status": "PASS"
+  },
+  {
+    "name": "deep comparison rejects typed arrays",
+    "status": "PASS"
+  },
+  {
+    "name": "deep comparison is independent of object key insertion order",
+    "status": "PASS"
+  },
+  {
+    "name": "deep comparison supports equal collections and cycles",
+    "status": "PASS"
+  },
+  {
+    "name": "Heading menu reports real expanded, checked and keyboard focus states",
+    "status": "PASS"
+  },
+  {
+    "name": "editable and read-only Spoiler disclosures match visible content",
+    "status": "PASS"
+  },
+  {
+    "name": "rendered Spoiler disclosure exposes its actual expanded state",
+    "status": "PASS"
+  },
+  {
+    "name": "Checklist pressed state follows saved checked state on real clicks",
+    "status": "PASS"
+  },
+  {
+    "name": "Image settings expose open, selection and pressed states of real controls",
+    "status": "PASS"
+  },
+  {
+    "name": "Gallery layout control reports the active saved layout after rerender",
+    "status": "PASS"
+  },
+  {
+    "name": "Person navigation renders localized accessible names and hides decorative icons",
+    "status": "PASS"
+  },
+  {
+    "name": "Embed player applies accessible labels to the actual play button and iframe",
+    "status": "PASS"
+  },
+  {
+    "name": "sanitizeHtml never constructs untrusted custom elements before sanitizing",
+    "status": "PASS"
+  },
+  {
+    "name": "parseInline never constructs untrusted custom elements before sanitizing",
+    "status": "PASS"
+  },
+  {
+    "name": "extractBlockElements never constructs untrusted custom elements before sanitizing",
+    "status": "PASS"
+  },
+  {
+    "name": "paste never constructs untrusted custom elements before sanitizing",
+    "status": "PASS"
+  },
+  {
+    "name": "font size overrides selected smaller size, including enclosed descendants",
+    "status": "PASS"
+  },
+  {
+    "name": "font size overrides selected larger size, including enclosed descendants",
+    "status": "PASS"
+  },
+  {
+    "name": "font size overrides selected nested style, including enclosed descendants",
+    "status": "PASS"
+  },
+  {
+    "name": "font size overrides selected container boundaries, including enclosed descendants",
+    "status": "PASS"
+  },
+  {
+    "name": "font size overrides selected unrelated formatting, including enclosed descendants",
+    "status": "PASS"
+  },
+  {
+    "name": "font sizing nested text keeps the unselected styled edges and background",
+    "status": "PASS"
+  },
+  {
+    "name": "font sizing surrounding text leaves atomic widget nodes and their own font size intact",
+    "status": "PASS"
+  },
+  {
+    "name": "Unlink changes authored links without unwrapping atomic widget links or losing handlers",
+    "status": "PASS"
+  },
+  {
+    "name": "a range containing only a widget link does not report authored link formatting",
+    "status": "PASS"
+  },
+  {
+    "name": "caret fallback ignores a hyperlink inside an atomic widget",
+    "status": "PASS"
+  },
+  {
+    "name": "ordinary link formatting still reports active and can be removed",
+    "status": "PASS"
+  },
+  {
+    "name": "file paste replaces a forward native cross-block selection atomically",
+    "status": "PASS"
+  },
+  {
+    "name": "file paste replaces a backward native cross-block selection atomically",
+    "status": "PASS"
+  },
+  {
+    "name": "pending native file replacement is cancelled after endpoint changes",
+    "status": "PASS"
+  },
+  {
+    "name": "pending native file replacement is cancelled after selection changes",
+    "status": "PASS"
+  },
+  {
+    "name": "pending native file replacement is cancelled after replacement changes",
+    "status": "PASS"
+  },
+  {
+    "name": "pending native file replacement is cancelled after insert-between changes",
+    "status": "PASS"
+  },
+  {
+    "name": "unrelated document edits do not cancel a still-current native range",
+    "status": "PASS"
+  },
+  {
+    "name": "native file replacement preserves unselected fields after a Quote endpoint",
+    "status": "PASS"
+  },
+  {
+    "name": "case decision for ABC uses authored text, not the widget label",
+    "status": "PASS"
+  },
+  {
+    "name": "case decision for ЖЖ uses authored text, not the widget label",
+    "status": "PASS"
+  },
+  {
+    "name": "case decision for abc uses authored text, not the widget label",
+    "status": "PASS"
+  },
+  {
+    "name": "case decision for AbC uses authored text, not the widget label",
+    "status": "PASS"
+  },
+  {
+    "name": "case decision for 123! uses authored text, not the widget label",
+    "status": "PASS"
+  },
+  {
+    "name": "a selection with only a color widget leaves its label and data untouched",
+    "status": "PASS"
+  },
+  {
+    "name": "case conversion preserves Unicode plain context and formatting",
+    "status": "PASS"
+  },
+  {
+    "name": "case conversion preserves Unicode preceding context across bold and formatting",
+    "status": "PASS"
+  },
+  {
+    "name": "case conversion preserves Unicode following context across bold and formatting",
+    "status": "PASS"
+  },
+  {
+    "name": "case conversion preserves Unicode both sides across bold and formatting",
+    "status": "PASS"
+  },
+  {
+    "name": "case conversion preserves Unicode case-ignorable mark and formatting",
+    "status": "PASS"
+  },
+  {
+    "name": "case conversion preserves Unicode punctuation ending and formatting",
+    "status": "PASS"
+  },
+  {
+    "name": "case conversion preserves Unicode expansion with context and formatting",
+    "status": "PASS"
+  },
+  {
+    "name": "case conversion preserves Unicode uppercase expansion and formatting",
+    "status": "PASS"
+  },
+  {
+    "name": "case conversion preserves Unicode line-break boundary and formatting",
+    "status": "PASS"
+  },
+  {
+    "name": "case context never joins text across an atomic widget",
+    "status": "PASS"
+  },
+  {
+    "name": "separate table fields remain separate Unicode context runs",
+    "status": "PASS"
+  },
+  {
+    "name": "partial case conversion keeps unselected text and selects the transformed logical run",
+    "status": "PASS"
+  },
+  {
+    "name": "bold does not unwrap a widget-owned b node or remove its listener",
+    "status": "PASS"
+  },
+  {
+    "name": "italic does not unwrap a widget-owned i node or remove its listener",
+    "status": "PASS"
+  },
+  {
+    "name": "strikethrough does not unwrap a widget-owned s node or remove its listener",
+    "status": "PASS"
+  },
+  {
+    "name": "code does not unwrap a widget-owned code node or remove its listener",
+    "status": "PASS"
+  },
+  {
+    "name": "marker does not unwrap a widget-owned mark node or remove its listener",
+    "status": "PASS"
+  },
+  {
+    "name": "tag state and mutations ignore a selection inside an atomic widget",
+    "status": "PASS"
+  },
+  {
+    "name": "Backspace merges an icon-only paragraph without losing its payload: {{w}}",
+    "status": "PASS"
+  },
+  {
+    "name": "Backspace merges an icon-only paragraph without losing its payload: <em>{{w}}</em>",
+    "status": "PASS"
+  },
+  {
+    "name": "Delete merges an icon-only paragraph without losing its payload: {{w}}",
+    "status": "PASS"
+  },
+  {
+    "name": "Delete merges an icon-only paragraph without losing its payload: <em>{{w}}</em>",
+    "status": "PASS"
+  },
+  {
+    "name": "Delete cannot discard a heading whose only authored content is an inline widget",
+    "status": "PASS"
+  },
+  {
+    "name": "Delete cannot discard a quote whose only authored content is an inline widget",
+    "status": "PASS"
+  },
+  {
+    "name": "Delete cannot discard a warning whose only authored content is an inline widget",
+    "status": "PASS"
+  },
+  {
+    "name": "Delete cannot discard a toggle whose only authored content is an inline widget",
+    "status": "PASS"
+  },
+  {
+    "name": "Delete cannot discard a spoiler whose only authored content is an inline widget",
+    "status": "PASS"
+  },
+  {
+    "name": "Delete cannot discard a list whose only authored content is an inline widget",
+    "status": "PASS"
+  },
+  {
+    "name": "Delete cannot discard a checklist whose only authored content is an inline widget",
+    "status": "PASS"
+  },
+  {
+    "name": "image URL paste inserts after an icon-only paragraph instead of replacing it",
+    "status": "PASS"
+  },
+  {
+    "name": "a completed image upload does not replace an unchanged icon-only paragraph",
+    "status": "PASS"
+  },
+  {
+    "name": "empty placeholder deletion retains its existing policy: \"\"",
+    "status": "PASS"
+  },
+  {
+    "name": "empty placeholder deletion retains its existing policy: \" \"",
+    "status": "PASS"
+  },
+  {
+    "name": "empty placeholder deletion retains its existing policy: \"<br>\"",
+    "status": "PASS"
+  },
+  {
+    "name": "failed export through API preserves source data and never renders an empty target",
+    "status": "PASS"
+  },
+  {
+    "name": "failed export through menu preserves source data and never renders an empty target",
+    "status": "PASS"
+  },
+  {
+    "name": "failed export leaves the previous redo branch available",
+    "status": "PASS"
+  },
+  {
+    "name": "multi-block conversion rolls back a successful target when a later export fails",
+    "status": "PASS"
+  },
+  {
+    "name": "successful conversion transfers saved content with exportData present",
+    "status": "PASS"
+  },
+  {
+    "name": "successful conversion transfers saved content with exportData absent",
+    "status": "PASS"
+  },
+  {
+    "name": "copy honors the full forward native Range",
+    "status": "PASS"
+  },
+  {
+    "name": "cut honors the full forward native Range",
+    "status": "PASS"
+  },
+  {
+    "name": "copy honors the full backward native Range",
+    "status": "PASS"
+  },
+  {
+    "name": "cut honors the full backward native Range",
+    "status": "PASS"
+  },
+  {
+    "name": "native cross-range Cut without a writable clipboard leaves content intact",
+    "status": "PASS"
+  },
+  {
+    "name": "a clipboard write exception prevents the native cross-range Cut deletion",
+    "status": "PASS"
+  },
+  {
+    "name": "native cross-range Cut preserves unselected Quote fields",
+    "status": "PASS"
+  },
+  {
+    "name": "explicit block selection takes precedence over a leftover native cross-range",
+    "status": "PASS"
+  },
+  {
+    "name": "single-field Cut remains a native clipboard operation",
+    "status": "PASS"
+  },
+  {
+    "name": "copy does not export a cross-editor Range as an owned block range",
+    "status": "PASS"
+  },
+  {
+    "name": "automatic pattern replacement retains the paste boundary: one color",
+    "status": "PASS"
+  },
+  {
+    "name": "automatic pattern replacement retains the paste boundary: two colors",
+    "status": "PASS"
+  },
+  {
+    "name": "automatic pattern replacement retains the paste boundary: middle paste",
+    "status": "PASS"
+  },
+  {
+    "name": "automatic pattern replacement retains the paste boundary: multiline paste",
+    "status": "PASS"
+  },
+  {
+    "name": "automatic pattern replacement retains the paste boundary: terminal color",
+    "status": "PASS"
+  },
+  {
+    "name": "automatic pattern replacement retains the paste boundary: suffix also contains a color",
+    "status": "PASS"
+  },
+  {
+    "name": "HTML paste retains its boundary after a color in nested formatting",
+    "status": "PASS"
+  },
+  {
+    "name": "automatic patterns preserve the active Quote caption rather than its earlier field",
+    "status": "PASS"
+  },
+  {
+    "name": "space-triggered pattern conversion still places the caret after the generated space",
+    "status": "PASS"
+  },
+  {
+    "name": "paste without patterns keeps its original suffix boundary",
+    "status": "PASS"
+  },
+  {
+    "name": "plain paste normalizes LF with adjacent lines before the empty-line policy",
+    "status": "PASS"
+  },
+  {
+    "name": "plain paste normalizes LF with blank middle line before the empty-line policy",
+    "status": "PASS"
+  },
+  {
+    "name": "plain paste normalizes LF with leading and trailing empty lines before the empty-line policy",
+    "status": "PASS"
+  },
+  {
+    "name": "plain paste normalizes CRLF with adjacent lines before the empty-line policy",
+    "status": "PASS"
+  },
+  {
+    "name": "plain paste normalizes CRLF with blank middle line before the empty-line policy",
+    "status": "PASS"
+  },
+  {
+    "name": "plain paste normalizes CRLF with leading and trailing empty lines before the empty-line policy",
+    "status": "PASS"
+  },
+  {
+    "name": "plain paste normalizes CR with adjacent lines before the empty-line policy",
+    "status": "PASS"
+  },
+  {
+    "name": "plain paste normalizes CR with blank middle line before the empty-line policy",
+    "status": "PASS"
+  },
+  {
+    "name": "plain paste normalizes CR with leading and trailing empty lines before the empty-line policy",
+    "status": "PASS"
+  },
+  {
+    "name": "mixed newline conventions produce the same sequence of paragraphs",
+    "status": "PASS"
+  },
+  {
+    "name": "CRLF selection replacement deletes only selected characters and keeps its suffix",
+    "status": "PASS"
+  },
+  {
+    "name": "newline normalization does not reinterpret plain markup as HTML",
+    "status": "PASS"
+  },
+  {
+    "name": "newline-only text keeps the existing no-content paste behavior",
+    "status": "PASS"
+  },
+  {
+    "name": "HTML table import preserves every cell: colspan",
+    "status": "PASS"
+  },
+  {
+    "name": "HTML table import preserves every cell: header colspan",
+    "status": "PASS"
+  },
+  {
+    "name": "HTML table import preserves every cell: rowspan",
+    "status": "PASS"
+  },
+  {
+    "name": "HTML table import preserves every cell: combined spans",
+    "status": "PASS"
+  },
+  {
+    "name": "HTML table import preserves every cell: zero rowspan respects groups",
+    "status": "PASS"
+  },
+  {
+    "name": "HTML table import preserves every cell: short rows padded without truncation",
+    "status": "PASS"
+  },
+  {
+    "name": "HTML table import preserves every cell: ordinary rectangular cells",
+    "status": "PASS"
+  },
+  {
+    "name": "HTML table import preserves every cell: rich content",
+    "status": "PASS"
+  },
+  {
+    "name": "HTML table import preserves every cell: nested table is not duplicated into outer rows",
+    "status": "PASS"
+  },
+  {
+    "name": "table span expansion is bounded before changing a selected document",
+    "status": "PASS"
+  },
+  {
+    "name": "Table Enter refuses other-cell before mutating either document",
+    "status": "PASS"
+  },
+  {
+    "name": "Table Enter refuses other-row before mutating either document",
+    "status": "PASS"
+  },
+  {
+    "name": "Table Enter refuses outside-editor before mutating either document",
+    "status": "PASS"
+  },
+  {
+    "name": "Table Enter replaces only selected text within a cell and is undoable",
+    "status": "PASS"
+  },
+  {
+    "name": "Table Shift+Enter refuses other-cell before mutating either document",
+    "status": "PASS"
+  },
+  {
+    "name": "Table Shift+Enter refuses other-row before mutating either document",
+    "status": "PASS"
+  },
+  {
+    "name": "Table Shift+Enter refuses outside-editor before mutating either document",
+    "status": "PASS"
+  },
+  {
+    "name": "Table Shift+Enter replaces only selected text within a cell and is undoable",
+    "status": "PASS"
+  },
+  {
+    "name": "Table insertParagraph refuses other-cell before mutating either document",
+    "status": "PASS"
+  },
+  {
+    "name": "Table insertParagraph refuses other-row before mutating either document",
+    "status": "PASS"
+  },
+  {
+    "name": "Table insertParagraph refuses outside-editor before mutating either document",
+    "status": "PASS"
+  },
+  {
+    "name": "Table insertParagraph replaces only selected text within a cell and is undoable",
+    "status": "PASS"
+  },
+  {
+    "name": "Table insertLineBreak refuses other-cell before mutating either document",
+    "status": "PASS"
+  },
+  {
+    "name": "Table insertLineBreak refuses other-row before mutating either document",
+    "status": "PASS"
+  },
+  {
+    "name": "Table insertLineBreak refuses outside-editor before mutating either document",
+    "status": "PASS"
+  },
+  {
+    "name": "Table insertLineBreak replaces only selected text within a cell and is undoable",
+    "status": "PASS"
+  },
+  {
+    "name": "Table Enter at a wrapper boundary does not put a BR between cells",
+    "status": "PASS"
+  },
+  {
+    "name": "empty paste leaves single selection, data, revision and history unchanged",
+    "status": "PASS"
+  },
+  {
+    "name": "only LF paste leaves single selection, data, revision and history unchanged",
+    "status": "PASS"
+  },
+  {
+    "name": "only CRLF paste leaves single selection, data, revision and history unchanged",
+    "status": "PASS"
+  },
+  {
+    "name": "empty internal array paste leaves single selection, data, revision and history unchanged",
+    "status": "PASS"
+  },
+  {
+    "name": "invalid internal JSON paste leaves single selection, data, revision and history unchanged",
+    "status": "PASS"
+  },
+  {
+    "name": "only HTML metadata paste leaves single selection, data, revision and history unchanged",
+    "status": "PASS"
+  },
+  {
+    "name": "empty paste leaves cross selection, data, revision and history unchanged",
+    "status": "PASS"
+  },
+  {
+    "name": "only LF paste leaves cross selection, data, revision and history unchanged",
+    "status": "PASS"
+  },
+  {
+    "name": "only CRLF paste leaves cross selection, data, revision and history unchanged",
+    "status": "PASS"
+  },
+  {
+    "name": "empty internal array paste leaves cross selection, data, revision and history unchanged",
+    "status": "PASS"
+  },
+  {
+    "name": "invalid internal JSON paste leaves cross selection, data, revision and history unchanged",
+    "status": "PASS"
+  },
+  {
+    "name": "only HTML metadata paste leaves cross selection, data, revision and history unchanged",
+    "status": "PASS"
+  },
+  {
+    "name": "empty paste leaves whole selection, data, revision and history unchanged",
+    "status": "PASS"
+  },
+  {
+    "name": "only LF paste leaves whole selection, data, revision and history unchanged",
+    "status": "PASS"
+  },
+  {
+    "name": "only CRLF paste leaves whole selection, data, revision and history unchanged",
+    "status": "PASS"
+  },
+  {
+    "name": "empty internal array paste leaves whole selection, data, revision and history unchanged",
+    "status": "PASS"
+  },
+  {
+    "name": "invalid internal JSON paste leaves whole selection, data, revision and history unchanged",
+    "status": "PASS"
+  },
+  {
+    "name": "only HTML metadata paste leaves whole selection, data, revision and history unchanged",
+    "status": "PASS"
+  },
+  {
+    "name": "unusable HTML uses plain text fallback before replacing a cross-block selection",
+    "status": "PASS"
+  },
+  {
+    "name": "a rejected routed HTML payload falls back without creating an empty block",
+    "status": "PASS"
+  },
+  {
+    "name": "non-text routed content is still a usable paste and its parser runs once",
+    "status": "PASS"
+  },
+  {
+    "name": "plain whitespace is authored text, not an empty clipboard",
+    "status": "PASS"
+  },
+  {
+    "name": "Columns native forward text paste replaces the same complete range",
+    "status": "PASS"
+  },
+  {
+    "name": "Columns native forward HTML paste replaces the same complete range",
+    "status": "PASS"
+  },
+  {
+    "name": "Columns native backward text paste replaces the same complete range",
+    "status": "PASS"
+  },
+  {
+    "name": "Columns native backward HTML paste replaces the same complete range",
+    "status": "PASS"
+  },
+  {
+    "name": "Columns mouse forward text paste replaces the same complete range",
+    "status": "PASS"
+  },
+  {
+    "name": "Columns mouse forward HTML paste replaces the same complete range",
+    "status": "PASS"
+  },
+  {
+    "name": "Columns mouse backward text paste replaces the same complete range",
+    "status": "PASS"
+  },
+  {
+    "name": "Columns mouse backward HTML paste replaces the same complete range",
+    "status": "PASS"
+  },
+  {
+    "name": "a nested inline target in a Column has its nearest editable host honored",
+    "status": "PASS"
+  },
+  {
+    "name": "nested noneditable widget content is not treated as an authored paste host",
+    "status": "PASS"
+  },
+  {
+    "name": "Image URL draft input retains native paste even inside a block",
+    "status": "PASS"
+  },
+  {
+    "name": "partial forward copy transfers opaque inline data and only selected text",
+    "status": "PASS"
+  },
+  {
+    "name": "partial forward cut transfers opaque inline data and only selected text",
+    "status": "PASS"
+  },
+  {
+    "name": "partial backward copy transfers opaque inline data and only selected text",
+    "status": "PASS"
+  },
+  {
+    "name": "partial backward cut transfers opaque inline data and only selected text",
+    "status": "PASS"
+  },
+  {
+    "name": "fragment transfer disambiguates the same inline ID from different blocks and literal lookalikes",
+    "status": "PASS"
+  },
+  {
+    "name": "opaque fragment paste keeps destination metadata, prefix and suffix",
+    "status": "PASS"
+  },
+  {
+    "name": "recipient with a newly registered inline plugin hydrates the pasted fragment",
+    "status": "PASS"
+  },
+  {
+    "name": "Cut keeps the source when the required fragment write throws",
+    "status": "PASS"
+  },
+  {
+    "name": "Cut keeps the source when the required fragment write is silently discarded",
+    "status": "PASS"
+  },
+  {
+    "name": "opaque keyboard Cut delegates to a native event rather than a lossy async text write",
+    "status": "PASS"
+  },
+  {
+    "name": "fragment insertion rollback preserves the destination on validation failure",
+    "status": "PASS"
+  },
+  {
+    "name": "opaque transfer does not capture token-like attributes or unselected references",
+    "status": "PASS"
+  },
+  {
+    "name": "Backspace merge preserves a literal token beside a transferred reference",
+    "status": "PASS"
+  },
+  {
+    "name": "Delete merge preserves a literal token beside a transferred reference",
+    "status": "PASS"
+  },
+  {
+    "name": "multiline plain paste does not bind its literal token to the original suffix",
+    "status": "PASS"
+  },
+  {
+    "name": "multiline html paste does not bind its literal token to the original suffix",
+    "status": "PASS"
+  },
+  {
+    "name": "a literal token does not turn into a second live color after merge and reload",
+    "status": "PASS"
+  },
+  {
+    "name": "literal tokens nested in author formatting reserve their IDs during merge",
+    "status": "PASS"
+  },
+  {
+    "name": "token-like attributes are not text references and do not force remapping",
+    "status": "PASS"
+  },
+  {
+    "name": "two real references with the same source ID still stay independent",
+    "status": "PASS"
+  },
+  {
+    "name": "single-field forward copy transfers only referenced opaque data",
+    "status": "PASS"
+  },
+  {
+    "name": "single-field forward cut transfers only referenced opaque data",
+    "status": "PASS"
+  },
+  {
+    "name": "single-field backward copy transfers only referenced opaque data",
+    "status": "PASS"
+  },
+  {
+    "name": "single-field backward cut transfers only referenced opaque data",
+    "status": "PASS"
+  },
+  {
+    "name": "single-field copy preserves live color and formatting at the recipient",
+    "status": "PASS"
+  },
+  {
+    "name": "single-field cut preserves live color and formatting at the recipient",
+    "status": "PASS"
+  },
+  {
+    "name": "single-field Cut preserves neighboring quote fields and their data",
+    "status": "PASS"
+  },
+  {
+    "name": "single-field Cut preserves neighboring table fields and their data",
+    "status": "PASS"
+  },
+  {
+    "name": "single-field Cut keeps its source after missing clipboard",
+    "status": "PASS"
+  },
+  {
+    "name": "single-field Cut keeps its source after silent discard",
+    "status": "PASS"
+  },
+  {
+    "name": "single-field Cut keeps its source after throw",
+    "status": "PASS"
+  },
+  {
+    "name": "single-field Cut rolls back when the remaining document fails validation",
+    "status": "PASS"
+  },
+  {
+    "name": "single-field fragment insertion rolls back rather than using a lossy fallback",
+    "status": "PASS"
+  },
+  {
+    "name": "copying a token from inside a styled ancestor keeps the selected formatting",
+    "status": "PASS"
+  },
+  {
+    "name": "a token-like literal without metadata stays literal through single-field copy",
+    "status": "PASS"
+  },
+  {
+    "name": "form input Copy/Cut does not use a stale editor selection",
+    "status": "PASS"
+  },
+  {
+    "name": "whole-block Cut preserves opaque data when mandatory write outcome is drop",
+    "status": "PASS"
+  },
+  {
+    "name": "whole-block Cut preserves opaque data when mandatory write outcome is alter",
+    "status": "PASS"
+  },
+  {
+    "name": "whole-block Cut preserves opaque data when mandatory write outcome is throw",
+    "status": "PASS"
+  },
+  {
+    "name": "whole-block Cut preserves opaque data when mandatory write outcome is success",
+    "status": "PASS"
+  },
+  {
+    "name": "color Cancel restores exact #ff000080",
+    "status": "PASS"
+  },
+  {
+    "name": "color Cancel restores exact #ff000080 after preview",
+    "status": "PASS"
+  },
+  {
+    "name": "color Cancel restores exact rgba(12, 34, 56, 0.25)",
+    "status": "PASS"
+  },
+  {
+    "name": "color Cancel restores exact rgba(12, 34, 56, 0.25) after preview",
+    "status": "PASS"
+  },
+  {
+    "name": "color Cancel restores exact hsla(120, 100%, 50%, 0.3)",
+    "status": "PASS"
+  },
+  {
+    "name": "color Cancel restores exact hsla(120, 100%, 50%, 0.3) after preview",
+    "status": "PASS"
+  },
+  {
+    "name": "color Cancel restores exact #123456",
+    "status": "PASS"
+  },
+  {
+    "name": "color Cancel restores exact #123456 after preview",
+    "status": "PASS"
+  },
+  {
+    "name": "color Cancel restores exact rebeccapurple",
+    "status": "PASS"
+  },
+  {
+    "name": "color Cancel restores exact rebeccapurple after preview",
+    "status": "PASS"
+  },
+  {
+    "name": "transparent color Apply preserves alpha and undoes to the exact original value",
+    "status": "PASS"
+  },
+  {
+    "name": "soft break replaces the full native range via keyboard",
+    "status": "PASS"
+  },
+  {
+    "name": "soft break replaces the full mouse range via keyboard",
+    "status": "PASS"
+  },
+  {
+    "name": "soft break replaces the full native range via beforeinput",
+    "status": "PASS"
+  },
+  {
+    "name": "soft break replaces the full mouse range via beforeinput",
+    "status": "PASS"
+  },
+  {
+    "name": "soft break retains the unselected caption of the end block",
+    "status": "PASS"
+  },
+  {
+    "name": "failed soft-break serialization rolls the whole range replacement back",
+    "status": "PASS"
+  },
+  {
+    "name": "table refuses unsupported multi-field insertText before mutating any field",
+    "status": "PASS"
+  },
+  {
+    "name": "table refuses unsupported multi-field deleteContentBackward before mutating any field",
+    "status": "PASS"
+  },
+  {
+    "name": "table refuses unsupported multi-field deleteContentForward before mutating any field",
+    "status": "PASS"
+  },
+  {
+    "name": "quote refuses unsupported multi-field insertText before mutating any field",
+    "status": "PASS"
+  },
+  {
+    "name": "quote refuses unsupported multi-field deleteContentBackward before mutating any field",
+    "status": "PASS"
+  },
+  {
+    "name": "quote refuses unsupported multi-field deleteContentForward before mutating any field",
+    "status": "PASS"
+  },
+  {
+    "name": "columns refuses unsupported multi-field insertText before mutating any field",
+    "status": "PASS"
+  },
+  {
+    "name": "columns refuses unsupported multi-field deleteContentBackward before mutating any field",
+    "status": "PASS"
+  },
+  {
+    "name": "columns refuses unsupported multi-field deleteContentForward before mutating any field",
+    "status": "PASS"
+  },
+  {
+    "name": "table Backspace refuses a multi-cell range before key default",
+    "status": "PASS"
+  },
+  {
+    "name": "table Delete refuses a multi-cell range before key default",
+    "status": "PASS"
+  },
+  {
+    "name": "single-cell text editing stays native rather than becoming a no-op",
+    "status": "PASS"
+  },
+  {
+    "name": "destroy cancels delayed mobile toolbox return",
+    "status": "PASS"
+  },
+  {
+    "name": "read-only transition does not resurrect toolbar after block removal animation",
+    "status": "PASS"
+  },
+  {
+    "name": "toolbar waits for every concurrent block removal before repositioning",
+    "status": "PASS"
+  },
+  {
+    "name": "shared inline range helpers stay in the range owning realm",
+    "status": "PASS"
+  },
+  {
+    "name": "script tool state and actions use the selection owning realm",
+    "status": "PASS"
+  },
+  {
+    "name": "align tool resolves blocks and action UI through the selection owning realm",
+    "status": "PASS"
+  },
+  {
+    "name": "clear formatting reads and restores selection from the range owning realm",
+    "status": "PASS"
+  },
+  {
+    "name": "case transform preserves backward selection in the range owning realm",
+    "status": "PASS"
+  },
+  {
+    "name": "background color picker uses the mounted toolbar realm",
+    "status": "PASS"
+  },
+  {
+    "name": "inline color widget picker never constructs UI in the ambient document",
+    "status": "PASS"
+  },
+  {
+    "name": "link actions apply in the selection owning realm",
+    "status": "PASS"
+  },
+  {
+    "name": "plain-text paste inserts at the caret in the owning realm",
+    "status": "PASS"
+  },
+  {
+    "name": "HTML paste inserts into the owning document selection",
+    "status": "PASS"
+  },
+  {
+    "name": "partial cross-block conversion creates ranges in the editor owning document",
+    "status": "PASS"
+  },
+  {
+    "name": "list editing uses the block owning selection realm",
+    "status": "PASS"
+  },
+  {
+    "name": "checklist editing uses the block owning selection realm",
+    "status": "PASS"
+  },
+  {
+    "name": "table line breaks use the table owning selection and element realm",
+    "status": "PASS"
+  },
+  {
+    "name": "quote field navigation reads activeElement from the block owning document",
+    "status": "PASS"
+  },
+  {
+    "name": "poll option removal restores selection through the block owning window",
+    "status": "PASS"
+  },
+  {
+    "name": "renderTo creates built-in DOM, inline fragments and automatic styles in the target document",
+    "status": "PASS"
+  },
+  {
+    "name": "carousel renderTo falls back without borrowing the ambient carousel realm",
+    "status": "PASS"
+  },
+  {
+    "name": "gallery renderTo opens its lightbox in the target document",
+    "status": "PASS"
+  },
+  {
+    "name": "multi-person renderTo stays native in a foreign renderer realm",
+    "status": "PASS"
+  },
+  {
+    "name": "public inline metadata is observed once before rehydration",
+    "status": "PASS"
+  },
+  {
+    "name": "complex built-in block plugins create and schedule DOM in the editor owning document",
+    "status": "PASS"
+  },
+  {
+    "name": "local image file readers stay in the block owning window",
+    "status": "PASS"
+  },
+  {
+    "name": "carousel local video URLs use and release the block owning URL realm",
+    "status": "PASS"
+  },
+  {
+    "name": "person avatar upload in a foreign realm avoids the ambient cropper dialog",
+    "status": "PASS"
+  },
+  {
+    "name": "embed Vimeo preview fetch stays in the block owning window",
+    "status": "PASS"
+  },
+  {
+    "name": "image settings DOM, observers and outside-click listeners stay in the wrapper owning realm",
+    "status": "PASS"
+  },
+  {
+    "name": "block toolbar lifecycle and outside-click handling stay in the editor owning realm",
+    "status": "PASS"
+  },
+  {
+    "name": "inline toolbar construction does not borrow the ambient document",
+    "status": "PASS"
+  },
+  {
+    "name": "raw and text sanitizers do not borrow the ambient document",
+    "status": "PASS"
+  },
+  {
+    "name": "editor history and change debounce use the editor owning window timers",
+    "status": "PASS"
+  },
+  {
+    "name": "clipboard beforeinput consumes the selection from the editor owning realm",
+    "status": "PASS"
+  },
+  {
+    "name": "clipboard leaves iframe form-control copy to the native control",
+    "status": "PASS"
+  },
+  {
+    "name": "HTML paste routing parses elements in the supplied owning realm",
+    "status": "PASS"
+  },
+  {
+    "name": "renderer executes snapshotted custom renderer methods",
+    "status": "PASS"
+  },
+  {
+    "name": "renderer executes snapshotted inline plugin methods",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll renderer executes snapshotted runtime adapter methods",
+    "status": "PASS"
+  },
+  {
+    "name": "editor import rejects non-finite producer revisions",
+    "status": "PASS"
+  },
+  {
+    "name": "Raw deferred resize is inert after destroy",
+    "status": "PASS"
+  },
+  {
+    "name": "Raw preview load callback is inert after destroy",
+    "status": "PASS"
+  },
+  {
+    "name": "Embed queued autofocus is inert after destroy",
+    "status": "PASS"
+  },
+  {
+    "name": "LinkPreview queued autofocus is inert after destroy",
+    "status": "PASS"
+  },
+  {
+    "name": "validation during a command checkpoint cannot mutate or tear down the public editor",
+    "status": "PASS"
+  },
+  {
+    "name": "renderer disposal is reentrant and exactly once in the real DOM",
+    "status": "PASS"
+  },
+  {
+    "name": "async renderer validation preserves source identity across aggregate renders",
+    "status": "PASS"
+  },
+  {
+    "name": "editor and renderer accept foreign JSON (deep signature)",
+    "status": "PASS"
+  },
+  {
+    "name": "editor and renderer accept foreign JSON (revision)",
+    "status": "PASS"
+  },
+  {
+    "name": "Undo and Redo reject public mutations from plugin reconstruction",
+    "status": "PASS"
+  },
+  {
+    "name": "automatic inline patterns leave pasted Code source literal",
+    "status": "PASS"
+  },
+  {
+    "name": "automatic inline patterns do not convert plugin labels or locked descendants",
+    "status": "PASS"
+  },
+  {
+    "name": "keyboard patterns require a block inline serialization contract",
+    "status": "PASS"
+  },
+  {
+    "name": "moving focus away from a slash session cannot erase the next block on Enter",
+    "status": "PASS"
+  },
+  {
+    "name": "retained slash menu items cannot convert a replacement with the same block id",
+    "status": "PASS"
+  },
+  {
+    "name": "retained slash pointer item is inert after reopen",
+    "status": "PASS"
+  },
+  {
+    "name": "retained slash pointer item is inert after filter",
+    "status": "PASS"
+  },
+  {
+    "name": "retained slash pointer item is inert after keyboard redraw",
+    "status": "PASS"
+  },
+  {
+    "name": "closed type menu cannot convert through a retained item",
+    "status": "PASS"
+  },
+  {
+    "name": "reopened type menu rejects old items but its current items still convert",
+    "status": "PASS"
+  },
+  {
+    "name": "read-only teardown revokes type-menu callbacks and queued autofocus",
+    "status": "PASS"
+  },
+  {
+    "name": "slash Escape in a quote preserves both fields and unrelated caption text",
+    "status": "PASS"
+  },
+  {
+    "name": "slash insertion from a caption preserves the quote and stays one undoable command",
+    "status": "PASS"
+  },
+  {
+    "name": "slash command in a table cell preserves the cell matrix",
+    "status": "PASS"
+  },
+  {
+    "name": "slash Escape removes a query across formatting without touching another field",
+    "status": "PASS"
+  },
+  {
+    "name": "popup cleanup invalidates a pending replacement through destroy",
+    "status": "PASS"
+  },
+  {
+    "name": "popup cleanup invalidates a pending replacement through readonly",
+    "status": "PASS"
+  },
+  {
+    "name": "popup cleanup invalidates a pending replacement through detach",
+    "status": "PASS"
+  },
+  {
+    "name": "popup opened by cleanup remains the only owned popup and closes normally",
+    "status": "PASS"
+  },
+  {
+    "name": "async popup cleanup rejection is contained without interrupting replacement",
+    "status": "PASS"
+  },
+  {
+    "name": "retired Link panel cannot apply to or close a newly opened panel",
+    "status": "PASS"
+  },
+  {
+    "name": "Link controls retained across read-only reconstruction cannot change the document",
+    "status": "PASS"
+  },
+  {
+    "name": "retired onMount mutation context cannot act on a newly reconstructed selection",
+    "status": "PASS"
+  },
+  {
+    "name": "retired heading controls cannot edit an old block while current controls preserve undo/redo",
+    "status": "PASS"
+  },
+  {
+    "name": "heading control callbacks retained across read-only reconstruction are inert",
+    "status": "PASS"
+  },
+  {
+    "name": "block controls preserve newer DOM ownership across reentrant group cleanup",
+    "status": "PASS"
+  },
+  {
+    "name": "nested renderer calls keep independent inline placeholder cursors",
+    "status": "PASS"
+  },
+  {
+    "name": "nested deserialization failure preserves a token without retrying its factory",
+    "status": "PASS"
+  },
+  {
+    "name": "closed block settings items cannot delete the document after reopening",
+    "status": "PASS"
+  },
+  {
+    "name": "block settings actions never target a newly focused or reconstructed block",
+    "status": "PASS"
+  },
+  {
+    "name": "settings drilldown retires main-view handlers without breaking conversion or undo",
+    "status": "PASS"
+  },
+  {
+    "name": "read-only teardown retires block settings controls and queued menu focus",
+    "status": "PASS"
+  },
+  {
+    "name": "native controls and locked descendants cannot complete a pattern at a stale text selection",
+    "status": "PASS"
+  },
+  {
+    "name": "nested controls cannot open an inline trigger from a stale text selection",
+    "status": "PASS"
+  },
+  {
+    "name": "auxiliary fields nested in a block retain native history without changing editor stacks",
+    "status": "PASS"
+  },
+  {
+    "name": "explicit document-backed fields continue to use editor Undo and Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "toolbox focused block items activate by Enter and Space with Undo and Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "toolbox search keeps Space as text but Enter chooses the visible result",
+    "status": "PASS"
+  },
+  {
+    "name": "toolbox inline item activates by keyboard and remains undoable",
+    "status": "PASS"
+  },
+  {
+    "name": "read-only locks root native fields and restores editable controls on transition",
+    "status": "PASS"
+  },
+  {
+    "name": "read-only prevents native checkbox activation in root and nested controls",
+    "status": "PASS"
+  },
+  {
+    "name": "explicitly interactive root buttons remain usable in read-only mode",
+    "status": "PASS"
+  },
+  {
+    "name": "a block plugin shortcut neither mutates nor consumes keys in another block type",
+    "status": "PASS"
+  },
+  {
+    "name": "equal shortcuts resolve per block type and produce one undoable mutation",
+    "status": "PASS"
+  },
+  {
+    "name": "a content plugin using Mod+Z cannot displace editor Undo",
+    "status": "PASS"
+  },
+  {
+    "name": "mode reconstruction does not duplicate block shortcut handlers",
+    "status": "PASS"
+  },
+  {
+    "name": "gallery local application failure rejects waitForPaste and clears loading",
+    "status": "PASS"
+  },
+  {
+    "name": "gallery local dropped-file failure is observed without unhandledrejection",
+    "status": "PASS"
+  },
+  {
+    "name": "gallery remote application failure rejects waitForPaste and clears loading",
+    "status": "PASS"
+  },
+  {
+    "name": "gallery remote dropped-file failure is observed without unhandledrejection",
+    "status": "PASS"
+  },
+  {
+    "name": "image local application failure is contained and clears loading",
+    "status": "PASS"
+  },
+  {
+    "name": "image remote application failure is contained and clears loading",
+    "status": "PASS"
+  },
+  {
+    "name": "authored token next to a new color survives save/load and history",
+    "status": "PASS"
+  },
+  {
+    "name": "authored token next to a loaded color survives save/load and history",
+    "status": "PASS"
+  },
+  {
+    "name": "quote text literal cannot become a sibling field's color",
+    "status": "PASS"
+  },
+  {
+    "name": "quote caption literal cannot become a sibling field's color",
+    "status": "PASS"
+  },
+  {
+    "name": "deleting a hydrated widget cannot resurrect its old payload through authored text",
+    "status": "PASS"
+  },
+  {
+    "name": "opaque unknown references retain data and become widgets when their plugin returns",
+    "status": "PASS"
+  },
+  {
+    "name": "a merged live widget does not leave an opaque payload behind after deletion",
+    "status": "PASS"
+  },
+  {
+    "name": "registered plugin hydration failure keeps its opaque payload beside a new live widget",
+    "status": "PASS"
+  },
+  {
+    "name": "a colliding widget keeps its saved ID across edits without render or undo",
+    "status": "PASS"
+  },
+  {
+    "name": "a no-op plugin mutation after a collision does not consume an Undo step",
+    "status": "PASS"
+  },
+  {
+    "name": "cross-block live widget copy forward preserves data (recipient plugin=false)",
+    "status": "PASS"
+  },
+  {
+    "name": "cross-block live widget copy forward preserves data (recipient plugin=true)",
+    "status": "PASS"
+  },
+  {
+    "name": "cross-block live widget cut forward preserves data (recipient plugin=false)",
+    "status": "PASS"
+  },
+  {
+    "name": "cross-block live widget cut forward preserves data (recipient plugin=true)",
+    "status": "PASS"
+  },
+  {
+    "name": "cross-block live widget copy backward preserves data (recipient plugin=false)",
+    "status": "PASS"
+  },
+  {
+    "name": "cross-block live widget copy backward preserves data (recipient plugin=true)",
+    "status": "PASS"
+  },
+  {
+    "name": "cross-block live widget cut backward preserves data (recipient plugin=false)",
+    "status": "PASS"
+  },
+  {
+    "name": "cross-block live widget cut backward preserves data (recipient plugin=true)",
+    "status": "PASS"
+  },
+  {
+    "name": "cross-block live widget Cut keeps its source when fragment write is discard",
+    "status": "PASS"
+  },
+  {
+    "name": "cross-block live widget Cut keeps its source when fragment write is throw",
+    "status": "PASS"
+  },
+  {
+    "name": "cross-block live widgets with colliding IDs stay distinct from a selected literal",
+    "status": "PASS"
+  },
+  {
+    "name": "cross-block plain fragment does not export a live widget outside the selection",
+    "status": "PASS"
+  },
+  {
+    "name": "attaches local failed upload application is observed and retry remains undoable",
+    "status": "PASS"
+  },
+  {
+    "name": "attaches remote failed upload application is observed and retry remains undoable",
+    "status": "PASS"
+  },
+  {
+    "name": "attaches completed remote upload cannot outlive its removed block",
+    "status": "PASS"
+  },
+  {
+    "name": "carousel local failed upload application is observed and retry remains undoable",
+    "status": "PASS"
+  },
+  {
+    "name": "carousel remote failed upload application is observed and retry remains undoable",
+    "status": "PASS"
+  },
+  {
+    "name": "carousel completed remote upload cannot outlive its removed block",
+    "status": "PASS"
+  },
+  {
+    "name": "carousel event-started paste observes errors without swallowing waitForPaste rejection",
+    "status": "PASS"
+  },
+  {
+    "name": "carousel preserve accepts a positive submillisecond delay without save/load drift",
+    "status": "PASS"
+  },
+  {
+    "name": "carousel strict accepts a positive submillisecond delay without save/load drift",
+    "status": "PASS"
+  },
+  {
+    "name": "carousel preserve settings keep a submillisecond delay positive and undoable",
+    "status": "PASS"
+  },
+  {
+    "name": "carousel strict settings keep a submillisecond delay positive and undoable",
+    "status": "PASS"
+  },
+  {
+    "name": "carousel delay settings \"1\" retain the positive-value contract",
+    "status": "PASS"
+  },
+  {
+    "name": "carousel delay settings \"1.9\" retain the positive-value contract",
+    "status": "PASS"
+  },
+  {
+    "name": "carousel delay settings \"1000.9\" retain the positive-value contract",
+    "status": "PASS"
+  },
+  {
+    "name": "carousel delay settings \"0\" retain the positive-value contract",
+    "status": "PASS"
+  },
+  {
+    "name": "carousel delay settings \"-1\" retain the positive-value contract",
+    "status": "PASS"
+  },
+  {
+    "name": "carousel delay settings \"\" retain the positive-value contract",
+    "status": "PASS"
+  },
+  {
+    "name": "link preview URL application failure is observed (metadata=false)",
+    "status": "PASS"
+  },
+  {
+    "name": "link preview URL application failure is observed (metadata=true)",
+    "status": "PASS"
+  },
+  {
+    "name": "replacing a link preview cancels metadata and rejects its stale result",
+    "status": "PASS"
+  },
+  {
+    "name": "a failed automatic metadata update does not start a rollback request loop",
+    "status": "PASS"
+  },
+  {
+    "name": "Undo of automatic metadata enrichment is not reversed by another automatic fetch",
+    "status": "PASS"
+  },
+  {
+    "name": "source form replacement remains cached instead of duplicating a connected surface",
+    "status": "PASS"
+  },
+  {
+    "name": "source forms staged off-DOM are reused before the block is mounted",
+    "status": "PASS"
+  },
+  {
+    "name": "replacing source forms does not accumulate owning-lifecycle abort listeners",
+    "status": "PASS"
+  },
+  {
+    "name": "moving a cached form outside its owner does not reuse the foreign surface",
+    "status": "PASS"
+  },
+  {
+    "name": "replacement form submits once and stale controls cannot submit after replacement",
+    "status": "PASS"
+  },
+  {
+    "name": "URL and HTML source forms remain independent across replacement and cancellation",
+    "status": "PASS"
+  },
+  {
+    "name": "file picker is removed even when the selected-file callback throws",
+    "status": "PASS"
+  },
+  {
+    "name": "file picker ignores a queued change after cancel",
+    "status": "PASS"
+  },
+  {
+    "name": "file picker ignores a queued change after abort",
+    "status": "PASS"
+  },
+  {
+    "name": "file picker delivers one selection only once, including a reentrant change",
+    "status": "PASS"
+  },
+  {
+    "name": "empty file selection closes without invoking the application",
+    "status": "PASS"
+  },
+  {
+    "name": "an already cancelled picker never mounts or invokes its callback",
+    "status": "PASS"
+  },
+  {
+    "name": "public embed renderTo builds its entire player in the container owning document",
+    "status": "PASS"
+  },
+  {
+    "name": "foreign embed play callback retains the correct document after player adoption",
+    "status": "PASS"
+  },
+  {
+    "name": "direct embed renderer honors an explicit ownerDocument and preserves the caption",
+    "status": "PASS"
+  },
+  {
+    "name": "same-document embed still plays once with its sandbox and accessible title",
+    "status": "PASS"
+  },
+  {
+    "name": "gallery controls retired by destroy cannot reopen an unowned lightbox",
+    "status": "PASS"
+  },
+  {
+    "name": "gallery controls retired by replace cannot reopen an unowned lightbox",
+    "status": "PASS"
+  },
+  {
+    "name": "code copy control retired by destroy cannot overwrite the clipboard",
+    "status": "PASS"
+  },
+  {
+    "name": "code copy control retired by replace cannot overwrite the clipboard",
+    "status": "PASS"
+  },
+  {
+    "name": "attachment ZIP control retired by destroy cannot start downloads",
+    "status": "PASS"
+  },
+  {
+    "name": "attachment ZIP control retired by replace cannot start downloads",
+    "status": "PASS"
+  },
+  {
+    "name": "Table load preserves all cells: later row wider than the first",
+    "status": "PASS"
+  },
+  {
+    "name": "Table load preserves all cells: widest middle row",
+    "status": "PASS"
+  },
+  {
+    "name": "Table load preserves all cells: empty leading row",
+    "status": "PASS"
+  },
+  {
+    "name": "Table load preserves all cells: already rectangular",
+    "status": "PASS"
+  },
+  {
+    "name": "Table load preserves all cells: short later row",
+    "status": "PASS"
+  },
+  {
+    "name": "Table loading an uneven grid retains a widget in a wider row",
+    "status": "PASS"
+  },
+  {
+    "name": "Table editor and preserve-mode renderer retain the same repaired grid",
+    "status": "PASS"
+  },
+  {
+    "name": "Table repaired overflow cells remain editable and undoable in preserve mode",
+    "status": "PASS"
+  },
+  {
+    "name": "Table repaired overflow cells remain editable and undoable in strict mode",
+    "status": "PASS"
+  },
+  {
+    "name": "Table empty input still produces the default editable grid",
+    "status": "PASS"
+  },
+  {
+    "name": "Carousel legacy HTML uses the render target document during normalization",
+    "status": "PASS"
+  },
+  {
+    "name": "Carousel valid HTML uses the render target document during normalization",
+    "status": "PASS"
+  },
+  {
+    "name": "Person avatar action still opens the cropper without Trusted Types enforcement",
+    "status": "PASS"
+  },
+  {
+    "name": "code Shift+Tab removes a full indentation unit with caret at column 0",
+    "status": "PASS"
+  },
+  {
+    "name": "code Shift+Tab removes a full indentation unit with caret at column 1",
+    "status": "PASS"
+  },
+  {
+    "name": "code Shift+Tab removes a full indentation unit with caret at column 4",
+    "status": "PASS"
+  },
+  {
+    "name": "code Shift+Tab dedents the whole final selected line, not only the prefix before selectionEnd",
+    "status": "PASS"
+  },
+  {
+    "name": "code Shift+Tab at an empty first line does not change the next line",
+    "status": "PASS"
+  },
+  {
+    "name": "code Shift+Tab at a following line start leaves the preceding line unchanged",
+    "status": "PASS"
+  },
+  {
+    "name": "raw Shift+Tab removes a full indentation unit with caret at column 0",
+    "status": "PASS"
+  },
+  {
+    "name": "raw Shift+Tab removes a full indentation unit with caret at column 1",
+    "status": "PASS"
+  },
+  {
+    "name": "raw Shift+Tab removes a full indentation unit with caret at column 2",
+    "status": "PASS"
+  },
+  {
+    "name": "raw Shift+Tab dedents the whole final selected line, not only the prefix before selectionEnd",
+    "status": "PASS"
+  },
+  {
+    "name": "raw Shift+Tab at an empty first line does not change the next line",
+    "status": "PASS"
+  },
+  {
+    "name": "raw Shift+Tab at a following line start leaves the preceding line unchanged",
+    "status": "PASS"
+  },
+  {
+    "name": "Embed rejects a local cover without retaining its Blob URL until editor destruction",
+    "status": "PASS"
+  },
+  {
+    "name": "Embed failed replacement preserves the last accepted local cover and its history",
+    "status": "PASS"
+  },
+  {
+    "name": "Embed rejects a provider preview resolved after its timeout even when the adapter ignores abort",
+    "status": "PASS"
+  },
+  {
+    "name": "Embed accepts a provider preview that resolves before timeout without modifying document history",
+    "status": "PASS"
+  },
+  {
+    "name": "Embed replacement aborts its old preview and rejects late adapter output",
+    "status": "PASS"
+  },
+  {
+    "name": "Embed direct renderer disposal prevents playback and retires its Play control",
+    "status": "PASS"
+  },
+  {
+    "name": "Embed direct renderer disposal stops playback and retires its Play control",
+    "status": "PASS"
+  },
+  {
+    "name": "Embed replacement retires the old Play button but leaves the new player usable",
+    "status": "PASS"
+  },
+  {
+    "name": "Embed renderer destroy releases playback in a fragment mounted by the consumer",
+    "status": "PASS"
+  },
+  {
+    "name": "Person preserve preserves an unnamed profile containing only role",
+    "status": "PASS"
+  },
+  {
+    "name": "Person preserve preserves an unnamed profile containing only bio",
+    "status": "PASS"
+  },
+  {
+    "name": "Person preserve preserves an unnamed profile containing only links",
+    "status": "PASS"
+  },
+  {
+    "name": "Person strict preserves an unnamed profile containing only role",
+    "status": "PASS"
+  },
+  {
+    "name": "Person strict preserves an unnamed profile containing only bio",
+    "status": "PASS"
+  },
+  {
+    "name": "Person strict preserves an unnamed profile containing only links",
+    "status": "PASS"
+  },
+  {
+    "name": "Person first edit in role survives Undo and Redo without entering a name",
+    "status": "PASS"
+  },
+  {
+    "name": "Person first edit in bio survives Undo and Redo without entering a name",
+    "status": "PASS"
+  },
+  {
+    "name": "Person deleting the name retains biography and link data",
+    "status": "PASS"
+  },
+  {
+    "name": "Person first social link survives history before any name is entered",
+    "status": "PASS"
+  },
+  {
+    "name": "Person an entirely empty profile remains empty",
+    "status": "PASS"
+  },
+  {
+    "name": "Person additional empty tabs remain structural document state",
+    "status": "PASS"
+  },
+  {
+    "name": "code Tab leaves the unselected following line intact (forward)",
+    "status": "PASS"
+  },
+  {
+    "name": "code Tab leaves the unselected following line intact (backward)",
+    "status": "PASS"
+  },
+  {
+    "name": "code Tab selects the indented range starting with an empty first line (forward)",
+    "status": "PASS"
+  },
+  {
+    "name": "code Tab selects the indented range starting with an empty first line (backward)",
+    "status": "PASS"
+  },
+  {
+    "name": "code Tab preserves backward multiline selection direction",
+    "status": "PASS"
+  },
+  {
+    "name": "code Tab still inserts one indentation unit at a collapsed caret",
+    "status": "PASS"
+  },
+  {
+    "name": "raw Tab leaves the unselected following line intact (forward)",
+    "status": "PASS"
+  },
+  {
+    "name": "raw Tab leaves the unselected following line intact (backward)",
+    "status": "PASS"
+  },
+  {
+    "name": "raw Tab selects the indented range starting with an empty first line (forward)",
+    "status": "PASS"
+  },
+  {
+    "name": "raw Tab selects the indented range starting with an empty first line (backward)",
+    "status": "PASS"
+  },
+  {
+    "name": "raw Tab preserves backward multiline selection direction",
+    "status": "PASS"
+  },
+  {
+    "name": "raw Tab still inserts one indentation unit at a collapsed caret",
+    "status": "PASS"
+  },
+  {
+    "name": "list Enter before an icon-only item preserves its payload (1 items)",
+    "status": "PASS"
+  },
+  {
+    "name": "list Enter after an icon-only item preserves its payload (1 items)",
+    "status": "PASS"
+  },
+  {
+    "name": "list Enter before an icon-only item preserves its payload (2 items)",
+    "status": "PASS"
+  },
+  {
+    "name": "list Enter after an icon-only item preserves its payload (2 items)",
+    "status": "PASS"
+  },
+  {
+    "name": "list Enter before an icon-only item preserves its payload (3 items)",
+    "status": "PASS"
+  },
+  {
+    "name": "list Enter after an icon-only item preserves its payload (3 items)",
+    "status": "PASS"
+  },
+  {
+    "name": "list Enter still exits a genuinely empty single item",
+    "status": "PASS"
+  },
+  {
+    "name": "checklist Enter before an icon-only item preserves its payload (1 items)",
+    "status": "PASS"
+  },
+  {
+    "name": "checklist Enter after an icon-only item preserves its payload (1 items)",
+    "status": "PASS"
+  },
+  {
+    "name": "checklist Enter before an icon-only item preserves its payload (2 items)",
+    "status": "PASS"
+  },
+  {
+    "name": "checklist Enter after an icon-only item preserves its payload (2 items)",
+    "status": "PASS"
+  },
+  {
+    "name": "checklist Enter before an icon-only item preserves its payload (3 items)",
+    "status": "PASS"
+  },
+  {
+    "name": "checklist Enter after an icon-only item preserves its payload (3 items)",
+    "status": "PASS"
+  },
+  {
+    "name": "checklist Enter still exits a genuinely empty single item",
+    "status": "PASS"
+  },
+  {
+    "name": "list Enter replaces a forward range starting in \"\"",
+    "status": "PASS"
+  },
+  {
+    "name": "list Enter replaces a backward range starting in \"\"",
+    "status": "PASS"
+  },
+  {
+    "name": "list Enter replaces a forward range starting in \"<br>\"",
+    "status": "PASS"
+  },
+  {
+    "name": "list Enter replaces a backward range starting in \"<br>\"",
+    "status": "PASS"
+  },
+  {
+    "name": "checklist Enter replaces a forward range starting in \"\"",
+    "status": "PASS"
+  },
+  {
+    "name": "checklist Enter replaces a backward range starting in \"\"",
+    "status": "PASS"
+  },
+  {
+    "name": "checklist Enter replaces a forward range starting in \"<br>\"",
+    "status": "PASS"
+  },
+  {
+    "name": "checklist Enter replaces a backward range starting in \"<br>\"",
+    "status": "PASS"
+  },
+  {
+    "name": "Columns import with 1-1 retains overflow text and atomic data",
+    "status": "PASS"
+  },
+  {
+    "name": "Columns renderer preserve normalization with 1-1 retains the same overflow as the editor",
+    "status": "PASS"
+  },
+  {
+    "name": "Columns import with 1-1-1 retains overflow text and atomic data",
+    "status": "PASS"
+  },
+  {
+    "name": "Columns renderer preserve normalization with 1-1-1 retains the same overflow as the editor",
+    "status": "PASS"
+  },
+  {
+    "name": "Columns import with invalid retains overflow text and atomic data",
+    "status": "PASS"
+  },
+  {
+    "name": "Columns renderer preserve normalization with invalid retains the same overflow as the editor",
+    "status": "PASS"
+  },
+  {
+    "name": "Columns layout reduction keeps imported overflow through Undo and Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Columns strict renderer rejects a layout/count mismatch instead of normalizing it",
+    "status": "PASS"
+  },
+  {
+    "name": "list does not consume Enter owned by a nested input",
+    "status": "PASS"
+  },
+  {
+    "name": "list does not consume Backspace owned by a nested input",
+    "status": "PASS"
+  },
+  {
+    "name": "list does not consume Enter owned by a nested textarea",
+    "status": "PASS"
+  },
+  {
+    "name": "list does not consume Backspace owned by a nested textarea",
+    "status": "PASS"
+  },
+  {
+    "name": "checklist does not consume Enter owned by a nested input",
+    "status": "PASS"
+  },
+  {
+    "name": "checklist does not consume Backspace owned by a nested input",
+    "status": "PASS"
+  },
+  {
+    "name": "checklist does not consume Enter owned by a nested textarea",
+    "status": "PASS"
+  },
+  {
+    "name": "checklist does not consume Backspace owned by a nested textarea",
+    "status": "PASS"
+  },
+  {
+    "name": "table does not consume Enter owned by an inline native control",
+    "status": "PASS"
+  },
+  {
+    "name": "table does not consume Tab owned by an inline native control",
+    "status": "PASS"
+  },
+  {
+    "name": "table does not consume beforeinput owned by an inline native control",
+    "status": "PASS"
+  }
+]
+{"enterScenario":{"beforeBold":{"blocks":[{"id":"alTGQF","html":"First","text":"First"},{"id":"uSYRkB","html":"Second","text":"Second"},{"id":"9BGEYt","html":"Third","text":"Third"}],"active":"<p class=\"oe-paragraph\" contenteditable=\"true\">Third</p>"},"afterBold":{"blocks":[{"id":"alTGQF","html":"First","text":"First"},{"id":"uSYRkB","html":"Second","text":"Second"},{"id":"9BGEYt","html":"<b>Third</b>","text":"Third"}],"active":"<p class=\"oe-paragraph\" contenteditable=\"true\"><b>Third</b></p>"},"afterUndo":{"blocks":[{"id":"alTGQF","html":"First","text":"First"},{"id":"uSYRkB","html":"Second","text":"Second"},{"id":"9BGEYt","html":"Third","text":"Third"}],"active":"<p class=\"oe-paragraph\" contenteditable=\"true\">Third</p>"},"afterRedo":{"blocks":[{"id":"alTGQF","html":"First","text":"First"},{"id":"uSYRkB","html":"Second","text":"Second"},{"id":"9BGEYt","html":"<b>Third</b>","text":"Third"}],"active":"<p class=\"oe-paragraph\" contenteditable=\"true\"><b>Third</b></p>"},"afterRemoveBold":{"blocks":[{"id":"alTGQF","html":"First","text":"First"},{"id":"uSYRkB","html":"Second","text":"Second"},{"id":"9BGEYt","html":"Third","text":"Third"}],"active":"<p class=\"oe-paragraph\" contenteditable=\"true\">Third</p>"},"afterUndoRemoval":{"blocks":[{"id":"alTGQF","html":"First","text":"First"},{"id":"uSYRkB","html":"Second","text":"Second"},{"id":"9BGEYt","html":"<b>Third</b>","text":"Third"}],"active":"<p class=\"oe-paragraph\" contenteditable=\"true\"><b>Third</b></p>"}},"toolboxScenario":{"toolboxBeforeBold":{"blocks":[{"id":"3xptTZ","html":"Base","text":"Base"},{"id":"iIFCP1","html":"AddedOne","text":"AddedOne"},{"id":"mlzkJj","html":"AddedTwo","text":"AddedTwo"}],"active":"<p class=\"oe-paragraph\" contenteditable=\"true\">AddedTwo</p>"},"toolboxAfterImmediateUndo":{"blocks":[{"id":"3xptTZ","html":"Base","text":"Base"},{"id":"iIFCP1","html":"AddedOne","text":"AddedOne"},{"id":"mlzkJj","html":"AddedTwo","text":"AddedTwo"}],"active":"<p class=\"oe-paragraph\" contenteditable=\"true\">AddedTwo</p>"},"deleteLastImmediateUndo":{"blocks":[{"id":"3xptTZ","html":"Base","text":"Base"},{"id":"iIFCP1","html":"AddedOne","text":"AddedOne"},{"id":"mlzkJj","html":"AddedTwo","text":"AddedTwo"}],"active":"<p class=\"oe-paragraph\" contenteditable=\"true\">AddedTwo</p>"},"deleteLastRedo":{"blocks":[{"id":"3xptTZ","html":"Base","text":"Base"},{"id":"iIFCP1","html":"AddedOne","text":"AddedOne"}],"active":"<p class=\"oe-paragraph\" contenteditable=\"true\">AddedOne</p>"},"deleteLastUndoAgain":{"blocks":[{"id":"3xptTZ","html":"Base","text":"Base"},{"id":"iIFCP1","html":"AddedOne","text":"AddedOne"},{"id":"mlzkJj","html":"AddedTwo","text":"AddedTwo"}],"active":"<p class=\"oe-paragraph\" contenteditable=\"true\">AddedTwo</p>"},"deleteMiddle":{"blocks":[{"id":"3xptTZ","html":"Base","text":"Base"},{"id":"mlzkJj","html":"AddedTwo","text":"AddedTwo"}],"active":"<p class=\"oe-paragraph\" contenteditable=\"true\">AddedTwo</p>"},"deleteMiddleUndo":{"blocks":[{"id":"3xptTZ","html":"Base","text":"Base"},{"id":"iIFCP1","html":"AddedOne","text":"AddedOne"},{"id":"mlzkJj","html":"AddedTwo","text":"AddedTwo"}],"active":"<p class=\"oe-paragraph\" contenteditable=\"true\">AddedTwo</p>"},"inlineAfterDeleteUndo":{"blocks":[{"id":"3xptTZ","html":"Base","text":"Base"},{"id":"iIFCP1","html":"AddedOne","text":"AddedOne"},{"id":"mlzkJj","html":"AddedTwo","text":"AddedTwo"}],"active":"<p class=\"oe-paragraph\" contenteditable=\"true\">AddedTwo</p>"}},"historyMatrix":{"historyCases":["typing","split block","insert","sequential insert","toolbar sequential insert","move","convert","remove","clear","public render","sequential inline formatting","partial cross-block conversion","structured endpoint cross-block conversion","ordered partial list conversion","unordered partial list conversion","partial list conversion to a non-text block","slash command caret positioning","slash block insertion after existing text","inline block duplicate"],"pasteCases":["plain text paste","HTML paste","internal block paste","malformed internal MIME fallback","plain/HTML multi-block paste + inline undo","global RegExp inline paste","internal inline block paste","file paste","file paste (data URL)","gallery file paste","gallery file paste (data URL)","slow file paste with concurrent edit"],"pluginPasteRoutes":["heading tag paste","list tag paste","quote tag paste","code tag paste","table tag paste","image pattern paste","embed pattern paste","link preview pattern paste"],"pluginCommandCases":["raw Tab","raw multiline Shift+Tab","code Tab","list item split","list selected range replacement","list empty last item exit","single empty list exit","checklist toggle","checklist empty last item exit","checklist selected range replacement","checklist nested Backspace merge","single empty checklist exit","table line break","quote focus navigation","rapid toggle ordering","columns layout","poll add option","image delete","gallery remove image","carousel remove slide","attachment remove","link preview delete","embed delete","person add"],"inlineCases":["inline widget insert","sequential Bold/Italic","toolbar Bold/Italic","structural + inline ordering","default toolbar ordering","Enter + inline ordering","cross-block inline ordering","Bold history across all inline-capable block plugins","bold apply/remove","italic apply/remove","strikethrough apply/remove","code apply/remove","marker apply/remove","case transform upper/lower","clear formatting","align apply/reset","script apply/remove","background color apply/remove","link action formatting","link removal","font-size apply/remove","heading inline control","color widget preview/cancel/apply/read-only","per-block inline tool allowlist","inline tool replacement by type"],"lifecycleCycles":5,"callbackCases":["onReady microtask","onChange mutation notification"],"publicApiCases":["undo/redo state","pending history state","history events","dynamic read-only","read-only host history","mode lifecycle","all-plugin mode transition","holder ownership","numeric validation"]},"nativeTextInput":[{"name":"native keyboard replaces the full forward cross-block selection","status":"PASS"},{"name":"native text replaces the full forward cross-block selection","status":"PASS"},{"name":"native keyboard replaces the full backward cross-block selection","status":"PASS"},{"name":"native text replaces the full backward cross-block selection","status":"PASS"},{"name":"native input within one paragraph keeps ordinary browser editing behavior","status":"PASS"},{"name":"native ArrowUp inserts into the populated final table cell","status":"PASS"},{"name":"native ArrowUp inserts into the empty final table cell","status":"PASS"},{"name":"native Backspace deletes a DOM Range spanning multiple editable hosts","status":"PASS"},{"name":"native Delete deletes a DOM Range spanning multiple editable hosts","status":"PASS"},{"name":"native typing replaces all characters produced by Unicode case expansion","status":"PASS"},{"name":"native Ctrl+X cuts the full forward cross-host Range","status":"PASS"},{"name":"native Ctrl+X cuts the full backward cross-host Range","status":"PASS"},{"name":"native typing stays after the full pattern paste: \"#ff0000 mid #00ff00 tail\"","status":"PASS"},{"name":"native typing stays after the full pattern paste: \"#ff0000 tail\"","status":"PASS"},{"name":"native typing stays after the full pattern paste: \"#ff0000 tail\\n#00ff00 end\"","status":"PASS"},{"name":"native Table Enter confines its mutation: same-cell","status":"PASS"},{"name":"native Table Enter confines its mutation: other-cell","status":"PASS"},{"name":"native Table Enter confines its mutation: outside-editor","status":"PASS"},{"name":"native newline-only Ctrl+V leaves the entire cross-block selection intact","status":"PASS"},{"name":"native Columns Ctrl+V replaces the forward range","status":"PASS"},{"name":"native Columns Ctrl+V replaces the backward range","status":"PASS"},{"name":"native Ctrl+C and Ctrl+V preserve opaque selected-fragment data","status":"PASS"},{"name":"native Ctrl+X and Ctrl+V preserve opaque selected-fragment data","status":"PASS"},{"name":"native single-field Ctrl+C → Paste keeps missing data","status":"PASS"},{"name":"native single-field Ctrl+X → Paste keeps missing data","status":"PASS"},{"name":"native single-field Ctrl+C → Paste keeps color data","status":"PASS"},{"name":"native single-field Ctrl+X → Paste keeps color data","status":"PASS"},{"name":"native Shift+Enter replaces forward mouse range and retains caret","status":"PASS"},{"name":"native Shift+Enter replaces backward mouse range and retains caret","status":"PASS"},{"name":"native table Backspace does not partially edit a multi-cell selection","status":"PASS"},{"name":"native table Delete does not partially edit a multi-cell selection","status":"PASS"},{"name":"native table text does not partially edit a multi-cell selection","status":"PASS"},{"name":"native single-cell replacement remains functional and undoable","status":"PASS"},{"name":"native cross-block Ctrl+C → Paste retains live widget data (forward)","status":"PASS"},{"name":"native cross-block Ctrl+X → Paste retains live widget data (forward)","status":"PASS"},{"name":"native cross-block Ctrl+C → Paste retains live widget data (backward)","status":"PASS"},{"name":"native cross-block Ctrl+X → Paste retains live widget data (backward)","status":"PASS"},{"name":"native Enter edits the widget textarea without changing its list block","status":"PASS"},{"name":"native Enter edits the widget textarea without changing its checklist block","status":"PASS"},{"name":"native Enter edits the widget textarea without changing its table block","status":"PASS"}]}
+{"sentinels":128,"retained":0,"usedHeapMiB":16.64,"embedderHeapMiB":0.96,"snapshotMiB":27.56}

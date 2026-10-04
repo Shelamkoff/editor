@@ -25,13 +25,22 @@ rendererStyles.destroy()
 
 ```json
 {
-  "persons": [{
-    "avatar": "https://cdn.example/ada.jpg",
-    "name": "Ada",
-    "role": "Author",
-    "bio": "",
-    "links": [{ "type": "website", "url": "https://example.com" }]
-  }]
+  "persons": [
+    {
+      "id": "person-1",
+      "avatar": "https://cdn.example/ada.jpg",
+      "name": "Ada",
+      "role": "Author",
+      "bio": "",
+      "links": [
+        {
+          "id": "link-1",
+          "type": "website",
+          "url": "https://example.com"
+        }
+      ]
+    }
+  ]
 }
 ```
 

@@ -269,8 +269,8 @@ export function createEditorRuntime(input){
     defaultBlock:config.defaultBlock,
     placeholder:config.placeholder,
     acquireStyles:config.injectStyles!==false,
-    translate:(key,fallback='')=>{
-      const translated=i18n.t(key)
+    translate:(key,fallback='',params=undefined)=>{
+      const translated=i18n.t(key,params)
       return translated===key?fallback:translated
     },
     showPopup:(anchor,content,cleanup)=>popup.showPopup(anchor,content,cleanup),
@@ -362,6 +362,7 @@ export function createEditorRuntime(input){
     runtime,
     reconciler,
     crossSelection,
+    selection:logicalSelection,
     coalesceMs:config.historyCoalesceMs??300,
   }))
   let triggerController=null
@@ -388,6 +389,7 @@ export function createEditorRuntime(input){
     selection:logicalSelection,
     view,
     inlineCommands,
+    isComposing:()=>nativeInput.isComposing,
     translate:(key,fallback='')=>{
       const translated=i18n.t(key)
       return translated===key?fallback:translated
@@ -444,6 +446,10 @@ export function createEditorRuntime(input){
     selectionPort:crossSelection,
     view,
     tools:configuredInlineTools,
+    translate:(key,fallback='',params=undefined)=>{
+      const translated=i18n.t(key,params)
+      return translated===key?fallback:translated
+    },
   }))
 
   keyboardRouter=lifecycle.register(new KeyboardRouter({
@@ -457,6 +463,19 @@ export function createEditorRuntime(input){
     crossSelection,
     isComposing:()=>nativeInput.isComposing,
   }))
+
+  const onClickAreaMouseDown=event=>{
+    if(event.button===0&&!runtime.readOnly)event.preventDefault()
+  }
+  const onClickArea=event=>{
+    if(event.target===clickArea)keyboardRouter.appendDefault()
+  }
+  clickArea.addEventListener('mousedown',onClickAreaMouseDown)
+  clickArea.addEventListener('click',onClickArea)
+  lifecycle.register({destroy(){
+    clickArea.removeEventListener('mousedown',onClickAreaMouseDown)
+    clickArea.removeEventListener('click',onClickArea)
+  }})
 
   const onFocusIn=event=>{
     const blockId=reconciler.resolveBlockTarget(event.target)
@@ -478,7 +497,7 @@ export function createEditorRuntime(input){
 
   applyReadOnly(root,runtime.readOnly)
 
-  const blocks=new EditorBlocksApi({runtime,view,isDestroyed:()=>destroyed})
+  const blocks=new EditorBlocksApi({runtime,view,selection:crossSelection,isDestroyed:()=>destroyed})
   let editor
   const destroy=()=>{
     if(destroyed)return

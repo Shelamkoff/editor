@@ -442,7 +442,7 @@ export class ExtensionRegistry {
             signal: this.#abortController.signal,
             isDefaultBlock: definition.type === defaultBlock,
             editorPlaceholder: definition.type === defaultBlock ? options.placeholder : undefined,
-            t: (key, fallback = '') => translate(`plugin.${definition.type}.${key}`, fallback),
+            t: (key, fallback = '', params = undefined) => translate(`plugin.${definition.type}.${key}`, fallback, params),
           })
           const runtime = snapshotBlockRuntime(runtimeSource, `Block definition "${definition.type}"`)
           this.#blockRuntimes.set(definition.type, runtime)
@@ -462,7 +462,7 @@ export class ExtensionRegistry {
           runtimeSource = definition.setup({
             ownerDocument,
             signal: this.#abortController.signal,
-            t: (key, fallback = '') => translate(`inlinePlugin.${definition.type}.${key}`, fallback),
+            t: (key, fallback = '', params = undefined) => translate(`inlinePlugin.${definition.type}.${key}`, fallback, params),
             showPopup: typeof options.showPopup === 'function' ? options.showPopup : () => {},
             hidePopup: typeof options.hidePopup === 'function' ? options.hidePopup : () => {},
           })

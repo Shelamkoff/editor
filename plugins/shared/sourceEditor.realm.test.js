@@ -41,7 +41,8 @@ function makeNode(ownerDocument, tag) {
     removeEventListener() {},
     setAttribute(name, value) { this.attributes.set(name, String(value)) },
     removeAttribute(name) { this.attributes.delete(name) },
-    focus() {},
+    focus() { ownerDocument.activeElement = this },
+    contains(node) { return node === this || this.children.some(child => child.contains(node)) },
     remove() { this.isConnected = false; this.parentNode = null },
     closest(selector) { return selector === '.oe-block' ? null : null },
   }
@@ -50,6 +51,7 @@ function makeNode(ownerDocument, tag) {
 test('source editor uses the wrapper owning document and AbortController realm', async () => {
   const created = []
   const ownerDocument = {
+    activeElement: null,
     defaultView: { AbortController: OwnerAbortController },
     createElement(tag) {
       created.push(tag)

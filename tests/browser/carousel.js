@@ -212,11 +212,14 @@ async function run() {
   assert(entry.editor.save().blocks[0].data.slides.length === countBeforeRemove - 1, 'slide removal failed')
 
   const add = buttonByText(entry.element, '.oe-carousel-block__action-btn', 'Add')
-  assert(add instanceof HTMLButtonElement, 'carousel upload control is missing')
+  assert(add instanceof HTMLButtonElement, 'carousel Add control is missing')
+  add.click()
+  const upload = buttonByText(entry.element, '.oe-carousel-block__action-btn', 'Upload')
+  assert(upload instanceof HTMLButtonElement && upload.checkVisibility(), 'carousel Add did not expose its upload source')
   const originalInputClick = HTMLInputElement.prototype.click
   HTMLInputElement.prototype.click = function () {}
   try {
-    add.click()
+    upload.click()
   } finally {
     HTMLInputElement.prototype.click = originalInputClick
   }

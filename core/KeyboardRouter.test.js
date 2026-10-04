@@ -21,6 +21,10 @@ function harness() {
   ]
   const runtime = {
     readOnly: false,
+    interact(_name, operation) { return operation() },
+    indexOf: id => records.findIndex(record => record.id === id),
+    idAt: index => records[index]?.id,
+    ids: () => records.map(record => record.id),
     list: () => records.map(record => ({ ...record })),
     get: id => records.find(record => record.id === id),
     isEmpty: id => id === 'empty',
@@ -38,10 +42,10 @@ function harness() {
     getEditableField(blockId, fieldKey) { return blockId === 'b' && fieldKey === 'text' ? owner : null },
     getEditableFields(blockId) {
       if (blockId === 'a') return [
-        { key: 'first', element: {}, mode: 'rich-text' },
-        { key: 'last', element: {}, mode: 'rich-text' },
+        { key: 'first', element: { nodeType: 3, textContent: 'First' }, mode: 'rich-text' },
+        { key: 'last', element: { nodeType: 3, textContent: 'Last' }, mode: 'rich-text' },
       ]
-      return blockId === 'b' ? [owner] : []
+      return blockId === 'b' ? [{ key: owner.fieldKey, element: owner.element, mode: owner.mode }] : []
     },
   }
   let bookmark = {
@@ -149,7 +153,7 @@ test('already handled plugin keydown events never execute generic structural log
 })
 
 
-test('auxiliary native controls, editor chrome and outside targets keep native history ownership', () => {
+test('auxiliary controls keep native history ownership; editor chrome owns document history', () => {
   const calls=[]
   const root={
     ownerDocument:{defaultView:{AbortController}},
@@ -198,7 +202,7 @@ test('auxiliary native controls, editor chrome and outside targets keep native h
     }
   }
 
-  for(const selector of ['input','textarea','select','[data-inline-plugin]','.oe-toolbar','.oe-inline-toolbar','.oe-toolbox','.oe-settings-menu','.oe-slash-menu']){
+  for(const selector of ['input','textarea','select','[data-inline-plugin]']){
     const current=event(target(selector))
     router.handleKeydown(current)
     assert.equal(current.prevented,false,`${selector} shortcut was claimed by editor history`)
@@ -207,5 +211,17 @@ test('auxiliary native controls, editor chrome and outside targets keep native h
   router.handleKeydown(outside)
   assert.equal(outside.prevented,false)
   assert.deepEqual(calls,[])
+  for(const selector of ['.oe-toolbar','.oe-inline-toolbar','.oe-toolbox','.oe-settings-menu','.oe-slash-menu']){
+    const current=event(target(selector))
+    router.handleKeydown(current)
+    assert.equal(current.prevented,true,`${selector} did not route document history`)
+  }
+  assert.deepEqual(calls,Array(5).fill('undo'))
+  const nestedInput = target('input')
+  nestedInput.closest = query => /input|\.oe-toolbar/.test(query) ? nestedInput : null
+  const nestedEvent = event(nestedInput)
+  router.handleKeydown(nestedEvent)
+  assert.equal(nestedEvent.prevented, false, 'native input inside editor chrome lost native history ownership')
+  assert.equal(calls.length, 5)
   router.destroy()
 })

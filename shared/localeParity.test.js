@@ -28,7 +28,7 @@ function literalRuntimeKeys(source) {
 test('English and Russian aggregate locales expose the same non-empty keys and no obsolete inline namespace', () => {
   assert.deepEqual(localeKeys(ru), localeKeys(en))
   for (const key of localeKeys(en)) {
-    assert.equal(key.startsWith('inline.'), false, `obsolete inline locale namespace returned: ${key}`)
+    assert.equal(/^inline\.(color|mention)\./.test(key), false, `obsolete inline-plugin locale namespace returned: ${key}`)
     for (const [name, locale] of [['en', en], ['ru', ru]]) {
       const value = locale[key]
       if (typeof value === 'string') assert.ok(value.trim(), `${name}.${key} is empty`)

@@ -4,12 +4,14 @@ import { setTrustedHtml } from '../../shared/sanitize/sanitizeHtml.js'
 import { codeDataSchema } from '../../shared/blockSchemas/code.js'
 import { getHighlightRuntime, loadHighlightRuntime } from '../../shared/highlightRuntime.js'
 import { dedentTextarea } from '../shared/dedentTextarea.js'
+import { indentTextarea } from '../shared/indentTextarea.js'
+import { createLanguageMenu } from './languageMenu.js'
 
 const editorStyles = new URL('./code.css', import.meta.url).href
 const ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 8l-4 4l4 4"/><path d="M17 8l4 4l-4 4"/><path d="M14 4l-4 16"/></svg>'
 const COPY_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>'
 const CHECK_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
-const LANGUAGES = Object.freeze(['auto','javascript','typescript','php','python','html','css','scss','json','sql','bash','shell','go','rust','java','kotlin','swift','c','cpp','csharp','xml','yaml','toml','markdown','docker','nginx','plaintext'])
+const EDIT_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L9 17l-4 1 1-4z"/></svg>'
 
 function highlight(element, code, language, runtime) {
   element.className = language === 'auto' ? '' : 'language-' + language
@@ -107,17 +109,12 @@ export function createCodePlugin(config = {}) {
           const wrapper = document.createElement('div')
           wrapper.className = 'oe-code-wrap'
           wrapper.contentEditable = 'false'
+          wrapper.tabIndex = -1
           const bar = document.createElement('div')
           bar.className = 'oe-code-bar'
-          const language = document.createElement('select')
-          language.className = 'oe-code-language'
-          language.setAttribute('aria-label', runtimeContext.t('language', 'Language'))
-          for (const value of LANGUAGES) {
-            const option = document.createElement('option')
-            option.value = value
-            option.textContent = value === 'auto' ? 'Auto' : value
-            language.appendChild(option)
-          }
+          const language = createLanguageMenu(context, (key, fallback) => runtimeContext.t(key, fallback), value => {
+            if (!readOnly && !dead) context.updateData(current => ({ ...current, language: value }))
+          })
           const copy = document.createElement('button')
           copy.type = 'button'
           copy.className = 'oe-code-btn oe-code-btn--copy'
@@ -127,8 +124,7 @@ export function createCodePlugin(config = {}) {
           const edit = document.createElement('button')
           edit.type = 'button'
           edit.className = 'oe-code-btn oe-code-btn--edit'
-          edit.textContent = runtimeContext.t('edit', 'Edit')
-          bar.append(language, copy, edit)
+          bar.append(language.element, copy, edit)
 
           const editor = document.createElement('div')
           editor.className = 'oe-code-editor'
@@ -150,29 +146,32 @@ export function createCodePlugin(config = {}) {
           let dead = false
           let copyResetTimer = null
           const timerHost = document.defaultView ?? globalThis
-          const refresh = () => { if (!dead) highlight(codeElement, data.code, data.language, runtime) }
+          const refresh = () => { if (!dead) highlight(codeElement, textarea.value, data.language, runtime) }
           const mode = () => {
             wrapper.classList.toggle('oe-code-wrap--editing', editMode && !readOnly)
             textarea.hidden = !(editMode && !readOnly)
-            pre.hidden = editMode && !readOnly
+            pre.hidden = false
+            pre.style.pointerEvents = editMode && !readOnly ? 'none' : ''
+            textarea.tabIndex = editMode && !readOnly ? 0 : -1
+            textarea.setAttribute('aria-hidden', String(!(editMode && !readOnly)))
             edit.hidden = readOnly
             edit.disabled = readOnly
-            language.disabled = readOnly
+            edit.title = editMode && !readOnly ? runtimeContext.t('done', 'Done') : runtimeContext.t('edit', 'Edit')
+            edit.setAttribute('aria-label', edit.title)
+            setTrustedHtml(edit, editMode && !readOnly ? CHECK_ICON : EDIT_ICON)
+            language.setEditable(editMode && !readOnly)
             textarea.readOnly = readOnly
           }
           const project = next => {
             data = { ...next }
             if (textarea.value !== next.code) textarea.value = next.code
-            if (language.value !== next.language) language.value = next.language
+            language.update(next.language)
             refresh()
             mode()
           }
           refreshers.add(refresh)
           project(data)
 
-          language.addEventListener('change', () => {
-            if (!readOnly && !dead) context.updateData(current => ({ ...current, language: language.value || 'auto' }))
-          }, { signal: context.signal })
           edit.addEventListener('click', () => {
             if (readOnly || dead) return
             editMode = !editMode
@@ -186,10 +185,12 @@ export function createCodePlugin(config = {}) {
             textarea.focus()
           }, { signal: context.signal })
           copy.addEventListener('click', () => {
-            if (dead || !data.code) return
+            if (dead) return
+            const source = context.getData().code
+            if (!source) return
             const clipboard = document.defaultView?.navigator?.clipboard
             if (typeof clipboard?.writeText !== 'function') return
-            void clipboard.writeText(data.code).then(() => {
+            void clipboard.writeText(source).then(() => {
               if (dead || context.signal.aborted) return
               setTrustedHtml(copy, CHECK_ICON)
               copy.classList.add('oe-code-btn--copied')
@@ -202,15 +203,29 @@ export function createCodePlugin(config = {}) {
               }, 1800)
             }).catch(() => {})
           }, { signal: context.signal })
+          textarea.addEventListener('input', refresh, { signal: context.signal })
+          textarea.addEventListener('scroll', () => {
+            pre.scrollTop = textarea.scrollTop
+            pre.scrollLeft = textarea.scrollLeft
+          }, { signal: context.signal })
           textarea.addEventListener('keydown', event => {
             if (readOnly) return
+            if (event.key === 'Escape' || (event.key === 'Enter' && (event.ctrlKey || event.metaKey))) {
+              event.preventDefault()
+              event.stopPropagation()
+              editMode = false
+              mode()
+              wrapper.focus()
+              return
+            }
             if (event.key === 'Enter') event.stopPropagation()
             if (event.key !== 'Tab') return
             event.preventDefault()
             event.stopPropagation()
             context.commitDomMutation(() => {
-              if (event.shiftKey) dedentTextarea(textarea, 2)
-              else textarea.setRangeText('  ', textarea.selectionStart, textarea.selectionEnd, 'end')
+              if (event.shiftKey) dedentTextarea(textarea, 4)
+              else indentTextarea(textarea, 4)
+              refresh()
             })
           }, { signal: context.signal })
 
@@ -224,6 +239,7 @@ export function createCodePlugin(config = {}) {
             destroy() {
               if (dead) return
               dead = true
+              language.destroy()
               refreshers.delete(refresh)
               if (copyResetTimer !== null) {
                 timerHost.clearTimeout(copyResetTimer)

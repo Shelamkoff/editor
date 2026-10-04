@@ -24,10 +24,28 @@ const editor = createEditor({
 
 ```json
 {
-  "images": [{ "url": "https://cdn.example/a.jpg", "caption": "A" }],
+  "images": [
+    {
+      "id": "image-1",
+      "url": "https://cdn.example/a.jpg",
+      "caption": "A"
+    }
+  ],
   "layout": "auto",
-  "styles": { "gap": "8px", "borderRadius": "8px", "height": "420px" },
-  "options": { "loop": true, "zoom": true, "navigation": true, "captions": true, "thumbnails": true, "fullscreen": true, "autoplayInterval": 3000 }
+  "styles": {
+    "gap": "8px",
+    "borderRadius": "8px",
+    "height": "420px"
+  },
+  "options": {
+    "loop": true,
+    "zoom": true,
+    "navigation": true,
+    "captions": true,
+    "thumbnails": true,
+    "fullscreen": true,
+    "autoplayInterval": 3000
+  }
 }
 ```
 
@@ -83,10 +101,10 @@ const gallery = createGalleryPlugin({
 
 ## История, жизненный цикл и стили
 
-Действия плагина входят в конвейер команд через предоставленный контекст `mutate()`, поэтому одно завершённое действие создаёт один шаг отмены и повтора. Редактор подсчитывает владельцев объявленных URL стилей. Удаление блока вызывает его метод освобождения ресурсов; `editor.destroy()` освобождает оставшиеся блоки и общие ресурсы.
+Экземпляр блока получает ограниченный контекст: `context.updateData(producer)` изменяет данные, `context.commitDomMutation(operation)` защищает изменения форматированного текста, а `context.beginTask()` позволяет сохранить асинхронный результат. Завершённое действие создаёт один шаг истории. Экземпляр блока и среда плагина освобождают ресурсы через `destroy()`; Rector удаляет подключённые стили после освобождения последнего владельца.
 
 Не удаляйте контейнер редактора до вызова `editor.destroy()`.
 
 ## Вывод документа
 
-Используйте фабричную функцию из `@shelamkoff/rector/renderer/renderers/gallery`. Последовательное руководство VitePress описывает проверку данных, миграции, разработку расширений, диагностику, безопасность и стили.
+Используйте фабричную функцию из `@shelamkoff/rector/renderer/renderers/gallery`. Последовательное руководство VitePress описывает проверку данных, текущий формат документа, разработку расширений, диагностику, безопасность и стили.

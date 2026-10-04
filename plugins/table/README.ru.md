@@ -23,7 +23,37 @@ const editor = createEditor({
 ## Данные
 
 ```json
-{ "withHeadings": true, "content": [["Название", "Значение"], ["А", "1"]] }
+{
+  "withHeadings": true,
+  "rows": [
+    {
+      "id": "row-1",
+      "cells": [
+        {
+          "id": "cell-1",
+          "text": "Название"
+        },
+        {
+          "id": "cell-2",
+          "text": "Значение"
+        }
+      ]
+    },
+    {
+      "id": "row-2",
+      "cells": [
+        {
+          "id": "cell-1",
+          "text": "А"
+        },
+        {
+          "id": "cell-2",
+          "text": "1"
+        }
+      ]
+    }
+  ]
+}
 ```
 
 ### Поля данных

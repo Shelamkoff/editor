@@ -1,0 +1,131 @@
+harness-contract.html: {
+  "correct": true,
+  "want": [
+    "FAIL",
+    "FAIL",
+    "FAIL",
+    "PASS",
+    "FAIL",
+    "FAIL",
+    "FAIL",
+    "PASS"
+  ],
+  "outcomes": [
+    {
+      "name": "unexpected DOM handler exception",
+      "status": "FAIL",
+      "error": "Error: unexpected event\n    at HTMLButtonElement.<anonymous> (http://127.0.0.1:58662/tests/browser/harness-contract.js:6:50)\n    at eventError (http://127.0.0.1:58662/tests/browser/harness-contract.js:7:10)\n    at http://127.0.0.1:58662/tests/browser/harness-contract.js:9:50\n    at async Module.run (http://127.0.0.1:58662/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:58662/tests/browser/harness-contract.js:29:1"
+    },
+    {
+      "name": "unexpected rejected promise",
+      "status": "FAIL",
+      "error": "Error: unexpected rejection\n    at http://127.0.0.1:58662/tests/browser/harness-contract.js:11:23\n    at async Module.run (http://127.0.0.1:58662/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:58662/tests/browser/harness-contract.js:29:1"
+    },
+    {
+      "name": "synchronous assertion failure",
+      "status": "FAIL",
+      "error": "Error: assertion witness\n    at http://127.0.0.1:58662/tests/browser/harness-contract.js:14:55\n    at async Module.run (http://127.0.0.1:58662/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:58662/tests/browser/harness-contract.js:29:1"
+    },
+    {
+      "name": "expected event is observed",
+      "status": "PASS"
+    },
+    {
+      "name": "missing expected event is a failure",
+      "status": "FAIL",
+      "error": "Expected browser error was not raised: /never raised/"
+    },
+    {
+      "name": "wrong event cannot satisfy an expectation",
+      "status": "FAIL",
+      "error": "Error: wrong message\n    at HTMLButtonElement.<anonymous> (http://127.0.0.1:58662/tests/browser/harness-contract.js:6:50)\n    at eventError (http://127.0.0.1:58662/tests/browser/harness-contract.js:7:10)\n    at http://127.0.0.1:58662/tests/browser/harness-contract.js:22:3\n    at async Module.run (http://127.0.0.1:58662/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:58662/tests/browser/harness-contract.js:29:1\nExpected browser error was not raised: /expected message/"
+    },
+    {
+      "name": "one expectation does not swallow two events",
+      "status": "FAIL",
+      "error": "Error: same message\n    at HTMLButtonElement.<anonymous> (http://127.0.0.1:58662/tests/browser/harness-contract.js:6:50)\n    at eventError (http://127.0.0.1:58662/tests/browser/harness-contract.js:7:10)\n    at http://127.0.0.1:58662/tests/browser/harness-contract.js:26:31\n    at async Module.run (http://127.0.0.1:58662/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:58662/tests/browser/harness-contract.js:29:1"
+    },
+    {
+      "name": "later clean case is independent",
+      "status": "PASS"
+    }
+  ]
+}
+runtime-contracts.html: [
+  {
+    "name": "convert uses source and target capabilities instead of arbitrary data merge",
+    "status": "PASS"
+  },
+  {
+    "name": "whole conversion rejects targets that cannot preserve linked inline data",
+    "status": "PASS"
+  },
+  {
+    "name": "prepared cross-block cut merges endpoint residuals through the declared merge contract",
+    "status": "PASS"
+  }
+]
+roundtrip.html: {"plugins":["paragraph","heading","list","quote","code","image","delimiter","table","checklist","warning","embed","raw","gallery","carousel","attaches","linkPreview","toggle","columns","spoiler","poll","person"],"defaultRenders":21,"editableRoundTrips":21,"rendererBlocks":21,"lifecycleCycles":10}
+roundtrip-trusted-types.html: {"plugins":["paragraph","heading","list","quote","code","image","delimiter","table","checklist","warning","embed","raw","gallery","carousel","attaches","linkPreview","toggle","columns","spoiler","poll","person"],"defaultRenders":21,"editableRoundTrips":21,"rendererBlocks":21,"lifecycleCycles":10}
+person-avatar-csp.html: [
+  {
+    "name": "avatar CSP test page enforces TrustedHTML without a permissive default policy",
+    "status": "PASS"
+  },
+  {
+    "name": "Person local avatar upload works under Trusted Types and remains undoable",
+    "status": "PASS"
+  },
+  {
+    "name": "Person remote avatar upload works under Trusted Types and remains undoable",
+    "status": "PASS"
+  },
+  {
+    "name": "Person pending avatar upload under Trusted Types cannot change replacement data",
+    "status": "PASS"
+  }
+]
+history.html: {"historyCases":["native typing","structural Enter split","insert","move","convert","remove","clear","render","toolbar insert","keyboard undo/redo","read-only transition","pointer drag session","read-only host authority","direct/inverse transaction events"],"publicEvents":["transaction:committed","document:changed","history:changed"]}
+selection.html: {"crossBlockOperations":["copy","cut","paste","private rich-text roundtrip","Backspace","Delete","outside clear"],"structuralKeys":["Enter","Backspace merge","Delete merge","inline collision merge","Ctrl+A"],"focusKeys":["ArrowUp","ArrowDown","Tab","Shift+Tab"],"multiField":["selection","list clipboard slice","table clipboard slice"]}
+lifecycle.html: {"editorCycles":5,"factoryCount":21,"races":["image replacement","gallery additive","attaches additive"],"asyncAbort":["embed preview","person cropper"],"integrations":["inline tool ownership","ColorPicker","Cropper","Carousel","Masonry","Expose"],"tracked":["global listeners","observers","object URLs","styles"]}
+security.html: {"sanitizers":["rich text","raw html","renderer"],"editor":["canonical native input","no mutable Block DOM","forged widget rejection"],"currentBoundary":["unregistered block","unknown inline","known version rejection","future document rejection"],"validation":["known malformed","known future inline","non-JSON","duplicate ids","duplicate definitions"],"lifecycle":["initial mount rollback/lease release","reusable immutable definitions","inline owner rollback","projection rollback"]}
+trusted-types.htm: [
+  {
+    "name": "inline sanitizer remains a string API under Trusted Types enforcement",
+    "status": "PASS"
+  },
+  {
+    "name": "editor text blocks render under require-trusted-types-for",
+    "status": "PASS"
+  },
+  {
+    "name": "document renderer handles inline HTML under Trusted Types enforcement",
+    "status": "PASS"
+  },
+  {
+    "name": "clipboard HTML import and private copy use TrustedHTML sinks",
+    "status": "PASS"
+  },
+  {
+    "name": "Raw preview assigns TrustedHTML under require-trusted-types-for",
+    "status": "PASS"
+  },
+  {
+    "name": "multiple Rector module instances share one Trusted Types policy per realm",
+    "status": "PASS"
+  }
+]
+action-label-security.html: {"plugins":["image","gallery","carousel","embed"],"labelMode":"text","iconMode":"trusted markup","filledState":true}
+audit-regressions.html: ["structured-html-import","locale-markup-boundary","link-preview-request-ownership","embed-cover-ownership","carousel-aborted-batch-object-urls","person-avatar-ownership","task-lifetime-ownership","toolbar-ownership"]
+attaches-abort-urls.html: {"created":1,"revoked":1}
+embed-service-registry.html: {"prototypeServices":3,"currentOnly":true}
+person-social-registry.html: {"prototypeTypes":4}
+gallery-layout-registry.html: {"prototypeLayouts":4}
+mention.html: {"flows":["option validation","ru/en locale namespace","search","search cancellation","failed commit","keyboard commit","click semantics","pagination","custom rows","serialize","undo","redo","renderer","empty","query reset","last-trigger deletion","unicode trigger","aria","theme inheritance","multi-editor","destroy"],"queries":["","a","ad","","n","no","non","none"]}
+mention-session-race.html: mention pagination and realm ownership remain isolated
+poll.html: {"modes":["local","remote","read-only","renderer"],"history":["single local transaction","undo","redo","remote runtime excluded"],"guards":["afterVote confirmation","duplicate submit","revision ordering","abort","unsubscribe","safe voters","async observer containment"]}
+carousel.html: {"operations":["custom source","filled URL/HTML source","model-first settings","source replacement","reorder","remove","read-only","upload abort","drop validation","extension fallback","renderer"],"mutations":9}
+plugin-surfaces.html: {"sourceEditors":["image:url","gallery:url","carousel:url","carousel:html","attaches:url"],"settingsPanels":["image","gallery","carousel"],"actionSettings":["attaches"],"history":true,"dualSettingsApi":false}
+imports.html: {"runtimeImportPaths":127,"stylesheetPaths":48,"blockFactoryEntries":21,"removedClassApisChecked":21,"dualApi":false}
+slash.html: {"flows":["convert","insert","inline","composite field","stale session","focus change","escape"],"atomicUndo":true,"dualRegistry":false}
+selection-convert.html: {"conversions":["whole inline roundtrip/renderer","lossy inline rejection","paragraph partial forward/backward","List data-aware","cross-block forward/backward"],"controls":["type selector","Heading level"],"history":"atomic undo/redo","staleCallbacks":"inert"}

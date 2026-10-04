@@ -24,36 +24,28 @@ export class InlineCommandController {
     if (!target) return false
 
     if (explicitData !== undefined) {
-      this.#runtime.insertInlineWidget(target.blockId, target.fieldKey, target.range, type, explicitData)
-      this.#selection.setCaret(target.blockId, {
-        fieldKey: target.fieldKey,
-        offset: target.range.start + 1,
-      })
+      this.#withCaret(target, target.range.start + 1, () => this.#runtime.insertInlineWidget(
+        target.blockId, target.fieldKey, target.range, type, explicitData,
+      ))
       return true
     }
 
     const fresh = definition.insertion?.createInitial?.()
     if (!fresh) {
       const data = definition.schema.createDefault()
-      this.#runtime.insertInlineWidget(target.blockId, target.fieldKey, target.range, type, data)
-      this.#selection.setCaret(target.blockId, {
-        fieldKey: target.fieldKey,
-        offset: target.range.start + 1,
-      })
+      this.#withCaret(target, target.range.start + 1, () => this.#runtime.insertInlineWidget(
+        target.blockId, target.fieldKey, target.range, type, data,
+      ))
       return true
     }
 
     if (fresh.kind === 'text') {
-      this.#runtime.replaceRichText(
+      this.#withCaret(target, target.range.start + fresh.text.length, () => this.#runtime.replaceRichText(
         target.blockId,
         target.fieldKey,
         target.range,
         { kind: 'text', text: fresh.text },
-      )
-      this.#selection.setCaret(target.blockId, {
-        fieldKey: target.fieldKey,
-        offset: target.range.start + fresh.text.length,
-      })
+      ))
       this.#onFreshText?.({
         type,
         blockId: target.blockId,
@@ -62,11 +54,9 @@ export class InlineCommandController {
       return true
     }
 
-    this.#runtime.insertInlineWidget(target.blockId, target.fieldKey, target.range, type, fresh.data)
-    this.#selection.setCaret(target.blockId, {
-      fieldKey: target.fieldKey,
-      offset: target.range.start + 1,
-    })
+    this.#withCaret(target, target.range.start + 1, () => this.#runtime.insertInlineWidget(
+      target.blockId, target.fieldKey, target.range, type, fresh.data,
+    ))
     return true
   }
 
@@ -144,12 +134,12 @@ export class InlineCommandController {
     if (textStart < text.length) segments.push({ kind: 'text', text: text.slice(textStart) })
     if (!segments.some(segment => segment.kind === 'widget')) return false
 
-    const result = this.#runtime.replaceRichTextWithInlineSegments(
+    const result = this.#runtime.interact('inline.paste', () => this.#runtime.replaceRichTextWithInlineSegments(
       target.blockId,
       target.fieldKey,
       target.range,
       segments,
-    )
+    ), caret => caret ? { anchor: caret, focus: { ...caret } } : null)
     if (!result) return false
     this.#selection.setCaret(result.blockId, {
       fieldKey: result.fieldKey,
@@ -163,18 +153,21 @@ export class InlineCommandController {
     const definition = this.#registry.getInlineDefinition(type)
     if (!definition) return false
     const encoded = definition.schema.encode(data)
-    this.#runtime.insertInlineWidget(
+    this.#withCaret(session, session.range.start + 1, () => this.#runtime.insertInlineWidget(
       session.blockId,
       session.fieldKey,
       session.range,
       type,
       encoded.data,
-    )
-    this.#selection.setCaret(session.blockId, {
-      fieldKey: session.fieldKey,
-      offset: session.range.start + 1,
-    })
+    ))
     return true
+  }
+
+  #withCaret(target, offset, operation) {
+    const point = { blockId: target.blockId, fieldKey: target.fieldKey, offset }
+    const result = this.#runtime.interact('inline.insert', operation, () => ({ anchor: point, focus: { ...point } }))
+    this.#selection.setCaret(target.blockId, { fieldKey: target.fieldKey, offset })
+    return result
   }
 
   #currentRange() {

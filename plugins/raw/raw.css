@@ -60,6 +60,7 @@
 /* ── Textarea ─────────────────────────────────────────────────────────────── */
 
 .oe-raw__textarea {
+  box-sizing: border-box;
   display: block;
   width: 100%;
   min-height: 6rem;
@@ -95,6 +96,12 @@
   content: 'Empty';
   color: var(--oe-text-3, #5a5a64);
   font-style: italic;
+}
+
+/* Opaque HTML frames do not inherit the editor's text or canvas colors. */
+.oe-raw__preview iframe {
+  background: #fff;
+  color-scheme: light;
 }
 
 /* ── Light theme ──────────────────────────────────────────────────────────── */

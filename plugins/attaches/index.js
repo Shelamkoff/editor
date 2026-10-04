@@ -3,9 +3,11 @@ import { setSafeUrlAttribute } from '../../plugin-kit/index.js'
 import { insertTrustedHtml, setTrustedHtml } from '../../shared/sanitize/sanitizeHtml.js'
 import { attachesDataSchema } from '../../shared/blockSchemas/attaches.js'
 import { sanitizeDownloadUrl } from '../../shared/sanitize/sanitizeUrl.js'
-import { formatSize, getExtension, getFileIcon } from '../../shared/fileUtils.js'
+import { retainControlFocus } from '../shared/retainControlFocus.js'
+import { formatSize, getExtension, getFileIcon, EXT_COLORS } from '../../shared/fileUtils.js'
 import { triggerFileInput } from '../shared/fileInput.js'
 import { openSourceEditor, preloadSourceEditor } from '../shared/sourceEditor.js'
+import { createMediaDropzone } from '../shared/mediaDropzone.js'
 
 const editorStyles=new URL('./attaches.css',import.meta.url).href
 const sourceEditorStyles=new URL('../shared/sourceEditor.css',import.meta.url).href
@@ -44,7 +46,7 @@ export function createAttachesPlugin(config={}){
       actions(data){
         return VARIANTS.map(variant=>Object.freeze({
           id:variant,
-          label:Object.freeze({key:'variant.'+variant,fallback:'Variant '+variant.toUpperCase()}),
+          label:Object.freeze({key:'variant'+variant.toUpperCase(),fallback:'Variant '+variant.toUpperCase()}),
           active:data.variant===variant,
         }))
       },
@@ -80,6 +82,17 @@ export function createAttachesPlugin(config={}){
           const preloadEditors=()=>{if(!readOnly)preloadSourceEditor(wrapper,context.signal,['url'])}
           const tasks=new Set()
           const nameFields=new Map()
+          let expanded=false
+          let groupBody=null
+          let groupChevron=null
+          let settingsController=null
+          context.signal.addEventListener('abort',()=>settingsController?.abort(),{once:true})
+          const setExpanded=value=>{
+            expanded=value
+            groupBody?.classList.toggle('oe-attaches__group-body--open',value)
+            groupChevron?.classList.toggle('oe-attaches__chevron--open',value)
+            groupChevron?.setAttribute('aria-expanded',String(value))
+          }
 
           const updateData=next=>context.updateData(()=>next)
           const syncLoading=()=>wrapper.classList.toggle('oe-attaches--loading',tasks.size>0)
@@ -109,8 +122,8 @@ export function createAttachesPlugin(config={}){
                 })),
               ],
             })
-            if(task)return task.commit(producer)
-            context.updateData(producer)
+            if(task)return retainControlFocus(wrapper,()=>task.commit(producer))
+            retainControlFocus(wrapper,()=>context.updateData(producer))
             return true
           }
 
@@ -235,12 +248,20 @@ export function createAttachesPlugin(config={}){
             }
           }
 
-          const renderFile=file=>{
+          const renderFile=(file,inGroup=false)=>{
             const row=document.createElement('div')
-            row.className='oe-attaches__card'
+            const variant=data.variant
+            row.className=inGroup?'oe-attaches__row':({a:'oe-attaches__card',b:'oe-attaches__pill',f:'oe-attaches__notion-row',g:'oe-attaches__material-card'}[variant])
             const icon=document.createElement('span')
-            icon.className='oe-attaches__icon'
-            setTrustedHtml(icon,getFileIcon(file.extension).svg||ICON)
+            icon.className=variant==='g'?'oe-attaches__material-icon':variant==='b'?'oe-attaches__pill-icon':'oe-attaches__icon'
+            setTrustedHtml(icon,variant==='g'?getFileIcon(file.extension).svg||ICON:ICON)
+            if(variant==='a'&&file.extension){
+              const badge=document.createElement('span')
+              badge.className='oe-attaches__ext'
+              badge.textContent=file.extension.toUpperCase()
+              if(EXT_COLORS[file.extension.toLowerCase()])badge.style.backgroundColor=EXT_COLORS[file.extension.toLowerCase()]
+              icon.appendChild(badge)
+            }
 
             const info=document.createElement('div')
             info.className='oe-attaches__info'
@@ -249,10 +270,15 @@ export function createAttachesPlugin(config={}){
             name.contentEditable=readOnly?'false':'true'
             name.setAttribute('data-oe-document-input','text')
             name.textContent=file.name
+            name.addEventListener('keydown',event=>{
+              if(event.key==='Enter'){
+                event.preventDefault();event.stopPropagation();name.blur();wrapper.focus()
+              }else if(!event.ctrlKey&&!event.metaKey)event.stopPropagation()
+            },{signal:context.signal})
             nameFields.set(file.id,name)
             const meta=document.createElement('div')
-            meta.className='oe-attaches__meta'
-            meta.textContent=[file.extension?.toUpperCase(),file.size?formatSize(file.size):''].filter(Boolean).join(' · ')
+            meta.className=inGroup?'oe-attaches__row-size':variant==='b'?'oe-attaches__pill-size':variant==='f'?'oe-attaches__notion-size':'oe-attaches__meta'
+            meta.textContent=file.size?formatSize(file.size):''
             info.append(name,meta)
 
             const open=document.createElement('a')
@@ -262,7 +288,21 @@ export function createAttachesPlugin(config={}){
             open.textContent=runtimeContext.t('open','Open')
             setSafeUrlAttribute(open,'href',file.url,'download')
 
-            row.append(icon,info,open)
+            if(variant==='a'&&!inGroup||variant==='g')row.append(icon,info)
+            else{
+              if(variant==='b')row.appendChild(icon)
+              row.appendChild(name)
+              if(variant==='f'&&file.extension){
+                const tag=document.createElement('span')
+                tag.className='oe-attaches__notion-tag'
+                tag.textContent=file.extension.toUpperCase()
+                const color=EXT_COLORS[file.extension.toLowerCase()]
+                if(color){tag.style.color=color;tag.style.backgroundColor=color+'20'}
+                row.appendChild(tag)
+              }
+              row.appendChild(meta)
+            }
+            if(readOnly)row.appendChild(open)
             if(!readOnly){
               const remove=document.createElement('button')
               remove.type='button'
@@ -272,6 +312,7 @@ export function createAttachesPlugin(config={}){
               remove.addEventListener('click',()=>{
                 if(readOnly||dead)return
                 updateData({...data,files:data.files.filter(entry=>entry.id!==file.id)})
+                wrapper.focus()
               },{signal:context.signal})
               row.appendChild(remove)
             }
@@ -279,56 +320,150 @@ export function createAttachesPlugin(config={}){
           }
 
           const project=next=>{
+            settingsController?.abort()
             data=cloneData(next)
             nameFields.clear()
+            groupBody=null
+            groupChevron=null
             wrapper.className='oe-attaches'+(data.files.length?' oe-attaches--filled':'')
             syncLoading()
             wrapper.dataset.variant=data.variant
             wrapper.replaceChildren()
 
             if(data.files.length===0){
-              const empty=document.createElement('div')
-              empty.className='oe-attaches__select'
-              if(readOnly){
-                empty.textContent=runtimeContext.t('emptyReadonly','No files')
-              }else{
-                const upload=document.createElement('button')
-                upload.type='button'
-                upload.textContent=runtimeContext.t('dropzoneUpload','Upload files')
-                upload.addEventListener('click',chooseFiles,{signal:context.signal})
-                const byUrl=document.createElement('button')
-                byUrl.type='button'
-                byUrl.textContent=runtimeContext.t('dropzoneUrl','Insert a URL')
-                byUrl.addEventListener('click',openUrl,{signal:context.signal})
-                empty.append(upload,byUrl)
-                for(const action of snapshot.actions){
-                  const button=document.createElement('button')
-                  button.type='button'
-                  if(action.icon)insertTrustedHtml(button,'afterbegin',action.icon)
-                  button.append(document.createTextNode(action.label))
-                  button.addEventListener('click',()=>void runAction(action),{signal:context.signal})
-                  empty.appendChild(button)
-                }
-              }
+              const empty=createMediaDropzone({ownerDocument:document,prefix:'oe-attaches',icon:ICON,
+                uploadText:runtimeContext.t('dropzoneUpload','Upload'),afterText:runtimeContext.t('dropzoneText','files from your device or drag and drop them here'),
+                urlPrefix:runtimeContext.t('dropzoneUrlPrefix','or'),emptyText:runtimeContext.t('emptyReadonly','No files'),readOnly,signal:context.signal,
+                onUpload:chooseFiles,inlineActions:[{label:runtimeContext.t('dropzoneUrl','Insert a URL'),onSelect:openUrl}],
+                actions:snapshot.actions.map(action=>({...action,onSelect:()=>void runAction(action)})),
+              })
               wrapper.appendChild(empty)
             }else{
               const list=document.createElement('div')
-              list.className='oe-attaches__list'
-              data.files.forEach(file=>list.appendChild(renderFile(file)))
+              list.className=({a:data.files.length>1?'oe-attaches__group':'oe-attaches__list',b:'oe-attaches__pills',f:'oe-attaches__notion',g:'oe-attaches__material'}[data.variant])
+              if(data.variant==='a'&&data.files.length>1){
+                const header=document.createElement('div')
+                header.className='oe-attaches__group-header'
+                const count=document.createElement('div')
+                count.className='oe-attaches__info'
+                count.textContent=data.files.length+' '+runtimeContext.t('filesCount','files')
+                groupChevron=document.createElement('button')
+                groupChevron.type='button'
+                groupChevron.className='oe-attaches__chevron'
+                groupChevron.textContent='⌄'
+                groupChevron.setAttribute('aria-label',runtimeContext.t('toggleGroup','Show or hide files'))
+                groupBody=document.createElement('div')
+                groupBody.className='oe-attaches__group-body'
+                groupBody.id='oe-attaches-group-'+context.createId('view')
+                groupChevron.setAttribute('aria-controls',groupBody.id)
+                groupChevron.addEventListener('click',event=>{event.stopPropagation();setExpanded(!expanded)},{signal:context.signal})
+                header.addEventListener('click',()=>setExpanded(!expanded),{signal:context.signal})
+                header.append(count,groupChevron)
+                data.files.forEach(file=>groupBody.appendChild(renderFile(file,true)))
+                list.append(header,groupBody)
+                setExpanded(expanded)
+              }else data.files.forEach(file=>list.appendChild(renderFile(file)))
               wrapper.appendChild(list)
               if(!readOnly){
                 const actions=document.createElement('div')
                 actions.className='oe-attaches__actions'
                 const add=document.createElement('button')
                 add.type='button'
+                add.className='oe-attaches__action-btn'
                 add.textContent=runtimeContext.t('add','Add file')
                 add.addEventListener('click',chooseFiles,{signal:context.signal})
                 actions.appendChild(add)
+                const byUrl=document.createElement('button')
+                byUrl.type='button'
+                byUrl.className='oe-attaches__action-btn'
+                byUrl.textContent=runtimeContext.t('dropzoneUrl','Insert a URL')
+                byUrl.addEventListener('click',openUrl,{signal:context.signal})
+                actions.appendChild(byUrl)
+                const AbortControllerCtor=document.defaultView?.AbortController??AbortController
+                settingsController?.abort()
+                settingsController=new AbortControllerCtor()
+                const menuSignal=settingsController.signal
+                const dropdown=document.createElement('div')
+                dropdown.className='oe-attaches__dropdown'
+                const settings=document.createElement('button')
+                settings.type='button'
+                settings.className='oe-attaches__action-btn'
+                settings.textContent=runtimeContext.t('settings','Settings')
+                settings.setAttribute('aria-haspopup','true')
+                settings.setAttribute('aria-expanded','false')
+                const panel=document.createElement('div')
+                panel.className='oe-attaches__dropdown-panel'
+                panel.setAttribute('role','group')
+                panel.setAttribute('aria-label',runtimeContext.t('template','Template'))
+                const grid=document.createElement('div')
+                grid.className='oe-attaches__tpl-grid'
+                const setOpen=open=>{
+                  dropdown.classList.toggle('oe-attaches__dropdown--open',open)
+                  settings.setAttribute('aria-expanded',String(open))
+                }
+                settings.addEventListener('mousedown',event=>event.preventDefault(),{signal:menuSignal})
+                settings.addEventListener('click',()=>setOpen(settings.getAttribute('aria-expanded')!=='true'),{signal:menuSignal})
+                for(const variant of VARIANTS){
+                  const button=document.createElement('button')
+                  button.type='button'
+                  button.className='oe-attaches__tpl-btn'
+                  button.classList.toggle('oe-attaches__tpl-btn--active',variant===data.variant)
+                  button.dataset.variant=variant
+                  const variantKey='variant'+variant.toUpperCase()
+                  button.title=runtimeContext.t(variantKey,'Variant '+variant.toUpperCase())
+                  button.setAttribute('aria-label',button.title)
+                  button.setAttribute('aria-pressed',String(variant===data.variant))
+                  const shape=variant==='a'?'<rect x="1" y="1" width="26" height="18" rx="2"/>':variant==='b'?'<rect x="1" y="5" width="26" height="10" rx="5"/>':variant==='f'?'<path d="M1 5h26M1 10h26M1 15h26"/>':'<rect x="1" y="1" width="26" height="18" rx="3"/><path d="M1 13h26"/>'
+                  setTrustedHtml(button,`<svg width="28" height="20" viewBox="0 0 28 20" fill="none" stroke="currentColor">${shape}</svg>`)
+                  button.addEventListener('mousedown',event=>event.preventDefault(),{signal:menuSignal})
+                  button.addEventListener('click',()=>{
+                    if(dead||readOnly)return
+                    context.updateData(current=>({...current,variant}))
+                    wrapper.focus({preventScroll:true})
+                  },{signal:menuSignal})
+                  grid.appendChild(button)
+                }
+                panel.appendChild(grid)
+                dropdown.append(settings,panel)
+                document.addEventListener('click',event=>{if(!dropdown.contains(event.target))setOpen(false)},{signal:menuSignal})
+                dropdown.addEventListener('keydown',event=>{
+                  if(event.key==='Escape'){event.preventDefault();event.stopPropagation();setOpen(false);settings.focus()}
+                },{signal:menuSignal})
+                actions.appendChild(dropdown)
+                for(const action of snapshot.actions){
+                  const button=document.createElement('button')
+                  button.type='button'
+                  button.className='oe-attaches__action-btn'
+                  button.textContent=action.label
+                  button.addEventListener('click',()=>void runAction(action),{signal:context.signal})
+                  actions.appendChild(button)
+                }
+                const removeAll=document.createElement('button')
+                removeAll.type='button'
+                removeAll.className='oe-attaches__action-btn oe-attaches__action-btn--danger'
+                removeAll.textContent=runtimeContext.t('deleteAll','Delete all')
+                removeAll.addEventListener('click',()=>{
+                  abortTasks()
+                  context.updateData(current=>({...current,files:[]}))
+                  wrapper.focus()
+                },{signal:context.signal})
+                actions.appendChild(removeAll)
                 wrapper.appendChild(actions)
               }
             }
             preloadEditors()
           }
+
+          wrapper.addEventListener('dragover',event=>{
+            if(readOnly||!event.dataTransfer?.types.includes('Files'))return
+            event.preventDefault()
+            event.dataTransfer.dropEffect='copy'
+          },{signal:context.signal})
+          wrapper.addEventListener('drop',event=>{
+            if(readOnly||!event.dataTransfer?.files.length)return
+            event.preventDefault();event.stopPropagation()
+            void resolveFiles([...event.dataTransfer.files])
+          },{signal:context.signal})
 
           project(data)
 
@@ -347,9 +482,14 @@ export function createAttachesPlugin(config={}){
                 mode:/** @type {'plain-text'} */('plain-text'),
               })]:[]
             })),
-            setReadOnly(value){readOnly=value;project(data)},
-            focus(){if(!dead&&!readOnly)(nameFields.get(data.files[0]?.id)??wrapper.querySelector('button'))?.focus()},
-            destroy(){dead=true;abortTasks()},
+            setReadOnly(value){settingsController?.abort();readOnly=value;project(data)},
+            focus(target){
+              if(dead||readOnly)return
+              if(groupBody)setExpanded(true)
+              const id=target?.fieldKey?.match(/^file:(.+):name$/)?.[1]??data.files[0]?.id
+              ;(nameFields.get(id)??wrapper)?.focus()
+            },
+            destroy(){dead=true;settingsController?.abort();abortTasks()},
           }
         },
         destroy(){

@@ -23,12 +23,13 @@
 </head>
 <body>
   <main id="editor"></main>
+  <pre id="state" aria-label="Editor state"></pre>
   <script type="module">
     import { createEditor } from '../../core/index.js'
     import { createParagraphPlugin } from '../../plugins/paragraph/index.js'
     import { createDefaultInlineTools } from '../../preset/index.js'
 
-    createEditor({
+    const editor = createEditor({
       holder: document.querySelector('#editor'),
       plugins: [createParagraphPlugin()],
       inlineTools: createDefaultInlineTools({ types: ['bold', 'italic'] }),
@@ -36,6 +37,28 @@
       autofocus: true,
       minHeight: 350,
     })
+    const output = document.querySelector('#state')
+    const trusted = {}
+    const report = () => {
+      const selection = window.getSelection()
+      output.textContent = JSON.stringify({
+        blocks: editor.save().blocks,
+        selectedIds: editor.blocks.selectedIds(),
+        selection: { text: selection.toString(), anchorOffset: selection.anchorOffset, focusOffset: selection.focusOffset, collapsed: selection.isCollapsed },
+        trusted,
+      }, null, 2)
+    }
+    editor.on('document:changed', () => queueMicrotask(report))
+    document.addEventListener('selectionchange', report)
+    for (const type of ['keydown', 'beforeinput', 'input', 'mousedown', 'mousemove', 'mouseup']) {
+      document.querySelector('#editor').addEventListener(type, event => {
+        const key = `${type}.${event.isTrusted ? 'trusted' : 'synthetic'}`
+        trusted[key] = (trusted[key] ?? 0) + 1
+        if (type.startsWith('mouse')) trusted.lastPointer = { type, x: event.clientX, y: event.clientY, buttons: event.buttons }
+        queueMicrotask(report)
+      })
+    }
+    report()
   </script>
 </body>
 </html>

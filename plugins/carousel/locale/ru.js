@@ -1,4 +1,6 @@
 export default {
+  'plugin.carousel.insert': 'Вставить',
+  'plugin.carousel.cancel': 'Отмена',
   'plugin.carousel.title': 'Карусель',
   'plugin.carousel.addMedia': 'Добавить медиафайлы',
   'plugin.carousel.addUrl': 'Добавить URL',
@@ -42,6 +44,7 @@ export default {
   'plugin.carousel.video': 'Видеослайд',
   'plugin.carousel.settings': 'Настройки',
   'plugin.carousel.currentSlide': 'Текущий слайд',
+  'plugin.carousel.selectedSlide': 'Выбранный слайд',
   'plugin.carousel.behavior': 'Поведение',
   'plugin.carousel.loop': 'Зациклить',
   'plugin.carousel.autoplay': 'Автовоспроизведение',

@@ -1,0 +1,46 @@
+✔ beforeinput replaces an active cross-block selection atomically (2.9089ms)
+✔ beforeinput historyUndo/historyRedo route only for registered document fields (0.4382ms)
+✔ ordinary beforeinput does not consume a collapsed single-field edit (0.3268ms)
+✖ keyless beforeinput deletion consumes the entire active document range (2.0836ms)
+✔ auxiliary beforeinput retains native ownership while a cross-block range is active (0.7091ms)
+✔ plain text input keeps the browser-owned source projection in place (0.7502ms)
+✔ typing coalesces only inside the configured history window (0.8405ms)
+✔ paste and drop never trust the mutated source projection (0.6488ms)
+✔ input without beforeinput still synchronizes the owning field (0.8728ms)
+✔ IME composition commits once after compositionend (1.434ms)
+✔ events outside registered editable fields are ignored (0.4141ms)
+✔ composition completion is revoked by a read-only epoch (0.4333ms)
+✔ composition completion cannot commit after the document revision changes (0.3943ms)
+✔ auxiliary IME keys do not prepare a retained document selection (0.5246ms)
+✔ read-only runtime ignores native input (0.316ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 14
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 183.3986
+
+✖ failing tests:
+
+test at core\NativeInputController.test.js:127:1
+✖ keyless beforeinput deletion consumes the entire active document range (2.0836ms)
+  AssertionError [ERR_ASSERTION]: deleteContentBackward
+  
+  false !== true
+  
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/core/NativeInputController.test.js:138:12)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

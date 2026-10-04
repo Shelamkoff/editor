@@ -1,6 +1,7 @@
 // @ts-check
 import { setSanitizedHtml } from '../../plugin-kit/index.js'
 import { listDataSchema } from '../../shared/blockSchemas/list.js'
+import { acceptsTextPayload, richTextFromPayload } from '../shared/textConversion.js'
 
 const editorStyles=new URL('./list.css',import.meta.url).href
 const ICON_UL='<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11"/><path d="M9 12h11"/><path d="M9 18h11"/><path d="M5 6v.01"/><path d="M5 12v.01"/><path d="M5 18v.01"/></svg>'
@@ -78,11 +79,13 @@ export function createListPlugin(){
           const current=data.items[index]
           if(!current.text.trim()){
             if(data.items.length===1)return {kind:'exit'}
-            const next=data.items[index-1]??data.items[index+1]
+            const remaining={...data,items:data.items.filter(item=>item.id!==id)}
+            if(index===data.items.length-1)return {kind:'exit',data:remaining}
+            const next=data.items[index+1]
             return {
               kind:'update',
-              data:{...data,items:data.items.filter(item=>item.id!==id)},
-              ...(next?{focus:{fieldKey:`item:${next.id}`,offset:'end'}}:{}),
+              data:remaining,
+              focus:{fieldKey:`item:${next.id}`,offset:'start'},
             }
           }
           const parts=context.splitField(input.fieldKey,input.selection)
@@ -97,7 +100,7 @@ export function createListPlugin(){
           const items=data.items.map(item=>({...item}))
           items[index-1].text+=items[index].text
           items.splice(index,1)
-          return {kind:'update',data:{...data,items},focus:{fieldKey:`item:${previous.id}`,offset:'end'}}
+          return {kind:'update',data:{...data,items},focus:{fieldKey:`item:${previous.id}`,offset:context.fieldLength(`item:${previous.id}`)}}
         }
         return null
       },
@@ -121,7 +124,7 @@ export function createListPlugin(){
           if(slice.selected)selected.push(slice.selected)
           if(slice.after)afterItems.unshift({
             ...data.items[startIndex],
-            id:context.createId('item'),
+            id:slice.before?context.createId('item'):data.items[startIndex].id,
             text:slice.after,
           })
         }else{
@@ -148,13 +151,10 @@ export function createListPlugin(){
         return {kind:'rich-text',data:{text:data.items.map(item=>item.text).join('<br>')}}
       },
       canImport(payload){
-        return payload?.kind==='rich-text'&&typeof payload.data?.text==='string'
+        return acceptsTextPayload(payload)
       },
       import(payload){
-        if(payload?.kind!=='rich-text'||typeof payload.data?.text!=='string'){
-          throw new TypeError('List can only import rich-text payloads')
-        }
-        return {style:/** @type {'unordered'} */('unordered'),items:[{id:'item-0',text:payload.data.text}]}
+        return {style:/** @type {'unordered'} */('unordered'),items:[{id:'item-0',text:richTextFromPayload(payload)}]}
       },
     }),
     clipboard:Object.freeze({
@@ -176,7 +176,7 @@ export function createListPlugin(){
         if(!selected.length)throw new Error('List clipboard selection is empty')
         if(!remaining.length)remaining.push({id:context.createId('item'),text:''})
         return {
-          parts:[{kind:'local-block',data:{style:data.style,items:selected}}],
+          parts:[{kind:/** @type {'local-block'} */ ('local-block'),data:{style:data.style,items:selected}}],
           remaining:{style:data.style,items:remaining},
           focus:null,
         }

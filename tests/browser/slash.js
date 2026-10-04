@@ -1,12 +1,13 @@
 import { createEditor } from '../../core/index.js'
 import { createColorSwatchPlugin } from '../../inline-plugins/color.js'
 import { createHeadingPlugin, createParagraphPlugin, createQuotePlugin } from '../../plugins/index.js'
+import { createDefaultInlineTools } from '../../preset/index.js'
 
 const sandbox = document.querySelector('#sandbox')
 const delay = (ms = 0) => new Promise(resolve => setTimeout(resolve, ms))
 const assert = (condition, message) => { if (!condition) throw new Error(message) }
 
-function mount(data) {
+function mount(data, options = {}) {
   const holder = document.createElement('section')
   sandbox.appendChild(holder)
   const editor = createEditor({
@@ -21,6 +22,7 @@ function mount(data) {
     injectStyles: true,
     changeDebounceMs: 0,
     data,
+    ...options,
   })
   return { holder, editor }
 }
@@ -79,6 +81,26 @@ function slashMenu(entry) {
 }
 
 async function run() {
+  const localized = mount({ version: '2.0.0', blocks: [{ id: 'localized', type: 'paragraph', dataVersion: 2, data: { text: '' } }] }, {
+    inlineTools: createDefaultInlineTools({ types: ['bold'] }),
+    locale: { 'inlinePlugin.color.title': 'Localized palette', 'inline.color.title': 'Obsolete alias', 'plugin.paragraph.title': 'Localized paragraph' },
+  })
+  await typeText(editable(localized, 'localized'), '/col')
+  assert(slashMenu(localized).textContent.includes('Localized palette'), 'slash widget label did not use inlinePlugin namespace')
+  assert(!slashMenu(localized).textContent.includes('Obsolete alias'), 'slash widget label read an obsolete inline alias')
+  localized.editor.render({ version: '2.0.0', blocks: [{ id: 'localized', type: 'paragraph', dataVersion: 2, data: { text: 'Text' } }] })
+  const localizedField = editable(localized, 'localized')
+  localizedField.focus()
+  const localizedRange = document.createRange()
+  localizedRange.selectNodeContents(localizedField)
+  window.getSelection().removeAllRanges()
+  window.getSelection().addRange(localizedRange)
+  document.dispatchEvent(new Event('selectionchange'))
+  await delay(35)
+  assert(localized.holder.querySelector('.oe-inline-toolbar__type-name')?.textContent === 'Localized paragraph', 'inline toolbar bypassed plugin label translation')
+  localized.editor.destroy()
+  localized.holder.remove()
+
   const convert = mount({
     version: '2.0.0',
     blocks: [{ id: 'p1', type: 'paragraph', dataVersion: 2, data: { text: '' } }],

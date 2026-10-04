@@ -34,6 +34,7 @@ export default {
   'plugin.image.color': 'Color',
   'plugin.image.border': 'Border',
   'plugin.image.width': 'Width',
+  'plugin.image.height': 'Height',
   'plugin.image.radius': 'Radius',
   'plugin.image.value.none': 'None',
   'plugin.image.value.cover': 'Cover',

@@ -16,6 +16,7 @@ export const pollDataSchema=createVersionedDataSchema({
   }),
   normalize(input){
     if(!isRecord(input))throw new TypeError('Poll data must be an object')
+    /** @type {'single' | 'multiple'} */
     let type='single'
     if(input.type!==undefined){
       if(input.type!=='single'&&input.type!=='multiple')throw new TypeError('Poll type must be single or multiple')
@@ -55,5 +56,9 @@ export const pollDataSchema=createVersionedDataSchema({
       )
     }
     return data
+  },
+  mapRichText(data, transform) {
+    data.question = transform(data.question, 'question')
+    data.options = data.options.map(option => ({ ...option, text: transform(option.text, 'option:' + option.id) }))
   },
 })

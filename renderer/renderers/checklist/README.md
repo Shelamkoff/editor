@@ -23,7 +23,15 @@ rendererStyles.destroy()
 ## Typical data
 
 ```json
-{ "items": [{ "text": "Ship", "checked": false }] }
+{
+  "items": [
+    {
+      "id": "item-1",
+      "text": "Ship",
+      "checked": false
+    }
+  ]
+}
 ```
 
 Every item text uses the shared inline parser and checked state uses a native disabled checkbox. The renderer declares one stylesheet and creates no listeners or external instances.

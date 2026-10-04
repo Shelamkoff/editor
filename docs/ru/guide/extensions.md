@@ -42,7 +42,7 @@ interface BlockPluginDefinition<Data> {
 | `signal` | AbortSignal конкретного экземпляра блока. |
 | `getData()` | Чтение текущих канонических данных. |
 | `updateData(producer)` | Синхронная model-first транзакция данных блока. |
-| `beginTask()` | Создать отзывную authority для одного асинхронного persisted-результата. |
+| `beginTask()` | Создать отзывные полномочия для сохранения одного асинхронного результата. |
 | `commitDomMutation(operation)` | Перенос неизбежной plugin-owned DOM-мутации в каноническую историю. |
 | `requestSplit()` | Запрос структурного split у ядра. |
 | `requestExit()` | Запрос выхода из пустого структурированного блока. |
@@ -52,7 +52,7 @@ interface BlockPluginDefinition<Data> {
 
 ## Схема
 
-`BlockDataSchema` владеет `currentVersion`, `createDefault()`, exact-version `decode()`, `encode()` и необязательным `mapRichText()`.
+`BlockDataSchema` предоставляет `currentVersion`, `createDefault()`, `decode()` точной версии, `encode()` и необязательный `mapRichText()`.
 
 Внешние данные декодируются один раз на границе. Каждое model-first изменение кодируется до commit. `mapRichText()` обозначает все HTML-поля стабильными логическими ключами; через эту же границу работают inline-виджеты, структурное выделение и частичное преобразование.
 
@@ -67,9 +67,9 @@ interface BlockPluginDefinition<Data> {
 - `selectionSlice.slice(...)` описывает часть структурированных данных без изменения DOM.
 - `inlineControls` переиспользует model-first settings actions во внутристрочной панели.
 - `settings` — actions capability или model-first panel.
-- `htmlImport.matchesRoot/importRoot` синхронно импортирует один безопасный структурный HTML root в local current data конкретного block type; capability обязана потреблять весь root и не выполнять side effects.
-- `ClipboardCapability` (`clipboard.slice(data, context)`) для составного блока возвращает экспортируемые `parts`, канонический `remaining` после Cut и необязательный `focus`. `context.field(key)` даёт только реально выбранные rich-text intervals (`before/selected/after/whole`). Export и remaining вычисляются одной чистой capability, поэтому core не угадывает структуру данных блока.
-- `paste` маршрутизирует только text/file inputs в block или rich-text result; structural HTML ему не передаётся.
+- `htmlImport.matchesRoot/importRoot` синхронно импортирует один безопасный структурный HTML-элемент в локальные текущие данные конкретного типа блока. Возможность должна потреблять элемент целиком без побочных эффектов.
+- `ClipboardCapability` через `clipboard.slice(data, context)` возвращает экспортируемые `parts`, канонический остаток `remaining` после вырезания и необязательный `focus`. `context.field(key)` предоставляет выбранные интервалы форматированного текста: `before/selected/after/whole`. Экспорт и остаток вычисляются одной чистой операцией; ядро не угадывает структуру данных.
+- `paste` маршрутизирует только текст и файлы в результат блока или форматированного текста; структурный HTML ему не передаётся.
 - `shortcuts` возвращает действия единому keyboard router ядра.
 
 ## Настройки, вставка и клавиши
@@ -78,11 +78,13 @@ interface BlockPluginDefinition<Data> {
 
 `SettingsPanelCapability` содержит `kind: 'panel'` и `render(context)`; context предоставляет `getData()` и `updateData()`.
 
-`HtmlImportCapability` содержит `matchesRoot(element)` и `importRoot(element, context)`. Context предоставляет `ownerDocument`, `createId()` и `serializeRichText(element)` для обычного rich-text codec. Core сначала безопасно разбирает весь HTML и строит полный plan; ошибка любого принятого root отклоняет весь import до mutation.
+`HtmlImportCapability` содержит `matchesRoot(element)` и `importRoot(element, context)`. Контекст предоставляет `ownerDocument`, `createId()` и `serializeRichText(element)` для обычного кодирования форматированного текста. Ядро безопасно разбирает весь HTML и строит полный план; ошибка любого принятого элемента отклоняет импорт до изменения документа.
 
-`PasteCapability` содержит `accepts(input)` и `resolve(input, context)` только для text/file input. Resolver получает `AbortSignal`, `ownerDocument` и `createId()`.
+`PasteCapability` содержит `accepts(input)` и `resolve(input, context)` только для текста и файлов. Обработчик получает `AbortSignal`, `ownerDocument` и `createId()`.
 
 `ShortcutCapability` содержит `handle(input, data, context)`. Он возвращает `native`, `consume`, `exit`, `focus` или `update`; структурную транзакцию выполняет ядро.
+
+Контекст предоставляет `createId()`, `splitField(fieldKey, range)` и `fieldLength(fieldKey)`. Длины полей считаются в логических единицах `UTF-16`; перенос строки и атомарный виджет занимают одну единицу. Исходная длина целевого поля позволяет оставить каретку на месте склейки вместо конца объединённого текста. Действие `update` возвращает данные блока и необязательную цель фокуса; ядро сохраняет эту цель для отмены и повтора. Действие `exit` без данных преобразует текущий блок в тип по умолчанию. С `data` оно сначала обновляет сохраняемый блок и вставляет блок по умолчанию сразу после него одним шагом истории: списки используют это для выхода из последнего пустого пункта.
 
 `SelectionSliceCapability` содержит `slice(data, start, end, context)` и возвращает `before`, нейтральный `selected` payload и `after`.
 
@@ -143,7 +145,7 @@ export function createCalloutPlugin() {
 
 Definitions неизменяемы и переиспользуемы. Таймеры, кэши и подписки конкретного редактора принадлежат `BlockPluginRuntime`; listeners, observers, requests и object URLs конкретного блока принадлежат `BlockInstance` и его `signal`.
 
-Нельзя использовать DOM как хранилище. Явные синхронные controls вызывают `updateData()`; обычный ввод в editable fields синхронизирует ядро. Для асинхронной операции, которая позже меняет persisted data, используйте контракт `DataTask`: захватите `const task = context.beginTask()`, передайте `task.signal` во внешнюю работу и завершите её через `task.commit(current => next)`. Producer вызывается только для всё ещё живого экземпляра, с последними committed данными. Replacement/destroy, смена generation и переход `readOnly: false → true` отзывают task; возврат обратно в edit не оживляет старую task. `cancel()` идемпотентен. Presentation-only запросы, которые не меняют persisted data, могут использовать обычный lifecycle `signal`.
+DOM не является хранилищем. Явные синхронные элементы управления вызывают `updateData()`; обычный ввод в зарегистрированных полях синхронизирует ядро. Для сохранения асинхронного результата захватите `const task = context.beginTask()`, передайте `task.signal` внешней операции и завершите её через `task.commit(current => next)`. Обработчик получает последние зафиксированные данные только живого экземпляра. Замена, уничтожение, смена поколения и переход `readOnly: false → true` отзывают задачу; возврат к редактированию её не возобновляет. `cancel()` идемпотентен. Запросы, изменяющие только отображение, могут использовать обычный `signal` жизненного цикла.
 
 ## Связь с renderer
 

@@ -1,5 +1,9 @@
 // @ts-check
 import { pollDataSchema } from '../../shared/blockSchemas/poll.js'
+import { retainControlFocus } from '../shared/retainControlFocus.js'
+import { setSanitizedHtml } from '../../shared/sanitize/sanitizeHtml.js'
+import { createTextSelectionSlice } from '../shared/textSelectionSlice.js'
+import { createTextClipboardSlice } from '../shared/textClipboardSlice.js'
 import {
   applyLocalPollVote,
   normalizePollResults,
@@ -31,9 +35,39 @@ export function createPollPlugin(config={}){
   const maxVoters=Number.isFinite(snapshot.maxVoters)?Math.max(0,Math.floor(Number(snapshot.maxVoters))):50
 
   const capabilities=Object.freeze({
+    selectionSlice:createTextSelectionSlice(pollDataSchema),
+    clipboard:createTextClipboardSlice(pollDataSchema),
     empty:Object.freeze({
       isEmpty:data=>!data.question.trim()&&data.options.every(option=>!option.text.trim()),
     }),
+    shortcuts:Object.freeze(/** @type {import('../../plugin-kit/types').ShortcutCapability<any>} */ ({
+      handle(input,data,context){
+        if(input.fieldKey==='question'&&input.key==='Enter'&&!input.shiftKey){
+          return {kind:'focus',target:{fieldKey:'option:'+data.options[0].id,offset:'start'}}
+        }
+        if(input.fieldKey.startsWith('option:')&&input.key==='Enter'&&!input.shiftKey){
+          const index=data.options.findIndex(option=>'option:'+option.id===input.fieldKey)
+          if(index<0)return null
+          const option={id:context.createId('option'),text:''}
+          const options=[...data.options.slice(0,index+1),option,...data.options.slice(index+1)]
+          return {kind:'update',data:{...data,options},focus:{fieldKey:'option:'+option.id,offset:'start'}}
+        }
+        if(input.fieldKey.startsWith('option:')&&input.key==='Backspace'&&data.options.length>2){
+          const index=data.options.findIndex(option=>'option:'+option.id===input.fieldKey)
+          if(index>=0&&!data.options[index].text.trim()){
+            const previous=data.options[Math.max(0,index-1)]
+            const next=index===0?data.options[1]:previous
+            return {
+              kind:'update',data:{...data,options:data.options.filter((_,itemIndex)=>itemIndex!==index)},
+              focus:{fieldKey:'option:'+next.id,offset:context.fieldLength('option:'+next.id)},
+            }
+          }
+        }
+        if((input.fieldKey==='question'||input.fieldKey.startsWith('option:'))
+          &&['Enter','Backspace','Delete','ArrowUp','ArrowDown'].includes(input.key))return {kind:'native'}
+        return null
+      },
+    })),
     conversion:Object.freeze({
       export:data=>({kind:'rich-text',data:{text:[data.question,...data.options.map(option=>option.text)].filter(Boolean).join('<br>')}}),
       canImport:payload=>payload?.kind==='rich-text'&&typeof payload.data?.text==='string',
@@ -52,10 +86,19 @@ export function createPollPlugin(config={}){
           Object.freeze({id:'results-always',label:Object.freeze({key:'resultsAlways',fallback:'Always show results'}),active:data.resultsMode==='always'}),
           Object.freeze({id:'results-afterVote',label:Object.freeze({key:'resultsAfterVote',fallback:'Show after vote'}),active:data.resultsMode==='afterVote'}),
           Object.freeze({id:'results-hidden',label:Object.freeze({key:'resultsHidden',fallback:'Hide results'}),active:data.resultsMode==='hidden'}),
+          Object.freeze({id:'sort',label:Object.freeze({key:'sort',fallback:'Sort'})}),
         ]
       },
       apply(data,actionId){
-        if(actionId==='single'||actionId==='multiple')return {...data,type:actionId}
+        if(actionId==='sort')return {...data,options:[...data.options].sort((a,b)=>a.text.localeCompare(b.text))}
+        if(actionId==='single'||actionId==='multiple'){
+          const next={...data,type:actionId}
+          const previous=data.initialResults?.currentUserVote??[]
+          if(actionId==='single'&&previous.length>1&&!snapshot.dataSource){
+            next.initialResults=applyLocalPollVote(data.initialResults,previous,previous.slice(0,1),data.options.map(option=>option.id))
+          }
+          return next
+        }
         if(actionId.startsWith('results-')){
           const mode=actionId.slice(8)
           if(mode==='always'||mode==='afterVote'||mode==='hidden')return {...data,resultsMode:mode}
@@ -92,6 +135,7 @@ export function createPollPlugin(config={}){
           let loading=false
           let submitting=false
           let controller=null
+          let voteController=null
           let unsubscribe=null
           let connectionVersion=0
           let loadVersion=0
@@ -125,7 +169,7 @@ export function createPollPlugin(config={}){
             question.className='oe-poll__question'
             question.contentEditable=readOnly?'false':'true'
             question.dataset.placeholder=runtimeContext.t('questionPlaceholder','Ask a question...')
-            question.textContent=data.question
+            setSanitizedHtml(question,data.question)
             question.setAttribute('data-oe-document-input','text')
             wrapper.appendChild(question)
 
@@ -152,7 +196,7 @@ export function createPollPlugin(config={}){
               const text=document.createElement('div')
               text.className='oe-poll__option-text'
               text.contentEditable=readOnly?'false':'true'
-              text.textContent=option.text
+              setSanitizedHtml(text,option.text)
               text.dataset.optionId=option.id
               text.setAttribute('data-oe-document-input','text')
               row.append(choice,text)
@@ -160,12 +204,12 @@ export function createPollPlugin(config={}){
               if(!readOnly){
                 const remove=document.createElement('button')
                 remove.type='button'
-                remove.className='oe-poll__remove'
+                remove.className='oe-poll__remove oe-poll__option-remove'
                 remove.textContent='×'
                 remove.disabled=data.options.length<=2
                 remove.addEventListener('click',()=>{
                   if(data.options.length<=2)return
-                  context.updateData(current=>({...current,options:current.options.filter(item=>item.id!==option.id)}))
+                  retainControlFocus(wrapper,()=>context.updateData(current=>({...current,options:current.options.filter(item=>item.id!==option.id)})))
                 },{signal:context.signal})
                 row.appendChild(remove)
               }
@@ -183,7 +227,7 @@ export function createPollPlugin(config={}){
                 row.className='oe-poll__result-row'
                 const label=document.createElement('span')
                 label.className='oe-poll__result-label'
-                label.textContent=option.text||'—'
+                setSanitizedHtml(label,option.text||'—')
                 const bar=document.createElement('div')
                 bar.className='oe-poll__result-bar'
                 const fill=document.createElement('div')
@@ -238,13 +282,39 @@ export function createPollPlugin(config={}){
             if(!readOnly){
               const add=document.createElement('button')
               add.type='button'
-              add.className='oe-poll__add'
+              add.className='oe-poll__add oe-poll__option-add'
               add.textContent=runtimeContext.t('addOption','Add option')
               add.addEventListener('click',()=>{
                 const id=context.createId('option')
-                context.updateData(current=>({...current,options:[...current.options,{id,text:''}]}))
+                retainControlFocus(wrapper,()=>context.updateData(current=>({...current,options:[...current.options,{id,text:''}]})))
               },{signal:context.signal})
               wrapper.appendChild(add)
+
+              const actions=document.createElement('div')
+              actions.className='oe-poll__actions'
+              const actionButton=(id,label,operation)=>{
+                const button=document.createElement('button')
+                button.type='button'
+                button.className='oe-poll__action-btn'+(id==='reset'?' oe-poll__action-btn--danger':'')
+                button.dataset.pollAction=id
+                button.textContent=label
+                button.addEventListener('mousedown',event=>event.preventDefault(),{signal:context.signal})
+                button.addEventListener('click',()=>{
+                  if(dead||readOnly)return
+                  wrapper.focus({preventScroll:true})
+                  retainControlFocus(wrapper,()=>context.updateData(operation))
+                },{signal:context.signal})
+                actions.appendChild(button)
+              }
+              actionButton('type',runtimeContext.t(data.type==='single'?'single':'multiple','Choice type'),current=>capabilities.settings.apply(current,current.type==='single'?'multiple':'single'))
+              const resultsKey=data.resultsMode==='always'?'resultsAlways':data.resultsMode==='afterVote'?'resultsAfterVote':'resultsHidden'
+              actionButton('results',runtimeContext.t(resultsKey,'Results'),current=>{
+                const modes=['always','afterVote','hidden']
+                return capabilities.settings.apply(current,'results-'+modes[(modes.indexOf(current.resultsMode)+1)%modes.length])
+              })
+              actionButton('sort',runtimeContext.t('sort','Sort'),current=>capabilities.settings.apply(current,'sort'))
+              actionButton('reset',runtimeContext.t('delete','Delete'),()=>pollDataSchema.createDefault())
+              wrapper.appendChild(actions)
             }
 
             if(loading||submitting){
@@ -261,10 +331,10 @@ export function createPollPlugin(config={}){
             const optionNodes=[...wrapper.querySelectorAll('.oe-poll__option-text')]
             context.updateData(current=>({
               ...current,
-              question:question?.textContent??current.question,
+              question:question?.innerHTML??current.question,
               options:current.options.map(option=>{
                 const node=optionNodes.find(el=>el.dataset.optionId===option.id)
-                return node?{...option,text:node.textContent??''}:option
+                return node?{...option,text:node.innerHTML}:option
               }),
             }))
           }
@@ -279,6 +349,10 @@ export function createPollPlugin(config={}){
           const connect=()=>{
             disposeSubscription()
             controller?.abort()
+            voteController?.abort()
+            voteController=null
+            submitting=false
+            loading=false
             if(!snapshot.dataSource||!data.pollId||dead)return
             const Ctor=document.defaultView?.AbortController??AbortController
             const connectionController=new Ctor()
@@ -345,15 +419,18 @@ export function createPollPlugin(config={}){
               runtime=applyLocalPollVote(runtime,previous,optionIds,data.options.map(option=>option.id))
               selected=new Set(optionIds)
               hasVoted=true
-              context.updateData(current=>({...current,initialResults:runtime}))
-              project()
+              retainControlFocus(wrapper,()=>{
+                context.updateData(current=>({...current,initialResults:runtime}))
+                project()
+              })
               return
             }
             if(!controller||controller.signal.aborted)connect()
             const Ctor=document.defaultView?.AbortController??AbortController
-            const voteController=new Ctor()
-            const abort=()=>voteController.abort(context.signal.reason)
-            context.signal.addEventListener('abort',abort,{once:true,signal:voteController.signal})
+            const pendingVote=new Ctor()
+            voteController=pendingVote
+            const abort=()=>pendingVote.abort(context.signal.reason)
+            context.signal.addEventListener('abort',abort,{once:true,signal:pendingVote.signal})
             submitting=true
             project()
             try{
@@ -361,18 +438,22 @@ export function createPollPlugin(config={}){
                 pollId:data.pollId,
                 optionIds,
                 revision:runtime.revision,
-                signal:voteController.signal,
+                signal:pendingVote.signal,
               })
-              if(!dead&&!voteController.signal.aborted){
+              if(!dead&&!pendingVote.signal.aborted&&voteController===pendingVote){
                 hasVoted=true
                 acceptResults(results)
                 project()
               }
             }catch(error){
-              if(!dead&&!voteController.signal.aborted)report(error)
+              if(!dead&&!pendingVote.signal.aborted&&voteController===pendingVote)report(error)
             }finally{
-              submitting=false
-              if(!dead)project()
+              if(voteController===pendingVote){
+                voteController=null
+                submitting=false
+                if(!dead)project()
+              }
+              pendingVote.abort()
             }
           }
 
@@ -390,10 +471,10 @@ export function createPollPlugin(config={}){
               const optionNodes=[...wrapper.querySelectorAll('.oe-poll__option-text')]
               return {
                 ...cloneData(data),
-                question:question?.textContent??data.question,
+                question:question?.innerHTML??data.question,
                 options:data.options.map(option=>{
                   const node=optionNodes.find(el=>el.dataset.optionId===option.id)
-                  return node?{...option,text:node.textContent??''}:option
+                  return node?{...option,text:node.innerHTML}:option
                 }),
               }
             },
@@ -410,14 +491,14 @@ export function createPollPlugin(config={}){
               selected=new Set(runtime.currentUserVote??[])
               if(initialChanged)hasVoted=(runtime.currentUserVote?.length??0)>0
               else hasVoted=(runtime.currentUserVote?.length??0)>0||hasVoted
-              project()
               if(reconnect)connect()
+              project()
             },
             editableFields:()=>Object.freeze([
-              ...(!readOnly?[Object.freeze({key:'question',element:/** @type {HTMLElement} */(wrapper.querySelector('.oe-poll__question')),mode:/** @type {'plain-text'} */('plain-text')})]:[]),
+              ...(!readOnly?[Object.freeze({key:'question',element:/** @type {HTMLElement} */(wrapper.querySelector('.oe-poll__question')),mode:/** @type {'rich-text'} */('rich-text')})]:[]),
               ...data.options.flatMap(option=>{
                 const element=wrapper.querySelector(`.oe-poll__option-text[data-option-id="${cssEscape(option.id)}"]`)
-                return element?[Object.freeze({key:'option:'+option.id,element:/** @type {HTMLElement} */(element),mode:/** @type {'plain-text'} */('plain-text')})]:[]
+                return element?[Object.freeze({key:'option:'+option.id,element:/** @type {HTMLElement} */(element),mode:/** @type {'rich-text'} */('rich-text')})]:[]
               }),
             ]),
             setReadOnly(value){readOnly=value;project()},
@@ -428,6 +509,8 @@ export function createPollPlugin(config={}){
               connectionVersion++
               loadVersion++
               controller?.abort()
+              voteController?.abort()
+              voteController=null
               controller=null
               disposeSubscription()
             },

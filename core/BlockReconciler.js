@@ -35,6 +35,7 @@ function snapshotBlockInstance(source, type) {
     throw new TypeError(`Block runtime "${type}" returned an invalid instance`)
   }
   let destroyed = false
+  /** @type {import('../plugin-kit/types').BlockInstance} */
   const instance = {
     element,
     read,
@@ -151,7 +152,7 @@ export class BlockReconciler {
   getEditableFields(id) {
     const entry = this.#entries.get(id)
     if (!entry) return []
-    this.#refreshFields(id, entry)
+    this.#refreshFields(id, entry, true)
     return [...(entry.instance.editableFields?.() ?? [])]
   }
 
@@ -161,6 +162,19 @@ export class BlockReconciler {
       const owner = this.#fieldOwners.get(node)
       if (owner) return { ...owner }
       node = node.parentNode
+    }
+    // Tabs and carousel navigation can replace presentation hosts without a
+    // document transaction. Resolve their current registered fields on demand.
+    const blockId = this.resolveBlockTarget(target)
+    const entry = blockId ? this.#entries.get(blockId) : null
+    if (entry) {
+      this.#refreshFields(blockId, entry, true)
+      node = target
+      while (node && node !== entry.element) {
+        const owner = this.#fieldOwners.get(node)
+        if (owner) return { ...owner }
+        node = node.parentNode
+      }
     }
     return null
   }
@@ -602,8 +616,11 @@ export class BlockReconciler {
     try { entry.inlinePrepared.discard() } finally { entry.inlinePrepared = null }
   }
 
-  #refreshFields(id, entry) {
+  #refreshFields(id, entry, projectPresentation = false) {
     const fields = entry.instance.editableFields?.() ?? []
+    const changed = entry.fields && (fields.length !== entry.fields.length
+      || fields.some((field, index) => field.key !== entry.fields[index]?.key || field.element !== entry.fields[index]?.element))
+    entry.fields = fields
     for (const field of fields) {
       if (!field?.element || typeof field.key !== 'string' || !field.key) continue
       this.#fieldOwners.set(field.element, {
@@ -612,6 +629,9 @@ export class BlockReconciler {
         element: field.element,
         mode: field.mode,
       })
+    }
+    if (projectPresentation && changed && entry.scope?.active && this.#inlineProjection) {
+      this.#inlineProjection.reconcileBlock(id, entry.record, entry.definition, fields, entry.baseContext)
     }
   }
 

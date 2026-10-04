@@ -137,21 +137,6 @@ async function activateFieldSelection(harness, start, startOffset, end, endOffse
 }
 
 
-async function activateFieldSelection(harness,start,startOffset,end,endOffset){
-  const p1=pointAt(start,startOffset)
-  const p2=pointAt(end,endOffset)
-  start.focus()
-  start.dispatchEvent(new MouseEvent('mousedown',{
-    bubbles:true,cancelable:true,button:0,buttons:1,clientX:p1.x,clientY:p1.y,
-  }))
-  document.dispatchEvent(new MouseEvent('mousemove',{
-    bubbles:true,cancelable:true,buttons:1,clientX:p2.x,clientY:p2.y,
-  }))
-  document.dispatchEvent(new MouseEvent('mouseup',{bubbles:true,button:0,buttons:0}))
-  await delay()
-  assert(harness.root.classList.contains('oe-editor--cross-selecting'),'multi-field selection was not activated')
-}
-
 function key(target, keyValue, options = {}) {
   const event = new KeyboardEvent('keydown', {
     key: keyValue,
@@ -180,6 +165,11 @@ function paste(target, values) {
 
 function texts(editor) {
   return editor.save().blocks.map(block => String(block.data.text ?? ''))
+}
+
+function snapshot(editor) {
+  const { time, ...document } = editor.save()
+  return JSON.stringify(document)
 }
 
 async function run() {
@@ -218,7 +208,7 @@ async function run() {
     ],
   })
   await activateCrossSelection(compositeTarget, 0, 6, 2, 7)
-  const compositeBefore = JSON.stringify(compositeTarget.editor.save())
+  const compositeBefore = snapshot(compositeTarget.editor)
   const compositePaste = paste(editable(compositeTarget, 0), {
     'application/x-rector-fragment': copyData.getData('application/x-rector-fragment'),
     'text/html': '<p>lossy fallback</p>',
@@ -234,12 +224,12 @@ async function run() {
   assert(!JSON.stringify(compositeTarget.editor.save()).includes('lossy fallback'), 'composite private paste used standard fallback')
   assert(compositeTarget.editor.undo() === true, 'composite private paste is not one history step')
   await delay()
-  assert(JSON.stringify(compositeTarget.editor.save()) === compositeBefore, 'composite private paste undo did not restore target')
+  assert(snapshot(compositeTarget.editor) === compositeBefore, 'composite private paste undo did not restore target')
   compositeTarget.editor.destroy()
 
   const failedCutHarness = createHarness(sandbox)
   await activateCrossSelection(failedCutHarness)
-  const failedCutBefore = JSON.stringify(failedCutHarness.editor.save())
+  const failedCutBefore = snapshot(failedCutHarness.editor)
   const failedCutEvent = new Event('cut', { bubbles: true, cancelable: true })
   Object.defineProperty(failedCutEvent, 'clipboardData', {
     value: {
@@ -251,11 +241,12 @@ async function run() {
   await delay()
   assert(failedCutEvent.defaultPrevented, 'failed clipboard write did not fail closed')
   assert(
-    JSON.stringify(failedCutHarness.editor.save()) === failedCutBefore,
+    snapshot(failedCutHarness.editor) === failedCutBefore,
     'failed clipboard write deleted source selection',
   )
   failedCutHarness.editor.destroy()
 
+  await activateCrossSelection(copy)
   const cutData = new DataTransfer()
   const cutEvent = new ClipboardEvent('cut', { clipboardData: cutData, bubbles: true, cancelable: true })
   editable(copy, 0).dispatchEvent(cutEvent)
@@ -468,7 +459,7 @@ async function run() {
   })
   const targetField = editable(targetClipboard, 0)
   setCaret(targetField, targetField.textContent.length)
-  const targetBefore = JSON.stringify(targetClipboard.editor.save())
+  const targetBefore = snapshot(targetClipboard.editor)
   const privatePaste = paste(targetField, {
     'application/x-rector-fragment': privateText,
     'text/html': '<b>lossy fallback must not be used</b>',
@@ -486,10 +477,10 @@ async function run() {
   assert(!privateSaved.data.text.includes('lossy fallback'), 'standard fallback won over valid private MIME')
   assert(targetClipboard.editor.undo() === true, 'private rich-text paste is not undoable')
   await delay()
-  assert(JSON.stringify(targetClipboard.editor.save()) === targetBefore, 'private rich-text paste undo did not restore target')
+  assert(snapshot(targetClipboard.editor) === targetBefore, 'private rich-text paste undo did not restore target')
 
   setCaret(targetField, targetField.textContent.length)
-  const invalidBefore = JSON.stringify(targetClipboard.editor.save())
+  const invalidBefore = snapshot(targetClipboard.editor)
   const invalidPrivate = paste(targetField, {
     'application/x-rector-fragment': JSON.stringify({
       version: 1,
@@ -500,7 +491,7 @@ async function run() {
   })
   await delay()
   assert(invalidPrivate.defaultPrevented, 'invalid private MIME was not rejected explicitly')
-  assert(JSON.stringify(targetClipboard.editor.save()) === invalidBefore, 'invalid private MIME fell back to standard representations')
+  assert(snapshot(targetClipboard.editor) === invalidBefore, 'invalid private MIME fell back to standard representations')
 
   sourceClipboard.editor.destroy()
   targetClipboard.editor.destroy()
@@ -583,7 +574,7 @@ async function run() {
   const quoteTargetText = editable(quoteClipboardTarget, 0, '.oe-quote__text')
   const quoteTargetCaption = editable(quoteClipboardTarget, 0, '.oe-quote__caption')
   await activateFieldSelection(quoteClipboardTarget, quoteTargetText, 2, quoteTargetCaption, 3)
-  const quoteTargetBefore = JSON.stringify(quoteClipboardTarget.editor.save())
+  const quoteTargetBefore = snapshot(quoteClipboardTarget.editor)
   const quotePaste = paste(quoteTargetText, {
     'application/x-rector-fragment': quoteCopyData.getData('application/x-rector-fragment'),
     'text/plain': 'fallback must not win',
@@ -606,7 +597,7 @@ async function run() {
   )
   assert(quoteClipboardTarget.editor.undo() === true, 'same-block private paste is not one history step')
   await delay()
-  assert(JSON.stringify(quoteClipboardTarget.editor.save()) === quoteTargetBefore, 'same-block private paste undo failed')
+  assert(snapshot(quoteClipboardTarget.editor) === quoteTargetBefore, 'same-block private paste undo failed')
   quoteClipboardSource.editor.destroy()
   quoteClipboardTarget.editor.destroy()
 

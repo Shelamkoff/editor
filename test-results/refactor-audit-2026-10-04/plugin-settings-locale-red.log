@@ -1,0 +1,17 @@
+Plugin locale audit found 16 issue(s):
+- carousel: source uses slide, but plugin.carousel.slide is not translated
+- carousel: source uses selectedSlide, but plugin.carousel.selectedSlide is not translated
+- carousel: source uses sourceUrl, but plugin.carousel.sourceUrl is not translated
+- carousel: source uses localFile, but plugin.carousel.localFile is not translated
+- gallery: source uses autoplayInterval, but plugin.gallery.autoplayInterval is not translated
+- image: source uses expanded, but plugin.image.expanded is not translated
+- image: source uses withBackground, but plugin.image.withBackground is not translated
+- image: source uses withBorder, but plugin.image.withBorder is not translated
+- image: source uses height, but plugin.image.height is not translated
+- image: source uses objectFit, but plugin.image.objectFit is not translated
+- image: source uses objectPosition, but plugin.image.objectPosition is not translated
+- image: source uses backgroundColor, but plugin.image.backgroundColor is not translated
+- image: source uses borderStyle, but plugin.image.borderStyle is not translated
+- image: source uses borderColor, but plugin.image.borderColor is not translated
+- image: source uses borderWidth, but plugin.image.borderWidth is not translated
+- image: source uses borderRadius, but plugin.image.borderRadius is not translated

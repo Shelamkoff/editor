@@ -1,0 +1,1 @@
+{"native-core-behavior.html":[{"name":"Delete removes host-selected disjoint whole blocks as in v1","status":"PASS"},{"name":"Native copy/paste transfers only host-selected disjoint blocks in document order","status":"PASS"},{"name":"Native cut/paste transfers only host-selected disjoint blocks in document order","status":"PASS"}]}

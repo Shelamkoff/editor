@@ -61,7 +61,7 @@ Extensions receive capabilities instead of managers. A plugin may mutate its own
 
 ## Style ownership
 
-The application imports Rector's base stylesheet. A plugin class may declare static stylesheet URLs; Rector reference-counts their `<link>` elements across editor instances. Destroying the last owner removes an injected stylesheet.
+The application imports Rector's base stylesheet. A plugin definition may declare stylesheet URLs; Rector reference-counts their `<link>` elements across editor instances. Destroying the last owner removes an injected stylesheet.
 
 The document renderer has a separate style lifecycle. `renderer.injectStyles()` returns an owner whose `destroy()` method releases those links. This symmetry prevents global style leaks.
 

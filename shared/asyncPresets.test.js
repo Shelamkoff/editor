@@ -213,7 +213,7 @@ test('async presets reject sparse type lists and document block arrays without i
     const sparseBlocks = []
     Object.setPrototypeOf(sparseBlocks, blockPrototype)
     sparseBlocks.length = 1
-    await assert.rejects(() => create({ blocks: sparseBlocks }), /blocks must be a dense array/)
+    await assert.rejects(() => create({ version: '2.0.0', blocks: sparseBlocks }), /blocks must be a dense array/)
     assert.equal(blockReads, 0)
   }
 })

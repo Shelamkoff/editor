@@ -1,0 +1,21 @@
+file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149
+    if (result.status === 'fail') throw new Error(`History matrix failed: ${result.summary}`)
+                                        ^
+
+Error: History matrix failed: [
+  {
+    "name": "Native private paste replaces a forward cross-block range before its untouched suffix",
+    "status": "FAIL",
+    "error": "Error: \nexpected 4, got 6\n    at equal (http://127.0.0.1:62433/tests/browser/regressions/harness.js:22:43)\n    at caret (http://127.0.0.1:62433/tests/browser/native-core-behavior.js:15:3)\n    at http://127.0.0.1:62433/tests/browser/native-core-behavior.js:618:3\n    at async run (http://127.0.0.1:62433/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:62433/tests/browser/native-core-behavior.js:632:1"
+  },
+  {
+    "name": "Native private paste replaces a backward cross-block range before its untouched suffix",
+    "status": "FAIL",
+    "error": "Error: \nexpected 4, got 6\n    at equal (http://127.0.0.1:62433/tests/browser/regressions/harness.js:22:43)\n    at caret (http://127.0.0.1:62433/tests/browser/native-core-behavior.js:15:3)\n    at http://127.0.0.1:62433/tests/browser/native-core-behavior.js:618:3\n    at async run (http://127.0.0.1:62433/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:62433/tests/browser/native-core-behavior.js:632:1"
+  }
+]
+    at waitForHistoryMatrix (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149:41)
+    at async runNativePage (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:273:30)
+    at async file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:310:48
+
+Node.js v24.9.0

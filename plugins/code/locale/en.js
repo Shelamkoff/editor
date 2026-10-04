@@ -1,4 +1,5 @@
 export default {
+  'plugin.code.language': 'Language',
   'plugin.code.title': 'Code',
   'plugin.code.placeholder': '// Write code...',
   'plugin.code.copy': 'Copy',

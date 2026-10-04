@@ -37,7 +37,7 @@ export interface BlockPluginRuntimeContext {
   readonly signal: AbortSignal
   readonly isDefaultBlock: boolean
   readonly editorPlaceholder?: string
-  t(key: string, fallback?: string): string
+  t(key: string, fallback?: string, params?: Record<string, string | number>): string
 }
 
 /** Revocable authority for one asynchronous persisted-data operation. */
@@ -222,11 +222,13 @@ export interface BlockShortcutInput {
 export type BlockShortcutAction<D extends Record<string, unknown>> =
   | { kind: 'native' }
   | { kind: 'consume' }
-  | { kind: 'exit' }
+  | { kind: 'exit', data?: D }
   | { kind: 'focus', target: FocusTarget }
   | { kind: 'update', data: D, focus?: FocusTarget }
 
 export interface ShortcutOperationContext extends DataOperationContext {
+  /** Logical UTF-16 length, including one unit per line break or atomic widget. */
+  fieldLength(fieldKey: string): number
   splitField(fieldKey: string, range: Readonly<{ start: number, end: number }>): {
     before: string
     after: string
@@ -316,7 +318,7 @@ export interface InlineTriggerSession<
 export interface InlinePluginRuntimeContext {
   readonly ownerDocument: Document
   readonly signal: AbortSignal
-  t(key: string, fallback?: string): string
+  t(key: string, fallback?: string, params?: Record<string, string | number>): string
   showPopup(anchor: HTMLElement, content: HTMLElement, cleanup?: () => void): void
   hidePopup(): void
 }

@@ -1,6 +1,7 @@
 // @ts-check
 import { editingHostForEvent } from '../shared/editableFields.js'
 import { getTextLength } from '../shared/textOffset.js'
+import { shortcutKey } from '../shared/shortcutKey.js'
 
 function sameEditableRange(bookmark, owner) {
   const anchor = bookmark?.anchor
@@ -19,8 +20,8 @@ function sameEditableRange(bookmark, owner) {
 }
 
 function fieldLength(owner) {
-  return owner.mode === 'plain-text'
-    ? String(owner.element?.value ?? '').length
+  return owner.mode === 'plain-text' && typeof owner.element?.value === 'string'
+    ? owner.element.value.length
     : getTextLength(owner.element)
 }
 
@@ -66,7 +67,7 @@ export class KeyboardRouter {
     if (ownership.kind === 'outside' || ownership.kind === 'auxiliary-native') return
 
     const key = String(event?.key ?? '')
-    const lower = key.toLowerCase()
+    const lower = shortcutKey(event)
     const mod = event?.metaKey === true || event?.ctrlKey === true
 
     if (mod && !event?.altKey) {
@@ -76,12 +77,17 @@ export class KeyboardRouter {
       ) return
 
       if (lower === 'a' && !event?.shiftKey && ownership.owner) {
+        if (this.#crossSelection?.wholeBlockIds?.length) {
+          this.#crossSelection.clear()
+          // Native Ctrl+A selects text in the focused editing host again.
+          return
+        }
         const owner = ownership.owner
         const bookmark = this.#selection.capture()
         const range = sameEditableRange(bookmark, owner)
         if (
           this.#crossSelection?.active
-          || (range && range.start === 0 && range.end === fieldLength(owner))
+          || (range && (range.start !== range.end || fieldLength(owner) === 0))
         ) {
           if (this.#crossSelection?.selectAllBlocks()) event.preventDefault?.()
           return
@@ -101,16 +107,50 @@ export class KeyboardRouter {
       }
     }
 
-    if (event?.metaKey || event?.ctrlKey || event?.altKey) return
-    if (!ownership.owner) return
-
+    if (event?.shiftKey && (event?.ctrlKey || event?.metaKey) && !event?.altKey
+      && (key === 'ArrowLeft' || key === 'ArrowRight')
+      && this.#crossSelection?.extend(key === 'ArrowLeft' ? 'backward' : 'forward', 'word')) {
+      event.preventDefault?.()
+      return
+    }
+    // A selected range is deleted as a whole, including word-delete shortcuts.
+    // Yielding Ctrl+Delete/Backspace lets the browser clip it to one editing host.
     if (this.#crossSelection?.active && (key === 'Backspace' || key === 'Delete')) {
       event.preventDefault?.()
+      if (this.#crossSelection.wholeBlockIds?.length) {
+        this.#crossSelection.removeWholeBlocks()
+        return
+      }
       this.#crossSelection.replace({ kind: 'text', text: '' })
       return
     }
+    if (event?.metaKey || event?.ctrlKey || event?.altKey) return
+    if (!ownership.owner) return
+
+    if (event?.shiftKey && (key === 'ArrowLeft' || key === 'ArrowRight')
+      && this.#crossSelection?.extend(key === 'ArrowLeft' ? 'backward' : 'forward')) {
+      event.preventDefault?.()
+      return
+    }
+    if (event?.shiftKey && ['ArrowUp','ArrowDown','Home','End'].includes(key)
+      && this.#crossSelection?.extend(
+        key === 'ArrowUp' || key === 'Home' ? 'backward' : 'forward',
+        key === 'Home' || key === 'End' ? 'lineboundary' : 'line',
+      )) {
+      event.preventDefault?.()
+      return
+    }
+
+    if (this.#crossSelection?.wholeBlockIds?.length
+      && !event?.shiftKey && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(key)) {
+      this.#crossSelection.clear()
+    }
 
     const owner = ownership.owner
+    if (key === 'Enter' && !event?.shiftKey && this.#crossSelection?.active && this.#crossSelection.split()) {
+      event.preventDefault?.()
+      return
+    }
     const range = sameEditableRange(this.#selection.capture(), owner)
     if (!range) return
 
@@ -130,6 +170,10 @@ export class KeyboardRouter {
       }, record.data, {
         createId: prefix => this.#runtime.createDataId(prefix),
         splitField: (fieldKey, selection) => this.#runtime.splitRichTextField(owner.blockId, fieldKey, selection),
+        fieldLength: fieldKey => {
+          const field = this.#reconciler.getEditableField(owner.blockId, fieldKey)
+          return field ? fieldLength(field) : 0
+        },
       })
       if (action) {
         const prevent = action.kind !== 'native'
@@ -147,12 +191,13 @@ export class KeyboardRouter {
       return
     }
 
-    if (key === 'Backspace' && !event?.shiftKey && range.start === 0 && range.end === 0) {
-      if (this.#mergeBackward(owner.blockId)) event.preventDefault?.()
+    if (key === 'Backspace' && !event?.shiftKey && range.start === 0 && range.end === 0 && this.#atBlockEdge(owner, false)) {
+      if (this.#mergeBackward(owner.blockId)
+        || (record.type !== this.#registry.defaultBlockType && this.#runtime.isEmpty(owner.blockId) && this.exit(owner.blockId))) event.preventDefault?.()
       return
     }
 
-    if (key === 'ArrowUp' && !event?.shiftKey && range.start === 0 && range.end === 0) {
+    if (key === 'ArrowUp' && !event?.shiftKey && range.start === 0 && range.end === 0 && this.#atBlockEdge(owner, false)) {
       const index=this.#runtime.indexOf(owner.blockId)
       const previousId=this.#runtime.idAt(index-1)
       if(index>0&&previousId){
@@ -173,6 +218,7 @@ export class KeyboardRouter {
       && !event?.shiftKey
       && range.start === range.end
       && range.end === fieldLength(owner)
+      && this.#atBlockEdge(owner, true)
     ) {
       const index=this.#runtime.indexOf(owner.blockId)
       const nextId=this.#runtime.idAt(index+1)
@@ -189,8 +235,9 @@ export class KeyboardRouter {
       && !event?.shiftKey
       && range.start === range.end
       && range.end === fieldLength(owner)
+      && this.#atBlockEdge(owner, true)
     ) {
-      if (this.#mergeForward(owner.blockId, range.end)) event.preventDefault?.()
+      if (this.#mergeForward(owner.blockId, owner.fieldKey, range.end)) event.preventDefault?.()
     }
   }
 
@@ -214,14 +261,16 @@ export class KeyboardRouter {
     }
 
     const element = /** @type {Element} */ (target)
+    if (element.closest?.('input, textarea, select, [contenteditable="true"], [data-inline-plugin]')) {
+      return { kind: 'auxiliary-native', owner: null }
+    }
     if (element.closest?.('.oe-toolbar, .oe-inline-toolbar, .oe-toolbox, .oe-settings-menu, .oe-slash-menu')) {
       return { kind: 'editor-chrome', owner: null }
     }
     if (
-      element.closest?.('input, textarea, select, [contenteditable="true"], [data-inline-plugin]')
-      || this.#reconciler.resolveBlockTarget(target)
+      this.#reconciler.resolveBlockTarget(target)
     ) {
-      return { kind: 'auxiliary-native', owner: null }
+      return { kind: 'editor-chrome', owner: null }
     }
     return { kind: 'editor-chrome', owner: null }
   }
@@ -237,7 +286,7 @@ export class KeyboardRouter {
             : {},
         )
     if (!bookmark || typeof fieldKey !== 'string' || !fieldKey) return false
-    const nextId = this.#runtime.splitBlock(blockId, fieldKey, bookmark)
+    const nextId = this.#mutate('block.split', () => this.#runtime.splitBlock(blockId, fieldKey, bookmark), id => ({ blockId: id, offset: 'start' }))
     if (!nextId) return false
     this.#view.reconcileInteraction()
     this.#view.setCurrent(nextId)
@@ -245,13 +294,23 @@ export class KeyboardRouter {
     return true
   }
 
-  exit(blockId) {
+  exit(blockId, data = undefined) {
     if (this.#runtime.readOnly) return false
     const record = this.#runtime.get(blockId)
     if (!record) return false
 
+    if (data !== undefined) {
+      const nextId = this.#mutate('block.exit', () => {
+        this.#runtime.update(blockId, () => ({ data }))
+        return this.#runtime.insert(this.#registry.defaultBlockType, undefined, this.#runtime.indexOf(blockId) + 1)
+      }, id => ({ blockId: id, offset: 'start' }))
+      this.#view.reconcileInteraction()
+      this.#view.focus(nextId, { offset: 'start' })
+      return true
+    }
+
     if (record.type !== this.#registry.defaultBlockType) {
-      this.#runtime.convert(blockId, { type: this.#registry.defaultBlockType })
+      this.#mutate('block.exit', () => this.#runtime.convert(blockId, { type: this.#registry.defaultBlockType }), () => ({ blockId, offset: 'start' }))
       this.#view.reconcileInteraction()
       this.#view.setCurrent(blockId)
       queueMicrotask(() => this.#view.focus(blockId, { offset: 'start' }))
@@ -259,7 +318,7 @@ export class KeyboardRouter {
     }
 
     const index = this.#view.indexOf(blockId)
-    const nextId = this.#runtime.insert(this.#registry.defaultBlockType, undefined, index + 1)
+    const nextId = this.#mutate('block.insert', () => this.#runtime.insert(this.#registry.defaultBlockType, undefined, index + 1), id => ({ blockId: id, offset: 'start' }))
     this.#view.reconcileInteraction()
     this.#view.setCurrent(nextId)
     queueMicrotask(() => this.#view.focus(nextId, { offset: 'start' }))
@@ -270,18 +329,36 @@ export class KeyboardRouter {
     this.#controller.abort()
   }
 
+  appendDefault() {
+    if (this.#runtime.readOnly || this.#runtime.health !== 'ready') return false
+    const lastId = this.#runtime.idAt(this.#runtime.size - 1)
+    const last = lastId ? this.#runtime.get(lastId) : null
+    this.#crossSelection?.clear()
+    this.#inlineToolbar?.hide()
+    if (last?.type === this.#registry.defaultBlockType && this.#runtime.isEmpty(lastId)) {
+      this.#view.focus(lastId, { offset: 'start' })
+      return true
+    }
+    // Give an initially unfocused editor a valid history restore point.
+    if (!this.#selection.capture() && lastId) this.#view.focus(lastId, { offset: 'end' })
+    const id = this.#mutate('block.append', () => this.#runtime.insert(this.#registry.defaultBlockType), result => ({ blockId: result, offset: 'start' }))
+    this.#view.reconcileInteraction()
+    this.#view.focus(id, { offset: 'start' })
+    return true
+  }
+
   #applyShortcut(blockId, action) {
     switch (action.kind) {
       case 'native':
       case 'consume':
         return true
       case 'exit':
-        return this.exit(blockId)
+        return this.exit(blockId, action.data)
       case 'focus':
         queueMicrotask(() => this.#view.focus(blockId, action.target))
         return true
       case 'update':
-        this.#runtime.update(blockId, () => action.data)
+        this.#mutate('block.shortcut', () => this.#runtime.update(blockId, () => ({ data: action.data })), () => ({ blockId, ...action.focus }))
         this.#view.reconcileInteraction()
         this.#view.setCurrent(blockId)
         if (action.focus) queueMicrotask(() => this.#view.focus(blockId, action.focus))
@@ -296,43 +373,67 @@ export class KeyboardRouter {
     const previousId=this.#runtime.idAt(index-1)
     if(index<=0||!previousId)return false
 
-    if(this.#runtime.mergeAdjacent(previousId,blockId)){
+    const previousField = this.#reconciler.getEditableFields(previousId).at(-1)
+    const target = { ...(previousField ? { fieldKey: previousField.key } : {}), offset: previousField ? fieldLength(previousField) : 0 }
+    if (this.#runtime.isEmpty(blockId)) {
+      this.#mutate('block.remove', () => this.#runtime.remove(blockId), () => ({ blockId: previousId, ...target }))
       this.#view.reconcileInteraction()
       this.#view.setCurrent(previousId)
-      queueMicrotask(()=>this.#view.focus(previousId,{offset:'end'}))
+      queueMicrotask(()=>this.#view.focus(previousId,target))
       return true
     }
-
-    if (this.#runtime.isEmpty(blockId)) {
-      this.#runtime.remove(blockId)
+    if(this.#mutate('block.merge', () => this.#runtime.mergeAdjacent(previousId,blockId), () => ({ blockId: previousId, ...target }))){
       this.#view.reconcileInteraction()
       this.#view.setCurrent(previousId)
-      queueMicrotask(()=>this.#view.focus(previousId,{offset:'end'}))
+      queueMicrotask(()=>this.#view.focus(previousId,target))
       return true
     }
     return false
   }
 
-  #mergeForward(blockId, caretOffset) {
+  #mergeForward(blockId, fieldKey, caretOffset) {
     const index=this.#runtime.indexOf(blockId)
     const nextId=this.#runtime.idAt(index+1)
     if(index<0||!nextId)return false
 
-    if(this.#runtime.mergeAdjacent(blockId,nextId)){
+    if(this.#runtime.isEmpty(nextId)){
+      this.#mutate('block.remove', () => this.#runtime.remove(nextId), () => ({ blockId, offset: caretOffset }))
       this.#view.reconcileInteraction()
       this.#view.setCurrent(blockId)
-      queueMicrotask(() => this.#view.focus(blockId, { offset: caretOffset }))
+      queueMicrotask(() => this.#view.focus(blockId, { fieldKey, offset: caretOffset }))
       return true
     }
-
-    if(this.#runtime.isEmpty(nextId)){
-      this.#runtime.remove(nextId)
+    if(this.#mutate('block.merge', () => this.#runtime.mergeAdjacent(blockId,nextId), () => ({ blockId, offset: caretOffset }))){
       this.#view.reconcileInteraction()
       this.#view.setCurrent(blockId)
-      queueMicrotask(() => this.#view.focus(blockId, { offset: caretOffset }))
+      queueMicrotask(() => this.#view.focus(blockId, { fieldKey, offset: caretOffset }))
       return true
     }
     return false
+  }
+
+  #mutate(name, operation, focusAfter) {
+    const before = this.#selection.capture()
+    return this.#runtime.interact(name, operation, result => {
+      const target = focusAfter(result)
+      const fields = target.blockId ? this.#reconciler.getEditableFields(target.blockId) : []
+      const fieldKey = target.fieldKey ?? (before?.anchor.blockId === target.blockId ? before.anchor.fieldKey : null)
+      const field = fieldKey ? fields.find(field => field.key === fieldKey) ?? fields[0] : fields[0]
+      if (!field) return null
+      const length = fieldLength(field)
+      const offset = target.offset === 'end' ? length
+        : target.offset === 'start' || target.offset === undefined ? 0
+          : Math.max(0, Math.min(length, Number(target.offset) || 0))
+      const point = { blockId: target.blockId, fieldKey: field.key, offset }
+      return { anchor: point, focus: { ...point } }
+    })
+  }
+
+  #atBlockEdge(owner, end) {
+    const fields = this.#reconciler.getEditableFields(owner.blockId)
+    const index = fields.findIndex(field => field.key === owner.fieldKey)
+    if (index < 0) return false
+    return (end ? fields.slice(index + 1) : fields.slice(0, index)).every(field => fieldLength(field) === 0)
   }
 
   #undo() {

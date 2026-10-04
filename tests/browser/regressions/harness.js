@@ -85,7 +85,8 @@ export async function paste(element, values) {
 export const texts = editor => editor.save().blocks.map(block => block.data.text)
 export async function run() {
   const results = []
-  for (const { name, run } of cases) {
+  const filter = new URL(location.href).searchParams.get('test-filter')
+  for (const { name, run } of cases.filter(entry => !filter || entry.name.includes(filter))) {
     const errors = { expected: [], unexpected: [] }
     activeErrors = errors
     const capture = (event) => {
@@ -111,7 +112,7 @@ export async function run() {
         new Promise((_, reject) => {
           timer = setTimeout(
             () => reject(new Error(`Audit case timed out: ${name}`)),
-            10_000,
+            new URL(location.href).searchParams.has('ui-driver') ? 120_000 : 10_000,
           )
         }),
       ])

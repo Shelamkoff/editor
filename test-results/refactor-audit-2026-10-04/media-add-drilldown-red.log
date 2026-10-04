@@ -1,0 +1,21 @@
+file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149
+    if (result.status === 'fail') throw new Error(`History matrix failed: ${result.summary}`)
+                                        ^
+
+Error: History matrix failed: [
+  {
+    "name": "Gallery filled Add drills into sources, returns with Back and commits a selected source once",
+    "status": "FAIL",
+    "error": "Error: \nexpected [\"Back\",\"Upload\",\"Library\",\"URL\"], got [\"Settings\",\"Add images\",\"Insert URL\",\"Delete all\",\"Library\"]\n    at equal (http://127.0.0.1:49555/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:49555/tests/browser/native-plugin-media.js:302:5\n    at async run (http://127.0.0.1:49555/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:49555/tests/browser/native-plugin-media.js:367:1"
+  },
+  {
+    "name": "Carousel filled Add drills into sources, returns with Back and commits a selected source once",
+    "status": "FAIL",
+    "error": "Error: \nexpected [\"Back\",\"Upload\",\"Library\",\"URL\",\"HTML\"], got [\"Settings\",\"Add\",\"URL\",\"HTML\",\"Library\",\"Remove slide\",\"←\",\"→\",\"Remove all slides\"]\n    at equal (http://127.0.0.1:49555/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:49555/tests/browser/native-plugin-media.js:302:5\n    at async run (http://127.0.0.1:49555/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:49555/tests/browser/native-plugin-media.js:367:1"
+  }
+]
+    at waitForHistoryMatrix (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149:41)
+    at async runNativePage (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:273:30)
+    at async file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:310:48
+
+Node.js v24.9.0

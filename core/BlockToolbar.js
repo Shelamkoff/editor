@@ -1,6 +1,9 @@
 // @ts-check
 import { setTrustedHtml } from '../shared/sanitize/sanitizeHtml.js'
+import { positionPopup } from '../shared/editorDom.js'
 import {
+  ICON_BACK,
+  ICON_CHEVRON_RIGHT,
   ICON_DELETE,
   ICON_DOWN,
   ICON_DRAG,
@@ -30,6 +33,12 @@ export class BlockToolbar {
   #filterThreshold
   #destroyed = false
   #documentClick
+  #viewportChange
+  #toolboxParent = null
+  #toolboxQuery = ''
+  #settingsView = 'main'
+  #toolboxVersion = 0
+  #settingsVersion = 0
 
   constructor({ root, runtime, registry, view, selection, inlineCommands, translate, t, filterThreshold = 7 }) {
     if (!Number.isSafeInteger(filterThreshold) || filterThreshold < 0) {
@@ -90,8 +99,13 @@ export class BlockToolbar {
 
     root.append(this.#toolbar, this.#toolbox, this.#settings, this.#backdrop)
     this.#buildToolbox()
+    this.#toolbox.addEventListener('keydown', event => this.#menuKeydown(event, this.#toolbox))
+    this.#settings.addEventListener('keydown', event => this.#menuKeydown(event, this.#settings))
 
     this.#plus.addEventListener('mousedown', () => {
+      this.#bookmark = this.#selection.capture()
+    })
+    this.#settingsButton.addEventListener('mousedown', () => {
       this.#bookmark = this.#selection.capture()
     })
     this.#plus.addEventListener('click', event => {
@@ -113,6 +127,14 @@ export class BlockToolbar {
       this.closeSettings()
     }
     document.addEventListener('click', this.#documentClick, true)
+    this.#viewportChange = () => {
+      const block = this.#currentId ? this.#view.element(this.#currentId) : null
+      if (!block || this.#toolbar.style.display === 'none') return
+      this.#position(block)
+      if (this.#toolbox.style.display !== 'none') this.#positionPopup(this.#toolbox)
+      if (this.#settings.style.display !== 'none') this.#positionPopup(this.#settings)
+    }
+    document.defaultView?.addEventListener('resize', this.#viewportChange)
   }
 
   get dragHandle() {
@@ -122,6 +144,10 @@ export class BlockToolbar {
   showFor(blockId) {
     if (this.#destroyed || this.#runtime.readOnly) return
     if (!this.#runtime.get(blockId)) return
+    if (this.#currentId !== blockId) {
+      this.closeToolbox()
+      this.closeSettings()
+    }
     const previous = this.#currentId ? this.#view.element(this.#currentId) : null
     previous?.classList?.remove('oe-block--focused')
     this.#currentId = blockId
@@ -150,15 +176,20 @@ export class BlockToolbar {
 
   openToolbox() {
     if (this.#runtime.readOnly) return
+    this.#bookmark = this.#selection.capture() ?? this.#bookmark
     this.closeSettings()
+    this.#toolboxQuery = ''
+    this.#buildToolbox()
     this.#toolbox.style.display = ''
     this.#toolbox.classList.add('oe-toolbox--open')
     this.#plus.setAttribute('aria-expanded', 'true')
     this.#positionPopup(this.#toolbox)
     this.#syncBackdrop()
+    this.#toolbox.focus({ preventScroll: true })
   }
 
   closeToolbox() {
+    this.#toolboxVersion++
     this.#toolbox.style.display = 'none'
     this.#toolbox.classList.remove('oe-toolbox--open')
     this.#plus.setAttribute('aria-expanded', 'false')
@@ -167,6 +198,7 @@ export class BlockToolbar {
 
   openSettings() {
     if (this.#runtime.readOnly || !this.#currentId) return
+    this.#bookmark = this.#selection.capture() ?? this.#bookmark
     this.closeToolbox()
     this.#buildSettings()
     this.#settings.style.display = ''
@@ -174,9 +206,11 @@ export class BlockToolbar {
     this.#settingsButton.setAttribute('aria-expanded', 'true')
     this.#positionPopup(this.#settings)
     this.#syncBackdrop()
+    this.#settings.focus({ preventScroll: true })
   }
 
   closeSettings() {
+    this.#settingsVersion++
     this.#settings.style.display = 'none'
     this.#settings.classList.remove('oe-settings-menu--open')
     this.#settingsButton.setAttribute('aria-expanded', 'false')
@@ -187,6 +221,7 @@ export class BlockToolbar {
     if (this.#destroyed) return
     this.#destroyed = true
     this.#root.ownerDocument.removeEventListener('click', this.#documentClick, true)
+    this.#root.ownerDocument.defaultView?.removeEventListener('resize', this.#viewportChange)
     this.#toolbar.remove()
     this.#toolbox.remove()
     this.#settings.remove()
@@ -200,9 +235,12 @@ export class BlockToolbar {
     return translated === key ? label.fallback : translated
   }
 
-  #buildToolbox() {
+  #buildToolbox(direction = 'none') {
     const document = this.#root.ownerDocument
+    this.#toolboxVersion++
+    this.#toolboxParent = null
     this.#toolbox.replaceChildren()
+    this.#applyDirection(this.#toolbox, direction)
     const count = this.#registry.blockTypes.length + this.#registry.inlineTypes.length
     if (count > this.#filterThreshold) {
       const filter = document.createElement('li')
@@ -212,7 +250,11 @@ export class BlockToolbar {
       input.className = 'oe-toolbox__filter-input'
       input.type = 'text'
       input.placeholder = this.#t('toolbox.search', 'Search')
-      input.addEventListener('input', () => this.#filterToolbox(input.value))
+      input.value = this.#toolboxQuery
+      input.addEventListener('input', () => {
+        this.#toolboxQuery = input.value
+        this.#filterToolbox(input.value)
+      })
       filter.append(input)
       this.#toolbox.append(filter)
     }
@@ -220,30 +262,16 @@ export class BlockToolbar {
     for (const type of this.#registry.blockTypes) {
       const definition = this.#registry.getBlockDefinition(type)
       if (!definition) continue
+      const variants = definition.toolbox ?? []
       const item = this.#toolboxItem(
         type,
         this.#label('plugin', type, definition.label),
         definition.icon,
-        () => this.#insertBlock(type),
+        () => variants.length ? this.#showToolboxVariants(type) : this.#insertBlock(type),
       )
-      const variants = definition.toolbox ?? []
       if (variants.length) {
-        const group = document.createElement('span')
-        group.className = 'oe-toolbox__variants'
-        for (const variant of variants) {
-          const button = document.createElement('button')
-          button.type = 'button'
-          button.className = 'oe-toolbox__variant'
-          button.dataset.toolboxItem = variant.id
-          button.textContent = this.#label('plugin', type, variant.label)
-          button.addEventListener('click', event => {
-            event.preventDefault()
-            event.stopPropagation()
-            this.#insertBlock(type, variant.id)
-          })
-          group.append(button)
-        }
-        item.append(group)
+        this.#addArrow(item, 'oe-toolbox__arrow')
+        item.dataset.search += '\0' + variants.map(variant => this.#label('plugin', type, variant.label)).join('\0').toLocaleLowerCase()
       }
       this.#toolbox.append(item)
     }
@@ -253,7 +281,7 @@ export class BlockToolbar {
       if (!definition) continue
       const item = this.#toolboxItem(
         type,
-        this.#label('inline', type, definition.label),
+        this.#label('inlinePlugin', type, definition.label),
         definition.icon,
         () => this.#insertInline(type),
         true,
@@ -261,7 +289,31 @@ export class BlockToolbar {
       this.#toolbox.append(item)
     }
 
-    this.#toolbox.addEventListener('keydown', event => this.#menuKeydown(event, this.#toolbox))
+    this.#filterToolbox(this.#toolboxQuery)
+  }
+
+  #showToolboxVariants(type) {
+    const definition = this.#registry.getBlockDefinition(type)
+    if (!definition?.toolbox?.length) return
+    this.#toolboxVersion++
+    this.#toolboxParent = type
+    this.#toolbox.replaceChildren()
+    this.#applyDirection(this.#toolbox, 'forward')
+    const back = this.#toolboxItem('', this.#t('block.back', 'Back'), ICON_BACK, () => {
+      this.#buildToolbox('back')
+      this.#positionPopup(this.#toolbox)
+      this.#toolbox.querySelector(`[data-plugin-type="${CSS.escape(type)}"]`)?.focus()
+    })
+    back.dataset.menuBack = 'true'
+    this.#toolbox.append(back)
+    for (const variant of definition.toolbox) {
+      const item = this.#toolboxItem(type, this.#label('plugin', type, variant.label), variant.icon ?? definition.icon, () => this.#insertBlock(type, variant.id))
+      item.dataset.toolboxItem = variant.id
+      this.#toolbox.append(item)
+    }
+    this.#toolbox.scrollTop = 0
+    this.#positionPopup(this.#toolbox)
+    back.focus({ preventScroll: true })
   }
 
   #toolboxItem(type, label, iconHtml, action, inline = false) {
@@ -280,10 +332,11 @@ export class BlockToolbar {
     text.className = 'oe-toolbox__label'
     text.textContent = label
     item.append(icon, text)
+    const version = this.#toolboxVersion
     item.addEventListener('click', event => {
-      if (event.target?.closest?.('.oe-toolbox__variant')) return
       event.preventDefault()
       event.stopPropagation()
+      if (this.#destroyed || this.#runtime.readOnly || version !== this.#toolboxVersion) return
       action()
     })
     return item
@@ -302,7 +355,7 @@ export class BlockToolbar {
     const currentId = this.#currentId
     let id
     if (currentId && this.#runtime.isEmpty(currentId)) {
-      this.#runtime.convert(currentId, { type, ...(toolboxItemId ? { toolboxItemId } : {}) })
+      this.#mutate('block.convert', () => this.#runtime.convert(currentId, { type, ...(toolboxItemId ? { toolboxItemId } : {}) }), () => currentId)
       id = currentId
     } else {
       const definition = this.#registry.getBlockDefinition(type)
@@ -313,7 +366,7 @@ export class BlockToolbar {
         if (item?.configure) data = item.configure(data, { createId: prefix => this.#runtime.createDataId(prefix) })
       }
       const index = currentId ? this.#view.indexOf(currentId) + 1 : this.#runtime.size
-      id = this.#runtime.insert(type, data, index)
+      id = this.#mutate('block.insert', () => this.#runtime.insert(type, data, index), result => result)
     }
     this.#view.reconcileInteraction()
     this.#view.setCurrent(id)
@@ -353,9 +406,12 @@ export class BlockToolbar {
     })
   }
 
-  #buildSettings() {
+  #buildSettings(direction = 'none') {
     const document = this.#root.ownerDocument
+    this.#settingsVersion++
+    this.#settingsView = 'main'
     this.#settings.replaceChildren()
+    this.#applyDirection(this.#settings, direction)
     const id = this.#currentId
     if (!id) return
     const record = this.#runtime.get(id)
@@ -380,12 +436,13 @@ export class BlockToolbar {
           this.#label('plugin', record.type, action.label),
           action.icon ?? '',
           () => {
-            this.#runtime.update(id, current => ({
+            this.#mutate('block.settings', () => this.#runtime.update(id, current => ({
               data: settings.apply(current.data, action.id, { createId: prefix => this.#runtime.createDataId(prefix) }),
-            }))
+            })), () => id)
             this.#view.reconcileInteraction()
             this.#view.setCurrent(id)
             this.closeSettings()
+            queueMicrotask(() => this.#view.focus(id))
           },
           action.disabled === true,
           false,
@@ -423,40 +480,72 @@ export class BlockToolbar {
     ))
 
     if (this.#registry.blockTypes.length > 1) {
-      const convert = this.#settingsItem(this.#t('block.convertTo', 'Convert to'), ICON_SWITCH, () => {})
-      convert.classList.add('oe-settings-menu__item--active')
+      const convert = this.#settingsItem(this.#t('block.convertTo', 'Convert to'), ICON_SWITCH, () => this.#showConversionTypes())
+      convert.dataset.menuConvert = 'true'
+      this.#addArrow(convert, 'oe-settings-menu__arrow')
       this.#settings.append(convert)
-      for (const type of this.#registry.blockTypes) {
-        if (type === record.type) continue
-        const target = this.#registry.getBlockDefinition(type)
-        if (!target) continue
-        this.#settings.append(this.#settingsItem(
-          '  ' + this.#label('plugin', type, target.label),
-          target.icon,
-          () => {
-            try {
-              this.#runtime.convert(id, { type })
-              this.#view.reconcileInteraction()
-              this.#view.setCurrent(id)
-              this.closeSettings()
-              queueMicrotask(() => this.#view.focus(id))
-            } catch {}
-          },
-        ))
-      }
     }
 
     this.#settings.append(
       this.#separator(),
       this.#settingsItem(this.#t('block.delete', 'Delete'), ICON_DELETE, () => {
-        this.#runtime.remove(id)
+        const focusId = this.#mutate('block.remove', () => this.#runtime.remove(id), result => result)
         this.#view.reconcileInteraction()
-        this.#currentId = this.#view.currentId
+        this.#currentId = focusId ?? this.#view.currentId
         this.closeSettings()
         if (this.#currentId) queueMicrotask(() => this.#view.focus(this.#currentId))
       }, false, true),
     )
-    this.#settings.addEventListener('keydown', event => this.#menuKeydown(event, this.#settings))
+  }
+
+  #showConversionTypes() {
+    const id = this.#currentId
+    const record = id ? this.#runtime.get(id) : null
+    if (!record) return
+    this.#settingsVersion++
+    this.#settingsView = 'convert'
+    this.#settings.replaceChildren()
+    this.#applyDirection(this.#settings, 'forward')
+    const back = this.#settingsItem(this.#t('block.back', 'Back'), ICON_BACK, () => {
+      this.#buildSettings('back')
+      this.#positionPopup(this.#settings)
+      this.#settings.querySelector('[data-menu-convert]')?.focus()
+    })
+    back.dataset.menuBack = 'true'
+    this.#settings.append(back, this.#separator())
+    for (const type of this.#registry.blockTypes) {
+      const definition = this.#registry.getBlockDefinition(type)
+      if (!definition) continue
+      const current = type === record.type
+      const item = this.#settingsItem(this.#label('plugin', type, definition.label), definition.icon, () => {
+        try {
+          this.#mutate('block.convert', () => this.#runtime.convert(id, { type }), () => id)
+          this.#view.reconcileInteraction()
+          this.#view.setCurrent(id)
+          this.closeSettings()
+          queueMicrotask(() => this.#view.focus(id))
+        } catch {}
+      }, current, false, current)
+      item.dataset.pluginType = type
+      this.#settings.append(item)
+    }
+    this.#settings.scrollTop = 0
+    this.#positionPopup(this.#settings)
+    back.focus({ preventScroll: true })
+  }
+
+  #addArrow(item, className) {
+    item.setAttribute('aria-haspopup', 'menu')
+    const arrow = this.#root.ownerDocument.createElement('span')
+    arrow.className = className
+    setTrustedHtml(arrow, ICON_CHEVRON_RIGHT)
+    item.append(arrow)
+  }
+
+  #applyDirection(menu, direction) {
+    const prefix = menu === this.#toolbox ? 'oe-toolbox' : 'oe-settings-menu'
+    menu.classList.toggle(`${prefix}--forward`, direction === 'forward')
+    menu.classList.toggle(`${prefix}--back`, direction === 'back')
   }
 
   #settingsItem(label, iconHtml, action, disabled = false, danger = false, active = false) {
@@ -477,9 +566,11 @@ export class BlockToolbar {
     text.className = 'oe-settings-menu__label'
     text.textContent = label
     item.append(icon, text)
+    const version = this.#settingsVersion
     if (!disabled) item.addEventListener('click', event => {
       event.preventDefault()
       event.stopPropagation()
+      if (this.#destroyed || this.#runtime.readOnly || version !== this.#settingsVersion) return
       action()
     })
     return item
@@ -494,7 +585,7 @@ export class BlockToolbar {
 
   #move(id, to) {
     if (to < 0 || to >= this.#runtime.size) return
-    this.#runtime.move(id, to)
+    this.#mutate('block.move', () => this.#runtime.move(id, to), () => id)
     this.#view.reconcileInteraction()
     this.#view.setCurrent(id)
     this.closeSettings()
@@ -508,16 +599,27 @@ export class BlockToolbar {
     const record = this.#runtime.get(id)
     if (!record) return
     const index = this.#view.indexOf(id)
-    const duplicate = this.#runtime.insert(record.type, record.data, index + 1, {
+    const duplicate = this.#mutate('block.duplicate', () => this.#runtime.insert(record.type, record.data, index + 1, {
       tunes: record.tunes,
       inline: record.inline,
-    })
+    }), result => result)
     this.#view.reconcileInteraction()
     this.#view.setCurrent(duplicate)
     this.closeSettings()
     queueMicrotask(() => {
       this.#view.focus(duplicate)
       this.showFor(duplicate)
+    })
+  }
+
+  #mutate(name, operation, focusId) {
+    if (this.#bookmark) this.#selection.restore(this.#bookmark)
+    return this.#runtime.interact(name, operation, result => {
+      const id = focusId(result)
+      const field = id ? this.#view.fields(id)[0] : null
+      if (!id || !this.#view.element(id)) return null
+      const point = { blockId: id, fieldKey: field?.key ?? '', offset: 0 }
+      return { anchor: point, focus: { ...point } }
     })
   }
 
@@ -529,25 +631,40 @@ export class BlockToolbar {
   }
 
   #position(block) {
+    if (this.#root.classList.contains('oe-editor--mobile')) {
+      if (this.#toolbar.parentElement !== block) block.append(this.#toolbar)
+      for (const property of ['position', 'top', 'bottom', 'left', 'right']) this.#toolbar.style[property] = ''
+      return
+    }
+    if (this.#toolbar.parentElement !== this.#root) this.#root.append(this.#toolbar)
     const rootRect = this.#root.getBoundingClientRect()
     const blockRect = block.getBoundingClientRect()
     this.#toolbar.style.position = 'absolute'
     this.#toolbar.style.top = `${Math.max(0, blockRect.top - rootRect.top)}px`
-    this.#toolbar.style.right = 'auto'
-    this.#toolbar.style.left = `${Math.max(0, blockRect.left - rootRect.left - 52)}px`
+    this.#toolbar.style.left = 'auto'
+    const viewportWidth = this.#root.ownerDocument.defaultView?.innerWidth ?? Infinity
+    this.#toolbar.style.right = `${Math.max(rootRect.right - blockRect.right - 52, rootRect.right - viewportWidth + 8)}px`
   }
 
   #positionPopup(popup) {
+    if (this.#root.classList.contains('oe-editor--mobile')) {
+      for (const property of ['position', 'top', 'bottom', 'left', 'right']) popup.style[property] = ''
+      return
+    }
     const rootRect = this.#root.getBoundingClientRect()
     const toolbarRect = this.#toolbar.getBoundingClientRect()
     popup.style.position = 'absolute'
-    popup.style.top = `${Math.max(0, toolbarRect.bottom - rootRect.top + 6)}px`
-    popup.style.left = `${Math.max(0, toolbarRect.left - rootRect.left)}px`
+    const viewportWidth = this.#root.ownerDocument.defaultView?.innerWidth ?? Infinity
+    const left = Math.max(8, Math.min(toolbarRect.right - popup.offsetWidth, viewportWidth - popup.offsetWidth - 8))
+    popup.style.left = `${left - rootRect.left}px`
+    popup.style.right = 'auto'
+    positionPopup(popup, toolbarRect, rootRect, { gap: 6 })
   }
 
   #menuKeydown(event, menu) {
-    const items = [...menu.querySelectorAll('[role="menuitem"]:not([aria-disabled="true"])')]
-    if (!items.length) return
+    if (event.target?.closest?.('input, textarea, select') && !['ArrowDown', 'ArrowUp', 'Escape'].includes(event.key)) return
+    const items = [...menu.querySelectorAll('[role="menuitem"]:not([aria-disabled="true"])')].filter(item => item.style.display !== 'none')
+    if (!items.length && event.key !== 'Escape') return
     const current = menu.ownerDocument.activeElement
     const index = items.indexOf(current)
     if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
@@ -555,11 +672,21 @@ export class BlockToolbar {
       const direction = event.key === 'ArrowDown' ? 1 : -1
       const next = index < 0 ? 0 : (index + direction + items.length) % items.length
       items[next]?.focus?.()
+    } else if ((event.key === 'Escape' || event.key === 'ArrowLeft') && ((menu === this.#toolbox && this.#toolboxParent) || (menu === this.#settings && this.#settingsView === 'convert'))) {
+      event.preventDefault()
+      menu.querySelector('[data-menu-back]')?.click()
+    } else if (event.key === 'Home' || event.key === 'End') {
+      event.preventDefault()
+      items[event.key === 'Home' ? 0 : items.length - 1]?.focus?.()
+    } else if (event.key === 'ArrowRight' && current?.getAttribute('aria-haspopup') === 'menu') {
+      event.preventDefault()
+      current.click()
     } else if (event.key === 'Escape') {
       event.preventDefault()
       this.closeToolbox()
       this.closeSettings()
-      this.#plus.focus()
+      if (menu === this.#settings) this.#settingsButton.focus()
+      else this.#plus.focus()
     } else if ((event.key === 'Enter' || event.key === ' ') && index >= 0) {
       event.preventDefault()
       items[index]?.click?.()

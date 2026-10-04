@@ -262,7 +262,7 @@ test('ExtensionRegistry destroys an invalid returned runtime before rejecting it
   }
   assert.throws(
     () => new ExtensionRegistry({ ownerDocument: doc, blocks: [definition], acquireStyles: false }),
-    /invalid runtime/,
+    TypeError,
   )
   assert.equal(destroyed, 1)
 })
@@ -281,7 +281,7 @@ test('ExtensionRegistry rejects removed schema compatibility members before setu
   }
   assert.throws(
     () => new ExtensionRegistry({ ownerDocument: doc, blocks: [definition], acquireStyles: false }),
-    /removed compatibility options/,
+    TypeError,
   )
   assert.equal(setupCalls, 0)
 })

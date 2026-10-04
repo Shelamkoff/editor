@@ -2,6 +2,8 @@
 
 **Готовность:** `implementation-ready` для разработки, не подтверждение готовности к выпуску.
 
+**Локальная проверка реализации, 2026-10-04:** результаты исправлений и штатных проверок находятся в [актуальном отчёте](RECTOR_V2_LOCAL_VERIFICATION_2026-10-04.md), а возможности каждого из 21 плагинов — в [матрице паритета](RECTOR_V2_PLUGIN_PARITY_2026-10-04.md). Размер ядра исключён владельцем из блокирующих критериев; остальные требования приёмки сохраняются. Проверки включают настоящие мышь/клавиатуру/clipboard Chrome, преобразование каждого rich-text поля составных блоков в обоих направлениях, видимое действие настроек, lifecycle/heap и package consumers. Composition движка Chrome и ручная сессия конкретного IME ОС — разные уровни доказательства; физическая сессия ОС не выполнена.
+
 ## 1. Цель, основания и ограничения
 
 Исправить потери содержимого и рассогласование модели/проекции, завершить реальную сборку возможностей v2 и удалить поддержку прежних API и форматов. Результат — один текущий формат, один editing runtime, общие схемы editor/renderer, атомарные операции, явное владение ресурсами расширений и проверяемые пользовательские сценарии.
@@ -257,6 +259,10 @@ CanonicalTransforms объединяет existing assembly/remap/filter helpers.
 
 Logical coordinates используют единицы существующего shared/textOffset/richText codec: UTF-16 text offsets и атомарную длину widget. В direction/backward handling и line breaks нет второго приблизительного подсчёта через textContent. Save/load, Undo/Redo и renderer получают один и тот же граф ссылок.
 
+**Согласованное отличие от v1, 2026-10-04.** При преобразовании целого составного блока в текст сохраняются авторские текстовые поля: в том числе подпись Quote, имя/роль/биография Person, вопрос и все варианты Poll. Восстанавливать прежнее отбрасывание этих полей нельзя. Это решение владельца, а не случайное расхождение, которое следует скрыть в сравнении. Изображение или проигрыватель при явной whole-conversion в текст заменяется текстовым представлением; операция не обещает сохранить медиа как медиа в Paragraph. Markup и связанные inline payload не должны теряться при поддерживаемом импорте цели.
+
+**Частичное преобразование составного блока.** Когда диапазон оставляет невыделенные поля или части поля, owning capability готовит один остаточный исходный блок с прежними block/item/cell IDs, настройками и медиа. Выбранный текст становится целевым блоком после остаточного владельца; при пустом остатке цель занимает исходное место. Этот порядок соответствует v1 `splitConvert` для List. Нельзя создавать две копии Gallery/Person/Table ради prefix/suffix и тем самым дублировать принадлежащие им assets. Локальный простой текстовый блок сохраняет обычный порядок prefix/target/suffix; cross-block преобразование сохраняет первый prefix перед целями и последний suffix после них. Каждый путь имеет один Undo/Redo с восстановлением направленного исходного диапазона.
+
 ## 7. C3 — текущий ingress и структурная HTML-вставка
 
 Подготовку отделить от фиксации. Local constructors/HTML import не вызывают external decode; serialized document/fragment не попадают в encode как доверенный local input. Удалить двусмысленное использование insertExternalBlocks для обоих источников, заменив normalize-input + insert-prepared.
@@ -443,6 +449,16 @@ KeyboardRouter до Mod+Z/Y и inline shortcuts выполняет classificatio
 
 Keydown и beforeinput historyUndo/historyRedo согласованы и не исполняют команду дважды. IME/isComposing/keyCode229 не запускают structural/formatting shortcut. ReadOnly подавляет только persist interactions редактора, не Copy и не самостоятельные действия auxiliary controls.
 
+Mod shortcuts используют physical `KeyA/B/Z/Y` (fallback key только при отсутствии подходящего code), сохраняя работу на русской раскладке. Цикл Ctrl+A сверяется с v1: collapsed непустой host → native text; уже непустой range либо пустой host → whole blocks; следующий Ctrl+A снимает whole intent и возвращает native field selection. Plain-text Code hosts участвуют в whole selection, даже если rich-text hosts в документе нет.
+
+Clipboard Copy/Cut/Paste классифицирует текущий composed event target до retained range. Auxiliary inputs сохраняют собственный native clipboard и не экспортируют document fragment. Активный cross range удаляется целиком Backspace/Delete, включая Mod+word deletion и keyless beforeinput delete ingress.
+
+Local private rich paste в зарегистрированный plain-text host выполняется native plain-text путём. Cut/Paste/Drop имеют отдельный смысловой history step между typing groups. Для native input, требующего замены projection, post-input fieldKey/offset захватывается до reconciliation и входит в selectionAfter; после commit сохраняется DOM focus в том же авторском поле. Async rich paste возвращает caret именно в выбранное поле составного блока, а не в его первое поле.
+
+Публичный blocks.select задаёт явный whole-block intent; команды Delete/type/clipboard/IME используют выбранные IDs в document order и сохраняют невыбранные gaps. Render generation отзывает intent при повторном использовании IDs. IME preedit не меняет canonical данные/историю; commit выбранных rich/plain блоков является одной операцией. Slash, inline insertion/edit и все clipboard commit paths готовят caret-after в той же транзакции, чтобы Redo восстановил целевой host/offset.
+
+Доказательства этого поведения и red/green witnesses: [RECTOR_V2_CORE_PARITY_2026-10-04.md](RECTOR_V2_CORE_PARITY_2026-10-04.md).
+
 ### 10.2. Один protected projection edit
 
 ```ts
@@ -502,7 +518,7 @@ interface DocumentQuery {
 
 Readonly здесь означает недоступность изменения Store, а не только TS-аннотацию. Invalid idAt index → undefined. Public get/list/at/save остаются detached snapshots; peek не попадает к plugins/app observers. InteractionState/ViewModel/selection/drag/public count используют metadata, не `list().map/findIndex`. has/idAt/size/peek не читают payload; indexOf/ids могут обходить order, но не data/inline. Не создавать второй mutable cache document data.
 
-O(N) shallow index copying draft/commit пока допустим; не объявлять всю операцию O(1) и не вводить persistent tree/rope только ради этого замечания. Считать отдельно payload reads/clones, touched projections и measured timing. Текущие gzip budgets **51/40/64/96 KiB** (core/paragraph/defaultInteractive/fullPreset) не увеличивать для прохождения плана.
+O(N) shallow index copying draft/commit пока допустим; не объявлять всю операцию O(1) и не вводить persistent tree/rope только ради этого замечания. Считать отдельно payload reads/clones, touched projections и measured timing. Текущие gzip budgets **51/40/64/96 KiB** (core/paragraph/defaultInteractive/fullPreset) не увеличивать для прохождения плана. По прямому решению владельца от 2026-10-04 размер ядра является информационной метрикой и не блокирует завершение; ограничения paragraph/defaultInteractive/fullPreset остаются обязательными.
 
 ### Locale и security
 

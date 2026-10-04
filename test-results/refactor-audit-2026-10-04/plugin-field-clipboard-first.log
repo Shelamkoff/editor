@@ -1,0 +1,291 @@
+file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149
+    if (result.status === 'fail') throw new Error(`History matrix failed: ${result.summary}`)
+                                        ^
+
+Error: History matrix failed: [
+  {
+    "name": "Paragraph text: native rich fragment Paste targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Paragraph text: native Cut targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Heading text: native rich fragment Paste targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Heading text: native Cut targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "List item:first: native rich fragment Paste targets only this field and restores its caret",
+    "status": "FAIL",
+    "error": "TypeError: field.value.slice is not a function\n    at http://127.0.0.1:51773/tests/browser/native-plugin-field-clipboard.js:48:31\n    at async run (http://127.0.0.1:51773/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:51773/tests/browser/native-plugin-field-clipboard.js:68:1"
+  },
+  {
+    "name": "List item:first: native Cut targets only this field and restores its caret",
+    "status": "FAIL",
+    "error": "TypeError: field.value.slice is not a function\n    at http://127.0.0.1:51773/tests/browser/native-plugin-field-clipboard.js:48:31\n    at async run (http://127.0.0.1:51773/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:51773/tests/browser/native-plugin-field-clipboard.js:68:1"
+  },
+  {
+    "name": "List item:second: native rich fragment Paste targets only this field and restores its caret",
+    "status": "FAIL",
+    "error": "TypeError: field.value.slice is not a function\n    at http://127.0.0.1:51773/tests/browser/native-plugin-field-clipboard.js:48:31\n    at async run (http://127.0.0.1:51773/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:51773/tests/browser/native-plugin-field-clipboard.js:68:1"
+  },
+  {
+    "name": "List item:second: native Cut targets only this field and restores its caret",
+    "status": "FAIL",
+    "error": "TypeError: field.value.slice is not a function\n    at http://127.0.0.1:51773/tests/browser/native-plugin-field-clipboard.js:48:31\n    at async run (http://127.0.0.1:51773/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:51773/tests/browser/native-plugin-field-clipboard.js:68:1"
+  },
+  {
+    "name": "Quote text: native rich fragment Paste targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Quote text: native Cut targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Quote caption: native rich fragment Paste targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Quote caption: native Cut targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Code code: native rich fragment Paste targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Code code: native Cut targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Image caption: native rich fragment Paste targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Image caption: native Cut targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Table cell:row:first: native rich fragment Paste targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Table cell:row:first: native Cut targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Table cell:row:second: native rich fragment Paste targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Table cell:row:second: native Cut targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Checklist item:first: native rich fragment Paste targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Checklist item:first: native Cut targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Checklist item:second: native rich fragment Paste targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Checklist item:second: native Cut targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Warning title: native rich fragment Paste targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Warning title: native Cut targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Warning message: native rich fragment Paste targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Warning message: native Cut targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Embed caption: native rich fragment Paste targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Embed caption: native Cut targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Raw html: native rich fragment Paste targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Raw html: native Cut targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Gallery image:first:caption: native rich fragment Paste targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Gallery image:first:caption: native Cut targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Gallery image:second:caption: native rich fragment Paste targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Gallery image:second:caption: native Cut targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Carousel slide:first:caption: native rich fragment Paste targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Carousel slide:first:caption: native Cut targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Attaches file:first:name: native rich fragment Paste targets only this field and restores its caret",
+    "status": "FAIL",
+    "error": "Error: Clipboard changed unrelated fields or lost rich marks\nexpected [{\"id\":\"a\",\"type\":\"attaches\",\"dataVersion\":2,\"data\":{\"files\":[{\"id\":\"first\",\"url\":\"/alpha.txt\",\"name\":\"Al<b>XY</b>a\",\"extension\":\"txt\",\"size\":5}],\"variant\":\"f\"}}], got [{\"id\":\"a\",\"type\":\"attaches\",\"dataVersion\":2,\"data\":{\"files\":[{\"id\":\"first\",\"url\":\"/alpha.txt\",\"name\":\"AlXYa\",\"extension\":\"txt\",\"size\":5}],\"variant\":\"f\"}}]\n    at equal (http://127.0.0.1:51773/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:51773/tests/browser/native-plugin-field-clipboard.js:56:5\n    at async run (http://127.0.0.1:51773/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:51773/tests/browser/native-plugin-field-clipboard.js:68:1"
+  },
+  {
+    "name": "Attaches file:first:name: native Cut targets only this field and restores its caret",
+    "status": "FAIL",
+    "error": "Error: Clipboard moved focus outside the owner\n    at assert (http://127.0.0.1:51773/tests/browser/regressions/harness.js:20:81)\n    at checkCaret (http://127.0.0.1:51773/tests/browser/native-plugin-field-clipboard.js:16:3)\n    at http://127.0.0.1:51773/tests/browser/native-plugin-field-clipboard.js:57:5\n    at async run (http://127.0.0.1:51773/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:51773/tests/browser/native-plugin-field-clipboard.js:68:1"
+  },
+  {
+    "name": "LinkPreview url: native rich fragment Paste targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "LinkPreview url: native Cut targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Toggle title: native rich fragment Paste targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Toggle title: native Cut targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Toggle content: native rich fragment Paste targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Toggle content: native Cut targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Columns column:left: native rich fragment Paste targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Columns column:left: native Cut targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Columns column:right: native rich fragment Paste targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Columns column:right: native Cut targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Spoiler label: native rich fragment Paste targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Spoiler label: native Cut targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Spoiler content: native rich fragment Paste targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Spoiler content: native Cut targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll question: native rich fragment Paste targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll question: native Cut targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll option:first: native rich fragment Paste targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll option:first: native Cut targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll option:second: native rich fragment Paste targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll option:second: native Cut targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Person person:first:name: native rich fragment Paste targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Person person:first:name: native Cut targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Person person:first:role: native rich fragment Paste targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Person person:first:role: native Cut targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Person person:first:bio: native rich fragment Paste targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Person person:first:bio: native Cut targets only this field and restores its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Person person:first:link:site:url: native rich fragment Paste targets only this field and restores its caret",
+    "status": "FAIL",
+    "error": "Error: Clipboard moved focus outside the owner\n    at assert (http://127.0.0.1:51773/tests/browser/regressions/harness.js:20:81)\n    at checkCaret (http://127.0.0.1:51773/tests/browser/native-plugin-field-clipboard.js:16:3)\n    at http://127.0.0.1:51773/tests/browser/native-plugin-field-clipboard.js:57:5\n    at async run (http://127.0.0.1:51773/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:51773/tests/browser/native-plugin-field-clipboard.js:68:1"
+  },
+  {
+    "name": "Person person:first:link:site:url: native Cut targets only this field and restores its caret",
+    "status": "FAIL",
+    "error": "Error: Clipboard moved focus outside the owner\n    at assert (http://127.0.0.1:51773/tests/browser/regressions/harness.js:20:81)\n    at checkCaret (http://127.0.0.1:51773/tests/browser/native-plugin-field-clipboard.js:16:3)\n    at http://127.0.0.1:51773/tests/browser/native-plugin-field-clipboard.js:57:5\n    at async run (http://127.0.0.1:51773/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:51773/tests/browser/native-plugin-field-clipboard.js:68:1"
+  }
+]
+    at waitForHistoryMatrix (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149:41)
+    at async runNativePage (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:273:30)
+    at async file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:310:48
+
+Node.js v24.9.0

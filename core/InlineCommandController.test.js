@@ -9,6 +9,7 @@ function harness() {
   const runtime = {
     readOnly: false,
     insertInlineWidget() {},
+    interact(_name, operation) { return operation() },
     replaceRichTextWithInlineSegments(blockId, fieldKey, range, segments) {
       calls.push({ blockId, fieldKey, range, segments })
       const logicalLength = segments.reduce((total, segment) => (

@@ -51,6 +51,11 @@ function normalizeMetadata(metadata) {
     name: metadata.name,
     coalesce: metadata.coalesce === true,
   }
+  if (metadata.selectionAfter !== undefined) {
+    if (typeof metadata.selectionAfter !== 'function') throw new TypeError('selectionAfter must resolve a prepared logical bookmark')
+    result.selectionAfter = metadata.selectionAfter
+  }
+  if (metadata.selectionBefore !== undefined) result.selectionBefore = cloneEditorData(metadata.selectionBefore)
   if (metadata.historyGroup !== undefined) {
     if (typeof metadata.historyGroup !== 'string' || !metadata.historyGroup) {
       throw new TypeError('historyGroup must be a non-empty string when provided')
@@ -116,7 +121,7 @@ export class TransactionEngine {
   }
 
   #executeOuter(metadata, operation) {
-    const selectionBefore = this.#captureSelection()
+    const selectionBefore = metadata.selectionBefore !== undefined ? metadata.selectionBefore : this.#captureSelection()
     const draft = this.#store.createDraft()
     const context = this.#createContext(draft)
     const current = { draft, context, failed: null }
@@ -162,7 +167,9 @@ export class TransactionEngine {
       this.#phase = 'applying-projection'
       prepared.apply()
 
-      const selectionAfter = this.#captureSelection()
+      const selectionAfter = metadata.selectionAfter
+        ? cloneEditorData(metadata.selectionAfter(result) ?? null)
+        : this.#captureSelection()
       const record = {
         id: storeCommit.revision,
         origin: metadata.origin,

@@ -141,6 +141,15 @@ export default defineConfig({
   lastUpdated: true,
 
   vite: {
+    optimizeDeps: {
+      // These ESM packages resolve adjacent CSS with import.meta.url.
+      exclude: [
+        '@shelamkoff/color-picker',
+        '@shelamkoff/cropper',
+        '@shelamkoff/carousel',
+        '@shelamkoff/expose',
+      ],
+    },
     build: {
       rollupOptions: {
         output: {

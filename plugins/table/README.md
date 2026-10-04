@@ -23,7 +23,37 @@ The registered block type is `table`. The class is also exported by the complete
 ## Data
 
 ```json
-{ "withHeadings": true, "content": [["Name", "Value"], ["A", "1"]] }
+{
+  "withHeadings": true,
+  "rows": [
+    {
+      "id": "row-1",
+      "cells": [
+        {
+          "id": "cell-1",
+          "text": "Name"
+        },
+        {
+          "id": "cell-2",
+          "text": "Value"
+        }
+      ]
+    },
+    {
+      "id": "row-2",
+      "cells": [
+        {
+          "id": "cell-1",
+          "text": "A"
+        },
+        {
+          "id": "cell-2",
+          "text": "1"
+        }
+      ]
+    }
+  ]
+}
 ```
 
 ### Field reference

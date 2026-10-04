@@ -1,6 +1,8 @@
 // @ts-check
 import { setSanitizedHtml } from '../../plugin-kit/index.js'
 import { quoteDataSchema } from '../../shared/blockSchemas/quote.js'
+import { acceptsTextPayload, richTextFromPayload } from '../shared/textConversion.js'
+import { createTextSelectionSlice } from '../shared/textSelectionSlice.js'
 
 const editorStyles = new URL('./quote.css', import.meta.url).href
 const ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M9 5a2 2 0 0 1 2 2v6c0 3.13 -1.65 5.193 -4.757 5.97a1 1 0 1 1 -.486 -1.94c2.227 -.557 3.243 -1.827 3.243 -4.03v-1h-3a2 2 0 0 1 -1.995 -1.85l-.005 -.15v-3a2 2 0 0 1 2 -2z"/><path d="M18 5a2 2 0 0 1 2 2v6c0 3.13 -1.65 5.193 -4.757 5.97a1 1 0 1 1 -.486 -1.94c2.227 -.557 3.243 -1.827 3.243 -4.03v-1h-3a2 2 0 0 1 -1.995 -1.85l-.005 -.15v-3a2 2 0 0 1 2 -2z"/></svg>'
@@ -18,6 +20,7 @@ function mergeField(left, right, separator = '') {
 export function createQuotePlugin() {
   /** @type {import('../../plugin-kit/types').BlockCapabilities<{text:string,caption:string}>} */
   const capabilities=Object.freeze({
+    selectionSlice:createTextSelectionSlice(quoteDataSchema),
     formatting:Object.freeze({inlineTools:true}),
     empty:Object.freeze({isEmpty:data=>!data.text.trim()&&!data.caption.trim()}),
     merge:Object.freeze({
@@ -41,13 +44,10 @@ export function createQuotePlugin() {
         return {kind:'rich-text',data:{text:[data.text,data.caption].filter(Boolean).join('<br>')}}
       },
       canImport(payload){
-        return payload?.kind==='rich-text'&&typeof payload.data?.text==='string'
+        return acceptsTextPayload(payload)
       },
       import(payload){
-        if(payload?.kind!=='rich-text'||typeof payload.data?.text!=='string'){
-          throw new TypeError('Quote can only import rich-text payloads')
-        }
-        return {text:payload.data.text,caption:''}
+        return {text:richTextFromPayload(payload),caption:''}
       },
     }),
     clipboard:Object.freeze({
@@ -64,7 +64,7 @@ export function createQuotePlugin() {
           caption:caption?caption.before+caption.after:data.caption,
         }
         return {
-          parts:[{kind:'local-block',data:selected}],
+          parts:[{kind:/** @type {'local-block'} */ ('local-block'),data:selected}],
           remaining:(!remaining.text.trim()&&!remaining.caption.trim())?null:remaining,
           focus:null,
         }
