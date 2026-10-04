@@ -28,9 +28,13 @@ test('editable plugin definitions, output types and read-only renderers stay in 
     assert.ok(definition.type.length > 0)
     assert.equal(typeof definition.setup, 'function', `${definition.type} must expose setup()`)
     assert.equal(typeof definition.schema?.createDefault, 'function', `${definition.type} must expose a schema`)
+    assert.ok(Number.isSafeInteger(definition.schema.currentVersion) && definition.schema.currentVersion >= 1)
     const created = definition.schema.createDefault()
     const encoded = definition.schema.encode(created)
     assert.equal(encoded.dataVersion, definition.schema.currentVersion)
+    const decoded = definition.schema.decode(encoded)
+    assert.equal(decoded.dataVersion, definition.schema.currentVersion)
+    assert.deepEqual(decoded.data, encoded.data, `${definition.type} default schema must exact-roundtrip`)
   }
 
   const rendererTypes = getSupportedBlockTypes()
