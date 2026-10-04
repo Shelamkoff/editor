@@ -52,7 +52,8 @@ export function createWarningPlugin(){
         }
         return {title:'',message:payload.data.text}
       },
-    }),    clipboard:Object.freeze({
+    }),
+    clipboard:Object.freeze({
       slice(data,context){
         const title=context.field('title')
         const message=context.field('message')
