@@ -84,7 +84,7 @@ export async function loadBlockPluginDefinition(type, config = {}) {
 
 /**
  * Preload and create unique definitions for a type list or document.
- * @param {readonly string[] | { blocks?: readonly { type: string }[] }} [source]
+ * @param {readonly string[] | { version: '2.0.0', blocks: readonly import('../shared/documentTypes').EditorBlockData[] }} [source]
  * @param {Partial<Record<import('../renderer/types').BlockType, Record<string, unknown>>>} [configs]
  * @returns {Promise<Map<string, import('../plugin-kit/types').BlockPluginDefinition>>}
  */
@@ -102,7 +102,7 @@ export async function preloadBlockPluginDefinitions(source, configs = {}) {
 
 /**
  * Create the deterministic async block-plugin preset.
- * @param {readonly string[] | { blocks?: readonly { type: string }[] }} [source]
+ * @param {readonly string[] | { version: '2.0.0', blocks: readonly import('../shared/documentTypes').EditorBlockData[] }} [source]
  * @param {Partial<Record<import('../renderer/types').BlockType, Record<string, unknown>>>} [configs]
  * @returns {Promise<import('../plugin-kit/types').BlockPluginDefinition[]>}
  */
