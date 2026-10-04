@@ -139,7 +139,8 @@ for (const interfaceName of ['InlineTool', 'InlineMutationContext', 'InlineToolA
 
 for (const interfaceName of [
   'BlockPluginDefinition', 'BlockPluginRuntime', 'BlockInstance', 'BlockInstanceContext',
-  'BlockDataSchema', 'BlockCapabilities', 'SettingsActionCapability', 'SettingsPanelCapability',
+  'BlockDataSchema', 'BlockCapabilities', 'DataTask', 'HtmlImportCapability', 'ClipboardCapability',
+  'SettingsActionCapability', 'SettingsPanelCapability',
   'PasteCapability', 'ShortcutCapability', 'SelectionSliceCapability',
 ]) {
   assertDocumented({
