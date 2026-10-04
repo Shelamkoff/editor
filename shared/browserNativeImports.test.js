@@ -134,3 +134,29 @@ test('editor relative import graph has no cycles', async () => {
 
   assert.deepEqual(cycles, [])
 })
+
+
+test('extension-safe layers do not import private core modules', async () => {
+  const roots = ['inline-tools', 'plugin-kit']
+  const violations = []
+
+  for (const root of roots) {
+    const directory = join(editorRoot, root)
+    for (const file of await collectRuntimeFiles(directory)) {
+      const source = await readFile(file, 'utf8')
+      for (const specifier of collectImportSpecifiers(source)) {
+        if (!specifier.startsWith('.')) continue
+        const dependency = resolve(dirname(file), specifier)
+        const relativeDependency = relative(editorRoot, dependency).replaceAll('\\', '/')
+        if (relativeDependency.startsWith('core/')) {
+          violations.push({
+            file: relative(editorRoot, file).replaceAll('\\', '/'),
+            specifier,
+          })
+        }
+      }
+    }
+  }
+
+  assert.deepEqual(violations, [])
+})
