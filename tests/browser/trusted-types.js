@@ -1,6 +1,6 @@
 import { createEditor } from '../../core/index.js'
 import { sanitizeHtml } from '../../plugin-kit/index.js'
-import { createHeadingPlugin, createParagraphPlugin, createRawPlugin } from '../../plugins/index.js'
+import { createHeadingPlugin, createListPlugin, createParagraphPlugin, createRawPlugin } from '../../plugins/index.js'
 import { createEditorRenderer } from '../../renderer/index.js'
 
 const results = []
@@ -64,6 +64,79 @@ await test('document renderer handles inline HTML under Trusted Types enforcemen
   } finally {
     if (root) renderer.destroy(root)
     else renderer.destroy()
+  }
+})
+
+await test('clipboard HTML import and private copy use TrustedHTML sinks', async () => {
+  const holder = document.createElement('section')
+  document.querySelector('#sandbox').appendChild(holder)
+  const paragraph = createParagraphPlugin({ injectStyles: false })
+  const editor = createEditor({
+    holder,
+    plugins: [paragraph, createHeadingPlugin(), createListPlugin()],
+    defaultBlock: 'paragraph',
+    inlineTools: [],
+    injectStyles: false,
+    data: {
+      version: '2.0.0',
+      blocks: [{
+        id: 'clipboard-tt',
+        type: 'paragraph',
+        dataVersion: paragraph.schema.currentVersion,
+        data: { text: '' },
+      }],
+    },
+  })
+  try {
+    const field = holder.querySelector('.oe-block[data-block-id="clipboard-tt"] [contenteditable="true"]')
+    assert(field instanceof HTMLElement, 'clipboard Trusted Types field is missing')
+    field.focus()
+    const caret = document.createRange()
+    caret.selectNodeContents(field)
+    caret.collapse(true)
+    const selection = getSelection()
+    selection.removeAllRanges()
+    selection.addRange(caret)
+
+    const transfer = new DataTransfer()
+    transfer.setData('text/html', '<p><strong>Safe</strong></p><h3>Title</h3><ol><li>One</li></ol>')
+    transfer.setData('text/plain', 'fallback')
+    const paste = new ClipboardEvent('paste', {
+      bubbles: true,
+      cancelable: true,
+      clipboardData: transfer,
+    })
+    field.dispatchEvent(paste)
+    await Promise.resolve()
+    assert(paste.defaultPrevented, 'structured HTML paste was not owned under Trusted Types')
+    const saved = editor.save()
+    assert(
+      saved.blocks.map(block => block.type).join(',') === 'paragraph,heading,list',
+      'structured HTML import failed under Trusted Types',
+    )
+
+    const first = holder.querySelector('.oe-block[data-block-id="clipboard-tt"] [contenteditable="true"]')
+    assert(first instanceof HTMLElement, 'clipboard copy field disappeared')
+    const copyRange = document.createRange()
+    copyRange.selectNodeContents(first)
+    selection.removeAllRanges()
+    selection.addRange(copyRange)
+    first.focus()
+    document.dispatchEvent(new Event('selectionchange'))
+
+    const copyData = new DataTransfer()
+    const copy = new ClipboardEvent('copy', {
+      bubbles: true,
+      cancelable: true,
+      clipboardData: copyData,
+    })
+    first.dispatchEvent(copy)
+    assert(copy.defaultPrevented, 'canonical copy was not handled under Trusted Types')
+    const privatePayload = copyData.getData('application/x-rector-fragment')
+    assert(privatePayload.includes('"version":2'), 'private clipboard fragment was not produced under Trusted Types')
+  } finally {
+    editor.destroy()
+    holder.remove()
   }
 })
 
