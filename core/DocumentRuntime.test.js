@@ -317,6 +317,50 @@ test('whole conversion rejects targets that cannot preserve linked inline data',
   runtime.destroy()
 })
 
+test('prepared cross-block cut merges endpoint residuals through the declared merge contract', () => {
+  const definition = paragraphDefinition({
+    mapRichText(data, transform) {
+      return { ...data, text: transform(data.text, 'text') }
+    },
+  })
+  definition.capabilities.merge = {
+    merge(target, source) {
+      return { text: target.text + source.text }
+    },
+  }
+  const runtime = new DocumentRuntime({
+    registry: registry([definition]),
+    data: {
+      version: '2.0.0',
+      blocks: [
+        block('a', { text: 'Alpha one' }),
+        block('b', { text: 'Bravo two' }),
+        block('c', { text: 'Charlie three' }),
+      ],
+    },
+  })
+  const bookmark = {
+    anchor: { blockId: 'a', fieldKey: 'text', offset: 6 },
+    focus: { blockId: 'c', fieldKey: 'text', offset: 7 },
+  }
+  const plan = runtime.prepareLogicalClipboardSlice(bookmark)
+  assert.ok(plan)
+  assert.deepEqual(plan.parts.map(part => part.kind), ['rich-text', 'block', 'rich-text'])
+
+  const result = runtime.applyPreparedClipboardCut(plan)
+  assert.equal(result.blockId, 'a')
+  assert.deepEqual(runtime.list().map(item => [item.id, item.data.text]), [['a', 'Alpha  three']])
+  assert.equal(runtime.canUndo, true)
+
+  assert.equal(runtime.undo(), true)
+  assert.deepEqual(runtime.list().map(item => [item.id, item.data.text]), [
+    ['a', 'Alpha one'],
+    ['b', 'Bravo two'],
+    ['c', 'Charlie three'],
+  ])
+  runtime.destroy()
+})
+
 test('mergeAdjacent commits data merge and source removal as one undoable transaction', () => {
   const definition = paragraphDefinition()
   definition.capabilities.merge = {
