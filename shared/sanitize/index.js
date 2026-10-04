@@ -5,4 +5,4 @@ export { sanitizeUrl, sanitizeExternalUrl, sanitizeMediaUrl, sanitizeDownloadUrl
 export { sanitizeStyle } from './sanitizeStyle.js'
 export { sanitizeRawHtml, setSanitizedRawHtml } from './sanitizeRawHtml.js'
 export { sanitizeSubtree } from './walker.js'
-export { ALLOWED_TAGS, ALLOWED_ATTRS, INLINE_PLUGIN_ATTRS, ALLOWED_STYLE_PROPS, DANGEROUS_URL_RE } from './allowlist.js'
+export { ALLOWED_TAGS, ALLOWED_ATTRS, ALLOWED_STYLE_PROPS, DANGEROUS_URL_RE } from './allowlist.js'
