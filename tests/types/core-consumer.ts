@@ -5,8 +5,16 @@ import type {
   BlockPluginDefinition,
   EditorConfig,
   EditorDocument,
+  EditorEventMap,
   IEditor,
+  TransactionCommitted,
 } from '../../.package-tmp/declaration-tests/core/index.js'
+import type {
+  BlockCapabilities,
+  ClipboardCapability,
+  DataTask,
+  HtmlImportCapability,
+} from '../../.package-tmp/declaration-tests/types.js'
 
 declare const holder: HTMLElement
 const schema = {
@@ -23,14 +31,36 @@ const schema = {
   },
 }
 
+const capabilities: BlockCapabilities<{ text: string }> = {
+  htmlImport: {
+    matchesRoot(element) { return element.tagName === 'P' },
+    importRoot(element, context) {
+      return { text: context.serializeRichText(element) }
+    },
+  } satisfies HtmlImportCapability<{ text: string }>,
+  clipboard: {
+    slice(data, context) {
+      const field = context.field('text')
+      return {
+        parts: [{ kind: 'rich-text', html: field?.selected ?? data.text }],
+        remaining: field ? { text: field.before + field.after } : data,
+        focus: { fieldKey: 'text', offset: 0 },
+      }
+    },
+  } satisfies ClipboardCapability<{ text: string }>,
+}
+
 const customPlugin: BlockPluginDefinition<{ text: string }> = {
   type: 'custom',
   label: { key: 'title', fallback: 'Custom' },
   icon: '',
   schema,
+  capabilities,
   setup() {
     return {
       create(initial, context) {
+        const task: DataTask<{ text: string }> = context.beginTask()
+        task.cancel()
         const element = context.ownerDocument.createElement('p')
         element.textContent = initial.text
         return {
@@ -54,4 +84,9 @@ const config: EditorConfig = {
 
 const editor: IEditor = createEditor(config)
 const document: EditorDocument = editor.save()
+const unsubscribe = editor.on('transaction:committed', (event: TransactionCommitted) => {
+  const origin: EditorEventMap['transaction:committed']['origin'] = event.origin
+  void origin
+})
+unsubscribe()
 void document
