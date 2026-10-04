@@ -1096,7 +1096,38 @@ export class DocumentRuntime {
   applyPreparedClipboardCut(plan){
     this.#assertInteractionMutation()
     this.#assertCurrentClipboardPlan(plan)
-    const removals=new Set(plan.blocks.filter(entry=>entry.remaining===null).map(entry=>entry.id))
+    const entries=plan.blocks.map(entry=>({
+      id:entry.id,
+      remaining:entry.remaining===null?null:cloneEditorData(entry.remaining),
+    }))
+
+    // Deleting a cross-block selection may leave two endpoint residuals.
+    // Collapse them only when the owning type explicitly declares a lossless
+    // merge contract; this is the same canonical merge used by keyboard
+    // deletion and conversion.
+    if(entries.length>1){
+      const first=entries[0]
+      const last=entries.at(-1)
+      if(first.remaining&&last.remaining&&first.id!==last.id&&first.remaining.type===last.remaining.type){
+        const definition=this.#registry.getBlockDefinition(first.remaining.type)
+        const merge=definition?.capabilities?.merge?.merge
+        if(typeof merge==='function'){
+          const prepared=this.#prepareInlineMerge(definition,first.remaining,last.remaining)
+          const mergedData=merge(prepared.targetData,prepared.sourceData)
+          first.remaining=this.#recordFromData(
+            first.id,
+            first.remaining.type,
+            definition,
+            mergedData,
+            first.remaining.tunes,
+            prepared.inline,
+          )
+          last.remaining=null
+        }
+      }
+    }
+
+    const removals=new Set(entries.filter(entry=>entry.remaining===null).map(entry=>entry.id))
     const survivors=this.#store.ids().filter(id=>!removals.has(id))
     let fallback=null
     if(!survivors.length){
@@ -1113,7 +1144,7 @@ export class DocumentRuntime {
     }
 
     this.#engine.execute({origin:'user',name:'clipboard.cut'},tx=>{
-      for(const entry of plan.blocks){
+      for(const entry of entries){
         if(entry.remaining===null){
           if(tx.get(entry.id))tx.remove(entry.id)
         }else{
@@ -1123,7 +1154,7 @@ export class DocumentRuntime {
       if(fallback&&tx.list().length===0)tx.insert(0,fallback)
     })
 
-    const preferred=plan.blocks.find(entry=>entry.remaining!==null)?.id
+    const preferred=entries.find(entry=>entry.remaining!==null)?.id
       ??fallback?.id
       ??this.#store.ids()[Math.min(plan.startIndex,this.#store.ids().length-1)]
       ??this.#store.ids().at(-1)
