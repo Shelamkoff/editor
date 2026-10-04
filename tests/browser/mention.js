@@ -4,7 +4,6 @@ import { createMentionPlugin, createMentionRenderer } from '../../inline-plugins
 import { createParagraphPlugin } from '../../plugins/paragraph/index.js'
 import { EditorRenderer } from '../../renderer/index.js'
 import ru from '../../locale/ru.js'
-import ru from '../../locale/ru.js'
 
 const sandbox = document.querySelector('#sandbox')
 
