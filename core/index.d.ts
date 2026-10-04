@@ -20,7 +20,6 @@ export type {
   EditorOutputData,
   EditorValidationIssue,
   EditorValidationReason,
-  EditorValidationIssue,
   FocusTarget,
   IEditor,
   InlinePluginDefinition,
