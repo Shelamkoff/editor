@@ -158,6 +158,8 @@ test('auxiliary native controls, editor chrome and outside targets keep native h
   }
   const runtime={
     readOnly:false,
+    splitBlock(){throw new Error('auxiliary ownership must not split')},
+    mergeAdjacent(){throw new Error('auxiliary ownership must not merge')},
     undo(){calls.push('undo');return true},
     redo(){calls.push('redo');return true},
   }
