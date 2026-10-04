@@ -68,7 +68,7 @@ interface BlockPluginDefinition<Data> {
 - `inlineControls` переиспользует model-first settings actions во внутристрочной панели.
 - `settings` — actions capability или model-first panel.
 - `htmlImport.matchesRoot/importRoot` синхронно импортирует один безопасный структурный HTML root в local current data конкретного block type; capability обязана потреблять весь root и не выполнять side effects.
-- `clipboard.slice(data, context)` для составного блока возвращает экспортируемые `parts`, канонический `remaining` после Cut и необязательный `focus`. `context.field(key)` даёт только реально выбранные rich-text intervals (`before/selected/after/whole`). Export и remaining вычисляются одной чистой capability, поэтому core не угадывает структуру данных блока.
+- `ClipboardCapability` (`clipboard.slice(data, context)`) для составного блока возвращает экспортируемые `parts`, канонический `remaining` после Cut и необязательный `focus`. `context.field(key)` даёт только реально выбранные rich-text intervals (`before/selected/after/whole`). Export и remaining вычисляются одной чистой capability, поэтому core не угадывает структуру данных блока.
 - `paste` маршрутизирует только text/file inputs в block или rich-text result; structural HTML ему не передаётся.
 - `shortcuts` возвращает действия единому keyboard router ядра.
 
@@ -143,7 +143,7 @@ export function createCalloutPlugin() {
 
 Definitions неизменяемы и переиспользуемы. Таймеры, кэши и подписки конкретного редактора принадлежат `BlockPluginRuntime`; listeners, observers, requests и object URLs конкретного блока принадлежат `BlockInstance` и его `signal`.
 
-Нельзя использовать DOM как хранилище. Явные синхронные controls вызывают `updateData()`; обычный ввод в editable fields синхронизирует ядро. Для асинхронной операции, которая позже меняет persisted data, захватите `const task = context.beginTask()`, передайте `task.signal` во внешнюю работу и завершите её через `task.commit(current => next)`. Producer вызывается только для всё ещё живого экземпляра, с последними committed данными. Replacement/destroy, смена generation и переход `readOnly: false → true` отзывают task; возврат обратно в edit не оживляет старую task. `cancel()` идемпотентен. Presentation-only запросы, которые не меняют persisted data, могут использовать обычный lifecycle `signal`.
+Нельзя использовать DOM как хранилище. Явные синхронные controls вызывают `updateData()`; обычный ввод в editable fields синхронизирует ядро. Для асинхронной операции, которая позже меняет persisted data, используйте контракт `DataTask`: захватите `const task = context.beginTask()`, передайте `task.signal` во внешнюю работу и завершите её через `task.commit(current => next)`. Producer вызывается только для всё ещё живого экземпляра, с последними committed данными. Replacement/destroy, смена generation и переход `readOnly: false → true` отзывают task; возврат обратно в edit не оживляет старую task. `cancel()` идемпотентен. Presentation-only запросы, которые не меняют persisted data, могут использовать обычный lifecycle `signal`.
 
 ## Связь с renderer
 
