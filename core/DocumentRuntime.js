@@ -80,7 +80,7 @@ export class DocumentRuntime {
    *   projectorFactory?: (context: {
    *     store: DocumentStore,
    *     activationResolver: (id: string, record: any) => boolean,
-   *     contextFactory: (id: string, type: string, signal: AbortSignal) => any,
+   *     contextFactory: (id: string, type: string, signal: AbortSignal, readRecord: () => any) => any,
    *   }) => any,
    *   selection?: any,
    *   onCommit?: (event: any) => void,
