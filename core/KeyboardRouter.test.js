@@ -147,3 +147,63 @@ test('already handled plugin keydown events never execute generic structural log
   assert.deepEqual(calls, [])
   router.destroy()
 })
+
+
+test('auxiliary native controls, editor chrome and outside targets keep native history ownership', () => {
+  const calls=[]
+  const root={
+    ownerDocument:{defaultView:{AbortController}},
+    addEventListener(){},
+    contains(target){return target?.inside===true},
+  }
+  const runtime={
+    readOnly:false,
+    undo(){calls.push('undo');return true},
+    redo(){calls.push('redo');return true},
+  }
+  const registry={defaultBlockType:'paragraph',getBlockDefinition(){return null}}
+  const reconciler={
+    resolveEditableTarget(){return null},
+    getEditableFields(){return []},
+    resolveBlockTarget(){return null},
+  }
+  const selection={capture:()=>null}
+  const view={
+    currentId:null,
+    element(){return null},
+    reconcileInteraction(){},
+    setCurrent(){},
+    focus(){return false},
+  }
+  const router=new KeyboardRouter({root,runtime,registry,reconciler,selection,view})
+
+  const target=(selector,inside=true)=>({
+    inside,
+    closest(query){
+      if(selector==='outside')return null
+      return query.split(',').map(value=>value.trim()).includes(selector)?this:null
+    },
+  })
+  const event=targetNode=>{
+    let prevented=false
+    return {
+      key:'z',
+      ctrlKey:true,
+      target:targetNode,
+      composedPath(){return [targetNode]},
+      preventDefault(){prevented=true},
+      get prevented(){return prevented},
+    }
+  }
+
+  for(const selector of ['input','textarea','select','[data-inline-plugin]','.oe-toolbar','.oe-inline-toolbar','.oe-toolbox','.oe-settings-menu','.oe-slash-menu']){
+    const current=event(target(selector))
+    router.handleKeydown(current)
+    assert.equal(current.prevented,false,`${selector} shortcut was claimed by editor history`)
+  }
+  const outside=event(target('outside',false))
+  router.handleKeydown(outside)
+  assert.equal(outside.prevented,false)
+  assert.deepEqual(calls,[])
+  router.destroy()
+})
