@@ -31,3 +31,20 @@ test('default inline tool options ignore inherited configuration entries', () =>
   assert.equal(reads, 0)
   assert.throws(() => createDefaultInlineTools(null), /options must be an object/)
 })
+
+
+test('default inline preset exposes unique complete tool instances', () => {
+  const tools = createDefaultInlineTools()
+  const types = tools.map(tool => tool.type)
+  assert.equal(types.length, 12)
+  assert.equal(new Set(types).size, types.length)
+  assert.deepEqual(types, [
+    'bold','italic','strikethrough','link','code','marker',
+    'bgcolor','fontSize','script','align','caseTransform','clearFormatting',
+  ])
+  for (const tool of tools) {
+    assert.equal(typeof tool.type, 'string')
+    assert.equal(typeof tool.title, 'string')
+    assert.equal(typeof tool.toggle, 'function')
+  }
+})
