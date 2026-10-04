@@ -23,6 +23,8 @@ function harness(options = {}) {
   }
   const runtime = {
     readOnly: false,
+    undo() { calls.push({ history: 'undo' }); return true },
+    redo() { calls.push({ history: 'redo' }); return true },
     syncBlockFromProjection(id, operation, metadata) {
       operation()
       calls.push({ id, metadata })
@@ -75,6 +77,32 @@ test('beforeinput replaces an active cross-block selection atomically', () => {
   assert.equal(prevented, 1)
   assert.equal(stopped, 1)
   assert.equal(calls.length, 0)
+})
+
+test('beforeinput historyUndo/historyRedo route only for registered document fields', () => {
+  const { calls, child, controller } = harness()
+  for (const [inputType, expected] of [['historyUndo', 'undo'], ['historyRedo', 'redo']]) {
+    let prevented = false
+    controller.handleBeforeInput({
+      target: child,
+      inputType,
+      isComposing: false,
+      preventDefault() { prevented = true },
+    })
+    assert.equal(prevented, true)
+    assert.equal(calls.at(-1).history, expected)
+  }
+
+  const count = calls.length
+  let outsidePrevented = false
+  controller.handleBeforeInput({
+    target: { parentNode: null },
+    inputType: 'historyUndo',
+    isComposing: false,
+    preventDefault() { outsidePrevented = true },
+  })
+  assert.equal(outsidePrevented, false)
+  assert.equal(calls.length, count)
 })
 
 test('ordinary beforeinput does not consume a collapsed single-field edit', () => {
