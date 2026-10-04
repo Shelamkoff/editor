@@ -52,7 +52,8 @@ export function createSpoilerPlugin(){
         }
         return {label:'',content:payload.data.text}
       },
-    }),    clipboard:Object.freeze({
+    }),
+    clipboard:Object.freeze({
       slice(data,context){
         const label=context.field('label')
         const content=context.field('content')
