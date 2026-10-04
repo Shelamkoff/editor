@@ -201,25 +201,26 @@ async function run() {
   )
   russian.content.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }))
   russian.editor.destroy()
+  russian.holder.remove()
 
-  const russian = createMentionEditor(async () => [], undefined, {}, { locale: ru })
+  const russianLiteral = createMentionEditor(async () => [], undefined, {}, { locale: ru })
   assert(
-    russian.root.querySelector('[data-plugin-type="mention"] .oe-toolbox__label')?.textContent === 'Упоминание',
+    russianLiteral.root.querySelector('[data-plugin-type="mention"] .oe-toolbox__label')?.textContent === 'Упоминание',
     'Russian inlinePlugin.mention title did not resolve through the registry namespace',
   )
   assert(
-    russian.root.querySelector('[data-plugin-type="color"] .oe-toolbox__label')?.textContent === 'Цвет',
+    russianLiteral.root.querySelector('[data-plugin-type="color"] .oe-toolbox__label')?.textContent === 'Цвет',
     'Russian inlinePlugin.color title did not resolve through the registry namespace',
   )
-  await typeText(russian.content, '@нет')
+  await typeText(russianLiteral.content, '@нет')
   await delay()
   assert(
     document.querySelector('.oe-mention-no-results')?.textContent === 'Ничего не найдено',
     'Russian inlinePlugin.mention noResults key did not resolve',
   )
-  russian.content.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }))
-  russian.editor.destroy()
-  russian.holder.remove()
+  russianLiteral.content.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }))
+  russianLiteral.editor.destroy()
+  russianLiteral.holder.remove()
 
   await typeText(main.content, '@ad')
   await delay()
