@@ -111,7 +111,7 @@ export async function loadRendererFactory(type) {
  * Preload factories for explicit types or for the types present in a document.
  * Duplicate type names are loaded once and map order follows first occurrence.
  *
- * @param {readonly string[] | { blocks?: readonly { type: string }[] }} [source]
+ * @param {readonly string[] | import('../types').OutputData} [source]
  * @returns {Promise<Map<string, RendererFactory>>}
  */
 export async function preloadRendererFactories(source) {
@@ -145,7 +145,7 @@ export async function createRendererAsync(type, classPrefix, locale = {}, config
  *
  * @param {string} classPrefix
  * @param {Record<string, import('../../shared/localeTypes').LocaleValue>} [locale]
- * @param {readonly string[] | { blocks?: readonly { type: string }[] }} [source]
+ * @param {readonly string[] | import('../types').OutputData} [source]
  * @param {Record<string, unknown>} [configs]
  * @returns {Promise<Map<string, import('../types').BlockRendererDefinition>>}
  */
