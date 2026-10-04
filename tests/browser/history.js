@@ -302,16 +302,32 @@ async function run() {
   assert(redoEvent.defaultPrevented, 'Mod+Shift+Z was not claimed by KeyboardRouter')
   assert(stable(semantic(editor.save())) === stable(afterShortcutInsert), 'Mod+Shift+Z restored the wrong state')
 
-  const auxiliary = document.createElement('input')
-  auxiliary.value = 'auxiliary'
-  holder.querySelector('.oe-editor')?.appendChild(auxiliary)
-  auxiliary.focus()
-  const auxiliaryBefore = stable(semantic(editor.save()))
-  const auxiliaryUndo = key(auxiliary, 'z', { code: 'KeyZ', ctrlKey: true })
-  await delay()
-  assert(!auxiliaryUndo.defaultPrevented, 'auxiliary native input lost native Mod+Z')
-  assert(stable(semantic(editor.save())) === auxiliaryBefore, 'auxiliary Mod+Z changed document history')
-  auxiliary.remove()
+  for (const tag of ['input', 'textarea', 'select']) {
+    const auxiliary = document.createElement(tag)
+    if (tag === 'select') {
+      const option = document.createElement('option')
+      option.value = 'one'
+      option.textContent = 'one'
+      auxiliary.append(option)
+    } else {
+      auxiliary.value = 'auxiliary'
+    }
+    holder.querySelector('.oe-editor')?.appendChild(auxiliary)
+    auxiliary.focus()
+    const auxiliaryBefore = stable(semantic(editor.save()))
+    const auxiliaryUndo = key(auxiliary, 'z', { code: 'KeyZ', ctrlKey: true })
+    const beforeInput = new InputEvent('beforeinput', {
+      bubbles: true,
+      cancelable: true,
+      inputType: 'historyUndo',
+    })
+    auxiliary.dispatchEvent(beforeInput)
+    await delay()
+    assert(!auxiliaryUndo.defaultPrevented, `auxiliary ${tag} lost native Mod+Z`)
+    assert(!beforeInput.defaultPrevented, `auxiliary ${tag} lost native beforeinput history`)
+    assert(stable(semantic(editor.save())) === auxiliaryBefore, `auxiliary ${tag} changed document history`)
+    auxiliary.remove()
+  }
 
   const beforeMode = stable(semantic(editor.save()))
   editor.setReadOnly(true)
