@@ -3,6 +3,7 @@ import { createColorSwatchPlugin } from '../../inline-plugins/color.js'
 import { createMentionPlugin, createMentionRenderer } from '../../inline-plugins/mention/index.js'
 import { createParagraphPlugin } from '../../plugins/paragraph/index.js'
 import { EditorRenderer } from '../../renderer/index.js'
+import ru from '../../locale/ru.js'
 
 const sandbox = document.querySelector('#sandbox')
 
@@ -12,7 +13,7 @@ function assert(value, message) {
 
 const delay = (ms = 10) => new Promise(resolve => setTimeout(resolve, ms))
 
-function createMentionEditor(searchFunction, onMentionSelect = undefined, mentionOptions = {}) {
+function createMentionEditor(searchFunction, onMentionSelect = undefined, mentionOptions = {}, editorOptions = {}) {
   const holder = document.createElement('section')
   sandbox.appendChild(holder)
   const editor = createEditor({
@@ -25,6 +26,7 @@ function createMentionEditor(searchFunction, onMentionSelect = undefined, mentio
     ],
     injectStyles: false,
     changeDebounceMs: 0,
+    ...(editorOptions.locale ? { locale: editorOptions.locale } : {}),
     data: { version: '2.0.0', blocks: [{ id: 'paragraph', type: 'paragraph', dataVersion: 2, data: { text: '' } }] },
   })
   const root = holder.querySelector('.oe-editor')
@@ -176,6 +178,25 @@ async function run() {
     main.root.querySelector('[data-plugin-type="color"] .oe-toolbox__label')?.textContent === 'Color',
     'missing default locale exposed the color translation key',
   )
+
+  const russian = createMentionEditor(async () => [], undefined, {}, { locale: ru })
+  assert(
+    russian.root.querySelector('[data-plugin-type="mention"] .oe-toolbox__label')?.textContent === 'Упоминание',
+    'Russian inlinePlugin.mention title did not resolve through the registry namespace',
+  )
+  assert(
+    russian.root.querySelector('[data-plugin-type="color"] .oe-toolbox__label')?.textContent === 'Цвет',
+    'Russian inlinePlugin.color title did not resolve through the registry namespace',
+  )
+  await typeText(russian.content, '@нет')
+  await delay()
+  assert(
+    document.querySelector('.oe-mention-no-results')?.textContent === 'Ничего не найдено',
+    'Russian inlinePlugin.mention noResults key did not resolve',
+  )
+  russian.content.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }))
+  russian.editor.destroy()
+  russian.holder.remove()
 
   await typeText(main.content, '@ad')
   await delay()
@@ -376,7 +397,7 @@ async function run() {
   assert(!document.querySelector('.oe-mention-dropdown'), 'destroy left a mention popup in the document')
 
   return {
-    flows: ['option validation', 'search', 'search cancellation', 'failed commit', 'keyboard commit', 'click semantics', 'pagination', 'custom rows', 'serialize', 'undo', 'redo', 'renderer', 'empty', 'query reset', 'last-trigger deletion', 'unicode trigger', 'aria', 'theme inheritance', 'multi-editor', 'destroy'],
+    flows: ['option validation', 'ru/en locale namespace', 'search', 'search cancellation', 'failed commit', 'keyboard commit', 'click semantics', 'pagination', 'custom rows', 'serialize', 'undo', 'redo', 'renderer', 'empty', 'query reset', 'last-trigger deletion', 'unicode trigger', 'aria', 'theme inheritance', 'multi-editor', 'destroy'],
     queries: queries.map(([query]) => query),
   }
 }
