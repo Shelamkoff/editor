@@ -57,7 +57,8 @@ export function createTogglePlugin(){
         }
         return {title:'',content:payload.data.text,open:true}
       },
-    }),    clipboard:Object.freeze({
+    }),
+    clipboard:Object.freeze({
       slice(data,context){
         const title=context.field('title')
         const content=context.field('content')
