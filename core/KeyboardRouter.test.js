@@ -123,15 +123,21 @@ test('Delete at field end merges the following block', () => {
   router.destroy()
 })
 
-test('Mod+Z and Mod+Shift+Z route exclusively through canonical history', () => {
+test('Ctrl/Meta Z, Shift+Z and Y route exclusively through canonical history', () => {
   const { router, calls, event } = harness()
-  const undo = event('z', { ctrlKey: true })
-  router.handleKeydown(undo)
-  const redo = event('z', { ctrlKey: true, shiftKey: true })
-  router.handleKeydown(redo)
-  assert.equal(undo.prevented, true)
-  assert.equal(redo.prevented, true)
-  assert.deepEqual(calls.slice(0, 2), [['undo'], ['redo']])
+  const ctrlUndo = event('z', { ctrlKey: true })
+  router.handleKeydown(ctrlUndo)
+  const ctrlRedo = event('z', { ctrlKey: true, shiftKey: true })
+  router.handleKeydown(ctrlRedo)
+  const metaUndo = event('z', { metaKey: true })
+  router.handleKeydown(metaUndo)
+  const yRedo = event('y', { ctrlKey: true })
+  router.handleKeydown(yRedo)
+
+  for (const handled of [ctrlUndo, ctrlRedo, metaUndo, yRedo]) {
+    assert.equal(handled.prevented, true)
+  }
+  assert.deepEqual(calls.slice(0, 4), [['undo'], ['redo'], ['undo'], ['redo']])
   router.destroy()
 })
 
