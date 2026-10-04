@@ -13,7 +13,7 @@ Application
   │                           └─ save/render/destroy
   │
   ├─ Block and inline extensions
-  │      └─ mutate(...) command boundary
+  │      └─ scoped context / DataTask authority
   │
   └─ createEditorRenderer(config) ──> Document DOM
 
@@ -28,23 +28,23 @@ The handle deliberately does not expose the block manager, command dispatcher, u
 
 ## The document boundary
 
-An `EditorDocument` is plain serializable data. Rector clones documents when they cross into the editor, through a migration, or out of a save operation. The live DOM is never the storage contract.
+An `EditorDocument` is plain serializable data in one explicit current wire format. Rector exact-decodes the current envelope on ingress and returns detached data on save. Missing, older, or future document/schema versions are rejected; migration and preserved-document modes are not part of the runtime. The live DOM is never the storage contract.
 
 Each block has a stable `id`, a registered `type`, plugin-owned `data`, and optional `revision`, `tunes`, and `inline` fields. The core owns the envelope and identities; a plugin owns only the shape of its own `data`. A producer-owned `revision` is an optimization token for incremental rendering, not another schema version.
 
-The document version describes the envelope and cross-plugin conventions. A plugin must evolve its data compatibly or participate in an explicit document migration.
+The document version describes the wire envelope and cross-plugin conventions. Each registered block or inline schema has its own exact `currentVersion`; serialized `dataVersion` must match it. Historical conversion, when an application deliberately needs it, happens outside Rector before current data is passed in.
 
 ## The editor composition boundary
 
-`createEditor()` is the composition root. It validates configuration and constructs document normalization, block ownership, selection, commands, history, keyboard routing, toolbars, paste routing, diagnostics, localization, and style ownership.
+`createEditor()` is the composition root. It validates current-format configuration and constructs canonical document ownership, prepared transactions, projection/recovery, selection, history, keyboard/native-input ownership, toolbars, clipboard/HTML ingress, diagnostics, localization, and style ownership.
 
 These services communicate through narrow internal interfaces. They are implementation details even when a declaration file exists in the source tree. Public imports are limited to paths declared by the package `exports` map.
 
 ## The command boundary
 
-Every persistent interaction enters one command transaction. The transaction captures a before-state, applies a synchronous mutation, marks affected blocks, and commits one history step. A failed command rolls back atomically.
+Every persistent interaction enters one command transaction. Core builds a draft, prepares projection and history state, applies the candidate projection, and crosses one commit point for store/history before finalizing superseded lifetimes and publishing immutable events. A failure before commit recovers the previous projection without advancing model or history; unrecoverable recovery fails the editor closed.
 
-Application code enters this boundary through public editor methods. Extensions receive only the appropriate `mutate(...)` capability. See [Commands and history](/guide/commands-history).
+Application host commands and user/plugin interaction authority are distinct, especially in read-only mode. Block and inline instances receive scoped `updateData()`, protected DOM-commit operations and revocable `beginTask()` authority instead of managers. See [Commands and history](/guide/commands-history).
 
 ## Extension boundaries
 
@@ -70,7 +70,7 @@ The document renderer has a separate style lifecycle. `renderer.injectStyles()` 
 Anything that subscribes or allocates must have a clear owner:
 
 - the editor owns its root listeners, observers, managers, popups, and registered plugin instances;
-- a block plugin owns listeners and third-party objects attached to its rendered block and releases them in `destroy(element)`;
+- one mounted block instance owns listeners and third-party objects attached to its occurrence and releases them in `destroy()`; its scoped mutation authority is revoked before disposal;
 - an inline control group releases temporary controls in its `destroy()` callback;
 - the renderer owns mounted renderer instances per output container and releases them through `destroy(container?)`;
 - the application owns the editor handle and any renderer style owner it creates.
@@ -81,25 +81,25 @@ No extension should depend on page unload for cleanup.
 
 ### Initial load
 
-1. The application passes a document to `createEditor()`.
-2. The document schema validates the envelope and applies a deterministic migration chain.
-3. Registered block plugins render their own data.
-4. Text plugins map stored inline placeholders back to widget DOM.
-5. Rector establishes the first history checkpoint after composition.
+1. The application passes a current `2.0.0` document to `createEditor()`.
+2. The shared current-only boundary validates the envelope, block identities and exact registered schema versions before live state is changed.
+3. The registry snapshots reusable definitions and creates per-editor runtimes.
+4. Block/inline projections are staged with candidate-scoped contexts and become active only after successful mount/commit.
+5. Canonical inline placeholders are hydrated only from the block-level `inline` sidecar; external widget-shaped HTML is not a decoder.
 
 ### Editing and save
 
-1. A public method or extension context opens a command.
-2. The command changes owned DOM or document structure.
-3. The affected plugin serializes its element through `save()`.
-4. Rector marshals inline widgets into the block-level `inline` map.
-5. The document is validated and emitted as detached data.
+1. A host command, native input, toolbar action or extension context enters the canonical command boundary.
+2. Data-first operations assemble complete canonical records; protected rich-text edits may mutate registered projection fields and synchronously serialize only the affected blocks.
+3. The transaction prepares projection/history state before committing the model.
+4. Inline occurrences are serialized back to canonical placeholders plus the block-level `inline` sidecar, with collision/literal handling owned by canonical transforms.
+5. `save()` exports detached current data; async persisted work commits only through a live `DataTask`.
 
 ### Document rendering
 
 1. The application passes saved JSON to an `EditorRenderer`.
 2. The renderer selects a `BlockRenderer` by block `type`.
-3. Inline placeholders are sanitized and rehydrated through registered inline plugins.
+3. Registered current inline records are exact-decoded and their canonical placeholders are rehydrated through inline renderers.
 4. The block renderer returns output DOM.
 5. `destroy()` releases renderer-owned resources when the container is replaced or removed.
 
