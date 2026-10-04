@@ -129,6 +129,25 @@ async function run() {
     const definition = pluginModule[factoryName]({ injectStyles: false })
     assert(definition?.type === folder.replace('link-preview','linkPreview') || definition?.type === folder, `${factoryName} returned the wrong definition type`)
     assert(typeof definition.setup === 'function' && definition.schema, `${factoryName} did not return a v2 definition`)
+    assert(
+      Number.isSafeInteger(definition.schema.currentVersion) && definition.schema.currentVersion >= 1,
+      `${factoryName} exposed an invalid currentVersion`,
+    )
+    const defaultData = definition.schema.createDefault()
+    const encodedDefault = definition.schema.encode(defaultData)
+    assert(
+      encodedDefault?.dataVersion === definition.schema.currentVersion,
+      `${factoryName} default encode did not emit currentVersion`,
+    )
+    const decodedDefault = definition.schema.decode(encodedDefault)
+    assert(
+      decodedDefault?.dataVersion === definition.schema.currentVersion,
+      `${factoryName} default decode did not preserve currentVersion`,
+    )
+    assert(
+      JSON.stringify(decodedDefault.data) === JSON.stringify(encodedDefault.data),
+      `${factoryName} default encode/decode roundtrip is not canonical`,
+    )
     assert(typeof rendererModule?.[rendererName] === 'function', `${folder} renderer entry lost ${rendererName}`)
     assert(typeof aggregateRenderers?.[rendererName] === 'function', `${folder} aggregate renderer lost ${rendererName}`)
 
