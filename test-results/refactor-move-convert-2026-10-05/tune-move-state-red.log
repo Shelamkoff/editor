@@ -1,0 +1,16 @@
+file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149
+    if (result.status === 'fail') throw new Error(`History matrix failed: ${result.summary}`)
+                                        ^
+
+Error: History matrix failed: [
+  {
+    "name": "native tune moves keep the menu usable, preserve the caret and update boundary arrows like v1",
+    "status": "FAIL",
+    "error": "Error: Move closed the tune menu instead of keeping the v1 move controls available\n    at assert (http://127.0.0.1:56435/tests/browser/regressions/harness.js:20:81)\n    at http://127.0.0.1:56435/tests/browser/native-block-menus.js:259:3\n    at async run (http://127.0.0.1:56435/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:56435/tests/browser/native-block-menus.js:749:1"
+  }
+]
+    at waitForHistoryMatrix (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149:41)
+    at async runNativePage (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:275:30)
+    at async file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:312:48
+
+Node.js v24.9.0

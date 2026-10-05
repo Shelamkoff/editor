@@ -34,6 +34,7 @@ export function createLinkPreviewPlugin(config={}){
   const capabilities=Object.freeze({
     empty:Object.freeze({isEmpty:data=>!data.url}),
     conversion:Object.freeze({
+      selectionMode:'single',
       export:data=>({kind:'plain-text',data:{text:data.title||data.url}}),
       canImport:payload=>(payload?.kind==='plain-text'||payload?.kind==='rich-text')&&typeof payload.data?.text==='string',
       import(payload){

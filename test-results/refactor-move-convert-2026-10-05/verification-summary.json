@@ -1,0 +1,344 @@
+{
+  "verifiedAt": "2026-10-05T13:16:45.915Z",
+  "branch": "refactor/rector-v2-architecture",
+  "baseCommit": "07158fa404f2394aee06610a837f74c7e3ed4966",
+  "v1Oracle": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+  "source": {
+    "algorithm": "SHA-256",
+    "fileCount": 558,
+    "byteScope": "local checkout before Git LF/CRLF normalization",
+    "unchanged": true
+  },
+  "node": {
+    "pass": 432,
+    "fail": 0,
+    "skip": 0
+  },
+  "native": {
+    "pass": 1150,
+    "fail": 0,
+    "groups": {
+      "nativeTextInput": {
+        "pass": 42,
+        "fail": 0
+      },
+      "nativeTools": {
+        "pass": 41,
+        "fail": 0
+      },
+      "nativeClipboard": {
+        "pass": 7,
+        "fail": 0
+      },
+      "nativeIme": {
+        "pass": 9,
+        "fail": 0
+      },
+      "nativeConversion": {
+        "pass": 7,
+        "fail": 0
+      },
+      "nativeBlockMenus": {
+        "pass": 108,
+        "fail": 0
+      },
+      "nativeConversionGrouping": {
+        "pass": 88,
+        "fail": 0
+      },
+      "nativeStructural": {
+        "pass": 21,
+        "fail": 0
+      },
+      "nativeCrossSelection": {
+        "pass": 32,
+        "fail": 0
+      },
+      "nativeCoreBehavior": {
+        "pass": 53,
+        "fail": 0
+      },
+      "nativePluginParity": {
+        "pass": 139,
+        "fail": 0
+      },
+      "nativePluginControls": {
+        "pass": 141,
+        "fail": 0
+      },
+      "nativePluginRanges": {
+        "pass": 116,
+        "fail": 0
+      },
+      "nativePluginLocalRanges": {
+        "pass": 76,
+        "fail": 0
+      },
+      "nativePluginClipboard": {
+        "pass": 48,
+        "fail": 0
+      },
+      "nativePluginFieldClipboard": {
+        "pass": 68,
+        "fail": 0
+      },
+      "nativePluginMedia": {
+        "pass": 70,
+        "fail": 0
+      },
+      "nativePluginDesign": {
+        "pass": 84,
+        "fail": 0
+      }
+    }
+  },
+  "browser": {
+    "pages": 24,
+    "files": [
+      "harness-contract.html",
+      "runtime-contracts.html",
+      "roundtrip.html",
+      "roundtrip-trusted-types.html",
+      "person-avatar-csp.html",
+      "history.html",
+      "selection.html",
+      "lifecycle.html",
+      "security.html",
+      "trusted-types.htm",
+      "action-label-security.html",
+      "audit-regressions.html",
+      "attaches-abort-urls.html",
+      "embed-service-registry.html",
+      "person-social-registry.html",
+      "gallery-layout-registry.html",
+      "mention.html",
+      "mention-session-race.html",
+      "poll.html",
+      "carousel.html",
+      "plugin-surfaces.html",
+      "imports.html",
+      "slash.html",
+      "selection-convert.html"
+    ],
+    "passed": true
+  },
+  "typecheck": {
+    "projects": 2,
+    "passed": true
+  },
+  "heap": {
+    "sentinels": 21,
+    "retained": 0,
+    "usedHeapMiB": 12.48,
+    "embedderHeapMiB": 1.39,
+    "snapshotMiB": 24.51
+  },
+  "build": {
+    "runtimeDeclarations": 264,
+    "sourceDiagnostics": 0,
+    "sourceDiagnosticDetails": [],
+    "dist": "dist"
+  },
+  "consumerTypes": {
+    "pass": 6,
+    "fail": 0
+  },
+  "package": {
+    "passed": true,
+    "typeModes": [
+      "Bundler",
+      "NodeNext"
+    ],
+    "vite": true,
+    "import": true,
+    "cssAssets": 22
+  },
+  "documentation": {
+    "readmes": 94,
+    "languages": [
+      "en",
+      "ru"
+    ],
+    "examples": 53,
+    "json": 44,
+    "links": 62,
+    "imports": true,
+    "encoding": true,
+    "packageReadmeCopiesChecked": 92
+  },
+  "productionDemo": {
+    "blockPlugins": 21,
+    "inlinePlugins": 2,
+    "editorBlocks": 7,
+    "demoFrame": false,
+    "heroViewport": true,
+    "heroCentered": true,
+    "navAbovePluginBlocks": true,
+    "localSearchShortcut": true,
+    "searchKeyAlignedRight": true,
+    "mentionAutocomplete": true,
+    "localizedTooltips": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "shortcuts": true
+    },
+    "headingLevelMenu": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "keyboard": true,
+      "selection": true
+    },
+    "conversionMenu": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "outsideToolbar": true,
+      "searchSelection": true
+    },
+    "alignmentSelectionState": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "currentBlock": true,
+      "atomicUndo": true
+    },
+    "movedBlockButtons": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "geometry": true,
+      "atomicUndo": true
+    },
+    "tuneFragmentConversion": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "unselectedEdges": true,
+      "atomicUndoRedo": true
+    },
+    "crossImageConversion": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "singleTarget": true,
+      "unselectedListItem": true,
+      "atomicUndoRedo": true
+    },
+    "missingAssets": 0
+  },
+  "developmentDemo": {
+    "blockPlugins": 21,
+    "inlinePlugins": 2,
+    "editorBlocks": 7,
+    "demoFrame": false,
+    "heroViewport": true,
+    "heroCentered": true,
+    "navAbovePluginBlocks": true,
+    "localSearchShortcut": true,
+    "searchKeyAlignedRight": true,
+    "mentionAutocomplete": true,
+    "localizedTooltips": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "shortcuts": true
+    },
+    "headingLevelMenu": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "keyboard": true,
+      "selection": true
+    },
+    "conversionMenu": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "outsideToolbar": true,
+      "searchSelection": true
+    },
+    "alignmentSelectionState": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "currentBlock": true,
+      "atomicUndo": true
+    },
+    "movedBlockButtons": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "geometry": true,
+      "atomicUndo": true
+    },
+    "tuneFragmentConversion": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "unselectedEdges": true,
+      "atomicUndoRedo": true
+    },
+    "crossImageConversion": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "singleTarget": true,
+      "unselectedListItem": true,
+      "atomicUndoRedo": true
+    },
+    "missingAssets": 0
+  },
+  "conversionCoverage": {
+    "targets": 21,
+    "wholeAndLocalModes": 63,
+    "crossMenuDirectionCases": 84,
+    "widgetsCases": 2,
+    "customGroupingCases": 2
+  },
+  "limitations": [
+    "Verified native input and visual behavior in headless Chrome on this host.",
+    "IME protocol tests do not cover all operating-system IMEs.",
+    "External upload/server adapters need their application environment.",
+    "Code keeps the existing v2 per-fragment text conversion and inline-loss rejection."
+  ]
+}

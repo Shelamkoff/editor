@@ -305,6 +305,7 @@ export function createEditorRuntime(input){
     requestExit:id=>keyboardRouter?.exit(id),
     onCommit:event=>{
       interaction?.reconcile()
+      toolbar?.refresh()
       clipboard?.handleTransaction(event)
       notifier?.schedule()
       emit('transaction:committed',event)

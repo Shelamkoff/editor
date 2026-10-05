@@ -117,6 +117,7 @@ export function createChecklistPlugin(){
       },
     }),
     conversion:Object.freeze({
+      selectionMode:'per-block',
       export(data){
         return {kind:'rich-text',data:{text:data.items.map(item=>item.text).join('<br>')}}
       },

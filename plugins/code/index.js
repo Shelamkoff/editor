@@ -52,6 +52,7 @@ export function createCodePlugin(config = {}) {
   const capabilities = Object.freeze({
     empty: Object.freeze({ isEmpty: data => data.code.trim().length === 0 }),
     conversion: Object.freeze({
+      selectionMode:'per-block',
       export: data => ({ kind: 'plain-text', data: { text: data.code } }),
       canImport: payload => (payload?.kind === 'plain-text' || payload?.kind === 'rich-text') && typeof payload.data?.text === 'string',
       import(payload) {

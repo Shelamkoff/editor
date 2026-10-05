@@ -23,6 +23,7 @@ export function createRawPlugin() {
     capabilities: Object.freeze({
       empty: Object.freeze({ isEmpty: data => data.html.trim().length === 0 }),
       conversion: Object.freeze({
+        selectionMode:'single',
         export: data => ({ kind: 'plain-text', data: { text: data.html } }),
         canImport: payload => payload?.kind === 'plain-text' && typeof payload.data?.text === 'string',
         import(payload) {

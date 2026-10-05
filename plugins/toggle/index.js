@@ -48,6 +48,7 @@ export function createTogglePlugin(){
       },
     })),
     conversion:Object.freeze({
+      selectionMode:'single',
       export(data){
         return {kind:'rich-text',data:{text:[data.title,data.content].filter(Boolean).join('<br>')}}
       },

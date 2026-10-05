@@ -43,6 +43,7 @@ export function createSpoilerPlugin(){
       },
     })),
     conversion:Object.freeze({
+      selectionMode:'single',
       export(data){
         return {kind:'rich-text',data:{text:[data.label,data.content].filter(Boolean).join('<br>')}}
       },

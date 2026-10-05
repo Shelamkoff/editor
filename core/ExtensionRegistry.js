@@ -157,6 +157,17 @@ function snapshotCapabilityObject(source, label, methods) {
   return Object.freeze(result)
 }
 
+function snapshotConversion(source, label) {
+  const methods = snapshotCapabilityObject(source, label, [
+    ['export', false], ['canImport', false], ['import', false],
+  ])
+  const selectionMode = source.selectionMode === undefined ? 'single' : source.selectionMode
+  if (selectionMode !== 'single' && selectionMode !== 'per-block') {
+    throw new TypeError(label + ' selectionMode must be single or per-block')
+  }
+  return Object.freeze({ ...methods, selectionMode })
+}
+
 function snapshotPasteCapability(source, label) {
   if (!source || typeof source !== 'object' || Array.isArray(source)) {
     throw new TypeError(`${label} paste capability must be an object`)
@@ -204,9 +215,7 @@ function snapshotCapabilities(source, label) {
     result.merge = snapshotCapabilityObject(candidate.merge, `${label} merge`, [['merge', false]])
   }
   if (candidate.conversion !== undefined) {
-    result.conversion = snapshotCapabilityObject(candidate.conversion, `${label} conversion`, [
-      ['export', false], ['canImport', false], ['import', false],
-    ])
+    result.conversion = snapshotConversion(candidate.conversion, label + ' conversion')
   }
   if (candidate.htmlImport !== undefined) {
     result.htmlImport = snapshotCapabilityObject(candidate.htmlImport, `${label} htmlImport`, [

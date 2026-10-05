@@ -1,9 +1,11 @@
 import { createParagraphPlugin, createHeadingPlugin, createListPlugin, createCodePlugin } from '../../plugins/index.js'
 import * as blockPlugins from '../../plugins/index.js'
+import { pluginParityFixtures } from './plugin-parity-fixtures.js'
+import { getTextOffset } from '../../shared/textOffset.js'
 import ru from '../../locale/ru.js'
 import en from '../../locale/en.js'
 import { test, make, para, editableField, editorRoot, blockElement, pause, select, assert, equal, expectError, run } from './regressions/harness.js'
-import { clickNative, dispatchKey } from './native-input-helpers.js'
+import { clickNative, dispatchKey, dragAcross } from './native-input-helpers.js'
 
 function mount(blocks = [para('a', 'Alpha'), para('b', 'Bravo')], locale = ru) {
   return make(blocks, { injectStyles: true, locale, plugins: [createParagraphPlugin(), createHeadingPlugin(), createListPlugin(), createCodePlugin()] })
@@ -32,6 +34,271 @@ async function history(editor, before, after) {
   equal(editor.save().blocks, after)
   assert(editorRoot(editor).contains(document.activeElement), 'Redo left focus outside the editor')
 }
+
+test('native moved block keeps add and tune buttons beside it after animation and history', async () => {
+  const editor = mount([para('a', 'Alpha'), para('b', 'Bravo'), para('c', 'Charlie')])
+  const root = editorRoot(editor)
+  const before = editor.save().blocks
+  await open(editor, '.oe-toolbar__drag')
+  await clickNative(item(root.querySelector('.oe-settings-menu'), 'Переместить вниз'))
+  await pause(260)
+  equal(editor.save().blocks.map(block => block.id), ['b', 'a', 'c'])
+  function checkButtons() {
+    const block = blockElement(editor, 'a').getBoundingClientRect()
+    const toolbar = root.querySelector('.oe-toolbar').getBoundingClientRect()
+    assert(Math.abs(toolbar.top - block.top) <= 2, 'Moved block buttons stayed at the previous position: ' + JSON.stringify({ block: block.toJSON(), toolbar: toolbar.toJSON() }))
+    assert(toolbar.left >= block.right - 1, 'Buttons overlap block content')
+  }
+  checkButtons()
+  await dispatchKey('z', 'KeyZ', 90, 2)
+  await pause(260)
+  equal(editor.save().blocks, before)
+  equal(editor.canUndo, false)
+  checkButtons()
+  await dispatchKey('z', 'KeyZ', 90, 2 | 8)
+  await pause(260)
+  equal(editor.save().blocks.map(block => block.id), ['b', 'a', 'c'])
+  checkButtons()
+})
+
+test('native tune conversion acts on the selected fragment instead of the whole block', async () => {
+  const editor = mount([para('a', 'Alpha bravo'), para('b', 'Tail')])
+  const before = editor.save().blocks
+  select(editableField(editor, 'a'), 2, 5)
+  await pause(30)
+  const root = editorRoot(editor)
+  await clickNative(root.querySelector('.oe-toolbar__drag'))
+  const menu = root.querySelector('.oe-settings-menu')
+  await clickNative(item(menu, 'Преобразовать в'))
+  await clickNative(menu.querySelector('[data-plugin-type="heading"]'))
+  await pause(260)
+  const after = editor.save().blocks
+  equal(after.map(block => [block.type, block.data.text]), [['paragraph', 'Al'], ['heading', 'pha'], ['paragraph', ' bravo'], ['paragraph', 'Tail']], 'Tune converted unselected author text')
+  await history(editor, before, after)
+})
+
+test('native whole block conversion offers a non-text Delimiter target and one Undo', async () => {
+  const editor = make([para('a', 'Alpha'), para('b', 'Tail')], {
+    injectStyles: true, locale: ru,
+    plugins: [createParagraphPlugin(), blockPlugins.createDelimiterPlugin()],
+  })
+  const before = editor.save().blocks
+  await open(editor, '.oe-toolbar__drag')
+  const menu = editorRoot(editor).querySelector('.oe-settings-menu')
+  await clickNative(item(menu, 'Преобразовать в'))
+  await clickNative(menu.querySelector('[data-plugin-type="delimiter"]'))
+  await pause(260)
+  const after = editor.save().blocks
+  equal(after.map(block => [block.id, block.type]), [['a', 'delimiter'], ['b', 'paragraph']], 'A visible conversion target did not convert the block')
+  await history(editor, before, after)
+})
+
+test('native tune conversion follows its focused shell rather than a caret in another block', async () => {
+  const editor = mount()
+  await clickNative(editableField(editor, 'a'))
+  const shell = blockElement(editor, 'b')
+  shell.tabIndex = -1
+  shell.focus()
+  assert(window.getSelection().anchorNode && blockElement(editor, 'a').contains(window.getSelection().anchorNode), 'Fixture lost the previous text caret')
+  await pause(30)
+  const before = editor.save().blocks
+  const menu = editorRoot(editor).querySelector('.oe-settings-menu')
+  await clickNative(editorRoot(editor).querySelector('.oe-toolbar__drag'))
+  await clickNative(item(menu, 'Преобразовать в'))
+  await clickNative(menu.querySelector('[data-plugin-type="heading"]'))
+  await pause(260)
+  const after = editor.save().blocks
+  equal(after.map(block => [block.id, block.type, block.data.text]), [['a', 'paragraph', 'Alpha'], ['b', 'heading', 'Bravo']], 'Tune converted the previous caret owner')
+  await history(editor, before, after)
+})
+
+test('native paragraph and part of a List convert to one Image block', async () => {
+  const list = createListPlugin()
+  const editor = make([para('a', 'Alpha'), {
+    id: 'b', type: 'list', dataVersion: list.schema.currentVersion,
+    data: { style: 'ordered', items: [{ id: 'first', text: 'Bravo' }, { id: 'second', text: 'Charlie' }, { id: 'third', text: 'Delta' }] },
+  }, para('tail', 'Tail')], { injectStyles: true, locale: ru, plugins: [createParagraphPlugin(), list, blockPlugins.createImagePlugin()] })
+  const before = editor.save().blocks
+  await dragAcross(editor, editableField(editor, 'a'), 2, editableField(editor, 'b', '[data-item-id="second"]'), 7)
+  const root = editorRoot(editor)
+  await clickNative(root.querySelector('.oe-inline-toolbar__type-select'))
+  await clickNative(root.querySelector('.oe-inline-toolbar__type-dropdown [data-plugin-type="image"]'))
+  await pause(260)
+  const after = editor.save().blocks
+  equal(after.map(block => block.type), ['paragraph', 'image', 'list', 'paragraph'], 'Cross-block conversion created one image for each source block')
+  equal(after[0].data.text, 'Al')
+  equal(after[2].data, { style: 'ordered', items: [{ id: 'third', text: 'Delta' }] })
+  equal(after[3], before[2], 'Conversion changed unselected tail')
+  assert(!root.classList.contains('oe-editor--cross-selecting'), 'Converted Image retained the previous cross-block highlight')
+  assert(!window.getSelection().rangeCount || window.getSelection().isCollapsed, 'Converted Image retained a native text range')
+  equal(root.querySelector('.oe-inline-toolbar').style.display, 'none', 'Converted Image retained a text toolbar')
+  await history(editor, before, after)
+})
+
+for (const [name, factory] of [['Gallery', blockPlugins.createGalleryPlugin], ['Carousel', blockPlugins.createCarouselPlugin]]) {
+test('native cross-block tune conversion to ' + name + ' inserts one non-text target', async () => {
+  const editor = make([para('a', 'Alpha'), para('middle', 'Middle'), para('b', 'Bravo')], {
+    injectStyles: true, locale: ru,
+    plugins: [createParagraphPlugin(), factory()],
+  })
+  const before = editor.save().blocks
+  await dragAcross(editor, editableField(editor, 'a'), 2, editableField(editor, 'b'), 3)
+  await clickNative(editorRoot(editor).querySelector('.oe-toolbar__drag'))
+  const menu = editorRoot(editor).querySelector('.oe-settings-menu')
+  await clickNative(item(menu, 'Преобразовать в'))
+  const type = factory().type
+  await clickNative(menu.querySelector('[data-plugin-type="' + type + '"]'))
+  await pause(260)
+  const after = editor.save().blocks
+  equal(after.map(block => [block.type, block.data.text]), [['paragraph', 'Al'], [type, undefined], ['paragraph', 'vo']], 'Non-text conversion created one empty target per selected block')
+  await history(editor, before, after)
+})
+}
+
+for (const fixture of pluginParityFixtures) {
+  for (const mode of ['whole', 'tune fragment', 'inline fragment']) {
+    test('native every conversion target ' + fixture.name + ' / ' + mode + ' preserves unselected content and atomic history', async () => {
+      const target = fixture.factory()
+      const sourceType = target.type === 'paragraph' ? 'heading' : 'paragraph'
+      const text = mode === 'whole' ? 'Alpha' : 'Alpha bravo'
+      const definition = sourceType === 'heading' ? createHeadingPlugin() : createParagraphPlugin()
+      const editor = make([
+        { id: 'a', type: sourceType, dataVersion: definition.schema.currentVersion, data: { ...definition.schema.createDefault(), text } },
+        para('b', 'Tail'),
+      ], { injectStyles: true, locale: ru, plugins: [definition, target] })
+      const before = editor.save().blocks
+      if (mode === 'whole') await clickNative(editableField(editor, 'a'))
+      else { select(editableField(editor, 'a'), 2, 5); await pause(30) }
+      const root = editorRoot(editor)
+      let menu
+      if (mode === 'inline fragment') {
+        await clickNative(root.querySelector('.oe-inline-toolbar__type-select'))
+        menu = root.querySelector('.oe-inline-toolbar__type-dropdown')
+      } else {
+        await clickNative(root.querySelector('.oe-toolbar__drag'))
+        menu = root.querySelector('.oe-settings-menu')
+        await clickNative(item(menu, 'Преобразовать в'))
+      }
+      await clickNative(menu.querySelector('[data-plugin-type="' + target.type + '"]'))
+      await pause(260)
+      const after = editor.save().blocks
+      equal(after.at(-1), before[1], 'Conversion changed the unselected tail block')
+      if (mode === 'whole') {
+        equal(after.map(block => [block.id, block.type]), [['a', target.type], ['b', 'paragraph']])
+      } else {
+        equal(after.map(block => block.type), [sourceType, target.type, sourceType, 'paragraph'])
+        equal([after[0].data.text, after[2].data.text], ['Al', ' bravo'], 'Conversion changed unselected prefix/suffix')
+        if (target.type === 'paragraph' || target.type === 'heading') equal(after[1].data.text, 'pha')
+      }
+      assert(root.contains(document.activeElement), 'Conversion lost editor focus')
+      await history(editor, before, after)
+    })
+  }
+}
+
+for (const backwards of [false, true]) {
+  test('native tune ' + (backwards ? 'backward' : 'forward') + ' cross-block conversion restores the directed range on Undo', async () => {
+    const editor = mount([para('a', 'Alpha'), para('middle', 'Middle'), para('b', 'Bravo')])
+    const before = editor.save().blocks
+    await dragAcross(editor, editableField(editor, 'a'), 2, editableField(editor, 'b'), 3, backwards)
+    const root = editorRoot(editor)
+    await clickNative(root.querySelector('.oe-toolbar__drag'))
+    const menu = root.querySelector('.oe-settings-menu')
+    await clickNative(item(menu, 'Преобразовать в'))
+    await clickNative(menu.querySelector('[data-plugin-type="heading"]'))
+    await pause(260)
+    const after = editor.save().blocks
+    equal(after.map(block => [block.type, block.data.text]), [['paragraph', 'Al'], ['heading', 'pha'], ['heading', 'Middle'], ['heading', 'Bra'], ['paragraph', 'vo']])
+    await dispatchKey('z', 'KeyZ', 90, 2)
+    equal(editor.save().blocks, before)
+    equal(editor.canUndo, false)
+    const selection = window.getSelection()
+    const anchor = editableField(editor, backwards ? 'b' : 'a')
+    const focus = editableField(editor, backwards ? 'a' : 'b')
+    assert(anchor.contains(selection.anchorNode) && focus.contains(selection.focusNode), 'Undo restored another range owner/direction')
+    equal([getTextOffset(anchor, selection.anchorNode, selection.anchorOffset), getTextOffset(focus, selection.focusNode, selection.focusOffset)], backwards ? [3, 2] : [2, 3])
+    await dispatchKey('z', 'KeyZ', 90, 2 | 8)
+    equal(editor.save().blocks, after)
+  })
+}
+
+for (const moveMs of [0, 500]) {
+  test('native block buttons track every visual animation frame and repeated moves / ' + moveMs + 'ms', async () => {
+    const editor = make([para('a', 'Alpha'), para('b', 'Bravo'), para('c', 'Charlie')], { injectStyles: true, locale: ru, blockMoveAnimationMs: moveMs })
+    const root = editorRoot(editor)
+    await clickNative(editableField(editor, 'a'))
+    for (const [label, order] of [['Переместить вниз', ['b', 'a', 'c']], ['Переместить вверх', ['a', 'b', 'c']]]) {
+      if (!root.querySelector('.oe-settings-menu').checkVisibility()) await clickNative(root.querySelector('.oe-toolbar__drag'))
+      await clickNative(item(root.querySelector('.oe-settings-menu'), label))
+      equal(editor.save().blocks.map(block => block.id), order)
+      for (let frame = 0; frame < 16; frame++) {
+        await new Promise(resolve => requestAnimationFrame(resolve))
+        const block = blockElement(editor, 'a').getBoundingClientRect()
+        const toolbar = root.querySelector('.oe-toolbar').getBoundingClientRect()
+        assert(Math.abs(block.top - toolbar.top) <= 2, 'Buttons detached during animation: ' + JSON.stringify({ frame, block: block.top, toolbar: toolbar.top }))
+      }
+      await pause(moveMs + 20)
+    }
+    editor.setReadOnly(true)
+    equal(root.querySelector('.oe-toolbar').style.display, 'none')
+    editor.setReadOnly(false)
+    await clickNative(editableField(editor, 'a'))
+    equal(Math.round(root.querySelector('.oe-toolbar').getBoundingClientRect().top), Math.round(blockElement(editor, 'a').getBoundingClientRect().top))
+  })
+}
+
+for (const backwards of [false, true]) {
+  test('native tune mixed selection can choose the current owner type / ' + (backwards ? 'backward' : 'forward'), async () => {
+    const editor = mount([
+      { id: 'a', type: 'heading', dataVersion: 2, data: { text: 'Alpha', level: 3 } },
+      para('middle', 'Middle'), para('b', 'Bravo'),
+    ])
+    const before = editor.save().blocks
+    await dragAcross(editor, editableField(editor, 'a'), 2, editableField(editor, 'b'), 3, backwards)
+    const root = editorRoot(editor)
+    await clickNative(root.querySelector('.oe-toolbar__drag'))
+    const menu = root.querySelector('.oe-settings-menu')
+    await clickNative(item(menu, 'Преобразовать в'))
+    const type = backwards ? 'paragraph' : 'heading'
+    const choice = menu.querySelector('[data-plugin-type="' + type + '"]')
+    assert(choice.getAttribute('aria-disabled') !== 'true', 'Current owner type is disabled for a mixed cross-block selection')
+    await clickNative(choice)
+    await pause(260)
+    const after = editor.save().blocks
+    equal(after.map(block => [block.type, block.data.text]), [['heading', 'Al'], [type, 'pha'], [type, 'Middle'], [type, 'Bra'], ['paragraph', 'vo']])
+    await history(editor, before, after)
+  })
+}
+
+test('native tune moves keep the menu usable, preserve the caret and update boundary arrows like v1', async () => {
+  const editor = mount([para('a', 'Alpha'), para('b', 'Bravo'), para('c', 'Charlie')])
+  select(editableField(editor, 'a'), 2)
+  await pause(30)
+  const root = editorRoot(editor)
+  await clickNative(root.querySelector('.oe-toolbar__drag'))
+  const menu = root.querySelector('.oe-settings-menu')
+  await clickNative(item(menu, 'Переместить вниз'))
+  await pause(260)
+  assert(menu.checkVisibility(), 'Move closed the tune menu instead of keeping the v1 move controls available')
+  equal(editor.save().blocks.map(block => block.id), ['b', 'a', 'c'])
+  await clickNative(item(menu, 'Переместить вниз'))
+  await pause(260)
+  equal(editor.save().blocks.map(block => block.id), ['b', 'c', 'a'])
+  equal(item(menu, 'Переместить вниз').getAttribute('aria-disabled'), 'true', 'Move did not refresh the bottom boundary')
+  await dispatchKey('Escape', 'Escape', 27)
+  await clickNative(root.querySelector('.oe-toolbar__drag'))
+  // Reopening from its chrome preserves the command caret, rather than zeroing it.
+  await dispatchKey('Escape', 'Escape', 27)
+  const selection = window.getSelection()
+  const field = editableField(editor, 'a')
+  assert(selection.isCollapsed && field.contains(selection.anchorNode), 'Move lost the original caret owner')
+  equal(getTextOffset(field, selection.anchorNode, selection.anchorOffset), 2, 'Tune Move reset the author caret')
+  await dispatchKey('z', 'KeyZ', 90, 2)
+  equal(editor.save().blocks.map(block => block.id), ['b', 'a', 'c'])
+  await dispatchKey('z', 'KeyZ', 90, 2)
+  equal(editor.save().blocks.map(block => block.id), ['a', 'b', 'c'])
+  equal(editor.canUndo, false)
+})
 
 test('desktop block buttons sit to the right and both menus keep a bounded width', async () => {
   const editor = mount()

@@ -761,31 +761,11 @@ export class DocumentRuntime {
       const targetDefinition = this.#registry.getBlockDefinition(target.type)
       if (!targetDefinition) throw new Error(`Unknown block type: ${target.type}`)
 
-      let targetData
-      let sourcePayload = null
-      const sourceEmpty = sourceDefinition?.capabilities?.empty?.isEmpty?.(current.data) === true
-      if (sourceEmpty) {
-        targetData = targetDefinition.schema.createDefault()
-      } else {
-        const sourceConversion = sourceDefinition?.capabilities?.conversion
-        const targetConversion = targetDefinition.capabilities?.conversion
-        if (!sourceConversion || !targetConversion) {
-          throw new Error(`Block conversion is not supported: ${current.type} -> ${target.type}`)
-        }
-        sourcePayload = sourceConversion.export(current.data)
-        if (!targetConversion.canImport(sourcePayload)) {
-          throw new Error(`Block conversion payload is not supported by "${target.type}"`)
-        }
-        targetData = targetConversion.import(sourcePayload)
-      }
-
-      if (target.toolboxItemId !== undefined) {
-        const item = targetDefinition.toolbox?.find(entry => entry.id === target.toolboxItemId)
-        if (!item) throw new Error(`Unknown toolbox item "${target.toolboxItemId}" for "${target.type}"`)
-        if (item.configure) {
-          targetData = item.configure(targetData, this.#dataOperationContext())
-        }
-      }
+      // As in the block menu, every registered target is available. A target
+      // imports transferable content when it can; otherwise it starts with its
+      // own schema defaults. Never bypass the inline-reference preservation check.
+      const sourcePayload = sourceDefinition?.capabilities?.conversion?.export(current.data) ?? null
+      const targetData = this.#targetDataFromPayload(targetDefinition, sourcePayload, target)
 
       const next = this.#recordFromData(
         id, target.type, targetDefinition, targetData, current.tunes, current.inline,
@@ -2627,10 +2607,9 @@ export class DocumentRuntime {
     if(!firstSlice||!lastSlice)return false
 
     const targetConversion=targetDefinition.capabilities?.conversion
-    const probe={kind:/** @type {'rich-text'} */('rich-text'),data:{text:''}}
-    const textTarget=targetConversion?.canImport?.(probe)===true
-
-    if(!textTarget){
+    // Importing a caption does not make a media/compound target a text block.
+    // Grouping is declared by the target independently of payload compatibility.
+    if(targetConversion?.selectionMode!=='per-block'){
       const targetData=this.#targetDataFromPayload(targetDefinition,null,target)
       const targetId=this.#createUniqueBlockId(target.type)
       this.#engine.execute({origin:'user',name:'selection.convert'},tx=>{

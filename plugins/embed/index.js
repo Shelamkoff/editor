@@ -57,6 +57,7 @@ export function createEmbedPlugin(config = {}) {
     clipboard: createTextClipboardSlice(embedDataSchema),
     empty: Object.freeze({ isEmpty: data => !data.videoId }),
     conversion: Object.freeze({
+      selectionMode:'single',
       export: data => ({ kind: 'rich-text', data: { text: data.caption } }),
       canImport: acceptsTextPayload,
       import(payload) {

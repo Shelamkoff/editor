@@ -279,8 +279,10 @@ export function createCarouselPlugin(config={}){
     clipboard:createTextClipboardSlice(carouselDataSchema),
     empty:Object.freeze({isEmpty:data=>data.slides.length===0}),
     conversion:Object.freeze({
+      selectionMode:'single',
       export:data=>({kind:'rich-text',data:{text:data.slides.map(slide=>slide.caption||slide.alt||'').filter(Boolean).join('<br>')}}),
-      canImport:payload=>payload?.kind==='rich-text'&&typeof payload.data?.text==='string',
+      // Captions can be exported, but text cannot create media assets.
+      canImport:()=>false,
       import(){return carouselDataSchema.createDefault()},
     }),
     settings:Object.freeze({

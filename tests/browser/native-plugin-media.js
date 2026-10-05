@@ -329,6 +329,61 @@ test('Image filled Replace switches to source actions and Back restores the main
   equal(editor.canUndo, false)
 })
 
+test('Image style settings stay on their separate button rather than the block tune menu', async () => {
+  for (const data of [{}, { file: { url: pixel }, caption: 'Alpha' }]) {
+    const editor = mount(createImagePlugin(), data)
+    editor.blocks.focus('a')
+    await pause(30)
+    await clickNative(editorRoot(editor).querySelector('.oe-toolbar__drag'))
+    const tune = editorRoot(editor).querySelector('.oe-settings-menu')
+    assert(tune.checkVisibility(), 'Image tune menu did not open')
+    assert(!tune.querySelector('.oe-image__style-form'), 'Image styles duplicate the separate Settings button inside the tune menu')
+    const rect = tune.getBoundingClientRect()
+    assert(rect.width <= 280, 'Image tune menu is widened by the style form')
+    await dispatchKey('Escape', 'Escape', 27)
+    if (data.file) {
+      await clickNative(button(editor, 'Settings'))
+      const panel = blockElement(editor, 'a').querySelector('.oe-image__dropdown-panel')
+      assert(panel.checkVisibility() && panel.querySelector('.oe-image__style-form'), 'Separate Image Settings button lost its form')
+    }
+    equal(editor.canUndo, false, 'Opening settings changed the document')
+  }
+})
+
+test('Image Settings pairs dimensions with spacing and keeps native color swatches compact', async () => {
+  const editor = mount(createImagePlugin(), { file: { url: pixel }, caption: 'Alpha' })
+  await clickNative(button(editor, 'Settings'))
+  const panel = blockElement(editor, 'a').querySelector('.oe-image__dropdown-panel')
+  const input = label => [...panel.querySelectorAll('label')]
+    .find(element => element.querySelector('span')?.textContent === label).querySelector('input')
+  const width = input('Width').getBoundingClientRect()
+  const height = input('Height').getBoundingClientRect()
+  const minWidth = input('Min width').getBoundingClientRect()
+  assert(Math.abs(width.top - height.top) <= 1 && width.right + 5 <= height.left, 'Width and Height lost their paired v1 row')
+  assert(minWidth.top - width.bottom >= 5, 'Dimension rows touch without spacing')
+  for (const color of panel.querySelectorAll('input[type="color"]')) {
+    const box = color.getBoundingClientRect()
+    equal([Math.round(box.width), Math.round(box.height)], [22, 22], 'Native color swatch uses a full text input width')
+  }
+  equal(editor.canUndo, false)
+})
+
+test('Image Expanded disables explicit width controls while preserving their values and history', async () => {
+  const editor = mount(createImagePlugin(), { file: { url: pixel }, caption: 'Alpha', styles: { width: '160px', minWidth: '80px', maxWidth: '300px' } })
+  const before = editor.save().blocks
+  await clickNative(button(editor, 'Settings'))
+  const panel = () => blockElement(editor, 'a').querySelector('.oe-image__dropdown-panel')
+  await clickNative(panel().querySelector('input[type="checkbox"]'))
+  const controls = [...panel().querySelectorAll('label')]
+  for (const name of ['Width', 'Min width', 'Max width']) {
+    assert(controls.find(label => label.querySelector('span')?.textContent === name).querySelector('input').disabled, 'Expanded left a conflicting ' + name + ' editable')
+  }
+  assert(!controls.find(label => label.querySelector('span')?.textContent === 'Height').querySelector('input').disabled, 'Expanded disabled the independent height')
+  const after = editor.save().blocks
+  equal(after[0].data, { ...before[0].data, expanded: true })
+  await history(editor, before, after)
+})
+
 test('Image inline Settings edits actual dimensions and preserves one native Undo/Redo', async () => {
   const editor = mount(createImagePlugin(), { file: { url: pixel }, caption: 'Alpha' })
   const before = editor.save().blocks

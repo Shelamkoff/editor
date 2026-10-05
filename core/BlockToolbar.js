@@ -36,6 +36,10 @@ export class BlockToolbar {
   #destroyed = false
   #documentClick
   #viewportChange
+  /** @type {number | null} */
+  #positionFrame = null
+  /** @type {ResizeObserver | null} */
+  #resizeObserver = null
   #toolboxParent = null
   #toolboxQuery = ''
   #settingsView = 'main'
@@ -134,14 +138,13 @@ export class BlockToolbar {
       this.closeSettings()
     }
     document.addEventListener('click', this.#documentClick, true)
-    this.#viewportChange = () => {
-      const block = this.#currentId ? this.#view.element(this.#currentId) : null
-      if (!block || this.#toolbar.style.display === 'none') return
-      this.#position(block)
-      if (this.#toolbox.style.display !== 'none') this.#positionPopup(this.#toolbox)
-      if (this.#settings.style.display !== 'none') this.#positionPopup(this.#settings)
-    }
+    this.#viewportChange = () => this.refresh()
     document.defaultView?.addEventListener('resize', this.#viewportChange)
+    const ResizeObserverCtor = document.defaultView?.ResizeObserver
+    if (ResizeObserverCtor) {
+      this.#resizeObserver = new ResizeObserverCtor(() => this.refresh())
+      this.#resizeObserver.observe(root)
+    }
   }
 
   get dragHandle() {
@@ -163,7 +166,36 @@ export class BlockToolbar {
     if (!element) return
     element.classList.add('oe-block--focused')
     this.#toolbar.style.display = ''
-    this.#position(element)
+    this.refresh()
+  }
+
+  refresh() {
+    if (this.#destroyed || this.#runtime.readOnly || this.#toolbar.style.display === 'none') return
+    const block = this.#currentId ? this.#view.element(this.#currentId) : null
+    if (!block) {
+      this.hide()
+      return
+    }
+    this.#position(block)
+    if (this.#toolbox.style.display !== 'none') this.#positionPopup(this.#toolbox)
+    if (this.#settings.style.display !== 'none') this.#positionPopup(this.#settings)
+    // Geometry includes the projection's visual transform until its animation ends.
+    const moving = this.#root.getAnimations?.({ subtree: true }).some(animation =>
+      (animation.playState === 'running' || animation.pending)
+      && Number.isFinite(animation.effect?.getComputedTiming().endTime),
+    )
+    if (moving && this.#positionFrame === null) {
+      this.#positionFrame = this.#root.ownerDocument.defaultView?.requestAnimationFrame(() => {
+        this.#positionFrame = null
+        this.refresh()
+      }) ?? null
+    }
+  }
+
+  #cancelPositionFrame() {
+    if (this.#positionFrame === null) return
+    this.#root.ownerDocument.defaultView?.cancelAnimationFrame(this.#positionFrame)
+    this.#positionFrame = null
   }
 
   setReadOnly(value) {
@@ -175,6 +207,7 @@ export class BlockToolbar {
   }
 
   hide() {
+    this.#cancelPositionFrame()
     this.#tooltip.hide()
     const current = this.#currentId ? this.#view.element(this.#currentId) : null
     current?.classList?.remove('oe-block--focused')
@@ -229,6 +262,8 @@ export class BlockToolbar {
   destroy() {
     if (this.#destroyed) return
     this.#destroyed = true
+    this.#cancelPositionFrame()
+    this.#resizeObserver?.disconnect()
     this.#root.ownerDocument.removeEventListener('click', this.#documentClick, true)
     this.#root.ownerDocument.defaultView?.removeEventListener('resize', this.#viewportChange)
     this.#tooltip.destroy()
@@ -547,19 +582,33 @@ export class BlockToolbar {
     })
     back.dataset.menuBack = 'true'
     this.#settings.append(back, this.#separator())
+    const crossBlock = this.#bookmark?.anchor.blockId !== this.#bookmark?.focus.blockId
     for (const type of this.#registry.blockTypes) {
       const definition = this.#registry.getBlockDefinition(type)
       if (!definition) continue
       const current = type === record.type
       const item = this.#settingsItem(this.#label('plugin', type, definition.label), definition.icon, () => {
         try {
-          this.#mutate('block.convert', () => this.#runtime.convert(id, { type }), () => id)
+          const result = this.#mutate('block.convert', () => {
+            const bookmark = this.#bookmark
+            if (bookmark) {
+              const anchor = this.#view.indexOf(bookmark.anchor.blockId)
+              const focus = this.#view.indexOf(bookmark.focus.blockId)
+              const owner = this.#view.indexOf(id)
+              if (anchor >= 0 && focus >= 0 && owner >= Math.min(anchor, focus) && owner <= Math.max(anchor, focus)) {
+                return this.#runtime.convertLogicalSelection(bookmark, { type })
+              }
+            }
+            this.#runtime.convert(id, { type })
+            return { focusId: id }
+          }, result => result?.focusId)
+          if (!result) return
           this.#view.reconcileInteraction()
-          this.#view.setCurrent(id)
+          this.#view.setCurrent(result.focusId)
           this.closeSettings()
-          queueMicrotask(() => this.#view.focus(id))
+          queueMicrotask(() => this.#view.focus(result.focusId, { offset: 'start' }))
         } catch {}
-      }, current, false, current)
+      }, current && !crossBlock, false, current)
       item.dataset.pluginType = type
       this.#settings.append(item)
     }
@@ -623,14 +672,14 @@ export class BlockToolbar {
 
   #move(id, to) {
     if (to < 0 || to >= this.#runtime.size) return
-    this.#mutate('block.move', () => this.#runtime.move(id, to), () => id)
+    const bookmark = this.#bookmark ?? this.#selection.capture()
+    if (bookmark) this.#selection.restore(bookmark)
+    this.#runtime.interact('block.move', () => this.#runtime.move(id, to), () => bookmark)
     this.#view.reconcileInteraction()
     this.#view.setCurrent(id)
-    this.closeSettings()
-    queueMicrotask(() => {
-      this.#view.focus(id)
-      this.showFor(id)
-    })
+    this.showFor(id)
+    // Rebuild boundary actions while keeping the menu and author caret usable.
+    this.openSettings()
   }
 
   #duplicate(id) {

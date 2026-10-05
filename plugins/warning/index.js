@@ -43,6 +43,7 @@ export function createWarningPlugin(){
       },
     })),
     conversion:Object.freeze({
+      selectionMode:'single',
       export(data){
         return {kind:'rich-text',data:{text:[data.title,data.message].filter(Boolean).join('<br>')}}
       },

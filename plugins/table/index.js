@@ -54,6 +54,7 @@ export function createTablePlugin(){
       },
     })),
     conversion:Object.freeze({
+      selectionMode:'single',
       export(data){return {kind:'rich-text',data:{text:exportText(data)}}},
       canImport:acceptsTextPayload,
       import(payload){

@@ -421,6 +421,10 @@ export class SelectionController {
       return
     }
     const native = this.#window?.getSelection?.()
+    if (!this.#dragStart && !this.#wholeBlocks && native?.rangeCount === 0) {
+      this.clear()
+      return
+    }
     const owner = native?.isCollapsed && native.anchorNode
       ? this.#reconciler.resolveEditableTarget(native.anchorNode)
       : null

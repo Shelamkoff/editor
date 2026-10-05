@@ -37,6 +37,7 @@ export function createAttachesPlugin(config={}){
   const capabilities=Object.freeze({
     empty:Object.freeze({isEmpty:data=>data.files.length===0}),
     conversion:Object.freeze({
+      selectionMode:'single',
       export:data=>({kind:'plain-text',data:{text:data.files.map(file=>file.name).join(', ')}}),
       canImport:payload=>payload?.kind==='plain-text'&&typeof payload.data?.text==='string',
       import(){

@@ -172,8 +172,13 @@ async function testSettingsPanels() {
     caption: 'Pixel',
   }, 'image-settings')
   let menu = await openSettings(image)
-  let panel = menu.querySelector('.oe-settings-menu__panel .oe-image__style-form')
-  assert(panel instanceof HTMLElement, 'image: v2 settings panel is missing')
+  assert(!menu.querySelector('.oe-image__style-form'), 'image: styles leaked into the block tune menu')
+  const settings = [...image.block.querySelectorAll('.oe-image__action-btn')]
+    .find(button => button.textContent.trim() === 'Settings')
+  assert(settings instanceof HTMLButtonElement, 'image: separate Settings button is missing')
+  settings.click()
+  let panel = image.block.querySelector('.oe-image__dropdown-panel .oe-image__style-form')
+  assert(panel instanceof HTMLElement && panel.checkVisibility(), 'image: separate settings panel is missing')
   for (const label of ['Width','Height','Min width','Max width','Fit','Position','Background color','Border style','Border width','Border radius']) {
     assert(controlByLabel(panel, label), `image: setting "${label}" is missing`)
   }
@@ -263,7 +268,8 @@ async function run() {
   sandbox.replaceChildren()
   return {
     sourceEditors: ['image:url','gallery:url','carousel:url','carousel:html','attaches:url'],
-    settingsPanels: ['image','gallery','carousel'],
+    settingsPanels: ['gallery','carousel'],
+    inlineSettings: ['image'],
     actionSettings: ['attaches'],
     history: true,
     dualSettingsApi: false,

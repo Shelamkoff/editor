@@ -521,3 +521,22 @@ test('ExtensionRegistry snapshots clipboard slice capability methods', () => {
   assert.equal(calls, 1)
   registry.destroy()
 })
+
+test('ExtensionRegistry snapshots explicit cross-block conversion grouping independently of payload import', () => {
+  const conversion = { selectionMode: 'single', export: data => ({ kind: 'rich-text', data }), canImport: () => true, import: payload => payload.data }
+  const definition = { ...blockDefinition('media'), capabilities: { conversion } }
+  const registry = new ExtensionRegistry({ ownerDocument: documentStub(), blocks: [definition] })
+  conversion.selectionMode = 'per-block'
+  const stored = registry.getBlockDefinition('media').capabilities.conversion
+  assert.equal(stored.selectionMode, 'single')
+  assert.equal(stored.canImport({ kind: 'rich-text', data: { text: 'Caption' } }), true)
+  assert.ok(Object.isFrozen(stored))
+  for (const mode of ['per-block', undefined]) {
+    const capability = { ...conversion, selectionMode: mode }
+    const current = new ExtensionRegistry({ ownerDocument: documentStub(), blocks: [{ ...definition, capabilities: { conversion: capability } }] })
+    assert.equal(current.getBlockDefinition('media').capabilities.conversion.selectionMode, mode ?? 'single')
+  }
+  for (const mode of ['guess', null, false]) {
+    assert.throws(() => new ExtensionRegistry({ ownerDocument: documentStub(), blocks: [{ ...definition, capabilities: { conversion: { ...conversion, selectionMode: mode } } }] }), /selectionMode must be single or per-block/)
+  }
+})

@@ -70,6 +70,7 @@ export function createParagraphPlugin(config = {}) {
       },
     }),
     conversion: Object.freeze({
+      selectionMode:'per-block',
       export(data) {
         return {
           kind: 'rich-text',

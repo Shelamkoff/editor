@@ -123,6 +123,8 @@ export interface ConversionPayload {
 
 /** Pure block conversion capability. */
 export interface ConversionCapability<D extends Record<string, unknown>> {
+  /** Cross-block selection becomes one default target, or imports each source fragment. Defaults to single. */
+  selectionMode?: 'single' | 'per-block'
   export(data: Readonly<D>): ConversionPayload
   canImport(payload: ConversionPayload): boolean
   import(payload: ConversionPayload): D

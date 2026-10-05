@@ -80,6 +80,12 @@ test('native block drag preserves DOM identity and the caret through Undo/Redo',
   const editor = make([para('a', 'Alpha'), para('b', 'Bravo'), para('c', 'Charlie')], { injectStyles: true })
   await clickNative(editableField(editor, 'a'))
   editor.blocks.focus('a', { offset: 2 })
+  async function checkMovedButtons() {
+    await pause(260)
+    const toolbar = editorRoot(editor).querySelector('.oe-toolbar').getBoundingClientRect()
+    const block = blockElement(editor, 'a').getBoundingClientRect()
+    assert(Math.abs(toolbar.top - block.top) <= 2, 'Native drag/history left buttons at their old position')
+  }
   const before = editor.save().blocks
   const shells = ['a', 'b', 'c'].map(id => blockElement(editor, id))
   const handle = editorRoot(editor).querySelector('.oe-toolbar__drag')
@@ -96,14 +102,17 @@ test('native block drag preserves DOM identity and the caret through Undo/Redo',
   equal(editor.save().blocks.map(block => block.id), ['b', 'c', 'a'])
   assert(['a', 'b', 'c'].every((id, index) => blockElement(editor, id) === shells[index]), 'Block drag rebuilt unaffected DOM')
   caret(editor, 'a', 2)
+  await checkMovedButtons()
   const after = editor.save().blocks
   await dispatchKey('z', 'KeyZ', 90, 2)
   equal(editor.save().blocks, before)
   equal(editor.canUndo, false)
   caret(editor, 'a', 2)
+  await checkMovedButtons()
   await dispatchKey('z', 'KeyZ', 90, 2 | 8)
   equal(editor.save().blocks, after)
   caret(editor, 'a', 2)
+  await checkMovedButtons()
 })
 
 for (const [key, code, keyCode] of [['Backspace', 'Backspace', 8], ['Delete', 'Delete', 46]]) {

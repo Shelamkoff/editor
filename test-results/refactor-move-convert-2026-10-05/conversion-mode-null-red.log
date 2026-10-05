@@ -1,0 +1,27 @@
+✖ ExtensionRegistry snapshots explicit cross-block conversion grouping independently of payload import (4.9837ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 175.6181
+
+✖ failing tests:
+
+test at core\ExtensionRegistry.test.js:525:1
+✖ ExtensionRegistry snapshots explicit cross-block conversion grouping independently of payload import (4.9837ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/core/ExtensionRegistry.test.js:540:12)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.start (node:internal/test_runner/test:1003:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:358:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /selectionMode must be single or per-block/,
+    operator: 'throws',
+    diff: 'simple'
+  }

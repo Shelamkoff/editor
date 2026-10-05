@@ -56,6 +56,7 @@ export function createHeadingPlugin(){
       },
     }),
     conversion:Object.freeze({
+      selectionMode:'per-block',
       export(data){
         return {kind:'rich-text',data:{text:data.text}}
       },

@@ -164,8 +164,10 @@ export function createGalleryPlugin(config={}){
     clipboard:createTextClipboardSlice(galleryDataSchema),
     empty:Object.freeze({isEmpty:data=>data.images.length===0}),
     conversion:Object.freeze({
+      selectionMode:'single',
       export:data=>({kind:'rich-text',data:{text:data.images.map(image=>image.caption).filter(Boolean).join('<br>')}}),
-      canImport:payload=>payload?.kind==='rich-text'&&typeof payload.data?.text==='string',
+      // Captions can be exported, but text cannot create media assets.
+      canImport:()=>false,
       import(){return galleryDataSchema.createDefault()},
     }),
     settings:Object.freeze({

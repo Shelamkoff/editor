@@ -81,6 +81,8 @@ Return `null` when selection is cancelled. A valid result replaces the image in 
 
 Image-file and URL paste; async paste transaction; settings; custom media actions; deterministic cleanup.
 
+A populated image has its own Settings button. Dimensions and appearance stay in that panel; the block tune menu contains block actions. Expanded mode disables Width, Min width and Max width without removing their saved values.
+
 ## Undo, lifecycle, and styles
 
 Each mounted block receives a scoped context. Use `context.updateData(producer)` for data changes, `context.commitDomMutation(operation)` for protected rich-text edits, and `context.beginTask()` for asynchronous results. Each completed action creates one history step. The block instance and its per-editor runtime release their resources through `destroy()`; Rector releases owned styles when their final owner is removed.

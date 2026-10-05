@@ -1,0 +1,16 @@
+file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149
+    if (result.status === 'fail') throw new Error(`History matrix failed: ${result.summary}`)
+                                        ^
+
+Error: History matrix failed: [
+  {
+    "name": "native tune conversion acts on the selected fragment instead of the whole block",
+    "status": "FAIL",
+    "error": "Error: Tune converted unselected author text\nexpected [[\"paragraph\",\"Al\"],[\"heading\",\"pha\"],[\"paragraph\",\" bravo\"],[\"paragraph\",\"Tail\"]], got [[\"heading\",\"Alpha bravo\"],[\"paragraph\",\"Tail\"]]\n    at equal (http://127.0.0.1:53319/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:53319/tests/browser/native-block-menus.js:74:3\n    at async run (http://127.0.0.1:53319/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:53319/tests/browser/native-block-menus.js:547:1"
+  }
+]
+    at waitForHistoryMatrix (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149:41)
+    at async runNativePage (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:275:30)
+    at async file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:312:48
+
+Node.js v24.9.0

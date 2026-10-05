@@ -41,6 +41,7 @@ export function createColumnsPlugin(){
       },
     })),
     conversion:Object.freeze({
+      selectionMode:'single',
       export(data){
         return {kind:'rich-text',data:{text:data.columns.map(column=>column.content).filter(Boolean).join('<br>')}}
       },

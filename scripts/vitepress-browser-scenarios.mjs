@@ -283,6 +283,144 @@ async function verifyAlignmentSelection(client, language) {
   await evaluate(client, "document.querySelector('.live-demo .oe-inline-toolbar__level-select').focus()")
 }
 
+async function verifyBlockOperations(client, language) {
+  async function click(expression) {
+    const point = await evaluate(client, `(() => {
+      const element = (${expression})
+      if (!element) throw new Error('Missing demo action')
+      element.scrollIntoView({ block: 'nearest' })
+      const rect = element.getBoundingClientRect()
+      return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }
+    })()`)
+    await client.send('Input.dispatchMouseEvent', { type: 'mouseMoved', ...point })
+    await client.send('Input.dispatchMouseEvent', { type: 'mousePressed', button: 'left', clickCount: 1, ...point })
+    await client.send('Input.dispatchMouseEvent', { type: 'mouseReleased', button: 'left', clickCount: 1, ...point })
+    await delay(80)
+  }
+  async function undo(redo = false) {
+    const key = { key: 'z', code: 'KeyZ', windowsVirtualKeyCode: 90, nativeVirtualKeyCode: 90, modifiers: redo ? 10 : 2 }
+    await client.send('Input.dispatchKeyEvent', { type: 'rawKeyDown', ...key })
+    await client.send('Input.dispatchKeyEvent', { type: 'keyUp', ...key })
+    await delay(300)
+  }
+  const snapshot = () => evaluate(client, `[...document.querySelectorAll('.live-demo .oe-block')].map(block => ({
+    id: block.dataset.blockId, type: block.dataset.blockType,
+    fields: [...block.querySelectorAll('[contenteditable="true"],textarea')].map(field => field.value ?? field.textContent),
+  }))`)
+  await evaluate(client, `(() => {
+    const field = document.querySelector('.live-demo .oe-block [contenteditable="true"]')
+    field.scrollIntoView({ block: 'center' })
+    field.focus({ preventScroll: true })
+    const range = document.createRange()
+    range.setStart(field.firstChild, 0)
+    range.collapse(true)
+    const selection = window.getSelection()
+    selection.removeAllRanges()
+    selection.addRange(range)
+  })()`)
+  await delay(100)
+  const before = await snapshot()
+  const tune = 'document.querySelector(".live-demo .oe-toolbar__drag")'
+  await click(tune)
+  const down = language === 'ru' ? 'Переместить вниз' : 'Move down'
+  const action = label => `[...document.querySelectorAll('.live-demo .oe-settings-menu__item')].find(item => item.querySelector('.oe-settings-menu__label')?.textContent === ${JSON.stringify(label)})`
+  await click(action(down))
+  await delay(300)
+  const moved = await snapshot()
+  assert(moved[1].id === before[0].id && moved[0].id === before[1].id, 'Demo Move down did not reorder blocks')
+  const geometry = await evaluate(client, `(() => {
+    const block = document.querySelector('.live-demo .oe-block[data-block-id="' + ${JSON.stringify(before[0].id)} + '"]').getBoundingClientRect()
+    const toolbar = document.querySelector('.live-demo .oe-toolbar').getBoundingClientRect()
+    return { delta: Math.abs(block.top - toolbar.top), right: toolbar.left >= block.right - 1 }
+  })()`)
+  assert(geometry.delta <= 2 && geometry.right, 'Demo moved buttons are detached: ' + JSON.stringify(geometry))
+  if (qaRoot) await captureScreenshot(client, join(qaRoot, 'moved-buttons-' + language + '.png'))
+  const escape = { key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27, nativeVirtualKeyCode: 27 }
+  await client.send('Input.dispatchKeyEvent', { type: 'rawKeyDown', ...escape })
+  await client.send('Input.dispatchKeyEvent', { type: 'keyUp', ...escape })
+  await undo()
+  assert(JSON.stringify(await snapshot()) === JSON.stringify(before), 'Demo move did not undo exactly')
+  await evaluate(client, `(() => {
+    const field = document.querySelector('.live-demo .oe-block [contenteditable="true"]')
+    field.scrollIntoView({ block: 'center' })
+    field.focus({ preventScroll: true })
+    const range = document.createRange()
+    range.setStart(field.firstChild, 2)
+    range.setEnd(field.firstChild, 5)
+    const selection = window.getSelection()
+    selection.removeAllRanges()
+    selection.addRange(range)
+  })()`)
+  await delay(100)
+  await click(tune)
+  await click(action(language === 'ru' ? 'Преобразовать в' : 'Convert to'))
+  await click('document.querySelector(".live-demo .oe-settings-menu [data-plugin-type=paragraph]")')
+  await delay(300)
+  const after = await snapshot()
+  const text = before[0].fields[0]
+  assert(after.length === before.length + 2, 'Demo selected fragment did not split its owner')
+  assert(JSON.stringify(after.slice(0, 3).map(block => [block.type, block.fields[0]])) === JSON.stringify([
+    ['heading', text.slice(0, 2)], ['paragraph', text.slice(2, 5)], ['heading', text.slice(5)],
+  ]), 'Demo tune transformed unselected title text: ' + JSON.stringify(after.slice(0, 3)))
+  assert(JSON.stringify(after.slice(3)) === JSON.stringify(before.slice(1)), 'Demo conversion changed other blocks')
+  if (qaRoot) await captureScreenshot(client, join(qaRoot, 'tune-fragment-' + language + '.png'))
+  await undo()
+  assert(JSON.stringify(await snapshot()) === JSON.stringify(before), 'Demo fragment did not undo in one action')
+  await undo(true)
+  assert(JSON.stringify(await snapshot()) === JSON.stringify(after), 'Demo fragment redo changed author data or identity')
+  await undo()
+  const crossBefore = await snapshot()
+  const points = await evaluate(client, `(() => {
+    const paragraph = document.querySelector('.live-demo .oe-block[data-block-type="paragraph"] [contenteditable="true"]')
+    const list = document.querySelector('.live-demo .oe-block[data-block-type="list"]')
+    const second = list.querySelectorAll('[contenteditable="true"]')[1]
+    paragraph.scrollIntoView({ block: 'center' })
+    function point(element, atEnd) {
+      const range = document.createRange()
+      const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT)
+      const nodes = []
+      while (walker.nextNode()) nodes.push(walker.currentNode)
+      const node = atEnd ? nodes.at(-1) : nodes[0]
+      if (!node) throw new Error('Demo text endpoint is empty')
+      range.setStart(node, atEnd ? node.textContent.length : 2)
+      range.collapse(true)
+      const rect = range.getBoundingClientRect()
+      if (!rect.height) throw new Error('Demo cross-selection caret has no geometry')
+      return { x: rect.left + 0.1, y: rect.top + rect.height / 2 }
+    }
+    return { from: point(paragraph, false), to: point(second, true) }
+  })()`)
+  await client.send('Input.dispatchMouseEvent', { type: 'mouseMoved', ...points.from })
+  await client.send('Input.dispatchMouseEvent', { type: 'mousePressed', button: 'left', buttons: 1, clickCount: 1, ...points.from })
+  for (let step = 1; step <= 12; step++) {
+    await client.send('Input.dispatchMouseEvent', { type: 'mouseMoved', button: 'left', buttons: 1,
+      x: points.from.x + (points.to.x - points.from.x) * step / 12,
+      y: points.from.y + (points.to.y - points.from.y) * step / 12,
+    })
+  }
+  await client.send('Input.dispatchMouseEvent', { type: 'mouseReleased', button: 'left', clickCount: 1, ...points.to })
+  await delay(100)
+  assert(await evaluate(client, "document.querySelector('.live-demo .oe-editor').classList.contains('oe-editor--cross-selecting')"), 'Demo cross selection was lost')
+  await click('document.querySelector(".live-demo .oe-inline-toolbar__type-select")')
+  await click('document.querySelector(".live-demo .oe-inline-toolbar__type-dropdown [data-plugin-type=image]")')
+  await delay(300)
+  assert(await evaluate(client, "(!window.getSelection().rangeCount || window.getSelection().isCollapsed) && !document.querySelector('.live-demo .oe-editor').classList.contains('oe-editor--cross-selecting') && document.querySelector('.live-demo .oe-inline-toolbar').style.display === 'none'"), 'Demo Image conversion retained an obsolete selection/toolbar')
+  const crossAfter = await snapshot()
+  const paragraphIndex = crossBefore.findIndex(block => block.type === 'paragraph')
+  const listIndex = crossBefore.findIndex(block => block.type === 'list')
+  assert(listIndex === paragraphIndex + 1, 'Demo fixture changed Paragraph/List order')
+  assert(crossAfter.filter(block => block.type === 'image').length === 1, 'Demo cross conversion duplicated Image')
+  assert(crossAfter[paragraphIndex].fields[0] === crossBefore[paragraphIndex].fields[0].slice(0, 2), 'Demo Image conversion changed the unselected prefix')
+  assert(JSON.stringify(crossAfter[paragraphIndex + 2]) === JSON.stringify({ ...crossBefore[listIndex], fields: crossBefore[listIndex].fields.slice(2) }), 'Demo Image conversion changed unselected List item')
+  assert(JSON.stringify(crossAfter.slice(paragraphIndex + 3)) === JSON.stringify(crossBefore.slice(listIndex + 1)), 'Demo Image conversion changed other blocks')
+  if (qaRoot) await captureScreenshot(client, join(qaRoot, 'cross-image-' + language + '.png'))
+  await undo()
+  assert(JSON.stringify(await snapshot()) === JSON.stringify(crossBefore), 'Demo cross Image did not undo exactly')
+  await undo(true)
+  assert(JSON.stringify(await snapshot()) === JSON.stringify(crossAfter), 'Demo cross Image redo changed data or identity')
+  await undo()
+}
+
 async function verifyDemoTooltips(client, language) {
   const labels = await evaluate(client, `Object.fromEntries(
     [...document.querySelectorAll('.live-demo .oe-inline-tool[data-tool]')]
@@ -342,6 +480,7 @@ async function verifyDemoTooltips(client, language) {
     await verifyTypeMenu(client, language, theme)
   }
   await verifyAlignmentSelection(client, language)
+  await verifyBlockOperations(client, language)
   await evaluate(client, `(() => {
     if (document.documentElement.classList.contains('dark') !== ${initiallyDark}) document.querySelector('.VPSwitchAppearance').click()
   })()`)
@@ -639,7 +778,6 @@ try {
       const settings = [...(image?.querySelectorAll('.oe-image__action-btn') ?? [])]
         .find(item => /Settings|Настройки/i.test(item.textContent ?? ''))
       if (!(editor instanceof HTMLElement) || !(settings instanceof HTMLButtonElement)) return null
-      settings.click()
       image?.scrollIntoView({ block: 'center' })
       const rect = settings.getBoundingClientRect()
       return {
@@ -652,6 +790,10 @@ try {
     assert(lightAccent, 'Could not inspect the image settings accent in the light theme')
     assert(lightAccent.token === '#4357b4', `Light editor accent diverged: ${lightAccent.token}`)
     assert(lightAccent.button === 'rgb(67, 87, 180)', `Light plugin action accent diverged: ${lightAccent.button}`)
+    await client.send('Input.dispatchMouseEvent', { type: 'mousePressed', button: 'left', clickCount: 1, x: lightAccent.x, y: lightAccent.y })
+    await client.send('Input.dispatchMouseEvent', { type: 'mouseReleased', button: 'left', clickCount: 1, x: lightAccent.x, y: lightAccent.y })
+    await delay(100)
+    assert(await evaluate(client, "document.querySelector('.live-demo .oe-image__dropdown-panel .oe-image__style-form')?.checkVisibility()"), 'Separate demo Image settings did not open')
     await client.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: lightAccent.x, y: lightAccent.y })
     await delay(250)
     await captureScreenshot(client, join(qaRoot, 'plugin-settings-accent-light.png'))
@@ -912,6 +1054,9 @@ try {
     headingLevelMenu: { languages: ['ru', 'en'], themes: ['light', 'dark'], keyboard: true, selection: true },
     conversionMenu: { languages: ['ru', 'en'], themes: ['light', 'dark'], outsideToolbar: true, searchSelection: true },
     alignmentSelectionState: { languages: ['ru', 'en'], currentBlock: true, atomicUndo: true },
+    movedBlockButtons: { languages: ['ru', 'en'], geometry: true, atomicUndo: true },
+    tuneFragmentConversion: { languages: ['ru', 'en'], unselectedEdges: true, atomicUndoRedo: true },
+    crossImageConversion: { languages: ['ru', 'en'], singleTarget: true, unselectedListItem: true, atomicUndoRedo: true },
     missingAssets: 0,
   }))
 } finally {

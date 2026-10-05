@@ -39,10 +39,26 @@ function renderImageSettings(context){
     wrapper.append(text,control)
     return wrapper
   }
-  const input=(value,onChange,{type='text',placeholder=''}={})=>{
+  const group=(title,rows)=>{
+    const element=document.createElement('div')
+    element.className='oe-image__style-group'
+    const heading=document.createElement('div')
+    heading.className='oe-image__style-group-title'
+    heading.textContent=title
+    element.appendChild(heading)
+    for(const fields of rows){
+      const line=document.createElement('div')
+      line.className='oe-image__style-row'
+      line.append(...fields)
+      element.appendChild(line)
+    }
+    return element
+  }
+  const input=(value,onChange,{type='text',placeholder='',disabled=false}={})=>{
     const element=document.createElement('input')
     element.type=type
-    element.className='oe-image__style-input'
+    element.disabled=disabled
+    element.className=type==='color'?'oe-image__style-color':'oe-image__style-input'
     element.value=value??''
     if(placeholder)element.placeholder=placeholder
     element.addEventListener('change',()=>onChange(element.value,element))
@@ -90,38 +106,30 @@ function renderImageSettings(context){
     )
     root.appendChild(toggles)
 
-    const dimensions=document.createElement('div')
-    dimensions.className='oe-image__style-group'
-    const dimensionsTitle=document.createElement('div')
-    dimensionsTitle.className='oe-image__style-group-title'
-    dimensionsTitle.textContent=context.t(imageLabel('dimensions','Dimensions'))
-    dimensions.append(
-      dimensionsTitle,
-      row(context.t(imageLabel('width','Width')),input(styles.width??'',value=>updateStyle('width',value))),
-      row(context.t(imageLabel('height','Height')),input(styles.height??'',value=>updateStyle('height',value))),
-      row(context.t(imageLabel('minWidth','Min width')),input(styles.minWidth??'',value=>updateStyle('minWidth',value))),
-      row(context.t(imageLabel('minHeight','Min height')),input(styles.minHeight??'',value=>updateStyle('minHeight',value))),
-      row(context.t(imageLabel('maxWidth','Max width')),input(styles.maxWidth??'',value=>updateStyle('maxWidth',value))),
-      row(context.t(imageLabel('maxHeight','Max height')),input(styles.maxHeight??'',value=>updateStyle('maxHeight',value))),
-    )
-    root.appendChild(dimensions)
+    root.appendChild(group(context.t(imageLabel('dimensions','Dimensions')),[
+      [
+        row(context.t(imageLabel('width','Width')),input(styles.width??'',value=>updateStyle('width',value),{disabled:data.expanded===true})),
+        row(context.t(imageLabel('height','Height')),input(styles.height??'',value=>updateStyle('height',value))),
+      ],
+      [
+        row(context.t(imageLabel('minWidth','Min width')),input(styles.minWidth??'',value=>updateStyle('minWidth',value),{disabled:data.expanded===true})),
+        row(context.t(imageLabel('minHeight','Min height')),input(styles.minHeight??'',value=>updateStyle('minHeight',value))),
+      ],
+      [
+        row(context.t(imageLabel('maxWidth','Max width')),input(styles.maxWidth??'',value=>updateStyle('maxWidth',value),{disabled:data.expanded===true})),
+        row(context.t(imageLabel('maxHeight','Max height')),input(styles.maxHeight??'',value=>updateStyle('maxHeight',value))),
+      ],
+    ]))
 
-    const display=document.createElement('div')
-    display.className='oe-image__style-group'
-    const displayTitle=document.createElement('div')
-    displayTitle.className='oe-image__style-group-title'
-    displayTitle.textContent=context.t(imageLabel('display','Display'))
-    display.append(
-      displayTitle,
-      row(context.t(imageLabel('fit','Fit')),select(styles.objectFit??'', ['', 'none','cover','contain','fill','scale-down'],value=>updateStyle('objectFit',value))),
-      row(context.t(imageLabel('position','Position')),input(styles.objectPosition??'',value=>updateStyle('objectPosition',value))),
-      row(context.t(imageLabel('color','Background color')),input(styles.backgroundColor||'#000000',value=>updateStyle('backgroundColor',value),{type:'color'})),
-      row(context.t(imageLabel('border','Border style')),select(styles.borderStyle??'', ['', 'none','solid','dashed'],value=>updateStyle('borderStyle',value))),
-      row(context.t(imageLabel('color','Border color')),input(styles.borderColor||'#000000',value=>updateStyle('borderColor',value),{type:'color'})),
-      row(context.t(imageLabel('width','Border width')),input(styles.borderWidth??'',value=>updateStyle('borderWidth',value))),
-      row(context.t(imageLabel('radius','Border radius')),input(styles.borderRadius??'',value=>updateStyle('borderRadius',value))),
-    )
-    root.appendChild(display)
+    root.appendChild(group(context.t(imageLabel('display','Display')),[
+      [row(context.t(imageLabel('fit','Fit')),select(styles.objectFit??'', ['', 'none','cover','contain','fill','scale-down'],value=>updateStyle('objectFit',value)))],
+      [row(context.t(imageLabel('position','Position')),input(styles.objectPosition??'',value=>updateStyle('objectPosition',value)))],
+      [row(context.t(imageLabel('color','Background color')),input(styles.backgroundColor||'#000000',value=>updateStyle('backgroundColor',value),{type:'color'}))],
+      [row(context.t(imageLabel('border','Border style')),select(styles.borderStyle??'', ['', 'none','solid','dashed'],value=>updateStyle('borderStyle',value)))],
+      [row(context.t(imageLabel('color','Border color')),input(styles.borderColor||'#000000',value=>updateStyle('borderColor',value),{type:'color'}))],
+      [row(context.t(imageLabel('width','Border width')),input(styles.borderWidth??'',value=>updateStyle('borderWidth',value)))],
+      [row(context.t(imageLabel('radius','Border radius')),input(styles.borderRadius??'',value=>updateStyle('borderRadius',value)))],
+    ]))
   }
 
   render()
@@ -148,15 +156,12 @@ export function createImagePlugin(config={}){
     clipboard:createTextClipboardSlice(imageDataSchema),
     empty:Object.freeze({isEmpty:data=>!data.file.url}),
     conversion:Object.freeze({
+      selectionMode:'single',
       export:data=>({kind:'rich-text',data:{text:data.caption}}),
       canImport:acceptsTextPayload,
       import(payload){
         return {...imageDataSchema.createDefault(),caption:richTextFromPayload(payload)}
       },
-    }),
-    settings:Object.freeze({
-      kind:/** @type {'panel'} */('panel'),
-      render:renderImageSettings,
     }),
     paste:Object.freeze({
       accepts(input){

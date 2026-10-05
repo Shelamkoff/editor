@@ -481,6 +481,7 @@ try {
     await delay(50)
   }
   const nativeBlockMenus = JSON.parse(await waitForHistoryMatrix(client))
+  const nativeConversionGrouping = await runNativePage(client, pageUrl, 'native-conversion-grouping.html')
   const nativeStructural = await runNativePage(client, pageUrl, 'native-structural.html')
   const nativeCrossSelection = await runNativePage(client, pageUrl, 'native-cross-selection.html')
   const nativeCoreBehavior = await runNativePage(client, pageUrl, 'native-core-behavior.html')
@@ -512,6 +513,7 @@ try {
     nativeIme,
     nativeConversion,
     nativeBlockMenus,
+    nativeConversionGrouping,
     nativeStructural,
     nativeCrossSelection,
     nativeCoreBehavior,

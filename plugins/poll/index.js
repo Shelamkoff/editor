@@ -69,6 +69,7 @@ export function createPollPlugin(config={}){
       },
     })),
     conversion:Object.freeze({
+      selectionMode:'single',
       export:data=>({kind:'rich-text',data:{text:[data.question,...data.options.map(option=>option.text)].filter(Boolean).join('<br>')}}),
       canImport:payload=>payload?.kind==='rich-text'&&typeof payload.data?.text==='string',
       import(payload){

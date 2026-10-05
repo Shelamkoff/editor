@@ -64,6 +64,7 @@ export function createPersonPlugin(config={}){
       },
     })),
     conversion:Object.freeze({
+      selectionMode:'single',
       export(data){
         return {
           kind:'rich-text',

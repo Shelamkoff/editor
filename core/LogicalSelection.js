@@ -69,6 +69,7 @@ export class LogicalSelection {
       if(!block)return false
       // A plugin's default focus may be an auxiliary URL/file chooser. History
       // restores ownership of the block command, not that control's DOM history.
+      this.#clearNativeSelection()
       block.tabIndex=-1
       block.focus({preventScroll:true})
       return this.#root.ownerDocument.activeElement===block
@@ -89,6 +90,7 @@ export class LogicalSelection {
       && typeof anchor.owner.element.setSelectionRange === 'function'
     ) {
       const element = anchor.owner.element
+      this.#clearNativeSelection()
       const length = typeof element.value === 'string' ? element.value.length : 0
       const a = clamp(anchor.offset,0,length)
       const f = clamp(focus.offset,0,length)
@@ -131,7 +133,10 @@ export class LogicalSelection {
     const owner=target.fieldKey
       ? fields.find(field=>field.key===target.fieldKey)
       : fields[0]
-    if(!owner)return false
+    if(!owner){
+      if(this.#reconciler.getElement(blockId))this.#clearNativeSelection()
+      return false
+    }
     const length=owner.mode==='plain-text'&&typeof owner.element.value==='string'
       ? owner.element.value.length
       : getTextLength(owner.element)
@@ -144,6 +149,13 @@ export class LogicalSelection {
       anchor:this.#point({blockId,fieldKey:owner.key,element:owner.element,mode:owner.mode},offset),
       focus:this.#point({blockId,fieldKey:owner.key,element:owner.element,mode:owner.mode},offset),
     })
+  }
+
+  #clearNativeSelection(){
+    const native=this.#root.ownerDocument.defaultView?.getSelection()
+    // A control or fieldless block has no DOM text caret. Retire only our
+    // previous range; another editor's native selection is not ours to clear.
+    if(native?.anchorNode&&this.#root.contains(native.anchorNode))native.removeAllRanges()
   }
 
   #point(owner,offset){
