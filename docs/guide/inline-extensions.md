@@ -29,7 +29,7 @@ interface InlineTool {
 
 Core calls `bindSelectionPort(port)` when mounting a tool and `bindSelectionPort(null)` when destroying it. The port supplies the live cross-field range; each editor needs its own mutable tool instances.
 
-`InlineMutationContext` exposes `mutate(range, operation)` for mounted tool controls.
+`InlineMutationContext` exposes `mutate(range, operation)` for mounted tool controls. Its optional `restoreSelection()` returns focus and the current editor-owned range after canceling an auxiliary panel, without writing data or history; it returns `false` when editing or a valid selection is unavailable.
 
 Formatting tools do not own separate persisted payloads. One selection may span multiple registered rich-text fields in one or more blocks; a tool is eligible only when every touched block allows it. The DOM edit crosses one protected transaction boundary and is normalized back into every affected block. Registered `plain-text` fields and auxiliary native controls are never partially formatted. Alignment is model-first: `setTextAlign()` changes only block `tunes.textAlign`, never wrapper CSS or plugin `data.align`.
 

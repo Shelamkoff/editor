@@ -239,6 +239,25 @@ export function createBgColorTool(label) {
     finalizeSelection(ctx)
   }
 
+  /** @param {KeyboardEvent} event */
+  function onPickerKeyDown(event) {
+    if (event.key !== 'Escape' || !pickerOpen) return
+    event.preventDefault()
+    event.stopPropagation()
+    closePicker()
+    if (mutations?.restoreSelection) {
+      mutations.restoreSelection()
+      return
+    }
+    // Standalone controls have no editor coordinator; restore their live range.
+    if (!savedRange?.startContainer.isConnected || !savedRange.endContainer.isConnected) return
+    const start = savedRange.startContainer
+    const element = start.nodeType === ELEMENT_NODE ? /** @type {HTMLElement} */ (start) : start.parentElement
+    const editable = /** @type {HTMLElement | null | undefined} */ (element?.closest('[contenteditable="true"]'))
+    editable?.focus({ preventScroll: true })
+    restoreRange()
+  }
+
   /** @param {MouseEvent} e */
   function onDocMouseDown(e) {
     if (!pickerOpen) return
@@ -294,6 +313,7 @@ export function createBgColorTool(label) {
           onRemove: removeColor,
           showRemove: true,
         })
+        picker.element.addEventListener('keydown', onPickerKeyDown, true)
         toolbar.appendChild(picker.element)
       }
 
@@ -302,6 +322,7 @@ export function createBgColorTool(label) {
 
     destroy() {
       ownerDocument?.removeEventListener('mousedown', onDocMouseDown, true)
+      picker?.element.removeEventListener('keydown', onPickerKeyDown, true)
       picker?.destroy()
       picker = null
       mutations = null

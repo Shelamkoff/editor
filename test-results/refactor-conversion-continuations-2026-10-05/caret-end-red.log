@@ -1,0 +1,16 @@
+file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149
+    if (result.status === 'fail') throw new Error(`History matrix failed: ${result.summary}`)
+                                        ^
+
+Error: History matrix failed: [
+  {
+    "name": "native End after conversion dismisses the retained range even when the caret is already at the end / inline / forward",
+    "status": "FAIL",
+    "error": "Error: Explicit caret movement still replaced the old converted interval\nexpected [[\"paragraph\",\"Al\"],[\"heading\",\"pha\"],[\"heading\",\"BraX\"],[\"paragraph\",\"vo\"]], got [[\"paragraph\",\"Al\"],[\"heading\",\"X\"],[\"paragraph\",\"vo\"]]\n    at equal (http://127.0.0.1:59544/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:59544/tests/browser/native-conversion-continuations.js:114:2\n    at async run (http://127.0.0.1:59544/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:59544/tests/browser/native-conversion-continuations.js:127:1"
+  }
+]
+    at waitForHistoryMatrix (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149:41)
+    at async runNativePage (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:275:30)
+    at async file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:312:48
+
+Node.js v24.9.0

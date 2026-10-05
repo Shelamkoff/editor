@@ -107,6 +107,13 @@ export class KeyboardRouter {
       }
     }
 
+    // Explicit caret movement dismisses the logical range even when native
+    // movement is clamped at the same endpoint (for example End after conversion).
+    if (ownership.owner && !event?.shiftKey && this.#crossSelection?.active
+      && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(key)) {
+      this.#crossSelection.clear()
+    }
+
     if (event?.shiftKey && (event?.ctrlKey || event?.metaKey) && !event?.altKey
       && (key === 'ArrowLeft' || key === 'ArrowRight')
       && this.#crossSelection?.extend(key === 'ArrowLeft' ? 'backward' : 'forward', 'word')) {
@@ -139,11 +146,6 @@ export class KeyboardRouter {
       )) {
       event.preventDefault?.()
       return
-    }
-
-    if (this.#crossSelection?.wholeBlockIds?.length
-      && !event?.shiftKey && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(key)) {
-      this.#crossSelection.clear()
     }
 
     const owner = ownership.owner

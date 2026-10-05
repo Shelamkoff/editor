@@ -1,0 +1,10 @@
+{"runtimeDeclarations":266,"sourceDiagnostics":0,"sourceDiagnosticDetails":[],"dist":"dist"}
+┌─────────┬──────────────────────┬─────────┬─────────┬───────────┐
+│ (index) │ preset               │ rawKiB  │ gzipKiB │ budgetKiB │
+├─────────┼──────────────────────┼─────────┼─────────┼───────────┤
+│ 0       │ 'core'               │ '312.6' │ '86.0'  │ '51'      │
+│ 1       │ 'paragraph'          │ '10.4'  │ '4.1'   │ '40'      │
+│ 2       │ 'defaultInteractive' │ '43.4'  │ '13.7'  │ '64'      │
+│ 3       │ 'fullPreset'         │ '357.6' │ '87.8'  │ '96'      │
+└─────────┴──────────────────────┴─────────┴─────────┴───────────┘
+core entry is 86.0 KiB gzip; reference target is 51 KiB (informational)

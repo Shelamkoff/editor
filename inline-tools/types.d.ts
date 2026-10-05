@@ -18,6 +18,8 @@ export interface CrossEditableSelectionPort {
 /** Mutation gate supplied to a mounted inline control. */
 export interface InlineMutationContext {
   mutate<T>(range: Range, operation: () => T): T | undefined
+  /** Return focus and the current editor-owned selection after canceling auxiliary UI. */
+  restoreSelection?(): boolean
 }
 
 /** Scoped action-panel surface. */

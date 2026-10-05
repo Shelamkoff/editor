@@ -230,6 +230,16 @@ export class InlineToolbar {
 
       tool.onMount?.(button, {
         mutate: (range, operation) => this.#mutate(range, operation, tool.type),
+        restoreSelection: () => {
+          if (this.#readOnly || this.#destroyed || !this.#range
+            || !this.#reconciler.resolveEditableTarget(this.#range.startContainer)
+            || !this.#reconciler.resolveEditableTarget(this.#range.endContainer)) return false
+          const bookmark = cloneBookmark(this.#selectionPort?.bookmark ?? this.#bookmark)
+          if (!bookmark) return false
+          const restored = this.#restoreSelection(bookmark)
+          if (restored) this.show()
+          return restored
+        },
       })
     }
     } catch (error) {
@@ -871,10 +881,11 @@ export class InlineToolbar {
 
   #restoreSelection(bookmark, range = null) {
     if (bookmark && typeof this.#selectionPort?.restore === 'function') {
-      if (this.#selectionPort.restore(bookmark)) return
+      if (this.#selectionPort.restore(bookmark)) return true
     }
-    if (bookmark && this.#selection.restore(bookmark)) return
+    if (bookmark && this.#selection.restore(bookmark)) return true
     if (range) this.#restoreNativeRange(range)
+    return false
   }
 
   #restoreNativeRange(range) {
