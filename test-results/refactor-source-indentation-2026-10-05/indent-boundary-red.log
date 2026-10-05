@@ -1,0 +1,16 @@
+file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149
+    if (result.status === 'fail') throw new Error(`History matrix failed: ${result.summary}`)
+                                        ^
+
+Error: History matrix failed: [
+  {
+    "name": "Code Tab excludes the unselected line when a native range ends at its start",
+    "status": "FAIL",
+    "error": "Error: Tab indented an unselected line\nexpected [{\"id\":\"left\",\"type\":\"paragraph\",\"dataVersion\":2,\"data\":{\"text\":\"Unselected before\"}},{\"id\":\"a\",\"type\":\"code\",\"dataVersion\":1,\"data\":{\"code\":\"    Alpha\\n    Bravo\\nCharlie\",\"language\":\"plaintext\"}},{\"id\":\"right\",\"type\":\"paragraph\",\"dataVersion\":2,\"data\":{\"text\":\"Unselected after\"}}], got [{\"id\":\"left\",\"type\":\"paragraph\",\"dataVersion\":2,\"data\":{\"text\":\"Unselected before\"}},{\"id\":\"a\",\"type\":\"code\",\"dataVersion\":1,\"data\":{\"code\":\"    Alpha\\n    Bravo\\n    Charlie\",\"language\":\"plaintext\"}},{\"id\":\"right\",\"type\":\"paragraph\",\"dataVersion\":2,\"data\":{\"text\":\"Unselected after\"}}]\n    at equal (http://127.0.0.1:54300/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:54300/tests/browser/native-source-indentation.js:16:3\n    at async run (http://127.0.0.1:54300/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:54300/tests/browser/native-source-indentation.js:28:1"
+  }
+]
+    at waitForHistoryMatrix (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149:41)
+    at async runNativePage (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:275:30)
+    at async file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:312:48
+
+Node.js v24.9.0

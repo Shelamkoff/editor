@@ -1,0 +1,516 @@
+{
+  "verifiedAt": "2026-10-05T22:10:16.678Z",
+  "baseRevision": "4138e601e144e2a8f68712248728a1fac2cb61df",
+  "branch": "refactor/rector-v2-architecture",
+  "verifiedLocalDate": "2026-10-06",
+  "blockPlugins": 21,
+  "defaultInlineTools": 12,
+  "node": {
+    "tests": 436,
+    "pass": 436,
+    "fail": 0,
+    "skipped": 0
+  },
+  "consumerTypes": {
+    "tests": 6,
+    "pass": 6,
+    "fail": 0,
+    "skipped": 0
+  },
+  "native": {
+    "cases": 1572,
+    "pass": 1572,
+    "fail": 0,
+    "groups": {
+      "nativeTextInput": {
+        "cases": 42,
+        "pass": 42,
+        "fail": 0
+      },
+      "nativeTools": {
+        "cases": 41,
+        "pass": 41,
+        "fail": 0
+      },
+      "nativeClipboard": {
+        "cases": 7,
+        "pass": 7,
+        "fail": 0
+      },
+      "nativeIme": {
+        "cases": 9,
+        "pass": 9,
+        "fail": 0
+      },
+      "nativeConversion": {
+        "cases": 7,
+        "pass": 7,
+        "fail": 0
+      },
+      "nativeBlockMenus": {
+        "cases": 108,
+        "pass": 108,
+        "fail": 0
+      },
+      "nativeConversionGrouping": {
+        "cases": 88,
+        "pass": 88,
+        "fail": 0
+      },
+      "nativeConversionPreservation": {
+        "cases": 53,
+        "pass": 53,
+        "fail": 0
+      },
+      "nativeInteractionSequences": {
+        "cases": 24,
+        "pass": 24,
+        "fail": 0
+      },
+      "nativeRetainedTools": {
+        "cases": 64,
+        "pass": 64,
+        "fail": 0
+      },
+      "nativeConversionContinuations": {
+        "cases": 65,
+        "pass": 65,
+        "fail": 0
+      },
+      "nativeFontCancel": {
+        "cases": 58,
+        "pass": 58,
+        "fail": 0
+      },
+      "nativeBackgroundCancel": {
+        "cases": 36,
+        "pass": 36,
+        "fail": 0
+      },
+      "nativeLinkCancel": {
+        "cases": 36,
+        "pass": 36,
+        "fail": 0
+      },
+      "nativePanelKeyboard": {
+        "cases": 36,
+        "pass": 36,
+        "fail": 0
+      },
+      "nativeSourceIndentation": {
+        "cases": 50,
+        "pass": 50,
+        "fail": 0
+      },
+      "nativeStructural": {
+        "cases": 21,
+        "pass": 21,
+        "fail": 0
+      },
+      "nativeCrossSelection": {
+        "cases": 32,
+        "pass": 32,
+        "fail": 0
+      },
+      "nativeCoreBehavior": {
+        "cases": 53,
+        "pass": 53,
+        "fail": 0
+      },
+      "nativePluginParity": {
+        "cases": 139,
+        "pass": 139,
+        "fail": 0
+      },
+      "nativePluginControls": {
+        "cases": 141,
+        "pass": 141,
+        "fail": 0
+      },
+      "nativePluginRanges": {
+        "cases": 116,
+        "pass": 116,
+        "fail": 0
+      },
+      "nativePluginLocalRanges": {
+        "cases": 76,
+        "pass": 76,
+        "fail": 0
+      },
+      "nativePluginClipboard": {
+        "cases": 48,
+        "pass": 48,
+        "fail": 0
+      },
+      "nativePluginFieldClipboard": {
+        "cases": 68,
+        "pass": 68,
+        "fail": 0
+      },
+      "nativePluginMedia": {
+        "cases": 70,
+        "pass": 70,
+        "fail": 0
+      },
+      "nativePluginDesign": {
+        "cases": 84,
+        "pass": 84,
+        "fail": 0
+      }
+    }
+  },
+  "browser": {
+    "pages": 24,
+    "names": [
+      "harness-contract.html",
+      "runtime-contracts.html",
+      "roundtrip.html",
+      "roundtrip-trusted-types.html",
+      "person-avatar-csp.html",
+      "history.html",
+      "selection.html",
+      "lifecycle.html",
+      "security.html",
+      "trusted-types.htm",
+      "action-label-security.html",
+      "audit-regressions.html",
+      "attaches-abort-urls.html",
+      "embed-service-registry.html",
+      "person-social-registry.html",
+      "gallery-layout-registry.html",
+      "mention.html",
+      "mention-session-race.html",
+      "poll.html",
+      "carousel.html",
+      "plugin-surfaces.html",
+      "imports.html",
+      "slash.html",
+      "selection-convert.html"
+    ]
+  },
+  "typecheck": "passed",
+  "heap": {
+    "sentinels": 21,
+    "retained": 0,
+    "usedHeapMiB": 12.58,
+    "embedderHeapMiB": 1.39,
+    "snapshotMiB": 24.64
+  },
+  "docs": {
+    "readmes": 94,
+    "languages": [
+      "en",
+      "ru"
+    ],
+    "examples": 53,
+    "json": 44,
+    "links": 62,
+    "imports": true,
+    "encoding": true,
+    "packageReadmeCopiesChecked": 92
+  },
+  "package": {
+    "tarball": "shelamkoff-rector-2.0.0.tgz",
+    "typeModes": [
+      "Bundler",
+      "NodeNext"
+    ],
+    "vite": "passed",
+    "import": "passed",
+    "cssAssets": 22,
+    "inlineStylesheets": false,
+    "runtimeDeclarations": 266,
+    "sourceDiagnostics": 0,
+    "sourceDiagnosticDetails": [],
+    "dist": "dist"
+  },
+  "production": {
+    "readmes": 47,
+    "htmlPages": 123,
+    "brokenLinks": 0,
+    "npmSiteLeak": false,
+    "demo": {
+      "blockPlugins": 21,
+      "inlinePlugins": 2,
+      "editorBlocks": 7,
+      "demoFrame": false,
+      "heroViewport": true,
+      "heroCentered": true,
+      "navAbovePluginBlocks": true,
+      "localSearchShortcut": true,
+      "searchKeyAlignedRight": true,
+      "mentionAutocomplete": true,
+      "localizedTooltips": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "themes": [
+          "light",
+          "dark"
+        ],
+        "shortcuts": true
+      },
+      "headingLevelMenu": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "themes": [
+          "light",
+          "dark"
+        ],
+        "keyboard": true,
+        "selection": true
+      },
+      "conversionMenu": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "themes": [
+          "light",
+          "dark"
+        ],
+        "outsideToolbar": true,
+        "searchSelection": true
+      },
+      "alignmentSelectionState": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "currentBlock": true,
+        "atomicUndo": true
+      },
+      "movedBlockButtons": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "geometry": true,
+        "atomicUndo": true
+      },
+      "tuneFragmentConversion": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "unselectedEdges": true,
+        "atomicUndoRedo": true
+      },
+      "crossImageConversion": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "singleTarget": true,
+        "unselectedListItem": true,
+        "atomicUndoRedo": true
+      },
+      "convertedTextRange": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "endCaret": true,
+        "toolbar": true,
+        "atomicUndo": true
+      },
+      "joinedCodeConversion": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "singleTarget": true,
+        "decodedText": true,
+        "atomicUndo": true
+      },
+      "missingAssets": 0
+    }
+  },
+  "demo": {
+    "blockPlugins": 21,
+    "inlinePlugins": 2,
+    "editorBlocks": 7,
+    "demoFrame": false,
+    "heroViewport": true,
+    "heroCentered": true,
+    "navAbovePluginBlocks": true,
+    "localSearchShortcut": true,
+    "searchKeyAlignedRight": true,
+    "mentionAutocomplete": true,
+    "localizedTooltips": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "shortcuts": true
+    },
+    "headingLevelMenu": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "keyboard": true,
+      "selection": true
+    },
+    "conversionMenu": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "outsideToolbar": true,
+      "searchSelection": true
+    },
+    "alignmentSelectionState": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "currentBlock": true,
+      "atomicUndo": true
+    },
+    "movedBlockButtons": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "geometry": true,
+      "atomicUndo": true
+    },
+    "tuneFragmentConversion": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "unselectedEdges": true,
+      "atomicUndoRedo": true
+    },
+    "crossImageConversion": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "singleTarget": true,
+      "unselectedListItem": true,
+      "atomicUndoRedo": true
+    },
+    "convertedTextRange": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "endCaret": true,
+      "toolbar": true,
+      "atomicUndo": true
+    },
+    "joinedCodeConversion": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "singleTarget": true,
+      "decodedText": true,
+      "atomicUndo": true
+    },
+    "missingAssets": 0,
+    "screenshots": 29
+  },
+  "historical": {
+    "revision": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+    "cases": 4,
+    "observations": [
+      {
+        "name": "Code",
+        "backwards": false,
+        "width": 4,
+        "source": "Alpha\nBravo\nCharlie",
+        "text": "    Alpha\n    Bravo\n    Charlie",
+        "directionBefore": "forward",
+        "rangeAfter": [
+          0,
+          24
+        ],
+        "directionAfter": "forward"
+      },
+      {
+        "name": "Code",
+        "backwards": true,
+        "width": 4,
+        "source": "Alpha\nBravo\nCharlie",
+        "text": "    Alpha\n    Bravo\n    Charlie",
+        "directionBefore": "backward",
+        "rangeAfter": [
+          0,
+          24
+        ],
+        "directionAfter": "forward"
+      },
+      {
+        "name": "Raw",
+        "backwards": false,
+        "width": 2,
+        "source": "Alpha\nBravo\nCharlie",
+        "text": "  Alpha\n  Bravo\n  Charlie",
+        "directionBefore": "forward",
+        "rangeAfter": [
+          0,
+          18
+        ],
+        "directionAfter": "forward"
+      },
+      {
+        "name": "Raw",
+        "backwards": true,
+        "width": 2,
+        "source": "Alpha\nBravo\nCharlie",
+        "text": "  Alpha\n  Bravo\n  Charlie",
+        "directionBefore": "backward",
+        "rangeAfter": [
+          0,
+          18
+        ],
+        "directionAfter": "forward"
+      }
+    ]
+  },
+  "frozenSources": {
+    "files": 582,
+    "allMatched": true
+  },
+  "bundle": {
+    "core": {
+      "rawKiB": 313.1,
+      "gzipKiB": 86.1,
+      "budgetKiB": 51
+    },
+    "paragraph": {
+      "rawKiB": 10.4,
+      "gzipKiB": 4.1,
+      "budgetKiB": 40
+    },
+    "defaultInteractive": {
+      "rawKiB": 43.5,
+      "gzipKiB": 13.7,
+      "budgetKiB": 64
+    },
+    "fullPreset": {
+      "rawKiB": 357.7,
+      "gzipKiB": 87.9,
+      "budgetKiB": 96
+    }
+  }
+}
