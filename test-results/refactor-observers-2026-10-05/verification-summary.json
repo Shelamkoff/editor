@@ -1,0 +1,134 @@
+{
+  "baseCommit": "1f0860ddeb5291fcbe1dc921825b0c208b6b8fe2",
+  "v1Oracle": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+  "branch": "refactor/rector-v2-architecture",
+  "node": {
+    "passed": 431,
+    "failed": 0,
+    "skipped": 0
+  },
+  "typecheck": "both projects passed",
+  "browser": {
+    "pages": 24,
+    "labels": [
+      "harness-contract.html",
+      "runtime-contracts.html",
+      "roundtrip.html",
+      "roundtrip-trusted-types.html",
+      "person-avatar-csp.html",
+      "history.html",
+      "selection.html",
+      "lifecycle.html",
+      "security.html",
+      "trusted-types.htm",
+      "action-label-security.html",
+      "audit-regressions.html",
+      "attaches-abort-urls.html",
+      "embed-service-registry.html",
+      "person-social-registry.html",
+      "gallery-layout-registry.html",
+      "mention.html",
+      "mention-session-race.html",
+      "poll.html",
+      "carousel.html",
+      "plugin-surfaces.html",
+      "imports.html",
+      "slash.html",
+      "selection-convert.html"
+    ],
+    "runtimeCases": 29,
+    "failed": 0
+  },
+  "native": {
+    "total": 942,
+    "failed": 0,
+    "skipped": 0,
+    "driverErrors": 0,
+    "counts": {
+      "nativeTextInput": 42,
+      "nativeTools": 24,
+      "nativeClipboard": 7,
+      "nativeIme": 9,
+      "nativeConversion": 7,
+      "nativeBlockMenus": 8,
+      "nativeStructural": 21,
+      "nativeCrossSelection": 32,
+      "nativeCoreBehavior": 53,
+      "nativePluginParity": 139,
+      "nativePluginControls": 141,
+      "nativePluginRanges": 116,
+      "nativePluginLocalRanges": 76,
+      "nativePluginClipboard": 48,
+      "nativePluginFieldClipboard": 68,
+      "nativePluginMedia": 67,
+      "nativePluginDesign": 84
+    },
+    "physicalEnterToolboxHistory": "passed"
+  },
+  "design": {
+    "plugins": 21,
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "widths": [
+      640,
+      288
+    ],
+    "combinations": 84,
+    "states": 336,
+    "method": "CSS/geometry/state assertions; no pixel diff"
+  },
+  "heap": {
+    "sentinels": 21,
+    "retained": 0,
+    "usedHeapMiB": 12.44,
+    "embedderHeapMiB": 1.35,
+    "snapshotMiB": 24.42
+  },
+  "build": {
+    "declarations": 263,
+    "sourceDiagnostics": 0
+  },
+  "types": {
+    "passed": 6,
+    "modes": [
+      "Bundler",
+      "NodeNext"
+    ]
+  },
+  "package": {
+    "nativeImport": "passed",
+    "vite": "passed",
+    "types": "passed",
+    "cssAssets": 22,
+    "source": "local checkout tarball"
+  },
+  "docs": {
+    "localizedReadmePairs": 47,
+    "readmes": 94,
+    "examples": 53,
+    "json": 44,
+    "links": 62,
+    "packageReadmeCopies": 92,
+    "htmlPages": 123,
+    "brokenLinks": 0,
+    "missingAssets": 0,
+    "demoSearchMention": "passed"
+  },
+  "intermediateFailures": [
+    "native-ime-regression-red.log",
+    "docs-before-ime-fix.log"
+  ],
+  "manual": {
+    "newScreenshot": false,
+    "reason": "Existing IAB data error page remains blocked by browser URL policy; no new visible windows or tabs"
+  },
+  "limits": [
+    "physical OS IME",
+    "manual OS file chooser",
+    "remote provider availability",
+    "Firefox/WebKit"
+  ],
+  "completedAt": "2026-10-05T09:00:02.118Z"
+}

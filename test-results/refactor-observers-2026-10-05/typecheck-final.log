@@ -1,0 +1,4 @@
+
+> @shelamkoff/rector@2.0.0 typecheck
+> node node_modules/typescript/bin/tsc -p jsconfig.json && node node_modules/typescript/bin/tsc -p jsconfig.runtime.json
+

@@ -1,0 +1,34 @@
+✔ failed protected projection recovery stops mutation while committed data remains readable (4.7814ms)
+✔ protected projection edits reject nested persisted writes before invoking their producer (3.0752ms)
+✔ protected projection edits cannot change read-only mode midway through the operation (0.5718ms)
+✔ host update rejects projection and publication reentry before running its producer (0.9168ms)
+✔ read-only transition rejects nested host mutation before its producer (0.7484ms)
+✔ DocumentRuntime emits save/render timing diagnostics through the canonical sink (1.2866ms)
+✔ DocumentRuntime rejects a known non-current dataVersion before schema decode (0.6959ms)
+✔ invalid registered data is rejected while an unregistered current block remains inert (0.4296ms)
+✔ validation observer failures are isolated from current-format rejection (0.6862ms)
+✔ local update remains schema-strict (0.554ms)
+✔ unregistered blocks may move and remove but cannot be updated internally (1.0913ms)
+✔ editable empty documents and final-block removal materialize one default block (0.6857ms)
+✔ failed render of a non-current document is atomic and keeps history (0.5825ms)
+✔ mergeAdjacent commits data merge and source removal as one undoable transaction (2.161ms)
+✔ unrecoverable read-only transition fails runtime but preserves committed save (0.552ms)
+✔ discarding projection edits preserves canonical data, revision and history in read-only mode (0.4085ms)
+✔ failed discard of projection edits stops interactions and preserves committed save (0.406ms)
+✔ host producer failure rolls back nested building writes as one atomic action (0.3558ms)
+✔ successive building updates read the current draft and undo together (0.5822ms)
+✔ caught nested producer validation failure still aborts the outer action (0.3809ms)
+✔ outer partial update preserves author data changed by a nested update of the same block (0.5154ms)
+✔ producer cannot overwrite a target it removed (2.9845ms)
+✔ read-only mode accepts booleans only and keeps the requested state on invalid input (0.3523ms)
+✔ caught nested clear default failure aborts the outer action (0.48ms)
+✔ successive draft removals preserve the default block when the last authored block is removed (0.6278ms)
+✔ read-only cleanup restores committed preedit without granting nested mutation authority (0.7658ms)
+ℹ tests 26
+ℹ suites 0
+ℹ pass 26
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 184.7699

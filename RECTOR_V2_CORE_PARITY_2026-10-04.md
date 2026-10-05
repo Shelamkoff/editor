@@ -1,5 +1,7 @@
 # Сверка поведения ядра Rector v1 → v2 — 2026-10-04
 
+Актуальное продолжение: [проверка составных команд и паритета от 05.10.2026](RECTOR_V2_OBSERVER_AUDIT_2026-10-05.md). Таблицы и числа этого отчёта описывают предыдущий срез; матрица повторно проверяется после новых исправлений.
+
 Следующая итерация [05.10.2026](RECTOR_V2_FOLLOWUP_2026-10-05.md) добавляет phase/control guards, partial mode rollback и before/after bookmarks protected edit. Матрица повторно пройдена в общем прогоне 938 native cases (49 core behavior).
 
 Актуальный итог — [повторная проверка 05.10.2026](RECTOR_V2_RECHECK_2026-10-05.md): исправлены protected-edit reentry, смена read-only внутри callback и unrecoverable recovery. Матрица ниже сохраняется и повторно пройдена в общем прогоне 934 native cases; прежние логи отражают опубликованный checkpoint `4e5ba54`.

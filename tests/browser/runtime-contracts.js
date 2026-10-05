@@ -727,4 +727,134 @@ test('irrecoverable inline controls stop producers but preserve the committed do
   assert.equal(editor.canUndo,false)
 })
 
+test('read-only observations reject synchronous commands before producers and allow queued commands', async () => {
+  let context;
+  const base = createParagraphPlugin();
+  const plugin = {...base,setup(runtimeContext) {
+    const runtime = base.setup(runtimeContext);
+    return {...runtime,create(data,blockContext) {context=blockContext;return runtime.create(data,blockContext)}};
+  }};
+  const editor = make([{id:'a',type:'paragraph',dataVersion:2,data:{text:'Alpha'}}],{plugins:[plugin]});
+  const before = editor.save().blocks;
+  let producerCalls = 0;
+  const modes = [];
+  const histories = [];
+  const rejected = [];
+  const rejectedTasks = [];
+  let inspecting = false;
+  for (const type of ['readOnly:changed','history:changed']) editor.on(type, () => {
+    if (inspecting) return;
+    inspecting = true;
+    if (!editor.readOnly) {
+      try {context.beginTask()} catch (error) {rejectedTasks.push(String(error))}
+    }
+    try {editor.blocks.update('a', () => {producerCalls++;return {data:{text:'Reentered'}}})}
+    catch (error) {rejected.push(String(error))}
+    try {editor.setReadOnly(!editor.readOnly)}
+    catch (error) {rejected.push(String(error))}
+    inspecting = false;
+  });
+  editor.on('readOnly:changed', event => {modes.push([event.readOnly,editor.readOnly])});
+  editor.on('history:changed', event => {histories.push([event.canUndo,event.canRedo,editor.readOnly])});
+  editor.setReadOnly(true);
+  assert.equal(producerCalls,0);
+  assert.equal(rejected.length,4);
+  assert.ok(rejected.every(error => /read-only transition/.test(error)));
+  assert.deepEqual(modes,[[true,true]]);
+  assert.deepEqual(histories,[[false,false,true]]);
+  assert.deepEqual(editor.save().blocks,before);
+  assert.equal(blockElement(editor,'a').querySelector('.oe-paragraph').contentEditable,'false');
+  await Promise.resolve().then(() => editor.setReadOnly(false));
+  assert.deepEqual(modes,[[true,true],[false,false]]);
+  assert.equal(producerCalls,0);
+  assert.equal(rejected.length,8);
+  assert.equal(rejectedTasks.length,2);
+  assert.ok(rejectedTasks.every(error => /read-only-transition/.test(error)));
+  editor.blocks.update('a', () => ({data:{text:'Queued authoring'}}));
+  assert.equal(editor.save().blocks[0].data.text,'Queued authoring');
+  assert.equal(editor.canUndo,true);
+});
+
+test('nested whole-block conversion uses author fields from the shared draft and undoes once', () => {
+  const editor = make([{id:'a',type:'paragraph',dataVersion:2,data:{text:'Alpha'}},{id:'b',type:'paragraph',dataVersion:2,data:{text:'Original Beta'}}], {plugins:[createParagraphPlugin(),createHeadingPlugin()]});
+  const before = editor.save().blocks;
+  let commits = 0;
+  editor.on('transaction:committed', () => {commits++});
+  editor.blocks.update('a', () => {
+    editor.blocks.update('b', () => ({data:{text:'Authored Beta'},tunes:{textAlign:'center'}}));
+    editor.blocks.convert('b', {type:'heading',toolboxItemId:'h3'});
+    return {data:{text:'Edited Alpha'}};
+  });
+  assert.equal(commits,1);
+  assert.equal(editor.blocks.get('b').type,'heading');
+  assert.equal(editor.blocks.get('b').data.text,'Authored Beta');
+  assert.equal(editor.blocks.get('b').data.level,3);
+  assert.deepEqual(editor.blocks.get('b').tunes,{textAlign:'center'});
+  assert.equal(blockElement(editor,'b').querySelector('h3').textContent,'Authored Beta');
+  assert.equal(editor.undo(),true);
+  assert.deepEqual(editor.save().blocks,before);
+  assert.equal(editor.canUndo,false);
+  assert.equal(editor.redo(),true);
+  assert.equal(editor.blocks.get('b').data.text,'Authored Beta');
+});
+
+test('successive nested appends retain their authored order and form one undo step', () => {
+  const editor = make([{id:'a',type:'paragraph',dataVersion:2,data:{text:'Alpha'}}]);
+  const before = editor.save().blocks;
+  let first, second;
+  editor.blocks.update('a', () => {
+    first = editor.blocks.insert({type:'paragraph',data:{text:'First'}});
+    second = editor.blocks.insert({type:'paragraph',data:{text:'Second'}});
+    return {data:{text:'Edited Alpha'}};
+  });
+  assert.deepEqual(editor.blocks.list().map(block => block.id),['a',first,second]);
+  assert.deepEqual([...document.querySelectorAll('.oe-paragraph')].map(field => field.textContent),['Edited Alpha','First','Second']);
+  assert.equal(editor.undo(),true);
+  assert.deepEqual(editor.save().blocks,before);
+  assert.equal(editor.canUndo,false);
+});
+
+test('nested removal accepts a block inserted earlier in the same authoring action', () => {
+  const editor = make([{id:'a',type:'paragraph',dataVersion:2,data:{text:'Alpha'}}]);
+  const before = editor.save().blocks;
+  editor.blocks.update('a', () => {
+    const temporary = editor.blocks.insert({type:'paragraph',data:{text:'Temporary'}});
+    editor.blocks.remove(temporary);
+    return {data:{text:'Final author text'}};
+  });
+  assert.deepEqual(editor.blocks.list().map(block => block.id),['a']);
+  assert.equal(editor.blocks.get('a').data.text,'Final author text');
+  assert.equal(blockElement(editor,'a').querySelector('.oe-paragraph').textContent,'Final author text');
+  assert.equal(editor.undo(),true);
+  assert.deepEqual(editor.save().blocks,before);
+  assert.equal(editor.canUndo,false);
+});
+
+test('caught nested render rejection aborts all authoring changes and preserves the live document', () => {
+  const editor = make([{id:'a',type:'paragraph',dataVersion:2,data:{text:'Alpha'}},{id:'b',type:'paragraph',dataVersion:2,data:{text:'Beta'}}]);
+  const before = editor.save().blocks;
+  const originalElement = blockElement(editor,'a');
+  assert.throws(() => editor.blocks.update('a', () => {
+    editor.blocks.update('b', () => ({data:{text:'Nested change'}}));
+    try {editor.render({version:'1.0.0',blocks:[]})} catch {}
+    return {data:{text:'Outer change'}};
+  }), /document version/i);
+  assert.deepEqual(editor.save().blocks,before);
+  assert.ok(blockElement(editor,'a') === originalElement);
+  assert.equal(blockElement(editor,'b').querySelector('.oe-paragraph').textContent,'Beta');
+  assert.equal(editor.canUndo,false);
+});
+
+test('async host patch is rejected and cannot commit synchronous nested writes', () => {
+  const editor = make([{id:'a',type:'paragraph',dataVersion:2,data:{text:'Alpha'}},{id:'b',type:'paragraph',dataVersion:2,data:{text:'Beta'}}]);
+  const before = editor.save().blocks;
+  assert.throws(() => editor.blocks.update('a', () => {
+    editor.blocks.update('b', () => ({data:{text:'Nested write'}}));
+    return Promise.resolve({data:{text:'Async patch'}});
+  }), /synchronous/);
+  assert.deepEqual(editor.save().blocks,before);
+  assert.equal(editor.canUndo,false);
+  assert.equal(blockElement(editor,'b').querySelector('.oe-paragraph').textContent,'Beta');
+});
+
 await run()

@@ -64,7 +64,7 @@ export class EditorBlocksApi {
       inline: input.inline,
     }, 'host')
     this.#view.reconcileInteraction()
-    this.#view.setCurrent(id)
+    if (this.#runtime.has(id)) this.#view.setCurrent(id)
     return id
   }
 

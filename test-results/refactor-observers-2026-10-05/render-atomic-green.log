@@ -1,0 +1,114 @@
+runtime-contracts.html: [
+  {
+    "name": "convert uses source and target capabilities instead of arbitrary data merge",
+    "status": "PASS"
+  },
+  {
+    "name": "whole conversion rejects targets that cannot preserve linked inline data",
+    "status": "PASS"
+  },
+  {
+    "name": "prepared cross-block cut merges endpoint residuals through the declared merge contract",
+    "status": "PASS"
+  },
+  {
+    "name": "mounted plugin protected edit cannot persist a nested host write or alter history",
+    "status": "PASS"
+  },
+  {
+    "name": "mounted plugin protected edit cannot switch the editor to read-only midway",
+    "status": "PASS"
+  },
+  {
+    "name": "failed recovery of a mounted plugin projection preserves save and blocks future producers",
+    "status": "PASS"
+  },
+  {
+    "name": "failed read-only transition restores even the plugin that threw after changing its controls",
+    "status": "PASS"
+  },
+  {
+    "name": "instance data task cannot begin during protected edit",
+    "status": "PASS"
+  },
+  {
+    "name": "instance data task cannot begin during read-only transition",
+    "status": "PASS"
+  },
+  {
+    "name": "failed inline read-only transition restores the widget that threw after applying",
+    "status": "PASS"
+  },
+  {
+    "name": "mounted projection and committed observers reject nested host producers",
+    "status": "PASS"
+  },
+  {
+    "name": "inline producer failure rolls back nested host updates without a history step",
+    "status": "PASS"
+  },
+  {
+    "name": "public host updates commit together and a caught nested error aborts the outer action",
+    "status": "PASS"
+  },
+  {
+    "name": "mounted data task executes its producer once despite recursive commit",
+    "status": "PASS"
+  },
+  {
+    "name": "conversion and undo never revive an old task while a fresh task uses latest author data",
+    "status": "PASS"
+  },
+  {
+    "name": "inline producer preserves a nested update of its containing author text",
+    "status": "PASS"
+  },
+  {
+    "name": "public producer cannot overwrite a block it converted during building",
+    "status": "PASS"
+  },
+  {
+    "name": "recoverable block AggregateError does not revoke healthy mutation authority",
+    "status": "PASS"
+  },
+  {
+    "name": "recoverable inline AggregateError does not revoke healthy mutation authority",
+    "status": "PASS"
+  },
+  {
+    "name": "failed inline control rollback can recover by recreating committed widgets",
+    "status": "PASS"
+  },
+  {
+    "name": "same-value read-only calls do not publish phantom state or history changes",
+    "status": "PASS"
+  },
+  {
+    "name": "public read-only transition rejects nonboolean values without unlocking authoring",
+    "status": "PASS"
+  },
+  {
+    "name": "irrecoverable inline controls stop producers but preserve the committed document and failure causes",
+    "status": "PASS"
+  },
+  {
+    "name": "read-only observations reject synchronous commands before producers and allow queued commands",
+    "status": "PASS"
+  },
+  {
+    "name": "nested whole-block conversion uses author fields from the shared draft and undoes once",
+    "status": "PASS"
+  },
+  {
+    "name": "successive nested appends retain their authored order and form one undo step",
+    "status": "PASS"
+  },
+  {
+    "name": "nested removal accepts a block inserted earlier in the same authoring action",
+    "status": "PASS"
+  },
+  {
+    "name": "caught nested render rejection aborts all authoring changes and preserves the live document",
+    "status": "PASS"
+  }
+]

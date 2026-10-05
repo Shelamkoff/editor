@@ -581,3 +581,63 @@ test('read-only mode accepts booleans only and keeps the requested state on inva
   assert.equal(runtime.readOnly,false)
   runtime.destroy()
 })
+
+test('caught nested clear default failure aborts the outer action', () => {
+  let fail = false
+  const definition = paragraphDefinition({createDefault: () => {
+    if (fail) throw new Error('Default preparation failed')
+    return {text:''}
+  }})
+  const runtime = new DocumentRuntime({registry:registry([definition]),data:{version:'2.0.0',blocks:[block('a')]}})
+  const before = runtime.save().blocks
+  fail = true
+  assert.throws(() => runtime.update('a', () => {
+    try {runtime.clear()} catch {}
+    return {data:{text:'Outer write'}}
+  }, 'host'), /Default preparation failed/)
+  assert.deepEqual(runtime.save().blocks,before)
+  assert.equal(runtime.revision,0)
+  assert.equal(runtime.canUndo,false)
+  runtime.destroy()
+})
+
+test('successive draft removals preserve the default block when the last authored block is removed', () => {
+  const runtime = new DocumentRuntime({registry:registry([paragraphDefinition()]),data:{version:'2.0.0',blocks:[block('a'),block('b')]}})
+  const before = runtime.save().blocks
+  runtime.interact('remove authored blocks', () => {
+    runtime.remove('a','host')
+    runtime.remove('b','host')
+  })
+  assert.equal(runtime.size,1)
+  assert.equal(runtime.list()[0].data.text,'')
+  assert.ok(!['a','b'].includes(runtime.ids()[0]))
+  assert.equal(runtime.revision,1)
+  assert.equal(runtime.undo(),true)
+  assert.deepEqual(runtime.save().blocks,before)
+  assert.equal(runtime.canUndo,false)
+  runtime.destroy()
+})
+
+test('read-only cleanup restores committed preedit without granting nested mutation authority', () => {
+  let runtime
+  let calls = 0
+  let restores = 0
+  runtime = new DocumentRuntime({
+    registry:registry([paragraphDefinition()]),
+    data:{version:'2.0.0',blocks:[block('a')]},
+    projector:{setReadOnly(){},prepare(){return {apply(){},recover(){},finalize(){},discard(){}}},restore(){
+      restores++
+      assert.throws(() => runtime.update('a', () => {calls++;return {data:{text:'Reentry'}}}, 'host'), /protected projection edit/)
+    }},
+  })
+  const before = runtime.save().blocks
+  runtime.setReadOnly(true, discard => {discard();assert.equal(runtime.readOnly,true)})
+  assert.equal(restores,1)
+  assert.equal(calls,0)
+  assert.deepEqual(runtime.save().blocks,before)
+  assert.equal(runtime.revision,0)
+  runtime.setReadOnly(false)
+  runtime.update('a', () => ({data:{text:'Resumed'}}), 'host')
+  assert.equal(runtime.get('a').data.text,'Resumed')
+  runtime.destroy()
+})

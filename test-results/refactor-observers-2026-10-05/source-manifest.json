@@ -1,0 +1,186 @@
+{
+  "baseCommit": "1f0860ddeb5291fcbe1dc921825b0c208b6b8fe2",
+  "v1Oracle": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+  "hashKind": "working-copy bytes before Git line-ending normalization",
+  "files": [
+    {
+      "path": "LOCAL-VERIFICATION.md",
+      "sha256": "99c77c4189143fbc8dd4bf90bf6e752f67f2f1ba22e14fba3c5aae73ea3664a1"
+    },
+    {
+      "path": "RECTOR_V2_CORE_PARITY_2026-10-04.md",
+      "sha256": "d214863798df470e1eb52c407877e2c55dcf5c8aaf781ae428ad5cf9ffa4b449"
+    },
+    {
+      "path": "RECTOR_V2_OBSERVER_AUDIT_2026-10-05.md",
+      "sha256": "06954eecf74a739a055cd2daac7b1d4e60ee98352a2138125beeb170f3415f8c"
+    },
+    {
+      "path": "RECTOR_V2_PLUGIN_PARITY_2026-10-04.md",
+      "sha256": "d57bc40f75438bc315f81de7477b512360c8eeb3d2cb125c20c246ec62d524b8"
+    },
+    {
+      "path": "RECTOR_V2_REENTRY_AUDIT_2026-10-05.md",
+      "sha256": "867c4a4f3584a37ed78cd7f488688643e5983232e945f93c422fa35f1130173c"
+    },
+    {
+      "path": "core/DocumentRuntime.js",
+      "sha256": "c663cd4379c002279a064c17e37fb493bbe70647474810698f84d887c7d78a89"
+    },
+    {
+      "path": "core/DocumentRuntime.test.js",
+      "sha256": "df9a40ab0b5b31ad303daf7475f22290a0a35b4ff34638a6ded4fbc11bb1ec16"
+    },
+    {
+      "path": "core/EditorViewModel.js",
+      "sha256": "d2b6d0b557f19b4662a72385224358fa222e24ba88990ad4cd2cf27864b17f8c"
+    },
+    {
+      "path": "core/NativeInputController.js",
+      "sha256": "5b24c3782d8f277d54e61272684f66d9b45ec1a3d145c0918507c3a249de8069"
+    },
+    {
+      "path": "core/PublicEditorApi.js",
+      "sha256": "aec42507d599890178e5f8787cf8cfc7a210b4df4b63179a22fde429a6a26785"
+    },
+    {
+      "path": "core/createEditorRuntime.js",
+      "sha256": "8533014c5c9389c38343f97f4cfc8485aae91793887e912c3104c93731200f83"
+    },
+    {
+      "path": "docs/guide/commands-history.md",
+      "sha256": "7f909a3e619865685f4da637fceaa7416766c85ed84730daae58f6e1e95d458a"
+    },
+    {
+      "path": "docs/ru/guide/commands-history.md",
+      "sha256": "ed9dd9f61460d2cbf34a80eb23f26f01ea2019338a5b034b964a53213dfe5157"
+    },
+    {
+      "path": "tests/browser/runtime-contracts.js",
+      "sha256": "4436975918f07165f358cb27f813145b824ef74fcb8bb9f142c71f752026d313"
+    }
+  ],
+  "evidence": [
+    {
+      "path": "test-results/refactor-observers-2026-10-05/node-final.log",
+      "sha256": "ba0d4aa7fed8b8a93736fdf7f3111aba751d1cb24bc134cf3cc88fef7d247f7a"
+    },
+    {
+      "path": "test-results/refactor-observers-2026-10-05/typecheck-final.log",
+      "sha256": "f2e2e5291667e60bd0d22b70e3d3c0586d87fa89151fb2e8e5909dfc04bdf450"
+    },
+    {
+      "path": "test-results/refactor-observers-2026-10-05/browser-final.log",
+      "sha256": "3b0ccbe31a33422c0546e627d54fce722efed086a19aedfa484861b9f32bc0fa"
+    },
+    {
+      "path": "test-results/refactor-observers-2026-10-05/native-final.log",
+      "sha256": "63b2447c62c6ba9e656b7d21df934c05392053594c24982698a164dc3931db43"
+    },
+    {
+      "path": "test-results/refactor-observers-2026-10-05/heap-final.log",
+      "sha256": "ee2302acf4a03b056713ec719b59ce442eebb9ee0dc75cf646bf56a18ea4acd0"
+    },
+    {
+      "path": "test-results/refactor-observers-2026-10-05/build-final.log",
+      "sha256": "2d85c6cdcc10336d33bfa56b6ac69848f70047946d24fde4045c65e1e25c1407"
+    },
+    {
+      "path": "test-results/refactor-observers-2026-10-05/types-final.log",
+      "sha256": "90e74232be1da8dce2dd89848651e763c055bb878fa60651800c6b0e78d21e11"
+    },
+    {
+      "path": "test-results/refactor-observers-2026-10-05/package-final.log",
+      "sha256": "1939199aa330ec7db323d1fbd28bf552b7998f53b862f7d81448b95cc3dd64fc"
+    },
+    {
+      "path": "test-results/refactor-observers-2026-10-05/docs-contract-final.log",
+      "sha256": "5d22ab0643b84adf7fd266e596e4f804b816c2cac2ec0d7727ca485fcdb5a9e0"
+    },
+    {
+      "path": "test-results/refactor-observers-2026-10-05/docs-final.log",
+      "sha256": "5300007507d7f57978c5ddbaea5c6454843a6a47eb9de8e7921245176bcb53f7"
+    },
+    {
+      "path": "test-results/refactor-observers-2026-10-05/readonly-observers-red.log",
+      "sha256": "70665396cfadabe5c6d286192347b2a72717bcbc4595bab51aad77948e582b79"
+    },
+    {
+      "path": "test-results/refactor-observers-2026-10-05/readonly-observers-green.log",
+      "sha256": "07c7f381b32443a7e5d25be78abdeb308efb9f1a7f4fec6af9724db484682881"
+    },
+    {
+      "path": "test-results/refactor-observers-2026-10-05/conversion-draft-red.log",
+      "sha256": "5bd628c6b02903bb66c3e6500382007017503d5cad714dd75e54b9990b361b06"
+    },
+    {
+      "path": "test-results/refactor-observers-2026-10-05/conversion-draft-green.log",
+      "sha256": "b2095c44c9532d33de6bd11b8f77fc0836486403c5087e55320bae9569fff130"
+    },
+    {
+      "path": "test-results/refactor-observers-2026-10-05/append-order-red.log",
+      "sha256": "d15e56c167283d88f63921c5881822b01c538147f7fd7e73ce039544fc41b628"
+    },
+    {
+      "path": "test-results/refactor-observers-2026-10-05/append-order-green.log",
+      "sha256": "dfc728f8c6364bcc5a32d41dab8a6da3f1bf3c194dd5d1b7654e52638b0d14ab"
+    },
+    {
+      "path": "test-results/refactor-observers-2026-10-05/remove-draft-red.log",
+      "sha256": "3d59909882923e158359301c01956aa9cbf9c526f6d02586e5789f84e28171ab"
+    },
+    {
+      "path": "test-results/refactor-observers-2026-10-05/remove-draft-green.log",
+      "sha256": "764e22afa66dd78eb24a86bc6fb2568cc5b6733cf81b746d0c5c0c4b0e07b6c8"
+    },
+    {
+      "path": "test-results/refactor-observers-2026-10-05/render-atomic-red.log",
+      "sha256": "6e0d3442e2f17fb3ddf25075dd71864989164133fc9c8e5fd12e2cf52ebbef1a"
+    },
+    {
+      "path": "test-results/refactor-observers-2026-10-05/render-atomic-green.log",
+      "sha256": "e782530da529a6a33d883f347a5e4078a4bfa2e8d87a093f28113c608a0b05cf"
+    },
+    {
+      "path": "test-results/refactor-observers-2026-10-05/clear-atomic-red.log",
+      "sha256": "e651ba325fcca29f4850512ffab7dece8e3b29b2249b3ff8d88957f1258d8536"
+    },
+    {
+      "path": "test-results/refactor-observers-2026-10-05/clear-atomic-green.log",
+      "sha256": "6df080bb3749b58dae8ddb1f0e9aba98d5311231e3ca4be856c7e93398cad0c8"
+    },
+    {
+      "path": "test-results/refactor-observers-2026-10-05/async-patch-red.log",
+      "sha256": "ae17c29da72de86e0d387e488a153d613a910223a2d062ffeba8808aec76282f"
+    },
+    {
+      "path": "test-results/refactor-observers-2026-10-05/async-patch-green.log",
+      "sha256": "5cc34e4aa079fa48f27e3993cf282650faa2ed61fd6a330cf1051c4ced6d58be"
+    },
+    {
+      "path": "test-results/refactor-observers-2026-10-05/native-ime-regression-red.log",
+      "sha256": "127e90ae3bfa2b8989534e6907d39d3a81a0c95a5f3337b50ec6a43a27037aa0"
+    },
+    {
+      "path": "test-results/refactor-observers-2026-10-05/native-ime-green.log",
+      "sha256": "ffe1798f9f55edfb36cc0ffa4acf87655d927345474ad7d98cba56c5ed7fb1cb"
+    },
+    {
+      "path": "test-results/refactor-observers-2026-10-05/readonly-after-ime-green.log",
+      "sha256": "5cc34e4aa079fa48f27e3993cf282650faa2ed61fd6a330cf1051c4ced6d58be"
+    },
+    {
+      "path": "test-results/refactor-observers-2026-10-05/runtime-final.log",
+      "sha256": "dc130afecb94a8dac5012fad8e77c7f404d4188d35fed932933eb3c418a1c0fc"
+    },
+    {
+      "path": "test-results/refactor-observers-2026-10-05/docs-before-ime-fix.log",
+      "sha256": "d3811ce4641ed04898cbc3bec04a0c0856bcd04b2241ae49a42200458efa0298"
+    },
+    {
+      "path": "test-results/refactor-observers-2026-10-05/verification-summary.json",
+      "sha256": "187171645d092f25fbe47b32e4d230360d056fbf4d9ae9dd559ac4ea5e50588f"
+    }
+  ],
+  "createdAt": "2026-10-05T09:00:02.221Z"
+}

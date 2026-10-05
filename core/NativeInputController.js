@@ -59,7 +59,7 @@ export class NativeInputController {
 
   get isComposing() { return this.#composition !== null }
 
-  setReadOnly(value) {
+  setReadOnly(value, discardProjectionEdits = () => this.#runtime.discardProjectionEdits?.()) {
     if (value === true) {
       const discardPreedit = this.#composition !== null || this.#endingComposition !== null
       this.#composition = null
@@ -67,7 +67,7 @@ export class NativeInputController {
       this.#endingComposition = null
       this.#lastGroup = null
       this.#pendingInput = null
-      if (discardPreedit) this.#runtime.discardProjectionEdits?.()
+      if (discardPreedit) discardProjectionEdits()
     }
   }
 

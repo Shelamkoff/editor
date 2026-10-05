@@ -1,0 +1,27 @@
+✖ caught nested clear default failure aborts the outer action (8.7996ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 166.2934
+
+✖ failing tests:
+
+test at core\DocumentRuntime.test.js:585:1
+✖ caught nested clear default failure aborts the outer action (8.7996ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/core/DocumentRuntime.test.js:594:10)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.start (node:internal/test_runner/test:1003:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:358:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /Default preparation failed/,
+    operator: 'throws',
+    diff: 'simple'
+  }

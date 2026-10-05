@@ -1,0 +1,20 @@
+file:///C:/OSPanel/domains/editor/tests/browser/run.mjs:130
+      throw new Error(`Browser gate failed for ${label}\n${formatBrowserFailure(last.summary)}`)
+            ^
+
+Error: Browser gate failed for runtime-contracts.html
+{
+  "total": 27,
+  "failed": 1,
+  "failures": [
+    {
+      "name": "nested removal accepts a block inserted earlier in the same authoring action",
+      "status": "FAIL",
+      "error": "Error: Unknown block id: paragraph-TxidFN\n    at DocumentRuntime.remove (http://127.0.0.1:53738/core/DocumentRuntime.js:651:34)\n    at EditorViewModel.remove (http://127.0.0.1:53738/core/EditorViewModel.js:58:19)\n    at EditorBlocksApi.remove (http://127.0.0.1:53738/core/PublicEditorApi.js:84:47)\n    at http://127.0.0.1:53738/tests/browser/runtime-contracts.js:810:19\n    at http://127.0.0.1:53738/core/PublicEditorApi.js:76:21\n    at http://127.0.0.1:53738/core/DocumentRuntime.js:613:21\n    at #executeOuter (http://127.0.0.1:53738/core/TransactionEngine.js:133:16)\n    at http://127.0.0.1:53738/core/TransactionEngine.js:120:72\n    at #observeCommand (http://127.0.0.1:53738/core/TransactionEngine.js:404:14)\n    at TransactionEngine.execute (http://127.0.0.1:53738/core/TransactionEngine.js:120:32)"
+    }
+  ]
+}
+    at runPage (file:///C:/OSPanel/domains/editor/tests/browser/run.mjs:130:13)
+    at async file:///C:/OSPanel/domains/editor/tests/browser/run.mjs:169:30
+
+Node.js v24.9.0

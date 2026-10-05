@@ -1,0 +1,47 @@
+file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149
+    if (result.status === 'fail') throw new Error(`History matrix failed: ${result.summary}`)
+                                        ^
+
+Error: History matrix failed: [
+  {
+    "name": "native browser IME commits one paragraph once and keeps its caret",
+    "status": "PASS"
+  },
+  {
+    "name": "native browser IME replaces the full forward cross-block selection atomically",
+    "status": "PASS"
+  },
+  {
+    "name": "native browser IME replaces the full backward cross-block selection atomically",
+    "status": "PASS"
+  },
+  {
+    "name": "cancelling native cross-block IME keeps data, history and backward selection",
+    "status": "PASS"
+  },
+  {
+    "name": "native IME replaces a whole document including opaque boundary blocks",
+    "status": "PASS"
+  },
+  {
+    "name": "native IME replaces both quote fields in one history entry",
+    "status": "PASS"
+  },
+  {
+    "name": "successive IME confirmations remain separate Undo gestures",
+    "status": "PASS"
+  },
+  {
+    "name": "native IME completion cannot overwrite a replacement document",
+    "status": "PASS"
+  },
+  {
+    "name": "read-only transition discards native preedit before editing resumes",
+    "status": "FAIL",
+    "error": "Error: Cannot mutate document during read-only transition\n    at #assertHostMutation (http://127.0.0.1:54507/core/DocumentRuntime.js:2834:39)\n    at DocumentRuntime.discardProjectionEdits (http://127.0.0.1:54507/core/DocumentRuntime.js:1994:29)\n    at NativeInputController.setReadOnly (http://127.0.0.1:54507/core/NativeInputController.js:70:65)\n    at http://127.0.0.1:54507/core/createEditorRuntime.js:514:17\n    at DocumentRuntime.setReadOnly (http://127.0.0.1:54507/core/DocumentRuntime.js:900:19)\n    at EditorHandle.setReadOnly (http://127.0.0.1:54507/core/createEditorRuntime.js:509:36)\n    at EditorHandle.setReadOnly (http://127.0.0.1:54507/core/PublicEditorApi.js:163:29)\n    at http://127.0.0.1:54507/tests/browser/native-ime.js:141:10\n    at async run (http://127.0.0.1:54507/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:54507/tests/browser/native-ime.js:154:1"
+  }
+]
+    at waitForHistoryMatrix (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149:41)
+    at async file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:465:32
+
+Node.js v24.9.0

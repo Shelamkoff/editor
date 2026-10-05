@@ -47,7 +47,7 @@ export class EditorViewModel {
   insert(type, data, index, authority = 'interaction') {
     const id = this.#runtime.insert(type, data, index, {}, authority)
     this.#interaction.reconcile()
-    this.#interaction.setCurrent(id)
+    if (this.#runtime.has(id)) this.#interaction.setCurrent(id)
     return id
   }
 

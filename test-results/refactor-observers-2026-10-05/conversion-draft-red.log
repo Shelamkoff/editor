@@ -1,0 +1,20 @@
+file:///C:/OSPanel/domains/editor/tests/browser/run.mjs:130
+      throw new Error(`Browser gate failed for ${label}\n${formatBrowserFailure(last.summary)}`)
+            ^
+
+Error: Browser gate failed for runtime-contracts.html
+{
+  "total": 25,
+  "failed": 1,
+  "failures": [
+    {
+      "name": "nested whole-block conversion uses author fields from the shared draft and undoes once",
+      "status": "FAIL",
+      "error": "Error: \nexpected \"Authored Beta\", got \"Original Beta\"\n    at Object.equal (http://127.0.0.1:53271/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:53271/tests/browser/runtime-contracts.js:778:10\n    at async run (http://127.0.0.1:53271/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:53271/tests/browser/runtime-contracts.js:789:1"
+    }
+  ]
+}
+    at runPage (file:///C:/OSPanel/domains/editor/tests/browser/run.mjs:130:13)
+    at async file:///C:/OSPanel/domains/editor/tests/browser/run.mjs:169:30
+
+Node.js v24.9.0

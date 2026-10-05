@@ -253,24 +253,24 @@ export class DocumentRuntime {
     return this.#engine.execute({ origin: 'user', name, selectionAfter }, operation)
   }
 
-  insert(type, data, index = this.#store.ids().length, options = {}, authority = 'interaction') {
+  insert(type, data, index = undefined, options = {}, authority = 'interaction') {
     this.#assertMutationAuthority(authority)
-    const definition = this.#registry.getBlockDefinition(type)
-    if (!definition) throw new Error(`Unknown block type: ${type}`)
-    const id = this.#createUniqueBlockId(type)
-    const inline = options.inline === undefined ? undefined : this.#normalizeExternalInline(options.inline)
-    const record = this.#recordFromData(
-      id,
-      type,
-      definition,
-      data === undefined ? definition.schema.createDefault() : data,
-      options.tunes,
-      inline,
-    )
-    this.#engine.execute({ origin: 'external', name: 'block.insert' }, tx => {
-      tx.insert(index, record)
+    return this.#engine.execute({ origin: 'external', name: 'block.insert' }, tx => {
+      const definition = this.#registry.getBlockDefinition(type)
+      if (!definition) throw new Error(`Unknown block type: ${type}`)
+      const id = this.#createUniqueBlockId(type)
+      const inline = options.inline === undefined ? undefined : this.#normalizeExternalInline(options.inline)
+      const record = this.#recordFromData(
+        id,
+        type,
+        definition,
+        data === undefined ? definition.schema.createDefault() : data,
+        options.tunes,
+        inline,
+      )
+      tx.insert(index === undefined ? tx.list().length : index, record)
+      return id
     })
-    return id
   }
 
 
@@ -614,6 +614,7 @@ export class DocumentRuntime {
       if (!patch || typeof patch !== 'object' || Array.isArray(patch)) {
         throw new TypeError('Block update producer must return an object')
       }
+      if (typeof patch.then === 'function') throw new TypeError('Block update producer must be synchronous')
       if (Object.hasOwn(patch, 'type') || Object.hasOwn(patch, 'id') || Object.hasOwn(patch, 'inline')) {
         throw new TypeError('Block update cannot change id, type, or inline payload')
       }
@@ -647,25 +648,24 @@ export class DocumentRuntime {
 
   remove(id, authority = 'interaction') {
     this.#assertMutationAuthority(authority)
-    const ids = this.#store.ids()
-    if (!ids.includes(id)) throw new Error(`Unknown block id: ${id}`)
-    const index = ids.indexOf(id)
-    let focusId = ids[index + 1] ?? ids[index - 1]
-    let fallback = null
-    if (ids.length === 1) {
-      const type = this.#registry.defaultBlockType
-      const definition = this.#registry.getBlockDefinition(type)
-      fallback = this.#recordFromData(
-        this.#createUniqueBlockId(type), type, definition, definition.schema.createDefault(), undefined, undefined,
-      )
-      focusId = fallback.id
-    }
-
-    this.#engine.execute({ origin: 'external', name: 'block.remove' }, tx => {
+    return this.#engine.execute({ origin: 'external', name: 'block.remove' }, tx => {
+      const ids = tx.list().map(block => block.id)
+      if (!ids.includes(id)) throw new Error(`Unknown block id: ${id}`)
+      const index = ids.indexOf(id)
+      let focusId = ids[index + 1] ?? ids[index - 1]
+      let fallback = null
+      if (ids.length === 1) {
+        const type = this.#registry.defaultBlockType
+        const definition = this.#registry.getBlockDefinition(type)
+        fallback = this.#recordFromData(
+          this.#createUniqueBlockId(type), type, definition, definition.schema.createDefault(), undefined, undefined,
+        )
+        focusId = fallback.id
+      }
       tx.remove(id)
       if (fallback) tx.insert(0, fallback)
+      return focusId
     })
-    return focusId
   }
 
 
@@ -747,53 +747,52 @@ export class DocumentRuntime {
 
   convert(id, target, authority = 'interaction') {
     this.#assertMutationAuthority(authority)
-    const current = this.#store.get(id)
-    if (!current) throw new Error(`Unknown block id: ${id}`)
-    if (this.activation(id)?.kind !== 'active') {
-      throw new Error(`Unregistered block cannot be converted: ${id}`)
-    }
-    if (!target || typeof target !== 'object' || typeof target.type !== 'string') {
-      throw new TypeError('Conversion target requires a type')
-    }
-
-    const sourceDefinition = this.#registry.getBlockDefinition(current.type)
-    const targetDefinition = this.#registry.getBlockDefinition(target.type)
-    if (!targetDefinition) throw new Error(`Unknown block type: ${target.type}`)
-
-    let targetData
-    let sourcePayload = null
-    const sourceEmpty = sourceDefinition?.capabilities?.empty?.isEmpty?.(current.data) === true
-    if (sourceEmpty) {
-      targetData = targetDefinition.schema.createDefault()
-    } else {
-      const sourceConversion = sourceDefinition?.capabilities?.conversion
-      const targetConversion = targetDefinition.capabilities?.conversion
-      if (!sourceConversion || !targetConversion) {
-        throw new Error(`Block conversion is not supported: ${current.type} -> ${target.type}`)
-      }
-      sourcePayload = sourceConversion.export(current.data)
-      if (!targetConversion.canImport(sourcePayload)) {
-        throw new Error(`Block conversion payload is not supported by "${target.type}"`)
-      }
-      targetData = targetConversion.import(sourcePayload)
-    }
-
-    if (target.toolboxItemId !== undefined) {
-      const item = targetDefinition.toolbox?.find(entry => entry.id === target.toolboxItemId)
-      if (!item) throw new Error(`Unknown toolbox item "${target.toolboxItemId}" for "${target.type}"`)
-      if (item.configure) {
-        targetData = item.configure(targetData, this.#dataOperationContext())
-      }
-    }
-
-    const next = this.#recordFromData(
-      id, target.type, targetDefinition, targetData, current.tunes, current.inline,
-    )
-    this.#assertConversionInlinePreserved(
-      sourcePayload,current.inline,targetDefinition,next,
-    )
-
     this.#engine.execute({ origin: 'external', name: 'block.convert' }, tx => {
+      const current = tx.get(id)
+      if (!current) throw new Error(`Unknown block id: ${id}`)
+      if (this.#activationFor(current)?.kind !== 'active') {
+        throw new Error(`Unregistered block cannot be converted: ${id}`)
+      }
+      if (!target || typeof target !== 'object' || typeof target.type !== 'string') {
+        throw new TypeError('Conversion target requires a type')
+      }
+
+      const sourceDefinition = this.#registry.getBlockDefinition(current.type)
+      const targetDefinition = this.#registry.getBlockDefinition(target.type)
+      if (!targetDefinition) throw new Error(`Unknown block type: ${target.type}`)
+
+      let targetData
+      let sourcePayload = null
+      const sourceEmpty = sourceDefinition?.capabilities?.empty?.isEmpty?.(current.data) === true
+      if (sourceEmpty) {
+        targetData = targetDefinition.schema.createDefault()
+      } else {
+        const sourceConversion = sourceDefinition?.capabilities?.conversion
+        const targetConversion = targetDefinition.capabilities?.conversion
+        if (!sourceConversion || !targetConversion) {
+          throw new Error(`Block conversion is not supported: ${current.type} -> ${target.type}`)
+        }
+        sourcePayload = sourceConversion.export(current.data)
+        if (!targetConversion.canImport(sourcePayload)) {
+          throw new Error(`Block conversion payload is not supported by "${target.type}"`)
+        }
+        targetData = targetConversion.import(sourcePayload)
+      }
+
+      if (target.toolboxItemId !== undefined) {
+        const item = targetDefinition.toolbox?.find(entry => entry.id === target.toolboxItemId)
+        if (!item) throw new Error(`Unknown toolbox item "${target.toolboxItemId}" for "${target.type}"`)
+        if (item.configure) {
+          targetData = item.configure(targetData, this.#dataOperationContext())
+        }
+      }
+
+      const next = this.#recordFromData(
+        id, target.type, targetDefinition, targetData, current.tunes, current.inline,
+      )
+      this.#assertConversionInlinePreserved(
+        sourcePayload,current.inline,targetDefinition,next,
+      )
       tx.update(id, next)
     })
   }
@@ -843,20 +842,20 @@ export class DocumentRuntime {
 
   clear() {
     this.#assertHostMutation()
-    const type = this.#registry.defaultBlockType
-    const definition = this.#registry.getBlockDefinition(type)
-    const document = {
-      version: DOCUMENT_FORMAT_VERSION,
-      blocks: [this.#recordFromData(
-        this.#createUniqueBlockId(type),
-        type,
-        definition,
-        definition.schema.createDefault(),
-        undefined,
-        undefined,
-      )],
-    }
     this.#engine.execute({ origin: 'external', name: 'document.clear' }, tx => {
+      const type = this.#registry.defaultBlockType
+      const definition = this.#registry.getBlockDefinition(type)
+      const document = {
+        version: DOCUMENT_FORMAT_VERSION,
+        blocks: [this.#recordFromData(
+          this.#createUniqueBlockId(type),
+          type,
+          definition,
+          definition.schema.createDefault(),
+          undefined,
+          undefined,
+        )],
+      }
       tx.replace(document)
     })
   }
@@ -865,9 +864,8 @@ export class DocumentRuntime {
     this.#assertHostMutation()
     const startedAt = this.#diagnostics ? this.#diagnostics.now() : 0
     try {
-      const next = this.#ingest(input)
       this.#engine.execute({ origin: 'external', name: 'document.render' }, tx => {
-        tx.replace(next)
+        tx.replace(this.#ingest(input))
       })
     } finally {
       if (startedAt && this.#diagnostics) {
@@ -879,7 +877,8 @@ export class DocumentRuntime {
     }
   }
 
-  setReadOnly(value) {
+  /** @param {boolean} value @param {(discardProjectionEdits: () => void) => void} [afterApply] */
+  setReadOnly(value, afterApply) {
     this.#assertHostMutation()
     if (typeof value !== 'boolean') throw new TypeError('setReadOnly() requires a boolean')
     if (this.#engine.phase !== 'idle') throw new Error(`Cannot change read-only mode during ${this.#engine.phase} phase`)
@@ -888,12 +887,20 @@ export class DocumentRuntime {
     const selectionBefore = this.#captureSelection()
     this.#changingReadOnly = true
     try {
-      this.#projector?.setReadOnly?.(next)
-      this.#readOnly = next
-    } catch (error) {
-      if (error instanceof ReadOnlyRecoveryError) this.#controlFailed = true
-      this.#restoreSelection(selectionBefore)
-      throw error
+      try {
+        this.#projector?.setReadOnly?.(next)
+        this.#readOnly = next
+      } catch (error) {
+        if (error instanceof ReadOnlyRecoveryError) this.#controlFailed = true
+        this.#restoreSelection(selectionBefore)
+        throw error
+      }
+      // Composition updates its controls and publishes observations under the
+      // same guard. Queued commands can run once the transition returns.
+      afterApply?.(() => {
+        if (!this.#changingReadOnly) throw new Error('Read-only transition is no longer active')
+        this.#discardProjectionEdits()
+      })
     } finally {
       this.#changingReadOnly = false
     }
@@ -1988,12 +1995,19 @@ export class DocumentRuntime {
 
   discardProjectionEdits() {
     this.#assertHostMutation()
+    this.#discardProjectionEdits()
+  }
+
+  #discardProjectionEdits() {
     if (this.#engine.phase !== 'idle') throw new Error(`Cannot restore projection during ${this.#engine.phase} phase`)
+    this.#editingProjection = true
     try {
       this.#projector?.restore?.(this.#store)
     } catch (error) {
       this.#controlFailed = true
       throw error
+    } finally {
+      this.#editingProjection = false
     }
   }
 

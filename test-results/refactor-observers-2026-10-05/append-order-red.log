@@ -1,0 +1,20 @@
+file:///C:/OSPanel/domains/editor/tests/browser/run.mjs:130
+      throw new Error(`Browser gate failed for ${label}\n${formatBrowserFailure(last.summary)}`)
+            ^
+
+Error: Browser gate failed for runtime-contracts.html
+{
+  "total": 26,
+  "failed": 1,
+  "failures": [
+    {
+      "name": "successive nested appends retain their authored order and form one undo step",
+      "status": "FAIL",
+      "error": "Error: Unknown block id: paragraph-iNc4M8\n    at InteractionState.setCurrent (http://127.0.0.1:53472/core/InteractionState.js:42:39)\n    at EditorViewModel.setCurrent (http://127.0.0.1:53472/core/EditorViewModel.js:42:38)\n    at EditorBlocksApi.insert (http://127.0.0.1:53472/core/PublicEditorApi.js:67:16)\n    at http://127.0.0.1:53472/tests/browser/runtime-contracts.js:794:27\n    at http://127.0.0.1:53472/core/PublicEditorApi.js:76:21\n    at http://127.0.0.1:53472/core/DocumentRuntime.js:613:21\n    at #executeOuter (http://127.0.0.1:53472/core/TransactionEngine.js:133:16)\n    at http://127.0.0.1:53472/core/TransactionEngine.js:120:72\n    at #observeCommand (http://127.0.0.1:53472/core/TransactionEngine.js:404:14)\n    at TransactionEngine.execute (http://127.0.0.1:53472/core/TransactionEngine.js:120:32)"
+    }
+  ]
+}
+    at runPage (file:///C:/OSPanel/domains/editor/tests/browser/run.mjs:130:13)
+    at async file:///C:/OSPanel/domains/editor/tests/browser/run.mjs:169:30
+
+Node.js v24.9.0

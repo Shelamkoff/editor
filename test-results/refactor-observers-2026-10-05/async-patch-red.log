@@ -1,0 +1,20 @@
+file:///C:/OSPanel/domains/editor/tests/browser/run.mjs:130
+      throw new Error(`Browser gate failed for ${label}\n${formatBrowserFailure(last.summary)}`)
+            ^
+
+Error: Browser gate failed for runtime-contracts.html
+{
+  "total": 29,
+  "failed": 1,
+  "failures": [
+    {
+      "name": "async host patch is rejected and cannot commit synchronous nested writes",
+      "status": "FAIL",
+      "error": "Error: Expected operation to throw\n    at assert (http://127.0.0.1:54198/tests/browser/regressions/harness.js:20:81)\n    at Object.throws (http://127.0.0.1:54198/tests/browser/runtime-contracts.js:14:5)\n    at http://127.0.0.1:54198/tests/browser/runtime-contracts.js:839:10\n    at async run (http://127.0.0.1:54198/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:54198/tests/browser/runtime-contracts.js:848:1"
+    }
+  ]
+}
+    at runPage (file:///C:/OSPanel/domains/editor/tests/browser/run.mjs:130:13)
+    at async file:///C:/OSPanel/domains/editor/tests/browser/run.mjs:169:30
+
+Node.js v24.9.0

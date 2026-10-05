@@ -10,7 +10,11 @@ Synchronous reentry during preparation, application or committed-event notificat
 
 Host data producers run inside the transaction builder. Nested host writes share its draft and history step; an inner error aborts the whole action even if caught. Successive updates read the latest draft, and partial patches preserve fields changed by a nested update. A producer cannot overwrite a target it removed or converted.
 
+Host producers must return synchronous patches. A Promise/thenable is rejected and all nested writes are rolled back. Whole-block conversion and insertion/removal use the current draft, including blocks created earlier in the action; appended blocks retain their authored order. A caught preparation error in nested render/clear also aborts the whole action. Queries and interaction targets continue to describe committed blocks until commit.
+
 `setReadOnly()` requires a boolean. Passing the existing value leaves controls and transient UI intact and publishes no mode or history observation. A recovered plugin control error leaves editing available, including when the plugin throws an `AggregateError`; only failure to restore committed controls stops further mutations.
+
+The read-only transition guard stays active through UI updates and synchronous mode/history observations. Nested commands in these observers are rejected before their producers; a new command can be queued after setReadOnly returns.
 
 ## Commands from application code
 
