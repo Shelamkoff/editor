@@ -1,4 +1,5 @@
 // @ts-check
+import { ReadOnlyRecoveryError } from './ReadOnlyRecoveryError.js'
 import { cloneEditorData } from '../shared/cloneEditorData.js'
 import { getTextOffset } from '../shared/textOffset.js'
 import { InstanceScope } from './InstanceScope.js'
@@ -268,7 +269,7 @@ export class InlineProjectionRuntime {
         catch(recoveryError){failures.push(recoveryError)}
       }
       if(failures.length>1){
-        throw new AggregateError(failures,'Inline read-only transition and recovery failed')
+        throw new ReadOnlyRecoveryError(failures,'Inline read-only transition and recovery failed')
       }
       throw error
     }

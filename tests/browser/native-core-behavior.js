@@ -824,4 +824,122 @@ test('protected edit history restores the directed range captured before the DOM
   caret(editor, 'a', 2)
 })
 
+
+for (const direction of ['collapsed', 'forward', 'backward']) {
+test(`failed mode transition remount restores the ${direction} selection`, async () => {
+  const base = createParagraphPlugin()
+  let firstInstance = true
+  let armed = false
+  let transitionFailed = false
+  let rollbackFailed = false
+  const definition = {
+    ...base,
+    setup(runtimeContext) {
+      const runtime = base.setup(runtimeContext)
+      return { ...runtime, create(data, context) {
+        const faulty = firstInstance
+        firstInstance = false
+        const instance = runtime.create(data, context)
+        return { ...instance, setReadOnly(next) {
+          instance.setReadOnly(next)
+          if (!armed || !faulty) return
+          if (next && !transitionFailed) {
+            transitionFailed = true
+            throw new Error('Mode transition failed')
+          }
+          if (!next && !rollbackFailed) {
+            rollbackFailed = true
+            throw new Error('Old controls cannot recover in place')
+          }
+        } }
+      } }
+    },
+  }
+  const editor = make([para('a', 'Alpha'), para('b', 'Bravo')], { plugins: [definition], injectStyles: true })
+  const first = editableField(editor, 'a')
+  const before = editor.save().blocks
+  if (direction === 'collapsed') {
+    await clickNative(first)
+    editor.blocks.focus('a', { offset: 2 })
+  } else await dragAcross(editor, first, 1, editableField(editor, 'b'), 3, direction === 'backward')
+  const point = (node, offset) => {
+    const field = (node?.nodeType === 1 ? node : node?.parentElement)?.closest('.oe-paragraph')
+    assert(field, 'Failed mode transition lost the native selection owner')
+    return { blockId: field.closest('.oe-block').dataset.blockId, offset: getTextOffset(field, node, offset) }
+  }
+  const bookmark = () => {
+    const selection = window.getSelection()
+    return { anchor: point(selection.anchorNode, selection.anchorOffset), focus: point(selection.focusNode, selection.focusOffset) }
+  }
+  const expected = direction === 'collapsed'
+    ? { anchor: { blockId: 'a', offset: 2 }, focus: { blockId: 'a', offset: 2 } }
+    : direction === 'forward'
+      ? { anchor: { blockId: 'a', offset: 1 }, focus: { blockId: 'b', offset: 3 } }
+      : { anchor: { blockId: 'b', offset: 3 }, focus: { blockId: 'a', offset: 1 } }
+  equal(bookmark(), expected)
+  armed = true
+  let failure
+  try { editor.setReadOnly(true) } catch (error) { failure = error }
+  assert(/Mode transition failed/.test(String(failure)))
+  assert(transitionFailed && rollbackFailed, 'Fixture did not trigger recovery by remount')
+  assert(first !== editableField(editor, 'a'), 'Recovery did not recreate the faulty projection')
+  equal(editor.readOnly, false)
+  equal(editor.save().blocks, before)
+  equal(editor.canUndo, false)
+  equal(bookmark(), expected, 'Failed transition changed the directed range')
+  assert(document.activeElement === editableField(editor, expected.anchor.blockId), 'Failed transition lost field focus')
+  editor.setReadOnly(true)
+  editor.setReadOnly(false)
+  editor.blocks.update('a', current => ({ data: { ...current.data, text: 'Still editable' } }))
+  equal(editor.save().blocks[0].data.text, 'Still editable')
+})
+}
+
+
+test('inline recovery remount preserves a backward range crossing an atomic widget', async () => {
+  const base = createColorSwatchPlugin()
+  let first = true
+  let transitionFailed = false
+  let rollbackFailed = false
+  const definition = {...base,setup(runtimeContext) {
+    const runtime = base.setup(runtimeContext)
+    return {...runtime,create(...args) {
+      const faulty = first
+      first = false
+      const instance = runtime.create(...args)
+      return {...instance,setReadOnly(next) {
+        instance.setReadOnly(next)
+        if(!faulty) return
+        if(next && !transitionFailed) {transitionFailed=true;throw new Error('Inline apply failed')}
+        if(!next && transitionFailed && !rollbackFailed) {rollbackFailed=true;throw new Error('Inline rollback failed')}
+      }}
+    }}
+  }}
+  const editor = make([para('a','Alpha {{swatch}}',{inline:{swatch:{type:'color',...base.schema.encode({value:'#4357b4'})}}}),para('b','Bravo')],{inlinePlugins:[definition],injectStyles:true})
+  const before = editor.save().blocks
+  const oldWidget = blockElement(editor,'a').querySelector('.oe-ip--color')
+  await dragAcross(editor,editableField(editor,'a'),1,editableField(editor,'b'),3,true)
+  const bookmark = () => {
+    const selection = window.getSelection()
+    const point = (node, offset) => {
+      const field = (node?.nodeType === 1 ? node : node?.parentElement)?.closest('.oe-paragraph')
+      assert(field,'Inline recovery lost the native selection owner')
+      return {blockId:field.closest('.oe-block').dataset.blockId,offset:getTextOffset(field,node,offset)}
+    }
+    return {anchor:point(selection.anchorNode,selection.anchorOffset),focus:point(selection.focusNode,selection.focusOffset)}
+  }
+  const expected = {anchor:{blockId:'b',offset:3},focus:{blockId:'a',offset:1}}
+  equal(bookmark(),expected)
+  let failure
+  try {editor.setReadOnly(true)} catch(error) {failure=error}
+  assert(/Inline apply failed/.test(String(failure)))
+  assert(oldWidget !== blockElement(editor,'a').querySelector('.oe-ip--color'))
+  equal(editor.save().blocks,before)
+  equal(editor.readOnly,false)
+  equal(editor.canUndo,false)
+  equal(bookmark(),expected)
+  assert(document.activeElement === editableField(editor,'b'))
+  equal(blockElement(editor,'a').querySelector('.oe-ip--color').tabIndex,0)
+})
+
 await run()

@@ -1,0 +1,167 @@
+{
+  "date": "2026-10-05",
+  "branch": "refactor/rector-v2-architecture",
+  "base": "1fc93ab42ffa95aacb06ba48c1ef9619e9172e4f",
+  "node": {
+    "total": 428,
+    "passed": 428,
+    "failed": 0,
+    "skipped": 0
+  },
+  "browser": {
+    "pages": [
+      "harness-contract.html",
+      "runtime-contracts.html",
+      "roundtrip.html",
+      "roundtrip-trusted-types.html",
+      "person-avatar-csp.html",
+      "history.html",
+      "selection.html",
+      "lifecycle.html",
+      "security.html",
+      "trusted-types.htm",
+      "action-label-security.html",
+      "audit-regressions.html",
+      "attaches-abort-urls.html",
+      "embed-service-registry.html",
+      "person-social-registry.html",
+      "gallery-layout-registry.html",
+      "mention.html",
+      "mention-session-race.html",
+      "poll.html",
+      "carousel.html",
+      "plugin-surfaces.html",
+      "imports.html",
+      "slash.html",
+      "selection-convert.html"
+    ]
+  },
+  "native": {
+    "total": 942,
+    "suites": [
+      {
+        "name": "nativeTextInput",
+        "total": 42,
+        "passed": 42,
+        "failures": []
+      },
+      {
+        "name": "nativeTools",
+        "total": 24,
+        "passed": 24,
+        "failures": []
+      },
+      {
+        "name": "nativeClipboard",
+        "total": 7,
+        "passed": 7,
+        "failures": []
+      },
+      {
+        "name": "nativeIme",
+        "total": 9,
+        "passed": 9,
+        "failures": []
+      },
+      {
+        "name": "nativeConversion",
+        "total": 7,
+        "passed": 7,
+        "failures": []
+      },
+      {
+        "name": "nativeBlockMenus",
+        "total": 8,
+        "passed": 8,
+        "failures": []
+      },
+      {
+        "name": "nativeStructural",
+        "total": 21,
+        "passed": 21,
+        "failures": []
+      },
+      {
+        "name": "nativeCrossSelection",
+        "total": 32,
+        "passed": 32,
+        "failures": []
+      },
+      {
+        "name": "nativeCoreBehavior",
+        "total": 53,
+        "passed": 53,
+        "failures": []
+      },
+      {
+        "name": "nativePluginParity",
+        "total": 139,
+        "passed": 139,
+        "failures": []
+      },
+      {
+        "name": "nativePluginControls",
+        "total": 141,
+        "passed": 141,
+        "failures": []
+      },
+      {
+        "name": "nativePluginRanges",
+        "total": 116,
+        "passed": 116,
+        "failures": []
+      },
+      {
+        "name": "nativePluginLocalRanges",
+        "total": 76,
+        "passed": 76,
+        "failures": []
+      },
+      {
+        "name": "nativePluginClipboard",
+        "total": 48,
+        "passed": 48,
+        "failures": []
+      },
+      {
+        "name": "nativePluginFieldClipboard",
+        "total": 68,
+        "passed": 68,
+        "failures": []
+      },
+      {
+        "name": "nativePluginMedia",
+        "total": 67,
+        "passed": 67,
+        "failures": []
+      },
+      {
+        "name": "nativePluginDesign",
+        "total": 84,
+        "passed": 84,
+        "failures": []
+      }
+    ]
+  },
+  "heap": {
+    "sentinels": 21,
+    "retained": 0,
+    "usedHeapMiB": 12.44,
+    "embedderHeapMiB": 1.35,
+    "snapshotMiB": 24.41
+  },
+  "checks": {
+    "typecheck": "PASS",
+    "build": "263 declarations, 0 source diagnostics",
+    "types": "6 PASS",
+    "package": "PASS",
+    "docsContracts": "PASS",
+    "builtDocs": "123 pages, 0 broken links/missing assets"
+  },
+  "manual": {
+    "deletionUndoRedo": "PASS before final control-only fixes",
+    "finalScreenshot": "not obtained; existing IAB tab moved to data: error page and URL policy rejected reading it"
+  },
+  "interruptedRun": "CDP Runtime.evaluate timeout; retry completed on unchanged runtime",
+  "demo": "http://127.0.0.1:5173/ru/#demo"
+}

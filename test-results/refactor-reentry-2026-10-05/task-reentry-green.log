@@ -1,0 +1,16 @@
+✔ staged scope permits detached reads but rejects persisted mutation before producer (7.3877ms)
+✔ revoked scope makes retained mutation callbacks inert before producer and revokes reads (0.8311ms)
+✔ data task commits against latest live data once (1.3236ms)
+✔ read-only epoch cancels old tasks permanently across true to false transition (0.7117ms)
+✔ generation and phase guards prevent stale or reentrant task producers (0.7116ms)
+✔ parent revoke and read-only propagate to child scopes and tasks (1.0796ms)
+✔ validation or producer failure closes the task without retry (0.7271ms)
+✔ data task rejects a recursive commit before invoking its second producer (0.836ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 228.3507

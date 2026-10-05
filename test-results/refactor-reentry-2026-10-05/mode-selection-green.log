@@ -1,0 +1,1 @@
+{"native-core-behavior.html":[{"name":"failed mode transition remount restores the collapsed selection","status":"PASS"},{"name":"failed mode transition remount restores the forward selection","status":"PASS"},{"name":"failed mode transition remount restores the backward selection","status":"PASS"}]}

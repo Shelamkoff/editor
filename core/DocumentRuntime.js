@@ -1,4 +1,5 @@
 // @ts-check
+import { ReadOnlyRecoveryError } from './ReadOnlyRecoveryError.js'
 import { cloneEditorData } from '../shared/cloneEditorData.js'
 import { decodeCurrentBlock, decodeCurrentDocument, decodeCurrentInlineMap } from '../shared/DocumentSchema.js'
 import { DOCUMENT_FORMAT_VERSION } from '../shared/documentFormat.js'
@@ -599,38 +600,40 @@ export class DocumentRuntime {
   update(id, producer, authority = 'interaction') {
     this.#assertMutationAuthority(authority)
     if (typeof producer !== 'function') throw new TypeError('Block update producer must be a function')
-    const current = this.#store.get(id)
-    if (!current) throw new Error(`Unknown block id: ${id}`)
-    if (this.activation(id)?.kind !== 'active') {
-      throw new Error(`Unregistered block cannot be updated: ${id}`)
-    }
-    const definition = this.#registry.getBlockDefinition(current.type)
-    if (!definition) throw new Error(`Unknown block type: ${current.type}`)
-
-    const snapshot = cloneEditorData(current)
-    const patch = producer(snapshot) ?? {}
-    if (!patch || typeof patch !== 'object' || Array.isArray(patch)) {
-      throw new TypeError('Block update producer must return an object')
-    }
-    if (Object.hasOwn(patch, 'type') || Object.hasOwn(patch, 'id') || Object.hasOwn(patch, 'inline')) {
-      throw new TypeError('Block update cannot change id, type, or inline payload')
-    }
-
-    const nextData = Object.hasOwn(patch, 'data') ? patch.data : current.data
-    const nextTunes = Object.hasOwn(patch, 'tunes')
-      ? (patch.tunes === null ? undefined : patch.tunes)
-      : current.tunes
-    const next = this.#recordFromData(
-      id, current.type, definition, nextData, nextTunes, current.inline,
-    )
-
-    if (
-      current.dataVersion === next.dataVersion
-      && sameJson(current.data, next.data)
-      && sameJson(current.tunes, next.tunes)
-      && sameJson(current.inline, next.inline)
-    ) return
     this.#engine.execute({ origin: 'external', name: 'block.update' }, tx => {
+      const current = tx.get(id)
+      if (!current) throw new Error(`Unknown block id: ${id}`)
+      if (!this.#registry.hasBlock(current.type)) {
+        throw new Error(`Unregistered block cannot be updated: ${id}`)
+      }
+      const definition = this.#registry.getBlockDefinition(current.type)
+      if (!definition) throw new Error(`Unknown block type: ${current.type}`)
+
+      const snapshot = cloneEditorData(current)
+      const patch = producer(snapshot) ?? {}
+      if (!patch || typeof patch !== 'object' || Array.isArray(patch)) {
+        throw new TypeError('Block update producer must return an object')
+      }
+      if (Object.hasOwn(patch, 'type') || Object.hasOwn(patch, 'id') || Object.hasOwn(patch, 'inline')) {
+        throw new TypeError('Block update cannot change id, type, or inline payload')
+      }
+
+      const latest = tx.get(id)
+      if (!latest || latest.type !== current.type) throw new Error('Block update target changed during its producer')
+      const nextData = Object.hasOwn(patch, 'data') ? patch.data : latest.data
+      const nextTunes = Object.hasOwn(patch, 'tunes')
+        ? (patch.tunes === null ? undefined : patch.tunes)
+        : latest.tunes
+      const next = this.#recordFromData(
+        id, current.type, definition, nextData, nextTunes, latest.inline,
+      )
+
+      if (
+        latest.dataVersion === next.dataVersion
+        && sameJson(latest.data, next.data)
+        && sameJson(latest.tunes, next.tunes)
+        && sameJson(latest.inline, next.inline)
+      ) return
       tx.update(id, next)
     })
   }
@@ -878,15 +881,18 @@ export class DocumentRuntime {
 
   setReadOnly(value) {
     this.#assertHostMutation()
+    if (typeof value !== 'boolean') throw new TypeError('setReadOnly() requires a boolean')
     if (this.#engine.phase !== 'idle') throw new Error(`Cannot change read-only mode during ${this.#engine.phase} phase`)
     const next = value === true
     if (next === this.#readOnly) return
+    const selectionBefore = this.#captureSelection()
     this.#changingReadOnly = true
     try {
       this.#projector?.setReadOnly?.(next)
       this.#readOnly = next
     } catch (error) {
-      if (error instanceof AggregateError) this.#controlFailed = true
+      if (error instanceof ReadOnlyRecoveryError) this.#controlFailed = true
+      this.#restoreSelection(selectionBefore)
       throw error
     } finally {
       this.#changingReadOnly = false
@@ -1831,29 +1837,36 @@ export class DocumentRuntime {
   updateInlineWidget(blockId, inlineId, producer) {
     this.#assertInteractionMutation()
     if (typeof producer !== 'function') throw new TypeError('Inline widget update producer must be a function')
-    const current = this.#store.get(blockId)
-    if (!current) throw new Error(`Unknown block id: ${blockId}`)
-    if (this.activation(blockId)?.kind !== 'active') throw new Error(`Unregistered block cannot be updated: ${blockId}`)
-    const inline = cloneInline(current.inline) ?? {}
-    const ref = Object.hasOwn(inline, inlineId) ? inline[inlineId] : undefined
-    if (!ref || typeof ref !== 'object' || Array.isArray(ref) || typeof ref.type !== 'string') {
-      throw new Error(`Unknown inline widget id: ${inlineId}`)
-    }
-    const definition = this.#registry.getInlineDefinition(ref.type)
-    if (!definition) throw new Error(`Unknown inline widget type: ${ref.type}`)
-    const decoded = definition.schema.decode({ dataVersion: ref.dataVersion, data: ref.data })
-    const nextData = producer(cloneEditorData(decoded.data))
-    const encoded = definition.schema.encode(nextData)
-    inline[inlineId] = {
-      type: ref.type,
-      dataVersion: encoded.dataVersion,
-      data: encoded.data,
-    }
-    const blockDefinition = this.#registry.getBlockDefinition(current.type)
-    const next = this.#recordFromData(
-      current.id, current.type, blockDefinition, current.data, current.tunes, inline,
-    )
-    this.#engine.execute({ origin: 'plugin', name: 'inline-widget.update' }, tx => tx.update(blockId, next))
+    this.#engine.execute({ origin: 'plugin', name: 'inline-widget.update' }, tx => {
+      const current = tx.get(blockId)
+      if (!current) throw new Error(`Unknown block id: ${blockId}`)
+      if (!this.#registry.hasBlock(current.type)) throw new Error(`Unregistered block cannot be updated: ${blockId}`)
+      const ref = Object.hasOwn(current.inline ?? {}, inlineId) ? current.inline[inlineId] : undefined
+      if (!ref || typeof ref !== 'object' || Array.isArray(ref) || typeof ref.type !== 'string') {
+        throw new Error(`Unknown inline widget id: ${inlineId}`)
+      }
+      const definition = this.#registry.getInlineDefinition(ref.type)
+      if (!definition) throw new Error(`Unknown inline widget type: ${ref.type}`)
+      const decoded = definition.schema.decode({ dataVersion: ref.dataVersion, data: ref.data })
+      const nextData = producer(cloneEditorData(decoded.data))
+      const latest = tx.get(blockId)
+      const inline = cloneInline(latest?.inline) ?? {}
+      const latestRef = Object.hasOwn(inline, inlineId) ? inline[inlineId] : undefined
+      if (!latest || latest.type !== current.type || latestRef?.type !== ref.type) {
+        throw new Error('Inline widget update target changed during its producer')
+      }
+      const encoded = definition.schema.encode(nextData)
+      inline[inlineId] = {
+        type: ref.type,
+        dataVersion: encoded.dataVersion,
+        data: encoded.data,
+      }
+      const blockDefinition = this.#registry.getBlockDefinition(current.type)
+      const next = this.#recordFromData(
+        latest.id, latest.type, blockDefinition, latest.data, latest.tunes, inline,
+      )
+      tx.update(blockId, next)
+    })
   }
 
   replaceInlineWidgetWithText(blockId, inlineId, text = '') {

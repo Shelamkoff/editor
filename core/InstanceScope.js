@@ -182,6 +182,7 @@ export class InstanceScope{
       epoch:this.#interactionEpoch,
       generation:this.#generation,
       closed:false,
+      committing:false,
     }
     this.#tasks.add(task)
 
@@ -196,7 +197,7 @@ export class InstanceScope{
       signal:controller.signal,
       commit:producer=>{
         if(typeof producer!=='function')throw new TypeError('DataTask.commit() requires a producer')
-        if(task.closed||controller.signal.aborted)return false
+        if(task.closed||task.committing||controller.signal.aborted)return false
         if(
           this.#state!=='active'
           ||this.#readOnly
@@ -210,6 +211,7 @@ export class InstanceScope{
         }
         const currentPhase=this.#phase()
         if(currentPhase!=='idle')throw new Error(`Cannot commit a data task during ${currentPhase} phase`)
+        task.committing=true
         try{
           updateData(current=>producer(snapshot(current)))
           close(false)
@@ -217,6 +219,8 @@ export class InstanceScope{
         }catch(error){
           close(true)
           throw error
+        }finally{
+          task.committing=false
         }
       },
       cancel(){close(true)},

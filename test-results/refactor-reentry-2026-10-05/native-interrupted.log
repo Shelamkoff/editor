@@ -1,0 +1,10 @@
+file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:88
+        reject(new Error(`CDP ${method} timed out`))
+               ^
+
+Error: CDP Runtime.evaluate timed out
+    at Timeout._onTimeout (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:88:16)
+    at listOnTimeout (node:internal/timers:608:17)
+    at process.processTimers (node:internal/timers:543:7)
+
+Node.js v24.9.0

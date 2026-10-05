@@ -8,6 +8,10 @@ A command synchronously prepares canonical data, projection and history before o
 
 Synchronous reentry during preparation, application or committed-event notification is rejected. Applications use `editor` and `editor.blocks`; extension instances receive scoped capabilities.
 
+Host data producers run inside the transaction builder. Nested host writes share its draft and history step; an inner error aborts the whole action even if caught. Successive updates read the latest draft, and partial patches preserve fields changed by a nested update. A producer cannot overwrite a target it removed or converted.
+
+`setReadOnly()` requires a boolean. Passing the existing value leaves controls and transient UI intact and publishes no mode or history observation. A recovered plugin control error leaves editing available, including when the plugin throws an `AggregateError`; only failure to restore committed controls stops further mutations.
+
 ## Commands from application code
 
 Commands address stable block IDs. Each call below creates one history step:
@@ -168,6 +172,8 @@ button.addEventListener('click', async () => {
   }
 }, { signal: context.signal })
 ```
+
+A failed read-only transition restores the original directed selection even when recovery recreates a block. Recursive commit of the same data task returns `false` before invoking another producer.
 
 Replacement, destruction, generation changes and entry into read-only mode revoke the task. A stale task returns `false` without invoking its producer; enabling editing never revives it.
 

@@ -1,4 +1,5 @@
 // @ts-check
+import { ReadOnlyRecoveryError } from './ReadOnlyRecoveryError.js'
 import { cloneEditorData } from '../shared/cloneEditorData.js'
 import { InstanceScope } from './InstanceScope.js'
 import { ProjectionAnimator } from './ProjectionAnimator.js'
@@ -448,7 +449,7 @@ export class BlockReconciler {
       for (const entry of this.#entries.values()) entry.scope?.setReadOnly?.(next)
       this.#readOnly = next
     } catch (error) {
-      let recoveryError = null
+      let recoveryError = error instanceof ReadOnlyRecoveryError ? error : null
       for (let index = changed.length - 1; index >= 0; index--) {
         try { changed[index].instance.setReadOnly(this.#readOnly) }
         catch (failure) { recoveryError ??= failure }
@@ -456,10 +457,10 @@ export class BlockReconciler {
       if (recoveryError && this.#store) {
         try { this.#restore(this.#store, new Map()) }
         catch (failure) {
-          throw new AggregateError([error, recoveryError, failure], 'Read-only transition and recovery failed')
+          throw new ReadOnlyRecoveryError([error, recoveryError, failure], 'Read-only transition and recovery failed')
         }
       }
-      throw error
+      throw error instanceof ReadOnlyRecoveryError ? error.errors[0] : error
     }
   }
 

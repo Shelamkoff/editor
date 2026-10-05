@@ -212,3 +212,20 @@ test('validation or producer failure closes the task without retry', () => {
   }), false)
   assert.equal(calls, 1)
 })
+
+
+test('data task rejects a recursive commit before invoking its second producer', () => {
+  const { context, data, updates } = harness({ staged: false })
+  const task = context.beginTask()
+  let nestedCalls = 0
+  const result = task.commit(current => {
+    assert.equal(task.commit(() => { nestedCalls++; return { value: 100 } }), false)
+    return { ...current, value: 2 }
+  })
+  assert.equal(result, true)
+  assert.equal(nestedCalls, 0)
+  assert.equal(updates.length, 1)
+  assert.equal(data().value, 2)
+  assert.equal(task.signal.aborted, false)
+  assert.equal(task.commit(() => { throw new Error('Already committed') }), false)
+})

@@ -1,0 +1,27 @@
+✔ failed protected projection recovery stops mutation while committed data remains readable (10.1932ms)
+✔ protected projection edits reject nested persisted writes before invoking their producer (5.2788ms)
+✔ protected projection edits cannot change read-only mode midway through the operation (1.5388ms)
+✔ host update rejects projection and publication reentry before running its producer (2.2936ms)
+✔ read-only transition rejects nested host mutation before its producer (2.0354ms)
+✔ DocumentRuntime emits save/render timing diagnostics through the canonical sink (2.242ms)
+✔ DocumentRuntime rejects a known non-current dataVersion before schema decode (1.2944ms)
+✔ invalid registered data is rejected while an unregistered current block remains inert (0.9249ms)
+✔ validation observer failures are isolated from current-format rejection (1.777ms)
+✔ local update remains schema-strict (1.2093ms)
+✔ unregistered blocks may move and remove but cannot be updated internally (1.6204ms)
+✔ editable empty documents and final-block removal materialize one default block (1.3959ms)
+✔ failed render of a non-current document is atomic and keeps history (1.1059ms)
+✔ mergeAdjacent commits data merge and source removal as one undoable transaction (2.8299ms)
+✔ unrecoverable read-only transition fails runtime but preserves committed save (0.9553ms)
+✔ discarding projection edits preserves canonical data, revision and history in read-only mode (0.8282ms)
+✔ failed discard of projection edits stops interactions and preserves committed save (1.0706ms)
+✔ host producer failure rolls back nested building writes as one atomic action (0.7394ms)
+✔ successive building updates read the current draft and undo together (1.3105ms)
+ℹ tests 19
+ℹ suites 0
+ℹ pass 19
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 297.0633

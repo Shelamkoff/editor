@@ -1,5 +1,6 @@
 import { DocumentRuntime } from '../../core/DocumentRuntime.js'
 import { test, assert as check, equal, run, make, blockElement } from './regressions/harness.js'
+import { createHeadingPlugin } from '../../plugins/heading/index.js'
 import { createParagraphPlugin } from '../../plugins/paragraph/index.js'
 import { createColorSwatchPlugin } from '../../inline-plugins/color.js'
 
@@ -454,6 +455,276 @@ test('mounted projection and committed observers reject nested host producers', 
   ])
   assert.deepEqual(editor.save().blocks.map(record => record.data.text), ['Accepted', 'Bravo'])
   assert.equal(editor.canUndo, true)
+})
+
+
+test('inline producer failure rolls back nested host updates without a history step', () => {
+  const base = createColorSwatchPlugin()
+  let context
+  const definition = { ...base, setup(runtimeContext) {
+    const runtime = base.setup(runtimeContext)
+    return { ...runtime, create(id, data, currentContext) {
+      context = currentContext
+      return runtime.create(id, data, currentContext)
+    } }
+  } }
+  const editor = make([
+    { id: 'a', type: 'paragraph', dataVersion: 2, data: {text:'Alpha {{swatch}}'}, inline: {swatch: {type:'color', ...base.schema.encode({value:'#4357b4'})}} },
+    { id: 'b', type: 'paragraph', dataVersion: 2, data: {text:'Bravo'} },
+  ], {inlinePlugins:[definition]})
+  const before = editor.save().blocks
+  let events = 0
+  editor.on('transaction:committed', () => { events++ })
+  assert.throws(() => context.updateData(() => {
+    editor.blocks.update('b', () => ({data:{text:'Nested'}}))
+    throw new Error('Inline producer failed')
+  }), /Inline producer failed/)
+  assert.deepEqual(editor.save().blocks, before)
+  assert.equal(events, 0)
+  assert.equal(editor.canUndo, false)
+  context.updateData(current => ({...current, value:'#123456'}))
+  assert.equal(editor.save().blocks[0].inline.swatch.data.value, '#123456')
+  assert.equal(events, 1)
+  assert.equal(editor.undo(), true)
+  assert.deepEqual(editor.save().blocks, before)
+})
+
+
+test('public host updates commit together and a caught nested error aborts the outer action', () => {
+  const editor = make([
+    {id:'a',type:'paragraph',dataVersion:2,data:{text:'Alpha'}},
+    {id:'b',type:'paragraph',dataVersion:2,data:{text:'Bravo'}},
+  ])
+  const before = editor.save().blocks
+  let events = 0
+  editor.on('transaction:committed', () => {events++})
+  editor.blocks.update('a', () => {
+    editor.blocks.update('b', () => ({data:{text:'Nested'}}))
+    return {data:{text:'Outer'}}
+  })
+  assert.deepEqual(editor.save().blocks.map(block => block.data.text), ['Outer','Nested'])
+  assert.equal(events, 1)
+  assert.equal(editor.undo(), true)
+  assert.deepEqual(editor.save().blocks, before)
+  assert.equal(editor.canUndo, false)
+  const eventsBeforeFailure = events
+  assert.throws(() => editor.blocks.update('a', () => {
+    try { editor.blocks.update('b', () => ({type:'heading'})) } catch {}
+    return {data:{text:'Must not commit'}}
+  }), /cannot change id, type/)
+  assert.deepEqual(editor.save().blocks, before)
+  assert.equal(events, eventsBeforeFailure)
+  assert.equal(editor.canUndo, false)
+  assert.equal(editor.canRedo, true)
+})
+
+test('mounted data task executes its producer once despite recursive commit', () => {
+  const base = createParagraphPlugin()
+  let context
+  const definition = {...base, setup(runtimeContext) {
+    const runtime = base.setup(runtimeContext)
+    return {...runtime, create(data, currentContext) {context=currentContext;return runtime.create(data,currentContext)}}
+  }}
+  const editor = make([{id:'a',type:'paragraph',dataVersion:2,data:{text:'Alpha'}}], {plugins:[definition]})
+  const before = editor.save().blocks
+  const task = context.beginTask()
+  let nestedCalls = 0
+  let events = 0
+  editor.on('transaction:committed', () => {events++})
+  assert.equal(task.commit(current => {
+    assert.equal(task.commit(() => {nestedCalls++;return {text:'Forbidden'}}), false)
+    return {...current,text:'Completed'}
+  }), true)
+  assert.equal(nestedCalls, 0)
+  assert.equal(events, 1)
+  assert.equal(task.signal.aborted, false)
+  assert.equal(editor.save().blocks[0].data.text, 'Completed')
+  assert.equal(editor.undo(), true)
+  assert.deepEqual(editor.save().blocks, before)
+})
+
+test('conversion and undo never revive an old task while a fresh task uses latest author data', async () => {
+  const base = createParagraphPlugin()
+  const contexts = []
+  const definition = {...base, setup(runtimeContext) {
+    const runtime = base.setup(runtimeContext)
+    return {...runtime, create(data, context) {contexts.push(context);return runtime.create(data,context)}}
+  }}
+  const editor = make([{id:'a',type:'paragraph',dataVersion:2,data:{text:'Alpha'}}], {plugins:[definition,createHeadingPlugin()]})
+  const before = editor.save().blocks
+  const task = contexts[0].beginTask()
+  editor.blocks.convert('a', {type:'heading',toolboxItemId:'h3'})
+  assert.equal(editor.save().blocks[0].type, 'heading')
+  assert.equal(task.signal.aborted, true)
+  assert.equal(editor.undo(), true)
+  assert.deepEqual(editor.save().blocks, before)
+  await Promise.resolve()
+  let staleCalls = 0
+  assert.equal(task.commit(() => {staleCalls++;return {text:'Late'}}), false)
+  assert.equal(staleCalls, 0)
+  const fresh = contexts.at(-1).beginTask()
+  editor.blocks.update('a', () => ({data:{text:'Latest'}}))
+  assert.equal(fresh.commit(current => ({...current,text:current.text+' result'})), true)
+  assert.equal(editor.save().blocks[0].data.text, 'Latest result')
+})
+
+
+test('inline producer preserves a nested update of its containing author text', () => {
+  const base = createColorSwatchPlugin()
+  let context
+  const definition = {...base,setup(runtimeContext) {
+    const runtime = base.setup(runtimeContext)
+    return {...runtime,create(id,data,currentContext) {context=currentContext;return runtime.create(id,data,currentContext)}}
+  }}
+  const editor = make([{id:'a',type:'paragraph',dataVersion:2,data:{text:'Alpha {{swatch}}'},inline:{swatch:{type:'color',...base.schema.encode({value:'#4357b4'})}}}],{inlinePlugins:[definition]})
+  const before = editor.save().blocks
+  context.updateData(current => {
+    editor.blocks.update('a', () => ({data:{text:'Latest {{swatch}}'}}))
+    return {...current,value:'#123456'}
+  })
+  assert.equal(editor.save().blocks[0].data.text,'Latest {{swatch}}')
+  assert.equal(editor.save().blocks[0].inline.swatch.data.value,'#123456')
+  assert.equal(editor.undo(),true)
+  assert.deepEqual(editor.save().blocks,before)
+  assert.equal(editor.canUndo,false)
+})
+
+
+test('public producer cannot overwrite a block it converted during building', () => {
+  const editor = make([{id:'a',type:'paragraph',dataVersion:2,data:{text:'Alpha'}}],{plugins:[createParagraphPlugin(),createHeadingPlugin()]})
+  const before = editor.save().blocks
+  assert.throws(() => editor.blocks.update('a', () => {
+    editor.blocks.convert('a',{type:'heading',toolboxItemId:'h3'})
+    return {data:{text:'Stale'}}
+  }), /target changed during its producer/)
+  assert.deepEqual(editor.save().blocks,before)
+  assert.equal(blockElement(editor,'a').querySelector('.oe-paragraph').textContent,'Alpha')
+  assert.equal(editor.canUndo,false)
+})
+
+
+for (const kind of ['block','inline']) test(`recoverable ${kind} AggregateError does not revoke healthy mutation authority`, () => {
+  const base = kind === 'block' ? createParagraphPlugin() : createColorSwatchPlugin()
+  let failOnce = true
+  const original = new AggregateError([new Error('Provider A'),new Error('Provider B')], 'Plugin control failed')
+  const definition = {...base,setup(runtimeContext) {
+    const runtime = base.setup(runtimeContext)
+    const wrap = instance => ({...instance,setReadOnly(next) {
+      instance.setReadOnly(next)
+      if(next && failOnce) {failOnce=false;throw original}
+    }})
+    return {...runtime,create(...args) {return wrap(runtime.create(...args))}}
+  }}
+  const color = createColorSwatchPlugin()
+  const editor = make([{id:'a',type:'paragraph',dataVersion:2,data:{text:'Alpha {{swatch}}'},inline:{swatch:{type:'color',...color.schema.encode({value:'#4357b4'})}}}],{
+    plugins:[kind === 'block' ? definition : createParagraphPlugin()],inlinePlugins:[kind === 'inline' ? definition : color],
+  })
+  const before = editor.save().blocks
+  let failure
+  try {editor.setReadOnly(true)} catch(error) {failure=error}
+  assert.equal(failure,original)
+  assert.equal(editor.readOnly,false)
+  assert.equal(blockElement(editor,'a').querySelector('.oe-paragraph').contentEditable,'true')
+  assert.equal(blockElement(editor,'a').querySelector('.oe-ip--color').tabIndex,0)
+  assert.deepEqual(editor.save().blocks,before)
+  editor.blocks.update('a',() => ({data:{text:'Still editable {{swatch}}'}}))
+  assert.equal(editor.save().blocks[0].data.text,'Still editable {{swatch}}')
+  assert.equal(editor.undo(),true)
+  assert.deepEqual(editor.save().blocks,before)
+})
+
+test('failed inline control rollback can recover by recreating committed widgets', () => {
+  const base = createColorSwatchPlugin()
+  let first = true
+  let transitionFailed = false
+  let rollbackFailed = false
+  const definition = {...base,setup(runtimeContext) {
+    const runtime = base.setup(runtimeContext)
+    return {...runtime,create(...args) {
+      const faulty = first
+      first = false
+      const instance = runtime.create(...args)
+      return {...instance,setReadOnly(next) {
+        instance.setReadOnly(next)
+        if(!faulty) return
+        if(next && !transitionFailed) {transitionFailed=true;throw new Error('Inline apply failed')}
+        if(!next && transitionFailed && !rollbackFailed) {rollbackFailed=true;throw new Error('Inline in-place rollback failed')}
+      }}
+    }}
+  }}
+  const editor = make([{id:'a',type:'paragraph',dataVersion:2,data:{text:'Alpha {{swatch}}'},inline:{swatch:{type:'color',...base.schema.encode({value:'#4357b4'})}}}],{inlinePlugins:[definition]})
+  const before = editor.save().blocks
+  const oldWidget = blockElement(editor,'a').querySelector('.oe-ip--color')
+  assert.throws(() => editor.setReadOnly(true), /Inline apply failed/)
+  assert.ok(transitionFailed && rollbackFailed)
+  assert.ok(oldWidget !== blockElement(editor,'a').querySelector('.oe-ip--color'),'Inline recovery did not recreate the failed widget')
+  assert.equal(editor.readOnly,false)
+  assert.equal(blockElement(editor,'a').querySelector('.oe-ip--color').tabIndex,0)
+  assert.deepEqual(editor.save().blocks,before)
+  editor.blocks.update('a',() => ({data:{text:'Fresh {{swatch}}'}}))
+  assert.equal(editor.save().blocks[0].data.text,'Fresh {{swatch}}')
+})
+
+test('same-value read-only calls do not publish phantom state or history changes', () => {
+  const editor = make([{id:'a',type:'paragraph',dataVersion:2,data:{text:'Alpha'}}])
+  const modes = []
+  const histories = []
+  editor.on('readOnly:changed',event => {modes.push(event.readOnly)})
+  editor.on('history:changed',event => {histories.push(event)})
+  editor.setReadOnly(false)
+  assert.deepEqual(modes,[])
+  assert.deepEqual(histories,[])
+  editor.setReadOnly(true)
+  editor.setReadOnly(true)
+  editor.setReadOnly(false)
+  editor.setReadOnly(false)
+  assert.deepEqual(modes,[true,false])
+  assert.equal(histories.length,2)
+})
+
+test('public read-only transition rejects nonboolean values without unlocking authoring', () => {
+  const editor = make([{id:'a',type:'paragraph',dataVersion:2,data:{text:'Alpha'}}],{readOnly:true})
+  let changes = 0
+  editor.on('readOnly:changed',() => {changes++})
+  for(const value of [undefined,null,0,1,'false','true',{},[]]) {
+    assert.throws(() => editor.setReadOnly(value), /boolean/)
+    assert.equal(editor.readOnly,true)
+  }
+  assert.equal(changes,0)
+  assert.equal(blockElement(editor,'a').querySelector('.oe-paragraph').contentEditable,'false')
+})
+
+
+test('irrecoverable inline controls stop producers but preserve the committed document and failure causes', () => {
+  const base = createColorSwatchPlugin()
+  let transitionFailed = false
+  let remountFails = false
+  const remountError = new Error('Inline remount failed')
+  const definition = {...base,setup(runtimeContext) {
+    const runtime = base.setup(runtimeContext)
+    return {...runtime,create(...args) {
+      if(remountFails) throw remountError
+      const instance = runtime.create(...args)
+      return {...instance,setReadOnly(next) {
+        instance.setReadOnly(next)
+        if(next) {transitionFailed=true;throw new Error('Inline apply failed')}
+        if(transitionFailed) {remountFails=true;throw new Error('Inline rollback failed')}
+      }}
+    }}
+  }}
+  const editor = make([{id:'a',type:'paragraph',dataVersion:2,data:{text:'Alpha {{swatch}}'},inline:{swatch:{type:'color',...base.schema.encode({value:'#4357b4'})}}}],{inlinePlugins:[definition]})
+  const before = editor.save().blocks
+  let failure
+  try {editor.setReadOnly(true)} catch(error) {failure=error}
+  assert.ok(failure instanceof AggregateError)
+  assert.deepEqual(failure.errors[0].errors.map(error => error.message),['Inline apply failed','Inline rollback failed'])
+  assert.ok(failure.errors.at(-1) === remountError)
+  assert.equal(editor.readOnly,false)
+  assert.deepEqual(editor.save().blocks,before)
+  let calls = 0
+  assert.throws(() => editor.blocks.update('a',() => {calls++;return {data:{text:'Late'}}}), /failed/)
+  assert.equal(calls,0)
+  assert.equal(editor.canUndo,false)
 })
 
 await run()

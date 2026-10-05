@@ -1,0 +1,39 @@
+✔ failed protected projection recovery stops mutation while committed data remains readable (10.2067ms)
+✔ protected projection edits reject nested persisted writes before invoking their producer (4.8274ms)
+✔ protected projection edits cannot change read-only mode midway through the operation (1.2715ms)
+✔ host update rejects projection and publication reentry before running its producer (2.1618ms)
+✔ read-only transition rejects nested host mutation before its producer (1.4297ms)
+✔ DocumentRuntime emits save/render timing diagnostics through the canonical sink (1.3759ms)
+✔ DocumentRuntime rejects a known non-current dataVersion before schema decode (1.0668ms)
+✔ invalid registered data is rejected while an unregistered current block remains inert (1.0019ms)
+✔ validation observer failures are isolated from current-format rejection (2.438ms)
+✔ local update remains schema-strict (1.1886ms)
+✔ unregistered blocks may move and remove but cannot be updated internally (3.0415ms)
+✔ editable empty documents and final-block removal materialize one default block (2.1924ms)
+✔ failed render of a non-current document is atomic and keeps history (1.1423ms)
+✔ mergeAdjacent commits data merge and source removal as one undoable transaction (2.4146ms)
+✔ unrecoverable read-only transition fails runtime but preserves committed save (1.7052ms)
+✔ discarding projection edits preserves canonical data, revision and history in read-only mode (0.7129ms)
+✔ failed discard of projection edits stops interactions and preserves committed save (0.4545ms)
+✔ host producer failure rolls back nested building writes as one atomic action (0.8694ms)
+✔ successive building updates read the current draft and undo together (1.5473ms)
+✔ caught nested producer validation failure still aborts the outer action (0.9241ms)
+✔ outer partial update preserves author data changed by a nested update of the same block (1.186ms)
+✔ producer cannot overwrite a target it removed (5.7194ms)
+✔ read-only mode accepts booleans only and keeps the requested state on invalid input (1.0515ms)
+✔ staged scope permits detached reads but rejects persisted mutation before producer (5.0056ms)
+✔ revoked scope makes retained mutation callbacks inert before producer and revokes reads (0.8627ms)
+✔ data task commits against latest live data once (1.1186ms)
+✔ read-only epoch cancels old tasks permanently across true to false transition (0.8004ms)
+✔ generation and phase guards prevent stale or reentrant task producers (0.8427ms)
+✔ parent revoke and read-only propagate to child scopes and tasks (0.8358ms)
+✔ validation or producer failure closes the task without retry (0.9272ms)
+✔ data task rejects a recursive commit before invoking its second producer (0.6543ms)
+ℹ tests 31
+ℹ suites 0
+ℹ pass 31
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 309.5257

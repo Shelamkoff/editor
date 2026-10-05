@@ -1,0 +1,83 @@
+{
+  "date": "2026-10-05",
+  "branch": "refactor/rector-v2-architecture",
+  "base": "1fc93ab42ffa95aacb06ba48c1ef9619e9172e4f",
+  "note": "SHA-256 of local working-copy bytes before Git newline normalization; reports edited after runtime gates.",
+  "files": [
+    {
+      "path": "LOCAL-VERIFICATION.md",
+      "bytes": 6417,
+      "sha256": "37558cc6cf6e672cd32c4a9beca760a9567f976e4f739a0ccfee4ce2f3516368"
+    },
+    {
+      "path": "RECTOR_V2_FOLLOWUP_2026-10-05.md",
+      "bytes": 13083,
+      "sha256": "b2267210ab8c699af8e6d7a6500888afaa812c79f33bee3417e713aff1771fec"
+    },
+    {
+      "path": "RECTOR_V2_REENTRY_AUDIT_2026-10-05.md",
+      "bytes": 11978,
+      "sha256": "c17e9ee71fee7cb02f234e9a3d8bcf3301cbd98edf15adf35e9e8d131090427b"
+    },
+    {
+      "path": "core/BlockReconciler.js",
+      "bytes": 23394,
+      "sha256": "82d50c14231778363785e21640f7d04509104fbfcae31a7792df8536646a338f"
+    },
+    {
+      "path": "core/DocumentRuntime.js",
+      "bytes": 114263,
+      "sha256": "91d504308f0d80a68f13088a8515e787666020df6c8d8f99a7e1dbe7cd4860b3"
+    },
+    {
+      "path": "core/DocumentRuntime.test.js",
+      "bytes": 21907,
+      "sha256": "744d3cc6a68b36d6ed45621c107799d51fb4e253e3c436d2c1b8601e7a95c873"
+    },
+    {
+      "path": "core/InlineProjectionRuntime.js",
+      "bytes": 15391,
+      "sha256": "03bd6962e1245b164ae8d0a665e7d651434b68a1f35e8665869c27a2508144d0"
+    },
+    {
+      "path": "core/InstanceScope.js",
+      "bytes": 7841,
+      "sha256": "4d822dc1b8265eaf2cb7dbcbb955b05316575da7bbb8c3b60adbe3fa4394e14c"
+    },
+    {
+      "path": "core/InstanceScope.test.js",
+      "bytes": 7262,
+      "sha256": "fec586ebb1f531b09ea4d46aca9e1155a80ad13ee0ce94a33335196175586ca1"
+    },
+    {
+      "path": "core/ReadOnlyRecoveryError.js",
+      "bytes": 232,
+      "sha256": "c95939dfc37b401a1bd9bb3085f891a04a9d34b18bddbca35233d9a0080cff74"
+    },
+    {
+      "path": "core/createEditorRuntime.js",
+      "bytes": 20258,
+      "sha256": "a99ffc039ca3c2c413cdc56bb775115859c18af97021e0a9421c90ba416a4857"
+    },
+    {
+      "path": "docs/guide/commands-history.md",
+      "bytes": 14995,
+      "sha256": "1e85e97084d21d1b12f8648f92f42108fca647a2c00af1ffcc82128e3ebb364f"
+    },
+    {
+      "path": "docs/ru/guide/commands-history.md",
+      "bytes": 25992,
+      "sha256": "bc2f42e4275fe3f307dd76c2ad1af79c85340e125af0ba8ade1666dfcb7075fe"
+    },
+    {
+      "path": "tests/browser/native-core-behavior.js",
+      "bytes": 45491,
+      "sha256": "91caf60c343f2e9ec5037fbf2f232e2735eecae043014282f1e7a48baa1c8d14"
+    },
+    {
+      "path": "tests/browser/runtime-contracts.js",
+      "bytes": 29758,
+      "sha256": "5883af1308ff5ad7db91a66695364c3cf54e5ae83be4b9f138013c1378b0f931"
+    }
+  ]
+}

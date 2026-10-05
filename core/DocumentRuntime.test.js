@@ -2,6 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 
 import { DocumentRuntime } from './DocumentRuntime.js'
+import { ReadOnlyRecoveryError } from './ReadOnlyRecoveryError.js'
 
 function schema(options = {}) {
   return {
@@ -441,7 +442,7 @@ test('unrecoverable read-only transition fails runtime but preserves committed s
       return { apply() {}, recover() {}, finalize() {}, discard() {} }
     },
     setReadOnly() {
-      if (fail) throw new AggregateError([new Error('apply'), new Error('recover')], 'readOnly recovery failed')
+      if (fail) throw new ReadOnlyRecoveryError([new Error('apply'), new Error('recover')], 'readOnly recovery failed')
     },
     destroy() {},
   }
@@ -493,5 +494,90 @@ test('failed discard of projection edits stops interactions and preserves commit
   assert.equal(runtime.health, 'failed')
   assert.equal(runtime.save().blocks[0].data.text, 'Committed')
   assert.throws(() => runtime.update('a', () => ({ data: { text: 'Later' } })), /DocumentRuntime is failed/)
+  runtime.destroy()
+})
+
+
+test('host producer failure rolls back nested building writes as one atomic action', () => {
+  const runtime = new DocumentRuntime({ registry: registry([paragraphDefinition()]), data: { version: '2.0.0', blocks: [block('a'), block('b')] } })
+  const before = runtime.save().blocks
+  assert.throws(() => runtime.update('a', () => {
+    runtime.update('b', () => ({ data: { text: 'Nested' } }), 'host')
+    throw new Error('Outer producer failed')
+  }, 'host'), /Outer producer failed/)
+  assert.deepEqual(runtime.save().blocks, before)
+  assert.equal(runtime.revision, 0)
+  assert.equal(runtime.canUndo, false)
+  runtime.destroy()
+})
+
+test('successive building updates read the current draft and undo together', () => {
+  const runtime = new DocumentRuntime({ registry: registry([paragraphDefinition()]), data: { version: '2.0.0', blocks: [block('a', {text:'A'})] } })
+  const before = runtime.save().blocks
+  runtime.interact('combined', () => {
+    runtime.update('a', current => ({ data: { text: current.data.text + 'B' } }), 'host')
+    runtime.update('a', current => ({ data: { text: current.data.text + 'C' } }), 'host')
+  })
+  assert.equal(runtime.get('a').data.text, 'ABC')
+  assert.equal(runtime.revision, 1)
+  assert.equal(runtime.undo(), true)
+  assert.deepEqual(runtime.save().blocks, before)
+  assert.equal(runtime.canUndo, false)
+  runtime.destroy()
+})
+
+
+test('caught nested producer validation failure still aborts the outer action', () => {
+  const runtime = new DocumentRuntime({registry:registry([paragraphDefinition()]), data:{version:'2.0.0', blocks:[block('a'),block('b')]}})
+  const before = runtime.save().blocks
+  assert.throws(() => runtime.update('a', () => {
+    try { runtime.update('b', () => ({data:{text:123}}), 'host') } catch {}
+    return {data:{text:'Outer'}}
+  }, 'host'), /text required/)
+  assert.deepEqual(runtime.save().blocks, before)
+  assert.equal(runtime.revision, 0)
+  assert.equal(runtime.canUndo, false)
+  runtime.destroy()
+})
+
+
+test('outer partial update preserves author data changed by a nested update of the same block', () => {
+  const runtime = new DocumentRuntime({registry:registry([paragraphDefinition()]), data:{version:'2.0.0',blocks:[block('a',{text:'Alpha'})]}})
+  const before = runtime.save().blocks
+  runtime.update('a', () => {
+    runtime.update('a', () => ({data:{text:'Nested author text'}}), 'host')
+    return {tunes:{textAlign:'center'}}
+  }, 'host')
+  assert.equal(runtime.get('a').data.text, 'Nested author text')
+  assert.deepEqual(runtime.get('a').tunes, {textAlign:'center'})
+  assert.equal(runtime.revision, 1)
+  runtime.undo()
+  assert.deepEqual(runtime.save().blocks, before)
+  runtime.destroy()
+})
+
+
+test('producer cannot overwrite a target it removed', () => {
+  const runtime = new DocumentRuntime({registry:registry([paragraphDefinition()]), data:{version:'2.0.0',blocks:[block('a')]}})
+  const before = runtime.save().blocks
+  assert.throws(() => runtime.update('a', () => {
+    runtime.remove('a','host')
+    return {data:{text:'Stale target'}}
+  },'host'), /target changed during its producer/)
+  assert.deepEqual(runtime.save().blocks,before)
+  assert.equal(runtime.revision,0)
+  assert.equal(runtime.canUndo,false)
+  runtime.destroy()
+})
+
+
+test('read-only mode accepts booleans only and keeps the requested state on invalid input', () => {
+  const runtime = new DocumentRuntime({registry:registry([paragraphDefinition()]),readOnly:true,data:{version:'2.0.0',blocks:[block('a')]}})
+  for(const value of [undefined,null,0,1,'false','true',{},[]]) {
+    assert.throws(() => runtime.setReadOnly(value), /requires a boolean/)
+    assert.equal(runtime.readOnly,true)
+  }
+  runtime.setReadOnly(false)
+  assert.equal(runtime.readOnly,false)
   runtime.destroy()
 })

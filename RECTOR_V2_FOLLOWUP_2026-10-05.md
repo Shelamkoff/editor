@@ -1,5 +1,7 @@
 # Продолжение проверки Rector v2 — 05.10.2026
 
+Более поздняя итерация: [повторная проверка с 942 native cases и 428 Node tests](RECTOR_V2_REENTRY_AUDIT_2026-10-05.md). Этот отчёт сохраняет результаты предыдущего среза.
+
 Ветка `refactor/rector-v2-architecture`. База — опубликованный `cf97ac6f19496cdd30cce8f998d4ee7297f3b2a1`. Результаты относятся к исправлениям этой итерации поверх него; SHA-256 изменённых локальных файлов — в [source-manifest.json](test-results/refactor-followup-2026-10-05/source-manifest.json). Прогон выполнен локально в Windows/Chrome, не в CI исходного коммита.
 
 Предыдущая итерация: [934 native cases и 419 Node tests](RECTOR_V2_RECHECK_2026-10-05.md). База v1 остаётся `master`, `5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340`; [матрица ядра](RECTOR_V2_CORE_PARITY_2026-10-04.md) и [матрица 21 плагина](RECTOR_V2_PLUGIN_PARITY_2026-10-04.md) повторно пройдены. Error/lifecycle outcomes оцениваются также по [контракту v2](RECTOR_V2_REMEDIATION_SPEC.md), а не по отсутствию подобных guards в v1.

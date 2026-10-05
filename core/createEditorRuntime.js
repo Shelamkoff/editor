@@ -507,7 +507,9 @@ export function createEditorRuntime(input){
     emit('editor:destroyed')
   }
   const setReadOnly=value=>{
+    const previous=runtime.readOnly
     runtime.setReadOnly(value)
+    if(runtime.readOnly===previous)return
     popup.setReadOnly(runtime.readOnly)
     applyReadOnly(root,runtime.readOnly)
     toolbar?.setReadOnly(runtime.readOnly)
