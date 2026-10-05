@@ -1,0 +1,16 @@
+file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149
+    if (result.status === 'fail') throw new Error(`History matrix failed: ${result.summary}`)
+                                        ^
+
+Error: History matrix failed: [
+  {
+    "name": "native keyboard menu opening after a cancelled Add gesture uses the current local selection",
+    "status": "FAIL",
+    "error": "Error: Menu reused the old cross-block range after the gesture was cancelled\nexpected [[\"paragraph\",\"A<b>lpha</b>\"],[\"paragraph\",\"B\"],[\"heading\",\"ra\"],[\"paragraph\",\"vo &amp; Co\"]], got [[\"paragraph\",\"A<b>l</b>\"],[\"heading\",\"<b>pha</b>\"],[\"heading\",\"Bra\"],[\"paragraph\",\"vo &amp; Co\"]]\n    at equal (http://127.0.0.1:51582/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:51582/tests/browser/native-interaction-sequences.js:69:2\n    at async run (http://127.0.0.1:51582/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:51582/tests/browser/native-interaction-sequences.js:74:1"
+  }
+]
+    at waitForHistoryMatrix (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149:41)
+    at async runNativePage (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:275:30)
+    at async file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:312:48
+
+Node.js v24.9.0

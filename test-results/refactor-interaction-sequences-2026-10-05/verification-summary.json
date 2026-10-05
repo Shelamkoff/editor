@@ -1,0 +1,273 @@
+{
+  "verifiedAt": "2026-10-05T15:55:07.410Z",
+  "baseRevision": "252d0d800bcbf45939978453c636c186ef39f2e1",
+  "branch": "refactor/rector-v2-architecture",
+  "blockPlugins": 21,
+  "defaultInlineTools": 12,
+  "node": {
+    "pass": 436,
+    "fail": 0,
+    "skip": 0
+  },
+  "native": {
+    "cases": 1227,
+    "pass": 1227,
+    "fail": 0,
+    "groups": {
+      "nativeTextInput": {
+        "cases": 42,
+        "pass": 42,
+        "fail": 0
+      },
+      "nativeTools": {
+        "cases": 41,
+        "pass": 41,
+        "fail": 0
+      },
+      "nativeClipboard": {
+        "cases": 7,
+        "pass": 7,
+        "fail": 0
+      },
+      "nativeIme": {
+        "cases": 9,
+        "pass": 9,
+        "fail": 0
+      },
+      "nativeConversion": {
+        "cases": 7,
+        "pass": 7,
+        "fail": 0
+      },
+      "nativeBlockMenus": {
+        "cases": 108,
+        "pass": 108,
+        "fail": 0
+      },
+      "nativeConversionGrouping": {
+        "cases": 88,
+        "pass": 88,
+        "fail": 0
+      },
+      "nativeConversionPreservation": {
+        "cases": 53,
+        "pass": 53,
+        "fail": 0
+      },
+      "nativeInteractionSequences": {
+        "cases": 24,
+        "pass": 24,
+        "fail": 0
+      },
+      "nativeStructural": {
+        "cases": 21,
+        "pass": 21,
+        "fail": 0
+      },
+      "nativeCrossSelection": {
+        "cases": 32,
+        "pass": 32,
+        "fail": 0
+      },
+      "nativeCoreBehavior": {
+        "cases": 53,
+        "pass": 53,
+        "fail": 0
+      },
+      "nativePluginParity": {
+        "cases": 139,
+        "pass": 139,
+        "fail": 0
+      },
+      "nativePluginControls": {
+        "cases": 141,
+        "pass": 141,
+        "fail": 0
+      },
+      "nativePluginRanges": {
+        "cases": 116,
+        "pass": 116,
+        "fail": 0
+      },
+      "nativePluginLocalRanges": {
+        "cases": 76,
+        "pass": 76,
+        "fail": 0
+      },
+      "nativePluginClipboard": {
+        "cases": 48,
+        "pass": 48,
+        "fail": 0
+      },
+      "nativePluginFieldClipboard": {
+        "cases": 68,
+        "pass": 68,
+        "fail": 0
+      },
+      "nativePluginMedia": {
+        "cases": 70,
+        "pass": 70,
+        "fail": 0
+      },
+      "nativePluginDesign": {
+        "cases": 84,
+        "pass": 84,
+        "fail": 0
+      }
+    }
+  },
+  "browser": {
+    "pages": 24,
+    "pass": 24
+  },
+  "heap": {
+    "sentinels": 21,
+    "retained": 0,
+    "usedHeapMiB": 12.57,
+    "embedderHeapMiB": 1.39,
+    "snapshotMiB": 24.64
+  },
+  "typecheck": "PASS",
+  "consumerTypes": {
+    "pass": 6
+  },
+  "package": {
+    "declarations": 266,
+    "cssAssets": 22,
+    "import": true,
+    "vite": true,
+    "typeModes": [
+      "Bundler",
+      "NodeNext"
+    ]
+  },
+  "sourceLocalesDocs": "PASS",
+  "productionDocs": {
+    "pages": 123,
+    "brokenLinks": 0,
+    "demo": "PASS"
+  },
+  "demo": {
+    "blockPlugins": 21,
+    "inlinePlugins": 2,
+    "editorBlocks": 7,
+    "demoFrame": false,
+    "heroViewport": true,
+    "heroCentered": true,
+    "navAbovePluginBlocks": true,
+    "localSearchShortcut": true,
+    "searchKeyAlignedRight": true,
+    "mentionAutocomplete": true,
+    "localizedTooltips": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "shortcuts": true
+    },
+    "headingLevelMenu": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "keyboard": true,
+      "selection": true
+    },
+    "conversionMenu": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "outsideToolbar": true,
+      "searchSelection": true
+    },
+    "alignmentSelectionState": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "currentBlock": true,
+      "atomicUndo": true
+    },
+    "movedBlockButtons": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "geometry": true,
+      "atomicUndo": true
+    },
+    "tuneFragmentConversion": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "unselectedEdges": true,
+      "atomicUndoRedo": true
+    },
+    "crossImageConversion": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "singleTarget": true,
+      "unselectedListItem": true,
+      "atomicUndoRedo": true
+    },
+    "convertedTextRange": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "endCaret": true,
+      "toolbar": true,
+      "atomicUndo": true
+    },
+    "joinedCodeConversion": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "singleTarget": true,
+      "decodedText": true,
+      "atomicUndo": true
+    },
+    "missingAssets": 0,
+    "screenshots": 29
+  },
+  "bundle": {
+    "paragraph": {
+      "gzipKiB": 4.1,
+      "budgetKiB": 40
+    },
+    "defaultInteractive": {
+      "gzipKiB": 13.5,
+      "budgetKiB": 64
+    },
+    "fullPreset": {
+      "gzipKiB": 87.9,
+      "budgetKiB": 96
+    },
+    "core": {
+      "gzipKiB": 85.9,
+      "informational": true
+    }
+  },
+  "frozenSource": {
+    "files": 570,
+    "allMatch": true,
+    "byteScope": "local checkout before Git LF/CRLF normalization"
+  }
+}

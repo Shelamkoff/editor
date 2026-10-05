@@ -38,6 +38,7 @@ export class BlockToolbar {
   #filterThreshold
   #destroyed = false
   #documentClick
+  #documentMouseDown
   #viewportChange
   /** @type {number | null} */
   #positionFrame = null
@@ -117,25 +118,33 @@ export class BlockToolbar {
       this.#tooltip.bind(button, () => button.getAttribute('aria-label') ?? '')
     }
 
-    this.#plus.addEventListener('mousedown', () => {
+    this.#plus.addEventListener('mousedown', event => {
+      if (event.button !== 0) return
       this.#bookmark = this.#selectionPort?.bookmark ?? this.#selection.capture()
       this.#menuSelectionPending = true
     })
-    this.#settingsButton.addEventListener('mousedown', () => {
+    this.#settingsButton.addEventListener('mousedown', event => {
+      if (event.button !== 0) return
       this.#bookmark = this.#selectionPort?.bookmark ?? this.#selection.capture()
       this.#menuSelectionPending = true
     })
     this.#plus.addEventListener('click', event => {
+      if (event.detail === 0) this.#menuSelectionPending = false
       event.stopPropagation()
       if (this.#toolbox.style.display === 'none') this.openToolbox()
       else this.closeToolbox()
     })
     this.#settingsButton.addEventListener('click', event => {
+      if (event.detail === 0) this.#menuSelectionPending = false
       event.stopPropagation()
       if (this.#settings.style.display === 'none') this.openSettings()
       else this.closeSettings()
     })
 
+    // A capture belongs only to its completing pointer click. A later gesture
+    // or keyboard activation must read the author's current selection.
+    this.#documentMouseDown = () => { this.#menuSelectionPending = false }
+    document.addEventListener('mousedown', this.#documentMouseDown, true)
     this.#documentClick = event => {
       const target = event.target
       if (!target || typeof target !== 'object') return
@@ -272,6 +281,7 @@ export class BlockToolbar {
     this.#destroyed = true
     this.#cancelPositionFrame()
     this.#resizeObserver?.disconnect()
+    this.#root.ownerDocument.removeEventListener('mousedown', this.#documentMouseDown, true)
     this.#root.ownerDocument.removeEventListener('click', this.#documentClick, true)
     this.#root.ownerDocument.defaultView?.removeEventListener('resize', this.#viewportChange)
     this.#tooltip.destroy()

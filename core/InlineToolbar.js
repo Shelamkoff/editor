@@ -162,7 +162,7 @@ export class InlineToolbar {
 
     this.#controlSelect.addEventListener('mousedown', event => {
       event.preventDefault()
-      if (this.#controlDropdown.style.display === 'none') this.#controlBookmark = cloneBookmark(this.#selection.capture())
+      if (this.#controlDropdown.style.display === 'none') this.#controlBookmark = cloneBookmark(this.#selectionPort?.bookmark ?? this.#selection.capture())
     })
     this.#controlSelect.addEventListener('click', event => {
       event.preventDefault()
@@ -748,7 +748,7 @@ export class InlineToolbar {
     const definition = record ? this.#registry.getBlockDefinition(record.type) : null
     const capability = definition?.capabilities?.inlineControls
     if (!record || capability?.kind !== 'actions') return
-    const bookmark = cloneBookmark(this.#controlBookmark ?? this.#selection.capture())
+    const bookmark = cloneBookmark(this.#controlBookmark ?? this.#selectionPort?.bookmark ?? this.#selection.capture())
     if (!bookmark) return
     this.#controlBookmark = bookmark
     this.#closeTypeDropdown()
@@ -794,6 +794,7 @@ export class InlineToolbar {
           || this.#destroyed
           || this.#runtime.get(blockId)?.type !== record.type
         ) return
+        if (bookmark.anchor.blockId !== bookmark.focus.blockId || bookmark.anchor.fieldKey !== bookmark.focus.fieldKey) this.#restoreSelection(bookmark)
         this.#runtime.interact('block.inline-control', () => this.#runtime.update(blockId, current => ({
           data: capability.apply(current.data, action.id, {
             createId: prefix => this.#runtime.createDataId(prefix),
