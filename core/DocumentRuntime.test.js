@@ -148,6 +148,77 @@ test('protected projection edits cannot change read-only mode midway through the
   runtime.destroy()
 })
 
+
+test('host update rejects projection and publication reentry before running its producer', () => {
+  let runtime
+  let producerCalls = 0
+  const rejections = []
+  const attempt = () => {
+    try {
+      runtime.update('b', () => { producerCalls++; return { data: { text: 'Forbidden nested write' } } }, 'host')
+    } catch (error) { rejections.push(error.message) }
+  }
+  runtime = new DocumentRuntime({
+    registry: registry([paragraphDefinition()]),
+    data: { version: '2.0.0', blocks: [block('a', { text: 'Alpha' }), block('b', { text: 'Bravo' })] },
+    projector: {
+      prepare() {
+        attempt()
+        return { apply: attempt, recover() {}, finalize: attempt, discard() {} }
+      },
+    },
+    onCommit: attempt,
+  })
+  runtime.update('a', () => ({ data: { text: 'Accepted' } }), 'host')
+  assert.equal(producerCalls, 0, 'Forbidden commands must reject before invoking application code')
+  assert.deepEqual(rejections, [
+    'Cannot mutate document during preparing-projection phase',
+    'Cannot mutate document during applying-projection phase',
+    'Cannot mutate document during finalizing phase',
+    'Cannot mutate document during publishing phase',
+  ])
+  assert.deepEqual(runtime.save().blocks.map(record => record.data.text), ['Accepted', 'Bravo'])
+  assert.equal(runtime.revision, 1)
+  assert.equal(runtime.canUndo, true)
+  runtime.destroy()
+})
+
+
+test('read-only transition rejects nested host mutation before its producer', () => {
+  let runtime
+  let producerCalls = 0
+  const failures = []
+  runtime = new DocumentRuntime({
+    registry: registry([paragraphDefinition()]),
+    data: { version: '2.0.0', blocks: [block('a', { text: 'Alpha' })] },
+    projector: {
+      setReadOnly(value) {
+        if (!value) return
+        for (const operation of [
+          () => runtime.update('a', () => { producerCalls++; return { data: { text: 'Unexpected' } } }, 'host'),
+          () => runtime.setReadOnly(false),
+        ]) {
+          try { operation() } catch (error) { failures.push(error.message) }
+        }
+      },
+      prepare() { return { apply() {}, recover() {}, finalize() {}, discard() {} } },
+    },
+  })
+  const before = runtime.save().blocks
+  runtime.setReadOnly(true)
+  assert.equal(producerCalls, 0, 'Plugin control hooks must not persist during a mode transition')
+  assert.equal(failures.length, 2)
+  assert.ok(failures.every(message => /read-only transition/.test(message)))
+  assert.equal(runtime.readOnly, true)
+  assert.deepEqual(runtime.save().blocks, before)
+  assert.equal(runtime.revision, 0)
+  assert.equal(runtime.canUndo, false)
+  runtime.setReadOnly(false)
+  runtime.update('a', () => ({ data: { text: 'Accepted after transition' } }), 'host')
+  assert.equal(runtime.get('a').data.text, 'Accepted after transition')
+  runtime.destroy()
+})
+
 test('DocumentRuntime emits save/render timing diagnostics through the canonical sink', () => {
   const events = []
   let clock = 100

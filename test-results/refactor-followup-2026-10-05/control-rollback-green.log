@@ -1,0 +1,30 @@
+runtime-contracts.html: [
+  {
+    "name": "convert uses source and target capabilities instead of arbitrary data merge",
+    "status": "PASS"
+  },
+  {
+    "name": "whole conversion rejects targets that cannot preserve linked inline data",
+    "status": "PASS"
+  },
+  {
+    "name": "prepared cross-block cut merges endpoint residuals through the declared merge contract",
+    "status": "PASS"
+  },
+  {
+    "name": "mounted plugin protected edit cannot persist a nested host write or alter history",
+    "status": "PASS"
+  },
+  {
+    "name": "mounted plugin protected edit cannot switch the editor to read-only midway",
+    "status": "PASS"
+  },
+  {
+    "name": "failed recovery of a mounted plugin projection preserves save and blocks future producers",
+    "status": "PASS"
+  },
+  {
+    "name": "failed read-only transition restores even the plugin that threw after changing its controls",
+    "status": "PASS"
+  }
+]

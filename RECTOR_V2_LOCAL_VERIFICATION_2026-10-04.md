@@ -1,5 +1,7 @@
 # Локальная проверка и доработка Rector v2 — 2026-10-04
 
+Актуальное продолжение — [итоговая проверка 05.10.2026](RECTOR_V2_FOLLOWUP_2026-10-05.md): 938 native cases и 421 Node tests, включая failure recovery каретки/диапазона и protected-edit Redo.
+
 Последняя итерация — [повторная проверка 05.10.2026](RECTOR_V2_RECHECK_2026-10-05.md): дополнительные дефекты protected edit/media Settings исправлены, итоговая матрица расширена до 934 native cases и 419 Node tests. Числа и логи ниже относятся к предыдущему checkpoint, опубликованному в `4e5ba54857844422827d6db74de88b370af3c772`.
 
 Ветка: `refactor/rector-v2-architecture`. Исходный HEAD: `eff8a06692e2f80d4c6c2e33abc1d626fa4ef1aa`. Результаты относятся к локальным незакоммиченным исправлениям поверх этого HEAD. Это локальный Windows/Chrome прогон, не результат CI неизменённого GitHub-коммита.

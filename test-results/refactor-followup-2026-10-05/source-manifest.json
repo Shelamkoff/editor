@@ -1,0 +1,72 @@
+{
+  "base": "cf97ac6f19496cdd30cce8f998d4ee7297f3b2a1",
+  "branch": "refactor/rector-v2-architecture",
+  "generatedAt": "2026-10-05T00:18:12.805Z",
+  "hashBasis": "Working-tree file bytes before Git line-ending normalization",
+  "files": [
+    {
+      "path": "LOCAL-VERIFICATION.md",
+      "sha256": "C885B692387E709E83641826DC5FC9DE0A512C5E9D630EF5BD8FB7556A1AA6FF"
+    },
+    {
+      "path": "RECTOR_V2_CORE_PARITY_2026-10-04.md",
+      "sha256": "FD353D727688E0D7E3371ECF827ECA4C28E6CC730B498BA4DF7935E6E09D3E3B"
+    },
+    {
+      "path": "RECTOR_V2_FOLLOWUP_2026-10-05.md",
+      "sha256": "58FE798AE265F9AD55BEF9EC29568E00AFDE74DBB90A18346829A4376EC60A4D"
+    },
+    {
+      "path": "RECTOR_V2_LOCAL_VERIFICATION_2026-10-04.md",
+      "sha256": "554C593D2987A377A9E96302CD2C618EB687795EEA05A46A515F8518B863E797"
+    },
+    {
+      "path": "RECTOR_V2_PLUGIN_PARITY_2026-10-04.md",
+      "sha256": "68E4E51E8AB7AA2F3F163D1AC3162BA70DD98CFD2F48D9733ADC219D071AFF91"
+    },
+    {
+      "path": "RECTOR_V2_RECHECK_2026-10-05.md",
+      "sha256": "83339F23FAFCF8079FC52F5E49FC0C6EA343DC0D2A6DC1E6B6BC1E7AD0C9ABC2"
+    },
+    {
+      "path": "RECTOR_V2_REMEDIATION_SPEC.md",
+      "sha256": "E71655D7F0C74423A0A1F1CC009C7D8636B212CCDC259524FCC2F8350EFFFD28"
+    },
+    {
+      "path": "core/BlockReconciler.js",
+      "sha256": "1304CB93C03C8A613E7BBCEE22DF421913E9DC1BE4DE53AD87DFFBA716120B07"
+    },
+    {
+      "path": "core/DocumentRuntime.js",
+      "sha256": "C25A6FBB600D782A92C603E1C4EB9BAF5F064DAF0450C521AA72A8DC2E389ECF"
+    },
+    {
+      "path": "core/DocumentRuntime.test.js",
+      "sha256": "5997A4E234DC672C121470298B96E230307ADF83E093116CEC36E7C9B5B0FCBF"
+    },
+    {
+      "path": "core/InlineProjectionRuntime.js",
+      "sha256": "B8D337A02FC15863E5E60202691A1DB0BC509D0EB646898934D528C3C34206CC"
+    },
+    {
+      "path": "docs/guide/commands-history.md",
+      "sha256": "78311BE2797FB1769275603138B94E572FFC954BA9922C4A925E8A1AE181DEBA"
+    },
+    {
+      "path": "docs/ru/guide/commands-history.md",
+      "sha256": "32752576A56A08DB00B386E0485F505A1CA7E8D10EC6A3FA1C509A45AC6F3C4A"
+    },
+    {
+      "path": "tests/browser/README.md",
+      "sha256": "D58E97255C7629D3E16F96397DF266479B7D14FAB001966CDF196A5471A66A27"
+    },
+    {
+      "path": "tests/browser/native-core-behavior.js",
+      "sha256": "4D73D9F142E352F46389C92E06A266B712CF375D0DAC5BD8EA3DD341075F29BE"
+    },
+    {
+      "path": "tests/browser/runtime-contracts.js",
+      "sha256": "B6E186B35C49ECE4EC9A21460A102E111D3B733D1DA895C7C5E81D70943B1F1A"
+    }
+  ]
+}

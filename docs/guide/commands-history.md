@@ -51,6 +51,8 @@ Use `context.commitDomMutation(operation)` only for synchronous protected edits 
 
 Do not call persisted-data commands or switch read-only mode from that DOM callback. Rector rejects nested writes before invoking their data producer and restores the committed projection. If validation or reading fails and the projection cannot be restored, further mutations stop; `save()` still returns the committed model. The thrown `AggregateError` retains both the original and recovery errors.
 
+Projection, publication and read-only transitions also reject nested persisted commands before their producer. Data tasks cannot begin inside these guarded operations. A failed mode transition restores every attempted plugin control, including a handler that changed its controls before throwing. Protected edits capture the directed selection before the DOM callback and its resulting caret before reprojection, so recovery, Undo and Redo preserve their respective bookmarks.
+
 `context.requestSplit()` and `context.requestExit()` request structural behavior; never imitate them with keyboard events. Composite editing capabilities return data and structural intent together for one transaction.
 
 ## Slash commands

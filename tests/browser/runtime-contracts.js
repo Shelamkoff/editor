@@ -1,6 +1,7 @@
 import { DocumentRuntime } from '../../core/DocumentRuntime.js'
 import { test, assert as check, equal, run, make, blockElement } from './regressions/harness.js'
 import { createParagraphPlugin } from '../../plugins/paragraph/index.js'
+import { createColorSwatchPlugin } from '../../inline-plugins/color.js'
 
 const assert = {
   equal,
@@ -283,6 +284,176 @@ test('failed recovery of a mounted plugin projection preserves save and blocks f
   assert.throws(() => editor.blocks.update('a', () => { producerCalls++; return { data: { text: 'Late' } } }), /failed/)
   assert.equal(producerCalls, 0)
   assert.equal(editor.canUndo, false)
+})
+
+
+test('failed read-only transition restores even the plugin that threw after changing its controls', () => {
+  const base = createParagraphPlugin()
+  let failOnce = true
+  const definition = {
+    ...base,
+    setup(runtimeContext) {
+      const runtime = base.setup(runtimeContext)
+      return {
+        ...runtime,
+        create(data, context) {
+          const instance = runtime.create(data, context)
+          return {
+            ...instance,
+            setReadOnly(next) {
+              instance.setReadOnly(next)
+              if (next && data.text === 'Bravo' && failOnce) {
+                failOnce = false
+                throw new Error('Control transition failed after applying')
+              }
+            },
+          }
+        },
+      }
+    },
+  }
+  const editor = make([
+    { id: 'a', type: 'paragraph', dataVersion: 2, data: { text: 'Alpha' } },
+    { id: 'b', type: 'paragraph', dataVersion: 2, data: { text: 'Bravo' } },
+  ], { plugins: [definition] })
+  const before = editor.save().blocks
+  assert.throws(() => editor.setReadOnly(true), /Control transition failed after applying/)
+  assert.equal(editor.readOnly, false)
+  assert.equal(blockElement(editor, 'a').querySelector('.oe-paragraph').contentEditable, 'true')
+  assert.equal(blockElement(editor, 'b').querySelector('.oe-paragraph').contentEditable, 'true')
+  assert.deepEqual(editor.save().blocks, before)
+  assert.equal(editor.canUndo, false)
+  editor.setReadOnly(true)
+  assert.equal(editor.readOnly, true)
+  editor.setReadOnly(false)
+  editor.blocks.update('b', current => ({ data: { ...current.data, text: 'Still editable' } }))
+  assert.equal(editor.save().blocks[1].data.text, 'Still editable')
+})
+
+
+for (const mode of ['protected edit', 'read-only transition']) {
+test(`instance data task cannot begin during ${mode}`, () => {
+  const base = createParagraphPlugin()
+  let context
+  let rejection
+  const probe = () => {
+    try { context.beginTask().cancel() } catch (error) { rejection = error }
+  }
+  const definition = {
+    ...base,
+    setup(runtimeContext) {
+      const runtime = base.setup(runtimeContext)
+      return {
+        ...runtime,
+        create(data, currentContext) {
+          context = currentContext
+          const instance = runtime.create(data, currentContext)
+          return {
+            ...instance,
+            setReadOnly(next) {
+              instance.setReadOnly(next)
+              if (next && mode === 'read-only transition') probe()
+            },
+          }
+        },
+      }
+    },
+  }
+  const editor = make([{ id: 'a', type: 'paragraph', dataVersion: 2, data: { text: 'Alpha' } }], { plugins: [definition] })
+  const before = editor.save().blocks
+  if (mode === 'protected edit') context.commitDomMutation(probe)
+  else editor.setReadOnly(true)
+  assert.ok(rejection, 'A DataTask was allocated inside a guarded operation')
+  assert.ok(/Cannot begin a data task during/.test(String(rejection)))
+  assert.deepEqual(editor.save().blocks, before)
+  assert.equal(editor.canUndo, false)
+})
+}
+
+
+test('failed inline read-only transition restores the widget that threw after applying', () => {
+  const base = createColorSwatchPlugin()
+  let failOnce = true
+  const definition = {
+    ...base,
+    setup(runtimeContext) {
+      const runtime = base.setup(runtimeContext)
+      return {
+        ...runtime,
+        create(id, data, context) {
+          const instance = runtime.create(id, data, context)
+          return {
+            ...instance,
+            setReadOnly(next) {
+              instance.setReadOnly(next)
+              if (next && id === 'second' && failOnce) {
+                failOnce = false
+                throw new Error('Inline transition failed after applying')
+              }
+            },
+          }
+        },
+      }
+    },
+  }
+  const editor = make([{
+    id: 'a', type: 'paragraph', dataVersion: 2,
+    data: { text: 'Alpha {{first}} and {{second}}' },
+    inline: {
+      first: { type: 'color', ...base.schema.encode({ value: '#4357b4' }) },
+      second: { type: 'color', ...base.schema.encode({ value: '#123456' }) },
+    },
+  }], { inlinePlugins: [definition] })
+  const before = editor.save().blocks
+  assert.throws(() => editor.setReadOnly(true), /Inline transition failed after applying/)
+  assert.equal(editor.readOnly, false)
+  assert.equal(blockElement(editor, 'a').querySelector('.oe-paragraph').contentEditable, 'true')
+  assert.deepEqual([...blockElement(editor, 'a').querySelectorAll('.oe-ip--color')].map(widget => widget.tabIndex), [0, 0])
+  assert.deepEqual(editor.save().blocks, before)
+  assert.equal(editor.canUndo, false)
+  editor.setReadOnly(true)
+  assert.deepEqual([...blockElement(editor, 'a').querySelectorAll('.oe-ip--color')].map(widget => widget.tabIndex), [-1, -1])
+  editor.setReadOnly(false)
+  assert.deepEqual([...blockElement(editor, 'a').querySelectorAll('.oe-ip--color')].map(widget => widget.tabIndex), [0, 0])
+})
+
+
+test('mounted projection and committed observers reject nested host producers', () => {
+  const base = createParagraphPlugin()
+  let editor
+  let producerCalls = 0
+  const failures = []
+  const attempt = () => {
+    try {
+      editor.blocks.update('b', () => { producerCalls++; return { data: { text: 'Forbidden' } } })
+    } catch (error) { failures.push(error.message) }
+  }
+  const definition = {
+    ...base,
+    setup(runtimeContext) {
+      const runtime = base.setup(runtimeContext)
+      return {
+        ...runtime,
+        create(data, context) {
+          const instance = runtime.create(data, context)
+          return { ...instance, update(next) { attempt(); instance.update(next) } }
+        },
+      }
+    },
+  }
+  editor = make([
+    { id: 'a', type: 'paragraph', dataVersion: 2, data: { text: 'Alpha' } },
+    { id: 'b', type: 'paragraph', dataVersion: 2, data: { text: 'Bravo' } },
+  ], { plugins: [definition] })
+  editor.on('transaction:committed', attempt)
+  editor.blocks.update('a', current => ({ data: { ...current.data, text: 'Accepted' } }))
+  assert.equal(producerCalls, 0)
+  assert.deepEqual(failures, [
+    'Cannot mutate document during applying-projection phase',
+    'Cannot mutate document during publishing phase',
+  ])
+  assert.deepEqual(editor.save().blocks.map(record => record.data.text), ['Accepted', 'Bravo'])
+  assert.equal(editor.canUndo, true)
 })
 
 await run()

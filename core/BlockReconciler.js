@@ -441,8 +441,8 @@ export class BlockReconciler {
     const changed = []
     try {
       for (const entry of this.#entries.values()) {
-        entry.instance.setReadOnly(next)
         changed.push(entry)
+        entry.instance.setReadOnly(next)
       }
       this.#inlineProjection?.setReadOnly?.(next)
       for (const entry of this.#entries.values()) entry.scope?.setReadOnly?.(next)

@@ -1,5 +1,7 @@
 # Повторная проверка Rector v2 — 05.10.2026
 
+Продолжение проверки: [следующая итерация 05.10.2026](RECTOR_V2_FOLLOWUP_2026-10-05.md) исправляет дополнительные границы commands/control recovery и точные selection bookmarks. Актуальный итог — 938 native cases и 421 Node tests. Числа ниже относятся к checkpoint `cf97ac6`.
+
 Ветка: `refactor/rector-v2-architecture`. База этой итерации — опубликованный коммит `4e5ba54857844422827d6db74de88b370af3c772`. Результаты получены на локальных исправлениях поверх него; изменённые исходники и стенды перечислены с SHA-256 в [source-manifest.json](test-results/refactor-recheck-2026-10-05/source-manifest.json). Это локальный Windows/Chrome прогон, не CI исходного коммита.
 
 Контракт v1 сверяется по локальному `master`, `5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340`. Матрицы [ядра](RECTOR_V2_CORE_PARITY_2026-10-04.md) и [21 плагина](RECTOR_V2_PLUGIN_PARITY_2026-10-04.md) сохраняются; предыдущий итог из 925 native cases — исторический checkpoint в [отчёте 04.10](RECTOR_V2_LOCAL_VERIFICATION_2026-10-04.md). Нормативные требования — в [спецификации](RECTOR_V2_REMEDIATION_SPEC.md).

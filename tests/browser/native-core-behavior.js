@@ -738,4 +738,90 @@ for (const cut of [false, true]) test(`Native plain Code ${cut ? 'Cut' : 'Paste'
   }
 })
 
+
+for (const direction of ['collapsed', 'forward', 'backward']) {
+test(`protected edit failure restores the ${direction} caret or cross-block range`, async () => {
+  const contexts = new Map()
+  const base = createParagraphPlugin()
+  const definition = {
+    ...base,
+    setup(runtimeContext) {
+      const runtime = base.setup(runtimeContext)
+      return {
+        ...runtime,
+        create(data, context) { contexts.set(data.text, context); return runtime.create(data, context) },
+      }
+    },
+  }
+  const editor = make([para('a', 'Alpha'), para('b', 'Bravo')], { plugins: [definition], injectStyles: true })
+  const first = editableField(editor, 'a')
+  const second = editableField(editor, 'b')
+  const before = editor.save().blocks
+  if (direction === 'collapsed') {
+    await clickNative(first)
+    editor.blocks.focus('a', { offset: 2 })
+  } else await dragAcross(editor, first, 1, second, 3, direction === 'backward')
+  const point = (node, offset) => {
+    const field = (node?.nodeType === 1 ? node : node?.parentElement)?.closest('.oe-paragraph')
+    assert(field, 'Recovery lost the native selection owner')
+    return { blockId: field.closest('.oe-block').dataset.blockId, offset: getTextOffset(field, node, offset) }
+  }
+  const bookmark = () => {
+    const selection = window.getSelection()
+    return { anchor: point(selection.anchorNode, selection.anchorOffset), focus: point(selection.focusNode, selection.focusOffset) }
+  }
+  const expected = direction === 'collapsed'
+    ? { anchor: { blockId: 'a', offset: 2 }, focus: { blockId: 'a', offset: 2 } }
+    : direction === 'forward'
+      ? { anchor: { blockId: 'a', offset: 1 }, focus: { blockId: 'b', offset: 3 } }
+      : { anchor: { blockId: 'b', offset: 3 }, focus: { blockId: 'a', offset: 1 } }
+  equal(bookmark(), expected, 'Fixture did not establish the intended native range')
+  let failure
+  try {
+    contexts.get('Alpha').commitDomMutation(() => { first.textContent = 'Uncommitted'; throw new Error('Protected edit failed') })
+  } catch (error) { failure = error }
+  assert(/Protected edit failed/.test(String(failure)))
+  equal(editor.save().blocks, before)
+  equal(editor.canUndo, false)
+  equal(bookmark(), expected, 'Failed edit changed the directed native selection')
+  assert(document.activeElement === editableField(editor, expected.anchor.blockId), 'Failed edit lost native field focus')
+})
+}
+
+
+test('protected edit history restores the directed range captured before the DOM callback', async () => {
+  let context
+  const base = createParagraphPlugin()
+  const definition = {
+    ...base,
+    setup(runtimeContext) {
+      const runtime = base.setup(runtimeContext)
+      return {
+        ...runtime,
+        create(data, currentContext) {
+          if (data.text === 'Alpha') context = currentContext
+          return runtime.create(data, currentContext)
+        },
+      }
+    },
+  }
+  const editor = make([para('a', 'Alpha'), para('b', 'Bravo')], { plugins: [definition], injectStyles: true })
+  const first = editableField(editor, 'a')
+  await dragAcross(editor, first, 1, editableField(editor, 'b'), 3, true)
+  const before = editor.save().blocks
+  context.commitDomMutation(() => { first.textContent = 'AXlpha'; select(first, 2) })
+  equal(editor.save().blocks.map(record => record.data.text), ['AXlpha', 'Bravo'])
+  await dispatchKey('z', 'KeyZ', 90, 2)
+  equal(editor.save().blocks, before)
+  const selection = window.getSelection()
+  assert(editableField(editor, 'b').contains(selection.anchorNode), 'Undo lost the backward anchor owner')
+  assert(editableField(editor, 'a').contains(selection.focusNode), 'Undo lost the backward focus owner')
+  equal(getTextOffset(editableField(editor, 'b'), selection.anchorNode, selection.anchorOffset), 3)
+  equal(getTextOffset(editableField(editor, 'a'), selection.focusNode, selection.focusOffset), 1)
+  assert(document.activeElement === editableField(editor, 'b'))
+  await dispatchKey('Z', 'KeyZ', 90, 2 | 8)
+  equal(editor.save().blocks.map(record => record.data.text), ['AXlpha', 'Bravo'])
+  caret(editor, 'a', 2)
+})
+
 await run()

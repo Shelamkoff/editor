@@ -1,0 +1,26 @@
+file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149
+    if (result.status === 'fail') throw new Error(`History matrix failed: ${result.summary}`)
+                                        ^
+
+Error: History matrix failed: [
+  {
+    "name": "protected edit failure restores the collapsed caret or cross-block range",
+    "status": "FAIL",
+    "error": "Error: Recovery lost the native selection owner\n    at assert (http://127.0.0.1:64542/tests/browser/regressions/harness.js:20:81)\n    at point (http://127.0.0.1:64542/tests/browser/native-core-behavior.js:766:5)\n    at bookmark (http://127.0.0.1:64542/tests/browser/native-core-behavior.js:771:22)\n    at http://127.0.0.1:64542/tests/browser/native-core-behavior.js:786:9\n    at async run (http://127.0.0.1:64542/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:64542/tests/browser/native-core-behavior.js:791:1"
+  },
+  {
+    "name": "protected edit failure restores the forward caret or cross-block range",
+    "status": "FAIL",
+    "error": "Error: Recovery lost the native selection owner\n    at assert (http://127.0.0.1:64542/tests/browser/regressions/harness.js:20:81)\n    at point (http://127.0.0.1:64542/tests/browser/native-core-behavior.js:766:5)\n    at bookmark (http://127.0.0.1:64542/tests/browser/native-core-behavior.js:771:22)\n    at http://127.0.0.1:64542/tests/browser/native-core-behavior.js:786:9\n    at async run (http://127.0.0.1:64542/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:64542/tests/browser/native-core-behavior.js:791:1"
+  },
+  {
+    "name": "protected edit failure restores the backward caret or cross-block range",
+    "status": "FAIL",
+    "error": "Error: Recovery lost the native selection owner\n    at assert (http://127.0.0.1:64542/tests/browser/regressions/harness.js:20:81)\n    at point (http://127.0.0.1:64542/tests/browser/native-core-behavior.js:766:5)\n    at bookmark (http://127.0.0.1:64542/tests/browser/native-core-behavior.js:771:22)\n    at http://127.0.0.1:64542/tests/browser/native-core-behavior.js:786:9\n    at async run (http://127.0.0.1:64542/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:64542/tests/browser/native-core-behavior.js:791:1"
+  }
+]
+    at waitForHistoryMatrix (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149:41)
+    at async runNativePage (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:273:30)
+    at async file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:310:48
+
+Node.js v24.9.0

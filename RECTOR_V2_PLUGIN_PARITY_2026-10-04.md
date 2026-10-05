@@ -1,5 +1,7 @@
 # Сверка встроенных плагинов Rector v1 → v2 — 2026-10-04
 
+Последнее продолжение [05.10.2026](RECTOR_V2_FOLLOWUP_2026-10-05.md) исправляет partial mode rollback блоков/inline widgets и сохраняет каретку/выделение protected edits. Все suites поведения и дизайна плагинов повторно пройдены в общем прогоне 938 cases.
+
 Актуальный итог — [повторная проверка 05.10.2026](RECTOR_V2_RECHECK_2026-10-05.md): исправлены resize/layer/Escape у media Settings, добавлено девять native cases и lifecycle открытых меню. Все возможности таблицы ниже повторно пройдены в общем прогоне 934 cases; прежние логи относятся к опубликованному checkpoint `4e5ba54`.
 
 База: исходники v1 `master`, коммит `5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340`. Проверяемая ветка: `refactor/rector-v2-architecture`, HEAD `eff8a06692e2f80d4c6c2e33abc1d626fa4ef1aa` с локальными исправлениями. Старый runtime в v2 не подключается. Итоговые результаты команд и границы приёмки — в [локальном отчёте](RECTOR_V2_LOCAL_VERIFICATION_2026-10-04.md).

@@ -1,0 +1,25 @@
+file:///C:/OSPanel/domains/editor/tests/browser/run.mjs:130
+      throw new Error(`Browser gate failed for ${label}\n${formatBrowserFailure(last.summary)}`)
+            ^
+
+Error: Browser gate failed for runtime-contracts.html
+{
+  "total": 9,
+  "failed": 2,
+  "failures": [
+    {
+      "name": "instance data task cannot begin during protected edit",
+      "status": "FAIL",
+      "error": "Error: A DataTask was allocated inside a guarded operation\n    at Object.assert [as ok] (http://127.0.0.1:63705/tests/browser/regressions/harness.js:20:81)\n    at http://127.0.0.1:63705/tests/browser/runtime-contracts.js:365:10\n    at async run (http://127.0.0.1:63705/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:63705/tests/browser/runtime-contracts.js:372:1"
+    },
+    {
+      "name": "instance data task cannot begin during read-only transition",
+      "status": "FAIL",
+      "error": "Error: A DataTask was allocated inside a guarded operation\n    at Object.assert [as ok] (http://127.0.0.1:63705/tests/browser/regressions/harness.js:20:81)\n    at http://127.0.0.1:63705/tests/browser/runtime-contracts.js:365:10\n    at async run (http://127.0.0.1:63705/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:63705/tests/browser/runtime-contracts.js:372:1"
+    }
+  ]
+}
+    at runPage (file:///C:/OSPanel/domains/editor/tests/browser/run.mjs:130:13)
+    at async file:///C:/OSPanel/domains/editor/tests/browser/run.mjs:169:30
+
+Node.js v24.9.0

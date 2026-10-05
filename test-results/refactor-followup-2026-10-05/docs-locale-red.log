@@ -1,0 +1,40 @@
+
+> @shelamkoff/rector@2.0.0 docs:check
+> npm run docs:build && node scripts/vitepress-docs-smoke.mjs && node scripts/vitepress-browser-smoke.mjs
+
+
+> @shelamkoff/rector@2.0.0 docs:build
+> npm run docs:sync && vitepress build docs
+
+
+> @shelamkoff/rector@2.0.0 docs:sync
+> npm run docs:validate-readmes && node scripts/sync-vitepress-readmes.mjs
+
+
+> @shelamkoff/rector@2.0.0 docs:validate-readmes
+> node scripts/validate-extension-readmes.mjs
+
+{"localizedReadmePairs":47}
+Synchronized 47 README files into docs/reference
+
+  vitepress v2.0.0-alpha.17
+
+- building client + server bundles...
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ building client + server bundles...
+- rendering pages...
+✓ rendering pages...
+build complete in 51.95s.
+file:///C:/OSPanel/domains/editor/scripts/vitepress-docs-smoke.mjs:26
+  if (!condition) throw new Error(message)
+                        ^
+
+Error: ru\guide\commands-history.md: untranslated prose terms: datatask, recovery, undo, redo
+    at assert (file:///C:/OSPanel/domains/editor/scripts/vitepress-docs-smoke.mjs:26:25)
+    at file:///C:/OSPanel/domains/editor/scripts/vitepress-docs-smoke.mjs:106:3
+
+Node.js v24.9.0

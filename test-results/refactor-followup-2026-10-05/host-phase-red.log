@@ -1,0 +1,30 @@
+✖ host update rejects projection and publication reentry before running its producer (9.3653ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 237.4911
+
+✖ failing tests:
+
+test at core\DocumentRuntime.test.js:152:1
+✖ host update rejects projection and publication reentry before running its producer (9.3653ms)
+  AssertionError [ERR_ASSERTION]: Forbidden commands must reject before invoking application code
+  
+  4 !== 0
+  
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/core/DocumentRuntime.test.js:173:10)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.start (node:internal/test_runner/test:1003:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:358:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 4,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

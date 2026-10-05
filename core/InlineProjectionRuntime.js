@@ -255,8 +255,8 @@ export class InlineProjectionRuntime {
     try{
       for(const state of this.#blocks.values()){
         for(const entry of state.widgets.values()){
-          entry.instance.setReadOnly(next)
           changed.push(entry)
+          entry.instance.setReadOnly(next)
         }
       }
       for(const entry of changed)entry.scope?.setReadOnly?.(next)

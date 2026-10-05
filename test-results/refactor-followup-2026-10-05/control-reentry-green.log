@@ -1,0 +1,10 @@
+✔ host update rejects projection and publication reentry before running its producer (6.882ms)
+✔ read-only transition rejects nested host mutation before its producer (1.7452ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 194.3711

@@ -56,6 +56,7 @@ export class DocumentRuntime {
   #history
   #engine
   #projector
+  #selection
   #ownerDocument
   #readOnly
   #createId
@@ -65,6 +66,7 @@ export class DocumentRuntime {
   #destroyed = false
   #controlFailed = false
   #editingProjection = false
+  #changingReadOnly = false
   #requestSplit
   #requestExit
   #diagnostics
@@ -108,6 +110,7 @@ export class DocumentRuntime {
     this.#requestSplit = typeof options.requestSplit === 'function' ? options.requestSplit : null
     this.#requestExit = typeof options.requestExit === 'function' ? options.requestExit : null
     this.#diagnostics = options.diagnostics ?? null
+    this.#selection = options.selection ?? null
     this.#richTextNormalizer = typeof options.richTextNormalizer === 'function'
       ? options.richTextNormalizer
       : (this.#ownerDocument
@@ -875,14 +878,18 @@ export class DocumentRuntime {
 
   setReadOnly(value) {
     this.#assertHostMutation()
+    if (this.#engine.phase !== 'idle') throw new Error(`Cannot change read-only mode during ${this.#engine.phase} phase`)
     const next = value === true
     if (next === this.#readOnly) return
+    this.#changingReadOnly = true
     try {
       this.#projector?.setReadOnly?.(next)
       this.#readOnly = next
     } catch (error) {
       if (error instanceof AggregateError) this.#controlFailed = true
       throw error
+    } finally {
+      this.#changingReadOnly = false
     }
   }
 
@@ -1895,6 +1902,9 @@ export class DocumentRuntime {
       ordered.push(id)
     }
 
+    const selectionBefore = metadata.selectionBefore === undefined
+      ? this.#captureSelection()
+      : cloneEditorData(metadata.selectionBefore)
     this.#editingProjection = true
     try {
       const result = operation()
@@ -1923,12 +1933,17 @@ export class DocumentRuntime {
       }
 
       if (updates.length) {
+        const projectedSelection = metadata.selectionAfter === undefined ? this.#captureSelection() : null
+        const selectionAfter = metadata.selectionAfter ?? (() => {
+          this.#restoreSelection(projectedSelection)
+          return projectedSelection
+        })
         this.#editingProjection = false
         this.#engine.execute({
           origin: metadata.origin ?? 'user',
           name: metadata.name ?? 'projection.sync',
-          selectionBefore: metadata.selectionBefore,
-          selectionAfter: metadata.selectionAfter,
+          selectionBefore,
+          selectionAfter,
           historyGroup: metadata.historyGroup,
           coalesce: metadata.coalesce === true,
           sourceBlockId: metadata.preserveSourceProjection === true && ordered.length === 1
@@ -1940,12 +1955,14 @@ export class DocumentRuntime {
       }
       return result
     } catch (error) {
+      this.#editingProjection = true
       try {
         this.#projector?.restore?.(this.#store)
       } catch (recoveryError) {
         this.#controlFailed = true
         throw new AggregateError([error, recoveryError], 'Projection edit failed and recovery also failed')
       }
+      this.#restoreSelection(selectionBefore)
       throw error
     } finally {
       this.#editingProjection = false
@@ -2771,10 +2788,35 @@ export class DocumentRuntime {
     }
   }
 
+  #captureSelection() {
+    try { return cloneEditorData(this.#selection?.capture?.() ?? null) }
+    catch (error) {
+      this.#diagnostics?.emit('command.failed', { operation: 'projection.selection.capture', errorName: this.#diagnostics.errorName(error) })
+      return null
+    }
+  }
+
+  #restoreSelection(bookmark) {
+    if (!bookmark || !this.#selection?.restore) return
+    try { this.#selection.restore(cloneEditorData(bookmark)) }
+    catch (error) {
+      this.#diagnostics?.emit('command.failed', { operation: 'projection.selection.restore', errorName: this.#diagnostics.errorName(error) })
+    }
+  }
+
+  #mutationPhase() {
+    if (this.#editingProjection) return 'protected-projection-edit'
+    if (this.#changingReadOnly) return 'read-only-transition'
+    return this.#engine?.phase ?? 'idle'
+  }
+
   #assertHostMutation() {
     if (this.#destroyed) throw new Error('DocumentRuntime is destroyed')
     if (this.health === 'failed') throw new Error('DocumentRuntime is failed')
     if (this.#editingProjection) throw new Error('Cannot mutate document during protected projection edit')
+    if (this.#changingReadOnly) throw new Error('Cannot mutate document during read-only transition')
+    const phase = this.#engine?.phase ?? 'idle'
+    if (phase !== 'idle' && phase !== 'building') throw new Error(`Cannot mutate document during ${phase} phase`)
   }
 
   #assertInteractionMutation() {
@@ -2839,7 +2881,7 @@ export class DocumentRuntime {
     scope.configure({
       readOnly: this.#readOnly,
       health: () => this.health,
-      phase: () => this.#engine?.phase ?? 'idle',
+      phase: () => this.#mutationPhase(),
       currentGeneration: () => this.#store.generation,
       signal,
     })
@@ -2881,7 +2923,7 @@ export class DocumentRuntime {
           generation: scope.generation,
           readOnly: this.#readOnly,
           health: () => this.health,
-          phase: () => this.#engine?.phase ?? 'idle',
+          phase: () => this.#mutationPhase(),
           currentGeneration: () => this.#store.generation,
           signal: inlineSignal,
           parent: scope,
