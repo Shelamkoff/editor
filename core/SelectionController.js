@@ -450,6 +450,8 @@ export class SelectionController {
   #onMouseDown(event) {
     this.#navigationX=null
     if (event.button !== 0) return
+    // Toolbar inputs own their native focus without starting a document drag.
+    if (event.target?.closest?.('.oe-inline-toolbar')) return
     const caret = this.#caretFromPoint(event.clientX, event.clientY)
     const point = caret ? this.#logicalPoint(caret.node, caret.offset) : null
     if (!point) {

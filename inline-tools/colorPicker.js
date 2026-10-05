@@ -146,7 +146,6 @@ export function createBgColorTool(label) {
     if (!savedRange) return null
     const range = cbs?.range?.cloneRange() || savedRange
     const saved = savedOffsets ?? saveSelectionOffsets(range)
-    restoreRange()
 
     return {
       range,
@@ -181,6 +180,9 @@ export function createBgColorTool(label) {
     if (!ctx) { closePicker(); return }
 
     mutate(ctx.range, () => {
+      // Preserve the editor-owned bookmark in the history before restoring
+      // a native range for the auxiliary color control.
+      restoreRange()
       if (ctx.walkRoot) {
         const targets = collectTextTargets(ctx.walkRoot, ctx.range)
 
@@ -217,6 +219,9 @@ export function createBgColorTool(label) {
     if (!ctx) { closePicker(); return }
 
     mutate(ctx.range, () => {
+      // Preserve the editor-owned bookmark in the history before restoring
+      // a native range for the auxiliary color control.
+      restoreRange()
       if (ctx.walkRoot) {
         editSelectedAncestors(ctx.range,
           span => span.tagName === 'SPAN' && !!span.style.backgroundColor,

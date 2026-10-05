@@ -484,6 +484,7 @@ try {
   const nativeConversionGrouping = await runNativePage(client, pageUrl, 'native-conversion-grouping.html')
   const nativeConversionPreservation = await runNativePage(client,pageUrl,'native-conversion-preservation.html')
   const nativeInteractionSequences = await runNativePage(client,pageUrl,'native-interaction-sequences.html')
+  const nativeRetainedTools = await runNativePage(client,pageUrl,'native-retained-tools.html')
   const nativeStructural = await runNativePage(client, pageUrl, 'native-structural.html')
   const nativeCrossSelection = await runNativePage(client, pageUrl, 'native-cross-selection.html')
   const nativeCoreBehavior = await runNativePage(client, pageUrl, 'native-core-behavior.html')
@@ -518,6 +519,7 @@ try {
     nativeConversionGrouping,
     nativeConversionPreservation,
     nativeInteractionSequences,
+    nativeRetainedTools,
     nativeStructural,
     nativeCrossSelection,
     nativeCoreBehavior,

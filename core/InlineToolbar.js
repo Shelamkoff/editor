@@ -46,6 +46,7 @@ export class InlineToolbar {
   #actionVersion = 0
   #buttons = new Map()
   #range = null
+  #bookmark = null
   #blockId = null
   #fieldKey = null
   #destroyed = false
@@ -367,6 +368,7 @@ export class InlineToolbar {
   hide() {
     this.#tooltip.hide()
     this.#range = null
+    this.#bookmark = null
     this.#blockId = null
     this.#fieldKey = null
     this.#element.style.display = 'none'
@@ -449,8 +451,9 @@ export class InlineToolbar {
     const blockIds = this.#blockIdsBetween(bookmark.anchor.blockId, bookmark.focus.blockId)
     if (!blockIds.length) return null
 
+    const resolvedRange = this.#selectionPort?.range ?? range
     return {
-      range: (this.#selectionPort?.range ?? range).cloneRange(),
+      range: resolvedRange.cloneRange(),
       bookmark,
       blockIds,
       blockId: bookmark.anchor.blockId,
@@ -461,7 +464,7 @@ export class InlineToolbar {
       sameBlock: bookmark.anchor.blockId === bookmark.focus.blockId,
       sameField: bookmark.anchor.blockId === bookmark.focus.blockId
         && bookmark.anchor.fieldKey === bookmark.focus.fieldKey,
-      text: native?.toString?.() ?? range.toString(),
+      text: resolvedRange.toString(),
     }
   }
 
@@ -529,6 +532,7 @@ export class InlineToolbar {
   #show(selection) {
     this.#tooltip.hide()
     this.#range = selection.range.cloneRange()
+    this.#bookmark = cloneBookmark(selection.bookmark)
     this.#blockId = selection.blockId
     this.#fieldKey = selection.fieldKey
     const record = this.#runtime.get(selection.blockId)
@@ -833,7 +837,9 @@ export class InlineToolbar {
     const allowed = this.#allowedTools(formattingIds)
     if (allowed && !allowed.has(type)) return undefined
 
-    const bookmark = cloneBookmark(this.#selectionPort?.bookmark ?? this.#selection.capture())
+    const toolbarOwnsFocus = this.#element.contains(this.#root.ownerDocument.activeElement)
+    const bookmark = cloneBookmark(this.#selectionPort?.bookmark
+      ?? (toolbarOwnsFocus ? this.#bookmark : null) ?? this.#selection.capture())
     let result
     try {
       result = this.#runtime.syncBlocksFromProjection(formattingIds, () => {
@@ -842,6 +848,7 @@ export class InlineToolbar {
       }, {
         origin: 'user',
         name: `inline.${type}`,
+        selectionBefore: bookmark,
         preserveSourceProjection: formattingIds.length === 1,
       })
     } catch (error) {

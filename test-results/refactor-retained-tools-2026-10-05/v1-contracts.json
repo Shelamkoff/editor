@@ -1,0 +1,16 @@
+{
+  "revision": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+  "kind": "read-only historical source evidence; never imported by the v2 runtime",
+  "contracts": [
+    {
+      "path": "core/inline-toolbar/InlineToolbar.js",
+      "sourceSha256": "b18ffbefc6e7c76138a14e9b0140f8f325689e09b02e1e720520e536d82622d6",
+      "excerpt": "#resolveSelection() {\n    const crossRange = this.#crossBlockSelection.range\n    if (crossRange) {\n      return { range: crossRange, text: crossRange.toString(), blockId: '' }\n    }\n    const sel = this.#selection.getSelection()\n    if (sel) return sel\n    const nativeSel = window.getSelection()\n    if (nativeSel && !nativeSel.isCollapsed && nativeSel.rangeCount > 0) {\n      return { range: nativeSel.getRangeAt(0), text: nativeSel.toString(), blockId: '' }\n    }\n    return null\n  }"
+    },
+    {
+      "path": "core/MouseSelectionManager.js",
+      "sourceSha256": "87f6891d0122d40703002abe2b939866e8ec422c5821afae5a17b056e9ff34e9",
+      "excerpt": "#onMouseDown = (/** @type {MouseEvent} */ e) => {\n    const target = e.target\n    if (!(target instanceof HTMLElement)) return\n\n    // Only clear cross-block selection when clicking inside content area,\n    // not on toolbar buttons or other UI elements\n    if (target.closest(BLOCK_SELECTOR) || target.closest('.oe-blocks') || this.#isClickAreaTarget(target)) {\n      this.#clearBlockSelection()\n    }\n\n    this.#mouseStartNode = null\n    this.#mouseStartOffset = 0\n\n    if (this.#isEmptySpace(target)) {\n      if (this.#isClickAreaTarget(target)) {\n        const lastBlock = this.#blocks.getBlockByIndex(this.#blocks.getBlockCount() - 1)\n        this.#mouseStartBlock = lastBlock || null\n      } else {\n        this.#mouseStartBlock = null\n      }\n      return\n    }\n\n    this.#mouseStartBlock = this.#blocks.getBlockByChildNode(target) ?? null\n\n    const caret = this.#caretFromPoint(e.clientX, e.clientY)\n    if (caret) {\n      this.#mouseStartNode = caret.node\n      this.#mouseStartOffset = caret.offset\n    }\n  }"
+    }
+  ]
+}

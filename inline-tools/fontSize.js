@@ -308,21 +308,23 @@ export function createFontSizeTool(label) {
    */
   function applySize(sizePx) {
     if (!Number.isInteger(sizePx) || sizePx < FONT_SIZE_MIN || sizePx > FONT_SIZE_MAX) return
-    restoreRange()
-    const sel = selectionFor(cbs?.range ?? savedRange)
-    if (!sel || sel.isCollapsed || !sel.rangeCount) { closeDropdown(); return }
-    const range = sel.getRangeAt(0)
+    const actualRange = cbs?.range?.cloneRange() || savedRange?.cloneRange()
+    if (!actualRange || actualRange.collapsed || actualRange.startContainer.getRootNode() !== documentFor(actualRange)) {
+      closeDropdown()
+      return
+    }
 
     if (sizePx === FONT_SIZE_DEFAULT) {
       removeSize()
       return
     }
 
-    // Use the stored cross-block range if available (native range is clipped)
-    const actualRange = cbs?.range?.cloneRange() || range
-    const saved = saveSelectionOffsets(actualRange)
+    const saved = savedOffsets ?? saveSelectionOffsets(actualRange)
 
     mutate(actualRange, () => {
+      // Restore the browser range inside the gate so history captures the
+      // editor-owned selection before the auxiliary control changes it.
+      restoreRange()
       // Always use wrapRangeWithFontSize — it handles both existing spans (update)
       // and unwrapped text (create new spans) in a single pass.
       const result = wrapRangeWithFontSize(actualRange, `${sizePx}px`)
@@ -341,13 +343,12 @@ export function createFontSizeTool(label) {
   }
 
   function removeSize() {
-    restoreRange()
-    const sel = selectionFor(cbs?.range ?? savedRange)
-    if (!sel || !sel.rangeCount) { closeDropdown(); return }
-    const range = sel.getRangeAt(0)
-
-    const actualRange = cbs?.range?.cloneRange() || range
-    const saved = saveSelectionOffsets(actualRange)
+    const actualRange = cbs?.range?.cloneRange() || savedRange?.cloneRange()
+    if (!actualRange || actualRange.collapsed || actualRange.startContainer.getRootNode() !== documentFor(actualRange)) {
+      closeDropdown()
+      return
+    }
+    const saved = savedOffsets ?? saveSelectionOffsets(actualRange)
 
     const walkRoot = getWalkRoot(actualRange)
     if (!walkRoot) { closeDropdown(); return }
@@ -363,6 +364,7 @@ export function createFontSizeTool(label) {
     if (!toReset.length) { closeDropdown(); return }
 
     mutate(actualRange, () => {
+      restoreRange()
       const doc = documentFor(actualRange)
       if (!doc) return
       // Move font-size into a temporary dedicated wrapper. This lets the

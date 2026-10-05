@@ -1,0 +1,31 @@
+file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149
+    if (result.status === 'fail') throw new Error(`History matrix failed: ${result.summary}`)
+                                        ^
+
+Error: History matrix failed: [
+  {
+    "name": "native Background after conversion preserves the range through its auxiliary input and history / inline / forward",
+    "status": "FAIL",
+    "error": "Error: Undo did not restore the converted end caret\n    at assert (http://127.0.0.1:55655/tests/browser/regressions/harness.js:20:81)\n    at http://127.0.0.1:55655/tests/browser/native-interaction-sequences.js:324:3\n    at async run (http://127.0.0.1:55655/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:55655/tests/browser/native-interaction-sequences.js:331:1"
+  },
+  {
+    "name": "native Background after conversion preserves the range through its auxiliary input and history / tune / forward",
+    "status": "FAIL",
+    "error": "Error: Undo did not restore the converted end caret\n    at assert (http://127.0.0.1:55655/tests/browser/regressions/harness.js:20:81)\n    at http://127.0.0.1:55655/tests/browser/native-interaction-sequences.js:324:3\n    at async run (http://127.0.0.1:55655/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:55655/tests/browser/native-interaction-sequences.js:331:1"
+  },
+  {
+    "name": "native Background after conversion preserves the range through its auxiliary input and history / inline / backward",
+    "status": "FAIL",
+    "error": "Error: Undo did not restore the converted end caret\n    at assert (http://127.0.0.1:55655/tests/browser/regressions/harness.js:20:81)\n    at http://127.0.0.1:55655/tests/browser/native-interaction-sequences.js:324:3\n    at async run (http://127.0.0.1:55655/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:55655/tests/browser/native-interaction-sequences.js:331:1"
+  },
+  {
+    "name": "native Background after conversion preserves the range through its auxiliary input and history / tune / backward",
+    "status": "FAIL",
+    "error": "Error: Undo did not restore the converted end caret\n    at assert (http://127.0.0.1:55655/tests/browser/regressions/harness.js:20:81)\n    at http://127.0.0.1:55655/tests/browser/native-interaction-sequences.js:324:3\n    at async run (http://127.0.0.1:55655/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:55655/tests/browser/native-interaction-sequences.js:331:1"
+  }
+]
+    at waitForHistoryMatrix (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149:41)
+    at async runNativePage (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:275:30)
+    at async file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:312:48
+
+Node.js v24.9.0
