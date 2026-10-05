@@ -1,0 +1,227 @@
+{
+  "normalization": "local bytes before Git LF/CRLF normalization",
+  "source": [
+    {
+      "path": "core/Tooltip.js",
+      "bytes": 4327,
+      "sha256": "461400a3e42a66059fbb10a2f111c451c817fbfb29260405937f088a830fb197"
+    },
+    {
+      "path": "core/InlineToolbar.js",
+      "bytes": 29963,
+      "sha256": "55ae94b6d662bfc2e2bfab2ddda0a11058e59f735ca13dd444135c90ee27f802"
+    },
+    {
+      "path": "core/BlockToolbar.js",
+      "bytes": 26765,
+      "sha256": "34c3ba601db64bbaba6a5767c4bc550587f8fc217ab433656983909f28583f63"
+    },
+    {
+      "path": "core/themes/variables.css",
+      "bytes": 26847,
+      "sha256": "7158c8cbf07ccf36db32fb34ec8db7a2b69e04dd0ee202334b5e03d085516216"
+    },
+    {
+      "path": "docs/.vitepress/theme/components/LiveDemo.vue",
+      "bytes": 18913,
+      "sha256": "82de0dff09e9fe02bbab5a2298a178a437d9d04f9a315372fcf147ec3ee5278e"
+    },
+    {
+      "path": "inline-tools/defaults.js",
+      "bytes": 3162,
+      "sha256": "928d97faed5d372bb46ea9f2df02fb84e12afcd4b84bdeae33c557c35eeaaa66"
+    },
+    {
+      "path": "inline-tools/types.d.ts",
+      "bytes": 1838,
+      "sha256": "696177f8665c6963eddc390166396ef758a7f284a35b7e607b7d15c1ef8d3288"
+    },
+    {
+      "path": "inline-tools/utils.js",
+      "bytes": 39930,
+      "sha256": "788ee2c08e9ad9aa5b0eb3c6895f3909423bfe54bb5b7ee28c7b3697cfbd0456"
+    },
+    {
+      "path": "inline-tools/align.js",
+      "bytes": 3048,
+      "sha256": "43f3f0aa658a360981ae0bbd8d2fa3ea733f7530dc55770988d39e12ccd451b5"
+    },
+    {
+      "path": "inline-tools/scriptTool.js",
+      "bytes": 6373,
+      "sha256": "73c5b0e1f0e54b716238e550b09daf5ce01265797d10024338fc81e82931eceb"
+    },
+    {
+      "path": "inline-tools/link.js",
+      "bytes": 9555,
+      "sha256": "b35854f2d505d89fbbda3777705b403274e91f7b5e0c704dafc7ab8461ed8ee1"
+    },
+    {
+      "path": "tests/browser/native-tools.js",
+      "bytes": 14911,
+      "sha256": "7f9b33492581e1f3e2094e3cbd25bfd981f175ecc128881ce53a8bb1c556f374"
+    },
+    {
+      "path": "tests/browser/physical-history.mjs",
+      "bytes": 25675,
+      "sha256": "40b231410d39635fe04a3e783482b8dc1d1e53d879f118851eeee0adf20df8cc"
+    },
+    {
+      "path": "scripts/vitepress-browser-scenarios.mjs",
+      "bytes": 37916,
+      "sha256": "6145c7918858fb9b4ade2388ebf3ed291a5dd59e11af777e68a9260b7dd82ba3"
+    },
+    {
+      "path": "docs/guide/configuration.md",
+      "bytes": 8194,
+      "sha256": "8e9d5af97f46f4b4a64c4a5480615eeef4da4e8bb9f386c31747232e4649c1fe"
+    },
+    {
+      "path": "docs/ru/guide/configuration.md",
+      "bytes": 12852,
+      "sha256": "137b5f53561841e9eda86d03076af3f4314fceb0b4f43bc269a96fc7e13b2d2e"
+    },
+    {
+      "path": "docs/guide/inline-extensions.md",
+      "bytes": 5672,
+      "sha256": "236f0a1a2ac61cd61ab4eb970ce5d2992c25ff16335bd4d3abd178b862e1f686"
+    },
+    {
+      "path": "docs/ru/guide/inline-extensions.md",
+      "bytes": 7821,
+      "sha256": "098c161917c535a90a48b708c2677bf9eb467f3d394c752aa05c9d02beb2b196"
+    },
+    {
+      "path": "RECTOR_V2_TOOLTIP_AUDIT_2026-10-05.md",
+      "bytes": 9709,
+      "sha256": "dcb39e84d7c5ef18dfd3c2a9611e6ba4e46f2fdc532c18fef16e3c7619271405"
+    },
+    {
+      "path": "LOCAL-VERIFICATION.md",
+      "bytes": 6417,
+      "sha256": "5b8cb952278a0bdd22d2bdf26e2a13b2a95c85ffa9b14d066e1b8a68a06b17a7"
+    },
+    {
+      "path": "RECTOR_V2_OBSERVER_AUDIT_2026-10-05.md",
+      "bytes": 11870,
+      "sha256": "4791c8c5ee7f8c8f426f0e44ec4d09fb3bead1ce4205f40341543e07a233b91f"
+    }
+  ],
+  "evidence": [
+    {
+      "path": "test-results/refactor-tooltips-2026-10-05/demo-locale-red.log",
+      "bytes": 429,
+      "sha256": "5480d6946ec610aca5b5344bff953c9b4cd77bcf44cd397717f3990aba19ec2d"
+    },
+    {
+      "path": "test-results/refactor-tooltips-2026-10-05/tooltip-red.log",
+      "bytes": 1519,
+      "sha256": "ba68032dd9bc52040169eeedd4b25f6efdb1d60844db3f430c30b6ce05d4d423"
+    },
+    {
+      "path": "test-results/refactor-tooltips-2026-10-05/panel-cancel-red.log",
+      "bytes": 2617,
+      "sha256": "ea242e6158e13d4827379f5d5ce5c2ea9d4a7932b71887677f3e474a42a01df2"
+    },
+    {
+      "path": "test-results/refactor-tooltips-2026-10-05/demo-locale-green.log",
+      "bytes": 243,
+      "sha256": "05a9bb57248ba5d1799aa5a2cc781d6ab244d169350a771b0bc950613e8bd51d"
+    },
+    {
+      "path": "test-results/refactor-tooltips-2026-10-05/tooltip-green.log",
+      "bytes": 203,
+      "sha256": "fde6537599687324ad82cc951da7354b66cb9b72dd57e40f6af4475a833104ec"
+    },
+    {
+      "path": "test-results/refactor-tooltips-2026-10-05/panel-cancel-green.log",
+      "bytes": 503,
+      "sha256": "91d3857c5896206208aaaeaebc7147abe5c397b93dbfa189e44dcc0660561519"
+    },
+    {
+      "path": "test-results/refactor-tooltips-2026-10-05/native-tools.log",
+      "bytes": 3162,
+      "sha256": "4bb7042fc310afa292c57d8575c3c24e8185c3f462ef270bfd0ebe997de385ff"
+    },
+    {
+      "path": "test-results/refactor-tooltips-2026-10-05/native-full.log",
+      "bytes": 104196,
+      "sha256": "d2680eb15c574d75073b58825c64caa25ef4cee7cbe3cf7ec6d82acaf7b8bd76"
+    },
+    {
+      "path": "test-results/refactor-tooltips-2026-10-05/typecheck.log",
+      "bytes": 164,
+      "sha256": "f2e2e5291667e60bd0d22b70e3d3c0586d87fa89151fb2e8e5909dfc04bdf450"
+    },
+    {
+      "path": "test-results/refactor-tooltips-2026-10-05/node.log",
+      "bytes": 39400,
+      "sha256": "bb2ab81fc704e209ce35f7f533894df223ae5a700f53a5d30fe6c4cd48c27354"
+    },
+    {
+      "path": "test-results/refactor-tooltips-2026-10-05/browser-full.log",
+      "bytes": 12665,
+      "sha256": "8820b96a72aeda2e3666710c626e8aacbb44fa731b3b26b344a582c2c2f61d5d"
+    },
+    {
+      "path": "test-results/refactor-tooltips-2026-10-05/heap.log",
+      "bytes": 94,
+      "sha256": "7f8a7f5def802090c47f36b399838d45d4f200607d15f7760bee25eaa44213ad"
+    },
+    {
+      "path": "test-results/refactor-tooltips-2026-10-05/build.log",
+      "bytes": 329,
+      "sha256": "8bddb63e2c9d57a142f498f90c3e99023d67471b4ab4c46634ae17486dd4a5f7"
+    },
+    {
+      "path": "test-results/refactor-tooltips-2026-10-05/test-types.log",
+      "bytes": 687,
+      "sha256": "5c6b7e49208c858c406174f338896dbf7c892711211aa2d9250fb245dbdc9dce"
+    },
+    {
+      "path": "test-results/refactor-tooltips-2026-10-05/test-package.log",
+      "bytes": 4588,
+      "sha256": "6f674786b02dbd059c6f1fbbcf5f0d791c5eb335d4d048a71638bb14dac7f760"
+    },
+    {
+      "path": "test-results/refactor-tooltips-2026-10-05/test-docs.log",
+      "bytes": 762,
+      "sha256": "5d22ab0643b84adf7fd266e596e4f804b816c2cac2ec0d7727ca485fcdb5a9e0"
+    },
+    {
+      "path": "test-results/refactor-tooltips-2026-10-05/docs-check.log",
+      "bytes": 1459,
+      "sha256": "4660294b1e43a49323577f0a1bd45abcf67010821fab5260073b7bcd6ade4c4f"
+    },
+    {
+      "path": "test-results/refactor-tooltips-2026-10-05/demo-visual.log",
+      "bytes": 332,
+      "sha256": "8645b1d1d7cadc9850a6f35f3f50b86ca569f34b72f782bba5be456d36f19e1b"
+    },
+    {
+      "path": "test-results/refactor-tooltips-2026-10-05/verification-summary.json",
+      "bytes": 2347,
+      "sha256": "70edd3d9b94386ac86c89f1cb244085de54dbb1a1b618438f98da14ab27542ba"
+    },
+    {
+      "path": "test-results/refactor-tooltips-2026-10-05/screenshots/tooltip-ru-dark.png",
+      "bytes": 89879,
+      "sha256": "1aec14077bc3d1eaf01e10e4ccd5f2524eff18e82348f13d37a140ef0dad63f7"
+    },
+    {
+      "path": "test-results/refactor-tooltips-2026-10-05/screenshots/tooltip-ru-light.png",
+      "bytes": 83999,
+      "sha256": "eea78e838eb4f806c32b00f152c2896b8be85886c88fcd783581ebb2f8bd69bc"
+    },
+    {
+      "path": "test-results/refactor-tooltips-2026-10-05/screenshots/tooltip-en-dark.png",
+      "bytes": 92809,
+      "sha256": "c4cbb29f948772f4d2b16f4b79a0a4b1fc96f7159f4e09229087933731215b76"
+    },
+    {
+      "path": "test-results/refactor-tooltips-2026-10-05/screenshots/tooltip-en-light.png",
+      "bytes": 85385,
+      "sha256": "7de7c0f344f959c7e76572cadd27b77d5e54289624f2fb4d5265468f83c5d1c2"
+    }
+  ]
+}

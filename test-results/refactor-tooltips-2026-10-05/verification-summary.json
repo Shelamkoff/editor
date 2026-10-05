@@ -1,0 +1,130 @@
+{
+  "date": "2026-10-05",
+  "branch": "refactor/rector-v2-architecture",
+  "base": "57da9c701257a8f93af69c3185c101c50d8671a1",
+  "v1Oracle": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+  "native": {
+    "cases": 951,
+    "pass": 951,
+    "fail": 0,
+    "skip": 0,
+    "counts": {
+      "nativeTextInput": {
+        "PASS": 42
+      },
+      "nativeTools": {
+        "PASS": 33
+      },
+      "nativeClipboard": {
+        "PASS": 7
+      },
+      "nativeIme": {
+        "PASS": 9
+      },
+      "nativeConversion": {
+        "PASS": 7
+      },
+      "nativeBlockMenus": {
+        "PASS": 8
+      },
+      "nativeStructural": {
+        "PASS": 21
+      },
+      "nativeCrossSelection": {
+        "PASS": 32
+      },
+      "nativeCoreBehavior": {
+        "PASS": 53
+      },
+      "nativePluginParity": {
+        "PASS": 139
+      },
+      "nativePluginControls": {
+        "PASS": 141
+      },
+      "nativePluginRanges": {
+        "PASS": 116
+      },
+      "nativePluginLocalRanges": {
+        "PASS": 76
+      },
+      "nativePluginClipboard": {
+        "PASS": 48
+      },
+      "nativePluginFieldClipboard": {
+        "PASS": 68
+      },
+      "nativePluginMedia": {
+        "PASS": 67
+      },
+      "nativePluginDesign": {
+        "PASS": 84
+      }
+    }
+  },
+  "node": {
+    "cases": 431,
+    "pass": 431,
+    "fail": 0,
+    "skip": 0
+  },
+  "browser": {
+    "pages": 24,
+    "pass": true
+  },
+  "design": {
+    "plugins": 21,
+    "themes": 2,
+    "widths": [
+      640,
+      288
+    ],
+    "combinations": 84,
+    "states": 336,
+    "pixelDiff": false
+  },
+  "heap": {
+    "sentinels": 21,
+    "retained": 0,
+    "usedHeapMiB": 12.48,
+    "embedderHeapMiB": 1.36,
+    "snapshotMiB": 24.49
+  },
+  "build": {
+    "declarations": 264,
+    "diagnostics": 0
+  },
+  "types": {
+    "cases": 6,
+    "pass": true
+  },
+  "package": {
+    "checkoutTarball": true,
+    "bundler": true,
+    "nodeNext": true,
+    "vite": true,
+    "cssAssets": 22
+  },
+  "docs": {
+    "productionPages": 123,
+    "brokenLinks": 0,
+    "missingAssets": 0,
+    "localizedPairs": 47,
+    "readmes": 94,
+    "examples": 53
+  },
+  "tooltips": {
+    "languages": [
+      "ru",
+      "en"
+    ],
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "realHover": true,
+    "shortcutBadge": true,
+    "selectionPreserved": true
+  },
+  "runtimeFrozenDuringFinalGates": true
+}

@@ -1,5 +1,6 @@
 // @ts-check
 import { setTrustedHtml } from '../shared/sanitize/sanitizeHtml.js'
+import { Tooltip } from './Tooltip.js'
 import { positionPopup } from '../shared/editorDom.js'
 import {
   ICON_BACK,
@@ -23,6 +24,7 @@ export class BlockToolbar {
   #translate
   #t
   #toolbar
+  #tooltip
   #toolbox
   #settings
   #backdrop
@@ -102,6 +104,11 @@ export class BlockToolbar {
     this.#toolbox.addEventListener('keydown', event => this.#menuKeydown(event, this.#toolbox))
     this.#settings.addEventListener('keydown', event => this.#menuKeydown(event, this.#settings))
 
+    this.#tooltip = new Tooltip(root)
+    for (const button of [this.#plus, this.#settingsButton]) {
+      this.#tooltip.bind(button, () => button.getAttribute('aria-label') ?? '')
+    }
+
     this.#plus.addEventListener('mousedown', () => {
       this.#bookmark = this.#selection.capture()
     })
@@ -145,6 +152,7 @@ export class BlockToolbar {
     if (this.#destroyed || this.#runtime.readOnly) return
     if (!this.#runtime.get(blockId)) return
     if (this.#currentId !== blockId) {
+      this.#tooltip.hide()
       this.closeToolbox()
       this.closeSettings()
     }
@@ -167,6 +175,7 @@ export class BlockToolbar {
   }
 
   hide() {
+    this.#tooltip.hide()
     const current = this.#currentId ? this.#view.element(this.#currentId) : null
     current?.classList?.remove('oe-block--focused')
     this.#toolbar.style.display = 'none'
@@ -222,6 +231,7 @@ export class BlockToolbar {
     this.#destroyed = true
     this.#root.ownerDocument.removeEventListener('click', this.#documentClick, true)
     this.#root.ownerDocument.defaultView?.removeEventListener('resize', this.#viewportChange)
+    this.#tooltip.destroy()
     this.#toolbar.remove()
     this.#toolbox.remove()
     this.#settings.remove()

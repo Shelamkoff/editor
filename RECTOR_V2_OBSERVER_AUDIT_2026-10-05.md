@@ -51,3 +51,5 @@ Native counts: text 42, tools 24, clipboard 7, IME 9, conversion 7, menus 8, str
 Проверка выполняется локально на Windows/Chrome. Native suites проверяют настоящие keyboard/mouse/clipboard/composition события; это не ручной физический OS IME. Design matrix проверяет CSS, геометрию и состояния всех 21 plugins, а не pixel diff двух приложений. Ручной OS file chooser, доступность внешних providers и Firefox/WebKit этим прогоном не подтверждаются.
 
 В существующей IAB вкладке inventory по-прежнему показывает data: страницу ERR_CONNECTION_REFUSED; предыдущая browser URL policy запрещала доступ к ней. Повторного обхода/чтения этого target не выполнялось, новые видимые окна/вкладки не создавались. Новый ручной снимок демо в этом проходе не получен. Сам docs:dev сервер отдельно проверяется по HTTP на http://127.0.0.1:5173/ru/#demo.
+
+Следующая проверка: [подсказки и возврат выделения, 05.10.2026](RECTOR_V2_TOOLTIP_AUDIT_2026-10-05.md).

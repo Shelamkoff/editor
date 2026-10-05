@@ -1,0 +1,31 @@
+file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149
+    if (result.status === 'fail') throw new Error(`History matrix failed: ${result.summary}`)
+                                        ^
+
+Error: History matrix failed: [
+  {
+    "name": "native link panel cancellation with Back preserves single-field selection for the next tool",
+    "status": "FAIL",
+    "error": "Error: cancel did not restore editing focus\n    at assert (http://127.0.0.1:57978/tests/browser/regressions/harness.js:20:81)\n    at http://127.0.0.1:57978/tests/browser/native-tools.js:232:7\n    at async run (http://127.0.0.1:57978/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:57978/tests/browser/native-tools.js:244:1"
+  },
+  {
+    "name": "native link panel cancellation with Escape preserves single-field selection for the next tool",
+    "status": "FAIL",
+    "error": "Error: cancel did not restore editing focus\n    at assert (http://127.0.0.1:57978/tests/browser/regressions/harness.js:20:81)\n    at http://127.0.0.1:57978/tests/browser/native-tools.js:232:7\n    at async run (http://127.0.0.1:57978/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:57978/tests/browser/native-tools.js:244:1"
+  },
+  {
+    "name": "native link panel cancellation with Back preserves cross-block selection for the next tool",
+    "status": "FAIL",
+    "error": "Error: cancel did not restore editing focus\n    at assert (http://127.0.0.1:57978/tests/browser/regressions/harness.js:20:81)\n    at http://127.0.0.1:57978/tests/browser/native-tools.js:232:7\n    at async run (http://127.0.0.1:57978/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:57978/tests/browser/native-tools.js:244:1"
+  },
+  {
+    "name": "native link panel cancellation with Escape preserves cross-block selection for the next tool",
+    "status": "FAIL",
+    "error": "Error: cancel did not restore editing focus\n    at assert (http://127.0.0.1:57978/tests/browser/regressions/harness.js:20:81)\n    at http://127.0.0.1:57978/tests/browser/native-tools.js:232:7\n    at async run (http://127.0.0.1:57978/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:57978/tests/browser/native-tools.js:244:1"
+  }
+]
+    at waitForHistoryMatrix (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149:41)
+    at async runNativePage (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:275:30)
+    at async file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:312:48
+
+Node.js v24.9.0

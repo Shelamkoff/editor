@@ -63,6 +63,7 @@ export function createAlignTool(labels) {
         const button = doc.createElement('button')
         button.type = 'button'
         button.className = 'oe-inline-tool'
+        button.setAttribute('aria-label', info.title)
         setTrustedHtml(button, alignment.icon)
         if (lastAlign === alignment.value) button.classList.add('oe-inline-tool--active')
         button.addEventListener('mouseenter', () => ctx.showTooltip(button, info.title))

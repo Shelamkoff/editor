@@ -26,7 +26,8 @@ export interface InlineToolActionContext {
   setTextAlign(value: 'left' | 'center' | 'right' | 'justify' | null): boolean
   restoreSelection(): void
   close(): void
-  showTooltip(anchor: HTMLElement, label: string): void
+  readonly backLabel?: string
+  showTooltip(anchor: HTMLElement, label: string, shortcut?: string): void
   hideTooltip(): void
 }
 

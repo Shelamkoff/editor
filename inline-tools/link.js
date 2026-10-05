@@ -151,6 +151,7 @@ export function createLinkTool(linkPlaceholder, linkLabel, actionLabels = {}) {
       // Apply button
       const applyLabel = actionLabels.apply || 'Apply'
       const applyBtn = el('button', 'oe-inline-tool oe-inline-tool--apply', { type: 'button' }, ownerDocument)
+      applyBtn.setAttribute('aria-label', applyLabel)
       setTrustedHtml(applyBtn, ICON_CHECK)
       applyBtn.addEventListener('mouseenter', () => ctx.showTooltip(applyBtn, applyLabel))
       applyBtn.addEventListener('mouseleave', () => ctx.hideTooltip())
@@ -167,6 +168,7 @@ export function createLinkTool(linkPlaceholder, linkLabel, actionLabels = {}) {
       // Unlink button
       const unlinkLabel = actionLabels.unlink || 'Unlink'
       const unlinkBtn = el('button', 'oe-inline-tool oe-inline-tool--unlink', { type: 'button' }, ownerDocument)
+      unlinkBtn.setAttribute('aria-label', unlinkLabel)
       setTrustedHtml(unlinkBtn, ICON_UNLINK)
       unlinkBtn.addEventListener('mouseenter', () => ctx.showTooltip(unlinkBtn, unlinkLabel))
       unlinkBtn.addEventListener('mouseleave', () => ctx.hideTooltip())

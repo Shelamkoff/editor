@@ -1,0 +1,9 @@
+file:///C:/OSPanel/domains/editor/scripts/vitepress-browser-scenarios.mjs:29
+  if (!condition) throw new Error(message)
+                        ^
+
+Error: Russian demo label for bold: Bold instead of Полужирный
+    at assert (file:///C:/OSPanel/domains/editor/scripts/vitepress-browser-scenarios.mjs:29:25)
+    at file:///C:/OSPanel/domains/editor/scripts/vitepress-browser-scenarios.mjs:263:5
+
+Node.js v24.9.0

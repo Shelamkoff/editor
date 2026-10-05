@@ -23,7 +23,7 @@ interface InlineTool {
 }
 ```
 
-`InlineToolActionContext` contains `range`, `mutate(operation)`, `getTextAlign()`, `setTextAlign(value)`, `restoreSelection()`, `close()`, `showTooltip(anchor, label)`, and `hideTooltip()`. Any new selection change revokes the saved toolbar lease, so a retained action context cannot mutate a newer selection.
+`InlineToolActionContext` contains `range`, `mutate(operation)`, `getTextAlign()`, `setTextAlign(value)`, `restoreSelection()`, `close()`, `showTooltip(anchor, label, shortcut?)`, `hideTooltip()`, and the optional localized `backLabel`. Closing an action panel restores its saved document selection. Any new selection change revokes the saved toolbar lease, so a retained action context cannot mutate a newer selection.
 
 Core calls `bindSelectionPort(port)` when mounting a tool and `bindSelectionPort(null)` when destroying it. The port supplies the live cross-field range; each editor needs its own mutable tool instances.
 

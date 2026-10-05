@@ -93,6 +93,16 @@ A definition may be reused by multiple editor instances. Per-editor state belong
 
 Core does not statically install the complete inline-tool set. Import `createDefaultInlineTools` from `@shelamkoff/rector/preset` and pass the result through `inlineTools` when the standard preset is wanted. Individual tools remain available from their dedicated subpath exports.
 
+The preset accepts a translation port separately from the editor's locale. Use the same dictionary for both so tooltips and action panels follow the selected language:
+
+```js
+import ru from '@shelamkoff/rector/locale/ru'
+import { createDefaultInlineTools } from '@shelamkoff/rector/preset'
+
+const inlineTools = createDefaultInlineTools({ i18n: { t: key => ru[key] ?? key } })
+// Pass { locale: ru, inlineTools } to createEditor with your other options.
+```
+
 ## Initial document and version policy
 
 `data` accepts only the current explicit `2.0.0` document envelope. Every serialized block and inline widget must carry its exact current `dataVersion`; known types with missing, older, or future versions are rejected before projection. An unregistered type with valid current-envelope metadata remains inert and can round-trip without executing extension code.

@@ -966,13 +966,17 @@ export function restoreSelectionOffsets(cbs, saved) {
 
 /**
  * Create a standard back button for inline toolbar drill-down panels.
- * @param {{ close(): void, range: Range }} ctx
+ * @param {Pick<import('./types').InlineToolActionContext, 'close' | 'range' | 'backLabel'> & Partial<Pick<import('./types').InlineToolActionContext, 'showTooltip' | 'hideTooltip'>>} ctx
  * @returns {HTMLElement}
  */
 export function createBackButton(ctx) {
   const ownerDocument = ctx.range.startContainer.ownerDocument
   const backBtn = el('button', 'oe-inline-tool oe-inline-tool--back', { type: 'button' }, ownerDocument)
   setTrustedHtml(backBtn, ICON_BACK)
+  const label = ctx.backLabel ?? 'Back'
+  backBtn.setAttribute('aria-label', label)
+  backBtn.addEventListener('mouseenter', () => ctx.showTooltip?.(backBtn, label))
+  backBtn.addEventListener('mouseleave', () => ctx.hideTooltip?.())
   backBtn.addEventListener('mousedown', (e) => { e.preventDefault(); e.stopPropagation() })
   backBtn.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); ctx.close() })
   return backBtn

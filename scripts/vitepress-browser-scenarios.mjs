@@ -171,6 +171,68 @@ async function waitForHydratedDemo(client) {
   throw new Error('Timed out waiting for the VitePress demo to hydrate')
 }
 
+async function verifyDemoTooltips(client, language) {
+  const labels = await evaluate(client, `Object.fromEntries(
+    [...document.querySelectorAll('.live-demo .oe-inline-tool[data-tool]')]
+      .map(button => [button.dataset.tool, button.getAttribute('aria-label') || button.title])
+  )`)
+  const expected = language === 'ru'
+    ? { bold: 'Полужирный', italic: 'Курсив', strikethrough: 'Зачёркнутый', link: 'Ссылка', code: 'Внутристрочный код', marker: 'Маркер', bgcolor: 'Фон текста', fontSize: 'Размер шрифта', script: 'Надстрочный', align: 'По левому краю', caseTransform: 'Сменить регистр', clearFormatting: 'Очистить форматирование' }
+    : { bold: 'Bold', italic: 'Italic', strikethrough: 'Strikethrough', link: 'Link', code: 'Inline Code', marker: 'Highlight', bgcolor: 'Background', fontSize: 'Font size', script: 'Superscript', align: 'Align left', caseTransform: 'Toggle case', clearFormatting: 'Clear formatting' }
+  for (const [type, label] of Object.entries(expected)) {
+    assert(labels[type] === label, `${language} demo label for ${type}: ${labels[type]} instead of ${label}`)
+  }
+  const initiallyDark = await evaluate(client, "document.documentElement.classList.contains('dark')")
+  for (const theme of ['light', 'dark']) {
+    await evaluate(client, `(() => {
+      if (document.documentElement.classList.contains('dark') !== ${theme === 'dark'}) document.querySelector('.VPSwitchAppearance').click()
+      const field = document.querySelector('.live-demo [contenteditable="true"]')
+      field.scrollIntoView({ block: 'center' })
+      field.focus({ preventScroll: true })
+      const range = document.createRange()
+      range.selectNodeContents(field)
+      const selection = window.getSelection()
+      selection.removeAllRanges()
+      selection.addRange(range)
+      document.dispatchEvent(new Event('selectionchange'))
+    })()`)
+    await delay(150)
+    for (const [type, shortcut] of [['strikethrough', 'Ctrl+Shift+S'], ['link', 'Ctrl+K']]) {
+      const target = await evaluate(client, `(() => {
+        const rect = document.querySelector('.live-demo .oe-inline-tool[data-tool="${type}"]').getBoundingClientRect()
+        return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }
+      })()`)
+      await client.send('Input.dispatchMouseEvent', { type: 'mouseMoved', ...target })
+      await delay(600)
+      const tooltip = await evaluate(client, `(() => {
+        const button = document.querySelector('.live-demo .oe-inline-tool[data-tool="${type}"]')
+        const tooltip = document.getElementById(button.getAttribute('aria-describedby'))
+        if (!tooltip) return null
+        const rect = tooltip.getBoundingClientRect()
+        const style = getComputedStyle(tooltip)
+        return {
+          label: tooltip.querySelector('.oe-tooltip__label')?.textContent,
+          shortcut: tooltip.querySelector('.oe-tooltip__shortcut')?.textContent,
+          display: style.display, background: style.backgroundColor, borderRadius: style.borderRadius,
+          withinViewport: rect.left >= 0 && rect.right <= innerWidth && rect.top >= 0 && rect.bottom <= innerHeight,
+          selected: !window.getSelection().isCollapsed,
+        }
+      })()`)
+      assert(tooltip?.label === expected[type] && tooltip?.shortcut === shortcut && tooltip?.display !== 'none', `${language}/${theme} styled tooltip: ${JSON.stringify(tooltip)}`)
+      assert(tooltip.withinViewport && tooltip.selected && tooltip.borderRadius === '6px', 'Tooltip layout or selection regressed')
+      if (qaRoot && type === 'strikethrough') {
+        await mkdir(qaRoot, { recursive: true })
+        await captureScreenshot(client, join(qaRoot, `tooltip-${language}-${theme}.png`))
+      }
+    }
+    await client.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 1, y: 1 })
+  }
+  await evaluate(client, `(() => {
+    if (document.documentElement.classList.contains('dark') !== ${initiallyDark}) document.querySelector('.VPSwitchAppearance').click()
+  })()`)
+  await delay(100)
+}
+
 async function stopProcess(process) {
   if (!process || process.exitCode !== null) return
   const closed = new Promise(resolve => process.once('close', resolve))
@@ -248,6 +310,8 @@ try {
   assert(result.heroCenterDelta <= 2, `Hero content is not vertically centered (delta ${result.heroCenterDelta}px)`)
   assert(!result.removedSectionPresent, 'Removed quick-start code section is still visible')
   if (result.dark) assert(result.logoFilter === 'none', `Dark-theme hero logo has an unexpected filter: ${result.logoFilter}`)
+
+  await verifyDemoTooltips(client, 'ru')
 
   const navigationLayering = await evaluate(client, `(() => {
     const nav = document.querySelector('.VPNav')
@@ -525,7 +589,7 @@ try {
     await captureScreenshot(client, join(qaRoot, 'carousel-url-editor-dark.png'))
 
     const sourceEditorStyled = await evaluate(client, `(() => {
-      const root = document.querySelector('.live-demo .oe-source-editor[data-oe-source-editor="url"]')
+      const root = document.querySelector('.live-demo .oe-carousel-block .oe-source-editor[data-oe-source-editor="url"][aria-hidden="false"]')
       const panel = root?.querySelector('.oe-source-editor__panel')
       const field = root?.querySelector('.oe-source-editor__field')
       if (!(root instanceof HTMLElement)
@@ -589,7 +653,7 @@ try {
     await captureScreenshot(client, join(qaRoot, 'carousel-html-editor-dark.png'))
 
     const htmlEditorStyled = await evaluate(client, `(() => {
-      const root = document.querySelector('.live-demo .oe-source-editor[data-oe-source-editor="html"]')
+      const root = document.querySelector('.live-demo .oe-carousel-block .oe-source-editor[data-oe-source-editor="html"][aria-hidden="false"]')
       const panel = root?.querySelector('.oe-source-editor__panel')
       const field = root?.querySelector('.oe-source-editor__field')
       const cancel = root?.querySelector('.oe-source-editor__button--secondary')
@@ -706,6 +770,16 @@ try {
     )
   }
 
+  const englishUrl = new URL('../', pageUrl).href
+  await client.send('Page.navigate', { url: englishUrl })
+  for (let attempt = 0; attempt < 100; attempt++) {
+    const ready = await evaluate(client, "document.documentElement.lang.startsWith('en') && Boolean(document.querySelector('.live-demo .oe-editor .oe-block'))")
+    if (ready) break
+    await delay(100)
+  }
+  await waitForHydratedDemo(client)
+  await verifyDemoTooltips(client, 'en')
+
   assert(missingRequests.length === 0, `VitePress requested missing assets: ${[...new Set(missingRequests)].join(', ')}`)
 
   console.log(JSON.stringify({
@@ -719,6 +793,7 @@ try {
     localSearchShortcut: true,
     searchKeyAlignedRight: true,
     mentionAutocomplete: true,
+    localizedTooltips: { languages: ['ru', 'en'], themes: ['light', 'dark'], shortcuts: true },
     missingAssets: 0,
   }))
 } finally {

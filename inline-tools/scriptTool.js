@@ -120,6 +120,7 @@ export function createScriptTool(labels) {
         const btn = doc.createElement('button')
         btn.type = 'button'
         btn.className = 'oe-inline-tool'
+        btn.setAttribute('aria-label', mode.title)
         setTrustedHtml(btn, mode.icon)
         if (current === mode.key && mode.key !== 'none') btn.classList.add('oe-inline-tool--active')
 

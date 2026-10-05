@@ -23,7 +23,7 @@ interface InlineTool {
 }
 ```
 
-`InlineToolActionContext` содержит `range`, `mutate(operation)`, `getTextAlign()`, `setTextAlign(value)`, `restoreSelection()`, `close()`, `showTooltip(anchor, label)` и `hideTooltip()`. Новое изменение выделения отзывает сохранённый контекст панели; ранее полученный контекст не может изменить новое выделение.
+`InlineToolActionContext` содержит `range`, `mutate(operation)`, `getTextAlign()`, `setTextAlign(value)`, `restoreSelection()`, `close()`, `showTooltip(anchor, label, shortcut?)`, `hideTooltip()` и необязательный локализованный `backLabel`. Закрытие панели восстанавливает сохранённое выделение документа. Новое изменение выделения отзывает сохранённый контекст панели; ранее полученный контекст не может изменить новое выделение.
 
 При подключении инструмента ядро вызывает `bindSelectionPort(port)`, а при уничтожении — `bindSelectionPort(null)`. Контекст выделения передаёт текущий диапазон между полями. Каждому редактору нужны собственные изменяемые экземпляры инструментов.
 

@@ -247,6 +247,8 @@ async function installNativeInput(client) {
           }
           await client.send('Input.dispatchMouseEvent', { type: 'mouseReleased', ...to, button: 'left', buttons: 0, clickCount: 1 })
         })()
+      : request.method === 'Input.hover'
+      ? client.send('Input.dispatchMouseEvent', { type: 'mouseMoved', ...request.params })
       : request.method === 'Viewport.set'
       ? client.send('Emulation.setDeviceMetricsOverride', { ...request.params, deviceScaleFactor: 1, mobile: false })
       : request.method === 'Viewport.reset'

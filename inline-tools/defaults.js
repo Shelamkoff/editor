@@ -13,7 +13,7 @@ import { createClearFormattingTool } from './clearFormatting.js'
 
 /**
  * Create the default set of inline tools.
- * @param {{ i18n?: import('../I18n').I18n, types?: string[] }} [options]
+ * @param {{ i18n?: import('./types').InlineToolsI18n, types?: string[] }} [options]
  * @returns {import('./types').InlineTool[]}
  */
 export function createDefaultInlineTools(options = {}) {

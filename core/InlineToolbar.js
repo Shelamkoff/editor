@@ -1,6 +1,7 @@
 // @ts-check
 import { handleMenuKeydown } from '../plugin-kit/index.js'
 import { setTrustedHtml } from '../shared/sanitize/sanitizeHtml.js'
+import { Tooltip } from './Tooltip.js'
 import { shortcutKey } from '../shared/shortcutKey.js'
 
 const INLINE_TOOL_OWNERS = new WeakMap()
@@ -36,6 +37,7 @@ export class InlineToolbar {
   #tools
   #buttonIcons = new Map()
   #translate
+  #tooltip
   #element
   #buttonsPanel
   #actions = null
@@ -173,6 +175,7 @@ export class InlineToolbar {
     }
     for (const tool of this.#tools) INLINE_TOOL_OWNERS.set(tool, this)
 
+    this.#tooltip = new Tooltip(root)
     try {
     for (const tool of this.#tools) {
       tool.bindSelectionPort?.(this.#selectionPort)
@@ -180,7 +183,8 @@ export class InlineToolbar {
       button.type = 'button'
       button.className = 'oe-inline-tool'
       button.dataset.tool = tool.type
-      button.title = tool.title ?? tool.type
+      button.setAttribute('aria-label', tool.title ?? tool.type)
+      this.#tooltip.bind(button, () => button.getAttribute('aria-label') ?? tool.type, tool.shortcut)
       setTrustedHtml(button, tool.icon)
       this.#buttonIcons.set(tool.type, tool.icon)
       button.addEventListener('mousedown', event => {
@@ -200,6 +204,7 @@ export class InlineToolbar {
       })
     }
     } catch (error) {
+      this.#tooltip.destroy()
       for (const tool of this.#tools) {
         try { tool.bindSelectionPort?.(null) } catch {}
         if (INLINE_TOOL_OWNERS.get(tool) === this) INLINE_TOOL_OWNERS.delete(tool)
@@ -252,6 +257,7 @@ export class InlineToolbar {
 
   openTool(type) {
     if (this.#readOnly || this.#destroyed) return false
+    this.#tooltip.hide()
     const tool = this.#tools.find(candidate => candidate.type === type)
     if (!tool) return false
     const selection = this.#resolveFormattingSelection()
@@ -262,9 +268,14 @@ export class InlineToolbar {
     if (tool.renderActions) {
       const range = selection.range.cloneRange()
       const lease = this.#selectionVersion
+      let panelBookmark = cloneBookmark(selection.bookmark)
       const panel = tool.renderActions({
         range,
-        mutate: operation => this.#mutate(range, operation, tool.type, lease),
+        mutate: operation => {
+          const result = this.#mutate(range, operation, tool.type, lease)
+          panelBookmark = cloneBookmark(this.#selectionPort?.bookmark ?? this.#selection.capture() ?? panelBookmark)
+          return result
+        },
         getTextAlign: () => lease === this.#selectionVersion
           ? this.#runtime.getTextAlign(selection.blockIds)
           : 'mixed',
@@ -272,11 +283,17 @@ export class InlineToolbar {
           ? this.#runtime.setTextAlign(selection.blockIds, value)
           : false,
         restoreSelection: () => {
-          if (lease === this.#selectionVersion) this.#restoreSelection(selection.bookmark, range)
+          if (lease === this.#selectionVersion) this.#restoreSelection(panelBookmark, range)
         },
-        close: () => this.#closeActions(),
-        showTooltip: (anchor, label) => anchor.setAttribute('title', label),
-        hideTooltip: () => {},
+        close: () => {
+          this.#closeActions()
+          if (lease !== this.#selectionVersion) return
+          this.#restoreSelection(panelBookmark, range)
+          this.show()
+        },
+        backLabel: this.#translate('block.back', 'Back'),
+        showTooltip: (anchor, label, shortcut) => this.#tooltip.show(anchor, label, shortcut),
+        hideTooltip: () => this.#tooltip.hide(),
       })
       if (panel) {
         this.#closeActions()
@@ -299,6 +316,7 @@ export class InlineToolbar {
   }
 
   hide() {
+    this.#tooltip.hide()
     this.#range = null
     this.#blockId = null
     this.#fieldKey = null
@@ -324,6 +342,7 @@ export class InlineToolbar {
       tool.destroy?.()
       if (INLINE_TOOL_OWNERS.get(tool) === this) INLINE_TOOL_OWNERS.delete(tool)
     }
+    this.#tooltip.destroy()
     this.#element.remove()
   }
 
@@ -459,6 +478,7 @@ export class InlineToolbar {
   }
 
   #show(selection) {
+    this.#tooltip.hide()
     this.#range = selection.range.cloneRange()
     this.#blockId = selection.blockId
     this.#fieldKey = selection.fieldKey
@@ -525,7 +545,7 @@ export class InlineToolbar {
         }
       }
       const title = tool.getTitle?.(active) ?? tool.title
-      if (title) button.title = title
+      if (title) button.setAttribute('aria-label', title)
     }
   }
 
@@ -773,6 +793,7 @@ export class InlineToolbar {
   }
 
   #closeActions() {
+    this.#tooltip.hide()
     if (!this.#actions) {
       this.#buttonsPanel.style.display = ''
       return

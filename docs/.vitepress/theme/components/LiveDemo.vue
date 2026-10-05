@@ -155,7 +155,7 @@ async function initEditor() {
       createDelimiterPlugin({ injectStyles: false }), createTablePlugin({ injectStyles: false }),
     ],
     inlinePlugins: [createColorSwatchPlugin(), mention],
-    inlineTools: createDefaultInlineTools(),
+    inlineTools: createDefaultInlineTools({ i18n: { t: (key: string) => localeDict[key] ?? key } }),
     minHeight: 280,
     onChange(data: any) {
       jsonOutput.value = highlightJson(data)
