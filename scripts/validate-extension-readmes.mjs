@@ -71,7 +71,9 @@ async function documentedPluginConfigKeys(directory) {
 function requireDocumentedSymbols(directory, files, symbols) {
   for (const symbol of symbols) {
     for (const [file, content] of files) {
-      if (!content.includes(`\`${symbol}\``)) {
+      const codeSpans = [...content.matchAll(/`([^`\n]+)`/g)].map(match => match[1])
+      const typedOption = new RegExp('^' + symbol.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\??\\s*:')
+      if (!codeSpans.some(span => span === symbol || typedOption.test(span) || span.startsWith(symbol + '('))) {
         throw new Error(`${file}: public option or export \`${symbol}\` is not documented`)
       }
     }
@@ -157,6 +159,11 @@ async function validateConsumerCoverage(relativeCollection, directory) {
 
   if (relativeCollection === 'plugins') {
     const pluginName = basename(directory)
+    for (const [file, content] of [[englishFile, english], [russianFile, russian]]) {
+      if (/context\.mutate\s*\(|контекст\s+`mutate\(\)`|The class is also exported|Класс также экспортируется|`CarouselBlock`|`Carousel`/.test(content)) {
+        throw new Error(`${file}: documents a removed class or mutation contract`)
+      }
+    }
     requireSections(englishFile, english, blockSections.english)
     requireSections(russianFile, russian, blockSections.russian)
     requireDocumentedSymbols(
@@ -177,8 +184,8 @@ async function validateConsumerCoverage(relativeCollection, directory) {
       }
     }
     if (pluginName === 'carousel') {
-      if (!english.includes('`Carousel`') || !russian.includes('`Carousel`')) {
-        throw new Error(`${directory}: the public Carousel alias is not documented in both locales`)
+      if (!english.includes('createCarouselPlugin') || !russian.includes('createCarouselPlugin')) {
+        throw new Error(`${directory}: the public Carousel factory is not documented in both locales`)
       }
     }
   }
@@ -241,21 +248,19 @@ for (const collection of collections) {
   const directories = await collectReadmeDirectories(collection.directory)
   const localized = []
   for (const directory of directories) {
-    try {
-      await Promise.all([
-        access(join(directory, 'README.md')),
-        access(join(directory, 'README.ru.md')),
-      ])
-      localized.push(directory)
-      await validateConsumerCoverage(collection.directory, directory)
-    } catch {
-      // Runtime-only directories are allowed, but a README is always a pair.
-      const hasEnglish = await access(join(directory, 'README.md')).then(() => true, () => false)
-      const hasRussian = await access(join(directory, 'README.ru.md')).then(() => true, () => false)
-      if (hasEnglish !== hasRussian) {
-        throw new Error(`${directory}: localized README pair is incomplete`)
-      }
-    }
+    const exists = file => access(file).then(() => true, error => {
+      if (error.code === 'ENOENT') return false
+      throw error
+    })
+    const [hasEnglish, hasRussian] = await Promise.all([
+      exists(join(directory, 'README.md')),
+      exists(join(directory, 'README.ru.md')),
+    ])
+    // Runtime-only directories are allowed; content failures must propagate.
+    if (hasEnglish !== hasRussian) throw new Error(`${directory}: localized README pair is incomplete`)
+    if (!hasEnglish) continue
+    localized.push(directory)
+    await validateConsumerCoverage(collection.directory, directory)
   }
   if (localized.length !== collection.expected) {
     throw new Error(`${collection.directory}: expected ${collection.expected} localized README pairs, got ${localized.length}`)

@@ -1,4 +1,5 @@
 // @ts-check
+import { definitionStyles } from '../shared/definitionStyles.js'
 import { setSanitizedHtml } from '../../plugin-kit/index.js'
 import { columnsDataSchema } from '../../shared/blockSchemas/columns.js'
 import { acceptsTextPayload, richTextFromPayload } from '../shared/textConversion.js'
@@ -26,9 +27,10 @@ function fitColumns(columns,size,context){
 
 /**
  * Create the immutable Columns v2 definition with stable column identities.
+ * @param {{injectStyles?: boolean, css?: string}} [config]
  * @returns {import('../../plugin-kit/types').BlockPluginDefinition<{layout:string,columns:Array<{id:string,content:string}>}>}
  */
-export function createColumnsPlugin(){
+export function createColumnsPlugin(config = {}) {
   /** @type {import('../../plugin-kit/types').BlockCapabilities<{layout:string,columns:Array<{id:string,content:string}>}>} */
   const capabilities=Object.freeze({
     selectionSlice:createTextSelectionSlice(columnsDataSchema),
@@ -102,7 +104,7 @@ export function createColumnsPlugin(){
     type:'columns',
     label:Object.freeze({key:'title',fallback:'Columns'}),
     icon:COLUMNS_ICON,
-    styles:COLUMNS_STYLES,
+    styles: definitionStyles(config, COLUMNS_STYLES),
     schema:columnsDataSchema,
     capabilities,
     setup(runtimeContext){

@@ -25,7 +25,7 @@ const editor = createEditor({
 })
 ```
 
-The plugin type is `mention`. The trigger must be exactly one Unicode code point. Typing it at the beginning of a text node or after a regular or non-breaking space opens search. `query` excludes the trigger. Arrow keys move the active result, Enter or Tab commits it, Escape closes the popup, and scrolling near the end requests `nextPageUrl` when supplied.
+The `createMentionPlugin` factory creates a definition of type `mention`. The trigger must be exactly one Unicode code point. Typing it at the beginning of a text node or after a regular or non-breaking space opens search. `query` excludes the trigger. Arrow keys move the active result, Enter or Tab commits it, Escape closes the popup, and scrolling near the end requests `nextPageUrl` when supplied.
 
 ## Search contract
 
@@ -73,6 +73,7 @@ The text field stores `{{widgetId}}`, while the block-level `inline` map stores 
   "inline": {
     "w_owner": {
       "type": "mention",
+      "dataVersion": 1,
       "data": { "id": "42", "name": "Ada Lovelace" }
     }
   }
@@ -85,12 +86,12 @@ The saved `id` is normalized to a string. `onMentionSelect` receives the source 
 
 A fresh commit or replacement of an existing mention is one undo/redo step. Search text, active-row movement, loading state, and opening or closing the popup are transient UI state and do not create commands.
 
-The plugin owns one popup, its document/window listeners, debounce timer, and request controller. Its `styles` declaration is owned centrally by the editor, and `editor.destroy()` releases all runtime resources and automatic style references. In bundler-managed mode, import `@shelamkoff/rector/inline-plugins/mention/styles.css` and create the editor with `injectStyles: false`. Register one separately created mention plugin per editor; mounting the same instance twice is rejected.
+The plugin owns one popup, its document/window listeners, debounce timer, and request controller. Its `styles` declaration is owned centrally by the editor, and `editor.destroy()` releases all runtime resources and automatic style references. In bundler-managed mode, import `@shelamkoff/rector/inline-plugins/mention/styles.css` and create the editor with `injectStyles: false`. Register the mention type once per editor. A definition can be reused across editors; each editor owns a separate runtime.
 
 Use `.oe-ip--mention` for saved pills and `.oe-mention-dropdown` plus its child classes for the suggestion UI. `avatar` URLs pass the shared media URL policy, and built-in rows assign names/details through text-safe DOM operations.
 
 ## Document output
 
-Pass `createMentionRenderer()` in `EditorRenderer`'s `inlineRenderers` array. It is a read-only projection that validates saved mention payloads through the same schema as the editor and does not include search, popup code, or editor listeners. If the editor uses a non-default trigger, pass that same character to the renderer factory, for example `createMentionRenderer('#')`. The trigger is presentation configuration and is not repeated in every saved widget.
+Pass `createMentionRenderer()` in the `inlineRenderers` array passed to `createEditorRenderer()`. It is a read-only projection that validates saved mention payloads through the same schema as the editor and does not include search, popup code, or editor listeners. If the editor uses a non-default trigger, pass that same character to the renderer factory, for example `createMentionRenderer('#')`. The trigger is presentation configuration and is not repeated in every saved widget.
 
 The sequential VitePress guide documents the complete inline-widget contract, storage format, history boundaries, custom plugin creation, security, and cleanup.

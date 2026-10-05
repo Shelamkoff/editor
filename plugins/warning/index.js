@@ -1,4 +1,5 @@
 // @ts-check
+import { definitionStyles } from '../shared/definitionStyles.js'
 import { setSanitizedHtml } from '../../plugin-kit/index.js'
 import { setTrustedHtml } from '../../shared/sanitize/sanitizeHtml.js'
 import { warningDataSchema } from '../../shared/blockSchemas/warning.js'
@@ -17,9 +18,10 @@ function append(left,right){
 
 /**
  * Create the immutable Warning v2 definition with stable editable fields.
+ * @param {{injectStyles?: boolean, css?: string}} [config]
  * @returns {import('../../plugin-kit/types').BlockPluginDefinition<{title:string,message:string}>}
  */
-export function createWarningPlugin(){
+export function createWarningPlugin(config = {}) {
   /** @type {import('../../plugin-kit/types').BlockCapabilities<{title:string,message:string}>} */
   const capabilities=Object.freeze({
     selectionSlice:createTextSelectionSlice(warningDataSchema),
@@ -77,7 +79,7 @@ export function createWarningPlugin(){
     type:'warning',
     label:Object.freeze({key:'title',fallback:'Warning'}),
     icon:ICON,
-    styles:Object.freeze([editorStyles]),
+    styles: definitionStyles(config, [editorStyles]),
     schema:warningDataSchema,
     capabilities,
     setup(runtimeContext){

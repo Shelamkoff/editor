@@ -1,4 +1,4 @@
-# Рендерер CarouselBlock
+# Рендерер Carousel
 
 Преобразует сохранённый блок `carousel` в принадлежащий рендереру DOM.
 Рендерер Carousel напрямую использует `@shelamkoff/carousel` и экспорт пакета `carouselStylesUrl`.

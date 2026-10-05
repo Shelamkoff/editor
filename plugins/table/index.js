@@ -1,4 +1,5 @@
 // @ts-check
+import { definitionStyles } from '../shared/definitionStyles.js'
 import { setSanitizedHtml } from '../../plugin-kit/index.js'
 import { tableDataSchema } from '../../shared/blockSchemas/table.js'
 import { acceptsTextPayload, richTextFromPayload } from '../shared/textConversion.js'
@@ -25,9 +26,10 @@ function exportText(data){
 
 /**
  * Create the immutable Table v2 definition with stable row and cell identities.
+ * @param {{injectStyles?: boolean, css?: string}} [config]
  * @returns {import('../../plugin-kit/types').BlockPluginDefinition<{withHeadings:boolean,rows:Array<{id:string,cells:Array<{id:string,text:string}>}>}>}
  */
-export function createTablePlugin(){
+export function createTablePlugin(config = {}) {
   /** @type {import('../../plugin-kit/types').BlockCapabilities<{withHeadings:boolean,rows:Array<{id:string,cells:Array<{id:string,text:string}>}>}>} */
   const capabilities=Object.freeze({
     selectionSlice:createTextSelectionSlice(tableDataSchema),
@@ -173,7 +175,7 @@ export function createTablePlugin(){
     type:'table',
     label:Object.freeze({key:'title',fallback:'Table'}),
     icon:ICON,
-    styles:Object.freeze([editorStyles]),
+    styles: definitionStyles(config, [editorStyles]),
     schema:tableDataSchema,
     capabilities,
     setup(){

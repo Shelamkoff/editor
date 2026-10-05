@@ -16,8 +16,8 @@
     "sourceRu": "plugins/attaches/README.ru.md"
   },
   {
-    "title": "CarouselBlock block plugin",
-    "titleRu": "Блочный плагин CarouselBlock",
+    "title": "Carousel block plugin",
+    "titleRu": "Блочный плагин Carousel",
     "route": "/reference/editor/plugins/carousel",
     "group": "Rector block plugins",
     "source": "plugins/carousel/README.md",
@@ -216,8 +216,8 @@
     "sourceRu": "renderer/renderers/attaches/README.ru.md"
   },
   {
-    "title": "CarouselBlock renderer",
-    "titleRu": "Рендерер CarouselBlock",
+    "title": "Carousel renderer",
+    "titleRu": "Рендерер Carousel",
     "route": "/reference/editor/renderers/carousel",
     "group": "Rector renderers",
     "source": "renderer/renderers/carousel/README.md",

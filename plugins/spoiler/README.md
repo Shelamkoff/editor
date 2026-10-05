@@ -18,7 +18,7 @@ const editor = createEditor({
 })
 ```
 
-The registered block type is `spoiler`. The class is also exported by the complete `@shelamkoff/rector/plugins` preset and can be loaded through `@shelamkoff/rector/plugins/async`.
+The registered block type is `spoiler`. Its factory is also exported by the complete `@shelamkoff/rector/plugins` preset and can be loaded through `@shelamkoff/rector/plugins/async`.
 
 ## Data
 
@@ -45,7 +45,7 @@ Inline formatting; editable label/content; merge; accessible disclosure.
 
 ## Undo, lifecycle, and styles
 
-User actions exposed by the plugin enter the command pipeline through the supplied `context.mutate()` capability, so each completed action is one undo/redo step. The editor reference-counts the plugin's declared stylesheet URLs. Removing a block calls its cleanup hook; removing the editor calls `destroy()` for every remaining block and then releases shared plugin resources.
+Native input in registered editable fields and data changes through `context.updateData()` or `context.commitDomMutation()` enter the editor's canonical transaction pipeline. One completed document edit is one undo/redo step; view-only controls do not create history. The editor reference-counts the plugin's declared stylesheet URLs. Removing a block calls its cleanup hook; removing the editor calls `destroy()` for every remaining block and then releases shared plugin resources.
 
 Do not remove the editor holder without first calling `editor.destroy()`.
 

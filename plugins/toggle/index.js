@@ -1,4 +1,5 @@
 // @ts-check
+import { definitionStyles } from '../shared/definitionStyles.js'
 import {
   READ_ONLY_INTERACTIVE_ATTRIBUTE,
   setSanitizedHtml,
@@ -21,9 +22,10 @@ function append(left,right){
 
 /**
  * Create the immutable Toggle v2 definition with model-owned open state.
+ * @param {{injectStyles?: boolean, css?: string}} [config]
  * @returns {import('../../plugin-kit/types').BlockPluginDefinition<{title:string,content:string,open:boolean}>}
  */
-export function createTogglePlugin(){
+export function createTogglePlugin(config = {}) {
   /** @type {import('../../plugin-kit/types').BlockCapabilities<{title:string,content:string,open:boolean}>} */
   const capabilities=Object.freeze({
     selectionSlice:createTextSelectionSlice(toggleDataSchema),
@@ -84,7 +86,7 @@ export function createTogglePlugin(){
     type:'toggle',
     label:Object.freeze({key:'title',fallback:'Toggle'}),
     icon:ICON,
-    styles:Object.freeze([editorStyles]),
+    styles: definitionStyles(config, [editorStyles]),
     schema:toggleDataSchema,
     capabilities,
     setup(runtimeContext){

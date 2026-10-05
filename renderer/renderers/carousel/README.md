@@ -1,4 +1,4 @@
-# CarouselBlock renderer
+# Carousel renderer
 
 Renderer for the `carousel` block. It converts persisted block data into renderer-owned DOM.
 The Carousel renderer directly uses `@shelamkoff/carousel` and its `carouselStylesUrl` package export.

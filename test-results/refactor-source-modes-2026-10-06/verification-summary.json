@@ -1,0 +1,730 @@
+{
+  "verifiedAt": "2026-10-05T22:55:46.477Z",
+  "baseRevision": "75c909ac621c74610b083b55170155cc0c72f389",
+  "branch": "refactor/rector-v2-architecture",
+  "verifiedLocalDate": "2026-10-06",
+  "blockPlugins": 21,
+  "defaultInlineTools": 12,
+  "node": {
+    "tests": 478,
+    "pass": 478,
+    "fail": 0,
+    "skipped": 0
+  },
+  "consumerTypes": {
+    "tests": 6,
+    "pass": 6,
+    "fail": 0,
+    "skipped": 0
+  },
+  "native": {
+    "cases": 1633,
+    "pass": 1633,
+    "fail": 0,
+    "groups": {
+      "nativeTextInput": {
+        "cases": 42,
+        "pass": 42,
+        "fail": 0
+      },
+      "nativeTools": {
+        "cases": 41,
+        "pass": 41,
+        "fail": 0
+      },
+      "nativeClipboard": {
+        "cases": 7,
+        "pass": 7,
+        "fail": 0
+      },
+      "nativeIme": {
+        "cases": 9,
+        "pass": 9,
+        "fail": 0
+      },
+      "nativeConversion": {
+        "cases": 7,
+        "pass": 7,
+        "fail": 0
+      },
+      "nativeBlockMenus": {
+        "cases": 108,
+        "pass": 108,
+        "fail": 0
+      },
+      "nativeConversionGrouping": {
+        "cases": 88,
+        "pass": 88,
+        "fail": 0
+      },
+      "nativeConversionPreservation": {
+        "cases": 53,
+        "pass": 53,
+        "fail": 0
+      },
+      "nativeInteractionSequences": {
+        "cases": 24,
+        "pass": 24,
+        "fail": 0
+      },
+      "nativeRetainedTools": {
+        "cases": 64,
+        "pass": 64,
+        "fail": 0
+      },
+      "nativeConversionContinuations": {
+        "cases": 65,
+        "pass": 65,
+        "fail": 0
+      },
+      "nativeFontCancel": {
+        "cases": 58,
+        "pass": 58,
+        "fail": 0
+      },
+      "nativeBackgroundCancel": {
+        "cases": 36,
+        "pass": 36,
+        "fail": 0
+      },
+      "nativeLinkCancel": {
+        "cases": 36,
+        "pass": 36,
+        "fail": 0
+      },
+      "nativePanelKeyboard": {
+        "cases": 36,
+        "pass": 36,
+        "fail": 0
+      },
+      "nativeSourceIndentation": {
+        "cases": 50,
+        "pass": 50,
+        "fail": 0
+      },
+      "nativeSourceModes": {
+        "cases": 61,
+        "pass": 61,
+        "fail": 0
+      },
+      "nativeStructural": {
+        "cases": 21,
+        "pass": 21,
+        "fail": 0
+      },
+      "nativeCrossSelection": {
+        "cases": 32,
+        "pass": 32,
+        "fail": 0
+      },
+      "nativeCoreBehavior": {
+        "cases": 53,
+        "pass": 53,
+        "fail": 0
+      },
+      "nativePluginParity": {
+        "cases": 139,
+        "pass": 139,
+        "fail": 0
+      },
+      "nativePluginControls": {
+        "cases": 141,
+        "pass": 141,
+        "fail": 0
+      },
+      "nativePluginRanges": {
+        "cases": 116,
+        "pass": 116,
+        "fail": 0
+      },
+      "nativePluginLocalRanges": {
+        "cases": 76,
+        "pass": 76,
+        "fail": 0
+      },
+      "nativePluginClipboard": {
+        "cases": 48,
+        "pass": 48,
+        "fail": 0
+      },
+      "nativePluginFieldClipboard": {
+        "cases": 68,
+        "pass": 68,
+        "fail": 0
+      },
+      "nativePluginMedia": {
+        "cases": 70,
+        "pass": 70,
+        "fail": 0
+      },
+      "nativePluginDesign": {
+        "cases": 84,
+        "pass": 84,
+        "fail": 0
+      }
+    }
+  },
+  "browser": {
+    "pages": 25,
+    "names": [
+      "harness-contract.html",
+      "runtime-contracts.html",
+      "roundtrip.html",
+      "roundtrip-trusted-types.html",
+      "person-avatar-csp.html",
+      "history.html",
+      "selection.html",
+      "lifecycle.html",
+      "plugin-style-ownership.html",
+      "security.html",
+      "trusted-types.htm",
+      "action-label-security.html",
+      "audit-regressions.html",
+      "attaches-abort-urls.html",
+      "embed-service-registry.html",
+      "person-social-registry.html",
+      "gallery-layout-registry.html",
+      "mention.html",
+      "mention-session-race.html",
+      "poll.html",
+      "carousel.html",
+      "plugin-surfaces.html",
+      "imports.html",
+      "slash.html",
+      "selection-convert.html"
+    ]
+  },
+  "typecheck": "passed",
+  "heap": {
+    "sentinels": 21,
+    "retained": 0,
+    "usedHeapMiB": 12.59,
+    "embedderHeapMiB": 1.39,
+    "snapshotMiB": 24.66
+  },
+  "docs": {
+    "readmes": 94,
+    "languages": [
+      "en",
+      "ru"
+    ],
+    "examples": 53,
+    "json": 44,
+    "links": 62,
+    "imports": true,
+    "encoding": true,
+    "packageReadmeCopiesChecked": 92
+  },
+  "package": {
+    "tarball": "shelamkoff-rector-2.0.0.tgz",
+    "typeModes": [
+      "Bundler",
+      "NodeNext"
+    ],
+    "vite": "passed",
+    "import": "passed",
+    "cssAssets": 22,
+    "inlineStylesheets": false,
+    "runtimeDeclarations": 267,
+    "sourceDiagnostics": 0,
+    "sourceDiagnosticDetails": [],
+    "dist": "dist"
+  },
+  "production": {
+    "readmes": 47,
+    "htmlPages": 123,
+    "brokenLinks": 0,
+    "npmSiteLeak": false,
+    "demo": {
+      "blockPlugins": 21,
+      "inlinePlugins": 2,
+      "editorBlocks": 7,
+      "demoFrame": false,
+      "heroViewport": true,
+      "heroCentered": true,
+      "navAbovePluginBlocks": true,
+      "localSearchShortcut": true,
+      "searchKeyAlignedRight": true,
+      "mentionAutocomplete": true,
+      "localizedTooltips": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "themes": [
+          "light",
+          "dark"
+        ],
+        "shortcuts": true
+      },
+      "headingLevelMenu": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "themes": [
+          "light",
+          "dark"
+        ],
+        "keyboard": true,
+        "selection": true
+      },
+      "conversionMenu": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "themes": [
+          "light",
+          "dark"
+        ],
+        "outsideToolbar": true,
+        "searchSelection": true
+      },
+      "alignmentSelectionState": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "currentBlock": true,
+        "atomicUndo": true
+      },
+      "movedBlockButtons": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "geometry": true,
+        "atomicUndo": true
+      },
+      "tuneFragmentConversion": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "unselectedEdges": true,
+        "atomicUndoRedo": true
+      },
+      "crossImageConversion": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "singleTarget": true,
+        "unselectedListItem": true,
+        "atomicUndoRedo": true
+      },
+      "convertedTextRange": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "endCaret": true,
+        "toolbar": true,
+        "atomicUndo": true
+      },
+      "joinedCodeConversion": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "singleTarget": true,
+        "decodedText": true,
+        "atomicUndo": true
+      },
+      "missingAssets": 0
+    }
+  },
+  "demo": {
+    "blockPlugins": 21,
+    "inlinePlugins": 2,
+    "editorBlocks": 7,
+    "demoFrame": false,
+    "heroViewport": true,
+    "heroCentered": true,
+    "navAbovePluginBlocks": true,
+    "localSearchShortcut": true,
+    "searchKeyAlignedRight": true,
+    "mentionAutocomplete": true,
+    "localizedTooltips": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "shortcuts": true
+    },
+    "headingLevelMenu": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "keyboard": true,
+      "selection": true
+    },
+    "conversionMenu": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "outsideToolbar": true,
+      "searchSelection": true
+    },
+    "alignmentSelectionState": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "currentBlock": true,
+      "atomicUndo": true
+    },
+    "movedBlockButtons": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "geometry": true,
+      "atomicUndo": true
+    },
+    "tuneFragmentConversion": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "unselectedEdges": true,
+      "atomicUndoRedo": true
+    },
+    "crossImageConversion": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "singleTarget": true,
+      "unselectedListItem": true,
+      "atomicUndoRedo": true
+    },
+    "convertedTextRange": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "endCaret": true,
+      "toolbar": true,
+      "atomicUndo": true
+    },
+    "joinedCodeConversion": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "singleTarget": true,
+      "decodedText": true,
+      "atomicUndo": true
+    },
+    "missingAssets": 0,
+    "screenshots": 29
+  },
+  "historical": {
+    "revision": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+    "cases": 8,
+    "observations": [
+      {
+        "name": "Code",
+        "backwards": false,
+        "activation": "mouse",
+        "source": "Alpha\nBravo",
+        "focused": true,
+        "rangeBefore": [
+          1,
+          4,
+          "forward"
+        ],
+        "rangeAfter": [
+          1,
+          4,
+          "forward"
+        ],
+        "activeTag": "TEXTAREA"
+      },
+      {
+        "name": "Code",
+        "backwards": false,
+        "activation": "keyboard",
+        "source": "Alpha\nBravo",
+        "focused": true,
+        "rangeBefore": [
+          1,
+          4,
+          "forward"
+        ],
+        "rangeAfter": [
+          1,
+          4,
+          "forward"
+        ],
+        "activeTag": "TEXTAREA"
+      },
+      {
+        "name": "Code",
+        "backwards": true,
+        "activation": "mouse",
+        "source": "Alpha\nBravo",
+        "focused": true,
+        "rangeBefore": [
+          1,
+          4,
+          "backward"
+        ],
+        "rangeAfter": [
+          1,
+          4,
+          "backward"
+        ],
+        "activeTag": "TEXTAREA"
+      },
+      {
+        "name": "Code",
+        "backwards": true,
+        "activation": "keyboard",
+        "source": "Alpha\nBravo",
+        "focused": true,
+        "rangeBefore": [
+          1,
+          4,
+          "backward"
+        ],
+        "rangeAfter": [
+          1,
+          4,
+          "backward"
+        ],
+        "activeTag": "TEXTAREA"
+      },
+      {
+        "name": "Raw",
+        "backwards": false,
+        "activation": "mouse",
+        "source": "Alpha\nBravo",
+        "focused": false,
+        "rangeBefore": [
+          1,
+          4,
+          "forward"
+        ],
+        "rangeAfter": [
+          1,
+          4,
+          "forward"
+        ],
+        "activeTag": "BODY"
+      },
+      {
+        "name": "Raw",
+        "backwards": false,
+        "activation": "keyboard",
+        "source": "Alpha\nBravo",
+        "focused": false,
+        "rangeBefore": [
+          1,
+          4,
+          "forward"
+        ],
+        "rangeAfter": [
+          1,
+          4,
+          "forward"
+        ],
+        "activeTag": "BUTTON"
+      },
+      {
+        "name": "Raw",
+        "backwards": true,
+        "activation": "mouse",
+        "source": "Alpha\nBravo",
+        "focused": false,
+        "rangeBefore": [
+          1,
+          4,
+          "backward"
+        ],
+        "rangeAfter": [
+          1,
+          4,
+          "backward"
+        ],
+        "activeTag": "BODY"
+      },
+      {
+        "name": "Raw",
+        "backwards": true,
+        "activation": "keyboard",
+        "source": "Alpha\nBravo",
+        "focused": false,
+        "rangeBefore": [
+          1,
+          4,
+          "backward"
+        ],
+        "rangeAfter": [
+          1,
+          4,
+          "backward"
+        ],
+        "activeTag": "BUTTON"
+      }
+    ]
+  },
+  "frozenSources": {
+    "files": 589,
+    "allMatched": true
+  },
+  "bundle": {
+    "core": {
+      "rawKiB": 313.1,
+      "gzipKiB": 86.1,
+      "budgetKiB": 51
+    },
+    "paragraph": {
+      "rawKiB": 10.4,
+      "gzipKiB": 4.1,
+      "budgetKiB": 40
+    },
+    "defaultInteractive": {
+      "rawKiB": 43.5,
+      "gzipKiB": 13.7,
+      "budgetKiB": 64
+    },
+    "fullPreset": {
+      "rawKiB": 358,
+      "gzipKiB": 88,
+      "budgetKiB": 96
+    }
+  },
+  "modeContinuation": {
+    "cases": 61,
+    "pass": 61
+  },
+  "styleOwnership": {
+    "node": {
+      "tests": 42,
+      "pass": 42,
+      "fail": 0,
+      "skipped": 0
+    },
+    "browserCases": 63,
+    "historical": [
+      {
+        "mode": "disabled",
+        "plugins": [
+          "attaches",
+          "carousel",
+          "checklist",
+          "code",
+          "columns",
+          "delimiter",
+          "embed",
+          "gallery",
+          "heading",
+          "image",
+          "linkPreview",
+          "list",
+          "paragraph",
+          "person",
+          "poll",
+          "quote",
+          "raw",
+          "spoiler",
+          "table",
+          "toggle",
+          "warning"
+        ],
+        "customStyleLinks": 0
+      },
+      {
+        "mode": "replace",
+        "plugins": [
+          "attaches",
+          "carousel",
+          "checklist",
+          "code",
+          "columns",
+          "delimiter",
+          "embed",
+          "gallery",
+          "heading",
+          "image",
+          "linkPreview",
+          "list",
+          "paragraph",
+          "person",
+          "poll",
+          "quote",
+          "raw",
+          "spoiler",
+          "table",
+          "toggle",
+          "warning"
+        ],
+        "customStyleLinks": 1
+      },
+      {
+        "mode": "append",
+        "plugins": [
+          "attaches",
+          "carousel",
+          "checklist",
+          "code",
+          "columns",
+          "delimiter",
+          "embed",
+          "gallery",
+          "heading",
+          "image",
+          "linkPreview",
+          "list",
+          "paragraph",
+          "person",
+          "poll",
+          "quote",
+          "raw",
+          "spoiler",
+          "table",
+          "toggle",
+          "warning"
+        ],
+        "customStyleLinks": 1
+      }
+    ]
+  },
+  "readmeFaults": [
+    {
+      "name": "required section missing",
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "file:///C:/OSPanel/domains/editor/scripts/validate-extension-readmes.mjs:85\r\n    if (!content.includes(section)) throw new Error(`${file}: missing required section \"${section}\"`)\r\n                                          ^\r\n\r\nError: C:\\OSPanel\\domains\\editor\\plugins\\raw\\README.md: missing required section \"## Capabilities\"\r\n    at requireSections (file:///C:/OSPanel/domains/editor/scripts/validate-extension-readmes.mjs:85:43)\r\n    at validateConsumerCoverage (file:///C:/OSPanel/domains/editor/scripts/validate-extension-readmes.mjs:167:5)\r\n    at async file:///C:/OSPanel/domains/editor/scripts/validate-extension-readmes.mjs:263:5\r\n\r\nNode.js v24.9.0"
+    },
+    {
+      "name": "code fence unclosed",
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "file:///C:/OSPanel/domains/editor/scripts/validate-extension-readmes.mjs:137\r\n    throw new Error(`${directory}: ${error.message}`)\r\n          ^\r\n\r\nError: C:\\OSPanel\\domains\\editor\\plugins\\raw: unclosed fenced code block\r\n    at validateLocaleStructure (file:///C:/OSPanel/domains/editor/scripts/validate-extension-readmes.mjs:137:11)\r\n    at validateConsumerCoverage (file:///C:/OSPanel/domains/editor/scripts/validate-extension-readmes.mjs:158:3)\r\n    at async file:///C:/OSPanel/domains/editor/scripts/validate-extension-readmes.mjs:263:5\r\n\r\nNode.js v24.9.0"
+    },
+    {
+      "name": "removed mutation contract",
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "file:///C:/OSPanel/domains/editor/scripts/validate-extension-readmes.mjs:164\r\n        throw new Error(`${file}: documents a removed class or mutation contract`)\r\n              ^\r\n\r\nError: C:\\OSPanel\\domains\\editor\\plugins\\raw\\README.md: documents a removed class or mutation contract\r\n    at validateConsumerCoverage (file:///C:/OSPanel/domains/editor/scripts/validate-extension-readmes.mjs:164:15)\r\n    at async file:///C:/OSPanel/domains/editor/scripts/validate-extension-readmes.mjs:263:5\r\n\r\nNode.js v24.9.0"
+    }
+  ]
+}

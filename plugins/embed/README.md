@@ -18,7 +18,7 @@ const editor = createEditor({
 })
 ```
 
-The registered block type is `embed`. The class is also exported by the complete `@shelamkoff/rector/plugins` preset and can be loaded through `@shelamkoff/rector/plugins/async`.
+The registered block type is `embed`. Its factory is also exported by the complete `@shelamkoff/rector/plugins` preset and can be loaded through `@shelamkoff/rector/plugins/async`.
 
 ## Data
 

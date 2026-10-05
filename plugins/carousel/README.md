@@ -1,4 +1,4 @@
-# CarouselBlock block plugin
+# Carousel block plugin
 
 Mixed image, video, and sanitized HTML slides with navigation, pagination, thumbnails, autoplay, and ordering controls.
 
@@ -18,9 +18,7 @@ const editor = createEditor({
 })
 ```
 
-The registered block type is `carousel`. The class is also exported by the complete `@shelamkoff/rector/plugins` preset and can be loaded through `@shelamkoff/rector/plugins/async`.
-
-`Carousel` is an exact alias of `CarouselBlock`, not a second implementation. Prefer `CarouselBlock` in new code; the alias is available from both the plugin subpath and the complete preset.
+The registered block type is `carousel`. Its factory is also exported by the complete `@shelamkoff/rector/plugins` preset and can be loaded through `@shelamkoff/rector/plugins/async`.
 
 ## Data
 

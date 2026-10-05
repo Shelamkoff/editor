@@ -1,5 +1,6 @@
 import { createItemSelectionSlice } from '../shared/itemSelectionSlice.js'
 // @ts-check
+import { definitionStyles } from '../shared/definitionStyles.js'
 import { setSanitizedHtml } from '../../plugin-kit/index.js'
 import { listDataSchema } from '../../shared/blockSchemas/list.js'
 import { acceptsTextPayload, richTextFromPayload } from '../shared/textConversion.js'
@@ -34,9 +35,10 @@ function atStart(item,range){
 
 /**
  * Create the immutable List v2 definition with stable item identities.
+ * @param {{injectStyles?: boolean, css?: string}} [config]
  * @returns {import('../../plugin-kit/types').BlockPluginDefinition<{style:'ordered'|'unordered',items:Array<{id:string,text:string}>}>}
  */
-export function createListPlugin(){
+export function createListPlugin(config = {}) {
   const toolbox=Object.freeze([
     Object.freeze({
       id:'unordered',
@@ -179,7 +181,7 @@ export function createListPlugin(){
     type:'list',
     label:Object.freeze({key:'bulletedTitle',fallback:'Bulleted List'}),
     icon:ICON_UL,
-    styles:Object.freeze([editorStyles]),
+    styles: definitionStyles(config, [editorStyles]),
     toolbox,
     schema:listDataSchema,
     capabilities,

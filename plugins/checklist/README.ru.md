@@ -18,7 +18,7 @@ const editor = createEditor({
 })
 ```
 
-Тип блока — `checklist`. Класс также экспортируется общей точкой входа `@shelamkoff/rector/plugins` и может загружаться по типу документа через `@shelamkoff/rector/plugins/async`.
+Тип блока — `checklist`. Фабричная функция также экспортируется общей точкой входа `@shelamkoff/rector/plugins` и может загружаться по типу документа через `@shelamkoff/rector/plugins/async`.
 
 ## Данные
 

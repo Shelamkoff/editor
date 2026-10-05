@@ -1,4 +1,5 @@
 // @ts-check
+import { definitionStyles } from '../shared/definitionStyles.js'
 import { setSanitizedHtml } from '../../plugin-kit/index.js'
 import { setTrustedHtml } from '../../shared/sanitize/sanitizeHtml.js'
 import { checklistDataSchema } from '../../shared/blockSchemas/checklist.js'
@@ -35,9 +36,10 @@ function caretAtStart(field,range){
 
 /**
  * Create the immutable Checklist v2 definition with stable item identities.
+ * @param {{injectStyles?: boolean, css?: string}} [config]
  * @returns {import('../../plugin-kit/types').BlockPluginDefinition<{items:Array<{id:string,text:string,checked:boolean}>}>}
  */
-export function createChecklistPlugin(){
+export function createChecklistPlugin(config = {}) {
   /** @type {import('../../plugin-kit/types').BlockCapabilities<{items:Array<{id:string,text:string,checked:boolean}>}>} */
   const capabilities=Object.freeze({
     selectionSlice:createItemSelectionSlice(),
@@ -134,7 +136,7 @@ export function createChecklistPlugin(){
     type:'checklist',
     label:Object.freeze({key:'title',fallback:'Checklist'}),
     icon:ICON,
-    styles:Object.freeze([editorStyles]),
+    styles: definitionStyles(config, [editorStyles]),
     schema:checklistDataSchema,
     capabilities,
     setup(runtimeContext){

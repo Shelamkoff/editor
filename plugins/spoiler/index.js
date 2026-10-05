@@ -1,4 +1,5 @@
 // @ts-check
+import { definitionStyles } from '../shared/definitionStyles.js'
 import {
   READ_ONLY_INTERACTIVE_ATTRIBUTE,
   setSanitizedHtml,
@@ -20,9 +21,10 @@ function append(left,right){
 
 /**
  * Create the immutable Spoiler v2 definition with transient disclosure state.
+ * @param {{injectStyles?: boolean, css?: string}} [config]
  * @returns {import('../../plugin-kit/types').BlockPluginDefinition<{label:string,content:string}>}
  */
-export function createSpoilerPlugin(){
+export function createSpoilerPlugin(config = {}) {
   /** @type {import('../../plugin-kit/types').BlockCapabilities<{label:string,content:string}>} */
   const capabilities=Object.freeze({
     selectionSlice:createTextSelectionSlice(spoilerDataSchema),
@@ -77,7 +79,7 @@ export function createSpoilerPlugin(){
     type:'spoiler',
     label:Object.freeze({key:'title',fallback:'Spoiler'}),
     icon:ICON,
-    styles:Object.freeze([editorStyles]),
+    styles: definitionStyles(config, [editorStyles]),
     schema:spoilerDataSchema,
     capabilities,
     setup(runtimeContext){

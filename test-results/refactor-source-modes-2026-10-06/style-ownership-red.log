@@ -1,0 +1,602 @@
+✔ createAttachesPlugin permits the host to replace built-in styles (1.81ms)
+✔ createAttachesPlugin appends custom CSS and snapshots style ownership (0.1839ms)
+✔ createCarouselPlugin permits the host to replace built-in styles (0.2819ms)
+✔ createCarouselPlugin appends custom CSS and snapshots style ownership (0.1557ms)
+✖ createChecklistPlugin permits the host to replace built-in styles (1.3731ms)
+✖ createChecklistPlugin appends custom CSS and snapshots style ownership (0.3314ms)
+✔ createCodePlugin permits the host to replace built-in styles (0.3233ms)
+✔ createCodePlugin appends custom CSS and snapshots style ownership (0.1216ms)
+✖ createColumnsPlugin permits the host to replace built-in styles (0.4578ms)
+✖ createColumnsPlugin appends custom CSS and snapshots style ownership (0.3593ms)
+✖ createDelimiterPlugin permits the host to replace built-in styles (0.3879ms)
+✖ createDelimiterPlugin appends custom CSS and snapshots style ownership (0.2356ms)
+✔ createEmbedPlugin permits the host to replace built-in styles (0.2873ms)
+✔ createEmbedPlugin appends custom CSS and snapshots style ownership (0.123ms)
+✔ createGalleryPlugin permits the host to replace built-in styles (0.2199ms)
+✔ createGalleryPlugin appends custom CSS and snapshots style ownership (0.1171ms)
+✖ createHeadingPlugin permits the host to replace built-in styles (0.4158ms)
+✖ createHeadingPlugin appends custom CSS and snapshots style ownership (0.1842ms)
+✔ createImagePlugin permits the host to replace built-in styles (0.2046ms)
+✔ createImagePlugin appends custom CSS and snapshots style ownership (0.0784ms)
+✔ createLinkPreviewPlugin permits the host to replace built-in styles (0.1846ms)
+✔ createLinkPreviewPlugin appends custom CSS and snapshots style ownership (0.0736ms)
+✖ createListPlugin permits the host to replace built-in styles (0.2987ms)
+✖ createListPlugin appends custom CSS and snapshots style ownership (0.2041ms)
+✔ createParagraphPlugin permits the host to replace built-in styles (0.223ms)
+✔ createParagraphPlugin appends custom CSS and snapshots style ownership (0.0788ms)
+✔ createPersonPlugin permits the host to replace built-in styles (0.1883ms)
+✔ createPersonPlugin appends custom CSS and snapshots style ownership (0.0856ms)
+✔ createPollPlugin permits the host to replace built-in styles (0.2193ms)
+✔ createPollPlugin appends custom CSS and snapshots style ownership (0.094ms)
+✖ createQuotePlugin permits the host to replace built-in styles (0.2789ms)
+✖ createQuotePlugin appends custom CSS and snapshots style ownership (0.1518ms)
+✖ createRawPlugin permits the host to replace built-in styles (0.2077ms)
+✖ createRawPlugin appends custom CSS and snapshots style ownership (0.1315ms)
+✖ createSpoilerPlugin permits the host to replace built-in styles (0.2226ms)
+✖ createSpoilerPlugin appends custom CSS and snapshots style ownership (0.1506ms)
+✖ createTablePlugin permits the host to replace built-in styles (0.2553ms)
+✖ createTablePlugin appends custom CSS and snapshots style ownership (0.1496ms)
+✖ createTogglePlugin permits the host to replace built-in styles (0.2241ms)
+✖ createTogglePlugin appends custom CSS and snapshots style ownership (0.1422ms)
+✖ createWarningPlugin permits the host to replace built-in styles (0.3663ms)
+✖ createWarningPlugin appends custom CSS and snapshots style ownership (0.149ms)
+ℹ tests 42
+ℹ suites 0
+ℹ pass 20
+ℹ fail 22
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 286.3465
+
+✖ failing tests:
+
+test at plugins\style-ownership.test.js:6:3
+✖ createChecklistPlugin permits the host to replace built-in styles (1.3731ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + [
+  +   'file:///C:/OSPanel/domains/editor/plugins/checklist/checklist.css'
+  + ]
+  - []
+  
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/plugins/style-ownership.test.js:9:12)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'file:///C:/OSPanel/domains/editor/plugins/checklist/checklist.css' ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at plugins\style-ownership.test.js:13:3
+✖ createChecklistPlugin appends custom CSS and snapshots style ownership (0.3314ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+      'file:///C:/OSPanel/domains/editor/plugins/checklist/checklist.css',
+  -   'https://example.test/host.css'
+    ]
+  
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/plugins/style-ownership.test.js:17:12)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'file:///C:/OSPanel/domains/editor/plugins/checklist/checklist.css' ],
+    expected: [ 'file:///C:/OSPanel/domains/editor/plugins/checklist/checklist.css', 'https://example.test/host.css' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at plugins\style-ownership.test.js:6:3
+✖ createColumnsPlugin permits the host to replace built-in styles (0.4578ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + [
+  +   'file:///C:/OSPanel/domains/editor/plugins/columns/columns.css'
+  + ]
+  - []
+  
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/plugins/style-ownership.test.js:9:12)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'file:///C:/OSPanel/domains/editor/plugins/columns/columns.css' ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at plugins\style-ownership.test.js:13:3
+✖ createColumnsPlugin appends custom CSS and snapshots style ownership (0.3593ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+      'file:///C:/OSPanel/domains/editor/plugins/columns/columns.css',
+  -   'https://example.test/host.css'
+    ]
+  
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/plugins/style-ownership.test.js:17:12)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'file:///C:/OSPanel/domains/editor/plugins/columns/columns.css' ],
+    expected: [ 'file:///C:/OSPanel/domains/editor/plugins/columns/columns.css', 'https://example.test/host.css' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at plugins\style-ownership.test.js:6:3
+✖ createDelimiterPlugin permits the host to replace built-in styles (0.3879ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + [
+  +   'file:///C:/OSPanel/domains/editor/plugins/delimiter/delimiter.css'
+  + ]
+  - []
+  
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/plugins/style-ownership.test.js:9:12)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'file:///C:/OSPanel/domains/editor/plugins/delimiter/delimiter.css' ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at plugins\style-ownership.test.js:13:3
+✖ createDelimiterPlugin appends custom CSS and snapshots style ownership (0.2356ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+      'file:///C:/OSPanel/domains/editor/plugins/delimiter/delimiter.css',
+  -   'https://example.test/host.css'
+    ]
+  
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/plugins/style-ownership.test.js:17:12)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'file:///C:/OSPanel/domains/editor/plugins/delimiter/delimiter.css' ],
+    expected: [ 'file:///C:/OSPanel/domains/editor/plugins/delimiter/delimiter.css', 'https://example.test/host.css' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at plugins\style-ownership.test.js:6:3
+✖ createHeadingPlugin permits the host to replace built-in styles (0.4158ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + [
+  +   'file:///C:/OSPanel/domains/editor/plugins/heading/heading.css'
+  + ]
+  - []
+  
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/plugins/style-ownership.test.js:9:12)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'file:///C:/OSPanel/domains/editor/plugins/heading/heading.css' ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at plugins\style-ownership.test.js:13:3
+✖ createHeadingPlugin appends custom CSS and snapshots style ownership (0.1842ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+      'file:///C:/OSPanel/domains/editor/plugins/heading/heading.css',
+  -   'https://example.test/host.css'
+    ]
+  
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/plugins/style-ownership.test.js:17:12)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'file:///C:/OSPanel/domains/editor/plugins/heading/heading.css' ],
+    expected: [ 'file:///C:/OSPanel/domains/editor/plugins/heading/heading.css', 'https://example.test/host.css' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at plugins\style-ownership.test.js:6:3
+✖ createListPlugin permits the host to replace built-in styles (0.2987ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + [
+  +   'file:///C:/OSPanel/domains/editor/plugins/list/list.css'
+  + ]
+  - []
+  
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/plugins/style-ownership.test.js:9:12)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'file:///C:/OSPanel/domains/editor/plugins/list/list.css' ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at plugins\style-ownership.test.js:13:3
+✖ createListPlugin appends custom CSS and snapshots style ownership (0.2041ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+      'file:///C:/OSPanel/domains/editor/plugins/list/list.css',
+  -   'https://example.test/host.css'
+    ]
+  
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/plugins/style-ownership.test.js:17:12)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'file:///C:/OSPanel/domains/editor/plugins/list/list.css' ],
+    expected: [ 'file:///C:/OSPanel/domains/editor/plugins/list/list.css', 'https://example.test/host.css' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at plugins\style-ownership.test.js:6:3
+✖ createQuotePlugin permits the host to replace built-in styles (0.2789ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + [
+  +   'file:///C:/OSPanel/domains/editor/plugins/quote/quote.css'
+  + ]
+  - []
+  
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/plugins/style-ownership.test.js:9:12)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'file:///C:/OSPanel/domains/editor/plugins/quote/quote.css' ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at plugins\style-ownership.test.js:13:3
+✖ createQuotePlugin appends custom CSS and snapshots style ownership (0.1518ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+      'file:///C:/OSPanel/domains/editor/plugins/quote/quote.css',
+  -   'https://example.test/host.css'
+    ]
+  
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/plugins/style-ownership.test.js:17:12)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'file:///C:/OSPanel/domains/editor/plugins/quote/quote.css' ],
+    expected: [ 'file:///C:/OSPanel/domains/editor/plugins/quote/quote.css', 'https://example.test/host.css' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at plugins\style-ownership.test.js:6:3
+✖ createRawPlugin permits the host to replace built-in styles (0.2077ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + [
+  +   'file:///C:/OSPanel/domains/editor/plugins/raw/raw.css'
+  + ]
+  - []
+  
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/plugins/style-ownership.test.js:9:12)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'file:///C:/OSPanel/domains/editor/plugins/raw/raw.css' ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at plugins\style-ownership.test.js:13:3
+✖ createRawPlugin appends custom CSS and snapshots style ownership (0.1315ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+      'file:///C:/OSPanel/domains/editor/plugins/raw/raw.css',
+  -   'https://example.test/host.css'
+    ]
+  
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/plugins/style-ownership.test.js:17:12)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'file:///C:/OSPanel/domains/editor/plugins/raw/raw.css' ],
+    expected: [ 'file:///C:/OSPanel/domains/editor/plugins/raw/raw.css', 'https://example.test/host.css' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at plugins\style-ownership.test.js:6:3
+✖ createSpoilerPlugin permits the host to replace built-in styles (0.2226ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + [
+  +   'file:///C:/OSPanel/domains/editor/plugins/spoiler/spoiler.css'
+  + ]
+  - []
+  
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/plugins/style-ownership.test.js:9:12)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'file:///C:/OSPanel/domains/editor/plugins/spoiler/spoiler.css' ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at plugins\style-ownership.test.js:13:3
+✖ createSpoilerPlugin appends custom CSS and snapshots style ownership (0.1506ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+      'file:///C:/OSPanel/domains/editor/plugins/spoiler/spoiler.css',
+  -   'https://example.test/host.css'
+    ]
+  
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/plugins/style-ownership.test.js:17:12)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'file:///C:/OSPanel/domains/editor/plugins/spoiler/spoiler.css' ],
+    expected: [ 'file:///C:/OSPanel/domains/editor/plugins/spoiler/spoiler.css', 'https://example.test/host.css' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at plugins\style-ownership.test.js:6:3
+✖ createTablePlugin permits the host to replace built-in styles (0.2553ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + [
+  +   'file:///C:/OSPanel/domains/editor/plugins/table/table.css'
+  + ]
+  - []
+  
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/plugins/style-ownership.test.js:9:12)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'file:///C:/OSPanel/domains/editor/plugins/table/table.css' ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at plugins\style-ownership.test.js:13:3
+✖ createTablePlugin appends custom CSS and snapshots style ownership (0.1496ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+      'file:///C:/OSPanel/domains/editor/plugins/table/table.css',
+  -   'https://example.test/host.css'
+    ]
+  
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/plugins/style-ownership.test.js:17:12)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'file:///C:/OSPanel/domains/editor/plugins/table/table.css' ],
+    expected: [ 'file:///C:/OSPanel/domains/editor/plugins/table/table.css', 'https://example.test/host.css' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at plugins\style-ownership.test.js:6:3
+✖ createTogglePlugin permits the host to replace built-in styles (0.2241ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + [
+  +   'file:///C:/OSPanel/domains/editor/plugins/toggle/toggle.css'
+  + ]
+  - []
+  
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/plugins/style-ownership.test.js:9:12)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'file:///C:/OSPanel/domains/editor/plugins/toggle/toggle.css' ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at plugins\style-ownership.test.js:13:3
+✖ createTogglePlugin appends custom CSS and snapshots style ownership (0.1422ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+      'file:///C:/OSPanel/domains/editor/plugins/toggle/toggle.css',
+  -   'https://example.test/host.css'
+    ]
+  
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/plugins/style-ownership.test.js:17:12)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'file:///C:/OSPanel/domains/editor/plugins/toggle/toggle.css' ],
+    expected: [ 'file:///C:/OSPanel/domains/editor/plugins/toggle/toggle.css', 'https://example.test/host.css' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at plugins\style-ownership.test.js:6:3
+✖ createWarningPlugin permits the host to replace built-in styles (0.3663ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + [
+  +   'file:///C:/OSPanel/domains/editor/plugins/warning/warning.css'
+  + ]
+  - []
+  
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/plugins/style-ownership.test.js:9:12)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'file:///C:/OSPanel/domains/editor/plugins/warning/warning.css' ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at plugins\style-ownership.test.js:13:3
+✖ createWarningPlugin appends custom CSS and snapshots style ownership (0.149ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+      'file:///C:/OSPanel/domains/editor/plugins/warning/warning.css',
+  -   'https://example.test/host.css'
+    ]
+  
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/plugins/style-ownership.test.js:17:12)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'file:///C:/OSPanel/domains/editor/plugins/warning/warning.css' ],
+    expected: [ 'file:///C:/OSPanel/domains/editor/plugins/warning/warning.css', 'https://example.test/host.css' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

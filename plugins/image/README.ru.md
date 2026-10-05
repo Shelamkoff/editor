@@ -18,7 +18,7 @@ const editor = createEditor({
 })
 ```
 
-Тип блока — `image`. Класс также экспортируется общей точкой входа `@shelamkoff/rector/plugins` и может загружаться по типу документа через `@shelamkoff/rector/plugins/async`.
+Тип блока — `image`. Фабричная функция также экспортируется общей точкой входа `@shelamkoff/rector/plugins` и может загружаться по типу документа через `@shelamkoff/rector/plugins/async`.
 
 ## Данные
 

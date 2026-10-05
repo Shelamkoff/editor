@@ -17,7 +17,7 @@ The package ships 21 editable block plugins. Import a single plugin from `@shela
 | [Embed](./embed/README.md) | `embed` | YouTube and Vimeo embed block with caption, cover image, and preview metadata. |
 | [Raw](./raw/README.md) | `raw` | Raw HTML authoring block. |
 | [Gallery](./gallery/README.md) | `gallery` | Multi-image gallery with layouts, captions, appearance settings, reordering, and viewer options. |
-| [CarouselBlock](./carousel/README.md) | `carousel` | Mixed image, video, and sanitized HTML slides with navigation, pagination, thumbnails, autoplay, and ordering controls. |
+| [Carousel](./carousel/README.md) | `carousel` | Mixed image, video, and sanitized HTML slides with navigation, pagination, thumbnails, autoplay, and ordering controls. |
 | [Attaches](./attaches/README.md) | `attaches` | One or more downloadable files with selectable presentation variants. |
 | [LinkPreview](./link-preview/README.md) | `linkPreview` | Link preview card with seven visual templates and optional application-provided metadata. |
 | [Toggle](./toggle/README.md) | `toggle` | Collapsible block with editable title, rich content, and persistent open state. |

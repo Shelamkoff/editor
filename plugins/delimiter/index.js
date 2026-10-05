@@ -1,4 +1,5 @@
 // @ts-check
+import { definitionStyles } from '../shared/definitionStyles.js'
 import { delimiterDataSchema } from '../../shared/blockSchemas/delimiter.js'
 
 const editorStyles = new URL('./delimiter.css', import.meta.url).href
@@ -6,14 +7,15 @@ const ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" vie
 
 /**
  * Create the immutable Delimiter v2 definition.
+ * @param {{injectStyles?: boolean, css?: string}} [config]
  * @returns {import('../../plugin-kit/types').BlockPluginDefinition<Record<string, never>>}
  */
-export function createDelimiterPlugin() {
+export function createDelimiterPlugin(config = {}) {
   return Object.freeze({
     type: 'delimiter',
     label: Object.freeze({ key: 'title', fallback: 'Delimiter' }),
     icon: ICON,
-    styles: Object.freeze([editorStyles]),
+    styles: definitionStyles(config, [editorStyles]),
     schema: delimiterDataSchema,
     capabilities: Object.freeze({
       empty: Object.freeze({ isEmpty: () => false }),

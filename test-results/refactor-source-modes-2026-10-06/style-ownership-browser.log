@@ -1,0 +1,254 @@
+plugin-style-ownership.html: [
+  {
+    "name": "createAttachesPlugin does not acquire built-in CSS in host-managed mode",
+    "status": "PASS"
+  },
+  {
+    "name": "createAttachesPlugin replace CSS is visible, shared, and released by its last editor",
+    "status": "PASS"
+  },
+  {
+    "name": "createAttachesPlugin append CSS is visible, shared, and released by its last editor",
+    "status": "PASS"
+  },
+  {
+    "name": "createCarouselPlugin does not acquire built-in CSS in host-managed mode",
+    "status": "PASS"
+  },
+  {
+    "name": "createCarouselPlugin replace CSS is visible, shared, and released by its last editor",
+    "status": "PASS"
+  },
+  {
+    "name": "createCarouselPlugin append CSS is visible, shared, and released by its last editor",
+    "status": "PASS"
+  },
+  {
+    "name": "createChecklistPlugin does not acquire built-in CSS in host-managed mode",
+    "status": "PASS"
+  },
+  {
+    "name": "createChecklistPlugin replace CSS is visible, shared, and released by its last editor",
+    "status": "PASS"
+  },
+  {
+    "name": "createChecklistPlugin append CSS is visible, shared, and released by its last editor",
+    "status": "PASS"
+  },
+  {
+    "name": "createCodePlugin does not acquire built-in CSS in host-managed mode",
+    "status": "PASS"
+  },
+  {
+    "name": "createCodePlugin replace CSS is visible, shared, and released by its last editor",
+    "status": "PASS"
+  },
+  {
+    "name": "createCodePlugin append CSS is visible, shared, and released by its last editor",
+    "status": "PASS"
+  },
+  {
+    "name": "createColumnsPlugin does not acquire built-in CSS in host-managed mode",
+    "status": "PASS"
+  },
+  {
+    "name": "createColumnsPlugin replace CSS is visible, shared, and released by its last editor",
+    "status": "PASS"
+  },
+  {
+    "name": "createColumnsPlugin append CSS is visible, shared, and released by its last editor",
+    "status": "PASS"
+  },
+  {
+    "name": "createDelimiterPlugin does not acquire built-in CSS in host-managed mode",
+    "status": "PASS"
+  },
+  {
+    "name": "createDelimiterPlugin replace CSS is visible, shared, and released by its last editor",
+    "status": "PASS"
+  },
+  {
+    "name": "createDelimiterPlugin append CSS is visible, shared, and released by its last editor",
+    "status": "PASS"
+  },
+  {
+    "name": "createEmbedPlugin does not acquire built-in CSS in host-managed mode",
+    "status": "PASS"
+  },
+  {
+    "name": "createEmbedPlugin replace CSS is visible, shared, and released by its last editor",
+    "status": "PASS"
+  },
+  {
+    "name": "createEmbedPlugin append CSS is visible, shared, and released by its last editor",
+    "status": "PASS"
+  },
+  {
+    "name": "createGalleryPlugin does not acquire built-in CSS in host-managed mode",
+    "status": "PASS"
+  },
+  {
+    "name": "createGalleryPlugin replace CSS is visible, shared, and released by its last editor",
+    "status": "PASS"
+  },
+  {
+    "name": "createGalleryPlugin append CSS is visible, shared, and released by its last editor",
+    "status": "PASS"
+  },
+  {
+    "name": "createHeadingPlugin does not acquire built-in CSS in host-managed mode",
+    "status": "PASS"
+  },
+  {
+    "name": "createHeadingPlugin replace CSS is visible, shared, and released by its last editor",
+    "status": "PASS"
+  },
+  {
+    "name": "createHeadingPlugin append CSS is visible, shared, and released by its last editor",
+    "status": "PASS"
+  },
+  {
+    "name": "createImagePlugin does not acquire built-in CSS in host-managed mode",
+    "status": "PASS"
+  },
+  {
+    "name": "createImagePlugin replace CSS is visible, shared, and released by its last editor",
+    "status": "PASS"
+  },
+  {
+    "name": "createImagePlugin append CSS is visible, shared, and released by its last editor",
+    "status": "PASS"
+  },
+  {
+    "name": "createLinkPreviewPlugin does not acquire built-in CSS in host-managed mode",
+    "status": "PASS"
+  },
+  {
+    "name": "createLinkPreviewPlugin replace CSS is visible, shared, and released by its last editor",
+    "status": "PASS"
+  },
+  {
+    "name": "createLinkPreviewPlugin append CSS is visible, shared, and released by its last editor",
+    "status": "PASS"
+  },
+  {
+    "name": "createListPlugin does not acquire built-in CSS in host-managed mode",
+    "status": "PASS"
+  },
+  {
+    "name": "createListPlugin replace CSS is visible, shared, and released by its last editor",
+    "status": "PASS"
+  },
+  {
+    "name": "createListPlugin append CSS is visible, shared, and released by its last editor",
+    "status": "PASS"
+  },
+  {
+    "name": "createParagraphPlugin does not acquire built-in CSS in host-managed mode",
+    "status": "PASS"
+  },
+  {
+    "name": "createParagraphPlugin replace CSS is visible, shared, and released by its last editor",
+    "status": "PASS"
+  },
+  {
+    "name": "createParagraphPlugin append CSS is visible, shared, and released by its last editor",
+    "status": "PASS"
+  },
+  {
+    "name": "createPersonPlugin does not acquire built-in CSS in host-managed mode",
+    "status": "PASS"
+  },
+  {
+    "name": "createPersonPlugin replace CSS is visible, shared, and released by its last editor",
+    "status": "PASS"
+  },
+  {
+    "name": "createPersonPlugin append CSS is visible, shared, and released by its last editor",
+    "status": "PASS"
+  },
+  {
+    "name": "createPollPlugin does not acquire built-in CSS in host-managed mode",
+    "status": "PASS"
+  },
+  {
+    "name": "createPollPlugin replace CSS is visible, shared, and released by its last editor",
+    "status": "PASS"
+  },
+  {
+    "name": "createPollPlugin append CSS is visible, shared, and released by its last editor",
+    "status": "PASS"
+  },
+  {
+    "name": "createQuotePlugin does not acquire built-in CSS in host-managed mode",
+    "status": "PASS"
+  },
+  {
+    "name": "createQuotePlugin replace CSS is visible, shared, and released by its last editor",
+    "status": "PASS"
+  },
+  {
+    "name": "createQuotePlugin append CSS is visible, shared, and released by its last editor",
+    "status": "PASS"
+  },
+  {
+    "name": "createRawPlugin does not acquire built-in CSS in host-managed mode",
+    "status": "PASS"
+  },
+  {
+    "name": "createRawPlugin replace CSS is visible, shared, and released by its last editor",
+    "status": "PASS"
+  },
+  {
+    "name": "createRawPlugin append CSS is visible, shared, and released by its last editor",
+    "status": "PASS"
+  },
+  {
+    "name": "createSpoilerPlugin does not acquire built-in CSS in host-managed mode",
+    "status": "PASS"
+  },
+  {
+    "name": "createSpoilerPlugin replace CSS is visible, shared, and released by its last editor",
+    "status": "PASS"
+  },
+  {
+    "name": "createSpoilerPlugin append CSS is visible, shared, and released by its last editor",
+    "status": "PASS"
+  },
+  {
+    "name": "createTablePlugin does not acquire built-in CSS in host-managed mode",
+    "status": "PASS"
+  },
+  {
+    "name": "createTablePlugin replace CSS is visible, shared, and released by its last editor",
+    "status": "PASS"
+  },
+  {
+    "name": "createTablePlugin append CSS is visible, shared, and released by its last editor",
+    "status": "PASS"
+  },
+  {
+    "name": "createTogglePlugin does not acquire built-in CSS in host-managed mode",
+    "status": "PASS"
+  },
+  {
+    "name": "createTogglePlugin replace CSS is visible, shared, and released by its last editor",
+    "status": "PASS"
+  },
+  {
+    "name": "createTogglePlugin append CSS is visible, shared, and released by its last editor",
+    "status": "PASS"
+  },
+  {
+    "name": "createWarningPlugin does not acquire built-in CSS in host-managed mode",
+    "status": "PASS"
+  },
+  {
+    "name": "createWarningPlugin replace CSS is visible, shared, and released by its last editor",
+    "status": "PASS"
+  },
+  {
+    "name": "createWarningPlugin append CSS is visible, shared, and released by its last editor",
+    "status": "PASS"
+  }
+]

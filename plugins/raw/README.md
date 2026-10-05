@@ -18,7 +18,7 @@ const editor = createEditor({
 })
 ```
 
-The registered block type is `raw`. The class is also exported by the complete `@shelamkoff/rector/plugins` preset and can be loaded through `@shelamkoff/rector/plugins/async`.
+The registered block type is `raw`. Its factory is also exported by the complete `@shelamkoff/rector/plugins` preset and can be loaded through `@shelamkoff/rector/plugins/async`.
 
 ## Data
 
@@ -32,7 +32,7 @@ The registered block type is `raw`. The class is also exported by the complete `
 | --- | --- | --- |
 | `html` | yes | Non-blank HTML source string. |
 
-HTML stays inert in the source editor. Tab indents the selected lines and Shift+Tab removes one leading tab or up to two leading spaces; each indentation action is one history step. The preview is shown automatically in read-only mode and can be toggled while editing. Both the editor preview and the matching renderer sanitize the source before mounting it. The editor preview additionally uses a sandboxed iframe without script permissions. Active elements, unsafe URLs, event attributes, and unsafe CSS are removed, but allowed remote images and other safe resources can still cause browser requests, so the host remains responsible for its network and content policy. An empty draft does not pass strict persisted-data validation.
+HTML stays inert in the source editor. Tab indents the selected lines and Shift+Tab removes one leading tab or up to two leading spaces; each indentation action is one history step. The preview is shown automatically in read-only mode and can be toggled while editing. Returning from preview focuses the source input and preserves its caret or selection, so the next keystroke continues editing at that position. Switching modes does not change the document or history. Both the editor preview and the matching renderer sanitize the source before mounting it. The editor preview additionally uses a sandboxed iframe without script permissions. Active elements, unsafe URLs, event attributes, and unsafe CSS are removed, but allowed remote images and other safe resources can still cause browser requests, so the host remains responsible for its network and content policy. An empty draft does not pass strict persisted-data validation.
 
 ## Configuration
 
@@ -44,7 +44,7 @@ Raw text editing; multiline Tab and Shift+Tab indentation; sandboxed editor prev
 
 ## Undo, lifecycle, and styles
 
-User actions exposed by the plugin enter the command pipeline through the supplied `context.mutate()` capability, so each completed action is one undo/redo step. The editor reference-counts the plugin's declared stylesheet URLs. Removing a block calls its cleanup hook; removing the editor calls `destroy()` for every remaining block and then releases shared plugin resources.
+Native input in registered editable fields and data changes through `context.updateData()` or `context.commitDomMutation()` enter the editor's canonical transaction pipeline. One completed document edit is one undo/redo step; view-only controls do not create history. The editor reference-counts the plugin's declared stylesheet URLs. Removing a block calls its cleanup hook; removing the editor calls `destroy()` for every remaining block and then releases shared plugin resources.
 
 Do not remove the editor holder without first calling `editor.destroy()`.
 

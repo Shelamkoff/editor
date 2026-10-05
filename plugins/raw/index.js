@@ -1,4 +1,5 @@
 // @ts-check
+import { definitionStyles } from '../shared/definitionStyles.js'
 import { dedentTextarea } from '../shared/dedentTextarea.js'
 import { indentTextarea } from '../shared/indentTextarea.js'
 import { rawDataSchema } from '../../shared/blockSchemas/raw.js'
@@ -11,14 +12,15 @@ let rawSequence = 0
 
 /**
  * Create the immutable Raw HTML v2 definition with instance-local preview state.
+ * @param {{injectStyles?: boolean, css?: string}} [config]
  * @returns {import('../../plugin-kit/types').BlockPluginDefinition<{ html: string }>}
  */
-export function createRawPlugin() {
+export function createRawPlugin(config = {}) {
   return Object.freeze({
     type: 'raw',
     label: Object.freeze({ key: 'title', fallback: 'Raw HTML' }),
     icon: ICON,
-    styles: Object.freeze([editorStyles]),
+    styles: definitionStyles(config, [editorStyles]),
     schema: rawDataSchema,
     capabilities: Object.freeze({
       empty: Object.freeze({ isEmpty: data => data.html.trim().length === 0 }),
@@ -111,6 +113,7 @@ export function createRawPlugin() {
             if (readOnly || instanceDestroyed) return
             showPreview = !showPreview
             renderPreview()
+            if (!showPreview) textarea.focus()
           }, { signal: context.signal })
 
           textarea.addEventListener('input', resize, { signal: context.signal })

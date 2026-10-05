@@ -18,7 +18,7 @@ const editor = createEditor({
 })
 ```
 
-Тип блока — `columns`. Класс также экспортируется общей точкой входа `@shelamkoff/rector/plugins` и может загружаться по типу документа через `@shelamkoff/rector/plugins/async`.
+Тип блока — `columns`. Фабричная функция также экспортируется общей точкой входа `@shelamkoff/rector/plugins` и может загружаться по типу документа через `@shelamkoff/rector/plugins/async`.
 
 ## Данные
 

@@ -32,6 +32,7 @@ The text field stores a stable placeholder while the block-level `inline` map ow
   "inline": {
     "w_brand": {
       "type": "color",
+      "dataVersion": 1,
       "data": { "value": "#4357b4" }
     }
   }
@@ -40,7 +41,7 @@ The text field stores a stable placeholder while the block-level `inline` map ow
 
 | Field | Required | Meaning |
 | --- | --- | --- |
-| `value` | yes | CSS color displayed by the sample. A fresh menu insertion defaults to `#4357b4`; malformed legacy data falls back to `#000000` when read. |
+| `value` | yes | CSS color displayed by the sample. A fresh menu insertion defaults to `#4357b4`; invalid persisted values are rejected by the shared schema. |
 
 The paste matcher recognizes 3-, 6-, and 8-digit hexadecimal colors plus `rgb()`, `rgba()`, `hsl()`, and `hsla()` forms. The picker converts an applied value to six-digit hexadecimal form. Existing accepted values remain readable even before the user opens the picker.
 
@@ -50,10 +51,12 @@ Clicking the sample opens `@shelamkoff/color-picker`. Picker movement is a tempo
 
 In read-only mode the widget remains visible but does not open the picker. `editor.destroy()` closes the popup, destroys the picker, removes listeners, and releases reference-counted styles.
 
-## Styles and document output
+## Styles
 
 The plugin declares the color-picker stylesheet to Rector's shared style registry. With the default `injectStyles: true`, no CSS import is needed. In bundler-managed mode, set `injectStyles: false` on `createEditor()` and import `@shelamkoff/rector/inline-plugins/color/styles.css`. The widget root uses `.oe-ip.oe-ip--color`; its dot and label use `.oe-ip__dot` and `.oe-ip__label`. Scope host overrides under the editor or renderer container.
 
-For document output, pass `createColorSwatchRenderer()` in `EditorRenderer`'s `inlineRenderers` array. The read-only renderer validates the saved payload through the same color widget schema and never mounts the picker.
+## Document output
+
+For document output, pass `createColorSwatchRenderer()` in the `inlineRenderers` array passed to `createEditorRenderer()`. The read-only renderer validates the saved payload through the same color widget schema and never mounts the picker.
 
 The sequential VitePress guide explains the complete inline-plugin contract, placeholder storage, security rules, command boundary, and cleanup requirements.

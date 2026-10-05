@@ -1,4 +1,5 @@
 // @ts-check
+import { definitionStyles } from '../shared/definitionStyles.js'
 import { setSanitizedHtml } from '../../plugin-kit/index.js'
 import { quoteDataSchema } from '../../shared/blockSchemas/quote.js'
 import { acceptsTextPayload, richTextFromPayload } from '../shared/textConversion.js'
@@ -15,9 +16,10 @@ function mergeField(left, right, separator = '') {
 
 /**
  * Create the immutable Quote v2 definition with stable rich-text fields.
+ * @param {{injectStyles?: boolean, css?: string}} [config]
  * @returns {import('../../plugin-kit/types').BlockPluginDefinition<{text:string, caption:string}>}
  */
-export function createQuotePlugin() {
+export function createQuotePlugin(config = {}) {
   /** @type {import('../../plugin-kit/types').BlockCapabilities<{text:string,caption:string}>} */
   const capabilities=Object.freeze({
     selectionSlice:createTextSelectionSlice(quoteDataSchema),
@@ -96,7 +98,7 @@ export function createQuotePlugin() {
     type:'quote',
     label:Object.freeze({key:'title',fallback:'Quote'}),
     icon:ICON,
-    styles:Object.freeze([editorStyles]),
+    styles: definitionStyles(config, [editorStyles]),
     schema:quoteDataSchema,
     capabilities,
     setup(runtimeContext){

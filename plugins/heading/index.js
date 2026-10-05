@@ -1,4 +1,5 @@
 // @ts-check
+import { definitionStyles } from '../shared/definitionStyles.js'
 import { setSanitizedHtml } from '../../plugin-kit/index.js'
 import { headingDataSchema } from '../../shared/blockSchemas/heading.js'
 import { acceptsTextPayload, richTextFromPayload } from '../shared/textConversion.js'
@@ -17,9 +18,10 @@ function mergeText(left,right){
 
 /**
  * Create the immutable Heading v2 definition with model-first level controls.
+ * @param {{injectStyles?: boolean, css?: string}} [config]
  * @returns {import('../../plugin-kit/types').BlockPluginDefinition<{text:string,level:2|3|4|5|6}>}
  */
-export function createHeadingPlugin(){
+export function createHeadingPlugin(config = {}) {
   const toolbox=Object.freeze(HEADING_LEVELS.map(item=>Object.freeze({
     id:`h${item.level}`,
     label:Object.freeze({key:item.key,fallback:item.fallback}),
@@ -87,7 +89,7 @@ export function createHeadingPlugin(){
     type:'heading',
     label:Object.freeze({key:'title',fallback:'Heading'}),
     icon:HEADING_ICON,
-    styles:HEADING_STYLES,
+    styles: definitionStyles(config, HEADING_STYLES),
     toolbox,
     schema:headingDataSchema,
     capabilities,

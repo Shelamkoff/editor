@@ -18,7 +18,7 @@ const editor = createEditor({
 })
 ```
 
-The registered block type is `heading`. The class is also exported by the complete `@shelamkoff/rector/plugins` preset and can be loaded through `@shelamkoff/rector/plugins/async`.
+The registered block type is `heading`. Its factory is also exported by the complete `@shelamkoff/rector/plugins` preset and can be loaded through `@shelamkoff/rector/plugins/async`.
 
 The same subpath exports `HEADING_LEVELS`, a read-only array of `{ level, key, icon }` entries for H2-H6. `key` is a plugin-local localization key and `icon` is trusted built-in SVG markup. Use the array when an application-level heading control must expose exactly the levels supported by the plugin; do not mutate its entries.
 
