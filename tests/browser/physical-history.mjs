@@ -486,6 +486,10 @@ try {
   const nativeInteractionSequences = await runNativePage(client,pageUrl,'native-interaction-sequences.html')
   const nativeRetainedTools = await runNativePage(client,pageUrl,'native-retained-tools.html')
   const nativeConversionContinuations = await runNativePage(client,pageUrl,'native-conversion-continuations.html')
+  const nativeFontCancel = await runNativePage(client, pageUrl, 'native-font-cancel.html')
+  const nativeBackgroundCancel = await runNativePage(client, pageUrl, 'native-background-cancel.html')
+  const nativeLinkCancel = await runNativePage(client, pageUrl, 'native-link-cancel.html')
+  const nativePanelKeyboard = await runNativePage(client, pageUrl, 'native-panel-keyboard.html')
   const nativeStructural = await runNativePage(client, pageUrl, 'native-structural.html')
   const nativeCrossSelection = await runNativePage(client, pageUrl, 'native-cross-selection.html')
   const nativeCoreBehavior = await runNativePage(client, pageUrl, 'native-core-behavior.html')
@@ -522,6 +526,10 @@ try {
     nativeInteractionSequences,
     nativeRetainedTools,
     nativeConversionContinuations,
+    nativeFontCancel,
+    nativeBackgroundCancel,
+    nativeLinkCancel,
+    nativePanelKeyboard,
     nativeStructural,
     nativeCrossSelection,
     nativeCoreBehavior,

@@ -1,0 +1,20 @@
+file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149
+    if (result.status === 'fail') throw new Error(`History matrix failed: ${result.summary}`)
+                                        ^
+
+Error: History matrix failed: [
+  {
+    "name": "Background swatch remains visible against the toolbar surface / light",
+    "status": "FAIL",
+    "error": "Error: Color swatch has no visible pixels against its toolbar surface: {\"fill\":\"rgb(255, 255, 255)\",\"surface\":\"rgb(255, 255, 255)\",\"shadow\":\"none\"}\n    at assert (http://127.0.0.1:51746/tests/browser/regressions/harness.js:20:81)\n    at http://127.0.0.1:51746/tests/browser/native-panel-keyboard.js:212:3\n    at async run (http://127.0.0.1:51746/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:51746/tests/browser/native-panel-keyboard.js:225:1"
+  },
+  {
+    "name": "Background swatch remains visible against the toolbar surface / dark",
+    "status": "PASS"
+  }
+]
+    at waitForHistoryMatrix (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149:41)
+    at async runNativePage (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:275:30)
+    at async file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:312:48
+
+Node.js v24.9.0

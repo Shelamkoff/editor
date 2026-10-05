@@ -251,7 +251,8 @@ export function createFontSizeTool(label) {
     isOpen = false
     cancelFocusFrame()
     if (dropdownEl) dropdownEl.style.display = 'none'
-    restoreRange()
+    if (mutations?.restoreSelection) mutations.restoreSelection()
+    else restoreRange()
   }
 
   function restoreRange() {
@@ -417,6 +418,13 @@ export function createFontSizeTool(label) {
     dropdownEl = el('div', 'oe-font-size-dropdown', undefined, doc)
     dropdownEl.style.display = 'none'
 
+    dropdownEl.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape' || !isOpen) return
+      event.preventDefault()
+      event.stopPropagation()
+      closeDropdown()
+    }, true)
+
     dropdownEl.addEventListener('mousedown', (e) => {
       if (e.target === inputEl) return
       e.preventDefault()
@@ -440,9 +448,6 @@ export function createFontSizeTool(label) {
         e.preventDefault()
         const val = Number(/** @type {HTMLInputElement} */ (inputEl).value)
         applySize(val)
-      } else if (e.key === 'Escape') {
-        e.preventDefault()
-        closeDropdown()
       }
     })
     // Prevent input/change events from bubbling to wireInputTracking

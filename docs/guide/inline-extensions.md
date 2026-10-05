@@ -27,6 +27,8 @@ interface InlineTool {
 
 `InlineToolActionContext` contains `range`, `mutate(operation)`, `getTextAlign()`, `setTextAlign(value)`, `restoreSelection()`, `close()`, `showTooltip(anchor, label, shortcut?)`, `hideTooltip()`, and the optional localized `backLabel`. Closing an action panel restores its saved document selection. A new document selection, panel closure, document replacement, replacement of any selected block instance, read-only mode, destruction, or a failed factory revokes the context. Retained callbacks cannot invoke their producers, query successor alignment, restore selection, close a later panel, or show its tooltips.
 
+When an action panel opens, the toolbar focuses its first enabled input or button unless the panel already owns focus. `Escape` from any panel control closes it and returns the saved document selection; a control can claim `Escape` with `preventDefault()` or `stopPropagation()`. Revoked panels cannot restore focus or close a later panel.
+
 Core calls `bindSelectionPort(port)` when mounting a tool and `bindSelectionPort(null)` when destroying it. The port supplies the live cross-field range; each editor needs its own mutable tool instances.
 
 `InlineMutationContext` exposes `mutate(range, operation)` for mounted tool controls. Its optional `restoreSelection()` returns focus and the current editor-owned range after canceling an auxiliary panel, without writing data or history; it returns `false` when editing or a valid selection is unavailable.

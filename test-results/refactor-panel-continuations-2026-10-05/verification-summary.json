@@ -1,0 +1,770 @@
+{
+  "verifiedAt": "2026-10-05T21:17:01.082Z",
+  "baseRevision": "93e6d3bee9cc6f658c235cb5d76aa394529bd09a",
+  "branch": "refactor/rector-v2-architecture",
+  "blockPlugins": 21,
+  "defaultInlineTools": 12,
+  "node": {
+    "tests": 436,
+    "pass": 436,
+    "fail": 0,
+    "skipped": 0
+  },
+  "consumerTypes": {
+    "tests": 6,
+    "pass": 6,
+    "fail": 0,
+    "skipped": 0
+  },
+  "native": {
+    "cases": 1522,
+    "pass": 1522,
+    "fail": 0,
+    "groups": {
+      "nativeTextInput": {
+        "cases": 42,
+        "pass": 42,
+        "fail": 0
+      },
+      "nativeTools": {
+        "cases": 41,
+        "pass": 41,
+        "fail": 0
+      },
+      "nativeClipboard": {
+        "cases": 7,
+        "pass": 7,
+        "fail": 0
+      },
+      "nativeIme": {
+        "cases": 9,
+        "pass": 9,
+        "fail": 0
+      },
+      "nativeConversion": {
+        "cases": 7,
+        "pass": 7,
+        "fail": 0
+      },
+      "nativeBlockMenus": {
+        "cases": 108,
+        "pass": 108,
+        "fail": 0
+      },
+      "nativeConversionGrouping": {
+        "cases": 88,
+        "pass": 88,
+        "fail": 0
+      },
+      "nativeConversionPreservation": {
+        "cases": 53,
+        "pass": 53,
+        "fail": 0
+      },
+      "nativeInteractionSequences": {
+        "cases": 24,
+        "pass": 24,
+        "fail": 0
+      },
+      "nativeRetainedTools": {
+        "cases": 64,
+        "pass": 64,
+        "fail": 0
+      },
+      "nativeConversionContinuations": {
+        "cases": 65,
+        "pass": 65,
+        "fail": 0
+      },
+      "nativeFontCancel": {
+        "cases": 58,
+        "pass": 58,
+        "fail": 0
+      },
+      "nativeBackgroundCancel": {
+        "cases": 36,
+        "pass": 36,
+        "fail": 0
+      },
+      "nativeLinkCancel": {
+        "cases": 36,
+        "pass": 36,
+        "fail": 0
+      },
+      "nativePanelKeyboard": {
+        "cases": 36,
+        "pass": 36,
+        "fail": 0
+      },
+      "nativeStructural": {
+        "cases": 21,
+        "pass": 21,
+        "fail": 0
+      },
+      "nativeCrossSelection": {
+        "cases": 32,
+        "pass": 32,
+        "fail": 0
+      },
+      "nativeCoreBehavior": {
+        "cases": 53,
+        "pass": 53,
+        "fail": 0
+      },
+      "nativePluginParity": {
+        "cases": 139,
+        "pass": 139,
+        "fail": 0
+      },
+      "nativePluginControls": {
+        "cases": 141,
+        "pass": 141,
+        "fail": 0
+      },
+      "nativePluginRanges": {
+        "cases": 116,
+        "pass": 116,
+        "fail": 0
+      },
+      "nativePluginLocalRanges": {
+        "cases": 76,
+        "pass": 76,
+        "fail": 0
+      },
+      "nativePluginClipboard": {
+        "cases": 48,
+        "pass": 48,
+        "fail": 0
+      },
+      "nativePluginFieldClipboard": {
+        "cases": 68,
+        "pass": 68,
+        "fail": 0
+      },
+      "nativePluginMedia": {
+        "cases": 70,
+        "pass": 70,
+        "fail": 0
+      },
+      "nativePluginDesign": {
+        "cases": 84,
+        "pass": 84,
+        "fail": 0
+      }
+    }
+  },
+  "browser": {
+    "pages": 24,
+    "names": [
+      "harness-contract.html",
+      "runtime-contracts.html",
+      "roundtrip.html",
+      "roundtrip-trusted-types.html",
+      "person-avatar-csp.html",
+      "history.html",
+      "selection.html",
+      "lifecycle.html",
+      "security.html",
+      "trusted-types.htm",
+      "action-label-security.html",
+      "audit-regressions.html",
+      "attaches-abort-urls.html",
+      "embed-service-registry.html",
+      "person-social-registry.html",
+      "gallery-layout-registry.html",
+      "mention.html",
+      "mention-session-race.html",
+      "poll.html",
+      "carousel.html",
+      "plugin-surfaces.html",
+      "imports.html",
+      "slash.html",
+      "selection-convert.html"
+    ]
+  },
+  "heap": {
+    "sentinels": 21,
+    "retained": 0,
+    "usedHeapMiB": 12.57,
+    "embedderHeapMiB": 1.39,
+    "snapshotMiB": 24.64
+  },
+  "docs": {
+    "readmes": 94,
+    "languages": [
+      "en",
+      "ru"
+    ],
+    "examples": 53,
+    "json": 44,
+    "links": 62,
+    "imports": true,
+    "encoding": true,
+    "packageReadmeCopiesChecked": 92
+  },
+  "package": {
+    "tarball": "shelamkoff-rector-2.0.0.tgz",
+    "typeModes": [
+      "Bundler",
+      "NodeNext"
+    ],
+    "vite": "passed",
+    "import": "passed",
+    "cssAssets": 22,
+    "inlineStylesheets": false
+  },
+  "production": {
+    "readmes": 47,
+    "htmlPages": 123,
+    "brokenLinks": 0,
+    "npmSiteLeak": false,
+    "demo": {
+      "blockPlugins": 21,
+      "inlinePlugins": 2,
+      "editorBlocks": 7,
+      "demoFrame": false,
+      "heroViewport": true,
+      "heroCentered": true,
+      "navAbovePluginBlocks": true,
+      "localSearchShortcut": true,
+      "searchKeyAlignedRight": true,
+      "mentionAutocomplete": true,
+      "localizedTooltips": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "themes": [
+          "light",
+          "dark"
+        ],
+        "shortcuts": true
+      },
+      "headingLevelMenu": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "themes": [
+          "light",
+          "dark"
+        ],
+        "keyboard": true,
+        "selection": true
+      },
+      "conversionMenu": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "themes": [
+          "light",
+          "dark"
+        ],
+        "outsideToolbar": true,
+        "searchSelection": true
+      },
+      "alignmentSelectionState": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "currentBlock": true,
+        "atomicUndo": true
+      },
+      "movedBlockButtons": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "geometry": true,
+        "atomicUndo": true
+      },
+      "tuneFragmentConversion": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "unselectedEdges": true,
+        "atomicUndoRedo": true
+      },
+      "crossImageConversion": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "singleTarget": true,
+        "unselectedListItem": true,
+        "atomicUndoRedo": true
+      },
+      "convertedTextRange": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "endCaret": true,
+        "toolbar": true,
+        "atomicUndo": true
+      },
+      "joinedCodeConversion": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "singleTarget": true,
+        "decodedText": true,
+        "atomicUndo": true
+      },
+      "missingAssets": 0
+    }
+  },
+  "demo": {
+    "blockPlugins": 21,
+    "inlinePlugins": 2,
+    "editorBlocks": 7,
+    "demoFrame": false,
+    "heroViewport": true,
+    "heroCentered": true,
+    "navAbovePluginBlocks": true,
+    "localSearchShortcut": true,
+    "searchKeyAlignedRight": true,
+    "mentionAutocomplete": true,
+    "localizedTooltips": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "shortcuts": true
+    },
+    "headingLevelMenu": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "keyboard": true,
+      "selection": true
+    },
+    "conversionMenu": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "outsideToolbar": true,
+      "searchSelection": true
+    },
+    "alignmentSelectionState": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "currentBlock": true,
+      "atomicUndo": true
+    },
+    "movedBlockButtons": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "geometry": true,
+      "atomicUndo": true
+    },
+    "tuneFragmentConversion": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "unselectedEdges": true,
+      "atomicUndoRedo": true
+    },
+    "crossImageConversion": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "singleTarget": true,
+      "unselectedListItem": true,
+      "atomicUndoRedo": true
+    },
+    "convertedTextRange": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "endCaret": true,
+      "toolbar": true,
+      "atomicUndo": true
+    },
+    "joinedCodeConversion": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "singleTarget": true,
+      "decodedText": true,
+      "atomicUndo": true
+    },
+    "missingAssets": 0,
+    "screenshots": 29
+  },
+  "historical": {
+    "revision": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+    "cases": 10,
+    "observations": [
+      {
+        "tool": "fontSize",
+        "backwards": false,
+        "focusInPanelAfterOpen": true,
+        "focusAfterTab": "<button class=\"oe-font-size-apply\" type=\"button\" aria-label=\"Font size\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-widt",
+        "panelVisibleAfterEscape": true,
+        "texts": [
+          "Alpha",
+          "Bravo"
+        ],
+        "policy": {
+          "Attaches": false,
+          "Carousel": false,
+          "Checklist": true,
+          "Code": false,
+          "Columns": true,
+          "Delimiter": false,
+          "Embed": false,
+          "Gallery": false,
+          "Heading": true,
+          "Image": false,
+          "LinkPreview": false,
+          "List": true,
+          "Paragraph": true,
+          "Person": false,
+          "Poll": false,
+          "Quote": true,
+          "Raw": false,
+          "Spoiler": true,
+          "Table": true,
+          "Toggle": true,
+          "Warning": true
+        }
+      },
+      {
+        "tool": "fontSize",
+        "backwards": true,
+        "focusInPanelAfterOpen": true,
+        "focusAfterTab": "<button class=\"oe-font-size-apply\" type=\"button\" aria-label=\"Font size\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-widt",
+        "panelVisibleAfterEscape": true,
+        "texts": [
+          "Alpha",
+          "Bravo"
+        ],
+        "policy": {
+          "Attaches": false,
+          "Carousel": false,
+          "Checklist": true,
+          "Code": false,
+          "Columns": true,
+          "Delimiter": false,
+          "Embed": false,
+          "Gallery": false,
+          "Heading": true,
+          "Image": false,
+          "LinkPreview": false,
+          "List": true,
+          "Paragraph": true,
+          "Person": false,
+          "Poll": false,
+          "Quote": true,
+          "Raw": false,
+          "Spoiler": true,
+          "Table": true,
+          "Toggle": true,
+          "Warning": true
+        }
+      },
+      {
+        "tool": "link",
+        "backwards": false,
+        "focusInPanelAfterOpen": true,
+        "focusAfterTab": "<button class=\"oe-inline-tool oe-inline-tool--apply\" type=\"button\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"",
+        "panelVisibleAfterEscape": true,
+        "texts": [
+          "Alpha",
+          "Bravo"
+        ],
+        "policy": {
+          "Attaches": false,
+          "Carousel": false,
+          "Checklist": true,
+          "Code": false,
+          "Columns": true,
+          "Delimiter": false,
+          "Embed": false,
+          "Gallery": false,
+          "Heading": true,
+          "Image": false,
+          "LinkPreview": false,
+          "List": true,
+          "Paragraph": true,
+          "Person": false,
+          "Poll": false,
+          "Quote": true,
+          "Raw": false,
+          "Spoiler": true,
+          "Table": true,
+          "Toggle": true,
+          "Warning": true
+        }
+      },
+      {
+        "tool": "link",
+        "backwards": true,
+        "focusInPanelAfterOpen": true,
+        "focusAfterTab": "<button class=\"oe-inline-tool oe-inline-tool--apply\" type=\"button\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"",
+        "panelVisibleAfterEscape": true,
+        "texts": [
+          "Alpha",
+          "Bravo"
+        ],
+        "policy": {
+          "Attaches": false,
+          "Carousel": false,
+          "Checklist": true,
+          "Code": false,
+          "Columns": true,
+          "Delimiter": false,
+          "Embed": false,
+          "Gallery": false,
+          "Heading": true,
+          "Image": false,
+          "LinkPreview": false,
+          "List": true,
+          "Paragraph": true,
+          "Person": false,
+          "Poll": false,
+          "Quote": true,
+          "Raw": false,
+          "Spoiler": true,
+          "Table": true,
+          "Toggle": true,
+          "Warning": true
+        }
+      },
+      {
+        "tool": "align",
+        "backwards": false,
+        "focusInPanelAfterOpen": false,
+        "focusAfterTab": "<p class=\"oe-paragraph\" contenteditable=\"true\">Bravo</p>",
+        "panelVisibleAfterEscape": true,
+        "texts": [
+          "Alpha",
+          "XBravo"
+        ],
+        "policy": {
+          "Attaches": false,
+          "Carousel": false,
+          "Checklist": true,
+          "Code": false,
+          "Columns": true,
+          "Delimiter": false,
+          "Embed": false,
+          "Gallery": false,
+          "Heading": true,
+          "Image": false,
+          "LinkPreview": false,
+          "List": true,
+          "Paragraph": true,
+          "Person": false,
+          "Poll": false,
+          "Quote": true,
+          "Raw": false,
+          "Spoiler": true,
+          "Table": true,
+          "Toggle": true,
+          "Warning": true
+        }
+      },
+      {
+        "tool": "align",
+        "backwards": true,
+        "focusInPanelAfterOpen": false,
+        "focusAfterTab": "<p class=\"oe-paragraph\" contenteditable=\"true\">Bravo</p>",
+        "panelVisibleAfterEscape": true,
+        "texts": [
+          "Alpha",
+          "XBravo"
+        ],
+        "policy": {
+          "Attaches": false,
+          "Carousel": false,
+          "Checklist": true,
+          "Code": false,
+          "Columns": true,
+          "Delimiter": false,
+          "Embed": false,
+          "Gallery": false,
+          "Heading": true,
+          "Image": false,
+          "LinkPreview": false,
+          "List": true,
+          "Paragraph": true,
+          "Person": false,
+          "Poll": false,
+          "Quote": true,
+          "Raw": false,
+          "Spoiler": true,
+          "Table": true,
+          "Toggle": true,
+          "Warning": true
+        }
+      },
+      {
+        "tool": "script",
+        "backwards": false,
+        "focusInPanelAfterOpen": false,
+        "focusAfterTab": "<p class=\"oe-paragraph\" contenteditable=\"true\">Bravo</p>",
+        "panelVisibleAfterEscape": true,
+        "texts": [
+          "Alpha",
+          "XBravo"
+        ],
+        "policy": {
+          "Attaches": false,
+          "Carousel": false,
+          "Checklist": true,
+          "Code": false,
+          "Columns": true,
+          "Delimiter": false,
+          "Embed": false,
+          "Gallery": false,
+          "Heading": true,
+          "Image": false,
+          "LinkPreview": false,
+          "List": true,
+          "Paragraph": true,
+          "Person": false,
+          "Poll": false,
+          "Quote": true,
+          "Raw": false,
+          "Spoiler": true,
+          "Table": true,
+          "Toggle": true,
+          "Warning": true
+        }
+      },
+      {
+        "tool": "script",
+        "backwards": true,
+        "focusInPanelAfterOpen": false,
+        "focusAfterTab": "<p class=\"oe-paragraph\" contenteditable=\"true\">Bravo</p>",
+        "panelVisibleAfterEscape": true,
+        "texts": [
+          "Alpha",
+          "XBravo"
+        ],
+        "policy": {
+          "Attaches": false,
+          "Carousel": false,
+          "Checklist": true,
+          "Code": false,
+          "Columns": true,
+          "Delimiter": false,
+          "Embed": false,
+          "Gallery": false,
+          "Heading": true,
+          "Image": false,
+          "LinkPreview": false,
+          "List": true,
+          "Paragraph": true,
+          "Person": false,
+          "Poll": false,
+          "Quote": true,
+          "Raw": false,
+          "Spoiler": true,
+          "Table": true,
+          "Toggle": true,
+          "Warning": true
+        }
+      },
+      {
+        "tool": "swatch",
+        "theme": "light",
+        "distinguished": false,
+        "fill": "rgb(255, 255, 255)",
+        "surface": "rgb(255, 255, 255)",
+        "shadow": "none",
+        "policy": {
+          "Attaches": false,
+          "Carousel": false,
+          "Checklist": true,
+          "Code": false,
+          "Columns": true,
+          "Delimiter": false,
+          "Embed": false,
+          "Gallery": false,
+          "Heading": true,
+          "Image": false,
+          "LinkPreview": false,
+          "List": true,
+          "Paragraph": true,
+          "Person": false,
+          "Poll": false,
+          "Quote": true,
+          "Raw": false,
+          "Spoiler": true,
+          "Table": true,
+          "Toggle": true,
+          "Warning": true
+        }
+      },
+      {
+        "tool": "swatch",
+        "theme": "dark",
+        "distinguished": true,
+        "fill": "rgb(255, 255, 255)",
+        "surface": "rgb(17, 17, 17)",
+        "shadow": "none",
+        "policy": {
+          "Attaches": false,
+          "Carousel": false,
+          "Checklist": true,
+          "Code": false,
+          "Columns": true,
+          "Delimiter": false,
+          "Embed": false,
+          "Gallery": false,
+          "Heading": true,
+          "Image": false,
+          "LinkPreview": false,
+          "List": true,
+          "Paragraph": true,
+          "Person": false,
+          "Poll": false,
+          "Quote": true,
+          "Raw": false,
+          "Spoiler": true,
+          "Table": true,
+          "Toggle": true,
+          "Warning": true
+        }
+      }
+    ]
+  },
+  "frozenSources": {
+    "files": 580,
+    "allMatched": true,
+    "preSwatchSnapshotsIdentical": true,
+    "postSwatchChanges": [
+      "core/themes/variables.css",
+      "tests/browser/native-panel-keyboard.js"
+    ]
+  }
+}

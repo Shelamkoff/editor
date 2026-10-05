@@ -43,6 +43,8 @@ export class InlineToolbar {
   #element
   #buttonsPanel
   #actions = null
+  /** @type {((event: KeyboardEvent) => void) | null} */
+  #actionKeydown = null
   #actionVersion = 0
   #buttons = new Map()
   #range = null
@@ -319,6 +321,12 @@ export class InlineToolbar {
         && generation === this.#runtime.generation
         && owners.every(owner => owner.element === this.#view.element(owner.blockId))
       let panelBookmark = cloneBookmark(selection.bookmark)
+      const closePanel = () => {
+        if (!isCurrent()) return
+        this.#closeActions()
+        this.#restoreSelection(panelBookmark, range)
+        this.show()
+      }
       let panel
       try {
         panel = tool.renderActions({
@@ -338,12 +346,7 @@ export class InlineToolbar {
           restoreSelection: () => {
             if (isCurrent()) this.#restoreSelection(panelBookmark, range)
           },
-          close: () => {
-            if (!isCurrent()) return
-            this.#closeActions()
-            this.#restoreSelection(panelBookmark, range)
-            this.show()
-          },
+          close: closePanel,
           backLabel: this.#translate('block.back', 'Back'),
           showTooltip: (anchor, label, shortcut) => {
             if (isCurrent()) this.#tooltip.show(anchor, label, shortcut)
@@ -356,10 +359,23 @@ export class InlineToolbar {
       }
       if (!isCurrent()) return false
       if (panel) {
+        this.#actionKeydown = event => {
+          if (event.defaultPrevented || event.key !== 'Escape' || !isCurrent()) return
+          event.preventDefault()
+          event.stopPropagation()
+          closePanel()
+        }
+        panel.addEventListener('keydown', this.#actionKeydown)
         this.#actions = panel
         this.#buttonsPanel.style.display = 'none'
         this.#element.append(panel)
         this.#show(selection)
+        if (!panel.contains(panel.ownerDocument.activeElement)) {
+          const control = /** @type {HTMLElement | null} */ (panel.querySelector(
+            'input:not([type="hidden"]):not(:disabled), textarea:not(:disabled), select:not(:disabled)',
+          ) ?? panel.querySelector('button:not(:disabled), [tabindex="0"]'))
+          control?.focus({ preventScroll: true })
+        }
         return true
       }
       this.#closeActions()
@@ -904,6 +920,8 @@ export class InlineToolbar {
       this.#buttonsPanel.style.display = ''
       return
     }
+    if (this.#actionKeydown) this.#actions.removeEventListener('keydown', this.#actionKeydown)
+    this.#actionKeydown = null
     this.#actions.remove()
     this.#actions = null
     this.#buttonsPanel.style.display = ''

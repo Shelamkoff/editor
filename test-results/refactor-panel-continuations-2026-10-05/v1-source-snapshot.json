@@ -1,0 +1,1209 @@
+{
+  "revision": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+  "algorithm": "SHA-256",
+  "comparison": "UTF-8 content normalized to LF; local and Git byte hashes recorded separately",
+  "fileCount": 240,
+  "files": {
+    "core/Block.js": {
+      "localSha256": "2fbb03f3da060ed3109eb468f52d6dcd7eab030cafddfbe18137e4015d298f35",
+      "gitSha256": "02646a0d87a787ac2e7b1b50e50df0e385473e4b35b56211c3f2aee04eb95b16",
+      "normalizedLFsha256": "02646a0d87a787ac2e7b1b50e50df0e385473e4b35b56211c3f2aee04eb95b16"
+    },
+    "core/BlockAnimator.js": {
+      "localSha256": "5121d2ef45c38b252ecb644441efde4bd40e7802279363bbed5a3df586636178",
+      "gitSha256": "5733f55d87e63e33e33383d9ff84c6bdecb9e723cbe6ca721b7522e65cb0a36b",
+      "normalizedLFsha256": "5733f55d87e63e33e33383d9ff84c6bdecb9e723cbe6ca721b7522e65cb0a36b"
+    },
+    "core/BlockManager.js": {
+      "localSha256": "e06b396c3e620ef987feb76a15ce5561cfc51665e0d9aa9851f3c23d4a50d073",
+      "gitSha256": "18e13a75a13edf872bdf38c4a48545101c01a23e48c9432eb15262495345dede",
+      "normalizedLFsha256": "18e13a75a13edf872bdf38c4a48545101c01a23e48c9432eb15262495345dede"
+    },
+    "core/BlockOperations.js": {
+      "localSha256": "088e7ba35e90fed726084fa87a6e77eb73dce6ab2d97cc803aaaf533fae7a771",
+      "gitSha256": "4ca924173c68e380eb1fd2fd8ec442f930e30dc06670165274bc462e140991f0",
+      "normalizedLFsha256": "4ca924173c68e380eb1fd2fd8ec442f930e30dc06670165274bc462e140991f0"
+    },
+    "core/ChangeNotifier.js": {
+      "localSha256": "30b844b43c1d851bdec4013ac00b71a96e3573239466158a34373a290f694cd5",
+      "gitSha256": "33c89c492755a944ebb2c1db08e03168d9b2893279548de9119449997bd05947",
+      "normalizedLFsha256": "33c89c492755a944ebb2c1db08e03168d9b2893279548de9119449997bd05947"
+    },
+    "core/CommandDispatcher.js": {
+      "localSha256": "db276c3b24c7f9c869c86c03e5779e5d1dd64d3e06980ef35044e34dbef16c44",
+      "gitSha256": "dc4b5e772a8ffce38540fe13168fa15ed42163345937c1a190309a0b7255db16",
+      "normalizedLFsha256": "dc4b5e772a8ffce38540fe13168fa15ed42163345937c1a190309a0b7255db16"
+    },
+    "core/CrossBlockSelection.js": {
+      "localSha256": "b74fb4319c28ef2e8de227fd29208ef6e273d2653ccd294ec72e8bca0f29de7d",
+      "gitSha256": "36c7d4ba0184f7825f2fac6e1dd37c1d4f64c096e4cfeba65ce9d53b132208b0",
+      "normalizedLFsha256": "36c7d4ba0184f7825f2fac6e1dd37c1d4f64c096e4cfeba65ce9d53b132208b0"
+    },
+    "core/Diagnostics.js": {
+      "localSha256": "03e260f1e44edc808589aaeb3ace877b2ff7f90f949f5843d06cce897ada1224",
+      "gitSha256": "7563df5d4ac521cccf842df241e95e8393c60dade389fa1f4d4ac60b6b7c8462",
+      "normalizedLFsha256": "7563df5d4ac521cccf842df241e95e8393c60dade389fa1f4d4ac60b6b7c8462"
+    },
+    "core/DocumentSchema.js": {
+      "localSha256": "5670a1c43a1f7531ea494256efaa2c771ed82d34a9a386630094fbcd3a71a22a",
+      "gitSha256": "3099b7f612bc8de273449abef5bb4cbff2bac94a85fb8a8dd5fd18f034d21660",
+      "normalizedLFsha256": "3099b7f612bc8de273449abef5bb4cbff2bac94a85fb8a8dd5fd18f034d21660"
+    },
+    "core/DocumentSnapshotStore.js": {
+      "localSha256": "f9ebb3075911cbdae6751fa1810278b8cf7e822d99915d61ef2cfe90479ad9ab",
+      "gitSha256": "215d2174d33222620311b11a0bcbc1552ce770ad5788717d944a1e3dcb3b8c3c",
+      "normalizedLFsha256": "215d2174d33222620311b11a0bcbc1552ce770ad5788717d944a1e3dcb3b8c3c"
+    },
+    "core/DragManager.js": {
+      "localSha256": "cf014e95c2c468f6a25cc76414a3cc78b9e307781e7eb8bb003f63d8364a1928",
+      "gitSha256": "1791ae47eee1459566afaaedf9c474e3f3d0e9c9cde0778f24fd7852f15a64f2",
+      "normalizedLFsha256": "1791ae47eee1459566afaaedf9c474e3f3d0e9c9cde0778f24fd7852f15a64f2"
+    },
+    "core/EditorFacade.js": {
+      "localSha256": "ccc2dbf30a6c88955b4bcff886a289e99f44becc3ce3979e12ed18c0ddd02410",
+      "gitSha256": "c73946f10188d60dac37d483e5236280dff2a310ff07c07e83095ddc58ae4167",
+      "normalizedLFsha256": "c73946f10188d60dac37d483e5236280dff2a310ff07c07e83095ddc58ae4167"
+    },
+    "core/EditorHolderOwnership.js": {
+      "localSha256": "cfc3a9ebc0e3dbaab0c5345400ec4ac89c54c6974826feda3fa913bb9956e7ad",
+      "gitSha256": "784cbc48c863ca890b1b6fc8ca0eb3bdba09d5a701e200d98f4e8ab0574b544d",
+      "normalizedLFsha256": "784cbc48c863ca890b1b6fc8ca0eb3bdba09d5a701e200d98f4e8ab0574b544d"
+    },
+    "core/I18n.js": {
+      "localSha256": "ef9b9672cbfdeebb50157c178e3702d57715ed0d10876113cdd5f6c876390e73",
+      "gitSha256": "1dbf4c12667b132eb697e15ec5fe05deacce0b7e6043a8e6fab710a3bcd106cd",
+      "normalizedLFsha256": "1dbf4c12667b132eb697e15ec5fe05deacce0b7e6043a8e6fab710a3bcd106cd"
+    },
+    "core/InlinePatternMatcher.js": {
+      "localSha256": "b7526a1a1d46b6eb1a013c4fec3921530b14ccd824b59679ec6073e041fd650c",
+      "gitSha256": "0c5ca004b402a485cffcc5b4212cf1a0bda876233cb41c254b003855277a04e4",
+      "normalizedLFsha256": "0c5ca004b402a485cffcc5b4212cf1a0bda876233cb41c254b003855277a04e4"
+    },
+    "core/InlinePluginRegistry.js": {
+      "localSha256": "5714e2f71763cd048806111a3aebddf82d02bab3d814916cd99e2bf7d5df54e8",
+      "gitSha256": "c1fb7fc9f2e5362a9846263665ae7765af3a06843cd25b50c53753bc5f3da362",
+      "normalizedLFsha256": "c1fb7fc9f2e5362a9846263665ae7765af3a06843cd25b50c53753bc5f3da362"
+    },
+    "core/KeyboardManager.js": {
+      "localSha256": "07775d4b65b720c48baed699ebf663e3e93f6c495b01709ad770fb0bc14c1fff",
+      "gitSha256": "912d8e901e258715450761d9eb50e21caeeb93dc8188ccb39b136412be4bd7ba",
+      "normalizedLFsha256": "912d8e901e258715450761d9eb50e21caeeb93dc8188ccb39b136412be4bd7ba"
+    },
+    "core/LifecycleScope.js": {
+      "localSha256": "0551a67a8394dda059903ade102213e6dca65010d0cc4d94d2a8d5d71503dee3",
+      "gitSha256": "4c9a2ad4a26e5c1b1867ed87ca9cdd51dfb2adb045f8cec5252f48bd628c6d8b",
+      "normalizedLFsha256": "4c9a2ad4a26e5c1b1867ed87ca9cdd51dfb2adb045f8cec5252f48bd628c6d8b"
+    },
+    "core/MouseSelectionManager.js": {
+      "localSha256": "5473195db0a47dc53a5d740e0d41c26d69d741d6cbcce8e1d98fe7d3f149bddb",
+      "gitSha256": "87f6891d0122d40703002abe2b939866e8ec422c5821afae5a17b056e9ff34e9",
+      "normalizedLFsha256": "87f6891d0122d40703002abe2b939866e8ec422c5821afae5a17b056e9ff34e9"
+    },
+    "core/PluginOwnership.js": {
+      "localSha256": "9edd5b72136ac5de927be84bb7c1820ab6f05c78c5a814a224e38bb526bf58a9",
+      "gitSha256": "847f0d0a8f2d9d7b91f2df0691885762232ea8e51c912414394d95e84ac4caaf",
+      "normalizedLFsha256": "847f0d0a8f2d9d7b91f2df0691885762232ea8e51c912414394d95e84ac4caaf"
+    },
+    "core/PopupManager.js": {
+      "localSha256": "49c83822d69852f7ea017b19107c46a10130a9b19dc5d6a248061c57ab511cd0",
+      "gitSha256": "3fe99468c5aabed69add9fb76a368aff2a601af8e2de37ea7b655e1849348764",
+      "normalizedLFsha256": "3fe99468c5aabed69add9fb76a368aff2a601af8e2de37ea7b655e1849348764"
+    },
+    "core/PreservedBlockPlugin.js": {
+      "localSha256": "ca26c8c06c92ca757a5d36d84a0f28047d107cc1cffed7cd99fe1c93130b9da2",
+      "gitSha256": "81b471a52a86fc8e353ed9cb4fccbcb7493ce0a7f1bbe36cec3d6758ccb456b0",
+      "normalizedLFsha256": "81b471a52a86fc8e353ed9cb4fccbcb7493ce0a7f1bbe36cec3d6758ccb456b0"
+    },
+    "core/PublicEditorApi.js": {
+      "localSha256": "17d87f6aadb00b797855c69ec89b4152ef1ac420c742e4783da0dae95bf5a45b",
+      "gitSha256": "f95475f9eff8572217f3fc24e8fa247039823766fc8680bf8833bcd460d36149",
+      "normalizedLFsha256": "f95475f9eff8572217f3fc24e8fa247039823766fc8680bf8833bcd460d36149"
+    },
+    "core/SelectionManager.js": {
+      "localSha256": "cecbb5db752b1684917ca4c337248466f1f4da4ef0faf0b61115a43f6aba498d",
+      "gitSha256": "c5880d321db61b6800c492237d03375bb78ba46169885206bc5ac665986be535",
+      "normalizedLFsha256": "c5880d321db61b6800c492237d03375bb78ba46169885206bc5ac665986be535"
+    },
+    "core/ShortcutRegistry.js": {
+      "localSha256": "68b7b36f7ac1ade339368b56a5d89dd7e5cd47529d645f4fa533c25920b339d7",
+      "gitSha256": "cea52864fbd00b83f02c91c20522993a65f012efbe76a3cd7245b435e09ea760",
+      "normalizedLFsha256": "cea52864fbd00b83f02c91c20522993a65f012efbe76a3cd7245b435e09ea760"
+    },
+    "core/SlashCommands.js": {
+      "localSha256": "32e9eae9bb6fa03ea1954a24b6cb2ee4791eea37e4f76cf58566d42899e993f2",
+      "gitSha256": "cd7837ad044e7c0d0066232ec847a4e9dbc5a8225b2cafec07d9151de24c3812",
+      "normalizedLFsha256": "cd7837ad044e7c0d0066232ec847a4e9dbc5a8225b2cafec07d9151de24c3812"
+    },
+    "core/StyleInjector.js": {
+      "localSha256": "a75ec06af423c988d8520860edac605fe77fdfb57e38a8f6ac1609dd000ce671",
+      "gitSha256": "9e59a81f18e8b07f4b7e6a22883b490b24e2ba4c0a06e65c08aa90353b4b5a1e",
+      "normalizedLFsha256": "9e59a81f18e8b07f4b7e6a22883b490b24e2ba4c0a06e65c08aa90353b4b5a1e"
+    },
+    "core/Tooltip.js": {
+      "localSha256": "997806322c2b3ce19e98afbc14b044c76a72d808662e84133d5a4e4b12ffef27",
+      "gitSha256": "6afc6cdcb6edf0deaea9d3e5e15f01088c3561d6831d37d6faffaf0d11cc6bc4",
+      "normalizedLFsha256": "6afc6cdcb6edf0deaea9d3e5e15f01088c3561d6831d37d6faffaf0d11cc6bc4"
+    },
+    "core/TriggerManager.js": {
+      "localSha256": "04939291ac521f9a231f163dcbd1d0c6d7c60318c7846f67b6c40260a0fec09f",
+      "gitSha256": "dd4928499f2ea8a5e1c5cb5a35f53b890ae18c229843b864a435a178d7dcf725",
+      "normalizedLFsha256": "dd4928499f2ea8a5e1c5cb5a35f53b890ae18c229843b864a435a178d7dcf725"
+    },
+    "core/TypeSelector.js": {
+      "localSha256": "5efa4caf0561385c4ff7f6454a73b8976d952953ec73f591d722dadcabc6350e",
+      "gitSha256": "083f6f0c679ab4933623c90765f12535f9c29a853f03a9225f56030c782b0eae",
+      "normalizedLFsha256": "083f6f0c679ab4933623c90765f12535f9c29a853f03a9225f56030c782b0eae"
+    },
+    "core/UndoManager.js": {
+      "localSha256": "6b4bb37541e14188702a54a3d0c7b0fef89f9fde3295bc4a6438e8f5f2180c0f",
+      "gitSha256": "0317e7c157695e68a7d4024473e5cc697618f913230e340db37843298e86e97d",
+      "normalizedLFsha256": "0317e7c157695e68a7d4024473e5cc697618f913230e340db37843298e86e97d"
+    },
+    "core/block-settings-menu/BlockActions.js": {
+      "localSha256": "dc27e48bf7f20084a0dba75afeddc3622b4d0c7033aa6e6cd05ade0597bad6a6",
+      "gitSha256": "d318288e74dc129ef54a85629ecedff774fa86867d08620bd7a619132d4d4eff",
+      "normalizedLFsha256": "d318288e74dc129ef54a85629ecedff774fa86867d08620bd7a619132d4d4eff"
+    },
+    "core/block-settings-menu/BlockSettingsMenu.js": {
+      "localSha256": "296ecc01f0d0a25f5a85b3f4388d25cdc3f379a51544ddad4d923bb883ffb11e",
+      "gitSha256": "a11b56efa31ea047566c248e65693116368919ece14bcb31c40bf110c2773064",
+      "normalizedLFsha256": "a11b56efa31ea047566c248e65693116368919ece14bcb31c40bf110c2773064"
+    },
+    "core/block-settings-menu/MenuBuilder.js": {
+      "localSha256": "f55abf135d6a64468297a25483e1f6b7c9d26280bd7116af79aa4af819cf406e",
+      "gitSha256": "7bb22b5cc20439460b0460fe1d8a722bc1b78e58fc9a8b1ee6784e7133e47f2e",
+      "normalizedLFsha256": "7bb22b5cc20439460b0460fe1d8a722bc1b78e58fc9a8b1ee6784e7133e47f2e"
+    },
+    "core/block-settings-menu/MenuPositioner.js": {
+      "localSha256": "7af6895b58440c0c1b5632b9b9987e7fc320e32c2ace7bba428c625eca27274c",
+      "gitSha256": "d3c9b39d2bb5cb5295c7699ac9b67362b46da74de0081cd03e191f1784f8fef3",
+      "normalizedLFsha256": "d3c9b39d2bb5cb5295c7699ac9b67362b46da74de0081cd03e191f1784f8fef3"
+    },
+    "core/clipboard/Clipboard.js": {
+      "localSha256": "aad64e6c0d5dfc0b1dbaaae39affaa12818eace1624f500b575ab612f0476d9c",
+      "gitSha256": "31b7e3ffe77ebaa17626db27b10a9a89cf6cfa0b0538c4bb2a6e8dcb51c6f3a8",
+      "normalizedLFsha256": "31b7e3ffe77ebaa17626db27b10a9a89cf6cfa0b0538c4bb2a6e8dcb51c6f3a8"
+    },
+    "core/clipboard/CrossBlockEditor.js": {
+      "localSha256": "1bec46654d0b6ef6d55bd3f012029bcdd787a9f2359f823abaabcd23c77abaf7",
+      "gitSha256": "d20107b1bbc1901b04cb88e4af5e2fdb29d27d97ee47528831e202524b1655ef",
+      "normalizedLFsha256": "d20107b1bbc1901b04cb88e4af5e2fdb29d27d97ee47528831e202524b1655ef"
+    },
+    "core/clipboard/PasteRouter.js": {
+      "localSha256": "83ff61da550cef729d39d38a40c0c6bf087a375d3138213426ba03492a99caef",
+      "gitSha256": "0e9549469fdfd9dcff1d6e30d88916c175a61dd0d351b646f17aeba074810455",
+      "normalizedLFsha256": "0e9549469fdfd9dcff1d6e30d88916c175a61dd0d351b646f17aeba074810455"
+    },
+    "core/clipboard/pasteInsert.js": {
+      "localSha256": "c96620db8ab7870de05616e14e1215d2e0a1a161a8f30d69491a94021942badb",
+      "gitSha256": "ff1769bb4c3dd897f73b639f44113430a47590316e499a2828a420099168d067",
+      "normalizedLFsha256": "ff1769bb4c3dd897f73b639f44113430a47590316e499a2828a420099168d067"
+    },
+    "core/clipboard/pasteUtils.js": {
+      "localSha256": "6f36f84f38c52bc262cd7d106edaf5879c061e79d8ed078f01067afc2ea87a1a",
+      "gitSha256": "5bcd851c6463f48f6afcd2409d82d97ae4d83287ae98d764860600cb0c484dae",
+      "normalizedLFsha256": "5bcd851c6463f48f6afcd2409d82d97ae4d83287ae98d764860600cb0c484dae"
+    },
+    "core/config.js": {
+      "localSha256": "5b238b22e86d9e5fec69ce1b33cec36675e0a35ff979a5b34d4cba7a50fece7e",
+      "gitSha256": "c6efda594ad1c27bc75066bf88f722b9abc0259fc74477695802d0d2e0dd03b4",
+      "normalizedLFsha256": "c6efda594ad1c27bc75066bf88f722b9abc0259fc74477695802d0d2e0dd03b4"
+    },
+    "core/constants.js": {
+      "localSha256": "3a88c833bdee960acd357d050d8ce0d41b4d8b22f1f6800b7f853a608d1801e0",
+      "gitSha256": "f5b652974812164cfb8c7766051b9d821f4be07028246b18d95945991e208482",
+      "normalizedLFsha256": "f5b652974812164cfb8c7766051b9d821f4be07028246b18d95945991e208482"
+    },
+    "core/crossBlockConvert.js": {
+      "localSha256": "be260aa1e82c8ac422b587263d855de8234cb13626f537ad173bf15e31a20e59",
+      "gitSha256": "1bd6172da055215642a2d6804ee781f6367f13e580464fa8e20689af00075a5d",
+      "normalizedLFsha256": "1bd6172da055215642a2d6804ee781f6367f13e580464fa8e20689af00075a5d"
+    },
+    "core/dom.js": {
+      "localSha256": "7a4aa4219df904bb15902ad24cc48159bce6ccd479c3c92fdb6d4471ef3e2def",
+      "gitSha256": "00f1f88a2ce99afdad892748683c2dbc442edc5efc79a3f50697e2c8a20aa794",
+      "normalizedLFsha256": "00f1f88a2ce99afdad892748683c2dbc442edc5efc79a3f50697e2c8a20aa794"
+    },
+    "core/editorEvents.js": {
+      "localSha256": "2ee71b8c394f18f80af42c45ee1a5725ccdd104483fbd08b085e86a73132dd3a",
+      "gitSha256": "7258344951e7f6e6369b99f69f5658b5b39870bbb5cfe6ef85fb5c72387a78d0",
+      "normalizedLFsha256": "7258344951e7f6e6369b99f69f5658b5b39870bbb5cfe6ef85fb5c72387a78d0"
+    },
+    "core/hydrateInlinePlugins.js": {
+      "localSha256": "3010b529dd5a1703ed02196f95243dac8e969e24f3aac9b3803dce22b0e91b7c",
+      "gitSha256": "e8867a4b3606a6c7b1661a0b8a3a1ffd38bab573f6263884d7b3cdf1999e7b3c",
+      "normalizedLFsha256": "e8867a4b3606a6c7b1661a0b8a3a1ffd38bab573f6263884d7b3cdf1999e7b3c"
+    },
+    "core/icons.js": {
+      "localSha256": "8ee8dcf66f7bb0a23a3851e8d7bf127249bc48ee86511416d1699735f8fede92",
+      "gitSha256": "59238664e0e2cc5a52f8ca716bbe764cd568bc73e763972d2339e31cefc008af",
+      "normalizedLFsha256": "59238664e0e2cc5a52f8ca716bbe764cd568bc73e763972d2339e31cefc008af"
+    },
+    "core/index.js": {
+      "localSha256": "f01337ce6d8d74fc76ba3b5ee0a9215700978e08679062c5a827852177799702",
+      "gitSha256": "a7ac12ad5154d39819a1dddfddff89c29ac47c8794e31ecf0150613b7db920a2",
+      "normalizedLFsha256": "a7ac12ad5154d39819a1dddfddff89c29ac47c8794e31ecf0150613b7db920a2"
+    },
+    "core/inline-toolbar/ActionsPanel.js": {
+      "localSha256": "50724c90fc32ef8ea294a73f8b553d3597d7dcba69c7e5ff11f478ca56217e78",
+      "gitSha256": "3289b05dab892437c29af25a1c428dc27573bd46287d1b1e65d3b4c56c959fa3",
+      "normalizedLFsha256": "3289b05dab892437c29af25a1c428dc27573bd46287d1b1e65d3b4c56c959fa3"
+    },
+    "core/inline-toolbar/InlinePositioner.js": {
+      "localSha256": "c2d6cb82b948a91efb67e6692becb7844b93ed53f62c444d23159a89c7c69d80",
+      "gitSha256": "802b686ccbb9cd655495ff574d03342a6a93c0680eb74f9a7105ca6d48c34e73",
+      "normalizedLFsha256": "802b686ccbb9cd655495ff574d03342a6a93c0680eb74f9a7105ca6d48c34e73"
+    },
+    "core/inline-toolbar/InlineToolbar.js": {
+      "localSha256": "47b54de8c73536f9e363651ceadc799e30eb290b0a7e4f8eaf3879ba1b75e472",
+      "gitSha256": "b18ffbefc6e7c76138a14e9b0140f8f325689e09b02e1e720520e536d82622d6",
+      "normalizedLFsha256": "b18ffbefc6e7c76138a14e9b0140f8f325689e09b02e1e720520e536d82622d6"
+    },
+    "core/inline-toolbar/PluginControlsSlot.js": {
+      "localSha256": "bf0d31e3c7c678d8238b17254cd59ab719a9d062d5d5101555b3002ed9f04137",
+      "gitSha256": "1ca7f076e6e1b0211244cef161a9b121f741fbfce9043a4bcc9de9aa77b2e659",
+      "normalizedLFsha256": "1ca7f076e6e1b0211244cef161a9b121f741fbfce9043a4bcc9de9aa77b2e659"
+    },
+    "core/inline-toolbar/SelectionTracker.js": {
+      "localSha256": "aed7baa09c64a72eaaf8ed90ba8be5a4d85b61e764c32270fb76b779a72493af",
+      "gitSha256": "c89789c491e7f7ced54867461d3f657e6a1048b92c2d7b33c8fa7874aec81588",
+      "normalizedLFsha256": "c89789c491e7f7ced54867461d3f657e6a1048b92c2d7b33c8fa7874aec81588"
+    },
+    "core/inlinePluginInsert.js": {
+      "localSha256": "2593589aad1435fccd425accbbf952899e011d330cdf54782a8000bf1ba95b16",
+      "gitSha256": "3ad438a50835b9b399f6fc1a4a2fff9975fba40aaba0b1d4145b71f3205ec3d1",
+      "normalizedLFsha256": "3ad438a50835b9b399f6fc1a4a2fff9975fba40aaba0b1d4145b71f3205ec3d1"
+    },
+    "core/locale/en.js": {
+      "localSha256": "c5cb1586f50c2cc9ab793ee5316c00a90badfe3d063614367a253f40af18dd20",
+      "gitSha256": "e0c8a84dcda1d2b760f1bef15bfafd60117e0162318f3671c641c564e019b54d",
+      "normalizedLFsha256": "e0c8a84dcda1d2b760f1bef15bfafd60117e0162318f3671c641c564e019b54d"
+    },
+    "core/locale/ru.js": {
+      "localSha256": "63796d8521e7462a8a43d5142843ebcec89b2e51713b91181ff1e998ae06d494",
+      "gitSha256": "2a9cab25e4805a968c95d5b1bb623250242b867d1f2bd77b038012a9e02d3215",
+      "normalizedLFsha256": "2a9cab25e4805a968c95d5b1bb623250242b867d1f2bd77b038012a9e02d3215"
+    },
+    "core/menuKeyboardNav.js": {
+      "localSha256": "8e4ffa41480b151fb8114610610e8163467fb66c920f8e70fb1edd4bf40aea27",
+      "gitSha256": "1889e35e3d3ca3c66b6c79e49812ba1a9118ca453b9264493a71d8af1e6e051b",
+      "normalizedLFsha256": "1889e35e3d3ca3c66b6c79e49812ba1a9118ca453b9264493a71d8af1e6e051b"
+    },
+    "core/sanitize.js": {
+      "localSha256": "47e395113edffa7dd3c789132fdd7f2b0d0a56fa8d920b6ab74dd6b47bd52b95",
+      "gitSha256": "6f523d2efebcfc183910ed52de08f67045c79016873a0d847359feb7f6f7973c",
+      "normalizedLFsha256": "6f523d2efebcfc183910ed52de08f67045c79016873a0d847359feb7f6f7973c"
+    },
+    "core/splitConvert.js": {
+      "localSha256": "642b814931d3e96c3c3443798c80c2b67629f50a73e5138af993baf7368dfdb0",
+      "gitSha256": "35bb0f82b3ac8f26a90dbe628d75b91aa989c0c5d0ba82c65f8164a45fbdc0c7",
+      "normalizedLFsha256": "35bb0f82b3ac8f26a90dbe628d75b91aa989c0c5d0ba82c65f8164a45fbdc0c7"
+    },
+    "core/textOffset.js": {
+      "localSha256": "f8de5753e61861277ccf7522af96153839bfc7819fd21bd3d3f27589ebbb8138",
+      "gitSha256": "437b1200624511eb1c6336a76d3d8a8875d06d6f6afc4b507ecb3492c5da46a0",
+      "normalizedLFsha256": "437b1200624511eb1c6336a76d3d8a8875d06d6f6afc4b507ecb3492c5da46a0"
+    },
+    "core/themes/dark.css": {
+      "localSha256": "4c89509a66c7c1a094c14c84b5baef9f192ce98a1453106bdabc77c926ff8f61",
+      "gitSha256": "ad1e7025f9613238f6a7e526c4cc5e481d3ef9408892d31e1bd8cc08280acb85",
+      "normalizedLFsha256": "ad1e7025f9613238f6a7e526c4cc5e481d3ef9408892d31e1bd8cc08280acb85"
+    },
+    "core/themes/light.css": {
+      "localSha256": "baee0dca6c07a85b2344caa967662bb3f05926f49f68d855a49be31919570783",
+      "gitSha256": "fb60aa61727f1c49ce2cc8ae111f97628a5c605ffb3db90d994be00ac78267db",
+      "normalizedLFsha256": "fb60aa61727f1c49ce2cc8ae111f97628a5c605ffb3db90d994be00ac78267db"
+    },
+    "core/themes/variables.css": {
+      "localSha256": "56157f80eea0047f957f453d245605fcad32a2ba9ebe8a4ba3395bcc435656a9",
+      "gitSha256": "8c080f81c05959eadd71f9bc98a3b884c2021fb6c64f74e8c95827e901177fde",
+      "normalizedLFsha256": "8c080f81c05959eadd71f9bc98a3b884c2021fb6c64f74e8c95827e901177fde"
+    },
+    "core/toolbar/OffcanvasRoot.js": {
+      "localSha256": "aea27ede6e772ad3b7e4768aa288ed2cdc089e17fe701986ca923af5e424dffd",
+      "gitSha256": "adfb3a52e5376025b90d523b34a6dd5cf8a5cdd74b05c83635cf40a591ed0b72",
+      "normalizedLFsha256": "adfb3a52e5376025b90d523b34a6dd5cf8a5cdd74b05c83635cf40a591ed0b72"
+    },
+    "core/toolbar/Toolbar.js": {
+      "localSha256": "2641434b0297da7fef851021bf321cfa114cb0fff0cb06107f9dd0e86c500eae",
+      "gitSha256": "bf249dcc992908a563e0ee82c97728a95b08cb835640215c4bc0d49a909b22c6",
+      "normalizedLFsha256": "bf249dcc992908a563e0ee82c97728a95b08cb835640215c4bc0d49a909b22c6"
+    },
+    "core/toolbar/ToolbarPositioner.js": {
+      "localSha256": "1e60103f95a87dd38d814033be8b297312b40655e520515761e4332847500985",
+      "gitSha256": "e36c63f7c91a5c03882b8cd1d7eb9672c25a9f922b9244c46a0f86b6b4f99047",
+      "normalizedLFsha256": "e36c63f7c91a5c03882b8cd1d7eb9672c25a9f922b9244c46a0f86b6b4f99047"
+    },
+    "core/toolbar/ToolboxBuilder.js": {
+      "localSha256": "617dc15f9e7e9477486e8b13a14c93df8096fac6983d516b4f658f7904ec1101",
+      "gitSha256": "ddb239290e6ba2b2b246db7c6733bb49a3ae7dcd97b1745221bddfc2be149b8d",
+      "normalizedLFsha256": "ddb239290e6ba2b2b246db7c6733bb49a3ae7dcd97b1745221bddfc2be149b8d"
+    },
+    "core/uid.js": {
+      "localSha256": "37b7558917bde0330013bdb8638e4b4aba92cf3ae497b0903d4da316da3554ca",
+      "gitSha256": "891151e52f705a6180b11bad1f22bf82a8922dd3c4981dc0819c4a27b0f24e04",
+      "normalizedLFsha256": "891151e52f705a6180b11bad1f22bf82a8922dd3c4981dc0819c4a27b0f24e04"
+    },
+    "index.js": {
+      "localSha256": "f12de3c8aab463079d0a7d4786a03b17048e889d519ffd3ee026f6b615f786a3",
+      "gitSha256": "23495bb0afefefde63c92c6a6271c23911472f4d980fdcf010e97f7ff5a7913e",
+      "normalizedLFsha256": "23495bb0afefefde63c92c6a6271c23911472f4d980fdcf010e97f7ff5a7913e"
+    },
+    "inline-plugins/color.js": {
+      "localSha256": "25fb737915790934f8818f7c2ca2172d90f4a7b0ea5dcbe26919098a29ac52f8",
+      "gitSha256": "a087ed6d01496b2d92b29dadc379681e3848779391e390d664e0f54b7b662d19",
+      "normalizedLFsha256": "a087ed6d01496b2d92b29dadc379681e3848779391e390d664e0f54b7b662d19"
+    },
+    "inline-plugins/locale/en.js": {
+      "localSha256": "6fa42980bbe338457ca4c541ef65cd25b105e0e0b4b805623976ac835dd1546c",
+      "gitSha256": "2748754a5489dda03e52aace557a787f3208b888b12c50da33fc64d787729bc0",
+      "normalizedLFsha256": "2748754a5489dda03e52aace557a787f3208b888b12c50da33fc64d787729bc0"
+    },
+    "inline-plugins/locale/ru.js": {
+      "localSha256": "34ceda8bcb6b5f7cb10441f2b68b8ba2f12c9600e2df92ae28c1593b8a7bfe70",
+      "gitSha256": "618454a454e5ad4676b27d0cd4c46473abfa8aa2b4baebb186002dd499ce5d7b",
+      "normalizedLFsha256": "618454a454e5ad4676b27d0cd4c46473abfa8aa2b4baebb186002dd499ce5d7b"
+    },
+    "inline-plugins/mention/index.js": {
+      "localSha256": "f3b1929f0e25f468f25ba629e909dadf37275b6d0ae3cdadd973ff1512c5795b",
+      "gitSha256": "306748a777187f2053c804158bd60eb174d281aa82b55921b98c6cee836861c5",
+      "normalizedLFsha256": "306748a777187f2053c804158bd60eb174d281aa82b55921b98c6cee836861c5"
+    },
+    "inline-plugins/mention/styles.css": {
+      "localSha256": "af0475348a7589aa1ed0cf3e12893343d32773f728d7652d281d46c6fb083dbc",
+      "gitSha256": "cfb12dfd5a1348878ecd1b2dc2625f6b1f3c466b8e553decbe5eeafb1adbec52",
+      "normalizedLFsha256": "cfb12dfd5a1348878ecd1b2dc2625f6b1f3c466b8e553decbe5eeafb1adbec52"
+    },
+    "inline-plugins/mention/widget.js": {
+      "localSha256": "d677911b145d00e8f09bde9eabef43551b3c05df8f81e828ee6af7a4129b5d69",
+      "gitSha256": "c995af87d61a9ac3ca44507858a23413bf5113e488d15a4760dd6a33232c6f3b",
+      "normalizedLFsha256": "c995af87d61a9ac3ca44507858a23413bf5113e488d15a4760dd6a33232c6f3b"
+    },
+    "inline-tools/align.js": {
+      "localSha256": "aaff5187332ecfdc5dcbc804b05012c2ad87fbdf043fa25933babcf30fc14469",
+      "gitSha256": "8bbb04350a675fd7b072c571ac04c3c02cecf1d514a5a7399b748cd7c59c45f1",
+      "normalizedLFsha256": "8bbb04350a675fd7b072c571ac04c3c02cecf1d514a5a7399b748cd7c59c45f1"
+    },
+    "inline-tools/bold.js": {
+      "localSha256": "c6a5c75bd6d01477445b01287957647292e243261229aa96331784ccde067ae5",
+      "gitSha256": "0c9a01d1d411ad025998455b9a739f15e777f0accb9cba5fbb52679ae6f0a44f",
+      "normalizedLFsha256": "0c9a01d1d411ad025998455b9a739f15e777f0accb9cba5fbb52679ae6f0a44f"
+    },
+    "inline-tools/caseTransform.js": {
+      "localSha256": "72f4e4ec52b319a8bb87a4a5c5dd794b50fb908f3051aae7e6759606ea5e95ca",
+      "gitSha256": "ce832ae930daf1934ed5ca576fa188229003363866cfb0685396a413379312fb",
+      "normalizedLFsha256": "ce832ae930daf1934ed5ca576fa188229003363866cfb0685396a413379312fb"
+    },
+    "inline-tools/clearFormatting.js": {
+      "localSha256": "561dcd007cce583bbe4171ce7811b4366fab25b0b66b947c37cd88e6d4bae390",
+      "gitSha256": "b2d07a7a134e036d037a2629626055c7085edb87b211305f91f61485f0e38aad",
+      "normalizedLFsha256": "b2d07a7a134e036d037a2629626055c7085edb87b211305f91f61485f0e38aad"
+    },
+    "inline-tools/code.js": {
+      "localSha256": "6897d9b07229c8fe94f224f063e8a8c98c4389fe1816b035371a0be3b270dfae",
+      "gitSha256": "328db963746972dd8c6989277fca6078c26b87bb32cb84ee4235354c243f0f0e",
+      "normalizedLFsha256": "328db963746972dd8c6989277fca6078c26b87bb32cb84ee4235354c243f0f0e"
+    },
+    "inline-tools/colorPicker.js": {
+      "localSha256": "022b3998e2c8730fb33158ca36a26d3e923551e39afe4279cd69216526d620ef",
+      "gitSha256": "99ba2f00563310bff63dd928e5aa8d206437941cc38054d47bdbc09028f76505",
+      "normalizedLFsha256": "99ba2f00563310bff63dd928e5aa8d206437941cc38054d47bdbc09028f76505"
+    },
+    "inline-tools/defaults.js": {
+      "localSha256": "115dfe7266fe7228f99e261318619f84655fdfdb013d9a7f2810d720c5b207b0",
+      "gitSha256": "e2785d924719534787916a110ab4e459397bd901f01387379b40278ef56d88f9",
+      "normalizedLFsha256": "e2785d924719534787916a110ab4e459397bd901f01387379b40278ef56d88f9"
+    },
+    "inline-tools/fontSize.js": {
+      "localSha256": "0cd11cfaf62f6937cbcf64f42b6494e6549f8dad746dd5b84bc93307d1599766",
+      "gitSha256": "a9ed58959824ff94856a2c5e85d65f4190f2b3225b424e2abb3eaad8fad84f0d",
+      "normalizedLFsha256": "a9ed58959824ff94856a2c5e85d65f4190f2b3225b424e2abb3eaad8fad84f0d"
+    },
+    "inline-tools/italic.js": {
+      "localSha256": "f26561e54af4992249ce98b2254d07e46b83660bc8738047d1d58a06b52bca51",
+      "gitSha256": "2f6dcb095de53db0aae11c3acde67bdd70bd47cd297459eb71dea9c753dd33c5",
+      "normalizedLFsha256": "2f6dcb095de53db0aae11c3acde67bdd70bd47cd297459eb71dea9c753dd33c5"
+    },
+    "inline-tools/link.js": {
+      "localSha256": "dccd6b295b9b02ea7d4e1dc0aa0093768d74853eb5468fb7e824e1d222ee7a24",
+      "gitSha256": "835dc5db8f4b665f6553225bb0f7a2a4e150fff2e1a958f42ef0658aab5ad673",
+      "normalizedLFsha256": "835dc5db8f4b665f6553225bb0f7a2a4e150fff2e1a958f42ef0658aab5ad673"
+    },
+    "inline-tools/marker.js": {
+      "localSha256": "e9895cd049317e81229ed9e384d757c910ef1d8ff96c2edd0687ca977a0b5c81",
+      "gitSha256": "03b7cdcf93799cb9949e3e15ee7b0d6a6186aa429d9363dc7a7c1d43272c33b0",
+      "normalizedLFsha256": "03b7cdcf93799cb9949e3e15ee7b0d6a6186aa429d9363dc7a7c1d43272c33b0"
+    },
+    "inline-tools/scriptTool.js": {
+      "localSha256": "83f295e55d6e560445d79f625dff0c1686c195f6b4f0b04eb912f7ccdabf078f",
+      "gitSha256": "1ec0bef80a4eef7511804ec24d90a5fee5972975fd7f473ca9bb76902879a364",
+      "normalizedLFsha256": "1ec0bef80a4eef7511804ec24d90a5fee5972975fd7f473ca9bb76902879a364"
+    },
+    "inline-tools/strikethrough.js": {
+      "localSha256": "bc80f37b612c3a8a0a28a20eeb4be7bd28de22d7a680b89a8b0fad9cfb8b43b5",
+      "gitSha256": "b3fe97cd839403595589fd2e0595e9688111e446bc1315064bb6e8179df0a75c",
+      "normalizedLFsha256": "b3fe97cd839403595589fd2e0595e9688111e446bc1315064bb6e8179df0a75c"
+    },
+    "inline-tools/utils.js": {
+      "localSha256": "7dfe1a48ec36ceed2b583a31b3e702f9a7f4e10b4d59f6d9060301bdc011144f",
+      "gitSha256": "59629c99063189a256b1f8fa26689f50d1943d4e4643f4d07ceacbc9c765c69c",
+      "normalizedLFsha256": "59629c99063189a256b1f8fa26689f50d1943d4e4643f4d07ceacbc9c765c69c"
+    },
+    "locale/en.js": {
+      "localSha256": "e583895e22886b66a82e39a83ce8364391c871d5d44cfc31530828478f013276",
+      "gitSha256": "52914d6e9c12d43a150860c5820b4bb158d7122fc8e4bfa454b95ed036b3f751",
+      "normalizedLFsha256": "52914d6e9c12d43a150860c5820b4bb158d7122fc8e4bfa454b95ed036b3f751"
+    },
+    "locale/ru.js": {
+      "localSha256": "e8214436dfdfbdf0fbce0fae9595c83e866683f821c5b6545a1e6729922268a4",
+      "gitSha256": "f912cdc0337139b82dfec9d856f84d1e740acffa4a88c40ce3ad8d7e2f1fe4bb",
+      "normalizedLFsha256": "f912cdc0337139b82dfec9d856f84d1e740acffa4a88c40ce3ad8d7e2f1fe4bb"
+    },
+    "plugins/BlockPluginAbstract.js": {
+      "localSha256": "1862308b2f47581a0aa3dae14ed5ed36b61512021d572d17e53cf2f4e5d36048",
+      "gitSha256": "85815ce99132ae5103925f841a3d2a5af95949d9f02fbcf237a2ee4920f0549b",
+      "normalizedLFsha256": "85815ce99132ae5103925f841a3d2a5af95949d9f02fbcf237a2ee4920f0549b"
+    },
+    "plugins/async.js": {
+      "localSha256": "0136552e9424fe4b71ea62ebc72a5d7539503952569280d432dc55ee4c3499fd",
+      "gitSha256": "a1e055cfb25b546d5d69243ed9f14be56aa459b3ddaf0ec784531a011fd0d3b6",
+      "normalizedLFsha256": "a1e055cfb25b546d5d69243ed9f14be56aa459b3ddaf0ec784531a011fd0d3b6"
+    },
+    "plugins/attaches/attaches.css": {
+      "localSha256": "4ef9ad35340dc747a17da3244020d53551407844490677c7a97823fb4d6e2bba",
+      "gitSha256": "55082acc64ecd21b15c6c3672394eb2d608f3d6cf1f568f53850dd88dbc1f8b8",
+      "normalizedLFsha256": "55082acc64ecd21b15c6c3672394eb2d608f3d6cf1f568f53850dd88dbc1f8b8"
+    },
+    "plugins/attaches/index.js": {
+      "localSha256": "513c9ccbf1d65b79db99ccf156f1e59060b094286798368aea95178bb2a2c1d7",
+      "gitSha256": "2b42801981594ade6a89037b03e32fef1eef6ea194ee9eb900c460097e9aaf87",
+      "normalizedLFsha256": "2b42801981594ade6a89037b03e32fef1eef6ea194ee9eb900c460097e9aaf87"
+    },
+    "plugins/attaches/locale/en.js": {
+      "localSha256": "ad9d94a33ee38be5dcea6f2543f4e1475c2b85777728497138b7c8611e027396",
+      "gitSha256": "7aa09df5663b173ab91b9808c08394514eb8d15d88e1e3aed68524db4f138c1c",
+      "normalizedLFsha256": "7aa09df5663b173ab91b9808c08394514eb8d15d88e1e3aed68524db4f138c1c"
+    },
+    "plugins/attaches/locale/ru.js": {
+      "localSha256": "93096c760339c39a14d6d8144c39cea956756391246c0b8cb49f3baebe1a7a8d",
+      "gitSha256": "b81970f042403c8fb83283d22db20b4f8bfbd799c35986dd45cd56ef85cf46c8",
+      "normalizedLFsha256": "b81970f042403c8fb83283d22db20b4f8bfbd799c35986dd45cd56ef85cf46c8"
+    },
+    "plugins/carousel/carousel.css": {
+      "localSha256": "5203fcadf7c199dde52be8058a406d0bd8fff79a11c1ae23516d30e38de1bbab",
+      "gitSha256": "45d67e5b980836d0939916722d7d97aed99ccf49c1a7b801c44cb17973eafea7",
+      "normalizedLFsha256": "45d67e5b980836d0939916722d7d97aed99ccf49c1a7b801c44cb17973eafea7"
+    },
+    "plugins/carousel/icons.js": {
+      "localSha256": "40f8344dc62c0612a516d3e98f0d773e1b03b6577a5ff09788b212d2abf5493a",
+      "gitSha256": "064738cc7db8001228c031a032563beec188eafbf447304b462ace27f10dec6c",
+      "normalizedLFsha256": "064738cc7db8001228c031a032563beec188eafbf447304b462ace27f10dec6c"
+    },
+    "plugins/carousel/index.js": {
+      "localSha256": "a532b26ceeb3cb1fcda33b004c8ac9daf761dfc0fd6adec932747b8ab0d5af60",
+      "gitSha256": "88d65102f12d45da865c41bfcece2d577dca428871b73cec5d7b026dc428bdb8",
+      "normalizedLFsha256": "88d65102f12d45da865c41bfcece2d577dca428871b73cec5d7b026dc428bdb8"
+    },
+    "plugins/carousel/locale/en.js": {
+      "localSha256": "73a77d7bd087955b6925a5410018e1fe1a31f09ba6670a7a1da1f91462a77dc0",
+      "gitSha256": "4ec8c6dc6cce917e60e2409180f9376f8adfbe82f71fc85d711e89f1c49f9bf2",
+      "normalizedLFsha256": "4ec8c6dc6cce917e60e2409180f9376f8adfbe82f71fc85d711e89f1c49f9bf2"
+    },
+    "plugins/carousel/locale/ru.js": {
+      "localSha256": "e82c1900a237a54e3f63b9d07728495acd972d64983b37411f7702535ddc0087",
+      "gitSha256": "e0ba30618979f2e967bfa7e041e94bc1040f46a2041ddc5b2270f45a187cdc12",
+      "normalizedLFsha256": "e0ba30618979f2e967bfa7e041e94bc1040f46a2041ddc5b2270f45a187cdc12"
+    },
+    "plugins/carousel/state.js": {
+      "localSha256": "d0f621abfc53939a0b500938d4d1b3707480b199c9070768a46ff54439bef86a",
+      "gitSha256": "e57c1afef2678b7dafb8c7127561c7280a5103bbab0f146201e0f1521bd09298",
+      "normalizedLFsha256": "e57c1afef2678b7dafb8c7127561c7280a5103bbab0f146201e0f1521bd09298"
+    },
+    "plugins/checklist/checklist.css": {
+      "localSha256": "5b5db81593b959b0dd0863359361a88a3b3710a773e9313eacf9da6acb2776cc",
+      "gitSha256": "b962146936255584c551094fbd53185a0241a1795a8f0fbbbafade6be1a000ac",
+      "normalizedLFsha256": "b962146936255584c551094fbd53185a0241a1795a8f0fbbbafade6be1a000ac"
+    },
+    "plugins/checklist/index.js": {
+      "localSha256": "5994420f794b5faf9bd0fe3e4948953e3a8a0820636d41921b1195ee85ba9100",
+      "gitSha256": "244e3c80099c2b44d64a015e62142d1f876734a0bcdc341b38551392e67a933b",
+      "normalizedLFsha256": "244e3c80099c2b44d64a015e62142d1f876734a0bcdc341b38551392e67a933b"
+    },
+    "plugins/checklist/locale/en.js": {
+      "localSha256": "379e706e2db1787ac7abad77dd42028cfeef07b4d1b4ee78ef4d703c39f46c88",
+      "gitSha256": "99f5568f68530fa94444e146607764b00ed41449ac31617990ec793245e5ec26",
+      "normalizedLFsha256": "99f5568f68530fa94444e146607764b00ed41449ac31617990ec793245e5ec26"
+    },
+    "plugins/checklist/locale/ru.js": {
+      "localSha256": "e2b6f3de0a406d4c179647d44eabcbbfc1dd02bbc81c8fd5b9bdef8ac38ac270",
+      "gitSha256": "6f624df31da731af332fe536eeea24c83ef157cf0f71816c6ff028842e775781",
+      "normalizedLFsha256": "6f624df31da731af332fe536eeea24c83ef157cf0f71816c6ff028842e775781"
+    },
+    "plugins/checklist/mapTextFields.js": {
+      "localSha256": "b7deb7f9c8e7d9fa2a38d50e203c845ae33575825ba510f6c045ec2135f84325",
+      "gitSha256": "c69e3c81b45c573cc566e2e19406c1b545eb4096d29b94b783a9f97290dacf58",
+      "normalizedLFsha256": "c69e3c81b45c573cc566e2e19406c1b545eb4096d29b94b783a9f97290dacf58"
+    },
+    "plugins/code/code.css": {
+      "localSha256": "c8477ca81f3e0dab82751c3338b019b5a57eed2fef56dbb59af294ab27aaf2b3",
+      "gitSha256": "d64fe062d1b66e8c5910efc5e7eeafc15cfb8f0cbe1c12ba49b1196e2234e5d7",
+      "normalizedLFsha256": "d64fe062d1b66e8c5910efc5e7eeafc15cfb8f0cbe1c12ba49b1196e2234e5d7"
+    },
+    "plugins/code/index.js": {
+      "localSha256": "52f738fd2f34862d921aaa098320f70fb0c3f06927a87767667d4ec7994b8a25",
+      "gitSha256": "e4eb80975a65e3b66ed89f7ec66c6ff3bf21c61a2e0adfd5c5cd6a7b680acade",
+      "normalizedLFsha256": "e4eb80975a65e3b66ed89f7ec66c6ff3bf21c61a2e0adfd5c5cd6a7b680acade"
+    },
+    "plugins/code/locale/en.js": {
+      "localSha256": "005c1639801e1401408cd1f6b216a5cedff5eb1dbbecb8520c512a89d5999372",
+      "gitSha256": "58008e6d1d1dd7f7dd6d48563dde185020cc78abd00303fad844edbcb88ddf3a",
+      "normalizedLFsha256": "58008e6d1d1dd7f7dd6d48563dde185020cc78abd00303fad844edbcb88ddf3a"
+    },
+    "plugins/code/locale/ru.js": {
+      "localSha256": "a5c24ea6c0e219173d192b262eb3ebebce4e96be2b96594722272f1829e7ea89",
+      "gitSha256": "4c5988f41ad67506cf6b38b035861de1b057a3049dd639ab63c810e87a14f6fc",
+      "normalizedLFsha256": "4c5988f41ad67506cf6b38b035861de1b057a3049dd639ab63c810e87a14f6fc"
+    },
+    "plugins/columns/columns.css": {
+      "localSha256": "11e5d7caa9b71a88fae21bb4e2225e74b0ee327821a0594b1ec26732110a25ad",
+      "gitSha256": "6a0e9272f9fb76c912e7b2f469fa9a5820f44a12f4ce7734fdf55d7771516ebd",
+      "normalizedLFsha256": "6a0e9272f9fb76c912e7b2f469fa9a5820f44a12f4ce7734fdf55d7771516ebd"
+    },
+    "plugins/columns/index.js": {
+      "localSha256": "073839c8641a953f52a477307f85047bebff961344c2f13e6cae12ba5a6eb9b2",
+      "gitSha256": "6b4c67d748c61ae7a75d43cf9097b869ad50e6eb702db87a012fa80fa091125a",
+      "normalizedLFsha256": "6b4c67d748c61ae7a75d43cf9097b869ad50e6eb702db87a012fa80fa091125a"
+    },
+    "plugins/columns/locale/en.js": {
+      "localSha256": "d2a676a09c34a0b4cf7189347c4c4c6d1c67b616beb44ee785e109aa894c454b",
+      "gitSha256": "5eaf310e86ad14c2db1b41a53c4b9a5a42b22111f6acc15bdcc5255f030b6978",
+      "normalizedLFsha256": "5eaf310e86ad14c2db1b41a53c4b9a5a42b22111f6acc15bdcc5255f030b6978"
+    },
+    "plugins/columns/locale/ru.js": {
+      "localSha256": "5808cd67c855959e0bc4d72e3081a83380c8960a4600f490736f48b331b958ee",
+      "gitSha256": "f3fc17dbdb86fe1e71504058f99928923cfc1739ab6c3bc975b22c8dda0467e2",
+      "normalizedLFsha256": "f3fc17dbdb86fe1e71504058f99928923cfc1739ab6c3bc975b22c8dda0467e2"
+    },
+    "plugins/delimiter/delimiter.css": {
+      "localSha256": "e20257caec9a50f8f117b904002350d9e0e6d91cf7ec7b23415588e768339870",
+      "gitSha256": "9b73e3962247a52eabd1b465ba5938f514a78ff77f0b031f0b85b3c2d056b18c",
+      "normalizedLFsha256": "9b73e3962247a52eabd1b465ba5938f514a78ff77f0b031f0b85b3c2d056b18c"
+    },
+    "plugins/delimiter/index.js": {
+      "localSha256": "17403f03ef29de062c80a805f95b83783dda1d91539505aa80b727113bce5863",
+      "gitSha256": "7cfebd9e994a529e27c532b6f975a29c072f47b19eeaba3fd48012c74d2a8fc3",
+      "normalizedLFsha256": "7cfebd9e994a529e27c532b6f975a29c072f47b19eeaba3fd48012c74d2a8fc3"
+    },
+    "plugins/delimiter/locale/en.js": {
+      "localSha256": "30996d1d645a0290e4117e3b3871c3379c6a1fecc4949c63f7c086f5330a81d6",
+      "gitSha256": "51760ee0047c44715cd8008b1d19678bbb8415526b00c3b74265290330690e65",
+      "normalizedLFsha256": "51760ee0047c44715cd8008b1d19678bbb8415526b00c3b74265290330690e65"
+    },
+    "plugins/delimiter/locale/ru.js": {
+      "localSha256": "b9856580a0436ca1ac4985b4a277eb19f382c5c13127dff8dda04d6972258857",
+      "gitSha256": "e3aa90d62e0d0eb8cafdaa21dcce5c7a8879ab80c8d6fd913f810aecae005785",
+      "normalizedLFsha256": "e3aa90d62e0d0eb8cafdaa21dcce5c7a8879ab80c8d6fd913f810aecae005785"
+    },
+    "plugins/embed/embed.css": {
+      "localSha256": "306f3dd41780aa6aa033b4a07f2c719bfc335a9ae9f9f25d21cf6543854c0c79",
+      "gitSha256": "2a7c9da5d645fa1bdd4e209ca03fca265054ebbc79ac4973e223874e2f4b799f",
+      "normalizedLFsha256": "2a7c9da5d645fa1bdd4e209ca03fca265054ebbc79ac4973e223874e2f4b799f"
+    },
+    "plugins/embed/index.js": {
+      "localSha256": "3c9cd5e14fbdc582bb7aa37a9217dad1f8975e0b3d8a0b0db3eddab992e46016",
+      "gitSha256": "92da9273f39ee434a2f00ea0347caf258654d495e2f2e7c1976dc564fe5ecd13",
+      "normalizedLFsha256": "92da9273f39ee434a2f00ea0347caf258654d495e2f2e7c1976dc564fe5ecd13"
+    },
+    "plugins/embed/locale/en.js": {
+      "localSha256": "e4e7a72660556902c086d7dc4e242ca0d82ac97131c132995ff00b950b213aa9",
+      "gitSha256": "1ef9997442d03b830d1bea93a927452b649c11e878fca361576c419718aa4b0c",
+      "normalizedLFsha256": "1ef9997442d03b830d1bea93a927452b649c11e878fca361576c419718aa4b0c"
+    },
+    "plugins/embed/locale/ru.js": {
+      "localSha256": "3d2b0c92406a3121cf1616bae218676e7055e80b96292d3db1c781b6572bb225",
+      "gitSha256": "d1db2d5194a555a8a8110be1f92f2dfd1420c8241f3eab2e05a2336e614cbef0",
+      "normalizedLFsha256": "d1db2d5194a555a8a8110be1f92f2dfd1420c8241f3eab2e05a2336e614cbef0"
+    },
+    "plugins/embed/player.js": {
+      "localSha256": "55033f96dc1e8f8e25ee266e12d09e970b4201824d191e0637cc5b09663e9de4",
+      "gitSha256": "06fc8fb687f73b56b3075318f0318eaa136ede7068c4a6e30297d7ce9fa4df5c",
+      "normalizedLFsha256": "06fc8fb687f73b56b3075318f0318eaa136ede7068c4a6e30297d7ce9fa4df5c"
+    },
+    "plugins/gallery/css.js": {
+      "localSha256": "31696f1d90ad53e3ad9f804551493f317c42b3d96d4d79cb1f40288292ac6f2f",
+      "gitSha256": "15945ebcfd9a531857559a277af0e0d66372bd556d83ee71903c4172b79130fe",
+      "normalizedLFsha256": "15945ebcfd9a531857559a277af0e0d66372bd556d83ee71903c4172b79130fe"
+    },
+    "plugins/gallery/gallery.css": {
+      "localSha256": "527b12c1c44cd90ea76d71dad3b7b4c7575bcfe04347c255ed1de1c8b3c45247",
+      "gitSha256": "373677302e40c3812466f9aea890320083e9d14cd22278b14859bc636cbb51fc",
+      "normalizedLFsha256": "373677302e40c3812466f9aea890320083e9d14cd22278b14859bc636cbb51fc"
+    },
+    "plugins/gallery/icons.js": {
+      "localSha256": "bbc8f9e16fe4f66dda278541b7cbc592cbb9afe335446f657b83056d7c790a7f",
+      "gitSha256": "d9337671e244193106e8f81119196a87279573df765863c341a72a1ee6dcd20e",
+      "normalizedLFsha256": "d9337671e244193106e8f81119196a87279573df765863c341a72a1ee6dcd20e"
+    },
+    "plugins/gallery/index.js": {
+      "localSha256": "6b2adb2692abce4bd4391a60fce4198b1c5725acae8daa69f2aab42051d2faa1",
+      "gitSha256": "386da3405babae5f0b909e5866475dd00fcede741c0ebcc97924a1dfd3e016fb",
+      "normalizedLFsha256": "386da3405babae5f0b909e5866475dd00fcede741c0ebcc97924a1dfd3e016fb"
+    },
+    "plugins/gallery/layout.js": {
+      "localSha256": "84e1ab2ae3523e9c492e26ce1a66e21b6ee603544bd679cc21abf9ad376ca264",
+      "gitSha256": "e091acdb75b9f8342bfa910394f604aad35c1595f946d535b19d6bfc9cae16e3",
+      "normalizedLFsha256": "e091acdb75b9f8342bfa910394f604aad35c1595f946d535b19d6bfc9cae16e3"
+    },
+    "plugins/gallery/locale/en.js": {
+      "localSha256": "e16c1cde3ac9dfeddaf20b4a689b4117284360bac36a312d24d4db994bb8b161",
+      "gitSha256": "10b5ed7ee7d6c5601e350c1ab78ca7593e4d8432c3e3237969c7bd87774d0f60",
+      "normalizedLFsha256": "10b5ed7ee7d6c5601e350c1ab78ca7593e4d8432c3e3237969c7bd87774d0f60"
+    },
+    "plugins/gallery/locale/ru.js": {
+      "localSha256": "83e9f5105caf18310bd67c01e29669cdc7271590934f0efc4dfaaf9152b040f8",
+      "gitSha256": "de2bd62dde6963e1214da4c4b97f8becf3785a59b747ef64b55f2a0e88c94185",
+      "normalizedLFsha256": "de2bd62dde6963e1214da4c4b97f8becf3785a59b747ef64b55f2a0e88c94185"
+    },
+    "plugins/gallery/settings.js": {
+      "localSha256": "efe093da404bd4441e7e9252f6305e7741fb3c5cce273e768783fc046c1ad9c8",
+      "gitSha256": "0dd55d8038da9053feff0ea0cad95aefd8b41e9aaf7faa2eaf15a91cd0a456a8",
+      "normalizedLFsha256": "0dd55d8038da9053feff0ea0cad95aefd8b41e9aaf7faa2eaf15a91cd0a456a8"
+    },
+    "plugins/gallery/slot.js": {
+      "localSha256": "277435deb96acd5dfeb088e3511127bbe8ffb39fea9cfc56af2b2282fba604ec",
+      "gitSha256": "09b894994f32cf0c3914da5425ae967122dbbb40d4922a227ab9f1e736f73a16",
+      "normalizedLFsha256": "09b894994f32cf0c3914da5425ae967122dbbb40d4922a227ab9f1e736f73a16"
+    },
+    "plugins/gallery/state.js": {
+      "localSha256": "306b93cf3eb60dc547d9b92277a545a1029e55038c62b3d99e0e540c230fec45",
+      "gitSha256": "fbe17e2647336e3a2f38517ea6f4f925c795c35d64e96d654b7321cbbbcfdae7",
+      "normalizedLFsha256": "fbe17e2647336e3a2f38517ea6f4f925c795c35d64e96d654b7321cbbbcfdae7"
+    },
+    "plugins/gallery/styles.js": {
+      "localSha256": "ac30b5a2de42fc776d0dd999e1e638a970a0668444d917ff0918b5340b56eaca",
+      "gitSha256": "544f092ca81b6155fe06aa3e445dd595136a35c41db851d2b1c53d2f01aad373",
+      "normalizedLFsha256": "544f092ca81b6155fe06aa3e445dd595136a35c41db851d2b1c53d2f01aad373"
+    },
+    "plugins/gallery/uploader.js": {
+      "localSha256": "6dd3201350262156447ee5517c5986bf62445e6063b22141ce411ab9a0ef6c1a",
+      "gitSha256": "cd43ad45a58ac47b729638d6adcbf3beb9a03182566dca645d3fa69a8b55606d",
+      "normalizedLFsha256": "cd43ad45a58ac47b729638d6adcbf3beb9a03182566dca645d3fa69a8b55606d"
+    },
+    "plugins/gallery/view-empty.js": {
+      "localSha256": "dcd0888ee7f05eba2f62b586be4dbb764f60348a22a43f216cc306deb08c39ef",
+      "gitSha256": "f3ba0526f29b3d65333cab01e2f1470dca61b0ec68aadb21f0d02dc208298af2",
+      "normalizedLFsha256": "f3ba0526f29b3d65333cab01e2f1470dca61b0ec68aadb21f0d02dc208298af2"
+    },
+    "plugins/gallery/view-filled.js": {
+      "localSha256": "33f2f481dd9ee7e08e7775d6ecd747d49fe572ec51e80da3168703dd0dec9b31",
+      "gitSha256": "9ad5277ee0bee1f39ee55d981c6ccc41d8713a550e222a638fc9ff13a4f99c85",
+      "normalizedLFsha256": "9ad5277ee0bee1f39ee55d981c6ccc41d8713a550e222a638fc9ff13a4f99c85"
+    },
+    "plugins/heading/HeadingLevelSelect.js": {
+      "localSha256": "a9e961d21055713e81e8ffd4fd2616d63ebda43557aa96b9a4dd7ed249d67c9b",
+      "gitSha256": "a4f362bcd072664015a446c9355cdba01161a5d733de00bb239d9897360df0cc",
+      "normalizedLFsha256": "a4f362bcd072664015a446c9355cdba01161a5d733de00bb239d9897360df0cc"
+    },
+    "plugins/heading/heading.css": {
+      "localSha256": "75227925f7e4d5a27f46b5a8e13c3f8a0473482db2e2d1ee83c19a4397c45112",
+      "gitSha256": "d66c044fa2c3f40ae421f295e2370d0342dfbec0b01250934a935650b45efe3d",
+      "normalizedLFsha256": "d66c044fa2c3f40ae421f295e2370d0342dfbec0b01250934a935650b45efe3d"
+    },
+    "plugins/heading/index.js": {
+      "localSha256": "b15834f9c169560a871b1595955d7fc48607ed80c023ea4381b2109a267eb1e9",
+      "gitSha256": "4e4f73b2863ae1382fc3447fb554454cebf615bf284ce4984fc74451f4fd1b08",
+      "normalizedLFsha256": "4e4f73b2863ae1382fc3447fb554454cebf615bf284ce4984fc74451f4fd1b08"
+    },
+    "plugins/heading/locale/en.js": {
+      "localSha256": "b78c162a0ba973e5c8ceb4e137ce952bf36e3c55b6d737f7a80422299982c84a",
+      "gitSha256": "c29a4477ee757009ba0c55c101e9199bffc1a3dd23c2d45b4c58a07a79777754",
+      "normalizedLFsha256": "c29a4477ee757009ba0c55c101e9199bffc1a3dd23c2d45b4c58a07a79777754"
+    },
+    "plugins/heading/locale/ru.js": {
+      "localSha256": "580854945f539e400141588c8af713a692f83b8d70ef29b80c1748832c9ce2f3",
+      "gitSha256": "56ffd2e0550729213a07552cf1ba67aff6b2fbd7e87390ae3cd8f9ebb1c7259b",
+      "normalizedLFsha256": "56ffd2e0550729213a07552cf1ba67aff6b2fbd7e87390ae3cd8f9ebb1c7259b"
+    },
+    "plugins/heading/mapTextFields.js": {
+      "localSha256": "7dbdaa75fbeb10eba1994d0a2ea9932e889413568a7a0e78a3c221d1d9fe1754",
+      "gitSha256": "c6751de848bc6dc8ee138392194d75b69a5e9bec3efa1e1e7c6e802283ea7f75",
+      "normalizedLFsha256": "c6751de848bc6dc8ee138392194d75b69a5e9bec3efa1e1e7c6e802283ea7f75"
+    },
+    "plugins/image/css.js": {
+      "localSha256": "25ec604fb510c9c073f4c7ca0e6381e39f8bd529c159e014c0a8f9223cbf379e",
+      "gitSha256": "4dbb39d7298616b0a6e5b87cc019bc2ea4c739dacf475d52ac80f964dcce3b04",
+      "normalizedLFsha256": "4dbb39d7298616b0a6e5b87cc019bc2ea4c739dacf475d52ac80f964dcce3b04"
+    },
+    "plugins/image/icons.js": {
+      "localSha256": "f016905573ac7d6245128e0384141f2ba7def5153f079c68f10e8f248a0019ed",
+      "gitSha256": "a9e2df6eb311dcdbe77d44a169a089eced5e2273682ad37345bed27d59bd99e7",
+      "normalizedLFsha256": "a9e2df6eb311dcdbe77d44a169a089eced5e2273682ad37345bed27d59bd99e7"
+    },
+    "plugins/image/image.css": {
+      "localSha256": "951734b466f15995582f99b0e026b0dfa4346b3027502aa5b46d28ca018c4e49",
+      "gitSha256": "1fef2952579ea8bebdbdc33770812c008308f758e5674e63d9153a95988df9ab",
+      "normalizedLFsha256": "1fef2952579ea8bebdbdc33770812c008308f758e5674e63d9153a95988df9ab"
+    },
+    "plugins/image/index.js": {
+      "localSha256": "f62124491c61f56fe48363cb14d10e9993a0bb5e74ad8026eb094305dc9ae41f",
+      "gitSha256": "e0599beca5c5442bcea0765cd9f0878879504a0cb9f6b88ed7685b7a060ff5f8",
+      "normalizedLFsha256": "e0599beca5c5442bcea0765cd9f0878879504a0cb9f6b88ed7685b7a060ff5f8"
+    },
+    "plugins/image/locale/en.js": {
+      "localSha256": "b6c4039c3d05ddf96c5a9e8067b1d2700eb2310a34a8b4b0bdeac72f2b844aaf",
+      "gitSha256": "99f9e104fb4ede82bb5d9d37f050be4fc00ab5f261bf92dde87e8f4d45027bdc",
+      "normalizedLFsha256": "99f9e104fb4ede82bb5d9d37f050be4fc00ab5f261bf92dde87e8f4d45027bdc"
+    },
+    "plugins/image/locale/ru.js": {
+      "localSha256": "20a6cdae772e0e00e35b36b13d93f873d6f1dccba3ff5ec0e0a2f1158b8a2f8f",
+      "gitSha256": "5c4a906772aee880a6b3c40d80a7295dd9bb7b260233e2f64882eb35c06eb9d4",
+      "normalizedLFsha256": "5c4a906772aee880a6b3c40d80a7295dd9bb7b260233e2f64882eb35c06eb9d4"
+    },
+    "plugins/image/settings.js": {
+      "localSha256": "dd9f959f4836aec23b2717418c699f91abddfd9fd2e2cb350fe1ea5fb800105a",
+      "gitSha256": "1abe35bc3add878fb5e4e8f89578054724dbdbe34bc4c63292bca4b07272991d",
+      "normalizedLFsha256": "1abe35bc3add878fb5e4e8f89578054724dbdbe34bc4c63292bca4b07272991d"
+    },
+    "plugins/image/state.js": {
+      "localSha256": "f18354386b0665e842e0b3b0b84e7ded8cd1a433181162fb0dca3107580af27d",
+      "gitSha256": "ae9c682bf16106941a7b7db70aeacec71c522543c05f762411f798cca74e0d7a",
+      "normalizedLFsha256": "ae9c682bf16106941a7b7db70aeacec71c522543c05f762411f798cca74e0d7a"
+    },
+    "plugins/image/styles.js": {
+      "localSha256": "7cc60eaefe218fe38789abd91ded8a0f20e615a9bfe05d0a96afc27a4c8ee232",
+      "gitSha256": "3a33e5b838bd2f40acc7cf100c2aab3fd6e6ff8f2916e2b35e24443fb50e9179",
+      "normalizedLFsha256": "3a33e5b838bd2f40acc7cf100c2aab3fd6e6ff8f2916e2b35e24443fb50e9179"
+    },
+    "plugins/image/uploader.js": {
+      "localSha256": "b4f696041acfefcf32ef7bb0a07b3666bcc9d06fac49dc731b23bbefa8e0e444",
+      "gitSha256": "987e5e492706d83eb51228dd01505cb2f3051b80288ecc5ece6d608bb3a82b56",
+      "normalizedLFsha256": "987e5e492706d83eb51228dd01505cb2f3051b80288ecc5ece6d608bb3a82b56"
+    },
+    "plugins/image/view-empty.js": {
+      "localSha256": "f672899e22173e499b9939c06c47436f51aab9bdfa0e6ead0f2e8011ff105bd3",
+      "gitSha256": "874f7dce5d897e755ef9c877e5f59e3d2f6d34bbc33c8781e96f096e076f259c",
+      "normalizedLFsha256": "874f7dce5d897e755ef9c877e5f59e3d2f6d34bbc33c8781e96f096e076f259c"
+    },
+    "plugins/image/view-filled.js": {
+      "localSha256": "cc5883fd2aaab8211f4d00e63141b84aa12f07505d4f4014a619eba9788df037",
+      "gitSha256": "076246f01bf24b8af95e38602c25af5d187746f2ecc7c01a1175f702092de9bb",
+      "normalizedLFsha256": "076246f01bf24b8af95e38602c25af5d187746f2ecc7c01a1175f702092de9bb"
+    },
+    "plugins/index.js": {
+      "localSha256": "f8839709a24c1898054109b64499268e784d51cc1121011d59abadeb8970bfcc",
+      "gitSha256": "d8826a367d4e99bf1532c5bc81e8018a564e36b6111ff1c6107b0189496c223b",
+      "normalizedLFsha256": "d8826a367d4e99bf1532c5bc81e8018a564e36b6111ff1c6107b0189496c223b"
+    },
+    "plugins/link-preview/index.js": {
+      "localSha256": "21dc1e308922c94bb72c6a577d95cbc41e2d2de1e274e3b3f48911eb70af2cb2",
+      "gitSha256": "b5b714711c0ad03d09a0ed7648a9a2d283c36bb9b27ee911d7e4500363e33d53",
+      "normalizedLFsha256": "b5b714711c0ad03d09a0ed7648a9a2d283c36bb9b27ee911d7e4500363e33d53"
+    },
+    "plugins/link-preview/link-preview.css": {
+      "localSha256": "d8307fcf4b434eb451a34d9da16a2bb28f67322208662e0b9781caeb8293bf4d",
+      "gitSha256": "f3b6a4127e0af9906ab1dcd1f96f3eb2842771b2e706544c4af60c68f8a8d57e",
+      "normalizedLFsha256": "f3b6a4127e0af9906ab1dcd1f96f3eb2842771b2e706544c4af60c68f8a8d57e"
+    },
+    "plugins/link-preview/locale/en.js": {
+      "localSha256": "865edb4407a46c68c516264e340b937ea42323373d58148340956429fb5dc636",
+      "gitSha256": "aea5c76760d15467cba00f97cdaf6937dadca4eacd6baa82e179a96c4a3406f6",
+      "normalizedLFsha256": "aea5c76760d15467cba00f97cdaf6937dadca4eacd6baa82e179a96c4a3406f6"
+    },
+    "plugins/link-preview/locale/ru.js": {
+      "localSha256": "7b20f71c22b3ec50fe02bceeb5d8a4e5948d1fc50bb039f1fb0147a287253667",
+      "gitSha256": "ced609891b2875cee035e1b64513fc4c071c96743dc1e083573eeccc6f164a0e",
+      "normalizedLFsha256": "ced609891b2875cee035e1b64513fc4c071c96743dc1e083573eeccc6f164a0e"
+    },
+    "plugins/list/index.js": {
+      "localSha256": "ed8ee9e4aaa7ed447ba4327a1e17112053d8336b37193bb50cd4560530f3d8df",
+      "gitSha256": "96fa9f3b19f9313be1b47a76deefde13dce529fe2f9d1250a22fd67c4bddbbbc",
+      "normalizedLFsha256": "96fa9f3b19f9313be1b47a76deefde13dce529fe2f9d1250a22fd67c4bddbbbc"
+    },
+    "plugins/list/list.css": {
+      "localSha256": "c5fc66b9b4b8a3a5e07c188af0a122fc0d0ab610dfa7041d06303d084939aa74",
+      "gitSha256": "f1909bd1dfff84015baffef42bc5595a7a5171ee16eb295a1fb449f1865c056a",
+      "normalizedLFsha256": "f1909bd1dfff84015baffef42bc5595a7a5171ee16eb295a1fb449f1865c056a"
+    },
+    "plugins/list/locale/en.js": {
+      "localSha256": "7132ee4d04a285736c9c0296a2df4f2160a575421b184993b8b6940f316c0617",
+      "gitSha256": "488cdecb9a16040f175985082ba1d56062356f83048cc5bdbc644bce8c328028",
+      "normalizedLFsha256": "488cdecb9a16040f175985082ba1d56062356f83048cc5bdbc644bce8c328028"
+    },
+    "plugins/list/locale/ru.js": {
+      "localSha256": "916882c3e92a1512fc362de5cb05079f1be8474afcbfe7e7a4e63dca9619a50d",
+      "gitSha256": "4c278bae4d4c1c47fff07739457bdc42cac474a74f1e71f444828f1f76aa4edf",
+      "normalizedLFsha256": "4c278bae4d4c1c47fff07739457bdc42cac474a74f1e71f444828f1f76aa4edf"
+    },
+    "plugins/list/mapTextFields.js": {
+      "localSha256": "e48baefb3721622134437e9da93ed08001e63e758a5e9640396fff493a81c405",
+      "gitSha256": "96e0ae036856741f48873767d93288c7053bbb8a077226ae7474cdcdf780fbe3",
+      "normalizedLFsha256": "96e0ae036856741f48873767d93288c7053bbb8a077226ae7474cdcdf780fbe3"
+    },
+    "plugins/paragraph/index.js": {
+      "localSha256": "86e26a7d5ed3e2d1f0ad9864564474f3ff40979bd5bb7e87f5e72f707757262e",
+      "gitSha256": "e3b66b66951fd33f9b596961da58d7981aee82e424fa5264accace1233ae7968",
+      "normalizedLFsha256": "e3b66b66951fd33f9b596961da58d7981aee82e424fa5264accace1233ae7968"
+    },
+    "plugins/paragraph/locale/en.js": {
+      "localSha256": "ea75336271b77d5cdac2c75bb4feacff0026dff6d2f7b2c889309a1824147478",
+      "gitSha256": "6fc1008806ec881a6f8dddf8abef36ba1bb872ddd05f5109474b1c748c2fe897",
+      "normalizedLFsha256": "6fc1008806ec881a6f8dddf8abef36ba1bb872ddd05f5109474b1c748c2fe897"
+    },
+    "plugins/paragraph/locale/ru.js": {
+      "localSha256": "6bc86330b6db64170be903616f9894d139c44e5044dd2e5f31747d7dab16694a",
+      "gitSha256": "d35b23a8cf3427c56186c665457d161f450036f562b9855cab928768bac66d6e",
+      "normalizedLFsha256": "d35b23a8cf3427c56186c665457d161f450036f562b9855cab928768bac66d6e"
+    },
+    "plugins/paragraph/mapTextFields.js": {
+      "localSha256": "739476e9aaccae5a9a07b5331609319c4fbb47d289cd3ccdff8d66cee850d2d3",
+      "gitSha256": "4614b00e319d4d519d2fa8b53c9938803835ede88b65c06aa963674eacd4dc74",
+      "normalizedLFsha256": "4614b00e319d4d519d2fa8b53c9938803835ede88b65c06aa963674eacd4dc74"
+    },
+    "plugins/paragraph/paragraph.css": {
+      "localSha256": "798ac1271aa2cb1f5198ced993ec4c7cbb629ba6afb100ba3d31cf363ec344ce",
+      "gitSha256": "89aa596bf5d975c76cbdf0a210c80e25925c9e287f0f71beb01166e3ef4e4b78",
+      "normalizedLFsha256": "89aa596bf5d975c76cbdf0a210c80e25925c9e287f0f71beb01166e3ef4e4b78"
+    },
+    "plugins/person/index.js": {
+      "localSha256": "814dbf045c1601062becb5e40b7dbaf5d19305c0228af86f908f585d0d987efc",
+      "gitSha256": "f1171da9ec14ac7b0b0c7a88b3c1958bb0d31f0d172a2edddc293d253c7694a7",
+      "normalizedLFsha256": "f1171da9ec14ac7b0b0c7a88b3c1958bb0d31f0d172a2edddc293d253c7694a7"
+    },
+    "plugins/person/locale/en.js": {
+      "localSha256": "278bb0a0153721240dd4fbf8e73589a1cffc659532c7556842f9899af5500dcd",
+      "gitSha256": "e553a197e8d5f8ccf984cc865f2a3d7385fb60e6521bbed0d3f71e1e12df1375",
+      "normalizedLFsha256": "e553a197e8d5f8ccf984cc865f2a3d7385fb60e6521bbed0d3f71e1e12df1375"
+    },
+    "plugins/person/locale/ru.js": {
+      "localSha256": "4c4fc7625bdf2ccbb111de5de989f5120195c64d6a7ec4a77c9de03677cbc9a0",
+      "gitSha256": "6a9275617931ce224118c399ff6a71c926057a22610b78932d08ce1e3f5accb7",
+      "normalizedLFsha256": "6a9275617931ce224118c399ff6a71c926057a22610b78932d08ce1e3f5accb7"
+    },
+    "plugins/person/person.css": {
+      "localSha256": "51ebc1997c64c136db6921b026b856c419ec8d4f22a6b54c85c05167eef28547",
+      "gitSha256": "2d04197a71362a4a40a0a34957d445b37801e6ace240dea0bc5bdb963f46b958",
+      "normalizedLFsha256": "2d04197a71362a4a40a0a34957d445b37801e6ace240dea0bc5bdb963f46b958"
+    },
+    "plugins/person/socialResolver.js": {
+      "localSha256": "44aefe53375b6e071bba9d7b315486e340e50f295d3d0f70afdf544604b9e04e",
+      "gitSha256": "d6d55da3ab7318852def13715ab958cf1d86ccaf9195ea715df7ce6b353b266c",
+      "normalizedLFsha256": "d6d55da3ab7318852def13715ab958cf1d86ccaf9195ea715df7ce6b353b266c"
+    },
+    "plugins/poll/index.js": {
+      "localSha256": "ebc6347f8a25132473140f6788680f552d9bf9ad3ba1b78c3cde0138a86b98ab",
+      "gitSha256": "a70defb0a03a488aae1bc283321c9bcbb59ee0a888784ecdb49d000819611ec9",
+      "normalizedLFsha256": "a70defb0a03a488aae1bc283321c9bcbb59ee0a888784ecdb49d000819611ec9"
+    },
+    "plugins/poll/locale/en.js": {
+      "localSha256": "763c10760df6f15665abea8d56f9b59ec19531a31cbc863b01f8fecffb079226",
+      "gitSha256": "24d7d388788adb20e9383004ed9a98f490ae97bc6526d8149c3b45592c9f6853",
+      "normalizedLFsha256": "24d7d388788adb20e9383004ed9a98f490ae97bc6526d8149c3b45592c9f6853"
+    },
+    "plugins/poll/locale/ru.js": {
+      "localSha256": "a4cd6e181997b47dabf12039b3d666d2a0b2fd02a3a7c969ee3c23a2eb3888e9",
+      "gitSha256": "07423e25cccb5d4ac6a0b08aed023608dc65448c88d05ba2c08d1e46a828d2cd",
+      "normalizedLFsha256": "07423e25cccb5d4ac6a0b08aed023608dc65448c88d05ba2c08d1e46a828d2cd"
+    },
+    "plugins/poll/poll.css": {
+      "localSha256": "b73bb74d378c0080ba0ad2c5572cbffbeddbb78e28fa4f8a5747bf8298f5199d",
+      "gitSha256": "0c97f9aab6b46afd8e8761ca10fe0caee7bf3deacb8ec6d04d4339c984a46b32",
+      "normalizedLFsha256": "0c97f9aab6b46afd8e8761ca10fe0caee7bf3deacb8ec6d04d4339c984a46b32"
+    },
+    "plugins/quote/index.js": {
+      "localSha256": "086bf139ffec9e4f876f6ad22edee7e28bba72c011c89d823064391ea13f7c72",
+      "gitSha256": "5b8629e16ae70a08ef6792ac13731c577089027aac41ee4104400b4354779539",
+      "normalizedLFsha256": "5b8629e16ae70a08ef6792ac13731c577089027aac41ee4104400b4354779539"
+    },
+    "plugins/quote/locale/en.js": {
+      "localSha256": "fe277a8a5511a0b9729e16184f083983346fba8b90355a70315b485113d28624",
+      "gitSha256": "4f233990257bd9235a074cc5281c8e6aa08cdd5598fdeec00ce929729874e7ef",
+      "normalizedLFsha256": "4f233990257bd9235a074cc5281c8e6aa08cdd5598fdeec00ce929729874e7ef"
+    },
+    "plugins/quote/locale/ru.js": {
+      "localSha256": "2a3cac0dccd38f4d633e38a75f4cf1dbfcbb385cbcfcec6a09f158514bd16dbc",
+      "gitSha256": "b5a61afbe28774fec50690ff01a537d0577066383fe3c6df8b08ef52aa9805b9",
+      "normalizedLFsha256": "b5a61afbe28774fec50690ff01a537d0577066383fe3c6df8b08ef52aa9805b9"
+    },
+    "plugins/quote/mapTextFields.js": {
+      "localSha256": "3ae1cc004b524d3b90eb8f848a2e5297d9726c7655cba0ca02f409a35c8db941",
+      "gitSha256": "00dbc477955a6b00f6a1a03207d7fbd44391503d9dcae3e6c2235c3353699db8",
+      "normalizedLFsha256": "00dbc477955a6b00f6a1a03207d7fbd44391503d9dcae3e6c2235c3353699db8"
+    },
+    "plugins/quote/quote.css": {
+      "localSha256": "f916337dbcc831c4eafc9c3849f630561756fec80f04259689ba8914a9b8cb48",
+      "gitSha256": "81fde45015c1dcdcfd0b9b58e725d8ead914512d6b8378028f08562f5159d80b",
+      "normalizedLFsha256": "81fde45015c1dcdcfd0b9b58e725d8ead914512d6b8378028f08562f5159d80b"
+    },
+    "plugins/raw/index.js": {
+      "localSha256": "4359a92b5861483d334ef5c270524f4909e29e089268f3219425fc4dc1a853ad",
+      "gitSha256": "381de2da203d282e70941fd3d790e43872ec5a628bf3e00e4c219b6e55197867",
+      "normalizedLFsha256": "381de2da203d282e70941fd3d790e43872ec5a628bf3e00e4c219b6e55197867"
+    },
+    "plugins/raw/locale/en.js": {
+      "localSha256": "483d15a6154454014b4fe2a3c328b3c18b7e257fa44f08ede5495c417dceae6a",
+      "gitSha256": "ee2d6771b54dadcf428506ebd58483f5223915316c9f9d8c7dad1040c42bead4",
+      "normalizedLFsha256": "ee2d6771b54dadcf428506ebd58483f5223915316c9f9d8c7dad1040c42bead4"
+    },
+    "plugins/raw/locale/ru.js": {
+      "localSha256": "eec350e67a10a8df83dc1614814a78e4030cd42acafee87b19935b98d389b086",
+      "gitSha256": "68440df1e6fce09129a1bd1d6e436d688c7f08f8d6c877507702f96340718edd",
+      "normalizedLFsha256": "68440df1e6fce09129a1bd1d6e436d688c7f08f8d6c877507702f96340718edd"
+    },
+    "plugins/raw/raw.css": {
+      "localSha256": "509a6e0d7b3e8f0d17c476103ab908892f00c95783ccb8a7a19a3c263747c9b6",
+      "gitSha256": "b4837d2776e4abb0b2ae20c95381aac15180f1d9671a4a163c7d5b9782394340",
+      "normalizedLFsha256": "b4837d2776e4abb0b2ae20c95381aac15180f1d9671a4a163c7d5b9782394340"
+    },
+    "plugins/shared/actionBar.js": {
+      "localSha256": "db712c617d794f1a81b8f6f8f11282bb79b898f5316989b1a11a586f8b466794",
+      "gitSha256": "6419dbe8057f9b64a846bd751623988fdd6cdb50eca7b520f327aa17cdd61b4a",
+      "normalizedLFsha256": "6419dbe8057f9b64a846bd751623988fdd6cdb50eca7b520f327aa17cdd61b4a"
+    },
+    "plugins/shared/dropzone.js": {
+      "localSha256": "4371ba12dda421a504a71b40df400682a7a0c28c265031f9a59b1f238d1b85c6",
+      "gitSha256": "7713eb386f72d6271cf65589244b3657d20dcf2ab43e0bc7b5834cdb599706ba",
+      "normalizedLFsha256": "7713eb386f72d6271cf65589244b3657d20dcf2ab43e0bc7b5834cdb599706ba"
+    },
+    "plugins/shared/fileInput.js": {
+      "localSha256": "fd3a5f79892f2dc8587d9960ee5c6fa1b20c0e5a82b16da2856623cc6c7ea46f",
+      "gitSha256": "e0c52f3801a1c89d88ec33e3c31ed89730f1cd743697e8f0c3938f30d1f6465d",
+      "normalizedLFsha256": "e0c52f3801a1c89d88ec33e3c31ed89730f1cd743697e8f0c3938f30d1f6465d"
+    },
+    "plugins/shared/layer.js": {
+      "localSha256": "d21dc03651d27c8beda36d4af6925ed4640a65ec8714c990635974c220453cb2",
+      "gitSha256": "75fd14e47b5394b0a35a4cbb9163fbb7552181362773369bd147aaab6157747e",
+      "normalizedLFsha256": "75fd14e47b5394b0a35a4cbb9163fbb7552181362773369bd147aaab6157747e"
+    },
+    "plugins/shared/sourceEditor.css": {
+      "localSha256": "c06e15ad47caa783bba3b5ccddcd4749c1abb7d1ef0b42500070d2b2e9c29d03",
+      "gitSha256": "9d5f661621d7575f05df1435f3131d0a27b29776391e2ba82532303aeb3263a1",
+      "normalizedLFsha256": "9d5f661621d7575f05df1435f3131d0a27b29776391e2ba82532303aeb3263a1"
+    },
+    "plugins/shared/sourceEditor.js": {
+      "localSha256": "011b60a64b90fd96c8a4b50ec65ef0a4dde3d88c7de8f197bdc89c47414c4d08",
+      "gitSha256": "7488d56b26896bf2f6a5c259d9937e0d1047c2c0b817c50dd59dfb08cd39cb78",
+      "normalizedLFsha256": "7488d56b26896bf2f6a5c259d9937e0d1047c2c0b817c50dd59dfb08cd39cb78"
+    },
+    "plugins/spoiler/index.js": {
+      "localSha256": "b129c3918cf059cde7ac560f514bcb643bdc52107a19b6b8e03cb154b6606752",
+      "gitSha256": "e9b55857bada595839d9cae60402e9808d7a7b5b6e7fece777a90ece70bdce99",
+      "normalizedLFsha256": "e9b55857bada595839d9cae60402e9808d7a7b5b6e7fece777a90ece70bdce99"
+    },
+    "plugins/spoiler/locale/en.js": {
+      "localSha256": "ff91884b26a4e6a4af8b7304c666b8070109a2203b78d7a61148f84cee389745",
+      "gitSha256": "6eec3cf3acda1f06a131f5dcc5dbebe4ad96694b18bb2fb1825e563998da1ebf",
+      "normalizedLFsha256": "6eec3cf3acda1f06a131f5dcc5dbebe4ad96694b18bb2fb1825e563998da1ebf"
+    },
+    "plugins/spoiler/locale/ru.js": {
+      "localSha256": "97e5b689aa5f0e543174c9944686aa6c8c250f76e38485a8ee7b662682952627",
+      "gitSha256": "695d50d1be9d7215b9507fffda45cdaef2612ec5bdf467724f4a0cd1676b02dc",
+      "normalizedLFsha256": "695d50d1be9d7215b9507fffda45cdaef2612ec5bdf467724f4a0cd1676b02dc"
+    },
+    "plugins/spoiler/spoiler.css": {
+      "localSha256": "e6cad465f146c2ac05a9835f461f4b3800203ebdef1d51b154dfa46526fb35f2",
+      "gitSha256": "f30ec8b949ec6e1fce0013f37c1502e0a9257662a713a230fc15f6bf7a3f1f33",
+      "normalizedLFsha256": "f30ec8b949ec6e1fce0013f37c1502e0a9257662a713a230fc15f6bf7a3f1f33"
+    },
+    "plugins/table/index.js": {
+      "localSha256": "520b78fd023db6bd6fd28794ede2aa7037e71b8ee3b3d6d9bdf837df0fa78207",
+      "gitSha256": "09257d10d88e162d0fe92d2cdf6bf73e2ea799a7e945fb16796895da92128a49",
+      "normalizedLFsha256": "09257d10d88e162d0fe92d2cdf6bf73e2ea799a7e945fb16796895da92128a49"
+    },
+    "plugins/table/locale/en.js": {
+      "localSha256": "9fc0969ec2354cc02ef6cb9055eb2980b7d012551c532e6f0921508d38365c60",
+      "gitSha256": "2b24252aa552468e7ef2c9c48dbe86d9361399571ca99e6b5a20e1b2def5a1ca",
+      "normalizedLFsha256": "2b24252aa552468e7ef2c9c48dbe86d9361399571ca99e6b5a20e1b2def5a1ca"
+    },
+    "plugins/table/locale/ru.js": {
+      "localSha256": "67527f358eb62fd75bbc9c3f8d436c547d3b35895b16f8fe8537e03042ec65bb",
+      "gitSha256": "ac2353ed6c0a4fbcf40504f3afdb1abb6b26c2a36652e3665caee3569862e1ae",
+      "normalizedLFsha256": "ac2353ed6c0a4fbcf40504f3afdb1abb6b26c2a36652e3665caee3569862e1ae"
+    },
+    "plugins/table/table.css": {
+      "localSha256": "57fa54bc561695c3543b158b35e4081e710d84fe70774983504d0a0b8752f2f2",
+      "gitSha256": "34e74fe8dd910fb40a85c6b87140dc5affdcb3fda95dc7bd9b398ef41cac099c",
+      "normalizedLFsha256": "34e74fe8dd910fb40a85c6b87140dc5affdcb3fda95dc7bd9b398ef41cac099c"
+    },
+    "plugins/toggle/index.js": {
+      "localSha256": "777b26fc24538bfc20f56a3e388594a30ae1f5cc64d0095206128114208c8ea6",
+      "gitSha256": "22b268e065ffd1700560a9d9e5c336063a670a5ee4c463e397fa82eb33ed1cde",
+      "normalizedLFsha256": "22b268e065ffd1700560a9d9e5c336063a670a5ee4c463e397fa82eb33ed1cde"
+    },
+    "plugins/toggle/locale/en.js": {
+      "localSha256": "8185be8b5c214bbb5fcc22bd45365cfbf0c874ccb10d1310ffa5d26a19d1a04c",
+      "gitSha256": "70d00cd920e95002148c86ea22c5d25081b9adcce72432ea8506e2366dff7dca",
+      "normalizedLFsha256": "70d00cd920e95002148c86ea22c5d25081b9adcce72432ea8506e2366dff7dca"
+    },
+    "plugins/toggle/locale/ru.js": {
+      "localSha256": "07e834b384cb190013960d7d3e821330e5bb5a0804ea0ee600f4a6d58143e68d",
+      "gitSha256": "d8aafef4dbf04328c50b14fce67c17a2ba6a6c22ff4f2d5160d82b8740e60a9d",
+      "normalizedLFsha256": "d8aafef4dbf04328c50b14fce67c17a2ba6a6c22ff4f2d5160d82b8740e60a9d"
+    },
+    "plugins/toggle/toggle.css": {
+      "localSha256": "4279ad0d89dcde33f4582f86af3bcd0d5f166c22c003e226cfce4c2be4044c23",
+      "gitSha256": "1685b7abd5c7610c2cf835f0021c6fab96361c0e089edc59ac937373c85d0e12",
+      "normalizedLFsha256": "1685b7abd5c7610c2cf835f0021c6fab96361c0e089edc59ac937373c85d0e12"
+    },
+    "plugins/warning/index.js": {
+      "localSha256": "b46ee9177242bcfb6a0652bc3e836023e3860d15caad349a5774e723c2914a4e",
+      "gitSha256": "670f208787b97ed3ac9e7f7e66d645ad2fb4b232e205f78589ff8149683d5bdd",
+      "normalizedLFsha256": "670f208787b97ed3ac9e7f7e66d645ad2fb4b232e205f78589ff8149683d5bdd"
+    },
+    "plugins/warning/locale/en.js": {
+      "localSha256": "b871a688592cdef4ac4a836e33eeef0e830e2aa96c0aaad605ca8774c3f9c697",
+      "gitSha256": "a7e55252c2b28d400a0b828080ab23327f449dea0fe55f8be5a74b78f7a34ea9",
+      "normalizedLFsha256": "a7e55252c2b28d400a0b828080ab23327f449dea0fe55f8be5a74b78f7a34ea9"
+    },
+    "plugins/warning/locale/ru.js": {
+      "localSha256": "dde68fe2a832a0777741f94973da4383d5c15e7876ea01a3665077db20a1f9d3",
+      "gitSha256": "fc3304ddba7a88c46eb85dc21cb6c8873e6a32d9128aab1d4226ba027ed30ab3",
+      "normalizedLFsha256": "fc3304ddba7a88c46eb85dc21cb6c8873e6a32d9128aab1d4226ba027ed30ab3"
+    },
+    "plugins/warning/warning.css": {
+      "localSha256": "28ecc581a621bf4c09ab16d7258f61d4c094b8253d0b985cc10aa3cb2f7bded2",
+      "gitSha256": "e8a164a50790c8f91141e7ca0a6c27d4bc62fe0be3aa2606286d8b0151b965be",
+      "normalizedLFsha256": "e8a164a50790c8f91141e7ca0a6c27d4bc62fe0be3aa2606286d8b0151b965be"
+    },
+    "shared/blockDataNormalizers.js": {
+      "localSha256": "7d77cdb683f99387516bd79c3e213f86274a0698618b80ae5a3a7015b9a9521e",
+      "gitSha256": "378ef545337ae8a12c02953bc4bbe328950dba4310f3658c5624075dc5913237",
+      "normalizedLFsha256": "378ef545337ae8a12c02953bc4bbe328950dba4310f3658c5624075dc5913237"
+    },
+    "shared/blockDataValidators.js": {
+      "localSha256": "cefd721044219066fab03663fa9fb52fae2e70a4264ce8fecc56c3a98eda014a",
+      "gitSha256": "49b67050892a3760210dfb6be6edf29e14aee01d603aef220330ed0ab9430bbe",
+      "normalizedLFsha256": "49b67050892a3760210dfb6be6edf29e14aee01d603aef220330ed0ab9430bbe"
+    },
+    "shared/blockTypes.js": {
+      "localSha256": "cf3ec515a2680c1dad351dc19c4d579f0fbdb30b3a7b338f1af40177342cd5c7",
+      "gitSha256": "e28ce508ebba4b1f9bb12f335dcbb15ffc8370f8463bb5da8375f71d7753a898",
+      "normalizedLFsha256": "e28ce508ebba4b1f9bb12f335dcbb15ffc8370f8463bb5da8375f71d7753a898"
+    },
+    "shared/carouselData.js": {
+      "localSha256": "1d03463ab267d1c25b9366ad839d654ed1c70e948a71dca7049abc1bc86c07a4",
+      "gitSha256": "e978d9e57ad6aada46c0de40b11cfdc7b50f0adbbd0aee6ff02fcaee5692a8af",
+      "normalizedLFsha256": "e978d9e57ad6aada46c0de40b11cfdc7b50f0adbbd0aee6ff02fcaee5692a8af"
+    },
+    "shared/cloneEditorData.js": {
+      "localSha256": "e92257d014359a501865aa3ace9c6059245bff1b4eff7a925a74b834f62f5610",
+      "gitSha256": "a83ee55b99318ca778a0a35c0d11f9d31018a13c113f0cac7856c920088ac792",
+      "normalizedLFsha256": "a83ee55b99318ca778a0a35c0d11f9d31018a13c113f0cac7856c920088ac792"
+    },
+    "shared/embedPlayer.js": {
+      "localSha256": "d9563054f13d01c3d74054d7a125bc6887a5a0cb3bf7628a2ea0af79302295f7",
+      "gitSha256": "3420a442bf64c084071bb77b8a87d75d3b01d343e500df6126ceb51cd1de0de5",
+      "normalizedLFsha256": "3420a442bf64c084071bb77b8a87d75d3b01d343e500df6126ceb51cd1de0de5"
+    },
+    "shared/fileUtils.js": {
+      "localSha256": "f5b00301d4481356112cd257181e140a03e9a3731825a0d3841db89a40800360",
+      "gitSha256": "34b1fa1c6c5a6bff6913b77c76f5c7fad944c05157a39fec071bf18d2ebc87d0",
+      "normalizedLFsha256": "34b1fa1c6c5a6bff6913b77c76f5c7fad944c05157a39fec071bf18d2ebc87d0"
+    },
+    "shared/galleryMasonry.js": {
+      "localSha256": "ee52d0a87bf00e1fac5f86f97417c29ef5cf840f7a69f354d6d8a5c6fd163a74",
+      "gitSha256": "07037bed0ed1c4df68865c5899afeca962785a9f0c9fb467c2a93dd6c1c92b14",
+      "normalizedLFsha256": "07037bed0ed1c4df68865c5899afeca962785a9f0c9fb467c2a93dd6c1c92b14"
+    },
+    "shared/highlightRuntime.js": {
+      "localSha256": "7eef4bd4b0ada6dcbae5c19def09fe04dfbe59ba7825825d68d78b6af4858ecb",
+      "gitSha256": "8ec747b6d974979048b26de4bce9a933808ee095f3f7253df9490f4436ae3134",
+      "normalizedLFsha256": "8ec747b6d974979048b26de4bce9a933808ee095f3f7253df9490f4436ae3134"
+    },
+    "shared/inlineMarshal.js": {
+      "localSha256": "e21cd3575d7b06e73ce28b1cf3d2c48d49550c6188bf760acd2601e3458e8556",
+      "gitSha256": "4df515f717ee82ee3826ef317028b80b687e7da99fb31a2748b9d7dccfa474d9",
+      "normalizedLFsha256": "4df515f717ee82ee3826ef317028b80b687e7da99fb31a2748b9d7dccfa474d9"
+    },
+    "shared/jsonData.js": {
+      "localSha256": "e05e4f3a2a74008b01f1157e4353d925690734bb3a8fc03ade07fc15585be92e",
+      "gitSha256": "4b6b018399e6d1dad64ee4b01ec2289c3d48feda40693b4d1f4b3e8e0461cd4f",
+      "normalizedLFsha256": "4b6b018399e6d1dad64ee4b01ec2289c3d48feda40693b4d1f4b3e8e0461cd4f"
+    },
+    "shared/mapTextFields.js": {
+      "localSha256": "c68c24d4f3e336fdb4bfbfd0de30033ef16d3931801c8ae3a1b518f476bd6715",
+      "gitSha256": "58d33126814088aaab787d197413adeab2f80842680640d6f7207de77098dbe7",
+      "normalizedLFsha256": "58d33126814088aaab787d197413adeab2f80842680640d6f7207de77098dbe7"
+    },
+    "shared/pollData.js": {
+      "localSha256": "9f97f4530f285ebf095be2e877b120048cd1cbe3fab8fea62aca5f9c4af01000",
+      "gitSha256": "f2acaf278acf6ca075aa965d9814670903af2be28d68c92863af576443aa3ee2",
+      "normalizedLFsha256": "f2acaf278acf6ca075aa965d9814670903af2be28d68c92863af576443aa3ee2"
+    },
+    "shared/runtime/dompurify.js": {
+      "localSha256": "8b6590edc22ee28b5e778a41e19d09c0679f8e36cf5334625b7f45b5333bd41b",
+      "gitSha256": "78186199d23ab4e9967f21dc3efe627bbb70103a563d8681f35c3c87dc4f0b44",
+      "normalizedLFsha256": "78186199d23ab4e9967f21dc3efe627bbb70103a563d8681f35c3c87dc4f0b44"
+    },
+    "shared/runtime/highlightBundle.js": {
+      "localSha256": "05b6d51b60eab1ebc213f2b31f5dfb518a54d4c85d11387548ef958592aa67b8",
+      "gitSha256": "d1a5217a35d1b638a0ce43c39194e76ab7b6e6bb91ffec695da8b4cbd5ad8a18",
+      "normalizedLFsha256": "d1a5217a35d1b638a0ce43c39194e76ab7b6e6bb91ffec695da8b4cbd5ad8a18"
+    },
+    "shared/runtime/jszip.js": {
+      "localSha256": "e32350f7bf474ac4351ff4f91cc64601f0b2e27b6c0043f3642c34ec578330ec",
+      "gitSha256": "d14e71a95ef3290dec66a9cfdd8a37c2dd624f6f2b594c4512f607d4a56e19fc",
+      "normalizedLFsha256": "d14e71a95ef3290dec66a9cfdd8a37c2dd624f6f2b594c4512f607d4a56e19fc"
+    },
+    "shared/sanitize/allowlist.js": {
+      "localSha256": "e6044379310ecdd00aba5e2326621cf6b2e9c6ee0ce795844edbb0360546ef7e",
+      "gitSha256": "67e097f08a808d2e462ebc129aa028805bbf8a4f05db9b60a4bd874096b551be",
+      "normalizedLFsha256": "67e097f08a808d2e462ebc129aa028805bbf8a4f05db9b60a4bd874096b551be"
+    },
+    "shared/sanitize/escapeHtml.js": {
+      "localSha256": "b4b7db0764ed07f48e0ce874321628c95e4aca4675ba08804673e35e14f7d50c",
+      "gitSha256": "b509908bce89329e9d45cee8da344676fedfbaebf3d569b1ddf1010bb14a8a40",
+      "normalizedLFsha256": "b509908bce89329e9d45cee8da344676fedfbaebf3d569b1ddf1010bb14a8a40"
+    },
+    "shared/sanitize/index.js": {
+      "localSha256": "72a7596af323a33aa03802d077fb4b67841228f42781f54fe6e8ad143c4bf314",
+      "gitSha256": "41d9421269dba95bdcfb5acc21f330677492a2a20a82a2e05ae3aa570c7f8a16",
+      "normalizedLFsha256": "41d9421269dba95bdcfb5acc21f330677492a2a20a82a2e05ae3aa570c7f8a16"
+    },
+    "shared/sanitize/parseInline.js": {
+      "localSha256": "769b9e2d05e3be221720362e76152d8826918ecf0cbb639a776f75984b3a20ba",
+      "gitSha256": "2dd8765be46ed764d609d3123373926c965afd8f2bf6fc9bdad05c43ecbedbdc",
+      "normalizedLFsha256": "2dd8765be46ed764d609d3123373926c965afd8f2bf6fc9bdad05c43ecbedbdc"
+    },
+    "shared/sanitize/sanitizeHtml.js": {
+      "localSha256": "28015021b05a555fdacab4aebb5bb0ff6445e157bece7ff55c5cf305c24eb98d",
+      "gitSha256": "f836ae635f68ea02b51158b6eb4c4a475373b4a30d39b5977fc65c6ef584fb3f",
+      "normalizedLFsha256": "f836ae635f68ea02b51158b6eb4c4a475373b4a30d39b5977fc65c6ef584fb3f"
+    },
+    "shared/sanitize/sanitizeRawHtml.js": {
+      "localSha256": "a20ce968c0d259bfb1988ae0fbec089a2baf5fb0393bd4993f41c6f7d4b1ddf7",
+      "gitSha256": "cfd27645389b2fd4521d5d6d299555563977f78e1f511d6dbed25ec9058615a6",
+      "normalizedLFsha256": "cfd27645389b2fd4521d5d6d299555563977f78e1f511d6dbed25ec9058615a6"
+    },
+    "shared/sanitize/sanitizeStyle.js": {
+      "localSha256": "a5e262664ab10de62f6086ea0fd28919a5dc1e7c28ab51415b7ccf940ec4c924",
+      "gitSha256": "dad51ee9f1e090fb0438817ef2e0ebd5e5a5bcc3ab1b9b584f787bfe0beea721",
+      "normalizedLFsha256": "dad51ee9f1e090fb0438817ef2e0ebd5e5a5bcc3ab1b9b584f787bfe0beea721"
+    },
+    "shared/sanitize/sanitizeUrl.js": {
+      "localSha256": "28d969e8e32808ac4caf66230f07fc5d41460e7381b63f441939c7ca870c5694",
+      "gitSha256": "abc9825131c5168eec517b378b532222fa5238333a228f05dcd0d8d18f64ac20",
+      "normalizedLFsha256": "abc9825131c5168eec517b378b532222fa5238333a228f05dcd0d8d18f64ac20"
+    },
+    "shared/sanitize/walker.js": {
+      "localSha256": "08609cf84e6e843ff840ad6e7c70fd83b5cb4cdc9f14be2648d79a5dd670930a",
+      "gitSha256": "de28568c006b5ce43cb8cf943a1cc4a9ed2bc19cff6337303cc99a0ec92dfe09",
+      "normalizedLFsha256": "de28568c006b5ce43cb8cf943a1cc4a9ed2bc19cff6337303cc99a0ec92dfe09"
+    },
+    "shared/styleRegistry.js": {
+      "localSha256": "d827b1264452c8afcd87c04efa2cee358c37b5ac4a1f6d4cf5583b7aea9cd376",
+      "gitSha256": "9a81048f2c4707dd6d926466b2cf4f085410cff2d015ada138ad4cd6dcfab6d7",
+      "normalizedLFsha256": "9a81048f2c4707dd6d926466b2cf4f085410cff2d015ada138ad4cd6dcfab6d7"
+    },
+    "shared/textFormat.js": {
+      "localSha256": "3a33d058f7642d10f038f73f7fd9dc252149987b4e2d2a7c1ed9c626156c9d2a",
+      "gitSha256": "984d48e97b45d4a25ca3ed155797503551cee76606325de70e2eb9d4c36006e7",
+      "normalizedLFsha256": "984d48e97b45d4a25ca3ed155797503551cee76606325de70e2eb9d4c36006e7"
+    },
+    "shared/zipRuntime.js": {
+      "localSha256": "0f07ecf83be03d9abcaf89dfcd4f069c7ac1e9447513fc4a3f9247c87cd64612",
+      "gitSha256": "52b2fb2079def53dc17bcd6810a12243c2bb2261d88d176005a9b2bd99545c56",
+      "normalizedLFsha256": "52b2fb2079def53dc17bcd6810a12243c2bb2261d88d176005a9b2bd99545c56"
+    }
+  },
+  "verifiedAt": "2026-10-05T20:31:36.611Z"
+}

@@ -484,6 +484,7 @@
   border-radius: 50%;
   background: var(--oe-text-on-accent);
   border: none;
+  box-shadow: 0 0 0 1px var(--oe-text-3);
   position: relative;
   z-index: 1;
   transition: box-shadow 0.15s;
