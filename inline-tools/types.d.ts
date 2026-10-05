@@ -4,6 +4,8 @@ export interface InlineSelection {
   readonly blockIds?: readonly string[]
   readonly range: Range
   readonly text?: string
+  /** Current canonical alignment of the eligible selected blocks. */
+  readonly textAlign?: 'left' | 'center' | 'right' | 'justify' | 'mixed'
 }
 
 /** Editor-owned cross-editable selection port bound after editor composition. */

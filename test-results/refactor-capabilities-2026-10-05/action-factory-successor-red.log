@@ -1,0 +1,16 @@
+file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149
+    if (result.status === 'fail') throw new Error(`History matrix failed: ${result.summary}`)
+                                        ^
+
+Error: History matrix failed: [
+  {
+    "name": "native failed action factory cannot close the successor it opened",
+    "status": "FAIL",
+    "error": "Error: failed action factory removed the successor panel\n    at assert (http://127.0.0.1:64260/tests/browser/regressions/harness.js:20:81)\n    at http://127.0.0.1:64260/tests/browser/native-tools.js:374:3\n    at async run (http://127.0.0.1:64260/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:64260/tests/browser/native-tools.js:389:1"
+  }
+]
+    at waitForHistoryMatrix (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149:41)
+    at async runNativePage (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:275:30)
+    at async file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:312:48
+
+Node.js v24.9.0

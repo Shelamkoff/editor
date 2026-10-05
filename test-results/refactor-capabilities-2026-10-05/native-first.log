@@ -1,0 +1,568 @@
+file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149
+    if (result.status === 'fail') throw new Error(`History matrix failed: ${result.summary}`)
+                                        ^
+
+Error: History matrix failed: [
+  {
+    "name": "Poll Enter in the question focuses the first option without changing the document",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll successive native input keeps the caret after the inserted text",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll Enter in an option inserts a following empty option as one action",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll Backspace removes an empty option and focuses the previous text at its end",
+    "status": "PASS"
+  },
+  {
+    "name": "Person name remains a single line when Enter is pressed",
+    "status": "PASS"
+  },
+  {
+    "name": "Code Escape leaves editing mode without changing code or history",
+    "status": "PASS"
+  },
+  {
+    "name": "Code Ctrl+Enter leaves edit mode and keyboard Undo remains available from its view",
+    "status": "PASS"
+  },
+  {
+    "name": "Code highlighted layer stays visible and follows native input in edit mode",
+    "status": "PASS"
+  },
+  {
+    "name": "Code Copy uses the latest committed native input and pastes into another block",
+    "status": "PASS"
+  },
+  {
+    "name": "Code Tab inserts four spaces and Shift+Tab removes one indentation unit",
+    "status": "PASS"
+  },
+  {
+    "name": "Code language menu filters by typed text and commits a keyboard-selected language",
+    "status": "PASS"
+  },
+  {
+    "name": "Code Tab indents a multiline selection without replacing its source text",
+    "status": "PASS"
+  },
+  {
+    "name": "Table Shift+Tab focuses the previous cell at its end as in v1",
+    "status": "PASS"
+  },
+  {
+    "name": "Table Enter inserts a line break in the cell and keeps typing at that boundary",
+    "status": "PASS"
+  },
+  {
+    "name": "Toggle body Enter keeps a line break, caret and one history action",
+    "status": "PASS"
+  },
+  {
+    "name": "Paragraph text: native input, local selection, caret and history",
+    "status": "PASS"
+  },
+  {
+    "name": "Heading text: native input, local selection, caret and history",
+    "status": "PASS"
+  },
+  {
+    "name": "List item:first: native input, local selection, caret and history",
+    "status": "PASS"
+  },
+  {
+    "name": "List item:second: native input, local selection, caret and history",
+    "status": "PASS"
+  },
+  {
+    "name": "Quote text: native input, local selection, caret and history",
+    "status": "PASS"
+  },
+  {
+    "name": "Quote caption: native input, local selection, caret and history",
+    "status": "PASS"
+  },
+  {
+    "name": "Code code: native input, local selection, caret and history",
+    "status": "PASS"
+  },
+  {
+    "name": "Image caption: native input, local selection, caret and history",
+    "status": "PASS"
+  },
+  {
+    "name": "Table cell:row:first: native input, local selection, caret and history",
+    "status": "PASS"
+  },
+  {
+    "name": "Table cell:row:second: native input, local selection, caret and history",
+    "status": "PASS"
+  },
+  {
+    "name": "Checklist item:first: native input, local selection, caret and history",
+    "status": "FAIL",
+    "error": "Error: \nexpected [{\"id\":\"a\",\"type\":\"checklist\",\"dataVersion\":2,\"data\":{\"items\":[{\"id\":\"first\",\"text\":\"Alpha\",\"checked\":true},{\"id\":\"second\",\"text\":\"Bravo\",\"checked\":false}]}}], got [{\"id\":\"a\",\"type\":\"checklist\",\"dataVersion\":2,\"data\":{\"items\":[{\"id\":\"first\",\"text\":\"AlphaX\",\"checked\":true},{\"id\":\"second\",\"text\":\"Bravo\",\"checked\":false}]}}]\n    at equal (http://127.0.0.1:62547/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:62547/tests/browser/native-plugin-parity.js:309:7\n    at async run (http://127.0.0.1:62547/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:62547/tests/browser/native-plugin-parity.js:609:1"
+  },
+  {
+    "name": "Checklist item:second: native input, local selection, caret and history",
+    "status": "PASS"
+  },
+  {
+    "name": "Warning title: native input, local selection, caret and history",
+    "status": "PASS"
+  },
+  {
+    "name": "Warning message: native input, local selection, caret and history",
+    "status": "PASS"
+  },
+  {
+    "name": "Embed caption: native input, local selection, caret and history",
+    "status": "PASS"
+  },
+  {
+    "name": "Raw html: native input, local selection, caret and history",
+    "status": "PASS"
+  },
+  {
+    "name": "Gallery image:first:caption: native input, local selection, caret and history",
+    "status": "PASS"
+  },
+  {
+    "name": "Gallery image:second:caption: native input, local selection, caret and history",
+    "status": "PASS"
+  },
+  {
+    "name": "Carousel slide:first:caption: native input, local selection, caret and history",
+    "status": "PASS"
+  },
+  {
+    "name": "Attaches file:first:name: native input, local selection, caret and history",
+    "status": "PASS"
+  },
+  {
+    "name": "LinkPreview url: native input, local selection, caret and history",
+    "status": "PASS"
+  },
+  {
+    "name": "Toggle title: native input, local selection, caret and history",
+    "status": "PASS"
+  },
+  {
+    "name": "Toggle content: native input, local selection, caret and history",
+    "status": "PASS"
+  },
+  {
+    "name": "Columns column:left: native input, local selection, caret and history",
+    "status": "PASS"
+  },
+  {
+    "name": "Columns column:right: native input, local selection, caret and history",
+    "status": "PASS"
+  },
+  {
+    "name": "Spoiler label: native input, local selection, caret and history",
+    "status": "PASS"
+  },
+  {
+    "name": "Spoiler content: native input, local selection, caret and history",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll question: native input, local selection, caret and history",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll option:first: native input, local selection, caret and history",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll option:second: native input, local selection, caret and history",
+    "status": "PASS"
+  },
+  {
+    "name": "Person person:first:name: native input, local selection, caret and history",
+    "status": "PASS"
+  },
+  {
+    "name": "Person person:first:role: native input, local selection, caret and history",
+    "status": "PASS"
+  },
+  {
+    "name": "Person person:first:bio: native input, local selection, caret and history",
+    "status": "PASS"
+  },
+  {
+    "name": "Person person:first:link:site:url: native input, local selection, caret and history",
+    "status": "PASS"
+  },
+  {
+    "name": "Person can add a blank link and type its URL without invalid canonical data",
+    "status": "PASS"
+  },
+  {
+    "name": "LinkPreview accepts a URL typed from an empty draft and resolves metadata after input",
+    "status": "PASS"
+  },
+  {
+    "name": "Gallery rich captions keep their marks through native editing and history",
+    "status": "PASS"
+  },
+  {
+    "name": "Raw Tab indents selected HTML lines without replacing the source",
+    "status": "PASS"
+  },
+  {
+    "name": "Code edit control describes and toggles its current mode",
+    "status": "PASS"
+  },
+  {
+    "name": "Paragraph: read-only authoring preserves canonical data",
+    "status": "PASS"
+  },
+  {
+    "name": "Heading: read-only authoring preserves canonical data",
+    "status": "PASS"
+  },
+  {
+    "name": "List: read-only authoring preserves canonical data",
+    "status": "PASS"
+  },
+  {
+    "name": "Quote: read-only authoring preserves canonical data",
+    "status": "PASS"
+  },
+  {
+    "name": "Code: read-only authoring preserves canonical data",
+    "status": "PASS"
+  },
+  {
+    "name": "Image: read-only authoring preserves canonical data",
+    "status": "PASS"
+  },
+  {
+    "name": "Delimiter: read-only authoring preserves canonical data",
+    "status": "PASS"
+  },
+  {
+    "name": "Table: read-only authoring preserves canonical data",
+    "status": "PASS"
+  },
+  {
+    "name": "Checklist: read-only authoring preserves canonical data",
+    "status": "PASS"
+  },
+  {
+    "name": "Warning: read-only authoring preserves canonical data",
+    "status": "PASS"
+  },
+  {
+    "name": "Embed: read-only authoring preserves canonical data",
+    "status": "PASS"
+  },
+  {
+    "name": "Raw: read-only authoring preserves canonical data",
+    "status": "PASS"
+  },
+  {
+    "name": "Gallery: read-only authoring preserves canonical data",
+    "status": "PASS"
+  },
+  {
+    "name": "Carousel: read-only authoring preserves canonical data",
+    "status": "PASS"
+  },
+  {
+    "name": "Attaches: read-only authoring preserves canonical data",
+    "status": "PASS"
+  },
+  {
+    "name": "LinkPreview: read-only authoring preserves canonical data",
+    "status": "PASS"
+  },
+  {
+    "name": "Toggle: read-only authoring preserves canonical data",
+    "status": "PASS"
+  },
+  {
+    "name": "Columns: read-only authoring preserves canonical data",
+    "status": "PASS"
+  },
+  {
+    "name": "Spoiler: read-only authoring preserves canonical data",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll: read-only authoring preserves canonical data",
+    "status": "PASS"
+  },
+  {
+    "name": "Person: read-only authoring preserves canonical data",
+    "status": "PASS"
+  },
+  {
+    "name": "Paragraph text: native Shift+Enter keeps a line break and caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Heading text: native Shift+Enter keeps a line break and caret",
+    "status": "PASS"
+  },
+  {
+    "name": "List item:first: native Shift+Enter keeps a line break and caret",
+    "status": "PASS"
+  },
+  {
+    "name": "List item:second: native Shift+Enter keeps a line break and caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Quote text: native Shift+Enter keeps a line break and caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Quote caption: native Shift+Enter keeps a line break and caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Image caption: native Shift+Enter keeps a line break and caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Table cell:row:first: native Shift+Enter keeps a line break and caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Table cell:row:second: native Shift+Enter keeps a line break and caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Checklist item:first: native Shift+Enter keeps a line break and caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Checklist item:second: native Shift+Enter keeps a line break and caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Warning title: native Shift+Enter keeps a line break and caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Warning message: native Shift+Enter keeps a line break and caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Embed caption: native Shift+Enter keeps a line break and caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Carousel slide:first:caption: native Shift+Enter keeps a line break and caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Toggle title: native Shift+Enter keeps a line break and caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Toggle content: native Shift+Enter keeps a line break and caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Columns column:left: native Shift+Enter keeps a line break and caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Columns column:right: native Shift+Enter keeps a line break and caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Spoiler label: native Shift+Enter keeps a line break and caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Spoiler content: native Shift+Enter keeps a line break and caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll question: native Shift+Enter keeps a line break and caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll option:first: native Shift+Enter keeps a line break and caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll option:second: native Shift+Enter keeps a line break and caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Person person:first:bio: native Shift+Enter keeps a line break and caret",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll preserves rich question and option formatting through native typing and line breaks",
+    "status": "PASS"
+  },
+  {
+    "name": "Heading: whole conversion to Paragraph transfers text and one Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "List: whole conversion to Paragraph transfers text and one Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Quote: whole conversion to Paragraph transfers text and one Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Code: whole conversion to Paragraph transfers text and one Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Image: whole conversion to Paragraph transfers text and one Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Table: whole conversion to Paragraph transfers text and one Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Checklist: whole conversion to Paragraph transfers text and one Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Warning: whole conversion to Paragraph transfers text and one Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Embed: whole conversion to Paragraph transfers text and one Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Raw: whole conversion to Paragraph transfers text and one Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Gallery: whole conversion to Paragraph transfers text and one Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Carousel: whole conversion to Paragraph transfers text and one Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Attaches: whole conversion to Paragraph transfers text and one Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "LinkPreview: whole conversion to Paragraph transfers text and one Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Toggle: whole conversion to Paragraph transfers text and one Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Columns: whole conversion to Paragraph transfers text and one Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Spoiler: whole conversion to Paragraph transfers text and one Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll: whole conversion to Paragraph transfers text and one Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Person: whole conversion to Paragraph transfers text and one Undo/Redo",
+    "status": "PASS"
+  },
+  {
+    "name": "Gallery fixed layout projects its slots and keeps extra images in overflow",
+    "status": "PASS"
+  },
+  {
+    "name": "Gallery caption Enter finishes its single-line editing as in v1",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll Sort keeps option IDs and sorts author text as one action",
+    "status": "PASS"
+  },
+  {
+    "name": "Paragraph middle input Undo restores the caret before the native mutation",
+    "status": "PASS"
+  },
+  {
+    "name": "Code whole conversion to Heading preserves literal text and native history",
+    "status": "PASS"
+  },
+  {
+    "name": "Literal source conversion to Paragraph keeps markup as text and newlines",
+    "status": "PASS"
+  },
+  {
+    "name": "Literal source conversion to Heading keeps markup as text and newlines",
+    "status": "PASS"
+  },
+  {
+    "name": "Literal source conversion to List keeps markup as text and newlines",
+    "status": "PASS"
+  },
+  {
+    "name": "Literal source conversion to Quote keeps markup as text and newlines",
+    "status": "PASS"
+  },
+  {
+    "name": "Literal source conversion to Image keeps markup as text and newlines",
+    "status": "PASS"
+  },
+  {
+    "name": "Literal source conversion to Table keeps markup as text and newlines",
+    "status": "PASS"
+  },
+  {
+    "name": "Literal source conversion to Checklist keeps markup as text and newlines",
+    "status": "PASS"
+  },
+  {
+    "name": "Literal source conversion to Warning keeps markup as text and newlines",
+    "status": "PASS"
+  },
+  {
+    "name": "Literal source conversion to Embed keeps markup as text and newlines",
+    "status": "PASS"
+  },
+  {
+    "name": "Literal source conversion to Toggle keeps markup as text and newlines",
+    "status": "PASS"
+  },
+  {
+    "name": "Literal source conversion to Columns keeps markup as text and newlines",
+    "status": "PASS"
+  },
+  {
+    "name": "Literal source conversion to Spoiler keeps markup as text and newlines",
+    "status": "PASS"
+  },
+  {
+    "name": "Literal source conversion to Person keeps markup as text and newlines",
+    "status": "PASS"
+  },
+  {
+    "name": "Raw preview preserves the source and permits native history from its preview state",
+    "status": "PASS"
+  }
+]
+    at waitForHistoryMatrix (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149:41)
+    at async runNativePage (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:275:30)
+    at async file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:487:30
+
+Node.js v24.9.0

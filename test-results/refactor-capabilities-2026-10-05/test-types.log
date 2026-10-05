@@ -1,0 +1,18 @@
+
+> @shelamkoff/rector@2.0.0 test:types
+> node --test shared/declarationParity.test.js
+
+✔ public runtime and declaration exports are identical (47.316ms)
+✔ declaration imports are valid native ESM specifiers (308.6267ms)
+✔ public declarations compile for NodeNext and Bundler consumers (7295.8448ms)
+✔ public editor and renderer derive document shapes from the neutral shared contract (5.9787ms)
+✔ async preset declarations require the current document envelope (2.2602ms)
+✔ public editor declarations expose only the v2 model API (2.9514ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 22736.6843

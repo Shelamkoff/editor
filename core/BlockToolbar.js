@@ -343,10 +343,14 @@ export class BlockToolbar {
     text.textContent = label
     item.append(icon, text)
     const version = this.#toolboxVersion
+    const generation = this.#runtime.generation
+    const ownerId = this.#currentId
+    const owner = ownerId ? this.#view.element(ownerId) : null
     item.addEventListener('click', event => {
       event.preventDefault()
       event.stopPropagation()
-      if (this.#destroyed || this.#runtime.readOnly || version !== this.#toolboxVersion) return
+      if (this.#destroyed || this.#runtime.readOnly || version !== this.#toolboxVersion || generation !== this.#runtime.generation) return
+      if (ownerId && owner !== this.#view.element(ownerId)) return
       action()
     })
     return item
@@ -464,21 +468,41 @@ export class BlockToolbar {
       const shell = document.createElement('li')
       shell.className = 'oe-settings-menu__panel'
       shell.setAttribute('role', 'none')
-      const panel = settings.render({
-        ownerDocument: document,
-        t: label => this.#label('plugin', record.type, label),
-        getData: () => this.#runtime.get(id)?.data ?? record.data,
-        updateData: producer => {
-          if (typeof producer !== 'function') throw new TypeError('Settings panel updateData requires a producer')
-          this.#runtime.update(id, current => ({ data: producer(current.data) }))
-          this.#view.reconcileInteraction()
-          this.#view.setCurrent(id)
-        },
-      })
-      const HTMLElementCtor = document.defaultView?.HTMLElement ?? globalThis.HTMLElement
-      if (!HTMLElementCtor || !(panel instanceof HTMLElementCtor)) {
-        throw new TypeError(`Settings panel for "${record.type}" must return an HTMLElement`)
+      const version = this.#settingsVersion
+      const generation = this.#runtime.generation
+      const owner = this.#view.element(id)
+      const isCurrent = () => !this.#destroyed && !this.#runtime.readOnly
+        && version === this.#settingsVersion && generation === this.#runtime.generation
+        && this.#runtime.get(id)?.type === record.type && owner === this.#view.element(id)
+      let panelData = record.data
+      let panel
+      try {
+        panel = settings.render({
+          ownerDocument: document,
+          t: label => this.#label('plugin', record.type, label),
+          getData: () => {
+            if (isCurrent()) panelData = this.#runtime.get(id).data
+            return panelData
+          },
+          updateData: producer => {
+            if (!isCurrent()) return
+            if (typeof producer !== 'function') throw new TypeError('Settings panel updateData requires a producer')
+            this.#runtime.update(id, current => ({ data: producer(current.data) }))
+            if (!isCurrent()) return
+            panelData = this.#runtime.get(id).data
+            this.#view.reconcileInteraction()
+            this.#view.setCurrent(id)
+          },
+        })
+        const HTMLElementCtor = document.defaultView?.HTMLElement ?? globalThis.HTMLElement
+        if (!HTMLElementCtor || !(panel instanceof HTMLElementCtor)) {
+          throw new TypeError(`Settings panel for "${record.type}" must return an HTMLElement`)
+        }
+      } catch (error) {
+        if (version === this.#settingsVersion) this.#settingsVersion++
+        throw error
       }
+      if (!isCurrent()) return
       shell.appendChild(panel)
       this.#settings.append(shell, this.#separator())
     }
@@ -577,10 +601,14 @@ export class BlockToolbar {
     text.textContent = label
     item.append(icon, text)
     const version = this.#settingsVersion
+    const generation = this.#runtime.generation
+    const ownerId = this.#currentId
+    const owner = ownerId ? this.#view.element(ownerId) : null
     if (!disabled) item.addEventListener('click', event => {
       event.preventDefault()
       event.stopPropagation()
-      if (this.#destroyed || this.#runtime.readOnly || version !== this.#settingsVersion) return
+      if (this.#destroyed || this.#runtime.readOnly || version !== this.#settingsVersion || generation !== this.#runtime.generation) return
+      if (ownerId && owner !== this.#view.element(ownerId)) return
       action()
     })
     return item

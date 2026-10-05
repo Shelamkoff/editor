@@ -401,6 +401,8 @@ export interface SettingsAction {
 
 export interface SettingsActionCapability<D extends Record<string, unknown>> {
   kind: 'actions'
+  /** Localized group name used by the inline control trigger. */
+  readonly label?: LocalizedLabel
   actions(data: Readonly<D>, context: ExtensionUiContext): readonly SettingsAction[]
   apply(data: Readonly<D>, actionId: string, context: DataOperationContext): D
 }

@@ -175,6 +175,7 @@ function snapshotSettings(source, label) {
   if (kind === 'actions') {
     return Object.freeze({
       kind,
+      ...(source.label === undefined ? {} : { label: snapshotLabel(source.label, `${label} settings label`) }),
       actions: bindMethod(source, source.actions, `${label} settings actions`),
       apply: bindMethod(source, source.apply, `${label} settings apply`),
     })

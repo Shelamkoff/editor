@@ -1,0 +1,279 @@
+{
+  "verifiedAt": "2026-10-05T11:24:12.096Z",
+  "baseCommit": "a9ecb53054a145fa2086cfa5f84ec91d047eb6fa",
+  "branch": "refactor/rector-v2-architecture",
+  "v1Oracle": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+  "status": "PASS",
+  "gates": {
+    "node": {
+      "exitCode": 0,
+      "tests": 431,
+      "pass": 431,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0
+    },
+    "typecheck": {
+      "exitCode": 0,
+      "projects": [
+        "jsconfig.json",
+        "jsconfig.runtime.json"
+      ]
+    },
+    "native": {
+      "exitCode": 0,
+      "pass": 982,
+      "fail": 0,
+      "suites": {
+        "enterScenario": 0,
+        "toolboxScenario": 0,
+        "historyMatrix": 0,
+        "nativeTextInput": 42,
+        "nativeTools": 41,
+        "nativeClipboard": 7,
+        "nativeIme": 9,
+        "nativeConversion": 7,
+        "nativeBlockMenus": 31,
+        "nativeStructural": 21,
+        "nativeCrossSelection": 32,
+        "nativeCoreBehavior": 53,
+        "nativePluginParity": 139,
+        "nativePluginControls": 141,
+        "nativePluginRanges": 116,
+        "nativePluginLocalRanges": 76,
+        "nativePluginClipboard": 48,
+        "nativePluginFieldClipboard": 68,
+        "nativePluginMedia": 67,
+        "nativePluginDesign": 84
+      }
+    },
+    "browser": {
+      "exitCode": 0,
+      "pages": [
+        "harness-contract.html",
+        "runtime-contracts.html",
+        "roundtrip.html",
+        "roundtrip-trusted-types.html",
+        "person-avatar-csp.html",
+        "history.html",
+        "selection.html",
+        "lifecycle.html",
+        "security.html",
+        "trusted-types.htm",
+        "action-label-security.html",
+        "audit-regressions.html",
+        "attaches-abort-urls.html",
+        "embed-service-registry.html",
+        "person-social-registry.html",
+        "gallery-layout-registry.html",
+        "mention.html",
+        "mention-session-race.html",
+        "poll.html",
+        "carousel.html",
+        "plugin-surfaces.html",
+        "imports.html",
+        "slash.html",
+        "selection-convert.html"
+      ]
+    },
+    "heap": {
+      "exitCode": 0,
+      "sentinels": 21,
+      "retained": 0,
+      "usedHeapMiB": 12.5,
+      "embedderHeapMiB": 1.38,
+      "snapshotMiB": 24.53
+    },
+    "build": {
+      "exitCode": 0,
+      "runtimeDeclarations": 264,
+      "sourceDiagnostics": 0,
+      "sourceDiagnosticDetails": [],
+      "dist": "dist"
+    },
+    "consumerTypes": {
+      "exitCode": 0,
+      "tests": 6,
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0
+    },
+    "package": {
+      "exitCode": 0,
+      "tarball": "shelamkoff-rector-2.0.0.tgz",
+      "typeModes": [
+        "Bundler",
+        "NodeNext"
+      ],
+      "vite": "passed",
+      "import": "passed",
+      "cssAssets": 22,
+      "inlineStylesheets": false
+    },
+    "contracts": {
+      "exitCode": 0,
+      "readmes": 94,
+      "languages": [
+        "en",
+        "ru"
+      ],
+      "examples": 53,
+      "json": 44,
+      "links": 62,
+      "imports": true,
+      "encoding": true,
+      "packageReadmeCopiesChecked": 92
+    },
+    "production": {
+      "exitCode": 0,
+      "readmes": 47,
+      "htmlPages": 123,
+      "brokenLinks": 0,
+      "npmSiteLeak": false,
+      "blockPlugins": 21,
+      "inlinePlugins": 2,
+      "editorBlocks": 7,
+      "demoFrame": false,
+      "heroViewport": true,
+      "heroCentered": true,
+      "navAbovePluginBlocks": true,
+      "localSearchShortcut": true,
+      "searchKeyAlignedRight": true,
+      "mentionAutocomplete": true,
+      "localizedTooltips": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "themes": [
+          "light",
+          "dark"
+        ],
+        "shortcuts": true
+      },
+      "headingLevelMenu": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "themes": [
+          "light",
+          "dark"
+        ],
+        "keyboard": true,
+        "selection": true
+      },
+      "conversionMenu": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "themes": [
+          "light",
+          "dark"
+        ],
+        "outsideToolbar": true,
+        "searchSelection": true
+      },
+      "alignmentSelectionState": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "currentBlock": true,
+        "atomicUndo": true
+      },
+      "missingAssets": 0
+    },
+    "devDemo": {
+      "exitCode": 0,
+      "blockPlugins": 21,
+      "inlinePlugins": 2,
+      "editorBlocks": 7,
+      "demoFrame": false,
+      "heroViewport": true,
+      "heroCentered": true,
+      "navAbovePluginBlocks": true,
+      "localSearchShortcut": true,
+      "searchKeyAlignedRight": true,
+      "mentionAutocomplete": true,
+      "localizedTooltips": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "themes": [
+          "light",
+          "dark"
+        ],
+        "shortcuts": true
+      },
+      "headingLevelMenu": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "themes": [
+          "light",
+          "dark"
+        ],
+        "keyboard": true,
+        "selection": true
+      },
+      "conversionMenu": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "themes": [
+          "light",
+          "dark"
+        ],
+        "outsideToolbar": true,
+        "searchSelection": true
+      },
+      "alignmentSelectionState": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "currentBlock": true,
+        "atomicUndo": true
+      },
+      "missingAssets": 0
+    }
+  },
+  "design": {
+    "plugins": 21,
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "widths": [
+      640,
+      288
+    ],
+    "states": [
+      "filled",
+      "empty",
+      "readOnly",
+      "emptyReadOnly"
+    ],
+    "nativeCases": 84,
+    "statesChecked": 336,
+    "pixelDiffAgainstV1": false
+  },
+  "sourceFreeze": {
+    "fileCount": 556,
+    "createdAt": "2026-10-05T11:12:55.888Z",
+    "unchanged": true,
+    "byteScope": "local checkout before Git LF/CRLF normalization"
+  },
+  "limits": [
+    "Windows Chrome native event driver and local fixtures",
+    "No manual OS IME or manual system file chooser",
+    "External providers/upload services and Firefox/WebKit/macOS not certified",
+    "Initial parallel native run had Checklist XY Undo grouping failure; isolated reproduction and final complete run passed; timing cause not measured"
+  ]
+}

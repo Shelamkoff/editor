@@ -45,7 +45,8 @@ export function createAlignTool(labels) {
       return alignMap[lastAlign]?.title ?? labels.left
     },
 
-    isActive() {
+    isActive(selection) {
+      if (selection?.textAlign !== undefined) lastAlign = selection.textAlign
       return lastAlign !== 'left' && lastAlign !== 'mixed'
     },
 

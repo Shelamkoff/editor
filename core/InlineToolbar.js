@@ -41,6 +41,7 @@ export class InlineToolbar {
   #element
   #buttonsPanel
   #actions = null
+  #actionVersion = 0
   #buttons = new Map()
   #range = null
   #blockId = null
@@ -118,7 +119,11 @@ export class InlineToolbar {
     this.#controlSelect.hidden = true
     this.#controlLabel = document.createElement('span')
     this.#controlLabel.className = 'oe-inline-toolbar__level-label'
-    this.#controlSelect.append(this.#controlLabel)
+    const controlChevron = document.createElement('span')
+    controlChevron.className = 'oe-inline-toolbar__type-chevron'
+    controlChevron.setAttribute('aria-hidden', 'true')
+    setTrustedHtml(controlChevron, '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6"/></svg>')
+    this.#controlSelect.append(this.#controlLabel, controlChevron)
     this.#buttonsPanel.append(this.#controlDivider, this.#controlSelect)
 
     this.#controlDropdown = document.createElement('div')
@@ -129,18 +134,24 @@ export class InlineToolbar {
 
     this.#typeSelect.addEventListener('mousedown', event => {
       event.preventDefault()
-      this.#typeBookmark = cloneBookmark(this.#selection.capture())
+      if (this.#typeDropdown.style.display === 'none') this.#typeBookmark = cloneBookmark(this.#selection.capture())
     })
     this.#typeSelect.addEventListener('click', event => {
       event.preventDefault()
       event.stopPropagation()
       if (this.#typeDropdown.style.display === 'none') this.#openTypeDropdown()
-      else this.#closeTypeDropdown()
+      else {
+        const bookmark = this.#typeBookmark
+        this.#closeTypeDropdown()
+        this.#restoreSelection(bookmark)
+      }
     })
     this.#typeDropdown.addEventListener('keydown', event => {
       handleMenuKeydown(event, this.#typeDropdown, {
         onEscape: () => {
+          const bookmark = this.#typeBookmark
           this.#closeTypeDropdown()
+          this.#restoreSelection(bookmark)
           this.#typeSelect.focus()
         },
         itemSelector: '[role="menuitem"]:not([style*="display: none"])',
@@ -149,21 +160,36 @@ export class InlineToolbar {
 
     this.#controlSelect.addEventListener('mousedown', event => {
       event.preventDefault()
-      this.#controlBookmark = cloneBookmark(this.#selection.capture())
+      if (this.#controlDropdown.style.display === 'none') this.#controlBookmark = cloneBookmark(this.#selection.capture())
     })
     this.#controlSelect.addEventListener('click', event => {
       event.preventDefault()
       event.stopPropagation()
       if (this.#controlDropdown.style.display === 'none') this.#openControlDropdown()
-      else this.#closeControlDropdown()
+      else {
+        const bookmark = this.#controlBookmark
+        this.#closeControlDropdown()
+        this.#restoreSelection(bookmark)
+      }
+    })
+    this.#controlSelect.addEventListener('keydown', event => {
+      if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return
+      event.preventDefault()
+      event.stopPropagation()
+      if (this.#controlDropdown.style.display === 'none') this.#openControlDropdown()
+      const items = /** @type {HTMLElement[]} */ ([...this.#controlDropdown.querySelectorAll('[role^="menuitem"]:not(:disabled)')])
+      const target = event.key === 'ArrowUp' ? items.at(-1) : items[0]
+      target?.focus()
     })
     this.#controlDropdown.addEventListener('keydown', event => {
       handleMenuKeydown(event, this.#controlDropdown, {
         onEscape: () => {
+          const bookmark = this.#controlBookmark
           this.#closeControlDropdown()
+          this.#restoreSelection(bookmark)
           this.#controlSelect.focus()
         },
-        itemSelector: '[role="menuitem"]',
+        itemSelector: '[role^="menuitem"]:not(:disabled)',
       })
     })
 
@@ -215,6 +241,9 @@ export class InlineToolbar {
     this.#onSelectionChange = () => {
       if (this.#element.contains(document.activeElement)) return
       this.#selectionVersion++
+      this.#closeActions()
+      this.#closeTypeDropdown()
+      this.#closeControlDropdown()
       this.#refreshFromSelection()
     }
     document.addEventListener('selectionchange', this.#onSelectionChange)
@@ -266,43 +295,61 @@ export class InlineToolbar {
     if (allowed && !allowed.has(type)) return false
 
     if (tool.renderActions) {
+      this.#closeActions()
       const range = selection.range.cloneRange()
       const lease = this.#selectionVersion
+      const actionLease = this.#actionVersion
+      const generation = this.#runtime.generation
+      const owners = selection.blockIds.map(blockId => ({ blockId, element: this.#view.element(blockId) }))
+      const isCurrent = () => !this.#destroyed && !this.#readOnly
+        && lease === this.#selectionVersion && actionLease === this.#actionVersion
+        && generation === this.#runtime.generation
+        && owners.every(owner => owner.element === this.#view.element(owner.blockId))
       let panelBookmark = cloneBookmark(selection.bookmark)
-      const panel = tool.renderActions({
-        range,
-        mutate: operation => {
-          const result = this.#mutate(range, operation, tool.type, lease)
-          panelBookmark = cloneBookmark(this.#selectionPort?.bookmark ?? this.#selection.capture() ?? panelBookmark)
-          return result
-        },
-        getTextAlign: () => lease === this.#selectionVersion
-          ? this.#runtime.getTextAlign(selection.blockIds)
-          : 'mixed',
-        setTextAlign: value => lease === this.#selectionVersion
-          ? this.#runtime.setTextAlign(selection.blockIds, value)
-          : false,
-        restoreSelection: () => {
-          if (lease === this.#selectionVersion) this.#restoreSelection(panelBookmark, range)
-        },
-        close: () => {
-          this.#closeActions()
-          if (lease !== this.#selectionVersion) return
-          this.#restoreSelection(panelBookmark, range)
-          this.show()
-        },
-        backLabel: this.#translate('block.back', 'Back'),
-        showTooltip: (anchor, label, shortcut) => this.#tooltip.show(anchor, label, shortcut),
-        hideTooltip: () => this.#tooltip.hide(),
-      })
+      let panel
+      try {
+        panel = tool.renderActions({
+          range,
+          mutate: operation => {
+            if (!isCurrent()) return undefined
+            const result = this.#mutate(range, operation, tool.type, lease)
+            panelBookmark = cloneBookmark(this.#selectionPort?.bookmark ?? this.#selection.capture() ?? panelBookmark)
+            return result
+          },
+          getTextAlign: () => isCurrent()
+            ? this.#runtime.getTextAlign(selection.blockIds)
+            : 'mixed',
+          setTextAlign: value => isCurrent()
+            ? this.#runtime.setTextAlign(selection.blockIds, value)
+            : false,
+          restoreSelection: () => {
+            if (isCurrent()) this.#restoreSelection(panelBookmark, range)
+          },
+          close: () => {
+            if (!isCurrent()) return
+            this.#closeActions()
+            this.#restoreSelection(panelBookmark, range)
+            this.show()
+          },
+          backLabel: this.#translate('block.back', 'Back'),
+          showTooltip: (anchor, label, shortcut) => {
+            if (isCurrent()) this.#tooltip.show(anchor, label, shortcut)
+          },
+          hideTooltip: () => { if (isCurrent()) this.#tooltip.hide() },
+        })
+      } catch (error) {
+        if (actionLease === this.#actionVersion) this.#closeActions()
+        throw error
+      }
+      if (!isCurrent()) return false
       if (panel) {
-        this.#closeActions()
         this.#actions = panel
         this.#buttonsPanel.style.display = 'none'
         this.#element.append(panel)
         this.#show(selection)
         return true
       }
+      this.#closeActions()
     }
 
     this.#mutate(selection.range, () => tool.toggle(selection), tool.type, this.#selectionVersion)
@@ -459,7 +506,7 @@ export class InlineToolbar {
     const selection = resolved ?? this.#resolveSelection()
     if (!selection) return null
     const blockIds = this.#formattingBlockIds(selection.range, selection.blockIds)
-    return blockIds ? { ...selection, blockIds } : null
+    return blockIds ? { ...selection, blockIds, textAlign: this.#runtime.getTextAlign(blockIds) } : null
   }
 
   #allowedTools(blockIds) {
@@ -527,6 +574,26 @@ export class InlineToolbar {
     this.#element.style.marginTop = below ? '8px' : '-8px'
   }
 
+  /** @param {HTMLElement} menu @param {HTMLElement} trigger */
+  #positionDropdown(menu, trigger) {
+    const toolbar = this.#element.getBoundingClientRect()
+    const anchor = trigger.getBoundingClientRect()
+    const window = this.#root.ownerDocument.defaultView
+    const margin = 8
+    const gap = 4
+    menu.style.transform = 'none'
+    menu.style.maxHeight = '224px'
+    const bounds = menu.getBoundingClientRect()
+    const below = Math.max(0, (window?.innerHeight ?? toolbar.bottom) - margin - toolbar.bottom - gap)
+    const above = Math.max(0, toolbar.top - margin - gap)
+    const useBelow = bounds.height <= below || below >= above
+    menu.style.maxHeight = Math.min(224, useBelow ? below : above) + 'px'
+    const height = menu.getBoundingClientRect().height
+    const left = Math.max(margin, Math.min(anchor.left, (window?.innerWidth ?? toolbar.right) - margin - bounds.width))
+    menu.style.left = (left - toolbar.left - this.#element.clientLeft) + 'px'
+    menu.style.top = (useBelow ? toolbar.height + gap : -height - gap) - this.#element.clientTop + 'px'
+  }
+
   #updateActiveStates(resolved) {
     const selection = resolved ?? this.#resolveFormattingSelection()
     if (!selection) return
@@ -556,6 +623,9 @@ export class InlineToolbar {
     this.#typeBookmark = bookmark
     this.#closeControlDropdown()
     const version = ++this.#typeVersion
+    const generation = this.#runtime.generation
+    const owners = this.#blockIdsBetween(bookmark.anchor.blockId, bookmark.focus.blockId)
+      .map(blockId => ({ blockId, element: this.#view.element(blockId) }))
     this.#typeDropdown.replaceChildren()
 
     if (this.#registry.blockTypes.length > 7) {
@@ -572,6 +642,7 @@ export class InlineToolbar {
         for (const item of this.#typeDropdown.querySelectorAll('.oe-inline-toolbar__type-item')) {
           item.style.display = !query || (item.dataset.search ?? '').includes(query) ? '' : 'none'
         }
+        this.#positionDropdown(this.#typeDropdown, this.#typeSelect)
       })
       filter.append(input)
       this.#typeDropdown.append(filter)
@@ -600,12 +671,14 @@ export class InlineToolbar {
       item.addEventListener('click', event => {
         event.preventDefault()
         event.stopPropagation()
-        if (version !== this.#typeVersion || this.#readOnly || this.#destroyed) return
+        if (version !== this.#typeVersion || generation !== this.#runtime.generation || this.#readOnly || this.#destroyed) return
+        if (owners.some(owner => owner.element !== this.#view.element(owner.blockId))) return
         this.#convertType(bookmark, type)
       })
       this.#typeDropdown.append(item)
     }
     this.#typeDropdown.style.display = ''
+    this.#positionDropdown(this.#typeDropdown, this.#typeSelect)
     this.#typeSelect.setAttribute('aria-expanded', 'true')
   }
 
@@ -657,6 +730,7 @@ export class InlineToolbar {
       this.#controlDivider.hidden = true
       return
     }
+    this.#controlSelect.setAttribute('aria-label', this.#label('plugin', record.type, capability.label ?? definition.label))
     this.#controlBlockId = selection.blockId
     this.#controlLabel.textContent = /^h[2-6]$/.test(active.id)
       ? active.id.toUpperCase()
@@ -677,6 +751,8 @@ export class InlineToolbar {
     this.#closeTypeDropdown()
     const blockId = this.#controlBlockId
     const version = ++this.#controlVersion
+    const generation = this.#runtime.generation
+    const owner = this.#view.element(blockId)
     this.#controlDropdown.replaceChildren()
     const actions = capability.actions(record.data, {
       ownerDocument: this.#root.ownerDocument,
@@ -687,6 +763,10 @@ export class InlineToolbar {
       item.type = 'button'
       item.className = 'oe-inline-toolbar__type-item'
       item.setAttribute('role', 'menuitem')
+      if (typeof action.active === 'boolean') {
+        item.setAttribute('role', 'menuitemradio')
+        item.setAttribute('aria-checked', String(action.active))
+      }
       if (/^h([2-6])$/.test(action.id)) item.dataset.level = action.id.slice(1)
       if (action.active) item.classList.add('oe-inline-toolbar__type-item--active')
       if (action.icon) {
@@ -705,6 +785,8 @@ export class InlineToolbar {
         event.stopPropagation()
         if (
           version !== this.#controlVersion
+          || generation !== this.#runtime.generation
+          || owner !== this.#view.element(blockId)
           || this.#readOnly
           || this.#destroyed
           || this.#runtime.get(blockId)?.type !== record.type
@@ -724,6 +806,7 @@ export class InlineToolbar {
       this.#controlDropdown.append(item)
     }
     this.#controlDropdown.style.display = ''
+    this.#positionDropdown(this.#controlDropdown, this.#controlSelect)
     this.#controlSelect.setAttribute('aria-expanded', 'true')
   }
 
@@ -793,6 +876,7 @@ export class InlineToolbar {
   }
 
   #closeActions() {
+    this.#actionVersion++
     this.#tooltip.hide()
     if (!this.#actions) {
       this.#buttonsPanel.style.display = ''

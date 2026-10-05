@@ -23,7 +23,9 @@ interface InlineTool {
 }
 ```
 
-`InlineToolActionContext` contains `range`, `mutate(operation)`, `getTextAlign()`, `setTextAlign(value)`, `restoreSelection()`, `close()`, `showTooltip(anchor, label, shortcut?)`, `hideTooltip()`, and the optional localized `backLabel`. Closing an action panel restores its saved document selection. Any new selection change revokes the saved toolbar lease, so a retained action context cannot mutate a newer selection.
+`InlineSelection.textAlign` describes the current canonical alignment of the eligible selected blocks: `left`, `center`, `right`, `justify`, or `mixed`. Tools may read it to refresh their icon, title, and active state without opening an action panel.
+
+`InlineToolActionContext` contains `range`, `mutate(operation)`, `getTextAlign()`, `setTextAlign(value)`, `restoreSelection()`, `close()`, `showTooltip(anchor, label, shortcut?)`, `hideTooltip()`, and the optional localized `backLabel`. Closing an action panel restores its saved document selection. A new document selection, panel closure, document replacement, replacement of any selected block instance, read-only mode, destruction, or a failed factory revokes the context. Retained callbacks cannot invoke their producers, query successor alignment, restore selection, close a later panel, or show its tooltips.
 
 Core calls `bindSelectionPort(port)` when mounting a tool and `bindSelectionPort(null)` when destroying it. The port supplies the live cross-field range; each editor needs its own mutable tool instances.
 

@@ -1,0 +1,16 @@
+file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149
+    if (result.status === 'fail') throw new Error(`History matrix failed: ${result.summary}`)
+                                        ^
+
+Error: History matrix failed: [
+  {
+    "name": "native Heading ArrowDown opens levels, preserves selection and applies one history action",
+    "status": "FAIL",
+    "error": "Error: ArrowDown did not open Heading levels\nexpected \"true\", got \"false\"\n    at equal (http://127.0.0.1:60980/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:60980/tests/browser/native-block-menus.js:171:3\n    at async run (http://127.0.0.1:60980/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:60980/tests/browser/native-block-menus.js:183:1"
+  }
+]
+    at waitForHistoryMatrix (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149:41)
+    at async runNativePage (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:275:30)
+    at async file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:312:48
+
+Node.js v24.9.0

@@ -1,0 +1,16 @@
+file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149
+    if (result.status === 'fail') throw new Error(`History matrix failed: ${result.summary}`)
+                                        ^
+
+Error: History matrix failed: [
+  {
+    "name": "native inline conversion menu stays outside its toolbar",
+    "status": "FAIL",
+    "error": "Error: Conversion menu overlaps its toolbar: {\"toolbar\":{\"x\":24.1171875,\"y\":276.1875,\"width\":142.765625,\"height\":33,\"top\":276.1875,\"right\":166.8828125,\"bottom\":309.1875,\"left\":24.1171875},\"menu\":{\"x\":25.1171875,\"y\":277.1875,\"width\":170,\"height\":178.46875,\"top\":277.1875,\"right\":195.1171875,\"bottom\":455.65625,\"left\":25.1171875}}\n    at assert (http://127.0.0.1:50918/tests/browser/regressions/harness.js:20:81)\n    at http://127.0.0.1:50918/tests/browser/native-block-menus.js:177:3\n    at async run (http://127.0.0.1:50918/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:50918/tests/browser/native-block-menus.js:452:1"
+  }
+]
+    at waitForHistoryMatrix (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149:41)
+    at async runNativePage (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:275:30)
+    at async file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:312:48
+
+Node.js v24.9.0

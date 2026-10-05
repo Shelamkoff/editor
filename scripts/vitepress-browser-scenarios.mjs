@@ -171,6 +171,118 @@ async function waitForHydratedDemo(client) {
   throw new Error('Timed out waiting for the VitePress demo to hydrate')
 }
 
+async function verifyHeadingLevelMenu(client, language, theme) {
+  await evaluate(client, "document.querySelector('.live-demo .oe-inline-toolbar__level-select').focus()")
+  const key = { key: 'ArrowUp', code: 'ArrowUp', windowsVirtualKeyCode: 38, nativeVirtualKeyCode: 38 }
+  await client.send('Input.dispatchKeyEvent', { type: 'rawKeyDown', ...key })
+  await client.send('Input.dispatchKeyEvent', { type: 'keyUp', ...key })
+  await delay(100)
+  const menu = await evaluate(client, `(() => {
+    const trigger = document.querySelector('.live-demo .oe-inline-toolbar__level-select')
+    const menu = document.querySelector('.live-demo .oe-inline-toolbar__level-dropdown')
+    const rect = menu.getBoundingClientRect()
+    const toolbar = document.querySelector('.live-demo .oe-inline-toolbar').getBoundingClientRect()
+    const options = [...menu.querySelectorAll('[role="menuitemradio"]')]
+    return {
+      label: trigger.getAttribute('aria-label'), expanded: trigger.getAttribute('aria-expanded'),
+      chevronHeight: trigger.querySelector('svg')?.getBoundingClientRect().height,
+      focused: document.activeElement?.dataset.level,
+      levels: options.map(option => option.dataset.level),
+      selected: options.filter(option => option.getAttribute('aria-checked') === 'true').map(option => option.dataset.level),
+      withinViewport: rect.left >= 0 && rect.right <= innerWidth && rect.top >= 0 && rect.bottom <= innerHeight,
+      selectionPreserved: !window.getSelection().isCollapsed,
+      outsideToolbar: rect.top >= toolbar.bottom + 3 || rect.bottom <= toolbar.top - 3,
+    }
+  })()`)
+  const label = language === 'ru' ? 'Уровень заголовка' : 'Heading level'
+  assert(menu.label === label && menu.expanded === 'true' && menu.focused === '6', 'Heading menu keyboard/name regression: ' + JSON.stringify(menu))
+  assert(JSON.stringify(menu.levels) === JSON.stringify(['2', '3', '4', '5', '6']) && JSON.stringify(menu.selected) === JSON.stringify(['2']), 'Heading option state regression: ' + JSON.stringify(menu))
+  assert(menu.chevronHeight === 12 && menu.withinViewport && menu.selectionPreserved && menu.outsideToolbar, 'Heading menu layout/selection regression: ' + JSON.stringify(menu))
+  if (qaRoot) await captureScreenshot(client, join(qaRoot, 'heading-' + language + '-' + theme + '.png'))
+  const escape = { key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27, nativeVirtualKeyCode: 27 }
+  await client.send('Input.dispatchKeyEvent', { type: 'rawKeyDown', ...escape })
+  await client.send('Input.dispatchKeyEvent', { type: 'keyUp', ...escape })
+  assert(await evaluate(client, "document.querySelector('.live-demo .oe-inline-toolbar__level-select').getAttribute('aria-expanded') === 'false'"), 'Escape did not close Heading levels')
+}
+
+async function verifyTypeMenu(client, language, theme) {
+  const selected = await evaluate(client, 'window.getSelection().toString()')
+  const target = await evaluate(client, `(() => {
+    const rect = document.querySelector('.live-demo .oe-inline-toolbar__type-select').getBoundingClientRect()
+    return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }
+  })()`)
+  await client.send('Input.dispatchMouseEvent', { type: 'mousePressed', button: 'left', clickCount: 1, ...target })
+  await client.send('Input.dispatchMouseEvent', { type: 'mouseReleased', button: 'left', clickCount: 1, ...target })
+  await delay(100)
+  const layout = await evaluate(client, `(() => {
+    const menu = document.querySelector('.live-demo .oe-inline-toolbar__type-dropdown')
+    const rect = menu.getBoundingClientRect()
+    const toolbar = document.querySelector('.live-demo .oe-inline-toolbar').getBoundingClientRect()
+    return {
+      plugins: menu.querySelectorAll('[role=menuitem]').length,
+      outsideToolbar: rect.top >= toolbar.bottom + 3 || rect.bottom <= toolbar.top - 3,
+      bounded: rect.left >= 7 && rect.right <= innerWidth - 7 && rect.top >= 7 && rect.bottom <= innerHeight - 7,
+      noOverflow: menu.scrollWidth <= menu.clientWidth + 1,
+    }
+  })()`)
+  assert(layout.plugins === 21 && layout.outsideToolbar && layout.bounded && layout.noOverflow, 'Conversion menu geometry regression: ' + JSON.stringify(layout))
+  if (qaRoot) await captureScreenshot(client, join(qaRoot, 'conversion-' + language + '-' + theme + '.png'))
+  await evaluate(client, "document.querySelector('.live-demo .oe-inline-toolbar__type-filter-input').focus()")
+  await client.send('Input.insertText', { text: language === 'ru' ? 'Заголовок' : 'Heading' })
+  await delay(60)
+  assert(await evaluate(client, `[...document.querySelectorAll('.live-demo .oe-inline-toolbar__type-item')].filter(item => item.style.display !== 'none').map(item => item.dataset.pluginType).join(',') === 'heading'`), 'Conversion filter lost Heading')
+  const escape = { key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27, nativeVirtualKeyCode: 27 }
+  await client.send('Input.dispatchKeyEvent', { type: 'rawKeyDown', ...escape })
+  await client.send('Input.dispatchKeyEvent', { type: 'keyUp', ...escape })
+  await delay(100)
+  assert(await evaluate(client, "document.querySelector('.live-demo .oe-inline-toolbar__type-select').getAttribute('aria-expanded') === 'false'"), 'Escape did not close conversion menu')
+  assert(await evaluate(client, 'window.getSelection().toString()') === selected, 'Escape after conversion filter lost the selected text')
+}
+
+async function verifyAlignmentSelection(client, language) {
+  async function click(selector) {
+    const point = await evaluate(client, `(() => {
+      const element = document.querySelector(${JSON.stringify(selector)})
+      const rect = element.getBoundingClientRect()
+      return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }
+    })()`)
+    await client.send('Input.dispatchMouseEvent', { type: 'mousePressed', button: 'left', clickCount: 1, ...point })
+    await client.send('Input.dispatchMouseEvent', { type: 'mouseReleased', button: 'left', clickCount: 1, ...point })
+    await delay(60)
+  }
+  const center = language === 'ru' ? 'По центру' : 'Align center'
+  const left = language === 'ru' ? 'По левому краю' : 'Align left'
+  await click('.live-demo .oe-inline-tool[data-tool="align"]')
+  await click('.live-demo .oe-inline-toolbar__align-panel [aria-label="' + center + '"]')
+  const centered = await evaluate(client, `(() => {
+    const button = document.querySelector('.live-demo .oe-inline-tool[data-tool="align"]')
+    return { label: button.getAttribute('aria-label'), icon: button.innerHTML }
+  })()`)
+  assert(centered.label === center, 'Demo did not apply centered alignment')
+  await evaluate(client, `(() => {
+    const field = document.querySelector('.live-demo .oe-block[data-block-type="paragraph"] [contenteditable="true"]')
+    field.scrollIntoView({ block: 'center' })
+    field.focus({ preventScroll: true })
+    const range = document.createRange()
+    range.selectNodeContents(field)
+    const selection = window.getSelection()
+    selection.removeAllRanges()
+    selection.addRange(range)
+  })()`)
+  await delay(100)
+  const current = await evaluate(client, `(() => {
+    const button = document.querySelector('.live-demo .oe-inline-tool[data-tool="align"]')
+    return { label: button.getAttribute('aria-label'), icon: button.innerHTML, active: button.classList.contains('oe-inline-tool--active') }
+  })()`)
+  assert(current.label === left && !current.active && current.icon !== centered.icon, 'Alignment state did not follow the selected demo block: ' + JSON.stringify(current))
+  const undo = { key: 'z', code: 'KeyZ', windowsVirtualKeyCode: 90, nativeVirtualKeyCode: 90, modifiers: 2 }
+  await client.send('Input.dispatchKeyEvent', { type: 'rawKeyDown', ...undo })
+  await client.send('Input.dispatchKeyEvent', { type: 'keyUp', ...undo })
+  await delay(100)
+  assert(await evaluate(client, "document.querySelector('.live-demo .oe-block[data-block-type=heading]').style.textAlign === ''"), 'Demo alignment did not undo in one action')
+  await evaluate(client, "document.querySelector('.live-demo .oe-inline-toolbar__level-select').focus()")
+}
+
 async function verifyDemoTooltips(client, language) {
   const labels = await evaluate(client, `Object.fromEntries(
     [...document.querySelectorAll('.live-demo .oe-inline-tool[data-tool]')]
@@ -226,7 +338,10 @@ async function verifyDemoTooltips(client, language) {
       }
     }
     await client.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 1, y: 1 })
+    await verifyHeadingLevelMenu(client, language, theme)
+    await verifyTypeMenu(client, language, theme)
   }
+  await verifyAlignmentSelection(client, language)
   await evaluate(client, `(() => {
     if (document.documentElement.classList.contains('dark') !== ${initiallyDark}) document.querySelector('.VPSwitchAppearance').click()
   })()`)
@@ -794,6 +909,9 @@ try {
     searchKeyAlignedRight: true,
     mentionAutocomplete: true,
     localizedTooltips: { languages: ['ru', 'en'], themes: ['light', 'dark'], shortcuts: true },
+    headingLevelMenu: { languages: ['ru', 'en'], themes: ['light', 'dark'], keyboard: true, selection: true },
+    conversionMenu: { languages: ['ru', 'en'], themes: ['light', 'dark'], outsideToolbar: true, searchSelection: true },
+    alignmentSelectionState: { languages: ['ru', 'en'], currentBlock: true, atomicUndo: true },
     missingAssets: 0,
   }))
 } finally {

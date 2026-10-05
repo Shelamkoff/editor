@@ -30,6 +30,7 @@ export function createHeadingPlugin(){
   })))
 
   const levelSettings=Object.freeze({
+    label:Object.freeze({key:'level',fallback:'Heading level'}),
     kind:/** @type {'actions'} */('actions'),
     actions(data){
       return HEADING_LEVELS.map(item=>Object.freeze({

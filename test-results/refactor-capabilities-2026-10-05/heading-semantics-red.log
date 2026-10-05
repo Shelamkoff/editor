@@ -1,0 +1,21 @@
+file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149
+    if (result.status === 'fail') throw new Error(`History matrix failed: ${result.summary}`)
+                                        ^
+
+Error: History matrix failed: [
+  {
+    "name": "native Heading level menu has localized name, selected option and upward keyboard entry: Уровень заголовка",
+    "status": "FAIL",
+    "error": "Error: Heading level control lost its localized name\nexpected \"Уровень заголовка\", got null\n    at equal (http://127.0.0.1:61183/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:61183/tests/browser/native-block-menus.js:191:5\n    at async run (http://127.0.0.1:61183/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:61183/tests/browser/native-block-menus.js:217:1"
+  },
+  {
+    "name": "native Heading level menu has localized name, selected option and upward keyboard entry: Heading level",
+    "status": "FAIL",
+    "error": "Error: Heading level control lost its localized name\nexpected \"Heading level\", got null\n    at equal (http://127.0.0.1:61183/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:61183/tests/browser/native-block-menus.js:191:5\n    at async run (http://127.0.0.1:61183/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:61183/tests/browser/native-block-menus.js:217:1"
+  }
+]
+    at waitForHistoryMatrix (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149:41)
+    at async runNativePage (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:275:30)
+    at async file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:312:48
+
+Node.js v24.9.0

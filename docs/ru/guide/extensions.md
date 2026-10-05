@@ -74,9 +74,9 @@ interface BlockPluginDefinition<Data> {
 
 ## Настройки, вставка и клавиши
 
-`SettingsActionCapability` содержит `kind`, `actions(data, context)` и `apply(data, actionId, context)`.
+`SettingsActionCapability` содержит `kind`, `actions(data, context)` и `apply(data, actionId, context)`. Необязательный локализованный `label` задаёт имя группы во внутристрочной панели; действия с булевым `active` показывают выбранное состояние как пункты радиоменю.
 
-`SettingsPanelCapability` содержит `kind: 'panel'` и `render(context)`; context предоставляет `getData()` и `updateData()`.
+`SettingsPanelCapability` содержит `kind: 'panel'` и `render(context)`; контекст предоставляет `getData()` и `updateData()`. Контекст принадлежит конкретной панели и экземпляру блока. Закрытие панели, замена владельца, переход в read-only, уничтожение или ошибка фабрики навсегда отзывают его: сохранённые функции изменения не вызываются, а `getData()` возвращает только последний собственный снимок.
 
 `HtmlImportCapability` содержит `matchesRoot(element)` и `importRoot(element, context)`. Контекст предоставляет `ownerDocument`, `createId()` и `serializeRichText(element)` для обычного кодирования форматированного текста. Ядро безопасно разбирает весь HTML и строит полный план; ошибка любого принятого элемента отклоняет импорт до изменения документа.
 

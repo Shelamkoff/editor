@@ -74,9 +74,9 @@ Decode external input once at the boundary. Encode every model-first update befo
 
 ## Settings, paste and shortcuts
 
-`SettingsActionCapability` has `kind`, `actions(data, context)`, and `apply(data, actionId, context)`.
+`SettingsActionCapability` has `kind`, `actions(data, context)`, and `apply(data, actionId, context)`. Its optional localized `label` names the group in the inline toolbar; actions with a boolean `active` expose their selected state as radio menu items.
 
-`SettingsPanelCapability` has `kind: 'panel'` and `render(context)`; its context exposes `getData()` and `updateData()`.
+`SettingsPanelCapability` has `kind: 'panel'` and `render(context)`; its context exposes `getData()` and `updateData()`. The context belongs to that panel and mounted block instance. Closing the panel, replacing its owner, entering read-only mode, destruction, or a failed factory revokes it permanently: retained producers are not invoked, and `getData()` returns only its last owned snapshot.
 
 `HtmlImportCapability` has `matchesRoot(element)` and `importRoot(element, context)`. Its context exposes `ownerDocument`, `createId()`, and `serializeRichText(element)` using the normal rich-text codec. Core sanitizes and plans the complete HTML input first; if any accepted root fails, the entire import is rejected before mutation.
 

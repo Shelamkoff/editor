@@ -1,8 +1,9 @@
+import { createParagraphPlugin, createHeadingPlugin } from '../../plugins/index.js'
 import ru from '../../locale/ru.js'
 import en from '../../locale/en.js'
 import { createDefaultInlineTools } from '../../preset/index.js'
 import { findNodeAtOffset, getTextOffset } from '../../shared/textOffset.js'
-import { test, make, para, editableField, editorRoot, pause, select, assert, equal, run } from './regressions/harness.js'
+import { test, make, para, editableField, editorRoot, pause, select, assert, equal, expectError, run } from './regressions/harness.js'
 import { clickNative, dragAcross, dispatchKey } from './native-input-helpers.js'
 
 const types = ['bold', 'italic', 'strikethrough', 'link', 'code', 'marker', 'bgcolor', 'fontSize', 'script', 'align', 'caseTransform', 'clearFormatting']
@@ -239,6 +240,197 @@ for (const cross of [false, true]) {
       equal(editor.save().blocks, before)
     })
   }
+}
+
+test('native action panel closure revokes retained mutation before the next selection event', async () => {
+  let calls = 0
+  const tool = { ...createDefaultInlineTools({ types: ['bold'] })[0], renderActions(ctx) {
+    const doc = ctx.range.startContainer.ownerDocument
+    const panel = doc.createElement('div')
+    panel.className = 'oe-inline-toolbar__panel audit-action-panel'
+    const cancel = doc.createElement('button')
+    cancel.type = 'button'
+    cancel.textContent = 'Cancel'
+    cancel.addEventListener('click', () => {
+      ctx.close()
+      ctx.mutate(() => { calls++; ctx.range.startContainer.parentElement.textContent = 'Late callback' })
+    })
+    panel.append(cancel)
+    return panel
+  } }
+  const editor = make([para('a', 'Abc')], { injectStyles: true, inlineTools: [tool] })
+  const field = editableField(editor, 'a')
+  await clickNative(field)
+  select(field, 0, 3)
+  await pause(60)
+  const before = editor.save().blocks
+  await clickNative(editorRoot(editor).querySelector('.oe-inline-tool[data-tool="bold"]'))
+  await clickNative(editorRoot(editor).querySelector('.audit-action-panel button'))
+  equal(calls, 0, 'removed action panel still executed its producer')
+  equal(editor.save().blocks, before, 'late callback modified the document')
+  equal(editor.canUndo, false, 'cancel created history')
+})
+
+test('native action panel context cannot align a replacement document with the same block ID', async () => {
+  let retained
+  const tool = { ...createDefaultInlineTools({ types: ['bold'] })[0], renderActions(ctx) {
+    retained = ctx
+    const panel = ctx.range.startContainer.ownerDocument.createElement('div')
+    panel.className = 'oe-inline-toolbar__panel audit-action-panel'
+    const input = panel.ownerDocument.createElement('input')
+    panel.append(input)
+    queueMicrotask(() => input.focus())
+    return panel
+  } }
+  const editor = make([para('a', 'Abc')], { injectStyles: true, inlineTools: [tool] })
+  const field = editableField(editor, 'a')
+  await clickNative(field)
+  select(field, 0, 3)
+  await pause(60)
+  await clickNative(editorRoot(editor).querySelector('.oe-inline-tool[data-tool="bold"]'))
+  editor.render({ version: '2.0.0', blocks: [para('a', 'Replacement')] })
+  const before = editor.save().blocks
+  equal(retained.setTextAlign('center'), false, 'retained panel gained authority over reused IDs')
+  equal(editor.save().blocks, before, 'retained panel changed replacement document')
+  equal(retained.getTextAlign(), 'mixed', 'retained panel queried replacement ownership')
+})
+
+test('native retired action context cannot close or change the successor panel', async () => {
+  const contexts = []
+  const tool = { ...createDefaultInlineTools({ types: ['bold'] })[0], renderActions(ctx) {
+    contexts.push(ctx)
+    const panel = ctx.range.startContainer.ownerDocument.createElement('div')
+    panel.className = 'oe-inline-toolbar__panel audit-action-panel'
+    const cancel = panel.ownerDocument.createElement('button')
+    cancel.type = 'button'
+    cancel.textContent = 'Cancel'
+    cancel.addEventListener('click', () => ctx.close())
+    panel.append(cancel)
+    return panel
+  } }
+  const editor = make([para('a', 'Abc')], { injectStyles: true, inlineTools: [tool] })
+  await clickNative(editableField(editor, 'a'))
+  select(editableField(editor, 'a'), 0, 3)
+  await pause(60)
+  const root = editorRoot(editor)
+  await clickNative(root.querySelector('.oe-inline-tool[data-tool="bold"]'))
+  await clickNative(root.querySelector('.audit-action-panel button'))
+  await clickNative(root.querySelector('.oe-inline-tool[data-tool="bold"]'))
+  const successor = root.querySelector('.audit-action-panel')
+  let lateCalls = 0
+  contexts[0].close()
+  contexts[0].restoreSelection()
+  equal(contexts[0].setTextAlign('right'), false, 'retired panel changed alignment')
+  contexts[0].mutate(() => { lateCalls++ })
+  equal(lateCalls, 0)
+  assert(successor.isConnected, 'retired close removed the new panel')
+  equal(contexts[1].setTextAlign('center'), true, 'live panel lost authority')
+  contexts[1].close()
+  equal(editor.save().blocks[0].tunes?.textAlign, 'center')
+  equal(window.getSelection().toString(), 'Abc', 'live close lost selection')
+  editor.undo()
+  equal(editor.save().blocks[0].tunes, undefined)
+})
+
+test('native selection of another text field closes the previous action panel and enables current tools', async () => {
+  const editor = make([para('a', 'Alpha'), para('b', 'Bravo')], {
+    injectStyles: true, inlineTools: createDefaultInlineTools({ types: ['bold', 'link'] }),
+  })
+  select(editableField(editor, 'a'), 0, 5)
+  await pause(40)
+  const root = editorRoot(editor)
+  await clickNative(root.querySelector('.oe-inline-tool[data-tool="link"]'))
+  const oldPanel = root.querySelector('.oe-inline-toolbar__panel--link')
+  assert(oldPanel && oldPanel.contains(document.activeElement), 'Link panel did not open')
+  oldPanel.querySelector('input').value = 'https://example.test/retired'
+  const oldApply = oldPanel.querySelector('.oe-inline-tool--apply')
+  select(editableField(editor, 'b'), 0, 5)
+  await pause(40)
+  assert(!oldPanel.isConnected, 'previous Link panel hides tools for the new selection')
+  equal(editor.canUndo, false, 'selection change created history')
+  oldApply.click()
+  await clickNative(root.querySelector('.oe-inline-tool[data-tool="bold"]'))
+  equal(editor.save().blocks.map(block => block.data.text), ['Alpha', '<b>Bravo</b>'])
+  equal(window.getSelection().toString(), 'Bravo')
+  editor.undo()
+  equal(editor.save().blocks.map(block => block.data.text), ['Alpha', 'Bravo'])
+  equal(editor.canUndo, false, 'selection replacement added more than one history entry')
+})
+
+test('native failed action factory cannot close the successor it opened', async () => {
+  let failedContext
+  const tools = createDefaultInlineTools({ types: ['bold', 'link'] })
+  const failing = { ...tools[0], renderActions(ctx) {
+    failedContext = ctx
+    ctx.range.startContainer.ownerDocument.querySelector('.oe-inline-tool[data-tool="link"]').click()
+    throw new Error('Audit action factory failed')
+  } }
+  const editor = make([para('a', 'Alpha')], { injectStyles: true, inlineTools: [failing, tools[1]] })
+  select(editableField(editor, 'a'), 0, 5)
+  await pause(40)
+  const root = editorRoot(editor)
+  expectError(/Audit action factory failed/)
+  await clickNative(root.querySelector('.oe-inline-tool[data-tool="bold"]'))
+  const successor = root.querySelector('.oe-inline-toolbar__panel--link')
+  assert(successor?.isConnected, 'failed action factory removed the successor panel')
+  let calls = 0
+  failedContext.mutate(() => { calls++ })
+  failedContext.close()
+  equal(calls, 0)
+  assert(successor.isConnected, 'failed context closed the successor')
+  await window.__testInput('Input.insertText', { text: 'https://example.test/current' })
+  await dispatchKey('Enter', 'Enter', 13)
+  equal(editableField(editor, 'a').querySelector('a')?.getAttribute('href'), 'https://example.test/current')
+  equal(window.getSelection().toString(), 'Alpha')
+  editor.undo()
+  equal(editor.save().blocks, [para('a', 'Alpha')])
+  equal(editor.canUndo, false)
+})
+
+test('native old action context cannot align the recreated block after conversion and Undo', async () => {
+  let context
+  const tool = { ...createDefaultInlineTools({ types: ['bold'] })[0], renderActions(ctx) {
+    context = ctx
+    const panel = ctx.range.startContainer.ownerDocument.createElement('div')
+    const input = panel.ownerDocument.createElement('input')
+    panel.append(input)
+    queueMicrotask(() => input.focus())
+    return panel
+  } }
+  const editor = make([para('a', 'Alpha')], {
+    injectStyles: true, plugins: [createParagraphPlugin(), createHeadingPlugin()], inlineTools: [tool],
+  })
+  select(editableField(editor, 'a'), 0, 5)
+  await pause(40)
+  await clickNative(editorRoot(editor).querySelector('.oe-inline-tool[data-tool="bold"]'))
+  editor.blocks.convert('a', { type: 'heading' })
+  editor.undo()
+  equal(context.setTextAlign('center'), false, 'old action context aligned the recreated instance')
+  equal(editor.save().blocks, [para('a', 'Alpha')])
+  equal(editor.canUndo, false)
+})
+
+for (const [locale, labels] of [[ru, ['По центру', 'По левому краю', 'По правому краю']], [en, ['Align center', 'Align left', 'Align right']]]) {
+  test('native alignment label, icon and active state follow each selected block before opening actions: ' + labels[0], async () => {
+    const editor = make([para('a', 'Alpha', { tunes: { textAlign: 'center' } }), para('b', 'Bravo'), para('c', 'Charlie', { tunes: { textAlign: 'right' } })], {
+      injectStyles: true, locale, inlineTools: createDefaultInlineTools({ types: ['align'], i18n: { t: key => locale[key] ?? key } }),
+    })
+    const root = editorRoot(editor)
+    const button = root.querySelector('.oe-inline-tool[data-tool="align"]')
+    const icons = []
+    for (const [index, id] of ['a', 'b', 'c'].entries()) {
+      select(editableField(editor, id), 0, 3)
+      await pause(40)
+      equal(button.getAttribute('aria-label'), labels[index], 'alignment title shows the previous selection state')
+      equal(button.classList.contains('oe-inline-tool--active'), index !== 1)
+      icons.push(button.innerHTML)
+      await hoverNative(button)
+      equal(root.querySelector('.oe-tooltip__label').textContent, labels[index], 'alignment tooltip does not describe this block')
+    }
+    equal(new Set(icons).size, 3, 'alignment icon did not change with the selected block')
+    equal(editor.canUndo, false, 'reading alignment state created history')
+    equal(editor.save().blocks.map(block => block.tunes?.textAlign), ['center', undefined, 'right'])
+  })
 }
 
 await run()
