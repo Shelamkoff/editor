@@ -419,6 +419,41 @@ async function verifyBlockOperations(client, language) {
   await undo(true)
   assert(JSON.stringify(await snapshot()) === JSON.stringify(crossAfter), 'Demo cross Image redo changed data or identity')
   await undo()
+
+  const shortPoints=await evaluate(client,`(() => {
+    const heading=document.querySelector('.live-demo .oe-block[data-block-type="heading"] [contenteditable="true"]')
+    const paragraph=document.querySelector('.live-demo .oe-block[data-block-type="paragraph"] [contenteditable="true"]')
+    heading.scrollIntoView({block:'center'})
+    function point(field,offset){
+      const walker=document.createTreeWalker(field,NodeFilter.SHOW_TEXT),node=walker.nextNode()
+      const range=document.createRange();range.setStart(node,offset);range.collapse(true)
+      const rect=range.getBoundingClientRect();return {x:rect.left+0.1,y:rect.top+rect.height/2}
+    }
+    return {from:point(heading,2),to:point(paragraph,3)}
+  })()`)
+  await client.send('Input.dispatchMouseEvent',{type:'mouseMoved',...shortPoints.from})
+  await client.send('Input.dispatchMouseEvent',{type:'mousePressed',button:'left',buttons:1,clickCount:1,...shortPoints.from})
+  for(let step=1;step<=12;step++)await client.send('Input.dispatchMouseEvent',{type:'mouseMoved',button:'left',buttons:1,x:shortPoints.from.x+(shortPoints.to.x-shortPoints.from.x)*step/12,y:shortPoints.from.y+(shortPoints.to.y-shortPoints.from.y)*step/12})
+  await client.send('Input.dispatchMouseEvent',{type:'mouseReleased',button:'left',clickCount:1,...shortPoints.to})
+  await delay(100)
+  await click('document.querySelector(".live-demo .oe-inline-toolbar__type-select")')
+  await click('document.querySelector(".live-demo .oe-inline-toolbar__type-dropdown [data-plugin-type=heading]")')
+  await delay(300)
+  assert(await evaluate(client,`document.querySelector('.live-demo .oe-editor').classList.contains('oe-editor--cross-selecting') && window.getSelection().isCollapsed && document.querySelector('.live-demo .oe-inline-toolbar').checkVisibility()`),'Demo text conversion lost its converted range, caret or toolbar')
+  if(qaRoot)await captureScreenshot(client,join(qaRoot,'converted-range-'+language+'.png'))
+  await undo()
+  assert(JSON.stringify(await snapshot())===JSON.stringify(crossBefore),'Demo text range conversion did not undo exactly')
+  await click('document.querySelector(".live-demo .oe-inline-toolbar__type-select")')
+  await click('document.querySelector(".live-demo .oe-inline-toolbar__type-dropdown [data-plugin-type=code]")')
+  await delay(300)
+  const joined=await snapshot()
+  assert(joined.filter(block=>block.type==='code').length===1,'Demo Code conversion did not create one block')
+  const codeValue=await evaluate(client,"document.querySelector('.live-demo .oe-block[data-block-type=code] textarea').value")
+  assert(codeValue===crossBefore[0].fields[0].slice(2)+'\n'+crossBefore[paragraphIndex].fields[0].slice(0,3),'Demo Code changed selected text: '+JSON.stringify(codeValue))
+  assert(!await evaluate(client,"document.querySelector('.live-demo .oe-editor').classList.contains('oe-editor--cross-selecting')"),'Demo Code retained the old text highlight')
+  if(qaRoot)await captureScreenshot(client,join(qaRoot,'joined-code-'+language+'.png'))
+  await undo()
+  assert(JSON.stringify(await snapshot())===JSON.stringify(crossBefore),'Demo joined Code did not undo exactly')
 }
 
 async function verifyDemoTooltips(client, language) {
@@ -1057,6 +1092,8 @@ try {
     movedBlockButtons: { languages: ['ru', 'en'], geometry: true, atomicUndo: true },
     tuneFragmentConversion: { languages: ['ru', 'en'], unselectedEdges: true, atomicUndoRedo: true },
     crossImageConversion: { languages: ['ru', 'en'], singleTarget: true, unselectedListItem: true, atomicUndoRedo: true },
+    convertedTextRange: { languages: ['ru','en'], endCaret: true, toolbar: true, atomicUndo: true },
+    joinedCodeConversion: { languages: ['ru','en'], singleTarget: true, decodedText: true, atomicUndo: true },
     missingAssets: 0,
   }))
 } finally {

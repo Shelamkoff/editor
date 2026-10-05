@@ -760,12 +760,13 @@ export class DocumentRuntime {
       const sourceDefinition = this.#registry.getBlockDefinition(current.type)
       const targetDefinition = this.#registry.getBlockDefinition(target.type)
       if (!targetDefinition) throw new Error(`Unknown block type: ${target.type}`)
+      if(current.type===target.type&&target.toolboxItemId===undefined)return
 
       // As in the block menu, every registered target is available. A target
       // imports transferable content when it can; otherwise it starts with its
       // own schema defaults. Never bypass the inline-reference preservation check.
       const sourcePayload = sourceDefinition?.capabilities?.conversion?.export(current.data) ?? null
-      const targetData = this.#targetDataFromPayload(targetDefinition, sourcePayload, target)
+      const targetData = this.#targetDataFromPayload(targetDefinition, sourcePayload, target, current.type===target.type?current.data:undefined)
 
       const next = this.#recordFromData(
         id, target.type, targetDefinition, targetData, current.tunes, current.inline,
@@ -794,6 +795,7 @@ export class DocumentRuntime {
     const {start,end}=ordered
     const targetDefinition=this.#registry.getBlockDefinition(target.type)
     if(!targetDefinition)return false
+    if(start.blockId===end.blockId&&this.#store.get(start.blockId)?.type===target.type&&target.toolboxItemId===undefined)return false
 
     if(
       start.blockId===end.blockId
@@ -2489,10 +2491,12 @@ export class DocumentRuntime {
     return this.#sliceSelection(record,{fieldKey:first.key,offset:0},point)
   }
 
-  #targetDataFromPayload(targetDefinition,payload,target){
+  #targetDataFromPayload(targetDefinition,payload,target,baseData=undefined){
     let data
     const conversion=targetDefinition.capabilities?.conversion
-    if(payload&&conversion?.canImport?.(payload)){
+    if(baseData!==undefined){
+      data=cloneEditorData(baseData)
+    }else if(payload&&conversion?.canImport?.(payload)){
       data=conversion.import(payload)
     }else{
       data=targetDefinition.schema.createDefault()
@@ -2610,8 +2614,26 @@ export class DocumentRuntime {
     // Importing a caption does not make a media/compound target a text block.
     // Grouping is declared by the target independently of payload compatibility.
     if(targetConversion?.selectionMode!=='per-block'){
-      const targetData=this.#targetDataFromPayload(targetDefinition,null,target)
+      let payload=null
+      const selected=[]
+      if(targetConversion?.joinSelection){
+        if(this.#payloadHasContent(firstSlice.selected))selected.push({payload:firstSlice.selected,inline:firstSlice.inline})
+        for(let index=firstIndex+1;index<lastIndex;index++){
+          const record=this.#store.get(ids[index])
+          if(!record||this.activation(record.id)?.kind!=='active')return false
+          const conversion=this.#registry.getBlockDefinition(record.type)?.capabilities?.conversion
+          if(!conversion)return false
+          selected.push({payload:conversion.export(record.data),inline:cloneInline(record.inline)??{}})
+        }
+        if(this.#payloadHasContent(lastSlice.selected))selected.push({payload:lastSlice.selected,inline:lastSlice.inline})
+        if(!selected.length)return false
+        payload=targetConversion.joinSelection(selected.map(part=>cloneEditorData(part.payload)),{ownerDocument:this.#ownerDocument})
+        if(!targetConversion.canImport(payload))return false
+      }
+      const targetData=this.#targetDataFromPayload(targetDefinition,payload,target)
       const targetId=this.#createUniqueBlockId(target.type)
+      const targetRecord=this.#recordFromData(targetId,target.type,targetDefinition,targetData,first.tunes,{})
+      for(const part of selected)this.#assertConversionInlinePreserved(part.payload,part.inline,targetDefinition,targetRecord)
       this.#engine.execute({origin:'user',name:'selection.convert'},tx=>{
         if(firstSlice.before){
           tx.update(first.id,this.#recordFromData(
@@ -2643,9 +2665,7 @@ export class DocumentRuntime {
         }else{
           insertAt=Math.min(firstIndex,live.length)
         }
-        tx.insert(insertAt,this.#recordFromData(
-          targetId,target.type,targetDefinition,targetData,first.tunes,{},
-        ))
+        tx.insert(insertAt,targetRecord)
       })
       return {focusId:targetId,convertedIds:[targetId]}
     }
@@ -2667,7 +2687,7 @@ export class DocumentRuntime {
       const conversion=definition?.capabilities?.conversion
       if(!conversion)return false
       const payload=conversion.export(record.data)
-      if(!targetConversion?.canImport?.(payload))return false
+      if(record.type!==target.type&&!targetConversion?.canImport?.(payload))return false
       pieces.push({original:record,payload,inline:cloneInline(record.inline)??{},position:'middle'})
     }
     if(this.#payloadHasContent(lastSlice.selected)){
@@ -2682,8 +2702,22 @@ export class DocumentRuntime {
 
     const occupiedIds=new Set(this.#store.ids())
     for(const piece of pieces){
-      if(!targetConversion?.canImport?.(piece.payload))return false
-      piece.data=this.#targetDataFromPayload(targetDefinition,piece.payload,target)
+      const sameType=piece.original.type===target.type&&target.toolboxItemId===undefined
+      if(!sameType&&!targetConversion?.canImport?.(piece.payload))return false
+      // A matching owner is already in the requested type. Preserve its data
+      // rather than round-tripping its fields through a neutral text payload.
+      // For endpoints, the existing plugin clipboard contract owns the exact
+      // selected structure (items, captions and metadata); generic rich fields
+      // provide the fallback without hard-coding plugin names.
+      piece.data=sameType
+        ?piece.position==='middle'
+          ?piece.original.data
+          :this.#selectedSourceData(
+            piece.original,
+            piece.position==='first'?start:null,
+            piece.position==='last'?end:null,
+          )
+        :this.#targetDataFromPayload(targetDefinition,piece.payload,target)
       piece.insert=(
         (piece.position==='first'&&firstSlice.before)
         ||(piece.position==='last'&&lastSlice.after)
@@ -2728,6 +2762,28 @@ export class DocumentRuntime {
       }
     })
     return focusId?{focusId,convertedIds}:false
+  }
+
+  #selectedSourceData(record,start,end){
+    const definition=this.#registry.getBlockDefinition(record.type)
+    const inline=cloneInline(record.inline)??{}
+    const fields=this.#richTextFields(definition,record.data,inline)
+    const first=start??{fieldKey:fields[0].key,offset:0}
+    const last=end??{fieldKey:fields.at(-1).key,offset:fields.at(-1).length}
+    if(definition.capabilities?.clipboard){
+      const sliced=this.#prepareClipboardBlockSlice(record,first,last)
+      if(sliced?.parts.length===1&&sliced.parts[0].kind==='block')return sliced.parts[0].block.data
+    }
+    const from=fields.findIndex(field=>field.key===first.fieldKey)
+    const to=fields.findIndex(field=>field.key===last.fieldKey)
+    return definition.schema.mapRichText(cloneEditorData(record.data),(html,key)=>{
+      const index=fields.findIndex(field=>field.key===key)
+      if(index<from||index>to)return ''
+      return sliceRichTextRange(html,inline,{
+        start:index===from?first.offset:0,
+        end:index===to?last.offset:fields[index].length,
+      },this.#ownerDocument).selected
+    })
   }
 
   #assertConversionInlinePreserved(payload,inline,targetDefinition,targetRecord){

@@ -47,6 +47,8 @@ The language menu contains the built-in identifiers used by the bundled highligh
 
 Code/pre tag paste; fenced-code pattern paste; keyboard-accessible language selection and filtering; optional syntax highlighting; Clipboard API copy; export for conversion.
 
+Cross-block conversion creates one Code block with all selected text. Author markup is decoded to text, line breaks and HTML entities are preserved, and literal source code stays literal. Unselected endpoint fields remain in their original blocks. The conversion is one history action; linked inline widgets that Code cannot preserve cause an atomic rejection.
+
 ## Undo, lifecycle, and styles
 
 Each mounted block receives a scoped context. Use `context.updateData(producer)` for data changes, `context.commitDomMutation(operation)` for protected rich-text edits, and `context.beginTask()` for asynchronous results. Each completed action creates one history step. The block instance and its per-editor runtime release their resources through `destroy()`; Rector releases owned styles when their final owner is removed.

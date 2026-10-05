@@ -1,0 +1,31 @@
+file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149
+    if (result.status === 'fail') throw new Error(`History matrix failed: ${result.summary}`)
+                                        ^
+
+Error: History matrix failed: [
+  {
+    "name": "native local same-type conversion is a no-op / list",
+    "status": "FAIL",
+    "error": "Error: Choosing the current type split or reset its data\nexpected [{\"id\":\"a\",\"type\":\"list\",\"dataVersion\":2,\"data\":{\"style\":\"ordered\",\"items\":[{\"id\":\"first\",\"text\":\"Bravo\"},{\"id\":\"second\",\"text\":\"Charlie\"}]}},{\"id\":\"b\",\"type\":\"paragraph\",\"dataVersion\":2,\"data\":{\"text\":\"Tail\"}}], got [{\"id\":\"a\",\"type\":\"list\",\"dataVersion\":2,\"data\":{\"style\":\"ordered\",\"items\":[{\"id\":\"first\",\"text\":\"Bvo\"},{\"id\":\"second\",\"text\":\"Charlie\"}]}},{\"id\":\"list-W7eED1\",\"type\":\"list\",\"dataVersion\":2,\"data\":{\"style\":\"unordered\",\"items\":[{\"id\":\"item-0\",\"text\":\"ra\"}]}},{\"id\":\"b\",\"type\":\"paragraph\",\"dataVersion\":2,\"data\":{\"text\":\"Tail\"}}]\n    at equal (http://127.0.0.1:63305/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:63305/tests/browser/native-conversion-preservation.js:140:3\n    at async run (http://127.0.0.1:63305/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:63305/tests/browser/native-conversion-preservation.js:146:1"
+  },
+  {
+    "name": "native local same-type conversion is a no-op / checklist",
+    "status": "FAIL",
+    "error": "Error: Choosing the current type split or reset its data\nexpected [{\"id\":\"a\",\"type\":\"checklist\",\"dataVersion\":2,\"data\":{\"items\":[{\"id\":\"first\",\"text\":\"Bravo\",\"checked\":true},{\"id\":\"second\",\"text\":\"Charlie\",\"checked\":false}]}},{\"id\":\"b\",\"type\":\"paragraph\",\"dataVersion\":2,\"data\":{\"text\":\"Tail\"}}], got [{\"id\":\"a\",\"type\":\"checklist\",\"dataVersion\":2,\"data\":{\"items\":[{\"id\":\"first\",\"text\":\"Bvo\",\"checked\":true},{\"id\":\"second\",\"text\":\"Charlie\",\"checked\":false}]}},{\"id\":\"checklist-7WETmm\",\"type\":\"checklist\",\"dataVersion\":2,\"data\":{\"items\":[{\"id\":\"item-0\",\"text\":\"ra\",\"checked\":false}]}},{\"id\":\"b\",\"type\":\"paragraph\",\"dataVersion\":2,\"data\":{\"text\":\"Tail\"}}]\n    at equal (http://127.0.0.1:63305/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:63305/tests/browser/native-conversion-preservation.js:140:3\n    at async run (http://127.0.0.1:63305/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:63305/tests/browser/native-conversion-preservation.js:146:1"
+  },
+  {
+    "name": "native local same-type conversion is a no-op / heading",
+    "status": "FAIL",
+    "error": "Error: Choosing the current type split or reset its data\nexpected [{\"id\":\"a\",\"type\":\"heading\",\"dataVersion\":2,\"data\":{\"text\":\"Bravo\",\"level\":5}},{\"id\":\"b\",\"type\":\"paragraph\",\"dataVersion\":2,\"data\":{\"text\":\"Tail\"}}], got [{\"id\":\"a\",\"type\":\"heading\",\"dataVersion\":2,\"data\":{\"text\":\"B\",\"level\":5}},{\"id\":\"heading-VyqMHg\",\"type\":\"heading\",\"dataVersion\":2,\"data\":{\"text\":\"ra\",\"level\":2}},{\"id\":\"heading-c1vIjf\",\"type\":\"heading\",\"dataVersion\":2,\"data\":{\"text\":\"vo\",\"level\":5}},{\"id\":\"b\",\"type\":\"paragraph\",\"dataVersion\":2,\"data\":{\"text\":\"Tail\"}}]\n    at equal (http://127.0.0.1:63305/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:63305/tests/browser/native-conversion-preservation.js:140:3\n    at async run (http://127.0.0.1:63305/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:63305/tests/browser/native-conversion-preservation.js:146:1"
+  },
+  {
+    "name": "native local same-type conversion is a no-op / quote",
+    "status": "FAIL",
+    "error": "Error: Choosing the current type split or reset its data\nexpected [{\"id\":\"a\",\"type\":\"quote\",\"dataVersion\":1,\"data\":{\"text\":\"Bravo\",\"caption\":\"Author\"}},{\"id\":\"b\",\"type\":\"paragraph\",\"dataVersion\":2,\"data\":{\"text\":\"Tail\"}}], got [{\"id\":\"a\",\"type\":\"quote\",\"dataVersion\":1,\"data\":{\"text\":\"Bvo\",\"caption\":\"Author\"}},{\"id\":\"quote-aW4hk1\",\"type\":\"quote\",\"dataVersion\":1,\"data\":{\"text\":\"ra\",\"caption\":\"\"}},{\"id\":\"b\",\"type\":\"paragraph\",\"dataVersion\":2,\"data\":{\"text\":\"Tail\"}}]\n    at equal (http://127.0.0.1:63305/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:63305/tests/browser/native-conversion-preservation.js:140:3\n    at async run (http://127.0.0.1:63305/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:63305/tests/browser/native-conversion-preservation.js:146:1"
+  }
+]
+    at waitForHistoryMatrix (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149:41)
+    at async runNativePage (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:275:30)
+    at async file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:312:48
+
+Node.js v24.9.0

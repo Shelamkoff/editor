@@ -284,9 +284,13 @@ export function createEditorRuntime(input){
     readOnly:config.readOnly===true,
   })
 
+  let crossSelection=null
   const selectionPort={
-    capture:()=>logicalSelection?.capture()??null,
-    restore:bookmark=>logicalSelection?.restore(bookmark),
+    capture:()=>crossSelection?.bookmark??logicalSelection?.capture()??null,
+    restore:bookmark=>{
+      if(bookmark?.anchor.blockId!==bookmark?.focus.blockId&&crossSelection?.restore(bookmark))return true
+      return logicalSelection?.restore(bookmark)
+    },
   }
 
   let keyboardRouter=null
@@ -350,7 +354,7 @@ export function createEditorRuntime(input){
     },
   })
   view=new EditorViewModel({runtime,reconciler,interaction,selection:logicalSelection})
-  const crossSelection=lifecycle.register(new SelectionController({root,runtime,reconciler,view}))
+  crossSelection=lifecycle.register(new SelectionController({root,runtime,reconciler,view}))
   const inlineWidgetInput=lifecycle.register(new InlineWidgetInputController({
     root,
     runtime,
@@ -419,6 +423,7 @@ export function createEditorRuntime(input){
     registry,
     view,
     selection:logicalSelection,
+    selectionPort:crossSelection,
     inlineCommands,
     translate:(key,fallback='')=>{
       const translated=i18n.t(key)

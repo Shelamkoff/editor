@@ -1,5 +1,5 @@
 // @ts-check
-import { READ_ONLY_INTERACTIVE_ATTRIBUTE } from '../../plugin-kit/index.js'
+import { READ_ONLY_INTERACTIVE_ATTRIBUTE, setSanitizedHtml } from '../../plugin-kit/index.js'
 import { setTrustedHtml } from '../../shared/sanitize/sanitizeHtml.js'
 import { codeDataSchema } from '../../shared/blockSchemas/code.js'
 import { getHighlightRuntime, loadHighlightRuntime } from '../../shared/highlightRuntime.js'
@@ -12,6 +12,15 @@ const ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" vie
 const COPY_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>'
 const CHECK_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
 const EDIT_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L9 17l-4 1 1-4z"/></svg>'
+
+function selectedPayloadText(payload,ownerDocument){
+  if((payload?.kind!=='plain-text'&&payload?.kind!=='rich-text')||typeof payload.data?.text!=='string')throw new TypeError('Code can only join textual payloads')
+  if(payload.kind==='plain-text')return payload.data.text
+  const template=ownerDocument.createElement('template')
+  setSanitizedHtml(template,payload.data.text)
+  for(const lineBreak of template.content.querySelectorAll('br'))lineBreak.replaceWith(ownerDocument.createTextNode('\n'))
+  return template.content.textContent??''
+}
 
 function highlight(element, code, language, runtime) {
   element.className = language === 'auto' ? '' : 'language-' + language
@@ -52,7 +61,10 @@ export function createCodePlugin(config = {}) {
   const capabilities = Object.freeze({
     empty: Object.freeze({ isEmpty: data => data.code.trim().length === 0 }),
     conversion: Object.freeze({
-      selectionMode:'per-block',
+      selectionMode:'single',
+      joinSelection(payloads,context){
+        return {kind:'plain-text',data:{text:payloads.map(payload=>selectedPayloadText(payload,context.ownerDocument)).join('\n')}}
+      },
       export: data => ({ kind: 'plain-text', data: { text: data.code } }),
       canImport: payload => (payload?.kind === 'plain-text' || payload?.kind === 'rich-text') && typeof payload.data?.text === 'string',
       import(payload) {

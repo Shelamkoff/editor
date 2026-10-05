@@ -64,6 +64,7 @@ Decode external input once at the boundary. Encode every model-first update befo
 - `formatting.inlineTools` is `true` or an allowlist.
 - `merge.merge(target, source)` is a pure data merge.
 - `conversion` exports/imports neutral `ConversionPayload`. Its `selectionMode` controls cross-block conversion: `'single'` (the default) replaces the selected interval with one default target; `'per-block'` imports each selected source fragment separately. Caption import does not imply text-style grouping. Both modes preserve unselected endpoint data and use one Undo action. Declare `'per-block'` only when each fragment is meaningful as an independent target; unsupported imports reject before mutation.
+  A single target may declare `joinSelection(payloads, { ownerDocument })` to aggregate the selected author content before import. Code uses this hook to create one block with decoded text and line breaks. The registry snapshots the method; core validates the result and rejects inline-widget loss before any mutation. Already matching text owners retain their local fields, metadata and identities rather than being re-imported through neutral text.
 - `selectionSlice.slice(...)` describes partial structured selection without mutating DOM.
 - `inlineControls` reuses model-first settings actions inside the inline toolbar.
 - `settings` is either an actions capability or a model-first panel.

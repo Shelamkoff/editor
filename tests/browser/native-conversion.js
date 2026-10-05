@@ -43,7 +43,7 @@ for (const backwards of [false, true]) {
     assert(document.activeElement === field, 'native conversion focus escaped the last converted block')
     const selection = window.getSelection()
     assert(selection.isCollapsed, 'native conversion did not leave a caret')
-    equal(getTextOffset(field, selection.anchorNode, selection.anchorOffset), 0)
+    equal(getTextOffset(field, selection.anchorNode, selection.anchorOffset), 3)
     await checkHistory(editor, before, after)
   })
 }
@@ -56,15 +56,15 @@ for (const type of ['list', 'code']) {
     await chooseType(editor, type)
     const after = editor.save().blocks
     equal(after.map(block => [block.type, block.data.text ?? block.data.code ?? block.data.items.map(item => item.text).join('\n')]), [
-      ['paragraph', 'Al'], [type, 'pha'], [type, 'Middle'], [type, 'Bra'], ['paragraph', 'vo'],
+      ['paragraph', 'Al'], ...(type==='code'?[[type,'pha\nMiddle\nBra']]:[[type,'pha'],[type,'Middle'],[type,'Bra']]), ['paragraph', 'vo'],
     ])
     if (type === 'list') {
       equal(after.slice(1, 4).map(block => block.data.style), ['unordered', 'unordered', 'unordered'])
     }
-    const field = editableField(editor, after[3].id, type === 'code' ? 'textarea' : '[contenteditable="true"]')
+    const field = editableField(editor, after[type==='code'?1:3].id, type === 'code' ? 'textarea' : '[contenteditable="true"]')
     assert(document.activeElement === field, 'native conversion lost focus in the last selected piece')
     if (type === 'code') equal([field.selectionStart, field.selectionEnd], [0, 0])
-    else equal(getTextOffset(field, window.getSelection().anchorNode, window.getSelection().anchorOffset), 0)
+    else equal(getTextOffset(field, window.getSelection().anchorNode, window.getSelection().anchorOffset), 3)
     await checkHistory(editor, before, after)
   })
 }

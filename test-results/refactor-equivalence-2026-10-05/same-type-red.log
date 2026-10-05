@@ -1,0 +1,131 @@
+file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149
+    if (result.status === 'fail') throw new Error(`History matrix failed: ${result.summary}`)
+                                        ^
+
+Error: History matrix failed: [
+  {
+    "name": "native matching middle owner retains its data / list / inline / forward",
+    "status": "FAIL",
+    "error": "Error: Reconversion of the same type discarded author data, field identities or settings\nexpected {\"id\":\"middle\",\"type\":\"list\",\"dataVersion\":2,\"data\":{\"style\":\"ordered\",\"items\":[{\"id\":\"first\",\"text\":\"Bravo\"},{\"id\":\"second\",\"text\":\"Charlie\"}]},\"tunes\":{\"textAlign\":\"right\"}}, got {\"id\":\"middle\",\"type\":\"list\",\"dataVersion\":2,\"data\":{\"style\":\"unordered\",\"items\":[{\"id\":\"item-0\",\"text\":\"Bravo<br>Charlie\"}]},\"tunes\":{\"textAlign\":\"right\"}}\n    at equal (http://127.0.0.1:61824/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:61824/tests/browser/native-conversion-preservation.js:38:3\n    at async run (http://127.0.0.1:61824/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:61824/tests/browser/native-conversion-preservation.js:58:1"
+  },
+  {
+    "name": "native matching middle owner retains its data / list / inline / backward",
+    "status": "FAIL",
+    "error": "Error: Reconversion of the same type discarded author data, field identities or settings\nexpected {\"id\":\"middle\",\"type\":\"list\",\"dataVersion\":2,\"data\":{\"style\":\"ordered\",\"items\":[{\"id\":\"first\",\"text\":\"Bravo\"},{\"id\":\"second\",\"text\":\"Charlie\"}]},\"tunes\":{\"textAlign\":\"right\"}}, got {\"id\":\"middle\",\"type\":\"list\",\"dataVersion\":2,\"data\":{\"style\":\"unordered\",\"items\":[{\"id\":\"item-0\",\"text\":\"Bravo<br>Charlie\"}]},\"tunes\":{\"textAlign\":\"right\"}}\n    at equal (http://127.0.0.1:61824/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:61824/tests/browser/native-conversion-preservation.js:38:3\n    at async run (http://127.0.0.1:61824/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:61824/tests/browser/native-conversion-preservation.js:58:1"
+  },
+  {
+    "name": "native matching middle owner retains its data / list / tune / forward",
+    "status": "FAIL",
+    "error": "Error: Reconversion of the same type discarded author data, field identities or settings\nexpected {\"id\":\"middle\",\"type\":\"list\",\"dataVersion\":2,\"data\":{\"style\":\"ordered\",\"items\":[{\"id\":\"first\",\"text\":\"Bravo\"},{\"id\":\"second\",\"text\":\"Charlie\"}]},\"tunes\":{\"textAlign\":\"right\"}}, got {\"id\":\"middle\",\"type\":\"list\",\"dataVersion\":2,\"data\":{\"style\":\"unordered\",\"items\":[{\"id\":\"item-0\",\"text\":\"Bravo<br>Charlie\"}]},\"tunes\":{\"textAlign\":\"right\"}}\n    at equal (http://127.0.0.1:61824/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:61824/tests/browser/native-conversion-preservation.js:38:3\n    at async run (http://127.0.0.1:61824/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:61824/tests/browser/native-conversion-preservation.js:58:1"
+  },
+  {
+    "name": "native matching middle owner retains its data / list / tune / backward",
+    "status": "FAIL",
+    "error": "Error: Reconversion of the same type discarded author data, field identities or settings\nexpected {\"id\":\"middle\",\"type\":\"list\",\"dataVersion\":2,\"data\":{\"style\":\"ordered\",\"items\":[{\"id\":\"first\",\"text\":\"Bravo\"},{\"id\":\"second\",\"text\":\"Charlie\"}]},\"tunes\":{\"textAlign\":\"right\"}}, got {\"id\":\"middle\",\"type\":\"list\",\"dataVersion\":2,\"data\":{\"style\":\"unordered\",\"items\":[{\"id\":\"item-0\",\"text\":\"Bravo<br>Charlie\"}]},\"tunes\":{\"textAlign\":\"right\"}}\n    at equal (http://127.0.0.1:61824/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:61824/tests/browser/native-conversion-preservation.js:38:3\n    at async run (http://127.0.0.1:61824/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:61824/tests/browser/native-conversion-preservation.js:58:1"
+  },
+  {
+    "name": "native matching middle owner retains its data / checklist / inline / forward",
+    "status": "FAIL",
+    "error": "Error: Reconversion of the same type discarded author data, field identities or settings\nexpected {\"id\":\"middle\",\"type\":\"checklist\",\"dataVersion\":2,\"data\":{\"items\":[{\"id\":\"first\",\"text\":\"Bravo\",\"checked\":true},{\"id\":\"second\",\"text\":\"Charlie\",\"checked\":false}]},\"tunes\":{\"textAlign\":\"right\"}}, got {\"id\":\"middle\",\"type\":\"checklist\",\"dataVersion\":2,\"data\":{\"items\":[{\"id\":\"item-0\",\"text\":\"Bravo<br>Charlie\",\"checked\":false}]},\"tunes\":{\"textAlign\":\"right\"}}\n    at equal (http://127.0.0.1:61824/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:61824/tests/browser/native-conversion-preservation.js:38:3\n    at async run (http://127.0.0.1:61824/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:61824/tests/browser/native-conversion-preservation.js:58:1"
+  },
+  {
+    "name": "native matching middle owner retains its data / checklist / inline / backward",
+    "status": "FAIL",
+    "error": "Error: Reconversion of the same type discarded author data, field identities or settings\nexpected {\"id\":\"middle\",\"type\":\"checklist\",\"dataVersion\":2,\"data\":{\"items\":[{\"id\":\"first\",\"text\":\"Bravo\",\"checked\":true},{\"id\":\"second\",\"text\":\"Charlie\",\"checked\":false}]},\"tunes\":{\"textAlign\":\"right\"}}, got {\"id\":\"middle\",\"type\":\"checklist\",\"dataVersion\":2,\"data\":{\"items\":[{\"id\":\"item-0\",\"text\":\"Bravo<br>Charlie\",\"checked\":false}]},\"tunes\":{\"textAlign\":\"right\"}}\n    at equal (http://127.0.0.1:61824/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:61824/tests/browser/native-conversion-preservation.js:38:3\n    at async run (http://127.0.0.1:61824/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:61824/tests/browser/native-conversion-preservation.js:58:1"
+  },
+  {
+    "name": "native matching middle owner retains its data / checklist / tune / forward",
+    "status": "FAIL",
+    "error": "Error: Reconversion of the same type discarded author data, field identities or settings\nexpected {\"id\":\"middle\",\"type\":\"checklist\",\"dataVersion\":2,\"data\":{\"items\":[{\"id\":\"first\",\"text\":\"Bravo\",\"checked\":true},{\"id\":\"second\",\"text\":\"Charlie\",\"checked\":false}]},\"tunes\":{\"textAlign\":\"right\"}}, got {\"id\":\"middle\",\"type\":\"checklist\",\"dataVersion\":2,\"data\":{\"items\":[{\"id\":\"item-0\",\"text\":\"Bravo<br>Charlie\",\"checked\":false}]},\"tunes\":{\"textAlign\":\"right\"}}\n    at equal (http://127.0.0.1:61824/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:61824/tests/browser/native-conversion-preservation.js:38:3\n    at async run (http://127.0.0.1:61824/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:61824/tests/browser/native-conversion-preservation.js:58:1"
+  },
+  {
+    "name": "native matching middle owner retains its data / checklist / tune / backward",
+    "status": "FAIL",
+    "error": "Error: Reconversion of the same type discarded author data, field identities or settings\nexpected {\"id\":\"middle\",\"type\":\"checklist\",\"dataVersion\":2,\"data\":{\"items\":[{\"id\":\"first\",\"text\":\"Bravo\",\"checked\":true},{\"id\":\"second\",\"text\":\"Charlie\",\"checked\":false}]},\"tunes\":{\"textAlign\":\"right\"}}, got {\"id\":\"middle\",\"type\":\"checklist\",\"dataVersion\":2,\"data\":{\"items\":[{\"id\":\"item-0\",\"text\":\"Bravo<br>Charlie\",\"checked\":false}]},\"tunes\":{\"textAlign\":\"right\"}}\n    at equal (http://127.0.0.1:61824/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:61824/tests/browser/native-conversion-preservation.js:38:3\n    at async run (http://127.0.0.1:61824/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:61824/tests/browser/native-conversion-preservation.js:58:1"
+  },
+  {
+    "name": "native matching middle owner retains its data / heading / inline / forward",
+    "status": "FAIL",
+    "error": "Error: Reconversion of the same type discarded author data, field identities or settings\nexpected {\"id\":\"middle\",\"type\":\"heading\",\"dataVersion\":2,\"data\":{\"text\":\"Bravo\",\"level\":5},\"tunes\":{\"textAlign\":\"right\"}}, got {\"id\":\"middle\",\"type\":\"heading\",\"dataVersion\":2,\"data\":{\"text\":\"Bravo\",\"level\":2},\"tunes\":{\"textAlign\":\"right\"}}\n    at equal (http://127.0.0.1:61824/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:61824/tests/browser/native-conversion-preservation.js:38:3\n    at async run (http://127.0.0.1:61824/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:61824/tests/browser/native-conversion-preservation.js:58:1"
+  },
+  {
+    "name": "native matching middle owner retains its data / heading / inline / backward",
+    "status": "FAIL",
+    "error": "Error: Reconversion of the same type discarded author data, field identities or settings\nexpected {\"id\":\"middle\",\"type\":\"heading\",\"dataVersion\":2,\"data\":{\"text\":\"Bravo\",\"level\":5},\"tunes\":{\"textAlign\":\"right\"}}, got {\"id\":\"middle\",\"type\":\"heading\",\"dataVersion\":2,\"data\":{\"text\":\"Bravo\",\"level\":2},\"tunes\":{\"textAlign\":\"right\"}}\n    at equal (http://127.0.0.1:61824/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:61824/tests/browser/native-conversion-preservation.js:38:3\n    at async run (http://127.0.0.1:61824/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:61824/tests/browser/native-conversion-preservation.js:58:1"
+  },
+  {
+    "name": "native matching middle owner retains its data / heading / tune / forward",
+    "status": "FAIL",
+    "error": "Error: Reconversion of the same type discarded author data, field identities or settings\nexpected {\"id\":\"middle\",\"type\":\"heading\",\"dataVersion\":2,\"data\":{\"text\":\"Bravo\",\"level\":5},\"tunes\":{\"textAlign\":\"right\"}}, got {\"id\":\"middle\",\"type\":\"heading\",\"dataVersion\":2,\"data\":{\"text\":\"Bravo\",\"level\":2},\"tunes\":{\"textAlign\":\"right\"}}\n    at equal (http://127.0.0.1:61824/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:61824/tests/browser/native-conversion-preservation.js:38:3\n    at async run (http://127.0.0.1:61824/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:61824/tests/browser/native-conversion-preservation.js:58:1"
+  },
+  {
+    "name": "native matching middle owner retains its data / heading / tune / backward",
+    "status": "FAIL",
+    "error": "Error: Reconversion of the same type discarded author data, field identities or settings\nexpected {\"id\":\"middle\",\"type\":\"heading\",\"dataVersion\":2,\"data\":{\"text\":\"Bravo\",\"level\":5},\"tunes\":{\"textAlign\":\"right\"}}, got {\"id\":\"middle\",\"type\":\"heading\",\"dataVersion\":2,\"data\":{\"text\":\"Bravo\",\"level\":2},\"tunes\":{\"textAlign\":\"right\"}}\n    at equal (http://127.0.0.1:61824/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:61824/tests/browser/native-conversion-preservation.js:38:3\n    at async run (http://127.0.0.1:61824/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:61824/tests/browser/native-conversion-preservation.js:58:1"
+  },
+  {
+    "name": "native matching middle owner retains its data / quote / inline / forward",
+    "status": "FAIL",
+    "error": "Error: Reconversion of the same type discarded author data, field identities or settings\nexpected {\"id\":\"middle\",\"type\":\"quote\",\"dataVersion\":1,\"data\":{\"text\":\"Bravo\",\"caption\":\"Author\"},\"tunes\":{\"textAlign\":\"right\"}}, got {\"id\":\"middle\",\"type\":\"quote\",\"dataVersion\":1,\"data\":{\"text\":\"Bravo<br>Author\",\"caption\":\"\"},\"tunes\":{\"textAlign\":\"right\"}}\n    at equal (http://127.0.0.1:61824/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:61824/tests/browser/native-conversion-preservation.js:38:3\n    at async run (http://127.0.0.1:61824/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:61824/tests/browser/native-conversion-preservation.js:58:1"
+  },
+  {
+    "name": "native matching middle owner retains its data / quote / inline / backward",
+    "status": "FAIL",
+    "error": "Error: Reconversion of the same type discarded author data, field identities or settings\nexpected {\"id\":\"middle\",\"type\":\"quote\",\"dataVersion\":1,\"data\":{\"text\":\"Bravo\",\"caption\":\"Author\"},\"tunes\":{\"textAlign\":\"right\"}}, got {\"id\":\"middle\",\"type\":\"quote\",\"dataVersion\":1,\"data\":{\"text\":\"Bravo<br>Author\",\"caption\":\"\"},\"tunes\":{\"textAlign\":\"right\"}}\n    at equal (http://127.0.0.1:61824/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:61824/tests/browser/native-conversion-preservation.js:38:3\n    at async run (http://127.0.0.1:61824/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:61824/tests/browser/native-conversion-preservation.js:58:1"
+  },
+  {
+    "name": "native matching middle owner retains its data / quote / tune / forward",
+    "status": "FAIL",
+    "error": "Error: Reconversion of the same type discarded author data, field identities or settings\nexpected {\"id\":\"middle\",\"type\":\"quote\",\"dataVersion\":1,\"data\":{\"text\":\"Bravo\",\"caption\":\"Author\"},\"tunes\":{\"textAlign\":\"right\"}}, got {\"id\":\"middle\",\"type\":\"quote\",\"dataVersion\":1,\"data\":{\"text\":\"Bravo<br>Author\",\"caption\":\"\"},\"tunes\":{\"textAlign\":\"right\"}}\n    at equal (http://127.0.0.1:61824/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:61824/tests/browser/native-conversion-preservation.js:38:3\n    at async run (http://127.0.0.1:61824/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:61824/tests/browser/native-conversion-preservation.js:58:1"
+  },
+  {
+    "name": "native matching middle owner retains its data / quote / tune / backward",
+    "status": "FAIL",
+    "error": "Error: Reconversion of the same type discarded author data, field identities or settings\nexpected {\"id\":\"middle\",\"type\":\"quote\",\"dataVersion\":1,\"data\":{\"text\":\"Bravo\",\"caption\":\"Author\"},\"tunes\":{\"textAlign\":\"right\"}}, got {\"id\":\"middle\",\"type\":\"quote\",\"dataVersion\":1,\"data\":{\"text\":\"Bravo<br>Author\",\"caption\":\"\"},\"tunes\":{\"textAlign\":\"right\"}}\n    at equal (http://127.0.0.1:61824/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:61824/tests/browser/native-conversion-preservation.js:38:3\n    at async run (http://127.0.0.1:61824/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:61824/tests/browser/native-conversion-preservation.js:58:1"
+  },
+  {
+    "name": "native matching endpoint retains selected list items / list / inline / forward",
+    "status": "FAIL",
+    "error": "Error: Same-type endpoint was flattened, reset or lost item identities\nexpected {\"items\":[{\"id\":\"first\",\"text\":\"Bravo\"},{\"id\":\"second\",\"text\":\"Charlie\"}],\"style\":\"ordered\"}, got {\"style\":\"unordered\",\"items\":[{\"id\":\"item-0\",\"text\":\"Bravo<br>Charlie\"}]}\n    at equal (http://127.0.0.1:61824/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:61824/tests/browser/native-conversion-preservation.js:53:3\n    at async run (http://127.0.0.1:61824/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:61824/tests/browser/native-conversion-preservation.js:58:1"
+  },
+  {
+    "name": "native matching endpoint retains selected list items / list / inline / backward",
+    "status": "FAIL",
+    "error": "Error: Same-type endpoint was flattened, reset or lost item identities\nexpected {\"items\":[{\"id\":\"first\",\"text\":\"Bravo\"},{\"id\":\"second\",\"text\":\"Charlie\"}],\"style\":\"ordered\"}, got {\"style\":\"unordered\",\"items\":[{\"id\":\"item-0\",\"text\":\"Bravo<br>Charlie\"}]}\n    at equal (http://127.0.0.1:61824/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:61824/tests/browser/native-conversion-preservation.js:53:3\n    at async run (http://127.0.0.1:61824/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:61824/tests/browser/native-conversion-preservation.js:58:1"
+  },
+  {
+    "name": "native matching endpoint retains selected list items / list / tune / forward",
+    "status": "FAIL",
+    "error": "Error: Same-type endpoint was flattened, reset or lost item identities\nexpected {\"items\":[{\"id\":\"first\",\"text\":\"Bravo\"},{\"id\":\"second\",\"text\":\"Charlie\"}],\"style\":\"ordered\"}, got {\"style\":\"unordered\",\"items\":[{\"id\":\"item-0\",\"text\":\"Bravo<br>Charlie\"}]}\n    at equal (http://127.0.0.1:61824/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:61824/tests/browser/native-conversion-preservation.js:53:3\n    at async run (http://127.0.0.1:61824/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:61824/tests/browser/native-conversion-preservation.js:58:1"
+  },
+  {
+    "name": "native matching endpoint retains selected list items / list / tune / backward",
+    "status": "FAIL",
+    "error": "Error: Same-type endpoint was flattened, reset or lost item identities\nexpected {\"items\":[{\"id\":\"first\",\"text\":\"Bravo\"},{\"id\":\"second\",\"text\":\"Charlie\"}],\"style\":\"ordered\"}, got {\"style\":\"unordered\",\"items\":[{\"id\":\"item-0\",\"text\":\"Bravo<br>Charlie\"}]}\n    at equal (http://127.0.0.1:61824/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:61824/tests/browser/native-conversion-preservation.js:53:3\n    at async run (http://127.0.0.1:61824/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:61824/tests/browser/native-conversion-preservation.js:58:1"
+  },
+  {
+    "name": "native matching endpoint retains selected list items / checklist / inline / forward",
+    "status": "FAIL",
+    "error": "Error: Same-type endpoint was flattened, reset or lost item identities\nexpected {\"items\":[{\"id\":\"first\",\"text\":\"Bravo\",\"checked\":true},{\"id\":\"second\",\"text\":\"Charlie\",\"checked\":false}]}, got {\"items\":[{\"id\":\"item-0\",\"text\":\"Bravo<br>Charlie\",\"checked\":false}]}\n    at equal (http://127.0.0.1:61824/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:61824/tests/browser/native-conversion-preservation.js:53:3\n    at async run (http://127.0.0.1:61824/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:61824/tests/browser/native-conversion-preservation.js:58:1"
+  },
+  {
+    "name": "native matching endpoint retains selected list items / checklist / inline / backward",
+    "status": "FAIL",
+    "error": "Error: Same-type endpoint was flattened, reset or lost item identities\nexpected {\"items\":[{\"id\":\"first\",\"text\":\"Bravo\",\"checked\":true},{\"id\":\"second\",\"text\":\"Charlie\",\"checked\":false}]}, got {\"items\":[{\"id\":\"item-0\",\"text\":\"Bravo<br>Charlie\",\"checked\":false}]}\n    at equal (http://127.0.0.1:61824/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:61824/tests/browser/native-conversion-preservation.js:53:3\n    at async run (http://127.0.0.1:61824/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:61824/tests/browser/native-conversion-preservation.js:58:1"
+  },
+  {
+    "name": "native matching endpoint retains selected list items / checklist / tune / forward",
+    "status": "FAIL",
+    "error": "Error: Same-type endpoint was flattened, reset or lost item identities\nexpected {\"items\":[{\"id\":\"first\",\"text\":\"Bravo\",\"checked\":true},{\"id\":\"second\",\"text\":\"Charlie\",\"checked\":false}]}, got {\"items\":[{\"id\":\"item-0\",\"text\":\"Bravo<br>Charlie\",\"checked\":false}]}\n    at equal (http://127.0.0.1:61824/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:61824/tests/browser/native-conversion-preservation.js:53:3\n    at async run (http://127.0.0.1:61824/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:61824/tests/browser/native-conversion-preservation.js:58:1"
+  },
+  {
+    "name": "native matching endpoint retains selected list items / checklist / tune / backward",
+    "status": "FAIL",
+    "error": "Error: Same-type endpoint was flattened, reset or lost item identities\nexpected {\"items\":[{\"id\":\"first\",\"text\":\"Bravo\",\"checked\":true},{\"id\":\"second\",\"text\":\"Charlie\",\"checked\":false}]}, got {\"items\":[{\"id\":\"item-0\",\"text\":\"Bravo<br>Charlie\",\"checked\":false}]}\n    at equal (http://127.0.0.1:61824/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:61824/tests/browser/native-conversion-preservation.js:53:3\n    at async run (http://127.0.0.1:61824/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:61824/tests/browser/native-conversion-preservation.js:58:1"
+  }
+]
+    at waitForHistoryMatrix (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149:41)
+    at async runNativePage (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:275:30)
+    at async file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:312:48
+
+Node.js v24.9.0

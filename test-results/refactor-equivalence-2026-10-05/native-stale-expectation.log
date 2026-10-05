@@ -1,0 +1,39 @@
+file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149
+    if (result.status === 'fail') throw new Error(`History matrix failed: ${result.summary}`)
+                                        ^
+
+Error: History matrix failed: [
+  {
+    "name": "native mouse forward cross-block conversion preserves unselected edges and one Undo",
+    "status": "PASS"
+  },
+  {
+    "name": "native mouse backward cross-block conversion preserves unselected edges and one Undo",
+    "status": "PASS"
+  },
+  {
+    "name": "native cross-block conversion to list preserves all selected pieces and one Undo",
+    "status": "FAIL",
+    "error": "Error: \nexpected 0, got 3\n    at equal (http://127.0.0.1:65152/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:65152/tests/browser/native-conversion.js:67:10\n    at async run (http://127.0.0.1:65152/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:65152/tests/browser/native-conversion.js:121:1"
+  },
+  {
+    "name": "native cross-block conversion to code preserves all selected pieces and one Undo",
+    "status": "PASS"
+  },
+  {
+    "name": "native mixed Heading/Paragraph/List conversion preserves unselected heading and list data",
+    "status": "PASS"
+  },
+  {
+    "name": "native whole cross-block conversion preserves author marks and atomic widget payloads",
+    "status": "PASS"
+  },
+  {
+    "name": "native cross-block conversion to Code rejects loss of inline widgets without partial changes",
+    "status": "PASS"
+  }
+]
+    at waitForHistoryMatrix (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149:41)
+    at async file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:475:39
+
+Node.js v24.9.0

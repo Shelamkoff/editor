@@ -1,0 +1,31 @@
+file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149
+    if (result.status === 'fail') throw new Error(`History matrix failed: ${result.summary}`)
+                                        ^
+
+Error: History matrix failed: [
+  {
+    "name": "native repeated conversion uses the retained interval and restores its end caret on Undo / inline / forward",
+    "status": "FAIL",
+    "error": "Error: Second conversion ignored the retained logical range\nexpected [[\"paragraph\",\"Al\"],[\"list\",\"pha\"],[\"list\",\"Middle\"],[\"list\",\"Bra\"],[\"paragraph\",\"vo\"]], got [[\"paragraph\",\"Al\"],[\"heading\",\"pha\"],[\"heading\",\"Middle\"],[\"list\",\"Bra\"],[\"paragraph\",\"vo\"]]\n    at equal (http://127.0.0.1:63981/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:63981/tests/browser/native-conversion-preservation.js:155:3\n    at async run (http://127.0.0.1:63981/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:63981/tests/browser/native-conversion-preservation.js:164:1"
+  },
+  {
+    "name": "native repeated conversion uses the retained interval and restores its end caret on Undo / inline / backward",
+    "status": "FAIL",
+    "error": "Error: Second conversion ignored the retained logical range\nexpected [[\"paragraph\",\"Al\"],[\"list\",\"pha\"],[\"list\",\"Middle\"],[\"list\",\"Bra\"],[\"paragraph\",\"vo\"]], got [[\"paragraph\",\"Al\"],[\"heading\",\"pha\"],[\"heading\",\"Middle\"],[\"list\",\"Bra\"],[\"paragraph\",\"vo\"]]\n    at equal (http://127.0.0.1:63981/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:63981/tests/browser/native-conversion-preservation.js:155:3\n    at async run (http://127.0.0.1:63981/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:63981/tests/browser/native-conversion-preservation.js:164:1"
+  },
+  {
+    "name": "native repeated conversion uses the retained interval and restores its end caret on Undo / tune / forward",
+    "status": "FAIL",
+    "error": "Error: Second conversion ignored the retained logical range\nexpected [[\"paragraph\",\"Al\"],[\"list\",\"pha\"],[\"list\",\"Middle\"],[\"list\",\"Bra\"],[\"paragraph\",\"vo\"]], got [[\"paragraph\",\"Al\"],[\"heading\",\"pha\"],[\"heading\",\"Middle\"],[\"list\",\"Bra\"],[\"paragraph\",\"vo\"]]\n    at equal (http://127.0.0.1:63981/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:63981/tests/browser/native-conversion-preservation.js:155:3\n    at async run (http://127.0.0.1:63981/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:63981/tests/browser/native-conversion-preservation.js:164:1"
+  },
+  {
+    "name": "native repeated conversion uses the retained interval and restores its end caret on Undo / tune / backward",
+    "status": "FAIL",
+    "error": "Error: Second conversion ignored the retained logical range\nexpected [[\"paragraph\",\"Al\"],[\"list\",\"pha\"],[\"list\",\"Middle\"],[\"list\",\"Bra\"],[\"paragraph\",\"vo\"]], got [[\"paragraph\",\"Al\"],[\"heading\",\"pha\"],[\"heading\",\"Middle\"],[\"list\",\"Bra\"],[\"paragraph\",\"vo\"]]\n    at equal (http://127.0.0.1:63981/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:63981/tests/browser/native-conversion-preservation.js:155:3\n    at async run (http://127.0.0.1:63981/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:63981/tests/browser/native-conversion-preservation.js:164:1"
+  }
+]
+    at waitForHistoryMatrix (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149:41)
+    at async runNativePage (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:275:30)
+    at async file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:312:48
+
+Node.js v24.9.0

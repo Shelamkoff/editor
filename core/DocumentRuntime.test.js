@@ -641,3 +641,40 @@ test('read-only cleanup restores committed preedit without granting nested mutat
   assert.equal(runtime.get('a').data.text,'Resumed')
   runtime.destroy()
 })
+
+test('same-type conversion without configuration is an immutable no-op', () => {
+  let exports = 0
+  const definition = paragraphDefinition({
+    createDefault: () => ({ text: '', authorMode: 'default' }),
+    encode: data => ({ dataVersion: 1, data: { ...data } }),
+    decode: input => ({ dataVersion: 1, data: { ...input.data } }),
+  })
+  definition.capabilities.conversion.export = data => { exports++; return { kind: 'rich-text', data: { text: data.text } } }
+  const runtime = new DocumentRuntime({ registry: registry([definition]), data: { version: '2.0.0', blocks: [block('a', { text: 'Alpha', authorMode: 'kept' })] } })
+  const before = runtime.save().blocks
+  runtime.convert('a', { type: 'paragraph' })
+  assert.deepEqual(runtime.save().blocks, before)
+  assert.equal(runtime.revision, 0)
+  assert.equal(runtime.canUndo, false)
+  assert.equal(exports, 0)
+  runtime.destroy()
+})
+
+test('same-type toolbox configuration preserves unrelated author data and one Undo', () => {
+  const definition = paragraphDefinition({
+    createDefault: () => ({ text: '', authorMode: 'default' }),
+    encode: data => ({ dataVersion: 1, data: { ...data } }),
+    decode: input => ({ dataVersion: 1, data: { ...input.data } }),
+  })
+  definition.capabilities.conversion.export = data => ({ kind: 'plain-text', data: { text: data.text } })
+  definition.toolbox = [{ id: 'changed', configure: data => ({ ...data, authorMode: 'changed' }) }]
+  const runtime = new DocumentRuntime({ registry: registry([definition]), data: { version: '2.0.0', blocks: [block('a', { text: 'Alpha', authorMode: 'kept', authorLabel: 'Author' })] } })
+  const before = runtime.save().blocks
+  runtime.convert('a', { type: 'paragraph', toolboxItemId: 'changed' })
+  assert.deepEqual(runtime.get('a').data, { text: 'Alpha', authorMode: 'changed', authorLabel: 'Author' })
+  assert.equal(runtime.canUndo, true)
+  runtime.undo()
+  assert.deepEqual(runtime.save().blocks, before)
+  assert.equal(runtime.canUndo, false)
+  runtime.destroy()
+})

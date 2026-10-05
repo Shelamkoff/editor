@@ -1,0 +1,25 @@
+✖ same-type conversion without configuration is an immutable no-op (6.0662ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 215.2257
+
+✖ failing tests:
+
+test at core\DocumentRuntime.test.js:645:1
+✖ same-type conversion without configuration is an immutable no-op (6.0662ms)
+  TypeError: RichTextOperations requires an ownerDocument
+      at scanRichTextPlaceholders (file:///C:/OSPanel/domains/editor/shared/richTextOperations.js:192:44)
+      at #assertConversionInlinePreserved (file:///C:/OSPanel/domains/editor/core/DocumentRuntime.js:2787:22)
+      at file:///C:/OSPanel/domains/editor/core/DocumentRuntime.js:773:44
+      at #executeOuter (file:///C:/OSPanel/domains/editor/core/TransactionEngine.js:133:16)
+      at file:///C:/OSPanel/domains/editor/core/TransactionEngine.js:120:72
+      at #observeCommand (file:///C:/OSPanel/domains/editor/core/TransactionEngine.js:404:14)
+      at TransactionEngine.execute (file:///C:/OSPanel/domains/editor/core/TransactionEngine.js:120:32)
+      at DocumentRuntime.convert (file:///C:/OSPanel/domains/editor/core/DocumentRuntime.js:750:18)
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/core/DocumentRuntime.test.js:655:11)
+      at Test.runInAsyncScope (node:async_hooks:214:14)

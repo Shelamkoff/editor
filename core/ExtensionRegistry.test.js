@@ -540,3 +540,36 @@ test('ExtensionRegistry snapshots explicit cross-block conversion grouping indep
     assert.throws(() => new ExtensionRegistry({ ownerDocument: documentStub(), blocks: [{ ...definition, capabilities: { conversion: { ...conversion, selectionMode: mode } } }] }), /selectionMode must be single or per-block/)
   }
 })
+
+
+test('ExtensionRegistry reads conversion grouping accessor once when snapshotting a definition', () => {
+  let reads = 0
+  const conversion = {
+    get selectionMode() { return ++reads === 1 ? 'single' : 'per-block' },
+    export: data => ({ kind: 'rich-text', data }),
+    canImport: () => true,
+    import: payload => payload.data,
+  }
+  const registry = new ExtensionRegistry({ ownerDocument: documentStub(), blocks: [{ ...blockDefinition('probe'), capabilities: { conversion } }] })
+  assert.equal(registry.getBlockDefinition('probe').capabilities.conversion.selectionMode, 'single')
+  assert.equal(reads, 1)
+  registry.destroy()
+})
+
+test('ExtensionRegistry snapshots the optional single-target selection join method', () => {
+  let calls = 0
+  const conversion = {
+    selectionMode: 'single',
+    export: data => ({ kind: 'plain-text', data }),
+    canImport: () => true,
+    import: payload => payload.data,
+    joinSelection(payloads, context) { calls++; assert.equal(this, conversion); assert.equal(context.ownerDocument, doc); return { kind: 'plain-text', data: { text: payloads.map(payload => payload.data.text).join('\n') } } },
+  }
+  const doc = documentStub()
+  const registry = new ExtensionRegistry({ ownerDocument: doc, blocks: [{ ...blockDefinition('probe'), capabilities: { conversion } }] })
+  const stored = registry.getBlockDefinition('probe').capabilities.conversion
+  conversion.joinSelection = () => { throw new Error('mutated joiner') }
+  assert.deepEqual(stored.joinSelection([{ kind: 'plain-text', data: { text: 'Alpha' } }, { kind: 'plain-text', data: { text: 'Bravo' } }], { ownerDocument: doc }), { kind: 'plain-text', data: { text: 'Alpha\nBravo' } })
+  assert.equal(calls, 1)
+  registry.destroy()
+})

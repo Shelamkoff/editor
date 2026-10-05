@@ -3,7 +3,7 @@ import { setSanitizedHtml } from '../../plugin-kit/index.js'
 import { setTrustedHtml } from '../../shared/sanitize/sanitizeHtml.js'
 import { checklistDataSchema } from '../../shared/blockSchemas/checklist.js'
 import { acceptsTextPayload, richTextFromPayload } from '../shared/textConversion.js'
-import { createTextSelectionSlice } from '../shared/textSelectionSlice.js'
+import { createItemSelectionSlice } from '../shared/itemSelectionSlice.js'
 
 const editorStyles=new URL('./checklist.css',import.meta.url).href
 const ICON='<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 5.5l1.5 1.5l2.5-2.5"/><path d="M3.5 11.5l1.5 1.5l2.5-2.5"/><path d="M3.5 17.5l1.5 1.5l2.5-2.5"/><path d="M11 6h9"/><path d="M11 12h9"/><path d="M11 18h9"/></svg>'
@@ -40,7 +40,7 @@ function caretAtStart(field,range){
 export function createChecklistPlugin(){
   /** @type {import('../../plugin-kit/types').BlockCapabilities<{items:Array<{id:string,text:string,checked:boolean}>}>} */
   const capabilities=Object.freeze({
-    selectionSlice:createTextSelectionSlice(checklistDataSchema),
+    selectionSlice:createItemSelectionSlice(),
     formatting:Object.freeze({inlineTools:true}),
     empty:Object.freeze({isEmpty:data=>data.items.every(item=>item.text.trim().length===0)}),
     merge:Object.freeze({

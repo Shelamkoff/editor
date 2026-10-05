@@ -94,7 +94,9 @@ The List plugin applies data-aware rules instead of splitting `<li>` markup as g
 5. when the target is not a text block, the selection is removed and the target starts with that plugin's initial data;
 6. if the selection consumes every item, the source list is removed and the target takes its position.
 
-Undo and redo restore both the list and the inserted block atomically. Extension authors can opt into the same behavior with `capabilities.conversion.partial` as described in [Creating extensions](/guide/extensions#data-aware-partial-conversion).
+Undo and redo restore both the list and the inserted block atomically. Extension authors can opt into the same behavior with `capabilities.selectionSlice.slice` as described in [Creating extensions](/guide/extensions#capabilities).
+
+After cross-block conversion to text blocks, the converted interval remains logically selected and the caret rests at the end of its last field. Formatting or typing still acts on the selected interval; Undo restores the original directed range, and Redo restores the converted range. Conversion to Code creates one block with the selected text and line breaks.
 
 ## Commands from inline tools
 

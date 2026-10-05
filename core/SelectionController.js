@@ -19,6 +19,7 @@ export class SelectionController {
   #bookmark = null
   #range = null
   #wholeBlocks = false
+  #conversionCaret = false
   #generation = 0
   #navigationX = null
 
@@ -79,7 +80,7 @@ export class SelectionController {
   get bookmark() {
     this.#ensureCurrent()
     if (!this.#bookmark) return null
-    return { anchor: clonePoint(this.#bookmark.anchor), focus: clonePoint(this.#bookmark.focus) }
+    return { anchor: clonePoint(this.#bookmark.anchor), focus: clonePoint(this.#bookmark.focus), ...(this.#conversionCaret ? { conversionCaret: true } : {}) }
   }
 
   get range() {
@@ -184,6 +185,12 @@ export class SelectionController {
       }
     } catch { return false }
     this.#activate(bookmark, built.range)
+    if(bookmark.conversionCaret){
+      this.#conversionCaret=true
+      this.#reconciler.getEditableField(bookmark.focus.blockId,bookmark.focus.fieldKey)?.element.focus({preventScroll:true})
+      native.collapse(built.focus.node,built.focus.offset)
+      this.#view.setCurrent(bookmark.focus.blockId)
+    }
     return true
   }
 
@@ -407,6 +414,7 @@ export class SelectionController {
 
   #deactivate({ clearBlocks = true } = {}) {
     this.#bookmark = null
+    this.#conversionCaret = false
     this.#range = null
     this.#wholeBlocks = false
     this.#root.classList.remove('oe-editor--cross-selecting')
@@ -432,7 +440,11 @@ export class SelectionController {
       && this.#bookmark.anchor.blockId === this.#bookmark.focus.blockId
       && this.#bookmark.anchor.fieldKey === this.#bookmark.focus.fieldKey
       && this.#bookmark.anchor.offset === this.#bookmark.focus.offset
-    if (!this.#dragStart && !emptyWholeSelection && owner && owner.element === this.#document.activeElement) this.clear()
+    const retainedCaret = this.#conversionCaret && owner
+      && owner.blockId === this.#bookmark.focus.blockId
+      && owner.fieldKey === this.#bookmark.focus.fieldKey
+      && getTextOffset(owner.element,native.anchorNode,native.anchorOffset) === this.#bookmark.focus.offset
+    if (!this.#dragStart && !emptyWholeSelection && !retainedCaret && owner && owner.element === this.#document.activeElement) this.clear()
   }
 
   #onMouseDown(event) {
@@ -495,6 +507,7 @@ export class SelectionController {
   }
 
   #activate(bookmark, range) {
+    this.#conversionCaret = false
     this.#generation = this.#runtime.generation
     this.#bookmark = { anchor: clonePoint(bookmark.anchor), focus: clonePoint(bookmark.focus) }
     this.#range = range.cloneRange()

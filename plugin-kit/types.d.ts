@@ -128,6 +128,8 @@ export interface ConversionCapability<D extends Record<string, unknown>> {
   export(data: Readonly<D>): ConversionPayload
   canImport(payload: ConversionPayload): boolean
   import(payload: ConversionPayload): D
+  /** Optional single-target aggregation; receives owned payloads and an explicit document for HTML decoding. */
+  joinSelection?(payloads: readonly ConversionPayload[], context: { readonly ownerDocument: Document }): ConversionPayload
 }
 
 /** Capabilities implemented independently from mounted block lifecycle. */

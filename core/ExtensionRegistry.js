@@ -159,9 +159,10 @@ function snapshotCapabilityObject(source, label, methods) {
 
 function snapshotConversion(source, label) {
   const methods = snapshotCapabilityObject(source, label, [
-    ['export', false], ['canImport', false], ['import', false],
+    ['export', false], ['canImport', false], ['import', false], ['joinSelection', true],
   ])
-  const selectionMode = source.selectionMode === undefined ? 'single' : source.selectionMode
+  const declaredMode = source.selectionMode
+  const selectionMode = declaredMode === undefined ? 'single' : declaredMode
   if (selectionMode !== 'single' && selectionMode !== 'per-block') {
     throw new TypeError(label + ' selectionMode must be single or per-block')
   }

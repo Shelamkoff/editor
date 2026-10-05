@@ -1,3 +1,4 @@
+import { convertedSelection, restoreConvertedSelection } from './conversionSelection.js'
 // @ts-check
 import { handleMenuKeydown } from '../plugin-kit/index.js'
 import { setTrustedHtml } from '../shared/sanitize/sanitizeHtml.js'
@@ -23,6 +24,7 @@ function cloneBookmark(bookmark) {
   return {
     anchor: { ...bookmark.anchor },
     focus: { ...bookmark.focus },
+    ...(bookmark.conversionCaret ? { conversionCaret: true } : {}),
   }
 }
 
@@ -134,7 +136,7 @@ export class InlineToolbar {
 
     this.#typeSelect.addEventListener('mousedown', event => {
       event.preventDefault()
-      if (this.#typeDropdown.style.display === 'none') this.#typeBookmark = cloneBookmark(this.#selection.capture())
+      if (this.#typeDropdown.style.display === 'none') this.#typeBookmark = cloneBookmark(this.#selectionPort?.bookmark ?? this.#selection.capture())
     })
     this.#typeSelect.addEventListener('click', event => {
       event.preventDefault()
@@ -618,7 +620,7 @@ export class InlineToolbar {
 
   #openTypeDropdown() {
     if (this.#readOnly || this.#destroyed) return
-    const bookmark = cloneBookmark(this.#typeBookmark ?? this.#selection.capture())
+    const bookmark = cloneBookmark(this.#typeBookmark ?? this.#selectionPort?.bookmark ?? this.#selection.capture())
     if (!bookmark) return
     this.#typeBookmark = bookmark
     this.#closeControlDropdown()
@@ -694,14 +696,15 @@ export class InlineToolbar {
     this.#closeTypeDropdown()
     let result
     try {
-      result = this.#runtime.convertLogicalSelection(bookmark, { type })
+      if(bookmark.anchor.blockId!==bookmark.focus.blockId)this.#restoreSelection(bookmark)
+      result = this.#runtime.interact('selection.convert', () => this.#runtime.convertLogicalSelection(bookmark, { type }), current => convertedSelection(current,this.#view))
     } catch {
       return
     }
     if (!result) return
     this.#view.reconcileInteraction()
     this.#view.setCurrent(result.focusId)
-    queueMicrotask(() => this.#view.focus(result.focusId, { offset: 'start' }))
+    queueMicrotask(() => restoreConvertedSelection(result,this.#view,this.#selectionPort))
   }
 
   #updateBlockControls(selection) {

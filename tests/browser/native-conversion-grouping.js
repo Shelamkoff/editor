@@ -21,7 +21,7 @@ async function history(editor, before, after) {
   assert(editorRoot(editor).contains(document.activeElement), 'Redo left focus outside the editor')
 }
 
-const perBlockTargets = new Set(['paragraph', 'heading', 'list', 'quote', 'checklist', 'code'])
+const perBlockTargets = new Set(['paragraph', 'heading', 'list', 'quote', 'checklist'])
 for (const fixture of pluginParityFixtures) {
   for (const menuKind of ['inline', 'tune']) {
     for (const backwards of [false, true]) {
@@ -58,9 +58,10 @@ for (const fixture of pluginParityFixtures) {
           const texts = after.slice(1, 3).map(block => block.data.text ?? block.data.code ?? block.data.items.map(item => item.text).join('<br>'))
           equal(texts, ['pha', 'Bravo<br>Charlie'], 'Text target discarded selected author text')
         }
-        assert(!root.classList.contains('oe-editor--cross-selecting'), 'Conversion retained the previous cross-block highlight')
+        equal(root.classList.contains('oe-editor--cross-selecting'), perBlockTargets.has(target.type), 'Wrong post-conversion logical range')
+        if(target.type==='code')equal(after[1].data.code,'pha\nBravo\nCharlie')
         assert(!window.getSelection().rangeCount || window.getSelection().isCollapsed, 'Conversion retained the previous native text range')
-        equal(root.querySelector('.oe-inline-toolbar').style.display, 'none', 'Conversion retained the previous text toolbar')
+        equal(root.querySelector('.oe-inline-toolbar').checkVisibility(), perBlockTargets.has(target.type), 'Wrong post-conversion toolbar')
         // An empty Embed focuses its auxiliary URL input, whose Undo belongs
         // to that native control. Return to document text for document history.
         if (document.activeElement?.matches('input,select')) await clickNative(editableField(editor, 'a'))

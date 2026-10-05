@@ -1,0 +1,111 @@
+file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149
+    if (result.status === 'fail') throw new Error(`History matrix failed: ${result.summary}`)
+                                        ^
+
+Error: History matrix failed: [
+  {
+    "name": "native matching middle owner retains its data / list / inline / forward",
+    "status": "PASS"
+  },
+  {
+    "name": "native matching middle owner retains its data / list / inline / backward",
+    "status": "PASS"
+  },
+  {
+    "name": "native matching middle owner retains its data / list / tune / forward",
+    "status": "PASS"
+  },
+  {
+    "name": "native matching middle owner retains its data / list / tune / backward",
+    "status": "PASS"
+  },
+  {
+    "name": "native matching middle owner retains its data / checklist / inline / forward",
+    "status": "PASS"
+  },
+  {
+    "name": "native matching middle owner retains its data / checklist / inline / backward",
+    "status": "PASS"
+  },
+  {
+    "name": "native matching middle owner retains its data / checklist / tune / forward",
+    "status": "PASS"
+  },
+  {
+    "name": "native matching middle owner retains its data / checklist / tune / backward",
+    "status": "PASS"
+  },
+  {
+    "name": "native matching middle owner retains its data / heading / inline / forward",
+    "status": "PASS"
+  },
+  {
+    "name": "native matching middle owner retains its data / heading / inline / backward",
+    "status": "PASS"
+  },
+  {
+    "name": "native matching middle owner retains its data / heading / tune / forward",
+    "status": "PASS"
+  },
+  {
+    "name": "native matching middle owner retains its data / heading / tune / backward",
+    "status": "PASS"
+  },
+  {
+    "name": "native matching middle owner retains its data / quote / inline / forward",
+    "status": "PASS"
+  },
+  {
+    "name": "native matching middle owner retains its data / quote / inline / backward",
+    "status": "PASS"
+  },
+  {
+    "name": "native matching middle owner retains its data / quote / tune / forward",
+    "status": "PASS"
+  },
+  {
+    "name": "native matching middle owner retains its data / quote / tune / backward",
+    "status": "PASS"
+  },
+  {
+    "name": "native matching endpoint retains selected list items / list / inline / forward",
+    "status": "PASS"
+  },
+  {
+    "name": "native matching endpoint retains selected list items / list / inline / backward",
+    "status": "PASS"
+  },
+  {
+    "name": "native matching endpoint retains selected list items / list / tune / forward",
+    "status": "PASS"
+  },
+  {
+    "name": "native matching endpoint retains selected list items / list / tune / backward",
+    "status": "PASS"
+  },
+  {
+    "name": "native matching endpoint retains selected list items / checklist / inline / forward",
+    "status": "FAIL",
+    "error": "Error: \nexpected {\"items\":[{\"id\":\"third\",\"text\":\"Delta\",\"checked\":true}]}, got {\"items\":[{\"id\":\"first\",\"text\":\"\",\"checked\":true},{\"id\":\"second\",\"text\":\"\",\"checked\":false},{\"id\":\"third\",\"text\":\"Delta\",\"checked\":true}]}\n    at equal (http://127.0.0.1:62195/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:62195/tests/browser/native-conversion-preservation.js:54:3\n    at async run (http://127.0.0.1:62195/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:62195/tests/browser/native-conversion-preservation.js:58:1"
+  },
+  {
+    "name": "native matching endpoint retains selected list items / checklist / inline / backward",
+    "status": "FAIL",
+    "error": "Error: \nexpected {\"items\":[{\"id\":\"third\",\"text\":\"Delta\",\"checked\":true}]}, got {\"items\":[{\"id\":\"first\",\"text\":\"\",\"checked\":true},{\"id\":\"second\",\"text\":\"\",\"checked\":false},{\"id\":\"third\",\"text\":\"Delta\",\"checked\":true}]}\n    at equal (http://127.0.0.1:62195/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:62195/tests/browser/native-conversion-preservation.js:54:3\n    at async run (http://127.0.0.1:62195/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:62195/tests/browser/native-conversion-preservation.js:58:1"
+  },
+  {
+    "name": "native matching endpoint retains selected list items / checklist / tune / forward",
+    "status": "FAIL",
+    "error": "Error: \nexpected {\"items\":[{\"id\":\"third\",\"text\":\"Delta\",\"checked\":true}]}, got {\"items\":[{\"id\":\"first\",\"text\":\"\",\"checked\":true},{\"id\":\"second\",\"text\":\"\",\"checked\":false},{\"id\":\"third\",\"text\":\"Delta\",\"checked\":true}]}\n    at equal (http://127.0.0.1:62195/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:62195/tests/browser/native-conversion-preservation.js:54:3\n    at async run (http://127.0.0.1:62195/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:62195/tests/browser/native-conversion-preservation.js:58:1"
+  },
+  {
+    "name": "native matching endpoint retains selected list items / checklist / tune / backward",
+    "status": "FAIL",
+    "error": "Error: \nexpected {\"items\":[{\"id\":\"third\",\"text\":\"Delta\",\"checked\":true}]}, got {\"items\":[{\"id\":\"first\",\"text\":\"\",\"checked\":true},{\"id\":\"second\",\"text\":\"\",\"checked\":false},{\"id\":\"third\",\"text\":\"Delta\",\"checked\":true}]}\n    at equal (http://127.0.0.1:62195/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:62195/tests/browser/native-conversion-preservation.js:54:3\n    at async run (http://127.0.0.1:62195/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:62195/tests/browser/native-conversion-preservation.js:58:1"
+  }
+]
+    at waitForHistoryMatrix (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149:41)
+    at async runNativePage (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:275:30)
+    at async file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:312:48
+
+Node.js v24.9.0

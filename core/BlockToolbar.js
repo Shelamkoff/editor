@@ -1,3 +1,4 @@
+import { convertedSelection, restoreConvertedSelection } from './conversionSelection.js'
 // @ts-check
 import { setTrustedHtml } from '../shared/sanitize/sanitizeHtml.js'
 import { Tooltip } from './Tooltip.js'
@@ -20,6 +21,7 @@ export class BlockToolbar {
   #registry
   #view
   #selection
+  #selectionPort
   #inlineCommands
   #translate
   #t
@@ -32,6 +34,7 @@ export class BlockToolbar {
   #settingsButton
   #currentId = null
   #bookmark = null
+  #menuSelectionPending = false
   #filterThreshold
   #destroyed = false
   #documentClick
@@ -46,7 +49,7 @@ export class BlockToolbar {
   #toolboxVersion = 0
   #settingsVersion = 0
 
-  constructor({ root, runtime, registry, view, selection, inlineCommands, translate, t, filterThreshold = 7 }) {
+  constructor({ root, runtime, registry, view, selection, selectionPort, inlineCommands, translate, t, filterThreshold = 7 }) {
     if (!Number.isSafeInteger(filterThreshold) || filterThreshold < 0) {
       throw new RangeError('Toolbox filter threshold must be a non-negative safe integer')
     }
@@ -55,6 +58,7 @@ export class BlockToolbar {
     this.#registry = registry
     this.#view = view
     this.#selection = selection
+    this.#selectionPort = selectionPort
     this.#inlineCommands = inlineCommands
     this.#filterThreshold = filterThreshold
     this.#translate = typeof translate === 'function' ? translate : (_key, fallback = '') => fallback
@@ -114,10 +118,12 @@ export class BlockToolbar {
     }
 
     this.#plus.addEventListener('mousedown', () => {
-      this.#bookmark = this.#selection.capture()
+      this.#bookmark = this.#selectionPort?.bookmark ?? this.#selection.capture()
+      this.#menuSelectionPending = true
     })
     this.#settingsButton.addEventListener('mousedown', () => {
-      this.#bookmark = this.#selection.capture()
+      this.#bookmark = this.#selectionPort?.bookmark ?? this.#selection.capture()
+      this.#menuSelectionPending = true
     })
     this.#plus.addEventListener('click', event => {
       event.stopPropagation()
@@ -218,7 +224,8 @@ export class BlockToolbar {
 
   openToolbox() {
     if (this.#runtime.readOnly) return
-    this.#bookmark = this.#selection.capture() ?? this.#bookmark
+    if(!this.#menuSelectionPending)this.#bookmark = this.#selectionPort?.bookmark ?? this.#selection.capture() ?? this.#bookmark
+    this.#menuSelectionPending = false
     this.closeSettings()
     this.#toolboxQuery = ''
     this.#buildToolbox()
@@ -240,7 +247,8 @@ export class BlockToolbar {
 
   openSettings() {
     if (this.#runtime.readOnly || !this.#currentId) return
-    this.#bookmark = this.#selection.capture() ?? this.#bookmark
+    if(!this.#menuSelectionPending)this.#bookmark = this.#selectionPort?.bookmark ?? this.#selection.capture() ?? this.#bookmark
+    this.#menuSelectionPending = false
     this.closeToolbox()
     this.#buildSettings()
     this.#settings.style.display = ''
@@ -601,12 +609,12 @@ export class BlockToolbar {
             }
             this.#runtime.convert(id, { type })
             return { focusId: id }
-          }, result => result?.focusId)
+          }, result => result?.focusId, result => convertedSelection(result,this.#view))
           if (!result) return
           this.#view.reconcileInteraction()
           this.#view.setCurrent(result.focusId)
           this.closeSettings()
-          queueMicrotask(() => this.#view.focus(result.focusId, { offset: 'start' }))
+          queueMicrotask(() => restoreConvertedSelection(result,this.#view,this.#selectionPort))
         } catch {}
       }, current && !crossBlock, false, current)
       item.dataset.pluginType = type
@@ -699,9 +707,13 @@ export class BlockToolbar {
     })
   }
 
-  #mutate(name, operation, focusId) {
-    if (this.#bookmark) this.#selection.restore(this.#bookmark)
+  #mutate(name, operation, focusId, resolveSelection = null) {
+    if (this.#bookmark) {
+      if(this.#bookmark.anchor.blockId!==this.#bookmark.focus.blockId)this.#selectionPort?.restore(this.#bookmark)
+      else this.#selection.restore(this.#bookmark)
+    }
     return this.#runtime.interact(name, operation, result => {
+      if(resolveSelection)return resolveSelection(result)
       const id = focusId(result)
       const field = id ? this.#view.fields(id)[0] : null
       if (!id || !this.#view.element(id)) return null

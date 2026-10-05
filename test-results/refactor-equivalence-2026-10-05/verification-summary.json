@@ -1,0 +1,411 @@
+{
+  "verifiedAt": "2026-10-05T14:56:25.334Z",
+  "branch": "refactor/rector-v2-architecture",
+  "baseCommit": "a1f1efa2458c5d7671150d6478a8639b73008514",
+  "v1Oracle": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+  "source": {
+    "algorithm": "SHA-256",
+    "fileCount": 568,
+    "byteScope": "local checkout before Git LF/CRLF normalization",
+    "unchanged": true,
+    "scope": "snapshot taken before final native run; only native test expectations/readiness changed after earlier non-native gates"
+  },
+  "node": {
+    "pass": 436,
+    "fail": 0,
+    "skip": 0
+  },
+  "consumerTypes": {
+    "pass": 6,
+    "fail": 0,
+    "skip": 0
+  },
+  "native": {
+    "pass": 1203,
+    "fail": 0,
+    "groups": {
+      "nativeTextInput": {
+        "pass": 42,
+        "fail": 0
+      },
+      "nativeTools": {
+        "pass": 41,
+        "fail": 0
+      },
+      "nativeClipboard": {
+        "pass": 7,
+        "fail": 0
+      },
+      "nativeIme": {
+        "pass": 9,
+        "fail": 0
+      },
+      "nativeConversion": {
+        "pass": 7,
+        "fail": 0
+      },
+      "nativeBlockMenus": {
+        "pass": 108,
+        "fail": 0
+      },
+      "nativeConversionGrouping": {
+        "pass": 88,
+        "fail": 0
+      },
+      "nativeConversionPreservation": {
+        "pass": 53,
+        "fail": 0
+      },
+      "nativeStructural": {
+        "pass": 21,
+        "fail": 0
+      },
+      "nativeCrossSelection": {
+        "pass": 32,
+        "fail": 0
+      },
+      "nativeCoreBehavior": {
+        "pass": 53,
+        "fail": 0
+      },
+      "nativePluginParity": {
+        "pass": 139,
+        "fail": 0
+      },
+      "nativePluginControls": {
+        "pass": 141,
+        "fail": 0
+      },
+      "nativePluginRanges": {
+        "pass": 116,
+        "fail": 0
+      },
+      "nativePluginLocalRanges": {
+        "pass": 76,
+        "fail": 0
+      },
+      "nativePluginClipboard": {
+        "pass": 48,
+        "fail": 0
+      },
+      "nativePluginFieldClipboard": {
+        "pass": 68,
+        "fail": 0
+      },
+      "nativePluginMedia": {
+        "pass": 70,
+        "fail": 0
+      },
+      "nativePluginDesign": {
+        "pass": 84,
+        "fail": 0
+      }
+    }
+  },
+  "browser": {
+    "pages": 24,
+    "files": [
+      "harness-contract.html",
+      "runtime-contracts.html",
+      "roundtrip.html",
+      "roundtrip-trusted-types.html",
+      "person-avatar-csp.html",
+      "history.html",
+      "selection.html",
+      "lifecycle.html",
+      "security.html",
+      "trusted-types.htm",
+      "action-label-security.html",
+      "audit-regressions.html",
+      "attaches-abort-urls.html",
+      "embed-service-registry.html",
+      "person-social-registry.html",
+      "gallery-layout-registry.html",
+      "mention.html",
+      "mention-session-race.html",
+      "poll.html",
+      "carousel.html",
+      "plugin-surfaces.html",
+      "imports.html",
+      "slash.html",
+      "selection-convert.html"
+    ]
+  },
+  "build": {
+    "runtimeDeclarations": 266,
+    "sourceDiagnostics": 0,
+    "sourceDiagnosticDetails": [],
+    "dist": "dist"
+  },
+  "docs": {
+    "readmes": 94,
+    "languages": [
+      "en",
+      "ru"
+    ],
+    "examples": 53,
+    "json": 44,
+    "links": 62,
+    "imports": true,
+    "encoding": true,
+    "packageReadmeCopiesChecked": 92
+  },
+  "production": {
+    "readmes": 47,
+    "htmlPages": 123,
+    "brokenLinks": 0,
+    "npmSiteLeak": false,
+    "blockPlugins": 21,
+    "inlinePlugins": 2,
+    "editorBlocks": 7,
+    "demoFrame": false,
+    "heroViewport": true,
+    "heroCentered": true,
+    "navAbovePluginBlocks": true,
+    "localSearchShortcut": true,
+    "searchKeyAlignedRight": true,
+    "mentionAutocomplete": true,
+    "localizedTooltips": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "shortcuts": true
+    },
+    "headingLevelMenu": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "keyboard": true,
+      "selection": true
+    },
+    "conversionMenu": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "outsideToolbar": true,
+      "searchSelection": true
+    },
+    "alignmentSelectionState": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "currentBlock": true,
+      "atomicUndo": true
+    },
+    "movedBlockButtons": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "geometry": true,
+      "atomicUndo": true
+    },
+    "tuneFragmentConversion": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "unselectedEdges": true,
+      "atomicUndoRedo": true
+    },
+    "crossImageConversion": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "singleTarget": true,
+      "unselectedListItem": true,
+      "atomicUndoRedo": true
+    },
+    "convertedTextRange": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "endCaret": true,
+      "toolbar": true,
+      "atomicUndo": true
+    },
+    "joinedCodeConversion": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "singleTarget": true,
+      "decodedText": true,
+      "atomicUndo": true
+    },
+    "missingAssets": 0
+  },
+  "demo": {
+    "blockPlugins": 21,
+    "inlinePlugins": 2,
+    "editorBlocks": 7,
+    "demoFrame": false,
+    "heroViewport": true,
+    "heroCentered": true,
+    "navAbovePluginBlocks": true,
+    "localSearchShortcut": true,
+    "searchKeyAlignedRight": true,
+    "mentionAutocomplete": true,
+    "localizedTooltips": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "shortcuts": true
+    },
+    "headingLevelMenu": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "keyboard": true,
+      "selection": true
+    },
+    "conversionMenu": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "outsideToolbar": true,
+      "searchSelection": true
+    },
+    "alignmentSelectionState": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "currentBlock": true,
+      "atomicUndo": true
+    },
+    "movedBlockButtons": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "geometry": true,
+      "atomicUndo": true
+    },
+    "tuneFragmentConversion": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "unselectedEdges": true,
+      "atomicUndoRedo": true
+    },
+    "crossImageConversion": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "singleTarget": true,
+      "unselectedListItem": true,
+      "atomicUndoRedo": true
+    },
+    "convertedTextRange": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "endCaret": true,
+      "toolbar": true,
+      "atomicUndo": true
+    },
+    "joinedCodeConversion": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "singleTarget": true,
+      "decodedText": true,
+      "atomicUndo": true
+    },
+    "missingAssets": 0
+  },
+  "heap": {
+    "sentinels": 21,
+    "retained": 0,
+    "usedHeapMiB": 12.58,
+    "embedderHeapMiB": 1.39,
+    "snapshotMiB": 24.65
+  },
+  "bundle": {
+    "pass": true,
+    "coreSizeGate": false,
+    "log": "bundle.log"
+  },
+  "screenshots": {
+    "count": 29,
+    "files": [
+      "carousel-action-hover-dark.png",
+      "carousel-html-editor-dark.png",
+      "carousel-implementation-dark.png",
+      "carousel-url-editor-dark.png",
+      "conversion-en-dark.png",
+      "conversion-en-light.png",
+      "conversion-ru-dark.png",
+      "conversion-ru-light.png",
+      "converted-range-en.png",
+      "converted-range-ru.png",
+      "cross-image-en.png",
+      "cross-image-ru.png",
+      "header-search-implementation-light.png",
+      "heading-en-dark.png",
+      "heading-en-light.png",
+      "heading-ru-dark.png",
+      "heading-ru-light.png",
+      "joined-code-en.png",
+      "joined-code-ru.png",
+      "moved-buttons-en.png",
+      "moved-buttons-ru.png",
+      "plugin-settings-accent-light.png",
+      "search-implementation-light.png",
+      "tooltip-en-dark.png",
+      "tooltip-en-light.png",
+      "tooltip-ru-dark.png",
+      "tooltip-ru-light.png",
+      "tune-fragment-en.png",
+      "tune-fragment-ru.png"
+    ]
+  },
+  "v1Probe": {
+    "pass": 8,
+    "log": "v1-oracle.log"
+  },
+  "limits": [
+    "Chrome only",
+    "IME protocol, not a physical session with an OS IME",
+    "external upload servers not exercised",
+    "scenario matrix, not a proof of every possible combination"
+  ]
+}

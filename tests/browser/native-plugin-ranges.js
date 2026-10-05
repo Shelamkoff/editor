@@ -33,7 +33,7 @@ for (const fixture of pluginParityFixtures.filter(entry => !localOnly && richNam
         for (const [fieldIndex, item] of fields.entries()) {
           if(fieldIndex>=index) residual=writePath(residual,item.path,fieldIndex===index?item.value.slice(0,2):'')
         }
-        if(fixture.name==='List')residual={...residual,items:residual.items.filter(item=>item.text)}
+        if(['List','Checklist'].includes(fixture.name))residual={...residual,items:residual.items.filter(item=>item.text)}
         equal(after[0].data,residual,'Conversion lost or changed unselected source fields')
         equal(after.slice(1,3).map(block=>block.data.text),[fields.slice(index).map((item,offset)=>offset===0?item.value.slice(2):item.value).join('<br>'),'Del'])
         equal(after[3].data.text,'ta')
@@ -85,7 +85,7 @@ for (const fixture of pluginParityFixtures.filter(entry => !localOnly && richNam
         equal(after.slice(1,3).map(block=>block.data.text),['lta',fields.slice(0,index+1).map((item,offset)=>offset===index?item.value.slice(0,3):item.value).join('<br>')])
         let residual=before[1].data
         for(const [fieldIndex,item] of fields.entries()) if(fieldIndex<=index)residual=writePath(residual,item.path,fieldIndex===index?item.value.slice(3):'')
-        if(fixture.name==='List')residual={...residual,items:residual.items.filter(item=>item.text)}
+        if(['List','Checklist'].includes(fixture.name))residual={...residual,items:residual.items.filter(item=>item.text)}
         equal(after[3].data,residual,'Conversion lost the compound endpoint suffix or its assets')
         equal(after[3].id,'b')
         await dispatchKey('z','KeyZ',90,2)
