@@ -1,0 +1,511 @@
+✖ Mention captures the trigger accessor once before validation and ownership (1.0159ms)
+✖ Mention ignores inherited trigger configuration without evaluating it (0.3879ms)
+✖ Mention captures all own option accessors once and retains its chosen Unicode trigger (2.4383ms)
+✔ Mention rejects a captured multi-codepoint trigger (0.932ms)
+✖ Registering a block renderer captures all schema descriptor members once (2.0969ms)
+✖ Inline renderer captures its declared styles once without freezing the caller (0.429ms)
+✖ renderBlock retains the registered schema methods and original class receiver (1.526ms)
+✖ renderBlock rejects a mismatched input version even when a custom decoder ignores it (1.2815ms)
+✖ renderBlock rejects a schema output version drift before projection (0.5808ms)
+✖ render retains the registered schema methods and original class receiver (0.6936ms)
+✖ render rejects a mismatched input version even when a custom decoder ignores it (0.3963ms)
+✖ render rejects a schema output version drift before projection (0.3322ms)
+✖ renderTo retains the registered schema methods and original class receiver (0.813ms)
+✖ renderTo rejects a mismatched input version even when a custom decoder ignores it (0.6535ms)
+✖ renderTo rejects a schema output version drift before projection (0.3898ms)
+✖ Renderer rejects array schema results before calling the projector (0.7473ms)
+✖ Renderer rejects class schema results before calling the projector (0.2517ms)
+✖ Renderer rejects non-finite schema results before calling the projector (0.3151ms)
+✖ Renderer rejects cycle schema results before calling the projector (0.3199ms)
+✖ Renderer block schemas reject removed legacyVersion metadata without reading it (0.4351ms)
+✖ Renderer block schemas reject removed migrations metadata without reading it (0.1649ms)
+✖ Renderer inline schemas reject removed legacyVersion metadata without reading it (0.3262ms)
+✖ Renderer inline schemas reject removed migrations metadata without reading it (0.1471ms)
+✖ Inline renderer captures schema prototype accessors once and uses private method state (0.356ms)
+✖ Renderer block captures callable render methods without reading unrelated bind accessors (0.2461ms)
+✖ Renderer inline captures callable render methods without reading unrelated bind accessors (0.1396ms)
+✖ Poll renderer captures source functions without reading their unrelated bind accessors (0.4366ms)
+ℹ tests 27
+ℹ suites 0
+ℹ pass 1
+ℹ fail 26
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 438.3065
+
+✖ failing tests:
+
+test at inline-plugins\mention.config.test.js:5:1
+✖ Mention captures the trigger accessor once before validation and ownership (1.0159ms)
+  Error: Trigger accessor reread
+      at get trigger (file:///C:/OSPanel/domains/editor/inline-plugins/mention.config.test.js:7:50)
+      at createMentionPlugin (file:///C:/OSPanel/domains/editor/inline-plugins/mention/.qa-before-library.js:47:36)
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/inline-plugins/mention.config.test.js:8:19)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.start (node:internal/test_runner/test:1003:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:358:17)
+
+test at inline-plugins\mention.config.test.js:14:1
+✖ Mention ignores inherited trigger configuration without evaluating it (0.3879ms)
+  Error: Inherited trigger evaluated
+      at get trigger (file:///C:/OSPanel/domains/editor/inline-plugins/mention.config.test.js:16:59)
+      at createMentionPlugin (file:///C:/OSPanel/domains/editor/inline-plugins/mention/.qa-before-library.js:45:25)
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/inline-plugins/mention.config.test.js:17:15)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3)
+
+test at inline-plugins\mention.config.test.js:20:1
+✖ Mention captures all own option accessors once and retains its chosen Unicode trigger (2.4383ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+      debounceDelay: 1,
+      searchFunction: 1,
+  +   trigger: 2
+  -   trigger: 1
+    }
+  
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/inline-plugins/mention.config.test.js:29:9)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { trigger: 2, debounceDelay: 1, searchFunction: 1 },
+    expected: { trigger: 1, debounceDelay: 1, searchFunction: 1 },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at renderer\schema-ownership.test.js:6:1
+✖ Registering a block renderer captures all schema descriptor members once (2.0969ms)
+  Error: currentVersion descriptor reread
+      at Object.get (file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:16:27)
+      at snapshotCustomRenderer (file:///C:/OSPanel/domains/editor/renderer/.qa-renderer-before-library.js:218:69)
+      at EditorRenderer.registerRenderer (file:///C:/OSPanel/domains/editor/renderer/.qa-renderer-before-library.js:270:20)
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:21:12)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.start (node:internal/test_runner/test:1003:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:358:17)
+
+test at renderer\schema-ownership.test.js:28:1
+✖ Inline renderer captures its declared styles once without freezing the caller (0.429ms)
+  Error: Inline styles accessor reread
+      at get styles (file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:34:35)
+      at validateRendererConfig (file:///C:/OSPanel/domains/editor/renderer/.qa-renderer-before-library.js:105:35)
+      at new EditorRenderer (file:///C:/OSPanel/domains/editor/renderer/.qa-renderer-before-library.js:264:5)
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:36:17)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3)
+
+test at renderer\schema-ownership.test.js:70:2
+✖ renderBlock retains the registered schema methods and original class receiver (1.526ms)
+  Error [InvalidBlockDataError]: Invalid data for block type "article" (id: a): Block data does not match its current schema
+      at #createRenderedBlock (file:///C:/OSPanel/domains/editor/renderer/EditorRenderer.js:225:23)
+      at EditorRenderer.renderBlock (file:///C:/OSPanel/domains/editor/renderer/EditorRenderer.js:147:46)
+      ... 6 lines matching cause stack trace ...
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18) {
+    blockType: 'article',
+    blockId: 'a',
+    cause: Error: Later decoder invoked
+        at schema.decode (file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:80:53)
+        at #createRenderedBlock (file:///C:/OSPanel/domains/editor/renderer/EditorRenderer.js:188:39)
+        at EditorRenderer.renderBlock (file:///C:/OSPanel/domains/editor/renderer/EditorRenderer.js:147:46)
+        at EditorRenderer.renderBlock (file:///C:/OSPanel/domains/editor/renderer/.qa-renderer-before-library.js:277:18)
+        at request (file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:65:88)
+        at file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:84:17
+        at fixture (file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:62:13)
+        at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:70:90)
+        at Test.runInAsyncScope (node:async_hooks:214:14)
+        at Test.run (node:internal/test_runner/test:1106:25)
+  }
+
+test at renderer\schema-ownership.test.js:91:2
+✖ renderBlock rejects a mismatched input version even when a custom decoder ignores it (1.2815ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:96:11
+      at fixture (file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:62:13)
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:91:97)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /current schema/,
+    operator: 'throws',
+    diff: 'simple'
+  }
+
+test at renderer\schema-ownership.test.js:100:2
+✖ renderBlock rejects a schema output version drift before projection (0.5808ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:106:11
+      at fixture (file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:62:13)
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:100:80)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /current schema/,
+    operator: 'throws',
+    diff: 'simple'
+  }
+
+test at renderer\schema-ownership.test.js:70:2
+✖ render retains the registered schema methods and original class receiver (0.6936ms)
+  Error [InvalidBlockDataError]: Invalid data for block type "article" (id: a): Block data does not match its current schema
+      at #createRenderedBlock (file:///C:/OSPanel/domains/editor/renderer/EditorRenderer.js:225:23)
+      at EditorRenderer.render (file:///C:/OSPanel/domains/editor/renderer/EditorRenderer.js:277:50)
+      ... 6 lines matching cause stack trace ...
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18) {
+    blockType: 'article',
+    blockId: 'a',
+    cause: Error: Later decoder invoked
+        at schema.decode (file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:80:53)
+        at #createRenderedBlock (file:///C:/OSPanel/domains/editor/renderer/EditorRenderer.js:188:39)
+        at EditorRenderer.render (file:///C:/OSPanel/domains/editor/renderer/EditorRenderer.js:277:50)
+        at EditorRenderer.render (file:///C:/OSPanel/domains/editor/renderer/.qa-renderer-before-library.js:282:18)
+        at request (file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:66:33)
+        at file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:84:17
+        at fixture (file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:62:13)
+        at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:70:90)
+        at Test.runInAsyncScope (node:async_hooks:214:14)
+        at Test.run (node:internal/test_runner/test:1106:25)
+  }
+
+test at renderer\schema-ownership.test.js:91:2
+✖ render rejects a mismatched input version even when a custom decoder ignores it (0.3963ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:96:11
+      at fixture (file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:62:13)
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:91:97)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /current schema/,
+    operator: 'throws',
+    diff: 'simple'
+  }
+
+test at renderer\schema-ownership.test.js:100:2
+✖ render rejects a schema output version drift before projection (0.3322ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:106:11
+      at fixture (file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:62:13)
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:100:80)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /current schema/,
+    operator: 'throws',
+    diff: 'simple'
+  }
+
+test at renderer\schema-ownership.test.js:70:2
+✖ renderTo retains the registered schema methods and original class receiver (0.813ms)
+  Error [InvalidBlockDataError]: Invalid data for block type "article" (id: a): Block data does not match its current schema
+      at #createRenderedBlock (file:///C:/OSPanel/domains/editor/renderer/EditorRenderer.js:225:23)
+      at EditorRenderer.renderTo (file:///C:/OSPanel/domains/editor/renderer/EditorRenderer.js:389:52)
+      ... 6 lines matching cause stack trace ...
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18) {
+    blockType: 'article',
+    blockId: 'a',
+    cause: Error: Later decoder invoked
+        at schema.decode (file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:80:53)
+        at #createRenderedBlock (file:///C:/OSPanel/domains/editor/renderer/EditorRenderer.js:188:39)
+        at EditorRenderer.renderTo (file:///C:/OSPanel/domains/editor/renderer/EditorRenderer.js:389:52)
+        at EditorRenderer.renderTo (file:///C:/OSPanel/domains/editor/renderer/.qa-renderer-before-library.js:287:18)
+        at request (file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:67:13)
+        at file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:84:17
+        at fixture (file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:62:13)
+        at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:70:90)
+        at Test.runInAsyncScope (node:async_hooks:214:14)
+        at Test.run (node:internal/test_runner/test:1106:25)
+  }
+
+test at renderer\schema-ownership.test.js:91:2
+✖ renderTo rejects a mismatched input version even when a custom decoder ignores it (0.6535ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:96:11
+      at fixture (file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:62:13)
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:91:97)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /current schema/,
+    operator: 'throws',
+    diff: 'simple'
+  }
+
+test at renderer\schema-ownership.test.js:100:2
+✖ renderTo rejects a schema output version drift before projection (0.3898ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:106:11
+      at fixture (file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:62:13)
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:100:80)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /current schema/,
+    operator: 'throws',
+    diff: 'simple'
+  }
+
+test at renderer\schema-ownership.test.js:113:3
+✖ Renderer rejects array schema results before calling the projector (0.7473ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:118:10
+      at fixture (file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:62:13)
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:113:84)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /current schema/,
+    operator: 'throws',
+    diff: 'simple'
+  }
+
+test at renderer\schema-ownership.test.js:113:3
+✖ Renderer rejects class schema results before calling the projector (0.2517ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:118:10
+      at fixture (file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:62:13)
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:113:84)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /current schema/,
+    operator: 'throws',
+    diff: 'simple'
+  }
+
+test at renderer\schema-ownership.test.js:113:3
+✖ Renderer rejects non-finite schema results before calling the projector (0.3151ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:118:10
+      at fixture (file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:62:13)
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:113:84)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /current schema/,
+    operator: 'throws',
+    diff: 'simple'
+  }
+
+test at renderer\schema-ownership.test.js:113:3
+✖ Renderer rejects cycle schema results before calling the projector (0.3199ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:118:10
+      at fixture (file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:62:13)
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:113:84)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /current schema/,
+    operator: 'throws',
+    diff: 'simple'
+  }
+
+test at renderer\schema-ownership.test.js:122:86
+✖ Renderer block schemas reject removed legacyVersion metadata without reading it (0.4351ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:130:14)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /removed compatibility/,
+    operator: 'throws',
+    diff: 'simple'
+  }
+
+test at renderer\schema-ownership.test.js:122:86
+✖ Renderer block schemas reject removed migrations metadata without reading it (0.1649ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:130:14)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /removed compatibility/,
+    operator: 'throws',
+    diff: 'simple'
+  }
+
+test at renderer\schema-ownership.test.js:122:86
+✖ Renderer inline schemas reject removed legacyVersion metadata without reading it (0.3262ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:127:28)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /removed compatibility/,
+    operator: 'throws',
+    diff: 'simple'
+  }
+
+test at renderer\schema-ownership.test.js:122:86
+✖ Renderer inline schemas reject removed migrations metadata without reading it (0.1471ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:127:28)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /removed compatibility/,
+    operator: 'throws',
+    diff: 'simple'
+  }
+
+test at renderer\schema-ownership.test.js:134:1
+✖ Inline renderer captures schema prototype accessors once and uses private method state (0.356ms)
+  Error: Version reread
+      at get currentVersion (file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:138:58)
+      at validateRendererConfig (file:///C:/OSPanel/domains/editor/renderer/.qa-renderer-before-library.js:84:21)
+      at new EditorRenderer (file:///C:/OSPanel/domains/editor/renderer/.qa-renderer-before-library.js:264:5)
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:144:17)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7)
+
+test at renderer\schema-ownership.test.js:149:38
+✖ Renderer block captures callable render methods without reading unrelated bind accessors (0.2461ms)
+  Error: Unrelated function bind accessed
+      at render.get (file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:152:63)
+      at snapshotCustomRenderer (file:///C:/OSPanel/domains/editor/renderer/.qa-renderer-before-library.js:250:41)
+      at EditorRenderer.registerRenderer (file:///C:/OSPanel/domains/editor/renderer/.qa-renderer-before-library.js:270:20)
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:159:16)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7)
+
+test at renderer\schema-ownership.test.js:149:38
+✖ Renderer inline captures callable render methods without reading unrelated bind accessors (0.1396ms)
+  Error: Unrelated function bind accessed
+      at render.get (file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:152:63)
+      at validateRendererConfig (file:///C:/OSPanel/domains/editor/renderer/.qa-renderer-before-library.js:117:24)
+      at new EditorRenderer (file:///C:/OSPanel/domains/editor/renderer/.qa-renderer-before-library.js:264:5)
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:156:18)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7)
+
+test at renderer\schema-ownership.test.js:163:1
+✖ Poll renderer captures source functions without reading their unrelated bind accessors (0.4366ms)
+  Error: Unrelated service bind accessed
+      at load.get (file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:170:101)
+      at snapshotPollRendererConfig (file:///C:/OSPanel/domains/editor/renderer/.qa-poll-before-library.js:36:39)
+      at snapshotBlockConfigs (file:///C:/OSPanel/domains/editor/renderer/.qa-renderer-before-library.js:193:40)
+      at validateRendererConfig (file:///C:/OSPanel/domains/editor/renderer/.qa-renderer-before-library.js:63:25)
+      at new EditorRenderer (file:///C:/OSPanel/domains/editor/renderer/.qa-renderer-before-library.js:264:5)
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:171:17)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)

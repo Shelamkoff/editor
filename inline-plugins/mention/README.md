@@ -27,6 +27,8 @@ const editor = createEditor({
 
 The `createMentionPlugin` factory creates a definition of type `mention`. The trigger must be exactly one Unicode code point. Typing it at the beginning of a text node or after a regular or non-breaking space opens search. `query` excludes the trigger. Arrow keys move the active result, Enter or Tab commits it, Escape closes the popup, and scrolling near the end requests `nextPageUrl` when supplied.
 
+The factory captures own enumerable options once, including `trigger`; inherited option getters are ignored. Later changes to the supplied options do not alter the definition, and the caller’s object remains mutable.
+
 ## Search contract
 
 `searchFunction` returns either `MentionItem[]` or `{ items: MentionItem[], nextPageUrl?: string | null }`:

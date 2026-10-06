@@ -2,13 +2,13 @@
 
 `EditorRenderer` converts saved Rector documents into DOM without mounting editing controls, history, selection, or toolbars. Use it for article pages, previews, exports, and any view that only needs the document result.
 
-The synchronous renderer entry contains the complete built-in preset. Its module graph includes the Gallery and Person integrations, so install their optional peers before importing `@shelamkoff/rector/renderer`:
+The synchronous renderer entry contains the complete built-in preset, including Gallery and Person integrations. Their `Carousel`, `Expose`, and `Masonry` packages are declared runtime dependencies and are installed automatically with Rector:
 
 ```bash
-npm install @shelamkoff/rector @shelamkoff/carousel @shelamkoff/expose @shelamkoff/masonry
+npm install @shelamkoff/rector
 ```
 
-Applications that never import the renderer do not need those packages. `blockTypes` limits constructed renderers but cannot change ESM module resolution after the entry has been imported.
+For a source checkout, run `npm ci` before starting the demo. `blockTypes` limits constructed renderers but cannot remove integrations from the synchronous entry’s ESM module graph.
 
 ## Basic usage
 
@@ -22,7 +22,7 @@ renderer.renderTo(documentData, document.querySelector('#article'))
 renderer.destroy()
 ```
 
-The renderer accepts the document returned by `editor.save()` directly. Metadata such as `time`, `version`, and block `id` is optional to rendering; `blocks`, each block `type`, and plugin data are the functional inputs.
+The renderer accepts the current document returned by `editor.save()` directly. The document `version: '2.0.0'` and `blocks` are required; every block needs a unique non-empty `id`, `type`, exact `dataVersion`, and valid plugin `data`. Only `time` is optional. See [Document format](/guide/document-format) for the complete contract.
 
 ## Configuration
 
@@ -32,7 +32,7 @@ interface RendererConfig {
   classPrefix?: string
   throwOnUnknown?: boolean
   theme?: 'dark' | 'light'
-  onValidationError?: (issue: { blockId?: string; type: string }) => void | Promise<void>
+  onValidationError?: (issue: { blockId?: string; type: string; reason?: 'unsupported-data-version' | 'invalid-input' | 'invalid-data' }) => void | Promise<void>
   locale?: Record<string, LocaleValue>
   blockTypes?: BlockType[]
   blockConfigs?: {
@@ -49,7 +49,7 @@ interface RendererConfig {
 | `classPrefix` | `editor` | namespace used by generated renderer classes |
 | `throwOnUnknown` | `true` | throw for an unregistered block instead of rendering a placeholder |
 | `theme` | `dark` | renderer theme tokens |
-| `onValidationError` | none | receive a content-free `{ blockId?, type }` notice for invalid built-in data |
+| `onValidationError` | none | receive a content-free `{ blockId?, type, reason? }` notice for invalid built-in data |
 | `locale` | built-in English | flat `renderer.*` message dictionary |
 | `blockTypes` | all built-ins | construct only selected built-in renderers |
 | `blockConfigs` | none | runtime configuration keyed by built-in block type |
@@ -58,6 +58,8 @@ interface RendererConfig {
 `InlineWidgetRenderer.schema` is the same versioned inline-widget schema used by the editor definition. The renderer decodes and validates the canonical payload through that schema before calling `InlineWidgetRenderer.render()`; unknown, malformed, or unsupported widget data is never activated as markup.
 
 Every registered block renderer is likewise a `BlockRendererDefinition` with a `schema`. Built-in definitions are bound to the exact `BlockDataSchema` used by the matching editor plugin, so the current `dataVersion`, validation, and rich-text field traversal have one source of truth.
+
+At registration, Rector reads each schema member once and captures its version and methods with their original receiver. Later method replacement does not change the registered contract; the application still owns mutable receiver state. Every decoded result must preserve the exact version and contain JSON object data. Inline style lists are also copied at registration.
 
 The default fails explicitly when a renderer is missing. Set `throwOnUnknown: false` only when the host intentionally accepts an inert placeholder for an unregistered current-format block. The placeholder has the class `<classPrefix>-unknown` and a `data-block-type` attribute; it does not reproduce the missing content.
 
@@ -117,6 +119,7 @@ const block = {
   id: 'intro',
   revision: 'sha256:9f4c…',
   type: 'paragraph',
+  dataVersion: 2,
   data: { text: 'Hello' },
 }
 ```

@@ -1,0 +1,12 @@
+{
+  "revision": "41c205ea663f896f052d3bd84aea2752892c8c82",
+  "files": {
+    "renderer/index.js": "22db4c1729ac51bedac203da2c2e9a6fbcca4fe19b0776c71b06c2a7ae511bd2",
+    "renderer/pollConfigSnapshot.js": "6ee0783912074cf9db95fd9ca4ed6adcfeac6a98595388c1106067cd975c26c4",
+    "inline-plugins/mention/index.js": "a579d00642805258034c15877c4129407071b8033f37651ced37b9778f754bdf"
+  },
+  "unchangedRendererImplementation": true,
+  "rewrittenImports": [
+    "renderer/index.js Poll configuration helper import redirects to the pinned helper only"
+  ]
+}

@@ -1,0 +1,79 @@
+[
+  {
+    "Name": "typecheck",
+    "Command": "npm run typecheck",
+    "StartedAt": "2026-10-06T11:43:06.498Z",
+    "FinishedAt": "2026-10-06T11:43:26.602Z",
+    "ExitCode": 0
+  },
+  {
+    "Name": "node",
+    "Command": "npm test",
+    "StartedAt": "2026-10-06T11:43:04.681Z",
+    "FinishedAt": "2026-10-06T11:43:36.292Z",
+    "ExitCode": 0
+  },
+  {
+    "Name": "docs",
+    "Command": "npm run test:docs",
+    "StartedAt": "2026-10-06T11:40:24.032Z",
+    "FinishedAt": "2026-10-06T11:40:29.954Z",
+    "ExitCode": 0
+  },
+  {
+    "Name": "consumer-types",
+    "Command": "npm run test:types",
+    "StartedAt": "2026-10-06T11:24:04.339Z",
+    "FinishedAt": "2026-10-06T11:24:20.609Z",
+    "ExitCode": 0
+  },
+  {
+    "Name": "package",
+    "Command": "npm run test:package",
+    "StartedAt": "2026-10-06T11:24:59.080Z",
+    "FinishedAt": "2026-10-06T11:25:59.804Z",
+    "ExitCode": 0
+  },
+  {
+    "Name": "docs-check",
+    "Command": "npm run docs:check",
+    "StartedAt": "2026-10-06T11:31:08.427Z",
+    "FinishedAt": "2026-10-06T11:32:19.475Z",
+    "ExitCode": 0
+  },
+  {
+    "Name": "bundle",
+    "Command": "node benchmarks/bundle-budget.mjs --enforce",
+    "StartedAt": "2026-10-06T11:24:04.015Z",
+    "FinishedAt": "2026-10-06T11:24:20.216Z",
+    "ExitCode": 0
+  },
+  {
+    "Name": "browser",
+    "Command": "node tests/browser/run.mjs",
+    "StartedAt": "2026-10-06T11:24:36.085Z",
+    "FinishedAt": "2026-10-06T11:25:04.842Z",
+    "ExitCode": 0
+  },
+  {
+    "Name": "native-all",
+    "Command": "node tests/browser/physical-history.mjs",
+    "StartedAt": "2026-10-06T11:23:59.050Z",
+    "FinishedAt": "2026-10-06T11:38:26.689Z",
+    "ExitCode": 0
+  },
+  {
+    "Name": "heap",
+    "Command": "node tests/browser/heap-gate.mjs",
+    "StartedAt": "2026-10-06T11:24:37.900Z",
+    "FinishedAt": "2026-10-06T11:24:53.357Z",
+    "ExitCode": 0
+  },
+  {
+    "Name": "demo",
+    "Command": "node scripts/vitepress-browser-smoke.mjs",
+    "StartedAt": "2026-10-06T11:25:00.685Z",
+    "FinishedAt": "2026-10-06T11:25:43.141Z",
+    "ExitCode": 0
+  }
+]

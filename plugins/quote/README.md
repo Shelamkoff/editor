@@ -51,4 +51,4 @@ Do not remove the editor holder without first calling `editor.destroy()`.
 
 ## Document output
 
-Use the matching renderer from `@shelamkoff/rector/renderer/renderers/quote`. The VitePress guide documents configuration, commands and history, extension contracts, document migrations, styling, security, and lifecycle in a sequential form.
+Use the matching renderer from `@shelamkoff/rector/renderer/renderers/quote`. The VitePress guide documents configuration, commands and history, extension contracts, the current document format, styling, security, and lifecycle in a sequential form.

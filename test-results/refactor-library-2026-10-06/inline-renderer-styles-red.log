@@ -1,0 +1,26 @@
+✔ Registering a block renderer captures all schema descriptor members once (2.5471ms)
+✖ Inline renderer captures its declared styles once without freezing the caller (0.683ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 1
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 288.189
+
+✖ failing tests:
+
+test at renderer\schema-ownership.test.js:28:1
+✖ Inline renderer captures its declared styles once without freezing the caller (0.683ms)
+  Error: Inline styles accessor reread
+      at get styles (file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:34:35)
+      at validateRendererConfig (file:///C:/OSPanel/domains/editor/renderer/index.js:94:35)
+      at new EditorRenderer (file:///C:/OSPanel/domains/editor/renderer/index.js:251:5)
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/renderer/schema-ownership.test.js:36:17)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3)

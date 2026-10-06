@@ -1,0 +1,7 @@
+{
+  "Name": "heap",
+  "Command": "node tests/browser/heap-gate.mjs",
+  "StartedAt": "2026-10-06T11:24:37.900Z",
+  "FinishedAt": "2026-10-06T11:24:53.357Z",
+  "ExitCode": 0
+}

@@ -3,6 +3,7 @@ import { EditorRenderer as EditorRendererImpl, getSupportedBlockTypes } from './
 import { cloneEditorData } from '../shared/cloneEditorData.js'
 import { snapshotCurrentBlockEnvelope, snapshotCurrentDocumentEnvelope } from '../shared/DocumentSchema.js'
 import { snapshotPollRendererConfig } from './pollConfigSnapshot.js'
+import { snapshotDataSchema } from '../shared/snapshotDataSchema.js'
 
 const validationSourceKey = Symbol.for('@shelamkoff/rector/renderer-validation-source')
 
@@ -77,44 +78,35 @@ function validateRendererConfig(config) {
       if (typeof type !== 'string' || !type) {
         throw new TypeError('EditorRenderer inline renderer must have a non-empty string type')
       }
-      const schema = source.schema
-      if (!schema
-          || typeof schema !== 'object'
-          || !Number.isSafeInteger(schema.currentVersion)
-          || schema.currentVersion < 1
-          || typeof schema.createDefault !== 'function'
-          || typeof schema.decode !== 'function'
-          || typeof schema.encode !== 'function') {
-        throw new TypeError(`EditorRenderer inline renderer "${type}" must provide a current exact-version schema`)
-      }
-      const inlineDefault=schema.createDefault()
-      const inlineEncoded=schema.encode(inlineDefault)
-      if(!inlineEncoded||inlineEncoded.dataVersion!==schema.currentVersion){
-        throw new TypeError(`EditorRenderer inline renderer "${type}" schema encode() must emit currentVersion`)
-      }
-      const inlineDecoded=schema.decode({dataVersion:schema.currentVersion,data:inlineEncoded.data})
-      if(!inlineDecoded||inlineDecoded.dataVersion!==schema.currentVersion){
-        throw new TypeError(`EditorRenderer inline renderer "${type}" schema decode() must preserve currentVersion`)
+      let schema
+      try {
+        schema = snapshotDataSchema(source.schema, `EditorRenderer inline renderer "${type}"`)
+      } catch (error) {
+        if (!(error instanceof TypeError)) throw error
+        throw new TypeError(`EditorRenderer inline renderer "${type}" must provide a current exact-version schema: ${error.message}`, { cause: error })
       }
       const render = source.render
       if (typeof render !== 'function') {
         throw new TypeError(`EditorRenderer inline renderer "${type}" must implement render()`)
       }
       let styles
-      if (source.styles !== undefined) {
-        if (!Array.isArray(source.styles)) throw new TypeError(`EditorRenderer inline renderer "${type}" styles must be an array of strings`)
-        assertDenseArray(source.styles, `inline renderer "${type}" styles`)
-        styles = source.styles.map(url => {
+      const inputStyles = source.styles
+      if (inputStyles !== undefined) {
+        if (!Array.isArray(inputStyles)) throw new TypeError(`EditorRenderer inline renderer "${type}" styles must be an array of strings`)
+        assertDenseArray(inputStyles, `inline renderer "${type}" styles`)
+        styles = []
+        for (let index = 0; index < inputStyles.length; index++) {
+          const url = inputStyles[index]
           if (typeof url !== 'string') throw new TypeError(`EditorRenderer inline renderer "${type}" styles must be an array of strings`)
-          return url
-        })
+          styles.push(url)
+        }
       }
       if (types.has(type)) throw new Error(`Duplicate renderer inline renderer type: "${type}"`)
       types.add(type)
       renderers.push(Object.freeze({
         type,
         schema,
-        render: render.bind(source),
+        render: Reflect.apply(Function.prototype.bind, render, [source]),
         ...(styles ? { styles: Object.freeze(styles) } : {}),
       }))
     }
@@ -209,14 +201,12 @@ function snapshotCustomRenderer(renderer) {
   if (!schemaValue || typeof schemaValue !== 'object' || Array.isArray(schemaValue)) {
     throw new TypeError(`EditorRenderer custom renderer "${type}" must provide a block data schema`)
   }
-  const schema = /** @type {Record<string, unknown>} */ (schemaValue)
-  if (typeof schema.decode !== 'function'
-      || typeof schema.encode !== 'function'
-      || typeof schema.createDefault !== 'function') {
-    throw new TypeError(`EditorRenderer custom renderer "${type}" must provide a block data schema`)
-  }
-  if (!Number.isSafeInteger(schema.currentVersion) || Number(schema.currentVersion) < 1) {
-    throw new TypeError(`EditorRenderer custom renderer "${type}" schema currentVersion must be a positive safe integer`)
+  let schema
+  try {
+    schema = snapshotDataSchema(schemaValue, `EditorRenderer custom renderer "${type}"`, { validateDefault: false })
+  } catch (error) {
+    if (!(error instanceof TypeError)) throw error
+    throw new TypeError(`EditorRenderer custom renderer "${type}" must provide a block data schema: ${error.message}`, { cause: error })
   }
   const render = candidate.render
   if (typeof render !== 'function') {
@@ -247,9 +237,9 @@ function snapshotCustomRenderer(renderer) {
   return {
     type,
     schema: /** @type {any} */ (schema),
-    render: /** @type {any} */ (render).bind(renderer),
+    render: Reflect.apply(Function.prototype.bind, render, [renderer]),
     ...(styles ? { styles } : {}),
-    ...(typeof destroy === 'function' ? { destroy: /** @type {any} */ (destroy).bind(renderer) } : {}),
+    ...(typeof destroy === 'function' ? { destroy: Reflect.apply(Function.prototype.bind, destroy, [renderer]) } : {}),
   }
 }
 

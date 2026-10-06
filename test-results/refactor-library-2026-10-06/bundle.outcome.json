@@ -1,0 +1,7 @@
+{
+  "Name": "bundle",
+  "Command": "node benchmarks/bundle-budget.mjs --enforce",
+  "StartedAt": "2026-10-06T11:24:04.015Z",
+  "FinishedAt": "2026-10-06T11:24:20.216Z",
+  "ExitCode": 0
+}

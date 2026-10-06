@@ -1,0 +1,22 @@
+✖ Mention captures the trigger accessor once before validation and ownership (0.8921ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 136.5781
+
+✖ failing tests:
+
+test at inline-plugins\mention.config.test.js:5:1
+✖ Mention captures the trigger accessor once before validation and ownership (0.8921ms)
+  Error: Trigger accessor reread
+      at get trigger (file:///C:/OSPanel/domains/editor/inline-plugins/mention.config.test.js:7:50)
+      at createMentionPlugin (file:///C:/OSPanel/domains/editor/inline-plugins/mention/index.js:47:36)
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/inline-plugins/mention.config.test.js:8:19)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.start (node:internal/test_runner/test:1003:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:358:17)

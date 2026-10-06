@@ -1,0 +1,7 @@
+{
+  "Name": "docs-check",
+  "Command": "npm run docs:check",
+  "StartedAt": "2026-10-06T11:29:05.420Z",
+  "FinishedAt": "2026-10-06T11:29:46.461Z",
+  "ExitCode": 1
+}

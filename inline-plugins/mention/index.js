@@ -42,9 +42,10 @@ function normalizeResult(raw){
 /** Create an immutable inline mention-widget definition.\n * @param {MentionV2Options} [options] Consumer-owned options snapshotted by the factory.\n * @returns {import('../../plugin-kit/types').InlinePluginDefinition<{id:string,name:string}>}\n */
 export function createMentionPlugin(options={}){
   if(!options||typeof options!=='object'||Array.isArray(options))throw new TypeError('Mention options must be an object')
-  const trigger=options.trigger??'@'
+  const captured={...options}
+  const trigger=captured.trigger??'@'
   if(typeof trigger!=='string'||Array.from(trigger).length!==1)throw new TypeError('Mention trigger must be exactly one Unicode code point')
-  const snapshot=Object.freeze({...options,trigger})
+  const snapshot=Object.freeze({...captured,trigger})
   const delay=Number.isFinite(snapshot.debounceDelay)?Math.max(0,Number(snapshot.debounceDelay)):300
 
   return Object.freeze({

@@ -494,6 +494,7 @@ try {
   const nativeSourceModes = await runNativePage(client, pageUrl, 'native-source-modes.html')
   const nativeConfigSnapshot = await runNativePage(client, pageUrl, 'native-config-snapshot.html')
   const nativePollRuntime = await runNativePage(client, pageUrl, 'native-poll-runtime.html')
+  const nativeLibraryBoundaries = await runNativePage(client, pageUrl, 'native-library-boundaries.html')
   const nativeStructural = await runNativePage(client, pageUrl, 'native-structural.html')
   const nativeCrossSelection = await runNativePage(client, pageUrl, 'native-cross-selection.html')
   const nativeCoreBehavior = await runNativePage(client, pageUrl, 'native-core-behavior.html')
@@ -538,6 +539,7 @@ try {
     nativeSourceModes,
     nativeConfigSnapshot,
     nativePollRuntime,
+    nativeLibraryBoundaries,
     nativeStructural,
     nativeCrossSelection,
     nativeCoreBehavior,

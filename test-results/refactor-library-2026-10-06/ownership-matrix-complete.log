@@ -1,0 +1,35 @@
+✔ Mention captures the trigger accessor once before validation and ownership (1.3815ms)
+✔ Mention ignores inherited trigger configuration without evaluating it (0.4132ms)
+✔ Mention captures all own option accessors once and retains its chosen Unicode trigger (1.1274ms)
+✔ Mention rejects a captured multi-codepoint trigger (0.9585ms)
+✔ Registering a block renderer captures all schema descriptor members once (2.9634ms)
+✔ Inline renderer captures its declared styles once without freezing the caller (1.0689ms)
+✔ renderBlock retains the registered schema methods and original class receiver (2.4033ms)
+✔ renderBlock rejects a mismatched input version even when a custom decoder ignores it (1.0232ms)
+✔ renderBlock rejects a schema output version drift before projection (0.7629ms)
+✔ render retains the registered schema methods and original class receiver (0.9026ms)
+✔ render rejects a mismatched input version even when a custom decoder ignores it (0.51ms)
+✔ render rejects a schema output version drift before projection (0.3596ms)
+✔ renderTo retains the registered schema methods and original class receiver (1.3718ms)
+✔ renderTo rejects a mismatched input version even when a custom decoder ignores it (0.6342ms)
+✔ renderTo rejects a schema output version drift before projection (0.344ms)
+✔ Renderer rejects array schema results before calling the projector (0.3907ms)
+✔ Renderer rejects class schema results before calling the projector (0.1886ms)
+✔ Renderer rejects non-finite schema results before calling the projector (0.2233ms)
+✔ Renderer rejects cycle schema results before calling the projector (0.2427ms)
+✔ Renderer block schemas reject removed legacyVersion metadata without reading it (0.3066ms)
+✔ Renderer block schemas reject removed migrations metadata without reading it (0.1077ms)
+✔ Renderer inline schemas reject removed legacyVersion metadata without reading it (0.1667ms)
+✔ Renderer inline schemas reject removed migrations metadata without reading it (0.1457ms)
+✔ Inline renderer captures schema prototype accessors once and uses private method state (0.488ms)
+✔ Renderer block captures callable render methods without reading unrelated bind accessors (0.2198ms)
+✔ Renderer inline captures callable render methods without reading unrelated bind accessors (0.1587ms)
+✔ Poll renderer captures source functions without reading their unrelated bind accessors (0.4945ms)
+ℹ tests 27
+ℹ suites 0
+ℹ pass 27
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 382.5117

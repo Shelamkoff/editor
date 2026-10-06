@@ -1,0 +1,7 @@
+{
+  "Name": "browser",
+  "Command": "node tests/browser/run.mjs",
+  "StartedAt": "2026-10-06T11:24:36.085Z",
+  "FinishedAt": "2026-10-06T11:25:04.842Z",
+  "ExitCode": 0
+}

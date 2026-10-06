@@ -1,0 +1,32 @@
+✔ Mention captures the trigger accessor once before validation and ownership (1.3871ms)
+✔ Mention ignores inherited trigger configuration without evaluating it (0.3319ms)
+✔ Mention captures all own option accessors once and retains its chosen Unicode trigger (1.4718ms)
+✔ Mention rejects a captured multi-codepoint trigger (0.7184ms)
+✔ Registering a block renderer captures all schema descriptor members once (3.5706ms)
+✔ Inline renderer captures its declared styles once without freezing the caller (2.0865ms)
+✔ renderBlock retains the registered schema methods and original class receiver (2.5487ms)
+✔ renderBlock rejects a mismatched input version even when a custom decoder ignores it (1.2397ms)
+✔ renderBlock rejects a schema output version drift before projection (0.9324ms)
+✔ render retains the registered schema methods and original class receiver (1.0522ms)
+✔ render rejects a mismatched input version even when a custom decoder ignores it (0.4896ms)
+✔ render rejects a schema output version drift before projection (0.404ms)
+✔ renderTo retains the registered schema methods and original class receiver (1.0292ms)
+✔ renderTo rejects a mismatched input version even when a custom decoder ignores it (0.4863ms)
+✔ renderTo rejects a schema output version drift before projection (0.3785ms)
+✔ Renderer rejects array schema results before calling the projector (0.5465ms)
+✔ Renderer rejects class schema results before calling the projector (0.2143ms)
+✔ Renderer rejects non-finite schema results before calling the projector (0.1954ms)
+✔ Renderer rejects cycle schema results before calling the projector (0.2905ms)
+✔ Renderer block schemas reject removed legacyVersion metadata without reading it (0.3725ms)
+✔ Renderer block schemas reject removed migrations metadata without reading it (0.1498ms)
+✔ Renderer inline schemas reject removed legacyVersion metadata without reading it (0.313ms)
+✔ Renderer inline schemas reject removed migrations metadata without reading it (0.1744ms)
+✔ Inline renderer captures schema prototype accessors once and uses private method state (0.5915ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 24
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 390.8173

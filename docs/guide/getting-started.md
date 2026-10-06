@@ -18,7 +18,7 @@ Rector depends on native `contenteditable`, Selection/Range, clipboard, focus, k
 npm install @shelamkoff/rector
 ```
 
-Rector installs its required runtime dependencies automatically. Some media plugins use optional peer dependencies; their individual pages list those packages before the first example.
+Rector installs its required runtime dependencies automatically, including the `Carousel`, `Expose`, and `Masonry` integrations used by media plugins. In a source checkout, run `npm ci` before starting the demo.
 
 ## Add a holder
 

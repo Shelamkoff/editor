@@ -33,10 +33,10 @@ export function snapshotPollRendererConfig(input, label = 'EditorRenderer blockC
       throw new TypeError('EditorRenderer Poll dataSource subscribe must be a function')
     }
     dataSource = {
-      load: /** @type {any} */ (load).bind(dataSourceInput),
-      vote: /** @type {any} */ (vote).bind(dataSourceInput),
+      load: Reflect.apply(Function.prototype.bind, load, [dataSourceInput]),
+      vote: Reflect.apply(Function.prototype.bind, vote, [dataSourceInput]),
       ...(typeof subscribe === 'function'
-        ? { subscribe: /** @type {any} */ (subscribe).bind(dataSourceInput) }
+        ? { subscribe: Reflect.apply(Function.prototype.bind, subscribe, [dataSourceInput]) }
         : {}),
     }
   }

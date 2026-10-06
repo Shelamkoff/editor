@@ -1,0 +1,12 @@
+{
+  "originalSnapshotFiles": 600,
+  "finalSnapshotFiles": 604,
+  "originalFilesUnchanged": true,
+  "addedDocumentation": [
+    "docs/guide/getting-started.md",
+    "docs/ru/guide/getting-started.md",
+    "docs/guide/rendering.md",
+    "docs/ru/guide/rendering.md"
+  ],
+  "reason": "The inherited snapshot omitted four guide files. The initial summary exposed a stale 600 count after adding their hashes; count and explicit scope checks now match the verified files."
+}

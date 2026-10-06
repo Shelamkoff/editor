@@ -1,0 +1,35 @@
+✔ ExtensionRegistry accepts only unique definition types (5.7414ms)
+✔ ExtensionRegistry resolves default block deterministically and validates defaults (1.4231ms)
+✔ ExtensionRegistry creates editor-scoped runtimes and releases styles exactly once (1.8956ms)
+✔ ExtensionRegistry rejects sparse definitions and invalid inline triggers (0.558ms)
+✔ ExtensionRegistry global style acquisition may be disabled without changing definitions (1.6979ms)
+✔ ExtensionRegistry snapshots mutable descriptor members and schema identity once (1.2146ms)
+✔ ExtensionRegistry destroys an invalid returned runtime before rejecting it (0.4855ms)
+✔ ExtensionRegistry rejects removed schema compatibility members before setup (0.3513ms)
+✔ ExtensionRegistry uses inlinePlugin locale namespace without inline alias fallback (0.6126ms)
+✔ ExtensionRegistry snapshots mutable descriptor, schema and capability members once (1.042ms)
+✔ ExtensionRegistry uses inlinePlugin locale namespace (0.5121ms)
+✔ ExtensionRegistry exact schema wrapper rejects later wrong-version results (1.0731ms)
+✔ ExtensionRegistry snapshots structural htmlImport capability methods (0.7686ms)
+✔ ExtensionRegistry snapshots clipboard slice capability methods (0.7424ms)
+✔ ExtensionRegistry snapshots explicit cross-block conversion grouping independently of payload import (0.9519ms)
+✔ ExtensionRegistry reads conversion grouping accessor once when snapshotting a definition (0.5396ms)
+✔ ExtensionRegistry snapshots the optional single-target selection join method (0.5919ms)
+✔ renderer config rejects unknown block types and malformed inline renderer entries (3.8504ms)
+✔ registerRenderer rejects malformed custom renderer contracts before registration (2.1239ms)
+✔ renderer config ignores inherited top-level options (0.7058ms)
+✔ renderer config rejects sparse public arrays without reading inherited entries (0.8745ms)
+✔ registerRenderer observes accessor-backed type once (0.569ms)
+✔ renderer config observes blockTypes and inlineRenderers entries once (0.7114ms)
+✔ Poll renderer config and dataSource members are observed once (1.6681ms)
+✔ unused blockConfigs members are not observed (0.4822ms)
+✔ renderer rejects runtime config values outside its public type contract (3.2837ms)
+✔ Registering a block renderer captures all schema descriptor members once (2.8576ms)
+ℹ tests 27
+ℹ suites 0
+ℹ pass 27
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 495.4674

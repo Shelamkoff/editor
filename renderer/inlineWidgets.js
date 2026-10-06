@@ -3,7 +3,8 @@ const PLACEHOLDER_RE = /\{\{([A-Za-z0-9_-]+)\}\}/g
 
 /**
  * Project canonical inline widget references into read-only widget DOM.
- * Unknown, malformed, unsupported or failed widgets remain literal tokens.
+ * Unknown widgets remain literal tokens. Registered schemas reject invalid
+ * payloads; schema and projection errors abort the render operation.
  *
  * @param {DocumentFragment} fragment
  * @param {Record<string, import('./types').InlineWidget> | null | undefined} inline

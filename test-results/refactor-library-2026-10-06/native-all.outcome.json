@@ -1,0 +1,7 @@
+{
+  "Name": "native-all",
+  "Command": "node tests/browser/physical-history.mjs",
+  "StartedAt": "2026-10-06T11:23:59.050Z",
+  "FinishedAt": "2026-10-06T11:38:26.689Z",
+  "ExitCode": 0
+}

@@ -1,0 +1,6 @@
+
+> @shelamkoff/rector@2.0.0 typecheck
+> node node_modules/typescript/bin/tsc -p jsconfig.json && node node_modules/typescript/bin/tsc -p jsconfig.runtime.json
+
+renderer/index.js(95,26): error TS2304: Cannot find name 'inputStyles'.
+renderer/index.js(96,18): error TS2304: Cannot find name 'inputStyles'.
