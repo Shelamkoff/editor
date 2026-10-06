@@ -6,6 +6,7 @@ import { InstanceScope } from './InstanceScope.js'
 import { captureInstanceMethod, captureInstanceDestroy } from './instanceMethods.js'
 import { normalizeRichText } from '../shared/richTextCodec.js'
 import { toTrustedHtml } from '../shared/sanitize/trustedHtml.js'
+import { isRichTextCaretPadding, projectRichTextCaretPadding } from '../shared/richTextCaretPadding.js'
 
 const PLACEHOLDER_RE=/\{\{([A-Za-z0-9_-]+)\}\}/g
 
@@ -318,6 +319,7 @@ export class InlineProjectionRuntime {
       }
 
       this.#hydrateField(blockId,fieldKey,element,inline,counts,state,baseContext,live)
+      projectRichTextCaretPadding(element)
     }
 
     for(const [id,entry] of state.widgets){
@@ -358,7 +360,7 @@ export class InlineProjectionRuntime {
         if(match.index>cursor)fragment.appendChild(this.#ownerDocument.createTextNode(text.data.slice(cursor,match.index)))
 
         let entry=state.widgets.get(id)
-        if(entry&&entry.type!==type){
+        if(entry&&(entry.type!==type||entry.fieldKey!==fieldKey)){
           this.#destroyWidget(entry)
           state.widgets.delete(id)
           entry=null
@@ -423,6 +425,7 @@ export class InlineProjectionRuntime {
     const container=this.#ownerDocument.createElement('div')
     const append=(source,target)=>{
       for(const node of source.childNodes){
+        if(isRichTextCaretPadding(node))continue
         const owned=this.#owned.get(node)
         if(owned?.blockId===blockId){
           target.appendChild(this.#ownerDocument.createTextNode('{{'+owned.id+'}}'))

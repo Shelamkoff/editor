@@ -1,5 +1,6 @@
 // @ts-check
 import { createVersionedDataSchema } from '../versionedDataSchema.js'
+import { tableFieldKey } from '../tableFieldKey.js'
 
 export const tableDataSchema=createVersionedDataSchema({
   currentVersion:2,
@@ -40,7 +41,7 @@ export const tableDataSchema=createVersionedDataSchema({
       ...row,
       cells:row.cells.map(cell=>({
         ...cell,
-        text:transform(cell.text,`cell:${row.id}:${cell.id}`),
+        text:transform(cell.text,tableFieldKey(row.id,cell.id)),
       })),
     }))
   },

@@ -15,6 +15,58 @@ function caret(editor, id, offset, selector) {
   equal(getTextOffset(field, native.anchorNode, native.anchorOffset), offset)
 }
 
+for (const scenario of [
+  { name: 'current middle block', current: 'c', removed: 'c', next: 'd', text: 'Delta' },
+  { name: 'current last block', current: 'd', removed: 'd', next: 'c', text: 'Charlie' },
+  { name: 'preceding noncurrent block', current: 'c', removed: 'b', next: 'c', text: 'Charlie' },
+]) test(`Removing the ${scenario.name} through the public API keeps default focus on the correct surviving block`, async () => {
+  const editor = make([para('a', 'Alpha'), para('b', 'Bravo'), para('c', 'Charlie'), para('d', 'Delta')], { injectStyles: true })
+  editor.blocks.focus(scenario.current, { offset: 'end' })
+  const before = editor.save().blocks
+  editor.blocks.remove(scenario.removed)
+  const removed = editor.save().blocks
+  equal(editor.blocks.currentId, scenario.next, 'Removing a block reset the current block to the start of the document')
+  editor.focus()
+  equal(document.activeElement, editableField(editor, scenario.next))
+  await dispatchKey('End', 'End', 35)
+  await printable('X')
+  const after = editor.save().blocks
+  equal(editor.blocks.get(scenario.next).data.text, scenario.text + 'X')
+  caret(editor, scenario.next, scenario.text.length + 1)
+  await dispatchKey('z', 'KeyZ', 90, 2); equal(editor.save().blocks, removed)
+  await dispatchKey('z', 'KeyZ', 90, 2); equal(editor.save().blocks, before)
+  await dispatchKey('z', 'KeyZ', 90, 10)
+  await dispatchKey('z', 'KeyZ', 90, 10); equal(editor.save().blocks, after)
+  caret(editor, scenario.next, scenario.text.length + 1)
+})
+
+test('A terminal line break keeps native typing on its new line without adding projection padding to saved or copied text', async () => {
+  const editor = make([para('a', 'Alpha'), para('b', '')], { injectStyles: true })
+  const before = editor.save().blocks
+  editor.blocks.focus('a', { offset: 'end' })
+  await dispatchKey('Enter', 'Enter', 13, 8)
+  const broken = editor.save().blocks
+  equal(broken[0].data.text, 'Alpha<br>')
+  caret(editor, 'a', 6)
+  await dispatchKey('a', 'KeyA', 65, 2)
+  await dispatchKey('c', 'KeyC', 67, 2)
+  editor.blocks.focus('b', { offset: 0 })
+  await dispatchKey('v', 'KeyV', 86, 2); await pause()
+  equal(editor.blocks.get('b').data.text, 'Alpha<br>', 'Copy persisted the extra presentation line break')
+  await dispatchKey('z', 'KeyZ', 90, 2); equal(editor.save().blocks, broken)
+  editor.blocks.focus('a', { offset: 'end' })
+  await printable('X')
+  const after = editor.save().blocks
+  equal(after[0].data.text, 'Alpha<br>X', 'Typing after a terminal line break returned to the previous line')
+  caret(editor, 'a', 7)
+  await dispatchKey('z', 'KeyZ', 90, 2); equal(editor.save().blocks, broken)
+  caret(editor, 'a', 6)
+  await dispatchKey('z', 'KeyZ', 90, 2); equal(editor.save().blocks, before)
+  await dispatchKey('z', 'KeyZ', 90, 10)
+  await dispatchKey('z', 'KeyZ', 90, 10); equal(editor.save().blocks, after)
+  caret(editor, 'a', 7)
+})
+
 test('Ctrl+A on Russian layout selects the field and then the whole document as in v1', async () => {
   const editor = make([para('a', 'Alpha'), para('b', 'Bravo')], { injectStyles: true })
   editor.blocks.focus('a', { offset: 2 })

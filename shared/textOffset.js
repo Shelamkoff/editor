@@ -1,3 +1,5 @@
+import { isRichTextCaretPadding } from './richTextCaretPadding.js'
+
 const ELEMENT_NODE = 1
 const TEXT_NODE = 3
 const SHOW_TEXT = 4
@@ -20,6 +22,7 @@ function* positionNodes(root) {
   while (stack.length) {
     const node = stack.pop()
     if (!node) continue
+    if (isRichTextCaretPadding(node)) continue
     if (node.nodeType === TEXT_NODE || isAtomic(node)) yield node
     else {
       for (let index = node.childNodes.length - 1; index >= 0; index--) {

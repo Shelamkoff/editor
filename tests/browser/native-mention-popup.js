@@ -1,5 +1,6 @@
 import { getTextOffset } from '../../shared/textOffset.js'
 import { createMentionPlugin } from '../../inline-plugins/mention/index.js'
+import { createColumnsPlugin } from '../../plugins/columns/index.js'
 import { test, make, blockElement, editorRoot, assert, equal, pause, run } from './regressions/harness.js'
 import { clickNative, dispatchKey, printable } from './native-input-helpers.js'
 
@@ -414,6 +415,60 @@ test('Replacing a backwards selected mention label ending at its boundary edits 
   await dispatchKey('z', 'KeyZ', 90, 10); equal(editor.save().blocks, after)
 })
 
+for (const backwards of [false, true]) test('Deleting a selected mention suffix ending at its outside boundary restarts search / backwards ' + backwards, async () => {
+  const queries = []
+  const editor = make([{ id: 'a', type: 'paragraph', dataVersion: 2, data: { text: 'Lead {{person}} Tail' }, inline: { person: { type: 'mention', dataVersion: 1, data: { id: 'ada', name: 'Ada Lovelace' } } } }], { injectStyles: true, inlinePlugins: [createMentionPlugin({
+    debounceDelay: 0, searchFunction: async query => { queries.push(query); return [{ id: 'grace', name: 'Grace' }] },
+  })] })
+  const field = blockElement(editor, 'a').querySelector('.oe-paragraph'), span = field.querySelector('[data-inline-plugin="mention"]'), selection = window.getSelection(), before = editor.save().blocks
+  field.focus()
+  if (backwards) selection.setBaseAndExtent(span.nextSibling, 0, span.firstChild, 3)
+  else selection.setBaseAndExtent(span.firstChild, 3, span.nextSibling, 0)
+  equal(selection.toString(), 'a Lovelace')
+  await dispatchKey('Backspace', 'Backspace', 8); await pause(80)
+  equal(queries, ['Ad'], 'Deleting the selected name suffix did not start a query')
+  equal(editor.save().blocks[0].inline.person.data, { id: 'ada', name: 'Ad' })
+  equal(span.textContent, '@Ad')
+  assert(span.contains(selection.focusNode)); equal(selection.focusOffset, 3)
+  assert(span.classList.contains('oe-ip--mention--editing'))
+  assert(editorRoot(editor).querySelector('.oe-mention-item'))
+  const edited = editor.save().blocks
+  await dispatchKey('Enter', 'Enter', 13)
+  const after = editor.save().blocks
+  equal(after[0].inline.person.data, { id: 'grace', name: 'Grace' })
+  equal(field.textContent, 'Lead @Grace Tail')
+  assert(!span.contains(selection.focusNode)); equal(getTextOffset(field, selection.focusNode, selection.focusOffset), 7)
+  await dispatchKey('z', 'KeyZ', 90, 2); equal(editor.save().blocks, edited)
+  await dispatchKey('z', 'KeyZ', 90, 2); equal(editor.save().blocks, before)
+  await dispatchKey('z', 'KeyZ', 90, 10)
+  await dispatchKey('z', 'KeyZ', 90, 10); equal(editor.save().blocks, after)
+})
+
+test('Backspace immediately after an existing mention starts name search and preserves the edit caret', async () => {
+  const queries = []
+  const editor = make([{ id: 'a', type: 'paragraph', dataVersion: 2, data: { text: 'Lead {{person}}&nbsp; Tail' }, inline: { person: { type: 'mention', dataVersion: 1, data: { id: 'ada', name: 'Ada Lovelace' } } } }], { injectStyles: true, inlinePlugins: [createMentionPlugin({
+    debounceDelay: 0, searchFunction: async query => { queries.push(query); return [{ id: 'grace', name: 'Grace Hopper' }] },
+  })] })
+  const field = blockElement(editor, 'a').querySelector('.oe-paragraph'), span = field.querySelector('[data-inline-plugin="mention"]'), selection = window.getSelection(), before = editor.save().blocks
+  field.focus(); selection.setBaseAndExtent(span.nextSibling, 0, span.nextSibling, 0)
+  await dispatchKey('Backspace', 'Backspace', 8); await pause(80)
+  equal(queries, ['Ada Lovelac'], 'Deletion from the outside boundary did not start mention search')
+  equal(span.textContent, '@Ada Lovelac')
+  assert(span.contains(selection.focusNode), 'The edit caret remained outside the mention')
+  assert(span.classList.contains('oe-ip--mention--editing'))
+  assert(editorRoot(editor).querySelector('.oe-mention-item'), 'Mention choices did not reopen after deletion')
+  const edited = editor.save().blocks
+  await dispatchKey('Enter', 'Enter', 13)
+  const after = editor.save().blocks
+  equal(after[0].inline.person.data, { id: 'grace', name: 'Grace Hopper' })
+  equal(field.textContent.replaceAll('\u00a0', ' '), 'Lead @Grace Hopper  Tail')
+  assert(!span.contains(selection.focusNode)); equal(getTextOffset(field, selection.focusNode, selection.focusOffset), 7)
+  await dispatchKey('z', 'KeyZ', 90, 2); equal(editor.save().blocks, edited)
+  await dispatchKey('z', 'KeyZ', 90, 2); equal(editor.save().blocks, before)
+  await dispatchKey('z', 'KeyZ', 90, 10)
+  await dispatchKey('z', 'KeyZ', 90, 10); equal(editor.save().blocks, after)
+})
+
 test('Choosing a replacement for an edited mention leaves the caret after the widget through Undo and Redo', async () => {
   const editor = make([{ id: 'a', type: 'paragraph', dataVersion: 2, data: { text: '{{person}}' }, inline: { person: { type: 'mention', dataVersion: 1, data: { id: 'old', name: 'Ada' } } } }], { injectStyles: true, inlinePlugins: [createMentionPlugin({
     debounceDelay: 0, searchFunction: async () => [{ id: 'grace', name: 'Grace Hopper' }],
@@ -431,6 +486,39 @@ test('Choosing a replacement for an edited mention leaves the caret after the wi
   await dispatchKey('z', 'KeyZ', 90, 2); equal(editor.save().blocks, edited)
   await dispatchKey('z', 'KeyZ', 90, 10); equal(editor.save().blocks, after)
   equal(getTextOffset(field, selection.focusNode, selection.focusOffset), 2, 'Redo did not restore the caret after the mention space')
+})
+
+test('A mention moved into another column by a layout change keeps search, confirmation and caret in its new field', async () => {
+  const columns = createColumnsPlugin()
+  const editor = make([{ id: 'a', type: 'columns', dataVersion: columns.schema.currentVersion, data: { layout: '1-1-1', columns: [
+    { id: 'left', content: 'Left' }, { id: 'center', content: 'Center' }, { id: 'right', content: '{{person}}' },
+  ] }, inline: { person: { type: 'mention', dataVersion: 1, data: { id: 'ada', name: 'Ada' } } } }], { injectStyles: true, plugins: [columns], inlinePlugins: [createMentionPlugin({ debounceDelay: 0, searchFunction: async () => [{ id: 'grace', name: 'Grace' }] })] })
+  const root = editorRoot(editor), original = editor.save().blocks
+  editor.blocks.focus('a', { fieldKey: 'column:right', offset: 0 })
+  await clickNative(root.querySelector('.oe-toolbar__drag'))
+  const layout = [...root.querySelectorAll('.oe-settings-menu [role="menuitem"]')].find(item => item.querySelector('.oe-settings-menu__label')?.textContent === '50 / 50')
+  assert(layout, 'The two-column layout action is missing'); await clickNative(layout)
+  const merged = editor.save().blocks, field = blockElement(editor, 'a').querySelector('[data-column-id="center"]'), span = field.querySelector('[data-inline-plugin="mention"]'), selection = window.getSelection()
+  equal(merged[0].data.columns, [{ id: 'left', content: 'Left' }, { id: 'center', content: 'Center<br>{{person}}' }])
+  assert(span, 'The layout change lost the moved mention')
+  field.focus(); selection.setBaseAndExtent(span.firstChild, 2, span.firstChild, 2)
+  await printable('X'); await pause(80)
+  const edited = editor.save().blocks
+  await dispatchKey('Enter', 'Enter', 13)
+  const after = editor.save().blocks
+  equal(after[0].inline.person.data, { id: 'grace', name: 'Grace' }, 'The moved mention committed through its previous field')
+  equal(after[0].data.columns[1].content.replaceAll('&nbsp;', ' '), 'Center<br>{{person}} ')
+  equal(span.textContent, '@Grace'); equal(document.activeElement, field)
+  equal(getTextOffset(field, selection.focusNode, selection.focusOffset), 9)
+  assert(!span.contains(selection.focusNode))
+  await dispatchKey('z', 'KeyZ', 90, 2); equal(editor.save().blocks, edited)
+  await dispatchKey('z', 'KeyZ', 90, 2); equal(editor.save().blocks, merged)
+  await dispatchKey('z', 'KeyZ', 90, 2); equal(editor.save().blocks, original)
+  for (let i = 0; i < 3; i++) await dispatchKey('z', 'KeyZ', 90, 10)
+  equal(editor.save().blocks, after)
+  const restored = blockElement(editor, 'a').querySelector('[data-column-id="center"]')
+  equal(document.activeElement, restored)
+  equal(getTextOffset(restored, selection.focusNode, selection.focusOffset), 9)
 })
 
 test('Programmatic mention insertion places the caret after its external space', async () => {

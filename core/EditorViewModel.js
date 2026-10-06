@@ -54,13 +54,10 @@ export class EditorViewModel {
   update(id, producer, authority = 'interaction') { this.#runtime.update(id, producer, authority) }
 
   remove(id, authority = 'interaction') {
-    const index = this.indexOf(id)
-    this.#runtime.remove(id, authority)
+    const wasCurrent = this.#interaction.currentId === id
+    const nextId = this.#runtime.remove(id, authority)
     this.#interaction.reconcile()
-    if (this.#interaction.currentId === id) {
-      const nextId=this.#runtime.idAt(Math.min(Math.max(index,0),this.#runtime.size-1))
-      if(nextId)this.#interaction.setCurrent(nextId)
-    }
+    if (wasCurrent && nextId && this.#runtime.has(nextId)) this.#interaction.setCurrent(nextId)
   }
 
   move(id, to, authority = 'interaction') {

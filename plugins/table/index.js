@@ -2,6 +2,7 @@
 import { definitionStyles } from '../shared/definitionStyles.js'
 import { setSanitizedHtml } from '../../plugin-kit/index.js'
 import { tableDataSchema } from '../../shared/blockSchemas/table.js'
+import { tableFieldKey } from '../../shared/tableFieldKey.js'
 import { acceptsTextPayload, richTextFromPayload } from '../shared/textConversion.js'
 import { createTextSelectionSlice } from '../shared/textSelectionSlice.js'
 
@@ -42,13 +43,13 @@ export function createTablePlugin(config = {}) {
           return {
             kind:'update',
             data:{...data,rows:data.rows.map(row=>({...row,cells:row.cells.map(cell=>
-              `cell:${row.id}:${cell.id}`===input.fieldKey?{...cell,text:parts.before+'<br>'+parts.after}:cell)}))},
+              tableFieldKey(row.id,cell.id)===input.fieldKey?{...cell,text:parts.before+'<br>'+parts.after}:cell)}))},
             focus:{fieldKey:input.fieldKey,offset:input.selection.start+1},
           }
         }
         if(input.key==='Enter')return {kind:'native'}
         if(input.key!=='Tab')return null
-        const ordered=data.rows.flatMap(row=>row.cells.map(cell=>`cell:${row.id}:${cell.id}`))
+        const ordered=data.rows.flatMap(row=>row.cells.map(cell=>tableFieldKey(row.id,cell.id)))
         const index=ordered.indexOf(input.fieldKey)
         if(index<0)return null
         const next=ordered[index+(input.shiftKey?-1:1)]
@@ -70,7 +71,7 @@ export function createTablePlugin(config = {}) {
           const row=data.rows[rowIndex]
           for(let columnIndex=0;columnIndex<row.cells.length;columnIndex++){
             const cell=row.cells[columnIndex]
-            const field=context.field(`cell:${row.id}:${cell.id}`)
+            const field=context.field(tableFieldKey(row.id,cell.id))
             if(field)hits.push({rowIndex,columnIndex,field})
           }
         }
@@ -85,7 +86,7 @@ export function createTablePlugin(config = {}) {
           selectedRows.push({
             id:sourceRow.id,
             cells:sourceRow.cells.slice(minColumn,maxColumn+1).map((cell,offset)=>{
-              const field=context.field(`cell:${sourceRow.id}:${cell.id}`)
+              const field=context.field(tableFieldKey(sourceRow.id,cell.id))
               return {...cell,text:field?.selected??''}
             }),
           })
@@ -93,7 +94,7 @@ export function createTablePlugin(config = {}) {
         const remainingRows=data.rows.map(row=>({
           ...row,
           cells:row.cells.map(cell=>{
-            const field=context.field(`cell:${row.id}:${cell.id}`)
+            const field=context.field(tableFieldKey(row.id,cell.id))
             return field?{...cell,text:field.before+field.after}:{...cell}
           }),
         }))
@@ -195,7 +196,7 @@ export function createTablePlugin(config = {}) {
           let instanceDestroyed=false
           const rows=new Map()
           const cells=new Map()
-          const cellKey=(rowId,cellId)=>`${rowId}:${cellId}`
+          const cellKey=tableFieldKey
 
           const createRow=rowData=>{
             const row=document.createElement('tr')
@@ -283,7 +284,7 @@ export function createTablePlugin(config = {}) {
             editableFields:()=>Object.freeze(data.rows.flatMap(row=>row.cells.flatMap(cell=>{
               const element=cells.get(cellKey(row.id,cell.id))
               return element?[Object.freeze({
-                key:`cell:${row.id}:${cell.id}`,
+                key:tableFieldKey(row.id,cell.id),
                 element,
                 mode:/** @type {'rich-text'} */('rich-text'),
               })]:[]
@@ -296,10 +297,7 @@ export function createTablePlugin(config = {}) {
               if(instanceDestroyed||readOnly)return
               const key=target?.fieldKey
               if(key?.startsWith('cell:')){
-                const parts=key.split(':')
-                const rowId=parts[1]
-                const cellId=parts.slice(2).join(':')
-                cells.get(cellKey(rowId,cellId))?.focus()
+                cells.get(key)?.focus()
                 return
               }
               const firstRow=data.rows[0]

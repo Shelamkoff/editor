@@ -216,6 +216,31 @@ test('Code Tab indents a multiline selection without replacing its source text',
   equal([textarea.selectionStart, textarea.selectionEnd], [0, 11])
 })
 
+test('Table keeps cells with delimiter-containing row and cell identities independent through native editing and history', async () => {
+  const definition = createTablePlugin()
+  const editor = make([{ id: 'a', type: 'table', dataVersion: 2, data: { withHeadings: false, rows: [
+    { id: 'row:branch', cells: [{ id: 'leaf', text: 'Alpha' }] },
+    { id: 'row', cells: [{ id: 'branch:leaf', text: 'Bravo' }] },
+    { id: 'row%3Abranch', cells: [{ id: 'leaf', text: 'Charlie' }] },
+  ] } }], { plugins: [createParagraphPlugin(), definition], injectStyles: true })
+  const before = editor.save().blocks
+  const cell = index => blockElement(editor, 'a').querySelectorAll('.oe-table__cell')[index]
+  equal([...blockElement(editor, 'a').querySelectorAll('.oe-table__cell')].map(element => element.textContent), ['Alpha', 'Bravo', 'Charlie'])
+  await clickNative(cell(0)); await dispatchKey('End', 'End', 35)
+  await dispatchKey('Tab', 'Tab', 9); caret(cell(1), 0)
+  await dispatchKey('End', 'End', 35); await printable('X')
+  await dispatchKey('Enter', 'Enter', 13); await printable('Y')
+  equal(editor.save().blocks[0].data.rows.map(row => row.cells[0].text), ['Alpha', 'BravoX<br>Y', 'Charlie'])
+  const after = editor.save().blocks
+  caret(cell(1), 8)
+  for (let i = 0; i < 3; i++) await dispatchKey('z', 'KeyZ', 90, 2)
+  equal(editor.save().blocks, before)
+  for (let i = 0; i < 3; i++) await dispatchKey('z', 'KeyZ', 90, 10)
+  equal(editor.save().blocks, after); caret(cell(1), 8)
+  await dispatchKey('Tab', 'Tab', 9); caret(cell(2), 0)
+  await dispatchKey('Tab', 'Tab', 9, 8); caret(cell(1), 8)
+})
+
 test('Table Shift+Tab focuses the previous cell at its end as in v1', async () => {
   const definition = createTablePlugin()
   const editor = make([{ id: 'a', type: 'table', dataVersion: 2, data: { withHeadings: false, rows: [{ id: 'row', cells: [{ id: 'first', text: 'Alpha' }, { id: 'second', text: 'Bravo' }] }] } }], { plugins: [createParagraphPlugin(), definition] })

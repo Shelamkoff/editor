@@ -1,6 +1,7 @@
 import { EditorRenderer } from '../../renderer/index.js'
 import { createMentionPlugin } from '../../inline-plugins/mention/index.js'
 import { createParagraphPlugin } from '../../plugins/paragraph/index.js'
+import { createColumnsPlugin } from '../../plugins/columns/index.js'
 import { test, make, blockElement, editorRoot, equal, assert, pause, run } from './regressions/harness.js'
 import { clickNative, dispatchKey, printable } from './native-input-helpers.js'
 
@@ -44,6 +45,45 @@ test('Mention ignores inherited trigger getters and still opens its default nati
  equal(Object.values(editor.save().blocks[0].inline)[0].data,{id:'ada',name:'Ada'})
  equal(reads,0)
 })
+test('Moving an inline widget between fields retires its previous tasks and preserves native editing under its new owner', async () => {
+ const contexts=[]
+ const definition={
+  type:'badge',icon:'',label:{key:'title',fallback:'Badge'},
+  schema:{currentVersion:1,createDefault:()=>({name:''}),encode:data=>({dataVersion:1,data}),decode:input=>input},
+  setup(runtime){return {
+   create(_id,data,context){
+    contexts.push(context)
+    const element=runtime.ownerDocument.createElement('span'),button=runtime.ownerDocument.createElement('button')
+    element.dataset.inlinePlugin='badge';element.contentEditable='false';button.type='button';button.textContent=data.name;element.appendChild(button)
+    button.addEventListener('click',()=>context.updateData(current=>({...current,name:current.name+'!'})),{signal:context.signal})
+    return {element,update(next){button.textContent=next.name},setReadOnly(value){button.disabled=value},destroy(){}}
+   },destroy(){},
+  }},
+ }
+ const columns=createColumnsPlugin()
+ const editor=make([{id:'a',type:'columns',dataVersion:columns.schema.currentVersion,data:{layout:'1-1',columns:[{id:'left',content:'{{w_probe}}'},{id:'right',content:'Destination'}]},inline:{w_probe:{type:'badge',dataVersion:1,data:{name:'Alpha'}}}}],{plugins:[columns],inlinePlugins:[definition],injectStyles:true})
+ const original=editor.save().blocks,previous=contexts.at(-1),task=previous.beginTask()
+ editor.blocks.update('a',block=>({data:{...block.data,columns:[{id:'left',content:''},{id:'right',content:'{{w_probe}}'}]}}))
+ const moved=editor.save().blocks
+ assert(previous.signal.aborted,'The previous field retained its inline widget lifetime')
+ let producers=0
+ previous.updateData(()=>{producers++;return {name:'Stale'}})
+ equal(task.commit(()=>{producers++;return {name:'Late'}}),false,'A task from the previous field redirected its result to the new owner')
+ equal(producers,0);equal(editor.save().blocks,moved)
+ const current=contexts.find(context=>!context.signal.aborted&&context.fieldKey==='column:right')
+ assert(current,'The moved widget has no live context for its destination field')
+ const field=blockElement(editor,'a').querySelector('[data-column-id="right"]')
+ await clickNative(field.querySelector('button'))
+ const after=editor.save().blocks
+ equal(after[0].inline.w_probe.data,{name:'Alpha!'})
+ equal(field.querySelector('button').textContent,'Alpha!')
+ editor.blocks.focus('a',{fieldKey:'column:right',offset:1})
+ await dispatchKey('z','KeyZ',90,2);equal(editor.save().blocks,moved)
+ await dispatchKey('z','KeyZ',90,2);equal(editor.save().blocks,original)
+ await dispatchKey('z','KeyZ',90,10);equal(editor.save().blocks,moved)
+ await dispatchKey('z','KeyZ',90,10);equal(editor.save().blocks,after)
+})
+
 function mountRenderer(renderer,operation,documentData){
  const holder=document.createElement('section');document.body.appendChild(holder)
  try{

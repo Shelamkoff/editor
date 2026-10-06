@@ -169,14 +169,28 @@ export function createMentionPlugin(options={}){
         }catch{}
       }
       const fieldForSpan=span=>span.parentElement?.closest?.('[contenteditable="true"]')??span.parentElement??span
-      const ownedAtCaret=()=>{
-        const selection=runtimeContext.ownerDocument.defaultView?.getSelection?.()
-        const node=selection?.anchorNode
+      const ownedAtNode=node=>{
         if(!node)return null
         const element=node.nodeType===1?node:node.parentElement
         const span=element?.closest?.('[data-inline-plugin="mention"]')
         const entry=span?widgetEntries.get(span):null
         return entry&&span.isConnected?entry:null
+      }
+      const ownedAtCaret=()=>ownedAtNode(runtimeContext.ownerDocument.defaultView?.getSelection?.()?.anchorNode)
+      const ownedAtDeletionBoundary=inputType=>{
+        const selection=runtimeContext.ownerDocument.defaultView?.getSelection?.()
+        if(!selection?.isCollapsed||!selection.anchorNode)return null
+        const node=selection.anchorNode,offset=selection.anchorOffset
+        let adjacent=null
+        if(inputType==='deleteContentBackward'){
+          if(node.nodeType===3&&offset===0)adjacent=node.previousSibling
+          else if(node.nodeType===1&&offset>0)adjacent=node.childNodes[offset-1]
+        }else if(inputType==='deleteContentForward'){
+          if(node.nodeType===3&&offset===(node.textContent?.length??0))adjacent=node.nextSibling
+          else if(node.nodeType===1)adjacent=node.childNodes[offset]
+        }
+        const entry=adjacent?widgetEntries.get(adjacent):null
+        return entry&&entry.span.isConnected?entry:null
       }
       const offsetInSpan=(entry,node,offset)=>{
         if(!node||!entry.span.contains(node))return null
@@ -471,15 +485,17 @@ export function createMentionPlugin(options={}){
 
       const handleWidgetBeforeInput=event=>{
         if(event.defaultPrevented||event.isComposing||compositionSession)return
-        const entry=ownedAtCaret()
+        const native=runtimeContext.ownerDocument.defaultView?.getSelection?.()
+        const inside=ownedAtCaret()??(native&&!native.isCollapsed?ownedAtNode(native.focusNode):null)
+        const entry=inside??ownedAtDeletionBoundary(event.inputType)
         if(!entry||entry.readOnly||entry.dead)return
-        const offset=caretOffsetInSpan(entry)
+        const offset=native&&!native.isCollapsed?0:inside?caretOffsetInSpan(entry)
+          :event.inputType==='deleteContentBackward'?(entry.span.textContent?.length??0):0
         if(offset===null)return
         const span=entry.span
         const text=span.textContent??''
         const atStart=offset===0
         const atEnd=offset===text.length
-        const native=runtimeContext.ownerDocument.defaultView?.getSelection?.()
         if(event.inputType==='insertText'&&typeof event.data==='string'
           &&native?.isCollapsed
           &&(atStart||atEnd&&(!activeSession?.editEntry||/\s/.test(event.data)))){
@@ -490,7 +506,17 @@ export function createMentionPlugin(options={}){
         if(native&&!native.isCollapsed){
           if(!native.rangeCount)return
           const range=native.getRangeAt(0)
-          const localOffset=(node,at)=>node===span?(at===0?0:text.length):node===span.firstChild?at:null
+          const localOffset=(node,at)=>{
+            if(span.contains(node))return offsetInSpan(entry,node,at)
+            if(node===span.nextSibling&&at===0)return text.length
+            if(node===span.previousSibling&&node.nodeType===3&&at===(node.textContent?.length??0))return 0
+            if(node===span.parentNode){
+              const index=Array.prototype.indexOf.call(node.childNodes,span)
+              if(at===index)return 0
+              if(at===index+1)return text.length
+            }
+            return null
+          }
           const start=localOffset(range.startContainer,range.startOffset)
           const end=localOffset(range.endContainer,range.endOffset)
           if(start===null||end===null)return
