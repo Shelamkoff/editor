@@ -132,6 +132,22 @@ test('Person nested IDs containing separators restore the correct link field thr
   equal(editor.save().blocks,after)
   equal(document.activeElement?.value,'https://second.example/edited')
 })
+
+test('Person keyboard tab removal is visible and preserves one Undo/Redo action',async()=>{
+  const editor=pluginEditor('Person',{persons:[{id:'first',avatar:'',name:'Alpha',role:'',bio:'',links:[]},{id:'second',avatar:'',name:'Bravo',role:'',bio:'',links:[]}]})
+  const before=editor.save().blocks
+  const shell=blockElement(editor,'a'),select=shell.querySelector('.oe-person__tab-select'),remove=shell.querySelector('.oe-person__tab-remove')
+  await clickNative(select)
+  await window.__testInput('Input.hover',{x:0,y:0})
+  await dispatchKey('Tab','Tab',9)
+  equal(document.activeElement,remove)
+  await pause(160)
+  assert(remove.checkVisibility({checkOpacity:true,checkVisibilityCSS:true}),'Keyboard focus reached an invisible Remove button')
+  await dispatchKey(' ','Space',32,0,' ')
+  const after=editor.save().blocks
+  equal(after[0].data.persons,[before[0].data.persons[1]])
+  await history(editor,before,after)
+})
 test('Carousel navigation registers the next caption for real input and history', async () => {
   const editor=pluginEditor('Carousel',{slides:[{id:'first',type:'image',src:pixel,caption:'Alpha'},{id:'second',type:'image',src:pixel,caption:'Bravo'}],options:{autoplay:false}})
   const before=editor.save().blocks
@@ -220,6 +236,21 @@ test('Columns inline layout selector changes the grid, retains text and supports
   await history(editor,before,after)
   editor.setReadOnly(true)
   for(const button of buttons())assert(!button.checkVisibility(),'Read-only Columns show an authoring layout button')
+})
+
+test('Columns keyboard layout choice has visible focus and one Undo/Redo action',async()=>{
+  const editor=pluginEditor('Columns'),before=editor.save().blocks
+  const buttons=blockElement(editor,'a').querySelectorAll('.oe-columns__layout-btn')
+  await clickNative(buttons[0])
+  await window.__testInput('Input.hover',{x:0,y:0})
+  await dispatchKey('Tab','Tab',9)
+  equal(document.activeElement,buttons[1])
+  const style=getComputedStyle(buttons[1])
+  assert((style.outlineStyle!=='none'&&parseFloat(style.outlineWidth)>0)||style.boxShadow!=='none','Focused layout choice has no visible indicator')
+  await dispatchKey(' ','Space',32,0,' ')
+  const after=editor.save().blocks
+  equal(after[0].data,{...before[0].data,layout:'1-2'})
+  await history(editor,before,after)
 })
 test('Checklist checkbox is one document action and preserves item identity',async()=>{
   const editor=pluginEditor('Checklist')

@@ -269,6 +269,8 @@ export interface InlineWidgetEditInput {
   readonly offset: number
   readonly text: string
   readonly data: string | null
+  /** Browser-supplied UTF-16 deletion interval in the widget text, when available. */
+  readonly deletionRange?: Readonly<{ start: number, end: number }>
 }
 
 export type InlineWidgetEditAction<D extends Record<string, unknown>> =

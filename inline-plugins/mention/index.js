@@ -3,6 +3,7 @@ import { uid } from '../../plugin-kit/index.js'
 import { invokeObserver } from '../../shared/invokeObserver.js'
 import { setSafeUrlAttribute } from '../../shared/sanitize/sanitizeUrl.js'
 import { mentionWidgetSchema } from '../../shared/inlineSchemas/mention.js'
+import { containedTextRange } from '../../shared/containedTextRange.js'
 
 const STYLES_URL=new URL('./styles.css',import.meta.url).href
 const ICON='<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/><path d="M5.5 21a6.5 6.5 0 0 1 13 0"/><path d="M19 8v6m-3-3h6"/></svg>'
@@ -62,6 +63,14 @@ export function createMentionPlugin(options={}){
         const backward=input.inputType==='deleteContentBackward'
         const forward=input.inputType==='deleteContentForward'
         if(!backward&&!forward)return null
+
+        if(input.deletionRange){
+          const {start,end}=input.deletionRange
+          const next=display.slice(0,start)+display.slice(end)
+          if(!next)return {kind:/** @type {'remove'} */('remove')}
+          if(!next.startsWith(trigger))return {kind:/** @type {'replace-text'} */('replace-text'),text:next}
+          return {kind:/** @type {'update'} */('update'),data:{...data,name:next.slice(trigger.length)}}
+        }
 
         const previousIndex=(text,index)=>{
           const at=Math.max(0,Math.min(index,text.length))
@@ -486,8 +495,14 @@ export function createMentionPlugin(options={}){
       const handleWidgetBeforeInput=event=>{
         if(event.defaultPrevented||event.isComposing||compositionSession)return
         const native=runtimeContext.ownerDocument.defaultView?.getSelection?.()
+        const deleting=event.inputType==='deleteContentBackward'||event.inputType==='deleteContentForward'
+        const browserRange=deleting?event.getTargetRanges?.()[0]:null
         const inside=ownedAtCaret()??(native&&!native.isCollapsed?ownedAtNode(native.focusNode):null)
-        const entry=inside??ownedAtDeletionBoundary(event.inputType)
+        let entry=inside??ownedAtDeletionBoundary(event.inputType)
+        if(!entry&&browserRange){
+          const candidate=ownedAtNode(browserRange.startContainer)
+          if(candidate&&containedTextRange(candidate.span,browserRange))entry=candidate
+        }
         if(!entry||entry.readOnly||entry.dead)return
         const offset=native&&!native.isCollapsed?0:inside?caretOffsetInSpan(entry)
           :event.inputType==='deleteContentBackward'?(entry.span.textContent?.length??0):0
@@ -532,6 +547,32 @@ export function createMentionPlugin(options={}){
             updateMentionText(entry,next,caret)
           }
           return
+        }
+
+        const deletionRange=containedTextRange(span,browserRange)
+        if(deletionRange){
+          event.preventDefault()
+          const {start,end}=deletionRange,next=text.slice(0,start)+text.slice(end)
+          if(!next)removeMention(entry)
+          else if(!next.startsWith(trigger))unwrapMention(entry,next,start)
+          else updateMentionText(entry,next,start)
+          return
+        }
+
+        if(browserRange&&(event.inputType==='deleteContentBackward'&&atStart||event.inputType==='deleteContentForward'&&atEnd)){
+          const field=/** @type {HTMLElement|null} */(span.parentElement?.closest('[contenteditable="true"]'))
+          if(field&&containedTextRange(field,browserRange)){
+            event.preventDefault()
+            entry.context.commitDomMutation(()=>{
+              const range=runtimeContext.ownerDocument.createRange()
+              range.setStart(browserRange.startContainer,browserRange.startOffset)
+              range.setEnd(browserRange.endContainer,browserRange.endOffset)
+              range.deleteContents()
+              range.collapse(true)
+              setCaret(range.startContainer,range.startOffset)
+            })
+            return
+          }
         }
 
         if(event.inputType==='deleteContentBackward'){

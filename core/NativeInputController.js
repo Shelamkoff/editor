@@ -164,12 +164,13 @@ export class NativeInputController {
       else return false
     }
     // An editable pill's boundary has native affinity to its label. Insert
-    // in a sibling text node and record the same gesture as ordinary typing.
+    // outside the widget, preserving the native formatting boundary.
     const selectionBefore = this.#selection?.capture()
     event.preventDefault()
     event.stopImmediatePropagation?.()
     const node = document.createTextNode(event.data)
-    if (side === 'before') target.element.before(node)
+    if (!target.element.contains(native.anchorNode)) native.getRangeAt(0).insertNode(node)
+    else if (side === 'before') target.element.before(node)
     else target.element.after(node)
     native.setBaseAndExtent(node, node.data.length, node, node.data.length)
     this.#endingComposition = null

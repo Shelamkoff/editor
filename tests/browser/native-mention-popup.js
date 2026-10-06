@@ -4,6 +4,55 @@ import { createColumnsPlugin } from '../../plugins/columns/index.js'
 import { test, make, blockElement, editorRoot, assert, equal, pause, run } from './regressions/harness.js'
 import { clickNative, dispatchKey, printable } from './native-input-helpers.js'
 
+for(const key of ['Backspace','Delete'])for(const name of ['e\u0301','🇷🇺','👨‍👩‍👧‍👦','👍🏽'])test('Mention '+key+' matches native text deletion for '+name,async()=>{
+  const editor=make([
+    {id:'plain',type:'paragraph',dataVersion:2,data:{text:'@'+name}},
+    {id:'mention',type:'paragraph',dataVersion:2,data:{text:'{{person}}'},inline:{person:{type:'mention',dataVersion:1,data:{id:'unicode',name}}}},
+  ],{injectStyles:true,inlinePlugins:[createMentionPlugin({debounceDelay:0,searchFunction:async()=>[]})]})
+  const plain=blockElement(editor,'plain').querySelector('.oe-paragraph')
+  const at=key==='Backspace'?name.length+1:1,keyCode=key==='Backspace'?8:46
+  plain.focus();window.getSelection().setBaseAndExtent(plain.firstChild,at,plain.firstChild,at)
+  await dispatchKey(key,key,keyCode)
+  const expected=plain.textContent,before=editor.save().blocks
+  const field=blockElement(editor,'mention').querySelector('.oe-paragraph'),span=field.querySelector('[data-inline-plugin="mention"]')
+  field.focus();window.getSelection().setBaseAndExtent(span.firstChild,at,span.firstChild,at)
+  await dispatchKey(key,key,keyCode)
+  equal(span.textContent,expected,'Mention deleted a different Unicode boundary from native text')
+  equal(editor.save().blocks[1].inline.person.data.name,expected.slice(1))
+  await dispatchKey('z','KeyZ',90,2)
+  equal(editor.save().blocks,before)
+})
+
+test('Mention Backspace outside a formatting wrapper deletes native text and restarts search',async()=>{
+  const queries=[]
+  const editor=make([{id:'a',type:'paragraph',dataVersion:2,data:{text:'Prefix <b>{{person}}</b> tail'},inline:{person:{type:'mention',dataVersion:1,data:{id:'unicode',name:'👨‍👩‍👧‍👦'}}}}],{injectStyles:true,inlinePlugins:[createMentionPlugin({debounceDelay:0,searchFunction:async query=>{queries.push(query);return []}})]})
+  const before=editor.save().blocks,field=blockElement(editor,'a').querySelector('.oe-paragraph'),span=field.querySelector('[data-inline-plugin="mention"]')
+  field.focus();window.getSelection().setBaseAndExtent(field.lastChild,0,field.lastChild,0)
+  await dispatchKey('Backspace','Backspace',8)
+  await pause(80)
+  equal(span.textContent,'@','Backspace split the family emoji')
+  equal(queries.at(-1),'','Deletion outside the formatting wrapper did not restart the mention query')
+  assert(span.classList.contains('oe-ip--mention--editing'))
+  equal(editor.save().blocks[0].data.text,'Prefix <b>{{person}}</b> tail')
+  await dispatchKey('z','KeyZ',90,2)
+  equal(editor.save().blocks,before)
+})
+
+for(const key of ['Backspace','Delete'])test('Mention boundary '+key+' preserves native deletion of adjacent formatted emoji',async()=>{
+  const text=key==='Backspace'?'Prefix <b>👨‍👩‍👧‍👦</b>{{person}} tail':'Prefix {{person}}<i>👍🏽</i> tail'
+  const editor=make([{id:'a',type:'paragraph',dataVersion:2,data:{text},inline:{person:{type:'mention',dataVersion:1,data:{id:'ada',name:'Ada'}}}}],{injectStyles:true,inlinePlugins:[createMentionPlugin({debounceDelay:0,searchFunction:async()=>[]})]})
+  const before=editor.save().blocks,field=blockElement(editor,'a').querySelector('.oe-paragraph'),span=field.querySelector('[data-inline-plugin="mention"]'),at=key==='Backspace'?0:4
+  field.focus();window.getSelection().setBaseAndExtent(span.firstChild,at,span.firstChild,at)
+  await dispatchKey(key,key,key==='Backspace'?8:46)
+  const after=editor.save().blocks
+  // Empty formatting can remain as the browser's insertion style after deletion.
+  equal(after[0].data.text.replace(/<(b|i)><\/\1>/g,''),'Prefix {{person}} tail','Deletion at the widget boundary corrupted or kept adjacent emoji')
+  equal(field.textContent,'Prefix @Ada tail','Native visible text changed at the widget boundary')
+  equal(after[0].inline,before[0].inline,'Adjacent deletion changed the mention data')
+  await dispatchKey('z','KeyZ',90,2);equal(editor.save().blocks,before)
+  await dispatchKey('z','KeyZ',90,10);equal(editor.save().blocks,after)
+})
+
 async function suggestions() {
   const editor = make([{ id: 'a', type: 'paragraph', dataVersion: 2, data: { text: '' } }], { injectStyles: true, inlinePlugins: [createMentionPlugin({
     debounceDelay: 0, searchFunction: async () => [{ id: 42, name: 'Ada' }, ...Array.from({ length: 19 }, (_, i) => ({ id: i + 1, name: 'Result ' + (i + 1) }))],

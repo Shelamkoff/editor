@@ -1,4 +1,5 @@
 // @ts-check
+import { containedTextRange } from '../shared/containedTextRange.js'
 
 export class InlineWidgetInputController {
   #root
@@ -35,12 +36,15 @@ export class InlineWidgetInputController {
     const definition=this.#registry.getInlineDefinition(target.type)
     const editing=definition?.editing
     if(!editing?.handle)return
+    const deletionRange=inputType.startsWith('delete')
+      ?containedTextRange(target.element,event.getTargetRanges?.()[0]):null
     const action=editing.handle({
       inputType,
       position:target.position,
       offset:target.offset,
       text:target.element.textContent??'',
       data:typeof event.data==='string'?event.data:null,
+      ...(deletionRange?{deletionRange}:{}),
     },target.data)
     if(!action)return
 

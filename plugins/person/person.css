@@ -325,7 +325,8 @@
   opacity: 0;
   transition: opacity 0.12s, color 0.12s;
 }
-.oe-person__tab:hover .oe-person__tab-remove { opacity: 1; }
+.oe-person__tab:hover .oe-person__tab-remove,
+.oe-person__tab:focus-within .oe-person__tab-remove { opacity: 1; }
 .oe-person__tab-remove:hover { color: var(--oe-danger, #f87171); }
 
 .oe-person__tab-add {

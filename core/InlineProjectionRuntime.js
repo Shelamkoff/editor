@@ -199,7 +199,22 @@ export class InlineProjectionRuntime {
         const meta=this.#owned.get(current)
         if(meta){
           const entry=this.#blocks.get(meta.blockId)?.widgets.get(meta.id)
-          return entry?{meta,entry}:null
+          return entry?.element===current?{meta,entry}:null
+        }
+      }
+      return null
+    }
+
+    // Formatting wrappers can sit between a widget and its adjacent text node.
+    const ownedAtEdge=(node,side)=>{
+      for(let current=node;current;){
+        const owned=ownedEntry(current)
+        if(owned)return owned
+        if(current.nodeType===3){
+          if(current.textContent)return null
+          current=side==='after'?current.previousSibling:current.nextSibling
+        }else{
+          current=side==='after'?current.lastChild:current.firstChild
         }
       }
       return null
@@ -221,10 +236,15 @@ export class InlineProjectionRuntime {
           candidate=selection.anchorNode.childNodes[selection.anchorOffset-1]??null
         }
         position='after'
-      }else if(inputType==='insertText'&&selection.anchorNode.nodeType===1){
-        const previous=selection.anchorNode.childNodes[selection.anchorOffset-1]??null
-        const next=selection.anchorNode.childNodes[selection.anchorOffset]??null
-        if(previous&&ownedEntry(previous)){candidate=previous;position='after'}
+      }else if(inputType==='insertText'){
+        const text=selection.anchorNode.nodeType===3
+        const previous=text
+          ?(selection.anchorOffset===0?selection.anchorNode.previousSibling:null)
+          :selection.anchorNode.childNodes[selection.anchorOffset-1]??null
+        const next=text
+          ?(selection.anchorOffset===(selection.anchorNode.textContent?.length??0)?selection.anchorNode.nextSibling:null)
+          :selection.anchorNode.childNodes[selection.anchorOffset]??null
+        if(previous&&ownedAtEdge(previous,'after')){candidate=previous;position='after'}
         else{candidate=next;position='before'}
       }else if(inputType==='deleteContentForward'){
         if(selection.anchorNode.nodeType===3&&selection.anchorOffset===(selection.anchorNode.textContent?.length??0)){
@@ -234,7 +254,7 @@ export class InlineProjectionRuntime {
         }
         position='before'
       }
-      if(candidate)resolved=ownedEntry(candidate)
+      if(candidate)resolved=ownedAtEdge(candidate,position)
       if(resolved)offset=position==='after'
         ?(resolved.entry.element.textContent?.length??0)
         :0
@@ -242,10 +262,11 @@ export class InlineProjectionRuntime {
 
     if(!resolved)return null
     const {meta,entry}=resolved
-    const field=entry.element.closest('[contenteditable="true"]')
-    if(!field)return null
+    // Editable widget roots are editing hosts, but offsets belong to the block field.
+    const field=entry.fieldElement
+    if(!field?.contains(entry.element)||!field.contains(selection.anchorNode))return null
     let logicalOffset=0
-    try{logicalOffset=getTextOffset(field,entry.element,0)}catch{}
+    try{logicalOffset=getTextOffset(field,entry.element,0)}catch{return null}
     return {
       blockId:meta.blockId,
       inlineId:meta.id,
@@ -390,12 +411,13 @@ export class InlineProjectionRuntime {
             try{destroySource?.()}catch{}
             throw error
           }
-          entry={id,type,fieldKey,instance,element:instance.element,controller,scope,data:decoded.data}
+          entry={id,type,fieldKey,fieldElement:element,instance,element:instance.element,controller,scope,data:decoded.data}
           state.widgets.set(id,entry)
           this.#owned.set(entry.element,{blockId,id})
           instance.setReadOnly(this.#readOnly)
         }else{
           entry.fieldKey=fieldKey
+          entry.fieldElement=element
           if(typeof entry.instance.update==='function'&&JSON.stringify(entry.data)!==JSON.stringify(decoded.data)){
             entry.instance.update(decoded.data,entry.data)
           }
@@ -417,7 +439,10 @@ export class InlineProjectionRuntime {
     // Source native-input projection already contains owned widget elements.
     for(const entry of state.widgets.values()){
       if(entry.fieldKey!==fieldKey)continue
-      if(element.contains(entry.element))live.add(entry.id)
+      if(element.contains(entry.element)){
+        entry.fieldElement=element
+        live.add(entry.id)
+      }
     }
   }
 

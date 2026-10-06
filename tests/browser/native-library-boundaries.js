@@ -2,8 +2,90 @@ import { EditorRenderer } from '../../renderer/index.js'
 import { createMentionPlugin } from '../../inline-plugins/mention/index.js'
 import { createParagraphPlugin } from '../../plugins/paragraph/index.js'
 import { createColumnsPlugin } from '../../plugins/columns/index.js'
+import { createImagePlugin } from '../../plugins/image/index.js'
+import { pixel } from './plugin-parity-fixtures.js'
+import { getTextOffset } from '../../plugin-kit/index.js'
 import { test, make, blockElement, editorRoot, equal, assert, pause, run } from './regressions/harness.js'
 import { clickNative, dispatchKey, printable } from './native-input-helpers.js'
+
+function editableBadgeDefinition(action,edits=[]){
+ return {
+  type:'editableBadge',icon:'',label:{key:'title',fallback:'Badge'},
+  schema:{currentVersion:1,createDefault:()=>({name:''}),encode:data=>({dataVersion:1,data}),decode:input=>input},
+  editing:{handle(input,data){
+   edits.push(input)
+   if(input.position!=='inside')return null
+   if(action==='remove'&&input.inputType==='deleteContentBackward')return {kind:'remove'}
+   if(action==='update'&&input.inputType==='insertText'&&input.offset>0&&input.offset<input.text.length)return {kind:'update',data:{name:data.name+input.data}}
+   if(action==='native-delete'&&input.deletionRange){
+    const {start,end}=input.deletionRange
+    return {kind:'update',data:{name:data.name.slice(0,start)+data.name.slice(end)}}
+   }
+   return null
+  }},
+  setup(runtime){return {create(_id,data){
+   const element=runtime.ownerDocument.createElement('span')
+   element.dataset.inlinePlugin='editableBadge';element.contentEditable='true';element.textContent=data.name
+   return {element,update(next){element.textContent=next.name},setReadOnly(value){element.contentEditable=value?'false':'true'},destroy(){}}
+ },destroy(){}}},
+ }
+}
+
+for(const formatted of [false,true])for(const action of ['remove','update'])test('Editable inline widget '+action+' retains its caret after the '+(formatted?'formatted':'plain')+' authored prefix',async()=>{
+ const edits=[],definition=editableBadgeDefinition(action,edits)
+ const editor=make([{id:'a',type:'paragraph',dataVersion:2,data:{text:formatted?'<b>Alpha {{badge}}</b> Omega':'Alpha {{badge}} Omega'},inline:{badge:{type:definition.type,dataVersion:1,data:{name:'Badge'}}}}],{plugins:[createParagraphPlugin()],inlinePlugins:[definition],injectStyles:true})
+ const before=editor.save().blocks
+ const field=blockElement(editor,'a').querySelector('.oe-paragraph'),widget=field.querySelector('[data-inline-plugin="editableBadge"]')
+ field.focus();window.getSelection().setBaseAndExtent(widget.firstChild,2,widget.firstChild,2)
+ if(action==='remove')await dispatchKey('Backspace','Backspace',8)
+ else await printable('!')
+ const changed=editor.save().blocks
+ const native=window.getSelection()
+ equal(getTextOffset(field,native.anchorNode,native.anchorOffset),action==='remove'?6:7,'Editing the widget moved the caret into the prefix')
+ await printable('X')
+ const typed=editor.save().blocks
+ equal(typed[0].data.text.replace(/<[^>]+>/g,''),action==='remove'?'Alpha X Omega':'Alpha {{badge}}X Omega','Follow-up input misplaced: '+JSON.stringify({edits,widget:typed[0].inline}))
+ if(formatted)assert(typed[0].data.text.startsWith('<b>Alpha '),'Widget editing discarded authored formatting')
+ if(formatted&&action==='update')equal(typed[0].data.text,'<b>Alpha {{badge}}</b>X Omega','Typing outside a formatted widget inherited its formatting')
+ if(action==='update')equal(typed[0].inline.badge.data.name,'Badge!')
+ await dispatchKey('z','KeyZ',90,2);equal(editor.save().blocks,changed)
+ await dispatchKey('z','KeyZ',90,2);equal(editor.save().blocks,before)
+ equal(editor.canUndo,false)
+ await dispatchKey('z','KeyZ',90,10);equal(editor.save().blocks,changed)
+ await dispatchKey('z','KeyZ',90,10);equal(editor.save().blocks,typed)
+})
+
+test('Image settings input does not edit a widget retained in the document selection',async()=>{
+ const image=createImagePlugin(),definition=editableBadgeDefinition('update')
+ const editor=make([{id:'a',type:'image',dataVersion:image.schema.currentVersion,data:{...image.schema.createDefault(),file:{url:pixel},caption:'Alpha {{badge}} Omega'},inline:{badge:{type:definition.type,dataVersion:1,data:{name:'Badge'}}}}],{plugins:[image],inlinePlugins:[definition],injectStyles:true})
+ const before=editor.save().blocks
+ const shell=blockElement(editor,'a'),caption=shell.querySelector('.oe-image__caption'),widget=caption.querySelector('[data-inline-plugin="editableBadge"]')
+ caption.focus();window.getSelection().setBaseAndExtent(widget.firstChild,2,widget.firstChild,2)
+ await clickNative(shell.querySelector('.oe-image__dropdown > button'))
+ const input=shell.querySelector('.oe-image__style-input')
+ await clickNative(input)
+ await dispatchKey('a','KeyA',65,2)
+ await window.__testInput('Input.insertText',{text:'320px'})
+ equal(input.value,'320px','An inline widget intercepted auxiliary input')
+ equal(editor.save().blocks[0].inline,before[0].inline,'Settings typing changed an unrelated inline widget')
+ await dispatchKey('Tab','Tab',9)
+ equal(editor.save().blocks[0].data.styles.width,'320px')
+})
+
+test('Custom inline editing receives the native Unicode deletion interval as plain offsets',async()=>{
+ const edits=[],definition=editableBadgeDefinition('native-delete',edits)
+ const editor=make([{id:'a',type:'paragraph',dataVersion:2,data:{text:'Alpha {{badge}} Omega'},inline:{badge:{type:definition.type,dataVersion:1,data:{name:'X👍🏽'}}}}],{inlinePlugins:[definition],injectStyles:true})
+ const before=editor.save().blocks,field=blockElement(editor,'a').querySelector('.oe-paragraph'),widget=field.querySelector('[data-inline-plugin="editableBadge"]')
+ field.focus();window.getSelection().setBaseAndExtent(widget.firstChild,5,widget.firstChild,5)
+ await dispatchKey('Backspace','Backspace',8)
+ const changed=editor.save().blocks
+ equal(edits[0]?.deletionRange,{start:1,end:5},'The hook received no native deletion interval')
+ equal(changed[0].inline.badge.data.name,'X')
+ await printable('Y')
+ equal(editor.save().blocks[0].data.text,'Alpha {{badge}}Y Omega')
+ await dispatchKey('z','KeyZ',90,2);equal(editor.save().blocks,changed)
+ await dispatchKey('z','KeyZ',90,2);equal(editor.save().blocks,before)
+})
 
 for(const trigger of ['#','🦊','@'])test('Mention captured '+trigger+' trigger supports native choice and atomic Undo/Redo',async()=>{
  let reads=0,searches=0,selected
