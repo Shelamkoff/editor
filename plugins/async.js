@@ -2,6 +2,7 @@
 import { BLOCK_TYPES } from '../shared/blockTypes.js'
 import { decodeCurrentBlock, snapshotCurrentDocumentEnvelope } from '../shared/DocumentSchema.js'
 import { getBuiltInBlockDataSchema } from '../shared/blockSchemas/index.js'
+import { snapshotBlockPluginConfig } from './shared/configRecords.js'
 
 /** @typedef {(config?: Record<string, unknown>) => import('../plugin-kit/types').BlockPluginDefinition} BlockPluginFactory */
 /** @typedef {() => Promise<BlockPluginFactory>} BlockPluginLoader */
@@ -77,7 +78,7 @@ export function getAsyncBlockPluginTypes() {
  */
 export async function loadBlockPluginDefinition(type, config = {}) {
   if (!Object.hasOwn(pluginLoaders, type)) throw new RangeError(`Unknown editor block plugin type: ${type}`)
-  const snapshot = { ...requireRecord(config, `config for ${type}`) }
+  const snapshot = snapshotBlockPluginConfig(requireRecord(config, `config for ${type}`))
   const factory = await pluginLoaders[/** @type {import('../renderer/types').BlockType} */ (type)]()
   return factory(snapshot)
 }
@@ -92,8 +93,9 @@ export async function preloadBlockPluginDefinitions(source, configs = {}) {
   const configMap = requireRecord(configs, 'configs')
   const types = requestedTypes(source)
   const definitions = await Promise.all(types.map(type => {
-    const config = Object.hasOwn(configMap, type) && configMap[type] !== undefined
-      ? { ...requireRecord(configMap[type], `configs.${type}`) }
+    const configured = Object.hasOwn(configMap, type) ? configMap[type] : undefined
+    const config = configured !== undefined
+      ? { ...requireRecord(configured, `configs.${type}`) }
       : {}
     return loadBlockPluginDefinition(type, config)
   }))

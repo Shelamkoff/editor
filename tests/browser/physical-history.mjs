@@ -492,6 +492,7 @@ try {
   const nativePanelKeyboard = await runNativePage(client, pageUrl, 'native-panel-keyboard.html')
   const nativeSourceIndentation = await runNativePage(client, pageUrl, 'native-source-indentation.html')
   const nativeSourceModes = await runNativePage(client, pageUrl, 'native-source-modes.html')
+  const nativeConfigSnapshot = await runNativePage(client, pageUrl, 'native-config-snapshot.html')
   const nativeStructural = await runNativePage(client, pageUrl, 'native-structural.html')
   const nativeCrossSelection = await runNativePage(client, pageUrl, 'native-cross-selection.html')
   const nativeCoreBehavior = await runNativePage(client, pageUrl, 'native-core-behavior.html')
@@ -534,6 +535,7 @@ try {
     nativePanelKeyboard,
     nativeSourceIndentation,
     nativeSourceModes,
+    nativeConfigSnapshot,
     nativeStructural,
     nativeCrossSelection,
     nativeCoreBehavior,

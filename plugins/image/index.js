@@ -1,4 +1,5 @@
 // @ts-check
+import { snapshotConfigRecords } from '../shared/configRecords.js'
 import { setSanitizedHtml, setSafeUrlAttribute } from '../../plugin-kit/index.js'
 import { insertTrustedHtml, setTrustedHtml } from '../../shared/sanitize/sanitizeHtml.js'
 import { imageDataSchema } from '../../shared/blockSchemas/image.js'
@@ -143,9 +144,10 @@ function renderImageSettings(context){
  */
 export function createImagePlugin(config={}){
   if(!config||typeof config!=='object'||Array.isArray(config))throw new TypeError('Image configuration must be an object')
-  const snapshot=Object.freeze({
-    ...config,
-    actions:Object.freeze([...(config.actions??[])]),
+  const captured = { ...config }
+  const snapshot = Object.freeze({
+    ...captured,
+    actions:snapshotConfigRecords(captured.actions, 'actions'),
   })
   const styles=[]
   if(snapshot.injectStyles!==false)styles.push(editorStyles,sourceEditorStyles)

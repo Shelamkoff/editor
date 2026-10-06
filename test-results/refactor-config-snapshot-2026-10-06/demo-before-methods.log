@@ -1,0 +1,9 @@
+file:///C:/OSPanel/domains/editor/scripts/vitepress-browser-scenarios.mjs:171
+  throw new Error('Timed out waiting for the VitePress demo to hydrate')
+        ^
+
+Error: Timed out waiting for the VitePress demo to hydrate
+    at waitForHydratedDemo (file:///C:/OSPanel/domains/editor/scripts/vitepress-browser-scenarios.mjs:171:9)
+    at async file:///C:/OSPanel/domains/editor/scripts/vitepress-browser-scenarios.mjs:562:3
+
+Node.js v24.9.0

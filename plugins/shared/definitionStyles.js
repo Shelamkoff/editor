@@ -8,10 +8,11 @@
  */
 export function definitionStyles(config, builtIn) {
   if (!config || typeof config !== 'object' || Array.isArray(config)) throw new TypeError('Plugin configuration must be an object')
-  if (config.injectStyles !== undefined && typeof config.injectStyles !== 'boolean') throw new TypeError('injectStyles must be a boolean')
-  if (config.css !== undefined && typeof config.css !== 'string') throw new TypeError('css must be a string')
+  const { injectStyles, css } = { ...config }
+  if (injectStyles !== undefined && typeof injectStyles !== 'boolean') throw new TypeError('injectStyles must be a boolean')
+  if (css !== undefined && typeof css !== 'string') throw new TypeError('css must be a string')
   return Object.freeze([
-    ...(config.injectStyles === false ? [] : builtIn),
-    ...(config.css ? [config.css] : []),
+    ...(injectStyles === false ? [] : builtIn),
+    ...(css ? [css] : []),
   ])
 }

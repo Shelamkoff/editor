@@ -42,17 +42,17 @@ export function createParagraphPlugin(config = {}) {
   if (!config || typeof config !== 'object' || Array.isArray(config)) {
     throw new TypeError('Paragraph configuration must be an object')
   }
-  if (config.placeholder !== undefined && typeof config.placeholder !== 'string') {
+  const snapshot = Object.freeze({ ...config })
+  if (snapshot.placeholder !== undefined && typeof snapshot.placeholder !== 'string') {
     throw new TypeError('Paragraph placeholder must be a string')
   }
-  if (config.injectStyles !== undefined && typeof config.injectStyles !== 'boolean') {
+  if (snapshot.injectStyles !== undefined && typeof snapshot.injectStyles !== 'boolean') {
     throw new TypeError('Paragraph injectStyles must be a boolean')
   }
-  if (config.css !== undefined && typeof config.css !== 'string') {
+  if (snapshot.css !== undefined && typeof snapshot.css !== 'string') {
     throw new TypeError('Paragraph css must be a string')
   }
 
-  const snapshot = Object.freeze({ ...config })
   const styles = []
   if (snapshot.injectStyles !== false) styles.push(editorStyles)
   if (snapshot.css) styles.push(snapshot.css)

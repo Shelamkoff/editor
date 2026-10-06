@@ -1,4 +1,5 @@
 // @ts-check
+import { snapshotConfigRecords } from '../shared/configRecords.js'
 import { setSafeUrlAttribute, setSanitizedHtml } from '../../plugin-kit/index.js'
 import { insertTrustedHtml } from '../../shared/sanitize/sanitizeHtml.js'
 import { galleryDataSchema } from '../../shared/blockSchemas/gallery.js'
@@ -153,7 +154,8 @@ function renderGallerySettings(context, { visualLayouts = false } = {}){
  */
 export function createGalleryPlugin(config={}){
   if(!config||typeof config!=='object'||Array.isArray(config))throw new TypeError('Gallery configuration must be an object')
-  const snapshot=Object.freeze({...config,actions:Object.freeze([...(config.actions??[])])})
+  const captured = { ...config }
+  const snapshot = Object.freeze({...captured,actions:snapshotConfigRecords(captured.actions, 'actions')})
   const styles=[]
   if(snapshot.injectStyles!==false)styles.push(editorStyles,sourceEditorStyles)
   if(snapshot.css)styles.push(snapshot.css)

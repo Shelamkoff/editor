@@ -1,0 +1,261 @@
+✔ Raw captures getter-backed style options once before validating and using them (2.3577ms)
+✔ createAttachesPlugin captures style getters once (0.4495ms)
+✔ createAttachesPlugin ignores inherited style options without evaluating getters (0.2641ms)
+✔ createCarouselPlugin captures style getters once (0.3691ms)
+✔ createCarouselPlugin ignores inherited style options without evaluating getters (0.2243ms)
+✔ createChecklistPlugin captures style getters once (0.3243ms)
+✔ createChecklistPlugin ignores inherited style options without evaluating getters (0.1652ms)
+✔ createCodePlugin captures style getters once (0.3874ms)
+✔ createCodePlugin ignores inherited style options without evaluating getters (0.1831ms)
+✔ createColumnsPlugin captures style getters once (0.4086ms)
+✔ createColumnsPlugin ignores inherited style options without evaluating getters (0.1379ms)
+✔ createDelimiterPlugin captures style getters once (0.1636ms)
+✔ createDelimiterPlugin ignores inherited style options without evaluating getters (0.0847ms)
+✔ createEmbedPlugin captures style getters once (0.1986ms)
+✔ createEmbedPlugin ignores inherited style options without evaluating getters (0.0928ms)
+✔ createGalleryPlugin captures style getters once (0.1917ms)
+✔ createGalleryPlugin ignores inherited style options without evaluating getters (0.0992ms)
+✔ createHeadingPlugin captures style getters once (0.2573ms)
+✔ createHeadingPlugin ignores inherited style options without evaluating getters (0.144ms)
+✔ createImagePlugin captures style getters once (0.2047ms)
+✔ createImagePlugin ignores inherited style options without evaluating getters (0.0907ms)
+✔ createLinkPreviewPlugin captures style getters once (0.1984ms)
+✔ createLinkPreviewPlugin ignores inherited style options without evaluating getters (0.0853ms)
+✔ createListPlugin captures style getters once (0.2136ms)
+✔ createListPlugin ignores inherited style options without evaluating getters (0.1099ms)
+✖ createParagraphPlugin captures style getters once (0.2212ms)
+✖ createParagraphPlugin ignores inherited style options without evaluating getters (0.1181ms)
+✔ createPersonPlugin captures style getters once (0.2411ms)
+✔ createPersonPlugin ignores inherited style options without evaluating getters (0.1045ms)
+✔ createPollPlugin captures style getters once (0.2627ms)
+✔ createPollPlugin ignores inherited style options without evaluating getters (0.1294ms)
+✔ createQuotePlugin captures style getters once (0.2372ms)
+✔ createQuotePlugin ignores inherited style options without evaluating getters (0.0888ms)
+✔ createRawPlugin captures style getters once (0.1063ms)
+✔ createRawPlugin ignores inherited style options without evaluating getters (0.0631ms)
+✔ createSpoilerPlugin captures style getters once (0.2298ms)
+✔ createSpoilerPlugin ignores inherited style options without evaluating getters (0.127ms)
+✔ createTablePlugin captures style getters once (0.1609ms)
+✔ createTablePlugin ignores inherited style options without evaluating getters (0.0778ms)
+✔ createTogglePlugin captures style getters once (0.1364ms)
+✔ createTogglePlugin ignores inherited style options without evaluating getters (0.0749ms)
+✔ createWarningPlugin captures style getters once (0.1346ms)
+✔ createWarningPlugin ignores inherited style options without evaluating getters (0.0726ms)
+✖ Paragraph validates its captured placeholder instead of rereading a getter (0.1615ms)
+✖ createAttachesPlugin captures its actions getter once (0.1287ms)
+✖ createAttachesPlugin ignores inherited actions without running the getter (0.1656ms)
+✖ createCarouselPlugin captures its actions getter once (0.0648ms)
+✖ createCarouselPlugin ignores inherited actions without running the getter (0.0571ms)
+✖ createEmbedPlugin captures its actions getter once (0.0634ms)
+✖ createEmbedPlugin ignores inherited actions without running the getter (0.0673ms)
+✖ createGalleryPlugin captures its actions getter once (0.0632ms)
+✖ createGalleryPlugin ignores inherited actions without running the getter (0.0633ms)
+✖ createImagePlugin captures its actions getter once (0.051ms)
+✖ createImagePlugin ignores inherited actions without running the getter (0.0583ms)
+✖ createPersonPlugin captures its socialResolvers getter once (0.0623ms)
+✖ createPersonPlugin ignores inherited socialResolvers without running the getter (0.0566ms)
+ℹ tests 56
+ℹ suites 0
+ℹ pass 41
+ℹ fail 15
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 282.4506
+
+✖ failing tests:
+
+test at plugins\config-snapshot.test.js:23:3
+✖ createParagraphPlugin captures style getters once (0.2212ms)
+  Error: injectStyles getter reread
+      at get injectStyles (file:///C:/OSPanel/domains/editor/plugins/config-snapshot.test.js:27:45)
+      at createParagraphPlugin (file:///C:/OSPanel/domains/editor/plugins/paragraph/index.js:48:58)
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/plugins/config-snapshot.test.js:35:22)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7)
+
+test at plugins\config-snapshot.test.js:39:3
+✖ createParagraphPlugin ignores inherited style options without evaluating getters (0.1181ms)
+  Error: inherited injectStyles accessed
+      at get injectStyles (file:///C:/OSPanel/domains/editor/plugins/config-snapshot.test.js:41:34)
+      at createParagraphPlugin (file:///C:/OSPanel/domains/editor/plugins/paragraph/index.js:48:14)
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/plugins/config-snapshot.test.js:45:22)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7)
+
+test at plugins\config-snapshot.test.js:49:1
+✖ Paragraph validates its captured placeholder instead of rereading a getter (0.1615ms)
+  Error: placeholder getter reread
+      at get placeholder (file:///C:/OSPanel/domains/editor/plugins/config-snapshot.test.js:53:30)
+      at Module.createParagraphPlugin (file:///C:/OSPanel/domains/editor/plugins/paragraph/index.js:45:57)
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/plugins/config-snapshot.test.js:51:11)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7)
+
+test at plugins\config-snapshot.test.js:66:3
+✖ createAttachesPlugin captures its actions getter once (0.1287ms)
+  Error: actions getter reread
+      at get actions (file:///C:/OSPanel/domains/editor/plugins/config-snapshot.test.js:70:32)
+      at Module.createAttachesPlugin (file:///C:/OSPanel/domains/editor/plugins/attaches/index.js:32:77)
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/plugins/config-snapshot.test.js:74:31)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7)
+
+test at plugins\config-snapshot.test.js:77:3
+✖ createAttachesPlugin ignores inherited actions without running the getter (0.1656ms)
+  Error: inherited actions accessed
+      at get actions (file:///C:/OSPanel/domains/editor/plugins/config-snapshot.test.js:78:45)
+      at Module.createAttachesPlugin (file:///C:/OSPanel/domains/editor/plugins/attaches/index.js:32:77)
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/plugins/config-snapshot.test.js:79:31)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7)
+
+test at plugins\config-snapshot.test.js:66:3
+✖ createCarouselPlugin captures its actions getter once (0.0648ms)
+  Error: actions getter reread
+      at get actions (file:///C:/OSPanel/domains/editor/plugins/config-snapshot.test.js:70:32)
+      at Module.createCarouselPlugin (file:///C:/OSPanel/domains/editor/plugins/carousel/index.js:272:77)
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/plugins/config-snapshot.test.js:74:31)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7)
+
+test at plugins\config-snapshot.test.js:77:3
+✖ createCarouselPlugin ignores inherited actions without running the getter (0.0571ms)
+  Error: inherited actions accessed
+      at get actions (file:///C:/OSPanel/domains/editor/plugins/config-snapshot.test.js:78:45)
+      at Module.createCarouselPlugin (file:///C:/OSPanel/domains/editor/plugins/carousel/index.js:272:77)
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/plugins/config-snapshot.test.js:79:31)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7)
+
+test at plugins\config-snapshot.test.js:66:3
+✖ createEmbedPlugin captures its actions getter once (0.0634ms)
+  Error: actions getter reread
+      at get actions (file:///C:/OSPanel/domains/editor/plugins/config-snapshot.test.js:70:32)
+      at Module.createEmbedPlugin (file:///C:/OSPanel/domains/editor/plugins/embed/index.js:49:40)
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/plugins/config-snapshot.test.js:74:31)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7)
+
+test at plugins\config-snapshot.test.js:77:3
+✖ createEmbedPlugin ignores inherited actions without running the getter (0.0673ms)
+  Error: inherited actions accessed
+      at get actions (file:///C:/OSPanel/domains/editor/plugins/config-snapshot.test.js:78:45)
+      at Module.createEmbedPlugin (file:///C:/OSPanel/domains/editor/plugins/embed/index.js:49:40)
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/plugins/config-snapshot.test.js:79:31)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7)
+
+test at plugins\config-snapshot.test.js:66:3
+✖ createGalleryPlugin captures its actions getter once (0.0632ms)
+  Error: actions getter reread
+      at get actions (file:///C:/OSPanel/domains/editor/plugins/config-snapshot.test.js:70:32)
+      at Module.createGalleryPlugin (file:///C:/OSPanel/domains/editor/plugins/gallery/index.js:156:77)
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/plugins/config-snapshot.test.js:74:31)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7)
+
+test at plugins\config-snapshot.test.js:77:3
+✖ createGalleryPlugin ignores inherited actions without running the getter (0.0633ms)
+  Error: inherited actions accessed
+      at get actions (file:///C:/OSPanel/domains/editor/plugins/config-snapshot.test.js:78:45)
+      at Module.createGalleryPlugin (file:///C:/OSPanel/domains/editor/plugins/gallery/index.js:156:77)
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/plugins/config-snapshot.test.js:79:31)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7)
+
+test at plugins\config-snapshot.test.js:66:3
+✖ createImagePlugin captures its actions getter once (0.051ms)
+  Error: actions getter reread
+      at get actions (file:///C:/OSPanel/domains/editor/plugins/config-snapshot.test.js:70:32)
+      at Module.createImagePlugin (file:///C:/OSPanel/domains/editor/plugins/image/index.js:148:39)
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/plugins/config-snapshot.test.js:74:31)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7)
+
+test at plugins\config-snapshot.test.js:77:3
+✖ createImagePlugin ignores inherited actions without running the getter (0.0583ms)
+  Error: inherited actions accessed
+      at get actions (file:///C:/OSPanel/domains/editor/plugins/config-snapshot.test.js:78:45)
+      at Module.createImagePlugin (file:///C:/OSPanel/domains/editor/plugins/image/index.js:148:39)
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/plugins/config-snapshot.test.js:79:31)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7)
+
+test at plugins\config-snapshot.test.js:66:3
+✖ createPersonPlugin captures its socialResolvers getter once (0.0623ms)
+  Error: socialResolvers getter reread
+      at get socialResolvers (file:///C:/OSPanel/domains/editor/plugins/config-snapshot.test.js:70:32)
+      at Module.createPersonPlugin (file:///C:/OSPanel/domains/editor/plugins/person/index.js:46:47)
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/plugins/config-snapshot.test.js:74:31)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7)
+
+test at plugins\config-snapshot.test.js:77:3
+✖ createPersonPlugin ignores inherited socialResolvers without running the getter (0.0566ms)
+  Error: inherited socialResolvers accessed
+      at get socialResolvers (file:///C:/OSPanel/domains/editor/plugins/config-snapshot.test.js:78:45)
+      at Module.createPersonPlugin (file:///C:/OSPanel/domains/editor/plugins/person/index.js:46:47)
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/plugins/config-snapshot.test.js:79:31)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7)

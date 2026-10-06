@@ -1,0 +1,10 @@
+
+> @shelamkoff/rector@2.0.0 docs:sync
+> npm run docs:validate-readmes && node scripts/sync-vitepress-readmes.mjs
+
+
+> @shelamkoff/rector@2.0.0 docs:validate-readmes
+> node scripts/validate-extension-readmes.mjs
+
+{"localizedReadmePairs":47}
+Synchronized 47 README files into docs/reference

@@ -1,0 +1,71 @@
+file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149
+    if (result.status === 'fail') throw new Error(`History matrix failed: ${result.summary}`)
+                                        ^
+
+Error: History matrix failed: [
+  {
+    "name": "Image captures prototype action getters and preserves its method receiver",
+    "status": "FAIL",
+    "error": "Error: Record fields must be captured once, including prototype accessors\nexpected {\"label\":1,\"handler\":1}, got {\"label\":0,\"handler\":0}\n    at equal (http://127.0.0.1:62926/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:62926/test-results/refactor-config-snapshot-2026-10-06/record-methods.js:40:3"
+  },
+  {
+    "name": "Gallery captures prototype action getters and preserves its method receiver",
+    "status": "FAIL",
+    "error": "Error: Record fields must be captured once, including prototype accessors\nexpected {\"label\":1,\"handler\":1}, got {\"label\":0,\"handler\":0}\n    at equal (http://127.0.0.1:62926/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:62926/test-results/refactor-config-snapshot-2026-10-06/record-methods.js:40:3"
+  },
+  {
+    "name": "Carousel captures prototype action getters and preserves its method receiver",
+    "status": "FAIL",
+    "error": "Error: Record fields must be captured once, including prototype accessors\nexpected {\"label\":1,\"handler\":1}, got {\"label\":0,\"handler\":0}\n    at equal (http://127.0.0.1:62926/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:62926/test-results/refactor-config-snapshot-2026-10-06/record-methods.js:40:3"
+  },
+  {
+    "name": "Attaches captures prototype action getters and preserves its method receiver",
+    "status": "FAIL",
+    "error": "Error: Record fields must be captured once, including prototype accessors\nexpected {\"label\":1,\"handler\":1}, got {\"label\":0,\"handler\":0}\n    at equal (http://127.0.0.1:62926/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:62926/test-results/refactor-config-snapshot-2026-10-06/record-methods.js:40:3"
+  },
+  {
+    "name": "Embed captures prototype action getters and preserves its method receiver",
+    "status": "FAIL",
+    "error": "Error: Record fields must be captured once, including prototype accessors\nexpected {\"label\":1,\"handler\":1}, got {\"label\":0,\"handler\":0}\n    at equal (http://127.0.0.1:62926/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:62926/test-results/refactor-config-snapshot-2026-10-06/record-methods.js:40:3"
+  },
+  {
+    "name": "Async Image captures prototype action getters and preserves its method receiver",
+    "status": "FAIL",
+    "error": "Error: Record fields must be captured once, including prototype accessors\nexpected {\"label\":1,\"handler\":1}, got {\"label\":0,\"handler\":0}\n    at equal (http://127.0.0.1:62926/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:62926/test-results/refactor-config-snapshot-2026-10-06/record-methods.js:40:3\n    at async run (http://127.0.0.1:62926/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:62926/test-results/refactor-config-snapshot-2026-10-06/record-methods.js:89:1"
+  },
+  {
+    "name": "Async Gallery captures prototype action getters and preserves its method receiver",
+    "status": "FAIL",
+    "error": "Error: Record fields must be captured once, including prototype accessors\nexpected {\"label\":1,\"handler\":1}, got {\"label\":0,\"handler\":0}\n    at equal (http://127.0.0.1:62926/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:62926/test-results/refactor-config-snapshot-2026-10-06/record-methods.js:40:3\n    at async run (http://127.0.0.1:62926/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:62926/test-results/refactor-config-snapshot-2026-10-06/record-methods.js:89:1"
+  },
+  {
+    "name": "Async Carousel captures prototype action getters and preserves its method receiver",
+    "status": "FAIL",
+    "error": "Error: Record fields must be captured once, including prototype accessors\nexpected {\"label\":1,\"handler\":1}, got {\"label\":0,\"handler\":0}\n    at equal (http://127.0.0.1:62926/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:62926/test-results/refactor-config-snapshot-2026-10-06/record-methods.js:40:3\n    at async run (http://127.0.0.1:62926/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:62926/test-results/refactor-config-snapshot-2026-10-06/record-methods.js:89:1"
+  },
+  {
+    "name": "Async Attaches captures prototype action getters and preserves its method receiver",
+    "status": "FAIL",
+    "error": "Error: Record fields must be captured once, including prototype accessors\nexpected {\"label\":1,\"handler\":1}, got {\"label\":0,\"handler\":0}\n    at equal (http://127.0.0.1:62926/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:62926/test-results/refactor-config-snapshot-2026-10-06/record-methods.js:40:3\n    at async run (http://127.0.0.1:62926/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:62926/test-results/refactor-config-snapshot-2026-10-06/record-methods.js:89:1"
+  },
+  {
+    "name": "Async Embed captures prototype action getters and preserves its method receiver",
+    "status": "FAIL",
+    "error": "Error: Record fields must be captured once, including prototype accessors\nexpected {\"label\":1,\"handler\":1}, got {\"label\":0,\"handler\":0}\n    at equal (http://127.0.0.1:62926/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:62926/test-results/refactor-config-snapshot-2026-10-06/record-methods.js:40:3\n    at async run (http://127.0.0.1:62926/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:62926/test-results/refactor-config-snapshot-2026-10-06/record-methods.js:89:1"
+  },
+  {
+    "name": "Person captures prototype resolver getters and preserves its method receiver",
+    "status": "FAIL",
+    "error": "Error: \nexpected {\"test\":1,\"type\":1,\"icon\":1}, got {\"test\":0,\"type\":0,\"icon\":0}\n    at equal (http://127.0.0.1:62926/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:62926/test-results/refactor-config-snapshot-2026-10-06/record-methods.js:74:3"
+  },
+  {
+    "name": "Async Person captures prototype resolver getters and preserves its method receiver",
+    "status": "FAIL",
+    "error": "Error: \nexpected {\"test\":1,\"type\":1,\"icon\":1}, got {\"test\":0,\"type\":0,\"icon\":0}\n    at equal (http://127.0.0.1:62926/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:62926/test-results/refactor-config-snapshot-2026-10-06/record-methods.js:74:3\n    at async run (http://127.0.0.1:62926/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:62926/test-results/refactor-config-snapshot-2026-10-06/record-methods.js:89:1"
+  }
+]
+    at waitForHistoryMatrix (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149:41)
+    at async runNativePage (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:275:30)
+    at async file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:312:48
+
+Node.js v24.9.0

@@ -1,4 +1,5 @@
 // @ts-check
+import { snapshotConfigRecords } from '../shared/configRecords.js'
 import {
   READ_ONLY_INTERACTIVE_ATTRIBUTE,
   setSafeUrlAttribute,
@@ -269,7 +270,8 @@ function renderCarouselSettings(context){
  */
 export function createCarouselPlugin(config={}){
   if(!config||typeof config!=='object'||Array.isArray(config))throw new TypeError('Carousel configuration must be an object')
-  const snapshot=Object.freeze({...config,actions:Object.freeze([...(config.actions??[])])})
+  const captured = { ...config }
+  const snapshot = Object.freeze({...captured,actions:snapshotConfigRecords(captured.actions, 'actions')})
   const styles=[]
   if(snapshot.injectStyles!==false)styles.push(editorStyles,sourceEditorStyles)
   if(snapshot.css)styles.push(snapshot.css)

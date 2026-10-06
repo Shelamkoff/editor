@@ -1,4 +1,5 @@
 // @ts-check
+import { snapshotConfigRecords } from '../shared/configRecords.js'
 import { READ_ONLY_INTERACTIVE_ATTRIBUTE, setSanitizedHtml } from '../../plugin-kit/index.js'
 import { insertTrustedHtml } from '../../shared/sanitize/sanitizeHtml.js'
 import { embedDataSchema } from '../../shared/blockSchemas/embed.js'
@@ -44,9 +45,10 @@ export function createEmbedPlugin(config = {}) {
   if (!config || typeof config !== 'object' || Array.isArray(config)) {
     throw new TypeError('Embed configuration must be an object')
   }
+  const captured = { ...config }
   const snapshot = Object.freeze({
-    ...config,
-    actions: Object.freeze([...(config.actions ?? [])]),
+    ...captured,
+    actions: snapshotConfigRecords(captured.actions, 'actions'),
   })
   const styles = []
   if (snapshot.injectStyles !== false) styles.push(editorStyles, sourceEditorStyles)

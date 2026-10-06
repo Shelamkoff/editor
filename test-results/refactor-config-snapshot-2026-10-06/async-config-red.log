@@ -1,0 +1,46 @@
+✖ Async list captures each requested configuration entry once before import (2.6943ms)
+✖ Async map captures each requested configuration entry once before import (0.2819ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 0
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 253.5957
+
+✖ failing tests:
+
+test at plugins\config-snapshot.test.js:8:3
+✖ Async list captures each requested configuration entry once before import (2.6943ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  2 !== 1
+  
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/plugins/config-snapshot.test.js:21:12)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at plugins\config-snapshot.test.js:8:3
+✖ Async map captures each requested configuration entry once before import (0.2819ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  2 !== 1
+  
+      at TestContext.<anonymous> (file:///C:/OSPanel/domains/editor/plugins/config-snapshot.test.js:21:12)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

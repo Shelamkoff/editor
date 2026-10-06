@@ -1,4 +1,5 @@
 // @ts-check
+import { snapshotConfigRecords } from '../shared/configRecords.js'
 import { setSanitizedHtml } from '../../plugin-kit/index.js'
 import { setTrustedHtml } from '../../shared/sanitize/sanitizeHtml.js'
 import { personDataSchema } from '../../shared/blockSchemas/person.js'
@@ -41,9 +42,10 @@ function meaningful(person){
 /** Create an immutable Person block definition.\n * @param {PersonV2Config} [config] Consumer-owned configuration snapshotted by the factory.\n * @returns {import('../../plugin-kit/types').BlockPluginDefinition<any>}\n */
 export function createPersonPlugin(config={}){
   if(!config||typeof config!=='object'||Array.isArray(config))throw new TypeError('Person configuration must be an object')
-  const snapshot=Object.freeze({
-    ...config,
-    socialResolvers:Object.freeze([...(config.socialResolvers??[])]),
+  const captured = { ...config }
+  const snapshot = Object.freeze({
+    ...captured,
+    socialResolvers:snapshotConfigRecords(captured.socialResolvers, 'socialResolvers'),
   })
   const styles=[]
   if(snapshot.injectStyles!==false)styles.push(editorStyles,cropperStylesUrl)

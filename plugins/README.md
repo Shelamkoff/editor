@@ -39,6 +39,12 @@ const plugins = await createBlockPluginsAsync(documentData, {
 
 The async loader deduplicates imports and preserves the first-occurrence order from the supplied type list or document. When no source is supplied, it uses the built-in catalog order. Unknown types reject instead of being silently ignored.
 
+## Configuration ownership
+
+Factories capture their own enumerable configuration properties once and ignore inherited options. Accessor-backed values are validated and used from that capture. Built-in source `actions` and Person `socialResolvers` are copied into owned immutable arrays and records; the caller objects stay mutable. Changing those original lists or records does not change an existing definition. Used record members are captured once, including prototype or non-enumerable accessors. Function callbacks keep their captured implementation and original receiver; RegExp values retain identity, and callbacks may still read live application state.
+
+Async plugin loading captures these values before awaiting a dynamic import. A definition can be reused across editors; each editor owns separate runtime resources, operation signals, document data and history.
+
 ## Authoring
 
 The VitePress extension guide documents the required contract, optional capabilities, command boundaries, text-field mapping, styles, localization, lifecycle, security, and the matching renderer contract.
