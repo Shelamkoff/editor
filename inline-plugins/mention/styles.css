@@ -181,3 +181,9 @@
     transition: none;
   }
 }
+
+/* The popup host owns positioning and the available viewport height. */
+.oe-ip-popup > .oe-mention-dropdown {
+  position: static;
+  max-height: min(280px, var(--oe-inline-popup-max-height, calc(100vh - 20px)));
+}

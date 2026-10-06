@@ -148,6 +148,10 @@ export class BlockReconciler {
     return [...(entry.instance.editableFields?.() ?? [])]
   }
 
+  resolveInlineWidgetElement(target) {
+    return this.#inlineProjection?.resolveWidgetElement(target) ?? null
+  }
+
   resolveEditableTarget(target) {
     let node = target
     while (node && node !== this.#container) {

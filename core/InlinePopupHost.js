@@ -11,6 +11,8 @@ export class InlinePopupHost {
   #cleanup=null
   #outside=null
   #observer=null
+  #positionController=null
+  #naturalHeight=0
   #generation=0
   #destroyed=false
 
@@ -39,22 +41,22 @@ export class InlinePopupHost {
     popup.appendChild(content)
     this.#root.appendChild(popup)
 
-    const rect=anchor.getBoundingClientRect()
-    const popupHeight=popup.offsetHeight||260
-    const viewportHeight=this.#view?.innerHeight??Number.POSITIVE_INFINITY
-    popup.style.left=rect.left+'px'
-    popup.style.top=(viewportHeight-rect.bottom-8>=popupHeight
-      ?rect.bottom+4
-      :rect.top-popupHeight-4)+'px'
-
     this.#popup=popup
     this.#anchor=anchor
     this.#cleanup=cleanup??null
+    this.#position()
+
+    const Ctor=this.#view?.AbortController??AbortController
+    this.#positionController=new Ctor()
+    const positionSignal=this.#positionController.signal
+    this.#view?.addEventListener('resize',()=>this.#position(),{signal:positionSignal})
+    this.#view?.addEventListener('scroll',()=>this.#position(false),{capture:true,passive:true,signal:positionSignal})
 
     const MutationObserverCtor=this.#view?.MutationObserver
     if(MutationObserverCtor){
       this.#observer=new MutationObserverCtor(()=>{
         if(this.#anchor&&!this.#root.contains(this.#anchor))this.hidePopup()
+        else this.#position()
       })
       this.#observer.observe(this.#root,{childList:true,subtree:true})
     }
@@ -86,7 +88,37 @@ export class InlinePopupHost {
     this.hidePopup()
   }
 
+  #position(remeasure=true){
+    const popup=this.#popup,anchor=this.#anchor
+    if(!popup||!anchor)return
+    const margin=8,gap=4
+    const rect=anchor.getBoundingClientRect()
+    const viewportWidth=Math.min(this.#view?.innerWidth??Infinity,this.#document.documentElement.clientWidth||Infinity)
+    const viewportHeight=this.#view?.innerHeight??Infinity
+    if(remeasure)popup.style.removeProperty('--oe-inline-popup-max-height')
+    const maxWidth=Math.max(0,viewportWidth-margin*2)
+    popup.style.maxWidth=maxWidth+'px'
+    popup.style.left=margin+'px'
+    if(remeasure)this.#naturalHeight=Math.max(popup.getBoundingClientRect().height,popup.scrollHeight)
+    const naturalHeight=this.#naturalHeight
+    const below=Math.max(0,viewportHeight-rect.bottom-gap-margin)
+    const above=Math.max(0,rect.top-gap-margin)
+    const down=below>=naturalHeight||below>=above
+    const viewportSpace=Math.max(0,viewportHeight-margin*2)
+    const available=Math.min(viewportSpace,(down?below:above)||viewportSpace)
+    popup.style.maxHeight=available+'px'
+    popup.style.setProperty('--oe-inline-popup-max-height',available+'px')
+    popup.style.overflow=naturalHeight>available||popup.scrollWidth>maxWidth?'auto':''
+    const bounds=popup.getBoundingClientRect()
+    popup.style.left=Math.max(margin,Math.min(rect.left,viewportWidth-bounds.width-margin))+'px'
+    const top=down?rect.bottom+gap:rect.top-bounds.height-gap
+    popup.style.top=Math.max(margin,Math.min(top,viewportHeight-bounds.height-margin))+'px'
+  }
+
   #hide(){
+    this.#positionController?.abort()
+    this.#positionController=null
+    this.#naturalHeight=0
     this.#observer?.disconnect()
     this.#observer=null
     if(this.#outside){

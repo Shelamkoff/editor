@@ -97,6 +97,7 @@ export function createColorSwatchPlugin(){
                 context.updateData(()=>({value:next}))
                 committed=true
                 runtimeContext.hidePopup()
+                if(!dead&&!readOnly&&span.isConnected)span.focus()
               },
               onChange(cssColor){
                 const next=displayValue(cssColor,document)

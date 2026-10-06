@@ -171,4 +171,37 @@ test('Rejected inline runtime releases captured resources and allows restarting 
   }
 })
 
+test('Owned widget shortcuts undo author changes while nested inputs retain their native Undo', async () => {
+  const definition = {
+    type: 'badge', icon: '', label: { key: 'title', fallback: 'Badge' },
+    schema: { currentVersion: 1, createDefault: () => ({ name: 'Open' }), encode: data => ({ dataVersion: 1, data }), decode: input => input },
+    setup(runtime) {
+      return {
+        create(_id, data, context) {
+          const widget = runtime.ownerDocument.createElement('span'), input = runtime.ownerDocument.createElement('input'), button = runtime.ownerDocument.createElement('button')
+          widget.dataset.inlinePlugin = 'badge'; widget.contentEditable = 'false'; widget.tabIndex = 0
+          input.type = 'text'; input.value = 'Draft'; button.type = 'button'; button.textContent = data.name
+          button.addEventListener('click', () => context.updateData(current => ({ name: current.name + '!' })), { signal: context.signal })
+          widget.append(input, button)
+          return { element: widget, update(next) { button.textContent = next.name }, setReadOnly(value) { input.disabled = value; button.disabled = value }, destroy() {} }
+        },
+        destroy() {},
+      }
+    },
+  }
+  const editor = make([{ id: 'a', type: 'paragraph', dataVersion: 2, data: { text: 'Alpha {{w_badge}}' }, inline: { w_badge: { type: 'badge', dataVersion: 1, data: { name: 'Open' } } } }], { inlinePlugins: [definition], injectStyles: true })
+  const before = editor.save().blocks
+  await clickNative(blockElement(editor, 'a').querySelector('[data-inline-plugin="badge"] button'))
+  const after = editor.save().blocks
+  equal(after[0].inline.w_badge.data, { name: 'Open!' })
+  const widget = blockElement(editor, 'a').querySelector('[data-inline-plugin="badge"]'), input = widget.querySelector('input'), events = []
+  editor.on('transaction:committed', event => events.push(event))
+  await clickNative(input); await dispatchKey('a', 'KeyA', 65, 2); await printable('X'); equal(input.value, 'X')
+  await dispatchKey('z', 'KeyZ', 90, 2); equal(input.value, 'Draft')
+  equal(editor.save().blocks, after); equal(events.length, 0)
+  widget.focus()
+  await dispatchKey('z', 'KeyZ', 90, 2); equal(editor.save().blocks, before); equal(editor.canUndo, false)
+  await dispatchKey('z', 'KeyZ', 90, 10); equal(editor.save().blocks, after)
+})
+
 await run()

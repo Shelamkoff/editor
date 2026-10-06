@@ -178,6 +178,17 @@ export class InlineProjectionRuntime {
     }
   }
 
+  resolveWidgetElement(target){
+    this.#assertLive()
+    for(let node=target;node;node=node.parentNode){
+      const meta=this.#owned.get(node)
+      if(!meta)continue
+      const entry=this.#blocks.get(meta.blockId)?.widgets.get(meta.id)
+      if(entry?.element===node)return entry.element
+    }
+    return null
+  }
+
   resolveWidgetInputTarget(selection,inputType){
     this.#assertLive()
     if(!selection?.isCollapsed||!selection.anchorNode)return null

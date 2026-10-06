@@ -1854,6 +1854,12 @@ export class DocumentRuntime {
       const next = this.#recordFromData(
         latest.id, latest.type, blockDefinition, latest.data, latest.tunes, inline,
       )
+      if (
+        latest.dataVersion === next.dataVersion
+        && sameJson(latest.data, next.data)
+        && sameJson(latest.tunes, next.tunes)
+        && sameJson(latest.inline, next.inline)
+      ) return
       tx.update(blockId, next)
     })
   }

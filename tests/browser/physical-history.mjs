@@ -498,6 +498,7 @@ try {
   const nativeInstanceMethods = await runNativePage(client, pageUrl, 'native-instance-methods.html')
   const nativeColorPopup = await runNativePage(client, pageUrl, 'native-color-popup.html')
   const nativeColorPopupTrusted = await runNativePage(client, pageUrl, 'native-color-popup-trusted.html')
+  const nativeMentionPopup = await runNativePage(client, pageUrl, 'native-mention-popup.html')
   const nativeStructural = await runNativePage(client, pageUrl, 'native-structural.html')
   const nativeCrossSelection = await runNativePage(client, pageUrl, 'native-cross-selection.html')
   const nativeCoreBehavior = await runNativePage(client, pageUrl, 'native-core-behavior.html')
@@ -546,6 +547,7 @@ try {
     nativeInstanceMethods,
     nativeColorPopup,
     nativeColorPopupTrusted,
+    nativeMentionPopup,
     nativeStructural,
     nativeCrossSelection,
     nativeCoreBehavior,

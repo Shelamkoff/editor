@@ -303,6 +303,10 @@ export function createMentionPlugin(options={}){
           popup.appendChild(row)
         })
         syncAria()
+        const active=popup.querySelector('.oe-mention-item--active')
+        queueMicrotask(()=>{
+          if(active?.isConnected&&popup?.contains(active))active.scrollIntoView({block:'nearest'})
+        })
       }
 
       const showLoading=()=>{

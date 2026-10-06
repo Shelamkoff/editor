@@ -263,6 +263,11 @@ export class KeyboardRouter {
     }
 
     const element = /** @type {Element} */ (target)
+    const widget=this.#reconciler.resolveInlineWidgetElement?.(target)
+    if(widget){
+      const control=element.closest?.('input, textarea, select, [contenteditable="true"]')
+      if(!control||!widget.contains(control))return {kind:'editor-chrome',owner:null}
+    }
     if (element.closest?.('input, textarea, select, [contenteditable="true"], [data-inline-plugin]')) {
       return { kind: 'auxiliary-native', owner: null }
     }
@@ -438,15 +443,18 @@ export class KeyboardRouter {
     return (end ? fields.slice(index + 1) : fields.slice(0, index)).every(field => fieldLength(field) === 0)
   }
 
-  #undo() {
-    if (!this.#runtime.undo()) return false
-    this.#view.reconcileInteraction()
-    return true
-  }
+  #undo() { return this.#replayHistory('undo') }
 
-  #redo() {
-    if (!this.#runtime.redo()) return false
+  #redo() { return this.#replayHistory('redo') }
+
+  #replayHistory(action) {
+    const document=this.#root.ownerDocument
+    const owned=this.#root.contains?.(document.activeElement)===true
+    if (!this.#runtime[action]()) return false
     this.#view.reconcileInteraction()
+    // Replaying can recreate the focused widget without a saved text caret.
+    // Keep subsequent history shortcuts in the editor when native focus falls to body.
+    if(owned&&document.activeElement===document.body)this.#root.focus?.({preventScroll:true})
     return true
   }
 }
