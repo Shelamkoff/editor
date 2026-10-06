@@ -17,6 +17,7 @@ const editorStyles=new URL('./person.css',import.meta.url).href
 const ICON='<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="10" r="3"/><path d="M6.2 18.8A6 6 0 0 1 10 16h4a6 6 0 0 1 3.8 2.8"/></svg>'
 const CAMERA='<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 20H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1a2 2 0 0 0 2-2a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1a2 2 0 0 0 2 2h1a2 2 0 0 1 2 2v3"/><circle cx="12" cy="13" r="3"/></svg>'
 const REMOVE='<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>'
+const GRIP='<svg xmlns="http://www.w3.org/2000/svg" width="10" height="12" viewBox="0 0 10 12" fill="currentColor"><circle cx="3" cy="2" r="1"/><circle cx="7" cy="2" r="1"/><circle cx="3" cy="6" r="1"/><circle cx="7" cy="6" r="1"/><circle cx="3" cy="10" r="1"/><circle cx="7" cy="10" r="1"/></svg>'
 
 function cloneData(data){
   return {
@@ -29,6 +30,11 @@ function cloneData(data){
 
 function meaningful(person){
   return Boolean(person.avatar||person.name.trim()||person.role.trim()||person.bio.trim()||person.links.some(link=>link.url))
+}
+
+function linkFieldKey(personId,linkId){
+  const part=id=>id.replaceAll('%','%25').replaceAll(':','%3A')
+  return 'person:'+part(personId)+':link:'+part(linkId)+':url'
 }
 
 /**
@@ -242,27 +248,77 @@ export function createPersonPlugin(config={}){
 
           const renderTabs=()=>{
             tabs.replaceChildren()
-            for(const person of data.persons){
-              const tab=document.createElement('button')
-              tab.type='button'
-              tab.className='oe-person__tab'
+            for(const [index,person] of data.persons.entries()){
+              const tab=document.createElement('div')
+              tab.className='oe-person__tab'+(person.id===activeId?' oe-person__tab--active':'')
               tab.dataset.personId=person.id
-              tab.textContent=person.name.trim()||runtimeContext.t('person','Person')
-              tab.setAttribute('aria-pressed',String(person.id===activeId))
               tab.draggable=!readOnly
-              tab.addEventListener('click',()=>{
+              const select=document.createElement('button')
+              select.type='button'
+              select.className='oe-person__tab-select'
+              select.setAttribute('aria-pressed',String(person.id===activeId))
+              const grip=document.createElement('span')
+              grip.className='oe-person__tab-grip'
+              grip.setAttribute('aria-hidden','true')
+              setTrustedHtml(grip,GRIP)
+              select.appendChild(grip)
+              if(person.avatar){
+                const avatar=document.createElement('img')
+                avatar.className='oe-person__tab-avatar'
+                setSafeUrlAttribute(avatar,'src',person.avatar,'media')
+                avatar.alt=''
+                select.appendChild(avatar)
+              }
+              const label=document.createElement('span')
+              label.className='oe-person__tab-label'
+              setSanitizedHtml(label,person.name)
+              label.textContent=label.textContent.trim()||runtimeContext.t('fallbackName','Person {number}',{number:index+1})
+              select.appendChild(label)
+              select.addEventListener('click',()=>{
+                if(activeId===person.id)return
                 syncVisible()
                 activeId=person.id
                 render()
                 wrapper.focus({preventScroll:true})
               },{signal:context.signal})
-              tab.addEventListener('dragstart',()=>{
-                if(!readOnly)dragId=person.id
+              tab.appendChild(select)
+              if(!readOnly&&data.persons.length>1){
+                const remove=document.createElement('button')
+                remove.type='button'
+                remove.className='oe-person__tab-remove'
+                setTrustedHtml(remove,REMOVE)
+                remove.title=runtimeContext.t('removePerson','Remove person')
+                remove.setAttribute('aria-label',remove.title)
+                remove.addEventListener('click',()=>{
+                  syncVisible()
+                  const remaining=data.persons.filter(item=>item.id!==person.id)
+                  if(activeId===person.id)activeId=remaining[Math.min(index,remaining.length-1)]?.id??''
+                  commit(current=>({persons:current.persons.filter(item=>item.id!==person.id)}))
+                },{signal:context.signal})
+                tab.appendChild(remove)
+              }
+              tab.addEventListener('dragstart',event=>{
+                if(readOnly)return
+                dragId=person.id
+                tab.classList.add('oe-person__tab--dragging')
+                event.dataTransfer?.setData('text/plain',person.id)
+                if(event.dataTransfer)event.dataTransfer.effectAllowed='move'
+              },{signal:context.signal})
+              tab.addEventListener('dragend',()=>{
+                dragId=null
+                tab.classList.remove('oe-person__tab--dragging')
+                for(const target of tabs.children)target.classList.remove('oe-person__tab--dragover')
               },{signal:context.signal})
               tab.addEventListener('dragover',event=>{
-                if(!readOnly)event.preventDefault()
+                if(readOnly||!dragId||dragId===person.id)return
+                event.preventDefault()
+                tab.classList.add('oe-person__tab--dragover')
+              },{signal:context.signal})
+              tab.addEventListener('dragleave',()=>{
+                tab.classList.remove('oe-person__tab--dragover')
               },{signal:context.signal})
               tab.addEventListener('drop',event=>{
+                tab.classList.remove('oe-person__tab--dragover')
                 if(readOnly||!dragId||dragId===person.id)return
                 event.preventDefault()
                 const from=dragId
@@ -282,7 +338,7 @@ export function createPersonPlugin(config={}){
             if(!readOnly){
               const add=document.createElement('button')
               add.type='button'
-              add.className='oe-person__tab oe-person__tab--add'
+              add.className='oe-person__tab oe-person__tab--add oe-person__tab-add'
               add.textContent='+'
               add.setAttribute('aria-label',runtimeContext.t('addPerson','Add person'))
               add.addEventListener('click',()=>{
@@ -377,6 +433,10 @@ export function createPersonPlugin(config={}){
             name.contentEditable=readOnly?'false':'true'
             name.dataset.placeholder=runtimeContext.t('namePlaceholder','Name')
             if(person.name)setSanitizedHtml(name,person.name)
+            const tabLabel=[...tabs.children].find(tab=>tab.getAttribute('data-person-id')===person.id)?.querySelector('.oe-person__tab-label')
+            name.addEventListener('input',()=>{
+              if(tabLabel)tabLabel.textContent=name.textContent.trim()||runtimeContext.t('fallbackName','Person {number}',{number:data.persons.findIndex(item=>item.id===person.id)+1})
+            },{signal:context.signal})
 
             const role=document.createElement('div')
             role.className='oe-person__role'
@@ -409,21 +469,7 @@ export function createPersonPlugin(config={}){
               links.appendChild(addLink)
             }
 
-            if(!readOnly&&data.persons.length>1){
-              const remove=document.createElement('button')
-              remove.type='button'
-              remove.className='oe-person__remove'
-              remove.textContent=runtimeContext.t('removePerson','Remove person')
-              remove.addEventListener('click',()=>{
-                const removing=person.id
-                const remaining=data.persons.filter(item=>item.id!==removing)
-                activeId=remaining[0]?.id??''
-                commit(current=>({persons:current.persons.filter(item=>item.id!==removing)}))
-              },{signal:context.signal})
-              info.append(name,role,bio,links,remove)
-            }else{
-              info.append(name,role,bio,links)
-            }
+            info.append(name,role,bio,links)
 
             card.append(avatarWrap,info)
             body.appendChild(card)
@@ -460,7 +506,7 @@ export function createPersonPlugin(config={}){
               if(bio)result.push(Object.freeze({key:'person:'+person.id+':bio',element:bio,mode:/** @type {'rich-text'} */('rich-text')}))
               for(const input of body.querySelectorAll('input[data-link-id]')){
                 result.push(Object.freeze({
-                  key:'person:'+person.id+':link:'+input.dataset.linkId+':url',
+                  key:linkFieldKey(person.id,input.dataset.linkId),
                   element:/** @type {HTMLElement} */(input),
                   mode:/** @type {'plain-text'} */('plain-text'),
                 }))
@@ -476,13 +522,13 @@ export function createPersonPlugin(config={}){
               if(dead||readOnly)return
               const key=target?.fieldKey??''
               const requested=data.persons.find(person=>['name','role','bio'].some(field=>key===`person:${person.id}:${field}`)
-                ||person.links.some(link=>key===`person:${person.id}:link:${link.id}:url`))
+                ||person.links.some(link=>key===linkFieldKey(person.id,link.id)))
               if(requested&&requested.id!==activeId){
                 syncVisible()
                 activeId=requested.id
                 render()
               }
-              const link=requested?.links.find(link=>key===`person:${requested.id}:link:${link.id}:url`)
+              const link=requested?.links.find(link=>key===linkFieldKey(requested.id,link.id))
               if(link){
                 ;([...body.querySelectorAll('input[data-link-id]')].find(input=>input.dataset.linkId===link.id))?.focus()
                 return

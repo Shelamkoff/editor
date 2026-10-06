@@ -57,6 +57,11 @@ function designContract(editor, fixture, theme, state) {
     }
     if (fixture.name === 'Image') assert(host.querySelector('.oe-image__dropdown > button'), 'Image inline Settings menu is missing')
   }
+  if (fixture.name === 'Person' && (state === 'filled' || state === 'empty')) {
+    const add = host.querySelector('.oe-person__tab--add'), bounds = add.getBoundingClientRect()
+    assert(bounds.width > 0 && Math.abs(bounds.width - bounds.height) < 0.5, `Person add button is oval: ${bounds.width} x ${bounds.height}`)
+    equal(getComputedStyle(add).borderRadius, '50%', 'Person add button lost its circular border')
+  }
   for (const element of block.querySelectorAll('input,textarea,[contenteditable="true"]')) {
     if (!element.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true }) || !element.getBoundingClientRect().height) continue
     const field = element.getBoundingClientRect()
@@ -81,7 +86,13 @@ function designContract(editor, fixture, theme, state) {
     if (fixture.name === 'Table') { equal(host.querySelectorAll('th.oe-table__cell').length, 2); equal(getComputedStyle(host.querySelector('th')).fontWeight, '600') }
     if (fixture.name === 'Checklist') assert(getComputedStyle(host.querySelector('.oe-checklist__text')).textDecorationLine.includes('line-through'))
     if (fixture.name === 'Warning') { equal(getComputedStyle(host).borderLeftWidth, '4px'); equal(getComputedStyle(host).display, 'flex') }
-    if (fixture.name === 'Columns') { equal(getComputedStyle(host.querySelector('.oe-columns__grid')).display, 'grid'); equal(host.querySelectorAll('.oe-columns__col').length, 2) }
+    if (fixture.name === 'Columns') {
+      equal(getComputedStyle(host.querySelector('.oe-columns__grid')).display, 'grid')
+      equal(host.querySelectorAll('.oe-columns__col').length, 2)
+      const actions=host.querySelector('.oe-columns__actions')
+      equal(actions.checkVisibility(),state==='filled','Inline layout controls have the wrong visibility')
+      if(state==='filled')equal(getComputedStyle(actions.querySelector('[aria-pressed="true"]')).color,'rgb(255, 255, 255)','Active layout icon lacks contrast')
+    }
     if (fixture.name === 'Person') { equal(getComputedStyle(host.querySelector('.oe-person__card')).display, 'flex'); equal(getComputedStyle(host.querySelector('.oe-person__avatar-wrap')).borderRadius, '50%') }
     if (fixture.name === 'Delimiter') equal(getComputedStyle(host, '::after').content, '"***"')
   }

@@ -1,6 +1,8 @@
 // @ts-check
 import { definitionStyles } from '../shared/definitionStyles.js'
 import { setSanitizedHtml } from '../../plugin-kit/index.js'
+import { setTrustedHtml } from '../../shared/sanitize/sanitizeHtml.js'
+import { retainControlFocus } from '../shared/retainControlFocus.js'
 import { columnsDataSchema } from '../../shared/blockSchemas/columns.js'
 import { acceptsTextPayload, richTextFromPayload } from '../shared/textConversion.js'
 import { createTextSelectionSlice } from '../shared/textSelectionSlice.js'
@@ -23,6 +25,11 @@ function fitColumns(columns,size,context){
     last.content=last.content?last.content+'<br>'+column.content:column.content
   }
   return kept
+}
+
+function changeLayout(data,layout,context){
+  if(!Object.hasOwn(COLUMN_LAYOUTS,layout))throw new RangeError(`Unknown columns layout: ${layout}`)
+  return {layout,columns:fitColumns(data.columns,COLUMN_LAYOUTS[layout].cols,context)}
 }
 
 /**
@@ -90,13 +97,7 @@ export function createColumnsPlugin(config = {}) {
           active:data.layout===key,
         }))
       },
-      apply(data,actionId,context){
-        if(!Object.hasOwn(COLUMN_LAYOUTS,actionId))throw new RangeError(`Unknown columns layout: ${actionId}`)
-        return {
-          layout:actionId,
-          columns:fitColumns(data.columns,COLUMN_LAYOUTS[actionId].cols,context),
-        }
-      },
+      apply:changeLayout,
     }),
   })
 
@@ -119,12 +120,32 @@ export function createColumnsPlugin(config = {}) {
           wrapper.tabIndex=-1
           const grid=document.createElement('div')
           grid.className='oe-columns__grid'
-          wrapper.appendChild(grid)
+          const actions=document.createElement('div')
+          actions.className='oe-columns__actions'
+          actions.setAttribute('role','group')
+          actions.setAttribute('aria-label',runtimeContext.t('layout','Layout'))
+          wrapper.append(grid,actions)
 
           let data={layout:initial.layout,columns:initial.columns.map(column=>({...column}))}
           let readOnly=context.isReadOnly()
           let instanceDestroyed=false
           const nodes=new Map()
+          const layoutButtons=new Map()
+          for(const key of COLUMN_LAYOUT_KEYS){
+            const button=document.createElement('button')
+            button.type='button'
+            button.className='oe-columns__layout-btn'
+            button.dataset.layout=key
+            button.title=`${runtimeContext.t('layout','Layout')} ${COLUMN_LAYOUTS[key].label}`
+            button.setAttribute('aria-label',button.title)
+            setTrustedHtml(button,COLUMN_LAYOUT_ICONS[key])
+            button.addEventListener('click',()=>{
+              if(instanceDestroyed||readOnly||data.layout===key)return
+              retainControlFocus(wrapper,()=>context.updateData(current=>changeLayout(current,key,context)))
+            },{signal:context.signal})
+            layoutButtons.set(key,button)
+            actions.appendChild(button)
+          }
 
           const createColumn=column=>{
             const element=document.createElement('div')
@@ -157,6 +178,12 @@ export function createColumnsPlugin(config = {}) {
               nodes.delete(id)
             }
             data={layout:next.layout,columns:next.columns.map(column=>({...column}))}
+            actions.hidden=readOnly
+            for(const [key,button] of layoutButtons){
+              const active=key===data.layout
+              button.classList.toggle('oe-columns__layout-btn--active',active)
+              button.setAttribute('aria-pressed',String(active))
+            }
           }
 
           reconcile(data)
@@ -181,6 +208,7 @@ export function createColumnsPlugin(config = {}) {
             })),
             setReadOnly(value){
               readOnly=value
+              actions.hidden=value
               for(const node of nodes.values())node.contentEditable=value?'false':'true'
             },
             focus(target){
@@ -189,7 +217,7 @@ export function createColumnsPlugin(config = {}) {
               const id=key?.startsWith('column:')?key.slice(7):data.columns[0]?.id
               nodes.get(id)?.focus()
             },
-            destroy(){instanceDestroyed=true;nodes.clear()},
+            destroy(){instanceDestroyed=true;nodes.clear();layoutButtons.clear()},
           }
         },
         destroy(){destroyed=true},

@@ -101,3 +101,7 @@
   background: var(--oe-surface-hover, #f0f0f0);
   color: var(--oe-text-1, #1a1a1a);
 }
+
+.oe-theme-light .oe-columns__layout-btn--active {
+  color: var(--oe-text-on-accent, #fff);
+}

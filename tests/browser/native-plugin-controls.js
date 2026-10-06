@@ -87,7 +87,50 @@ test('Person tab switch registers its new editing hosts for real clicks and inpu
   const after=editor.save().blocks
   equal(after[0].data.persons[0].name,'Alpha')
   equal(after[0].data.persons[1].name,'BravoX')
+  equal(blockElement(editor,'a').querySelector('[data-person-id="second"] .oe-person__tab-label')?.textContent,'BravoX','Typing a name left the tab label stale')
   await history(editor,before,after)
+})
+
+test('Person tabs show the active card, rich-text names and avatars and remove an inactive person',async()=>{
+  const editor=pluginEditor('Person',{persons:[{id:'first',avatar:pixel,name:'<strong>Alpha</strong>',role:'Bravo',bio:'Charlie',links:[]},{id:'second',avatar:'',name:'Delta',role:'',bio:'',links:[]}]})
+  editor.blocks.focus('a',{fieldKey:'person:first:name',offset:2})
+  const before=editor.save().blocks
+  const tabs=()=>blockElement(editor,'a').querySelectorAll('.oe-person__tab[data-person-id]')
+  assert(tabs()[0].classList.contains('oe-person__tab--active'),'Active person has no visual tab state')
+  equal(tabs()[0].querySelector('.oe-person__tab-label')?.textContent,'Alpha','Tab renders authored HTML as literal text')
+  assert(tabs()[0].querySelector('.oe-person__tab-avatar'),'Tab lost its avatar preview')
+  assert(tabs()[0].querySelector('.oe-person__tab-grip'),'Tab lost its drag grip')
+  await clickNative(tabs()[1].querySelector('.oe-person__tab-remove'))
+  const after=editor.save().blocks
+  equal(after[0].data.persons,[before[0].data.persons[0]])
+  equal(blockElement(editor,'a').querySelector('.oe-person__name').textContent,'Alpha','Removing another tab switched the active card')
+  equal(tabs()[0].querySelector('.oe-person__tab-remove'),null,'The last person can be removed')
+  await history(editor,before,after)
+  editor.setReadOnly(true)
+  equal(blockElement(editor,'a').querySelector('.oe-person__tab-remove'),null,'Read-only tabs offer a document mutation')
+})
+
+test('Person nested IDs containing separators restore the correct link field through history',async()=>{
+  const editor=pluginEditor('Person',{persons:[
+    {id:'a',avatar:'',name:'First',role:'',bio:'',links:[{id:'b:link:c',type:'website',url:'https://first.example'}]},
+    {id:'a:link:b',avatar:'',name:'Second',role:'',bio:'',links:[{id:'c',type:'website',url:'https://second.example'}]},
+  ]})
+  const before=editor.save().blocks
+  await clickNative(blockElement(editor,'a').querySelector('[data-person-id="a:link:b"] .oe-person__tab-select'))
+  await clickNative(blockElement(editor,'a').querySelector('.oe-person__link-url'))
+  await dispatchKey('a','KeyA',65,2)
+  await window.__testInput('Input.insertText',{text:'https://second.example/edited'})
+  const after=editor.save().blocks
+  equal(after[0].data.persons[0],before[0].data.persons[0])
+  equal(after[0].data.persons[1].links[0].url,'https://second.example/edited')
+  await clickNative(blockElement(editor,'a').querySelector('[data-person-id="a"] .oe-person__tab-select'))
+  await dispatchKey('z','KeyZ',90,2)
+  equal(editor.save().blocks,before)
+  equal(blockElement(editor,'a').querySelector('.oe-person__name').textContent,'Second','Undo restored a different person with the same composite field key')
+  equal(document.activeElement?.value,'https://second.example')
+  await dispatchKey('z','KeyZ',90,2|8)
+  equal(editor.save().blocks,after)
+  equal(document.activeElement?.value,'https://second.example/edited')
 })
 test('Carousel navigation registers the next caption for real input and history', async () => {
   const editor=pluginEditor('Carousel',{slides:[{id:'first',type:'image',src:pixel,caption:'Alpha'},{id:'second',type:'image',src:pixel,caption:'Bravo'}],options:{autoplay:false}})
@@ -161,6 +204,22 @@ test('Columns 3 to 2 via settings keeps excess content and retained column IDs',
   const after=editor.save().blocks
   equal(after[0].data.columns,[{id:'left',content:'Alpha'},{id:'center',content:'Bravo<br>Charlie'}])
   await history(editor,before,after)
+})
+
+test('Columns inline layout selector changes the grid, retains text and supports native Undo/Redo',async()=>{
+  const editor=pluginEditor('Columns',{layout:'1-1-1',columns:[{id:'left',content:'Alpha'},{id:'center',content:'Bravo'},{id:'right',content:'Charlie'}]})
+  editor.blocks.focus('a',{fieldKey:'column:right',offset:3})
+  const before=editor.save().blocks
+  const buttons=()=>blockElement(editor,'a').querySelectorAll('.oe-columns__layout-btn')
+  equal(buttons().length,4,'The v1 inline layout selector is missing')
+  equal(blockElement(editor,'a').querySelector('.oe-columns__layout-btn--active')?.dataset.layout,'1-1-1')
+  await clickNative(blockElement(editor,'a').querySelector('[data-layout="1-1"]'))
+  const after=editor.save().blocks
+  equal(after[0].data.columns,[{id:'left',content:'Alpha'},{id:'center',content:'Bravo<br>Charlie'}])
+  equal(blockElement(editor,'a').querySelector('.oe-columns__layout-btn--active')?.dataset.layout,'1-1')
+  await history(editor,before,after)
+  editor.setReadOnly(true)
+  for(const button of buttons())assert(!button.checkVisibility(),'Read-only Columns show an authoring layout button')
 })
 test('Checklist checkbox is one document action and preserves item identity',async()=>{
   const editor=pluginEditor('Checklist')
@@ -244,7 +303,7 @@ for(const action of ['add-person','remove-person','remove-link']){
     const editor=pluginEditor('Person',{persons:[{id:'first',avatar:'',name:'Alpha',role:'Bravo',bio:'Charlie',links:[{id:'site',type:'website',url:'https://example.com'}]},{id:'second',avatar:'',name:'Delta',role:'',bio:'',links:[]}]})
     const before=editor.save().blocks
     editor.blocks.focus('a',{fieldKey:'person:first:name',offset:2})
-    const selector=action==='add-person'?'.oe-person__tab--add':action==='remove-person'?'.oe-person__remove':'.oe-person__link-remove'
+    const selector=action==='add-person'?'.oe-person__tab--add':action==='remove-person'?'.oe-person__tab-remove':'.oe-person__link-remove'
     await clickNative(blockElement(editor,'a').querySelector(selector))
     const after=editor.save().blocks
     if(action==='add-person'){
@@ -426,10 +485,14 @@ test('Person native tab drag reorders cards with all fields and one keyboard Und
   const before=editor.save().blocks
   editor.blocks.focus('a',{fieldKey:'person:0:name',offset:2})
   const tabs=blockElement(editor,'a').querySelectorAll('.oe-person__tab:not(.oe-person__tab--add)')
+  let styledStart=false,styledTarget=false
+  tabs[0].addEventListener('dragstart',()=>{styledStart=tabs[0].classList.contains('oe-person__tab--dragging')},{once:true})
+  tabs[2].addEventListener('dragover',()=>{styledTarget=tabs[2].classList.contains('oe-person__tab--dragover')})
   const from=tabs[0].getBoundingClientRect(),to=tabs[2].getBoundingClientRect()
   await window.__testInput('Input.drag',{from:{x:from.left+from.width/2,y:from.top+from.height/2},to:{x:to.left+to.width/2,y:to.top+to.height/2}})
   await pause(40)
   const after=editor.save().blocks
+  assert(styledStart&&styledTarget,'Person tab drag lost its visible source and target feedback')
   equal(after[0].data.persons,[persons[1],persons[2],persons[0]])
   await history(editor,before,after)
 })
