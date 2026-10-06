@@ -93,3 +93,9 @@ Do not remove the editor holder without first calling `editor.destroy()`.
 ## Document output
 
 Use the matching renderer from `@shelamkoff/rector/renderer/renderers/poll`. The VitePress guide documents configuration, commands and history, extension contracts, document migrations, styling, security, and lifecycle in a sequential form.
+
+## Runtime updates and configuration ownership
+
+The factory captures `dataSource.load`, `vote` and optional `subscribe` once, including prototype or non-enumerable accessors. Each captured method keeps its original receiver; service state remains application-owned and mutable. Later method replacement does not change the definition. The async plugin loader captures these methods before importing the plugin.
+
+Live results, selection for voting, loading and localized service errors update runtime controls without replacing the authored question and option fields. Local, backward and cross-block text ranges therefore remain available for the next edit or conversion. These remote updates do not enter author JSON or Undo history. A configured remote source requires a non-empty `pollId` for submission; missing identity reports an error instead of recording a local vote. Voting without a configured source remains one undoable author-data change.

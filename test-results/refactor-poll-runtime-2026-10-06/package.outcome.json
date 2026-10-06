@@ -1,0 +1,7 @@
+{
+  "Name": "package",
+  "Command": "npm run test:package",
+  "StartedAt": "2026-10-06T10:25:48.805Z",
+  "FinishedAt": "2026-10-06T10:27:09.893Z",
+  "ExitCode": 0
+}

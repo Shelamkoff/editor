@@ -1,0 +1,579 @@
+{
+  "verifiedAt": "2026-10-06T10:40:36.244Z",
+  "baseRevision": "fa113bf8bd0fc49579e9be59ac6f504994fe4024",
+  "branch": "refactor/rector-v2-architecture",
+  "verifiedLocalDate": "2026-10-06",
+  "blockPlugins": 21,
+  "defaultInlineTools": 12,
+  "node": {
+    "tests": 536,
+    "pass": 536,
+    "fail": 0,
+    "skipped": 0
+  },
+  "consumerTypes": {
+    "tests": 6,
+    "pass": 6,
+    "fail": 0,
+    "skipped": 0
+  },
+  "native": {
+    "cases": 1689,
+    "pass": 1689,
+    "fail": 0,
+    "groups": {
+      "nativeTextInput": {
+        "cases": 42,
+        "pass": 42,
+        "fail": 0
+      },
+      "nativeTools": {
+        "cases": 41,
+        "pass": 41,
+        "fail": 0
+      },
+      "nativeClipboard": {
+        "cases": 7,
+        "pass": 7,
+        "fail": 0
+      },
+      "nativeIme": {
+        "cases": 9,
+        "pass": 9,
+        "fail": 0
+      },
+      "nativeConversion": {
+        "cases": 7,
+        "pass": 7,
+        "fail": 0
+      },
+      "nativeBlockMenus": {
+        "cases": 108,
+        "pass": 108,
+        "fail": 0
+      },
+      "nativeConversionGrouping": {
+        "cases": 88,
+        "pass": 88,
+        "fail": 0
+      },
+      "nativeConversionPreservation": {
+        "cases": 53,
+        "pass": 53,
+        "fail": 0
+      },
+      "nativeInteractionSequences": {
+        "cases": 24,
+        "pass": 24,
+        "fail": 0
+      },
+      "nativeRetainedTools": {
+        "cases": 64,
+        "pass": 64,
+        "fail": 0
+      },
+      "nativeConversionContinuations": {
+        "cases": 65,
+        "pass": 65,
+        "fail": 0
+      },
+      "nativeFontCancel": {
+        "cases": 58,
+        "pass": 58,
+        "fail": 0
+      },
+      "nativeBackgroundCancel": {
+        "cases": 36,
+        "pass": 36,
+        "fail": 0
+      },
+      "nativeLinkCancel": {
+        "cases": 36,
+        "pass": 36,
+        "fail": 0
+      },
+      "nativePanelKeyboard": {
+        "cases": 36,
+        "pass": 36,
+        "fail": 0
+      },
+      "nativeSourceIndentation": {
+        "cases": 50,
+        "pass": 50,
+        "fail": 0
+      },
+      "nativeSourceModes": {
+        "cases": 61,
+        "pass": 61,
+        "fail": 0
+      },
+      "nativeConfigSnapshot": {
+        "cases": 30,
+        "pass": 30,
+        "fail": 0
+      },
+      "nativePollRuntime": {
+        "cases": 26,
+        "pass": 26,
+        "fail": 0
+      },
+      "nativeStructural": {
+        "cases": 21,
+        "pass": 21,
+        "fail": 0
+      },
+      "nativeCrossSelection": {
+        "cases": 32,
+        "pass": 32,
+        "fail": 0
+      },
+      "nativeCoreBehavior": {
+        "cases": 53,
+        "pass": 53,
+        "fail": 0
+      },
+      "nativePluginParity": {
+        "cases": 139,
+        "pass": 139,
+        "fail": 0
+      },
+      "nativePluginControls": {
+        "cases": 141,
+        "pass": 141,
+        "fail": 0
+      },
+      "nativePluginRanges": {
+        "cases": 116,
+        "pass": 116,
+        "fail": 0
+      },
+      "nativePluginLocalRanges": {
+        "cases": 76,
+        "pass": 76,
+        "fail": 0
+      },
+      "nativePluginClipboard": {
+        "cases": 48,
+        "pass": 48,
+        "fail": 0
+      },
+      "nativePluginFieldClipboard": {
+        "cases": 68,
+        "pass": 68,
+        "fail": 0
+      },
+      "nativePluginMedia": {
+        "cases": 70,
+        "pass": 70,
+        "fail": 0
+      },
+      "nativePluginDesign": {
+        "cases": 84,
+        "pass": 84,
+        "fail": 0
+      }
+    }
+  },
+  "browser": {
+    "pages": 25,
+    "names": [
+      "harness-contract.html",
+      "runtime-contracts.html",
+      "roundtrip.html",
+      "roundtrip-trusted-types.html",
+      "person-avatar-csp.html",
+      "history.html",
+      "selection.html",
+      "lifecycle.html",
+      "plugin-style-ownership.html",
+      "security.html",
+      "trusted-types.htm",
+      "action-label-security.html",
+      "audit-regressions.html",
+      "attaches-abort-urls.html",
+      "embed-service-registry.html",
+      "person-social-registry.html",
+      "gallery-layout-registry.html",
+      "mention.html",
+      "mention-session-race.html",
+      "poll.html",
+      "carousel.html",
+      "plugin-surfaces.html",
+      "imports.html",
+      "slash.html",
+      "selection-convert.html"
+    ]
+  },
+  "typecheck": "passed",
+  "gateOutcomes": [
+    {
+      "Name": "typecheck",
+      "Command": "npm run typecheck",
+      "StartedAt": "2026-10-06T10:25:46.515Z",
+      "FinishedAt": "2026-10-06T10:26:10.799Z",
+      "ExitCode": 0
+    },
+    {
+      "Name": "node",
+      "Command": "npm test",
+      "StartedAt": "2026-10-06T10:25:51.409Z",
+      "FinishedAt": "2026-10-06T10:26:36.848Z",
+      "ExitCode": 0
+    },
+    {
+      "Name": "docs",
+      "Command": "npm run test:docs",
+      "StartedAt": "2026-10-06T10:39:20.320Z",
+      "FinishedAt": "2026-10-06T10:39:26.755Z",
+      "ExitCode": 0
+    },
+    {
+      "Name": "consumer-types",
+      "Command": "npm run test:types",
+      "StartedAt": "2026-10-06T10:29:38.864Z",
+      "FinishedAt": "2026-10-06T10:29:56.651Z",
+      "ExitCode": 0
+    },
+    {
+      "Name": "package",
+      "Command": "npm run test:package",
+      "StartedAt": "2026-10-06T10:25:48.805Z",
+      "FinishedAt": "2026-10-06T10:27:09.893Z",
+      "ExitCode": 0
+    },
+    {
+      "Name": "docs-check",
+      "Command": "npm run docs:check",
+      "StartedAt": "2026-10-06T10:23:05.176Z",
+      "FinishedAt": "2026-10-06T10:24:35.306Z",
+      "ExitCode": 0
+    },
+    {
+      "Name": "bundle",
+      "Command": "node benchmarks/bundle-budget.mjs --enforce",
+      "StartedAt": "2026-10-06T10:29:40.142Z",
+      "FinishedAt": "2026-10-06T10:29:57.324Z",
+      "ExitCode": 0
+    },
+    {
+      "Name": "browser",
+      "Command": "node tests/browser/run.mjs",
+      "StartedAt": "2026-10-06T10:25:48.456Z",
+      "FinishedAt": "2026-10-06T10:26:29.234Z",
+      "ExitCode": 0
+    },
+    {
+      "Name": "native-all",
+      "Command": "node tests/browser/physical-history.mjs",
+      "StartedAt": "2026-10-06T10:22:18.133Z",
+      "FinishedAt": "2026-10-06T10:36:52.844Z",
+      "ExitCode": 0
+    },
+    {
+      "Name": "heap",
+      "Command": "node tests/browser/heap-gate.mjs",
+      "StartedAt": "2026-10-06T10:27:41.484Z",
+      "FinishedAt": "2026-10-06T10:27:54.383Z",
+      "ExitCode": 0
+    },
+    {
+      "Name": "demo",
+      "Command": "node scripts/vitepress-browser-smoke.mjs",
+      "StartedAt": "2026-10-06T10:27:46.282Z",
+      "FinishedAt": "2026-10-06T10:28:28.000Z",
+      "ExitCode": 0
+    }
+  ],
+  "heap": {
+    "sentinels": 21,
+    "retained": 0,
+    "usedHeapMiB": 12.62,
+    "embedderHeapMiB": 1.39,
+    "snapshotMiB": 24.7
+  },
+  "docs": {
+    "readmes": 94,
+    "languages": [
+      "en",
+      "ru"
+    ],
+    "examples": 53,
+    "json": 44,
+    "links": 62,
+    "imports": true,
+    "encoding": true,
+    "packageReadmeCopiesChecked": 92
+  },
+  "package": {
+    "tarball": "shelamkoff-rector-2.0.0.tgz",
+    "typeModes": [
+      "Bundler",
+      "NodeNext"
+    ],
+    "vite": "passed",
+    "import": "passed",
+    "cssAssets": 22,
+    "inlineStylesheets": false,
+    "runtimeDeclarations": 268,
+    "sourceDiagnostics": 0,
+    "sourceDiagnosticDetails": [],
+    "dist": "dist"
+  },
+  "production": {
+    "readmes": 47,
+    "htmlPages": 123,
+    "brokenLinks": 0,
+    "npmSiteLeak": false,
+    "demo": {
+      "blockPlugins": 21,
+      "inlinePlugins": 2,
+      "editorBlocks": 7,
+      "demoFrame": false,
+      "heroViewport": true,
+      "heroCentered": true,
+      "navAbovePluginBlocks": true,
+      "localSearchShortcut": true,
+      "searchKeyAlignedRight": true,
+      "mentionAutocomplete": true,
+      "localizedTooltips": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "themes": [
+          "light",
+          "dark"
+        ],
+        "shortcuts": true
+      },
+      "headingLevelMenu": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "themes": [
+          "light",
+          "dark"
+        ],
+        "keyboard": true,
+        "selection": true
+      },
+      "conversionMenu": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "themes": [
+          "light",
+          "dark"
+        ],
+        "outsideToolbar": true,
+        "searchSelection": true
+      },
+      "alignmentSelectionState": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "currentBlock": true,
+        "atomicUndo": true
+      },
+      "movedBlockButtons": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "geometry": true,
+        "atomicUndo": true
+      },
+      "tuneFragmentConversion": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "unselectedEdges": true,
+        "atomicUndoRedo": true
+      },
+      "crossImageConversion": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "singleTarget": true,
+        "unselectedListItem": true,
+        "atomicUndoRedo": true
+      },
+      "convertedTextRange": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "endCaret": true,
+        "toolbar": true,
+        "atomicUndo": true
+      },
+      "joinedCodeConversion": {
+        "languages": [
+          "ru",
+          "en"
+        ],
+        "singleTarget": true,
+        "decodedText": true,
+        "atomicUndo": true
+      },
+      "missingAssets": 0
+    }
+  },
+  "demo": {
+    "blockPlugins": 21,
+    "inlinePlugins": 2,
+    "editorBlocks": 7,
+    "demoFrame": false,
+    "heroViewport": true,
+    "heroCentered": true,
+    "navAbovePluginBlocks": true,
+    "localSearchShortcut": true,
+    "searchKeyAlignedRight": true,
+    "mentionAutocomplete": true,
+    "localizedTooltips": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "shortcuts": true
+    },
+    "headingLevelMenu": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "keyboard": true,
+      "selection": true
+    },
+    "conversionMenu": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "outsideToolbar": true,
+      "searchSelection": true
+    },
+    "alignmentSelectionState": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "currentBlock": true,
+      "atomicUndo": true
+    },
+    "movedBlockButtons": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "geometry": true,
+      "atomicUndo": true
+    },
+    "tuneFragmentConversion": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "unselectedEdges": true,
+      "atomicUndoRedo": true
+    },
+    "crossImageConversion": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "singleTarget": true,
+      "unselectedListItem": true,
+      "atomicUndoRedo": true
+    },
+    "convertedTextRange": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "endCaret": true,
+      "toolbar": true,
+      "atomicUndo": true
+    },
+    "joinedCodeConversion": {
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "singleTarget": true,
+      "decodedText": true,
+      "atomicUndo": true
+    },
+    "missingAssets": 0,
+    "screenshots": 29
+  },
+  "historical": {
+    "revision": "5e5c7f8d2d9e9a6cf2f95cfb7fd67aba227fa340",
+    "sources": 240,
+    "cases": 3,
+    "names": [
+      "v1 Poll missing-id preserves its author-data contract",
+      "v1 Poll load-error preserves its author-data contract",
+      "v1 Poll live-range preserves its author-data contract"
+    ]
+  },
+  "frozenSources": {
+    "files": 595,
+    "allMatched": true,
+    "onlyAmendedNodeFixture": "renderer/renderers/poll/lifecycle.test.js",
+    "runtimeAndNativeUnchanged": true
+  },
+  "bundle": {
+    "core": {
+      "rawKiB": 313.1,
+      "gzipKiB": 86.1,
+      "budgetKiB": 51
+    },
+    "paragraph": {
+      "rawKiB": 10.4,
+      "gzipKiB": 4.1,
+      "budgetKiB": 40
+    },
+    "defaultInteractive": {
+      "rawKiB": 43.5,
+      "gzipKiB": 13.7,
+      "budgetKiB": 64
+    },
+    "fullPreset": {
+      "rawKiB": 359.5,
+      "gzipKiB": 88.6,
+      "budgetKiB": 96
+    }
+  },
+  "poll": {
+    "native": 26,
+    "editor": 22,
+    "renderer": 4,
+    "redFiles": [
+      "missing-id-red.log",
+      "service-getter-red.log",
+      "async-service-red.log",
+      "error-status-red.log",
+      "live-range-red.log",
+      "renderer-service-red.log"
+    ]
+  },
+  "fixtureCorrection": "poll-matrix-fixture-red.log incorrectly assumed public render clears Undo; corrected to one undoable canonical transaction without a product change."
+}

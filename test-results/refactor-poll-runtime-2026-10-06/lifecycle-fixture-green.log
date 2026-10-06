@@ -1,0 +1,15 @@
+✔ Poll does not start deferred load after its result has been destroyed (3.3585ms)
+✔ retained Poll option and submit controls stay inert after destruction (1.7831ms)
+✔ retained remote Poll submit does not report errors after destruction (1.0811ms)
+✔ Poll releases ownership before unsubscribe calls destroy again (0.7112ms)
+✔ a live Poll still loads once and disposes its subscription exactly once (1.2101ms)
+✔ editor Poll does not start deferred load after destruction (3.9027ms)
+✔ editor Poll releases ownership before reentrant subscription disposal (0.8317ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 188.8512

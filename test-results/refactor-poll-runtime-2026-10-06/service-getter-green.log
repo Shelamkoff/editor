@@ -1,0 +1,1 @@
+{"native-poll-runtime.html":[{"name":"Poll configured with a remote source rejects a vote without pollId and preserves author history","status":"PASS"},{"name":"Poll reads a subscribe accessor once and applies live results without canonical edits","status":"PASS"}]}

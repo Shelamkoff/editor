@@ -1,0 +1,7 @@
+{
+  "Name": "consumer-types",
+  "Command": "npm run test:types",
+  "StartedAt": "2026-10-06T10:29:38.864Z",
+  "FinishedAt": "2026-10-06T10:29:56.651Z",
+  "ExitCode": 0
+}

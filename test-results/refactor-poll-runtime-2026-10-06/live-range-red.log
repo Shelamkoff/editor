@@ -1,0 +1,16 @@
+file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149
+    if (result.status === 'fail') throw new Error(`History matrix failed: ${result.summary}`)
+                                        ^
+
+Error: History matrix failed: [
+  {
+    "name": "Poll live results preserve the question range and the next native edit",
+    "status": "FAIL",
+    "error": "Error: Live results removed focus from the author field\nexpected {}, got {}\n    at equal (http://127.0.0.1:50457/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:50457/tests/browser/native-poll-runtime.js:107:2\n    at async run (http://127.0.0.1:50457/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:50457/tests/browser/native-poll-runtime.js:121:1"
+  }
+]
+    at waitForHistoryMatrix (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149:41)
+    at async runNativePage (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:275:30)
+    at async file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:312:48
+
+Node.js v24.9.0

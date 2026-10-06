@@ -1,0 +1,16 @@
+file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149
+    if (result.status === 'fail') throw new Error(`History matrix failed: ${result.summary}`)
+                                        ^
+
+Error: History matrix failed: [
+  {
+    "name": "Poll configured with a remote source rejects a vote without pollId and preserves author history",
+    "status": "FAIL",
+    "error": "Error: Remote vote without identity became a local author-data edit\nexpected [{\"id\":\"a\",\"type\":\"poll\",\"dataVersion\":1,\"data\":{\"question\":\"Choose one\",\"type\":\"single\",\"options\":[{\"id\":\"yes\",\"text\":\"Yes\"},{\"id\":\"no\",\"text\":\"No\"}],\"resultsMode\":\"always\"}}], got [{\"id\":\"a\",\"type\":\"poll\",\"dataVersion\":1,\"data\":{\"question\":\"Choose one\",\"type\":\"single\",\"options\":[{\"id\":\"yes\",\"text\":\"Yes\"},{\"id\":\"no\",\"text\":\"No\"}],\"resultsMode\":\"always\",\"initialResults\":{\"total\":1,\"options\":[{\"id\":\"yes\",\"votes\":1},{\"id\":\"no\",\"votes\":0}],\"currentUserVote\":[\"yes\"]}}}]\n    at equal (http://127.0.0.1:49423/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:49423/tests/browser/native-poll-runtime.js:19:2\n    at async run (http://127.0.0.1:49423/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:49423/tests/browser/native-poll-runtime.js:25:1"
+  }
+]
+    at waitForHistoryMatrix (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149:41)
+    at async runNativePage (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:275:30)
+    at async file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:312:48
+
+Node.js v24.9.0

@@ -11,6 +11,14 @@ function ownerDocument() {
     tagName: tag, ownerDocument: doc, children: [], style: {}, attributes: {}, dataset: {},
     classList: { add() {}, remove() {}, toggle() {} }, listeners: new Map(),
     setAttribute(name, value) { this.attributes[name] = value },
+    getAttribute(name) {
+      if (name.startsWith('data-')) return this.dataset[name.slice(5).replace(/-([a-z])/g, (_match, letter) => letter.toUpperCase())] ?? null
+      return this.attributes[name] ?? null
+    },
+    remove() {
+      const parent = this.parentNode
+      if (parent) { parent.children.splice(parent.children.indexOf(this), 1); this.parentNode = null }
+    },
     replaceChildren(...children) { this.children = children },
     append(...children) { this.children.push(...children) },
     appendChild(child) { this.children.push(child); child.parentNode = this; return child },

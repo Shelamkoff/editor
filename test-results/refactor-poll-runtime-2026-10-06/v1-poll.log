@@ -1,0 +1,1 @@
+{"native-vone-poll-runtime.html":[{"name":"v1 Poll missing-id preserves its author-data contract","status":"PASS"},{"name":"v1 Poll load-error preserves its author-data contract","status":"PASS"},{"name":"v1 Poll live-range preserves its author-data contract","status":"PASS"}]}

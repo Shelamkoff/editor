@@ -66,3 +66,5 @@ Question and option text use the inline parser; voter avatars use the media URL 
 When styles are declared, the explicit `EditorRenderer.injectStyles()` call shown above acquires them and its returned owner releases them.
 
 The VitePress guide documents renderer ownership, inline widget reconstruction, styles, cleanup, and security boundaries.
+
+The direct factory, synchronous presets and asynchronous loader capture configuration and source methods once before construction or import. Prototype and non-enumerable service methods retain their original receiver. The caller's service state stays mutable, while later method replacement does not change the renderer. This ownership rule also applies when registering a definition directly through `registerRenderer()`.

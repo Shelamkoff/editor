@@ -34,5 +34,27 @@ export function snapshotBlockPluginConfig(config) {
   for (const key of /** @type {const} */ (['actions', 'socialResolvers'])) {
     if (Array.isArray(snapshot[key])) snapshot[key] = snapshotConfigRecords(snapshot[key], key)
   }
+  if (snapshot.dataSource && typeof snapshot.dataSource === 'object') {
+    snapshot.dataSource = snapshotConfigMethods(snapshot.dataSource, ['load', 'vote', 'subscribe'])
+  }
   return Object.freeze(snapshot)
+}
+
+/**
+ * Capture a service's declared methods once, preserving its original receiver.
+ * Service state remains caller-owned and may be read by the captured methods.
+ * @template {object} T
+ * @param {T} source
+ * @param {readonly string[]} keys
+ * @returns {Readonly<T>}
+ */
+export function snapshotConfigMethods(source, keys) {
+  const record = /** @type {Record<string, unknown>} */ (source)
+  const captured = /** @type {Record<string, unknown>} */ ({})
+  for (const key of keys) {
+    const value = record[key]
+    captured[key] = typeof value === 'function'
+      ? Reflect.apply(Function.prototype.bind, value, [source]) : value
+  }
+  return Object.freeze(/** @type {T} */ (/** @type {object} */ (captured)))
 }

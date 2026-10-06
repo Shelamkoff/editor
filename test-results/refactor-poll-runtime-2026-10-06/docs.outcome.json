@@ -1,0 +1,7 @@
+{
+  "Name": "docs",
+  "Command": "npm run test:docs",
+  "StartedAt": "2026-10-06T10:39:20.320Z",
+  "FinishedAt": "2026-10-06T10:39:26.755Z",
+  "ExitCode": 0
+}

@@ -1,0 +1,7 @@
+{
+  "Name": "demo",
+  "Command": "node scripts/vitepress-browser-smoke.mjs",
+  "StartedAt": "2026-10-06T10:27:46.282Z",
+  "FinishedAt": "2026-10-06T10:28:28.000Z",
+  "ExitCode": 0
+}

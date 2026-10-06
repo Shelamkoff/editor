@@ -1,0 +1,16 @@
+file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149
+    if (result.status === 'fail') throw new Error(`History matrix failed: ${result.summary}`)
+                                        ^
+
+Error: History matrix failed: [
+  {
+    "name": "Poll load failure shows the v1 error status without entering history",
+    "status": "FAIL",
+    "error": "Error: Load failure is invisible in the Poll UI\n    at assert (http://127.0.0.1:50265/tests/browser/regressions/harness.js:20:81)\n    at http://127.0.0.1:50265/tests/browser/native-poll-runtime.js:86:2\n    at async run (http://127.0.0.1:50265/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:50265/tests/browser/native-poll-runtime.js:92:1"
+  }
+]
+    at waitForHistoryMatrix (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149:41)
+    at async runNativePage (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:275:30)
+    at async file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:312:48
+
+Node.js v24.9.0

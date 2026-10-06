@@ -1,4 +1,5 @@
 // @ts-check
+import { snapshotConfigMethods } from '../shared/configRecords.js'
 import { pollDataSchema } from '../../shared/blockSchemas/poll.js'
 import { retainControlFocus } from '../shared/retainControlFocus.js'
 import { setSanitizedHtml } from '../../shared/sanitize/sanitizeHtml.js'
@@ -28,7 +29,9 @@ const ICON='<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewB
  */
 export function createPollPlugin(config={}){
   if(!config||typeof config!=='object'||Array.isArray(config))throw new TypeError('Poll configuration must be an object')
-  const snapshot=Object.freeze({...config})
+  const captured={...config}
+  const snapshot=Object.freeze({...captured,dataSource:captured.dataSource
+    ? snapshotConfigMethods(captured.dataSource,['load','vote','subscribe']) : captured.dataSource})
   const styles=[]
   if(snapshot.injectStyles!==false)styles.push(editorStyles)
   if(snapshot.css)styles.push(snapshot.css)
@@ -134,6 +137,7 @@ export function createPollPlugin(config={}){
           let selected=new Set(runtime.currentUserVote??[])
           let hasVoted=(runtime.currentUserVote?.length??0)>0
           let loading=false
+          let failed=false
           let submitting=false
           let controller=null
           let voteController=null
@@ -142,6 +146,7 @@ export function createPollPlugin(config={}){
           let loadVersion=0
 
           const report=error=>{
+            if(!dead){failed=true;projectRuntime()}
             if(snapshot.onError){
               try{
                 const observed=snapshot.onError(error)
@@ -155,6 +160,7 @@ export function createPollPlugin(config={}){
           const acceptResults=next=>{
             const normalized=normalizePollResults(next,data.options.map(option=>option.id),maxVoters,data.type)
             if(!shouldAcceptPollRevision(normalized.revision,runtime.revision,snapshot.compareRevisions))return false
+            failed=false
             runtime=normalized
             selected=new Set(normalized.currentUserVote??selected)
             hasVoted ||= (normalized.currentUserVote?.length??0)>0
@@ -163,63 +169,80 @@ export function createPollPlugin(config={}){
 
           const resultVisible=()=>data.resultsMode==='always'||(data.resultsMode==='afterVote'&&hasVoted)
 
-          const project=()=>{
-            wrapper.replaceChildren()
+          const project=(preserveFields=false)=>{
+            const question=wrapper.querySelector('.oe-poll__question')
+            const list=wrapper.querySelector('.oe-poll__options')
+            const rows=list?[...list.querySelectorAll('.oe-poll__option')]:[]
+            const keepFields=preserveFields&&question&&list&&rows.length===data.options.length
+              &&rows.every((row,index)=>row.getAttribute('data-option-id')===data.options[index].id)
+            if(keepFields){
+              for(const child of [...wrapper.children])if(child!==question&&child!==list)child.remove()
+              for(const row of rows){
+                const choice=/** @type {HTMLButtonElement} */(row.querySelector('.oe-poll__option-marker'))
+                const active=selected.has(choice.dataset.optionId)
+                choice.setAttribute('aria-pressed',String(active))
+                choice.textContent=active?'✓':'○'
+                choice.classList.toggle('oe-poll__option-marker--selected',active)
+                choice.disabled=readOnly||loading||submitting
+              }
+            }else{
+              wrapper.replaceChildren()
 
-            const question=document.createElement('div')
-            question.className='oe-poll__question'
-            question.contentEditable=readOnly?'false':'true'
-            question.dataset.placeholder=runtimeContext.t('questionPlaceholder','Ask a question...')
-            setSanitizedHtml(question,data.question)
-            question.setAttribute('data-oe-document-input','text')
-            wrapper.appendChild(question)
+              const question=document.createElement('div')
+              question.className='oe-poll__question'
+              question.contentEditable=readOnly?'false':'true'
+              question.dataset.placeholder=runtimeContext.t('questionPlaceholder','Ask a question...')
+              setSanitizedHtml(question,data.question)
+              question.setAttribute('data-oe-document-input','text')
+              wrapper.appendChild(question)
 
-            const list=document.createElement('div')
-            list.className='oe-poll__options'
+              const list=document.createElement('div')
+              list.className='oe-poll__options'
+
+              data.options.forEach((option,index)=>{
+                const row=document.createElement('div')
+                row.className='oe-poll__option'
+                row.dataset.optionId=option.id
+
+                const choice=document.createElement('button')
+                choice.type='button'
+                choice.className='oe-poll__choice oe-poll__option-marker oe-poll__option-marker--'+data.type
+                choice.dataset.optionId=option.id
+                choice.setAttribute('aria-pressed',String(selected.has(option.id)))
+                choice.textContent=selected.has(option.id)?'✓':'○'
+                choice.classList.toggle('oe-poll__option-marker--selected',selected.has(option.id))
+                choice.disabled=readOnly||loading||submitting
+                choice.addEventListener('click',()=>toggleSelection(option.id),{signal:context.signal})
+
+                const text=document.createElement('div')
+                text.className='oe-poll__option-text'
+                text.contentEditable=readOnly?'false':'true'
+                setSanitizedHtml(text,option.text)
+                text.dataset.optionId=option.id
+                text.setAttribute('data-oe-document-input','text')
+                row.append(choice,text)
+
+                if(!readOnly){
+                  const remove=document.createElement('button')
+                  remove.type='button'
+                  remove.className='oe-poll__remove oe-poll__option-remove'
+                  remove.textContent='×'
+                  remove.disabled=data.options.length<=2
+                  remove.addEventListener('click',()=>{
+                    if(data.options.length<=2)return
+                    retainControlFocus(wrapper,()=>context.updateData(current=>({...current,options:current.options.filter(item=>item.id!==option.id)})))
+                  },{signal:context.signal})
+                  row.appendChild(remove)
+                }
+
+
+                list.appendChild(row)
+              })
+              wrapper.appendChild(list)
+
+            }
             const byId=new Map(runtime.options.map(option=>[option.id,option.votes]))
             const total=Math.max(0,runtime.total||0)
-
-            data.options.forEach((option,index)=>{
-              const row=document.createElement('div')
-              row.className='oe-poll__option'
-              row.dataset.optionId=option.id
-
-              const choice=document.createElement('button')
-              choice.type='button'
-              choice.className='oe-poll__choice oe-poll__option-marker oe-poll__option-marker--'+data.type
-              choice.dataset.optionId=option.id
-              choice.setAttribute('aria-pressed',String(selected.has(option.id)))
-              choice.textContent=selected.has(option.id)?'✓':'○'
-              choice.classList.toggle('oe-poll__option-marker--selected',selected.has(option.id))
-              choice.disabled=readOnly||loading||submitting
-              choice.addEventListener('click',()=>toggleSelection(option.id),{signal:context.signal})
-
-              const text=document.createElement('div')
-              text.className='oe-poll__option-text'
-              text.contentEditable=readOnly?'false':'true'
-              setSanitizedHtml(text,option.text)
-              text.dataset.optionId=option.id
-              text.setAttribute('data-oe-document-input','text')
-              row.append(choice,text)
-
-              if(!readOnly){
-                const remove=document.createElement('button')
-                remove.type='button'
-                remove.className='oe-poll__remove oe-poll__option-remove'
-                remove.textContent='×'
-                remove.disabled=data.options.length<=2
-                remove.addEventListener('click',()=>{
-                  if(data.options.length<=2)return
-                  retainControlFocus(wrapper,()=>context.updateData(current=>({...current,options:current.options.filter(item=>item.id!==option.id)})))
-                },{signal:context.signal})
-                row.appendChild(remove)
-              }
-
-
-              list.appendChild(row)
-            })
-            wrapper.appendChild(list)
-
             if(resultVisible()&&!loading){
               const results=document.createElement('div')
               results.className='oe-poll__results'
@@ -318,13 +341,19 @@ export function createPollPlugin(config={}){
               wrapper.appendChild(actions)
             }
 
-            if(loading||submitting){
+            if(loading||submitting||failed){
               const status=document.createElement('div')
-              status.className='oe-poll__status'
-              status.textContent=loading?runtimeContext.t('loading','Loading...'):runtimeContext.t('submitting','Submitting...')
+              const errorVisible=failed&&!loading&&!submitting
+              status.className='oe-poll__status'+(errorVisible?' oe-poll__status--error':'')
+              status.setAttribute('role',errorVisible?'alert':'status')
+              status.textContent=loading?runtimeContext.t('loading','Loading...')
+                :submitting?runtimeContext.t('submitting','Submitting...')
+                  :runtimeContext.t('loadError','Could not load poll results')
               wrapper.appendChild(status)
             }
           }
+
+          const projectRuntime=()=>retainControlFocus(wrapper,()=>project(true))
 
           const syncAuthoring=()=>{
             if(readOnly||dead)return
@@ -354,6 +383,7 @@ export function createPollPlugin(config={}){
             voteController=null
             submitting=false
             loading=false
+            failed=false
             if(!snapshot.dataSource||!data.pollId||dead)return
             const Ctor=document.defaultView?.AbortController??AbortController
             const connectionController=new Ctor()
@@ -363,7 +393,7 @@ export function createPollPlugin(config={}){
             const abort=()=>connectionController.abort(context.signal.reason)
             context.signal.addEventListener('abort',abort,{once:true,signal:connectionController.signal})
             loading=true
-            project()
+            projectRuntime()
             if(snapshot.dataSource.subscribe){
               try{
                 const stop=snapshot.dataSource.subscribe({
@@ -373,7 +403,7 @@ export function createPollPlugin(config={}){
                     if(dead||connectionController.signal.aborted||version!==connectionVersion)return
                     loadVersion++
                     loading=false
-                    if(acceptResults(results))project()
+                    if(acceptResults(results))projectRuntime()
                   },
                   onError:error=>{if(!dead&&!connectionController.signal.aborted&&version===connectionVersion)report(error)},
                 })
@@ -387,13 +417,13 @@ export function createPollPlugin(config={}){
               return snapshot.dataSource.load({pollId:data.pollId,signal:connectionController.signal})
             }).then(results=>{
               if(results===undefined||dead||connectionController.signal.aborted||version!==connectionVersion||pendingLoad!==loadVersion)return
-              if(acceptResults(results))project()
+              if(acceptResults(results))projectRuntime()
             }).catch(error=>{
               if(!dead&&!connectionController.signal.aborted&&version===connectionVersion&&pendingLoad===loadVersion)report(error)
             }).finally(()=>{
               if(dead||connectionController.signal.aborted||version!==connectionVersion||pendingLoad!==loadVersion)return
               loading=false
-              project()
+              projectRuntime()
             })
           }
 
@@ -409,20 +439,24 @@ export function createPollPlugin(config={}){
               next.add(optionId)
             }
             selected=next
-            project()
+            projectRuntime()
           }
 
           const submitVote=async ()=>{
             if(readOnly||dead||submitting||selected.size===0)return
             const previous=[...(runtime.currentUserVote??[])]
             const optionIds=[...selected]
-            if(!snapshot.dataSource||!data.pollId){
+            if(snapshot.dataSource&&!data.pollId){
+              report(new Error('Poll dataSource requires a non-empty pollId'))
+              return
+            }
+            if(!snapshot.dataSource){
               runtime=applyLocalPollVote(runtime,previous,optionIds,data.options.map(option=>option.id))
               selected=new Set(optionIds)
               hasVoted=true
               retainControlFocus(wrapper,()=>{
                 context.updateData(current=>({...current,initialResults:runtime}))
-                project()
+                projectRuntime()
               })
               return
             }
@@ -433,7 +467,8 @@ export function createPollPlugin(config={}){
             const abort=()=>pendingVote.abort(context.signal.reason)
             context.signal.addEventListener('abort',abort,{once:true,signal:pendingVote.signal})
             submitting=true
-            project()
+            failed=false
+            projectRuntime()
             try{
               const results=await snapshot.dataSource.vote({
                 pollId:data.pollId,
@@ -444,7 +479,7 @@ export function createPollPlugin(config={}){
               if(!dead&&!pendingVote.signal.aborted&&voteController===pendingVote){
                 hasVoted=true
                 acceptResults(results)
-                project()
+                projectRuntime()
               }
             }catch(error){
               if(!dead&&!pendingVote.signal.aborted&&voteController===pendingVote)report(error)
@@ -452,7 +487,7 @@ export function createPollPlugin(config={}){
               if(voteController===pendingVote){
                 voteController=null
                 submitting=false
-                if(!dead)project()
+                if(!dead)projectRuntime()
               }
               pendingVote.abort()
             }

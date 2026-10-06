@@ -1,4 +1,5 @@
 import { invokeObserver } from '../../../shared/invokeObserver.js'
+import { snapshotPollRendererConfig } from '../../pollConfigSnapshot.js'
 // @ts-check
 import { pollDataSchema } from '../../../shared/blockSchemas/poll.js'
 import {
@@ -20,6 +21,7 @@ const styles = new URL('./styles.css', import.meta.url).href
  * @returns {import('../../types').BlockRendererDefinition<import('../../types').PollBlock>}
  */
 export function createPollRenderer(classPrefix, locale, config = {}) {
+  config = snapshotPollRendererConfig(config) ?? {}
   const p = `${classPrefix}-poll`
   /** @type {WeakMap<HTMLElement, {
    *   data: import('../../types').PollData,

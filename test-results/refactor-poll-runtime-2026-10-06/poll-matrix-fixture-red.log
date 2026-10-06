@@ -1,0 +1,100 @@
+file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149
+    if (result.status === 'fail') throw new Error(`History matrix failed: ${result.summary}`)
+                                        ^
+
+Error: History matrix failed: [
+  {
+    "name": "Poll configured with a remote source rejects a vote without pollId and preserves author history",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll reads a subscribe accessor once and applies live results without canonical edits",
+    "status": "PASS"
+  },
+  {
+    "name": "Async Poll captures source methods before import and preserves remote vote history",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll load failure shows the v1 error status without entering history",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll live results preserve the question range and the next native edit",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll captures prototype service accessors and keeps private method state",
+    "status": "PASS"
+  },
+  {
+    "name": "Async Poll captures prototype service accessors and keeps private method state",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll live results preserve question backward selection and Undo",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll live results preserve option:yes forward selection and Undo",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll live results preserve option:yes backward selection and Undo",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll live results retain a forward cross-block conversion range",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll live results retain a backward cross-block conversion range",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll definition reuse and replacement isolate source lifetimes and late updates",
+    "status": "FAIL",
+    "error": "Error: \nexpected false, got true\n    at equal (http://127.0.0.1:50830/tests/browser/regressions/harness.js:22:43)\n    at http://127.0.0.1:50830/tests/browser/native-poll-runtime.js:250:2\n    at async run (http://127.0.0.1:50830/tests/browser/regressions/harness.js:110:7)\n    at async http://127.0.0.1:50830/tests/browser/native-poll-runtime.js:319:1"
+  },
+  {
+    "name": "Poll load error and live recovery use en status without author history",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll vote error and live recovery use en status without author history",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll subscribe error and live recovery use en status without author history",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll load error and live recovery use ru status without author history",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll vote error and live recovery use ru status without author history",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll subscribe error and live recovery use ru status without author history",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll missing-id error contains an observer throw without author mutation",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll missing-id error contains an observer reject without author mutation",
+    "status": "PASS"
+  },
+  {
+    "name": "Poll without a remote source still records one local vote and restores it with native history",
+    "status": "PASS"
+  }
+]
+    at waitForHistoryMatrix (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:149:41)
+    at async runNativePage (file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:275:30)
+    at async file:///C:/OSPanel/domains/editor/tests/browser/physical-history.mjs:312:48
+
+Node.js v24.9.0

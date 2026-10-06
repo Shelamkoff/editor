@@ -43,6 +43,9 @@ The async loader deduplicates imports and preserves the first-occurrence order f
 
 Factories capture their own enumerable configuration properties once and ignore inherited options. Accessor-backed values are validated and used from that capture. Built-in source `actions` and Person `socialResolvers` are copied into owned immutable arrays and records; the caller objects stay mutable. Changing those original lists or records does not change an existing definition. Used record members are captured once, including prototype or non-enumerable accessors. Function callbacks keep their captured implementation and original receiver; RegExp values retain identity, and callbacks may still read live application state.
 
+Poll source methods `load`, `vote` and optional `subscribe` follow the same ownership rule: capture once with the original receiver, preserve live service state, and capture before an asynchronous import.
+
+
 Async plugin loading captures these values before awaiting a dynamic import. A definition can be reused across editors; each editor owns separate runtime resources, operation signals, document data and history.
 
 ## Authoring

@@ -1,0 +1,7 @@
+{
+  "Name": "node",
+  "Command": "npm test",
+  "StartedAt": "2026-10-06T10:22:18.040Z",
+  "FinishedAt": "2026-10-06T10:22:54.255Z",
+  "ExitCode": 1
+}
