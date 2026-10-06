@@ -27,6 +27,7 @@ export class InlineTriggerController {
     const signal=this.#controller.signal
     root.addEventListener('input',event=>this.#onInput(event),{signal})
     root.addEventListener('keydown',event=>this.#onKeyDown(event),{signal,capture:true})
+    root.ownerDocument.addEventListener('selectionchange',()=>this.#onSelectionChange(),{signal})
     root.addEventListener('focusout',()=>queueMicrotask(()=>{
       if(this.#active&&!this.#root.contains(this.#root.ownerDocument.activeElement))this.#cancel()
     }),{signal})
@@ -136,29 +137,14 @@ export class InlineTriggerController {
       range:Object.freeze({start:active.logicalStart,end:focusOffset}),
       anchor:active.anchor,
       commit:data=>{
-        if(this.#active!==active)return false
-        const field=this.#reconciler.getEditableField(active.blockId,active.fieldKey)
-        const bookmark=this.#selection.capture()
-        const owner=field?{
-          blockId:active.blockId,
-          fieldKey:field.key,
-          element:field.element,
-          mode:field.mode,
-        }:null
-        if(
-          field?.element!==active.anchor
-          ||!active.anchor.isConnected
-          ||!this.#root.contains(active.anchor)
-          ||!bookmark
-          ||!owner
-          ||!this.#collapsedIn(bookmark,owner)
-          ||bookmark.focus.offset!==session.range.end
-        )return false
-        const committed=this.#commands.commitTrigger(active.type,session,data)===true
+        if(this.#active!==active||active.session!==session)return false
+        const range=this.#liveRange(active)
+        if(!range)return false
+        const committed=this.#commands.commitTrigger(active.type,{...session,range},data)===true
         if(committed)this.#active=null
         return committed
       },
-      cancel:()=>this.#cancel(),
+      cancel:()=>{if(this.#active===active&&active.session===session)this.#cancel()},
     }
     active.session=session
     active.runtime.onTriggerQuery?.(session)
@@ -167,6 +153,10 @@ export class InlineTriggerController {
   #onKeyDown(event){
     const active=this.#active
     if(!active?.session)return
+    if(!this.#liveRange(active)){
+      this.#cancel()
+      return
+    }
     const result=active.runtime.onTriggerKeydown?.(event,active.session)??'pass'
     if(result==='handled'){
       event.preventDefault()
@@ -178,6 +168,25 @@ export class InlineTriggerController {
       event.stopPropagation()
       this.#cancel()
     }
+  }
+
+  #onSelectionChange(){
+    if(this.#active&&!this.#liveRange(this.#active))this.#cancel()
+  }
+
+  #liveRange(active){
+    const field=this.#reconciler.getEditableField(active.blockId,active.fieldKey)
+    if(field?.element!==active.anchor||!active.anchor.isConnected||!this.#root.contains(active.anchor))return null
+    const bookmark=this.#selection.capture()
+    const owner={blockId:active.blockId,fieldKey:active.fieldKey}
+    if(!bookmark?.anchor||!bookmark?.focus||!this.#collapsedIn(bookmark,owner))return null
+    const text=this.#textBeforeCaret(active.anchor)
+    if(text===null)return null
+    const index=text.lastIndexOf(active.trigger)
+    if(index!==active.textStart
+      ||bookmark.focus.offset<active.logicalStart+active.trigger.length
+      ||/\s/.test(text.slice(index+active.trigger.length)))return null
+    return Object.freeze({start:active.logicalStart,end:bookmark.focus.offset})
   }
 
   #cancel(){

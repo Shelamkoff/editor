@@ -442,6 +442,11 @@ export function createMentionPlugin(options={}){
         })
       }
 
+      const updateMentionText=(entry,text,offset)=>{
+        entry.context.updateData(current=>({...current,name:text.slice(trigger.length)}))
+        startEditSession(entry,text,offset)
+      }
+
       const handleWidgetBeforeInput=event=>{
         const entry=ownedAtCaret()
         if(!entry||entry.readOnly||entry.dead)return
@@ -451,6 +456,28 @@ export function createMentionPlugin(options={}){
         const text=span.textContent??''
         const atStart=offset===0
         const atEnd=offset===text.length
+
+        const native=runtimeContext.ownerDocument.defaultView?.getSelection?.()
+        if(native&&!native.isCollapsed){
+          if(!native.rangeCount)return
+          const range=native.getRangeAt(0)
+          const localOffset=(node,at)=>node===span?(at===0?0:text.length):node===span.firstChild?at:null
+          const start=localOffset(range.startContainer,range.startOffset)
+          const end=localOffset(range.endContainer,range.endOffset)
+          if(start===null||end===null)return
+          const inserting=(event.inputType==='insertText'||event.inputType==='insertCompositionText')&&typeof event.data==='string'
+          const deleting=event.inputType==='deleteContentBackward'||event.inputType==='deleteContentForward'
+          if(!inserting&&!deleting)return
+          event.preventDefault()
+          const value=inserting?event.data:''
+          const next=text.slice(0,start)+value+text.slice(end),caret=start+value.length
+          if(!next)removeMention(entry)
+          else if(!next.startsWith(trigger))unwrapMention(entry,next,caret)
+          else{
+            updateMentionText(entry,next,caret)
+          }
+          return
+        }
 
         if(event.inputType==='deleteContentBackward'){
           event.preventDefault()
@@ -476,12 +503,7 @@ export function createMentionPlugin(options={}){
           }
           const start=codePointStartBefore(text,offset)
           const next=text.slice(0,start)+text.slice(offset)
-          entry.context.commitDomMutation(()=>{
-            span.textContent=next
-            const node=span.firstChild
-            if(node?.nodeType===3)setCaret(node,start)
-          })
-          startEditSession(entry,next,start)
+          updateMentionText(entry,next,start)
           return
         }
 
@@ -508,12 +530,7 @@ export function createMentionPlugin(options={}){
             unwrapMention(entry,nextText,0)
             return
           }
-          entry.context.commitDomMutation(()=>{
-            span.textContent=nextText
-            const node=span.firstChild
-            if(node?.nodeType===3)setCaret(node,offset)
-          })
-          startEditSession(entry,nextText,offset)
+          updateMentionText(entry,nextText,offset)
           return
         }
 
@@ -534,12 +551,7 @@ export function createMentionPlugin(options={}){
           event.preventDefault()
           const next=text.slice(0,offset)+event.data+text.slice(offset)
           const nextOffset=offset+event.data.length
-          entry.context.commitDomMutation(()=>{
-            span.textContent=next
-            const node=span.firstChild
-            if(node?.nodeType===3)setCaret(node,nextOffset)
-          })
-          startEditSession(entry,next,nextOffset)
+          updateMentionText(entry,next,nextOffset)
           return
         }
 
@@ -591,23 +603,24 @@ export function createMentionPlugin(options={}){
 
       const handleSessionKeydown=(event,session)=>{
         if(destroyed||session!==activeSession)return 'pass'
+        if(!items.length&&(event.key==='ArrowUp'||event.key==='ArrowDown'))return 'pass'
         if(event.key==='ArrowDown'){
           if(items.length){
             if(selected===items.length-1&&cursor&&!loadingMore){
               void load(cursor,true)
             }else{
-              selected=(selected+1)%items.length
+              selected=Math.min(selected+1,items.length-1)
               render()
             }
           }
           return 'handled'
         }
         if(event.key==='ArrowUp'){
-          if(items.length)selected=(selected-1+items.length)%items.length
+          if(items.length)selected=Math.max(selected-1,0)
           render()
           return 'handled'
         }
-        if(event.key==='Enter'&&items.length){
+        if((event.key==='Enter'||event.key==='Tab')&&items.length){
           commitSelected()
           return 'handled'
         }
@@ -618,6 +631,11 @@ export function createMentionPlugin(options={}){
         }
         return 'pass'
       }
+
+      runtimeContext.ownerDocument.addEventListener('selectionchange',()=>{
+        const entry=activeSession?.editEntry
+        if(entry&&ownedAtCaret()!==entry)close()
+      },{signal:runtimeContext.signal})
 
       runtimeContext.ownerDocument.addEventListener('beforeinput',handleWidgetBeforeInput,{
         capture:true,
