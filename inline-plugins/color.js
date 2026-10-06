@@ -113,9 +113,19 @@ export function createColorSwatchPlugin(){
             surface.style.position='static'
             surface.style.transform='none'
             picker.open(parseColorInput(canonical)?canonical:normalizeToHex6(canonical,document))
+            const onKeyDown=event=>{
+              if(event.key!=='Escape')return
+              event.preventDefault()
+              event.stopPropagation()
+              runtimeContext.hidePopup()
+              if(!dead&&!readOnly&&span.isConnected)span.focus()
+            }
+            surface.addEventListener('keydown',onKeyDown,true)
             runtimeContext.showPopup(span,surface,()=>{
-              if(!committed)project(context.getData())
-              picker.destroy()
+              surface.removeEventListener('keydown',onKeyDown,true)
+              try{
+                if(!committed&&!dead&&!context.signal.aborted)project(context.getData())
+              }finally{picker.destroy()}
             })
           }
 

@@ -1,0 +1,130 @@
+
+import { createParagraphPlugin } from '../../plugins/paragraph/index.js'
+import { test, make, blockElement, equal, assert, run } from './regressions/harness.js'
+import { clickNative, dispatchKey, printable } from './native-input-helpers.js'
+
+function member(reads, name, method, decorated) {
+  reads[name] = (reads[name] ?? 0) + 1
+  if (!decorated && reads[name] > 1) throw new Error(name + ' instance getter reread')
+  if (decorated) Object.defineProperty(method, 'bind', { get() { throw new Error(name + ' callback bind accessed') } })
+  return method
+}
+for (const decorated of [false, true]) test('Inline instance captures ' + (decorated ? 'decorated functions' : 'method getters') + ' once with private receiver', async () => {
+  const created = []
+  const definition = {
+    type: 'badge', icon: '', label: { key: 'title', fallback: 'Badge' },
+    schema: { currentVersion: 1, createDefault: () => ({ name: 'Ada' }), encode: data => ({ dataVersion: 1, data }), decode: input => input },
+    setup(runtime) {
+      return {
+        create(_id, data, context) {
+          const reads = {}, state = { disposed: 0 }, element = runtime.ownerDocument.createElement('button')
+          element.type = 'button'; element.textContent = data.name
+          element.addEventListener('click', () => context.updateData(current => ({ name: current.name + '!' })), { signal: context.signal })
+          class Widget {
+            #element = element
+            #state = state
+            get element() { reads.element = (reads.element ?? 0) + 1; return this.#element }
+            get update() { return member(reads, 'update', function(next) { this.#element.textContent = next.name }, decorated) }
+            get setReadOnly() { return member(reads, 'setReadOnly', function(value) { this.#element.disabled = value }, decorated) }
+            get focus() { return member(reads, 'focus', function() { this.#element.focus() }, decorated) }
+            get destroy() { return member(reads, 'destroy', function() { this.#state.disposed++ }, decorated) }
+          }
+          const source = new Widget()
+          created.push({ source, reads, state, element })
+          return source
+        },
+        destroy() {},
+      }
+    },
+  }
+  const editor = make([{ id: 'a', type: 'paragraph', dataVersion: 2, data: { text: '{{w_badge}}' }, inline: { w_badge: { type: 'badge', dataVersion: 1, data: { name: 'Ada' } } } }], { inlinePlugins: [definition] })
+  const first = created[0]
+  equal(first.reads, { element: 1, update: 1, setReadOnly: 1, focus: 1, destroy: 1 })
+  for (const key of ['update', 'setReadOnly', 'focus', 'destroy']) Object.defineProperty(first.source, key, { value() { throw new Error('Later instance method used') } })
+  editor.setReadOnly(true); equal(first.element.disabled, true)
+  editor.setReadOnly(false); equal(first.element.disabled, false)
+  const before = editor.save().blocks
+  await clickNative(first.element)
+  equal(Object.values(editor.save().blocks[0].inline)[0].data, { name: 'Ada!' })
+  await dispatchKey('z', 'KeyZ', 90, 2)
+  equal(editor.save().blocks, before)
+  await dispatchKey('z', 'KeyZ', 90, 10)
+  equal(Object.values(editor.save().blocks[0].inline)[0].data, { name: 'Ada!' })
+  editor.destroy(); editor.destroy()
+  for (const entry of created) {
+    equal(entry.reads, { element: 1, update: 1, setReadOnly: 1, focus: 1, destroy: 1 })
+    equal(entry.state.disposed, 1)
+  }
+})
+
+for (const decorated of [false, true]) test('Block instance captures ' + (decorated ? 'decorated functions' : 'method getters') + ' once and preserves native input', async () => {
+  const created = [], paragraph = createParagraphPlugin()
+  const definition = { ...paragraph, setup(runtime) {
+    const base = paragraph.setup(runtime)
+    return {
+      create(data, context) {
+        const inner = base.create(data, context), reads = {}, state = { disposed: 0 }
+        class Block {
+          #inner = inner
+          #state = state
+          get element() { reads.element = (reads.element ?? 0) + 1; return this.#inner.element }
+          get read() { return member(reads, 'read', function() { return this.#inner.read() }, decorated) }
+          get update() { return member(reads, 'update', function(next, previous) { this.#inner.update(next, previous) }, decorated) }
+          get editableFields() { return member(reads, 'editableFields', function() { return this.#inner.editableFields() }, decorated) }
+          get setReadOnly() { return member(reads, 'setReadOnly', function(value) { this.#inner.setReadOnly(value) }, decorated) }
+          get focus() { return member(reads, 'focus', function(options) { this.#inner.focus(options) }, decorated) }
+          get destroy() { return member(reads, 'destroy', function() { this.#state.disposed++; this.#inner.destroy() }, decorated) }
+        }
+        const source = new Block(); created.push({ source, reads, state }); return source
+      },
+      destroy() { base.destroy() },
+    }
+  } }
+  const editor = make([{ id: 'a', type: 'paragraph', dataVersion: 2, data: { text: 'Alpha' } }], { plugins: [definition] })
+  const expected = { element: 1, read: 1, update: 1, editableFields: 1, setReadOnly: 1, focus: 1, destroy: 1 }
+  equal(created[0].reads, expected)
+  for (const key of Object.keys(expected).filter(key => key !== 'element')) Object.defineProperty(created[0].source, key, { value() { throw new Error('Later block instance method used') } })
+  editor.setReadOnly(true)
+  equal(blockElement(editor, 'a').querySelector('.oe-paragraph').contentEditable, 'false')
+  editor.setReadOnly(false)
+  const before = editor.save().blocks
+  editor.blocks.focus('a', { offset: 2 })
+  await printable('X')
+  equal(editor.save().blocks[0].data.text, 'AlXpha')
+  await dispatchKey('z', 'KeyZ', 90, 2); equal(editor.save().blocks, before)
+  await dispatchKey('z', 'KeyZ', 90, 10); equal(editor.save().blocks[0].data.text, 'AlXpha')
+  editor.destroy(); editor.destroy()
+  for (const entry of created) { equal(entry.reads, expected); equal(entry.state.disposed, 1) }
+})
+
+
+for (const kind of ['block', 'inline']) test('Rejected ' + kind + ' instance releases its captured disposer once', () => {
+  let reads = 0, disposed = 0, signal
+  const paragraph = createParagraphPlugin()
+  const create = context => {
+    signal = context.signal
+    return {
+      element: document.createElement('span'),
+      get destroy() {
+        if (++reads > 1) throw new Error('Rejected instance destroy getter reread')
+        return function() { disposed++ }
+      },
+    }
+  }
+  const badge = {
+    type: 'badge', icon: '', label: { key: 'title', fallback: 'Badge' },
+    schema: { currentVersion: 1, createDefault: () => ({ name: 'Ada' }), encode: data => ({ dataVersion: 1, data }), decode: input => input },
+    setup() { return { create(_id, _data, context) { return create(context) }, destroy() {} } },
+  }
+  const invalidBlock = { ...paragraph, setup() { return { create(_data, context) { return create(context) }, destroy() {} } } }
+  let error
+  try {
+    make([{ id: 'a', type: 'paragraph', dataVersion: 2, data: { text: '{{w_badge}}' }, inline: { w_badge: { type: 'badge', dataVersion: 1, data: { name: 'Ada' } } } }],
+      { plugins: [kind === 'block' ? invalidBlock : paragraph], inlinePlugins: kind === 'inline' ? [badge] : [] })
+  } catch (caught) { error = caught }
+  assert(error && /invalid.*instance/.test(error.message), 'Invalid instance was accepted')
+  equal([reads, disposed, signal.aborted], [1, 1, true])
+  assert(!document.querySelector('.oe-editor'), 'Failed creation retained an editor root')
+})
+
+await run()

@@ -3,6 +3,7 @@ import { ReadOnlyRecoveryError } from './ReadOnlyRecoveryError.js'
 import { cloneEditorData } from '../shared/cloneEditorData.js'
 import { getTextOffset } from '../shared/textOffset.js'
 import { InstanceScope } from './InstanceScope.js'
+import { captureInstanceMethod, captureInstanceDestroy } from './instanceMethods.js'
 import { normalizeRichText } from '../shared/richTextCodec.js'
 import { toTrustedHtml } from '../shared/sanitize/trustedHtml.js'
 
@@ -29,27 +30,21 @@ function richFieldMap(definition,data){
   return fields
 }
 
-function snapshotInlineInstance(source,type){
+function snapshotInlineInstance(source,type,destroySource){
   if(!source||typeof source!=='object'||Array.isArray(source)){
     throw new TypeError('Inline runtime "'+type+'" returned an invalid widget instance')
   }
   const element=source.element
-  const update=typeof source.update==='function'?source.update.bind(source):undefined
-  const setReadOnly=typeof source.setReadOnly==='function'?source.setReadOnly.bind(source):null
-  const focus=typeof source.focus==='function'?source.focus.bind(source):undefined
-  const destroySource=typeof source.destroy==='function'?source.destroy.bind(source):null
+  const update=captureInstanceMethod(source,'update')
+  const setReadOnly=captureInstanceMethod(source,'setReadOnly')
+  const focus=captureInstanceMethod(source,'focus')
   if(!element||!setReadOnly||!destroySource){
     throw new TypeError('Inline runtime "'+type+'" returned an invalid widget instance')
   }
-  let destroyed=false
   const instance={
     element,
     setReadOnly,
-    destroy(){
-      if(destroyed)return
-      destroyed=true
-      destroySource()
-    },
+    destroy:destroySource,
   }
   if(update)instance.update=update
   if(focus)instance.focus=focus
@@ -365,14 +360,16 @@ export class InlineProjectionRuntime {
           if(typeof makeContext!=='function')throw new Error('Block context does not provide inline widget mutations')
           const context=makeContext(fieldKey,id,type,controller.signal,scope)
           let sourceInstance
+          let destroySource
           let instance
           try{
             sourceInstance=runtime.create(id,decoded.data,context)
-            instance=snapshotInlineInstance(sourceInstance,type)
+            destroySource=captureInstanceDestroy(sourceInstance)
+            instance=snapshotInlineInstance(sourceInstance,type,destroySource)
           }catch(error){
             try{scope.revoke()}catch{}
             try{controller.abort()}catch{}
-            try{sourceInstance?.destroy?.()}catch{}
+            try{destroySource?.()}catch{}
             throw error
           }
           entry={id,type,fieldKey,instance,element:instance.element,controller,scope,data:decoded.data}

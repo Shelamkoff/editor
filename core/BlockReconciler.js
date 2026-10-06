@@ -2,6 +2,7 @@
 import { ReadOnlyRecoveryError } from './ReadOnlyRecoveryError.js'
 import { cloneEditorData } from '../shared/cloneEditorData.js'
 import { InstanceScope } from './InstanceScope.js'
+import { captureInstanceMethod, captureInstanceDestroy } from './instanceMethods.js'
 import { ProjectionAnimator } from './ProjectionAnimator.js'
 
 function sameJson(left, right) {
@@ -17,35 +18,25 @@ function hasStructuralChange(changes) {
   ))
 }
 
-function snapshotBlockInstance(source, type) {
+function snapshotBlockInstance(source, type, destroySource) {
   if (!source || typeof source !== 'object' || Array.isArray(source)) {
     throw new TypeError(`Block runtime "${type}" returned an invalid instance`)
   }
   const element = source.element
-  const read = typeof source.read === 'function' ? source.read.bind(source) : null
-  const update = typeof source.update === 'function' ? source.update.bind(source) : undefined
-  const editableFields = typeof source.editableFields === 'function'
-    ? source.editableFields.bind(source)
-    : undefined
-  const setReadOnly = typeof source.setReadOnly === 'function'
-    ? source.setReadOnly.bind(source)
-    : null
-  const focus = typeof source.focus === 'function' ? source.focus.bind(source) : undefined
-  const destroySource = typeof source.destroy === 'function' ? source.destroy.bind(source) : null
+  const read = captureInstanceMethod(source, 'read')
+  const update = captureInstanceMethod(source, 'update')
+  const editableFields = captureInstanceMethod(source, 'editableFields')
+  const setReadOnly = captureInstanceMethod(source, 'setReadOnly')
+  const focus = captureInstanceMethod(source, 'focus')
   if (!element || !read || !setReadOnly || !destroySource) {
     throw new TypeError(`Block runtime "${type}" returned an invalid instance`)
   }
-  let destroyed = false
   /** @type {import('../plugin-kit/types').BlockInstance} */
   const instance = {
     element,
     read,
     setReadOnly,
-    destroy() {
-      if (destroyed) return
-      destroyed = true
-      destroySource()
-    },
+    destroy: destroySource,
   }
   if (update) instance.update = update
   if (editableFields) instance.editableFields = editableFields
@@ -533,6 +524,7 @@ export class BlockReconciler {
     const AbortControllerCtor = ownerDocument.defaultView?.AbortController ?? globalThis.AbortController
     const controller = new AbortControllerCtor()
     let sourceInstance = null
+    let destroySource
     let instance = null
     let element = null
 
@@ -548,7 +540,8 @@ export class BlockReconciler {
           : () => this.#readOnly,
       })
       sourceInstance = runtime.create(record.data, context)
-      instance = snapshotBlockInstance(sourceInstance, record.type)
+      destroySource = captureInstanceDestroy(sourceInstance)
+      instance = snapshotBlockInstance(sourceInstance, record.type, destroySource)
       element = ownerDocument.createElement('div')
       element.className = 'oe-block'
       element.dataset.blockId = record.id
@@ -586,8 +579,7 @@ export class BlockReconciler {
       try { scope.revoke() } catch {}
       try { controller.abort() } catch {}
       try {
-        if (instance) instance.destroy()
-        else if (typeof sourceInstance?.destroy === 'function') sourceInstance.destroy()
+        destroySource?.()
       } catch {}
       try { element?.remove?.() } catch {}
       throw error
