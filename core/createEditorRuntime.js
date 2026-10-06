@@ -383,6 +383,8 @@ export function createEditorRuntime(input){
     reconciler,
     selection:logicalSelection,
     commands:inlineCommands,
+    isComposing:()=>nativeInput.isComposing,
+    projection:inlineProjection,
   }))
   triggerController=triggers
 

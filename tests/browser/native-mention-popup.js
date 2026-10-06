@@ -256,4 +256,16 @@ for (const direction of ['ArrowUp', 'ArrowDown']) test('A mention search with no
   equal(editor.save().blocks, before)
 })
 
+test('A generic trigger result cannot replace a host-updated query at the same live caret offset', async () => {
+  const { editor, current } = await retainedTrigger()
+  editor.blocks.update('a', () => ({ data: { text: '@CA' } }))
+  editor.blocks.focus('a', { offset: 2 })
+  const before = editor.save().blocks, events = []
+  editor.on('transaction:committed', event => events.push(event))
+  equal(current.commit({ name: 'Stale B result' }), false, 'The old query result replaced text from the host update')
+  equal(editor.save().blocks, before); equal(events.length, 0)
+  await dispatchKey('z', 'KeyZ', 90, 2)
+  equal(editor.save().blocks[0].data.text, '@BA')
+})
+
 await run()

@@ -132,6 +132,7 @@ export function createMentionPlugin(options={}){
       let searchController=null
       let timer=null
       let loadingMore=false
+      let compositionSession=null
       const widgetEntries=new Map()
       const listboxId='oe-mention-'+uid()
 
@@ -175,13 +176,18 @@ export function createMentionPlugin(options={}){
         const entry=span?widgetEntries.get(span):null
         return entry&&span.isConnected?entry:null
       }
-      const caretOffsetInSpan=(entry)=>{
+      const offsetInSpan=(entry,node,offset)=>{
+        if(!node||!entry.span.contains(node))return null
+        try{
+          const range=runtimeContext.ownerDocument.createRange()
+          range.selectNodeContents(entry.span)
+          range.setEnd(node,offset)
+          return range.toString().length
+        }catch{return null}
+      }
+      const caretOffsetInSpan=entry=>{
         const selection=runtimeContext.ownerDocument.defaultView?.getSelection?.()
-        const node=selection?.anchorNode
-        if(!selection||!node)return null
-        if(node.nodeType===3&&node.parentElement===entry.span)return selection.anchorOffset
-        if(node===entry.span)return selection.anchorOffset===0?0:(entry.span.textContent??'').length
-        return null
+        return selection?offsetInSpan(entry,selection.anchorNode,selection.anchorOffset):null
       }
       const clearTimer=()=>{
         if(timer!==null){
@@ -448,6 +454,7 @@ export function createMentionPlugin(options={}){
       }
 
       const handleWidgetBeforeInput=event=>{
+        if(event.defaultPrevented||event.isComposing||compositionSession)return
         const entry=ownedAtCaret()
         if(!entry||entry.readOnly||entry.dead)return
         const offset=caretOffsetInSpan(entry)
@@ -602,7 +609,8 @@ export function createMentionPlugin(options={}){
       }
 
       const handleSessionKeydown=(event,session)=>{
-        if(destroyed||session!==activeSession)return 'pass'
+        if(destroyed||session!==activeSession||compositionSession
+          ||event.defaultPrevented||event.isComposing||event.keyCode===229)return 'pass'
         if(!items.length&&(event.key==='ArrowUp'||event.key==='ArrowDown'))return 'pass'
         if(event.key==='ArrowDown'){
           if(items.length){
@@ -631,6 +639,45 @@ export function createMentionPlugin(options={}){
         }
         return 'pass'
       }
+
+      runtimeContext.ownerDocument.addEventListener('compositionstart',()=>{
+        const entry=ownedAtCaret()
+        if(!entry||entry.dead||entry.readOnly)return
+        const selection=runtimeContext.ownerDocument.defaultView?.getSelection?.()
+        const anchor=caretOffsetInSpan(entry),focus=selection?offsetInSpan(entry,selection.focusNode,selection.focusOffset):null
+        if(anchor===null||focus===null)return
+        close()
+        compositionSession={entry,task:entry.context.beginTask(),anchor,focus}
+      },{capture:true,signal:runtimeContext.signal})
+      const finishComposition=(session,confirmed)=>{
+        const {entry,task,anchor,focus}=session
+        if(entry.dead||entry.readOnly||!entry.span.isConnected||task.signal.aborted){
+          task.cancel()
+          return
+        }
+        if(!confirmed){
+          task.cancel()
+          entry.project(entry.context.getData())
+          const node=entry.span.firstChild,selection=runtimeContext.ownerDocument.defaultView?.getSelection?.()
+          if(node?.nodeType===3)selection?.setBaseAndExtent(node,Math.min(anchor,node.data.length),node,Math.min(focus,node.data.length))
+          return
+        }
+        const text=entry.span.textContent??'',offset=caretOffsetInSpan(entry)??text.length
+        if(text.startsWith(trigger)){
+          if(task.commit(current=>({...current,name:text.slice(trigger.length)})))startEditSession(entry,text,offset)
+        }else{
+          task.cancel()
+          if(text)unwrapMention(entry,text,offset)
+          else removeMention(entry)
+        }
+      }
+      runtimeContext.ownerDocument.addEventListener('compositionend',event=>{
+        const session=compositionSession
+        compositionSession=null
+        // Changing contenteditable can end IME during a host projection or
+        // read-only transition. Commit only after that phase has completed.
+        if(session)queueMicrotask(()=>finishComposition(session,!!event.data))
+      },{capture:true,signal:runtimeContext.signal})
 
       runtimeContext.ownerDocument.addEventListener('selectionchange',()=>{
         const entry=activeSession?.editEntry
@@ -662,7 +709,8 @@ export function createMentionPlugin(options={}){
           const project=next=>{
             data={...next}
             span.dataset.value=data.id
-            span.textContent=trigger+data.name
+            const label=trigger+data.name
+            if(span.textContent!==label)span.textContent=label
             span.contentEditable=readOnly?'false':'true'
             if(readOnly)span.contentEditable='false'
             else span.removeAttribute('contenteditable')
@@ -681,6 +729,10 @@ export function createMentionPlugin(options={}){
               dead=true
               entry.dead=true
               widgetEntries.delete(span)
+              if(compositionSession?.entry===entry){
+                compositionSession.task.cancel()
+                compositionSession=null
+              }
               if(activeSession?.editEntry===entry)close()
             },
           }
@@ -696,6 +748,8 @@ export function createMentionPlugin(options={}){
         },
         destroy(){
           destroyed=true
+          compositionSession?.task.cancel()
+          compositionSession=null
           close()
         },
       }

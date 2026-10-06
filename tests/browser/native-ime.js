@@ -1,9 +1,10 @@
+import { createMentionPlugin } from '../../inline-plugins/mention/index.js'
 import { getTextOffset } from '../../shared/textOffset.js'
 import { createParagraphPlugin, createQuotePlugin } from '../../plugins/index.js'
 import { test, make, para, editableField, editorRoot, select, pause, assert, equal, texts, run } from './regressions/harness.js'
 import { selectAcross, dragAcross, dispatchKey } from './native-input-helpers.js'
 
-async function composition(editor, unchanged, final = '日本') {
+async function composition(editor, unchanged, final = '日本', { updates = ['に', '日本'], preedit = () => {} } = {}) {
   const events = []
   const couldUndo = editor.canUndo
   for (const type of ['compositionstart', 'compositionupdate', 'compositionend']) {
@@ -15,7 +16,7 @@ async function composition(editor, unchanged, final = '日本') {
       events.push({ type, data: event.data, trusted: event.isTrusted })
     })
   }
-  for (const text of ['に', '日本']) {
+  for (const text of updates) {
     // Windows IMEs announce candidate processing with keyCode 229 before
     // Chrome receives the composition text from the platform input method.
     await window.__testInput('Input.dispatchKeyEvent', { type: 'rawKeyDown', key: 'Process', windowsVirtualKeyCode: 229 })
@@ -25,6 +26,7 @@ async function composition(editor, unchanged, final = '日本') {
     equal(editor.save().blocks, unchanged, 'an unfinished composition changed canonical data')
     equal(editor.canUndo, couldUndo, 'preedit changed history availability')
     assert(editorRoot(editor).textContent.includes(text), 'native preedit was not displayed')
+    await preedit(text)
   }
   if (final) await window.__testInput('Input.insertText', { text: final })
   else await window.__testInput('Input.imeSetComposition', { text: '', selectionStart: 0, selectionEnd: 0 })
@@ -149,6 +151,101 @@ test('read-only transition discards native preedit before editing resumes', asyn
   equal(texts(editor), ['AXB'], 'subsequent typing committed revoked preedit')
   editor.undo()
   equal(editor.save().blocks, before)
+})
+
+for (const initial of ['', '@A']) test('Native IME does not publish mention queries or choices until confirmation from ' + (initial || 'an empty field'), async () => {
+  const queries = [], editor = make([para('a', initial)], { injectStyles: true, inlinePlugins: [createMentionPlugin({
+    debounceDelay: 0, searchFunction: async query => { queries.push(query); return [{ id: 42, name: 'Ada' }] },
+  })] })
+  select(editableField(editor, 'a'), initial.length)
+  if (initial) {
+    await window.__testInput('Input.insertText', { text: 'B' }); await pause(60)
+    assert(editorRoot(editor).querySelector('.oe-mention-item'), 'The initial query did not load')
+  }
+  const before = editor.save().blocks, count = queries.length, final = initial ? '日本' : '@日本'
+  await composition(editor, before, final, { updates: initial ? ['に', '日本'] : ['@に', '@日本'], preedit() {
+    equal(queries.length, count, 'Unconfirmed composition published a mention search')
+    assert(!editorRoot(editor).querySelector('.oe-mention-dropdown'), 'Unconfirmed composition kept mention choices active')
+  } })
+  await pause(60)
+  equal(editor.save().blocks[0].data.text, (initial ? '@AB' : '') + final)
+  equal(queries.at(-1), initial ? 'AB日本' : '日本')
+  assert(editorRoot(editor).querySelector('.oe-mention-item'), 'Confirmed composition did not resume mention search')
+  await dispatchKey('z', 'KeyZ', 90, 2); equal(editor.save().blocks, before)
+  await dispatchKey('z', 'KeyZ', 90, 10); equal(editor.save().blocks[0].data.text, (initial ? '@AB' : '') + final)
+})
+
+test('Native IME inside an owned mention keeps preedit out of author data and confirms one edit', async () => {
+  const editor = make([para('a', '{{person}} tail', { inline: { person: { type: 'mention', dataVersion: 1, data: { id: 'old', name: 'Ada' } } } })], { injectStyles: true, inlinePlugins: [createMentionPlugin({ debounceDelay: 0 })] })
+  const field = editableField(editor, 'a'), span = field.querySelector('[data-inline-plugin="mention"]'), before = editor.save().blocks
+  field.focus()
+  const range = document.createRange(), selection = window.getSelection()
+  range.setStart(span.firstChild, 2); range.collapse(true)
+  selection.removeAllRanges(); selection.addRange(range)
+  await composition(editor, before)
+  const after = editor.save().blocks
+  equal(after[0].data.text, '{{person}} tail')
+  equal(after[0].inline.person.data, { id: 'old', name: 'A日本da' })
+  equal(selection.focusNode, span.firstChild, 'Confirmation moved the caret outside the edited mention')
+  equal(selection.focusOffset, 4, 'Confirmation lost the caret after the inserted text')
+  await dispatchKey('End', 'End', 35); await dispatchKey('ArrowRight', 'ArrowRight', 39); await dispatchKey('End', 'End', 35)
+  await dispatchKey('z', 'KeyZ', 90, 2); equal(editor.save().blocks, before); equal(editor.canUndo, false)
+  await dispatchKey('z', 'KeyZ', 90, 10); equal(editor.save().blocks, after)
+})
+
+test('Cancelling IME inside a mention restores the selected text and its backward range without history', async () => {
+  const editor = make([para('a', '{{person}} tail', { inline: { person: { type: 'mention', dataVersion: 1, data: { id: 'old', name: 'Ada' } } } })], { injectStyles: true, inlinePlugins: [createMentionPlugin({ debounceDelay: 0 })] })
+  const field = editableField(editor, 'a'), span = field.querySelector('[data-inline-plugin="mention"]'), before = editor.save().blocks
+  field.focus()
+  const selection = window.getSelection()
+  selection.setBaseAndExtent(span.firstChild, 4, span.firstChild, 2)
+  await composition(editor, before, '')
+  equal(editor.save().blocks, before); equal(editor.canUndo, false)
+  equal(span.textContent, '@Ada')
+  equal(selection.toString(), 'da', 'Cancellation collapsed the range that was being replaced')
+  equal(selection.anchorOffset, 4); equal(selection.focusOffset, 2)
+})
+
+for (const transition of ['render', 'read-only']) test('An owned mention IME cannot publish revoked preedit after ' + transition, async () => {
+  const editor = make([para('a', '{{person}} tail', { inline: { person: { type: 'mention', dataVersion: 1, data: { id: 'old', name: 'Ada' } } } })], { injectStyles: true, inlinePlugins: [createMentionPlugin({ debounceDelay: 0 })] })
+  const field = editableField(editor, 'a'), span = field.querySelector('[data-inline-plugin="mention"]'), before = editor.save().blocks
+  field.focus()
+  const range = document.createRange(), selection = window.getSelection()
+  range.setStart(span.firstChild, 2); range.collapse(true)
+  selection.removeAllRanges(); selection.addRange(range)
+  await window.__testInput('Input.imeSetComposition', { text: 'に', selectionStart: 1, selectionEnd: 1 })
+  equal(editor.save().blocks, before); equal(editor.canUndo, false)
+  if (transition === 'render') {
+    editor.render({ version: '2.0.0', blocks: [para('new', 'Replacement')] })
+    await window.__testInput('Input.insertText', { text: '日本' }); await pause(30)
+    equal(texts(editor), ['Replacement']); equal(editableField(editor, 'new').textContent, 'Replacement')
+    editor.undo(); equal(editor.save().blocks, before); equal(editor.canUndo, false)
+  } else {
+    editor.setReadOnly(true); editor.setReadOnly(false); await pause(30)
+    equal(editor.save().blocks, before); equal(editor.canUndo, false)
+    const current = editableField(editor, 'a'), mention = current.querySelector('[data-inline-plugin="mention"]')
+    equal(mention.textContent, '@Ada', 'Revoked preedit remains in the editable widget')
+    current.focus(); selection.setBaseAndExtent(mention.firstChild, 2, mention.firstChild, 2)
+    await window.__testInput('Input.insertText', { text: 'X' })
+    equal(editor.save().blocks[0].inline.person.data.name, 'AXda', 'Subsequent typing was blocked or published revoked preedit')
+    editor.undo(); equal(editor.save().blocks, before); equal(editor.canUndo, false)
+  }
+})
+
+test('IME replaces a selected mention fragment and confirms the final label with one Undo action', async () => {
+  const editor = make([para('a', '{{person}} tail', { inline: { person: { type: 'mention', dataVersion: 1, data: { id: 'old', name: 'Ada' } } } })], { injectStyles: true, inlinePlugins: [createMentionPlugin({ debounceDelay: 0 })] })
+  const field = editableField(editor, 'a'), span = field.querySelector('[data-inline-plugin="mention"]'), before = editor.save().blocks
+  field.focus()
+  const selection = window.getSelection()
+  selection.setBaseAndExtent(span.firstChild, 4, span.firstChild, 2)
+  await composition(editor, before)
+  const after = editor.save().blocks
+  equal(after[0].data.text, '{{person}} tail')
+  equal(after[0].inline.person.data, { id: 'old', name: 'A日本' })
+  equal(selection.focusNode, span.firstChild); equal(selection.focusOffset, 4); equal(selection.isCollapsed, true)
+  await dispatchKey('End', 'End', 35); await dispatchKey('ArrowRight', 'ArrowRight', 39); await dispatchKey('End', 'End', 35)
+  await dispatchKey('z', 'KeyZ', 90, 2); equal(editor.save().blocks, before); equal(editor.canUndo, false)
+  await dispatchKey('z', 'KeyZ', 90, 10); equal(editor.save().blocks, after)
 })
 
 await run()

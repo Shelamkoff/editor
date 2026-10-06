@@ -6,17 +6,21 @@ export class InlineTriggerController {
   #reconciler
   #selection
   #commands
+  #isComposing
+  #projection
   #controller
   #active=null
   #triggers=[]
 
-  constructor({root,registry,reconciler,selection,commands}){
+  constructor({root,registry,reconciler,selection,commands,isComposing=()=>false,projection=null}){
     if(!root?.addEventListener)throw new TypeError('InlineTriggerController requires an editor root')
     this.#root=root
     this.#registry=registry
     this.#reconciler=reconciler
     this.#selection=selection
     this.#commands=commands
+    this.#isComposing=isComposing
+    this.#projection=projection
     this.#triggers=registry.inlineTypes.flatMap(type=>{
       const definition=registry.getInlineDefinition(type)
       return definition?.trigger?[{type,trigger:definition.trigger,definition,runtime:registry.getInlineRuntime(type)}]:[]
@@ -25,6 +29,10 @@ export class InlineTriggerController {
     const Ctor=root.ownerDocument.defaultView?.AbortController??AbortController
     this.#controller=new Ctor()
     const signal=this.#controller.signal
+    root.addEventListener('compositionstart',()=>this.#cancel(),{signal})
+    root.addEventListener('compositionend',event=>{
+      if(event.data)queueMicrotask(()=>{if(!signal.aborted)this.refresh()})
+    },{signal})
     root.addEventListener('input',event=>this.#onInput(event),{signal})
     root.addEventListener('keydown',event=>this.#onKeyDown(event),{signal,capture:true})
     root.ownerDocument.addEventListener('selectionchange',()=>this.#onSelectionChange(),{signal})
@@ -41,6 +49,10 @@ export class InlineTriggerController {
   }
 
   refresh(){
+    if(this.#isComposing()){
+      this.#cancel()
+      return false
+    }
     const bookmark=this.#selection.capture()
     const point=bookmark?.focus
     if(!bookmark||!point){
@@ -67,6 +79,10 @@ export class InlineTriggerController {
   }
 
   #onInput(event){
+    if(event.isComposing||this.#isComposing()){
+      this.#cancel()
+      return
+    }
     const owner=this.#reconciler.resolveEditableTarget(event.target)
     if(!owner||owner.mode!=='rich-text'){
       this.#cancel()
@@ -130,6 +146,7 @@ export class InlineTriggerController {
   }
 
   #publish(active,query,focusOffset){
+    active.textPrefix=this.#textBeforeCaret(active.anchor)
     const session={
       blockId:active.blockId,
       fieldKey:active.fieldKey,
@@ -151,6 +168,7 @@ export class InlineTriggerController {
   }
 
   #onKeyDown(event){
+    if(event.defaultPrevented||event.isComposing||event.keyCode===229||this.#isComposing())return
     const active=this.#active
     if(!active?.session)return
     if(!this.#liveRange(active)){
@@ -176,7 +194,8 @@ export class InlineTriggerController {
 
   #liveRange(active){
     const field=this.#reconciler.getEditableField(active.blockId,active.fieldKey)
-    if(field?.element!==active.anchor||!active.anchor.isConnected||!this.#root.contains(active.anchor))return null
+    if(field?.element!==active.anchor||!active.anchor.isConnected||!this.#root.contains(active.anchor)
+      ||active.textPrefix===null||!(active.anchor.textContent??'').startsWith(active.textPrefix))return null
     const bookmark=this.#selection.capture()
     const owner={blockId:active.blockId,fieldKey:active.fieldKey}
     if(!bookmark?.anchor||!bookmark?.focus||!this.#collapsedIn(bookmark,owner))return null
@@ -206,7 +225,8 @@ export class InlineTriggerController {
   #textBeforeCaret(field){
     const document=this.#root.ownerDocument
     const selection=document.defaultView?.getSelection()??null
-    if(!selection?.focusNode||!field.contains(selection.focusNode))return null
+    if(!selection?.focusNode||!field.contains(selection.focusNode)
+      ||this.#projection?.resolveWidgetElement(selection.focusNode))return null
     try{
       const range=document.createRange()
       range.selectNodeContents(field)
