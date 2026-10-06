@@ -1,3 +1,4 @@
+import { createEditor } from '../../core/index.js'
 
 import { createParagraphPlugin } from '../../plugins/paragraph/index.js'
 import { test, make, blockElement, equal, assert, run } from './regressions/harness.js'
@@ -125,6 +126,49 @@ for (const kind of ['block', 'inline']) test('Rejected ' + kind + ' instance rel
   assert(error && /invalid.*instance/.test(error.message), 'Invalid instance was accepted')
   equal([reads, disposed, signal.aborted], [1, 1, true])
   assert(!document.querySelector('.oe-editor'), 'Failed creation retained an editor root')
+})
+
+test('Rejected inline runtime releases captured resources and allows restarting the holder', async () => {
+  const holder = document.createElement('section'), original = document.createElement('p')
+  original.textContent = 'Host content'; holder.append(original); document.body.append(holder)
+  const panel = document.createElement('aside')
+  let destroyReads = 0, disposed = 0, received = 0, signal, restarted
+  const onProbe = () => received++
+  const definition = {
+    type: 'badge', icon: '', label: { key: 'title', fallback: 'Badge' },
+    schema: { currentVersion: 1, createDefault: () => ({ name: 'Ada' }), encode: data => ({ dataVersion: 1, data }), decode: input => input },
+    setup(context) {
+      signal = context.signal
+      document.body.append(panel)
+      document.addEventListener('runtime-cleanup-probe', onProbe)
+      class Runtime {
+        #panel = panel
+        create() { throw new Error('Rejected runtime must not create a widget') }
+        get destroy() {
+          if (++destroyReads > 1) throw new Error('Runtime destroy getter reread')
+          return function() { disposed++; this.#panel.remove(); document.removeEventListener('runtime-cleanup-probe', onProbe) }
+        }
+        onTriggerCancel = 42
+      }
+      return new Runtime()
+    },
+  }
+  try {
+    let error
+    try { createEditor({ holder, injectStyles: false, plugins: [createParagraphPlugin()], inlinePlugins: [definition] }) }
+    catch (caught) { error = caught }
+    assert(error instanceof TypeError && /onTriggerCancel/.test(error.message), 'Runtime validation error was lost')
+    document.dispatchEvent(new Event('runtime-cleanup-probe'))
+    equal([destroyReads, disposed, received, signal.aborted, panel.isConnected], [1, 1, 0, true, false])
+    assert(holder.childNodes.length === 1 && holder.firstChild === original, 'Failed creation lost host content')
+    restarted = createEditor({ holder, injectStyles: false, plugins: [createParagraphPlugin()], data: { version: '2.0.0', blocks: [{ id: 'a', type: 'paragraph', dataVersion: 2, data: { text: 'Alpha' } }] } })
+    restarted.blocks.focus('a', { offset: 2 })
+    await printable('X')
+    equal(restarted.save().blocks[0].data.text, 'AlXpha')
+  } finally {
+    restarted?.destroy(); holder.remove(); panel.remove()
+    document.removeEventListener('runtime-cleanup-probe', onProbe)
+  }
 })
 
 await run()

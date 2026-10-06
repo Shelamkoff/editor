@@ -2,6 +2,7 @@
 import { cloneEditorData } from '../shared/cloneEditorData.js'
 import { snapshotDataSchema as snapshotSchema } from '../shared/snapshotDataSchema.js'
 import { acquireStyleUrls } from '../shared/styleRegistry.js'
+import { captureInstanceDestroy } from './instanceMethods.js'
 
 function assertDenseArray(value, label, { allowEmpty = true } = {}) {
   if (!Array.isArray(value) || (!allowEmpty && value.length === 0)) {
@@ -279,22 +280,24 @@ function snapshotInlineDefinition(source) {
   })
 }
 
-function snapshotBlockRuntime(source, label) {
+function snapshotBlockRuntime(source, label, destroySource) {
   if (!source || typeof source !== 'object' || Array.isArray(source)) {
     throw new TypeError(`${label} returned an invalid runtime`)
   }
   const create = bindMethod(source, source.create, `${label} runtime create`)
-  const destroy = bindMethod(source, source.destroy, `${label} runtime destroy`)
+  if (!destroySource) throw new TypeError(`${label} runtime destroy must be a function`)
+  const destroy = destroySource
   return Object.freeze({ create, destroy })
 }
 
-function snapshotInlineRuntime(source, label) {
+function snapshotInlineRuntime(source, label, destroySource) {
   if (!source || typeof source !== 'object' || Array.isArray(source)) {
     throw new TypeError(`${label} returned an invalid runtime`)
   }
+  if (!destroySource) throw new TypeError(`${label} runtime destroy must be a function`)
   const runtime = {
     create: bindMethod(source, source.create, `${label} runtime create`),
-    destroy: bindMethod(source, source.destroy, `${label} runtime destroy`),
+    destroy: destroySource,
   }
   for (const name of ['onTriggerQuery', 'onTriggerKeydown', 'onTriggerCancel']) {
     const method = bindMethod(source, source[name], `${label} runtime ${name}`, { optional: true })
@@ -364,19 +367,20 @@ export class ExtensionRegistry {
           const resource = acquireStyleUrls(definition.styles, ownerDocument)
           this.#resources.push(resource)
         }
-        let runtimeSource
+        let destroySource
         try {
-          runtimeSource = definition.setup({
+          const runtimeSource = definition.setup({
             ownerDocument,
             signal: this.#abortController.signal,
             isDefaultBlock: definition.type === defaultBlock,
             editorPlaceholder: definition.type === defaultBlock ? options.placeholder : undefined,
             t: (key, fallback = '', params = undefined) => translate(`plugin.${definition.type}.${key}`, fallback, params),
           })
-          const runtime = snapshotBlockRuntime(runtimeSource, `Block definition "${definition.type}"`)
+          destroySource = captureInstanceDestroy(runtimeSource)
+          const runtime = snapshotBlockRuntime(runtimeSource, `Block definition "${definition.type}"`, destroySource)
           this.#blockRuntimes.set(definition.type, runtime)
         } catch (error) {
-          try { runtimeSource?.destroy?.() } catch {}
+          try { destroySource?.() } catch {}
           throw error
         }
       }
@@ -386,19 +390,20 @@ export class ExtensionRegistry {
           const resource = acquireStyleUrls(definition.styles, ownerDocument)
           this.#resources.push(resource)
         }
-        let runtimeSource
+        let destroySource
         try {
-          runtimeSource = definition.setup({
+          const runtimeSource = definition.setup({
             ownerDocument,
             signal: this.#abortController.signal,
             t: (key, fallback = '', params = undefined) => translate(`inlinePlugin.${definition.type}.${key}`, fallback, params),
             showPopup: typeof options.showPopup === 'function' ? options.showPopup : () => {},
             hidePopup: typeof options.hidePopup === 'function' ? options.hidePopup : () => {},
           })
-          const runtime = snapshotInlineRuntime(runtimeSource, `Inline definition "${definition.type}"`)
+          destroySource = captureInstanceDestroy(runtimeSource)
+          const runtime = snapshotInlineRuntime(runtimeSource, `Inline definition "${definition.type}"`, destroySource)
           this.#inlineRuntimes.set(definition.type, runtime)
         } catch (error) {
-          try { runtimeSource?.destroy?.() } catch {}
+          try { destroySource?.() } catch {}
           throw error
         }
       }

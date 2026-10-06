@@ -1,5 +1,6 @@
 // @ts-check
 import { uid } from '../../plugin-kit/index.js'
+import { invokeObserver } from '../../shared/invokeObserver.js'
 import { setSafeUrlAttribute } from '../../shared/sanitize/sanitizeUrl.js'
 import { mentionWidgetSchema } from '../../shared/inlineSchemas/mention.js'
 
@@ -322,7 +323,7 @@ export function createMentionPlugin(options={}){
         if(!session||!item)return
         const payload={id:String(item.id),name:item.name}
         if(session.commit(payload)){
-          snapshot.onMentionSelect?.({id:item.id,name:item.name})
+          invokeObserver(()=>snapshot.onMentionSelect?.({id:item.id,name:item.name}))
           close()
         }
       }

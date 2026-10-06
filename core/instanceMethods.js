@@ -1,6 +1,6 @@
 // @ts-check
 
-/** Capture one runtime-instance method with its original receiver.
+/** Capture one runtime or instance method with its original receiver.
  * @param {any} source
  * @param {string} name
  * @returns {((...args: any[]) => any) | undefined}

@@ -200,4 +200,31 @@ test('Failed aggregate rendering disposes a staged valid result while preserving
  }finally{renderer.destroy();holder?.remove()}
  equal(disposed,2)
 })
+for (const observerKind of ['throw', 'reject']) test('Mention contains a ' + observerKind + ' selection observer and preserves native Enter history', async () => {
+  let observed = 0, observedPayload
+  const definition = createMentionPlugin({
+    debounceDelay: 0,
+    searchFunction: async () => [{ id: 42, name: 'Ada' }],
+    onMentionSelect(data) {
+      observed++; observedPayload = data
+      if (observerKind === 'throw') throw new Error('Consumer mention observer failed')
+      return Promise.reject(new Error('Consumer mention observer failed'))
+    },
+  })
+  const editor = make([{ id: 'a', type: 'paragraph', dataVersion: 2, data: { text: '' } }], { inlinePlugins: [definition], injectStyles: true })
+  await clickNative(blockElement(editor, 'a').querySelector('.oe-paragraph'))
+  await printable('@'); await printable('A'); await pause(90)
+  assert(editorRoot(editor).querySelector('.oe-mention-item'), 'Mention choices did not open')
+  const before = editor.save().blocks
+  await dispatchKey('Enter', 'Enter', 13); await pause()
+  const after = editor.save().blocks
+  equal(observed, 1)
+  equal(observedPayload, { id: 42, name: 'Ada' })
+  equal(after.length, 1)
+  equal(Object.values(after[0].inline ?? {})[0]?.data, { id: '42', name: 'Ada' })
+  assert(!editorRoot(editor).querySelector('.oe-ip-popup'), 'Committed mention kept its popup')
+  await dispatchKey('z', 'KeyZ', 90, 2); equal(editor.save().blocks, before)
+  await dispatchKey('z', 'KeyZ', 90, 10); equal(editor.save().blocks, after)
+})
+
 await run()
