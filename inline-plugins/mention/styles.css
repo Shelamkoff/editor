@@ -62,10 +62,16 @@
 /* ── Dropdown item ──────────────────────────────────────────── */
 .oe-mention-item {
   display: flex;
+  box-sizing: border-box;
+  width: 100%;
   align-items: center;
   gap: 10px;
   min-height: 52px;
   padding: 8px 10px;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  text-align: start;
   cursor: pointer;
   user-select: none;
   border-radius: var(--oe-radius-sm, 4px);

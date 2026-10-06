@@ -1,3 +1,4 @@
+import { getTextOffset } from '../../shared/textOffset.js'
 import { createMentionPlugin } from '../../inline-plugins/mention/index.js'
 import { test, make, blockElement, editorRoot, assert, equal, pause, run } from './regressions/harness.js'
 import { clickNative, dispatchKey, printable } from './native-input-helpers.js'
@@ -83,7 +84,7 @@ test('Mention choice after moving within the query keeps the text after the live
   const after = editor.save().blocks
   assert(after[0].inline, 'Choosing a result at the live query caret was ignored')
   const id = Object.keys(after[0].inline)[0]
-  equal(after[0].data.text, '{{' + id + '}}A', 'The unselected query suffix was removed')
+  equal(after[0].data.text.replaceAll('&nbsp;', ' '), '{{' + id + '}} A', 'The unselected query suffix was removed')
   equal(after[0].inline[id].data, { id: '42', name: 'Ada' })
   await dispatchKey('z', 'KeyZ', 90, 2); equal(editor.save().blocks, before)
   await dispatchKey('z', 'KeyZ', 90, 10); equal(editor.save().blocks, after)
@@ -160,10 +161,12 @@ test('Moving out of an edited mention closes suggestions and preserves the next 
   equal(span.textContent, '@Aa', 'Native Backspace did not edit the widget label')
   equal(edited[0].inline.person.data.name, 'Aa', 'The edited widget label was not saved in author data')
   assert(root.querySelector('.oe-mention-item'), 'Editing the owned mention did not open suggestions')
+  assert(span.classList.contains('oe-ip--mention--editing'), 'Editing did not activate the mention span')
   await dispatchKey('End', 'End', 35)
   await dispatchKey('ArrowRight', 'ArrowRight', 39)
   await dispatchKey('End', 'End', 35)
   assert(!root.querySelector('.oe-mention-dropdown'), 'Leaving the edited widget kept its suggestions active')
+  assert(!span.classList.contains('oe-ip--mention--editing'), 'Leaving the widget did not deactivate its span')
   equal(editor.save().blocks, edited)
   await dispatchKey('Enter', 'Enter', 13)
   const after = editor.save().blocks
@@ -328,6 +331,218 @@ test('A read-only transition retires the generic autocomplete session even after
   equal(cancellations.length, 1, 'The runtime was not notified that its query was retired')
   await dispatchKey('z', 'KeyZ', 90, 2)
   equal(editor.save().blocks[0].data.text, '', 'A retired result added an Undo action')
+})
+
+test('A reused custom mention row commits its current candidate after the query changes', async () => {
+  const rows = new Map()
+  const editor = make([{ id: 'a', type: 'paragraph', dataVersion: 2, data: { text: '' } }], { injectStyles: true, inlinePlugins: [createMentionPlugin({
+    debounceDelay: 0, searchFunction: async query => query === 'A' ? [{ id: 'ada', name: 'Ada' }] : query === 'AB' ? [{ id: 'grace', name: 'Grace' }, { id: 'ada', name: 'Ada' }] : [],
+    renderItem(item) {
+      if (!rows.has(item.id)) { const row = document.createElement('button'); row.type = 'button'; row.textContent = item.name; rows.set(item.id, row) }
+      return rows.get(item.id)
+    },
+  })] })
+  const field = blockElement(editor, 'a').querySelector('.oe-paragraph')
+  await clickNative(field); await printable('@'); await printable('A'); await pause(80)
+  const row = rows.get('ada')
+  assert(row?.isConnected, 'The initial custom candidate was not mounted')
+  await printable('B'); await pause(80)
+  assert(row.isConnected && rows.get('ada') === row, 'The fixture did not reuse its custom result row')
+  const before = editor.save().blocks
+  await clickNative(row)
+  const after = editor.save().blocks
+  equal(Object.values(after[0].inline)[0].data, { id: 'ada', name: 'Ada' }, 'An old row handler chose another candidate from the new query')
+  await dispatchKey('z', 'KeyZ', 90, 2); equal(editor.save().blocks, before)
+  await dispatchKey('z', 'KeyZ', 90, 10); equal(editor.save().blocks, after)
+})
+
+test('Fresh mention typing and confirmation keep the caret after the trigger and insert following text outside the widget', async () => {
+  const editor = await suggestions(), root = editorRoot(editor), field = blockElement(editor, 'a').querySelector('.oe-paragraph')
+  const selection = window.getSelection(), before = editor.save().blocks
+  equal(field.textContent, '@A')
+  equal(getTextOffset(field, selection.focusNode, selection.focusOffset), 2, 'The query caret moved before its trigger')
+  await dispatchKey('Enter', 'Enter', 13)
+  const committed = editor.save().blocks, id = Object.keys(committed[0].inline)[0], span = field.querySelector('[data-inline-plugin="mention"]')
+  equal(getTextOffset(field, selection.focusNode, selection.focusOffset), 2, 'Confirmation did not place the caret after its trailing space')
+  equal(field.textContent.replaceAll('\u00a0', ' '), '@Ada ', 'Confirmation did not insert one external space')
+  assert(!span.contains(selection.focusNode), 'Confirmation left the caret inside the mention')
+  await printable('X')
+  const after = editor.save().blocks
+  equal(after[0].inline[id].data, { id: '42', name: 'Ada' })
+  equal(span.textContent, '@Ada', 'Following text was inserted inside the mention span')
+  equal(field.textContent.replaceAll('\u00a0', ' '), '@Ada X')
+  equal(after[0].data.text.replaceAll('&nbsp;', ' '), '{{' + id + '}} X', 'Following text was not saved after the widget')
+  await dispatchKey('z', 'KeyZ', 90, 2); equal(editor.save().blocks, committed)
+  await dispatchKey('z', 'KeyZ', 90, 2); equal(editor.save().blocks, before)
+})
+
+for (const editing of [false, true]) test('Typing a space at the end of a mention line keeps it outside the pill / editing ' + editing, async () => {
+  const editor = make([{ id: 'a', type: 'paragraph', dataVersion: 2, data: { text: '{{person}}' }, inline: { person: { type: 'mention', dataVersion: 1, data: { id: 'old', name: 'Ada' } } } }], { injectStyles: true, inlinePlugins: [createMentionPlugin({ debounceDelay: 0, searchFunction: async () => [{ id: 'ada', name: 'Ada' }] })] })
+  const field = blockElement(editor, 'a').querySelector('.oe-paragraph'), span = field.querySelector('[data-inline-plugin="mention"]'), selection = window.getSelection()
+  field.focus(); selection.setBaseAndExtent(span.firstChild, 2, span.firstChild, 2)
+  if (editing) { await printable('X'); await pause(80); assert(editorRoot(editor).querySelector('.oe-mention-dropdown'), 'Editing did not open suggestions') }
+  await dispatchKey('End', 'End', 35)
+  const before = editor.save().blocks, name = before[0].inline.person.data.name
+  await printable(' ')
+  const afterSpace = editor.save().blocks
+  equal(span.textContent, '@' + name, 'The end-of-line space became part of the mention span')
+  equal(afterSpace[0].inline.person.data, before[0].inline.person.data)
+  equal(afterSpace[0].data.text.replaceAll('&nbsp;', ' '), '{{person}} ', 'The space was not saved outside the mention')
+  equal(selection.focusNode.nodeType, Node.TEXT_NODE)
+  assert(!span.contains(selection.focusNode), 'The caret stayed inside the mention after the space')
+  equal(getTextOffset(field, selection.focusNode, selection.focusOffset), 2)
+  assert(!editorRoot(editor).querySelector('.oe-mention-dropdown'), 'The ended mention kept its suggestions active')
+  await printable('X')
+  const after = editor.save().blocks
+  equal(field.textContent, '@' + name + ' X'); equal(span.textContent, '@' + name)
+  equal(after[0].data.text.replaceAll('&nbsp;', ' '), '{{person}} X')
+  await dispatchKey('z', 'KeyZ', 90, 2); equal(editor.save().blocks, before)
+  await dispatchKey('z', 'KeyZ', 90, 10); equal(editor.save().blocks, after)
+})
+
+test('Replacing a backwards selected mention label ending at its boundary edits the label', async () => {
+  const editor = make([{ id: 'a', type: 'paragraph', dataVersion: 2, data: { text: '{{person}}' }, inline: { person: { type: 'mention', dataVersion: 1, data: { id: 'old', name: 'Ada' } } } }], { injectStyles: true, inlinePlugins: [createMentionPlugin({ debounceDelay: 0, searchFunction: async () => [] })] })
+  const field = blockElement(editor, 'a').querySelector('.oe-paragraph'), span = field.querySelector('[data-inline-plugin="mention"]'), selection = window.getSelection(), before = editor.save().blocks
+  field.focus(); selection.setBaseAndExtent(span.firstChild, 4, span.firstChild, 1)
+  equal(selection.toString(), 'Ada')
+  await printable('X')
+  const after = editor.save().blocks
+  equal(span.textContent, '@X'); equal(field.textContent, '@X')
+  equal(after[0].inline.person.data, { id: 'old', name: 'X' })
+  equal(after[0].data.text, '{{person}}')
+  await dispatchKey('z', 'KeyZ', 90, 2); equal(editor.save().blocks, before)
+  await dispatchKey('z', 'KeyZ', 90, 10); equal(editor.save().blocks, after)
+})
+
+test('Choosing a replacement for an edited mention leaves the caret after the widget through Undo and Redo', async () => {
+  const editor = make([{ id: 'a', type: 'paragraph', dataVersion: 2, data: { text: '{{person}}' }, inline: { person: { type: 'mention', dataVersion: 1, data: { id: 'old', name: 'Ada' } } } }], { injectStyles: true, inlinePlugins: [createMentionPlugin({
+    debounceDelay: 0, searchFunction: async () => [{ id: 'grace', name: 'Grace Hopper' }],
+  })] })
+  const field = blockElement(editor, 'a').querySelector('.oe-paragraph'), span = field.querySelector('[data-inline-plugin="mention"]'), selection = window.getSelection()
+  field.focus(); selection.setBaseAndExtent(span.firstChild, 2, span.firstChild, 2)
+  await printable('X'); await pause(80)
+  const edited = editor.save().blocks
+  await dispatchKey('Enter', 'Enter', 13)
+  const after = editor.save().blocks
+  equal(after[0].inline.person.data, { id: 'grace', name: 'Grace Hopper' })
+  equal(getTextOffset(field, selection.focusNode, selection.focusOffset), 2, 'Choosing an edited mention did not place the caret after its trailing space')
+  equal(after[0].data.text.replaceAll('&nbsp;', ' '), '{{person}} ')
+  assert(!span.classList.contains('oe-ip--mention--editing'), 'Confirmation kept the mention active')
+  await dispatchKey('z', 'KeyZ', 90, 2); equal(editor.save().blocks, edited)
+  await dispatchKey('z', 'KeyZ', 90, 10); equal(editor.save().blocks, after)
+  equal(getTextOffset(field, selection.focusNode, selection.focusOffset), 2, 'Redo did not restore the caret after the mention space')
+})
+
+test('Programmatic mention insertion places the caret after its external space', async () => {
+  const editor = make([{ id: 'a', type: 'paragraph', dataVersion: 2, data: { text: '' } }], { injectStyles: true, inlinePlugins: [createMentionPlugin()] })
+  const field = blockElement(editor, 'a').querySelector('.oe-paragraph'), before = editor.save().blocks
+  editor.blocks.focus('a', { offset: 0 })
+  equal(editor.insertInlinePlugin('mention', { id: 'ada', name: 'Ada' }), true)
+  const after = editor.save().blocks, span = field.querySelector('[data-inline-plugin="mention"]'), selection = window.getSelection()
+  equal(field.textContent.replaceAll('\u00a0', ' '), '@Ada ')
+  equal(span.textContent, '@Ada')
+  equal(getTextOffset(field, selection.focusNode, selection.focusOffset), 2)
+  assert(!span.contains(selection.focusNode))
+  await dispatchKey('z', 'KeyZ', 90, 2); equal(editor.save().blocks, before)
+  await dispatchKey('z', 'KeyZ', 90, 10); equal(editor.save().blocks, after)
+  equal(getTextOffset(field, selection.focusNode, selection.focusOffset), 2)
+})
+
+test('Changing a debounced mention query immediately retires the previous candidates', async () => {
+  const editor = make([{ id: 'a', type: 'paragraph', dataVersion: 2, data: { text: '' } }], { injectStyles: true, inlinePlugins: [createMentionPlugin({ debounceDelay: 300, searchFunction: async query => query ? [{ id: 'alice', name: 'Alice' }] : [{ id: 'ada', name: 'Ada' }] })] })
+  const root = editorRoot(editor), field = blockElement(editor, 'a').querySelector('.oe-paragraph')
+  await clickNative(field); await printable('@'); await pause(340)
+  equal(root.querySelector('[role="option"] .oe-mention-name')?.textContent, 'Ada')
+  await printable('A')
+  equal(root.querySelectorAll('[role="option"]').length, 0, 'Old query candidates remained available during debounce')
+  assert(root.querySelector('.oe-mention-loading'), 'A pending query did not show its loading state')
+  const before = editor.save().blocks
+  await pause(340)
+  equal(root.querySelector('[role="option"] .oe-mention-name')?.textContent, 'Alice')
+  await dispatchKey('Enter', 'Enter', 13)
+  const after = editor.save().blocks
+  equal(Object.values(after[0].inline)[0].data, { id: 'alice', name: 'Alice' })
+  await dispatchKey('z', 'KeyZ', 90, 2); equal(editor.save().blocks, before)
+  await dispatchKey('z', 'KeyZ', 90, 10); equal(editor.save().blocks, after)
+})
+
+test('An empty mention query searches immediately even with a configured debounce', async () => {
+  const queries = []
+  const editor = make([{ id: 'a', type: 'paragraph', dataVersion: 2, data: { text: '' } }], { injectStyles: true, inlinePlugins: [createMentionPlugin({ debounceDelay: 300, searchFunction: async query => { queries.push(query); return [{ id: 'ada', name: 'Ada' }] } })] })
+  await clickNative(blockElement(editor, 'a').querySelector('.oe-paragraph')); await printable('@'); await pause(80)
+  equal(queries, [''], 'The initial trigger search was unnecessarily delayed')
+  equal(editorRoot(editor).querySelectorAll('[role="option"]').length, 1)
+})
+
+for (const editing of [false, true]) test('Mention confirmation reuses the following authored space / editing ' + editing, async () => {
+  const block = editing
+    ? { id: 'a', type: 'paragraph', dataVersion: 2, data: { text: '{{person}} tail' }, inline: { person: { type: 'mention', dataVersion: 1, data: { id: 'old', name: 'Ada' } } } }
+    : { id: 'a', type: 'paragraph', dataVersion: 2, data: { text: ' tail' } }
+  const editor = make([block], { injectStyles: true, inlinePlugins: [createMentionPlugin({ debounceDelay: 0, searchFunction: async () => [{ id: 'ada', name: 'Ada' }] })] })
+  const field = blockElement(editor, 'a').querySelector('.oe-paragraph'), selection = window.getSelection()
+  if (editing) {
+    const span = field.querySelector('[data-inline-plugin="mention"]')
+    field.focus(); selection.setBaseAndExtent(span.firstChild, 2, span.firstChild, 2); await printable('X')
+  } else { editor.blocks.focus('a', { offset: 0 }); await printable('@'); await printable('A') }
+  await pause(80)
+  const before = editor.save().blocks
+  await dispatchKey('Enter', 'Enter', 13)
+  const after = editor.save().blocks, id = Object.keys(after[0].inline)[0], span = field.querySelector('[data-inline-plugin="mention"]')
+  equal(after[0].data.text.replaceAll('&nbsp;', ' '), '{{' + id + '}} tail', 'Confirmation duplicated the authored separator')
+  equal(field.textContent.replaceAll('\u00a0', ' '), '@Ada tail')
+  equal(getTextOffset(field, selection.focusNode, selection.focusOffset), 2)
+  equal(span.textContent, '@Ada'); assert(!span.classList.contains('oe-ip--mention--editing'))
+  await dispatchKey('z', 'KeyZ', 90, 2); equal(editor.save().blocks, before)
+  await dispatchKey('z', 'KeyZ', 90, 10); equal(editor.save().blocks, after)
+})
+
+for (const [key, offset] of [['Backspace', 1], ['Delete', 0]]) test('Deleting the trigger of an edited mention stops search and unwraps text / ' + key, async () => {
+  const queries = []
+  const editor = make([{ id: 'a', type: 'paragraph', dataVersion: 2, data: { text: '{{person}} tail' }, inline: { person: { type: 'mention', dataVersion: 1, data: { id: 'old', name: 'Ada' } } } }], { injectStyles: true, inlinePlugins: [createMentionPlugin({ debounceDelay: 0, searchFunction: async (query, _page, { signal }) => { queries.push({ query, signal }); return [{ id: 'ada', name: 'Ada' }] } })] })
+  const root = editorRoot(editor), field = blockElement(editor, 'a').querySelector('.oe-paragraph'), span = field.querySelector('[data-inline-plugin="mention"]'), selection = window.getSelection()
+  field.focus(); selection.setBaseAndExtent(span.firstChild, 3, span.firstChild, 3)
+  await dispatchKey('Backspace', 'Backspace', 8); await pause(80)
+  equal(span.textContent, '@Aa'); equal(queries.at(-1).query, 'Aa')
+  assert(span.classList.contains('oe-ip--mention--editing'), 'Deleting a name character did not activate its span')
+  assert(root.querySelector('.oe-mention-dropdown'), 'Deleting a name character did not open search')
+  const before = editor.save().blocks, calls = queries.length
+  selection.setBaseAndExtent(span.firstChild, offset, span.firstChild, offset)
+  await dispatchKey(key, key, key === 'Delete' ? 46 : 8); await pause(80)
+  const after = editor.save().blocks
+  equal(field.textContent, 'Aa tail'); equal(after[0].data.text, 'Aa tail')
+  assert(!field.querySelector('[data-inline-plugin="mention"]'), 'The removed trigger left a mention span')
+  assert(!after[0].inline || !Object.keys(after[0].inline).length, 'Unwrapping kept a serialized mention')
+  assert(!root.querySelector('.oe-mention-dropdown'), 'Trigger deletion left search open')
+  equal(queries.length, calls, 'Trigger deletion started another search')
+  equal(getTextOffset(field, selection.focusNode, selection.focusOffset), 0, 'Unwrapping moved the caret away from the deleted trigger')
+  await dispatchKey('z', 'KeyZ', 90, 2); equal(editor.save().blocks, before)
+  await dispatchKey('z', 'KeyZ', 90, 10); equal(editor.save().blocks, after)
+})
+
+for (const theme of ['light', 'dark']) for (const width of [390, 1280]) test('Mention results fill their menu width and align variable-length labels / ' + theme + ' / ' + width, async () => {
+  await window.__testInput('Viewport.set', { width, height: 600 })
+  try {
+    const editor = make([{ id: 'a', type: 'paragraph', dataVersion: 2, data: { text: '' } }], { theme, injectStyles: true, inlinePlugins: [createMentionPlugin({ debounceDelay: 0, searchFunction: async () => [
+      { id: 'ada', name: 'Ада Лавлейс', details: 'Математик' },
+      { id: 'grace', name: 'Грейс Хоппер', details: 'Учёный в области информатики' },
+      { id: 'margaret', name: 'Маргарет Гамильтон', details: 'Инженер-программист' },
+    ] })] })
+    await clickNative(blockElement(editor, 'a').querySelector('.oe-paragraph')); await printable('@'); await pause(80)
+    const root = editorRoot(editor), menu = root.querySelector('.oe-mention-dropdown'), style = getComputedStyle(menu)
+    const available = menu.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight)
+    const rows = [...menu.querySelectorAll('.oe-mention-item[role=option]')]
+    equal(rows.length, 3)
+    for (const row of rows) {
+      assert(Math.abs(row.getBoundingClientRect().width - available) <= 1, 'A result width follows its content instead of filling the menu')
+      assert(['left', 'start'].includes(getComputedStyle(row).textAlign), 'A result label inherits centered button text')
+    }
+    const nameLefts = rows.map(row => row.querySelector('.oe-mention-name').getBoundingClientRect().left)
+    assert(nameLefts.every(left => Math.abs(left - nameLefts[0]) <= 1), 'Labels do not share a left text column')
+    const bounds = menu.getBoundingClientRect()
+    assert(bounds.left >= 8 && bounds.right <= innerWidth - 8, 'The menu escapes the viewport')
+    await clickNative(rows[1])
+    equal(Object.values(editor.save().blocks[0].inline)[0].data, { id: 'grace', name: 'Грейс Хоппер' })
+  } finally { await window.__testInput('Viewport.reset') }
 })
 
 await run()

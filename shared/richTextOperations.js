@@ -1,5 +1,5 @@
 // @ts-check
-import { findNodeAtOffset, getTextLength } from './textOffset.js'
+import { findNodeAtOffset, getTextLength, getTextOffset } from './textOffset.js'
 import { normalizeRichText } from './richTextCodec.js'
 import { toTrustedHtml } from './sanitize/trustedHtml.js'
 
@@ -77,6 +77,30 @@ export function getRichTextLogicalLength(html,inline,ownerDocument){
   template.innerHTML=/** @type {any} */(toTrustedHtml(normalizeRichText(String(html??''),ownerDocument),ownerDocument))
   expandReferences(template.content,ownedInline,ownerDocument)
   return getTextLength(template.content)
+}
+
+/** Ensure text after one inline occurrence and return its logical caret.
+ * @param {string} html
+ * @param {Record<string, unknown>} inline
+ * @param {string} id
+ * @param {string} suffix
+ * @param {Document} ownerDocument
+ * @returns {{html:string,offset:number}|null}
+ */
+export function ensureRichTextReferenceSuffix(html,inline,id,suffix,ownerDocument){
+  const template=ownerDocument.createElement('template')
+  template.innerHTML=/** @type {any} */(toTrustedHtml(normalizeRichText(html,ownerDocument),ownerDocument))
+  expandReferences(template.content,inline,ownerDocument)
+  const marker=Array.from(template.content.querySelectorAll('['+MARKER_ATTR+']')).find(node=>node.getAttribute(MARKER_ATTR)===id)
+  if(!marker)return null
+  const offset=getTextOffset(template.content,marker,1)
+  const next=findNodeAtOffset(template.content,offset,'start')
+  const text=next.node.nodeType===3?(next.node.textContent??'').slice(next.offset):''
+  if(!text.startsWith(suffix)&&!(suffix==='\u00a0'&&/^\s/.test(text))){
+    marker.after(ownerDocument.createTextNode(suffix))
+  }
+  collapseReferences(template.content,ownerDocument)
+  return {html:normalizeRichText(template.innerHTML,ownerDocument),offset:offset+suffix.length}
 }
 
 /**

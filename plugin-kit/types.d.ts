@@ -300,7 +300,7 @@ export interface InlineWidgetContext<
   readonly fieldKey: string
   readonly signal: AbortSignal
   getData(): Readonly<D>
-  updateData(producer: (current: Readonly<D>) => D): void
+  updateData(producer: (current: Readonly<D>) => D, options?: { trailingText?: string }): void
   beginTask(): DataTask<D>
   isReadOnly(): boolean
 }
@@ -314,7 +314,7 @@ export interface InlineTriggerSession<
   readonly query: string
   readonly range: Readonly<{ start: number, end: number }>
   readonly anchor: HTMLElement
-  commit(data: D): boolean
+  commit(data: D, options?: { trailingText?: string }): boolean
   cancel(): void
 }
 
@@ -366,6 +366,7 @@ export interface InlinePluginDefinition<
   readonly editing?: InlineWidgetEditCapability<D>
   readonly insertion?: Readonly<{
     createInitial(): InlineFreshInsertion<D>
+    trailingText?: string
   }>
   setup(context: InlinePluginRuntimeContext): InlinePluginRuntime<D>
 }

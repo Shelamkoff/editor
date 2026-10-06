@@ -18,6 +18,8 @@ export class NativeInputController {
   #reconciler
   #crossSelection
   #selection
+  #projection
+  #onControlledInput
   #controller
   #composition = null
   #preparedComposition = null
@@ -28,7 +30,7 @@ export class NativeInputController {
   #lastGroup = null
   #pendingInput = null
 
-  constructor({ root, runtime, reconciler, crossSelection = null, selection = null, coalesceMs = 300 }) {
+  constructor({ root, runtime, reconciler, crossSelection = null, selection = null, projection = null, onControlledInput = null, coalesceMs = 300 }) {
     if (!root?.addEventListener) throw new TypeError('NativeInputController requires an event root')
     if (!runtime?.syncBlockFromProjection) throw new TypeError('NativeInputController requires a DocumentRuntime')
     if (!reconciler?.resolveEditableTarget) throw new TypeError('NativeInputController requires a BlockReconciler')
@@ -41,6 +43,8 @@ export class NativeInputController {
     this.#reconciler = reconciler
     this.#crossSelection = crossSelection
     this.#selection = selection
+    this.#projection = projection
+    this.#onControlledInput = typeof onControlledInput === 'function' ? onControlledInput : null
     this.#coalesceMs = coalesceMs
     const performanceNow = root.ownerDocument?.defaultView?.performance?.now?.bind(root.ownerDocument.defaultView.performance)
     this.#now = performanceNow ?? Date.now
@@ -135,12 +139,43 @@ export class NativeInputController {
       })
       return
     }
+    if (this.#insertAtWidgetBoundary(owner, event, inputType)) return
     this.#pendingInput = this.#selection ? {
       blockId: owner.blockId, fieldKey: owner.fieldKey,
       generation: this.#runtime.generation, revision: this.#runtime.revision,
       bookmark: this.#selection.capture(),
     } : null
     this.#endingComposition = null
+  }
+
+  #insertAtWidgetBoundary(owner, event, inputType) {
+    if (owner.mode !== 'rich-text' || inputType !== 'insertText' || typeof event.data !== 'string' || !event.data) return false
+    const document = this.#root.ownerDocument, native = document.defaultView?.getSelection?.()
+    const target = this.#projection?.resolveWidgetInputTarget(native, inputType)
+    if (!target || !target.element.isContentEditable || target.blockId !== owner.blockId || target.fieldKey !== owner.fieldKey) return false
+    let side = target.position
+    if (side === 'inside') {
+      const range = document.createRange()
+      range.selectNodeContents(target.element)
+      range.setEnd(native.anchorNode, native.anchorOffset)
+      const offset = range.toString().length
+      if (offset === 0) side = 'before'
+      else if (offset === target.element.textContent.length) side = 'after'
+      else return false
+    }
+    // An editable pill's boundary has native affinity to its label. Insert
+    // in a sibling text node and record the same gesture as ordinary typing.
+    const selectionBefore = this.#selection?.capture()
+    event.preventDefault()
+    event.stopImmediatePropagation?.()
+    const node = document.createTextNode(event.data)
+    if (side === 'before') target.element.before(node)
+    else target.element.after(node)
+    native.setBaseAndExtent(node, node.data.length, node, node.data.length)
+    this.#endingComposition = null
+    this.#commit(owner, { group: this.#historyGroup(owner), preserveSourceProjection: true, selectionBefore })
+    this.#onControlledInput?.()
+    return true
   }
 
   handleInput(event) {

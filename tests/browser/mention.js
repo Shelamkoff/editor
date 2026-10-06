@@ -4,6 +4,7 @@ import { createMentionPlugin, createMentionRenderer } from '../../inline-plugins
 import { createParagraphPlugin } from '../../plugins/paragraph/index.js'
 import { EditorRenderer } from '../../renderer/index.js'
 import ru from '../../locale/ru.js'
+import { getTextOffset } from '../../shared/textOffset.js'
 
 const sandbox = document.querySelector('#sandbox')
 
@@ -319,10 +320,10 @@ async function run() {
   assert(
     deletionSelection?.isCollapsed
       && deletion.content.contains(deletionSelection.anchorNode)
-      && deletionSelection.anchorNode?.textContent === 'Prefix '
-      && deletionSelection.anchorOffset === 'Prefix '.length,
+      && getTextOffset(deletion.content, deletionSelection.anchorNode, deletionSelection.anchorOffset) === 'Prefix '.length,
     'deleting the last mention trigger moved the caret away from the deletion point',
   )
+  assert(deletion.content.textContent.replaceAll('\u00a0', ' ') === 'Prefix  ', 'Deleting the mention removed its external separator')
   deletion.editor.destroy()
 
   const emoji = createMentionEditor(

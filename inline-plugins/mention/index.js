@@ -117,6 +117,7 @@ export function createMentionPlugin(options={}){
       },
     }),
     insertion:Object.freeze({
+      trailingText:'\u00a0',
       createInitial(){
         return {kind:/** @type {'text'} */('text'),text:trigger}
       },
@@ -133,6 +134,7 @@ export function createMentionPlugin(options={}){
       let timer=null
       let loadingMore=false
       let compositionSession=null
+      let rowController=null
       const widgetEntries=new Map()
       const listboxId='oe-mention-'+uid()
 
@@ -221,11 +223,17 @@ export function createMentionPlugin(options={}){
         if(active?.id)anchor.setAttribute('aria-activedescendant',active.id)
         else anchor.removeAttribute('aria-activedescendant')
       }
+      const retireRows=()=>{
+        rowController?.abort()
+        rowController=null
+      }
       const close=()=>{
+        retireRows()
         const session=activeSession
         if(session?.editEntry){
           const entry=session.editEntry
           if(!entry.dead&&entry.span.isConnected){
+            entry.span.classList.remove('oe-ip--mention--editing')
             try{entry.project(entry.context.getData())}catch{}
           }
         }
@@ -242,7 +250,13 @@ export function createMentionPlugin(options={}){
       }
 
       const render=()=>{
+        retireRows()
         if(!popup)return
+        const Ctor=runtimeContext.ownerDocument.defaultView?.AbortController??AbortController
+        const controller=new Ctor()
+        rowController=controller
+        const signal=controller.signal,session=activeSession
+        runtimeContext.signal.addEventListener('abort',()=>controller.abort(),{once:true,signal})
         popup.replaceChildren()
         if(items.length===0){
           const text=snapshot.noResultsText??runtimeContext.t('noResults','No results')
@@ -301,17 +315,18 @@ export function createMentionPlugin(options={}){
           row.id=`${listboxId}-option-${index}`
           row.setAttribute('role','option')
           row.setAttribute('aria-selected',String(index===selected))
-          row.addEventListener('mousedown',event=>event.preventDefault(),{signal:runtimeContext.signal})
+          row.addEventListener('mousedown',event=>event.preventDefault(),{signal})
           row.addEventListener('click',()=>{
+            if(activeSession!==session)return
             selected=index
             commitSelected()
-          },{signal:runtimeContext.signal})
+          },{signal})
           popup.appendChild(row)
         })
         syncAria()
         const active=popup.querySelector('.oe-mention-item--active')
         queueMicrotask(()=>{
-          if(active?.isConnected&&popup?.contains(active))active.scrollIntoView({block:'nearest'})
+          if(!signal.aborted&&active?.isConnected&&popup?.contains(active))active.scrollIntoView({block:'nearest'})
         })
       }
 
@@ -332,7 +347,7 @@ export function createMentionPlugin(options={}){
         const item=items[selected]
         if(!session||!item)return
         const payload={id:String(item.id),name:item.name}
-        if(session.commit(payload)){
+        if(session.commit(payload,{trailingText:'\u00a0'})){
           invokeObserver(()=>snapshot.onMentionSelect?.({id:item.id,name:item.name}))
           close()
         }
@@ -392,16 +407,17 @@ export function createMentionPlugin(options={}){
           range:Object.freeze({start:0,end:0}),
           anchor:field,
           editEntry:entry,
-          commit(payload){
+          commit(payload,options){
             if(entry.dead||entry.readOnly||!entry.span.isConnected)return false
             try{
-              entry.context.updateData(()=>payload)
+              entry.context.updateData(()=>payload,options)
               return true
             }catch{return false}
           },
           cancel(){close()},
         }
         schedule(session)
+        entry.span.classList.add('oe-ip--mention--editing')
         const text=entry.span.firstChild
         if(text?.nodeType===3)setCaret(text,Math.min(nextOffset,text.data.length))
       }
@@ -463,8 +479,14 @@ export function createMentionPlugin(options={}){
         const text=span.textContent??''
         const atStart=offset===0
         const atEnd=offset===text.length
-
         const native=runtimeContext.ownerDocument.defaultView?.getSelection?.()
+        if(event.inputType==='insertText'&&typeof event.data==='string'
+          &&native?.isCollapsed
+          &&(atStart||atEnd&&(!activeSession?.editEntry||/\s/.test(event.data)))){
+          close()
+          return
+        }
+
         if(native&&!native.isCollapsed){
           if(!native.rangeCount)return
           const range=native.getRangeAt(0)
@@ -582,8 +604,12 @@ export function createMentionPlugin(options={}){
 
       const schedule=session=>{
         abortSearch()
+        retireRows()
         activeSession=session
         query=session.query
+        items=[]
+        selected=0
+        cursor=null
         if(!popup){
           popup=runtimeContext.ownerDocument.createElement('div')
           popup.id=listboxId
@@ -594,18 +620,22 @@ export function createMentionPlugin(options={}){
             if(popup.scrollTop+popup.clientHeight>=popup.scrollHeight-24)void load(cursor,true)
           },{signal:runtimeContext.signal})
         }
+        popup.replaceChildren()
+        showLoading()
         syncAria()
         runtimeContext.showPopup(session.anchor,popup,()=>{
           clearAria(session)
           if(activeSession===session){
             abortSearch()
+            retireRows()
+            session.editEntry?.span.classList.remove('oe-ip--mention--editing')
             activeSession=null
           }
         })
         timer=view.setTimeout(()=>{
           timer=null
           void load(null,false)
-        },delay)
+        },query?delay:0)
       }
 
       const handleSessionKeydown=(event,session)=>{
@@ -715,6 +745,7 @@ export function createMentionPlugin(options={}){
             if(readOnly)span.contentEditable='false'
             else span.removeAttribute('contenteditable')
             span.tabIndex=readOnly?-1:0
+            if(readOnly)span.classList.remove('oe-ip--mention--editing')
             entry.readOnly=readOnly
           }
           entry.project=project

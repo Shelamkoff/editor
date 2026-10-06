@@ -5,7 +5,7 @@ import { decodeCurrentBlock, decodeCurrentDocument, decodeCurrentInlineMap } fro
 import { DOCUMENT_FORMAT_VERSION } from '../shared/documentFormat.js'
 import { invokeObserver } from '../shared/invokeObserver.js'
 import { normalizeRichText } from '../shared/richTextCodec.js'
-import { getRichTextLogicalLength, replaceRichTextRange, replaceRichTextReference, scanRichTextPlaceholders, sliceRichTextRange, splitRichTextRange } from '../shared/richTextOperations.js'
+import { ensureRichTextReferenceSuffix, getRichTextLogicalLength, replaceRichTextRange, replaceRichTextReference, scanRichTextPlaceholders, sliceRichTextRange, splitRichTextRange } from '../shared/richTextOperations.js'
 import {
   assembleCanonicalRecord,
   createSessionIdAllocator,
@@ -1781,8 +1781,10 @@ export class DocumentRuntime {
     }
   }
 
-  insertInlineWidget(blockId, fieldKey, range, type, data) {
+  insertInlineWidget(blockId, fieldKey, range, type, data, options = {}) {
     this.#assertInteractionMutation()
+    const trailingText = options.trailingText ?? ''
+    if (typeof trailingText !== 'string' || /[\r\n]/.test(trailingText)) throw new TypeError('Inline trailing text must be a single-line string')
     const current = this.#store.get(blockId)
     if (!current) throw new Error(`Unknown block id: ${blockId}`)
     if (this.activation(blockId)?.kind !== 'active') throw new Error(`Unregistered block cannot be updated: ${blockId}`)
@@ -1807,13 +1809,14 @@ export class DocumentRuntime {
     const nextData = blockDefinition.schema.mapRichText(blockData, (html, key) => {
       if (key !== fieldKey) return html
       matched = true
-      return replaceRichTextRange(
+      const result = replaceRichTextRange(
         html,
         inline,
         range,
         { kind: 'inline-reference', id },
         this.#ownerDocument,
       )
+      return trailingText ? ensureRichTextReferenceSuffix(result, inline, id, trailingText, this.#ownerDocument).html : result
     })
     if (!matched) throw new Error(`Unknown rich-text field "${fieldKey}" for block "${blockId}"`)
     const next = this.#recordFromData(
@@ -1823,10 +1826,16 @@ export class DocumentRuntime {
     return id
   }
 
-  updateInlineWidget(blockId, inlineId, producer) {
+  updateInlineWidget(blockId, inlineId, producer, options = {}) {
     this.#assertInteractionMutation()
     if (typeof producer !== 'function') throw new TypeError('Inline widget update producer must be a function')
-    this.#engine.execute({ origin: 'plugin', name: 'inline-widget.update' }, tx => {
+    const trailingText = options.trailingText ?? ''
+    if (typeof trailingText !== 'string' || /[\r\n]/.test(trailingText)) throw new TypeError('Inline trailing text must be a single-line string')
+    const selection = this.#captureSelection()
+    let selectionAfter = selection
+    this.#engine.execute({ origin: 'plugin', name: 'inline-widget.update',
+      selectionBefore: selection, selectionAfter: () => selectionAfter,
+    }, tx => {
       const current = tx.get(blockId)
       if (!current) throw new Error(`Unknown block id: ${blockId}`)
       if (!this.#registry.hasBlock(current.type)) throw new Error(`Unregistered block cannot be updated: ${blockId}`)
@@ -1851,8 +1860,22 @@ export class DocumentRuntime {
         data: encoded.data,
       }
       const blockDefinition = this.#registry.getBlockDefinition(current.type)
+      let blockData = latest.data
+      if (trailingText) {
+        let matched = false
+        blockData = blockDefinition.schema.mapRichText(cloneEditorData(blockData), (html, fieldKey) => {
+          if (fieldKey !== options.fieldKey) return html
+          const result = ensureRichTextReferenceSuffix(html, inline, inlineId, trailingText, this.#ownerDocument)
+          if (!result) throw new Error('Inline occurrence is no longer present in its field')
+          matched = true
+          const point = { blockId, fieldKey, offset: result.offset }
+          selectionAfter = { anchor: point, focus: { ...point } }
+          return result.html
+        })
+        if (!matched) throw new Error('Inline occurrence has no matching rich-text field')
+      }
       const next = this.#recordFromData(
-        latest.id, latest.type, blockDefinition, latest.data, latest.tunes, inline,
+        latest.id, latest.type, blockDefinition, blockData, latest.tunes, inline,
       )
       if (
         latest.dataVersion === next.dataVersion
@@ -1862,6 +1885,7 @@ export class DocumentRuntime {
       ) return
       tx.update(blockId, next)
     })
+    if (trailingText) this.#restoreSelection(selectionAfter)
   }
 
   replaceInlineWidgetWithText(blockId, inlineId, text = '') {
@@ -3010,7 +3034,7 @@ export class DocumentRuntime {
               data: ref.data,
             }).data
           },
-          updateData: producer => this.updateInlineWidget(id, inlineId, producer),
+          updateData: (producer, options) => this.updateInlineWidget(id, inlineId, producer, { trailingText: options?.trailingText, fieldKey }),
           commitDomMutation: operation => {
             this.syncBlockFromProjection(id, operation, {
               origin: 'plugin',

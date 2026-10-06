@@ -220,6 +220,11 @@ export class InlineProjectionRuntime {
           candidate=selection.anchorNode.childNodes[selection.anchorOffset-1]??null
         }
         position='after'
+      }else if(inputType==='insertText'&&selection.anchorNode.nodeType===1){
+        const previous=selection.anchorNode.childNodes[selection.anchorOffset-1]??null
+        const next=selection.anchorNode.childNodes[selection.anchorOffset]??null
+        if(previous&&ownedEntry(previous)){candidate=previous;position='after'}
+        else{candidate=next;position='before'}
       }else if(inputType==='deleteContentForward'){
         if(selection.anchorNode.nodeType===3&&selection.anchorOffset===(selection.anchorNode.textContent?.length??0)){
           candidate=selection.anchorNode.nextSibling

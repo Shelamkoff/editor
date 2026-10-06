@@ -24,19 +24,13 @@ export class InlineCommandController {
     if (!target) return false
 
     if (explicitData !== undefined) {
-      this.#withCaret(target, target.range.start + 1, () => this.#runtime.insertInlineWidget(
-        target.blockId, target.fieldKey, target.range, type, explicitData,
-      ))
-      return true
+      return this.#insertWidget(type, target, explicitData, definition.insertion?.trailingText)
     }
 
     const fresh = definition.insertion?.createInitial?.()
     if (!fresh) {
       const data = definition.schema.createDefault()
-      this.#withCaret(target, target.range.start + 1, () => this.#runtime.insertInlineWidget(
-        target.blockId, target.fieldKey, target.range, type, data,
-      ))
-      return true
+      return this.#insertWidget(type, target, data, definition.insertion?.trailingText)
     }
 
     if (fresh.kind === 'text') {
@@ -54,10 +48,7 @@ export class InlineCommandController {
       return true
     }
 
-    this.#withCaret(target, target.range.start + 1, () => this.#runtime.insertInlineWidget(
-      target.blockId, target.fieldKey, target.range, type, fresh.data,
-    ))
-    return true
+    return this.#insertWidget(type, target, fresh.data, definition.insertion?.trailingText)
   }
 
   pasteText(text, target = this.#currentRange()) {
@@ -148,17 +139,18 @@ export class InlineCommandController {
     return true
   }
 
-  commitTrigger(type, session, data) {
+  commitTrigger(type, session, data, options = {}) {
     if (this.#runtime.readOnly) return false
     const definition = this.#registry.getInlineDefinition(type)
     if (!definition) return false
     const encoded = definition.schema.encode(data)
-    this.#withCaret(session, session.range.start + 1, () => this.#runtime.insertInlineWidget(
-      session.blockId,
-      session.fieldKey,
-      session.range,
-      type,
-      encoded.data,
+    return this.#insertWidget(type, session, encoded.data, options.trailingText ?? definition.insertion?.trailingText)
+  }
+
+  #insertWidget(type, target, data, trailingText = '') {
+    if (typeof trailingText !== 'string' || /[\r\n]/.test(trailingText)) throw new TypeError('Inline trailing text must be a single-line string')
+    this.#withCaret(target, target.range.start + 1 + trailingText.length, () => this.#runtime.insertInlineWidget(
+      target.blockId, target.fieldKey, target.range, type, data, { trailingText },
     ))
     return true
   }

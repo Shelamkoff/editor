@@ -368,6 +368,8 @@ export function createEditorRuntime(input){
     reconciler,
     crossSelection,
     selection:logicalSelection,
+    projection:inlineProjection,
+    onControlledInput:()=>queueMicrotask(()=>triggerController?.refresh()),
     coalesceMs:config.historyCoalesceMs??300,
   }))
   let triggerController=null

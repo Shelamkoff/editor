@@ -155,11 +155,11 @@ export class InlineTriggerController {
       query,
       range:Object.freeze({start:active.logicalStart,end:focusOffset}),
       anchor:active.anchor,
-      commit:data=>{
+      commit:(data,options)=>{
         if(this.#active!==active||active.session!==session)return false
         const range=this.#liveRange(active)
         if(!range)return false
-        const committed=this.#commands.commitTrigger(active.type,{...session,range},data)===true
+        const committed=this.#commands.commitTrigger(active.type,{...session,range},data,options)===true
         if(committed)this.#active=null
         return committed
       },

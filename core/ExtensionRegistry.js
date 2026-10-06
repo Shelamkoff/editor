@@ -264,6 +264,11 @@ function snapshotInlineDefinition(source) {
     insertion = snapshotCapabilityObject(
       candidate.insertion, `Inline definition "${candidate.type}" insertion`, [['createInitial', false]],
     )
+    const trailingText = candidate.insertion.trailingText
+    if (trailingText !== undefined) {
+      if (typeof trailingText !== 'string' || /[\r\n]/.test(trailingText)) throw new TypeError('Inline insertion trailing text must be a single-line string')
+      insertion = Object.freeze({ ...insertion, trailingText })
+    }
   }
 
   return Object.freeze({

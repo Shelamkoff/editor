@@ -134,10 +134,10 @@ export class InstanceScope{
       this.assertReadable()
       return snapshot(readData())
     }
-    const update=producer=>{
+    const update=(producer,options)=>{
       if(typeof producer!=='function')throw new TypeError('updateData() requires a producer')
       if(!this.#canMutate())return
-      updateData(current=>producer(snapshot(current)))
+      updateData(current=>producer(snapshot(current)),options)
     }
     const commitDom=operation=>{
       if(typeof operation!=='function')throw new TypeError('commitDomMutation() requires an operation')
