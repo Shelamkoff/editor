@@ -515,6 +515,7 @@ export function createEditorRuntime(input){
     emit('editor:destroyed')
   }
   const setReadOnly=value=>runtime.setReadOnly(value,discardProjectionEdits=>{
+    triggers.setReadOnly(runtime.readOnly)
     popup.setReadOnly(runtime.readOnly)
     applyReadOnly(root,runtime.readOnly)
     toolbar?.setReadOnly(runtime.readOnly)

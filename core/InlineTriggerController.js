@@ -43,6 +43,8 @@ export class InlineTriggerController {
 
   get isActive(){return !!this.#active}
 
+  setReadOnly(value){if(value===true)this.#cancel()}
+
   destroy(){
     this.#controller.abort()
     this.#cancel()
@@ -147,7 +149,7 @@ export class InlineTriggerController {
 
   #publish(active,query,focusOffset){
     active.textPrefix=this.#textBeforeCaret(active.anchor)
-    const session={
+    const session=Object.freeze({
       blockId:active.blockId,
       fieldKey:active.fieldKey,
       query,
@@ -162,7 +164,7 @@ export class InlineTriggerController {
         return committed
       },
       cancel:()=>{if(this.#active===active&&active.session===session)this.#cancel()},
-    }
+    })
     active.session=session
     active.runtime.onTriggerQuery?.(session)
   }

@@ -103,7 +103,7 @@ test('Selecting part of a fresh mention query closes suggestions without alterin
   await dispatchKey('z', 'KeyZ', 90, 10); equal(editor.save().blocks, after)
 })
 
-async function retainedTrigger() {
+async function retainedTrigger(extraBlocks = []) {
   const sessions = [], cancellations = []
   const definition = {
     type: 'probe', trigger: '@', icon: '', label: { key: 'title', fallback: 'Probe' },
@@ -121,7 +121,7 @@ async function retainedTrigger() {
       }
     },
   }
-  const editor = make([{ id: 'a', type: 'paragraph', dataVersion: 2, data: { text: '' } }], { injectStyles: true, inlinePlugins: [definition] })
+  const editor = make([{ id: 'a', type: 'paragraph', dataVersion: 2, data: { text: '' } }, ...extraBlocks], { injectStyles: true, inlinePlugins: [definition] })
   await clickNative(blockElement(editor, 'a').querySelector('.oe-paragraph'))
   await printable('@'); await printable('A')
   const retired = sessions.at(-1)
@@ -266,6 +266,68 @@ test('A generic trigger result cannot replace a host-updated query at the same l
   equal(editor.save().blocks, before); equal(events.length, 0)
   await dispatchKey('z', 'KeyZ', 90, 2)
   equal(editor.save().blocks[0].data.text, '@BA')
+})
+
+test('Destroying an editor immediately after a fresh inline command retires its queued autocomplete work', async () => {
+  let searches = 0
+  const editor = make([{ id: 'a', type: 'paragraph', dataVersion: 2, data: { text: '' } }], { injectStyles: true, inlinePlugins: [createMentionPlugin({
+    debounceDelay: 0, searchFunction: async () => { searches++; return [{ id: 42, name: 'Ada' }] },
+  })] })
+  editor.blocks.focus('a', { offset: 0 })
+  const root = editorRoot(editor)
+  equal(editor.insertInlinePlugin('mention'), true)
+  equal(editor.save().blocks[0].data.text, '@')
+  editor.destroy()
+  await pause(50)
+  equal(searches, 0, 'A retired inline command started an autocomplete request')
+  assert(!root.isConnected)
+})
+
+test('A generic autocomplete session keeps its captured source when a plugin attempts to change its owner', async () => {
+  const { editor, current } = await retainedTrigger([{ id: 'b', type: 'paragraph', dataVersion: 2, data: { text: 'Bravo' } }])
+  const before = editor.save().blocks
+  Reflect.set(current, 'blockId', 'b')
+  equal(current.commit({ name: 'Current' }), true)
+  const after = editor.save().blocks
+  equal(after[1], before[1], 'Changing a session owner redirected its command to another block')
+  equal(Object.values(after[0].inline)[0].data, { name: 'Current' })
+  await dispatchKey('z', 'KeyZ', 90, 2); equal(editor.save().blocks, before)
+  await dispatchKey('z', 'KeyZ', 90, 10); equal(editor.save().blocks, after)
+})
+
+test('A queued fresh inline query cannot reopen autocomplete in read-only mode', async () => {
+  let searches = 0
+  const editor = make([{ id: 'a', type: 'paragraph', dataVersion: 2, data: { text: '' } }], { injectStyles: true, inlinePlugins: [createMentionPlugin({
+    debounceDelay: 0, searchFunction: async () => { searches++; return [{ id: 42, name: 'Ada' }] },
+  })] })
+  editor.blocks.focus('a', { offset: 0 })
+  const root = editorRoot(editor)
+  equal(editor.insertInlinePlugin('mention'), true)
+  const before = editor.save().blocks
+  editor.setReadOnly(true)
+  await pause(60)
+  equal(searches, 0, 'A queued query started a request after read-only was enabled')
+  assert(!root.querySelector('.oe-mention-dropdown'), 'A queued query reopened a menu in read-only mode')
+  equal(editor.save().blocks, before)
+  editor.setReadOnly(false); await pause(30)
+  equal(searches, 0)
+  editor.blocks.focus('a', { offset: 1 }); await printable('A'); await pause(60)
+  assert(root.querySelector('.oe-mention-item'), 'Editing did not resume a fresh query')
+  equal(editor.save().blocks[0].data.text, '@A')
+  await dispatchKey('z', 'KeyZ', 90, 2); equal(editor.save().blocks, before)
+})
+
+test('A read-only transition retires the generic autocomplete session even after editing resumes', async () => {
+  const { editor, current, cancellations } = await retainedTrigger(), before = editor.save().blocks
+  editor.setReadOnly(true); editor.setReadOnly(false)
+  editor.blocks.focus('a', { offset: 2 })
+  const events = []
+  editor.on('transaction:committed', event => events.push(event))
+  equal(current.commit({ name: 'Retired result' }), false, 'The retired query regained authoring authority after read-only was disabled')
+  equal(editor.save().blocks, before); equal(events.length, 0)
+  equal(cancellations.length, 1, 'The runtime was not notified that its query was retired')
+  await dispatchKey('z', 'KeyZ', 90, 2)
+  equal(editor.save().blocks[0].data.text, '', 'A retired result added an Undo action')
 })
 
 await run()
