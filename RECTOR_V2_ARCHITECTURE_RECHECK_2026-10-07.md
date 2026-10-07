@@ -1,6 +1,6 @@
 # Rector v2 — повторная проверка необходимости архитектурного рефакторинга
 
-Дата: **07.10.2026**, Europe/Kaliningrad. Репозиторий: `Shelamkoff/editor`, ветка `refactor/rector-v2-architecture`. Исходный код проверен на **`98d5233e43e242d618670e2104da95d79f1a559f`**. Повторно проверены опубликованные отчёт и спецификация из **`19ee1383c42511bf9d85c4854791f2c679fb1247`** и **`05735fae7ce0c63a29f6edaed4e858c54e87b017`**; после исходного commit менялись только два архитектурных документа. Результаты второго прохода приведены в разделе 7, третьего — в разделе 8.
+Дата: **07.10.2026**, Europe/Kaliningrad. Репозиторий: `Shelamkoff/editor`, ветка `refactor/rector-v2-architecture`. Исходный код проверен на **`98d5233e43e242d618670e2104da95d79f1a559f`**. Повторно проверены опубликованные отчёт и спецификация из **`19ee1383c42511bf9d85c4854791f2c679fb1247`**, **`05735fae7ce0c63a29f6edaed4e858c54e87b017`** и **`cbdb648a0d8370f7e12b666f57c80228e7080980`**; после исходного commit менялись только два архитектурных документа. Результаты второго прохода приведены в разделе 7, третьего — в разделе 8, четвёртого — в разделе 9.
 
 ## Вывод
 
@@ -366,3 +366,58 @@ Probe вызвал настоящие public API внутри защищённо
 Новые нормативные решения перенесены в replacement map, acceptance matrix и slices 2/4/7/8. По selection bookmarks, formatting continuation, lifecycle cleanup, partial projection, native pending/update/no-op/recovery и private clipboard handles новых материальных противоречий в рассмотренных контрактах не выявлено. Не требуется дополнительный engine, долговечный журнал handles, отдельный selection store или новая иерархия managers.
 
 Штатные **107 Node PASS и typecheck из раздела 5 не перезапускались**. Полный browser/native/IME/system clipboard и package/build acceptance по-прежнему должен подтвердить будущую реализацию. Статус `implementation-ready` относится к уточнённым контрактам и плану, а не к наличию исправленного production-кода.
+
+## 9. Четвёртый проход: остальные действующие команды и входные границы
+
+Удалённая ветка проверена на `cbdb648`; production-код по-прежнему соответствует `98d5233`. Проверка охватила взаимодействие подготовленных операций, вложенных команд, публичных адаптеров, selection continuations и native editing. Общие требования предыдущего текста были верными, но карта изменений не перечисляла несколько действующих команд. Если перенести только перечисленные clipboard/conversion paths, оставшиеся методы продолжат перезаписывать draft данными committed store.
+
+### 9.1. Восемь новых воспроизведений потери изменений в одном action
+
+| Последовательность внутри одного `interact()` | Фактический результат | Требуемое поведение |
+|---|---|---|
+| `a: A` → обновить до `Authored earlier` → `mergeAdjacent(a,b)` при `b: B` | `AB` | `Authored earlierB` |
+| `[a,b]` → переместить `b` перед `a` → `mergeAdjacent(a,b)` | `true`, `b` удалён | `false`, поскольку `b` уже не следует непосредственно за `a`; сохранить `[b,a]` |
+| Обновить `a` до `Authored earlier` → выровнять по центру | Старое `A` с `textAlign: center` | Новый текст с изменённым выравниванием |
+| `A` → обновить до `AB` → `replaceRichText` вставляет `C` в offset 2 | `AC` | `ABC` |
+| Два `insertInlineWidget` в начале одного поля | Оба вызова вернули ID, но сохранился только второй widget | Оба widget и оба sidecar payload |
+| Из `{{first}}\|{{second}}` последовательно удалить `first`, затем `second` | Восстановлены `{{first}}` и его payload; оба вызова вернули `true` | Только разделитель, без inline-записей |
+| `[a,b]` → переместить `a` после `b` → slash-команда вставляет блок после непустого `a` | `[b,new,a]` | `[b,a,new]` |
+| `x /q` → обновить до `new /q` → применить slash-команду к диапазону 4–6 | Вернулся старый `x /q` | Сохранить `new ` после удаления актуального query |
+
+Во всех восьми сценариях итоговый revision равен **1**. Первые три работают без DOM на настоящем `DocumentRuntime` с минимальной schema/registry fixture. Для остальных пяти использован ограниченный detached fixture обычного текста с поддержкой временного marker span, необходимого действующей операции вставки inline reference. Тип `color` в fixture не является встроенным Color package. В пяти последних сценариях также наблюдалось `canUndo: true`; само Undo в этих probes не выполнялось. Здесь доказаны вычисление canonical состояния и порядок блоков, а не browser caret/layout.
+
+Причины прослежены до committed reads перед `engine.execute`: [mergeAdjacent](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/DocumentRuntime.js#L572-L598), [setTextAlign](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/DocumentRuntime.js#L2042-L2069), [replaceRichText](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/DocumentRuntime.js#L1584-L1604), [inline insertion](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/DocumentRuntime.js#L1784-L1827), [inline replacement/removal](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/DocumentRuntime.js#L1891-L1916), [slash command](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/DocumentRuntime.js#L915-L974).
+
+Это живые маршруты: [keyboard merge](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/KeyboardRouter.js#L378-L435), [toolbar alignment](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/InlineToolbar.js#L334-L346), [inline insertion](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/InlineCommandController.js#L150-L162), [inline deletion](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/InlineWidgetInputController.js#L54-L64), [slash application](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/SlashCommandController.js#L321-L338).
+
+В §6.1 добавлена явная карта этих adapters: единый captured draft, полная подготовка до edits, существующие результаты методов и прежние владельцы keyboard/toolbar/inline действий. Выравнивание сохраняет `false` для no-op; это не подменяется правилом успешного Paste без изменения данных. Отдельный planner для каждого метода не нужен. Уже использующие draft `insert/update/move/remove/convert/splitBlock/updateInlineWidget` сохраняют свои роли и разрешённые обычные producers; к ним применяются общие правила подготовки. Неиспользуемый `replaceBlock` назначен к удалению после проверки отсутствия production/test callers.
+
+### 9.2. Getter публичной вставки вызывается раньше runtime guard
+
+Настоящие `EditorBlocksApi` и `DocumentRuntime` использованы с объектом, первый getter `type` которого вызывает host update и затем бросает sentinel error. Наблюдение: **producer выполнен 1 раз**, документ изменён, revision **1**, `canUndo: true`, исходная ошибка сохранена. Проверка формы и раскрытие аргументов происходят до входа в `DocumentRuntime.insert`. Защита только внутри runtime этот путь не закрывает. [Публичный adapter](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/PublicEditorApi.js#L57-L68), [runtime insertion](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/DocumentRuntime.js#L256-L274).
+
+§3.3 теперь требует проверки права входа до чтения properties и однократного capture/validation/detachment поддерживаемых полей через существующий внутренний `prepareExtensionValue`. После этого guard снимается и захваченные значения передаются обычной вставке. Обычный `update` producer остаётся вне guard.
+
+Отдельно согласован момент принятия команды. Ошибка public pre-dispatch gate не открывает insertion command: внешний caller может её поймать и продолжить уже существующий draft. Ошибка после входа в runtime insertion по-прежнему помечает вложенную команду failed и отменяет внешний action, даже если caller поймал исключение. Это новое точное правило для глубоких ошибок malformed input, которые могут обнаруживаться раньше; поведение валидной вставки сохраняется. [Существующая engine boundary](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/TransactionEngine.js#L107-L145).
+
+### 9.3. Shortcut context и toolbox decision включены в общий маршрут
+
+По исходникам найдены ещё два места подготовки extension values. `KeyboardRouter` вызывает `shortcuts.handle`, а его `splitField` и `fieldLength` closures заново читают runtime/reconciler. `BlockToolbar` вычисляет empty-anchor branch, defaults и toolbox configuration до своей command boundary. Это результаты анализа кода, а не дополнительные выполненные probes. [Shortcut preparation](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/KeyboardRouter.js#L159-L185), [shortcut context type](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/plugin-kit/types.d.ts#L215-L247), [toolbox insertion](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/BlockToolbar.js#L420-L436).
+
+Контекст shortcuts сохраняет публичную форму, но получает captured data/field lengths и private allocator. Вызов и полный результат проходят под общим guard; `null`, `native`, `consume`, `update`, `exit`, `focus` имеют явные исходы. Ошибка принадлежащего события отменяет native default и прекращает fallback. Toolbox decision переносится внутрь существующего `interact`, где учитывает актуальные anchor/order. Неизвестный named variant отклоняется до edits, согласованно с direct conversion; некорректный ID больше не должен молча превращаться в обычную вставку. [Conversion validation](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/DocumentRuntime.js#L2525-L2541).
+
+Существующая публичная форма shortcut context сохранена, подготовка использует общую runtime boundary. В change surface добавлены `KeyboardRouter` и `SlashCommandController`; эти изменения входят в общий slice 4. Guard selection/formatting callbacks по-прежнему не превращает намеренно выполняющие UI-работу tool render hooks в pure metadata callbacks.
+
+### 9.4. Уточнение входов нового selection port
+
+§8.1 теперь явно связывает чтение caller-owned `Range` и restore options с §3.3. Сначала проверяется private mount/action/phase, затем inputs захватываются под guard; после его снятия continuation проверяется ещё раз перед focus/native selection/highlight. Разрешённый restore внутри собственного formatting callback сохранён.
+
+Это устранение неполной связи двух целевых контрактов, **не воспроизведённый production-дефект ещё не реализованного API**. Текущие range consumers и публикация selection показывают, почему порядок нужно задать явно. Tolerant history restoration остаётся отдельной обязанностью. [SelectionController](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/SelectionController.js#L173-L217), [history-oriented logical restore](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/LogicalSelection.js#L63-L85).
+
+### Проверка сходимости четвёртого прохода
+
+Выполнены **9 свежих контролируемых сценариев**: восемь составных document commands и один public-insert accessor. Они завершились с exit 0 и воспроизвели описанные исходные дефекты. Это не тесты исправленной реализации. Исходники, tests и configuration репозитория не изменялись.
+
+Исправлены нормативные §3.3/6.1/8.1 и соответствующие replacement/proof/slice sections. Для slice 6 явно указана зависимость от общего guard slice 2 и согласование с alignment adapter slice 4. Повторная вычитка native pending/recovery, unchanged settlement, trigger handoff, selection lifetime и toolbar teardown новых существенных противоречий не выявила.
+
+Вывод о необходимости ограниченного архитектурного рефакторинга подтверждён. Его основание — наблюдаемые потери данных и неполное покрытие входных границ; дополнительный store, engine или набор managers не требуется. Штатные **107 Node PASS, typecheck и остальные результаты первого прохода не перезапускались**. Browser/native/IME/system clipboard и полный integration/package/build acceptance остаются обязательными доказательствами будущей реализации.
