@@ -1,6 +1,6 @@
 # Rector v2 — повторная проверка необходимости архитектурного рефакторинга
 
-Дата: **07.10.2026**, Europe/Kaliningrad. Репозиторий: `Shelamkoff/editor`, ветка `refactor/rector-v2-architecture`. Исходный код проверен на **`98d5233e43e242d618670e2104da95d79f1a559f`**. Повторно проверены опубликованные отчёт и спецификация из **`19ee1383c42511bf9d85c4854791f2c679fb1247`**; между этими commit изменены только два архитектурных документа. Дополнительные результаты и исправления спецификации приведены в разделе 7.
+Дата: **07.10.2026**, Europe/Kaliningrad. Репозиторий: `Shelamkoff/editor`, ветка `refactor/rector-v2-architecture`. Исходный код проверен на **`98d5233e43e242d618670e2104da95d79f1a559f`**. Повторно проверены опубликованные отчёт и спецификация из **`19ee1383c42511bf9d85c4854791f2c679fb1247`** и **`05735fae7ce0c63a29f6edaed4e858c54e87b017`**; после исходного commit менялись только два архитектурных документа. Результаты второго прохода приведены в разделе 7, третьего — в разделе 8.
 
 ## Вывод
 
@@ -305,3 +305,64 @@ Controlled actual-class probe на `InlineTriggerController` воспроизв�
 - **107 Node PASS, оба typecheck и остальные штатные результаты раздела 5 относятся к первому проходу.** Во втором проходе эти наборы не перезапускались; production-код между проверенными commit не менялся. Полный browser/native/package/build gate и Chrome/OS IME по-прежнему не проверены.
 
 Итог повторной проверки: ограниченный рефакторинг обоснован; опубликованная спецификация нуждалась в уточнении, и эти уточнения внесены. Статус `implementation-ready` относится к согласованному плану и целевым контрактам. Реализация и её обязательные браузерные доказательства остаются отдельной работой.
+
+
+## 8. Третий проход: полнота действующих путей и границ вызова extensions
+
+Удалённый HEAD повторно проверен на `05735fa`; production-код остаётся тем же `98d5233`. В этом проходе проверены соответствие нормативных требований реальным вызывающим методам и поведение до/после защищённого участка. Обнаружены пропущенные пути подготовки и вызовы, которые обходили предусмотренный guard. Новая модель документа или ещё один transaction/selection owner для исправления этих находок не нужны.
+
+### 8.1. Whole-block deletion, whole-selection replacement и pattern Paste не были перечислены полностью
+
+Действующий whole-block Cut проходит через `ClipboardController` → `SelectionController.removeWholeBlocks()` → `DocumentRuntime.removeBlocks()`. Последний выбирает removals/default по committed IDs, а controller отдельно вычисляет соседний focus target по тому же устаревшему порядку. `replaceWholeDocument()` также определяет позицию до получения актуального draft. Pattern-based Paste идёт через `InlineCommandController` к `replaceRichTextWithInlineSegments()`, который читает committed source/order. [Whole-block controller](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/SelectionController.js#L230-L274), [runtime deletion/replacement](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/DocumentRuntime.js#L672-L731), [pattern consumer](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/InlineCommandController.js#L54-L139), [segment preparation](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/DocumentRuntime.js#L1606-L1781).
+
+Свежие воспроизведения на настоящем runtime:
+
+| Сценарий | Наблюдение | Требуемый результат |
+|---|---|---|
+| Из `[a,b]` удалить `a`, затем `removeBlocks([b])` самостоятельными вызовами | Один default block | Контрольный корректный результат |
+| Те же команды внутри одного `interact()` | **Пустой документ `[]`**, revision 1 | Один default block |
+| В одном action вставить `c`, затем удалить прежние `[a,b]` | **Лишний пустой блок перед `c`** | Только surviving `c` |
+| Вставить `c` перед `[a,b]`, затем заменить выбранные `[a,b]` | **`[replacement,c]`** | `[c,replacement]` |
+| Обновить `a` до `Authored earlier`, затем выполнить pattern Paste в offset 0 | **`{{generated-1}}a`**, staged текст потерян | Inline occurrence перед актуальным текстом |
+
+Для двух последних случаев использован ограниченный text-only detached DOM fixture; для pattern route — минимальная schema/pattern fixture с типом `color`, а не встроенный Color package. Удаления дополнительно проверены без DOM. Это доказательства расчёта состояния и порядка, не native caret/clipboard.
+
+В §6.2, replacement map и slice 4 включены все три пути. `removeBlocks` теперь должен возвращать окончательный target ID либо `false`, без неоднозначного `true`; controller использует этот результат. Default появляется только при действительно пустом итоговом документе. Whole-selection replacement сохраняет незатронутые блоки и gaps актуального draft, включая подтверждение composition. Pattern Paste сохраняет match precedence, multiline semantics, sidecars и логический результат.
+
+### 8.2. Upstream preparation должна оставаться под тем же guard
+
+Защита готового segments/import результата слишком поздняя: `fromMatch` вызывается до runtime operation; `ClipboardController` непосредственно запускает HTML-import, внутри которого выполняются `matchesRoot`, `importRoot`, conversion materialization и allocation. Эти вызовы теперь явно включены в §3.3 и §6.2. `HtmlImportRouter` остаётся чистым helper; runtime предоставляет captured target/private allocator. MIME I/O и async resolution сохраняют нынешних владельцев. [HTML consumers](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/ClipboardController.js#L408-L417), [второй consumer](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/ClipboardController.js#L490-L505), [HTML callbacks](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/HtmlImportRouter.js#L31-L105).
+
+Уточнена политика `fromMatch`: `null` — отсутствие подходящего результата; исключение, thenable или недопустимый payload — отказ всей принадлежащей операции до edits. Controller обязан отменить native default в обработчике такого отказа и завершить маршрут. Текущий catch, превращающий исключение в отсутствие match, назначен к удалению. Действующий тип уже задаёт `D | null`; встроенный Color сам возвращает `null`, когда значение ему не подходит, поэтому этот нормальный путь сохраняется. [Контракт](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/plugin-kit/types.d.ts#L352-L355), [Color](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/inline-plugins/color.js#L47-L53).
+
+### 8.3. Подготовка UI actions может изменить документ перед собственной ошибкой
+
+Вызовы `actions()` и чтение label происходят из UI, вне document-planning guard. Четыре probes на настоящих `ExtensionRegistry`/`DocumentRuntime` проверили `inlineControls` и `settings`, каждый с исключением внутри `actions()` и внутри getter `label`. Во всех случаях вложенный producer выполнился **1 раз**, изменил текст на `Changed while preparing UI`, повысил revision до **1** и создал Undo; исходная ошибка также вышла наружу. Воспроизведён порядок вызова capability/чтения metadata, а не отрисовка toolbar. [Inline label/dropdown](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/InlineToolbar.js#L748-L803), [settings actions](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/BlockToolbar.js#L497-L507).
+
+В §3.3 появился один внутренний `prepareExtensionValue(operation)`, использующий уже выбранный runtime depth guard. §9.2 проводит через него полный вызов/snapshot/validation списка и labels; DOM получает захваченные значения после выхода из guard. Ошибка отзывает всю затронутую группу, сохраняя документ и остальные controls. Метод не добавляется в публичные editor/plugin/tool контексты.
+
+### 8.4. Публичные focus/selection/destroy обходят проверку document command
+
+`EditorBlocksApi.setCurrent/select/clearSelection/focus` и `EditorHandle.focus/destroy` идут непосредственно к view/selection/teardown owner. Поэтому одного `DocumentRuntime.#assertHostMutation()` недостаточно. [Публичные block controls](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/PublicEditorApi.js#L45-L89), [editor focus/destroy](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/PublicEditorApi.js#L153-L174).
+
+Probe вызвал настоящие public API внутри защищённой `syncBlockFromProjection` operation. Обычный host update был отклонён, его producer не запустился; одновременно **все шесть public control methods** дошли до переданных adapters. Adapters только записывали факт вызова: здесь не заявляется реальное разрушение DOM или потеря браузерного выделения.
+
+§3.3 теперь явно требует проверки на публичном входе до любого dispatch, включая lifecycle flags. Внутреннее восстановление текущего owner и cleanup сохраняются; редактор с failed health по-прежнему можно уничтожить после выхода из защищённой операции. Эти checks реализуются вместе с общей границей в slice 2, без глобального запрета собственных selection operations.
+
+### 8.5. Непосредственный inline dispatcher и отмена поиска — отдельные места применения guards
+
+Реальные `InlineWidgetInputController`/`DocumentRuntime` показали: `editing.handle()` выполнил host update, затем вернул `null`; producer запущен **1 раз**, revision стал **1**, `defaultPrevented` остался `false`. Capability вызывалась до `interact()`. В §10.2 теперь указана вся последовательность: доказать event/field/occurrence ownership; подготовить и проверить вход/результат под общим guard; различить `null` и отказ; отменить native default до применения либо при ошибке принадлежащего события. Собственный отложенный caret проверяет актуальность результата. [Непосредственный dispatcher](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/InlineWidgetInputController.js#L29-L72).
+
+Немедленная контролируемая обработка ограничена cancelable non-composition событиями. Правило сверено с [Input Events Level 2, WD 01.05.2026, §6.1.2 и §7](https://www.w3.org/TR/2026/WD-input-events-2-20260501/): `insertCompositionText` имеет собственный некэнселируемый поток. Существующий composition owner сохранён.
+
+Второй probe проверил существующий `InlineTriggerController.#cancel`, который нужен новому post-native handoff. Через настоящий `refresh()` открыт query, затем вызван этот cancellation path через controller `setReadOnly(true)`. Callback успел сделать отдельный host update, повысить revision до **1** и бросить `cancel failed`; active query уже был очищен. Это проверка вызываемого метода, а не реализованного нового native-пути. [Cancellation](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/InlineTriggerController.js#L213-L217).
+
+Новый handoff теперь сначала отзывает fresh-query authority, затем вызывает `onTriggerCancel` под observation guard с containment и независимо продолжает notices актуальных labels. Запрет касается синхронного повторного входа; guard не удерживается через await и не объявляется sandbox для произвольного позднего JavaScript расширения.
+
+### Проверка сходимости третьего прохода
+
+Выполнены **12 контролируемых сценариев**: пять planning routes, четыре metadata cases, два inline/cancellation cases и один public-control probe. Это свежие результаты данного прохода; один standalone removal — контрольный успешный вариант. Все исполнения завершились с exit 0, воспроизведя описанное исходное поведение. Production/tests/config репозитория не изменялись.
+
+Новые нормативные решения перенесены в replacement map, acceptance matrix и slices 2/4/7/8. По selection bookmarks, formatting continuation, lifecycle cleanup, partial projection, native pending/update/no-op/recovery и private clipboard handles новых материальных противоречий в рассмотренных контрактах не выявлено. Не требуется дополнительный engine, долговечный журнал handles, отдельный selection store или новая иерархия managers.
+
+Штатные **107 Node PASS и typecheck из раздела 5 не перезапускались**. Полный browser/native/IME/system clipboard и package/build acceptance по-прежнему должен подтвердить будущую реализацию. Статус `implementation-ready` относится к уточнённым контрактам и плану, а не к наличию исправленного production-кода.
