@@ -1,6 +1,6 @@
 # Rector v2 — повторная проверка необходимости архитектурного рефакторинга
 
-Дата: **07.10.2026**, Europe/Kaliningrad. Репозиторий: `Shelamkoff/editor`. Проверена ветка `refactor/rector-v2-architecture`, опубликованный исходный commit **`98d5233e43e242d618670e2104da95d79f1a559f`**.
+Дата: **07.10.2026**, Europe/Kaliningrad. Репозиторий: `Shelamkoff/editor`, ветка `refactor/rector-v2-architecture`. Исходный код проверен на **`98d5233e43e242d618670e2104da95d79f1a559f`**. Повторно проверены опубликованные отчёт и спецификация из **`19ee1383c42511bf9d85c4854791f2c679fb1247`**; между этими commit изменены только два архитектурных документа. Дополнительные результаты и исправления спецификации приведены в разделе 7.
 
 ## Вывод
 
@@ -8,7 +8,7 @@
 
 **Существующую основу v2 следует сохранить:** `DocumentStore`/draft, `TransactionEngine`, `HistoryStore`, `CanonicalTransforms`, общие current-format схемы, `BlockReconciler`, logical selection и revocable scopes. Проверка не дала оснований для замены модели документа, нового движка истории, общего command bus, нового text engine или отдельного MediaManager.
 
-Подготовлена [спецификация архитектурного этапа](RECTOR_V2_ARCHITECTURE_REFINEMENT_SPEC.md). Она имеет статус `implementation-ready`: необходимые решения о владельцах, контрактах, отказах, сохранении поведения и замене старых путей определены. Это готовность спецификации к реализации, а не заявление об исправлении описанных дефектов или готовности библиотеки к выпуску.
+Подготовлена и повторно уточнена [спецификация архитектурного этапа](RECTOR_V2_ARCHITECTURE_REFINEMENT_SPEC.md). Повторный проход подтвердил исходный вывод и выявил пробелы в описании подготовки, логических результатов, выделения и native Mention; они исправлены в нормативных контрактах и приёмке. Спецификация имеет статус `implementation-ready`: необходимые решения о владельцах, контрактах, отказах, сохранении поведения и замене старых путей определены. Это готовность спецификации к реализации, а не заявление об исправлении описанных дефектов или готовности библиотеки к выпуску.
 
 ## 1. Источники и границы этой проверки
 
@@ -17,7 +17,7 @@
 - `Вставленный Markdown(1).md` — предыдущая оценка необходимости рефакторинга с привязкой к `98d5233`.
 - `Вставленный Markdown (2).md` — локальный аудит с заявленными исправлениями Mention, Poll и скрытых полей, итогами 563 Node-тестов и 1844 native cases. Сам документ указывает, что изменения остались локальными, без commit/push.
 
-Ветка по-прежнему содержала `98d5233`. В этом checkout отсутствуют `tests/browser/native-audit-edges.js`, `native-audit-poll.js`, `native-audit-hidden-fields.js` и `test-results/audit-2026-10-07/*`, на которые ссылается второй файл. Код соответствующих исправлений также отсутствует в проверенных местах. Поэтому заявленные локальные результаты **не перенесены** на опубликованный HEAD и не засчитаны как свежая проверка.
+На момент первого прохода HEAD ветки был `98d5233`. В этом checkout отсутствуют `tests/browser/native-audit-edges.js`, `native-audit-poll.js`, `native-audit-hidden-fields.js` и `test-results/audit-2026-10-07/*`, на которые ссылается второй файл. Код соответствующих исправлений также отсутствует в проверенных местах. Поэтому заявленные локальные результаты **не перенесены** на опубликованный HEAD и не засчитаны как свежая проверка.
 
 Изучены актуальная [спецификация исправлений](RECTOR_V2_REMEDIATION_SPEC.md), существующие матрицы/отчёты, исходники, типы, регистрация расширений, вызывающий код, тесты и механизм генерации declarations. Учтены проектные skills [TDD](.agents/skills/tdd/SKILL.md) и [modern JavaScript](.agents/skills/modern-javascript-patterns/SKILL.md). Для новой спецификации применён `implementation-specification`: нормативное целевое состояние отделено от плана реализации; решения проверены по исходникам; добавлены impact/replacement maps и доказательства приёмки.
 
@@ -183,11 +183,11 @@ Carousel уже использует scoped DataTask, view controller, сост�
 
 Для toolbar достаточно исправить lifecycle/selection/action contracts, затем оценить остаточную сложность. Для utils оправдано разделение formatting, UI и factory responsibilities; файл на каждый короткий метод не нужен. Критерий завершения — единственный владелец каждого изменённого контракта и сохранённое поведение, а не произвольный лимит строк.
 
-## 5. Фактически выполненные проверки
+## 5. Фактически выполненные проверки первого прохода
 
-Окружение этого прохода: Linux, Node **24.19.0**, npm **11.9.0**, TypeScript **5.9.3**; зависимости установлены из существующего lockfile без изменения отслеживаемых файлов.
+Окружение первого прохода: Linux, Node **24.19.0**, npm **11.9.0**, TypeScript **5.9.3**; зависимости установлены из существующего lockfile без изменения отслеживаемых файлов.
 
-| Проверка | Результат этого прохода | Что доказывает |
+| Проверка | Результат первого прохода | Что доказывает |
 |---|---|---|
 | Адресный Node baseline: runtime, engine, transforms, store, reconciler, registry, scopes, schema, observers | **107 PASS, 0 FAIL, 0 skipped** | Существующие проверяемые контракты затронутой основы |
 | `npm run typecheck` | **PASS**, оба проекта | Текущую проверку JS/типов; не полноту публичного контекста |
@@ -210,7 +210,7 @@ node --test core/DocumentRuntime.test.js core/TransactionEngine.test.js core/Can
 
 Граф получен парсером TypeScript 5.9.3 для `index.js` и runtime `.js` без `.test.js` в `core`, `plugins`, `inline-plugins`, `inline-tools`, `plugin-kit`, `renderer`, `preset`, `shared`, `locale`. Проверены запреты extension → private core, renderer → editing и shared → runtime. Не анализировались произвольные вычисляемые import specifiers, передача полномочий через callbacks и runtime effects; именно поэтому нулевые графовые нарушения совместимы с A1–A11.
 
-**В этом проходе не запускались** полный Node набор, native/Chrome/heap, полный package consumer/build, bundle gate, production docs/demo и v1 runtime. Доступный Chrome/Chromium в стандартных путях окружения не обнаружен. Здесь нет нового доказательства полного функционального паритета, системного IME или Firefox/WebKit. Эти ограничения не мешают сформулировать контракт и план, но браузерные критерии обязательно выполнить при реализации.
+**В первом проходе не запускались** полный Node набор, native/Chrome/heap, полный package consumer/build, bundle gate, production docs/demo и v1 runtime. Доступный Chrome/Chromium в стандартных путях окружения не обнаружен. Здесь нет нового доказательства полного функционального паритета, системного IME или Firefox/WebKit. Эти ограничения не мешают сформулировать контракт и план, но браузерные критерии обязательно выполнить при реализации.
 
 ## 6. Содержание подготовленной спецификации
 
@@ -218,14 +218,90 @@ node --test core/DocumentRuntime.test.js core/TransactionEngine.test.js core/Can
 
 1. Небольшую ingestion boundary и структурированную content-free диагностику с отдельным observer guard.
 2. Общую merge-политику partial projection, различающую hidden/existing/new/deleted поля, и единую интерпретацию inline references.
-3. Подготовку clipboard/conversion по актуальному draft, один список canonical edits, один существующий engine и общий session allocator.
-4. Runtime-issued clipboard handles с private residuals, source/order checks и отказом без автоматического перепланирования удаления.
+3. Подготовку всех активных clipboard/range/conversion путей по актуальному draft под полным preparation guard, один список canonical edits, результаты из итогового порядка и общий session allocator.
+4. Runtime-issued clipboard handles с private residuals, source/order checks и отказом без автоматического перепланирования удаления; успешный результат и перенос каретки при применимой вставке без изменения данных.
 5. Публичный scoped inline DOM contract с явными sync/failure/revocation/recovery semantics.
-6. Strict selection port с field keys, направлением, revision/generation/mount validity и сохранением length-changing formatting после собственного commit.
+6. Strict selection port с field keys, направлением и revision/generation/mount validity; исключение widget-local endpoints; сохранение length-changing formatting и ожидаемого native-представления после собственной операции.
 7. Независимую очистку ресурсов toolbar, вызов cleanup hooks каждого начатого tool и принадлежность highlight по identity ресурса.
 8. Декларативную presentation metadata для inline actions.
-9. Общий Mention text-decision path, атомарное согласование native label/окружающего текста/sidecar и before-selection metadata через существующие контроллеры; сохранение caret, trigger/search, composition и local clipboard.
+9. Общий Mention text-decision path, атомарное согласование native label/окружающего текста/sidecar/состояния экземпляра и before-selection metadata; распознавание устаревшего input; согласованный переход поиска; точное поведение отказов local clipboard.
 
 План разделён на девять проверяемых slices с зависимостями. Superseded paths удаляются в том же согласованном изменении; новые и старые алгоритмы не остаются параллельно. Внешние consumers учитываются как класс пользователей публичного extension API; старые selection utility exports не объявлены «внутренними» только ради удобства рефакторинга.
 
 Отдельная приёмка проверяет соответствие реализации нормативной архитектуре, удаление старых путей и consumer migration. Зелёные тесты без этой сверки не считаются доказательством завершения этапа.
+
+
+## 7. Повторная проверка опубликованных документов
+
+Повторный проход направлен на поиск пропущенных действующих путей и противоречий в проектируемом поведении. Проверен опубликованный draft `19ee1383` против того же production-кода `98d5233`. Ни одно из уточнений ниже не означает, что production уже исправлен. Оснований для расширения работ до замены архитектурной основы не появилось.
+
+### B1. Guard должен начинаться до чтения входа и вызова источника ID
+
+**Свежие воспроизведения на настоящем `DocumentRuntime`.** Getter `version` во входе `render()` вызвал вложенный update producer **один раз**, прежде чем render завершился `RangeError`. Committed текст остался `Before`, revision — `0`: подтверждён запрещённый вызов во время подготовки, а не порча committed state. Во втором сценарии переданный внутреннему runtime источник ID вызвал producer во время подготовки Paste; итогом стал только `Pasted`, revision `1`. Это внутренний параметр runtime, а не заявленная публичная опция `createEditor`. [Чтение accessors](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/shared/DocumentSchema.js#L99-L114), [host authority](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/DocumentRuntime.js#L2905-L2912), [источник ID](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/CanonicalTransforms.js#L14-L29).
+
+В §3.3 спецификации guard теперь охватывает всю подготовку: входные свойства, schema/default/normalizer/capability и источник ID. Он заканчивается в `finally` до применения плана и уведомления observer. Частная аллокация разрешена, выданные ID не возвращаются; callback не получает права вложенной мутации. Обычные вложенные пользовательские команды сохраняются.
+
+### B2. В первоначальном перечне не хватало действующих путей Paste
+
+В одном `interact()` сначала заполнен пустой блок `a` текстом `Authored earlier`, затем вызван Paste. И `applyPasteResults`, и `insertLocalBlocks` оставили **только `Pasted` в `a`**, потеряв уже подготовленное изменение. Оба результата повторно получены на реальном runtime. В них решение о замене пустого блока читает committed state. [Первый путь](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/DocumentRuntime.js#L285-L359), [второй путь](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/DocumentRuntime.js#L362-L410), [действующие consumers](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/ClipboardController.js#L514-L514), [async results consumer](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/ClipboardController.js#L671-L672).
+
+В §6.2 и slice 4 явно включены оба метода и общий `replaceLogicalRange`, которым пользуются clipboard, selection/composition и line-break input. Для общих range-расчётов определён один внутренний `LogicalRangePlans`; он не владеет состоянием или транзакцией. Async resolution остаётся у существующего controller. `insertExternalBlocks`, `exportRichTextFragment` и `replaceRichTextFragment` не имеют найденных production-consumers и назначены к удалению вместе с исключительно их helpers. [Общий range-метод](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/DocumentRuntime.js#L977-L1059).
+
+### B3. Логический результат нельзя вычислять по committed store после вложенного применения
+
+Подготовленный Cut удаляет `a` из `[a, b]`. После завершения документ равен `[b]` в обоих вариантах, однако результат различается:
+
+| Вызов | `result.blockId` | Блок существует после операции |
+|---|---|---|
+| Самостоятельный `applyPreparedClipboardCut` | `b` | Да |
+| Тот же вызов внутри `interact()` | **`a`** | **Нет** |
+
+Дополнительно оба результата содержали старое `focus.blockId: 'a'`. Причина — чтение committed order до завершения внешней транзакции. В §6 теперь цель и focus рассчитываются из итогового порядка плана; самостоятельное и вложенное применение возвращают одинаковый допустимый результат. Этот probe относится к подготовленному runtime-command; действующий whole-block UI Cut имеет отдельный маршрут, поэтому вывод не распространяется на каждый пользовательский Cut. [Расчёт результата](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/DocumentRuntime.js#L1229-L1234), [вложенное применение](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/ClipboardController.js#L560-L566), [whole-block route](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/ClipboardController.js#L222-L258).
+
+Исправлен и риск, который вносила сама спецификация: пустой список edits был приравнен к неприменимости Paste. При замене текста таким же текстом операция применима; ей нужен успешный логический результат, чтобы свернуть выделение. Документ и история остаются прежними, caret обрабатывает controller, поскольку engine пропускает `selectionAfter` у пустого draft. Это подтверждено по возвращаемым значениям и consumers; новый браузерный сценарий не выполнялся. [Успешный caret result](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/DocumentRuntime.js#L1404-L1429), [consumer](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/ClipboardController.js#L363-L369), [empty draft](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/TransactionEngine.js#L143-L145).
+
+### B4. Generic formatting не может адресовать часть widget label
+
+Реальные функции logical offset с узким DOM-fixture преобразовали выделение `Ali` внутри `@Alice` в одинаковые field-offsets **`3 → 3`** и восстановили каретку снаружи widget. Причина — намеренная атомарность widget на уровне поля. §8.1 теперь отклоняет любой generic formatting range с endpoint внутри принадлежащего widget DOM до такого преобразования. Границы в родительском контейнере и целый widget между внешними endpoints остаются допустимыми. Это уточнение области контракта, а не введение второй системы label-координат для toolbar. [Атомарные offsets](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/shared/textOffset.js#L88-L110), [восстановление](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/shared/textOffset.js#L131-L145), [проверка ownership](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/InlineProjectionRuntime.js#L182-L190).
+
+Отдельно уточнено распознавание собственного отложенного `selectionchange`. Сопоставлять нужно ожидаемое native-представление под текущей lease/revision: конвертация уже сохраняет логический диапазон и показывает свёрнутую каретку у его конца. Синхронного флага восстановления недостаточно, и равенство native endpoints полному bookmark здесь неверно. Существующий selection owner сохраняется. [Режим конвертации](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/conversionSelection.js#L12-L25), [его реализация](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/SelectionController.js#L187-L192), [Selection API: очередь/coalescing](https://w3c.github.io/selection-api/#scheduling-selectionchange-event).
+
+### B5. Merge требует проверки ключей, а refs — окончательной нормализации
+
+`richFieldMap` складывает значения в `Map` без проверки дубликата; `mapRichText` от сторонней схемы может незаметно подменить значение. В §5 добавлены уникальность и валидность committed/candidate/mounted keys, запрет одному element иметь два ключа и отказ для mounted rich field, отсутствующего в candidate. Built-in Person/Carousel/Poll уже проверяют ID коллекций; здесь не заявляется новый дефект дубликатов в этих схемах. [Map construction](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/InlineProjectionRuntime.js#L23-L31), [schema wrapper](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/shared/snapshotDataSchema.js#L88-L95).
+
+Полный candidate sidecar теперь явно сохраняется до schema/rich-text normalization; окончательный подсчёт и удаление неиспользуемых refs выполняются в существующей semantic assembly после неё. Иначе normalizer может создать ссылку на преждевременно удалённый payload или дубликат после предварительной проверки. Это порядок проектируемого исправления A1; отдельная ingestion-политика не меняется. [Текущий порядок assembly](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/CanonicalTransforms.js#L219-L235).
+
+### B6. Сохранённый DOM-узел не гарантирует актуальность экземпляра Mention
+
+Controlled probe на настоящем `InlineProjectionRuntime`, с подготовкой приватного состояния только в памяти и небольшим DOM-fixture, показал риск проектируемого native-пути: при сохранении owned node число `instance.update` было **0**, видимый текст — `@Alpha`, но `entry.data` и следующий edit target сохраняли `Alpha Beta`. После `setReadOnly(true)` вернулась подпись `@Alpha Beta`. Это не воспроизведение обычного текущего `updateData`: проверялся путь удержания source projection, который требуется новому native reconciliation. [Обычное обновление cache](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/InlineProjectionRuntime.js#L418-L425), [retained path](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/InlineProjectionRuntime.js#L439-L445), [Mention projection](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/inline-plugins/mention/index.js#L810-L826).
+
+§§7 и 10 требуют у opted-in экземпляра captured synchronous `update`, согласуют его payload/cache/DOM **до commit** и включают ошибку обновления в recovery. Если normalization вернула прежние canonical данные, необходимый repair всё равно выполняется без фиктивной истории. `afterNativeEdit` остаётся transient-уведомлением, а не скрытым механизмом ремонта данных. Выделение внутри surviving label сохраняется отдельно от его атомарной field-позиции.
+
+### B7. Устаревший native input нужно распознать после потери права на запись
+
+В предыдущем тексте инвалидированный pending snapshot следовало удалить, но затем тот же текст требовал распознавать соответствующий input как stale. Это противоречие. Теперь один существующий envelope имеет состояния valid/invalid: изменение revision, read-only или lifetime отзывает право на решение, сохраняя минимальные данные для маршрутизации до следующего input. Совпавший stale input не попадает в generic persistence; cleanup касается только всё ещё принадлежащей операции проекции и не переносит старое выделение в successor. Новое beforeinput заменяет envelope; чужой input отдаётся своему владельцу. Это исправление контракта, а не результат нового браузерного прогона.
+
+Уточнён и приоритет диапазонов: browser target range, затем текущее noncollapsed native selection в том же поле, затем допустимый collapsed character fallback. Пересечение label с соседним текстом нельзя терять при пустом `getTargetRanges()`. Missing-range word/line обработка остаётся защитным путём. При отсутствии native DOM change нельзя выдумывать input/completion. Основание event-предпосылок — [Input Events Level 2, WD 01.05.2026, §§6–7](https://www.w3.org/TR/2026/WD-input-events-2-20260501/).
+
+### B8. Перед открытием поиска внутри label нужно завершить прежний fresh query
+
+Controlled actual-class probe на `InlineTriggerController` воспроизвёл последовательность: активный поиск в обычном тексте → новый поиск `Al` внутри label → отложенный selectionchange старого запроса → cancellation, закрывающий новый поиск. Простого подавления очередного input refresh недостаточно. [Проверка и cancellation](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/InlineTriggerController.js#L193-L216), [Mention cancellation](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/inline-plugins/mention/index.js#L844-L845).
+
+§10 теперь передаёт ownership явно: сначала отменяет действительно существующий fresh query, затем уведомляет surviving labels и final-caret label без дубликатов. В notice добавлен `labelChanged`: неизменённая неактивная граница не должна самопроизвольно включать editing/search. Уведомление другой label не закрывает сессию final caret. Новый search manager не вводится; текущая логика обычного `@query`, composition и outside typing сохраняется. [Существующее outside typing](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/inline-plugins/mention/index.js#L637-L643).
+
+### B9. Ошибка local clipboard не должна запускать native fallback
+
+Уточнение §10.3: после доказанного label-local ownership отменить default нужно **до** операций clipboard, способных бросить исключение. Иначе обещанный отказ Cut без изменения данных несовместим с нативным удалением. Успех Cut требует точного readback и повторной проверки текущих occurrence/range. Пустой, отсутствующий, HTML-only или нечитаемый plain-text Paste — поглощённая локальная операция без изменения selection/model/history. Непустые пробелы остаются текстом. Foreign/defaultPrevented события не присваиваются Mention; structural clipboard сохраняет своего владельца.
+
+Требование отмены custom clipboard action и различия synthetic/system events сверены с [Clipboard API and events, §§5.2, 6.1–6.3](https://www.w3.org/TR/clipboard-apis/). Успешный event readback не объявляется гарантией долговременной записи в OS clipboard. Здесь уточнён проектируемый отказ; системный clipboard повторно не проверялся.
+
+### Проверки и готовность после уточнений
+
+- Повторно исполнены **шесть runtime-сценариев** B1–B3: входной accessor, ID source, standalone/nested Cut и два пути Paste. Наблюдения получены на настоящих runtime/store/engine без изменения repository tests.
+- Выполнены дополнительные узкие Node probes для atomic offsets, retained inline instance и trigger handoff. Они используют реальные проверяемые функции/классы с контролируемым окружением; native gesture, браузерный layout, OS clipboard и IME ими не доказаны.
+- Нормативные контракты повторно сверены с исходниками и consumers по трём независимым направлениям: runtime/planning, selection/toolbar, projection/Mention. Материальные замечания перенесены в спецификацию, replacement map, acceptance matrix и соответствующие slices.
+- Уточнены зависимости: native slice использует guard/observer из slice 2. Публичные declarations, consumers и RU/EN documentation меняются вместе со своим контрактом; финальный slice проверяет сходимость, а не откладывает миграцию.
+- **107 Node PASS, оба typecheck и остальные штатные результаты раздела 5 относятся к первому проходу.** Во втором проходе эти наборы не перезапускались; production-код между проверенными commit не менялся. Полный browser/native/package/build gate и Chrome/OS IME по-прежнему не проверены.
+
+Итог повторной проверки: ограниченный рефакторинг обоснован; опубликованная спецификация нуждалась в уточнении, и эти уточнения внесены. Статус `implementation-ready` относится к согласованному плану и целевым контрактам. Реализация и её обязательные браузерные доказательства остаются отдельной работой.
