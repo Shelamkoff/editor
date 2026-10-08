@@ -1,10 +1,10 @@
 # Rector v2 — повторная проверка необходимости архитектурного рефакторинга
 
-Дата: **07.10.2026**, Europe/Kaliningrad. Репозиторий: `Shelamkoff/editor`, ветка `refactor/rector-v2-architecture`. Исходный код проверен на **`98d5233e43e242d618670e2104da95d79f1a559f`**. Повторно проверены опубликованные отчёт и спецификация из **`19ee1383c42511bf9d85c4854791f2c679fb1247`**, **`05735fae7ce0c63a29f6edaed4e858c54e87b017`** и **`cbdb648a0d8370f7e12b666f57c80228e7080980`**; после исходного commit менялись только два архитектурных документа. Результаты второго прохода приведены в разделе 7, третьего — в разделе 8, четвёртого — в разделе 9.
+Исходная дата: **07.10.2026**, Europe/Kaliningrad. Пятый проход: **08.10.2026**. Репозиторий: `Shelamkoff/editor`, ветка `refactor/rector-v2-architecture`. Исходный код проверен на **`98d5233e43e242d618670e2104da95d79f1a559f`**. Повторно проверены опубликованные отчёт и спецификация из **`19ee1383c42511bf9d85c4854791f2c679fb1247`**, **`05735fae7ce0c63a29f6edaed4e858c54e87b017`**, **`cbdb648a0d8370f7e12b666f57c80228e7080980`** и **`f75fb134e694db2f6cf591283c6907fa90a1f1f8`**; после исходного commit менялись только два архитектурных документа. Результаты второго прохода приведены в разделе 7, третьего — в разделе 8, четвёртого — в разделе 9, пятого — в разделе 10.
 
 ## Вывод
 
-**Ограниченный архитектурный рефакторинг нужен.** Его основания — воспроизводимые нарушения целостности подготовленных операций, потеря данных на границе частичной DOM-проекции, небезопасная для reentry публикация validation observer, неполный публичный контракт inline-плагинов и ошибки владения ресурсами. Размер файлов помогает найти сложные участки, но не является критерием необходимости или завершения работы.
+**Ограниченный архитектурный рефакторинг нужен.** Его основания — воспроизводимые нарушения целостности подготовленных операций и атомарности вложенных отказов, потеря данных на границах частичной DOM-проекции и inline-словарей, небезопасная для reentry подготовка и публикация validation observer, неполный публичный контракт inline-плагинов и ошибки владения ресурсами. Размер файлов помогает найти сложные участки, но не является критерием необходимости или завершения работы.
 
 **Существующую основу v2 следует сохранить:** `DocumentStore`/draft, `TransactionEngine`, `HistoryStore`, `CanonicalTransforms`, общие current-format схемы, `BlockReconciler`, logical selection и revocable scopes. Проверка не дала оснований для замены модели документа, нового движка истории, общего command bus, нового text engine или отдельного MediaManager.
 
@@ -398,7 +398,7 @@ Probe вызвал настоящие public API внутри защищённо
 
 §3.3 теперь требует проверки права входа до чтения properties и однократного capture/validation/detachment поддерживаемых полей через существующий внутренний `prepareExtensionValue`. После этого guard снимается и захваченные значения передаются обычной вставке. Обычный `update` producer остаётся вне guard.
 
-Отдельно согласован момент принятия команды. Ошибка public pre-dispatch gate не открывает insertion command: внешний caller может её поймать и продолжить уже существующий draft. Ошибка после входа в runtime insertion по-прежнему помечает вложенную команду failed и отменяет внешний action, даже если caller поймал исключение. Это новое точное правило для глубоких ошибок malformed input, которые могут обнаруживаться раньше; поведение валидной вставки сохраняется. [Существующая engine boundary](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/TransactionEngine.js#L107-L145).
+Отдельно согласован момент принятия команды. Ошибка public pre-dispatch gate не открывает insertion command: внешний caller может её поймать и продолжить уже существующий draft. Ошибка после входа в runtime insertion должна помечать вложенную команду failed и отменять внешний action, даже если caller поймал исключение. Это новое точное правило для глубоких ошибок malformed input, которые могут обнаруживаться раньше; поведение валидной вставки сохраняется. Пятый проход проверил фактическое исполнение этого правила для falsy thrown values и нашёл описанное в §10.1 нарушение. [Существующая engine boundary](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/TransactionEngine.js#L107-L145).
 
 ### 9.3. Shortcut context и toolbox decision включены в общий маршрут
 
@@ -421,3 +421,73 @@ Probe вызвал настоящие public API внутри защищённо
 Исправлены нормативные §3.3/6.1/8.1 и соответствующие replacement/proof/slice sections. Для slice 6 явно указана зависимость от общего guard slice 2 и согласование с alignment adapter slice 4. Повторная вычитка native pending/recovery, unchanged settlement, trigger handoff, selection lifetime и toolbar teardown новых существенных противоречий не выявила.
 
 Вывод о необходимости ограниченного архитектурного рефакторинга подтверждён. Его основание — наблюдаемые потери данных и неполное покрытие входных границ; дополнительный store, engine или набор managers не требуется. Штатные **107 Node PASS, typecheck и остальные результаты первого прохода не перезапускались**. Browser/native/IME/system clipboard и полный integration/package/build acceptance остаются обязательными доказательствами будущей реализации.
+
+## 10. Пятый проход — 08.10.2026
+
+Повторно проверен опубликованный **`f75fb134e694db2f6cf591283c6907fa90a1f1f8`**. Локальный и удалённый HEAD совпадали; production source оставался на исходной версии `98d5233`. Отдельно проверены исполнимость нормативных контрактов и зависимостей, ingestion/sidecars, clipboard preparation/task lifetime и представление отказа в engine. Новые наблюдения ниже воспроизведены на действующих классах и функциях; они не являются результатами ещё не реализованных исправлений.
+
+### 10.1. Перехваченный вложенный отказ с falsy значением не отменяет транзакцию
+
+**Важность: высокая — атомарность.** `TransactionEngine` хранит брошенное значение в `current.failed`, инициализирует его `null` и проверяет через `if (current.failed)`. Поэтому наличие отказа зависит от truthiness payload. Существующий тест poisoning покрывает обычный `Error`, но не эту границу. [Engine](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/TransactionEngine.js#L107-L145), [текущий тест](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/TransactionEngine.test.js#L96-L113).
+
+Для каждого значения создан свежий настоящий `DocumentRuntime` с двумя блоками `A`, `B`. Внутри одного `interact()` первый update меняет `A`, второй update бросает выбранное значение из обычного producer; внешний callback ловит его и завершается. Подмена engine или алгоритма rollback не использовалась. [Вход ordinary producer в engine](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/DocumentRuntime.js#L600-L640).
+
+| Брошенное значение | Вложенная ошибка поймана без изменения значения | Внешний action бросает | Revision / Undo | Итог первого блока |
+|---|---|---|---|---|
+| `Error('nested failure')`, контроль | Да | Да, тот же объект | `0` / нет | Исходный `A` |
+| `null`, `undefined`, `false`, `0`, `''`, `NaN`, по отдельности | Да | **Нет** | **`1` / есть** | **Сохранено staged-изменение** |
+
+Это одна ошибка представления состояния, проверенная матрицей значений. §3.2 спецификации теперь требует хранить сам факт отказа независимо от payload, исключать commit/projection publication после пойманного вложенного отказа и освобождать состояние при unwind. Engine сохраняет полученное значение; schema-specific wrapping остаётся обязанностью §4.2. Различие между отказом до dispatch и ошибкой внутри принятой команды сохранено. Исправление находится в существующем `TransactionEngine`, входит в slice 2 и не требует нового слоя транзакций.
+
+### 10.2. Допустимый inline ID `__proto__` теряет собственный payload
+
+**Важность: высокая — сохранность текущих документов.** Inline decoder разрешает непустые строковые ID; действующий token scanner допускает подчёркивания. Shared JSON clone уже правильно создаёт own data properties. Однако decoder и несколько последующих builders используют `{}` и `result[id] = value`, что для `__proto__` меняет prototype локального словаря вместо создания entry. [Inline decoder](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/shared/DocumentSchema.js#L150-L192), [JSON clone](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/shared/jsonData.js#L66-L76), [token scanner](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/shared/richTextOperations.js#L215-L234).
+
+Входы создавались через `Object.fromEntries`: обычный объект с собственным enumerable `__proto__` и неизменённым `Object.prototype`. Использованы неизвестные текущие block/inline types, которые должны сохраняться как inert JSON. Пять наблюдений получены без DOM:
+
+| Вход / действующий путь | Наблюдение |
+|---|---|
+| `decodeCurrentInlineMap`: `__proto__` рядом с `ordinary` | В own keys остаётся только `ordinary`; prototype становится payload inline entry |
+| `decodeCurrentDocument` с тем же sidecar | Возвращает повреждённую map; при JSON-сериализации `__proto__` отсутствует |
+| Constructor `DocumentRuntime` с обоими entries | Отвергает исходно допустимый документ как non-JSON object |
+| Constructor и `save()` с единственным `__proto__` | **Успешно загружает документ, молча удаляет весь sidecar**, оставляет текст `{{__proto__}}`; revision `0` |
+| `remapCanonicalInline` с пустым remap | Теряет собственный entry тем же способом |
+
+Это локальное повреждение словаря и потеря данных; изменение глобального `Object.prototype` не наблюдалось. Проверка пустоты после decode объясняет удаление единственного entry. Проблемные сборщики также присутствуют в canonical filter/remap/merge и заменяемом projection serializer. [Удаление пустой map](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/shared/DocumentSchema.js#L213-L221), [filter/remap](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/CanonicalTransforms.js#L63-L84), [merge](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/CanonicalTransforms.js#L185-L195), [projection](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/InlineProjectionRuntime.js#L150-L171).
+
+В §4.1 установлен общий own-key инвариант для serialized и allocated IDs; §5.3/6 и карта замены распространяют его на существующих владельцев. При чтении payload требуется own membership, в том числе в уже реконструируемом inline context. Допустимые ID сохраняются без blacklist или переименования. Действующая политика обычных/null-prototype/cross-realm JSON-объектов остаётся; отдельный публичный `Map` или data layer не добавляется. [Допустимые prototypes](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/shared/jsonData.js#L5-L16), [scoped payload lookup](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/DocumentRuntime.js#L3023-L3035).
+
+Shared decode исправляется в slice 2, projection/final assembly — в slice 1, inline context — в slice 3, переносимые clipboard/inline builders и remapping — в slice 4. Уже назначенный к удалению `exportRichTextFragment` удаляется вместе со старым wrapper, а не сохраняется ради отдельного исправления.
+
+### 10.3. Синхронный `paste.accepts()` пропущен в явной карте подготовки
+
+`ClipboardController.#route` непосредственно вызывает `accepts`, трактует truthy результат как согласие и превращает исключение в no-match. По действующему публичному контракту `accepts(): boolean` синхронен, а отдельный `resolve()` вправе вернуть Promise. Защита HTML/pattern materialization сама по себе этот маршрут не закрывает. [Routing](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/ClipboardController.js#L599-L618), [контракт](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/plugin-kit/types.d.ts#L432-L450).
+
+Настоящие `ClipboardController`, `ExtensionRegistry` и `DocumentRuntime` дали два наблюдения:
+
+- `accepts()` вызывает `runtime.update()` и возвращает `false`: producer выполнен **1 раз**, revision **1**, Undo доступен, Paste остаётся неотменённым.
+- `accepts()` возвращает `Promise.resolve(false)`: controller считает его положительным ответом и запускает resolver **1 раз**.
+
+§3.3/6.2 теперь явно включают text/file matching в общий guard: captured input/type/order, строгое синхронное boolean-решение, прежние current-type-first/registration ordering и первый `true`. `false` остаётся no-match; throw/invalid/thenable прекращает принадлежащий Paste с отменой default и без дальнейшего matching/resolver/fallback. Для нескольких файлов routing всего набора завершается до запуска resolution. Настоящий Promise от `resolve()` сохраняется в существующем async owner; guard не удерживается через await. Это расширение покрытия уже выбранной boundary, не новый clipboard router.
+
+### 10.4. Унаследованные C4/C5 требуют явной интеграции и доказательства
+
+Два следующих поведения уже предписаны [RECTOR_V2_REMEDIATION_SPEC.md](RECTOR_V2_REMEDIATION_SPEC.md). Пятый проход выявил их нарушение в коде и недостаточную конкретность change map/приёмки текущего уточнения; они не выдаются за новые требования.
+
+**C5 — отмена отложенной вставки.** Воспроизведение: начать awaitable resolver, вызвать `setReadOnly(true)`, затем `setReadOnly(false)`, завершить resolver. Его `signal.aborted` остаётся **false**; поздний результат вставляет блок и создаёт revision **1** и Undo. Document counters не меняются при переключении режима, поэтому проверки generation/revision/bookmark этого не обнаруживают. В production composition также отсутствует clipboard в read-only fan-out. [Task и проверка перед применением](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/ClipboardController.js#L621-L697), [runtime transition](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/DocumentRuntime.js#L863-L888), [composition](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/createEditorRuntime.js#L519-L529).
+
+§6.3 и slice 4 теперь требуют отзыва существующего clipboard task после успешного изменения режима, до последующих fallible UI/notification callbacks. Повторное включение редактирования не возвращает полномочия; поздний результат не запускает producer или focus. Сохраняются проверки данных/selection и существующий task/AbortController. Runtime-private prepared handle проверяет актуальность документа, а controller task — срок действия конкретной асинхронной операции; одно не заменяет другое.
+
+**C4 — присутствующий пустой private MIME.** Воспроизведение рекламирует текущий private MIME в `clipboardData.types`, возвращает для него `''` и одновременно предоставляет `text/plain`. Controller запускает text resolver и вставляет fallback. Причина — проверка `if (privatePayload)` вместо отдельной проверки присутствия. [Private dispatch](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/ClipboardController.js#L341-L357).
+
+§6.2 теперь явно различает отсутствие MIME и пустой/нечитаемый payload присутствующего формата: принадлежащее событие отменяется до его fallible read/decode, некорректное private содержимое не передаёт управление другим representations. Приёмка содержит advertised-empty, malformed/version-invalid и действительно absent случаи. Формат и codec сохраняются.
+
+### 10.5. Сходимость и пределы доказательств
+
+Выполнены три диагностических скрипта, каждый завершился с exit 0: матрица вложенного отказа (**7 запусков**, включая Error-контроль), own-key поведение (**5 наблюдений**) и clipboard routing/lifetime (**4 сценария**). Матрица значений описывает один дефект учёта отказа; остальные наблюдения сгруппированы по границам выше. Это подтверждения поведения исходной реализации. Обе независимые группы ingestion/clipboard повторно выполнены основным проверяющим со сверкой исходных мест.
+
+Engine и ingestion проверялись без DOM. Clipboard использовал действующие классы с контролируемыми registered-owner/selection/view adapters и ограниченным text-only detached DOM. Получены доказательства маршрутизации, состояния runtime и task lifetime; реальная доставка native events, rendered selection и системный clipboard этим не проверены.
+
+Независимая проверка нормативных §§3–13 не выявила новых существенных противоречий между guards, собственным selection restore, no-op результатами, current-view handles, native pending/recovery, owners и зависимостями этапов. В частности, подозрение на committed-order lookup в `KeyboardRouter.exit()` не включено в дефекты: доступный scoped `requestExit` отвергает building phase до callback, поэтому прямой искусственный вызов router внутри `interact` не доказывает поддерживаемый ошибочный сценарий. [Scoped phase gate](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/InstanceScope.js#L122-L126), [разрешённые фазы](https://github.com/Shelamkoff/editor/blob/98d5233e43e242d618670e2104da95d79f1a559f/core/InstanceScope.js#L163-L169).
+
+Нормативные поправки сведены с replacement map, проверками и owning slices 1–4; число этапов и владельцев состояния не увеличено. Вывод о необходимости ограниченного рефакторинга подтверждён. `implementation-ready` означает готовность описанного плана к реализации. Production, tests и configuration не менялись; **107 Node PASS, typecheck и остальные штатные результаты первого прохода повторно не запускались**. Полная integration/package/build проверка и browser/native/IME/system clipboard acceptance остаются работой реализации.
