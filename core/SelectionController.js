@@ -22,6 +22,7 @@ export class SelectionController {
   #conversionCaret = false
   #generation = 0
   #navigationX = null
+  #highlight = null
 
   constructor({ root, runtime, reconciler, view }) {
     if (!root?.ownerDocument) throw new TypeError('SelectionController requires an editor root')
@@ -613,10 +614,17 @@ export class SelectionController {
   #showHighlight(range) {
     const HighlightCtor = this.#window?.Highlight
     const highlights = this.#window?.CSS?.highlights
-    if (HighlightCtor && highlights) highlights.set(HIGHLIGHT_KEY, new HighlightCtor(range))
+    if (!HighlightCtor || !highlights) return
+    const highlight = new HighlightCtor(range)
+    highlights.set(HIGHLIGHT_KEY, highlight)
+    this.#highlight = highlight
   }
 
   #hideHighlight() {
-    this.#window?.CSS?.highlights?.delete?.(HIGHLIGHT_KEY)
+    const highlight = this.#highlight
+    this.#highlight = null
+    if (!highlight) return
+    const highlights = this.#window?.CSS?.highlights
+    if (highlights?.get?.(HIGHLIGHT_KEY) === highlight) highlights.delete(HIGHLIGHT_KEY)
   }
 }
