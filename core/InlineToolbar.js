@@ -38,6 +38,7 @@ export class InlineToolbar {
   #view
   #tools
   #toolMounts
+  #mountStates = []
   #reportError
   #buttonIcons = new Map()
   #translate
@@ -226,10 +227,15 @@ export class InlineToolbar {
       this.#buttonsPanel.append(button)
       this.#buttons.set(tool.type, button)
 
+      const mount = { active: false, revoked: false }
+      this.#mountStates.push(mount)
       this.#toolMounts.start(tool, this.#selectionPort, button, {
-        mutate: (range, operation) => this.#mutate(range, operation, tool.type),
+        mutate: (range, operation) => {
+          if (!mount.active || mount.revoked) throw new Error('Inline tool mutation context is not active')
+          return this.#mutate(range, operation, tool.type)
+        },
         restoreSelection: () => {
-          if (this.#readOnly || this.#destroyed || !this.#range
+          if (!mount.active || mount.revoked || this.#readOnly || this.#destroyed || !this.#range
             || !this.#reconciler.resolveEditableTarget(this.#range.startContainer)
             || !this.#reconciler.resolveEditableTarget(this.#range.endContainer)) return false
           const bookmark = cloneBookmark(this.#selectionPort?.bookmark ?? this.#bookmark)
@@ -238,6 +244,9 @@ export class InlineToolbar {
           if (restored) this.show()
           return restored
         },
+      }, () => {
+        mount.active = false
+        mount.revoked = true
       })
     }
 
@@ -262,6 +271,7 @@ export class InlineToolbar {
       this.#closeControlDropdown()
     }
     document.addEventListener('mousedown', this.#documentClick, true)
+    for (const mount of this.#mountStates) mount.active = true
     } catch (error) {
       this.#releaseResources()
       throw error
@@ -420,6 +430,10 @@ export class InlineToolbar {
     this.#typeVersion++
     this.#controlVersion++
     this.#selectionVersion++
+    for (const mount of this.#mountStates) {
+      mount.active = false
+      mount.revoked = true
+    }
 
     const errors = []
     const release = operation => {
