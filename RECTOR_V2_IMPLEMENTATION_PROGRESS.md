@@ -181,6 +181,19 @@ Available verification:
 
 **Status:** primary slice 6 selection-port/formatting source migration is committed. Slice 6 is not complete until full local/native/package verification and correction of failures, including checking tool presentation/UI resources and native queued-selection signatures in actual browsers.
 
+## Slice 6d — native-boundary and scope hardening (source complete, native acceptance outstanding)
+
+- Restricted stored editor selection issuance/restoration to exact rich-text keys that remain connected, visible, non-inert and contenteditable. A token's live DOM range is checked against its canonical bookmark's boundary positions, with equivalent parent/text-node boundaries accepted. Changed native selection revokes stale rights immediately rather than waiting for a queued browser notification.
+- The toolbar's mounted scope prioritizes the authoritative cross-field `SelectionController.range` over a possibly clipped native range. A bounded expected native selection signature retains the still-valid lease when a queued `selectionchange` corresponds to the just-completed own formatting restoration, and retires it when the actual selection differs.
+- The wrapper helper `toggleTag` no longer calls the Selection API or publishes native focus/selection; only the core selection owner restores it. Source audit now forbids old indexed-snapshot/direct highlight helpers.
+- Added targeted browser/native regressions for mounted-token provenance and revocation, own queued selection notifications, Unicode backward case expansion, and retained auxiliary formatter callbacks after a foreign canonical revision.
+
+Verification:
+
+- Latest isolated tests of `InlineSelectionAuthority` and `InlineToolMounts`: **19/19 passed** against the fetched branch source; 12 changed JavaScript modules parsed successfully in the module-compatible V8 checker.
+- Synthetic `InlineToolbar` / scoped port exercise also passed: a real tool callback acquired and restored its current token, a matching queued `selectionchange` kept its new continuation, and a subsequently changed native selection revoked it.
+- None of these simulations proves true Chrome/browser input, native clipboard, IME, actual DOM reconciliation, generated declaration consumers or npm-package conformance. Full local `npm test`, `npm run typecheck`, `npm run test:browser`, `npm run test:docs` and `npm run test:package` remain unverified at this head.
+
 ## Remaining slices
 
 4c. Full local/native/package verification and integration with the slice 8 terminal cancellation/control fan-out contract.
