@@ -349,8 +349,8 @@ export class InlineToolbar {
       const refreshPanelToken = () => {
         if (!isCurrent()) return
         panelBookmark = cloneBookmark(this.#selectionPort?.bookmark ?? this.#selection.capture() ?? panelBookmark)
-        panelRange = this.#range?.cloneRange() ?? null
-        panelToken = panelPort.capture() 
+        panelRange = panelPort.resolveOwnResult(panelBookmark)
+        panelToken = panelRange ? panelPort.capture() : null 
       }
       const closePanel = () => {
         if (!isCurrent()) return
