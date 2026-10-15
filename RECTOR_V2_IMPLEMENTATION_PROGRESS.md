@@ -143,12 +143,29 @@ Verification evidence from this turn:
 
 **Still outstanding in slice 6:** the strict mount-scoped `InlineSelectionPort` with private logical bookmarks, phase/revision/selection authority, complete migration of indexed/raw range helpers and tool consumers, and the `endOffsetDelta` and result-restoration contracts. The existing raw `CrossEditableSelectionPort` remains for those unported consumers. Do not mark slice 6 complete or infer overall completion from this partial work.
 
+## Slice 6b — private logical selection authority for inline panels (partial)
+
+Implementation:
+
+- Added `core/InlineSelectionAuthority.js`, a narrow mount/panel-scoped selection view that keeps token provenance and lifetime in a private `WeakMap`. Exposed tokens are opaque frozen objects containing no native `Range`, DOM root, field index or block data. Issuance/restore requires the owning editor to be connected, healthy, writable and in the permitted phase, with matching action lease, canonical generation and revision.
+- Capture requires an authorized live range and corresponding logical block/field bookmark. Foreign, cloned, forged, retired or stale tokens cannot restore. Restoration resolves both endpoint keys against current registered rich-text fields and validates logical UTF-16 lengths, surrogate boundaries, widget-label exclusion and direction before changing native selection. `endOffsetDelta` is validated once and allowed only within the owning synchronous formatting mutation; repeated restoration uses the original end rather than accumulating adjustments.
+- Added internal `DocumentRuntime.canAccessFormattingSelection()` for idle/owned-projection phase checks. Internal host-only `resolveOwnResult()` re-resolves a known successful panel operation's logical bookmark in current field keys without moving focus or rebasing the old token.
+- `InlineToolbar` action panels now use the private selection authority for fresh range views, restoration, model-first alignment validation and formatter dispatch. New panel token issuance follows each successful own transaction's actual revision; after an unrelated revision, generation, lease or lifecycle transition, old panel callbacks no longer mutate or restore. `#closeActions()` revokes the old panel before its controls can be reused. Owned panel focus is restored after DOM formatting to avoid spurious queued native-selection retirement.
+- Introduced the target `InlineSelectionBookmark`, `InlineSelectionRestoreOptions` and `InlineSelectionPort` declarations, while leaving the existing `CrossEditableSelectionPort` temporarily in place for **unmigrated built-in tools**. This is an incremental internal migration, **not** a claim that the public selection-port replacement and legacy helper deletion are complete.
+
+Verification:
+
+- `core/InlineSelectionAuthority.test.js`: **10/10** test bodies passed in the constrained V8 source runner, using the repository's actual logical `textOffset` implementation. Covered staged/retired authority, foreign tokens, read-only/lease/revision/generation expiry, backward direction, surrogate boundaries, widget-local exclusion, non-cumulative end delta, denied accessor evaluation and host-only no-focus retargeting.
+- A source-level synthetic DOM exercise of `InlineToolbar` and `InlineSelectionAuthority` confirmed two consecutive successful model-first panel alignment changes, then refusal of a third action after an unrelated revision. These are isolated adapter checks rather than real browser/native selection conformance.
+- Added a browser regression case asserting that an externally changed document revokes the panel's range and model-first controls. It has **not** been run in Chrome. Source syntax checks were successful for the changed JS modules; `npm run typecheck`, unit/browser/native suites, package gate and documentation/source audit are still unverified at this head.
+
+**Still outstanding in slice 6:** bind the strict per-mount port to all inline tools, migrate every raw/indexed `SavedOffsets` and `CrossEditableSelectionPort` consumer, remove retired utility exports and direct highlight helpers, validate native `selectionchange` signatures across own restoration, and run full local/native/package conformance. Do not consider this slice complete.
+
 ## Remaining slices
 
 4c. Full local/native/package verification and integration with the slice 8 terminal cancellation/control fan-out contract.
 5. Run full local/native/package acceptance on the new conversion planner and correct any failures.
 6. Finish strict formatting selection/mutation port migration, endpoint adjustments, panel settlement and all local/native/package gates.
-6. Formatting selection/resource ownership.
 7. Declarative inline controls.
 8. Shared Mention text decisions and native reconciliation.
 9. Convergence, packaged conformance and dependency enforcement.
