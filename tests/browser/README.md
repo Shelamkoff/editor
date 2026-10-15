@@ -1,5 +1,7 @@
 # Browser verification
 
+`projection-contracts.html` checks partial projection merge, invalid field addressing, final normalized inline occurrence counting, own-key dictionaries, marker-free third-party widget coordinates, and pending Person input before tab changes. These are controlled DOM contract tests; trusted input preservation is covered by the native Poll/Person/Carousel suites below.
+
 Rector's release-tested editing runtime is the current stable Chrome/Chromium family. The browser suites exercise native `contenteditable`, Selection/Range, clipboard, focus, keyboard, composition, and lifecycle behavior through Chrome DevTools Protocol; those semantics are part of the verified release contract.
 
 Firefox and WebKit/Safari may work, but they are not release-supported until equivalent native browser gates are added for them. Do not infer cross-engine support from the package being browser-native or ESM-only. A future support expansion must add engine-specific automated coverage before the documentation is broadened.

@@ -4,6 +4,7 @@ import { cloneEditorData } from '../shared/cloneEditorData.js'
 import { InstanceScope } from './InstanceScope.js'
 import { captureInstanceMethod, captureInstanceDestroy } from './instanceMethods.js'
 import { ProjectionAnimator } from './ProjectionAnimator.js'
+import { captureEditableFields } from './projectionFields.js'
 
 function sameJson(left, right) {
   try { return JSON.stringify(left) === JSON.stringify(right) } catch { return false }
@@ -195,6 +196,7 @@ export class BlockReconciler {
     const entry = this.#entries.get(id)
     if (!entry) throw new Error(`Unknown projected block id: ${id}`)
     const data = cloneEditorData(entry.instance.read())
+    const fields = captureEditableFields(entry.instance.editableFields?.() ?? [])
     if (!this.#inlineProjection || entry.unregistered) {
       return { data, inline: entry.record.inline === undefined ? undefined : cloneEditorData(entry.record.inline) }
     }
@@ -202,7 +204,7 @@ export class BlockReconciler {
       id,
       entry.record,
       entry.definition,
-      entry.instance.editableFields?.() ?? [],
+      fields,
       data,
     )
   }
@@ -314,7 +316,7 @@ export class BlockReconciler {
               item.id,
               item.after,
               item.entry.definition,
-              item.entry.instance.editableFields?.() ?? [],
+              item.entry.fields,
               item.entry.baseContext,
               { preserveSourceProjection: item.id === sourceBlockId },
             )
@@ -592,7 +594,7 @@ export class BlockReconciler {
           record.id,
           record,
           definition,
-          instance.editableFields?.() ?? [],
+          entry.fields,
           context,
           generation,
         )
@@ -637,7 +639,7 @@ export class BlockReconciler {
   }
 
   #registerFields(id, entry, projectPresentation, forceProjection) {
-    const fields = entry.instance.editableFields?.() ?? []
+    const fields = captureEditableFields(entry.instance.editableFields?.() ?? [])
     const changed = entry.fields && (fields.length !== entry.fields.length
       || fields.some((field, index) => field.key !== entry.fields[index]?.key || field.element !== entry.fields[index]?.element))
     if (changed) for (const field of entry.fields) this.#fieldOwners.delete(field.element)

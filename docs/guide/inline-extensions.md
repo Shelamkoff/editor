@@ -58,6 +58,10 @@ The widget ID is owned by the document model. Rich text stores a `{{id}}` refere
 
 ## Runtime and widget instance
 
+The host sets and maintains `data-inline-plugin` and `data-id` on the instance's stable root element. Extensions do not need to write these markers. They support atomic editing coordinates: a widget occupies one parent-field unit regardless of label length. Private runtime ownership controls serialization; copying these DOM attributes does not create a widget or payload. The widget still owns its content and editable/read-only presentation.
+
+After full schema normalization, canonical assembly counts owned references in text nodes across every rich field, including hidden fields. Duplicate owned occurrences reject the edit. Attribute tokens and unowned literal tokens do not count. Referenced unloaded payloads survive; only unreferenced entries are pruned during semantic edits.
+
 `InlinePluginRuntimeContext` provides `ownerDocument`, `signal`, `t(key, fallback, params?)`, `showPopup(anchor, content, cleanup)`, and `hidePopup()`. Translation parameters replace placeholders such as `{level}` through the editor's shared dictionary.
 
 `InlinePluginRuntime` provides `create(id, initial, context)`, optional `onTriggerQuery(session)`, optional `onTriggerKeydown(event, session)`, optional `onTriggerCancel()`, and `destroy()`.

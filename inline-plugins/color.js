@@ -65,8 +65,6 @@ export function createColorSwatchPlugin(){
           const span=document.createElement('span')
           span.contentEditable='false'
           span.className='oe-ip oe-ip--color'
-          span.dataset.inlinePlugin='color'
-          span.dataset.id=id
 
           const dot=document.createElement('span')
           dot.className='oe-ip__dot'

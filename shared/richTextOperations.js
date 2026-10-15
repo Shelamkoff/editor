@@ -6,6 +6,11 @@ import { toTrustedHtml } from './sanitize/trustedHtml.js'
 const PLACEHOLDER_RE=/\{\{([A-Za-z0-9_-]+)\}\}/g
 const MARKER_ATTR='data-oe-inline-reference'
 
+/** Iterate the canonical placeholder grammar in a text node, never raw HTML. */
+export function richTextPlaceholderMatches(text){
+  return String(text??'').matchAll(PLACEHOLDER_RE)
+}
+
 function ownInline(inline){
   return inline&&typeof inline==='object'&&!Array.isArray(inline)?inline:{}
 }
@@ -20,7 +25,7 @@ function expandReferences(root,inline,ownerDocument){
     const fragment=ownerDocument.createDocumentFragment()
     let cursor=0
     let changed=false
-    for(const match of text.data.matchAll(PLACEHOLDER_RE)){
+    for(const match of richTextPlaceholderMatches(text.data)){
       const id=match[1]
       if(!Object.hasOwn(inline,id))continue
       if(match.index>cursor)fragment.appendChild(ownerDocument.createTextNode(text.data.slice(cursor,match.index)))
@@ -210,7 +215,7 @@ export function splitRichTextRange(html, inline, range, ownerDocument) {
  * @param {string} html
  * @param {Record<string, unknown> | undefined} inline
  * @param {Document} ownerDocument
- * @returns {{ references: Set<string>, literals: Set<string> }}
+ * @returns {{ references: Set<string>, literals: Set<string>, occurrences: Map<string, number> }}
  */
 export function scanRichTextPlaceholders(html, inline, ownerDocument) {
   if (!ownerDocument?.createElement) throw new TypeError('RichTextOperations requires an ownerDocument')
@@ -222,16 +227,20 @@ export function scanRichTextPlaceholders(html, inline, ownerDocument) {
   ))
   const references = new Set()
   const literals = new Set()
+  const occurrences = new Map()
   const walker = ownerDocument.createTreeWalker(template.content, 4)
   for (let node = walker.nextNode(); node; node = walker.nextNode()) {
     const text = /** @type {Text} */ (node)
-    for (const match of text.data.matchAll(PLACEHOLDER_RE)) {
+    for (const match of richTextPlaceholderMatches(text.data)) {
       const id = match[1]
-      if (Object.hasOwn(ownedInline, id)) references.add(id)
+      if (Object.hasOwn(ownedInline, id)) {
+        references.add(id)
+        occurrences.set(id, (occurrences.get(id) ?? 0) + 1)
+      }
       else literals.add(id)
     }
   }
-  return { references, literals }
+  return { references, literals, occurrences }
 }
 
 /**

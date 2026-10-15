@@ -852,8 +852,6 @@ export function createMentionPlugin(options={}){
           if(destroyed)throw new Error('Mention inline runtime is destroyed')
           const span=runtimeContext.ownerDocument.createElement('span')
           span.className='oe-ip oe-ip--mention'
-          span.dataset.inlinePlugin='mention'
-          span.dataset.id=id
           let data={...initial}
           let readOnly=context.isReadOnly()
           let dead=false

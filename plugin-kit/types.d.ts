@@ -12,13 +12,14 @@ export interface BlockDataSchema<
     dataVersion: number
     data: D
   }
+  /** Enumerate all rich fields, including hidden fields, with unique nonempty stable keys. */
   mapRichText?(
     data: D,
     transform: (html: string, fieldKey: string) => string,
   ): D
 }
 
-/** Stable logical editable field exposed by one mounted block instance. */
+/** Mounted logical field. Keys and elements are unique across all modes. */
 export interface EditableField {
   readonly key: string
   readonly element: HTMLElement
@@ -69,6 +70,7 @@ export interface BlockInstance<
   D extends Record<string, unknown> = Record<string, unknown>
 > {
   readonly element: HTMLElement
+  /** Detached candidate membership/order and controls; core owns rich DOM synchronization. */
   read(): D
   update?(next: Readonly<D>, previous: Readonly<D>): void
   editableFields?(): readonly EditableField[]

@@ -1,6 +1,7 @@
 // @ts-check
 import { cloneEditorData } from '../shared/cloneEditorData.js'
 import { remapRichTextReferences, scanRichTextPlaceholders } from '../shared/richTextOperations.js'
+import { mapRichTextFields } from './projectionFields.js'
 
 /**
  * Wrap the host id source with editor-session uniqueness. A value already
@@ -41,15 +42,17 @@ export function createSessionIdAllocator(createId) {
 export function scanCanonicalRichText(definition, data, inline, ownerDocument) {
   const references = new Set()
   const literals = new Set()
-  if (typeof definition?.schema?.mapRichText !== 'function') return { references, literals }
+  const occurrences = new Map()
+  if (typeof definition?.schema?.mapRichText !== 'function') return { references, literals, occurrences }
 
-  definition.schema.mapRichText(cloneEditorData(data), html => {
+  mapRichTextFields(definition, cloneEditorData(data), html => {
     const scan = scanRichTextPlaceholders(html, inline, ownerDocument)
     for (const id of scan.references) references.add(id)
     for (const id of scan.literals) literals.add(id)
+    for (const [id, count] of scan.occurrences) occurrences.set(id, (occurrences.get(id) ?? 0) + count)
     return html
   })
-  return { references, literals }
+  return { references, literals, occurrences }
 }
 
 /**
@@ -62,11 +65,11 @@ export function scanCanonicalRichText(definition, data, inline, ownerDocument) {
  */
 export function filterCanonicalInline(definition, data, inline, ownerDocument) {
   if (!inline || typeof inline !== 'object' || Array.isArray(inline)) return undefined
-  const { references } = scanCanonicalRichText(definition, data, inline, ownerDocument)
-  const result = {}
-  for (const id of references) {
-    if (Object.hasOwn(inline, id)) result[id] = cloneEditorData(inline[id])
+  const { references, occurrences } = scanCanonicalRichText(definition, data, inline, ownerDocument)
+  for (const [id, count] of occurrences) {
+    if (count !== 1) throw new Error('Inline widget reference must be unique: ' + id)
   }
+  const result = Object.fromEntries([...references].map(id => [id, cloneEditorData(inline[id])]))
   return Object.keys(result).length ? result : undefined
 }
 
@@ -77,11 +80,9 @@ export function filterCanonicalInline(definition, data, inline, ownerDocument) {
  * @param {Map<string, string>} remap
  */
 export function remapCanonicalInline(inline, remap) {
-  const result = {}
-  for (const [id, value] of Object.entries(inline ?? {})) {
-    result[remap.get(id) ?? id] = cloneEditorData(value)
-  }
-  return result
+  return Object.fromEntries(Object.entries(inline ?? {}).map(([id, value]) => [
+    remap.get(id) ?? id, cloneEditorData(value),
+  ]))
 }
 
 /**
@@ -182,20 +183,20 @@ export function prepareCanonicalInlineMerge(input) {
   const sourceData = remapCanonicalRichText(
     input.definition, input.source.data, sourceInline, sourceRemap, input.ownerDocument,
   )
-  const inline = {}
+  const entries = []
 
   for (const id of targetScan.references) {
     if (Object.hasOwn(targetInline, id)) {
-      inline[targetRemap.get(id) ?? id] = cloneEditorData(targetInline[id])
+      entries.push([targetRemap.get(id) ?? id, cloneEditorData(targetInline[id])])
     }
   }
   for (const id of sourceScan.references) {
     if (Object.hasOwn(sourceInline, id)) {
-      inline[sourceRemap.get(id) ?? id] = cloneEditorData(sourceInline[id])
+      entries.push([sourceRemap.get(id) ?? id, cloneEditorData(sourceInline[id])])
     }
   }
 
-  return { targetData, sourceData, inline }
+  return { targetData, sourceData, inline: Object.fromEntries(entries) }
 }
 
 /**

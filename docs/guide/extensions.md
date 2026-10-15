@@ -32,6 +32,10 @@ interface BlockPluginDefinition<Data> {
 
 `BlockPluginRuntime` has `create(initial, context)` and `destroy()`. Each `create()` returns one `BlockInstance`.
 
+`read()` supplies current collection membership/order and control values. `editableFields()` lists only mounted fields; `mapRichText()` must enumerate every rich field, including hidden fields, under unique nonempty stable keys. Mounted keys must be unique across modes, elements cannot be shared between keys, and every mounted rich field must exist in the candidate data. Invalid addressing rejects synchronization and restores the committed projection.
+
+During DOM synchronization, mounted rich fields come from their DOM, hidden existing fields retain their committed canonical value (including empty strings), and new hidden fields retain their candidate value. Removed fields stay removed. Model-first `updateData()` can deliberately change hidden values. Flush pending DOM input with `commitDomMutation(() => {})` before presentation controls unmount its field; never copy rendered widget labels into a canonical rich-text cache.
+
 A `BlockInstance` exposes `element`, `read()`, optional `update(next, previous)`, optional `editableFields()`, `setReadOnly(readOnly)`, optional `focus(target)`, and `destroy()`.
 
 `BlockInstanceContext` provides:

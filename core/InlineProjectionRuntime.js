@@ -7,28 +7,11 @@ import { captureInstanceMethod, captureInstanceDestroy } from './instanceMethods
 import { normalizeRichText } from '../shared/richTextCodec.js'
 import { toTrustedHtml } from '../shared/sanitize/trustedHtml.js'
 import { isRichTextCaretPadding, projectRichTextCaretPadding } from '../shared/richTextCaretPadding.js'
-
-const PLACEHOLDER_RE=/\{\{([A-Za-z0-9_-]+)\}\}/g
+import { scanRichTextPlaceholders, richTextPlaceholderMatches } from '../shared/richTextOperations.js'
+import { richTextFieldMap, mapRichTextFields, mountedRichFields } from './projectionFields.js'
 
 function object(value){
   return value&&typeof value==='object'&&!Array.isArray(value)?value:{}
-}
-
-function collectTokens(html,counts){
-  for(const match of String(html??'').matchAll(PLACEHOLDER_RE)){
-    counts.set(match[1],(counts.get(match[1])??0)+1)
-  }
-}
-
-function richFieldMap(definition,data){
-  const fields=new Map()
-  if(typeof definition?.schema?.mapRichText!=='function')return fields
-  const owned=cloneEditorData(data)
-  definition.schema.mapRichText(owned,(html,key)=>{
-    fields.set(key,String(html??''))
-    return html
-  })
-  return fields
 }
 
 function snapshotInlineInstance(source,type,destroySource){
@@ -131,10 +114,10 @@ export class InlineProjectionRuntime {
 
   serializeBlock(blockId,record,definition,fields,readData){
     this.#assertLive()
-    const state=this.#blocks.get(blockId)
-    const actual=new Map((fields??[]).filter(field=>field?.mode==='rich-text'&&field.element).map(field=>[field.key,field.element]))
+    const canonical=richTextFieldMap(definition,record.data)
+    const candidate=richTextFieldMap(definition,readData)
+    const actual=mountedRichFields(fields,candidate)
     const serialized=new Map()
-    const counts=new Map()
 
     for(const [key,element] of actual){
       const html=this.#serializeField(blockId,element)
@@ -143,47 +126,17 @@ export class InlineProjectionRuntime {
 
     let data=cloneEditorData(readData)
     if(typeof definition?.schema?.mapRichText==='function'){
-      const canonical=richFieldMap(definition,record.data)
-      data=definition.schema.mapRichText(data,(html,key)=>{
-        // Hidden authoring fields have no live DOM authority. Retain committed
-        // text and count references across the whole block, including those fields.
-        const value=serialized.get(key)??canonical.get(key)??html
-        collectTokens(value,counts)
-        return value
+      data=mapRichTextFields(definition,data,(html,key)=>{
+        if(serialized.has(key))return serialized.get(key)
+        return canonical.has(key)?canonical.get(key):html
       })
-    }else{
-      for(const html of serialized.values())collectTokens(html,counts)
     }
 
-    const sourceInline=object(record.inline)
-    const nextInline={}
-    for(const [id,count] of counts){
-      if(count!==1){
-        if(Object.hasOwn(sourceInline,id))throw new Error('Inline widget reference must be unique: '+id)
-        continue
-      }
-      const ref=sourceInline[id]
-      if(!ref||typeof ref!=='object'||Array.isArray(ref))continue
-      nextInline[id]=cloneEditorData(ref)
-    }
-
-    // Owned widgets are authoritative only for identity/presence; their data
-    // always comes from the canonical inline map updated through widget context.
-    if(state){
-      for(const [id,entry] of state.widgets){
-        if(counts.get(id)!==1)continue
-        const ref=sourceInline[id]
-        if(ref)nextInline[id]=cloneEditorData(ref)
-        if(!entry.element.isConnected&&entry.element.parentNode===null){
-          // A browser/user deletion prunes the widget on the next commit.
-          delete nextInline[id]
-        }
-      }
-    }
-
+    // Only canonical assembly can prune: schema normalization may introduce or
+    // remove references, and a detached widget can still belong to a hidden field.
     return {
       data,
-      inline:Object.keys(nextInline).length?nextInline:undefined,
+      inline:record.inline===undefined?undefined:cloneEditorData(record.inline),
     }
   }
 
@@ -299,6 +252,7 @@ export class InlineProjectionRuntime {
         for(const entry of state.widgets.values()){
           changed.push(entry)
           entry.instance.setReadOnly(next)
+          this.#markWidget(entry)
         }
       }
       for(const entry of changed)entry.scope?.setReadOnly?.(next)
@@ -306,7 +260,10 @@ export class InlineProjectionRuntime {
     }catch(error){
       const failures=[error]
       for(let index=changed.length-1;index>=0;index--){
-        try{changed[index].instance.setReadOnly(this.#readOnly)}
+        try{
+          changed[index].instance.setReadOnly(this.#readOnly)
+          this.#markWidget(changed[index])
+        }
         catch(recoveryError){failures.push(recoveryError)}
       }
       if(failures.length>1){
@@ -330,11 +287,15 @@ export class InlineProjectionRuntime {
   }
 
   #projectState(blockId,state,record,definition,fields,baseContext,{preserveSourceProjection=false}={}){
-    const richFields=new Map((fields??[]).filter(field=>field?.mode==='rich-text'&&field.element).map(field=>[field.key,field.element]))
-    const canonical=richFieldMap(definition,record.data)
+    const canonical=richTextFieldMap(definition,record.data)
+    const richFields=mountedRichFields(fields,canonical)
     const inline=object(record.inline)
     const counts=new Map()
-    for(const html of canonical.values())collectTokens(html,counts)
+    for(const html of canonical.values()){
+      for(const [id,count] of scanRichTextPlaceholders(html,inline,this.#ownerDocument).occurrences){
+        counts.set(id,(counts.get(id)??0)+count)
+      }
+    }
     const live=new Set()
 
     for(const [fieldKey,element] of richFields){
@@ -370,7 +331,7 @@ export class InlineProjectionRuntime {
       let cursor=0
       let changed=false
 
-      for(const match of text.data.matchAll(PLACEHOLDER_RE)){
+      for(const match of richTextPlaceholderMatches(text.data)){
         const id=match[1]
         const ref=Object.hasOwn(inline,id)?inline[id]:undefined
         if(!ref||typeof ref!=='object'||Array.isArray(ref)||counts.get(id)!==1)continue
@@ -433,6 +394,7 @@ export class InlineProjectionRuntime {
           entry.instance.setReadOnly(this.#readOnly)
         }
 
+        this.#markWidget(entry)
         fragment.appendChild(entry.element)
         live.add(id)
         cursor=match.index+match[0].length
@@ -448,6 +410,7 @@ export class InlineProjectionRuntime {
     for(const entry of state.widgets.values()){
       if(entry.fieldKey!==fieldKey)continue
       if(element.contains(entry.element)){
+        this.#markWidget(entry)
         entry.fieldElement=element
         live.add(entry.id)
       }
@@ -460,7 +423,7 @@ export class InlineProjectionRuntime {
       for(const node of source.childNodes){
         if(isRichTextCaretPadding(node))continue
         const owned=this.#owned.get(node)
-        if(owned?.blockId===blockId){
+        if(owned?.blockId===blockId&&this.#blocks.get(blockId)?.widgets.get(owned.id)?.element===node){
           target.appendChild(this.#ownerDocument.createTextNode('{{'+owned.id+'}}'))
           continue
         }
@@ -482,6 +445,11 @@ export class InlineProjectionRuntime {
     if(!state)return
     for(const entry of state.widgets.values())this.#destroyWidget(entry)
     state.widgets.clear()
+  }
+
+  #markWidget(entry){
+    entry.element.setAttribute('data-inline-plugin',entry.type)
+    entry.element.setAttribute('data-id',entry.id)
   }
 
   #destroyWidget(entry){

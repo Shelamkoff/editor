@@ -132,15 +132,9 @@ export function createPersonPlugin(config={}){
 
           const activePerson=()=>data.persons.find(person=>person.id===activeId)??data.persons[0]
 
-          const syncVisible=()=>{
+          const syncControls=()=>{
             const person=activePerson()
             if(!person)return
-            const name=/** @type {HTMLElement|null} */(body.querySelector('.oe-person__name'))
-            const role=/** @type {HTMLElement|null} */(body.querySelector('.oe-person__role'))
-            const bio=/** @type {HTMLElement|null} */(body.querySelector('.oe-person__bio'))
-            if(name)person.name=name.innerHTML.trim()
-            if(role)person.role=role.innerHTML.trim()
-            if(bio)person.bio=bio.innerHTML.trim()
             for(const input of body.querySelectorAll('input[data-link-id]')){
               const link=person.links.find(item=>item.id===input.dataset.linkId)
               if(!link)continue
@@ -150,8 +144,14 @@ export function createPersonPlugin(config={}){
             }
           }
 
-          const commit=producer=>{
-            syncVisible()
+          const flushVisible=()=>{
+            if(!readOnly)context.commitDomMutation(()=>{})
+            data=cloneData(context.getData())
+          }
+
+          const commit=(producer,nextActiveId=activeId)=>{
+            flushVisible()
+            activeId=nextActiveId
             retainControlFocus(wrapper,()=>context.updateData(current=>producer(cloneData(current))))
           }
 
@@ -276,7 +276,7 @@ export function createPersonPlugin(config={}){
               select.appendChild(label)
               select.addEventListener('click',()=>{
                 if(activeId===person.id)return
-                syncVisible()
+                flushVisible()
                 activeId=person.id
                 render()
                 wrapper.focus({preventScroll:true})
@@ -290,10 +290,9 @@ export function createPersonPlugin(config={}){
                 remove.title=runtimeContext.t('removePerson','Remove person')
                 remove.setAttribute('aria-label',remove.title)
                 remove.addEventListener('click',()=>{
-                  syncVisible()
                   const remaining=data.persons.filter(item=>item.id!==person.id)
-                  if(activeId===person.id)activeId=remaining[Math.min(index,remaining.length-1)]?.id??''
-                  commit(current=>({persons:current.persons.filter(item=>item.id!==person.id)}))
+                  const nextActiveId=activeId===person.id?remaining[Math.min(index,remaining.length-1)]?.id??'':activeId
+                  commit(current=>({persons:current.persons.filter(item=>item.id!==person.id)}),nextActiveId)
                 },{signal:context.signal})
                 tab.appendChild(remove)
               }
@@ -343,10 +342,9 @@ export function createPersonPlugin(config={}){
               add.setAttribute('aria-label',runtimeContext.t('addPerson','Add person'))
               add.addEventListener('click',()=>{
                 const id=context.createId('person')
-                activeId=id
                 commit(current=>({
                   persons:[...current.persons,{id,avatar:'',name:'',role:'',bio:'',links:[]}],
-                }))
+                }),id)
               },{signal:context.signal})
               tabs.appendChild(add)
             }
@@ -486,7 +484,7 @@ export function createPersonPlugin(config={}){
           return {
             element:wrapper,
             read(){
-              syncVisible()
+              syncControls()
               return cloneData(data)
             },
             update(next){
@@ -514,7 +512,7 @@ export function createPersonPlugin(config={}){
               return Object.freeze(result)
             },
             setReadOnly(value){
-              syncVisible()
+              syncControls()
               readOnly=value
               render()
             },
@@ -524,7 +522,7 @@ export function createPersonPlugin(config={}){
               const requested=data.persons.find(person=>['name','role','bio'].some(field=>key===`person:${person.id}:${field}`)
                 ||person.links.some(link=>key===linkFieldKey(person.id,link.id)))
               if(requested&&requested.id!==activeId){
-                syncVisible()
+                data=cloneData(context.getData())
                 activeId=requested.id
                 render()
               }
