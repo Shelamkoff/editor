@@ -460,6 +460,7 @@ export function createEditorRuntime(input){
     selectionPort:crossSelection,
     view,
     tools:configuredInlineTools,
+    reportError:(code,error)=>reportDiagnostic(code,'inline-toolbar',error),
     translate:(key,fallback='',params=undefined)=>{
       const translated=i18n.t(key,params)
       return translated===key?fallback:translated
