@@ -408,6 +408,8 @@ export interface ExtensionUiContext {
 export interface SettingsAction {
   id: string
   label: LocalizedLabel
+  /** Optional short text for an inline control trigger; menus retain the full label. */
+  compactLabel?: LocalizedLabel
   icon?: string
   active?: boolean
   disabled?: boolean
