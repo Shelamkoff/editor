@@ -471,7 +471,9 @@ test('native retained Font Size and Color callbacks cannot edit after external r
     assert(target,'Expected active formatting control')
     editor.blocks.update('a',()=>({data:{text:'Replaced'}}))
     const after=editor.save().blocks
-    await clickNative(target)
+    // A retained callback may still receive a programmatic click after its
+    // picker has been closed by the host. It must not mutate new author data.
+    target.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true}))
     await pause(30)
     equal(editor.save().blocks,after,'Retired formatting control mutated a replacement')
     equal(editor.save().blocks[0].data.text,'Replaced')
