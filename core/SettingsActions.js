@@ -56,6 +56,9 @@ export function prepareSettingsActions(runtime, capability, data, context, fallb
     const source = synchronousResult(Reflect.apply(actionsMethod, capability, [data, ui]))
     if (!Array.isArray(source)) throw new TypeError('Settings actions must return a dense array')
     const length = source.length
+    if (!Number.isSafeInteger(length) || length < 0 || length > 0xffffffff) {
+      throw new TypeError('Settings actions array length must be a valid array length')
+    }
     const ids = new Set()
     /** @type {PreparedSettingsAction[]} */
     const actions = []
@@ -66,8 +69,8 @@ export function prepareSettingsActions(runtime, capability, data, context, fallb
         throw new TypeError(`Settings action ${index} must be an object`)
       }
       const id = synchronousResult(action.id)
-      const label = action.label
-      const compactLabel = action.compactLabel
+      const label = synchronousResult(action.label)
+      const compactLabel = synchronousResult(action.compactLabel)
       const icon = synchronousResult(action.icon)
       const active = synchronousResult(action.active)
       const disabled = synchronousResult(action.disabled)
