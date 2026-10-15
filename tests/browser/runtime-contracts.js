@@ -1293,4 +1293,89 @@ test('clipboard capability focus cannot replace the host-owned block identity',(
   }finally{runtime.destroy()}
 })
 
+
+test('file Paste rejects a non-boolean accepts result without native fallback', () => {
+  const base = createParagraphPlugin()
+  let resolutionCalls = 0
+  const definition = {
+    ...base,
+    capabilities: {
+      ...base.capabilities,
+      paste: {
+        accepts() { return 'yes' },
+        resolve() { resolutionCalls++; return null },
+      },
+    },
+  }
+  const editor = make([para('a', 'Original')], { plugins: [definition] })
+  const field = editableField(editor, 'a')
+  select(field, 3)
+  const data = new DataTransfer()
+  data.items.add(new File(['hello'], 'document.txt', { type: 'text/plain' }))
+  const event = new ClipboardEvent('paste', { clipboardData: data, bubbles: true, cancelable: true })
+  field.dispatchEvent(event)
+  check(event.defaultPrevented, 'invalid matching must cancel native Paste')
+  equal(resolutionCalls, 0)
+  equal(editor.save().blocks[0].data.text, 'Original')
+  equal(editor.canUndo, false)
+})
+
+test('read-only round trip revokes a pending file Paste before it can commit or focus', async () => {
+  const base = createParagraphPlugin()
+  let resolvePaste = null
+  const definition = {
+    ...base,
+    capabilities: {
+      ...base.capabilities,
+      paste: {
+        accepts: input => input.kind === 'file',
+        resolve() { return new Promise(resolve => { resolvePaste = resolve }) },
+      },
+    },
+  }
+  const editor = make([para('a', 'Original')], { plugins: [definition] })
+  const field = editableField(editor, 'a')
+  select(field, 3)
+  const data = new DataTransfer()
+  data.items.add(new File(['hello'], 'document.txt', { type: 'text/plain' }))
+  const event = new ClipboardEvent('paste', { clipboardData: data, bubbles: true, cancelable: true })
+  field.dispatchEvent(event)
+  check(event.defaultPrevented, 'file Paste must be owned')
+  check(typeof resolvePaste === 'function', 'resolver was not invoked')
+  editor.setReadOnly(true)
+  editor.setReadOnly(false)
+  resolvePaste({ kind: 'rich-text', replacement: { kind: 'text', text: 'Late' } })
+  await Promise.resolve()
+  await new Promise(resolve => setTimeout(resolve, 0))
+  equal(editor.save().blocks[0].data.text, 'Original')
+  equal(editor.canUndo, false)
+})
+
+test('HTML import matcher returning a Promise consumes owned Paste without text fallback', () => {
+  const base = createParagraphPlugin()
+  const definition = {
+    ...base,
+    capabilities: {
+      ...base.capabilities,
+      htmlImport: {
+        matchesRoot(element) {
+          return element.tagName === 'P' ? Promise.resolve(true) : false
+        },
+        importRoot: base.capabilities.htmlImport.importRoot,
+      },
+    },
+  }
+  const editor = make([para('a', 'Original')], { plugins: [definition] })
+  const field = editableField(editor, 'a')
+  select(field, 0, 8)
+  const data = new DataTransfer()
+  data.setData('text/html', '<p>Replacement</p>')
+  data.setData('text/plain', 'fallback')
+  const event = new ClipboardEvent('paste', { clipboardData: data, bubbles: true, cancelable: true })
+  field.dispatchEvent(event)
+  check(event.defaultPrevented, 'invalid HTML matching must cancel native Paste')
+  equal(editor.save().blocks[0].data.text, 'Original')
+  equal(editor.canUndo, false)
+})
+
 await run()
