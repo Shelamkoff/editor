@@ -119,6 +119,7 @@ export class InlineSelectionAuthority {
     if (!this.#available() || !token || typeof token !== 'object') return false
     const captured = this.#tokens.get(token)
     return this.#matches(captured)
+      && this.#currentOwns(captured)
       && Boolean(this.#resolve(captured.anchor) && this.#resolve(captured.focus))
   }
 
@@ -146,7 +147,7 @@ export class InlineSelectionAuthority {
     // Prove issuer/phase first. Caller accessors must not run for stale/foreign tokens.
     if (!this.#available() || !token || typeof token !== 'object') return false
     const captured = this.#tokens.get(token)
-    if (!this.#matches(captured)) return false
+    if (!this.#matches(captured) || !this.#currentOwns(captured)) return false
 
     const candidate = this.#runtime.prepareExtensionValue(() => {
       if (options !== undefined && (!options || typeof options !== 'object' || Array.isArray(options))) {
@@ -177,7 +178,7 @@ export class InlineSelectionAuthority {
       if (!resolvedAnchor || !resolvedFocus) return null
       return { anchor, focus }
     })
-    if (!candidate || !this.#matches(captured)) return false
+    if (!candidate || !this.#matches(captured) || !this.#currentOwns(captured)) return false
     return this.#restore(candidate) === true
   }
 
@@ -254,6 +255,23 @@ export class InlineSelectionAuthority {
       } catch { return false }
     }
     return true
+  }
+
+  /** A genuine changed native selection must expire the token immediately,
+   * even before the browser's queued selectionchange notification arrives.
+   * Inside the owning protected DOM callback, intermediate wrapper edits are
+   * intentionally repaired from this same token.
+   * @param {any} metadata
+   */
+  #currentOwns(metadata) {
+    if (this.#inMutation()) return true
+    const current = this.#read()
+    if (!this.#validCurrent(current)) return false
+    const a = this.#copyPoint(current.bookmark.anchor)
+    const f = this.#copyPoint(current.bookmark.focus)
+    return Boolean(a && f
+      && a.blockId === metadata.anchor.blockId && a.fieldKey === metadata.anchor.fieldKey && a.offset === metadata.anchor.offset
+      && f.blockId === metadata.focus.blockId && f.fieldKey === metadata.focus.fieldKey && f.offset === metadata.focus.offset)
   }
 
   /** @param {any} metadata */
