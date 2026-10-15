@@ -25,8 +25,9 @@ function payloadHasContent(s, payload) {
  * @param {{type:string,toolboxItemId?:string}} target
  * @param {any} [baseData]
  * @param {Set<string>} [reserved]
+ * @param {boolean | undefined} [acceptedImport] Already validated by the owning selection route.
  */
-export function conversionTargetData(s, targetDefinition, payload, target, baseData = undefined, reserved = new Set()) {
+export function conversionTargetData(s, targetDefinition, payload, target, baseData = undefined, reserved = new Set(), acceptedImport = undefined) {
   const candidate = payload == null ? null : cloneEditorData(payload)
   const conversion = targetDefinition.capabilities?.conversion
   let data
@@ -35,7 +36,9 @@ export function conversionTargetData(s, targetDefinition, payload, target, baseD
   } else {
     let accepted = false
     if (candidate && typeof conversion?.canImport === 'function') {
-      const outcome = synchronousResult(conversion.canImport(cloneEditorData(candidate)))
+      const outcome = acceptedImport === undefined
+        ? synchronousResult(conversion.canImport(cloneEditorData(candidate)))
+        : acceptedImport
       if (typeof outcome !== 'boolean') {
         throw new TypeError('Conversion canImport() must return a boolean')
       }
@@ -162,7 +165,8 @@ function crossSelection(s, view, start, end, target, targetDefinition, reserved)
       if (typeof accepted !== 'boolean') throw new TypeError('Selection join canImport() must return a boolean')
       if (!accepted) return noChange()
     }
-    const targetData = conversionTargetData(s, targetDefinition, payload, target, undefined, reserved)
+    const targetData = conversionTargetData(s, targetDefinition, payload, target, undefined, reserved,
+      payload === null ? undefined : true)
     const targetId = s.allocateId(target.type, reserved)
     const targetRecord = s.recordFromData(targetId, target.type, targetDefinition, targetData, first.tunes, {})
     for (const part of selected) s.assertConversionInlinePreserved(part.payload, part.inline, targetDefinition, targetRecord)
@@ -218,7 +222,7 @@ function crossSelection(s, view, start, end, target, targetDefinition, reserved)
         : selectedSourceData(s, piece.original,
           piece.position === 'first' ? start : null,
           piece.position === 'last' ? end : null)
-      : conversionTargetData(s, targetDefinition, piece.payload, target, undefined, reserved)
+      : conversionTargetData(s, targetDefinition, piece.payload, target, undefined, reserved, true)
     const insert = (piece.position === 'first' && !!firstSlice.before)
       || (piece.position === 'last' && !!lastSlice.after)
     const id = insert ? s.allocateId(target.type, reserved) : piece.original.id
