@@ -1515,4 +1515,38 @@ test('collapsed same-type selection configures staged author data and preserves 
   }finally{runtime.destroy()}
 })
 
+
+test('per-block conversion reads and invokes target acceptance once per selected piece',()=>{
+  const source=paragraphDefinition({mapRichText:(data,visit)=>({...data,text:visit(data.text,'text')})})
+  const target={...paragraphDefinition({mapRichText:(data,visit)=>({...data,text:visit(data.text,'text')})}),type:'heading'}
+  let reads=0,invocations=0
+  const conversion={
+    selectionMode:'per-block',
+    import:payload=>({text:payload.data.text}),
+  }
+  Object.defineProperty(conversion,'canImport',{get(){
+    reads++
+    return function(payload){
+      invocations++
+      return payload?.kind==='rich-text'
+    }
+  }})
+  target.capabilities.conversion=conversion
+  const runtime=new DocumentRuntime({ownerDocument:document,registry:registry([source,target]),
+    data:{version:'2.0.0',blocks:[block('a',{text:'Alpha'}),block('b',{text:'Beta'})]}})
+  try{
+    const outcome=runtime.convertLogicalSelection({
+      anchor:{blockId:'a',fieldKey:'text',offset:0},
+      focus:{blockId:'b',fieldKey:'text',offset:4},
+    },{type:'heading'})
+    equal(outcome.convertedIds.length,2)
+    equal(reads,2)
+    equal(invocations,2)
+    equal(runtime.list().map(record=>[record.type,record.data.text]),
+      [['heading','Alpha'],['heading','Beta']])
+    equal(runtime.undo(),true)
+    equal(runtime.canUndo,false)
+  }finally{runtime.destroy()}
+})
+
 await run()
