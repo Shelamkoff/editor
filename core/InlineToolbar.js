@@ -307,8 +307,10 @@ export class InlineToolbar {
       const lease = this.#selectionVersion
       const actionLease = this.#actionVersion
       const generation = this.#runtime.generation
+      let expectedRevision = this.#runtime.revision
       const owners = selection.blockIds.map(blockId => ({ blockId, element: this.#view.element(blockId) }))
       const isCurrent = () => !this.#destroyed && !this.#readOnly
+        && expectedRevision === this.#runtime.revision
         && lease === this.#selectionVersion && actionLease === this.#actionVersion
         && generation === this.#runtime.generation
         && owners.every(owner => owner.element === this.#view.element(owner.blockId))
@@ -316,7 +318,7 @@ export class InlineToolbar {
       const closePanel = () => {
         if (!isCurrent()) return
         this.#closeActions()
-        this.#restoreSelection(panelBookmark, range)
+        this.#restoreSelection(panelBookmark)
         this.show()
       }
       let panel
@@ -326,17 +328,27 @@ export class InlineToolbar {
           mutate: operation => {
             if (!isCurrent()) return undefined
             const result = this.#mutate(range, operation, tool.type, lease)
+            if (lease !== this.#selectionVersion || generation !== this.#runtime.generation
+              || owners.some(owner => owner.element !== this.#view.element(owner.blockId))) return result
+            expectedRevision = this.#runtime.revision
             panelBookmark = cloneBookmark(this.#selectionPort?.bookmark ?? this.#selection.capture() ?? panelBookmark)
             return result
           },
           getTextAlign: () => isCurrent()
             ? this.#runtime.getTextAlign(selection.blockIds)
             : 'mixed',
-          setTextAlign: value => isCurrent()
-            ? this.#runtime.setTextAlign(selection.blockIds, value)
-            : false,
+          setTextAlign: value => {
+            if (!isCurrent()) return false
+            const changed = this.#runtime.setTextAlign(selection.blockIds, value)
+            if (changed && lease === this.#selectionVersion && generation === this.#runtime.generation
+              && owners.every(owner => owner.element === this.#view.element(owner.blockId))) {
+              expectedRevision = this.#runtime.revision
+              panelBookmark = cloneBookmark(this.#selectionPort?.bookmark ?? this.#selection.capture() ?? panelBookmark)
+            }
+            return changed
+          },
           restoreSelection: () => {
-            if (isCurrent()) this.#restoreSelection(panelBookmark, range)
+            if (isCurrent()) this.#restoreSelection(panelBookmark)
           },
           close: closePanel,
           backLabel: this.#translate('block.back', 'Back'),
