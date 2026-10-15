@@ -1378,4 +1378,92 @@ test('HTML import matcher returning a Promise consumes owned Paste without text 
   equal(editor.canUndo, false)
 })
 
+
+test('selection conversion sees a staged source edit and undoes with its outer action',()=>{
+  const source=paragraphDefinition({mapRichText:(data,visit)=>({...data,text:visit(data.text,'text')})})
+  const target={...paragraphDefinition({mapRichText:(data,visit)=>({...data,text:visit(data.text,'text')})}),type:'heading'}
+  target.capabilities.conversion.import=payload=>({text:payload.data.text})
+  const runtime=new DocumentRuntime({ownerDocument:document,registry:registry([source,target]),
+    data:{version:'2.0.0',blocks:[block('a',{text:'Alpha'})]}})
+  const bookmark={anchor:{blockId:'a',fieldKey:'text',offset:2},focus:{blockId:'a',fieldKey:'text',offset:5}}
+  const before=runtime.save().blocks
+  try{
+    let result
+    runtime.interact('edit then convert',()=>{
+      runtime.update('a',()=>({data:{text:'ALPHAX'}}))
+      result=runtime.convertLogicalSelection(bookmark,{type:'heading'})
+    })
+    equal(result.convertedIds.length,1)
+    equal(result.focusId,result.convertedIds[0])
+    equal(runtime.list().map(record=>[record.type,record.data.text]),
+      [['paragraph','AL'],['heading','PHA'],['paragraph','X']])
+    equal(runtime.revision,1)
+    equal(runtime.undo(),true)
+    equal(runtime.save().blocks,before)
+    equal(runtime.canUndo,false)
+  }finally{runtime.destroy()}
+})
+
+test('selection conversion uses staged block order and preserves both endpoint residuals',()=>{
+  const source=paragraphDefinition({mapRichText:(data,visit)=>({...data,text:visit(data.text,'text')})})
+  const target={...paragraphDefinition({mapRichText:(data,visit)=>({...data,text:visit(data.text,'text')})}),type:'heading'}
+  target.capabilities.conversion.selectionMode='per-block'
+  const runtime=new DocumentRuntime({ownerDocument:document,registry:registry([source,target]),
+    data:{version:'2.0.0',blocks:[block('a',{text:'Alpha'}),block('b',{text:'Beta'}),block('c',{text:'Charlie'})]}})
+  const before=runtime.save().blocks
+  try{
+    let result
+    runtime.interact('reorder then convert',()=>{
+      runtime.move('c',1)
+      result=runtime.convertLogicalSelection({
+        anchor:{blockId:'a',fieldKey:'text',offset:2},
+        focus:{blockId:'b',fieldKey:'text',offset:2},
+      },{type:'heading'})
+    })
+    equal(result.convertedIds.length,3)
+    equal(result.focusId,result.convertedIds[2])
+    equal(runtime.list().map(record=>[record.type,record.data.text]),
+      [['paragraph','Al'],['heading','pha'],['heading','Charlie'],['heading','Be'],['paragraph','ta']])
+    equal(runtime.undo(),true)
+    equal(runtime.save().blocks,before)
+    equal(runtime.canUndo,false)
+  }finally{runtime.destroy()}
+})
+
+test('joined selection conversion includes a block inserted earlier in the same transaction',()=>{
+  const source=paragraphDefinition({mapRichText:(data,visit)=>({...data,text:visit(data.text,'text')})})
+  const code={
+    ...paragraphDefinition({mapRichText:(data,visit)=>({...data,text:visit(data.text,'text')})}),
+    type:'code',
+    capabilities:{
+      conversion:{
+        selectionMode:'single',
+        export:data=>({kind:'rich-text',data:{text:data.text}}),
+        joinSelection:parts=>({kind:'rich-text',data:{text:parts.map(part=>part.data.text).join('\\n')}}),
+        canImport:payload=>payload.kind==='rich-text',
+        import:payload=>({text:payload.data.text}),
+      },
+    },
+  }
+  const runtime=new DocumentRuntime({ownerDocument:document,registry:registry([source,code]),
+    data:{version:'2.0.0',blocks:[block('a',{text:'Alpha'}),block('b',{text:'Bravo'})]}})
+  const before=runtime.save().blocks
+  try{
+    let result
+    runtime.interact('insert then join',()=>{
+      runtime.insert('paragraph',{text:'Inserted'},1)
+      result=runtime.convertLogicalSelection({
+        anchor:{blockId:'a',fieldKey:'text',offset:2},
+        focus:{blockId:'b',fieldKey:'text',offset:3},
+      },{type:'code'})
+    })
+    equal(result.convertedIds.length,1)
+    equal(runtime.list().map(record=>[record.type,record.data.text]),
+      [['paragraph','Al'],['code','pha\\nInserted\\nBra'],['paragraph','vo']])
+    equal(runtime.undo(),true)
+    equal(runtime.save().blocks,before)
+    equal(runtime.canUndo,false)
+  }finally{runtime.destroy()}
+})
+
 await run()
