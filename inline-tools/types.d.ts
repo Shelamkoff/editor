@@ -8,6 +8,23 @@ export interface InlineSelection {
   readonly textAlign?: 'left' | 'center' | 'right' | 'justify' | 'mixed'
 }
 
+/** Opaque selection right issued by the owning mounted formatting controller. */
+declare const inlineSelectionBookmarkBrand: unique symbol
+export interface InlineSelectionBookmark {
+  readonly [inlineSelectionBookmarkBrand]: true
+}
+
+export interface InlineSelectionRestoreOptions {
+  readonly endOffsetDelta?: number
+}
+
+/** Scoped formatting selection. No DOM field index or transferable range authority. */
+export interface InlineSelectionPort {
+  readonly range: Range | null
+  capture(range?: Range): InlineSelectionBookmark | null
+  restore(bookmark: InlineSelectionBookmark, options?: InlineSelectionRestoreOptions): boolean
+}
+
 /** Editor-owned cross-editable selection port bound after editor composition. */
 export interface CrossEditableSelectionPort {
   readonly range: Range | null
