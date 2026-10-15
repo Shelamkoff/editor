@@ -680,7 +680,7 @@ export class InlineToolbar {
         button.classList.remove('oe-inline-tool--active')
         button.disabled = true
         button.hidden = true
-        this.#reportError('command.failed', error)
+        try { this.#reportError('command.failed', error) } catch {}
       }
     }
   }
