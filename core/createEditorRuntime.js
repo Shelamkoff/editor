@@ -521,6 +521,9 @@ export function createEditorRuntime(input){
     emit('editor:destroyed')
   }
   const setReadOnly=value=>runtime.setReadOnly(value,discardProjectionEdits=>{
+    // Revoke pending resolver rights immediately after the mode is applied.
+    // A failing terminal hook must not leave a late Paste alive.
+    if(runtime.readOnly)clipboard?.cancelPendingTask()
     triggers.setReadOnly(runtime.readOnly)
     popup.setReadOnly(runtime.readOnly)
     applyReadOnly(root,runtime.readOnly)
