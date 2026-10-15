@@ -38,6 +38,7 @@ export function createHeadingPlugin(config = {}) {
       return HEADING_LEVELS.map(item=>Object.freeze({
         id:`h${item.level}`,
         label:Object.freeze({key:item.key,fallback:item.fallback}),
+        compactLabel:Object.freeze({key:`${item.key}Compact`,fallback:`H${item.level}`}),
         icon:item.icon,
         active:data.level===item.level,
       }))
