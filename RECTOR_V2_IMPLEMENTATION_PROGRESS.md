@@ -85,9 +85,28 @@ Verification:
 
 Stopped after this slice at the user's request. The following slices remain unimplemented; completion of 4b does not establish completion of the full architecture plan.
 
+## Slice 4c — guarded ingress and clipboard task lifetime (implementation staged; full gates pending)
+
+Completed source changes in the refactor branch:
+
+- `ClipboardController` checks advertised private MIME before reading it. A present but unreadable, empty or invalid private fragment is consumed without trying HTML/text fallback.
+- Owned Paste preparation failures cancel native default and report the failure; text/file `paste.accepts()` runs under the existing runtime preparation guard, has a strict boolean result, and fails atomically rather than catching an extension error as a missed match. A selected resolver method is captured once with its original receiver before the existing async task starts.
+- `HtmlImportRouter` enforces synchronous strict root matching and conversion acceptance. `DocumentRuntime.prepareHtmlImport()` captures the active draft's current type, owns candidate JSON, and encloses HTML extension callbacks and the existing private allocator. Clipboard entrypoints no longer invoke unguarded HTML-import callbacks.
+- `InlineCommandController` prepares pattern decisions, matched inline data, insertion defaults and trigger encoding under the same guard. Invalid or asynchronous match output fails rather than falling through to plain text. Successful no-match remains the normal text route.
+- Deferred resolver checks now include current task identity and read-only state before and after await and before application. Cancelling a task retires its continuation and captured focus signal; `createEditorRuntime` revokes tasks at read-only completion before terminal controls/UI observers, and checks committed replacement/history before fallible refresh callbacks.
+
+Verification currently available:
+
+- 16 focused `ClipboardController` / `InlineCommandController` unit cases passed in a constrained V8 harness that executed the branch's exact fetched JS source with mocked DOM/task adapters. This is **not** the full Node/browser runner and cannot establish native keyboard/clipboard or package parity.
+- Parser checks passed for the changed JS controllers, router, runtime and browser test source using module-compatible parsing substitutions in the constrained harness. These checks are **not** TypeScript diagnostics.
+- Browser regression cases were committed for non-boolean file matching, read-only task revocation and rejected async HTML import; they have **not** been run against an installed editor in Chrome.
+- A full checkout, `npm test`, `npm run typecheck`, browser/native suites, docs gate and package-consumer gate could not be run in this session because the local execution container cannot resolve github.com and has no checkout of this repository. The previous slice 4b green counts remain historical evidence, not an assertion about this changed head.
+
+**Completion status:** core 4c implementation is staged, but slice completion is not claimed until local full and native gates, package conformance, and integration with slice 8's terminal cancellation are verified. Do not advance the recorded total completion percentage based on these narrow checks alone.
+
 ## Remaining slices
 
-4c. Guarded ingress dispatch and clipboard task lifetime.
+4c. Full local/native/package verification and integration with the slice 8 terminal cancellation/control fan-out contract.
 5. Selection conversion through prepared canonical edits.
 6. Formatting selection/resource ownership.
 7. Declarative inline controls.
