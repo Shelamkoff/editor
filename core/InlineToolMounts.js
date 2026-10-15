@@ -37,11 +37,14 @@ function captureTool(runtime, source) {
 export class InlineToolMounts {
   #entries = []
   #error
+  #observe
   #closed = false
 
-  /** @param {readonly object[]} sources @param {{prepareExtensionValue:(operation:()=>any)=>any}} runtime @param {(error:unknown)=>void} [onError] */
+  /** @param {readonly object[]} sources @param {{prepareExtensionValue:(operation:()=>any)=>any,observeExtension?:(operation:()=>any)=>any}} runtime @param {(error:unknown)=>void} [onError] */
   constructor(sources, runtime, onError = () => {}) {
     this.#error = onError
+    this.#observe = typeof runtime.observeExtension === 'function'
+      ? operation => runtime.observeExtension(operation) : operation => operation()
     const seen = new Set()
     const names = new Set()
     for (const source of sources) {
@@ -93,8 +96,8 @@ export class InlineToolMounts {
     for (const entry of this.#entries) attempt(() => entry.revoke?.())
     for (const entry of [...this.#entries].reverse()) {
       if (entry.started) {
-        attempt(() => this.#complete(entry.tool.bindSelectionPort?.(null)))
-        attempt(() => this.#complete(entry.tool.destroy?.()))
+        attempt(() => this.#complete(this.#observe(() => entry.tool.bindSelectionPort?.(null))))
+        attempt(() => this.#complete(this.#observe(() => entry.tool.destroy?.())))
       }
       if (owners.get(entry.source) === entry) owners.delete(entry.source)
     }
