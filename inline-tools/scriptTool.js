@@ -4,8 +4,6 @@ import {
   createSelectionPortBinding,
   toggleTag,
   removeEmptyInlineTags,
-  saveSelectionOffsets,
-  restoreSelectionOffsets,
   createBackButton,
   getWalkRoot,
 } from './utils.js'
@@ -130,35 +128,30 @@ export function createScriptTool(labels) {
         btn.addEventListener('click', (e) => {
           e.preventDefault()
           e.stopPropagation()
-          ctx.restoreSelection()
+          const currentRange = ctx.range
+          const bookmark = currentRange ? cbs.capture(currentRange) : null
+          if (!bookmark) return
 
-          const sel = doc.defaultView?.getSelection?.() ?? null
-          if (!sel || !sel.rangeCount) { ctx.close(); return }
-          // Use cross-block range if available (native range is clipped to one contenteditable)
-          const range = cbs?.range || sel.getRangeAt(0)
-
-          const saved = saveSelectionOffsets(range)
-
-          ctx.mutate(() => {
-            // Step 1: Always remove ALL existing sup/sub tags in range
+          let applied = false
+          ctx.mutate(range => {
+            // Remove the old wrappers, then reconstruct this same logical
+            // author selection before potentially wrapping it with a new mode.
             removeAllScriptTags(range)
+            if (!cbs.restore(bookmark)) {
+              throw new Error('Formatting selection became unavailable after removing script tags')
+            }
 
-            // Restore selection after DOM cleanup (normalize invalidates range)
-            restoreSelectionOffsets(cbs, saved)
-
-            // Step 2: If target is different from current (not toggling off), wrap with new tag
             if (mode.tag && mode.key !== current) {
-              const newRange = (saved.crossOffsets ? cbs?.range : null) || (sel.rangeCount ? sel.getRangeAt(0) : null)
-              if (newRange) {
-                toggleTag(mode.tag, newRange)
+              const resolved = cbs.range
+              if (!resolved) throw new Error('Script formatting selection is unavailable')
+              toggleTag(mode.tag, resolved)
+              if (!cbs.restore(bookmark)) {
+                throw new Error('Formatting selection became unavailable after applying script')
               }
             }
+            applied = true
           })
-
-          ctx.close()
-          // Closing the actions panel may restore its pre-mutation Range.
-          // Reapply the logical bookmark after that stale DOM reference.
-          restoreSelectionOffsets(cbs, saved)
+          if (applied) ctx.close()
         })
         panel.appendChild(btn)
       }
