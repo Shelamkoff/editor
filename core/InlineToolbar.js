@@ -374,11 +374,11 @@ export class InlineToolbar {
             refreshPanelToken()
             return result
           },
-          getTextAlign: () => isCurrent()
+          getTextAlign: () => isCurrent() && panelToken && panelPort.isValid(panelToken)
             ? this.#runtime.getTextAlign(selection.blockIds)
             : 'mixed',
           setTextAlign: value => {
-            if (!isCurrent() || !panelToken || !panelPort.restore(panelToken)) return false
+            if (!isCurrent() || !panelToken || !panelPort.isValid(panelToken)) return false
             const changed = this.#runtime.setTextAlign(selection.blockIds, value)
             if (changed && lease === this.#selectionVersion && generation === this.#runtime.generation
               && selection.blockIds.every(blockId => this.#runtime.has(blockId))) {
