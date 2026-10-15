@@ -2,6 +2,7 @@ import { convertedSelection, restoreConvertedSelection } from './conversionSelec
 // @ts-check
 import { setTrustedHtml } from '../shared/sanitize/sanitizeHtml.js'
 import { Tooltip } from './Tooltip.js'
+import { prepareSettingsActions } from './SettingsActions.js'
 import { positionPopup } from '../shared/editorDom.js'
 import {
   ICON_BACK,
@@ -25,6 +26,7 @@ export class BlockToolbar {
   #inlineCommands
   #translate
   #t
+  #reportError
   #toolbar
   #tooltip
   #toolbox
@@ -50,7 +52,7 @@ export class BlockToolbar {
   #toolboxVersion = 0
   #settingsVersion = 0
 
-  constructor({ root, runtime, registry, view, selection, selectionPort, inlineCommands, translate, t, filterThreshold = 7 }) {
+  constructor({ root, runtime, registry, view, selection, selectionPort, inlineCommands, translate, t, filterThreshold = 7, reportError = () => {} }) {
     if (!Number.isSafeInteger(filterThreshold) || filterThreshold < 0) {
       throw new RangeError('Toolbox filter threshold must be a non-negative safe integer')
     }
@@ -61,6 +63,7 @@ export class BlockToolbar {
     this.#selection = selection
     this.#selectionPort = selectionPort
     this.#inlineCommands = inlineCommands
+    this.#reportError = reportError
     this.#filterThreshold = filterThreshold
     this.#translate = typeof translate === 'function' ? translate : (_key, fallback = '') => fallback
     this.#t = typeof t === 'function' ? t : (_key, fallback = '') => fallback
@@ -486,29 +489,54 @@ export class BlockToolbar {
     const definition = this.#registry.getBlockDefinition(record.type)
     const settings = definition?.capabilities?.settings
     if (settings?.kind === 'actions') {
-      const actions = settings.actions(record.data, {
-        ownerDocument: document,
-        t: label => this.#label('plugin', record.type, label),
-      })
-      for (const action of actions) {
-        this.#settings.append(this.#settingsItem(
-          this.#label('plugin', record.type, action.label),
-          action.icon ?? '',
-          () => {
-            this.#mutate('block.settings', () => this.#runtime.update(id, current => ({
-              data: settings.apply(current.data, action.id, { createId: prefix => this.#runtime.createDataId(prefix) }),
-            })), () => id)
-            this.#view.reconcileInteraction()
-            this.#view.setCurrent(id)
-            this.closeSettings()
-            queueMicrotask(() => this.#view.focus(id))
-          },
-          action.disabled === true,
-          false,
-          action.active === true,
-        ))
+      let prepared = null
+      try {
+        prepared = prepareSettingsActions(this.#runtime, settings, record.data, {
+          ownerDocument: document,
+          t: label => this.#label('plugin', record.type, label),
+        }, definition.label)
+      } catch (error) {
+        // The menu was already retired at the start of this rebuild. Omit the
+        // failed extension group but keep core move/duplicate/delete controls.
+        try { this.#reportError('command.failed', error) } catch {}
       }
-      if (actions.length) this.#settings.append(this.#separator())
+      if (prepared) {
+        const revision = this.#runtime.revision
+        for (const action of prepared.actions) {
+          const item = this.#settingsItem(
+            action.label,
+            action.icon ?? '',
+            () => {
+              if (revision !== this.#runtime.revision || this.#runtime.get(id)?.type !== record.type) return
+              this.#mutate('block.settings', () => this.#runtime.update(id, current => ({
+                data: prepared.apply(current.data, action.id, { createId: prefix => this.#runtime.createDataId(prefix) }),
+              })), () => id)
+              const generation = this.#runtime.generation
+              const settledRevision = this.#runtime.revision
+              this.#view.reconcileInteraction()
+              this.#view.setCurrent(id)
+              this.closeSettings()
+              const continuation = this.#settingsVersion
+              queueMicrotask(() => {
+                if (this.#destroyed || this.#runtime.readOnly || continuation !== this.#settingsVersion
+                  || generation !== this.#runtime.generation || settledRevision !== this.#runtime.revision
+                  || this.#currentId !== id || !this.#runtime.has(id)) return
+                this.#view.focus(id)
+              })
+            },
+            action.disabled === true,
+            false,
+            action.active === true,
+          )
+          item.dataset.actionId = action.id
+          if (typeof action.active === 'boolean') {
+            item.setAttribute('role', 'menuitemradio')
+            item.setAttribute('aria-checked', String(action.active))
+          }
+          this.#settings.append(item)
+        }
+        if (prepared.actions.length) this.#settings.append(this.#separator())
+      }
     } else if (settings?.kind === 'panel') {
       const shell = document.createElement('li')
       shell.className = 'oe-settings-menu__panel'
@@ -764,7 +792,7 @@ export class BlockToolbar {
 
   #menuKeydown(event, menu) {
     if (event.target?.closest?.('input, textarea, select') && !['ArrowDown', 'ArrowUp', 'Escape'].includes(event.key)) return
-    const items = [...menu.querySelectorAll('[role="menuitem"]:not([aria-disabled="true"])')].filter(item => item.style.display !== 'none')
+    const items = [...menu.querySelectorAll('[role^="menuitem"]:not([aria-disabled="true"])')].filter(item => item.style.display !== 'none')
     if (!items.length && event.key !== 'Escape') return
     const current = menu.ownerDocument.activeElement
     const index = items.indexOf(current)
