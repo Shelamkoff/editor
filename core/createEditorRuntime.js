@@ -433,6 +433,7 @@ export function createEditorRuntime(input){
     selection:logicalSelection,
     selectionPort:crossSelection,
     inlineCommands,
+    reportError:(code,error)=>reportDiagnostic(code,'block-toolbar',error),
     translate:(key,fallback='')=>{
       const translated=i18n.t(key)
       return translated===key?fallback:translated
