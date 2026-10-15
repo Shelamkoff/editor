@@ -38,6 +38,7 @@ export class InlineSelectionAuthority {
   #restore
   #lease
   #phase
+  #inMutation
   #tokens = new WeakMap()
   #active = false
   #revoked = false
@@ -51,9 +52,10 @@ export class InlineSelectionAuthority {
    *  restoreSelection:(bookmark:any)=>boolean,
    *  lease:()=>number,
    *  canAccess?:()=>boolean,
+   *  isMutating?:()=>boolean,
    * }} options
    */
-  constructor({ root, runtime, reconciler, readSelection, restoreSelection, lease, canAccess = () => true }) {
+  constructor({ root, runtime, reconciler, readSelection, restoreSelection, lease, canAccess = () => true, isMutating = () => false }) {
     this.#root = root
     this.#runtime = runtime
     this.#reconciler = reconciler
@@ -61,6 +63,7 @@ export class InlineSelectionAuthority {
     this.#restore = restoreSelection
     this.#lease = lease
     this.#phase = canAccess
+    this.#inMutation = isMutating
   }
 
   /** Called after the owning tool/panel has successfully acquired its resources. */
@@ -127,7 +130,7 @@ export class InlineSelectionAuthority {
       if (!Number.isFinite(delta) || !Number.isInteger(delta)) {
         throw new TypeError('endOffsetDelta must be a finite integer')
       }
-      if (delta !== 0 && !this.#phase()) {
+      if (delta !== 0 && !this.#inMutation()) {
         throw new TypeError('endOffsetDelta requires an active formatting mutation')
       }
       const first = captured.anchor
