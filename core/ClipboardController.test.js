@@ -217,3 +217,27 @@ test('thenable paste matching cannot fall through to an asynchronous resolver', 
     assert.equal(resolves, 0)
   } finally { fixture.controller.destroy() }
 })
+
+test('revoked asynchronous resolver cannot allocate IDs after a read-only round trip', () => {
+  let context
+  let issued = 0
+  const fixture = clipboardHarness({
+    formats: ['Files'],
+    files: [{ name: 'file.txt' }],
+    accepts: () => true,
+    resolve(_input, provided) {
+      context = provided
+      return new Promise(() => {})
+    },
+  })
+  fixture.runtime.createDataId = () => { issued++; return 'block-unexpected' }
+  try {
+    fixture.paste()
+    assert.equal(typeof context?.createId, 'function')
+    fixture.runtime.readOnly = true
+    fixture.controller.cancelPendingTask()
+    fixture.runtime.readOnly = false
+    assert.throws(() => context.createId('block'), /no longer active/)
+    assert.equal(issued, 0)
+  } finally { fixture.controller.destroy() }
+})
