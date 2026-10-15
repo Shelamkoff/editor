@@ -19,6 +19,8 @@ function fixture() {
     nodeType: 1,
     tagName: 'P',
     ownerDocument,
+    contentEditable: 'true',
+    hidden: false,
     isConnected: true,
     childNodes: [],
     closest() { return null },
@@ -294,6 +296,21 @@ test('a mismatched native range cannot be used to mint a fresh logical token', (
     cloneRange() { return { ...this } },
   })
   assert.equal(state.port.range, null)
+  assert.equal(state.port.capture(), null)
+  assert.deepEqual(state.applied, [])
+})
+
+test('hidden and no-longer-editable rich fields cannot receive scoped restorations', () => {
+  const state = fixture()
+  state.port.activate()
+  const token = state.port.capture()
+  assert.ok(token)
+  state.field.hidden = true
+  assert.equal(state.port.restore(token), false)
+  assert.equal(state.port.range, null)
+  state.field.hidden = false
+  state.field.contentEditable = 'false'
+  assert.equal(state.port.restore(token), false)
   assert.equal(state.port.capture(), null)
   assert.deepEqual(state.applied, [])
 })
