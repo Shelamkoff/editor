@@ -3,9 +3,8 @@ import { convertedSelection, restoreConvertedSelection } from './conversionSelec
 import { handleMenuKeydown } from '../plugin-kit/index.js'
 import { setTrustedHtml } from '../shared/sanitize/sanitizeHtml.js'
 import { Tooltip } from './Tooltip.js'
+import { InlineToolMounts } from './InlineToolMounts.js'
 import { shortcutKey } from '../shared/shortcutKey.js'
-
-const INLINE_TOOL_OWNERS = new WeakMap()
 
 function matchesShortcut(combo, event) {
   if (!combo || typeof combo !== 'string') return false
@@ -37,6 +36,8 @@ export class InlineToolbar {
   #selectionPort
   #view
   #tools
+  #toolMounts
+  #reportError
   #buttonIcons = new Map()
   #translate
   #tooltip
@@ -73,7 +74,7 @@ export class InlineToolbar {
   #controlBookmark = null
   #controlBlockId = null
 
-  constructor({ root, runtime, registry, reconciler, selection, selectionPort = null, view, tools = [], translate = (_key, fallback = '') => fallback }) {
+  constructor({ root, runtime, registry, reconciler, selection, selectionPort = null, view, tools = [], translate = (_key, fallback = '') => fallback, reportError = () => {} }) {
     this.#root = root
     this.#runtime = runtime
     this.#registry = registry
@@ -81,10 +82,13 @@ export class InlineToolbar {
     this.#selection = selection
     this.#selectionPort = selectionPort
     this.#view = view
-    this.#tools = [...tools]
+    this.#reportError = reportError
+    this.#toolMounts = new InlineToolMounts(tools, runtime, error => this.#reportError('cleanup.failed', error))
+    this.#tools = this.#toolMounts.tools
     this.#translate = translate
     this.#readOnly = runtime.readOnly
 
+    try {
     const document = root.ownerDocument
     this.#element = document.createElement('div')
     this.#element.className = 'oe-inline-toolbar'
@@ -198,18 +202,8 @@ export class InlineToolbar {
       })
     })
 
-    for (const tool of this.#tools) {
-      if (!tool || typeof tool !== 'object') throw new TypeError('Inline tools must be objects')
-      if (INLINE_TOOL_OWNERS.has(tool)) {
-        throw new Error(`Inline tool instance is already mounted: ${tool.type ?? 'unknown'}`)
-      }
-    }
-    for (const tool of this.#tools) INLINE_TOOL_OWNERS.set(tool, this)
-
     this.#tooltip = new Tooltip(root)
-    try {
     for (const tool of this.#tools) {
-      tool.bindSelectionPort?.(this.#selectionPort)
       const button = document.createElement('button')
       button.type = 'button'
       button.className = 'oe-inline-tool'
@@ -230,7 +224,7 @@ export class InlineToolbar {
       this.#buttonsPanel.append(button)
       this.#buttons.set(tool.type, button)
 
-      tool.onMount?.(button, {
+      this.#toolMounts.start(tool, this.#selectionPort, button, {
         mutate: (range, operation) => this.#mutate(range, operation, tool.type),
         restoreSelection: () => {
           if (this.#readOnly || this.#destroyed || !this.#range
@@ -243,14 +237,6 @@ export class InlineToolbar {
           return restored
         },
       })
-    }
-    } catch (error) {
-      this.#tooltip.destroy()
-      for (const tool of this.#tools) {
-        try { tool.bindSelectionPort?.(null) } catch {}
-        if (INLINE_TOOL_OWNERS.get(tool) === this) INLINE_TOOL_OWNERS.delete(tool)
-      }
-      throw error
     }
 
     this.#onSelectionChange = () => {
@@ -274,6 +260,10 @@ export class InlineToolbar {
       this.#closeControlDropdown()
     }
     document.addEventListener('mousedown', this.#documentClick, true)
+    } catch (error) {
+      this.#releaseResources()
+      throw error
+    }
   }
 
   setReadOnly(value) {
@@ -404,23 +394,33 @@ export class InlineToolbar {
   }
 
   destroy() {
+    this.#releaseResources()
+  }
+
+  #releaseResources() {
     if (this.#destroyed) return
     this.#destroyed = true
-    const document = this.#root.ownerDocument
-    document.removeEventListener('selectionchange', this.#onSelectionChange)
-    document.removeEventListener('mouseup', this.#onMouseUp)
-    document.removeEventListener('mousedown', this.#documentClick, true)
     this.#typeVersion++
     this.#controlVersion++
     this.#selectionVersion++
-    this.#closeActions()
-    for (const tool of this.#tools) {
-      tool.bindSelectionPort?.(null)
-      tool.destroy?.()
-      if (INLINE_TOOL_OWNERS.get(tool) === this) INLINE_TOOL_OWNERS.delete(tool)
+
+    const errors = []
+    const release = operation => {
+      try { operation() } catch (error) { errors.push(error) }
     }
-    this.#tooltip.destroy()
-    this.#element.remove()
+    const document = this.#root.ownerDocument
+    if (this.#onSelectionChange) release(() => document.removeEventListener('selectionchange', this.#onSelectionChange))
+    if (this.#onMouseUp) release(() => document.removeEventListener('mouseup', this.#onMouseUp))
+    if (this.#documentClick) release(() => document.removeEventListener('mousedown', this.#documentClick, true))
+
+    // All started tool claims and callbacks are retired before cleanup hooks.
+    release(() => this.#toolMounts?.destroy())
+    if (this.#tooltip) release(() => this.#closeActions())
+    if (this.#tooltip) release(() => this.#tooltip.destroy())
+    if (this.#element) release(() => this.#element.remove())
+    for (const error of errors) {
+      try { this.#reportError('cleanup.failed', error) } catch {}
+    }
   }
 
   #refreshFromSelection() {
