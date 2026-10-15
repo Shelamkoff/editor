@@ -359,7 +359,6 @@ export class ClipboardController {
     if (!data) return
 
     const privateFormatPresent = Array.from(data.types ?? []).includes(CLIPBOARD_FRAGMENT_MIME)
-      || data.types?.contains?.(CLIPBOARD_FRAGMENT_MIME) === true
     if (privateFormatPresent) {
       event.preventDefault()
       let fragment
@@ -587,6 +586,7 @@ export class ClipboardController {
     }
   }
 
+  /** @param {string} blockId @param {any} focus @param {AbortSignal|null} [taskSignal] */
   #scheduleFocus(blockId,focus,taskSignal=null) {
     const generation=this.#runtime.generation,revision=this.#runtime.revision
     queueMicrotask(()=>{
