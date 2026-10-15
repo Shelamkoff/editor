@@ -253,3 +253,47 @@ test('successful own panel result retargets current keyed fields without restori
   assert.equal(state.port.isValid(next), true)
 })
 
+
+test('native selection drift rejects an old token before a queued selectionchange event', () => {
+  const state = fixture()
+  state.port.activate()
+  const token = state.port.capture()
+  assert.ok(token)
+  state.setRange({
+    startContainer: state.text, startOffset: 0,
+    endContainer: state.text, endOffset: 3,
+    collapsed: false,
+    cloneRange() { return { ...this } },
+    compareBoundaryPoints(which, expected) {
+      return which === 0
+        ? this.startOffset - expected.startOffset
+        : this.endOffset - expected.endOffset
+    },
+  })
+  state.setBookmark({
+    anchor: { blockId: 'block', fieldKey: 'text', offset: 0 },
+    focus: { blockId: 'block', fieldKey: 'text', offset: 3 },
+  })
+  assert.equal(state.port.isValid(token), false)
+  assert.equal(state.port.restore(token), false)
+  assert.deepEqual(state.applied, [])
+})
+
+test('a mismatched native range cannot be used to mint a fresh logical token', () => {
+  const state = fixture()
+  state.port.activate()
+  state.setRange({
+    startContainer: state.text, startOffset: 0,
+    endContainer: state.text, endOffset: 3,
+    collapsed: false,
+    compareBoundaryPoints(which, expected) {
+      return which === 0
+        ? this.startOffset - expected.startOffset
+        : this.endOffset - expected.endOffset
+    },
+    cloneRange() { return { ...this } },
+  })
+  assert.equal(state.port.range, null)
+  assert.equal(state.port.capture(), null)
+  assert.deepEqual(state.applied, [])
+})
