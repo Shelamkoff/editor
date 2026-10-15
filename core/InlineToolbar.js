@@ -3,6 +3,7 @@ import { convertedSelection, restoreConvertedSelection } from './conversionSelec
 import { handleMenuKeydown } from '../plugin-kit/index.js'
 import { setTrustedHtml } from '../shared/sanitize/sanitizeHtml.js'
 import { Tooltip } from './Tooltip.js'
+import { prepareSettingsActions } from './SettingsActions.js'
 import { InlineToolMounts } from './InlineToolMounts.js'
 import { InlineSelectionAuthority } from './InlineSelectionAuthority.js'
 import { synchronousResult } from '../shared/synchronousResult.js'
@@ -914,70 +915,87 @@ export class InlineToolbar {
     queueMicrotask(() => restoreConvertedSelection(result,this.#view,this.#selectionPort))
   }
 
-  #updateBlockControls(selection) {
-    this.#controlVersion++
-    this.#controlDropdown.style.display = 'none'
-    this.#controlDropdown.replaceChildren()
-    this.#controlSelect.setAttribute('aria-expanded', 'false')
-    this.#controlBookmark = null
+  #disableBlockControls() {
+    this.#closeControlDropdown()
     this.#controlBlockId = null
+    this.#controlLabel.textContent = ''
+    this.#controlSelect.hidden = true
+    this.#controlSelect.disabled = true
+    this.#controlDivider.hidden = true
+    this.#controlSelect.removeAttribute('aria-label')
+    this.#controlDropdown.removeAttribute('aria-label')
+  }
 
+  #prepareControlActions(record, definition, capability) {
+    try {
+      return prepareSettingsActions(this.#runtime, capability, record.data, {
+        ownerDocument: this.#root.ownerDocument,
+        t: label => this.#label('plugin', record.type, label),
+      }, definition.label)
+    } catch (error) {
+      // Failed metadata retires every previous callback of this group, without
+      // hiding formatting tools or invoking extension getters during rendering.
+      this.#disableBlockControls()
+      try { this.#reportError('command.failed', error) } catch {}
+      return null
+    }
+  }
+
+  #updateBlockControls(selection) {
+    this.#disableBlockControls()
     const record = this.#runtime.get(selection.blockId)
     const definition = record ? this.#registry.getBlockDefinition(record.type) : null
     const capability = definition?.capabilities?.inlineControls
-    if (capability?.kind !== 'actions') {
-      this.#controlSelect.hidden = true
-      this.#controlDivider.hidden = true
-      return
-    }
-    const actions = capability.actions(record.data, {
-      ownerDocument: this.#root.ownerDocument,
-      t: label => this.#label('plugin', record.type, label),
-    })
-    const active = actions.find(action => action.active) ?? actions[0]
-    if (!active) {
-      this.#controlSelect.hidden = true
-      this.#controlDivider.hidden = true
-      return
-    }
-    this.#controlSelect.setAttribute('aria-label', this.#label('plugin', record.type, capability.label ?? definition.label))
+    if (!record || capability?.kind !== 'actions') return
+    const prepared = this.#prepareControlActions(record, definition, capability)
+    if (!prepared) return
+    const active = prepared.actions.find(action => action.active) ?? prepared.actions[0]
+    if (!active) return
+    this.#controlSelect.setAttribute('aria-label', prepared.label)
     this.#controlBlockId = selection.blockId
-    this.#controlLabel.textContent = /^h[2-6]$/.test(active.id)
-      ? active.id.toUpperCase()
-      : this.#label('plugin', record.type, active.label)
+    this.#controlLabel.textContent = active.compactLabel ?? active.label
     this.#controlSelect.hidden = false
+    this.#controlSelect.disabled = false
     this.#controlDivider.hidden = false
   }
 
   #openControlDropdown() {
-    if (this.#readOnly || this.#destroyed || !this.#controlBlockId) return
-    const record = this.#runtime.get(this.#controlBlockId)
+    if (this.#readOnly || this.#destroyed || this.#controlSelect.disabled || !this.#controlBlockId) return
+    const blockId = this.#controlBlockId
+    const record = this.#runtime.get(blockId)
     const definition = record ? this.#registry.getBlockDefinition(record.type) : null
     const capability = definition?.capabilities?.inlineControls
-    if (!record || capability?.kind !== 'actions') return
+    if (!record || capability?.kind !== 'actions') {
+      this.#disableBlockControls()
+      return
+    }
     const bookmark = cloneBookmark(this.#controlBookmark ?? this.#selectionPort?.bookmark ?? this.#selection.capture())
     if (!bookmark) return
+    const prepared = this.#prepareControlActions(record, definition, capability)
+    if (!prepared) return
+    if (!prepared.actions.length) {
+      this.#disableBlockControls()
+      return
+    }
+    this.#closeControlDropdown()
     this.#controlBookmark = bookmark
     this.#closeTypeDropdown()
-    const blockId = this.#controlBlockId
-    const version = ++this.#controlVersion
+    const version = this.#controlVersion
     const generation = this.#runtime.generation
+    const revision = this.#runtime.revision
+    const lease = this.#selectionVersion
     const owner = this.#view.element(blockId)
-    this.#controlDropdown.replaceChildren()
-    const actions = capability.actions(record.data, {
-      ownerDocument: this.#root.ownerDocument,
-      t: label => this.#label('plugin', record.type, label),
-    })
-    for (const action of actions) {
+    const fragment = this.#root.ownerDocument.createDocumentFragment()
+    for (const action of prepared.actions) {
       const item = this.#root.ownerDocument.createElement('button')
       item.type = 'button'
       item.className = 'oe-inline-toolbar__type-item'
+      item.dataset.actionId = action.id
       item.setAttribute('role', 'menuitem')
       if (typeof action.active === 'boolean') {
         item.setAttribute('role', 'menuitemradio')
         item.setAttribute('aria-checked', String(action.active))
       }
-      if (/^h([2-6])$/.test(action.id)) item.dataset.level = action.id.slice(1)
       if (action.active) item.classList.add('oe-inline-toolbar__type-item--active')
       if (action.icon) {
         const icon = this.#root.ownerDocument.createElement('span')
@@ -986,7 +1004,7 @@ export class InlineToolbar {
         item.append(icon)
       }
       const label = this.#root.ownerDocument.createElement('span')
-      label.textContent = this.#label('plugin', record.type, action.label)
+      label.textContent = action.label
       item.append(label)
       item.disabled = action.disabled === true
       item.addEventListener('mousedown', event => event.preventDefault())
@@ -994,8 +1012,11 @@ export class InlineToolbar {
         event.preventDefault()
         event.stopPropagation()
         if (
-          version !== this.#controlVersion
+          action.disabled === true
+          || version !== this.#controlVersion
           || generation !== this.#runtime.generation
+          || revision !== this.#runtime.revision
+          || lease !== this.#selectionVersion
           || owner !== this.#view.element(blockId)
           || this.#readOnly
           || this.#destroyed
@@ -1003,19 +1024,26 @@ export class InlineToolbar {
         ) return
         if (bookmark.anchor.blockId !== bookmark.focus.blockId || bookmark.anchor.fieldKey !== bookmark.focus.fieldKey) this.#restoreSelection(bookmark)
         this.#runtime.interact('block.inline-control', () => this.#runtime.update(blockId, current => ({
-          data: capability.apply(current.data, action.id, {
+          data: prepared.apply(current.data, action.id, {
             createId: prefix => this.#runtime.createDataId(prefix),
           }),
         })), () => bookmark)
+        const settledRevision = this.#runtime.revision
         this.#view.reconcileInteraction()
         this.#closeControlDropdown()
+        const continuation = this.#controlVersion
         queueMicrotask(() => {
+          if (this.#destroyed || this.#readOnly || generation !== this.#runtime.generation
+            || settledRevision !== this.#runtime.revision || lease !== this.#selectionVersion
+            || continuation !== this.#controlVersion || !this.#runtime.has(blockId)) return
           this.#restoreSelection(bookmark)
           this.show()
         })
       })
-      this.#controlDropdown.append(item)
+      fragment.append(item)
     }
+    this.#controlDropdown.setAttribute('aria-label', prepared.label)
+    this.#controlDropdown.replaceChildren(fragment)
     this.#controlDropdown.style.display = ''
     this.#positionDropdown(this.#controlDropdown, this.#controlSelect)
     this.#controlSelect.setAttribute('aria-expanded', 'true')
