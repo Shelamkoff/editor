@@ -1792,4 +1792,36 @@ test('scoped mounted tool can mutate only with its own fresh bookmark and loses 
 })
 
 
+
+test('queued selectionchange matching a completed formatting restore keeps its active lease',()=>{
+  let port=null
+  const tool={
+    type:'expected-selection-probe',title:'Expected range',icon:'<b>E</b>',
+    isActive(){return false},
+    bindSelectionPort(value){if(value)port=value},
+    toggle(selection){
+      const token=port.capture(selection.range)
+      check(token,'Formatting action could not capture its selection')
+      check(port.restore(token),'Formatting action could not restore its own selection')
+    },
+  }
+  const editor=make([para('a','Alpha')],{inlineTools:[tool]})
+  const field=editableField(editor,'a')
+  select(field,0,3)
+  const root=editorRoot(editor)
+  const button=root.querySelector('[data-tool="expected-selection-probe"]')
+  button.click()
+  const token=port.capture()
+  check(token,'Completed formatting action has no current continuation')
+  document.dispatchEvent(new Event('selectionchange'))
+  check(port.restore(token),'Expected selectionchange revoked the completed action')
+  const range=document.createRange()
+  range.selectNodeContents(field)
+  window.getSelection().removeAllRanges()
+  window.getSelection().addRange(range)
+  document.dispatchEvent(new Event('selectionchange'))
+  equal(port.restore(token),false)
+})
+
+
 await run()
