@@ -10,7 +10,7 @@ import { prepareClipboardBlockSlice, selectedSourceData } from './ClipboardPlans
 const noChange = () => ({ edits: /** @type {CanonicalEdit[]} */ ([]), result: /** @type {false} */ (false) })
 const cloneInline = value => value === undefined ? undefined : cloneEditorData(value)
 
-/** @param {any} s @param {unknown} payload */
+/** @param {any} s @param {any} payload */
 function payloadHasContent(s, payload) {
   if (!payload || typeof payload !== 'object' || payload.kind !== 'rich-text'
     || typeof payload.data?.text !== 'string') return true
@@ -201,7 +201,6 @@ function crossSelection(s, view, start, end, target, targetDefinition, reserved)
     const conversion = record && s.getBlockDefinition(record.type)?.capabilities?.conversion
     if (!conversion || typeof conversion.export !== 'function') return noChange()
     const payload = cloneEditorData(synchronousResult(conversion.export(cloneEditorData(record.data))))
-    if (record.type !== target.type && !acceptsTarget(targetConversion, payload)) return noChange()
     pieces.push({ original: record, payload, inline: cloneInline(record.inline) ?? {}, position: 'middle' })
   }
   if (payloadHasContent(s, lastSlice.selected)) {
@@ -252,7 +251,7 @@ function crossSelection(s, view, start, end, target, targetDefinition, reserved)
     const after = s.recordFromData(last.id, last.type, lastSlice.definition, lastSlice.after, last.tunes, lastSlice.inline)
     edits.push(...updatedRecord(last.id, last, after))
   }
-  return { edits, result: { focusId: convertedIds.at(-1), convertedIds } }
+  return { edits, result: { focusId: convertedIds[convertedIds.length - 1], convertedIds } }
 }
 
 /** @param {any} conversion @param {unknown} payload */
