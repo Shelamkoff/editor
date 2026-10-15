@@ -154,7 +154,9 @@ export class ClipboardController {
     if (this.#crossSelection?.active) {
       const whole = this.#crossSelection.wholeBlockIds
       if (whole.length) {
-        const records = whole.map(id => this.#runtime.get(id)).filter(Boolean)
+        const plan=this.#runtime.prepareLogicalClipboardSlice(this.#crossSelection.bookmark,whole)
+        if(!plan)return
+        const records=plan.parts.map(part=>part.block)
         const html = []
         const plain = []
         for (const id of whole) {
@@ -226,7 +228,9 @@ export class ClipboardController {
     if (this.#crossSelection?.active) {
       const whole = this.#crossSelection.wholeBlockIds
       if (whole.length) {
-        const records = whole.map(id => this.#runtime.get(id)).filter(Boolean)
+        const plan=this.#runtime.prepareLogicalClipboardSlice(this.#crossSelection.bookmark,whole)
+        if(!plan)return
+        const records=plan.parts.map(part=>part.block)
         const html=[]
         const plain=[]
         for(const id of whole){
@@ -254,7 +258,11 @@ export class ClipboardController {
           ||revision!==this.#runtime.revision
           ||!sameIds(selected,this.#crossSelection?.wholeBlockIds)
         )return
-        this.#crossSelection.removeWholeBlocks()
+        const result=this.#mutateCut(()=>this.#runtime.applyPreparedClipboardCut(plan))
+        if(!result)return
+        this.#crossSelection.clear()
+        this.#view.reconcileInteraction()
+        this.#view.setCurrent(result.blockId)
         return
       }
 
@@ -278,11 +286,11 @@ export class ClipboardController {
       }))return
       if(!sameBookmark(plan.bookmark,this.#crossSelection?.bookmark))return
       const result=this.#mutateCut(() => this.#runtime.applyPreparedClipboardCut(plan))
+      if(!result)return
       this.#crossSelection.clear()
       this.#view.reconcileInteraction()
       if(result?.blockId){
         this.#view.setCurrent(result.blockId)
-        queueMicrotask(()=>this.#view.focus(result.blockId,result.focus??{offset:'start'}))
       }
       return
     }
@@ -308,10 +316,10 @@ export class ClipboardController {
     }))return
     if(!sameBookmark(plan.bookmark,this.#selection.capture()))return
     const result=this.#mutateCut(() => this.#runtime.applyPreparedClipboardCut(plan))
+    if(!result)return
     this.#view.reconcileInteraction()
     if(result?.blockId){
       this.#view.setCurrent(result.blockId)
-      queueMicrotask(()=>this.#view.focus(result.blockId,result.focus??{offset:'start'}))
     }
   }
 
@@ -365,7 +373,6 @@ export class ClipboardController {
             this.#crossSelection.clear()
             this.#view.reconcileInteraction()
             this.#view.setCurrent(result.blockId)
-            queueMicrotask(()=>this.#view.focus(result.blockId,result.focus??{offset:'end'}))
           }
         } catch (error) {
           this.#diagnostics?.emit('paste.failed', {
@@ -390,7 +397,6 @@ export class ClipboardController {
         ))
         this.#view.reconcileInteraction()
         this.#view.setCurrent(result.blockId)
-        queueMicrotask(() => this.#view.focus(result.blockId, result.focus ?? { offset: 'end' }))
       } catch (error) {
         this.#diagnostics?.emit('paste.failed', {
           operation: 'clipboard.private-fragment',
@@ -448,7 +454,6 @@ export class ClipboardController {
           this.#crossSelection.clear()
           this.#view.reconcileInteraction()
           this.#view.setCurrent(result.blockId)
-          queueMicrotask(()=>this.#view.focus(result.blockId,result.focus??{offset:'end'}))
         }
       }catch(error){
         this.#diagnostics?.emit('paste.failed',{
@@ -519,7 +524,6 @@ export class ClipboardController {
         const last = inserted.at(-1)
         if (last) {
           this.#view.setCurrent(last)
-          queueMicrotask(() => this.#view.focus(last, { offset: 'end' }))
         }
         return
       }
@@ -541,7 +545,6 @@ export class ClipboardController {
       ))
       this.#view.reconcileInteraction()
       this.#view.setCurrent(result.blockId)
-      queueMicrotask(() => this.#view.focus(result.blockId, result.focus ?? { offset: 'end' }))
       return
     }
     this.#replaceLocal(owner, range, { kind: 'text', text })
@@ -558,17 +561,32 @@ export class ClipboardController {
   }
 
   #mutateCut(operation) {
-    return this.#runtime.interact('clipboard.cut', operation, result => {
+    try {
+      const result=this.#runtime.interact('clipboard.cut', operation, result => {
       if (!result?.blockId) return null
       const fields = this.#reconciler.getEditableFields(result.blockId)
       const field = fields.find(field => field.key === result.focus?.fieldKey) ?? fields[0]
       const point = { blockId: result.blockId, fieldKey: field?.key ?? '', offset: result.focus?.offset ?? 0 }
       return { anchor: point, focus: { ...point } }
+      })
+      if(result?.blockId)this.#scheduleFocus(result.blockId,result.focus??{offset:'start'})
+      return result
+    } catch(error) {
+      this.#diagnostics?.emit('cut.failed',{operation:'clipboard.cut',errorName:this.#diagnostics.errorName(error)})
+      return null
+    }
+  }
+
+  #scheduleFocus(blockId,focus) {
+    const generation=this.#runtime.generation,revision=this.#runtime.revision
+    queueMicrotask(()=>{
+      if(this.#controller.signal.aborted||this.#runtime.readOnly||generation!==this.#runtime.generation||revision!==this.#runtime.revision||!this.#runtime.has(blockId))return
+      this.#view.focus(blockId,focus)
     })
   }
 
   #mutatePaste(operation) {
-    return this.#runtime.interact('clipboard.paste', operation, result => {
+    const result=this.#runtime.interact('clipboard.paste', operation, result => {
       const blockId = Array.isArray(result) ? result.at(-1) : result?.blockId
       if (!blockId) return null
       const fields = this.#reconciler.getEditableFields(blockId)
@@ -578,6 +596,9 @@ export class ClipboardController {
       const point = { blockId, fieldKey: result?.focus?.fieldKey ?? field?.key ?? '', offset }
       return { anchor: point, focus: { ...point } }
     })
+    const blockId=Array.isArray(result)?result.at(-1):result?.blockId
+    if(blockId)this.#scheduleFocus(blockId,result?.focus??{offset:'end'})
+    return result
   }
 
   #replaceLocal(owner, range, replacement) {
@@ -586,12 +607,9 @@ export class ClipboardController {
       { anchor: point(range.start), focus: point(range.end) }, replacement,
     ), caret => caret ? { anchor: caret, focus: { ...caret } } : null)
     if (!result) return false
+    this.#scheduleFocus(result.blockId,{fieldKey:result.fieldKey,offset:result.offset})
     this.#view.reconcileInteraction()
     this.#view.setCurrent(result.blockId)
-    queueMicrotask(() => this.#view.focus(result.blockId, {
-      fieldKey: result.fieldKey,
-      offset: result.offset,
-    }))
     return true
   }
 
@@ -673,7 +691,6 @@ export class ClipboardController {
         ))
         this.#view.reconcileInteraction()
         this.#view.setCurrent(applied.blockId)
-        queueMicrotask(()=>this.#view.focus(applied.blockId,applied.focus??{offset:'end'}))
       }catch(error){
         if(!task.signal.aborted){
           this.#diagnostics?.emit('paste.failed',{

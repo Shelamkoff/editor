@@ -100,6 +100,12 @@ export class TransactionEngine {
   get canUndo() { return this.#history.canUndo }
   get canRedo() { return this.#history.canRedo }
 
+  /** Narrow read access for preparation outside an execute callback. */
+  get currentReadSource() {
+    const source=this.#phase==='building'&&this.#current?this.#current.draft:this.#store
+    return {ids:()=>source.ids(),peek:id=>source.peek(id)}
+  }
+
   execute(metadataInput, operation) {
     if (typeof operation !== 'function') throw new TypeError('Transaction operation must be a function')
     this.#assertHealthy()

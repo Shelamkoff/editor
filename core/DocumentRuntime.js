@@ -1,14 +1,14 @@
 // @ts-check
 import { ReadOnlyRecoveryError } from './ReadOnlyRecoveryError.js'
 import { cloneEditorData } from '../shared/cloneEditorData.js'
-import { decodeCurrentBlock, decodeCurrentInlineMap } from '../shared/DocumentSchema.js'
+import { decodeCurrentInlineMap } from '../shared/DocumentSchema.js'
 import { documentValidationIssue } from '../shared/documentValidationIssue.js'
 import { synchronousResult } from '../shared/synchronousResult.js'
 import { richTextFieldMap } from './projectionFields.js'
 import { DOCUMENT_FORMAT_VERSION } from '../shared/documentFormat.js'
 import { invokeObserver } from '../shared/invokeObserver.js'
 import { normalizeRichText } from '../shared/richTextCodec.js'
-import { ensureRichTextReferenceSuffix, getRichTextLogicalLength, replaceRichTextRange, replaceRichTextReference, scanRichTextPlaceholders, sliceRichTextRange, splitRichTextRange } from '../shared/richTextOperations.js'
+import { ensureRichTextReferenceSuffix, getRichTextLogicalLength, replaceRichTextRange, replaceRichTextReference, scanRichTextPlaceholders, splitRichTextRange } from '../shared/richTextOperations.js'
 import {
   assembleCanonicalRecord,
   createSessionIdAllocator,
@@ -18,11 +18,21 @@ import {
   captureDocumentView,
   canonicalRecordsEqual,
 } from './CanonicalTransforms.js'
+import { richTextFields, orderedLogicalRange, sliceSelection, endpointSelection, prepareRemoveBlocks, prepareReplaceWholeDocument, prepareReplaceLogicalRange } from './LogicalRangePlans.js'
+import { selectedSourceData, prepareClipboardBlockSlice, prepareClipboardSlice, prepareClipboardCut, prepareReplaceClipboardSlice, prepareInsertClipboardParts, prepareReplaceClipboardRange, prepareInsertLocalBlocks, preparePasteResults, prepareInlineSegments } from './ClipboardPlans.js'
 import { uid } from '../shared/uid.js'
 import { DocumentStore } from './DocumentStore.js'
 import { HistoryStore } from './HistoryStore.js'
 import { TransactionEngine } from './TransactionEngine.js'
 import { prepareCurrentDocument, prepareNewDocument } from './DocumentIngestion.js'
+
+function deepFreezeClipboardValue(value) {
+  if(value&&typeof value==='object'){
+    for(const child of Object.values(value))deepFreezeClipboardValue(child)
+    Object.freeze(value)
+  }
+  return value
+}
 
 const VALID_ALIGN = new Set(['left', 'center', 'right', 'justify'])
 
@@ -51,6 +61,7 @@ function sameJson(left, right) {
 }
 
 export class DocumentRuntime {
+  #clipboardHandles = new WeakMap()
   #registry
   #store
   #history
@@ -351,7 +362,6 @@ export class DocumentRuntime {
     })
   }
 
-
   /**
    * Apply fully prepared text/file resolver results in one paste transaction.
    * @param {string} blockId
@@ -360,181 +370,14 @@ export class DocumentRuntime {
    * @param {Array<{type:string,result:import('../plugin-kit/types').PasteResult<Record<string,unknown>>}>} entries
    * @returns {{blockId:string,inserted:string[],focus?:{fieldKey:string,offset:number}}}
    */
-  applyPasteResults(blockId,fieldKey,range,entries){
+  applyPasteResults(blockId,fieldKey,range,entries) {
     this.#assertInteractionMutation()
-    if(!Array.isArray(entries)||entries.length===0)throw new TypeError('Paste results must be a non-empty array')
-    const current=this.#store.get(blockId)
-    if(!current)throw new Error(`Unknown block id: ${blockId}`)
-    if(this.activation(blockId)?.kind!=='active')throw new Error(`Unregistered block cannot receive paste results: ${blockId}`)
-
-    let rich=null
-    const local=[]
-    for(let index=0;index<entries.length;index++){
-      if(!Object.hasOwn(entries,index))throw new TypeError('Paste results must be dense')
-      const entry=entries[index]
-      const result=entry?.result
-      if(!result||typeof result!=='object'||Array.isArray(result))throw new TypeError('Paste resolver returned an invalid result')
-      if(result.kind==='rich-text'){
-        if(rich)throw new Error('Paste plan may contain at most one rich-text result')
-        if(!result.replacement||typeof result.replacement!=='object')throw new TypeError('Paste rich-text result is invalid')
-        rich=result.replacement
-        continue
-      }
-      if(result.kind!=='block')throw new TypeError('Paste result kind must be block or rich-text')
-      if(typeof entry.type!=='string'||!entry.type)throw new TypeError('Paste block result is missing a type')
-      const definition=this.#registry.getBlockDefinition(entry.type)
-      if(!definition)throw new Error(`Paste block type is not registered: ${entry.type}`)
-      // Validate local data before allocating any persisted block identity.
-      this.#normalizeLocalData(definition,result.data)
-      local.push({type:entry.type,definition,data:result.data})
-    }
-
-    let targetNext=current
-    if(rich){
-      targetNext=this.#replaceBlockRichTextRange(
-        current,
-        {blockId,fieldKey,offset:Math.max(0,Math.trunc(range?.start)||0)},
-        {blockId,fieldKey,offset:Math.max(0,Math.trunc(range?.end)||0)},
-        rich,
-      )
-      if(!targetNext)throw new Error('Paste target is not a valid rich-text range')
-    }
-
-    const replaceEmpty=!rich&&local.length>0&&this.isEmpty(blockId)
-    const reserved=new Set(this.#store.ids())
-    const prepared=local.map((entry,index)=>{
-      const id=replaceEmpty&&index===0?blockId:this.#allocateId(entry.type,reserved)
-      return this.#recordFromData(id,entry.type,entry.definition,entry.data,undefined,undefined)
-    })
-
-    const anchorIndex=this.#store.ids().indexOf(blockId)
-    const inserted=[]
-    this.#engine.execute({origin:'user',name:'clipboard.paste'},tx=>{
-      if(rich)tx.update(blockId,targetNext)
-      let start=0
-      if(replaceEmpty){
-        tx.update(blockId,prepared[0])
-        inserted.push(blockId)
-        start=1
-      }
-      let offset=1
-      for(let index=start;index<prepared.length;index++){
-        tx.insert(anchorIndex+offset,prepared[index])
-        inserted.push(prepared[index].id)
-        offset++
-      }
-    })
-
-    const focus = rich && !inserted.length ? {
-      fieldKey,
-      offset: Math.max(0, Math.trunc(range.start) || 0)
-        + (rich.kind === 'text' ? rich.text.length : getRichTextLogicalLength(rich.html, {}, this.#ownerDocument)),
-    } : undefined
-    return {
-      blockId:inserted.at(-1)??blockId,
-      inserted,
-      ...(focus ? { focus } : {}),
-    }
+    return this.#executePrepared({origin:'user',name:'clipboard.paste'},view=>preparePasteResults(this.#planningServices(),view,blockId,fieldKey,cloneEditorData(range),cloneEditorData(entries)))
   }
 
-  insertLocalBlocks(anchorId,inputs,options={}){
+  insertLocalBlocks(anchorId,inputs,options={}) {
     this.#assertInteractionMutation()
-    if(!Array.isArray(inputs)||inputs.length===0)return []
-    const ids=this.#store.ids()
-    const anchorIndex=ids.indexOf(anchorId)
-    if(anchorIndex<0)throw new Error(`Unknown block id: ${anchorId}`)
-
-    const validated=inputs.map((input,index)=>{
-      if(!input||typeof input!=='object'||Array.isArray(input)){
-        throw new TypeError(`Local block input[${index}] must be an object`)
-      }
-      if(typeof input.type!=='string'||!input.type){
-        throw new TypeError(`Local block input[${index}] must contain a type`)
-      }
-      const definition=this.#registry.getBlockDefinition(input.type)
-      if(!definition)throw new Error(`Local block type is not registered: ${input.type}`)
-      // Validate the complete local payload before allocating persisted block ids.
-      this.#normalizeLocalData(definition,input.data)
-      const tunes=input.tunes===undefined?undefined:cloneTunes(input.tunes)
-      const inline=input.inline===undefined?undefined:this.#normalizeExternalInline(input.inline)
-      return {type:input.type,definition,data:input.data,tunes,inline}
-    })
-
-    const reserved=new Set(ids)
-    const records=validated.map(input=>{
-      const id=this.#allocateId(input.type,reserved)
-      return this.#recordFromData(
-        id,input.type,input.definition,input.data,input.tunes,input.inline,
-      )
-    })
-
-    const replaceEmpty=options.replaceEmpty===true&&this.isEmpty(anchorId)
-    const inserted=[]
-    this.#engine.execute({origin:'user',name:options.name??'blocks.insert-local'},tx=>{
-      let offset=1,start=0
-      if(replaceEmpty){
-        const first={...records[0],id:anchorId}
-        tx.update(anchorId,first)
-        inserted.push(anchorId)
-        start=1
-      }
-      for(let index=start;index<records.length;index++){
-        tx.insert(anchorIndex+offset,records[index])
-        inserted.push(records[index].id)
-        offset++
-      }
-    })
-    return inserted
-  }
-
-  /**
-   * Insert copied external block records in one canonical transaction.
-   * Producer ids/revisions are never reused; invalid optional tunes are ignored.
-   * @param {string} anchorId
-   * @param {unknown[]} inputs
-   * @param {{replaceEmpty?:boolean}} [options]
-   * @returns {string[]}
-   */
-  insertExternalBlocks(anchorId,inputs,options={}){
-    this.#assertInteractionMutation()
-    if(!Array.isArray(inputs)||inputs.length===0)return []
-    const ids=this.#store.ids()
-    const anchorIndex=ids.indexOf(anchorId)
-    if(anchorIndex<0)throw new Error(`Unknown block id: ${anchorId}`)
-    const reserved=new Set(ids)
-    const allocate=prefix=>this.#allocateId(prefix,reserved)
-    const records=[]
-    for(const raw of inputs){
-      if(!raw||typeof raw!=='object'||Array.isArray(raw))throw new TypeError('Clipboard block must contain a type')
-      const input=/** @type {Record<string, any>} */(raw)
-      if(typeof input.type!=='string'||!input.type)throw new TypeError('Clipboard block must contain a type')
-      const candidate={id:allocate(input.type),type:input.type,dataVersion:input.dataVersion,data:input.data}
-      if(Object.hasOwn(input,'tunes'))candidate.tunes=input.tunes
-      if(Object.hasOwn(input,'inline'))candidate.inline=input.inline
-      const record=decodeCurrentBlock(candidate,{
-        getBlockSchema:type=>this.#registry.getBlockDefinition(type)?.schema,
-        getInlineSchema:type=>this.#registry.getInlineDefinition(type)?.schema,
-      })
-      const definition=this.#registry.getBlockDefinition(record.type)
-      records.push(definition
-        ? this.#recordFromData(
-            record.id, record.type, definition, record.data, record.tunes, record.inline,
-          )
-        : record)
-    }
-    const replaceEmpty=options.replaceEmpty===true&&this.isEmpty(anchorId)
-    const inserted=[]
-    this.#engine.execute({origin:'user',name:'clipboard.blocks'},tx=>{
-      let offset=1,start=0
-      if(replaceEmpty){
-        const first={...records[0],id:anchorId}
-        tx.update(anchorId,first);inserted.push(anchorId);start=1
-      }
-      for(let index=start;index<records.length;index++){
-        tx.insert(anchorIndex+offset,records[index]);inserted.push(records[index].id);offset++
-      }
-    })
-    return inserted
+    return this.#executePrepared({origin:'user',name:'blocks.insert-local'},view=>prepareInsertLocalBlocks(this.#planningServices(),view,anchorId,cloneEditorData(inputs),cloneEditorData(options)))
   }
 
   isEmpty(id) {
@@ -793,34 +636,9 @@ export class DocumentRuntime {
     })
   }
 
-
-  removeBlocks(blockIds, authority = 'interaction') {
+  removeBlocks(blockIds,authority='interaction') {
     this.#assertMutationAuthority(authority)
-    if (!Array.isArray(blockIds)) throw new TypeError('removeBlocks() requires an array of block ids')
-    const ids = this.#store.ids()
-    const requested = new Set(blockIds)
-    const removals = ids.filter(id => requested.has(id))
-    if (!removals.length) return false
-
-    let fallback = null
-    if (removals.length === ids.length) {
-      const type = this.#registry.defaultBlockType
-      const definition = this.#registry.getBlockDefinition(type)
-      fallback = this.#recordFromData(
-        this.#createUniqueBlockId(type),
-        type,
-        definition,
-        definition.schema.createDefault(),
-        undefined,
-        undefined,
-      )
-    }
-
-    this.#engine.execute({ origin: 'user', name: 'blocks.remove' }, tx => {
-      for (const id of removals) tx.remove(id)
-      if (fallback) tx.insert(0, fallback)
-    })
-    return fallback?.id ?? true
+    return this.#executePrepared({origin:'user',name:'blocks.remove'},view=>prepareRemoveBlocks(this.#planningServices(),view,cloneEditorData(blockIds)))
   }
 
   /**
@@ -828,32 +646,9 @@ export class DocumentRuntime {
    * @param {{kind:'text',text:string}|{kind:'html',html:string}} replacement
    * @returns {{blockId:string,fieldKey:string,offset:number}|false}
    */
-  replaceWholeDocument(replacement, blockIds = this.#store.ids()) {
+  replaceWholeDocument(replacement,blockIds=undefined) {
     this.#assertInteractionMutation()
-    const selected = new Set(blockIds)
-    const ids = this.#store.ids().filter(id => selected.has(id))
-    if (!ids.length) return false
-    const index = this.#store.ids().indexOf(ids[0])
-    const type = this.#registry.defaultBlockType
-    const definition = this.#registry.getBlockDefinition(type)
-    if (!definition?.schema?.mapRichText) return false
-    let fieldKey = null
-    const data = definition.schema.mapRichText(definition.schema.createDefault(), (html, key) => {
-      if (fieldKey !== null) return html
-      fieldKey = key
-      return replaceRichTextRange('', {}, { start: 0, end: 0 }, replacement, this.#ownerDocument)
-    })
-    if (fieldKey === null) return false
-    const blockId = this.#createUniqueBlockId(type)
-    const record = this.#recordFromData(blockId, type, definition, data, undefined, undefined)
-    this.#engine.execute({ origin: 'user', name: 'selection.replace-all' }, tx => {
-      for (const id of ids) tx.remove(id)
-      tx.insert(index, record)
-    })
-    return {
-      blockId, fieldKey,
-      offset: replacement.kind === 'text' ? replacement.text.length : getRichTextLogicalLength(replacement.html, {}, this.#ownerDocument),
-    }
+    return this.#executePrepared({origin:'user',name:'selection.replace-all'},view=>prepareReplaceWholeDocument(this.#planningServices(),view,cloneEditorData(replacement),blockIds===undefined?undefined:cloneEditorData(blockIds)))
   }
 
   convert(id, target, authority = 'interaction') {
@@ -883,7 +678,6 @@ export class DocumentRuntime {
     })
   }
 
-
   /**
    * Atomically convert one logical selection. Partial selections preserve
    * unselected source fragments, while a non-text target replaces the selected
@@ -895,7 +689,7 @@ export class DocumentRuntime {
    */
   convertLogicalSelection(bookmark,target){
     this.#assertInteractionMutation()
-    const ordered=this.#orderedLogicalRange(bookmark)
+    const ordered=this.prepareExtensionValue(()=>orderedLogicalRange(this.#planningServices(),captureDocumentView(this.#store),bookmark))
     if(!ordered||!target||typeof target.type!=='string')return false
     const {start,end}=ordered
     const targetDefinition=this.#registry.getBlockDefinition(target.type)
@@ -981,18 +775,6 @@ export class DocumentRuntime {
     }
   }
 
-
-  /**
-   * Atomically replace a logical selection that may span multiple blocks.
-   * The start/end fragments stay canonical; intermediate blocks are removed in
-   * the same transaction. Compatible endpoint blocks are merged through the
-   * target block's pure MergeCapability.
-   *
-   * @param {{anchor:{blockId:string,fieldKey:string,offset:number},focus:{blockId:string,fieldKey:string,offset:number}}} bookmark
-   * @param {{kind:'text',text:string}|{kind:'html',html:string}} [replacement]
-   * @returns {{blockId:string,fieldKey:string,offset:number}|false}
-   */
-
   /**
    * Execute one block slash command as a single canonical history step.
    * The authored /query range is removed from its schema field first. If the
@@ -1068,608 +850,70 @@ export class DocumentRuntime {
     })
   }
 
-  replaceLogicalRange(bookmark, replacement = /** @type {{kind:'text',text:string}|{kind:'html',html:string}} */ ({ kind: 'text', text: '' })) {
+  /**
+   * Atomically replace a logical selection that may span multiple blocks.
+   * The start/end fragments stay canonical; intermediate blocks are removed in
+   * the same transaction. Compatible endpoint blocks are merged through the
+   * target block's pure MergeCapability.
+   *
+   * @param {{anchor:{blockId:string,fieldKey:string,offset:number},focus:{blockId:string,fieldKey:string,offset:number}}} bookmark
+   * @param {{kind:'text',text:string}|{kind:'html',html:string}} [replacement]
+   * @returns {{blockId:string,fieldKey:string,offset:number}|false}
+   */
+
+  replaceLogicalRange(bookmark,replacement={kind:'text',text:''}) {
     this.#assertInteractionMutation()
-    const ordered = this.#orderedLogicalRange(bookmark)
-    if (!ordered) return false
-    const { start, end } = ordered
-    const ids = this.#store.ids()
-    const startIndex = ids.indexOf(start.blockId)
-    const endIndex = ids.indexOf(end.blockId)
-    if (startIndex < 0 || endIndex < startIndex) return false
-
-    const startCurrent = this.#store.get(start.blockId)
-    const endCurrent = this.#store.get(end.blockId)
-    if (!startCurrent || !endCurrent) return false
-    if (
-      this.activation(start.blockId)?.kind !== 'active'
-      || this.activation(end.blockId)?.kind !== 'active'
-    ) return false
-
-    const caretOffset = start.offset + (replacement.kind === 'text'
-      ? replacement.text.length
-      : getRichTextLogicalLength(replacement.html, {}, this.#ownerDocument))
-
-    if (start.blockId === end.blockId) {
-      const next = this.#replaceBlockRichTextRange(
-        startCurrent,start,end,replacement,
-      )
-      if (!next) return false
-      this.#engine.execute({ origin: 'user', name: 'selection.replace' }, tx => {
-        tx.update(start.blockId,next)
-      })
-      return { blockId: start.blockId, fieldKey: start.fieldKey, offset: caretOffset }
-    }
-
-    const startDefinition = this.#registry.getBlockDefinition(startCurrent.type)
-    const endDefinition = this.#registry.getBlockDefinition(endCurrent.type)
-    const startFields = this.#richTextFields(
-      startDefinition,startCurrent.data,cloneInline(startCurrent.inline)??{},
-    )
-    const endFields = this.#richTextFields(
-      endDefinition,endCurrent.data,cloneInline(endCurrent.inline)??{},
-    )
-    if (!startFields.length || !endFields.length) return false
-
-    const lastStartField = startFields[startFields.length - 1]
-    const firstEndField = endFields[0]
-    const startNext = this.#replaceBlockRichTextRange(
-      startCurrent,
-      start,
-      { blockId:start.blockId, fieldKey:lastStartField.key, offset:lastStartField.length },
-      replacement,
-    )
-    const endNext = this.#replaceBlockRichTextRange(
-      endCurrent,
-      { blockId:end.blockId, fieldKey:firstEndField.key, offset:0 },
-      end,
-      { kind:'text', text:'' },
-    )
-    if (!startNext || !endNext) return false
-
-    let merged = null
-    if (startNext.type === endNext.type) {
-      const merge = startDefinition?.capabilities?.merge?.merge
-      if (typeof merge === 'function') {
-        const prepared = this.#prepareInlineMerge(startDefinition, startNext, endNext)
-        const mergedData = merge(prepared.targetData, prepared.sourceData)
-        merged = this.#recordFromData(
-          startNext.id,
-          startNext.type,
-          startDefinition,
-          mergedData,
-          startNext.tunes,
-          prepared.inline,
-        )
-      }
-    }
-
-    this.#engine.execute({ origin: 'user', name: 'selection.replace' }, tx => {
-      tx.update(start.blockId, merged ?? startNext)
-      for (let index = startIndex + 1; index < endIndex; index++) tx.remove(ids[index])
-      if (merged) tx.remove(end.blockId)
-      else tx.update(end.blockId, endNext)
-    })
-    return { blockId: start.blockId, fieldKey: start.fieldKey, offset: caretOffset }
+    return this.#executePrepared({origin:'user',name:'selection.replace'},view=>prepareReplaceLogicalRange(this.#planningServices(),view,cloneEditorData(bookmark),cloneEditorData(replacement)))
   }
 
-  prepareLogicalClipboardSlice(bookmark, wholeBlockIds = []){
-    const ids=this.#store.ids()
-    if (wholeBlockIds.length) {
-      const selected = ids.filter(id => wholeBlockIds.includes(id))
-      if (selected.length !== wholeBlockIds.length || selected.some((id, index) => id !== wholeBlockIds[index])) return null
-      const first = this.#store.get(selected[0])
-      const definition = this.#registry.getBlockDefinition(first.type)
-      const field = this.#richTextFields(definition, first.data, cloneInline(first.inline) ?? {})[0]
-      return Object.freeze({
-        generation: this.#store.generation,
-        revision: this.#store.revision,
-        bookmark: bookmark ? cloneEditorData(bookmark) : null,
-        startIndex: ids.indexOf(first.id),
-        parts: selected.map(id => ({ kind: 'block', block: this.#store.get(id) })),
-        blocks: selected.map(id => Object.freeze({ id, remaining: null })),
-        focus: Object.freeze({ blockId: first.id, fieldKey: field?.key ?? '', offset: 0 }),
-        compound: true,
-      })
-    }
-    const ordered=this.#orderedLogicalRange(bookmark)
-    if(!ordered)return null
-    const {start,end}=ordered
-    const startIndex=ids.indexOf(start.blockId)
-    const endIndex=ids.indexOf(end.blockId)
-    if(startIndex<0||endIndex<startIndex)return null
-
-    const parts=[]
-    const blocks=[]
-    let compound=false
-    let focus={blockId:start.blockId,fieldKey:start.fieldKey,offset:start.offset}
-
-    if(startIndex===endIndex){
-      const record=this.#store.get(start.blockId)
-      if(!record)return null
-      const slice=this.#prepareClipboardBlockSlice(record,start,end)
-      if(!slice)return null
-      parts.push(...slice.parts)
-      blocks.push({id:record.id,remaining:slice.remaining})
-      compound=slice.compound
-      if(slice.focus)focus={blockId:record.id,...slice.focus}
-    }else{
-      const startRecord=this.#store.get(start.blockId)
-      const endRecord=this.#store.get(end.blockId)
-      if(!startRecord||!endRecord)return null
-      const startDefinition=this.#registry.getBlockDefinition(startRecord.type)
-      const endDefinition=this.#registry.getBlockDefinition(endRecord.type)
-      const startFields=this.#richTextFields(
-        startDefinition,startRecord.data,cloneInline(startRecord.inline)??{},
-      )
-      const endFields=this.#richTextFields(
-        endDefinition,endRecord.data,cloneInline(endRecord.inline)??{},
-      )
-      if(!startFields.length||!endFields.length)return null
-
-      const startSlice=this.#prepareClipboardBlockSlice(
-        startRecord,
-        start,
-        {
-          blockId:start.blockId,
-          fieldKey:startFields.at(-1).key,
-          offset:startFields.at(-1).length,
-        },
-      )
-      const endSlice=this.#prepareClipboardBlockSlice(
-        endRecord,
-        {blockId:end.blockId,fieldKey:endFields[0].key,offset:0},
-        end,
-      )
-      if(!startSlice||!endSlice)return null
-      parts.push(...startSlice.parts)
-      blocks.push({id:startRecord.id,remaining:startSlice.remaining})
-      compound=compound||startSlice.compound
-      if(startSlice.focus)focus={blockId:startRecord.id,...startSlice.focus}
-
-      for(let index=startIndex+1;index<endIndex;index++){
-        const record=this.#store.get(ids[index])
-        if(!record)return null
-        parts.push({kind:'block',block:record})
-        blocks.push({id:record.id,remaining:null})
-      }
-
-      parts.push(...endSlice.parts)
-      blocks.push({id:endRecord.id,remaining:endSlice.remaining})
-      compound=compound||endSlice.compound
-    }
-
-    if(!parts.length)return null
-    return Object.freeze({
-      generation:this.#store.generation,
-      revision:this.#store.revision,
-      bookmark:cloneEditorData(bookmark),
-      startIndex,
-      parts:cloneEditorData(parts),
-      blocks:blocks.map(entry=>Object.freeze({
-        id:entry.id,
-        remaining:entry.remaining===null?null:cloneEditorData(entry.remaining),
-      })),
-      focus:Object.freeze({...focus}),
-      compound,
+  prepareLogicalClipboardSlice(bookmark,wholeBlockIds=[]) {
+    return this.prepareExtensionValue(()=>{
+      const view=captureDocumentView(this.#engine.currentReadSource)
+      const plan=prepareClipboardSlice(this.#planningServices(),view,cloneEditorData(bookmark),cloneEditorData(wholeBlockIds))
+      if(!plan)return null
+      const handle=deepFreezeClipboardValue(cloneEditorData({parts:plan.parts,bookmark:plan.bookmark,focus:plan.focus}))
+      this.#clipboardHandles.set(handle,{plan,generation:this.#store.generation,revision:this.#store.revision,orderedIds:view.ids,sources:view.references()})
+      return handle
     })
   }
 
-  exportLogicalClipboardParts(bookmark){
-    return this.prepareLogicalClipboardSlice(bookmark)?.parts??null
+  exportLogicalClipboardParts(bookmark) {
+    const handle=this.prepareLogicalClipboardSlice(bookmark)
+    return handle?cloneEditorData(handle.parts):null
   }
 
-  applyPreparedClipboardCut(plan){
+  applyPreparedClipboardCut(handle) {
     this.#assertInteractionMutation()
-    this.#assertCurrentClipboardPlan(plan)
-    const entries=plan.blocks.map(entry=>({
-      id:entry.id,
-      remaining:entry.remaining===null?null:cloneEditorData(entry.remaining),
-    }))
-
-    // Deleting a cross-block selection may leave two endpoint residuals.
-    // Collapse them only when the owning type explicitly declares a lossless
-    // merge contract; this is the same canonical merge used by keyboard
-    // deletion and conversion.
-    if(entries.length>1){
-      const first=entries[0]
-      const last=entries.at(-1)
-      if(first.remaining&&last.remaining&&first.id!==last.id&&first.remaining.type===last.remaining.type){
-        const definition=this.#registry.getBlockDefinition(first.remaining.type)
-        const merge=definition?.capabilities?.merge?.merge
-        if(typeof merge==='function'){
-          const prepared=this.#prepareInlineMerge(definition,first.remaining,last.remaining)
-          const mergedData=merge(prepared.targetData,prepared.sourceData)
-          first.remaining=this.#recordFromData(
-            first.id,
-            first.remaining.type,
-            definition,
-            mergedData,
-            first.remaining.tunes,
-            prepared.inline,
-          )
-          last.remaining=null
-        }
-      }
-    }
-
-    const removals=new Set(entries.filter(entry=>entry.remaining===null).map(entry=>entry.id))
-    const survivors=this.#store.ids().filter(id=>!removals.has(id))
-    let fallback=null
-    if(!survivors.length){
-      const type=this.#registry.defaultBlockType
-      const definition=this.#registry.getBlockDefinition(type)
-      fallback=this.#recordFromData(
-        this.#allocateId(type,new Set(this.#store.ids())),
-        type,
-        definition,
-        definition.schema.createDefault(),
-        undefined,
-        undefined,
-      )
-    }
-
-    this.#engine.execute({origin:'user',name:'clipboard.cut'},tx=>{
-      for(const entry of entries){
-        if(entry.remaining===null){
-          if(tx.get(entry.id))tx.remove(entry.id)
-        }else{
-          tx.update(entry.id,entry.remaining)
-        }
-      }
-      if(fallback&&tx.list().length===0)tx.insert(0,fallback)
+    return this.#executePrepared({origin:'user',name:'clipboard.cut'},view=>{
+      const prepared=this.#clipboardHandles.get(handle)
+      if(!prepared)throw new TypeError('Clipboard handle is not issued by this runtime')
+      if(prepared.generation!==this.#store.generation||prepared.revision!==this.#store.revision
+        ||prepared.orderedIds.length!==view.ids.length||prepared.orderedIds.some((id,index)=>id!==view.ids[index])
+        ||[...prepared.sources].some(([id,record])=>view.peek(id)!==record))throw new Error('Clipboard target is stale')
+      return prepareClipboardCut(this.#planningServices(),view,prepared.plan)
     })
-
-    const preferred=entries.find(entry=>entry.remaining!==null)?.id
-      ??fallback?.id
-      ??this.#store.ids()[Math.min(plan.startIndex,this.#store.ids().length-1)]
-      ??this.#store.ids().at(-1)
-      ??null
-    return preferred?{blockId:preferred,focus:plan.focus}:null
   }
 
-  replacePreparedClipboardSlice(plan,parts){
+  replacePreparedClipboardSlice(handle,parts) {
     this.#assertInteractionMutation()
-    this.#assertCurrentClipboardPlan(plan)
-    if(!Array.isArray(parts)||parts.length===0)throw new TypeError('Clipboard parts must be a non-empty array')
-
-    if(!plan.compound&&!parts.some(part=>part?.kind==='local-block')){
-      return this.replaceLogicalRangeWithClipboardParts(plan.bookmark,parts)
-    }
-
-    const reserved=new Set(this.#store.ids())
-    const incoming=parts.map(part=>{
-      if(part?.kind==='block')return this.#materializeClipboardBlock(part.block,reserved)
-      if(part?.kind==='rich-text')return this.#materializeClipboardRichText(part,reserved)
-      if(part?.kind==='local-block'){
-        if(typeof part.type!=='string'||!part.type)throw new TypeError('Local clipboard block is missing a type')
-        const definition=this.#registry.getBlockDefinition(part.type)
-        if(!definition)throw new Error(`Local clipboard block type is not registered: ${part.type}`)
-        this.#normalizeLocalData(definition,part.data)
-        const id=this.#allocateId(part.type,reserved)
-        return this.#recordFromData(id,part.type,definition,part.data,undefined,undefined)
-      }
-      throw new TypeError('Clipboard part must be block, local-block, or rich-text')
+    return this.#executePrepared({origin:'user',name:'clipboard.fragment'},view=>{
+      const prepared=this.#clipboardHandles.get(handle)
+      if(!prepared)throw new TypeError('Clipboard handle is not issued by this runtime')
+      if(prepared.generation!==this.#store.generation||prepared.revision!==this.#store.revision
+        ||prepared.orderedIds.length!==view.ids.length||prepared.orderedIds.some((id,index)=>id!==view.ids[index])
+        ||[...prepared.sources].some(([id,record])=>view.peek(id)!==record))throw new Error('Clipboard target is stale')
+      return prepareReplaceClipboardSlice(this.#planningServices(),view,prepared.plan,cloneEditorData(parts))
     })
-
-    this.#engine.execute({origin:'user',name:'clipboard.fragment'},tx=>{
-      for(const entry of plan.blocks){
-        if(entry.remaining===null){
-          if(tx.get(entry.id))tx.remove(entry.id)
-        }else{
-          tx.update(entry.id,entry.remaining)
-        }
-      }
-
-      const startEntry=plan.blocks[0]
-      const live=tx.list()
-      let insertAt
-      if(startEntry?.remaining!==null&&tx.get(startEntry.id)){
-        insertAt=live.findIndex(record=>record.id===startEntry.id)+1
-      }else{
-        insertAt=Math.min(plan.startIndex,live.length)
-      }
-      for(const record of incoming)tx.insert(insertAt++,record)
-    })
-
-    const blockId=incoming.at(-1)?.id
-      ??plan.blocks.find(entry=>entry.remaining!==null)?.id
-      ??this.#store.ids()[Math.min(plan.startIndex,this.#store.ids().length-1)]
-      ??this.#store.ids().at(-1)
-    return blockId?{blockId,inserted:incoming.map(record=>record.id)}:false
   }
 
-
-  exportRichTextFragment(blockId,fieldKey,range){
-    const current=this.#store.get(blockId)
-    if(!current)throw new Error(`Unknown block id: ${blockId}`)
-    if(this.activation(blockId)?.kind!=='active')throw new Error(`Unregistered block cannot export rich text: ${blockId}`)
-    const definition=this.#registry.getBlockDefinition(current.type)
-    if(!definition?.schema?.mapRichText)throw new Error(`Block type has no rich-text fields: ${current.type}`)
-    const inline=cloneInline(current.inline)??{}
-    let selected=null
-    definition.schema.mapRichText(cloneEditorData(current.data),(html,key)=>{
-      if(key===fieldKey)selected=sliceRichTextRange(html,inline,range,this.#ownerDocument).selected
-      return html
-    })
-    if(selected===null)throw new Error(`Unknown rich-text field "${fieldKey}" for block "${blockId}"`)
-    const scan=scanRichTextPlaceholders(selected,inline,this.#ownerDocument)
-    const selectedInline=Object.fromEntries([...scan.references].map(id=>[id,cloneEditorData(inline[id])]))
-    return {
-      html:selected,
-      ...(Object.keys(selectedInline).length?{inline:selectedInline}:{}),
-    }
-  }
-
-  replaceRichTextFragment(blockId,fieldKey,range,fragment){
+  insertClipboardParts(blockId,fieldKey,range,parts) {
     this.#assertInteractionMutation()
-    const current=this.#store.get(blockId)
-    if(!current)throw new Error(`Unknown block id: ${blockId}`)
-    const next=this.#recordWithRichTextFragment(current,fieldKey,range,fragment)
-    this.#engine.execute({origin:'user',name:'clipboard.rich-text'},tx=>tx.update(blockId,next))
-    return true
+    return this.#executePrepared({origin:'user',name:'clipboard.fragment'},view=>prepareInsertClipboardParts(this.#planningServices(),view,blockId,fieldKey,cloneEditorData(range),cloneEditorData(parts)))
   }
 
-  insertClipboardParts(blockId,fieldKey,range,parts){
+  replaceLogicalRangeWithClipboardParts(bookmark,parts) {
     this.#assertInteractionMutation()
-    if(!Array.isArray(parts)||parts.length===0)throw new TypeError('Clipboard parts must be a non-empty array')
-    const current=this.#store.get(blockId)
-    if(!current)throw new Error(`Unknown block id: ${blockId}`)
-    if(this.activation(blockId)?.kind!=='active')throw new Error(`Unregistered block cannot receive clipboard data: ${blockId}`)
-
-    const reserved=new Set(this.#store.ids())
-    const preparedBlocks=[]
-    let targetNext=current
-    let partIndex=0
-
-    if(parts[0]?.kind==='rich-text'){
-      targetNext=this.#recordWithRichTextFragment(current,fieldKey,range,parts[0])
-      partIndex=1
-    }else if((Math.trunc(range?.end)||0)>(Math.trunc(range?.start)||0)){
-      targetNext=this.#replaceBlockRichTextRange(
-        current,
-        {blockId,fieldKey,offset:Math.max(0,Math.trunc(range.start)||0)},
-        {blockId,fieldKey,offset:Math.max(0,Math.trunc(range.end)||0)},
-        {kind:'text',text:''},
-      )
-      if(!targetNext)throw new Error('Clipboard target selection is not a rich-text range')
-    }
-
-    for(;partIndex<parts.length;partIndex++){
-      const part=parts[partIndex]
-      if(part?.kind==='block'){
-        preparedBlocks.push(this.#materializeClipboardBlock(part.block,reserved))
-        continue
-      }
-
-      if(part?.kind!=='rich-text'||typeof part.html!=='string'){
-        throw new TypeError('Clipboard part must be block or rich-text')
-      }
-      preparedBlocks.push(this.#materializeClipboardRichText(part,reserved))
-    }
-
-    const targetChanged=!sameJson(current,targetNext)
-    const replaceEmpty=parts[0]?.kind==='block'
-      &&range.start===range.end
-      &&this.isEmpty(blockId)
-      &&preparedBlocks.length>0
-    const anchorIndex=this.#store.ids().indexOf(blockId)
-    const inserted=[]
-    this.#engine.execute({origin:'user',name:'clipboard.fragment'},tx=>{
-      let offset=1
-      let start=0
-      if(replaceEmpty){
-        const first={...preparedBlocks[0],id:blockId}
-        tx.update(blockId,first)
-        inserted.push(blockId)
-        start=1
-      }else if(targetChanged){
-        tx.update(blockId,targetNext)
-      }
-      for(let index=start;index<preparedBlocks.length;index++){
-        tx.insert(anchorIndex+offset,preparedBlocks[index])
-        inserted.push(preparedBlocks[index].id)
-        offset++
-      }
-    })
-    const focus = !inserted.length && parts[0]?.kind === 'rich-text' ? {
-      fieldKey,
-      offset: Math.max(0, Math.trunc(range.start) || 0)
-        + getRichTextLogicalLength(parts[0].html, parts[0].inline, this.#ownerDocument),
-    } : undefined
-    return {
-      blockId:inserted.at(-1)??blockId,
-      inserted,
-      ...(focus ? { focus } : {}),
-    }
-  }
-
-
-  replaceLogicalRangeWithClipboardParts(bookmark,parts){
-    this.#assertInteractionMutation()
-    if(!Array.isArray(parts)||parts.length===0)throw new TypeError('Clipboard parts must be a non-empty array')
-    const ordered=this.#orderedLogicalRange(bookmark)
-    if(!ordered)return false
-    const {start,end}=ordered
-
-    if(start.blockId===end.blockId&&parts.length===1&&parts[0]?.kind==='rich-text'){
-      const current=this.#store.get(start.blockId)
-      if(!current)return false
-      let next=this.#recordWithRichTextFragment(
-        current,start.fieldKey,{start:start.offset,end:start.fieldKey===end.fieldKey?end.offset:Number.MAX_SAFE_INTEGER},parts[0],
-      )
-      if(start.fieldKey!==end.fieldKey){
-        const fields=this.#richTextFields(
-          this.#registry.getBlockDefinition(current.type),current.data,cloneInline(current.inline)??{},
-        )
-        const startIndex=fields.findIndex(field=>field.key===start.fieldKey)
-        const endIndex=fields.findIndex(field=>field.key===end.fieldKey)
-        if(startIndex<0||endIndex<=startIndex)return false
-        next=this.#replaceBlockRichTextRange(
-          next,
-          {blockId:next.id,fieldKey:fields[startIndex+1].key,offset:0},
-          {blockId:next.id,fieldKey:end.fieldKey,offset:end.offset},
-          {kind:'text',text:''},
-        )
-        if(!next)return false
-      }
-      this.#engine.execute({origin:'user',name:'clipboard.fragment'},tx=>tx.update(current.id,next))
-      return {blockId:current.id,inserted:[],focus:{
-        fieldKey:start.fieldKey,
-        offset:start.offset+getRichTextLogicalLength(parts[0].html,parts[0].inline,this.#ownerDocument),
-      }}
-    }
-
-    const ids=this.#store.ids()
-    const startIndex=ids.indexOf(start.blockId)
-    const endIndex=ids.indexOf(end.blockId)
-    if(startIndex<0||endIndex<startIndex)return false
-    const startRecord=this.#store.get(start.blockId)
-    const endRecord=this.#store.get(end.blockId)
-    if(!startRecord||!endRecord)return false
-
-    const startDefinition=this.#registry.getBlockDefinition(startRecord.type)
-    const endDefinition=this.#registry.getBlockDefinition(endRecord.type)
-    const startFields=this.#richTextFields(startDefinition,startRecord.data,cloneInline(startRecord.inline)??{})
-    const endFields=this.#richTextFields(endDefinition,endRecord.data,cloneInline(endRecord.inline)??{})
-    if(!startFields.length||!endFields.length)return false
-    const startFieldIndex=startFields.findIndex(field=>field.key===start.fieldKey)
-    const endFieldIndex=endFields.findIndex(field=>field.key===end.fieldKey)
-    if(startFieldIndex<0||endFieldIndex<0)return false
-
-    const firstPart=parts[0]
-    let before
-    let consumedFirst=false
-    if(firstPart?.kind==='rich-text'){
-      before=this.#recordWithRichTextFragment(
-        startRecord,start.fieldKey,{start:start.offset,end:Number.MAX_SAFE_INTEGER},firstPart,
-      )
-      if(startFieldIndex<startFields.length-1){
-        before=this.#replaceBlockRichTextRange(
-          before,
-          {blockId:before.id,fieldKey:startFields[startFieldIndex+1].key,offset:0},
-          {blockId:before.id,fieldKey:startFields.at(-1).key,offset:startFields.at(-1).length},
-          {kind:'text',text:''},
-        )
-      }
-      consumedFirst=true
-    }else{
-      const split=this.#splitClipboardResiduals(
-        startRecord,
-        start,
-        {blockId:start.blockId,fieldKey:startFields.at(-1).key,offset:startFields.at(-1).length},
-      )
-      before=split?.before??null
-    }
-
-    const lastPart=parts.at(-1)
-    const consumedLast=parts.length>(consumedFirst?1:0)&&lastPart?.kind==='rich-text'
-    let after
-    if(consumedLast){
-      after=this.#recordWithRichTextFragment(
-        endRecord,end.fieldKey,{start:0,end:end.offset},lastPart,
-      )
-      if(endFieldIndex>0){
-        after=this.#replaceBlockRichTextRange(
-          after,
-          {blockId:after.id,fieldKey:endFields[0].key,offset:0},
-          {blockId:after.id,fieldKey:endFields[endFieldIndex-1].key,offset:endFields[endFieldIndex-1].length},
-          {kind:'text',text:''},
-        )
-      }
-    }else if(start.blockId===end.blockId){
-      const split=this.#splitClipboardResiduals(startRecord,start,end)
-      after=split?.after??null
-    }else{
-      const split=this.#splitClipboardResiduals(
-        endRecord,
-        {blockId:end.blockId,fieldKey:endFields[0].key,offset:0},
-        end,
-      )
-      after=split?.after??null
-    }
-
-    const reserved=new Set(ids)
-    const insertedRecords=[]
-    const partEnd=consumedLast?parts.length-1:parts.length
-    for(let index=consumedFirst?1:0;index<partEnd;index++){
-      const part=parts[index]
-      if(part?.kind==='block')insertedRecords.push(this.#materializeClipboardBlock(part.block,reserved))
-      else if(part?.kind==='rich-text')insertedRecords.push(this.#materializeClipboardRichText(part,reserved))
-      else throw new TypeError('Clipboard part must be block or rich-text')
-    }
-
-    // A pure rich-text cross-block replacement may collapse endpoint residuals
-    // back into one block when the owning type declares a merge contract.
-    if(
-      consumedFirst
-      &&insertedRecords.length===0
-      &&before
-      &&after
-      &&before.type===after.type
-    ){
-      const merge=startDefinition?.capabilities?.merge?.merge
-      if(typeof merge==='function'){
-        const prepared=this.#prepareInlineMerge(startDefinition,before,after)
-        const mergedData=merge(prepared.targetData,prepared.sourceData)
-        before=this.#recordFromData(
-          before.id,before.type,startDefinition,mergedData,before.tunes,prepared.inline,
-        )
-        after=null
-      }
-    }
-
-    const beforeKeep=before&&!this.#isClipboardResidualEmpty(before)
-    const afterKeep=after&&!this.#isClipboardResidualEmpty(after)
-    const inserted=[]
-    let sameBlockAfter=null
-    if(start.blockId===end.blockId&&afterKeep){
-      sameBlockAfter={
-        ...after,
-        id:this.#allocateId(after.type,reserved),
-      }
-    }
-
-    this.#engine.execute({origin:'user',name:'clipboard.fragment'},tx=>{
-      if(beforeKeep)tx.update(start.blockId,before)
-      else tx.remove(start.blockId)
-
-      if(start.blockId!==end.blockId){
-        for(let index=startIndex+1;index<endIndex;index++){
-          if(tx.get(ids[index]))tx.remove(ids[index])
-        }
-        if(afterKeep)tx.update(end.blockId,after)
-        else if(tx.get(end.blockId))tx.remove(end.blockId)
-      }
-
-      const live=tx.list()
-      let insertAt
-      if(beforeKeep){
-        insertAt=live.findIndex(record=>record.id===start.blockId)+1
-      }else if(start.blockId!==end.blockId&&afterKeep){
-        insertAt=live.findIndex(record=>record.id===end.blockId)
-      }else{
-        insertAt=Math.min(startIndex,live.length)
-      }
-      for(const record of insertedRecords){
-        tx.insert(insertAt++,record)
-        inserted.push(record.id)
-      }
-
-      if(sameBlockAfter){
-        tx.insert(insertAt,sameBlockAfter)
-        inserted.push(sameBlockAfter.id)
-      }
-    })
-
-    if(parts.length===1&&firstPart?.kind==='rich-text'&&beforeKeep){
-      return {blockId:start.blockId,inserted,focus:{
-        fieldKey:start.fieldKey,
-        offset:start.offset+getRichTextLogicalLength(firstPart.html,firstPart.inline,this.#ownerDocument),
-      }}
-    }
-    const focusId=inserted.at(-1)??(afterKeep&&start.blockId!==end.blockId?end.blockId:start.blockId)
-    return {blockId:focusId,inserted}
+    return this.#executePrepared({origin:'user',name:'clipboard.fragment'},view=>prepareReplaceClipboardRange(this.#planningServices(),view,cloneEditorData(bookmark),cloneEditorData(parts)))
   }
 
   replaceRichText(blockId, fieldKey, range, replacement) {
@@ -1698,182 +942,9 @@ export class DocumentRuntime {
     })
   }
 
-  replaceRichTextWithInlineSegments(blockId, fieldKey, range, segments) {
+  replaceRichTextWithInlineSegments(blockId,fieldKey,range,segments) {
     this.#assertInteractionMutation()
-    if (!Array.isArray(segments) || segments.length === 0) return false
-    const current = this.#store.get(blockId)
-    if (!current) throw new Error(`Unknown block id: ${blockId}`)
-    if (this.activation(blockId)?.kind !== 'active') {
-      throw new Error(`Unregistered block cannot be updated: ${blockId}`)
-    }
-    const blockDefinition = this.#registry.getBlockDefinition(current.type)
-    if (!blockDefinition?.schema?.mapRichText) {
-      throw new Error(`Block type has no rich-text fields: ${current.type}`)
-    }
-
-    const defaultType = this.#registry.defaultBlockType
-    const defaultDefinition = this.#registry.getBlockDefinition(defaultType)
-    const inline = cloneInline(current.inline) ?? {}
-    const reservedInline = new Set(Object.keys(inline))
-    for (const id of this.#scanBlockRichText(blockDefinition, current.data, inline).literals) {
-      reservedInline.add(id)
-    }
-    if (defaultDefinition?.schema?.mapRichText) {
-      for (const id of this.#scanBlockRichText(
-        defaultDefinition,
-        defaultDefinition.schema.createDefault(),
-        {},
-      ).literals) reservedInline.add(id)
-    }
-
-    const lines = [[]]
-    for (const raw of segments) {
-      if (!raw || typeof raw !== 'object') throw new TypeError('Inline paste segment must be an object')
-      if (raw.kind === 'text') {
-        const parts = String(raw.text ?? '').split(/\r\n?|\n/)
-        for (let index = 0; index < parts.length; index++) {
-          if (parts[index]) lines.at(-1).push({ kind: 'text', text: parts[index] })
-          if (index < parts.length - 1) lines.push([])
-        }
-        continue
-      }
-      if (raw.kind !== 'widget' || typeof raw.type !== 'string' || !raw.type) {
-        throw new TypeError('Inline paste segment must be text or widget')
-      }
-      const definition = this.#registry.getInlineDefinition(raw.type)
-      if (!definition) throw new Error(`Unknown inline widget type: ${raw.type}`)
-      const encoded = definition.schema.encode(raw.data)
-      const id = this.#allocateInlineId(reservedInline)
-      reservedInline.add(id)
-      Object.defineProperty(inline, id, { value: {
-        type: raw.type,
-        dataVersion: encoded.dataVersion,
-        data: encoded.data,
-      }, enumerable: true, configurable: true, writable: true })
-      lines.at(-1).push({ kind: 'reference', id })
-    }
-
-    const serialized = lines.map(line => {
-      let text = ''
-      let logicalLength = 0
-      for (const segment of line) {
-        if (segment.kind === 'text') {
-          text += segment.text
-          logicalLength += segment.text.length
-        } else {
-          text += `{{${segment.id}}}`
-          logicalLength++
-        }
-      }
-      return { text, logicalLength }
-    })
-
-    const startOffset = Math.max(0, Math.trunc(range?.start) || 0)
-    const endOffset = Math.max(startOffset, Math.trunc(range?.end ?? startOffset) || 0)
-
-    if (serialized.length === 1 || !defaultDefinition?.schema?.mapRichText) {
-      let matched = false
-      const nextData = blockDefinition.schema.mapRichText(
-        cloneEditorData(current.data),
-        (html, key) => {
-          if (key !== fieldKey) return html
-          matched = true
-          return replaceRichTextRange(
-            html,
-            inline,
-            { start: startOffset, end: endOffset },
-            { kind: 'text', text: serialized.map(line => line.text).join('\n') },
-            this.#ownerDocument,
-          )
-        },
-      )
-      if (!matched) throw new Error(`Unknown rich-text field "${fieldKey}" for block "${blockId}"`)
-      const next = this.#recordFromData(
-        current.id, current.type, blockDefinition, nextData, current.tunes, inline,
-      )
-      this.#engine.execute({ origin: 'user', name: 'inline-paste' }, tx => tx.update(blockId, next))
-      return {
-        blockId,
-        fieldKey,
-        offset: startOffset + serialized.reduce((sum, line, index) => (
-          sum + line.logicalLength + (index ? 1 : 0)
-        ), 0),
-      }
-    }
-
-    let suffix = ''
-    let sourceMatched = false
-    const sourceData = blockDefinition.schema.mapRichText(
-      cloneEditorData(current.data),
-      (html, key) => {
-        if (key !== fieldKey) return html
-        sourceMatched = true
-        suffix = splitRichTextRange(
-          html,
-          inline,
-          { start: startOffset, end: endOffset },
-          this.#ownerDocument,
-        ).after
-        return replaceRichTextRange(
-          html,
-          inline,
-          { start: startOffset, end: Number.MAX_SAFE_INTEGER },
-          { kind: 'text', text: serialized[0].text },
-          this.#ownerDocument,
-        )
-      },
-    )
-    if (!sourceMatched) throw new Error(`Unknown rich-text field "${fieldKey}" for block "${blockId}"`)
-
-    const sourceNext = this.#recordFromData(
-      current.id, current.type, blockDefinition, sourceData, current.tunes, inline,
-    )
-
-    const records = []
-    const occupiedBlocks = new Set(this.#store.ids())
-    const allocateBlockId = () => this.#allocateId(defaultType, occupiedBlocks)
-
-    let finalFieldKey = null
-    for (let index = 1; index < serialized.length; index++) {
-      const line = serialized[index]
-      const isLast = index === serialized.length - 1
-      let fieldKeyForBlock = null
-      const data = defaultDefinition.schema.mapRichText(
-        defaultDefinition.schema.createDefault(),
-        (html, key) => {
-          if (fieldKeyForBlock !== null) return html
-          fieldKeyForBlock = key
-          const base = isLast ? suffix : ''
-          return replaceRichTextRange(
-            base,
-            inline,
-            { start: 0, end: 0 },
-            { kind: 'text', text: line.text },
-            this.#ownerDocument,
-          )
-        },
-      )
-      if (fieldKeyForBlock === null) {
-        throw new Error(`Default block type has no rich-text field: ${defaultType}`)
-      }
-      finalFieldKey = fieldKeyForBlock
-      records.push(this.#recordFromData(
-        allocateBlockId(), defaultType, defaultDefinition, data, current.tunes, inline,
-      ))
-    }
-
-    const sourceIndex = this.#store.ids().indexOf(blockId)
-    this.#engine.execute({ origin: 'user', name: 'inline-paste' }, tx => {
-      tx.update(blockId, sourceNext)
-      records.forEach((record, index) => tx.insert(sourceIndex + index + 1, record))
-    })
-
-    const last = records.at(-1)
-    return {
-      blockId: last.id,
-      fieldKey: finalFieldKey,
-      offset: serialized.at(-1).logicalLength,
-    }
+    return this.#executePrepared({origin:'user',name:'inline-paste'},view=>prepareInlineSegments(this.#planningServices(),view,blockId,fieldKey,cloneEditorData(range),cloneEditorData(segments)))
   }
 
   insertInlineWidget(blockId, fieldKey, range, type, data, options = {}) {
@@ -2171,7 +1242,27 @@ export class DocumentRuntime {
   destroy() {
     if (this.#destroyed) return
     this.#destroyed = true
+    this.#clipboardHandles = new WeakMap()
     this.#projector?.destroy?.()
+  }
+
+  #planningServices() {
+    return {
+      ownerDocument:this.#ownerDocument,
+      defaultBlockType:this.#registry.defaultBlockType,
+      blockTypes:this.#registry.blockTypes,
+      getBlockDefinition:type=>this.#registry.getBlockDefinition(type),
+      getInlineDefinition:type=>this.#registry.getInlineDefinition(type),
+      allocateId:(prefix,reserved)=>this.#allocateId(prefix,reserved),
+      allocateInlineId:reserved=>this.#allocateInlineId(reserved),
+      recordFromData:(id,type,definition,data,tunes,inline)=>this.#recordFromData(id,type,definition,data,tunes,inline),
+      normalizeLocalData:(definition,data)=>this.#normalizeLocalData(definition,data),
+      normalizeExternalInline:inline=>this.#normalizeExternalInline(inline),
+      normalizeTunes:cloneTunes,
+      scanBlockRichText:(definition,data,inline)=>this.#scanBlockRichText(definition,data,inline),
+      prepareInlineMerge:(definition,target,source)=>this.#prepareInlineMerge(definition,target,source),
+      assertConversionInlinePreserved:(payload,inline,definition,record)=>this.#assertConversionInlinePreserved(payload,inline,definition,record),
+    }
   }
 
   #ingestionServices() {
@@ -2230,352 +1321,6 @@ export class DocumentRuntime {
         })
       })
     } finally { this.#observationDepth-- }
-  }
-
-
-
-  #assertCurrentClipboardPlan(plan){
-    if(!plan||typeof plan!=='object')throw new TypeError('Clipboard plan is invalid')
-    if(plan.generation!==this.#store.generation||plan.revision!==this.#store.revision){
-      throw new Error('Clipboard target is stale')
-    }
-  }
-
-  #prepareClipboardBlockSlice(record,start,end){
-    if(this.activation(record.id)?.kind!=='active')return null
-    const definition=this.#registry.getBlockDefinition(record.type)
-    if(!definition?.schema?.mapRichText)return null
-    const inline=cloneInline(record.inline)??{}
-    const fields=this.#richTextFields(definition,record.data,inline)
-    const startIndex=fields.findIndex(field=>field.key===start.fieldKey)
-    const endIndex=fields.findIndex(field=>field.key===end.fieldKey)
-    if(startIndex<0||endIndex<startIndex)return null
-
-    const selected=new Map()
-    for(let index=startIndex;index<=endIndex;index++){
-      const field=fields[index]
-      const range={
-        start:index===startIndex?Math.max(0,start.offset):0,
-        end:index===endIndex?Math.max(0,end.offset):field.length,
-      }
-      const slice=sliceRichTextRange(field.html,inline,range,this.#ownerDocument)
-      selected.set(field.key,Object.freeze({
-        fieldKey:field.key,
-        before:slice.before,
-        selected:slice.selected,
-        after:slice.after,
-        whole:range.start===0&&range.end>=field.length,
-      }))
-    }
-
-    const capability=definition.capabilities?.clipboard
-    if(!capability){
-      if(selected.size!==1)return null
-      const field=selected.values().next().value
-      const part=this.#clipboardRichTextPart(field.selected,inline)
-      const remaining=this.#replaceBlockRichTextRange(
-        record,start,end,{kind:'text',text:''},
-      )
-      if(!remaining)return null
-      return {
-        parts:[part],
-        remaining:this.#isClipboardResidualEmpty(remaining)?null:remaining,
-        focus:{fieldKey:start.fieldKey,offset:start.offset},
-        compound:false,
-      }
-    }
-
-    const result=capability.slice(cloneEditorData(record.data),{
-      createId:prefix=>this.createDataId(prefix),
-      field:key=>selected.get(key)??null,
-    })
-    if(!result||typeof result!=='object'||Array.isArray(result)){
-      throw new TypeError(`Clipboard capability for "${record.type}" returned an invalid result`)
-    }
-    if(!Array.isArray(result.parts)||result.parts.length===0){
-      throw new TypeError(`Clipboard capability for "${record.type}" must return parts`)
-    }
-    for(let index=0;index<result.parts.length;index++){
-      if(!Object.hasOwn(result.parts,index))throw new TypeError('Clipboard capability parts must be dense')
-    }
-
-    const parts=result.parts.map(part=>{
-      if(part?.kind==='rich-text'){
-        if(typeof part.html!=='string')throw new TypeError('Clipboard rich-text part must contain html')
-        return this.#clipboardRichTextPart(part.html,inline)
-      }
-      if(part?.kind==='local-block'){
-        const local=this.#recordFromData(
-          record.id,record.type,definition,part.data,record.tunes,record.inline,
-        )
-        return {kind:'block',block:local}
-      }
-      throw new TypeError('Clipboard capability part must be local-block or rich-text')
-    })
-
-    let remaining=null
-    if(result.remaining!==null){
-      remaining=this.#recordFromData(
-        record.id,record.type,definition,result.remaining,record.tunes,record.inline,
-      )
-    }
-    const focus=result.focus&&typeof result.focus==='object'
-      ?cloneEditorData(result.focus)
-      :{fieldKey:start.fieldKey,offset:start.offset}
-    return {parts,remaining,focus,compound:true}
-  }
-
-  #clipboardRichTextPart(html,inline){
-    const scan=scanRichTextPlaceholders(html,inline,this.#ownerDocument)
-    const selectedInline=Object.fromEntries([...scan.references].map(id=>[id,cloneEditorData(inline[id])]))
-    return {
-      kind:'rich-text',
-      html,
-      ...(Object.keys(selectedInline).length?{inline:selectedInline}:{}),
-    }
-  }
-
-  #materializeClipboardBlock(input,reserved){
-    if(!input||typeof input!=='object'||Array.isArray(input))throw new TypeError('Clipboard block part is invalid')
-    if(typeof input.type!=='string'||!input.type)throw new TypeError('Clipboard block type must be non-empty')
-    const id=this.#allocateId(input.type,reserved)
-    const candidate={id,type:input.type,dataVersion:input.dataVersion,data:input.data}
-    if(Object.hasOwn(input,'tunes'))candidate.tunes=input.tunes
-    if(Object.hasOwn(input,'inline'))candidate.inline=input.inline
-    const decoded=decodeCurrentBlock(candidate,{
-      getBlockSchema:type=>this.#registry.getBlockDefinition(type)?.schema,
-      getInlineSchema:type=>this.#registry.getInlineDefinition(type)?.schema,
-    })
-    const definition=this.#registry.getBlockDefinition(decoded.type)
-    return definition
-      ?this.#recordFromData(
-          decoded.id,decoded.type,definition,decoded.data,decoded.tunes,decoded.inline,
-        )
-      :decoded
-  }
-
-  #splitClipboardResiduals(record,start,end){
-    const definition=this.#registry.getBlockDefinition(record.type)
-    if(!definition?.schema?.mapRichText)return null
-    const inline=cloneInline(record.inline)??{}
-    const fields=this.#richTextFields(definition,record.data,inline)
-    const startIndex=fields.findIndex(field=>field.key===start.fieldKey)
-    const endIndex=fields.findIndex(field=>field.key===end.fieldKey)
-    if(startIndex<0||endIndex<startIndex)return null
-
-    const beforeData=definition.schema.mapRichText(cloneEditorData(record.data),(html,key)=>{
-      const index=fields.findIndex(field=>field.key===key)
-      if(index<startIndex)return html
-      if(index>startIndex)return ''
-      return sliceRichTextRange(
-        html,inline,{start:0,end:start.offset},this.#ownerDocument,
-      ).selected
-    })
-    const afterData=definition.schema.mapRichText(cloneEditorData(record.data),(html,key)=>{
-      const index=fields.findIndex(field=>field.key===key)
-      if(index>endIndex)return html
-      if(index<endIndex)return ''
-      return sliceRichTextRange(
-        html,inline,{start:end.offset,end:Number.MAX_SAFE_INTEGER},this.#ownerDocument,
-      ).selected
-    })
-    return {
-      before:this.#recordFromData(
-        record.id,record.type,definition,beforeData,record.tunes,inline,
-      ),
-      after:this.#recordFromData(
-        record.id,record.type,definition,afterData,record.tunes,inline,
-      ),
-    }
-  }
-
-  #isClipboardResidualEmpty(record){
-    const definition=this.#registry.getBlockDefinition(record.type)
-    const empty=definition?.capabilities?.empty?.isEmpty
-    return typeof empty==='function'?empty(record.data)===true:false
-  }
-
-
-  #recordWithRichTextFragment(current,fieldKey,range,fragment){
-    if(!fragment||typeof fragment!=='object'||Array.isArray(fragment)||typeof fragment.html!=='string'){
-      throw new TypeError('Rich-text clipboard fragment must contain html')
-    }
-    if(this.activation(current.id)?.kind!=='active'){
-      throw new Error(`Unregistered block cannot be updated: ${current.id}`)
-    }
-    const definition=this.#registry.getBlockDefinition(current.type)
-    if(!definition?.schema?.mapRichText)throw new Error(`Block type has no rich-text fields: ${current.type}`)
-    const currentInline=cloneInline(current.inline)??{}
-    const sourceInline=fragment.inline===undefined
-      ?{}
-      :this.#normalizeExternalInline(fragment.inline)??{}
-    const scan=this.#scanBlockRichText(definition,current.data,currentInline)
-    const reserved=new Set([
-      ...Object.keys(currentInline),
-      ...scan.references,
-      ...scan.literals,
-    ])
-    const remapped=remapCanonicalFragment({
-      html:fragment.html,
-      inline:sourceInline,
-      reservedIds:reserved,
-      ownerDocument:this.#ownerDocument,
-      allocateInlineId:ids=>this.#allocateInlineId(ids),
-    })
-    const inline={...currentInline,...remapped.inline}
-    let matched=false
-    const nextData=definition.schema.mapRichText(cloneEditorData(current.data),(html,key)=>{
-      if(key!==fieldKey)return html
-      matched=true
-      return replaceRichTextRange(
-        html,currentInline,range,{kind:'html',html:remapped.html},this.#ownerDocument,
-      )
-    })
-    if(!matched)throw new Error(`Unknown rich-text field "${fieldKey}" for block "${current.id}"`)
-    return this.#recordFromData(
-      current.id,current.type,definition,nextData,current.tunes,inline,
-    )
-  }
-
-  #materializeClipboardRichText(part,reserved){
-    const inline=part.inline===undefined?{}:this.#normalizeExternalInline(part.inline)??{}
-    const payload={kind:/** @type {'rich-text'} */('rich-text'),data:{text:part.html}}
-    const ordered=[
-      this.#registry.defaultBlockType,
-      ...this.#registry.blockTypes.filter(type=>type!==this.#registry.defaultBlockType),
-    ]
-    for(const type of ordered){
-      const definition=this.#registry.getBlockDefinition(type)
-      const conversion=definition?.capabilities?.conversion
-      if(!conversion?.canImport?.(payload))continue
-      const data=conversion.import(payload)
-      const id=this.#allocateId(type,reserved)
-      const record=this.#recordFromData(id,type,definition,data,undefined,inline)
-      this.#assertConversionInlinePreserved(payload,inline,definition,record)
-      return record
-    }
-    throw new Error('No registered block type can materialize clipboard rich-text')
-  }
-
-
-  #replaceBlockRichTextRange(record,start,end,replacement){
-    const definition=this.#registry.getBlockDefinition(record.type)
-    if(!definition?.schema?.mapRichText)return null
-    const inline=cloneInline(record.inline)??{}
-    const fields=this.#richTextFields(definition,record.data,inline)
-    const startIndex=fields.findIndex(field=>field.key===start.fieldKey)
-    const endIndex=fields.findIndex(field=>field.key===end.fieldKey)
-    if(startIndex<0||endIndex<startIndex)return null
-    const nextData=definition.schema.mapRichText(
-      cloneEditorData(record.data),
-      (html,key)=>{
-        const index=fields.findIndex(field=>field.key===key)
-        if(index<startIndex||index>endIndex)return html
-        if(startIndex===endIndex){
-          return replaceRichTextRange(
-            html,inline,{start:start.offset,end:end.offset},replacement,this.#ownerDocument,
-          )
-        }
-        if(index===startIndex){
-          return replaceRichTextRange(
-            html,inline,{start:start.offset,end:Number.MAX_SAFE_INTEGER},replacement,this.#ownerDocument,
-          )
-        }
-        if(index===endIndex){
-          return replaceRichTextRange(
-            html,inline,{start:0,end:end.offset},{kind:'text',text:''},this.#ownerDocument,
-          )
-        }
-        return replaceRichTextRange(
-          html,inline,{start:0,end:Number.MAX_SAFE_INTEGER},{kind:'text',text:''},this.#ownerDocument,
-        )
-      },
-    )
-    return this.#recordFromData(
-      record.id,record.type,definition,nextData,record.tunes,inline,
-    )
-  }
-
-
-  #richTextFields(definition,data,inline){
-    const fields=[]
-    if(typeof definition?.schema?.mapRichText!=='function')return fields
-    definition.schema.mapRichText(cloneEditorData(data),(html,key)=>{
-      fields.push({
-        key,
-        html,
-        length:getRichTextLogicalLength(html,inline,this.#ownerDocument),
-      })
-      return html
-    })
-    return fields
-  }
-
-  #sliceSelection(record,start,end){
-    const definition=this.#registry.getBlockDefinition(record.type)
-    if(!definition?.schema?.mapRichText)return null
-    const inline=cloneInline(record.inline)??{}
-    const fields=this.#richTextFields(definition,record.data,inline)
-    if(!fields.length)return null
-
-    const sliceField=(fieldKey,range)=>{
-      const field=fields.find(item=>item.key===fieldKey)
-      if(!field)return null
-      return sliceRichTextRange(field.html,inline,range,this.#ownerDocument)
-    }
-
-    const capability=definition.capabilities?.selectionSlice
-    if(capability?.slice){
-      const result=capability.slice(
-        cloneEditorData(record.data),
-        {fieldKey:start.fieldKey,offset:start.offset},
-        {fieldKey:end.fieldKey,offset:end.offset},
-        {
-          createId:prefix=>this.createDataId(prefix),
-          sliceField,
-        },
-      )
-      if(!result)return null
-      return {
-        definition,
-        inline,
-        before:result.before,
-        selected:result.selected,
-        after:result.after,
-      }
-    }
-
-    if(fields.length!==1||start.fieldKey!==fields[0].key||end.fieldKey!==fields[0].key)return null
-    const field=fields[0]
-    const from=Math.max(0,Math.min(start.offset,field.length))
-    const to=Math.max(from,Math.min(end.offset,field.length))
-    if(to<=from)return null
-    const sliced=sliceRichTextRange(field.html,inline,{start:from,end:to},this.#ownerDocument)
-    const withField=html=>definition.schema.mapRichText(
-      cloneEditorData(record.data),
-      (value,key)=>key===field.key?html:value,
-    )
-    return {
-      definition,
-      inline,
-      before:from>0?withField(sliced.before):null,
-      selected:{kind:/** @type {'rich-text'} */('rich-text'),data:{text:sliced.selected}},
-      after:to<field.length?withField(sliced.after):null,
-    }
-  }
-
-  #endpointSelection(record,point,side){
-    const definition=this.#registry.getBlockDefinition(record.type)
-    if(!definition?.schema?.mapRichText)return null
-    const inline=cloneInline(record.inline)??{}
-    const fields=this.#richTextFields(definition,record.data,inline)
-    if(!fields.length)return null
-    if(side==='first'){
-      const last=fields[fields.length-1]
-      return this.#sliceSelection(record,point,{fieldKey:last.key,offset:last.length})
-    }
-    const first=fields[0]
-    return this.#sliceSelection(record,{fieldKey:first.key,offset:0},point)
   }
 
   #targetDataFromPayload(targetDefinition,payload,target,baseData=undefined){
@@ -2647,7 +1392,7 @@ export class DocumentRuntime {
   #convertSingleBlockSelection(start,end,target,targetDefinition){
     const current=this.#store.get(start.blockId)
     if(!current||this.activation(start.blockId)?.kind!=='active')return false
-    const sliced=this.#sliceSelection(current,start,end)
+    const sliced=sliceSelection(this.#planningServices(),current,start,end)
     if(!sliced||!this.#payloadHasContent(sliced.selected))return false
 
     const targetData=this.#targetDataFromPayload(targetDefinition,sliced.selected,target)
@@ -2659,7 +1404,7 @@ export class DocumentRuntime {
     // owning clipboard capability already describes removing this exact text
     // interval without duplicating the surrounding card, rows or media.
     if((sliced.before||sliced.after)&&sourceDefinition.capabilities?.clipboard){
-      const residual=this.#prepareClipboardBlockSlice(current,start,end)
+      const residual=prepareClipboardBlockSlice(this.#planningServices(),current,start,end)
       if(!residual)return false
       const targetId=residual.remaining?this.#createUniqueBlockId(target.type):current.id
       const targetRecord=this.#recordFromData(
@@ -2722,8 +1467,8 @@ export class DocumentRuntime {
     const last=this.#store.get(end.blockId)
     if(!first||!last)return false
 
-    const firstSlice=this.#endpointSelection(first,start,'first')
-    const lastSlice=this.#endpointSelection(last,end,'last')
+    const firstSlice=endpointSelection(this.#planningServices(),first,start,'first')
+    const lastSlice=endpointSelection(this.#planningServices(),last,end,'last')
     if(!firstSlice||!lastSlice)return false
 
     const targetConversion=targetDefinition.capabilities?.conversion
@@ -2828,7 +1573,7 @@ export class DocumentRuntime {
       piece.data=sameType
         ?piece.position==='middle'
           ?piece.original.data
-          :this.#selectedSourceData(
+          :selectedSourceData(this.#planningServices(),
             piece.original,
             piece.position==='first'?start:null,
             piece.position==='last'?end:null,
@@ -2880,28 +1625,6 @@ export class DocumentRuntime {
     return focusId?{focusId,convertedIds}:false
   }
 
-  #selectedSourceData(record,start,end){
-    const definition=this.#registry.getBlockDefinition(record.type)
-    const inline=cloneInline(record.inline)??{}
-    const fields=this.#richTextFields(definition,record.data,inline)
-    const first=start??{fieldKey:fields[0].key,offset:0}
-    const last=end??{fieldKey:fields.at(-1).key,offset:fields.at(-1).length}
-    if(definition.capabilities?.clipboard){
-      const sliced=this.#prepareClipboardBlockSlice(record,first,last)
-      if(sliced?.parts.length===1&&sliced.parts[0].kind==='block')return sliced.parts[0].block.data
-    }
-    const from=fields.findIndex(field=>field.key===first.fieldKey)
-    const to=fields.findIndex(field=>field.key===last.fieldKey)
-    return definition.schema.mapRichText(cloneEditorData(record.data),(html,key)=>{
-      const index=fields.findIndex(field=>field.key===key)
-      if(index<from||index>to)return ''
-      return sliceRichTextRange(html,inline,{
-        start:index===from?first.offset:0,
-        end:index===to?last.offset:fields[index].length,
-      },this.#ownerDocument).selected
-    })
-  }
-
   #assertConversionInlinePreserved(payload,inline,targetDefinition,targetRecord){
     if(payload?.kind!=='rich-text'||typeof payload.data?.text!=='string')return
     const references=scanRichTextPlaceholders(
@@ -2921,48 +1644,6 @@ export class DocumentRuntime {
           `Block conversion cannot preserve inline reference "${id}" in target "${targetRecord.type}"`,
         )
       }
-    }
-  }
-
-  #orderedLogicalRange(bookmark) {
-    const anchor = bookmark?.anchor
-    const focus = bookmark?.focus
-    if (!anchor || !focus) return null
-    const ids = this.#store.ids()
-    const anchorBlock = ids.indexOf(anchor.blockId)
-    const focusBlock = ids.indexOf(focus.blockId)
-    if (anchorBlock < 0 || focusBlock < 0) return null
-
-    const compare = (left, right, leftIndex, rightIndex) => {
-      if (leftIndex !== rightIndex) return leftIndex - rightIndex
-      const record = this.#store.get(left.blockId)
-      if (!record) return 0
-      const definition = this.#registry.getBlockDefinition(record.type)
-      const fields = []
-      definition?.schema?.mapRichText?.(cloneEditorData(record.data), (html, key) => {
-        fields.push(key)
-        return html
-      })
-      const leftField = fields.indexOf(left.fieldKey)
-      const rightField = fields.indexOf(right.fieldKey)
-      if (leftField !== rightField) return leftField - rightField
-      return (Number(left.offset) || 0) - (Number(right.offset) || 0)
-    }
-
-    const direction = compare(anchor, focus, anchorBlock, focusBlock)
-    const first = direction <= 0 ? anchor : focus
-    const last = direction <= 0 ? focus : anchor
-    return {
-      start: {
-        blockId: first.blockId,
-        fieldKey: first.fieldKey,
-        offset: Math.max(0, Math.trunc(first.offset) || 0),
-      },
-      end: {
-        blockId: last.blockId,
-        fieldKey: last.fieldKey,
-        offset: Math.max(0, Math.trunc(last.offset) || 0),
-      },
     }
   }
 

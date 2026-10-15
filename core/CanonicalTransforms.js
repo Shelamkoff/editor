@@ -3,6 +3,9 @@ import { cloneEditorData } from '../shared/cloneEditorData.js'
 import { remapRichTextReferences, scanRichTextPlaceholders } from '../shared/richTextOperations.js'
 import { mapRichTextFields } from './projectionFields.js'
 
+/** @typedef {{kind:'update',id:string,record:import('../shared/documentTypes').EditorBlockData}|{kind:'remove',id:string}|{kind:'insert',index:number,record:import('../shared/documentTypes').EditorBlockData}} CanonicalEdit */
+/** @template Result @typedef {{edits:readonly CanonicalEdit[],result:Result}} PreparedEditPlan */
+
 /** Capture order and immutable record references without traversing payloads.
  * @param {{ids:()=>string[],peek:(id:string)=>any}} source Read-only accessors supplied by runtime.
  */

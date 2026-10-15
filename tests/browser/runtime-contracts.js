@@ -1,5 +1,7 @@
 import { DocumentRuntime } from '../../core/DocumentRuntime.js'
-import { test, assert as check, equal, run, make, blockElement } from './regressions/harness.js'
+import { test, assert as check, equal, run, make, blockElement, para, editableField, select } from './regressions/harness.js'
+import { CLIPBOARD_FRAGMENT_MIME, encodeClipboardFragment } from '../../core/ClipboardFragment.js'
+import { getTextOffset } from '../../shared/textOffset.js'
 import { createHeadingPlugin } from '../../plugins/heading/index.js'
 import { createParagraphPlugin } from '../../plugins/paragraph/index.js'
 import { createColorSwatchPlugin } from '../../inline-plugins/color.js'
@@ -1173,6 +1175,121 @@ test('split reserves current draft IDs after a nested document replacement',()=>
     runtime.undo()
     equal(runtime.ids(),['a'])
     equal(runtime.canUndo,false)
+  }finally{runtime.destroy()}
+})
+
+test('range and resolved Paste preserve staged text and return a successful no-change caret without history',()=>{
+  const definition=paragraphDefinition({mapRichText:(data,visit)=>({text:visit(data.text,'text')})})
+  const runtime=new DocumentRuntime({ownerDocument:document,registry:registry([definition]),data:{version:'2.0.0',blocks:[block('a',{text:'Original'},{revision:'producer'})]}})
+  const bookmark={anchor:{blockId:'a',fieldKey:'text',offset:0},focus:{blockId:'a',fieldKey:'text',offset:8}}
+  try{
+    const before=runtime.revision
+    const result=runtime.replaceLogicalRangeWithClipboardParts(bookmark,[{kind:'rich-text',html:'Original'}])
+    equal(result,{blockId:'a',inserted:[],focus:{fieldKey:'text',offset:8}})
+    equal(runtime.revision,before);equal(runtime.get('a').revision,'producer');equal(runtime.canUndo,false)
+    runtime.interact('compose range and resolved Paste',()=>{
+      runtime.update('a',()=>({data:{text:'Staged'}}))
+      equal(runtime.replaceLogicalRange({anchor:{blockId:'a',fieldKey:'text',offset:1},focus:{blockId:'a',fieldKey:'text',offset:2}},{kind:'text',text:'X'}),{blockId:'a',fieldKey:'text',offset:2})
+      const pasted=runtime.applyPasteResults('a','text',{start:2,end:3},[{type:'paragraph',result:{kind:'rich-text',replacement:{kind:'text',text:'Y'}}}])
+      equal(pasted,{blockId:'a',inserted:[],focus:{fieldKey:'text',offset:3}})
+    })
+    equal(runtime.get('a').data.text,'SXYged')
+    runtime.undo();equal(runtime.get('a').data.text,'Original');equal(runtime.canUndo,false)
+  }finally{runtime.destroy()}
+})
+
+test('whole-selection replacement keeps unselected staged blocks and omitted IDs resolve from the draft',()=>{
+  const definition=paragraphDefinition({mapRichText:(data,visit)=>({text:visit(data.text,'text')})})
+  const runtime=new DocumentRuntime({ownerDocument:document,registry:registry([definition]),data:{version:'2.0.0',blocks:[block('a'),block('b'),block('c')]}})
+  try{
+    let staged,point
+    runtime.interact('insert gap and replace',()=>{
+      staged=runtime.insert('paragraph',{text:'gap'},1)
+      point=runtime.replaceWholeDocument({kind:'text',text:'replacement'},['a','c'])
+    })
+    equal(runtime.ids(),[point.blockId,staged,'b'])
+    equal(runtime.get(staged).data.text,'gap')
+    runtime.undo()
+    runtime.interact('replace current document',()=>{
+      runtime.insert('paragraph',{text:'new'})
+      point=runtime.replaceWholeDocument({kind:'text',text:'all'})
+    })
+    equal(runtime.ids(),[point.blockId]);equal(runtime.get(point.blockId).data.text,'all')
+  }finally{runtime.destroy()}
+})
+
+test('Cut targets a surviving residual and never carries a removed source block identity in focus',()=>{
+  const definition=paragraphDefinition({mapRichText:(data,visit)=>({text:visit(data.text,'text')})})
+  definition.capabilities.merge={merge:(left,right)=>({text:left.text+right.text})}
+  const runtime=new DocumentRuntime({ownerDocument:document,registry:registry([definition]),data:{version:'2.0.0',blocks:[block('a',{text:'First'}),block('b',{text:'Last'})]}})
+  try{
+    const handle=runtime.prepareLogicalClipboardSlice({anchor:{blockId:'a',fieldKey:'text',offset:0},focus:{blockId:'b',fieldKey:'text',offset:2}})
+    let result
+    runtime.interact('cut',()=>{result=runtime.applyPreparedClipboardCut(handle)})
+    equal(runtime.ids(),['b']);equal(runtime.get('b').data.text,'st')
+    equal(result,{blockId:'b'})
+    runtime.undo();equal(runtime.ids(),['a','b']);equal(runtime.canUndo,false)
+  }finally{runtime.destroy()}
+})
+
+test('public no-change Paste collapses to the prepared caret without creating history',async()=>{
+  const editor=make([para('a','Original',{revision:'author'})])
+  const field=editableField(editor,'a')
+  select(field,0,8)
+  const transfer=new DataTransfer()
+  transfer.setData(CLIPBOARD_FRAGMENT_MIME,encodeClipboardFragment([{kind:'rich-text',html:'Original'}]))
+  const event=new ClipboardEvent('paste',{clipboardData:transfer,bubbles:true,cancelable:true})
+  field.dispatchEvent(event)
+  await new Promise(resolve=>setTimeout(resolve,0))
+  check(event.defaultPrevented)
+  equal(editor.canUndo,false);equal(editor.save().blocks[0].revision,'author')
+  const selection=window.getSelection()
+  equal(selection.isCollapsed,true)
+  equal(getTextOffset(field,selection.anchorNode,selection.anchorOffset),8)
+})
+
+test('Paste focus continuation is retired when a current-block observer replaces the document',async()=>{
+  const editor=make([para('a','Anchor')])
+  const field=editableField(editor,'a')
+  select(field,2)
+  let replacementId=null
+  const stop=editor.on('currentBlock:changed',event=>{
+    if(!event.currentId||event.currentId==='a'||replacementId)return
+    replacementId=event.currentId
+    editor.render({version:'2.0.0',blocks:[para(replacementId,'Replacement')]})
+    editor.blocks.focus(replacementId,{fieldKey:'text',offset:0})
+  })
+  const transfer=new DataTransfer()
+  transfer.setData(CLIPBOARD_FRAGMENT_MIME,encodeClipboardFragment([{kind:'block',block:para('ignored','Pasted')}]))
+  field.dispatchEvent(new ClipboardEvent('paste',{clipboardData:transfer,bubbles:true,cancelable:true}))
+  await new Promise(resolve=>setTimeout(resolve,0))
+  stop()
+  check(replacementId,'current-block observer did not run')
+  const live=editableField(editor,replacementId),selection=window.getSelection()
+  equal(getTextOffset(live,selection.anchorNode,selection.anchorOffset),0)
+})
+
+test('invalid resolved replacement rejects before applying an earlier prepared block',()=>{
+  const definition=paragraphDefinition({mapRichText:(data,visit)=>({text:visit(data.text,'text')})})
+  const runtime=new DocumentRuntime({ownerDocument:document,registry:registry([definition]),data:{version:'2.0.0',blocks:[block('a',{text:'Original'})]}})
+  try{
+    assert.throws(()=>runtime.applyPasteResults('a','text',{start:0,end:1},[
+      {type:'paragraph',result:{kind:'block',data:{text:'prepared'}}},
+      {type:'paragraph',result:{kind:'rich-text',replacement:{kind:'text',text:42}}},
+    ]),/replacement/)
+    equal(runtime.ids(),['a']);equal(runtime.get('a').data.text,'Original');equal(runtime.canUndo,false)
+  }finally{runtime.destroy()}
+})
+
+test('clipboard capability focus cannot replace the host-owned block identity',()=>{
+  const definition=paragraphDefinition({mapRichText:(data,visit)=>({text:visit(data.text,'text')})})
+  definition.capabilities.clipboard={slice:data=>({parts:[{kind:'rich-text',html:'A'}],remaining:{text:data.text.slice(1)},focus:{blockId:'foreign',fieldKey:'text',offset:0}})}
+  const runtime=new DocumentRuntime({ownerDocument:document,registry:registry([definition]),data:{version:'2.0.0',blocks:[block('a',{text:'ABC'})]}})
+  try{
+    const handle=runtime.prepareLogicalClipboardSlice({anchor:{blockId:'a',fieldKey:'text',offset:0},focus:{blockId:'a',fieldKey:'text',offset:1}})
+    equal(handle.focus,{blockId:'a',fieldKey:'text',offset:0})
+    equal(runtime.applyPreparedClipboardCut(handle),{blockId:'a',focus:{fieldKey:'text',offset:0}})
+    equal(runtime.get('a').data.text,'BC')
   }finally{runtime.destroy()}
 })
 

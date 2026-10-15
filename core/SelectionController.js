@@ -230,25 +230,22 @@ export class SelectionController {
   removeWholeBlocks() {
     const ids = this.wholeBlockIds
     if (!ids.length) return false
-    const firstIndex = this.#runtime.indexOf(ids[0])
-    const selected = new Set(ids)
-    const remaining = this.#runtime.ids().filter(id => !selected.has(id))
-    const adjacentId = remaining[Math.min(firstIndex, remaining.length - 1)]
-    const currentId = this.#runtime.interact('selection.remove', () => {
-      const result = this.#runtime.removeBlocks(ids)
-      return result ? adjacentId ?? result : false
-    }, blockId => {
+    const currentId = this.#runtime.interact('selection.remove', () => this.#runtime.removeBlocks(ids), blockId => {
       if (!blockId) return null
       const field = this.#reconciler.getEditableFields(blockId)[0]
       const point = { blockId, fieldKey: field?.key ?? '', offset: 0 }
       return { anchor: point, focus: { ...point } }
     })
     if (!currentId) return false
+    const generation=this.#runtime.generation,revision=this.#runtime.revision
     this.#deactivate()
     this.#view.reconcileInteraction()
     if(currentId){
       this.#view.setCurrent(currentId)
-      queueMicrotask(()=>this.#view.focus(currentId,{offset:'start'}))
+      queueMicrotask(()=>{
+        if(this.#controller.signal.aborted||generation!==this.#runtime.generation||revision!==this.#runtime.revision||!this.#runtime.has(currentId))return
+        this.#view.focus(currentId,{offset:'start'})
+      })
     }
     return true
   }

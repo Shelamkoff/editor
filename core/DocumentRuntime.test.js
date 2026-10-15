@@ -53,6 +53,124 @@ function block(id, data = { text: id }, extra = {}) {
   return { id, type: 'paragraph', dataVersion: 1, data, ...extra }
 }
 
+test('clipboard handles expose only detached deeply frozen transfer data and reject foreign/forged handles', () => {
+  const options={registry:registry([paragraphDefinition()]),data:{version:'2.0.0',blocks:[block('a'),block('b')]}}
+  const runtime=new DocumentRuntime(options), other=new DocumentRuntime(options)
+  const handle=runtime.prepareLogicalClipboardSlice(null,['a'])
+  assert.deepEqual(Object.keys(handle).sort(),['bookmark','focus','parts'])
+  assert.equal(Object.isFrozen(handle.parts[0].block.data),true)
+  assert.throws(()=>{handle.parts[0].block.data.text='tampered'},TypeError)
+  assert.throws(()=>other.applyPreparedClipboardCut(handle),TypeError)
+  assert.throws(()=>runtime.applyPreparedClipboardCut({...handle}),TypeError)
+  assert.deepEqual(runtime.ids(),['a','b'])
+  assert.deepEqual(other.ids(),['a','b'])
+  runtime.destroy();other.destroy()
+})
+
+test('clipboard handle checks staged source identity and order before any capability call', () => {
+  let defaults=0
+  const runtime=new DocumentRuntime({registry:registry([paragraphDefinition({createDefault:()=>{defaults++;return {text:''}}})]),data:{version:'2.0.0',blocks:[block('a'),block('b')]}})
+  const handle=runtime.prepareLogicalClipboardSlice(null,['a'])
+  const before=defaults
+  assert.throws(()=>runtime.interact('stale cut',()=>{
+    runtime.update('a',()=>({data:{text:'changed'}}))
+    runtime.applyPreparedClipboardCut(handle)
+  }),/stale/)
+  assert.equal(defaults,before)
+  assert.equal(runtime.get('a').data.text,'a')
+  assert.throws(()=>runtime.interact('reordered cut',()=>{
+    runtime.move('b',0)
+    runtime.applyPreparedClipboardCut(handle)
+  }),/stale/)
+  assert.deepEqual(runtime.ids(),['a','b'])
+  assert.equal(runtime.canUndo,false)
+  runtime.destroy()
+})
+
+test('clipboard handle permits unrelated staged data and returns the actual surviving target', () => {
+  const runtime=new DocumentRuntime({registry:registry([paragraphDefinition()]),data:{version:'2.0.0',blocks:[block('a'),block('b')]}})
+  const handle=runtime.prepareLogicalClipboardSlice(null,['a'])
+  let result
+  runtime.interact('cut with unrelated edit',()=>{
+    runtime.update('b',()=>({data:{text:'kept'}}))
+    result=runtime.applyPreparedClipboardCut(handle)
+    assert.equal(result.blockId,'b')
+    assert.equal(result.focus,undefined)
+  })
+  assert.deepEqual(runtime.ids(),['b'])
+  assert.equal(runtime.get('b').data.text,'kept')
+  assert.throws(()=>runtime.applyPreparedClipboardCut(handle),/stale/)
+  runtime.undo();assert.deepEqual(runtime.ids(),['a','b'])
+  runtime.destroy()
+})
+
+test('whole-block removal uses the active draft and does not replace a staged survivor with a default', () => {
+  const runtime=new DocumentRuntime({registry:registry([paragraphDefinition()]),data:{version:'2.0.0',blocks:[block('a')]}})
+  let survivor
+  runtime.interact('insert then remove selected',()=>{
+    survivor=runtime.insert('paragraph',{text:'survivor'})
+    assert.equal(runtime.removeBlocks(['a']),survivor)
+  })
+  assert.deepEqual(runtime.ids(),[survivor])
+  assert.equal(runtime.get(survivor).data.text,'survivor')
+  runtime.undo();assert.deepEqual(runtime.ids(),['a'])
+  runtime.destroy()
+})
+
+test('clipboard handle prepared from an aborted draft cannot delete the restored committed source',()=>{
+  const runtime=new DocumentRuntime({registry:registry([paragraphDefinition()]),data:{version:'2.0.0',blocks:[block('a'),block('b')]}})
+  let handle
+  assert.throws(()=>runtime.interact('aborted export',()=>{
+    runtime.update('a',()=>({data:{text:'draft'}}))
+    handle=runtime.prepareLogicalClipboardSlice(null,['a'])
+    assert.equal(handle.parts[0].block.data.text,'draft')
+    throw new Error('abort')
+  }),/abort/)
+  assert.throws(()=>runtime.applyPreparedClipboardCut(handle),/stale/)
+  assert.deepEqual(runtime.ids(),['a','b'])
+  assert.equal(runtime.canUndo,false)
+  runtime.destroy()
+})
+
+test('clipboard application validates private preconditions before reading incoming payload accessors',()=>{
+  const runtime=new DocumentRuntime({registry:registry([paragraphDefinition()]),data:{version:'2.0.0',blocks:[block('a')]}})
+  const handle=runtime.prepareLogicalClipboardSlice(null,['a'])
+  let reads=0
+  const parts=[{get kind(){reads++;return 'local-block'},type:'paragraph',data:{text:'replacement'}}]
+  runtime.update('a',()=>({data:{text:'changed'}}))
+  assert.throws(()=>runtime.replacePreparedClipboardSlice(handle,parts),/stale/)
+  assert.equal(reads,0)
+  assert.throws(()=>runtime.replacePreparedClipboardSlice({...handle},parts),TypeError)
+  assert.equal(reads,0)
+  assert.equal(runtime.get('a').data.text,'changed')
+  runtime.destroy()
+})
+
+test('invalid late local candidate rejects the entire nested paste before applying any block',()=>{
+  const runtime=new DocumentRuntime({registry:registry([paragraphDefinition()]),data:{version:'2.0.0',blocks:[block('a')]}})
+  assert.throws(()=>runtime.interact('invalid late paste',()=>{
+    runtime.update('a',()=>({data:{text:'staged'}}))
+    runtime.insertLocalBlocks('a',[{type:'paragraph',data:{text:'valid'}},{type:'paragraph',data:{wrong:true}}])
+  }),/text required/)
+  assert.deepEqual(runtime.ids(),['a'])
+  assert.equal(runtime.get('a').data.text,'a')
+  assert.equal(runtime.canUndo,false)
+  runtime.destroy()
+})
+
+test('local block paste retains an anchor populated earlier in the same interaction', () => {
+  const runtime=new DocumentRuntime({registry:registry([paragraphDefinition()]),data:{version:'2.0.0',blocks:[block('a',{text:''})]}})
+  runtime.interact('populate then paste',()=>{
+    runtime.update('a',()=>({data:{text:'staged'}}))
+    const ids=runtime.insertLocalBlocks('a',[{type:'paragraph',data:{text:'pasted'}}],{replaceEmpty:true})
+    assert.equal(ids.length,1);assert.notEqual(ids[0],'a')
+  })
+  assert.equal(runtime.get('a').data.text,'staged')
+  assert.equal(runtime.get(runtime.ids()[1]).data.text,'pasted')
+  runtime.undo();assert.equal(runtime.ids().length,1)
+  runtime.destroy()
+})
+
 test('alignment preserves earlier staged author data and undoes the composed action once', () => {
   const runtime = new DocumentRuntime({ registry: registry([paragraphDefinition()]), data: { version: '2.0.0', blocks: [block('a')] } })
   runtime.interact('edit and align', () => {

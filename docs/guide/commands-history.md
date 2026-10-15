@@ -239,6 +239,10 @@ Use `history:changed` to observe command availability, `transaction:committed` t
 
 ## Extension checklist
 
+Nested range replacement, clipboard application and whole-block deletion use the current transaction's staged data and order. They share the enclosing action's Undo step. An applicable Paste that produces identical canonical data still restores its resulting caret, without advancing history or the document revision.
+
+Clipboard export captures its source records before writing externally. Cut and replacement reject an outdated source or block order; they do not recompute deletion from a new selection after the write.
+
 Before publishing an interactive extension, verify all of these sequences:
 
 1. perform the action, undo once, and compare the complete document with the before-state;

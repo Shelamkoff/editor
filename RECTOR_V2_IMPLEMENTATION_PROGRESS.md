@@ -67,9 +67,26 @@ Verification:
 - Red/green checks cover staged alignment/merge/inline operations, retained revision, private allocator authority, nested public snapshots and captured shortcut sources. Additional checks cover stale toolbox anchors, split ID collisions and guarded final-block defaults.
 - The preliminary full native run was stopped before the final split/removal changes; it is not counted as completed verification. Full native/integration convergence remains slice 9.
 
+## Slice 4b — shared range/clipboard preparation and private handles
+
+Extracted `LogicalRangePlans` and `ClipboardPlans` over captured order/immutable records and narrow canonical services. Shared field ordering/slicing feeds clipboard and the existing conversion adapters. Range replacement, resolved Paste, local/serialized clipboard blocks, inline segments, whole-selection replacement and block deletion prepare complete edits before application. Their results come from the planned view; semantic no-ops retain producer revisions and still return a successful Paste caret. Unselected staged blocks/gaps and populated anchors survive nested operations. Removed the unused external-block and rich-fragment wrappers and prohibited their return in the source audit.
+
+Clipboard handles expose only deeply frozen detached transfer data. Runtime-private weak metadata checks issuer membership, committed counters, active draft order and inspected source identity before reading application payloads or invoking capabilities. Export from a building transaction captures that draft; a handle from an aborted draft cannot delete restored sources. Whole-block Cut now applies its exported handle rather than regenerating deletion. Cut chooses a surviving target without a removed source identity in its focus. Deferred focus is captured immediately after the command, before UI notifications, and checks lifetime/generation/revision before restoration.
+
+Verification:
+
+- `npm test`: 614 passed; final focused runtime/engine/dependency checks: 85 passed.
+- `npm run typecheck`: passed.
+- `node tests/browser/run.mjs`: all 26 page suites passed; runtime contracts cover no-change public Paste, staged edits/gaps, atomic invalid output, surviving Cut focus and host-owned focus identity.
+- Native clipboard: 7 passed; cross-selection: 32 passed; plugin clipboard: 48 passed; individual plugin fields: 68 passed. Plugin clipboard/field suites were repeated after the final focus capture validation.
+- `npm run test:docs`: passed, including dependency and removed-symbol checks.
+- `npm run test:package`: passed with zero declaration source diagnostics, isolated Bundler/NodeNext consumers, Vite, native ESM and 22 CSS assets.
+- Red/green evidence covers forged/foreign handles, staged source/order changes, allowed unrelated staged edits, staged empty-anchor decisions and stale focus after a current-block observer replaces the document. Payload accessor checks confirm stale rejection occurs before capture/application.
+
+Stopped after this slice at the user's request. The following slices remain unimplemented; completion of 4b does not establish completion of the full architecture plan.
+
 ## Remaining slices
 
-4b. Shared range/clipboard planning and private handles.
 4c. Guarded ingress dispatch and clipboard task lifetime.
 5. Selection conversion through prepared canonical edits.
 6. Formatting selection/resource ownership.
