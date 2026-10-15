@@ -6,7 +6,13 @@ import { InlineCommandController } from './InlineCommandController.js'
 function harness() {
   const calls = []
   const carets = []
+  let preparing = false
   const runtime = {
+    prepareExtensionValue(operation) {
+      preparing = true
+      try { return operation() }
+      finally { preparing = false }
+    },
     readOnly: false,
     insertInlineWidget() {},
     interact(_name, operation) { return operation() },
@@ -38,7 +44,7 @@ function harness() {
     setCaret(blockId, target) { carets.push({ blockId, target }); return true },
   }
   const controller = new InlineCommandController({ runtime, registry, selection })
-  return { controller, runtime, calls, carets }
+  return { controller, runtime, calls, carets, definition, isPreparing: () => preparing }
 }
 
 test('pasteText chooses the longest overlapping pattern and keeps surrounding text', () => {
@@ -79,4 +85,33 @@ test('pasteText leaves unmatched text to the normal clipboard path', () => {
   assert.equal(controller.pasteText('plain text'), false)
   assert.deepEqual(calls, [])
   assert.deepEqual(carets, [])
+})
+
+test('throwing inline matcher fails the owned Paste before any mutation', () => {
+  const { controller, definition, isPreparing, calls } = harness()
+  definition.paste.fromMatch = () => {
+    assert.equal(isPreparing(), true)
+    throw new Error('matcher failed')
+  }
+  assert.throws(() => controller.pasteText('#fff'), /matcher failed/)
+  assert.equal(calls.length, 0)
+})
+
+test('async inline matcher result cannot become a persisted widget payload', () => {
+  const { controller, definition, calls } = harness()
+  definition.paste.fromMatch = () => Promise.resolve({ value: '#fff' })
+  assert.throws(() => controller.pasteText('#fff'), /synchron|thenable/i)
+  assert.equal(calls.length, 0)
+})
+
+test('accessor-backed inline matcher result is captured under preparation guard', () => {
+  const { controller, definition, isPreparing, calls } = harness()
+  definition.paste.fromMatch = () => ({
+    get value() {
+      assert.equal(isPreparing(), true)
+      throw new Error('paste payload getter failed')
+    },
+  })
+  assert.throws(() => controller.pasteText('#fff'), /paste payload getter failed/)
+  assert.equal(calls.length, 0)
 })
