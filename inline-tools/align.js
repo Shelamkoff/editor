@@ -53,7 +53,9 @@ export function createAlignTool(labels) {
     toggle() {},
 
     renderActions(ctx) {
-      const doc = ctx.range.startContainer.ownerDocument
+      const initialRange = ctx.range
+      if (!initialRange) return null
+      const doc = initialRange.startContainer.ownerDocument
       const panel = doc.createElement('div')
       panel.className = 'oe-inline-toolbar__panel oe-inline-toolbar__align-panel'
       panel.appendChild(createBackButton(ctx))
