@@ -1599,4 +1599,75 @@ test('clearing an old cross-selection controller cannot delete another editor hi
 })
 
 
+test('inline presentation failure is contained and other tool remains usable',async()=>{
+  let editor
+  let producerCalls=0
+  const diagnostics=[]
+  const failing={
+    type:'failing-format',title:'Failing',icon:'<b>F</b>',
+    isActive(){
+      editor.blocks.update('a',()=>{
+        producerCalls++
+        return {data:{text:'should not commit'}}
+      })
+      return false
+    },
+    toggle(){},
+  }
+  const working={
+    type:'working-format',title:'Working',icon:'<b>W</b>',
+    isActive(){return true},
+    toggle(){},
+  }
+  editor=make([para('a','Alpha')],{
+    inlineTools:[failing,working],
+    onDiagnostic:value=>diagnostics.push(value),
+  })
+  const field=editableField(editor,'a')
+  select(field,0,3)
+  await new Promise(resolve=>setTimeout(resolve,0))
+  const root=editorRoot(editor)
+  const invalid=root.querySelector('[data-tool="failing-format"]')
+  const valid=root.querySelector('[data-tool="working-format"]')
+  check(invalid&&valid,'Both toolbar controls must be mounted')
+  equal(invalid.hidden,true)
+  equal(invalid.disabled,true)
+  equal(valid.hidden,false)
+  equal(valid.disabled,false)
+  check(valid.classList.contains('oe-inline-tool--active'),'Healthy tool was not refreshed')
+  equal(producerCalls,0)
+  equal(editor.save().blocks[0].data.text,'Alpha')
+  equal(editor.canUndo,false)
+  check(diagnostics.some(value=>value.code==='command.failed'),'Failed tool was not reported')
+})
+
+test('inline mount failure cleans every started tool and allows reuse of its object',()=>{
+  const events=[]
+  let fail=true
+  const makeTool=(type,throws=false)=>({
+    type,title:type,icon:'<b>F</b>',
+    isActive(){return false},
+    toggle(){},
+    bindSelectionPort(port){events.push(type+(port?' bind':' unbind'))},
+    onMount(){events.push(type+' mount');if(throws&&fail)throw new Error('mount failed')},
+    destroy(){events.push(type+' destroy')},
+  })
+  const first=makeTool('first')
+  const second=makeTool('second',true)
+  let error
+  try{make([para('a','Alpha')],{inlineTools:[first,second]})}
+  catch(caught){error=caught}
+  check(error&&/mount failed/.test(String(error)),'Expected mount failure was swallowed')
+  equal(events,[
+    'first bind','first mount','second bind','second mount',
+    'second unbind','second destroy','first unbind','first destroy',
+  ])
+  fail=false
+  const editor=make([para('a','Alpha')],{inlineTools:[first,second]})
+  check(editor.isReady!==false,'Tool ownership was not released after failed initialization')
+  editor.destroy()
+  check(events.includes('second destroy'))
+})
+
+
 await run()
