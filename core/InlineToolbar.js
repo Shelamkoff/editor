@@ -4,6 +4,7 @@ import { handleMenuKeydown } from '../plugin-kit/index.js'
 import { setTrustedHtml } from '../shared/sanitize/sanitizeHtml.js'
 import { Tooltip } from './Tooltip.js'
 import { InlineToolMounts } from './InlineToolMounts.js'
+import { InlineSelectionAuthority } from './InlineSelectionAuthority.js'
 import { synchronousResult } from '../shared/synchronousResult.js'
 import { shortcutKey } from '../shared/shortcutKey.js'
 
@@ -47,6 +48,8 @@ export class InlineToolbar {
   #buttonsPanel
   #actions = null
   #actionsToolType = null
+  #panelSelection = null
+  #inFormattingMutation = false
   /** @type {((event: KeyboardEvent) => void) | null} */
   #actionKeydown = null
   #actionVersion = 0
@@ -325,42 +328,69 @@ export class InlineToolbar {
         && generation === this.#runtime.generation
         && owners.every(owner => owner.element === this.#view.element(owner.blockId))
       let panelBookmark = cloneBookmark(selection.bookmark)
+      let panelRange = range
+      const panelPort = new InlineSelectionAuthority({
+        root: this.#root,
+        runtime: this.#runtime,
+        reconciler: this.#reconciler,
+        readSelection: () => ({ range: panelRange, bookmark: panelBookmark }),
+        restoreSelection: bookmark => this.#restoreSelection(bookmark),
+        lease: () => this.#selectionVersion,
+        canAccess: () => isCurrent() && this.#runtime.canAccessFormattingSelection(this.#inFormattingMutation),
+        isMutating: () => this.#inFormattingMutation,
+      })
+      panelPort.activate()
+      let panelToken = panelPort.capture(range)
+      if (!panelToken) {
+        panelPort.revoke()
+        return false
+      }
+      this.#panelSelection = panelPort
+      const refreshPanelToken = () => {
+        if (!isCurrent()) return
+        panelBookmark = cloneBookmark(this.#selectionPort?.bookmark ?? this.#selection.capture() ?? panelBookmark)
+        panelRange = this.#range?.cloneRange() ?? null
+        panelToken = panelPort.capture() 
+      }
       const closePanel = () => {
         if (!isCurrent()) return
+        const restored = panelToken && panelPort.restore(panelToken)
         this.#closeActions()
-        this.#restoreSelection(panelBookmark)
-        this.show()
+        if (restored) this.show()
       }
       let panel
       try {
         panel = synchronousResult(tool.renderActions({
-          range,
+          get range() { return panelPort.range },
           mutate: operation => {
-            if (!isCurrent()) return undefined
-            const result = this.#mutate(range, operation, tool.type, lease)
+            if (!isCurrent() || !panelToken || typeof operation !== 'function') return undefined
+            const currentRange = panelPort.range
+            if (!currentRange || !panelPort.restore(panelToken)) return undefined
+            const result = this.#mutate(currentRange, () => operation(currentRange), tool.type, lease)
             if (lease !== this.#selectionVersion || generation !== this.#runtime.generation
               || !selection.blockIds.every(blockId => this.#runtime.has(blockId))) return result
             owners = selection.blockIds.map(blockId => ({ blockId, element: this.#view.element(blockId) }))
             expectedRevision = this.#runtime.revision
-            panelBookmark = cloneBookmark(this.#selectionPort?.bookmark ?? this.#selection.capture() ?? panelBookmark)
+            refreshPanelToken()
             return result
           },
           getTextAlign: () => isCurrent()
             ? this.#runtime.getTextAlign(selection.blockIds)
             : 'mixed',
           setTextAlign: value => {
-            if (!isCurrent()) return false
+            if (!isCurrent() || !panelToken || !panelPort.restore(panelToken)) return false
             const changed = this.#runtime.setTextAlign(selection.blockIds, value)
             if (changed && lease === this.#selectionVersion && generation === this.#runtime.generation
               && selection.blockIds.every(blockId => this.#runtime.has(blockId))) {
               owners = selection.blockIds.map(blockId => ({ blockId, element: this.#view.element(blockId) }))
               expectedRevision = this.#runtime.revision
-              panelBookmark = cloneBookmark(this.#selectionPort?.bookmark ?? this.#selection.capture() ?? panelBookmark)
+              refreshPanelToken()
             }
             return changed
           },
           restoreSelection: () => {
-            if (isCurrent()) this.#restoreSelection(panelBookmark)
+            if (isCurrent() && panelToken) return panelPort.restore(panelToken)
+            return false
           },
           close: closePanel,
           backLabel: this.#translate('block.back', 'Back'),
@@ -373,7 +403,10 @@ export class InlineToolbar {
         if (actionLease === this.#actionVersion) this.#closeActions()
         throw error
       }
-      if (!isCurrent()) return false
+      if (!isCurrent()) {
+        if (this.#panelSelection === panelPort) this.#closeActions()
+        return false
+      }
       if (panel) {
         this.#actionKeydown = event => {
           if (event.defaultPrevented || event.key !== 'Escape' || !isCurrent()) return
@@ -920,8 +953,13 @@ export class InlineToolbar {
     let result
     try {
       result = this.#runtime.syncBlocksFromProjection(formattingIds, () => {
-        result = operation()
-        return result
+        this.#inFormattingMutation = true
+        try {
+          result = operation()
+          return result
+        } finally {
+          this.#inFormattingMutation = false
+        }
       }, {
         origin: 'user',
         name: `inline.${type}`,
@@ -966,6 +1004,8 @@ export class InlineToolbar {
 
   #closeActions() {
     this.#actionVersion++
+    this.#panelSelection?.revoke()
+    this.#panelSelection = null
     this.#actionsToolType = null
     this.#tooltip.hide()
     if (!this.#actions) {
