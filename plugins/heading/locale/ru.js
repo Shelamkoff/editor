@@ -5,6 +5,11 @@ export default {
   'plugin.heading.h4': 'Заголовок 4',
   'plugin.heading.h5': 'Заголовок 5',
   'plugin.heading.h6': 'Заголовок 6',
+  'plugin.heading.h2Compact': 'H2',
+  'plugin.heading.h3Compact': 'H3',
+  'plugin.heading.h4Compact': 'H4',
+  'plugin.heading.h5Compact': 'H5',
+  'plugin.heading.h6Compact': 'H6',
   'plugin.heading.placeholder': 'Заголовок {level}',
   'plugin.heading.level': 'Уровень заголовка',
 }
