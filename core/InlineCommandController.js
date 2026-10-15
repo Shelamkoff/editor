@@ -26,21 +26,38 @@ export class InlineCommandController {
     if (!target) return false
 
     if (explicitData !== undefined) {
-      return this.#insertWidget(type, target, explicitData, definition.insertion?.trailingText)
+      const trailingText = this.#runtime.prepareExtensionValue(
+        () => definition.insertion?.trailingText ?? '',
+      )
+      return this.#insertWidget(type, target, explicitData, trailingText)
     }
 
-    const fresh = definition.insertion?.createInitial?.()
-    if (!fresh) {
-      const data = definition.schema.createDefault()
-      return this.#insertWidget(type, target, data, definition.insertion?.trailingText)
+    const insertion = this.#runtime.prepareExtensionValue(() => {
+      const trailingText = definition.insertion?.trailingText ?? ''
+      if (typeof trailingText !== 'string' || /[\r\n]/.test(trailingText)) {
+        throw new TypeError('Inline trailing text must be a single-line string')
+      }
+      const initial = synchronousResult(definition.insertion?.createInitial?.())
+      const fresh = initial ? cloneEditorData(initial) : null
+      if (fresh && (fresh.kind === 'text'
+        ? typeof fresh.text !== 'string'
+        : fresh.kind !== 'widget' || !fresh.data || typeof fresh.data !== 'object' || Array.isArray(fresh.data))) {
+        throw new TypeError('Invalid inline insertion result')
+      }
+      const defaultData = fresh ? null : cloneEditorData(synchronousResult(definition.schema.createDefault()))
+      return { fresh, defaultData, trailingText }
+    })
+
+    if (!insertion.fresh) {
+      return this.#insertWidget(type, target, insertion.defaultData, insertion.trailingText)
     }
 
-    if (fresh.kind === 'text') {
-      this.#withCaret(target, target.range.start + fresh.text.length, () => this.#runtime.replaceRichText(
+    if (insertion.fresh.kind === 'text') {
+      this.#withCaret(target, target.range.start + insertion.fresh.text.length, () => this.#runtime.replaceRichText(
         target.blockId,
         target.fieldKey,
         target.range,
-        { kind: 'text', text: fresh.text },
+        { kind: 'text', text: insertion.fresh.text },
       ))
       this.#onFreshText?.({
         type,
@@ -50,7 +67,7 @@ export class InlineCommandController {
       return true
     }
 
-    return this.#insertWidget(type, target, fresh.data, definition.insertion?.trailingText)
+    return this.#insertWidget(type, target, insertion.fresh.data, insertion.trailingText)
   }
 
   pasteText(text, target = this.#currentRange()) {
@@ -150,8 +167,11 @@ export class InlineCommandController {
     if (this.#runtime.readOnly) return false
     const definition = this.#registry.getInlineDefinition(type)
     if (!definition) return false
-    const encoded = definition.schema.encode(data)
-    return this.#insertWidget(type, session, encoded.data, options.trailingText ?? definition.insertion?.trailingText)
+    const prepared = this.#runtime.prepareExtensionValue(() => ({
+      encoded: cloneEditorData(synchronousResult(definition.schema.encode(data))),
+      trailingText: options.trailingText ?? definition.insertion?.trailingText ?? '',
+    }))
+    return this.#insertWidget(type, session, prepared.encoded.data, prepared.trailingText)
   }
 
   #insertWidget(type, target, data, trailingText = '') {
