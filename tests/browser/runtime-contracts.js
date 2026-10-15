@@ -1439,7 +1439,7 @@ test('joined selection conversion includes a block inserted earlier in the same 
       conversion:{
         selectionMode:'single',
         export:data=>({kind:'rich-text',data:{text:data.text}}),
-        joinSelection:parts=>({kind:'rich-text',data:{text:parts.map(part=>part.data.text).join('\\n')}}),
+        joinSelection:parts=>({kind:'rich-text',data:{text:parts.map(part=>part.data.text).join('\n')}}),
         canImport:payload=>payload.kind==='rich-text',
         import:payload=>({text:payload.data.text}),
       },
@@ -1459,7 +1459,7 @@ test('joined selection conversion includes a block inserted earlier in the same 
     })
     equal(result.convertedIds.length,1)
     equal(runtime.list().map(record=>[record.type,record.data.text]),
-      [['paragraph','Al'],['code','pha\\nInserted\\nBra'],['paragraph','vo']])
+      [['paragraph','Al'],['code','pha\nInserted\nBra'],['paragraph','vo']])
     equal(runtime.undo(),true)
     equal(runtime.save().blocks,before)
     equal(runtime.canUndo,false)
