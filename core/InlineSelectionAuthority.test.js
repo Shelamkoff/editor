@@ -83,7 +83,9 @@ test('staged and retired scoped ports expose no range or selection authority', (
   assert.notEqual(state.port.range, null)
   const token = state.port.capture()
   assert.ok(token)
+  assert.equal(state.port.isValid(token), true)
   state.port.revoke()
+  assert.equal(state.port.isValid(token), false)
   assert.equal(state.port.range, null)
   assert.equal(state.port.capture(), null)
   assert.equal(state.port.restore(token), false)
@@ -201,5 +203,16 @@ test('a removed or renamed field rejects token restoration without fallback', ()
   const token = state.port.capture()
   state.field.isConnected = false
   assert.equal(state.port.restore(token), false)
+  assert.deepEqual(state.applied, [])
+})
+
+test('a model-first operation can validate but does not restore native selection', () => {
+  const state = fixture()
+  state.port.activate()
+  const token = state.port.capture()
+  assert.equal(state.port.isValid(token), true)
+  assert.deepEqual(state.applied, [])
+  state.runtime.revision += 1
+  assert.equal(state.port.isValid(token), false)
   assert.deepEqual(state.applied, [])
 })
