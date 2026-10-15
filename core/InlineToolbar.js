@@ -40,6 +40,7 @@ export class InlineToolbar {
   #tools
   #toolMounts
   #mountStates = []
+  #activeFormattingTool = null
   #reportError
   #buttonIcons = new Map()
   #translate
@@ -230,26 +231,66 @@ export class InlineToolbar {
       this.#buttonsPanel.append(button)
       this.#buttons.set(tool.type, button)
 
-      const mount = { active: false, revoked: false }
+      const mount = { active: false, revoked: false, port: null }
       this.#mountStates.push(mount)
-      this.#toolMounts.start(tool, this.#selectionPort, button, {
-        mutate: (range, operation) => {
-          if (!mount.active || mount.revoked) throw new Error('Inline tool mutation context is not active')
-          return this.#mutate(range, operation, tool.type)
+      const scoped = new InlineSelectionAuthority({
+        root: this.#root,
+        runtime: this.#runtime,
+        reconciler: this.#reconciler,
+        readSelection: () => {
+          const native = this.#root.ownerDocument.defaultView?.getSelection()
+          const range = native && !native.isCollapsed && native.rangeCount
+            ? native.getRangeAt(0) : null
+          const current = range && this.#root.contains(range.startContainer)
+            && this.#root.contains(range.endContainer) ? range : null
+          return {
+            range: current ?? this.#selectionPort?.range ?? this.#range,
+            bookmark: cloneBookmark(this.#selectionPort?.bookmark
+              ?? (current ? this.#selection.capture() : this.#bookmark)),
+          }
         },
-        restoreSelection: () => {
-          if (!mount.active || mount.revoked || this.#readOnly || this.#destroyed || !this.#range
-            || !this.#reconciler.resolveEditableTarget(this.#range.startContainer)
-            || !this.#reconciler.resolveEditableTarget(this.#range.endContainer)) return false
-          const bookmark = cloneBookmark(this.#selectionPort?.bookmark ?? this.#bookmark)
-          if (!bookmark) return false
-          const restored = this.#restoreSelection(bookmark)
-          if (restored) this.show()
-          return restored
+        restoreSelection: bookmark => this.#restoreSelection(bookmark),
+        lease: () => this.#selectionVersion,
+        canAccess: () => mount.active && !mount.revoked && !this.#readOnly && !this.#destroyed
+          && this.#runtime.canAccessFormattingSelection(
+            this.#inFormattingMutation && this.#activeFormattingTool === tool.type),
+        isMutating: () => this.#inFormattingMutation && this.#activeFormattingTool === tool.type,
+      })
+      mount.port = scoped
+
+      // The temporary activate/deactivate bridge is only for built-in tools
+      // still awaiting their strict bookmark migration in this slice.
+      const port = Object.freeze({
+        get range() { return scoped.range },
+        capture: range => scoped.capture(range),
+        restore: (token, options) => scoped.restore(token, options),
+        activate: range => this.#selectionPort?.activate?.(range) === true,
+        deactivate: () => this.#selectionPort?.deactivate?.(),
+      })
+      const mutate = (request, operation) => {
+        if (!mount.active || mount.revoked) throw new Error('Inline tool mutation context is not active')
+        // Existing unported tools may supply their current raw range; it can
+        // only mint an accepted token when it matches this mounted selection.
+        const token = request?.startContainer
+          ? scoped.capture(request)
+          : request
+        if (!token || !scoped.isValid(token)) return undefined
+        if (typeof operation !== 'function') throw new TypeError('Inline formatting operation must be a function')
+        const range = scoped.range
+        if (!range || !scoped.restore(token)) return undefined
+        const lease = this.#selectionVersion
+        return this.#mutate(range, () => operation(scoped.range ?? range), tool.type, lease)
+      }
+      this.#toolMounts.start(tool, port, button, {
+        mutate,
+        restoreSelection: token => {
+          if (!mount.active || mount.revoked || !token || !scoped.isValid(token)) return false
+          return scoped.restore(token)
         },
       }, () => {
         mount.active = false
         mount.revoked = true
+        scoped.revoke()
       })
     }
 
@@ -274,7 +315,10 @@ export class InlineToolbar {
       this.#closeControlDropdown()
     }
     document.addEventListener('mousedown', this.#documentClick, true)
-    for (const mount of this.#mountStates) mount.active = true
+    for (const mount of this.#mountStates) {
+      mount.active = true
+      mount.port?.activate()
+    }
     } catch (error) {
       this.#releaseResources()
       throw error
@@ -477,6 +521,7 @@ export class InlineToolbar {
     for (const mount of this.#mountStates) {
       mount.active = false
       mount.revoked = true
+      mount.port?.revoke()
     }
 
     const errors = []
@@ -965,10 +1010,13 @@ export class InlineToolbar {
     try {
       result = this.#runtime.syncBlocksFromProjection(formattingIds, () => {
         this.#inFormattingMutation = true
+        const previousTool = this.#activeFormattingTool
+        this.#activeFormattingTool = type
         try {
           result = operation()
           return result
         } finally {
+          this.#activeFormattingTool = previousTool
           this.#inFormattingMutation = false
         }
       }, {
