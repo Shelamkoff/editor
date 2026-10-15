@@ -161,11 +161,31 @@ Verification:
 
 **Still outstanding in slice 6:** bind the strict per-mount port to all inline tools, migrate every raw/indexed `SavedOffsets` and `CrossEditableSelectionPort` consumer, remove retired utility exports and direct highlight helpers, validate native `selectionchange` signatures across own restoration, and run full local/native/package conformance. Do not consider this slice complete.
 
+## Slice 6c — strict mounted tool ports and legacy offset removal (source implemented; full gates pending)
+
+Implementation:
+
+- Each mounted inline tool now receives a private `InlineSelectionAuthority` with mount provenance, own action lease, current generation/revision and a fresh logical range view. The previous controller-level cross-selection methods are no longer exposed to inline extensions; mounted mutation contexts require their own opaque bookmark and a synchronous `(range) => result` callback. Staged and retired contexts invoke no producer; callbacks cannot steal another tool's protected editing phase.
+- `createSelectionPortBinding`, `InlineMutationContext`, `InlineToolActionContext` and the inline tool definition type use the strict public `InlineSelectionPort` contract. Simple tag tools, Clear Formatting, Case Transform, Link, Script, ColorPicker and Font Size now capture and restore owned logical bookmarks. Color/Font Size retain tokens, not DOM Range/node/index snapshots, across auxiliary panel focus; stale apply/remove/restore does not use a native fallback.
+- Case Transform uses only the captured DOM-order end endpoint's non-cumulative `endOffsetDelta`, including Unicode `ß → SS` and backward selection. Multiple formatting wrapper phases validate their same token before continuing; a required failed restoration aborts the protected edit.
+- Removed old `saveCrossBlockOffsets`, `restoreCrossBlockRange`, `saveSelectionOffsets`, `restoreSelectionOffsets`, `clearCrossBlockRange`, `SavedOffsets`, `getSelectedBlockElements`, and the tool-owned CSS Highlight helpers. `toggleTag` now changes wrappers only; the selection owner restores native selection. Removed the toolbar's direct native Range fallback.
+- Tightened current range/token admission against actual native boundary positions, including parent-equivalent DOM positions, and expired tokens on changed native selection even before a queued `selectionchange`. Hidden/inert/non-editable current fields are not restorable. Kept a bounded expected-result signature in the existing toolbar to avoid wrongly retiring a completed own restoration on a matching queued selection notification.
+- Expanded the existing parser/source audit's removed-symbol list to include obsolete formatting helpers and checked inline tools as well as core/plugins. Added browser cases for fresh/foreign/expired mounted tokens, own-result selectionchange, and native backward Unicode case expansion and stale Color/Font Size callbacks.
+
+Available verification:
+
+- `InlineSelectionAuthority.test.js` and `InlineToolMounts.test.js`: **19/19** focused test bodies passed in a constrained V8 source runner using the branch's actual fetched JavaScript/neutral text-offset helpers. Includes source-adapter validation, real owner-scoped token expiry, UTF-16, foreign/forged tokens, hidden/editability checks, and independent cleanup.
+- Isolated `InlineToolbar` synthetic-DOM composition confirmed staged selection denial, fresh mounted token dispatch, one accepted mutation, rejection after revision change, and permanent revoke after destroy. This is **not** a replacement for Chrome/native keyboard/selection tests.
+- Checked 12 affected JavaScript modules with module-compatible syntax parsing; all 12 passed. Scanning the 16 production inline-tool modules found no references to the retired exported helpers/source symbols.
+- **Not yet verified**: full `npm test`, TypeScript typecheck/declarations, complete native/browser suites (including new regressions), `npm run test:docs`, package consumer gate, visual effects and OS-specific selection/IME conformance. The workspace cannot fetch a full checkout in this session; do not interpret historical green suites as applying to this branch head.
+
+**Status:** primary slice 6 selection-port/formatting source migration is committed. Slice 6 is not complete until full local/native/package verification and correction of failures, including checking tool presentation/UI resources and native queued-selection signatures in actual browsers.
+
 ## Remaining slices
 
 4c. Full local/native/package verification and integration with the slice 8 terminal cancellation/control fan-out contract.
 5. Run full local/native/package acceptance on the new conversion planner and correct any failures.
-6. Finish strict formatting selection/mutation port migration, endpoint adjustments, panel settlement and all local/native/package gates.
+6. Run full local/native/package validation of strict formatting ports, panel settlement, tool presentation and selectionchange handling; correct resulting defects.
 7. Declarative inline controls.
 8. Shared Mention text decisions and native reconciliation.
 9. Convergence, packaged conformance and dependency enforcement.
