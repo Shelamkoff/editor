@@ -1466,4 +1466,53 @@ test('joined selection conversion includes a block inserted earlier in the same 
   }finally{runtime.destroy()}
 })
 
+
+test('same-type logical selection without configuration is a true no-op',()=>{
+  const definition=paragraphDefinition({mapRichText:(data,visit)=>({...data,text:visit(data.text,'text')})})
+  let exports=0
+  definition.capabilities.conversion.export=data=>{exports++;return {kind:'rich-text',data:{text:data.text}}}
+  const runtime=new DocumentRuntime({ownerDocument:document,registry:registry([definition]),
+    data:{version:'2.0.0',blocks:[block('a',{text:'Alpha'})]}})
+  try{
+    const before=runtime.save().blocks
+    const result=runtime.convertLogicalSelection({
+      anchor:{blockId:'a',fieldKey:'text',offset:1},
+      focus:{blockId:'a',fieldKey:'text',offset:4},
+    },{type:'paragraph'})
+    equal(result,false)
+    equal(exports,0)
+    equal(runtime.revision,0)
+    equal(runtime.canUndo,false)
+    equal(runtime.save().blocks,before)
+  }finally{runtime.destroy()}
+})
+
+test('collapsed same-type selection configures staged author data and preserves one Undo',()=>{
+  const definition=paragraphDefinition({
+    createDefault:()=>({text:'',authorMode:'default'}),
+    decode:input=>({dataVersion:1,data:{...input.data}}),
+    encode:data=>({dataVersion:1,data:{...data}}),
+    mapRichText:(data,visit)=>({...data,text:visit(data.text,'text')}),
+  })
+  definition.toolbox=[{id:'mode',configure:data=>({...data,authorMode:'configured'})}]
+  const runtime=new DocumentRuntime({ownerDocument:document,registry:registry([definition]),
+    data:{version:'2.0.0',blocks:[block('a',{text:'Alpha',authorMode:'kept',custom:{label:'author'}})]}})
+  const before=runtime.save().blocks
+  try{
+    let outcome
+    runtime.interact('edit and configure',()=>{
+      runtime.update('a',()=>({data:{text:'Authored',authorMode:'kept',custom:{label:'author'}}}))
+      outcome=runtime.convertLogicalSelection({
+        anchor:{blockId:'a',fieldKey:'text',offset:2},
+        focus:{blockId:'a',fieldKey:'text',offset:2},
+      },{type:'paragraph',toolboxItemId:'mode'})
+    })
+    equal(outcome,{focusId:'a',convertedIds:['a']})
+    equal(runtime.get('a').data,{text:'Authored',authorMode:'configured',custom:{label:'author'}})
+    equal(runtime.undo(),true)
+    equal(runtime.save().blocks,before)
+    equal(runtime.canUndo,false)
+  }finally{runtime.destroy()}
+})
+
 await run()
