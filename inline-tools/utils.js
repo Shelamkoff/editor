@@ -783,11 +783,14 @@ export function createSimpleInlineTool(type, title, icon, tag, shortcut) {
     toggle(selection) {
       const range = selection.range
       if (!range) return
-      const saved = saveSelectionOffsets(range)
+      const bookmark = cbs.capture(range)
+      if (!bookmark) return
 
       toggleTag(tag, range)
 
-      restoreSelectionOffsets(cbs ?? null, saved)
+      if (!cbs.restore(bookmark)) {
+        throw new Error('Formatting selection became unavailable during tag toggle')
+      }
     },
   }
 }
