@@ -112,6 +112,16 @@ export class InlineSelectionAuthority {
     })
   }
 
+  /** Validate private provenance and current endpoints without moving focus.
+   * @param {import('../inline-tools/types').InlineSelectionBookmark} token
+   */
+  isValid(token) {
+    if (!this.#available() || !token || typeof token !== 'object') return false
+    const captured = this.#tokens.get(token)
+    return this.#matches(captured)
+      && Boolean(this.#resolve(captured.anchor) && this.#resolve(captured.focus))
+  }
+
   /**
    * @param {import('../inline-tools/types').InlineSelectionBookmark} token
    * @param {import('../inline-tools/types').InlineSelectionRestoreOptions} [options]
