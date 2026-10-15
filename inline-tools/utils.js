@@ -19,7 +19,7 @@ const CROSS_HIGHLIGHT_KEY = 'oe-cross-select-v2'
  *
  * @returns {{
  *   port: import('./types').InlineSelectionPort & Partial<import('./types').CrossEditableSelectionPort>,
- *   bind: (port: (import('./types').InlineSelectionPort & Partial<import('./types').CrossEditableSelectionPort)) | null) => void,
+ *   bind: (port: (import('./types').InlineSelectionPort & Partial<import('./types').CrossEditableSelectionPort>) | null) => void,
  * }}
  */
 export function createSelectionPortBinding() {
