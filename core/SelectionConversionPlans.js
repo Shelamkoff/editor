@@ -35,9 +35,10 @@ export function conversionTargetData(s, targetDefinition, payload, target, baseD
     data = cloneEditorData(baseData)
   } else {
     let accepted = false
-    if (candidate && typeof conversion?.canImport === 'function') {
+    const canImport = acceptedImport === undefined ? conversion?.canImport : null
+    if (candidate && (acceptedImport !== undefined || typeof canImport === 'function')) {
       const outcome = acceptedImport === undefined
-        ? synchronousResult(conversion.canImport(cloneEditorData(candidate)))
+        ? synchronousResult(Reflect.apply(canImport, conversion, [cloneEditorData(candidate)]))
         : acceptedImport
       if (typeof outcome !== 'boolean') {
         throw new TypeError('Conversion canImport() must return a boolean')
@@ -260,8 +261,9 @@ function crossSelection(s, view, start, end, target, targetDefinition, reserved)
 
 /** @param {any} conversion @param {unknown} payload */
 function acceptsTarget(conversion, payload) {
-  if (typeof conversion?.canImport !== 'function') return false
-  const accepted = synchronousResult(conversion.canImport(cloneEditorData(payload)))
+  const canImport = conversion?.canImport
+  if (typeof canImport !== 'function') return false
+  const accepted = synchronousResult(Reflect.apply(canImport, conversion, [cloneEditorData(payload)]))
   if (typeof accepted !== 'boolean') throw new TypeError('Conversion canImport() must return a boolean')
   return accepted
 }
