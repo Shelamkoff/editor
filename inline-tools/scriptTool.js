@@ -105,7 +105,9 @@ export function createScriptTool(labels) {
     },
 
     renderActions(ctx) {
-      const doc = ctx.range.startContainer.ownerDocument
+      const initialRange = ctx.range
+      if (!initialRange) return null
+      const doc = initialRange.startContainer.ownerDocument
       ownerDocument = doc
       const panel = doc.createElement('div')
       panel.className = 'oe-inline-toolbar__panel oe-inline-toolbar__script-panel'
