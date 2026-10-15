@@ -104,10 +104,30 @@ Verification currently available:
 
 **Completion status:** core 4c implementation is staged, but slice completion is not claimed until local full and native gates, package conformance, and integration with slice 8's terminal cancellation are verified. Do not advance the recorded total completion percentage based on these narrow checks alone.
 
+## Slice 5 — selection conversion plans (source implemented; full gates pending)
+
+Implementation:
+
+- Added `core/SelectionConversionPlans.js` as the existing preparation layer's single/cross-block conversion owner. It shares `LogicalRangePlans` field ordering/slicing, `ClipboardPlans` compound residual and selected-source helpers, and narrow canonical record/allocator services. No separate engine, mutable selection store or plugin-specific branch was introduced.
+- `DocumentRuntime.convertLogicalSelection()` now enters the common `#executePrepared` boundary and captures the **active transaction draft** (ID order and immutable records) before preparing any edit; all records, generated IDs, final focus and result IDs precede application. Moved the old runtime conversion slicing/joins/edit bodies to the new planner and deleted their superseded implementations.
+- Collapsed conversions, same-type no-ops, partial/single, per-block cross selection, joined single-target conversion and compound residual paths preserve the existing result shape and target capabilities. Retained source tunes, inline reference-preservation refusal, same-type author fields, default/import/toolbox configuration semantics and allocation reservation against current draft identities. Equivalent records produce no update/history churn.
+- Direct block conversion, toolbox conversion/insertion and exit conversion now reuse the extracted target-data/record preparation helpers; the unused runtime data-operation context wrapper was removed.
+- Updated the existing source dependency audit to classify the new planning module as preparation-owned and prohibit dependencies on live runtime/engine/projection/plugins.
+- Added browser regression cases for staged source edits, staged order, staged intermediate block insertion with joined result, same-type no-op and collapsed configured same-type conversion. Added isolated Node-target unit cases for author payload retention and synchronous conversion hook failures.
+
+Available verification:
+
+- The new planner's exact fetched source passed syntax parsing in the constrained V8 environment. A second isolated execution using the repository's actual `LogicalRangePlans` and `projectionFields` source (with neutral plain-text slice/DOM substitutes) produced the specified edits/focus for the staged single, reordered per-block and staged joined scenarios (3/3). A broader mocked planner run also covered collapsed conversion and same-type no-op (5/5).
+- The four new unit-test bodies were exercised with the exact fetched planning/JSON/synchronous-completion source in V8 (4/4). These isolated executions are **not** a substitute for Node's runner, the real DOM, or native interaction.
+- New browser regression tests and the unchanged native conversion suites (`native-conversion`, `native-conversion-continuations`, `native-conversion-preservation`, `native-conversion-grouping`) require a local checkout and have **not** been executed against this head.
+- `npm test`, `npm run typecheck`, `npm run test:docs`, native browser tests and the package-consumer gate remain **unverified** in this session: the available container cannot resolve github.com and no checkout is mounted. The historical slice 4b green totals do not apply to the new branch head.
+
+**Status:** slice 5's production refactor is committed; local conformance, integration and packaging checks remain required before declaring the slice fully done.
+
 ## Remaining slices
 
 4c. Full local/native/package verification and integration with the slice 8 terminal cancellation/control fan-out contract.
-5. Selection conversion through prepared canonical edits.
+5. Run full local/native/package acceptance on the new conversion planner and correct any failures.
 6. Formatting selection/resource ownership.
 7. Declarative inline controls.
 8. Shared Mention text decisions and native reconciliation.
