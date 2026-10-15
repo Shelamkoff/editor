@@ -8,7 +8,6 @@ import {
 } from './ClipboardFragment.js'
 import { escapeHtml } from '../shared/sanitize/escapeHtml.js'
 import { toTrustedHtml } from '../shared/sanitize/trustedHtml.js'
-import { prepareHtmlImport } from './HtmlImportRouter.js'
 import { getTextLength } from '../shared/textOffset.js'
 import { editingHostForEvent } from '../shared/editableFields.js'
 import { synchronousResult } from '../shared/synchronousResult.js'
@@ -424,12 +423,7 @@ export class ClipboardController {
       let parts=null
       if(html){
         try{
-          const imported=prepareHtmlImport(html,{
-            ownerDocument:this.#root.ownerDocument,
-            registry:this.#registry,
-            currentType:this.#runtime.get(plan.focus.blockId)?.type??null,
-            createId:prefix=>this.#runtime.createDataId(prefix),
-          })
+          const imported=this.#runtime.prepareHtmlImport(html,plan.focus.blockId)
           if(imported?.kind==='inline'){
             parts=[{kind:'rich-text',html:imported.html}]
           }else if(imported?.kind==='blocks'){
@@ -503,12 +497,7 @@ export class ClipboardController {
     if (html) {
       let plan
       try {
-        plan = prepareHtmlImport(html, {
-          ownerDocument: this.#root.ownerDocument,
-          registry: this.#registry,
-          currentType: this.#runtime.get(owner.blockId)?.type ?? null,
-          createId: prefix => this.#runtime.createDataId(prefix),
-        })
+        plan = this.#runtime.prepareHtmlImport(html, owner.blockId)
       } catch (error) {
         event.preventDefault()
         this.#diagnostics?.emit('paste.failed', {
