@@ -308,9 +308,10 @@ export function createEditorRuntime(input){
     requestSplit:id=>keyboardRouter?.split(id),
     requestExit:id=>keyboardRouter?.exit(id),
     onCommit:event=>{
+      // Revoke stale clipboard work before fallible UI refresh/notifications.
+      clipboard?.handleTransaction(event)
       interaction?.reconcile()
       toolbar?.refresh()
-      clipboard?.handleTransaction(event)
       notifier?.schedule()
       emit('transaction:committed',event)
       emit('document:changed',{
