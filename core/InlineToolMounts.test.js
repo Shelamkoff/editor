@@ -93,3 +93,36 @@ test('each failed destroy is contained without hiding later lifecycle cleanup', 
   assert.deepEqual(steps, ['second', 'first'])
   assert.deepEqual(errors, ['second failed', 'first failed'])
 })
+
+test('extension cleanup runs under observation authority and independently completes', () => {
+  let observing = false
+  const runtimeWithObservation = {
+    prepareExtensionValue: operation => operation(),
+    observeExtension(operation) {
+      assert.equal(observing, false)
+      observing = true
+      try { return operation() }
+      finally { observing = false }
+    },
+  }
+  const calls = []
+  const first = tool('first', {
+    bindSelectionPort(port) {
+      if (port === null) {
+        assert.equal(observing, true)
+        calls.push('first unbind')
+        throw new Error('unbinding failed')
+      }
+    },
+    destroy() { assert.equal(observing, true); calls.push('first destroy') },
+  })
+  const second = tool('second', {
+    destroy() { assert.equal(observing, true); calls.push('second destroy') },
+  })
+  const errors = []
+  const mounts = new InlineToolMounts([first, second], runtimeWithObservation, error => errors.push(error.message))
+  for (const item of mounts.tools) mounts.start(item, null, {}, {})
+  mounts.destroy()
+  assert.deepEqual(calls, ['second destroy', 'first unbind', 'first destroy'])
+  assert.deepEqual(errors, ['unbinding failed'])
+})
