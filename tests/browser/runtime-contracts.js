@@ -1724,4 +1724,36 @@ test('mounted inline mutation actions are unavailable during initialization and 
 })
 
 
+
+test('inline panel logical rights expire on unrelated canonical revision',async()=>{
+  const contexts=[]
+  const tool={
+    type:'scoped-selection-probe',icon:'<b>S</b>',title:'Scoped selection',
+    isActive(){return false},toggle(){},
+    renderActions(ctx){
+      contexts.push(ctx)
+      const panel=document.createElement('div')
+      panel.appendChild(document.createElement('button'))
+      return panel
+    },
+  }
+  const editor=make([para('a','Alpha')],{inlineTools:[tool]})
+  const field=editableField(editor,'a')
+  select(field,0,3)
+  await new Promise(resolve=>setTimeout(resolve,0))
+  const control=editorRoot(editor).querySelector('[data-tool="scoped-selection-probe"]')
+  check(control&&!control.hidden&&!control.disabled,'Scoped tool did not mount')
+  control.click()
+  const ctx=contexts.at(-1)
+  check(ctx?.range,'Fresh panel must expose an authorized selection range')
+  editor.blocks.update('a',()=>({data:{text:'Externally changed'}}))
+  equal(ctx.range,null)
+  equal(ctx.setTextAlign('center'),false)
+  equal(ctx.getTextAlign(),'mixed')
+  equal(ctx.restoreSelection(),false)
+  equal(editor.blocks.get('a').data.text,'Externally changed')
+  equal(editor.blocks.get('a').tunes?.textAlign,undefined)
+})
+
+
 await run()
