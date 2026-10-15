@@ -4,9 +4,21 @@ import assert from 'node:assert/strict'
 import { InlineSelectionAuthority } from './InlineSelectionAuthority.js'
 
 function fixture() {
+  const ownerDocument = {
+    createRange() {
+      return {
+        startContainer: null, endContainer: null,
+        startOffset: 0, endOffset: 0, collapsed: true,
+        setStart(node, offset) { this.startContainer = node; this.startOffset = offset; this.collapsed = false },
+        setEnd(node, offset) { this.endContainer = node; this.endOffset = offset; this.collapsed = this.startContainer === node && this.startOffset === offset },
+        cloneRange() { return { ...this } },
+      }
+    },
+  }
   const field = {
     nodeType: 1,
     tagName: 'P',
+    ownerDocument,
     isConnected: true,
     childNodes: [],
     closest() { return null },
@@ -22,6 +34,7 @@ function fixture() {
   }
   field.childNodes.push(text)
   const root = {
+    ownerDocument,
     isConnected: true,
     contains(node) { return node === field || node === text },
   }
@@ -216,3 +229,27 @@ test('a model-first operation can validate but does not restore native selection
   assert.equal(state.port.isValid(token), false)
   assert.deepEqual(state.applied, [])
 })
+
+test('successful own panel result retargets current keyed fields without restoring native focus', () => {
+  const state = fixture()
+  state.port.activate()
+  const original = state.port.capture()
+  assert.ok(original)
+  state.runtime.revision++
+  const result = {
+    anchor: { blockId: 'block', fieldKey: 'text', offset: 1 },
+    focus: { blockId: 'block', fieldKey: 'text', offset: 4 },
+  }
+  const fresh = state.port.resolveOwnResult(result)
+  assert.ok(fresh)
+  assert.equal(fresh.startContainer, state.text)
+  assert.equal(fresh.endOffset, 4)
+  assert.deepEqual(state.applied, [])
+  state.setRange(fresh)
+  state.setBookmark(result)
+  const next = state.port.capture()
+  assert.ok(next)
+  assert.equal(state.port.isValid(original), false)
+  assert.equal(state.port.isValid(next), true)
+})
+
