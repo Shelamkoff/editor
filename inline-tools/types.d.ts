@@ -25,27 +25,20 @@ export interface InlineSelectionPort {
   restore(bookmark: InlineSelectionBookmark, options?: InlineSelectionRestoreOptions): boolean
 }
 
-/** Editor-owned cross-editable selection port bound after editor composition. */
-export interface CrossEditableSelectionPort {
-  readonly range: Range | null
-  activate(range: Range): boolean
-  deactivate(): void
-}
-
 /** Mutation gate supplied to a mounted inline control. */
 export interface InlineMutationContext {
-  mutate<T>(range: Range, operation: () => T): T | undefined
-  /** Return focus and the current editor-owned selection after canceling auxiliary UI. */
-  restoreSelection?(): boolean
+  mutate<T>(bookmark: InlineSelectionBookmark, operation: (range: Range) => T): T | undefined
+  /** Restore the invoking mounted control's current logical selection. */
+  restoreSelection?(bookmark: InlineSelectionBookmark): boolean
 }
 
 /** Scoped action-panel surface. */
 export interface InlineToolActionContext {
-  readonly range: Range
-  mutate<T>(operation: () => T): T | undefined
+  readonly range: Range | null
+  mutate<T>(operation: (range: Range) => T): T | undefined
   getTextAlign(): 'left' | 'center' | 'right' | 'justify' | 'mixed'
   setTextAlign(value: 'left' | 'center' | 'right' | 'justify' | null): boolean
-  restoreSelection(): void
+  restoreSelection(): boolean
   close(): void
   readonly backLabel?: string
   showTooltip(anchor: HTMLElement, label: string, shortcut?: string): void
@@ -67,7 +60,7 @@ export interface InlineTool {
   getTitle?(active: boolean): string
   onMount?(button: HTMLElement, mutations?: InlineMutationContext): void
   isDropdownOpen?(): boolean
-  bindSelectionPort?(port: CrossEditableSelectionPort | null): void
+  bindSelectionPort?(port: InlineSelectionPort | null): void
   destroy?(): void
 }
 
