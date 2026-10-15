@@ -116,7 +116,9 @@ export function createLinkTool(linkPlaceholder, linkLabel, actionLabels = {}) {
      * @returns {HTMLElement | null}
      */
     renderActions(ctx) {
-      const ownerDocument = ctx.range.startContainer.ownerDocument
+      const initialRange = ctx.range
+      if (!initialRange) return null
+      const ownerDocument = initialRange.startContainer.ownerDocument
       const ownerWindow = ownerDocument.defaultView
       // When links exist, return null to trigger toggle() (remove links)
       const currentSel = ownerWindow?.getSelection?.() ?? null
