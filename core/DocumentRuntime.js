@@ -67,6 +67,7 @@ export class DocumentRuntime {
   #destroyed = false
   #controlFailed = false
   #editingProjection = false
+  #projectingPresentation = false
   #changingReadOnly = false
   #requestSplit
   #requestExit
@@ -85,6 +86,7 @@ export class DocumentRuntime {
    *     store: DocumentStore,
    *     activationResolver: (id: string, record: any) => boolean,
    *     contextFactory: (id: string, type: string, signal: AbortSignal, readRecord: () => any) => any,
+   *     projectPresentation: (operation: () => any) => any,
    *   }) => any,
    *   selection?: any,
    *   onCommit?: (event: any) => void,
@@ -129,6 +131,12 @@ export class DocumentRuntime {
           store: this.#store,
           activationResolver,
           contextFactory,
+          projectPresentation: operation => {
+            const previous = this.#projectingPresentation
+            this.#projectingPresentation = true
+            try { return operation() }
+            finally { this.#projectingPresentation = previous }
+          },
         })
       : (options.projector ?? null)
 
@@ -2897,6 +2905,7 @@ export class DocumentRuntime {
   }
 
   #mutationPhase() {
+    if (this.#projectingPresentation) return 'presentation-projection'
     if (this.#editingProjection) return 'protected-projection-edit'
     if (this.#changingReadOnly) return 'read-only-transition'
     return this.#engine?.phase ?? 'idle'
@@ -2905,6 +2914,7 @@ export class DocumentRuntime {
   #assertHostMutation() {
     if (this.#destroyed) throw new Error('DocumentRuntime is destroyed')
     if (this.health === 'failed') throw new Error('DocumentRuntime is failed')
+    if (this.#projectingPresentation) throw new Error('Cannot mutate document during presentation projection')
     if (this.#editingProjection) throw new Error('Cannot mutate document during protected projection edit')
     if (this.#changingReadOnly) throw new Error('Cannot mutate document during read-only transition')
     const phase = this.#engine?.phase ?? 'idle'

@@ -86,6 +86,10 @@ The saved `id` is normalized to a string. `onMentionSelect` receives the source 
 
 ## History, lifecycle, and styles
 
+Word deletion and local Cut/Paste within a mention label update its saved data in one undoable operation. Copying a label substring exports that text; clipboard gestures selecting the widget from its surrounding field retain the normal structured clipboard behavior. Removing the trigger converts the remaining label to plain text.
+
+Browser text replacement uses the explicit target range even when the caret is collapsed elsewhere. Label input, clipboard and composition handlers retain ownership of the mention's authoring field; unrelated native controls keep their own events.
+
 A fresh commit or replacement of an existing mention is one undo/redo step. Search text, active-row movement, loading state, and opening or closing the popup are transient UI state and do not create commands.
 
 The plugin owns one popup, its document/window listeners, debounce timer, and request controller. Its `styles` declaration is owned centrally by the editor, and `editor.destroy()` releases all runtime resources and automatic style references. In bundler-managed mode, import `@shelamkoff/rector/inline-plugins/mention/styles.css` and create the editor with `injectStyles: false`. Register the mention type once per editor. A definition can be reused across editors; each editor owns a separate runtime.

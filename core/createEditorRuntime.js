@@ -320,11 +320,12 @@ export function createEditorRuntime(input){
       })
       emit('history:changed',event.history)
     },
-    projectorFactory:({activationResolver,contextFactory})=>{
+    projectorFactory:({activationResolver,contextFactory,projectPresentation})=>{
       reconciler=new BlockReconciler({
         container:blocksElement,
         registry,
         contextFactory,
+        projectPresentation,
         activationResolver,
         inlineProjection,
         readOnly:config.readOnly===true,

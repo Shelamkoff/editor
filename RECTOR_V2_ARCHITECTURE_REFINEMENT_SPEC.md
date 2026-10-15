@@ -1,0 +1,1000 @@
+# Rector v2 — architecture refinement specification
+
+**Readiness:** `implementation-ready` for the scope defined below.
+
+## 1. Objective and governing constraints
+
+Make document preparation, projection synchronization, selection continuations, and extension resource ownership explicit and independently verifiable while preserving Rector's editing capabilities. The result uses the existing canonical document model, transaction engine, schema boundary, and scoped extension lifecycle.
+
+Evidence: [architecture recheck](RECTOR_V2_ARCHITECTURE_RECHECK_2026-10-07.md), performed against `98d5233e43e242d618670e2104da95d79f1a559f`. Further reviews of the published drafts at `19ee1383c42511bf9d85c4854791f2c679fb1247`, `05735fae7ce0c63a29f6edaed4e858c54e87b017`, `cbdb648a0d8370f7e12b666f57c80228e7080980` and `f75fb134e694db2f6cf591283c6907fa90a1f1f8` corrected the contracts below; production source is unchanged across those commits. The fifth review was performed on 2026-10-08. The report records the additional probes and their limits. The uploaded local audit describes additional unpublished changes. Those changes and their claimed browser results are not prerequisites or implementation evidence for this specification. Implement the contracts below against the actual checkout; when code has advanced, verify the corresponding behavior before deciding a slice is already complete.
+
+The 2026-10-15 extensibility review adds the source-confirmed E1–E7 boundaries described in [the extensibility recheck](RECTOR_V2_EXTENSIBILITY_RECHECK_2026-10-15.md). Its diagnostic observations concern the existing implementation; they are not successful acceptance results for this target. The payload-type proposal was checked using in-memory declaration substitutions and a complete external consumer in both Bundler and NodeNext; production declarations were not changed by that probe.
+
+This specification owns the follow-up work described here. It refines the affected ownership and C0/C1/C2/C3/C4/C5/C6/C7 contracts in [RECTOR_V2_REMEDIATION_SPEC.md](RECTOR_V2_REMEDIATION_SPEC.md). Where these documents overlap on the changed boundaries, this specification takes precedence. The previous specification's unaffected behavior remains required. The historical `RECTOR_V2_REFACTOR_PLAN.md` does not become a second implementation target.
+
+### Scope
+
+The scope includes the demonstrated partial-projection, validation, transaction-failure and inline dictionary defects; document ingestion and command preparation; clipboard and selection-conversion boundaries; prepared-operation integrity; the inline widget mutation and host-owned projection contracts; synchronous extension completion; selection and highlight ownership; inline tool teardown and presentation-value isolation; per-popup ownership; terminal trigger cancellation; object-shaped public payload types; executable dependency boundaries and third-party conformance; declarative inline action labels; and shared Mention label-edit rules, including the unpublished audit's source-confirmed word/line and local clipboard gaps.
+
+Carousel's active-slide, autoplay, media tasks, and mounted view already have a coherent instance owner. Extracting its settings/source presentation is optional local cleanup, not an acceptance requirement. Similarly, do not rebuild the toolbar merely to reduce its line count. Extract a view helper only where the changed selection/lifecycle boundary makes it useful.
+
+### Preservation constraints
+
+- **P1 — capabilities:** preserve the user capabilities of all 21 block types, 12 default inline tools, inline widgets, renderer, presets, settings, source modes, media operations, and Poll. Their existing factory registries remain the canonical inventory. Preserve the existing core/plugin parity matrices; a new API must not remove an editing capability.
+- **P2 — data:** preserve valid current `version: '2.0.0'` documents, exact block/inline `dataVersion`, text, marks, stable field/item identities, order, tunes, and the prescribed inert handling of unloaded extensions. Preserve producer-revision reuse in renderer. No serialized schema version change is needed for this work.
+- **P3 — consistency:** committed model remains authoritative for save. One semantic gesture uses one existing transaction/history operation. Ordinary authored updates and prepared commands omit recognized canonical no-op edits and produce no history entry when their edit plan is empty. Explicit `render()`/`clear()` document replacement retains its existing generation/history semantics even for equal input. This work does not add whole-document net-equality detection to arbitrary remove/insert compositions. Preserve nested user-command composition and enforce poisoning of an outer action after an entered nested runtime mutation fails, including caught failures with falsy thrown values, under section 3.2. Public input rejection before command dispatch follows section 3.3.
+- **P4 — interaction:** preserve caret position, forward/backward selection, current conversion grouping, native input, composition confirmation/cancellation, trigger/search behavior, local and structural clipboard, and Undo/Redo. Correct the demonstrated losses rather than preserving erroneous output.
+- **P5 — ownership:** preserve per-instance scopes, cancellation, read-only behavior, owner-document/window, sanitization/Trusted Types/URL policy, and ordinary reuse of unaffected mounted instances. A revoked context cannot acquire authority over a successor with the same serialized ID.
+- **P6 — implementation form:** retain ESM JavaScript with useful checked JSDoc and the existing type-only facades. Runtime declarations are generated by `scripts/generate-declarations.mjs`; do not add generated shadow declarations next to new JavaScript files. Follow the repository's JS and behavioral TDD guidance.
+
+Breaking changes to the selection extension contract and obsolete helper exports are deliberate and coordinated with all callers, declarations, tests, and documentation. There is no legacy adapter, old-API alias, dual runtime, old-document decoder, or data migration in this target. No universal command bus, new history engine, generic media manager, framework wrapper, or collaboration engine is introduced.
+
+## 2. Current architecture and reasons for change
+
+The [recheck](RECTOR_V2_ARCHITECTURE_RECHECK_2026-10-07.md) contains evidence and proof limits for each finding. The following facts constrain the design:
+
+| Boundary | Existing owner and relevant defect |
+|---|---|
+| Document input | `shared/DocumentSchema.js` owns current-format checks; `DocumentRuntime.#ingest()` adds editor normalization but also calls validation observers. Error reasons are inferred from messages. |
+| Transaction planning | `TransactionEngine` supplies a shared building draft. Clipboard/selection code in `DocumentRuntime` often reads the committed store instead; a composed paste can discard an earlier staged edit. |
+| Transaction failure | `TransactionEngine` stores the thrown payload as its failure sentinel and tests truthiness. A caught nested falsy throw can leave the outer draft eligible to commit. |
+| Inline dictionaries | Shared JSON cloning preserves own keys, but subsequent decode/filter/remap/merge and projection builders assign dynamic IDs into ordinary objects. The allowed `__proto__` ID can be lost or become the dictionary prototype. |
+| Deferred clipboard | Runtime returns shallow-frozen plans; application checks generation/revision only. A foreign or altered plan and a plan stale within the same draft can be applied. |
+| Clipboard dispatch | Synchronous text/file `accepts()` is unguarded and accepts a truthy Promise. Read-only transitions do not revoke the controller task; an advertised empty private payload is treated as absent. The latter two violate already inherited C5/C4 obligations. |
+| Projection read | `BlockReconciler.readBlock()` calls `InlineProjectionRuntime.serializeBlock()`. The latter counts references only in mounted fields and accepts stale hidden rich text from `read()`. |
+| Inline context | Runtime supplies `commitDomMutation()`, used by Mention, but `InlineWidgetContext` does not declare it. Spreading the shared authority object also leaks an unused inline `createId()` member. |
+| Selection | Core addresses `blockId + fieldKey + offset`; tools store field indices and retained DOM references. Both tools and the controller write the same document highlight key. |
+| Toolbar lifecycle | One throwing unbind/destroy stops cleanup. Constructor failure releases claims without destroying initialized tools. Generic UI interprets Heading action IDs. |
+| Mention | Definition-level editing and the DOM handler duplicate label-change rules. Word/line deletion filters and label-local clipboard ownership are incomplete in the inspected code. |
+
+The runtime import graph has no detected cycles or violations of the inspected extension/core, renderer/editing, and shared/runtime directions. These findings justify refining existing boundaries, not replacing the architecture.
+
+## 3. Desired-state architecture
+
+This section and sections 4–10 are normative. Verification, change maps, and slices derive from them.
+
+### 3.1 Owners and dependencies
+
+| Owner | Responsibility and boundary | Excluded responsibility |
+|---|---|---|
+| Shared document/schema boundary | Current envelope/exact-version decoding, JSON ownership, structured validation metadata, one canonical rich-text token interpretation | Editor observers, live projection, history, migration |
+| `DocumentIngestion` | Prepare a complete editor candidate from current serialized input; editor normalization and default-document preparation through explicit inputs | Store, engine, observers, mounted instances |
+| `DocumentRuntime` | Command authority, preparation/observer guards, current-draft snapshot capture, issuing/verifying clipboard handles, applying prepared edits through the existing engine | Embedded range slicing, clipboard MIME I/O, built-in plugin semantics |
+| Clipboard, logical-range and selection-conversion preparation | Pure calculations over captured canonical records, schemas/capabilities, selection and target inputs; return prepared edits and logical results | Owning state, calling the engine, reading mounted instances or native selection, publishing events |
+| `CanonicalTransforms` | Record assembly, sidecar/reference preservation, remapping and shared session allocation policy | A second document/selection/transaction store |
+| `BlockReconciler` and `InlineProjectionRuntime` | Acquire a consistent projected read, merge partial rich fields, serialize owned inline occurrences, reconcile/recover projection | Treating mounted DOM as the complete document or inventing inline payloads from markup |
+| `LogicalSelection` and `SelectionController` | Logical coordinates, strict extension continuation resolution, native selection and highlight presentation | Persisted document edits or independent history |
+| `InlineToolbar` | Tool mount leases, action continuations, guarded presentation values, eligibility, protected formatting dispatch, complete teardown | Field-index bookmarks, plugin-ID interpretation, a second selection controller |
+| `InlinePopupHost` and registry-bound runtime adapter | One active popup presentation; private runtime/show identity, per-show close handle and independent cleanup | Document persistence, a global plugin-visible close operation, search/session state |
+| Inline tools and Mention | DOM formatting or plugin-specific label decisions, through declared scoped ports | Private-core imports, direct highlight registry writes, independent document persistence |
+
+Composition stays in `createEditorRuntime`. New preparation helpers depend on neutral schemas/rich-text operations and `CanonicalTransforms`. They must not import `DocumentRuntime`, store/history/engine classes, reconciler, selection controllers, or plugins by built-in name. Runtime calls helpers; helpers never call back into runtime commands. Extensions continue to import supported `plugin-kit`/neutral contracts rather than private core.
+
+Detached templates created in an explicitly supplied `ownerDocument` are permitted inside rich-text preparation. Mounted nodes, editor roots, native `Range`/`Selection`, observers, and mutable extension instances are not planning inputs.
+
+### 3.2 Authoritative state
+
+`DocumentStore`/the existing `DocumentDraft` own document records and order. `TransactionEngine`/`HistoryStore` own commit/recovery/replay. A planning snapshot and an extension bookmark are bounded derived values, not new authorities.
+
+Within the existing engine, represent failure presence independently from its thrown payload. An entered nested building command that throws poisons its enclosing draft for every JavaScript thrown value, including `null`, `undefined`, `false`, `0`, `''` and `NaN`. If the caller catches the nested failure and the outer callback returns, rethrow the recorded value without truthiness testing or coercion; projection preparation, model/history publication and commit observers do not run. Later successful nested work cannot clear the failure. Keep the existing propagation of an independently uncaught outer exception and reset per-operation failure/phase state on unwind so a later valid command can run. This corrects the existing engine's sentinel representation; it adds no transaction layer. The engine preserves the value it receives; section 4.2 still owns schema-specific wrapping/classification, and section 3.3 still distinguishes pre-dispatch rejection.
+
+Use immutable canonical records already supplied by `peek()`. Planning must not deep-clone every unrelated block through `list()` or export the complete document to answer an ID/order query. It may traverse the ID order and hold immutable references. Extension callbacks still receive detached values under the existing ownership contract.
+
+Only the existing session allocator issues block/data/inline IDs. Explicit allocation is permitted preparation bookkeeping: IDs issued during failed/cancelled preparation remain consumed. Do not create per-planner allocators or recycle IDs on rollback.
+
+### 3.3 Complete preparation and callback authority
+
+Runtime guards each entire ingestion, edit-preparation or synchronous extension-value preparation invocation, starting **before** it reads caller input and ending after complete validation, detachment and result calculation. This includes envelope accessors, input arrays and property reads, schema/default/normalizer/capability methods, configured ID-source callbacks, UI `actions()`/metadata getters and tool presentation values from section 9.3, immediate inline `editing.handle()`, inline paste `fromMatch`, text/file `paste.accepts()`, and synchronous HTML-import decisions. A guard around schema/capability calls inside document planners alone is insufficient.
+
+One runtime-local preparation-depth guard feeds both host command checks and the phase visible to scoped contexts. Reentrant persisted or control-state changes, protected DOM callbacks and `DataTask` creation are denied before their producer executes. Committed queries remain available on an initialized runtime. The explicit private allocation service may perform normal session allocation/reservation while preparing; its injected source callback gains no permission to reenter runtime writes. Issued IDs remain consumed on failure.
+
+Use one narrow internal runtime entrypoint for controller-owned synchronous decisions:
+
+```ts
+prepareExtensionValue<T>(operation: () => T): T
+```
+
+It invokes the internal callback under that same guard and returns its fully captured value. The callback includes the extension invocation and all validation/detachment of its result, including accessor-backed labels or action payloads. Reject Promise/thenable completion, including callable thenables and throwing `then` accessors; contain later rejection under the existing diagnostic policy. It opens no independent transaction or state store. It is absent from `EditorHandle`, `EditorBlocksApi`, and extension/tool contexts. Toolbars and inline controllers already receive the internal runtime. Document planners and runtime-owned import adapters use the same guard directly; they do not receive an entire runtime as a planning service.
+
+Public write adapters check their ordinary command authority before observing caller-owned inputs. In particular, `EditorBlocksApi.insert()` must perform envelope validation, one-time capture of the accepted `type`, `data`, `tunes` and `inline` properties, and required detachment through `prepareExtensionValue` before the first property read. Do not evaluate unrelated properties or reread the original object during runtime argument expansion. Preserve omitted-value/default behavior and the public insert signature. Release preparation before dispatching the captured values to ordinary runtime insertion; do not wrap ordinary `update()` producers in this guard.
+
+This public insert capture is a pre-dispatch gate. Authority, envelope or detachment failure enters no insertion command and invokes no mutation producer; an enclosing ordinary caller that catches it may continue its existing draft. Once the captured input enters runtime insertion, preparation/application failure follows the existing nested-engine poisoning rule, even when caught. This settles acceptance of malformed input at one boundary; it does not promise the historical timing of every deep-data error. Valid insertion behavior remains unchanged.
+
+Public control adapters must enforce the same preparation/observation/protected-phase prohibition before calling their view, selection or teardown owner: `EditorBlocksApi.setCurrent`, `select`, `clearSelection`, `focus`, and `EditorHandle.focus`/`destroy`. Checking only a persisted runtime command cannot guard these direct routes. A denied public control call throws before focus, selection, current-block state, listeners or lifecycle flags change. Preserve ordinary permitted control behavior, idempotent destroy and the ability to destroy an editor with failed health after the protected invocation unwinds. Apply the check at public dispatch, not indiscriminately to internal view/selection methods: an owning operation's authorized restoration and failure cleanup must still work. Read-only changes retain the existing runtime control boundary and consult the same guards.
+
+Release preparation in `finally` before applying prepared edits, publishing validation observations or rendering the validated UI value. Pure helpers receive no runtime mutation authority. Keep ordinary outer user producers outside this guard, preserving their supported nested commands and existing engine poisoning rules. Async clipboard resolution and transient observers keep their existing distinct owners; a synchronous guard is not held across an await.
+
+`KeyboardRouter` retains keyboard event/action ownership. After proving the actual editable event and selection owner, use the shared guard to capture key/range inputs, the current canonical record and the mounted field-length table once, then invoke `shortcuts.handle()` and fully validate/detach its action. Keep `ShortcutOperationContext`'s public shape: `createId` uses the private session allocator; `splitField` uses the same captured canonical rich fields and neutral splitter; `fieldLength` reads captured numeric lengths, returning zero for missing/unmounted fields as today. These callbacks read no live runtime/reconciler state and receive no mutable transaction. Replace the shortcut closure over `splitRichTextField()`'s committed lookup with this captured helper and remove the now-unused internal runtime wrapper in the same slice.
+
+Release preparation before shortcut dispatch. `null` continues ordinary generic key handling; `native` completes shortcut handling with native default allowed and no core edit; `consume` cancels the owned key without a document edit. Valid `update`/`exit`/`focus` actions cancel native default before fallible application through the existing action owner. A thrown callback, invalid action, thenable or failing result accessor cancels/reports the proved-owned key and stops generic/native fallback. Foreign events remain untouched. Keep one gesture/history boundary and validate the operation's result lifetime before delayed focus. Toolbox emptiness/default/configuration decisions likewise use this guard within the current-view command specified in section 6.1.
+
+### 3.4 Synchronous extension completion
+
+A synchronous extension hook must complete its declared result before its owner proceeds. This applies to definition/schema/capability preparation, block and inline runtime acquisition, and mounted instance methods, as well as the tools and native-inline methods already specified below. Use the existing registry, runtime, scope and prepared-projection owners; a callback dispatcher or another lifecycle manager is not introduced.
+
+Capture methods with their original receiver. When a runtime/instance object is returned, capture usable cleanup before inspecting its remaining members so a later validation failure can release the acquired object. Reject an ordinary or callable thenable, or a result whose `then` accessor throws, as failed synchronous completion. Observe a returned promise's later rejection through existing containment; never hold authority or a synchronous guard across its await. Void hooks may have ignored synchronous non-thenable return values; this does not authorize asynchronous completion.
+
+| Hook class | Owning result/failure boundary |
+|---|---|
+| Schema/default/capability values and `read()`/`editableFields()` | Validate the complete synchronous value before use, owning JSON data and snapshotting descriptor arrays while retaining their owned DOM elements without cloning/reparenting them; a failure aborts the owning preparation/read and uses its existing recovery policy. |
+| Definition `setup()`, runtime `create()`, initial `setReadOnly()` and hydration | Reject failed completion before activation; revoke staged authority, abort acquired signals and attempt captured cleanup without masking the initialization error. |
+| Ordinary block/inline `update()`, `setReadOnly()` and native-inline instance repair | Check completion inside the existing fallible projection/control operation, before canonical commit or successful control completion. Reject and recover using the committed model; failed recovery retains the existing failed-health behavior. |
+| `focus()` and other live synchronous presentation calls | The owning adapter checks synchronous completion and contains/reports presentation failure. They cannot acquire nested persisted/control/task authority. |
+| Runtime/instance/tool `destroy()` and unbind | Revoke authority first, attempt all appropriate independent cleanup, contain/report failures and returned rejections, and never await cleanup while keeping a lease live. |
+| Settled transient notices and terminal cancellation | Use the observation and containment boundaries in sections 4.3, 7 and 10.2; a hook cannot roll back a settled document or interrupt unrelated cleanup. |
+
+Projection/acquisition calls retain their existing preparing/applying/recovering or staged boundaries. A live call outside those phases uses the same runtime-local preparation-depth protection to deny nested host/scoped writes, control calls and task producers before invocation while allowing its owner's intended direct DOM work. Do not put ordinary user command producers under this protection. Interactive trigger query/key callbacks retain their declared session actions; they are not reclassified as read-only notifications.
+
+`DataTask` remains the route for asynchronous persisted data work. This contract detects invalid hook completion and makes the host reject/recover coherently; it cannot cancel arbitrary later JavaScript scheduled by nonconforming same-origin code. Do not claim that promise rejection containment itself stops such work.
+
+### 3.5 Public object-shaped payload types
+
+A consumer's ordinary `interface NoteData { text: string; items: Array<{id: string; html: string}> }` must be usable as a block/inline payload without an index signature, registration cast or `any`. Use an `object` upper bound for the affected public `D`/`Data` payload parameters and `object` for their existing defaults, for example `D extends object = object`. Required generic parameters need not gain a default. Apply it consistently to schemas, definitions, runtimes/instances, contexts/tasks and capabilities in `plugin-kit/types.d.ts`, shared block/inline payload generics/defaults, and paired renderer payload types. Heterogeneous registration slots must accept those definitions rather than reintroducing a `Record<string, unknown>` payload requirement through an alias.
+
+Public host input payload slots in `InsertBlockInput`, `BlockUpdate` and `insertInlinePlugin()` accept object-shaped data too. Keep dictionary contracts such as inline-ID maps, tunes and locale maps as dictionaries. Do not mechanically replace unrelated `Record` uses or change the meaning of arbitrary-key public snapshots.
+
+The TypeScript `object` constraint expresses payload shape, not proof of JSON validity. Existing runtime schema/JSON ownership rules still reject arrays as root data, class instances, circular values, undefined properties, nonfinite numbers and other invalid current data. Envelope/data versions, serialized shape and accepted JSON values do not change. Canonical internal JSON dictionaries remain explicitly typed/validated by their existing owners.
+
+Change canonical facades/JSDoc first and regenerate declarations through the existing script. A complete external consumer must define both extension kinds, register them in `EditorConfig`, supply current serialized data, call host insertion/update and inline insertion, and pair them with typed renderers through published exports. The consumer must compile in Bundler and NodeNext without registration casts, index signatures, `any` or `skipLibCheck`.
+
+### 3.6 Extensibility boundaries and executable enforcement
+
+A new block, inline widget, formatting tool or renderer using the capabilities defined here is registered through its published contract. It requires no private-core import, built-in-name branch, or addition to `shared/blockTypes.js`/the full built-in preset inventory. The current registry remains fixed for an editor lifetime; this work does not introduce live plugin installation. New classes of behavior require an explicit host capability contract instead of an extension-specific bypass.
+
+Keep the existing dependency directions from section 3.1 executable. Extend `scripts/plugin-source-audit.mjs` using its existing TypeScript parser and existing CI invocation to inspect static imports, side-effect imports, re-exports and literal dynamic imports across `plugins`, `inline-plugins`, `inline-tools`, `plugin-kit`, renderer, shared and the new preparation modules. Resolve local paths before checking ownership. Enforce extension -> no private core, renderer -> no editing runtime, shared -> no runtime, and planner -> no runtime/store/engine/projection/controller/plugin dependency. Reject cycles in the checked static/literal runtime graph and retain the existing removal checks for indexed tool-selection/highlight ownership. Add a negative cycle fixture as well as forbidden-direction fixtures. Do not treat absence of a regex match as proof. Computed imports outside this static model remain an explicit proof limit, not a claimed runtime sandbox.
+
+Shared conformance covers every implementation claiming a capability. Add an independent third-party fixture through public package entries for custom dynamic fields, a marker-free widget, a formatting tool and paired renderers; preserve the built-in matrices too. Contract failures must have negative proof at the owning boundary. This adds verification to existing runners, not another public registry, test framework, state store or command engine.
+
+## 4. Document ingestion and validation observation
+
+### 4.1 Preparation boundary
+
+`DocumentIngestion` is an internal module with two separate operations:
+
+```ts
+prepareNewDocument(services): PreparedDocument
+prepareCurrentDocument(input: unknown, services): PreparedDocument
+```
+
+`services` contains immutable block/inline definition lookup, `defaultBlockType`, an explicit rich-text normalizer, and the session ID allocation/canonical assembly capabilities. It contains no runtime, store, observer, diagnostic sink, history, or live projection. `PreparedDocument` is a completely owned canonical candidate accepted by `DocumentStore`; its records and optional values obey the existing current envelope.
+
+Preparation is synchronous and either returns the whole candidate or throws. Runtime invokes both preparation functions under section 3.3, including input snapshotting and default/ID creation. Preparation never installs a partial document, mounts plugins, notifies observers, or returns a partly valid result.
+
+- Constructor `data === undefined` invokes new-document preparation. `render(undefined)` remains invalid serialized input.
+- A valid current empty document becomes one default block, as today.
+- Decode with the existing shared decoder before editor normalization. Registered data passes its current schema, rich-text normalization, tunes normalization, and inline validation. Unknown current-format blocks keep the existing inert JSON policy.
+- Strip a block's producer `revision` only if canonical data, tunes, inline, or data version changed through normalization. Do not remove it merely because preparation was extracted.
+- Do not prune an accepted unknown block or orphan sidecar during ingestion as an incidental new policy. Semantic edit assembly retains its separate existing referenced-inline filtering rule.
+- Successful explicit `render()` remains a document replacement, including when input equals the existing document; generation invalidation remains intact. Save uses committed state and existing save-time semantics.
+
+Inline dictionaries preserve own JSON-property semantics for every otherwise valid serialized or allocated ID, including `__proto__`. Creating, selecting, merging or remapping entries must neither invoke inherited setters nor turn an entry into the dictionary prototype. Lookups establish membership from own entries before reading a payload. Preserve the accepted ordinary/null-prototype and cross-realm plain JSON input policy and the serialized object shape. Apply this rule to registered and unloaded payloads, without blacklisting, renaming or discarding valid IDs or changing ingestion's orphan-sidecar policy. Use safe own-property writes or local null-prototype accumulators in the existing owners; a public Map contract or another data layer is unnecessary.
+
+Move `#ingest()` and default-document preparation into this boundary. Keep `#normalizeLocalData`/canonical record assembly as shared local-input behavior where other commands require it; do not create a second encoder in ingestion.
+
+### 4.2 Structured failures
+
+Define the reason vocabulary once in the neutral document contracts and reference it from the editor's public aliases:
+
+```ts
+type DocumentValidationReason =
+  | 'invalid-input'
+  | 'unsupported-document-version'
+  | 'unsupported-data-version'
+  | 'invalid-data'
+
+interface DocumentValidationIssue {
+  readonly reason: DocumentValidationReason
+  readonly blockId?: string
+  readonly inlineId?: string
+  readonly type?: string
+}
+```
+
+`EditorValidationIssue.reason` becomes required for a validation notification. Optional identity fields are present only when already validated/captured by the failing boundary; do not re-read raw input accessors to populate diagnostics.
+
+Use an internal shared error-metadata helper, backed by a `WeakMap` or equivalent private association with the thrown object. Classification is written by the boundary that knows what failed, never obtained from `message`, `name`, a regex, or a caller-supplied `.reason` property.
+
+| Failure boundary | Reason | Exception rule |
+|---|---|---|
+| Invalid document/block/inline envelope, missing or malformed version/identity, invalid JSON ownership or duplicate IDs | `invalid-input` | Native `TypeError` for library-generated shape/JSON failures |
+| Well-formed explicit document version differs from the current version | `unsupported-document-version` | Native `RangeError` |
+| Well-formed data version differs from a registered schema version | `unsupported-data-version` | Native `RangeError` |
+| Current-version schema callback, returned schema data, or editor data normalization rejects a value | `invalid-data` | Preserve the original object exception and its ancestry; non-object throws may be wrapped with `cause` |
+
+In particular, a custom schema throwing `RangeError('Plugin data version content constraint')` on current-version data yields `invalid-data`. Schema callback failures do not inherit a misleading version classification from wording or unrelated error metadata.
+
+Keep existing direct shared decode APIs throwable and usable by renderer, async presets, and clipboard. Existing renderer wrappers may retain their public type and cause. No package-level exception framework or second validation path is added.
+
+Capture an immutable issue with the preparation failure before notification. A schema/normalization failure anywhere in ingestion produces one notification. Allocator failure, projection failure, and unrelated internal errors do not become document-validation issues merely because they happen near input processing. Notification contains no document payload, HTML, text, stack, exception message, or cause.
+
+### 4.3 Observation and reentry
+
+Runtime publishes `onValidationError` only after the failed ingestion call has unwound, then rethrows the original preparation exception. A runtime-local observation guard surrounds invocation in `try/finally` and is consulted by both host-mutation checks and the phase exposed to `InstanceScope`.
+
+While the observer runs, committed queries remain available. Persisted writes, protected DOM operations, control-state mutation, and starting a data task must reject or remain inert under their existing authority result rules **before invoking a producer/callback**. `invokeObserver` still contains synchronous exceptions and rejected observer promises; an observer failure cannot replace the input failure or poison an otherwise unchanged editor.
+
+A nested `render()` may fail while an outer `interact()` still has a poisoned building draft. The independent observation guard is required in this case; merely moving notification to an idle phase check is insufficient. Retain the engine's existing outer-failure propagation. Once the outer invocation unwinds, an explicitly queued later command may run if the editor is still live and healthy.
+
+## 5. Partial projection synchronization
+
+### 5.1 Existing contracts, clarified
+
+Retain `BlockInstance.read(): D`, `editableFields()`, and `schema.mapRichText()` with these obligations:
+
+- `read()` returns a detached candidate with current collection membership/order and non-rich control values. It does not supply canonical inline payloads and must not mutate a cache into a competing copy of rich text.
+- `mapRichText()` enumerates every rich field in the candidate, including currently unmounted fields. Keys are unique within the block and stable across mounting and collection reordering.
+- `editableFields()` describes the mounted projection. A missing mounted field is not a deleted author field.
+- `BlockReconciler.readBlock()` captures the candidate and mounted field list once during the protected read; candidate structure and the field list must refer to the same synchronous projection state.
+
+Validate addressing before constructing key maps. Committed and candidate rich-field enumeration must each use unique nonempty string keys. Mounted descriptors must have unique keys across modes; a DOM element cannot be assigned to multiple field keys; each mounted rich-text descriptor must address a rich key in the candidate. Invalid/duplicate keys, aliases or an orphan mounted rich descriptor reject synchronization and use existing recovery. Do not silently select a last value, ignore an inconsistent field, or resurrect a deleted candidate field. This enforces extension conformance; built-in collection-ID checks remain in their schemas.
+
+No second partial-data update API is introduced.
+
+### 5.2 Merge algorithm
+
+The common serializer builds a committed rich-field map from `record.data`, then traverses rich fields in the **candidate structure**. Apply the following precedence:
+
+| Candidate field | Canonical value |
+|---|---|
+| Key has a mounted rich-text field | Serialized mounted DOM, converting owned widget occurrences to canonical references |
+| Key is unmounted and exists in committed rich-field map | The committed canonical value, including an intentionally empty string |
+| Key is new and unmounted, absent from committed map | Candidate value followed by ordinary schema/rich-text normalization |
+| Key is absent from candidate structure | Remains absent; never restore it from the committed record |
+
+Use key presence, not truthiness. Preserve candidate structure/order and non-rich values. Removing a person/slide/option must not resurrect its fields. Reordering must not exchange values. Creating a new unmounted field must not discard its initial value.
+
+This precedence applies **only to DOM synchronization**. Model-first `updateData()`/host updates continue to deliberately change, clear, add, or remove hidden fields through canonical normalization. Applying committed-value precedence to those commands would incorrectly cancel valid authoring updates.
+
+### 5.3 Inline references
+
+Carry the complete candidate sidecar through merge and the existing full schema/rich-text normalization. The definitive occurrence validation and pruning happen in canonical record assembly **after normalization**, across every rich field of the final normalized block. Earlier scans may support DOM ownership/serialization but must not irreversibly prune the payload pool or establish final uniqueness: normalization can introduce, remove or duplicate a reference.
+
+Reuse/extend the canonical text-node scanner in `shared/richTextOperations.js`; add occurrence counts to that shared interpretation. `CanonicalTransforms` owns the final semantic-edit assembly check; projection supplies the complete candidate rather than performing a competing final check. Do not add another placeholder grammar or scan raw HTML with a separate regex. Preserve ingestion's separate policy in section 4.1; this does not introduce sidecar pruning into document loading.
+
+- Only text-node occurrences count. A token-shaped string in an HTML attribute is not an inline occurrence. Encoded text follows the same interpretation as canonical operations.
+- A token establishes an owned reference only when the canonical inline map has its own corresponding entry; otherwise it remains literal author text.
+- Keep detached copies of all referenced known and unloaded inline payloads. Prune an entry only when no resulting field references it.
+- Duplicate occurrences of an owned inline ID across the complete block reject the operation before commit; do not silently keep one occurrence or drop the payload.
+- Mounted widget identity is resolved from runtime ownership. Arbitrary DOM attributes must not create a new trusted widget or payload.
+- A detached widget node alone is not authority to delete its sidecar. Hidden/unmounted projection can still have a surviving canonical reference. Actual DOM deletion is expressed by absence of the token in the resulting mounted field.
+
+`CanonicalTransforms` remains the final record-assembly/remapping owner. It normalizes, validates occurrence counts, then selects referenced entries from the complete candidate sidecar; it never tries to recover payloads already pruned by projection serialization. Both projection and assembly obey section 4.1's own-key dictionary rule, including membership checks before payload reads. Failure uses the existing protected projection recovery and failed-health behavior.
+
+### 5.4 Built-in adaptations
+
+Poll must remove raw `innerHTML`-to-`updateData()` synchronization on focusout. If a flush is needed, use `commitDomMutation(() => {})` and the canonical serializer. A blur with no canonical authoring difference creates no history entry; actual pending input is still synchronized once.
+
+Person must stop copying rendered widget labels into hidden canonical fields through `syncVisible()`/`read()`. Tab changes and structural controls preserve stable keys and obtain canonical data for model-first updates. Synchronize any pending mounted author edit before unmounting its field; then rebuild presentation from current canonical data. Preserve link-input normalization and avatar/task behavior.
+
+Carousel uses the same generic merge for inactive captions. Its instance remains the single owner of active slide, timer, view controller, and tasks. No plugin-name condition is allowed in core. The contract applies to every schema declaring rich fields, including a third-party multi-field plugin.
+
+### 5.5 Host-owned inline projection identity
+
+A conforming third-party `InlineWidgetInstance` supplies its element and declared methods; it does not need undocumented attributes to obtain correct editing coordinates. After validating/acquiring an instance and before exposing it to field, selection or input consumers, `InlineProjectionRuntime` sets `data-inline-plugin` to the registered type and `data-id` to the canonical inline ID. Reassert those host-owned attributes after successful update/read-only projection and during recovery before subsequent coordinate queries. Existing plugin-supplied values are overwritten with the registered identity. Remove redundant built-in identity-marker writes when their host-owned replacement lands; existing styles/selectors may continue reading the derived attributes.
+
+The private occurrence association remains authoritative. These attributes are derived DOM presentation for the existing neutral offset/traversal helpers; copying or forging them cannot register a widget, provide payload data, authorize an edit, or create a scope. Keep external HTML marker stripping. Renderer retains the equivalent host-owned presentation rule in its own projection owner.
+
+Only these identity markers become host-owned here. Plugin content, classes and its declared editable/read-only presentation remain plugin responsibilities; do not force every widget to `contenteditable=false` or remove Mention's label-edit capability. The returned root element remains stable for the occurrence.
+
+A complete owned widget contributes exactly one field logical unit regardless of label length. Generic formatting excludes its label, while before/after parent boundaries and surrounding-text selection remain available. Test load, hidden-field mounting, model-first update, move/reorder and Undo/Redo with a widget whose implementation sets neither marker. No new serialized property or second occurrence registry is introduced.
+
+## 6. Prepared document operations
+
+### 6.1 Snapshot and edit-plan contract
+
+Add `ids()` and `peek(id)` to the **existing internal transaction context**, delegating to `DocumentDraft.ids()`/`peek()`. `peek` returns the existing immutable canonical record. This is not a new public mutation API.
+
+Runtime captures the current operation's view before invoking a planner. For immediate commands inside `engine.execute`, capture from that callback's active draft; for clipboard export outside a transaction, capture from committed store. Snapshot ID order and immutable record references; record the source references actually inspected or affected. A snapshot accessor may read only those captured references, never subsequent live runtime state. Building a shallow reference map is allowed; copying unrelated deep data is not required.
+
+Internal prepared edits have one shape:
+
+```ts
+type CanonicalEdit =
+  | { kind: 'update'; id: string; record: CanonicalBlockRecord }
+  | { kind: 'remove'; id: string }
+  | { kind: 'insert'; index: number; record: CanonicalBlockRecord }
+
+interface PreparedEditPlan<Result> {
+  readonly edits: readonly CanonicalEdit[]
+  readonly result: Result
+}
+```
+
+`CanonicalBlockRecord` means the existing validated current-format record, not a parallel DTO or persisted schema. `Result` preserves the command's shape: clipboard application returns `blockId` with optional `inserted`/`focus`; `insertLocalBlocks` returns inserted IDs; logical-range/whole-selection replacement and inline-segment paste return a logical point; selection conversion returns `focusId` and `convertedIds`. The internal `removeBlocks` result is deliberately narrowed to the chosen surviving target ID or `false`, replacing its ambiguous `true` success value; migrate its `SelectionController` consumer in the same slice. In a clipboard result, `blockId` identifies the target and optional `focus` is `{fieldKey, offset}` on that target, without a conflicting nested `blockId` from a removed source. Do not return DOM nodes or executable callbacks in plans.
+
+Calculate result IDs and focus from the **final planned draft/order**, before application. A returned block ID must exist in that operation's final view; a supplied field/offset must be valid there. Never derive outputs by rereading committed store after nested `engine.execute`, which may have returned before the outer transaction commits. Subsequent caller commands can invalidate a result; validate it again before delayed restoration.
+
+Command applicability is independent of canonical equality. An applicable paste returns its ordinary successful logical result even when `edits` is empty, so its controller can collapse the replaced selection to the intended caret without history or revision advance. The engine's no-change path need not execute `selectionAfter`; retain the controller-owned focus path for this case. Reserve existing `false`/`null` values for actual non-applicability. A cut with no deletion may return its existing `null` outcome.
+
+All next records are validated and assembled before the first draft edit. Omit an update when its type, data version, data, tunes and inline map equal the source's canonical values under the existing equality rules; retain the original immutable record and producer revision. Calling `DocumentDraft.update()` and relying on reference equality afterward is insufficient because that method creates a new owned record. An empty edit plan creates no history entry or revision advance. Insert indices refer to the evolving ephemeral ID order after preceding edits in that plan. Invalid input/capability output throws before application; an unsupported selection/target returns the command's existing non-applicable outcome without partial edits.
+
+The complete invocation uses section 3.3, including input accessors and allocation callbacks. The planner has no observer or live runtime capability. Apply edits in the same existing transaction callback after preparation has returned; an enclosing `interact()` remains the owner of gesture metadata and selection-after handling. Return the already calculated logical result in either standalone or nested execution.
+
+Reserve block IDs against current draft IDs plus IDs generated in the plan. Preserve `CanonicalTransforms` reservation of inline sidecar keys, references, and literal token IDs. Do not rebind literal `{{id}}` text by accidentally allocating a colliding inline ID.
+
+The same boundary applies to the following live immediate commands. They remain runtime adapters over existing canonical/range helpers; do not introduce a planner or state owner for each row. Section 3.3's public insert pre-dispatch gate is distinct from preparation inside an accepted runtime command.
+
+| Existing command/decision | Required current-view behavior and result |
+|---|---|
+| `mergeAdjacent` | Check existence, active types and immediate target/source adjacency in the captured draft; prepare merged data, preserved/remapped sidecars and source removal before applying. Keep boolean applicability; a source moved before the target is non-applicable. Preserve the target's current tunes and all earlier staged text. |
+| `setTextAlign` | Derive changed tunes from each current draft record, retaining its data, inline, type and data version. Validate the whole requested set before edits. Keep `true` for planned tune changes and `false` for a valid no-op, with no revision/history advance for the latter. Section 8.2 owns the panel continuation after this model-first command. |
+| `applySlashBlockCommand` | Remove the authored query from the current source field; evaluate the resulting source's emptiness, target defaults/toolbox configuration and insertion position in the same view. Preserve replacement-in-place versus insertion-after-source, tunes/reference rules, and block-ID/`false` result. |
+| `replaceRichText` | Thin adapter over shared field/range preparation using current source text and sidecar. Retain its successful void result and current unknown-block/field errors; the invoking controller owns the logical caret. |
+| `insertInlineWidget` | Prepare current field text, inline payload, ID/literal reservations and trailing suffix together, preserving earlier insertions/edits in the same draft. Return the inserted inline ID. |
+| `replaceInlineWidgetWithText` / `removeInlineWidget` | Resolve occurrence and sidecar in the current view; replace/remove exactly that occurrence without restoring an earlier removed one or old neighboring text. Retain boolean applicability; the live removal entrypoint delegates to the same replacement preparation with empty text. |
+| `BlockToolbar` toolbox insertion choice | Within its existing accepted `interact()`, capture anchor/order, empty-anchor decision, target defaults/configuration and complete next records before any edit. Apply convert-empty-anchor or insert-after-anchor behavior; an omitted anchor appends, a stale named anchor is non-applicable. Return the target block ID or `false`; toolbar owns post-success current block, close and focus. Use the private allocator, not a public runtime allocation callback. |
+
+Toolbox preparation accepts the existing anchor, target type and optional toolbox item ID. An omitted item uses the target's ordinary defaults/conversion behavior; a named item must resolve before configuration or edits. Unknown target/item rejects, consistently with direct conversion, instead of the insertion branch silently ignoring an unknown item. This affects malformed internal requests, not the inventory or behavior of declared toolbox choices.
+
+`insert`, `update`, `move`, `remove`, direct `convert`, `splitBlock` and `updateInlineWidget` already enter the existing transaction and obtain draft state. Retain their primitive responsibilities; apply the shared preparation, equality and current-ID reservation rules where their inputs/results are assembled. In particular, preserve `update`/`updateInlineWidget`'s intentional ordinary producer invocation and reread of the latest draft afterward. `splitBlock` continues to see a preceding range replacement; replace its deep `tx.list()` order lookup with `tx.ids()`. Protected projection synchronization keeps its separate committed recovery boundary from sections 5/7/10. Delete unused internal `replaceBlock`; no production or test caller was found.
+
+### 6.2 Clipboard preparation owner
+
+Extract selection slicing, residual construction/merging, clipboard-part materialization and insertion planning from `DocumentRuntime` into focused internal preparation functions. Runtime retains authority, handle issuance, command adapters and engine application. The complete entrypoint disposition is:
+
+| Existing route | Target responsibility |
+|---|---|
+| `prepareLogicalClipboardSlice`, `applyPreparedClipboardCut`, `replacePreparedClipboardSlice`, `insertClipboardParts`, `replaceLogicalRangeWithClipboardParts` | Clipboard preparation over the captured view; runtime applies the common plan and returns its prepared result |
+| `applyPasteResults` | Same boundary for already resolved text/file results; preserve `{blockId, inserted, focus?}` |
+| `insertLocalBlocks` | Same boundary for local HTML/import block candidates; preserve inserted-ID array and `replaceEmpty` behavior against the active draft |
+| `replaceLogicalRange` | Shared logical-range preparation used by clipboard, `SelectionController` replacement/composition and `NativeInputController` line breaks; preserve its logical-point result |
+| `removeBlocks` | Whole-block Cut/deletion through `SelectionController.removeWholeBlocks`; use current-draft removals/default decision and return the final surviving target ID or `false` |
+| `replaceWholeDocument` | Whole-selection replacement and confirmed composition through `SelectionController`; preserve its logical-point result and unselected blocks/gaps from the current draft |
+| `replaceRichTextWithInlineSegments` | Pattern-based plain-text Paste through `InlineCommandController`; prepare segmentation, multiline insertion and inline payloads over the captured view; preserve its logical-point result |
+| `prepareHtmlImport` / `HtmlImportRouter` and inline pattern matching | Retain pure parsing/matching helpers and existing input/result forms; runtime coordinates the synchronous extension decisions under section 3.3 using a captured target and the private allocator |
+| `exportLogicalClipboardParts` | Thin read adapter over the one guarded slice preparation, with detached output |
+| `insertExternalBlocks`, `exportRichTextFragment`, `replaceRichTextFragment` | Delete unused internal wrappers and their exclusive helpers; no production consumers were found |
+
+Logical range ordering, per-field slices and replacement preparation have one internal owner shared by clipboard and conversion. A focused `LogicalRangePlans` helper is a suitable location alongside the other planners; it uses the same snapshot/edit contract and neutral rich-text/assembly capabilities. It owns no runtime, transaction or independent selection state. Do not create a planner/state owner per entrypoint or leave an old range implementation inside runtime.
+
+Preserve current `block`, `rich-text`, and local block result semantics; exact serialized decode versus local encode; compound residual ownership; inline remapping; empty-anchor replacement; and logical focus results. An empty-anchor decision must use the active draft. Specifically, if an earlier command in the same `interact()` populated an initially empty anchor, a following block paste preserves that populated anchor and inserts the pasted block after it.
+
+For Cut, choose the target from final planned order: first surviving selected residual after any lossless merge; otherwise the new default record if deletion empties the document; otherwise the survivor at `min(originalStartIndex, finalIds.length - 1)`. Preserve a valid residual focus; otherwise the existing selection owner resolves an editable field on the chosen surviving block. An inert survivor can have a block target without a text focus; do not invent a focusable block for it. The result cannot retain the removed source's embedded focus identity.
+
+Whole-block deletion computes removals and fallback against the captured draft. Create exactly one default block only when the final document would otherwise be empty; a block inserted earlier in the same action is a real survivor and prevents that fallback. `SelectionController.removeWholeBlocks()` uses the prepared target directly; remove its independent committed-order neighbor calculation. Selection/focus callbacks validate that result's operation lifetime and resulting generation/revision before applying it.
+
+For `replaceWholeDocument`, resolve an omitted ID set from the same current view, not a committed-store default argument. Replace only selected surviving IDs at their first selected position in that view; retain unselected blocks and their relative gaps, including blocks inserted earlier in the action. A missing supported rich field on the default type remains non-applicable before edits. Keep one logical-point result for replacement and confirmed composition.
+
+For inline pattern Paste, retain existing start/longest-match/registration ordering and nonoverlap selection, multiline splitting and inline sidecar remapping. Run `fromMatch` and result capture/validation under section 3.3 before applying any segment. `null` means that candidate is not accepted. A thrown callback, invalid payload or thenable fails the owned paste before any edits; remove the current exception-to-no-match catch and do not continue with partial widgets or silently paste plain text after such failure. After classifying an owned rich-text Paste, `ClipboardController` catches preparation failure and cancels the native default before reporting/returning; it stops all remaining paste branches. Cancellation cannot depend only on the successful boolean returned by `pasteText()`. A successful scan with no accepted match still follows the ordinary text route. The scoped preparation result must not reuse committed source text after an earlier update in the same draft.
+
+Keep `HtmlImportRouter` as the existing pure helper; runtime-owned preparation supplies captured `currentType` and an explicitly private allocator, and encloses `matchesRoot`, `importRoot`, conversion materialization and their complete returned-data validation under section 3.3. Its current inline/blocks/null result forms and C3 routing/error policy remain. Controllers must not run those extension decisions outside the guard and then treat their results as already validated input. Parsing detached HTML is permitted; it introduces no live projection dependency. The same controller-preparation rule applies to existing `InlineCommandController` insertion defaults/`createInitial` and pre-trigger schema encoding: acquire their synchronous value before persisted application under the common guard. Their existing valid results and insertion/search semantics stay unchanged.
+
+`ClipboardController` keeps text/file routing. After proving owned Paste, capture the routing input, target type and registration order under section 3.3 and require a synchronous boolean from each `paste.accepts()`. Retain current-target-first ordering, then registration order, with the first `true` winner; `false` continues matching. Keep the existing `PasteInput` forms, including the host File handle. A thrown callback, invalid result or thenable fails the owned Paste: cancel native default and report before returning, start no resolver and stop other matching/representation fallback. Validate the complete file batch before starting resolution. This removes exception-to-no-match handling for invalid extension completion while preserving valid no-match routing.
+
+`paste.resolve()` retains its declared awaitable result in the existing clipboard task owner. It is not a synchronous `prepareExtensionValue` result, and no preparation guard spans its await. Route completed data through guarded runtime preparation before application. Clipboard sidecar subset, filtering, remapping, merging and new inline-ID builders use section 4.1's own-key rule; remove the obsolete export wrapper instead of retaining a second corrected implementation.
+
+MIME parsing, clipboard I/O and event-target classification remain in the existing codec/controller/adapters. Determine private MIME presence from the advertised formats, independently of payload truthiness. Once that MIME is present, cancel the owned event before its fallible read/decode; empty, unreadable, malformed or version-invalid payload is a consumed rejection with no mutation or fallback. The ordinary files/HTML/text route applies only when private MIME is absent. This makes inherited C4 explicit. Copy preparation precedes external clipboard write; cut requires the existing sufficient-write and unchanged-selection checks before any deletion.
+
+### 6.3 Deferred clipboard integrity
+
+`prepareLogicalClipboardSlice()` returns a runtime-issued, frozen handle. The controller-visible part exposes only detached, deeply read-only `parts`, `bookmark`, and `focus` needed for transfer/routing. Residuals, edits, target indexes, source references and validity data remain in a runtime-private `WeakMap` keyed by the handle. Do not trust a visible property when applying the operation.
+
+The private preconditions are:
+
+```ts
+interface ClipboardPreconditions {
+  readonly generation: number
+  readonly revision: number
+  readonly orderedIds: readonly string[]
+  readonly sources: ReadonlyMap<string, CanonicalBlockRecord>
+}
+```
+
+`sources` contains immutable references for every record read or affected during preparation. At application, after ordinary authority checks and before allocation/capability evaluation/edits:
+
+1. Require handle membership in this runtime's private map. Foreign, cloned, forged or structurally similar objects throw `TypeError`.
+2. Require matching committed generation and revision.
+3. Compare current `tx.ids()` with captured ID order.
+4. For each captured source, require `tx.peek(id) === capturedRecord`.
+
+The latter two checks detect changes already staged in the same building transaction, when committed counters are unchanged. Rewriting a touched record to a new immutable reference conservatively invalidates the plan even if its content is equal. An unrelated data-only change in the same draft may coexist when order and every captured source are unchanged.
+
+A stale handle rejects with the existing stale-operation error outcome; caller cancels the cut/paste and performs no automatic retry against a new selection. No model/history/selection update or producer execution occurs. Do not silently regenerate a deletion plan after clipboard export. A committed nonempty application advances revision, so replay of the handle becomes stale. An applicable paste whose calculation yields no edits follows section 6.1's successful logical-result/caret rules, without document history or revision advance. A cut with no deletion may return `null`. The handle remains document-valid while its preconditions hold; controller selection/operation authorization is still checked before every use, including after a previous no-change paste collapsed selection. A failed or cancelled preparation that changed no captured source does not require a durable deduplication log.
+
+Runtime destruction retires all handles by releasing its private map. A plan derived from an aborted draft cannot apply if it depends on records/order absent from the eventual current draft. No independent draft version counter, full-document hash, permanent plan queue, or new store is needed.
+
+The asynchronous resolver has a distinct operation lifetime in the existing `ClipboardController` task/AbortController, as already required by C5. Wire successful read-only mode transitions to revoke this task at the existing control/composition boundary, before subsequent fallible UI/notification callbacks. Re-enabling editing cannot revive it. Keep cancellation on replacement/destroy/new task and the generation/revision, anchor and selection checks before result application; validate the own result's lifetime before queued focus as well. An aborted late completion invokes no mutation producer or focus and is not retried. Preserve allowed resolver Promises and existing lifecycle machinery; do not add a second task manager or public rights over arbitrary blocks. Task revocation and the document preconditions of a prepared handle serve different purposes and both remain required.
+
+### 6.4 Selection conversion owner
+
+Extract single-block and cross-block slicing, conversion payload preparation, target import/configuration, and edit/focus planning into one selection-conversion module. It shares canonical assembly and neutral rich-text helpers with clipboard preparation rather than copying them.
+
+Preserve the following decisions from the current conversion contract:
+
+- Same-type conversion without a toolbox item remains a no-op where currently defined; whole/collapsed conversion and partial conversion remain distinct.
+- Use declared capability `selectionMode`/import semantics for per-block versus joined results, including one joined target where specified.
+- Keep unselected leading/trailing fields/fragments and compound assets/items exactly once. Preserve source tunes and the existing target configuration rules.
+- Preserve inline maps with transferred rich text; reject a target conversion that cannot retain the owned references it claims to transfer.
+- Use stable field keys and current draft order, including earlier changes in the same transaction.
+- Preserve target toolbox configuration through the existing data-operation context and shared allocator.
+- Retain `{focusId, convertedIds}` for existing toolbar/adaptor consumers and restore resulting selection through the existing interaction transaction.
+
+Remove the superseded algorithm bodies from `DocumentRuntime` in the same slice. A new class that receives the entire runtime and forwards to its old private methods does not satisfy this boundary.
+
+## 7. Inline widget mutation and popup contracts
+
+Add the capability already required by Mention to `InlineWidgetContext`:
+
+```ts
+commitDomMutation(operation: () => void): void
+```
+
+Construct the inline context explicitly from supported members. Do not spread incidental authority-factory members into this public object. The supported surface remains `id`, `blockId`, `fieldKey`, `signal`, `getData`, `updateData`, `commitDomMutation`, `beginTask`, and `isReadOnly`. Inline `createId` is removed from this incidental surface; it has no discovered inline consumer. Block/data-operation allocation remains available under its existing contract.
+
+The operation is synchronous and intended for widget removal/unwrap or unavoidable browser-range edits involving the occurrence and adjacent text in its registered rich field. Plugin code must confine its DOM edit to that field/occurrence. The canonical synchronization boundary is the owning **block** through `syncBlockFromProjection`; this contract does not claim to sandbox arbitrary JavaScript or mechanically prevent a closure from touching other DOM.
+
+Preserve current scope results:
+
+- Invalid callback: `TypeError`.
+- Revoked, read-only, or unhealthy scope: do not call it and do not mutate.
+- Staged scope or prohibited reentry phase: reject before invocation.
+- Successful canonical change: one existing transaction; equal canonical result: no history entry.
+- Callback/serialization/normalization failure: restore committed projection and prior selection; rethrow the originating failure. If recovery also fails, preserve the existing failed-health/aggregate-error behavior and readable committed save.
+
+A returned Promise/thenable, including a callable thenable or throwing `then` accessor, cannot be accepted as a completed synchronous edit. Reject and recover; contain a subsequently rejected returned promise through the existing diagnostic/observer containment policy. Plugins must use `beginTask()` for asynchronous data work and must not leave DOM mutations scheduled after this callback.
+
+Do not call nested persisted mutations or `beginTask()` inside the protected callback. `updateData()` remains the route for canonical payload changes. Preserve the inline route's source-projection retention needed for caret-sensitive editing. Add a typed external inline-plugin consumer that calls the declared operation; export-name parity alone is insufficient proof.
+
+### Native-edit capability and notification
+
+Native deletion reconciliation in section 10.2 uses an internal controller/runtime path. It exposes no arbitrary sidecar updater or additional persisted-data authority through `InlineWidgetContext`. Extend the definition and instance contracts with these optional methods; existing members remain:
+
+```ts
+type InlineNativeDeletionType =
+  | 'deleteContentBackward' | 'deleteContentForward'
+  | 'deleteWordBackward' | 'deleteWordForward'
+  | 'deleteSoftLineBackward' | 'deleteSoftLineForward'
+
+interface InlineWidgetNativeEditInput {
+  readonly inputType: InlineNativeDeletionType
+  readonly beforeText: string
+  readonly text: string
+}
+
+interface InlineWidgetEditCapability<D extends object> {
+  handle(input: InlineWidgetEditInput,
+         data: Readonly<D>): InlineWidgetEditAction<D> | null
+  reconcileNative?(input: InlineWidgetNativeEditInput,
+                   data: Readonly<D>): InlineWidgetEditAction<D>
+}
+
+interface InlineWidgetNativeEditNotice {
+  readonly inputType: InlineNativeDeletionType
+  readonly text: string
+  /** Final projected label differs from the captured pre-native label. */
+  readonly labelChanged: boolean
+  /** Final UTF-16 caret offset inside this label, or null if elsewhere. */
+  readonly caret: number | null
+}
+
+interface InlineWidgetInstance<D extends object> {
+  // Existing element, update, setReadOnly, focus and destroy members remain.
+  afterNativeEdit?(notice: InlineWidgetNativeEditNotice): void
+}
+```
+
+`reconcileNative` opts an editable widget label into post-native text reconciliation. It is a pure synchronous decision over detached text and canonical data, returning the existing `update`, `remove`, or `replace-text` action. It cannot return `null`: passing after a changed label would leave model and projection inconsistent. An exception, invalid action, or thenable rejects the owned operation and invokes recovery.
+
+An opted-in definition must produce an instance with a synchronous `update()` method so a retained occurrence can accept finalized canonical payloads. Validate/capture this requirement at instance creation and use existing mount-failure cleanup when absent. `update()` remains optional for widgets without this capability. Do not recreate an opted-in occurrence on every native edit merely to avoid maintaining its payload/projection coherently.
+
+`afterNativeEdit` is a synchronous transient notification after successful native reconciliation, whether the canonical result is `committed` or `unchanged`. Notify changed surviving occurrences plus the final caret's surviving opted-in occurrence, deduplicated. `labelChanged` compares finalized projected text with the captured pre-native label; a notification alone is not a request to activate an inactive label.
+
+Invoke notifications after prepared projection/engine work unwinds and after section 10.2's fresh-trigger ownership handoff. Use the runtime observation guard described in section 4.3: no persisted mutation, host control-state change or `DataTask` creation from the hook. Mention's transient popup/search/caret work may run; the hook grants no further persisted authority. Contain callback errors/returned rejections and do not roll back an already settled document because notification failed. Check the operation's actual resulting generation/revision and current occurrence before notification; never notify a destroyed instance or a later unrelated successor. The hook does not repair canonical data, retained caches or projection.
+
+Snapshot both optional methods through the existing definition/instance method-capture machinery. Their canonical declarations, generated consumers and documentation change in the same slice.
+
+### Per-popup ownership and close capability
+
+Replace the plugin-visible global `hidePopup()` with a handle for one show request:
+
+```ts
+interface InlinePopupHandle {
+  close(): void
+}
+// Existing ownerDocument/signal/t members remain.
+interface InlinePluginRuntimeContext {
+  showPopup(anchor: HTMLElement, content: HTMLElement,
+            cleanup?: () => void): InlinePopupHandle
+}
+```
+
+`ExtensionRegistry` binds each runtime's adapter to a private owner identity. `InlinePopupHost` owns the existing single active popup and gives every show request a distinct private presentation identity; the returned handle is frozen and closes only that request. Expose neither an arbitrary owner ID nor a global close operation. Host outside-click, anchor removal, successful read-only transition and destruction keep an internal forced-close path.
+
+Validate element/callback shapes and owner-document before replacing a current popup; malformed arguments throw `TypeError` without replacing it. A live/writable request with an anchor in the connected owning editor may replace the current presentation. If authority/anchor is unavailable, return an already closed handle and attempt the supplied cleanup once. Closing an old, already closed, superseded or destroyed handle has no effect on another presentation and invokes no cleanup again.
+
+On replacement/close, retire ownership and detach host listeners/observers/DOM before invoking the captured cleanup. Run cleanup under the runtime observation guard with synchronous-hook containment from section 3.4. A throw or rejected completion cannot prevent the next valid popup or the remaining host cleanup. Reuse the host's generation ordering for reentrant show: a newer valid request wins; a superseded outer request releases its own candidate and returns a closed handle, never closes the newer one.
+
+Mention and Color retain their own current handles and close them on apply/cancel/session or instance teardown. Capture the handle for the initiating session/occurrence in retained callbacks so they cannot adopt a successor's handle. Per-instance/query signal checks still own late asynchronous work; the close handle does not authorize a stale callback to open a new popup. Remove `hidePopup` from public types/runtime adapters and all plugin/test consumers in the same slice, including `inline-plugins/color.lifecycle.test.js` and `tests/browser/native-color-popup.js`, with no alias. Removal proof targets the extension context/callers, not historical prose or the host's internal forced-close implementation. No new popup/search/task manager is introduced.
+
+## 8. Selection continuations, formatting, and highlights
+
+### 8.1 Public selection port and mutation inputs
+
+Replace `CrossEditableSelectionPort` with a strict extension-facing port; retain `bindSelectionPort` as the mount hook with the new parameter type. The following are the new types and changed context members; other action-context members retain their existing responsibilities:
+
+```ts
+declare const inlineSelectionBookmarkBrand: unique symbol
+
+interface InlineSelectionBookmark {
+  readonly [inlineSelectionBookmarkBrand]: true
+}
+
+interface InlineSelectionRestoreOptions {
+  readonly endOffsetDelta?: number
+}
+
+interface InlineSelectionPort {
+  readonly range: Range | null
+  capture(range?: Range): InlineSelectionBookmark | null
+  restore(bookmark: InlineSelectionBookmark,
+          options?: InlineSelectionRestoreOptions): boolean
+}
+
+interface InlineMutationContext {
+  mutate<T>(bookmark: InlineSelectionBookmark,
+            operation: (range: Range) => T): T | undefined
+  restoreSelection?(bookmark: InlineSelectionBookmark): boolean
+}
+
+interface InlineToolActionContext {
+  readonly range: Range | null
+  mutate<T>(operation: (range: Range) => T): T | undefined
+  restoreSelection(): boolean
+  // Existing alignment, close, localization and tooltip members remain.
+}
+```
+
+Each tool receives a narrow per-mount adapter backed by the existing selection owners, never the raw controller. Runtime provenance uses a private ownership association, not the type brand alone. Adapters and mutation contexts progress from staged to active to revoked. During bind/onMount they are staged: `range`/`capture()` return `null`, `restore()`/`restoreSelection()` return `false`, and mutation rejects before invoking a callback. Activate only after the entire toolbar initializes successfully. Unbinding/destroying permanently revokes that adapter; mounting the same tool elsewhere creates a different one.
+
+A bookmark captures private port/mount identity, the existing selection/action lease, runtime generation and canonical revision, and logical anchor/focus (`blockId + fieldKey + offset`). It retains no native `Range`, DOM element, DOM field index, or root as its address.
+
+The generic formatting domain excludes a selection with **either endpoint inside a currently owned inline-widget presentation**, including the owned element itself, `selectNodeContents(widget)` and mixed inside/outside endpoints. Check existing widget ownership before logical capture or fresh-range resolution: `range`/`capture()` return `null`, mutation runs no producer, and rejected restore has no selection/focus/highlight/model effect. Field-atomic offsets cannot represent label-local selections. Parent-container boundaries immediately before/after a widget remain valid; a complete widget between external author-text endpoints stays an atomic unit. Label-local selection belongs to widget editing, not an expanded generic bookmark coordinate system.
+
+`range` returns a fresh clone of the currently authorized local/cross-field range. `capture()` uses the active authorized selection. A supplied `Range` must correspond to that selection or the range authorized inside the current protected formatting callback. An arbitrary old range cannot mint fresh authority. Capture anchor/focus direction from the authorized logical selection; do not convert a backward selection to forward merely because DOM `Range` endpoints are ordered. If no valid authorized rich-text selection exists, `capture()` returns `null`.
+
+A real native selection change, cancellation/replacement of its action, any external canonical commit (including to an unrelated block), document replacement, read-only transition, detach or destroy invalidates the continuation. Toolbar-owned focus moves and successful restoration of that same action do not themselves expire it. An invalidated retained range cannot be restamped at the current revision: `range`/`capture()` stay `null` until a new actual editor selection or a still-valid own-operation result establishes authority.
+
+Handle queued/coalesced `selectionchange` against the selection owner's expected native presentation under the current action lease, generation and revision. Keep a bounded expected-result signature in that existing owner, not another selection store. Ordinary restoration expects the authorized endpoints/direction; the existing conversion mode deliberately retains a logical converted range while placing a collapsed native caret at its logical end. Preserve that mode rather than requiring the native endpoints to equal the full logical bookmark. A notification matching a still-valid own restoration must not revoke it merely because the synchronous restore callback has already returned. A differing current editor selection invalidates it. A temporary synchronous “restoring” flag alone cannot establish event ownership. This follows the [Selection API scheduling contract](https://w3c.github.io/selection-api/#scheduling-selectionchange-event), consulted on 2026-10-07.
+
+`restore()` first validates the entire request, then resolves both endpoints by exact current field key. It returns `false` without changing focus, native selection, highlight, or model on any stale/foreign/revoked token, expired action lease, generation/revision mismatch, read-only/unhealthy/disconnected editor, missing field/block, or invalid endpoint. Fields must be currently exposed rich-text editables within the editor's connected projection, not hidden/unmounted replacements. Being outside the viewport alone does not invalidate a field. Public port operations are available only in idle phase or in that action's own synchronous protected DOM callback, never in another action's building/preparing/notification phase.
+
+Validate private mount/action authority and the permitted entry phase before reading caller-owned `Range` or restore options. Capture and validate those inputs under section 3.3's shared preparation guard; do not invoke caller accessors again while publishing selection. Release preparation and recheck the continuation before changing focus, native selection or highlights. This also applies inside the action's own protected formatting callback and must preserve its permitted restoration. It does not hold the preparation guard around selection publication or widen the port's entry phases.
+
+Offsets follow the existing shared contract: UTF-16 text units; one unit per authored `BR` and atomic widget; zero units for projection-only caret padding. Widget label length is not field logical length. Do not split a surrogate pair when a requested endpoint would create an invalid boundary; reject instead of redirecting it.
+
+Mounted controls pass the bookmark captured for their initiating action to `mutate()`; they cannot pass a raw retained range. Panel `mutate()` remains bound to its action lease and the toolbar's current authorized continuation. Direct `toggle()` dispatch captures and validates its continuation in the host. Every path checks mount provenance, action lease, generation/revision, endpoints, eligible fields and allowed tool before invoking extension code, then supplies a freshly resolved `Range` to the synchronous operation. `InlineToolActionContext.range` is a fresh nullable view subject to the same checks. A stale mounted callback cannot adopt the lease current at the time it happens to execute.
+
+### 8.2 Length-changing formatting and its own commit
+
+`endOffsetDelta` is for the existing case-transform consumer. Default is zero. It adjusts the bookmark's original DOM-order **end endpoint in its own field**, irrespective of forward/backward direction; repeated restore applies the delta to the original endpoint, not cumulatively. It must be a finite integer. A nonzero delta is permitted only during the owning synchronous DOM mutation and cannot move the end before the start in one field or outside the resulting field. Invalid options throw `TypeError` before effects; an endpoint invalid for the resulting projection returns `false`. It cannot rebase a stale token.
+
+Use this lifecycle:
+
+1. Capture at revision N before a formatting action/panel continuation.
+2. Validate and resolve before producer invocation. A `null` capture or failed pre-mutation restore cancels the action with zero producer calls.
+3. Restore within the authorized DOM callback as needed. Revision is still N; repeated restoration between wrapper-removal phases is valid. Once DOM editing has started, failure of a required restore aborts the protected operation and uses its existing projection/selection recovery; never commit a partial transform.
+4. Toolbar captures the resulting logical selection inside the protected callback, after the tool finishes.
+5. Existing synchronization commits a canonical change once, advancing to N+1. A canonical no-op remains at N and creates no history. Use the operation's actual resulting revision.
+6. Toolbar restores that known transaction result and refreshes its selection/panel continuation only if mount, action lease, expected generation, resulting revision and live/writable state still match. Apply the same checks before a queued restore, UI refresh, or issuance of a new bookmark. An intervening queued action/commit cancels this work; it is not an unchecked internal exception to the rules.
+7. Subsequent tool operations capture a fresh token from that current continuation. An old N token is stale after a real N+1 commit or lease invalidation; an otherwise valid no-op does not fabricate a revision change. Close/cancel uses the toolbar's current valid continuation, never a pre-commit DOM range or stale token.
+
+No public `force`, `ignoreRevision`, or general rebase method is introduced. Neither rejection nor recovery retries against a newly captured target, a retained native range or the first available field. Internal history restoration remains separate: its existing intentional fallback/reveal behavior may recover a history caret when structure changes. Do not expose that tolerant fallback as strict extension restoration or remove it from history to simplify the new port.
+
+`InlineToolActionContext.setTextAlign()` validates the same current panel continuation and remains a model-first tune operation. A stale continuation returns `false` before invoking a producer. After its own successful transaction, refresh the expected revision and logical selection through the same guarded own-operation rules; a canonical no-op stays at the current revision. Preserve direction and let subsequent restore/close use that refreshed continuation. Do not reroute alignment through a DOM formatting callback. Other panel members remain bound to the same lease: stale `getTextAlign()` returns `mixed`; tooltip, close and restore calls cannot affect a successor panel. Existing model-first type/control actions in the toolbar likewise restore only their own validated logical result under these continuation checks.
+
+### 8.3 Formatting ownership and helper replacement
+
+Tools own DOM wrapper transformations; toolbar owns the protected mutation/transaction; selection owners own capture/restore and highlights. DOM formatting algorithms do not independently set editor native selection. Where a multi-stage transformation requires restoration between stages, its tool adapter uses the injected port and checks the result.
+
+Replace indexed/DOM-owned utilities `saveCrossBlockOffsets`, `restoreCrossBlockRange`, `saveSelectionOffsets`, `restoreSelectionOffsets`, `clearCrossBlockRange`, and `SavedOffsets`. Remove the old range/activate/deactivate-only proxy, raw-range mutation-context signature, and direct highlight helpers. Migrate simple tag tools, clear formatting, link, script, font size, color picker, case transform, and the alignment action context together with the port change. Mounted and panel callbacks use the resolved range supplied to their mutation callback; a stored DOM range is never the action address.
+
+Preserve partial/nested wrapper handling, attributes, exclusion of widget labels, and backward direction. Case expansion such as `ß` to `SS` adjusts only the final field endpoint. Script/clear-formatting/font-size sequences may restore several times within one callback. Delete script tool's post-close restoration of pre-commit offsets; close returns to the refreshed toolbar continuation. Repeated panel apply must not reuse stale tokens.
+
+Separate formatting algorithms, UI helpers, and the simple-tool factory only along these responsibilities. A late-bound selection binding helper may store the injected adapter; it may not implement field addressing, own native selection, or access highlights. Remove superseded helper exports rather than leaving aliases.
+
+### 8.4 Highlight ownership
+
+Keep the existing `oe-cross-select-v2` CSS name and style rule. The active `SelectionController` is the only editor code that writes it. Store the exact `Highlight` object registered by each controller. Cleanup deletes the registry entry only when `registry.get(name)` is that same object, then drops the retained reference regardless.
+
+The current active controller may replace the shared visual entry. Clearing/destroying an earlier controller cannot remove its replacement. Stale tool continuations cannot repaint it because their ports are revoked. All registry/constructor access uses the owning document's window and existing feature detection. Missing CSS Highlights support leaves logical selection functional.
+
+This implements one active highlight presentation in a document; it does not add simultaneous multi-editor selection rendering. The document-level registry semantics are grounded in [CSS Custom Highlight API §3.2](https://drafts.csswg.org/css-highlight-api-1/#registering-highlights), consulted on 2026-10-07 as a working draft.
+
+## 9. Inline toolbar lifecycle and declarative actions
+
+### 9.1 Resource lifecycle
+
+Keep current inline-tool factories and hooks. A small internal acquisition ledger owns tool claims, initialization state, mount-port revocation, tooltip/listener resources, and toolbar DOM. It is not another extension registry.
+
+- Preflight definitions and ownership, then put the entire acquisition sequence under the failure-cleanup boundary, including claims and tooltip creation.
+- Record initialization as started **before** invoking bind/mount hooks, which may allocate before throwing.
+- On constructor failure, revoke acquired ports first; independently unbind and invoke `destroy()` once for every started tool, including the failing tool. Release unstarted claims without invoking their hooks.
+- On ordinary teardown as well as constructor failure, revoke **all** acquired ports, mutation contexts and action callbacks before invoking any extension cleanup hook. A failing unbind must not skip the same tool's destroy; a failing destroy must not skip other tools or non-tool resources.
+- Release ownership in `finally`, only if the claim still belongs to this toolbar. Prevent a stale cleanup from releasing a successor's claim.
+- Cleanup is idempotent. Repeated destroy does not reinvoke hooks. Every acquired non-tool resource is released independently.
+- Finish all cleanup attempts before reporting failures through existing cleanup diagnostics. Constructor rethrows its original initialization error; cleanup errors do not mask it. Ordinary teardown contains cleanup failures after reporting them.
+
+Bind, mount, unbind and destroy hooks are synchronous. A tool's own cleanup must complete before its hook returns. A returned Promise/thenable is a contract violation: contain later rejection, report it, and continue host cleanup without keeping authority alive. Asynchronous teardown or reuse of a tool that violates this synchronous contract is unsupported.
+
+The guarantee is that every appropriate cleanup hook is attempted once and all host-owned claims, adapters, listeners, tooltip resources and DOM are independently released. The host cannot guarantee release of an extension's hidden resources if that extension throws before cleaning them. A tool that was successfully destroyed or whose failed initialization was fully cleaned can be mounted again; no permanent poisoned-tool registry is added. Two live editors still cannot mount the same mutable tool object simultaneously.
+
+### 9.2 Action metadata
+
+Extend the existing shared action value, not a Heading-specific capability:
+
+```ts
+interface SettingsAction {
+  id: string
+  label: LocalizedLabel
+  compactLabel?: LocalizedLabel
+  icon?: string
+  active?: boolean
+  disabled?: boolean
+}
+```
+
+The inline control trigger displays the active action's `compactLabel ?? label`. Menus and `BlockToolbar` display `label`. Heading supplies H2–H6 explicitly as compact localized labels; interpretation of its action IDs stays inside Heading's `apply()`.
+
+All IDs are opaque to generic core. Replace Heading-derived `data-level` with generic `data-action-id` where a DOM action identifier is needed. Preserve group accessibility label, localized menu labels, icons, active/disabled state, keyboard/radio behavior, and application to current data through the existing capability.
+
+Use section 3.3's internal preparation entrypoint for every affected `actions()` call and the complete returned-list snapshot, including `label`/`compactLabel` accessors and `LocalizedLabel` validation. This applies to the inline trigger label, its dropdown and `BlockToolbar` action settings. Release the guard before rendering the validated value; no extension getter is first evaluated during DOM rendering. Validate/snapshot the complete action list before publishing its UI. Invalid metadata rejects the entire affected group: contain and report the preparation error through existing diagnostics, hide/disable that group and revoke its previous action callbacks. Never expose a partially validated list or leave stale actions live. Other toolbar controls remain usable and document/history stay unchanged. Render labels as text. Existing Table, List, Columns, Attaches, Poll and Link Preview action producers can omit the new field and retain full-label behavior.
+
+### 9.3 Tool presentation values
+
+Capture the host-used tool identity/dispatch members once at mount, with the original receiver: nonempty `type`, string `icon`, optional string `title`/`shortcut`/`tag`, required `isActive`/`toggle` and supplied optional methods. Validate accessor-backed values under section 3.3 before publishing the mount. Mutable state remains on the tool instance/closure; later reassignment of caller-owned dispatch metadata cannot redirect an existing mount. Do not add calls to optional methods the host does not otherwise consume.
+
+Every `isActive(selection)`, `getIcon(active)`, `getTitle(active)` and host-read presentation getter uses `prepareExtensionValue`, including result capture/validation. `isActive` returns a synchronous boolean; supplied icon/title methods return strings. Absent optional methods retain the captured icon/title/type fallback. Fully capture a tool's values before changing its button. These callbacks may compute presentation but cannot invoke nested document/control/task producers. Direct DOM formatting remains in the authorized mutation callback, not a presentation method.
+
+A thrown/invalid/thenable result retires that tool's current action/panel continuation, hides/disables its control for this refresh, reports through existing diagnostics and continues independently with healthy tools. It changes no document/revision/history or selection. Do not keep a partially published button or allow a stale panel to remain actionable. A later normal refresh may accept valid values from the same captured methods; do not create a permanent poisoned-tool registry or retry against a different selection.
+
+Keep this policy distinct from lifecycle hooks, UI factories and interactive `toggle`/`mutate`: section 3.4 checks their synchronous completion, while their owning adapters retain their declared DOM/command work. Their behavior is not made pure merely because presentation values use the preparation guard.
+
+## 10. Mention label editing
+
+### 10.1 One text-decision function
+
+Extract a pure internal Mention label-edit function shared by definition `editing.handle()` and the runtime DOM adapter. Its normalized input is:
+
+```ts
+interface MentionLabelEdit {
+  trigger: string
+  current: Readonly<{ id: string; name: string }>
+  display: string
+  range: Readonly<{ start: number; end: number }>
+  replacement: string
+}
+
+type MentionLabelDecision =
+  | { kind: 'update'; data: { id: string; name: string }; caret: number }
+  | { kind: 'remove'; caret: 0 }
+  | { kind: 'replace-text'; text: string; caret: number }
+```
+
+`range` uses label-local UTF-16 units and is ordered/bounded within `display`; replacement is plain text. The adapter resolves event ownership and the intended interval before invoking this function. Invalid intervals reject before model changes.
+
+Compute `next = display.slice(0, start) + replacement + display.slice(end)` and the label-local caret after the replacement. Empty `next` yields remove. A surviving full trigger prefix yields update with the same identity and `name` after the trigger. Otherwise yield plain-text replacement and retire identity/search. The supported Mention payload remains `id` and `name`; an edit preserving the trigger preserves the current `id`.
+
+One shared code-point boundary helper provides character-deletion fallback without splitting surrogate pairs. Trigger length is its UTF-16 length; configuration still permits exactly one Unicode code point. Do not assume the trigger is one code unit.
+
+### 10.2 Event ownership, native reconciliation, and composition
+
+Keep label text decisions, active edit-session state, popup/search and composition in the existing Mention runtime. Keep generic inline targeting and action dispatch in `InlineWidgetInputController`. `NativeInputController` remains the sole owner of pending native input state.
+
+#### Directly resolvable edits
+
+The Mention DOM adapter resolves the actual event owner before inspecting selection. Events from an auxiliary input/control, another editor, or a different registered field must not use a retained Mention selection. Only the owning handler may prevent default or stop propagation.
+
+The generic immediate definition dispatcher must make the same ownership decision before calling `editing.handle()`: require a live writable occurrence in the current registered rich field, a permitted interaction phase, and an eligible native selection/interval. A stale/foreign/auxiliary/cross-field target invokes no capability and changes no event state. Restrict immediate controlled dispatch to cancelable non-composition events; composition input stays with its existing owner. The cancelability distinction follows the Input Events source cited below, including its `insertCompositionText` rule.
+
+Invoke captured `handle` and fully snapshot/validate its input and result through `prepareExtensionValue`, not directly from `beforeinput` before the guard. Only `null` is a pass with no document/history/UI effects; let the existing owning route continue. For a valid `update`/`remove`/`replace-text` action, cancel/claim the event before applying one existing runtime interaction and recheck authority before its producer. Release preparation before that application. If the capability invocation or result validation throws, returns an invalid action or violates synchronous completion, the owning handler cancels/claims the proved-owned event, reports the error and stops that rejected edit from falling through to native or generic persistence. No native DOM edit has happened at this preparation point, so no new recovery engine is needed; later application failure uses existing recovery.
+
+The immediate dispatcher's own queued caret must validate the operation's actual resulting generation/revision, action ownership and current field/occurrence lifetime. An action that removes or unwraps the occurrence restores only its known surviving field result, not an expected surviving widget. A later commit, replacement or unrelated selection cancels this deferred work. Use the existing logical-selection owner, not the generic formatting bookmark port.
+
+Resolve the deletion interval in this order: a usable browser target range; otherwise the current noncollapsed native range in the same registered field; otherwise no explicit interval. A resolved interval wholly within a label supplies the shared text decision. A resolved interval crossing a widget boundary supplies the native-reconciliation branch, including `deleteContentBackward/Forward` when `getTargetRanges()` is empty. Never discard an explicit noncollapsed field range merely because it is not label-local.
+
+Without an explicit interval, only a directly resolvable collapsed character deletion may use the shared code-point fallback. Missing-range word/line deletion uses the field capture below; it must not become a character approximation. Extend generic directional targeting to the supported word/line families without changing their semantics.
+
+The DOM adapter applies directly decided payload changes through `updateData()` and removal/unwrap/adjacent-text operations through `commitDomMutation()`. Its caret result is label-local. The generic atomic boundary adapter maps results to existing field logical positions, without imposing Mention-specific label offsets on every inline plugin. Preserve ordinary typing outside an inactive occurrence and active-label typing/search behavior.
+
+A browser interval crossing a widget boundary must not be truncated to a label interval. Both the Mention adapter and the definition-level immediate dispatcher leave that deletion to the native-reconciliation branch below. This includes a deletion changing neighboring text and only part of a label. Cross-field/whole-block structural selections remain with their existing controller.
+
+#### One pending native input envelope
+
+Extend `NativeInputController`'s existing pending input record with a discriminant for ordinary field input versus inline reconciliation. The inline record contains a snapshot prepared by `InlineWidgetInputController`; Mention does not keep a second pending `input` observer.
+
+The inline branch is eligible for an unprevented, non-composing `InlineNativeDeletionType` when runtime is live, ready, editable and outside a protected mutation phase; event and native selection resolve to the same registered rich-text field; and either:
+
+- The resolved browser-or-native deletion interval crosses an owned occurrence boundary within that field and an involved editable widget opts into `editing.reconcileNative`.
+- A word/line deletion has no usable browser interval and that field contains an editable occurrence opting into `editing.reconcileNative`.
+
+For the missing-range case, the caret need not be inside or immediately adjacent to a widget. Without a target interval, the controller cannot safely infer how far the browser will delete through neighboring text. Capturing that field's bounded occurrence set avoids a guessed word boundary or missed partially changed label. If there are no opted-in editable occurrences, the existing ordinary field-input path remains responsible.
+
+The snapshot contains the exact block/field projection lifetime and field element; generation/revision and logical `selectionBefore`; the original event host, input type and trust value; the original `beforeinput` event reference solely to detect subsequent cancellation; and the owned widget occurrences in that field, including occurrence lifetimes, IDs/types, immutable canonical payloads and pre-input label text. It also holds pre-input and observed post-input anchor/focus direction and temporary label-local UTF-16 endpoints where an endpoint lies inside a captured occurrence; other endpoints use logical field coordinates. These values preserve live selection and failed-operation recovery, not another public bookmark type. It is a bounded derivative of the projection, not another document store.
+
+Leave native deletion unprevented. Do not prepare an ordinary field-serialization branch for the same event.
+
+#### Matching and invalidation
+
+The first subsequent `input` completes the inline branch only when its event host, registered field, input type and trust value match, the original `beforeinput` was not subsequently prevented, and composition has not taken ownership. The event host is the resolved registered editing host; inline label targeting must resolve through ownership to that host, while auxiliary controls remain excluded.
+
+Check the pending inline branch before ordinary field-only resolution or an early read-only return, so a widget-targeted or stale event does not fall through to ordinary persistence. The same pending envelope has explicit `valid` and `invalid` states. Field/instance replacement, generation/revision change, read-only transition or composition takeover revoke its decision authority, but retain the inert event-routing identity until the next input can be classified. The matching original input is handled as stale even though its preparation snapshot can no longer be used.
+
+A newer `beforeinput` replaces/retires the prior envelope; a nonmatching `input` retires it and continues through its normal owner, including composition. Teardown releases the envelope with its listeners. Do not clear pending state on revision invalidation and then let the original matching input enter generic synchronization. Nor fabricate completion/history/notification when a browser makes no DOM change and emits no `input`.
+
+These event assumptions are grounded in [Input Events Level 2, Working Draft 1 May 2026, sections 6–7](https://www.w3.org/TR/2026/WD-input-events-2-20260501/): target ranges describe the impending edit, input follows an actual native DOM change, and composition has its own event sequence. Missing target ranges in an editable field are handled defensively; this specification does not claim every browser normally omits them.
+
+A matching but stale operation invokes no extension decision and cannot overwrite current data from its old projection. Discard only its still-owned projection drift through existing recovery against current committed data. Do not touch a replacement field or restore a stale pre-input selection into a successor occurrence.
+
+For a matched operation, mark that exact input event as having persistence owned by inline reconciliation before completion; ordinary native synchronization always skips it. Track fresh-trigger routing separately: after successful completion, suppress that pass when the final caret is inside an owned editable widget label; when it is in ordinary field text, allow the existing trigger refresh/cancel path. Failed/stale reconciliation does not initiate trigger effects from the rejected operation. Other observers still receive the event; broad propagation suppression is not the mechanism for avoiding a duplicate commit. Wire these event-local routing decisions at `createEditorRuntime`.
+
+#### Atomic runtime boundary
+
+Add one internal operation, not a host/extension API:
+
+```ts
+reconcileNativeInlineInput(
+  snapshot: NativeInlineInputSnapshot,
+  prepare: () => readonly NativeInlineChange[],
+): { status: 'committed' | 'unchanged' | 'stale' }
+```
+
+`NativeInlineInputSnapshot` is the private controller snapshot above. Each `NativeInlineChange` identifies one captured occurrence and carries an existing `InlineWidgetEditAction`; it cannot address another block, field, occurrence or inline type. Runtime validates authority and freshness before calling `prepare`. Run preparation, DOM finalization and projected read under the existing protected-projection guard. Extension decisions cannot start persisted mutations or data tasks.
+
+`InlineWidgetInputController` prepares actions from the post-native projection. A captured occurrence removed by the native edit is a removal. For each surviving changed label, call its captured `reconcileNative` with before/after text and detached canonical data. An unchanged surviving label needs no payload action. A partially changed surviving widget without the capability rejects the entire captured operation instead of guessing payload. Moving a captured occurrence to another field is outside this single-field contract and rejects it.
+
+Runtime performs one combined preparation:
+
+1. Start from the current canonical block and its complete inline sidecar.
+2. Validate all same-occurrence actions and apply payload updates to a detached sidecar candidate.
+3. For removal/plain-text replacement, retire the identity in that candidate and finalize the owned node with removal or a plain text node. Replacement text is never interpreted as HTML.
+4. Serialize the owning block through section 5 using that candidate sidecar, retaining native changes to neighboring text and unaffected hidden fields.
+5. Assemble the normalized canonical record and, within the existing fallible prepared projection application, synchronize retained widget state from that candidate: refresh the owned decoded `entry.data` snapshot and call captured `instance.update(next, previous)` for changed payloads or label drift. Pass detached values under the existing ownership contract. Retain prior canonical state for recovery. Keeping an owned DOM node live is not sufficient to synchronize its instance closure/cache.
+6. Preserve/reapply the observed post-native label-local selection around instance updates, then reach the one existing engine commit point only after all fallible projection work succeeds. The committed model, projected label, retained cache and next definition-level edit input must agree.
+
+Retiring a sidecar before interpreting replacement text prevents `{{oldId}}` in that text from recreating the removed identity. No DOM attribute supplies payload authority. This protected operation reuses the existing synchronization/preparation/recovery machinery; it does not duplicate a transaction engine.
+
+Supply captured pre-input logical selection as history metadata. Capture the post-edit logical bookmark after DOM finalization. Retain the source projection and live label-local caret; field-level history coordinates must not move a surviving interior caret to an atomic widget boundary. For plain-text replacement, map a caret inside the old label to the corresponding clamped UTF-16 position. For an empty removed occurrence, use its former field position. A caret already outside the changed occurrence keeps its native field position.
+
+The operation is one semantic history step and does not coalesce with surrounding typing. An equal canonical result returns `unchanged`, without history or revision advance. A no-op still performs required canonical projection/cache repair before success, including an explicit `instance.update(current, current)` when normalization restores an existing payload but native label DOM drifted. Because the engine skips unchanged drafts, the existing protected-projection boundary must execute that repair itself with the same recovery contract; do not add a dummy history edit or depend on `afterNativeEdit` for repair. Do not implement this boundary by sequential `updateData()` and `commitDomMutation()` calls: those independently lose either neighboring native text, changed payload, or original selection metadata.
+
+Preparation/callback/serialization/normalization/instance-update failure recovers committed projection before restoring the captured pre-input selection, without author history. Resolve saved label-local anchor/focus against the occurrence produced by recovery of the same canonical block/field/inline ID and type, clamping UTF-16 offsets; preserve direction, and use logical coordinates for ordinary endpoints. Atomic field offsets alone cannot recover an interior label selection. This restoration is authority of the known failed operation, not a reusable stale continuation.
+
+Preserve existing failed-health behavior if recovery fails. The input remains handled after failure, so generic fallback cannot commit the damaged projection. Stale operations return `stale` after restricted current-model drift cleanup and never restore their captured old local/logical selection into a replacement. Successful no-op settlement may issue the transient notice under section 7, without fabricating a commit.
+
+#### Mention search and composition
+
+Mention implements `reconcileNative` through the same pure label decision, treating the observed post-native label as replacement of the previous label. It does not calculate the browser's word boundaries.
+
+After successful settlement, first transfer search ownership when the final caret is inside an owned editable label: the existing `InlineTriggerController` cancels an **actually active** fresh-text query before any inline notification. Suppressing its input refresh alone leaves a stale query that could later cancel the newly opened label session on `selectionchange`. If no fresh query is active, do not emit an unconditional cancellation that closes a legitimate label session. Clear the existing fresh-query authority first, then invoke its `onTriggerCancel` under the same runtime observation guard and observer containment as section 7's notices. The current unguarded cancellation hook is not a safe handoff adapter. Deny synchronous reentrant persisted/control/task calls before their producers. Returned thenables violate the synchronous hook contract; contain their later rejections without holding a guard across await or claiming to cancel arbitrary later JavaScript from a nonconforming extension. A hook failure cannot roll back the settled document or prevent subsequent notices for still-current occurrences. Finish the handoff and independently proceed to those notices after containment. This handoff uses the terminal cancellation policy below. Apply that containment to the existing terminal routes as well, while retaining the same trigger manager and the declared interactive query/key actions.
+
+Then deliver the guarded, deduplicated notices from section 7. Mention uses existing `startEditSession`/`close` state and starts/resumes a query only when the caret is inside and either `labelChanged` is true or its existing edit session already owns that occurrence. A successful neighbor-only deletion ending at an unchanged inactive label boundary must preserve inactivity and subsequent outside-typing behavior. A notice whose caret is elsewhere moves no focus or another label's popup; it may close only the edit session owned by that same occurrence. Notification order must not close the final caret owner's newly established session.
+
+Removal/plain-text replacement retires the old occurrence and its existing destruction/session cleanup closes search. The fresh-trigger controller skips this successful input's refresh when the final caret is inside an owned editable label. Input ending in ordinary field text uses normal refresh/cancel, including when no label changed or an occurrence was removed/unwrapped. Deleting an ordinary `@query` alongside an unrelated committed Mention must update/cancel ordinary search. Subsequent typing uses normal trigger rules.
+
+Composition remains with the existing composition owner and invalidates pending native-deletion reconciliation. Preedit is transient, confirmation commits once, cancellation restores prior contents/selection, and revoked tasks cannot complete. Do not add another search, popup or composition manager.
+
+#### Terminal cancellation and control completion
+
+`InlineTriggerController` owns retiring a query on cancellation, selection/field invalidation, composition takeover, replacement, read-only transition and destruction. Retire the exact active session before calling its captured `onTriggerCancel`; deliver it at most once for that session and never cancel a successor merely because old cleanup reenters. Invoke terminal cancellation under the runtime observation guard from section 4.3, including outside the new native handoff. Deny persisted/control/task producers before invocation, contain synchronous failure and returned rejection, and do not roll back settled data because cancellation notification failed.
+
+Wire retirement to the existing replacement/control/lifecycle composition rather than relying solely on a later `selectionchange`. On a successful read-only projection transition, revoke the clipboard task under section 6.3 before fallible downstream callbacks; independently complete trigger retirement, popup closure, panel/selection authority revocation, root mode presentation, native-input/composition cleanup and drag cancellation. A throwing extension cancellation/cleanup must not skip later owners or mode/history notifications. Each acquired owner keeps its cleanup policy and existing diagnostics; one failing extension does not reverse an already successful read-only transition.
+
+Interactive `onTriggerQuery`/`onTriggerKeydown` and valid `session.commit()` keep their existing declared action paths. They are not placed under the terminal read-only observer guard. Ordinary query cancellation, the native handoff and popup close handles must agree about which session/presentation is retired without adding another query store.
+
+### 10.3 Label-local clipboard
+
+Mention owns copy/cut/paste only when the event resolves to its editor/owning field and the current selection is label-local. At least one endpoint must be inside the owned label span; the other may be the equivalent immediate label boundary. A range whose endpoints are both outside the span, including `Range.selectNode(span)` from surrounding rich text, is a core structural selection. Resolve actual event ownership before looking at retained selection; auxiliary inputs, widget controls excluded from label editing, and another editor remain untouched.
+
+Respect `defaultPrevented` and prove current label-local ownership before taking over an event. An owned noncollapsed Copy and owned Cut/Paste must cancel the native default **before** fallible clipboard reads/writes or edit decisions, and their handled/prevented state must exclude core structural handling. A failure after ownership is established remains a consumed local operation; it must not fall through to native rich insertion or structural deletion. Foreign events remain untouched. Existing read-only/lifetime authority still prevents any destructive producer.
+
+Copy writes selected plain text without changing data; cancellation is required for this custom output to be used. Collapsed copy/cut makes no document change and performs no clipboard write. Cut may delete only after `setData('text/plain', selectedText)` succeeds and `getData('text/plain')` reads back exactly that text. A throw or mismatch leaves label, model, selection and history unchanged; default deletion is already canceled. Apply the empty replacement through the shared decision only after sufficient write and a fresh occurrence/range check. If the write succeeded but the model action fails, preserve the copied data and recover the document.
+
+Paste accepts a present `text/plain` representation with a successfully read, nonempty string. Empty text, missing plain-text format (including HTML-only data), and read failure are handled local no-ops: retain selection/data and create no history. Whitespace in a nonempty plain string is author text. Insert it as text, never interpreted HTML, through the shared decision in one operation.
+
+The cancellation requirement follows [Clipboard API and events, sections 5.2 and 6.1–6.3](https://www.w3.org/TR/clipboard-apis/), consulted on 2026-10-07. Write/readback verifies detectable event-boundary failure; it is not a durable OS clipboard acknowledgement. Synthetic events do not prove system clipboard transfer.
+
+Core continues to own structural copying/pasting of the widget from surrounding rich text. Label-local operations do not create a second structural clipboard codec. A cut/paste is one semantic history operation, and removing the trigger produces ordinary text without the old inline identity. Search/caret/Undo/Redo follow the same decision path as keyboard editing.
+
+## 11. Contract impact and replacement map
+
+| Current contract/path | Target and disposition | Callers/derived surfaces |
+|---|---|---|
+| Runtime `#ingest`, new-document helpers, `issueReason`/inline observer call | Move preparation to ingestion; delete message classifier and in-preparation notification | Constructor/render; shared schema consumers; `core/publicTypes.d.ts`; document type aliases; editor/renderer/async/clipboard validation tests |
+| Engine payload-as-failure sentinel | Separate failure presence from thrown value; preserve nested rollback for falsy throws and reset on unwind | Existing `TransactionEngine.execute`/outer execution, runtime nested commands and transaction tests; no new engine or public exception type |
+| Inline dictionary builders and payload lookup | Preserve own keys in shared decode, canonical filter/remap/merge, projection, clipboard subset and allocated-ID insertion; require own membership in inline context; delete obsolete export builder | `DocumentSchema`, `CanonicalTransforms`, `InlineProjectionRuntime`, migrated `DocumentRuntime` planners/context; renderer/shared consumers keep their already correct own checks |
+| Direct extension-value callbacks, public input capture and control dispatch | One internal `prepareExtensionValue`/shared guard; capture public insert input once before runtime dispatch; guard focus/selection/destroy before dispatch; preserve ordinary producer and owner cleanup authority | Both toolbars, `KeyboardRouter`, inline controllers, `PublicEditorApi`, `createEditorRuntime`; no new public extension capability |
+| Immediate merge/alignment/slash/field/inline preparation | Capture active draft, prepare complete records/results, then apply in the existing command; delete committed-state preparation in the routes listed in section 6.1 | `KeyboardRouter`, `InlineToolbar`, `SlashCommandController`, `InlineCommandController`, `InlineWidgetInputController`; common range/canonical helpers; retain draft-aware primitives and delete unused `replaceBlock` |
+| Shortcut context and toolbox pre-command calculations | Snapshot shortcut inputs/result and field lengths; bind splitField/private allocation to the captured view; move toolbox choice/default/configuration into its existing accepted interaction | `KeyboardRouter`, `BlockToolbar`, runtime adapters; List/Checklist/Table shortcut consumers; toolbox/conversion choices; remove unsafe committed splitField closure and unused wrapper |
+| Clipboard/range preparation including `applyPasteResults`, `insertLocalBlocks`, `replaceLogicalRange`, `removeBlocks`, `replaceWholeDocument`, `replaceRichTextWithInlineSegments` | One current-view plan and final-view result; remove controller neighbor calculation, committed planning reads and unused wrappers; narrow internal removeBlocks result | All `ClipboardController` routes, `SelectionController`, `InlineCommandController`, `NativeInputController`; `CanonicalTransforms`; transaction context; clipboard/range tests |
+| Upstream HTML/pattern materialization | Keep pure `HtmlImportRouter` and pattern algorithms; run synchronous callback/result/allocation work under runtime preparation; delete fromMatch exception-to-no-match conversion | `ClipboardController` owned-error cancellation, `InlineCommandController`; HTML import and pattern consumers; associated failure documentation |
+| Text/file matching, async clipboard task and private MIME dispatch | Guard `#route` and validate strict boolean; retain awaitable resolver in existing task; connect read-only revocation before UI fan-out; distinguish advertised MIME presence from payload truthiness | `ClipboardController`, `createEditorRuntime` control wiring, `PasteCapability` consumers and clipboard failure/lifetime tests; enforce inherited C4/C5 |
+| Runtime single/cross-selection conversion helpers | Move to selection-conversion preparation; remove old bodies | `InlineToolbar`, `BlockToolbar`, conversion selection adapters and conformance fixtures |
+| Publicly undeclared inline DOM mutation and incidental spread | Declare supported operation and construct exact inline context | Mention; Color regression consumer; `plugin-kit/types.d.ts`; typed external consumer; inline-extension/commands guides |
+| Partial projection/reference loop; Poll raw sync; Person stale hidden cache | Replace with candidate-key merge and whole-result occurrence scan | Reconciler, inline projection, all rich schemas, Poll/Person/Carousel controls, neutral rich-text scanner |
+| `CrossEditableSelectionPort`, raw-range mounted mutation input, retained panel range, indexed saved offsets, tool highlight helpers | Remove; replace with strict `InlineSelectionPort`/opaque bookmarks and fresh-range mutation callbacks; guard caller Range/options capture before selection publication | Simple tag tools, `clearFormatting`, `link`, `scriptTool`, `fontSize`, `colorPicker`, `caseTransform`, `align`; realm/type/browser tests |
+| Toolbar direct tool loop cleanup | Replace with complete per-resource cleanup and permanently revoked mount adapters | Composition teardown, two-editor lifecycle fixtures, retained callbacks |
+| Heading action-ID regex, `dataset.level`, unguarded actions/label reads | Delete ID inference; use compact localized label and generic action ID; snapshot complete metadata under the common guard | Heading; all other action producers; both toolbars; browser/docs selectors |
+| Duplicate Mention label-edit/Unicode branches | Replace with one text-decision function and shared boundary helper | Definition editing capability, DOM beforeinput/input/composition/clipboard adapters |
+| Ordinary pending native input, direct editing.handle, independent payload/DOM writes and raw cancellation in the new handoff | One pending envelope and atomic projected-data/sidecar operation; immediate action under common preparation guard; handoff cancellation under observation guard | `NativeInputController`, `InlineWidgetInputController`, `DocumentRuntime`, `InlineProjectionRuntime`, `InlineTriggerController`, `createEditorRuntime` |
+| Definition/instance method snapshots and public inline types | Add optional pure `reconcileNative`, its required instance update conformance, and transient `afterNativeEdit`/`labelChanged`; context authority unchanged | `ExtensionRegistry`, projected-instance capture, `plugin-kit/types.d.ts`, typed consumers, Mention search adapter |
+| Plugin-supplied widget markers used by neutral coordinate helpers | Host sets/reasserts registered `data-inline-plugin`/`data-id` on acquired roots; remove redundant built-in writes; private occurrence ownership remains authoritative | `InlineProjectionRuntime`, neutral offsets/field classification, editor and renderer conformance; third-party widgets need no private marker knowledge |
+| Unchecked synchronous runtime/instance/presentation completion | Validate thenable/throwing-accessor completion before the owning operation proceeds; preserve existing acquisition/recovery/cleanup outcomes | `ExtensionRegistry`, `instanceMethods`, `BlockReconciler`, `InlineProjectionRuntime`, tool adapters; canonical hook docs and negative conformance |
+| Raw tool presentation dispatch and metadata | Capture used members once; guard complete `isActive`/icon/title values and isolate per-tool refresh failure | `InlineToolbar`, tool declarations/factories/typed fixtures; no new metadata owner or permanent poisoned registry |
+| Plugin-visible global popup close | Remove `hidePopup`; return per-show `InlinePopupHandle`, private runtime/show identity and contained cleanup | `InlinePopupHost`, `ExtensionRegistry`, `createEditorRuntime`, Mention/Color, `plugin-kit/types.d.ts`, inline-extension guides, `inline-plugins/color.lifecycle.test.js` and `tests/browser/native-color-popup.js` plus popup conformance fixtures |
+| Ordinary uncontained terminal trigger cancellation / interrupted control fan-out | Retire exact session first, contain terminal hook under observation guard, complete independent control cleanup | `InlineTriggerController`, existing replacement/read-only/destroy wiring; preserve interactive `session.commit` and native handoff |
+| Index-signature payload constraints and aliases | Object-shaped generic payloads/defaults and public input slots; dictionaries retain dictionary semantics | `plugin-kit/types.d.ts`, `shared/documentTypes.d.ts`, `core/publicTypes.d.ts`, `renderer/types.d.ts`, JSDoc and generated declarations; full external interface consumer |
+| Partial regex dependency audit and built-in-only extension proof | Extend the existing parser-based gate and register independent public-package conformance with negative fixtures | `scripts/plugin-source-audit.mjs`, current CI/test runners, package consumer and external extension fixtures; no new framework |
+
+The package's `./inline-tools/*` export makes existing helpers reachable to external consumers. Removing old selection helper exports is therefore a documented breaking API change. Migrate in-repository consumers directly to the new port/helpers; external consumer classes use the new documented contract. Do not retain aliases or an old indexed-selection implementation.
+
+### Verified change surface
+
+New module names below are proposed locations in existing owned directories, not claims that they already exist:
+
+- `core/DocumentIngestion.js`; focused `core/ClipboardPlans.js`, `core/LogicalRangePlans.js` and `core/SelectionConversion.js`; a small neutral shared validation-metadata helper.
+- A focused internal Mention editing helper under `inline-plugins/mention/`.
+- Focused formatting/UI/factory or binding helpers under `inline-tools/` where required by section 8; no manager hierarchy.
+
+Change the existing `DocumentRuntime`, `TransactionEngine` context/failure state, shared `DocumentSchema` inline-map assembly, `BlockReconciler`, `InlineProjectionRuntime`, `SelectionController`, both toolbars, `KeyboardRouter`, `SlashCommandController`, `InlineCommandController`, `ClipboardController`, `PublicEditorApi`, `createEditorRuntime` wiring, and scoped context construction. The added extension boundaries also change `InlinePopupHost`, `instanceMethods`, the existing terminal trigger/control composition and `scripts/plugin-source-audit.mjs`; their owners are defined above. Reuse existing `DocumentDraft`, `LogicalSelection`, `CanonicalTransforms`, JSON clone, rich-text scanner/offset helpers, and `InstanceScope`; change their internals only as needed to satisfy the contracts above.
+
+Canonical declarations are `plugin-kit/types.d.ts`, `inline-tools/types.d.ts`, `shared/documentTypes.d.ts`, the public editor aliases in `core/publicTypes.d.ts`, and the affected renderer payload declarations in `renderer/types.d.ts`. Change runtime JSDoc alongside them. `types.d.ts` and generated `dist` declarations must continue to derive/re-export them; generation never becomes a competing source.
+
+Documentation consumers include RU/EN `docs/guide/extensions.md`, `inline-extensions.md`, `commands-history.md` and their RU counterparts, plus the affected renderer guide; affected Mention/Color/Poll/Person README pairs. Update the old helper API examples and action selectors in `tests/browser/selection-convert.js`, `native-interaction-sequences.js`, `native-block-menus.js`, `native-cross-selection.js`, and `scripts/vitepress-browser-scenarios.mjs`.
+
+## 12. Verification strategy and acceptance mapping
+
+The recheck's 107 Node tests, both typecheck configurations, six declaration consumer checks, source audit and import graph are a baseline of the inspected code. They do not prove the new contracts. The uploaded 563/1844 gate counts belong to unpublished local changes and cannot be reused as results of this implementation.
+
+Use the repository's behavioral red/green/refactor cycle. Add a focused failing check at the owning boundary, implement the coherent change, then run the relevant broader existing checks. Do not duplicate algorithm code into expected results or test private helper names. Existing Node tests are appropriate for canonical state/failure semantics; actual browser gestures are required for caret, cross-field range, native word deletion, composition and clipboard acceptance.
+
+| Requirement/design boundary | Proof required |
+|---|---|
+| P1–P5, retained architecture | Existing core/plugin capability and native suites; current save/model/history; no legacy paths or private-core imports from extensions; no duplicate store/engine |
+| Ingestion and structured reasons | Constructor/render and shared decode cases: shape, exact version, current schema error with misleading wording, normalization error, known block/inline identity; same exception and content-free reason; no duplicate notification |
+| Nested failure presence | An ordinary outer action stages edits and catches an entered nested producer throwing Error/null/undefined/false/0/empty string/NaN: outer aborts with the recorded value, zero projection/commit publication, unchanged records/revision/history; later valid command succeeds. Include caught pre-dispatch rejection as the distinct permitted-continuation control |
+| Inline dictionary ownership | Ordinary and null-prototype inputs with own `__proto__`, alone and alongside ordinary entries, preserve registered/unloaded payloads through shared decode and constructor/render/save without input mutation or validation notification. Referenced IDs survive projection, filter/remap/merge, clipboard subset and allocated-ID insertion/pattern paste; absent own entry remains literal text; scoped payload lookup requires own membership |
+| Complete preparation guard | Raw document/property accessors, schema/default/normalizer/capability methods, ID-source, upstream HTML import, inline insertion/fromMatch and immediate editing decisions attempt reentry; no nested producers run; complete returned-value validation remains protected; private allocation remains usable and failed IDs stay consumed; guard releases after success/failure; ordinary user-command nesting and outer poisoning remain |
+| Public insert acceptance | The first type/data/tunes/inline accessor and deep-data capture attempt host/scoped/control reentry: zero nested producers, unchanged document/history on rejection, accepted properties observed once; denied dispatch reads no caller property; caught pre-dispatch failure lets an existing ordinary draft continue, while caught failure inside accepted runtime insertion poisons it; valid default/explicit insertion remains |
+| Public control adapters | Under preparation, observation and protected DOM phases, public setCurrent/select/clearSelection/blocks.focus/editor.focus/destroy invoke no view/selection/lifecycle callback and leave flags/listeners/state untouched; private own restoration/recovery still works; ordinary permitted controls and idempotent/failed-health destroy after unwind remain |
+| Validation observation | Observer attempts host update, scoped update/DOM operation and task creation; zero producer calls; original failure and unchanged committed/history state; sync/rejected observer errors contained; nested render/interact poisoning retained |
+| Partial projection | A third-party multi-field fixture plus Person/Carousel/Poll: mounted, hidden existing, empty, new unmounted, removed, reordered fields; model-first hidden edits; recovery and blur-only no-op |
+| Projection addressing and references | Invalid/duplicate committed or candidate rich keys, duplicate mounted keys across modes, one element under two keys and orphan mounted rich fields reject without partial commit; known/unloaded sidecars, duplicate owned refs, literal/attribute tokens; normalization that creates, removes or duplicates a reference proves counting/pruning occurs on the final normalized value with the complete sidecar available |
+| Inline context | Typed complete external inline definition uses `commitDomMutation`; staged/revoked/read-only/reentry rejection, sync/thenable failure recovery, adjacent-text caret behavior; generated Bundler and NodeNext consumers |
+| Current-draft planning | Earlier edits survive `insertClipboardParts`, `applyPasteResults`, `insertLocalBlocks` and pattern-based `replaceRichTextWithInlineSegments`; shared range replacement/conversion see staged records/order; one Undo restores original; nested failure rolls back outer draft |
+| Remaining immediate commands | Staged update then merge retains text; prior move changes merge applicability; alignment retains current data/inline and has true-change/false-no-op results; field replacement yields ABC after staged AB; consecutive inline insertions both survive, consecutive removals cannot resurrect an occurrence; slash removal/insertion sees current text/order; one Undo and rollback after accepted failure |
+| Shortcut and toolbox preparation | Real List/Checklist/Table action consumers preserve captured data/split/field-length semantics and private ID allocation; callbacks/output getters cannot reenter; null/native/consume/update/exit/focus and rejected-owned-key cancellation remain distinct; foreign input untouched; delayed focus expires with its operation. Toolbox branch/index uses an earlier staged anchor/order change, validates a named variant before edits, and adds one existing history operation |
+| Whole-block planning | remove then removeBlocks in one action leaves one default; prior inserted survivor prevents default creation; controller uses the prepared extant target; replaceWholeDocument preserves preceding inserted/unselected blocks and gaps; omitted ID set reads the current draft; confirmed whole-selection composition uses the same result/history contract |
+| HTML and inline pattern preparation | Current target type and private allocation come from the captured view; fromMatch/HTML callbacks and output accessors cannot reenter; preserve valid pattern precedence, overlaps, multiline text/sidecars and final caret; null/no match uses ordinary text routing; throw/invalid/thenable after an owned pattern attempt cancels native default in the catch and leaves no partial widgets, plain fallback or history |
+| Text/file matching and resolver lifetime | `accepts()` reentry runs zero nested producers; Promise.resolve(false), invalid value and throw are canceled failures with no resolver/fallback. False continues matching; first true invokes the selected resolver; routing and validation for every file complete before any resolver starts, with unmatched files retaining existing filtering behavior; valid resolver Promise remains allowed. Read-only true→false aborts the existing task before fallible downstream UI hooks, late completion invokes no producer/focus, and ordinary uncanceled completion applies once |
+| Private MIME presence | Advertised empty/unreadable/malformed/version-invalid private data cancels the owned event before fallible read/decode and leaves records/history/selection unchanged with no other resolver or representation fallback; truly absent private MIME preserves ordinary routing; foreign events remain untouched |
+| Planned results and no-change Paste | Standalone/nested Cut returns the same extant target for first/middle/end/all deletion, residuals and merges; no embedded removed-source focus identity; inert target needs no invented field; applicable same-content Paste returns/applies its intended caret once without revision/history or stranded selection; non-applicable command remains false/null |
+| Deferred handles | Foreign/lookalike/cloned/mutated/stale plan, changed generation/revision, changed touched record or ID order in same draft rejected before allocation/capability/edits; unrelated same-draft data change remains valid; copied payload cannot alter private residuals; controller rechecks current selection/operation authorization on reuse after a no-change paste |
+| Canonical planning | Detached input ownership, literal/inline ID collisions, known/unloaded references, compound residuals, target inability to retain refs, allocation not reused after failure; planners have no live runtime dependencies; no retained duplicate range algorithm or unused wrapper |
+| Strict selection | Local/cross-field forward/backward ranges; dynamic key-preserving hosts, reorder, missing/hidden endpoints, same-ID document replacement; staged/read-only/detach/destroy/remount; mounted and panel stale callbacks run no producer; stale raw ranges cannot recapture authority; external unrelated commit and queued continuation cancellation; caller Range/options getters cannot reenter, rejected capture/restore has no effect, and valid own-callback restore still works |
+| Formatting domain and native presentation | Forward/backward partial label selections, widget-element/selectNodeContents endpoints and mixed inside/outside endpoints are rejected before atomic offset conversion; parent boundaries and complete intervening widgets remain valid; queued/coalesced own restoration survives; conversion keeps its logical range and collapsed end caret; a different user selection invalidates the continuation |
+| Formatting result | Unicode case expansion in final and earlier fields, noncumulative end adjustment, sup/sub and repeated unwrap, font/color repeated apply/cancel, link and clear formatting; model-first alignment then restore/close/Undo, including no-op and stale panel; restore failure after DOM edits recovers without commit; one semantic undo step; no-op stays N; old N token rejected after N+1 |
+| Highlights | A registers, B replaces, A clear/destroy leaves B; owner-window and feature-unavailable cases; tools have no registry writes |
+| Tool lifecycle | First unbind throws, first destroy throws, later mount throws, partial initialization, repeated destroy, retained old callback, synchronous-contract violations and clean-tool reuse; all contexts revoked before hooks, each hook attempted once, all host-owned claims/resources released independently |
+| Action metadata | Third-party opaque IDs and h2 with different compact label; Heading H2–H6 and full-label settings behavior; both inlineControls/settings actions calls and label/compactLabel getters attempt mutation then throw: zero producers, unchanged model/revision/history, affected group revoked, remaining controls usable; no getter first invoked while rendering and no core ID inference |
+| Mention direct edits | Keyboard/range decision parity, Unicode trigger/surrogates, trigger removal/cancel, unrelated input/control ownership, composition, caret/Undo/Redo; browser range then current noncollapsed same-field range then eligible collapsed character fallback |
+| Immediate inline dispatcher | Actual owned/foreign/auxiliary/stale field targets and interval branches checked before handle; only cancelable non-composition dispatch; null invokes no producer/effects and passes; guarded reentry denied even when handle returns null; thrown/invalid/thenable/accessor result cancels owned default with no generic fallback; valid action applies once; queued own caret rejected after later selection/commit/replacement, including removal/unwrap |
+| Label-local clipboard | Full-label local selection versus structural selectNode, collapsed copy/cut, foreign and defaultPrevented events, read-only/revoked scope; native canceled before a throwing write/read/decision; exact-readback Cut mismatch leaves document/selection/history unchanged; fresh range recheck before deletion; copied data survives model failure; absent/empty/HTML-only/unreadable Paste is a consumed no-op; nonempty whitespace remains text; no core/native fallback or duplicate history; real browser transfer distinguished from synthetic routing |
+| Native inline reconciliation | Label-only, label plus neighboring text, supplied crossing interval, noncollapsed crossing native range with no target ranges, two partially changed labels, entire occurrence deletion, missing word/line range with caret outside label; native result as text oracle; captured before-selection and one Undo for complete change; interior live caret and direction |
+| Retained native occurrence | Opted-in instance without update fails mount with cleanup; retained payload/cache/DOM and the next definition-level edit agree after commit; read-only projection does not resurrect old text; update throw/thenable recovers before commit; normalization-induced no-op explicitly repairs drift without revision/history; surviving node identity and observed local selection preserved |
+| Native pending lifetime/failure | Captured beforeinput then an intervening unrelated commit with the same field still mounted: matching input remains owned/stale, invokes no decision and cannot enter generic persistence; new beforeinput replaces, host/field/type/trust mismatch retires, subsequent prevention/composition/read-only/lifetime changes revoke authority; no input means no fabricated completion; rejected operations recover pre-input label-local direction/selection; stale operations never restore old selection into a successor; recovery failure preserves failed-health behavior |
+| Native trigger handoff and notices | Existing fresh authority cleared before guarded onTriggerCancel; throwing/thenable cancel with attempted synchronous reentry leaves settled revision/history unchanged and does not skip next valid notice; no unconditional cancellation when none is active; changed labels plus final-caret label notified once with labelChanged/caret; inactive boundary stays inactive, active label resumes, another notice cannot close final owner; ordinary @query follows normal refresh/cancel; committed/unchanged settlement, notification containment and no duplicate persistence |
+| P6 and removal | Source JSDoc/typecheck, generated consumer checks, package consumer gate, documentation/source/locale checks; obsolete helper/type/import/action-selector searches |
+| Marker-free widget projection | A third-party widget sets no reserved attributes: host markers are correct at first mount and after hidden-field mounting/update/read-only/recovery; field length is text plus one widget unit, public focus lands before/after rather than inside the label; owned labels are excluded from formatting; forged external attributes grant no authority |
+| Synchronous hook completion | Ordinary block and inline update/read-only hooks return delayed/rejected/callable thenables or throwing `then` accessors: no successful premature commit/control completion, existing recovery restores committed data/selection, later update cannot overwrite the current owned projection; acquisition and cleanup failures release independent resources; ordinary synchronous void return values remain compatible |
+| Tool presentation values | Complete `isActive`/icon/title and metadata capture attempts host/scoped/control/task reentry with zero producers; throw/invalid/thenable/accessor failure retires only that tool's action, publishes no partial values and does not skip healthy tools; changed caller dispatch members cannot redirect a mount; a later valid normal refresh can recover |
+| Popup ownership | A shows, B replaces, A's retained close leaves B; same-runtime replacement, repeated close, close during cleanup, reentrant newer show, denied anchor/read-only/staged request, owner-document mismatch, throwing/thenable cleanup, owner destruction and read-only all follow section 7; each request's cleanup is attempted once and old callbacks never acquire a successor handle |
+| Terminal cancellation/control completion | An active third-party query's `onTriggerCancel` throws/rejects or attempts host/scoped/control/task reentry during ordinary cancellation, replacement, read-only and destroy: session retired once, no producer runs, popup/panels/native/composition/drag cleanup and mode notifications finish; read-only state/root presentation agree; successor query survives stale cancellation; valid interactive `session.commit` still works |
+| Public interface payloads | Complete block and inline definitions using ordinary interfaces with nested arrays, registration, current serialized document, host insert/update, inline insertion and paired renderers compile from published exports in Bundler and NodeNext without index signatures/registration casts/`any`/`skipLibCheck`; runtime negative JSON/schema cases remain unchanged |
+| Architecture fitness gate | Negative virtual/temporary fixtures for side-effect/static/re-export/literal dynamic imports across every forbidden direction, including inline-tools/plugin-kit and new planners, and a runtime cycle make the existing audit fail; allowed neutral/public imports pass; the real current graph is checked without claiming computed-import/runtime authority coverage |
+| Independent external conformance | Public-package custom dynamic multi-field block + marker-free inline widget + formatting tool + paired renderers: registration without built-in inventory edits, save/load/render, partial/hidden/new/deleted/reordered fields, protected formatting and one Undo/Redo, reused definitions in two editors, revocation and error/thenable cleanup; run the same applicable capability contracts against built-ins and the external implementations |
+
+Existing executable commands verified from `package.json` include `npm run typecheck`, `npm test`, `npm run test:types`, `npm run test:plugin-source`, `npm run test:docs`, `npm run test:package`, `npm run test:browser`, and `npm run docs:check`. Run appropriate focused checks during slices and the existing required broader gates after integration. `EDITOR_BROWSER_PAGE=<existing-page> node tests/browser/run.mjs` and `EDITOR_NATIVE_PAGE=<native-fixture>.html node tests/browser/physical-history.mjs` select focused browser/native fixtures. Add new regressions to the standard runner; a separate unregistered fixture is not acceptance coverage.
+
+Controlled browser fixtures may suppress `getTargetRanges()` to exercise missing-range reconciliation while allowing actual native deletion. Report that as a controlled fallback test, not evidence that the browser normally omits ranges. Compare text with an independent editable control rather than copying the Mention algorithm into expected results.
+
+Register the independent external fixture in the existing browser/native and package-consumer flows. Its implementation imports only published package entries and does not patch private core or a built-in registry to succeed. Exercise the installed tarball/consumer output as well as source-level contracts; an import-only or type-only smoke is insufficient for its runtime rows. Controlled browser routing probes still do not replace the native gesture proofs required above.
+
+Extend the existing source audit for all section 3.6 directions, the new preparation dependencies and removal of tool-owned highlight/index logic; include negative gate fixtures and keep the current CI invocation rather than adding a new architecture framework. Assess result behavior, not file size. Report unavailable browser/OS IME/platform verification explicitly instead of treating Node or synthetic DOM probes as equivalent.
+
+## 13. Implementation plan
+
+These slices implement the normative target above. They do not add target semantics. Each slice updates its affected canonical declarations, JSDoc, generated/typed consumers and RU/EN documentation in the same coherent change. Slice 9 verifies convergence across those changes; it is not permission to defer a public contract's consumer or documentation migration.
+
+### Slice 1 — complete projected data survives synchronization
+
+**Depends on:** none. **Target:** section 5, P2–P5.
+
+Establish failing serializer/transaction cases for hidden sidecars, stale hidden read values, deletion versus unmounting, new hidden fields, and duplicate/attribute occurrences. Implement validated candidate-key merge and definitive shared occurrence counting after normalization, preserving section 4.1's own keys in projection/final assembly; establish section 5.5's host-owned widget markers and coordinate conformance; migrate Poll focusout and Person visible/hidden synchronization in the same slice. Preserve Carousel's single instance owner.
+
+Remove the old mounted-only count and raw rich-HTML model writes. Run focused schema/reconciler/runtime checks, a third-party duplicate-key/orphan-field fixture, normalization-created/removed/duplicate reference cases, and marker-free third-party widget length/focus/formatting cases alongside real Poll/Person/Carousel editing/blur/tab/slide/undo cases. **Done when:** hidden data and identities survive, removed structure stays removed, deliberate hidden model edits work, and a blur-only event adds no history.
+
+### Slice 2 — shared preparation authority and structured ingestion failures
+
+**Depends on:** none. **Target:** sections 3.2–3.3 and 4, P2/P3/P5.
+
+Add misleading-error, raw-input-accessor and observer-reentry failing checks, including nested render and normalization failure. Introduce section 3.3's shared guard/internal preparation entrypoint, guarded public insert capture and public control-dispatch checks, shared private validation metadata and the canonical issue type; extract ingestion/default preparation; move notification under runtime's independent observation guard. Correct the existing engine failure sentinel and shared decoder's inline dictionary writes. Prove the distinction between rejected pre-dispatch input and failure inside an accepted nested command, including falsy thrown values, and prove lossless own-key constructor/render/save. Update shared/public aliases and affected typed callback consumers together.
+
+Delete regex classification, payload-truthiness failure checks and observer calls from preparation. Verify shared editor/renderer/async validation semantics, public control denial with working own recovery and failed-health cleanup, and focused runtime/observer tests. **Done when:** correct reason is independent of message text, no observer producer runs, every entered nested throw prevents outer commit, valid own inline keys survive ingestion, input exceptions and committed state are preserved, and no duplicate decoder exists.
+
+### Slice 3 — supported synchronous extension and popup contracts
+
+**Depends on:** slices 1–2 for complete serialization and shared preparation/observation authority. **Target:** sections 3.4–3.5 and 7, P2–P6. Native capability/notification additions remain with slice 8.
+
+Make a complete typed external inline definition fail on the missing DOM method, and establish failed ordinary async-update, foreign-popup-close and interface-payload proofs. Declare/document scoped DOM mutation and construct its exact context, including own-membership lookup; remove incidental inline allocator exposure. Add synchronous completion checks to existing registry/acquisition/instance/projection owners and their existing recovery/cleanup, including ordinary block and inline methods. Preserve successful synchronous hooks, scoped denial and caret-sensitive source projection.
+
+Deliver the object-shaped payload target across all canonical public/shared/renderer aliases and host input slots. Compile the complete interface-based consumer, regenerate declarations and verify both resolution modes. Give the existing popup owner per-runtime/per-show identity and frozen close handles; migrate Mention/Color and remove public `hidePopup` everywhere in this slice. Contain popup cleanup through the shared observation boundary and preserve host forced closure.
+
+Verify throwing/callable/ordinary thenables and accessors, failure recovery, initialization/teardown cleanup, JSON rejection, popup replacement/reentry/late close, scope denial and typed/packaged external consumers. Register the affected third-party conformance and dependency checks with the existing runners as their contracts land. **Done when:** external extensions use supported types and scoped methods without hidden index-signature or global popup authority, invalid synchronous completion cannot be accepted as a successful projection/control operation, and no duplicate transaction/resource owner exists.
+
+### Slice 4 — document commands and clipboard preparation use one current view
+
+This slice has three coherent sub-slices. Their contracts are already fixed by sections 3 and 6; each removes its superseded paths and updates its own consumers/types/docs before completion.
+
+#### Slice 4a — captured draft and immediate commands
+
+**Depends on:** slices 1–2. **Target:** sections 3 and 6.1, P2–P5.
+
+Establish composed merge/alignment/field/inline/slash/toolbox failures. Add existing draft `ids/peek` to the internal transaction context and capture immutable current-view records/order. Migrate the immediate adapters in section 6.1, including captured shortcut context/result and toolbox choice, complete preparation before edits and final-view results. Keep ordinary nested user producers and no-op behavior. Remove committed-state preparation, the unsafe shortcut splitField closure and unused `replaceBlock`. Add the planner dependency rule to the existing audit with a negative fixture before introducing the extracted owners.
+
+**Verification/done:** staged changes and adjacency/order survive every migrated route; shortcut/toolbox ownership, private allocation, reentry rejection, one Undo and nested failure rollback hold; no unrelated payload traversal or extra state owner is introduced.
+
+#### Slice 4b — shared range/clipboard planning and private handles
+
+**Depends on:** slice 4a. **Target:** sections 6.1–6.3's planning/handle contracts, P2–P5.
+
+Extract the shared logical-range and clipboard calculations. Migrate `applyPasteResults`, `insertLocalBlocks`, logical/whole-selection replacement, whole-block removal and prepared Cut/Paste through the captured view/common edits. Implement issuer-bound private handles and source/order preconditions; narrow the removal result and migrate SelectionController's target use. Preserve own-key sidecars, final extant IDs/focus, applicable no-change Paste and no-op history. Remove exposed residuals, duplicate range algorithms, committed neighbor calculation and unused wrappers.
+
+**Verification/done:** prior staged data/order survives each route; foreign/mutable/stale handles fail before effects; compound/multiline residuals, literal collisions, hidden content and standalone/nested targets agree; a single existing transaction owns history. Helpers have no live runtime/store/engine/projection/controller/plugin dependency.
+
+#### Slice 4c — guarded ingress dispatch and clipboard lifetime
+
+**Depends on:** slices 2 and 4a–4b. **Target:** sections 3.3 and 6.2–6.3's routing/task contracts, P2–P5.
+
+Migrate upstream HTML/pattern/insertion preparation and strict synchronous text/file matching, including full returned-value capture and owned-error cancellation. Retain legitimate awaitable resolver results in the existing controller task. Distinguish advertised private MIME from payload truthiness and connect task revocation to successful read-only transitions before fallible UI fan-out. Remove exception-to-no-match/fallback paths after an owned preparation failure and duplicate ingress wrappers.
+
+**Verification/done:** owned key/paste errors cancel default before fallback, accepted results prepare fully before mutation, read-only round trips revoke late resolution/focus, empty-present private MIME is consumed rejection, normal absent-MIME routing and valid async completion still work. Integrate with slice 8's terminal cancellation/control completion; alignment's panel continuation remains slice 6's responsibility.
+
+### Slice 5 — selection conversion uses prepared canonical edits
+
+**Depends on:** slices 4a–4b's snapshot/range/application contracts. **Target:** section 6.4, P1–P5.
+
+Extract single/cross-block conversion into the declared preparation owner. Exercise staged-before-conversion, joined/per-block targets, partial/whole/same-type behavior, compound residuals, toolbox configuration, and reference-preservation refusal. Keep toolbar callers on their existing one-gesture `interact()` boundary.
+
+Delete superseded runtime conversion/slicing methods. Run focused canonical tests and the existing native conversion/clipboard preservation suites. **Done when:** conversion decisions use the current draft, required content survives with the same grouping/focus/history, and runtime coordinates rather than calculates the transform.
+
+### Slice 6 — formatting has one selection and resource owner
+
+**Depends on:** slices 2–3; slice 4a's alignment adapter and slice 5 must be reconciled before final toolbar integration. **Target:** sections 3.3–3.4, 8, 9.1 and 9.3, P3–P6.
+
+First prove highlight cross-owner deletion and failed toolbar cleanup. Implement complete lifecycle acquisition/teardown and revocable per-mount selection adapters. Then migrate the port and all indexed-offset consumers as one coherent contract change, including guarded Range/options capture, Unicode end adjustment and panel refresh after a successful commit. Confine wrapper algorithms to DOM transformations and all highlighting to SelectionController. Capture used tool members at mount, guard the complete presentation values and isolate per-tool refresh failure under section 9.3; preserve lifecycle/UI factory work under section 3.4 instead of treating every hook as pure metadata.
+
+Remove old helper/type exports, registry writes, field-index addressing, and post-close stale restoration. Preserve internal history recovery. Verify the lifecycle/selection/formatting rows in section 12 and generated/packaged consumers. **Done when:** dynamic fields and stale continuations cannot redirect formatting, own operations preserve selection at the actual resulting revision, every cleanup path revokes authority and releases host-owned resources despite extension exceptions, and presentation failure changes no canonical state or healthy tool.
+
+### Slice 7 — inline control presentation is declarative
+
+**Depends on:** slice 2's preparation authority and slice 6's toolbar integration. **Target:** sections 3.3 and 9.2, P1/P6.
+
+Add compact label metadata with full-label fallback and migrate Heading. Route both toolbar action-list/label snapshots through the shared preparation entrypoint before UI publication. Replace data-level tests with generic action IDs or accessible labels. Prove opaque IDs and actions/label-getter reentry with whole-group failure containment.
+
+Delete Heading regexes and update relevant browser/docs selectors in the same slice. **Done when:** Heading keeps its current control presentation and all other actions work from declared metadata alone.
+
+### Slice 8 — Mention editing shares one text decision
+
+**Depends on:** slices 1–3 and 4c for shared clipboard/read-only composition; reconcile with slice 6 before complete gesture verification. **Target:** section 7's native capability/notification contract and section 10, P1–P6.
+
+Add failing contract cases for word/line deletion and local clipboard/trigger removal; derive native expectations from an independent editable text control. Extract the pure label decision/boundary helper and wire both adapters. Put immediate handle/input/result preparation under the shared guard with event-owner checks, explicit null/error handling and guarded deferred caret. Extend the existing NativeInputController pending envelope, delegate inline capture/completion, and implement the single internal runtime reconciliation of projected neighboring text, sidecar actions and before-selection metadata. Snapshot/document the optional definition/instance methods, enforce opted-in update conformance, synchronize retained payload/instance state before commit, and wire valid/invalid pending envelopes plus fresh-query retirement and guarded/contained cancellation before independent label notices. Preserve inactive boundary behavior and recover interior label selection. Complete label-local clipboard ownership without changing structural clipboard ownership or adding search/composition state owners. Apply section 10.2's terminal cancellation containment to ordinary cancellation/replacement/read-only/destroy as well as the new handoff, and independently finish required control fan-out. Preserve the permitted interactive session.commit path and the per-popup handles from slice 3.
+
+Delete duplicate label-deletion/trigger/Unicode decision branches. Run pure decisions plus native Mention, caret, local/structural clipboard, popup race, composition and Undo/Redo checks. **Done when:** canonical payload and visible label agree after all supported gestures, trigger removal retires identity/search, and each semantic edit has the intended single history operation.
+
+### Slice 9 — contract and architecture convergence
+
+**Depends on:** slices 1–8. **Target:** all normative sections and P1–P6.
+
+Check that the affected RU/EN guides/README pairs, typed examples and generated declarations match the canonical contracts delivered in their owning slices. Run the existing required integration gates and new registered regressions, plus the full parser-based dependency/removal checks with negative fixtures. Execute the independent public-package conformance rows across the external block, marker-free widget, tool and renderers, including two-editor reuse, failure/thenable/revocation and full interface-based consumer proof; keep the existing built-in matrices. Inspect the actual imports, public surfaces, state owners, failed-operation behavior, and consumer migration against this specification.
+
+Classify discrepancies as missing, partial, contradictory, or unrequested. Fix omissions in code; revise this specification first if evidence requires a material target change; remove unrequested complexity. **Done when:** every acceptance row has proof, no material convergence finding remains, no obsolete path is retained without an owned responsibility, and reported test results refer to the final implemented source.

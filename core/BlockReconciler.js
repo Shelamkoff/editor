@@ -48,6 +48,7 @@ export class BlockReconciler {
   #container
   #registry
   #contextFactory
+  #projectPresentation
   #activationResolver
   #entries = new Map()
   #fieldOwners = new WeakMap()
@@ -55,6 +56,7 @@ export class BlockReconciler {
   #readOnly
   #inlineProjection
   #animator
+  #fieldObserver = null
   #store = null
   #destroyed = false
 
@@ -62,6 +64,7 @@ export class BlockReconciler {
     container,
     registry,
     contextFactory,
+    projectPresentation = operation => operation(),
     activationResolver,
     inlineProjection = null,
     readOnly = false,
@@ -73,13 +76,26 @@ export class BlockReconciler {
     this.#container = container
     this.#registry = registry
     this.#contextFactory = contextFactory
+    this.#projectPresentation = projectPresentation
     this.#activationResolver = typeof activationResolver === 'function'
       ? activationResolver
       : (_id, record) => registry.hasBlock(record.type)
     this.#inlineProjection = inlineProjection
     this.#readOnly = readOnly === true
     this.#animator = new ProjectionAnimator(animationDurations)
-
+    const MutationObserverCtor = container.ownerDocument.defaultView?.MutationObserver
+    if (MutationObserverCtor && inlineProjection) {
+      // Presentation controls can replace fields without an author transaction.
+      // Register and hydrate the new hosts before their next paint or input.
+      this.#fieldObserver = new MutationObserverCtor(records => {
+        const ids = new Set(records.map(record => this.resolveBlockTarget(record.target)).filter(Boolean))
+        for (const id of ids) {
+          const entry = this.#entries.get(id)
+          if (entry?.element.isConnected) this.#refreshFields(id, entry, true)
+        }
+      })
+      this.#fieldObserver.observe(container, { childList: true, subtree: true })
+    }
   }
 
   mount(store) {
@@ -145,7 +161,7 @@ export class BlockReconciler {
     const entry = this.#entries.get(id)
     if (!entry) return []
     this.#refreshFields(id, entry, true)
-    return [...(entry.instance.editableFields?.() ?? [])]
+    return [...(entry.fields ?? [])]
   }
 
   resolveInlineWidgetElement(target) {
@@ -439,6 +455,7 @@ export class BlockReconciler {
       for (const entry of this.#entries.values()) {
         changed.push(entry)
         entry.instance.setReadOnly(next)
+        this.#refreshFields(entry.record.id, entry, true, true)
       }
       this.#inlineProjection?.setReadOnly?.(next)
       for (const entry of this.#entries.values()) entry.scope?.setReadOnly?.(next)
@@ -462,6 +479,8 @@ export class BlockReconciler {
   destroy() {
     if (this.#destroyed) return
     this.#destroyed = true
+    this.#fieldObserver?.disconnect()
+    this.#fieldObserver = null
     for (const entry of this.#entries.values()) this.#destroyEntry(entry)
     this.#entries.clear()
     this.#inlineProjection?.destroy?.()
@@ -613,10 +632,15 @@ export class BlockReconciler {
     try { entry.inlinePrepared.discard() } finally { entry.inlinePrepared = null }
   }
 
-  #refreshFields(id, entry, projectPresentation = false) {
+  #refreshFields(id, entry, projectPresentation = false, forceProjection = false) {
+    return this.#projectPresentation(() => this.#registerFields(id, entry, projectPresentation, forceProjection))
+  }
+
+  #registerFields(id, entry, projectPresentation, forceProjection) {
     const fields = entry.instance.editableFields?.() ?? []
     const changed = entry.fields && (fields.length !== entry.fields.length
       || fields.some((field, index) => field.key !== entry.fields[index]?.key || field.element !== entry.fields[index]?.element))
+    if (changed) for (const field of entry.fields) this.#fieldOwners.delete(field.element)
     entry.fields = fields
     for (const field of fields) {
       if (!field?.element || typeof field.key !== 'string' || !field.key) continue
@@ -627,7 +651,7 @@ export class BlockReconciler {
         mode: field.mode,
       })
     }
-    if (projectPresentation && changed && entry.scope?.active && this.#inlineProjection) {
+    if (projectPresentation && (changed || forceProjection) && entry.scope?.active && this.#inlineProjection) {
       this.#inlineProjection.reconcileBlock(id, entry.record, entry.definition, fields, entry.baseContext)
     }
   }

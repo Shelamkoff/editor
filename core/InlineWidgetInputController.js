@@ -1,5 +1,6 @@
 // @ts-check
 import { containedTextRange } from '../shared/containedTextRange.js'
+import { editingHostForEvent } from '../shared/editableFields.js'
 
 export class InlineWidgetInputController {
   #root
@@ -33,6 +34,9 @@ export class InlineWidgetInputController {
     const native=this.#root.ownerDocument.defaultView?.getSelection?.()
     const target=this.#projection.resolveWidgetInputTarget(native,inputType)
     if(!target)return
+    if(event.target?.closest?.('input, textarea, select, button'))return
+    if(event.target!==target.element&&!target.element.contains(event.target)
+      &&!editingHostForEvent(this.#root,event.target)?.contains(target.element))return
     const definition=this.#registry.getInlineDefinition(target.type)
     const editing=definition?.editing
     if(!editing?.handle)return

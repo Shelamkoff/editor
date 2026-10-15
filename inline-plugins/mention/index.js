@@ -6,6 +6,12 @@ import { mentionWidgetSchema } from '../../shared/inlineSchemas/mention.js'
 import { containedTextRange } from '../../shared/containedTextRange.js'
 
 const STYLES_URL=new URL('./styles.css',import.meta.url).href
+const NATIVE_DELETION_INPUTS=new Set([
+  'deleteContentBackward','deleteContentForward',
+  'deleteWordBackward','deleteWordForward',
+  'deleteSoftLineBackward','deleteSoftLineForward',
+  'deleteHardLineBackward','deleteHardLineForward','deleteEntireSoftLine',
+])
 const ICON='<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/><path d="M5.5 21a6.5 6.5 0 0 1 13 0"/><path d="M19 8v6m-3-3h6"/></svg>'
 
 function isElement(value,document){
@@ -178,6 +184,10 @@ export function createMentionPlugin(options={}){
         }catch{}
       }
       const fieldForSpan=span=>span.parentElement?.closest?.('[contenteditable="true"]')??span.parentElement??span
+      const ownsEvent=(entry,event)=>{
+        if(event.target?.closest?.('input, textarea, select, button'))return false
+        return event.target===fieldForSpan(entry.span)||entry.span.contains(event.target)
+      }
       const ownedAtNode=node=>{
         if(!node)return null
         const element=node.nodeType===1?node:node.parentElement
@@ -492,18 +502,64 @@ export function createMentionPlugin(options={}){
         startEditSession(entry,text,offset)
       }
 
+      const replaceLabelRange=(entry,text,start,end,value)=>{
+        const next=text.slice(0,start)+value+text.slice(end),caret=start+value.length
+        if(!next)removeMention(entry)
+        else if(!next.startsWith(trigger))unwrapMention(entry,next,caret)
+        else updateMentionText(entry,next,caret)
+      }
+
+      const handleWidgetClipboard=event=>{
+        if(event.defaultPrevented||compositionSession||!event.clipboardData)return
+        const native=runtimeContext.ownerDocument.defaultView?.getSelection?.()
+        const entry=ownedAtNode(native?.anchorNode)
+        if(!entry||entry.dead||entry.readOnly||ownedAtNode(native?.focusNode)!==entry)return
+        if(!ownsEvent(entry,event))return
+        const anchor=offsetInSpan(entry,native.anchorNode,native.anchorOffset)
+        const focus=offsetInSpan(entry,native.focusNode,native.focusOffset)
+        if(anchor===null||focus===null)return
+        const start=Math.min(anchor,focus),end=Math.max(anchor,focus),text=entry.span.textContent??''
+        if(event.type==='paste'){
+          if(!Array.from(event.clipboardData.types).includes('text/plain'))return
+          const value=event.clipboardData.getData('text/plain')
+          event.preventDefault()
+          if(entry.dead||entry.readOnly||entry.span.textContent!==text)return
+          replaceLabelRange(entry,text,start,end,value)
+          return
+        }
+        if(start===end)return
+        event.preventDefault()
+        const selected=text.slice(start,end)
+        try{
+          event.clipboardData.setData('text/plain',selected)
+          if(event.clipboardData.getData('text/plain')!==selected)return
+        }catch{return}
+        if(event.type==='cut'&&!entry.dead&&!entry.readOnly&&entry.span.textContent===text){
+          replaceLabelRange(entry,text,start,end,'')
+        }
+      }
+
       const handleWidgetBeforeInput=event=>{
         if(event.defaultPrevented||event.isComposing||compositionSession)return
         const native=runtimeContext.ownerDocument.defaultView?.getSelection?.()
-        const deleting=event.inputType==='deleteContentBackward'||event.inputType==='deleteContentForward'
-        const browserRange=deleting?event.getTargetRanges?.()[0]:null
+        const deleting=NATIVE_DELETION_INPUTS.has(event.inputType)
+        const replacing=event.inputType==='insertReplacementText'&&typeof event.data==='string'
+        const browserRange=deleting||replacing?event.getTargetRanges?.()[0]:null
+        if(replacing&&browserRange){
+          const target=ownedAtNode(browserRange.startContainer)
+          const range=target?containedTextRange(target.span,browserRange):null
+          if(!target||target.dead||target.readOnly||!range||!ownsEvent(target,event))return
+          event.preventDefault()
+          replaceLabelRange(target,target.span.textContent??'',range.start,range.end,event.data)
+          return
+        }
         const inside=ownedAtCaret()??(native&&!native.isCollapsed?ownedAtNode(native.focusNode):null)
         let entry=inside??ownedAtDeletionBoundary(event.inputType)
         if(!entry&&browserRange){
           const candidate=ownedAtNode(browserRange.startContainer)
           if(candidate&&containedTextRange(candidate.span,browserRange))entry=candidate
         }
-        if(!entry||entry.readOnly||entry.dead)return
+        if(!entry||entry.readOnly||entry.dead||!ownsEvent(entry,event))return
         const offset=native&&!native.isCollapsed?0:inside?caretOffsetInSpan(entry)
           :event.inputType==='deleteContentBackward'?(entry.span.textContent?.length??0):0
         if(offset===null)return
@@ -535,17 +591,12 @@ export function createMentionPlugin(options={}){
           const start=localOffset(range.startContainer,range.startOffset)
           const end=localOffset(range.endContainer,range.endOffset)
           if(start===null||end===null)return
-          const inserting=(event.inputType==='insertText'||event.inputType==='insertCompositionText')&&typeof event.data==='string'
-          const deleting=event.inputType==='deleteContentBackward'||event.inputType==='deleteContentForward'
+          const inserting=(event.inputType==='insertText'||event.inputType==='insertReplacementText'||event.inputType==='insertCompositionText')&&typeof event.data==='string'
+          const deleting=NATIVE_DELETION_INPUTS.has(event.inputType)
           if(!inserting&&!deleting)return
           event.preventDefault()
           const value=inserting?event.data:''
-          const next=text.slice(0,start)+value+text.slice(end),caret=start+value.length
-          if(!next)removeMention(entry)
-          else if(!next.startsWith(trigger))unwrapMention(entry,next,caret)
-          else{
-            updateMentionText(entry,next,caret)
-          }
+          replaceLabelRange(entry,text,start,end,value)
           return
         }
 
@@ -661,7 +712,7 @@ export function createMentionPlugin(options={}){
 
       const handleEditKeydown=event=>{
         const entry=ownedAtCaret()
-        if(!entry||activeSession?.editEntry!==entry)return
+        if(!entry||activeSession?.editEntry!==entry||!ownsEvent(entry,event))return
         const result=handleSessionKeydown(event,activeSession)
         if(result==='handled'){
           event.preventDefault()
@@ -737,9 +788,9 @@ export function createMentionPlugin(options={}){
         return 'pass'
       }
 
-      runtimeContext.ownerDocument.addEventListener('compositionstart',()=>{
+      runtimeContext.ownerDocument.addEventListener('compositionstart',event=>{
         const entry=ownedAtCaret()
-        if(!entry||entry.dead||entry.readOnly)return
+        if(!entry||entry.dead||entry.readOnly||!ownsEvent(entry,event))return
         const selection=runtimeContext.ownerDocument.defaultView?.getSelection?.()
         const anchor=caretOffsetInSpan(entry),focus=selection?offsetInSpan(entry,selection.focusNode,selection.focusOffset):null
         if(anchor===null||focus===null)return
@@ -785,6 +836,12 @@ export function createMentionPlugin(options={}){
         capture:true,
         signal:runtimeContext.signal,
       })
+      for(const type of ['copy','cut','paste']){
+        runtimeContext.ownerDocument.addEventListener(type,handleWidgetClipboard,{
+          capture:true,
+          signal:runtimeContext.signal,
+        })
+      }
       runtimeContext.ownerDocument.addEventListener('keydown',handleEditKeydown,{
         capture:true,
         signal:runtimeContext.signal,

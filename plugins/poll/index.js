@@ -357,16 +357,8 @@ export function createPollPlugin(config={}){
 
           const syncAuthoring=()=>{
             if(readOnly||dead)return
-            const question=wrapper.querySelector('.oe-poll__question')
-            const optionNodes=[...wrapper.querySelectorAll('.oe-poll__option-text')]
-            context.updateData(current=>({
-              ...current,
-              question:question?.innerHTML??current.question,
-              options:current.options.map(option=>{
-                const node=optionNodes.find(el=>el.dataset.optionId===option.id)
-                return node?{...option,text:node.innerHTML}:option
-              }),
-            }))
+            // Core serializes owned inline occurrences into canonical references.
+            context.commitDomMutation(()=>{})
           }
 
           const disposeSubscription=()=>{
@@ -531,7 +523,7 @@ export function createPollPlugin(config={}){
               project()
             },
             editableFields:()=>Object.freeze([
-              ...(!readOnly?[Object.freeze({key:'question',element:/** @type {HTMLElement} */(wrapper.querySelector('.oe-poll__question')),mode:/** @type {'rich-text'} */('rich-text')})]:[]),
+              Object.freeze({key:'question',element:/** @type {HTMLElement} */(wrapper.querySelector('.oe-poll__question')),mode:/** @type {'rich-text'} */('rich-text')}),
               ...data.options.flatMap(option=>{
                 const element=wrapper.querySelector(`.oe-poll__option-text[data-option-id="${cssEscape(option.id)}"]`)
                 return element?[Object.freeze({key:'option:'+option.id,element:/** @type {HTMLElement} */(element),mode:/** @type {'rich-text'} */('rich-text')})]:[]

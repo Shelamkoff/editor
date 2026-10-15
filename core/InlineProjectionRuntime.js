@@ -139,12 +139,20 @@ export class InlineProjectionRuntime {
     for(const [key,element] of actual){
       const html=this.#serializeField(blockId,element)
       serialized.set(key,html)
-      collectTokens(html,counts)
     }
 
     let data=cloneEditorData(readData)
     if(typeof definition?.schema?.mapRichText==='function'){
-      data=definition.schema.mapRichText(data,(html,key)=>serialized.get(key)??html)
+      const canonical=richFieldMap(definition,record.data)
+      data=definition.schema.mapRichText(data,(html,key)=>{
+        // Hidden authoring fields have no live DOM authority. Retain committed
+        // text and count references across the whole block, including those fields.
+        const value=serialized.get(key)??canonical.get(key)??html
+        collectTokens(value,counts)
+        return value
+      })
+    }else{
+      for(const html of serialized.values())collectTokens(html,counts)
     }
 
     const sourceInline=object(record.inline)
