@@ -134,18 +134,7 @@ export class InlineSelectionAuthority {
       const anchor = this.#copyPoint(bookmark?.anchor)
       const focus = this.#copyPoint(bookmark?.focus)
       if (!anchor || !focus) return null
-      const a = this.#resolve(anchor)
-      const b = this.#resolve(focus)
-      if (!a || !b) return null
-      const forward = this.#compare(anchor, focus) <= 0
-      const start = forward ? a : b
-      const end = forward ? b : a
-      const range = this.#root.ownerDocument.createRange()
-      try {
-        range.setStart(start.node, start.offset)
-        range.setEnd(end.node, end.offset)
-      } catch { return null }
-      return range
+      return this.#resolvedRange(anchor, focus)
     })
   }
 
@@ -213,6 +202,26 @@ export class InlineSelectionAuthority {
     return resolved
   }
 
+  /** Resolve authored logical endpoints in their current keyed fields.
+   * This never changes browser selection or highlight state.
+   * @param {{blockId:string,fieldKey:string,offset:number}} anchor
+   * @param {{blockId:string,fieldKey:string,offset:number}} focus
+   */
+  #resolvedRange(anchor, focus) {
+    const a = this.#resolve(anchor)
+    const b = this.#resolve(focus)
+    if (!a || !b) return null
+    const forward = this.#compare(anchor, focus) <= 0
+    const start = forward ? a : b
+    const end = forward ? b : a
+    const range = this.#root.ownerDocument.createRange()
+    try {
+      range.setStart(start.node, start.offset)
+      range.setEnd(end.node, end.offset)
+    } catch { return null }
+    return range
+  }
+
   /** @param {{blockId:string,fieldKey:string,offset:number}} first @param {{blockId:string,fieldKey:string,offset:number}} second */
   #compare(first, second) {
     const a = this.#runtime.indexOf(first.blockId)
@@ -230,6 +239,20 @@ export class InlineSelectionAuthority {
     const range = current.range
     if (isWidgetEndpoint(range.startContainer) || isWidgetEndpoint(range.endContainer)) return false
     if (!this.#root.contains(range.startContainer) || !this.#root.contains(range.endContainer)) return false
+    const anchor = this.#copyPoint(current.bookmark.anchor)
+    const focus = this.#copyPoint(current.bookmark.focus)
+    if (!anchor || !focus) return false
+    const expected = this.#resolvedRange(anchor, focus)
+    if (!expected) return false
+    // Equivalent DOM boundaries may be represented by a parent element offset
+    // or a descendant text node. Compare actual positions, not node identity.
+    // Native Range exposes this method; restricted test adapters may omit it.
+    if (typeof range.compareBoundaryPoints === 'function') {
+      try {
+        return range.compareBoundaryPoints(0, expected) === 0
+          && range.compareBoundaryPoints(2, expected) === 0
+      } catch { return false }
+    }
     return true
   }
 
