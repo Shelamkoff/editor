@@ -1,11 +1,6 @@
 import { closestBlock } from '../shared/editorDom.js'
 import { editableAtBoundary } from '../shared/editableFields.js'
-import {
-  createSelectionPortBinding,
-  saveSelectionOffsets,
-  restoreSelectionOffsets,
-  clearCrossBlockRange,
-} from './utils.js'
+import { createSelectionPortBinding } from './utils.js'
 import { editableTextWalker, getTextOffset } from '../shared/textOffset.js'
 
 const ELEMENT_NODE = 1
@@ -90,13 +85,11 @@ export function createCaseTransformTool(label) {
       const range = selection?.range
       if (!range || range.collapsed) return
 
-      const saved = saveSelectionOffsets(range)
+      const bookmark = cbs.capture(range)
+      if (!bookmark) return
       const endBlock = closestBlock(range.endContainer)
-      const endField = saved.singleOffsets?.ce ?? (endBlock
-        ? editableAtBoundary(endBlock, range.endContainer, range.endOffset)?.element : null)
-      const native = range.startContainer.ownerDocument?.defaultView?.getSelection?.() ?? null
-      const backward = !native?.isCollapsed && native?.anchorNode === range.endContainer
-        && native.anchorOffset === range.endOffset
+      const endField = endBlock
+        ? editableAtBoundary(endBlock, range.endContainer, range.endOffset)?.element : null
       let endDelta = 0
 
       // Collect only text nodes clipped to range boundaries
@@ -140,15 +133,11 @@ export function createCaseTransformTool(label) {
         node.data = before + replacement + after
       }
 
-      if (saved.singleOffsets) saved.singleOffsets.end += endDelta
-      else if (saved.crossOffsets) saved.crossOffsets.endOffset += endDelta
-      restoreSelectionOffsets(cbs, saved)
-      if (backward && saved.singleOffsets && native?.rangeCount) {
-        const restored = native.getRangeAt(0)
-        native.setBaseAndExtent(restored.endContainer, restored.endOffset, restored.startContainer, restored.startOffset)
-      }
-      if (!saved.crossOffsets && !saved.singleOffsets) {
-        clearCrossBlockRange(cbs)
+      // Restore the original logical endpoints, adjusting only the DOM-order
+      // end field for any UTF-16 expansion (including ß -> SS). The private
+      // bookmark preserves backward anchor/focus direction.
+      if (!cbs.restore(bookmark, { endOffsetDelta: endDelta })) {
+        throw new Error('Formatting selection became unavailable after case transformation')
       }
 
     },
