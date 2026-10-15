@@ -3,6 +3,7 @@ import { ALLOWED_TAGS } from '../shared/sanitize/allowlist.js'
 import { sanitizeHtml } from '../shared/sanitize/sanitizeHtml.js'
 import { sanitizeRawHtml } from '../shared/sanitize/sanitizeRawHtml.js'
 import { toTrustedHtml } from '../shared/sanitize/trustedHtml.js'
+import { synchronousResult } from '../shared/synchronousResult.js'
 
 function orderedTypes(registry,currentType){
   const types=registry.blockTypes
@@ -34,8 +35,10 @@ function materializeRichText(html,{registry,types,context}){
     const definition=registry.getBlockDefinition(type)
     const conversion=definition?.capabilities?.conversion
     if(!conversion)continue
-    if(!conversion.canImport(payload))continue
-    return {type,data:conversion.import(payload)}
+    const accepted=synchronousResult(conversion.canImport(payload))
+    if(typeof accepted!=='boolean')throw new TypeError(`HTML conversion canImport() for "${type}" must return a boolean`)
+    if(!accepted)continue
+    return {type,data:synchronousResult(conversion.import(payload))}
   }
   throw new Error('No registered block type can import rich-text HTML')
 }
@@ -85,7 +88,9 @@ export function prepareHtmlImport(html,options){
       const definition=registry.getBlockDefinition(type)
       const capability=definition?.capabilities?.htmlImport
       if(!capability)continue
-      if(capability.matchesRoot(element))return {type,capability}
+      const accepted=synchronousResult(capability.matchesRoot(element))
+      if(typeof accepted!=='boolean')throw new TypeError(`HTML import matchesRoot() for "${type}" must return a boolean`)
+      if(accepted)return {type,capability}
     }
     return null
   }
@@ -101,7 +106,7 @@ export function prepareHtmlImport(html,options){
     if(match){
       flush()
       structural=true
-      const data=match.capability.importRoot(element,context)
+      const data=synchronousResult(match.capability.importRoot(element,context))
       parts.push({kind:'block',type:match.type,data})
       return
     }
