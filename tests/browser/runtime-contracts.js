@@ -1756,4 +1756,40 @@ test('inline panel logical rights expire on unrelated canonical revision',async(
 })
 
 
+test('scoped mounted tool can mutate only with its own fresh bookmark and loses authority after commit',async()=>{
+  let port=null, mutations=null, calls=0
+  const tool={
+    type:'scoped-mounted-regression',title:'Scoped',icon:'<b>S</b>',
+    isActive(){return false},toggle(){},
+    bindSelectionPort(next){if(next)port=next},
+    onMount(_button,context){
+      mutations=context
+      equal(port?.range,null)
+      equal(port?.capture(),null)
+    },
+  }
+  const editor=make([para('a','Alpha')],{inlineTools:[tool]})
+  const field=editableField(editor,'a')
+  select(field,0,3)
+  await new Promise(resolve=>setTimeout(resolve,0))
+  const token=port?.capture()
+  check(token,'Active mounted port failed to issue a bookmark')
+  check(port.range,'Active mounted port did not expose its current range')
+  const outcome=mutations.mutate(token,range=>{
+    calls++
+    check(range&&!range.collapsed,'Fresh formatting range was not supplied')
+    return 'applied'
+  })
+  equal(outcome,'applied')
+  equal(calls,1)
+  editor.blocks.update('a',()=>({data:{text:'Changed outside'}}))
+  equal(port.restore(token),false)
+  equal(mutations.mutate(token,()=>{calls++}),undefined)
+  equal(calls,1)
+  editor.destroy()
+  equal(port.range,null)
+  equal(port.restore(token),false)
+})
+
+
 await run()
