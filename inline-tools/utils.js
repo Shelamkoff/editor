@@ -1,15 +1,13 @@
 import { setTrustedHtml } from '../shared/sanitize/sanitizeHtml.js'
 import { hasInlineContent, removeEmptyInlineTags } from './inlineContent.js'
 export { removeEmptyInlineTags } from './inlineContent.js'
-import { editableFields, editableAtBoundary } from '../shared/editableFields.js'
-import { BLOCK_CLASS, closestBlock, el } from '../shared/editorDom.js'
+import { closestBlock, el } from '../shared/editorDom.js'
 import { createSvgIcon, ICON_BACK } from '../shared/editorIcons.js'
 import { getTextOffset, getTextLength, findNodeAtOffset as findLogicalPosition, editableTextWalker } from '../shared/textOffset.js'
 
 const ELEMENT_NODE = 1
 const TEXT_NODE = 3
 const DOCUMENT_FRAGMENT_NODE = 11
-const CROSS_HIGHLIGHT_KEY = 'oe-cross-select-v2'
 
 /**
  * Bind one tool to its mount-scoped selection authority. A fresh mount gets
@@ -31,18 +29,6 @@ export function createSelectionPortBinding() {
     },
     bind(port) { current = port ?? null },
   }
-}
-
-function showCrossHighlight(range) {
-  const view = range?.startContainer?.ownerDocument?.defaultView
-  const HighlightCtor = view?.Highlight
-  const highlights = view?.CSS?.highlights
-  if (HighlightCtor && highlights) highlights.set(CROSS_HIGHLIGHT_KEY, new HighlightCtor(range))
-}
-
-function hideCrossHighlight(node) {
-  const document = node?.ownerDocument ?? node?.startContainer?.ownerDocument
-  document?.defaultView?.CSS?.highlights?.delete?.(CROSS_HIGHLIGHT_KEY)
 }
 
 /** SVG markup for the standard back-navigation icon used in action panels. */
@@ -544,25 +530,6 @@ export function getEditorRoot(node) {
   return /** @type {HTMLElement | null} */ (el?.closest('.oe-editor'))
 }
 
-/**
- * Clear the stored cross-block range (call after DOM mutations that
- * invalidate the range's node references).
- * @param {import('./types').CrossEditableSelectionPort | null} [cbs]
- * @param {Node} [contextNode] - any node inside the editor for scoping
- * @returns {void}
- */
-export function clearCrossBlockRange(cbs, contextNode) {
-  if (cbs) {
-    cbs.deactivate()
-  } else {
-    const editor = getEditorRoot(contextNode)
-    if (editor) {
-      editor.classList.remove('oe-editor--cross-selecting')
-      hideCrossHighlight(editor)
-    }
-  }
-}
-
 export { getTextOffset }
 
 /**
@@ -578,147 +545,6 @@ export { getTextOffset }
  */
 export function findNodeAtOffset(container, charOffset, bias = 'start') {
   return findLogicalPosition(container, charOffset, bias)
-}
-
-/** @param {Range} range @returns {boolean} */
-function isBackwardRange(range) {
-  const document = range.startContainer.ownerDocument
-  const native = document?.defaultView?.getSelection?.()
-  if (!document || !native?.anchorNode || !native.focusNode || native.isCollapsed) return false
-  try {
-    const anchor = document.createRange()
-    anchor.setStart(native.anchorNode, native.anchorOffset)
-    anchor.collapse(true)
-    const focus = document.createRange()
-    focus.setStart(native.focusNode, native.focusOffset)
-    focus.collapse(true)
-    return anchor.compareBoundaryPoints(0, focus) > 0
-  } catch { return false }
-}
-
-/**
- * Save a cross-editable range (multiple fields and/or blocks) as logical offsets.
- * @param {Range} range
- * @returns {{ editorRoot: HTMLElement, startBlockId: string, endBlockId: string, startFieldIndex: number, endFieldIndex: number, startOffset: number, endOffset: number, backward: boolean } | null}
- */
-export function saveCrossBlockOffsets(range) {
-  const startBlock = closestBlock(range.startContainer)
-  const endBlock = closestBlock(range.endContainer)
-  if (!startBlock || !endBlock) return null
-
-  const editorRoot = getEditorRoot(startBlock)
-  if (!editorRoot || getEditorRoot(endBlock) !== editorRoot) return null
-
-  const startField = editableAtBoundary(startBlock, range.startContainer, range.startOffset)
-  const endField = editableAtBoundary(endBlock, range.endContainer, range.endOffset)
-  if (!startField || !endField) return null
-  if (startBlock === endBlock && startField.index === endField.index) return null
-
-  return {
-    editorRoot,
-    startBlockId: startBlock.dataset.blockId ?? '',
-    endBlockId: endBlock.dataset.blockId ?? '',
-    startFieldIndex: startField.index,
-    endFieldIndex: endField.index,
-    startOffset: getTextOffset(startField.element, range.startContainer, range.startOffset),
-    endOffset: getTextOffset(endField.element, range.endContainer, range.endOffset),
-    backward: isBackwardRange(range),
-  }
-}
-
-/**
- * Restore cross-block range from saved offsets and refresh the editor-owned CSS Highlight.
- * @param {import('./types').CrossEditableSelectionPort | null} cbs
- * @param {{ editorRoot: HTMLElement, startBlockId: string, endBlockId: string, startFieldIndex?: number, endFieldIndex?: number, startOffset: number, endOffset: number, backward?: boolean }} offsets
- * @returns {Range | null}
- */
-export function restoreCrossBlockRange(cbs, offsets) {
-  const { editorRoot } = offsets
-  if (!editorRoot.isConnected) return null
-
-  // Block IDs are unique only within one editor document. Comparing dataset
-  // values also avoids interpolating document-owned IDs into a CSS selector.
-  const blocks = editorRoot.querySelectorAll('[data-block-id]')
-  const startBlock = Array.from(blocks).find(block => (
-    /** @type {HTMLElement} */ (block).dataset.blockId === offsets.startBlockId
-  ))
-  const endBlock = Array.from(blocks).find(block => (
-    /** @type {HTMLElement} */ (block).dataset.blockId === offsets.endBlockId
-  ))
-  if (!startBlock || !endBlock) return null
-
-  const startCe = editableFields(/** @type {HTMLElement} */ (startBlock))[offsets.startFieldIndex ?? 0]
-  const endCe = editableFields(/** @type {HTMLElement} */ (endBlock))[offsets.endFieldIndex ?? 0]
-  if (!startCe || !endCe) return null
-
-  const start = findNodeAtOffset(startCe, offsets.startOffset)
-  const end = findNodeAtOffset(endCe, offsets.endOffset, 'end')
-  if (!start || !end) return null
-
-  const ownerDocument = editorRoot.ownerDocument
-  const range = ownerDocument.createRange()
-  try {
-    range.setStart(start.node, start.offset)
-    range.setEnd(end.node, end.offset)
-  } catch { return null }
-
-  // Keep the native range non-collapsed: collapsing it revokes the cross-field
-  // selection port and makes multi-step tools operate on only the last field.
-  try {
-    const sel = ownerDocument.defaultView?.getSelection?.() ?? null
-    const anchor = offsets.backward ? end : start
-    const focus = offsets.backward ? start : end
-    ;(offsets.backward ? endCe : startCe).focus({ preventScroll: true })
-    if (typeof sel?.setBaseAndExtent === 'function') sel.setBaseAndExtent(anchor.node, anchor.offset, focus.node, focus.offset)
-    else {
-      sel?.removeAllRanges()
-      sel?.addRange(range)
-    }
-  } catch { /* detached */ }
-
-  // Update stored range and visual highlight
-  if (cbs) {
-    cbs.activate(range)
-  } else {
-    editorRoot.classList.add('oe-editor--cross-selecting')
-    showCrossHighlight(range)
-  }
-
-  return range
-}
-
-/**
- * Check if a selection spans multiple .oe-block elements.
- * @param {import('./types').CrossEditableSelectionPort | null} [cbs]
- * @param {Range | null} [rangeHint] - saved owning range when no cross-block range is active
- * @returns {HTMLElement[] | null} Array of plugin-owned block roots, or null if single-block
- */
-export function getSelectedBlockElements(cbs, rangeHint = null) {
-  // Native selection clips to the focused contenteditable. Callers that do
-  // not have a stored cross-block range must pass the saved owning range.
-  const range = cbs?.range || rangeHint
-  if (!range || range.collapsed) return null
-  const startBlock = closestBlock(range.startContainer)
-  const endBlock = closestBlock(range.endContainer)
-
-  if (!startBlock || !endBlock || startBlock === endBlock) return null
-
-  // Collect all plugin-owned block roots between start and end.
-  const blocks = []
-  const container = startBlock.parentElement
-  if (!container) return null
-
-  let inside = false
-  for (const child of container.children) {
-    if (child === startBlock) inside = true
-    if (inside && child.classList.contains(BLOCK_CLASS)) {
-      const content = child.firstElementChild
-      if (content?.nodeType === ELEMENT_NODE) blocks.push(/** @type {HTMLElement} */ (content))
-    }
-    if (child === endBlock) break
-  }
-
-  return blocks.length > 1 ? blocks : null
 }
 
 /**
@@ -897,72 +723,6 @@ export function normalizeAfterEdit(singleCe, walkRoot) {
   } else {
     const blocks = walkRoot.querySelectorAll('[contenteditable]')
     for (const b of blocks) b.normalize()
-  }
-}
-
-/**
- * @typedef {Object} SavedOffsets
- * @property {{ editorRoot: HTMLElement, startBlockId: string, endBlockId: string, startFieldIndex: number, endFieldIndex: number, startOffset: number, endOffset: number, backward?: boolean } | null} crossOffsets - Serialized selection spanning multiple editable block fields.
- * @property {{ ce: Node, start: number, end: number, backward?: boolean } | null} singleOffsets - Text offsets and owning editable node for a selection contained in one field.
- */
-
-/**
- * Save selection offsets (cross-block or single-block) before DOM mutation.
- * @param {Range} range
- * @returns {SavedOffsets}
- */
-export function saveSelectionOffsets(range) {
-  const crossOffsets = saveCrossBlockOffsets(range)
-  /** @type {{ ce: Node, start: number, end: number, backward?: boolean } | null} */
-  let singleOffsets = null
-  if (!crossOffsets) {
-    const startEl = range.startContainer.nodeType === ELEMENT_NODE
-      ? /** @type {HTMLElement} */ (range.startContainer)
-      : range.startContainer.parentElement
-    const ce = startEl?.closest('[contenteditable="true"]')
-    if (ce) {
-      singleOffsets = {
-        ce,
-        start: getTextOffset(ce, range.startContainer, range.startOffset),
-        end: getTextOffset(ce, range.endContainer, range.endOffset),
-        backward: isBackwardRange(range),
-      }
-    }
-  }
-  return { crossOffsets, singleOffsets }
-}
-
-/**
- * Restore selection from saved offsets after DOM mutation.
- * @param {import('./types').CrossEditableSelectionPort | null} cbs
- * @param {SavedOffsets} saved
- * @returns {void}
- */
-export function restoreSelectionOffsets(cbs, saved) {
-  if (saved.crossOffsets) {
-    restoreCrossBlockRange(cbs, saved.crossOffsets)
-  } else if (saved.singleOffsets) {
-    const { ce, start, end, backward } = saved.singleOffsets
-    const s = findNodeAtOffset(ce, start)
-    const e = findNodeAtOffset(ce, end, 'end')
-    if (s && e) {
-      try {
-        const ownerDocument = ce.ownerDocument
-        const sel = ownerDocument?.defaultView?.getSelection?.() ?? null
-        if (!ownerDocument || !sel) return
-        const r = ownerDocument.createRange()
-        r.setStart(s.node, s.offset)
-        r.setEnd(e.node, e.offset)
-        if (typeof sel.setBaseAndExtent === 'function') {
-          const anchor = backward ? e : s
-          const focus = backward ? s : e
-          sel.setBaseAndExtent(anchor.node, anchor.offset, focus.node, focus.offset)
-        } else {
-          sel.removeAllRanges()
-          sel.addRange(r)
-        }
-      } catch { /* detached */ }
-    }
   }
 }
 
