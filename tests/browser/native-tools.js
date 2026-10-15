@@ -433,4 +433,50 @@ for (const [locale, labels] of [[ru, ['По центру', 'По левому к
   })
 }
 
+
+test('native backward Unicode case expansion adjusts only the selected end endpoint',async()=>{
+  const editor=make([para('a','Straße')],{
+    injectStyles:true,inlineTools:createDefaultInlineTools({types:['caseTransform']}),
+  })
+  const field=editableField(editor,'a')
+  field.focus()
+  const end=findNodeAtOffset(field,6,'end')
+  const start=findNodeAtOffset(field,0,'start')
+  window.getSelection().setBaseAndExtent(end.node,end.offset,start.node,start.offset)
+  document.dispatchEvent(new Event('selectionchange'))
+  await pause(45)
+  await clickNative(editorRoot(editor).querySelector('[data-tool="caseTransform"]'))
+  await pause(45)
+  equal(editor.save().blocks[0].data.text,'STRASSE')
+  const native=window.getSelection()
+  equal(getTextOffset(field,native.anchorNode,native.anchorOffset),7)
+  equal(getTextOffset(field,native.focusNode,native.focusOffset),0)
+  equal(editor.canUndo,true)
+  editor.undo()
+  equal(editor.save().blocks[0].data.text,'Straße')
+  equal(editor.canUndo,false)
+})
+
+test('native retained Font Size and Color callbacks cannot edit after external revision',async()=>{
+  for(const type of ['fontSize','bgcolor']){
+    const editor=make([para('a','Alpha')],{
+      injectStyles:true,inlineTools:createDefaultInlineTools({types:[type]}),
+    })
+    const field=editableField(editor,'a')
+    select(field,0,3)
+    await pause(45)
+    const root=editorRoot(editor)
+    await clickNative(root.querySelector(`[data-tool="${type}"]`))
+    const target=root.querySelector(type==='fontSize'?'.oe-font-size-apply':'.oe-color-btn--apply')
+    assert(target,'Expected active formatting control')
+    editor.blocks.update('a',()=>({data:{text:'Replaced'}}))
+    const after=editor.save().blocks
+    await clickNative(target)
+    await pause(30)
+    equal(editor.save().blocks,after,'Retired formatting control mutated a replacement')
+    equal(editor.save().blocks[0].data.text,'Replaced')
+  }
+})
+
+
 await run()
