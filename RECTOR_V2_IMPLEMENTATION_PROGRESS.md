@@ -2,6 +2,8 @@
 
 Authoritative target: [updated refinement specification](./RECTOR_V2_ARCHITECTURE_REFINEMENT_SPEC.md).
 
+Each subsection records its own implementation checkpoint and verification scope. The current outstanding work is listed under Remaining slices; historical green suites do not establish acceptance of a later branch head.
+
 ## Preserved baseline
 
 Commit `75b7870` preserves all pre-existing local source fixes, native audit fixtures and reviewed plans. Commit `8c80a7f` integrates the five documentation updates from the remote branch while retaining the latest reviewed specification.
@@ -83,7 +85,7 @@ Verification:
 - `npm run test:package`: passed with zero declaration source diagnostics, isolated Bundler/NodeNext consumers, Vite, native ESM and 22 CSS assets.
 - Red/green evidence covers forged/foreign handles, staged source/order changes, allowed unrelated staged edits, staged empty-anchor decisions and stale focus after a current-block observer replaces the document. Payload accessor checks confirm stale rejection occurs before capture/application.
 
-Stopped after this slice at the user's request. The following slices remain unimplemented; completion of 4b does not establish completion of the full architecture plan.
+Historical checkpoint: work stopped after this slice at the user's request. Subsequent implementation is recorded below; completion of 4b does not establish completion of the full architecture plan.
 
 ## Slice 4c — guarded ingress and clipboard task lifetime (implementation staged; full gates pending)
 
@@ -194,12 +196,34 @@ Verification:
 - Synthetic `InlineToolbar` / scoped port exercise also passed: a real tool callback acquired and restored its current token, a matching queued `selectionchange` kept its new continuation, and a subsequently changed native selection revoked it.
 - None of these simulations proves true Chrome/browser input, native clipboard, IME, actual DOM reconciliation, generated declaration consumers or npm-package conformance. Full local `npm test`, `npm run typecheck`, `npm run test:browser`, `npm run test:docs` and `npm run test:package` remain unverified at this head.
 
+## Slice 7 — declarative settings actions and inline controls (source implemented; full acceptance pending)
+
+Implemented on `refactor/rector-v2-architecture`, starting from `7e30f11f516b95ff3872fc8795a93b376bdaa676`:
+
+- Extended the existing shared `SettingsAction` contract with optional `compactLabel: LocalizedLabel`. Heading declares localized H2–H6 compact labels in the plugin and both English/Russian locale tables. Parsing Heading action IDs remains inside Heading's `apply()` only.
+- Added `core/SettingsActions.js` as a shared preparation helper, not a new registry. Both toolbars use it to invoke `actions()`, capture the complete dense list and every host-used action/label property, validate localized labels, and resolve strings under `DocumentRuntime.prepareExtensionValue()`. The frozen presentation has no extension-owned getters. The chosen apply method retains its original receiver and receives current author data at dispatch.
+- Inline triggers display `compactLabel ?? label`; inline dropdowns and BlockToolbar display full labels. Action identifiers are opaque in generic core. Replaced the Heading-derived `data-level` attribute with `data-action-id`, preserving disabled, active, radio, keyboard and group accessibility behavior.
+- Any thrown, invalid or asynchronous metadata rejects the entire affected group. InlineToolbar hides/disables that group and retires its callbacks; BlockToolbar omits that group while retaining common move/duplicate/delete controls. Failures are reported through the existing editor diagnostics, with no partial menu or metadata-driven document mutation. Disabled, superseded and revision-stale action callbacks do not apply. Deferred focus/restoration checks the accepted action's generation, revision and continuation.
+- Validated proxy-provided array lengths and contained rejected label thenables immediately, before a later property getter can throw. This prevents a secondary unhandled rejection while rejecting an invalid list. No compatibility alias or Heading-specific fallback was added to core.
+- Added 21 Node tests and seven real-editor browser scenarios in `tests/browser/settings-action-contracts.js`. The new scenarios are called by the already registered `action-label-security.js` page rather than left in an unregistered fixture. They cover compact/full labels, opaque IDs, literal text, atomic group rejection, guarded metadata getters, disabled/stale callbacks, and localized Heading application/Undo.
+
+Executed verification on the exact edited helper and controller source:
+
+- `node --test core/SettingsActions.test.js`: **21/21 passed** in Node v22.16.0. These were real Node test-runner executions, not rewritten test bodies. Red/green checks first reproduced missing compact metadata, late invalid-list acceptance, invalid proxy lengths and an uncontained rejected label.
+- **12/12 controller-level DOM cases passed in actual headless Chromium**. The harness loaded the edited InlineToolbar/BlockToolbar/helper source through CDP into an isolated document, with a stubbed document runtime and unrelated toolbar dependencies. It covered both UI surfaces, literal labels, complete-list rejection, metadata producer denial, retained-button invalidation, keyboard traversal of radio actions and captured apply receivers. The same harness against the pre-change controllers passed only 1/12. This is not a full-editor, native input, sanitizer, or package test.
+- Targeted `tsc --noEmit --allowJs --checkJs --target ES2022 --module ESNext --moduleResolution bundler core/SettingsActions.js`: passed using the available TypeScript 5.8.3. The project's pinned TypeScript 5.9.3 and full project configurations were not executed. Node syntax checks for the edited JS and new browser module passed.
+- GitHub compare against the starting commit confirmed the changes were limited to the action helper/tests, both toolbar integrations, diagnostic wiring, the shared optional type field, Heading metadata/locales, and registered browser regressions. No unrelated refactoring code was replaced.
+
+**Not executed at this head:** full `npm test`, project `npm run typecheck`, full real-editor/browser/native suites, `npm run test:docs`, and `npm run test:package`. The seven new real-editor scenarios are committed but not yet executed through the complete Vite/editor runner; the 12 Chromium cases above deliberately used a controller-level harness. Historical slice 4b results remain historical only.
+
+**Status:** slice 7 implementation is committed and targeted tests pass. Final acceptance remains pending the full local/native/type/package gates; this does not mark the whole refactor complete.
+
 ## Remaining slices
 
 4c. Full local/native/package verification and integration with the slice 8 terminal cancellation/control fan-out contract.
 5. Run full local/native/package acceptance on the new conversion planner and correct any failures.
 6. Run full local/native/package validation of strict formatting ports, panel settlement, tool presentation and selectionchange handling; correct resulting defects.
-7. Declarative inline controls.
+7. Run full-editor, native, type, documentation and package acceptance for declarative controls, including the new registered action-label-security scenarios; correct resulting defects.
 8. Shared Mention text decisions and native reconciliation.
 9. Convergence, packaged conformance and dependency enforcement.
 
