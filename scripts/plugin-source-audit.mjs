@@ -264,6 +264,16 @@ const removedRuntimeSymbols = [
   'insertExternalBlocks(',
   'exportRichTextFragment(',
   'replaceRichTextFragment(',
+  'CrossEditableSelectionPort',
+  'SavedOffsets',
+  'saveCrossBlockOffsets(',
+  'restoreCrossBlockRange(',
+  'saveSelectionOffsets(',
+  'restoreSelectionOffsets(',
+  'clearCrossBlockRange(',
+  'getSelectedBlockElements(',
+  'showCrossHighlight(',
+  'hideCrossHighlight(',
   'rootElement',
   'contentElement',
   'getData(element)',
@@ -271,7 +281,8 @@ const removedRuntimeSymbols = [
   'ParagraphData.align',
   'HeadingData.align',
 ]
-const removedSymbolSources = sourceFilesUnder('core').concat(sourceFilesUnder('plugins'), sourceFilesUnder('inline-plugins'))
+const removedSymbolSources = sourceFilesUnder('core')
+  .concat(sourceFilesUnder('plugins'), sourceFilesUnder('inline-plugins'), sourceFilesUnder('inline-tools'))
 for (const symbol of removedRuntimeSymbols) {
   for (const file of removedSymbolSources) {
     const relative = path.relative(root, file).split(path.sep).join('/')
