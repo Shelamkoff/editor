@@ -8,8 +8,6 @@ import {
   getWalkRoot,
   collectTextTargets,
   normalizeAfterEdit,
-  saveSelectionOffsets,
-  restoreSelectionOffsets,
   toggleTag,
 } from './utils.js'
 
@@ -155,10 +153,8 @@ export function createFontSizeTool(label) {
   let dropdownEl = null
   /** @type {HTMLInputElement | null} */
   let inputEl = null
-  /** @type {Range | null} */
-  let savedRange = null
-  /** @type {import('./utils.js').SavedOffsets | null} */
-  let savedOffsets = null
+  /** @type {import('./types').InlineSelectionBookmark | null} */
+  let savedBookmark = null
   /** @type {Document | null} */
   let ownerDocument = null
   /** @type {(Window & typeof globalThis) | null} */
@@ -174,11 +170,6 @@ export function createFontSizeTool(label) {
     return range?.startContainer?.ownerDocument ?? ownerDocument
   }
 
-  /** @param {Range | null} [range] @returns {Selection | null} */
-  function selectionFor(range = null) {
-    return documentFor(range)?.defaultView?.getSelection?.() ?? null
-  }
-
   function cancelFocusFrame() {
     if (focusFrame === null) return
     const view = dropdownEl?.ownerDocument?.defaultView ?? ownerWindow
@@ -186,49 +177,35 @@ export function createFontSizeTool(label) {
     focusFrame = null
   }
 
-  /**
-   * @template T
-   * @param {Range} range
-   * @param {() => T} operation
-   * @returns {T}
-   */
-  function mutate(range, operation) {
-    return mutations ? mutations.mutate(range, operation) : operation()
+  /** @param {(range:Range)=>void} operation */
+  function mutate(operation) {
+    if (!savedBookmark || !mutations) return false
+    let ran = false
+    mutations.mutate(savedBookmark, range => {
+      operation(range)
+      ran = true
+    })
+    return ran
   }
 
   function updateLabel() {
     if (!sizeLabel) return
-    // Use cross-block range if available (native selection is clipped).
-    const crossRange = cbs?.range
-    const hint = crossRange || (isOpen ? savedRange : null)
-    sizeLabel.textContent = getCurrentFontSize(hint, documentFor(hint)) + 'px'
+    const range = cbs.range
+    sizeLabel.textContent = getCurrentFontSize(range, documentFor(range)) + 'px'
   }
 
   function openDropdown() {
     if (!dropdownEl || !inputEl) return
-    savedRange = null
-    savedOffsets = null
-    const cbsRange = cbs?.range
-    if (cbsRange) {
-      savedRange = cbsRange.cloneRange()
-    } else {
-      const sel = selectionFor()
-      if (sel && sel.rangeCount > 0 && !sel.isCollapsed) {
-        savedRange = sel.getRangeAt(0).cloneRange()
-      }
-    }
-    if (!savedRange) return
-
-    savedOffsets = saveSelectionOffsets(savedRange)
+    const range = cbs.range
+    savedBookmark = range ? cbs.capture(range) : null
+    if (!savedBookmark || !range) return
 
     isOpen = true
     dropdownEl.style.display = ''
     updateActiveItem()
-
-    const crossRange = cbs?.range
-    const currentSize = getCurrentFontSize(crossRange || savedRange, documentFor(crossRange || savedRange))
-    inputEl.value = String(currentSize)
+    inputEl.value = String(getCurrentFontSize(range, documentFor(range)))
     cancelFocusFrame()
+
     const view = inputEl.ownerDocument?.defaultView ?? ownerWindow
     if (view?.requestAnimationFrame) {
       focusFrame = view.requestAnimationFrame(() => {
@@ -248,168 +225,120 @@ export function createFontSizeTool(label) {
 
   function closeDropdown() {
     if (!isOpen) return
+    const bookmark = savedBookmark
+    savedBookmark = null
     isOpen = false
     cancelFocusFrame()
     if (dropdownEl) dropdownEl.style.display = 'none'
-    if (mutations?.restoreSelection) mutations.restoreSelection()
-    else restoreRange()
-  }
-
-  function restoreRange() {
-    if (!savedRange) return
-    const doc = documentFor(savedRange)
-    const sel = selectionFor(savedRange)
-    if (!doc || !sel) return
-    try {
-      const root = savedRange.startContainer.getRootNode()
-      if (root !== doc) return
-      const start = savedRange.startContainer
-      const startElement = start.nodeType === ELEMENT_NODE
-        ? /** @type {HTMLElement} */ (start)
-        : start.parentElement
-      const editable = /** @type {HTMLElement | null | undefined} */ (startElement?.closest('[contenteditable="true"]'))
-      editable?.focus({ preventScroll: true })
-      if (savedOffsets) {
-        restoreSelectionOffsets(cbs, savedOffsets)
-        return
-      }
-      sel.removeAllRanges()
-      sel.addRange(savedRange)
-    } catch {
-      // Range is detached — don't touch selection
-    }
-  }
-
-  /** Update savedRange to reflect the current selection (after DOM ops). */
-  function snapshotCurrentRange() {
-    const sel = selectionFor(cbs?.range ?? savedRange)
-    if (sel && sel.rangeCount > 0 && !sel.isCollapsed) {
-      savedRange = sel.getRangeAt(0).cloneRange()
-      savedOffsets = saveSelectionOffsets(savedRange)
-    }
+    if (bookmark) mutations?.restoreSelection?.(bookmark)
   }
 
   function updateActiveItem() {
     if (!dropdownEl) return
-
-    const crossRange = cbs?.range
-    const hint = crossRange || savedRange
-    const currentPx = getCurrentFontSize(hint, documentFor(hint))
-
-    const items = dropdownEl.querySelectorAll('[data-size]')
-    for (const item of items) {
+    const range = cbs.range
+    const currentPx = getCurrentFontSize(range, documentFor(range))
+    for (const item of dropdownEl.querySelectorAll('[data-size]')) {
       const val = Number(/** @type {HTMLElement} */ (item).dataset.size)
       item.classList.toggle('oe-font-size-item--active', val === currentPx)
     }
   }
 
-  /**
-   * Apply font-size to saved selection.
+  /** Apply a size only to the current valid owner and captured logical range.
    * @param {number} sizePx
    */
   function applySize(sizePx) {
     if (!Number.isInteger(sizePx) || sizePx < FONT_SIZE_MIN || sizePx > FONT_SIZE_MAX) return
-    const actualRange = cbs?.range?.cloneRange() || savedRange?.cloneRange()
-    if (!actualRange || actualRange.collapsed || actualRange.startContainer.getRootNode() !== documentFor(actualRange)) {
-      closeDropdown()
-      return
-    }
-
     if (sizePx === FONT_SIZE_DEFAULT) {
       removeSize()
       return
     }
-
-    const saved = savedOffsets ?? saveSelectionOffsets(actualRange)
-
-    mutate(actualRange, () => {
-      // Restore the browser range inside the gate so history captures the
-      // editor-owned selection before the auxiliary control changes it.
-      restoreRange()
-      // Always use wrapRangeWithFontSize — it handles both existing spans (update)
-      // and unwrapped text (create new spans) in a single pass.
-      const result = wrapRangeWithFontSize(actualRange, `${sizePx}px`)
-      if (result) {
-        const startCe = result.firstSpan.closest('[contenteditable]')
-        const endCe = result.lastSpan.closest('[contenteditable]')
-        if (startCe) startCe.normalize()
-        if (endCe && endCe !== startCe) endCe.normalize()
-      }
-
-      restoreSelectionOffsets(cbs, saved)
-    })
-    snapshotCurrentRange()
-    updateLabel()
-    closeDropdown()
+    const bookmark = savedBookmark
+    if (!bookmark || !cbs.range) { closeDropdown(); return }
+    try {
+      mutate(range => {
+        const result = wrapRangeWithFontSize(range, `${sizePx}px`)
+        if (result) {
+          const startCe = result.firstSpan.closest('[contenteditable]')
+          const endCe = result.lastSpan.closest('[contenteditable]')
+          if (startCe) startCe.normalize()
+          if (endCe && endCe !== startCe) endCe.normalize()
+        }
+        if (!cbs.restore(bookmark)) {
+          throw new Error('Formatting selection became unavailable after font-size application')
+        }
+      })
+      updateLabel()
+    } finally {
+      closeDropdown()
+    }
   }
 
   function removeSize() {
-    const actualRange = cbs?.range?.cloneRange() || savedRange?.cloneRange()
-    if (!actualRange || actualRange.collapsed || actualRange.startContainer.getRootNode() !== documentFor(actualRange)) {
+    const bookmark = savedBookmark
+    const range = cbs.range
+    if (!bookmark || !range) { closeDropdown(); return }
+    const root = getWalkRoot(range)
+    if (!root) { closeDropdown(); return }
+    const relevant = Array.from(root.querySelectorAll('span')).some(
+      span => !!span.style.fontSize && range.intersectsNode(span),
+    )
+    if (!relevant) { closeDropdown(); return }
+
+    try {
+      mutate(activeRange => {
+        const walkRoot = getWalkRoot(activeRange)
+        if (!walkRoot) return
+        const doc = documentFor(activeRange)
+        if (!doc) return
+
+        // Split only the selected part of each font-size span. Temporary
+        // markers retain neighboring class/style attributes until the final
+        // normalization, but never become persisted author formatting.
+        const toReset = Array.from(walkRoot.querySelectorAll('span'))
+          .filter(span => span.style.fontSize && activeRange.intersectsNode(span))
+        for (let index = toReset.length - 1; index >= 0; index--) {
+          const span = /** @type {HTMLElement} */ (toReset[index])
+          if (!span.isConnected) continue
+          const marker = doc.createElement('oe-font-size')
+          marker.style.fontSize = span.style.fontSize
+          span.style.removeProperty('font-size')
+          if (!span.getAttribute('style')) span.removeAttribute('style')
+          while (span.firstChild) marker.appendChild(span.firstChild)
+          if (span.attributes.length === 0) span.replaceWith(marker)
+          else span.appendChild(marker)
+        }
+
+        if (!cbs.restore(bookmark)) {
+          throw new Error('Formatting selection became unavailable during font-size reset')
+        }
+        for (let guard = 0; guard < 100; guard++) {
+          const current = cbs.range
+          if (!current) throw new Error('Font-size reset selection is unavailable')
+          const currentRoot = getWalkRoot(current)
+          const hasMarker = !!currentRoot && Array.from(currentRoot.querySelectorAll('oe-font-size'))
+            .some(marker => current.intersectsNode(marker))
+          if (!hasMarker) break
+          toggleTag('oe-font-size', current)
+          if (!cbs.restore(bookmark)) {
+            throw new Error('Formatting selection became unavailable during font-size wrapper removal')
+          }
+        }
+
+        for (const marker of walkRoot.querySelectorAll('oe-font-size')) {
+          const span = doc.createElement('span')
+          span.style.fontSize = /** @type {HTMLElement} */ (marker).style.fontSize
+          while (marker.firstChild) span.appendChild(marker.firstChild)
+          marker.replaceWith(span)
+        }
+        normalizeAfterEdit(getContentEditable(activeRange), walkRoot)
+        if (!cbs.restore(bookmark)) {
+          throw new Error('Formatting selection became unavailable after font-size reset')
+        }
+      })
+      updateLabel()
+    } finally {
       closeDropdown()
-      return
     }
-    const saved = savedOffsets ?? saveSelectionOffsets(actualRange)
-
-    const walkRoot = getWalkRoot(actualRange)
-    if (!walkRoot) { closeDropdown(); return }
-
-    const spans = walkRoot.querySelectorAll('span')
-    const toReset = []
-    for (const span of spans) {
-      if (span.style.fontSize && actualRange.intersectsNode(span)) {
-        toReset.push(span)
-      }
-    }
-
-    if (!toReset.length) { closeDropdown(); return }
-
-    mutate(actualRange, () => {
-      restoreRange()
-      const doc = documentFor(actualRange)
-      if (!doc) return
-      // Move font-size into a temporary dedicated wrapper. This lets the
-      // range splitter remove only the selected portion while every other
-      // style/class/data attribute remains on the original span.
-      for (let index = toReset.length - 1; index >= 0; index--) {
-        const span = /** @type {HTMLElement} */ (toReset[index])
-        if (!span.isConnected) continue
-        const marker = doc.createElement('oe-font-size')
-        marker.style.fontSize = span.style.fontSize
-        span.style.removeProperty('font-size')
-        if (!span.getAttribute('style')) span.removeAttribute('style')
-        while (span.firstChild) marker.appendChild(span.firstChild)
-        if (span.attributes.length === 0) span.replaceWith(marker)
-        else span.appendChild(marker)
-      }
-
-      restoreSelectionOffsets(cbs, saved)
-      for (let guard = 0; guard < 100; guard++) {
-        const selection = selectionFor(cbs?.range ?? savedRange)
-        const current = cbs?.range || (selection?.rangeCount ? selection.getRangeAt(0) : null)
-        if (!current) break
-        const currentRoot = getWalkRoot(current)
-        const hasMarker = !!currentRoot && Array.from(currentRoot.querySelectorAll('oe-font-size'))
-          .some(marker => current.intersectsNode(marker))
-        if (!hasMarker) break
-        toggleTag('oe-font-size', current)
-        restoreSelectionOffsets(cbs, saved)
-      }
-
-      for (const marker of walkRoot.querySelectorAll('oe-font-size')) {
-        const span = doc.createElement('span')
-        span.style.fontSize = /** @type {HTMLElement} */ (marker).style.fontSize
-        while (marker.firstChild) span.appendChild(marker.firstChild)
-        marker.replaceWith(span)
-      }
-
-      normalizeAfterEdit(getContentEditable(actualRange), walkRoot)
-
-      restoreSelectionOffsets(cbs, saved)
-    })
-    snapshotCurrentRange()
-    updateLabel()
-    closeDropdown()
   }
 
   /** @param {HTMLElement} toolbarRoot */
@@ -563,6 +492,7 @@ export function createFontSizeTool(label) {
       ownerDocument?.removeEventListener('mousedown', onDocMouseDown, true)
       cancelFocusFrame()
       if (dropdownEl) { dropdownEl.remove(); dropdownEl = null }
+      savedBookmark = null
       mutations = null
       ownerWindow = null
       ownerDocument = null
