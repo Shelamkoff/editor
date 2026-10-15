@@ -50,6 +50,7 @@ export class InlineToolMounts {
       if (owners.has(source)) throw new Error('Inline tool instance is already mounted')
       seen.add(source)
     }
+    /** @type {Array<{source:any,tool:any,started:boolean,revoke:(()=>void)|null,owner:InlineToolMounts}>} */
     const staged = sources.map(source => {
       const tool = captureTool(runtime, source)
       if (names.has(tool.type)) throw new Error(`Duplicate inline tool type: ${tool.type}`)
