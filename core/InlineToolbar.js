@@ -308,7 +308,7 @@ export class InlineToolbar {
       const actionLease = this.#actionVersion
       const generation = this.#runtime.generation
       let expectedRevision = this.#runtime.revision
-      const owners = selection.blockIds.map(blockId => ({ blockId, element: this.#view.element(blockId) }))
+      let owners = selection.blockIds.map(blockId => ({ blockId, element: this.#view.element(blockId) }))
       const isCurrent = () => !this.#destroyed && !this.#readOnly
         && expectedRevision === this.#runtime.revision
         && lease === this.#selectionVersion && actionLease === this.#actionVersion
@@ -329,7 +329,8 @@ export class InlineToolbar {
             if (!isCurrent()) return undefined
             const result = this.#mutate(range, operation, tool.type, lease)
             if (lease !== this.#selectionVersion || generation !== this.#runtime.generation
-              || owners.some(owner => owner.element !== this.#view.element(owner.blockId))) return result
+              || !selection.blockIds.every(blockId => this.#runtime.has(blockId))) return result
+            owners = selection.blockIds.map(blockId => ({ blockId, element: this.#view.element(blockId) }))
             expectedRevision = this.#runtime.revision
             panelBookmark = cloneBookmark(this.#selectionPort?.bookmark ?? this.#selection.capture() ?? panelBookmark)
             return result
@@ -341,7 +342,8 @@ export class InlineToolbar {
             if (!isCurrent()) return false
             const changed = this.#runtime.setTextAlign(selection.blockIds, value)
             if (changed && lease === this.#selectionVersion && generation === this.#runtime.generation
-              && owners.every(owner => owner.element === this.#view.element(owner.blockId))) {
+              && selection.blockIds.every(blockId => this.#runtime.has(blockId))) {
+              owners = selection.blockIds.map(blockId => ({ blockId, element: this.#view.element(blockId) }))
               expectedRevision = this.#runtime.revision
               panelBookmark = cloneBookmark(this.#selectionPort?.bookmark ?? this.#selection.capture() ?? panelBookmark)
             }
