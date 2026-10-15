@@ -121,7 +121,7 @@ test('extension cleanup runs under observation authority and independently compl
   })
   const errors = []
   const mounts = new InlineToolMounts([first, second], runtimeWithObservation, error => errors.push(error.message))
-  for (const item of mounts.tools) mounts.start(item, null, {}, {})
+  for (const item of mounts.tools) mounts.start(item, {}, {}, {})
   mounts.destroy()
   assert.deepEqual(calls, ['second destroy', 'first unbind', 'first destroy'])
   assert.deepEqual(errors, ['unbinding failed'])
