@@ -115,3 +115,30 @@ test('accessor-backed inline matcher result is captured under preparation guard'
   assert.throws(() => controller.pasteText('#fff'), /paste payload getter failed/)
   assert.equal(calls.length, 0)
 })
+
+test('inline insertion default is prepared before entering a model command', () => {
+  const { controller, definition, isPreparing, calls } = harness()
+  definition.schema = { createDefault: () => ({ value: '#fff' }) }
+  definition.insertion = {
+    createInitial() {
+      assert.equal(isPreparing(), true)
+      throw new Error('initial insertion failed')
+    },
+  }
+  assert.throws(() => controller.insert('color'), /initial insertion failed/)
+  assert.equal(calls.length, 0)
+})
+
+test('trigger encoding is guarded before invoking the insertion command', () => {
+  const { controller, definition, isPreparing, calls } = harness()
+  definition.schema = {
+    encode() {
+      assert.equal(isPreparing(), true)
+      throw new Error('trigger encoding failed')
+    },
+  }
+  assert.throws(() => controller.commitTrigger('color', {
+    blockId: 'a', fieldKey: 'text', range: { start: 0, end: 0 },
+  }, { value: '#fff' }), /trigger encoding failed/)
+  assert.equal(calls.length, 0)
+})
