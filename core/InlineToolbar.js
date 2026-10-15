@@ -4,6 +4,7 @@ import { handleMenuKeydown } from '../plugin-kit/index.js'
 import { setTrustedHtml } from '../shared/sanitize/sanitizeHtml.js'
 import { Tooltip } from './Tooltip.js'
 import { InlineToolMounts } from './InlineToolMounts.js'
+import { synchronousResult } from '../shared/synchronousResult.js'
 import { shortcutKey } from '../shared/shortcutKey.js'
 
 function matchesShortcut(combo, event) {
@@ -44,6 +45,7 @@ export class InlineToolbar {
   #element
   #buttonsPanel
   #actions = null
+  #actionsToolType = null
   /** @type {((event: KeyboardEvent) => void) | null} */
   #actionKeydown = null
   #actionVersion = 0
@@ -277,7 +279,7 @@ export class InlineToolbar {
   handleShortcut(event) {
     if (this.#readOnly || event.defaultPrevented) return false
     const tool = this.#tools.find(candidate => matchesShortcut(candidate.shortcut, event))
-    if (!tool) return false
+    if (!tool || this.#buttons.get(tool.type)?.disabled) return false
     if (!this.#resolveFormattingSelection()) {
       if (!this.#selectionPort?.active) return false
       // Browser formatting must not partially edit an ineligible mixed range.
@@ -293,7 +295,7 @@ export class InlineToolbar {
     if (this.#readOnly || this.#destroyed) return false
     this.#tooltip.hide()
     const tool = this.#tools.find(candidate => candidate.type === type)
-    if (!tool) return false
+    if (!tool || this.#buttons.get(type)?.disabled) return false
     const selection = this.#resolveFormattingSelection()
     if (!selection) return false
     const allowed = this.#allowedTools(selection.blockIds)
@@ -319,7 +321,7 @@ export class InlineToolbar {
       }
       let panel
       try {
-        panel = tool.renderActions({
+        panel = synchronousResult(tool.renderActions({
           range,
           mutate: operation => {
             if (!isCurrent()) return undefined
@@ -342,7 +344,7 @@ export class InlineToolbar {
             if (isCurrent()) this.#tooltip.show(anchor, label, shortcut)
           },
           hideTooltip: () => { if (isCurrent()) this.#tooltip.hide() },
-        })
+        }), error => this.#reportError('command.failed', error))
       } catch (error) {
         if (actionLease === this.#actionVersion) this.#closeActions()
         throw error
@@ -357,6 +359,7 @@ export class InlineToolbar {
         }
         panel.addEventListener('keydown', this.#actionKeydown)
         this.#actions = panel
+        this.#actionsToolType = tool.type
         this.#buttonsPanel.style.display = 'none'
         this.#element.append(panel)
         this.#show(selection)
@@ -633,18 +636,38 @@ export class InlineToolbar {
     for (const tool of this.#tools) {
       const button = this.#buttons.get(tool.type)
       if (!button || (allowed && !allowed.has(tool.type))) continue
-      let active = false
-      try { active = tool.isActive(selection) === true } catch {}
-      button.classList.toggle('oe-inline-tool--active', active)
-      if (tool.getIcon) {
-        const icon = tool.getIcon(active)
-        if (this.#buttonIcons.get(tool.type) !== icon) {
-          setTrustedHtml(button, icon)
-          this.#buttonIcons.set(tool.type, icon)
+      try {
+        const prepared = this.#runtime.prepareExtensionValue(() => {
+          const active = synchronousResult(tool.isActive(selection),
+            error => this.#reportError('command.failed', error))
+          if (typeof active !== 'boolean') throw new TypeError(`Inline tool "${tool.type}" isActive() must return a boolean`)
+          const icon = tool.getIcon
+            ? synchronousResult(tool.getIcon(active), error => this.#reportError('command.failed', error))
+            : tool.icon
+          const title = tool.getTitle
+            ? synchronousResult(tool.getTitle(active), error => this.#reportError('command.failed', error))
+            : tool.title ?? tool.type
+          if (typeof icon !== 'string' || typeof title !== 'string') {
+            throw new TypeError(`Inline tool "${tool.type}" presentation must contain strings`)
+          }
+          return { active, icon, title }
+        })
+
+        // The complete value is owned and validated before changing presentation.
+        if (this.#buttonIcons.get(tool.type) !== prepared.icon) {
+          setTrustedHtml(button, prepared.icon)
+          this.#buttonIcons.set(tool.type, prepared.icon)
         }
+        button.setAttribute('aria-label', prepared.title)
+        button.classList.toggle('oe-inline-tool--active', prepared.active)
+        button.disabled = false
+      } catch (error) {
+        if (this.#actionsToolType === tool.type) this.#closeActions()
+        button.classList.remove('oe-inline-tool--active')
+        button.disabled = true
+        button.hidden = true
+        this.#reportError('command.failed', error)
       }
-      const title = tool.getTitle?.(active) ?? tool.title
-      if (title) button.setAttribute('aria-label', title)
     }
   }
 
@@ -915,6 +938,7 @@ export class InlineToolbar {
 
   #closeActions() {
     this.#actionVersion++
+    this.#actionsToolType = null
     this.#tooltip.hide()
     if (!this.#actions) {
       this.#buttonsPanel.style.display = ''
