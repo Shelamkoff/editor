@@ -41,6 +41,7 @@ export class InlineToolbar {
   #toolMounts
   #mountStates = []
   #activeFormattingTool = null
+  #expectedOwnSelection = null
   #reportError
   #buttonIcons = new Map()
   #translate
@@ -287,6 +288,10 @@ export class InlineToolbar {
 
     this.#onSelectionChange = () => {
       if (this.#element.contains(document.activeElement)) return
+      // Native selectionchange is queued. A notification for the range we
+      // just restored as the result of our own action must not retire it.
+      if (this.#matchesExpectedOwnSelection()) return
+      this.#expectedOwnSelection = null
       this.#selectionVersion++
       this.#closeActions()
       this.#closeTypeDropdown()
@@ -489,6 +494,7 @@ export class InlineToolbar {
 
   hide() {
     this.#tooltip.hide()
+    this.#expectedOwnSelection = null
     this.#range = null
     this.#bookmark = null
     this.#blockId = null
@@ -506,6 +512,7 @@ export class InlineToolbar {
   #releaseResources() {
     if (this.#destroyed) return
     this.#destroyed = true
+    this.#expectedOwnSelection = null
     this.#typeVersion++
     this.#controlVersion++
     this.#selectionVersion++
@@ -532,6 +539,41 @@ export class InlineToolbar {
     for (const error of errors) {
       try { this.#reportError('cleanup.failed', error) } catch {}
     }
+  }
+
+  /** A compact expected native presentation for the last accepted own
+   * formatting result. It never carries persisted data or public authority.
+   */
+  #rememberOwnSelection() {
+    const native = this.#root.ownerDocument.defaultView?.getSelection?.()
+    if (!native?.anchorNode || !native.focusNode
+      || !this.#root.contains(native.anchorNode)
+      || !this.#root.contains(native.focusNode)) {
+      this.#expectedOwnSelection = null
+      return
+    }
+    this.#expectedOwnSelection = {
+      generation: this.#runtime.generation,
+      revision: this.#runtime.revision,
+      anchorNode: native.anchorNode,
+      anchorOffset: native.anchorOffset,
+      focusNode: native.focusNode,
+      focusOffset: native.focusOffset,
+    }
+  }
+
+  #matchesExpectedOwnSelection() {
+    const expected = this.#expectedOwnSelection
+    if (!expected || expected.generation !== this.#runtime.generation
+      || expected.revision !== this.#runtime.revision) return false
+    const native = this.#root.ownerDocument.defaultView?.getSelection?.()
+    return Boolean(native?.anchorNode && native.focusNode
+      && expected.anchorNode === native.anchorNode
+      && expected.anchorOffset === native.anchorOffset
+      && expected.focusNode === native.focusNode
+      && expected.focusOffset === native.focusOffset
+      && this.#root.contains(native.anchorNode)
+      && this.#root.contains(native.focusNode))
   }
 
   #refreshFromSelection() {
@@ -1031,6 +1073,7 @@ export class InlineToolbar {
     }
     if (nextBookmark) this.#restoreSelection(nextBookmark)
     this.show()
+    this.#rememberOwnSelection()
     return result
   }
 
