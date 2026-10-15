@@ -1,4 +1,5 @@
 import { DocumentRuntime } from '../../core/DocumentRuntime.js'
+import { SelectionController } from '../../core/SelectionController.js'
 import { test, assert as check, equal, run, make, blockElement, para, editableField, select } from './regressions/harness.js'
 import { CLIPBOARD_FRAGMENT_MIME, encodeClipboardFragment } from '../../core/ClipboardFragment.js'
 import { getTextOffset } from '../../shared/textOffset.js'
@@ -1548,5 +1549,54 @@ test('per-block conversion reads and invokes target acceptance once per selected
     equal(runtime.canUndo,false)
   }finally{runtime.destroy()}
 })
+
+test('clearing an old cross-selection controller cannot delete another editor highlight',()=>{
+  const registry=window.CSS?.highlights
+  if (!registry || typeof window.Highlight !== 'function') return
+  const controllers=[]
+  const roots=[]
+  const createOwner=id=>{
+    const root=document.createElement('div')
+    const field=document.createElement('p')
+    field.contentEditable='true'
+    field.textContent='Alpha'
+    root.append(field)
+    document.body.append(root)
+    roots.push(root)
+    const runtime={generation:0,readOnly:false,ids:()=>[id],indexOf:name=>name===id?0:-1}
+    const record={key:'text',mode:'rich-text',element:field}
+    const reconciler={
+      getEditableField:(blockId,key)=>blockId===id&&key==='text'?record:null,
+      getEditableFields:blockId=>blockId===id?[record]:[],
+      resolveEditableTarget:node=>field.contains(node)?{blockId:id,fieldKey:'text',element:field}:null,
+    }
+    const view={selectedIds:[],select(){},clearSelection(){},setCurrent(){}}
+    const controller=new SelectionController({root,runtime,reconciler,view})
+    controllers.push(controller)
+    return {controller,id}
+  }
+  try{
+    const first=createOwner('a')
+    const second=createOwner('b')
+    const bookmark=id=>({
+      anchor:{blockId:id,fieldKey:'text',offset:0},
+      focus:{blockId:id,fieldKey:'text',offset:3},
+    })
+    check(first.controller.restore(bookmark(first.id)),'first range should restore')
+    const old=registry.get('oe-cross-select-v2')
+    check(old,'first highlight should exist')
+    check(second.controller.restore(bookmark(second.id)),'second range should restore')
+    const current=registry.get('oe-cross-select-v2')
+    check(current&&current!==old,'second editor should own the active highlight')
+    first.controller.clear()
+    equal(registry.get('oe-cross-select-v2'),current,'old owner cleared successor highlight')
+    second.controller.clear()
+    equal(registry.has('oe-cross-select-v2'),false)
+  } finally {
+    controllers.forEach(controller=>controller.destroy())
+    roots.forEach(root=>root.remove())
+  }
+})
+
 
 await run()
