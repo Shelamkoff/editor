@@ -27,7 +27,7 @@ function captureLabel(input, name) {
  * remain opaque, and the selected apply method retains its original receiver.
  * @template {object} D
  * @param {{prepareExtensionValue:<T>(operation:()=>T)=>T}} runtime
- * @param {import('../plugin-kit/types').SettingsActionCapability<D>} capability
+ * @param {import('../plugin-kit/types').SettingsActionCapability<D & object>} capability
  * @param {Readonly<D>} data
  * @param {import('../plugin-kit/types').ExtensionUiContext} context
  * @param {import('../plugin-kit/types').LocalizedLabel} fallbackLabel
