@@ -1703,4 +1703,25 @@ test('inline alignment panel can continue its own revisions but rejects an unrel
 })
 
 
+test('mounted inline mutation actions are unavailable during initialization and after destroy',()=>{
+  let retained=null
+  let producers=0
+  const tool={
+    type:'mount-context-probe',title:'Probe',icon:'<b>P</b>',
+    isActive(){return false},toggle(){},
+    onMount(_button,context){
+      retained=context
+      assert.throws(()=>context.mutate(null,()=>{producers++}),/not active/)
+      equal(context.restoreSelection(),false)
+    },
+  }
+  const editor=make([para('a','Alpha')],{inlineTools:[tool]})
+  check(retained,'Mounted action context missing')
+  editor.destroy()
+  assert.throws(()=>retained.mutate(null,()=>{producers++}),/not active/)
+  equal(retained.restoreSelection(),false)
+  equal(producers,0)
+})
+
+
 await run()
