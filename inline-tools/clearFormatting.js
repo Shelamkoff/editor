@@ -1,8 +1,6 @@
 import {
   createSelectionPortBinding,
   ICON_CLEAR,
-  restoreSelectionOffsets,
-  saveSelectionOffsets,
   toggleTag,
 } from './utils.js'
 
@@ -63,18 +61,21 @@ export function createClearFormattingTool(label) {
     toggle(selection) {
       const actualRange = cbs?.range || selection?.range
       if (!actualRange || actualRange.collapsed) return
-      const saved = saveSelectionOffsets(actualRange)
+      const bookmark = cbs.capture(actualRange)
+      if (!bookmark) return
 
       for (const tag of CLEARABLE_TAGS) {
-        restoreSelectionOffsets(cbs, saved)
-        const ownerDocument = cbs?.range?.startContainer?.ownerDocument ?? actualRange.startContainer.ownerDocument
-        const nativeSelection = ownerDocument?.defaultView?.getSelection?.() ?? null
-        const current = cbs?.range || (nativeSelection?.rangeCount ? nativeSelection.getRangeAt(0) : null)
+        if (!cbs.restore(bookmark)) {
+          throw new Error('Formatting selection became unavailable while clearing wrappers')
+        }
+        const current = cbs.range
         if (!current || !hasClearableWrapper(current, tag)) continue
         toggleTag(tag, current, isClearableElement)
       }
 
-      restoreSelectionOffsets(cbs, saved)
+      if (!cbs.restore(bookmark)) {
+        throw new Error('Formatting selection became unavailable after clearing wrappers')
+      }
     },
   }
 }
