@@ -203,8 +203,7 @@ function wrapIfNeeded(content, wrapperTemplate) {
 export function toggleTag(tagName, range, matches = () => true) {
   if (!range) return
   const ownerDocument = range.startContainer.ownerDocument
-  const sel = ownerDocument?.defaultView?.getSelection?.() ?? null
-  if (!ownerDocument || !sel) return
+  if (!ownerDocument) return
   // Widget markup belongs to its plugin, not to author text formatting.
   // A range may contain an entire widget but must not edit its internals.
   for (const endpoint of [range.startContainer, range.endContainer]) {
@@ -238,21 +237,10 @@ export function toggleTag(tagName, range, matches = () => true) {
     if (coversStart && coversEnd) {
       // Full unwrap — selection covers entire ancestor
       const parentNode = ancestor.parentNode
-      const firstChild = ancestor.firstChild
-      const lastChild = ancestor.lastChild
       while (ancestor.firstChild) {
         parentNode?.insertBefore(ancestor.firstChild, ancestor)
       }
       ancestor.remove()
-      if (firstChild && lastChild) {
-        try {
-          sel.removeAllRanges()
-          const newRange = ownerDocument.createRange()
-          newRange.setStartBefore(firstChild)
-          newRange.setEndAfter(lastChild)
-          sel.addRange(newRange)
-        } catch { /* detached */ }
-      }
       removeEmptyInlineTags(parentNode)
     } else {
       // Partial unwrap — only remove tag from selected portion
@@ -260,11 +248,6 @@ export function toggleTag(tagName, range, matches = () => true) {
       // Result: <b><i>before</i></b><i>selected</i><b><i>after</i></b>
       const parentNode = ancestor.parentNode
       const ref = ancestor.nextSibling
-
-      // Save selection offsets relative to CE for restoration after DOM mutations
-      const ce = ancestor.closest('[contenteditable="true"]') || parentNode
-      const savedSelStart = ce ? getTextOffset(ce, range.startContainer, range.startOffset) : -1
-      const savedSelEnd = ce ? getTextOffset(ce, range.endContainer, range.endOffset) : -1
 
       // Save inner inline wrapper chain (between text node and ancestor, exclusive)
       const innerWrappers = []
@@ -316,20 +299,6 @@ export function toggleTag(tagName, range, matches = () => true) {
       removeEmptyInlineTags(parentNode)
       mergeAdjacentTags(parentNode, tagName)
 
-      // 7. Restore selection from saved offsets
-      if (ce && savedSelStart >= 0) {
-        const s = findNodeAtOffset(ce, savedSelStart)
-        const e = findNodeAtOffset(ce, savedSelEnd, 'end')
-        if (s && e) {
-          try {
-            sel.removeAllRanges()
-            const nr = ownerDocument.createRange()
-            nr.setStart(s.node, s.offset)
-            nr.setEnd(e.node, e.offset)
-            sel.addRange(nr)
-          } catch { /* detached */ }
-        }
-      }
     }
     return
   }
@@ -344,11 +313,6 @@ export function toggleTag(tagName, range, matches = () => true) {
       }
     }
     if (toUnwrap.length) {
-      // Save selection offsets relative to the CE so we can restore after DOM mutations
-      const ce = container.closest('[contenteditable="true"]') || container
-      const savedStart = getTextOffset(ce, range.startContainer, range.startOffset)
-      const savedEnd = getTextOffset(ce, range.endContainer, range.endOffset)
-
       // Process in reverse DOM order so extractContents/insertBefore
       // mutations don't invalidate range references for earlier elements.
       for (let ti = toUnwrap.length - 1; ti >= 0; ti--) {
@@ -425,19 +389,6 @@ export function toggleTag(tagName, range, matches = () => true) {
       removeEmptyInlineTags(container)
       mergeAdjacentTags(container, tagName)
 
-      // Restore selection from saved offsets
-      const s = findNodeAtOffset(ce, savedStart)
-      const e = findNodeAtOffset(ce, savedEnd, 'end')
-      if (s && e) {
-        try {
-          sel.removeAllRanges()
-          const nr = ownerDocument.createRange()
-          nr.setStart(s.node, s.offset)
-          nr.setEnd(e.node, e.offset)
-          sel.addRange(nr)
-        } catch { /* detached */ }
-      }
-
       return
     }
   }
@@ -484,37 +435,11 @@ export function toggleTag(tagName, range, matches = () => true) {
     return
   }
 
-  // Merge with adjacent same-tag siblings before restoring selection.
-  // mergeAdjacentTags may absorb `wrapper` into a preceding sibling,
-  // so we save the CE-relative offsets and restore from them.
+  // Merge equivalent neighboring wrappers. The selection owner resolves its
+  // private logical bookmark once all DOM transformation stages complete.
   const mergeParent = wrapper.parentNode
-  if (mergeParent) {
-    const ce = wrapper.closest('[contenteditable="true"]')
-    if (ce) {
-      const wrapStart = getTextOffset(ce, wrapper.firstChild || wrapper, 0)
-      const wrapEnd = wrapStart + (getTextLength(wrapper))
-      mergeAdjacentTags(mergeParent, tagName)
-      // Restore selection from saved offsets
-      const s = findNodeAtOffset(ce, wrapStart)
-      const e = findNodeAtOffset(ce, wrapEnd, 'end')
-      if (s && e) {
-        try {
-          sel.removeAllRanges()
-          const nr = ownerDocument.createRange()
-          nr.setStart(s.node, s.offset)
-          nr.setEnd(e.node, e.offset)
-          sel.addRange(nr)
-        } catch { /* detached */ }
-      }
-    } else {
-      // No CE — fallback: select wrapper contents (no merge)
-      try {
-        sel.removeAllRanges()
-        const nr = ownerDocument.createRange()
-        nr.selectNodeContents(wrapper)
-        sel.addRange(nr)
-      } catch { /* detached */ }
-    }
+  if (mergeParent && wrapper.closest('[contenteditable="true"]')) {
+    mergeAdjacentTags(mergeParent, tagName)
   }
 }
 
