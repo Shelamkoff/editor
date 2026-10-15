@@ -5,8 +5,6 @@ import {
   createSelectionPortBinding,
   ICON_LINK, ICON_CHECK, ICON_UNLINK,
   removeEmptyInlineTags,
-  saveSelectionOffsets,
-  restoreSelectionOffsets,
   getContentEditable,
   getWalkRoot,
   collectTextTargets,
@@ -92,7 +90,8 @@ export function createLinkTool(linkPlaceholder, linkLabel, actionLabels = {}) {
       // Toggle: if links exist in selection — remove them all
       const actualRange = cbs?.range || selection?.range
       if (!actualRange) return
-      const saved = saveSelectionOffsets(actualRange)
+      const bookmark = cbs.capture(actualRange)
+      if (!bookmark) return
 
       const walkRoot = getWalkRoot(actualRange)
       if (!walkRoot) return
@@ -105,7 +104,9 @@ export function createLinkTool(linkPlaceholder, linkLabel, actionLabels = {}) {
 
       normalizeAfterEdit(getContentEditable(actualRange), walkRoot)
 
-      restoreSelectionOffsets(cbs, saved)
+      if (!cbs.restore(bookmark)) {
+        throw new Error('Formatting selection became unavailable after unlinking')
+      }
     },
 
     /**
@@ -195,63 +196,62 @@ export function createLinkTool(linkPlaceholder, linkLabel, actionLabels = {}) {
       function applyLink() {
         const url = input.value.trim()
         if (!url) return
+        const current = ctx.range
+        const bookmark = current ? cbs.capture(current) : null
+        if (!bookmark) return
 
-        ctx.restoreSelection()
+        let applied = false
+        ctx.mutate(range => {
+          const walkRoot = getWalkRoot(range)
+          if (!walkRoot) return
+          // Apply only to the authorized current range, never an earlier DOM
+          // range captured before a URL input or a subsequent document change.
+          const targets = collectTextTargets(walkRoot, range)
+          for (let i = targets.length - 1; i >= 0; i--) {
+            const t = targets[i]
+            if (!t) continue
+            const { node, startOffset, endOffset } = t
+            let targetNode = node
+            if (endOffset < node.length) node.splitText(endOffset)
+            if (startOffset > 0) targetNode = /** @type {Text} */ (node.splitText(startOffset))
 
-        // Use cross-block range if available
-        const sel = ownerWindow?.getSelection?.() ?? null
-        const actualRange = cbs?.range || (sel && sel.rangeCount ? sel.getRangeAt(0) : null)
-        if (!actualRange) return
-
-        const saved = saveSelectionOffsets(actualRange)
-
-        ctx.mutate(() => {
-          // Wrap each text node in the range with an <a> tag
-          const walkRoot = getWalkRoot(actualRange)
-          if (walkRoot) {
-            const targets = collectTextTargets(walkRoot, actualRange)
-            for (let i = targets.length - 1; i >= 0; i--) {
-              const t = targets[i]
-              if (!t) continue
-              const { node, startOffset, endOffset } = t
-              let targetNode = node
-              if (endOffset < node.length) node.splitText(endOffset)
-              if (startOffset > 0) targetNode = /** @type {Text} */ (node.splitText(startOffset))
-
-              // Skip if already inside a link
-              if (targetNode.parentElement?.closest('a')) continue
-
-              const anchor = targetNode.ownerDocument.createElement('a')
-              anchor.href = sanitizeUrl(url)
-              anchor.rel = 'noopener noreferrer'
-              anchor.target = '_blank'
-              targetNode.parentNode?.insertBefore(anchor, targetNode)
-              anchor.appendChild(targetNode)
-            }
-            normalizeAfterEdit(getContentEditable(actualRange), walkRoot)
+            if (targetNode.parentElement?.closest('a')) continue
+            const anchor = targetNode.ownerDocument.createElement('a')
+            anchor.href = sanitizeUrl(url)
+            anchor.rel = 'noopener noreferrer'
+            anchor.target = '_blank'
+            targetNode.parentNode?.insertBefore(anchor, targetNode)
+            anchor.appendChild(targetNode)
           }
-
-          restoreSelectionOffsets(cbs, saved)
+          normalizeAfterEdit(getContentEditable(range), walkRoot)
+          if (!cbs.restore(bookmark)) {
+            throw new Error('Formatting selection became unavailable after link application')
+          }
+          applied = true
         })
-        ctx.close()
+        if (applied) ctx.close()
       }
 
       function removeLink() {
-        ctx.restoreSelection()
-        const s = ownerWindow?.getSelection?.() ?? null
-        const anchor = authoredAnchor(s?.anchorNode)
-        ctx.mutate(() => {
+        const current = ctx.range
+        const bookmark = current ? cbs.capture(current) : null
+        if (!bookmark) return
+        let applied = false
+        ctx.mutate(range => {
+          const anchor = authoredAnchor(range.startContainer)
           if (anchor) {
             const parent = anchor.parentNode
             const fragment = anchor.ownerDocument.createDocumentFragment()
-            while (anchor.firstChild) {
-              fragment.appendChild(anchor.firstChild)
-            }
+            while (anchor.firstChild) fragment.appendChild(anchor.firstChild)
             anchor.replaceWith(fragment)
             removeEmptyInlineTags(parent)
           }
+          if (!cbs.restore(bookmark)) {
+            throw new Error('Formatting selection became unavailable after link removal')
+          }
+          applied = true
         })
-        ctx.close()
+        if (applied) ctx.close()
       }
 
       panel.appendChild(backBtn)
