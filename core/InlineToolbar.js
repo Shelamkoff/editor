@@ -258,22 +258,13 @@ export class InlineToolbar {
       })
       mount.port = scoped
 
-      // The temporary activate/deactivate bridge is only for built-in tools
-      // still awaiting their strict bookmark migration in this slice.
       const port = Object.freeze({
         get range() { return scoped.range },
         capture: range => scoped.capture(range),
         restore: (token, options) => scoped.restore(token, options),
-        activate: range => this.#selectionPort?.activate?.(range) === true,
-        deactivate: () => this.#selectionPort?.deactivate?.(),
       })
-      const mutate = (request, operation) => {
+      const mutate = (token, operation) => {
         if (!mount.active || mount.revoked) throw new Error('Inline tool mutation context is not active')
-        // Existing unported tools may supply their current raw range; it can
-        // only mint an accepted token when it matches this mounted selection.
-        const token = request?.startContainer
-          ? scoped.capture(request)
-          : request
         if (!token || !scoped.isValid(token)) return undefined
         if (typeof operation !== 'function') throw new TypeError('Inline formatting operation must be a function')
         const range = scoped.range
