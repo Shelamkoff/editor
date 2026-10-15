@@ -11,6 +11,7 @@ import { toTrustedHtml } from '../shared/sanitize/trustedHtml.js'
 import { prepareHtmlImport } from './HtmlImportRouter.js'
 import { getTextLength } from '../shared/textOffset.js'
 import { editingHostForEvent } from '../shared/editableFields.js'
+import { synchronousResult } from '../shared/synchronousResult.js'
 
 function stripClipboardProjection(root) {
   for (const element of root.querySelectorAll('button,input,select,textarea,.oe-source-editor,.oe-settings-menu,.oe-toolbar,.oe-toolbox')) {
@@ -108,10 +109,14 @@ export class ClipboardController {
     })
   }
 
-  destroy() {
+  cancelPendingTask() {
     this.#task?.abort()
     this.#task = null
     this.#taskAnchorId = null
+  }
+
+  destroy() {
+    this.cancelPendingTask()
     this.#controller.abort()
   }
 
@@ -327,15 +332,18 @@ export class ClipboardController {
     if (this.#runtime.readOnly || event.defaultPrevented || !this.#ownsEvent(event)) return
     const owner = this.#reconciler.resolveEditableTarget(event.target)
     if (owner?.mode === 'plain-text' && !this.#crossSelection?.active) return
+    this.cancelPendingTask()
     const startedAt = this.#diagnostics ? this.#diagnostics.now() : 0
     try {
       return this.#applyPaste(event)
     } catch (error) {
+      // A proven owned Paste failure must never fall through to native insertion.
+      event.preventDefault()
       this.#diagnostics?.emit('paste.failed', {
         operation: 'clipboard.paste',
         errorName: this.#diagnostics.errorName(error),
       })
-      throw error
+      return
     } finally {
       if (startedAt && this.#diagnostics && !this.#task) {
         const durationMs = this.#diagnostics.now() - startedAt
@@ -350,11 +358,13 @@ export class ClipboardController {
     const data = event.clipboardData
     if (!data) return
 
-    const privatePayload = data.getData(CLIPBOARD_FRAGMENT_MIME)
-    if (privatePayload) {
+    const privateFormatPresent = Array.from(data.types ?? []).includes(CLIPBOARD_FRAGMENT_MIME)
+      || data.types?.contains?.(CLIPBOARD_FRAGMENT_MIME) === true
+    if (privateFormatPresent) {
       event.preventDefault()
       let fragment
       try {
+        const privatePayload = data.getData(CLIPBOARD_FRAGMENT_MIME)
         fragment = decodeClipboardFragment(privatePayload)
       } catch (error) {
         this.#diagnostics?.emit('paste.failed', {
@@ -577,10 +587,10 @@ export class ClipboardController {
     }
   }
 
-  #scheduleFocus(blockId,focus) {
+  #scheduleFocus(blockId,focus,taskSignal=null) {
     const generation=this.#runtime.generation,revision=this.#runtime.revision
     queueMicrotask(()=>{
-      if(this.#controller.signal.aborted||this.#runtime.readOnly||generation!==this.#runtime.generation||revision!==this.#runtime.revision||!this.#runtime.has(blockId))return
+      if(this.#controller.signal.aborted||taskSignal?.aborted||this.#runtime.readOnly||generation!==this.#runtime.generation||revision!==this.#runtime.revision||!this.#runtime.has(blockId))return
       this.#view.focus(blockId,focus)
     })
   }
@@ -597,7 +607,7 @@ export class ClipboardController {
       return { anchor: point, focus: { ...point } }
     })
     const blockId=Array.isArray(result)?result.at(-1):result?.blockId
-    if(blockId)this.#scheduleFocus(blockId,result?.focus??{offset:'end'})
+    if(blockId)this.#scheduleFocus(blockId,result?.focus??{offset:'end'},this.#task?.signal)
     return result
   }
 
@@ -615,29 +625,28 @@ export class ClipboardController {
 
 
   #route(input, blockId) {
-    const current = this.#runtime.get(blockId)
-    const ordered = current
-      ? [current.type, ...this.#registry.blockTypes.filter(type => type !== current.type)]
-      : this.#registry.blockTypes
+    return this.#runtime.prepareExtensionValue(() => {
+      const current = this.#runtime.get(blockId)
+      const ordered = current
+        ? [current.type, ...this.#registry.blockTypes.filter(type => type !== current.type)]
+        : this.#registry.blockTypes
 
-    for (const type of ordered) {
-      const definition = this.#registry.getBlockDefinition(type)
-      const paste = definition?.capabilities?.paste
-      if (!paste) continue
-      try {
-        if (paste.accepts(input)) return { type, definition, paste }
-      } catch (error) {
-        this.#diagnostics?.emit('paste.failed', {
-          operation: `clipboard.accepts:${type}`,
-          errorName: this.#diagnostics.errorName(error),
-        })
+      for (const type of ordered) {
+        const definition = this.#registry.getBlockDefinition(type)
+        const paste = definition?.capabilities?.paste
+        if (!paste) continue
+        const accepted = synchronousResult(paste.accepts(input))
+        if (typeof accepted !== 'boolean') {
+          throw new TypeError(`Paste accepts() for "${type}" must return a boolean`)
+        }
+        if (accepted) return { type, definition, paste }
       }
-    }
-    return null
+      return null
+    })
   }
 
   #beginAsync(owner, range, items) {
-    this.#task?.abort()
+    this.cancelPendingTask()
     const startedAt = this.#diagnostics ? this.#diagnostics.now() : 0
     const AbortControllerCtor = this.#root.ownerDocument.defaultView?.AbortController ?? AbortController
     const task = new AbortControllerCtor()
@@ -652,13 +661,18 @@ export class ClipboardController {
     void (async () => {
       const resolved=[]
       for (const { input, route } of items) {
-        if (task.signal.aborted || !this.#runtime.get(owner.blockId)) return
+        if (task.signal.aborted || this.#task !== task || this.#runtime.readOnly || !this.#runtime.get(owner.blockId)) return
         let result
         try {
           result = await route.paste.resolve(input, {
             signal: task.signal,
             ownerDocument: this.#root.ownerDocument,
-            createId: prefix => this.#runtime.createDataId(prefix),
+            createId: prefix => {
+              if (task.signal.aborted || this.#task !== task || this.#runtime.readOnly) {
+                throw new Error('Clipboard paste task is no longer active')
+              }
+              return this.#runtime.createDataId(prefix)
+            },
           })
         } catch (error) {
           if (!task.signal.aborted) {
@@ -673,12 +687,14 @@ export class ClipboardController {
           }
           return
         }
-        if (task.signal.aborted || !result) return
+        if (task.signal.aborted || this.#task !== task || this.#runtime.readOnly || !result) return
         resolved.push({type:route.type,result})
       }
 
       if(
         task.signal.aborted
+        ||this.#task!==task
+        ||this.#runtime.readOnly
         ||this.#runtime.generation!==generation
         ||this.#runtime.revision!==revision
         ||JSON.stringify(this.#selection.capture())!==selectionKey
