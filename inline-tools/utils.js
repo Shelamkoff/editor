@@ -12,26 +12,22 @@ const DOCUMENT_FRAGMENT_NODE = 11
 const CROSS_HIGHLIGHT_KEY = 'oe-cross-select-v2'
 
 /**
- * Bind one tool to the scoped selection authority acquired by its toolbar.
- * A retired binding cannot carry over an earlier editor's private bookmark.
- * The old activate/deactivate methods are transitional until all built-ins
- * have migrated their selection-offset consumers in slice 6.
+ * Bind one tool to its mount-scoped selection authority. A fresh mount gets
+ * different bookmark provenance; no raw selection/highlight controller leaks.
  *
  * @returns {{
- *   port: import('./types').InlineSelectionPort & Partial<import('./types').CrossEditableSelectionPort>,
- *   bind: (port: (import('./types').InlineSelectionPort & Partial<import('./types').CrossEditableSelectionPort>) | null) => void,
+ *   port: import('./types').InlineSelectionPort,
+ *   bind: (port: import('./types').InlineSelectionPort | null) => void,
  * }}
  */
 export function createSelectionPortBinding() {
-  /** @type {(import('./types').InlineSelectionPort & Partial<import('./types').CrossEditableSelectionPort)) | null} */
+  /** @type {import('./types').InlineSelectionPort | null} */
   let current = null
   return {
     port: {
       get range() { return current?.range ?? null },
       capture(range) { return current?.capture(range) ?? null },
       restore(bookmark, options) { return current?.restore(bookmark, options) === true },
-      activate(range) { return current?.activate?.(range) === true },
-      deactivate() { current?.deactivate?.() },
     },
     bind(port) { current = port ?? null },
   }
