@@ -1670,4 +1670,37 @@ test('inline mount failure cleans every started tool and allows reuse of its obj
 })
 
 
+test('inline alignment panel can continue its own revisions but rejects an unrelated commit',async()=>{
+  let panelContext=null
+  const tool={
+    type:'panel-lease-test',icon:'<b>P</b>',title:'Panel',
+    isActive(){return false},
+    toggle(){},
+    renderActions(context){
+      panelContext=context
+      const panel=document.createElement('div')
+      const button=document.createElement('button')
+      button.textContent='Apply'
+      panel.append(button)
+      return panel
+    },
+  }
+  const editor=make([para('a','Alpha')],{inlineTools:[tool]})
+  select(editableField(editor,'a'),0,3)
+  await new Promise(resolve=>setTimeout(resolve,0))
+  const button=editorRoot(editor).querySelector('[data-tool="panel-lease-test"]')
+  check(button&&!button.hidden&&!button.disabled,'Panel tool did not mount')
+  button.click()
+  check(panelContext,'Panel action context was not acquired')
+
+  equal(panelContext.setTextAlign('center'),true)
+  equal(panelContext.setTextAlign('right'),true)
+  equal(editor.blocks.get('a').tunes.textAlign,'right')
+  editor.blocks.update('a',()=>({data:{text:'Changed externally'}}))
+  equal(panelContext.setTextAlign('justify'),false)
+  equal(panelContext.getTextAlign(),'mixed')
+  equal(editor.blocks.get('a').tunes.textAlign,'right')
+})
+
+
 await run()
