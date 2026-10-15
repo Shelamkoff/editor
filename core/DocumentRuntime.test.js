@@ -53,6 +53,91 @@ function block(id, data = { text: id }, extra = {}) {
   return { id, type: 'paragraph', dataVersion: 1, data, ...extra }
 }
 
+test('alignment preserves earlier staged author data and undoes the composed action once', () => {
+  const runtime = new DocumentRuntime({ registry: registry([paragraphDefinition()]), data: { version: '2.0.0', blocks: [block('a')] } })
+  runtime.interact('edit and align', () => {
+    runtime.update('a', () => ({ data: { text: 'Staged' } }))
+    assert.equal(runtime.setTextAlign(['a'], 'center'), true)
+  })
+  assert.equal(runtime.get('a').data.text, 'Staged')
+  assert.deepEqual(runtime.get('a').tunes, { textAlign: 'center' })
+  runtime.undo()
+  assert.equal(runtime.get('a').data.text, 'a')
+  assert.equal(runtime.canUndo, false)
+  runtime.destroy()
+})
+
+test('alignment changes only tunes and retains the complete canonical inline map', () => {
+  const inline = { orphan: { type: 'unloaded', dataVersion: 9, data: { label: 'Kept' } } }
+  const runtime = new DocumentRuntime({ registry: registry([paragraphDefinition()]), data: { version: '2.0.0', blocks: [block('a', { text: 'A' }, { inline })] } })
+  runtime.setTextAlign(['a'], 'center')
+  assert.deepEqual(runtime.get('a').inline, inline)
+  runtime.destroy()
+})
+
+test('merge checks current staged adjacency and preserves earlier edits and tunes', () => {
+  const definition = paragraphDefinition()
+  definition.capabilities.merge = { merge: (target, source) => ({ text: target.text + source.text }) }
+  const runtime = new DocumentRuntime({ registry: registry([definition]), data: { version: '2.0.0', blocks: [block('a'), block('b'), block('c')] } })
+  runtime.interact('move and merge', () => {
+    runtime.update('a', () => ({ data: { text: 'Staged' }, tunes: { textAlign: 'right' } }))
+    runtime.move('c', 1)
+    assert.equal(runtime.mergeAdjacent('a', 'c'), true)
+  })
+  assert.deepEqual(runtime.ids(), ['a', 'b'])
+  assert.equal(runtime.get('a').data.text, 'Stagedc')
+  assert.deepEqual(runtime.get('a').tunes, { textAlign: 'right' })
+  runtime.undo()
+  assert.deepEqual(runtime.ids(), ['a', 'b', 'c'])
+  assert.equal(runtime.canUndo, false)
+  runtime.destroy()
+})
+
+test('merge rejects a source moved before its target in the current draft',()=>{
+  const definition=paragraphDefinition()
+  definition.capabilities.merge={merge:(left,right)=>({text:left.text+right.text})}
+  const runtime=new DocumentRuntime({registry:registry([definition]),data:{version:'2.0.0',blocks:[block('a'),block('b')]}})
+  runtime.interact('move before',()=>{
+    runtime.move('b',0)
+    assert.equal(runtime.mergeAdjacent('a','b'),false)
+  })
+  assert.deepEqual(runtime.ids(),['b','a'])
+  assert.equal(runtime.get('a').data.text,'a')
+  runtime.destroy()
+})
+
+test('toolbox choice uses staged emptiness/order and rejects a stale named anchor',()=>{
+  const runtime=new DocumentRuntime({registry:registry([paragraphDefinition()]),data:{version:'2.0.0',blocks:[block('a',{text:''}),block('b')]}})
+  let inserted
+  runtime.interact('edit then toolbox',()=>{
+    runtime.update('a',()=>({data:{text:'Staged'}}))
+    runtime.move('a',1)
+    inserted=runtime.insertToolboxBlock('a',{type:'paragraph'})
+  })
+  assert.deepEqual(runtime.ids(),['b','a',inserted])
+  assert.equal(runtime.get('a').data.text,'Staged')
+  assert.equal(runtime.insertToolboxBlock('stale',{type:'paragraph'}),false)
+  runtime.undo()
+  assert.deepEqual(runtime.ids(),['a','b'])
+  assert.equal(runtime.canUndo,false)
+  runtime.destroy()
+})
+
+test('final-block default preparation denies nested producers before removal',()=>{
+  let runtime,producers=0
+  const definition=paragraphDefinition({createDefault(){
+    assert.throws(()=>runtime.update('a',()=>{producers++;return {}}),/prepar/)
+    return {text:''}
+  }})
+  runtime=new DocumentRuntime({registry:registry([definition]),data:{version:'2.0.0',blocks:[block('a')]}})
+  const replacement=runtime.remove('a')
+  assert.equal(producers,0)
+  assert.equal(runtime.get(replacement).data.text,'')
+  runtime.undo()
+  assert.equal(runtime.get('a').data.text,'a')
+  runtime.destroy()
+})
+
 test('current schema rejection is invalid-data regardless of exception wording or public reason', () => {
   const failure = new RangeError('Plugin data version content constraint')
   failure.reason = 'unsupported-data-version'
@@ -124,8 +209,9 @@ test('raw render accessors and injected ID allocation share preparation authorit
   })
   runtime.render({ get version() { attempt(); return '2.0.0' }, blocks: [block('a')] })
   runtime.insert('paragraph', { text: 'Inserted' })
+  runtime.createDataId('nested')
   assert.equal(producers, 0)
-  assert.equal(allocated, 1)
+  assert.equal(allocated, 2)
   runtime.destroy()
 })
 

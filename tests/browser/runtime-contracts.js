@@ -1027,4 +1027,153 @@ test('terminal trigger cancellation is observed and cannot interrupt read-only c
   check(blockElement(editor, 'a').closest('.oe-editor').classList.contains('oe-editor--read-only'))
 })
 
+test('successive inline insertions prepare from the current draft and undo together', () => {
+  const paragraph = paragraphDefinition({ mapRichText: (data, visit) => ({ text: visit(data.text, 'text') }) })
+  const inlineDefinition = createColorSwatchPlugin()
+  const definitions = registry([paragraph])
+  definitions.getInlineDefinition = type => type === 'color' ? inlineDefinition : undefined
+  const runtime = new DocumentRuntime({ ownerDocument: document, registry: definitions,
+    data: { version: '2.0.0', blocks: [block('a', { text: 'AB' })] } })
+  let first, second
+  try {
+    runtime.interact('two inline insertions', () => {
+      first = runtime.insertInlineWidget('a', 'text', { start: 1, end: 1 }, 'color', { value: '#112233' })
+      second = runtime.insertInlineWidget('a', 'text', { start: 2, end: 2 }, 'color', { value: '#445566' })
+    })
+    equal(runtime.get('a').data.text, 'A{{' + first + '}}{{' + second + '}}B')
+    equal(Object.keys(runtime.get('a').inline), [first, second])
+    runtime.undo()
+    equal(runtime.get('a').data.text, 'AB')
+    equal(runtime.canUndo, false)
+  } finally { runtime.destroy() }
+})
+
+test('shortcut split callbacks keep the captured staged field and reject producer reentry', () => {
+  const base=createParagraphPlugin()
+  let editor, retained, producers=0
+  const definition={...base,capabilities:{...base.capabilities,shortcuts:{handle(input,data,context){
+    if(input.key!=='F2')return null
+    retained=context
+    assert.throws(()=>editor.blocks.update('a',()=>{producers++;return {}}),/prepar/)
+    const parts=context.splitField('text',{start:2,end:2})
+    return {kind:'update',data:{text:parts.before+'|'+parts.after},focus:{fieldKey:'text',offset:3}}
+  }}}}
+  editor=make([{id:'a',type:'paragraph',dataVersion:2,data:{text:'Before'}}],{plugins:[definition]})
+  editor.blocks.focus('a',{fieldKey:'text',offset:1})
+  const event=new KeyboardEvent('keydown',{key:'F2',bubbles:true,cancelable:true})
+  editor.blocks.update('a',()=>{
+    editor.blocks.update('a',()=>({data:{text:'Staged'}}))
+    blockElement(editor,'a').querySelector('.oe-paragraph').dispatchEvent(event)
+    return {}
+  })
+  equal(event.defaultPrevented,true)
+  equal(producers,0)
+  equal(editor.save().blocks[0].data.text,'St|aged')
+  editor.blocks.update('a',()=>({data:{text:'Later'}}))
+  equal(retained.splitField('text',{start:2,end:2}),{before:'St',after:'aged'})
+  equal(retained.fieldLength('missing'),0)
+})
+
+for(const decision of ['throw','thenable','invalid','accessor'])test('failed owned shortcut cancels native fallback: '+decision,()=>{
+  const base=createParagraphPlugin()
+  const definition={...base,capabilities:{...base.capabilities,shortcuts:{handle(){
+    if(decision==='throw')throw new Error('Expected shortcut failure')
+    if(decision==='thenable')return Promise.reject(new Error('Contained shortcut rejection'))
+    if(decision==='accessor')return {get kind(){throw new Error('Expected action accessor failure')}}
+    return {kind:'unsupported'}
+  }}}}
+  const editor=make([{id:'a',type:'paragraph',dataVersion:2,data:{text:'Before'}}],{plugins:[definition]})
+  editor.blocks.focus('a',{fieldKey:'text',offset:2})
+  const before=editor.save().blocks
+  const event=new KeyboardEvent('keydown',{key:'Enter',bubbles:true,cancelable:true})
+  blockElement(editor,'a').querySelector('.oe-paragraph').dispatchEvent(event)
+  equal(event.defaultPrevented,true)
+  equal(editor.save().blocks,before)
+  equal(editor.canUndo,false)
+})
+
+test('nested conversion returns its prepared active snapshot for a newly inserted block',()=>{
+  const editor=make([{id:'a',type:'paragraph',dataVersion:2,data:{text:'A'}}],{plugins:[createParagraphPlugin(),createHeadingPlugin()]})
+  let id
+  editor.blocks.update('a',()=>{
+    id=editor.blocks.insert({type:'paragraph',data:{text:'Draft'}})
+    const converted=editor.blocks.convert(id,{type:'heading'})
+    equal(converted.type,'heading')
+    equal(converted.status,'active')
+    equal(converted.data.text,'Draft')
+    editor.blocks.update(id,current=>{
+      equal(current.status,'active')
+      return {data:{...current.data,text:'Updated draft'}}
+    })
+    return {}
+  })
+  equal(editor.blocks.get(id).type,'heading')
+  equal(editor.blocks.get(id).data.text,'Updated draft')
+  editor.undo()
+  equal(editor.save().blocks.map(block=>block.id),['a'])
+  equal(editor.canUndo,false)
+})
+
+test('rich and inline replacement compose against staged text without restoring removed occurrences',()=>{
+  const paragraph=paragraphDefinition({mapRichText:(data,visit)=>({text:visit(data.text,'text')})})
+  const inline={x:{type:'unloaded',dataVersion:1,data:{label:'X'}},y:{type:'unloaded',dataVersion:1,data:{label:'Y'}}}
+  const runtime=new DocumentRuntime({ownerDocument:document,registry:registry([paragraph]),
+    data:{version:'2.0.0',blocks:[block('a',{text:'A{{x}}B{{y}}C'},{inline})]}})
+  try{
+    runtime.interact('composed fields',()=>{
+      runtime.replaceInlineWidgetWithText('a','x','X')
+      runtime.removeInlineWidget('a','y')
+      runtime.replaceRichText('a','text',{start:0,end:1},{kind:'text',text:'Start'})
+    })
+    equal(runtime.get('a').data.text,'StartXBC')
+    equal(runtime.get('a').inline,undefined)
+    runtime.undo()
+    equal(runtime.get('a').data.text,'A{{x}}B{{y}}C')
+    equal(runtime.canUndo,false)
+  }finally{runtime.destroy()}
+})
+
+test('slash choice removes a query from staged text at the staged insertion position',()=>{
+  const source=paragraphDefinition({mapRichText:(data,visit)=>({text:visit(data.text,'text')})})
+  const target={...source,type:'heading'}
+  const runtime=new DocumentRuntime({ownerDocument:document,registry:registry([source,target]),
+    data:{version:'2.0.0',blocks:[block('a',{text:'/heading'}),block('b',{text:'B'})]}})
+  let id
+  try{
+    runtime.interact('edit and slash',()=>{
+      runtime.update('a',()=>({data:{text:'Prefix /heading'}}))
+      runtime.move('a',1)
+      id=runtime.applySlashBlockCommand('a','text',{start:7,end:15},{type:'heading'})
+    })
+    equal(runtime.ids(),['b','a',id])
+    equal(runtime.get('a').data.text,'Prefix ')
+    equal(runtime.get(id).type,'heading')
+    runtime.undo()
+    equal(runtime.ids(),['a','b'])
+    equal(runtime.get('a').data.text,'/heading')
+    equal(runtime.canUndo,false)
+  }finally{runtime.destroy()}
+})
+
+test('split reserves current draft IDs after a nested document replacement',()=>{
+  const definition=paragraphDefinition({mapRichText:(data,visit)=>({text:visit(data.text,'text')})})
+  const values=['draft','allocated']
+  const runtime=new DocumentRuntime({ownerDocument:document,registry:registry([definition]),createId:()=>values.shift(),
+    data:{version:'2.0.0',blocks:[block('a',{text:'Before'})]}})
+  let id
+  try{
+    runtime.interact('render and split',()=>{
+      runtime.render({version:'2.0.0',blocks:[block('draft',{text:'After'})]})
+      id=runtime.splitBlock('draft','text',{start:2,end:2})
+    })
+    equal(id,'allocated')
+    equal(runtime.ids(),['draft','allocated'])
+    equal(runtime.get('draft').data.text,'Af')
+    equal(runtime.get('allocated').data.text,'ter')
+    runtime.undo()
+    equal(runtime.ids(),['a'])
+    equal(runtime.canUndo,false)
+  }finally{runtime.destroy()}
+})
+
 await run()

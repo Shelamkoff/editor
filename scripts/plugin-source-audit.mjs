@@ -6,13 +6,13 @@ import ts from 'typescript'
 const root = process.cwd()
 const errors = []
 
-function sourceFilesUnder(relativeDirectory) {
+function sourceFilesUnder(relativeDirectory, { includeLocale = false } = {}) {
   const result = []
   const visit = directory => {
     for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
       const file = path.join(directory, entry.name)
       if (entry.isDirectory()) {
-        if (entry.name !== 'locale') visit(file)
+        if (includeLocale || entry.name !== 'locale') visit(file)
       } else if (entry.name.endsWith('.js') && !entry.name.endsWith('.test.js')) {
         result.push(file)
       }
@@ -81,13 +81,6 @@ function inspect(file) {
   const relative = path.relative(root, file).replaceAll('\\', '/')
   const source = fs.readFileSync(file, 'utf8')
 
-  if (relative.startsWith('plugins/') || relative.startsWith('inline-plugins/')) {
-    const privateCoreImport = /(?:from\s+|import\(\s*)['"](?:\.\.\/)+core\//g
-    for (const match of source.matchAll(privateCoreImport)) {
-      const line = source.slice(0, match.index).split(/\r?\n/).length
-      errors.push(`${relative}:${line}: extension source must use plugin-kit/shared instead of private core imports`)
-    }
-  }
   const sourceFile = ts.createSourceFile(relative, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS)
   const packageEntry = path.basename(file) === 'index.js'
     || relative.startsWith('inline-tools/')
@@ -158,6 +151,71 @@ function inspect(file) {
   }
 }
 
+/** Inspect static and literal-dynamic runtime edges using the existing TS parser. */
+export function auditRuntimeDependencies(sources) {
+  const failures = []
+  const graph = new Map()
+  const preparations = new Set(['DocumentIngestion.js', 'CanonicalTransforms.js', 'projectionFields.js',
+    'LogicalRangePlans.js', 'ClipboardPlans.js', 'SelectionConversion.js'])
+  const owner = file => file.startsWith('core/')
+    ? preparations.has(path.posix.basename(file)) ? 'preparation' : 'editor'
+    : /^(plugins|inline-plugins|inline-tools)\//.test(file) ? 'extension'
+      : file.startsWith('shared/') ? 'shared' : file.startsWith('plugin-kit/') ? 'kit'
+        : file.startsWith('renderer/') ? 'renderer' : 'editor'
+  const resolve = (from, specifier) => {
+    const clean = specifier.split(/[?#]/)[0]
+    let target
+    if (clean.startsWith('.')) target = path.posix.normalize(path.posix.join(path.posix.dirname(from), clean))
+    else if (clean === '@shelamkoff/rector') target = 'index.js'
+    else if (clean.startsWith('@shelamkoff/rector/')) target = clean.slice('@shelamkoff/rector/'.length)
+    else return null
+    return [target, target + '.js', target + '/index.js'].find(candidate => sources.has(candidate))
+      ?? (/\.[cm]?js$/.test(target) ? target : null)
+  }
+  for (const [file, text] of sources) {
+    const ast = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS)
+    const edges = new Set()
+    const inspectEdge = node => {
+      let literal
+      if (ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) literal = node.moduleSpecifier
+      else if (ts.isCallExpression(node) && node.expression.kind === ts.SyntaxKind.ImportKeyword) literal = node.arguments[0]
+      if (literal && ts.isStringLiteralLike(literal)) {
+        const target = resolve(file, literal.text)
+        if (target) {
+          const sourceOwner = owner(file), targetOwner = owner(target)
+          const forbidden = sourceOwner === 'extension' && target.startsWith('core/')
+            || sourceOwner === 'renderer' && !['renderer','shared','kit'].includes(targetOwner)
+            || (sourceOwner === 'shared' || sourceOwner === 'kit') && !['shared', 'kit'].includes(targetOwner)
+            || sourceOwner === 'preparation' && !['shared', 'kit', 'preparation'].includes(targetOwner)
+          const line = ast.getLineAndCharacterOfPosition(literal.getStart(ast)).line + 1
+          if (forbidden) failures.push(`${file}:${line}: forbidden ${sourceOwner} dependency on ${target}`)
+          if (!sources.has(target)) failures.push(`${file}:${line}: unresolved runtime dependency ${target}`)
+          else edges.add(target)
+        }
+      }
+      ts.forEachChild(node, inspectEdge)
+    }
+    inspectEdge(ast)
+    graph.set(file, edges)
+  }
+  const active = new Set(), complete = new Set(), stack = []
+  const visit = file => {
+    if (active.has(file)) {
+      failures.push('Runtime dependency cycle: ' + [...stack.slice(stack.indexOf(file)), file].join(' -> '))
+      return
+    }
+    if (complete.has(file)) return
+    active.add(file)
+    stack.push(file)
+    for (const target of graph.get(file) ?? []) visit(target)
+    stack.pop()
+    active.delete(file)
+    complete.add(file)
+  }
+  for (const file of graph.keys()) visit(file)
+  return failures
+}
+
 
 const removedLegacyFiles = [
   'shared/blockDataValidators.js',
@@ -201,6 +259,8 @@ const removedRuntimeSymbols = [
   'DragControllerV2',
   'InlineToolbarV2',
   'notifyChanged',
+  'splitRichTextField(',
+  'replaceBlock(',
   'rootElement',
   'contentElement',
   'getData(element)',
@@ -220,6 +280,11 @@ for (const symbol of removedRuntimeSymbols) {
 }
 
 for (const file of auditedSourceFiles()) inspect(file)
+const runtimeSources = new Map(['core', 'plugins', 'inline-plugins', 'inline-tools', 'plugin-kit', 'renderer', 'shared', 'locale', 'preset']
+  .flatMap(directory => sourceFilesUnder(directory, { includeLocale: true }))
+  .map(file => [path.relative(root, file).replaceAll('\\', '/'), fs.readFileSync(file, 'utf8')]))
+runtimeSources.set('index.js', fs.readFileSync(path.join(root, 'index.js'), 'utf8'))
+errors.push(...auditRuntimeDependencies(runtimeSources))
 
 if (errors.length > 0) {
   console.error(`Plugin source audit found ${errors.length} issue(s):`)

@@ -81,6 +81,8 @@ Decode external input once at the boundary. Encode every model-first update befo
 - `paste` routes only text/file inputs to block or rich-text results; structural HTML is not passed to it.
 - `shortcuts` returns structural/model actions to the single core keyboard router.
 
+Shortcut decisions run under the shared preparation guard with detached input/data, captured canonical rich fields and one mounted field-length table. `splitField()` keeps that captured text even if the callback is retained; `fieldLength()` returns zero for missing/unmounted fields. Allocation uses the session allocator. Return `null` for generic handling, `native` for owned native handling, or `consume` to cancel without an edit. `update`, `exit` and `focus` cancel native default before application. A thrown/invalid/thenable result or failing accessor cancels the owned key and reports the error without generic/native fallback.
+
 ## Settings, paste and shortcuts
 
 `SettingsActionCapability` has `kind`, `actions(data, context)`, and `apply(data, actionId, context)`. Its optional localized `label` names the group in the inline toolbar; actions with a boolean `active` expose their selected state as radio menu items.

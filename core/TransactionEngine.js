@@ -223,6 +223,8 @@ export class TransactionEngine {
 
   #createContext(draft) {
     return Object.freeze({
+      ids: () => draft.ids(),
+      peek: id => draft.peek(id),
       get: id => draft.get(id),
       list: () => draft.list(),
       insert: (index, block) => draft.insert(index, block),

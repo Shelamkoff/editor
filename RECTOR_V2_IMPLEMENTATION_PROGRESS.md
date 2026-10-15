@@ -50,9 +50,25 @@ Verification:
 - `npm run test:package`: passed for the final source, including the new complete consumer imported only through published package entries in both TypeScript modes.
 - Red/green evidence covers async ordinary projection commit, absent popup handles and interface payload/DOM contract failures. Acquisition checks cover Promise, callable thenable and throwing `then`, captured cleanup and style release. Descriptor capture also rejects an overridden-array-method validation bypass.
 
+## Slice 4a — captured draft and immediate commands
+
+Immediate rich-text, inline, merge, alignment, Slash, conversion, toolbox and structural commands now prepare complete canonical edits from captured active-draft order and immutable references. Semantic no-ops retain their source revision. Split/removal/default decisions and private allocation reserve current draft identities. Ordinary user producers still allow nested commands; extension preparation and allocation callbacks deny producer reentry. Public conversion results use their prepared active record, including newly inserted draft blocks.
+
+Keyboard shortcut inputs, field lengths, split sources and returned actions are captured within the accepted interaction. Invalid, asynchronous and throwing shortcut preparation cancels the owned event without fallback. The existing TypeScript-AST source audit now checks import/reexport/dynamic dependency directions, local resolution and cycles, with negative fixtures.
+
+Verification:
+
+- `npm test`: 606 passed.
+- `npm run typecheck`: passed.
+- `node tests/browser/run.mjs`: all 26 registered page suites passed.
+- Native `native-structural.html`: 21 passed against the final source.
+- `npm run test:docs`: passed, including the expanded dependency audit.
+- `npm run test:package`: passed; zero declaration source diagnostics, Bundler/NodeNext consumers, Vite, native ESM and 22 CSS assets.
+- Red/green checks cover staged alignment/merge/inline operations, retained revision, private allocator authority, nested public snapshots and captured shortcut sources. Additional checks cover stale toolbox anchors, split ID collisions and guarded final-block defaults.
+- The preliminary full native run was stopped before the final split/removal changes; it is not counted as completed verification. Full native/integration convergence remains slice 9.
+
 ## Remaining slices
 
-4a. Captured draft and immediate commands.
 4b. Shared range/clipboard planning and private handles.
 4c. Guarded ingress dispatch and clipboard task lifetime.
 5. Selection conversion through prepared canonical edits.

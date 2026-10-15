@@ -475,6 +475,7 @@ export function createEditorRuntime(input){
     inlineToolbar,
     crossSelection,
     isComposing:()=>nativeInput.isComposing,
+    reportError:error=>reportDiagnostic('command.failed','keyboard.shortcut',error),
   }))
 
   const onClickAreaMouseDown=event=>{

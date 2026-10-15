@@ -3,6 +3,32 @@ import { cloneEditorData } from '../shared/cloneEditorData.js'
 import { remapRichTextReferences, scanRichTextPlaceholders } from '../shared/richTextOperations.js'
 import { mapRichTextFields } from './projectionFields.js'
 
+/** Capture order and immutable record references without traversing payloads.
+ * @param {{ids:()=>string[],peek:(id:string)=>any}} source Read-only accessors supplied by runtime.
+ */
+export function captureDocumentView(source) {
+  const ids = Object.freeze([...source.ids()])
+  const records = new Map(ids.map(id => [id, source.peek(id)]))
+  const inspected = new Map()
+  return Object.freeze({
+    ids,
+    peek(id) {
+      const record = records.get(id)
+      inspected.set(id, record)
+      return record
+    },
+    references: () => new Map(inspected),
+  })
+}
+
+/** Existing semantic equality excludes producer revisions. */
+export function canonicalRecordsEqual(left, right) {
+  return left?.type === right?.type && left?.dataVersion === right?.dataVersion
+    && JSON.stringify(left?.data) === JSON.stringify(right?.data)
+    && JSON.stringify(left?.tunes) === JSON.stringify(right?.tunes)
+    && JSON.stringify(left?.inline) === JSON.stringify(right?.inline)
+}
+
 /**
  * Wrap the host id source with editor-session uniqueness. A value already
  * issued by this allocator is never returned again, even after the owning
@@ -64,7 +90,10 @@ export function scanCanonicalRichText(definition, data, inline, ownerDocument) {
  * @param {Document} ownerDocument
  */
 export function filterCanonicalInline(definition, data, inline, ownerDocument) {
-  if (!inline || typeof inline !== 'object' || Array.isArray(inline)) return undefined
+  if (!inline || typeof inline !== 'object' || Array.isArray(inline)) {
+    mapRichTextFields(definition,cloneEditorData(data),html=>html)
+    return undefined
+  }
   const { references, occurrences } = scanCanonicalRichText(definition, data, inline, ownerDocument)
   for (const [id, count] of occurrences) {
     if (count !== 1) throw new Error('Inline widget reference must be unique: ' + id)

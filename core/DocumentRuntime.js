@@ -4,6 +4,7 @@ import { cloneEditorData } from '../shared/cloneEditorData.js'
 import { decodeCurrentBlock, decodeCurrentInlineMap } from '../shared/DocumentSchema.js'
 import { documentValidationIssue } from '../shared/documentValidationIssue.js'
 import { synchronousResult } from '../shared/synchronousResult.js'
+import { richTextFieldMap } from './projectionFields.js'
 import { DOCUMENT_FORMAT_VERSION } from '../shared/documentFormat.js'
 import { invokeObserver } from '../shared/invokeObserver.js'
 import { normalizeRichText } from '../shared/richTextCodec.js'
@@ -14,6 +15,8 @@ import {
   prepareCanonicalInlineMerge,
   remapCanonicalFragment,
   scanCanonicalRichText,
+  captureDocumentView,
+  canonicalRecordsEqual,
 } from './CanonicalTransforms.js'
 import { uid } from '../shared/uid.js'
 import { DocumentStore } from './DocumentStore.js'
@@ -104,7 +107,7 @@ export class DocumentRuntime {
     this.#createId = typeof options.createId === 'function'
       ? options.createId
       : prefix => `${prefix}-${uid()}`
-    this.#allocateId = createSessionIdAllocator(this.#createId)
+    this.#allocateId = createSessionIdAllocator(prefix=>this.prepareExtensionValue(()=>Reflect.apply(this.#createId,undefined,[prefix])))
     this.#onValidationError = typeof options.onValidationError === 'function'
       ? options.onValidationError
       : null
@@ -302,23 +305,49 @@ export class DocumentRuntime {
 
   insert(type, data, index = undefined, options = {}, authority = 'interaction') {
     this.#assertMutationAuthority(authority)
-    return this.#engine.execute({ origin: 'external', name: 'block.insert' }, tx => {
+    return this.#executePrepared({ origin: 'external', name: 'block.insert' }, view => {
       const definition = this.#registry.getBlockDefinition(type)
       if (!definition) throw new Error(`Unknown block type: ${type}`)
-      const record = this.prepareExtensionValue(() => {
-        const id = this.#createUniqueBlockId(type)
-        const inline = options.inline === undefined ? undefined : this.#normalizeExternalInline(options.inline)
-        return this.#recordFromData(
-          id,
-          type,
-          definition,
-          data === undefined ? definition.schema.createDefault() : data,
-          options.tunes,
-          inline,
-        )
-      })
-      tx.insert(index === undefined ? tx.list().length : index, record)
-      return record.id
+      const id = this.#allocateId(type,new Set(view.ids))
+      const inlineInput=options.inline
+      const inline = inlineInput === undefined ? undefined : this.#normalizeExternalInline(inlineInput)
+      const record = this.#recordFromData(
+        id,
+        type,
+        definition,
+        data === undefined ? definition.schema.createDefault() : data,
+        options.tunes,
+        inline,
+      )
+      const insertAt=index===undefined?view.ids.length:index
+      if(!Number.isInteger(insertAt)||insertAt<0||insertAt>view.ids.length)throw new RangeError('Insert index is out of range')
+      return {edits:[{kind:'insert',index:insertAt,record}],result:record.id}
+    })
+  }
+
+  /** Prepare one toolbox choice against its accepted interaction's current draft. */
+  insertToolboxBlock(anchorId, target) {
+    this.#assertInteractionMutation()
+    return this.#executePrepared({origin:'user',name:'toolbox.block'},view=>{
+      const current=anchorId?view.peek(anchorId):undefined
+      if(anchorId&&!current)return {edits:[],result:false}
+      const type=target?.type
+      const toolboxItemId=target?.toolboxItemId
+      if(typeof type!=='string')throw new TypeError('Toolbox target requires a type')
+      const definition=this.#registry.getBlockDefinition(type)
+      if(!definition)throw new Error(`Unknown block type: ${type}`)
+      const sourceDefinition=current?this.#registry.getBlockDefinition(current.type):undefined
+      const replace=current&&sourceDefinition?.capabilities?.empty?.isEmpty?.(cloneEditorData(current.data))===true
+      if(replace){
+        if(current.type===type&&toolboxItemId===undefined)return {edits:[],result:current.id}
+        const next=this.#convertedRecord(current,{type,toolboxItemId})
+        return {edits:this.#updatedRecord(current.id,current,next),result:current.id}
+      }
+      const data=this.#targetDataFromPayload(definition,null,{type,toolboxItemId})
+      const id=this.#allocateId(type,new Set(view.ids))
+      const record=this.#recordFromData(id,type,definition,data,undefined,undefined)
+      const index=anchorId?view.ids.indexOf(anchorId)+1:view.ids.length
+      return {edits:[{kind:'insert',index,record}],result:id}
     })
   }
 
@@ -519,19 +548,68 @@ export class DocumentRuntime {
     return this.#allocateId(prefix)
   }
 
-  splitRichTextField(id, fieldKey, range) {
-    const current = this.#store.get(id)
-    if (!current || this.activation(id)?.kind !== 'active') return null
-    const definition = this.#registry.getBlockDefinition(current.type)
-    if (!definition?.schema?.mapRichText || !this.#ownerDocument) return null
-    let result = null
-    definition.schema.mapRichText(current.data, (html, key) => {
-      if (key === fieldKey) {
-        result = splitRichTextRange(html, current.inline ?? {}, range ?? { start: 0, end: 0 }, this.#ownerDocument)
+  /** Capture a shortcut decision inside its owning controller transaction. */
+  prepareShortcutAction(source, blockId, input, fieldLengths) {
+    return this.prepareExtensionValue(()=>{
+      const view=captureDocumentView({ids:source.ids,peek:source.peek})
+      const current=view.peek(blockId)
+      const definition=current?this.#registry.getBlockDefinition(current.type):undefined
+      const handle=definition?.capabilities?.shortcuts?.handle
+      if(typeof handle!=='function')return null
+      const fields=richTextFieldMap(definition,current.data)
+      const lengths=new Map(fieldLengths)
+      const ownerDocument=this.#ownerDocument
+      const inline=cloneInline(current.inline)??{}
+      const context=Object.freeze({
+        createId:prefix=>this.#allocateId(prefix),
+        fieldLength:key=>lengths.get(key)??0,
+        splitField:(key,range)=>this.prepareExtensionValue(()=>fields.has(key)&&ownerDocument
+          ?splitRichTextRange(fields.get(key),inline,range,ownerDocument):null),
+      })
+      const action=cloneEditorData(synchronousResult(handle(cloneEditorData(input),cloneEditorData(current.data),context)))
+      if(action===null)return null
+      if(!action||typeof action!=='object'||Array.isArray(action))throw new TypeError('Shortcut action must be an object or null')
+      const keys={native:['kind'],consume:['kind'],exit:['kind','data'],focus:['kind','target'],update:['kind','data','focus']}[action.kind]
+      if(!keys||Object.keys(action).some(key=>!keys.includes(key)))throw new TypeError('Invalid shortcut action')
+      if(action.kind==='update'||Object.hasOwn(action,'data')){
+        if(!action.data||typeof action.data!=='object'||Array.isArray(action.data))throw new TypeError('Shortcut data must be an object')
       }
-      return html
+      const target=action.kind==='focus'?action.target:action.focus
+      if(action.kind==='focus'||target!==undefined){
+        if(!target||typeof target!=='object'||Array.isArray(target)
+          ||(target.fieldKey!==undefined&&(typeof target.fieldKey!=='string'||!target.fieldKey))
+          ||(target.offset!==undefined&&target.offset!=='start'&&target.offset!=='end'
+            &&(typeof target.offset!=='number'||!Number.isFinite(target.offset)||target.offset<0))){
+          throw new TypeError('Invalid shortcut focus target')
+        }
+      }
+      return action
     })
-    return result
+  }
+
+  /** Prepare the structural result of an accepted exit request. */
+  exitBlock(blockId, data=undefined) {
+    this.#assertInteractionMutation()
+    return this.#executePrepared({origin:'user',name:'block.exit'},view=>{
+      const current=view.peek(blockId)
+      if(!current||!this.#registry.hasBlock(current.type))return {edits:[],result:false}
+      const type=this.#registry.defaultBlockType
+      if(data===undefined&&current.type!==type){
+        const next=this.#convertedRecord(current,{type})
+        return {edits:this.#updatedRecord(blockId,current,next),result:blockId}
+      }
+      const edits=[]
+      if(data!==undefined){
+        const definition=this.#registry.getBlockDefinition(current.type)
+        const next=this.#recordFromData(blockId,current.type,definition,data,current.tunes,current.inline)
+        edits.push(...this.#updatedRecord(blockId,current,next))
+      }
+      const definition=this.#registry.getBlockDefinition(type)
+      const id=this.#allocateId(type,new Set(view.ids))
+      const record=this.#recordFromData(id,type,definition,definition.schema.createDefault(),undefined,undefined)
+      edits.push({kind:'insert',index:view.ids.indexOf(blockId)+1,record})
+      return {edits,result:id}
+    })
   }
 
   /**
@@ -546,35 +624,33 @@ export class DocumentRuntime {
    */
   splitBlock(id, fieldKey, range) {
     this.#assertInteractionMutation()
-    return this.#engine.execute({ origin: 'user', name: 'block.split' }, tx => this.#splitBlockDraft(tx,id,fieldKey,range))
-  }
-
-  #splitBlockDraft(tx,id,fieldKey,range) {
+    return this.#executePrepared({ origin: 'user', name: 'block.split' }, view => {
+    const noSplit={edits:[],result:false}
     // A preceding range replacement can already have changed this block in
     // the current transaction. Read its draft, so Enter remains one action.
-    const current = tx.get(id)
+    const current = view.peek(id)
     if (!current) throw new Error(`Unknown block id: ${id}`)
     if (this.#activationFor(current)?.kind !== 'active') throw new Error(`Unregistered block cannot be split: ${id}`)
     const sourceDefinition = this.#registry.getBlockDefinition(current.type)
-    if (!sourceDefinition?.schema?.mapRichText) return false
+    if (!sourceDefinition?.schema?.mapRichText) return noSplit
 
     const defaultType = this.#registry.defaultBlockType
     const targetDefinition = this.#registry.getBlockDefinition(defaultType)
-    if (!targetDefinition?.schema?.mapRichText) return false
+    if (!targetDefinition?.schema?.mapRichText) return noSplit
 
     const inline = cloneInline(current.inline) ?? {}
     const start = Math.max(0, Math.trunc(range?.start) || 0)
     const end = Math.max(start, Math.trunc(range?.end ?? start) || 0)
     let matched = false
     let trailing = ''
-    const sourceData = sourceDefinition.schema.mapRichText(current.data, (html, key) => {
+    const sourceData = sourceDefinition.schema.mapRichText(cloneEditorData(current.data), (html, key) => {
       if (key !== fieldKey) return html
       matched = true
       const split = splitRichTextRange(html, inline, { start, end }, this.#ownerDocument)
       trailing = split.after
       return split.before
     })
-    if (!matched) return false
+    if (!matched) return noSplit
 
     let targetData = targetDefinition.schema.createDefault()
     let targetField = false
@@ -593,9 +669,9 @@ export class DocumentRuntime {
       targetField = true
       return trailing
     })
-    if (!targetField) return false
+    if (!targetField) return noSplit
 
-    const newId = this.#createUniqueBlockId(defaultType)
+    const newId = this.#allocateId(defaultType,new Set(view.ids))
     const sourceRecord = this.#recordFromData(
       current.id, current.type, sourceDefinition, sourceData, current.tunes, inline,
     )
@@ -603,10 +679,9 @@ export class DocumentRuntime {
       newId, defaultType, targetDefinition, targetData, current.tunes, remappedTrailing.inline,
     )
 
-    const index = tx.list().findIndex(block => block.id === id)
-    tx.update(id, sourceRecord)
-    tx.insert(index + 1, targetRecord)
-    return newId
+    const index = view.ids.indexOf(id)
+    return {edits:[...this.#updatedRecord(id,current,sourceRecord),{kind:'insert',index:index+1,record:targetRecord}],result:newId}
+    })
   }
 
   /**
@@ -620,30 +695,29 @@ export class DocumentRuntime {
    */
   mergeAdjacent(targetId, sourceId) {
     this.#assertInteractionMutation()
-    const ids = this.#store.ids()
-    const targetIndex = ids.indexOf(targetId)
-    const sourceIndex = ids.indexOf(sourceId)
-    if (targetIndex < 0 || sourceIndex !== targetIndex + 1) return false
+    return this.#executePrepared({ origin: 'user', name: 'block.merge' }, view => {
+      const noMerge = { edits: [], result: false }
+      const ids = view.ids
+      const targetIndex = ids.indexOf(targetId)
+      const sourceIndex = ids.indexOf(sourceId)
+      if (targetIndex < 0 || sourceIndex !== targetIndex + 1) return noMerge
 
-    const target = this.#store.get(targetId)
-    const source = this.#store.get(sourceId)
-    if (!target || !source || target.type !== source.type) return false
-    if (this.activation(targetId)?.kind !== 'active' || this.activation(sourceId)?.kind !== 'active') return false
-    const definition = this.#registry.getBlockDefinition(target.type)
-    const merge = definition?.capabilities?.merge?.merge
-    if (typeof merge !== 'function') return false
+      const target = view.peek(targetId)
+      const source = view.peek(sourceId)
+      if (!target || !source || target.type !== source.type) return noMerge
+      if (!this.#registry.hasBlock(target.type) || !this.#registry.hasBlock(source.type)) return noMerge
+      const definition = this.#registry.getBlockDefinition(target.type)
+      const merge = definition?.capabilities?.merge?.merge
+      if (typeof merge !== 'function') return noMerge
 
-    const prepared = this.#prepareInlineMerge(definition, target, source)
-    const mergedData = merge(prepared.targetData, prepared.sourceData)
-    const next = this.#recordFromData(
-      target.id, target.type, definition, mergedData, target.tunes, prepared.inline,
-    )
+      const prepared = this.#prepareInlineMerge(definition, target, source)
+      const mergedData = merge(prepared.targetData, prepared.sourceData)
+      const next = this.#recordFromData(
+        target.id, target.type, definition, mergedData, target.tunes, prepared.inline,
+      )
 
-    this.#engine.execute({ origin: 'user', name: 'block.merge' }, tx => {
-      tx.update(targetId, next)
-      tx.remove(sourceId)
+      return { edits: [...this.#updatedRecord(targetId, target, next), { kind: 'remove', id: sourceId }], result: true }
     })
-    return true
   }
 
   update(id, producer, authority = 'interaction') {
@@ -700,8 +774,8 @@ export class DocumentRuntime {
 
   remove(id, authority = 'interaction') {
     this.#assertMutationAuthority(authority)
-    return this.#engine.execute({ origin: 'external', name: 'block.remove' }, tx => {
-      const ids = tx.list().map(block => block.id)
+    return this.#executePrepared({ origin: 'external', name: 'block.remove' }, view => {
+      const ids = view.ids
       if (!ids.includes(id)) throw new Error(`Unknown block id: ${id}`)
       const index = ids.indexOf(id)
       let focusId = ids[index + 1] ?? ids[index - 1]
@@ -710,13 +784,12 @@ export class DocumentRuntime {
         const type = this.#registry.defaultBlockType
         const definition = this.#registry.getBlockDefinition(type)
         fallback = this.#recordFromData(
-          this.#createUniqueBlockId(type), type, definition, definition.schema.createDefault(), undefined, undefined,
+          this.#allocateId(type,new Set(ids)), type, definition, definition.schema.createDefault(), undefined, undefined,
         )
         focusId = fallback.id
       }
-      tx.remove(id)
-      if (fallback) tx.insert(0, fallback)
-      return focusId
+      const edits=fallback?[{kind:'remove',id},{kind:'insert',index:0,record:fallback}]:[{kind:'remove',id}]
+      return {edits,result:focusId}
     })
   }
 
@@ -783,50 +856,30 @@ export class DocumentRuntime {
     }
   }
 
-  replaceBlock(id, type, data, authority = 'interaction') {
-    this.#assertMutationAuthority(authority)
-    const current = this.#store.get(id)
-    if (!current) throw new Error(`Unknown block id: ${id}`)
-    const definition = this.#registry.getBlockDefinition(type)
-    if (!definition) throw new Error(`Unknown block type: ${type}`)
-    const next = this.#recordFromData(
-      id, type, definition, data, current.tunes, current.inline,
-    )
-    this.#engine.execute({ origin: 'external', name: 'block.replace' }, tx => {
-      tx.update(id, next)
-    })
-  }
-
   convert(id, target, authority = 'interaction') {
     this.#assertMutationAuthority(authority)
-    this.#engine.execute({ origin: 'external', name: 'block.convert' }, tx => {
-      const current = tx.get(id)
+    return this.#executePrepared({ origin: 'external', name: 'block.convert' }, view => {
+      const current = view.peek(id)
       if (!current) throw new Error(`Unknown block id: ${id}`)
       if (this.#activationFor(current)?.kind !== 'active') {
         throw new Error(`Unregistered block cannot be converted: ${id}`)
       }
-      if (!target || typeof target !== 'object' || typeof target.type !== 'string') {
+      const type=target?.type
+      const toolboxItemId=target?.toolboxItemId
+      if (!target || typeof target !== 'object' || typeof type !== 'string') {
         throw new TypeError('Conversion target requires a type')
       }
 
-      const sourceDefinition = this.#registry.getBlockDefinition(current.type)
-      const targetDefinition = this.#registry.getBlockDefinition(target.type)
-      if (!targetDefinition) throw new Error(`Unknown block type: ${target.type}`)
-      if(current.type===target.type&&target.toolboxItemId===undefined)return
+      const targetDefinition = this.#registry.getBlockDefinition(type)
+      if (!targetDefinition) throw new Error(`Unknown block type: ${type}`)
+      if(current.type===type&&toolboxItemId===undefined)return {edits:[],result:current}
 
       // As in the block menu, every registered target is available. A target
       // imports transferable content when it can; otherwise it starts with its
       // own schema defaults. Never bypass the inline-reference preservation check.
-      const sourcePayload = sourceDefinition?.capabilities?.conversion?.export(current.data) ?? null
-      const targetData = this.#targetDataFromPayload(targetDefinition, sourcePayload, target, current.type===target.type?current.data:undefined)
-
-      const next = this.#recordFromData(
-        id, target.type, targetDefinition, targetData, current.tunes, current.inline,
-      )
-      this.#assertConversionInlinePreserved(
-        sourcePayload,current.inline,targetDefinition,next,
-      )
-      tx.update(id, next)
+      const next=this.#convertedRecord(current,{type,toolboxItemId})
+      const edits=this.#updatedRecord(id,current,next)
+      return {edits,result:edits.length?next:current}
     })
   }
 
@@ -954,64 +1007,65 @@ export class DocumentRuntime {
    */
   applySlashBlockCommand(blockId, fieldKey, range, target) {
     this.#assertInteractionMutation()
-    const current = this.#store.get(blockId)
-    if (!current || this.activation(blockId)?.kind !== 'active') return false
-    if (!target || typeof target.type !== 'string') return false
+    return this.#executePrepared({ origin: 'user', name: 'slash.block' }, view => {
+      const noChange={edits:[],result:false}
+      const current = view.peek(blockId)
+      if (!current || !this.#registry.hasBlock(current.type)) return noChange
+      const type=target?.type
+      const toolboxItemId=target?.toolboxItemId
+      if (!target || typeof type !== 'string') return noChange
 
-    const sourceDefinition = this.#registry.getBlockDefinition(current.type)
-    const targetDefinition = this.#registry.getBlockDefinition(target.type)
-    if (!sourceDefinition?.schema?.mapRichText || !targetDefinition) return false
+      const sourceDefinition = this.#registry.getBlockDefinition(current.type)
+      const targetDefinition = this.#registry.getBlockDefinition(type)
+      if (!sourceDefinition?.schema?.mapRichText || !targetDefinition) return noChange
+      const ownedRange=cloneEditorData(range)
 
-    const inline = cloneInline(current.inline) ?? {}
-    let matched = false
-    const sourceData = sourceDefinition.schema.mapRichText(
-      cloneEditorData(current.data),
-      (html, key) => {
-        if (key !== fieldKey) return html
-        matched = true
-        return replaceRichTextRange(
-          html,
-          inline,
-          range,
-          { kind: /** @type {'text'} */ ('text'), text: '' },
-          this.#ownerDocument,
-        )
-      },
-    )
-    if (!matched) return false
-
-    const sourceNext = this.#recordFromData(
-      current.id, current.type, sourceDefinition, sourceData, current.tunes, inline,
-    )
-
-    let targetData = targetDefinition.schema.createDefault()
-    if (target.toolboxItemId) {
-      const item = targetDefinition.toolbox?.find(candidate => candidate.id === target.toolboxItemId)
-      if (!item) return false
-      if (item.configure) targetData = item.configure(targetData, {
-        createId: prefix => this.createDataId(prefix),
-      })
-    }
-    const sourceEmpty = sourceDefinition.capabilities?.empty?.isEmpty?.(sourceNext.data) === true
-
-    if (sourceEmpty) {
-      const next = this.#recordFromData(
-        blockId, target.type, targetDefinition, targetData, current.tunes, undefined,
+      const inline = cloneInline(current.inline) ?? {}
+      let matched = false
+      const sourceData = sourceDefinition.schema.mapRichText(
+        cloneEditorData(current.data),
+        (html, key) => {
+          if (key !== fieldKey) return html
+          matched = true
+          return replaceRichTextRange(
+            html,
+            inline,
+            ownedRange,
+            { kind: /** @type {'text'} */ ('text'), text: '' },
+            this.#ownerDocument,
+          )
+        },
       )
-      this.#engine.execute({ origin: 'user', name: 'slash.block' }, tx => tx.update(blockId, next))
-      return blockId
-    }
+      if (!matched) return noChange
 
-    const id = this.#createUniqueBlockId(target.type)
-    const next = this.#recordFromData(
-      id, target.type, targetDefinition, targetData, undefined, undefined,
-    )
-    const index = this.#store.ids().indexOf(blockId)
-    this.#engine.execute({ origin: 'user', name: 'slash.block' }, tx => {
-      tx.update(blockId, sourceNext)
-      tx.insert(index + 1, next)
+      const sourceNext = this.#recordFromData(
+        current.id, current.type, sourceDefinition, sourceData, current.tunes, inline,
+      )
+
+      let targetData = targetDefinition.schema.createDefault()
+      if (toolboxItemId) {
+        const item = targetDefinition.toolbox?.find(candidate => candidate.id === toolboxItemId)
+        if (!item) return noChange
+        if (item.configure) targetData = item.configure(targetData, {
+          createId: prefix => this.#allocateId(prefix),
+        })
+      }
+      const sourceEmpty = sourceDefinition.capabilities?.empty?.isEmpty?.(sourceNext.data) === true
+
+      if (sourceEmpty) {
+        const next = this.#recordFromData(
+          blockId, type, targetDefinition, targetData, current.tunes, undefined,
+        )
+        return {edits:this.#updatedRecord(blockId,current,next),result:blockId}
+      }
+
+      const id = this.#allocateId(type,new Set(view.ids))
+      const next = this.#recordFromData(
+        id, type, targetDefinition, targetData, undefined, undefined,
+      )
+      const index = view.ids.indexOf(blockId)
+      return {edits:[...this.#updatedRecord(blockId,current,sourceNext),{kind:'insert',index:index+1,record:next}],result:id}
     })
-    return id
   }
 
   replaceLogicalRange(bookmark, replacement = /** @type {{kind:'text',text:string}|{kind:'html',html:string}} */ ({ kind: 'text', text: '' })) {
@@ -1620,24 +1674,28 @@ export class DocumentRuntime {
 
   replaceRichText(blockId, fieldKey, range, replacement) {
     this.#assertInteractionMutation()
-    const current = this.#store.get(blockId)
-    if (!current) throw new Error(`Unknown block id: ${blockId}`)
-    if (this.activation(blockId)?.kind !== 'active') throw new Error(`Unregistered block cannot be updated: ${blockId}`)
-    const definition = this.#registry.getBlockDefinition(current.type)
-    if (!definition?.schema?.mapRichText) throw new Error(`Block type has no rich-text fields: ${current.type}`)
-    const data = cloneEditorData(current.data)
-    let matched = false
-    const inline = cloneInline(current.inline) ?? {}
-    const nextData = definition.schema.mapRichText(data, (html, key) => {
-      if (key !== fieldKey) return html
-      matched = true
-      return replaceRichTextRange(html, inline, range, replacement, this.#ownerDocument)
+    this.#executePrepared({ origin: 'plugin', name: 'rich-text.replace' }, view => {
+      const current = view.peek(blockId)
+      if (!current) throw new Error(`Unknown block id: ${blockId}`)
+      if (!this.#registry.hasBlock(current.type)) throw new Error(`Unregistered block cannot be updated: ${blockId}`)
+      const definition = this.#registry.getBlockDefinition(current.type)
+      if (!definition?.schema?.mapRichText) throw new Error(`Block type has no rich-text fields: ${current.type}`)
+      const ownedRange=cloneEditorData(range)
+      const ownedReplacement=cloneEditorData(replacement)
+      const data = cloneEditorData(current.data)
+      let matched = false
+      const inline = cloneInline(current.inline) ?? {}
+      const nextData = definition.schema.mapRichText(data, (html, key) => {
+        if (key !== fieldKey) return html
+        matched = true
+        return replaceRichTextRange(html, inline, ownedRange, ownedReplacement, this.#ownerDocument)
+      })
+      if (!matched) throw new Error(`Unknown rich-text field "${fieldKey}" for block "${blockId}"`)
+      const next = this.#recordFromData(
+        current.id, current.type, definition, nextData, current.tunes, inline,
+      )
+      return {edits:this.#updatedRecord(blockId,current,next),result:undefined}
     })
-    if (!matched) throw new Error(`Unknown rich-text field "${fieldKey}" for block "${blockId}"`)
-    const next = this.#recordFromData(
-      current.id, current.type, definition, nextData, current.tunes, inline,
-    )
-    this.#engine.execute({ origin: 'plugin', name: 'rich-text.replace' }, tx => tx.update(blockId, next))
   }
 
   replaceRichTextWithInlineSegments(blockId, fieldKey, range, segments) {
@@ -1820,132 +1878,140 @@ export class DocumentRuntime {
 
   insertInlineWidget(blockId, fieldKey, range, type, data, options = {}) {
     this.#assertInteractionMutation()
-    const trailingText = options.trailingText ?? ''
-    if (typeof trailingText !== 'string' || /[\r\n]/.test(trailingText)) throw new TypeError('Inline trailing text must be a single-line string')
-    const current = this.#store.get(blockId)
-    if (!current) throw new Error(`Unknown block id: ${blockId}`)
-    if (this.activation(blockId)?.kind !== 'active') throw new Error(`Unregistered block cannot be updated: ${blockId}`)
-    const blockDefinition = this.#registry.getBlockDefinition(current.type)
-    if (!blockDefinition?.schema?.mapRichText) throw new Error(`Block type has no rich-text fields: ${current.type}`)
-    const inlineDefinition = this.#registry.getInlineDefinition(type)
-    if (!inlineDefinition) throw new Error(`Unknown inline widget type: ${type}`)
+    return this.#executePrepared({ origin: 'plugin', name: 'inline-widget.insert' }, view => {
+      const trailingText = options.trailingText ?? ''
+      if (typeof trailingText !== 'string' || /[\r\n]/.test(trailingText)) throw new TypeError('Inline trailing text must be a single-line string')
+      const current = view.peek(blockId)
+      if (!current) throw new Error(`Unknown block id: ${blockId}`)
+      if (!this.#registry.hasBlock(current.type)) throw new Error(`Unregistered block cannot be updated: ${blockId}`)
+      const blockDefinition = this.#registry.getBlockDefinition(current.type)
+      if (!blockDefinition?.schema?.mapRichText) throw new Error(`Block type has no rich-text fields: ${current.type}`)
+      const inlineDefinition = this.#registry.getInlineDefinition(type)
+      if (!inlineDefinition) throw new Error(`Unknown inline widget type: ${type}`)
+      const ownedRange=cloneEditorData(range)
 
-    const encodedWidget = inlineDefinition.schema.encode(
-      data === undefined ? inlineDefinition.schema.createDefault() : data,
-    )
-    const inline = cloneInline(current.inline) ?? {}
-    const id = this.#createUniqueInlineId(blockDefinition, current.data, inline)
-    Object.defineProperty(inline, id, { value: {
-      type,
-      dataVersion: encodedWidget.dataVersion,
-      data: encodedWidget.data,
-    }, enumerable: true, configurable: true, writable: true })
-
-    const blockData = cloneEditorData(current.data)
-    let matched = false
-    const nextData = blockDefinition.schema.mapRichText(blockData, (html, key) => {
-      if (key !== fieldKey) return html
-      matched = true
-      const result = replaceRichTextRange(
-        html,
-        inline,
-        range,
-        { kind: 'inline-reference', id },
-        this.#ownerDocument,
+      const encodedWidget = inlineDefinition.schema.encode(
+        data === undefined ? inlineDefinition.schema.createDefault() : data,
       )
-      return trailingText ? ensureRichTextReferenceSuffix(result, inline, id, trailingText, this.#ownerDocument).html : result
+      const inline = cloneInline(current.inline) ?? {}
+      const id = this.#createUniqueInlineId(blockDefinition, current.data, inline)
+      Object.defineProperty(inline, id, { value: {
+        type,
+        dataVersion: encodedWidget.dataVersion,
+        data: encodedWidget.data,
+      }, enumerable: true, configurable: true, writable: true })
+
+      const blockData = cloneEditorData(current.data)
+      let matched = false
+      const nextData = blockDefinition.schema.mapRichText(blockData, (html, key) => {
+        if (key !== fieldKey) return html
+        matched = true
+        const result = replaceRichTextRange(
+          html,
+          inline,
+          ownedRange,
+          { kind: 'inline-reference', id },
+          this.#ownerDocument,
+        )
+        return trailingText ? ensureRichTextReferenceSuffix(result, inline, id, trailingText, this.#ownerDocument).html : result
+      })
+      if (!matched) throw new Error(`Unknown rich-text field "${fieldKey}" for block "${blockId}"`)
+      const next = this.#recordFromData(
+        current.id, current.type, blockDefinition, nextData, current.tunes, inline,
+      )
+      return {edits:this.#updatedRecord(blockId,current,next),result:id}
     })
-    if (!matched) throw new Error(`Unknown rich-text field "${fieldKey}" for block "${blockId}"`)
-    const next = this.#recordFromData(
-      current.id, current.type, blockDefinition, nextData, current.tunes, inline,
-    )
-    this.#engine.execute({ origin: 'plugin', name: 'inline-widget.insert' }, tx => tx.update(blockId, next))
-    return id
   }
 
   updateInlineWidget(blockId, inlineId, producer, options = {}) {
     this.#assertInteractionMutation()
     if (typeof producer !== 'function') throw new TypeError('Inline widget update producer must be a function')
-    const trailingText = options.trailingText ?? ''
-    if (typeof trailingText !== 'string' || /[\r\n]/.test(trailingText)) throw new TypeError('Inline trailing text must be a single-line string')
+    let trailingText=''
     const selection = this.#captureSelection()
     let selectionAfter = selection
     this.#engine.execute({ origin: 'plugin', name: 'inline-widget.update',
       selectionBefore: selection, selectionAfter: () => selectionAfter,
     }, tx => {
-      const current = tx.get(blockId)
-      if (!current) throw new Error(`Unknown block id: ${blockId}`)
-      if (!this.#registry.hasBlock(current.type)) throw new Error(`Unregistered block cannot be updated: ${blockId}`)
-      const ref = Object.hasOwn(current.inline ?? {}, inlineId) ? current.inline[inlineId] : undefined
-      if (!ref || typeof ref !== 'object' || Array.isArray(ref) || typeof ref.type !== 'string') {
-        throw new Error(`Unknown inline widget id: ${inlineId}`)
-      }
-      const definition = this.#registry.getInlineDefinition(ref.type)
-      if (!definition) throw new Error(`Unknown inline widget type: ${ref.type}`)
-      const decoded = definition.schema.decode({ dataVersion: ref.dataVersion, data: ref.data })
+      const initial=this.prepareExtensionValue(()=>{
+        const current = captureDocumentView({ids:tx.ids,peek:tx.peek}).peek(blockId)
+        if (!current) throw new Error(`Unknown block id: ${blockId}`)
+        if (!this.#registry.hasBlock(current.type)) throw new Error(`Unregistered block cannot be updated: ${blockId}`)
+        const ref = Object.hasOwn(current.inline ?? {}, inlineId) ? current.inline[inlineId] : undefined
+        if (!ref || typeof ref !== 'object' || Array.isArray(ref) || typeof ref.type !== 'string') {
+          throw new Error(`Unknown inline widget id: ${inlineId}`)
+        }
+        const definition = this.#registry.getInlineDefinition(ref.type)
+        if (!definition) throw new Error(`Unknown inline widget type: ${ref.type}`)
+        trailingText=options.trailingText??''
+        const fieldKey=options.fieldKey
+        if (typeof trailingText !== 'string' || /[\r\n]/.test(trailingText)) throw new TypeError('Inline trailing text must be a single-line string')
+        const decoded = definition.schema.decode({ dataVersion: ref.dataVersion, data: ref.data })
+        return {current,ref,definition,decoded,fieldKey}
+      })
+      const {current,ref,definition,decoded}=initial
       const nextData = producer(cloneEditorData(decoded.data))
-      const latest = tx.get(blockId)
-      const inline = cloneInline(latest?.inline) ?? {}
-      const latestRef = Object.hasOwn(inline, inlineId) ? inline[inlineId] : undefined
-      if (!latest || latest.type !== current.type || latestRef?.type !== ref.type) {
-        throw new Error('Inline widget update target changed during its producer')
-      }
-      const encoded = definition.schema.encode(nextData)
-      Object.defineProperty(inline, inlineId, { value: {
-        type: ref.type,
-        dataVersion: encoded.dataVersion,
-        data: encoded.data,
-      }, enumerable: true, configurable: true, writable: true })
-      const blockDefinition = this.#registry.getBlockDefinition(current.type)
-      let blockData = latest.data
-      if (trailingText) {
-        let matched = false
-        blockData = blockDefinition.schema.mapRichText(cloneEditorData(blockData), (html, fieldKey) => {
-          if (fieldKey !== options.fieldKey) return html
-          const result = ensureRichTextReferenceSuffix(html, inline, inlineId, trailingText, this.#ownerDocument)
-          if (!result) throw new Error('Inline occurrence is no longer present in its field')
-          matched = true
-          const point = { blockId, fieldKey, offset: result.offset }
-          selectionAfter = { anchor: point, focus: { ...point } }
-          return result.html
-        })
-        if (!matched) throw new Error('Inline occurrence has no matching rich-text field')
-      }
-      const next = this.#recordFromData(
-        latest.id, latest.type, blockDefinition, blockData, latest.tunes, inline,
-      )
-      if (
-        latest.dataVersion === next.dataVersion
-        && sameJson(latest.data, next.data)
-        && sameJson(latest.tunes, next.tunes)
-        && sameJson(latest.inline, next.inline)
-      ) return
-      tx.update(blockId, next)
+      const prepared=this.prepareExtensionValue(()=>{
+        const latest = captureDocumentView({ids:tx.ids,peek:tx.peek}).peek(blockId)
+        const inline = cloneInline(latest?.inline) ?? {}
+        const latestRef = Object.hasOwn(inline, inlineId) ? inline[inlineId] : undefined
+        if (!latest || latest.type !== current.type || latestRef?.type !== ref.type) {
+          throw new Error('Inline widget update target changed during its producer')
+        }
+        const encoded = definition.schema.encode(synchronousResult(nextData))
+        Object.defineProperty(inline, inlineId, { value: {
+          type: ref.type,
+          dataVersion: encoded.dataVersion,
+          data: encoded.data,
+        }, enumerable: true, configurable: true, writable: true })
+        const blockDefinition = this.#registry.getBlockDefinition(current.type)
+        let blockData = latest.data
+        if (trailingText) {
+          let matched = false
+          blockData = blockDefinition.schema.mapRichText(cloneEditorData(blockData), (html, fieldKey) => {
+            if (fieldKey !== initial.fieldKey) return html
+            const result = ensureRichTextReferenceSuffix(html, inline, inlineId, trailingText, this.#ownerDocument)
+            if (!result) throw new Error('Inline occurrence is no longer present in its field')
+            matched = true
+            const point = { blockId, fieldKey, offset: result.offset }
+            selectionAfter = { anchor: point, focus: { ...point } }
+            return result.html
+          })
+          if (!matched) throw new Error('Inline occurrence has no matching rich-text field')
+        }
+        const next = this.#recordFromData(
+          latest.id, latest.type, blockDefinition, blockData, latest.tunes, inline,
+        )
+        return {latest,next}
+      })
+      if (!canonicalRecordsEqual(prepared.latest,prepared.next))tx.update(blockId, prepared.next)
     })
     if (trailingText) this.#restoreSelection(selectionAfter)
   }
 
   replaceInlineWidgetWithText(blockId, inlineId, text = '') {
     this.#assertInteractionMutation()
-    const current = this.#store.get(blockId)
-    if (!current) throw new Error(`Unknown block id: ${blockId}`)
-    if (this.activation(blockId)?.kind !== 'active') return false
-    const inline = cloneInline(current.inline) ?? {}
-    if (!Object.hasOwn(inline, inlineId)) return false
-    const definition = this.#registry.getBlockDefinition(current.type)
-    if (!definition?.schema?.mapRichText) return false
-    const scan = this.#scanBlockRichText(definition, current.data, inline)
-    if (!scan.references.has(inlineId)) return false
+    return this.#executePrepared({ origin: 'plugin', name: 'inline-widget.replace' }, view => {
+      const noChange={edits:[],result:false}
+      const current = view.peek(blockId)
+      if (!current) throw new Error(`Unknown block id: ${blockId}`)
+      if (!this.#registry.hasBlock(current.type)) return noChange
+      const inline = cloneInline(current.inline) ?? {}
+      if (!Object.hasOwn(inline, inlineId)) return noChange
+      const definition = this.#registry.getBlockDefinition(current.type)
+      if (!definition?.schema?.mapRichText) return noChange
+      const scan = this.#scanBlockRichText(definition, current.data, inline)
+      if (!scan.references.has(inlineId)) return noChange
+      const replacement=String(text??'')
 
-    const data = definition.schema.mapRichText(cloneEditorData(current.data), html => (
-      replaceRichTextReference(html, inline, inlineId, String(text ?? ''), this.#ownerDocument)
-    ))
-    delete inline[inlineId]
-    const next = this.#recordFromData(
-      current.id, current.type, definition, data, current.tunes, inline,
-    )
-    this.#engine.execute({ origin: 'plugin', name: 'inline-widget.replace' }, tx => tx.update(blockId, next))
-    return true
+      const data = definition.schema.mapRichText(cloneEditorData(current.data), html => (
+        replaceRichTextReference(html, inline, inlineId, replacement, this.#ownerDocument)
+      ))
+      delete inline[inlineId]
+      const next = this.#recordFromData(
+        current.id, current.type, definition, data, current.tunes, inline,
+      )
+      return {edits:this.#updatedRecord(blockId,current,next),result:true}
+    })
   }
 
   removeInlineWidget(blockId, inlineId) {
@@ -2079,31 +2145,27 @@ export class DocumentRuntime {
 
   setTextAlign(ids, value) {
     this.#assertInteractionMutation()
-    if (value !== null && !['left', 'center', 'right', 'justify'].includes(value)) {
-      throw new TypeError('Text alignment must be left, center, right, justify, or null')
-    }
-    const ordered = [...new Set(ids ?? [])]
-    const updates = []
-    for (const id of ordered) {
-      const current = this.#store.get(id)
-      if (!current) throw new Error(`Unknown block id: ${id}`)
-      if (this.activation(id)?.kind !== 'active') throw new Error(`Unregistered block cannot be aligned: ${id}`)
-      const definition = this.#registry.getBlockDefinition(current.type)
-      const tunes = cloneTunes(current.tunes) ?? {}
-      if (value === null || value === 'left') delete tunes.textAlign
-      else tunes.textAlign = value
-      const next = this.#recordFromData(
-        id, current.type, definition, current.data,
-        Object.keys(tunes).length ? tunes : undefined,
-        current.inline,
-      )
-      if (!sameJson(current.tunes, next.tunes)) updates.push([id, next])
-    }
-    if (!updates.length) return false
-    this.#engine.execute({ origin: 'user', name: 'format.text-align' }, tx => {
-      for (const [id, next] of updates) tx.update(id, next)
+    return this.#executePrepared({ origin: 'user', name: 'format.text-align' }, view => {
+      if (value !== null && !['left', 'center', 'right', 'justify'].includes(value)) {
+        throw new TypeError('Text alignment must be left, center, right, justify, or null')
+      }
+      const ordered = [...new Set(ids ?? [])]
+      const edits = []
+      for (const id of ordered) {
+        const current = view.peek(id)
+        if (!current) throw new Error(`Unknown block id: ${id}`)
+        if (!this.#registry.hasBlock(current.type)) throw new Error(`Unregistered block cannot be aligned: ${id}`)
+        const tunes = cloneTunes(current.tunes) ?? {}
+        if (value === null || value === 'left') delete tunes.textAlign
+        else tunes.textAlign = value
+        const next = { ...current }
+        if(Object.keys(tunes).length)next.tunes=tunes
+        else delete next.tunes
+        if(!sameJson(current.tunes,next.tunes))delete next.revision
+        edits.push(...this.#updatedRecord(id, current, next))
+      }
+      return { edits, result: edits.length > 0 }
     })
-    return true
   }
 
   destroy() {
@@ -2518,11 +2580,12 @@ export class DocumentRuntime {
 
   #targetDataFromPayload(targetDefinition,payload,target,baseData=undefined){
     let data
+    const candidate=payload==null?null:cloneEditorData(payload)
     const conversion=targetDefinition.capabilities?.conversion
     if(baseData!==undefined){
       data=cloneEditorData(baseData)
-    }else if(payload&&conversion?.canImport?.(payload)){
-      data=conversion.import(payload)
+    }else if(candidate&&conversion?.canImport?.(cloneEditorData(candidate))){
+      data=conversion.import(cloneEditorData(candidate))
     }else{
       data=targetDefinition.schema.createDefault()
     }
@@ -2532,6 +2595,17 @@ export class DocumentRuntime {
       if(item.configure)data=item.configure(data,this.#dataOperationContext())
     }
     return data
+  }
+
+  #convertedRecord(current,target){
+    const sourceDefinition=this.#registry.getBlockDefinition(current.type)
+    const targetDefinition=this.#registry.getBlockDefinition(target.type)
+    if(!targetDefinition)throw new Error(`Unknown block type: ${target.type}`)
+    const payload=cloneEditorData(sourceDefinition?.capabilities?.conversion?.export(cloneEditorData(current.data))??null)
+    const data=this.#targetDataFromPayload(targetDefinition,payload,target,current.type===target.type?current.data:undefined)
+    const next=this.#recordFromData(current.id,target.type,targetDefinition,data,current.tunes,current.inline)
+    this.#assertConversionInlinePreserved(payload,current.inline,targetDefinition,next)
+    return next
   }
 
   #recordFromData(id,type,definition,data,tunes,inlineSource){
@@ -2546,6 +2620,23 @@ export class DocumentRuntime {
       normalizeData:(targetDefinition,targetData)=>this.#normalizeLocalData(targetDefinition,targetData),
       normalizeTunes:cloneTunes,
     }))
+  }
+
+  #executePrepared(metadata, prepare) {
+    return this.#engine.execute(metadata, tx => {
+      const plan = this.prepareExtensionValue(() => prepare(captureDocumentView({ids:tx.ids,peek:tx.peek})))
+      for (const edit of plan.edits) {
+        if (edit.kind === 'update') tx.update(edit.id, edit.record)
+        else if (edit.kind === 'remove') tx.remove(edit.id)
+        else if (edit.kind === 'insert') tx.insert(edit.index, edit.record)
+        else throw new TypeError('Unknown canonical edit kind')
+      }
+      return plan.result
+    })
+  }
+
+  #updatedRecord(id, current, next) {
+    return canonicalRecordsEqual(current, next) ? [] : [{ kind: 'update', id, record: next }]
   }
 
   #payloadHasContent(payload){
@@ -2965,7 +3056,7 @@ export class DocumentRuntime {
 
   #dataOperationContext() {
     return Object.freeze({
-      createId: prefix => this.createDataId(prefix),
+      createId: prefix => this.#allocateId(prefix),
     })
   }
 

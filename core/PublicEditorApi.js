@@ -1,7 +1,7 @@
 // @ts-check
 import { cloneEditorData } from '../shared/cloneEditorData.js'
 
-function snapshot(runtime, record) {
+function snapshot(runtime, record, knownStatus = undefined) {
   if (!record) return undefined
   const value = cloneEditorData(record)
   return Object.freeze({
@@ -12,7 +12,7 @@ function snapshot(runtime, record) {
     tunes: value.tunes,
     inline: value.inline,
     revision: value.revision,
-    status: runtime.activation(value.id)?.kind === 'active' ? 'active' : 'unregistered',
+    status: knownStatus ?? (runtime.activation(value.id)?.kind === 'active' ? 'active' : 'unregistered'),
   })
 }
 
@@ -88,7 +88,7 @@ export class EditorBlocksApi {
     this.#assertLive()
     if (typeof producer !== 'function') throw new TypeError('blocks.update() requires a producer')
     this.#runtime.update(id, current => {
-      const currentSnapshot = snapshot(this.#runtime, current)
+      const currentSnapshot = snapshot(this.#runtime, current, 'active')
       const patch = producer(currentSnapshot)
       if (!patch || typeof patch !== 'object' || Array.isArray(patch)) {
         throw new TypeError('blocks.update() producer must return an object')
@@ -99,7 +99,7 @@ export class EditorBlocksApi {
 
   remove(id) { this.#assertLive(); this.#view.remove(id, 'host') }
   move(id, to) { this.#assertLive(); this.#view.move(id, to, 'host') }
-  convert(id, target) { this.#assertLive(); return this.#view.convert(id, target, 'host') }
+  convert(id, target) { this.#assertLive(); return snapshot(this.#runtime,this.#view.convert(id, target, 'host'),'active') }
   focus(id, target) {
     this.#assertLive()
     this.#runtime.assertControlAuthority()

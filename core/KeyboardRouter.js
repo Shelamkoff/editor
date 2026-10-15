@@ -36,8 +36,10 @@ export class KeyboardRouter {
   #controller
   #inlineToolbar
   #isComposing
+  #reportError
 
-  constructor({ root, runtime, registry, reconciler, selection, view, inlineToolbar = null, crossSelection = null, isComposing = () => false }) {
+  constructor({ root, runtime, registry, reconciler, selection, view, inlineToolbar = null, crossSelection = null, isComposing = () => false,
+    reportError = error => console.error('Keyboard shortcut failed', error) }) {
     if (!root?.addEventListener) throw new TypeError('KeyboardRouter requires an event root')
     if (!runtime?.splitBlock || !runtime?.mergeAdjacent) throw new TypeError('KeyboardRouter requires a DocumentRuntime')
     if (!registry?.getBlockDefinition) throw new TypeError('KeyboardRouter requires an ExtensionRegistry')
@@ -54,6 +56,7 @@ export class KeyboardRouter {
     this.#crossSelection = crossSelection
     this.#inlineToolbar = inlineToolbar
     this.#isComposing = typeof isComposing === 'function' ? isComposing : () => false
+    this.#reportError = reportError
 
     const AbortControllerCtor = root.ownerDocument?.defaultView?.AbortController ?? AbortController
     this.#controller = new AbortControllerCtor()
@@ -66,17 +69,28 @@ export class KeyboardRouter {
     const ownership = this.#ownership(event)
     if (ownership.kind === 'outside' || ownership.kind === 'auxiliary-native') return
 
-    const key = String(event?.key ?? '')
-    const lower = shortcutKey(event)
-    const mod = event?.metaKey === true || event?.ctrlKey === true
+    let keys
+    try{
+      keys=this.#runtime.prepareExtensionValue(()=>({
+        key:String(event?.key??''),code:String(event?.code??''),shiftKey:event?.shiftKey===true,
+        altKey:event?.altKey===true,ctrlKey:event?.ctrlKey===true,metaKey:event?.metaKey===true,
+      }))
+    }catch(error){
+      event.preventDefault?.()
+      try{this.#reportError(error)}catch{}
+      return
+    }
+    const key = keys.key
+    const lower = shortcutKey(keys)
+    const mod = keys.metaKey || keys.ctrlKey
 
-    if (mod && !event?.altKey) {
+    if (mod && !keys.altKey) {
       if (
         ownership.kind === 'document-rich-text'
         && this.#inlineToolbar?.handleShortcut?.(event)
       ) return
 
-      if (lower === 'a' && !event?.shiftKey && ownership.owner) {
+      if (lower === 'a' && !keys.shiftKey && ownership.owner) {
         if (this.#crossSelection?.wholeBlockIds?.length) {
           this.#crossSelection.clear()
           // Native Ctrl+A selects text in the focused editing host again.
@@ -96,11 +110,11 @@ export class KeyboardRouter {
 
       if (lower === 'z') {
         event.preventDefault?.()
-        if (event?.shiftKey) this.#redo()
+        if (keys.shiftKey) this.#redo()
         else this.#undo()
         return
       }
-      if (lower === 'y' && !event?.shiftKey) {
+      if (lower === 'y' && !keys.shiftKey) {
         event.preventDefault?.()
         this.#redo()
         return
@@ -109,12 +123,12 @@ export class KeyboardRouter {
 
     // Explicit caret movement dismisses the logical range even when native
     // movement is clamped at the same endpoint (for example End after conversion).
-    if (ownership.owner && !event?.shiftKey && this.#crossSelection?.active
+    if (ownership.owner && !keys.shiftKey && this.#crossSelection?.active
       && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(key)) {
       this.#crossSelection.clear()
     }
 
-    if (event?.shiftKey && (event?.ctrlKey || event?.metaKey) && !event?.altKey
+    if (keys.shiftKey && (keys.ctrlKey || keys.metaKey) && !keys.altKey
       && (key === 'ArrowLeft' || key === 'ArrowRight')
       && this.#crossSelection?.extend(key === 'ArrowLeft' ? 'backward' : 'forward', 'word')) {
       event.preventDefault?.()
@@ -131,15 +145,15 @@ export class KeyboardRouter {
       this.#crossSelection.replace({ kind: 'text', text: '' })
       return
     }
-    if (event?.metaKey || event?.ctrlKey || event?.altKey) return
+    if (keys.metaKey || keys.ctrlKey || keys.altKey) return
     if (!ownership.owner) return
 
-    if (event?.shiftKey && (key === 'ArrowLeft' || key === 'ArrowRight')
+    if (keys.shiftKey && (key === 'ArrowLeft' || key === 'ArrowRight')
       && this.#crossSelection?.extend(key === 'ArrowLeft' ? 'backward' : 'forward')) {
       event.preventDefault?.()
       return
     }
-    if (event?.shiftKey && ['ArrowUp','ArrowDown','Home','End'].includes(key)
+    if (keys.shiftKey && ['ArrowUp','ArrowDown','Home','End'].includes(key)
       && this.#crossSelection?.extend(
         key === 'ArrowUp' || key === 'Home' ? 'backward' : 'forward',
         key === 'Home' || key === 'End' ? 'lineboundary' : 'line',
@@ -149,7 +163,7 @@ export class KeyboardRouter {
     }
 
     const owner = ownership.owner
-    if (key === 'Enter' && !event?.shiftKey && this.#crossSelection?.active && this.#crossSelection.split()) {
+    if (key === 'Enter' && !keys.shiftKey && this.#crossSelection?.active && this.#crossSelection.split()) {
       event.preventDefault?.()
       return
     }
@@ -157,35 +171,9 @@ export class KeyboardRouter {
     if (!range) return
 
     const record = this.#runtime.get(owner.blockId)
-    const definition = record ? this.#registry.getBlockDefinition(record.type) : null
-    const shortcut = definition?.capabilities?.shortcuts?.handle
-    if (typeof shortcut === 'function') {
-      const action = shortcut({
-        key,
-        shiftKey: event?.shiftKey === true,
-        altKey: event?.altKey === true,
-        ctrlKey: event?.ctrlKey === true,
-        metaKey: event?.metaKey === true,
-        fieldKey: owner.fieldKey,
-        selection: range,
-        fieldLength: fieldLength(owner),
-      }, record.data, {
-        createId: prefix => this.#runtime.createDataId(prefix),
-        splitField: (fieldKey, selection) => this.#runtime.splitRichTextField(owner.blockId, fieldKey, selection),
-        fieldLength: fieldKey => {
-          const field = this.#reconciler.getEditableField(owner.blockId, fieldKey)
-          return field ? fieldLength(field) : 0
-        },
-      })
-      if (action) {
-        const prevent = action.kind !== 'native'
-        const handled = this.#applyShortcut(owner.blockId, action)
-        if (handled && prevent) event.preventDefault?.()
-        if (handled) return
-      }
-    }
+    if(this.#handleShortcut(owner,event,range,keys))return
 
-    if (key === 'Enter' && !event?.shiftKey) {
+    if (key === 'Enter' && !keys.shiftKey) {
       const handled = this.#runtime.isEmpty(owner.blockId)
         ? this.exit(owner.blockId)
         : this.split(owner.blockId, owner.fieldKey, range)
@@ -193,13 +181,13 @@ export class KeyboardRouter {
       return
     }
 
-    if (key === 'Backspace' && !event?.shiftKey && range.start === 0 && range.end === 0 && this.#atBlockEdge(owner, false)) {
+    if (key === 'Backspace' && !keys.shiftKey && range.start === 0 && range.end === 0 && this.#atBlockEdge(owner, false)) {
       if (this.#mergeBackward(owner.blockId)
         || (record.type !== this.#registry.defaultBlockType && this.#runtime.isEmpty(owner.blockId) && this.exit(owner.blockId))) event.preventDefault?.()
       return
     }
 
-    if (key === 'ArrowUp' && !event?.shiftKey && range.start === 0 && range.end === 0 && this.#atBlockEdge(owner, false)) {
+    if (key === 'ArrowUp' && !keys.shiftKey && range.start === 0 && range.end === 0 && this.#atBlockEdge(owner, false)) {
       const index=this.#runtime.indexOf(owner.blockId)
       const previousId=this.#runtime.idAt(index-1)
       if(index>0&&previousId){
@@ -217,7 +205,7 @@ export class KeyboardRouter {
 
     if (
       key === 'ArrowDown'
-      && !event?.shiftKey
+      && !keys.shiftKey
       && range.start === range.end
       && range.end === fieldLength(owner)
       && this.#atBlockEdge(owner, true)
@@ -234,7 +222,7 @@ export class KeyboardRouter {
 
     if (
       key === 'Delete'
-      && !event?.shiftKey
+      && !keys.shiftKey
       && range.start === range.end
       && range.end === fieldLength(owner)
       && this.#atBlockEdge(owner, true)
@@ -303,32 +291,11 @@ export class KeyboardRouter {
 
   exit(blockId, data = undefined) {
     if (this.#runtime.readOnly) return false
-    const record = this.#runtime.get(blockId)
-    if (!record) return false
-
-    if (data !== undefined) {
-      const nextId = this.#mutate('block.exit', () => {
-        this.#runtime.update(blockId, () => ({ data }))
-        return this.#runtime.insert(this.#registry.defaultBlockType, undefined, this.#runtime.indexOf(blockId) + 1)
-      }, id => ({ blockId: id, offset: 'start' }))
-      this.#view.reconcileInteraction()
-      this.#view.focus(nextId, { offset: 'start' })
-      return true
-    }
-
-    if (record.type !== this.#registry.defaultBlockType) {
-      this.#mutate('block.exit', () => this.#runtime.convert(blockId, { type: this.#registry.defaultBlockType }), () => ({ blockId, offset: 'start' }))
-      this.#view.reconcileInteraction()
-      this.#view.setCurrent(blockId)
-      queueMicrotask(() => this.#view.focus(blockId, { offset: 'start' }))
-      return true
-    }
-
-    const index = this.#view.indexOf(blockId)
-    const nextId = this.#mutate('block.insert', () => this.#runtime.insert(this.#registry.defaultBlockType, undefined, index + 1), id => ({ blockId: id, offset: 'start' }))
+    const nextId=this.#mutate('block.exit',()=>this.#runtime.exitBlock(blockId,data),id=>id?({blockId:id,offset:'start'}):null)
+    if(!nextId)return false
     this.#view.reconcileInteraction()
-    this.#view.setCurrent(nextId)
-    queueMicrotask(() => this.#view.focus(nextId, { offset: 'start' }))
+    if(this.#runtime.has(nextId))this.#view.setCurrent(nextId)
+    this.#restoreShortcutFocus({blockId:nextId,offset:'start'})
     return true
   }
 
@@ -354,25 +321,51 @@ export class KeyboardRouter {
     return true
   }
 
-  #applyShortcut(blockId, action) {
-    switch (action.kind) {
-      case 'native':
-      case 'consume':
-        return true
-      case 'exit':
-        return this.exit(blockId, action.data)
-      case 'focus':
-        queueMicrotask(() => this.#view.focus(blockId, action.target))
-        return true
-      case 'update':
-        this.#mutate('block.shortcut', () => this.#runtime.update(blockId, () => ({ data: action.data })), () => ({ blockId, ...action.focus }))
-        this.#view.reconcileInteraction()
-        this.#view.setCurrent(blockId)
-        if (action.focus) queueMicrotask(() => this.#view.focus(blockId, action.focus))
-        return true
-      default:
-        return false
+  #handleShortcut(owner,event,range,keys){
+    let result
+    try{
+      result=this.#mutate('block.shortcut',tx=>{
+        const action=this.#runtime.prepareExtensionValue(()=>{
+          const lengths=new Map(this.#reconciler.getEditableFields(owner.blockId).map(field=>[field.key,fieldLength(field)]))
+          return this.#runtime.prepareShortcutAction(tx,owner.blockId,{
+            key:keys.key,shiftKey:keys.shiftKey,altKey:keys.altKey,ctrlKey:keys.ctrlKey,metaKey:keys.metaKey,
+            fieldKey:owner.fieldKey,selection:range,fieldLength:lengths.get(owner.fieldKey)??0,
+          },lengths)
+        })
+        if(action===null)return {handled:false}
+        if(action.kind!=='native')event.preventDefault?.()
+        if(action.kind==='update'){
+          this.#runtime.update(owner.blockId,()=>({data:action.data}))
+          return {handled:true,reconcile:true,historyTarget:{blockId:owner.blockId,...action.focus},
+            focus:action.focus?{blockId:owner.blockId,...action.focus}:null}
+        }
+        if(action.kind==='exit'){
+          const id=this.#runtime.exitBlock(owner.blockId,action.data)
+          const focus=id?{blockId:id,offset:'start'}:null
+          return {handled:true,reconcile:true,historyTarget:focus,focus}
+        }
+        return {handled:true,focus:action.kind==='focus'?{blockId:owner.blockId,...action.target}:null}
+      },result=>result.historyTarget??null)
+    }catch(error){
+      event.preventDefault?.()
+      try{this.#reportError(error)}catch{}
+      return true
     }
+    if(result.reconcile){
+      this.#view.reconcileInteraction()
+      if(result.historyTarget&&this.#runtime.has(result.historyTarget.blockId))this.#view.setCurrent(result.historyTarget.blockId)
+    }
+    if(result.focus)this.#restoreShortcutFocus(result.focus)
+    return result.handled
+  }
+
+  #restoreShortcutFocus(target){
+    const generation=this.#runtime.generation,revision=this.#runtime.revision
+    queueMicrotask(()=>{
+      if(this.#controller.signal.aborted||this.#runtime.readOnly||this.#runtime.generation!==generation
+        ||this.#runtime.revision!==revision||!this.#runtime.has(target.blockId))return
+      this.#view.focus(target.blockId,target)
+    })
   }
 
   #mergeBackward(blockId) {
@@ -423,6 +416,7 @@ export class KeyboardRouter {
     const before = this.#selection.capture()
     return this.#runtime.interact(name, operation, result => {
       const target = focusAfter(result)
+      if(!target)return null
       const fields = target.blockId ? this.#reconciler.getEditableFields(target.blockId) : []
       const fieldKey = target.fieldKey ?? (before?.anchor.blockId === target.blockId ? before.anchor.fieldKey : null)
       const field = fieldKey ? fields.find(field => field.key === fieldKey) ?? fields[0] : fields[0]

@@ -1,5 +1,7 @@
 # Commands and history
 
+Composed commands prepare against the active draft, including earlier data/order changes in the same interaction. Merge adjacency, alignment, rich/inline replacement, slash and toolbox decisions use a captured order and immutable record references before applying edits. Equal canonical updates preserve the original record/revision and add no history. A single outer interaction retains its history/selection ownership; command results are calculated from the prepared result rather than by rereading committed queries.
+
 One completed interaction creates one history step, including formatting across multiple blocks, settings, clipboard, splits, merges and plugin controls.
 
 ## What a command means

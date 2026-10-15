@@ -21,6 +21,8 @@ function harness() {
   ]
   const runtime = {
     readOnly: false,
+    prepareExtensionValue: operation => operation(),
+    prepareShortcutAction: () => null,
     interact(_name, operation) { return operation() },
     indexOf: id => records.findIndex(record => record.id === id),
     idAt: index => records[index]?.id,
@@ -162,6 +164,7 @@ test('auxiliary controls keep native history ownership; editor chrome owns docum
   }
   const runtime={
     readOnly:false,
+    prepareExtensionValue:operation=>operation(),
     splitBlock(){throw new Error('auxiliary ownership must not split')},
     mergeAdjacent(){throw new Error('auxiliary ownership must not merge')},
     undo(){calls.push('undo');return true},

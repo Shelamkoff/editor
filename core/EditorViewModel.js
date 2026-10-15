@@ -66,9 +66,9 @@ export class EditorViewModel {
   }
 
   convert(id, target, authority = 'interaction') {
-    this.#runtime.convert(id, target, authority)
+    const record=this.#runtime.convert(id, target, authority)
     this.#interaction.reconcile()
-    return this.get(id)
+    return record?cloneEditorData(record):undefined
   }
 
   focus(id = this.#interaction.currentId, target) {

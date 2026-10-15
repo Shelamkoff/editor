@@ -420,25 +420,17 @@ export class BlockToolbar {
   #insertBlock(type, toolboxItemId) {
     if (this.#runtime.readOnly) return
     const currentId = this.#currentId
-    let id
-    if (currentId && this.#runtime.isEmpty(currentId)) {
-      this.#mutate('block.convert', () => this.#runtime.convert(currentId, { type, ...(toolboxItemId ? { toolboxItemId } : {}) }), () => currentId)
-      id = currentId
-    } else {
-      const definition = this.#registry.getBlockDefinition(type)
-      let data
-      if (toolboxItemId) {
-        const item = definition?.toolbox?.find(candidate => candidate.id === toolboxItemId)
-        data = definition?.schema.createDefault()
-        if (item?.configure) data = item.configure(data, { createId: prefix => this.#runtime.createDataId(prefix) })
-      }
-      const index = currentId ? this.#view.indexOf(currentId) + 1 : this.#runtime.size
-      id = this.#mutate('block.insert', () => this.#runtime.insert(type, data, index), result => result)
+    const id=this.#mutate('toolbox.block',()=>this.#runtime.insertToolboxBlock(currentId,{type,toolboxItemId}),result=>result)
+    if(!id)return
+    if(this.#runtime.has(id)){
+      this.#view.reconcileInteraction()
+      this.#view.setCurrent(id)
     }
-    this.#view.reconcileInteraction()
-    this.#view.setCurrent(id)
     this.closeToolbox()
+    const generation=this.#runtime.generation,revision=this.#runtime.revision
     queueMicrotask(() => {
+      if(this.#destroyed||this.#runtime.readOnly||this.#runtime.generation!==generation
+        ||this.#runtime.revision!==revision||!this.#runtime.has(id))return
       this.#view.focus(id, { offset: 'start' })
       this.showFor(id)
     })
