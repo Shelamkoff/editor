@@ -5,8 +5,6 @@ import {
   getWalkRoot,
   collectTextTargets,
   normalizeAfterEdit,
-  saveSelectionOffsets,
-  restoreSelectionOffsets,
 } from './utils.js'
 import { parseRgbCss } from '@shelamkoff/color-picker'
 import { createOwnedColorPicker } from '../shared/colorPickerRealm.js'
@@ -53,10 +51,8 @@ export function createBgColorTool(label) {
   let dotEl = null
   /** @type {HTMLElement | null} */
   let btnEl = null
-  /** @type {Range | null} */
-  let savedRange = null
-  /** @type {import('./utils.js').SavedOffsets | null} */
-  let savedOffsets = null
+  /** @type {import('./types').InlineSelectionBookmark | null} */
+  let savedBookmark = null
   /** @type {Document | null} */
   let ownerDocument = null
   let pickerOpen = false
@@ -71,41 +67,27 @@ export function createBgColorTool(label) {
     return range?.startContainer?.ownerDocument ?? ownerDocument
   }
 
-  /** @param {Range | null} [range] @returns {Selection | null} */
-  function selectionFor(range = null) {
-    return documentFor(range)?.defaultView?.getSelection?.() ?? null
-  }
-
-  /**
-   * @template T
-   * @param {Range} range
-   * @param {() => T} operation
-   * @returns {T}
+  /** Apply only through the active mounted owner, never by mutating an
+   * orphaned Range captured before the auxiliary picker gained focus.
+   * @param {(range:Range)=>void} operation
    */
-  function mutate(range, operation) {
-    return mutations ? mutations.mutate(range, operation) : operation()
+  function mutate(operation) {
+    if (!mutations || !savedBookmark) return false
+    let ran = false
+    mutations.mutate(savedBookmark, range => {
+      operation(range)
+      ran = true
+    })
+    return ran
   }
 
   function openPicker() {
     if (!picker) return
-    savedRange = null
-    savedOffsets = null
-    // Use cross-block range if available (native is clipped).
-    // Clone to avoid mutation when addRange clips cross-block ranges.
-    const crossRange = cbs?.range
-    if (crossRange) {
-      savedRange = crossRange.cloneRange()
-    } else {
-      const sel = selectionFor()
-      if (sel && sel.rangeCount > 0) {
-        savedRange = sel.getRangeAt(0).cloneRange()
-      }
-    }
-    if (!savedRange) return
+    const range = cbs.range
+    savedBookmark = range ? cbs.capture(range) : null
+    if (!savedBookmark || !range) return
 
-    savedOffsets = saveSelectionOffsets(savedRange)
-
-    const existing = findBgSpan(savedRange, documentFor(savedRange))
+    const existing = findBgSpan(range, documentFor(range))
     let hex = '#ffffff'
     let alpha = 1
     if (existing) {
@@ -113,79 +95,26 @@ export function createBgColorTool(label) {
       hex = parsed.hex
       alpha = parsed.alpha
     }
-
     pickerOpen = true
     picker.open(hex, alpha)
   }
 
   function closePicker() {
     pickerOpen = false
+    savedBookmark = null
     picker?.close()
-  }
-
-  function restoreRange() {
-    if (!savedRange) return
-    if (savedOffsets) {
-      restoreSelectionOffsets(cbs, savedOffsets)
-      return
-    }
-    const sel = selectionFor(savedRange)
-    if (sel) {
-      try {
-        sel.removeAllRanges()
-        sel.addRange(savedRange)
-      } catch { /* range may be detached */ }
-    }
-  }
-
-  /**
-   * Prepare selection context for DOM mutation.
-   * @returns {{ range: Range, saved: import('./utils.js').SavedOffsets, singleCe: HTMLElement | null, walkRoot: HTMLElement | null } | null}
-   */
-  function prepareSelectionContext() {
-    if (!savedRange) return null
-    const range = cbs?.range?.cloneRange() || savedRange
-    const saved = savedOffsets ?? saveSelectionOffsets(range)
-
-    return {
-      range,
-      saved,
-      singleCe: getContentEditable(range),
-      walkRoot: getWalkRoot(range),
-    }
-  }
-
-  /**
-   * Restore selection after DOM mutation using saved offsets.
-   * @param {{ saved: import('./utils.js').SavedOffsets, singleCe: HTMLElement | null }} ctx
-   */
-  function finalizeSelection(ctx) {
-    ctx.singleCe?.focus({ preventScroll: true })
-    restoreSelectionOffsets(cbs, ctx.saved)
-    // Update savedRange from restored selection
-    if (!ctx.saved.crossOffsets) {
-      const sel = selectionFor(savedRange)
-      if (sel && sel.rangeCount > 0) {
-        savedRange = sel.getRangeAt(0).cloneRange()
-        savedOffsets = saveSelectionOffsets(savedRange)
-      }
-    }
-    closePicker()
   }
 
   /** @param {string} color */
   function applyColor(color) {
-    lastColor = color
-    const ctx = prepareSelectionContext()
-    if (!ctx) { closePicker(); return }
-
-    mutate(ctx.range, () => {
-      // Preserve the editor-owned bookmark in the history before restoring
-      // a native range for the auxiliary color control.
-      restoreRange()
-      if (ctx.walkRoot) {
-        const targets = collectTextTargets(ctx.walkRoot, ctx.range)
-
+    const bookmark = savedBookmark
+    if (!bookmark) { closePicker(); return }
+    let applied = false
+    try {
+      applied = mutate(range => {
+        const walkRoot = getWalkRoot(range)
+        if (!walkRoot) return
+        const targets = collectTextTargets(walkRoot, range)
         for (let i = targets.length - 1; i >= 0; i--) {
           const t = targets[i]
           if (!t) continue
@@ -193,7 +122,6 @@ export function createBgColorTool(label) {
           let targetNode = node
           if (endOffset < node.length) node.splitText(endOffset)
           if (startOffset > 0) targetNode = /** @type {Text} */ (node.splitText(startOffset))
-
           const parentEl = targetNode.parentElement
           if (parentEl?.tagName === 'SPAN' && parentEl.style.backgroundColor
               && parentEl.childNodes.length === 1 && parentEl.firstChild === targetNode) {
@@ -205,25 +133,29 @@ export function createBgColorTool(label) {
             wrapper.appendChild(targetNode)
           }
         }
-
-        normalizeAfterEdit(ctx.singleCe, ctx.walkRoot)
-      }
-    })
-
-    if (dotEl) dotEl.style.backgroundColor = color
-    finalizeSelection(ctx)
+        normalizeAfterEdit(getContentEditable(range), walkRoot)
+        if (!cbs.restore(bookmark)) {
+          throw new Error('Formatting selection became unavailable after changing background color')
+        }
+      })
+    } finally {
+      closePicker()
+    }
+    if (applied) {
+      lastColor = color
+      if (dotEl) dotEl.style.backgroundColor = color
+    }
   }
 
   function removeColor() {
-    const ctx = prepareSelectionContext()
-    if (!ctx) { closePicker(); return }
-
-    mutate(ctx.range, () => {
-      // Preserve the editor-owned bookmark in the history before restoring
-      // a native range for the auxiliary color control.
-      restoreRange()
-      if (ctx.walkRoot) {
-        editSelectedAncestors(ctx.range,
+    const bookmark = savedBookmark
+    if (!bookmark) { closePicker(); return }
+    let applied = false
+    try {
+      applied = mutate(range => {
+        const walkRoot = getWalkRoot(range)
+        if (!walkRoot) return
+        editSelectedAncestors(range,
           span => span.tagName === 'SPAN' && !!span.style.backgroundColor,
           span => {
             span.style.removeProperty('background-color')
@@ -231,12 +163,18 @@ export function createBgColorTool(label) {
             if (span.attributes.length === 0) span.replaceWith(...span.childNodes)
           },
         )
-        normalizeAfterEdit(ctx.singleCe, ctx.walkRoot)
-      }
-    })
-    if (dotEl) dotEl.style.backgroundColor = '#ffffff'
-    lastColor = '#ffffff'
-    finalizeSelection(ctx)
+        normalizeAfterEdit(getContentEditable(range), walkRoot)
+        if (!cbs.restore(bookmark)) {
+          throw new Error('Formatting selection became unavailable after removing background color')
+        }
+      })
+    } finally {
+      closePicker()
+    }
+    if (applied) {
+      lastColor = '#ffffff'
+      if (dotEl) dotEl.style.backgroundColor = lastColor
+    }
   }
 
   /** @param {KeyboardEvent} event */
@@ -244,18 +182,9 @@ export function createBgColorTool(label) {
     if (event.key !== 'Escape' || !pickerOpen) return
     event.preventDefault()
     event.stopPropagation()
+    const bookmark = savedBookmark
     closePicker()
-    if (mutations?.restoreSelection) {
-      mutations.restoreSelection()
-      return
-    }
-    // Standalone controls have no editor coordinator; restore their live range.
-    if (!savedRange?.startContainer.isConnected || !savedRange.endContainer.isConnected) return
-    const start = savedRange.startContainer
-    const element = start.nodeType === ELEMENT_NODE ? /** @type {HTMLElement} */ (start) : start.parentElement
-    const editable = /** @type {HTMLElement | null | undefined} */ (element?.closest('[contenteditable="true"]'))
-    editable?.focus({ preventScroll: true })
-    restoreRange()
+    if (bookmark) mutations?.restoreSelection?.(bookmark)
   }
 
   /** @param {MouseEvent} e */
@@ -283,7 +212,7 @@ export function createBgColorTool(label) {
         pickerOpen = false
         picker.close()
       }
-      const range = cbs?.range ?? (savedRange && pickerOpen ? savedRange : null)
+      const range = cbs.range
       const span = findBgSpan(range, documentFor(range))
       if (span && dotEl) {
         dotEl.style.backgroundColor = span.style.backgroundColor
@@ -325,6 +254,7 @@ export function createBgColorTool(label) {
       picker?.element.removeEventListener('keydown', onPickerKeyDown, true)
       picker?.destroy()
       picker = null
+      savedBookmark = null
       mutations = null
       ownerDocument = null
     },
