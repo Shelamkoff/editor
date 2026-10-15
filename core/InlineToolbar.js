@@ -365,8 +365,19 @@ export class InlineToolbar {
           mutate: operation => {
             if (!isCurrent() || !panelToken || typeof operation !== 'function') return undefined
             const currentRange = panelPort.range
-            if (!currentRange || !panelPort.restore(panelToken)) return undefined
-            const result = this.#mutate(currentRange, () => operation(currentRange), tool.type, lease)
+            if (!currentRange) return undefined
+            const panelFocus = this.#root.ownerDocument.activeElement
+            if (!panelPort.restore(panelToken)) return undefined
+            let result
+            try {
+              result = this.#mutate(currentRange, () => operation(currentRange), tool.type, lease)
+            } finally {
+              // A synchronous owner-driven range restoration must not let a
+              // queued selectionchange retire the panel whose control held focus.
+              if (panelFocus?.isConnected && this.#element.contains(panelFocus) && !this.#destroyed) {
+                panelFocus.focus({ preventScroll: true })
+              }
+            }
             if (lease !== this.#selectionVersion || generation !== this.#runtime.generation
               || !selection.blockIds.every(blockId => this.#runtime.has(blockId))) return result
             owners = selection.blockIds.map(blockId => ({ blockId, element: this.#view.element(blockId) }))
