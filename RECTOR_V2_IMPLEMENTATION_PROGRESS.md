@@ -124,10 +124,30 @@ Available verification:
 
 **Status:** slice 5's production refactor is committed; local conformance, integration and packaging checks remain required before declaring the slice fully done.
 
+## Slice 6a — highlight ownership, mount cleanup and presentation guards (partial)
+
+Source changes:
+
+- `SelectionController` retains its own `Highlight` object and deletes the shared `oe-cross-select-v2` entry only when it is still the registry's current object. A previous editor cannot clear a successor editor's highlight.
+- `InlineToolMounts` preflights tool instances and duplicate types, snapshots the host-used metadata/callback members under `prepareExtensionValue()`, retains their original receivers, and owns per-tool claims. Tool initialization is marked started before bind/mount hooks. A failed mount triggers independent unbind and destroy attempts for every started tool (including the failing one); cleanup retires claims and proceeds even if a hook fails. Cleanup hooks are observed through the runtime's observation guard and checked for synchronous completion.
+- `InlineToolbar` now encloses its full acquisition sequence in a failure-cleanup boundary, including DOM, Tooltip and document listeners. Ordinary `destroy()` uses the same idempotent cleanup, releases tool ownership independently and forwards cleanup diagnostics. Mounted mutation contexts are staged during initialization, activated only after acquisition, and permanently revoked before cleanup.
+- Tool `isActive/getIcon/getTitle` presentation is prepared and checked synchronously under the common runtime guard before updating its button. A failed tool is hidden/disabled and reported without preventing healthy tools from refreshing. Initial metadata and callable dispatch are captured once; click/shortcut cannot execute a failed disabled control.
+- Existing action-panel callbacks now also check the expected canonical revision. Successful own formatting/alignment updates the panel's revision and projected block-owner snapshot; an unrelated commit retires the old action. Panel close no longer falls back to its retained raw native range.
+
+Verification evidence from this turn:
+
+- `core/InlineToolMounts.test.js`: 6/6 cases passed against fetched actual source in an isolated V8 test runner, including failed mount, independent unbind/destroy, duplicate claims, immutable snapshots and observation containment.
+- An isolated `InlineToolbar` composition exercise using the branch's actual class and a synthetic DOM verified that a failed presentation tool was hidden/disabled while a healthy tool stayed active, and that a constructor `onMount` failure ran both started tools' cleanup. It does not establish browser/native behavior.
+- Source syntax parsing passed for the altered toolbar, mounts, selection controller, composition and browser test modules. Added browser regression cases for highlight replacement, constructor cleanup/reuse, failed presentation, mounted mutation lifecycle, and panel revision invalidation. These browser cases have **not** been run in Chrome.
+- Full `npm test`, `npm run typecheck`, native browser suites, `npm run test:docs`, `npm run test:package` and source/package conformance are **not verified** at the current branch head.
+
+**Still outstanding in slice 6:** the strict mount-scoped `InlineSelectionPort` with private logical bookmarks, phase/revision/selection authority, complete migration of indexed/raw range helpers and tool consumers, and the `endOffsetDelta` and result-restoration contracts. The existing raw `CrossEditableSelectionPort` remains for those unported consumers. Do not mark slice 6 complete or infer overall completion from this partial work.
+
 ## Remaining slices
 
 4c. Full local/native/package verification and integration with the slice 8 terminal cancellation/control fan-out contract.
 5. Run full local/native/package acceptance on the new conversion planner and correct any failures.
+6. Finish strict formatting selection/mutation port migration, endpoint adjustments, panel settlement and all local/native/package gates.
 6. Formatting selection/resource ownership.
 7. Declarative inline controls.
 8. Shared Mention text decisions and native reconciliation.
