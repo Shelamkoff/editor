@@ -1,5 +1,6 @@
 // @ts-check
 import { ReadOnlyRecoveryError } from './ReadOnlyRecoveryError.js'
+import { prepareHtmlImport as prepareHtmlImportCandidates } from './HtmlImportRouter.js'
 import { cloneEditorData } from '../shared/cloneEditorData.js'
 import { decodeCurrentInlineMap } from '../shared/DocumentSchema.js'
 import { documentValidationIssue } from '../shared/documentValidationIssue.js'
@@ -373,6 +374,24 @@ export class DocumentRuntime {
   applyPasteResults(blockId,fieldKey,range,entries) {
     this.#assertInteractionMutation()
     return this.#executePrepared({origin:'user',name:'clipboard.paste'},view=>preparePasteResults(this.#planningServices(),view,blockId,fieldKey,cloneEditorData(range),cloneEditorData(entries)))
+  }
+
+  /** Resolve the active-draft target and own every synchronous HTML capability result.
+   * @param {string} html
+   * @param {string} anchorId
+   */
+  prepareHtmlImport(html, anchorId) {
+    return this.prepareExtensionValue(() => {
+      const view = captureDocumentView(this.#engine.currentReadSource)
+      const currentType = view.peek(anchorId)?.type ?? null
+      const candidate = prepareHtmlImportCandidates(html, {
+        ownerDocument: this.#ownerDocument,
+        registry: this.#registry,
+        currentType,
+        createId: prefix => this.#allocateId(prefix),
+      })
+      return candidate === null ? null : cloneEditorData(candidate)
+    })
   }
 
   insertLocalBlocks(anchorId,inputs,options={}) {
