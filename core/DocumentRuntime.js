@@ -303,6 +303,13 @@ export class DocumentRuntime {
     finally { this.#observationDepth-- }
   }
 
+  /** Internal formatting-port phase gate; ordinary actions cannot reuse protected DOM authority. */
+  canAccessFormattingSelection(ownedMutation = false) {
+    if (this.health !== 'ready' || this.#readOnly || this.#destroyed) return false
+    const phase = this.#mutationPhase()
+    return phase === 'idle' || (ownedMutation === true && phase === 'protected-projection-edit')
+  }
+
   /** Public adapters call this before observing any caller-owned input. */
   assertCommandAuthority(authority = 'host') {
     this.#assertMutationAuthority(authority)
