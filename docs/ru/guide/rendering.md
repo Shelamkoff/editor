@@ -32,7 +32,7 @@ interface RendererConfig {
   classPrefix?: string
   throwOnUnknown?: boolean
   theme?: 'dark' | 'light'
-  onValidationError?: (issue: { blockId?: string; type: string; reason?: 'unsupported-data-version' | 'invalid-input' | 'invalid-data' }) => void | Promise<void>
+  onValidationError?: (issue: { readonly blockId?: string; readonly type: string; readonly reason: 'unsupported-document-version' | 'unsupported-data-version' | 'invalid-input' | 'invalid-data' }) => void | Promise<void>
   locale?: Record<string, LocaleValue>
   blockTypes?: BlockType[]
   blockConfigs?: {
@@ -49,7 +49,7 @@ interface RendererConfig {
 | `classPrefix` | `editor` | пространство имён классов результата |
 | `throwOnUnknown` | `true` | выбросить исключение для незарегистрированного блока вместо вывода заглушки |
 | `theme` | `dark` | тема рендерера |
-| `onValidationError` | нет | получить не содержащие пользовательских данных `{ blockId?, type, reason? }` для ошибочного встроенного блока |
+| `onValidationError` | нет | получить неизменяемое уведомление `{ blockId?, type, reason }` без пользовательского содержимого для ошибочных данных зарегистрированного блока |
 | `locale` | встроенный английский | плоский словарь сообщений `renderer.*` |
 | `blockTypes` | все встроенные | создать только выбранные встроенные рендереры |
 | `blockConfigs` | нет | оперативная конфигурация по типу встроенного блока |

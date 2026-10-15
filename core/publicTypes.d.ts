@@ -119,18 +119,8 @@ export type EditorEventName =
   | 'currentBlock:changed'
   | 'selection:changed'
 
-export type EditorValidationReason =
-  | 'invalid-input'
-  | 'unsupported-document-version'
-  | 'unsupported-data-version'
-  | 'invalid-data'
-
-export interface EditorValidationIssue {
-  blockId?: string
-  inlineId?: string
-  type?: string
-  reason?: EditorValidationReason
-}
+export type EditorValidationReason = import('../shared/documentTypes.js').DocumentValidationReason
+export type EditorValidationIssue = import('../shared/documentTypes.js').DocumentValidationIssue
 
 export type EditorDiagnosticCode =
   | 'command.failed'

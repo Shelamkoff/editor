@@ -42,26 +42,42 @@ export class EditorBlocksApi {
   indexOf(id) { this.#assertLive(); return this.#runtime.indexOf(id) }
   selectedIds() { this.#assertLive(); return Object.freeze([...this.#view.selectedIds]) }
 
-  setCurrent(id) { this.#assertLive(); this.#view.setCurrent(id) }
+  setCurrent(id) { this.#assertLive(); this.#runtime.assertControlAuthority(); this.#view.setCurrent(id) }
   select(ids) {
     this.#assertLive()
+    this.#runtime.assertControlAuthority()
     if (this.#selection) this.#selection.selectBlocks([...ids])
     else this.#view.select([...ids])
   }
   clearSelection() {
     this.#assertLive()
+    this.#runtime.assertControlAuthority()
     if (this.#selection) this.#selection.clear()
     else this.#view.clearSelection()
   }
 
   insert(input, index) {
     this.#assertLive()
-    if (!input || typeof input !== 'object' || Array.isArray(input) || typeof input.type !== 'string') {
-      throw new TypeError('blocks.insert() requires { type, data?, tunes?, inline? }')
-    }
-    const id = this.#runtime.insert(input.type, input.data, index, {
-      tunes: input.tunes,
-      inline: input.inline,
+    this.#runtime.assertCommandAuthority('host')
+    const captured = this.#runtime.prepareExtensionValue(() => {
+      if (!input || typeof input !== 'object' || Array.isArray(input)) {
+        throw new TypeError('blocks.insert() requires { type, data?, tunes?, inline? }')
+      }
+      const type = input.type
+      if (typeof type !== 'string') throw new TypeError('blocks.insert() requires { type, data?, tunes?, inline? }')
+      const data = input.data
+      const tunes = input.tunes
+      const inline = input.inline
+      return {
+        type,
+        data: data === undefined ? undefined : cloneEditorData(data),
+        tunes: tunes === undefined ? undefined : cloneEditorData(tunes),
+        inline: inline === undefined ? undefined : cloneEditorData(inline),
+      }
+    })
+    const id = this.#runtime.insert(captured.type, captured.data, index, {
+      tunes: captured.tunes,
+      inline: captured.inline,
     }, 'host')
     this.#view.reconcileInteraction()
     if (this.#runtime.has(id)) this.#view.setCurrent(id)
@@ -86,6 +102,7 @@ export class EditorBlocksApi {
   convert(id, target) { this.#assertLive(); return this.#view.convert(id, target, 'host') }
   focus(id, target) {
     this.#assertLive()
+    this.#runtime.assertControlAuthority()
     return this.#view.focus(id, target)
   }
 
@@ -156,6 +173,7 @@ export class EditorHandle {
   }
   focus() {
     this.#assertLive()
+    this.#runtime.assertControlAuthority()
     return this.#view.focus()
   }
   setReadOnly(value) {
@@ -174,5 +192,9 @@ export class EditorHandle {
     return this.#subscribe(type, listener)
   }
 
-  destroy() { this.#destroyEditor() }
+  destroy() {
+    if (this.#isDestroyed()) return
+    this.#runtime.assertControlAuthority({ allowFailed: true })
+    this.#destroyEditor()
+  }
 }

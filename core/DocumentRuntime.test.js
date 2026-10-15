@@ -53,6 +53,128 @@ function block(id, data = { text: id }, extra = {}) {
   return { id, type: 'paragraph', dataVersion: 1, data, ...extra }
 }
 
+test('current schema rejection is invalid-data regardless of exception wording or public reason', () => {
+  const failure = new RangeError('Plugin data version content constraint')
+  failure.reason = 'unsupported-data-version'
+  const issues = []
+  assert.throws(() => new DocumentRuntime({
+    registry: registry([paragraphDefinition({ decode() { throw failure } })]),
+    data: { version: '2.0.0', blocks: [block('a')] },
+    onValidationError: issue => issues.push(issue),
+  }), error => error === failure)
+  assert.deepEqual(issues, [{ reason: 'invalid-data', blockId: 'a', type: 'paragraph' }])
+  assert.equal(Object.isFrozen(issues[0]), true)
+})
+
+test('validation observer cannot run a producer inside a failing nested render', () => {
+  let producers = 0
+  let notifications = 0
+  const runtime = new DocumentRuntime({
+    registry: registry([paragraphDefinition()]),
+    data: { version: '2.0.0', blocks: [block('a')] },
+    onValidationError() {
+      notifications++
+      assert.equal(runtime.get('a').data.text, 'a')
+      try { runtime.update('a', () => { producers++; return { data: { text: 'observer' } } }) } catch {}
+    },
+  })
+  assert.throws(() => runtime.interact('outer', () => {
+    runtime.update('a', () => ({ data: { text: 'outer' } }))
+    try { runtime.render({ version: 'future', blocks: [] }) } catch {}
+  }), RangeError)
+  assert.equal(notifications, 1)
+  assert.equal(producers, 0)
+  assert.equal(runtime.get('a').data.text, 'a')
+  assert.equal(runtime.canUndo, false)
+  runtime.update('a', () => ({ data: { text: 'later' } }))
+  assert.equal(runtime.get('a').data.text, 'later')
+  runtime.destroy()
+})
+
+test('local schema normalization denies nested mutation before its producer', () => {
+  let runtime
+  let attempted = false
+  let producers = 0
+  const definition = paragraphDefinition({ encode(data) {
+    if (runtime && !attempted) {
+      attempted = true
+      try { runtime.update('a', () => { producers++; return {} }) } catch {}
+    }
+    return { dataVersion: 1, data: { text: data.text } }
+  } })
+  runtime = new DocumentRuntime({ registry: registry([definition]), data: { version: '2.0.0', blocks: [block('a')] } })
+  runtime.update('a', () => ({ data: { text: 'Valid' } }))
+  assert.equal(producers, 0)
+  assert.equal(runtime.get('a').data.text, 'Valid')
+  runtime.destroy()
+})
+
+test('raw render accessors and injected ID allocation share preparation authority', () => {
+  let runtime
+  let producers = 0
+  let allocated = 0
+  const attempt = () => {
+    if (!runtime) return
+    assert.throws(() => runtime.update('a', () => { producers++; return {} }), /prepar/)
+  }
+  runtime = new DocumentRuntime({
+    registry: registry([paragraphDefinition()]),
+    data: { version: '2.0.0', blocks: [block('a')] },
+    createId() { attempt(); return 'allocated-' + ++allocated },
+  })
+  runtime.render({ get version() { attempt(); return '2.0.0' }, blocks: [block('a')] })
+  runtime.insert('paragraph', { text: 'Inserted' })
+  assert.equal(producers, 0)
+  assert.equal(allocated, 1)
+  runtime.destroy()
+})
+
+test('normalization failures notify once, while allocator failures are not validation issues', () => {
+  const issues = []
+  const normalizationError = new TypeError('Text rejected')
+  const allocationError = new Error('ID source failed')
+  const runtime = new DocumentRuntime({
+    registry: registry([paragraphDefinition({ mapRichText(data, visit) { return { text: visit(data.text, 'text') } } })]),
+    data: { version: '2.0.0', blocks: [block('a')] },
+    richTextNormalizer(html) { if (html === 'bad') throw normalizationError; return html },
+    createId() { throw allocationError },
+    onValidationError: issue => issues.push(issue),
+  })
+  assert.throws(() => runtime.render({ version: '2.0.0', blocks: [block('a', { text: 'bad' })] }), error => error === normalizationError)
+  assert.deepEqual(issues, [{ reason: 'invalid-data', blockId: 'a', type: 'paragraph' }])
+  assert.throws(() => runtime.render({ version: '2.0.0', blocks: [] }), error => error === allocationError)
+  assert.equal(issues.length, 1)
+  assert.equal(runtime.get('a').data.text, 'a')
+  runtime.destroy()
+})
+
+test('own inline keys survive constructor, render and save without ingestion pruning', () => {
+  const source = { version: '2.0.0', blocks: [block('a', { text: 'Literal' }, {
+    inline: JSON.parse('{"__proto__":{"type":"unloaded","dataVersion":3,"data":{"label":"Own"}}}'), revision: 'unchanged',
+  })] }
+  const runtime = new DocumentRuntime({ registry: registry([paragraphDefinition()]), data: source })
+  assert.deepEqual(runtime.save().blocks, source.blocks)
+  runtime.render(source)
+  assert.deepEqual(runtime.save().blocks, source.blocks)
+  assert.equal(runtime.get('a').revision, 'unchanged')
+  runtime.destroy()
+})
+
+test('preparation rejects callable thenables and throwing then getters and contains later rejection', async () => {
+  const runtime = new DocumentRuntime({ registry: registry([paragraphDefinition()]), data: { version: '2.0.0', blocks: [block('a')] } })
+  const callable = () => {}
+  let reads = 0
+  Object.defineProperty(callable, 'then', { get() { reads++; return (_resolve, reject) => reject(new Error('Contained')) } })
+  assert.throws(() => runtime.prepareExtensionValue(() => callable), /synchronous/)
+  assert.equal(reads, 1)
+  const failure = new Error('Then getter failed')
+  assert.throws(() => runtime.prepareExtensionValue(() => ({ get then() { throw failure } })), error => error === failure)
+  await new Promise(resolve => setImmediate(resolve))
+  runtime.update('a', () => ({ data: { text: 'After' } }))
+  assert.equal(runtime.get('a').data.text, 'After')
+  runtime.destroy()
+})
+
 test('failed protected projection recovery stops mutation while committed data remains readable', () => {
   let projected = { text: 'Committed' }
   const restoreError = new Error('Cannot restore the invalid plugin projection')

@@ -80,7 +80,7 @@ export class TransactionEngine {
   #diagnostics
   #phase = 'idle'
   #health = 'ready'
-  /** @type {{ draft: any, context: any, failed: unknown } | null} */
+  /** @type {{ draft: any, context: any, hasFailed: boolean, failed: unknown } | null} */
   #current = null
 
   constructor(options) {
@@ -107,10 +107,13 @@ export class TransactionEngine {
     if (this.#phase === 'building' && this.#current) {
       try {
         const result = operation(this.#current.context)
-        if (this.#current.failed) throw this.#current.failed
+        if (this.#current.hasFailed) throw this.#current.failed
         return result
       } catch (error) {
-        this.#current.failed = error
+        if (!this.#current.hasFailed) {
+          this.#current.failed = error
+          this.#current.hasFailed = true
+        }
         throw error
       }
     }
@@ -124,14 +127,14 @@ export class TransactionEngine {
     const selectionBefore = metadata.selectionBefore !== undefined ? metadata.selectionBefore : this.#captureSelection()
     const draft = this.#store.createDraft()
     const context = this.#createContext(draft)
-    const current = { draft, context, failed: null }
+    const current = { draft, context, hasFailed: false, failed: undefined }
 
     this.#current = current
     this.#phase = 'building'
     let result
     try {
       result = operation(context)
-      if (current.failed) throw current.failed
+      if (current.hasFailed) throw current.failed
     } catch (error) {
       this.#current = null
       this.#phase = 'idle'

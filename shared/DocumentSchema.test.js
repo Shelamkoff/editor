@@ -7,6 +7,7 @@ import {
   decodeCurrentInlineMap,
   snapshotCurrentDocumentEnvelope,
 } from './DocumentSchema.js'
+import { documentValidationIssue } from './documentValidationIssue.js'
 
 const currentV1 = {
   currentVersion: 1,
@@ -27,6 +28,35 @@ const currentV2 = {
   },
   encode(data) { return { dataVersion: 2, data: { text: String(data.text ?? '') } } },
 }
+
+test('own inline keys survive decoding for registered and unloaded payloads', () => {
+  const input = JSON.parse('{"__proto__":{"type":"known","dataVersion":1,"data":{"value":"Own"}},"constructor":{"type":"unloaded","dataVersion":5,"data":{"label":"Opaque"}}}')
+  const decoded = decodeCurrentInlineMap(input, { getInlineSchema: type => type === 'known' ? currentV1 : undefined })
+  assert.deepEqual(decoded, input)
+  assert.equal(Object.getPrototypeOf(decoded), Object.prototype)
+  decoded.__proto__.data.value = 'Changed'
+  assert.equal(input.__proto__.data.value, 'Own')
+})
+
+test('shared failure metadata follows the boundary, including inline identity and primitive schema throws', () => {
+  const run = (input, resolvers) => {
+    try { decodeCurrentDocument(input, resolvers) } catch (error) { return error }
+    assert.fail('Expected rejection')
+  }
+  const source = inline => ({ version: '2.0.0', blocks: [{ id: 'a', type: 'known', dataVersion: 2, data: { text: 'A' }, inline }] })
+  const resolvers = { getBlockSchema: () => currentV2, getInlineSchema: () => currentV1 }
+  const version = run(source({ x: { type: 'widget', dataVersion: 2, data: {} } }), resolvers)
+  assert.ok(version instanceof RangeError)
+  assert.deepEqual(documentValidationIssue(version), { reason: 'unsupported-data-version', blockId: 'a', inlineId: 'x', type: 'widget' })
+  const malformed = run({ version: '2.0.0', blocks: [{ id: 'a', type: 'known', dataVersion: 0, data: {} }] }, resolvers)
+  assert.ok(malformed instanceof TypeError)
+  assert.equal(documentValidationIssue(malformed).reason, 'invalid-input')
+  const invalid = run({ version: '2.0.0', blocks: [{ id: 'a', type: 'known', dataVersion: 2, data: {} }] }, {
+    getBlockSchema: () => ({ ...currentV2, decode() { throw null } }),
+  })
+  assert.equal(invalid.cause, null)
+  assert.deepEqual(documentValidationIssue(invalid), { reason: 'invalid-data', blockId: 'a', type: 'known' })
+})
 
 test('current document boundary requires the exact envelope and record metadata', () => {
   const valid = {

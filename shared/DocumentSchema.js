@@ -2,6 +2,7 @@
 import { cloneEditorData } from './cloneEditorData.js'
 import { isPlainObjectPrototype } from './jsonData.js'
 import { DOCUMENT_FORMAT_VERSION } from './documentFormat.js'
+import { documentValidationIssue, markDocumentValidationFailure, validationBoundary, schemaValidationBoundary } from './documentValidationIssue.js'
 
 const DOCUMENT_KEYS = new Set(['version', 'time', 'blocks'])
 const BLOCK_KEYS = new Set(['id', 'type', 'dataVersion', 'data', 'tunes', 'inline', 'revision'])
@@ -29,11 +30,16 @@ function assertPositiveVersion(value, label) {
   return Number(value)
 }
 
-/** @param {any} schema @param {number} version @param {string} label */
-function assertSchemaVersion(schema, version, label) {
+/** @param {any} schema @param {number} version @param {string} label
+ * @param {Omit<import('./documentTypes').DocumentValidationIssue, 'reason'>} identity
+ */
+function assertSchemaVersion(schema, version, label, identity) {
   const currentVersion = assertPositiveVersion(schema?.currentVersion, `${label} schema currentVersion`)
   if (version !== currentVersion) {
-    throw new RangeError(`Unsupported ${label} data version ${version}; current version is ${currentVersion}`)
+    throw markDocumentValidationFailure(
+      new RangeError(`Unsupported ${label} data version ${version}; current version is ${currentVersion}`),
+      { reason: 'unsupported-data-version', ...identity },
+    )
   }
 }
 
@@ -46,45 +52,47 @@ function assertSchemaVersion(schema, version, label) {
  * @returns {import('./documentTypes').EditorBlockData}
  */
 export function snapshotCurrentBlockEnvelope(input, label = 'Editor block') {
-  assertPlainJsonObject(input, label)
-  const candidate = /** @type {Record<string, unknown>} */ ({ ...input })
-  assertKnownKeys(candidate, BLOCK_KEYS, label)
+  return validationBoundary({ reason: 'invalid-input' }, () => {
+    assertPlainJsonObject(input, label)
+    const candidate = /** @type {Record<string, unknown>} */ ({ ...input })
+    assertKnownKeys(candidate, BLOCK_KEYS, label)
 
-  if (!Object.hasOwn(candidate, 'id') || typeof candidate.id !== 'string' || !candidate.id) {
-    throw new TypeError(`${label} id must be a non-empty string`)
-  }
-  if (!Object.hasOwn(candidate, 'type') || typeof candidate.type !== 'string' || !candidate.type) {
-    throw new TypeError(`${label} type must be a non-empty string`)
-  }
-  if (!Object.hasOwn(candidate, 'dataVersion')) {
-    throw new TypeError(`${label} dataVersion is required`)
-  }
-  assertPositiveVersion(candidate.dataVersion, `${label} dataVersion`)
-  if (!Object.hasOwn(candidate, 'data')) throw new TypeError(`${label} data is required`)
-  assertPlainJsonObject(candidate.data, `${label} data`)
+    if (!Object.hasOwn(candidate, 'id') || typeof candidate.id !== 'string' || !candidate.id) {
+      throw new TypeError(`${label} id must be a non-empty string`)
+    }
+    if (!Object.hasOwn(candidate, 'type') || typeof candidate.type !== 'string' || !candidate.type) {
+      throw new TypeError(`${label} type must be a non-empty string`)
+    }
+    if (!Object.hasOwn(candidate, 'dataVersion')) {
+      throw new TypeError(`${label} dataVersion is required`)
+    }
+    assertPositiveVersion(candidate.dataVersion, `${label} dataVersion`)
+    if (!Object.hasOwn(candidate, 'data')) throw new TypeError(`${label} data is required`)
+    assertPlainJsonObject(candidate.data, `${label} data`)
 
-  if (Object.hasOwn(candidate, 'tunes')) {
-    if (candidate.tunes === undefined || candidate.tunes === null) {
-      throw new TypeError(`${label} tunes must be omitted or a JSON object`)
+    if (Object.hasOwn(candidate, 'tunes')) {
+      if (candidate.tunes === undefined || candidate.tunes === null) {
+        throw new TypeError(`${label} tunes must be omitted or a JSON object`)
+      }
+      assertPlainJsonObject(candidate.tunes, `${label} tunes`)
     }
-    assertPlainJsonObject(candidate.tunes, `${label} tunes`)
-  }
-  if (Object.hasOwn(candidate, 'inline')) {
-    if (candidate.inline === undefined || candidate.inline === null) {
-      throw new TypeError(`${label} inline must be omitted or a JSON object`)
+    if (Object.hasOwn(candidate, 'inline')) {
+      if (candidate.inline === undefined || candidate.inline === null) {
+        throw new TypeError(`${label} inline must be omitted or a JSON object`)
+      }
+      assertPlainJsonObject(candidate.inline, `${label} inline`)
     }
-    assertPlainJsonObject(candidate.inline, `${label} inline`)
-  }
-  if (Object.hasOwn(candidate, 'revision')) {
-    const revision = candidate.revision
-    if (revision === undefined || revision === null
-      || (typeof revision !== 'string'
-        && (typeof revision !== 'number' || !Number.isFinite(revision)))) {
-      throw new TypeError(`${label} revision must be omitted, a string, or a finite number`)
+    if (Object.hasOwn(candidate, 'revision')) {
+      const revision = candidate.revision
+      if (revision === undefined || revision === null
+        || (typeof revision !== 'string'
+          && (typeof revision !== 'number' || !Number.isFinite(revision)))) {
+        throw new TypeError(`${label} revision must be omitted, a string, or a finite number`)
+      }
     }
-  }
 
-  return /** @type {import('./documentTypes').EditorBlockData} */ (/** @type {unknown} */ (candidate))
+    return /** @type {import('./documentTypes').EditorBlockData} */ (/** @type {unknown} */ (candidate))
+  })
 }
 
 /**
@@ -97,46 +105,49 @@ export function snapshotCurrentBlockEnvelope(input, label = 'Editor block') {
  * @returns {import('./documentTypes').EditorOutputData}
  */
 export function snapshotCurrentDocumentEnvelope(input, options = {}) {
-  assertPlainJsonObject(input, 'Editor document')
-  const candidate = /** @type {Record<string, unknown>} */ ({ ...input })
-  assertKnownKeys(candidate, DOCUMENT_KEYS, 'Editor document')
+  return validationBoundary({ reason: 'invalid-input' }, () => {
+    assertPlainJsonObject(input, 'Editor document')
+    const candidate = /** @type {Record<string, unknown>} */ ({ ...input })
+    assertKnownKeys(candidate, DOCUMENT_KEYS, 'Editor document')
 
-  if (!Object.hasOwn(candidate, 'version')) {
-    throw new TypeError('Editor document version is required')
-  }
-  if (typeof candidate.version !== 'string' || !candidate.version) {
-    throw new TypeError('Editor document version must be a non-empty string')
-  }
-  if (candidate.version !== DOCUMENT_FORMAT_VERSION) {
-    throw new RangeError(
-      `Unsupported document version "${candidate.version}"; current version is "${DOCUMENT_FORMAT_VERSION}"`,
-    )
-  }
-  if (!Object.hasOwn(candidate, 'blocks') || !Array.isArray(candidate.blocks)) {
-    throw new TypeError('Editor document blocks must be an array')
-  }
-  if (Object.hasOwn(candidate, 'time')
-      && (typeof candidate.time !== 'number' || !Number.isFinite(candidate.time))) {
-    throw new TypeError('Editor document time must be a finite number when present')
-  }
-
-  const snapshotBlock = options.snapshotBlock ?? snapshotCurrentBlockEnvelope
-  const ids = new Set()
-  const blocks = []
-  for (let index = 0; index < candidate.blocks.length; index++) {
-    if (!Object.hasOwn(candidate.blocks, index)) {
-      throw new TypeError('Editor document blocks must be a dense array')
+    if (!Object.hasOwn(candidate, 'version')) {
+      throw new TypeError('Editor document version is required')
     }
-    const block = snapshotBlock(candidate.blocks[index], `Editor document block[${index}]`)
-    if (ids.has(block.id)) throw new Error(`Duplicate block id: ${block.id}`)
-    ids.add(block.id)
-    blocks.push(block)
-  }
+    if (typeof candidate.version !== 'string' || !candidate.version) {
+      throw new TypeError('Editor document version must be a non-empty string')
+    }
+    if (candidate.version !== DOCUMENT_FORMAT_VERSION) {
+      throw markDocumentValidationFailure(
+        new RangeError(`Unsupported document version "${candidate.version}"; current version is "${DOCUMENT_FORMAT_VERSION}"`),
+        { reason: 'unsupported-document-version' },
+      )
+    }
+    if (!Object.hasOwn(candidate, 'blocks') || !Array.isArray(candidate.blocks)) {
+      throw new TypeError('Editor document blocks must be an array')
+    }
+    if (Object.hasOwn(candidate, 'time')
+        && (typeof candidate.time !== 'number' || !Number.isFinite(candidate.time))) {
+      throw new TypeError('Editor document time must be a finite number when present')
+    }
 
-  return /** @type {import('./documentTypes').EditorOutputData} */ ({
-    version: DOCUMENT_FORMAT_VERSION,
-    ...(candidate.time === undefined ? {} : { time: candidate.time }),
-    blocks,
+    const snapshotBlock = options.snapshotBlock ?? snapshotCurrentBlockEnvelope
+    const ids = new Set()
+    const blocks = []
+    for (let index = 0; index < candidate.blocks.length; index++) {
+      if (!Object.hasOwn(candidate.blocks, index)) {
+        throw new TypeError('Editor document blocks must be a dense array')
+      }
+      const block = snapshotBlock(candidate.blocks[index], `Editor document block[${index}]`)
+      if (ids.has(block.id)) throw new TypeError(`Duplicate block id: ${block.id}`)
+      ids.add(block.id)
+      blocks.push(block)
+    }
+
+    return /** @type {import('./documentTypes').EditorOutputData} */ ({
+      version: DOCUMENT_FORMAT_VERSION,
+      ...(candidate.time === undefined ? {} : { time: candidate.time }),
+      blocks,
+    })
   })
 }
 
@@ -148,48 +159,55 @@ export function snapshotCurrentDocumentEnvelope(input, options = {}) {
  * @param {{ getInlineSchema?: (type: string) => any }} [resolvers]
  */
 export function decodeCurrentInlineMap(input, resolvers = {}) {
-  if (input === undefined) return undefined
-  assertPlainJsonObject(input, 'Inline map')
-  const source = /** @type {Record<string, unknown>} */ (cloneEditorData(input))
-  /** @type {Record<string, import('./documentTypes').EditorInlineWidget>} */
-  const result = {}
+  return validationBoundary({ reason: 'invalid-input' }, () => {
+    if (input === undefined) return undefined
+    assertPlainJsonObject(input, 'Inline map')
+    const source = /** @type {Record<string, unknown>} */ (cloneEditorData(input))
+    /** @type {Record<string, import('./documentTypes').EditorInlineWidget>} */
+    const result = {}
 
-  for (const [id, value] of Object.entries(source)) {
-    if (!id) throw new TypeError('Inline widget id must be a non-empty string')
-    assertPlainJsonObject(value, `Inline widget "${id}"`)
-    const candidate = /** @type {Record<string, unknown>} */ ({ ...value })
-    assertKnownKeys(candidate, INLINE_KEYS, `Inline widget "${id}"`)
-    if (typeof candidate.type !== 'string' || !candidate.type) {
-      throw new TypeError(`Inline widget "${id}" type must be a non-empty string`)
-    }
-    if (!Object.hasOwn(candidate, 'dataVersion')) {
-      throw new TypeError(`Inline widget "${id}" dataVersion is required`)
-    }
-    const version = assertPositiveVersion(candidate.dataVersion, `Inline widget "${id}" dataVersion`)
-    if (!Object.hasOwn(candidate, 'data')) {
-      throw new TypeError(`Inline widget "${id}" data is required`)
-    }
-    assertPlainJsonObject(candidate.data, `Inline widget "${id}" data`)
+    for (const [id, value] of Object.entries(source)) {
+      if (!id) throw new TypeError('Inline widget id must be a non-empty string')
+      assertPlainJsonObject(value, `Inline widget "${id}"`)
+      const candidate = /** @type {Record<string, unknown>} */ ({ ...value })
+      assertKnownKeys(candidate, INLINE_KEYS, `Inline widget "${id}"`)
+      if (typeof candidate.type !== 'string' || !candidate.type) {
+        throw new TypeError(`Inline widget "${id}" type must be a non-empty string`)
+      }
+      if (!Object.hasOwn(candidate, 'dataVersion')) {
+        throw new TypeError(`Inline widget "${id}" dataVersion is required`)
+      }
+      const version = assertPositiveVersion(candidate.dataVersion, `Inline widget "${id}" dataVersion`)
+      if (!Object.hasOwn(candidate, 'data')) {
+        throw new TypeError(`Inline widget "${id}" data is required`)
+      }
+      assertPlainJsonObject(candidate.data, `Inline widget "${id}" data`)
 
-    const schema = resolvers.getInlineSchema?.(candidate.type)
-    if (!schema) {
-      result[id] = { type: candidate.type, dataVersion: version, data: candidate.data }
-      continue
-    }
+      const schema = resolvers.getInlineSchema?.(candidate.type)
+      if (!schema) {
+        Object.defineProperty(result, id, { value: { type: candidate.type, dataVersion: version, data: candidate.data }, enumerable: true, configurable: true, writable: true })
+        continue
+      }
 
-    assertSchemaVersion(schema, version, `inline widget "${candidate.type}"`)
-    const decoded = schema.decode({ dataVersion: version, data: candidate.data })
-    if (!decoded || decoded.dataVersion !== schema.currentVersion) {
-      throw new TypeError(`Inline widget "${candidate.type}" schema returned an invalid version`)
+      assertSchemaVersion(schema, version, `inline widget "${candidate.type}"`, { inlineId: id, type: candidate.type })
+      const decodedValue = schemaValidationBoundary({ inlineId: id, type: candidate.type }, () => {
+        const decoded = schema.decode({ dataVersion: version, data: candidate.data })
+        const dataVersion = decoded?.dataVersion
+        const data = decoded?.data
+        if (dataVersion !== schema.currentVersion) {
+          throw new TypeError(`Inline widget "${candidate.type}" schema returned an invalid version`)
+        }
+        assertPlainJsonObject(data, `Inline widget "${candidate.type}" decoded data`)
+        return {
+          type: candidate.type,
+          dataVersion: schema.currentVersion,
+          data: cloneEditorData(data),
+        }
+      })
+      Object.defineProperty(result, id, { value: decodedValue, enumerable: true, configurable: true, writable: true })
     }
-    assertPlainJsonObject(decoded.data, `Inline widget "${candidate.type}" decoded data`)
-    result[id] = {
-      type: candidate.type,
-      dataVersion: schema.currentVersion,
-      data: cloneEditorData(decoded.data),
-    }
-  }
-  return result
+    return result
+  })
 }
 
 /**
@@ -200,26 +218,38 @@ export function decodeCurrentInlineMap(input, resolvers = {}) {
  * @returns {import('./documentTypes').EditorBlockData}
  */
 export function decodeCurrentBlock(input, resolvers = {}) {
-  const envelope = snapshotCurrentBlockEnvelope(input)
-  const block = /** @type {import('./documentTypes').EditorBlockData} */ (cloneEditorData(envelope))
-  const schema = resolvers.getBlockSchema?.(block.type)
-  if (schema) {
-    assertSchemaVersion(schema, block.dataVersion, `block "${block.type}"`)
-    const decoded = schema.decode({ dataVersion: block.dataVersion, data: block.data })
-    if (!decoded || decoded.dataVersion !== schema.currentVersion) {
-      throw new TypeError(`Block "${block.type}" schema returned an invalid version`)
+  return validationBoundary({ reason: 'invalid-input' }, () => {
+    const envelope = snapshotCurrentBlockEnvelope(input)
+    const block = /** @type {import('./documentTypes').EditorBlockData} */ (cloneEditorData(envelope))
+    const schema = resolvers.getBlockSchema?.(block.type)
+    if (schema) {
+      assertSchemaVersion(schema, block.dataVersion, `block "${block.type}"`, { blockId: block.id, type: block.type })
+      const decoded = schemaValidationBoundary({ blockId: block.id, type: block.type }, () => {
+        const result = schema.decode({ dataVersion: block.dataVersion, data: block.data })
+        const dataVersion = result?.dataVersion
+        const data = result?.data
+        if (dataVersion !== schema.currentVersion) {
+          throw new TypeError(`Block "${block.type}" schema returned an invalid version`)
+        }
+        assertPlainJsonObject(data, `Block "${block.type}" decoded data`)
+        return { dataVersion: schema.currentVersion, data: cloneEditorData(data) }
+      })
+      block.dataVersion = decoded.dataVersion
+      block.data = decoded.data
     }
-    assertPlainJsonObject(decoded.data, `Block "${block.type}" decoded data`)
-    block.dataVersion = schema.currentVersion
-    block.data = cloneEditorData(decoded.data)
-  }
 
-  if (block.inline !== undefined) {
-    const inline = decodeCurrentInlineMap(block.inline, resolvers)
-    if (inline && Object.keys(inline).length > 0) block.inline = inline
-    else delete block.inline
-  }
-  return block
+    if (block.inline !== undefined) {
+      let inline
+      try { inline = decodeCurrentInlineMap(block.inline, resolvers) }
+      catch (error) {
+        const issue = documentValidationIssue(error)
+        throw issue ? markDocumentValidationFailure(error, { type: block.type, ...issue, blockId: block.id }) : error
+      }
+      if (inline && Object.keys(inline).length > 0) block.inline = inline
+      else delete block.inline
+    }
+    return block
+  })
 }
 
 /**

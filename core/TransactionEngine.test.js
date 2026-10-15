@@ -22,6 +22,30 @@ function block(id, text = id) {
   return { id, type: 'paragraph', data: { text } }
 }
 
+for (const failure of [null, undefined, false, 0, '', NaN]) {
+  test('caught nested throw poisons the draft for ' + String(failure), () => {
+    const { store, history, engine, projections } = harness()
+    let caught = false
+    let received
+    try {
+      engine.execute({ origin: 'user', name: 'outer' }, tx => {
+        tx.update('a', block('a', 'outer'))
+        try { engine.execute({ origin: 'user', name: 'nested' }, () => { throw failure }) } catch {}
+        try { engine.execute({ origin: 'user', name: 'later' }, () => {}) } catch {}
+      })
+    } catch (error) { caught = true; received = error }
+    assert.equal(caught, true)
+    assert.ok(Object.is(received, failure))
+    assert.equal(store.get('a').data.text, 'a')
+    assert.equal(history.canUndo, false)
+    assert.equal(store.revision, 0)
+    assert.deepEqual(projections, [])
+    assert.equal(engine.phase, 'idle')
+    engine.execute({ origin: 'user', name: 'fresh' }, tx => tx.update('a', block('a', 'fresh')))
+    assert.equal(store.get('a').data.text, 'fresh')
+  })
+}
+
 test('native history uses the caret captured before the browser mutation and the committed caret for Redo', () => {
   const point = offset => ({ anchor: { blockId: 'a', fieldKey: 'text', offset }, focus: { blockId: 'a', fieldKey: 'text', offset } })
   const restored = []

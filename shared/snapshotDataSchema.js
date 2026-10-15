@@ -1,5 +1,6 @@
 // @ts-check
 import { cloneEditorData } from './cloneEditorData.js'
+import { markDocumentValidationFailure, schemaValidationBoundary } from './documentValidationIssue.js'
 
 function ownObject(value, label) {
   const owned = cloneEditorData(value)
@@ -54,13 +55,15 @@ export function snapshotDataSchema(source, label, { richText = false, validateDe
       }
       const candidate = { ...input }
       if (candidate.dataVersion !== currentVersion) {
-        throw new RangeError(
-          `Unsupported ${label} data version ${String(candidate.dataVersion)}; current version is ${currentVersion}`,
+        throw markDocumentValidationFailure(
+          new RangeError(`Unsupported ${label} data version ${String(candidate.dataVersion)}; current version is ${currentVersion}`),
+          { reason: 'unsupported-data-version' },
         )
       }
-      const result = decode({
-        dataVersion: currentVersion,
-        data: cloneEditorData(candidate.data),
+      return schemaValidationBoundary({}, () => {
+        const result = decode({
+          dataVersion: currentVersion,
+          data: cloneEditorData(candidate.data),
       })
       if (!result || typeof result !== 'object' || Array.isArray(result)
           || result.dataVersion !== currentVersion) {
@@ -70,6 +73,7 @@ export function snapshotDataSchema(source, label, { richText = false, validateDe
         dataVersion: currentVersion,
         data: ownObject(result.data, `${label} schema decoded data`),
       }
+      })
     },
 
     encode(data) {

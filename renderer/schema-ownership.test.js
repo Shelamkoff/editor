@@ -66,6 +66,19 @@ const request=(renderer,operation,block,container)=>operation==='renderBlock'?re
  :operation==='render'?renderer.render({version:'2.0.0',blocks:[block]})
   :renderer.renderTo({version:'2.0.0',blocks:[block]},container)
 
+test('renderer classifies a current schema RangeError by its boundary, preserving its cause', () => fixture(document => {
+ const failure = new RangeError('Plugin data version content constraint')
+ const issues = []
+ const renderer = new EditorRenderer({ blockTypes: [], injectStyles: false, onValidationError: issue => issues.push(issue) })
+ renderer.registerRenderer({ type: 'article', schema: { currentVersion: 1, createDefault: () => ({ text: '' }),
+  encode: data => ({ dataVersion: 1, data }), decode() { throw failure } }, render() { throw new Error('Projection must not run') } })
+ try {
+  assert.throws(() => renderer.renderBlock(envelope()), error => error.cause === failure)
+  assert.equal(issues[0].reason, 'invalid-data')
+  assert.equal(Object.isFrozen(issues[0]), true)
+ } finally { renderer.destroy() }
+}))
+
 for(const operation of ['renderBlock','render','renderTo']){
  test(operation+' retains the registered schema methods and original class receiver',()=>fixture(document=>{
   class Schema {

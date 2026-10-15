@@ -20,9 +20,22 @@ Verification:
 - `npm run test:types`: 6 passed, including NodeNext and Bundler consumers.
 - Behavioral red/green evidence: duplicate final reference, premature payload pruning, duplicate candidate field keys, marker-free widget identity and pending Person input each failed for their intended defect before the corresponding fix.
 
+## Slice 2 — preparation authority and ingestion failures
+
+Implemented one runtime preparation-depth guard and the separate validation-observation guard, protected public insert capture and public control dispatch, internal `DocumentIngestion`, private shared failure metadata and canonical validation types. Local schema/record normalization shares preparation authority; ordinary user producers retain nested commands. Engine failure presence is independent of its thrown payload. Shared decode and existing inline assembly/update/selection paths preserve own dictionary keys. Renderer reasons use the same metadata and retain their existing public wrapper/cause.
+
+Verification:
+
+- `npm test`: 583 passed, including new engine, runtime, public adapter, shared decoder and renderer regressions.
+- `npm run typecheck`: passed; package declaration generation reported zero source diagnostics.
+- `node tests/browser/run.mjs`: all 26 page suites passed; runtime contracts include real public control/scoped-task/DOM denial during schema preparation.
+- `npm run test:docs`: passed.
+- `npm run test:package`: passed, including isolated Bundler/NodeNext, Vite, native ESM imports and 22 CSS assets.
+- Red/green evidence covers caught falsy nested throws, misleading schema exceptions in editor and renderer, validation-observer producer reentry, unguarded public insert accessors and local normalization reentry.
+- Node and package checks must run sequentially because both rebuild `dist`. An initial concurrent run collided there; a subsequent package attempt hit a transient Windows temporary-file lock. The final isolated reruns above passed.
+
 ## Remaining slices
 
-2. Shared preparation authority and structured ingestion failures.
 3. Synchronous extension contracts, object payload types and popup ownership.
 4a. Captured draft and immediate commands.
 4b. Shared range/clipboard planning and private handles.

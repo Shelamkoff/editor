@@ -1,6 +1,20 @@
 export type Json = null | boolean | number | string | Json[] | { [key: string]: Json }
 export type JsonObject = { [key: string]: Json }
 
+/** Structured, content-free failure information owned by the validating boundary. */
+export type DocumentValidationReason =
+  | 'invalid-input'
+  | 'unsupported-document-version'
+  | 'unsupported-data-version'
+  | 'invalid-data'
+
+export interface DocumentValidationIssue {
+  readonly reason: DocumentValidationReason
+  readonly blockId?: string
+  readonly inlineId?: string
+  readonly type?: string
+}
+
 /** Opaque data owned by one committed inline widget instance. */
 export interface EditorInlineWidget<
   Type extends string = string,

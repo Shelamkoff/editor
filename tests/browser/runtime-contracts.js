@@ -857,4 +857,50 @@ test('async host patch is rejected and cannot commit synchronous nested writes',
   assert.equal(blockElement(editor,'b').querySelector('.oe-paragraph').textContent,'Beta');
 });
 
+test('schema preparation rejects public controls and scoped tasks while preserving owner projection', () => {
+  const base = createParagraphPlugin()
+  let editor, context, armed = false, attempted = false
+  const rejected = []
+  const definition = { ...base, schema: { ...base.schema, encode(data) {
+    if (armed && !attempted) {
+      attempted = true
+      for (const [name, operation] of [
+        ['current', () => editor.blocks.setCurrent('b')],
+        ['select', () => editor.blocks.select(['b'])],
+        ['clear', () => editor.blocks.clearSelection()],
+        ['block focus', () => editor.blocks.focus('b')],
+        ['editor focus', () => editor.focus()],
+        ['destroy', () => editor.destroy()],
+        ['task', () => context.beginTask()],
+        ['DOM', () => context.commitDomMutation(() => { throw new Error('DOM callback must not run') })],
+      ]) {
+        try { operation() } catch (error) {
+          check(/prepar/.test(error.message), name + ': ' + error.message)
+          rejected.push(name)
+        }
+      }
+      equal(editor.save().blocks[0].data.text, 'A')
+    }
+    return base.schema.encode(data)
+  } }, setup(runtimeContext) {
+    const runtime = base.setup(runtimeContext)
+    return { ...runtime, create(data, value) { if (!context) context = value; return runtime.create(data, value) } }
+  } }
+  editor = make([
+    { id: 'a', type: 'paragraph', dataVersion: 2, data: { text: 'A' } },
+    { id: 'b', type: 'paragraph', dataVersion: 2, data: { text: 'B' } },
+  ], { plugins: [definition] })
+  editor.blocks.setCurrent('a')
+  const readyBefore = editor.isReady
+  armed = true
+  editor.blocks.update('a', () => ({ data: { text: 'Updated' } }))
+  equal(rejected, ['current', 'select', 'clear', 'block focus', 'editor focus', 'destroy', 'task', 'DOM'])
+  equal(editor.blocks.currentId, 'a')
+  equal(editor.blocks.selectedIds(), [])
+  equal(editor.isReady, readyBefore)
+  equal(editor.save().blocks[0].data.text, 'Updated')
+  editor.undo()
+  equal(editor.save().blocks[0].data.text, 'A')
+})
+
 await run()

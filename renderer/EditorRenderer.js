@@ -7,22 +7,17 @@ import { cloneEditorData } from '../shared/cloneEditorData.js'
 import defaultLocale from './locale/en.js'
 import { acquireStyleUrls } from '../shared/styleRegistry.js'
 import { normalizeTextAlign } from '../shared/textFormat.js'
+import { documentValidationIssue } from '../shared/documentValidationIssue.js'
 
 const baseCssUrl = new URL('./styles/base.css', import.meta.url).href
 const bundledRendererCssRoot = new URL('./renderers/', import.meta.url).href
 const validationSourceKey = Symbol.for('@shelamkoff/rector/renderer-validation-source')
 
-function validationReason(error) {
-  const message=String(error?.message??error)
-  if(error instanceof RangeError&&/data version/i.test(message))return 'unsupported-data-version'
-  return error instanceof TypeError?'invalid-input':'invalid-data'
-}
-
 /**
  * Renders Rector document blocks to DOM elements.
  */
 export class EditorRenderer {
-  /** @type {{ injectStyles: boolean, classPrefix: string, throwOnUnknown: boolean, theme: 'dark' | 'light', onValidationError?: (issue: { blockId?: string, type: string, reason?: string }) => void | Promise<void> }} */
+  /** @type {{ injectStyles: boolean, classPrefix: string, throwOnUnknown: boolean, theme: 'dark' | 'light', onValidationError?: (issue: import('../shared/documentTypes').DocumentValidationIssue & {type:string}) => void | Promise<void> }} */
   #config
   /** @type {Map<string, import('./types').BlockRendererDefinition>} */
   #renderers
@@ -195,7 +190,7 @@ export class EditorRenderer {
         data: decoded.data,
       }
     } catch (error) {
-      const issue = { blockId: block.id, type: block.type, reason: validationReason(error) }
+      const issue = Object.freeze({ blockId: block.id, type: block.type, reason: documentValidationIssue(error)?.reason ?? 'invalid-data' })
       const observer = this.#config.onValidationError
       if (typeof observer === 'function' && !this.#reportingValidation.has(validationSource)) {
         this.#reportingValidation.add(validationSource)

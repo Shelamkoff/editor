@@ -32,7 +32,7 @@ interface RendererConfig {
   classPrefix?: string
   throwOnUnknown?: boolean
   theme?: 'dark' | 'light'
-  onValidationError?: (issue: { blockId?: string; type: string; reason?: 'unsupported-data-version' | 'invalid-input' | 'invalid-data' }) => void | Promise<void>
+  onValidationError?: (issue: { readonly blockId?: string; readonly type: string; readonly reason: 'unsupported-document-version' | 'unsupported-data-version' | 'invalid-input' | 'invalid-data' }) => void | Promise<void>
   locale?: Record<string, LocaleValue>
   blockTypes?: BlockType[]
   blockConfigs?: {
@@ -49,7 +49,7 @@ interface RendererConfig {
 | `classPrefix` | `editor` | namespace used by generated renderer classes |
 | `throwOnUnknown` | `true` | throw for an unregistered block instead of rendering a placeholder |
 | `theme` | `dark` | renderer theme tokens |
-| `onValidationError` | none | receive a content-free `{ blockId?, type, reason? }` notice for invalid built-in data |
+| `onValidationError` | none | receive an immutable, content-free `{ blockId?, type, reason }` notice for invalid registered block data |
 | `locale` | built-in English | flat `renderer.*` message dictionary |
 | `blockTypes` | all built-ins | construct only selected built-in renderers |
 | `blockConfigs` | none | runtime configuration keyed by built-in block type |

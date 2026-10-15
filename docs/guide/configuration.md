@@ -117,6 +117,10 @@ Use `minHeight` only for the editor shell. `mobileBreakpoint` drives the core mo
 
 ## Callbacks
 
+`onValidationError` reports one immutable, content-free issue after failed document preparation unwinds. Its required `reason` is `invalid-input`, `unsupported-document-version`, `unsupported-data-version`, or `invalid-data`; optional `blockId`, `inlineId` and `type` come only from already validated identities. Classification follows the failing boundary, regardless of exception wording. Schema exceptions retain their identity; primitive schema throws can be wrapped with `cause`. Allocator and projection failures do not become validation notices.
+
+Committed queries remain available inside this observer. Synchronous document writes, selection/focus/current-block changes, destruction, protected DOM callbacks and task creation are denied before effects. A queued command can run after the invocation unwinds. The same restriction applies while schemas, input accessors and other synchronous extension values are being prepared. Ordinary user update producers retain supported nested commands; an entered nested command failure aborts its outer transaction even when caught, including `throw null` and other falsy values.
+
 `onReady`, `onChange`, `onValidationError`, and `onDiagnostic` are observers, not transaction hooks. Synchronous throws and rejected Promises are contained consistently. Rector isolates observer failures from canonical state. Diagnostics never contain document or plugin payload data.
 
 `onChange` is scheduled only after committed document mutations and receives a detached document. A newer commit can supersede an older pending notification.

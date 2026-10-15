@@ -434,10 +434,8 @@ export interface RendererConfig {
     /** Theme for the rendered output. Default: 'dark'. */
     theme?: 'dark' | 'light'
     /** Content-free notification for malformed built-in block data. */
-    onValidationError?: (issue: {
-        blockId?: string
-        type: string
-        reason?: 'unsupported-data-version' | 'invalid-input' | 'invalid-data'
+    onValidationError?: (issue: import('../shared/documentTypes.js').DocumentValidationIssue & {
+        readonly type: string
     }) => void | Promise<void>
     /** Flat locale dictionary for renderer strings. Keys use `renderer.*` prefix. */
     locale?: Record<string, LocaleValue>

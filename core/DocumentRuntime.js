@@ -1,7 +1,9 @@
 // @ts-check
 import { ReadOnlyRecoveryError } from './ReadOnlyRecoveryError.js'
 import { cloneEditorData } from '../shared/cloneEditorData.js'
-import { decodeCurrentBlock, decodeCurrentDocument, decodeCurrentInlineMap } from '../shared/DocumentSchema.js'
+import { decodeCurrentBlock, decodeCurrentInlineMap } from '../shared/DocumentSchema.js'
+import { documentValidationIssue } from '../shared/documentValidationIssue.js'
+import { synchronousResult } from '../shared/synchronousResult.js'
 import { DOCUMENT_FORMAT_VERSION } from '../shared/documentFormat.js'
 import { invokeObserver } from '../shared/invokeObserver.js'
 import { normalizeRichText } from '../shared/richTextCodec.js'
@@ -17,6 +19,7 @@ import { uid } from '../shared/uid.js'
 import { DocumentStore } from './DocumentStore.js'
 import { HistoryStore } from './HistoryStore.js'
 import { TransactionEngine } from './TransactionEngine.js'
+import { prepareCurrentDocument, prepareNewDocument } from './DocumentIngestion.js'
 
 const VALID_ALIGN = new Set(['left', 'center', 'right', 'justify'])
 
@@ -44,13 +47,6 @@ function sameJson(left, right) {
   try { return JSON.stringify(left) === JSON.stringify(right) } catch { return false }
 }
 
-function issueReason(error) {
-  const message = String(error?.message ?? error)
-  if (error instanceof RangeError && /document version/i.test(message)) return 'unsupported-document-version'
-  if (error instanceof RangeError && /data version/i.test(message)) return 'unsupported-data-version'
-  return error instanceof TypeError ? 'invalid-input' : 'invalid-data'
-}
-
 export class DocumentRuntime {
   #registry
   #store
@@ -69,6 +65,8 @@ export class DocumentRuntime {
   #editingProjection = false
   #projectingPresentation = false
   #changingReadOnly = false
+  #preparationDepth = 0
+  #observationDepth = 0
   #requestSplit
   #requestExit
   #diagnostics
@@ -120,7 +118,11 @@ export class DocumentRuntime {
           ? html => normalizeRichText(html, this.#ownerDocument)
           : html => String(html ?? ''))
 
-    const initial = options.data === undefined ? this.#createNewDocument() : this.#ingest(options.data)
+    const initial = this.#prepareDocument(() => {
+      const data = options.data
+      return data === undefined ? prepareNewDocument(this.#ingestionServices())
+        : prepareCurrentDocument(data, this.#ingestionServices())
+    })
     this.#store = new DocumentStore(initial)
     this.#history = new HistoryStore(options.history)
 
@@ -261,23 +263,55 @@ export class DocumentRuntime {
     return this.#engine.execute({ origin: 'user', name, selectionAfter }, operation)
   }
 
+  /** Shared internal boundary for completely captured synchronous extension values.
+   * @template T
+   * @param {() => T} operation
+   * @returns {T}
+   */
+  prepareExtensionValue(operation) {
+    if (typeof operation !== 'function') throw new TypeError('Preparation requires an operation')
+    this.#preparationDepth++
+    try {
+      return synchronousResult(operation(), error => {
+        this.#diagnostics?.emit('command.failed', {
+          operation: 'extension.prepare', errorName: this.#diagnostics.errorName(error),
+        })
+      })
+    } finally { this.#preparationDepth-- }
+  }
+
+  /** Public adapters call this before observing any caller-owned input. */
+  assertCommandAuthority(authority = 'host') {
+    this.#assertMutationAuthority(authority)
+  }
+
+  /** Guard public control dispatch while preserving owner-driven internal recovery. */
+  assertControlAuthority({ allowFailed = false } = {}) {
+    if (this.#destroyed) throw new Error('DocumentRuntime is destroyed')
+    if (!allowFailed && this.health === 'failed') throw new Error('DocumentRuntime is failed')
+    const phase = this.#mutationPhase()
+    if (phase !== 'idle' && phase !== 'building') throw new Error(`Cannot mutate document during ${phase} phase`)
+  }
+
   insert(type, data, index = undefined, options = {}, authority = 'interaction') {
     this.#assertMutationAuthority(authority)
     return this.#engine.execute({ origin: 'external', name: 'block.insert' }, tx => {
       const definition = this.#registry.getBlockDefinition(type)
       if (!definition) throw new Error(`Unknown block type: ${type}`)
-      const id = this.#createUniqueBlockId(type)
-      const inline = options.inline === undefined ? undefined : this.#normalizeExternalInline(options.inline)
-      const record = this.#recordFromData(
-        id,
-        type,
-        definition,
-        data === undefined ? definition.schema.createDefault() : data,
-        options.tunes,
-        inline,
-      )
+      const record = this.prepareExtensionValue(() => {
+        const id = this.#createUniqueBlockId(type)
+        const inline = options.inline === undefined ? undefined : this.#normalizeExternalInline(options.inline)
+        return this.#recordFromData(
+          id,
+          type,
+          definition,
+          data === undefined ? definition.schema.createDefault() : data,
+          options.tunes,
+          inline,
+        )
+      })
       tx.insert(index === undefined ? tx.list().length : index, record)
-      return id
+      return record.id
     })
   }
 
@@ -619,23 +653,26 @@ export class DocumentRuntime {
 
       const snapshot = cloneEditorData(current)
       const patch = producer(snapshot) ?? {}
-      if (!patch || typeof patch !== 'object' || Array.isArray(patch)) {
-        throw new TypeError('Block update producer must return an object')
-      }
-      if (typeof patch.then === 'function') throw new TypeError('Block update producer must be synchronous')
-      if (Object.hasOwn(patch, 'type') || Object.hasOwn(patch, 'id') || Object.hasOwn(patch, 'inline')) {
-        throw new TypeError('Block update cannot change id, type, or inline payload')
-      }
+      const prepared = this.prepareExtensionValue(() => {
+        synchronousResult(patch)
+        if (!patch || typeof patch !== 'object' || Array.isArray(patch)) {
+          throw new TypeError('Block update producer must return an object')
+        }
+        if (Object.hasOwn(patch, 'type') || Object.hasOwn(patch, 'id') || Object.hasOwn(patch, 'inline')) {
+          throw new TypeError('Block update cannot change id, type, or inline payload')
+        }
 
-      const latest = tx.get(id)
-      if (!latest || latest.type !== current.type) throw new Error('Block update target changed during its producer')
-      const nextData = Object.hasOwn(patch, 'data') ? patch.data : latest.data
-      const nextTunes = Object.hasOwn(patch, 'tunes')
-        ? (patch.tunes === null ? undefined : patch.tunes)
-        : latest.tunes
-      const next = this.#recordFromData(
-        id, current.type, definition, nextData, nextTunes, latest.inline,
-      )
+        const latest = tx.get(id)
+        if (!latest || latest.type !== current.type) throw new Error('Block update target changed during its producer')
+        const nextData = Object.hasOwn(patch, 'data') ? patch.data : latest.data
+        const requestedTunes = Object.hasOwn(patch, 'tunes') ? patch.tunes : latest.tunes
+        const nextTunes = requestedTunes === null ? undefined : requestedTunes
+        const next = this.#recordFromData(
+          id, current.type, definition, nextData, nextTunes, latest.inline,
+        )
+        return { latest, next }
+      })
+      const { latest, next } = prepared
 
       if (
         latest.dataVersion === next.dataVersion
@@ -833,19 +870,7 @@ export class DocumentRuntime {
   clear() {
     this.#assertHostMutation()
     this.#engine.execute({ origin: 'external', name: 'document.clear' }, tx => {
-      const type = this.#registry.defaultBlockType
-      const definition = this.#registry.getBlockDefinition(type)
-      const document = {
-        version: DOCUMENT_FORMAT_VERSION,
-        blocks: [this.#recordFromData(
-          this.#createUniqueBlockId(type),
-          type,
-          definition,
-          definition.schema.createDefault(),
-          undefined,
-          undefined,
-        )],
-      }
+      const document = this.prepareExtensionValue(() => prepareNewDocument(this.#ingestionServices()))
       tx.replace(document)
     })
   }
@@ -855,7 +880,7 @@ export class DocumentRuntime {
     const startedAt = this.#diagnostics ? this.#diagnostics.now() : 0
     try {
       this.#engine.execute({ origin: 'external', name: 'document.render' }, tx => {
-        tx.replace(this.#ingest(input))
+        tx.replace(this.#prepareDocument(() => prepareCurrentDocument(input, this.#ingestionServices())))
       })
     } finally {
       if (startedAt && this.#diagnostics) {
@@ -1308,10 +1333,7 @@ export class DocumentRuntime {
     })
     if(selected===null)throw new Error(`Unknown rich-text field "${fieldKey}" for block "${blockId}"`)
     const scan=scanRichTextPlaceholders(selected,inline,this.#ownerDocument)
-    const selectedInline={}
-    for(const id of scan.references){
-      if(Object.hasOwn(inline,id))selectedInline[id]=cloneEditorData(inline[id])
-    }
+    const selectedInline=Object.fromEntries([...scan.references].map(id=>[id,cloneEditorData(inline[id])]))
     return {
       html:selected,
       ...(Object.keys(selectedInline).length?{inline:selectedInline}:{}),
@@ -1658,11 +1680,11 @@ export class DocumentRuntime {
       const encoded = definition.schema.encode(raw.data)
       const id = this.#allocateInlineId(reservedInline)
       reservedInline.add(id)
-      inline[id] = {
+      Object.defineProperty(inline, id, { value: {
         type: raw.type,
         dataVersion: encoded.dataVersion,
         data: encoded.data,
-      }
+      }, enumerable: true, configurable: true, writable: true })
       lines.at(-1).push({ kind: 'reference', id })
     }
 
@@ -1806,11 +1828,11 @@ export class DocumentRuntime {
     )
     const inline = cloneInline(current.inline) ?? {}
     const id = this.#createUniqueInlineId(blockDefinition, current.data, inline)
-    inline[id] = {
+    Object.defineProperty(inline, id, { value: {
       type,
       dataVersion: encodedWidget.dataVersion,
       data: encodedWidget.data,
-    }
+    }, enumerable: true, configurable: true, writable: true })
 
     const blockData = cloneEditorData(current.data)
     let matched = false
@@ -1862,11 +1884,11 @@ export class DocumentRuntime {
         throw new Error('Inline widget update target changed during its producer')
       }
       const encoded = definition.schema.encode(nextData)
-      inline[inlineId] = {
+      Object.defineProperty(inline, inlineId, { value: {
         type: ref.type,
         dataVersion: encoded.dataVersion,
         data: encoded.data,
-      }
+      }, enumerable: true, configurable: true, writable: true })
       const blockDefinition = this.#registry.getBlockDefinition(current.type)
       let blockData = latest.data
       if (trailingText) {
@@ -2082,77 +2104,37 @@ export class DocumentRuntime {
     this.#projector?.destroy?.()
   }
 
-  #createNewDocument() {
-    const type=this.#registry.defaultBlockType
-    const definition=this.#registry.getBlockDefinition(type)
-    if(!definition)throw new Error(`Unknown default block type: ${type}`)
-    return {version:DOCUMENT_FORMAT_VERSION,blocks:[this.#recordFromData(
-      this.#createUniqueBlockId(type),
-      type,
-      definition,
-      definition.schema.createDefault(),
-      undefined,
-      undefined,
-    )]}
-  }
-
-  #ingest(input) {
-    let normalized
-    try{
-      normalized=decodeCurrentDocument(input,{
-        getBlockSchema:type=>this.#registry.getBlockDefinition(type)?.schema,
-        getInlineSchema:type=>this.#registry.getInlineDefinition(type)?.schema,
-      })
-    }catch(error){
-      this.#reportValidation({},error)
-      throw error
-    }
-    const blocks=normalized.blocks.map(block=>{
-      const definition=this.#registry.getBlockDefinition(block.type)
-      if(!definition)return block
-      let data=block.data
-      if(typeof definition.schema.mapRichText==='function'){
-        data=definition.schema.mapRichText(data,html=>this.#richTextNormalizer(html))
-      }
-      const encoded=definition.schema.encode(data)
-      const next={...block,dataVersion:encoded.dataVersion,data:encoded.data}
-      const tunes=cloneTunes(block.tunes)
-      if(tunes===undefined)delete next.tunes
-      else next.tunes=tunes
-      if(block.inline!==undefined)next.inline=this.#normalizeExternalInline(block.inline)
-      if(
-        block.dataVersion!==next.dataVersion
-        || !sameJson(block.data,next.data)
-        || !sameJson(block.tunes,next.tunes)
-        || !sameJson(block.inline,next.inline)
-      )delete next.revision
-      return next
-    })
-    if(blocks.length===0)return this.#createNewDocument()
-    return {version:DOCUMENT_FORMAT_VERSION,blocks}
-  }
-
-  #normalizeDecodedData(definition, input) {
-    const decoded = definition.schema.decode(input)
-    let data = decoded.data
-    if (typeof definition.schema.mapRichText === 'function') {
-      data = definition.schema.mapRichText(data, html => this.#richTextNormalizer(html))
-    }
+  #ingestionServices() {
     return {
-      dataVersion: decoded.dataVersion,
-      data: definition.schema.encode(data).data,
+      defaultBlockType: this.#registry.defaultBlockType,
+      getBlockDefinition: type => this.#registry.getBlockDefinition(type),
+      getInlineDefinition: type => this.#registry.getInlineDefinition(type),
+      normalizeData: (definition, data) => this.#normalizeLocalData(definition, data),
+      normalizeTunes: cloneTunes,
+      createBlockId: type => this.#createUniqueBlockId(type),
+      assembleRecord: (id, type, definition, data) => this.#recordFromData(id, type, definition, data, undefined, undefined),
+    }
+  }
+
+  #prepareDocument(operation) {
+    try { return this.prepareExtensionValue(operation) }
+    catch (error) {
+      this.#reportValidation(error)
+      throw error
     }
   }
 
   #normalizeLocalData(definition, data) {
-    if (!definition?.schema) throw new TypeError('Block definition has no schema')
-    let encoded = definition.schema.encode(data)
-    let canonical = encoded.data
-    if (typeof definition.schema.mapRichText === 'function') {
-      canonical = definition.schema.mapRichText(canonical, html => this.#richTextNormalizer(html))
-      encoded = definition.schema.encode(canonical)
-    }
-    return encoded
+    return this.prepareExtensionValue(() => {
+      if (!definition?.schema) throw new TypeError('Block definition has no schema')
+      let encoded = definition.schema.encode(data)
+      let canonical = encoded.data
+      if (typeof definition.schema.mapRichText === 'function') {
+        canonical = definition.schema.mapRichText(canonical, html => this.#richTextNormalizer(html))
+        encoded = definition.schema.encode(canonical)
+      }
+      return encoded
+    })
   }
 
   #activationFor(record) {
@@ -2165,19 +2147,19 @@ export class DocumentRuntime {
     return this.#activationFor(record).kind === 'active'
   }
 
-  #reportValidation(block, error) {
+  #reportValidation(error) {
     if (!this.#onValidationError) return
-    const issue = Object.freeze({
-      blockId: block.id,
-      type: block.type,
-      reason: issueReason(error),
-    })
-    invokeObserver(this.#onValidationError, [issue], observerError => {
-      this.#diagnostics?.emit('command.failed', {
-        operation: 'onValidationError',
-        errorName: this.#diagnostics.errorName(observerError),
+    const issue = documentValidationIssue(error)
+    if (!issue) return
+    this.#observationDepth++
+    try {
+      invokeObserver(this.#onValidationError, [issue], observerError => {
+        this.#diagnostics?.emit('command.failed', {
+          operation: 'onValidationError',
+          errorName: this.#diagnostics.errorName(observerError),
+        })
       })
-    })
+    } finally { this.#observationDepth-- }
   }
 
 
@@ -2275,10 +2257,7 @@ export class DocumentRuntime {
 
   #clipboardRichTextPart(html,inline){
     const scan=scanRichTextPlaceholders(html,inline,this.#ownerDocument)
-    const selectedInline={}
-    for(const id of scan.references){
-      if(Object.hasOwn(inline,id))selectedInline[id]=cloneEditorData(inline[id])
-    }
+    const selectedInline=Object.fromEntries([...scan.references].map(id=>[id,cloneEditorData(inline[id])]))
     return {
       kind:'rich-text',
       html,
@@ -2548,7 +2527,7 @@ export class DocumentRuntime {
   }
 
   #recordFromData(id,type,definition,data,tunes,inlineSource){
-    return assembleCanonicalRecord({
+    return this.prepareExtensionValue(() => assembleCanonicalRecord({
       id,
       type,
       definition,
@@ -2558,7 +2537,7 @@ export class DocumentRuntime {
       ownerDocument:this.#ownerDocument,
       normalizeData:(targetDefinition,targetData)=>this.#normalizeLocalData(targetDefinition,targetData),
       normalizeTunes:cloneTunes,
-    })
+    }))
   }
 
   #payloadHasContent(payload){
@@ -2905,6 +2884,8 @@ export class DocumentRuntime {
   }
 
   #mutationPhase() {
+    if (this.#observationDepth) return 'validation-observation'
+    if (this.#preparationDepth) return 'extension-preparation'
     if (this.#projectingPresentation) return 'presentation-projection'
     if (this.#editingProjection) return 'protected-projection-edit'
     if (this.#changingReadOnly) return 'read-only-transition'
@@ -2912,6 +2893,8 @@ export class DocumentRuntime {
   }
 
   #assertHostMutation() {
+    if (this.#observationDepth) throw new Error('Cannot mutate document during validation observation')
+    if (this.#preparationDepth) throw new Error('Cannot mutate document during extension preparation')
     if (this.#destroyed) throw new Error('DocumentRuntime is destroyed')
     if (this.health === 'failed') throw new Error('DocumentRuntime is failed')
     if (this.#projectingPresentation) throw new Error('Cannot mutate document during presentation projection')
@@ -2936,7 +2919,7 @@ export class DocumentRuntime {
   }
 
   #normalizeExternalInline(value) {
-    return decodeCurrentInlineMap(value,{getInlineSchema:type=>this.#registry.getInlineDefinition(type)?.schema})
+    return this.prepareExtensionValue(() => decodeCurrentInlineMap(value,{getInlineSchema:type=>this.#registry.getInlineDefinition(type)?.schema}))
   }
 
   #scanBlockRichText(definition, data, inline) {
@@ -3033,7 +3016,7 @@ export class DocumentRuntime {
         const inlineAuthority = inlineScope.createAuthority({
           readData: () => {
             const record = currentRecord()
-            const ref = record.inline?.[inlineId]
+            const ref = Object.hasOwn(record.inline??{},inlineId)?record.inline[inlineId]:undefined
             if (!ref || ref.type !== inlineType) {
               throw new Error(`Inline widget is no longer active: ${inlineId}`)
             }
