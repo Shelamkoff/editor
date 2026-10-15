@@ -244,8 +244,12 @@ export class InlineToolbar {
             ? native.getRangeAt(0) : null
           const current = range && this.#root.contains(range.startContainer)
             && this.#root.contains(range.endContainer) ? range : null
+          // A selected range spanning editables has a core-owned logical
+          // representation. Native Selection may only expose the clipped
+          // focused field, so it must not supersede that authorized range.
+          const stored = this.#selectionPort?.range ?? null
           return {
-            range: current ?? this.#selectionPort?.range ?? this.#range,
+            range: stored ?? current ?? this.#range,
             bookmark: cloneBookmark(this.#selectionPort?.bookmark
               ?? (current ? this.#selection.capture() : this.#bookmark)),
           }
