@@ -4,7 +4,7 @@ import assert from 'node:assert/strict'
 import { ClipboardController } from './ClipboardController.js'
 import { CLIPBOARD_FRAGMENT_MIME } from './ClipboardFragment.js'
 
-function clipboardHarness({ formats = [], read = () => '', files = [], accepts = null, resolve = null } = {}) {
+function clipboardHarness({ formats = [], read = () => '', files = [], accepts = null, resolve = null, capability = null } = {}) {
   const handlers = new Map()
   const host = { contains: () => true }
   const target = {
@@ -30,6 +30,11 @@ function clipboardHarness({ formats = [], read = () => '', files = [], accepts =
     generation: 1,
     revision: 0,
     get: () => ({ id: 'a', type: 'paragraph' }),
+    interact(_name, operation, selectionAfter) {
+      const result = operation()
+      selectionAfter?.(result)
+      return result
+    },
     prepareExtensionValue(operation) {
       assert.equal(preparing, false)
       preparing = true
@@ -41,7 +46,7 @@ function clipboardHarness({ formats = [], read = () => '', files = [], accepts =
     blockTypes: ['paragraph'],
     getBlockDefinition: () => ({
       capabilities: {
-        paste: {
+        paste: capability ?? {
           accepts(input) { return accepts(input, () => preparing) },
           resolve: resolve ?? (() => new Promise(() => {})),
         },
@@ -52,9 +57,12 @@ function clipboardHarness({ formats = [], read = () => '', files = [], accepts =
     root,
     runtime,
     registry,
-    reconciler: { resolveEditableTarget: () => owner },
+    reconciler: {
+      resolveEditableTarget: () => owner,
+      getEditableFields: () => [{ key: 'text', mode: 'rich-text', element: {} }],
+    },
     selection: { capture: () => bookmark },
-    view: {},
+    view: { reconcileInteraction() {}, setCurrent() {}, focus() {} },
   })
   const reads = []
   const event = {
@@ -140,5 +148,72 @@ test('read-only task revocation rejects a pending resolver completion after edit
     await Promise.resolve()
     await Promise.resolve()
     assert.equal(applied, 0)
+  } finally { fixture.controller.destroy() }
+})
+
+test('chosen resolver is captured once with its receiver before asynchronous work', async () => {
+  let resolverReads = 0
+  let resolutions = 0
+  const capability = {
+    accepts() { return true },
+    get resolve() {
+      resolverReads++
+      if (resolverReads > 1) throw new Error('Late resolver property read')
+      return function () {
+        assert.equal(this, capability)
+        resolutions++
+        return Promise.resolve(null)
+      }
+    },
+  }
+  const fixture = clipboardHarness({
+    formats: ['Files'],
+    files: [{ name: 'file.txt' }],
+    accepts: () => true,
+    capability,
+  })
+  try {
+    fixture.paste()
+    await Promise.resolve()
+    await Promise.resolve()
+    assert.equal(fixture.event.defaultPrevented, true)
+    assert.equal(resolverReads, 1)
+    assert.equal(resolutions, 1)
+  } finally { fixture.controller.destroy() }
+})
+
+test('valid asynchronous file resolution reaches one paste transaction', async () => {
+  let applies = 0
+  const fixture = clipboardHarness({
+    formats: ['Files'],
+    files: [{ name: 'file.txt' }],
+    accepts: () => true,
+    resolve: async () => ({ kind: 'rich-text', replacement: { kind: 'text', text: 'Content' } }),
+  })
+  fixture.runtime.applyPasteResults = (_blockId, _fieldKey, _range, entries) => {
+    assert.equal(entries.length, 1)
+    applies++
+    return { blockId: 'a', inserted: [], focus: { fieldKey: 'text', offset: 7 } }
+  }
+  try {
+    fixture.paste()
+    for (let index = 0; index < 5; index++) await Promise.resolve()
+    assert.equal(fixture.event.defaultPrevented, true)
+    assert.equal(applies, 1)
+  } finally { fixture.controller.destroy() }
+})
+
+test('thenable paste matching cannot fall through to an asynchronous resolver', () => {
+  let resolves = 0
+  const fixture = clipboardHarness({
+    formats: ['Files'],
+    files: [{ name: 'file.txt' }],
+    accepts: () => Promise.resolve(true),
+    resolve() { resolves++; return null },
+  })
+  try {
+    fixture.paste()
+    assert.equal(fixture.event.defaultPrevented, true)
+    assert.equal(resolves, 0)
   } finally { fixture.controller.destroy() }
 })
