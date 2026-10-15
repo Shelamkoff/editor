@@ -136,3 +136,28 @@ test('async action lists and async metadata are rejected with later rejections c
   assert.throws(() => prepare([], { actions: () => thenable }), /synchronously/)
   await new Promise(resolve => setImmediate(resolve))
 })
+
+test('invalid array length from a proxy is rejected before indexed metadata is read', () => {
+  let inspected = 0
+  for (const length of [-1, 0.5, NaN]) {
+    const value = new Proxy([], { get(target, property, receiver) {
+      if (property === 'length') return length
+      if (property === '0') inspected++
+      return Reflect.get(target, property, receiver)
+    } })
+    assert.throws(() => prepare(value), /length/)
+  }
+  assert.equal(inspected, 0)
+})
+
+test('a rejected label is contained before any later metadata getter can fail', async () => {
+  let laterReads = 0
+  const source = {
+    id: 'x', label: label('x'),
+    get compactLabel() { return Promise.reject(new Error('early rejected label')) },
+    get active() { laterReads++; throw new Error('later getter must not run') },
+  }
+  assert.throws(() => prepare([source]), /synchronously/)
+  assert.equal(laterReads, 0)
+  await new Promise(resolve => setImmediate(resolve))
+})
