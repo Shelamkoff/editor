@@ -972,7 +972,9 @@ export function restoreSelectionOffsets(cbs, saved) {
  * @returns {HTMLElement}
  */
 export function createBackButton(ctx) {
-  const ownerDocument = ctx.range.startContainer.ownerDocument
+  const range = ctx.range
+  if (!range) throw new Error('Cannot create a panel Back control without a current selection')
+  const ownerDocument = range.startContainer.ownerDocument
   const backBtn = el('button', 'oe-inline-tool oe-inline-tool--back', { type: 'button' }, ownerDocument)
   setTrustedHtml(backBtn, ICON_BACK)
   const label = ctx.backLabel ?? 'Back'
