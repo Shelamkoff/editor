@@ -1,4 +1,5 @@
 import { createEditor } from '../../core/index.js'
+import { runSettingsActionContracts } from './settings-action-contracts.js'
 import {
   createCarouselPlugin,
   createEmbedPlugin,
@@ -105,10 +106,11 @@ async function run() {
     actionSelector: '.oe-embed__actions',
   })
 
+  const settingsActions = await runSettingsActionContracts()
   await new Promise(resolve => setTimeout(resolve, 30))
   assert(window.__actionLabelProbe === 0, 'an action label payload executed')
   document.querySelector('#sandbox').replaceChildren()
-  return { plugins: ['image', 'gallery', 'carousel', 'embed'], labelMode: 'text', iconMode: 'trusted markup', filledState: true }
+  return { plugins: ['image', 'gallery', 'carousel', 'embed'], labelMode: 'text', iconMode: 'trusted markup', filledState: true, settingsActions }
 }
 
 const result = document.querySelector('#result')
