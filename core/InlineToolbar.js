@@ -1017,7 +1017,7 @@ export class InlineToolbar {
         preserveSourceProjection: formattingIds.length === 1,
       })
     } catch (error) {
-      if (bookmark) this.#restoreSelection(bookmark, range)
+      if (bookmark) this.#restoreSelection(bookmark)
       throw error
     }
 
@@ -1029,28 +1029,18 @@ export class InlineToolbar {
       nextBookmark.anchor = nextBookmark.focus
       nextBookmark.focus = anchor
     }
-    if (nextBookmark) this.#restoreSelection(nextBookmark, range)
+    if (nextBookmark) this.#restoreSelection(nextBookmark)
     this.show()
     return result
   }
 
-  #restoreSelection(bookmark, range = null) {
-    if (bookmark && typeof this.#selectionPort?.restore === 'function') {
-      if (this.#selectionPort.restore(bookmark)) return true
-    }
-    if (bookmark && this.#selection.restore(bookmark)) return true
-    if (range) this.#restoreNativeRange(range)
-    return false
+  #restoreSelection(bookmark) {
+    if (!bookmark?.anchor || !bookmark?.focus) return false
+    if (typeof this.#selectionPort?.restore === 'function'
+      && this.#selectionPort.restore(bookmark)) return true
+    return this.#selection.restore(bookmark) === true
   }
 
-  #restoreNativeRange(range) {
-    const selection = this.#root.ownerDocument.defaultView?.getSelection()
-    if (!selection) return
-    try {
-      selection.removeAllRanges()
-      selection.addRange(range)
-    } catch {}
-  }
 
   #closeActions() {
     this.#actionVersion++
