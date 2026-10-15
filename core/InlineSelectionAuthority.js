@@ -122,6 +122,33 @@ export class InlineSelectionAuthority {
       && Boolean(this.#resolve(captured.anchor) && this.#resolve(captured.focus))
   }
 
+  /** Internal host-only resolution of a settled logical result.
+   * Does not restore focus, publish selection, or rebase an old token. The
+   * caller must already own the successful synchronous transaction result.
+   * @param {{anchor:any,focus:any}} bookmark
+   * @returns {Range|null}
+   */
+  resolveOwnResult(bookmark) {
+    if (!this.#available()) return null
+    return this.#runtime.prepareExtensionValue(() => {
+      const anchor = this.#copyPoint(bookmark?.anchor)
+      const focus = this.#copyPoint(bookmark?.focus)
+      if (!anchor || !focus) return null
+      const a = this.#resolve(anchor)
+      const b = this.#resolve(focus)
+      if (!a || !b) return null
+      const forward = this.#compare(anchor, focus) <= 0
+      const start = forward ? a : b
+      const end = forward ? b : a
+      const range = this.#root.ownerDocument.createRange()
+      try {
+        range.setStart(start.node, start.offset)
+        range.setEnd(end.node, end.offset)
+      } catch { return null }
+      return range
+    })
+  }
+
   /**
    * @param {import('../inline-tools/types').InlineSelectionBookmark} token
    * @param {import('../inline-tools/types').InlineSelectionRestoreOptions} [options]
