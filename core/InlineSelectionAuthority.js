@@ -194,7 +194,12 @@ export class InlineSelectionAuthority {
     const field = this.#reconciler.getEditableField(point.blockId, point.fieldKey)
     if (!field || field.mode !== 'rich-text' || !field.element
       || !this.#root.contains(field.element) || !field.element.isConnected) return null
-    const length = getTextLength(field.element)
+    const element = field.element
+    if (element.contentEditable !== 'true' && element.getAttribute?.('contenteditable') !== 'true') return null
+    if (element.hidden || element.closest?.('[hidden],[inert]')) return null
+    const style = element.ownerDocument?.defaultView?.getComputedStyle?.(element)
+    if (style?.display === 'none' || style?.visibility === 'hidden' || style?.visibility === 'collapse') return null
+    const length = getTextLength(element)
     if (point.offset < 0 || point.offset > length) return null
     const resolved = findNodeAtOffset(field.element, point.offset, 'end')
     if (!resolved || isWidgetEndpoint(resolved.node)) return null
