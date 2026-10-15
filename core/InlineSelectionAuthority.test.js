@@ -10,6 +10,7 @@ function fixture() {
     isConnected: true,
     childNodes: [],
     closest() { return null },
+    hasAttribute() { return false },
     contains(node) { return node === this || this.childNodes.includes(node) },
   }
   const text = {
