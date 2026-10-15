@@ -1,5 +1,6 @@
 // @ts-check
 import { invokeObserver } from '../shared/invokeObserver.js'
+import { synchronousResult } from '../shared/synchronousResult.js'
 
 export class InlinePopupHost {
   #root
@@ -15,25 +16,39 @@ export class InlinePopupHost {
   #naturalHeight=0
   #generation=0
   #destroyed=false
+  #observe
+  #presentation=null
 
-  constructor({root,isReadOnly=()=>false}){
+  constructor({root,isReadOnly=()=>false,observe=operation=>operation()}){
     if(!root?.ownerDocument)throw new TypeError('InlinePopupHost requires an editor root')
     this.#root=root
     this.#document=root.ownerDocument
     this.#view=this.#document.defaultView
     this.#isReadOnly=isReadOnly
+    this.#observe=observe
   }
 
-  showPopup(anchor,content,cleanup){
-    if(this.#destroyed||this.#isReadOnly()||!this.#root.contains(anchor)){
+  showPopup(owner,anchor,content,cleanup){
+    const ElementCtor=this.#view?.HTMLElement
+    if(!ElementCtor||!(anchor instanceof ElementCtor)||!(content instanceof ElementCtor)
+      ||anchor.ownerDocument!==this.#document||content.ownerDocument!==this.#document
+      ||content===this.#root||content.contains(this.#root)
+      ||(cleanup!==undefined&&typeof cleanup!=='function')){
+      throw new TypeError('Popup requires owning-document HTML elements and optional cleanup function')
+    }
+    const presentation={owner}
+    const handle=Object.freeze({close:()=>{
+      if(this.#presentation===presentation)this.hidePopup()
+    }})
+    if(this.#destroyed||this.#isReadOnly()||!this.#root.isConnected||!this.#root.contains(anchor)){
       this.#runCleanup(cleanup)
-      return
+      return handle
     }
     const generation=++this.#generation
     this.#hide()
-    if(generation!==this.#generation||this.#destroyed||this.#isReadOnly()||!this.#root.contains(anchor)){
+    if(generation!==this.#generation||this.#destroyed||this.#isReadOnly()||!this.#root.isConnected||!this.#root.contains(anchor)){
       this.#runCleanup(cleanup)
-      return
+      return handle
     }
 
     const popup=this.#document.createElement('div')
@@ -44,6 +59,7 @@ export class InlinePopupHost {
     this.#popup=popup
     this.#anchor=anchor
     this.#cleanup=cleanup??null
+    this.#presentation=presentation
     this.#position()
 
     const Ctor=this.#view?.AbortController??AbortController
@@ -71,6 +87,7 @@ export class InlinePopupHost {
       }
       this.#document.addEventListener('mousedown',this.#outside,true)
     })
+    return handle
   }
 
   hidePopup(){
@@ -116,6 +133,7 @@ export class InlinePopupHost {
   }
 
   #hide(){
+    this.#presentation=null
     this.#positionController?.abort()
     this.#positionController=null
     this.#naturalHeight=0
@@ -134,6 +152,7 @@ export class InlinePopupHost {
   }
 
   #runCleanup(cleanup){
-    invokeObserver(cleanup,[],error=>console.error('Inline popup cleanup failed',error))
+    if(typeof cleanup!=='function')return
+    this.#observe(()=>invokeObserver(()=>synchronousResult(cleanup()),[],error=>console.error('Inline popup cleanup failed',error)))
   }
 }

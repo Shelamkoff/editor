@@ -39,7 +39,7 @@ export interface OutputBlockData<
  */
 export interface InlineWidget<
     Type extends string = string,
-    Data extends Record<string, unknown> = Record<string, unknown>
+    Data extends object = object
 > extends EditorInlineWidget<Type, Data> {}
 
 // ── Block Data Types ────────────────────────────────────────────────────────
@@ -452,7 +452,7 @@ export interface RendererConfig {
 
 /** Read-only projection contract for one canonical inline-widget type. */
 export interface InlineWidgetRenderer<
-    Data extends Record<string, unknown> = Record<string, unknown>
+    Data extends object = object
 > {
     readonly type: string
     readonly styles?: readonly string[]

@@ -1,6 +1,6 @@
 /** Pure versioned schema shared by editor plugins and renderers. */
 export interface BlockDataSchema<
-  D extends Record<string, unknown> = Record<string, unknown>
+  D extends object = object
 > {
   readonly currentVersion: number
   createDefault(): D
@@ -43,7 +43,7 @@ export interface BlockPluginRuntimeContext {
 
 /** Revocable authority for one asynchronous persisted-data operation. */
 export interface DataTask<
-  D extends Record<string, unknown> = Record<string, unknown>
+  D extends object = object
 > {
   readonly signal: AbortSignal
   commit(producer: (current: Readonly<D>) => D): boolean
@@ -52,7 +52,7 @@ export interface DataTask<
 
 /** Block-scoped mutation/lifecycle services supplied to one instance. */
 export interface BlockInstanceContext<
-  D extends Record<string, unknown> = Record<string, unknown>
+  D extends object = object
 > extends DataOperationContext {
   readonly ownerDocument: Document
   readonly signal: AbortSignal
@@ -67,7 +67,7 @@ export interface BlockInstanceContext<
 
 /** One mounted block occurrence. Mutable state belongs here, not on the definition. */
 export interface BlockInstance<
-  D extends Record<string, unknown> = Record<string, unknown>
+  D extends object = object
 > {
   readonly element: HTMLElement
   /** Detached candidate membership/order and controls; core owns rich DOM synchronization. */
@@ -81,7 +81,7 @@ export interface BlockInstance<
 
 /** Per-editor runtime created from one reusable immutable definition. */
 export interface BlockPluginRuntime<
-  D extends Record<string, unknown> = Record<string, unknown>
+  D extends object = object
 > {
   create(initial: Readonly<D>, context: BlockInstanceContext<D>): BlockInstance<D>
   destroy(): void
@@ -89,7 +89,7 @@ export interface BlockPluginRuntime<
 
 /** Reusable immutable block plugin v2 definition. */
 export interface BlockPluginDefinition<
-  D extends Record<string, unknown> = Record<string, unknown>
+  D extends object = object
 > {
   readonly type: string
   readonly label: Readonly<{ key: string, fallback: string }>
@@ -103,7 +103,7 @@ export interface BlockPluginDefinition<
 
 
 /** Pure empty-state capability used by generic structural commands. */
-export interface EmptyCapability<D extends Record<string, unknown>> {
+export interface EmptyCapability<D extends object> {
   isEmpty(data: Readonly<D>): boolean
 }
 
@@ -113,7 +113,7 @@ export interface FormattingCapability {
 }
 
 /** Pure data merge capability. */
-export interface MergeCapability<D extends Record<string, unknown>> {
+export interface MergeCapability<D extends object> {
   merge(target: Readonly<D>, source: Readonly<D>): D
 }
 
@@ -124,7 +124,7 @@ export interface ConversionPayload {
 }
 
 /** Pure block conversion capability. */
-export interface ConversionCapability<D extends Record<string, unknown>> {
+export interface ConversionCapability<D extends object> {
   /** Cross-block selection becomes one default target, or imports each source fragment. Defaults to single. */
   selectionMode?: 'single' | 'per-block'
   export(data: Readonly<D>): ConversionPayload
@@ -135,7 +135,7 @@ export interface ConversionCapability<D extends Record<string, unknown>> {
 }
 
 /** Capabilities implemented independently from mounted block lifecycle. */
-export interface BlockCapabilities<D extends Record<string, unknown>> {
+export interface BlockCapabilities<D extends object> {
   empty?: EmptyCapability<D>
   formatting?: FormattingCapability
   merge?: MergeCapability<D>
@@ -167,17 +167,17 @@ export interface ClipboardSliceContext extends DataOperationContext {
   field(fieldKey: string): SelectedFieldSlice | null
 }
 
-export type ClipboardSlicePart<D extends Record<string, unknown>> =
+export type ClipboardSlicePart<D extends object> =
   | { kind: 'local-block', data: D }
   | { kind: 'rich-text', html: string }
 
-export interface ClipboardSlice<D extends Record<string, unknown>> {
+export interface ClipboardSlice<D extends object> {
   readonly parts: readonly ClipboardSlicePart<D>[]
   readonly remaining: D | null
   readonly focus: FocusTarget | null
 }
 
-export interface ClipboardCapability<D extends Record<string, unknown>> {
+export interface ClipboardCapability<D extends object> {
   slice(data: Readonly<D>, context: ClipboardSliceContext): ClipboardSlice<D>
 }
 
@@ -186,7 +186,7 @@ export interface HtmlImportContext extends DataOperationContext {
   serializeRichText(node: Node): string
 }
 
-export interface HtmlImportCapability<D extends Record<string, unknown>> {
+export interface HtmlImportCapability<D extends object> {
   matchesRoot(element: Element): boolean
   importRoot(element: Element, context: HtmlImportContext): D
 }
@@ -198,13 +198,13 @@ export interface SelectionSliceContext extends DataOperationContext {
   ): { before: string, selected: string, after: string } | null
 }
 
-export interface SelectionSliceResult<D extends Record<string, unknown>> {
+export interface SelectionSliceResult<D extends object> {
   before: D | null
   selected: ConversionPayload
   after: D | null
 }
 
-export interface SelectionSliceCapability<D extends Record<string, unknown>> {
+export interface SelectionSliceCapability<D extends object> {
   slice(
     data: Readonly<D>,
     start: LogicalFieldPoint,
@@ -225,7 +225,7 @@ export interface BlockShortcutInput {
   readonly fieldLength: number
 }
 
-export type BlockShortcutAction<D extends Record<string, unknown>> =
+export type BlockShortcutAction<D extends object> =
   | { kind: 'native' }
   | { kind: 'consume' }
   | { kind: 'exit', data?: D }
@@ -241,7 +241,7 @@ export interface ShortcutOperationContext extends DataOperationContext {
   } | null
 }
 
-export interface ShortcutCapability<D extends Record<string, unknown>> {
+export interface ShortcutCapability<D extends object> {
   handle(
     input: BlockShortcutInput,
     data: Readonly<D>,
@@ -251,7 +251,7 @@ export interface ShortcutCapability<D extends Record<string, unknown>> {
 
 /** Pure versioned schema for canonical inline-widget payloads. */
 export interface InlineWidgetSchema<
-  D extends Record<string, unknown> = Record<string, unknown>
+  D extends object = object
 > {
   readonly currentVersion: number
   createDefault(): D
@@ -275,18 +275,18 @@ export interface InlineWidgetEditInput {
   readonly deletionRange?: Readonly<{ start: number, end: number }>
 }
 
-export type InlineWidgetEditAction<D extends Record<string, unknown>> =
+export type InlineWidgetEditAction<D extends object> =
   | { kind: 'update', data: D }
   | { kind: 'remove' }
   | { kind: 'replace-text', text: string }
 
-export interface InlineWidgetEditCapability<D extends Record<string, unknown>> {
+export interface InlineWidgetEditCapability<D extends object> {
   handle(input: InlineWidgetEditInput, data: Readonly<D>): InlineWidgetEditAction<D> | null
 }
 
 /** One mounted interactive inline widget occurrence. */
 export interface InlineWidgetInstance<
-  D extends Record<string, unknown> = Record<string, unknown>
+  D extends object = object
 > {
   readonly element: HTMLElement
   update?(next: Readonly<D>, previous: Readonly<D>): void
@@ -297,7 +297,7 @@ export interface InlineWidgetInstance<
 
 /** Widget-scoped mutation/lifecycle services. */
 export interface InlineWidgetContext<
-  D extends Record<string, unknown> = Record<string, unknown>
+  D extends object = object
 > {
   readonly id: string
   readonly blockId: string
@@ -305,13 +305,14 @@ export interface InlineWidgetContext<
   readonly signal: AbortSignal
   getData(): Readonly<D>
   updateData(producer: (current: Readonly<D>) => D, options?: { trailingText?: string }): void
+  commitDomMutation(operation: () => void): void
   beginTask(): DataTask<D>
   isReadOnly(): boolean
 }
 
 /** Trigger/autocomplete session owned by an inline plugin runtime. */
 export interface InlineTriggerSession<
-  D extends Record<string, unknown> = Record<string, unknown>
+  D extends object = object
 > {
   readonly blockId: string
   readonly fieldKey: string
@@ -322,18 +323,22 @@ export interface InlineTriggerSession<
   cancel(): void
 }
 
+/** Revocable close capability for exactly one popup presentation. */
+export interface InlinePopupHandle {
+  close(): void
+}
+
 /** Editor-scoped services for one inline-plugin definition. */
 export interface InlinePluginRuntimeContext {
   readonly ownerDocument: Document
   readonly signal: AbortSignal
   t(key: string, fallback?: string, params?: Record<string, string | number>): string
-  showPopup(anchor: HTMLElement, content: HTMLElement, cleanup?: () => void): void
-  hidePopup(): void
+  showPopup(anchor: HTMLElement, content: HTMLElement, cleanup?: () => void): InlinePopupHandle
 }
 
 /** Per-editor inline runtime. */
 export interface InlinePluginRuntime<
-  D extends Record<string, unknown> = Record<string, unknown>
+  D extends object = object
 > {
   create(
     id: string,
@@ -347,18 +352,18 @@ export interface InlinePluginRuntime<
 }
 
 /** Programmatic fresh insertion result. */
-export type InlineFreshInsertion<D extends Record<string, unknown>> =
+export type InlineFreshInsertion<D extends object> =
   | { kind: 'widget', data: D }
   | { kind: 'text', text: string }
 
-export interface InlineWidgetPasteCapability<D extends Record<string, unknown>> {
+export interface InlineWidgetPasteCapability<D extends object> {
   readonly patterns: readonly RegExp[]
   fromMatch(match: string): D | null
 }
 
 /** Immutable inline-plugin v2 definition. */
 export interface InlinePluginDefinition<
-  D extends Record<string, unknown> = Record<string, unknown>
+  D extends object = object
 > {
   readonly type: string
   readonly label: Readonly<{ key: string, fallback: string }>
@@ -387,7 +392,7 @@ export interface LocalizedLabel {
 }
 
 export interface ToolboxItemDefinition<
-  D extends Record<string, unknown> = Record<string, unknown>
+  D extends object = object
 > {
   id: string
   label: LocalizedLabel
@@ -408,7 +413,7 @@ export interface SettingsAction {
   disabled?: boolean
 }
 
-export interface SettingsActionCapability<D extends Record<string, unknown>> {
+export interface SettingsActionCapability<D extends object> {
   kind: 'actions'
   /** Localized group name used by the inline control trigger. */
   readonly label?: LocalizedLabel
@@ -416,18 +421,18 @@ export interface SettingsActionCapability<D extends Record<string, unknown>> {
   apply(data: Readonly<D>, actionId: string, context: DataOperationContext): D
 }
 
-export interface SettingsPanelContext<D extends Record<string, unknown>>
+export interface SettingsPanelContext<D extends object>
   extends ExtensionUiContext {
   getData(): Readonly<D>
   updateData(producer: (current: Readonly<D>) => D): void
 }
 
-export interface SettingsPanelCapability<D extends Record<string, unknown>> {
+export interface SettingsPanelCapability<D extends object> {
   kind: 'panel'
   render(context: SettingsPanelContext<D>): HTMLElement
 }
 
-export type SettingsCapability<D extends Record<string, unknown>> =
+export type SettingsCapability<D extends object> =
   | SettingsActionCapability<D>
   | SettingsPanelCapability<D>
 
@@ -440,11 +445,11 @@ export interface PasteResolveContext extends DataOperationContext {
   readonly ownerDocument: Document
 }
 
-export type PasteResult<D extends Record<string, unknown>> =
+export type PasteResult<D extends object> =
   | { kind: 'block', data: D }
   | { kind: 'rich-text', replacement: { kind: 'text', text: string } | { kind: 'html', html: string } }
 
-export interface PasteCapability<D extends Record<string, unknown>> {
+export interface PasteCapability<D extends object> {
   accepts(input: PasteInput): boolean
   resolve(
     input: PasteInput,

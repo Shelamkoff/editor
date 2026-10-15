@@ -279,6 +279,12 @@ declare const rendererConfig: RendererConfig
 void [publicEditor, editorConfig, blockPlugin, inlinePlugin, output, paragraph, rendererConfig]
 `
   await writeFile(join(consumerRoot, 'src/main.ts'), consumerTypeSource, 'utf8')
+  const extensionConsumer = (await readFile(join(editorRoot, 'tests/types/extensibility-consumer.ts'), 'utf8'))
+    .replaceAll('../../.package-tmp/declaration-tests/core/index.js', '@shelamkoff/rector')
+    .replaceAll('../../.package-tmp/declaration-tests/renderer/index.js', '@shelamkoff/rector/renderer')
+    .replaceAll('../../.package-tmp/declaration-tests/renderer/types.js', '@shelamkoff/rector/renderer/types')
+    .replaceAll('../../.package-tmp/declaration-tests/plugin-kit/index.js', '@shelamkoff/rector/plugin-kit')
+  await writeFile(join(consumerRoot, 'src/extensibility.ts'), extensionConsumer, 'utf8')
   await writeFile(join(consumerRoot, 'index.html'), '<script type="module" src="/src/main.js"></script>\n', 'utf8')
 
   for (const moduleResolution of ['Bundler', 'NodeNext']) {
@@ -291,7 +297,7 @@ void [publicEditor, editorConfig, blockPlugin, inlinePlugin, output, paragraph, 
         noEmit: true,
         skipLibCheck: false,
       },
-      include: ['src/main.ts'],
+      include: ['src/main.ts', 'src/extensibility.ts'],
     })
     run(node, [tscCli, '-p', `tsconfig.${moduleResolution.toLowerCase()}.json`], consumerRoot)
   }

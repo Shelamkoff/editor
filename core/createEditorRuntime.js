@@ -260,6 +260,7 @@ export function createEditorRuntime(input){
   const popup=lifecycle.register(new InlinePopupHost({
     root,
     isReadOnly:()=>runtime?.readOnly??(config.readOnly===true),
+    observe:operation=>runtime?runtime.observeExtension(operation):operation(),
   }))
 
   const registry=lifecycle.register(new ExtensionRegistry({
@@ -273,8 +274,7 @@ export function createEditorRuntime(input){
       const translated=i18n.t(key,params)
       return translated===key?fallback:translated
     },
-    showPopup:(anchor,content,cleanup)=>popup.showPopup(anchor,content,cleanup),
-    hidePopup:()=>popup.hidePopup(),
+    showPopup:(owner,anchor,content,cleanup)=>popup.showPopup(owner,anchor,content,cleanup),
   }))
 
   const styles=config.injectStyles===false?null:lifecycle.register(acquireStyleUrls(CORE_STYLE_URLS,document))
@@ -388,6 +388,8 @@ export function createEditorRuntime(input){
     commands:inlineCommands,
     isComposing:()=>nativeInput.isComposing,
     projection:inlineProjection,
+    observe:operation=>runtime.observeExtension(operation),
+    reportError:error=>reportDiagnostic('command.failed','inline-trigger.cancel',error),
   }))
   triggerController=triggers
 

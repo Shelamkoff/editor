@@ -5,6 +5,7 @@ import { InstanceScope } from './InstanceScope.js'
 import { captureInstanceMethod, captureInstanceDestroy } from './instanceMethods.js'
 import { ProjectionAnimator } from './ProjectionAnimator.js'
 import { captureEditableFields } from './projectionFields.js'
+import { synchronousResult } from '../shared/synchronousResult.js'
 
 function sameJson(left, right) {
   try { return JSON.stringify(left) === JSON.stringify(right) } catch { return false }
@@ -20,6 +21,7 @@ function hasStructuralChange(changes) {
 }
 
 function snapshotBlockInstance(source, type, destroySource) {
+  synchronousResult(source)
   if (!source || typeof source !== 'object' || Array.isArray(source)) {
     throw new TypeError(`Block runtime "${type}" returned an invalid instance`)
   }
@@ -154,8 +156,15 @@ export class BlockReconciler {
   focus(id, target) {
     const entry = this.#entries.get(id)
     if (!entry || entry.unregistered || typeof entry.instance.focus !== 'function') return false
-    entry.instance.focus(target)
-    return true
+    try {
+      return this.#projectPresentation(() => {
+        entry.instance.focus(target)
+        return true
+      })
+    } catch (error) {
+      console.error('Block focus failed', error)
+      return false
+    }
   }
 
   getEditableFields(id) {

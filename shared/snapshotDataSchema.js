@@ -1,6 +1,7 @@
 // @ts-check
 import { cloneEditorData } from './cloneEditorData.js'
 import { markDocumentValidationFailure, schemaValidationBoundary } from './documentValidationIssue.js'
+import { synchronousResult } from './synchronousResult.js'
 
 function ownObject(value, label) {
   const owned = cloneEditorData(value)
@@ -13,7 +14,7 @@ function ownObject(value, label) {
 function bindMethod(receiver, method, label, { optional = false } = {}) {
   if (method === undefined && optional) return undefined
   if (typeof method !== 'function') throw new TypeError(`${label} must be a function`)
-  return (...args) => Reflect.apply(method, receiver, args)
+  return (...args) => synchronousResult(Reflect.apply(method, receiver, args))
 }
 
 /**
@@ -64,15 +65,15 @@ export function snapshotDataSchema(source, label, { richText = false, validateDe
         const result = decode({
           dataVersion: currentVersion,
           data: cloneEditorData(candidate.data),
-      })
-      if (!result || typeof result !== 'object' || Array.isArray(result)
-          || result.dataVersion !== currentVersion) {
-        throw new TypeError(`${label} schema decode() must preserve currentVersion`)
-      }
-      return {
-        dataVersion: currentVersion,
-        data: ownObject(result.data, `${label} schema decoded data`),
-      }
+        })
+        if (!result || typeof result !== 'object' || Array.isArray(result)
+            || result.dataVersion !== currentVersion) {
+          throw new TypeError(`${label} schema decode() must preserve currentVersion`)
+        }
+        return {
+          dataVersion: currentVersion,
+          data: ownObject(result.data, `${label} schema decoded data`),
+        }
       })
     },
 

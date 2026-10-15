@@ -56,6 +56,10 @@ The inherited `createId(prefix)` allocator creates nested stable identities.
 
 ## Schema
 
+Payload generics use `D extends object = object`: ordinary interfaces do not need index signatures. Schemas, definitions, contexts/tasks and paired renderers accept the same interface type, including host insertion/update inputs. This typing does not relax JSON validation: root arrays, class instances, cycles, undefined properties and nonfinite numbers still reject.
+
+Schema/capability hooks, `setup()`, `create()` and instance methods must complete synchronously. Promise/callable-thenable results and throwing `then` getters fail at their owner; projection changes recover before canonical commit. Void hooks may return ignored synchronous values. Keep asynchronous persisted work in `beginTask()`; declared paste resolvers retain their asynchronous contract. Lifecycle cleanup revokes authority first and contains failures without skipping independent cleanup.
+
 `BlockDataSchema` owns `currentVersion`, `createDefault()`, exact-version `decode()`, `encode()`, and optional `mapRichText()`.
 
 Decode external input once at the boundary. Encode every model-first update before commit. `mapRichText()` identifies every HTML-bearing field by a stable logical field key; it is also the boundary used by inline widgets, structural selection and partial conversion.

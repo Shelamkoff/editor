@@ -23,6 +23,24 @@ function documentStub() {
   }
 }
 
+for (const completion of ['promise', 'callable thenable', 'throwing then']) {
+  test('registry rejects ' + completion + ' setup and releases captured cleanup', async () => {
+    const ownerDocument = documentStub()
+    let destroyed = 0
+    const failure = new Error('Then getter failed')
+    const source = completion === 'promise' ? Promise.reject(new Error('Late setup failure'))
+      : completion === 'callable thenable' ? Object.assign(() => {}, { then(_resolve, reject) { reject(new Error('Late callable failure')) } })
+        : { get then() { throw failure } }
+    Object.assign(source, { destroy() { destroyed++ }, create() { throw new Error('Must not activate') } })
+    const definition = { ...blockDefinition('probe'), styles: ['/probe.css'], setup() { return source } }
+    assert.throws(() => new ExtensionRegistry({ ownerDocument, blocks: [definition] }),
+      completion === 'throwing then' ? error => error === failure : /synchronous/)
+    assert.equal(destroyed, 1)
+    assert.equal(ownerDocument.links.length, 0)
+    await new Promise(resolve => setImmediate(resolve))
+  })
+}
+
 function blockDefinition(type, options = {}) {
   const calls = options.calls ?? []
   return Object.freeze({

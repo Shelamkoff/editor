@@ -75,6 +75,7 @@ export function createColorSwatchPlugin(){
           let data={...initial}
           let readOnly=context.isReadOnly()
           let dead=false
+          let popupHandle=null
 
           const project=next=>{
             data={...next}
@@ -87,14 +88,16 @@ export function createColorSwatchPlugin(){
 
           const open=()=>{
             if(readOnly||dead)return
+            popupHandle?.close()
             const canonical=context.getData().value
             let committed=false
+            let handle=null
             const picker=createOwnedColorPicker(document,{
               onApply(cssColor){
                 const next=displayValue(cssColor,document)
                 context.updateData(()=>({value:next}))
                 committed=true
-                runtimeContext.hidePopup()
+                handle?.close()
                 if(!dead&&!readOnly&&span.isConnected)span.focus()
               },
               onChange(cssColor){
@@ -116,16 +119,18 @@ export function createColorSwatchPlugin(){
               if(event.key!=='Escape')return
               event.preventDefault()
               event.stopPropagation()
-              runtimeContext.hidePopup()
+              handle?.close()
               if(!dead&&!readOnly&&span.isConnected)span.focus()
             }
             surface.addEventListener('keydown',onKeyDown,true)
-            runtimeContext.showPopup(span,surface,()=>{
+            handle=runtimeContext.showPopup(span,surface,()=>{
+              if(popupHandle===handle)popupHandle=null
               surface.removeEventListener('keydown',onKeyDown,true)
               try{
                 if(!committed&&!dead&&!context.signal.aborted)project(context.getData())
               }finally{picker.destroy()}
             })
+            popupHandle=handle
           }
 
           span.addEventListener('click',event=>{
@@ -148,9 +153,9 @@ export function createColorSwatchPlugin(){
           return {
             element:span,
             update(next){if(!dead)project(next)},
-            setReadOnly(value){readOnly=value;project(data)},
+            setReadOnly(value){readOnly=value;if(value)popupHandle?.close();project(data)},
             focus(){if(!dead&&!readOnly)span.focus()},
-            destroy(){dead=true},
+            destroy(){dead=true;popupHandle?.close();popupHandle=null},
           }
         },
         destroy(){destroyed=true},

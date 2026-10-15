@@ -18,7 +18,7 @@ export interface DocumentValidationIssue {
 /** Opaque data owned by one committed inline widget instance. */
 export interface EditorInlineWidget<
   Type extends string = string,
-  Data extends Record<string, unknown> = Record<string, unknown>,
+  Data extends object = object,
 > {
   type: Type
   /** Exact current schema version of this inline widget's persisted data. */
@@ -29,7 +29,7 @@ export interface EditorInlineWidget<
 /** Canonical persisted block shape shared by the editor and document renderer. */
 export interface EditorBlockData<
   Type extends string = string,
-  Data extends object = Record<string, unknown>,
+  Data extends object = object,
 > {
   id: string
   type: Type

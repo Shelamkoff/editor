@@ -34,9 +34,24 @@ Verification:
 - Red/green evidence covers caught falsy nested throws, misleading schema exceptions in editor and renderer, validation-observer producer reentry, unguarded public insert accessors and local normalization reentry.
 - Node and package checks must run sequentially because both rebuild `dist`. An initial concurrent run collided there; a subsequent package attempt hit a transient Windows temporary-file lock. The final isolated reruns above passed.
 
+## Slice 3 — synchronous extensions, public payloads and popup ownership
+
+Implemented synchronous completion checks in existing registry/schema/acquisition/instance owners, cleanup-before-inspection and protected DOM completion recovery. Live presentation uses the common preparation depth. Public payload generics/defaults and host data inputs accept ordinary object interfaces while dictionaries and JSON validation retain their existing meaning. Inline contexts explicitly expose their nine supported members, including declared `commitDomMutation`, without incidental allocation authority.
+
+Popup runtime adapters bind private owners and return frozen per-show close handles. Stale handles are inert, malformed requests preserve the active popup, and retired cleanup runs under observation authority. Mention/Color and native test consumers use initiating handles; Mention's scroll callback is tied to its originating popup. Terminal trigger cancellation containment was completed here to keep the newly checked hook contract coherent; slice 8 still owns native reconciliation and the remaining independent control fan-out.
+
+Verification:
+
+- `npm test`: 587 passed.
+- `npm run typecheck` and `npm run test:types`: passed; the complete interface-based block/widget/renderer consumer compiles under Bundler and NodeNext.
+- `node tests/browser/run.mjs`: all 26 page suites passed; focused final runtime (36 cases) and Mention/session-race reruns passed.
+- Native Color popup: 8 passed; Mention popup: 55 passed; final projection/read-only audit: 49 passed.
+- `npm run test:docs`: passed.
+- `npm run test:package`: passed for the final source, including the new complete consumer imported only through published package entries in both TypeScript modes.
+- Red/green evidence covers async ordinary projection commit, absent popup handles and interface payload/DOM contract failures. Acquisition checks cover Promise, callable thenable and throwing `then`, captured cleanup and style release. Descriptor capture also rejects an overridden-array-method validation bypass.
+
 ## Remaining slices
 
-3. Synchronous extension contracts, object payload types and popup ownership.
 4a. Captured draft and immediate commands.
 4b. Shared range/clipboard planning and private handles.
 4c. Guarded ingress dispatch and clipboard task lifetime.

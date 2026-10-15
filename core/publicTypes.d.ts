@@ -44,13 +44,13 @@ export interface EditorBlockSnapshot {
 }
 
 export interface BlockUpdate {
-  data?: Record<string, unknown>
+  data?: object
   tunes?: BlockTunes | null
 }
 
 export interface InsertBlockInput {
   type: string
-  data?: Record<string, unknown>
+  data?: object
   tunes?: BlockTunes
   inline?: Record<string, EditorInlineWidget>
 }
@@ -194,7 +194,7 @@ export interface IEditor {
   redo(): boolean
   focus(): boolean
   setReadOnly(readOnly: boolean): void
-  insertInlinePlugin(type: string, data?: Record<string, unknown>): boolean
+  insertInlinePlugin(type: string, data?: object): boolean
   on<K extends keyof EditorEventMap>(type: K, listener: (payload: EditorEventMap[K]) => void | Promise<void>): () => void
   destroy(): void
 }

@@ -1,4 +1,5 @@
 // @ts-check
+import { synchronousResult } from '../shared/synchronousResult.js'
 
 /** Capture one runtime or instance method with its original receiver.
  * @param {any} source
@@ -7,7 +8,7 @@
  */
 export function captureInstanceMethod(source, name) {
   const method = source?.[name]
-  return typeof method === 'function' ? (...args) => Reflect.apply(method, source, args) : undefined
+  return typeof method === 'function' ? (...args) => synchronousResult(Reflect.apply(method, source, args)) : undefined
 }
 
 /** Capture cleanup before inspecting other instance members, and run it once.

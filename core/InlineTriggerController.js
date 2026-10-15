@@ -1,4 +1,6 @@
 // @ts-check
+import { invokeObserver } from '../shared/invokeObserver.js'
+import { synchronousResult } from '../shared/synchronousResult.js'
 
 export class InlineTriggerController {
   #root
@@ -11,8 +13,11 @@ export class InlineTriggerController {
   #controller
   #active=null
   #triggers=[]
+  #observe
+  #reportError
 
-  constructor({root,registry,reconciler,selection,commands,isComposing=()=>false,projection=null}){
+  constructor({root,registry,reconciler,selection,commands,isComposing=()=>false,projection=null,
+    observe=operation=>operation(),reportError=error=>console.error('Inline trigger cancellation failed',error)}){
     if(!root?.addEventListener)throw new TypeError('InlineTriggerController requires an editor root')
     this.#root=root
     this.#registry=registry
@@ -21,6 +26,8 @@ export class InlineTriggerController {
     this.#commands=commands
     this.#isComposing=isComposing
     this.#projection=projection
+    this.#observe=observe
+    this.#reportError=reportError
     this.#triggers=registry.inlineTypes.flatMap(type=>{
       const definition=registry.getInlineDefinition(type)
       return definition?.trigger?[{type,trigger:definition.trigger,definition,runtime:registry.getInlineRuntime(type)}]:[]
@@ -213,7 +220,7 @@ export class InlineTriggerController {
   #cancel(){
     const active=this.#active
     this.#active=null
-    if(active)active.runtime.onTriggerCancel?.()
+    if(active)this.#observe(()=>invokeObserver(()=>synchronousResult(active.runtime.onTriggerCancel?.()),[],this.#reportError))
   }
 
   #collapsedIn(bookmark,owner){

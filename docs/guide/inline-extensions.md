@@ -62,13 +62,17 @@ The host sets and maintains `data-inline-plugin` and `data-id` on the instance's
 
 After full schema normalization, canonical assembly counts owned references in text nodes across every rich field, including hidden fields. Duplicate owned occurrences reject the edit. Attribute tokens and unowned literal tokens do not count. Referenced unloaded payloads survive; only unreferenced entries are pruned during semantic edits.
 
-`InlinePluginRuntimeContext` provides `ownerDocument`, `signal`, `t(key, fallback, params?)`, `showPopup(anchor, content, cleanup)`, and `hidePopup()`. Translation parameters replace placeholders such as `{level}` through the editor's shared dictionary.
+`InlinePluginRuntimeContext` provides `ownerDocument`, `signal`, `t(key, fallback, params?)`, and `showPopup(anchor, content, cleanup?)`. Translation parameters replace placeholders such as `{level}` through the editor's shared dictionary. `showPopup()` returns a frozen `{ close(): void }` handle for that presentation. Retain the initiating handle in callbacks; closing a stale handle cannot close a successor or another extension's popup. The host closes popups on outside click, anchor removal, read-only transition and destruction.
+
+Anchor/content must be HTML elements from the owning document and cleanup must be a function when supplied. Invalid arguments reject before replacement. An unavailable anchor or interaction returns an already closed handle and attempts cleanup once. Cleanup runs after retirement under observation authority; it cannot mutate the document, controls or tasks. Errors and asynchronous completion are contained. A newer popup opened by reentrant cleanup wins over the superseded outer request.
 
 `InlinePluginRuntime` provides `create(id, initial, context)`, optional `onTriggerQuery(session)`, optional `onTriggerKeydown(event, session)`, optional `onTriggerCancel()`, and `destroy()`.
 
 Each `create()` returns an `InlineWidgetInstance` with `element`, optional `update(next, previous)`, `setReadOnly(readOnly)`, optional `focus()`, and `destroy()`.
 
-`InlineWidgetContext` provides `id`, `blockId`, `fieldKey`, `signal`, `getData()`, `updateData(producer)`, `beginTask()`, and `isReadOnly()`.
+`InlineWidgetContext` provides exactly `id`, `blockId`, `fieldKey`, `signal`, `getData()`, `updateData(producer)`, `commitDomMutation(operation)`, `beginTask()`, and `isReadOnly()`. Inline ID allocation remains with the host.
+
+`commitDomMutation()` synchronously edits the owning registered rich field/occurrence, then core serializes the complete block into the existing transaction. A canonical change creates one Undo step; an equal result creates none. Failure, a Promise/thenable or a throwing `then` accessor restores the committed projection and selection; failed recovery retains failed-health behavior. Revoked/read-only/unhealthy scopes do not invoke the callback; staged or protected reentry rejects before invocation. Use `updateData()` for payload changes and `beginTask()` for asynchronous work. Do not schedule later DOM work from the protected callback.
 
 ## Trigger sessions
 

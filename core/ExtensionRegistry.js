@@ -3,6 +3,8 @@ import { cloneEditorData } from '../shared/cloneEditorData.js'
 import { snapshotDataSchema as snapshotSchema } from '../shared/snapshotDataSchema.js'
 import { acquireStyleUrls } from '../shared/styleRegistry.js'
 import { captureInstanceDestroy } from './instanceMethods.js'
+import { synchronousResult } from '../shared/synchronousResult.js'
+import { invokeObserver } from '../shared/invokeObserver.js'
 
 function assertDenseArray(value, label, { allowEmpty = true } = {}) {
   if (!Array.isArray(value) || (!allowEmpty && value.length === 0)) {
@@ -29,10 +31,13 @@ function ownObject(value, label) {
   return owned
 }
 
-function bindMethod(receiver, method, label, { optional = false } = {}) {
+function bindMethod(receiver, method, label, { optional = false, synchronous = true } = {}) {
   if (method === undefined && optional) return undefined
   if (typeof method !== 'function') throw new TypeError(`${label} must be a function`)
-  return (...args) => Reflect.apply(method, receiver, args)
+  return (...args) => {
+    const result = Reflect.apply(method, receiver, args)
+    return synchronous ? synchronousResult(result) : result
+  }
 }
 
 function snapshotLabel(input, label) {
@@ -94,7 +99,7 @@ function snapshotPasteCapability(source, label) {
   }
   return Object.freeze({
     accepts: bindMethod(source, source.accepts, `${label} paste accepts`),
-    resolve: bindMethod(source, source.resolve, `${label} paste resolve`),
+    resolve: bindMethod(source, source.resolve, `${label} paste resolve`, { synchronous: false }),
   })
 }
 
@@ -210,7 +215,7 @@ function snapshotBlockDefinition(source) {
     schema: snapshotSchema(candidate.schema, `Block definition "${candidate.type}"`, { richText: true }),
     ...(candidate.toolbox === undefined ? {} : { toolbox: snapshotToolbox(candidate.toolbox, `Block definition "${candidate.type}"`) }),
     ...(candidate.capabilities === undefined ? {} : { capabilities: snapshotCapabilities(candidate.capabilities, `Block definition "${candidate.type}"`) }),
-    setup: bindMethod(source, candidate.setup, `Block definition "${candidate.type}" setup`),
+    setup: bindMethod(source, candidate.setup, `Block definition "${candidate.type}" setup`, { synchronous: false }),
   })
 }
 
@@ -281,27 +286,29 @@ function snapshotInlineDefinition(source) {
     ...(paste ? { paste } : {}),
     ...(editing ? { editing } : {}),
     ...(insertion ? { insertion } : {}),
-    setup: bindMethod(source, candidate.setup, `Inline definition "${candidate.type}" setup`),
+    setup: bindMethod(source, candidate.setup, `Inline definition "${candidate.type}" setup`, { synchronous: false }),
   })
 }
 
 function snapshotBlockRuntime(source, label, destroySource) {
+  synchronousResult(source)
   if (!source || typeof source !== 'object' || Array.isArray(source)) {
     throw new TypeError(`${label} returned an invalid runtime`)
   }
-  const create = bindMethod(source, source.create, `${label} runtime create`)
+  const create = bindMethod(source, source.create, `${label} runtime create`, { synchronous: false })
   if (!destroySource) throw new TypeError(`${label} runtime destroy must be a function`)
   const destroy = destroySource
   return Object.freeze({ create, destroy })
 }
 
 function snapshotInlineRuntime(source, label, destroySource) {
+  synchronousResult(source)
   if (!source || typeof source !== 'object' || Array.isArray(source)) {
     throw new TypeError(`${label} returned an invalid runtime`)
   }
   if (!destroySource) throw new TypeError(`${label} runtime destroy must be a function`)
   const runtime = {
-    create: bindMethod(source, source.create, `${label} runtime create`),
+    create: bindMethod(source, source.create, `${label} runtime create`, { synchronous: false }),
     destroy: destroySource,
   }
   for (const name of ['onTriggerQuery', 'onTriggerKeydown', 'onTriggerCancel']) {
@@ -396,13 +403,17 @@ export class ExtensionRegistry {
           this.#resources.push(resource)
         }
         let destroySource
+        const popupOwner=Object.freeze({})
         try {
           const runtimeSource = definition.setup({
             ownerDocument,
             signal: this.#abortController.signal,
             t: (key, fallback = '', params = undefined) => translate(`inlinePlugin.${definition.type}.${key}`, fallback, params),
-            showPopup: typeof options.showPopup === 'function' ? options.showPopup : () => {},
-            hidePopup: typeof options.hidePopup === 'function' ? options.hidePopup : () => {},
+            showPopup: (anchor,content,cleanup) => {
+              if(typeof options.showPopup==='function')return options.showPopup(popupOwner,anchor,content,cleanup)
+              invokeObserver(cleanup)
+              return Object.freeze({close(){}})
+            },
           })
           destroySource = captureInstanceDestroy(runtimeSource)
           const runtime = snapshotInlineRuntime(runtimeSource, `Inline definition "${definition.type}"`, destroySource)

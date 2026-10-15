@@ -2,7 +2,7 @@
 import { cloneEditorData } from './cloneEditorData.js'
 
 /**
- * @template {Record<string, unknown>} D
+ * @template {object} D
  * @typedef {{
  *   currentVersion: number,
  *   createDefault: () => D,
@@ -21,7 +21,7 @@ function assertVersion(value, label) {
 
 /**
  * Own one JSON object returned by schema code.
- * @template {Record<string, unknown>} D
+ * @template {object} D
  * @param {unknown} value
  * @param {string} label
  * @returns {D}
@@ -41,7 +41,7 @@ function ownObject(value, label) {
  * Local values use encode(). No migration, implicit-version, or compatibility
  * path exists at this boundary.
  *
- * @template {Record<string, unknown>} D
+ * @template {object} D
  * @param {VersionedDataSchemaOptions<D>} options
  */
 export function createVersionedDataSchema(options) {

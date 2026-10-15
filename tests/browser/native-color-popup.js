@@ -111,8 +111,9 @@ test('Tall inline popup stays scrollable inside a short viewport and commits thr
               surface.style.width = '280px'
               spacer.textContent = 'Long panel content'; spacer.style.height = '430px'
               apply.type = 'button'; apply.textContent = 'Apply'; apply.dataset.testApply = ''
-              apply.addEventListener('click', () => { context.updateData(current => ({ name: current.name + '!' })); runtime.hidePopup() }, { signal: context.signal })
-              surface.append(spacer, apply); runtime.showPopup(trigger, surface)
+              let handle
+              apply.addEventListener('click', () => { context.updateData(current => ({ name: current.name + '!' })); handle.close() }, { signal: context.signal })
+              surface.append(spacer, apply); handle = runtime.showPopup(trigger, surface)
             }, { signal: context.signal })
             return { element: trigger, update(next) { trigger.textContent = next.name }, setReadOnly(value) { trigger.disabled = value }, destroy() {} }
           },

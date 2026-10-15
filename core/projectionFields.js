@@ -28,7 +28,10 @@ export function captureEditableFields(source) {
   if (!Array.isArray(source)) throw new TypeError('Editable fields must be an array')
   const keys = new Set()
   const elements = new Set()
-  return source.map(field => {
+  const fields = []
+  for (let index = 0; index < source.length; index++) {
+    if (!Object.hasOwn(source, index)) throw new TypeError('Editable fields must be a dense array')
+    const field = source[index]
     const key = field?.key
     const element = field?.element
     const mode = field?.mode
@@ -39,8 +42,9 @@ export function captureEditableFields(source) {
     if (mode !== 'rich-text' && mode !== 'plain-text') throw new TypeError('Invalid editable field mode')
     keys.add(key)
     elements.add(element)
-    return Object.freeze({ key, element, mode })
-  })
+    fields.push(Object.freeze({ key, element, mode }))
+  }
+  return fields
 }
 
 export function mountedRichFields(fields, candidate) {

@@ -140,6 +140,8 @@ export function createMentionPlugin(options={}){
     setup(runtimeContext){
       let destroyed=false
       let popup=null
+      let popupHandle=null
+      let popupPresentation=null
       let activeSession=null
       let items=[]
       let selected=0
@@ -260,7 +262,8 @@ export function createMentionPlugin(options={}){
         rowController?.abort()
         rowController=null
       }
-      const close=()=>{
+      const close=(expectedSession=activeSession)=>{
+        if(expectedSession&&expectedSession!==activeSession)return
         retireRows()
         const session=activeSession
         if(session?.editEntry){
@@ -277,9 +280,13 @@ export function createMentionPlugin(options={}){
         cursor=null
         query=''
         clearAria(session)
-        runtimeContext.hidePopup()
-        popup?.remove()
+        const handle=popupHandle
+        const closingPopup=popup
+        popupHandle=null
+        popupPresentation=null
         popup=null
+        handle?.close()
+        closingPopup?.remove()
       }
 
       const render=()=>{
@@ -382,7 +389,7 @@ export function createMentionPlugin(options={}){
         const payload={id:String(item.id),name:item.name}
         if(session.commit(payload,{trailingText:'\u00a0'})){
           invokeObserver(()=>snapshot.onMentionSelect?.({id:item.id,name:item.name}))
-          close()
+          close(session)
         }
       }
 
@@ -447,7 +454,7 @@ export function createMentionPlugin(options={}){
               return true
             }catch{return false}
           },
-          cancel(){close()},
+          cancel(){close(session)},
         }
         schedule(session)
         entry.span.classList.add('oe-ip--mention--editing')
@@ -733,23 +740,31 @@ export function createMentionPlugin(options={}){
           popup.id=listboxId
           popup.className=['oe-mention-dropdown','oe-mention-dropdown--active',snapshot.dropdownClass??''].filter(Boolean).join(' ')
           popup.setAttribute('role','listbox')
+          const scrollPopup=popup
           popup.addEventListener('scroll',()=>{
-            if(!cursor||loadingMore||!popup)return
-            if(popup.scrollTop+popup.clientHeight>=popup.scrollHeight-24)void load(cursor,true)
+            if(!cursor||loadingMore||popup!==scrollPopup)return
+            if(scrollPopup.scrollTop+scrollPopup.clientHeight>=scrollPopup.scrollHeight-24)void load(cursor,true)
           },{signal:runtimeContext.signal})
         }
         popup.replaceChildren()
         showLoading()
-        syncAria()
-        runtimeContext.showPopup(session.anchor,popup,()=>{
+        const presentation={session,popup}
+        popupPresentation=presentation
+        const handle=runtimeContext.showPopup(session.anchor,popup,()=>{
           clearAria(session)
-          if(activeSession===session){
+          if(popupPresentation===presentation){
+            popupPresentation=null
+            popupHandle=null
             abortSearch()
             retireRows()
             session.editEntry?.span.classList.remove('oe-ip--mention--editing')
             activeSession=null
+            popup=null
           }
         })
+        if(popupPresentation!==presentation){handle.close();return}
+        popupHandle=handle
+        syncAria()
         timer=view.setTimeout(()=>{
           timer=null
           void load(null,false)

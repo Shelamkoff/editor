@@ -136,7 +136,7 @@ export class DocumentRuntime {
           projectPresentation: operation => {
             const previous = this.#projectingPresentation
             this.#projectingPresentation = true
-            try { return operation() }
+            try { return this.prepareExtensionValue(operation) }
             finally { this.#projectingPresentation = previous }
           },
         })
@@ -278,6 +278,13 @@ export class DocumentRuntime {
         })
       })
     } finally { this.#preparationDepth-- }
+  }
+
+  /** Internal observation guard; the invoking owner contains callback failures. */
+  observeExtension(operation) {
+    this.#observationDepth++
+    try { return operation() }
+    finally { this.#observationDepth-- }
   }
 
   /** Public adapters call this before observing any caller-owned input. */
@@ -1969,10 +1976,11 @@ export class DocumentRuntime {
       : cloneEditorData(metadata.selectionBefore)
     this.#editingProjection = true
     try {
-      const result = operation()
-      if (result && typeof result === 'object' && typeof result.then === 'function') {
-        throw new TypeError('Projection edit operation must be synchronous')
-      }
+      const result = synchronousResult(operation(), error => {
+        this.#diagnostics?.emit('command.failed', {
+          operation: 'projection.edit', errorName: this.#diagnostics.errorName(error),
+        })
+      })
 
       const updates = []
       for (const id of ordered) {
@@ -2885,8 +2893,8 @@ export class DocumentRuntime {
 
   #mutationPhase() {
     if (this.#observationDepth) return 'validation-observation'
-    if (this.#preparationDepth) return 'extension-preparation'
     if (this.#projectingPresentation) return 'presentation-projection'
+    if (this.#preparationDepth) return 'extension-preparation'
     if (this.#editingProjection) return 'protected-projection-edit'
     if (this.#changingReadOnly) return 'read-only-transition'
     return this.#engine?.phase ?? 'idle'
@@ -2894,10 +2902,10 @@ export class DocumentRuntime {
 
   #assertHostMutation() {
     if (this.#observationDepth) throw new Error('Cannot mutate document during validation observation')
+    if (this.#projectingPresentation) throw new Error('Cannot mutate document during presentation projection')
     if (this.#preparationDepth) throw new Error('Cannot mutate document during extension preparation')
     if (this.#destroyed) throw new Error('DocumentRuntime is destroyed')
     if (this.health === 'failed') throw new Error('DocumentRuntime is failed')
-    if (this.#projectingPresentation) throw new Error('Cannot mutate document during presentation projection')
     if (this.#editingProjection) throw new Error('Cannot mutate document during protected projection edit')
     if (this.#changingReadOnly) throw new Error('Cannot mutate document during read-only transition')
     const phase = this.#engine?.phase ?? 'idle'
@@ -3035,10 +3043,13 @@ export class DocumentRuntime {
               preserveSourceProjection: true,
             })
           },
-          createId: prefix => this.createDataId(prefix),
         })
         return Object.freeze({
-          ...inlineAuthority,
+          getData: inlineAuthority.getData,
+          updateData: inlineAuthority.updateData,
+          commitDomMutation: inlineAuthority.commitDomMutation,
+          beginTask: inlineAuthority.beginTask,
+          isReadOnly: inlineAuthority.isReadOnly,
           id: inlineId,
           blockId: id,
           fieldKey,

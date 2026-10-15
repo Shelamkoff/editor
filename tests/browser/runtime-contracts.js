@@ -903,4 +903,128 @@ test('schema preparation rejects public controls and scoped tasks while preservi
   equal(editor.save().blocks[0].data.text, 'A')
 })
 
+test('ordinary async block update rejects before commit and restores the committed projection', () => {
+  const base = createParagraphPlugin()
+  let asyncOnce = true
+  const definition = { ...base, setup(context) {
+    const runtime = base.setup(context)
+    return { ...runtime, create(data, instanceContext) {
+      const instance = runtime.create(data, instanceContext)
+      return { ...instance, update(next, previous) {
+        instance.update(next, previous)
+        if (asyncOnce) { asyncOnce = false; return Promise.reject(new Error('Late update rejection')) }
+      } }
+    } }
+  } }
+  const editor = make([{ id: 'a', type: 'paragraph', dataVersion: 2, data: { text: 'Before' } }], { plugins: [definition] })
+  const before = editor.save().blocks
+  assert.throws(() => editor.blocks.update('a', () => ({ data: { text: 'After' } })), /synchronous/)
+  equal(editor.save().blocks, before)
+  equal(blockElement(editor, 'a').querySelector('.oe-paragraph').textContent, 'Before')
+  equal(editor.canUndo, false)
+})
+
+function popupEditor() {
+  const contexts = {}
+  const definition = type => ({
+    type, icon: '', label: { key: type, fallback: type }, schema: createColorSwatchPlugin().schema,
+    setup(context) { contexts[type] = context; return { create() { throw new Error('Unused widget') }, destroy() {} } },
+  })
+  const editor = make([{ id: 'a', type: 'paragraph', dataVersion: 2, data: { text: 'Anchor' } }], {
+    inlinePlugins: [definition('external-a'), definition('external-b')],
+  })
+  const anchor = blockElement(editor, 'a').querySelector('.oe-paragraph')
+  const content = label => { const element = document.createElement('div'); element.textContent = label; return element }
+  return { editor, anchor, content, a: contexts['external-a'], b: contexts['external-b'] }
+}
+
+test('popup close handles cannot close a later presentation from another runtime', () => {
+  const { a, b, anchor, content } = popupEditor()
+  let aClosed = 0, bClosed = 0
+  const first = a.showPopup(anchor, content('A'), () => aClosed++)
+  check(first && typeof first.close === 'function', 'Popup request returned no close handle')
+  equal(Object.isFrozen(first), true)
+  const current = b.showPopup(anchor, content('B'), () => bClosed++)
+  first.close()
+  equal(document.querySelector('.oe-ip-popup').textContent, 'B')
+  equal(aClosed, 1)
+  equal(bClosed, 0)
+  current.close()
+  current.close()
+  first.close()
+  equal(document.querySelector('.oe-ip-popup'), null)
+  equal(bClosed, 1)
+  equal('hidePopup' in a, false)
+})
+
+test('popup validates before replacement and unavailable requests close once', () => {
+  const { a, b, anchor, content } = popupEditor()
+  let cleaned = 0
+  const current = a.showPopup(anchor, content('Current'))
+  assert.throws(() => b.showPopup(anchor, content('Invalid'), 42), /Popup requires/)
+  const foreign = document.implementation.createHTMLDocument('foreign').createElement('div')
+  assert.throws(() => b.showPopup(anchor, foreign), /Popup requires/)
+  equal(document.querySelector('.oe-ip-popup').textContent, 'Current')
+  const unavailable = b.showPopup(document.createElement('div'), content('Unavailable'), () => cleaned++)
+  unavailable.close()
+  unavailable.close()
+  equal(cleaned, 1)
+  equal(document.querySelector('.oe-ip-popup').textContent, 'Current')
+  current.close()
+})
+
+test('popup cleanup cannot mutate canonical or control state and newer reentrant show wins', () => {
+  const { editor, a, b, anchor, content } = popupEditor()
+  let producers = 0, newer, outerCleaned = 0
+  const before = editor.save().blocks
+  const old = a.showPopup(anchor, content('Old'), () => {
+    assert.throws(() => editor.blocks.update('a', () => { producers++; return {} }), /observation/)
+    assert.throws(() => editor.destroy(), /observation/)
+    newer = a.showPopup(anchor, content('Newer'))
+  })
+  const outer = b.showPopup(anchor, content('Superseded'), () => outerCleaned++)
+  old.close()
+  outer.close()
+  equal(document.querySelector('.oe-ip-popup').textContent, 'Newer')
+  equal(outerCleaned, 1)
+  equal(producers, 0)
+  equal(editor.save().blocks, before)
+  newer.close()
+})
+
+test('throwing or asynchronous popup cleanup cannot stop the next presentation', () => {
+  const { a, b, anchor, content } = popupEditor()
+  a.showPopup(anchor, content('First'), () => { throw new Error('Expected cleanup throw') })
+  b.showPopup(anchor, content('Second'), () => Promise.reject(new Error('Expected cleanup rejection')))
+  const current = a.showPopup(anchor, content('Final'))
+  equal(document.querySelector('.oe-ip-popup').textContent, 'Final')
+  current.close()
+})
+
+test('terminal trigger cancellation is observed and cannot interrupt read-only completion', () => {
+  let editor, notices = 0, producers = 0
+  const definition = {
+    type: 'terminal', trigger: '@', icon: '', label: { key: 'terminal', fallback: 'Terminal' }, schema: createColorSwatchPlugin().schema,
+    setup(runtime) { return {
+      create() { throw new Error('Unused') }, destroy() {},
+      onTriggerQuery(session) { runtime.showPopup(session.anchor, document.createElement('div')) },
+      onTriggerCancel() {
+        notices++
+        assert.throws(() => editor.blocks.update('a', () => { producers++; return {} }), /observation|read-only/)
+        throw new Error('Expected terminal failure')
+      },
+    } },
+  }
+  editor = make([{ id: 'a', type: 'paragraph', dataVersion: 2, data: { text: '@' } }], { inlinePlugins: [definition] })
+  editor.blocks.focus('a', { fieldKey: 'text', offset: 1 })
+  blockElement(editor, 'a').querySelector('.oe-paragraph').dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: '@' }))
+  check(document.querySelector('.oe-ip-popup'))
+  editor.setReadOnly(true)
+  equal(notices, 1)
+  equal(producers, 0)
+  equal(editor.readOnly, true)
+  equal(document.querySelector('.oe-ip-popup'), null)
+  check(blockElement(editor, 'a').closest('.oe-editor').classList.contains('oe-editor--read-only'))
+})
+
 await run()

@@ -9,12 +9,14 @@ import { toTrustedHtml } from '../shared/sanitize/trustedHtml.js'
 import { isRichTextCaretPadding, projectRichTextCaretPadding } from '../shared/richTextCaretPadding.js'
 import { scanRichTextPlaceholders, richTextPlaceholderMatches } from '../shared/richTextOperations.js'
 import { richTextFieldMap, mapRichTextFields, mountedRichFields } from './projectionFields.js'
+import { synchronousResult } from '../shared/synchronousResult.js'
 
 function object(value){
   return value&&typeof value==='object'&&!Array.isArray(value)?value:{}
 }
 
 function snapshotInlineInstance(source,type,destroySource){
+  synchronousResult(source)
   if(!source||typeof source!=='object'||Array.isArray(source)){
     throw new TypeError('Inline runtime "'+type+'" returned an invalid widget instance')
   }

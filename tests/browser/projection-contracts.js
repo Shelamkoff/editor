@@ -233,6 +233,16 @@ test('public editor preserves marker-free widget coordinates through updates, mo
   check()
   editor.redo()
   check()
+  equal(Object.keys(widgetContext).sort(), [
+    'id', 'blockId', 'fieldKey', 'signal', 'getData', 'updateData', 'commitDomMutation', 'beginTask', 'isReadOnly',
+  ].sort())
+  const field = blockElement(editor, 'a').querySelector('[contenteditable="true"]')
+  const widget = field.querySelector('[data-inline-plugin="external"]')
+  widgetContext.commitDomMutation(() => widget.replaceWith(document.createTextNode('Removed')))
+  equal(editor.save().blocks.find(block => block.id === 'a').data.text, 'A Removed Z')
+  equal(editor.save().blocks.find(block => block.id === 'a').inline, undefined)
+  editor.undo()
+  check()
 })
 
 await run()

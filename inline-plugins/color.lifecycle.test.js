@@ -30,8 +30,7 @@ test('color inline widget destroy makes retained listeners inert', () => {
     ownerDocument,
     signal: new AbortController().signal,
     t: (_key, fallback = '') => fallback,
-    showPopup() { popupOpens += 1 },
-    hidePopup() {},
+    showPopup() { popupOpens += 1; return Object.freeze({ close() {} }) },
   })
   const data = { value: '#123456' }
   const instance = runtime.create('color-1', data, {
