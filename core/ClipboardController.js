@@ -624,11 +624,25 @@ export class ClipboardController {
         const definition = this.#registry.getBlockDefinition(type)
         const paste = definition?.capabilities?.paste
         if (!paste) continue
-        const accepted = synchronousResult(paste.accepts(input))
+        const accepts = paste.accepts
+        if (typeof accepts !== 'function') {
+          throw new TypeError(`Paste accepts() for "${type}" must be a function`)
+        }
+        const accepted = synchronousResult(Reflect.apply(accepts, paste, [input]))
         if (typeof accepted !== 'boolean') {
           throw new TypeError(`Paste accepts() for "${type}" must return a boolean`)
         }
-        if (accepted) return { type, definition, paste }
+        if (accepted) {
+          const resolve = paste.resolve
+          if (typeof resolve !== 'function') {
+            throw new TypeError(`Paste resolve() for "${type}" must be a function`)
+          }
+          // Own the selected hook with its original receiver before resolution awaits.
+          return Object.freeze({
+            type,
+            resolve: context => Reflect.apply(resolve, paste, [input, context]),
+          })
+        }
       }
       return null
     })
@@ -653,7 +667,7 @@ export class ClipboardController {
         if (task.signal.aborted || this.#task !== task || this.#runtime.readOnly || !this.#runtime.get(owner.blockId)) return
         let result
         try {
-          result = await route.paste.resolve(input, {
+          result = await route.resolve({
             signal: task.signal,
             ownerDocument: this.#root.ownerDocument,
             createId: prefix => {
