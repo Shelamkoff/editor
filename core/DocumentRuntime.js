@@ -9,7 +9,7 @@ import { richTextFieldMap } from './projectionFields.js'
 import { DOCUMENT_FORMAT_VERSION } from '../shared/documentFormat.js'
 import { invokeObserver } from '../shared/invokeObserver.js'
 import { normalizeRichText } from '../shared/richTextCodec.js'
-import { ensureRichTextReferenceSuffix, getRichTextLogicalLength, replaceRichTextRange, replaceRichTextReference, scanRichTextPlaceholders, splitRichTextRange } from '../shared/richTextOperations.js'
+import { ensureRichTextReferenceSuffix, replaceRichTextRange, replaceRichTextReference, scanRichTextPlaceholders, splitRichTextRange } from '../shared/richTextOperations.js'
 import {
   assembleCanonicalRecord,
   createSessionIdAllocator,
@@ -19,8 +19,9 @@ import {
   captureDocumentView,
   canonicalRecordsEqual,
 } from './CanonicalTransforms.js'
-import { richTextFields, orderedLogicalRange, sliceSelection, endpointSelection, prepareRemoveBlocks, prepareReplaceWholeDocument, prepareReplaceLogicalRange } from './LogicalRangePlans.js'
-import { selectedSourceData, prepareClipboardBlockSlice, prepareClipboardSlice, prepareClipboardCut, prepareReplaceClipboardSlice, prepareInsertClipboardParts, prepareReplaceClipboardRange, prepareInsertLocalBlocks, preparePasteResults, prepareInlineSegments } from './ClipboardPlans.js'
+import { prepareRemoveBlocks, prepareReplaceWholeDocument, prepareReplaceLogicalRange } from './LogicalRangePlans.js'
+import { prepareClipboardSlice, prepareClipboardCut, prepareReplaceClipboardSlice, prepareInsertClipboardParts, prepareReplaceClipboardRange, prepareInsertLocalBlocks, preparePasteResults, prepareInlineSegments } from './ClipboardPlans.js'
+import { conversionTargetData, convertedCanonicalRecord, prepareSelectionConversion } from './SelectionConversionPlans.js'
 import { uid } from '../shared/uid.js'
 import { DocumentStore } from './DocumentStore.js'
 import { HistoryStore } from './HistoryStore.js'
@@ -352,10 +353,10 @@ export class DocumentRuntime {
       const replace=current&&sourceDefinition?.capabilities?.empty?.isEmpty?.(cloneEditorData(current.data))===true
       if(replace){
         if(current.type===type&&toolboxItemId===undefined)return {edits:[],result:current.id}
-        const next=this.#convertedRecord(current,{type,toolboxItemId})
+        const next=convertedCanonicalRecord(this.#planningServices(),current,{type,toolboxItemId},new Set(view.ids))
         return {edits:this.#updatedRecord(current.id,current,next),result:current.id}
       }
-      const data=this.#targetDataFromPayload(definition,null,{type,toolboxItemId})
+      const data=conversionTargetData(this.#planningServices(),definition,null,{type,toolboxItemId},undefined,new Set(view.ids))
       const id=this.#allocateId(type,new Set(view.ids))
       const record=this.#recordFromData(id,type,definition,data,undefined,undefined)
       const index=anchorId?view.ids.indexOf(anchorId)+1:view.ids.length
@@ -457,7 +458,7 @@ export class DocumentRuntime {
       if(!current||!this.#registry.hasBlock(current.type))return {edits:[],result:false}
       const type=this.#registry.defaultBlockType
       if(data===undefined&&current.type!==type){
-        const next=this.#convertedRecord(current,{type})
+        const next=convertedCanonicalRecord(this.#planningServices(),current,{type},new Set(view.ids))
         return {edits:this.#updatedRecord(blockId,current,next),result:blockId}
       }
       const edits=[]
@@ -691,7 +692,7 @@ export class DocumentRuntime {
       // As in the block menu, every registered target is available. A target
       // imports transferable content when it can; otherwise it starts with its
       // own schema defaults. Never bypass the inline-reference preservation check.
-      const next=this.#convertedRecord(current,{type,toolboxItemId})
+      const next=convertedCanonicalRecord(this.#planningServices(),current,{type,toolboxItemId},new Set(view.ids))
       const edits=this.#updatedRecord(id,current,next)
       return {edits,result:edits.length?next:current}
     })
@@ -708,26 +709,13 @@ export class DocumentRuntime {
    */
   convertLogicalSelection(bookmark,target){
     this.#assertInteractionMutation()
-    const ordered=this.prepareExtensionValue(()=>orderedLogicalRange(this.#planningServices(),captureDocumentView(this.#store),bookmark))
-    if(!ordered||!target||typeof target.type!=='string')return false
-    const {start,end}=ordered
-    const targetDefinition=this.#registry.getBlockDefinition(target.type)
-    if(!targetDefinition)return false
-    if(start.blockId===end.blockId&&this.#store.get(start.blockId)?.type===target.type&&target.toolboxItemId===undefined)return false
-
-    if(
-      start.blockId===end.blockId
-      && start.fieldKey===end.fieldKey
-      && start.offset===end.offset
-    ){
-      this.convert(start.blockId,target)
-      return {focusId:start.blockId,convertedIds:[start.blockId]}
-    }
-
-    if(start.blockId===end.blockId){
-      return this.#convertSingleBlockSelection(start,end,target,targetDefinition)
-    }
-    return this.#convertCrossBlockSelection(start,end,target,targetDefinition)
+    return this.#executePrepared({origin:'user',name:'selection.convert'},view=>
+      prepareSelectionConversion(
+        this.#planningServices(),
+        view,
+        bookmark == null ? null : cloneEditorData(bookmark),
+        target == null ? target : cloneEditorData(target),
+      ))
   }
 
   undo() {
@@ -1342,35 +1330,6 @@ export class DocumentRuntime {
     } finally { this.#observationDepth-- }
   }
 
-  #targetDataFromPayload(targetDefinition,payload,target,baseData=undefined){
-    let data
-    const candidate=payload==null?null:cloneEditorData(payload)
-    const conversion=targetDefinition.capabilities?.conversion
-    if(baseData!==undefined){
-      data=cloneEditorData(baseData)
-    }else if(candidate&&conversion?.canImport?.(cloneEditorData(candidate))){
-      data=conversion.import(cloneEditorData(candidate))
-    }else{
-      data=targetDefinition.schema.createDefault()
-    }
-    if(target.toolboxItemId!==undefined){
-      const item=targetDefinition.toolbox?.find(entry=>entry.id===target.toolboxItemId)
-      if(!item)throw new Error(`Unknown toolbox item "${target.toolboxItemId}" for "${target.type}"`)
-      if(item.configure)data=item.configure(data,this.#dataOperationContext())
-    }
-    return data
-  }
-
-  #convertedRecord(current,target){
-    const sourceDefinition=this.#registry.getBlockDefinition(current.type)
-    const targetDefinition=this.#registry.getBlockDefinition(target.type)
-    if(!targetDefinition)throw new Error(`Unknown block type: ${target.type}`)
-    const payload=cloneEditorData(sourceDefinition?.capabilities?.conversion?.export(cloneEditorData(current.data))??null)
-    const data=this.#targetDataFromPayload(targetDefinition,payload,target,current.type===target.type?current.data:undefined)
-    const next=this.#recordFromData(current.id,target.type,targetDefinition,data,current.tunes,current.inline)
-    this.#assertConversionInlinePreserved(payload,current.inline,targetDefinition,next)
-    return next
-  }
 
   #recordFromData(id,type,definition,data,tunes,inlineSource){
     return this.prepareExtensionValue(() => assembleCanonicalRecord({
@@ -1401,247 +1360,6 @@ export class DocumentRuntime {
 
   #updatedRecord(id, current, next) {
     return canonicalRecordsEqual(current, next) ? [] : [{ kind: 'update', id, record: next }]
-  }
-
-  #payloadHasContent(payload){
-    if(!payload||payload.kind!=='rich-text'||typeof payload.data?.text!=='string')return true
-    return getRichTextLogicalLength(payload.data.text,{},this.#ownerDocument)>0
-  }
-
-  #convertSingleBlockSelection(start,end,target,targetDefinition){
-    const current=this.#store.get(start.blockId)
-    if(!current||this.activation(start.blockId)?.kind!=='active')return false
-    const sliced=sliceSelection(this.#planningServices(),current,start,end)
-    if(!sliced||!this.#payloadHasContent(sliced.selected))return false
-
-    const targetData=this.#targetDataFromPayload(targetDefinition,sliced.selected,target)
-    const sourceDefinition=sliced.definition
-    const sourceInline=sliced.inline
-    const index=this.#store.ids().indexOf(current.id)
-
-    // A compound owner keeps its assets and stable item identities once. The
-    // owning clipboard capability already describes removing this exact text
-    // interval without duplicating the surrounding card, rows or media.
-    if((sliced.before||sliced.after)&&sourceDefinition.capabilities?.clipboard){
-      const residual=prepareClipboardBlockSlice(this.#planningServices(),current,start,end)
-      if(!residual)return false
-      const targetId=residual.remaining?this.#createUniqueBlockId(target.type):current.id
-      const targetRecord=this.#recordFromData(
-        targetId,target.type,targetDefinition,targetData,current.tunes,sourceInline,
-      )
-      this.#assertConversionInlinePreserved(
-        sliced.selected,sourceInline,targetDefinition,targetRecord,
-      )
-      this.#engine.execute({origin:'user',name:'selection.convert'},tx=>{
-        if(residual.remaining){
-          tx.update(current.id,residual.remaining)
-          tx.insert(index+1,targetRecord)
-        }else tx.update(current.id,targetRecord)
-      })
-      return {focusId:targetId,convertedIds:[targetId]}
-    }
-
-    const before=sliced.before
-      ?this.#recordFromData(
-          current.id,current.type,sourceDefinition,sliced.before,current.tunes,sourceInline,
-        )
-      :null
-    const targetId=before?this.#createUniqueBlockId(target.type):current.id
-    const targetRecord=this.#recordFromData(
-      targetId,target.type,targetDefinition,targetData,current.tunes,sourceInline,
-    )
-    this.#assertConversionInlinePreserved(
-      sliced.selected,sourceInline,targetDefinition,targetRecord,
-    )
-    const after=sliced.after
-      ?this.#recordFromData(
-          this.#createUniqueBlockId(current.type),
-          current.type,
-          sourceDefinition,
-          sliced.after,
-          current.tunes,
-          sourceInline,
-        )
-      :null
-
-    this.#engine.execute({origin:'user',name:'selection.convert'},tx=>{
-      if(before){
-        tx.update(current.id,before)
-        tx.insert(index+1,targetRecord)
-        if(after)tx.insert(index+2,after)
-      }else{
-        tx.update(current.id,targetRecord)
-        if(after)tx.insert(index+1,after)
-      }
-    })
-    return {focusId:targetId,convertedIds:[targetId]}
-  }
-
-  #convertCrossBlockSelection(start,end,target,targetDefinition){
-    const ids=this.#store.ids()
-    const firstIndex=ids.indexOf(start.blockId)
-    const lastIndex=ids.indexOf(end.blockId)
-    if(firstIndex<0||lastIndex<=firstIndex)return false
-    const first=this.#store.get(start.blockId)
-    const last=this.#store.get(end.blockId)
-    if(!first||!last)return false
-
-    const firstSlice=endpointSelection(this.#planningServices(),first,start,'first')
-    const lastSlice=endpointSelection(this.#planningServices(),last,end,'last')
-    if(!firstSlice||!lastSlice)return false
-
-    const targetConversion=targetDefinition.capabilities?.conversion
-    // Importing a caption does not make a media/compound target a text block.
-    // Grouping is declared by the target independently of payload compatibility.
-    if(targetConversion?.selectionMode!=='per-block'){
-      let payload=null
-      const selected=[]
-      if(targetConversion?.joinSelection){
-        if(this.#payloadHasContent(firstSlice.selected))selected.push({payload:firstSlice.selected,inline:firstSlice.inline})
-        for(let index=firstIndex+1;index<lastIndex;index++){
-          const record=this.#store.get(ids[index])
-          if(!record||this.activation(record.id)?.kind!=='active')return false
-          const conversion=this.#registry.getBlockDefinition(record.type)?.capabilities?.conversion
-          if(!conversion)return false
-          selected.push({payload:conversion.export(record.data),inline:cloneInline(record.inline)??{}})
-        }
-        if(this.#payloadHasContent(lastSlice.selected))selected.push({payload:lastSlice.selected,inline:lastSlice.inline})
-        if(!selected.length)return false
-        payload=targetConversion.joinSelection(selected.map(part=>cloneEditorData(part.payload)),{ownerDocument:this.#ownerDocument})
-        if(!targetConversion.canImport(payload))return false
-      }
-      const targetData=this.#targetDataFromPayload(targetDefinition,payload,target)
-      const targetId=this.#createUniqueBlockId(target.type)
-      const targetRecord=this.#recordFromData(targetId,target.type,targetDefinition,targetData,first.tunes,{})
-      for(const part of selected)this.#assertConversionInlinePreserved(part.payload,part.inline,targetDefinition,targetRecord)
-      this.#engine.execute({origin:'user',name:'selection.convert'},tx=>{
-        if(firstSlice.before){
-          tx.update(first.id,this.#recordFromData(
-            first.id,first.type,firstSlice.definition,firstSlice.before,first.tunes,firstSlice.inline,
-          ))
-        }else{
-          tx.remove(first.id)
-        }
-
-        for(let index=firstIndex+1;index<lastIndex;index++){
-          const id=ids[index]
-          if(tx.get(id))tx.remove(id)
-        }
-
-        if(lastSlice.after){
-          tx.update(last.id,this.#recordFromData(
-            last.id,last.type,lastSlice.definition,lastSlice.after,last.tunes,lastSlice.inline,
-          ))
-        }else if(tx.get(last.id)){
-          tx.remove(last.id)
-        }
-
-        const live=tx.list()
-        let insertAt
-        if(firstSlice.before){
-          insertAt=live.findIndex(record=>record.id===first.id)+1
-        }else if(lastSlice.after){
-          insertAt=live.findIndex(record=>record.id===last.id)
-        }else{
-          insertAt=Math.min(firstIndex,live.length)
-        }
-        tx.insert(insertAt,targetRecord)
-      })
-      return {focusId:targetId,convertedIds:[targetId]}
-    }
-
-    /** @type {Array<any>} */
-    const pieces=[]
-    if(this.#payloadHasContent(firstSlice.selected)){
-      pieces.push({
-        original:first,
-        payload:firstSlice.selected,
-        inline:firstSlice.inline,
-        position:'first',
-      })
-    }
-    for(let index=firstIndex+1;index<lastIndex;index++){
-      const record=this.#store.get(ids[index])
-      if(!record||this.activation(record.id)?.kind!=='active')return false
-      const definition=this.#registry.getBlockDefinition(record.type)
-      const conversion=definition?.capabilities?.conversion
-      if(!conversion)return false
-      const payload=conversion.export(record.data)
-      if(record.type!==target.type&&!targetConversion?.canImport?.(payload))return false
-      pieces.push({original:record,payload,inline:cloneInline(record.inline)??{},position:'middle'})
-    }
-    if(this.#payloadHasContent(lastSlice.selected)){
-      pieces.push({
-        original:last,
-        payload:lastSlice.selected,
-        inline:lastSlice.inline,
-        position:'last',
-      })
-    }
-    if(!pieces.length)return false
-
-    const occupiedIds=new Set(this.#store.ids())
-    for(const piece of pieces){
-      const sameType=piece.original.type===target.type&&target.toolboxItemId===undefined
-      if(!sameType&&!targetConversion?.canImport?.(piece.payload))return false
-      // A matching owner is already in the requested type. Preserve its data
-      // rather than round-tripping its fields through a neutral text payload.
-      // For endpoints, the existing plugin clipboard contract owns the exact
-      // selected structure (items, captions and metadata); generic rich fields
-      // provide the fallback without hard-coding plugin names.
-      piece.data=sameType
-        ?piece.position==='middle'
-          ?piece.original.data
-          :selectedSourceData(this.#planningServices(),
-            piece.original,
-            piece.position==='first'?start:null,
-            piece.position==='last'?end:null,
-          )
-        :this.#targetDataFromPayload(targetDefinition,piece.payload,target)
-      piece.insert=(
-        (piece.position==='first'&&firstSlice.before)
-        ||(piece.position==='last'&&lastSlice.after)
-      )
-      piece.id=piece.insert
-        ?this.#allocateId(target.type,occupiedIds)
-        :piece.original.id
-      piece.record=this.#recordFromData(
-        piece.id,target.type,targetDefinition,piece.data,piece.original.tunes,piece.inline,
-      )
-      this.#assertConversionInlinePreserved(
-        piece.payload,piece.inline,targetDefinition,piece.record,
-      )
-    }
-
-    const convertedIds=[]
-    let focusId=null
-    this.#engine.execute({origin:'user',name:'selection.convert'},tx=>{
-      if(firstSlice.before){
-        tx.update(first.id,this.#recordFromData(
-          first.id,first.type,firstSlice.definition,firstSlice.before,first.tunes,firstSlice.inline,
-        ))
-      }
-
-      for(const piece of pieces){
-        if(piece.insert){
-          const live=tx.list()
-          const anchorId=piece.position==='first'?first.id:last.id
-          const anchor=live.findIndex(item=>item.id===anchorId)
-          tx.insert(piece.position==='first'?anchor+1:anchor,piece.record)
-        }else{
-          tx.update(piece.original.id,piece.record)
-        }
-        convertedIds.push(piece.id)
-        focusId=piece.id
-      }
-
-      if(lastSlice.after){
-        tx.update(last.id,this.#recordFromData(
-          last.id,last.type,lastSlice.definition,lastSlice.after,last.tunes,lastSlice.inline,
-        ))
-      }
-    })
-    return focusId?{focusId,convertedIds}:false
   }
 
   #assertConversionInlinePreserved(payload,inline,targetDefinition,targetRecord){
@@ -1752,12 +1470,6 @@ export class DocumentRuntime {
   #createUniqueBlockId(prefix, additional = []) {
     const occupied = new Set(this.#store ? this.#store.ids() : additional.map(block => block.id))
     return this.#allocateId(prefix,occupied)
-  }
-
-  #dataOperationContext() {
-    return Object.freeze({
-      createId: prefix => this.#allocateId(prefix),
-    })
   }
 
   #blockContext(id, type, signal, readRecord, scope) {
