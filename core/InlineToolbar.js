@@ -366,7 +366,7 @@ export class InlineToolbar {
             if (!isCurrent() || !panelToken || typeof operation !== 'function') return undefined
             const currentRange = panelPort.range
             if (!currentRange) return undefined
-            const panelFocus = this.#root.ownerDocument.activeElement
+            const panelFocus = /** @type {HTMLElement | null} */ (this.#root.ownerDocument.activeElement)
             if (!panelPort.restore(panelToken)) return undefined
             let result
             try {
