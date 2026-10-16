@@ -285,7 +285,7 @@ export class KeyboardRouter {
     if (!nextId) return false
     this.#view.reconcileInteraction()
     this.#view.setCurrent(nextId)
-    queueMicrotask(() => this.#view.focus(nextId, { offset: 'start' }))
+    this.#restoreShortcutFocus({blockId:nextId,offset:'start'})
     return true
   }
 
@@ -361,9 +361,14 @@ export class KeyboardRouter {
 
   #restoreShortcutFocus(target){
     const generation=this.#runtime.generation,revision=this.#runtime.revision
+    const modeEpoch=this.#runtime.modeEpoch
+    const mounted=this.#view.element?.(target.blockId)
     queueMicrotask(()=>{
-      if(this.#controller.signal.aborted||this.#runtime.readOnly||this.#runtime.generation!==generation
-        ||this.#runtime.revision!==revision||!this.#runtime.has(target.blockId))return
+      if(this.#controller.signal.aborted||this.#runtime.readOnly
+        ||this.#runtime.generation!==generation||this.#runtime.revision!==revision
+        ||this.#runtime.modeEpoch!==modeEpoch||!this.#runtime.has(target.blockId)
+        ||(mounted&&this.#view.element?.(target.blockId)!==mounted)
+        ||(this.#view.currentId&&this.#view.currentId!==target.blockId))return
       this.#view.focus(target.blockId,target)
     })
   }
@@ -379,13 +384,13 @@ export class KeyboardRouter {
       this.#mutate('block.remove', () => this.#runtime.remove(blockId), () => ({ blockId: previousId, ...target }))
       this.#view.reconcileInteraction()
       this.#view.setCurrent(previousId)
-      queueMicrotask(()=>this.#view.focus(previousId,target))
+      this.#restoreShortcutFocus({blockId:previousId,...target})
       return true
     }
     if(this.#mutate('block.merge', () => this.#runtime.mergeAdjacent(previousId,blockId), () => ({ blockId: previousId, ...target }))){
       this.#view.reconcileInteraction()
       this.#view.setCurrent(previousId)
-      queueMicrotask(()=>this.#view.focus(previousId,target))
+      this.#restoreShortcutFocus({blockId:previousId,...target})
       return true
     }
     return false
@@ -400,13 +405,13 @@ export class KeyboardRouter {
       this.#mutate('block.remove', () => this.#runtime.remove(nextId), () => ({ blockId, offset: caretOffset }))
       this.#view.reconcileInteraction()
       this.#view.setCurrent(blockId)
-      queueMicrotask(() => this.#view.focus(blockId, { fieldKey, offset: caretOffset }))
+      this.#restoreShortcutFocus({blockId,fieldKey,offset:caretOffset})
       return true
     }
     if(this.#mutate('block.merge', () => this.#runtime.mergeAdjacent(blockId,nextId), () => ({ blockId, offset: caretOffset }))){
       this.#view.reconcileInteraction()
       this.#view.setCurrent(blockId)
-      queueMicrotask(() => this.#view.focus(blockId, { fieldKey, offset: caretOffset }))
+      this.#restoreShortcutFocus({blockId,fieldKey,offset:caretOffset})
       return true
     }
     return false

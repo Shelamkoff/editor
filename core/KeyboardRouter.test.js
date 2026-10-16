@@ -21,6 +21,8 @@ function harness() {
   ]
   const runtime = {
     readOnly: false,
+    generation: 1, revision: 1, modeEpoch: 0,
+    has: id => records.some(record => record.id === id),
     prepareExtensionValue: operation => operation(),
     prepareShortcutAction: () => null,
     interact(_name, operation) { return operation() },
@@ -56,9 +58,15 @@ function harness() {
   }
   const selection = { capture: () => bookmark }
   const viewCalls = []
+  const mounted = new Map()
   const view = {
+    currentId: 'b',
+    element(id) {
+      if (!mounted.has(id)) mounted.set(id, {})
+      return mounted.get(id)
+    },
     reconcileInteraction() { viewCalls.push(['reconcile']) },
-    setCurrent(id) { viewCalls.push(['current', id]) },
+    setCurrent(id) { this.currentId = id; viewCalls.push(['current', id]) },
     focus(id, target) { viewCalls.push(['focus', id, target]); return true },
     indexOf(id) { return records.findIndex(record => record.id === id) },
   }
@@ -227,4 +235,34 @@ test('auxiliary controls keep native history ownership; editor chrome owns docum
   assert.equal(nestedEvent.prevented, false, 'native input inside editor chrome lost native history ownership')
   assert.equal(calls.length, 5)
   router.destroy()
+})
+
+
+test('keyboard split focus is revoked across a read-only round trip without a document change', async () => {
+  const h = harness()
+  const e = h.event('Enter')
+  h.router.handleKeydown(e)
+  assert.equal(e.prevented, true)
+  h.records.push({ id: 'new', type: 'paragraph', data: { text: '' } })
+  // Control-mode changes do not advance document revision; the old command
+  // must not regain focus merely because editing was reenabled immediately.
+  const revision = h.runtime.revision
+  h.runtime.readOnly = true
+  h.runtime.modeEpoch++
+  h.runtime.readOnly = false
+  h.runtime.modeEpoch++
+  assert.equal(h.runtime.revision, revision)
+  await Promise.resolve()
+  assert.deepEqual(h.viewCalls.filter(call => call[0] === 'focus'), [])
+  h.router.destroy()
+})
+
+test('keyboard split still gives the new block focus with unchanged author and mode ownership', async () => {
+  const h = harness()
+  h.router.handleKeydown(h.event('Enter'))
+  h.records.push({ id: 'new', type: 'paragraph', data: { text: '' } })
+  await Promise.resolve()
+  assert.deepEqual(h.viewCalls.filter(call => call[0] === 'focus'),
+    [['focus', 'new', { blockId: 'new', offset: 'start' }]])
+  h.router.destroy()
 })

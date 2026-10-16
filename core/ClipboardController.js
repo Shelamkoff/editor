@@ -578,8 +578,13 @@ export class ClipboardController {
   /** @param {string} blockId @param {any} focus @param {AbortSignal|null} [taskSignal] */
   #scheduleFocus(blockId,focus,taskSignal=null) {
     const generation=this.#runtime.generation,revision=this.#runtime.revision
+    const modeEpoch=this.#runtime.modeEpoch
+    const mounted=this.#view.element?.(blockId)
     queueMicrotask(()=>{
-      if(this.#controller.signal.aborted||taskSignal?.aborted||this.#runtime.readOnly||generation!==this.#runtime.generation||revision!==this.#runtime.revision||!this.#runtime.has(blockId))return
+      if(this.#controller.signal.aborted||taskSignal?.aborted||this.#runtime.readOnly
+        ||generation!==this.#runtime.generation||revision!==this.#runtime.revision
+        ||modeEpoch!==this.#runtime.modeEpoch||!this.#runtime.has(blockId)
+        ||(mounted&&this.#view.element?.(blockId)!==mounted))return
       this.#view.focus(blockId,focus)
     })
   }

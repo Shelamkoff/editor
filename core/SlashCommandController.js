@@ -332,7 +332,16 @@ export class SlashCommandController {
     if (!id) return
     this.#view.reconcileInteraction()
     this.#view.setCurrent(id)
-    queueMicrotask(() => this.#view.focus(id, { offset: 'start' }))
+    const generation=this.#runtime.generation,revision=this.#runtime.revision
+    const modeEpoch=this.#runtime.modeEpoch
+    const mounted=this.#view.element(id)
+    queueMicrotask(()=>{
+      if(this.#controller.signal.aborted||this.#runtime.readOnly
+        ||generation!==this.#runtime.generation||revision!==this.#runtime.revision
+        ||modeEpoch!==this.#runtime.modeEpoch||!this.#runtime.has(id)
+        ||!mounted||this.#view.element(id)!==mounted||this.#view.currentId!==id)return
+      this.#view.focus(id,{offset:'start'})
+    })
   }
 
   #sessionIsCurrent() {
