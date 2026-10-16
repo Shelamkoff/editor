@@ -1153,3 +1153,88 @@ test('two successive recovery DOM faults leave no orphaned block instances', () 
   reconciler.destroy()
   assert.equal(counters.destroy, counters.create, 'final owner is independently retired')
 })
+
+test('failed block restore staging keeps the original committed document authority', () => {
+  const ownerDocument = new FakeDocument()
+  const container = ownerDocument.createElement('main')
+  let originalContext
+  const released = []
+  const registry = {
+    hasBlock: () => true,
+    getBlockDefinition: type => ({ type }),
+    getBlockRuntime: () => ({ create(initial, context) {
+      if (initial.text === 'broken') throw new Error('new instance failed')
+      if (initial.text === 'initial') originalContext = context
+      return {
+        element: ownerDocument.createElement('article'),
+        read() { return initial }, setReadOnly() {},
+        destroy() { released.push(initial.text) },
+      }
+    } }),
+  }
+  const reconciler = new BlockReconciler({
+    container, registry,
+    contextFactory(_id, _type, _signal, readRecord) {
+      return { getData: () => readRecord().data }
+    },
+  })
+  const committed = new DocumentStore({
+    version: '2.0.0', blocks: [block('a', 'initial')],
+  })
+  reconciler.mount(committed)
+  const oldShell = reconciler.getElement('a')
+  assert.throws(() => reconciler.restore(new DocumentStore({
+    version: '2.0.0', blocks: [block('b', 'broken')],
+  })), /new instance failed/)
+
+  const draft = committed.createDraft()
+  draft.update('a', block('a', 'after-failure'))
+  committed.commit(draft)
+  assert.equal(originalContext.getData().text, 'after-failure',
+    'the original mounted context still reads the original store')
+  assert.equal(reconciler.getElement('a'), oldShell)
+  assert.deepEqual(container.children, [oldShell])
+  reconciler.destroy()
+  assert.deepEqual(released, ['initial'])
+})
+
+test('failed block restore DOM publication reattaches the original shells', () => {
+  const ownerDocument = new FakeDocument()
+  const container = ownerDocument.createElement('main')
+  const released = []
+  const registry = {
+    hasBlock: () => true,
+    getBlockDefinition: type => ({ type }),
+    getBlockRuntime: () => ({ create(initial) {
+      return {
+        element: ownerDocument.createElement('article'),
+        read() { return initial }, setReadOnly() {},
+        destroy() { released.push(initial.text) },
+      }
+    } }),
+  }
+  const reconciler = new BlockReconciler({
+    container, registry, contextFactory: () => ({}),
+  })
+  reconciler.mount(new DocumentStore({
+    version: '2.0.0', blocks: [block('a', 'initial')],
+  }))
+  const oldShell = reconciler.getElement('a')
+  const replace = container.replaceChildren.bind(container)
+  let failOnce = true
+  container.replaceChildren = (...children) => {
+    replace(...children)
+    if (failOnce) {
+      failOnce = false
+      throw new Error('DOM restore failed after insertion')
+    }
+  }
+  assert.throws(() => reconciler.restore(new DocumentStore({
+    version: '2.0.0', blocks: [block('b', 'replacement')],
+  })), /DOM restore failed after insertion/)
+  assert.equal(reconciler.getElement('a'), oldShell)
+  assert.deepEqual(container.children, [oldShell])
+  assert.deepEqual(released, ['replacement'], 'failed restoration releases its candidate')
+  reconciler.destroy()
+  assert.deepEqual(released, ['replacement', 'initial'])
+})

@@ -593,8 +593,13 @@ export class BlockReconciler {
 
   restore(store) {
     this.#assertLive()
-    this.#store = store
-    this.#restore(store, new Map())
+    const previousStore=this.#store
+    this.#store=store
+    try{this.#restore(store,new Map())}
+    catch(error){
+      if(!this.#destroyed)this.#store=previousStore
+      throw error
+    }
   }
 
   setReadOnly(value) {
@@ -835,18 +840,44 @@ export class BlockReconciler {
   }
 
   #restore(store, extraEntries) {
+    const previousEntries=this.#entries
+    const oldContainerChildren=Array.from(this.#container.childNodes??this.#container.children??[])
     const fresh = this.#stageAll(store, { candidate: false, stageInline: true, generation: store.generation })
-    const oldEntries = new Set([...this.#entries.values(), ...extraEntries.values()])
+    const oldEntries = new Set([...previousEntries.values(), ...extraEntries.values()])
 
     try {
+      this.#assertLive()
       this.#container.replaceChildren(...store.ids().map(id => fresh.get(id).element))
+      this.#assertLive()
       this.#entries = fresh
-      for (const entry of fresh.values()) this.#applyPreparedInline(entry)
-      for (const entry of fresh.values()) this.#activateEntry(entry)
-      for (const entry of fresh.values()) this.#finalizePreparedInline(entry)
+      for (const entry of fresh.values()){
+        this.#applyPreparedInline(entry)
+        this.#assertLive()
+      }
+      for (const entry of fresh.values()){
+        this.#activateEntry(entry)
+        this.#assertLive()
+      }
+      for (const entry of fresh.values()){
+        this.#finalizePreparedInline(entry)
+        this.#assertLive()
+      }
     } catch (error) {
-      for (const entry of fresh.values()) this.#recoverPreparedInline(entry)
-      for (const entry of fresh.values()) this.#destroyEntry(entry)
+      const failures=[]
+      for (const entry of fresh.values()){
+        try{this.#recoverPreparedInline(entry)}catch(failure){failures.push(failure)}
+      }
+      for (const entry of fresh.values()){
+        try{this.#destroyEntry(entry)}catch(failure){failures.push(failure)}
+      }
+      if(!this.#destroyed){
+        if(this.#entries===fresh)this.#entries=previousEntries
+        try{restoreChildOrder(this.#container,oldContainerChildren)}
+        catch(failure){failures.push(failure)}
+      }
+      if(failures.length){
+        throw new AggregateError([error,...failures],'Block restoration and rollback both failed')
+      }
       throw error
     }
 
