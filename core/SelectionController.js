@@ -239,11 +239,27 @@ export class SelectionController {
     const revision=this.#runtime.revision
     const modeEpoch=this.#runtime.modeEpoch
     const mounted=this.#view.element(blockId)
+    const native=this.#window?.getSelection?.()
+    const focused=this.#document.activeElement
+    const nativePosition=native?{
+      anchorNode:native.anchorNode,anchorOffset:native.anchorOffset,
+      focusNode:native.focusNode,focusOffset:native.focusOffset,
+    }:null
     queueMicrotask(()=>{
+      // A later author caret movement does not advance the document revision
+      // or current block. Do not let this completed operation reclaim it.
+      const current=this.#window?.getSelection?.()
+      const nativeMoved=nativePosition&&(
+        current?.anchorNode!==nativePosition.anchorNode
+        ||current?.anchorOffset!==nativePosition.anchorOffset
+        ||current?.focusNode!==nativePosition.focusNode
+        ||current?.focusOffset!==nativePosition.focusOffset
+      )
       if(this.#controller.signal.aborted||this.#runtime.readOnly
         ||generation!==this.#runtime.generation||revision!==this.#runtime.revision
         ||modeEpoch!==this.#runtime.modeEpoch||!this.#runtime.has(blockId)||!mounted
-        ||this.#view.element(blockId)!==mounted||this.#view.currentId!==blockId)return
+        ||this.#view.element(blockId)!==mounted||this.#view.currentId!==blockId
+        ||nativeMoved||this.#document.activeElement!==focused)return
       this.#view.focus(blockId,target)
     })
   }

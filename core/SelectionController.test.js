@@ -86,3 +86,42 @@ test('read-only round trip and destroy both prevent a retained IME commit',()=>{
     if(retirement==='mode')h.controller.destroy()
   }
 })
+
+test('queued cross-block focus never overwrites a later caret inside the same replacement block',async()=>{
+  for(const moved of [false,true]){
+    const node={nodeType:3},selection={
+      anchorNode:node,focusNode:node,anchorOffset:1,focusOffset:1,
+    }
+    const focused={}
+    const doc={activeElement:focused,defaultView:{AbortController,getSelection:()=>selection},addEventListener(){}}
+    const root={ownerDocument:doc,addEventListener(){},contains(){return true},
+      classList:{remove(){},add(){}}}
+    const mounted={}
+    const calls=[]
+    const view={
+      currentId:'a',selectedIds:[],
+      element(){return mounted},
+      select(ids){this.selectedIds=[...ids]},
+      clearSelection(){this.selectedIds=[]},
+      setCurrent(id){this.currentId=id},
+      reconcileInteraction(){},
+      focus(id,target){calls.push({id,target});return true},
+    }
+    const runtime={
+      readOnly:false,health:'ready',generation:1,revision:1,modeEpoch:0,
+      has:id=>id==='a',ids:()=>['a'],
+      replaceWholeDocument:()=>({blockId:'a',fieldKey:'text',offset:3}),
+      interact(_name,operation){this.revision++;return operation()},
+    }
+    const controller=new SelectionController({
+      root,runtime,view,reconciler:{resolveEditableTarget:()=>null},
+    })
+    controller.selectBlocks(['a'])
+    assert.equal(controller.replace({kind:'text',text:'XYZ'}),true)
+    if(moved){selection.anchorOffset=2;selection.focusOffset=2}
+    await Promise.resolve()
+    assert.deepEqual(calls,moved?[]:[{id:'a',target:{fieldKey:'text',offset:3}}],
+      'retired cross-block focus overwrote a newer native caret')
+    controller.destroy()
+  }
+})

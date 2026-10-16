@@ -2368,4 +2368,41 @@ for(const [label,value] of [
 }
 
 
+test('queued whole-block replacement respects a later caret inside its resulting block',async()=>{
+  const editor=make([para('a','Alpha'),para('b','Bravo')])
+  editor.blocks.focus('a',{fieldKey:'text',offset:2})
+  editor.blocks.select(['a','b'])
+  const callbacks=[]
+  const schedule=window.queueMicrotask
+  let result
+  try{
+    window.queueMicrotask=callback=>callbacks.push(callback)
+    const event=new InputEvent('beforeinput',{
+      inputType:'insertText',data:'XYZ',bubbles:true,cancelable:true,
+    })
+    editableField(editor,'a').dispatchEvent(event)
+    check(event.defaultPrevented,'Whole-block text replacement was not owned')
+    const blocks=editor.save().blocks
+    equal(blocks.length,1,'Whole replacement left extra blocks')
+    result=blocks[0]
+    equal(result.data.text,'XYZ','Whole replacement text was incomplete')
+    check(callbacks.length>0,'Whole replacement did not queue its new caret')
+    editor.blocks.focus(result.id,{fieldKey:'text',offset:1})
+  }finally{
+    window.queueMicrotask=schedule
+  }
+  const field=editableField(editor,result.id)
+  const native=window.getSelection()
+  const documentBefore=editor.save().blocks
+  const historyBefore=[editor.canUndo,editor.canRedo]
+  equal(getTextOffset(field,native.focusNode,native.focusOffset),1)
+  for(const callback of callbacks)callback()
+  await Promise.resolve()
+  equal(editor.save().blocks,documentBefore,'Deferred whole replacement mutated the document')
+  equal(getTextOffset(field,native.focusNode,native.focusOffset),1,
+    'Old replacement reset a newer user caret within the same result block')
+  equal([editor.canUndo,editor.canRedo],historyBefore,
+    'Old replacement modified settled history')
+})
+
 await run()
