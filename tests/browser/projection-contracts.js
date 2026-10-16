@@ -891,4 +891,110 @@ test('stale inline finalize cannot destroy a successor recoverable predecessor',
   } finally { projection.destroy() }
 })
 
+
+
+test('destroyBlock revokes a detached prepared inline candidate before apply', () => {
+  const released = []
+  const registry = {
+    getInlineDefinition: () => ({ schema: { decode: value => value } }),
+    getInlineRuntime: () => ({
+      create(id) {
+        return {
+          element: document.createElement('span'),
+          setReadOnly() {},
+          destroy() { released.push(id) },
+        }
+      },
+    }),
+  }
+  const projection = new InlineProjectionRuntime({ registry, ownerDocument: document })
+  const fields = [{ key: 'text', mode: 'rich-text', element: document.createElement('div') }]
+  const record = {
+    data: { fields: [{ key: 'text', html: '{{x}}' }] }, inline: { x: payload },
+  }
+  try {
+    const prepared = projection.prepareBlock('a', record, { schema }, fields,
+      { createInlineWidgetContext: () => ({}) }, 1)
+    equal(released, [])
+    projection.destroyBlock('a')
+    equal(released, ['x'], 'remove retires the staged owner even without a live state')
+    let staleError = ''
+    try { prepared.apply() } catch (error) { staleError = error.message }
+    assert(/cannot be applied twice/.test(staleError))
+    prepared.finalize()
+    projection.destroyBlock('a')
+    equal(released, ['x'])
+  } finally { projection.destroy() }
+})
+
+test('destroyBlock invoked during prepare create invalidates the in-flight candidate', () => {
+  const released = []
+  let projection
+  let revokeInCreate = true
+  const registry = {
+    getInlineDefinition: () => ({ schema: { decode: value => value } }),
+    getInlineRuntime: () => ({
+      create(id) {
+        if (revokeInCreate) projection.destroyBlock('a')
+        return {
+          element: document.createElement('span'),
+          setReadOnly() {},
+          destroy() { released.push(id) },
+        }
+      },
+    }),
+  }
+  projection = new InlineProjectionRuntime({ registry, ownerDocument: document })
+  const fields = [{ key: 'text', mode: 'rich-text', element: document.createElement('div') }]
+  const record = {
+    data: { fields: [{ key: 'text', html: '{{x}}' }] }, inline: { x: payload },
+  }
+  try {
+    let revokeError = ''
+    try {
+      projection.prepareBlock('a', record, { schema }, fields,
+        { createInlineWidgetContext: () => ({}) }, 1)
+    } catch (error) { revokeError = error.message }
+    assert(/owner was revoked during preparation/.test(revokeError))
+    equal(released, ['x'])
+    revokeInCreate = false
+    const fresh = projection.prepareBlock('a', record, { schema }, fields,
+      { createInlineWidgetContext: () => ({}) }, 1)
+    fresh.discard()
+    equal(released, ['x', 'x'], 'revocation does not poison a future new preparation')
+  } finally { projection.destroy() }
+})
+
+test('destroyBlock retires both mounted and waiting inline owners once', () => {
+  const released = []
+  const registry = {
+    getInlineDefinition: () => ({ schema: { decode: value => value } }),
+    getInlineRuntime: () => ({
+      create(id, data) {
+        return {
+          element: document.createElement('span'),
+          setReadOnly() {},
+          destroy() { released.push(data.label) },
+        }
+      },
+    }),
+  }
+  const projection = new InlineProjectionRuntime({ registry, ownerDocument: document })
+  const fields = () => [{ key: 'text', mode: 'rich-text', element: document.createElement('div') }]
+  const record = label => ({
+    data: { fields: [{ key: 'text', html: '{{x}}' }] },
+    inline: { x: { type: 'unloaded', dataVersion: 3, data: { label } } },
+  })
+  const ctx = { createInlineWidgetContext: () => ({}) }
+  try {
+    projection.reconcileBlock('a', record('mounted'), { schema }, fields(), ctx)
+    const staged = projection.prepareBlock('a', record('waiting'), { schema }, fields(), ctx, 1)
+    projection.destroyBlock('a')
+    equal([...released].sort(), ['mounted', 'waiting'])
+    assert.throws(() => staged.apply(), /cannot be applied twice/)
+    projection.destroy()
+    equal(released.length, 2)
+  } finally { projection.destroy() }
+})
+
 await run()

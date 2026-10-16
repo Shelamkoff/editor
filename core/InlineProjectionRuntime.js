@@ -46,6 +46,7 @@ export class InlineProjectionRuntime {
   #ownerDocument
   #blocks=new Map()
   #projectingBlocks=new Set()
+  #invalidatedProjectionBlocks=new Set()
   /** @type {Set<() => void>} */
   #pendingPreparations=new Set()
   #owned=new WeakMap()
@@ -88,6 +89,7 @@ export class InlineProjectionRuntime {
       }
     }finally{
       this.#projectingBlocks.delete(blockId)
+      this.#invalidatedProjectionBlocks.delete(blockId)
     }
   }
 
@@ -103,7 +105,8 @@ export class InlineProjectionRuntime {
       this.#projectState(
         blockId,state,record,definition,fields,baseContext,{preserveSourceProjection:false},
       )
-      if(this.#destroyed||this.#blocks.get(blockId)!==previous){
+      if(this.#destroyed||this.#blocks.get(blockId)!==previous
+        ||this.#invalidatedProjectionBlocks.has(blockId)){
         throw new Error('Inline projection owner was revoked during preparation')
       }
     }catch(error){
@@ -111,6 +114,7 @@ export class InlineProjectionRuntime {
       throw error
     }finally{
       this.#projectingBlocks.delete(blockId)
+      this.#invalidatedProjectionBlocks.delete(blockId)
     }
 
     let applied=false
@@ -125,6 +129,7 @@ export class InlineProjectionRuntime {
       destroyCandidate()
       if(previous&&previous!==state)this.#destroyState(previous)
     }
+    retire.blockId=blockId
     this.#pendingPreparations.add(retire)
 
     return Object.freeze({
@@ -460,11 +465,16 @@ export class InlineProjectionRuntime {
   }
 
   destroyBlock(blockId){
+    // Block removal revokes detached prepared candidates as well as a
+    // mounted state. A candidate must not republish this ID afterward.
+    if(this.#projectingBlocks.has(blockId))this.#invalidatedProjectionBlocks.add(blockId)
+    const pending=[...this.#pendingPreparations].filter(retire=>retire.blockId===blockId)
     const state=this.#blocks.get(blockId)
-    if(!state)return
-    // Revoke this block before synchronous extension cleanup can reenter.
-    this.#blocks.delete(blockId)
-    this.#destroyState(state)
+    if(state){
+      this.#blocks.delete(blockId)
+      this.#destroyState(state)
+    }
+    for(const retire of pending)retire()
   }
 
   destroy(){
