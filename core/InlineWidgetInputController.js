@@ -129,6 +129,7 @@ export class InlineWidgetInputController {
         range.setEnd(candidate.endContainer,candidate.endOffset)
       }catch{return null}
       const crosses=state.occurrences.some(entry=>{
+        if(!entry.optedIn)return false
         try{
           if(!range.intersectsNode(entry.element))return false
           return !(entry.element.contains(range.startContainer)
