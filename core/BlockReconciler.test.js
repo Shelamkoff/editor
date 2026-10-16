@@ -1040,3 +1040,65 @@ test('late finalize from an older block handle cannot retire a successor owner',
   reconciler.destroy()
   assert.equal(counters.destroy, 3)
 })
+
+test('reentrant insertBefore successor survives recovery of a partially applied predecessor', () => {
+  const { store, reconciler, container, counters } = setup(1)
+  const firstDraft = store.createDraft()
+  firstDraft.insert(1, block('b'))
+  const first = reconciler.prepare({ store, draft: firstDraft, changes: firstDraft.changes })
+  const secondDraft = store.createDraft()
+  secondDraft.insert(1, block('c'))
+  const successor = reconciler.prepare({ store, draft: secondDraft, changes: secondDraft.changes })
+
+  const insertBefore = container.insertBefore.bind(container)
+  let injected = false
+  container.insertBefore = (element, anchor) => {
+    const result = insertBefore(element, anchor)
+    if (!injected && element.dataset.blockId === 'b') {
+      injected = true
+      successor.apply()
+    }
+    return result
+  }
+
+  assert.throws(() => first.apply(), /owner changed during apply/)
+  first.recover()
+  assert.deepEqual(reconciler.ids, ['0', 'c'])
+  assert.deepEqual(container.children.map(node => node.dataset.blockId), ['0', 'c'])
+  assert.equal(counters.destroy, 1, 'only the interrupted b owner was released')
+  successor.finalize()
+  assert.deepEqual(reconciler.ids, ['0', 'c'])
+  reconciler.destroy()
+  assert.equal(counters.destroy, 3, 'the successor and original owner are retired once')
+})
+
+test('finalize after interrupted apply cannot steal a reentrant successor projection', () => {
+  const { store, reconciler, container, counters } = setup(1)
+  const firstDraft = store.createDraft()
+  firstDraft.insert(1, block('b'))
+  const first = reconciler.prepare({ store, draft: firstDraft, changes: firstDraft.changes })
+  const secondDraft = store.createDraft()
+  secondDraft.insert(1, block('c'))
+  const successor = reconciler.prepare({ store, draft: secondDraft, changes: secondDraft.changes })
+
+  const insertBefore = container.insertBefore.bind(container)
+  let injected = false
+  container.insertBefore = (element, anchor) => {
+    const result = insertBefore(element, anchor)
+    if (!injected && element.dataset.blockId === 'b') {
+      injected = true
+      successor.apply()
+    }
+    return result
+  }
+
+  assert.throws(() => first.apply(), /owner changed during apply/)
+  assert.throws(() => first.finalize(), /owner is stale/)
+  successor.finalize()
+  first.recover()
+  assert.deepEqual(reconciler.ids, ['0', 'c'])
+  assert.deepEqual(container.children.map(node => node.dataset.blockId), ['0', 'c'])
+  assert.equal(counters.destroy, 1, 'orphaned interrupted b owner is retired')
+  reconciler.destroy()
+  assert.equal(counters.destroy, 3)
+})
