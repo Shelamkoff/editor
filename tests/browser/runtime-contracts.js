@@ -2210,4 +2210,20 @@ test('HTML Paste with an actual line break still replaces selected text',async()
 })
 
 
+test('empty paragraph HTML Paste retains a selected text range and its history', async()=>{
+  const editor=make([para('a','Alpha')])
+  const field=editableField(editor,'a')
+  select(field,1,4)
+  const before=editor.save().blocks
+  const clipboard=new DataTransfer()
+  clipboard.setData('text/html','<p></p>')
+  const event=new ClipboardEvent('paste',{clipboardData:clipboard,bubbles:true,cancelable:true})
+  field.dispatchEvent(event)
+  await Promise.resolve()
+  equal(editor.save().blocks,before,'Empty paragraph Paste modified selected author text')
+  equal(editor.canUndo,false,'Empty paragraph Paste added a history action')
+  equal(window.getSelection().toString(),'lph','Empty paragraph Paste destroyed the native selection')
+})
+
+
 await run()
