@@ -13,6 +13,7 @@ export class InlineTriggerController {
   #projection
   #nativeInputRoute
   #controller
+  #modeEpoch=0
   #active=null
   #triggers=[]
   #observe
@@ -43,7 +44,13 @@ export class InlineTriggerController {
     const signal=this.#controller.signal
     root.addEventListener('compositionstart',()=>this.#cancel(),{signal})
     root.addEventListener('compositionend',event=>{
-      if(event.data)queueMicrotask(()=>{if(!signal.aborted)this.refresh()})
+      if(!event.data)return
+      const modeEpoch=this.#modeEpoch
+      queueMicrotask(()=>{
+        // Native IME completion is owned by the control mode in which it
+        // occurred. A read-only round trip revokes this old query refresh.
+        if(!signal.aborted&&modeEpoch===this.#modeEpoch)this.refresh()
+      })
     },{signal})
     root.addEventListener('input',event=>this.#onInput(event),{signal})
     root.addEventListener('keydown',event=>this.#onKeyDown(event),{signal,capture:true})
@@ -55,7 +62,10 @@ export class InlineTriggerController {
 
   get isActive(){return !!this.#active}
 
-  setReadOnly(value){if(value===true)this.#cancel()}
+  setReadOnly(value){
+    this.#modeEpoch++
+    if(value===true)this.#cancel()
+  }
 
   /** Handoff a fresh-trigger query to a settled editable widget's own
    * session without canceling a legitimate label session when no query exists.

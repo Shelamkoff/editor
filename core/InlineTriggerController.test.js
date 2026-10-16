@@ -72,6 +72,7 @@ test('deferred inline trigger refresh and input never reactivate after read-only
 
 function triggerScenario(query,keydown) {
   const events=new Map(),calls=[],errors=[]
+  let readOnly=false
   const label={nodeType:3,textContent:'@'}
   const field={
     isConnected:true,textContent:'@',
@@ -108,7 +109,7 @@ function triggerScenario(query,keydown) {
     },
     selection:{capture(){return {anchor:point,focus:{...point}}}},
     commands:{},
-    isReadOnly:()=>false,
+    isReadOnly:()=>readOnly,
     reportError(error){errors.push(error)},
   })
   const press=(key='Enter')=>{
@@ -120,7 +121,13 @@ function triggerScenario(query,keydown) {
     })
     return {prevented,stopped}
   }
-  return {controller,calls,errors,press}
+  return {
+    controller,calls,errors,press,events,
+    setReadOnly(value){
+      readOnly=value
+      controller.setReadOnly(value)
+    },
+  }
 }
 
 for (const [name,decision] of [
@@ -173,4 +180,18 @@ test('Escape handling cannot cancel a successor query created by the previous ke
   h.controller.destroy()
   assert.deepEqual(h.calls,['query','keydown','cancel','query','cancel'],
     'successor was not retired exactly once on destruction')
+})
+
+test('queued IME trigger refresh is revoked across a read-only round trip',async()=>{
+  const h=triggerScenario(null,()=> 'pass')
+  h.events.get('compositionend')({data:'@'})
+  h.setReadOnly(true)
+  h.setReadOnly(false)
+  await Promise.resolve()
+  assert.equal(h.controller.isActive,false,'stale IME completion revived trigger session')
+  assert.deepEqual(h.calls,[],'stale IME completion called an inline plugin')
+  assert.equal(h.controller.refresh(),true,'fresh author trigger cannot restart')
+  assert.equal(h.controller.isActive,true)
+  h.controller.destroy()
+  assert.deepEqual(h.calls,['query','cancel'],'fresh query was not retired cleanly')
 })
