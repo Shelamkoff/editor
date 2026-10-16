@@ -63,6 +63,42 @@ for(const remaining of ['@Ad',''])test('Mention reconciles a missing-target-rang
   equal(editor.save().blocks,after)
 })
 
+for(const kind of ['cut','paste'])test('Mention label-local '+kind+' cannot mutate after clipboard callback changes selection',async()=>{
+  const editor=make([
+    {id:'a',type:'paragraph',dataVersion:2,data:{text:'{{person}}'},
+      inline:{person:{type:'mention',dataVersion:1,data:{id:'ada',name:'Ada'}}}},
+    {id:'b',type:'paragraph',dataVersion:2,data:{text:'Other'}},
+  ],{inlinePlugins:[createMentionPlugin({debounceDelay:0,searchFunction:async()=>[]})]})
+  const first=blockElement(editor,'a').querySelector('.oe-paragraph')
+  const second=blockElement(editor,'b').querySelector('.oe-paragraph')
+  const span=first.querySelector('[data-inline-plugin="mention"]')
+  const native=window.getSelection()
+  first.focus()
+  native.setBaseAndExtent(span.firstChild,1,span.firstChild,3)
+  const original=editor.save().blocks
+  let copied=''
+  const clipboard={
+    types:['text/plain'],
+    setData(_type,value){
+      copied=value
+      native.setBaseAndExtent(second.firstChild,0,second.firstChild,0)
+    },
+    getData(){
+      if(kind==='paste'){
+        native.setBaseAndExtent(second.firstChild,0,second.firstChild,0)
+        return 'Z'
+      }
+      return copied
+    },
+  }
+  const event=new Event(kind,{bubbles:true,cancelable:true})
+  Object.defineProperty(event,'clipboardData',{value:clipboard})
+  span.dispatchEvent(event)
+  assert(event.defaultPrevented,'Owned clipboard operation was not canceled before I/O')
+  equal(editor.save().blocks,original,'Stale label clipboard callback changed the canonical document')
+  equal(editor.canUndo,false,'Stale label clipboard callback created history')
+})
+
 test('Mention Backspace outside a formatting wrapper deletes native text and restarts search',async()=>{
   const queries=[]
   const editor=make([{id:'a',type:'paragraph',dataVersion:2,data:{text:'Prefix <b>{{person}}</b> tail'},inline:{person:{type:'mention',dataVersion:1,data:{id:'unicode',name:'👨‍👩‍👧‍👦'}}}}],{injectStyles:true,inlinePlugins:[createMentionPlugin({debounceDelay:0,searchFunction:async query=>{queries.push(query);return []}})]})
