@@ -629,7 +629,12 @@ export class BlockToolbar {
         try {
           const result = this.#mutate('block.convert', () => {
             const bookmark = this.#bookmark
-            if (bookmark) {
+            // Plain-text inputs (Code, Raw, file names, URLs) have logical
+            // caret bookmarks but no rich-text slice. Convert their entire
+            // block instead of treating a selected input interval as rich text.
+            const richEndpoint = point => this.#view.fields(point.blockId)
+              .some(field => field.key === point.fieldKey && field.mode === 'rich-text')
+            if (bookmark && richEndpoint(bookmark.anchor) && richEndpoint(bookmark.focus)) {
               const anchor = this.#view.indexOf(bookmark.anchor.blockId)
               const focus = this.#view.indexOf(bookmark.focus.blockId)
               const owner = this.#view.indexOf(id)
@@ -645,7 +650,9 @@ export class BlockToolbar {
           this.#view.setCurrent(result.focusId)
           this.closeSettings()
           queueMicrotask(() => restoreConvertedSelection(result,this.#view,this.#selectionPort))
-        } catch {}
+        } catch (error) {
+          try { this.#reportError('command.failed', error) } catch {}
+        }
       }, current && !crossBlock, false, current)
       item.dataset.pluginType = type
       this.#settings.append(item)

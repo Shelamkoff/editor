@@ -486,9 +486,10 @@ test('Poll preserves rich question and option formatting through native typing a
   equal(editor.canUndo, false)
 })
 
-async function convertThroughMenu(editor, target) {
+async function convertThroughMenu(editor, target, beforeMenu = null) {
   editor.blocks.focus('a')
   await pause(30)
+  beforeMenu?.()
   await clickNative(editorRoot(editor).querySelector('.oe-toolbar__drag'))
   await pause(180)
   const menu = editorRoot(editor).querySelector('.oe-settings-menu')
@@ -497,6 +498,24 @@ async function convertThroughMenu(editor, target) {
   await clickNative(menu.querySelector(`[data-plugin-type="${target}"]`))
   await pause(25)
 }
+
+test('selected plain-text Code input converts the whole block rather than slicing its text', async () => {
+  const fixture = pluginParityFixtures.find(entry => entry.name === 'Code')
+  const editor = pluginEditor(fixture)
+  const before = editor.save().blocks
+  await convertThroughMenu(editor, 'paragraph', () => {
+    const input = document.activeElement
+    assert(input?.tagName === 'TEXTAREA' && input.value === 'Alpha', 'Code focus did not enter its source field')
+    input.setSelectionRange(1, 4)
+  })
+  const after = editor.save().blocks
+  equal(after.map(block => [block.id, block.type, block.data.text]), [['a', 'paragraph', 'Alpha']])
+  await dispatchKey('z', 'KeyZ', 90, 2)
+  equal(editor.save().blocks, before)
+  equal(editor.canUndo, false)
+  await dispatchKey('z', 'KeyZ', 90, 2 | 8)
+  equal(editor.save().blocks, after)
+})
 
 for (const fixture of pluginParityFixtures.filter(entry => entry.name !== 'Paragraph' && entry.name !== 'Delimiter')) {
   test(`${fixture.name}: whole conversion to Paragraph transfers text and one Undo/Redo`, async () => {

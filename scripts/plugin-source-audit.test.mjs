@@ -33,3 +33,23 @@ test('renderer cannot depend on editor preparation modules', () => {
   const sources = new Map([['renderer/custom.js', "import '../core/CanonicalTransforms.js'"], ['core/CanonicalTransforms.js', 'export const value = 1']])
   assert.match(auditRuntimeDependencies(sources).join('\n'), /forbidden renderer dependency/)
 })
+
+for (const declaration of [
+  "import './missing'",
+  "import { value } from './missing'",
+  "export * from './missing'",
+  "const load = () => import('./missing')",
+  "import '@shelamkoff/rector/shared/missing'",
+]) test('dependency audit rejects unresolved extensionless runtime edge: ' + declaration, () => {
+  const sources = new Map([['plugins/custom/index.js', declaration]])
+  assert.match(auditRuntimeDependencies(sources).join('\n'), /unresolved runtime dependency/)
+})
+
+test('dependency audit resolves existing extensionless files and ignores non-JavaScript assets', () => {
+  const sources = new Map([
+    ['core/host.js', "import './helper'; import './host.css'; export { value } from '@shelamkoff/rector/shared/value'"],
+    ['core/helper.js', 'export {}'],
+    ['shared/value.js', 'export const value = 1'],
+  ])
+  assert.deepEqual(auditRuntimeDependencies(sources), [])
+})
