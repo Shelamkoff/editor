@@ -1,3 +1,4 @@
+import { isRichTextEmpty } from '../../shared/richTextEmpty.js'
 // @ts-check
 import { definitionStyles } from '../shared/definitionStyles.js'
 import { setSanitizedHtml } from '../../plugin-kit/index.js'
@@ -52,7 +53,7 @@ export function createHeadingPlugin(config = {}) {
 
   const capabilities=Object.freeze({
     formatting:Object.freeze({inlineTools:true}),
-    empty:Object.freeze({isEmpty:data=>data.text.trim().length===0}),
+    empty:Object.freeze({isEmpty:(data,context)=>isRichTextEmpty(data.text,context)}),
     merge:Object.freeze({
       merge(target,source){
         return {...target,text:mergeText(target.text,source.text)}

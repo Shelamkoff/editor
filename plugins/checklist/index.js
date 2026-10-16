@@ -1,3 +1,4 @@
+import { isRichTextEmpty } from '../../shared/richTextEmpty.js'
 // @ts-check
 import { definitionStyles } from '../shared/definitionStyles.js'
 import { setSanitizedHtml } from '../../plugin-kit/index.js'
@@ -44,7 +45,7 @@ export function createChecklistPlugin(config = {}) {
   const capabilities=Object.freeze({
     selectionSlice:createItemSelectionSlice(),
     formatting:Object.freeze({inlineTools:true}),
-    empty:Object.freeze({isEmpty:data=>data.items.every(item=>item.text.trim().length===0)}),
+    empty:Object.freeze({isEmpty:(data,context)=>data.items.every(item=>isRichTextEmpty(item.text,context))}),
     merge:Object.freeze({
       merge(target,source){
         const occupied=new Set(target.items.map(item=>item.id))

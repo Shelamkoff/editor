@@ -1,3 +1,4 @@
+import { isRichTextEmpty } from '../../shared/richTextEmpty.js'
 // @ts-check
 import { definitionStyles } from '../shared/definitionStyles.js'
 import { setSanitizedHtml } from '../../plugin-kit/index.js'
@@ -35,7 +36,7 @@ export function createTablePlugin(config = {}) {
   const capabilities=Object.freeze({
     selectionSlice:createTextSelectionSlice(tableDataSchema),
     formatting:Object.freeze({inlineTools:true}),
-    empty:Object.freeze({isEmpty:data=>data.rows.every(row=>row.cells.every(cell=>cell.text.trim().length===0))}),
+    empty:Object.freeze({isEmpty:(data,context)=>data.rows.every(row=>row.cells.every(cell=>isRichTextEmpty(cell.text,context)))}),
     shortcuts:Object.freeze(/** @type {import('../../plugin-kit/types').ShortcutCapability<any>} */ ({
       handle(input,data,context){
         if(input.key==='Enter'&&!input.shiftKey){

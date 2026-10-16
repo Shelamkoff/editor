@@ -1,3 +1,4 @@
+import { isRichTextEmpty } from '../../shared/richTextEmpty.js'
 // @ts-check
 import { definitionStyles } from '../shared/definitionStyles.js'
 import { setSanitizedHtml } from '../../plugin-kit/index.js'
@@ -24,7 +25,7 @@ export function createQuotePlugin(config = {}) {
   const capabilities=Object.freeze({
     selectionSlice:createTextSelectionSlice(quoteDataSchema),
     formatting:Object.freeze({inlineTools:true}),
-    empty:Object.freeze({isEmpty:data=>!data.text.trim()&&!data.caption.trim()}),
+    empty:Object.freeze({isEmpty:(data,context)=>isRichTextEmpty(data.text,context)&&isRichTextEmpty(data.caption,context)}),
     merge:Object.freeze({
       merge(target,source){
         return {

@@ -1,3 +1,4 @@
+import { isRichTextEmpty } from '../../shared/richTextEmpty.js'
 import { createItemSelectionSlice } from '../shared/itemSelectionSlice.js'
 // @ts-check
 import { definitionStyles } from '../shared/definitionStyles.js'
@@ -58,7 +59,7 @@ export function createListPlugin(config = {}) {
   const capabilities=Object.freeze({
     formatting:Object.freeze({inlineTools:true}),
     empty:Object.freeze({
-      isEmpty:data=>data.items.every(item=>item.text.trim().length===0),
+      isEmpty:(data,context)=>data.items.every(item=>isRichTextEmpty(item.text,context)),
     }),
     merge:Object.freeze({
       merge(target,source){
@@ -80,7 +81,7 @@ export function createListPlugin(config = {}) {
         if(index<0)return null
         if(input.key==='Enter'&&!input.shiftKey){
           const current=data.items[index]
-          if(!current.text.trim()){
+          if(isRichTextEmpty(current.text)){
             if(data.items.length===1)return {kind:'exit'}
             const remaining={...data,items:data.items.filter(item=>item.id!==id)}
             if(index===data.items.length-1)return {kind:'exit',data:remaining}

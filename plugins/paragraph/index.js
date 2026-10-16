@@ -1,3 +1,4 @@
+import { isRichTextEmpty } from '../../shared/richTextEmpty.js'
 // @ts-check
 import { setSanitizedHtml } from '../../plugin-kit/index.js'
 import { paragraphDataSchema } from '../../shared/blockSchemas/paragraph.js'
@@ -60,8 +61,8 @@ export function createParagraphPlugin(config = {}) {
   const capabilities = Object.freeze({
     formatting: Object.freeze({ inlineTools: true }),
     empty: Object.freeze({
-      isEmpty(data) {
-        return data.text.trim().length === 0
+      isEmpty(data,context) {
+        return isRichTextEmpty(data.text,context)
       },
     }),
     merge: Object.freeze({
