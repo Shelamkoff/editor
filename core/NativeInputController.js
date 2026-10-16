@@ -210,12 +210,19 @@ export class NativeInputController {
           || snapshot.originalEvent.defaultPrevented === true
           || snapshot.generation !== this.#runtime.generation
           || snapshot.revision !== this.#runtime.revision
+        let settled={status:'stale'}
         if (stale) {
           this.#inlineWidgetInput?.discardStaleNativeDeletion(snapshot)
         } else {
-          try { this.#inlineWidgetInput?.completeNativeDeletion(snapshot,event) }
-          catch { /* The owning runtime already recovered and reported. */ }
+          try {
+            settled=this.#inlineWidgetInput?.completeNativeDeletion(snapshot,event)
+              ??{status:'failed'}
+          }catch {
+            // The protected runtime already owns recovery and diagnostics.
+            settled={status:'failed'}
+          }
         }
+        this.#inlineWidgetInput?.markNativeInputEvent?.(event,settled)
         this.#lastGroup = null
         return
       }
