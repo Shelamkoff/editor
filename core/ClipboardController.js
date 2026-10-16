@@ -109,9 +109,13 @@ export class ClipboardController {
   }
 
   cancelPendingTask() {
-    this.#task?.abort()
+    const previous = this.#task
+    // Revoke our lease before notifying resolver-owned abort listeners.
+    // A listener can synchronously start a newer Paste task; it must retain
+    // its own controller and anchor instead of being cleared by this call.
     this.#task = null
     this.#taskAnchorId = null
+    previous?.abort()
   }
 
   destroy() {
