@@ -60,7 +60,6 @@ export class InlineProjectionRuntime {
   reconcileBlock(blockId,record,definition,fields,baseContext,{preserveSourceProjection=false}={}){
     this.#assertLive()
     let state=this.#blocks.get(blockId)
-    const firstMount=!state
     if(!state){
       state={widgets:new Map(),staged:false}
       this.#blocks.set(blockId,state)
@@ -70,13 +69,11 @@ export class InlineProjectionRuntime {
         blockId,state,record,definition,fields,baseContext,{preserveSourceProjection},
       )
     }catch(error){
-      // An initial live mount may acquire several widgets before a later
-      // extension fails. There is no prior committed state to retain, so
-      // revoke the staged claims and release all partially-created widgets.
-      if(firstMount){
-        if(this.#blocks.get(blockId)===state)this.#blocks.delete(blockId)
-        this.#destroyState(state)
-      }
+      // An in-place update can already have modified an existing widget's
+      // DOM or cache before another extension throws. The owner is no longer
+      // a consistent projection of committed canonical data: fail closed.
+      if(this.#blocks.get(blockId)===state)this.#blocks.delete(blockId)
+      this.#destroyState(state)
       throw error
     }
   }

@@ -463,4 +463,108 @@ test('detached but owned inline widget root cannot be borrowed by another projec
   } finally { first.destroy(); second.destroy() }
 })
 
+
+
+test('failed repeat inline reconciliation retires old owners instead of retaining a partial update', () => {
+  const created = []
+  const destroyed = []
+  let failSecond = true
+  const registry = {
+    getInlineDefinition: () => ({ schema: { decode: input => input } }),
+    getInlineRuntime: () => ({
+      create(id, data) {
+        if (id === 'y' && failSecond) throw new Error('second widget failed')
+        const element = document.createElement('span')
+        element.textContent = data.label
+        created.push({ id, element })
+        return {
+          element,
+          update(next) { element.textContent = next.label },
+          setReadOnly() {},
+          destroy() { destroyed.push(id) },
+        }
+      },
+    }),
+  }
+  const projection = new InlineProjectionRuntime({ registry, ownerDocument: document })
+  const field = document.createElement('div')
+  const fields = [{ key: 'text', mode: 'rich-text', element: field }]
+  const record = (text, refs) => ({
+    data: { fields: [{ key: 'text', html: text }] },
+    inline: refs,
+  })
+  const ref = label => ({ type: 'unloaded', dataVersion: 3, data: { label } })
+  const original = record('{{x}}', { x: ref('old') })
+  const changed = record('{{x}} {{y}}', { x: ref('new'), y: ref('Y') })
+  try {
+    projection.reconcileBlock('a', original, { schema }, fields,
+      { createInlineWidgetContext: () => ({}) })
+    const previous = created[0].element
+
+    let message = ''
+    try {
+      projection.reconcileBlock('a', changed, { schema }, fields,
+        { createInlineWidgetContext: () => ({}) })
+    } catch (error) { message = error.message }
+    equal(message, 'second widget failed')
+    equal(destroyed, ['x'], 'the existing widget is retired after failed in-place projection')
+
+    failSecond = false
+    projection.reconcileBlock('a', original, { schema }, fields,
+      { createInlineWidgetContext: () => ({}) })
+    equal(created.map(item => item.id), ['x', 'x'])
+    assert(created[1].element !== previous, 'retry must acquire a clean owner')
+    equal(created[1].element.textContent, 'old')
+    projection.destroyBlock('a')
+    equal(destroyed, ['x', 'x'])
+  } finally { projection.destroy() }
+})
+
+test('a failed existing inline widget update revokes its mutated instance before retry', () => {
+  const created = []
+  const destroyed = []
+  let failUpdate = true
+  const registry = {
+    getInlineDefinition: () => ({ schema: { decode: input => input } }),
+    getInlineRuntime: () => ({
+      create(id, data) {
+        const element = document.createElement('span')
+        element.textContent = data.label
+        created.push(element)
+        return {
+          element,
+          update(next) {
+            element.textContent = next.label
+            if (failUpdate) throw new Error('partial widget update')
+          },
+          setReadOnly() {},
+          destroy() { destroyed.push(id) },
+        }
+      },
+    }),
+  }
+  const projection = new InlineProjectionRuntime({ registry, ownerDocument: document })
+  const field = document.createElement('div')
+  const fields = [{ key: 'text', mode: 'rich-text', element: field }]
+  const record = label => ({
+    data: { fields: [{ key: 'text', html: '{{x}}' }] },
+    inline: { x: { type: 'unloaded', dataVersion: 3, data: { label } } },
+  })
+  try {
+    projection.reconcileBlock('a', record('old'), { schema }, fields,
+      { createInlineWidgetContext: () => ({}) })
+    assert.throws(() => projection.reconcileBlock('a', record('new'), { schema }, fields,
+      { createInlineWidgetContext: () => ({}) }), /partial widget update/)
+    equal(destroyed, ['x'], 'a partially updated live owner cannot remain cached')
+
+    failUpdate = false
+    projection.reconcileBlock('a', record('old'), { schema }, fields,
+      { createInlineWidgetContext: () => ({}) })
+    equal(created.length, 2, 'retry must not reuse the partially updated instance')
+    equal(created[1].textContent, 'old')
+    projection.destroyBlock('a')
+    equal(destroyed, ['x', 'x'])
+  } finally { projection.destroy() }
+})
+
 await run()
