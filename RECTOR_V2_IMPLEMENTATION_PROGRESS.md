@@ -218,13 +218,35 @@ Executed verification on the exact edited helper and controller source:
 
 **Status:** slice 7 implementation is committed and targeted tests pass. Final acceptance remains pending the full local/native/type/package gates; this does not mark the whole refactor complete.
 
+## Slice 8 — Mention shared edit decisions and native input reconciliation (implementation staged; full acceptance pending)
+
+Implemented source and tests in this branch:
+
+- Added \`inline-plugins/mention/labelEdit.js\`: one pure, synchronous label decision for existing Mention ID/payload retention, trigger retirement to ordinary text, empty deletion and UTF-16 caret results. The helper owns code-point fallback ranges and explicitly rejects invalid/surrogate-splitting intervals. Both definition \`editing.handle()\`, new optional \`editing.reconcileNative()\` and the mounted Mention DOM adapter use that same decision; removed duplicate byte/Unicode/label mutation branches.
+- Mention label-local Copy/Cut/Paste now proves occurrence/event and interval ownership before consuming native defaults and before fallible clipboard I/O. Copied data is literal plain text, Cut requires successful write/readback, nonempty plain text Paste goes through the shared label decision, and empty/missing/failed owned clipboard routes do not mutate. Both-outside structural widget selections remain core-owned.
+- Introduced typed optional \`InlineWidgetEditCapability.reconcileNative\` and \`InlineWidgetInstance.afterNativeEdit\`. Registry snapshots the native decision with its original receiver and synchronous completion; the projection rejects opted-in instances lacking \`update()\`. Native completion delivers guarded, deduplicated transient notices, with the final caret owner last.
+- Immediate \`InlineWidgetInputController\` now admits only an owned current event and registered rich-text occurrence; it captures the returned action under \`DocumentRuntime.prepareExtensionValue\`, validates/detaches it, consumes owned failures without generic native fallback, and checks revision/generation/field before delayed caret movement. Browser deletion intervals crossing the label are deliberately left for the existing native field owner.
+- \`NativeInputController\` uses its **existing single pending envelope** for either ordinary native field input or one eligible captured inline deletion. Matching late, read-only, canceled, composition-revoked and foreign-revision events are consumed as stale, never resubmitted through generic field synchronization. The field capture includes current opted-in/non-opted widget identities and retains the pre-input logical and label-local selections.
+- New internal \`DocumentRuntime.reconcileNativeInlineInput\` and narrow \`InlineProjectionRuntime\` adapters use the **existing protected-projection transaction and recovery**. Complete inline sidecar decisions, DOM removals/plain replacements and neighboring author fields are submitted as one projected canonical edit. Surviving \`instance.update\` and retained payload cache are finalized against the **normalized final canonical inline map**, after projection read but before the one commit. Equal canonical results do not fabricate revision/history and still repair a previously drifted mounted label; failures recover the original projection. Failed operations restore a label-local UTF-16 caret only when the same committed occurrence remains, without redirecting stale/mixed selections.
+- The existing \`InlineTriggerController\` performs active-only fresh-query handoff before protected instance notices. Its event-local route suppresses duplicate fresh-query refresh for settled inside-label and stale/failed native input while retaining ordinary outside-text trigger behavior. The read-only composition independently completes clipboard revocation, trigger retirement, popup, toolbars, root, native composition, drag and notifications even if an earlier terminal hook fails; the same existing owner/diagnostic policies are reused.
+- Added focused tests \`inline-plugins/mention/labelEdit.test.js\`, \`core/InlineWidgetInputController.test.js\`, appended native-envelope tests, registry method-snapshot tests, canonical normalization/no-op/rollback tests in \`core/DocumentRuntime.test.js\`, and new registered native Mention browser cases for word-deletion payload/Undo.
+
+Verification available in this session:
+
+- **47/47** isolated JavaScript test bodies passed against fetched exact branch source: pure Mention label decisions (11), inline controller/ownership/failure/native notices (15), and NativeInputController matching/stale/composition logic (21). These were exercised with a constrained V8 test harness and mocked DOM/canonical services; they were **not** \`node --test\` against a full checkout.
+- Syntax parsing passed for 14 changed JavaScript modules in the module-compatible V8 checker (plus a declaration file was inspected, not TypeScript-typechecked).
+- \`core/DocumentRuntime.test.js\` and \`core/ExtensionRegistry.test.js\` new native source tests are committed but not executed by the real Node runner. The new \`native-mention-popup.js\` cases are also committed but not executed in Chrome/OS native input.
+- **Still unverified at this head:** full \`npm test\`, project-pinned \`npm run typecheck\`, real-editor browser/native suites, \`npm run test:docs\`, \`npm run test:types\`, \`npm run test:package\`, and actual OS/IME/Clipboard behavior. No complete repository checkout is available in the execution container; it cannot resolve github.com. Historical slice 4b gates cannot be counted for current changes.
+
+**Status:** slice 8's shared-decision and native reconciliation implementation is committed but **not accepted as complete**. Remaining tasks include full real-browser/native integration and correction of actual failures, including mixed widget/ordinary-text selection restoration, no-op cache repair, Unicode/native word boundaries, transient search handoff and clipboard conformance, plus the full project/type/package gates. Do not infer an overall completion percentage from these isolated checks.
+
 ## Remaining slices
 
 4c. Full local/native/package verification and integration with the slice 8 terminal cancellation/control fan-out contract.
 5. Run full local/native/package acceptance on the new conversion planner and correct any failures.
 6. Run full local/native/package validation of strict formatting ports, panel settlement, tool presentation and selectionchange handling; correct resulting defects.
 7. Run full-editor, native, type, documentation and package acceptance for declarative controls, including the new registered action-label-security scenarios; correct resulting defects.
-8. Shared Mention text decisions and native reconciliation.
+8. Complete native/browser, mixed-selection recovery, IME/clipboard, typed external consumer, documentation and packaged acceptance for Mention reconciliation.
 9. Convergence, packaged conformance and dependency enforcement.
 
 Each slice must meet its specification's completion criteria, pass the relevant checks, and be committed and pushed separately. Passing Slice 1 does not establish completion of the remaining architecture work.
