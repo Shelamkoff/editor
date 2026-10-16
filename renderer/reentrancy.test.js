@@ -294,3 +294,19 @@ test('successful renderTo publishes replacement before invoking the old owner di
   renderer.destroy(container)
   assert.equal(observed.length, 2)
 })
+
+test('asynchronous custom block rendering is rejected synchronously', async () => {
+  const { EditorRenderer } = await import('./index.js')
+  const renderer = new EditorRenderer({ blockTypes: [], injectStyles: false })
+  renderer.registerRenderer({
+    type: 'async-block',
+    schema: passthroughSchema,
+    render() { return Promise.resolve(document.createElement('article')) },
+  })
+
+  assert.throws(
+    () => renderer.renderBlock({ id: 'async', type: 'async-block', dataVersion: 1, data: {} }),
+    /must complete synchronously/,
+  )
+  renderer.destroy()
+})

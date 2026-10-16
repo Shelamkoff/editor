@@ -1,4 +1,6 @@
 // @ts-check
+import { synchronousResult } from '../shared/synchronousResult.js'
+
 const PLACEHOLDER_RE = /\{\{([A-Za-z0-9_-]+)\}\}/g
 
 /**
@@ -36,9 +38,11 @@ export function renderInlineWidgets(fragment, inline, registry, ownerDocument) {
       if (!renderer) continue
 
       const decoded = renderer.schema.decode({ dataVersion: ref.dataVersion, data: ref.data })
-      const element = renderer.render(id, decoded.data, { ownerDocument })
+      const element = synchronousResult(renderer.render(id, decoded.data, { ownerDocument }))
       const HTMLElementCtor = ownerDocument.defaultView?.HTMLElement ?? globalThis.HTMLElement
-      if (!HTMLElementCtor || !(element instanceof HTMLElementCtor)) continue
+      if (!HTMLElementCtor || !(element instanceof HTMLElementCtor)) {
+        throw new TypeError(`Inline renderer "${ref.type}" render() must return an HTMLElement`)
+      }
 
       if (match.index > lastIndex) replacement.append(ownerDocument.createTextNode(text.slice(lastIndex, match.index)))
       element.setAttribute('data-inline-plugin', ref.type)

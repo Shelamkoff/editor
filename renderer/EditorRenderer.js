@@ -8,6 +8,7 @@ import defaultLocale from './locale/en.js'
 import { acquireStyleUrls } from '../shared/styleRegistry.js'
 import { normalizeTextAlign } from '../shared/textFormat.js'
 import { documentValidationIssue } from '../shared/documentValidationIssue.js'
+import { synchronousResult } from '../shared/synchronousResult.js'
 
 const baseCssUrl = new URL('./styles/base.css', import.meta.url).href
 const bundledRendererCssRoot = new URL('./renderers/', import.meta.url).href
@@ -245,7 +246,7 @@ export class EditorRenderer {
     const inlineParser = renderableBlock.inline && this.#inlineRenderers.size > 0
       ? html => renderInlineWidgets(baseParser(html), renderableBlock.inline, this.#inlineRenderers, ownerDocument)
       : baseParser
-    const element = renderer.render(renderableBlock, inlineParser, { ownerDocument })
+    const element = synchronousResult(renderer.render(renderableBlock, inlineParser, { ownerDocument }))
     const HTMLElementCtor = element?.ownerDocument?.defaultView?.HTMLElement
       ?? ownerDocument.defaultView?.HTMLElement
       ?? globalThis.HTMLElement
