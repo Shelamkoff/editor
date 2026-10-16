@@ -390,7 +390,7 @@ async function run() {
   levelButton.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }))
   levelButton.click()
   await delay()
-  const level3 = heading.holder.querySelector('.oe-inline-toolbar__level-dropdown [data-level="3"]')
+  const level3 = heading.holder.querySelector('.oe-inline-toolbar__level-dropdown [data-action-id="h3"]')
   assert(level3 instanceof HTMLButtonElement, 'Heading level 3 action is missing')
   level3.click()
   await delay()
