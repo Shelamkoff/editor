@@ -373,4 +373,94 @@ test('failed first inline projection disposes earlier widget claims before retry
   } finally { projection.destroy() }
 })
 
+
+
+test('inline plugin cannot steal DOM already mounted in another UI', () => {
+  const external = document.createElement('div')
+  const shared = document.createElement('span')
+  external.appendChild(shared)
+  document.body.appendChild(external)
+  let disposed = 0
+  const registry = {
+    getInlineDefinition: () => ({ schema: { decode: input => input } }),
+    getInlineRuntime: () => ({ create() {
+      return { element: shared, setReadOnly() {}, destroy() { disposed++ } }
+    } }),
+  }
+  const projection = new InlineProjectionRuntime({ registry, ownerDocument: document })
+  const field = document.createElement('div')
+  try {
+    let error = ''
+    try {
+      projection.reconcileBlock('a', {
+        data: { fields: [{ key: 'text', html: '{{x}}' }] }, inline: { x: payload },
+      }, { schema }, [{ key: 'text', mode: 'rich-text', element: field }],
+      { createInlineWidgetContext: () => ({}) })
+    } catch (cause) { error = cause.message }
+    assert(/must return a detached HTMLElement/.test(error))
+    assert(external.contains(shared), 'the application must retain its original DOM')
+    equal(disposed, 1)
+  } finally { projection.destroy(); external.remove() }
+})
+
+test('inline plugin cannot mount one DOM element for two live widget identities', () => {
+  const shared = document.createElement('span')
+  const destroyed = []
+  const registry = {
+    getInlineDefinition: () => ({ schema: { decode: input => input } }),
+    getInlineRuntime: () => ({ create(id) {
+      return { element: shared, setReadOnly() {}, destroy() { destroyed.push(id) } }
+    } }),
+  }
+  const projection = new InlineProjectionRuntime({ registry, ownerDocument: document })
+  const field = document.createElement('div')
+  try {
+    let error = ''
+    try {
+      projection.reconcileBlock('a', {
+        data: { fields: [{ key: 'text', html: '{{x}} {{y}}' }] },
+        inline: { x: payload, y: payload },
+      }, { schema }, [{ key: 'text', mode: 'rich-text', element: field }],
+      { createInlineWidgetContext: () => ({}) })
+    } catch (cause) { error = cause.message }
+    assert(/must return a fresh HTMLElement/.test(error))
+    equal(destroyed, ['x'], 'rejecting a borrower must not destroy the first owner twice')
+  } finally { projection.destroy() }
+})
+
+test('detached but owned inline widget root cannot be borrowed by another projection', () => {
+  const shared = document.createElement('span')
+  const releases = []
+  const registry = {
+    getInlineDefinition: () => ({ schema: { decode: input => input } }),
+    getInlineRuntime: () => ({ create(id) {
+      return { element: shared, setReadOnly() {}, destroy() { releases.push(id) } }
+    } }),
+  }
+  const first = new InlineProjectionRuntime({ registry, ownerDocument: document })
+  const second = new InlineProjectionRuntime({ registry, ownerDocument: document })
+  const record = id => ({
+    data: { fields: [{ key: 'text', html: '{{' + id + '}}' }] },
+    inline: { [id]: payload },
+  })
+  try {
+    const field = document.createElement('div')
+    first.reconcileBlock('a', record('x'), { schema },
+      [{ key: 'text', mode: 'rich-text', element: field }],
+      { createInlineWidgetContext: () => ({}) })
+    shared.remove()
+    assert(!shared.parentNode)
+    let error = ''
+    try {
+      second.reconcileBlock('b', record('y'), { schema },
+        [{ key: 'text', mode: 'rich-text', element: document.createElement('div') }],
+        { createInlineWidgetContext: () => ({}) })
+    } catch (cause) { error = cause.message }
+    assert(/must return a fresh HTMLElement/.test(error))
+    equal(releases, [], 'the rejected borrower has no destruction authority')
+    first.destroyBlock('a')
+    equal(releases, ['x'])
+  } finally { first.destroy(); second.destroy() }
+})
+
 await run()

@@ -11,6 +11,8 @@ import { scanRichTextPlaceholders, richTextPlaceholderMatches } from '../shared/
 import { richTextFieldMap, mapRichTextFields, mountedRichFields } from './projectionFields.js'
 import { synchronousResult } from '../shared/synchronousResult.js'
 
+const liveWidgetRoots=new WeakMap()
+
 function object(value){
   return value&&typeof value==='object'&&!Array.isArray(value)?value:{}
 }
@@ -498,18 +500,35 @@ export class InlineProjectionRuntime {
           let sourceInstance
           let destroySource
           let instance
+          let borrowedLiveRoot=false
           try{
             sourceInstance=runtime.create(id,decoded.data,context)
             destroySource=captureInstanceDestroy(sourceInstance)
             instance=snapshotInlineInstance(sourceInstance,type,destroySource,
               typeof definition.editing?.reconcileNative==='function')
+            const root=instance.element
+            const HTMLElementCtor=this.#ownerDocument.defaultView?.HTMLElement??globalThis.HTMLElement
+            if(!HTMLElementCtor||!(root instanceof HTMLElementCtor)
+              ||root.ownerDocument!==this.#ownerDocument){
+              throw new TypeError('Inline widget "'+type+'" must return an HTMLElement in the owning document')
+            }
+            if(liveWidgetRoots.has(root)){
+              borrowedLiveRoot=true
+              throw new TypeError('Inline widget "'+type+'" must return a fresh HTMLElement')
+            }
+            if(root.parentNode||root.isConnected){
+              throw new TypeError('Inline widget "'+type+'" must return a detached HTMLElement')
+            }
           }catch(error){
             try{scope.revoke()}catch{}
             try{controller.abort()}catch{}
-            try{destroySource?.()}catch{}
+            // A duplicate live root belongs to the first occurrence:
+            // rejecting its borrower must not call the original disposer.
+            if(!borrowedLiveRoot)try{destroySource?.()}catch{}
             throw error
           }
           entry={id,type,fieldKey,fieldElement:element,instance,element:instance.element,controller,scope,data:decoded.data}
+          liveWidgetRoots.set(entry.element,entry)
           state.widgets.set(id,entry)
           this.#owned.set(entry.element,{blockId,id})
           instance.setReadOnly(this.#readOnly)
@@ -584,10 +603,15 @@ export class InlineProjectionRuntime {
   }
 
   #destroyWidget(entry){
-    try{entry.scope?.revoke?.()}catch{}
-    try{entry.controller?.abort()}catch{}
-    try{entry.instance?.destroy?.()}catch{}
-    try{entry.element?.remove?.()}catch{}
+    try{
+      try{entry.scope?.revoke?.()}catch{}
+      try{entry.controller?.abort()}catch{}
+      try{entry.instance?.destroy?.()}catch{}
+      try{entry.element?.remove?.()}catch{}
+    }finally{
+      // Retain this lease through all reentrant disposer and DOM callbacks.
+      if(liveWidgetRoots.get(entry.element)===entry)liveWidgetRoots.delete(entry.element)
+    }
   }
 
   #assertLive(){
