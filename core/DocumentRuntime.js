@@ -65,6 +65,7 @@ function sameJson(left, right) {
 /** A capability result must be settled before any structural draft choice.
  * @param {any} definition
  * @param {any} data
+ * @param {Document} ownerDocument
  */
 function emptyBlockDecision(definition,data,ownerDocument){
   const empty=definition?.capabilities?.empty
