@@ -1215,3 +1215,18 @@ test('empty capability requires synchronous boolean eligibility without history 
     runtime.destroy()
   }
 })
+
+test('toolbox must reject an asynchronous empty-block decision before inserting a block',()=>{
+  const definition=paragraphDefinition()
+  definition.capabilities.empty.isEmpty=()=>Promise.resolve(true)
+  const runtime=new DocumentRuntime({
+    registry:registry([definition]),
+    data:{version:'2.0.0',blocks:[block('a',{text:''})]},
+  })
+  assert.throws(()=>runtime.insertToolboxBlock('a',{type:'paragraph'}),/synchronous/,
+    'toolbox silently treated an uncompleted empty decision as false')
+  assert.deepEqual(runtime.ids(),['a'])
+  assert.equal(runtime.get('a').data.text,'')
+  assert.equal(runtime.canUndo,false)
+  runtime.destroy()
+})
