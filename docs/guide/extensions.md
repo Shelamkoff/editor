@@ -36,7 +36,7 @@ interface BlockPluginDefinition<Data> {
 
 During DOM synchronization, mounted rich fields come from their DOM, hidden existing fields retain their committed canonical value (including empty strings), and new hidden fields retain their candidate value. Removed fields stay removed. Model-first `updateData()` can deliberately change hidden values. Flush pending DOM input with `commitDomMutation(() => {})` before presentation controls unmount its field; never copy rendered widget labels into a canonical rich-text cache.
 
-A `BlockInstance` exposes `element`, `read()`, optional `update(next, previous)`, optional `editableFields()`, `setReadOnly(readOnly)`, optional `focus(target)`, and `destroy()`.
+A `BlockInstance` exposes `element`, `read()`, optional `update(next, previous)`, optional `editableFields()`, `setReadOnly(readOnly)`, optional `focus(target)`, and `destroy()`. The `element` must belong to the context's `ownerDocument` and be detached, with no parent, when returned by `create()`. Each simultaneously live block instance owns a different DOM root; returning an existing application node or a root still owned by another block is rejected.
 
 `BlockInstanceContext` provides:
 
