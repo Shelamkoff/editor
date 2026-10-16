@@ -497,3 +497,26 @@ test('a failed stale-inline recovery still retires the matching input without or
   assert.deepEqual(routes,['failed'])
   assert.deepEqual(calls,[])
 })
+
+test('a later claimed beforeinput retires an earlier native-inline pending envelope',()=>{
+  const actions=[]
+  const inlineWidgetInput={
+    captureNativeDeletion(owner,event){return {
+      blockId:owner.blockId,fieldKey:owner.fieldKey,
+      eventHost:owner.element,inputType:event.inputType,trusted:false,
+      originalEvent:event,generation:1,revision:2,
+    }},
+    completeNativeDeletion(){actions.push('incorrect stale settlement')},
+    discardStaleNativeDeletion(){actions.push('incorrect stale discard')},
+  }
+  const {controller,runtime,child,field}=harness({inlineWidgetInput})
+  runtime.generation=1;runtime.revision=2
+  controller.handleBeforeInput({target:child,inputType:'deleteWordBackward',
+    defaultPrevented:false})
+  // An earlier root-capture inline command can claim the next beforeinput
+  // and stop its bubble propagation before NativeInputController sees it.
+  controller.retirePendingInput()
+  controller.handleInput({target:field,inputType:'deleteWordBackward',
+    isTrusted:false})
+  assert.deepEqual(actions,[])
+})
