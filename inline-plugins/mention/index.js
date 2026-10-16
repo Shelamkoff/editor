@@ -690,7 +690,13 @@ export function createMentionPlugin(options={}){
         }
       }
 
+      // Each query owns a fresh, detached surface. Reusing the connected
+      // previous popup violates the host's lifetime contract and steals it.
+      let scheduleEpoch=0
       const schedule=session=>{
+        const epoch=++scheduleEpoch
+        popupHandle?.close()
+        if(destroyed||scheduleEpoch!==epoch)return
         abortSearch()
         retireRows()
         activeSession=session
@@ -698,7 +704,7 @@ export function createMentionPlugin(options={}){
         items=[]
         selected=0
         cursor=null
-        if(!popup){
+        {
           popup=runtimeContext.ownerDocument.createElement('div')
           popup.id=listboxId
           popup.className=['oe-mention-dropdown','oe-mention-dropdown--active',snapshot.dropdownClass??''].filter(Boolean).join(' ')
