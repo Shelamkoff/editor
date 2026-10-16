@@ -189,6 +189,10 @@ export interface HtmlImportContext extends DataOperationContext {
 export interface HtmlImportCapability<D extends object> {
   matchesRoot(element: Element): boolean
   importRoot(element: Element, context: HtmlImportContext): D
+  /** Opt into inline replacement for a sole accepted root.
+   * Other roots and multi-root imports remain canonical block operations.
+   */
+  readonly inlineWhenSingleRoot?: boolean
 }
 
 export interface SelectionSliceContext extends DataOperationContext {

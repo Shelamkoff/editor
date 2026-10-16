@@ -639,3 +639,30 @@ test('ExtensionRegistry rejects asynchronous native inline decision and invalid 
   /synchronously/)
   registry.destroy()
 })
+
+test('HTML import single-root intent snapshots exactly once and rejects invalid flags',()=>{
+  const base=blockDefinition('probe')
+  let reads=0,mutable=true
+  const cap={
+    matchesRoot(){return true},
+    importRoot(){return {value:'prepared'}},
+  }
+  Object.defineProperty(cap,'inlineWhenSingleRoot',{get(){reads++;return mutable}})
+  const registry=new ExtensionRegistry({ownerDocument:documentStub(),blocks:[
+    {...base,capabilities:{htmlImport:cap}},
+  ]})
+  const captured=registry.getBlockDefinition('probe').capabilities.htmlImport
+  assert.equal(reads,1,'HTML import intent getter was read more than once')
+  assert.equal(captured.inlineWhenSingleRoot,true)
+  assert.equal(Object.isFrozen(captured),true)
+  mutable=false
+  assert.equal(captured.inlineWhenSingleRoot,true,'registered import intent was mutable')
+  registry.destroy()
+  assert.throws(()=>new ExtensionRegistry({ownerDocument:documentStub(),blocks:[
+    {...base,capabilities:{htmlImport:{
+      matchesRoot(){return true},
+      importRoot(){return {value:'prepared'}},
+      inlineWhenSingleRoot:'truthy',
+    }}},
+  ]}),/inlineWhenSingleRoot must be a boolean/)
+})

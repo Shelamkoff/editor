@@ -143,9 +143,17 @@ function snapshotCapabilities(source, label) {
     result.conversion = snapshotConversion(candidate.conversion, label + ' conversion')
   }
   if (candidate.htmlImport !== undefined) {
-    result.htmlImport = snapshotCapabilityObject(candidate.htmlImport, `${label} htmlImport`, [
-      ['matchesRoot', false], ['importRoot', false],
-    ])
+    const importCapability=candidate.htmlImport
+    const inlineWhenSingleRoot=importCapability.inlineWhenSingleRoot
+    if(inlineWhenSingleRoot!==undefined&&typeof inlineWhenSingleRoot!=='boolean'){
+      throw new TypeError(`${label} htmlImport inlineWhenSingleRoot must be a boolean`)
+    }
+    result.htmlImport=Object.freeze({
+      ...snapshotCapabilityObject(importCapability,`${label} htmlImport`,[
+        ['matchesRoot',false],['importRoot',false],
+      ]),
+      inlineWhenSingleRoot:inlineWhenSingleRoot===true,
+    })
   }
   if (candidate.clipboard !== undefined) {
     result.clipboard = snapshotCapabilityObject(

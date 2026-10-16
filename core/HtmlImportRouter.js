@@ -111,7 +111,8 @@ export function prepareHtmlImport(html,options){
       flush()
       structural=true
       const data=synchronousResult(match.capability.importRoot(element,context))
-      parts.push({kind:'block',type:match.type,data})
+      parts.push({kind:'block',type:match.type,data,
+        inlineWhenSingleRoot:match.capability.inlineWhenSingleRoot===true})
       return
     }
 
@@ -131,15 +132,15 @@ export function prepareHtmlImport(html,options){
   flush()
   if(!parts.length)return null
 
-  // A single authored paragraph or transparent div with only rich text is an
-  // inline clipboard fragment in v1. Keep this DOM-level distinction separate
-  // from capability ownership: every matching root was still prepared once
-  // above, and nested structural/media roots remain block imports.
+  // A matched root's importer owns its prepared block. It can explicitly opt
+  // into single-root inline Paste; otherwise never discard its imported data.
+  // A transparent div containing only inline children keeps v1's text Paste.
+  // Multiple roots and nested registered media remain structural.
   const roots=[...template.content.childNodes].filter(node=>node.nodeType===1
     ||(node.nodeType===3&&node.textContent?.trim()))
   if(roots.length===1&&roots[0].nodeType===1&&parts.length===1){
     const root=/** @type {Element} */(roots[0])
-    if(root.tagName==='P'&&parts[0].kind==='block'){
+    if(parts[0].kind==='block'&&parts[0].inlineWhenSingleRoot){
       const html=serializeRichText(root,ownerDocument)
       if(meaningfulHtml(html,ownerDocument))return {kind:'inline',html}
     }

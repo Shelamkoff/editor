@@ -85,6 +85,9 @@ export function createParagraphPlugin(config = {}) {
       },
     }),
     htmlImport: Object.freeze({
+      // Only the built-in paragraph opts into v1's inline single-root Paste.
+      // Other importers matching <p> retain their own block semantics.
+      inlineWhenSingleRoot:true,
       matchesRoot(element) {
         // v1's ordinary paragraph Paste ignores content-free paragraph roots.
         // A <br> is authored line-break content; empty styling/links are not.
