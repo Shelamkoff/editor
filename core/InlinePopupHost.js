@@ -52,42 +52,72 @@ export class InlinePopupHost {
     }
 
     const popup=this.#document.createElement('div')
-    popup.className='oe-ip-popup'
-    popup.appendChild(content)
-    this.#root.appendChild(popup)
-
-    this.#popup=popup
-    this.#anchor=anchor
-    this.#cleanup=cleanup??null
-    this.#presentation=presentation
-    this.#position()
-
-    const Ctor=this.#view?.AbortController??AbortController
-    this.#positionController=new Ctor()
-    const positionSignal=this.#positionController.signal
-    this.#view?.addEventListener('resize',()=>this.#position(),{signal:positionSignal})
-    this.#view?.addEventListener('scroll',()=>this.#position(false),{capture:true,passive:true,signal:positionSignal})
-
-    const MutationObserverCtor=this.#view?.MutationObserver
-    if(MutationObserverCtor){
-      this.#observer=new MutationObserverCtor(()=>{
-        if(this.#anchor&&!this.#root.contains(this.#anchor))this.hidePopup()
-        else this.#position()
-      })
-      this.#observer.observe(this.#root,{childList:true,subtree:true})
-    }
-
-    queueMicrotask(()=>{
-      if(this.#popup!==popup)return
-      this.#outside=event=>{
-        const target=event.target
-        if(!(target instanceof (this.#view?.Node??Node)))return
-        if(popup.contains(target)||anchor.contains(target))return
-        this.hidePopup()
+    let claimed=false
+    try {
+      popup.className='oe-ip-popup'
+      popup.appendChild(content)
+      this.#root.appendChild(popup)
+      // A custom-element callback can synchronously open a successor during
+      // insertion. An older presentation must never reclaim its ownership.
+      if(generation!==this.#generation||this.#destroyed||this.#isReadOnly()
+        ||!this.#root.isConnected||!this.#root.contains(anchor)){
+        popup.remove()
+        this.#runCleanup(cleanup)
+        return handle
       }
-      this.#document.addEventListener('mousedown',this.#outside,true)
-    })
-    return handle
+
+      this.#popup=popup
+      this.#anchor=anchor
+      this.#cleanup=cleanup??null
+      this.#presentation=presentation
+      claimed=true
+      this.#position()
+      if(this.#presentation!==presentation)return handle
+
+      const Ctor=this.#view?.AbortController??AbortController
+      this.#positionController=new Ctor()
+      const positionSignal=this.#positionController.signal
+      /** @param {boolean} remeasure */
+      const reposition=remeasure=>{
+        if(this.#presentation!==presentation)return
+        try{this.#position(remeasure)}
+        catch(error){
+          if(this.#presentation===presentation)this.hidePopup()
+          console.warn('[InlinePopupHost] Failed to position popup:',error)
+        }
+      }
+      this.#view?.addEventListener('resize',()=>reposition(true),{signal:positionSignal})
+      this.#view?.addEventListener('scroll',()=>reposition(false),{capture:true,passive:true,signal:positionSignal})
+
+      const MutationObserverCtor=this.#view?.MutationObserver
+      if(MutationObserverCtor){
+        this.#observer=new MutationObserverCtor(()=>{
+          if(this.#presentation!==presentation)return
+          if(this.#anchor&&!this.#root.contains(this.#anchor))this.hidePopup()
+          else reposition(true)
+        })
+        this.#observer.observe(this.#root,{childList:true,subtree:true})
+      }
+
+      queueMicrotask(()=>{
+        if(this.#popup!==popup||this.#presentation!==presentation)return
+        this.#outside=event=>{
+          const target=event.target
+          if(!(target instanceof (this.#view?.Node??Node)))return
+          if(popup.contains(target)||anchor.contains(target))return
+          this.hidePopup()
+        }
+        this.#document.addEventListener('mousedown',this.#outside,true)
+      })
+      return handle
+    }catch(error){
+      if(this.#presentation===presentation)this.hidePopup()
+      else if(!claimed){
+        try{popup.remove()}catch{}
+        this.#runCleanup(cleanup)
+      }
+      throw error
+    }
   }
 
   hidePopup(){
