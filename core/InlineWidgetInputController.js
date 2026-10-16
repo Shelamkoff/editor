@@ -119,9 +119,15 @@ export class InlineWidgetInputController {
       if(!state.occurrences.some(entry=>entry.element===owned))return null
     }
 
-    let range=null, supplied=null
-    try{supplied=event.getTargetRanges?.()[0]??null}catch{return null}
-    const candidate=supplied??(!native.isCollapsed&&native.rangeCount?native.getRangeAt(0):null)
+    let range=null, supplied=null, fallback=null
+    try{
+      supplied=event.getTargetRanges?.()[0]??null
+      fallback=!native.isCollapsed&&native.rangeCount?native.getRangeAt(0):null
+    }catch{return null}
+    const hasInterval=value=>value && value.collapsed!==true
+      && !(value.startContainer===value.endContainer
+        && value.startOffset===value.endOffset)
+    const candidate=hasInterval(supplied)?supplied:hasInterval(fallback)?fallback:null
     if(candidate){
       if(!field.element.contains(candidate.startContainer)
         ||!field.element.contains(candidate.endContainer))return null
