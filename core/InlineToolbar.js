@@ -915,7 +915,17 @@ export class InlineToolbar {
     if (!result) return
     this.#view.reconcileInteraction()
     this.#view.setCurrent(result.focusId)
-    queueMicrotask(() => restoreConvertedSelection(result,this.#view,this.#selectionPort))
+    const generation=this.#runtime.generation
+    const revision=this.#runtime.revision
+    const focusId=result.focusId
+    const mounted=this.#view.element(focusId)
+    queueMicrotask(()=>{
+      if(this.#destroyed||this.#readOnly||this.#runtime.readOnly
+        ||generation!==this.#runtime.generation||revision!==this.#runtime.revision
+        ||!this.#runtime.has(focusId)||!mounted||this.#view.element(focusId)!==mounted
+        ||this.#view.currentId!==focusId)return
+      restoreConvertedSelection(result,this.#view,this.#selectionPort)
+    })
   }
 
   #disableBlockControls() {

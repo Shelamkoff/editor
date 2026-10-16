@@ -228,6 +228,25 @@ export class SelectionController {
     this.#deactivate()
   }
 
+  /** Restore a completed structural operation only to the same mounted
+   * block and author revision. A queued callback may outlive render(), Undo,
+   * a read-only change, or the user's move to another block.
+   * @param {string} blockId
+   * @param {any} target
+   */
+  #queueOwnedFocus(blockId,target) {
+    const generation=this.#runtime.generation
+    const revision=this.#runtime.revision
+    const mounted=this.#view.element(blockId)
+    queueMicrotask(()=>{
+      if(this.#controller.signal.aborted||this.#runtime.readOnly
+        ||generation!==this.#runtime.generation||revision!==this.#runtime.revision
+        ||!this.#runtime.has(blockId)||!mounted
+        ||this.#view.element(blockId)!==mounted||this.#view.currentId!==blockId)return
+      this.#view.focus(blockId,target)
+    })
+  }
+
   removeWholeBlocks() {
     const ids = this.wholeBlockIds
     if (!ids.length) return false
@@ -238,15 +257,11 @@ export class SelectionController {
       return { anchor: point, focus: { ...point } }
     })
     if (!currentId) return false
-    const generation=this.#runtime.generation,revision=this.#runtime.revision
     this.#deactivate()
     this.#view.reconcileInteraction()
     if(currentId){
       this.#view.setCurrent(currentId)
-      queueMicrotask(()=>{
-        if(this.#controller.signal.aborted||generation!==this.#runtime.generation||revision!==this.#runtime.revision||!this.#runtime.has(currentId))return
-        this.#view.focus(currentId,{offset:'start'})
-      })
+      this.#queueOwnedFocus(currentId,{offset:'start'})
     }
     return true
   }
@@ -266,10 +281,10 @@ export class SelectionController {
     this.#deactivate()
     this.#view.reconcileInteraction()
     this.#view.setCurrent(result.blockId)
-    queueMicrotask(() => this.#view.focus(result.blockId, {
+    this.#queueOwnedFocus(result.blockId,{
       fieldKey: result.fieldKey,
       offset: result.offset,
-    }))
+    })
     return true
   }
 
@@ -325,7 +340,7 @@ export class SelectionController {
     this.#deactivate()
     this.#view.reconcileInteraction()
     this.#view.setCurrent(nextId)
-    queueMicrotask(()=>this.#view.focus(nextId,{offset:'start'}))
+    this.#queueOwnedFocus(nextId,{offset:'start'})
     return true
   }
 
