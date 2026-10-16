@@ -2081,4 +2081,39 @@ test('queued toolbox insert cannot steal focus after switching to another unchan
   equal([editor.canUndo, editor.canRedo], historyBefore, 'Late block-insert focus changed history')
 })
 
+test('queued plain-text Paste cannot move a later user caret in another block', async () => {
+  const editor=make([para('a','Alpha'),para('b','Bravo')])
+  editor.blocks.focus('a',{fieldKey:'text',offset:2})
+  const field=editableField(editor,'a')
+  const callbacks=[]
+  const schedule=window.queueMicrotask
+  try {
+    window.queueMicrotask=callback=>{callbacks.push(callback)}
+    const transfer=new DataTransfer()
+    transfer.setData('text/plain','Z')
+    const event=new ClipboardEvent('paste',{clipboardData:transfer,bubbles:true,cancelable:true})
+    field.dispatchEvent(event)
+    check(event.defaultPrevented,'Editor did not own the plain-text Paste event')
+    equal(editor.save().blocks[0].data.text,'AlZpha','Paste did not modify the intended block')
+    check(callbacks.length>0,'Paste did not schedule its caret continuation')
+    // Focus changes do not advance the authored document revision.
+    editor.blocks.focus('b',{fieldKey:'text',offset:3})
+  } finally {
+    window.queueMicrotask=schedule
+  }
+  const target=editableField(editor,'b')
+  const native=window.getSelection()
+  const history=[editor.canUndo,editor.canRedo]
+  const blocks=editor.save().blocks
+  check(document.activeElement===target,'Fixture failed to focus the second block')
+  equal(getTextOffset(target,native.anchorNode,native.anchorOffset),3)
+  for(const callback of callbacks) callback()
+  await Promise.resolve()
+  equal(editor.save().blocks,blocks,'Deferred Paste modified the authored document')
+  equal(document.activeElement,target,'Deferred Paste stole native focus from the later block')
+  equal(getTextOffset(target,native.anchorNode,native.anchorOffset),3,'Deferred Paste reset user caret')
+  equal([editor.canUndo,editor.canRedo],history,'Deferred Paste changed history')
+})
+
+
 await run()
