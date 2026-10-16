@@ -391,8 +391,9 @@ export class InlineProjectionRuntime {
   destroyBlock(blockId){
     const state=this.#blocks.get(blockId)
     if(!state)return
-    this.#destroyState(state)
+    // Revoke this block before synchronous extension cleanup can reenter.
     this.#blocks.delete(blockId)
+    this.#destroyState(state)
   }
 
   destroy(){
@@ -429,8 +430,8 @@ export class InlineProjectionRuntime {
 
     for(const [id,entry] of state.widgets){
       if(live.has(id))continue
-      this.#destroyWidget(entry)
       state.widgets.delete(id)
+      this.#destroyWidget(entry)
     }
   }
 
@@ -466,8 +467,8 @@ export class InlineProjectionRuntime {
 
         let entry=state.widgets.get(id)
         if(entry&&(entry.type!==type||entry.fieldKey!==fieldKey)){
-          this.#destroyWidget(entry)
           state.widgets.delete(id)
+          this.#destroyWidget(entry)
           entry=null
         }
 
@@ -559,8 +560,10 @@ export class InlineProjectionRuntime {
 
   #destroyState(state){
     if(!state)return
-    for(const entry of state.widgets.values())this.#destroyWidget(entry)
+    // Revoke all widget claims before calling potentially reentrant destroy().
+    const owned=[...state.widgets.values()]
     state.widgets.clear()
+    for(const entry of owned)this.#destroyWidget(entry)
   }
 
   #markWidget(entry){

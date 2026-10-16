@@ -245,4 +245,81 @@ test('public editor preserves marker-free widget coordinates through updates, mo
   check()
 })
 
+
+test('inline widget reentrant destroyBlock only calls a disposer once', () => {
+  const released = []
+  let projection
+  const registry = {
+    getInlineDefinition: () => ({ schema: { decode: value => value } }),
+    getInlineRuntime: () => ({
+      create(id) {
+        const element = document.createElement('span')
+        element.textContent = id
+        return {
+          element,
+          setReadOnly() {},
+          destroy() {
+            released.push(id)
+            if (released.length === 1) projection.destroyBlock('a')
+          },
+        }
+      },
+    }),
+  }
+  projection = new InlineProjectionRuntime({ registry, ownerDocument: document })
+  const element = document.createElement('div')
+  const fields = [{ key: 'text', mode: 'rich-text', element }]
+  try {
+    projection.reconcileBlock('a', {
+      data: { fields: [{ key: 'text', html: '{{x}}' }] },
+      inline: { x: payload },
+    }, { schema }, fields, { createInlineWidgetContext: () => ({}) })
+    assert(element.querySelector('[data-id="x"]'), 'precondition: inline widget is mounted')
+    projection.destroyBlock('a')
+    equal(released, ['x'], 'each widget disposer must execute once')
+    projection.destroyBlock('a')
+    equal(released, ['x'], 'repeat teardown must be inert')
+    assert(!element.querySelector('[data-id="x"]'))
+  } finally { projection.destroy() }
+})
+
+test('inline widget retired widget cleanup only calls a disposer once', () => {
+  const released = []
+  let projection
+  const registry = {
+    getInlineDefinition: () => ({ schema: { decode: value => value } }),
+    getInlineRuntime: () => ({
+      create(id) {
+        const element = document.createElement('span')
+        element.textContent = id
+        return {
+          element,
+          setReadOnly() {},
+          destroy() {
+            released.push(id)
+            if (released.length === 1) projection.destroyBlock('a')
+          },
+        }
+      },
+    }),
+  }
+  projection = new InlineProjectionRuntime({ registry, ownerDocument: document })
+  const element = document.createElement('div')
+  const fields = [{ key: 'text', mode: 'rich-text', element }]
+  try {
+    projection.reconcileBlock('a', {
+      data: { fields: [{ key: 'text', html: '{{x}}' }] },
+      inline: { x: payload },
+    }, { schema }, fields, { createInlineWidgetContext: () => ({}) })
+    assert(element.querySelector('[data-id="x"]'), 'precondition: inline widget is mounted')
+    projection.reconcileBlock('a', {
+      data: { fields: [{ key: 'text', html: 'Removed' }] }, inline: {},
+    }, { schema }, fields, { createInlineWidgetContext: () => ({}) })
+    equal(released, ['x'], 'each widget disposer must execute once')
+    projection.destroyBlock('a')
+    equal(released, ['x'], 'repeat teardown must be inert')
+    assert(!element.querySelector('[data-id="x"]'))
+  } finally { projection.destroy() }
+})
+
 await run()
