@@ -378,11 +378,16 @@ export class InlineWidgetInputController {
     let action
     try{
       action=this.#runtime.prepareExtensionValue(()=>{
-        const range=event.getTargetRanges?.()[0]??null
+        const supplied=event.getTargetRanges?.()[0]??null
+        const range=supplied && supplied.collapsed!==true
+          && !(supplied.startContainer===supplied.endContainer
+            && supplied.startOffset===supplied.endOffset)
+          ?supplied:null
         const deletionRange=inputType.startsWith('delete')||inputType==='insertReplacementText'
           ?containedTextRange(target.element,range):null
-        // A browser interval spanning neighboring author text is not a label
-        // edit and must never be narrowed to a one-character fallback.
+        // A real interval crossing neighboring author text is native-owned.
+        // A collapsed target range is not an interval: character deletion
+        // may still use the controlled code-point fallback inside the label.
         if(range && !deletionRange && (inputType.startsWith('delete')
           ||inputType==='insertReplacementText'))return null
         const input={
