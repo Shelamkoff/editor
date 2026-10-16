@@ -106,7 +106,9 @@ export class InlineWidgetInputController {
       ||!NATIVE_INLINE_DELETIONS.has(event?.inputType))return null
     const field=this.#reconciler.getEditableField(owner.blockId,owner.fieldKey)
     if(!field||field.element!==owner.element||!field.element?.isConnected
-      ||!this.#root.contains(field.element)||!field.element.contains(native?.anchorNode))return null
+      ||!this.#root.contains(field.element)||!native?.anchorNode||!native.focusNode
+      ||!field.element.contains(native.anchorNode)
+      ||!field.element.contains(native.focusNode))return null
     const state=this.#projection.captureNativeField(owner.blockId,owner.fieldKey,field.element)
     if(!state?.occurrences?.some(entry=>entry.optedIn))return null
     const eventHost=editingHostForEvent(this.#root,event.target)
