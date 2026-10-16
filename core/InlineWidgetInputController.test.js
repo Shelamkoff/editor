@@ -53,7 +53,11 @@ function fixture(handle = () => null) {
     resolveWidgetElement:node=>node===widget?widget:null,
   }
   const reconciler={getEditableField:()=>({key:'text',mode:'rich-text',element:field})}
-  const selection={setCaret(...args) {writes.push(['caret',...args])}}
+  const selection={
+    setCaret(...args) {writes.push(['caret',...args])},
+    capture() {return {anchor:{blockId:'a',fieldKey:'text',offset:5},
+      focus:{blockId:'a',fieldKey:'text',offset:5}}},
+  }
   const controller=new InlineWidgetInputController({
     root,runtime,registry,reconciler,projection,selection,
     diagnostics:{emit:(code,metadata)=>diagnostics.push([code,metadata]),
@@ -73,7 +77,7 @@ function fixture(handle = () => null) {
     return {event,get canceled(){return canceled},get stopped(){return stopped}}
   }
   return {
-    emit,field,foreign,widget,root,runtime,projection,controller,writes,diagnostics,
+    emit,field,foreign,widget,root,runtime,projection,registry,selection,controller,writes,diagnostics,
     get invokes(){return invokes},
   }
 }
@@ -173,4 +177,89 @@ test('read-only or invalid runtime phases refuse the event before calling handle
   state.runtime.canAccessFormattingSelection=()=>false
   assert.equal(state.emit().canceled,false)
   assert.equal(state.invokes,0)
+})
+
+test('missing-range word deletion snapshots every editable widget when one occurrence opts in',()=>{
+  const state=fixture()
+  state.runtime.get=()=>({type:'paragraph'})
+  state.projection.captureNativeField=()=>({
+    blockId:'a',fieldKey:'text',fieldElement:state.field,
+    occurrences:[{
+      id:'mention-1',type:'mention',fieldKey:'text',element:state.widget,
+      beforeText:'@Ada',data:{id:'ada',name:'Ada'},
+      optedIn:true,instance:{},
+    }],
+  })
+  const original={target:state.field,inputType:'deleteWordBackward',defaultPrevented:false,isTrusted:false}
+  const snapshot=state.controller.captureNativeDeletion(
+    {blockId:'a',fieldKey:'text',mode:'rich-text',element:state.field},
+    original,state.root.ownerDocument.defaultView.getSelection())
+  assert.equal(snapshot?.blockType,'paragraph')
+  assert.equal(snapshot?.occurrences.length,1)
+  assert.equal(snapshot?.originalEvent,original)
+  assert.equal(snapshot?.trusted,false)
+  assert.equal(snapshot?.fieldElement,state.field)
+})
+
+test('changed native label prepares one sidecar update and then delivers a retained notice',()=>{
+  const state=fixture()
+  const events=[]
+  state.runtime.get=()=>({type:'paragraph'})
+  const instance={}
+  const occurrence={id:'mention-1',type:'mention',fieldKey:'text',element:state.widget,
+    beforeText:'@Ada',data:{id:'ada',name:'Ada'},optedIn:true,instance}
+  state.projection.captureNativeField=()=>({blockId:'a',fieldKey:'text',
+    fieldElement:state.field,occurrences:[occurrence]})
+  state.projection.isCurrentNativeOccurrence=()=>true
+  state.projection.applyNativeInlineChanges=(...args)=>events.push(['apply',args[2]])
+  state.projection.retireNativeInlineChanges=()=>events.push(['retire'])
+  state.projection.notifyNativeInlineEdit=(blockId,id,notice)=>{
+    events.push(['notice',blockId,id,notice.labelChanged,notice.text])
+  }
+  state.runtime.observeExtension=fn=>fn()
+  state.runtime.reconcileNativeInlineInput=(snapshot,prepare)=>{
+    const actions=state.runtime.prepareExtensionValue(prepare)
+    assert.equal(actions.length,1)
+    snapshot.applyChanges(actions)
+    snapshot.settle(actions,'committed')
+    return {status:'committed'}
+  }
+  state.registry.getInlineDefinition=()=>({editing:{
+    handle:()=>null,
+    reconcileNative(input,data){
+      assert.equal(state.runtime.preparing,true)
+      assert.equal(input.beforeText,'@Ada')
+      assert.equal(input.text,'@Ad')
+      return {kind:'update',data:{...data,name:'Ad'}}
+    },
+  }})
+  const event={target:state.field,inputType:'deleteWordBackward',defaultPrevented:false,isTrusted:false}
+  const snapshot=state.controller.captureNativeDeletion(
+    {blockId:'a',fieldKey:'text',mode:'rich-text',element:state.field},
+    event,state.root.ownerDocument.defaultView.getSelection())
+  assert.ok(snapshot)
+  state.widget.textContent='@Ad'
+  const result=state.controller.completeNativeDeletion(snapshot,{target:state.field})
+  assert.equal(result.status,'committed')
+  assert.deepEqual(events.map(row=>row[0]),['apply','retire','notice'])
+  assert.equal(events[0][1][0].action.data.name,'Ad')
+  assert.deepEqual(state.diagnostics,[])
+})
+
+test('native reconciliation refuses label drift in a surviving non-opted widget',()=>{
+  const state=fixture()
+  state.runtime.get=()=>({type:'paragraph'})
+  const snapshot={
+    blockId:'a',fieldKey:'text',blockType:'paragraph',fieldElement:state.field,
+    generation:state.runtime.generation,revision:state.runtime.revision,
+    occurrences:[{id:'plain-1',type:'plain',fieldKey:'text',element:state.widget,
+      beforeText:'@Ada',data:{id:'ada'},optedIn:false,instance:{}}],
+    selectionBefore:null,applyChanges(){},
+  }
+  state.projection.isCurrentNativeOccurrence=()=>true
+  state.runtime.reconcileNativeInlineInput=(_capture,prepare)=>
+    state.runtime.prepareExtensionValue(prepare)
+  state.widget.textContent='@Ad'
+  assert.throws(()=>state.controller.completeNativeDeletion(snapshot,{}),/Non-opted inline/)
+  assert.equal(state.diagnostics.length,1)
 })
