@@ -1932,4 +1932,41 @@ test('queued toolbox inline insertion cannot edit a replacement document with re
   equal([editor.canUndo, editor.canRedo], historyBefore, 'Stale inline command changed replacement history')
 })
 
+test('queued toolbox block insertion cannot refocus a replacement mounted under the inserted ID', async () => {
+  const editor = make([para('a', 'Alpha')])
+  editor.blocks.focus('a', { fieldKey: 'text', offset: 2 })
+  const root = editorRoot(editor)
+  const callbacks = []
+  const schedule = window.queueMicrotask
+  let successor, inserted
+  try {
+    window.queueMicrotask = callback => { callbacks.push(callback) }
+    const plus = root.querySelector('.oe-toolbar__btn')
+    check(plus, 'Block toolbar did not mount its Add control')
+    plus.click()
+    const paragraph = root.querySelector('.oe-toolbox [data-plugin-type="paragraph"]')
+    check(paragraph, 'Paragraph insert action is missing')
+    paragraph.click()
+    inserted = editor.save().blocks[1]?.id
+    check(inserted, 'Toolbox did not insert a block')
+    check(callbacks.length, 'Toolbox did not defer its focus continuation')
+    successor = para(inserted, 'Replacement')
+    editor.render({ version: '2.0.0', blocks: [para('a', 'Alpha'), successor] })
+    editor.blocks.focus(inserted, { fieldKey: 'text', offset: 4 })
+  } finally {
+    window.queueMicrotask = schedule
+  }
+  const native = window.getSelection()
+  const field = editableField(editor, inserted)
+  const historyBefore = [editor.canUndo, editor.canRedo]
+  check(document.activeElement === field, 'Successor caret fixture did not focus its editing host')
+  equal(getTextOffset(field, native.focusNode, native.focusOffset), 4)
+  for (const callback of callbacks) callback()
+  await Promise.resolve()
+  equal(editor.save().blocks, [para('a', 'Alpha'), successor], 'Deferred insertion changed successor document')
+  equal(document.activeElement, field, 'Deferred insertion moved focus away from the successor')
+  equal(getTextOffset(field, native.focusNode, native.focusOffset), 4, 'Old block insertion reset successor caret')
+  equal([editor.canUndo, editor.canRedo], historyBefore, 'Deferred insertion changed settled history')
+})
+
 await run()
