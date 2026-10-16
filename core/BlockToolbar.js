@@ -52,7 +52,7 @@ export class BlockToolbar {
   #toolboxVersion = 0
   #settingsVersion = 0
 
-  constructor({ root, runtime, registry, view, selection, selectionPort, inlineCommands, translate, t, filterThreshold = 7, reportError = () => {} }) {
+  constructor({ root, runtime, registry, view, selection, selectionPort, inlineCommands, translate, t, filterThreshold = 7, reportError = (_code, _error) => {} }) {
     if (!Number.isSafeInteger(filterThreshold) || filterThreshold < 0) {
       throw new RangeError('Toolbox filter threshold must be a non-negative safe integer')
     }
