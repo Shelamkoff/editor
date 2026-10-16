@@ -1812,3 +1812,186 @@ test('displaced block shell cannot focus while detached host retains normal oper
   application.remove()
   reconciler.destroy()
 })
+
+test('readBlock rejects data from a block replaced synchronously by its read callback', () => {
+  const doc = new FakeDocument()
+  const container = doc.createElement('main')
+  let reconciler
+  let replaceOnRead = false
+  let releases = 0
+  const registry = {
+    hasBlock: () => true,
+    getBlockDefinition: type => ({ type }),
+    getBlockRuntime: () => ({ create(initial) {
+      const element = doc.createElement('article')
+      return {
+        element,
+        read() {
+          if (replaceOnRead && initial.text === 'old') {
+            replaceOnRead = false
+            reconciler.mount(new DocumentStore({
+              version: '2.0.0', blocks: [block('a', 'replacement')],
+            }))
+          }
+          return { text: initial.text }
+        },
+        setReadOnly() {},
+        destroy() { releases++ },
+      }
+    } }),
+  }
+  reconciler = new BlockReconciler({ container, registry, contextFactory: () => ({}) })
+  reconciler.mount(new DocumentStore({
+    version: '2.0.0', blocks: [block('a', 'old')],
+  }))
+  replaceOnRead = true
+  assert.throws(() => reconciler.readBlock('a'), /ownership changed during read/)
+  assert.equal(reconciler.readBlock('a').data.text, 'replacement')
+  assert.equal(releases, 1, 'retired block was released after the callback')
+  reconciler.destroy()
+  assert.equal(releases, 2)
+})
+
+test('readBlock rejects a block destroyed during editable-field enumeration', () => {
+  const doc = new FakeDocument()
+  const container = doc.createElement('main')
+  let reconciler
+  let destroyOnFields = false
+  const registry = {
+    hasBlock: () => true,
+    getBlockDefinition: type => ({ type }),
+    getBlockRuntime: () => ({ create(initial) {
+      const element = doc.createElement('article')
+      const field = doc.createElement('span')
+      element.appendChild(field)
+      return {
+        element,
+        read() { return initial },
+        editableFields() {
+          if (destroyOnFields) {
+            destroyOnFields = false
+            reconciler.destroy()
+          }
+          return [{ key: 'text', element: field, mode: 'rich-text' }]
+        },
+        setReadOnly() {},
+        destroy() {},
+      }
+    } }),
+  }
+  reconciler = new BlockReconciler({ container, registry, contextFactory: () => ({}) })
+  reconciler.mount(new DocumentStore({
+    version: '2.0.0', blocks: [block('a')],
+  }))
+  destroyOnFields = true
+  assert.throws(() => reconciler.readBlock('a'), /ownership changed during read/)
+  assert.deepEqual(reconciler.ids, [])
+  assert.deepEqual(container.children, [])
+})
+
+test('reentrant field enumeration cannot return descriptors from a replaced block', () => {
+  const doc = new FakeDocument()
+  const container = doc.createElement('main')
+  let reconciler
+  let replaceOnFields = false
+  const registry = {
+    hasBlock: () => true,
+    getBlockDefinition: type => ({ type }),
+    getBlockRuntime: () => ({ create(initial) {
+      const element = doc.createElement('article')
+      const field = doc.createElement('span')
+      element.appendChild(field)
+      return {
+        element,
+        read() { return initial },
+        editableFields() {
+          if (replaceOnFields && initial.text === 'old') {
+            replaceOnFields = false
+            reconciler.mount(new DocumentStore({
+              version: '2.0.0', blocks: [block('a', 'new')],
+            }))
+          }
+          return [{ key: 'text', element: field, mode: 'rich-text' }]
+        },
+        setReadOnly() {},
+        destroy() {},
+      }
+    } }),
+  }
+  reconciler = new BlockReconciler({ container, registry, contextFactory: () => ({}) })
+  reconciler.mount(new DocumentStore({
+    version: '2.0.0', blocks: [block('a', 'old')],
+  }))
+  const oldField = reconciler.getEditableField('a', 'text').element
+  replaceOnFields = true
+  assert.deepEqual(reconciler.getEditableFields('a'), [])
+  const newField = reconciler.getEditableField('a', 'text').element
+  assert.notEqual(newField, oldField)
+  assert.equal(reconciler.resolveEditableTarget(oldField), null)
+  assert.equal(reconciler.resolveEditableTarget(newField)?.blockId, 'a')
+  reconciler.destroy()
+})
+
+test('block focus does not report success after its callback destroys the owner', () => {
+  const doc = new FakeDocument()
+  const container = doc.createElement('main')
+  let reconciler
+  let focusCalls = 0
+  const registry = {
+    hasBlock: () => true,
+    getBlockDefinition: type => ({ type }),
+    getBlockRuntime: () => ({ create(initial) {
+      return {
+        element: doc.createElement('article'),
+        read() { return initial },
+        focus() { focusCalls++; reconciler.destroy() },
+        setReadOnly() {},
+        destroy() {},
+      }
+    } }),
+  }
+  reconciler = new BlockReconciler({ container, registry, contextFactory: () => ({}) })
+  reconciler.mount(new DocumentStore({
+    version: '2.0.0', blocks: [block('a')],
+  }))
+  assert.equal(reconciler.focus('a'), false)
+  assert.equal(focusCalls, 1)
+  assert.deepEqual(reconciler.ids, [])
+})
+
+test('inline serialization cannot return data after destroying its block owner', () => {
+  const doc = new FakeDocument()
+  const container = doc.createElement('main')
+  let reconciler
+  let serializeCalls = 0
+  const registry = {
+    hasBlock: () => true,
+    getBlockDefinition: type => ({ type }),
+    getBlockRuntime: () => ({ create(initial) {
+      return {
+        element: doc.createElement('article'),
+        read() { return initial },
+        setReadOnly() {},
+        destroy() {},
+      }
+    } }),
+  }
+  const inlineProjection = {
+    prepareBlock() { return { apply() {}, recover() {}, finalize() {}, discard() {} } },
+    serializeBlock(_id, _record, _definition, _fields, data) {
+      serializeCalls++
+      reconciler.destroy()
+      return { data, inline: undefined }
+    },
+    destroy() {},
+  }
+  reconciler = new BlockReconciler({
+    container, registry, inlineProjection, contextFactory: () => ({}),
+  })
+  reconciler.mount(new DocumentStore({
+    version: '2.0.0', blocks: [block('a')],
+  }))
+  assert.throws(() => reconciler.readBlock('a'), /ownership changed during read/)
+  assert.equal(serializeCalls, 1)
+  assert.deepEqual(reconciler.ids, [])
+})

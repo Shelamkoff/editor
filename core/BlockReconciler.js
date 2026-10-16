@@ -217,13 +217,14 @@ export class BlockReconciler {
 
   focus(id, target) {
     const entry = this.#entries.get(id)
-    if (!entry || entry.element.parentNode!==this.#container || entry.unregistered
+    if (!this.#isCurrentMountedEntry(id,entry) || entry.unregistered
       || typeof entry.instance.focus !== 'function') return false
     try {
-      return this.#projectPresentation(() => {
+      const result=this.#projectPresentation(() => {
         entry.instance.focus(target)
         return true
       })
+      return this.#isCurrentMountedEntry(id,entry) ? result : false
     } catch (error) {
       console.error('Block focus failed', error)
       return false
@@ -232,9 +233,9 @@ export class BlockReconciler {
 
   getEditableFields(id) {
     const entry = this.#entries.get(id)
-    if (!entry || entry.element.parentNode!==this.#container) return []
+    if (!this.#isCurrentMountedEntry(id,entry)) return []
     this.#refreshFields(id, entry, true)
-    return [...(entry.fields ?? [])]
+    return this.#isCurrentMountedEntry(id,entry) ? [...(entry.fields ?? [])] : []
   }
 
   resolveInlineWidgetElement(target) {
@@ -270,19 +271,28 @@ export class BlockReconciler {
     if(entry.element.parentNode!==this.#container){
       throw new Error('Projected block is no longer mounted: '+id)
     }
+    const assertOwner=()=>{
+      if(!this.#isCurrentMountedEntry(id,entry)){
+        throw new Error('Projected block ownership changed during read: '+id)
+      }
+    }
     const data = cloneEditorData(entry.instance.read())
+    assertOwner()
     const fields = captureEditableFields(entry.instance.editableFields?.() ?? [])
+    assertOwner()
     this.#validateFieldOwnership(entry,fields)
     if (!this.#inlineProjection || entry.unregistered) {
       return { data, inline: entry.record.inline === undefined ? undefined : cloneEditorData(entry.record.inline) }
     }
-    return this.#inlineProjection.serializeBlock(
+    const result=this.#inlineProjection.serializeBlock(
       id,
       entry.record,
       entry.definition,
       fields,
       data,
     )
+    assertOwner()
+    return result
   }
 
 
@@ -840,6 +850,13 @@ export class BlockReconciler {
         throw new TypeError('Editable field must belong to its owning block DOM')
       }
     }
+  }
+
+  /** Synchronous extension callbacks may replace or destroy their owner. */
+  #isCurrentMountedEntry(id,entry) {
+    return Boolean(!this.#destroyed&&entry
+      &&this.#entries.get(id)===entry
+      &&entry.element.parentNode===this.#container)
   }
 
   #currentFieldOwner(node) {
