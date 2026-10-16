@@ -350,3 +350,24 @@ npm run docs:check
 - По окончании commit проверены текущие blobs `BlockReconciler.js`, `BlockReconciler.test.js` и `projectionFields.js`. Полный инсталляционный `npm ci`, `npm run typecheck`, `npm test`, Chrome native suite, npm package-consumer gate, документационная сборка и differential parity v1/v2 на этом HEAD не запускались.
 
 **Итог прохода:** 5 кодовых исправлений, **11 новых Node-регрессионных тестов**, вспомогательная коррекция тестового fixture и paired EN/RU docs. Следующий аудит: exception safety dynamic `editableFields()` и `#registerFields` при ошибке дочерней inline projection, проверка реальных Chrome/browser acceptance gates на доступном checkout.
+
+## Реэнтрантные instance callbacks и вложенные mount/restore — 16 октября 2026
+
+**Базовый HEAD:** `e6bf1888051ca15297c0063fe006663951a7bbc9`. **Последний кодовый HEAD:** `6c1c7c80be5b100f11e13e54ed784bb0acf1e98f`. Коммиты записаны непосредственно в `refactor/rector-v2-architecture` без PR, каждый Git ref обновлялся только по ожидаемому SHA. Старый `master` не изменялся.
+
+| ID | Приоритет | Независимо воспроизведённый дефект | Исправление |
+|---|---|---|---|
+| B-R1 | P1 | Синхронные `BlockInstance.read()`, `editableFields()`, `focus()` могли вызвать `BlockReconciler.mount()` с тем же ID или `destroy()`. Внешний `readBlock()` возвращал данные уничтоженного экземпляра, `getEditableFields()` возвращал устаревшие DOM-дескрипторы, а `focus()` сообщал успех после уничтожения. `inlineProjection.serializeBlock()` также мог отозвать owner после проверки на входе. | `ef5db63`: проверка точного экземпляра в текущем `#entries`, его привязки к контейнеру и terminal state после каждого внешнего callback; **5 Node-тестов** |
+| B-R2 | P1 | Вложенный `mount()`/`restore()` из `runtime.create()`, `replaceChildren()` или inline `prepareBlock().apply()` публиковал более новую проекцию C, но внешняя операция B затем перезаписывала её DOM/owner map. C оставалась с неосвобождёнными ресурсами либо читалась из неправильного `DocumentStore`. | `bf9a632`: контроль exact owner-map identity при staging и на каждом этапе publication/activation, recovery только своего DOM/store, release superseded candidate и предшественников; **12 reentrant Node-тестов** + **1 normal lifecycle** |
+| B-R3 | P2 | `restore()` возвращал успех, если `destroy()` предыдущего блока синхронно публиковал новую проекцию C во время финальной очистки. У `mount()` уже была заключительная проверка, у `restore()` её не было. | `6c1c7c8`: заключительная проверка owner map после predecessor cleanup; **2 Node-теста** на mount/restore |
+
+### Проверка red/green
+
+- На исходном коде перед исправлением воспроизведены все шесть сочетаний instance callback × `mount()/destroy()`: прежний `readBlock()` возвращал `old`, `getEditableFields()` — устаревшее поле, `focus()` — `true`.
+- На исходном коде до исправления вложенные публикации **B → C** завершались возвращением B или несогласованностью owner map с DOM; after `destroy()` могла оставаться неосвобождённая C. После исправления C сохраняет собственные DOM/store context и все A/B/C освобождаются ровно по одному разу.
+- **20 новых регрессионных тестов** добавлены в `core/BlockReconciler.test.js` в трёх кодовых коммитах (5 + 13 + 2). Все **20/20 повторно прошли** в одной изолированной V8-проверке фактически полученного из GitHub кода на HEAD `6c1c7c8`. В ней используются fake DOM/Store/Scope/Animator; результат не приравнивается к полному `node --test` в проекте. Синтаксис фактических исходных и тестовых JavaScript-файлов также успешно разобран.
+- Дополнительно перечитаны `master` и v2 исходники List/Checklist/Table/Toggle/Paragraph и ранние архивные матрицы плагинного/ядерного паритета. Ранние отчёты содержат тесты для Enter/Backspace, структуры и clipboard, но исторические green gates **не пересчитывались** на текущем HEAD. Код/JSON v1 намеренно не переносится, критерий — пользовательский результат.
+
+### Приёмка остаётся открытой
+
+Полные `npm ci`, `npm test`, `npm run typecheck`, `npm run test:browser`, `npm run test:docs`, `npm run test:types`, `npm run test:package`, memory/heap и нативный сравнительный прогон с v1 **не выполнялись** на этом HEAD. Полный behavioral parity и release readiness не подтверждены. Следующий приоритет — актуальный нативный `tests/browser/native-plugin-parity` и проверка cross-field List Enter/Backspace в реальном браузере; не приписывать этому проходу результатов из исторических протоколов.
