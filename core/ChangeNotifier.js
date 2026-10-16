@@ -45,16 +45,20 @@ export class ChangeNotifier {
   schedule() {
     if (this.#destroyed || !this.#onChange) return
     const generation = ++this.#generation
-    if (this.#timer) this.#timerHost.clearTimeout(this.#timer)
+    if (this.#timer !== null) this.#timerHost.clearTimeout(this.#timer)
     this.#timer = this.#timerHost.setTimeout(async () => {
+      // A retired timer may still be queued by the host. It must not clear
+      // a newer pending timer or invoke save after replacement/destroy.
+      if (this.#destroyed || generation !== this.#generation || !this.#onChange) return
       this.#timer = null
-      if (!this.#onChange) return
       try {
         const data = await this.#saveFn()
         // A later schedule owns notification even when its save settles first.
         // Never deliver an older snapshot after a newer editor change.
         if (!this.#destroyed && generation === this.#generation) await this.#onChange?.(data)
       } catch (err) {
+        // Rejections from retired saves or observers belong to an old lease.
+        if (this.#destroyed || generation !== this.#generation) return
         if (this.#onError) this.#onError(err)
         else console.warn('[ChangeNotifier] Failed to save or notify:', err)
       }
@@ -64,7 +68,7 @@ export class ChangeNotifier {
   destroy() {
     this.#destroyed = true
     this.#generation++
-    if (this.#timer) {
+    if (this.#timer !== null) {
       this.#timerHost.clearTimeout(this.#timer)
       this.#timer = null
     }

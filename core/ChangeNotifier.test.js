@@ -125,3 +125,103 @@ test('async onChange rejection is contained by the notifier', async () => {
 
   assert.equal(warnings, 1)
 })
+
+test('superseded and destroyed debounce callbacks cannot save or cancel the next timer lease', async () => {
+  const callbacks = []
+  const cleared = []
+  const timerHost = {
+    setTimeout(callback) { callbacks.push(callback); return callbacks.length },
+    clearTimeout(handle) { cleared.push(handle) },
+  }
+  let saves = 0
+  const notifier = new ChangeNotifier(
+    () => { saves++; return { version: 'test', blocks: [] } },
+    () => {},
+    0,
+    timerHost,
+  )
+
+  notifier.schedule()
+  notifier.schedule()
+  // Model a timer callback already queued when the host receives clearTimeout.
+  await callbacks[0]()
+  notifier.destroy()
+  await callbacks[1]()
+
+  assert.equal(saves, 0, 'neither retired callback can invoke the persistence source')
+  assert.deepEqual(cleared, [1, 2], 'a stale callback must not erase the current timer handle')
+})
+
+test('rejected superseded save does not report stale errors after a newer change', async () => {
+  const callbacks = []
+  const outstanding = []
+  const errors = []
+  const versions = []
+  const timerHost = {
+    setTimeout(callback) { callbacks.push(callback); return callbacks.length },
+    clearTimeout() {},
+  }
+  const notifier = new ChangeNotifier(
+    () => new Promise((resolve, reject) => outstanding.push({ resolve, reject })),
+    data => versions.push(data.version),
+    0,
+    timerHost,
+    error => errors.push(error),
+  )
+
+  notifier.schedule()
+  const older = callbacks[0]()
+  notifier.schedule()
+  const newer = callbacks[1]()
+  outstanding[1].resolve({ version: 'new', blocks: [] })
+  await newer
+  outstanding[0].reject(new Error('retired save'))
+  await older
+
+  assert.deepEqual(versions, ['new'])
+  assert.deepEqual(errors, [])
+  notifier.destroy()
+})
+
+test('destroy suppresses late save and observer rejections but still reports active failures', async () => {
+  const callbacks = []
+  const errors = []
+  const timerHost = {
+    setTimeout(callback) { callbacks.push(callback); return callbacks.length },
+    clearTimeout() {},
+  }
+  let rejectSave
+  const savePromise = new Promise((_resolve, reject) => { rejectSave = reject })
+  const notifier = new ChangeNotifier(
+    () => savePromise,
+    () => {},
+    0,
+    timerHost,
+    error => errors.push(error),
+  )
+
+  notifier.schedule()
+  const pending = callbacks[0]()
+  notifier.destroy()
+  rejectSave(new Error('retired save'))
+  await pending
+  assert.deepEqual(errors, [])
+
+  let rejectObserver
+  const observerPromise = new Promise((_resolve, reject) => { rejectObserver = reject })
+  const observerNotifier = new ChangeNotifier(
+    () => ({ version: 'test', blocks: [] }),
+    () => observerPromise,
+    0,
+    timerHost,
+    error => errors.push(error),
+  )
+  observerNotifier.schedule()
+  const observing = callbacks[1]()
+  // Let save settle and let onChange start before destruction.
+  await Promise.resolve()
+  observerNotifier.destroy()
+  rejectObserver(new Error('retired observer'))
+  await observing
+  assert.deepEqual(errors, [])
+})
