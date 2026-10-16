@@ -313,7 +313,12 @@ export class InlineWidgetInputController {
           const f=observed.focus?.id===finalOwner?Math.max(0,Math.min(observed.focus.offset,text.length)):null
           const native=this.#root.ownerDocument.defaultView?.getSelection?.()
           if(a!==null&&f!==null&&native?.setBaseAndExtent){
-            native.setBaseAndExtent(text,a,text,f)
+            try { native.setBaseAndExtent(text,a,text,f) }
+            catch(error) {
+              // Selection restoration is best-effort presentation after the
+              // committed canonical result; it cannot revoke its notices.
+              try { this.#report(error) } catch {}
+            }
           }
         }
       }
