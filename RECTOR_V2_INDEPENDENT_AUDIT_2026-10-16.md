@@ -231,3 +231,30 @@ npm run docs:check
 Полный локальный `npm ci`, `npm test`, `npm run typecheck`, native Chromium, `test:browser`, heap, `test:package` и сравнение настоящих последовательностей ввода в v1/v2 **не выполнялись**. Попытка `git ls-remote` из локального окружения вернула ошибку DNS `Could not resolve host: github.com`. Изолированная JavaScript red/green проверка и проверка синтаксиса не заменяют проектный gate.
 
 **Непроверенный следующий риск (не подтверждённая регрессия):** `InlineProjectionRuntime.destroyBlock` и очистка `state.widgets` выполняются до удаления внешней записи владения; следует отдельно испытать reentrant widget cleanup в реальном DOM и убедиться в exactly-once teardown. Не менять эту область без красного теста.
+
+## Следующий независимый проход: inline/block ownership и отказоустойчивый mount (2026-10-16)
+
+**Исходный HEAD:** `cd9c6b17a98f2b5843c8ce9402885d5ad897d86c`. **Текущий HEAD кодовых изменений:** `e4c0acd52c8468d1d8b21f6c366e92ea98ddffdc`. Изменения внесены прямо в `refactor/rector-v2-architecture` без PR и затрагивания других веток. Этот раздел дополняет исторические результаты; все полные gates ещё не воспроизведены на новом HEAD.
+
+### Подтверждённые ошибки и коммиты
+
+| ID | Приоритет | Наблюдаемая проблема до исправления | Исправление |
+|---|---|---|---|
+| IP1 | P1 | `InlineProjectionRuntime.destroyBlock()` удалял запись блока после пользовательского `destroy()`. Реэнтрантный вызов `destroyBlock()` для того же ID дважды вызывал уничтожение одного и того же inline-виджета. Аналогично карта виджетов удаляла владельца после отдельных disposers. | `71979a3`: отзывать блок и виджеты до внешних callbacks, очистка освобождает staged/live claims exactly once; 2 browser regression cases |
+| IP2 | P1 | При первом `reconcileBlock()` виджет X мог быть создан, а виджет Y — бросить исключение. Частично смонтированный X сохранялся в owner map и не освобождался при неуспешном вызове; повторная попытка повторно использовала неудачное состояние. | `9bd0ec2`: cleanup частично приобретённых first-mount виджетов и отзыв orphan state; 1 browser case с повторным успешным монтажом |
+| IP3 | P1 | Созданный inline-плагином `element` мог принадлежать другому живому редактору/приложению, иметь другого `ownerDocument` или передаваться двум виджетам. Ядро перемещало чужой узел, затем могло дважды вызывать disposer одного элемента. | `106b50a`: обязательный disconnected root из owning document и global WeakMap live leases; rejected borrower не уничтожает original owner; 3 browser cases. EN/RU docs `24698f7` |
+| BR1 | P1 | `BlockReconciler.#createEntry()` без проверки вставлял root внешнего приложения в новый shell; два блока могли получить один DOM root и дважды освобождать ресурс. | `41e7aa8`: эксклюзивный root lease, checked owner document и detached state, cleanup exact owner; 3 Node tests. EN/RU docs `84d7bdd` |
+| BR2 | P2 | `BlockReconciler.destroy()` удалял **все** дети контейнера даже после замены содержимого приложением или другого синхронного host callback. | `01bcd46`: удалять только принадлежащие текущему reconciler shells, отзывать `#entries` до external disposer; 2 Node tests |
+| BR3 | P1 | Первоначальный успешный `mount()` оставлял `lifetime.candidate`, и instance context читал исходную копию, даже если canonical `DocumentStore` обновился. Неуспешная `#stageAll()` оставляла `this.#store` привязанным к попытке нового документа. | `963809f`: сброс candidate после публикации и restore previousStore при staging rejection; 2 Node tests |
+| BR4 | P2 | Если DOM `replaceChildren()` успевал изменить контейнер, а затем бросал исключение при первом `mount()`, recovery очищал всё приложение вместо восстановления прежних детей. | `20ec04c`: snapshot прежних детей, independent cleanup и rollback DOM через `insertBefore()` без повторного fallible replace; 2 Node tests. Тип `ChildNode` уточнён `e4c0acd`. |
+
+### Доказательства и ограничения
+
+- На **исходном коде из GitHub** воспроизведены двойной destroy inline-виджета (2 вместо 1), частичная неосвобождённая инициализация первого inline-блока, перенос чужого DOM и дублированное владение при inline/block acquisition, удаление нового host DOM в `BlockReconciler.destroy()`, устаревший initial candidate при обновлении store, dangling store после failed staging и потеря host DOM при partially throwing `replaceChildren()`. Исправленные JavaScript-версии проверялись с изолированными fault-injection fixtures; негативные сценарии стали green.
+- **15 новых тестов** добавлены в этом проходе: 6 browser assertions в `tests/browser/projection-contracts.js` (run as existing `projection-contracts.html`) и 9 Node tests в `core/BlockReconciler.test.js`. Созданы отдельные коммиты с кодом и paired EN/RU contract docs.
+- Проверена синтаксическая корректность актуальных версий `core/InlineProjectionRuntime.js`, `core/BlockReconciler.js` и двух изменённых test-файлов (V8 parse, ESM stripping only in syntax check); это не эквивалент запуска репозиторных тестов.
+- Проводить full `npm test`, `npm run typecheck`, `npm run test:browser`, `npm run test:docs`, `npm run test:types`, `npm run test:package` на данной ветке из этой среды по-прежнему не удалось из-за отсутствия сетевого checkout/установленных node_modules. Отчёты о прежних green gates не считаются подтверждением последнего HEAD. Chrome/WebKit/Firefox, system IME, native clipboard и full v1→v2 behavioral differential acceptance остаются отдельными релизными задачами.
+
+### Следующий приоритет
+
+Проверить реальное браузерное выполнение `projection-contracts.html` и project gates на рабочем checkout, затем повторно аудировать ошибочные ветви уже **существующего** `InlineProjectionRuntime.reconcileBlock()`: его in-place update path после частичной ошибки не обладает полноценной транзакционной гарантией для уже смонтированного блока. Никакого исправления этой отдельной области без конкретного red-теста в текущем проходе не утверждалось.
