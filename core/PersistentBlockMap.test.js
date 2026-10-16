@@ -52,3 +52,45 @@ test('immutable block index remains balanced through ordered updates and deletio
   assert.equal(beforeDeletes.get('key-000002'), 2)
   assert.equal([...index].length, 10000)
 })
+
+test('persistent index agrees with a mutable oracle while preserving earlier owners', () => {
+  // Deterministic keys and updates cover AVL rotations, replacement, missing
+  // deletions, long-lived snapshots and the iteration order used by exports.
+  for (let seed = 1; seed <= 5; seed++) {
+    let state = seed >>> 0
+    const random = () => {
+      state ^= state << 13
+      state ^= state >>> 17
+      state ^= state << 5
+      return state >>> 0
+    }
+    let index = new PersistentBlockMap()
+    const reference = new Map()
+    const snapshots = []
+    for (let step = 0; step < 10000; step++) {
+      const key = 'key-' + (random() % 1400)
+      const previous = index
+      const previousValue = previous.get(key)
+      if (random() % 4 === 0) {
+        index = index.withDelete(key)
+        reference.delete(key)
+      } else {
+        const value = random()
+        index = index.withSet(key, value)
+        reference.set(key, value)
+      }
+      assert.equal(previous.get(key), previousValue, 'prior snapshot is immutable')
+      if (step % 1000 === 0) snapshots.push({
+        index,
+        entries: [...reference.entries()],
+      })
+      if (step % 250 === 0) {
+        assert.deepEqual([...index], [...reference.entries()].sort(([a], [b]) => a.localeCompare(b)))
+      }
+    }
+    for (const snapshot of snapshots) {
+      assert.deepEqual([...snapshot.index],
+        snapshot.entries.sort(([a], [b]) => a.localeCompare(b)))
+    }
+  }
+})
