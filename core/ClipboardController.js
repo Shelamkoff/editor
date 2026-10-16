@@ -580,11 +580,19 @@ export class ClipboardController {
     const generation=this.#runtime.generation,revision=this.#runtime.revision
     const modeEpoch=this.#runtime.modeEpoch
     const mounted=this.#view.element?.(blockId)
+    // Native focus changes are not author revisions. The logical caret is
+    // separately owned by the user and must not be overwritten by a queued
+    // clipboard operation after the user moves it within the same field.
+    // Composite cross-block selections are deactivated after this scheduler
+    // runs; for those, rely on the canonical owner and revision guards.
+    const selected=this.#crossSelection?.active ? null : this.#selection.capture()
     queueMicrotask(()=>{
       if(this.#controller.signal.aborted||taskSignal?.aborted||this.#runtime.readOnly
         ||generation!==this.#runtime.generation||revision!==this.#runtime.revision
         ||modeEpoch!==this.#runtime.modeEpoch||!this.#runtime.has(blockId)
-        ||(mounted&&this.#view.element?.(blockId)!==mounted))return
+        ||(mounted&&this.#view.element?.(blockId)!==mounted)
+        ||(this.#view.currentId&&this.#view.currentId!==blockId)
+        ||(selected&&!sameBookmark(selected,this.#selection.capture())))return
       this.#view.focus(blockId,focus)
     })
   }

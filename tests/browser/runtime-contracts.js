@@ -2116,4 +2116,37 @@ test('queued plain-text Paste cannot move a later user caret in another block', 
 })
 
 
+test('queued plain-text Paste cannot reset a later caret in its original block', async () => {
+  const editor=make([para('a','Alpha')])
+  editor.blocks.focus('a',{fieldKey:'text',offset:2})
+  const field=editableField(editor,'a')
+  const pending=[]
+  const schedule=window.queueMicrotask
+  try {
+    window.queueMicrotask=callback=>pending.push(callback)
+    const transfer=new DataTransfer()
+    transfer.setData('text/plain','Z')
+    const event=new ClipboardEvent('paste',{clipboardData:transfer,bubbles:true,cancelable:true})
+    field.dispatchEvent(event)
+    check(event.defaultPrevented,'Plain-text Paste was not owned')
+    check(pending.length>0,'Paste did not defer its caret')
+    equal(editor.save().blocks[0].data.text,'AlZpha')
+    editor.blocks.focus('a',{fieldKey:'text',offset:5})
+  } finally {
+    window.queueMicrotask=schedule
+  }
+  const native=window.getSelection()
+  const before=editor.save().blocks
+  const history=[editor.canUndo,editor.canRedo]
+  check(document.activeElement===field,'Fixture lost the focused original block')
+  equal(getTextOffset(field,native.anchorNode,native.anchorOffset),5)
+  for(const callback of pending) callback()
+  await Promise.resolve()
+  equal(editor.save().blocks,before,'Queued Paste changed canonical content')
+  equal(getTextOffset(field,native.anchorNode,native.anchorOffset),5,
+    'Queued Paste reset the later native caret within the same block')
+  equal([editor.canUndo,editor.canRedo],history,'Queued Paste changed settled history')
+})
+
+
 await run()
