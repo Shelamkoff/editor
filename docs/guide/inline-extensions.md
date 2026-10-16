@@ -86,7 +86,9 @@ A trigger session is invalidated by focus changes, document replacement, read-on
 
 `insertion.createInitial()` supports programmatic insertion through `editor.insertInlinePlugin(type, data?)`. It returns either a widget payload or literal text.
 
-`editing.handle(input, data)` handles model-first editing around committed widgets. It may return `update`, `remove`, or `replace-text`.
+`editing.handle(input, data)` handles model-first editing around committed widgets. It returns `null` to pass or a synchronous `update`, `remove`, or `replace-text` action. Its input and output are prepared under the runtime's command guard; invalid or asynchronous owned decisions are consumed without native fallback.
+
+Optionally, `editing.reconcileNative({ inputType, beforeText, text }, data)` opts a label into native `deleteContentBackward/Forward`, `deleteWordBackward/Forward`, and `deleteSoftLineBackward/Forward` reconciliation. It must be pure and synchronous and **must return an action**, not `null`. The editor owns one pending input record, captures all occurrences within the current rich field and reconciles the observed neighboring text, inline payload, and live instance in one atomic projection transaction. Removed labels retire their identity; a surviving instance receives the final normalized payload through `update()`. `afterNativeEdit({ inputType, text, labelChanged, caret })` is a post-settlement observation, with `caret` a label-local UTF-16 offset or `null`. Missing or invalid native intervals never authorize guessed word boundaries or edits in another field.
 
 ## Example registration
 
