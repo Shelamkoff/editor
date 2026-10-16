@@ -474,3 +474,26 @@ test('an auxiliary button inside a registered widget cannot start a native label
   assert.equal(event.defaultPrevented,false)
   assert.deepEqual(calls,[])
 })
+
+test('a failed stale-inline recovery still retires the matching input without ordinary persistence',()=>{
+  const routes=[]
+  const inlineWidgetInput={
+    captureNativeDeletion(owner,event){return {
+      blockId:owner.blockId,fieldKey:owner.fieldKey,eventHost:owner.element,
+      inputType:event.inputType,trusted:false,originalEvent:event,
+      generation:1,revision:2,
+    }},
+    discardStaleNativeDeletion(){throw new Error('projection recovery failed')},
+    completeNativeDeletion(){routes.push('unexpected settlement')},
+    markNativeInputEvent(_event,result){routes.push(result.status)},
+  }
+  const {controller,field,child,runtime,calls}=harness({inlineWidgetInput})
+  runtime.generation=1;runtime.revision=2
+  controller.handleBeforeInput({target:child,inputType:'deleteWordBackward',defaultPrevented:false})
+  runtime.revision++
+  assert.doesNotThrow(()=>controller.handleInput({
+    target:field,inputType:'deleteWordBackward',isTrusted:false,
+  }))
+  assert.deepEqual(routes,['failed'])
+  assert.deepEqual(calls,[])
+})
