@@ -69,6 +69,10 @@ export class SlashCommandController {
     return this.#session !== null
   }
 
+  setReadOnly(value) {
+    if (value === true) this.close()
+  }
+
   close() {
     this.#itemsVersion++
     this.#session = null
@@ -346,7 +350,8 @@ export class SlashCommandController {
 
   #sessionIsCurrent() {
     const session = this.#session
-    if (!session || !session.element.isConnected || !this.#root.contains(session.element)) return false
+    if (this.#controller.signal.aborted || this.#runtime.readOnly
+      || !session || !session.element.isConnected || !this.#root.contains(session.element)) return false
     const field = this.#reconciler.getEditableField(session.blockId, session.fieldKey)
     return field?.element === session.element
   }

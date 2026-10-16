@@ -264,9 +264,31 @@ async function run() {
   escape.editor.destroy()
   escape.holder.remove()
 
+  const terminal = mount({
+    version: '2.0.0',
+    blocks: [{ id: 'read-only-slash', type: 'paragraph', dataVersion: 2,
+      data: { text: 'Keep ' } }],
+  })
+  await typeText(editable(terminal, 'read-only-slash'), '/hea')
+  const terminalMenu = slashMenu(terminal)
+  assert(terminalMenu.style.display !== 'none', 'slash session did not open before read-only')
+  const retiredItem = terminalMenu.querySelector('[role="menuitem"]')
+  assert(retiredItem, 'slash menu did not present its old action')
+  const beforeMode = terminal.editor.save().blocks
+  terminal.editor.setReadOnly(true)
+  assert(terminalMenu.style.display === 'none', 'read-only left the old slash menu visible')
+  assert(!terminalMenu.querySelector('[role="menuitem"]'), 'read-only retained the old slash action')
+  terminal.editor.setReadOnly(false)
+  retiredItem.click()
+  await delay()
+  assert(JSON.stringify(terminal.editor.save().blocks) === JSON.stringify(beforeMode),
+    'revived slash action modified the document after read-only round trip')
+  terminal.editor.destroy()
+  terminal.holder.remove()
+
   sandbox.replaceChildren()
   return {
-    flows: ['convert', 'insert', 'inline', 'composite field', 'stale session', 'focus change', 'escape'],
+    flows: ['convert', 'insert', 'inline', 'composite field', 'stale session', 'focus change', 'escape', 'read-only terminal dismissal'],
     atomicUndo: true,
     dualRegistry: false,
   }

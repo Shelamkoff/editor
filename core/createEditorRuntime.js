@@ -554,6 +554,7 @@ export function createEditorRuntime(input){
     // Revoke async clipboard authority before any fallible observer/control.
     if(mode)complete('clipboard',()=>clipboard?.cancelPendingTask())
     complete('triggers',()=>triggers.setReadOnly(mode))
+    complete('slash',()=>slashCommands.setReadOnly(mode))
     complete('popup',()=>popup.setReadOnly(mode))
     complete('root',()=>applyReadOnly(root,mode))
     complete('block-toolbar',()=>toolbar?.setReadOnly(mode))
