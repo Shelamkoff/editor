@@ -143,6 +143,7 @@ export class InlineWidgetInputController {
       fieldElement:field.element,occurrences:state.occurrences,
       generation:this.#runtime.generation,revision:this.#runtime.revision,
       selectionBefore:this.#selection?.capture()??null,
+      beforeLabelSelection:this.#observedLabelSelection(state),
       inputType:event.inputType,
       originalEvent:event,
       eventHost:field.element,
@@ -175,9 +176,47 @@ export class InlineWidgetInputController {
         finalOccurrence?.optedIn&&this.#projection.isCurrentNativeOccurrence(
           snapshot.blockId,snapshot.fieldKey,finalOccurrence))}
     }catch(error){
+      try{this.#restoreRecoveredLabelSelection(snapshot)}catch(recoveryError){
+        this.#report(recoveryError)
+      }
       this.#report(error)
       throw error
     }
+  }
+
+  /** Restore a failed native operation only into the same current canonical
+   * occurrence produced by the runtime's completed projection recovery.
+   * Its old mounted Element is not reused as an address.
+   */
+  #restoreRecoveredLabelSelection(snapshot){
+    const before=snapshot.beforeLabelSelection
+    if(!before?.anchor&&!before?.focus)return false
+    if(this.#runtime.readOnly||this.#runtime.health!=='ready'
+      ||snapshot.generation!==this.#runtime.generation
+      ||snapshot.revision!==this.#runtime.revision)return false
+    const record=this.#runtime.get(snapshot.blockId)
+    const field=this.#reconciler.getEditableField(snapshot.blockId,snapshot.fieldKey)
+    if(!record||record.type!==snapshot.blockType||!field?.element?.isConnected)return false
+    const source=before.anchor?.id===before.focus?.id?before.focus:before.anchor??before.focus
+    if(!source)return false
+    const previous=snapshot.occurrences.find(entry=>entry.id===source.id)
+    const canonical=Object.hasOwn(record.inline??{},source.id)?record.inline[source.id]:null
+    if(!previous||canonical?.type!==previous.type)return false
+    const candidates=this.#projection.captureNativeField(snapshot.blockId,snapshot.fieldKey,field.element)
+    const owner=candidates?.occurrences?.find(entry=>entry.id===source.id
+      &&entry.type===previous.type)
+    if(!owner)return false
+    const text=owner.element.firstChild
+    if(text?.nodeType!==3)return false
+    const point=entry=>entry?.id===source.id
+      ?Math.max(0,Math.min(entry.offset,text.length)):null
+    const anchor=point(before.anchor),focus=point(before.focus)
+    if(anchor===null||focus===null)return false
+    const native=this.#root.ownerDocument.defaultView?.getSelection?.()
+    if(typeof native?.setBaseAndExtent!=='function')return false
+    text.parentElement?.focus?.({preventScroll:true})
+    native.setBaseAndExtent(text,anchor,text,focus)
+    return true
   }
 
   /** Discard only current committed projection drift, never a replacement. */
