@@ -84,6 +84,7 @@ export class NativeInputController {
     if (event?.isComposing || this.#composition) return
     const inputType = typeof event?.inputType === 'string' ? event.inputType : ''
     const owner = this.#resolve(event?.target)
+      ?? (inputType.startsWith('delete') ? this.#resolveNativeInlineOwner(event?.target) : null)
     if (!owner) return
     if (inputType === 'historyUndo' || inputType === 'historyRedo') {
       event.preventDefault?.()
@@ -346,6 +347,23 @@ export class NativeInputController {
     const group = `native:${key}:${++this.#groupSequence}`
     this.#lastGroup = { key, group, at: now }
     return group
+  }
+
+  /** Inline labels may be the actual beforeinput target even though the
+   * generic native editing-host resolver intentionally rejects widget-local
+   * control events. For deletion capture only, normalize that target to the
+   * same registered rich field which owns its mounted occurrence.
+   */
+  #resolveNativeInlineOwner(target) {
+    if (!target || !this.#projection?.resolveWidgetElement) return null
+    const widget = this.#projection.resolveWidgetElement(target)
+    if (!widget?.isConnected || !widget.isContentEditable) return null
+    const owner = this.#reconciler.resolveEditableTarget(widget)
+    if (!owner || owner.mode !== 'rich-text' || !owner.element?.contains?.(widget)) return null
+    const current = this.#reconciler.getEditableField?.(owner.blockId, owner.fieldKey)
+    if (current && (current.element !== owner.element || current.mode !== 'rich-text')) return null
+    if (this.#root.contains && !this.#root.contains(widget)) return null
+    return owner
   }
 
   #resolve(target) {
