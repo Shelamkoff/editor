@@ -1824,4 +1824,74 @@ test('queued selectionchange matching a completed formatting restore keeps its a
 })
 
 
+
+test('queued inline widget caret cannot steal a user selection moved to another block',async()=>{
+  const definition={
+    type:'inline-caret-regression',
+    label:{key:'probe',fallback:'Caret probe'},
+    icon:'',
+    schema:{
+      currentVersion:1,
+      createDefault(){return {label:'@Ada'}},
+      decode(input){
+        if(input.dataVersion!==1||typeof input.data?.label!=='string')throw new TypeError('Invalid label')
+        return {dataVersion:1,data:{label:input.data.label}}
+      },
+      encode(data){
+        if(typeof data?.label!=='string')throw new TypeError('Invalid label')
+        return {dataVersion:1,data:{label:data.label}}
+      },
+    },
+    editing:{
+      handle(input,data){
+        if(input.inputType!=='deleteContentBackward')return null
+        return {kind:'update',data:{label:data.label.slice(0,-1)},caret:3}
+      },
+    },
+    setup(runtime){
+      return {
+        create(_id,initial){
+          const element=runtime.ownerDocument.createElement('span')
+          element.textContent=initial.label
+          return {
+            element,
+            update(next){element.textContent=next.label},
+            setReadOnly(){},
+            destroy(){element.remove()},
+          }
+        },
+        destroy(){},
+      }
+    },
+  }
+  const editor=make([
+    para('a','{{owned}}',{inline:{owned:{
+      type:'inline-caret-regression',dataVersion:1,data:{label:'@Ada'},
+    }}}),
+    para('b','Elsewhere'),
+  ],{inlinePlugins:[definition]})
+  const first=editableField(editor,'a')
+  const pill=first.querySelector('[data-inline-plugin="inline-caret-regression"]')
+  check(pill&&pill.firstChild?.nodeType===3,'Owned editable inline widget was not mounted')
+  const native=window.getSelection()
+  first.focus()
+  native.setBaseAndExtent(pill.firstChild,3,pill.firstChild,3)
+  const event=new InputEvent('beforeinput',{
+    bubbles:true,cancelable:true,inputType:'deleteContentBackward',
+  })
+  first.dispatchEvent(event)
+  check(event.defaultPrevented,'Immediate inline edit was not claimed')
+  equal(editor.save().blocks[0].inline.owned.data.label,'@Ad')
+  const second=editableField(editor,'b')
+  check(second.firstChild?.nodeType===3,'Second authored field has no native text node')
+  second.focus()
+  native.setBaseAndExtent(second.firstChild,2,second.firstChild,2)
+  await Promise.resolve()
+  equal(native.anchorNode,second.firstChild,'Deferred edit stole a later native anchor')
+  equal(native.focusNode,second.firstChild,'Deferred edit stole a later native focus')
+  equal(native.focusOffset,2)
+  equal(editor.save().blocks[1].data.text,'Elsewhere')
+})
+
+
 await run()
