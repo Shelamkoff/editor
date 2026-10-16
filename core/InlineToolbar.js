@@ -83,7 +83,7 @@ export class InlineToolbar {
   #controlBookmark = null
   #controlBlockId = null
 
-  constructor({ root, runtime, registry, reconciler, selection, selectionPort = null, view, tools = [], translate = (_key, fallback = '') => fallback, reportError = () => {} }) {
+  constructor({ root, runtime, registry, reconciler, selection, selectionPort = null, view, tools = [], translate = (_key, fallback = '') => fallback, reportError = (_code, _error) => {} }) {
     this.#root = root
     this.#runtime = runtime
     this.#registry = registry
