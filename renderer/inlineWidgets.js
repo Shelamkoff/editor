@@ -43,6 +43,14 @@ export function renderInlineWidgets(fragment, inline, registry, ownerDocument) {
       if (!HTMLElementCtor || !(element instanceof HTMLElementCtor)) {
         throw new TypeError(`Inline renderer "${ref.type}" render() must return an HTMLElement`)
       }
+      if (element.ownerDocument && element.ownerDocument !== ownerDocument) {
+        throw new TypeError(`Inline renderer "${ref.type}" must return an HTMLElement in the owning document`)
+      }
+      // The returned root must not already belong to another UI or a
+      // previously projected occurrence, even in a detached fragment.
+      if (element.isConnected || element.parentNode) {
+        throw new TypeError(`Inline renderer "${ref.type}" must return a fresh detached HTMLElement`)
+      }
 
       if (match.index > lastIndex) replacement.append(ownerDocument.createTextNode(text.slice(lastIndex, match.index)))
       element.setAttribute('data-inline-plugin', ref.type)

@@ -168,7 +168,7 @@ The asynchronous helpers use known public block types. An unknown type rejects r
 
 Every block renderer receives `parseInline(text)`. It sanitizes supported inline markup and returns a `DocumentFragment`; append the fragment instead of assigning `innerHTML`.
 
-Persistent widgets use an `InlineWidgetRenderer` with `type`, the same canonical widget `schema` as the editor extension, and `render(id, data, context)`.
+Persistent widgets use an `InlineWidgetRenderer` with `type`, the same canonical widget `schema` as the editor extension, and `render(id, data, context)`. Each call must return a fresh, detached `HTMLElement` belonging to `context.ownerDocument`. Returning connected, previously parented, foreign-document, or reused nodes is rejected so an inline projection cannot steal another UI's content.
 
 HTML-bearing block fields are traversed by `BlockDataSchema.mapRichText()`. Rector therefore expands <code>&#123;&#123;id&#125;&#125;</code> placeholders through the same field map used by the editor instead of maintaining a second renderer-specific field contract.
 
