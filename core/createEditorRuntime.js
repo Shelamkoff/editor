@@ -358,6 +358,14 @@ export function createEditorRuntime(input){
   view=new EditorViewModel({runtime,reconciler,interaction,selection:logicalSelection})
   crossSelection=lifecycle.register(new SelectionController({root,runtime,reconciler,view}))
   let triggerController=null
+  // Native callbacks can queue after editing, then outlive a terminal
+  // read-only round trip without any authored document revision.
+  const queueTriggerRefresh=()=>{
+    const modeEpoch=runtime.modeEpoch
+    queueMicrotask(()=>{
+      if(!destroyed&&runtime.modeEpoch===modeEpoch)triggerController?.refresh()
+    })
+  }
   /** @type {NativeInputController} */
   let nativeInput
   const inlineWidgetInput=lifecycle.register(new InlineWidgetInputController({
@@ -379,14 +387,14 @@ export function createEditorRuntime(input){
     selection:logicalSelection,
     projection:inlineProjection,
     inlineWidgetInput,
-    onControlledInput:()=>queueMicrotask(()=>triggerController?.refresh()),
+    onControlledInput:queueTriggerRefresh,
     coalesceMs:config.historyCoalesceMs??300,
   }))
   const inlineCommands=new InlineCommandController({
     runtime,
     registry,
     selection:logicalSelection,
-    onFreshText:()=>queueMicrotask(()=>triggerController?.refresh()),
+    onFreshText:queueTriggerRefresh,
   })
   const triggers=lifecycle.register(new InlineTriggerController({
     root,

@@ -766,11 +766,12 @@ export class BlockToolbar {
   #deferOwned(blockId,continuation){
     const generation=this.#runtime.generation
     const revision=this.#runtime.revision
+    const modeEpoch=this.#runtime.modeEpoch
     const mounted=this.#view.element(blockId)
     queueMicrotask(()=>{
       if(this.#destroyed||this.#runtime.readOnly
         ||generation!==this.#runtime.generation||revision!==this.#runtime.revision
-        ||!this.#runtime.has(blockId)||!mounted
+        ||modeEpoch!==this.#runtime.modeEpoch||!this.#runtime.has(blockId)||!mounted
         ||this.#view.element(blockId)!==mounted||this.#view.currentId!==blockId)return
       continuation()
     })

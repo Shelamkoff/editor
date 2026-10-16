@@ -917,12 +917,13 @@ export class InlineToolbar {
     this.#view.setCurrent(result.focusId)
     const generation=this.#runtime.generation
     const revision=this.#runtime.revision
+    const modeEpoch=this.#runtime.modeEpoch
     const focusId=result.focusId
     const mounted=this.#view.element(focusId)
     queueMicrotask(()=>{
       if(this.#destroyed||this.#readOnly||this.#runtime.readOnly
         ||generation!==this.#runtime.generation||revision!==this.#runtime.revision
-        ||!this.#runtime.has(focusId)||!mounted||this.#view.element(focusId)!==mounted
+        ||modeEpoch!==this.#runtime.modeEpoch||!this.#runtime.has(focusId)||!mounted||this.#view.element(focusId)!==mounted
         ||this.#view.currentId!==focusId)return
       restoreConvertedSelection(result,this.#view,this.#selectionPort)
     })

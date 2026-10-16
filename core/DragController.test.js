@@ -140,9 +140,11 @@ function dragHarness(){
   let revision=0
   let generation=1
   let readOnly=false
+  let modeEpoch=0
   const moves=[]
   const runtime={
     get readOnly(){return readOnly},
+    get modeEpoch(){return modeEpoch},
     get revision(){return revision},
     get generation(){return generation},
     has:id=>ids.includes(id),
@@ -169,7 +171,7 @@ function dragHarness(){
     ids:()=>[...ids],
     setRevision:value=>{revision=value},
     setGeneration:value=>{generation=value},
-    setReadOnly:value=>{readOnly=value},
+    setReadOnly:value=>{if(value!==readOnly)modeEpoch++;readOnly=value},
     captured:()=>captured,
     focusCalls:()=>[...focusCalls],
   }
@@ -272,4 +274,26 @@ test('completed drag restores focus only while its own committed result remains 
       change + ': a retired drag focus continuation took focus')
     controller.destroy()
   }
+})
+
+
+test('completed drag does not replay its focus after a read-only round trip without a new author revision', async () => {
+  const { DragController } = await import('./DragController.js')
+  const h = dragHarness()
+  const controller = new DragController({
+    runtime: h.runtime, view: h.view, handle: h.handle, threshold: 2,
+  })
+  h.handle.dispatch('pointerdown', pointerEvent(7, 5))
+  h.document.dispatch('pointermove', pointerEvent(7, 55, { x: 10 }))
+  h.document.dispatch('pointerup', pointerEvent(7, 55, { x: 10 }))
+  assert.deepEqual(h.moves, [['A', 2]], 'fixture did not commit the drag')
+  const revision = h.runtime.revision
+  h.setReadOnly(true)
+  controller.setReadOnly(true)
+  h.setReadOnly(false)
+  controller.setReadOnly(false)
+  assert.equal(h.runtime.revision, revision, 'mode change affected author revision')
+  await Promise.resolve()
+  assert.deepEqual(h.focusCalls(), [], 'retired drag stole focus after read-only → editable')
+  controller.destroy()
 })

@@ -72,6 +72,7 @@ export class DocumentRuntime {
   #selection
   #ownerDocument
   #readOnly
+  #modeEpoch = 0
   #createId
   #allocateId
   #onValidationError
@@ -186,6 +187,12 @@ export class DocumentRuntime {
 
   get readOnly() {
     return this.#readOnly
+  }
+
+  // Revokes control continuations across read-only round trips without
+  // treating presentation-mode changes as authored document revisions.
+  get modeEpoch() {
+    return this.#modeEpoch
   }
 
   get health() {
@@ -767,6 +774,9 @@ export class DocumentRuntime {
     if (this.#engine.phase !== 'idle') throw new Error(`Cannot change read-only mode during ${this.#engine.phase} phase`)
     const next = value === true
     if (next === this.#readOnly) return
+    // Invalidate queued commands even if the mode changes back before their
+    // microtask runs, or a fallible transition later needs recovery.
+    this.#modeEpoch++
     const selectionBefore = this.#captureSelection()
     this.#changingReadOnly = true
     try {

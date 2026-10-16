@@ -1153,3 +1153,23 @@ test('native inline preparation rejection cannot partially change current canoni
   assert.equal(runtime.canUndo,false)
   runtime.destroy()
 })
+
+
+test('read-only round trips revoke control epochs without changing the author revision', () => {
+  const runtime = new DocumentRuntime({ registry: registry([paragraphDefinition()]),
+    data: { version: '2.0.0', blocks: [block('a')] } })
+  const revision = runtime.revision, generation = runtime.generation
+  const initial = runtime.modeEpoch
+  assert.equal(initial, 0)
+  runtime.setReadOnly(true)
+  assert.equal(runtime.modeEpoch, initial + 1)
+  runtime.setReadOnly(true)
+  assert.equal(runtime.modeEpoch, initial + 1, 'redundant mode call issued a new epoch')
+  runtime.setReadOnly(false)
+  assert.equal(runtime.modeEpoch, initial + 2)
+  assert.equal(runtime.revision, revision, 'presentation mode authored a document edit')
+  assert.equal(runtime.generation, generation, 'presentation mode replaced the document')
+  assert.deepEqual(runtime.save().blocks, [block('a')])
+  assert.equal(runtime.canUndo, false)
+  runtime.destroy()
+})
