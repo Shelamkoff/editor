@@ -68,7 +68,7 @@ Anchor/content must be HTML elements from the owning document and cleanup must b
 
 `InlinePluginRuntime` provides `create(id, initial, context)`, optional `onTriggerQuery(session)`, optional `onTriggerKeydown(event, session)`, optional `onTriggerCancel()`, and `destroy()`.
 
-Each `create()` returns an `InlineWidgetInstance` with `element`, optional `update(next, previous)`, `setReadOnly(readOnly)`, optional `focus()`, and `destroy()`. If the definition opts into native inline deletion via `editing.reconcileNative`, a synchronous `update(next, previous)` is **required**. An instance may also supply synchronous `afterNativeEdit(notice)` for transient UI/search updates; that notice runs under observation authority and is not a command.
+Each `create()` returns an `InlineWidgetInstance` with `element`, optional `update(next, previous)`, `setReadOnly(readOnly)`, optional `focus()`, and `destroy()`. Its `element` must be a fresh detached `HTMLElement` belonging to the editor's `ownerDocument`; it is exclusively owned by that occurrence until cleanup finishes. Connected, foreign-document, parented, or still-owned elements are rejected. A rejected duplicate borrow does not invoke the original owner's `destroy()`. If the definition opts into native inline deletion via `editing.reconcileNative`, a synchronous `update(next, previous)` is **required**. An instance may also supply synchronous `afterNativeEdit(notice)` for transient UI/search updates; that notice runs under observation authority and is not a command.
 
 `InlineWidgetContext` provides exactly `id`, `blockId`, `fieldKey`, `signal`, `getData()`, `updateData(producer)`, `commitDomMutation(operation)`, `beginTask()`, and `isReadOnly()`. Inline ID allocation remains with the host.
 

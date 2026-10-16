@@ -68,7 +68,7 @@ ID виджета принадлежит модели документа. Rich t
 
 `InlinePluginRuntime` предоставляет `create(id, initial, context)`, необязательные `onTriggerQuery(session)`, `onTriggerKeydown(event, session)`, `onTriggerCancel()` и `destroy()`.
 
-Каждый `create()` возвращает `InlineWidgetInstance` с `element`, необязательным `update(next, previous)`, `setReadOnly(readOnly)`, необязательным `focus()` и `destroy()`. Если definition поддерживает нативное удаление внутри виджета через `editing.reconcileNative`, синхронный `update(next, previous)` **обязателен**. Дополнительно экземпляр может реализовать синхронный `afterNativeEdit(notice)` для временного UI/поиска; это наблюдательное уведомление, а не команда.
+Каждый `create()` возвращает `InlineWidgetInstance` с `element`, необязательным `update(next, previous)`, `setReadOnly(readOnly)`, необязательным `focus()` и `destroy()`. Поле `element` должно быть новым отсоединённым `HTMLElement` из `ownerDocument` редактора. Корневой элемент принадлежит одному живому экземпляру до завершения очистки. Уже подключённые, имеющие родителя, созданные в чужом документе или принадлежащие другому экземпляру элементы отклоняются. Отклонённый повторный захват не вызывает `destroy()` исходного владельца. Если definition поддерживает нативное удаление внутри виджета через `editing.reconcileNative`, синхронный `update(next, previous)` **обязателен**. Дополнительно экземпляр может реализовать синхронный `afterNativeEdit(notice)` для временного UI/поиска; это наблюдательное уведомление, а не команда.
 
 `InlineWidgetContext` предоставляет ровно `id`, `blockId`, `fieldKey`, `signal`, `getData()`, `updateData(producer)`, `commitDomMutation(operation)`, `beginTask()` и `isReadOnly()`. Выделением inline ID управляет ядро.
 
