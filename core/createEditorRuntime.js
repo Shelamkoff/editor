@@ -358,8 +358,8 @@ export function createEditorRuntime(input){
   view=new EditorViewModel({runtime,reconciler,interaction,selection:logicalSelection})
   crossSelection=lifecycle.register(new SelectionController({root,runtime,reconciler,view}))
   let triggerController=null
-  /** @type {NativeInputController | null} */
-  let nativeInput=null
+  /** @type {NativeInputController} */
+  let nativeInput
   const inlineWidgetInput=lifecycle.register(new InlineWidgetInputController({
     root,
     runtime,
