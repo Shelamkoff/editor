@@ -568,3 +568,45 @@ test('claiming an inline edit retires prior pending input before a stopped bubbl
   assert.equal(foreign.emit(foreign.foreign).canceled,false)
   assert.deepEqual(foreign.claimed,[])
 })
+
+test('a later native selection change revokes queued inline caret restoration',async()=>{
+  const state=fixture(()=>({kind:'update',data:{id:'ada',name:'Ad'},caret:3}))
+  const moved={nodeType:3,textContent:'Unrelated'}
+  let caretCalls=0
+  const native={
+    isCollapsed:true,
+    anchorNode:state.widget.firstChild,anchorOffset:3,
+    focusNode:state.widget.firstChild,focusOffset:3,
+    setBaseAndExtent(){caretCalls++},
+  }
+  state.root.ownerDocument.defaultView.getSelection=()=>native
+  const owned=state.emit()
+  assert.equal(owned.canceled,true)
+  native.anchorNode=moved
+  native.focusNode=moved
+  native.anchorOffset=0
+  native.focusOffset=0
+  await Promise.resolve()
+  assert.equal(caretCalls,0,'A queued callback stole a subsequent user selection')
+  assert.equal(state.writes.filter(call=>call[0]==='caret').length,0)
+})
+
+test('unchanged native selection permits the just-accepted inline caret result',async()=>{
+  const state=fixture(()=>({kind:'update',data:{id:'ada',name:'Ad'},caret:3}))
+  let caretCalls=0,position=null
+  const native={
+    isCollapsed:true,
+    anchorNode:state.widget.firstChild,anchorOffset:3,
+    focusNode:state.widget.firstChild,focusOffset:3,
+    setBaseAndExtent(node,offset,endNode,endOffset){
+      caretCalls++
+      position=[node,offset,endNode,endOffset]
+    },
+  }
+  state.root.ownerDocument.defaultView.getSelection=()=>native
+  const owned=state.emit()
+  assert.equal(owned.canceled,true)
+  await Promise.resolve()
+  assert.equal(caretCalls,1,'Own inline caret was never restored')
+  assert.deepEqual(position,[state.widget.firstChild,3,state.widget.firstChild,3])
+})
