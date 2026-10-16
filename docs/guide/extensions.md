@@ -76,7 +76,7 @@ Decode external input once at the boundary. Encode every model-first update befo
 - `selectionSlice.slice(...)` describes partial structured selection without mutating DOM.
 - `inlineControls` reuses model-first settings actions inside the inline toolbar.
 - `settings` is either an actions capability or a model-first panel.
-- `htmlImport.matchesRoot/importRoot` synchronously imports one safe structural HTML root into local current data for that block type; it must consume the whole root and have no side effects.
+- `htmlImport.matchesRoot/importRoot` synchronously imports one safe structural HTML root into local current data for that block type; it must consume the whole root and have no side effects. Optional `inlineWhenSingleRoot: true` lets the importer opt into replacing a selected rich-text range when that root is the sole content in the clipboard. The default is `false`, so third-party importers keep their block semantics. The flag is captured and validated at registration; multi-root imports remain structural.
 - `ClipboardCapability` (`clipboard.slice(data, context)`) lets a composite block return exported `parts`, the canonical `remaining` value after Cut, and an optional `focus`. `context.field(key)` exposes only actually selected rich-text intervals (`before/selected/after/whole`). Export and remaining come from the same pure capability, so core never guesses the block's data shape.
 - `paste` routes only text/file inputs to block or rich-text results; structural HTML is not passed to it.
 - `shortcuts` returns structural/model actions to the single core keyboard router.
@@ -89,7 +89,7 @@ Shortcut decisions run under the shared preparation guard with detached input/da
 
 `SettingsPanelCapability` has `kind: 'panel'` and `render(context)`; its context exposes `getData()` and `updateData()`. The context belongs to that panel and mounted block instance. Closing the panel, replacing its owner, entering read-only mode, destruction, or a failed factory revokes it permanently: retained producers are not invoked, and `getData()` returns only its last owned snapshot.
 
-`HtmlImportCapability` has `matchesRoot(element)` and `importRoot(element, context)`. Its context exposes `ownerDocument`, `createId()`, and `serializeRichText(element)` using the normal rich-text codec. Core sanitizes and plans the complete HTML input first; if any accepted root fails, the entire import is rejected before mutation.
+`HtmlImportCapability` has `matchesRoot(element)`, `importRoot(element, context)`, and optional `inlineWhenSingleRoot: boolean`. Its context exposes `ownerDocument`, `createId()`, and `serializeRichText(element)` using the normal rich-text codec. The built-in Paragraph importer opts in to v1's single-paragraph inline Paste; custom importers must opt in explicitly or their prepared block remains authoritative. Core sanitizes and plans the complete HTML input first; if any accepted root fails, the entire import is rejected before mutation.
 
 `PasteCapability` has `accepts(input)` and `resolve(input, context)` for text/file input only. The resolver receives `AbortSignal`, `ownerDocument`, and `createId()`.
 
