@@ -322,4 +322,55 @@ test('inline widget retired widget cleanup only calls a disposer once', () => {
   } finally { projection.destroy() }
 })
 
+
+
+test('failed first inline projection disposes earlier widget claims before retry', () => {
+  let failSecond = true
+  const created = []
+  const released = []
+  const registry = {
+    getInlineDefinition: () => ({ schema: { decode: value => value } }),
+    getInlineRuntime: () => ({
+      create(id) {
+        created.push(id)
+        if (failSecond && id === 'y') throw new Error('second inline creation failed')
+        const element = document.createElement('span')
+        element.textContent = id
+        return {
+          element,
+          setReadOnly() {},
+          destroy() { released.push(id) },
+        }
+      },
+    }),
+  }
+  const projection = new InlineProjectionRuntime({ registry, ownerDocument: document })
+  const element = document.createElement('div')
+  const fields = [{ key: 'text', mode: 'rich-text', element }]
+  const record = {
+    data: { fields: [{ key: 'text', html: '{{x}} {{y}}' }] },
+    inline: { x: payload, y: payload },
+  }
+  try {
+    let message = ''
+    try {
+      projection.reconcileBlock('a', record, { schema }, fields, {
+        createInlineWidgetContext: () => ({}),
+      })
+    } catch (error) { message = error.message }
+    equal(message, 'second inline creation failed')
+    equal(created, ['x', 'y'])
+    equal(released, ['x'], 'first widget owner is released immediately after failure')
+
+    failSecond = false
+    projection.reconcileBlock('a', record, { schema }, fields, {
+      createInlineWidgetContext: () => ({}),
+    })
+    equal(created, ['x', 'y', 'x', 'y'], 'retry cannot resurrect partial old state')
+    equal(element.querySelectorAll('[data-inline-plugin]').length, 2)
+    projection.destroyBlock('a')
+    equal(released, ['x', 'x', 'y'], 'retry owners are retired once')
+  } finally { projection.destroy() }
+})
+
 await run()

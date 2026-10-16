@@ -58,13 +58,25 @@ export class InlineProjectionRuntime {
   reconcileBlock(blockId,record,definition,fields,baseContext,{preserveSourceProjection=false}={}){
     this.#assertLive()
     let state=this.#blocks.get(blockId)
+    const firstMount=!state
     if(!state){
       state={widgets:new Map(),staged:false}
       this.#blocks.set(blockId,state)
     }
-    this.#projectState(
-      blockId,state,record,definition,fields,baseContext,{preserveSourceProjection},
-    )
+    try{
+      this.#projectState(
+        blockId,state,record,definition,fields,baseContext,{preserveSourceProjection},
+      )
+    }catch(error){
+      // An initial live mount may acquire several widgets before a later
+      // extension fails. There is no prior committed state to retain, so
+      // revoke the staged claims and release all partially-created widgets.
+      if(firstMount){
+        if(this.#blocks.get(blockId)===state)this.#blocks.delete(blockId)
+        this.#destroyState(state)
+      }
+      throw error
+    }
   }
 
   prepareBlock(blockId,record,definition,fields,baseContext,generation){
