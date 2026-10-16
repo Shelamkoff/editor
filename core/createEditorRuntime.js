@@ -529,18 +529,29 @@ export function createEditorRuntime(input){
     emit('editor:destroyed')
   }
   const setReadOnly=value=>runtime.setReadOnly(value,discardProjectionEdits=>{
-    // Revoke pending resolver rights immediately after the mode is applied.
-    // A failing terminal hook must not leave a late Paste alive.
-    if(runtime.readOnly)clipboard?.cancelPendingTask()
-    triggers.setReadOnly(runtime.readOnly)
-    popup.setReadOnly(runtime.readOnly)
-    applyReadOnly(root,runtime.readOnly)
-    toolbar?.setReadOnly(runtime.readOnly)
-    inlineToolbar.setReadOnly(runtime.readOnly)
-    nativeInput.setReadOnly(runtime.readOnly,discardProjectionEdits)
-    drag.setReadOnly(runtime.readOnly)
-    emit('readOnly:changed',{readOnly:runtime.readOnly})
-    emit('history:changed',{canUndo:runtime.canUndo,canRedo:runtime.canRedo})
+    // The projection has already accepted this transition. Independently
+    // complete every terminal owner even when a plugin's cancellation/cleanup
+    // throws; never roll back the successful read-only state because an
+    // observer failed or leave later resources with stale authority.
+    const mode=runtime.readOnly
+    const complete=(name,operation)=>{
+      try{operation()}catch(error){
+        try{reportDiagnostic('cleanup.failed','read-only.'+name,error)}catch{}
+      }
+    }
+    // Revoke async clipboard authority before any fallible observer/control.
+    if(mode)complete('clipboard',()=>clipboard?.cancelPendingTask())
+    complete('triggers',()=>triggers.setReadOnly(mode))
+    complete('popup',()=>popup.setReadOnly(mode))
+    complete('root',()=>applyReadOnly(root,mode))
+    complete('block-toolbar',()=>toolbar?.setReadOnly(mode))
+    complete('inline-toolbar',()=>inlineToolbar.setReadOnly(mode))
+    complete('native-input',()=>nativeInput.setReadOnly(mode,discardProjectionEdits))
+    complete('drag',()=>drag.setReadOnly(mode))
+    complete('read-only-notice',()=>emit('readOnly:changed',{readOnly:mode}))
+    complete('history-notice',()=>emit('history:changed',{
+      canUndo:runtime.canUndo,canRedo:runtime.canRedo,
+    }))
   })
 
   editor=new EditorHandle({
