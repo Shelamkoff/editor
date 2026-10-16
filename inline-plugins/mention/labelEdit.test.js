@@ -8,7 +8,7 @@ const edit = (display, range, replacement, trigger = '@', current = {id:'member-
 
 test('editing authored label text preserves Mention identity and returns the local caret', () => {
   assert.deepEqual(edit('@Alice',{start:2,end:3},'ll'),
-    {kind:'update',data:{id:'member-1',name:'Allce'},caret:4})
+    {kind:'update',data:{id:'member-1',name:'Allice'},caret:4})
 })
 
 test('removing the trigger converts the label to ordinary text without retaining identity', () => {
