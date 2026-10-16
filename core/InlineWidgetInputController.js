@@ -43,7 +43,8 @@ function captureAction(input) {
     throw new TypeError('Unknown inline editing action')
   }
   if (Object.hasOwn(candidate, 'caret')
-    && (!Number.isInteger(candidate.caret) || candidate.caret < 0)) {
+    && (typeof candidate.caret !== 'number'
+      || !Number.isInteger(candidate.caret) || candidate.caret < 0)) {
     throw new TypeError('Inline editing caret must be a non-negative integer')
   }
   // Runtime validation above precedes this checked-JS discriminated result.
