@@ -246,6 +246,45 @@ test('changed native label prepares one sidecar update and then delivers a retai
   assert.deepEqual(state.diagnostics,[])
 })
 
+test('native sidecar cache is finalized only after the normalized canonical record is assembled',()=>{
+  const state=fixture()
+  state.runtime.get=()=>({type:'paragraph'})
+  const calls=[]
+  const instance={}
+  const source={id:'mention-1',type:'mention',fieldKey:'text',element:state.widget,
+    beforeText:'@Ada',data:{id:'ada',name:'Ada'},optedIn:true,instance}
+  state.projection.captureNativeField=()=>({blockId:'a',fieldKey:'text',
+    fieldElement:state.field,occurrences:[source]})
+  state.projection.isCurrentNativeOccurrence=()=>true
+  state.projection.applyNativeInlineChanges=()=>calls.push('DOM')
+  state.projection.finalizeNativeInlineUpdates=(blockId,fieldKey,changes,inline)=>{
+    calls.push(['finalize',inline['mention-1'].data.name,changes.length])
+  }
+  state.projection.retireNativeInlineChanges=()=>calls.push('retire')
+  state.projection.notifyNativeInlineEdit=()=>true
+  state.runtime.observeExtension=fn=>fn()
+  state.runtime.reconcileNativeInlineInput=(snapshot,prepare)=>{
+    const changes=state.runtime.prepareExtensionValue(prepare)
+    snapshot.applyChanges(changes)
+    snapshot.finalizeChanges(changes,{'mention-1':{
+      type:'mention',dataVersion:1,data:{id:'ada',name:'Ada'},
+    }})
+    snapshot.settle(changes,'unchanged')
+    return {status:'unchanged'}
+  }
+  state.registry.getInlineDefinition=()=>({editing:{
+    reconcileNative:()=>({kind:'update',data:{id:'ada',name:'  Ada '}}),
+  }})
+  const event={target:state.field,inputType:'deleteWordBackward',defaultPrevented:false,isTrusted:false}
+  const snapshot=state.controller.captureNativeDeletion({
+    blockId:'a',fieldKey:'text',mode:'rich-text',element:state.field,
+  },event,state.root.ownerDocument.defaultView.getSelection())
+  state.widget.textContent='@Ad'
+  const settled=state.controller.completeNativeDeletion(snapshot,{target:state.field})
+  assert.deepEqual(settled.status,'unchanged')
+  assert.deepEqual(calls,['DOM',['finalize','Ada',1],'retire'])
+})
+
 test('native reconciliation refuses label drift in a surviving non-opted widget',()=>{
   const state=fixture()
   state.runtime.get=()=>({type:'paragraph'})
