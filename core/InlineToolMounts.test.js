@@ -126,3 +126,60 @@ test('extension cleanup runs under observation authority and independently compl
   assert.deepEqual(calls, ['second destroy', 'first unbind', 'first destroy'])
   assert.deepEqual(errors, ['unbinding failed'])
 })
+
+test('all inline tool sources are reserved before reading extension metadata', () => {
+  const first = tool('first')
+  const shared = tool('shared')
+  let attempts = 0
+  Object.defineProperty(first, 'icon', {
+    configurable: true,
+    get() {
+      attempts++
+      // Another editor/toolbar may be constructed synchronously by a getter.
+      // It cannot acquire an instance reserved by this construction.
+      assert.throws(() => new InlineToolMounts([shared], runtime), /already mounted/)
+      return '<i>first</i>'
+    },
+  })
+  const mounted = new InlineToolMounts([first, shared], runtime)
+  assert.equal(attempts, 1)
+  assert.deepEqual(mounted.tools.map(entry => entry.type), ['first', 'shared'])
+  mounted.destroy()
+
+  // Neither reservation may survive the owner's teardown.
+  const reused = new InlineToolMounts([shared], runtime)
+  reused.destroy()
+})
+
+test('failed later tool metadata capture releases every earlier reservation', () => {
+  const first = tool('first')
+  const second = tool('second')
+  second.icon = null
+  assert.throws(
+    () => new InlineToolMounts([first, second], runtime),
+    /icon must be a string/,
+  )
+  second.icon = '<i>second</i>'
+  const mounted = new InlineToolMounts([first, second], runtime)
+  assert.deepEqual(mounted.tools.map(entry => entry.type), ['first', 'second'])
+  mounted.destroy()
+})
+
+test('synchronous revocation during port binding prevents an onMount on a destroyed owner', () => {
+  const calls = []
+  let mounts
+  const source = tool('reentrant', {
+    bindSelectionPort(port) {
+      calls.push(port === null ? 'unbind' : 'bind')
+      if (port !== null) mounts.destroy()
+    },
+    onMount() { calls.push('mounted after revocation') },
+    destroy() { calls.push('destroy') },
+  })
+  mounts = new InlineToolMounts([source], runtime)
+  mounts.start(mounts.tools[0], {}, {}, {}, () => calls.push('revoke'))
+  assert.deepEqual(calls, ['bind', 'revoke', 'unbind', 'destroy'])
+  mounts.destroy()
+  const reused = new InlineToolMounts([source], runtime)
+  reused.destroy()
+})
