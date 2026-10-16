@@ -166,3 +166,46 @@ The validated **inventory** parity remains 21 built-in block types and 12 defaul
 ### Границы завершённости
 
 Полный `npm ci` и `npm test`, оба TypeScript проекта, Chrome/native/heap и installed-package/документация **не запускались повторно** на этой ревизии: среда выполнения не смогла разрешить `github.com` для клонирования. Отдельные воспроизведения, проверка модулей через JavaScript parser и старые green logs не заменяют полный проектный gate. Сопоставление пользовательских сценариев v1/v2 по всей матрице по-прежнему не закончено; инвентаризация встроенных типов и инструментов ранее подтверждена.
+
+## Дополнительный независимый проход: reentrant popup, DOM ownership и Poll, 2026-10-16
+
+Проверенная исходная ревизия: `41834f54130ca66ecabdfce656c5e9d8b09e6aa3`. Итоговый кодовый HEAD этого прохода: `7f7df0a91536f00260c4369da34db1ac8f71d05c`. Работа произведена непосредственно в `refactor/rector-v2-architecture`, без PR или merge чужих файлов. Предыдущие разделы остаются историческими доказательствами.
+
+### Подтверждённые нарушения
+
+| Код | Область / приоритет | Независимое исходное воспроизведение | Коммит |
+|---|---|---|---|
+| P5 | `InlinePopupHost.#hide()`, P1 | Повторный `showPopup` из DOM `remove()` старого popup оставлял один новый popup в DOM, но его cleanup вызывался немедленно; последующее `handle.close()` не освобождало его | `ffc223a`: атомарно снять старую ownership до `abort`/`removeEventListener`/`remove`, cleanup в `finally`. Два теста на повторный вход |
+| R5 | `EditorRenderer`, P1 | Custom block renderer мог вернуть уже смонтированный в приложении `HTMLElement`: `renderTo()` перемещал его из приложения в собственный контейнер | `1a80bae`: проверка `element.isConnected` до захвата ресурса, исключение без вызова чужого disposer; 2 теста + EN/RU docs |
+| PO1 | Poll editor + read-only renderer, P2 | Promise/thenable из `dataSource.subscribe()` или его disposer проходил как успешный sync hook, позднее отклонение оставалось без надлежащего учёта | `9ba3145`: shared `synchronousResult()` на acquisition/disposal; 4 теста |
+| PO2 | Poll live-subscription, P2 | `subscribe()` синхронно вызывал уведомление с удалением Poll и возвращал отписку **после** уничтожения владельца; возвращённый disposer никогда не вызывался | `c990bd5`: после возвращения disposer проверяется актуальность владельца/сигнала и выполняется немедленная очистка в случае отзыва; 2 теста |
+| PO3 | Poll revision ordering и push observer, P2 | Comparator `compareRevisions()`, вернувший Promise с положительным результатом, воспринимался как `false`, теряя обновление; `Infinity` принимался как положительный порядок. Поздняя ошибка сравнения из onUpdate могла выйти в чужой dataSource callback | `7f7df0a`: sync/finiteness check и изоляция ошибок в editor onUpdate; 4 теста |
+
+### Проверки этого прохода
+
+- RED/GREEN: контролируемый реальный исходник `InlinePopupHost`: после удаления старого окна — 1 unowned successor, очистки `['old','new']` до завершения, а его `close()` ничего не делал; после патча — 1 owned successor, только `['old']` до его закрытия, затем 0 окон и `['old','new']`.
+- RED/GREEN: реальный исходник `EditorRenderer` с контролируемым DOM: ранее connected application node перемещался из приложения в `renderTo`; теперь исключение до DOM-мутации, исходный узел остаётся у приложения.
+- RED/GREEN: реальный исходник read-only Poll с минимальными DOM адаптерами: async subscription/acquired disposer теперь возвращает зарегистрированную sync-контрактную ошибку вместо silent acceptance.
+- RED/GREEN: renderer Poll reentrant subscribe раньше возвращал cleanup после destroy, который не вызывался (0), теперь вызывается ровно раз (1). Editor Poll при немедленном abort исходно не выполнял cleanup до будущего destroy (0→1); после патча освобождает его до завершения create (1→1).
+- RED/GREEN: общий Poll comparator с Promise раньше отвергал обновление как обычное сравнение `false`, а `Infinity` принимался; теперь оба контракта ошибочны и вызывают TypeError. Нормальные положительный, отрицательный и равный числовые результаты сохраняются. Изолированный editor Poll со слушателем push после load revision 1: до исправления 0 ошибок и тихо потерянное обновление revision 2, после — одна ошибка синхронного контракта через `onError`, без исключения в источник событий.
+- Синтаксис девяти изменённых/связанных JavaScript источников и тестов проверен через V8-парсер после удаления импортов только в проверочном коде. Это не полноценный `npm test` или `tsc`.
+
+Новые регрессионные тесты этого прохода: **14**. В независимых аудиторских проходах по состоянию на этот кодовый HEAD суммарно написано **49 новых регрессионных тестов** (35 ранее и 14 сейчас). Эти числа относятся к внесённым тестовым определениям, **не** к прошедшим тестам полного проекта.
+
+### Приёмка и паритет
+
+Историческая матрица продолжает содержать 21 блочный тип, 12 стандартных inline tools и native Chrome-проверки, но новый код после `7f7df0a` ещё не проходил полный официальный локальный gate. `npm ci`, оба TypeScript проекта, `npm test`, native/IME/clipboard, `test:browser`, heap, пакетное испытание и `docs:check` в этом проходе не выполнялись: контейнер не разрешает `github.com` для клонирования. Новые тесты требуют запуска из полного checkout с установленными зависимостями. Функциональный паритет с v1 по всем реальным последовательностям пользовательских действий пока не доказан новым дифференциальным прогоном.
+
+Для локальной проверки по этому HEAD:
+
+```bash
+npm ci
+npm run typecheck
+node --test core/InlinePopupHost.test.js renderer/reentrancy.test.js renderer/renderers/poll/lifecycle.test.js shared/pollData.test.js
+npm test
+npm run test:browser
+npm run test:docs
+npm run test:types
+npm run test:package
+npm run docs:check
+```
