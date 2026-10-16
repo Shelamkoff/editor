@@ -22,6 +22,7 @@ export class Tooltip {
   #window
   #listeners
   #timer = null
+  #timerEpoch = 0
   #anchor = null
   #destroyed = false
 
@@ -56,7 +57,11 @@ export class Tooltip {
   show(anchor, label, shortcut = '') {
     this.hide()
     if (this.#destroyed) return
+    const epoch = ++this.#timerEpoch
     this.#timer = this.#window.setTimeout(() => {
+      // A queued callback may still arrive after cancellation or teardown.
+      // It cannot clear its successor's timer or restore stale ARIA state.
+      if (this.#destroyed || epoch !== this.#timerEpoch) return
       this.#timer = null
       const rect = anchor.getBoundingClientRect()
       if (!this.#root.isConnected || !this.#root.contains(anchor) || !rect.width || !rect.height) return
@@ -89,15 +94,18 @@ export class Tooltip {
   }
 
   hide() {
-    if (this.#timer !== null) this.#window.clearTimeout(this.#timer)
+    this.#timerEpoch++
+    const timer = this.#timer
     this.#timer = null
+    const anchor = this.#anchor
+    this.#anchor = null
+    if (timer !== null) this.#window.clearTimeout(timer)
     this.#element.style.display = 'none'
-    if (this.#anchor) {
-      const ids = (this.#anchor.getAttribute('aria-describedby') ?? '').split(/\s+/)
+    if (anchor) {
+      const ids = (anchor.getAttribute('aria-describedby') ?? '').split(/\s+/)
         .filter(id => id && id !== this.#element.id)
-      if (ids.length) this.#anchor.setAttribute('aria-describedby', ids.join(' '))
-      else this.#anchor.removeAttribute('aria-describedby')
-      this.#anchor = null
+      if (ids.length) anchor.setAttribute('aria-describedby', ids.join(' '))
+      else anchor.removeAttribute('aria-describedby')
     }
   }
 
