@@ -50,6 +50,17 @@ const noteDefinition: BlockPluginDefinition<NoteData> = {
 }
 const badgeDefinition: InlinePluginDefinition<BadgeData> = {
   type: 'external-badge', label: { key: 'badge', fallback: 'Badge' }, icon: '', schema: badgeSchema,
+  editing: {
+    handle(input, data) {
+      if (input.inputType !== 'deleteContentBackward') return null
+      return { kind: 'update', data: { label: data.label.slice(0, -1) }, caret: input.offset - 1 }
+    },
+    reconcileNative(input, data) {
+      return input.text
+        ? { kind: 'update', data: { label: input.text } }
+        : { kind: 'remove' }
+    },
+  },
   setup(runtime) { return {
     create(_id, initial, context) {
       const element = runtime.ownerDocument.createElement('span')
@@ -59,7 +70,15 @@ const badgeDefinition: InlinePluginDefinition<BadgeData> = {
         handle.close()
         context.commitDomMutation(() => element.remove())
       }, { signal: context.signal })
-      return { element, update(next) { element.textContent = next.label }, setReadOnly() {}, destroy() {} }
+      return {
+        element,
+        update(next) { element.textContent = next.label },
+        afterNativeEdit(notice) {
+          if (notice.caret !== null && notice.labelChanged) element.dataset.lastNativeCaret = String(notice.caret)
+        },
+        setReadOnly() {},
+        destroy() {},
+      }
     }, destroy() {},
   } },
 }
