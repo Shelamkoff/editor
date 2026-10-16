@@ -1,5 +1,6 @@
 // @ts-check
 import { cloneEditorData } from '../shared/cloneEditorData.js'
+import { PersistentBlockMap } from './PersistentBlockMap.js'
 
 function freezeJson(value) {
   if (!value || typeof value !== 'object') return value
@@ -56,7 +57,7 @@ function stateFromDocument(document) {
   return {
     version: owned.version,
     order: owned.blocks.map(block => block.id),
-    blocks: new Map(owned.blocks.map(block => [block.id, block])),
+    blocks: PersistentBlockMap.fromEntries(owned.blocks.map(block => [block.id, block])),
   }
 }
 
@@ -64,9 +65,11 @@ function cloneState(state) {
   return {
     version: state.version,
     order: [...state.order],
-    blocks: new Map(state.blocks),
+    blocks: new Map(state.order.map(id => [id, state.blocks.get(id)])),
   }
 }
+
+const privateCommitToken = Symbol('document-store-prepared-state')
 
 function exportState(state) {
   return {
@@ -87,13 +90,23 @@ export class DocumentDraft {
   #order
   #blocks
   #changes = []
+  #orderShared = false
 
-  constructor(owner, source, { state = false } = {}) {
+  #ensureOwnOrder() {
+    if (!this.#orderShared) return
+    this.#order = [...this.#order]
+    this.#orderShared = false
+  }
+
+  constructor(owner, source, { state = false, borrow = null } = {}) {
     this.#owner = owner
-    const next = state ? cloneState(source) : stateFromDocument(source)
+    const borrowing = state && borrow === privateCommitToken
+    const next = state ? (borrowing ? source : cloneState(source)) : stateFromDocument(source)
     this.#version = next.version
     this.#order = next.order
-    this.#blocks = next.blocks
+    this.#orderShared = borrowing
+    this.#blocks = next.blocks instanceof PersistentBlockMap
+      ? next.blocks : PersistentBlockMap.fromEntries(next.blocks)
   }
 
   isOwnedBy(owner) {
@@ -144,12 +157,21 @@ export class DocumentDraft {
     })
   }
 
+  /** Immutable internal state transfer for DocumentStore.prepareCommit only. */
+  preparedState(owner, token) {
+    if (owner !== this.#owner || token !== privateCommitToken) throw new TypeError('Draft owner mismatch')
+    // A later draft operation must copy the order before mutating this snapshot.
+    this.#orderShared = true
+    return { version: this.#version, order: this.#order, blocks: this.#blocks }
+  }
+
   insert(index, input) {
     assertIndex(index, 0, this.#order.length, 'Insert index is out of range')
     const block = ownBlock(input)
     if (this.#blocks.has(block.id)) throw new Error(`Duplicate block id: ${block.id}`)
+    this.#ensureOwnOrder()
     this.#order.splice(index, 0, block.id)
-    this.#blocks.set(block.id, block)
+    this.#blocks = this.#blocks.withSet(block.id, block)
     this.#changes.push({ kind: 'block.insert', index, block: cloneEditorData(block) })
     return block.id
   }
@@ -160,7 +182,7 @@ export class DocumentDraft {
     const next = ownBlock(input)
     if (next.id !== id) throw new Error('Block update cannot change block id')
     if (next === current) return
-    this.#blocks.set(id, next)
+    this.#blocks = this.#blocks.withSet(id, next)
     this.#changes.push({
       kind: 'block.update',
       id,
@@ -173,8 +195,9 @@ export class DocumentDraft {
     const block = this.#blocks.get(id)
     if (!block) throw new Error(`Unknown block id: ${id}`)
     const index = this.#order.indexOf(id)
+    this.#ensureOwnOrder()
     this.#order.splice(index, 1)
-    this.#blocks.delete(id)
+    this.#blocks = this.#blocks.withDelete(id)
     this.#changes.push({
       kind: 'block.remove',
       index,
@@ -187,6 +210,7 @@ export class DocumentDraft {
     if (from < 0) throw new Error(`Unknown block id: ${id}`)
     assertIndex(to, 0, this.#order.length - 1, 'Final block index is out of range')
     if (from === to) return
+    this.#ensureOwnOrder()
     this.#order.splice(from, 1)
     this.#order.splice(to, 0, id)
     this.#changes.push({ kind: 'block.move', id, from, to })
@@ -197,6 +221,7 @@ export class DocumentDraft {
     const next = stateFromDocument(document)
     this.#version = next.version
     this.#order = next.order
+    this.#orderShared = false
     this.#blocks = next.blocks
     this.#changes.push({
       kind: 'document.replace',
@@ -233,6 +258,7 @@ export class DocumentDraft {
         const next = stateFromDocument(direction === 'forward' ? change.after : change.before)
         this.#version = next.version
         this.#order = next.order
+        this.#orderShared = false
         this.#blocks = next.blocks
         return
       }
@@ -245,8 +271,9 @@ export class DocumentDraft {
     const block = ownBlock(input)
     if (this.#blocks.has(block.id)) throw new Error(`Duplicate block id: ${block.id}`)
     assertIndex(index, 0, this.#order.length, 'Replay insert index is out of range')
+    this.#ensureOwnOrder()
     this.#order.splice(index, 0, block.id)
-    this.#blocks.set(block.id, block)
+    this.#blocks = this.#blocks.withSet(block.id, block)
   }
 
   #removeReplay(id, expectedIndex) {
@@ -255,21 +282,23 @@ export class DocumentDraft {
     if (index !== expectedIndex) {
       throw new Error(`Replay block index mismatch for ${id}: expected ${expectedIndex}, got ${index}`)
     }
+    this.#ensureOwnOrder()
     this.#order.splice(index, 1)
-    this.#blocks.delete(id)
+    this.#blocks = this.#blocks.withDelete(id)
   }
 
   #updateReplay(id, input) {
     if (!this.#blocks.has(id)) throw new Error(`Unknown block id during replay: ${id}`)
     const block = ownBlock(input)
     if (block.id !== id) throw new Error('Replay update cannot change block id')
-    this.#blocks.set(id, block)
+    this.#blocks = this.#blocks.withSet(id, block)
   }
 
   #moveReplay(id, to) {
     const from = this.#order.indexOf(id)
     if (from < 0) throw new Error(`Unknown block id during replay: ${id}`)
     assertIndex(to, 0, this.#order.length - 1, 'Replay move index is out of range')
+    this.#ensureOwnOrder()
     this.#order.splice(from, 1)
     this.#order.splice(to, 0, id)
   }
@@ -350,7 +379,7 @@ export class DocumentStore {
       version: this.#version,
       order: this.#order,
       blocks: this.#blocks,
-    }, { state: true })
+    }, { state: true, borrow: privateCommitToken })
   }
 
   createDraftFrom(document) {
@@ -361,7 +390,7 @@ export class DocumentStore {
     if (!(draft instanceof DocumentDraft) || !draft.isOwnedBy(this)) {
       throw new TypeError('Cannot commit a draft owned by another DocumentStore')
     }
-    const state = draft.snapshotState(this)
+    const state = draft.preparedState(this, privateCommitToken)
     const generation = this.#generation + (newGeneration ? 1 : 0)
     const revision = this.#revision + 1
     let committed = false
