@@ -204,18 +204,44 @@ export class InlineProjectionRuntime {
         ||entry.element!==change.element||entry.instance!==change.instance){
         throw new Error('Native inline occurrence ownership changed')
       }
-      if(change.action.kind==='update'){
-        if(!entry.instance.update)throw new Error('Editable native inline widget cannot update its data')
-        const previous=cloneEditorData(entry.data)
-        const next=cloneEditorData(change.action.data)
-        entry.instance.update(next,previous)
-        entry.data=next
-        this.#markWidget(entry)
-      }else{
-        const text=change.action.kind==='replace-text'?change.action.text:''
-        if(text)entry.element.replaceWith(this.#ownerDocument.createTextNode(text))
-        else entry.element.remove()
+      if(change.action.kind==='update')continue
+      const text=change.action.kind==='replace-text'?change.action.text:''
+      if(text)entry.element.replaceWith(this.#ownerDocument.createTextNode(text))
+      else entry.element.remove()
+    }
+  }
+
+  /** Synchronize surviving owned instance caches against the normalized
+   * final canonical sidecar, under the same fallible protected projection
+   * boundary. Run even if no revision will change: native DOM may have drifted.
+   */
+  finalizeNativeInlineUpdates(blockId,fieldKey,changes,canonicalInline){
+    this.#assertLive()
+    const state=this.#blocks.get(blockId)
+    if(!state)throw new Error('Native inline block is no longer mounted')
+    for(const change of changes){
+      if(change.action.kind!=='update')continue
+      const entry=state.widgets.get(change.id)
+      if(!entry||entry.element!==change.element||entry.instance!==change.instance
+        ||entry.fieldKey!==fieldKey||!entry.fieldElement.contains(entry.element)
+        ||typeof entry.instance.update!=='function'){
+        throw new Error('Native inline update lost its mounted instance')
       }
+      const ref=Object.hasOwn(canonicalInline??{},change.id)
+        ?canonicalInline[change.id]:null
+      if(!ref||ref.type!==entry.type){
+        throw new Error('Native inline update was not retained by canonical assembly')
+      }
+      const definition=this.#registry.getInlineDefinition(entry.type)
+      if(!definition?.schema)throw new Error('Native inline definition is unavailable')
+      const decoded=synchronousResult(definition.schema.decode({
+        dataVersion:ref.dataVersion,data:cloneEditorData(ref.data),
+      }))
+      const previous=cloneEditorData(entry.data)
+      const next=cloneEditorData(decoded.data)
+      entry.instance.update(next,previous)
+      entry.data=next
+      this.#markWidget(entry)
     }
   }
 
