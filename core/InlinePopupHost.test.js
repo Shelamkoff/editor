@@ -227,3 +227,52 @@ test('popup rejects connected content borrowed from another editor in the same d
   assert.equal(root.children.length, 1)
   host.destroy()
 })
+
+test('popup removed by custom-element disconnect cannot retire a reentrant successor', () => {
+  const { root, anchor, host, create } = fixture()
+  const destroyed = []
+  host.showPopup('old', anchor, create(), () => destroyed.push('old'))
+  const oldPopup = root.children[1]
+  const remove = oldPopup.remove.bind(oldPopup)
+  let successor = null
+  let invoked = false
+  oldPopup.remove = () => {
+    remove()
+    if (invoked) return
+    invoked = true
+    successor = host.showPopup('successor', anchor, create(), () => destroyed.push('successor'))
+  }
+
+  host.hidePopup()
+  assert.deepEqual(destroyed, ['old'], 'the new cleanup must not run with the old popup')
+  assert.equal(root.children.length, 2, 'successor must remain mounted')
+  successor.close()
+  assert.deepEqual(root.children, [anchor])
+  assert.deepEqual(destroyed, ['old', 'successor'])
+  host.destroy()
+  assert.deepEqual(destroyed, ['old', 'successor'], 'each owner is released once')
+})
+
+test('reentry from outside-listener removal retains successor ownership', async () => {
+  const { root, anchor, host, create } = fixture()
+  const destroyed = []
+  host.showPopup('old', anchor, create(), () => destroyed.push('old'))
+  await Promise.resolve()
+
+  const ownerDocument = root.ownerDocument
+  let next = null
+  let invoked = false
+  ownerDocument.removeEventListener = () => {
+    if (invoked) return
+    invoked = true
+    next = host.showPopup('successor', anchor, create(), () => destroyed.push('successor'))
+  }
+
+  host.hidePopup()
+  assert.deepEqual(destroyed, ['old'])
+  assert.equal(root.children.length, 2)
+  next.close()
+  assert.deepEqual(root.children, [anchor])
+  assert.deepEqual(destroyed, ['old', 'successor'])
+  host.destroy()
+})

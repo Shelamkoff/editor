@@ -181,22 +181,30 @@ export class InlinePopupHost {
   }
 
   #hide(){
+    // Retire this presentation before any teardown that can invoke
+    // author-defined code (abort listeners, custom-element disconnect hooks,
+    // or popup cleanup). A successor must keep its newly acquired ownership.
+    const controller=this.#positionController
+    const observer=this.#observer
+    const outside=this.#outside
+    const popup=this.#popup
+    const cleanup=this.#cleanup
     this.#presentation=null
-    this.#positionController?.abort()
     this.#positionController=null
-    this.#naturalHeight=0
-    this.#observer?.disconnect()
     this.#observer=null
-    if(this.#outside){
-      this.#document.removeEventListener('mousedown',this.#outside,true)
-      this.#outside=null
-    }
-    this.#popup?.remove()
+    this.#outside=null
     this.#popup=null
     this.#anchor=null
-    const cleanup=this.#cleanup
     this.#cleanup=null
-    this.#runCleanup(cleanup)
+    this.#naturalHeight=0
+    try{
+      controller?.abort()
+      observer?.disconnect()
+      if(outside)this.#document.removeEventListener('mousedown',outside,true)
+      popup?.remove()
+    }finally{
+      this.#runCleanup(cleanup)
+    }
   }
 
   #runCleanup(cleanup){
