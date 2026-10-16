@@ -156,12 +156,13 @@ function dragHarness(){
       revision++
     },
   }
+  const focusCalls=[]
   const view={
     currentId:'A',
     element:id=>elements.get(id)??null,
     reconcileInteraction(){},
     setCurrent(id){this.currentId=id},
-    focus(){return true},
+    focus(id){focusCalls.push(id);return true},
   }
   return {
     document,handle,runtime,view,moves,
@@ -170,6 +171,7 @@ function dragHarness(){
     setGeneration:value=>{generation=value},
     setReadOnly:value=>{readOnly=value},
     captured:()=>captured,
+    focusCalls:()=>[...focusCalls],
   }
 }
 
@@ -236,6 +238,38 @@ test('DragController cancels stale sessions on revision, readOnly and source rep
     h.document.dispatch('pointerup',pointerEvent(3,35,{x:5}))
     assert.deepEqual(h.moves,[],`${mode} stale drag committed a move`)
     assert.equal(h.captured(),null,`${mode} stale drag kept pointer capture`)
+    controller.destroy()
+  }
+})
+
+
+test('completed drag restores focus only while its own committed result remains current', async () => {
+  const { DragController } = await import('./DragController.js')
+  for (const change of ['none', 'revision', 'generation', 'readOnly', 'replacement', 'otherFocus', 'destroy']) {
+    const h = dragHarness()
+    const controller = new DragController({
+      runtime: h.runtime, view: h.view, handle: h.handle, threshold: 2,
+    })
+    h.handle.dispatch('pointerdown', pointerEvent(7, 5))
+    h.document.dispatch('pointermove', pointerEvent(7, 55, { x: 10 }))
+    h.document.dispatch('pointerup', pointerEvent(7, 55, { x: 10 }))
+    assert.deepEqual(h.moves, [['A', 2]], 'fixture must commit a real move')
+    assert.deepEqual(h.focusCalls(), [], 'focus must be deferred until the gesture completes')
+    if (change === 'revision') h.setRevision(h.runtime.revision + 1)
+    if (change === 'generation') h.setGeneration(h.runtime.generation + 1)
+    if (change === 'readOnly') {
+      h.setReadOnly(true)
+      controller.setReadOnly(true)
+    }
+    if (change === 'replacement') {
+      const before = h.view.element.bind(h.view)
+      h.view.element = id => id === 'A' ? new FakeEventTarget() : before(id)
+    }
+    if (change === 'otherFocus') h.view.setCurrent('B')
+    if (change === 'destroy') controller.destroy()
+    await Promise.resolve()
+    assert.deepEqual(h.focusCalls(), change === 'none' ? ['A'] : [],
+      change + ': a retired drag focus continuation took the user's focus')
     controller.destroy()
   }
 })
