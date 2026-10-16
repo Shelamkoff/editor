@@ -1,6 +1,6 @@
 import { DocumentRuntime } from '../../core/DocumentRuntime.js'
 import { SelectionController } from '../../core/SelectionController.js'
-import { test, assert as check, equal, run, make, blockElement, para, editableField, select } from './regressions/harness.js'
+import { test, assert as check, equal, run, make, blockElement, editorRoot, para, editableField, select } from './regressions/harness.js'
 import { CLIPBOARD_FRAGMENT_MIME, encodeClipboardFragment } from '../../core/ClipboardFragment.js'
 import { getTextOffset } from '../../shared/textOffset.js'
 import { createHeadingPlugin } from '../../plugins/heading/index.js'
@@ -1664,7 +1664,11 @@ test('inline mount failure cleans every started tool and allows reuse of its obj
   ])
   fail=false
   const editor=make([para('a','Alpha')],{inlineTools:[first,second]})
-  check(editor.isReady!==false,'Tool ownership was not released after failed initialization')
+  // Readiness is deferred to an editor-ready microtask; successful reuse is
+  // proved by the new editor actually mounting both formerly owned controls.
+  const root=editorRoot(editor)
+  check(root.querySelector('[data-tool="first"]')&&root.querySelector('[data-tool="second"]'),
+    'Tool ownership was not released after failed initialization')
   editor.destroy()
   check(events.includes('second destroy'))
 })
