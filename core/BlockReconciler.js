@@ -507,26 +507,41 @@ export class BlockReconciler {
         const nextEntries = new Map(previousEntries)
         for (const [id, entry] of restored) nextEntries.set(id, entry)
 
-        this.#container.replaceChildren(...store.ids().map(id => {
-          const entry = nextEntries.get(id)
-          if (!entry) throw new Error(`Recovery is missing block entry: ${id}`)
-          return entry.element
-        }))
-        this.#entries = nextEntries
+        const currentRecoveryEntries=this.#entries
+        try {
+          this.#container.replaceChildren(...store.ids().map(id => {
+            const entry = nextEntries.get(id)
+            if (!entry) throw new Error(`Recovery is missing block entry: ${id}`)
+            return entry.element
+          }))
+          this.#entries = nextEntries
 
-        for (const entry of restored.values()) this.#applyPreparedInline(entry)
-        for (const entry of restored.values()) this.#activateEntry(entry)
-        for (const entry of restored.values()) this.#finalizePreparedInline(entry)
+          for (const entry of restored.values()) this.#applyPreparedInline(entry)
+          for (const entry of restored.values()) this.#activateEntry(entry)
+          for (const entry of restored.values()) this.#finalizePreparedInline(entry)
 
-        const keep = new Set(nextEntries.values())
-        const candidates = new Set([
-          ...this.#entries.values(),
-          ...staged.values(),
-          ...previousEntries.values(),
-        ])
-        for (const entry of candidates) if (!keep.has(entry)) this.#destroyEntry(entry)
-        recovered = true
-        this.#pendingProjections.delete(retire)
+          const keep = new Set(nextEntries.values())
+          const candidates = new Set([
+            ...currentRecoveryEntries.values(),
+            ...staged.values(),
+            ...previousEntries.values(),
+          ])
+          for (const entry of candidates) if (!keep.has(entry)) this.#destroyEntry(entry)
+          recovered = true
+          this.#pendingProjections.delete(retire)
+        } catch (error) {
+          // A DOM adapter may change the host and then report failure. The
+          // attempted recovery's newly-created owners are not published and
+          // must be cleaned before the same handle can retry.
+          if(!this.#destroyed&&this.#entries===nextEntries){
+            this.#entries=currentRecoveryEntries
+          }
+          for(const entry of restored.values()){
+            try{this.#recoverPreparedInline(entry)}catch{}
+            this.#destroyEntry(entry)
+          }
+          throw error
+        }
       },
 
       finalize: () => {

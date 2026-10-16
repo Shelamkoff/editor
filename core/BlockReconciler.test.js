@@ -1102,3 +1102,54 @@ test('finalize after interrupted apply cannot steal a reentrant successor projec
   reconciler.destroy()
   assert.equal(counters.destroy, 3)
 })
+
+test('a failing recovery DOM commit releases each newly-created candidate before retry', () => {
+  const { store, reconciler, container, counters } = setup(1)
+  const draft = store.createDraft()
+  draft.update('0', {
+    ...block('0', 'changed'),
+    data: { text: 'changed', fail: true },
+  })
+  const prepared = reconciler.prepare({ store, draft, changes: draft.changes })
+  assert.throws(() => prepared.apply(), /update failed/)
+
+  const replace = container.replaceChildren.bind(container)
+  let fault = true
+  container.replaceChildren = (...children) => {
+    replace(...children)
+    if (fault) throw new Error('restore failed after DOM mutation')
+  }
+  assert.throws(() => prepared.recover(), /restore failed after DOM mutation/)
+  assert.equal(counters.create, 2, 'first recovery candidate was allocated')
+  assert.equal(counters.destroy, 1, 'failed recovery candidate must be released')
+  fault = false
+  assert.doesNotThrow(() => prepared.recover())
+  assert.deepEqual(reconciler.ids, ['0'])
+  assert.equal(counters.create, 3, 'retry creates a new recovery candidate')
+  assert.equal(counters.destroy, 2, 'original displaced owner is retired')
+  reconciler.destroy()
+  assert.equal(counters.destroy, counters.create, 'every acquired instance is released')
+})
+
+test('two successive recovery DOM faults leave no orphaned block instances', () => {
+  const { store, reconciler, container, counters } = setup(1)
+  const draft = store.createDraft()
+  draft.update('0', {
+    ...block('0', 'changed'),
+    data: { text: 'changed', fail: true },
+  })
+  const prepared = reconciler.prepare({ store, draft, changes: draft.changes })
+  assert.throws(() => prepared.apply(), /update failed/)
+
+  const replace = container.replaceChildren.bind(container)
+  container.replaceChildren = (...children) => {
+    replace(...children)
+    throw new Error('recovery DOM fault')
+  }
+  assert.throws(() => prepared.recover(), /recovery DOM fault/)
+  assert.throws(() => prepared.recover(), /recovery DOM fault/)
+  assert.equal(counters.create, 3)
+  assert.equal(counters.destroy, 2, 'each failed recovery attempt must dispose its candidate')
+  reconciler.destroy()
+  assert.equal(counters.destroy, counters.create, 'final owner is independently retired')
+})
