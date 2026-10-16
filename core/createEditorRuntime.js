@@ -395,6 +395,7 @@ export function createEditorRuntime(input){
     selection:logicalSelection,
     commands:inlineCommands,
     isComposing:()=>nativeInput.isComposing,
+    isReadOnly:()=>runtime.readOnly,
     projection:inlineProjection,
     nativeInputRoute:event=>inlineWidgetInput.nativeInputRoute(event),
     observe:operation=>runtime.observeExtension(operation),

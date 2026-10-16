@@ -9,6 +9,7 @@ export class InlineTriggerController {
   #selection
   #commands
   #isComposing
+  #isReadOnly
   #projection
   #nativeInputRoute
   #controller
@@ -17,7 +18,7 @@ export class InlineTriggerController {
   #observe
   #reportError
 
-  constructor({root,registry,reconciler,selection,commands,isComposing=()=>false,projection=null,
+  constructor({root,registry,reconciler,selection,commands,isComposing=()=>false,isReadOnly=()=>false,projection=null,
     nativeInputRoute=(_event)=>null,
     observe=operation=>operation(),reportError=error=>console.error('Inline trigger cancellation failed',error)}){
     if(!root?.addEventListener)throw new TypeError('InlineTriggerController requires an editor root')
@@ -27,6 +28,7 @@ export class InlineTriggerController {
     this.#selection=selection
     this.#commands=commands
     this.#isComposing=isComposing
+    this.#isReadOnly=isReadOnly
     this.#projection=projection
     this.#nativeInputRoute=nativeInputRoute
     this.#observe=observe
@@ -70,6 +72,13 @@ export class InlineTriggerController {
   }
 
   refresh(){
+    // The app may have queued refresh while editable and transitioned to
+    // read-only or destroyed the editor before this callback executes.
+    if(this.#controller.signal.aborted)return false
+    if(this.#isReadOnly()){
+      this.#cancel()
+      return false
+    }
     if(this.#isComposing()){
       this.#cancel()
       return false
@@ -100,6 +109,7 @@ export class InlineTriggerController {
   }
 
   #onInput(event){
+    if(this.#controller.signal.aborted||this.#isReadOnly())return
     const route=this.#nativeInputRoute(event)
     if(route&&(route.status==='stale'||route.status==='failed'||route.inside===true))return
     if(event.isComposing||this.#isComposing()){
@@ -191,6 +201,7 @@ export class InlineTriggerController {
   }
 
   #onKeyDown(event){
+    if(this.#controller.signal.aborted||this.#isReadOnly())return
     if(event.defaultPrevented||event.isComposing||event.keyCode===229||this.#isComposing())return
     const active=this.#active
     if(!active?.session)return
