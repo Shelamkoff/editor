@@ -326,3 +326,27 @@ npm run docs:check
 - Поведенческий паритет с v1, end-to-end IME, caret, toolbar, history, clipboard, memory/heap и нативные Chrome/другие браузерные engines всё ещё требуют project gates. Степень готовности к релизу не следует устанавливать по количеству локальных исправлений.
 
 **Следующая диагностическая область:** проверить корректность совместной lifetime-авторизации block/widget root и восстановление `#fieldOwners` при повторных read/restore и ошибках внешних callback, но не изменять эту область без самостоятельного red/green сценария.
+
+## Аудит fieldOwners, editableFields и DOM-типов 2026-10-16
+
+**Начальный HEAD:** `34dd360cdae565d55165f5a62a3b7ad61a8dc655`. Кодовые исправления внесены в `refactor/rector-v2-architecture` напрямую (без PR и с защитой expected SHA при update_ref). Работа других агентов не перезаписывалась.
+
+### Подтверждённые ошибки
+
+| ID | Приоритет | Red evidence на исходном коде | Исправление |
+|---|---|---|---|
+| F1 | P1 | `#blockOwners` и `#fieldOwners` хранили weak associations с уже уничтоженным block shell/field. `resolveBlockTarget(detachedOldNode)` и `resolveEditableTarget(detachedOldField)` возвращали старый canonical ID даже после замены; повторное подключение shell не отзывалось. В том числе при повторном использовании прежнего ID новым экземпляром. | `fa2d0df`: resolveBlockTarget требует **exact currently mounted shell**; поле проходит проверку live entry, parent container, актуального descriptor и вложенности DOM. **3 Node-теста** |
+| F2 | P1 | `editableFields()` мог вернуть узел приложения за пределами блока; BlockReconciler принимал этот descriptor и возвращал чужой элемент из `getEditableField()`. Некорректная staged definition могла претендовать на поле существующего блока. | `71ead74`: полная проверка ownerDocument и вложенности в собственный block shell до публикации ownership maps; **3 Node-теста**, исправлен setup test fixture в `4e757fc` |
+| F3 | P2 | `#registerFields` сравнивал field key/element, но игнорировал `mode`. Переключение одного элемента `rich-text` → `plain-text` публиковало новый descriptor, однако пропускало повторную inline reconciliation, оставляя старую inline projection. | `0ea9527`: включить режим в проверку изменения; **2 Node-теста**, в том числе no-op стабильного descriptor |
+| F4 | P1 | `BlockReconciler` требовал совпадения ownerDocument у block root, но не проверял `HTMLElement`: Comment и другие не-HTML узлы могли попасть в mounted shell. | `d875805`: проверка `instanceof` из owning DOM realm, когда доступен конструктор; **2 Node-теста** |
+| F5 | P2 | Аналогично `editableFields()` мог вернуть дочерний DOM-комментарий как поле, поскольку он находился внутри блока и имел тот же ownerDocument. | `2020f20`: тип `HTMLElement` обязателен для field descriptors в браузерном DOM realm; **1 Node-тест** |
+
+Документация блока обновлена на английском и русском: `3cd2c73`, `7286c7f`, `4049b32`.
+
+### Проверка исправлений
+
+- **11 новых регрессионных тестовых callbacks** из актуального `core/BlockReconciler.test.js` отдельно выполнены с фактическим текстом `core/BlockReconciler.js`, загруженным из GitHub в изолированную V8-среду. Использованы fake DOM, shim `DocumentStore`, fake `InstanceScope`/animator; **11/11 прошли**. Это явно **не** полный запуск `node --test` с настоящими зависимостями и не browser/TypeScript test gate.
+- Дополнительные изолированные red/green проверки на исходном и исправленном коде подтвердили: stale IDs `a` → `null` без потери живого ID `b`; external field returned → TypeError; проекция при изменении mode 0 → 1 пересчёт; неправильные node types accepted → rejected с cleanup. Правильные HTML-элементы по-прежнему работают.
+- По окончании commit проверены текущие blobs `BlockReconciler.js`, `BlockReconciler.test.js` и `projectionFields.js`. Полный инсталляционный `npm ci`, `npm run typecheck`, `npm test`, Chrome native suite, npm package-consumer gate, документационная сборка и differential parity v1/v2 на этом HEAD не запускались.
+
+**Итог прохода:** 5 кодовых исправлений, **11 новых Node-регрессионных тестов**, вспомогательная коррекция тестового fixture и paired EN/RU docs. Следующий аудит: exception safety dynamic `editableFields()` и `#registerFields` при ошибке дочерней inline projection, проверка реальных Chrome/browser acceptance gates на доступном checkout.
