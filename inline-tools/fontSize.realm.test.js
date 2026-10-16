@@ -102,7 +102,15 @@ test('font size UI uses the mounted toolbar realm for DOM, listeners and animati
     cloneRange() { return this },
   }
   const tool = createFontSizeTool('Font size')
-  tool.bindSelectionPort({ range, activate() { return true }, deactivate() {} })
+  const bookmark = Object.freeze({})
+  tool.bindSelectionPort({
+    range,
+    capture(requested) {
+      assert.equal(requested, range)
+      return bookmark
+    },
+    restore(candidate) { return candidate === bookmark },
+  })
 
   const names = ['document', 'window', 'Node', 'Document', 'HTMLElement', 'requestAnimationFrame', 'cancelAnimationFrame']
   const descriptors = new Map(names.map(name => [name, Object.getOwnPropertyDescriptor(globalThis, name)]))
