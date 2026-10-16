@@ -62,10 +62,11 @@ export class InlineWidgetInputController {
   #selection
   #diagnostics
   #onNativeSettled
+  #onOwnedBeforeInput
   #nativeEventRoutes=new WeakMap()
   #controller
 
-  constructor({root,runtime,registry,reconciler,projection,selection,diagnostics=null,onNativeSettled=null}){
+  constructor({root,runtime,registry,reconciler,projection,selection,diagnostics=null,onNativeSettled=null,onOwnedBeforeInput=null}){
     if(!root?.addEventListener)throw new TypeError('InlineWidgetInputController requires an editor root')
     this.#root=root
     this.#runtime=runtime
@@ -75,6 +76,7 @@ export class InlineWidgetInputController {
     this.#selection=selection
     this.#diagnostics=diagnostics
     this.#onNativeSettled=typeof onNativeSettled==='function'?onNativeSettled:null
+    this.#onOwnedBeforeInput=typeof onOwnedBeforeInput==='function'?onOwnedBeforeInput:null
     const Ctor=root.ownerDocument.defaultView?.AbortController??AbortController
     this.#controller=new Ctor()
     root.addEventListener('beforeinput',event=>this.#beforeInput(event),{
@@ -352,6 +354,16 @@ export class InlineWidgetInputController {
     }
   }
 
+  #claimBeforeInput(event){
+    event.preventDefault()
+    event.stopImmediatePropagation?.()
+    // The earlier capture owner can claim and stop bubbling before the
+    // NativeInputController sees this newer beforeinput. Revoke its pending
+    // envelope before applying the accepted inline command.
+    try { this.#onOwnedBeforeInput?.() }
+    catch(error) { try { this.#report(error) } catch {} }
+  }
+
   #report(error){
     this.#diagnostics?.emit('command.failed',{
       operation:'inline-widget.immediate',
@@ -421,14 +433,12 @@ export class InlineWidgetInputController {
     }catch(error){
       // Only this proven-owned event is consumed. A rejected extension action
       // must not fall through to native deletion or a later generic commit.
-      event.preventDefault()
-      event.stopImmediatePropagation?.()
+      this.#claimBeforeInput(event)
       this.#report(error)
       return
     }
     if(action===null)return
-    event.preventDefault()
-    event.stopImmediatePropagation?.()
+    this.#claimBeforeInput(event)
 
     if(this.#runtime.readOnly||this.#runtime.generation!==startGeneration
       ||this.#runtime.revision!==startRevision
