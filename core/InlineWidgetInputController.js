@@ -108,7 +108,9 @@ export class InlineWidgetInputController {
     if(!field||field.element!==owner.element||!field.element?.isConnected
       ||!this.#root.contains(field.element)||!native?.anchorNode||!native.focusNode
       ||!field.element.contains(native.anchorNode)
-      ||!field.element.contains(native.focusNode))return null
+      ||!field.element.contains(native.focusNode)
+      ||!event?.target||!field.element.contains(event.target)
+      ||event.target.closest?.('input, textarea, select, button, [contenteditable="false"]'))return null
     const state=this.#projection.captureNativeField(owner.blockId,owner.fieldKey,field.element)
     if(!state?.occurrences?.some(entry=>entry.optedIn))return null
     const eventHost=editingHostForEvent(this.#root,event.target)
