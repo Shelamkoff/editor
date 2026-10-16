@@ -991,6 +991,7 @@ export class BlockReconciler {
     }
 
     for (const entry of oldEntries) this.#destroyEntry(entry)
+    this.#assertPublicationOwner(fresh,'Block restoration owner changed after predecessor cleanup')
   }
 
   #destroyEntry(entry) {

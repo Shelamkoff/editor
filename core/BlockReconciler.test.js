@@ -2075,3 +2075,40 @@ test('ordinary successive mount and restore still release block owners once',()=
   reconciler.destroy()
   assert.deepEqual(freed,['A','B','C'])
 })
+
+for(const outerOperation of ['mount','restore']){
+  test('predecessor destruction that mounts a successor invalidates outer '+outerOperation,()=>{
+    const doc=new FakeDocument()
+    const container=doc.createElement('main'),released=[]
+    const snapshot=text=>new DocumentStore({
+      version:'2.0.0',blocks:[block('a',text)],
+    })
+    let reconciler,triggered=false
+    const registry={
+      hasBlock:()=>true,
+      getBlockDefinition:type=>({type}),
+      getBlockRuntime:()=>({create(initial){
+        return{
+          element:doc.createElement('article'),
+          read(){return initial},setReadOnly(){},
+          destroy(){
+            released.push(initial.text)
+            if(initial.text==='A'&&!triggered){
+              triggered=true
+              reconciler.mount(snapshot('C'))
+            }
+          },
+        }
+      }}),
+    }
+    reconciler=new BlockReconciler({container,registry,contextFactory:()=>({})})
+    reconciler.mount(snapshot('A'))
+    assert.throws(()=>reconciler[outerOperation](snapshot('B')),
+      /owner changed after predecessor cleanup/)
+    assert.equal(reconciler.readBlock('a').data.text,'C')
+    assert.equal(reconciler.getElement('a'),container.firstChild)
+    assert.deepEqual([...released].sort(),['A','B'])
+    reconciler.destroy()
+    assert.deepEqual([...released].sort(),['A','B','C'])
+  })
+}
