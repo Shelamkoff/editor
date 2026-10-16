@@ -171,3 +171,126 @@ test('renderTo cannot remount a container from its disposer', async () => {
   renderer.renderTo({ version: '2.0.0', blocks: [] }, container)
   renderer.destroy(container)
 })
+
+test('failed mounted block insertion after mutation restores DOM and releases only the new owner', async () => {
+  const { EditorRenderer } = await import('./index.js')
+  const released = []
+  const created = []
+  const renderer = new EditorRenderer({ blockTypes: [], injectStyles: false })
+  renderer.registerRenderer({
+    type: 'atomic-dom', schema: passthroughSchema,
+    render(block) {
+      const element = document.createElement('article')
+      element.textContent = block.data.text
+      created.push(element)
+      return element
+    },
+    destroy(element) { released.push(element) },
+  })
+  const documentFor = text => ({
+    version: '2.0.0',
+    blocks: [{ id: 'a', type: 'atomic-dom', dataVersion: 1, data: { text } }],
+  })
+  const container = document.createElement('main')
+  renderer.renderTo(documentFor('old'), container)
+  const wrapper = container.firstChild
+  const previous = wrapper.firstChild
+  const insert = wrapper.insertBefore
+  let first = true
+  wrapper.insertBefore = function (...args) {
+    const result = insert.apply(this, args)
+    if (first) {
+      first = false
+      throw new Error('injected failure after insertion')
+    }
+    return result
+  }
+
+  assert.throws(() => renderer.renderTo(documentFor('new'), container), /injected failure after insertion/)
+  assert.equal(container.firstChild, wrapper)
+  assert.equal(wrapper.firstChild, previous)
+  assert.deepEqual(released, [created[1]], 'newly created result must be destroyed exactly once')
+
+  wrapper.insertBefore = insert
+  renderer.renderTo(documentFor('new'), container)
+  assert.equal(wrapper.firstChild, created[2])
+  assert.deepEqual(released, [created[1], previous], 'successful retry releases only the retired old result')
+  renderer.destroy(container)
+  assert.deepEqual(released, [created[1], previous, created[2]], 'each result has exactly one disposer')
+})
+
+test('failed container replacement after DOM mutation restores caller siblings and existing owner', async () => {
+  const { EditorRenderer } = await import('./index.js')
+  const released = []
+  const created = []
+  const renderer = new EditorRenderer({ blockTypes: [], injectStyles: false })
+  renderer.registerRenderer({
+    type: 'replace-atomic', schema: passthroughSchema,
+    render(block) {
+      const element = document.createElement('article')
+      element.textContent = block.data.text
+      created.push(element)
+      return element
+    },
+    destroy(element) { released.push(element) },
+  })
+  const documentFor = text => ({
+    version: '2.0.0',
+    blocks: [{ id: 'a', type: 'replace-atomic', dataVersion: 1, data: { text } }],
+  })
+  const container = document.createElement('main')
+  renderer.renderTo(documentFor('old'), container)
+  const wrapper = container.firstChild
+  const previous = wrapper.firstChild
+  const extra = document.createElement('aside')
+  container.appendChild(extra)
+
+  const replace = container.replaceChildren
+  let first = true
+  container.replaceChildren = function (...args) {
+    const result = replace.apply(this, args)
+    if (first) {
+      first = false
+      throw new Error('injected failure after replace')
+    }
+    return result
+  }
+  assert.throws(() => renderer.renderTo(documentFor('new'), container), /injected failure after replace/)
+  assert.equal(wrapper.firstChild, previous)
+  assert.deepEqual(container.children, [wrapper, extra], 'preexisting outer DOM must be restored')
+  assert.deepEqual(released, [created[1]])
+  container.replaceChildren = replace
+
+  renderer.destroy(container)
+  assert.deepEqual(released, [created[1], previous])
+})
+
+test('successful renderTo publishes replacement before invoking the old owner disposer', async () => {
+  const { EditorRenderer } = await import('./index.js')
+  const container = document.createElement('main')
+  const observed = []
+  const renderer = new EditorRenderer({ blockTypes: [], injectStyles: false })
+  renderer.registerRenderer({
+    type: 'dispose-order', schema: passthroughSchema,
+    render(block) {
+      const element = document.createElement('article')
+      element.textContent = block.data.text
+      return element
+    },
+    destroy(element) {
+      observed.push({
+        disposed: element.textContent,
+        mounted: container.firstChild?.firstChild?.textContent,
+      })
+    },
+  })
+  const documentFor = text => ({
+    version: '2.0.0',
+    blocks: [{ id: 'a', type: 'dispose-order', dataVersion: 1, data: { text } }],
+  })
+  renderer.renderTo(documentFor('old'), container)
+  renderer.renderTo(documentFor('new'), container)
+  assert.deepEqual(observed, [{ disposed: 'old', mounted: 'new' }])
+  renderer.destroy(container)
+  assert.equal(observed.length, 2)
+})

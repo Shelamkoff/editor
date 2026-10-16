@@ -13,6 +13,23 @@ const baseCssUrl = new URL('./styles/base.css', import.meta.url).href
 const bundledRendererCssRoot = new URL('./renderers/', import.meta.url).href
 const validationSourceKey = Symbol.for('@shelamkoff/rector/renderer-validation-source')
 
+/** Restore prior DOM order after an aborted commit while preserving
+ * unchanged connected elements whenever possible.
+ * @param {HTMLElement} parent
+ * @param {Node[]} expected
+ */
+function restoreChildOrder(parent, expected) {
+  const retained = new Set(expected)
+  for (const child of Array.from(parent.childNodes)) {
+    if (!retained.has(child)) /** @type {ChildNode} */ (child).remove()
+  }
+  let cursor = parent.firstChild
+  for (const child of expected) {
+    if (child === cursor) cursor = cursor.nextSibling
+    else parent.insertBefore(child, cursor)
+  }
+}
+
 /**
  * Renders Rector document blocks to DOM elements.
  */
@@ -399,36 +416,62 @@ export class EditorRenderer {
         throw error
       }
 
-      for (const [key, entry] of previous) {
-        if (next.get(key)?.element !== entry.element) {
-          this.#disposeRenderedElement(entry)
+      // Stage all required styles while both old and new renderer owners
+      // are still live, before any mounted DOM is changed.
+      const oldWrapperChildren = Array.from(wrapper.childNodes)
+      const oldContainerChildren = Array.from(container.childNodes)
+      try {
+        this.#ensureStyles(ownerDocument)
+
+        // Keep unchanged nodes connected. Replacing the same nodes would
+        // reset iframe contexts, focus and custom-element lifecycle state.
+        const retained = new Set(ordered)
+        for (const child of Array.from(wrapper.childNodes)) {
+          if (!retained.has(/** @type {HTMLElement} */ (child))) /** @type {ChildNode} */ (child).remove()
         }
+        const movable = /** @type {HTMLElement & { moveBefore?: (node: Node, child: Node | null) => void }} */ (wrapper)
+        let cursor = wrapper.firstChild
+        for (const element of ordered) {
+          if (element === cursor) {
+            cursor = cursor.nextSibling
+            continue
+          }
+          if (typeof movable.moveBefore === 'function' && element.isConnected && wrapper.isConnected) {
+            movable.moveBefore(element, cursor)
+          } else {
+            wrapper.insertBefore(element, cursor)
+          }
+        }
+        if (wrapper.parentNode !== container || container.childNodes.length !== 1) {
+          container.replaceChildren(wrapper)
+        }
+      } catch (error) {
+        const recoveryErrors = []
+        // A host DOM operation may throw after changing the tree. Keep the
+        // published previous owners alive until both node lists are restored.
+        try { restoreChildOrder(wrapper, oldWrapperChildren) }
+        catch (failure) { recoveryErrors.push(failure) }
+        try { restoreChildOrder(container, oldContainerChildren) }
+        catch (failure) { recoveryErrors.push(failure) }
+        for (const entry of created) this.#disposeRenderedElement(entry)
+        try { this.#releaseAutomaticStylesIfIdle() }
+        catch (failure) { recoveryErrors.push(failure) }
+        if (recoveryErrors.length) {
+          throw new AggregateError([error, ...recoveryErrors], 'Renderer DOM commit failed and recovery was incomplete')
+        }
+        throw error
       }
 
-      // Keep unchanged nodes connected. Replacing even the same children resets
-      // iframe browsing contexts, focus, and custom-element lifecycle state.
-      const retained = new Set(ordered)
-      for (const child of Array.from(wrapper.childNodes)) {
-        if (!retained.has(/** @type {HTMLElement} */ (child))) child.remove()
-      }
-      const movable = /** @type {HTMLElement & { moveBefore?: (node: Node, child: Node | null) => void }} */ (wrapper)
-      let cursor = wrapper.firstChild
-      for (const element of ordered) {
-        if (element === cursor) {
-          cursor = cursor.nextSibling
-          continue
-        }
-        if (typeof movable.moveBefore === 'function' && element.isConnected && wrapper.isConnected) {
-          movable.moveBefore(element, cursor)
-        } else {
-          wrapper.insertBefore(element, cursor)
-        }
-      }
-      if (wrapper.parentNode !== container || container.childNodes.length !== 1) {
-        container.replaceChildren(wrapper)
-      }
+      // Publish ownership before calling third-party destroy hooks. On any
+      // failed DOM commit the previous entries remain owned and undestroyed.
       this.#mountedContainers.set(container, { wrapper, blocks: next })
-      this.#ensureStyles(ownerDocument)
+      for (const [key, entry] of previous) {
+        if (next.get(key)?.element !== entry.element) this.#disposeRenderedElement(entry)
+      }
+      // Removing retired styles is post-commit maintenance. A stylesheet host
+      // failure cannot roll back an otherwise successful DOM transaction.
+      try { this.#ensureStyles(ownerDocument) }
+      catch (error) { console.warn('[EditorRenderer] Failed to refresh styles after render:', error) }
     } finally {
       this.#renderingContainers.delete(container)
       this.#activeRenderToCount--
