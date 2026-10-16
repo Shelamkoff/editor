@@ -89,7 +89,7 @@ interface BlockPluginDefinition<Data> {
 
 `SettingsPanelCapability` содержит `kind: 'panel'` и `render(context)`; контекст предоставляет `getData()` и `updateData()`. Контекст принадлежит конкретной панели и экземпляру блока. Закрытие панели, замена владельца, переход в read-only, уничтожение или ошибка фабрики навсегда отзывают его: сохранённые функции изменения не вызываются, а `getData()` возвращает только последний собственный снимок.
 
-`HtmlImportCapability` содержит `matchesRoot(element)`, `importRoot(element, context)` и необязательный `inlineWhenSingleRoot: boolean`. Контекст предоставляет `ownerDocument`, `createId()` и `serializeRichText(element)` для обычного кодирования форматированного текста. Встроенный Paragraph использует флаг для совместимой с v1 вставки единственного абзаца внутрь текста; сторонний импортёр без явного согласия сохраняет подготовленный блок. Ядро безопасно разбирает весь HTML и строит полный план; ошибка любого принятого элемента отклоняет импорт до изменения документа.
+`HtmlImportCapability` содержит `matchesRoot(element)`, `importRoot(element, context)` и необязательный `inlineWhenSingleRoot: boolean`. Контекст предоставляет `ownerDocument`, `createId()` и `serializeRichText(element)` для обычного кодирования форматированного текста. Встроенный Paragraph использует флаг для совместимой с первой версией вставки единственного абзаца внутрь текста; сторонний импортёр без явного согласия сохраняет подготовленный блок. Ядро безопасно разбирает весь HTML и строит полный план; ошибка любого принятого элемента отклоняет импорт до изменения документа.
 
 `PasteCapability` содержит `accepts(input)` и `resolve(input, context)` только для текста и файлов. Обработчик получает `AbortSignal`, `ownerDocument` и `createId()`.
 
