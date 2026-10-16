@@ -69,7 +69,7 @@ class FakeElement {
 
 class FakeDocument {
   constructor() {
-    this.defaultView = { AbortController }
+    this.defaultView = { AbortController, HTMLElement: FakeElement }
   }
   createElement(tag) { return new FakeElement(tag, this) }
 }
@@ -1471,4 +1471,48 @@ test('stable field descriptors do not cause unnecessary inline reconciliation', 
   }
   assert.equal(projectionCalls, 0, 'unchanged mode, key, and element should not trigger a reproject')
   reconciler.destroy()
+})
+
+test('BlockReconciler rejects a non-HTMLElement DOM Node returned as a block root', () => {
+  const ownerDocument = new FakeDocument()
+  const container = ownerDocument.createElement('main')
+  let disposed = 0
+  const comment = {
+    ownerDocument,
+    parentNode: null,
+    isConnected: false,
+  }
+  const registry = {
+    hasBlock: () => true,
+    getBlockDefinition: type => ({ type }),
+    getBlockRuntime: () => ({ create(initial) {
+      return {
+        element: comment,
+        read() { return initial },
+        setReadOnly() {},
+        destroy() { disposed++ },
+      }
+    } }),
+  }
+  const reconciler = new BlockReconciler({ container, registry, contextFactory: () => ({}) })
+  assert.throws(() => reconciler.mount(new DocumentStore({
+    version: '2.0.0', blocks: [block('a')],
+  })), /must return an HTMLElement in the owning document/)
+  assert.deepEqual(container.children, [])
+  assert.equal(disposed, 1, 'invalid acquired instance must be retired once')
+  reconciler.destroy()
+  assert.equal(disposed, 1)
+})
+
+test('valid HTMLElement roots remain mountable with strict block root validation', () => {
+  const { reconciler, container, counters } = setup(2)
+  assert.equal(reconciler.ids.length, 2)
+  assert.equal(container.children.length, 2)
+  for (const id of ['0', '1']) {
+    const shell = reconciler.getElement(id)
+    assert(shell instanceof FakeElement)
+    assert(shell.firstElementChild instanceof FakeElement)
+  }
+  reconciler.destroy()
+  assert.equal(counters.destroy, 2)
 })

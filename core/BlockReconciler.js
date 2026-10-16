@@ -734,8 +734,12 @@ export class BlockReconciler {
       destroySource = captureInstanceDestroy(sourceInstance)
       instance = snapshotBlockInstance(sourceInstance, record.type, destroySource)
       const root=instance.element
-      if(!root||root.ownerDocument!==ownerDocument){
-        throw new TypeError('Block runtime "'+record.type+'" must return an element in the owning document')
+      const HTMLElementCtor=ownerDocument.defaultView?.HTMLElement??globalThis.HTMLElement
+      // A Comment, SVGElement, DocumentFragment or arbitrary object can have
+      // ownerDocument and be appendable, but is not a valid editor block root.
+      if(!root||root.ownerDocument!==ownerDocument
+        ||(HTMLElementCtor&&!(root instanceof HTMLElementCtor))){
+        throw new TypeError('Block runtime "'+record.type+'" must return an HTMLElement in the owning document')
       }
       if(liveBlockRoots.has(root)){
         borrowedLiveRoot=true
