@@ -209,3 +209,21 @@ test('popup refuses to adopt editor-owned nodes and keeps the active presentatio
   assert.deepEqual(events, ['active'])
   host.destroy()
 })
+
+test('popup rejects connected content borrowed from another editor in the same document', () => {
+  const { root, anchor, host, create } = fixture()
+  const foreignRoot = create()
+  foreignRoot.isRoot = true
+  const control = create()
+  foreignRoot.appendChild(control)
+  assert.equal(control.isConnected, true)
+  assert.equal(root.contains(control), false)
+
+  assert.throws(
+    () => host.showPopup('borrowed', anchor, control),
+    /Popup requires owning-document HTML elements/,
+  )
+  assert.equal(foreignRoot.contains(control), true)
+  assert.equal(root.children.length, 1)
+  host.destroy()
+})
