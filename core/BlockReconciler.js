@@ -108,7 +108,15 @@ export class BlockReconciler {
     const previousStore = this.#store
     const previousEntries = this.#entries
     this.#store = store
-    const fresh = this.#stageAll(store, { candidate: true, stageInline: true, generation: store.generation })
+    let fresh
+    try {
+      fresh = this.#stageAll(store, { candidate: true, stageInline: true, generation: store.generation })
+    } catch (error) {
+      // Staging can fail before DOM publication. Restore the same store
+      // authority retained by the previously mounted block contexts.
+      this.#store = previousStore
+      throw error
+    }
 
     try {
       this.#container.replaceChildren(...store.ids().map(id => fresh.get(id).element))
@@ -116,6 +124,9 @@ export class BlockReconciler {
       for (const entry of fresh.values()) this.#applyPreparedInline(entry)
       for (const entry of fresh.values()) this.#activateEntry(entry)
       for (const entry of fresh.values()) this.#finalizePreparedInline(entry)
+      // Once mounted, active instance contexts must read the committed store,
+      // not the candidate snapshot used during detached preparation.
+      for (const entry of fresh.values()) entry.lifetime.candidate = null
     } catch (error) {
       for (const entry of fresh.values()) this.#recoverPreparedInline(entry)
       for (const entry of fresh.values()) this.#destroyEntry(entry)

@@ -536,3 +536,83 @@ test('a block disposer can mount unrelated application DOM without losing it', (
   assert.equal(staleOwnerVisible, false, 'teardown must revoke the owner map before callback')
   assert.deepEqual(container.children, [addition])
 })
+
+test('successful initial mount releases candidate data and reads the current committed store', () => {
+  const ownerDocument = new FakeDocument()
+  const container = ownerDocument.createElement('main')
+  let currentData
+  const registry = {
+    hasBlock: () => true,
+    getBlockDefinition: type => ({ type }),
+    getBlockRuntime: () => ({ create(initial) {
+      return {
+        element: ownerDocument.createElement('article'),
+        read() { return initial }, setReadOnly() {}, destroy() {},
+      }
+    } }),
+  }
+  const reconciler = new BlockReconciler({
+    container, registry,
+    contextFactory(_id, _type, _signal, readRecord) {
+      currentData = () => readRecord().data
+      return { getData: currentData }
+    },
+  })
+  const store = new DocumentStore({
+    version: '2.0.0', blocks: [block('a', 'original')],
+  })
+  reconciler.mount(store)
+  assert.equal(currentData().text, 'original')
+
+  const draft = store.createDraft()
+  draft.update('a', block('a', 'updated'))
+  store.commit(draft)
+  assert.equal(currentData().text, 'updated',
+    'the context cannot retain the detached candidate after publication')
+  reconciler.destroy()
+})
+
+test('failed detached mount preparation restores the prior document authority', () => {
+  const ownerDocument = new FakeDocument()
+  const container = ownerDocument.createElement('main')
+  let currentData
+  const registry = {
+    hasBlock: () => true,
+    getBlockDefinition: type => ({ type }),
+    getBlockRuntime: () => ({ create(initial) {
+      if (initial.text === 'throw-during-stage') throw new Error('stage failed')
+      return {
+        element: ownerDocument.createElement('article'),
+        read() { return initial }, setReadOnly() {}, destroy() {},
+      }
+    } }),
+  }
+  const reconciler = new BlockReconciler({
+    container, registry,
+    contextFactory(_id, _type, _signal, readRecord) {
+      const getData = () => readRecord().data
+      if (!currentData) currentData = getData
+      return { getData }
+    },
+  })
+  const original = new DocumentStore({
+    version: '2.0.0', blocks: [block('a', 'initial')],
+  })
+  reconciler.mount(original)
+  const oldShell = reconciler.getElement('a')
+
+  const revised = original.createDraft()
+  revised.update('a', block('a', 'committed-later'))
+  original.commit(revised)
+  assert.equal(currentData().text, 'committed-later')
+
+  const attempted = new DocumentStore({
+    version: '2.0.0', blocks: [block('b', 'throw-during-stage')],
+  })
+  assert.throws(() => reconciler.mount(attempted), /stage failed/)
+  assert.equal(currentData().text, 'committed-later',
+    'failed prepublication staging must not swap the committed document')
+  assert.equal(reconciler.getElement('a'), oldShell)
+  assert.deepEqual(container.children, [oldShell])
+  reconciler.destroy()
+})
