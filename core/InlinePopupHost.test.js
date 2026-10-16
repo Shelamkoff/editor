@@ -137,3 +137,46 @@ test('later resize layout failure retires popup without leaking surface', () => 
   host.destroy()
   assert.equal(released, 1)
 })
+
+test('a retired outside-mousedown listener cannot close a successor popup', async () => {
+  const { root, anchor, host, create } = fixture()
+  const captured = []
+  const ownerDocument = root.ownerDocument
+  ownerDocument.addEventListener = (name, listener) => {
+    if (name === 'mousedown') captured.push(listener)
+  }
+  ownerDocument.removeEventListener = () => {}
+  const releases = []
+  host.showPopup('first', anchor, create(), () => releases.push('first'))
+  await Promise.resolve()
+  assert.equal(captured.length, 1)
+  const stale = captured[0]
+
+  const successor = host.showPopup('second', anchor, create(), () => releases.push('second'))
+  await Promise.resolve()
+  assert.equal(root.children.length, 2)
+  stale({ target: create() })
+  assert.equal(root.children.length, 2, 'old captured listener has no successor authority')
+  assert.deepEqual(releases, ['first'])
+  successor.close()
+  assert.deepEqual(releases, ['first', 'second'])
+  host.destroy()
+})
+
+test('failure to install deferred popup listener retires only its own surface', async () => {
+  const { root, anchor, host, create } = fixture()
+  root.ownerDocument.addEventListener = () => { throw new Error('outside registration failed') }
+  let released = 0
+  const warn = console.warn
+  try {
+    console.warn = () => {}
+    host.showPopup('owner', anchor, create(), () => released++)
+    await Promise.resolve()
+  } finally {
+    console.warn = warn
+  }
+  assert.deepEqual(root.children, [anchor])
+  assert.equal(released, 1)
+  host.destroy()
+  assert.equal(released, 1)
+})

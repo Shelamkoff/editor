@@ -101,13 +101,26 @@ export class InlinePopupHost {
 
       queueMicrotask(()=>{
         if(this.#popup!==popup||this.#presentation!==presentation)return
-        this.#outside=event=>{
+        const outside=event=>{
+          // A previously captured event may dispatch a listener even after
+          // removal. This callback belongs only to the originating popup.
+          if(this.#presentation!==presentation)return
           const target=event.target
           if(!(target instanceof (this.#view?.Node??Node)))return
           if(popup.contains(target)||anchor.contains(target))return
           this.hidePopup()
         }
-        this.#document.addEventListener('mousedown',this.#outside,true)
+        this.#outside=outside
+        try{
+          this.#document.addEventListener('mousedown',outside,true)
+          // Handle an unusual synchronous reentry during listener registration.
+          if(this.#presentation!==presentation)this.#document.removeEventListener('mousedown',outside,true)
+        }catch(error){
+          // Listener registration runs in a microtask outside showPopup's
+          // synchronous rollback boundary. Retire this exact presentation.
+          if(this.#presentation===presentation)this.hidePopup()
+          console.warn('[InlinePopupHost] Failed to install outside handler:',error)
+        }
       })
       return handle
     }catch(error){
