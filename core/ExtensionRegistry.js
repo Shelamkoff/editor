@@ -260,7 +260,8 @@ function snapshotInlineDefinition(source) {
   let editing
   if (candidate.editing !== undefined) {
     editing = snapshotCapabilityObject(
-      candidate.editing, `Inline definition "${candidate.type}" editing`, [['handle', false]],
+      candidate.editing, `Inline definition "${candidate.type}" editing`,
+      [['handle', false], ['reconcileNative', true]],
     )
   }
 
