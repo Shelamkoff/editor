@@ -169,8 +169,12 @@ export function auditRuntimeDependencies(sources) {
     else if (clean === '@shelamkoff/rector') target = 'index.js'
     else if (clean.startsWith('@shelamkoff/rector/')) target = clean.slice('@shelamkoff/rector/'.length)
     else return null
-    return [target, target + '.js', target + '/index.js'].find(candidate => sources.has(candidate))
-      ?? (/\.[cm]?js$/.test(target) ? target : null)
+    const resolved = [target, target + '.js', target + '/index.js'].find(candidate => sources.has(candidate))
+    if (resolved) return resolved
+    // A self-package or relative runtime import must resolve, including
+    // extensionless paths. Non-JavaScript assets (CSS, JSON, etc.) are not
+    // runtime modules in this graph and remain outside its audit.
+    return !path.posix.extname(target) || /\.[cm]?js$/.test(target) ? target : null
   }
   for (const [file, text] of sources) {
     const ast = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS)
