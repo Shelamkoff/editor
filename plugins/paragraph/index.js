@@ -86,7 +86,13 @@ export function createParagraphPlugin(config = {}) {
     }),
     htmlImport: Object.freeze({
       matchesRoot(element) {
-        return element.tagName === 'P'
+        // v1's ordinary paragraph Paste ignores content-free paragraph roots.
+        // A <br> is authored line-break content; empty styling/links are not.
+        // A paragraph containing only unsupported media must remain
+        // transparent so another registered root importer can inspect it.
+        return element.tagName === 'P' && (
+          Boolean(element.textContent?.trim()) || Boolean(element.querySelector('br'))
+        )
       },
       importRoot(element, context) {
         return { text: context.serializeRichText(element) }
