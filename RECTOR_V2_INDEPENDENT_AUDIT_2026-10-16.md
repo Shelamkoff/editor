@@ -93,3 +93,49 @@ npm run docs:check
 Полные `npm run typecheck`, `npm test`, `npm run test:browser`, `npm run test:docs`, `npm run test:types`, `npm run test:package` и `npm run docs:check` **не запускались повторно в данном проходе**: доступ к клонированию репозитория из рабочей среды отсутствовал. Не проверены native Chrome/Firefox/WebKit, реальные системные IME, большой heap run, installed npm tarball и полная дифференциальная матрица v1/v2 после этих коммитов. Исторические green reports не подменяют данные проверки.
 
 **Текущее заключение:** четыре новых проявления проблем R1/T1/E1 исправлены тестами; существенный механизм синхронных транзакций, атомарного DOM owner release и корректного отказа сторонним renderer результатам усилен. Полный поведенческий паритет и релизная приёмка в этом независимом проходе ещё не доказаны.
+
+## Повторная проверка ownership и history, 2026-10-16 (следующий проход)
+
+**Baseline before this pass:** `2357008476ff226fbc65a31c33f96e0fb2e379d5`.
+**Resulting branch HEAD:** `5623fec5c25eda5ecabc8e61d99137d66770bd65`.
+Previous sections remain historical. This is a further independent defect search; it is not a complete new execution of the historical native/browser acceptance matrices.
+
+### Verified regressions and fixes
+
+| ID | Priority | Reproduced failure | Committed correction |
+|---|---|---|---|
+| H1 | P2 | `TransactionEngine` queued an Undo/Redo caret restore keyed only to the document revision. A newer native/programmatic caret movement or `onCommit` focus change without a document edit was overwritten by the queued microtask | `7aa5d85`: capture the selection after immediate restore and skip deferred replay if the current selection differs; 2 regression tests |
+| R2 | P1 | A custom block renderer could return the exact same DOM element for two blocks or two independent renderer instances. The DOM then contained one node while two owners called destroy. A root from a foreign `ownerDocument` was also accepted | `81d30a4`: exclusive cross-instance WeakMap ownership, owner-document validation, release after failed element decoration; 4 regression tests and paired EN/RU rendering guide updates |
+| R3 | P2 | A custom block renderer's `destroy(element)` thenable was ignored. A delayed rejected Promise could escape error containment and an invalid asynchronous completion was not reported | `7f9a6e5`: use the existing `synchronousResult()` boundary on cleanup, with catch/finally preserving exactly-once release; 1 regression test |
+| P1 | P2 | `InlinePopupHost.showPopup()` leaked an appended popup and deferred its cleanup after synchronous positioning/append failures. Reentrant successor popups could also be followed by stale registration of the retired surface | `5623fec`: rollback both partial mount failures, make position listeners scope-specific, retire popup safely after later resize failures, avoid stale reentry takeover; 4 new unit tests |
+
+### Independent red/green evidence
+
+- Actual retrieved baseline `TransactionEngine` with controlled selection port: moving caret to offset 3 after synchronous Undo was overwritten back to 1. With the fix, native/programmatic and `onCommit` moves to offset 3 remain at 3; an unchanged selection still receives its deferred restoration.
+- Actual baseline `EditorRenderer` with a controlled DOM: two block records shared one rendered child and ran its disposer twice; two renderer instances also accepted a live shared element. A foreign-document element was accepted. A decoration exception skipped cleanup. The modified in-memory source rejected all three invalid ownership cases and performed exactly-once cleanup on decoration failure; reuse after release remained valid.
+- Actual baseline cleanup did not observe a thenable return (`then` getter access count 0); the modified source observed it once, reported the invalid synchronous contract, and kept cleanup ownership consistent.
+- Actual baseline `InlinePopupHost`: error after layout or partial append left one orphaned popup and zero cleanup callbacks until explicit destroy. The modified source left zero popup nodes and called cleanup once. Reentrant popup replacement left one valid successor, and closing the stale handle did not affect it.
+- After push, checked the branch HEAD and reparsed 10 modified/related JavaScript source and test files using V8 with ESM imports removed for the syntax-only check. All ten parsed. This is not equivalent to installed Node tests, TypeScript checking, native DOM/browser execution or the npm consumer gate.
+
+**New regressions added in this pass:** 11 (`TransactionEngine.test.js` 2, `renderer/reentrancy.test.js` 5, `InlinePopupHost.test.js` 4).
+**Cumulative regressions across the previous two independent passes and this pass:** 25 (5 + 9 + 11). These are authored assertions, not claims that the whole suite has passed.
+
+### Acceptance still outstanding
+
+The full local `npm ci`, project `typecheck`, `npm test`, native/browser/history/heap, docs, package-consumer and dual TypeScript resolution gates have **not** been run on this latest HEAD. The container here cannot resolve the public GitHub hostname to clone the repository, so independent production-level tests could not be run. Previous reports' Chrome/Windows green figures are historical and must not be silently attributed to this HEAD. Full v1/v2 differential behavioral parity and OS-specific IME, Firefox/WebKit remain unconfirmed in this pass.
+
+Recommended final local commands from this specific HEAD:
+
+```bash
+npm ci
+npm run typecheck
+node --test core/TransactionEngine.test.js renderer/reentrancy.test.js core/InlinePopupHost.test.js
+npm test
+npm run test:browser
+npm run test:docs
+npm run test:types
+npm run test:package
+npm run docs:check
+```
+
+The validated **inventory** parity remains 21 built-in block types and 12 default inline tools. Exact old API/JSON compatibility is intentionally outside the normative v2 target. Independent behavior parity is not complete merely because the inventory and historical tests match.
