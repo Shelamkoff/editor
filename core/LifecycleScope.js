@@ -1,3 +1,6 @@
+import { invokeObserver } from '../shared/invokeObserver.js'
+import { synchronousResult } from '../shared/synchronousResult.js'
+
 /**
  * Owns a replaceable group of editor modules.
  *
@@ -27,7 +30,7 @@ export class LifecycleScope {
    */
   register(resource) {
     if (this.#destroyed) {
-      resource.destroy()
+      this.#dispose(resource)
       throw new Error('Cannot register a resource in a destroyed lifecycle scope')
     }
     this.#resources.push(resource)
@@ -37,14 +40,32 @@ export class LifecycleScope {
   destroy() {
     if (this.#destroyed) return
     this.#destroyed = true
-    for (let index = this.#resources.length - 1; index >= 0; index--) {
-      try {
-        this.#resources[index]?.destroy()
-      } catch (error) {
-        if (this.#onError) this.#onError(error)
-        else console.warn('[LifecycleScope] Failed to destroy a resource:', error)
-      }
-    }
+    // Revoke the retained ledger before invoking external cleanup. A
+    // reentrant callback must never reuse or double-release old resources.
+    const resources = this.#resources
     this.#resources = []
+    for (let index = resources.length - 1; index >= 0; index--) {
+      this.#dispose(resources[index])
+    }
+  }
+
+  /** @param {{ destroy(): void }} resource */
+  #dispose(resource) {
+    try {
+      synchronousResult(resource.destroy(), error => this.#report(error))
+    } catch (error) {
+      this.#report(error)
+    }
+  }
+
+  /** @param {unknown} error */
+  #report(error) {
+    if (this.#onError) {
+      invokeObserver(this.#onError, [error], sinkError => {
+        try { console.warn('[LifecycleScope] Error sink failed:', sinkError) } catch {}
+      })
+    } else {
+      try { console.warn('[LifecycleScope] Failed to destroy a resource:', error) } catch {}
+    }
   }
 }
