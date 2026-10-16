@@ -469,6 +469,7 @@ export class InlineWidgetInputController {
     if(result===false)return
 
     const generation=this.#runtime.generation,revision=this.#runtime.revision
+    const modeEpoch=this.#runtime.modeEpoch
     const field=this.#reconciler.getEditableField(target.blockId,target.fieldKey)?.element
     const selection=field?.ownerDocument?.defaultView?.getSelection?.()
     const expected=selection?.anchorNode&&selection.focusNode
@@ -478,7 +479,8 @@ export class InlineWidgetInputController {
       }:null
     queueMicrotask(()=>{
       if(this.#controller.signal.aborted||this.#runtime.readOnly
-        ||generation!==this.#runtime.generation||revision!==this.#runtime.revision)return
+        ||generation!==this.#runtime.generation||revision!==this.#runtime.revision
+        ||modeEpoch!==this.#runtime.modeEpoch)return
       if(this.#reconciler.getEditableField(target.blockId,target.fieldKey)?.element!==field
         ||!field?.isConnected||!expected)return
       // The action has been accepted, but user selection is still a separate

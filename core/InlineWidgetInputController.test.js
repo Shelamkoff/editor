@@ -32,7 +32,7 @@ function fixture(handle = () => null) {
     contains(node) { return node === field || field.contains(node) || node === foreign },
   }
   const runtime = {
-    readOnly:false, generation:1, revision:2, health:'ready',
+    readOnly:false, generation:1, revision:2, modeEpoch:0, health:'ready',
     preparing:false,
     canAccessFormattingSelection() { return !this.readOnly },
     prepareExtensionValue(fn) {
@@ -611,4 +611,30 @@ test('unchanged native selection permits the just-accepted inline caret result',
   await Promise.resolve()
   assert.equal(caretCalls,1,'Own inline caret was never restored')
   assert.deepEqual(position,[state.widget.firstChild,3,state.widget.firstChild,3])
+})
+
+
+test('accepted inline edit cannot restore a caret after read-only to editable round trip',async()=>{
+  const state=fixture(()=>({kind:'update',data:{id:'ada',name:'Ad'},caret:3}))
+  state.field.ownerDocument=state.root.ownerDocument
+  let caretCalls=0
+  const label=state.widget.firstChild
+  const native={
+    isCollapsed:true,anchorNode:label,anchorOffset:3,focusNode:label,focusOffset:3,
+    setBaseAndExtent(){caretCalls++},
+  }
+  state.root.ownerDocument.defaultView.getSelection=()=>native
+  const owned=state.emit()
+  assert.equal(owned.canceled,true)
+  const committedRevision=state.runtime.revision
+  // Terminal control transitions do not edit authored content, so neither
+  // the document revision nor the mounted field/selection identity changes.
+  state.runtime.readOnly=true
+  state.runtime.modeEpoch++
+  state.runtime.readOnly=false
+  state.runtime.modeEpoch++
+  assert.equal(state.runtime.revision,committedRevision)
+  await Promise.resolve()
+  assert.equal(caretCalls,0,'retired inline edit stole focus after read-only round trip')
+  assert.equal(state.writes.filter(call=>call[0]==='caret').length,0)
 })
