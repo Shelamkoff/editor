@@ -362,8 +362,9 @@ export class NativeInputController {
     const owner = this.#reconciler.resolveEditableTarget(widget)
     if (!owner || owner.mode !== 'rich-text' || !owner.element?.contains?.(widget)) return null
     const current = this.#reconciler.getEditableField?.(owner.blockId, owner.fieldKey)
-    if (current && (current.element !== owner.element || current.mode !== 'rich-text')) return null
-    if (this.#root.contains && !this.#root.contains(widget)) return null
+    if (current?.element !== owner.element || current.mode !== 'rich-text'
+      || !current.element.contains(widget)
+      || !this.#root.contains?.(widget)) return null
     return owner
   }
 
