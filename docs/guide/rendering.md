@@ -146,7 +146,9 @@ renderer.getRegisteredTypes()         // string[]
 renderer.unregisterRenderer('callout')
 ```
 
-The schema is mandatory and is evaluated before `render()`. Registering the same type replaces the previous renderer for future output. Release already mounted output before removing a renderer whose `destroy(element)` method owns resources.
+The schema is mandatory and is evaluated before `render()`. Registering the same type replaces the previous renderer for future output.
+
+A block renderer must return a **fresh `HTMLElement` in `context.ownerDocument`** for each live result. Reusing one element across blocks or renderer instances is rejected; a renderer-owned result can be reused only after its previous result has been destroyed. If decorating the returned element fails, its `destroy(element)` hook releases the created resource. Release already mounted output before removing a renderer whose `destroy(element)` method owns resources.
 
 ## Loading only used block types
 

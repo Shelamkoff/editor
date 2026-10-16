@@ -13,6 +13,7 @@ import { synchronousResult } from '../shared/synchronousResult.js'
 const baseCssUrl = new URL('./styles/base.css', import.meta.url).href
 const bundledRendererCssRoot = new URL('./renderers/', import.meta.url).href
 const validationSourceKey = Symbol.for('@shelamkoff/rector/renderer-validation-source')
+const liveRenderedElements = new WeakMap()
 
 /** Restore prior DOM order after an aborted commit while preserving
  * unchanged connected elements whenever possible.
@@ -253,19 +254,29 @@ export class EditorRenderer {
     if (!HTMLElementCtor || !(element instanceof HTMLElementCtor)) {
       throw new TypeError(`Block renderer "${block.type}" render() must return an HTMLElement`)
     }
-    this.#addBundledStyleAliases(element, renderer)
-
-    const textAlign = normalizeTextAlign(block.tunes?.textAlign)
-    if (textAlign) element.style.textAlign = textAlign
-
-    // Add block id as data attribute if present
-    if (block.id) {
-      element.dataset.blockId = block.id
+    // Each live output has exclusive ownership of its element, even across
+    // separate renderer instances. A reused node would be moved and destroyed twice.
+    if (liveRenderedElements.has(element)) {
+      throw new TypeError(`Block renderer "${block.type}" must return a fresh HTMLElement`)
     }
-
-    element.dataset.blockType = block.type
+    liveRenderedElements.set(element, this)
     this.#liveRenderers.set(renderer, (this.#liveRenderers.get(renderer) ?? 0) + 1)
-    return { element, type: block.type, renderer }
+    try {
+      if (element.ownerDocument && element.ownerDocument !== ownerDocument) {
+        throw new TypeError(`Block renderer "${block.type}" must return an HTMLElement in the owning document`)
+      }
+      this.#addBundledStyleAliases(element, renderer)
+      const textAlign = normalizeTextAlign(block.tunes?.textAlign)
+      if (textAlign) element.style.textAlign = textAlign
+      if (block.id) element.dataset.blockId = block.id
+      element.dataset.blockType = block.type
+      return { element, type: block.type, renderer }
+    } catch (error) {
+      // The renderer allocated this element, but decorating it failed.
+      // Retire the provisional lease and release its resources exactly once.
+      this.#disposeRenderedElement({ element, type: block.type, renderer })
+      throw error
+    }
   }
 
 
@@ -312,6 +323,7 @@ export class EditorRenderer {
     } catch (err) {
       console.warn('[EditorRenderer] Failed to destroy renderer "' + entry.type + '":', err)
     } finally {
+      if (liveRenderedElements.get(entry.element) === this) liveRenderedElements.delete(entry.element)
       if (entry.renderer) {
         const count = this.#liveRenderers.get(entry.renderer) ?? 0
         if (count > 1) this.#liveRenderers.set(entry.renderer, count - 1)

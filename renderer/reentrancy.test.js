@@ -310,3 +310,78 @@ test('asynchronous custom block rendering is rejected synchronously', async () =
   )
   renderer.destroy()
 })
+
+test('one element cannot be mounted as two live blocks', async () => {
+  const { EditorRenderer } = await import('./index.js')
+  const element = document.createElement('article')
+  const released = []
+  const renderer = new EditorRenderer({ blockTypes: [], injectStyles: false })
+  renderer.registerRenderer({
+    type: 'singleton', schema: passthroughSchema,
+    render() { return element }, destroy(value) { released.push(value) },
+  })
+  const block = id => ({ id, type: 'singleton', dataVersion: 1, data: {} })
+  const container = document.createElement('main')
+  assert.throws(() => renderer.renderTo({ version: '2.0.0', blocks: [block('a'), block('b')] }, container), /fresh HTMLElement/)
+  assert.equal(container.children.length, 0)
+  assert.deepEqual(released, [element])
+  renderer.renderTo({ version: '2.0.0', blocks: [block('c')] }, container)
+  renderer.destroy(container)
+  assert.deepEqual(released, [element, element], 'an element may be reused after release')
+})
+
+test('live element ownership is exclusive across renderer instances', async () => {
+  const { EditorRenderer } = await import('./index.js')
+  const element = document.createElement('article')
+  const released = []
+  const plugin = {
+    type: 'singleton-cross', schema: passthroughSchema,
+    render() { return element }, destroy(value) { released.push(value) },
+  }
+  const a = new EditorRenderer({ blockTypes: [], injectStyles: false })
+  const b = new EditorRenderer({ blockTypes: [], injectStyles: false })
+  a.registerRenderer(plugin)
+  b.registerRenderer(plugin)
+  const block = { id: 'a', type: 'singleton-cross', dataVersion: 1, data: {} }
+  const owned = a.renderBlock(block)
+  assert.throws(() => b.renderBlock(block), /fresh HTMLElement/)
+  assert.deepEqual(released, [], 'failure must not release another renderer owner')
+  a.destroy(owned)
+  const next = b.renderBlock(block)
+  b.destroy(next)
+  assert.deepEqual(released, [element, element])
+})
+
+test('foreign-document HTMLElement is rejected and disposed', async () => {
+  const { EditorRenderer } = await import('./index.js')
+  const foreign = document.createElement('article')
+  foreign.ownerDocument = { defaultView: { HTMLElement: FakeElement } }
+  const released = []
+  const renderer = new EditorRenderer({ blockTypes: [], injectStyles: false })
+  renderer.registerRenderer({
+    type: 'foreign-root', schema: passthroughSchema,
+    render() { return foreign }, destroy(element) { released.push(element) },
+  })
+  assert.throws(() => renderer.renderBlock({ id: 'foreign', type: 'foreign-root', dataVersion: 1, data: {} }), /owning document/)
+  assert.deepEqual(released, [foreign])
+  renderer.destroy()
+})
+
+test('failed decoration releases newly-created HTMLElement before a retry', async () => {
+  const { EditorRenderer } = await import('./index.js')
+  const element = document.createElement('article')
+  Object.freeze(element.dataset)
+  const released = []
+  const renderer = new EditorRenderer({ blockTypes: [], injectStyles: false })
+  renderer.registerRenderer({
+    type: 'decoration-failure', schema: passthroughSchema,
+    render() { return element }, destroy(value) { released.push(value) },
+  })
+  const block = { id: 'a', type: 'decoration-failure', dataVersion: 1, data: {} }
+  assert.throws(() => renderer.renderBlock(block), TypeError)
+  assert.deepEqual(released, [element])
+  element.dataset = {}
+  const recovered = renderer.renderBlock(block)
+  renderer.destroy(recovered)
+  assert.deepEqual(released, [element, element])
+})
