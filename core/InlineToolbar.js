@@ -391,11 +391,14 @@ export class InlineToolbar {
         return false
       }
       this.#panelSelection = panelPort
-      const refreshPanelToken = () => {
+      const refreshPanelToken = (acceptedBookmark = panelBookmark) => {
         if (!isCurrent()) return
-        panelBookmark = cloneBookmark(this.#selectionPort?.bookmark ?? this.#selection.capture() ?? panelBookmark)
+        // Model-first controls do not edit the native selection. Reusing the
+        // currently focused toolbar button's collapsed selection would replace
+        // the original author range with a caret and retire a valid panel.
+        panelBookmark = cloneBookmark(acceptedBookmark)
         panelRange = panelPort.resolveOwnResult(panelBookmark)
-        panelToken = panelRange ? panelPort.capture() : null 
+        panelToken = panelRange && !panelRange.collapsed ? panelPort.capture() : null
       }
       const closePanel = () => {
         if (!isCurrent()) return
@@ -427,7 +430,7 @@ export class InlineToolbar {
               || !selection.blockIds.every(blockId => this.#runtime.has(blockId))) return result
             owners = selection.blockIds.map(blockId => ({ blockId, element: this.#view.element(blockId) }))
             expectedRevision = this.#runtime.revision
-            refreshPanelToken()
+            refreshPanelToken(this.#selectionPort?.bookmark ?? this.#selection.capture() ?? panelBookmark)
             return result
           },
           getTextAlign: () => isCurrent() && panelToken && panelPort.isValid(panelToken)
