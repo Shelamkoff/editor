@@ -390,7 +390,7 @@ export class BlockReconciler {
     return {
       apply: () => {
         this.#assertLive()
-        if (applied || recovered || finalized) throw new Error('Prepared block projection cannot be applied twice')
+        if (applied || recovered || finalized || discarded) throw new Error('Prepared block projection cannot be applied twice')
         if (this.#entries !== expectedEntries) {
           discarded = true
           this.#pendingProjections.delete(retire)
@@ -456,7 +456,9 @@ export class BlockReconciler {
       },
 
       recover: () => {
-        if (recovered) return
+        // Discard and finalize are terminal; late recovery cannot undo a
+        // published document or restore resources already disposed.
+        if (recovered || finalized || discarded) return
         if (this.#destroyed) { retire(); return }
         if (!applied) {
           for (const entry of staged.values()) this.#destroyEntry(entry)

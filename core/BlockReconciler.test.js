@@ -921,3 +921,41 @@ test('reentrant destruction in remount DOM replacement retires old and new owner
   reconciler.destroy()
   assert.deepEqual(destroyed, ['a', 'b'])
 })
+
+test('discarded prepared block owner cannot later be applied', () => {
+  const { store, reconciler, counters, container } = setup(1)
+  const draft = store.createDraft()
+  draft.insert(1, block('b'))
+  const prepared = reconciler.prepare({ store, draft, changes: draft.changes })
+
+  prepared.discard()
+  assert.equal(counters.destroy, 1, 'discard released the only detached candidate')
+  assert.throws(() => prepared.apply(), /cannot be applied twice/)
+  assert.throws(() => prepared.finalize(), /unapplied/)
+  prepared.recover()
+  assert.deepEqual(reconciler.ids, ['0'])
+  assert.equal(container.children.length, 1)
+  reconciler.destroy()
+  assert.equal(counters.destroy, 2)
+})
+
+test('a late recover cannot reverse an already finalized block projection', () => {
+  const { store, reconciler, counters, container } = setup(1)
+  const draft = store.createDraft()
+  draft.insert(1, block('b'))
+  const prepared = reconciler.prepare({ store, draft, changes: draft.changes })
+  prepared.apply()
+  store.commit(draft)
+  prepared.finalize()
+
+  const published = reconciler.getElement('b')
+  assert.ok(published)
+  assert.doesNotThrow(() => prepared.recover())
+  assert.deepEqual(reconciler.ids, ['0', 'b'])
+  assert.equal(reconciler.getElement('b'), published)
+  assert.deepEqual(container.children.map(node => node.dataset.blockId), ['0', 'b'])
+  assert.equal(counters.destroy, 0, 'late recovery must not retire the committed owner')
+
+  reconciler.destroy()
+  assert.equal(counters.destroy, 2)
+})
