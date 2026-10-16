@@ -325,3 +325,42 @@ test('structural HTML with a collapsed caret can replace an empty placeholder', 
     }])
   } finally { fixture.controller.destroy() }
 })
+
+test('a paste task started during abort cannot be cleared by its predecessor', async () => {
+  let attempts = 0
+  let completeFresh
+  let applied = 0
+  let fixture
+  fixture = clipboardHarness({
+    formats: ['Files'],
+    files: [{ name: 'reentrant.txt' }],
+    accepts: () => true,
+    resolve(_input, { signal }) {
+      attempts++
+      if (attempts === 1) {
+        // A resolver can listen to abort and synchronously dispatch a new
+        // user gesture before the old controller's cancellation returns.
+        signal.addEventListener('abort', () => {
+          fixture.event.defaultPrevented = false // model a distinct Paste event
+          fixture.paste()
+        }, { once: true })
+        return new Promise(() => {})
+      }
+      return new Promise(resolve => { completeFresh = resolve })
+    },
+  })
+  fixture.runtime.applyPasteResults = () => {
+    applied++
+    return { blockId: 'a', inserted: [], focus: { fieldKey: 'text', offset: 1 } }
+  }
+
+  try {
+    fixture.paste()
+    assert.equal(attempts, 1)
+    fixture.controller.cancelPendingTask()
+    assert.equal(attempts, 2, 'abort did not dispatch the succeeding Paste')
+    completeFresh({ kind: 'rich-text', replacement: { kind: 'text', text: 'new' } })
+    for (let index = 0; index < 8; index++) await Promise.resolve()
+    assert.equal(applied, 1, 'stale cancellation cleared a newer Paste task')
+  } finally { fixture.controller.destroy() }
+})
