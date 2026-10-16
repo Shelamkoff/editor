@@ -19,6 +19,7 @@ export class NativeInputController {
   #crossSelection
   #selection
   #projection
+  #inlineWidgetInput
   #onControlledInput
   #controller
   #composition = null
@@ -30,7 +31,7 @@ export class NativeInputController {
   #lastGroup = null
   #pendingInput = null
 
-  constructor({ root, runtime, reconciler, crossSelection = null, selection = null, projection = null, onControlledInput = null, coalesceMs = 300 }) {
+  constructor({ root, runtime, reconciler, crossSelection = null, selection = null, projection = null, inlineWidgetInput = null, onControlledInput = null, coalesceMs = 300 }) {
     if (!root?.addEventListener) throw new TypeError('NativeInputController requires an event root')
     if (!runtime?.syncBlockFromProjection) throw new TypeError('NativeInputController requires a DocumentRuntime')
     if (!reconciler?.resolveEditableTarget) throw new TypeError('NativeInputController requires a BlockReconciler')
@@ -44,6 +45,7 @@ export class NativeInputController {
     this.#crossSelection = crossSelection
     this.#selection = selection
     this.#projection = projection
+    this.#inlineWidgetInput = inlineWidgetInput
     this.#onControlledInput = typeof onControlledInput === 'function' ? onControlledInput : null
     this.#coalesceMs = coalesceMs
     const performanceNow = root.ownerDocument?.defaultView?.performance?.now?.bind(root.ownerDocument.defaultView.performance)
@@ -70,7 +72,8 @@ export class NativeInputController {
       this.#preparedComposition = null
       this.#endingComposition = null
       this.#lastGroup = null
-      this.#pendingInput = null
+      if (this.#pendingInput?.kind === 'inline') this.#pendingInput.valid = false
+      else this.#pendingInput = null
       if (discardPreedit) discardProjectionEdits()
     }
   }
@@ -140,7 +143,16 @@ export class NativeInputController {
       return
     }
     if (this.#insertAtWidgetBoundary(owner, event, inputType)) return
+    const native = this.#root.ownerDocument.defaultView?.getSelection?.()
+    const inline = this.#inlineWidgetInput?.captureNativeDeletion(owner,event,native)
+    if (inline) {
+      this.#pendingInput = {kind:'inline',snapshot:inline,valid:true}
+      this.#lastGroup = null
+      this.#endingComposition = null
+      return
+    }
     this.#pendingInput = this.#selection ? {
+      kind:'field',
       blockId: owner.blockId, fieldKey: owner.fieldKey,
       generation: this.#runtime.generation, revision: this.#runtime.revision,
       bookmark: this.#selection.capture(),
@@ -180,6 +192,34 @@ export class NativeInputController {
   }
 
   handleInput(event) {
+    // The pending inline envelope must be classified before read-only,
+    // composition, widget targeting or ordinary field-owner early returns.
+    // A matching stale native input stays consumed: it may never enter the
+    // generic field serializer against a replacement projection.
+    const pending = this.#pendingInput
+    this.#pendingInput = null
+    if (pending?.kind === 'inline') {
+      const snapshot = pending.snapshot
+      const matching = event?.inputType === snapshot.inputType
+        && (event?.isTrusted === true) === snapshot.trusted
+        && (event?.target === snapshot.eventHost
+          || snapshot.eventHost.contains?.(event?.target))
+      if (matching) {
+        const stale = !pending.valid || this.#runtime.readOnly
+          || this.#composition !== null || event?.isComposing === true
+          || snapshot.originalEvent.defaultPrevented === true
+          || snapshot.generation !== this.#runtime.generation
+          || snapshot.revision !== this.#runtime.revision
+        if (stale) {
+          this.#inlineWidgetInput?.discardStaleNativeDeletion(snapshot)
+        } else {
+          try { this.#inlineWidgetInput?.completeNativeDeletion(snapshot,event) }
+          catch { /* The owning runtime already recovered and reported. */ }
+        }
+        this.#lastGroup = null
+        return
+      }
+    }
     if (this.#runtime.readOnly) return
     const owner = this.#resolve(event?.target)
     if (!owner) return
@@ -194,9 +234,7 @@ export class NativeInputController {
     }
 
     const inputType = typeof event?.inputType === 'string' ? event.inputType : ''
-    const pending = this.#pendingInput
-    this.#pendingInput = null
-    const selectionBefore = pending
+    const selectionBefore = pending?.kind === 'field'
       && pending.blockId === owner.blockId && pending.fieldKey === owner.fieldKey
       && pending.generation === this.#runtime.generation && pending.revision === this.#runtime.revision
       ? pending.bookmark : undefined
@@ -226,7 +264,8 @@ export class NativeInputController {
       revision: this.#runtime.revision,
       selectionBefore: this.#selection?.capture(),
     }
-    this.#pendingInput = null
+    if (this.#pendingInput?.kind === 'inline') this.#pendingInput.valid = false
+    else this.#pendingInput = null
     this.#endingComposition = null
     this.#lastGroup = null
   }
