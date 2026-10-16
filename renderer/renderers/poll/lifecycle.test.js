@@ -303,3 +303,44 @@ test('editor Poll disposes subscription returned after connection abort in subsc
   runtime.destroy()
   assert.equal(unsubscribes, 1, 'destroy cannot repeat the retired cleanup')
 })
+
+test('renderer Poll rejects async revision comparators instead of silently dropping results', async () => {
+  let publish
+  const errors = []
+  const f = mounted({
+    dataSource: {
+      async load() { return { ...emptyResults(), revision: '1' } },
+      async vote() { return emptyResults() },
+      subscribe({ onUpdate }) { publish = onUpdate },
+    },
+    compareRevisions: () => Promise.resolve(1),
+    onError(error) { errors.push(error) },
+  })
+  await settle()
+  assert.doesNotThrow(() => publish({ ...emptyResults(), revision: '2' }))
+  assert.equal(errors.length, 1)
+  assert.match(String(errors[0]), /must complete synchronously/)
+  f.renderer.destroy(f.element)
+})
+
+test('editor Poll contains later subscription callback failures from revision comparators', async () => {
+  let publish
+  const errors = []
+  const f = editorPoll({
+    dataSource: {
+      async load() { return { ...emptyResults(), revision: '1' } },
+      async vote() { return emptyResults() },
+      subscribe({ onUpdate }) { publish = onUpdate },
+    },
+    compareRevisions: () => Promise.resolve(1),
+    onError(error) { errors.push(error) },
+  })
+  await settle()
+  assert.equal(typeof publish, 'function')
+  assert.doesNotThrow(() => publish({ ...emptyResults(), revision: '2' }),
+    'a failed comparator must not throw into an unrelated data source')
+  assert.equal(errors.length, 1)
+  assert.match(String(errors[0]), /must complete synchronously/)
+  f.instance.destroy()
+  f.runtime.destroy()
+})

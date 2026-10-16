@@ -1,4 +1,5 @@
 import { sanitizeUrl } from './sanitize/sanitizeUrl.js'
+import { synchronousResult } from './synchronousResult.js'
 
 /**
  * @typedef {{ id: string, text: string }} PollOption Author-owned option with a stable document id and inline-text label.
@@ -190,5 +191,10 @@ export function applyLocalPollVote(current, previousIds, nextIds, optionIds) {
 export function shouldAcceptPollRevision(next, current, compare) {
   if (!next || !current) return true
   if (next === current) return false
-  return compare ? compare(next, current) > 0 : true
+  if (!compare) return true
+  const order = synchronousResult(compare(next, current))
+  if (typeof order !== 'number' || !Number.isFinite(order)) {
+    throw new TypeError('Poll compareRevisions() must return a finite number')
+  }
+  return order > 0
 }

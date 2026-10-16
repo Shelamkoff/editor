@@ -396,7 +396,8 @@ export function createPollPlugin(config={}){
                     if(dead||connectionController.signal.aborted||version!==connectionVersion)return
                     loadVersion++
                     loading=false
-                    if(acceptResults(results))projectRuntime()
+                    try{if(acceptResults(results))projectRuntime()}
+                    catch(error){report(error)}
                   },
                   onError:error=>{if(!dead&&!connectionController.signal.aborted&&version===connectionVersion)report(error)},
                 }))

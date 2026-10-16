@@ -117,3 +117,31 @@ test('poll revisions use host ordering only when it is explicitly provided', () 
   assert.equal(shouldAcceptPollRevision('4', '5', numeric), false)
   assert.equal(shouldAcceptPollRevision('6', '5', numeric), true)
 })
+
+test('Poll revision ordering rejects async and malformed comparator results', async () => {
+  assert.throws(
+    () => shouldAcceptPollRevision('new', 'old', () => Promise.resolve(1)),
+    /must complete synchronously/,
+  )
+  await Promise.resolve()
+  for (const invalid of [Number.NaN, Infinity, -Infinity, '1', null, false]) {
+    assert.throws(
+      () => shouldAcceptPollRevision('new', 'old', () => invalid),
+      /must return a finite number/,
+    )
+  }
+  const ordered = (next, current) => Number(next) - Number(current)
+  assert.equal(shouldAcceptPollRevision('2', '1', ordered), true)
+  assert.equal(shouldAcceptPollRevision('1', '2', ordered), false)
+})
+
+test('Poll comparator then getter is observed exactly once and its failure propagates', () => {
+  let reads = 0
+  assert.throws(() => shouldAcceptPollRevision('2', '1', () => Object.defineProperty({}, 'then', {
+    get() {
+      reads++
+      throw new Error('comparator then getter failed')
+    },
+  })), /comparator then getter failed/)
+  assert.equal(reads, 1)
+})
