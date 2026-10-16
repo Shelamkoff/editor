@@ -1923,10 +1923,13 @@ test('queued toolbox inline insertion cannot edit a replacement document with re
   } finally {
     window.queueMicrotask = schedule
   }
+  // External render is a legitimate history operation. The old command must
+  // preserve its already-settled history rather than assert no history exists.
+  const historyBefore = [editor.canUndo, editor.canRedo]
   for (const callback of deferred) callback()
   await Promise.resolve()
   equal(editor.save().blocks, [successor], 'Stale inline command mutated a replacement document')
-  equal(editor.canUndo, false, 'Stale inline command created history in a replacement document')
+  equal([editor.canUndo, editor.canRedo], historyBefore, 'Stale inline command changed replacement history')
 })
 
 await run()
