@@ -757,3 +757,96 @@ test('normal prepared block recovery and discard still preserve the committed pr
   reconciler.destroy()
   assert.equal(counters.destroy, 3)
 })
+
+test('reentrant reconciler destruction during block creation cannot leave a staged orphan', () => {
+  const document = new FakeDocument()
+  const container = document.createElement('main')
+  const disposed = []
+  let reconciler
+  const registry = {
+    hasBlock: () => true,
+    getBlockDefinition: type => ({ type }),
+    getBlockRuntime: () => ({ create(data) {
+      if(data.text === 'b') reconciler.destroy()
+      return {
+        element: document.createElement('article'),
+        read() { return data },
+        setReadOnly() {},
+        destroy() { disposed.push(data.text) },
+      }
+    } }),
+  }
+  reconciler = new BlockReconciler({ container, registry, contextFactory: () => ({}) })
+  const store = new DocumentStore({ version: '2.0.0', blocks: [block('a')] })
+  reconciler.mount(store)
+  const draft = store.createDraft()
+  draft.insert(1, block('b'))
+
+  assert.throws(
+    () => reconciler.prepare({ store, draft, changes: draft.changes }),
+    /BlockReconciler is destroyed/,
+  )
+  assert.deepEqual(disposed, ['a', 'b'], 'detached candidate must be cleaned after reentrant destroy')
+  assert.deepEqual(reconciler.ids, [])
+  assert.deepEqual(container.children, [])
+})
+
+test('failed final-order preparation releases already staged block instances', () => {
+  const document = new FakeDocument()
+  const container = document.createElement('main')
+  const disposed = []
+  const registry = {
+    hasBlock: () => true,
+    getBlockDefinition: type => ({ type }),
+    getBlockRuntime: () => ({ create(data) {
+      return {
+        element: document.createElement('article'),
+        read() { return data },
+        setReadOnly() {},
+        destroy() { disposed.push(data.text) },
+      }
+    } }),
+  }
+  const reconciler = new BlockReconciler({ container, registry, contextFactory: () => ({}) })
+  const store = new DocumentStore({ version: '2.0.0', blocks: [block('a')] })
+  reconciler.mount(store)
+  const draft = {
+    changes: [{ kind: 'block.insert', index: 1, block: block('b') }],
+    peek(id) { return id === 'b' ? block('b') : store.peek(id) },
+    ids() { throw new Error('planned order failed') },
+  }
+  assert.throws(() => reconciler.prepare({ store, draft, changes: draft.changes }),
+    /planned order failed/)
+  assert.deepEqual(disposed, ['b'])
+  assert.deepEqual(reconciler.ids, ['a'])
+  reconciler.destroy()
+  assert.deepEqual(disposed, ['b', 'a'])
+})
+
+test('reentrant destruction during mount staging never publishes a retired candidate', () => {
+  const document = new FakeDocument()
+  const container = document.createElement('main')
+  const disposed = []
+  let reconciler
+  const registry = {
+    hasBlock: () => true,
+    getBlockDefinition: type => ({ type }),
+    getBlockRuntime: () => ({ create(data) {
+      if(data.text === 'b') reconciler.destroy()
+      return {
+        element: document.createElement('article'),
+        read() { return data },
+        setReadOnly() {},
+        destroy() { disposed.push(data.text) },
+      }
+    } }),
+  }
+  reconciler = new BlockReconciler({ container, registry, contextFactory: () => ({}) })
+  reconciler.mount(new DocumentStore({ version: '2.0.0', blocks: [block('a')] }))
+  assert.throws(() => reconciler.mount(
+    new DocumentStore({ version: '2.0.0', blocks: [block('b')] }),
+  ), /BlockReconciler is destroyed/)
+  assert.deepEqual(disposed, ['a', 'b'])
+  assert.deepEqual(reconciler.ids, [])
+  assert.deepEqual(container.children, [])
+})

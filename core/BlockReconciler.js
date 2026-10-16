@@ -131,9 +131,11 @@ export class BlockReconciler {
     let fresh
     try {
       fresh = this.#stageAll(store, { candidate: true, stageInline: true, generation: store.generation })
+      // A runtime.create() callback may destroy the reconciler mid-staging.
+      // Never publish candidates after the owner has been revoked.
+      this.#assertLive()
     } catch (error) {
-      // Staging can fail before DOM publication. Restore the same store
-      // authority retained by the previously mounted block contexts.
+      if(fresh)for(const entry of fresh.values())this.#destroyEntry(entry)
       this.#store = previousStore
       throw error
     }
@@ -333,14 +335,24 @@ export class BlockReconciler {
       throw error
     }
 
-    const finalOrder = structuralChange ? draft.ids() : null
-    const removalSnapshots = removals.flatMap(item => {
-      const snapshot = this.#animator.captureRemoval(
-        item.entry.element,
-        currentIndexes.get(item.id) ?? currentOrder.length,
-      )
-      return snapshot ? [snapshot] : []
-    })
+    let finalOrder
+    let removalSnapshots
+    try {
+      finalOrder = structuralChange ? draft.ids() : null
+      removalSnapshots = removals.flatMap(item => {
+        const snapshot = this.#animator.captureRemoval(
+          item.entry.element,
+          currentIndexes.get(item.id) ?? currentOrder.length,
+        )
+        return snapshot ? [snapshot] : []
+      })
+      // Detached candidates already own plugin resources at this point.
+      // Revoke them on any fault before entering the pending-owner ledger.
+      this.#assertLive()
+    } catch (error) {
+      for(const entry of staged.values())this.#destroyEntry(entry)
+      throw error
+    }
 
     let applied = false
     let recovered = false
