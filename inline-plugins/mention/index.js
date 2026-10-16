@@ -124,24 +124,6 @@ export function createMentionPlugin(options={}){
       const listboxId='oe-mention-'+uid()
 
       const view=runtimeContext.ownerDocument.defaultView??globalThis
-      const codePointStartBefore=(text,offset)=>{
-        if(offset<=0)return 0
-        const last=text.charCodeAt(offset-1)
-        if(last>=0xDC00&&last<=0xDFFF&&offset>1){
-          const lead=text.charCodeAt(offset-2)
-          if(lead>=0xD800&&lead<=0xDBFF)return offset-2
-        }
-        return offset-1
-      }
-      const codePointEndAt=(text,offset)=>{
-        if(offset>=text.length)return text.length
-        const lead=text.charCodeAt(offset)
-        if(lead>=0xD800&&lead<=0xDBFF&&offset+1<text.length){
-          const tail=text.charCodeAt(offset+1)
-          if(tail>=0xDC00&&tail<=0xDFFF)return offset+2
-        }
-        return offset+1
-      }
       const setCaret=(node,offset)=>{
         const selection=runtimeContext.ownerDocument.defaultView?.getSelection?.()
         if(!selection)return
@@ -472,16 +454,20 @@ export function createMentionPlugin(options={}){
         })
       }
 
-      const updateMentionText=(entry,text,offset)=>{
-        entry.context.updateData(current=>({...current,name:text.slice(trigger.length)}))
-        startEditSession(entry,text,offset)
+      const applyLabelDecision=(entry,decision)=>{
+        if(decision.kind==='remove')removeMention(entry)
+        else if(decision.kind==='replace-text')unwrapMention(entry,decision.text,decision.caret)
+        else{
+          entry.context.updateData(()=>decision.data)
+          startEditSession(entry,trigger+decision.data.name,decision.caret)
+        }
       }
-
       const replaceLabelRange=(entry,text,start,end,value)=>{
-        const next=text.slice(0,start)+value+text.slice(end),caret=start+value.length
-        if(!next)removeMention(entry)
-        else if(!next.startsWith(trigger))unwrapMention(entry,next,caret)
-        else updateMentionText(entry,next,caret)
+        const decision=decideMentionLabelEdit({
+          trigger,current:entry.context.getData(),display:text,
+          range:{start,end},replacement:value,
+        })
+        applyLabelDecision(entry,decision)
       }
 
       const handleWidgetClipboard=event=>{
@@ -515,7 +501,7 @@ export function createMentionPlugin(options={}){
       }
 
       const handleWidgetBeforeInput=event=>{
-        if(event.defaultPrevented||event.isComposing||compositionSession)return
+        if(event.defaultPrevented||event.cancelable===false||event.isComposing||compositionSession)return
         const native=runtimeContext.ownerDocument.defaultView?.getSelection?.()
         const deleting=NATIVE_DELETION_INPUTS.has(event.inputType)
         const replacing=event.inputType==='insertReplacementText'&&typeof event.data==='string'
@@ -578,33 +564,17 @@ export function createMentionPlugin(options={}){
         const deletionRange=containedTextRange(span,browserRange)
         if(deletionRange){
           event.preventDefault()
-          const {start,end}=deletionRange,next=text.slice(0,start)+text.slice(end)
-          if(!next)removeMention(entry)
-          else if(!next.startsWith(trigger))unwrapMention(entry,next,start)
-          else updateMentionText(entry,next,start)
+          replaceLabelRange(entry,text,deletionRange.start,deletionRange.end,'')
           return
         }
-
-        if(browserRange&&(event.inputType==='deleteContentBackward'&&atStart||event.inputType==='deleteContentForward'&&atEnd)){
-          const field=/** @type {HTMLElement|null} */(span.parentElement?.closest('[contenteditable="true"]'))
-          if(field&&containedTextRange(field,browserRange)){
-            event.preventDefault()
-            entry.context.commitDomMutation(()=>{
-              const range=runtimeContext.ownerDocument.createRange()
-              range.setStart(browserRange.startContainer,browserRange.startOffset)
-              range.setEnd(browserRange.endContainer,browserRange.endOffset)
-              range.deleteContents()
-              range.collapse(true)
-              setCaret(range.startContainer,range.startOffset)
-            })
-            return
-          }
-        }
+        // A range crossing this label's boundary belongs to the native
+        // field reconciliation path. Do not clip its neighboring author text.
+        if(browserRange)return
 
         if(event.inputType==='deleteContentBackward'){
           event.preventDefault()
-          if(text===trigger){
-            removeMention(entry)
+          if(text===trigger&&offset>=trigger.length){
+            replaceLabelRange(entry,text,0,trigger.length,'')
             return
           }
           if(atStart){
@@ -612,20 +582,16 @@ export function createMentionPlugin(options={}){
             if(previous?.nodeType===3&&(previous.textContent?.length??0)>0){
               entry.context.commitDomMutation(()=>{
                 const value=previous.textContent??''
-                const start=codePointStartBefore(value,value.length)
-                previous.textContent=value.slice(0,start)
-                setCaret(previous,start)
+                const interval=mentionCharacterDeletion(value,value.length,'backward')
+                if(!interval)return
+                previous.textContent=value.slice(0,interval.start)
+                setCaret(previous,interval.start)
               })
             }
             return
           }
-          if(offset===trigger.length&&text.startsWith(trigger)){
-            unwrapMention(entry,text.slice(trigger.length),0)
-            return
-          }
-          const start=codePointStartBefore(text,offset)
-          const next=text.slice(0,start)+text.slice(offset)
-          updateMentionText(entry,next,start)
+          const interval=mentionCharacterDeletion(text,offset,'backward')
+          if(interval)replaceLabelRange(entry,text,interval.start,interval.end,'')
           return
         }
 
@@ -636,23 +602,16 @@ export function createMentionPlugin(options={}){
             if(next?.nodeType===3&&(next.textContent?.length??0)>0){
               entry.context.commitDomMutation(()=>{
                 const value=next.textContent??''
-                next.textContent=value.slice(codePointEndAt(value,0))
+                const interval=mentionCharacterDeletion(value,0,'forward')
+                if(!interval)return
+                next.textContent=value.slice(interval.end)
                 setCaret(span.firstChild??span,text.length)
               })
             }
             return
           }
-          const end=codePointEndAt(text,offset)
-          const nextText=text.slice(0,offset)+text.slice(end)
-          if(!nextText){
-            removeMention(entry)
-            return
-          }
-          if(offset===0&&!nextText.startsWith(trigger)){
-            unwrapMention(entry,nextText,0)
-            return
-          }
-          updateMentionText(entry,nextText,offset)
+          const interval=mentionCharacterDeletion(text,offset,'forward')
+          if(interval)replaceLabelRange(entry,text,interval.start,interval.end,'')
           return
         }
 
@@ -671,9 +630,7 @@ export function createMentionPlugin(options={}){
             return
           }
           event.preventDefault()
-          const next=text.slice(0,offset)+event.data+text.slice(offset)
-          const nextOffset=offset+event.data.length
-          updateMentionText(entry,next,nextOffset)
+          replaceLabelRange(entry,text,offset,offset,event.data)
           return
         }
 
