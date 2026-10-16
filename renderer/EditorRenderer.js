@@ -520,7 +520,9 @@ export class EditorRenderer {
       this.#destroyingTargets.add(container)
       try {
         for (const entry of mounted.blocks.values()) this.#disposeRenderedElement(entry)
-        container.replaceChildren()
+        // The application or another renderer may have replaced the mount.
+        // Retire only the original owned wrapper, never unrelated DOM nodes.
+        mounted.wrapper.remove()
       } finally {
         this.#destroyingTargets.delete(container)
       }

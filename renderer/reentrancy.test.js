@@ -426,3 +426,58 @@ test('async cleanup return is rejected and contained while owner is released onc
   }
 })
 
+test('destroy(container) preserves application nodes placed after renderTo', async () => {
+  const { EditorRenderer } = await import('./index.js')
+  const renderer = new EditorRenderer({ blockTypes: [], injectStyles: false })
+  const released = []
+  renderer.registerRenderer({
+    type: 'retired-output', schema: passthroughSchema,
+    render() { return document.createElement('article') },
+    destroy(element) { released.push(element) },
+  })
+  const container = document.createElement('main')
+  const data = { version: '2.0.0', blocks: [
+    { id: 'one', type: 'retired-output', dataVersion: 1, data: {} },
+  ] }
+  renderer.renderTo(data, container)
+  const owned = container.firstChild.firstChild
+  const external = document.createElement('aside')
+  container.replaceChildren(external)
+  renderer.destroy(container)
+
+  assert.deepEqual(container.children, [external], 'renderer cannot clear the host replacement')
+  assert.deepEqual(released, [owned], 'the original renderer-owned resource was still released')
+  renderer.destroy(container)
+  assert.deepEqual(released, [owned])
+})
+
+test('tearing down a displaced renderer does not delete a successor renderer output', async () => {
+  const { EditorRenderer } = await import('./index.js')
+  const first = new EditorRenderer({ blockTypes: [], injectStyles: false })
+  const second = new EditorRenderer({ blockTypes: [], injectStyles: false })
+  const released = []
+  first.registerRenderer({
+    type: 'first-output', schema: passthroughSchema,
+    render() { return document.createElement('article') },
+    destroy() { released.push('first') },
+  })
+  second.registerRenderer({
+    type: 'second-output', schema: passthroughSchema,
+    render() { return document.createElement('section') },
+    destroy() { released.push('second') },
+  })
+  const container = document.createElement('main')
+  first.renderTo({ version: '2.0.0', blocks: [
+    { id: 'one', type: 'first-output', dataVersion: 1, data: {} },
+  ] }, container)
+  second.renderTo({ version: '2.0.0', blocks: [
+    { id: 'two', type: 'second-output', dataVersion: 1, data: {} },
+  ] }, container)
+  const successor = container.firstChild
+  first.destroy(container)
+  assert.equal(container.firstChild, successor)
+  assert.deepEqual(released, ['first'])
+  second.destroy(container)
+  assert.equal(container.children.length, 0)
+  assert.deepEqual(released, ['first', 'second'])
+})
