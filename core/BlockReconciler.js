@@ -74,6 +74,8 @@ export class BlockReconciler {
   #projectPresentation
   #activationResolver
   #entries = new Map()
+  /** @type {Set<() => void>} */
+  #pendingProjections = new Set()
   #fieldOwners = new WeakMap()
   #blockOwners = new WeakMap()
   #readOnly
@@ -275,7 +277,8 @@ export class BlockReconciler {
       }
     }
 
-    const previousEntries = new Map(this.#entries)
+    const expectedEntries = this.#entries
+    const previousEntries = new Map(expectedEntries)
     const replaceDocument = changes.some(change => change.kind === 'document.replace')
     const staged = new Map()
     const updates = []
@@ -343,10 +346,28 @@ export class BlockReconciler {
     let recovered = false
     let finalized = false
     let discarded = false
+    // The reconciler owns detached staged entries and replaced predecessors
+    // until the prepared operation has settled. Do not leave a retired
+    // candidate behind when the editor is destroyed between these phases.
+    const retire = () => {
+      if (recovered || finalized || discarded) return
+      recovered = true
+      this.#pendingProjections.delete(retire)
+      for (const entry of staged.values()) this.#destroyEntry(entry)
+      for (const entry of previousEntries.values()) this.#destroyEntry(entry)
+    }
+    this.#pendingProjections.add(retire)
 
     return {
       apply: () => {
+        this.#assertLive()
         if (applied || recovered || finalized) throw new Error('Prepared block projection cannot be applied twice')
+        if (this.#entries !== expectedEntries) {
+          discarded = true
+          this.#pendingProjections.delete(retire)
+          for (const entry of staged.values()) this.#destroyEntry(entry)
+          throw new Error('Prepared block projection owner is stale')
+        }
         applied = true
         const nextEntries = new Map(previousEntries)
 
@@ -396,14 +417,22 @@ export class BlockReconciler {
           }
         }
 
+        // DOM hooks may have synchronously retired this reconciler. A late
+        // transaction must not publish fresh block entries after destroy().
+        this.#assertLive()
+        if (this.#entries !== expectedEntries) {
+          throw new Error('Prepared block projection owner changed during apply')
+        }
         this.#entries = nextEntries
       },
 
       recover: () => {
         if (recovered) return
+        if (this.#destroyed) { retire(); return }
         if (!applied) {
           for (const entry of staged.values()) this.#destroyEntry(entry)
           recovered = true
+          this.#pendingProjections.delete(retire)
           return
         }
 
@@ -449,9 +478,11 @@ export class BlockReconciler {
         ])
         for (const entry of candidates) if (!keep.has(entry)) this.#destroyEntry(entry)
         recovered = true
+        this.#pendingProjections.delete(retire)
       },
 
       finalize: () => {
+        this.#assertLive()
         if (finalized || recovered) return
         if (!applied) throw new Error('Cannot finalize an unapplied block projection')
 
@@ -476,12 +507,14 @@ export class BlockReconciler {
         this.#animator.animateMoves(this.#entries, firstRects)
         for (const item of insertions) this.#animator.animateInsert(item.entry.element)
         finalized = true
+        this.#pendingProjections.delete(retire)
       },
 
       discard: () => {
         if (discarded || finalized || recovered) return
-        discarded = true
         if (applied) return
+        discarded = true
+        this.#pendingProjections.delete(retire)
         for (const entry of staged.values()) this.#destroyEntry(entry)
       },
     }
@@ -534,6 +567,8 @@ export class BlockReconciler {
     const owned=[...this.#entries.values()]
     this.#entries.clear()
     for (const entry of owned) this.#destroyEntry(entry)
+    for (const retire of [...this.#pendingProjections])retire()
+    this.#pendingProjections.clear()
     this.#inlineProjection?.destroy?.()
     this.#animator.destroy()
     // Each owned shell is already detached by #destroyEntry. Do not clear
