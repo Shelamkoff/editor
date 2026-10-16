@@ -275,10 +275,13 @@ export interface InlineWidgetEditInput {
   readonly deletionRange?: Readonly<{ start: number, end: number }>
 }
 
+/** Optional caret is a widget-label-local UTF-16 offset for a completed
+ * immediate action. It never grants native Range or general field authority.
+ */
 export type InlineWidgetEditAction<D extends object> =
-  | { kind: 'update', data: D }
-  | { kind: 'remove' }
-  | { kind: 'replace-text', text: string }
+  | { kind: 'update', data: D, caret?: number }
+  | { kind: 'remove', caret?: number }
+  | { kind: 'replace-text', text: string, caret?: number }
 
 export type InlineNativeDeletionType =
   | 'deleteContentBackward' | 'deleteContentForward'
