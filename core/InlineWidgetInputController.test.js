@@ -471,3 +471,23 @@ test('a collapsed browser target range is not a usable word-deletion interval',(
     blockId:'a',fieldKey:'text',mode:'rich-text',element:state.field,
   },input,native)?.inputType,'deleteWordBackward')
 })
+
+test('a collapsed browser target range permits a directly owned character deletion fallback',()=>{
+  const state=fixture(input=>{
+    assert.equal(input.inputType,'deleteContentBackward')
+    assert.equal(input.deletionRange,undefined)
+    return {kind:'update',data:{id:'ada',name:'Ad'},caret:3}
+  })
+  const text=state.widget.firstChild
+  const own=state.emit(state.field,{
+    getTargetRanges:()=>[{
+      startContainer:text,startOffset:3,
+      endContainer:text,endOffset:3,collapsed:true,
+    }],
+  })
+  assert.equal(own.canceled,true)
+  assert.equal(state.invokes,1)
+  assert.deepEqual(state.writes[0],[
+    'update','a','mention-1',{id:'ada',name:'Ad'},
+  ])
+})
