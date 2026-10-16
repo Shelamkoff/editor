@@ -1,7 +1,8 @@
 import { createColorSwatchPlugin } from '../../inline-plugins/color.js'
+import { createParagraphPlugin, createTablePlugin } from '../../plugins/index.js'
 import { restoreSelectionByOffsets } from '../../shared/textOffset.js'
 import { CLIPBOARD_FRAGMENT_MIME } from '../../core/ClipboardFragment.js'
-import { test, make, para, editableField, editorRoot, select, assert, equal, texts, run } from './regressions/harness.js'
+import { test, make, para, editableField, editorRoot, select, paste, assert, equal, texts, run } from './regressions/harness.js'
 import { dispatchKey, selectAcross, decodeInline } from './native-input-helpers.js'
 
 for (const backwards of [false, true]) {
@@ -89,6 +90,46 @@ test('native private clipboard carries only the selected atomic widget', async (
   equal(texts(destination), [''])
   destination.redo()
   equal(decodeInline(destination), ['A#ff0000B'])
+})
+
+test('external multi-paragraph HTML replaces a local selection and is one Undo step', async () => {
+  const editor = make([para('a', 'abcDEFghi')])
+  const target = editableField(editor, 'a')
+  select(target, 3, 6)
+  await paste(target, {
+    'text/html': '<p>X</p><p>Y</p>',
+    'text/plain': 'X\nY',
+  })
+  equal(texts(editor), ['abcXghi', 'Y'], 'leading paragraph did not replace selected text')
+  assert(editor.canUndo, 'HTML paste was not recorded as an authored edit')
+  editor.undo()
+  equal(texts(editor), ['abcDEFghi'], 'Undo must restore selected author text and remove inserted block')
+  equal(editor.canUndo, false, 'the paste created more than one history entry')
+  editor.redo()
+  equal(texts(editor), ['abcXghi', 'Y'])
+})
+
+test('external structural-first HTML does not delete selected paragraph text', async () => {
+  const editor = make([para('a', 'abcDEFghi')], {
+    plugins: [createParagraphPlugin(), createTablePlugin()],
+  })
+  const target = editableField(editor, 'a')
+  select(target, 3, 6)
+  await paste(target, {
+    'text/html': '<table><tr><td>Q</td></tr></table>',
+    'text/plain': 'Q',
+  })
+  const blocks = editor.save().blocks
+  equal(blocks.length, 2)
+  equal(blocks[0].data.text, 'abcDEFghi', 'structural-first HTML erased selected author text')
+  equal(blocks[1].type, 'table')
+  equal(blocks[1].data.rows[0].cells[0].text, 'Q')
+  editor.undo()
+  equal(texts(editor), ['abcDEFghi'])
+  equal(editor.canUndo, false)
+  editor.redo()
+  equal(editor.save().blocks[0].data.text, 'abcDEFghi')
+  equal(editor.save().blocks[1].type, 'table')
 })
 
 await run()
