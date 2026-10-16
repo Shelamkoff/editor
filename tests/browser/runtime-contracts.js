@@ -2226,4 +2226,28 @@ test('empty paragraph HTML Paste retains a selected text range and its history',
 })
 
 
+for(const [tag,html] of [
+  ['paragraph','<p><b>X</b></p>'],
+  ['single div','<div><b>X</b></div>'],
+]){
+  test('single '+tag+' HTML fragment replaces a local selection inline as in v1',async()=>{
+    const editor=make([para('a','Alpha')])
+    const field=editableField(editor,'a')
+    select(field,2,4)
+    const before=editor.save().blocks
+    const data=new DataTransfer()
+    data.setData('text/html',html)
+    const event=new ClipboardEvent('paste',{clipboardData:data,bubbles:true,cancelable:true})
+    field.dispatchEvent(event)
+    await Promise.resolve()
+    check(event.defaultPrevented,'HTML Paste was not owned by the editor')
+    equal(editor.save().blocks,[para('a','Al<b>X</b>a')],
+      'Text-like single HTML root inserted an unwanted extra block or lost the selected range')
+    editor.undo()
+    equal(editor.save().blocks,before,'Undo did not restore the inline HTML selection')
+    equal(editor.canUndo,false,'Inline HTML Paste produced more than one history action')
+  })
+}
+
+
 await run()
