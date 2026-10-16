@@ -241,7 +241,12 @@ export class InlineWidgetInputController {
     const current=this.#runtime.get(snapshot.blockId)
     if(field?.element!==snapshot.fieldElement
       ||current?.type!==snapshot.blockType)return
-    this.#runtime.discardProjectionEdits?.()
+    try {
+      this.#runtime.discardProjectionEdits?.()
+    } catch (error) {
+      this.#report(error)
+      throw error
+    }
   }
 
   #prepareNativeChanges(snapshot){
