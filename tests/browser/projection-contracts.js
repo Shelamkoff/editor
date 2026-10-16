@@ -701,4 +701,108 @@ test('prepared inline creation denies same-block reentry and survives a declined
   } finally { projection.destroy() }
 })
 
+
+
+test('prepared inline widget owners are released when runtime is destroyed before apply', () => {
+  let created = 0
+  const released = []
+  const registry = {
+    getInlineDefinition: () => ({ schema: { decode: input => input } }),
+    getInlineRuntime: () => ({ create(id) {
+      created++
+      return {
+        element: document.createElement('span'),
+        setReadOnly() {},
+        destroy() { released.push(id) },
+      }
+    } }),
+  }
+  const projection = new InlineProjectionRuntime({ registry, ownerDocument: document })
+  const field = document.createElement('div')
+  const prepared = projection.prepareBlock('a', {
+    data: { fields: [{ key: 'text', html: '{{x}}' }] }, inline: { x: payload },
+  }, { schema }, [{ key: 'text', mode: 'rich-text', element: field }],
+  { createInlineWidgetContext: () => ({}) }, 1)
+
+  equal(created, 1)
+  equal(released, [])
+  projection.destroy()
+  equal(released, ['x'], 'unpublished widget must be owned and retired by runtime destroy')
+  let applyError = '', finalizeError = ''
+  try { prepared.apply() } catch (error) { applyError = error.message }
+  try { prepared.finalize() } catch (error) { finalizeError = error.message }
+  assert(/destroyed/.test(applyError))
+  assert(/destroyed/.test(finalizeError))
+  equal(released, ['x'], 'stale handle must not reacquire or re-dispose revoked widget')
+})
+
+test('destroying a runtime with applied but unfinalized inline state releases both owners', () => {
+  const created = []
+  const released = []
+  const registry = {
+    getInlineDefinition: () => ({ schema: { decode: input => input } }),
+    getInlineRuntime: () => ({ create(id, data) {
+      created.push(data.label)
+      return {
+        element: document.createElement('span'),
+        setReadOnly() {},
+        destroy() { released.push(data.label) },
+      }
+    } }),
+  }
+  const projection = new InlineProjectionRuntime({ registry, ownerDocument: document })
+  const fields = [{ key: 'text', mode: 'rich-text', element: document.createElement('div') }]
+  const record = label => ({
+    data: { fields: [{ key: 'text', html: '{{x}}' }] },
+    inline: { x: { type: 'unloaded', dataVersion: 3, data: { label } } },
+  })
+  projection.reconcileBlock('a', record('old'), { schema }, fields,
+    { createInlineWidgetContext: () => ({}) })
+  const prepared = projection.prepareBlock('a', record('candidate'), { schema }, fields,
+    { createInlineWidgetContext: () => ({}) }, 2)
+  prepared.apply()
+  projection.destroy()
+  equal(created, ['old', 'candidate'])
+  equal([...released].sort(), ['candidate', 'old'])
+  let finalizeError = ''
+  try { prepared.finalize() } catch (error) { finalizeError = error.message }
+  assert(/destroyed/.test(finalizeError))
+  prepared.recover()
+  equal(released.length, 2, 'retired preparation cannot revive the previous owner')
+})
+
+test('an old prepared inline handle cannot overwrite a newer applied block state', () => {
+  const releases = []
+  const registry = {
+    getInlineDefinition: () => ({ schema: { decode: input => input } }),
+    getInlineRuntime: () => ({ create(id, data) {
+      return {
+        element: document.createElement('span'),
+        setReadOnly() {},
+        destroy() { releases.push(data.label) },
+      }
+    } }),
+  }
+  const projection = new InlineProjectionRuntime({ registry, ownerDocument: document })
+  const fields = [{ key: 'text', mode: 'rich-text', element: document.createElement('div') }]
+  const record = label => ({
+    data: { fields: [{ key: 'text', html: '{{x}}' }] },
+    inline: { x: { type: 'unloaded', dataVersion: 3, data: { label } } },
+  })
+  try {
+    const first = projection.prepareBlock('a', record('first'), { schema }, fields,
+      { createInlineWidgetContext: () => ({}) }, 1)
+    const stale = projection.prepareBlock('a', record('stale'), { schema }, fields,
+      { createInlineWidgetContext: () => ({}) }, 1)
+    first.apply()
+    let message = ''
+    try { stale.apply() } catch (error) { message = error.message }
+    assert(/owner is stale/.test(message))
+    equal(releases, ['stale'], 'rejected candidate is disposed without displacing first')
+    first.finalize()
+    projection.destroyBlock('a')
+    equal(releases, ['stale', 'first'])
+  } finally { projection.destroy() }
+})
+
 await run()

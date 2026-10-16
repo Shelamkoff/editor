@@ -46,6 +46,8 @@ export class InlineProjectionRuntime {
   #ownerDocument
   #blocks=new Map()
   #projectingBlocks=new Set()
+  /** @type {Set<() => void>} */
+  #pendingPreparations=new Set()
   #owned=new WeakMap()
   #readOnly
   #destroyed=false
@@ -114,35 +116,65 @@ export class InlineProjectionRuntime {
     let applied=false
     let finished=false
     const destroyCandidate=()=>this.#destroyState(state)
+    // A detached prepared state is still owned by this runtime. Track both
+    // its provisional resources and the retired predecessor until settlement.
+    const retire=()=>{
+      if(finished)return
+      finished=true
+      this.#pendingPreparations.delete(retire)
+      destroyCandidate()
+      if(previous&&previous!==state)this.#destroyState(previous)
+    }
+    this.#pendingPreparations.add(retire)
 
     return Object.freeze({
       apply:()=>{
+        this.#assertLive()
         if(finished||applied)throw new Error('Prepared inline projection cannot be applied twice')
+        if(this.#blocks.get(blockId)!==previous){
+          finished=true
+          this.#pendingPreparations.delete(retire)
+          destroyCandidate()
+          throw new Error('Prepared inline projection owner is stale')
+        }
         this.#blocks.set(blockId,state)
         applied=true
       },
       recover:()=>{
         if(finished)return
-        if(applied){
+        finished=true
+        this.#pendingPreparations.delete(retire)
+        if(applied&&!this.#destroyed&&this.#blocks.get(blockId)===state){
           if(previous)this.#blocks.set(blockId,previous)
           else this.#blocks.delete(blockId)
         }
         destroyCandidate()
-        finished=true
+        if(applied&&!this.#destroyed&&previous
+          &&this.#blocks.get(blockId)!==previous)this.#destroyState(previous)
       },
       finalize:()=>{
+        this.#assertLive()
         if(finished)return
         if(!applied)throw new Error('Cannot finalize an unapplied inline projection')
+        if(this.#blocks.get(blockId)!==state){
+          finished=true
+          this.#pendingPreparations.delete(retire)
+          destroyCandidate()
+          if(previous&&this.#blocks.get(blockId)!==previous)this.#destroyState(previous)
+          throw new Error('Prepared inline projection owner is stale')
+        }
         state.staged=false
         for(const entry of state.widgets.values())entry.scope?.activate?.()
-        if(previous&&previous!==state)this.#destroyState(previous)
         finished=true
+        this.#pendingPreparations.delete(retire)
+        if(previous&&previous!==state)this.#destroyState(previous)
       },
       discard:()=>{
         if(finished)return
         if(applied)throw new Error('Applied inline projection must recover or finalize')
-        destroyCandidate()
         finished=true
+        this.#pendingPreparations.delete(retire)
+        destroyCandidate()
       },
     })
   }
@@ -431,6 +463,10 @@ export class InlineProjectionRuntime {
     if(this.#destroyed)return
     this.#destroyed=true
     for(const blockId of [...this.#blocks.keys()])this.destroyBlock(blockId)
+    // Also revoke candidates that have not been applied, and predecessors
+    // replaced by an applied candidate awaiting finalize/recover.
+    for(const retire of [...this.#pendingPreparations])retire()
+    this.#pendingPreparations.clear()
   }
 
   #projectState(blockId,state,record,definition,fields,baseContext,{preserveSourceProjection=false}={}){
