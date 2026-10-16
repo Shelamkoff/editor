@@ -301,3 +301,28 @@ npm run docs:check
 Изолированное red/green воспроизведение подтвердило: до исправления `finalize(); recover()` возвращал список блоков с `['a','b']` обратно к `['a']`; после исправления опубликованные `['a','b']` сохраняются. После `discard()` новый `apply()` отклоняется. Нормальный `recover()` после незавершённого `apply()` остаётся доступен.
 
 **Обновлённый итог данного прохода:** 7 коммитов с исправлениями и **19 новых регрессионных тестов**, из которых **8 браузерных**, **11 Node**. Это число новых исходных тестов, а не заявление, что полный test suite запущен и пройден. Полная TypeScript/Node/Chrome проверка и v1/v2 differential parity на текущем HEAD всё ещё ожидают локального выполнения.
+
+## Независимая проверка перекрывающихся prepared транзакций и rollback DOM (2026-10-16, следующий проход)
+
+**Исходный HEAD:** `0219c7c63a71be4b09718a9a7bcca7dea827357c`; **последний кодовый HEAD:** `d165593cc15a34fca09bc64cc750b5a9bc95c206`. Все коммиты непосредственно в `refactor/rector-v2-architecture` с проверкой исходного SHA перед обновлением branch ref.
+
+| ID | Приоритет | Исходная подтверждённая ошибка | Исправление и тесты |
+|---|---|---|---|
+| BR8 | P1 | После `p1.apply()` и `p2.apply()/finalize()` запоздалый `p1.recover()` сбрасывал DOM и `#entries` к исходной версии, удалял результат successor и мог утекать его disposer. Запоздалый `p1.finalize()` тоже не проверял текущего владельца. | `9ba3674`: per-preparation identity опубликованной карты, отмена stale recovery/finalize, передача cleanup актуальному владельцу; **3 Node теста** |
+| IR8 | P1 | Inline `p1.recover()/finalize()` после `p2.apply()` уничтожали widget-кандидат p1, который p2 ещё мог вернуть через `p2.recover()`. Получался пустой/уничтоженный восстановленный occurrence. | `2e635fc`: stale-подготовка не уничтожает recoverable predecessor, его освобождает successor; **2 browser теста** |
+| BR9 | P1 | `p1.apply()` мог прерваться после частичного `insertBefore` из-за синхронной публикации p2. При этом `publishedEntries` ещё `null`; последующий `p1.recover()` сбрасывал p2, а `p1.finalize()` допускал старый handle. | `aa7b3ed`: проверка prepublication `expectedEntries`, release только staged p1 и неприкосновенность current successor; **2 Node теста** |
+| BR10 | P2 | Если `recover()` создавал свежий экземпляр, а DOM `replaceChildren` изменял дерево и бросал исключение, новый экземпляр терялся; повторный `recover()` оставлял по одной утечке на попытку. | `d85d748`: per-attempt cleanup восстановленных candidates и восстановление owner pointer для повторной попытки; **2 Node теста** |
+| IR9 | P1 | `destroyBlock(id)` не отзывал `prepareBlock(id)`, когда live state ещё не существовало. Stale `apply()` вновь публиковал уже удалённый блок. Вызов `destroyBlock` из `runtime.create()` тоже обходил отзыв. | `cbc4337`: block-specific pending preparation revocation и invalidation during synchronous projection; **3 browser теста** |
+| IR10 | P1 | `setAttribute('data-inline-plugin')` у custom element синхронно вызывал `attributeChangedCallback`, который уничтожал блок. `#hydrateField` всё равно вставлял отозванный widget root в DOM. | `c9ee8ef`: повторная проверка owner authority непосредственно после установки host identity attributes; **2 browser теста** |
+| BR11 | P1/P2 | Неудачный `BlockReconciler.restore()` оставлял ссылку на новый `DocumentStore` при активных старых экземплярах. Если `replaceChildren` менял DOM перед исключением, старые оболочки не возвращались, хотя новые были освобождены. | `d165593`: store rollback, atomic DOM child-order restoration и независимая очистка новых owners; **2 Node теста** |
+
+**Объём прохода:** 7 кодовых коммитов, **16 новых регрессионных тестов**: 9 Node (`core/BlockReconciler.test.js`), 7 браузерных (`tests/browser/projection-contracts.js`).
+
+### Доказательства, охват и блокеры
+
+- На реально полученных версиях исходников из GitHub отдельно воспроизведены: сброс `['a','b','c']` к `['a']` из stale block recovery; отозванный предшественник после inline stale rollback; потеря successor от partially applied reentrant DOM commit; одна/две утечки восстановленных instance после двух ошибок `replaceChildren`; успешный `apply` удалённого, но лишь staged inline block; повторная публикация widget при синхронном attribute callback; сохранявшийся чужой store и невосстановленный DOM при failed `restore`.
+- Изолированные версии с точными изменёнными исходниками исправляют приведённые наблюдаемые эффекты. Выполнена финальная повторная синтаксическая проверка шести доступных JavaScript модулей/тестов (фактические GitHub blobs, временное снятие ESM в V8-проверке), без ошибок.
+- Полные `npm test`, `npm run typecheck`, `npm run test:browser`, `npm run test:docs`, `npm run test:types` и `npm run test:package` **не выполнены** на этом HEAD. В контейнере Node.js v22 установлен, но исходный checkout отсутствует, `git ls-remote` возвращает `Could not resolve host: github.com`. Прямые GitHub коммиты выполнялись через подключённый GitHub, не как эквивалент локального test run.
+- Поведенческий паритет с v1, end-to-end IME, caret, toolbar, history, clipboard, memory/heap и нативные Chrome/другие браузерные engines всё ещё требуют project gates. Степень готовности к релизу не следует устанавливать по количеству локальных исправлений.
+
+**Следующая диагностическая область:** проверить корректность совместной lifetime-авторизации block/widget root и восстановление `#fieldOwners` при повторных read/restore и ошибках внешних callback, но не изменять эту область без самостоятельного red/green сценария.
