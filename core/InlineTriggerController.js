@@ -197,7 +197,14 @@ export class InlineTriggerController {
       cancel:()=>{if(this.#active===active&&active.session===session)this.#cancel()},
     })
     active.session=session
-    active.runtime.onTriggerQuery?.(session)
+    try {
+      active.runtime.onTriggerQuery?.(session)
+    } catch (error) {
+      // A failed interactive query must not keep a query lease/popup alive.
+      // A newer reentrant session is a separate owner and stays untouched.
+      if (this.#active === active && active.session === session) this.#cancel()
+      try { this.#reportError(error) } catch {}
+    }
   }
 
   #onKeyDown(event){
@@ -209,7 +216,21 @@ export class InlineTriggerController {
       this.#cancel()
       return
     }
-    const result=active.runtime.onTriggerKeydown?.(event,active.session)??'pass'
+    let result
+    try {
+      result=active.runtime.onTriggerKeydown?.(event,active.session)??'pass'
+      if(result!=='handled'&&result!=='pass'){
+        throw new TypeError('Inline onTriggerKeydown() must return "handled" or "pass"')
+      }
+    } catch (error) {
+      // The active query owns this key. An invalid plugin result must not
+      // fall through to native editing or a generic Enter/Tab block command.
+      event.preventDefault?.()
+      event.stopPropagation?.()
+      if(this.#active===active)this.#cancel()
+      try {this.#reportError(error)} catch {}
+      return
+    }
     if(result==='handled'){
       event.preventDefault()
       event.stopPropagation()

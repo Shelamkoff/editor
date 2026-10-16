@@ -69,3 +69,90 @@ test('deferred inline trigger refresh and input never reactivate after read-only
   assert.equal(h.captures(), 1, 'destroyed refresh probed stale selection')
   assert.equal(h.inputRoutes(), 1, 'destroyed input entered trigger dispatch')
 })
+
+function triggerScenario(query,keydown) {
+  const events=new Map(),calls=[],errors=[]
+  const label={nodeType:3,textContent:'@'}
+  const field={
+    isConnected:true,textContent:'@',
+    contains(node){return node===label},
+  }
+  const document={
+    defaultView:{AbortController,getSelection(){return {focusNode:label,focusOffset:1}}},
+    createRange(){return {
+      selectNodeContents(){},setEnd(){},toString(){return '@'},
+    }},
+    addEventListener(){},
+  }
+  const root={
+    ownerDocument:document,
+    contains(node){return node===field},
+    addEventListener(type,listener){events.set(type,listener)},
+  }
+  const runtime={
+    onTriggerQuery(session){calls.push('query');query?.(session)},
+    onTriggerKeydown(event,session){calls.push('keydown');return keydown?.(event,session)},
+    onTriggerCancel(){calls.push('cancel')},
+  }
+  const point={blockId:'a',fieldKey:'text',offset:1}
+  const controller=new InlineTriggerController({
+    root,
+    registry:{
+      inlineTypes:['probe'],
+      getInlineDefinition(){return {trigger:'@'}},
+      getInlineRuntime(){return runtime},
+    },
+    reconciler:{
+      getEditableField(){return {mode:'rich-text',element:field}},
+      resolveEditableTarget(){return {mode:'rich-text',element:field,blockId:'a',fieldKey:'text'}},
+    },
+    selection:{capture(){return {anchor:point,focus:{...point}}}},
+    commands:{},
+    isReadOnly:()=>false,
+    reportError(error){errors.push(error)},
+  })
+  const press=()=>{
+    let prevented=false,stopped=false
+    events.get('keydown')({
+      key:'Enter',target:field,
+      preventDefault(){prevented=true},
+      stopPropagation(){stopped=true},
+    })
+    return {prevented,stopped}
+  }
+  return {controller,calls,errors,press}
+}
+
+for (const [name,decision] of [
+  ['throw',()=>{throw new Error('Trigger keydown failed')}],
+  ['invalid',()=>({unexpected:true})],
+]) {
+  test('invalid inline trigger '+name+' consumes the owned key and retires exactly one query',()=>{
+    const h=triggerScenario(null,decision)
+    assert.equal(h.controller.refresh(),true)
+    assert.equal(h.controller.isActive,true)
+    const event=h.press()
+    assert.deepEqual(event,{prevented:true,stopped:true},
+      'failed trigger was allowed to reach ordinary Enter editing')
+    assert.equal(h.controller.isActive,false)
+    assert.equal(h.calls.filter(call=>call==='cancel').length,1)
+    assert.equal(h.errors.length,1,'failed trigger was not reported')
+    h.controller.destroy()
+    assert.equal(h.calls.filter(call=>call==='cancel').length,1)
+  })
+}
+
+test('throwing inline query retires its exact session and can start a healthy successor',()=>{
+  let fail=true
+  const h=triggerScenario(()=>{
+    if(fail){fail=false;throw new Error('Failed query')}
+  },()=> 'pass')
+  assert.equal(h.controller.refresh(),false,'failed query retained its session')
+  assert.equal(h.controller.isActive,false)
+  assert.equal(h.errors.length,1,'failed query was not reported')
+  assert.equal(h.calls.filter(call=>call==='cancel').length,1)
+  assert.equal(h.controller.refresh(),true,'a later valid query cannot recover')
+  assert.equal(h.controller.isActive,true)
+  h.controller.destroy()
+  assert.equal(h.calls.filter(call=>call==='cancel').length,2)
+})
