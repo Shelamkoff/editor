@@ -1004,3 +1004,116 @@ test('same-type toolbox configuration preserves unrelated author data and one Un
   assert.equal(runtime.canUndo, false)
   runtime.destroy()
 })
+
+test('native inline reconciliation synchronizes normalized sidecar before one commit',()=>{
+  const plugin=registry([paragraphDefinition({
+    mapRichText:(data,visit)=>({...data,text:visit(data.text,'text')}),
+  })])
+  plugin.getInlineDefinition=type=>type==='mention'?{schema:{
+    currentVersion:1,
+    encode(data){return {dataVersion:1,data:{id:data.id,name:data.name.trim()}}},
+    decode(input){return {dataVersion:1,data:{id:input.data.id,name:input.data.name}}},
+  }}:null
+  const field={isConnected:true}
+  let projected={text:'{{person}}'}
+  let applied=0,finalized=0
+  const projector={
+    getEditableField:(id,key)=>id==='a'&&key==='text'?{element:field}:null,
+    readBlock(){return {data:projected}},
+    restore(store){projected={...store.get('a').data}},
+    prepare({draft}){
+      return {
+        apply(){projected={...draft.get('a').data}},
+        recover(){},
+        finalize(){},
+        discard(){},
+      }
+    },
+  }
+  const runtime=new DocumentRuntime({
+    registry:plugin,
+    projector,
+    data:{version:'2.0.0',blocks:[block('a',{text:'{{person}}'},
+      {inline:{person:{type:'mention',dataVersion:1,data:{id:'ada',name:'Ada'}}}})]},
+  })
+  const before=runtime.save().blocks
+  const source={id:'person',type:'mention',element:{},instance:{}}
+  const makeSnapshot=()=>({
+    blockId:'a',fieldKey:'text',blockType:'paragraph',fieldElement:field,
+    generation:runtime.generation,revision:runtime.revision,
+    occurrences:[source],
+    selectionBefore:null,
+    applyChanges(changes){applied+=changes.length},
+    finalizeChanges(changes,canonicalInline){
+      finalized++
+      assert.equal(changes.length,1)
+      assert.equal(canonicalInline.person.data.name,'Ada')
+    },
+  })
+  const unchanged=runtime.reconcileNativeInlineInput(makeSnapshot(),()=>[{
+    ...source,action:{kind:'update',data:{id:'ada',name:' Ada '}},
+  }])
+  assert.deepEqual(unchanged,{status:'unchanged'})
+  assert.equal(runtime.revision,0)
+  assert.equal(runtime.canUndo,false)
+  assert.deepEqual(runtime.save().blocks,before)
+  assert.equal(applied,1)
+  assert.equal(finalized,1)
+
+  const changedSnapshot=makeSnapshot()
+  changedSnapshot.finalizeChanges=(changes,canonicalInline)=>{
+    assert.equal(canonicalInline.person.data.name,'Grace')
+  }
+  const changed=runtime.reconcileNativeInlineInput(changedSnapshot,()=>[{
+    ...source,action:{kind:'update',data:{id:'ada',name:' Grace '}},
+  }])
+  assert.deepEqual(changed,{status:'committed'})
+  assert.equal(runtime.save().blocks[0].inline.person.data.name,'Grace')
+  assert.equal(runtime.canUndo,true)
+  runtime.undo()
+  assert.deepEqual(runtime.save().blocks,before)
+  assert.equal(runtime.canUndo,false)
+  runtime.destroy()
+})
+
+test('native inline preparation rejection cannot partially change current canonical data',()=>{
+  const plugin=registry([paragraphDefinition({
+    mapRichText:(data,visit)=>({...data,text:visit(data.text,'text')}),
+  })])
+  plugin.getInlineDefinition=type=>type==='mention'?{schema:{
+    currentVersion:1,
+    encode:data=>({dataVersion:1,data:{id:data.id,name:data.name}}),
+    decode:input=>({dataVersion:1,data:input.data}),
+  }}:null
+  const field={}
+  let restored=0,producerCalls=0
+  const runtime=new DocumentRuntime({
+    registry:plugin,
+    data:{version:'2.0.0',blocks:[block('a',{text:'{{person}}'},
+      {inline:{person:{type:'mention',dataVersion:1,data:{id:'ada',name:'Ada'}}}})]},
+    projector:{
+      getEditableField:()=>({element:field}),
+      readBlock:()=>({data:{text:'{{person}}'}}),
+      restore(){restored++},
+      prepare(){return {apply(){},recover(){},finalize(){},discard(){}}},
+    },
+  })
+  const before=runtime.save().blocks
+  const source={id:'person',type:'mention',element:{},instance:{}}
+  const snapshot={
+    blockId:'a',fieldKey:'text',blockType:'paragraph',fieldElement:field,
+    generation:runtime.generation,revision:runtime.revision,
+    occurrences:[source],selectionBefore:null,
+    applyChanges(){producerCalls++},
+  }
+  assert.throws(()=>runtime.reconcileNativeInlineInput(snapshot,()=>[
+    {...source,action:{kind:'update',data:{id:'ada',name:'Changed'}}},
+    {...source,action:{kind:'remove'}},
+  ]),/another occurrence/)
+  assert.equal(producerCalls,0)
+  assert.equal(restored,1)
+  assert.deepEqual(runtime.save().blocks,before)
+  assert.equal(runtime.revision,0)
+  assert.equal(runtime.canUndo,false)
+  runtime.destroy()
+})
