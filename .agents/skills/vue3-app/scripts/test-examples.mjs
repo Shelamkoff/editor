@@ -1,11 +1,13 @@
-// Execute the pure TypeScript URL parsers embedded in the actual skill reference.
-// Requires Node with TypeScript stripping; no Vue runtime behavior is tested here.
+// Execute the actual skill reference's pure TypeScript URL parsers under every
+// Node version supported by Rector, including Node 20 without TS stripping.
+// No Vue runtime behavior is tested here.
 import assert from 'node:assert/strict'
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { after, test } from 'node:test'
+import ts from 'typescript'
 
 const source = new URL('../../vue-pinia-best-practices/reference/state-url-for-ephemeral-filters.md', import.meta.url)
 const markdown = await readFile(source, 'utf8')
@@ -14,8 +16,12 @@ assert.ok(block, 'The URL reference must contain its executable TypeScript examp
 const directory = await mkdtemp(join(tmpdir(), 'ecom-skill-example-'))
 after(() => rm(directory, { recursive: true, force: true }))
 await writeFile(join(directory, 'package.json'), '{"type":"module"}\n')
-const target = join(directory, 'url-example.ts')
-await writeFile(target, block[1])
+const target = join(directory, 'url-example.mjs')
+const javascript = ts.transpileModule(block[1], {
+  fileName: 'url-example.ts',
+  compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 },
+}).outputText
+await writeFile(target, javascript)
 const { readFlag, readPage } = await import(pathToFileURL(target).href)
 
 test('textual false and zero are false, not truthy strings', () => {
