@@ -571,6 +571,7 @@ test('claiming an inline edit retires prior pending input before a stopped bubbl
 
 test('a later native selection change revokes queued inline caret restoration',async()=>{
   const state=fixture(()=>({kind:'update',data:{id:'ada',name:'Ad'},caret:3}))
+  state.field.ownerDocument=state.root.ownerDocument
   const moved={nodeType:3,textContent:'Unrelated'}
   let caretCalls=0
   const native={
@@ -593,6 +594,7 @@ test('a later native selection change revokes queued inline caret restoration',a
 
 test('unchanged native selection permits the just-accepted inline caret result',async()=>{
   const state=fixture(()=>({kind:'update',data:{id:'ada',name:'Ad'},caret:3}))
+  state.field.ownerDocument=state.root.ownerDocument
   let caretCalls=0,position=null
   const native={
     isCollapsed:true,
