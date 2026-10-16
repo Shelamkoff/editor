@@ -1103,6 +1103,90 @@ export class DocumentRuntime {
     return this.replaceInlineWidgetWithText(blockId, inlineId, '')
   }
 
+  /** One internal, atomic native inline edit. It reuses the existing
+   * protected projection transaction and recovery boundary; no second
+   * persisted-data or extension API is introduced.
+   */
+  reconcileNativeInlineInput(snapshot, prepare) {
+    this.#assertInteractionMutation()
+    if (!snapshot || typeof prepare !== 'function') {
+      throw new TypeError('Native inline reconciliation requires its captured owner and preparation')
+    }
+    const blockId = snapshot.blockId
+    const fieldKey = snapshot.fieldKey
+    const current = this.#store.get(blockId)
+    const field = this.#projector?.getEditableField?.(blockId, fieldKey)
+    if (!current || current.type !== snapshot.blockType
+      || !field || field.element !== snapshot.fieldElement
+      || this.#store.generation !== snapshot.generation
+      || this.revision !== snapshot.revision) return { status: 'stale' }
+
+    const beforeRevision = this.revision
+    let candidateInline = null
+    let capturedChanges = []
+    this.syncBlockFromProjection(blockId, () => {
+      const output = this.prepareExtensionValue(() => {
+        const current = this.#store.get(blockId)
+        if (!current || current.type !== snapshot.blockType) {
+          throw new Error('Native inline source changed during reconciliation')
+        }
+        const raw = synchronousResult(prepare())
+        if (!Array.isArray(raw)) throw new TypeError('Native inline changes must be an array')
+        const sidecar = cloneInline(current.inline) ?? {}
+        const changes = [], seen = new Set()
+        for (let index = 0; index < raw.length; index++) {
+          if (!Object.hasOwn(raw,index)) throw new TypeError('Native inline changes must be dense')
+          const change = raw[index]
+          const source = snapshot.occurrences.find(candidate => candidate.id === change?.id)
+          if (!source || seen.has(source.id) || change.type !== source.type
+            || change.element !== source.element || change.instance !== source.instance
+            || !Object.hasOwn(sidecar,source.id) || sidecar[source.id].type !== source.type) {
+            throw new TypeError('Native inline edit cannot address another occurrence')
+          }
+          seen.add(source.id)
+          const action = cloneEditorData(synchronousResult(change.action))
+          if (!action || typeof action !== 'object' || Array.isArray(action)) {
+            throw new TypeError('Invalid native inline action')
+          }
+          if (action.kind === 'update') {
+            if (!action.data || typeof action.data !== 'object' || Array.isArray(action.data)) {
+              throw new TypeError('Native inline payload update requires an object')
+            }
+            const definition = this.#registry.getInlineDefinition(source.type)
+            if (!definition?.schema) throw new Error('Native inline definition is no longer registered')
+            const encoded = cloneEditorData(synchronousResult(definition.schema.encode(action.data)))
+            const decoded = cloneEditorData(synchronousResult(definition.schema.decode(encoded)))
+            Object.defineProperty(sidecar,source.id,{value:{
+              type:source.type,dataVersion:encoded.dataVersion,data:encoded.data,
+            },enumerable:true,configurable:true,writable:true})
+            changes.push({id:source.id,type:source.type,element:source.element,
+              instance:source.instance,action:{kind:'update',data:decoded.data}})
+          } else if (action.kind === 'remove' || action.kind === 'replace-text') {
+            if (action.kind === 'replace-text' && typeof action.text !== 'string') {
+              throw new TypeError('Native inline replacement must be plain text')
+            }
+            delete sidecar[source.id]
+            changes.push({id:source.id,type:source.type,element:source.element,
+              instance:source.instance,action})
+          } else throw new TypeError('Unknown native inline edit action')
+        }
+        return {sidecar,changes}
+      })
+      candidateInline = output.sidecar
+      capturedChanges = output.changes
+      snapshot.applyChanges(capturedChanges)
+    }, {
+      origin: 'native-input',
+      name: 'inline.native-reconcile',
+      selectionBefore: snapshot.selectionBefore,
+      preserveSourceProjection: true,
+      nativeInlineCandidate: () => candidateInline,
+    })
+    const status = this.revision === beforeRevision ? 'unchanged' : 'committed'
+    snapshot.settle?.(capturedChanges,status)
+    return {status}
+  }
+
   syncBlocksFromProjection(ids, operation, metadata = {}) {
     this.#assertInteractionMutation()
     if (!Array.isArray(ids) || ids.length === 0) return undefined
@@ -1140,9 +1224,12 @@ export class DocumentRuntime {
         const projection = this.#projector?.readBlock?.(id)
         if (!projection) throw new Error('Projection reader is unavailable')
         const readData = Object.hasOwn(projection, 'data') ? projection.data : projection
-        const inlineSource = Object.hasOwn(projection, 'inline')
-          ? (projection.inline === undefined ? undefined : cloneInline(projection.inline))
-          : current.inline
+        const nativeInline = metadata.nativeInlineCandidate?.(id)
+        const inlineSource = nativeInline !== undefined
+          ? cloneInline(nativeInline)
+          : Object.hasOwn(projection, 'inline')
+            ? (projection.inline === undefined ? undefined : cloneInline(projection.inline))
+            : current.inline
         const next = this.#recordFromData(
           current.id, current.type, definition, readData, current.tunes, inlineSource,
         )
