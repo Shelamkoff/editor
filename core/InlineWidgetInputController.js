@@ -55,6 +55,7 @@ export class InlineWidgetInputController {
   #selection
   #diagnostics
   #onNativeSettled
+  #nativeEventRoutes=new WeakMap()
   #controller
 
   constructor({root,runtime,registry,reconciler,projection,selection,diagnostics=null,onNativeSettled=null}){
@@ -76,6 +77,23 @@ export class InlineWidgetInputController {
   }
 
   destroy(){this.#controller.abort()}
+
+  /** Keep event-local routing distinct from the pending input envelope.
+   * Other native input observers continue to receive the event.
+   */
+  markNativeInputEvent(event,result){
+    if(event&&typeof event==='object'){
+      this.#nativeEventRoutes.set(event,Object.freeze({
+        status:result?.status??'failed',
+        inside:result?.inside===true,
+      }))
+    }
+  }
+
+  nativeInputRoute(event){
+    return event&&typeof event==='object'
+      ?this.#nativeEventRoutes.get(event)??null:null
+  }
 
   /** Capture the existing field and every owned native-edit-eligible
    * occurrence before the browser modifies a mixed label/author selection.
@@ -149,8 +167,13 @@ export class InlineWidgetInputController {
       this.#settleNativeNotices(snapshot,changes,status,observed)
     }}
     try{
-      return this.#runtime.reconcileNativeInlineInput(owned,()=>
+      const result=this.#runtime.reconcileNativeInlineInput(owned,()=>
         this.#prepareNativeChanges(snapshot))
+      const finalOwner=observed?.focus?.id??observed?.anchor?.id??null
+      const finalOccurrence=snapshot.occurrences.find(source=>source.id===finalOwner)
+      return {...result,inside:result.status!=='stale'&&Boolean(
+        finalOccurrence?.optedIn&&this.#projection.isCurrentNativeOccurrence(
+          snapshot.blockId,snapshot.fieldKey,finalOccurrence))}
     }catch(error){
       this.#report(error)
       throw error
