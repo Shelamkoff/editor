@@ -2343,4 +2343,29 @@ test('queued Enter split cannot reset a later native caret in the same new block
 })
 
 
+for(const [label,value] of [
+  ['leading newline','\nX'],
+  ['trailing newline','X\n'],
+  ['both surrounding newlines','\nX\n'],
+]){
+  test('single meaningful plain-text Paste strips '+label+' as in v1',async()=>{
+    const editor=make([para('a','Alpha')])
+    const field=editableField(editor,'a')
+    select(field,2,4)
+    const original=editor.save().blocks
+    const transfer=new DataTransfer()
+    transfer.setData('text/plain',value)
+    const event=new ClipboardEvent('paste',{clipboardData:transfer,bubbles:true,cancelable:true})
+    field.dispatchEvent(event)
+    await Promise.resolve()
+    check(event.defaultPrevented,'Plain-text Paste was not claimed')
+    equal(editor.save().blocks,[para('a','AlXa')],
+      'One non-empty pasted line preserved surrounding newlines')
+    editor.undo()
+    equal(editor.save().blocks,original,'Paste Undo did not restore selected text')
+    equal(editor.canUndo,false,'Paste was not one history operation')
+  })
+}
+
+
 await run()
