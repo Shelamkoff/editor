@@ -7,6 +7,7 @@ function fixture(handle = () => null) {
   const events = {}
   const writes = []
   const diagnostics = []
+  const claimed = []
   const scheduled = []
   const field = {
     isConnected: true,
@@ -62,6 +63,7 @@ function fixture(handle = () => null) {
     root,runtime,registry,reconciler,projection,selection,
     diagnostics:{emit:(code,metadata)=>diagnostics.push([code,metadata]),
       errorName:error=>error?.name||'UnknownError'},
+    onOwnedBeforeInput:()=>claimed.push('retired'),
   })
   const emit=(target=field,options={})=>{
     let canceled=false,stopped=false
@@ -77,7 +79,7 @@ function fixture(handle = () => null) {
     return {event,get canceled(){return canceled},get stopped(){return stopped}}
   }
   return {
-    emit,field,foreign,widget,root,runtime,projection,registry,selection,controller,writes,diagnostics,
+    emit,field,foreign,widget,root,runtime,projection,registry,selection,controller,writes,diagnostics,claimed,
     get invokes(){return invokes},
   }
 }
@@ -546,4 +548,23 @@ test('failed stale inline discard reports diagnostics without authoring another 
   assert.equal(state.diagnostics.length,1)
   assert.equal(state.diagnostics[0][0],'command.failed')
   assert.deepEqual(state.writes,[])
+})
+
+test('claiming an inline edit retires prior pending input before a stopped bubble event',()=>{
+  const accepted=fixture(()=>({kind:'remove',caret:0}))
+  const owned=accepted.emit()
+  assert.equal(owned.canceled,true)
+  assert.deepEqual(accepted.claimed,['retired'])
+
+  const failed=fixture(()=>{throw new Error('owned decision failed')})
+  assert.equal(failed.emit().canceled,true)
+  assert.deepEqual(failed.claimed,['retired'])
+
+  const passed=fixture(()=>null)
+  assert.equal(passed.emit().canceled,false)
+  assert.deepEqual(passed.claimed,[])
+
+  const foreign=fixture(()=>({kind:'remove'}))
+  assert.equal(foreign.emit(foreign.foreign).canceled,false)
+  assert.deepEqual(foreign.claimed,[])
 })
