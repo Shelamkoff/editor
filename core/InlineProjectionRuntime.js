@@ -226,7 +226,12 @@ export class InlineProjectionRuntime {
       const meta=this.#owned.get(node)
       if(!meta)continue
       const entry=this.#blocks.get(meta.blockId)?.widgets.get(meta.id)
-      if(entry?.element===node)return entry.element
+      // A retained WeakMap entry does not authorize a detached widget or
+      // one moved into another editor/application. Only the currently
+      // declared rich-field owner may resolve a live occurrence.
+      if(entry?.element===node&&entry.fieldElement?.contains(entry.element)){
+        return entry.element
+      }
     }
     return null
   }
@@ -337,7 +342,8 @@ export class InlineProjectionRuntime {
   /** Deliver one transient notice to a retained native-edit-aware instance. */
   notifyNativeInlineEdit(blockId,id,notice){
     const entry=this.#blocks.get(blockId)?.widgets.get(id)
-    if(!entry||!entry.element.isConnected||typeof entry.instance.afterNativeEdit!=='function')return false
+    if(!entry||!entry.element.isConnected||!entry.fieldElement?.contains(entry.element)
+      ||typeof entry.instance.afterNativeEdit!=='function')return false
     synchronousResult(entry.instance.afterNativeEdit(Object.freeze({...notice})))
     return true
   }

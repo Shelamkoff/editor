@@ -1079,4 +1079,86 @@ test('attribute-triggered block teardown during inline preparation does not publ
   } finally { projection.destroy() }
 })
 
+
+
+test('inline widget target authority follows its owning rich field, not a retained weak reference', () => {
+  const host = document.createElement('main')
+  const field = document.createElement('div')
+  const otherUI = document.createElement('aside')
+  host.append(field, otherUI)
+  document.body.appendChild(host)
+  const registry = {
+    getInlineDefinition: () => ({ schema: { decode: input => input } }),
+    getInlineRuntime: () => ({
+      create(_id, data) {
+        const element = document.createElement('span')
+        element.textContent = data.label
+        return { element, setReadOnly() {}, destroy() {} }
+      },
+    }),
+  }
+  const projection = new InlineProjectionRuntime({ registry, ownerDocument: document })
+  const record = {
+    data: { fields: [{ key: 'text', html: 'A {{x}}' }] },
+    inline: { x: payload },
+  }
+  try {
+    projection.reconcileBlock('a', record, { schema },
+      [{ key: 'text', mode: 'rich-text', element: field }],
+      { createInlineWidgetContext: () => ({}) })
+    const widget = field.querySelector('[data-id="x"]')
+    assert(widget)
+    assert(projection.resolveWidgetElement(widget) === widget)
+    widget.remove()
+    equal(projection.resolveWidgetElement(widget), null,
+      'a removed widget cannot retain inline input authority')
+    otherUI.appendChild(widget)
+    equal(projection.resolveWidgetElement(widget), null,
+      'a widget borrowed by another connected UI cannot retain editor authority')
+    field.appendChild(widget)
+    assert(projection.resolveWidgetElement(widget) === widget,
+      'the same owned widget is recognized again after remount in its own field')
+  } finally { projection.destroy(); host.remove() }
+})
+
+test('native inline edit notification cannot reach a widget moved outside its field', () => {
+  const host = document.createElement('main')
+  const field = document.createElement('div')
+  const otherUI = document.createElement('aside')
+  host.append(field, otherUI)
+  document.body.appendChild(host)
+  const notices = []
+  const registry = {
+    getInlineDefinition: () => ({ schema: { decode: input => input } }),
+    getInlineRuntime: () => ({
+      create(_id, data) {
+        const element = document.createElement('span')
+        element.textContent = data.label
+        return {
+          element, setReadOnly() {}, destroy() {},
+          afterNativeEdit(notice) { notices.push(notice.kind) },
+        }
+      },
+    }),
+  }
+  const projection = new InlineProjectionRuntime({ registry, ownerDocument: document })
+  try {
+    projection.reconcileBlock('a', {
+      data: { fields: [{ key: 'text', html: '{{x}}' }] },
+      inline: { x: payload },
+    }, { schema }, [{ key: 'text', mode: 'rich-text', element: field }],
+    { createInlineWidgetContext: () => ({}) })
+    const widget = field.querySelector('[data-id="x"]')
+    assert(projection.notifyNativeInlineEdit('a', 'x', { kind: 'inside' }))
+    otherUI.appendChild(widget)
+    equal(projection.notifyNativeInlineEdit('a', 'x', { kind: 'outside' }), false)
+    equal(notices, ['inside'])
+    widget.remove()
+    equal(projection.notifyNativeInlineEdit('a', 'x', { kind: 'detached' }), false)
+    field.appendChild(widget)
+    assert(projection.notifyNativeInlineEdit('a', 'x', { kind: 'returned' }))
+    equal(notices, ['inside', 'returned'])
+  } finally { projection.destroy(); host.remove() }
+})
+
 await run()
