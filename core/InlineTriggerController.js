@@ -18,7 +18,7 @@ export class InlineTriggerController {
   #reportError
 
   constructor({root,registry,reconciler,selection,commands,isComposing=()=>false,projection=null,
-    nativeInputRoute=()=>null,
+    nativeInputRoute=(_event)=>null,
     observe=operation=>operation(),reportError=error=>console.error('Inline trigger cancellation failed',error)}){
     if(!root?.addEventListener)throw new TypeError('InlineTriggerController requires an editor root')
     this.#root=root
