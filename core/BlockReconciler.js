@@ -9,6 +9,22 @@ import { synchronousResult } from '../shared/synchronousResult.js'
 
 const liveBlockRoots=new WeakMap()
 
+/** Restore only the host's original children after an aborted mount.
+ * @param {HTMLElement} parent
+ * @param {Node[]} expectedChildren
+ */
+function restoreChildOrder(parent, expectedChildren) {
+  const expected=new Set(expectedChildren)
+  for(const node of Array.from(parent.childNodes??parent.children??[])){
+    if(!expected.has(node))node.remove()
+  }
+  let cursor=parent.firstChild
+  for(const node of expectedChildren){
+    if(node===cursor)cursor=cursor.nextSibling
+    else parent.insertBefore(node,cursor)
+  }
+}
+
 function sameJson(left, right) {
   try { return JSON.stringify(left) === JSON.stringify(right) } catch { return false }
 }
@@ -118,6 +134,7 @@ export class BlockReconciler {
       throw error
     }
 
+    const oldContainerChildren=Array.from(this.#container.childNodes??this.#container.children??[])
     try {
       this.#container.replaceChildren(...store.ids().map(id => fresh.get(id).element))
       this.#entries = fresh
@@ -128,14 +145,19 @@ export class BlockReconciler {
       // not the candidate snapshot used during detached preparation.
       for (const entry of fresh.values()) entry.lifetime.candidate = null
     } catch (error) {
-      for (const entry of fresh.values()) this.#recoverPreparedInline(entry)
-      for (const entry of fresh.values()) this.#destroyEntry(entry)
-      this.#entries = previousEntries
-      this.#store = previousStore
-      if (previousStore) {
-        this.#container.replaceChildren(...previousStore.ids().map(id => previousEntries.get(id).element))
-      } else {
-        this.#container.replaceChildren()
+      const cleanupErrors=[]
+      for(const entry of fresh.values()){
+        try{this.#recoverPreparedInline(entry)}catch(failure){cleanupErrors.push(failure)}
+      }
+      for(const entry of fresh.values()){
+        try{this.#destroyEntry(entry)}catch(failure){cleanupErrors.push(failure)}
+      }
+      this.#entries=previousEntries
+      this.#store=previousStore
+      try{restoreChildOrder(this.#container,oldContainerChildren)}
+      catch(failure){cleanupErrors.push(failure)}
+      if(cleanupErrors.length){
+        throw new AggregateError([error,...cleanupErrors], 'Block mount failed and DOM recovery was incomplete')
       }
       throw error
     }

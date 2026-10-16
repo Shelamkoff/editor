@@ -616,3 +616,73 @@ test('failed detached mount preparation restores the prior document authority', 
   assert.deepEqual(container.children, [oldShell])
   reconciler.destroy()
 })
+
+test('failed first mount restores preexisting host nodes after a partial DOM commit', () => {
+  const ownerDocument = new FakeDocument()
+  const container = ownerDocument.createElement('main')
+  const existing = ownerDocument.createElement('aside')
+  container.appendChild(existing)
+  let releases = 0
+  const registry = {
+    hasBlock: () => true,
+    getBlockDefinition: type => ({ type }),
+    getBlockRuntime: () => ({ create() {
+      return {
+        element: ownerDocument.createElement('article'),
+        read() { return {} }, setReadOnly() {},
+        destroy() { releases++ },
+      }
+    } }),
+  }
+  const reconciler = new BlockReconciler({ container, registry, contextFactory: () => ({}) })
+  const store = new DocumentStore({ version: '2.0.0', blocks: [block('a')] })
+  const replace = container.replaceChildren.bind(container)
+  let injected = false
+  container.replaceChildren = (...children) => {
+    replace(...children)
+    if (!injected) {
+      injected = true
+      throw new Error('DOM commit failed after mutation')
+    }
+  }
+  assert.throws(() => reconciler.mount(store), /DOM commit failed after mutation/)
+  assert.deepEqual(container.children, [existing], 'initial host DOM must be preserved')
+  assert.equal(releases, 1, 'failed candidate is destroyed exactly once')
+  reconciler.mount(store)
+  assert.equal(container.children.length, 1)
+  reconciler.destroy()
+  assert.equal(releases, 2)
+})
+
+test('failed remount preserves previous block identity and original error', () => {
+  const ownerDocument = new FakeDocument()
+  const container = ownerDocument.createElement('main')
+  const releases = []
+  const registry = {
+    hasBlock: () => true,
+    getBlockDefinition: type => ({ type }),
+    getBlockRuntime: () => ({ create(initial) {
+      return {
+        element: ownerDocument.createElement('article'),
+        read() { return initial }, setReadOnly() {},
+        destroy() { releases.push(initial.text) },
+      }
+    } }),
+  }
+  const reconciler = new BlockReconciler({ container, registry, contextFactory: () => ({}) })
+  const firstStore = new DocumentStore({ version: '2.0.0', blocks: [block('a')] })
+  reconciler.mount(firstStore)
+  const initial = reconciler.getElement('a')
+  const replace = container.replaceChildren.bind(container)
+  container.replaceChildren = (...children) => {
+    replace(...children)
+    throw new Error('replace refuses after mutation')
+  }
+  const newStore = new DocumentStore({ version: '2.0.0', blocks: [block('b')] })
+  assert.throws(() => reconciler.mount(newStore), /replace refuses after mutation/)
+  assert.equal(reconciler.getElement('a'), initial)
+  assert.deepEqual(container.children, [initial])
+  assert.deepEqual(releases, ['b'], 'recovered old block remains owned and live')
+  reconciler.destroy()
+  assert.deepEqual(releases, ['b', 'a'])
+})
