@@ -1547,3 +1547,125 @@ test('block editable fields reject non-HTMLElement descendants of a valid block 
   reconciler.destroy()
   assert.equal(released, 1)
 })
+
+test('failed child inline reconciliation retries a changed field element on the next refresh', () => {
+  const ownerDocument = new FakeDocument()
+  const container = ownerDocument.createElement('main')
+  const root = ownerDocument.createElement('article')
+  const oldField = ownerDocument.createElement('span')
+  const newField = ownerDocument.createElement('span')
+  root.appendChild(oldField)
+  root.appendChild(newField)
+  let currentField = oldField
+  let attempts = 0
+  const registry = {
+    hasBlock: () => true,
+    getBlockDefinition: type => ({ type }),
+    getBlockRuntime: () => ({ create(data) {
+      return {
+        element: root,
+        read() { return data },
+        editableFields() { return [{ key: 'text', element: currentField, mode: 'rich-text' }] },
+        setReadOnly() {},
+        destroy() {},
+      }
+    } }),
+  }
+  const inlineProjection = {
+    prepareBlock() { return { apply() {}, finalize() {}, recover() {}, discard() {} } },
+    reconcileBlock() {
+      attempts++
+      if (attempts === 1) throw new Error('child inline projection failed')
+    },
+    destroy() {},
+  }
+  const reconciler = new BlockReconciler({
+    container, registry, inlineProjection, contextFactory: () => ({}),
+  })
+  reconciler.mount(new DocumentStore({
+    version: '2.0.0', blocks: [block('a')],
+  }))
+  currentField = newField
+
+  assert.throws(() => reconciler.getEditableFields('a'), /child inline projection failed/)
+  assert.equal(attempts, 1)
+  assert.equal(reconciler.getEditableField('a', 'text').element, newField)
+  assert.equal(attempts, 2, 'a failed field publication must retry inline hydration')
+  assert.equal(reconciler.resolveEditableTarget(oldField), null)
+  assert.equal(reconciler.resolveEditableTarget(newField)?.blockId, 'a')
+  reconciler.destroy()
+})
+
+test('failed child inline reconciliation retries a mode-only descriptor change', () => {
+  const ownerDocument = new FakeDocument()
+  const container = ownerDocument.createElement('main')
+  const root = ownerDocument.createElement('article')
+  const field = ownerDocument.createElement('span')
+  root.appendChild(field)
+  let mode = 'rich-text'
+  let attempts = 0
+  const registry = {
+    hasBlock: () => true,
+    getBlockDefinition: type => ({ type }),
+    getBlockRuntime: () => ({ create(data) {
+      return {
+        element: root, read() { return data }, setReadOnly() {}, destroy() {},
+        editableFields() { return [{ key: 'text', element: field, mode }] },
+      }
+    } }),
+  }
+  const inlineProjection = {
+    prepareBlock() { return { apply() {}, finalize() {}, recover() {}, discard() {} } },
+    reconcileBlock() {
+      attempts++
+      if (attempts === 1) throw new Error('mode transition projection failed')
+    },
+    destroy() {},
+  }
+  const reconciler = new BlockReconciler({
+    container, registry, inlineProjection, contextFactory: () => ({}),
+  })
+  reconciler.mount(new DocumentStore({
+    version: '2.0.0', blocks: [block('a')],
+  }))
+  mode = 'plain-text'
+
+  assert.throws(() => reconciler.getEditableFields('a'), /mode transition projection failed/)
+  assert.equal(attempts, 1)
+  assert.equal(reconciler.getEditableField('a', 'text').mode, 'plain-text')
+  assert.equal(attempts, 2, 'failed mode transition cannot be mistaken for committed projection')
+  assert.equal(reconciler.resolveEditableTarget(field)?.mode, 'plain-text')
+  reconciler.destroy()
+})
+
+test('throwing editableFields preserves the previously committed descriptor', () => {
+  const ownerDocument = new FakeDocument()
+  const container = ownerDocument.createElement('main')
+  const root = ownerDocument.createElement('article')
+  const field = ownerDocument.createElement('span')
+  root.appendChild(field)
+  let fail = false
+  const registry = {
+    hasBlock: () => true,
+    getBlockDefinition: type => ({ type }),
+    getBlockRuntime: () => ({ create(data) {
+      return {
+        element: root, read() { return data }, setReadOnly() {}, destroy() {},
+        editableFields() {
+          if (fail) throw new Error('field capture failed')
+          return [{ key: 'text', element: field, mode: 'rich-text' }]
+        },
+      }
+    } }),
+  }
+  const reconciler = new BlockReconciler({ container, registry, contextFactory: () => ({}) })
+  reconciler.mount(new DocumentStore({
+    version: '2.0.0', blocks: [block('a')],
+  }))
+  fail = true
+  assert.throws(() => reconciler.getEditableFields('a'), /field capture failed/)
+  assert.equal(reconciler.resolveEditableTarget(field)?.fieldKey, 'text')
+  fail = false
+  assert.equal(reconciler.getEditableField('a', 'text').element, field)
+  reconciler.destroy()
+})

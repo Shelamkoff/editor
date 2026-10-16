@@ -855,19 +855,36 @@ export class BlockReconciler {
       || fields.some((field, index) => field.key !== entry.fields[index]?.key
         || field.element !== entry.fields[index]?.element
         || field.mode !== entry.fields[index]?.mode))
-    if (changed) for (const field of entry.fields) this.#fieldOwners.delete(field.element)
-    entry.fields = fields
-    for (const field of fields) {
-      if (!field?.element || typeof field.key !== 'string' || !field.key) continue
-      this.#fieldOwners.set(field.element, {
-        blockId: id,
-        fieldKey: field.key,
-        element: field.element,
-        mode: field.mode,
-      })
+    const previousFields=entry.fields
+    if(changed)for(const field of previousFields)this.#fieldOwners.delete(field.element)
+    entry.fields=fields
+    const publishedOwners=[]
+    for(const field of fields){
+      const owner={blockId:id,fieldKey:field.key,element:field.element,mode:field.mode}
+      this.#fieldOwners.set(field.element,owner)
+      publishedOwners.push(owner)
     }
-    if (projectPresentation && (changed || forceProjection) && entry.scope?.active && this.#inlineProjection) {
-      this.#inlineProjection.reconcileBlock(id, entry.record, entry.definition, fields, entry.baseContext)
+    try{
+      if(projectPresentation&&(changed||forceProjection)&&entry.scope?.active&&this.#inlineProjection){
+        this.#inlineProjection.reconcileBlock(id,entry.record,entry.definition,fields,entry.baseContext)
+      }
+    }catch(error){
+      // A child projection may have failed after partial DOM mutation. Do
+      // not mark the changed field set as successfully projected: a later
+      // refresh must reattempt it or let owner recovery restore the block.
+      // Reentrant callbacks can install a newer owner; never revoke it.
+      if(entry.fields===fields){
+        for(const owner of publishedOwners){
+          if(this.#fieldOwners.get(owner.element)===owner)this.#fieldOwners.delete(owner.element)
+        }
+        entry.fields=previousFields
+        for(const field of previousFields??[]){
+          this.#fieldOwners.set(field.element,{
+            blockId:id,fieldKey:field.key,element:field.element,mode:field.mode,
+          })
+        }
+      }
+      throw error
     }
   }
 
