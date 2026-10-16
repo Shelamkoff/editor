@@ -293,6 +293,9 @@ export class TransactionEngine {
 
       const selection = action === 'undo' ? record.selectionBefore : record.selectionAfter
       this.#restoreSelection(selection)
+      // Moving the caret or reacting to onCommit may change selection without
+      // advancing the document revision. Do not reclaim that newer selection.
+      const restoredSelection = this.#selection?.capture ? this.#captureSelection() : null
       const committedGeneration = storeCommit.generation
       const committedRevision = storeCommit.revision
       if (selection) {
@@ -302,6 +305,8 @@ export class TransactionEngine {
             || this.#phase !== 'idle'
             || this.#store.generation !== committedGeneration
             || this.#store.revision !== committedRevision
+            || (this.#selection?.capture
+              && JSON.stringify(this.#captureSelection()) !== JSON.stringify(restoredSelection))
           ) return
           this.#restoreSelection(selection)
         })

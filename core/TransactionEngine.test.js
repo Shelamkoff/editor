@@ -491,3 +491,51 @@ test('a caught nested asynchronous result poisons its outer transaction', async 
   assert.equal(store.revision, 0)
   assert.equal(engine.phase, 'idle')
 })
+
+test('deferred Undo restore cannot steal an author caret movement at the same revision', async () => {
+  const point = offset => ({
+    anchor: { blockId: 'a', fieldKey: 'text', offset },
+    focus: { blockId: 'a', fieldKey: 'text', offset },
+  })
+  let active = point(4)
+  const restored = []
+  const { engine, store } = harness({
+    selection: {
+      capture: () => active,
+      restore(value) { active = value; restored.push(value.focus.offset) },
+    },
+  })
+  engine.execute({ origin: 'user', name: 'change' }, tx => tx.update('a', block('a', 'modified')))
+  assert.equal(engine.undo(), true)
+  assert.equal(active.focus.offset, 4)
+  const revision = store.revision
+  active = point(2)
+  await Promise.resolve()
+  assert.equal(store.revision, revision, 'caret-only movement did not change the document')
+  assert.equal(active.focus.offset, 2, 'a queued history callback must not reclaim user focus')
+  assert.deepEqual(restored, [4])
+})
+
+test('Undo observer focus change survives deferred selection restoration', async () => {
+  const point = offset => ({
+    anchor: { blockId: 'a', fieldKey: 'text', offset },
+    focus: { blockId: 'a', fieldKey: 'text', offset },
+  })
+  let active = point(5)
+  const restored = []
+  const { engine } = harness({
+    selection: {
+      capture: () => active,
+      restore(value) { active = value; restored.push(value.focus.offset) },
+    },
+    onCommit(event) {
+      if (event.action === 'undo') active = point(1)
+    },
+  })
+  engine.execute({ origin: 'user', name: 'change' }, tx => tx.update('a', block('a', 'modified')))
+  assert.equal(engine.undo(), true)
+  assert.equal(active.focus.offset, 1)
+  await Promise.resolve()
+  assert.equal(active.focus.offset, 1)
+  assert.deepEqual(restored, [5])
+})
