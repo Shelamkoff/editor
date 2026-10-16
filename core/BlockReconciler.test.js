@@ -1516,3 +1516,34 @@ test('valid HTMLElement roots remain mountable with strict block root validation
   reconciler.destroy()
   assert.equal(counters.destroy, 2)
 })
+
+test('block editable fields reject non-HTMLElement descendants of a valid block root', () => {
+  const ownerDocument = new FakeDocument()
+  const container = ownerDocument.createElement('main')
+  const comment = { ownerDocument, parentNode: null, nodeType: 8 }
+  let released = 0
+  const registry = {
+    hasBlock: () => true,
+    getBlockDefinition: type => ({ type }),
+    getBlockRuntime: () => ({ create(initial) {
+      const element = ownerDocument.createElement('article')
+      element.appendChild(comment)
+      return {
+        element,
+        read() { return initial }, setReadOnly() {},
+        editableFields() {
+          return [{ key: 'text', mode: 'plain-text', element: comment }]
+        },
+        destroy() { released++ },
+      }
+    } }),
+  }
+  const reconciler = new BlockReconciler({ container, registry, contextFactory: () => ({}) })
+  assert.throws(() => reconciler.mount(new DocumentStore({
+    version: '2.0.0', blocks: [block('a')],
+  })), /Editable field must be an HTMLElement in the owning document/)
+  assert.deepEqual(container.children, [], 'no invalid field owner may be mounted')
+  assert.equal(released, 1, 'the failed block instance is destroyed')
+  reconciler.destroy()
+  assert.equal(released, 1)
+})

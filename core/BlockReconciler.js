@@ -839,7 +839,13 @@ export class BlockReconciler {
     const fields = captureEditableFields(entry.instance.editableFields?.() ?? [])
     // Capture validates keys; this additional check validates the actual
     // DOM authority of each field before modifying any ownership mapping.
+    const HTMLElementCtor=this.#container.ownerDocument.defaultView?.HTMLElement??globalThis.HTMLElement
     for(const field of fields){
+      // A Comment, SVG root or document fragment can be nested in the block
+      // but is not an editable HTML host.
+      if(HTMLElementCtor&&!(field.element instanceof HTMLElementCtor)){
+        throw new TypeError('Editable field must be an HTMLElement in the owning document')
+      }
       if(field.element.ownerDocument!==this.#container.ownerDocument
         || !entry.element.contains(field.element)){
         throw new TypeError('Editable field must belong to its owning block DOM')
