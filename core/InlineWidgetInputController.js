@@ -197,8 +197,10 @@ export class InlineWidgetInputController {
     const record=this.#runtime.get(snapshot.blockId)
     const field=this.#reconciler.getEditableField(snapshot.blockId,snapshot.fieldKey)
     if(!record||record.type!==snapshot.blockType||!field?.element?.isConnected)return false
-    const source=before.anchor?.id===before.focus?.id?before.focus:before.anchor??before.focus
-    if(!source)return false
+    // Mixed label/author endpoints are already restored by the owning
+    // logical selection recovery. Do not silently collapse them into a pill.
+    if(!before.anchor||!before.focus||before.anchor.id!==before.focus.id)return false
+    const source=before.focus
     const previous=snapshot.occurrences.find(entry=>entry.id===source.id)
     const canonical=Object.hasOwn(record.inline??{},source.id)?record.inline[source.id]:null
     if(!previous||canonical?.type!==previous.type)return false
