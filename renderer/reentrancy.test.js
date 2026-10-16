@@ -481,3 +481,45 @@ test('tearing down a displaced renderer does not delete a successor renderer out
   assert.equal(container.children.length, 0)
   assert.deepEqual(released, ['first', 'second'])
 })
+
+test('a custom block renderer cannot steal an existing connected application element', async () => {
+  const { EditorRenderer } = await import('./index.js')
+  const application = document.createElement('section')
+  const borrowed = document.createElement('article')
+  application.appendChild(borrowed)
+  // Model the native DOM's connected flag; this minimal fixture does not
+  // implement isConnected based on document roots.
+  Object.defineProperty(borrowed, 'isConnected', { value: true })
+  const destroyed = []
+  const renderer = new EditorRenderer({ blockTypes: [], injectStyles: false })
+  renderer.registerRenderer({
+    type: 'borrowed-node',
+    schema: passthroughSchema,
+    render() { return borrowed },
+    destroy(element) { destroyed.push(element) },
+  })
+  const container = document.createElement('main')
+  assert.throws(() => renderer.renderTo({
+    version: '2.0.0',
+    blocks: [{ id: 'borrowed', type: 'borrowed-node', dataVersion: 1, data: {} }],
+  }, container), /must return a detached HTMLElement/)
+  assert.equal(application.firstChild, borrowed)
+  assert.equal(container.children.length, 0)
+  assert.deepEqual(destroyed, [], 'a foreign live node is not a resource this renderer acquired')
+  renderer.destroy(container)
+  assert.equal(application.firstChild, borrowed)
+})
+
+test('a custom detached block element remains accepted after connected-node rejection', async () => {
+  const { EditorRenderer } = await import('./index.js')
+  const detached = document.createElement('article')
+  const renderer = new EditorRenderer({ blockTypes: [], injectStyles: false })
+  renderer.registerRenderer({
+    type: 'detached-node',
+    schema: passthroughSchema,
+    render() { return detached },
+  })
+  const block = { id: 'detached', type: 'detached-node', dataVersion: 1, data: {} }
+  assert.equal(renderer.renderBlock(block), detached)
+  renderer.destroy(detached)
+})

@@ -259,6 +259,11 @@ export class EditorRenderer {
     if (liveRenderedElements.has(element)) {
       throw new TypeError(`Block renderer "${block.type}" must return a fresh HTMLElement`)
     }
+    // An already connected DOM node belongs to another live host. Never
+    // reparent or destroy an application's existing element as a new output.
+    if (element.isConnected) {
+      throw new TypeError(`Block renderer "${block.type}" must return a detached HTMLElement`)
+    }
     liveRenderedElements.set(element, this)
     this.#liveRenderers.set(renderer, (this.#liveRenderers.get(renderer) ?? 0) + 1)
     try {
