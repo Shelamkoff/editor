@@ -2285,4 +2285,23 @@ test('external P-root HTML importer keeps its own block semantics and data',asyn
 })
 
 
+test('single nested paragraph under a transparent HTML wrapper pastes inline as in v1',async()=>{
+  const editor=make([para('a','Alpha')])
+  const field=editableField(editor,'a')
+  select(field,2,4)
+  const before=editor.save().blocks
+  const transfer=new DataTransfer()
+  transfer.setData('text/html','<section><p><b>X</b></p></section>')
+  const event=new ClipboardEvent('paste',{clipboardData:transfer,bubbles:true,cancelable:true})
+  field.dispatchEvent(event)
+  await Promise.resolve()
+  check(event.defaultPrevented,'Nested paragraph HTML Paste was not owned')
+  equal(editor.save().blocks,[para('a','Al<b>X</b>a')],
+    'Transparent HTML wrapper turned one paragraph into an extra block')
+  editor.undo()
+  equal(editor.save().blocks,before)
+  equal(editor.canUndo,false,'Nested paragraph Paste created multiple history steps')
+})
+
+
 await run()
