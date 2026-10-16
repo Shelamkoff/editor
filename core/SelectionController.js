@@ -301,6 +301,7 @@ export class SelectionController {
     if (!field || field.mode === 'plain-text') return null
     const generation = this.#runtime.generation
     const revision = this.#runtime.revision
+    const modeEpoch = this.#runtime.modeEpoch
     const whole = this.#wholeBlocks
     let settled = false
     // Chrome cannot compose into a Range spanning independent editing hosts.
@@ -309,7 +310,8 @@ export class SelectionController {
     field.element.focus({ preventScroll: true })
     native.setBaseAndExtent(built.range.startContainer, built.range.startOffset, built.range.startContainer, built.range.startOffset)
     const restore = () => {
-      if (settled || this.#runtime.readOnly || this.#runtime.health !== 'ready'
+      if (settled || this.#controller.signal.aborted || this.#runtime.readOnly
+        || this.#runtime.health !== 'ready' || this.#runtime.modeEpoch !== modeEpoch
         || this.#runtime.generation !== generation || this.#runtime.revision !== revision) return false
       settled = true
       if (!this.restore(bookmark)) return false
@@ -351,13 +353,15 @@ export class SelectionController {
     if (!field) return null
     const generation = this.#runtime.generation
     const revision = this.#runtime.revision
+    const modeEpoch = this.#runtime.modeEpoch
     let settled = false
     // Stage preedit in an owner that the selection will replace. Untouched
     // blocks must never retain provisional DOM after the canonical commit.
     this.#deactivate()
     this.#view.focus(blockId, { fieldKey: field.key, offset: 'start' })
     const restore = () => {
-      if (settled || this.#runtime.readOnly || this.#runtime.health !== 'ready'
+      if (settled || this.#controller.signal.aborted || this.#runtime.readOnly
+        || this.#runtime.health !== 'ready' || this.#runtime.modeEpoch !== modeEpoch
         || this.#runtime.generation !== generation || this.#runtime.revision !== revision) return false
       settled = true
       this.selectBlocks(ids)
