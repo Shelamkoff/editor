@@ -373,6 +373,7 @@ export function createEditorRuntime(input){
     crossSelection,
     selection:logicalSelection,
     projection:inlineProjection,
+    inlineWidgetInput,
     onControlledInput:()=>queueMicrotask(()=>triggerController?.refresh()),
     coalesceMs:config.historyCoalesceMs??300,
   }))
