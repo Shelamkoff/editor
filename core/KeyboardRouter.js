@@ -19,6 +19,14 @@ function sameEditableRange(bookmark, owner) {
   }
 }
 
+function sameLogicalSelection(left,right){
+  if(!left||!right)return false
+  const samePoint=(a,b)=>a?.blockId===b?.blockId
+    &&a?.fieldKey===b?.fieldKey
+    &&a?.offset===b?.offset
+  return samePoint(left.anchor,right.anchor)&&samePoint(left.focus,right.focus)
+}
+
 function fieldLength(owner) {
   return owner.mode === 'plain-text' && typeof owner.element?.value === 'string'
     ? owner.element.value.length
@@ -363,12 +371,16 @@ export class KeyboardRouter {
     const generation=this.#runtime.generation,revision=this.#runtime.revision
     const modeEpoch=this.#runtime.modeEpoch
     const mounted=this.#view.element?.(target.blockId)
+    const authorSelection=this.#selection.capture()
     queueMicrotask(()=>{
       if(this.#controller.signal.aborted||this.#runtime.readOnly
         ||this.#runtime.generation!==generation||this.#runtime.revision!==revision
         ||this.#runtime.modeEpoch!==modeEpoch||!this.#runtime.has(target.blockId)
         ||(mounted&&this.#view.element?.(target.blockId)!==mounted)
-        ||(this.#view.currentId&&this.#view.currentId!==target.blockId))return
+        ||(this.#view.currentId&&this.#view.currentId!==target.blockId)
+        // A user may move the caret within the same target block without an
+        // authored revision or changing the current block. Do not steal it.
+        ||(authorSelection&&!sameLogicalSelection(authorSelection,this.#selection.capture())))return
       this.#view.focus(target.blockId,target)
     })
   }

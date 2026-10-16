@@ -2304,4 +2304,43 @@ test('single nested paragraph under a transparent HTML wrapper pastes inline as 
 })
 
 
+test('queued Enter split cannot reset a later native caret in the same new block',async()=>{
+  const editor=make([para('a','Alpha')])
+  editor.blocks.focus('a',{fieldKey:'text',offset:2})
+  const before=editor.save().blocks
+  const callbacks=[]
+  const original=window.queueMicrotask
+  let nextId
+  try{
+    window.queueMicrotask=callback=>callbacks.push(callback)
+    const event=new KeyboardEvent('keydown',{key:'Enter',code:'Enter',bubbles:true,cancelable:true})
+    editableField(editor,'a').dispatchEvent(event)
+    check(event.defaultPrevented,'Enter split was not claimed by keyboard router')
+    const blocks=editor.save().blocks
+    equal(blocks.length,2,'Enter did not create the next paragraph')
+    equal(blocks.map(block=>block.data.text),['Al','pha'])
+    nextId=blocks[1].id
+    check(callbacks.length>0,'Split did not schedule a caret')
+    editor.blocks.focus(nextId,{fieldKey:'text',offset:2})
+  }finally{
+    window.queueMicrotask=original
+  }
+  const field=editableField(editor,nextId)
+  const native=window.getSelection()
+  const saved=editor.save().blocks
+  const history=[editor.canUndo,editor.canRedo]
+  check(document.activeElement===field,'Fixture did not focus the new block')
+  equal(getTextOffset(field,native.focusNode,native.focusOffset),2)
+  for(const callback of callbacks)callback()
+  await Promise.resolve()
+  equal(editor.save().blocks,saved,'Old Enter focus changed the document')
+  equal(document.activeElement,field,'Old Enter callback stole focus')
+  equal(getTextOffset(field,native.focusNode,native.focusOffset),2,
+    'Old Enter callback reset the later caret')
+  equal([editor.canUndo,editor.canRedo],history,'Old Enter callback changed history')
+  editor.undo()
+  equal(editor.save().blocks,before,'Split Undo lost the original block')
+})
+
+
 await run()

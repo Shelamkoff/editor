@@ -266,3 +266,17 @@ test('keyboard split still gives the new block focus with unchanged author and m
     [['focus', 'new', { blockId: 'new', offset: 'start' }]])
   h.router.destroy()
 })
+
+test('queued keyboard split never overwrites a later user caret inside the new block',async()=>{
+  const h=harness()
+  assert.equal(h.router.split('b','text',{start:1,end:1}),true)
+  h.records.push({id:'new',type:'paragraph',data:{text:'pha'}})
+  h.setBookmark({
+    anchor:{blockId:'new',fieldKey:'text',offset:2},
+    focus:{blockId:'new',fieldKey:'text',offset:2},
+  })
+  await Promise.resolve()
+  assert.deepEqual(h.viewCalls.filter(call=>call[0]==='focus'),[],
+    'old split focus stole the later author caret')
+  h.router.destroy()
+})
