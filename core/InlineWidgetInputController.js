@@ -111,6 +111,10 @@ export class InlineWidgetInputController {
         const range=event.getTargetRanges?.()[0]??null
         const deletionRange=inputType.startsWith('delete')||inputType==='insertReplacementText'
           ?containedTextRange(target.element,range):null
+        // A browser interval spanning neighboring author text is not a label
+        // edit and must never be narrowed to a one-character fallback.
+        if(range && !deletionRange && (inputType.startsWith('delete')
+          ||inputType==='insertReplacementText'))return null
         const input={
           inputType,
           position:target.position,
