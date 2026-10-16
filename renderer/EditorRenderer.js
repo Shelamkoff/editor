@@ -319,7 +319,9 @@ export class EditorRenderer {
    */
   #disposeRenderedElement(entry) {
     try {
-      entry.renderer?.destroy?.(entry.element)
+      // Cleanup follows the same synchronous extension contract as render().
+      // Observe returned thenables so a late rejection never escapes ownership.
+      synchronousResult(entry.renderer?.destroy?.(entry.element))
     } catch (err) {
       console.warn('[EditorRenderer] Failed to destroy renderer "' + entry.type + '":', err)
     } finally {

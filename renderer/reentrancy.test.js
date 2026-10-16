@@ -385,3 +385,44 @@ test('failed decoration releases newly-created HTMLElement before a retry', asyn
   renderer.destroy(recovered)
   assert.deepEqual(released, [element, element])
 })
+
+test('async cleanup return is rejected and contained while owner is released once', async () => {
+  const { EditorRenderer } = await import('./index.js')
+  const renderer = new EditorRenderer({ blockTypes: [], injectStyles: false })
+  let readThen = 0
+  let destroyed = 0
+  renderer.registerRenderer({
+    type: 'async-destroy', schema: passthroughSchema,
+    render() { return document.createElement('article') },
+    destroy() {
+      destroyed++
+      return Object.defineProperty({}, 'then', {
+        get() {
+          readThen++
+          return (_resolve, reject) => reject(new Error('async destroy failure'))
+        },
+      })
+    },
+  })
+  const block = { id: 'a', type: 'async-destroy', dataVersion: 1, data: {} }
+  const originalWarn = console.warn
+  const warnings = []
+  try {
+    console.warn = (...values) => { warnings.push(values) }
+    const first = renderer.renderBlock(block)
+    renderer.destroy(first)
+    await Promise.resolve()
+    await Promise.resolve()
+    assert.equal(destroyed, 1)
+    assert.equal(readThen, 1, 'cleanup thenable must be observed exactly once')
+    assert.equal(warnings.length, 1, 'async completion violates the synchronous contract')
+    const second = renderer.renderBlock(block)
+    renderer.destroy(second)
+    assert.equal(destroyed, 2)
+    assert.equal(readThen, 2)
+  } finally {
+    console.warn = originalWarn
+    renderer.destroy()
+  }
+})
+
