@@ -272,7 +272,7 @@ export class InlineWidgetInputController {
     if(!selection?.anchorNode||!selection.focusNode)return null
     const offsetFor=(node,offset)=>{
       for(const entry of snapshot.occurrences){
-        if(!entry.element.contains(node))continue
+        if(!entry.element?.contains?.(node))continue
         try{
           const range=this.#root.ownerDocument.createRange()
           range.selectNodeContents(entry.element)
