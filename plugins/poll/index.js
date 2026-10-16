@@ -1,5 +1,6 @@
 // @ts-check
 import { snapshotConfigMethods } from '../shared/configRecords.js'
+import { synchronousResult } from '../../shared/synchronousResult.js'
 import { pollDataSchema } from '../../shared/blockSchemas/poll.js'
 import { retainControlFocus } from '../shared/retainControlFocus.js'
 import { setSanitizedHtml } from '../../shared/sanitize/sanitizeHtml.js'
@@ -365,7 +366,7 @@ export function createPollPlugin(config={}){
             const dispose=unsubscribe
             unsubscribe=null
             if(typeof dispose!=='function')return
-            try{dispose()}catch(error){report(error)}
+            try{synchronousResult(dispose())}catch(error){report(error)}
           }
 
           const connect=()=>{
@@ -388,7 +389,7 @@ export function createPollPlugin(config={}){
             projectRuntime()
             if(snapshot.dataSource.subscribe){
               try{
-                const stop=snapshot.dataSource.subscribe({
+                const stop=synchronousResult(snapshot.dataSource.subscribe({
                   pollId:data.pollId,
                   signal:connectionController.signal,
                   onUpdate(results){
@@ -398,7 +399,7 @@ export function createPollPlugin(config={}){
                     if(acceptResults(results))projectRuntime()
                   },
                   onError:error=>{if(!dead&&!connectionController.signal.aborted&&version===connectionVersion)report(error)},
-                })
+                }))
                 if(typeof stop==='function')unsubscribe=stop
               }catch(error){
                 if(!dead&&!connectionController.signal.aborted&&version===connectionVersion)report(error)

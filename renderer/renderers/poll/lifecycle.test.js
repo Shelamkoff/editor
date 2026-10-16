@@ -166,3 +166,69 @@ test('editor Poll releases ownership before reentrant subscription disposal', ()
   assert.equal(unsubscribes, 1)
   f.runtime.destroy()
 })
+
+test('renderer Poll rejects asynchronous subscription acquisition and reports it', async () => {
+  const errors = []
+  const f = mounted({
+    dataSource: {
+      async load() { return emptyResults() },
+      async vote() { return emptyResults() },
+      subscribe() { return Promise.resolve(() => {}) },
+    },
+    onError(error) { errors.push(error) },
+  })
+  assert.equal(errors.length, 1, 'subscription must settle before the renderer proceeds')
+  assert.match(String(errors[0]), /must complete synchronously/)
+  f.renderer.destroy(f.element)
+  await settle()
+})
+
+test('renderer Poll contains an asynchronous unsubscribe result', async () => {
+  const errors = []
+  const f = mounted({
+    dataSource: {
+      async load() { return emptyResults() },
+      async vote() { return emptyResults() },
+      subscribe() { return () => Promise.resolve() },
+    },
+    onError(error) { errors.push(error) },
+  })
+  f.renderer.destroy(f.element)
+  assert.equal(errors.length, 1)
+  assert.match(String(errors[0]), /must complete synchronously/)
+  await settle()
+})
+
+test('editor Poll rejects an asynchronous subscription acquisition', async () => {
+  const errors = []
+  const f = editorPoll({
+    dataSource: {
+      async load() { return emptyResults() },
+      async vote() { return emptyResults() },
+      subscribe() { return Promise.resolve(() => {}) },
+    },
+    onError(error) { errors.push(error) },
+  })
+  assert.equal(errors.length, 1)
+  assert.match(String(errors[0]), /must complete synchronously/)
+  f.instance.destroy()
+  f.runtime.destroy()
+  await settle()
+})
+
+test('editor Poll observes invalid asynchronous unsubscribe completion', async () => {
+  const errors = []
+  const f = editorPoll({
+    dataSource: {
+      async load() { return emptyResults() },
+      async vote() { return emptyResults() },
+      subscribe() { return () => Promise.resolve() },
+    },
+    onError(error) { errors.push(error) },
+  })
+  f.instance.destroy()
+  assert.equal(errors.length, 1)
+  assert.match(String(errors[0]), /must complete synchronously/)
+  f.runtime.destroy()
+  await settle()
+})

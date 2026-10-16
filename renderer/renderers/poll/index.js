@@ -1,4 +1,5 @@
 import { invokeObserver } from '../../../shared/invokeObserver.js'
+import { synchronousResult } from '../../../shared/synchronousResult.js'
 import { snapshotPollRendererConfig } from '../../pollConfigSnapshot.js'
 // @ts-check
 import { pollDataSchema } from '../../../shared/blockSchemas/poll.js'
@@ -260,7 +261,7 @@ export function createPollRenderer(classPrefix, locale, config = {}) {
     build(wrapper, state)
     if (config.dataSource.subscribe) {
       try {
-        const unsubscribe = config.dataSource.subscribe({
+        const unsubscribe = synchronousResult(config.dataSource.subscribe({
           pollId: state.data.pollId,
           signal: controller.signal,
           onUpdate: result => {
@@ -272,7 +273,7 @@ export function createPollRenderer(classPrefix, locale, config = {}) {
           onError: error => {
             if (states.get(wrapper) === state && !controller.signal.aborted) fail(wrapper, state, error)
           },
-        })
+        }))
         if (typeof unsubscribe === 'function') state.unsubscribe = unsubscribe
       } catch (error) {
         fail(wrapper, state, error)
@@ -343,7 +344,7 @@ export function createPollRenderer(classPrefix, locale, config = {}) {
       state.controller = null
       state.unsubscribe = null
       controller?.abort()
-      try { unsubscribe?.() } catch (error) {
+      try { synchronousResult(unsubscribe?.()) } catch (error) {
         invokeObserver(config.onError, [error])
       }
     },
