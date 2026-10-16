@@ -16,7 +16,9 @@ const liveBlockRoots=new WeakMap()
 function restoreChildOrder(parent, expectedChildren) {
   const expected=new Set(expectedChildren)
   for(const node of Array.from(parent.childNodes??parent.children??[])){
-    if(!expected.has(node))node.remove()
+    if(!expected.has(node)){
+      /** @type {ChildNode} */ (node).remove()
+    }
   }
   let cursor=parent.firstChild
   for(const node of expectedChildren){
