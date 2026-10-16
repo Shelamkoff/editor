@@ -850,3 +850,74 @@ test('reentrant destruction during mount staging never publishes a retired candi
   assert.deepEqual(reconciler.ids, [])
   assert.deepEqual(container.children, [])
 })
+
+test('destroy triggered by initial DOM publication cannot resurrect a block owner', () => {
+  const document = new FakeDocument()
+  const container = document.createElement('main')
+  const destroyed = []
+  const registry = {
+    hasBlock: () => true,
+    getBlockDefinition: type => ({ type }),
+    getBlockRuntime: () => ({ create(data) {
+      return {
+        element: document.createElement('article'),
+        read() { return data }, setReadOnly() {},
+        destroy() { destroyed.push(data.text) },
+      }
+    } }),
+  }
+  const reconciler = new BlockReconciler({ container, registry, contextFactory: () => ({}) })
+  const originalReplace = container.replaceChildren.bind(container)
+  let injected = false
+  container.replaceChildren = (...elements) => {
+    originalReplace(...elements)
+    if (!injected) {
+      injected = true
+      reconciler.destroy()
+    }
+  }
+  assert.throws(() => reconciler.mount(
+    new DocumentStore({ version: '2.0.0', blocks: [block('a')] }),
+  ), /BlockReconciler is destroyed/)
+  assert.deepEqual(destroyed, ['a'])
+  assert.deepEqual(reconciler.ids, [])
+  assert.deepEqual(container.children, [])
+})
+
+test('reentrant destruction in remount DOM replacement retires old and new owners', () => {
+  const document = new FakeDocument()
+  const container = document.createElement('main')
+  const destroyed = []
+  const registry = {
+    hasBlock: () => true,
+    getBlockDefinition: type => ({ type }),
+    getBlockRuntime: () => ({ create(data) {
+      return {
+        element: document.createElement('article'),
+        read() { return data }, setReadOnly() {},
+        destroy() { destroyed.push(data.text) },
+      }
+    } }),
+  }
+  const reconciler = new BlockReconciler({ container, registry, contextFactory: () => ({}) })
+  const store = text => new DocumentStore({
+    version: '2.0.0', blocks: [block(text)],
+  })
+  reconciler.mount(store('a'))
+
+  const originalReplace = container.replaceChildren.bind(container)
+  let injected = false
+  container.replaceChildren = (...elements) => {
+    originalReplace(...elements)
+    if (!injected) {
+      injected = true
+      reconciler.destroy()
+    }
+  }
+  assert.throws(() => reconciler.mount(store('b')), /BlockReconciler is destroyed/)
+  assert.deepEqual(destroyed, ['a', 'b'])
+  assert.deepEqual(reconciler.ids, [])
+  assert.deepEqual(container.children, [])
+  reconciler.destroy()
+  assert.deepEqual(destroyed, ['a', 'b'])
+})

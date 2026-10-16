@@ -143,12 +143,20 @@ export class BlockReconciler {
     const oldContainerChildren=Array.from(this.#container.childNodes??this.#container.children??[])
     try {
       this.#container.replaceChildren(...store.ids().map(id => fresh.get(id).element))
+      this.#assertLive()
       this.#entries = fresh
-      for (const entry of fresh.values()) this.#applyPreparedInline(entry)
-      for (const entry of fresh.values()) this.#activateEntry(entry)
-      for (const entry of fresh.values()) this.#finalizePreparedInline(entry)
-      // Once mounted, active instance contexts must read the committed store,
-      // not the candidate snapshot used during detached preparation.
+      for (const entry of fresh.values()) {
+        this.#applyPreparedInline(entry)
+        this.#assertLive()
+      }
+      for (const entry of fresh.values()) {
+        this.#activateEntry(entry)
+        this.#assertLive()
+      }
+      for (const entry of fresh.values()) {
+        this.#finalizePreparedInline(entry)
+        this.#assertLive()
+      }
       for (const entry of fresh.values()) entry.lifetime.candidate = null
     } catch (error) {
       const cleanupErrors=[]
@@ -158,10 +166,18 @@ export class BlockReconciler {
       for(const entry of fresh.values()){
         try{this.#destroyEntry(entry)}catch(failure){cleanupErrors.push(failure)}
       }
-      this.#entries=previousEntries
-      this.#store=previousStore
-      try{restoreChildOrder(this.#container,oldContainerChildren)}
-      catch(failure){cleanupErrors.push(failure)}
+      if(this.#destroyed){
+        // Terminal teardown has revoked the old editor. Never publish or
+        // restore its detached children after a reentrant destroy().
+        for(const entry of previousEntries.values())this.#destroyEntry(entry)
+        this.#entries.clear()
+        this.#store=null
+      }else{
+        this.#entries=previousEntries
+        this.#store=previousStore
+        try{restoreChildOrder(this.#container,oldContainerChildren)}
+        catch(failure){cleanupErrors.push(failure)}
+      }
       if(cleanupErrors.length){
         throw new AggregateError([error,...cleanupErrors], 'Block mount failed and DOM recovery was incomplete')
       }
@@ -169,6 +185,7 @@ export class BlockReconciler {
     }
 
     for (const entry of previousEntries.values()) this.#destroyEntry(entry)
+    this.#assertLive()
     this.#animator.enable()
   }
 
