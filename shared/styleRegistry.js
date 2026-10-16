@@ -1,5 +1,6 @@
 /** Reference-counted stylesheet ownership, isolated per DOM document. */
 const entriesByDocument = new WeakMap()
+const acquiringByDocument = new WeakSet()
 
 /**
  * Acquire stylesheet URLs for one owning document.
@@ -34,6 +35,10 @@ export function acquireStyleUrls(urls, ownerDocument = globalThis.document) {
     if (entries.size === 0) entriesByDocument.delete(ownerDocument)
   }
 
+  if (acquiringByDocument.has(ownerDocument)) {
+    throw new Error('Cannot reenter stylesheet acquisition')
+  }
+  acquiringByDocument.add(ownerDocument)
   try {
     for (const url of new Set(urls)) {
       const existing = entries.get(url)
@@ -58,6 +63,8 @@ export function acquireStyleUrls(urls, ownerDocument = globalThis.document) {
   } catch (error) {
     release()
     throw error
+  } finally {
+    acquiringByDocument.delete(ownerDocument)
   }
 
   let released = false

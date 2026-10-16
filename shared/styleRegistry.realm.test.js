@@ -98,3 +98,43 @@ test('partial DOM append followed by an exception releases the newly appended li
   lease.destroy()
   assert.equal(links[2].removed, true)
 })
+
+test('reentrant acquisition during link insertion cannot create orphaned duplicate styles', () => {
+  const { doc, links } = fakeDocument('reentry')
+  let attempted = false
+  doc.head.appendChild = link => {
+    links.push(link)
+    if (!attempted) {
+      attempted = true
+      assert.throws(() => acquireStyleUrls(['/same.css'], doc), /Cannot reenter stylesheet acquisition/)
+    }
+  }
+  const lease = acquireStyleUrls(['/same.css'], doc)
+  assert.equal(links.length, 1, 'only the authoritative link is inserted')
+  lease.destroy()
+  assert.equal(links[0].removed, true)
+
+  const next = acquireStyleUrls(['/same.css'], doc)
+  assert.equal(links.length, 2, 'the temporary acquisition gate must be released')
+  next.destroy()
+  assert.equal(links[1].removed, true)
+})
+
+test('uncaught reentrant acquisition error rolls back partially appended stylesheet', () => {
+  const { doc, links } = fakeDocument('failed-reentry')
+  let first = true
+  doc.head.appendChild = link => {
+    links.push(link)
+    if (first) {
+      first = false
+      acquireStyleUrls(['/same.css'], doc)
+    }
+  }
+  assert.throws(() => acquireStyleUrls(['/same.css'], doc), /Cannot reenter stylesheet acquisition/)
+  assert.equal(links.length, 1)
+  assert.equal(links[0].removed, true, 'partially inserted link is removed on failure')
+  const later = acquireStyleUrls(['/same.css'], doc)
+  assert.equal(links.length, 2)
+  later.destroy()
+  assert.equal(links[1].removed, true)
+})
