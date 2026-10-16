@@ -2,12 +2,14 @@ import { spawn } from 'node:child_process'
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { createServer } from 'node:net'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
-import { fileURLToPath } from 'node:url'
-import { editorRoot, vitePath, findChrome } from './environment.mjs'
+import { join, resolve, sep } from 'node:path'
+import { fileURLToPath, pathToFileURL } from 'node:url'
+import { editorRoot as defaultRoot, vitePath, findChrome } from './environment.mjs'
 import { formatBrowserFailure } from './failure-report.mjs'
 
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms))
+const editorRoot = process.env.EDITOR_BROWSER_ROOT
+  ? pathToFileURL(resolve(process.env.EDITOR_BROWSER_ROOT) + sep) : defaultRoot
 async function freePort() {
   return new Promise((resolve, reject) => {
     const server = createServer()
@@ -144,6 +146,7 @@ async function stop(process) {
 
 const labels = ['harness-contract.html', 'runtime-contracts.html', 'roundtrip.html', 'roundtrip-trusted-types.html', 'person-avatar-csp.html', 'history.html', 'selection.html', 'lifecycle.html', 'plugin-style-ownership.html', 'security.html', 'trusted-types.htm', 'action-label-security.html', 'audit-regressions.html', 'attaches-abort-urls.html', 'embed-service-registry.html', 'person-social-registry.html', 'gallery-layout-registry.html', 'mention.html', 'mention-session-race.html', 'poll.html', 'carousel.html', 'plugin-surfaces.html', 'imports.html', 'slash.html', 'selection-convert.html']
 labels.push('projection-contracts.html')
+labels.push('public-extension-contracts.html')
 const pages = process.env.EDITOR_BROWSER_PAGE ? labels.filter(label => label === process.env.EDITOR_BROWSER_PAGE) : labels
 if (!pages.length) throw new Error(`Unknown browser page: ${process.env.EDITOR_BROWSER_PAGE}`)
 const chromePath = findChrome()

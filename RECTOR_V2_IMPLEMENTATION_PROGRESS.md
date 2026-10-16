@@ -2,7 +2,7 @@
 
 Authoritative target: [updated refinement specification](./RECTOR_V2_ARCHITECTURE_REFINEMENT_SPEC.md).
 
-Each subsection records its own implementation checkpoint and verification scope. The current outstanding work is listed under Remaining slices; historical green suites do not establish acceptance of a later branch head.
+Each subsection records its own implementation checkpoint and verification scope. Current completion and exact verification scope are recorded under Final local integration acceptance; historical green suites do not establish acceptance of a later branch head.
 
 ## Preserved baseline
 
@@ -306,13 +306,77 @@ The first complete native run exposed test selectors still addressing retired He
 
 Full native/heap and final independent installed-package convergence remain in progress at this checkpoint. No whole-refactor completion is claimed here.
 
-## Remaining slices
+## Convergence coverage index
 
-4c. Full local/native/package verification and integration with the slice 8 terminal cancellation/control fan-out contract.
-5. Run full local/native/package acceptance on the new conversion planner and correct any failures.
-6. Run full local/native/package validation of strict formatting ports, panel settlement, tool presentation and selectionchange handling; correct resulting defects.
-7. Run full-editor, native, type, documentation and package acceptance for declarative controls, including the new registered action-label-security scenarios; correct resulting defects.
-8. Complete native/browser, mixed-selection recovery, IME/clipboard, typed external consumer, documentation and packaged acceptance for Mention reconciliation.
-9. Convergence, packaged conformance and dependency enforcement.
+This index maps each acceptance row in specification section 12 to registered executable checks. Final run outcomes and completion status are recorded separately; a listed test is not by itself a successful gate.
 
-Each slice must meet its specification's completion criteria, pass the relevant checks, and be committed and pushed separately. Passing Slice 1 does not establish completion of the remaining architecture work.
+| Acceptance row | Executable proof |
+| --- | --- |
+| P1–P5 / retained owners | `core/DocumentStore.test.js`, `core/TransactionEngine.test.js`; native core/plugin/history matrices |
+| Ingestion and structured reasons | `shared/DocumentSchema.test.js`, `core/DocumentRuntime.test.js`, renderer tests, browser `runtime-contracts` |
+| Nested failure presence | `core/TransactionEngine.test.js`, `core/PublicEditorApi.test.js`, `core/DocumentRuntime.test.js` |
+| Own inline dictionaries | Document schema/runtime tests, browser `projection-contracts`, `public-extension-contracts` |
+| Complete preparation guard | Runtime/inline command/clipboard tests; browser `runtime-contracts`, `imports`, independent external schema reentry |
+| Public insert acceptance | `core/PublicEditorApi.test.js`, browser `runtime-contracts` |
+| Public control adapters | Browser `runtime-contracts`, external schema control-denial case |
+| Validation observation | Runtime tests and browser `runtime-contracts` |
+| Partial projection | Browser `projection-contracts`, independent dynamic hidden-field membership; native hidden-fields/Poll/plugin-field suites |
+| Projection addressing/references | `core/projectionFields.test.js`, browser `projection-contracts` |
+| Inline context | Interface consumer, exact external widget context, scoped widget DOM removal/projection cases |
+| Current-draft planning | Runtime tests, selection-conversion planner tests, browser staged range/clipboard/conversion cases |
+| Remaining immediate commands | Runtime/keyboard tests; native core/structural/plugin controls |
+| Shortcut/toolbox preparation | Keyboard/router and runtime tests; native structural and toolbox/history scenarios |
+| Whole-block planning | Runtime/clipboard tests; native cross-selection/clipboard/structural |
+| HTML/pattern preparation | Inline command/clipboard tests; browser imports/runtime contracts |
+| Text/file matching and resolver lifetime | `core/ClipboardController.test.js`, browser runtime strict file matching and read-only task round trips |
+| Private MIME presence | Clipboard controller tests and browser empty/unreadable private-MIME cases |
+| Planned results/no-change Paste | Runtime tests, browser public no-change Paste/caret/history cases |
+| Deferred handles | Runtime issuer/forgery/staged source/order/aborted draft/preflight accessor tests |
+| Canonical planning | Runtime and conversion planner tests, AST dependency negative fixtures, native conversion/preservation/grouping |
+| Strict selection | `core/InlineSelectionAuthority.test.js`, browser scoped-token cases, independent external formatter |
+| Formatting domain/native presentation | Native tools, plugin ranges/local ranges, cross-selection and retained-tool matrices |
+| Formatting result | Native Unicode tools, conversion continuations/interaction sequences, alignment/font/color panel settlement |
+| Highlights | Browser runtime cross-editor highlight owner replacement |
+| Tool lifecycle | `core/InlineToolMounts.test.js`, browser runtime cleanup/reuse, independent failed acquisition/reuse |
+| Action metadata | `core/SettingsActions.test.js`, registered settings-action browser cases, native menus, RU/EN docs browser scenarios |
+| Mention direct edits | `inline-plugins/mention/labelEdit.test.js`, native Mention comparison to independent editable text |
+| Immediate inline dispatcher | `core/InlineWidgetInputController.test.js`, browser runtime revocable caret and native Mention |
+| Label-local clipboard | Native Mention local Cut/Paste, reentrant selection change, atomic outside-widget clipboard cases |
+| Native inline reconciliation | Runtime/native controller tests; native Mention word deletion, mixed field and Undo/Redo |
+| Retained native occurrence | Runtime normalization/no-op/cache repair tests, native Mention continuation |
+| Native pending lifetime/failure | `core/NativeInputController.test.js`, inline controller tests, native text/IME/read-only/late input cases |
+| Native handoff/notices | Inline controller/native tests; browser Mention session race and terminal cancellation |
+| P6/removal | AST source/dependency/removal audit and negative fixtures; all migrated consumers/types/docs |
+| Marker-free widget | Browser projection/public extension contracts, public focus and host marker assertions |
+| Synchronous hook completion | Registry/instance/controller tests, native instance methods, installed external Promise/callable/throwing-then failures |
+| Tool presentation values | Browser runtime per-tool failure/recovery and mounted cleanup; settings action metadata tests |
+| Popup ownership | Browser runtime scoped close/cleanup races, independent two-editor popup handles, native Color/Mention |
+| Terminal cancellation/control completion | Browser runtime guarded terminal hooks, native popup/read-only/composition tests |
+| Public interface payloads | Full external block/widget/tool/renderer TypeScript consumer in NodeNext/Bundler and installed tarball browser suite |
+| Architecture fitness gate | `scripts/plugin-source-audit.test.mjs`, parser-based dependency negative fixtures and real import graph audit, including unresolved extensionless imports |
+
+The independent `public-extension-contracts` page uses only supported editor/plugin-kit/renderer entries. The package gate installs the tarball in a fresh project, copies the identical fixture with public package imports, and executes it in Chrome through the existing browser runner. It covers two-editor definition reuse, partial dynamic fields/own keys, schema producer/control denial, synchronous read failures/recovery, scoped tasks/popups, formatter token provenance/revocation, failed tool cleanup/reuse and paired renderer atomic rejection. No extra runtime store, transaction owner or test framework is introduced.
+
+## Final local integration acceptance
+
+### Full integration proof and post-merge checks — 2026-10-16
+
+The full native run uncovered a real slice 6 integration defect: private formatting tokens dropped the existing selection owner's `conversionCaret` presentation flag. Link, Font Size and Background correctly edited the retained converted range, but Undo expanded native selection instead of restoring its end caret. A failing scoped-authority unit test reproduced the exact loss. The fix preserves that private flag through the existing owner; no public token surface or independent selection state was added. The stale native restoration consumer now acquires/passes its required mount-scoped token.
+
+The next complete native run found a slice 5 regression: applying rich-text range ordering before recognizing a collapsed caret rejected whole-block conversion for Code, Raw and other plain-text/inert sources. A failing pure planner regression reproduced the rejection against the current draft. Whole-block conversion now uses its existing canonical record route without requiring a rich-text field; noncollapsed text selection retains strict range validation. The fix preserves block identity, staged data and tunes and adds no plugin-type branches. The corrected native plugin parity suite passed **140/140** cases.
+
+Confirmed against the corrected runtime:
+
+- Full Node runner: **730/730 passed** after merge (**724/724** before merge); scoped selection authority: **14/14**; conversion planners: **5/5**.
+- Both project `typecheck` configurations passed. The complete interface-based block/widget/tool/renderer consumer passed **6/6** declaration parity gates, including strict Bundler and NodeNext.
+- All **27 registered browser page suites** passed before and after merge; the finalized independent public extension fixture has **8 contract cases**.
+- Native retained tools: **64/64**; conversion continuations: **65/65**; Font Size cancellation: **58/58**; Background cancellation: **36/36**; Link cancellation: **36/36**; panel keyboard: **36/36**.
+- Final `test:docs` passed: source/removal/dependency negative fixtures, localization and 94 EN/RU READMEs/53 examples. `docs:check` passed: 123 HTML pages, no broken links, actual RU/EN and light/dark demo/browser scenarios.
+- The complete `npm run test:browser` gate passed: all **27** registered pages, **1,900 cases in 39 history/native matrices**, the direct Enter/toolbox history scenarios and the heap gate. Heap evidence: **21 sentinels, zero retained**, 13.35 MiB used JS heap, 1.43 MiB embedder heap and a 25.77 MiB heap snapshot. The post-merge heap rerun also retained **zero of 21** sentinels (13.37 MiB used heap, 1.43 MiB embedder heap, 25.78 MiB snapshot).
+- The final installed tarball gate passed both TypeScript resolution modes, Vite build, native ESM, 22 CSS assets and all **8** independent external browser contract cases, including widget DOM removal and retired scope revocation after Undo.
+
+Browser/native evidence in this local run is from Windows and installed Chrome, including real CDP keyboard, clipboard and composition input. Controlled missing-target-range cases exercise the documented fallback; they do not establish that Chrome normally omits target ranges. Other browser engines, operating systems and manual OS IME sessions were not tested in this run.
+
+This complete native run used runtime `b165349` with the convergence fixture/runner changes. After it finished, merge `7296124` preserved two concurrently pushed remote commits: `691d7b9` routes toolbar conversion of selected plain-text fields to whole-block conversion and reports command failures, while `05aadcf` rejects unresolved extensionless runtime imports in the architecture audit. These complement the canonical planner fix. After merge, the full Node runner, both typecheck configurations, source/docs audits, all 27 source browser pages, docs/demo, heap and installed-package gates were rerun successfully. The changed toolbar routes were additionally checked by **429/429** cases across six native matrices: plugin parity **141**, conversion **7**, cross-selection **32**, block menus **108**, conversion grouping **88** and conversion preservation **53**. The complete 39-matrix native run was performed before this final merge; these six affected matrices were rerun afterward.
+
+Slices 1–9 are implemented and locally accepted within the recorded Windows/Chrome verification scope. The historical isolated-checkout pending notes are superseded by this integration evidence. The current convergence block has no outstanding implementation or failed checks. Test logs are preserved locally under ignored `test-results/architecture-convergence-2026-10-16/`.

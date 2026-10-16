@@ -1,4 +1,5 @@
 import { createEditor, type BlockPluginDefinition, type InlinePluginDefinition, type EditorConfig } from '../../.package-tmp/declaration-tests/core/index.js'
+import type { InlineTool } from '../../.package-tmp/declaration-tests/types.js'
 import { createEditorRenderer } from '../../.package-tmp/declaration-tests/renderer/index.js'
 import type { BlockRendererDefinition, OutputBlockData, InlineWidgetRenderer } from '../../.package-tmp/declaration-tests/renderer/types.js'
 import { setSanitizedHtml } from '../../.package-tmp/declaration-tests/plugin-kit/index.js'
@@ -83,8 +84,30 @@ const badgeDefinition: InlinePluginDefinition<BadgeData> = {
   } },
 }
 declare const holder: HTMLElement
+function createExternalTool(): InlineTool {
+  let port: Parameters<NonNullable<InlineTool['bindSelectionPort']>>[0] = null
+  return {
+    type: 'external-format', icon: '', title: 'Format', isActive: () => false,
+    bindSelectionPort(next) { port = next },
+    toggle({ range }) {
+      const token = port?.capture(range)
+      if (token) port?.restore(token, { endOffsetDelta: 0 })
+    },
+    onMount(_button, mutations) {
+      const token = port?.capture()
+      if (token) mutations?.mutate(token, range => { range.cloneContents() })
+    },
+    renderActions(context) {
+      context.setTextAlign('center')
+      context.restoreSelection()
+      return holder.ownerDocument.createElement('div')
+    },
+    destroy() { port = null },
+  }
+}
 const config: EditorConfig = {
   holder, defaultBlock: 'external-note', plugins: [noteDefinition], inlinePlugins: [badgeDefinition],
+  inlineTools: [createExternalTool()],
   data: { version: '2.0.0', blocks: [{ id: 'note', type: 'external-note', dataVersion: 1, data: note,
     inline: { badge: { type: 'external-badge', dataVersion: 1, data: badge } } }] },
 }

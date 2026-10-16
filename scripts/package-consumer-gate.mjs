@@ -13,7 +13,8 @@ const tscCli = resolve(editorRoot, 'node_modules/typescript/bin/tsc')
 const viteCli = resolve(editorRoot, 'node_modules/vite/bin/vite.js')
 
 function run(executable, args, cwd, options = {}) {
-  return execFileSync(executable, args, { cwd, encoding: 'utf8', stdio: options.capture ? 'pipe' : 'inherit' })
+  return execFileSync(executable, args, { cwd, encoding: 'utf8', stdio: options.capture ? 'pipe' : 'inherit',
+    windowsHide: true, env: options.env ?? process.env })
 }
 
 async function writeJson(path, value) {
@@ -284,6 +285,7 @@ void [publicEditor, editorConfig, blockPlugin, inlinePlugin, output, paragraph, 
     .replaceAll('../../.package-tmp/declaration-tests/renderer/index.js', '@shelamkoff/rector/renderer')
     .replaceAll('../../.package-tmp/declaration-tests/renderer/types.js', '@shelamkoff/rector/renderer/types')
     .replaceAll('../../.package-tmp/declaration-tests/plugin-kit/index.js', '@shelamkoff/rector/plugin-kit')
+    .replaceAll('../../.package-tmp/declaration-tests/types.js', '@shelamkoff/rector/types')
   await writeFile(join(consumerRoot, 'src/extensibility.ts'), extensionConsumer, 'utf8')
   await writeFile(join(consumerRoot, 'index.html'), '<script type="module" src="/src/main.js"></script>\n', 'utf8')
 
@@ -305,7 +307,22 @@ void [publicEditor, editorConfig, blockPlugin, inlinePlugin, output, paragraph, 
   run(node, [viteCli, 'build'], consumerRoot)
   run(node, ['--input-type=module', '-e', "import('@shelamkoff/rector').then(m => { if (typeof m.createEditor !== 'function') process.exit(1) })"], consumerRoot)
   run(node, ['--input-type=module', '-e', "Promise.all([import('highlight.js'), import('jszip')]).then(([h,z]) => { if (!h.default || !z.default) process.exit(1) })"], consumerRoot)
-  console.log(JSON.stringify({ tarball: basename(tarball), typeModes: ['Bundler', 'NodeNext'], vite: 'passed', import: 'passed' }))
+  // Execute the same external definitions against the installed tarball. The
+  // browser fixture has no private editor imports and no built-in plugin owner.
+  const browserRoot = join(consumerRoot, 'tests/browser')
+  await mkdir(browserRoot, { recursive: true })
+  for (const name of ['public-extension-contracts.html', 'public-extension-contracts.js', 'public-extension-conformance.js']) {
+    let source = await readFile(join(editorRoot, 'tests/browser', name), 'utf8')
+    if (name === 'public-extension-contracts.js') source = source
+      .replaceAll('../../index.js', '@shelamkoff/rector')
+      .replaceAll('../../plugin-kit/index.js', '@shelamkoff/rector/plugin-kit')
+      .replaceAll('../../renderer/index.js', '@shelamkoff/rector/renderer')
+    await writeFile(join(browserRoot, name), source, 'utf8')
+  }
+  run(node, [join(editorRoot, 'tests/browser/run.mjs')], consumerRoot, { env: {
+    ...process.env, EDITOR_BROWSER_ROOT: consumerRoot, EDITOR_BROWSER_PAGE: 'public-extension-contracts.html',
+  } })
+  console.log(JSON.stringify({ tarball: basename(tarball), typeModes: ['Bundler', 'NodeNext'], vite: 'passed', import: 'passed', externalBrowser: 'passed' }))
 } finally {
   await rm(temporaryRoot, { recursive: true, force: true })
 }

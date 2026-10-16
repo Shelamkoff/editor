@@ -274,6 +274,7 @@ async function runNativePage(client, pageUrl, page) {
   }
   const results = JSON.parse(await waitForHistoryMatrix(client))
   assert(Array.isArray(results) && results.length > 0, `No native cases ran for ${page}`)
+  console.log(`Native ${page}: ${results.length} passed`)
   return results
 }
 
