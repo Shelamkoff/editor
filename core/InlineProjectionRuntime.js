@@ -619,6 +619,13 @@ export class InlineProjectionRuntime {
           throw new Error('Inline projection owner was revoked during reconciliation')
         }
         this.#markWidget(entry)
+        // An observed custom-element attribute change can synchronously
+        // revoke the block while the host is setting its identity markers.
+        // A destroyed widget must never be appended to the next fragment.
+        if(this.#destroyed||this.#invalidatedProjectionBlocks.has(blockId)
+          ||(!state.staged&&this.#blocks.get(blockId)!==state)){
+          throw new Error('Inline projection owner was revoked during reconciliation')
+        }
         fragment.appendChild(entry.element)
         live.add(id)
         cursor=match.index+match[0].length

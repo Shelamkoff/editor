@@ -997,4 +997,86 @@ test('destroyBlock retires both mounted and waiting inline owners once', () => {
   } finally { projection.destroy() }
 })
 
+
+
+test('inline custom-element attribute callback cannot reattach a destroyed widget', () => {
+  let projection
+  let destroyed = 0
+  const tag = 'rector-reentrant-inline-root'
+  if (!customElements.get(tag)) {
+    customElements.define(tag, class extends HTMLElement {
+      static get observedAttributes() { return ['data-inline-plugin'] }
+      attributeChangedCallback() { projection?.destroyBlock('a') }
+    })
+  }
+  const registry = {
+    getInlineDefinition: () => ({ schema: { decode: input => input } }),
+    getInlineRuntime: () => ({
+      create() {
+        return {
+          element: document.createElement(tag),
+          setReadOnly() {},
+          destroy() { destroyed++ },
+        }
+      },
+    }),
+  }
+  projection = new InlineProjectionRuntime({ registry, ownerDocument: document })
+  const field = document.createElement('div')
+  field.textContent = '{{x}}'
+  try {
+    let message = ''
+    try {
+      projection.reconcileBlock('a', {
+        data: { fields: [{ key: 'text', html: '{{x}}' }] },
+        inline: { x: payload },
+      }, { schema }, [{ key: 'text', mode: 'rich-text', element: field }],
+      { createInlineWidgetContext: () => ({}) }, { preserveSourceProjection: true })
+    } catch (error) { message = error.message }
+    assert(/owner was revoked during reconciliation/.test(message))
+    equal(destroyed, 1)
+    equal(field.textContent, '{{x}}', 'revoked widget cannot be reinserted after attributeChangedCallback')
+    assert(!field.querySelector(tag))
+  } finally { projection.destroy() }
+})
+
+test('attribute-triggered block teardown during inline preparation does not publish its root', () => {
+  let projection
+  let destroyed = 0
+  const tag = 'rector-preparing-inline-root'
+  if (!customElements.get(tag)) {
+    customElements.define(tag, class extends HTMLElement {
+      static get observedAttributes() { return ['data-inline-plugin'] }
+      attributeChangedCallback() { projection?.destroyBlock('a') }
+    })
+  }
+  const registry = {
+    getInlineDefinition: () => ({ schema: { decode: input => input } }),
+    getInlineRuntime: () => ({
+      create() {
+        return {
+          element: document.createElement(tag),
+          setReadOnly() {},
+          destroy() { destroyed++ },
+        }
+      },
+    }),
+  }
+  projection = new InlineProjectionRuntime({ registry, ownerDocument: document })
+  const field = document.createElement('div')
+  let message = ''
+  try {
+    try {
+      projection.prepareBlock('a', {
+        data: { fields: [{ key: 'text', html: '{{x}}' }] },
+        inline: { x: payload },
+      }, { schema }, [{ key: 'text', mode: 'rich-text', element: field }],
+      { createInlineWidgetContext: () => ({}) }, 1)
+    } catch (error) { message = error.message }
+    assert(/owner was revoked during reconciliation/.test(message))
+    equal(destroyed, 1)
+    assert(!field.querySelector(tag), 'unpublished candidate must remain detached')
+  } finally { projection.destroy() }
+})
+
 await run()
