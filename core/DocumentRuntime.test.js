@@ -1005,6 +1005,40 @@ test('same-type toolbox configuration preserves unrelated author data and one Un
   runtime.destroy()
 })
 
+/** Minimal ownerDocument for this test's flat text-only rich field.
+ * Production rich-text markup is exercised in the registered browser suites.
+ * Unlike a missing ownerDocument, this uses the actual scanner/normalizer.
+ */
+function flatTextOwnerDocument(){
+  return {
+    createElement(tag){
+      if(tag!=='template')throw new TypeError('Flat rich-text fixture only supports template nodes')
+      let html=''
+      const content={
+        childNodes:[],
+        firstChild:null,
+        querySelectorAll(){return []},
+      }
+      return {
+        content,
+        get innerHTML(){return html},
+        set innerHTML(value){
+          html=String(value)
+          if(/[<>]/.test(html))throw new TypeError('Markup needs a browser DOM test')
+          const node=html?{nodeType:3,data:html,textContent:html,nextSibling:null}:null
+          content.childNodes=node?[node]:[]
+          content.firstChild=node
+        },
+      }
+    },
+    createTreeWalker(root){
+      const texts=root.childNodes.filter(node=>node.nodeType===3)
+      let at=0
+      return {nextNode(){return texts[at++]??null}}
+    },
+  }
+}
+
 test('native inline reconciliation synchronizes normalized sidecar before one commit',()=>{
   const plugin=registry([paragraphDefinition({
     mapRichText:(data,visit)=>({...data,text:visit(data.text,'text')}),
@@ -1032,6 +1066,7 @@ test('native inline reconciliation synchronizes normalized sidecar before one co
   }
   const runtime=new DocumentRuntime({
     registry:plugin,
+    ownerDocument:flatTextOwnerDocument(),
     projector,
     data:{version:'2.0.0',blocks:[block('a',{text:'{{person}}'},
       {inline:{person:{type:'mention',dataVersion:1,data:{id:'ada',name:'Ada'}}}})]},
@@ -1089,6 +1124,7 @@ test('native inline preparation rejection cannot partially change current canoni
   let restored=0,producerCalls=0
   const runtime=new DocumentRuntime({
     registry:plugin,
+    ownerDocument:flatTextOwnerDocument(),
     data:{version:'2.0.0',blocks:[block('a',{text:'{{person}}'},
       {inline:{person:{type:'mention',dataVersion:1,data:{id:'ada',name:'Ada'}}}})]},
     projector:{
