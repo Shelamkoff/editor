@@ -6,7 +6,13 @@ import { NativeInputController } from './NativeInputController.js'
 function harness(options = {}) {
   const calls = []
   let now = 0
-  const field = { parentNode: null }
+  const field = {
+    parentNode: null,
+    contains(node) {
+      for(let cursor=node;cursor;cursor=cursor.parentNode)if(cursor===this)return true
+      return false
+    },
+  }
   const child = { parentNode: field }
   const reconciler = {
     resolveEditableTarget(target) {
@@ -39,6 +45,7 @@ function harness(options = {}) {
     runtime,
     reconciler,
     crossSelection: options.crossSelection ?? null,
+    inlineWidgetInput: options.inlineWidgetInput ?? null,
     coalesceMs: options.coalesceMs ?? 300,
   })
   return {
@@ -284,4 +291,83 @@ test('read-only runtime ignores native input', () => {
   runtime.readOnly = true
   controller.handleInput({ target: child, inputType: 'insertText', isComposing: false })
   assert.equal(calls.length, 0)
+})
+
+test('matching native inline input settles once and never enters ordinary field serialization',()=>{
+  const handled=[]
+  const inlineWidgetInput={
+    captureNativeDeletion(owner,event){
+      return {blockId:owner.blockId,fieldKey:owner.fieldKey,
+        eventHost:owner.element,inputType:event.inputType,
+        trusted:false,originalEvent:event,
+        generation:1,revision:2}
+    },
+    completeNativeDeletion(snapshot,event){handled.push(['settled',snapshot.inputType,event.inputType])},
+    discardStaleNativeDeletion(){handled.push(['stale'])},
+  }
+  const {controller,runtime,field,child,calls}=harness({inlineWidgetInput})
+  runtime.generation=1
+  runtime.revision=2
+  const event={target:child,inputType:'deleteWordBackward',isComposing:false,defaultPrevented:false}
+  controller.handleBeforeInput(event)
+  controller.handleInput({target:field,inputType:'deleteWordBackward',isTrusted:false})
+  assert.deepEqual(handled,[['settled','deleteWordBackward','deleteWordBackward']])
+  assert.deepEqual(calls,[])
+})
+
+test('read-only retirement keeps a matching inline input inert instead of using generic persistence',()=>{
+  const results=[]
+  const inlineWidgetInput={
+    captureNativeDeletion(owner,event){
+      return {blockId:owner.blockId,fieldKey:owner.fieldKey,
+        eventHost:owner.element,inputType:event.inputType,
+        trusted:false,originalEvent:event,generation:1,revision:2}
+    },
+    completeNativeDeletion(){results.push('settled')},
+    discardStaleNativeDeletion(){results.push('stale')},
+  }
+  const {controller,runtime,field,child,calls}=harness({inlineWidgetInput})
+  runtime.generation=1
+  runtime.revision=2
+  controller.handleBeforeInput({target:child,inputType:'deleteWordBackward',defaultPrevented:false})
+  runtime.readOnly=true
+  controller.setReadOnly(true,()=>{})
+  runtime.readOnly=false
+  controller.handleInput({target:field,inputType:'deleteWordBackward',isTrusted:false})
+  assert.deepEqual(results,['stale'])
+  assert.deepEqual(calls,[])
+})
+
+test('native input from a different field retires an inline envelope and uses its ordinary route',()=>{
+  const events=[]
+  const inlineWidgetInput={
+    captureNativeDeletion(owner,event){return {
+      blockId:owner.blockId,fieldKey:owner.fieldKey,eventHost:owner.element,
+      inputType:event.inputType,trusted:false,originalEvent:event}},
+    completeNativeDeletion(){events.push('settled')},
+  }
+  const {controller,runtime,child,calls}=harness({inlineWidgetInput})
+  controller.handleBeforeInput({target:child,inputType:'deleteWordBackward',defaultPrevented:false})
+  // Different type cannot complete the earlier inline branch.
+  controller.handleInput({target:child,inputType:'insertText',isTrusted:false})
+  assert.deepEqual(events,[])
+  assert.equal(calls.length,1)
+})
+
+test('late preventDefault cancels inline settlement without reserializing its projection',()=>{
+  const handled=[]
+  const inlineWidgetInput={
+    captureNativeDeletion(owner,event){return {
+      blockId:owner.blockId,fieldKey:owner.fieldKey,eventHost:owner.element,
+      inputType:event.inputType,trusted:false,originalEvent:event}},
+    completeNativeDeletion(){handled.push('settled')},
+    discardStaleNativeDeletion(){handled.push('stale')},
+  }
+  const {controller,field,child,calls}=harness({inlineWidgetInput})
+  const event={target:child,inputType:'deleteContentBackward',defaultPrevented:false}
+  controller.handleBeforeInput(event)
+  event.defaultPrevented=true
+  controller.handleInput({target:field,inputType:'deleteContentBackward',isTrusted:false})
+  assert.deepEqual(handled,['stale'])
+  assert.deepEqual(calls,[])
 })
