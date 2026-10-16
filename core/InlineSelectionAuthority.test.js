@@ -120,6 +120,23 @@ test('foreign and forged tokens cannot restore or inspect their option getters',
   assert.deepEqual(state.applied, [])
 })
 
+test('scoped restore preserves the owner-defined converted-range caret presentation', () => {
+  const state = fixture()
+  state.setBookmark({
+    anchor: { blockId: 'block', fieldKey: 'text', offset: 1 },
+    focus: { blockId: 'block', fieldKey: 'text', offset: 4 },
+    conversionCaret: true,
+  })
+  state.port.activate()
+  const token = state.port.capture()
+  assert.equal(state.port.restore(token), true)
+  assert.deepEqual(state.applied, [{
+    anchor: { blockId: 'block', fieldKey: 'text', offset: 1 },
+    focus: { blockId: 'block', fieldKey: 'text', offset: 4 },
+    conversionCaret: true,
+  }])
+})
+
 test('revision, generation, native lease, read-only and phase expire old restoration rights', () => {
   const state = fixture()
   state.port.activate()

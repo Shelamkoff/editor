@@ -213,8 +213,9 @@ for(const backwards of [false,true])for(const cross of [false,true])test('native
  equal(getTextOffset(restoredFocus,restored.focusNode,restored.focusOffset),backwards?(cross?2:1):(cross?3:4))
 })
 test('mounted inline restoration cannot revive a removed document or act after read-only and destroy',async()=>{
- let controls=null
- const tool={type:'restoreProbe',title:'Restore selection',icon:'T',isActive(){return false},toggle(){},onMount(_button,context){controls=context}}
+ let controls=null,port=null
+ const tool={type:'restoreProbe',title:'Restore selection',icon:'T',isActive(){return false},toggle(){},
+  bindSelectionPort(value){if(value)port=value},onMount(_button,context){controls=context}}
  const editor=make([para('a','Alpha')],{injectStyles:true,inlineTools:[tool]})
  const field=editableField(editor,'a')
  await clickNative(field)
@@ -222,20 +223,22 @@ test('mounted inline restoration cannot revive a removed document or act after r
  await window.__testInput('Input.drag',{from:{x:from.clientX,y:from.clientY},to:{x:to.clientX,y:to.clientY}})
  await pause(30)
  assert(controls?.restoreSelection,'Mounted inline control did not receive selection restoration')
- assert(controls.restoreSelection(),'Current selected text cannot be restored')
+ const token=port?.capture()
+ assert(token,'Current selection did not issue a mount-scoped token')
+ assert(controls.restoreSelection(token),'Current selected text cannot be restored')
  equal(window.getSelection().toString(),'lph')
  equal(editor.canUndo,false,'Selection restoration added history')
  editor.setReadOnly(true)
- equal(controls.restoreSelection(),false,'Read-only restoration took focus')
+ equal(controls.restoreSelection(token),false,'Read-only restoration took focus')
  editor.setReadOnly(false)
  editor.render({version:'2.0.0',blocks:[para('a','Successor with the same ID')]})
- equal(controls.restoreSelection(),false,'Old range acquired a same-ID successor document')
+ equal(controls.restoreSelection(token),false,'Old range acquired a same-ID successor document')
  editor.render({version:'2.0.0',blocks:[para('new','Replacement')]})
  const current=editor.save().blocks,active=document.activeElement
- equal(controls.restoreSelection(),false,'Old range revived in a replacement document')
+ equal(controls.restoreSelection(token),false,'Old range revived in a replacement document')
  equal(document.activeElement,active);equal(editor.save().blocks,current)
  editor.destroy()
- equal(controls.restoreSelection(),false,'Destroyed inline control restored stale selection')
+ equal(controls.restoreSelection(token),false,'Destroyed inline control restored stale selection')
 })
 
 await run()

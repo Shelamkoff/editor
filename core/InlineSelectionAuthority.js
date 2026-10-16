@@ -104,6 +104,7 @@ export class InlineSelectionAuthority {
       const token = Object.freeze({})
       this.#tokens.set(token, {
         anchor, focus,
+        conversionCaret: bookmark.conversionCaret === true,
         lease: this.#lease(),
         generation: this.#runtime.generation,
         revision: this.#runtime.revision,
@@ -176,7 +177,7 @@ export class InlineSelectionAuthority {
       const resolvedAnchor = this.#resolve(anchor)
       const resolvedFocus = this.#resolve(focus)
       if (!resolvedAnchor || !resolvedFocus) return null
-      return { anchor, focus }
+      return { anchor, focus, ...(captured.conversionCaret ? { conversionCaret: true } : {}) }
     })
     if (!candidate || !this.#matches(captured) || !this.#currentOwns(captured)) return false
     return this.#restore(candidate) === true
