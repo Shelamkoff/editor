@@ -15,7 +15,7 @@ function object(value){
   return value&&typeof value==='object'&&!Array.isArray(value)?value:{}
 }
 
-function snapshotInlineInstance(source,type,destroySource){
+function snapshotInlineInstance(source,type,destroySource,requiresUpdate=false){
   synchronousResult(source)
   if(!source||typeof source!=='object'||Array.isArray(source)){
     throw new TypeError('Inline runtime "'+type+'" returned an invalid widget instance')
@@ -24,7 +24,8 @@ function snapshotInlineInstance(source,type,destroySource){
   const update=captureInstanceMethod(source,'update')
   const setReadOnly=captureInstanceMethod(source,'setReadOnly')
   const focus=captureInstanceMethod(source,'focus')
-  if(!element||!setReadOnly||!destroySource){
+  const afterNativeEdit=captureInstanceMethod(source,'afterNativeEdit')
+  if(!element||!setReadOnly||!destroySource||(requiresUpdate&&!update)){
     throw new TypeError('Inline runtime "'+type+'" returned an invalid widget instance')
   }
   const instance={
@@ -34,6 +35,7 @@ function snapshotInlineInstance(source,type,destroySource){
   }
   if(update)instance.update=update
   if(focus)instance.focus=focus
+  if(afterNativeEdit)instance.afterNativeEdit=afterNativeEdit
   return Object.freeze(instance)
 }
 
@@ -151,6 +153,69 @@ export class InlineProjectionRuntime {
       if(entry?.element===node)return entry.element
     }
     return null
+  }
+
+  /** Immutable snapshot of the currently owned rich-field occurrences.
+   * The native controller retains these occurrence identities only until the
+   * next matching input (or their authority is revoked).
+   */
+  captureNativeField(blockId,fieldKey,fieldElement){
+    this.#assertLive()
+    const state=this.#blocks.get(blockId)
+    if(!state||!fieldElement?.isConnected)return null
+    const occurrences=[]
+    for(const entry of state.widgets.values()){
+      if(entry.fieldKey!==fieldKey||entry.fieldElement!==fieldElement
+        ||!fieldElement.contains(entry.element)||!entry.element.isConnected)continue
+      const definition=this.#registry.getInlineDefinition(entry.type)
+      if(typeof definition?.editing?.reconcileNative!=='function')continue
+      occurrences.push(Object.freeze({
+        id:entry.id,type:entry.type,fieldKey,element:entry.element,
+        data:cloneEditorData(entry.data),
+        beforeText:entry.element.textContent??'',
+        instance:entry.instance,
+      }))
+    }
+    return Object.freeze({blockId,fieldKey,fieldElement,
+      occurrences:Object.freeze(occurrences)})
+  }
+
+  /** Prove a captured native occurrence is still the same mounted instance. */
+  isCurrentNativeOccurrence(blockId,fieldKey,source){
+    const entry=this.#blocks.get(blockId)?.widgets.get(source.id)
+    return Boolean(entry && entry.type===source.type
+      && entry.fieldKey===fieldKey && entry.fieldElement?.isConnected
+      && entry.element===source.element && entry.instance===source.instance
+      && entry.fieldElement.contains(entry.element))
+  }
+
+  /** Complete owned inline DOM/cache changes under the DocumentRuntime's
+   * existing protected-projection edit guard. A later projection transaction
+   * retires removed entries; no new canonical store is introduced.
+   */
+  applyNativeInlineChanges(blockId,fieldKey,changes){
+    this.#assertLive()
+    const state=this.#blocks.get(blockId)
+    if(!state)throw new Error('Native inline block is no longer mounted')
+    for(const change of changes){
+      const entry=state.widgets.get(change.id)
+      if(!entry||entry.type!==change.type||entry.fieldKey!==fieldKey
+        ||entry.element!==change.element||entry.instance!==change.instance){
+        throw new Error('Native inline occurrence ownership changed')
+      }
+      if(change.action.kind==='update'){
+        if(!entry.instance.update)throw new Error('Editable native inline widget cannot update its data')
+        const previous=cloneEditorData(entry.data)
+        const next=cloneEditorData(change.action.data)
+        entry.instance.update(next,previous)
+        entry.data=next
+        this.#markWidget(entry)
+      }else{
+        const text=change.action.kind==='replace-text'?change.action.text:''
+        if(text)entry.element.replaceWith(this.#ownerDocument.createTextNode(text))
+        else entry.element.remove()
+      }
+    }
   }
 
   resolveWidgetInputTarget(selection,inputType){
@@ -375,7 +440,8 @@ export class InlineProjectionRuntime {
           try{
             sourceInstance=runtime.create(id,decoded.data,context)
             destroySource=captureInstanceDestroy(sourceInstance)
-            instance=snapshotInlineInstance(sourceInstance,type,destroySource)
+            instance=snapshotInlineInstance(sourceInstance,type,destroySource,
+              typeof definition.editing?.reconcileNative==='function')
           }catch(error){
             try{scope.revoke()}catch{}
             try{controller.abort()}catch{}
