@@ -258,3 +258,36 @@ npm run docs:check
 ### Следующий приоритет
 
 Проверить реальное браузерное выполнение `projection-contracts.html` и project gates на рабочем checkout, затем повторно аудировать ошибочные ветви уже **существующего** `InlineProjectionRuntime.reconcileBlock()`: его in-place update path после частичной ошибки не обладает полноценной транзакционной гарантией для уже смонтированного блока. Никакого исправления этой отдельной области без конкретного red-теста в текущем проходе не утверждалось.
+
+## Последующая проверка повторного reconcile и отложенных транзакций (16 октября 2026)
+
+Исходный HEAD прохода: `1865d75d83f5f15267b7b18130bbf1f55ace275d`. Последний коммит с кодом: `3d7310c56f0221cc3c4715ac2f219f55b1eaf047`. Все изменения внесены непосредственно в `refactor/rector-v2-architecture`; исторические разделы этого отчёта остаются неизменными.
+
+### Подтверждённые и исправленные дефекты
+
+| ID | Важность | Дефект | Код / тесты |
+|---|---|---|---|
+| IR5 | P1 | Ошибка при повторном `InlineProjectionRuntime.reconcileBlock()` после частичного обновления оставляла прежний виджет в кэше, хотя его DOM/данные уже могли быть изменены или отсоединены. Предыдущая очистка срабатывала только при первом монтаже. | `8920e49`: fail-closed удаление состояния и cleanup всех live owners, затем восстановимый clean retry. **2 browser tests** |
+| IR6 | P1 | Вызов `destroyBlock()` из widget `update()` мог отозвать экземпляр, но внешний `reconcileBlock()` позднее вновь монтировал уже уничтоженный root. Повторный `reconcileBlock()` того же ID порождал неограниченную рекурсию. | `6fe3edf`: block-scoped reentry guard и проверка активного владельца до публикации widget fragment; guarded `prepareBlock()`. **3 browser tests** |
+| IR7 | P1 | Prepared inline state не принадлежал runtime до `apply()`: уничтожение runtime до `apply()` оставляло staged widget без disposer, а оставшийся handle мог позже выполнять `apply/finalize`. Параллельные prepared handles могли перезаписывать нового владельца. | `25aebf3`: pending preparation ledger, terminal cleanup staged/predecessor, revoked/stale publication checks. **3 browser tests** |
+| BR5 | P1 | `BlockReconciler.prepare()` допускал публикацию staged blocks после уничтожения reconciler, а detached predecessors ожидали `finalize` вне карты live-экземпляров. Две подготовленные вставки могли применяться без проверки актуальности владельца. | `2ee232a`: pending projection ledger, stale apply rejection, terminal staged/previous cleanup, сохранён normal discard/recovery. **4 Node tests** |
+| BR6 | P1 | `runtime.create()` мог синхронно уничтожить reconciler во время staging: `prepare` и `mount` возвращали staged instances после `destroy`. Исключение из вычисления final order после staging тоже оставляло уже приобретённые ресурсы. | `5dcae40`: проверка активного владельца и независимая cleanup до регистрации pending-ownership. **3 Node tests** |
+| BR7 | P1 | `mount()` после синхронного `destroy()` из `replaceChildren` (в том числе custom-element lifecycle) продолжал публиковать новый набор блоков и возвращал успешный результат. | `3d7310c`: проверка владельца на каждом этапе DOM publication, cleanup old/new, запрет восстановления destroyed document. **2 Node tests** |
+
+**Объём прохода:** 6 коммитов с кодом, 17 регрессионных тестов: 8 browser cases в `tests/browser/projection-contracts.js` и 9 Node cases в `core/BlockReconciler.test.js`.
+
+### Проведённая независимая проверка
+
+- Для IR5 исходная версия сохраняла live `x` после сбоя второго виджета; после исправления `x.destroy()` вызывался, retry создавал нового владельца.
+- Для IR6 исходная версия вновь публиковала root после отзыва owner либо рекурсивно вызывала сама себя; исправление отклоняет stale update и same-block reentry до публикации.
+- Для IR7 исходная версия не освобождала staged widget после `destroy()` и принимала просроченные `apply()`/ `finalize()`; исправленная версия освобождает widget и отклоняет вызовы, как и параллельный stale `apply()`.
+- Для BR5 baseline после `destroy()` позволял `prepared.apply()` восстановить IDs `['a','b']`; fixed ledger держит IDs пустыми, освобождает candidate и predecessor exactly once. Нормальные `apply/finalize` и `apply/recover` сохранены в отдельных регрессионных тестах.
+- Для BR6 ошибку reentrant destroy в `runtime.create` и ошибку `draft.ids()` удалось воспроизвести. До исправления staged resource не вызывал disposer, после исправления вызвал.
+- Для BR7 `replaceChildren()` может удалить предыдущее DOM и синхронно уничтожить редактор. До исправления `mount` всё равно публиковал нового владельца, после исправления отказывает и освобождает old/new.
+- После push подтверждён HEAD `3d7310c56f0221cc3c4715ac2f219f55b1eaf047`. Повторно прочитаны четыре фактических исходных/тестовых файла; все успешно прошли отдельную синтаксическую проверку V8 с временным снятием ESM imports/exports. Это **не** успешный npm/TypeScript/browser gate.
+
+### Оставшиеся ограничения и риски
+
+Полные `npm ci`, `npm run typecheck`, `npm test`, `npm run test:browser`, `npm run test:docs`, `npm run test:types`, `npm run test:package` на актуальном HEAD из этой сессии **не выполнялись**: доступ к checkout/установленным зависимостям отсутствует. Паритет поведения с первой версией редактора, реальные keyboard/IME/clipboard flows и native browser lifecycle остаются незакрытыми критериями приёмки.
+
+**Следующий риск для изучения:** корректность отката двух последовательно подготовленных (но не завершённых) блочных операций при вызове старого `recover()` после публикации более нового owner. Такой сценарий не подтверждён и в текущем проходе не исправлялся без воспроизведения.
