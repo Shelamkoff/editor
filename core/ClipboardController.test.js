@@ -29,6 +29,7 @@ function clipboardHarness({ formats = [], read = () => '', files = [], accepts =
     readOnly: false,
     generation: 1,
     revision: 0,
+    has: id => id === 'a',
     get: () => ({ id: 'a', type: 'paragraph' }),
     interact(_name, operation, selectionAfter) {
       const result = operation()
