@@ -404,3 +404,78 @@ test('staged replacement context reads candidate data before store commit', () =
   prepared.discard()
   reconciler.destroy()
 })
+
+test('block instance cannot borrow an element already owned by another host', () => {
+  const ownerDocument = new FakeDocument()
+  const container = ownerDocument.createElement('main')
+  const application = ownerDocument.createElement('section')
+  const borrowed = ownerDocument.createElement('article')
+  application.appendChild(borrowed)
+  const released = []
+  const registry = {
+    hasBlock: () => true,
+    getBlockDefinition: type => ({ type }),
+    getBlockRuntime: () => ({ create() {
+      return {
+        element: borrowed, read() { return {} }, setReadOnly() {},
+        destroy() { released.push('borrowed') },
+      }
+    } }),
+  }
+  const reconciler = new BlockReconciler({ container, registry, contextFactory: () => ({}) })
+  const store = new DocumentStore({ version: '2.0.0', blocks: [block('a')] })
+  assert.throws(() => reconciler.mount(store), /must return a detached HTMLElement/)
+  assert.equal(application.firstChild, borrowed)
+  assert.deepEqual(container.children, [])
+  assert.deepEqual(released, ['borrowed'])
+  reconciler.destroy()
+  assert.deepEqual(released, ['borrowed'])
+})
+
+test('two block owners cannot share one renderer element', () => {
+  const ownerDocument = new FakeDocument()
+  const container = ownerDocument.createElement('main')
+  const shared = ownerDocument.createElement('article')
+  const released = []
+  const registry = {
+    hasBlock: () => true,
+    getBlockDefinition: type => ({ type }),
+    getBlockRuntime: () => ({ create(initial) {
+      return {
+        element: shared, read() { return initial }, setReadOnly() {},
+        destroy() { released.push(initial.text) },
+      }
+    } }),
+  }
+  const reconciler = new BlockReconciler({ container, registry, contextFactory: () => ({}) })
+  const store = new DocumentStore({ version: '2.0.0', blocks: [block('a'), block('b')] })
+  assert.throws(() => reconciler.mount(store), /must return a fresh HTMLElement/)
+  assert.deepEqual(released, ['a'])
+  assert.deepEqual(container.children, [])
+  reconciler.destroy()
+  assert.deepEqual(released, ['a'])
+})
+
+test('block runtime must return an element created in the owning document', () => {
+  const doc = new FakeDocument()
+  const foreignDoc = new FakeDocument()
+  const container = doc.createElement('main')
+  const alien = foreignDoc.createElement('article')
+  let released = 0
+  const registry = {
+    hasBlock: () => true,
+    getBlockDefinition: type => ({ type }),
+    getBlockRuntime: () => ({ create() {
+      return {
+        element: alien, read() { return {} }, setReadOnly() {},
+        destroy() { released++ },
+      }
+    } }),
+  }
+  const reconciler = new BlockReconciler({ container, registry, contextFactory: () => ({}) })
+  const store = new DocumentStore({ version: '2.0.0', blocks: [block('a')] })
+  assert.throws(() => reconciler.mount(store), /owning document/)
+  assert.equal(released, 1)
+  assert.deepEqual(container.children, [])
+  reconciler.destroy()
+})

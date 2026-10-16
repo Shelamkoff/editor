@@ -7,6 +7,8 @@ import { ProjectionAnimator } from './ProjectionAnimator.js'
 import { captureEditableFields } from './projectionFields.js'
 import { synchronousResult } from '../shared/synchronousResult.js'
 
+const liveBlockRoots=new WeakMap()
+
 function sameJson(left, right) {
   try { return JSON.stringify(left) === JSON.stringify(right) } catch { return false }
 }
@@ -561,6 +563,7 @@ export class BlockReconciler {
     let destroySource
     let instance = null
     let element = null
+    let borrowedLiveRoot = false
 
     try {
       const readRecord = () => lifetime.candidate ?? this.#store?.peek(record.id) ?? record
@@ -576,11 +579,23 @@ export class BlockReconciler {
       sourceInstance = runtime.create(record.data, context)
       destroySource = captureInstanceDestroy(sourceInstance)
       instance = snapshotBlockInstance(sourceInstance, record.type, destroySource)
+      const root=instance.element
+      if(!root||root.ownerDocument!==ownerDocument){
+        throw new TypeError('Block runtime "'+record.type+'" must return an element in the owning document')
+      }
+      if(liveBlockRoots.has(root)){
+        borrowedLiveRoot=true
+        throw new TypeError('Block runtime "'+record.type+'" must return a fresh HTMLElement')
+      }
+      if(root.parentNode||root.isConnected){
+        throw new TypeError('Block runtime "'+record.type+'" must return a detached HTMLElement')
+      }
       element = ownerDocument.createElement('div')
       element.className = 'oe-block'
       element.dataset.blockId = record.id
       element.dataset.blockType = record.type
       element.appendChild(instance.element)
+      liveBlockRoots.set(instance.element,scope)
 
       const entry = {
         type: record.type,
@@ -612,10 +627,10 @@ export class BlockReconciler {
     } catch (error) {
       try { scope.revoke() } catch {}
       try { controller.abort() } catch {}
-      try {
-        destroySource?.()
-      } catch {}
+      // A rejected alias still belongs to the original live instance.
+      if(!borrowedLiveRoot)try { destroySource?.() } catch {}
       try { element?.remove?.() } catch {}
+      if(instance?.element&&liveBlockRoots.get(instance.element)===scope)liveBlockRoots.delete(instance.element)
       throw error
     }
   }
@@ -700,5 +715,8 @@ export class BlockReconciler {
     try { entry.controller?.abort() } catch {}
     try { entry.instance?.destroy?.() } catch {}
     try { entry.element?.remove?.() } catch {}
+    if(entry.scope&&liveBlockRoots.get(entry.instance?.element)===entry.scope){
+      liveBlockRoots.delete(entry.instance.element)
+    }
   }
 }
