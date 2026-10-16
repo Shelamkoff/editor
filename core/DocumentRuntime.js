@@ -1181,6 +1181,7 @@ export class DocumentRuntime {
       selectionBefore: snapshot.selectionBefore,
       preserveSourceProjection: true,
       nativeInlineCandidate: () => candidateInline,
+      finalizeNativeInline: next => snapshot.finalizeChanges?.(capturedChanges,next.inline),
     })
     const status = this.revision === beforeRevision ? 'unchanged' : 'committed'
     snapshot.settle?.(capturedChanges,status)
@@ -1233,6 +1234,7 @@ export class DocumentRuntime {
         const next = this.#recordFromData(
           current.id, current.type, definition, readData, current.tunes, inlineSource,
         )
+        if (metadata.finalizeNativeInline) metadata.finalizeNativeInline(next)
         if (
           current.dataVersion !== next.dataVersion
           || !sameJson(current.data, next.data)
