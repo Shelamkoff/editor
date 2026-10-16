@@ -23,27 +23,33 @@ const IMMEDIATE_INPUTS = new Set([
 
 /** Snapshot and validate a prepared inline edit before owning its event.
  * @param {unknown} input
+ * @returns {import('../plugin-kit/types').InlineWidgetEditAction<object> & {caret?:number}}
  */
 function captureAction(input) {
   const value = cloneEditorData(synchronousResult(input))
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     throw new TypeError('Inline editing handle() must return a valid action or null')
   }
-  const kind = value.kind
+  /** @type {{kind?:unknown,data?:unknown,text?:unknown,caret?:unknown}} */
+  const candidate = value
+  const kind = candidate.kind
   if (kind === 'update') {
-    if (!value.data || typeof value.data !== 'object' || Array.isArray(value.data)) {
+    if (!candidate.data || typeof candidate.data !== 'object' || Array.isArray(candidate.data)) {
       throw new TypeError('Inline editing update must supply data')
     }
   } else if (kind === 'replace-text') {
-    if (typeof value.text !== 'string') throw new TypeError('Inline plain-text replacement must contain text')
+    if (typeof candidate.text !== 'string') throw new TypeError('Inline plain-text replacement must contain text')
   } else if (kind !== 'remove') {
     throw new TypeError('Unknown inline editing action')
   }
-  if (Object.hasOwn(value, 'caret')
-    && (!Number.isInteger(value.caret) || value.caret < 0)) {
+  if (Object.hasOwn(candidate, 'caret')
+    && (!Number.isInteger(candidate.caret) || candidate.caret < 0)) {
     throw new TypeError('Inline editing caret must be a non-negative integer')
   }
-  return value
+  // Runtime validation above precedes this checked-JS discriminated result.
+  return /** @type {import('../plugin-kit/types').InlineWidgetEditAction<object> & {caret?:number}} */ (
+    /** @type {unknown} */ (candidate)
+  )
 }
 
 export class InlineWidgetInputController {
