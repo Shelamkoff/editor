@@ -6,6 +6,12 @@ import { createListPlugin } from './list/index.js'
 import { createQuotePlugin } from './quote/index.js'
 import { createTablePlugin } from './table/index.js'
 import { createChecklistPlugin } from './checklist/index.js'
+import { createWarningPlugin } from './warning/index.js'
+import { createTogglePlugin } from './toggle/index.js'
+import { createColumnsPlugin } from './columns/index.js'
+import { createSpoilerPlugin } from './spoiler/index.js'
+import { createPollPlugin } from './poll/index.js'
+import { createPersonPlugin } from './person/index.js'
 
 function documentFixture() {
   return {
@@ -33,6 +39,12 @@ const scenarios=[
   [createQuotePlugin, { text:'<b></b>',caption:'<br>' }, {text:'Hello',caption:'<br>'}],
   [createTablePlugin, {rows:[{id:'r',cells:[{id:'c',text:'<b></b>'}]}]}, {rows:[{id:'r',cells:[{id:'c',text:'Hello'}]}]}],
   [createChecklistPlugin, {items:[{id:'a',text:'<br>',checked:false}]}, {items:[{id:'a',text:'Hello',checked:false}]}],
+  [createWarningPlugin, { title:'&nbsp;', message:'<br>' }, { title:'Hello', message:'<br>' }],
+  [createTogglePlugin, { title:'<b></b>',content:'<br>' }, { title:'Hello',content:'<br>' }],
+  [createColumnsPlugin, { columns:[{id:'a',content:'<b></b>'}] }, { columns:[{id:'a',content:'Hello'}] }],
+  [createSpoilerPlugin, { label:'&nbsp;',content:'<br>' }, { label:'Hello',content:'<br>' }],
+  [createPollPlugin, { question:'<br>',options:[{id:'o',text:'<b></b>'}] }, {question:'Hello',options:[{id:'o',text:'<b></b>'}]}],
+  [createPersonPlugin, { persons:[{id:'a',avatar:'',name:'<b></b>',role:'',bio:'',links:[]}] }, {persons:[{id:'a',avatar:'',name:'Ada',role:'',bio:'',links:[]}]}],
 ]
 for(const [factory,empty,authored] of scenarios) {
   test(factory.name+' detects empty markup and keeps authored rich text', () => {

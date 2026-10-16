@@ -1,3 +1,4 @@
+import { isRichTextEmpty } from '../../shared/richTextEmpty.js'
 // @ts-check
 import { definitionStyles } from '../shared/definitionStyles.js'
 import { setSanitizedHtml } from '../../plugin-kit/index.js'
@@ -26,7 +27,7 @@ export function createWarningPlugin(config = {}) {
   const capabilities=Object.freeze({
     selectionSlice:createTextSelectionSlice(warningDataSchema),
     formatting:Object.freeze({inlineTools:true}),
-    empty:Object.freeze({isEmpty:data=>!data.title.trim()&&!data.message.trim()}),
+    empty:Object.freeze({isEmpty:(data,context)=>isRichTextEmpty(data.title,context)&&isRichTextEmpty(data.message,context)}),
     merge:Object.freeze({
       merge(target,source){
         return {title:append(target.title,source.title),message:append(target.message,source.message)}

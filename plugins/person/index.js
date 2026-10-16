@@ -1,3 +1,4 @@
+import { isRichTextEmpty } from '../../shared/richTextEmpty.js'
 // @ts-check
 import { snapshotConfigRecords } from '../shared/configRecords.js'
 import { setSanitizedHtml } from '../../plugin-kit/index.js'
@@ -28,8 +29,10 @@ function cloneData(data){
   }
 }
 
-function meaningful(person){
-  return Boolean(person.avatar||person.name.trim()||person.role.trim()||person.bio.trim()||person.links.some(link=>link.url))
+function meaningful(person,context){
+  return Boolean(person.avatar||!isRichTextEmpty(person.name,context)
+    ||!isRichTextEmpty(person.role,context)||!isRichTextEmpty(person.bio,context)
+    ||person.links.some(link=>link.url))
 }
 
 function linkFieldKey(personId,linkId){
@@ -61,7 +64,7 @@ export function createPersonPlugin(config={}){
   const capabilities=Object.freeze({
     selectionSlice:createTextSelectionSlice(personDataSchema),
     clipboard:createTextClipboardSlice(personDataSchema),
-    empty:Object.freeze({isEmpty:data=>data.persons.every(person=>!meaningful(person))}),
+    empty:Object.freeze({isEmpty:(data,context)=>data.persons.every(person=>!meaningful(person,context))}),
     shortcuts:Object.freeze(/** @type {import('../../plugin-kit/types').ShortcutCapability<any>} */ ({
       handle(input){
         const textField=input.fieldKey.startsWith('person:')

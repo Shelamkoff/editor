@@ -1,3 +1,4 @@
+import { isRichTextEmpty } from '../../shared/richTextEmpty.js'
 // @ts-check
 import { definitionStyles } from '../shared/definitionStyles.js'
 import {
@@ -29,7 +30,7 @@ export function createSpoilerPlugin(config = {}) {
   const capabilities=Object.freeze({
     selectionSlice:createTextSelectionSlice(spoilerDataSchema),
     formatting:Object.freeze({inlineTools:true}),
-    empty:Object.freeze({isEmpty:data=>!data.label.trim()&&!data.content.trim()}),
+    empty:Object.freeze({isEmpty:(data,context)=>isRichTextEmpty(data.label,context)&&isRichTextEmpty(data.content,context)}),
     merge:Object.freeze({
       merge(target,source){
         return {label:append(target.label,source.label),content:append(target.content,source.content)}

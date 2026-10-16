@@ -1,3 +1,4 @@
+import { isRichTextEmpty } from '../../shared/richTextEmpty.js'
 // @ts-check
 import { definitionStyles } from '../shared/definitionStyles.js'
 import { setSanitizedHtml } from '../../plugin-kit/index.js'
@@ -42,7 +43,7 @@ export function createColumnsPlugin(config = {}) {
   const capabilities=Object.freeze({
     selectionSlice:createTextSelectionSlice(columnsDataSchema),
     formatting:Object.freeze({inlineTools:true}),
-    empty:Object.freeze({isEmpty:data=>data.columns.every(column=>column.content.trim().length===0)}),
+    empty:Object.freeze({isEmpty:(data,context)=>data.columns.every(column=>isRichTextEmpty(column.content,context))}),
     shortcuts:Object.freeze(/** @type {import('../../plugin-kit/types').ShortcutCapability<any>} */ ({
       handle(input){
         if(input.fieldKey.startsWith('column:')&&['Enter','Backspace','Delete'].includes(input.key))return {kind:'native'}

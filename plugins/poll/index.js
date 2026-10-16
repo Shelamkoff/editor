@@ -1,3 +1,4 @@
+import { isRichTextEmpty } from '../../shared/richTextEmpty.js'
 // @ts-check
 import { snapshotConfigMethods } from '../shared/configRecords.js'
 import { synchronousResult } from '../../shared/synchronousResult.js'
@@ -42,7 +43,7 @@ export function createPollPlugin(config={}){
     selectionSlice:createTextSelectionSlice(pollDataSchema),
     clipboard:createTextClipboardSlice(pollDataSchema),
     empty:Object.freeze({
-      isEmpty:data=>!data.question.trim()&&data.options.every(option=>!option.text.trim()),
+      isEmpty:(data,context)=>isRichTextEmpty(data.question,context)&&data.options.every(option=>isRichTextEmpty(option.text,context)),
     }),
     shortcuts:Object.freeze(/** @type {import('../../plugin-kit/types').ShortcutCapability<any>} */ ({
       handle(input,data,context){
