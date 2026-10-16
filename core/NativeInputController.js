@@ -65,6 +65,14 @@ export class NativeInputController {
 
   get isComposing() { return this.#composition !== null }
 
+  /** Called when the earlier root-capture inline owner consumes beforeinput
+   * and stops propagation before this controller's bubble listener can retire
+   * its old native input envelope. No canonical command is performed here.
+   */
+  retirePendingInput() {
+    this.#pendingInput = null
+  }
+
   setReadOnly(value, discardProjectionEdits = () => this.#runtime.discardProjectionEdits?.()) {
     if (value === true) {
       const discardPreedit = this.#composition !== null || this.#endingComposition !== null
