@@ -491,3 +491,39 @@ test('a collapsed browser target range permits a directly owned character deleti
     'update','a','mention-1',{id:'ada',name:'Ad'},
   ])
 })
+
+test('failed post-native caret restoration cannot skip settled widget notices',()=>{
+  const state=fixture()
+  const notices=[]
+  state.runtime.get=()=>({type:'paragraph'})
+  state.runtime.observeExtension=operation=>operation()
+  const source={id:'mention-1',type:'mention',fieldKey:'text',
+    element:state.widget,beforeText:'@Ada',data:{id:'ada',name:'Ada'},
+    optedIn:true,instance:{}}
+  state.projection.isCurrentNativeOccurrence=()=>true
+  state.projection.retireNativeInlineChanges=()=>{}
+  state.projection.notifyNativeInlineEdit=(_blockId,_id,notice)=>{notices.push(notice)}
+  state.root.ownerDocument.createRange=()=>({
+    selectNodeContents(){},setEnd(){},toString(){return '@A'},
+  })
+  state.root.ownerDocument.defaultView.getSelection=()=>({
+    anchorNode:state.widget.firstChild,anchorOffset:2,
+    focusNode:state.widget.firstChild,focusOffset:2,
+    setBaseAndExtent(){throw new Error('selection restoration refused')},
+  })
+  state.runtime.reconcileNativeInlineInput=(snapshot)=>{
+    snapshot.settle([], 'unchanged')
+    return {status:'unchanged'}
+  }
+  const snapshot={
+    blockId:'a',fieldKey:'text',blockType:'paragraph',
+    fieldElement:state.field,
+    generation:state.runtime.generation,revision:state.runtime.revision,
+    occurrences:[source],selectionBefore:null,
+  }
+  assert.deepEqual(state.controller.completeNativeDeletion(snapshot,{}),{
+    status:'unchanged',inside:true,
+  })
+  assert.equal(notices.length,1)
+  assert.equal(notices[0].caret,2)
+})
