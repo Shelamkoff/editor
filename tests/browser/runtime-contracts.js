@@ -2250,4 +2250,39 @@ for(const [tag,html] of [
 }
 
 
+test('external P-root HTML importer keeps its own block semantics and data',async()=>{
+  const base=createParagraphPlugin()
+  let imports=0
+  const external=Object.freeze({
+    ...base,
+    type:'external-paragraph',
+    capabilities:Object.freeze({
+      ...base.capabilities,
+      htmlImport:Object.freeze({
+        matchesRoot(element){return element.tagName==='P'},
+        importRoot(element){imports++;return {text:'External:'+element.textContent}},
+      }),
+    }),
+  })
+  const editor=make([{id:'a',type:'external-paragraph',dataVersion:base.schema.currentVersion,
+    data:{text:'Alpha'}}],{plugins:[base,external]})
+  const first=editableField(editor,'a')
+  select(first,2,4)
+  const before=editor.save().blocks
+  const data=new DataTransfer()
+  data.setData('text/html','<p><b>X</b></p>')
+  const event=new ClipboardEvent('paste',{clipboardData:data,bubbles:true,cancelable:true})
+  first.dispatchEvent(event)
+  await Promise.resolve()
+  check(event.defaultPrevented,'External matching root was not claimed')
+  equal(imports,1,'Accepted external HTML importer did not own its root exactly once')
+  equal(editor.save().blocks.map(block=>[block.type,block.data.text]),
+    [['external-paragraph','Alpha'],['external-paragraph','External:X']],
+    'Single-root inline optimization bypassed the external importer result')
+  editor.undo()
+  equal(editor.save().blocks,before)
+  equal(editor.canUndo,false)
+})
+
+
 await run()
