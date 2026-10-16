@@ -479,3 +479,60 @@ test('block runtime must return an element created in the owning document', () =
   assert.deepEqual(container.children, [])
   reconciler.destroy()
 })
+
+test('destroying a displaced block reconciler preserves the host replacement', () => {
+  const ownerDocument = new FakeDocument()
+  const container = ownerDocument.createElement('main')
+  const replacement = ownerDocument.createElement('aside')
+  const counters = { destroyed: 0 }
+  const registry = {
+    hasBlock: () => true,
+    getBlockDefinition: type => ({ type }),
+    getBlockRuntime: () => ({ create() {
+      return {
+        element: ownerDocument.createElement('article'),
+        read() { return {} }, setReadOnly() {},
+        destroy() { counters.destroyed++ },
+      }
+    } }),
+  }
+  const reconciler = new BlockReconciler({ container, registry, contextFactory: () => ({}) })
+  const store = new DocumentStore({ version: '2.0.0', blocks: [block('a')] })
+  reconciler.mount(store)
+  container.replaceChildren(replacement)
+  reconciler.destroy()
+  assert.deepEqual(container.children, [replacement])
+  assert.equal(counters.destroyed, 1)
+  reconciler.destroy()
+  assert.equal(counters.destroyed, 1)
+})
+
+test('a block disposer can mount unrelated application DOM without losing it', () => {
+  const ownerDocument = new FakeDocument()
+  const container = ownerDocument.createElement('main')
+  const addition = ownerDocument.createElement('aside')
+  let disposed = 0
+  let staleOwnerVisible = null
+  let reconciler
+  const registry = {
+    hasBlock: () => true,
+    getBlockDefinition: type => ({ type }),
+    getBlockRuntime: () => ({ create() {
+      return {
+        element: ownerDocument.createElement('article'),
+        read() { return {} }, setReadOnly() {},
+        destroy() {
+          disposed++
+          staleOwnerVisible = reconciler.getElement('a') !== undefined
+          container.appendChild(addition)
+        },
+      }
+    } }),
+  }
+  reconciler = new BlockReconciler({ container, registry, contextFactory: () => ({}) })
+  reconciler.mount(new DocumentStore({ version: '2.0.0', blocks: [block('a')] }))
+  reconciler.destroy()
+  assert.equal(disposed, 1)
+  assert.equal(staleOwnerVisible, false, 'teardown must revoke the owner map before callback')
+  assert.deepEqual(container.children, [addition])
+})

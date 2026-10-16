@@ -494,11 +494,15 @@ export class BlockReconciler {
     this.#destroyed = true
     this.#fieldObserver?.disconnect()
     this.#fieldObserver = null
-    for (const entry of this.#entries.values()) this.#destroyEntry(entry)
+    // Hide the previously owned shell registry before plugin destroy hooks
+    // can reenter and inspect retired block references.
+    const owned=[...this.#entries.values()]
     this.#entries.clear()
+    for (const entry of owned) this.#destroyEntry(entry)
     this.#inlineProjection?.destroy?.()
     this.#animator.destroy()
-    this.#container.replaceChildren()
+    // Each owned shell is already detached by #destroyEntry. Do not clear
+    // the host container: the application may have mounted its own nodes.
   }
 
   #assertLive() {
