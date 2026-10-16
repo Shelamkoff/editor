@@ -54,14 +54,28 @@ export class InlineToolMounts {
       seen.add(source)
     }
     /** @type {Array<{source:any,tool:any,started:boolean,revoke:(()=>void)|null,owner:InlineToolMounts}>} */
-    const staged = sources.map(source => {
-      const tool = captureTool(runtime, source)
-      if (names.has(tool.type)) throw new Error(`Duplicate inline tool type: ${tool.type}`)
-      names.add(tool.type)
-      return { source, tool, started: false, revoke: null, owner: this }
-    })
+    const staged = sources.map(source => ({
+      source, tool: null, started: false, revoke: null, owner: this,
+    }))
+    // Reserve every source before running author-defined metadata getters.
+    // An independent editor may reenter construction from one such getter.
     for (const entry of staged) owners.set(entry.source, entry)
-    this.#entries = staged
+    try {
+      for (const entry of staged) {
+        const tool = captureTool(runtime, entry.source)
+        if (names.has(tool.type)) throw new Error(`Duplicate inline tool type: ${tool.type}`)
+        names.add(tool.type)
+        entry.tool = tool
+      }
+      this.#entries = staged
+    } catch (error) {
+      // Incomplete construction owns no live tools. Release only our claims,
+      // never a successor's claim made by a reentrant external callback.
+      for (const entry of staged) {
+        if (owners.get(entry.source) === entry) owners.delete(entry.source)
+      }
+      throw error
+    }
   }
 
   get tools() {
@@ -82,6 +96,9 @@ export class InlineToolMounts {
     entry.started = true
     entry.revoke = revoke
     this.#complete(tool.bindSelectionPort?.(port))
+    // Port binding may synchronously revoke this toolbar. Do not mount a
+    // resource after its selection authority and disposal have been retired.
+    if (this.#closed || owners.get(entry.source) !== entry) return
     this.#complete(tool.onMount?.(button, mutations))
   }
 
