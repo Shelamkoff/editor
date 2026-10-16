@@ -25,7 +25,7 @@ function fixture(handle = () => null) {
   const root = {
     ownerDocument: { defaultView: {
       AbortController,
-      getSelection() { return {isCollapsed:true,anchorNode:label,anchorOffset:3} },
+      getSelection() { return {isCollapsed:true,anchorNode:label,focusNode:label,anchorOffset:3,focusOffset:3} }
     } },
     addEventListener(type, fn) { events[type] = fn },
     contains(node) { return node === field || field.contains(node) || node === foreign },
