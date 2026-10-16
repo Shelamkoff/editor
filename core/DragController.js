@@ -217,7 +217,20 @@ export class DragController {
     this.#runtime.move(state.sourceId,targetIndex)
     this.#view.reconcileInteraction()
     this.#view.setCurrent(state.sourceId)
-    queueMicrotask(()=>this.#view.focus(state.sourceId))
+    // A drag's deferred caret belongs to this committed revision, mounted
+    // block and current focus owner. A replacement or read-only transition
+    // must not restore focus into a successor document with the same block id.
+    const generation=this.#runtime.generation
+    const revision=this.#runtime.revision
+    const mounted=this.#view.element(state.sourceId)
+    const sourceId=state.sourceId
+    queueMicrotask(()=>{
+      if(this.#destroyed||this.#runtime.readOnly
+        ||this.#runtime.generation!==generation||this.#runtime.revision!==revision
+        ||!this.#runtime.has(sourceId)||mounted!==state.element
+        ||this.#view.element(sourceId)!==mounted||this.#view.currentId!==sourceId)return
+      this.#view.focus(sourceId)
+    })
   }
 
   #cancelSession(expected=null){
