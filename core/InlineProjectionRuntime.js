@@ -321,8 +321,21 @@ export class InlineProjectionRuntime {
       const previous=cloneEditorData(entry.data)
       const next=cloneEditorData(decoded.data)
       entry.instance.update(next,previous)
+      // A synchronous plugin callback may destroy the owner or reparent its
+      // root. Do not settle an invalid native edit into canonical caches.
+      if(this.#destroyed||this.#blocks.get(blockId)!==state
+        ||state.widgets.get(change.id)!==entry
+        ||!entry.fieldElement.contains(entry.element)){
+        throw new Error('Native inline update lost its mounted instance')
+      }
       entry.data=next
       this.#markWidget(entry)
+      // Custom-element attribute observers may also revoke the owner.
+      if(this.#destroyed||this.#blocks.get(blockId)!==state
+        ||state.widgets.get(change.id)!==entry
+        ||!entry.fieldElement.contains(entry.element)){
+        throw new Error('Native inline update lost its mounted instance')
+      }
     }
   }
 

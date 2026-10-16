@@ -1161,4 +1161,97 @@ test('native inline edit notification cannot reach a widget moved outside its fi
   } finally { projection.destroy(); host.remove() }
 })
 
+
+test('native inline update fails if plugin update callback retires its block', () => {
+  const host = document.createElement('main')
+  const field = document.createElement('div')
+  field.contentEditable = 'true'
+  host.append(field)
+  document.body.append(host)
+  let projection
+  let destroyed = 0
+  const registry = {
+    getInlineDefinition: () => ({ schema: { decode: input => input } }),
+    getInlineRuntime: () => ({
+      create(_id, data) {
+        const element = document.createElement('span')
+        element.textContent = data.label
+        return {
+          element, setReadOnly() {},
+          update(next) {
+            element.textContent = next.label
+            projection.destroyBlock('a')
+          },
+          destroy() { destroyed++ },
+        }
+      },
+    }),
+  }
+  projection = new InlineProjectionRuntime({ registry, ownerDocument: document })
+  try {
+    projection.reconcileBlock('a', {
+      data: { fields: [{ key: 'text', html: '{{x}}' }] }, inline: { x: payload },
+    }, { schema }, [{ key: 'text', mode: 'rich-text', element: field }],
+    { createInlineWidgetContext: () => ({}) })
+    const snapshot = projection.captureNativeField('a', 'text', field)
+    assert(snapshot?.occurrences.length === 1)
+    const changes = snapshot.occurrences.map(item => ({ ...item, action: { kind: 'update' } }))
+    let error = ''
+    try {
+      projection.finalizeNativeInlineUpdates('a', 'text', changes, {
+        x: { ...payload, data: { label: 'updated' } },
+      })
+    } catch (cause) { error = cause.message }
+    assert(/Native inline update lost its mounted instance/.test(error))
+    equal(destroyed, 1)
+    equal(projection.resolveWidgetElement(changes[0].element), null)
+  } finally { projection.destroy(); host.remove() }
+})
+
+test('native inline update fails if plugin moves its root outside the original field', () => {
+  const host = document.createElement('main')
+  const field = document.createElement('div')
+  field.contentEditable = 'true'
+  const elsewhere = document.createElement('aside')
+  host.append(field, elsewhere)
+  document.body.append(host)
+  let widget
+  const registry = {
+    getInlineDefinition: () => ({ schema: { decode: input => input } }),
+    getInlineRuntime: () => ({
+      create(_id, data) {
+        const element = document.createElement('span')
+        element.textContent = data.label
+        widget = element
+        return {
+          element, setReadOnly() {},
+          update(next) {
+            element.textContent = next.label
+            elsewhere.append(element)
+          },
+          destroy() {},
+        }
+      },
+    }),
+  }
+  const projection = new InlineProjectionRuntime({ registry, ownerDocument: document })
+  try {
+    projection.reconcileBlock('a', {
+      data: { fields: [{ key: 'text', html: '{{x}}' }] }, inline: { x: payload },
+    }, { schema }, [{ key: 'text', mode: 'rich-text', element: field }],
+    { createInlineWidgetContext: () => ({}) })
+    const snapshot = projection.captureNativeField('a', 'text', field)
+    assert(snapshot?.occurrences.length === 1)
+    const changes = snapshot.occurrences.map(item => ({ ...item, action: { kind: 'update' } }))
+    let error = ''
+    try {
+      projection.finalizeNativeInlineUpdates('a', 'text', changes, {
+        x: { ...payload, data: { label: 'updated' } },
+      })
+    } catch (cause) { error = cause.message }
+    assert(/Native inline update lost its mounted instance/.test(error))
+    equal(projection.resolveWidgetElement(widget), null)
+  } finally { projection.destroy(); host.remove() }
+})
+
 await run()
