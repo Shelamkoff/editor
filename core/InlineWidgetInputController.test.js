@@ -527,3 +527,23 @@ test('failed post-native caret restoration cannot skip settled widget notices',(
   assert.equal(notices.length,1)
   assert.equal(notices[0].caret,2)
 })
+
+test('failed stale inline discard reports diagnostics without authoring another change',()=>{
+  const state=fixture()
+  state.runtime.get=()=>({type:'paragraph'})
+  let calls=0
+  state.runtime.discardProjectionEdits=()=>{
+    calls++
+    throw new Error('projection restore failed')
+  }
+  const snapshot={blockId:'a',fieldKey:'text',blockType:'paragraph',
+    fieldElement:state.field,generation:state.runtime.generation,
+    revision:state.runtime.revision,
+  }
+  assert.throws(()=>state.controller.discardStaleNativeDeletion(snapshot),
+    /projection restore failed/)
+  assert.equal(calls,1)
+  assert.equal(state.diagnostics.length,1)
+  assert.equal(state.diagnostics[0][0],'command.failed')
+  assert.deepEqual(state.writes,[])
+})
