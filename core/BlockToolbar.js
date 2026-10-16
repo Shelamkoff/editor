@@ -605,9 +605,13 @@ export class BlockToolbar {
       this.#settingsItem(this.#t('block.delete', 'Delete'), ICON_DELETE, () => {
         const focusId = this.#mutate('block.remove', () => this.#runtime.remove(id), result => result)
         this.#view.reconcileInteraction()
-        this.#currentId = focusId ?? this.#view.currentId
+        const nextId=focusId ?? this.#view.currentId
+        // The surviving neighbor is the owner of the settled removal focus,
+        // not the first-block fallback selected during reconciliation.
+        // Claim it synchronously before the revocable deferred focus check.
+        if(nextId&&this.#runtime.has(nextId))this.#view.setCurrent(nextId)
+        this.#currentId=nextId
         this.closeSettings()
-        const nextId=this.#currentId
         if(nextId)this.#deferOwned(nextId,()=>this.#view.focus(nextId))
       }, false, true),
     )
