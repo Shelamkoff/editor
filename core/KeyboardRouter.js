@@ -182,16 +182,16 @@ export class KeyboardRouter {
     if(this.#handleShortcut(owner,event,range,keys))return
 
     if (key === 'Enter' && !keys.shiftKey) {
-      const handled = this.#runtime.isEmpty(owner.blockId)
-        ? this.exit(owner.blockId)
-        : this.split(owner.blockId, owner.fieldKey, range)
-      if (handled) event.preventDefault?.()
+      const handled=this.#handleStructuralKey(event,()=>this.#runtime.isEmpty(owner.blockId)
+        ?this.exit(owner.blockId):this.split(owner.blockId,owner.fieldKey,range))
+      if(handled)event.preventDefault?.()
       return
     }
 
     if (key === 'Backspace' && !keys.shiftKey && range.start === 0 && range.end === 0 && this.#atBlockEdge(owner, false)) {
-      if (this.#mergeBackward(owner.blockId)
-        || (record.type !== this.#registry.defaultBlockType && this.#runtime.isEmpty(owner.blockId) && this.exit(owner.blockId))) event.preventDefault?.()
+      const handled=this.#handleStructuralKey(event,()=>this.#mergeBackward(owner.blockId)
+        ||(record.type!==this.#registry.defaultBlockType&&this.#runtime.isEmpty(owner.blockId)&&this.exit(owner.blockId)))
+      if(handled)event.preventDefault?.()
       return
     }
 
@@ -235,7 +235,9 @@ export class KeyboardRouter {
       && range.end === fieldLength(owner)
       && this.#atBlockEdge(owner, true)
     ) {
-      if (this.#mergeForward(owner.blockId, owner.fieldKey, range.end)) event.preventDefault?.()
+      if (this.#handleStructuralKey(event,()=>this.#mergeForward(owner.blockId,owner.fieldKey,range.end))) {
+        event.preventDefault?.()
+      }
     }
   }
 
@@ -327,6 +329,18 @@ export class KeyboardRouter {
     this.#view.reconcileInteraction()
     this.#view.focus(id, { offset: 'start' })
     return true
+  }
+
+  #handleStructuralKey(event,operation){
+    try{return operation()}
+    catch(error){
+      // A declared plugin's empty-block decision is owned by this keypress.
+      // A failed decision must not fall through to native editing-host
+      // mutation without a corresponding canonical history transaction.
+      event.preventDefault?.()
+      try{this.#reportError(error)}catch{}
+      return false
+    }
   }
 
   #handleShortcut(owner,event,range,keys){

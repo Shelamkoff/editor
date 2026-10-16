@@ -9,7 +9,7 @@ class FakeRoot {
   addEventListener(type, handler) { this.listeners.set(type, handler) }
 }
 
-function harness() {
+function harness({ reportError } = {}) {
   const root = new FakeRoot()
   const field = { value: '', parentNode: null }
   const owner = { blockId: 'b', fieldKey: 'text', element: field, mode: 'plain-text' }
@@ -70,7 +70,9 @@ function harness() {
     focus(id, target) { viewCalls.push(['focus', id, target]); return true },
     indexOf(id) { return records.findIndex(record => record.id === id) },
   }
-  const router = new KeyboardRouter({ root, runtime, registry, reconciler, selection, view })
+  const router = new KeyboardRouter({ root, runtime, registry, reconciler, selection, view,
+    ...(reportError ? { reportError } : {}),
+  })
   const event = (key, extra = {}) => {
     let prevented = false
     return {
@@ -280,3 +282,31 @@ test('queued keyboard split never overwrites a later user caret inside the new b
     'old split focus stole the later author caret')
   h.router.destroy()
 })
+
+for(const key of ['Enter','Backspace','Delete']){
+  test('failed empty-block eligibility consumes '+key+' without native or history fallback',()=>{
+    const reported=[]
+    const h=harness({reportError:error=>reported.push(error.message)})
+    if(key==='Backspace'){
+      h.setBookmark({
+        anchor:{blockId:'b',fieldKey:'text',offset:0},
+        focus:{blockId:'b',fieldKey:'text',offset:0},
+      })
+    }
+    if(key==='Delete'){
+      h.field.value='B'
+      h.setBookmark({
+        anchor:{blockId:'b',fieldKey:'text',offset:1},
+        focus:{blockId:'b',fieldKey:'text',offset:1},
+      })
+    }
+    h.runtime.isEmpty=()=>{throw new TypeError('Invalid empty block result')}
+    const event=h.event(key)
+    assert.doesNotThrow(()=>h.router.handleKeydown(event),
+      'owned '+key+' leaked a plug-in capability exception')
+    assert.equal(event.prevented,true,key+' was allowed to fall through to native editing')
+    assert.deepEqual(h.calls,[],key+' mutated the canonical model after failed eligibility')
+    assert.deepEqual(reported,['Invalid empty block result'],'error was not reported once')
+    h.router.destroy()
+  })
+}
