@@ -418,7 +418,17 @@ export class DocumentRuntime {
     const current = this.#store.get(id)
     if (!current || this.activation(id)?.kind !== 'active') return false
     const definition = this.#registry.getBlockDefinition(current.type)
-    return definition?.capabilities?.empty?.isEmpty?.(current.data) === true
+    const empty = definition?.capabilities?.empty
+    if (typeof empty?.isEmpty !== 'function') return false
+    // Keyboard decisions read an extension capability before an authored
+    // transaction. Deny reentrant commands and delayed eligibility results.
+    return this.prepareExtensionValue(() => {
+      const decision = synchronousResult(empty.isEmpty(current.data))
+      if (typeof decision !== 'boolean') {
+        throw new TypeError('Block empty.isEmpty() must return a boolean')
+      }
+      return decision
+    })
   }
 
   createDataId(prefix) {

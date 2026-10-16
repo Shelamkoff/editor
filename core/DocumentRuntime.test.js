@@ -1197,3 +1197,21 @@ test('empty capability cannot issue an author update while keyboard eligibility 
   assert.equal(runtime.canUndo,false,'empty callback added author history')
   runtime.destroy()
 })
+
+test('empty capability requires synchronous boolean eligibility without history effects',()=>{
+  for(const [label,decision,expected] of [
+    ['thenable',()=>Promise.resolve(true),/synchronous/],
+    ['invalid',()=>({value:true}),/boolean/],
+  ]){
+    const definition=paragraphDefinition()
+    definition.capabilities.empty.isEmpty=decision
+    const runtime=new DocumentRuntime({
+      registry:registry([definition]),
+      data:{version:'2.0.0',blocks:[block('a',{text:'Some text'})]},
+    })
+    assert.throws(()=>runtime.isEmpty('a'),expected,label+' decision was accepted')
+    assert.equal(runtime.get('a').data.text,'Some text')
+    assert.equal(runtime.canUndo,false)
+    runtime.destroy()
+  }
+})
