@@ -400,7 +400,13 @@ export function createPollPlugin(config={}){
                   },
                   onError:error=>{if(!dead&&!connectionController.signal.aborted&&version===connectionVersion)report(error)},
                 }))
-                if(typeof stop==='function')unsubscribe=stop
+                if(typeof stop==='function'){
+                  if(dead||connectionController.signal.aborted||version!==connectionVersion){
+                    // A synchronous subscribe callback can retire this
+                    // instance before the unsubscribe capability is returned.
+                    try{synchronousResult(stop())}catch(error){report(error)}
+                  }else unsubscribe=stop
+                }
               }catch(error){
                 if(!dead&&!connectionController.signal.aborted&&version===connectionVersion)report(error)
               }

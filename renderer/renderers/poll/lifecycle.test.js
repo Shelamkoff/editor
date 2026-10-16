@@ -232,3 +232,74 @@ test('editor Poll observes invalid asynchronous unsubscribe completion', async (
   f.runtime.destroy()
   await settle()
 })
+
+test('renderer Poll releases unsubscribe returned after reentrant destruction', () => {
+  const doc = ownerDocument()
+  const create = doc.createElement
+  let wrapper = null
+  doc.createElement = tag => {
+    const element = create(tag)
+    if (!wrapper) wrapper = element
+    return element
+  }
+  let unsubscribes = 0
+  let renderer
+  renderer = createPollRenderer('test', {}, {
+    dataSource: {
+      async load() { return emptyResults() },
+      async vote() { return emptyResults() },
+      subscribe({ onError }) {
+        onError(new Error('reentrant notification'))
+        return () => { unsubscribes++ }
+      },
+    },
+    onError() { renderer.destroy(wrapper) },
+  })
+  const element = renderer.render(block, text => ({ textContent: text }), { ownerDocument: doc })
+  assert.equal(wrapper, element)
+  renderer.destroy(element)
+  assert.equal(unsubscribes, 1, 'late disposer must be released exactly once')
+})
+
+test('editor Poll disposes subscription returned after connection abort in subscribe', () => {
+  const doc = ownerDocument()
+  const instanceController = new AbortController()
+  let unsubscribes = 0
+  const definition = createPollPlugin({
+    dataSource: {
+      async load() { return emptyResults() },
+      async vote() { return emptyResults() },
+      subscribe() {
+        instanceController.abort()
+        return () => { unsubscribes++ }
+      },
+    },
+  })
+  const runtimeController = new AbortController()
+  const runtime = definition.setup({
+    ownerDocument: doc,
+    signal: runtimeController.signal,
+    isDefaultBlock: false,
+    t: (_key, fallback = '') => fallback,
+  })
+  const data = {
+    ...block.data,
+    resultsMode: 'hidden',
+    options: [{ id: 'yes', text: '' }, { id: 'no', text: '' }],
+  }
+  const instance = runtime.create(data, {
+    ownerDocument: doc,
+    signal: instanceController.signal,
+    createId: prefix => prefix + '-new',
+    getData: () => data,
+    updateData() {},
+    commitDomMutation(operation) { operation() },
+    requestSplit() {},
+    requestExit() {},
+    isReadOnly: () => true,
+  })
+  assert.equal(unsubscribes, 1, 'returned disposer belongs to an already aborted session')
+  instance.destroy()
+  runtime.destroy()
+  assert.equal(unsubscribes, 1, 'destroy cannot repeat the retired cleanup')
+})

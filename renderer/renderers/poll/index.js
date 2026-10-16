@@ -274,7 +274,15 @@ export function createPollRenderer(classPrefix, locale, config = {}) {
             if (states.get(wrapper) === state && !controller.signal.aborted) fail(wrapper, state, error)
           },
         }))
-        if (typeof unsubscribe === 'function') state.unsubscribe = unsubscribe
+        if (typeof unsubscribe === 'function') {
+          if (states.get(wrapper) !== state || controller.signal.aborted
+            || connectionVersion !== state.connectionVersion) {
+            // subscribe() may synchronously notify a consumer that destroys
+            // this result before returning its acquired cleanup capability.
+            try { synchronousResult(unsubscribe()) }
+            catch (error) { invokeObserver(config.onError, [error]) }
+          } else state.unsubscribe = unsubscribe
+        }
       } catch (error) {
         fail(wrapper, state, error)
       }
