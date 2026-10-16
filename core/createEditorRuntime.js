@@ -358,6 +358,8 @@ export function createEditorRuntime(input){
   view=new EditorViewModel({runtime,reconciler,interaction,selection:logicalSelection})
   crossSelection=lifecycle.register(new SelectionController({root,runtime,reconciler,view}))
   let triggerController=null
+  /** @type {NativeInputController | null} */
+  let nativeInput=null
   const inlineWidgetInput=lifecycle.register(new InlineWidgetInputController({
     root,
     runtime,
@@ -367,8 +369,9 @@ export function createEditorRuntime(input){
     selection:logicalSelection,
     diagnostics,
     onNativeSettled:()=>triggerController?.retireFreshQueryForNativeEdit(),
+    onOwnedBeforeInput:()=>nativeInput?.retirePendingInput(),
   }))
-  const nativeInput=lifecycle.register(new NativeInputController({
+  nativeInput=lifecycle.register(new NativeInputController({
     root,
     runtime,
     reconciler,
