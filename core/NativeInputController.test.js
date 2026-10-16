@@ -45,6 +45,7 @@ function harness(options = {}) {
     runtime,
     reconciler,
     crossSelection: options.crossSelection ?? null,
+    projection: options.projection ?? null,
     inlineWidgetInput: options.inlineWidgetInput ?? null,
     coalesceMs: options.coalesceMs ?? 300,
   })
@@ -411,4 +412,40 @@ test('a nonmatching inline event retires its envelope rather than borrowing its 
   controller.handleInput({target:child,inputType:'deleteWordBackward',isTrusted:false})
   assert.deepEqual(events,[])
   assert.equal(calls.length,1)
+})
+
+test('a widget-targeted native word deletion is resolved to its registered owning field',()=>{
+  const handled=[]
+  const widget={
+    parentNode:null,isConnected:true,isContentEditable:true,
+    closest(selector){return selector.includes('[data-inline-plugin]')?this:null},
+  }
+  const projection={resolveWidgetElement:node=>node===widget?widget:null}
+  const inlineWidgetInput={
+    captureNativeDeletion(owner,event){
+      handled.push(['capture',owner.blockId,owner.fieldKey])
+      return {
+        blockId:owner.blockId,fieldKey:owner.fieldKey,eventHost:owner.element,
+        inputType:event.inputType,trusted:false,originalEvent:event,
+        generation:1,revision:2,
+      }
+    },
+    completeNativeDeletion(){handled.push(['settle']);return{status:'committed',inside:true}},
+    markNativeInputEvent(_event,result){handled.push(['route',result.status,result.inside])},
+  }
+  const {controller,field,runtime,calls}=harness({projection,inlineWidgetInput})
+  widget.parentNode=field
+  runtime.generation=1
+  runtime.revision=2
+  controller.handleBeforeInput({
+    target:widget,inputType:'deleteWordBackward',
+    defaultPrevented:false,isTrusted:false,
+  })
+  controller.handleInput({
+    target:widget,inputType:'deleteWordBackward',isTrusted:false,
+  })
+  assert.deepEqual(handled,[
+    ['capture','b1','text'],['settle'],['route','committed',true],
+  ])
+  assert.deepEqual(calls,[])
 })
