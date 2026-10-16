@@ -1898,4 +1898,35 @@ test('queued inline widget caret cannot steal a user selection moved to another 
 })
 
 
+
+test('queued toolbox inline insertion cannot edit a replacement document with reused block IDs', async () => {
+  const editor = make([para('a', 'Alpha')], { inlinePlugins: [createColorSwatchPlugin()] })
+  editor.blocks.focus('a')
+  const root = editorRoot(editor)
+  const native = window.getSelection()
+  native.removeAllRanges()
+  const deferred = []
+  const schedule = window.queueMicrotask
+  const successor = para('a', 'Successor')
+  try {
+    window.queueMicrotask = callback => { deferred.push(callback) }
+    const plus = root.querySelector('.oe-toolbar__btn')
+    check(plus, 'Block toolbar did not mount its Add control')
+    plus.click()
+    const color = root.querySelector('.oe-toolbox [data-plugin-type="color"]')
+    check(color, 'Registered inline color tool is missing from the toolbox')
+    color.click()
+    check(deferred.length > 0, 'Inline insertion was not deferred from the missing author selection')
+    equal(editor.save().blocks, [para('a', 'Alpha')], 'Inline edit ran before the queued gesture')
+    editor.render({ version: '2.0.0', blocks: [successor] })
+    editor.blocks.focus('a', { fieldKey: 'text', offset: 'end' })
+  } finally {
+    window.queueMicrotask = schedule
+  }
+  for (const callback of deferred) callback()
+  await Promise.resolve()
+  equal(editor.save().blocks, [successor], 'Stale inline command mutated a replacement document')
+  equal(editor.canUndo, false, 'Stale inline command created history in a replacement document')
+})
+
 await run()
