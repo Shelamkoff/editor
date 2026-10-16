@@ -2149,7 +2149,7 @@ test('queued plain-text Paste cannot reset a later caret in its original block',
 })
 
 
-for (const [label, text] of [['empty', ''], ['newline', '\\n'], ['CRLF', '\\r\\n']]) {
+for (const [label, text] of [['empty', ''], ['newline', '\n'], ['CRLF', '\r\n']]) {
   test('Paste with '+label+' plain text does not delete an ordinary selected rich-text range', async () => {
     const editor=make([para('a','Alpha')])
     const field=editableField(editor,'a')
