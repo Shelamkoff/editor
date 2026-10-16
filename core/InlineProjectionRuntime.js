@@ -45,6 +45,7 @@ export class InlineProjectionRuntime {
   #registry
   #ownerDocument
   #blocks=new Map()
+  #projectingBlocks=new Set()
   #owned=new WeakMap()
   #readOnly
   #destroyed=false
@@ -59,36 +60,55 @@ export class InlineProjectionRuntime {
 
   reconcileBlock(blockId,record,definition,fields,baseContext,{preserveSourceProjection=false}={}){
     this.#assertLive()
-    let state=this.#blocks.get(blockId)
-    if(!state){
-      state={widgets:new Map(),staged:false}
-      this.#blocks.set(blockId,state)
+    if(this.#projectingBlocks.has(blockId)){
+      throw new Error('Cannot reenter inline projection for the same block')
     }
+    this.#projectingBlocks.add(blockId)
     try{
-      this.#projectState(
-        blockId,state,record,definition,fields,baseContext,{preserveSourceProjection},
-      )
-    }catch(error){
-      // An in-place update can already have modified an existing widget's
-      // DOM or cache before another extension throws. The owner is no longer
-      // a consistent projection of committed canonical data: fail closed.
-      if(this.#blocks.get(blockId)===state)this.#blocks.delete(blockId)
-      this.#destroyState(state)
-      throw error
+      let state=this.#blocks.get(blockId)
+      if(!state){
+        state={widgets:new Map(),staged:false}
+        this.#blocks.set(blockId,state)
+      }
+      try{
+        this.#projectState(
+          blockId,state,record,definition,fields,baseContext,{preserveSourceProjection},
+        )
+        if(this.#destroyed||this.#blocks.get(blockId)!==state){
+          throw new Error('Inline projection owner was revoked during reconciliation')
+        }
+      }catch(error){
+        // A callback may mutate an instance or retire this block. Never keep
+        // partly written widget DOM/cache as authoritative canonical state.
+        if(this.#blocks.get(blockId)===state)this.#blocks.delete(blockId)
+        this.#destroyState(state)
+        throw error
+      }
+    }finally{
+      this.#projectingBlocks.delete(blockId)
     }
   }
 
   prepareBlock(blockId,record,definition,fields,baseContext,generation){
     this.#assertLive()
+    if(this.#projectingBlocks.has(blockId)){
+      throw new Error('Cannot reenter inline projection for the same block')
+    }
+    this.#projectingBlocks.add(blockId)
     const previous=this.#blocks.get(blockId)
     const state={widgets:new Map(),staged:true,generation}
     try{
       this.#projectState(
         blockId,state,record,definition,fields,baseContext,{preserveSourceProjection:false},
       )
+      if(this.#destroyed||this.#blocks.get(blockId)!==previous){
+        throw new Error('Inline projection owner was revoked during preparation')
+      }
     }catch(error){
       this.#destroyState(state)
       throw error
+    }finally{
+      this.#projectingBlocks.delete(blockId)
     }
 
     let applied=false
@@ -539,6 +559,11 @@ export class InlineProjectionRuntime {
           entry.instance.setReadOnly(this.#readOnly)
         }
 
+        // An extension callback may destroy its block/editor before the
+        // fragment is published. Never reattach an already disposed widget.
+        if(this.#destroyed||(!state.staged&&this.#blocks.get(blockId)!==state)){
+          throw new Error('Inline projection owner was revoked during reconciliation')
+        }
         this.#markWidget(entry)
         fragment.appendChild(entry.element)
         live.add(id)

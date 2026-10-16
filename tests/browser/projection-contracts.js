@@ -567,4 +567,138 @@ test('a failed existing inline widget update revokes its mutated instance before
   } finally { projection.destroy() }
 })
 
+
+
+test('inline owner revoked during widget update cannot reattach a disposed root', () => {
+  let projection
+  const released = []
+  let lastRoot = null
+  const registry = {
+    getInlineDefinition: () => ({ schema: { decode: input => input } }),
+    getInlineRuntime: () => ({
+      create(id, data) {
+        const element = document.createElement('span')
+        element.textContent = data.label
+        lastRoot = element
+        return {
+          element,
+          update(next) {
+            element.textContent = next.label
+            projection.destroyBlock('a')
+          },
+          setReadOnly() {},
+          destroy() { released.push(id) },
+        }
+      },
+    }),
+  }
+  projection = new InlineProjectionRuntime({ registry, ownerDocument: document })
+  const field = document.createElement('div')
+  const fields = [{ key: 'text', mode: 'rich-text', element: field }]
+  const record = label => ({
+    data: { fields: [{ key: 'text', html: '{{x}}' }] },
+    inline: { x: { type: 'unloaded', dataVersion: 3, data: { label } } },
+  })
+  try {
+    projection.reconcileBlock('a', record('old'), { schema }, fields,
+      { createInlineWidgetContext: () => ({}) })
+    const originalRoot = lastRoot
+    let message = ''
+    try {
+      projection.reconcileBlock('a', record('new'), { schema }, fields,
+        { createInlineWidgetContext: () => ({}) })
+    } catch (error) { message = error.message }
+    assert(/owner was revoked/.test(message), 'callback cannot complete a revoked projection')
+    equal(released, ['x'])
+    assert(!field.contains(originalRoot), 'revoked instance may not be reattached')
+    projection.destroyBlock('a')
+    equal(released, ['x'])
+  } finally { projection.destroy() }
+})
+
+test('recursive same-block reconciliation is rejected before a nested widget update', () => {
+  let projection
+  const released = []
+  const attempted = []
+  const registry = {
+    getInlineDefinition: () => ({ schema: { decode: input => input } }),
+    getInlineRuntime: () => ({
+      create(id, data) {
+        const element = document.createElement('span')
+        element.textContent = data.label
+        return {
+          element,
+          update(next) {
+            attempted.push('outer')
+            let message = ''
+            try {
+              projection.reconcileBlock('a', {
+                data: { fields: [{ key: 'text', html: '{{x}}' }] },
+                inline: { x: { type: 'unloaded', dataVersion: 3, data: { label: 'nested' } } },
+              }, { schema }, fields, { createInlineWidgetContext: () => ({}) })
+            } catch (error) { message = error.message }
+            assert(/Cannot reenter inline projection/.test(message))
+            element.textContent = next.label
+          },
+          setReadOnly() {},
+          destroy() { released.push(id) },
+        }
+      },
+    }),
+  }
+  projection = new InlineProjectionRuntime({ registry, ownerDocument: document })
+  const field = document.createElement('div')
+  const fields = [{ key: 'text', mode: 'rich-text', element: field }]
+  const record = label => ({
+    data: { fields: [{ key: 'text', html: '{{x}}' }] },
+    inline: { x: { type: 'unloaded', dataVersion: 3, data: { label } } },
+  })
+  try {
+    projection.reconcileBlock('a', record('old'), { schema }, fields,
+      { createInlineWidgetContext: () => ({}) })
+    projection.reconcileBlock('a', record('new'), { schema }, fields,
+      { createInlineWidgetContext: () => ({}) })
+    equal(attempted, ['outer'])
+    equal(field.querySelector('[data-id="x"]').textContent, 'new')
+    equal(released, [], 'denied nested request must not dispose the active owner')
+    projection.destroyBlock('a')
+    equal(released, ['x'])
+  } finally { projection.destroy() }
+})
+
+test('prepared inline creation denies same-block reentry and survives a declined nested call', () => {
+  let projection
+  let attempts = 0
+  const registry = {
+    getInlineDefinition: () => ({ schema: { decode: value => value } }),
+    getInlineRuntime: () => ({
+      create(id) {
+        if(attempts++===0) {
+          let message = ''
+          try {
+            projection.prepareBlock('a', {
+              data: { fields: [{ key: 'text', html: '{{x}}' }] },
+              inline: { x: payload },
+            }, { schema }, fields, { createInlineWidgetContext: () => ({}) }, 1)
+          } catch (error) { message = error.message }
+          assert(/Cannot reenter inline projection/.test(message))
+        }
+        return { element: document.createElement('span'), setReadOnly() {}, destroy() {} }
+      },
+    }),
+  }
+  projection = new InlineProjectionRuntime({ registry, ownerDocument: document })
+  const field = document.createElement('div')
+  const fields = [{ key: 'text', mode: 'rich-text', element: field }]
+  const record = {
+    data: { fields: [{ key: 'text', html: '{{x}}' }] }, inline: { x: payload },
+  }
+  try {
+    const prepared = projection.prepareBlock('a', record, { schema }, fields,
+      { createInlineWidgetContext: () => ({}) }, 1)
+    equal(attempts, 1)
+    prepared.discard()
+  } finally { projection.destroy() }
+})
+
 await run()
