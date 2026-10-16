@@ -111,10 +111,10 @@ function triggerScenario(query,keydown) {
     isReadOnly:()=>false,
     reportError(error){errors.push(error)},
   })
-  const press=()=>{
+  const press=(key='Enter')=>{
     let prevented=false,stopped=false
     events.get('keydown')({
-      key:'Enter',target:field,
+      key,target:field,
       preventDefault(){prevented=true},
       stopPropagation(){stopped=true},
     })
@@ -155,4 +155,22 @@ test('throwing inline query retires its exact session and can start a healthy su
   assert.equal(h.controller.isActive,true)
   h.controller.destroy()
   assert.equal(h.calls.filter(call=>call==='cancel').length,2)
+})
+
+test('Escape handling cannot cancel a successor query created by the previous keydown',()=>{
+  let h
+  h=triggerScenario(null,(_event,session)=>{
+    session.cancel()
+    assert.equal(h.controller.refresh(),true,'successor query was not reopened')
+    return 'pass'
+  })
+  assert.equal(h.controller.refresh(),true)
+  assert.deepEqual(h.press('Escape'),{prevented:true,stopped:true})
+  assert.equal(h.controller.isActive,true,
+    'Escape from the retired query cancelled a fresh successor')
+  assert.deepEqual(h.calls,['query','keydown','cancel','query'])
+  assert.deepEqual(h.errors,[])
+  h.controller.destroy()
+  assert.deepEqual(h.calls,['query','keydown','cancel','query','cancel'],
+    'successor was not retired exactly once on destruction')
 })

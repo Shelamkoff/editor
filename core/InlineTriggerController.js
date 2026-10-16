@@ -239,7 +239,9 @@ export class InlineTriggerController {
     if(event.key==='Escape'){
       event.preventDefault()
       event.stopPropagation()
-      this.#cancel()
+      // The callback may have retired this session and synchronously opened
+      // another query. Escape owns only the session active at keydown ingress.
+      if(this.#active===active)this.#cancel()
     }
   }
 
