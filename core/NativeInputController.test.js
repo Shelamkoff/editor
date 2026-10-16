@@ -449,3 +449,24 @@ test('a widget-targeted native word deletion is resolved to its registered ownin
   ])
   assert.deepEqual(calls,[])
 })
+
+test('an auxiliary button inside a registered widget cannot start a native label deletion',()=>{
+  const events=[]
+  const widget={parentNode:null,isConnected:true,isContentEditable:true}
+  const button={
+    parentNode:widget,
+    closest(selector){return selector.includes('button')?this:null},
+  }
+  const projection={resolveWidgetElement:node=>node===button?widget:null}
+  const inlineWidgetInput={captureNativeDeletion(){events.push('captured');return {}}}
+  const {controller,field,calls}=harness({projection,inlineWidgetInput})
+  widget.parentNode=field
+  const event={
+    target:button,inputType:'deleteWordBackward',
+    defaultPrevented:false,preventDefault(){this.defaultPrevented=true},
+  }
+  controller.handleBeforeInput(event)
+  assert.deepEqual(events,[])
+  assert.equal(event.defaultPrevented,false)
+  assert.deepEqual(calls,[])
+})
