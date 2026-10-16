@@ -161,7 +161,7 @@ create(id, initial, context) {
 }
 ```
 
-The widget DOM is a projection of canonical data. Do not mutate DOM first and later try to notify Rector; commit through `updateData()` so the before/after states, undo/redo and stale-callback protection stay atomic.
+The widget DOM is a projection of canonical data. For an explicit widget command, do not mutate DOM first and later notify Rector; commit through `updateData()` so the before/after states, undo/redo and stale-callback protection stay atomic. The distinct browser-native text-deletion path uses the declared, pure `editing.reconcileNative()` hook and the editor's single pending input envelope. Core then reconciles the current rich field, inline sidecar and retained widget instance **together** under its protected projection transaction; it does not call `updateData()` and `commitDomMutation()` as separate commits. Equal canonical results may repair the projection without a new history entry.
 
 ## Asynchronous work
 
