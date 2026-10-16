@@ -131,6 +131,23 @@ export function prepareHtmlImport(html,options){
   flush()
   if(!parts.length)return null
 
+  // A single authored paragraph or transparent div with only rich text is an
+  // inline clipboard fragment in v1. Keep this DOM-level distinction separate
+  // from capability ownership: every matching root was still prepared once
+  // above, and nested structural/media roots remain block imports.
+  const roots=[...template.content.childNodes].filter(node=>node.nodeType===1
+    ||(node.nodeType===3&&node.textContent?.trim()))
+  if(roots.length===1&&roots[0].nodeType===1&&parts.length===1){
+    const root=/** @type {Element} */(roots[0])
+    if(root.tagName==='P'&&parts[0].kind==='block'){
+      const html=serializeRichText(root,ownerDocument)
+      if(meaningfulHtml(html,ownerDocument))return {kind:'inline',html}
+    }
+    if(root.tagName==='DIV'&&parts[0].kind==='rich-text'){
+      return {kind:'inline',html:parts[0].html}
+    }
+  }
+
   if(!structural&&parts.length===1&&parts[0].kind==='rich-text'){
     return {kind:'inline',html:parts[0].html}
   }

@@ -2228,7 +2228,7 @@ test('empty paragraph HTML Paste retains a selected text range and its history',
 
 for(const [tag,html] of [
   ['paragraph','<p><b>X</b></p>'],
-  ['single div','<div><b>X</b></div>'],
+  ['div','<div><b>X</b></div>'],
 ]){
   test('single '+tag+' HTML fragment replaces a local selection inline as in v1',async()=>{
     const editor=make([para('a','Alpha')])
