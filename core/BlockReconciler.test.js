@@ -1384,3 +1384,91 @@ test('a valid nested editable field remains addressable after ownership validati
   assert.equal(container.firstChild, shell)
   reconciler.destroy()
 })
+
+test('changing a field mode without replacing its element reprojects owned inline state', () => {
+  const ownerDocument = new FakeDocument()
+  const container = ownerDocument.createElement('main')
+  const element = ownerDocument.createElement('article')
+  const field = ownerDocument.createElement('span')
+  element.appendChild(field)
+  const reconciled = []
+  let mode = 'rich-text'
+  const registry = {
+    hasBlock: () => true,
+    getBlockDefinition: type => ({ type }),
+    getBlockRuntime: () => ({ create(initial) {
+      return {
+        element,
+        read() { return initial },
+        setReadOnly() {},
+        editableFields() { return [{ key: 'text', element: field, mode }] },
+        destroy() {},
+      }
+    } }),
+  }
+  const inlineProjection = {
+    prepareBlock() {
+      return { apply() {}, finalize() {}, recover() {}, discard() {} }
+    },
+    reconcileBlock(id, _record, _definition, fields) {
+      reconciled.push({ id, mode: fields[0].mode })
+    },
+    destroy() {},
+  }
+  const reconciler = new BlockReconciler({
+    container, registry, inlineProjection, contextFactory: () => ({}),
+  })
+  reconciler.mount(new DocumentStore({
+    version: '2.0.0', blocks: [block('a')],
+  }))
+
+  mode = 'plain-text'
+  assert.equal(reconciler.getEditableField('a', 'text').mode, 'plain-text')
+  assert.deepEqual(reconciled, [{ id: 'a', mode: 'plain-text' }],
+    'switching to plain text must revoke stale rich-text inline projections')
+  assert.equal(reconciler.getEditableField('a', 'text').element, field)
+  assert.equal(reconciler.getEditableField('a', 'text').mode, 'plain-text')
+  assert.equal(reconciled.length, 1, 'no extra work for unchanged field mode')
+  mode = 'rich-text'
+  assert.equal(reconciler.getEditableField('a', 'text').mode, 'rich-text')
+  assert.deepEqual(reconciled, [
+    { id: 'a', mode: 'plain-text' }, { id: 'a', mode: 'rich-text' },
+  ])
+  reconciler.destroy()
+})
+
+test('stable field descriptors do not cause unnecessary inline reconciliation', () => {
+  const ownerDocument = new FakeDocument()
+  const container = ownerDocument.createElement('main')
+  const element = ownerDocument.createElement('article')
+  const field = ownerDocument.createElement('span')
+  element.appendChild(field)
+  let projectionCalls = 0
+  const registry = {
+    hasBlock: () => true,
+    getBlockDefinition: type => ({ type }),
+    getBlockRuntime: () => ({ create(initial) {
+      return {
+        element, read() { return initial }, setReadOnly() {},
+        editableFields() { return [{ key: 'text', element: field, mode: 'rich-text' }] },
+        destroy() {},
+      }
+    } }),
+  }
+  const inlineProjection = {
+    prepareBlock() { return { apply() {}, finalize() {}, recover() {}, discard() {} } },
+    reconcileBlock() { projectionCalls++ },
+    destroy() {},
+  }
+  const reconciler = new BlockReconciler({
+    container, registry, inlineProjection, contextFactory: () => ({}),
+  })
+  reconciler.mount(new DocumentStore({
+    version: '2.0.0', blocks: [block('a')],
+  }))
+  for (let index = 0; index < 4; index++) {
+    assert.equal(reconciler.getEditableField('a', 'text').element, field)
+  }
+  assert.equal(projectionCalls, 0, 'unchanged mode, key, and element should not trigger a reproject')
+  reconciler.destroy()
+})

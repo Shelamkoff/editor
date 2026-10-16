@@ -842,7 +842,9 @@ export class BlockReconciler {
       }
     }
     const changed = entry.fields && (fields.length !== entry.fields.length
-      || fields.some((field, index) => field.key !== entry.fields[index]?.key || field.element !== entry.fields[index]?.element))
+      || fields.some((field, index) => field.key !== entry.fields[index]?.key
+        || field.element !== entry.fields[index]?.element
+        || field.mode !== entry.fields[index]?.mode))
     if (changed) for (const field of entry.fields) this.#fieldOwners.delete(field.element)
     entry.fields = fields
     for (const field of fields) {
