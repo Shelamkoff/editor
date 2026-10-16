@@ -436,10 +436,7 @@ export class BlockToolbar {
       this.#view.setCurrent(id)
     }
     this.closeToolbox()
-    const generation=this.#runtime.generation,revision=this.#runtime.revision
-    queueMicrotask(() => {
-      if(this.#destroyed||this.#runtime.readOnly||this.#runtime.generation!==generation
-        ||this.#runtime.revision!==revision||!this.#runtime.has(id))return
+    this.#deferOwned(id,()=>{
       this.#view.focus(id, { offset: 'start' })
       this.showFor(id)
     })
