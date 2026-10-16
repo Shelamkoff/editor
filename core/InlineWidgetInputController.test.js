@@ -263,3 +263,59 @@ test('native reconciliation refuses label drift in a surviving non-opted widget'
   assert.throws(()=>state.controller.completeNativeDeletion(snapshot,{}),/Non-opted inline/)
   assert.equal(state.diagnostics.length,1)
 })
+
+test('failed native reconciliation restores the same Mention occurrence and label-local selection',()=>{
+  const state=fixture()
+  const applied=[]
+  state.runtime.get=()=>({type:'paragraph',inline:{'mention-1':{type:'mention'}}})
+  state.runtime.observeExtension=fn=>fn()
+  state.widget.firstChild={
+    nodeType:3,textContent:'@Ada',length:4,
+    parentElement:{focus(){applied.push('focus')}},
+  }
+  state.projection.captureNativeField=()=>({
+    occurrences:[{id:'mention-1',type:'mention',element:state.widget}],
+  })
+  state.root.ownerDocument.defaultView.getSelection=()=>({
+    setBaseAndExtent(node,a,other,b){applied.push([node,a,other,b])},
+  })
+  state.runtime.reconcileNativeInlineInput=()=>{
+    throw new Error('Native payload update failed')
+  }
+  const snapshot={
+    blockId:'a',fieldKey:'text',blockType:'paragraph',
+    fieldElement:state.field,generation:1,revision:2,
+    occurrences:[{id:'mention-1',type:'mention'}],
+    beforeLabelSelection:{
+      anchor:{id:'mention-1',offset:2},
+      focus:{id:'mention-1',offset:3},
+    },
+  }
+  assert.throws(()=>state.controller.completeNativeDeletion(snapshot,{}),/Native payload update failed/)
+  assert.equal(applied[0],'focus')
+  assert.deepEqual(applied[1],[state.widget.firstChild,2,state.widget.firstChild,3])
+  assert.equal(state.diagnostics.length,1)
+})
+
+test('failure recovery never redirects a revoked or mixed-field snapshot into a label',()=>{
+  const state=fixture()
+  let focused=0
+  state.runtime.get=()=>({type:'paragraph',inline:{'mention-1':{type:'mention'}}})
+  state.projection.captureNativeField=()=>{
+    focused++
+    return {occurrences:[{id:'mention-1',type:'mention',element:state.widget}]}
+  }
+  state.runtime.reconcileNativeInlineInput=()=>{
+    state.runtime.revision++
+    throw new Error('Recover failed')
+  }
+  const snapshot={
+    blockId:'a',fieldKey:'text',blockType:'paragraph',
+    fieldElement:state.field,generation:1,revision:2,
+    occurrences:[{id:'mention-1',type:'mention'}],
+    beforeLabelSelection:{anchor:{id:'mention-1',offset:1},focus:{id:'mention-1',offset:3}},
+  }
+  assert.throws(()=>state.controller.completeNativeDeletion(snapshot,{}),/Recover failed/)
+  assert.equal(focused,0)
+  assert.equal(state.diagnostics.length,1)
+})
