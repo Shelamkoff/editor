@@ -23,6 +23,41 @@ for(const key of ['Backspace','Delete'])for(const name of ['e\u0301','🇷🇺',
   equal(editor.save().blocks,before)
 })
 
+test('native Ctrl+Backspace inside Mention matches an independent editable text control',async()=>{
+  const editor=make([
+    {id:'plain',type:'paragraph',dataVersion:2,data:{text:'@Ada'}},
+    {id:'mention',type:'paragraph',dataVersion:2,
+      data:{text:'{{person}}'},inline:{
+        person:{type:'mention',dataVersion:1,data:{id:'ada',name:'Ada'}},
+      }},
+  ],{injectStyles:true,inlinePlugins:[createMentionPlugin({
+    debounceDelay:0,searchFunction:async()=>[],
+  })]})
+  const plain=blockElement(editor,'plain').querySelector('.oe-paragraph')
+  plain.focus()
+  window.getSelection().setBaseAndExtent(plain.firstChild,4,plain.firstChild,4)
+  await dispatchKey('Backspace','Backspace',8,2)
+  const independent=plain.textContent
+
+  const field=blockElement(editor,'mention').querySelector('.oe-paragraph')
+  const span=field.querySelector('[data-inline-plugin="mention"]')
+  const before=editor.save().blocks[1]
+  field.focus()
+  window.getSelection().setBaseAndExtent(span.firstChild,4,span.firstChild,4)
+  await dispatchKey('Backspace','Backspace',8,2)
+  const after=editor.save().blocks[1]
+  equal(field.textContent,independent,'Mention word deletion disagrees with native editable text')
+  if(independent.startsWith('@')&&independent){
+    equal(after.inline.person.data.id,'ada')
+    equal(after.inline.person.data.name,independent.slice(1))
+  }else{
+    assert(!after.inline?.person,'Mention identity survived native trigger removal')
+  }
+  assert(JSON.stringify(after)!==JSON.stringify(before),'Native word deletion was not persisted')
+  await dispatchKey('z','KeyZ',90,2)
+  equal(editor.save().blocks[1],before,'Native Mention word deletion was not one undoable gesture')
+})
+
 for(const remaining of ['@Ad',''])test('Mention reconciles a missing-target-range word deletion as one native history step: '+remaining,async()=>{
   const definition=createMentionPlugin({debounceDelay:0,searchFunction:async()=>[]})
   const editor=make([{id:'a',type:'paragraph',dataVersion:2,
