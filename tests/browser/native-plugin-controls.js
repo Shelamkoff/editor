@@ -191,7 +191,7 @@ async function chooseSetting(editor,label){
   editor.blocks.focus('a')
   await clickNative(editorRoot(editor).querySelector('.oe-toolbar__drag'))
   const menu=editorRoot(editor).querySelector('.oe-settings-menu')
-  const item=[...menu.querySelectorAll('[role="menuitem"]')].find(button=>button.querySelector('.oe-settings-menu__label')?.textContent===label)
+  const item=[...menu.querySelectorAll('[role^="menuitem"]')].find(button=>button.querySelector('.oe-settings-menu__label')?.textContent===label)
   assert(item,'Missing setting '+label)
   await clickNative(item)
 }

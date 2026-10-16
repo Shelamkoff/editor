@@ -296,6 +296,16 @@ Additional owned-input findings and changes:
 
 **Status:** the deferred-caret ownership bug is addressed; stage 8 and stage 9 are still pending full real-editor, TypeScript, documentation, native/IME/clipboard, and packaged-consumer verification.
 
+## Local integration follow-up — 2026-10-16
+
+Fast-forwarded the clean local checkout from `752ed6f` to the 227 already-pushed implementation commits ending at `709850c`. The earlier isolated verification notes above remain historical; this run uses the actual repository, pinned dependencies, real Node and Chrome.
+
+Initial local acceptance passed 722/722 Node tests, both project TypeScript configurations, all 26 existing browser page suites, source/localization/docs audits and the installed-package/type consumer gate. `docs:check` built 123 HTML pages with zero broken links and passed the actual browser documentation/demo scenarios.
+
+The first complete native run exposed test selectors still addressing retired Heading `data-level` attributes. A focused Mention run also found a Columns settings selector excluding declared radio actions. Migrated these remaining selectors to declared `data-action-id` or generic menuitem roles without restoring obsolete production attributes. Real focused native verification then passed: block menus 108, cross-selection 32, interaction sequences 24, Mention 60, and plugin controls 146.
+
+Full native/heap and final independent installed-package convergence remain in progress at this checkpoint. No whole-refactor completion is claimed here.
+
 ## Remaining slices
 
 4c. Full local/native/package verification and integration with the slice 8 terminal cancellation/control fan-out contract.

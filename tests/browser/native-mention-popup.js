@@ -656,7 +656,7 @@ test('A mention moved into another column by a layout change keeps search, confi
   const root = editorRoot(editor), original = editor.save().blocks
   editor.blocks.focus('a', { fieldKey: 'column:right', offset: 0 })
   await clickNative(root.querySelector('.oe-toolbar__drag'))
-  const layout = [...root.querySelectorAll('.oe-settings-menu [role="menuitem"]')].find(item => item.querySelector('.oe-settings-menu__label')?.textContent === '50 / 50')
+  const layout = root.querySelector('.oe-settings-menu [data-action-id="1-1"]')
   assert(layout, 'The two-column layout action is missing'); await clickNative(layout)
   const merged = editor.save().blocks, field = blockElement(editor, 'a').querySelector('[data-column-id="center"]'), span = field.querySelector('[data-inline-plugin="mention"]'), selection = window.getSelection()
   equal(merged[0].data.columns, [{ id: 'left', content: 'Left' }, { id: 'center', content: 'Center<br>{{person}}' }])
