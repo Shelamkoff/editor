@@ -258,6 +258,22 @@ Verification evidence:
 
 **Status:** Slice 8 implementation has additional verified ownership corrections but still requires full local/native/browser/type/docs/package acceptance and resolution of any actual failures. In particular the new native label Cut/Paste/browser word-boundary tests and mixed selection/cache recovery must be run on the real editor.
 
+## Slice 8 follow-up — native settlement hardening and checked-JS consumer parity
+
+Additional fixes in the same refactor branch:
+
+- If restoring a stale inline projection throws, NativeInputController still consumes that matching input with failed routing status. The error cannot unwind into generic field synchronization or restore a stale trigger. InlineWidgetInputController reports the recovery failure through its existing diagnostics. A targeted regression reproduced the thrown event first and passed after the fix.
+- After a successful native commit or semantic no-op, browser failure during best-effort native caret restoration is isolated from widget afterNativeEdit notices and completed document state. The dedicated test confirmed it previously skipped a notice, then passed.
+- An inline controller that owns a synchronous beforeinput during root capture and stops propagation now retires the existing NativeInputController pending input explicitly; the NativeInputController's bubble listener otherwise cannot observe the superseding event. Passing/null and foreign events do not revoke this owner. No second pending queue or controller was added.
+- InlineWidgetEditAction now declares optional nonnegative label-local UTF-16 caret, as already used by the host and Mention. An external TypeScript consumer covers editing.handle, reconcileNative, and afterNativeEdit; corresponding EN/RU docs were updated. The validated action is structurally narrowed for checked JS. A focused TypeScript 5.8.3 snippet reproduced and eliminated unknown-property and numeric-comparison errors, but this is not the full project typecheck.
+- Deferred NativeInputController composition uses a nonnullable checked-JS type after setup, retaining safe optional delegation while the inline controller is acquired.
+
+Verification:
+
+- 59/59 combined focused test bodies passed against fetched branch JavaScript under a constrained isolated V8 harness: 11 pure Mention label tests, 23 inline widget controller cases, and 25 native input controller cases. New observable regressions were confirmed red before the corresponding source fix and green afterward.
+- Full real-editor/browser native suites, complete node --test, pinned project typecheck, generated external declaration consumer compilation, docs/source audits, and package gates remain unexecuted at this head. The focused TypeScript snippet is not equivalent to a complete typecheck. A complete checkout remains unavailable to the execution container.
+- Slice 8 and converged slice 9 are not accepted until their real integration and publication gates pass, with any resulting failures corrected.
+
 ## Remaining slices
 
 4c. Full local/native/package verification and integration with the slice 8 terminal cancellation/control fan-out contract.
