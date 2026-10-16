@@ -1065,7 +1065,7 @@ try {
   const englishUrl = new URL('../', pageUrl).href
   await client.send('Page.navigate', { url: englishUrl })
   for (let attempt = 0; attempt < 100; attempt++) {
-    const ready = await evaluate(client, "document.documentElement.lang.startsWith('en') && Boolean(document.querySelector('.live-demo .oe-editor .oe-block'))")
+    const ready = await evaluate(client, "Boolean(document.documentElement?.lang?.startsWith('en')) && Boolean(document.querySelector('.live-demo .oe-editor .oe-block'))")
     if (ready) break
     await delay(100)
   }

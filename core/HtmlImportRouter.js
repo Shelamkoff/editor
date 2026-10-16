@@ -112,7 +112,8 @@ export function prepareHtmlImport(html,options){
       structural=true
       const data=synchronousResult(match.capability.importRoot(element,context))
       parts.push({kind:'block',type:match.type,data,
-        inlineWhenSingleRoot:match.capability.inlineWhenSingleRoot===true})
+        inlineWhenSingleRoot:match.capability.inlineWhenSingleRoot===true,
+        sourceRoot:element})
       return
     }
 
@@ -132,18 +133,20 @@ export function prepareHtmlImport(html,options){
   flush()
   if(!parts.length)return null
 
-  // A matched root's importer owns its prepared block. It can explicitly opt
-  // into single-root inline Paste; otherwise never discard its imported data.
-  // A transparent div containing only inline children keeps v1's text Paste.
-  // Multiple roots and nested registered media remain structural.
+  // A matched root owns its imported data. An opt-in importer can treat the
+  // sole accepted root as inline text even if the root was nested in transparent
+  // wrappers; never serialize the wrapper in place of its actual matched root.
+  if(parts.length===1&&parts[0].kind==='block'&&parts[0].inlineWhenSingleRoot){
+    const html=serializeRichText(parts[0].sourceRoot,ownerDocument)
+    if(meaningfulHtml(html,ownerDocument))return {kind:'inline',html}
+  }
+
+  // A transparent div with only inline children retains v1's local Paste
+  // behavior, while multiple authored roots remain structural.
   const roots=[...template.content.childNodes].filter(node=>node.nodeType===1
     ||(node.nodeType===3&&node.textContent?.trim()))
   if(roots.length===1&&roots[0].nodeType===1&&parts.length===1){
     const root=/** @type {Element} */(roots[0])
-    if(parts[0].kind==='block'&&parts[0].inlineWhenSingleRoot){
-      const html=serializeRichText(root,ownerDocument)
-      if(meaningfulHtml(html,ownerDocument))return {kind:'inline',html}
-    }
     if(root.tagName==='DIV'&&parts[0].kind==='rich-text'){
       return {kind:'inline',html:parts[0].html}
     }
