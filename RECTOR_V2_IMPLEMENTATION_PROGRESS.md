@@ -284,6 +284,18 @@ In the locally installed Chromium 144.0.7559.96 (an isolated editable field, **n
 
 Added one registered native-editor test in `tests/browser/native-mention-popup.js` which compares actual Ctrl+Backspace in Mention to a separately edited ordinary text field and checks preserved/retired identity and single-step Undo. This **new editor test has not been run**; the independent Chromium probe proves only the browser's default native interval/text behavior, not Rector integration.
 
+## Slice 8 follow-up — revocable deferred caret and independent Chromium event probe
+
+Additional owned-input findings and changes:
+
+- Regression tests now cover the queued `InlineWidgetInputController` caret after an accepted immediate inline edit. The test first reproduced the bug: a user moved the native selection to an unrelated node before the queued callback, but the callback still called `Selection.setBaseAndExtent` and stole focus without a canonical revision change.
+- The queued continuation now records the actual native anchor/focus node and offset positions immediately **after** the accepted transaction. When the queue runs it requires the same generation/revision, field lifetime and native selection signature, or becomes inert. The accepted unchanged-owner case retains the intended label-local caret. Failure from the final presentation call is diagnosed and contained, not turned into another persisted edit.
+- Both focused deferred-caret tests reproduced/verified the behavior with microtasks enabled. The combined exact-source focused V8 harness subsequently passed **61/61 tests** (inline input, native input and pure Mention decisions). This is source-level behavioral evidence and does **not** imply full project Node/native browser acceptance.
+- An independent real Chromium probe on a minimal editable HTML field confirmed `Ctrl+Backspace` raises one cancelable `beforeinput` (`deleteWordBackward`) with a noncollapsed label-local target range, then a noncancelable `input`, with the event target being the owning contenteditable field and not the nested label span. The browser removed the label suffix from `@Ada` to `@`. This is useful input-event evidence, but **the Rector editor, plugins and history were not loaded in this probe**.
+- Repository checkout remains inaccessible from the container (GitHub DNS unavailable), so the real project `node --test`, `npm run typecheck`, registered real-editor browser suites and package/docs gates have not been executed at the current branch head.
+
+**Status:** the deferred-caret ownership bug is addressed; stage 8 and stage 9 are still pending full real-editor, TypeScript, documentation, native/IME/clipboard, and packaged-consumer verification.
+
 ## Remaining slices
 
 4c. Full local/native/package verification and integration with the slice 8 terminal cancellation/control fan-out contract.
