@@ -131,31 +131,31 @@ export class BlockReconciler {
     let fresh
     try {
       fresh = this.#stageAll(store, { candidate: true, stageInline: true, generation: store.generation })
-      // A runtime.create() callback may destroy the reconciler mid-staging.
-      // Never publish candidates after the owner has been revoked.
-      this.#assertLive()
+      // Detached staging may synchronously publish another full projection.
+      this.#assertPublicationOwner(previousEntries,'Block mount owner changed during staging')
     } catch (error) {
       if(fresh)for(const entry of fresh.values())this.#destroyEntry(entry)
-      this.#store = previousStore
+      if(!this.#destroyed&&this.#entries===previousEntries)this.#store=previousStore
       throw error
     }
 
     const oldContainerChildren=Array.from(this.#container.childNodes??this.#container.children??[])
     try {
+      this.#assertPublicationOwner(previousEntries,'Block mount owner changed before publication')
       this.#container.replaceChildren(...store.ids().map(id => fresh.get(id).element))
-      this.#assertLive()
+      this.#assertPublicationOwner(previousEntries,'Block mount owner changed during publication')
       this.#entries = fresh
       for (const entry of fresh.values()) {
         this.#applyPreparedInline(entry)
-        this.#assertLive()
+        this.#assertPublicationOwner(fresh,'Block mount owner changed during inline publication')
       }
       for (const entry of fresh.values()) {
         this.#activateEntry(entry)
-        this.#assertLive()
+        this.#assertPublicationOwner(fresh,'Block mount owner changed during activation')
       }
       for (const entry of fresh.values()) {
         this.#finalizePreparedInline(entry)
-        this.#assertLive()
+        this.#assertPublicationOwner(fresh,'Block mount owner changed during finalization')
       }
       for (const entry of fresh.values()) entry.lifetime.candidate = null
     } catch (error) {
@@ -172,11 +172,18 @@ export class BlockReconciler {
         for(const entry of previousEntries.values())this.#destroyEntry(entry)
         this.#entries.clear()
         this.#store=null
-      }else{
+      }else if(this.#entries===fresh||this.#entries===previousEntries){
         this.#entries=previousEntries
         this.#store=previousStore
         try{restoreChildOrder(this.#container,oldContainerChildren)}
         catch(failure){cleanupErrors.push(failure)}
+      }else{
+        // A reentrant successor has published a different owner map. Its
+        // DOM/store are authoritative; retire only displaced predecessors.
+        const successorOwners=new Set(this.#entries.values())
+        for(const entry of previousEntries.values()){
+          if(!successorOwners.has(entry))this.#destroyEntry(entry)
+        }
       }
       if(cleanupErrors.length){
         throw new AggregateError([error,...cleanupErrors], 'Block mount failed and DOM recovery was incomplete')
@@ -185,7 +192,7 @@ export class BlockReconciler {
     }
 
     for (const entry of previousEntries.values()) this.#destroyEntry(entry)
-    this.#assertLive()
+    this.#assertPublicationOwner(fresh,'Block mount owner changed after predecessor cleanup')
     this.#animator.enable()
   }
 
@@ -613,10 +620,12 @@ export class BlockReconciler {
   restore(store) {
     this.#assertLive()
     const previousStore=this.#store
+    const previousEntries=this.#entries
     this.#store=store
     try{this.#restore(store,new Map())}
     catch(error){
-      if(!this.#destroyed)this.#store=previousStore
+      // The successor's store cannot be rolled back by a stale outer call.
+      if(!this.#destroyed&&this.#entries===previousEntries)this.#store=previousStore
       throw error
     }
   }
@@ -672,6 +681,12 @@ export class BlockReconciler {
 
   #assertLive() {
     if (this.#destroyed) throw new Error('BlockReconciler is destroyed')
+  }
+
+  /** @param {Map<string, any>} expected @param {string} message */
+  #assertPublicationOwner(expected,message){
+    this.#assertLive()
+    if(this.#entries!==expected)throw new Error(message)
   }
 
   #stageAll(source, { candidate = false, stageInline = false, generation = source.generation } = {}) {
@@ -924,25 +939,32 @@ export class BlockReconciler {
   #restore(store, extraEntries) {
     const previousEntries=this.#entries
     const oldContainerChildren=Array.from(this.#container.childNodes??this.#container.children??[])
-    const fresh = this.#stageAll(store, { candidate: false, stageInline: true, generation: store.generation })
+    let fresh
+    try{
+      fresh=this.#stageAll(store,{candidate:false,stageInline:true,generation:store.generation})
+      this.#assertPublicationOwner(previousEntries,'Block restoration owner changed during staging')
+    }catch(error){
+      if(fresh)for(const entry of fresh.values())this.#destroyEntry(entry)
+      throw error
+    }
     const oldEntries = new Set([...previousEntries.values(), ...extraEntries.values()])
 
     try {
-      this.#assertLive()
+      this.#assertPublicationOwner(previousEntries,'Block restoration owner changed before publication')
       this.#container.replaceChildren(...store.ids().map(id => fresh.get(id).element))
-      this.#assertLive()
+      this.#assertPublicationOwner(previousEntries,'Block restoration owner changed during publication')
       this.#entries = fresh
       for (const entry of fresh.values()){
         this.#applyPreparedInline(entry)
-        this.#assertLive()
+        this.#assertPublicationOwner(fresh,'Block restoration owner changed during inline publication')
       }
       for (const entry of fresh.values()){
         this.#activateEntry(entry)
-        this.#assertLive()
+        this.#assertPublicationOwner(fresh,'Block restoration owner changed during activation')
       }
       for (const entry of fresh.values()){
         this.#finalizePreparedInline(entry)
-        this.#assertLive()
+        this.#assertPublicationOwner(fresh,'Block restoration owner changed during finalization')
       }
     } catch (error) {
       const failures=[]
@@ -952,10 +974,15 @@ export class BlockReconciler {
       for (const entry of fresh.values()){
         try{this.#destroyEntry(entry)}catch(failure){failures.push(failure)}
       }
-      if(!this.#destroyed){
+      if(!this.#destroyed&&(this.#entries===fresh||this.#entries===previousEntries)){
         if(this.#entries===fresh)this.#entries=previousEntries
         try{restoreChildOrder(this.#container,oldContainerChildren)}
         catch(failure){failures.push(failure)}
+      }else{
+        const successorOwners=new Set(this.#entries.values())
+        for(const entry of oldEntries){
+          if(!successorOwners.has(entry))this.#destroyEntry(entry)
+        }
       }
       if(failures.length){
         throw new AggregateError([error,...failures],'Block restoration and rollback both failed')

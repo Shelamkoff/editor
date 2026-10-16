@@ -1995,3 +1995,83 @@ test('inline serialization cannot return data after destroying its block owner',
   assert.equal(serializeCalls, 1)
   assert.deepEqual(reconciler.ids, [])
 })
+
+for(const outerOperation of ['mount','restore'])for(const phase of ['create','dom','inline'])for(const nestedOperation of ['mount','restore']){
+  test('superseded ' + outerOperation + ' during ' + phase + ' via ' + nestedOperation
+    + ' preserves newest block and its resources', () => {
+    const doc=new FakeDocument()
+    const container=doc.createElement('main')
+    const acquired=[],freed=[],contexts=new Map()
+    let reconciler,triggered=false
+    const snapshot=text=>new DocumentStore({version:'2.0.0',blocks:[block('a',text)]})
+    const publishSuccessor=()=>{triggered=true;reconciler[nestedOperation](snapshot('C'))}
+    const registry={
+      hasBlock:()=>true,
+      getBlockDefinition:type=>({type}),
+      getBlockRuntime:()=>({create(initial,context){
+        acquired.push(initial.text)
+        contexts.set(initial.text,()=>context.getData().text)
+        if(phase==='create'&&initial.text==='B'&&!triggered)publishSuccessor()
+        return{
+          element:doc.createElement('article'),
+          read(){return initial},
+          setReadOnly(){},
+          destroy(){freed.push(initial.text)},
+        }
+      }}),
+    }
+    const inlineProjection={
+      prepareBlock(_id,record){return{
+        apply(){if(phase==='inline'&&record.data.text==='B'&&!triggered)publishSuccessor()},
+        recover(){},finalize(){},discard(){},
+      }},
+      serializeBlock(_id,_record,_definition,_fields,data){return{data,inline:undefined}},
+      destroy(){},
+    }
+    reconciler=new BlockReconciler({
+      container,registry,inlineProjection,
+      contextFactory(_id,_type,_signal,readRecord){return{getData:()=>readRecord().data}},
+    })
+    reconciler.mount(snapshot('A'))
+    if(phase==='dom'){
+      const replace=container.replaceChildren.bind(container)
+      container.replaceChildren=(...nodes)=>{
+        replace(...nodes)
+        if(!triggered)publishSuccessor()
+      }
+    }
+
+    assert.throws(()=>reconciler[outerOperation](snapshot('B')),/owner changed/)
+    assert.equal(reconciler.readBlock('a').data.text,'C')
+    assert.equal(contexts.get('C')(),'C','successor store authority must remain current')
+    assert.equal(reconciler.getElement('a'),container.firstChild)
+    assert.deepEqual([...acquired].sort(),['A','B','C'])
+    assert.deepEqual([...freed].sort(),['A','B'],
+      'only the failed candidate and displaced predecessor are released')
+    reconciler.destroy()
+    assert.deepEqual([...freed].sort(),['A','B','C'],
+      'every block resource is disposed exactly once')
+  })
+}
+
+test('ordinary successive mount and restore still release block owners once',()=>{
+  const doc=new FakeDocument(),container=doc.createElement('main'),freed=[]
+  const registry={
+    hasBlock:()=>true,
+    getBlockDefinition:type=>({type}),
+    getBlockRuntime:()=>({create(initial){return{
+      element:doc.createElement('article'),
+      read(){return initial},setReadOnly(){},destroy(){freed.push(initial.text)},
+    }}}),
+  }
+  const snapshot=text=>new DocumentStore({version:'2.0.0',blocks:[block('a',text)]})
+  const reconciler=new BlockReconciler({container,registry,contextFactory:()=>({})})
+  reconciler.mount(snapshot('A'))
+  reconciler.mount(snapshot('B'))
+  reconciler.restore(snapshot('C'))
+  assert.equal(reconciler.readBlock('a').data.text,'C')
+  assert.equal(reconciler.getElement('a'),container.firstChild)
+  assert.deepEqual(freed,['A','B'])
+  reconciler.destroy()
+  assert.deepEqual(freed,['A','B','C'])
+})
