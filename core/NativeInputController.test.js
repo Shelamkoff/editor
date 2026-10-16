@@ -42,6 +42,7 @@ function harness(options = {}) {
   const root = {
     ownerDocument: { defaultView: { AbortController, performance: { now: () => now } } },
     addEventListener() {},
+    contains(node) { return field.contains(node) },
   }
   const controller = new NativeInputController({
     root,
