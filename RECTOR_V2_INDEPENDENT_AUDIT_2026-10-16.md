@@ -139,3 +139,30 @@ npm run docs:check
 ```
 
 The validated **inventory** parity remains 21 built-in block types and 12 default inline tools. Exact old API/JSON compatibility is intentionally outside the normative v2 target. Independent behavior parity is not complete merely because the inventory and historical tests match.
+
+## Дополнительный проход — владение содержимым popup и CSS, 2026-10-16
+
+Исходная ревизия этого прохода: `fd5d40e411784df2a40ce0d6e798fb5d4cccca5f`. Последний кодовый HEAD после исправлений: `c297989a397e715aaffc6ac33d4f76ca6aa85d9a`. Этот раздел **дополняет** исторические проверки и не объявляет все приемочные тесты зелёными.
+
+### Подтверждённые проблемы
+
+| ID | Приоритет | Воспроизведённое поведение | Исправление |
+|---|---|---|---|
+| N3 | P2 | `ChangeNotifier` вызывал `onError` прямо в `catch` асинхронного debounce callback. Исключение из error sink отвергало Promise timer task; асинхронное отклонение sink также не изолировалось | `4856f75`: вызов через общий `invokeObserver`, отдельное безопасное сообщение об ошибке sink; 2 теста |
+| P2 | P2 | Сохранённый прежний callback `mousedown` после замены popup мог вызвать общий `hidePopup` и закрыть новый popup | `25f947f`: callback привязан к exact presentation, регистрация после microtask обрабатывает ошибки и синхронный повторный вход; 2 теста |
+| P3 | P1 | `showPopup(owner, anchor, anchor)` перемещал живой элемент редактора внутрь transient popup; при закрытии удалял его из редактора | `eae3617`: исключить содержимое, принадлежащее корню editor; 1 тест и описание EN/RU |
+| P4 | P1 | Popup content, уже смонтированный в другом редакторе/приложении того же `Document`, тоже мог быть перенесён и удалён | `fa44b22`: запретить connected content, оставить detached popup content; 1 тест, документы EN/RU |
+| R4 | P2 | `EditorRenderer.destroy(container)` безусловно вызывал `container.replaceChildren()`, удаляя новое содержимое приложения или второго renderer после замены wrapper | `5dbc7ca`: удалять только принадлежащий первому renderer wrapper, освобождая его ресурсы; 2 теста |
+| S2 | P2 | Повторный `acquireStyleUrls` из синхронного `appendChild` создавал две ссылки CSS, перезаписывал текущий владелец refcount и оставлял orphan link после двух `destroy()` | `c297989`: document-scoped reentry guard при acquisition с `finally` release; 2 теста |
+
+### Проверки
+
+На оригинальных исходниках из GitHub до изменений отдельно воспроизведены: rejected debounce callback, закрытие successor popup устаревшим callback, удаление якоря вместе с popup, удаление чужого содержимого в `destroy(container)`, утечка 1 CSS link при повторном входе. Изолированные исправленные версии устранили эти наблюдаемые дефекты.
+
+Дополнительно проверен внешний `@shelamkoff/color-picker`: `ColorPicker.open()` обновляет состояние и display, но не монтирует popup surface в документ. Новый запрет connected popup content соответствует встроенному способу интеграции этого компонента. После последнего коммита восемь актуальных исходных/тестовых JavaScript-файлов успешно разобраны V8 (ESM imports заменены только в синтаксической проверке). Референсный обычный refcount test подтвердил: две leases используют один link; первая не удаляет общий link, вторая удаляет; повторное отдельное acquire создаёт новый link.
+
+В этом проходе **10 новых регрессионных тестов** (`ChangeNotifier`: 2, `InlinePopupHost`: 4, `renderer/reentrancy`: 2, `styleRegistry.realm`: 2). Общий счёт новых тестов во всех независимых проходах после исторической convergence: **35** (5 + 9 + 11 + 10).
+
+### Границы завершённости
+
+Полный `npm ci` и `npm test`, оба TypeScript проекта, Chrome/native/heap и installed-package/документация **не запускались повторно** на этой ревизии: среда выполнения не смогла разрешить `github.com` для клонирования. Отдельные воспроизведения, проверка модулей через JavaScript parser и старые green logs не заменяют полный проектный gate. Сопоставление пользовательских сценариев v1/v2 по всей матрице по-прежнему не закончено; инвентаризация встроенных типов и инструментов ранее подтверждена.
