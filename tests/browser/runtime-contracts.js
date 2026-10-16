@@ -2170,4 +2170,25 @@ for (const [label, text] of [['empty', ''], ['newline', '\n'], ['CRLF', '\r\n']]
 }
 
 
+for (const [name, html] of [
+  ['empty bold', '<strong></strong>'],
+  ['empty link', '<a href="https://example.com"></a>'],
+]) {
+  test('HTML Paste with '+name+' must not delete selected text', async () => {
+    const editor=make([para('a','Alpha')])
+    const field=editableField(editor,'a')
+    select(field,1,4)
+    const initial=editor.save().blocks
+    const transfer=new DataTransfer()
+    transfer.setData('text/html',html)
+    const event=new ClipboardEvent('paste',{bubbles:true,cancelable:true,clipboardData:transfer})
+    field.dispatchEvent(event)
+    await Promise.resolve()
+    equal(editor.save().blocks,initial,'Empty inline HTML replaced a non-empty author selection')
+    equal(editor.canUndo,false,'Empty inline HTML created an author history entry')
+    equal(window.getSelection().toString(),'lph','Empty inline HTML destroyed the native selection')
+  })
+}
+
+
 await run()
