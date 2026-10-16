@@ -259,7 +259,9 @@ export class InlineWidgetInputController {
         }
       }
     }
-    if(targets.size){
+    const finalOccurrence=snapshot.occurrences.find(source=>source.id===finalOwner)
+    if(finalOccurrence?.optedIn&&this.#projection.isCurrentNativeOccurrence(
+      snapshot.blockId,snapshot.fieldKey,finalOccurrence)){
       try{this.#onNativeSettled?.()}catch(error){this.#report(error)}
     }
     const ordered=[...targets].filter(id=>id!==finalOwner)
