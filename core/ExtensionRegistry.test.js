@@ -591,3 +591,51 @@ test('ExtensionRegistry snapshots the optional single-target selection join meth
   assert.equal(calls, 1)
   registry.destroy()
 })
+
+test('ExtensionRegistry captures native inline reconciliation with its source receiver',()=>{
+  let calls=0
+  const editing={
+    handle(){return null},
+    reconcileNative(input,data){
+      assert.equal(this,editing)
+      calls++
+      return {kind:'update',data:{...data,value:input.text}}
+    },
+  }
+  const doc=documentStub()
+  const registry=new ExtensionRegistry({
+    ownerDocument:doc,
+    blocks:[blockDefinition('paragraph')],
+    inline:[{...inlineDefinition('mention','@'),editing}],
+    acquireStyles:false,
+  })
+  const snapshot=registry.getInlineDefinition('mention').editing
+  editing.reconcileNative=()=>{throw new Error('reassigned native method')}
+  assert.deepEqual(snapshot.reconcileNative(
+    {inputType:'deleteWordBackward',beforeText:'@A',text:'@'}, {value:'A'}),
+  {kind:'update',data:{value:'@'}})
+  assert.equal(calls,1)
+  registry.destroy()
+})
+
+test('ExtensionRegistry rejects asynchronous native inline decision and invalid method shape',()=>{
+  const source={...inlineDefinition('mention','@')}
+  for(const native of [null,17,'not-a-method']){
+    assert.throws(()=>new ExtensionRegistry({
+      ownerDocument:documentStub(),blocks:[blockDefinition('paragraph')],
+      inline:[{...source,editing:{handle(){return null},reconcileNative:native}}],
+      acquireStyles:false,
+    }),/reconcileNative must be a function/)
+  }
+  const registry=new ExtensionRegistry({
+    ownerDocument:documentStub(),blocks:[blockDefinition('paragraph')],
+    inline:[{...source,editing:{
+      handle(){return null},
+      reconcileNative(){return Promise.resolve({kind:'remove'})},
+    }}],acquireStyles:false,
+  })
+  assert.throws(()=>registry.getInlineDefinition('mention').editing.reconcileNative(
+    {inputType:'deleteWordBackward',beforeText:'@A',text:''},{value:'A'}),
+  /synchronously/)
+  registry.destroy()
+})
