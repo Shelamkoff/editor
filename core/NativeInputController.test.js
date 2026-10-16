@@ -371,3 +371,44 @@ test('late preventDefault cancels inline settlement without reserializing its pr
   assert.deepEqual(handled,['stale'])
   assert.deepEqual(calls,[])
 })
+
+test('composition takeover invalidates the inline envelope while consuming its late input',()=>{
+  const events=[]
+  const inlineWidgetInput={
+    captureNativeDeletion(owner,event){
+      return {blockId:owner.blockId,fieldKey:owner.fieldKey,
+        eventHost:owner.element,inputType:event.inputType,
+        trusted:false,originalEvent:event,generation:1,revision:2}
+    },
+    completeNativeDeletion(){events.push('settled')},
+    discardStaleNativeDeletion(){events.push('stale')},
+  }
+  const {controller,runtime,field,child,calls}=harness({inlineWidgetInput})
+  runtime.generation=1
+  runtime.revision=2
+  controller.handleBeforeInput({target:child,inputType:'deleteWordBackward',defaultPrevented:false})
+  controller.handleCompositionStart({target:child,isComposing:true,data:''})
+  controller.handleInput({target:field,inputType:'deleteWordBackward',isTrusted:false})
+  assert.deepEqual(events,['stale'])
+  assert.equal(calls.length,0)
+})
+
+test('a nonmatching inline event retires its envelope rather than borrowing its authority',()=>{
+  const events=[]
+  const inlineWidgetInput={
+    captureNativeDeletion(owner,event){
+      return {blockId:owner.blockId,fieldKey:owner.fieldKey,
+        eventHost:owner.element,inputType:event.inputType,
+        trusted:true,originalEvent:event,generation:1,revision:2}
+    },
+    completeNativeDeletion(){events.push('settled')},
+  }
+  const {controller,runtime,child,calls}=harness({inlineWidgetInput})
+  runtime.generation=1
+  runtime.revision=2
+  controller.handleBeforeInput({target:child,inputType:'deleteWordBackward',
+    isTrusted:true,defaultPrevented:false})
+  controller.handleInput({target:child,inputType:'deleteWordBackward',isTrusted:false})
+  assert.deepEqual(events,[])
+  assert.equal(calls.length,1)
+})
