@@ -81,7 +81,7 @@ function clipboardHarness({ formats = [], read = () => '', files = [], accepts =
     composedPath: () => [target],
   }
   const paste = () => handlers.get('paste')(event)
-  return { controller, runtime, event, paste, reads }
+  return { controller, runtime, event, paste, reads, bookmark }
 }
 
 test('present but empty private clipboard MIME is a consumed rejection without text fallback', () => {
@@ -240,5 +240,59 @@ test('revoked asynchronous resolver cannot allocate IDs after a read-only round 
     fixture.runtime.readOnly = false
     assert.throws(() => context.createId('block'), /no longer active/)
     assert.equal(issued, 0)
+  } finally { fixture.controller.destroy() }
+})
+
+test('HTML with two paragraph roots replaces selected text before inserting later blocks', () => {
+  const fixture = clipboardHarness({
+    formats: ['text/html'],
+    read: type => type === 'text/html' ? '<p>X</p><p>Y</p>' : '',
+    accepts: () => false,
+  })
+  fixture.bookmark.anchor.offset = 3
+  fixture.bookmark.focus.offset = 6
+  const calls = []
+  fixture.runtime.prepareHtmlImport = () => ({
+    kind: 'blocks', leadingInlineHtml: 'X',
+    blocks: [{ type: 'paragraph', data: { text: 'X' } }, { type: 'paragraph', data: { text: 'Y' } }],
+  })
+  fixture.runtime.insertLocalBlocks = () => { throw new Error('Legacy anchor-only path cannot own this selection') }
+  fixture.runtime.insertClipboardParts = (id, field, range, parts) => {
+    calls.push({ id, field, range, parts })
+    return { blockId: 'after', inserted: ['after'], focus: { fieldKey: 'text', offset: 1 } }
+  }
+  try {
+    fixture.paste()
+    assert.equal(fixture.event.defaultPrevented, true)
+    assert.deepEqual(calls, [{
+      id: 'a', field: 'text', range: { start: 3, end: 6 },
+      parts: [{ kind: 'rich-text', html: 'X' }, { kind: 'local-block', type: 'paragraph', data: { text: 'Y' } }],
+    }])
+  } finally { fixture.controller.destroy() }
+})
+
+test('structural HTML without an inline root still forwards the selected range atomically', () => {
+  const fixture = clipboardHarness({
+    formats: ['text/html'],
+    read: type => type === 'text/html' ? '<table><tr><td>Q</td></tr></table>' : '',
+    accepts: () => false,
+  })
+  fixture.bookmark.anchor.offset = 1
+  fixture.bookmark.focus.offset = 4
+  const calls = []
+  fixture.runtime.prepareHtmlImport = () => ({
+    kind: 'blocks', blocks: [{ type: 'table', data: { rows: [{ id: 'r1', cells: [{ id: 'c1', text: 'Q' }] }] } }],
+  })
+  fixture.runtime.insertClipboardParts = (id, fieldKey, range, parts) => {
+    calls.push({ id, fieldKey, range, parts })
+    return { blockId: 'new-table', inserted: ['new-table'], focus: { fieldKey: 'text', offset: 0 } }
+  }
+  try {
+    fixture.paste()
+    assert.equal(fixture.event.defaultPrevented, true)
+    assert.equal(calls.length, 1)
+    assert.deepEqual(calls[0].range, { start: 1, end: 4 })
+    assert.equal(calls[0].parts[0].kind, 'local-block')
+    assert.equal(calls[0].parts[0].type, 'table')
   } finally { fixture.controller.destroy() }
 })

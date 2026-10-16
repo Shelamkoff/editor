@@ -425,14 +425,23 @@ export function prepareInsertClipboardParts(s,view,blockId,fieldKey,range,parts)
       preparedBlocks.push(materializeClipboardBlock(s,part.block,reserved))
       continue
     }
+    if(part?.kind==='local-block'){
+      if(typeof part.type!=='string'||!part.type)throw new TypeError('Local clipboard block must have a type')
+      const definition=s.getBlockDefinition(part.type)
+      if(!definition)throw new Error('Local clipboard block type is not registered: '+part.type)
+      s.normalizeLocalData(definition,part.data)
+      const id=s.allocateId(part.type,reserved)
+      preparedBlocks.push(s.recordFromData(id,part.type,definition,part.data,undefined,undefined))
+      continue
+    }
 
     if(part?.kind!=='rich-text'||typeof part.html!=='string'){
-      throw new TypeError('Clipboard part must be block or rich-text')
+      throw new TypeError('Clipboard part must be block, local-block, or rich-text')
     }
     preparedBlocks.push(materializeClipboardRichText(s,part,reserved))
   }
 
-  const replaceEmpty=parts[0]?.kind==='block'
+  const replaceEmpty=(parts[0]?.kind==='block'||parts[0]?.kind==='local-block')
     &&range.start===range.end
     &&isClipboardResidualEmpty(s,current)
     &&preparedBlocks.length>0

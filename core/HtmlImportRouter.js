@@ -57,7 +57,7 @@ function materializeRichText(html,{registry,types,context}){
  *   currentType?:string|null,
  *   createId:(prefix:string)=>string,
  * }} options
- * @returns {{kind:'inline',html:string}|{kind:'blocks',blocks:Array<{type:string,data:unknown}>}|null}
+ * @returns {{kind:'inline',html:string}|{kind:'blocks',blocks:Array<{type:string,data:unknown}>,leadingInlineHtml?:string}|null}
  */
 export function prepareHtmlImport(html,options){
   const ownerDocument=options?.ownerDocument
@@ -156,8 +156,14 @@ export function prepareHtmlImport(html,options){
     return {kind:'inline',html:parts[0].html}
   }
 
+  // A leading inline-capable root is inserted at the current caret, even
+  // when other HTML roots create subsequent canonical blocks.
+  const first=parts[0]
+  const leadingInlineHtml=first?.kind==='rich-text'?first.html
+    :first?.kind==='block'&&first.inlineWhenSingleRoot
+      ?serializeRichText(first.sourceRoot,ownerDocument):null
   const blocks=parts.map(part=>part.kind==='block'
     ?{type:part.type,data:part.data}
     :materializeRichText(part.html,{registry,types,context}))
-  return {kind:'blocks',blocks}
+  return {kind:'blocks',blocks,...(leadingInlineHtml===null?{}:{leadingInlineHtml})}
 }

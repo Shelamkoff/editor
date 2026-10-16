@@ -520,15 +520,17 @@ export class ClipboardController {
           return
         }
 
-        const inserted = this.#mutatePaste(() => this.#runtime.insertLocalBlocks(owner.blockId, plan.blocks, {
-          replaceEmpty: range.start === 0 && range.end === 0,
-          name: 'clipboard.html-import',
-        }))
+        // Route structural HTML through the existing range-aware planner.
+        // A leading inline fragment and later local block insertions become
+        // one document/history operation, retaining the author's selection.
+        const parts=plan.blocks.map((block,index)=>index===0&&typeof plan.leadingInlineHtml==='string'
+          ?{kind:'rich-text',html:plan.leadingInlineHtml}
+          :{kind:'local-block',type:block.type,data:block.data})
+        const result=this.#mutatePaste(() => this.#runtime.insertClipboardParts(
+          owner.blockId,owner.fieldKey,range,parts,
+        ))
         this.#view.reconcileInteraction()
-        const last = inserted.at(-1)
-        if (last) {
-          this.#view.setCurrent(last)
-        }
+        if(result?.blockId)this.#view.setCurrent(result.blockId)
         return
       }
     }
