@@ -23,6 +23,46 @@ for(const key of ['Backspace','Delete'])for(const name of ['e\u0301','🇷🇺',
   equal(editor.save().blocks,before)
 })
 
+for(const remaining of ['@Ad',''])test('Mention reconciles a missing-target-range word deletion as one native history step: '+remaining,async()=>{
+  const definition=createMentionPlugin({debounceDelay:0,searchFunction:async()=>[]})
+  const editor=make([{id:'a',type:'paragraph',dataVersion:2,
+    data:{text:'{{person}}'},inline:{person:{type:'mention',dataVersion:1,
+      data:{id:'ada',name:'Ada'}}}}],
+  {injectStyles:true,inlinePlugins:[definition]})
+  const field=blockElement(editor,'a').querySelector('.oe-paragraph')
+  const span=field.querySelector('[data-inline-plugin="mention"]')
+  const original=editor.save().blocks
+  field.focus()
+  window.getSelection().setBaseAndExtent(span.firstChild,4,span.firstChild,4)
+  const before=new InputEvent('beforeinput',{
+    bubbles:true,cancelable:true,inputType:'deleteWordBackward',
+  })
+  field.dispatchEvent(before)
+  assert(!before.defaultPrevented,'Missing-range word deletion was guessed as an immediate character edit')
+  // Simulate only the browser-owned native DOM step. The input event's
+  // protected reconciliation must retain the existing Mention identity.
+  span.firstChild.data=remaining
+  const offset=remaining.length
+  window.getSelection().setBaseAndExtent(span.firstChild,offset,span.firstChild,offset)
+  field.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:'deleteWordBackward'}))
+  const after=editor.save().blocks
+  if(remaining){
+    equal(after[0].inline.person.data,{id:'ada',name:'Ad'})
+    equal(after[0].data.text,'{{person}}')
+    equal(field.querySelector('[data-inline-plugin="mention"]')?.textContent,'@Ad')
+  }else{
+    assert(!after[0].inline?.person,'Deleting an entire native label kept the old identity')
+    assert(!field.querySelector('[data-inline-plugin="mention"]'),'Deleted occurrence was still mounted')
+  }
+  assert(JSON.stringify(after)!==JSON.stringify(original),'Native deletion did not commit')
+  equal(editor.canUndo,true)
+  editor.undo()
+  equal(editor.save().blocks,original)
+  equal(editor.canUndo,false)
+  editor.redo()
+  equal(editor.save().blocks,after)
+})
+
 test('Mention Backspace outside a formatting wrapper deletes native text and restarts search',async()=>{
   const queries=[]
   const editor=make([{id:'a',type:'paragraph',dataVersion:2,data:{text:'Prefix <b>{{person}}</b> tail'},inline:{person:{type:'mention',dataVersion:1,data:{id:'unicode',name:'👨‍👩‍👧‍👦'}}}}],{injectStyles:true,inlinePlugins:[createMentionPlugin({debounceDelay:0,searchFunction:async query=>{queries.push(query);return []}})]})
