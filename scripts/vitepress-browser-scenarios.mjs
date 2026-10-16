@@ -186,17 +186,17 @@ async function verifyHeadingLevelMenu(client, language, theme) {
     return {
       label: trigger.getAttribute('aria-label'), expanded: trigger.getAttribute('aria-expanded'),
       chevronHeight: trigger.querySelector('svg')?.getBoundingClientRect().height,
-      focused: document.activeElement?.dataset.level,
-      levels: options.map(option => option.dataset.level),
-      selected: options.filter(option => option.getAttribute('aria-checked') === 'true').map(option => option.dataset.level),
+      focused: document.activeElement?.dataset.actionId,
+      levels: options.map(option => option.dataset.actionId),
+      selected: options.filter(option => option.getAttribute('aria-checked') === 'true').map(option => option.dataset.actionId),
       withinViewport: rect.left >= 0 && rect.right <= innerWidth && rect.top >= 0 && rect.bottom <= innerHeight,
       selectionPreserved: !window.getSelection().isCollapsed,
       outsideToolbar: rect.top >= toolbar.bottom + 3 || rect.bottom <= toolbar.top - 3,
     }
   })()`)
   const label = language === 'ru' ? 'Уровень заголовка' : 'Heading level'
-  assert(menu.label === label && menu.expanded === 'true' && menu.focused === '6', 'Heading menu keyboard/name regression: ' + JSON.stringify(menu))
-  assert(JSON.stringify(menu.levels) === JSON.stringify(['2', '3', '4', '5', '6']) && JSON.stringify(menu.selected) === JSON.stringify(['2']), 'Heading option state regression: ' + JSON.stringify(menu))
+  assert(menu.label === label && menu.expanded === 'true' && menu.focused === 'h6', 'Heading menu keyboard/name regression: ' + JSON.stringify(menu))
+  assert(JSON.stringify(menu.levels) === JSON.stringify(['h2', 'h3', 'h4', 'h5', 'h6']) && JSON.stringify(menu.selected) === JSON.stringify(['h2']), 'Heading option state regression: ' + JSON.stringify(menu))
   assert(menu.chevronHeight === 12 && menu.withinViewport && menu.selectionPreserved && menu.outsideToolbar, 'Heading menu layout/selection regression: ' + JSON.stringify(menu))
   if (qaRoot) await captureScreenshot(client, join(qaRoot, 'heading-' + language + '-' + theme + '.png'))
   const escape = { key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27, nativeVirtualKeyCode: 27 }
