@@ -446,3 +446,28 @@ test('a nested auxiliary button cannot borrow a retained Mention selection for n
     blockId:'a',fieldKey:'text',mode:'rich-text',element:state.field,
   },input,native),null)
 })
+
+test('a collapsed browser target range is not a usable word-deletion interval',()=>{
+  const state=fixture()
+  state.runtime.get=()=>({type:'paragraph'})
+  state.projection.captureNativeField=()=>({blockId:'a',fieldKey:'text',
+    fieldElement:state.field,
+    occurrences:[{id:'mention-1',type:'mention',element:state.widget,
+      beforeText:'@Ada',data:{id:'ada',name:'Ada'},
+      optedIn:true,instance:{}}]})
+  const label=state.widget.firstChild
+  const collapsed={
+    startContainer:label,startOffset:2,
+    endContainer:label,endOffset:2,
+    collapsed:true,
+  }
+  const input={
+    target:state.field,inputType:'deleteWordBackward',
+    defaultPrevented:false,isTrusted:false,
+    getTargetRanges:()=>[collapsed],
+  }
+  const native=state.root.ownerDocument.defaultView.getSelection()
+  assert.equal(state.controller.captureNativeDeletion({
+    blockId:'a',fieldKey:'text',mode:'rich-text',element:state.field,
+  },input,native)?.inputType,'deleteWordBackward')
+})
