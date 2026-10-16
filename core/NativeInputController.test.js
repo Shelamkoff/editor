@@ -26,6 +26,9 @@ function harness(options = {}) {
       }
       return null
     },
+    getEditableField(id,key) {
+      return id === 'b1' && key === 'text' ? {element:field,mode:'rich-text'} : null
+    },
   }
   const runtime = {
     readOnly: false,
