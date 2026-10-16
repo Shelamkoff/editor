@@ -355,7 +355,8 @@ export class NativeInputController {
    * same registered rich field which owns its mounted occurrence.
    */
   #resolveNativeInlineOwner(target) {
-    if (!target || !this.#projection?.resolveWidgetElement) return null
+    if (!target || !this.#projection?.resolveWidgetElement
+      || target.closest?.('input, textarea, select, button, [contenteditable="false"]')) return null
     const widget = this.#projection.resolveWidgetElement(target)
     if (!widget?.isConnected || !widget.isContentEditable) return null
     const owner = this.#reconciler.resolveEditableTarget(widget)
