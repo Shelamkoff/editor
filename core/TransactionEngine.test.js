@@ -447,3 +447,47 @@ test('deferred history selection restore is guarded by committed revision', asyn
   await Promise.resolve()
   assert.equal(restored.length, 1, 'stale deferred selection overwrote a later revision')
 })
+
+test('async or accessor-backed transaction results abort the draft before publication', async () => {
+  const { store, history, engine, projections } = harness()
+  const delayed = Promise.resolve({ after: true })
+  assert.throws(() => engine.execute({ origin: 'user', name: 'async-return' }, tx => {
+    tx.update('a', block('a', 'should not commit'))
+    return delayed
+  }), /must complete synchronously/)
+  await delayed
+  assert.equal(store.get('a').data.text, 'a')
+  assert.equal(history.canUndo, false)
+  assert.equal(engine.phase, 'idle')
+  assert.deepEqual(projections, [])
+
+  const hostile = Object.defineProperty({}, 'then', {
+    get() { throw new Error('then accessor failed') },
+  })
+  assert.throws(() => engine.execute({ origin: 'user', name: 'hostile-return' }, tx => {
+    tx.update('a', block('a', 'also should not commit'))
+    return hostile
+  }), /then accessor failed/)
+  assert.equal(store.get('a').data.text, 'a')
+  assert.equal(engine.health, 'ready')
+
+  engine.execute({ origin: 'user', name: 'fresh' }, tx => tx.update('a', block('a', 'healthy')))
+  assert.equal(store.get('a').data.text, 'healthy')
+})
+
+test('a caught nested asynchronous result poisons its outer transaction', async () => {
+  const { store, history, engine } = harness()
+  const asynchronous = Promise.resolve('later')
+  assert.throws(() => engine.execute({ origin: 'user', name: 'outer' }, tx => {
+    tx.update('a', block('a', 'partial'))
+    try {
+      engine.execute({ origin: 'plugin', name: 'nested' }, () => asynchronous)
+    } catch {}
+    tx.update('a', block('a', 'later'))
+  }), /must complete synchronously/)
+  await asynchronous
+  assert.equal(store.get('a').data.text, 'a')
+  assert.equal(history.canUndo, false)
+  assert.equal(store.revision, 0)
+  assert.equal(engine.phase, 'idle')
+})

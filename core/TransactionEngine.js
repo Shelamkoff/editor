@@ -1,5 +1,6 @@
 // @ts-check
 import { cloneEditorData } from '../shared/cloneEditorData.js'
+import { synchronousResult } from '../shared/synchronousResult.js'
 
 const EXECUTE_ORIGINS = new Set(['user', 'native-input', 'plugin', 'external'])
 
@@ -112,7 +113,7 @@ export class TransactionEngine {
 
     if (this.#phase === 'building' && this.#current) {
       try {
-        const result = operation(this.#current.context)
+        const result = synchronousResult(operation(this.#current.context))
         if (this.#current.hasFailed) throw this.#current.failed
         return result
       } catch (error) {
@@ -139,7 +140,7 @@ export class TransactionEngine {
     this.#phase = 'building'
     let result
     try {
-      result = operation(context)
+      result = synchronousResult(operation(context))
       if (current.hasFailed) throw current.failed
     } catch (error) {
       this.#current = null
