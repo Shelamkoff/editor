@@ -1969,4 +1969,81 @@ test('queued toolbox block insertion cannot refocus a replacement mounted under 
   equal([editor.canUndo, editor.canRedo], historyBefore, 'Deferred insertion changed settled history')
 })
 
+test('queued whole-block replacement cannot reset a successor caret after rendering the same ID', async () => {
+  const editor = make([para('a', 'Alpha'), para('b', 'Bravo')])
+  editor.blocks.focus('a', { fieldKey: 'text', offset: 2 })
+  editor.blocks.select(['a', 'b'])
+  const original = window.queueMicrotask
+  const deferred = []
+  let successor
+  try {
+    window.queueMicrotask = callback => { deferred.push(callback) }
+    const event = new InputEvent('beforeinput', {
+      inputType: 'insertText', data: 'X', bubbles: true, cancelable: true,
+    })
+    editableField(editor, 'a').dispatchEvent(event)
+    check(event.defaultPrevented, 'Whole-block replacement did not own the text input')
+    const replaced = editor.save().blocks
+    equal(replaced.length, 1, 'Whole selection did not replace both blocks')
+    check(deferred.length, 'Whole selection replacement did not defer its caret')
+    successor = para(replaced[0].id, 'Successor')
+    editor.render({ version: '2.0.0', blocks: [successor] })
+    editor.blocks.focus(successor.id, { fieldKey: 'text', offset: 3 })
+  } finally {
+    window.queueMicrotask = original
+  }
+  const native = window.getSelection()
+  const field = editableField(editor, successor.id)
+  const historyBefore = [editor.canUndo, editor.canRedo]
+  check(document.activeElement === field, 'Replacement fixture lost the successor focus')
+  equal(getTextOffset(field, native.focusNode, native.focusOffset), 3)
+  for (const callback of deferred) callback()
+  await Promise.resolve()
+  equal(editor.save().blocks, [successor], 'Old replacement changed successor content')
+  equal(document.activeElement, field, 'Old replacement stole successor focus')
+  equal(getTextOffset(field, native.focusNode, native.focusOffset), 3, 'Old replacement reset successor caret')
+  equal([editor.canUndo, editor.canRedo], historyBefore, 'Old replacement added history')
+})
+
+test('queued inline type conversion cannot restore a range into a same-ID replacement document', async () => {
+  const editor = make([para('a', 'Alpha')], {
+    plugins: [createParagraphPlugin(), createHeadingPlugin()],
+  })
+  const root = editorRoot(editor)
+  select(editableField(editor, 'a'), 1, 4)
+  document.dispatchEvent(new Event('selectionchange'))
+  await new Promise(resolve => setTimeout(resolve, 30))
+  const button = root.querySelector('.oe-inline-toolbar__type-select')
+  check(button && !button.hidden, 'Inline conversion type control did not mount')
+  const original = window.queueMicrotask
+  const deferred = []
+  let successor
+  try {
+    window.queueMicrotask = callback => { deferred.push(callback) }
+    button.click()
+    const item = root.querySelector('.oe-inline-toolbar__type-dropdown [data-plugin-type="heading"]')
+    check(item, 'Heading conversion action was not presented')
+    item.click()
+    const headings = editor.save().blocks.filter(block => block.type === 'heading')
+    equal(headings.length, 1, 'Inline conversion did not commit its target block')
+    check(deferred.length, 'Inline conversion did not defer its selection')
+    successor = { id: headings[0].id, type: 'heading', dataVersion: 2, data: { text: 'Successor', level: 2 } }
+    editor.render({ version: '2.0.0', blocks: [successor] })
+    editor.blocks.focus(successor.id, { fieldKey: 'text', offset: 4 })
+  } finally {
+    window.queueMicrotask = original
+  }
+  const field = editableField(editor, successor.id)
+  const native = window.getSelection()
+  const historyBefore = [editor.canUndo, editor.canRedo]
+  check(document.activeElement === field, 'Inline conversion replacement has no focused editable field')
+  equal(getTextOffset(field, native.focusNode, native.focusOffset), 4)
+  for (const callback of deferred) callback()
+  await Promise.resolve()
+  equal(editor.save().blocks, [successor], 'Old conversion changed successor content')
+  equal(document.activeElement, field, 'Old conversion stole successor focus')
+  equal(getTextOffset(field, native.focusNode, native.focusOffset), 4, 'Old conversion reset successor caret')
+  equal([editor.canUndo, editor.canRedo], historyBefore, 'Old conversion added successor history')
+})
+
 await run()
