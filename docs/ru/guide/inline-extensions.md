@@ -86,7 +86,9 @@ Definition может объявить `trigger` длиной в один Unicod
 
 `insertion.createInitial()` используется `editor.insertInlinePlugin(type, data?)` и возвращает payload виджета либо обычный текст.
 
-`editing.handle(input, data)` обрабатывает model-first редактирование уже сохранённого виджета и может вернуть `update`, `remove` или `replace-text`.
+`editing.handle(input, data)` обрабатывает model-first редактирование сохранённого виджета и возвращает `null` для пропуска либо синхронное действие `update`, `remove` или `replace-text`. Ввод и результат подготавливаются под защитой runtime; ошибка уже принадлежащего редактору действия не передаётся нативному fallback.
+
+Необязательный `editing.reconcileNative({ inputType, beforeText, text }, data)` разрешает нативное согласование удаления подписи: `deleteContentBackward/Forward`, `deleteWordBackward/Forward` и `deleteSoftLineBackward/Forward`. Метод обязан быть чистым и синхронным и **возвращать действие**, а не `null`. Редактор хранит один pending-input, захватывает вхождения текущего rich-text поля и согласует соседний текст, inline-payload и живой экземпляр одной атомарной транзакцией. Удалённые подписи теряют идентификатор, сохранённые экземпляры получают окончательно нормализованные данные через `update()`. `afterNativeEdit({ inputType, text, labelChanged, caret })` — уведомление после завершения, где `caret` — локальное UTF-16 смещение внутри подписи либо `null`. Отсутствующий/некорректный диапазон не позволяет угадывать границы слова или изменять другое поле.
 
 ## Пример регистрации
 
