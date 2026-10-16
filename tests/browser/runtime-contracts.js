@@ -2149,4 +2149,25 @@ test('queued plain-text Paste cannot reset a later caret in its original block',
 })
 
 
+for (const [label, text] of [['empty', ''], ['newline', '\\n'], ['CRLF', '\\r\\n']]) {
+  test('Paste with '+label+' plain text does not delete an ordinary selected rich-text range', async () => {
+    const editor=make([para('a','Alpha')])
+    const field=editableField(editor,'a')
+    select(field,1,4)
+    const snapshot=editor.save().blocks
+    const transfer=new DataTransfer()
+    transfer.setData('text/plain',text)
+    field.dispatchEvent(new ClipboardEvent('paste',{
+      bubbles:true,cancelable:true,clipboardData:transfer,
+    }))
+    await Promise.resolve()
+    equal(editor.save().blocks,snapshot,
+      'Zero-content Paste removed selected author text')
+    equal(editor.canUndo,false,'Zero-content Paste authored a history entry')
+    const selection=window.getSelection()
+    equal(selection.toString(),'lph','Zero-content Paste destroyed the selected text range')
+  })
+}
+
+
 await run()
