@@ -361,8 +361,10 @@ export function createEditorRuntime(input){
     root,
     runtime,
     registry,
+    reconciler,
     projection:inlineProjection,
     selection:logicalSelection,
+    diagnostics,
   }))
   const nativeInput=lifecycle.register(new NativeInputController({
     root,
