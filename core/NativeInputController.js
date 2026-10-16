@@ -213,7 +213,13 @@ export class NativeInputController {
           || snapshot.revision !== this.#runtime.revision
         let settled={status:'stale'}
         if (stale) {
-          this.#inlineWidgetInput?.discardStaleNativeDeletion(snapshot)
+          try {
+            this.#inlineWidgetInput?.discardStaleNativeDeletion(snapshot)
+          } catch {
+            // This event is still owned even if restoring current committed
+            // projection failed. Never route it through generic persistence.
+            settled={status:'failed'}
+          }
         } else {
           try {
             settled=this.#inlineWidgetInput?.completeNativeDeletion(snapshot,event)
