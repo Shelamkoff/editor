@@ -1173,3 +1173,27 @@ test('read-only round trips revoke control epochs without changing the author re
   assert.equal(runtime.canUndo, false)
   runtime.destroy()
 })
+
+
+test('empty capability cannot issue an author update while keyboard eligibility is prepared',()=>{
+  const definition=paragraphDefinition()
+  let runtime
+  let nestedProducerCalls=0
+  definition.capabilities.empty.isEmpty=()=>{
+    runtime.update('a',()=>{
+      nestedProducerCalls++
+      return {data:{text:'INJECTED'}}
+    })
+    return true
+  }
+  runtime=new DocumentRuntime({
+    registry:registry([definition]),
+    data:{version:'2.0.0',blocks:[block('a',{text:''})]},
+  })
+  assert.throws(()=>runtime.isEmpty('a'),/prepar/,
+    'empty eligibility allowed a plugin to reenter and mutate the editor')
+  assert.equal(nestedProducerCalls,0,'empty capability executed a nested author producer')
+  assert.equal(runtime.get('a').data.text,'','empty callback modified the persisted document')
+  assert.equal(runtime.canUndo,false,'empty callback added author history')
+  runtime.destroy()
+})
