@@ -234,8 +234,9 @@ async function testSettingsPanels() {
   }, 'attaches-settings')
   const initialVariant = attaches.editor.save().blocks[0].data.variant
   menu = await openSettings(attaches)
-  const variantB = [...menu.querySelectorAll('[role="menuitem"]')]
-    .find(item => item.textContent?.includes('Variant B'))
+  // Active settings are menuitemradio controls; action IDs, not role or
+  // locale-specific presentation text, identify the owning variant choice.
+  const variantB = menu.querySelector('[data-action-id="b"]')
   assert(variantB instanceof HTMLElement, 'attaches: variant settings are missing from core menu')
   variantB.click()
   assert(attaches.editor.save().blocks[0].data.variant === 'b', 'attaches: variant setting was not persisted')
