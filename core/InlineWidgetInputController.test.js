@@ -366,6 +366,11 @@ test('native capture rejects a noncollapsed selection whose focus belongs to ano
     fieldElement:state.field,
     occurrences:[{id:'mention-1',type:'mention',element:state.widget,
       optedIn:true,beforeText:'@Ada',data:{id:'ada',name:'Ada'},instance:{}}]})
+  state.field.ownerDocument={createRange(){return {
+    setStart(node,offset){this.startContainer=node;this.startOffset=offset},
+    setEnd(node,offset){this.endContainer=node;this.endOffset=offset},
+    intersectsNode(node){return node===state.widget},
+  }}}
   const native={
     anchorNode:state.widget.firstChild,
     focusNode:{nodeType:3,textContent:'Unrelated'},
