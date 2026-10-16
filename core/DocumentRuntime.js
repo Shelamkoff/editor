@@ -62,6 +62,20 @@ function sameJson(left, right) {
   try { return JSON.stringify(left) === JSON.stringify(right) } catch { return false }
 }
 
+/** A capability result must be settled before any structural draft choice.
+ * @param {any} definition
+ * @param {any} data
+ */
+function emptyBlockDecision(definition,data){
+  const empty=definition?.capabilities?.empty
+  if(typeof empty?.isEmpty!=='function')return false
+  const result=synchronousResult(empty.isEmpty(data))
+  if(typeof result!=='boolean'){
+    throw new TypeError('Block empty.isEmpty() must return a boolean')
+  }
+  return result
+}
+
 export class DocumentRuntime {
   #clipboardHandles = new WeakMap()
   #registry
@@ -364,7 +378,7 @@ export class DocumentRuntime {
       const definition=this.#registry.getBlockDefinition(type)
       if(!definition)throw new Error(`Unknown block type: ${type}`)
       const sourceDefinition=current?this.#registry.getBlockDefinition(current.type):undefined
-      const replace=current&&sourceDefinition?.capabilities?.empty?.isEmpty?.(cloneEditorData(current.data))===true
+      const replace=current&&emptyBlockDecision(sourceDefinition,cloneEditorData(current.data))
       if(replace){
         if(current.type===type&&toolboxItemId===undefined)return {edits:[],result:current.id}
         const next=convertedCanonicalRecord(this.#planningServices(),current,{type,toolboxItemId},new Set(view.ids))
@@ -418,17 +432,10 @@ export class DocumentRuntime {
     const current = this.#store.get(id)
     if (!current || this.activation(id)?.kind !== 'active') return false
     const definition = this.#registry.getBlockDefinition(current.type)
-    const empty = definition?.capabilities?.empty
-    if (typeof empty?.isEmpty !== 'function') return false
-    // Keyboard decisions read an extension capability before an authored
-    // transaction. Deny reentrant commands and delayed eligibility results.
-    return this.prepareExtensionValue(() => {
-      const decision = synchronousResult(empty.isEmpty(current.data))
-      if (typeof decision !== 'boolean') {
-        throw new TypeError('Block empty.isEmpty() must return a boolean')
-      }
-      return decision
-    })
+    if(typeof definition?.capabilities?.empty?.isEmpty!=='function')return false
+    // Keyboard eligibility is queried outside any edit transaction. The same
+    // prepared decision contract also applies to toolbox and slash plans.
+    return this.prepareExtensionValue(()=>emptyBlockDecision(definition,current.data))
   }
 
   createDataId(prefix) {
@@ -866,7 +873,7 @@ export class DocumentRuntime {
           createId: prefix => this.#allocateId(prefix),
         })
       }
-      const sourceEmpty = sourceDefinition.capabilities?.empty?.isEmpty?.(sourceNext.data) === true
+      const sourceEmpty = emptyBlockDecision(sourceDefinition,cloneEditorData(sourceNext.data))
 
       if (sourceEmpty) {
         const next = this.#recordFromData(
