@@ -485,6 +485,12 @@ export class ClipboardController {
 
     const html = data.getData('text/html')
     const text = data.getData('text/plain')
+    // An owned Paste with no author content is a no-op. In particular it
+    // must not turn a selected rich-text range into an empty replacement.
+    if (!html && !text) {
+      event.preventDefault()
+      return
+    }
     if (!html && text && this.#inlineCommands?.pasteText?.(text, {
       blockId: owner.blockId,
       fieldKey: owner.fieldKey,
@@ -536,6 +542,9 @@ export class ClipboardController {
     }
 
     const lines = text.split(/\r\n?|\n/).filter(line => line.length > 0)
+    // v1 Paste ignores newline-only input; do not delete the selected range
+    // when no non-empty segment is available after routing/pattern handling.
+    if (!lines.length) return
     if (lines.length > 1) {
       const result = this.#mutatePaste(() => this.#runtime.insertClipboardParts(
         owner.blockId, owner.fieldKey, range,
