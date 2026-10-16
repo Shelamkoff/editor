@@ -4,6 +4,7 @@ import { invokeObserver } from '../../shared/invokeObserver.js'
 import { setSafeUrlAttribute } from '../../shared/sanitize/sanitizeUrl.js'
 import { mentionWidgetSchema } from '../../shared/inlineSchemas/mention.js'
 import { containedTextRange } from '../../shared/containedTextRange.js'
+import { decideMentionLabelEdit, mentionCharacterDeletion } from './labelEdit.js'
 
 const STYLES_URL=new URL('./styles.css',import.meta.url).href
 const NATIVE_DELETION_INPUTS=new Set([
@@ -65,70 +66,37 @@ export function createMentionPlugin(options={}){
     schema:mentionWidgetSchema,
     editing:Object.freeze({
       handle(input,data){
+        const inputType=input.inputType
+        const deleting=NATIVE_DELETION_INPUTS.has(inputType)
+        const inserting=(inputType==='insertText'||inputType==='insertReplacementText')
+          &&typeof input.data==='string'
+        if(!deleting&&!inserting)return null
         const display=trigger+data.name
-        const backward=input.inputType==='deleteContentBackward'
-        const forward=input.inputType==='deleteContentForward'
-        if(!backward&&!forward)return null
 
-        if(input.deletionRange){
-          const {start,end}=input.deletionRange
-          const next=display.slice(0,start)+display.slice(end)
-          if(!next)return {kind:/** @type {'remove'} */('remove')}
-          if(!next.startsWith(trigger))return {kind:/** @type {'replace-text'} */('replace-text'),text:next}
-          return {kind:/** @type {'update'} */('update'),data:{...data,name:next.slice(trigger.length)}}
+        let interval=input.deletionRange??null
+        if(!interval){
+          // Word/line deletions without an explicit target interval belong
+          // to native reconciliation. Character fallback alone may infer
+          // exactly one whole Unicode code point from a collapsed caret.
+          if(inputType!=='deleteContentBackward'&&inputType!=='deleteContentForward')return null
+          let offset=input.offset
+          if(input.position==='after')offset=display.length
+          if(input.position==='before')offset=0
+          interval=mentionCharacterDeletion(display,offset,
+            inputType==='deleteContentBackward'?'backward':'forward')
+          if(!interval)return null
         }
-
-        const previousIndex=(text,index)=>{
-          const at=Math.max(0,Math.min(index,text.length))
-          if(at>=2){
-            const last=text.charCodeAt(at-1)
-            const prev=text.charCodeAt(at-2)
-            if(last>=0xDC00&&last<=0xDFFF&&prev>=0xD800&&prev<=0xDBFF)return at-2
-          }
-          return Math.max(0,at-1)
-        }
-        const nextIndex=(text,index)=>{
-          const at=Math.max(0,Math.min(index,text.length))
-          if(at+1<text.length){
-            const first=text.charCodeAt(at)
-            const next=text.charCodeAt(at+1)
-            if(first>=0xD800&&first<=0xDBFF&&next>=0xDC00&&next<=0xDFFF)return at+2
-          }
-          return Math.min(text.length,at+1)
-        }
-
-        let offset=input.offset
-        if(input.position==='after')offset=display.length
-        if(input.position==='before')offset=0
-
-        if(backward){
-          if(offset<=0)return null
-          if(display===trigger&&offset>=trigger.length)return {kind:/** @type {'remove'} */('remove')}
-          if(offset===trigger.length&&display.startsWith(trigger)){
-            return {kind:/** @type {'replace-text'} */('replace-text'),text:data.name}
-          }
-          if(offset>trigger.length){
-            const nameOffset=offset-trigger.length
-            const from=previousIndex(data.name,nameOffset)
-            return {
-              kind:/** @type {'update'} */('update'),
-              data:{...data,name:data.name.slice(0,from)+data.name.slice(nameOffset)},
-            }
-          }
-          return null
-        }
-
-        if(offset>=display.length)return null
-        if(offset<trigger.length){
-          return data.name
-            ?{kind:/** @type {'replace-text'} */('replace-text'),text:data.name}
-            :{kind:/** @type {'remove'} */('remove')}
-        }
-        const nameOffset=offset-trigger.length
-        const to=nextIndex(data.name,nameOffset)
-        const nextName=data.name.slice(0,nameOffset)+data.name.slice(to)
-        if(!nextName&&trigger.length===0)return {kind:/** @type {'remove'} */('remove')}
-        return {kind:/** @type {'update'} */('update'),data:{...data,name:nextName}}
+        return decideMentionLabelEdit({
+          trigger,current:data,display,range:interval,
+          replacement:inserting?input.data:'',
+        })
+      },
+      reconcileNative(input,data){
+        return decideMentionLabelEdit({
+          trigger,current:data,display:input.beforeText,
+          range:{start:0,end:input.beforeText.length},
+          replacement:input.text,
+        })
       },
     }),
     insertion:Object.freeze({
