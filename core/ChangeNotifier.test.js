@@ -225,3 +225,58 @@ test('destroy suppresses late save and observer rejections but still reports act
   await observing
   assert.deepEqual(errors, [])
 })
+
+test('throwing error sink cannot reject a scheduled notification task', async () => {
+  const callbacks = []
+  const timerHost = {
+    setTimeout(callback) { callbacks.push(callback); return callbacks.length },
+    clearTimeout() {},
+  }
+  const warnings = []
+  const previousWarn = console.warn
+  const notifier = new ChangeNotifier(
+    () => { throw new Error('save failed') },
+    () => {},
+    0,
+    timerHost,
+    () => { throw new Error('sink failed') },
+  )
+  try {
+    console.warn = (...args) => warnings.push(args)
+    notifier.schedule()
+    await assert.doesNotReject(callbacks[0]())
+    assert.equal(warnings.length, 1)
+    assert.match(warnings[0][0], /Error sink failed/)
+  } finally {
+    notifier.destroy()
+    console.warn = previousWarn
+  }
+})
+
+test('rejected asynchronous error sink is observed without rejecting timer task', async () => {
+  const callbacks = []
+  const timerHost = {
+    setTimeout(callback) { callbacks.push(callback); return callbacks.length },
+    clearTimeout() {},
+  }
+  const warnings = []
+  const previousWarn = console.warn
+  const notifier = new ChangeNotifier(
+    () => { throw new Error('save failed') },
+    () => {},
+    0,
+    timerHost,
+    async () => { throw new Error('async error sink failed') },
+  )
+  try {
+    console.warn = (...args) => warnings.push(args)
+    notifier.schedule()
+    await assert.doesNotReject(callbacks[0]())
+    for (let index = 0; index < 4; index++) await Promise.resolve()
+    assert.equal(warnings.length, 1)
+    assert.match(warnings[0][0], /Error sink failed/)
+  } finally {
+    notifier.destroy()
+    console.warn = previousWarn
+  }
+})

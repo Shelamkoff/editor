@@ -1,3 +1,5 @@
+import { invokeObserver } from '../shared/invokeObserver.js'
+
 /**
  * Debounced change notification.
  * Calls the onChange callback after a quiet period following editor changes.
@@ -59,7 +61,9 @@ export class ChangeNotifier {
       } catch (err) {
         // Rejections from retired saves or observers belong to an old lease.
         if (this.#destroyed || generation !== this.#generation) return
-        if (this.#onError) this.#onError(err)
+        if (this.#onError) invokeObserver(this.#onError, [err], sinkError => {
+          console.warn('[ChangeNotifier] Error sink failed:', sinkError)
+        })
         else console.warn('[ChangeNotifier] Failed to save or notify:', err)
       }
     }, this.#delay)
