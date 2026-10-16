@@ -74,10 +74,22 @@ export class InstanceScope{
 
   attachParent(parent){
     if(!(parent instanceof InstanceScope))throw new TypeError('Instance scope parent must be an InstanceScope')
+    if(this.#state==='revoked')throw createAbortError()
     if(this.#parent===parent)return
     if(this.#parent)throw new Error('Instance scope already has a parent')
+    // Do not recreate authority underneath a terminal parent.
+    if(parent.revoked){
+      this.revoke()
+      throw createAbortError('Instance scope parent is revoked')
+    }
+    // Ownership must remain a tree. A cycle would recurse without limit
+    // during read-only propagation and make later revocation ambiguous.
+    for(let ancestor=parent;ancestor;ancestor=ancestor.#parent){
+      if(ancestor===this)throw new Error('Instance scope parent cycle')
+    }
     this.#parent=parent
     parent.#children.add(this)
+    if(parent.readOnly)this.setReadOnly(true)
   }
 
   activate(generation=this.#generation){
@@ -166,7 +178,7 @@ export class InstanceScope{
     if(this.#readOnly||this.#health()!=='ready')return false
     const phase=this.#phase()
     if(phase!=='idle')throw new Error(`Cannot mutate instance context during ${phase} phase`)
-    return true
+    return this.#parent ? this.#parent.#canMutate() : true
   }
 
   #beginTask(updateData){
@@ -175,6 +187,9 @@ export class InstanceScope{
     }
     const phase=this.#phase()
     if(phase!=='idle')throw new Error(`Cannot begin a data task during ${phase} phase`)
+    if(this.#parent && !this.#parent.#canMutate()){
+      throw createAbortError('Cannot begin a data task for an inactive parent scope')
+    }
 
     const controller=new AbortController()
     const task={
@@ -205,6 +220,7 @@ export class InstanceScope{
           ||this.#interactionEpoch!==task.epoch
           ||this.#generation!==task.generation
           ||this.#currentGeneration()!==task.generation
+          ||(this.#parent&&!this.#parent.#canMutate())
         ){
           close(true)
           return false

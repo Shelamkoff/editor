@@ -229,3 +229,81 @@ test('data task rejects a recursive commit before invoking its second producer',
   assert.equal(task.signal.aborted, false)
   assert.equal(task.commit(() => { throw new Error('Already committed') }), false)
 })
+
+test('attaching to an already revoked parent revokes the late child before it can mutate', () => {
+  const parent = new InstanceScope({ staged: false })
+  parent.revoke()
+  const child = new InstanceScope({ staged: false })
+  assert.throws(() => child.attachParent(parent), error => error?.name === 'AbortError')
+  assert.equal(child.revoked, true)
+  let changed = 0
+  assert.equal(child.runMutation(() => changed++), false)
+  assert.equal(changed, 0)
+  assert.throws(
+    () => new InstanceScope({ staged: false, parent }),
+    error => error?.name === 'AbortError',
+  )
+})
+
+test('instance scopes reject parent cycles before read-only propagation', () => {
+  const root = new InstanceScope({ staged: false })
+  const child = new InstanceScope({ staged: false, parent: root })
+  assert.throws(() => root.attachParent(child), /parent cycle/)
+  root.setReadOnly(true)
+  assert.equal(root.readOnly, true)
+  assert.equal(child.readOnly, true)
+  root.revoke()
+  assert.equal(child.revoked, true)
+})
+
+test('late child inherits the parent read-only state and may resume when lifted', () => {
+  const root = new InstanceScope({ staged: false })
+  root.setReadOnly(true)
+  const child = new InstanceScope({ staged: false, parent: root })
+  let changed = 0
+  assert.equal(child.readOnly, true)
+  assert.equal(child.runMutation(() => changed++), false)
+  root.setReadOnly(false)
+  assert.equal(child.readOnly, false)
+  assert.equal(child.runMutation(() => changed++), true)
+  assert.equal(changed, 1)
+})
+
+test('active child cannot mutate or begin tasks while parent scope is staged', () => {
+  const root = new InstanceScope({ staged: true })
+  const child = new InstanceScope({ staged: false, parent: root })
+  let data = { value: 1 }
+  const context = child.createAuthority({
+    readData: () => data,
+    updateData(producer) { data = producer(data) },
+    createId: prefix => prefix + '-id',
+  })
+  let calls = 0
+  assert.throws(() => context.updateData(value => { calls++; return { ...value, value: 2 } }), /staged/)
+  assert.throws(() => context.beginTask(), /staged/)
+  assert.equal(calls, 0)
+  root.activate()
+  context.updateData(value => { calls++; return { ...value, value: 2 } })
+  assert.equal(calls, 1)
+  assert.equal(data.value, 2)
+})
+
+test('already issued child task cannot commit after parent health is revoked', () => {
+  const root = new InstanceScope({ staged: false })
+  let healthy = true
+  root.configure({ health: () => healthy ? 'ready' : 'failed' })
+  const child = new InstanceScope({ staged: false, parent: root })
+  let writes = 0
+  const context = child.createAuthority({
+    readData: () => ({ value: 1 }),
+    updateData(producer) { writes++; producer({ value: 1 }) },
+    createId: prefix => prefix,
+  })
+  const task = context.beginTask()
+  healthy = false
+  let producerCalled = false
+  assert.equal(task.commit(value => { producerCalled = true; return value }), false)
+  assert.equal(producerCalled, false)
+  assert.equal(task.signal.aborted, true)
+  assert.equal(writes, 0)
+})
