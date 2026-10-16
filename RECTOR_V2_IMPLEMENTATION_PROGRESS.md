@@ -274,6 +274,16 @@ Verification:
 - Full real-editor/browser native suites, complete node --test, pinned project typecheck, generated external declaration consumer compilation, docs/source audits, and package gates remain unexecuted at this head. The focused TypeScript snippet is not equivalent to a complete typecheck. A complete checkout remains unavailable to the execution container.
 - Slice 8 and converged slice 9 are not accepted until their real integration and publication gates pass, with any resulting failures corrected.
 
+## Slice 8 native gesture probe — independent Chromium behavior
+
+In the locally installed Chromium 144.0.7559.96 (an isolated editable field, **not** the editor checkout), actual keyboard events produced these independent expectations for an editable label containing '@Ada':
+
+- Ctrl+Backspace at UTF-16 offset 4 emitted `deleteWordBackward`, with an explicit noncollapsed browser target interval [1,4], leaving '@'.
+- Backspace at offset 4 emitted `deleteContentBackward` with range [3,4], leaving '@Ad'.
+- Delete at offset 0 emitted `deleteContentForward` with range [0,1], leaving 'Ada'.
+
+Added one registered native-editor test in `tests/browser/native-mention-popup.js` which compares actual Ctrl+Backspace in Mention to a separately edited ordinary text field and checks preserved/retired identity and single-step Undo. This **new editor test has not been run**; the independent Chromium probe proves only the browser's default native interval/text behavior, not Rector integration.
+
 ## Remaining slices
 
 4c. Full local/native/package verification and integration with the slice 8 terminal cancellation/control fan-out contract.
