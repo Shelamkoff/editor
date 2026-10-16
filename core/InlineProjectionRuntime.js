@@ -167,12 +167,13 @@ export class InlineProjectionRuntime {
     for(const entry of state.widgets.values()){
       if(entry.fieldKey!==fieldKey||entry.fieldElement!==fieldElement
         ||!fieldElement.contains(entry.element)||!entry.element.isConnected)continue
+      if(!entry.element.isContentEditable)continue
       const definition=this.#registry.getInlineDefinition(entry.type)
-      if(typeof definition?.editing?.reconcileNative!=='function')continue
       occurrences.push(Object.freeze({
         id:entry.id,type:entry.type,fieldKey,element:entry.element,
         data:cloneEditorData(entry.data),
         beforeText:entry.element.textContent??'',
+        optedIn:typeof definition?.editing?.reconcileNative==='function',
         instance:entry.instance,
       }))
     }
