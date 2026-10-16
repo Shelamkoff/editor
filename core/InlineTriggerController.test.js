@@ -70,7 +70,7 @@ test('deferred inline trigger refresh and input never reactivate after read-only
   assert.equal(h.inputRoutes(), 1, 'destroyed input entered trigger dispatch')
 })
 
-function triggerScenario(query,keydown) {
+function triggerScenario(query,keydown,commitTrigger=()=>false) {
   const events=new Map(),calls=[],errors=[]
   let readOnly=false
   const label={nodeType:3,textContent:'@'}
@@ -108,7 +108,7 @@ function triggerScenario(query,keydown) {
       resolveEditableTarget(){return {mode:'rich-text',element:field,blockId:'a',fieldKey:'text'}},
     },
     selection:{capture(){return {anchor:point,focus:{...point}}}},
-    commands:{},
+    commands:{commitTrigger},
     isReadOnly:()=>readOnly,
     reportError(error){errors.push(error)},
   })
@@ -194,4 +194,43 @@ test('queued IME trigger refresh is revoked across a read-only round trip',async
   assert.equal(h.controller.isActive,true)
   h.controller.destroy()
   assert.deepEqual(h.calls,['query','cancel'],'fresh query was not retired cleanly')
+})
+
+for(const [name,decision] of [
+  ['Escape',()=> 'pass'],
+  ['failed key',()=>{throw new Error('old key failed')}],
+]){
+  test('reentrant '+name+' cannot cancel a newly published session with the same query owner',()=>{
+    let h
+    h=triggerScenario(null,()=>{
+      assert.equal(h.controller.refresh(),true,'reentrant query was not published')
+      return decision()
+    })
+    assert.equal(h.controller.refresh(),true)
+    const event=h.press('Escape')
+    assert.deepEqual(event,{prevented:true,stopped:true})
+    assert.equal(h.controller.isActive,true,'old key cancelled the newly published query')
+    assert.deepEqual(h.calls,['query','keydown','query'])
+    assert.equal(h.errors.length,name==='failed key'?1:0)
+    h.controller.destroy()
+    assert.deepEqual(h.calls,['query','keydown','query','cancel'])
+  })
+}
+
+test('successful reentrant inline commit does not clear a successor session',()=>{
+  let h,originalSession=null
+  h=triggerScenario(session=>{
+    originalSession??=session
+  },()=> 'pass',()=>{
+    originalSession.cancel()
+    assert.equal(h.controller.refresh(),true,'new query could not begin during committed callback')
+    return true
+  })
+  assert.equal(h.controller.refresh(),true)
+  assert.equal(originalSession.commit({name:'Chosen'}),true)
+  assert.equal(h.controller.isActive,true,
+    'old successful commit discarded a newer reentrant query')
+  assert.deepEqual(h.calls,['query','cancel','query'])
+  h.controller.destroy()
+  assert.deepEqual(h.calls,['query','cancel','query','cancel'])
 })

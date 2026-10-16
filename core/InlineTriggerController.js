@@ -201,7 +201,9 @@ export class InlineTriggerController {
         const range=this.#liveRange(active)
         if(!range)return false
         const committed=this.#commands.commitTrigger(active.type,{...session,range},data,options)===true
-        if(committed)this.#active=null
+        // A committing callback can open a successor synchronously. Retire
+        // only the session that actually performed the commit.
+        if(committed&&this.#active===active&&active.session===session)this.#active=null
         return committed
       },
       cancel:()=>{if(this.#active===active&&active.session===session)this.#cancel()},
@@ -226,9 +228,10 @@ export class InlineTriggerController {
       this.#cancel()
       return
     }
+    const session=active.session
     let result
     try {
-      result=active.runtime.onTriggerKeydown?.(event,active.session)??'pass'
+      result=active.runtime.onTriggerKeydown?.(event,session)??'pass'
       if(result!=='handled'&&result!=='pass'){
         throw new TypeError('Inline onTriggerKeydown() must return "handled" or "pass"')
       }
@@ -237,7 +240,7 @@ export class InlineTriggerController {
       // fall through to native editing or a generic Enter/Tab block command.
       event.preventDefault?.()
       event.stopPropagation?.()
-      if(this.#active===active)this.#cancel()
+      if(this.#active===active&&active.session===session)this.#cancel()
       try {this.#reportError(error)} catch {}
       return
     }
@@ -251,7 +254,7 @@ export class InlineTriggerController {
       event.stopPropagation()
       // The callback may have retired this session and synchronously opened
       // another query. Escape owns only the session active at keydown ingress.
-      if(this.#active===active)this.#cancel()
+      if(this.#active===active&&active.session===session)this.#cancel()
     }
   }
 
