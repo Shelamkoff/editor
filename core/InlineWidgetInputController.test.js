@@ -419,3 +419,30 @@ test('crossing a non-opted widget does not borrow an unrelated opted-in occurren
     blockId:'a',fieldKey:'text',mode:'rich-text',element:state.field,
   },input,{isCollapsed:false,anchorNode:outside,focusNode:inside,rangeCount:1}),null)
 })
+
+test('a nested auxiliary button cannot borrow a retained Mention selection for native deletion',()=>{
+  const state=fixture()
+  state.runtime.get=()=>({type:'paragraph'})
+  const button={
+    nodeType:1,
+    closest(selector){return selector.includes('button')?this:null},
+  }
+  state.widget.contains=node=>node===state.widget||node===state.widget.firstChild||node===button
+  state.field.contains=node=>node===state.field||state.widget.contains(node)
+  state.projection.resolveWidgetElement=node=>node===button?state.widget:null
+  state.projection.captureNativeField=()=>({blockId:'a',fieldKey:'text',
+    fieldElement:state.field,occurrences:[{
+      id:'mention-1',type:'mention',element:state.widget,
+      beforeText:'@Ada',data:{id:'ada',name:'Ada'},
+      optedIn:true,instance:{},
+    }],
+  })
+  const native=state.root.ownerDocument.defaultView.getSelection()
+  const input={
+    target:button,inputType:'deleteWordBackward',defaultPrevented:false,
+    isTrusted:false,getTargetRanges:()=>[],
+  }
+  assert.equal(state.controller.captureNativeDeletion({
+    blockId:'a',fieldKey:'text',mode:'rich-text',element:state.field,
+  },input,native),null)
+})
