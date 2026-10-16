@@ -959,3 +959,84 @@ test('a late recover cannot reverse an already finalized block projection', () =
   reconciler.destroy()
   assert.equal(counters.destroy, 2)
 })
+
+test('stale recover cannot undo the finalized successor block projection', () => {
+  const { store, reconciler, counters, container } = setup(1)
+  const firstDraft = store.createDraft()
+  firstDraft.insert(1, block('b'))
+  const first = reconciler.prepare({ store, draft: firstDraft, changes: firstDraft.changes })
+  first.apply()
+  // A separate canonical store snapshot allows overlapping projection
+  // preparations without mutating the first operation's stored input.
+  const successorStore = new DocumentStore({
+    version: '2.0.0', blocks: [block('0'), block('b')],
+  })
+  const nextDraft = successorStore.createDraft()
+  nextDraft.insert(2, block('c'))
+  const successor = reconciler.prepare({
+    store: successorStore, draft: nextDraft, changes: nextDraft.changes,
+  })
+  successor.apply()
+  successor.finalize()
+  const published = reconciler.getElement('c')
+  assert.ok(published)
+
+  first.recover()
+  assert.deepEqual(reconciler.ids, ['0', 'b', 'c'])
+  assert.equal(reconciler.getElement('c'), published)
+  assert.deepEqual(container.children.map(node => node.dataset.blockId), ['0', 'b', 'c'])
+  assert.equal(counters.destroy, 0, 'stale recovery does not destroy newer owners')
+  reconciler.destroy()
+  assert.equal(counters.destroy, 3)
+})
+
+test('stale recover before the successor finalizes cannot steal its projection', () => {
+  const { store, reconciler, counters, container } = setup(1)
+  const firstDraft = store.createDraft()
+  firstDraft.insert(1, block('b'))
+  const first = reconciler.prepare({ store, draft: firstDraft, changes: firstDraft.changes })
+  first.apply()
+
+  const successorStore = new DocumentStore({
+    version: '2.0.0', blocks: [block('0'), block('b')],
+  })
+  const nextDraft = successorStore.createDraft()
+  nextDraft.insert(2, block('c'))
+  const successor = reconciler.prepare({
+    store: successorStore, draft: nextDraft, changes: nextDraft.changes,
+  })
+  successor.apply()
+  first.recover()
+  assert.deepEqual(reconciler.ids, ['0', 'b', 'c'])
+  successor.finalize()
+  assert.deepEqual(container.children.map(node => node.dataset.blockId), ['0', 'b', 'c'])
+  assert.equal(counters.destroy, 0)
+  reconciler.destroy()
+  assert.equal(counters.destroy, 3)
+})
+
+test('late finalize from an older block handle cannot retire a successor owner', () => {
+  const { store, reconciler, counters, container } = setup(1)
+  const firstDraft = store.createDraft()
+  firstDraft.insert(1, block('b'))
+  const first = reconciler.prepare({ store, draft: firstDraft, changes: firstDraft.changes })
+  first.apply()
+
+  const successorStore = new DocumentStore({
+    version: '2.0.0', blocks: [block('0'), block('b')],
+  })
+  const nextDraft = successorStore.createDraft()
+  nextDraft.insert(2, block('c'))
+  const successor = reconciler.prepare({
+    store: successorStore, draft: nextDraft, changes: nextDraft.changes,
+  })
+  successor.apply()
+  assert.throws(() => first.finalize(), /owner is stale/)
+  successor.finalize()
+  first.recover()
+  assert.deepEqual(reconciler.ids, ['0', 'b', 'c'])
+  assert.deepEqual(container.children.map(node => node.dataset.blockId), ['0', 'b', 'c'])
+  assert.equal(counters.destroy, 0)
+  reconciler.destroy()
+  assert.equal(counters.destroy, 3)
+})

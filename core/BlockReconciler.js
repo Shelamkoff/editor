@@ -372,6 +372,8 @@ export class BlockReconciler {
     }
 
     let applied = false
+    /** @type {Map<string, any> | null} */
+    let publishedEntries = null
     let recovered = false
     let finalized = false
     let discarded = false
@@ -452,6 +454,7 @@ export class BlockReconciler {
         if (this.#entries !== expectedEntries) {
           throw new Error('Prepared block projection owner changed during apply')
         }
+        publishedEntries = nextEntries
         this.#entries = nextEntries
       },
 
@@ -460,6 +463,14 @@ export class BlockReconciler {
         // published document or restore resources already disposed.
         if (recovered || finalized || discarded) return
         if (this.#destroyed) { retire(); return }
+        // A newer projection may have claimed some of this one's entries.
+        // The older prepared handle cannot restore DOM or dispose owners
+        // that are now part of the successor's published map.
+        if (publishedEntries && this.#entries !== publishedEntries) {
+          recovered = true
+          this.#pendingProjections.delete(retire)
+          return
+        }
         if (!applied) {
           for (const entry of staged.values()) this.#destroyEntry(entry)
           recovered = true
@@ -516,6 +527,11 @@ export class BlockReconciler {
         this.#assertLive()
         if (finalized || recovered) return
         if (!applied) throw new Error('Cannot finalize an unapplied block projection')
+        if (publishedEntries && this.#entries !== publishedEntries) {
+          recovered = true
+          this.#pendingProjections.delete(retire)
+          throw new Error('Prepared block projection owner is stale')
+        }
 
         for (const item of updates) item.entry.lifetime.candidate = null
         for (const item of replacements) {
