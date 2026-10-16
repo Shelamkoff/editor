@@ -837,6 +837,16 @@ export function createMentionPlugin(options={}){
           return {
             element:span,
             update(next){if(!dead)project(next)},
+            afterNativeEdit(notice){
+              if(dead||readOnly||!span.isConnected)return
+              if(notice.caret===null){
+                if(activeSession?.editEntry===entry)close()
+                return
+              }
+              if(notice.labelChanged||activeSession?.editEntry===entry){
+                startEditSession(entry,notice.text,notice.caret)
+              }
+            },
             setReadOnly(value){readOnly=value;entry.readOnly=readOnly;project(data)},
             focus(){if(!dead&&!readOnly)span.focus()},
             destroy(){
