@@ -2046,4 +2046,39 @@ test('queued inline type conversion cannot restore a range into a same-ID replac
   equal([editor.canUndo, editor.canRedo], historyBefore, 'Old conversion added successor history')
 })
 
+test('queued toolbox insert cannot steal focus after switching to another unchanged block', async () => {
+  const editor = make([para('a', 'Alpha')])
+  editor.blocks.focus('a', { fieldKey: 'text', offset: 2 })
+  const root = editorRoot(editor)
+  const callbacks = []
+  const original = window.queueMicrotask
+  let inserted
+  try {
+    window.queueMicrotask = callback => { callbacks.push(callback) }
+    root.querySelector('.oe-toolbar__btn').click()
+    const paragraph = root.querySelector('.oe-toolbox [data-plugin-type="paragraph"]')
+    check(paragraph, 'Paragraph action was not available')
+    paragraph.click()
+    inserted = editor.save().blocks[1]?.id
+    check(inserted && callbacks.length, 'Block insert did not enqueue its focus action')
+    // Moving author focus does not create a revision; a revision-only lease is
+    // insufficient to revoke the previous menu's deferred caret.
+    editor.blocks.focus('a', { fieldKey: 'text', offset: 3 })
+  } finally {
+    window.queueMicrotask = original
+  }
+  const field = editableField(editor, 'a')
+  const native = window.getSelection()
+  const before = editor.save().blocks
+  const historyBefore = [editor.canUndo, editor.canRedo]
+  check(document.activeElement === field, 'Fixture failed to give focus to the other block')
+  equal(getTextOffset(field, native.focusNode, native.focusOffset), 3)
+  for (const callback of callbacks) callback()
+  await Promise.resolve()
+  equal(editor.save().blocks, before, 'Late block-insert focus changed canonical data')
+  equal(document.activeElement, field, 'Late block-insert focus stole the editor caret')
+  equal(getTextOffset(field, native.focusNode, native.focusOffset), 3, 'Late block-insert focus moved the caret')
+  equal([editor.canUndo, editor.canRedo], historyBefore, 'Late block-insert focus changed history')
+})
+
 await run()
