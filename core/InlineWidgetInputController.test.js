@@ -358,3 +358,59 @@ test('failure recovery never redirects a revoked or mixed-field snapshot into a 
   assert.equal(focused,0)
   assert.equal(state.diagnostics.length,1)
 })
+
+test('native capture rejects a noncollapsed selection whose focus belongs to another field',()=>{
+  const state=fixture()
+  state.runtime.get=()=>({type:'paragraph'})
+  state.projection.captureNativeField=()=>({blockId:'a',fieldKey:'text',
+    fieldElement:state.field,
+    occurrences:[{id:'mention-1',type:'mention',element:state.widget,
+      optedIn:true,beforeText:'@Ada',data:{id:'ada',name:'Ada'},instance:{}}]})
+  const native={
+    anchorNode:state.widget.firstChild,
+    focusNode:{nodeType:3,textContent:'Unrelated'},
+    isCollapsed:false,rangeCount:1,
+    getRangeAt:()=>({startContainer:state.widget.firstChild,startOffset:0,
+      endContainer:state.widget.firstChild,endOffset:4}),
+  }
+  const input={target:state.field,inputType:'deleteWordBackward',
+    defaultPrevented:false,isTrusted:false,getTargetRanges:()=>[]}
+  assert.equal(state.controller.captureNativeDeletion({
+    blockId:'a',fieldKey:'text',mode:'rich-text',element:state.field,
+  },input,native),null)
+})
+
+test('crossing a non-opted widget does not borrow an unrelated opted-in occurrence',()=>{
+  const state=fixture()
+  state.runtime.get=()=>({type:'paragraph'})
+  const notOpted={isConnected:true,isContentEditable:true}
+  const outside={nodeType:3,textContent:'Before'}
+  const inside={nodeType:3,textContent:'Label'}
+  notOpted.contains=node=>node===notOpted||node===inside
+  state.field.contains=node=>node===state.field||node===outside
+    ||node===inside||node===notOpted||node===state.widget
+    ||node===state.widget.firstChild
+  state.projection.captureNativeField=()=>({blockId:'a',fieldKey:'text',
+    fieldElement:state.field,
+    occurrences:[
+      {id:'other',type:'mention',element:state.widget,optedIn:true,
+        beforeText:'@Ada',data:{id:'ada',name:'Ada'},instance:{}},
+      {id:'locked',type:'plain',element:notOpted,optedIn:false,
+        beforeText:'Label',data:{},instance:{}},
+    ]})
+  state.field.ownerDocument={
+    createRange(){return {
+      setStart(node,offset){this.startContainer=node;this.startOffset=offset},
+      setEnd(node,offset){this.endContainer=node;this.endOffset=offset},
+      intersectsNode(node){return node===notOpted},
+    }}
+  }
+  const input={target:state.field,inputType:'deleteWordBackward',
+    defaultPrevented:false,isTrusted:false,
+    getTargetRanges:()=>[{
+      startContainer:outside,startOffset:0,endContainer:inside,endOffset:2,
+    }]}
+  assert.equal(state.controller.captureNativeDeletion({
+    blockId:'a',fieldKey:'text',mode:'rich-text',element:state.field,
+  },input,{isCollapsed:false,anchorNode:outside,focusNode:inside,rangeCount:1}),null)
+})
