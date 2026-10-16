@@ -16,6 +16,12 @@ import {
   ICON_UP,
 } from './icons.js'
 
+/** @param {any} left @param {any} right */
+function sameLogicalSelection(left,right){
+  const point=(a,b)=>Boolean(a&&b&&a.blockId===b.blockId&&a.fieldKey===b.fieldKey&&a.offset===b.offset)
+  return Boolean(left&&right&&point(left.anchor,right.anchor)&&point(left.focus,right.focus))
+}
+
 export class BlockToolbar {
   #root
   #runtime
@@ -453,7 +459,11 @@ export class BlockToolbar {
     const definition = current ? this.#registry.getBlockDefinition(current.type) : null
     if (currentId && definition?.schema?.mapRichText) {
       this.#view.focus(currentId, { offset: 'end' })
-      queueMicrotask(() => this.#inlineCommands.insert(type))
+      const selection=this.#selection.capture()
+      this.#deferOwned(currentId,()=>{
+        if(!sameLogicalSelection(selection,this.#selection.capture()))return
+        this.#inlineCommands.insert(type)
+      })
       return
     }
 
@@ -461,7 +471,7 @@ export class BlockToolbar {
     const id = this.#runtime.insert(this.#registry.defaultBlockType, undefined, index)
     this.#view.reconcileInteraction()
     this.#view.setCurrent(id)
-    queueMicrotask(() => {
+    this.#deferOwned(id,()=>{
       this.#view.focus(id, { offset: 'start' })
       this.#inlineCommands.insert(type)
       this.showFor(id)
@@ -600,7 +610,8 @@ export class BlockToolbar {
         this.#view.reconcileInteraction()
         this.#currentId = focusId ?? this.#view.currentId
         this.closeSettings()
-        if (this.#currentId) queueMicrotask(() => this.#view.focus(this.#currentId))
+        const nextId=this.#currentId
+        if(nextId)this.#deferOwned(nextId,()=>this.#view.focus(nextId))
       }, false, true),
     )
   }
@@ -649,7 +660,7 @@ export class BlockToolbar {
           this.#view.reconcileInteraction()
           this.#view.setCurrent(result.focusId)
           this.closeSettings()
-          queueMicrotask(() => restoreConvertedSelection(result,this.#view,this.#selectionPort))
+          this.#deferOwned(result.focusId,()=>restoreConvertedSelection(result,this.#view,this.#selectionPort))
         } catch (error) {
           try { this.#reportError('command.failed', error) } catch {}
         }
@@ -735,12 +746,32 @@ export class BlockToolbar {
       tunes: record.tunes,
       inline: record.inline,
     }), result => result)
+    if(!duplicate)return
     this.#view.reconcileInteraction()
     this.#view.setCurrent(duplicate)
     this.closeSettings()
-    queueMicrotask(() => {
+    this.#deferOwned(duplicate,()=>{
       this.#view.focus(duplicate)
       this.showFor(duplicate)
+    })
+  }
+
+  /** A queued toolbar action is owned by exactly one settled block revision
+   * and mounted block. It must not move focus or issue another edit after
+   * replacement, Undo, read-only, destroy or an intervening focus change.
+   * @param {string} blockId
+   * @param {()=>void} continuation
+   */
+  #deferOwned(blockId,continuation){
+    const generation=this.#runtime.generation
+    const revision=this.#runtime.revision
+    const mounted=this.#view.element(blockId)
+    queueMicrotask(()=>{
+      if(this.#destroyed||this.#runtime.readOnly
+        ||generation!==this.#runtime.generation||revision!==this.#runtime.revision
+        ||!this.#runtime.has(blockId)||!mounted
+        ||this.#view.element(blockId)!==mounted||this.#view.currentId!==blockId)return
+      continuation()
     })
   }
 
