@@ -509,14 +509,32 @@ export function createMentionPlugin(options={}){
         event.preventDefault()
         const clipboard=event.clipboardData
         if(!clipboard)return
+        let originalData=null
+        if(event.type==='paste'||event.type==='cut'){
+          try{originalData=entry.context.getData()}catch{return}
+        }
+        const stillOwned=()=>{
+          if(entry.dead||entry.readOnly||!entry.span.isConnected
+            ||entry.span.textContent!==text||!ownsEvent(entry,event))return false
+          const current=runtimeContext.ownerDocument.defaultView?.getSelection?.()
+          if(!current?.anchorNode||!current.focusNode)return false
+          const a=labelBoundaryOffset(entry,current.anchorNode,current.anchorOffset)
+          const f=labelBoundaryOffset(entry,current.focusNode,current.focusOffset)
+          if(a!==anchor||f!==focus)return false
+          if(ownedAtNode(current.anchorNode)!==entry
+            &&ownedAtNode(current.focusNode)!==entry)return false
+          try{
+            const latest=entry.context.getData()
+            return latest.id===originalData.id&&latest.name===originalData.name
+          }catch{return false}
+        }
         if(event.type==='paste'){
           let value
           try {
             if(!Array.from(clipboard.types??[]).includes('text/plain'))return
             value=clipboard.getData('text/plain')
           }catch{return}
-          if(typeof value!=='string'||!value)return
-          if(entry.dead||entry.readOnly||entry.span.textContent!==text)return
+          if(typeof value!=='string'||!value||!stillOwned())return
           replaceLabelRange(entry,text,start,end,value)
           return
         }
@@ -526,8 +544,7 @@ export function createMentionPlugin(options={}){
           clipboard.setData('text/plain',selected)
           if(event.type==='cut'&&clipboard.getData('text/plain')!==selected)return
         }catch{return}
-        if(event.type==='cut'&&!entry.dead&&!entry.readOnly
-          &&entry.span.textContent===text){
+        if(event.type==='cut'&&stillOwned()){
           replaceLabelRange(entry,text,start,end,'')
         }
       }
