@@ -280,8 +280,29 @@ export type InlineWidgetEditAction<D extends object> =
   | { kind: 'remove' }
   | { kind: 'replace-text', text: string }
 
+export type InlineNativeDeletionType =
+  | 'deleteContentBackward' | 'deleteContentForward'
+  | 'deleteWordBackward' | 'deleteWordForward'
+  | 'deleteSoftLineBackward' | 'deleteSoftLineForward'
+
+export interface InlineWidgetNativeEditInput {
+  readonly inputType: InlineNativeDeletionType
+  readonly beforeText: string
+  readonly text: string
+}
+
+export interface InlineWidgetNativeEditNotice {
+  readonly inputType: InlineNativeDeletionType
+  readonly text: string
+  readonly labelChanged: boolean
+  /** Final UTF-16 caret position inside the label, or null for an exterior caret. */
+  readonly caret: number | null
+}
+
 export interface InlineWidgetEditCapability<D extends object> {
   handle(input: InlineWidgetEditInput, data: Readonly<D>): InlineWidgetEditAction<D> | null
+  /** Synchronous native-deletion reconciliation for one unchanged occurrence identity. */
+  reconcileNative?(input: InlineWidgetNativeEditInput, data: Readonly<D>): InlineWidgetEditAction<D>
 }
 
 /** One mounted interactive inline widget occurrence. */
@@ -290,6 +311,8 @@ export interface InlineWidgetInstance<
 > {
   readonly element: HTMLElement
   update?(next: Readonly<D>, previous: Readonly<D>): void
+  /** Transient notification after one successful native inline settlement. */
+  afterNativeEdit?(notice: InlineWidgetNativeEditNotice): void
   setReadOnly(readOnly: boolean): void
   focus?(): void
   destroy(): void
