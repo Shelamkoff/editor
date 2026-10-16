@@ -1669,3 +1669,87 @@ test('throwing editableFields preserves the previously committed descriptor', ()
   assert.equal(reconciler.getEditableField('a', 'text').element, field)
   reconciler.destroy()
 })
+
+test('readBlock rejects late external editable descriptors before serializing application DOM', () => {
+  const ownerDocument = new FakeDocument()
+  const container = ownerDocument.createElement('main')
+  const external = ownerDocument.createElement('aside')
+  external.textContent = 'unrelated-private-content'
+  const blockRoot = ownerDocument.createElement('article')
+  const ownedField = ownerDocument.createElement('span')
+  blockRoot.appendChild(ownedField)
+  ownedField.textContent = 'authored-editor-content'
+  let advertiseForeign = false
+  let serializations = 0
+  const registry = {
+    hasBlock: () => true,
+    getBlockDefinition: type => ({ type }),
+    getBlockRuntime: () => ({ create(data) {
+      return {
+        element: blockRoot, read() { return data },
+        setReadOnly() {}, destroy() {},
+        editableFields() {
+          return [{ key: 'text', element: advertiseForeign ? external : ownedField, mode: 'rich-text' }]
+        },
+      }
+    } }),
+  }
+  const inlineProjection = {
+    prepareBlock() { return { apply() {}, recover() {}, finalize() {}, discard() {} } },
+    serializeBlock(_id, _record, _definition, fields, data) {
+      serializations++
+      return { data: { ...data, text: fields[0].element.textContent }, inline: undefined }
+    },
+    destroy() {},
+  }
+  const reconciler = new BlockReconciler({
+    container, registry, inlineProjection, contextFactory: () => ({}),
+  })
+  reconciler.mount(new DocumentStore({
+    version: '2.0.0', blocks: [block('a')],
+  }))
+  advertiseForeign = true
+  assert.throws(() => reconciler.readBlock('a'), /must belong to its owning block DOM/)
+  assert.equal(serializations, 0, 'never serialize a foreign DOM field into canonical data')
+  assert.equal(reconciler.resolveEditableTarget(ownedField)?.fieldKey, 'text',
+    'a rejected read must not revoke the earlier mounted field owner')
+  reconciler.destroy()
+})
+
+test('readBlock still serializes a valid mounted editable field', () => {
+  const ownerDocument = new FakeDocument()
+  const container = ownerDocument.createElement('main')
+  const blockRoot = ownerDocument.createElement('article')
+  const field = ownerDocument.createElement('span')
+  field.textContent = 'authored'
+  blockRoot.appendChild(field)
+  let serializations = 0
+  const registry = {
+    hasBlock: () => true,
+    getBlockDefinition: type => ({ type }),
+    getBlockRuntime: () => ({ create(initial) {
+      return {
+        element: blockRoot, read() { return initial }, setReadOnly() {}, destroy() {},
+        editableFields() { return [{ key: 'text', mode: 'rich-text', element: field }] },
+      }
+    } }),
+  }
+  const inlineProjection = {
+    prepareBlock() { return { apply() {}, recover() {}, finalize() {}, discard() {} } },
+    serializeBlock(_id, _record, _definition, fields, data) {
+      serializations++
+      assert.equal(fields[0].element, field)
+      return { data: { ...data, text: field.textContent }, inline: undefined }
+    },
+    destroy() {},
+  }
+  const reconciler = new BlockReconciler({
+    container, registry, inlineProjection, contextFactory: () => ({}),
+  })
+  reconciler.mount(new DocumentStore({
+    version: '2.0.0', blocks: [block('a')],
+  }))
+  assert.equal(reconciler.readBlock('a').data.text, 'authored')
+  assert.equal(serializations, 1)
+  reconciler.destroy()
+})

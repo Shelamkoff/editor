@@ -268,6 +268,7 @@ export class BlockReconciler {
     if (!entry) throw new Error(`Unknown projected block id: ${id}`)
     const data = cloneEditorData(entry.instance.read())
     const fields = captureEditableFields(entry.instance.editableFields?.() ?? [])
+    this.#validateFieldOwnership(entry,fields)
     if (!this.#inlineProjection || entry.unregistered) {
       return { data, inline: entry.record.inline === undefined ? undefined : cloneEditorData(entry.record.inline) }
     }
@@ -820,6 +821,23 @@ export class BlockReconciler {
    * A WeakMap entry alone does not revoke when its retired node is retained.
    * @param {Node} node
    */
+  /** Validate DOM authority for either dynamic registration or a read.
+   * @param {any} entry
+   * @param {Array<any>} fields
+   */
+  #validateFieldOwnership(entry,fields){
+    const HTMLElementCtor=this.#container.ownerDocument.defaultView?.HTMLElement??globalThis.HTMLElement
+    for(const field of fields){
+      if(HTMLElementCtor&&!(field.element instanceof HTMLElementCtor)){
+        throw new TypeError('Editable field must be an HTMLElement in the owning document')
+      }
+      if(field.element.ownerDocument!==this.#container.ownerDocument
+        ||!entry.element.contains(field.element)){
+        throw new TypeError('Editable field must belong to its owning block DOM')
+      }
+    }
+  }
+
   #currentFieldOwner(node) {
     const owner=this.#fieldOwners.get(node)
     if(!owner)return null
@@ -837,20 +855,7 @@ export class BlockReconciler {
 
   #registerFields(id, entry, projectPresentation, forceProjection) {
     const fields = captureEditableFields(entry.instance.editableFields?.() ?? [])
-    // Capture validates keys; this additional check validates the actual
-    // DOM authority of each field before modifying any ownership mapping.
-    const HTMLElementCtor=this.#container.ownerDocument.defaultView?.HTMLElement??globalThis.HTMLElement
-    for(const field of fields){
-      // A Comment, SVG root or document fragment can be nested in the block
-      // but is not an editable HTML host.
-      if(HTMLElementCtor&&!(field.element instanceof HTMLElementCtor)){
-        throw new TypeError('Editable field must be an HTMLElement in the owning document')
-      }
-      if(field.element.ownerDocument!==this.#container.ownerDocument
-        || !entry.element.contains(field.element)){
-        throw new TypeError('Editable field must belong to its owning block DOM')
-      }
-    }
+    this.#validateFieldOwnership(entry,fields)
     const changed = entry.fields && (fields.length !== entry.fields.length
       || fields.some((field, index) => field.key !== entry.fields[index]?.key
         || field.element !== entry.fields[index]?.element
