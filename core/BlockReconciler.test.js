@@ -58,6 +58,12 @@ class FakeElement {
     this.parentNode = null
   }
   remove() { this.parentNode?.removeChild(this) }
+  contains(node) {
+    for (let current = node; current; current = current.parentNode) {
+      if (current === this) return true
+    }
+    return false
+  }
   focus() {}
 }
 
@@ -1237,4 +1243,64 @@ test('failed block restore DOM publication reattaches the original shells', () =
   assert.deepEqual(released, ['replacement'], 'failed restoration releases its candidate')
   reconciler.destroy()
   assert.deepEqual(released, ['replacement', 'initial'])
+})
+
+test('retired fields and shells cannot resolve as live editable targets after document replacement', () => {
+  const { container, reconciler, registry } = setup(1)
+  const retiredField = reconciler.getEditableField('0', 'text').element
+  const retiredShell = reconciler.getElement('0')
+  assert.equal(reconciler.resolveBlockTarget(retiredField), '0')
+  assert.equal(reconciler.resolveEditableTarget(retiredField)?.blockId, '0')
+
+  reconciler.mount(new DocumentStore({
+    version: '2.0.0', blocks: [block('new')],
+  }))
+  const currentField = reconciler.getEditableField('new', 'text').element
+  assert.equal(reconciler.resolveBlockTarget(retiredField), null)
+  assert.equal(reconciler.resolveEditableTarget(retiredField), null)
+  assert.equal(reconciler.resolveBlockTarget(currentField), 'new')
+  assert.equal(reconciler.resolveEditableTarget(currentField)?.blockId, 'new')
+
+  container.appendChild(retiredShell)
+  assert.equal(reconciler.resolveBlockTarget(retiredField), null,
+    'reattaching a retired shell cannot restore a stale block lease')
+  assert.equal(reconciler.resolveEditableTarget(retiredField), null,
+    'reattaching old DOM cannot authorize its retained field descriptors')
+  assert.equal(reconciler.resolveEditableTarget(currentField)?.blockId, 'new')
+  retiredShell.remove()
+  reconciler.destroy()
+})
+
+test('a retired field cannot impersonate a replacement block with the same canonical ID', () => {
+  const { reconciler } = setup(1)
+  const oldField = reconciler.getEditableField('0', 'text').element
+  const oldShell = reconciler.getElement('0')
+  reconciler.mount(new DocumentStore({
+    version: '2.0.0', blocks: [block('0', 'replacement')],
+  }))
+  const liveField = reconciler.getEditableField('0', 'text').element
+  assert.notEqual(liveField, oldField)
+  assert.notEqual(reconciler.getElement('0'), oldShell)
+  assert.equal(reconciler.resolveBlockTarget(oldField), null)
+  assert.equal(reconciler.resolveEditableTarget(oldField), null)
+  assert.equal(reconciler.resolveBlockTarget(liveField), '0')
+  assert.deepEqual(reconciler.resolveEditableTarget(liveField), {
+    blockId: '0', fieldKey: 'text', element: liveField, mode: 'rich-text',
+  })
+  reconciler.destroy()
+})
+
+test('detaching a live editable field revokes target resolution until its field is remounted', () => {
+  const { reconciler } = setup(1)
+  const field = reconciler.getEditableField('0', 'text').element
+  const shell = reconciler.getElement('0')
+  assert.equal(reconciler.resolveEditableTarget(field)?.fieldKey, 'text')
+  field.remove()
+  assert.equal(reconciler.resolveEditableTarget(field), null,
+    'an unmounted field cannot retain write authority from its old address')
+  assert.equal(reconciler.resolveBlockTarget(field), null)
+  shell.appendChild(field)
+  assert.equal(reconciler.resolveEditableTarget(field)?.blockId, '0',
+    'a field currently declared by its live owner is authorized when remounted')
+  reconciler.destroy()
 })

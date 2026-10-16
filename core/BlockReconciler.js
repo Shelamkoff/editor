@@ -205,7 +205,11 @@ export class BlockReconciler {
     let node = target
     while (node && node !== this.#container) {
       const blockId = this.#blockOwners.get(node)
-      if (blockId) return blockId
+      // WeakMap keys remain valid while callers retain detached DOM nodes.
+      // An old shell must never authorize commands for an active successor,
+      // including a new block that happens to reuse the same canonical ID.
+      if (blockId && this.#entries.get(blockId)?.element===node
+        && node.parentNode===this.#container) return blockId
       node = node.parentNode
     }
     return null
@@ -239,8 +243,8 @@ export class BlockReconciler {
   resolveEditableTarget(target) {
     let node = target
     while (node && node !== this.#container) {
-      const owner = this.#fieldOwners.get(node)
-      if (owner) return { ...owner }
+      const owner = this.#currentFieldOwner(node)
+      if (owner) return owner
       node = node.parentNode
     }
     // Tabs and carousel navigation can replace presentation hosts without a
@@ -251,8 +255,8 @@ export class BlockReconciler {
       this.#refreshFields(blockId, entry, true)
       node = target
       while (node && node !== entry.element) {
-        const owner = this.#fieldOwners.get(node)
-        if (owner) return { ...owner }
+        const owner = this.#currentFieldOwner(node)
+        if (owner) return owner
         node = node.parentNode
       }
     }
@@ -806,6 +810,21 @@ export class BlockReconciler {
   #discardPreparedInline(entry) {
     if (!entry?.inlinePrepared) return
     try { entry.inlinePrepared.discard() } finally { entry.inlinePrepared = null }
+  }
+
+  /** An editable address is valid only for a currently mounted descriptor.
+   * A WeakMap entry alone does not revoke when its retired node is retained.
+   * @param {Node} node
+   */
+  #currentFieldOwner(node) {
+    const owner=this.#fieldOwners.get(node)
+    if(!owner)return null
+    const entry=this.#entries.get(owner.blockId)
+    if(!entry || entry.element.parentNode!==this.#container
+      || !entry.element.contains(node)) return null
+    const current=entry.fields?.some(field=>field.element===node
+      && field.key===owner.fieldKey && field.mode===owner.mode)
+    return current ? { ...owner } : null
   }
 
   #refreshFields(id, entry, projectPresentation = false, forceProjection = false) {
