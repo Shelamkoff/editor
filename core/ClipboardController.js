@@ -554,7 +554,10 @@ export class ClipboardController {
       this.#view.setCurrent(result.blockId)
       return
     }
-    this.#replaceLocal(owner, range, { kind: 'text', text })
+    // v1 pastes one meaningful line without leading/trailing empty lines.
+    // Keep the earlier pattern/plug-in routing on the full clipboard text,
+    // but use the normalized lone segment for ordinary local rich-text Paste.
+    this.#replaceLocal(owner, range, { kind: 'text', text: lines[0] })
   }
 
   #ownsEvent(event) {
