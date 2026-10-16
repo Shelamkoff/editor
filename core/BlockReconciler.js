@@ -217,7 +217,8 @@ export class BlockReconciler {
 
   focus(id, target) {
     const entry = this.#entries.get(id)
-    if (!entry || entry.unregistered || typeof entry.instance.focus !== 'function') return false
+    if (!entry || entry.element.parentNode!==this.#container || entry.unregistered
+      || typeof entry.instance.focus !== 'function') return false
     try {
       return this.#projectPresentation(() => {
         entry.instance.focus(target)
@@ -231,7 +232,7 @@ export class BlockReconciler {
 
   getEditableFields(id) {
     const entry = this.#entries.get(id)
-    if (!entry) return []
+    if (!entry || entry.element.parentNode!==this.#container) return []
     this.#refreshFields(id, entry, true)
     return [...(entry.fields ?? [])]
   }
@@ -266,6 +267,9 @@ export class BlockReconciler {
   readBlock(id) {
     const entry = this.#entries.get(id)
     if (!entry) throw new Error(`Unknown projected block id: ${id}`)
+    if(entry.element.parentNode!==this.#container){
+      throw new Error('Projected block is no longer mounted: '+id)
+    }
     const data = cloneEditorData(entry.instance.read())
     const fields = captureEditableFields(entry.instance.editableFields?.() ?? [])
     this.#validateFieldOwnership(entry,fields)

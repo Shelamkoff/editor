@@ -1753,3 +1753,62 @@ test('readBlock still serializes a valid mounted editable field', () => {
   assert.equal(serializations, 1)
   reconciler.destroy()
 })
+
+test('displaced block shell cannot supply editable fields or DOM data until remounted', () => {
+  const { reconciler, container } = setup(1)
+  const ownedShell = reconciler.getElement('0')
+  const field = reconciler.getEditableField('0', 'text').element
+  const existing = reconciler.readBlock('0')
+  assert.equal(existing.data.text, '0')
+  assert.equal(reconciler.resolveEditableTarget(field)?.blockId, '0')
+
+  const replacement = container.ownerDocument.createElement('aside')
+  container.replaceChildren(replacement)
+  assert.throws(() => reconciler.readBlock('0'), /Projected block is no longer mounted/)
+  assert.deepEqual(reconciler.getEditableFields('0'), [])
+  assert.equal(reconciler.getEditableField('0', 'text'), undefined)
+  assert.equal(reconciler.resolveEditableTarget(field), null)
+
+  container.appendChild(ownedShell)
+  assert.equal(reconciler.readBlock('0').data.text, '0',
+    'the unchanged owned shell may be read again when reattached to its host')
+  assert.equal(reconciler.getEditableField('0', 'text').element, field)
+  replacement.remove()
+  reconciler.destroy()
+})
+
+test('displaced block shell cannot focus while detached host retains normal operation', () => {
+  const ownerDocument = new FakeDocument()
+  const container = ownerDocument.createElement('main')
+  let focused = 0
+  const registry = {
+    hasBlock: () => true,
+    getBlockDefinition: type => ({ type }),
+    getBlockRuntime: () => ({ create(initial) {
+      const element = ownerDocument.createElement('article')
+      return {
+        element, read() { return initial },
+        editableFields() { return [] },
+        setReadOnly() {}, destroy() {},
+        focus() { focused++ },
+      }
+    } }),
+  }
+  const reconciler = new BlockReconciler({ container, registry, contextFactory: () => ({}) })
+  reconciler.mount(new DocumentStore({
+    version: '2.0.0', blocks: [block('a')],
+  }))
+  const shell = reconciler.getElement('a')
+  assert.equal(reconciler.focus('a'), true)
+  assert.equal(focused, 1, 'a host need not be attached to document.body')
+
+  const application = ownerDocument.createElement('aside')
+  container.replaceChildren(application)
+  assert.equal(reconciler.focus('a'), false)
+  assert.equal(focused, 1, 'displaced block focus cannot execute extension callbacks')
+  container.appendChild(shell)
+  assert.equal(reconciler.focus('a'), true)
+  assert.equal(focused, 2)
+  application.remove()
+  reconciler.destroy()
+})
