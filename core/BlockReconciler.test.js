@@ -1342,8 +1342,12 @@ test('rejecting a staged block that borrows another block field preserves the ac
   const field = reconciler.getEditableField('0', 'text').element
   const originalShell = reconciler.getElement('0')
   const originalHasBlock = registry.hasBlock
+  const originalDefinition = registry.getBlockDefinition
   const originalRuntime = registry.getBlockRuntime
   registry.hasBlock = type => type === 'borrowed-field' || originalHasBlock(type)
+  registry.getBlockDefinition = type => type === 'borrowed-field'
+    ? { type }
+    : originalDefinition(type)
   registry.getBlockRuntime = type => type === 'borrowed-field'
     ? { create(data) {
       return {
