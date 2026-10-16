@@ -10,6 +10,7 @@ export class InlineTriggerController {
   #commands
   #isComposing
   #projection
+  #nativeInputRoute
   #controller
   #active=null
   #triggers=[]
@@ -17,6 +18,7 @@ export class InlineTriggerController {
   #reportError
 
   constructor({root,registry,reconciler,selection,commands,isComposing=()=>false,projection=null,
+    nativeInputRoute=()=>null,
     observe=operation=>operation(),reportError=error=>console.error('Inline trigger cancellation failed',error)}){
     if(!root?.addEventListener)throw new TypeError('InlineTriggerController requires an editor root')
     this.#root=root
@@ -26,6 +28,7 @@ export class InlineTriggerController {
     this.#commands=commands
     this.#isComposing=isComposing
     this.#projection=projection
+    this.#nativeInputRoute=nativeInputRoute
     this.#observe=observe
     this.#reportError=reportError
     this.#triggers=registry.inlineTypes.flatMap(type=>{
@@ -51,6 +54,15 @@ export class InlineTriggerController {
   get isActive(){return !!this.#active}
 
   setReadOnly(value){if(value===true)this.#cancel()}
+
+  /** Handoff a fresh-trigger query to a settled editable widget's own
+   * session without canceling a legitimate label session when no query exists.
+   */
+  retireFreshQueryForNativeEdit(){
+    if(!this.#active)return false
+    this.#cancel()
+    return true
+  }
 
   destroy(){
     this.#controller.abort()
@@ -88,6 +100,8 @@ export class InlineTriggerController {
   }
 
   #onInput(event){
+    const route=this.#nativeInputRoute(event)
+    if(route&&(route.status==='stale'||route.status==='failed'||route.inside===true))return
     if(event.isComposing||this.#isComposing()){
       this.#cancel()
       return
