@@ -181,12 +181,12 @@ export class InlineProjectionRuntime {
   }
 
   /** Prove a captured native occurrence is still the same mounted instance. */
-  isCurrentNativeOccurrence(blockId,fieldKey,source){
+  isCurrentNativeOccurrence(blockId,fieldKey,source,{allowDetached=false}={}){
     const entry=this.#blocks.get(blockId)?.widgets.get(source.id)
     return Boolean(entry && entry.type===source.type
       && entry.fieldKey===fieldKey && entry.fieldElement?.isConnected
       && entry.element===source.element && entry.instance===source.instance
-      && entry.fieldElement.contains(entry.element))
+      && (allowDetached || entry.fieldElement.contains(entry.element)))
   }
 
   /** Complete owned inline DOM/cache changes under the DocumentRuntime's
@@ -216,6 +216,27 @@ export class InlineProjectionRuntime {
         else entry.element.remove()
       }
     }
+  }
+
+  /** Release identities removed by one successfully committed native edit. */
+  retireNativeInlineChanges(blockId,changes){
+    const state=this.#blocks.get(blockId)
+    if(!state)return
+    for(const change of changes){
+      if(change.action.kind==='update')continue
+      const entry=state.widgets.get(change.id)
+      if(!entry||entry.element!==change.element||entry.instance!==change.instance)continue
+      state.widgets.delete(change.id)
+      this.#destroyWidget(entry)
+    }
+  }
+
+  /** Deliver one transient notice to a retained native-edit-aware instance. */
+  notifyNativeInlineEdit(blockId,id,notice){
+    const entry=this.#blocks.get(blockId)?.widgets.get(id)
+    if(!entry||!entry.element.isConnected||typeof entry.instance.afterNativeEdit!=='function')return false
+    synchronousResult(entry.instance.afterNativeEdit(Object.freeze({...notice})))
+    return true
   }
 
   resolveWidgetInputTarget(selection,inputType){
