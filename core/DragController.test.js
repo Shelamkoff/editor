@@ -269,7 +269,7 @@ test('completed drag restores focus only while its own committed result remains 
     if (change === 'destroy') controller.destroy()
     await Promise.resolve()
     assert.deepEqual(h.focusCalls(), change === 'none' ? ['A'] : [],
-      change + ': a retired drag focus continuation took the user's focus')
+      change + ': a retired drag focus continuation took focus')
     controller.destroy()
   }
 })
