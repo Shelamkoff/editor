@@ -55,7 +55,7 @@ test('mixed cross-block toolbar retains the starting Heading controls and select
   assert(!levels.hidden, 'Cross-block drag hid the starting Heading controls')
   equal(levels.textContent, 'H2')
   await clickNative(levels)
-  await clickNative(root.querySelector('.oe-inline-toolbar__level-dropdown [data-level="3"]'))
+  await clickNative(root.querySelector('.oe-inline-toolbar__level-dropdown [data-action-id="h3"]'))
   const after = editor.save().blocks
   equal(after, before.map(block => block.id === 'welcome' ? { ...block, data: { ...block.data, level: 3 } } : block))
   equal(editor.blocks.selectedIds(), ['welcome', 'intro', 'principles', 'quote'])
