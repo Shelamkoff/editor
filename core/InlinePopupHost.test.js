@@ -180,3 +180,32 @@ test('failure to install deferred popup listener retires only its own surface', 
   host.destroy()
   assert.equal(released, 1)
 })
+
+test('popup refuses to adopt editor-owned nodes and keeps the active presentation intact', () => {
+  const { root, anchor, host, create } = fixture()
+  const events = []
+  const active = host.showPopup('active', anchor, create(), () => events.push('active'))
+  assert.equal(root.children.length, 2)
+
+  // This previously moved the editable anchor under popup, then removed it
+  // from the editor when the popup closed.
+  assert.throws(
+    () => host.showPopup('invalid', anchor, anchor, () => events.push('invalid')),
+    /Popup requires owning-document HTML elements/,
+  )
+  assert.equal(root.children[0], anchor)
+  assert.equal(root.contains(anchor), true)
+  assert.equal(root.children.length, 2, 'invalid content must not close the active popup')
+  assert.deepEqual(events, [])
+
+  const ownedControl = create()
+  root.appendChild(ownedControl)
+  assert.throws(() => host.showPopup('invalid-control', anchor, ownedControl), /Popup requires/)
+  assert.equal(root.contains(ownedControl), true)
+
+  active.close()
+  assert.equal(root.contains(anchor), true)
+  assert.equal(root.contains(ownedControl), true)
+  assert.deepEqual(events, ['active'])
+  host.destroy()
+})

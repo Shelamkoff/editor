@@ -33,6 +33,9 @@ export class InlinePopupHost {
     if(!ElementCtor||!(anchor instanceof ElementCtor)||!(content instanceof ElementCtor)
       ||anchor.ownerDocument!==this.#document||content.ownerDocument!==this.#document
       ||content===this.#root||content.contains(this.#root)
+      // Popup contents must be detached from editor UI. Moving an owned
+      // editable anchor/control into a transient popup destroys it on close.
+      ||this.#root.contains(content)
       ||(cleanup!==undefined&&typeof cleanup!=='function')){
       throw new TypeError('Popup requires owning-document HTML elements and optional cleanup function')
     }
