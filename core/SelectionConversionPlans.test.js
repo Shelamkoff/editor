@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 
-import { conversionTargetData, convertedCanonicalRecord } from './SelectionConversionPlans.js'
+import { conversionTargetData, convertedCanonicalRecord, prepareSelectionConversion } from './SelectionConversionPlans.js'
 
 function setup() {
   const author = {
@@ -81,6 +81,23 @@ test('conversion declines import using the target default without changing a sou
     kind: 'rich-text', data: { text: 'not-importable' },
   }, { type: 'code' })
   assert.deepEqual(data, { text: '' })
+})
+
+test('collapsed whole-block conversion does not require a rich-text field on its current source', () => {
+  const { services, code } = setup()
+  code.capabilities.conversion.export = data => ({ kind: 'rich-text', data: { text: data.code } })
+  const current = { id: 'source', type: 'code', dataVersion: 1, data: { code: 'Staged literal source' }, tunes: { textAlign: 'center' } }
+  const view = { ids: ['staged-neighbor', 'source'], peek: id => id === 'source' ? current : undefined }
+  const point = { blockId: 'source', fieldKey: 'code', offset: 3 }
+  const plan = prepareSelectionConversion(services, view, { anchor: point, focus: { ...point } }, { type: 'paragraph' })
+  assert.deepEqual(plan.result, { focusId: 'source', convertedIds: ['source'] })
+  assert.equal(plan.edits.length, 1)
+  assert.equal(plan.edits[0].kind, 'update')
+  assert.deepEqual(plan.edits[0].record.data, { text: 'Staged literal source', author: 'imported' })
+  assert.deepEqual(plan.edits[0].record.tunes, current.tunes)
+  assert.deepEqual(current.data, { code: 'Staged literal source' })
+  assert.deepEqual(prepareSelectionConversion(services, view,
+    { anchor: point, focus: { ...point, offset: 4 } }, { type: 'paragraph' }), { edits: [], result: false })
 })
 
 test('asynchronous conversion acceptance fails before any target-data import', () => {

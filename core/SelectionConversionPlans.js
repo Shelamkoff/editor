@@ -276,7 +276,12 @@ function acceptsTarget(conversion, payload) {
  * @param {any} target Declared conversion target.
  */
 export function prepareSelectionConversion(s, view, bookmark, target) {
-  const ordered = orderedLogicalRange(s, view, bookmark)
+  const anchor = bookmark?.anchor, focus = bookmark?.focus
+  // A caret chooses its owning block, including plain-text and inert owners.
+  // Only a noncollapsed text selection needs schema-declared rich fields.
+  const collapsed = anchor && focus && anchor.blockId === focus.blockId
+    && anchor.fieldKey === focus.fieldKey && anchor.offset === focus.offset
+  const ordered = collapsed ? { start: anchor, end: focus } : orderedLogicalRange(s, view, bookmark)
   if (!ordered || !target || typeof target.type !== 'string') return noChange()
   const targetDefinition = s.getBlockDefinition(target.type)
   if (!targetDefinition) return noChange()
