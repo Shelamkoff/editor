@@ -104,7 +104,8 @@ export interface BlockPluginDefinition<
 
 /** Pure empty-state capability used by generic structural commands. */
 export interface EmptyCapability<D extends object> {
-  isEmpty(data: Readonly<D>): boolean
+  /** The optional context supplies the owning DOM realm for rich-text checks. */
+  isEmpty(data: Readonly<D>, context?: { ownerDocument: Document }): boolean
 }
 
 /** Inline formatting eligibility for one block type. */

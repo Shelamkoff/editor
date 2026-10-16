@@ -126,7 +126,7 @@ export function isClipboardResidualEmpty(s,record) {
   const definition=s.getBlockDefinition(record.type)
   const empty=definition?.capabilities?.empty?.isEmpty
   if(typeof empty!=='function')return false
-  const result=synchronousResult(empty(cloneEditorData(record.data)))
+  const result=synchronousResult(empty(cloneEditorData(record.data),{ownerDocument:s.ownerDocument}))
   if(typeof result!=='boolean')throw new TypeError('Empty capability must return a boolean')
   return result
 

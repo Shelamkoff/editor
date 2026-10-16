@@ -66,10 +66,10 @@ function sameJson(left, right) {
  * @param {any} definition
  * @param {any} data
  */
-function emptyBlockDecision(definition,data){
+function emptyBlockDecision(definition,data,ownerDocument){
   const empty=definition?.capabilities?.empty
   if(typeof empty?.isEmpty!=='function')return false
-  const result=synchronousResult(empty.isEmpty(data))
+  const result=synchronousResult(empty.isEmpty(data,{ownerDocument}))
   if(typeof result!=='boolean'){
     throw new TypeError('Block empty.isEmpty() must return a boolean')
   }
@@ -378,7 +378,7 @@ export class DocumentRuntime {
       const definition=this.#registry.getBlockDefinition(type)
       if(!definition)throw new Error(`Unknown block type: ${type}`)
       const sourceDefinition=current?this.#registry.getBlockDefinition(current.type):undefined
-      const replace=current&&emptyBlockDecision(sourceDefinition,cloneEditorData(current.data))
+      const replace=current&&emptyBlockDecision(sourceDefinition,cloneEditorData(current.data),this.#ownerDocument)
       if(replace){
         if(current.type===type&&toolboxItemId===undefined)return {edits:[],result:current.id}
         const next=convertedCanonicalRecord(this.#planningServices(),current,{type,toolboxItemId},new Set(view.ids))
@@ -435,7 +435,7 @@ export class DocumentRuntime {
     if(typeof definition?.capabilities?.empty?.isEmpty!=='function')return false
     // Keyboard eligibility is queried outside any edit transaction. The same
     // prepared decision contract also applies to toolbox and slash plans.
-    return this.prepareExtensionValue(()=>emptyBlockDecision(definition,current.data))
+    return this.prepareExtensionValue(()=>emptyBlockDecision(definition,current.data,this.#ownerDocument))
   }
 
   createDataId(prefix) {
@@ -873,7 +873,7 @@ export class DocumentRuntime {
           createId: prefix => this.#allocateId(prefix),
         })
       }
-      const sourceEmpty = emptyBlockDecision(sourceDefinition,cloneEditorData(sourceNext.data))
+      const sourceEmpty = emptyBlockDecision(sourceDefinition,cloneEditorData(sourceNext.data),this.#ownerDocument)
 
       if (sourceEmpty) {
         const next = this.#recordFromData(
