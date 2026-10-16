@@ -240,6 +240,24 @@ Verification available in this session:
 
 **Status:** slice 8's shared-decision and native reconciliation implementation is committed but **not accepted as complete**. Remaining tasks include full real-browser/native integration and correction of actual failures, including mixed widget/ordinary-text selection restoration, no-op cache repair, Unicode/native word boundaries, transient search handoff and clipboard conformance, plus the full project/type/package gates. Do not infer an overall completion percentage from these isolated checks.
 
+## Slice 8 follow-up — native event ownership, collapsed ranges and clipboard revalidation
+
+Additional source fixes committed on the same refactor branch:
+
+- `InlineWidgetInputController.captureNativeDeletion` now requires **both** native selection endpoints in the same current registered rich-text field, the event target inside that field (excluding nested auxiliary controls), and opt-in participation by a widget whose boundary is **actually crossed**. An unrelated opt-in widget elsewhere in the same field cannot authorize deletion across a non-opted occurrence. Word/soft-line deletion with a collapsed `StaticRange` now follows the missing-range field snapshot instead of incorrectly treating it as an explicit interval.
+- `NativeInputController` resolves `beforeinput` originating from an owned editable inline widget to its current **registered** parent field only for deletion capture. It rejects buttons/inputs/selects, locked content, foreign roots, detached widgets and mismatched fields. The existing matched pending envelope still exclusively owns the later `input`; no new controller or store was introduced.
+- The immediate `editing.handle()` route likewise treats a collapsed browser `getTargetRanges()` entry as **no explicit interval**. It can invoke the supported code-point character-deletion fallback; a real cross-label interval remains native-owned rather than clipped into a label.
+- Mention label-local Cut/Paste now revalidates the active anchor/focus and label offsets, mounted occurrence/read-only state, current text, and canonical Mention id/name **after** fallible `ClipboardData` access and **before** applying the text decision. A clipboard getter or writer that changes selection or identity cannot mutate the stale label. Owned operations remain canceled even when the I/O or subsequent freshness check fails.
+- Added red/green negative tests for crossed non-opted widgets and native widget targets, plus foreign focus, auxiliary control, and collapsed-range regressions. Added two registered native Mention browser cases for reentrant Cut/Paste selection change. Updated paired EN/RU inline extension and command/history guides with the opt-in `reconcileNative` and transient `afterNativeEdit` contracts, required `update`, and single pending/projection-transaction semantics.
+
+Verification evidence:
+
+- Focused isolated V8 harness against the current fetched source: **54/54** test bodies passed (11 pure Mention decisions, 20 `InlineWidgetInputController`, 23 `NativeInputController`). Prior to the relevant fixes, the new non-opted cross-widget, widget-targeted native-input and collapsed target-range tests reproduced failures; the tests then passed after source changes.
+- Syntax checks passed for eight affected JavaScript production/test modules. This is parsing evidence, **not** project TypeScript or Chrome conformance.
+- The actual Node `--test` runner, the committed new native-browser Cut/Paste cases, the complete existing real-editor/IME/clipboard suites, EN/RU docs validation, package and generated-declaration consumers remain **unverified** in this session. The isolated tests do not establish full slice acceptance.
+
+**Status:** Slice 8 implementation has additional verified ownership corrections but still requires full local/native/browser/type/docs/package acceptance and resolution of any actual failures. In particular the new native label Cut/Paste/browser word-boundary tests and mixed selection/cache recovery must be run on the real editor.
+
 ## Remaining slices
 
 4c. Full local/native/package verification and integration with the slice 8 terminal cancellation/control fan-out contract.
