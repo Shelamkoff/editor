@@ -470,32 +470,64 @@ export function createMentionPlugin(options={}){
         applyLabelDecision(entry,decision)
       }
 
+      /** A boundary immediately outside the label is equivalent to its
+       * first/last text position, but only when the other endpoint actually
+       * belongs to this same owned label.
+       */
+      const labelBoundaryOffset=(entry,node,at)=>{
+        const span=entry.span,text=span.textContent??''
+        if(span.contains(node))return offsetInSpan(entry,node,at)
+        if(node===span.nextSibling&&at===0)return text.length
+        if(node===span.previousSibling&&node.nodeType===3
+          &&at===(node.textContent?.length??0))return 0
+        if(node===span.parentNode){
+          const index=Array.prototype.indexOf.call(node.childNodes,span)
+          if(at===index)return 0
+          if(at===index+1)return text.length
+        }
+        return null
+      }
       const handleWidgetClipboard=event=>{
-        if(event.defaultPrevented||compositionSession||!event.clipboardData)return
+        if(event.defaultPrevented||event.cancelable===false||compositionSession)return
         const native=runtimeContext.ownerDocument.defaultView?.getSelection?.()
-        const entry=ownedAtNode(native?.anchorNode)
-        if(!entry||entry.dead||entry.readOnly||ownedAtNode(native?.focusNode)!==entry)return
-        if(!ownsEvent(entry,event))return
-        const anchor=offsetInSpan(entry,native.anchorNode,native.anchorOffset)
-        const focus=offsetInSpan(entry,native.focusNode,native.focusOffset)
+        if(!native?.anchorNode||!native.focusNode)return
+        const anchorOwner=ownedAtNode(native.anchorNode)
+        const focusOwner=ownedAtNode(native.focusNode)
+        const entry=anchorOwner??focusOwner
+        if(!entry||entry.dead||entry.readOnly||!entry.span.isConnected
+          ||(anchorOwner&&focusOwner&&anchorOwner!==focusOwner)
+          ||!ownsEvent(entry,event))return
+        const anchor=labelBoundaryOffset(entry,native.anchorNode,native.anchorOffset)
+        const focus=labelBoundaryOffset(entry,native.focusNode,native.focusOffset)
         if(anchor===null||focus===null)return
-        const start=Math.min(anchor,focus),end=Math.max(anchor,focus),text=entry.span.textContent??''
+        const start=Math.min(anchor,focus),end=Math.max(anchor,focus)
+        const text=entry.span.textContent??''
+        if(event.type==='copy'&&start===end)return
+
+        // A proved-owned operation is consumed even when ClipboardData rejects
+        // the read/write or the requested format is missing.
+        event.preventDefault()
+        const clipboard=event.clipboardData
+        if(!clipboard)return
         if(event.type==='paste'){
-          if(!Array.from(event.clipboardData.types).includes('text/plain'))return
-          const value=event.clipboardData.getData('text/plain')
-          event.preventDefault()
+          let value
+          try {
+            if(!Array.from(clipboard.types??[]).includes('text/plain'))return
+            value=clipboard.getData('text/plain')
+          }catch{return}
+          if(typeof value!=='string'||!value)return
           if(entry.dead||entry.readOnly||entry.span.textContent!==text)return
           replaceLabelRange(entry,text,start,end,value)
           return
         }
         if(start===end)return
-        event.preventDefault()
         const selected=text.slice(start,end)
         try{
-          event.clipboardData.setData('text/plain',selected)
-          if(event.clipboardData.getData('text/plain')!==selected)return
+          clipboard.setData('text/plain',selected)
+          if(event.type==='cut'&&clipboard.getData('text/plain')!==selected)return
         }catch{return}
-        if(event.type==='cut'&&!entry.dead&&!entry.readOnly&&entry.span.textContent===text){
+        if(event.type==='cut'&&!entry.dead&&!entry.readOnly
+          &&entry.span.textContent===text){
           replaceLabelRange(entry,text,start,end,'')
         }
       }
@@ -538,19 +570,8 @@ export function createMentionPlugin(options={}){
         if(native&&!native.isCollapsed){
           if(!native.rangeCount)return
           const range=native.getRangeAt(0)
-          const localOffset=(node,at)=>{
-            if(span.contains(node))return offsetInSpan(entry,node,at)
-            if(node===span.nextSibling&&at===0)return text.length
-            if(node===span.previousSibling&&node.nodeType===3&&at===(node.textContent?.length??0))return 0
-            if(node===span.parentNode){
-              const index=Array.prototype.indexOf.call(node.childNodes,span)
-              if(at===index)return 0
-              if(at===index+1)return text.length
-            }
-            return null
-          }
-          const start=localOffset(range.startContainer,range.startOffset)
-          const end=localOffset(range.endContainer,range.endOffset)
+          const start=labelBoundaryOffset(entry,range.startContainer,range.startOffset)
+          const end=labelBoundaryOffset(entry,range.endContainer,range.endOffset)
           if(start===null||end===null)return
           const inserting=(event.inputType==='insertText'||event.inputType==='insertReplacementText'||event.inputType==='insertCompositionText')&&typeof event.data==='string'
           const deleting=NATIVE_DELETION_INPUTS.has(event.inputType)
