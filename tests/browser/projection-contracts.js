@@ -805,4 +805,90 @@ test('an old prepared inline handle cannot overwrite a newer applied block state
   } finally { projection.destroy() }
 })
 
+
+
+test('stale inline recover keeps its candidate alive for successor recovery', () => {
+  const released = []
+  const instances = new Map()
+  const registry = {
+    getInlineDefinition: () => ({ schema: { decode: value => value } }),
+    getInlineRuntime: () => ({
+      create(id, data) {
+        const element = document.createElement('span')
+        element.textContent = data.label
+        instances.set(data.label, element)
+        return {
+          element, setReadOnly() {},
+          destroy() { released.push(data.label) },
+        }
+      },
+    }),
+  }
+  const projection = new InlineProjectionRuntime({ registry, ownerDocument: document })
+  const freshFields = () => [{ key: 'text', mode: 'rich-text', element: document.createElement('div') }]
+  const record = label => ({
+    data: { fields: [{ key: 'text', html: '{{x}}' }] },
+    inline: { x: { type: 'unloaded', dataVersion: 3, data: { label } } },
+  })
+  const context = { createInlineWidgetContext: () => ({}) }
+  try {
+    projection.reconcileBlock('a', record('base'), { schema }, freshFields(), context)
+    const first = projection.prepareBlock('a', record('first'), { schema }, freshFields(), context, 1)
+    first.apply()
+    const successor = projection.prepareBlock('a', record('second'), { schema }, freshFields(), context, 1)
+    successor.apply()
+
+    first.recover()
+    equal(released, ['base'], 'stale recovery may release its old base, not successor predecessor')
+    successor.recover()
+    assert(projection.resolveWidgetElement(instances.get('first')) === instances.get('first'),
+      'restored predecessor must remain a valid owned occurrence')
+    equal(released, ['base', 'second'])
+    projection.destroyBlock('a')
+    equal(released, ['base', 'second', 'first'])
+  } finally { projection.destroy() }
+})
+
+test('stale inline finalize cannot destroy a successor recoverable predecessor', () => {
+  const released = []
+  const instances = new Map()
+  const registry = {
+    getInlineDefinition: () => ({ schema: { decode: value => value } }),
+    getInlineRuntime: () => ({
+      create(id, data) {
+        const element = document.createElement('span')
+        element.textContent = data.label
+        instances.set(data.label, element)
+        return {
+          element, setReadOnly() {},
+          destroy() { released.push(data.label) },
+        }
+      },
+    }),
+  }
+  const projection = new InlineProjectionRuntime({ registry, ownerDocument: document })
+  const fields = () => [{ key: 'text', mode: 'rich-text', element: document.createElement('div') }]
+  const record = label => ({
+    data: { fields: [{ key: 'text', html: '{{x}}' }] },
+    inline: { x: { type: 'unloaded', dataVersion: 3, data: { label } } },
+  })
+  const context = { createInlineWidgetContext: () => ({}) }
+  try {
+    projection.reconcileBlock('a', record('base'), { schema }, fields(), context)
+    const first = projection.prepareBlock('a', record('first'), { schema }, fields(), context, 1)
+    first.apply()
+    const successor = projection.prepareBlock('a', record('second'), { schema }, fields(), context, 1)
+    successor.apply()
+
+    let staleError = ''
+    try { first.finalize() } catch (error) { staleError = error.message }
+    assert(/owner is stale/.test(staleError))
+    equal(released, ['base'], 'stale finalize cannot retire a borrowed predecessor')
+    successor.recover()
+    assert(projection.resolveWidgetElement(instances.get('first')) === instances.get('first'))
+    projection.destroy()
+    equal(released, ['base', 'second', 'first'])
+  } finally { projection.destroy() }
+})
+
 await run()

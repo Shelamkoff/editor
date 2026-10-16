@@ -144,7 +144,14 @@ export class InlineProjectionRuntime {
         if(finished)return
         finished=true
         this.#pendingPreparations.delete(retire)
-        if(applied&&!this.#destroyed&&this.#blocks.get(blockId)===state){
+        const current=this.#blocks.get(blockId)
+        if(applied&&!this.#destroyed&&current!==state){
+          // A newer preparation owns this state as its recoverable
+          // predecessor. Do not destroy a widget that it may restore.
+          if(previous&&current!==previous)this.#destroyState(previous)
+          return
+        }
+        if(applied&&!this.#destroyed&&current===state){
           if(previous)this.#blocks.set(blockId,previous)
           else this.#blocks.delete(blockId)
         }
@@ -159,7 +166,8 @@ export class InlineProjectionRuntime {
         if(this.#blocks.get(blockId)!==state){
           finished=true
           this.#pendingPreparations.delete(retire)
-          destroyCandidate()
+          // The successor can still recover to this candidate. Ownership
+          // passed forward when the successor applied its new state.
           if(previous&&this.#blocks.get(blockId)!==previous)this.#destroyState(previous)
           throw new Error('Prepared inline projection owner is stale')
         }
