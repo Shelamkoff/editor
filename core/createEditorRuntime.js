@@ -357,6 +357,7 @@ export function createEditorRuntime(input){
   })
   view=new EditorViewModel({runtime,reconciler,interaction,selection:logicalSelection})
   crossSelection=lifecycle.register(new SelectionController({root,runtime,reconciler,view}))
+  let triggerController=null
   const inlineWidgetInput=lifecycle.register(new InlineWidgetInputController({
     root,
     runtime,
@@ -365,6 +366,7 @@ export function createEditorRuntime(input){
     projection:inlineProjection,
     selection:logicalSelection,
     diagnostics,
+    onNativeSettled:()=>triggerController?.retireFreshQueryForNativeEdit(),
   }))
   const nativeInput=lifecycle.register(new NativeInputController({
     root,
@@ -377,7 +379,6 @@ export function createEditorRuntime(input){
     onControlledInput:()=>queueMicrotask(()=>triggerController?.refresh()),
     coalesceMs:config.historyCoalesceMs??300,
   }))
-  let triggerController=null
   const inlineCommands=new InlineCommandController({
     runtime,
     registry,
@@ -392,6 +393,7 @@ export function createEditorRuntime(input){
     commands:inlineCommands,
     isComposing:()=>nativeInput.isComposing,
     projection:inlineProjection,
+    nativeInputRoute:event=>inlineWidgetInput.nativeInputRoute(event),
     observe:operation=>runtime.observeExtension(operation),
     reportError:error=>reportDiagnostic('command.failed','inline-trigger.cancel',error),
   }))
