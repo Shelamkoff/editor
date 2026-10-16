@@ -2191,4 +2191,23 @@ for (const [name, html] of [
 }
 
 
+test('HTML Paste with an actual line break still replaces selected text',async()=>{
+  const editor=make([para('a','Alpha')])
+  const field=editableField(editor,'a')
+  select(field,1,4)
+  const transfer=new DataTransfer()
+  transfer.setData('text/html','<br>')
+  field.dispatchEvent(new ClipboardEvent('paste',{
+    bubbles:true,cancelable:true,clipboardData:transfer,
+  }))
+  await Promise.resolve()
+  const text=editor.save().blocks[0].data.text
+  check(text.includes('<br>')&&!text.includes('lph'),
+    'A meaningful HTML line break was discarded along with empty formatting')
+  equal(editor.canUndo,true,'Meaningful line-break Paste created no history')
+  editor.undo()
+  equal(editor.save().blocks,[para('a','Alpha')])
+})
+
+
 await run()

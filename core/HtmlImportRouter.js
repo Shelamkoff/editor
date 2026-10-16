@@ -16,7 +16,11 @@ function meaningfulHtml(html,ownerDocument){
   if(!html)return false
   const probe=ownerDocument.createElement('div')
   probe.innerHTML=/** @type {any} */(toTrustedHtml(html,ownerDocument))
-  return !!probe.textContent?.trim()||!!probe.querySelector('*')
+  // Formatting shells and unlabeled anchors have no author content. Do not
+  // replace a selected range with empty marks. <br> is the only allowed
+  // inline void element that represents real content without text; media
+  // roots are handled separately by registered structural import capabilities.
+  return !!probe.textContent?.trim()||!!probe.querySelector('br')
 }
 
 function serializeNodes(nodes,ownerDocument){
