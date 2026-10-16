@@ -1,6 +1,6 @@
+// @ts-check
 import { isRichTextEmpty } from '../../shared/richTextEmpty.js'
 import { createItemSelectionSlice } from '../shared/itemSelectionSlice.js'
-// @ts-check
 import { definitionStyles } from '../shared/definitionStyles.js'
 import { setSanitizedHtml } from '../../plugin-kit/index.js'
 import { listDataSchema } from '../../shared/blockSchemas/list.js'
@@ -9,30 +9,6 @@ import { acceptsTextPayload, richTextFromPayload } from '../shared/textConversio
 const editorStyles=new URL('./list.css',import.meta.url).href
 const ICON_UL='<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11"/><path d="M9 12h11"/><path d="M9 18h11"/><path d="M5 6v.01"/><path d="M5 12v.01"/><path d="M5 18v.01"/></svg>'
 const ICON_OL='<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 6h9"/><path d="M11 12h11"/><path d="M11 18h9"/><path d="M4 16a2 2 0 1 1 4 0c0 .591-.5 1-1 1.5l-3 2.5h4"/><path d="M6 10v-6l-2 2"/></svg>'
-
-function fragmentHtml(range,root){
-  const container=root.ownerDocument.createElement('div')
-  container.appendChild(range.cloneContents())
-  return container.innerHTML
-}
-
-function splitAtCaret(item,range){
-  const document=item.ownerDocument
-  const before=document.createRange()
-  before.selectNodeContents(item)
-  before.setEnd(range.startContainer,range.startOffset)
-  const after=document.createRange()
-  after.selectNodeContents(item)
-  after.setStart(range.startContainer,range.startOffset)
-  return {before:fragmentHtml(before,item),after:fragmentHtml(after,item)}
-}
-
-function atStart(item,range){
-  const before=item.ownerDocument.createRange()
-  before.selectNodeContents(item)
-  before.setEnd(range.startContainer,range.startOffset)
-  return before.toString().length===0&&before.cloneContents().childNodes.length===0
-}
 
 /**
  * Create the immutable List v2 definition with stable item identities.
