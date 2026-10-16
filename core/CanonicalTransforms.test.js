@@ -5,6 +5,7 @@ import {
   assembleCanonicalRecord,
   createSessionIdAllocator,
   captureDocumentView,
+  canonicalRecordsEqual,
 } from './CanonicalTransforms.js'
 
 test('captured views retain immutable references/order and never traverse unrelated payloads', () => {
@@ -66,4 +67,24 @@ test('canonical record assembly owns current data/tunes and never carries produc
   })
   assert.deepEqual(source,{text:' source '})
   assert.equal(Object.hasOwn(record,'revision'),false)
+})
+
+test('JSON object key order does not create an authored edit or phantom revision', () => {
+  const dataA = JSON.parse('{"a":1,"nested":{"x":2,"y":3},"list":[{"p":1,"q":2}]}')
+  const dataB = JSON.parse('{"list":[{"q":2,"p":1}],"nested":{"y":3,"x":2},"a":1}')
+  const inlineA = JSON.parse('{"__proto__":{"type":"mention","dataVersion":1,"data":{"id":"1","name":"Ada"}}}')
+  const inlineB = JSON.parse('{"__proto__":{"data":{"name":"Ada","id":"1"},"dataVersion":1,"type":"mention"}}')
+  const left = { id: 'a', type: 'custom', dataVersion: 1, data: dataA, tunes: { textAlign: 'center' }, inline: inlineA, revision: 10 }
+  const right = { id: 'a', type: 'custom', dataVersion: 1, data: dataB, tunes: { textAlign: 'center' }, inline: inlineB, revision: 11 }
+  assert.equal(canonicalRecordsEqual(left, right), true)
+  assert.equal(canonicalRecordsEqual(right, left), true)
+})
+
+test('canonical equality still recognizes array order and genuine content changes', () => {
+  const record = data => ({ id: 'a', type: 'custom', dataVersion: 1, data })
+  assert.equal(canonicalRecordsEqual(record({ items: [1, 2] }), record({ items: [2, 1] })), false)
+  assert.equal(canonicalRecordsEqual(record({ count: 1 }), record({ count: 2 })), false)
+  assert.equal(canonicalRecordsEqual(record({ a: 1 }), record({ a: 1, b: null })), false)
+  assert.equal(canonicalRecordsEqual(record({ items: [{ x: 1 }] }), record({ items: [{ x: 1 }] })), true)
+  assert.equal(canonicalRecordsEqual({ ...record({}), type: 'first' }, { ...record({}), type: 'second' }), false)
 })
