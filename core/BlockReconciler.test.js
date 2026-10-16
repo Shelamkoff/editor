@@ -1304,3 +1304,79 @@ test('detaching a live editable field revokes target resolution until its field 
     'a field currently declared by its live owner is authorized when remounted')
   reconciler.destroy()
 })
+
+test('block runtime cannot advertise a foreign application node as editable field', () => {
+  const ownerDocument = new FakeDocument()
+  const container = ownerDocument.createElement('main')
+  const application = ownerDocument.createElement('section')
+  const unrelated = ownerDocument.createElement('textarea')
+  application.appendChild(unrelated)
+  const releases = []
+  const registry = {
+    hasBlock: () => true,
+    getBlockDefinition: type => ({ type }),
+    getBlockRuntime: () => ({ create(initial) {
+      const element = ownerDocument.createElement('article')
+      return {
+        element, read() { return initial }, setReadOnly() {},
+        editableFields() {
+          return [{ key: 'text', mode: 'rich-text', element: unrelated }]
+        },
+        destroy() { releases.push(initial.text) },
+      }
+    } }),
+  }
+  const reconciler = new BlockReconciler({ container, registry, contextFactory: () => ({}) })
+  const store = new DocumentStore({ version: '2.0.0', blocks: [block('a')] })
+  assert.throws(() => reconciler.mount(store), /must belong to its owning block DOM/)
+  assert.equal(application.firstChild, unrelated, 'foreign DOM must never be claimed or moved')
+  assert.deepEqual(container.children, [])
+  assert.deepEqual(releases, ['a'], 'failed instance is cleaned up once')
+  assert.equal(reconciler.getEditableField('a', 'text'), undefined)
+  reconciler.destroy()
+  assert.deepEqual(releases, ['a'])
+})
+
+test('rejecting a staged block that borrows another block field preserves the active owner', () => {
+  const { store, reconciler, registry, container } = setup(1)
+  const field = reconciler.getEditableField('0', 'text').element
+  const originalShell = reconciler.getElement('0')
+  const originalHasBlock = registry.hasBlock
+  const originalRuntime = registry.getBlockRuntime
+  registry.hasBlock = type => type === 'borrowed-field' || originalHasBlock(type)
+  registry.getBlockRuntime = type => type === 'borrowed-field'
+    ? { create(data) {
+      return {
+        element: container.ownerDocument.createElement('article'),
+        read() { return data }, setReadOnly() {},
+        editableFields() { return [{ key: 'text', element: field, mode: 'rich-text' }] },
+        destroy() {},
+      }
+    } }
+    : originalRuntime(type)
+  const draft = store.createDraft()
+  draft.insert(1, block('new', 'invalid', 'borrowed-field'))
+  assert.throws(
+    () => reconciler.prepare({ store, draft, changes: draft.changes }),
+    /must belong to its owning block DOM/,
+  )
+  assert.equal(reconciler.getElement('0'), originalShell)
+  assert.deepEqual(reconciler.resolveEditableTarget(field), {
+    blockId: '0', fieldKey: 'text', element: field, mode: 'rich-text',
+  })
+  assert.deepEqual(reconciler.ids, ['0'])
+  reconciler.destroy()
+})
+
+test('a valid nested editable field remains addressable after ownership validation', () => {
+  const { reconciler, container } = setup(1)
+  const field = reconciler.getEditableField('0', 'text').element
+  const shell = reconciler.getElement('0')
+  assert(shell.contains(field))
+  assert.equal(reconciler.resolveBlockTarget(field), '0')
+  assert.deepEqual(reconciler.resolveEditableTarget(field), {
+    blockId: '0', fieldKey: 'text', element: field, mode: 'rich-text',
+  })
+  assert.equal(container.firstChild, shell)
+  reconciler.destroy()
+})

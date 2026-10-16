@@ -833,6 +833,14 @@ export class BlockReconciler {
 
   #registerFields(id, entry, projectPresentation, forceProjection) {
     const fields = captureEditableFields(entry.instance.editableFields?.() ?? [])
+    // Capture validates keys; this additional check validates the actual
+    // DOM authority of each field before modifying any ownership mapping.
+    for(const field of fields){
+      if(field.element.ownerDocument!==this.#container.ownerDocument
+        || !entry.element.contains(field.element)){
+        throw new TypeError('Editable field must belong to its owning block DOM')
+      }
+    }
     const changed = entry.fields && (fields.length !== entry.fields.length
       || fields.some((field, index) => field.key !== entry.fields[index]?.key || field.element !== entry.fields[index]?.element))
     if (changed) for (const field of entry.fields) this.#fieldOwners.delete(field.element)
