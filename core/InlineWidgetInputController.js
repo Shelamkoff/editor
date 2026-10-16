@@ -470,20 +470,38 @@ export class InlineWidgetInputController {
 
     const generation=this.#runtime.generation,revision=this.#runtime.revision
     const field=this.#reconciler.getEditableField(target.blockId,target.fieldKey)?.element
+    const selection=field?.ownerDocument?.defaultView?.getSelection?.()
+    const expected=selection?.anchorNode&&selection.focusNode
+      ?{
+        anchorNode:selection.anchorNode,anchorOffset:selection.anchorOffset,
+        focusNode:selection.focusNode,focusOffset:selection.focusOffset,
+      }:null
     queueMicrotask(()=>{
       if(this.#controller.signal.aborted||this.#runtime.readOnly
         ||generation!==this.#runtime.generation||revision!==this.#runtime.revision)return
       if(this.#reconciler.getEditableField(target.blockId,target.fieldKey)?.element!==field
-        ||!field?.isConnected)return
+        ||!field?.isConnected||!expected)return
+      // The action has been accepted, but user selection is still a separate
+      // authority. Never let this queued focus restoration steal an intervening
+      // native selection without any canonical revision change.
+      const current=field.ownerDocument.defaultView?.getSelection?.()
+      if(current?.anchorNode!==expected.anchorNode
+        ||current.anchorOffset!==expected.anchorOffset
+        ||current.focusNode!==expected.focusNode
+        ||current.focusOffset!==expected.focusOffset)return
       if(inside){
         if(this.#projection.resolveWidgetElement(target.element)!==target.element)return
         const node=target.element.firstChild
         if(localCaret!==null&&node?.nodeType===3){
           const caret=Math.max(0,Math.min(localCaret,node.textContent?.length??0))
-          const native=field.ownerDocument.defaultView?.getSelection?.()
-          if(native?.setBaseAndExtent){
-            native.setBaseAndExtent(node,caret,node,caret)
-            return
+          if(current?.setBaseAndExtent){
+            try {
+              current.setBaseAndExtent(node,caret,node,caret)
+              return
+            } catch(error) {
+              try { this.#report(error) } catch {}
+              return
+            }
           }
         }
       }
