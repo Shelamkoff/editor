@@ -271,7 +271,7 @@ test('HTML with two paragraph roots replaces selected text before inserting late
   } finally { fixture.controller.destroy() }
 })
 
-test('structural HTML without an inline root still forwards the selected range atomically', () => {
+test('structural HTML starts after the current block without deleting its selected text', () => {
   const fixture = clipboardHarness({
     formats: ['text/html'],
     read: type => type === 'text/html' ? '<table><tr><td>Q</td></tr></table>' : '',
@@ -280,19 +280,48 @@ test('structural HTML without an inline root still forwards the selected range a
   fixture.bookmark.anchor.offset = 1
   fixture.bookmark.focus.offset = 4
   const calls = []
-  fixture.runtime.prepareHtmlImport = () => ({
-    kind: 'blocks', blocks: [{ type: 'table', data: { rows: [{ id: 'r1', cells: [{ id: 'c1', text: 'Q' }] }] } }],
-  })
-  fixture.runtime.insertClipboardParts = (id, fieldKey, range, parts) => {
-    calls.push({ id, fieldKey, range, parts })
-    return { blockId: 'new-table', inserted: ['new-table'], focus: { fieldKey: 'text', offset: 0 } }
+  const blocks = [{ type: 'table', data: { rows: [{ id: 'r1', cells: [{ id: 'c1', text: 'Q' }] }] } }]
+  fixture.runtime.prepareHtmlImport = () => ({ kind: 'blocks', blocks })
+  fixture.runtime.insertClipboardParts = () => {
+    throw new Error('Structural first root must not replace an inline selection')
+  }
+  fixture.runtime.insertLocalBlocks = (anchorId, prepared, options) => {
+    calls.push({ anchorId, prepared, options })
+    return ['new-table']
   }
   try {
     fixture.paste()
     assert.equal(fixture.event.defaultPrevented, true)
-    assert.equal(calls.length, 1)
-    assert.deepEqual(calls[0].range, { start: 1, end: 4 })
-    assert.equal(calls[0].parts[0].kind, 'local-block')
-    assert.equal(calls[0].parts[0].type, 'table')
+    assert.deepEqual(calls, [{
+      anchorId: 'a', prepared: blocks,
+      options: { replaceEmpty: false, name: 'clipboard.html-import' },
+    }])
+  } finally { fixture.controller.destroy() }
+})
+
+test('structural HTML with a collapsed caret can replace an empty placeholder', () => {
+  const fixture = clipboardHarness({
+    formats: ['text/html'],
+    read: type => type === 'text/html' ? '<hr>' : '',
+    accepts: () => false,
+  })
+  const calls = []
+  fixture.runtime.prepareHtmlImport = () => ({
+    kind: 'blocks', blocks: [{ type: 'delimiter', data: {} }],
+  })
+  fixture.runtime.insertLocalBlocks = (id, blocks, options) => {
+    calls.push({ id, blocks, options })
+    return ['new-delimiter']
+  }
+  fixture.runtime.insertClipboardParts = () => {
+    throw new Error('A structural root must not use the logical text replacement route')
+  }
+  try {
+    fixture.paste()
+    assert.equal(fixture.event.defaultPrevented, true)
+    assert.deepEqual(calls, [{
+      id: 'a', blocks: [{ type: 'delimiter', data: {} }],
+      options: { replaceEmpty: true, name: 'clipboard.html-import' },
+    }])
   } finally { fixture.controller.destroy() }
 })

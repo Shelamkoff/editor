@@ -520,17 +520,28 @@ export class ClipboardController {
           return
         }
 
-        // Route structural HTML through the existing range-aware planner.
-        // A leading inline fragment and later local block insertions become
-        // one document/history operation, retaining the author's selection.
-        const parts=plan.blocks.map((block,index)=>index===0&&typeof plan.leadingInlineHtml==='string'
-          ?{kind:'rich-text',html:plan.leadingInlineHtml}
-          :{kind:'local-block',type:block.type,data:block.data})
-        const result=this.#mutatePaste(() => this.#runtime.insertClipboardParts(
-          owner.blockId,owner.fieldKey,range,parts,
+        if(typeof plan.leadingInlineHtml==='string'){
+          // A leading text-like root belongs at the native caret. Replace
+          // selected author text and insert later block roots atomically.
+          const parts=plan.blocks.map((block,index)=>index===0
+            ?{kind:'rich-text',html:plan.leadingInlineHtml}
+            :{kind:'local-block',type:block.type,data:block.data})
+          const result=this.#mutatePaste(() => this.#runtime.insertClipboardParts(
+            owner.blockId,owner.fieldKey,range,parts,
+          ))
+          this.#view.reconcileInteraction()
+          if(result?.blockId)this.#view.setCurrent(result.blockId)
+          return
+        }
+        // A structural first root (table, image, etc.) is inserted after
+        // the current block in v1. Its presence does not delete selected
+        // inline text in the existing block.
+        const inserted=this.#mutatePaste(() => this.#runtime.insertLocalBlocks(
+          owner.blockId,plan.blocks,{replaceEmpty:range.start===range.end,name:'clipboard.html-import'},
         ))
         this.#view.reconcileInteraction()
-        if(result?.blockId)this.#view.setCurrent(result.blockId)
+        const last=inserted.at(-1)
+        if(last)this.#view.setCurrent(last)
         return
       }
     }
