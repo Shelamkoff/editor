@@ -126,6 +126,7 @@ function mount(config = {}, initialOverrides = {}, options = {}) {
   const definition = createLinkPreviewPlugin({ ...config, injectStyles: false })
   let failNextRead = false
   const taskSignals = []
+  const taskCommitOptions = []
   let canonical = {
     ...definition.schema.createDefault(),
     url: 'https://example.com/Alpha',
@@ -153,8 +154,9 @@ function mount(config = {}, initialOverrides = {}, options = {}) {
       return {
         signal: controller.signal,
         cancel() { controller.abort() },
-        commit(producer) {
+        commit(producer, options) {
           if (controller.signal.aborted) return false
+          taskCommitOptions.push(options)
           const updated = producer(structuredClone(canonical))
           if (updated !== canonical) {
             canonical = updated
@@ -175,6 +177,7 @@ function mount(config = {}, initialOverrides = {}, options = {}) {
     instance, input, ownerDocument,
     failNextRead() { failNextRead = true },
     taskSignals: () => taskSignals,
+    taskCommitOptions: () => taskCommitOptions,
     model: () => canonical,
     timerIds: () => [...timers.keys()],
     flushTimers() {
@@ -509,5 +512,35 @@ test('LinkPreview late metadata cannot overwrite a title restored to its request
     assert.equal(h.model().title, '',
       'late metadata ignored host title changes that returned to the initial value')
     assert.equal(h.model().description, 'Fresh description')
+  } finally { h.destroy() }
+})
+
+test('LinkPreview explicit URL submission requests one guarded history continuation', async () => {
+  let settle
+  const h = mount({
+    fetchMeta: () => new Promise(resolve => { settle = resolve }),
+  })
+  try {
+    h.input.value = 'https://vimeo.com/123456'
+    h.input.dispatch('keydown')
+    settle({ title: 'Resolved title' })
+    await Promise.resolve()
+    await Promise.resolve()
+    assert.deepEqual(h.taskCommitOptions(), [{ mergeWithPreviousField: 'url' }])
+    assert.equal(h.model().title, 'Resolved title')
+  } finally { h.destroy() }
+})
+
+test('LinkPreview automatic initial metadata is not attached to unrelated history', async () => {
+  const h = mount({
+    fetchMeta: async () => ({ title: 'Automatic title' }),
+  }, { title: '' })
+  try {
+    await Promise.resolve()
+    await Promise.resolve()
+    await Promise.resolve()
+    assert.equal(h.model().title, 'Automatic title')
+    assert.deepEqual(h.taskCommitOptions(), [undefined],
+      'initial automatic metadata must not ask to merge with prior authoring history')
   } finally { h.destroy() }
 })
