@@ -650,12 +650,10 @@ export class DocumentRuntime {
       })
       const { latest, next } = prepared
 
-      if (
-        latest.dataVersion === next.dataVersion
-        && sameJson(latest.data, next.data)
-        && sameJson(latest.tunes, next.tunes)
-        && sameJson(latest.inline, next.inline)
-      ) return
+      // Canonical JSON object key order is semantically irrelevant. Match
+      // other prepared editor operations; only genuine data/tune/inline edits
+      // should create a block revision or history entry.
+      if (canonicalRecordsEqual(latest, next)) return
       tx.update(id, next)
     })
   }
