@@ -86,6 +86,7 @@ class FakeElement {
   contains(node) {
     return node === this || this.children.some(child => child.contains(node))
   }
+  insertAdjacentHTML() { /* Trusted icon markup is inert to settings contracts. */ }
   setAttribute(name, value) { this.attributes.set(name, String(value)) }
   getAttribute(name) { return this.attributes.get(name) ?? null }
   removeAttribute(name) { this.attributes.delete(name) }
@@ -126,7 +127,7 @@ class FakeElement {
 function mount() {
   const ownerDocument = {
     activeElement: null,
-    defaultView: { AbortController },
+    defaultView: { AbortController, addEventListener() {}, removeEventListener() {} },
     createElement(tag) { return new FakeElement(tag, ownerDocument) },
     createTextNode(value) {
       const node = new FakeElement('#text', ownerDocument)
@@ -140,7 +141,7 @@ function mount() {
   let canonical = {
     ...definition.schema.createDefault(),
     file: { url: 'https://example.test/image.png' },
-    caption: 'Alpha',
+    caption: '',
     styles: { height: '100px', borderRadius: '8px' },
   }
   let instance
