@@ -231,9 +231,13 @@ export class ClipboardController {
 
   #onCut(event) {
     if (this.#runtime.readOnly || event.defaultPrevented || !event.clipboardData || !this.#ownsEvent(event)) return
+    try {
     const ownerDocument=this.#root.ownerDocument
 
     if (this.#crossSelection?.active) {
+      // Once core owns a cross-block selection, never delegate a failed Cut
+      // to the browser: native deletion bypasses canonical transactions.
+      event.preventDefault()
       const whole = this.#crossSelection.wholeBlockIds
       if (whole.length) {
         const plan=this.#runtime.prepareLogicalClipboardSlice(this.#crossSelection.bookmark,whole)
@@ -256,7 +260,6 @@ export class ClipboardController {
         const generation=this.#runtime.generation
         const revision=this.#runtime.revision
         const selected=[...whole]
-        event.preventDefault()
         if(!this.#writeCanonicalClipboard(event.clipboardData,fragment,{
           html:html.join(''),
           text:plain.join('\n'),
@@ -287,7 +290,6 @@ export class ClipboardController {
         stripClipboardProjection(container)
         html=container.innerHTML
       }
-      event.preventDefault()
       if(!this.#writeCanonicalClipboard(event.clipboardData,fragment,{
         html,
         text:this.#crossSelection.text(),
@@ -305,6 +307,8 @@ export class ClipboardController {
 
     const owner = this.#reconciler.resolveEditableTarget(event.target)
     if (!owner || owner.mode !== 'rich-text') return
+    // Guard native deletion before any fallible selection or slice preparation.
+    event.preventDefault()
     const bookmark=this.#selection.capture()
     const range = selectionRange(bookmark, owner)
     if (!range || range.start === range.end) return
@@ -317,7 +321,6 @@ export class ClipboardController {
     const html=first?.kind==='rich-text'?first.html:''
     const template=ownerDocument.createElement('template')
     template.innerHTML=/** @type {any} */(toTrustedHtml(html,ownerDocument))
-    event.preventDefault()
     if(!this.#writeCanonicalClipboard(event.clipboardData,fragment,{
       html,
       text:template.content.textContent??'',
@@ -329,6 +332,13 @@ export class ClipboardController {
     if(result?.blockId){
       this.#view.setCurrent(result.blockId)
     }
+    } catch (error) {
+      this.#diagnostics?.emit('cut.failed', {
+        operation: 'clipboard.cut',
+        errorName: this.#diagnostics.errorName(error),
+      })
+    }
+
   }
 
   #onPaste(event) {
