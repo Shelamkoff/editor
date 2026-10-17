@@ -43,6 +43,7 @@ class Node {
     }
     node.remove()
     node.parentNode = this
+    node.isConnected = this.isConnected
     this.children.push(node)
     return node
   }
@@ -59,7 +60,10 @@ class Node {
     return node === this || this.children.some(child => child.contains(node))
   }
   closest() { return null }
-  focus() { this.ownerDocument.activeElement = this }
+  focus() {
+    this.ownerDocument.activeElement = this
+    this.fire('focus')
+  }
   getClientRects() { return [] }
   setAttribute(name, value) { this.attributes.set(name, String(value)) }
   removeAttribute(name) { this.attributes.delete(name) }
@@ -197,4 +201,34 @@ test('ordinary validated submissions still complete once and cache the surface',
   assert.deepEqual(values, ['https://example.test/first', 'https://example.test/second'])
   h.controller.abort()
   await Promise.resolve()
+})
+
+
+test('a focus-triggered successor cannot be overwritten by an older opening request', async () => {
+  const h = fixture()
+  const previousFocus = new Node(h.document, 'button')
+  previousFocus.getClientRects = () => [{}]
+  h.wrapper.appendChild(previousFocus)
+  let armed = false
+  let successorOpens = 0
+  previousFocus.addEventListener('focus', () => {
+    if (!armed) return
+    successorOpens++
+    openSourceEditor(h.options('html', { title: 'Newest source' }))
+  })
+
+  previousFocus.focus()
+  openSourceEditor(h.options('url', { title: 'Initial source' }))
+  h.field('url').focus()
+  armed = true
+  // Closing Initial source restores focus and synchronously opens HTML.
+  // The outer URL request may no longer supersede that newer session.
+  openSourceEditor(h.options('url', { title: 'Intermediate source' }))
+  assert.equal(successorOpens, 1)
+  assert.equal(h.surface('url').getAttribute('aria-hidden'), 'true',
+    'older open request made its surface active after a successor opened')
+  assert.equal(h.surface('html').getAttribute('aria-hidden'), 'false',
+    'the newest reentrant source editor was hidden')
+  await Promise.resolve()
+  h.controller.abort()
 })
