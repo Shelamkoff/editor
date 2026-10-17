@@ -189,9 +189,17 @@ export function createLinkPreviewPlugin(config={}){
           }
 
           const project=next=>{
-            clearInputTimer()
+            // Native URL input can commit without reprojecting the source DOM.
+            // Host edits of metadata or template must retain its live draft
+            // and the original pending debounce deadline. A genuine remote
+            // URL replacement or read-only transition invalidates both.
+            const authoredUrl=sanitizeUrl(input.value,{policy:'external',allowRelative:false,fallback:''})
+            const retainDraft=!readOnly&&document.activeElement===input&&(
+              next.url===data.url||(!!authoredUrl&&next.url===authoredUrl)
+            )
+            if(!retainDraft)clearInputTimer()
             data={...next}
-            input.value=data.url
+            if(!retainDraft)input.value=data.url
             input.readOnly=readOnly
             wrapper.dataset.template=data.template
             const filled=!!data.url
