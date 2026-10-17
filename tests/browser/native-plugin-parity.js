@@ -877,4 +877,27 @@ test('Gallery retired controls cannot mutate current authoring data after a view
   equal(editor.save().blocks[0].data.images.length, 1, 'active Gallery remove button stopped working')
 })
 
+
+test('Attaches retired file controls cannot mutate authoring data after a view refresh', async () => {
+  const fixture = pluginParityFixtures.find(entry => entry.name === 'Attaches')
+  const editor = pluginEditor(fixture)
+  const block = () => blockElement(editor, 'a')
+  const oldRemove = block().querySelector('.oe-attaches__remove')
+  const oldClear = [...block().querySelectorAll('.oe-attaches__action-btn')]
+    .find(button => button.textContent?.includes('Delete all'))
+  assert(oldRemove && oldClear, 'Attaches is missing its authoring controls')
+  editor.blocks.update('a', current => ({
+    data: { ...current.data, variant: 'b' },
+  }))
+  const updated = editor.save().blocks
+  assert(!oldRemove.isConnected && !oldClear.isConnected, 'Attaches did not retire the previous view')
+  oldRemove.click()
+  oldClear.click()
+  equal(editor.save().blocks, updated, 'retired Attaches controls modified canonical data')
+  const liveRemove = block().querySelector('.oe-attaches__remove')
+  assert(liveRemove && liveRemove !== oldRemove)
+  liveRemove.click()
+  equal(editor.save().blocks[0].data.files.length, 0, 'current Attaches remove button stopped working')
+})
+
 await run()
