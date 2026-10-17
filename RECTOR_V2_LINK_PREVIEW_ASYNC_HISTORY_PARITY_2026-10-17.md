@@ -75,3 +75,33 @@ npm run docs:check
 These must run against the **final HEAD**, including real Chromium/Firefox/WebKit keyboard/IME, native input ordering, Undo/Redo selection and caret, heap/resource lifetime, installed package exports and a broad v1/v2 gesture differential for all block and inline capabilities. In particular, the one-step LinkPreview history proof is conditional on an adjacent edit; delayed metadata after any intervening authoring command **correctly remains separate**, not force-merged.
 
 This audit supersedes the previous report's statement that LinkPreview adjacent URL/metadata Undo parity is wholly open; it does not supersede that report's acceptance limitations or unresolved overall library parity.
+
+
+## Follow-up: host provenance isolation (same day)
+
+**Problem found after the guarded continuation implementation:** the previous-record eligibility check accepted both `native-input` and `external` origins, while `DocumentRuntime.update()` previously emitted `external / block.update` for **both** host API mutations and plugin-instance data mutations. A user could submit an unchanged URL only to refresh its metadata after the application had updated that URL. The asynchronous metadata task carried a valid current revision and field token, so `HistoryStore` incorrectly merged its result **into the host's earlier URL update**. Undo reverted the host's URL instead of only the later metadata refresh. Conversely, simply restricting eligibility to native input would have broken a genuine plugin-submitted URL change that had no native input event.
+
+**Reproduction before the correction:** two additional actual-`HistoryStore` tests failed on the prior code: (1) external host URL edit was incorrectly coalesced with a later metadata refresh, (2) plugin-origin URL edit could not be coalesced. Five existing continuation tests passed.
+
+**Correction:** `HistoryStore.compatibleContinuation()` now accepts preceding `native-input` or **`plugin`** URL authoring, and explicitly rejects preceding `external` host operations. `DocumentRuntime.#blockContext()` supplies a private `pluginOrigin` marker when invoking its canonical `update()` path. The transaction's origin is `plugin` only when this marker is present **and** the update has interaction authority; host/public updates retain `external`. The plugin retains the identical public API, revocable task lifetime and stored JSON schema.
+
+Direct-commit changes:
+
+- [RED tests](https://github.com/Shelamkoff/editor/commit/233402d14e68974e68955e639bf0d675a11c8d73)
+- [HistoryStore provenance filter](https://github.com/Shelamkoff/editor/commit/c81952e78070fe47e850f47fb3055a70433aa162)
+- [DocumentRuntime provenance propagation](https://github.com/Shelamkoff/editor/commit/3091237887bc67b3ba0c8af1c2290d7ff07db439)
+- [DocumentRuntime tests](https://github.com/Shelamkoff/editor/commit/22909999049b5fa836e42134ef742c3a4ced65b8)
+- [Browser regression for host URL + metadata refresh](https://github.com/Shelamkoff/editor/commit/ee90fac7751bcddd3537e4ac9c1e7535e99b7db2)
+- [TransactionEngine regression tests](https://github.com/Shelamkoff/editor/commit/1c46c090b7f27bbc543035b229a27564015e1136)
+- [Actual block-instance DataTask integration test](https://github.com/Shelamkoff/editor/commit/71dd6ba59542550fb8f1f380112885bb828646c1)
+
+### Verification after the correction
+
+| Source under test | Targeted result | Execution scope |
+|---|---:|---|
+| Actual `HistoryStore` production module, its 7 baseline tests and 7 continuation tests | **14/14 PASS** | V8 with controlled JSON cloning |
+| Actual `PersistentBlockMap`, `DocumentStore`, `HistoryStore` and `TransactionEngine` production modules | **5/5 PASS** | All committed async-continuation integration cases, controlled clone / synchronous-result adapter |
+| Actual `DocumentRuntime`, `InstanceScope`, `DocumentStore`, `TransactionEngine`, `HistoryStore` | **5/5 PASS** | Committed focused tests including block-instance context, with document ingestion and renderer substituted for the isolated run |
+| Browser `LinkPreview` host update → explicit metadata refresh → Undo/Redo | **registered / syntax checked, NOT run** | Requires actual native `createEditor` browser setup |
+
+These tests confirm the intended one-step URL authoring **and** separate-step host update scenarios under the stated V8 execution boundaries. They do not prove whole-project type correctness, browser parity, memory stability, or complete behavioral equivalence to v1. The mandatory full local acceptance commands and real Chromium/Firefox/WebKit tests listed above remain outstanding.
