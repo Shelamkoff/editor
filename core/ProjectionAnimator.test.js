@@ -142,3 +142,71 @@ test('animation durations reject invalid values', () => {
     assert.throws(() => new ProjectionAnimator({ moveMs: value }), /moveMs/)
   }
 })
+
+test('failed spacer insertion rolls back a partially mutated container', () => {
+  const document = realm()
+  const container = new FakeElement(document)
+  const first = new FakeElement(document, 0, 30)
+  const survivor = new FakeElement(document, 35, 30)
+  container.appendChild(first)
+  container.appendChild(survivor)
+  const animator = new ProjectionAnimator({ insertMs: 0, moveMs: 0, removeMs: 40 })
+  animator.enable()
+  const snapshot = animator.captureRemoval(first, 0)
+  first.remove()
+  const originalInsert = container.insertBefore
+  container.insertBefore = function(node, anchor) {
+    originalInsert.call(this, node, anchor)
+    throw new Error('DOM insertion failed after mutation')
+  }
+
+  animator.animateRemovals(container, [snapshot])
+  assert.deepEqual(container.children, [survivor],
+    'partially inserted animation spacer leaked into committed document')
+  assert.equal(survivor.parentNode, container)
+  animator.destroy()
+  assert.deepEqual(container.children, [survivor])
+})
+
+test('animation completion does not delete a spacer adopted by another container', () => {
+  const document = realm()
+  const container = new FakeElement(document)
+  const outside = new FakeElement(document)
+  const first = new FakeElement(document, 0, 30)
+  container.appendChild(first)
+  const animator = new ProjectionAnimator({ removeMs: 40 })
+  animator.enable()
+  const snapshot = animator.captureRemoval(first, 0)
+  first.remove()
+  animator.animateRemovals(container, [snapshot])
+  const spacer = container.children[0]
+  const animation = spacer.animations[0]
+  outside.appendChild(spacer)
+  animation.finish()
+
+  assert.equal(spacer.parentNode, outside,
+    'stale animation callback removed a node that another owner adopted')
+  assert.deepEqual(outside.children, [spacer])
+  animator.destroy()
+  assert.deepEqual(outside.children, [spacer])
+})
+
+test('animator destruction does not remove a spacer moved to another owner', () => {
+  const document = realm()
+  const container = new FakeElement(document)
+  const outside = new FakeElement(document)
+  const first = new FakeElement(document, 0, 30)
+  container.appendChild(first)
+  const animator = new ProjectionAnimator({ removeMs: 40 })
+  animator.enable()
+  const snapshot = animator.captureRemoval(first, 0)
+  first.remove()
+  animator.animateRemovals(container, [snapshot])
+  const spacer = container.children[0]
+  outside.appendChild(spacer)
+
+  animator.destroy()
+  assert.equal(spacer.parentNode, outside,
+    'destroy() removed a DOM node now owned by another container')
+  assert.deepEqual(outside.children, [spacer])
+})
