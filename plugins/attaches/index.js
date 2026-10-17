@@ -329,6 +329,38 @@ export function createAttachesPlugin(config={}){
             return row
           }
 
+          // Preserve a live native filename editing host when an unrelated
+          // file name or a canonical snapshot update leaves the file structure
+          // unchanged. A native input commit may retain its DOM without first
+          // refreshing the plugin-local `data` snapshot.
+          const reconcileNames=next=>{
+            if(data.variant!==next.variant||data.files.length!==next.files.length)return false
+            for(let index=0;index<next.files.length;index++){
+              const previous=data.files[index]
+              const current=next.files[index]
+              const field=nameFields.get(current.id)
+              if(!previous||!field||!wrapper.contains(field)
+                ||previous.id!==current.id||previous.url!==current.url
+                ||previous.size!==current.size||previous.extension!==current.extension){
+                return false
+              }
+            }
+            for(let index=0;index<next.files.length;index++){
+              const previous=data.files[index]
+              const current=next.files[index]
+              const field=nameFields.get(current.id)
+              // A matching canonical/DOM value is a retained native edit;
+              // never set textContent unnecessarily or disturb its caret.
+              // An unchanged canonical name also leaves pending native DOM
+              // text alone until the source's input reconciliation completes.
+              if(current.name!==previous.name&&field.textContent!==current.name){
+                field.textContent=current.name
+              }
+            }
+            data=cloneData(next)
+            return true
+          }
+
           const project=next=>{
             // Every regenerated control belongs to this view, not to the
             // whole block lifetime. Abort retired callbacks before repaint.
@@ -489,7 +521,7 @@ export function createAttachesPlugin(config={}){
               variant:data.variant,
               files:data.files.map(file=>({...file,name:nameFields.get(file.id)?.textContent?.trim()||file.name})),
             }),
-            update(next){if(!dead)project(next)},
+            update(next){if(!dead&&!reconcileNames(next))project(next)},
             editableFields:()=>Object.freeze(data.files.flatMap(file=>{
               const element=nameFields.get(file.id)
               return element?[Object.freeze({
