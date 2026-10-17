@@ -197,7 +197,7 @@ export function createListPlugin(config = {}) {
               list=replacement
             }
             const live=new Set()
-            for(const item of next.items){
+            for(const [index,item] of next.items.entries()){
               live.add(item.id)
               const li=nodes.get(item.id)??createItem(item)
               li.contentEditable=readOnly?'false':'true'
@@ -205,7 +205,9 @@ export function createListPlugin(config = {}) {
                 if(item.text)setSanitizedHtml(li,item.text)
                 else li.textContent=''
               }
-              list.appendChild(li)
+              // Do not move a stable editing host: DOM reparenting can reset
+              // its native selection even when its final order is unchanged.
+              if(list.children[index]!==li)list.insertBefore(li,list.children[index]??null)
             }
             for(const [id,node] of nodes){
               if(live.has(id))continue
