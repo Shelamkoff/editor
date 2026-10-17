@@ -1063,4 +1063,33 @@ test('Carousel settings follow active-slide navigation in both directions', asyn
   equal(selectedSettings(), 'first', 'navigating backward did not select the current settings slide')
 })
 
+
+test('Carousel manually selected settings slide survives metadata save', async () => {
+  const fixture = pluginParityFixtures.find(entry => entry.name === 'Carousel')
+  const editor = pluginEditor({ ...fixture, data: {
+    ...fixture.data,
+    slides: [
+      { id: 'first', type: 'image', src: pixel, alt: 'First image', caption: 'Alpha' },
+      { id: 'second', type: 'image', src: pixel, alt: 'Second image', caption: 'Bravo' },
+    ],
+  } })
+  const panel = () => blockElement(editor, 'a').querySelector('.oe-carousel-block__settings-panel')
+  const picker = panel().querySelector('.oe-carousel-block__slide-select')
+  equal(picker.value, 'first', 'initial settings selection is incorrect')
+  picker.value = 'second'
+  picker.dispatchEvent(new Event('change', { bubbles: true }))
+  equal(panel().querySelector('.oe-carousel-block__slide-select').value, 'second')
+  const altField = [...panel().querySelectorAll('label')]
+    .find(label => label.querySelector(':scope > span')?.textContent === 'Alternative text')
+    ?.querySelector('input')
+  assert(altField)
+  equal(altField.value, 'Second image')
+  altField.value = 'Edited second'
+  altField.dispatchEvent(new Event('change', { bubbles: true }))
+  equal(editor.save().blocks[0].data.slides.map(slide => slide.alt),
+    ['First image', 'Edited second'])
+  equal(panel().querySelector('.oe-carousel-block__slide-select').value, 'second',
+    'editing a slide from the selector reset the selection to a different slide')
+})
+
 await run()
