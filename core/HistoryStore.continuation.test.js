@@ -159,3 +159,52 @@ test('a plugin-authored URL action can be continued, unlike an unrelated host up
   assert.deepEqual(h.peekUndo().changes[0].before, before)
   assert.deepEqual(h.peekUndo().changes[0].after, fetched)
 })
+
+test('URL metadata remains one Undo step when only JSON key order differs', () => {
+  const history = new HistoryStore()
+  const before = block('a', 'https://before.example')
+  const authored = block('a', 'https://after.example')
+  const reordered = {
+    data: {
+      template: authored.data.template,
+      description: authored.data.description,
+      title: authored.data.title,
+      url: authored.data.url,
+    },
+    dataVersion: authored.dataVersion,
+    type: authored.type,
+    id: authored.id,
+  }
+  const enriched = block('a', 'https://after.example', 'Metadata title')
+
+  history.push(record(2, before, authored))
+  const prepared = history.prepareRecord(
+    record(3, reordered, enriched, 'external', 'block.update'),
+    { continuation: continuation(2) },
+  )
+  assert.equal(prepared.coalesced, true,
+    'semantically equal snapshots with reordered object keys created a second Undo step')
+  prepared.commit()
+  assert.equal(history.undoDepth, 1)
+  const undo = history.prepareReplay('undo')
+  assert.deepEqual(undo.record.changes[0].before, before)
+  assert.deepEqual(undo.record.changes[0].after, enriched)
+})
+
+test('URL metadata cannot absorb a different prior snapshot even when its URL matches', () => {
+  const history = new HistoryStore()
+  const before = block('a', 'https://before.example')
+  const authored = block('a', 'https://after.example')
+  const stale = block('a', 'https://after.example', '', 'changed separately')
+  const enriched = block('a', 'https://after.example', 'Metadata title', 'changed separately')
+
+  history.push(record(2, before, authored))
+  const prepared = history.prepareRecord(
+    record(3, stale, enriched, 'external', 'block.update'),
+    { continuation: continuation(2) },
+  )
+  assert.equal(prepared.coalesced, false,
+    'a semantic change unrelated to the URL was treated as the same historical revision')
+  prepared.commit()
+  assert.equal(history.undoDepth, 2)
+})
