@@ -510,6 +510,42 @@ test('a custom block renderer cannot steal an existing connected application ele
   assert.equal(application.firstChild, borrowed)
 })
 
+
+for (const method of ['renderBlock', 'render', 'renderTo']) {
+  test(`${method} cannot steal elements already parented in a disconnected host`, async () => {
+    const { EditorRenderer } = await import('./index.js')
+    const application = document.createElement('section')
+    const borrowed = document.createElement('article')
+    application.appendChild(borrowed)
+    // This host is not connected to the document. isConnected alone is
+    // insufficient to establish that the returned element is unowned.
+    assert.equal(borrowed.isConnected, undefined)
+    const disposed = []
+    const renderer = new EditorRenderer({ blockTypes: [], injectStyles: false })
+    renderer.registerRenderer({
+      type: 'parented-node',
+      schema: passthroughSchema,
+      render() { return borrowed },
+      destroy(element) { disposed.push(element) },
+    })
+    const block = { id: 'b', type: 'parented-node', dataVersion: 1, data: {} }
+    const container = document.createElement('main')
+    try {
+      assert.throws(() => {
+        if (method === 'renderBlock') renderer.renderBlock(block)
+        else if (method === 'render') renderer.render({ version: '2.0.0', blocks: [block] })
+        else renderer.renderTo({ version: '2.0.0', blocks: [block] }, container)
+      }, /must return a detached HTMLElement/)
+      assert.equal(application.firstChild, borrowed, 'renderer stole a detached application node')
+      assert.equal(container.children.length, 0, 'failed render changed its target')
+      assert.deepEqual(disposed, [], 'foreign node must not be disposed by Rector')
+    } finally {
+      renderer.destroy()
+    }
+    assert.equal(application.firstChild, borrowed)
+  })
+}
+
 test('a custom detached block element remains accepted after connected-node rejection', async () => {
   const { EditorRenderer } = await import('./index.js')
   const detached = document.createElement('article')
