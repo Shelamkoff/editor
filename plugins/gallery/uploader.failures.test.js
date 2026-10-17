@@ -78,3 +78,23 @@ test('GalleryUploader empty and already cancelled batches create no readers', as
   await uploader.handle([file], unexpected, controller.signal, document)
   assert.equal(readers.length, 0)
 })
+
+test('GalleryUploader aborted batch settles when a FileReader omits its abort event', async () => {
+  const { readers, document, file, controller } = controlledFileReader()
+  const uploader = new GalleryUploader({})
+  let applied = 0
+  const pending = uploader.handle([file, file], () => { applied++ }, controller.signal, document)
+  readers[0].complete()
+  let aborted = 0
+  readers[1].abort = () => { aborted++ }
+  const stale = readers[1].onload
+  const actual = await observeCompletion(pending, () => controller.abort())
+  assert.deepEqual(actual, { status: 'fulfilled', rejection: undefined, eventError: undefined },
+    'aborted gallery batch hung when the final reader omitted onabort')
+  assert.equal(aborted, 1)
+  assert.equal(applied, 0, 'completed files must not be committed after cancellation')
+  assert.equal(getEventListeners(controller.signal, 'abort').length, 0)
+  for (const reader of readers) assert.deepEqual([reader.onload, reader.onerror, reader.onabort], [null, null, null])
+  stale?.()
+  assert.equal(applied, 0)
+})
