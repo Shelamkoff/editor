@@ -866,7 +866,7 @@ export function createCarouselPlugin(config={}){
               if(unchangedActiveView){
                 const picker=wrapper.querySelector('.oe-carousel-block__slide-select')
                 if(picker){
-                  for(const [index,option] of [...picker.options].entries()){
+                  for(const [index,option] of [...picker.querySelectorAll('option')].entries()){
                     const slide=data.slides[index]
                     option.textContent=`${index+1} · ${slide.caption||slide.alt||slide.type}`
                   }
