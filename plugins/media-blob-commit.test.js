@@ -139,6 +139,22 @@ for (const [name, factory, file] of [
   ['Carousel', createCarouselPlugin, { name: 'movie.mp4', type: 'video/mp4', size: 10 }],
   ['Attaches', createAttachesPlugin, { name: 'document.pdf', type: 'application/pdf', size: 10 }],
 ]) {
+  test(`${name}: releases an entire failed multi-file batch, including the final object URL`, async () => {
+    const h = fixture(factory, file)
+    try {
+      const files = Array.from({ length: 8 }, (_, index) => ({
+        ...file, name: 'item-' + index + (name === 'Carousel' ? '.mp4' : '.pdf'),
+      }))
+      h.instance.element.dispatch('drop', { dataTransfer: { types: ['Files'], files } })
+      await Promise.resolve()
+      const expected = files.map((_, index) => 'blob:local-' + (index + 1))
+      assert.deepEqual(h.created, expected, 'batch did not allocate its expected URL ownership')
+      assert.deepEqual(h.revoked, expected, 'failed batch left one or more video/file URLs retained')
+      assert.equal(h.started, 1)
+      assert.equal(h.cancelled, 1)
+    } finally { h.dispose() }
+  })
+
   test(`${name}: failed canonical batch commit releases all created blob URLs`, async () => {
     const h = fixture(factory, file)
     try {
