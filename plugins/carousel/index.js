@@ -889,7 +889,12 @@ export function createCarouselPlugin(config={}){
               element,
               mode:/** @type {'rich-text'} */('rich-text'),
             }))),
-            setReadOnly(value){readOnly=value;project()},
+            setReadOnly(value){
+              readOnly=value
+              // Do not repaint from the stale pre-native-input slide snapshot.
+              data=cloneData(context.getData())
+              project()
+            },
             focus(target){
               if(dead||readOnly)return
               const index=data.slides.findIndex(slide=>target?.fieldKey===`slide:${slide.id}:caption`)
