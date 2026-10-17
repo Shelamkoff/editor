@@ -207,3 +207,65 @@ test('document boundary observes top-level and block accessors once', () => {
   assert.equal(snapshot.blocks[0].data.text, 'A')
   assert.deepEqual(reads, { version: 1, blocks: 1, data: 1 })
 })
+
+test('unsupported document field getter is never executed before rejection', () => {
+  let reads = 0
+  const input = {
+    version: '2.0.0',
+    blocks: [],
+    get unsupportedDocumentField() {
+      reads++
+      throw new Error('unexpected document getter executed')
+    },
+  }
+  assert.throws(() => snapshotCurrentDocumentEnvelope(input), /unsupported field "unsupportedDocumentField"/)
+  assert.equal(reads, 0)
+})
+
+test('unsupported document version rejects before reading its block payload getter', () => {
+  let reads = 0
+  const input = {
+    version: '1.0.0',
+    get blocks() {
+      reads++
+      throw new Error('wrong-version document payload was read')
+    },
+  }
+  assert.throws(() => snapshotCurrentDocumentEnvelope(input), error => {
+    assert.match(error.message, /Unsupported document version/)
+    assert.equal(documentValidationIssue(error)?.reason, 'unsupported-document-version')
+    return true
+  })
+  assert.equal(reads, 0)
+})
+
+test('unsupported block metadata getters are not executed before shape rejection', () => {
+  let reads = 0
+  const input = {
+    id: 'a',
+    type: 'custom',
+    dataVersion: 1,
+    data: { value: 'ok' },
+    get legacyField() {
+      reads++
+      throw new Error('unexpected block getter executed')
+    },
+  }
+  assert.throws(() => decodeCurrentBlock(input), /unsupported field "legacyField"/)
+  assert.equal(reads, 0)
+})
+
+test('invalid block identity rejects before inspecting unrelated payload getters', () => {
+  let reads = 0
+  const input = {
+    id: '',
+    type: 'custom',
+    dataVersion: 1,
+    get data() {
+      reads++
+      throw new Error('invalid block payload getter should not run')
+    },
+  }
+  assert.throws(() => decodeCurrentBlock(input), /id must be a non-empty string/)
+  assert.equal(reads, 0)
+})
