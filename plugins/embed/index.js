@@ -454,12 +454,19 @@ export function createEmbedPlugin(config = {}) {
           }
 
           const project = next => {
+            const sourceChanged = data.service !== next.service || data.videoId !== next.videoId
+            // A host update to unrelated metadata must not clear an actively
+            // authored video URL or silently cancel its pending debounce.
+            // An actual source replacement or read-only transition owns the
+            // current value and intentionally revokes any obsolete draft.
+            const retainUrlDraft = !readOnly && !sourceChanged && document.activeElement === input
+            const urlDraft = retainUrlDraft ? input.value : null
+            const pendingUrlParse = retainUrlDraft && inputTimer !== null
             clearInputTimer()
             playerController?.abort()
             const Ctor = document.defaultView?.AbortController ?? AbortController
             playerController = new Ctor()
             wrapper.classList.remove('oe-embed--playing')
-            const sourceChanged = data.service !== next.service || data.videoId !== next.videoId
             // NativeInputController may have committed a caption without
             // reprojecting its editing host. Compare both the previous
             // projection and the still-mounted DOM with incoming canonical
@@ -484,7 +491,12 @@ export function createEmbedPlugin(config = {}) {
             const configured = !!data.service && !!data.videoId
             urlBar.hidden = false
             insert.hidden = readOnly
-            input.value = configured ? (data.service === 'youtube' ? 'https://youtu.be/' : 'https://vimeo.com/') + data.videoId : ''
+            if (urlDraft !== null) {
+              input.value = urlDraft
+              if (pendingUrlParse) inputTimer = timerHost.setTimeout(parseInput, 500)
+            } else {
+              input.value = configured ? (data.service === 'youtube' ? 'https://youtu.be/' : 'https://vimeo.com/') + data.videoId : ''
+            }
             input.readOnly = readOnly
             actions.hidden = readOnly || !configured
             removeCover.hidden = !data.cover
