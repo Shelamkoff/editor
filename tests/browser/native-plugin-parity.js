@@ -1017,4 +1017,50 @@ test('Carousel active slide changes still redraw authoring data', async () => {
   equal(editor.save().blocks[0].data.slides[0].caption, 'Replaced author text')
 })
 
+
+test('Carousel settings edit the currently active slide after navigation', async () => {
+  const fixture = pluginParityFixtures.find(entry => entry.name === 'Carousel')
+  const editor = pluginEditor({ ...fixture, data: {
+    ...fixture.data,
+    slides: [
+      { id: 'first', type: 'image', src: pixel, alt: 'First image', caption: 'Alpha' },
+      { id: 'second', type: 'image', src: pixel, alt: 'Second image', caption: 'Bravo' },
+    ],
+  } })
+  focusedField(editor, { key: 'slide:second:caption' }, 2)
+  const settingsPanel = () => blockElement(editor, 'a').querySelector('.oe-carousel-block__dropdown-panel')
+  const picker = settingsPanel().querySelector('.oe-carousel-block__slide-select')
+  equal(picker.value, 'second', 'Carousel settings selected the first instead of the active slide')
+  const altField = [...settingsPanel().querySelectorAll('label')]
+    .find(label => label.querySelector(':scope > span')?.textContent === 'Alternative text')
+    ?.querySelector('input')
+  assert(altField, 'Current slide lacks alternative-text settings')
+  equal(altField.value, 'Second image', 'Carousel settings show metadata of a different slide')
+  altField.value = 'Changed second image'
+  altField.dispatchEvent(new Event('change', { bubbles: true }))
+  const saved = editor.save().blocks[0].data.slides
+  equal(saved[0].alt, 'First image', 'Carousel edited a nonactive slide')
+  equal(saved[1].alt, 'Changed second image', 'Carousel lost active-slide settings change')
+  equal(settingsPanel().querySelector('.oe-carousel-block__slide-select').value, 'second',
+    'Carousel settings selection reset after committing active-slide metadata')
+})
+
+test('Carousel settings follow active-slide navigation in both directions', async () => {
+  const fixture = pluginParityFixtures.find(entry => entry.name === 'Carousel')
+  const editor = pluginEditor({ ...fixture, data: {
+    ...fixture.data,
+    slides: [
+      { id: 'first', type: 'image', src: pixel, alt: 'First', caption: 'Alpha' },
+      { id: 'second', type: 'image', src: pixel, alt: 'Second', caption: 'Bravo' },
+    ],
+  } })
+  const selectedSettings = () => blockElement(editor, 'a')
+    .querySelector('.oe-carousel-block__slide-select')?.value
+  equal(selectedSettings(), 'first')
+  editor.blocks.focus('a', { fieldKey: 'slide:second:caption', offset: 'start' })
+  equal(selectedSettings(), 'second', 'navigating forward did not select the current settings slide')
+  editor.blocks.focus('a', { fieldKey: 'slide:first:caption', offset: 'start' })
+  equal(selectedSettings(), 'first', 'navigating backward did not select the current settings slide')
+})
+
 await run()
