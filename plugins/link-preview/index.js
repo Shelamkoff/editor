@@ -327,7 +327,7 @@ export function createLinkPreviewPlugin(config={}){
           // creation. A user submit or host update before this microtask runs
           // must not restart a newer request or enrich obsolete data.
           const initialMetaUrl=data.url
-          if(snapshot.fetchMeta&&initialMetaUrl&&!data.title&&!data.image&&!data.favicon){
+          if(snapshot.fetchMeta&&!context.restoring&&initialMetaUrl&&!data.title&&!data.image&&!data.favicon){
             queueMicrotask(()=>{
               if(dead||readOnly||context.signal.aborted||currentTask
                 ||data.url!==initialMetaUrl||data.title||data.image||data.favicon)return
