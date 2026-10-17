@@ -354,6 +354,10 @@ export class EditorRenderer {
    * @returns {HTMLElement}
    */
   render(data) {
+    // Acquire the complete unrevisioned payload before stylesheet insertion.
+    // A link/custom-element callback must not mutate the author's input
+    // between API validation and this render's owning snapshot.
+    const blocks = this.#prepareDocumentBlocks(data.blocks ?? [])
     const ownerDocument = globalThis.document
     this.#ensureStyles(ownerDocument)
     const wrapper = ownerDocument.createElement('div')
@@ -363,7 +367,6 @@ export class EditorRenderer {
     /** @type {Array<{ element: HTMLElement, type: string, renderer?: import('./types').BlockRendererDefinition }>} */
     const created = []
     try {
-      const blocks = this.#prepareDocumentBlocks(data.blocks ?? [])
       if (blocks.length) {
         for (const block of blocks) {
           const entry = this.#createRenderedBlock(block, ownerDocument)
@@ -437,6 +440,8 @@ export class EditorRenderer {
     this.#renderingContainers.add(container)
     this.#activeRenderToCount++
     try {
+      // Snapshot before acquisition may invoke DOM/extension callbacks.
+      const blocks = this.#prepareDocumentBlocks(data.blocks ?? [])
       const ownerDocument = container.ownerDocument ?? globalThis.document
       this.#ensureStyles(ownerDocument)
       const mounted = this.#mountedContainers.get(container)
@@ -457,7 +462,6 @@ export class EditorRenderer {
       const occurrences = new Map()
 
       try {
-        const blocks = this.#prepareDocumentBlocks(data.blocks ?? [])
         for (let index = 0; index < blocks.length; index++) {
           const block = blocks[index]
           // All unrevisioned blocks were captured before any renderer callback.
