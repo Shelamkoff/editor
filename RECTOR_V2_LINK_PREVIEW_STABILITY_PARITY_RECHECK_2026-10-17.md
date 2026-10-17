@@ -72,3 +72,7 @@ npm run docs:check
 ```
 
 Дополнительно необходимы настоящий Chromium+IME/selection/focus, multi-editor/Trusted Types, heap/resource lifetime, installed-package smoke и матрица верификации всех 21 block types и 12 inline tools по v1. **Вывод:** подтверждённые дефекты выбранного контура исправлены, целевые тесты проходят; полная стабильность библиотеки и весь паритет с v1 пока не доказаны.
+
+## Guarded async-history follow-up
+
+The earlier unresolved one-step LinkPreview URL/metadata Undo issue has now received a targeted, revision-leased fix. See [the follow-up history-parity report](RECTOR_V2_LINK_PREVIEW_ASYNC_HISTORY_PARITY_2026-10-17.md) for the new protocol, passing focused tests and remaining release gates. This does not establish whole-library stability or exhaustive v1 parity.
