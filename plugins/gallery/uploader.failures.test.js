@@ -98,3 +98,28 @@ test('GalleryUploader aborted batch settles when a FileReader omits its abort ev
   stale?.()
   assert.equal(applied, 0)
 })
+
+test('GalleryUploader releases earlier FileReaders if later construction fails', async () => {
+  const { readers, document, file, controller } = controlledFileReader()
+  const BaseReader = document.defaultView.FileReader
+  let constructed = 0
+  document.defaultView.FileReader = class extends BaseReader {
+    constructor() {
+      if (++constructed === 2) throw new Error('FileReader constructor failure')
+      super()
+    }
+  }
+  let applied = 0
+  const uploader = new GalleryUploader({})
+  const outcome = await observeCompletion(
+    uploader.handle([file, file], () => { applied++ }, controller.signal, document),
+    () => {},
+  )
+  assert.equal(outcome.status, 'rejected')
+  assert.match(outcome.rejection?.message ?? '', /FileReader constructor failure/)
+  assert.equal(applied, 0)
+  assert.equal(readers.length, 1)
+  assert.equal(getEventListeners(controller.signal, 'abort').length, 0,
+    'failed gallery setup leaked a live FileReader through AbortSignal')
+  assert.deepEqual([readers[0].onload, readers[0].onerror, readers[0].onabort], [null, null, null])
+})
