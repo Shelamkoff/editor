@@ -189,6 +189,15 @@ export function createLinkPreviewPlugin(config={}){
           }
 
           const project=next=>{
+            // A metadata request only owns the URL for which it started. When
+            // the host replaces that URL or enters read-only mode, revoke the
+            // request before any further callbacks can observe the projection.
+            if(readOnly||next.url!==data.url){
+              const retiredTask=currentTask
+              currentTask=null
+              ++generation
+              retiredTask?.cancel()
+            }
             // Native URL input can commit without reprojecting the source DOM.
             // Host edits of metadata or template must retain its live draft
             // and the original pending debounce deadline. A genuine remote
@@ -239,17 +248,21 @@ export function createLinkPreviewPlugin(config={}){
             const task=context.beginTask()
             currentTask=task
             const current=++generation
+            // Do not allow a response to overwrite a more recent host edit
+            // to individual metadata fields while the URL itself is stable.
+            const atRequest=context.getData()
             try{
               const result=await snapshot.fetchMeta(url,{signal:task.signal})
               if(dead||task.signal.aborted||current!==generation)return
               const meta=result&&typeof result==='object'?result:{}
               task.commit(previous=>previous.url===url?({
                 ...previous,
-                title:typeof meta.title==='string'?meta.title:previous.title,
-                description:typeof meta.description==='string'?meta.description:previous.description,
-                image:typeof meta.image==='string'?meta.image:previous.image,
-                favicon:typeof meta.favicon==='string'?meta.favicon:previous.favicon,
-                domain:typeof meta.domain==='string'?meta.domain:previous.domain||host(url),
+                title:typeof meta.title==='string'&&previous.title===atRequest.title?meta.title:previous.title,
+                description:typeof meta.description==='string'&&previous.description===atRequest.description?meta.description:previous.description,
+                image:typeof meta.image==='string'&&previous.image===atRequest.image?meta.image:previous.image,
+                favicon:typeof meta.favicon==='string'&&previous.favicon===atRequest.favicon?meta.favicon:previous.favicon,
+                domain:previous.domain!==atRequest.domain?previous.domain:
+                  typeof meta.domain==='string'?meta.domain:previous.domain||host(url),
               }):previous)
             }catch(error){
               if(!task.signal.aborted)console.warn('[LinkPreview] Metadata resolution failed',error)
