@@ -124,3 +124,23 @@ test('asynchronous source export fails before constructing the converted record'
   }, { type: 'code' }), /synchronously/)
   assert.equal(records, 0)
 })
+
+test('collapsed block conversion supplies the owning document to the target importer', () => {
+  const { services, code } = setup()
+  const ownerDocument = Object.freeze({ realm: 'editor-owner' })
+  services.ownerDocument = ownerDocument
+  code.capabilities.conversion.import = (candidate, context) => {
+    assert.strictEqual(context.ownerDocument, ownerDocument)
+    assert.ok(Object.isFrozen(context), 'import context must not expose a mutable authority bag')
+    return { text: candidate.data.text }
+  }
+  const source = {
+    id: 'p',
+    type: 'paragraph',
+    dataVersion: 1,
+    data: { text: 'Rich <b>text</b>' },
+  }
+  assert.deepEqual(convertedCanonicalRecord(services, source, { type: 'code' }).data, {
+    text: 'Rich <b>text</b>',
+  })
+})
