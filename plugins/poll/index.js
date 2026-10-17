@@ -536,7 +536,14 @@ export function createPollPlugin(config={}){
                 maxVoters,
                 data.type,
               )
-              selected=new Set(runtime.currentUserVote??[])
+              // A click is pending until Vote, so author-only updates must
+              // preserve that local choice. A new poll identity or explicit
+              // initialResults replacement is authoritative and resets it.
+              const allowedOptions=new Set(data.options.map(option=>option.id))
+              const pending=[...selected].filter(id=>allowedOptions.has(id))
+              selected=new Set(resetResults
+                ? (runtime.currentUserVote??[])
+                : data.type==='single'?pending.slice(0,1):pending)
               if(resetResults)hasVoted=(runtime.currentUserVote?.length??0)>0
               else hasVoted=(runtime.currentUserVote?.length??0)>0||hasVoted
               if(reconnect)connect()
