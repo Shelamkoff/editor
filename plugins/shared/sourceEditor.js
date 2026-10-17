@@ -255,7 +255,9 @@ function ensureSurface(wrapper, signal, kind) {
     const active = activeEditors.get(wrapper)
     if (active?.surface === surface) active.close()
     controller.abort()
-    root.remove()
+    // Only this wrapper owns the preloaded DOM. A different application
+    // may have reparented it; revocation must not remove its new owner's node.
+    if (root.parentNode === wrapper) root.remove()
     if (owned?.get(kind) === surface) owned.delete(kind)
     if (owned?.size === 0) surfaces.delete(wrapper)
   }
