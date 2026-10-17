@@ -22,6 +22,19 @@ function assertKnownKeys(value, allowed, label) {
   }
 }
 
+/** Envelope members may not have enumerable symbol keys. Check descriptors
+ * without invoking their getters before reading any author-owned payload.
+ * @param {object} value
+ * @param {string} label
+ */
+function assertNoEnumerableSymbols(value, label) {
+  for (const symbol of Object.getOwnPropertySymbols(value)) {
+    if (Object.prototype.propertyIsEnumerable.call(value, symbol)) {
+      throw new TypeError(`${label} contains an enumerable symbol key`)
+    }
+  }
+}
+
 /** @param {unknown} value @param {string} label @returns {number} */
 function assertPositiveVersion(value, label) {
   if (!Number.isSafeInteger(value) || Number(value) < 1) {
@@ -180,44 +193,54 @@ export function decodeCurrentInlineMap(input, resolvers = {}) {
   return validationBoundary({ reason: 'invalid-input' }, () => {
     if (input === undefined) return undefined
     assertPlainJsonObject(input, 'Inline map')
-    const source = /** @type {Record<string, unknown>} */ (cloneEditorData(input))
+    // Capture one occurrence at a time. Deep-cloning the whole map first
+    // would execute unrelated getters (even from later occurrences) before a
+    // known inline schema can reject an unsupported dataVersion.
+    const source = /** @type {Record<string, unknown>} */ (input)
+    assertNoEnumerableSymbols(source, 'Inline map')
+    const ids = Object.keys(source)
     /** @type {Record<string, import('./documentTypes').EditorInlineWidget>} */
     const result = {}
 
-    for (const [id, value] of Object.entries(source)) {
+    for (const id of ids) {
       if (!id) throw new TypeError('Inline widget id must be a non-empty string')
+      const value = source[id]
       assertPlainJsonObject(value, `Inline widget "${id}"`)
-      const candidate = /** @type {Record<string, unknown>} */ ({ ...value })
-      assertKnownKeys(candidate, INLINE_KEYS, `Inline widget "${id}"`)
-      if (typeof candidate.type !== 'string' || !candidate.type) {
+      assertKnownKeys(value, INLINE_KEYS, `Inline widget "${id}"`)
+      assertNoEnumerableSymbols(value, `Inline widget "${id}"`)
+      const type = Object.hasOwn(value, 'type') ? value.type : undefined
+      if (typeof type !== 'string' || !type) {
         throw new TypeError(`Inline widget "${id}" type must be a non-empty string`)
       }
-      if (!Object.hasOwn(candidate, 'dataVersion')) {
+      if (!Object.hasOwn(value, 'dataVersion')) {
         throw new TypeError(`Inline widget "${id}" dataVersion is required`)
       }
-      const version = assertPositiveVersion(candidate.dataVersion, `Inline widget "${id}" dataVersion`)
-      if (!Object.hasOwn(candidate, 'data')) {
+      const version = assertPositiveVersion(value.dataVersion, `Inline widget "${id}" dataVersion`)
+      if (!Object.hasOwn(value, 'data')) {
         throw new TypeError(`Inline widget "${id}" data is required`)
       }
-      assertPlainJsonObject(candidate.data, `Inline widget "${id}" data`)
-
-      const schema = resolvers.getInlineSchema?.(candidate.type)
+      const schema = resolvers.getInlineSchema?.(type)
+      if (schema) {
+        assertSchemaVersion(schema, version, `inline widget "${type}"`, { inlineId: id, type })
+      }
+      const data = value.data
+      assertPlainJsonObject(data, `Inline widget "${id}" data`)
+      const ownedData = cloneEditorData(data)
       if (!schema) {
-        Object.defineProperty(result, id, { value: { type: candidate.type, dataVersion: version, data: candidate.data }, enumerable: true, configurable: true, writable: true })
+        Object.defineProperty(result, id, { value: { type, dataVersion: version, data: ownedData }, enumerable: true, configurable: true, writable: true })
         continue
       }
 
-      assertSchemaVersion(schema, version, `inline widget "${candidate.type}"`, { inlineId: id, type: candidate.type })
-      const decodedValue = schemaValidationBoundary({ inlineId: id, type: candidate.type }, () => {
-        const decoded = schema.decode({ dataVersion: version, data: candidate.data })
+      const decodedValue = schemaValidationBoundary({ inlineId: id, type }, () => {
+        const decoded = schema.decode({ dataVersion: version, data: ownedData })
         const dataVersion = decoded?.dataVersion
         const data = decoded?.data
         if (dataVersion !== schema.currentVersion) {
-          throw new TypeError(`Inline widget "${candidate.type}" schema returned an invalid version`)
+          throw new TypeError(`Inline widget "${type}" schema returned an invalid version`)
         }
-        assertPlainJsonObject(data, `Inline widget "${candidate.type}" decoded data`)
+        assertPlainJsonObject(data, `Inline widget "${type}" decoded data`)
         return {
-          type: candidate.type,
+          type,
           dataVersion: schema.currentVersion,
           data: cloneEditorData(data),
         }
@@ -238,10 +261,16 @@ export function decodeCurrentInlineMap(input, resolvers = {}) {
 export function decodeCurrentBlock(input, resolvers = {}) {
   return validationBoundary({ reason: 'invalid-input' }, () => {
     const envelope = snapshotCurrentBlockEnvelope(input)
-    const block = /** @type {import('./documentTypes').EditorBlockData} */ (cloneEditorData(envelope))
-    const schema = resolvers.getBlockSchema?.(block.type)
+    const schema = resolvers.getBlockSchema?.(envelope.type)
+    // A rejected schema version must not deep-clone the author payload.
     if (schema) {
-      assertSchemaVersion(schema, block.dataVersion, `block "${block.type}"`, { blockId: block.id, type: block.type })
+      assertSchemaVersion(schema, envelope.dataVersion, `block "${envelope.type}"`, { blockId: envelope.id, type: envelope.type })
+    }
+    // Inline occurrences have their own version and ownership boundary. Leave
+    // that map untouched until decodeCurrentInlineMap validates each entry.
+    const { inline: inlineSource, ...withoutInline } = envelope
+    const block = /** @type {import('./documentTypes').EditorBlockData} */ (cloneEditorData(withoutInline))
+    if (schema) {
       const decoded = schemaValidationBoundary({ blockId: block.id, type: block.type }, () => {
         const result = schema.decode({ dataVersion: block.dataVersion, data: block.data })
         const dataVersion = result?.dataVersion
@@ -256,9 +285,9 @@ export function decodeCurrentBlock(input, resolvers = {}) {
       block.data = decoded.data
     }
 
-    if (block.inline !== undefined) {
+    if (inlineSource !== undefined) {
       let inline
-      try { inline = decodeCurrentInlineMap(block.inline, resolvers) }
+      try { inline = decodeCurrentInlineMap(inlineSource, resolvers) }
       catch (error) {
         const issue = documentValidationIssue(error)
         throw issue ? markDocumentValidationFailure(error, { type: block.type, ...issue, blockId: block.id }) : error
