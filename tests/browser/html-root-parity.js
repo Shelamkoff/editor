@@ -1,3 +1,4 @@
+import { prepareHtmlImport } from '../../core/HtmlImportRouter.js'
 import { createHeadingPlugin, createParagraphPlugin, createTablePlugin } from '../../plugins/index.js'
 import { test, make, para, editableField, select, paste, equal, texts } from './regressions/harness.js'
 
@@ -97,4 +98,49 @@ test('external HTML Table preserves headers after an empty leading tr', async ()
   equal(editor.canUndo, false)
   equal(editor.redo(), true)
   equal(editor.save().blocks[0].data.withHeadings, true)
+})
+
+
+test('external HTML fallback importers cannot mutate the content seen by later importers', () => {
+  const rejected = {
+    capabilities: {
+      conversion: {
+        canImport(payload) {
+          payload.data.text = '<b>POISONED</b>'
+          return false
+        },
+        import() { throw new Error('Rejected importer must never execute') },
+      },
+    },
+  }
+  const accepted = {
+    capabilities: {
+      conversion: {
+        canImport(payload) {
+          equal(payload.data.text.includes('POISONED'), false)
+          return payload.kind === 'rich-text'
+        },
+        import(payload, context) {
+          equal(context.ownerDocument, document)
+          return { text: payload.data.text }
+        },
+      },
+    },
+  }
+  const registry = {
+    defaultBlockType: 'reject',
+    blockTypes: ['reject', 'accept'],
+    getBlockDefinition: type => type === 'reject' ? rejected
+      : type === 'accept' ? accepted : null,
+  }
+  const plan = prepareHtmlImport('<div>First</div><div>Second</div>', {
+    ownerDocument: document,
+    registry,
+    createId: prefix => prefix + '-1',
+  })
+  equal(plan.kind, 'blocks')
+  equal(plan.blocks, [
+    { type: 'accept', data: { text: 'First' } },
+    { type: 'accept', data: { text: 'Second' } },
+  ])
 })
