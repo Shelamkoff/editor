@@ -1574,6 +1574,33 @@ test('Gallery removing another image preserves a committed native caption edit',
   equal(editor.save().blocks, afterInput, 'Gallery removal could not be independently undone')
 })
 
+test('Attaches keeps the active native filename caret when a sibling name changes', async () => {
+  const fixture = pluginParityFixtures.find(item => item.name === 'Attaches')
+  const first = fixture.data.files[0]
+  const editor = pluginEditor({ ...fixture, data: { ...fixture.data, files: [
+    first,
+    { ...first, id: 'second', url: '/second.txt', name: 'Bravo' },
+  ] } })
+  const field = focusedField(editor, { key: 'file:first:name' }, 2)
+  await printable('X')
+  equal(editor.save().blocks[0].data.files[0].name, 'AlXpha')
+
+  editor.blocks.update('a', current => ({
+    data: {
+      ...current.data,
+      files: current.data.files.map(file => file.id === 'second'
+        ? { ...file, name: 'Updated sibling' } : file),
+    },
+  }))
+  equal(editor.save().blocks[0].data.files.map(file => file.name), ['AlXpha', 'Updated sibling'])
+  assert(document.activeElement === field && field.isConnected,
+    'sibling filename edit replaced the still-focused native editing host')
+  checkFieldCaret(field, 3)
+  await printable('Y')
+  equal(editor.save().blocks[0].data.files.map(file => file.name), ['AlXYpha', 'Updated sibling'],
+    'typing after sibling edit lost author text or selected the wrong file')
+})
+
 test('Attaches removing a different file preserves a committed native file name', async () => {
   const fixture = pluginParityFixtures.find(item => item.name === 'Attaches')
   const original = fixture.data.files[0]
