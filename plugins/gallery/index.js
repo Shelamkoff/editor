@@ -343,6 +343,8 @@ export function createGalleryPlugin(config={}){
             }))
           }
 
+          // DOM controls are recreated by project(); bind their listeners to
+          // the per-view controller, not to the whole block's lifetime.
           const renderImage=(image,index)=>{
             const slot=document.createElement('div')
             slot.className=CSS.slot+' '+CSS.slotFilled
@@ -372,7 +374,7 @@ export function createGalleryPlugin(config={}){
                 event.preventDefault()
                 event.stopPropagation()
               }
-            },{signal:context.signal})
+            },{signal:viewController.signal})
             captionFields.set(image.id,caption)
             slot.append(img,caption)
 
@@ -421,20 +423,20 @@ export function createGalleryPlugin(config={}){
               remove.type='button'
               remove.className=CSS.slotRemove
               remove.textContent='×'
-              remove.addEventListener('click',()=>updateData({...data,images:data.images.filter(item=>item.id!==image.id)}),{signal:context.signal})
+              remove.addEventListener('click',()=>updateData({...data,images:data.images.filter(item=>item.id!==image.id)}),{signal:viewController.signal})
 
               const earlier=document.createElement('button')
               earlier.type='button'
               earlier.className='oe-gallery__slot-move oe-gallery__slot-move--backward'
               earlier.textContent='←'
               earlier.disabled=index===0
-              earlier.addEventListener('click',()=>move(index,index-1),{signal:context.signal})
+              earlier.addEventListener('click',()=>move(index,index-1),{signal:viewController.signal})
               const later=document.createElement('button')
               later.type='button'
               later.className='oe-gallery__slot-move oe-gallery__slot-move--forward'
               later.textContent='→'
               later.disabled=index===data.images.length-1
-              later.addEventListener('click',()=>move(index,index+1),{signal:context.signal})
+              later.addEventListener('click',()=>move(index,index+1),{signal:viewController.signal})
               slot.append(remove,earlier,later)
             }
             return slot
@@ -483,7 +485,7 @@ export function createGalleryPlugin(config={}){
                 empty.textContent='+'
                 empty.disabled=readOnly
                 empty.setAttribute('aria-label',runtimeContext.t('add','Add images'))
-                empty.addEventListener('click',chooseFiles,{signal:context.signal})
+                empty.addEventListener('click',chooseFiles,{signal:viewController.signal})
                 grid.appendChild(empty)
               }
             }
@@ -603,7 +605,7 @@ export function createGalleryPlugin(config={}){
               clear.type='button'
               clear.className=CSS.actionBtn+' '+CSS.actionBtnDanger
               clear.textContent=runtimeContext.t('deleteAll','Delete all')
-              clear.addEventListener('click',()=>{abortTasks();retainControlFocus(wrapper,()=>context.updateData(current=>({...current,images:[]})))},{signal:context.signal})
+              clear.addEventListener('click',()=>{abortTasks();retainControlFocus(wrapper,()=>context.updateData(current=>({...current,images:[]})))},{signal:viewController.signal})
               mainView.appendChild(clear)
               for(const action of snapshot.actions){
                 const button=document.createElement('button')
