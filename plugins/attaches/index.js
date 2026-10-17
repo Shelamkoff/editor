@@ -528,7 +528,7 @@ export function createAttachesPlugin(config={}){
                 files:data.files.map(file=>({
                   ...file,
                   name:nameFields.get(file.id)?.textContent?.trim()
-                    ||committedNames.get(file.id)||file.name,
+                    ||(committedNames.has(file.id)?committedNames.get(file.id):file.name),
                 })),
               }
             },
