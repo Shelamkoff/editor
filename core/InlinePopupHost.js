@@ -36,8 +36,9 @@ export class InlinePopupHost {
       // Popup contents must be detached from editor UI. Moving an owned
       // editable anchor/control into a transient popup destroys it on close.
       ||this.#root.contains(content)
-      // Do not steal connected controls from another editor or application.
-      ||content.isConnected
+      // Do not steal either connected controls or nodes already owned by
+      // another detached application/popup subtree.
+      ||content.isConnected||content.parentNode
       ||(cleanup!==undefined&&typeof cleanup!=='function')){
       throw new TypeError('Popup requires owning-document HTML elements and optional cleanup function')
     }
