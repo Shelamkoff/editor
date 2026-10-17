@@ -75,8 +75,11 @@ export class EditorViewModel {
     if (!id) return false
     this.#interaction.setCurrent(id)
     const focused = this.#interaction.focus(id, target)
-    if (target) this.#selection.setCaret(id, target)
-    return focused
+    // A disabled or stale instance can refuse focus. Do not re-point the
+    // document selection after that refusal, or report a missing caret as
+    // successfully focused.
+    if (!focused) return false
+    return target ? this.#selection.setCaret(id, target) === true : true
   }
 
   setCaret(id, target) {
