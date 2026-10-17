@@ -30,12 +30,22 @@ const sourceEditorStyles=new URL('../shared/sourceEditor.css',import.meta.url).h
 
 function galleryLabel(key,fallback){return Object.freeze({key,fallback})}
 
-function renderGallerySettings(context, { visualLayouts = false } = {}){
+/** @param {import('../../plugin-kit/types').SettingsPanelContext<any>} context
+ * @param {{visualLayouts?:boolean,signal?:AbortSignal}} [options]
+ */
+function renderGallerySettings(context, { visualLayouts = false,signal } = {}){
   const document=context.ownerDocument
   const root=document.createElement('div')
   root.className='oe-gallery__style-form'
   const optionKeys=['loop','zoom','navigation','captions','fullscreen','thumbnails']
-  const commit=producer=>{context.updateData(producer);render()}
+  const AbortControllerCtor=document.defaultView?.AbortController??AbortController
+  let fieldsController=null
+  signal?.addEventListener('abort',()=>fieldsController?.abort(),{once:true})
+  const commit=producer=>{
+    if(signal?.aborted)return
+    context.updateData(producer)
+    if(!signal?.aborted)render()
+  }
   const line=(label,control)=>{
     const wrapper=document.createElement('label')
     wrapper.className='oe-gallery__style-label'
@@ -50,7 +60,7 @@ function renderGallerySettings(context, { visualLayouts = false } = {}){
     element.className='oe-gallery__style-input'
     element.value=value??''
     if(placeholder)element.placeholder=placeholder
-    element.addEventListener('change',()=>onChange(element.value,element))
+    element.addEventListener('change',()=>onChange(element.value,element),{signal:fieldsController.signal})
     return element
   }
   const checkbox=(checked,onChange)=>{
@@ -58,11 +68,14 @@ function renderGallerySettings(context, { visualLayouts = false } = {}){
     element.type='checkbox'
     element.checked=checked
     element.className=CSS.switch+(checked?' '+CSS.switchActive:'')
-    element.addEventListener('change',()=>onChange(element.checked))
+    element.addEventListener('change',()=>onChange(element.checked),{signal:fieldsController.signal})
     return element
   }
 
   const render=()=>{
+    fieldsController?.abort()
+    if(signal?.aborted)return
+    fieldsController=new AbortControllerCtor()
     const data=context.getData()
     root.replaceChildren()
 
@@ -75,7 +88,7 @@ function renderGallerySettings(context, { visualLayouts = false } = {}){
       option.selected=value===data.layout
       layoutSelect.appendChild(option)
     }
-    layoutSelect.addEventListener('change',()=>commit(current=>({...current,layout:layoutSelect.value})))
+    layoutSelect.addEventListener('change',()=>commit(current=>({...current,layout:layoutSelect.value})),{signal:fieldsController.signal})
     if(visualLayouts){
       const grid=document.createElement('div')
       grid.className=CSS.layoutGrid
@@ -90,8 +103,8 @@ function renderGallerySettings(context, { visualLayouts = false } = {}){
         button.setAttribute('aria-label',button.title)
         button.setAttribute('aria-pressed',String(layout===data.layout))
         insertTrustedHtml(button,'afterbegin',LAYOUT_ICONS[layout]??'')
-        button.addEventListener('mousedown',event=>event.preventDefault())
-        button.addEventListener('click',()=>commit(current=>({...current,layout})))
+        button.addEventListener('mousedown',event=>event.preventDefault(),{signal:fieldsController.signal})
+        button.addEventListener('click',()=>commit(current=>({...current,layout})),{signal:fieldsController.signal})
         grid.appendChild(button)
       }
       root.appendChild(grid)
@@ -449,7 +462,7 @@ export function createGalleryPlugin(config={}){
               wrapper.focus({preventScroll:true})
               return retainControlFocus(wrapper,()=>context.updateData(producer))
             },
-          },{visualLayouts:true})
+          },{visualLayouts:true,signal:viewController.signal})
 
           const project=next=>{
             // A detached image slot cannot complete its old drag session.
