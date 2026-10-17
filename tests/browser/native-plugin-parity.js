@@ -1792,6 +1792,32 @@ test('Embed clearing video removes its obsolete empty caption field', async () =
     'Undo failed to restore the configured Embed caption')
 })
 
+test('Gallery Undo and external reversion repaint the caption after retained native typing', async () => {
+  const fixture = pluginParityFixtures.find(entry => entry.name === 'Gallery')
+  const editor = pluginEditor(fixture)
+  focusedField(editor, { key: 'image:first:caption' }, 2)
+  await printable('X')
+  const typed = editor.save().blocks
+  equal(typed[0].data.images[0].caption, 'AlXpha')
+  equal(editor.undo(), true)
+  const original = editor.save().blocks
+  equal(original[0].data.images[0].caption, 'Alpha')
+  const shown = () => blockElement(editor, 'a')
+    .querySelector('.oe-gallery__slot [data-image-id="first"][contenteditable]')
+  equal(shown()?.innerHTML, 'Alpha',
+    'Gallery Undo restored author data but left stale natively edited caption in DOM')
+  equal(editor.redo(), true)
+  equal(shown()?.innerHTML, 'AlXpha',
+    'Gallery Redo did not restore the visually edited caption')
+  editor.blocks.update('a', current => ({
+    data: { ...current.data, images: current.data.images.map(image =>
+      image.id === 'first' ? { ...image, caption: 'Alpha' } : image) },
+  }))
+  equal(editor.save().blocks[0].data.images[0].caption, 'Alpha')
+  equal(shown()?.innerHTML, 'Alpha',
+    'Gallery external caption reversion reused a stale native DOM value')
+})
+
 test('Gallery native caption then style update keeps the same editing host', async () => {
   const fixture = pluginParityFixtures.find(entry => entry.name === 'Gallery')
   const editor = pluginEditor(fixture)
