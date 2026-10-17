@@ -307,3 +307,62 @@ test('already issued child task cannot commit after parent health is revoked', (
   assert.equal(task.signal.aborted, true)
   assert.equal(writes, 0)
 })
+
+
+test('child-specific read-only survives a parent read-only round trip', () => {
+  const parent = new InstanceScope({ staged: false })
+  const child = new InstanceScope({ staged: false, readOnly: true, parent })
+  const grandchild = new InstanceScope({ staged: false, parent: child })
+  let mutations = 0
+  assert.equal(child.readOnly, true)
+  assert.equal(grandchild.readOnly, true)
+  parent.setReadOnly(true)
+  parent.setReadOnly(false)
+  assert.equal(child.readOnly, true, 'parent mode restored independent child mutation permission')
+  assert.equal(grandchild.readOnly, true, 'parent mode restored independent grandchild permission')
+  assert.equal(child.runMutation(() => mutations++), false)
+  assert.equal(grandchild.runMutation(() => mutations++), false)
+  assert.equal(mutations, 0)
+  child.setReadOnly(false)
+  assert.equal(child.readOnly, false)
+  assert.equal(grandchild.readOnly, false)
+  assert.equal(grandchild.runMutation(() => mutations++), true)
+  assert.equal(mutations, 1)
+})
+
+test('a child cannot override a read-only ancestor by changing its local mode', () => {
+  const parent = new InstanceScope({ staged: false, readOnly: true })
+  const child = new InstanceScope({ staged: false, parent })
+  child.setReadOnly(false)
+  assert.equal(child.readOnly, true, 'child reported writable despite read-only parent')
+  let mutations = 0
+  assert.equal(child.runMutation(() => mutations++), false)
+  assert.equal(mutations, 0)
+  parent.setReadOnly(false)
+  assert.equal(child.readOnly, false)
+  assert.equal(child.runMutation(() => mutations++), true)
+  assert.equal(mutations, 1)
+})
+
+test('configure(readOnly) immediately aborts active descendant tasks and cannot resurrect them', () => {
+  const parent = new InstanceScope({ staged: false, generation: 1 })
+  const child = new InstanceScope({ staged: false, generation: 1, parent })
+  let data = { value: 1 }
+  let producerCalls = 0
+  const context = child.createAuthority({
+    readData: () => data,
+    updateData(producer) { producerCalls++; data = producer(data) },
+  })
+  const active = context.beginTask()
+  parent.configure({ readOnly: true })
+  assert.equal(parent.readOnly, true)
+  assert.equal(child.readOnly, true)
+  assert.equal(active.signal.aborted, true, 'configure did not revoke an in-flight child task')
+  parent.configure({ readOnly: false })
+  assert.equal(child.readOnly, false)
+  assert.equal(active.commit(current => ({ ...current, value: 2 })), false)
+  assert.equal(producerCalls, 0)
+  const fresh = context.beginTask()
+  assert.equal(fresh.commit(current => ({ ...current, value: 3 })), true)
+  assert.equal(data.value, 3)
+})
