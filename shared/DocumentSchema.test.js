@@ -383,3 +383,61 @@ test('inline map still rejects an enumerable symbol key without reading its gett
   assert.throws(() => decodeCurrentInlineMap(input), /symbol key/)
   assert.equal(reads, 0)
 })
+
+test('shallow document envelope rejects enumerable symbol metadata without evaluating its getter', () => {
+  let reads = 0
+  const input = { version: '2.0.0', blocks: [] }
+  Object.defineProperty(input, Symbol('extra'), {
+    enumerable: true,
+    get() {
+      reads++
+      throw new Error('document symbol getter must not execute')
+    },
+  })
+  assert.throws(() => snapshotCurrentDocumentEnvelope(input), /symbol key/)
+  assert.equal(reads, 0)
+})
+
+test('shallow block envelope rejects enumerable symbol metadata without evaluating its getter', () => {
+  let reads = 0
+  const input = { id: 'a', type: 'opaque', dataVersion: 7, data: { value: 'kept' } }
+  Object.defineProperty(input, Symbol('extra'), {
+    enumerable: true,
+    get() {
+      reads++
+      throw new Error('block symbol getter must not execute')
+    },
+  })
+  assert.throws(() => decodeCurrentBlock(input), /symbol key/)
+  assert.equal(reads, 0)
+})
+
+test('block decoder defers nested inline payload cloning until its version is accepted', () => {
+  let reads = 0
+  const input = {
+    id: 'a', type: 'known', dataVersion: 2, data: { text: 'valid' },
+    inline: {
+      mention: {
+        type: 'mention',
+        dataVersion: 99,
+        data: {
+          get secret() {
+            reads++
+            throw new Error('inline payload was inspected too early')
+          },
+        },
+      },
+    },
+  }
+  assert.throws(() => decodeCurrentBlock(input, {
+    getBlockSchema: () => currentV2,
+    getInlineSchema: () => currentV1,
+  }), error => {
+    assert.match(error.message, /Unsupported inline widget "mention" data version 99/)
+    assert.deepEqual(documentValidationIssue(error), {
+      reason: 'unsupported-data-version', blockId: 'a', inlineId: 'mention', type: 'mention',
+    })
+    return true
+  })
+  assert.equal(reads, 0)
+})
