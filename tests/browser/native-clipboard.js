@@ -133,4 +133,36 @@ test('external structural-first HTML does not delete selected paragraph text', a
   equal(editor.save().blocks[1].type, 'table')
 })
 
+
+test('failed owned Cut preserves both canonical model and native contenteditable text', async () => {
+  const paragraph = createParagraphPlugin({ injectStyles: false })
+  const failing = Object.freeze({
+    ...paragraph,
+    type: 'cut-failure',
+    capabilities: Object.freeze({
+      clipboard: Object.freeze({
+        slice() { throw new Error('expected clipboard slice failure') },
+      }),
+    }),
+  })
+  const editor = make([{
+    id: 'a', type: 'cut-failure', dataVersion: failing.schema.currentVersion,
+    data: { text: 'Alpha' },
+  }], { plugins: [paragraph, failing] })
+  const field = editableField(editor, 'a')
+  const before = editor.save().blocks
+  select(field, 1, 4)
+  let nativeCuts = 0
+  editorRoot(editor).addEventListener('cut', event => {
+    assert(event.isTrusted, 'Cut rejection was not tested with a native keyboard event')
+    nativeCuts++
+    assert(event.defaultPrevented, 'Rector failed to cancel destructive native Cut')
+  }, { once: true })
+  await dispatchKey('x', 'KeyX', 88, 2)
+  equal(nativeCuts, 1)
+  equal(field.textContent, 'Alpha', 'Browser removed selected text after rejected Cut')
+  equal(editor.save().blocks, before, 'Rejected Cut mutated canonical model')
+  equal(editor.canUndo, false, 'Rejected Cut created a history entry')
+})
+
 await run()
