@@ -173,3 +173,50 @@ test('throwing tooltip label does not leak the previous visible presentation', (
   assert.equal(h.anchor.getAttribute('aria-describedby'), null)
   tooltip.destroy()
 })
+
+test('tooltip label reentry cannot overwrite a newer owner', () => {
+  const h = tooltipHarness()
+  const first = boundAnchor()
+  const successor = boundAnchor({left:120,width:60,top:20,bottom:40,height:20})
+  h.root.contains = node => node === first || node === successor
+  const tooltip = new Tooltip(h.root)
+  tooltip.bind(first, () => {
+    tooltip.show(successor, 'Successor')
+    return 'Obsolete'
+  })
+  first.fire('mouseenter')
+  assert.equal(h.callbacks.length, 1,
+    'stale label result scheduled a second tooltip over the new presentation')
+  h.callbacks[0]()
+  assert.equal(h.popup.style.display, 'flex')
+  assert.equal(h.popup.children[0].textContent, 'Successor')
+  assert.equal(successor.getAttribute('aria-describedby'), h.popup.id)
+  assert.equal(first.getAttribute('aria-describedby'), null)
+  tooltip.destroy()
+})
+
+test('tooltip geometry reentry cannot publish an obsolete tooltip', () => {
+  const h = tooltipHarness()
+  const first = boundAnchor()
+  const successor = boundAnchor({left:120,width:60,top:20,bottom:40,height:20})
+  h.root.contains = node => node === first || node === successor
+  const tooltip = new Tooltip(h.root)
+  const originalRect = first.getBoundingClientRect
+  let reentered = false
+  first.getBoundingClientRect = () => {
+    if (!reentered) {
+      reentered = true
+      tooltip.show(successor, 'Successor')
+    }
+    return originalRect()
+  }
+  tooltip.show(first, 'Obsolete')
+  h.callbacks[0]()
+  assert.equal(h.popup.style.display, 'none',
+    'a retired geometry callback published its old tooltip over the new owner')
+  assert.equal(first.getAttribute('aria-describedby'), null)
+  h.callbacks[1]()
+  assert.equal(h.popup.children[0].textContent, 'Successor')
+  assert.equal(successor.getAttribute('aria-describedby'), h.popup.id)
+  tooltip.destroy()
+})
