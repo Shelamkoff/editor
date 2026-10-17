@@ -474,6 +474,36 @@ test('LinkPreview late metadata respects newer host edits and cancels an obsolet
   equal(afterSource.title, 'New host source')
 })
 
+test('LinkPreview stale fetch cannot overwrite a host description after ABA changes', async () => {
+  const fixture = pluginParityFixtures.find(entry => entry.name === 'LinkPreview')
+  const pending = []
+  const editor = pluginEditor({
+    ...fixture,
+    factory: () => fixture.factory({
+      fetchMeta: (url, { signal }) => new Promise(resolve => {
+        pending.push({ url, signal, resolve })
+      }),
+    }),
+  })
+  const input = focusedField(editor, { key: 'url' }, 'end')
+  input.value = 'https://vimeo.com/123456'
+  input.dispatchEvent(new Event('change', { bubbles: true }))
+  equal(pending.length, 1)
+
+  editor.blocks.update('a', current => ({
+    data: { ...current.data, description: 'Host author description' },
+  }))
+  editor.blocks.update('a', current => ({
+    data: { ...current.data, description: '' },
+  }))
+  pending[0].resolve({ title: 'Fetched title', description: 'Stale response description' })
+  await pause(50)
+  const after = editor.save().blocks[0].data
+  equal(after.title, 'Fetched title', 'untouched metadata field was not enriched')
+  equal(after.description, '',
+    'LinkPreview late metadata overwrote a field changed twice by the host')
+})
+
 test('LinkPreview restoration does not refetch old metadata but explicit submission still does', async () => {
   const fixture = pluginParityFixtures.find(entry => entry.name === 'LinkPreview')
   const requests = []
