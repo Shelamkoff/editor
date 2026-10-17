@@ -245,3 +245,43 @@ test('Gallery settings listeners are revoked with the block owner', () => {
   assert.equal(h.model().styles.gap, originalGap)
   assert.equal(h.changes.length, 0)
 })
+
+test('Gallery reprojects an undone caption even when it equals stale local text', () => {
+  const h = setup()
+  try {
+    const caption = () => h.instance.element.querySelector('.oe-gallery__slot-caption')
+    const retained = caption()
+    assert.ok(retained, 'Gallery fixture has no mounted caption')
+    retained.innerHTML = 'Native authored text'
+    const beforeUndo = {
+      ...h.model(),
+      images: h.model().images.map(image => image.id === 'first'
+        ? { ...image, caption: 'Native authored text' } : image),
+    }
+    const restored = structuredClone(h.model())
+    h.instance.update(restored, beforeUndo)
+    assert.notEqual(caption(), retained,
+      'Gallery treated Undo as an unchanged caption by using stale plugin-local data')
+    assert.equal(caption()?.innerHTML, '',
+      'Gallery model restored empty caption but DOM still displayed native text')
+  } finally { h.destroy() }
+})
+
+test('Gallery retains the native editing host for a style change after native input', () => {
+  const h = setup()
+  try {
+    const original = h.instance.element.querySelector('.oe-gallery__slot-caption')
+    assert.ok(original)
+    original.innerHTML = 'Native authored text'
+    const committed = {
+      ...h.model(),
+      images: h.model().images.map(image => image.id === 'first'
+        ? { ...image, caption: 'Native authored text' } : image),
+    }
+    const withStyle = { ...committed, styles: { ...committed.styles, gap: '12px' } }
+    h.instance.update(withStyle, committed)
+    assert.equal(h.instance.element.querySelector('.oe-gallery__slot-caption'), original,
+      'style-only canonical change detached retained native caption')
+    assert.equal(original.innerHTML, 'Native authored text')
+  } finally { h.destroy() }
+})
