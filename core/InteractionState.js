@@ -72,10 +72,12 @@ export class InteractionState {
   }
 
   focus(id = this.#currentId, target) {
-    if (!id) return false
-    if (!this.#runtime.has(id)) return false
-    this.#currentId = id
-    return this.#reconciler.focus(id, target)
+    if (!id || !this.#runtime.has(id)) return false
+    // The plugin may refuse focus (retired source, missing field, read-only).
+    // Do not claim that block as current until the actual DOM owner accepts.
+    if (!this.#reconciler.focus(id, target)) return false
+    this.setCurrent(id)
+    return true
   }
 
   resolveBlockTarget(target) {
