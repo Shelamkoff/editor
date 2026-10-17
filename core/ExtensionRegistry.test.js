@@ -666,3 +666,57 @@ test('HTML import single-root intent snapshots exactly once and rejects invalid 
     }}},
   ]}),/inlineWhenSingleRoot must be a boolean/)
 })
+
+for (const [kind, customize] of [
+  ['block definition', source => {
+    Object.defineProperty(source, 'futureUnusedBlockOption', {
+      enumerable: true, get() { throw new Error('unrecognized block getter was evaluated') },
+    })
+  }],
+  ['block label', source => {
+    source.label = {
+      key: 'label', fallback: 'Paragraph',
+      get futureUnusedLabelOption() { throw new Error('unrecognized label getter was evaluated') },
+    }
+  }],
+  ['block capabilities', source => {
+    source.capabilities = {
+      formatting: { inlineTools: true },
+      get futureUnusedCapability() { throw new Error('unrecognized capability getter was evaluated') },
+    }
+  }],
+  ['toolbox item', source => {
+    source.toolbox = [{
+      id: 'variant', label: { key: 'variant', fallback: 'Variant' }, icon: '',
+      get futureUnusedToolboxProperty() { throw new Error('unrecognized toolbox getter was evaluated') },
+    }]
+  }],
+  ['inline definition', source => {
+    source.inline = true
+  }],
+]) {
+  test('ExtensionRegistry ignores unrecognized enumerable descriptor getters: ' + kind, () => {
+    const doc = documentStub()
+    const source = { ...blockDefinition('paragraph') }
+    customize(source)
+    const inputs = kind === 'inline definition'
+      ? (() => {
+          const inline = { ...inlineDefinition('mention', '@') }
+          Object.defineProperty(inline, 'futureUnusedInlineOption', {
+            enumerable: true,
+            get() { throw new Error('unrecognized inline getter was evaluated') },
+          })
+          return { blocks: [blockDefinition('paragraph')], inline: [inline] }
+        })()
+      : { blocks: [source] }
+    const registry = new ExtensionRegistry({
+      ownerDocument: doc, acquireStyles: false, ...inputs,
+    })
+    try {
+      assert.equal(registry.hasBlock('paragraph'), true)
+      assert.equal(registry.hasInline('mention'), kind === 'inline definition')
+    } finally {
+      registry.destroy()
+    }
+  })
+}
