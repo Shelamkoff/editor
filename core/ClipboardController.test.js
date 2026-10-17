@@ -454,3 +454,45 @@ test('plain-text auxiliary input retains native Cut during editor composition', 
     assert.equal(plans, 0)
   } finally { fixture.controller.destroy() }
 })
+
+test('stale cross-block selection cannot steal native Cut from a plain-text input', () => {
+  const crossSelection = {
+    active: true,
+    wholeBlockIds: ['a'],
+    bookmark: { anchor: { blockId: 'a' }, focus: { blockId: 'a' } },
+  }
+  const fixture = clipboardHarness({
+    accepts: () => false, mode: 'plain-text', crossSelection,
+  })
+  let plans = 0
+  fixture.runtime.prepareLogicalClipboardSlice = () => { plans++ }
+  try {
+    fixture.cut()
+    assert.equal(fixture.event.defaultPrevented, false,
+      'stale cross-selection stole Cut from an auxiliary input')
+    assert.equal(plans, 0)
+  } finally { fixture.controller.destroy() }
+})
+
+test('stale cross-block selection cannot steal native Paste from a plain-text input', () => {
+  const crossSelection = {
+    active: true,
+    wholeBlockIds: ['a'],
+    bookmark: { anchor: { blockId: 'a' }, focus: { blockId: 'a' } },
+  }
+  const fixture = clipboardHarness({
+    accepts: () => false,
+    mode: 'plain-text',
+    crossSelection,
+    formats: [CLIPBOARD_FRAGMENT_MIME],
+    read: () => '',
+  })
+  let plans = 0
+  fixture.runtime.prepareLogicalClipboardSlice = () => { plans++ }
+  try {
+    fixture.paste()
+    assert.equal(fixture.event.defaultPrevented, false,
+      'stale cross-selection stole Paste from an auxiliary input')
+    assert.equal(plans, 0)
+  } finally { fixture.controller.destroy() }
+})
