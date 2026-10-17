@@ -907,6 +907,11 @@ test('Gallery style-only update preserves native caption caret and history', asy
   const editor = pluginEditor(fixture)
   const field = focusedField(editor, { key: 'image:first:caption' }, 2)
   const before = editor.save().blocks
+  const originalGallery = blockElement(editor, 'a').querySelector('.oe-gallery')
+  const originalGapInput = [...originalGallery.querySelectorAll('.oe-gallery__dropdown-panel label')]
+    .find(label => label.querySelector(':scope > span')?.textContent === 'Gap')
+    ?.querySelector('input')
+  assert(originalGapInput, 'Gallery settings lack the gap field')
   editor.blocks.update('a', current => ({
     data: { ...current.data, styles: { ...current.data.styles,
       gap: '12px', borderRadius: '8px', height: '220px',
@@ -925,6 +930,9 @@ test('Gallery style-only update preserves native caption caret and history', asy
     .find(node => node.querySelector(':scope > span')?.textContent === label)
     ?.querySelector('input,select')?.value
   equal(settingValue('Gap'), '12px', 'hidden Gallery settings retained an outdated gap value')
+  equal([...gallery.querySelectorAll('.oe-gallery__dropdown-panel label')]
+    .find(label => label.querySelector(':scope > span')?.textContent === 'Gap')?.querySelector('input'),
+    originalGapInput, 'Gallery style update replaced a live settings input unnecessarily')
   equal(settingValue('Border radius'), '8px', 'hidden Gallery settings retained an outdated radius')
 
   await printable('X')
