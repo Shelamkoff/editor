@@ -465,3 +465,49 @@ test('LinkPreview ignores composing input even when compositionstart was not obs
     assert.equal(h.model().url, 'https://vimeo.com/123456')
   } finally { h.destroy() }
 })
+
+test('LinkPreview late metadata cannot overwrite a host field after an ABA host edit', async () => {
+  let finish
+  const h = mount({
+    fetchMeta: () => new Promise(resolve => { finish = resolve }),
+  })
+  try {
+    h.input.value = 'https://vimeo.com/123456'
+    h.input.dispatch('keydown')
+    assert.equal(h.model().title, '')
+    assert.equal(h.model().description, '')
+
+    // Same-value comparison cannot observe this intervening host intent:
+    // the description changes twice before async metadata resolves.
+    h.external({ ...h.model(), description: 'Author description' })
+    h.external({ ...h.model(), description: '' })
+    finish({ title: 'Fetched title', description: 'Stale fetched description' })
+    await Promise.resolve()
+    await Promise.resolve()
+
+    assert.equal(h.model().title, 'Fetched title',
+      'an untouched title should still accept metadata')
+    assert.equal(h.model().description, '',
+      'ABA host metadata edit lost its authority to a stale fetch response')
+  } finally { h.destroy() }
+})
+
+test('LinkPreview late metadata cannot overwrite a title restored to its request baseline', async () => {
+  let finish
+  const h = mount({
+    fetchMeta: () => new Promise(resolve => { finish = resolve }),
+  })
+  try {
+    h.input.value = 'https://vimeo.com/123456'
+    h.input.dispatch('keydown')
+    h.external({ ...h.model(), title: 'Temporary host title' })
+    h.external({ ...h.model(), title: '' })
+
+    finish({ title: 'Old fetched title', description: 'Fresh description' })
+    await Promise.resolve()
+    await Promise.resolve()
+    assert.equal(h.model().title, '',
+      'late metadata ignored host title changes that returned to the initial value')
+    assert.equal(h.model().description, 'Fresh description')
+  } finally { h.destroy() }
+})
