@@ -17,6 +17,20 @@ function assertDenseArray(value, label, { allowEmpty = true } = {}) {
   }
 }
 
+/** Read validated dense arrays by index; never invoke an extension's map or iterator.
+ * @template T,U
+ * @param {readonly T[]} array
+ * @param {(item:T,index:number)=>U} mapper
+ * @returns {U[]}
+ */
+function mapDenseArray(array, mapper) {
+  const result = []
+  for (let index = 0; index < array.length; index++) {
+    result.push(mapper(array[index], index))
+  }
+  return result
+}
+
 function validateType(type, label) {
   if (typeof type !== 'string' || type.length === 0) {
     throw new TypeError(`${label} type must be a non-empty string`)
@@ -59,17 +73,14 @@ function snapshotFormatting(source, label) {
     throw new TypeError(`${label} formatting capability must be an object`)
   }
   const inlineTools = source.inlineTools
-  if (inlineTools !== true) {
-    assertDenseArray(inlineTools, `${label} formatting inlineTools`)
-    for (const tool of inlineTools) {
-      if (typeof tool !== 'string' || !tool) {
-        throw new TypeError(`${label} formatting inlineTools must contain non-empty strings`)
-      }
+  if (inlineTools !== true) assertDenseArray(inlineTools, `${label} formatting inlineTools`)
+  const ownedTools = inlineTools === true ? true : Object.freeze(mapDenseArray(inlineTools, tool => {
+    if (typeof tool !== 'string' || !tool) {
+      throw new TypeError(`${label} formatting inlineTools must contain non-empty strings`)
     }
-  }
-  return Object.freeze({
-    inlineTools: inlineTools === true ? true : Object.freeze([...inlineTools]),
-  })
+    return tool
+  }))
+  return Object.freeze({ inlineTools: ownedTools })
 }
 
 function snapshotCapabilityObject(source, label, methods) {
@@ -197,7 +208,7 @@ function snapshotToolbox(source, label) {
   if (source === undefined) return undefined
   assertDenseArray(source, `${label} toolbox`)
   const ids = new Set()
-  return Object.freeze(source.map((item, index) => {
+  return Object.freeze(mapDenseArray(source, (item, index) => {
     if (!item || typeof item !== 'object' || Array.isArray(item)) {
       throw new TypeError(`${label} toolbox[${index}] must be an object`)
     }
@@ -243,14 +254,15 @@ function snapshotBlockDefinition(source) {
   if (typeof candidate.icon !== 'string') throw new TypeError(`Block definition "${candidate.type}" icon must be a string`)
   const styles = candidate.styles ?? []
   assertDenseArray(styles, `Block definition "${candidate.type}" styles`)
-  for (const url of styles) {
+  const ownedStyles = mapDenseArray(styles, url => {
     if (typeof url !== 'string') throw new TypeError(`Block definition "${candidate.type}" styles must be strings`)
-  }
+    return url
+  })
   return Object.freeze({
     type: candidate.type,
     label: snapshotLabel(candidate.label, `Block definition "${candidate.type}" label`),
     icon: candidate.icon,
-    styles: Object.freeze([...styles]),
+    styles: Object.freeze(ownedStyles),
     schema: snapshotSchema(candidate.schema, `Block definition "${candidate.type}"`, { richText: true }),
     ...(candidate.toolbox === undefined ? {} : { toolbox: snapshotToolbox(candidate.toolbox, `Block definition "${candidate.type}"`) }),
     ...(candidate.capabilities === undefined ? {} : { capabilities: snapshotCapabilities(candidate.capabilities, `Block definition "${candidate.type}"`) }),
@@ -278,9 +290,10 @@ function snapshotInlineDefinition(source) {
   if (typeof candidate.icon !== 'string') throw new TypeError(`Inline definition "${candidate.type}" icon must be a string`)
   const styles = candidate.styles ?? []
   assertDenseArray(styles, `Inline definition "${candidate.type}" styles`)
-  for (const url of styles) {
+  const ownedStyles = mapDenseArray(styles, url => {
     if (typeof url !== 'string') throw new TypeError(`Inline definition "${candidate.type}" styles must be strings`)
-  }
+    return url
+  })
 
   let trigger
   if (candidate.trigger !== undefined) {
@@ -297,7 +310,7 @@ function snapshotInlineDefinition(source) {
     }
     const patterns = candidate.paste.patterns
     assertDenseArray(patterns, `Inline definition "${candidate.type}" paste patterns`)
-    const ownedPatterns = patterns.map(pattern => {
+    const ownedPatterns = mapDenseArray(patterns, pattern => {
       if (!(pattern instanceof RegExp)) throw new TypeError('Inline paste patterns must be RegExp values')
       return new RegExp(pattern.source, pattern.flags)
     })
@@ -331,7 +344,7 @@ function snapshotInlineDefinition(source) {
     type: candidate.type,
     label: snapshotLabel(candidate.label, `Inline definition "${candidate.type}" label`),
     icon: candidate.icon,
-    styles: Object.freeze([...styles]),
+    styles: Object.freeze(ownedStyles),
     schema: snapshotSchema(candidate.schema, `Inline definition "${candidate.type}"`),
     ...(trigger === undefined ? {} : { trigger }),
     ...(paste ? { paste } : {}),
@@ -396,8 +409,8 @@ export class ExtensionRegistry {
       ? options.translate
       : (_key, fallback = '') => fallback
 
-    const blocks = options.blocks.map(snapshotBlockDefinition)
-    const inlines = inline.map(snapshotInlineDefinition)
+    const blocks = mapDenseArray(options.blocks, snapshotBlockDefinition)
+    const inlines = mapDenseArray(inline, snapshotInlineDefinition)
 
     for (const definition of blocks) {
       if (this.#blockDefinitions.has(definition.type)) {
