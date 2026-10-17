@@ -285,3 +285,18 @@ test('Embed drops a stale URL draft when the canonical video source is changed e
     assert.equal(h.model().videoId, '9bZkp7q19f0')
   } finally { h.destroy() }
 })
+
+test('Embed removes a now-irrelevant empty caption after its last video is cleared', () => {
+  const h = mount()
+  try {
+    const previous = caption(h.instance)
+    assert.equal(previous?.innerHTML, '')
+    h.external({ ...h.model(), service: '', videoId: '', caption: '' })
+
+    assert.equal(h.instance.element.querySelector('.oe-embed__caption'), null,
+      'cleared video retained a caption editor that must not exist for an empty Embed')
+    assert.equal(caption(h.instance), undefined,
+      'empty Embed still advertised a stale editable caption')
+    assert.equal(h.instance.read().caption, '')
+  } finally { h.destroy() }
+})
