@@ -87,3 +87,14 @@ npm run docs:check
 ```
 
 Additionally test real system IME in Chromium/Firefox/WebKit, compositionend/final-input ordering, deliberate URL replacement during composition, async metadata races under Undo/Redo, and the v1/v2 single-step history scenario. Until these run and remaining parity items are resolved, whole-library release stability must remain **unverified**.
+
+
+## Additional verification — end-to-end runner limitation
+
+A focused Node/V8 adapter executes the **actual production plugin source** plus the **committed test bodies** from:
+- `plugins/link-preview/input-lifetime.test.js` — 16/16 checks (11 preceding lifetime/restore scenarios, 3 IME cases, 2 ABA metadata cases).
+- `plugins/embed/reconciliation.test.js` — 9/9 checks (6 preceding ownership/URL cases, 3 IME cases).
+
+The adapter intentionally stubs DOM layout, URL validation helpers, plugin panels and network/runtime dependencies. The registered browser scenarios in `tests/browser/native-plugin-parity.js` and `tests/browser/native-plugin-media.js` passed independent JavaScript syntax parsing after stripping imports for the check, but they were **not run in the real browser**.
+
+The full `npm test`, project TypeScript 5.9.3 gate, browser runner, installed-package consumer, heap/IME/multirealm checks and complete v1/v2 gesture matrix have **not** run on this HEAD. The remaining LinkPreview URL/metadata single-step Undo/Redo difference from v1 remains unresolved; no claim of full functional parity should be made.
