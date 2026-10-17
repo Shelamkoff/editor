@@ -300,3 +300,71 @@ test('reentry from outside-listener removal retains successor ownership', async 
   assert.deepEqual(destroyed, ['old', 'successor'])
   host.destroy()
 })
+
+test('observer teardown failure still releases popup and invokes author cleanup once', () => {
+  const { root, anchor, host, create } = fixture()
+  const originalCtor = root.ownerDocument.defaultView.MutationObserver
+  let disconnected = 0
+  root.ownerDocument.defaultView.MutationObserver = class {
+    observe() {}
+    disconnect() {
+      disconnected++
+      throw new Error('observer disconnect failed')
+    }
+  }
+  const released = []
+  try {
+    const handle = host.showPopup('owner', anchor, create(), () => released.push('cleanup'))
+    assert.equal(root.children.length, 2)
+    assert.doesNotThrow(() => handle.close(),
+      'a faulty observer turned normal popup disposal into a thrown editor error')
+    assert.equal(disconnected, 1)
+    assert.deepEqual(root.children, [anchor],
+      'observer failure left a transient popup attached to the editor')
+    assert.deepEqual(released, ['cleanup'])
+    handle.close()
+    host.destroy()
+    assert.deepEqual(released, ['cleanup'])
+  } finally {
+    root.ownerDocument.defaultView.MutationObserver = originalCtor
+  }
+})
+
+test('outside-listener removal failure does not strand the popup or author cleanup', async () => {
+  const { root, anchor, host, create } = fixture()
+  const released = []
+  const document = root.ownerDocument
+  const originalRemove = document.removeEventListener
+  document.removeEventListener = () => { throw new Error('outside handler removal failed') }
+  try {
+    host.showPopup('owner', anchor, create(), () => released.push('cleanup'))
+    await Promise.resolve()
+    assert.equal(root.children.length, 2)
+    assert.doesNotThrow(() => host.hidePopup())
+    assert.deepEqual(root.children, [anchor],
+      'listener error left the old presentation mounted')
+    assert.deepEqual(released, ['cleanup'])
+    host.destroy()
+    assert.deepEqual(released, ['cleanup'])
+  } finally {
+    document.removeEventListener = originalRemove
+  }
+})
+
+test('popup cleanup must not remove a surface adopted by another application root', () => {
+  const { root, anchor, host, create } = fixture()
+  const releases = []
+  const handle = host.showPopup('owner', anchor, create(), () => releases.push('owner'))
+  const surface = root.children[1]
+  const outside = create()
+  outside.isRoot = true
+  outside.appendChild(surface)
+  assert.equal(surface.parentNode, outside)
+  handle.close()
+  assert.deepEqual(root.children, [anchor])
+  assert.deepEqual(outside.children, [surface],
+    'retired popup stole a surface another root had adopted')
+  assert.deepEqual(releases, ['owner'])
+  host.destroy()
+  assert.deepEqual(outside.children, [surface])
+})
