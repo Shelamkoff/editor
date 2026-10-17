@@ -969,4 +969,52 @@ test('Gallery identical and style-removal updates do not replace the focused cap
   equal(gap?.value, '', 'Gallery hidden settings did not clear the removed gap')
 })
 
+
+test('Carousel inactive slide caption changes preserve active editing and settings', async () => {
+  const fixture = pluginParityFixtures.find(entry => entry.name === 'Carousel')
+  const editor = pluginEditor({ ...fixture, data: {
+    ...fixture.data,
+    slides: [
+      { id: 'first', type: 'image', src: pixel, alt: '', caption: 'Alpha' },
+      { id: 'second', type: 'image', src: pixel, alt: 'Second', caption: 'Bravo' },
+    ],
+  } })
+  const field = focusedField(editor, { key: 'slide:first:caption' }, 2)
+  const before = editor.save().blocks
+  editor.blocks.update('a', current => ({ data: {
+    ...current.data,
+    slides: current.data.slides.map(slide => slide.id === 'second'
+      ? { ...slide, caption: 'Updated caption' } : slide),
+  } }))
+  const after = editor.save().blocks
+  equal(document.activeElement, field, 'Carousel replaced the focused caption for an inactive slide update')
+  checkFieldCaret(field, 2)
+  const picker = blockElement(editor, 'a').querySelector('.oe-carousel-block__slide-select')
+  const secondOption = [...picker.options].find(option => option.value === 'second')
+  equal(secondOption?.textContent, '2 · Updated caption',
+    'Carousel hidden settings picker kept the old inactive slide caption')
+  await printable('X')
+  equal(editor.save().blocks[0].data.slides[0].caption, 'AlXpha',
+    'Carousel typed into an obsolete editing field')
+  checkFieldCaret(field, 3)
+  equal(editor.undo(), true)
+  equal(editor.save().blocks, after)
+  equal(editor.undo(), true)
+  equal(editor.save().blocks, before)
+})
+
+test('Carousel active slide changes still redraw authoring data', async () => {
+  const fixture = pluginParityFixtures.find(entry => entry.name === 'Carousel')
+  const editor = pluginEditor(fixture)
+  const field = focusedField(editor, { key: 'slide:first:caption' }, 2)
+  editor.blocks.update('a', current => ({ data: {
+    ...current.data,
+    slides: current.data.slides.map(slide => ({ ...slide, caption: 'Replaced author text' })),
+  } }))
+  const next = blockElement(editor, 'a').querySelector('.oe-carousel-block__caption')
+  assert(next !== field, 'active caption change failed to reproject author text')
+  equal(next.textContent, 'Replaced author text')
+  equal(editor.save().blocks[0].data.slides[0].caption, 'Replaced author text')
+})
+
 await run()
