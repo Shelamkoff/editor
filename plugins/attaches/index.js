@@ -519,7 +519,12 @@ export function createAttachesPlugin(config={}){
             element:wrapper,
             read:()=>({
               variant:data.variant,
-              files:data.files.map(file=>({...file,name:nameFields.get(file.id)?.textContent?.trim()||file.name})),
+              files:data.files.map(file=>{
+                const field=nameFields.get(file.id)
+                // An intentionally blank native name is author data, not a
+                // request to restore the plugin's older local snapshot.
+                return {...file,name:field?(field.textContent?.trim()??''):file.name}
+              }),
             }),
             update(next){if(!dead&&!reconcileNames(next))project(next)},
             editableFields:()=>Object.freeze(data.files.flatMap(file=>{
