@@ -68,3 +68,23 @@ test('ImageUploader rejects unsafe URLs without calling the application', async 
   await pending
   assert.equal(calls, 0)
 })
+
+test('ImageUploader abort settles and releases callbacks when FileReader emits no onabort', async () => {
+  const { readers, document, file, controller } = controlledFileReader()
+  const uploader = new ImageUploader({})
+  let applied = 0
+  const pending = uploader.handle(file, () => { applied++ }, controller.signal, document)
+  const reader = readers[0]
+  let aborted = 0
+  reader.abort = () => { aborted++ }
+  const captured = reader.onload
+  const actual = await observeCompletion(pending, () => controller.abort())
+  assert.deepEqual(actual, { status: 'fulfilled', rejection: undefined, eventError: undefined },
+    'canceled image upload remained pending when native reader omitted onabort')
+  assert.equal(aborted, 1)
+  assert.equal(applied, 0)
+  assert.equal(getEventListeners(controller.signal, 'abort').length, 0)
+  assert.deepEqual([reader.onload, reader.onerror, reader.onabort], [null, null, null])
+  captured?.()
+  assert.equal(applied, 0)
+})
