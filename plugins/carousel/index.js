@@ -64,13 +64,15 @@ function carouselLabel(key,fallback){
  * Render model-first Carousel settings. The panel reads and writes canonical
  * CarouselData only; it never treats the mounted block DOM as persistence.
  * @param {import('../../plugin-kit/types').SettingsPanelContext<any>} context
- * @param {{initialSlideId?:string,onSlideSelected?:(id:string)=>void}} [options]
+ * @param {{initialSlideId?:string,onSlideSelected?:(id:string)=>void,signal?:AbortSignal}} [options]
  */
-function renderCarouselSettings(context,{initialSlideId,onSlideSelected}={}){
+function renderCarouselSettings(context,{initialSlideId,onSlideSelected,signal}={}){
   const document=context.ownerDocument
   const root=document.createElement('div')
   root.className='oe-carousel-block__settings-panel'
   let selectedId=initialSlideId??context.getData().slides[0]?.id??''
+  const AbortControllerCtor=document.defaultView?.AbortController??AbortController
+  let controls=null
 
   const commit=producer=>{
     context.updateData(producer)
@@ -91,12 +93,16 @@ function renderCarouselSettings(context,{initialSlideId,onSlideSelected}={}){
     }
     input.value=value
     if(placeholder)input.placeholder=placeholder
-    input.addEventListener('change',()=>onChange(input.value,input))
+    input.addEventListener('change',()=>onChange(input.value,input),{signal:controls.signal})
     wrapper.append(text,input)
     return {wrapper,input}
   }
 
   const render=()=>{
+    // A regenerated settings form must revoke obsolete input callbacks.
+    controls?.abort()
+    controls=new AbortControllerCtor()
+    if(signal?.aborted)controls.abort()
     const data=context.getData()
     root.replaceChildren()
     if(!data.slides.length){
@@ -127,7 +133,7 @@ function renderCarouselSettings(context,{initialSlideId,onSlideSelected}={}){
       option.selected=item.id===slide.id
       select.appendChild(option)
     })
-    select.addEventListener('change',()=>{selectedId=select.value;onSlideSelected?.(selectedId);render()})
+    select.addEventListener('change',()=>{selectedId=select.value;onSlideSelected?.(selectedId);render()},{signal:controls.signal})
     slidePicker.append(pickerLabel,select)
     root.appendChild(slidePicker)
 
@@ -218,7 +224,7 @@ function renderCarouselSettings(context,{initialSlideId,onSlideSelected}={}){
       input.addEventListener('change',()=>commit(current=>({
         ...current,
         options:{...current.options,[key]:input.checked},
-      })))
+      })),{signal:controls.signal})
       line.append(text,input)
       switches.appendChild(line)
     }
@@ -261,6 +267,7 @@ function renderCarouselSettings(context,{initialSlideId,onSlideSelected}={}){
   }
 
   render()
+  if(signal&&!signal.aborted)signal.addEventListener('abort',()=>controls?.abort(),{once:true})
   return root
 }
 
@@ -692,7 +699,7 @@ export function createCarouselPlugin(config={}){
                   wrapper.focus({preventScroll:true})
                   return retainControlFocus(wrapper,()=>context.updateData(producer))
                 },
-              },{initialSlideId:settingsSlideId??slide.id,onSlideSelected:id=>{settingsSlideId=id}}))
+              },{initialSlideId:settingsSlideId??slide.id,onSlideSelected:id=>{settingsSlideId=id},signal:viewSignal}))
               const settingsLayer=createPluginLayer(wrapper,viewSignal)
               const positioner=createPluginPanelPositioner(panel,dropdown,{signal:viewSignal,preferAbove:true})
               const setOpen=open=>{
