@@ -93,8 +93,11 @@ export function prepareSettingsActions(runtime, capability, data, context, fallb
     return Object.freeze({
       label: localize(group, 'Settings group label'),
       actions: Object.freeze(actions),
-      apply: (current, actionId, operationContext) => synchronousResult(
-        Reflect.apply(applyMethod, capability, [current, actionId, operationContext]),
+      // Applying a settings action is still author-defined preparation,
+      // even when the caller invokes this snapshot from a model producer.
+      // Keep the callback AND its thenable inspection inside that boundary.
+      apply: (current, actionId, operationContext) => runtime.prepareExtensionValue(() =>
+        synchronousResult(Reflect.apply(applyMethod, capability, [current, actionId, operationContext])),
       ),
     })
   })
