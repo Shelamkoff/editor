@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { openSourceEditor } from './sourceEditor.js'
+import { openSourceEditor, preloadSourceEditor } from './sourceEditor.js'
 
 // A detached owning-document DOM with real AbortSignal listener semantics.
 // Tests exercise the exported editor actions rather than their private cache.
@@ -231,4 +231,49 @@ test('a focus-triggered successor cannot be overwritten by an older opening requ
     'the newest reentrant source editor was hidden')
   await Promise.resolve()
   h.controller.abort()
+})
+
+
+test('reparented preloaded source surface is not removed from a foreign host on refresh', () => {
+  const h = fixture()
+  preloadSourceEditor(h.wrapper, h.controller.signal, ['url'])
+  const old = h.surface('url')
+  assert.ok(old)
+  const foreign = new Node(h.document, 'section')
+  foreign.appendChild(old)
+  assert.equal(old.parentNode, foreign)
+
+  preloadSourceEditor(h.wrapper, h.controller.signal, ['url'])
+  const replacement = h.surface('url')
+  assert.ok(replacement && replacement !== old,
+    'source editor failed to rebuild its own replacement')
+  assert.equal(foreign.contains(old), true,
+    'SourceEditor removed a DOM node now owned by another host')
+  assert.equal(old.parentNode, foreign)
+  h.controller.abort()
+})
+
+test('reparented source surface survives original owner abort', () => {
+  const h = fixture()
+  preloadSourceEditor(h.wrapper, h.controller.signal, ['html'])
+  const old = h.surface('html')
+  assert.ok(old)
+  const foreign = new Node(h.document, 'section')
+  foreign.appendChild(old)
+
+  h.controller.abort()
+  assert.equal(foreign.contains(old), true,
+    'aborted source owner removed a surface in a foreign host')
+  assert.equal(old.parentNode, foreign)
+})
+
+test('owner abort still removes source surfaces remaining in the original wrapper', () => {
+  const h = fixture()
+  preloadSourceEditor(h.wrapper, h.controller.signal, ['url', 'html'])
+  const url = h.surface('url')
+  const html = h.surface('html')
+  h.controller.abort()
+  assert.equal(url.parentNode, null)
+  assert.equal(html.parentNode, null)
+  assert.deepEqual(h.wrapper.children, [])
 })
