@@ -439,6 +439,7 @@ export function createEditorRuntime(input){
     view,
     crossSelection,
     inlineCommands,
+    isComposing:()=>nativeInput.isComposing,
     diagnostics,
   }))
 
