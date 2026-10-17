@@ -1488,4 +1488,43 @@ test('Image retired settings inputs cannot overwrite canonical styles or toggles
   equal(editor.save().blocks[0].data.expanded, true)
 })
 
+
+test('Gallery retired settings controls cannot mutate refreshed canonical data', async () => {
+  const fixture = pluginParityFixtures.find(item => item.name === 'Gallery')
+  const editor = pluginEditor(fixture)
+  const root = () => blockElement(editor, 'a')
+  const gapField = () => [...root().querySelectorAll('.oe-gallery__style-form label')]
+    .find(label => label.querySelector('span')?.textContent === 'Gap')
+    ?.querySelector('input')
+  const oldGap = gapField()
+  const oldLayout = root().querySelector('.oe-gallery__layout-btn[data-layout="2"]')
+  assert(oldGap && oldLayout, 'Gallery settings are missing expected controls')
+
+  editor.blocks.update('a', current => ({ data: {
+    ...current.data,
+    images: current.data.images.map(image => image.id === 'second'
+      ? { ...image, caption: 'Updated sibling' } : image),
+    styles: { ...current.data.styles, gap: '12px' },
+  } }))
+  const afterHostUpdate = editor.save().blocks
+  equal(gapField()?.value, '12px')
+  assert(gapField() !== oldGap, 'Gallery full projection did not retire its previous settings')
+  oldGap.value = '999px'
+  oldGap.dispatchEvent(new Event('change', { bubbles: true }))
+  oldLayout.click()
+  equal(editor.save().blocks, afterHostUpdate,
+    'retired Gallery controls modified the current authoring model')
+
+  const currentGap = gapField()
+  currentGap.value = '18px'
+  currentGap.dispatchEvent(new Event('change', { bubbles: true }))
+  equal(editor.save().blocks[0].data.styles.gap, '18px')
+  const currentLayout = root().querySelector('.oe-gallery__layout-btn[data-layout="2"]')
+  assert(currentLayout && currentLayout !== oldLayout)
+  currentLayout.click()
+  equal(editor.save().blocks[0].data.layout, '2')
+  equal(editor.undo(), true)
+  equal(editor.save().blocks[0].data.layout, afterHostUpdate[0].data.layout)
+})
+
 await run()
