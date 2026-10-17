@@ -66,7 +66,16 @@ class FakeElement {
       if (index >= 0) current.splice(index, 1)
     }, { once: true })
   }
-  dispatch(type) { for (const listener of [...(this.listeners.get(type) ?? [])]) listener({ type, target: this, stopPropagation() {}, preventDefault() {} }) }
+  dispatch(type, details = {}) {
+    const event = {
+      type, target: this, defaultPrevented: false,
+      stopPropagation() {},
+      preventDefault() { this.defaultPrevented = true },
+      ...details,
+    }
+    for (const listener of [...(this.listeners.get(type) ?? [])]) listener(event)
+    return event
+  }
   setAttribute(name, value) { this.attributes[name] = String(value) }
   getAttribute(name) {
     if (name === 'data-person-id') return this.dataset.personId ?? null
@@ -254,5 +263,47 @@ test('Person reflects committed native text after read-only transition', () => {
   instance.setReadOnly(false)
   assert.equal(instance.editableFields().find(field => field.key === 'person:a:bio').element.textContent,
     'Native committed content')
+  instance.destroy()
+})
+
+
+test('Person cancels a drag when its tab projection is replaced', () => {
+  const { instance } = mount()
+  const tabs = instance.element.children[0]
+  const original = tabs.children.find(tab => tab.dataset.personId === 'a')
+  const started = original.dispatch('dragstart', {
+    dataTransfer: { setData() {}, effectAllowed: '' },
+  })
+  assert.equal(started.defaultPrevented, false, 'starting an ordinary tab drag failed')
+
+  const next = input()
+  next.persons[1].role = 'Writer'
+  instance.update(next)
+  const replacement = tabs.children.find(tab => tab.dataset.personId === 'b')
+  assert.notEqual(replacement, original)
+  const hovered = replacement.dispatch('dragover')
+  assert.equal(hovered.defaultPrevented, false,
+    'newly projected tabs accepted a stale drag from a detached predecessor')
+  const dropped = replacement.dispatch('drop')
+  assert.equal(dropped.defaultPrevented, false,
+    'a detached tab started a ghost reorder in the replacement view')
+  assert.deepEqual(instance.read().persons.map(person => person.id), ['a', 'b'])
+  instance.destroy()
+})
+
+test('Person accepts a fresh drag in the current tab projection', () => {
+  const { instance } = mount()
+  const tabs = instance.element.children[0]
+  const next = input()
+  next.persons[1].role = 'Writer'
+  instance.update(next)
+  const tabA = tabs.children.find(tab => tab.dataset.personId === 'a')
+  const tabB = tabs.children.find(tab => tab.dataset.personId === 'b')
+  tabA.dispatch('dragstart', { dataTransfer: { setData() {}, effectAllowed: '' } })
+  assert.equal(tabB.dispatch('dragover').defaultPrevented, true,
+    'new tab projection cannot begin a legitimate drag')
+  tabA.dispatch('dragend')
+  assert.equal(tabB.dispatch('dragover').defaultPrevented, false,
+    'completed tab drag retained obsolete drag authority')
   instance.destroy()
 })
