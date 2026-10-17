@@ -70,3 +70,49 @@ test('schema decode never observes symbol getters or inherited extension metadat
   })
   assert.deepEqual(target.decode(input), { dataVersion: 1, data: { value: 'ok' } })
 })
+
+test('schema default round trip accepts nested JSON object reordering', () => {
+  const original = {
+    a: 1,
+    nested: { first: true, last: false },
+    list: [{ id: 'a', value: 2 }, { id: 'b', value: 3 }],
+  }
+  const snapshot = snapshotDataSchema({
+    currentVersion: 1,
+    createDefault() { return original },
+    encode(data) { return { dataVersion: 1, data } },
+    decode(input) {
+      const value = input.data
+      return {
+        dataVersion: 1,
+        data: {
+          list: value.list.map(item => ({ value: item.value, id: item.id })),
+          nested: { last: value.nested.last, first: value.nested.first },
+          a: value.a,
+        },
+      }
+    },
+  }, 'Probe')
+  assert.deepEqual(snapshot.createDefault(), original)
+  assert.deepEqual(snapshot.encode(snapshot.createDefault()).data, original)
+})
+
+test('schema default round trip must still reject changed array element order', () => {
+  assert.throws(() => snapshotDataSchema({
+    currentVersion: 1,
+    createDefault() { return { items: [{ id: 'a' }, { id: 'b' }] } },
+    encode(data) { return { dataVersion: 1, data } },
+    decode(input) {
+      return { dataVersion: 1, data: { items: [...input.data.items].reverse() } }
+    },
+  }, 'Probe'), /round-trip/)
+})
+
+test('schema default round trip must still reject a changed nested property', () => {
+  assert.throws(() => snapshotDataSchema({
+    currentVersion: 1,
+    createDefault() { return { profile: { a: 1, b: 2 } } },
+    encode(data) { return { dataVersion: 1, data } },
+    decode() { return { dataVersion: 1, data: { profile: { a: 1, b: 3 } } } },
+  }, 'Probe'), /round-trip/)
+})
