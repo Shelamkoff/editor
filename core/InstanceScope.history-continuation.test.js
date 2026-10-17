@@ -34,7 +34,7 @@ test('DataTask captures the revision at acquisition and forwards a one-shot fiel
 })
 
 test('DataTask without an explicit history continuation preserves ordinary updates', () => {
-  const scope = new InstanceScope({ staged: false })
+  const scope = new InstanceScope({ staged: false, generation: 1 })
   const updates = []
   scope.configure({ currentGeneration: () => 1, currentRevision: () => 3 })
   const context = scope.createAuthority({
