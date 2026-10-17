@@ -132,6 +132,11 @@ export function createPersonPlugin(config={}){
           const avatarTasks=new Map()
           let cropperDialog=null
           let cropperTask=null
+          // Tabs repaint independently of the active editing body.
+          // Dispose each projection's event handlers without revoking the other.
+          const AbortControllerCtor=document.defaultView?.AbortController??AbortController
+          let tabsController=null
+          let bodyController=null
 
           const activePerson=()=>data.persons.find(person=>person.id===activeId)??data.persons[0]
 
@@ -250,6 +255,8 @@ export function createPersonPlugin(config={}){
           }
 
           const renderTabs=()=>{
+            tabsController?.abort()
+            tabsController=new AbortControllerCtor()
             tabs.replaceChildren()
             for(const [index,person] of data.persons.entries()){
               const tab=document.createElement('div')
@@ -283,7 +290,7 @@ export function createPersonPlugin(config={}){
                 activeId=person.id
                 render()
                 wrapper.focus({preventScroll:true})
-              },{signal:context.signal})
+              },{signal:tabsController.signal})
               tab.appendChild(select)
               if(!readOnly&&data.persons.length>1){
                 const remove=document.createElement('button')
@@ -296,7 +303,7 @@ export function createPersonPlugin(config={}){
                   const remaining=data.persons.filter(item=>item.id!==person.id)
                   const nextActiveId=activeId===person.id?remaining[Math.min(index,remaining.length-1)]?.id??'':activeId
                   commit(current=>({persons:current.persons.filter(item=>item.id!==person.id)}),nextActiveId)
-                },{signal:context.signal})
+                },{signal:tabsController.signal})
                 tab.appendChild(remove)
               }
               tab.addEventListener('dragstart',event=>{
@@ -305,20 +312,20 @@ export function createPersonPlugin(config={}){
                 tab.classList.add('oe-person__tab--dragging')
                 event.dataTransfer?.setData('text/plain',person.id)
                 if(event.dataTransfer)event.dataTransfer.effectAllowed='move'
-              },{signal:context.signal})
+              },{signal:tabsController.signal})
               tab.addEventListener('dragend',()=>{
                 dragId=null
                 tab.classList.remove('oe-person__tab--dragging')
                 for(const target of tabs.children)target.classList.remove('oe-person__tab--dragover')
-              },{signal:context.signal})
+              },{signal:tabsController.signal})
               tab.addEventListener('dragover',event=>{
                 if(readOnly||!dragId||dragId===person.id)return
                 event.preventDefault()
                 tab.classList.add('oe-person__tab--dragover')
-              },{signal:context.signal})
+              },{signal:tabsController.signal})
               tab.addEventListener('dragleave',()=>{
                 tab.classList.remove('oe-person__tab--dragover')
-              },{signal:context.signal})
+              },{signal:tabsController.signal})
               tab.addEventListener('drop',event=>{
                 tab.classList.remove('oe-person__tab--dragover')
                 if(readOnly||!dragId||dragId===person.id)return
@@ -334,7 +341,7 @@ export function createPersonPlugin(config={}){
                   persons.splice(toIndex,0,moved)
                   return {persons}
                 })
-              },{signal:context.signal})
+              },{signal:tabsController.signal})
               tabs.appendChild(tab)
             }
             if(!readOnly){
@@ -348,7 +355,7 @@ export function createPersonPlugin(config={}){
                 commit(current=>({
                   persons:[...current.persons,{id,avatar:'',name:'',role:'',bio:'',links:[]}],
                 }),id)
-              },{signal:context.signal})
+              },{signal:tabsController.signal})
               tabs.appendChild(add)
             }
           }
@@ -372,11 +379,11 @@ export function createPersonPlugin(config={}){
                 event.preventDefault()
                 event.stopPropagation()
               }
-            },{signal:context.signal})
+            },{signal:bodyController.signal})
             input.addEventListener('input',()=>{
               const current=resolveSocialIcon(input.value,snapshot.socialResolvers)
               setTrustedHtml(icon,current.icon||SOCIAL_ICONS.website||'')
-            },{signal:context.signal})
+            },{signal:bodyController.signal})
             row.append(icon,input)
             if(!readOnly){
               const remove=document.createElement('button')
@@ -390,13 +397,15 @@ export function createPersonPlugin(config={}){
                     ?{...item,links:item.links.filter(candidate=>candidate.id!==link.id)}
                     :item),
                 }))
-              },{signal:context.signal})
+              },{signal:bodyController.signal})
               row.appendChild(remove)
             }
             return row
           }
 
           const renderBody=()=>{
+            bodyController?.abort()
+            bodyController=new AbortControllerCtor()
             body.replaceChildren()
             const person=activePerson()
             if(!person)return
@@ -423,7 +432,7 @@ export function createPersonPlugin(config={}){
               upload.className='oe-person__avatar-upload'
               setTrustedHtml(upload,CAMERA)
               upload.setAttribute('aria-label',runtimeContext.t('uploadAvatar','Upload avatar'))
-              upload.addEventListener('click',()=>selectAvatar(person.id),{signal:context.signal})
+              upload.addEventListener('click',()=>selectAvatar(person.id),{signal:bodyController.signal})
               avatarWrap.appendChild(upload)
             }
 
@@ -439,7 +448,7 @@ export function createPersonPlugin(config={}){
               // Resolve the live label, never a detached earlier tab node.
               const tabLabel=[...tabs.children].find(tab=>tab.getAttribute('data-person-id')===person.id)?.querySelector('.oe-person__tab-label')
               if(tabLabel)tabLabel.textContent=name.textContent.trim()||runtimeContext.t('fallbackName','Person {number}',{number:data.persons.findIndex(item=>item.id===person.id)+1})
-            },{signal:context.signal})
+            },{signal:bodyController.signal})
 
             const role=document.createElement('div')
             role.className='oe-person__role'
@@ -468,7 +477,7 @@ export function createPersonPlugin(config={}){
                     ?{...item,links:[...item.links,{id,type:'website',url:''}]}
                     :item),
                 }))
-              },{signal:context.signal})
+              },{signal:bodyController.signal})
               links.appendChild(addLink)
             }
 
@@ -548,6 +557,8 @@ export function createPersonPlugin(config={}){
             },
             destroy(){
               dead=true
+              tabsController?.abort()
+              bodyController?.abort()
               cropperDialog?.destroy()
               for(const task of avatarTasks.values())task.cancel()
               avatarTasks.clear()
