@@ -7,7 +7,7 @@ import { cloneEditorData } from '../shared/cloneEditorData.js'
 import defaultLocale from './locale/en.js'
 import { acquireStyleUrls } from '../shared/styleRegistry.js'
 import { normalizeTextAlign } from '../shared/textFormat.js'
-import { documentValidationIssue } from '../shared/documentValidationIssue.js'
+import { documentValidationIssue, markDocumentValidationFailure } from '../shared/documentValidationIssue.js'
 import { synchronousResult } from '../shared/synchronousResult.js'
 
 const baseCssUrl = new URL('./styles/base.css', import.meta.url).href
@@ -187,6 +187,80 @@ export class EditorRenderer {
     }
   }
 
+  /** Version admission never inspects block.data or inline payloads.
+   * The revision fast path still skips deep data for a reused block.
+   * @param {import('./types').OutputBlockData} block
+   * @param {object} validationSource
+   */
+  #assertBlockVersion(block, validationSource) {
+    const renderer = this.#renderers.get(block.type)
+    if (!renderer || block.dataVersion === renderer.schema.currentVersion) return
+    const error = markDocumentValidationFailure(
+      new RangeError(`Unsupported block "${block.type}" data version ${block.dataVersion}; current version is ${renderer.schema.currentVersion}`),
+      { reason: 'unsupported-data-version', blockId: block.id, type: block.type },
+    )
+    this.#rejectBlockSchema(block, validationSource, error)
+  }
+
+  /** Report one rejected current-schema block before rejecting the operation.
+   * @param {import('./types').OutputBlockData} block
+   * @param {object} validationSource
+   * @param {unknown} error
+   * @returns {never}
+   */
+  #rejectBlockSchema(block, validationSource, error) {
+    const issue = Object.freeze({ blockId: block.id, type: block.type, reason: documentValidationIssue(error)?.reason ?? 'invalid-data' })
+    const observer = this.#config.onValidationError
+    if (typeof observer === 'function' && !this.#reportingValidation.has(validationSource)) {
+      this.#reportingValidation.add(validationSource)
+      let result
+      try {
+        result = observer(issue)
+      } catch (failure) {
+        this.#reportingValidation.delete(validationSource)
+        console.warn('[EditorRenderer] Validation observer failed:', failure)
+      }
+      let then
+      try {
+        then = result && /** @type {any} */ (result).then
+      } catch (failure) {
+        this.#reportingValidation.delete(validationSource)
+        console.warn('[EditorRenderer] Validation observer failed:', failure)
+        then = null
+      }
+      if (typeof then === 'function') {
+        new Promise((resolve, reject) => Reflect.apply(then, result, [resolve, reject]))
+          .catch(failure => console.warn('[EditorRenderer] Validation observer failed:', failure))
+          .finally(() => this.#reportingValidation.delete(validationSource))
+      } else {
+        this.#reportingValidation.delete(validationSource)
+      }
+    }
+    const invalid = new InvalidBlockDataError(block.type, 'Block data does not match its current schema', block.id)
+    invalid.cause = error
+    throw invalid
+  }
+
+  /** Admit all registered versions before deep-owning any unrevisioned block.
+   * A callback for an earlier block cannot mutate the later candidate's data
+   * after this snapshot; revisioned blocks retain their O(1) reuse contract.
+   * @param {import('./types').OutputBlockData[]} blocks
+   */
+  #prepareDocumentBlocks(blocks) {
+    for (const block of blocks) {
+      this.#assertBlockVersion(block, /** @type {any} */ (block)[validationSourceKey] ?? block)
+    }
+    return blocks.map(block => {
+      if (typeof block.revision === 'string' || typeof block.revision === 'number') return block
+      const snapshot = cloneEditorData(block)
+      Object.defineProperty(snapshot, validationSourceKey, {
+        value: /** @type {any} */ (block)[validationSourceKey] ?? block,
+        enumerable: false,
+      })
+      return snapshot
+    })
+  }
+
   /**
    * Create a block together with the exact renderer that owns its resources.
    * Internal aggregate rendering uses this method so ownership is registered
@@ -197,11 +271,9 @@ export class EditorRenderer {
    * @returns {{ element: HTMLElement, type: string, renderer?: import('./types').BlockRendererDefinition }}
    */
   #createRenderedBlock(block, ownerDocument, validationSource = /** @type {any} */ (block)[validationSourceKey] ?? block) {
-    // Keep the caller-owned identity even through aggregate/signature clones.
-    // Rendering still clones before any renderer or validator can observe data.
-    // A block crosses the public rendering boundary only when it is actually
-    // rendered. This preserves O(1) reuse for equal producer revisions while
-    // ensuring custom/default renderers never observe caller-owned JSON data.
+    // Reject a registered version mismatch before traversing opaque data.
+    // Only admitted content crosses the deep JSON ownership boundary.
+    this.#assertBlockVersion(block, validationSource)
     block = cloneEditorData(block)
     const renderer = this.#renderers.get(block.type)
 
@@ -229,36 +301,7 @@ export class EditorRenderer {
         data: decoded.data,
       }
     } catch (error) {
-      const issue = Object.freeze({ blockId: block.id, type: block.type, reason: documentValidationIssue(error)?.reason ?? 'invalid-data' })
-      const observer = this.#config.onValidationError
-      if (typeof observer === 'function' && !this.#reportingValidation.has(validationSource)) {
-        this.#reportingValidation.add(validationSource)
-        let result
-        try {
-          result = observer(issue)
-        } catch (error) {
-          this.#reportingValidation.delete(validationSource)
-          console.warn('[EditorRenderer] Validation observer failed:', error)
-        }
-        let then
-        try {
-          then = result && /** @type {any} */ (result).then
-        } catch (error) {
-          this.#reportingValidation.delete(validationSource)
-          console.warn('[EditorRenderer] Validation observer failed:', error)
-          then = null
-        }
-        if (typeof then === 'function') {
-          new Promise((resolve, reject) => then.call(result, resolve, reject))
-            .catch(error => console.warn('[EditorRenderer] Validation observer failed:', error))
-            .finally(() => this.#reportingValidation.delete(validationSource))
-        } else {
-          this.#reportingValidation.delete(validationSource)
-        }
-      }
-      const invalid = new InvalidBlockDataError(block.type, 'Block data does not match its current schema', block.id)
-      invalid.cause = error
-      throw invalid
+      this.#rejectBlockSchema(block, validationSource, error)
     }
 
     // Sanitize document HTML first, then mount schema-decoded widget DOM.
@@ -320,8 +363,8 @@ export class EditorRenderer {
     /** @type {Array<{ element: HTMLElement, type: string, renderer?: import('./types').BlockRendererDefinition }>} */
     const created = []
     try {
-      const blocks = data.blocks
-      if (blocks?.length) {
+      const blocks = this.#prepareDocumentBlocks(data.blocks ?? [])
+      if (blocks.length) {
         for (const block of blocks) {
           const entry = this.#createRenderedBlock(block, ownerDocument)
           created.push(entry)
@@ -414,16 +457,12 @@ export class EditorRenderer {
       const occurrences = new Map()
 
       try {
-        const blocks = data.blocks ?? []
+        const blocks = this.#prepareDocumentBlocks(data.blocks ?? [])
         for (let index = 0; index < blocks.length; index++) {
           const block = blocks[index]
-          const hasProducerRevision = typeof block.revision === 'string' || typeof block.revision === 'number'
-          // Plain JSON compatibility mode already pays for a deep signature.
-          // Take ownership first so accessor-backed input is observed exactly
-          // once; the later render clone then reads only our plain snapshot.
-          // Producer revisions keep the O(1) fast path and deliberately avoid
-          // touching deep content when the authoritative revision is unchanged.
-          const signatureBlock = hasProducerRevision ? block : cloneEditorData(block)
+          // All unrevisioned blocks were captured before any renderer callback.
+          // Producer revisions still avoid deep reads when unchanged.
+          const signatureBlock = block
           const baseKey = signatureBlock.id ? 'id:' + signatureBlock.id : 'index:' + index
           const occurrence = occurrences.get(baseKey) ?? 0
           occurrences.set(baseKey, occurrence + 1)
