@@ -312,7 +312,12 @@ export function createLinkPreviewPlugin(config={}){
             },
             update(next){if(!dead)project(next)},
             editableFields:()=>Object.freeze([Object.freeze({key:'url',element:input,mode:/** @type {'plain-text'} */('plain-text')})]),
-            setReadOnly(value){readOnly=value;project(data)},
+            setReadOnly(value){
+              readOnly=value
+              // Native URL input may have committed without updating this
+              // instance while the browser input selection was preserved.
+              project(context.getData())
+            },
             focus(){if(!dead&&!readOnly)input.focus()},
             destroy(){dead=true;clearInputTimer();currentTask?.cancel();currentTask=null},
           }
