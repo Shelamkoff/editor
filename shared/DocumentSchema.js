@@ -70,6 +70,7 @@ export function snapshotCurrentBlockEnvelope(input, label = 'Editor block') {
     // Reject undeclared keys by name first. Spreading the entire input would
     // execute their getters before the unsupported-field error is reported.
     assertKnownKeys(input, BLOCK_KEYS, label)
+    assertNoEnumerableSymbols(input, label)
 
     const id = Object.hasOwn(input, 'id') ? input.id : undefined
     if (typeof id !== 'string' || !id) {
@@ -132,6 +133,7 @@ export function snapshotCurrentDocumentEnvelope(input, options = {}) {
   return validationBoundary({ reason: 'invalid-input' }, () => {
     assertPlainJsonObject(input, 'Editor document')
     assertKnownKeys(input, DOCUMENT_KEYS, 'Editor document')
+    assertNoEnumerableSymbols(input, 'Editor document')
 
     if (!Object.hasOwn(input, 'version')) {
       throw new TypeError('Editor document version is required')
