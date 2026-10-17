@@ -347,3 +347,40 @@ test('LinkPreview initial metadata microtask does not restart an already-submitt
       'initial metadata microtask canceled a more recent user-initiated request')
   } finally { h.destroy() }
 })
+
+
+test('LinkPreview initial metadata loads once when the original URL is unchanged', async () => {
+  const calls = []
+  const h = mount({
+    fetchMeta: async url => {
+      calls.push(url)
+      return { title: 'Loaded title', description: 'Loaded description' }
+    },
+  }, { title: '' })
+  try {
+    await Promise.resolve()
+    await Promise.resolve()
+    await Promise.resolve()
+    assert.deepEqual(calls, ['https://example.com/Alpha'])
+    assert.equal(h.model().title, 'Loaded title')
+    assert.equal(h.model().description, 'Loaded description')
+  } finally { h.destroy() }
+})
+
+test('LinkPreview initial enrichment is skipped after the host supplies metadata', async () => {
+  const calls = []
+  const h = mount({
+    fetchMeta: async url => {
+      calls.push(url)
+      return { title: 'Fetched late' }
+    },
+  }, { title: '' })
+  try {
+    h.external({ ...h.model(), title: 'Host-provided title' })
+    await Promise.resolve()
+    await Promise.resolve()
+    assert.deepEqual(calls, [],
+      'initial metadata request ignored the title supplied by host before its microtask')
+    assert.equal(h.model().title, 'Host-provided title')
+  } finally { h.destroy() }
+})
