@@ -221,3 +221,98 @@ test('inline mount callbacks run inside the observation guard and cannot mutate 
       'inline setup hooks escaped observation authority and mutated live editor state')
   } finally { mounts.destroy() }
 })
+
+test('thenable inspection after inline mount hooks cannot escape observation authority', () => {
+  let observing = false
+  let unguarded = 0
+  const calls = []
+  const runtimeWithObservation = {
+    prepareExtensionValue: operation => operation(),
+    observeExtension(operation) {
+      assert.equal(observing, false)
+      observing = true
+      try { return operation() }
+      finally { observing = false }
+    },
+  }
+  const result = () => ({
+    get then() {
+      calls.push('then getter')
+      if (!observing) unguarded++
+      return () => {}
+    },
+  })
+  const source = tool('thenable-acquisition', {
+    bindSelectionPort(port) {
+      if (port !== null) return result()
+    },
+  })
+  const mounts = new InlineToolMounts([source], runtimeWithObservation)
+  try {
+    assert.throws(() => mounts.start(mounts.tools[0], {}, {}, {}), /synchronously/)
+    assert.deepEqual(calls, ['then getter'])
+    assert.equal(unguarded, 0, 'thenable getter from bindSelectionPort escaped observation phase')
+  } finally { mounts.destroy() }
+})
+
+test('onMount result inspection cannot run mutation-capable getter after the guard exits', () => {
+  let observing = false
+  let unguarded = 0
+  const runtimeWithObservation = {
+    prepareExtensionValue: operation => operation(),
+    observeExtension(operation) {
+      assert.equal(observing, false)
+      observing = true
+      try { return operation() }
+      finally { observing = false }
+    },
+  }
+  const source = tool('thenable-on-mount', {
+    onMount() {
+      return {
+        get then() {
+          if (!observing) unguarded++
+          return () => {}
+        },
+      }
+    },
+  })
+  const mounts = new InlineToolMounts([source], runtimeWithObservation)
+  try {
+    assert.throws(() => mounts.start(mounts.tools[0], {}, {}, {}), /synchronously/)
+    assert.equal(unguarded, 0, 'onMount thenable getter was evaluated after observation')
+  } finally { mounts.destroy() }
+})
+
+test('inline tool teardown examines returned thenables while observation is still active', () => {
+  let observing = false
+  let unguarded = 0
+  const errors = []
+  const runtimeWithObservation = {
+    prepareExtensionValue: operation => operation(),
+    observeExtension(operation) {
+      assert.equal(observing, false)
+      observing = true
+      try { return operation() }
+      finally { observing = false }
+    },
+  }
+  const result = () => ({
+    get then() {
+      if (!observing) unguarded++
+      return () => {}
+    },
+  })
+  const source = tool('thenable-cleanup', {
+    bindSelectionPort(port) { if (port === null) return result() },
+    destroy() { return result() },
+  })
+  const mounts = new InlineToolMounts([source], runtimeWithObservation, err => errors.push(err.message))
+  mounts.start(mounts.tools[0], {}, {}, {})
+  mounts.destroy()
+  assert.equal(unguarded, 0, 'cleanup thenable getters bypassed observation protection')
+  assert.deepEqual(errors, [
+    'Extension operation must complete synchronously',
+    'Extension operation must complete synchronously',
+  ])
+})
