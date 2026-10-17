@@ -24,6 +24,7 @@ export class Tooltip {
   #timer = null
   #timerEpoch = 0
   #anchor = null
+  #pendingAnchor = null
   #destroyed = false
 
   /** @param {HTMLElement} root */
@@ -46,11 +47,25 @@ export class Tooltip {
   /** @param {HTMLElement} anchor @param {() => string} label @param {string} [shortcut] */
   bind(anchor, label, shortcut = '') {
     const signal = this.#listeners.signal
-    const show = () => this.show(anchor, label(), shortcut)
+    const show = () => {
+      // Native events already queued before AbortController.abort() may still
+      // invoke a retired listener. Never evaluate extension-owned labels then.
+      if (this.#destroyed) return
+      try { this.show(anchor, label(), shortcut) }
+      catch (error) {
+        this.hide()
+        try { console.warn('[Tooltip] Failed to present tooltip:', error) } catch {}
+      }
+    }
+    const hide = () => {
+      // A late mouseleave/blur from an old anchor cannot retire a new owner's
+      // pending or visible tooltip.
+      if (this.#anchor === anchor || this.#pendingAnchor === anchor) this.hide()
+    }
     anchor.addEventListener('mouseenter', show, { signal })
-    anchor.addEventListener('mouseleave', () => this.hide(), { signal })
+    anchor.addEventListener('mouseleave', hide, { signal })
     anchor.addEventListener('focus', show, { signal })
-    anchor.addEventListener('blur', () => this.hide(), { signal })
+    anchor.addEventListener('blur', hide, { signal })
   }
 
   /** @param {HTMLElement} anchor @param {string} label @param {string} [shortcut] */
@@ -58,11 +73,13 @@ export class Tooltip {
     this.hide()
     if (this.#destroyed) return
     const epoch = ++this.#timerEpoch
+    this.#pendingAnchor = anchor
     this.#timer = this.#window.setTimeout(() => {
       // A queued callback may still arrive after cancellation or teardown.
       // It cannot clear its successor's timer or restore stale ARIA state.
       if (this.#destroyed || epoch !== this.#timerEpoch) return
       this.#timer = null
+      this.#pendingAnchor = null
       const rect = anchor.getBoundingClientRect()
       if (!this.#root.isConnected || !this.#root.contains(anchor) || !rect.width || !rect.height) return
       const doc = this.#root.ownerDocument
@@ -99,6 +116,7 @@ export class Tooltip {
     this.#timer = null
     const anchor = this.#anchor
     this.#anchor = null
+    this.#pendingAnchor = null
     if (timer !== null) this.#window.clearTimeout(timer)
     this.#element.style.display = 'none'
     if (anchor) {
