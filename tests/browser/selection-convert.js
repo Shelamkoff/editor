@@ -233,7 +233,7 @@ async function run() {
   const richConverted = richCode.editor.blocks.convert('rich-code', { type: 'code' })
   assert(richConverted?.type === 'code', 'whole rich-text conversion to Code failed')
   const richCodeAfter = richCode.editor.save().blocks
-  assert(richCodeAfter[0]?.data.code === 'First bold\\nlast',
+  assert(richCodeAfter[0]?.data.code === 'First bold\nlast',
     'whole conversion persisted raw HTML tags or lost text line breaks')
   richCode.editor.undo()
   await delay()
