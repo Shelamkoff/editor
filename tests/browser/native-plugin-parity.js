@@ -1214,4 +1214,74 @@ test('Person regenerated tabs reject a drag from the retired tab tree', async ()
   assert(currentHover.defaultPrevented, 'fresh Person tab drag stopped working')
 })
 
+
+test('Gallery removing another image preserves a committed native caption edit', async () => {
+  const fixture = pluginParityFixtures.find(item => item.name === 'Gallery')
+  const editor = pluginEditor(fixture)
+  focusedField(editor, { key: 'image:first:caption' }, 2)
+  await printable('X')
+  const afterInput = editor.save().blocks
+  equal(afterInput[0].data.images[0].caption, 'AlXpha')
+  const slot = blockElement(editor, 'a').querySelector('.oe-gallery__slot[data-image-id="second"]')
+  const remove = slot?.querySelector('.oe-gallery__slot-remove')
+  assert(remove, 'second Gallery image lacks its Remove action')
+  remove.click()
+  const afterRemove = editor.save().blocks
+  equal(afterRemove[0].data.images.map(item => [item.id, item.caption]), [['first', 'AlXpha']],
+    'Gallery removed the native caption of a surviving image')
+  equal(editor.undo(), true)
+  equal(editor.save().blocks, afterInput, 'Gallery removal could not be independently undone')
+})
+
+test('Attaches removing a different file preserves a committed native file name', async () => {
+  const fixture = pluginParityFixtures.find(item => item.name === 'Attaches')
+  const original = fixture.data.files[0]
+  const editor = pluginEditor({ ...fixture, data: { ...fixture.data,
+    files: [original, { ...original, id: 'second', url: '/second.txt', name: 'Bravo' }],
+  } })
+  focusedField(editor, { key: 'file:first:name' }, 2)
+  await printable('X')
+  const afterInput = editor.save().blocks
+  equal(afterInput[0].data.files[0].name, 'AlXpha')
+  const otherFile = blockElement(editor, 'a').querySelector('.oe-attaches__file[data-file-id="second"]')
+  const remove = otherFile?.querySelector('.oe-attaches__remove')
+  assert(remove, 'second Attaches file lacks its Remove action')
+  remove.click()
+  const afterRemove = editor.save().blocks
+  equal(afterRemove[0].data.files.map(file => [file.id, file.name]), [['first', 'AlXpha']],
+    'Attaches removal overwrote the previously committed native filename')
+  equal(editor.undo(), true)
+  equal(editor.save().blocks, afterInput)
+})
+
+test('Image replacing source URL preserves native authored caption and one-step history', async () => {
+  const fixture = pluginParityFixtures.find(item => item.name === 'Image')
+  const editor = pluginEditor(fixture)
+  focusedField(editor, { key: 'caption' }, 2)
+  await printable('X')
+  const afterInput = editor.save().blocks
+  equal(afterInput[0].data.caption, 'AlXpha')
+  const wrapper = blockElement(editor, 'a')
+  const replace = wrapper.querySelector('.oe-image__actions .oe-image__action-btn')
+  assert(replace, 'Image source replacement action is missing')
+  replace.click()
+  const sourceUrl = [...wrapper.querySelectorAll('.oe-image__action-btn')]
+    .find(button => button.textContent?.trim() === 'URL')
+  assert(sourceUrl, 'Image URL replacement action is missing')
+  sourceUrl.click()
+  const sourceForm = wrapper.querySelector('.oe-source-editor__panel')
+  assert(sourceForm, 'Image did not open its URL editor')
+  const url = 'https://example.com/replacement.png'
+  const field = sourceForm.querySelector('.oe-source-editor__field')
+  field.value = url
+  sourceForm.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
+  const afterReplace = editor.save().blocks
+  equal(afterReplace[0].data.caption, 'AlXpha',
+    'Image URL replacement overwrote previously committed native caption')
+  equal(afterReplace[0].data.file.url, url)
+  equal(editor.undo(), true)
+  equal(editor.save().blocks, afterInput,
+    'Image source replacement could not be undone without losing native caption')
+})
+
 await run()
