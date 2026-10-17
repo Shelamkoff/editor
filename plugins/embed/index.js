@@ -261,18 +261,21 @@ export function createEmbedPlugin(config = {}) {
           })
           actions.append(coverActions)
 
-          const commit = next => context.updateData(() => next)
+          const commit = producer => context.updateData(producer)
 
           const parseInput = () => {
             clearInputTimer()
             if (readOnly || dead) return
             const parsed = parseEmbedUrl(input.value)
-            if (!parsed && !data.service) return
-            if (parsed?.service === data.service && parsed?.videoId === data.videoId) return
+            // Native caption input may have advanced the canonical document
+            // without reprojecting this instance, to preserve its caret.
+            const current = context.getData()
+            if (!parsed && !current.service) return
+            if (parsed?.service === current.service && parsed?.videoId === current.videoId) return
             coverTask?.cancel()
             coverTask = null
             wrapper.focus({ preventScroll: true })
-            commit({ ...data, ...(parsed ?? { service: '', videoId: '' }) })
+            commit(latest => ({ ...latest, ...(parsed ?? { service: '', videoId: '' }) }))
           }
 
           const beginPreview = () => {
@@ -425,7 +428,7 @@ export function createEmbedPlugin(config = {}) {
             coverTask = null
             clearInputTimer()
             wrapper.focus({ preventScroll: true })
-            commit(emptyData())
+            commit(() => emptyData())
           }, { signal: context.signal })
 
           for (const action of snapshot.actions ?? []) {
