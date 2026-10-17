@@ -113,6 +113,7 @@ export function createEmbedPlugin(config = {}) {
           let previewController = null
           let coverTask = null
           let inputTimer = null
+          let composing = false
           let playerController = null
           const timerHost = document.defaultView ?? globalThis
           const clearInputTimer = () => {
@@ -264,6 +265,7 @@ export function createEmbedPlugin(config = {}) {
           const commit = producer => context.updateData(producer)
 
           const parseInput = () => {
+            if (composing) return
             clearInputTimer()
             if (readOnly || dead) return
             const parsed = parseEmbedUrl(input.value)
@@ -394,21 +396,31 @@ export function createEmbedPlugin(config = {}) {
           }
 
           insert.addEventListener('click', parseInput, { signal: context.signal })
+          input.addEventListener('compositionstart', () => {
+            composing = true
+            clearInputTimer()
+          }, { signal: context.signal })
+          input.addEventListener('compositionend', () => {
+            composing = false
+            clearInputTimer()
+            if (!readOnly && !dead) inputTimer = timerHost.setTimeout(parseInput, 500)
+          }, { signal: context.signal })
           input.addEventListener('keydown', event => {
+            if (composing || event.isComposing || event.keyCode === 229) return
             if (event.key === 'Enter') {
               event.preventDefault()
               event.stopPropagation()
               parseInput()
             }
           }, { signal: context.signal })
-          input.addEventListener('input', () => {
+          input.addEventListener('input', event => {
             clearInputTimer()
-            if (!readOnly && !dead) inputTimer = timerHost.setTimeout(parseInput, 500)
+            if (!readOnly && !dead && !composing && !event.isComposing) inputTimer = timerHost.setTimeout(parseInput, 500)
           }, { signal: context.signal })
           input.addEventListener('paste', event => {
             event.stopPropagation()
             clearInputTimer()
-            if (!readOnly && !dead) inputTimer = timerHost.setTimeout(parseInput, 0)
+            if (!readOnly && !dead && !composing && !event.isComposing) inputTimer = timerHost.setTimeout(parseInput, 0)
           }, { signal: context.signal })
           replace.addEventListener('click', () => {
             if (readOnly) return
@@ -559,6 +571,7 @@ export function createEmbedPlugin(config = {}) {
             },
             setReadOnly(value) {
               clearInputTimer()
+              if (value) composing = false
               readOnly = value
               if (value) {
                 coverTask?.cancel()
@@ -575,6 +588,7 @@ export function createEmbedPlugin(config = {}) {
             },
             destroy() {
               dead = true
+              composing = false
               clearInputTimer()
               playerController?.abort()
               previewController?.abort()
