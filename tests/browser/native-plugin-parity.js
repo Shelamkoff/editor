@@ -314,6 +314,30 @@ function checkFieldCaret(field, offset) {
   else caret(field, offset)
 }
 
+test('invalid plugin field focus preserves the current native caret and active block', async () => {
+  const fixture = pluginParityFixtures.find(entry => entry.name === 'Quote')
+  const editor = pluginEditor(fixture)
+  const field = focusedField(editor, { key: 'text' }, 2)
+  const before = editor.save().blocks
+  const oldCurrent = editor.blocks.currentId
+  const selection = window.getSelection()
+  const anchor = selection.anchorNode
+  const focus = selection.focusNode
+  const anchorOffset = selection.anchorOffset
+  const focusOffset = selection.focusOffset
+
+  equal(editor.blocks.focus('a', { fieldKey: 'retired-caption', offset: 1 }), false,
+    'a missing field was treated as a successful focus')
+  equal(editor.blocks.currentId, oldCurrent)
+  equal(document.activeElement, field)
+  equal(selection.anchorNode, anchor)
+  equal(selection.focusNode, focus)
+  equal(selection.anchorOffset, anchorOffset)
+  equal(selection.focusOffset, focusOffset)
+  equal(editor.save().blocks, before,
+    'a rejected native caret restoration caused a canonical author edit')
+})
+
 for (const fixture of pluginParityFixtures) {
   for (const spec of fixture.fields) {
     test(`${fixture.name} ${spec.key}: native input, local selection, caret and history`, async () => {
