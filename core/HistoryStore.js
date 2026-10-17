@@ -38,6 +38,7 @@ export class HistoryStore {
   #undo = []
   #redo = []
   #maxStack
+  #coalesceAllowed = false
 
   constructor(options = {}) {
     const maxStack = options.maxStack ?? 100
@@ -63,7 +64,7 @@ export class HistoryStore {
     let coalesced = false
 
     const previous = undo[undo.length - 1]
-    if (coalesce && previous && compatibleUpdate(previous, next)) {
+    if (coalesce && this.#coalesceAllowed && previous && compatibleUpdate(previous, next)) {
       const previousChange = previous.changes[0]
       const nextChange = next.changes[0]
       const merged = ownRecord({
@@ -96,6 +97,7 @@ export class HistoryStore {
         if (committed) return
         this.#undo = undo
         this.#redo = redo
+        this.#coalesceAllowed = true
         committed = true
       },
     })
@@ -131,6 +133,9 @@ export class HistoryStore {
         if (committed) return
         this.#undo = undo
         this.#redo = redo
+        // A successful replay ends the previous typing gesture, including
+        // programmatic/keyboard replay that bypasses native beforeinput.
+        this.#coalesceAllowed = false
         committed = true
       },
     })
@@ -174,5 +179,6 @@ export class HistoryStore {
   clear() {
     this.#undo = []
     this.#redo = []
+    this.#coalesceAllowed = false
   }
 }
