@@ -54,41 +54,52 @@ function assertSchemaVersion(schema, version, label, identity) {
 export function snapshotCurrentBlockEnvelope(input, label = 'Editor block') {
   return validationBoundary({ reason: 'invalid-input' }, () => {
     assertPlainJsonObject(input, label)
-    const candidate = /** @type {Record<string, unknown>} */ ({ ...input })
-    assertKnownKeys(candidate, BLOCK_KEYS, label)
+    // Reject undeclared keys by name first. Spreading the entire input would
+    // execute their getters before the unsupported-field error is reported.
+    assertKnownKeys(input, BLOCK_KEYS, label)
 
-    if (!Object.hasOwn(candidate, 'id') || typeof candidate.id !== 'string' || !candidate.id) {
+    const id = Object.hasOwn(input, 'id') ? input.id : undefined
+    if (typeof id !== 'string' || !id) {
       throw new TypeError(`${label} id must be a non-empty string`)
     }
-    if (!Object.hasOwn(candidate, 'type') || typeof candidate.type !== 'string' || !candidate.type) {
+    const type = Object.hasOwn(input, 'type') ? input.type : undefined
+    if (typeof type !== 'string' || !type) {
       throw new TypeError(`${label} type must be a non-empty string`)
     }
-    if (!Object.hasOwn(candidate, 'dataVersion')) {
+    if (!Object.hasOwn(input, 'dataVersion')) {
       throw new TypeError(`${label} dataVersion is required`)
     }
-    assertPositiveVersion(candidate.dataVersion, `${label} dataVersion`)
-    if (!Object.hasOwn(candidate, 'data')) throw new TypeError(`${label} data is required`)
-    assertPlainJsonObject(candidate.data, `${label} data`)
+    const dataVersion = assertPositiveVersion(input.dataVersion, `${label} dataVersion`)
+    if (!Object.hasOwn(input, 'data')) throw new TypeError(`${label} data is required`)
+    const data = input.data
+    assertPlainJsonObject(data, `${label} data`)
 
-    if (Object.hasOwn(candidate, 'tunes')) {
-      if (candidate.tunes === undefined || candidate.tunes === null) {
+    /** @type {Record<string, unknown>} */
+    const candidate = { id, type, dataVersion, data }
+    if (Object.hasOwn(input, 'tunes')) {
+      const tunes = input.tunes
+      if (tunes === undefined || tunes === null) {
         throw new TypeError(`${label} tunes must be omitted or a JSON object`)
       }
-      assertPlainJsonObject(candidate.tunes, `${label} tunes`)
+      assertPlainJsonObject(tunes, `${label} tunes`)
+      candidate.tunes = tunes
     }
-    if (Object.hasOwn(candidate, 'inline')) {
-      if (candidate.inline === undefined || candidate.inline === null) {
+    if (Object.hasOwn(input, 'inline')) {
+      const inline = input.inline
+      if (inline === undefined || inline === null) {
         throw new TypeError(`${label} inline must be omitted or a JSON object`)
       }
-      assertPlainJsonObject(candidate.inline, `${label} inline`)
+      assertPlainJsonObject(inline, `${label} inline`)
+      candidate.inline = inline
     }
-    if (Object.hasOwn(candidate, 'revision')) {
-      const revision = candidate.revision
+    if (Object.hasOwn(input, 'revision')) {
+      const revision = input.revision
       if (revision === undefined || revision === null
         || (typeof revision !== 'string'
           && (typeof revision !== 'number' || !Number.isFinite(revision)))) {
         throw new TypeError(`${label} revision must be omitted, a string, or a finite number`)
       }
+      candidate.revision = revision
     }
 
     return /** @type {import('./documentTypes').EditorBlockData} */ (/** @type {unknown} */ (candidate))
@@ -107,37 +118,44 @@ export function snapshotCurrentBlockEnvelope(input, label = 'Editor block') {
 export function snapshotCurrentDocumentEnvelope(input, options = {}) {
   return validationBoundary({ reason: 'invalid-input' }, () => {
     assertPlainJsonObject(input, 'Editor document')
-    const candidate = /** @type {Record<string, unknown>} */ ({ ...input })
-    assertKnownKeys(candidate, DOCUMENT_KEYS, 'Editor document')
+    assertKnownKeys(input, DOCUMENT_KEYS, 'Editor document')
 
-    if (!Object.hasOwn(candidate, 'version')) {
+    if (!Object.hasOwn(input, 'version')) {
       throw new TypeError('Editor document version is required')
     }
-    if (typeof candidate.version !== 'string' || !candidate.version) {
+    const version = input.version
+    if (typeof version !== 'string' || !version) {
       throw new TypeError('Editor document version must be a non-empty string')
     }
-    if (candidate.version !== DOCUMENT_FORMAT_VERSION) {
+    if (version !== DOCUMENT_FORMAT_VERSION) {
       throw markDocumentValidationFailure(
-        new RangeError(`Unsupported document version "${candidate.version}"; current version is "${DOCUMENT_FORMAT_VERSION}"`),
+        new RangeError(`Unsupported document version "${version}"; current version is "${DOCUMENT_FORMAT_VERSION}"`),
         { reason: 'unsupported-document-version' },
       )
     }
-    if (!Object.hasOwn(candidate, 'blocks') || !Array.isArray(candidate.blocks)) {
+    // Never inspect blocks or optional metadata for an unsupported document
+    // version. Snapshot allowed fields only after passing the version gate.
+    if (!Object.hasOwn(input, 'blocks')) {
       throw new TypeError('Editor document blocks must be an array')
     }
-    if (Object.hasOwn(candidate, 'time')
-        && (typeof candidate.time !== 'number' || !Number.isFinite(candidate.time))) {
+    const sourceBlocks = input.blocks
+    if (!Array.isArray(sourceBlocks)) {
+      throw new TypeError('Editor document blocks must be an array')
+    }
+    const hasTime = Object.hasOwn(input, 'time')
+    const time = hasTime ? input.time : undefined
+    if (hasTime && (typeof time !== 'number' || !Number.isFinite(time))) {
       throw new TypeError('Editor document time must be a finite number when present')
     }
 
     const snapshotBlock = options.snapshotBlock ?? snapshotCurrentBlockEnvelope
     const ids = new Set()
     const blocks = []
-    for (let index = 0; index < candidate.blocks.length; index++) {
-      if (!Object.hasOwn(candidate.blocks, index)) {
+    for (let index = 0; index < sourceBlocks.length; index++) {
+      if (!Object.hasOwn(sourceBlocks, index)) {
         throw new TypeError('Editor document blocks must be a dense array')
       }
-      const block = snapshotBlock(candidate.blocks[index], `Editor document block[${index}]`)
+      const block = snapshotBlock(sourceBlocks[index], `Editor document block[${index}]`)
       if (ids.has(block.id)) throw new TypeError(`Duplicate block id: ${block.id}`)
       ids.add(block.id)
       blocks.push(block)
@@ -145,7 +163,7 @@ export function snapshotCurrentDocumentEnvelope(input, options = {}) {
 
     return /** @type {import('./documentTypes').EditorOutputData} */ ({
       version: DOCUMENT_FORMAT_VERSION,
-      ...(candidate.time === undefined ? {} : { time: candidate.time }),
+      ...(time === undefined ? {} : { time }),
       blocks,
     })
   })
