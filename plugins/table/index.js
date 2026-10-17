@@ -235,7 +235,6 @@ export function createTablePlugin(config = {}) {
           }
 
           const reconcile=next=>{
-            const previousHeadings=data.withHeadings
             data=cloneData(next)
             wrapper.dataset.headings=String(data.withHeadings)
             const liveRows=new Set()
@@ -247,7 +246,10 @@ export function createTablePlugin(config = {}) {
               rowData.cells.forEach(cellData=>{
                 liveCells.add(cellKey(rowData.id,cellData.id))
                 let cell=cells.get(cellKey(rowData.id,cellData.id))??createCell(rowData,cellData,rowIndex)
-                if(previousHeadings!==data.withHeadings)cell=ensureCellTag(rowData,cellData,rowIndex)??cell
+                // Header cells are positional, not owned by a row identity.
+                // Reconcile tags on every update: insertion, deletion and
+                // reordering can change the first row without toggling the flag.
+                cell=ensureCellTag(rowData,cellData,rowIndex)??cell
                 cell.contentEditable=readOnly?'false':'true'
                 if(cell.innerHTML!==cellData.text){
                   if(cellData.text)setSanitizedHtml(cell,cellData.text)
