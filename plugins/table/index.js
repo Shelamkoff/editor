@@ -167,7 +167,10 @@ export function createTablePlugin(config = {}) {
         if(width===0||rows.some(row=>row.cells.length!==width)){
           throw new TypeError('Imported table rows must have equal non-zero width')
         }
-        const withHeadings=[...rowElements[0].children].some(cell=>cell.tagName==='TH')
+        // Empty leading <tr> elements do not become canonical rows.
+        // Inspect the first imported row, as v1 does, not the first HTML row.
+        const firstContentRow=rowElements.find(row=>row.querySelectorAll(':scope > th, :scope > td').length>0)
+        const withHeadings=!!firstContentRow&&[...firstContentRow.children].some(cell=>cell.tagName==='TH')
         return {withHeadings,rows}
       },
     }),
