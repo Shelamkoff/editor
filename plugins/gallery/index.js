@@ -689,7 +689,12 @@ export function createGalleryPlugin(config={}){
                 mode:/** @type {'rich-text'} */('rich-text'),
               })]:[]
             })),
-            setReadOnly(value){readOnly=value;project(data)},
+            setReadOnly(value){
+              readOnly=value
+              // A native source edit may have advanced canonical data without
+              // updating this instance's cached model to preserve the caret.
+              project(context.getData())
+            },
             focus(target){
               if(dead||readOnly)return
               const id=target?.fieldKey?.match(/^image:(.+):caption$/)?.[1]??data.images[0]?.id
