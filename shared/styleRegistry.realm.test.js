@@ -138,3 +138,48 @@ test('uncaught reentrant acquisition error rolls back partially appended stylesh
   later.destroy()
   assert.equal(links[1].removed, true)
 })
+
+test('stylesheet acquisition ignores caller-owned array iterators while de-duplicating URLs', () => {
+  const { doc, links } = fakeDocument('iterator')
+  const urls = ['/a.css', '/a.css', '/b.css']
+  urls[Symbol.iterator] = () => { throw new Error('extension iterator must not run') }
+  const lease = acquireStyleUrls(urls, doc)
+  assert.equal(links.length, 2)
+  assert.deepEqual(links.map(link => link.href), ['/a.css', '/b.css'])
+  lease.destroy()
+  assert.equal(links.every(link => link.removed), true)
+})
+
+test('stylesheet cleanup does not delete a link adopted by another DOM owner', () => {
+  const { doc, links } = fakeDocument('adoption')
+  const lease = acquireStyleUrls(['/owned.css'], doc)
+  const link = links[0]
+  const outside = { name: 'external owner' }
+  link.parentNode = outside // another owner moved this stylesheet out of editor head
+  lease.destroy()
+  assert.equal(link.removed, false, 'old lease removed a link that changed owners')
+  assert.equal(link.parentNode, outside)
+  const replacement = acquireStyleUrls(['/owned.css'], doc)
+  assert.equal(links.length, 2, 'stale ownership remained in registry')
+  replacement.destroy()
+  assert.equal(links[1].removed, true)
+})
+
+test('failed stylesheet append does not remove a link adopted during the callback', () => {
+  const { doc, links } = fakeDocument('failed adoption')
+  const original = doc.head.appendChild
+  const outside = { name: 'external owner' }
+  doc.head.appendChild = link => {
+    links.push(link)
+    link.parentNode = outside
+    throw new Error('DOM append failed after external adoption')
+  }
+  assert.throws(() => acquireStyleUrls(['/adopted.css'], doc), /DOM append failed/)
+  assert.equal(links[0].removed, false, 'rollback removed a foreign-adopted link')
+  assert.equal(links[0].parentNode, outside)
+  doc.head.appendChild = original
+  const later = acquireStyleUrls(['/adopted.css'], doc)
+  assert.equal(links.length, 2)
+  later.destroy()
+  assert.equal(links[1].removed, true)
+})
