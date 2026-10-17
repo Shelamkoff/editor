@@ -44,15 +44,38 @@ function carouselFileType(file){
 }
 
 function readCarouselDataUrl(file,signal,ownerDocument){
+  // V1 rejected already-cancelled reads before allocating FileReader state.
+  if(signal.aborted)return Promise.reject(signal.reason??new Error('Aborted'))
   return new Promise((resolve,reject)=>{
     const Reader=ownerDocument.defaultView?.FileReader??FileReader
     const reader=new Reader()
-    const abort=()=>reader.abort()
+    let settled=false
+    const finish=(error,value)=>{
+      if(settled)return
+      settled=true
+      signal.removeEventListener('abort',abort)
+      reader.onload=reader.onerror=reader.onabort=null
+      if(error===null)resolve(value)
+      else reject(error)
+    }
+    const rejectedAbort=()=>finish(signal.reason??new Error('Aborted'))
+    const abort=()=>{
+      // A reader adapter may not dispatch onabort (or abort() may throw).
+      // The owning cancellation must still settle the promise exactly once.
+      try{
+        if(reader.readyState===undefined||Reader.LOADING===undefined
+          ||reader.readyState===Reader.LOADING)reader.abort()
+      }catch{}
+      finally{rejectedAbort()}
+    }
     signal.addEventListener('abort',abort,{once:true})
-    reader.onload=()=>{signal.removeEventListener('abort',abort);resolve(typeof reader.result==='string'?reader.result:'')}
-    reader.onerror=()=>{signal.removeEventListener('abort',abort);reject(reader.error||new Error('Failed to read file'))}
-    reader.onabort=()=>{signal.removeEventListener('abort',abort);reject(signal.reason||new Error('Aborted'))}
-    reader.readAsDataURL(file)
+    reader.onload=()=>finish(null,typeof reader.result==='string'?reader.result:'')
+    reader.onerror=()=>finish(reader.error??new Error('Failed to read file'))
+    reader.onabort=rejectedAbort
+    try{
+      if(signal.aborted)abort()
+      else reader.readAsDataURL(file)
+    }catch(error){finish(error)}
   })
 }
 
