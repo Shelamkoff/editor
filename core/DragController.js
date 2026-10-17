@@ -92,6 +92,7 @@ export class DragController {
         beforeId:null,
         afterId:null,
         spacer:null,
+        spacerParent:null,
         controller,
       }
       this.#session=state
@@ -171,13 +172,19 @@ export class DragController {
     }
     const distance=Math.hypot(event.clientX-state.startX,event.clientY-state.startY)
     if(!state.active&&distance<this.#threshold)return
-    this.#activate(state)
-    event.preventDefault?.()
-
-    const order=this.#runtime.ids()
-    const without=order.filter(id=>id!==state.sourceId)
-    const gap=dragGapAtY(without,id=>this.#view.element(id),event.clientY)
-    this.#setGap(state,gap,without)
+    try{
+      this.#activate(state)
+      event.preventDefault?.()
+      const order=this.#runtime.ids()
+      const without=order.filter(id=>id!==state.sourceId)
+      const gap=dragGapAtY(without,id=>this.#view.element(id),event.clientY)
+      this.#setGap(state,gap,without)
+    }catch(error){
+      // A renderer/DOM insertion may have thrown after placing the gap node.
+      // Release the pointer and remove only the spacer we still own.
+      this.#cancelSession(state)
+      throw error
+    }
   }
 
   #setGap(state,gap,without){
@@ -190,8 +197,20 @@ export class DragController {
     const parent=state.element.parentNode
     if(!spacer||!parent)return
     const before=state.beforeId?this.#view.element(state.beforeId):null
-    if(before&&before.parentNode===parent)parent.insertBefore(spacer,before)
-    else parent.appendChild(spacer)
+    const previousOwner=state.spacerParent
+    try{
+      if(before&&before.parentNode===parent)parent.insertBefore(spacer,before)
+      else parent.appendChild(spacer)
+    }catch(error){
+      // insertBefore/appendChild can fail after partial mutation. An adopted
+      // spacer belongs to its new parent; never remove it from that owner.
+      if(spacer.parentNode===parent||previousOwner&&spacer.parentNode===previousOwner){
+        spacer.remove?.()
+      }
+      state.spacerParent=null
+      throw error
+    }
+    state.spacerParent=spacer.parentNode===parent?parent:null
   }
 
   #finish(state,event){
@@ -240,7 +259,10 @@ export class DragController {
     this.#session=null
     state.controller.abort()
     state.element.classList?.remove('oe-block--dragging')
-    state.spacer?.remove?.()
+    if(state.spacerParent&&state.spacer?.parentNode===state.spacerParent){
+      state.spacer.remove?.()
+    }
+    state.spacerParent=null
     this.#document.body?.classList?.remove('oe-editor-dragging')
     try{
       if(this.#handle.hasPointerCapture?.(state.pointerId)){
