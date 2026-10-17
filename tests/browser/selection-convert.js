@@ -226,6 +226,26 @@ async function run() {
   lossyInline.editor.destroy()
   lossyInline.holder.remove()
 
+  const richCode = mount([
+    { id: 'rich-code', type: 'paragraph', dataVersion: 2, data: { text: 'First <b>bold</b><br>last' } },
+  ])
+  const richCodeBefore = JSON.stringify(richCode.editor.save().blocks)
+  const richConverted = richCode.editor.blocks.convert('rich-code', { type: 'code' })
+  assert(richConverted?.type === 'code', 'whole rich-text conversion to Code failed')
+  const richCodeAfter = richCode.editor.save().blocks
+  assert(richCodeAfter[0]?.data.code === 'First bold\\nlast',
+    'whole conversion persisted raw HTML tags or lost text line breaks')
+  richCode.editor.undo()
+  await delay()
+  assert(JSON.stringify(richCode.editor.save().blocks) === richCodeBefore,
+    'rich-text Code conversion undo did not restore the original author HTML')
+  richCode.editor.redo()
+  await delay()
+  assert(JSON.stringify(richCode.editor.save().blocks) === JSON.stringify(richCodeAfter),
+    'rich-text Code conversion redo did not preserve literal converted text')
+  richCode.editor.destroy()
+  richCode.holder.remove()
+
   const paragraph = mount([
     { id: 'p', type: 'paragraph', dataVersion: 2, data: { text: 'Alpha Beta Gamma' } },
   ])
