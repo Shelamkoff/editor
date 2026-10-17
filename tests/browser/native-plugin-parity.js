@@ -1386,6 +1386,30 @@ test('Embed URL draft and pending parse survive an unrelated canonical update', 
     'URL parse was not a separate atomic action after the host update')
 })
 
+test('Embed clearing video removes its obsolete empty caption field', async () => {
+  const fixture = pluginParityFixtures.find(entry => entry.name === 'Embed')
+  const editor = pluginEditor({ ...fixture, data: {
+    ...fixture.data, caption: '',
+  } })
+  const wrapper = blockElement(editor, 'a')
+  const before = editor.save().blocks
+  assert(wrapper.querySelector('.oe-embed__caption'),
+    'configured Embed must expose an editable caption')
+
+  editor.blocks.update('a', current => ({
+    data: { ...current.data, service: '', videoId: '', caption: '' },
+  }))
+  assert(!wrapper.querySelector('.oe-embed__caption'),
+    'empty Embed retained a stale caption after its last video was cleared')
+  assert(!wrapper.querySelector('.oe-embed__player'),
+    'empty Embed retained a stale video player')
+
+  equal(editor.undo(), true)
+  equal(editor.save().blocks, before)
+  assert(wrapper.querySelector('.oe-embed__caption'),
+    'Undo failed to restore the configured Embed caption')
+})
+
 test('Gallery native caption then style update keeps the same editing host', async () => {
   const fixture = pluginParityFixtures.find(entry => entry.name === 'Gallery')
   const editor = pluginEditor(fixture)
