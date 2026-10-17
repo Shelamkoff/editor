@@ -781,4 +781,50 @@ test('Columns layout-only update preserves active editing node and caret', async
   equal(editor.save().blocks[0].data.layout, '1-2')
 })
 
+
+test('Person sibling update keeps the author caret and updates the current tab after native input', async () => {
+  const definition = createPersonPlugin()
+  const persons = [
+    { id: 'one', avatar: '', name: 'Alpha', role: 'Owner', bio: '', links: [] },
+    { id: 'two', avatar: '', name: 'Bravo', role: 'Writer', bio: '', links: [] },
+  ]
+  const editor = make([{ id: 'a', type: 'person', dataVersion: definition.schema.currentVersion,
+    data: { persons } }], { plugins: [createParagraphPlugin(), definition] })
+  const field = focusedField(editor, { key: 'person:one:name' }, 2)
+  editor.blocks.update('a', current => ({ data: {
+    persons: current.data.persons.map(person => person.id === 'two'
+      ? { ...person, role: 'Editor' } : person),
+  } }))
+  equal(document.activeElement, field, 'Person detached the active field after another person's role changed')
+  checkFieldCaret(field, 2)
+  const afterSibling = editor.save().blocks
+  equal(afterSibling[0].data.persons[1].role, 'Editor')
+  await printable('X')
+  equal(editor.save().blocks[0].data.persons[0].name, 'AlXpha')
+  const label = [...blockElement(editor, 'a').querySelectorAll('.oe-person__tab')]
+    .find(tab => tab.dataset.personId === 'one')?.querySelector('.oe-person__tab-label')
+  equal(label?.textContent, 'AlXpha', 'name input updated an obsolete, detached tab label')
+  checkFieldCaret(field, 3)
+  await dispatchKey('z', 'KeyZ', 90, 2)
+  equal(editor.save().blocks, afterSibling)
+})
+
+test('Person reordering tabs does not replace the active author field', async () => {
+  const definition = createPersonPlugin()
+  const persons = [
+    { id: 'one', avatar: '', name: 'Alpha', role: '', bio: '', links: [] },
+    { id: 'two', avatar: '', name: 'Bravo', role: '', bio: '', links: [] },
+  ]
+  const editor = make([{ id: 'a', type: 'person', dataVersion: definition.schema.currentVersion,
+    data: { persons } }], { plugins: [createParagraphPlugin(), definition] })
+  const field = focusedField(editor, { key: 'person:one:bio' }, 0)
+  editor.blocks.update('a', current => ({ data: { persons: [...current.data.persons].reverse() } }))
+  equal(editor.save().blocks[0].data.persons.map(person => person.id), ['two', 'one'])
+  equal(document.activeElement, field, 'tab reorder discarded the active Person field')
+  checkFieldCaret(field, 0)
+  await printable('Q')
+  equal(editor.save().blocks[0].data.persons[1].bio, 'Q')
+  checkFieldCaret(field, 1)
+})
+
 await run()
