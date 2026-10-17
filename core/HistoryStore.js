@@ -1,5 +1,6 @@
 // @ts-check
 import { cloneEditorData } from '../shared/cloneEditorData.js'
+import { equalJsonValue } from '../shared/jsonData.js'
 
 function ownRecord(record) {
   const owned = cloneEditorData(record)
@@ -65,7 +66,7 @@ function compatibleContinuation(previous, next, token) {
 
   // Do not merge a stale result into a record whose canonical after snapshot
   // differs from the before snapshot of this metadata transaction.
-  return JSON.stringify(prior.after) === JSON.stringify(update.before)
+  return equalJsonValue(prior.after, update.before)
 }
 
 export class HistoryStore {
