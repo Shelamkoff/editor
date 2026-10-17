@@ -1,5 +1,6 @@
 import { createMentionPlugin } from '../../inline-plugins/mention/index.js'
 import { getTextOffset } from '../../shared/textOffset.js'
+import { CLIPBOARD_FRAGMENT_MIME } from '../../core/ClipboardFragment.js'
 import { createParagraphPlugin, createQuotePlugin } from '../../plugins/index.js'
 import { test, make, para, editableField, editorRoot, select, pause, assert, equal, texts, run } from './regressions/harness.js'
 import { selectAcross, dragAcross, dispatchKey } from './native-input-helpers.js'
@@ -249,3 +250,34 @@ test('IME replaces a selected mention fragment and confirms the final label with
 })
 
 await run()
+
+test('synthetic structured Cut during native IME cannot export or delete preedit', async () => {
+  const editor = make([para('a', 'Alpha')])
+  const before = editor.save().blocks
+  const field = editableField(editor, 'a')
+  select(field, 2)
+  await window.__testInput('Input.imeSetComposition', {
+    text: 'に', selectionStart: 1, selectionEnd: 1,
+  })
+  assert(field.textContent.includes('に'), 'IME preedit was not started')
+  equal(editor.save().blocks, before)
+
+  const clipboard = new DataTransfer()
+  const event = new ClipboardEvent('cut', {
+    bubbles: true, cancelable: true, clipboardData: clipboard,
+  })
+  field.dispatchEvent(event)
+  assert(event.defaultPrevented,
+    'Cut was allowed to delete uncommitted text during composition')
+  equal(editor.save().blocks, before)
+  equal(editor.canUndo, false)
+  equal(clipboard.getData(CLIPBOARD_FRAGMENT_MIME), '',
+    'Cut exported a canonical fragment of an uncommitted IME selection')
+
+  await window.__testInput('Input.imeSetComposition', {
+    text: '', selectionStart: 0, selectionEnd: 0,
+  })
+  await pause(30)
+  equal(editor.save().blocks, before)
+  equal(editor.canUndo, false)
+})
