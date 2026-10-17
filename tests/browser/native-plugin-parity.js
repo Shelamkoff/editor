@@ -921,6 +921,11 @@ test('Gallery style-only update preserves native caption caret and history', asy
   equal(grid.style.gap, '12px')
   equal(grid.style.height, '220px')
   equal(grid.querySelector('.oe-gallery__slot--filled')?.style.borderRadius, '8px')
+  const settingValue = label => [...gallery.querySelectorAll('.oe-gallery__dropdown-panel label')]
+    .find(node => node.querySelector(':scope > span')?.textContent === label)
+    ?.querySelector('input,select')?.value
+  equal(settingValue('Gap'), '12px', 'hidden Gallery settings retained an outdated gap value')
+  equal(settingValue('Border radius'), '8px', 'hidden Gallery settings retained an outdated radius')
 
   await printable('X')
   equal(editor.save().blocks[0].data.images[0].caption, 'AlXpha',
@@ -950,6 +955,10 @@ test('Gallery identical and style-removal updates do not replace the focused cap
   equal(gallery.style.gap, '')
   equal(gallery.querySelector('.oe-gallery__grid').style.gap, '')
   equal(gallery.querySelector('.oe-gallery__slot--filled').style.borderRadius, '')
+  const gap = [...gallery.querySelectorAll('.oe-gallery__dropdown-panel label')]
+    .find(label => label.querySelector(':scope > span')?.textContent === 'Gap')
+    ?.querySelector('input')
+  equal(gap?.value, '', 'Gallery hidden settings did not clear the removed gap')
 })
 
 await run()
