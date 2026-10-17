@@ -459,7 +459,12 @@ export function createImagePlugin(config={}){
             read:()=>({...data,file:{...data.file},styles:{...data.styles},caption:caption.innerHTML.trim()}),
             update(next){if(!dead)project(next)},
             editableFields:()=>data.file.url?Object.freeze([Object.freeze({key:'caption',element:caption,mode:/** @type {'rich-text'} */('rich-text')})]):Object.freeze([]),
-            setReadOnly(value){readOnly=value;project(data)},
+            setReadOnly(value){
+              readOnly=value
+              // Native source input can commit a newer caption without an
+              // instance.update() while the browser caret remains mounted.
+              project(context.getData())
+            },
             focus(){if(!dead&&!readOnly)(data.file.url?caption:empty.querySelector('button'))?.focus()},
             destroy(){
               dead=true
