@@ -269,3 +269,117 @@ test('invalid block identity rejects before inspecting unrelated payload getters
   assert.throws(() => decodeCurrentBlock(input), /id must be a non-empty string/)
   assert.equal(reads, 0)
 })
+
+test('unsupported inline envelope fields are rejected without reading their getters', () => {
+  let reads = 0
+  const input = {
+    mention: {
+      type: 'mention', dataVersion: 1, data: { value: 'Valid' },
+      get unsupportedField() {
+        reads++
+        throw new Error('unsupported inline metadata getter executed')
+      },
+    },
+  }
+  assert.throws(
+    () => decodeCurrentInlineMap(input, { getInlineSchema: () => currentV1 }),
+    /unsupported field "unsupportedField"/,
+  )
+  assert.equal(reads, 0, 'rejected inline metadata executed extension getter')
+})
+
+test('known block version is rejected before traversing getter-backed block payload', () => {
+  let reads = 0
+  const input = {
+    id: 'block', type: 'known', dataVersion: 99,
+    data: {
+      get hidden() {
+        reads++
+        throw new Error('incorrectly inspected rejected block data')
+      },
+    },
+  }
+  assert.throws(() => decodeCurrentBlock(input, {
+    getBlockSchema: () => currentV2,
+  }), error => {
+    assert.match(error.message, /Unsupported block "known" data version 99/)
+    assert.deepEqual(documentValidationIssue(error), {
+      reason: 'unsupported-data-version', blockId: 'block', type: 'known',
+    })
+    return true
+  })
+  assert.equal(reads, 0, 'wrong-version block traversed its private payload')
+})
+
+test('known inline widget version is rejected before inspecting getter-backed inline payload', () => {
+  let reads = 0
+  const input = {
+    mention: {
+      type: 'mention', dataVersion: 99,
+      data: {
+        get hidden() {
+          reads++
+          throw new Error('incorrectly inspected rejected inline payload')
+        },
+      },
+    },
+  }
+  assert.throws(() => decodeCurrentInlineMap(input, {
+    getInlineSchema: () => currentV1,
+  }), error => {
+    assert.match(error.message, /Unsupported inline widget "mention" data version 99/)
+    assert.deepEqual(documentValidationIssue(error), {
+      reason: 'unsupported-data-version', inlineId: 'mention', type: 'mention',
+    })
+    return true
+  })
+  assert.equal(reads, 0, 'wrong-version inline widget traversed its private payload')
+})
+
+test('first invalid inline occurrence rejects without reading any later occurrence getters', () => {
+  let reads = 0
+  const input = {
+    first: { type: 'mention', dataVersion: 99, data: {} },
+    get second() {
+      reads++
+      throw new Error('later inline entry was read before first failure')
+    },
+  }
+  assert.throws(() => decodeCurrentInlineMap(input, {
+    getInlineSchema: () => currentV1,
+  }), /Unsupported inline widget "mention" data version 99/)
+  assert.equal(reads, 0, 'decoder eagerly cloned unrelated following inline entries')
+})
+
+test('inline occurrence metadata is captured once and detached from its original data', () => {
+  const reads = { type: 0, dataVersion: 0, data: 0 }
+  const original = { value: 'Initial' }
+  const input = {
+    mention: {
+      get type() { reads.type++; return 'mention' },
+      get dataVersion() { reads.dataVersion++; return 1 },
+      get data() { reads.data++; return original },
+    },
+  }
+  const decoded = decodeCurrentInlineMap(input, { getInlineSchema: () => currentV1 })
+  assert.deepEqual(decoded, {
+    mention: { type: 'mention', dataVersion: 1, data: { value: 'Initial' } },
+  })
+  assert.deepEqual(reads, { type: 1, dataVersion: 1, data: 1 })
+  original.value = 'Mutated'
+  assert.equal(decoded.mention.data.value, 'Initial')
+})
+
+test('inline map still rejects an enumerable symbol key without reading its getter', () => {
+  let reads = 0
+  const input = { mention: { type: 'mention', dataVersion: 1, data: { value: 'A' } } }
+  Object.defineProperty(input, Symbol('hidden'), {
+    enumerable: true,
+    get() {
+      reads++
+      throw new Error('symbol getter must not execute')
+    },
+  })
+  assert.throws(() => decodeCurrentInlineMap(input), /symbol key/)
+  assert.equal(reads, 0)
+})
