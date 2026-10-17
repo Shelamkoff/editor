@@ -200,6 +200,7 @@ export class InlinePopupHost {
     this.#naturalHeight=0
     // Teardown steps are independent. A failing DOM observer or listener
     // removal must not strand the owned surface or skip plugin cleanup.
+    /** @param {()=>void} operation */
     const release=operation=>{
       try{operation()}
       catch(error){
