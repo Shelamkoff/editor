@@ -1261,11 +1261,9 @@ export class DocumentRuntime {
           current.id, current.type, definition, readData, current.tunes, inlineSource,
         )
         if (metadata.finalizeNativeInline) metadata.finalizeNativeInline(next)
-        if (
-          current.dataVersion !== next.dataVersion
-          || !sameJson(current.data, next.data)
-          || !sameJson(current.inline, next.inline)
-        ) updates.push([id, next])
+        // Native projection reads may preserve meaning with a different
+        // JSON key order. Only an actual semantic change creates history.
+        if (!canonicalRecordsEqual(current, next)) updates.push([id, next])
       }
 
       if (updates.length) {
