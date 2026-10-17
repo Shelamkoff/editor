@@ -1,5 +1,6 @@
 // @ts-check
 import { cloneEditorData } from '../shared/cloneEditorData.js'
+import { equalJsonValue } from '../shared/jsonData.js'
 import { remapRichTextReferences, scanRichTextPlaceholders } from '../shared/richTextOperations.js'
 import { mapRichTextFields } from './projectionFields.js'
 
@@ -24,36 +25,12 @@ export function captureDocumentView(source) {
   })
 }
 
-/** Structural comparison for owned JSON data. Object key insertion order
- * is irrelevant; ordered array contents and actual property presence matter.
- */
-function equalCanonicalJson(left, right) {
-  if (left === right) return true
-  if (left === null || right === null
-    || typeof left !== 'object' || typeof right !== 'object') return false
-  const leftArray = Array.isArray(left)
-  if (leftArray !== Array.isArray(right)) return false
-  if (leftArray) {
-    if (left.length !== right.length) return false
-    for (let index = 0; index < left.length; index++) {
-      if (!equalCanonicalJson(left[index], right[index])) return false
-    }
-    return true
-  }
-  const keys = Object.keys(left)
-  if (keys.length !== Object.keys(right).length) return false
-  for (const key of keys) {
-    if (!Object.hasOwn(right, key) || !equalCanonicalJson(left[key], right[key])) return false
-  }
-  return true
-}
-
 /** Canonical record equality excludes producer revisions and JSON object key order. */
 export function canonicalRecordsEqual(left, right) {
   return left?.type === right?.type && left?.dataVersion === right?.dataVersion
-    && equalCanonicalJson(left?.data, right?.data)
-    && equalCanonicalJson(left?.tunes, right?.tunes)
-    && equalCanonicalJson(left?.inline, right?.inline)
+    && equalJsonValue(left?.data, right?.data)
+    && equalJsonValue(left?.tunes, right?.tunes)
+    && equalJsonValue(left?.inline, right?.inline)
 }
 
 /**
