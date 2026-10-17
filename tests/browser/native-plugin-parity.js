@@ -1440,4 +1440,52 @@ test('Person native link edit then sibling update retains the URL input', async 
   equal(editor.save().blocks, afterInput)
 })
 
+
+test('Image retired settings inputs cannot overwrite canonical styles or toggles', async () => {
+  const fixture = pluginParityFixtures.find(entry => entry.name === 'Image')
+  const editor = pluginEditor(fixture)
+  const getControl = label => {
+    const form = blockElement(editor, 'a').querySelector('.oe-image__style-form')
+    return [...form.querySelectorAll('label')]
+      .find(row => row.querySelector('span')?.textContent === label)
+      ?.querySelector('input,select')
+  }
+  const oldHeight = getControl('Height')
+  const oldExpanded = getControl('Expanded')
+  assert(oldHeight && oldExpanded, 'Image settings are missing expected controls')
+
+  editor.blocks.update('a', current => ({
+    data: {
+      ...current.data,
+      expanded: true,
+      styles: { ...current.data.styles, height: '220px' },
+    },
+  }))
+  const afterHostUpdate = editor.save().blocks
+  equal(getControl('Height')?.value, '220px')
+  equal(getControl('Expanded')?.checked, true)
+  assert(getControl('Height') !== oldHeight && getControl('Expanded') !== oldExpanded,
+    'Image did not replace its settings controls during projection')
+
+  oldHeight.value = '999px'
+  oldHeight.dispatchEvent(new Event('change', { bubbles: true }))
+  oldExpanded.checked = false
+  oldExpanded.dispatchEvent(new Event('change', { bubbles: true }))
+  equal(editor.save().blocks, afterHostUpdate,
+    'retired Image settings controls modified current canonical image data')
+
+  const height = getControl('Height')
+  height.value = '240px'
+  height.dispatchEvent(new Event('change', { bubbles: true }))
+  equal(editor.save().blocks[0].data.styles.height, '240px',
+    'current Image settings input lost its live change handler')
+  const expanded = getControl('Expanded')
+  expanded.checked = false
+  expanded.dispatchEvent(new Event('change', { bubbles: true }))
+  equal(editor.save().blocks[0].data.expanded, false,
+    'current Image settings toggle lost its live change handler')
+  equal(editor.undo(), true)
+  equal(editor.save().blocks[0].data.expanded, true)
+})
+
 await run()
