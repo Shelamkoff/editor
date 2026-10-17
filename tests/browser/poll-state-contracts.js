@@ -304,6 +304,67 @@ test('a subscription uses the committed native option label without replacing it
   } finally { h.destroy() }
 })
 
+
+test('unsubmitted Poll choice survives unrelated author edits', async () => {
+  const h = mount({ remote: false })
+  try {
+    h.instance.element.querySelector('.oe-poll__option-marker[data-option-id="b"]').click()
+    equal(h.selected(), ['b'], 'pending choice was not selected')
+    h.update(data => ({ ...data, question: 'Edited question' }))
+    equal(h.selected(), ['b'], 'question update discarded the unsubmitted choice')
+    h.update(data => ({ ...data, options: data.options.map(option => option.id === 'a'
+      ? { ...option, text: 'Edited alternative' } : option) }))
+    equal(h.selected(), ['b'], 'another option label update discarded the unsubmitted choice')
+    equal(h.store.get('poll').data.initialResults, undefined, 'pending selection became persisted author data')
+  } finally { h.destroy() }
+})
+
+test('unsubmitted multiple selection survives author editing then narrows to one on single choice', async () => {
+  const h = mount({ remote: false })
+  try {
+    h.update(data => ({ ...data, type: 'multiple' }))
+    h.instance.element.querySelector('.oe-poll__option-marker[data-option-id="a"]').click()
+    h.instance.element.querySelector('.oe-poll__option-marker[data-option-id="b"]').click()
+    equal(h.selected(), ['a', 'b'], 'two pending selections were not made')
+    h.update(data => ({ ...data, question: 'Edited question' }))
+    equal(h.selected(), ['a', 'b'], 'multiple selections disappeared after editing')
+    h.update(data => ({ ...data, type: 'single' }))
+    equal(h.selected(), ['a'], 'single-choice mode retained an illegal multi-selection')
+    equal(h.history.undoDepth, 3, 'pending choices incorrectly added author history')
+  } finally { h.destroy() }
+})
+
+test('removing a pending option or replacing the author seed invalidates the relevant selection', async () => {
+  const h = mount({ remote: false, options: [
+    { id: 'a', text: 'A' }, { id: 'b', text: 'B' }, { id: 'c', text: 'C' },
+  ] })
+  try {
+    h.instance.element.querySelector('.oe-poll__option-marker[data-option-id="b"]').click()
+    h.update(data => ({ ...data, options: data.options.filter(option => option.id !== 'b') }))
+    equal(h.selected(), [], 'removed pending option stayed selected')
+    h.instance.element.querySelector('.oe-poll__option-marker[data-option-id="c"]').click()
+    equal(h.selected(), ['c'], 'new pending selection was not made')
+    h.update(data => ({ ...data, initialResults: {
+      revision: '10', total: 2, options: [{ id: 'a', votes: 2 }, { id: 'c', votes: 0 }], currentUserVote: ['a'],
+    } }))
+    equal(h.selected(), ['a'], 'explicit seed replacement did not reset the pending selection')
+    equal(h.percentages(), ['100%', '0%'], 'seed reset did not restore authored counts')
+  } finally { h.destroy() }
+})
+
+test('a new remote Poll identity clears an unsubmitted choice', async () => {
+  const h = mount()
+  try {
+    await h.resolveLoad(0, result('1', 2, 8, []))
+    h.instance.element.querySelector('.oe-poll__option-marker[data-option-id="b"]').click()
+    equal(h.selected(), ['b'], 'pending choice was not selected')
+    h.update(data => ({ ...data, pollId: 'poll-2' }))
+    equal(h.selected(), [], 'pending selection leaked across poll identities')
+    await tick()
+    equal(h.loads.at(-1).pollId, 'poll-2', 'new poll identity did not start loading')
+  } finally { h.destroy() }
+})
+
 const results = []
 for (const entry of cases) {
   try { await entry.run(); results.push({ name: entry.name, pass: true }) }
