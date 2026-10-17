@@ -827,4 +827,31 @@ test('Person reordering tabs does not replace the active author field', async ()
   checkFieldCaret(field, 1)
 })
 
+
+test('Carousel retains newer selection after moving the previously active slide', async () => {
+  const fixture = pluginParityFixtures.find(entry => entry.name === 'Carousel')
+  const editor = pluginEditor({ ...fixture, data: {
+    ...fixture.data,
+    slides: [
+      { id: 'first', type: 'image', src: pixel, caption: 'Alpha', alt: '' },
+      { id: 'second', type: 'image', src: pixel, caption: 'Bravo', alt: '' },
+    ],
+    options: { autoplay: false, navigation: true },
+  } })
+  const caption = () => blockElement(editor, 'a').querySelector('.oe-carousel-block__caption')
+  const next = blockElement(editor, 'a').querySelector('[aria-label="Move slide forward"]')
+  assert(next && !next.disabled, 'the active slide cannot be moved forward')
+  next.click()
+  equal(editor.save().blocks[0].data.slides.map(slide => slide.id), ['second', 'first'])
+  // Move schedules a microtask. A newer, synchronous focus choice wins.
+  editor.blocks.focus('a', { fieldKey: 'slide:second:caption', offset: 'start' })
+  equal(caption()?.dataset.slideId, 'second')
+  await Promise.resolve()
+  editor.setReadOnly(true)
+  equal(caption()?.dataset.slideId, 'second',
+    'old move microtask overwrote a newer active slide choice during redraw')
+  equal(caption()?.textContent, 'Bravo')
+  equal(editor.save().blocks[0].data.slides.map(slide => slide.id), ['second', 'first'])
+})
+
 await run()
