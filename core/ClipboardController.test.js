@@ -4,7 +4,7 @@ import assert from 'node:assert/strict'
 import { ClipboardController } from './ClipboardController.js'
 import { CLIPBOARD_FRAGMENT_MIME } from './ClipboardFragment.js'
 
-function clipboardHarness({ formats = [], read = () => '', files = [], accepts = null, resolve = null, capability = null, crossSelection = null } = {}) {
+function clipboardHarness({ formats = [], read = () => '', files = [], accepts = null, resolve = null, capability = null, crossSelection = null, mode = 'rich-text' } = {}) {
   const handlers = new Map()
   const host = { contains: () => true }
   const target = {
@@ -13,7 +13,7 @@ function clipboardHarness({ formats = [], read = () => '', files = [], accepts =
     },
   }
   const owner = accepts
-    ? { blockId: 'a', fieldKey: 'text', mode: 'rich-text', element: host }
+    ? { blockId: 'a', fieldKey: 'text', mode, element: host }
     : null
   const root = {
     ownerDocument: { defaultView: { AbortController } },
@@ -393,5 +393,17 @@ test('failed cross-block Cut preparation cannot trigger native deletion', () => 
   try {
     assert.doesNotThrow(() => fixture.cut())
     assert.equal(fixture.event.defaultPrevented, true)
+  } finally { fixture.controller.destroy() }
+})
+
+test('plain-text editing fields retain their native Cut behavior', () => {
+  const fixture = clipboardHarness({ accepts: () => false, mode: 'plain-text' })
+  fixture.bookmark.focus.offset = 3
+  fixture.runtime.prepareLogicalClipboardSlice = () => {
+    throw new Error('Plain text fields must not use the logical Cut planner')
+  }
+  try {
+    assert.doesNotThrow(() => fixture.cut())
+    assert.equal(fixture.event.defaultPrevented, false)
   } finally { fixture.controller.destroy() }
 })
