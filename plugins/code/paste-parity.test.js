@@ -62,3 +62,22 @@ test('recognized Code Paste preserves the exact pasted source', () => {
     data: { code: text, language: 'auto' },
   })
 })
+
+test('Code HTML import preserves v1 trailing-newline behavior', () => {
+  const htmlImport = createCodePlugin({ injectStyles: false }).capabilities.htmlImport
+  const content = { tagName: 'CODE', textContent: 'const answer = 42;\n\n\n' }
+  const pre = {
+    tagName: 'PRE',
+    textContent: content.textContent,
+    querySelector: selector => selector === ':scope > code' ? content : null,
+  }
+  assert.equal(htmlImport.matchesRoot(pre), true)
+  assert.deepEqual(htmlImport.importRoot(pre), {
+    code: 'const answer = 42;\n',
+    language: 'auto',
+  })
+  assert.deepEqual(htmlImport.importRoot({ tagName: 'CODE', textContent: 'x = 1' }), {
+    code: 'x = 1',
+    language: 'auto',
+  })
+})
