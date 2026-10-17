@@ -34,6 +34,39 @@ function compatibleUpdate(left, right) {
     && previous.id === next.id
 }
 
+/**
+ * A one-shot async completion may amend the immediately preceding authoring
+ * action only when that action changed the named field of the same block.
+ * This is narrower than ordinary typing coalescence: a later unrelated action,
+ * replay, or a second URL edit must remain an independent history boundary.
+ */
+function compatibleContinuation(previous, next, token) {
+  if (!previous || !token || previous.id !== token.baseRevision
+    || previous.changes.length !== 1 || next.changes.length !== 1
+    || !['native-input', 'external'].includes(previous.origin)
+    || !['native-input', 'block.update'].includes(previous.name)
+    || next.name !== 'block.update') return false
+
+  const prior = previous.changes[0]
+  const update = next.changes[0]
+  if (prior.kind !== 'block.update' || update.kind !== 'block.update'
+    || prior.id !== token.blockId || update.id !== token.blockId) return false
+  const field = token.fieldKey
+  const before = prior.before?.data
+  const after = prior.after?.data
+  const metadataBefore = update.before?.data
+  const metadataAfter = update.after?.data
+  if (!before || !after || !metadataBefore || !metadataAfter
+    || !Object.hasOwn(before, field) || !Object.hasOwn(after, field)
+    || !Object.hasOwn(metadataBefore, field) || !Object.hasOwn(metadataAfter, field)
+    || before[field] === after[field] || after[field] !== metadataBefore[field]
+    || metadataBefore[field] !== metadataAfter[field]) return false
+
+  // Do not merge a stale result into a record whose canonical after snapshot
+  // differs from the before snapshot of this metadata transaction.
+  return JSON.stringify(prior.after) === JSON.stringify(update.before)
+}
+
 export class HistoryStore {
   #undo = []
   #redo = []
@@ -57,14 +90,34 @@ export class HistoryStore {
    * Validate and prepare the next history state without mutating the cursor.
    * commit() only swaps already-prepared arrays and cannot invoke user/schema code.
    */
-  prepareRecord(record, { coalesce = false } = {}) {
+  prepareRecord(record, { coalesce = false, continuation = null } = {}) {
     const next = ownRecord(record)
     let undo = [...this.#undo]
     const redo = []
     let coalesced = false
 
     const previous = undo[undo.length - 1]
-    if (coalesce && this.#coalesceAllowed && previous && compatibleUpdate(previous, next)) {
+    const continued = this.#coalesceAllowed && this.#redo.length === 0
+      && compatibleContinuation(previous, next, continuation)
+    if (continued) {
+      const prior = previous.changes[0]
+      const fresh = next.changes[0]
+      const merged = ownRecord({
+        ...previous,
+        id: next.id,
+        changes: [{
+          kind: 'block.update',
+          id: prior.id,
+          before: cloneEditorData(prior.before),
+          after: cloneEditorData(fresh.after),
+        }],
+        selectionAfter: Object.hasOwn(next, 'selectionAfter')
+          ? cloneEditorData(next.selectionAfter)
+          : null,
+      })
+      undo[undo.length - 1] = merged
+      coalesced = true
+    } else if (coalesce && this.#coalesceAllowed && previous && compatibleUpdate(previous, next)) {
       const previousChange = previous.changes[0]
       const nextChange = next.changes[0]
       const merged = ownRecord({
@@ -97,7 +150,9 @@ export class HistoryStore {
         if (committed) return
         this.#undo = undo
         this.#redo = redo
-        this.#coalesceAllowed = true
+        // Async completion seals this authoring action: further typing must
+        // not accidentally merge into the previously captured native group.
+        this.#coalesceAllowed = !continued
         committed = true
       },
     })
