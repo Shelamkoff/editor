@@ -123,9 +123,12 @@ function snapshotSettings(source, label) {
   }
   const kind = source.kind
   if (kind === 'actions') {
+    // Getters on extension descriptors can be stateful. Snapshot the optional
+    // label once, exactly like the captured actions/apply method references.
+    const settingsLabel = source.label
     return Object.freeze({
       kind,
-      ...(source.label === undefined ? {} : { label: snapshotLabel(source.label, `${label} settings label`) }),
+      ...(settingsLabel === undefined ? {} : { label: snapshotLabel(settingsLabel, `${label} settings label`) }),
       actions: bindMethod(source, source.actions, `${label} settings actions`),
       apply: bindMethod(source, source.apply, `${label} settings apply`),
     })
