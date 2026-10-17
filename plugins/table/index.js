@@ -245,8 +245,9 @@ export function createTablePlugin(config = {}) {
             data.rows.forEach((rowData,rowIndex)=>{
               liveRows.add(rowData.id)
               const row=rows.get(rowData.id)??createRow(rowData)
-              table.appendChild(row)
-              rowData.cells.forEach(cellData=>{
+              // Keep existing rows connected when their order is unchanged.
+              if(table.children[rowIndex]!==row)table.insertBefore(row,table.children[rowIndex]??null)
+              rowData.cells.forEach((cellData,columnIndex)=>{
                 liveCells.add(cellKey(rowData.id,cellData.id))
                 let cell=cells.get(cellKey(rowData.id,cellData.id))??createCell(rowData,cellData,rowIndex)
                 // Header cells are positional, not owned by a row identity.
@@ -258,7 +259,8 @@ export function createTablePlugin(config = {}) {
                   if(cellData.text)setSanitizedHtml(cell,cellData.text)
                   else cell.textContent=''
                 }
-                row.appendChild(cell)
+                // Reparenting an unchanged focused TD/TH collapses the caret.
+                if(row.children[columnIndex]!==cell)row.insertBefore(cell,row.children[columnIndex]??null)
               })
             })
             for(const [id,cell] of cells){
