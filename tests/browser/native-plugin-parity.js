@@ -1130,12 +1130,13 @@ test('Carousel retired settings inputs cannot mutate prior slide after picker ch
 })
 
 
-for (const name of ['Image', 'Gallery', 'Carousel', 'Person', 'Attaches']) {
+for (const name of ['Image', 'Gallery', 'Carousel', 'Person', 'Attaches', 'Embed', 'LinkPreview']) {
   test(`${name}: native media author edits survive read-only transitions`, async () => {
     const fixture = pluginParityFixtures.find(item => item.name === name)
     const fieldSpec = fixture.fields.find(field =>
       name === 'Person' ? field.key.endsWith(':bio')
-        : name === 'Attaches' ? field.key.endsWith(':name') : field.key.endsWith(':caption'))
+        : name === 'Attaches' ? field.key.endsWith(':name')
+          : name === 'LinkPreview' ? field.key === 'url' : field.key.endsWith(':caption'))
     assert(fieldSpec, `${name} is missing a caption/name fixture`)
     const editor = pluginEditor(fixture)
     const initial = editor.save().blocks
