@@ -854,4 +854,27 @@ test('Carousel retains newer selection after moving the previously active slide'
   equal(editor.save().blocks[0].data.slides.map(slide => slide.id), ['second', 'first'])
 })
 
+
+test('Gallery retired controls cannot mutate current authoring data after a view refresh', async () => {
+  const fixture = pluginParityFixtures.find(entry => entry.name === 'Gallery')
+  const editor = pluginEditor(fixture)
+  const block = () => blockElement(editor, 'a')
+  const oldRemove = block().querySelector('.oe-gallery__slot-remove')
+  const oldClear = [...block().querySelectorAll('.oe-gallery__action-btn')]
+    .find(button => button.textContent?.includes('Delete all'))
+  assert(oldRemove && oldClear, 'Gallery is missing its authoring controls')
+  editor.blocks.update('a', current => ({
+    data: { ...current.data, styles: { ...current.data.styles, gap: '12px' } },
+  }))
+  const after = editor.save().blocks
+  assert(!oldRemove.isConnected && !oldClear.isConnected, 'Gallery did not retire the former view')
+  oldRemove.click()
+  oldClear.click()
+  equal(editor.save().blocks, after, 'stale Gallery controls modified the canonical document')
+  const liveRemove = block().querySelector('.oe-gallery__slot-remove')
+  assert(liveRemove && liveRemove !== oldRemove)
+  liveRemove.click()
+  equal(editor.save().blocks[0].data.images.length, 1, 'active Gallery remove button stopped working')
+})
+
 await run()
