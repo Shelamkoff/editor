@@ -27,11 +27,23 @@ const sourceEditorStyles=new URL('../shared/sourceEditor.css',import.meta.url).h
 
 function imageLabel(key,fallback){return Object.freeze({key,fallback})}
 
-function renderImageSettings(context){
+/** @param {import('../../plugin-kit/types').SettingsPanelContext<any>} context
+ * @param {AbortSignal} signal
+ */
+function renderImageSettings(context,signal){
   const document=context.ownerDocument
   const root=document.createElement('div')
   root.className='oe-image__style-form'
-  const commit=producer=>{context.updateData(producer);render()}
+  // The same form is regenerated during both settings changes and block
+  // projection. Old inputs may no longer authorize canonical mutations.
+  const AbortControllerCtor=document.defaultView?.AbortController??AbortController
+  let fieldsController=null
+  signal.addEventListener('abort',()=>fieldsController?.abort(),{once:true})
+  const commit=producer=>{
+    if(signal.aborted)return
+    context.updateData(producer)
+    if(!signal.aborted)render()
+  }
   const row=(label,control)=>{
     const wrapper=document.createElement('label')
     wrapper.className='oe-image__style-label'
@@ -62,7 +74,7 @@ function renderImageSettings(context){
     element.className=type==='color'?'oe-image__style-color':'oe-image__style-input'
     element.value=value??''
     if(placeholder)element.placeholder=placeholder
-    element.addEventListener('change',()=>onChange(element.value,element))
+    element.addEventListener('change',()=>onChange(element.value,element),{signal:fieldsController.signal})
     return element
   }
   const select=(value,values,onChange)=>{
@@ -75,7 +87,7 @@ function renderImageSettings(context){
       option.selected=item===value
       element.appendChild(option)
     }
-    element.addEventListener('change',()=>onChange(element.value))
+    element.addEventListener('change',()=>onChange(element.value),{signal:fieldsController.signal})
     return element
   }
   const checkbox=(checked,onChange)=>{
@@ -83,7 +95,7 @@ function renderImageSettings(context){
     element.type='checkbox'
     element.checked=checked
     element.className='oe-image__switch'+(checked?' oe-image__switch--active':'')
-    element.addEventListener('change',()=>onChange(element.checked))
+    element.addEventListener('change',()=>onChange(element.checked),{signal:fieldsController.signal})
     return element
   }
   const updateStyle=(key,value)=>commit(current=>{
@@ -94,6 +106,9 @@ function renderImageSettings(context){
   })
 
   const render=()=>{
+    fieldsController?.abort()
+    if(signal.aborted)return
+    fieldsController=new AbortControllerCtor()
     const data=context.getData()
     const styles=data.styles??{}
     root.replaceChildren()
@@ -304,6 +319,8 @@ export function createImagePlugin(config={}){
           let dead=false
           let requestGeneration=0
           let currentTask=null
+          let settingsController=null
+          context.signal.addEventListener('abort',()=>settingsController?.abort(),{once:true})
 
           const applyStyles=()=>{
             wrapper.classList.toggle(CSS.withBorder,data.withBorder)
@@ -327,6 +344,9 @@ export function createImagePlugin(config={}){
             if(data.withBackground&&styles.backgroundColor)container.style.backgroundColor=styles.backgroundColor
           }
           const project=next=>{
+            settingsController?.abort()
+            const SettingsAbortController=document.defaultView?.AbortController??AbortController
+            settingsController=new SettingsAbortController()
             data={...next,file:{...next.file},styles:{...next.styles}}
             const hasImage=!!data.file.url
             wrapper.classList.toggle(CSS.filled,hasImage)
@@ -339,7 +359,7 @@ export function createImagePlugin(config={}){
             panel.replaceChildren(renderImageSettings({ownerDocument:document,getData:()=>data,
               t:label=>runtimeContext.t(label.key,label.fallback),
               updateData:producer=>{context.updateData(producer);wrapper.focus({preventScroll:true})},
-            }))
+            },settingsController.signal))
             if(hasImage)setSafeUrlAttribute(image,'src',data.file.url,'media')
             else image.removeAttribute('src')
             if(caption.innerHTML!==data.caption){
@@ -468,6 +488,7 @@ export function createImagePlugin(config={}){
             focus(){if(!dead&&!readOnly)(data.file.url?caption:empty.querySelector('button'))?.focus()},
             destroy(){
               dead=true
+              settingsController?.abort()
               currentTask?.cancel()
               currentTask=null
             },
