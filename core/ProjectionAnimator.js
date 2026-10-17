@@ -13,7 +13,9 @@ export class ProjectionAnimator {
   #moveMs
   #removeMs
   #enabled = false
-  #spacers = new Set()
+  // Track the original insertion parent. A host may reparent a spacer while
+  // its animation is pending; cleanup must never erase that new owner's DOM.
+  #spacers = new Map()
 
   constructor(options = {}) {
     this.#insertMs = duration(options.insertMs, 350, 'insertMs')
@@ -92,8 +94,19 @@ export class ProjectionAnimator {
         pointerEvents: 'none',
       })
       const anchor = container.children?.[snapshot.index] ?? null
-      try { container.insertBefore(spacer, anchor) } catch { continue }
-      this.#spacers.add(spacer)
+      try { container.insertBefore(spacer, anchor) }
+      catch {
+        // DOM adapters can throw after inserting a node. Recover only our
+        // newly-created spacer; leave the original container content intact.
+        if (spacer.parentNode === container) spacer.remove()
+        continue
+      }
+      if (spacer.parentNode !== container) continue
+      if (!this.#enabled) {
+        spacer.remove()
+        continue
+      }
+      this.#spacers.set(spacer, container)
       if (!this.#canAnimate(spacer)) {
         this.#removeSpacer(spacer)
         continue
@@ -118,13 +131,16 @@ export class ProjectionAnimator {
   }
 
   #clearSpacers() {
-    for (const spacer of this.#spacers) spacer.remove?.()
+    for (const [spacer, originalParent] of this.#spacers) {
+      if (spacer.parentNode === originalParent) spacer.remove?.()
+    }
     this.#spacers.clear()
   }
 
   #removeSpacer(spacer) {
+    const originalParent = this.#spacers.get(spacer)
     this.#spacers.delete(spacer)
-    spacer.remove?.()
+    if (originalParent && spacer.parentNode === originalParent) spacer.remove?.()
   }
 
   #canAnimate(element) {
