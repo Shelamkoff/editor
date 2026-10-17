@@ -74,10 +74,14 @@ export class LogicalSelection {
       block.focus({preventScroll:true})
       return this.#root.ownerDocument.activeElement===block
     }
-    const target = this.#resolvePoint(bookmark.anchor)
-    if (target && this.#root.ownerDocument.activeElement !== target.owner.element) {
-      // The plugin must expose a hidden editing host before native focus can
-      // restore its caret (Code view, Raw preview, closed Spoiler content).
+    // Validate both keyed endpoints before invoking any potentially
+    // side-effectful plugin focus. A half-retired range must not steal focus
+    // from the author's current field merely because its anchor still exists.
+    const initialAnchor = this.#resolvePoint(bookmark.anchor)
+    const initialFocus = this.#resolvePoint(bookmark.focus)
+    if (!initialAnchor || !initialFocus) return false
+    if (this.#root.ownerDocument.activeElement !== initialAnchor.owner.element) {
+      // The plugin may reveal a hidden rich-text editing surface on focus.
       this.#reconciler.focus?.(bookmark.anchor.blockId, { fieldKey: bookmark.anchor.fieldKey })
     }
     const anchor = this.#resolvePoint(bookmark.anchor)
