@@ -135,7 +135,21 @@ function mount(config = {}) {
     ownerDocument, signal: owner.signal, getData: () => canonical,
     isReadOnly: () => false,
     beginTask() {
-      throw new Error('Unexpected metadata resolution in URL lifetime tests')
+      const controller = new AbortController()
+      owner.signal.addEventListener('abort', () => controller.abort(), { once: true })
+      return {
+        signal: controller.signal,
+        cancel() { controller.abort() },
+        commit(producer) {
+          if (controller.signal.aborted) return false
+          const updated = producer(structuredClone(canonical))
+          if (updated !== canonical) {
+            canonical = updated
+            instance.update(canonical)
+          }
+          return true
+        },
+      }
     },
     updateData(producer) {
       canonical = producer(structuredClone(canonical))
@@ -234,5 +248,52 @@ test('LinkPreview read-only transition revokes a pending URL draft', () => {
     assert.deepEqual(h.timerIds(), [])
     h.flushTimers()
     assert.equal(h.model().url, 'https://example.com/Alpha')
+  } finally { h.destroy() }
+})
+
+test('LinkPreview late metadata cannot overwrite a newer host title for the same URL', async () => {
+  let finish
+  const h = mount({
+    fetchMeta: () => new Promise(resolve => { finish = resolve }),
+  })
+  try {
+    h.input.value = 'https://vimeo.com/123456'
+    h.input.dispatch('keydown')
+    assert.equal(typeof finish, 'function')
+    assert.equal(h.model().url, 'https://vimeo.com/123456')
+
+    h.external({ ...h.model(), title: 'Host-authored title' })
+    finish({ title: 'Stale fetched title', description: 'Fetched description' })
+    await Promise.resolve()
+    await Promise.resolve()
+
+    assert.equal(h.model().title, 'Host-authored title',
+      'late metadata silently overwrote a more recent host-authored title')
+    assert.equal(h.model().description, 'Fetched description',
+      'an untouched description should still benefit from metadata resolution')
+  } finally { h.destroy() }
+})
+
+test('LinkPreview cancels an obsolete metadata request after host replaces its URL', async () => {
+  let finish
+  let pendingSignal
+  const h = mount({
+    fetchMeta: (_url, { signal }) => {
+      pendingSignal = signal
+      return new Promise(resolve => { finish = resolve })
+    },
+  })
+  try {
+    h.input.value = 'https://vimeo.com/123456'
+    h.input.dispatch('keydown')
+    assert.equal(pendingSignal.aborted, false)
+    h.external({ ...h.model(), url: 'https://example.org/new', title: 'Host replacement' })
+    assert.equal(pendingSignal.aborted, true,
+      'an obsolete metadata request retained authority after canonical source replacement')
+    finish({ title: 'Old URL title' })
+    await Promise.resolve()
+    await Promise.resolve()
+    assert.equal(h.model().url, 'https://example.org/new')
+    assert.equal(h.model().title, 'Host replacement')
   } finally { h.destroy() }
 })
