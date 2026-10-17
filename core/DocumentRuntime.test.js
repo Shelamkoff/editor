@@ -1276,3 +1276,45 @@ test('public block update ignores JSON object insertion order without a history 
     runtime.destroy()
   }
 })
+
+
+test('projection sync ignores JSON property insertion order but commits genuine edits', () => {
+  const definition = {
+    type: 'semantic-json',
+    schema: {
+      currentVersion: 1,
+      createDefault: () => ({ nested: { left: 1, right: 2 }, list: [{ a: 1, b: 2 }] }),
+      encode: data => ({ dataVersion: 1, data: structuredClone(data) }),
+      decode: ({ dataVersion, data }) => ({ dataVersion, data: structuredClone(data) }),
+    },
+  }
+  const initial = { nested: { left: 1, right: 2 }, list: [{ a: 1, b: 2 }] }
+  let projected = { list: [{ b: 2, a: 1 }], nested: { right: 2, left: 1 } }
+  const projector = {
+    readBlock: () => ({ data: projected }),
+    prepare: () => ({ apply() {}, recover() {}, finalize() {}, discard() {} }),
+    restore() {},
+  }
+  const runtime = new DocumentRuntime({
+    registry: registry([definition]),
+    projector,
+    data: { version: '2.0.0', blocks: [{ id: 'entry', type: definition.type, dataVersion: 1, data: initial }] },
+  })
+  try {
+    const revision = runtime.revision
+    runtime.syncBlockFromProjection('entry', () => {})
+    assert.equal(runtime.revision, revision, 'reordered object keys created a phantom native edit')
+    assert.equal(runtime.canUndo, false)
+    assert.deepEqual(runtime.get('entry').data, initial)
+
+    projected = { list: [{ b: 2, a: 1 }], nested: { right: 3, left: 1 } }
+    runtime.syncBlockFromProjection('entry', () => {})
+    assert.equal(runtime.revision, revision + 1)
+    assert.equal(runtime.canUndo, true)
+    assert.deepEqual(runtime.get('entry').data.nested, { right: 3, left: 1 })
+    assert.equal(runtime.undo(), true)
+    assert.deepEqual(runtime.get('entry').data, initial)
+  } finally {
+    runtime.destroy()
+  }
+})
