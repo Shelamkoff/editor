@@ -4,6 +4,7 @@ import { sanitizeHtml } from '../shared/sanitize/sanitizeHtml.js'
 import { sanitizeRawHtml } from '../shared/sanitize/sanitizeRawHtml.js'
 import { toTrustedHtml } from '../shared/sanitize/trustedHtml.js'
 import { synchronousResult } from '../shared/synchronousResult.js'
+import { cloneEditorData } from '../shared/cloneEditorData.js'
 
 // Unclaimed top-level text containers still delimit authored HTML blocks.
 // Registered import capabilities take precedence over this fallback.
@@ -47,10 +48,11 @@ function materializeRichText(html,{registry,types,context}){
     const definition=registry.getBlockDefinition(type)
     const conversion=definition?.capabilities?.conversion
     if(!conversion)continue
-    const accepted=synchronousResult(conversion.canImport(payload))
+    // A rejected importer must not change the payload later candidates inspect.
+    const accepted=synchronousResult(conversion.canImport(cloneEditorData(payload)))
     if(typeof accepted!=='boolean')throw new TypeError(`HTML conversion canImport() for "${type}" must return a boolean`)
     if(!accepted)continue
-    return {type,data:synchronousResult(conversion.import(payload,importContext))}
+    return {type,data:synchronousResult(conversion.import(cloneEditorData(payload),importContext))}
   }
   throw new Error('No registered block type can import rich-text HTML')
 }
