@@ -183,3 +183,41 @@ test('synchronous revocation during port binding prevents an onMount on a destro
   const reused = new InlineToolMounts([source], runtime)
   reused.destroy()
 })
+
+test('inline mount callbacks run inside the observation guard and cannot mutate the document', () => {
+  let observing = false
+  let forbiddenMutations = 0
+  let observedCalls = 0
+  const guardedRuntime = {
+    prepareExtensionValue: operation => operation(),
+    observeExtension(operation) {
+      assert.equal(observing, false, 'nested observation guard leaked')
+      observing = true
+      try { return operation() }
+      finally { observing = false }
+    },
+  }
+  const attemptMutation = () => {
+    if (observing) return // a real DocumentRuntime rejects this operation
+    forbiddenMutations++
+  }
+  const source = tool('mount-guard', {
+    bindSelectionPort(port) {
+      if (port !== null) {
+        observedCalls++
+        attemptMutation()
+      }
+    },
+    onMount() {
+      observedCalls++
+      attemptMutation()
+    },
+  })
+  const mounts = new InlineToolMounts([source], guardedRuntime)
+  try {
+    mounts.start(mounts.tools[0], {}, {}, {})
+    assert.equal(observedCalls, 2)
+    assert.equal(forbiddenMutations, 0,
+      'inline setup hooks escaped observation authority and mutated live editor state')
+  } finally { mounts.destroy() }
+})
