@@ -78,12 +78,13 @@ class FakeElement {
       if (index >= 0) callbacks.splice(index, 1)
     }, { once: true })
   }
-  dispatch(type) {
+  dispatch(type, details = {}) {
     const event = {
       type, target: this,
       stopPropagation() {},
-      preventDefault() {},
+      preventDefault() { this.defaultPrevented = true },
       key: type === 'keydown' ? 'Enter' : undefined,
+      ...details,
     }
     for (const callback of [...(this.listeners.get(type) ?? [])]) callback(event)
   }
@@ -404,5 +405,63 @@ test('LinkPreview restored history projection never restarts initial metadata en
     h.input.value = 'https://vimeo.com/123456'
     h.input.dispatch('keydown')
     assert.deepEqual(requests, ['https://vimeo.com/123456'])
+  } finally { h.destroy() }
+})
+
+test('LinkPreview does not submit transient IME text on Enter, change, or the debounce timer', () => {
+  const h = mount()
+  try {
+    const before = structuredClone(h.model())
+    h.input.focus()
+    h.input.dispatch('compositionstart')
+    h.input.value = 'https://vimeo.com/123456'
+    h.input.dispatch('input', { isComposing: true })
+    h.input.dispatch('keydown', { key: 'Enter', isComposing: true })
+    h.input.dispatch('change')
+    h.flushTimers()
+    assert.deepEqual(h.model(), before,
+      'a composition candidate must not become a canonical URL before compositionend')
+
+    h.input.dispatch('compositionend')
+    assert.equal(h.timerIds().length, 1,
+      'final IME text needs a single deferred submission after compositionend')
+    h.flushTimers()
+    assert.equal(h.model().url, 'https://vimeo.com/123456')
+    assert.equal(h.model().domain, 'vimeo.com')
+    assert.deepEqual(h.timerIds(), [])
+  } finally { h.destroy() }
+})
+
+test('LinkPreview cancels an old URL timer when IME composition begins', () => {
+  const h = mount()
+  try {
+    h.input.focus()
+    h.input.value = 'https://vimeo.com/123456'
+    h.input.dispatch('input')
+    assert.equal(h.timerIds().length, 1)
+
+    h.input.dispatch('compositionstart')
+    assert.deepEqual(h.timerIds(), [], 'pre-composition URL timer was not canceled')
+    h.input.value = 'https://vimeo.com/765432'
+    h.input.dispatch('input', { isComposing: true })
+    assert.deepEqual(h.timerIds(), [])
+    h.input.dispatch('compositionend')
+    h.flushTimers()
+    assert.equal(h.model().url, 'https://vimeo.com/765432',
+      'the pre-composition timer overwrote finalized IME input')
+  } finally { h.destroy() }
+})
+
+test('LinkPreview ignores composing input even when compositionstart was not observed', () => {
+  const h = mount()
+  try {
+    h.input.focus()
+    h.input.value = 'https://vimeo.com/123456'
+    h.input.dispatch('input', { isComposing: true })
+    assert.deepEqual(h.timerIds(), [])
+    h.input.dispatch('input', { isComposing: false })
+    assert.equal(h.timerIds().length, 1)
+    h.flushTimers()
+    assert.equal(h.model().url, 'https://vimeo.com/123456')
   } finally { h.destroy() }
 })
