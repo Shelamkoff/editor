@@ -13,14 +13,27 @@ class FakeElement {
     this.dataset = {}
     this.className = ''
     this.contentEditable = 'inherit'
+    this.moveCount = 0
     this.innerHTML = ''
     this.textContent = ''
   }
 
   appendChild(child) {
+    if (child.parentNode) child.moveCount++
     child.remove()
     child.parentNode = this
     this.children.push(child)
+    return child
+  }
+
+  insertBefore(child, before) {
+    if (child === before) return child
+    if (child.parentNode) child.moveCount++
+    child.remove()
+    const index = before === null ? this.children.length : this.children.indexOf(before)
+    assert.ok(index >= 0, 'insertBefore reference is not a child')
+    child.parentNode = this
+    this.children.splice(index, 0, child)
     return child
   }
 
@@ -105,5 +118,20 @@ test('Table insert-before and no-heading reorder maintain positional semantics',
   assert.deepEqual(rows(instance), [
     { id: 'b', tag: 'TH' }, { id: 'new', tag: 'TD' }, { id: 'a', tag: 'TD' },
   ])
+  instance.destroy()
+})
+
+test('Table keeps unchanged mounted row and editable cell stable on sibling text updates', () => {
+  const instance = mount(['a', 'b'])
+  const field = instance.editableFields()[0].element
+  const row = field.parentNode
+  const firstCellMoves = field.moveCount
+  const firstRowMoves = row.moveCount
+  const next = data(['a', 'b'])
+  next.rows[1].cells[0].text = 'Updated'
+  instance.update(next)
+  assert.equal(instance.editableFields()[0].element, field, 'unmodified field element was replaced')
+  assert.equal(field.moveCount, firstCellMoves, 'unmodified cell was detached from its row')
+  assert.equal(row.moveCount, firstRowMoves, 'unmodified row was detached from the table')
   instance.destroy()
 })
