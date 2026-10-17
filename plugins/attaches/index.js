@@ -157,6 +157,7 @@ export function createAttachesPlugin(config={}){
             if(readOnly||dead||files.length===0)return
             const task=beginTask()
             const createdObjectUrls=[]
+            let committed=false
             try{
               /** @type {FileEntry[]} */
               const resolved=[]
@@ -194,14 +195,18 @@ export function createAttachesPlugin(config={}){
                   })
                 }
               }
-              const committed=!task.signal.aborted&&addResolved(resolved,task)
+              committed=!task.signal.aborted&&addResolved(resolved,task)
+            }catch(error){
+              // The asynchronous File drop cannot propagate a failed commit
+              // as an unhandled rejection or retain its uncommitted blob URLs.
+              if(!task.signal.aborted)console.warn('[Attaches] File batch failed',error)
+            }finally{
               if(!committed){
                 for(const url of createdObjectUrls){
                   objectUrls.get(url)?.revokeObjectURL(url)
                   objectUrls.delete(url)
                 }
               }
-            }finally{
               finishTask(task)
             }
           }
