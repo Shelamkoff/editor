@@ -4,7 +4,7 @@ import assert from 'node:assert/strict'
 import { ClipboardController } from './ClipboardController.js'
 import { CLIPBOARD_FRAGMENT_MIME } from './ClipboardFragment.js'
 
-function clipboardHarness({ formats = [], read = () => '', files = [], accepts = null, resolve = null, capability = null, crossSelection = null, mode = 'rich-text' } = {}) {
+function clipboardHarness({ formats = [], read = () => '', files = [], accepts = null, resolve = null, capability = null, crossSelection = null, mode = 'rich-text', isComposing = () => false } = {}) {
   const handlers = new Map()
   const host = { contains: () => true }
   const target = {
@@ -64,6 +64,7 @@ function clipboardHarness({ formats = [], read = () => '', files = [], accepts =
     },
     selection: { capture: () => bookmark },
     crossSelection,
+    isComposing,
     view: { reconcileInteraction() {}, setCurrent() {}, focus() {} },
   })
   const reads = []
@@ -405,5 +406,51 @@ test('plain-text editing fields retain their native Cut behavior', () => {
   try {
     assert.doesNotThrow(() => fixture.cut())
     assert.equal(fixture.event.defaultPrevented, false)
+  } finally { fixture.controller.destroy() }
+})
+
+test('structured rich-text Cut is rejected during IME without reading canonical slices', () => {
+  const fixture = clipboardHarness({ accepts: () => false, isComposing: () => true })
+  fixture.bookmark.focus.offset = 3
+  let plans = 0
+  fixture.runtime.prepareLogicalClipboardSlice = () => { plans++ }
+  try {
+    fixture.cut()
+    assert.equal(fixture.event.defaultPrevented, true,
+      'native Cut could delete an unfinished IME preedit')
+    assert.equal(plans, 0,
+      'Cut tried to serialize a stale canonical range during composition')
+    assert.deepEqual(fixture.reads, [])
+  } finally { fixture.controller.destroy() }
+})
+
+test('cross-block Cut is rejected during IME without touching the document', () => {
+  const crossSelection = {
+    active: true,
+    wholeBlockIds: ['a'],
+    bookmark: { anchor: { blockId: 'a' }, focus: { blockId: 'a' } },
+  }
+  const fixture = clipboardHarness({ crossSelection, isComposing: () => true })
+  let plans = 0
+  fixture.runtime.prepareLogicalClipboardSlice = () => { plans++ }
+  try {
+    fixture.cut()
+    assert.equal(fixture.event.defaultPrevented, true)
+    assert.equal(plans, 0,
+      'cross-block Cut entered canonical slicing while composition was active')
+  } finally { fixture.controller.destroy() }
+})
+
+test('plain-text auxiliary input retains native Cut during editor composition', () => {
+  const fixture = clipboardHarness({
+    accepts: () => false, mode: 'plain-text', isComposing: () => true,
+  })
+  let plans = 0
+  fixture.runtime.prepareLogicalClipboardSlice = () => { plans++ }
+  try {
+    fixture.cut()
+    assert.equal(fixture.event.defaultPrevented, false,
+      'editor IME guard stole native Cut from a plain-text auxiliary control')
+    assert.equal(plans, 0)
   } finally { fixture.controller.destroy() }
 })
