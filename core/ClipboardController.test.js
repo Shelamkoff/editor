@@ -4,7 +4,7 @@ import assert from 'node:assert/strict'
 import { ClipboardController } from './ClipboardController.js'
 import { CLIPBOARD_FRAGMENT_MIME } from './ClipboardFragment.js'
 
-function clipboardHarness({ formats = [], read = () => '', files = [], accepts = null, resolve = null, capability = null } = {}) {
+function clipboardHarness({ formats = [], read = () => '', files = [], accepts = null, resolve = null, capability = null, crossSelection = null } = {}) {
   const handlers = new Map()
   const host = { contains: () => true }
   const target = {
@@ -63,6 +63,7 @@ function clipboardHarness({ formats = [], read = () => '', files = [], accepts =
       getEditableFields: () => [{ key: 'text', mode: 'rich-text', element: {} }],
     },
     selection: { capture: () => bookmark },
+    crossSelection,
     view: { reconcileInteraction() {}, setCurrent() {}, focus() {} },
   })
   const reads = []
@@ -81,7 +82,8 @@ function clipboardHarness({ formats = [], read = () => '', files = [], accepts =
     composedPath: () => [target],
   }
   const paste = () => handlers.get('paste')(event)
-  return { controller, runtime, event, paste, reads, bookmark }
+  const cut = () => handlers.get('cut')(event)
+  return { controller, runtime, event, paste, cut, reads, bookmark }
 }
 
 test('present but empty private clipboard MIME is a consumed rejection without text fallback', () => {
@@ -362,5 +364,34 @@ test('a paste task started during abort cannot be cleared by its predecessor', a
     completeFresh({ kind: 'rich-text', replacement: { kind: 'text', text: 'new' } })
     for (let index = 0; index < 8; index++) await Promise.resolve()
     assert.equal(applied, 1, 'stale cancellation cleared a newer Paste task')
+  } finally { fixture.controller.destroy() }
+})
+
+
+test('failed rich-text Cut preparation cannot trigger native deletion', () => {
+  const fixture = clipboardHarness({ accepts: () => false })
+  fixture.bookmark.focus.offset = 3
+  fixture.runtime.prepareLogicalClipboardSlice = () => {
+    throw new Error('clipboard slice preparation failed')
+  }
+  try {
+    assert.doesNotThrow(() => fixture.cut())
+    assert.equal(fixture.event.defaultPrevented, true)
+  } finally { fixture.controller.destroy() }
+})
+
+test('failed cross-block Cut preparation cannot trigger native deletion', () => {
+  const crossSelection = {
+    active: true,
+    wholeBlockIds: ['a'],
+    bookmark: { anchor: { blockId: 'a' }, focus: { blockId: 'a' } },
+  }
+  const fixture = clipboardHarness({ crossSelection })
+  fixture.runtime.prepareLogicalClipboardSlice = () => {
+    throw new Error('cross-block clipboard preparation failed')
+  }
+  try {
+    assert.doesNotThrow(() => fixture.cut())
+    assert.equal(fixture.event.defaultPrevented, true)
   } finally { fixture.controller.destroy() }
 })
