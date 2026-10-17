@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 
 import { DocumentRuntime } from './DocumentRuntime.js'
 import { ReadOnlyRecoveryError } from './ReadOnlyRecoveryError.js'
+import { InstanceScope } from './InstanceScope.js'
 
 function schema(options = {}) {
   return {
@@ -1410,5 +1411,66 @@ test('block data authority and public host updates publish distinct event origin
   assert.equal(events.length, 2)
   assert.equal(events[0].origin, 'external')
   assert.equal(events[1].origin, 'plugin')
+  runtime.destroy()
+})
+
+
+test('block instance DataTask inherits plugin authoring provenance through DocumentRuntime', () => {
+  let contextFactory
+  const events = []
+  const definition = {
+    type: 'linkPreview',
+    schema: {
+      currentVersion: 1,
+      createDefault: () => ({ url: '', title: '' }),
+      decode: input => ({ dataVersion: 1, data: input.data }),
+      encode: data => ({ dataVersion: 1, data }),
+      mapRichText: data => data,
+    },
+    capabilities: { empty: { isEmpty: data => !data.url } },
+  }
+  const runtime = new DocumentRuntime({
+    registry: registry([definition]),
+    data: {
+      version: '2.0.0',
+      blocks: [{ id: 'a', type: 'linkPreview', dataVersion: 1,
+        data: { url: 'https://old.example', title: '' } }],
+    },
+    onCommit: event => events.push(event),
+    projectorFactory({ contextFactory: createContext }) {
+      contextFactory = createContext
+      return {
+        mount() {},
+        prepare() {
+          return { apply() {}, recover() {}, finalize() {}, discard() {} }
+        },
+        destroy() {},
+      }
+    },
+  })
+
+  const owner = new AbortController()
+  const scope = new InstanceScope({ generation: runtime.generation })
+  const context = contextFactory('a', 'linkPreview', owner.signal,
+    () => runtime.get('a'), scope)
+  const before = runtime.get('a')
+  context.updateData(current => ({ ...current, url: 'https://plugin.example' }))
+  assert.equal(events[0].origin, 'plugin',
+    'block-scoped update was misclassified as a host mutation')
+
+  const task = context.beginTask()
+  assert.equal(task.commit(current => ({ ...current, title: 'Fetched title' }), {
+    mergeWithPreviousField: 'url',
+  }), true)
+  assert.equal(events[1].origin, 'plugin')
+  assert.equal(runtime.get('a').data.title, 'Fetched title')
+  assert.equal(runtime.undo(), true)
+  assert.deepEqual(runtime.get('a'), before)
+  assert.equal(runtime.canUndo, false)
+  assert.equal(runtime.redo(), true)
+  assert.equal(runtime.get('a').data.url, 'https://plugin.example')
+  assert.equal(runtime.get('a').data.title, 'Fetched title')
+  owner.abort()
+  scope.revoke()
   runtime.destroy()
 })
