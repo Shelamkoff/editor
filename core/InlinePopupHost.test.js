@@ -228,6 +228,30 @@ test('popup rejects connected content borrowed from another editor in the same d
   host.destroy()
 })
 
+test('popup cannot steal content owned by a disconnected application subtree', () => {
+  const { root, anchor, host, create } = fixture()
+  const releases = []
+  const active = host.showPopup('active', anchor, create(), () => releases.push('active'))
+  const currentPopup = root.children[1]
+  const detachedApplication = create()
+  const borrowed = create()
+  detachedApplication.appendChild(borrowed)
+  assert.equal(borrowed.isConnected, false)
+  assert.equal(root.contains(borrowed), false)
+
+  assert.throws(
+    () => host.showPopup('borrowed', anchor, borrowed, () => releases.push('borrowed')),
+    /Popup requires owning-document HTML elements/,
+  )
+  assert.equal(detachedApplication.children[0], borrowed, 'popup adopted a foreign detached node')
+  assert.equal(root.children[1], currentPopup, 'invalid popup closed a valid presentation')
+  assert.deepEqual(releases, [], 'a rejected request cannot own the foreign disposer')
+  active.close()
+  assert.deepEqual(releases, ['active'])
+  host.destroy()
+  assert.equal(detachedApplication.children[0], borrowed)
+})
+
 test('popup removed by custom-element disconnect cannot retire a reentrant successor', () => {
   const { root, anchor, host, create } = fixture()
   const destroyed = []
