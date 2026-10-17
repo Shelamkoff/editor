@@ -154,3 +154,40 @@ test('Person current name input updates the tab created by a sibling change', ()
   assert.equal(label.textContent, 'Changed name', 'typing updated a stale detached tab label')
   instance.destroy()
 })
+
+
+test('Person preserves its active editor through 400 deterministic unrelated changes', () => {
+  const { instance, ownerDocument } = mount()
+  const field = nameField(instance, 'a')
+  field.focus()
+  let current = input()
+  let randomSeed = 938475
+  const random = max => {
+    randomSeed ^= randomSeed << 13
+    randomSeed ^= randomSeed >>> 17
+    randomSeed ^= randomSeed << 5
+    return (randomSeed >>> 0) % max
+  }
+  for (let step = 0; step < 400; step++) {
+    const next = { persons: current.persons.map(person => ({
+      ...person, links: person.links.map(link => ({ ...link })),
+    })) }
+    const action = random(4)
+    if (action === 0) next.persons.reverse()
+    else if (action === 1) {
+      next.persons = next.persons.map(person => person.id === 'b'
+        ? { ...person, role: person.role === '' ? 'Editor' : '' } : person)
+    } else if (action === 2 && !next.persons.some(person => person.id === 'c')) {
+      next.persons.push(person('c'))
+    } else if (action === 3 && next.persons.some(person => person.id === 'c')) {
+      next.persons = next.persons.filter(person => person.id !== 'c')
+    }
+    instance.update(next)
+    assert.equal(nameField(instance, 'a'), field, 'active field replaced at step ' + step)
+    assert.equal(ownerDocument.activeElement, field, 'active field blurred at step ' + step)
+    assert.deepEqual(instance.read().persons.map(person => person.id),
+      next.persons.map(person => person.id), 'author order drift at step ' + step)
+    current = next
+  }
+  instance.destroy()
+})
