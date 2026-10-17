@@ -175,10 +175,16 @@ export class EditorRenderer {
    * @returns {HTMLElement}
    */
   renderBlock(block) {
+    // Keep the single-block API under the same input ownership contract as
+    // render()/renderTo(): a stylesheet callback cannot mutate source data
+    // between admission and the renderer's owned JSON snapshot.
+    const source = /** @type {any} */ (block)?.[validationSourceKey] ?? block
+    this.#assertBlockVersion(block, source)
+    const owned = cloneEditorData(block)
     const ownerDocument = globalThis.document
     this.#ensureStyles(ownerDocument)
     try {
-      const entry = this.#createRenderedBlock(block, ownerDocument)
+      const entry = this.#createRenderedBlock(owned, ownerDocument, source, true)
       this.#detachedBlocks.set(entry.element, entry)
       return entry.element
     } catch (error) {
@@ -268,13 +274,14 @@ export class EditorRenderer {
    * @param {import('./types').OutputBlockData} block
    * @param {Document} ownerDocument
    * @param {object} [validationSource] Original identity, not a signature clone.
+   * @param {boolean} [alreadyOwned] Whether JSON was already cloned by this owner.
    * @returns {{ element: HTMLElement, type: string, renderer?: import('./types').BlockRendererDefinition }}
    */
-  #createRenderedBlock(block, ownerDocument, validationSource = /** @type {any} */ (block)[validationSourceKey] ?? block) {
+  #createRenderedBlock(block, ownerDocument, validationSource = /** @type {any} */ (block)[validationSourceKey] ?? block, alreadyOwned = false) {
     // Reject a registered version mismatch before traversing opaque data.
     // Only admitted content crosses the deep JSON ownership boundary.
     this.#assertBlockVersion(block, validationSource)
-    block = cloneEditorData(block)
+    if (!alreadyOwned) block = cloneEditorData(block)
     const renderer = this.#renderers.get(block.type)
 
     if (!renderer) {
