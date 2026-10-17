@@ -105,7 +105,12 @@ export class GalleryUploader {
           remaining--
           if (remaining === 0) finish()
         }
-        const abort = () => reader.abort()
+        const abort = () => {
+          // Do not strand an entire batch if one reader never dispatches
+          // onabort (or its abort() implementation throws).
+          try { reader.abort() } catch {}
+          finally { completeReader() }
+        }
         signal?.addEventListener('abort', abort, { once: true })
         reader.onload = () => {
           if (readerComplete) return
