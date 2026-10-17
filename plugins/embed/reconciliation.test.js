@@ -112,9 +112,14 @@ class FakeElement {
       if (index >= 0) group.splice(index, 1)
     }, { once: true })
   }
-  dispatch(type) {
+  dispatch(type, details = {}) {
     for (const handler of [...(this.listeners.get(type) ?? [])]) {
-      handler({ type, target: this, preventDefault() {}, stopPropagation() {} })
+      handler({
+        type, target: this,
+        preventDefault() { this.defaultPrevented = true },
+        stopPropagation() {},
+        ...details,
+      })
     }
   }
   focus() { this.ownerDocument.activeElement = this }
@@ -298,5 +303,65 @@ test('Embed removes a now-irrelevant empty caption after its last video is clear
     assert.equal(caption(h.instance), undefined,
       'empty Embed still advertised a stale editable caption')
     assert.equal(h.instance.read().caption, '')
+  } finally { h.destroy() }
+})
+
+test('Embed does not parse a URL before IME composition ends', () => {
+  const h = mount()
+  try {
+    const input = h.instance.element.querySelector('.oe-embed__url-input')
+    input.focus()
+    const original = structuredClone(h.model())
+    input.dispatch('compositionstart')
+    input.value = 'https://vimeo.com/123456'
+    input.dispatch('input', { isComposing: true })
+    input.dispatch('keydown', { key: 'Enter', isComposing: true })
+    input.dispatch('paste', { isComposing: true })
+    h.flushTimers()
+    assert.deepEqual(h.model(), original,
+      'IME preedit unexpectedly changed the canonical video provider')
+
+    input.dispatch('compositionend')
+    assert.equal(h.pendingTimers(), 1)
+    h.flushTimers()
+    assert.equal(h.model().service, 'vimeo')
+    assert.equal(h.model().videoId, '123456')
+    assert.equal(h.pendingTimers(), 0)
+  } finally { h.destroy() }
+})
+
+test('Embed discards earlier URL timer when composition starts', () => {
+  const h = mount()
+  try {
+    const input = h.instance.element.querySelector('.oe-embed__url-input')
+    input.focus()
+    input.value = 'https://vimeo.com/123456'
+    input.dispatch('input')
+    assert.equal(h.pendingTimers(), 1)
+    input.dispatch('compositionstart')
+    assert.equal(h.pendingTimers(), 0)
+    input.value = 'https://vimeo.com/765432'
+    input.dispatch('input', { isComposing: true })
+    h.flushTimers()
+    assert.equal(h.model().service, 'youtube')
+
+    input.dispatch('compositionend')
+    h.flushTimers()
+    assert.equal(h.model().service, 'vimeo')
+    assert.equal(h.model().videoId, '765432')
+  } finally { h.destroy() }
+})
+
+test('Embed skips composing input without a preceding compositionstart', () => {
+  const h = mount()
+  try {
+    const input = h.instance.element.querySelector('.oe-embed__url-input')
+    input.value = 'https://vimeo.com/123456'
+    input.dispatch('input', { isComposing: true })
+    assert.equal(h.pendingTimers(), 0)
+    input.dispatch('input', { isComposing: false })
+    assert.equal(h.pendingTimers(), 1)
+    h.flushTimers()
+    assert.equal(h.model().videoId, '123456')
   } finally { h.destroy() }
 })
