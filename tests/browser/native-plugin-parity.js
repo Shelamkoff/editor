@@ -650,4 +650,41 @@ test('Raw preview preserves the source and permits native history from its previ
   await dispatchKey('z','KeyZ',90,2|8)
   equal(editor.save().blocks,after)
 })
+
+test('Table heading cells follow row reordering through public update and history', async () => {
+  const definition = createTablePlugin()
+  const initial = {
+    withHeadings: true,
+    rows: [
+      { id: 'first', cells: [{ id: 'a', text: 'Alpha' }] },
+      { id: 'second', cells: [{ id: 'b', text: 'Bravo' }] },
+    ],
+  }
+  const editor = make([{ id: 'a', type: 'table', dataVersion: definition.schema.currentVersion, data: initial }],
+    { plugins: [createParagraphPlugin(), definition] })
+  const tags = () => [...blockElement(editor, 'a').querySelectorAll('.oe-table tr')].map(row => [
+    row.dataset.rowId,
+    row.firstElementChild?.tagName,
+    row.firstElementChild?.textContent,
+  ])
+  const before = editor.save().blocks
+  equal(tags(), [['first', 'TH', 'Alpha'], ['second', 'TD', 'Bravo']])
+  editor.blocks.update('a', current => ({
+    data: { ...current.data, rows: [...current.data.rows].reverse() },
+  }))
+  const reordered = editor.save().blocks
+  equal(tags(), [['second', 'TH', 'Bravo'], ['first', 'TD', 'Alpha']])
+  equal(reordered[0].data.rows.map(row => row.id), ['second', 'first'])
+  equal(editor.undo(), true)
+  equal(editor.save().blocks, before)
+  equal(tags(), [['first', 'TH', 'Alpha'], ['second', 'TD', 'Bravo']])
+  equal(editor.redo(), true)
+  equal(editor.save().blocks, reordered)
+  equal(tags(), [['second', 'TH', 'Bravo'], ['first', 'TD', 'Alpha']])
+  editor.blocks.update('a', current => ({
+    data: { ...current.data, rows: current.data.rows.slice(1) },
+  }))
+  equal(tags(), [['first', 'TH', 'Alpha']])
+})
+
 await run()
