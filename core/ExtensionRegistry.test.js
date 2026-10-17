@@ -720,3 +720,74 @@ for (const [kind, customize] of [
     }
   })
 }
+
+test('ExtensionRegistry snapshots registration arrays without caller map or iterator', () => {
+  const blocks = [blockDefinition('paragraph'), blockDefinition('quote')]
+  const inline = [inlineDefinition('mention', '@')]
+  for (const array of [blocks, inline]) {
+    array.map = () => { throw new Error('caller map must not execute') }
+    array[Symbol.iterator] = () => { throw new Error('caller iterator must not execute') }
+  }
+  const registry = new ExtensionRegistry({
+    ownerDocument: documentStub(), blocks, inline, acquireStyles: false,
+  })
+  try {
+    assert.deepEqual(registry.blockTypes, ['paragraph', 'quote'])
+    assert.deepEqual(registry.inlineTypes, ['mention'])
+  } finally { registry.destroy() }
+})
+
+test('ExtensionRegistry snapshots toolbox arrays without executing overridden map', () => {
+  const toolbox = [{
+    id: 'custom', icon: '', label: { key: 'custom', fallback: 'Custom block' },
+  }]
+  toolbox.map = () => { throw new Error('toolbox map must not execute') }
+  toolbox[Symbol.iterator] = () => { throw new Error('toolbox iterator must not execute') }
+  const source = { ...blockDefinition('paragraph'), toolbox }
+  const registry = new ExtensionRegistry({
+    ownerDocument: documentStub(), blocks: [source], acquireStyles: false,
+  })
+  try {
+    assert.deepEqual(registry.getBlockDefinition('paragraph').toolbox.map(item => item.id), ['custom'])
+  } finally { registry.destroy() }
+})
+
+test('ExtensionRegistry snapshots inline paste pattern arrays by index, not caller map', () => {
+  const patterns = [/^#[a-f0-9]{6}$/gi]
+  patterns.map = () => { throw new Error('inline paste map must not execute') }
+  patterns[Symbol.iterator] = () => { throw new Error('inline paste iterator must not execute') }
+  const inline = {
+    ...inlineDefinition('mention', '@'),
+    paste: { patterns, fromMatch: value => ({ value }) },
+  }
+  const registry = new ExtensionRegistry({
+    ownerDocument: documentStub(), blocks: [blockDefinition('paragraph')],
+    inline: [inline], acquireStyles: false,
+  })
+  try {
+    const captured = registry.getInlineDefinition('mention').paste.patterns
+    assert.equal(captured.length, 1)
+    assert.equal(captured[0].source, '^#[a-f0-9]{6}$')
+    assert.equal(captured[0].flags, 'gi')
+    assert.notEqual(captured[0], patterns[0], 'registry retained mutable source RegExp')
+  } finally { registry.destroy() }
+})
+
+test('ExtensionRegistry snapshots formatting and stylesheet arrays without caller iteration', () => {
+  const inlineTools = ['bold']
+  const styles = ['/component.css']
+  for (const array of [inlineTools, styles]) {
+    array[Symbol.iterator] = () => { throw new Error('extension iterator must not execute') }
+  }
+  const source = {
+    ...blockDefinition('paragraph'),
+    styles, capabilities: { formatting: { inlineTools } },
+  }
+  const registry = new ExtensionRegistry({
+    ownerDocument: documentStub(), blocks: [source], acquireStyles: false,
+  })
+  try {
+    assert.deepEqual([...registry.getBlockDefinition('paragraph').styles], ['/component.css'])
+    assert.deepEqual([...registry.getBlockDefinition('paragraph').capabilities.formatting.inlineTools], ['bold'])
+  } finally { registry.destroy() }
+})
