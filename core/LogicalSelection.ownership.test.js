@@ -4,6 +4,7 @@ import { LogicalSelection } from './LogicalSelection.js'
 
 function harness() {
   const calls = []
+  const focusCalls = []
   const native = {
     anchorNode: null, focusNode: null,
     setBaseAndExtent(anchor, anchorOffset, focus, focusOffset) {
@@ -42,7 +43,7 @@ function harness() {
     getElement: id => id === 'a' ? block : null,
     resolveEditableTarget() { return null },
     resolveBlockTarget() { return null },
-    focus() { return false },
+    focus(id, target) { focusCalls.push({ id, target }); return false },
   }
   const root = {
     ownerDocument: doc,
@@ -53,7 +54,7 @@ function harness() {
     anchor: { blockId: 'a', fieldKey: key, offset: 2 },
     focus: { blockId: 'a', fieldKey: key, offset: 2 },
   })
-  return { calls, native, field, doc, selection, bookmark }
+  return { calls, focusCalls, native, field, doc, selection, bookmark }
 }
 
 test('restoring a deleted rich-text field never redirects the caret to a different field', () => {
@@ -61,6 +62,19 @@ test('restoring a deleted rich-text field never redirects the caret to a differe
   assert.equal(h.selection.restore(h.bookmark('deleted-caption')), false,
     'stale field bookmark unexpectedly succeeded by focusing the title field')
   assert.deepEqual(h.calls, [], 'stale field caret changed native selection')
+  assert.equal(h.doc.activeElement, null)
+})
+
+test('mixed valid and retired bookmark endpoints fail before plugin focus side effects', () => {
+  const h = harness()
+  const bookmark = {
+    anchor: { blockId: 'a', fieldKey: 'title', offset: 1 },
+    focus: { blockId: 'a', fieldKey: 'removed-caption', offset: 2 },
+  }
+  assert.equal(h.selection.restore(bookmark), false)
+  assert.deepEqual(h.focusCalls, [],
+    'failed selection restoration invoked a plugin focus on its valid endpoint')
+  assert.deepEqual(h.calls, [])
   assert.equal(h.doc.activeElement, null)
 })
 
