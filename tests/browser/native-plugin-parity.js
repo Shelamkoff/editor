@@ -2,7 +2,7 @@ import { test, make, para, editorRoot, blockElement, editableField, pause, asser
 import { clickNative, dispatchKey, printable } from './native-input-helpers.js'
 import { createParagraphPlugin, createPollPlugin, createPersonPlugin, createCodePlugin, createTablePlugin, createListPlugin, createColumnsPlugin, createTogglePlugin, createHeadingPlugin } from '../../plugins/index.js'
 import { getTextOffset } from '../../shared/textOffset.js'
-import { pluginParityFixtures, readPath, writePath } from './plugin-parity-fixtures.js'
+import { pluginParityFixtures, readPath, writePath, pixel } from './plugin-parity-fixtures.js'
 
 function poll(options = [{ id: 'first', text: 'Alpha' }, { id: 'second', text: 'Bravo' }]) {
   const definition = createPollPlugin()
