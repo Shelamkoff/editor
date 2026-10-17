@@ -99,7 +99,7 @@ export function createAttachesPlugin(config={}){
             groupChevron?.setAttribute('aria-expanded',String(value))
           }
 
-          const updateData=next=>context.updateData(()=>next)
+          const updateData=producer=>context.updateData(producer)
           const syncLoading=()=>wrapper.classList.toggle('oe-attaches--loading',tasks.size>0)
 
           const addResolved=(entries,task=null)=>{
@@ -321,7 +321,7 @@ export function createAttachesPlugin(config={}){
               remove.setAttribute('aria-label',runtimeContext.t('remove','Remove'))
               remove.addEventListener('click',()=>{
                 if(readOnly||dead)return
-                updateData({...data,files:data.files.filter(entry=>entry.id!==file.id)})
+                updateData(current=>({...current,files:current.files.filter(entry=>entry.id!==file.id)}))
                 wrapper.focus()
               },{signal:settingsController.signal})
               row.appendChild(remove)
