@@ -9,8 +9,11 @@ function object(value,label){
   return value
 }
 function dense(parts){
-  if(!Array.isArray(parts)||parts.length===0)throw new TypeError('Clipboard fragment parts must be a dense non-empty array')
-  for(let i=0;i<parts.length;i++)if(!Object.hasOwn(parts,i))throw new TypeError('Clipboard fragment parts must be dense')
+  if(!Array.isArray(parts))throw new TypeError('Clipboard fragment parts must be a dense non-empty array')
+  const length=parts.length
+  if(length===0)throw new TypeError('Clipboard fragment parts must be a dense non-empty array')
+  for(let i=0;i<length;i++)if(!Object.hasOwn(parts,i))throw new TypeError('Clipboard fragment parts must be dense')
+  return length
 }
 function optionalObject(value,label){
   if(value===undefined)return undefined
@@ -19,14 +22,13 @@ function optionalObject(value,label){
 
 export function transferBlockFromRecord(record){
   const source=object(record,'Clipboard source block')
-  const block={
-    type:String(source.type??''),
-    dataVersion:source.dataVersion,
-    data:cloneEditorData(source.data),
-  }
-  if(!block.type)throw new TypeError('Clipboard block type must be non-empty')
-  if(!Number.isSafeInteger(block.dataVersion)||block.dataVersion<1)throw new TypeError('Clipboard block dataVersion must be positive')
-  object(block.data,'Clipboard block data')
+  const type=source.type
+  if(typeof type!=='string'||!type)throw new TypeError('Clipboard block type must be a non-empty string')
+  const dataVersion=source.dataVersion
+  if(!Number.isSafeInteger(dataVersion)||dataVersion<1)throw new TypeError('Clipboard block dataVersion must be positive')
+  const data=cloneEditorData(source.data)
+  object(data,'Clipboard block data')
+  const block={type,dataVersion,data}
   const tunes=optionalObject(source.tunes,'Clipboard block tunes')
   const inline=optionalObject(source.inline,'Clipboard block inline')
   if(tunes!==undefined)block.tunes=tunes
@@ -35,21 +37,27 @@ export function transferBlockFromRecord(record){
 }
 
 export function createClipboardFragment(parts){
-  dense(parts)
-  const owned=parts.map((part,index)=>{
-    const source=object(part,`Clipboard fragment part[${index}]`)
-    if(source.kind==='rich-text'){
-      if(typeof source.html!=='string')throw new TypeError('Clipboard rich-text html must be a string')
-      const result={kind:'rich-text',html:source.html}
+  const length=dense(parts)
+  // Do not call methods or iterators supplied by a caller-owned Array.
+  const owned=[]
+  for(let index=0;index<length;index++){
+    const source=object(parts[index],`Clipboard fragment part[${index}]`)
+    const kind=source.kind
+    if(kind==='rich-text'){
+      const html=source.html
+      if(typeof html!=='string')throw new TypeError('Clipboard rich-text html must be a string')
+      const result={kind:'rich-text',html}
       const inline=optionalObject(source.inline,'Clipboard rich-text inline')
       if(inline!==undefined)result.inline=inline
-      return result
+      owned.push(result)
+      continue
     }
-    if(source.kind==='block'){
-      return {kind:'block',block:transferBlockFromRecord(source.block)}
+    if(kind==='block'){
+      owned.push({kind:'block',block:transferBlockFromRecord(source.block)})
+      continue
     }
     throw new TypeError('Clipboard fragment part kind must be rich-text or block')
-  })
+  }
   return {version:CLIPBOARD_FRAGMENT_VERSION,parts:owned}
 }
 
