@@ -873,7 +873,8 @@ export function createCarouselPlugin(config={}){
                     &&slide.alt===previous.alt
                     &&slide.poster===previous.poster
                     &&slide.html===previous.html
-                    &&(index!==activeIndex||slide.caption===previous.caption)
+                    &&(index!==activeIndex||slide.caption===previous.caption
+                      ||slide.caption===captionFields.get(slide.id)?.innerHTML.trim())
                 })
               data=cloneData(next)
               if(unchangedActiveView){
