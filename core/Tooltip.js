@@ -48,10 +48,15 @@ export class Tooltip {
   bind(anchor, label, shortcut = '') {
     const signal = this.#listeners.signal
     const show = () => {
-      // Native events already queued before AbortController.abort() may still
-      // invoke a retired listener. Never evaluate extension-owned labels then.
+      // A label getter may synchronously open another tooltip or destroy this
+      // presenter. The older event must never claim the resulting successor.
       if (this.#destroyed) return
-      try { this.show(anchor, label(), shortcut) }
+      const priorEpoch = this.#timerEpoch
+      try {
+        const title = label()
+        if (this.#destroyed || priorEpoch !== this.#timerEpoch) return
+        this.show(anchor, title, shortcut)
+      }
       catch (error) {
         this.hide()
         try { console.warn('[Tooltip] Failed to present tooltip:', error) } catch {}
@@ -81,6 +86,9 @@ export class Tooltip {
       this.#timer = null
       this.#pendingAnchor = null
       const rect = anchor.getBoundingClientRect()
+      // A host measurement may reenter show()/hide()/destroy(). Never render
+      // a retired callback after a newer tooltip acquired presentation state.
+      if (this.#destroyed || epoch !== this.#timerEpoch) return
       if (!this.#root.isConnected || !this.#root.contains(anchor) || !rect.width || !rect.height) return
       const doc = this.#root.ownerDocument
       const text = doc.createElement('span')
@@ -95,6 +103,7 @@ export class Tooltip {
       }
       this.#element.style.display = 'flex'
       const bounds = this.#element.getBoundingClientRect()
+      if (this.#destroyed || epoch !== this.#timerEpoch) return
       const margin = 6
       const center = Math.max(margin + bounds.width / 2,
         Math.min(rect.left + rect.width / 2, this.#window.innerWidth - margin - bounds.width / 2))
