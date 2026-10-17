@@ -37,13 +37,14 @@ function compatibleUpdate(left, right) {
 /**
  * A one-shot async completion may amend the immediately preceding authoring
  * action only when that action changed the named field of the same block.
- * This is narrower than ordinary typing coalescence: a later unrelated action,
- * replay, or a second URL edit must remain an independent history boundary.
+ * This is narrower than ordinary typing coalescence: only native or plugin-
+ * authored URL edits can be continued. A host's external URL update must remain
+ * a separate action, even if the user later submits that same URL for metadata.
  */
 function compatibleContinuation(previous, next, token) {
   if (!previous || !token || previous.id !== token.baseRevision
     || previous.changes.length !== 1 || next.changes.length !== 1
-    || !['native-input', 'external'].includes(previous.origin)
+    || !['native-input', 'plugin'].includes(previous.origin)
     || !['native-input', 'block.update'].includes(previous.name)
     || next.name !== 'block.update') return false
 
