@@ -615,10 +615,20 @@ export class DocumentRuntime {
     })
   }
 
-  update(id, producer, authority = 'interaction') {
+  update(id, producer, authority = 'interaction', options = undefined) {
     this.#assertMutationAuthority(authority)
     if (typeof producer !== 'function') throw new TypeError('Block update producer must be a function')
-    this.#engine.execute({ origin: 'external', name: 'block.update' }, tx => {
+    const token = options?.historyContinuation
+    // A task may finish after unrelated actions. Such metadata commits still
+    // succeed, but may not rewrite an older history entry.
+    const continuation = token && this.#store.revision === token.baseRevision
+      ? { ...token, blockId: id }
+      : undefined
+    this.#engine.execute({
+      origin: 'external',
+      name: 'block.update',
+      ...(continuation ? { continuation } : {}),
+    }, tx => {
       const current = tx.get(id)
       if (!current) throw new Error(`Unknown block id: ${id}`)
       if (!this.#registry.hasBlock(current.type)) {
@@ -1599,6 +1609,7 @@ export class DocumentRuntime {
       health: () => this.health,
       phase: () => this.#mutationPhase(),
       currentGeneration: () => this.#store.generation,
+      currentRevision: () => this.#store.revision,
       signal,
     })
 
@@ -1612,10 +1623,10 @@ export class DocumentRuntime {
 
     const authority = scope.createAuthority({
       readData: () => currentRecord().data,
-      updateData: producer => {
+      updateData: (producer, options) => {
         this.update(id, current => ({
           data: producer(current.data),
-        }))
+        }), 'interaction', options)
       },
       commitDomMutation: operation => {
         this.syncBlockFromProjection(id, operation, {
