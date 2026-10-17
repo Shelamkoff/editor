@@ -297,3 +297,61 @@ test('completed drag does not replay its focus after a read-only round trip with
   assert.deepEqual(h.focusCalls(), [], 'retired drag stole focus after read-only → editable')
   controller.destroy()
 })
+
+test('drag cancellation cannot remove its drop spacer adopted by another container', async () => {
+  const { DragController } = await import('./DragController.js')
+  const h = dragHarness()
+  const controller = new DragController({
+    runtime: h.runtime, view: h.view, handle: h.handle, threshold: 0,
+  })
+  h.handle.dispatch('pointerdown', pointerEvent(7, 5))
+  h.document.dispatch('pointermove', pointerEvent(7, 45, { x: 8 }))
+  const parent = h.view.element('A').parentNode
+  const spacer = parent.children.find(child => child.className === 'oe-block-drop-gap')
+  assert(spacer, 'drag did not create a spacer')
+  const outside = new FakeEventTarget()
+  parent.children.splice(parent.children.indexOf(spacer), 1)
+  outside.appendChild(spacer)
+
+  h.document.dispatch('pointercancel', pointerEvent(7, 45))
+  assert.equal(h.captured(), null)
+  assert.equal(spacer.parentNode, outside,
+    'stale drag canceled a DOM node that another owner had adopted')
+  assert.deepEqual(outside.children, [spacer])
+  controller.destroy()
+  assert.deepEqual(outside.children, [spacer])
+})
+
+test('failed drop gap insertion cleans pointer capture and half-inserted DOM', async () => {
+  const { DragController } = await import('./DragController.js')
+  const h = dragHarness()
+  const parent = h.view.element('A').parentNode
+  const initialChildren = [...parent.children]
+  let spacer = null
+  const originalCreate = h.document.createElement
+  h.document.createElement = name => {
+    spacer = originalCreate(name)
+    return spacer
+  }
+  const originalInsert = parent.insertBefore
+  parent.insertBefore = function(child, before) {
+    originalInsert.call(this, child, before)
+    throw new Error('failed after DOM insertion')
+  }
+  const controller = new DragController({
+    runtime: h.runtime, view: h.view, handle: h.handle, threshold: 0,
+  })
+  h.handle.dispatch('pointerdown', pointerEvent(7, 5))
+  assert.throws(
+    () => h.document.dispatch('pointermove', pointerEvent(7, 45, { x: 8 })),
+    /failed after DOM insertion/,
+  )
+  assert.equal(h.captured(), null,
+    'failed projection kept pointer capture after partial DOM insertion')
+  assert.deepEqual(parent.children, initialChildren,
+    'half-inserted spacer remained in canonical document after drag failure')
+  assert.equal(spacer?.parentNode, null)
+  assert.equal(h.view.element('A').classList.contains('oe-block--dragging'), false)
+  assert.equal(h.document.body.classList.contains('oe-editor-dragging'), false)
+  controller.destroy()
+})
