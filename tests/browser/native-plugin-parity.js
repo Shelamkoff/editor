@@ -1129,4 +1129,33 @@ test('Carousel retired settings inputs cannot mutate prior slide after picker ch
   equal(editor.save().blocks, current, 'old settings input remained authoritative after metadata commit')
 })
 
+
+for (const name of ['Image', 'Gallery', 'Carousel', 'Person', 'Attaches']) {
+  test(`${name}: native media author edits survive read-only transitions`, async () => {
+    const fixture = pluginParityFixtures.find(item => item.name === name)
+    const fieldSpec = fixture.fields.find(field =>
+      name === 'Person' ? field.key.endsWith(':bio')
+        : name === 'Attaches' ? field.key.endsWith(':name') : field.key.endsWith(':caption'))
+    assert(fieldSpec, `${name} is missing a caption/name fixture`)
+    const editor = pluginEditor(fixture)
+    const initial = editor.save().blocks
+    focusedField(editor, fieldSpec, 'end')
+    await printable('X')
+    const authored = editor.save().blocks
+    equal(readPath(authored[0].data, fieldSpec.path), fieldSpec.value + 'X')
+    editor.setReadOnly(true)
+    equal(editor.save().blocks, authored, `${name} modified canonical input when switching to read-only`)
+    editor.setReadOnly(false)
+    const field = focusedField(editor, fieldSpec, 'end')
+    const displayed = typeof field.value === 'string' ? field.value : field.textContent
+    equal(displayed, fieldSpec.value + 'X',
+      `${name} reprojected stale author text after its read-only transition`)
+    await printable('Y')
+    equal(readPath(editor.save().blocks[0].data, fieldSpec.path), fieldSpec.value + 'XY',
+      `${name} overwrote committed native input after changing read-only mode`)
+    assert(editor.canUndo, `${name} native input did not reach history`)
+    assert(JSON.stringify(initial) !== JSON.stringify(authored))
+  })
+}
+
 await run()
