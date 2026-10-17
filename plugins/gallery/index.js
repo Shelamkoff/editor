@@ -452,6 +452,9 @@ export function createGalleryPlugin(config={}){
           },{visualLayouts:true})
 
           const project=next=>{
+            // A detached image slot cannot complete its old drag session.
+            // The next view starts with no in-progress reorder.
+            dragId=null
             viewController?.abort()
             const Ctor=document.defaultView?.AbortController??AbortController
             viewController=new Ctor()
