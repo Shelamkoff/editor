@@ -73,6 +73,21 @@ test('a currently registered field can still restore the exact logical caret', (
   assert.equal(h.doc.activeElement, h.field)
 })
 
+test('explicitly missing field does not clear an existing native selection', () => {
+  const h = harness()
+  const initialAnchor = h.field.childNodes[0]
+  h.native.anchorNode = initialAnchor
+  h.native.focusNode = initialAnchor
+
+  assert.equal(h.selection.setCaret('a', {
+    fieldKey: 'deleted-caption', offset: 2,
+  }), false)
+  assert.equal(h.native.anchorNode, initialAnchor,
+    'failed caret request cleared the existing author selection')
+  assert.equal(h.native.focusNode, initialAnchor)
+  assert.deepEqual(h.calls, [])
+})
+
 test('setCaret with unknown field refuses the request instead of focusing a sibling', () => {
   const h = harness()
   assert.equal(h.selection.setCaret('a', { fieldKey: 'deleted-caption', offset: 2 }), false)
