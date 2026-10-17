@@ -531,6 +531,33 @@ test('LinkPreview initial metadata microtask cannot restart a newer submitted UR
   equal(requests[0].signal.aborted, false)
 })
 
+test('LinkPreview does not submit partial URL from an active IME composition', async () => {
+  const fixture = pluginParityFixtures.find(entry => entry.name === 'LinkPreview')
+  const editor = pluginEditor(fixture)
+  const before = editor.save().blocks
+  const input = focusedField(editor, { key: 'url' }, 'end')
+  input.dispatchEvent(new CompositionEvent('compositionstart', { bubbles: true, data: '' }))
+  input.value = 'https://vimeo.com/123456'
+  input.dispatchEvent(new InputEvent('input', {
+    bubbles: true, inputType: 'insertCompositionText', data: '123456', isComposing: true,
+  }))
+  input.dispatchEvent(new KeyboardEvent('keydown', {
+    bubbles: true, key: 'Enter', code: 'Enter', isComposing: true,
+  }))
+  input.dispatchEvent(new Event('change', { bubbles: true }))
+  await pause(650)
+  equal(editor.save().blocks, before,
+    'a LinkPreview preedit URL was committed before compositionend')
+
+  input.dispatchEvent(new CompositionEvent('compositionend', { bubbles: true, data: '123456' }))
+  input.dispatchEvent(new InputEvent('input', {
+    bubbles: true, inputType: 'insertText', data: '123456', isComposing: false,
+  }))
+  await pause(650)
+  equal(editor.save().blocks[0].data.url, 'https://vimeo.com/123456',
+    'final IME URL was not persisted after composition ended')
+})
+
 test('Gallery rich captions keep their marks through native editing and history', async () => {
   const fixture = pluginParityFixtures.find(entry => entry.name === 'Gallery')
   const editor = pluginEditor({ ...fixture, data: { ...fixture.data, images: [{ id: 'first', url: fixture.data.images[0].url, caption: '<b>Al</b>pha' }] } })
