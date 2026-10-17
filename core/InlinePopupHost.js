@@ -198,14 +198,21 @@ export class InlinePopupHost {
     this.#anchor=null
     this.#cleanup=null
     this.#naturalHeight=0
-    try{
-      controller?.abort()
-      observer?.disconnect()
-      if(outside)this.#document.removeEventListener('mousedown',outside,true)
-      popup?.remove()
-    }finally{
-      this.#runCleanup(cleanup)
+    // Teardown steps are independent. A failing DOM observer or listener
+    // removal must not strand the owned surface or skip plugin cleanup.
+    const release=operation=>{
+      try{operation()}
+      catch(error){
+        try{console.warn('[InlinePopupHost] Popup teardown failed:',error)}catch{}
+      }
     }
+    release(()=>controller?.abort())
+    release(()=>observer?.disconnect())
+    if(outside)release(()=>this.#document.removeEventListener('mousedown',outside,true))
+    // DOM nodes are not permanently owned by their creator. If application
+    // code reparented this transient surface, do not delete its new owner's DOM.
+    if(popup?.parentNode===this.#root)release(()=>popup.remove())
+    release(()=>this.#runCleanup(cleanup))
   }
 
   #runCleanup(cleanup){
