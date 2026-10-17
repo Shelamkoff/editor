@@ -63,7 +63,10 @@ class FakeElement {
     return child
   }
   replaceChildren(...children) {
-    if (this.contains(this.ownerDocument.activeElement)) this.ownerDocument.activeElement = null
+    // Setting innerHTML on the focused element does not detach its editing
+    // host. Replacing an ancestor's children does, and must lose focus.
+    if (this.ownerDocument.activeElement !== this
+      && this.contains(this.ownerDocument.activeElement)) this.ownerDocument.activeElement = null
     for (const child of this.children) {
       child.parentNode = null
       child.isConnected = false
