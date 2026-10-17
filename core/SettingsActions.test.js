@@ -161,3 +161,56 @@ test('a rejected label is contained before any later metadata getter can fail', 
   assert.equal(laterReads, 0)
   await new Promise(resolve => setImmediate(resolve))
 })
+
+test('settings apply runs within preparation authority and cannot reenter model writes', () => {
+  let preparing = false
+  let writes = 0
+  const protectedRuntime = {
+    prepareExtensionValue(operation) {
+      assert.equal(preparing, false, 'settings preparation leaked a nested unclosed callback')
+      preparing = true
+      try { return operation() }
+      finally { preparing = false }
+    },
+    update(producer) {
+      if (preparing) throw new Error('settings preparation forbids document mutation')
+      writes++
+      return producer({})
+    },
+  }
+  const prepared = prepareSettingsActions(protectedRuntime, {
+    actions: () => [{ id: 'wide', label: label('wide') }],
+    apply(data) {
+      protectedRuntime.update(() => ({ changed: true }))
+      return data
+    },
+  }, { mode: 'normal' }, context, label('group'))
+  assert.throws(() => prepared.apply({ mode: 'normal' }, 'wide', {}), /settings preparation forbids document mutation/)
+  assert.equal(writes, 0, 'settings apply callback entered a live document producer')
+})
+
+test('settings apply thenable getters are inspected before leaving preparation', () => {
+  let preparing = false
+  let escaped = 0
+  const protectedRuntime = {
+    prepareExtensionValue(operation) {
+      preparing = true
+      try { return operation() }
+      finally { preparing = false }
+    },
+  }
+  const prepared = prepareSettingsActions(protectedRuntime, {
+    actions: () => [{ id: 'action', label: label('action') }],
+    apply() {
+      return {
+        get then() {
+          if (!preparing) escaped++
+          return () => {}
+        },
+      }
+    },
+  }, {}, context, label('group'))
+  assert.throws(() => prepared.apply({}, 'action', {}), /synchronously/)
+  assert.equal(escaped, 0,
+    'an accessor on the extension action result escaped the protected preparation phase')
+})
