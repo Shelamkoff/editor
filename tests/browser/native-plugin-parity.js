@@ -1378,4 +1378,66 @@ test('Carousel native caption then inactive slide edit keeps the active caret', 
   equal(editor.save().blocks, afterInput)
 })
 
+
+test('Person native name then sibling record update retains author caret', async () => {
+  const fixture = pluginParityFixtures.find(entry => entry.name === 'Person')
+  const editor = pluginEditor({ ...fixture, data: {
+    persons: [
+      { id: 'first', name: 'Alpha', role: 'Owner', bio: '', avatar: '', links: [] },
+      { id: 'second', name: 'Bravo', role: 'Writer', bio: '', avatar: '', links: [] },
+    ],
+  } })
+  const field = focusedField(editor, { key: 'person:first:name' }, 2)
+  await printable('X')
+  const afterInput = editor.save().blocks
+  equal(afterInput[0].data.persons[0].name, 'AlXpha')
+  checkFieldCaret(field, 3)
+
+  editor.blocks.update('a', current => ({ data: {
+    persons: current.data.persons.map(person => person.id === 'second'
+      ? { ...person, role: 'Editor' } : person),
+  } }))
+  const afterSibling = editor.save().blocks
+  equal(afterSibling[0].data.persons[0].name, 'AlXpha')
+  equal(document.activeElement, field, 'Person replaced natively edited authoring host')
+  checkFieldCaret(field, 3)
+  await printable('Y')
+  equal(editor.save().blocks[0].data.persons[0].name, 'AlXYpha')
+  checkFieldCaret(field, 4)
+  equal(editor.undo(), true)
+  equal(editor.save().blocks, afterSibling)
+  equal(editor.undo(), true)
+  equal(editor.save().blocks, afterInput)
+})
+
+test('Person native link edit then sibling update retains the URL input', async () => {
+  const fixture = pluginParityFixtures.find(entry => entry.name === 'Person')
+  const original = 'https://example.com/Alpha'
+  const editor = pluginEditor({ ...fixture, data: {
+    persons: [
+      { id: 'first', name: 'Alpha', role: '', bio: '', avatar: '',
+        links: [{ id: 'site', type: 'website', url: original }] },
+      { id: 'second', name: 'Bravo', role: '', bio: '', avatar: '', links: [] },
+    ],
+  } })
+  const field = focusedField(editor, { key: 'person:first:link:site:url' }, 'end')
+  await printable('X')
+  const afterInput = editor.save().blocks
+  equal(afterInput[0].data.persons[0].links[0].url, original + 'X')
+
+  editor.blocks.update('a', current => ({ data: {
+    persons: current.data.persons.map(person => person.id === 'second'
+      ? { ...person, role: 'Writer' } : person),
+  } }))
+  const afterSibling = editor.save().blocks
+  equal(document.activeElement, field, 'Person replaced the natively edited URL field')
+  checkFieldCaret(field, (original + 'X').length)
+  await printable('Y')
+  equal(editor.save().blocks[0].data.persons[0].links[0].url, original + 'XY')
+  equal(editor.undo(), true)
+  equal(editor.save().blocks, afterSibling)
+  equal(editor.undo(), true)
+  equal(editor.save().blocks, afterInput)
+})
+
 await run()
