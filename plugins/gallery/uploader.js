@@ -94,38 +94,53 @@ export class GalleryUploader {
       }
 
       const FileReaderCtor = ownerDocument?.defaultView?.FileReader ?? FileReader
-      files.forEach((file, index) => {
-        const reader = new FileReaderCtor()
-        let readerComplete = false
-        const completeReader = () => {
-          if (readerComplete) return
-          readerComplete = true
-          reader.onload = reader.onerror = reader.onabort = null
-          signal?.removeEventListener('abort', abort)
-          remaining--
-          if (remaining === 0) finish()
-        }
-        const abort = () => {
-          // Do not strand an entire batch if one reader never dispatches
-          // onabort (or its abort() implementation throws).
-          try { reader.abort() } catch {}
-          finally { completeReader() }
-        }
-        signal?.addEventListener('abort', abort, { once: true })
-        reader.onload = () => {
-          if (readerComplete) return
-          const url = typeof reader.result === 'string' ? sanitizeMediaUrl(reader.result) : ''
-          if (!signal?.aborted && url) results[index] = { url, caption: '' }
-          completeReader()
-        }
-        reader.onerror = completeReader
-        reader.onabort = completeReader
-        try {
-          reader.readAsDataURL(file)
-        } catch {
-          completeReader()
-        }
-      })
+      const pendingAborts = new Set()
+      try {
+        files.forEach((file, index) => {
+          const reader = new FileReaderCtor()
+          let readerComplete = false
+          const completeReader = () => {
+            if (readerComplete) return
+            readerComplete = true
+            pendingAborts.delete(abort)
+            reader.onload = reader.onerror = reader.onabort = null
+            signal?.removeEventListener('abort', abort)
+            remaining--
+            if (remaining === 0) finish()
+          }
+          const abort = () => {
+            // Do not strand an entire batch if a reader does not notify
+            // onabort or its abort() implementation throws.
+            try { reader.abort() } catch {}
+            finally { completeReader() }
+          }
+          reader.onload = () => {
+            if (readerComplete) return
+            const url = typeof reader.result === 'string' ? sanitizeMediaUrl(reader.result) : ''
+            if (!signal?.aborted && url) results[index] = { url, caption: '' }
+            completeReader()
+          }
+          reader.onerror = completeReader
+          reader.onabort = completeReader
+          pendingAborts.add(abort)
+          signal?.addEventListener('abort', abort, { once: true })
+          if (signal?.aborted) {
+            abort()
+            return
+          }
+          try {
+            reader.readAsDataURL(file)
+          } catch {
+            completeReader()
+          }
+        })
+      } catch (error) {
+        // Failure while constructing a later reader must not leave earlier
+        // readers and their AbortSignal listeners retained indefinitely.
+        settled = true
+        for (const abort of [...pendingAborts]) abort()
+        reject(error)
+      }
     })
   }
 }
