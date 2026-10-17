@@ -645,7 +645,36 @@ export function createGalleryPlugin(config={}){
                 caption:captionFields.get(image.id)?.innerHTML.trim()??image.caption,
               })),
             }),
-            update(next){if(!dead)project(next)},
+            update(next){
+              if(dead)return
+              // Canonical gallery data has exactly id/url/caption per image.
+              // A style-only or no-op change must not replace live caption
+              // editing hosts or reset their native focus and selection.
+              const sameImages=next.images.length===data.images.length
+                &&next.images.every((image,index)=>{
+                  const previous=data.images[index]
+                  return image.id===previous.id&&image.url===previous.url&&image.caption===previous.caption
+                })
+              const sameOptions=JSON.stringify(next.options)===JSON.stringify(data.options)
+              const sameLayout=next.layout===data.layout
+              if(sameImages&&sameOptions&&sameLayout&&!wrapper.querySelector('.'+CSS.dropdownOpen)){
+                data=cloneData(next)
+                wrapper.style.cssText=''
+                for(const [key,value] of Object.entries(data.styles)){
+                  if(key in wrapper.style)wrapper.style[key]=value
+                }
+                const grid=wrapper.querySelector('.'+CSS.grid)
+                if(grid){
+                  grid.style.gap=data.styles.gap??''
+                  grid.style.height=data.styles.height??''
+                  for(const slot of grid.children){
+                    if(slot.classList.contains(CSS.slotFilled))slot.style.borderRadius=data.styles.borderRadius??''
+                  }
+                }
+                return
+              }
+              project(next)
+            },
             editableFields:()=>Object.freeze(data.images.flatMap(image=>{
               const element=captionFields.get(image.id)
               return element?[Object.freeze({
