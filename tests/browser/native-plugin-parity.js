@@ -1310,4 +1310,72 @@ test('Embed changing video URL preserves its native committed caption', async ()
   equal(editor.save().blocks, afterInput, 'Embed source change could not be undone separately')
 })
 
+
+test('Gallery native caption then style update keeps the same editing host', async () => {
+  const fixture = pluginParityFixtures.find(entry => entry.name === 'Gallery')
+  const editor = pluginEditor(fixture)
+  const field = focusedField(editor, { key: 'image:first:caption' }, 2)
+  await printable('X')
+  const afterInput = editor.save().blocks
+  equal(afterInput[0].data.images[0].caption, 'AlXpha')
+  checkFieldCaret(field, 3)
+
+  editor.blocks.update('a', current => ({
+    data: { ...current.data, styles: { ...current.data.styles, gap: '12px' } },
+  }))
+  const afterStyle = editor.save().blocks
+  equal(afterStyle[0].data.images[0].caption, 'AlXpha')
+  equal(document.activeElement, field,
+    'Gallery style update rebuilt the caption edited by native input')
+  checkFieldCaret(field, 3)
+  const grid = blockElement(editor, 'a').querySelector('.oe-gallery__grid')
+  equal(grid.style.gap, '12px')
+  await printable('Y')
+  equal(editor.save().blocks[0].data.images[0].caption, 'AlXYpha')
+  checkFieldCaret(field, 4)
+  equal(editor.undo(), true)
+  equal(editor.save().blocks, afterStyle)
+  equal(editor.undo(), true)
+  equal(editor.save().blocks, afterInput)
+})
+
+test('Carousel native caption then inactive slide edit keeps the active caret', async () => {
+  const fixture = pluginParityFixtures.find(entry => entry.name === 'Carousel')
+  const editor = pluginEditor({ ...fixture, data: {
+    ...fixture.data,
+    slides: [
+      { id: 'first', type: 'image', src: pixel, alt: '', caption: 'Alpha' },
+      { id: 'second', type: 'image', src: pixel, alt: 'Second', caption: 'Bravo' },
+    ],
+  } })
+  const field = focusedField(editor, { key: 'slide:first:caption' }, 2)
+  await printable('X')
+  const afterInput = editor.save().blocks
+  equal(afterInput[0].data.slides[0].caption, 'AlXpha')
+  checkFieldCaret(field, 3)
+
+  editor.blocks.update('a', current => ({
+    data: { ...current.data,
+      slides: current.data.slides.map(slide => slide.id === 'second'
+        ? { ...slide, caption: 'Updated Bravo' } : slide),
+    },
+  }))
+  const afterSibling = editor.save().blocks
+  equal(afterSibling[0].data.slides.map(slide => slide.caption),
+    ['AlXpha', 'Updated Bravo'])
+  equal(document.activeElement, field,
+    'Carousel inactive slide edit rebuilt a natively edited caption')
+  checkFieldCaret(field, 3)
+  const picker = blockElement(editor, 'a').querySelector('.oe-carousel-block__slide-select')
+  equal([...picker.querySelectorAll('option')].find(opt => opt.value === 'second')?.textContent,
+    '2 · Updated Bravo')
+  await printable('Y')
+  equal(editor.save().blocks[0].data.slides[0].caption, 'AlXYpha')
+  checkFieldCaret(field, 4)
+  equal(editor.undo(), true)
+  equal(editor.save().blocks, afterSibling)
+  equal(editor.undo(), true)
+  equal(editor.save().blocks, afterInput)
+})
+
 await run()
