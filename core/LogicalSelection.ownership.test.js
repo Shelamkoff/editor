@@ -25,6 +25,7 @@ function harness() {
     tagName: 'DIV',
     ownerDocument: doc,
     childNodes: [text],
+    hasAttribute() { return false },
     contains(node) { return node === this || node === text },
     focus() { doc.activeElement = this },
   }
