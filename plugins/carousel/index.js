@@ -858,22 +858,27 @@ export function createCarouselPlugin(config={}){
               }),
               options:{...data.options},
             }),
-            update(next){
+            update(next, previousCanonical){
               const activeId=data.slides[activeIndex]?.id
-              // Inactive caption text affects only the settings picker, not
-              // the mounted slide. Leave the active contenteditable connected
-              // so updating another slide cannot collapse its native caret.
+              // The locally projected active caption can be older than the
+              // canonical text retained by a native editing transaction.
+              // A real Undo/host reversion must not be mistaken for a no-op
+              // merely because it equals that stale local text.
+              const priorSlides=previousCanonical?.slides
               const unchangedActiveView=next.slides.length===data.slides.length
                 &&JSON.stringify(next.options)===JSON.stringify(data.options)
                 &&next.slides.every((slide,index)=>{
-                  const previous=data.slides[index]
-                  return slide.id===previous.id
-                    &&slide.type===previous.type
-                    &&slide.src===previous.src
-                    &&slide.alt===previous.alt
-                    &&slide.poster===previous.poster
-                    &&slide.html===previous.html
-                    &&(index!==activeIndex||slide.caption===previous.caption
+                  const projected=data.slides[index]
+                  const canonical=priorSlides?.[index]
+                  const priorCaption=canonical?.id===slide.id
+                    ?canonical.caption:projected.caption
+                  return slide.id===projected.id
+                    &&slide.type===projected.type
+                    &&slide.src===projected.src
+                    &&slide.alt===projected.alt
+                    &&slide.poster===projected.poster
+                    &&slide.html===projected.html
+                    &&(index!==activeIndex||slide.caption===priorCaption
                       ||slide.caption===captionFields.get(slide.id)?.innerHTML.trim())
                 })
               data=cloneData(next)
