@@ -100,15 +100,20 @@ export class InlineCommandController {
             .filter(flag => flag !== 'g' && flag !== 'y')
             .join('') + 'g'
           const search = new RegExp(source, flags)
+          // RegExp.test with /g or /y mutates lastIndex. Never run it on
+          // extension-owned RegExp objects, which may be frozen or reused by
+          // another editor. Keep the original full-pattern validation rules.
+          const validator = new RegExp(pattern.source, pattern.flags)
+          const validate = pattern.test
 
           for (const match of text.matchAll(search)) {
             const value = match[0]
             if (!value) continue
 
-            pattern.lastIndex = 0
+            validator.lastIndex = 0
             let accepted
-            try { accepted = synchronousResult(pattern.test(value)) }
-            finally { pattern.lastIndex = 0 }
+            try { accepted = synchronousResult(Reflect.apply(validate, validator, [value])) }
+            finally { validator.lastIndex = 0 }
             if (typeof accepted !== 'boolean') {
               throw new TypeError(`Inline Paste pattern for "${type}" must return a boolean`)
             }
