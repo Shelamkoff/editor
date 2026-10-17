@@ -434,8 +434,10 @@ export function createPersonPlugin(config={}){
             name.contentEditable=readOnly?'false':'true'
             name.dataset.placeholder=runtimeContext.t('namePlaceholder','Name')
             if(person.name)setSanitizedHtml(name,person.name)
-            const tabLabel=[...tabs.children].find(tab=>tab.getAttribute('data-person-id')===person.id)?.querySelector('.oe-person__tab-label')
             name.addEventListener('input',()=>{
+              // The tabs may be replaced while an unchanged author field stays.
+              // Resolve the live label, never a detached earlier tab node.
+              const tabLabel=[...tabs.children].find(tab=>tab.getAttribute('data-person-id')===person.id)?.querySelector('.oe-person__tab-label')
               if(tabLabel)tabLabel.textContent=name.textContent.trim()||runtimeContext.t('fallbackName','Person {number}',{number:data.persons.findIndex(item=>item.id===person.id)+1})
             },{signal:context.signal})
 
@@ -492,8 +494,15 @@ export function createPersonPlugin(config={}){
             },
             update(next){
               if(dead)return
+              const previousActive=activePerson()
+              const previousId=activeId
               data=cloneData(next)
-              render()
+              const nextActive=data.persons.find(person=>person.id===previousId)
+              // Reordering tabs or changing another person must not detach
+              // the current editing host and collapse its native caret.
+              if(nextActive&&previousActive&&JSON.stringify(nextActive)===JSON.stringify(previousActive)){
+                renderTabs()
+              }else render()
             },
             editableFields(){
               const person=activePerson()
