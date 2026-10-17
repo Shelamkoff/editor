@@ -532,7 +532,9 @@ export function createEmbedPlugin(config = {}) {
                 coverTask?.cancel()
                 coverTask = null
               }
-              project(data)
+              // Authoring native text can have a newer canonical caption than
+              // this retained instance's pre-input data snapshot.
+              project(context.getData())
             },
             focus() {
               if (dead || readOnly) return
