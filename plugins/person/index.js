@@ -534,6 +534,9 @@ export function createPersonPlugin(config={}){
             },
             setReadOnly(value){
               syncControls()
+              // Native input may have committed newer canonical data without
+              // reprojecting this source instance to preserve its caret.
+              data=cloneData(context.getData())
               readOnly=value
               render()
             },
