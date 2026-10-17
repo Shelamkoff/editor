@@ -657,7 +657,9 @@ export function createGalleryPlugin(config={}){
               const sameImages=next.images.length===data.images.length
                 &&next.images.every((image,index)=>{
                   const previous=data.images[index]
-                  return image.id===previous.id&&image.url===previous.url&&image.caption===previous.caption
+                  return image.id===previous.id&&image.url===previous.url
+                    &&(image.caption===previous.caption
+                      ||image.caption===captionFields.get(image.id)?.innerHTML.trim())
                 })
               const sameOptions=JSON.stringify(next.options)===JSON.stringify(data.options)
               const sameLayout=next.layout===data.layout
