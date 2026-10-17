@@ -252,7 +252,7 @@ export function createLinkPreviewPlugin(config={}){
             }
           }
 
-          const resolveMeta=async url=>{
+          const resolveMeta=async(url,{authorSubmission=false}={})=>{
             currentTask?.cancel()
             if(!snapshot.fetchMeta||!url||readOnly||dead)return
             const task=context.beginTask()
@@ -276,7 +276,7 @@ export function createLinkPreviewPlugin(config={}){
                 favicon:typeof meta.favicon==='string'&&metaRevisions.favicon===requestRevisions.favicon&&previous.favicon===atRequest.favicon?meta.favicon:previous.favicon,
                 domain:metaRevisions.domain!==requestRevisions.domain||previous.domain!==atRequest.domain
                   ?previous.domain:typeof meta.domain==='string'?meta.domain:previous.domain||host(url),
-              }):previous)
+              }):previous,authorSubmission?{mergeWithPreviousField:'url'}:undefined)
             }catch(error){
               if(!task.signal.aborted)console.warn('[LinkPreview] Metadata resolution failed',error)
             }finally{
@@ -291,7 +291,7 @@ export function createLinkPreviewPlugin(config={}){
             if(readOnly||dead)return
             const url=sanitizeUrl(input.value,{policy:'external',allowRelative:false,fallback:''})
             context.updateData(current=>url?{...(url===current.url?current:{...linkPreviewDataSchema.createDefault(),template:current.template}),url,domain:host(url)}:{...linkPreviewDataSchema.createDefault(),template:current.template})
-            if(url)void resolveMeta(url)
+            if(url)void resolveMeta(url,{authorSubmission:true})
           }
 
           const setOpen=open=>{
