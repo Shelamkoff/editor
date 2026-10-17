@@ -187,7 +187,7 @@ export function createCodePlugin(config = {}) {
         const code = element.tagName === 'PRE'
           ? (element.querySelector(':scope > code') ?? element)
           : element
-        return { code: code.textContent ?? '', language: 'auto' }
+        return { code: (code.textContent ?? '').replace(/\n+$/, '\n'), language: 'auto' }
       },
     }),
     paste: Object.freeze({
