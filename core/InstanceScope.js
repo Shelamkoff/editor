@@ -23,6 +23,7 @@ export class InstanceScope{
   #token=Symbol('instance-scope')
   #generation
   #readOnly
+  #inheritedReadOnly=false
   #interactionEpoch=0
   #tasks=new Set()
   #children=new Set()
@@ -48,13 +49,13 @@ export class InstanceScope{
   get revoked(){return this.#state==='revoked'}
   get generation(){return this.#generation}
   get interactionEpoch(){return this.#interactionEpoch}
-  get readOnly(){return this.#state==='revoked'||this.#readOnly}
+  get readOnly(){return this.#state==='revoked'||this.#readOnly||this.#inheritedReadOnly}
 
   /** @param {{generation?:number,readOnly?:boolean,health?:()=>string,phase?:()=>string,currentGeneration?:()=>number,signal?:AbortSignal,parent?:InstanceScope}} [options] */
   configure({generation,readOnly,health,phase,currentGeneration,signal,parent}={}){
     if(this.#state==='revoked')throw createAbortError()
     if(Number.isSafeInteger(generation)&&generation>0)this.#generation=generation
-    if(typeof readOnly==='boolean')this.#readOnly=readOnly
+    if(typeof readOnly==='boolean')this.setReadOnly(readOnly)
     if(typeof health==='function')this.#health=health
     if(typeof phase==='function')this.#phase=phase
     if(typeof currentGeneration==='function')this.#currentGeneration=currentGeneration
@@ -89,7 +90,7 @@ export class InstanceScope{
     }
     this.#parent=parent
     parent.#children.add(this)
-    if(parent.readOnly)this.setReadOnly(true)
+    this.#setInheritedReadOnly(parent.readOnly)
   }
 
   activate(generation=this.#generation){
@@ -117,13 +118,27 @@ export class InstanceScope{
 
   setReadOnly(value){
     if(this.#state==='revoked')return
-    const next=value===true
-    if(this.#readOnly!==next){
-      this.#readOnly=next
+    const previous=this.readOnly
+    this.#readOnly=value===true
+    this.#settleReadOnly(previous)
+  }
+
+  // Parent mode is an inherited restriction, never the child's local choice.
+  #setInheritedReadOnly(value){
+    if(this.#state==='revoked')return
+    const previous=this.readOnly
+    this.#inheritedReadOnly=value===true
+    this.#settleReadOnly(previous)
+  }
+
+  #settleReadOnly(previous){
+    const next=this.readOnly
+    if(previous!==next){
       this.#interactionEpoch++
       this.#cancelTasks()
     }
-    for(const child of this.#children)child.setReadOnly(next)
+    // Propagate the effective restriction without overwriting local flags.
+    for(const child of this.#children)child.#setInheritedReadOnly(this.readOnly)
   }
 
   assertReadable(){
@@ -175,14 +190,14 @@ export class InstanceScope{
   #canMutate(){
     if(this.#state==='revoked')return false
     if(this.#state!=='active')throw new Error('Instance context is staged')
-    if(this.#readOnly||this.#health()!=='ready')return false
+    if(this.readOnly||this.#health()!=='ready')return false
     const phase=this.#phase()
     if(phase!=='idle')throw new Error(`Cannot mutate instance context during ${phase} phase`)
     return this.#parent ? this.#parent.#canMutate() : true
   }
 
   #beginTask(updateData){
-    if(this.#state!=='active'||this.#readOnly||this.#health()!=='ready'){
+    if(this.#state!=='active'||this.readOnly||this.#health()!=='ready'){
       throw createAbortError('Cannot begin a data task for an inactive instance context')
     }
     const phase=this.#phase()
@@ -215,7 +230,7 @@ export class InstanceScope{
         if(task.closed||task.committing||controller.signal.aborted)return false
         if(
           this.#state!=='active'
-          ||this.#readOnly
+          ||this.readOnly
           ||this.#health()!=='ready'
           ||this.#interactionEpoch!==task.epoch
           ||this.#generation!==task.generation
