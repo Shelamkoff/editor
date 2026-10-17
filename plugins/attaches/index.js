@@ -333,7 +333,7 @@ export function createAttachesPlugin(config={}){
           // file name or a canonical snapshot update leaves the file structure
           // unchanged. A native input commit may retain its DOM without first
           // refreshing the plugin-local `data` snapshot.
-          const reconcileNames=next=>{
+          const reconcileNames=(next,previousCanonical)=>{
             if(data.variant!==next.variant||data.files.length!==next.files.length)return false
             for(let index=0;index<next.files.length;index++){
               const previous=data.files[index]
@@ -349,11 +349,14 @@ export function createAttachesPlugin(config={}){
               const previous=data.files[index]
               const current=next.files[index]
               const field=nameFields.get(current.id)
-              // A matching canonical/DOM value is a retained native edit;
-              // never set textContent unnecessarily or disturb its caret.
-              // An unchanged canonical name also leaves pending native DOM
-              // text alone until the source's input reconciliation completes.
-              if(current.name!==previous.name&&field.textContent!==current.name){
+              // The cached projection can be older than a retained native
+              // input. Only a change from the actual prior canonical record
+              // authorizes replacing a mounted field; Undo can explicitly
+              // restore a value that happens to equal the stale cached name.
+              const priorRecord=previousCanonical?.files?.[index]
+              const priorName=priorRecord?.id===current.id
+                ?priorRecord.name:previous.name
+              if(current.name!==priorName&&field.textContent!==current.name){
                 field.textContent=current.name
               }
             }
@@ -532,7 +535,7 @@ export function createAttachesPlugin(config={}){
                 })),
               }
             },
-            update(next){if(!dead&&!reconcileNames(next))project(next)},
+            update(next,previousCanonical){if(!dead&&!reconcileNames(next,previousCanonical))project(next)}
             editableFields:()=>Object.freeze(data.files.flatMap(file=>{
               const element=nameFields.get(file.id)
               return element?[Object.freeze({
