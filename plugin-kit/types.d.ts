@@ -46,7 +46,13 @@ export interface DataTask<
   D extends object = object
 > {
   readonly signal: AbortSignal
-  commit(producer: (current: Readonly<D>) => D): boolean
+  /** Optionally extend the immediately preceding edit of this data field.
+   * The task's captured revision must still be current. Any intervening
+   * command makes this an ordinary independent history action.
+   */
+  commit(producer: (current: Readonly<D>) => D, options?: Readonly<{
+    mergeWithPreviousField?: string
+  }>): boolean
   cancel(): void
 }
 
