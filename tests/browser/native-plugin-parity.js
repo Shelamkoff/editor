@@ -864,7 +864,8 @@ test('Gallery retired controls cannot mutate current authoring data after a view
     .find(button => button.textContent?.includes('Delete all'))
   assert(oldRemove && oldClear, 'Gallery is missing its authoring controls')
   editor.blocks.update('a', current => ({
-    data: { ...current.data, styles: { ...current.data.styles, gap: '12px' } },
+    data: { ...current.data, images: current.data.images.map(image => image.id === 'second'
+      ? { ...image, caption: 'Updated image' } : image) },
   }))
   const after = editor.save().blocks
   assert(!oldRemove.isConnected && !oldClear.isConnected, 'Gallery did not retire the former view')
@@ -898,6 +899,57 @@ test('Attaches retired file controls cannot mutate authoring data after a view r
   assert(liveRemove && liveRemove !== oldRemove)
   liveRemove.click()
   equal(editor.save().blocks[0].data.files.length, 0, 'current Attaches remove button stopped working')
+})
+
+
+test('Gallery style-only update preserves native caption caret and history', async () => {
+  const fixture = pluginParityFixtures.find(entry => entry.name === 'Gallery')
+  const editor = pluginEditor(fixture)
+  const field = focusedField(editor, { key: 'image:first:caption' }, 2)
+  const before = editor.save().blocks
+  editor.blocks.update('a', current => ({
+    data: { ...current.data, styles: { ...current.data.styles,
+      gap: '12px', borderRadius: '8px', height: '220px',
+    } },
+  }))
+  const afterStyle = editor.save().blocks
+  equal(document.activeElement, field, 'Gallery style-only update blurred caption editing')
+  checkFieldCaret(field, 2)
+  const gallery = blockElement(editor, 'a').querySelector('.oe-gallery')
+  equal(gallery.style.gap, '12px')
+  const grid = gallery.querySelector('.oe-gallery__grid')
+  equal(grid.style.gap, '12px')
+  equal(grid.style.height, '220px')
+  equal(grid.querySelector('.oe-gallery__slot--filled')?.style.borderRadius, '8px')
+
+  await printable('X')
+  equal(editor.save().blocks[0].data.images[0].caption, 'AlXpha',
+    'Gallery typed input into a stale or incorrect caption')
+  checkFieldCaret(field, 3)
+  equal(editor.undo(), true)
+  equal(editor.save().blocks, afterStyle)
+  equal(editor.undo(), true)
+  equal(editor.save().blocks, before)
+})
+
+test('Gallery identical and style-removal updates do not replace the focused caption', async () => {
+  const fixture = pluginParityFixtures.find(entry => entry.name === 'Gallery')
+  const editor = pluginEditor({ ...fixture, data: {
+    ...fixture.data, styles: { gap: '12px', borderRadius: '8px' },
+  } })
+  const field = focusedField(editor, { key: 'image:first:caption' }, 2)
+  const initial = editor.save().blocks
+  editor.blocks.update('a', current => ({ data: structuredClone(current.data) }))
+  equal(editor.save().blocks, initial, 'identical Gallery update changed author data')
+  equal(document.activeElement, field, 'identical Gallery data update discarded focus')
+  checkFieldCaret(field, 2)
+  editor.blocks.update('a', current => ({ data: { ...current.data, styles: {} } }))
+  equal(document.activeElement, field, 'Gallery style removal discarded focus')
+  checkFieldCaret(field, 2)
+  const gallery = blockElement(editor, 'a').querySelector('.oe-gallery')
+  equal(gallery.style.gap, '')
+  equal(gallery.querySelector('.oe-gallery__grid').style.gap, '')
+  equal(gallery.querySelector('.oe-gallery__slot--filled').style.borderRadius, '')
 })
 
 await run()
