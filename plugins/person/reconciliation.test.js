@@ -92,6 +92,7 @@ class FakeElement {
 const person = id => ({ id, name: '', role: '', bio: '', avatar: '', links: [] })
 const input = () => ({ persons: [person('a'), person('b')] })
 function mount(initial = input()) {
+  let canonical = initial
   const ownerDocument = {
     activeElement: null,
     createElement(tag) { return new FakeElement(tag, ownerDocument) },
@@ -101,10 +102,10 @@ function mount(initial = input()) {
     ownerDocument,
     isReadOnly: () => false,
     signal: new AbortController().signal,
-    getData: () => initial,
+    getData: () => canonical,
     commitDomMutation() {},
   })
-  return { instance, ownerDocument }
+  return { instance, ownerDocument, setCanonicalData(next) { canonical = next } }
 }
 function nameField(instance, id) {
   return instance.editableFields().find(field => field.key === 'person:' + id + ':name')?.element
@@ -231,5 +232,27 @@ test('Person retires body event listeners only when the active record actually c
   assert.equal(name.listeners.get('input')?.length ?? 0, 0,
     'removed Person body retained a document-input listener')
   assert.equal(instance.editableFields()[0]?.key, 'person:b:name')
+  instance.destroy()
+})
+
+test('Person reflects committed native text after read-only transition', () => {
+  const { instance, setCanonicalData } = mount()
+  const canonical = input()
+  canonical.persons[0].bio = 'Native committed content'
+  const old = instance.editableFields().find(field => field.key === 'person:a:bio').element
+  old.textContent = canonical.persons[0].bio
+  // A native edit with preserveSourceProjection commits the model but leaves
+  // the plugin's local data snapshot untouched to retain browser selection.
+  setCanonicalData(canonical)
+  assert.equal(instance.read().persons[0].bio, '',
+    'fixture accidentally synchronized the plugin model before mode change')
+  instance.setReadOnly(true)
+  const displayed = instance.editableFields().find(field => field.key === 'person:a:bio').element
+  assert.equal(displayed.textContent, 'Native committed content',
+    'read-only transition discarded native text that is already canonical')
+  assert.equal(instance.read().persons[0].bio, 'Native committed content')
+  instance.setReadOnly(false)
+  assert.equal(instance.editableFields().find(field => field.key === 'person:a:bio').element.textContent,
+    'Native committed content')
   instance.destroy()
 })
