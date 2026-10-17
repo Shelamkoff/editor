@@ -42,6 +42,7 @@ function serializeRichText(element,ownerDocument){
 
 function materializeRichText(html,{registry,types,context}){
   const payload={kind:'rich-text',data:{text:html}}
+  const importContext=Object.freeze({ownerDocument:context.ownerDocument})
   for(const type of types){
     const definition=registry.getBlockDefinition(type)
     const conversion=definition?.capabilities?.conversion
@@ -49,7 +50,7 @@ function materializeRichText(html,{registry,types,context}){
     const accepted=synchronousResult(conversion.canImport(payload))
     if(typeof accepted!=='boolean')throw new TypeError(`HTML conversion canImport() for "${type}" must return a boolean`)
     if(!accepted)continue
-    return {type,data:synchronousResult(conversion.import(payload))}
+    return {type,data:synchronousResult(conversion.import(payload,importContext))}
   }
   throw new Error('No registered block type can import rich-text HTML')
 }
