@@ -350,8 +350,8 @@ export function createImagePlugin(config={}){
             image.alt=caption.textContent?.trim()??''
             applyStyles()
           }
-          const updateData=next=>{
-            retainControlFocus(wrapper,()=>context.updateData(()=>next))
+          const updateData=producer=>{
+            retainControlFocus(wrapper,()=>context.updateData(producer))
           }
           const beginTask=()=>{
             currentTask?.cancel()
@@ -419,7 +419,7 @@ export function createImagePlugin(config={}){
                 cancelText:runtimeContext.t('sourceCancel','Cancel'),
               invalidText:runtimeContext.t('invalidUrl','Invalid image URL'),
               normalize:sanitizeMediaUrl,
-              onSubmit:url=>updateData({...data,file:{url}}),
+              onSubmit:url=>updateData(current=>({...current,file:{url}})),
             })
           }
 
@@ -434,7 +434,7 @@ export function createImagePlugin(config={}){
             currentTask?.cancel()
             currentTask=null
             wrapper.classList.remove(CSS.loading)
-            updateData(imageDataSchema.createDefault())
+            updateData(()=>imageDataSchema.createDefault())
           },{signal:context.signal})
           for(const {action,filledButton} of customActionButtons){
             filledButton.addEventListener('click',()=>{void runCustomAction(action);restoreSource()},{signal:context.signal})
