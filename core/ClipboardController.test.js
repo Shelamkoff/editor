@@ -4,11 +4,12 @@ import assert from 'node:assert/strict'
 import { ClipboardController } from './ClipboardController.js'
 import { CLIPBOARD_FRAGMENT_MIME } from './ClipboardFragment.js'
 
-function clipboardHarness({ formats = [], read = () => '', files = [], accepts = null, resolve = null, capability = null, crossSelection = null, mode = 'rich-text', isComposing = () => false } = {}) {
+function clipboardHarness({ formats = [], read = () => '', files = [], accepts = null, resolve = null, capability = null, crossSelection = null, mode = 'rich-text', isComposing = () => false, auxiliaryControl = null } = {}) {
   const handlers = new Map()
   const host = { contains: () => true }
   const target = {
     closest(selector) {
+      if(auxiliaryControl && selector.split(',').map(part=>part.trim()).includes(auxiliaryControl)) return this
       return selector === '[contenteditable="true"]' && accepts ? host : null
     },
   }
@@ -84,7 +85,8 @@ function clipboardHarness({ formats = [], read = () => '', files = [], accepts =
   }
   const paste = () => handlers.get('paste')(event)
   const cut = () => handlers.get('cut')(event)
-  return { controller, runtime, event, paste, cut, reads, bookmark }
+  const copy = () => handlers.get('copy')(event)
+  return { controller, runtime, event, paste, cut, copy, reads, bookmark }
 }
 
 test('present but empty private clipboard MIME is a consumed rejection without text fallback', () => {
@@ -495,4 +497,40 @@ test('stale cross-block selection cannot steal native Paste from a plain-text in
       'stale cross-selection stole Paste from an auxiliary input')
     assert.equal(plans, 0)
   } finally { fixture.controller.destroy() }
+})
+
+test('a registered plain-text control retains native Copy despite a stale cross-selection', () => {
+  const crossSelection={active:true,wholeBlockIds:['a'],bookmark:{anchor:{blockId:'a'},focus:{blockId:'a'}}}
+  const h=clipboardHarness({accepts:()=>false,mode:'plain-text',crossSelection})
+  let plans=0
+  h.runtime.prepareLogicalClipboardSlice=()=>{plans++;return null}
+  try{
+    h.copy()
+    assert.equal(h.event.defaultPrevented,false)
+    assert.equal(plans,0,'Copy leaked cross-block canonical data from a plain-text editing field')
+  }finally{h.controller.destroy()}
+})
+
+test('editor toolbar buttons and locked widgets do not steal native clipboard events', () => {
+  const crossSelection={active:true,wholeBlockIds:['a'],bookmark:{anchor:{blockId:'a'},focus:{blockId:'a'}}}
+  for(const auxiliaryControl of ['button','[contenteditable="false"]']){
+    for(const operation of ['copy','cut','paste']){
+      const h=clipboardHarness({
+        crossSelection,auxiliaryControl,
+        formats:[CLIPBOARD_FRAGMENT_MIME],
+        read:()=>'{broken',
+      })
+      let plans=0
+      h.runtime.prepareLogicalClipboardSlice=()=>{plans++;return null}
+      try{
+        h[operation]()
+        assert.equal(h.event.defaultPrevented,false,
+          auxiliaryControl+' '+operation+' was stolen by editor clipboard')
+        assert.equal(plans,0,
+          auxiliaryControl+' '+operation+' read a stale canonical selection')
+        assert.deepEqual(h.reads,[],
+          auxiliaryControl+' '+operation+' read private editor clipboard data')
+      }finally{h.controller.destroy()}
+    }
+  }
 })
