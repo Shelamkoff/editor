@@ -156,3 +156,20 @@ test('queued bound event after destroy never evaluates extension tooltip labels'
     'retired tooltip still ran author-provided label callback')
   assert.equal(h.popup.removed, true)
 })
+
+test('throwing tooltip label does not leak the previous visible presentation', () => {
+  const h = tooltipHarness()
+  const b = boundAnchor({ left: 120, width: 60, top: 20, bottom: 40, height: 20 })
+  h.root.contains = node => node === h.anchor || node === b
+  const tooltip = new Tooltip(h.root)
+  tooltip.show(h.anchor, 'Old')
+  h.callbacks[0]()
+  assert.equal(h.popup.style.display, 'flex')
+
+  tooltip.bind(b, () => { throw new Error('extension tooltip label failed') })
+  assert.doesNotThrow(() => b.fire('mouseenter'),
+    'failed extension tooltip label propagated from a native mouse event')
+  assert.equal(h.popup.style.display, 'none')
+  assert.equal(h.anchor.getAttribute('aria-describedby'), null)
+  tooltip.destroy()
+})
