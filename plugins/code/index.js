@@ -184,10 +184,9 @@ export function createCodePlugin(config = {}) {
         return element.tagName === 'PRE' || element.tagName === 'CODE'
       },
       importRoot(element) {
-        const code = element.tagName === 'PRE'
-          ? (element.querySelector(':scope > code') ?? element)
-          : element
-        return { code: (code.textContent ?? '').replace(/\n+$/, '\n'), language: 'auto' }
+        // V1 captures the entire preformatted root, including text siblings
+        // of a nested <code> element. Selecting only <code> silently drops text.
+        return { code: (element.textContent ?? '').replace(/\n+$/, '\n'), language: 'auto' }
       },
     }),
     paste: Object.freeze({
