@@ -55,12 +55,18 @@ class FakeElement {
     return false
   }
   focus() { this.ownerDocument.activeElement = this }
-  addEventListener(type, listener) {
+  addEventListener(type, listener, options = {}) {
+    if (options.signal?.aborted) return
     const group = this.listeners.get(type) ?? []
     group.push(listener)
     this.listeners.set(type, group)
+    options.signal?.addEventListener('abort', () => {
+      const current = this.listeners.get(type) ?? []
+      const index = current.indexOf(listener)
+      if (index >= 0) current.splice(index, 1)
+    }, { once: true })
   }
-  dispatch(type) { for (const listener of this.listeners.get(type) ?? []) listener({ type, target: this }) }
+  dispatch(type) { for (const listener of [...(this.listeners.get(type) ?? [])]) listener({ type, target: this, stopPropagation() {}, preventDefault() {} }) }
   setAttribute(name, value) { this.attributes[name] = String(value) }
   getAttribute(name) {
     if (name === 'data-person-id') return this.dataset.personId ?? null
@@ -96,6 +102,7 @@ function mount(initial = input()) {
     isReadOnly: () => false,
     signal: new AbortController().signal,
     getData: () => initial,
+    commitDomMutation() {},
   })
   return { instance, ownerDocument }
 }
@@ -189,5 +196,40 @@ test('Person preserves its active editor through 400 deterministic unrelated cha
       next.persons.map(person => person.id), 'author order drift at step ' + step)
     current = next
   }
+  instance.destroy()
+})
+
+test('retired Person tab cannot change active record after a sibling update', () => {
+  const { instance } = mount()
+  const tabs = instance.element.children[0]
+  const retiredTab = tabs.children.find(item => item.dataset.personId === 'b')
+  const retiredButton = retiredTab.children[0]
+  const next = input()
+  next.persons[1].role = 'Writer'
+  instance.update(next)
+  assert.notEqual(tabs.children.find(item => item.dataset.personId === 'b'), retiredTab)
+  assert.equal(retiredButton.listeners.get('click')?.length ?? 0, 0,
+    'retired tab still owns a live click listener')
+  retiredButton.dispatch('click')
+  assert.equal(nameField(instance, 'a')?.parentNode !== null, true,
+    'retired tab redirected the active Person editing host')
+  assert.equal(instance.editableFields()[0]?.key, 'person:a:name')
+  instance.destroy()
+})
+
+test('Person retires body event listeners only when the active record actually changes', () => {
+  const { instance } = mount()
+  const name = nameField(instance, 'a')
+  assert.equal(name.listeners.get('input')?.length, 1)
+  const sibling = input()
+  sibling.persons[1].role = 'Writer'
+  instance.update(sibling)
+  assert.equal(nameField(instance, 'a'), name)
+  assert.equal(name.listeners.get('input')?.length, 1,
+    'tab-only update accidentally disabled active author input')
+  instance.update({ persons: [person('b')] })
+  assert.equal(name.listeners.get('input')?.length ?? 0, 0,
+    'removed Person body retained a document-input listener')
+  assert.equal(instance.editableFields()[0]?.key, 'person:b:name')
   instance.destroy()
 })
