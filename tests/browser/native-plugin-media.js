@@ -37,6 +37,37 @@ for (const mode of ['Enter', 'debounce']) {
     await history(editor, before, after)
   })
 }
+test('Embed URL input ignores active IME preedit until compositionend', async () => {
+  const editor = mount(createEmbedPlugin({ resolvePreview: false }), filled)
+  await pause(120)
+  const before = editor.save().blocks
+  const input = blockElement(editor, 'a').querySelector('.oe-embed__url-input')
+  await clickNative(input)
+  input.dispatchEvent(new CompositionEvent('compositionstart', { bubbles: true, data: '' }))
+  input.value = 'https://vimeo.com/123456'
+  input.dispatchEvent(new InputEvent('input', {
+    bubbles: true, inputType: 'insertCompositionText', data: '123456', isComposing: true,
+  }))
+  input.dispatchEvent(new KeyboardEvent('keydown', {
+    bubbles: true, key: 'Enter', code: 'Enter', isComposing: true,
+  }))
+  input.dispatchEvent(new Event('paste', { bubbles: true, cancelable: true }))
+  await pause(650)
+  equal(editor.save().blocks, before,
+    'Embed changed provider while URL was still in IME composition')
+
+  input.dispatchEvent(new CompositionEvent('compositionend', { bubbles: true, data: '123456' }))
+  input.dispatchEvent(new InputEvent('input', {
+    bubbles: true, inputType: 'insertText', data: '123456', isComposing: false,
+  }))
+  await pause(650)
+  const after = editor.save().blocks
+  equal(after[0].data.service, 'vimeo')
+  equal(after[0].data.videoId, '123456')
+  equal(after[0].data.caption, before[0].data.caption)
+  await history(editor, before, after)
+})
+
 test('Embed Replace exposes a usable URL field and changes providers atomically', async () => {
   const editor = mount(createEmbedPlugin({ resolvePreview: false }), filled)
   await pause(120)
