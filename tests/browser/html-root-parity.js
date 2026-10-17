@@ -1,4 +1,4 @@
-import { createHeadingPlugin, createParagraphPlugin } from '../../plugins/index.js'
+import { createHeadingPlugin, createParagraphPlugin, createTablePlugin } from '../../plugins/index.js'
 import { test, make, para, editableField, select, paste, equal, texts } from './regressions/harness.js'
 
 // Register in native-clipboard's existing runner. These cases use the actual
@@ -72,4 +72,29 @@ test('external HTML root parity: a registered div importer retains structural ow
   equal(editor.canUndo, false)
   equal(editor.redo(), true)
   equal(texts(editor), ['abcDEFghi', 'A', 'B'])
+})
+
+test('external HTML Table preserves headers after an empty leading tr', async () => {
+  const editor = make([para('a', '')], {
+    plugins: [createParagraphPlugin(), createTablePlugin()],
+  })
+  const target = editableField(editor, 'a')
+  select(target, 0)
+  await paste(target, {
+    'text/html': '<table><tr></tr><tr><th>Name</th><th>Value</th></tr><tr><td>A</td><td>1</td></tr></table>',
+    'text/plain': 'Name Value A 1',
+  })
+  const blocks = editor.save().blocks
+  equal(blocks.length, 1)
+  equal(blocks[0].type, 'table')
+  equal(blocks[0].data.withHeadings, true)
+  equal(blocks[0].data.rows.map(row => row.cells.map(cell => cell.text)), [
+    ['Name', 'Value'], ['A', '1'],
+  ])
+  equal(editor.undo(), true)
+  equal(editor.save().blocks[0].type, 'paragraph')
+  equal(editor.save().blocks[0].data.text, '')
+  equal(editor.canUndo, false)
+  equal(editor.redo(), true)
+  equal(editor.save().blocks[0].data.withHeadings, true)
 })
