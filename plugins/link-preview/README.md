@@ -51,7 +51,7 @@ Every built-in block plugin accepts two style ownership options: `injectStyles?:
 
 `fetchMeta?: (url: string, context: { signal: AbortSignal }) => Promise<{ title?: string; description?: string; image?: string; favicon?: string; domain?: string }>` resolves metadata in application code and must stop work when the supplied signal is aborted. Without this callback, the plugin performs no metadata request: it keeps the sanitized URL, derives `domain`, and leaves the other metadata fields empty until the application or a loaded document supplies them.
 
-When `fetchMeta` is configured, entering a new URL starts one cancellable resolution. The plugin commits the URL and the normalized metadata together after the callback settles, so one URL entry remains one undo/redo step. If resolution fails, the sanitized URL is still committed without optional metadata. A newer URL or block disposal aborts the older request and prevents stale data from being committed.
+When `fetchMeta` is configured, the submitted URL is committed immediately and one cancellable metadata request begins. Late results enrich only fields that have not been changed by the host since the request started. If the authored URL edit is still the latest history operation and its exact revision remains current, the metadata completion extends that edit, producing **one Undo/Redo step**. If another operation intervenes, the metadata update remains a **separate** history step; unrelated actions are never merged. A failed request leaves the submitted URL intact, while a replaced URL or disposed block cancels the obsolete request.
 
 ## Capabilities
 
@@ -59,7 +59,7 @@ URL paste; async metadata; template selector; safe URL assignment and cleanup. C
 
 ## Undo, lifecycle, and styles
 
-Each mounted block receives a scoped context. Use `context.updateData(producer)` for data changes, `context.commitDomMutation(operation)` for protected rich-text edits, and `context.beginTask()` for asynchronous results. Each completed action creates one history step. The block instance and its per-editor runtime release their resources through `destroy()`; Rector releases owned styles when their final owner is removed.
+Each mounted block receives a scoped context. Use `context.updateData(producer)` for data changes, `context.commitDomMutation(operation)` for protected rich-text edits, and `context.beginTask()` for asynchronous results. An explicitly submitted URL uses `task.commit(producer, { mergeWithPreviousField: 'url' })` to request guarded history continuation. It succeeds as a merge only when the task's original revision still points to the immediately preceding update of that URL field. Ordinary updates and nonadjacent async results keep independent Undo/Redo steps. The block instance and its per-editor runtime release their resources through `destroy()`; Rector releases owned styles when their final owner is removed.
 
 Do not remove the editor holder without first calling `editor.destroy()`.
 
