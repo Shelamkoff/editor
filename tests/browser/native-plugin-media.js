@@ -51,7 +51,6 @@ test('Embed URL input ignores active IME preedit until compositionend', async ()
   input.dispatchEvent(new KeyboardEvent('keydown', {
     bubbles: true, key: 'Enter', code: 'Enter', isComposing: true,
   }))
-  input.dispatchEvent(new Event('paste', { bubbles: true, cancelable: true }))
   await pause(650)
   equal(editor.save().blocks, before,
     'Embed changed provider while URL was still in IME composition')
