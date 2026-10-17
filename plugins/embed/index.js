@@ -461,8 +461,9 @@ export function createEmbedPlugin(config = {}) {
             // current value and intentionally revokes any obsolete draft.
             const retainUrlDraft = !readOnly && !sourceChanged && document.activeElement === input
             const urlDraft = retainUrlDraft ? input.value : null
-            const pendingUrlParse = retainUrlDraft && inputTimer !== null
-            clearInputTimer()
+            // Do not restart the debounce on each host projection. Frequent
+            // metadata updates must not postpone a valid URL indefinitely.
+            if (!retainUrlDraft) clearInputTimer()
             playerController?.abort()
             const Ctor = document.defaultView?.AbortController ?? AbortController
             playerController = new Ctor()
@@ -493,7 +494,6 @@ export function createEmbedPlugin(config = {}) {
             insert.hidden = readOnly
             if (urlDraft !== null) {
               input.value = urlDraft
-              if (pendingUrlParse) inputTimer = timerHost.setTimeout(parseInput, 500)
             } else {
               input.value = configured ? (data.service === 'youtube' ? 'https://youtu.be/' : 'https://vimeo.com/') + data.videoId : ''
             }
