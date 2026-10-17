@@ -517,15 +517,21 @@ export function createAttachesPlugin(config={}){
 
           return {
             element:wrapper,
-            read:()=>({
-              variant:data.variant,
-              files:data.files.map(file=>{
-                const field=nameFields.get(file.id)
-                // An intentionally blank native name is author data, not a
-                // request to restore the plugin's older local snapshot.
-                return {...file,name:field?(field.textContent?.trim()??''):file.name}
-              }),
-            }),
+            read:()=>{
+              // V1 retains the last non-empty author name when the editing
+              // field is cleared. With preserved native DOM the local `data`
+              // snapshot can lag behind the canonical committed value.
+              const current=context.getData()
+              const committedNames=new Map(current.files.map(file=>[file.id,file.name]))
+              return {
+                variant:data.variant,
+                files:data.files.map(file=>({
+                  ...file,
+                  name:nameFields.get(file.id)?.textContent?.trim()
+                    ||committedNames.get(file.id)||file.name,
+                })),
+              }
+            },
             update(next){if(!dead&&!reconcileNames(next))project(next)},
             editableFields:()=>Object.freeze(data.files.flatMap(file=>{
               const element=nameFields.get(file.id)
