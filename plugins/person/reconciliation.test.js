@@ -307,3 +307,50 @@ test('Person accepts a fresh drag in the current tab projection', () => {
     'completed tab drag retained obsolete drag authority')
   instance.destroy()
 })
+
+
+test('Person keeps natively edited active fields when another record changes', () => {
+  for (const key of ['name', 'role', 'bio']) {
+    const { instance, ownerDocument, setCanonicalData } = mount()
+    const fieldName = 'person:a:' + key
+    const field = instance.editableFields().find(entry => entry.key === fieldName).element
+    field.focus()
+    // Model commit can preserve the source DOM instead of calling update().
+    const canonical = input()
+    canonical.persons[0][key] = 'Authored ' + key
+    field.innerHTML = canonical.persons[0][key]
+    setCanonicalData(canonical)
+    assert.equal(instance.read().persons[0][key], '',
+      'test did not simulate an independently committed native edit')
+
+    const sibling = {
+      persons: canonical.persons.map(person => person.id === 'b'
+        ? { ...person, role: 'Updated sibling role' } : person),
+    }
+    setCanonicalData(sibling)
+    instance.update(sibling)
+
+    assert.equal(instance.editableFields().find(entry => entry.key === fieldName).element, field,
+      'sibling update detached a natively edited ' + key + ' field')
+    assert.equal(ownerDocument.activeElement, field,
+      'sibling update blurred a natively edited ' + key + ' field')
+    assert.equal(instance.read().persons[0][key], canonical.persons[0][key])
+    assert.equal(instance.read().persons[1].role, 'Updated sibling role')
+    instance.destroy()
+  }
+})
+
+test('Person still reprojects an externally changed active field', () => {
+  const { instance, setCanonicalData } = mount()
+  const original = nameField(instance, 'a')
+  original.innerHTML = 'Local pending name'
+  const next = input()
+  next.persons[0].name = 'Remote author name'
+  setCanonicalData(next)
+  instance.update(next)
+  assert.notEqual(nameField(instance, 'a'), original,
+    'remote active-person data change did not update its editing field')
+  assert.equal(nameField(instance, 'a').textContent, 'Remote author name')
+  assert.equal(instance.read().persons[0].name, 'Remote author name')
+  instance.destroy()
+})
