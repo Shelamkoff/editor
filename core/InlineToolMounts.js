@@ -95,11 +95,13 @@ export class InlineToolMounts {
     if (!entry || entry.started) throw new Error('Inline tool mount is not available')
     entry.started = true
     entry.revoke = revoke
-    this.#complete(tool.bindSelectionPort?.(port))
+    // Acquisition hooks are extension callbacks, not authoring commands.
+    // Guard them like teardown so reentrant persisted mutations are denied.
+    this.#complete(this.#observe(()=>tool.bindSelectionPort?.(port)))
     // Port binding may synchronously revoke this toolbar. Do not mount a
     // resource after its selection authority and disposal have been retired.
     if (this.#closed || owners.get(entry.source) !== entry) return
-    this.#complete(tool.onMount?.(button, mutations))
+    this.#complete(this.#observe(()=>tool.onMount?.(button, mutations)))
   }
 
   /** Retire all scopes before cleanup; independently release every started owner. */
