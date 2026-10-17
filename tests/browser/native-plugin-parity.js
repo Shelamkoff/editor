@@ -506,6 +506,31 @@ test('LinkPreview restoration does not refetch old metadata but explicit submiss
   equal(requests[1].url, 'https://example.org/new')
 })
 
+test('LinkPreview initial metadata microtask cannot restart a newer submitted URL', async () => {
+  const fixture = pluginParityFixtures.find(entry => entry.name === 'LinkPreview')
+  const requests = []
+  const editor = pluginEditor({
+    ...fixture,
+    data: { ...fixture.data, title: '', image: '', favicon: '' },
+    factory: () => fixture.factory({
+      fetchMeta: (url, { signal }) => {
+        requests.push({ url, signal })
+        return new Promise(() => {})
+      },
+    }),
+  })
+  // The initial-enrichment microtask has not yet run: submit a new URL in
+  // the same JavaScript task, then allow queued work to execute.
+  const input = blockElement(editor, 'a').querySelector('.oe-lp__url-input')
+  input.value = 'https://vimeo.com/123456'
+  input.dispatchEvent(new Event('change', { bubbles: true }))
+  equal(requests.map(request => request.url), ['https://vimeo.com/123456'])
+  await pause(60)
+  equal(requests.map(request => request.url), ['https://vimeo.com/123456'],
+    'initial LinkPreview enrichment restarted or replaced a newer request')
+  equal(requests[0].signal.aborted, false)
+})
+
 test('Gallery rich captions keep their marks through native editing and history', async () => {
   const fixture = pluginParityFixtures.find(entry => entry.name === 'Gallery')
   const editor = pluginEditor({ ...fixture, data: { ...fixture.data, images: [{ id: 'first', url: fixture.data.images[0].url, caption: '<b>Al</b>pha' }] } })
