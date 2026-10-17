@@ -1574,6 +1574,28 @@ test('Gallery removing another image preserves a committed native caption edit',
   equal(editor.save().blocks, afterInput, 'Gallery removal could not be independently undone')
 })
 
+test('Attaches Undo and external reversion repaint the last canonical filename', async () => {
+  const fixture = pluginParityFixtures.find(item => item.name === 'Attaches')
+  const editor = pluginEditor(fixture)
+  focusedField(editor, { key: 'file:first:name' }, 2)
+  await printable('X')
+  equal(editor.save().blocks[0].data.files[0].name, 'AlXpha')
+  equal(editor.undo(), true)
+  const shown = () => blockElement(editor, 'a').querySelector('.oe-attaches__name')
+  equal(editor.save().blocks[0].data.files[0].name, 'Alpha')
+  equal(shown()?.textContent, 'Alpha',
+    'Attaches Undo restored canonical name but retained stale native field text')
+  equal(editor.redo(), true)
+  equal(shown()?.textContent, 'AlXpha')
+  editor.blocks.update('a', current => ({
+    data: { ...current.data, files: current.data.files.map(file =>
+      file.id === 'first' ? { ...file, name: 'Alpha' } : file) },
+  }))
+  equal(editor.save().blocks[0].data.files[0].name, 'Alpha')
+  equal(shown()?.textContent, 'Alpha',
+    'Attaches external name reversion reused stale natively authored text')
+})
+
 test('Attaches keeps the active native filename caret when a sibling name changes', async () => {
   const fixture = pluginParityFixtures.find(item => item.name === 'Attaches')
   const first = fixture.data.files[0]
