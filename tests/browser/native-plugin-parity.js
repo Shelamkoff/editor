@@ -474,6 +474,38 @@ test('LinkPreview late metadata respects newer host edits and cancels an obsolet
   equal(afterSource.title, 'New host source')
 })
 
+test('LinkPreview restoration does not refetch old metadata but explicit submission still does', async () => {
+  const fixture = pluginParityFixtures.find(entry => entry.name === 'LinkPreview')
+  const requests = []
+  const editor = pluginEditor({
+    ...fixture,
+    data: { ...fixture.data, title: '', image: '', favicon: '' },
+    factory: () => fixture.factory({
+      fetchMeta: (url, { signal }) => {
+        requests.push({ url, signal })
+        return new Promise(() => {})
+      },
+    }),
+  })
+  await pause(60)
+  equal(requests.length, 1, 'initial LinkPreview metadata enrichment did not run')
+  const initialUrl = requests[0].url
+  editor.blocks.remove('a')
+  equal(requests[0].signal.aborted, true,
+    'removed LinkPreview retained its in-flight metadata request')
+  equal(editor.undo(), true)
+  await pause(60)
+  equal(requests.length, 1,
+    'restoring LinkPreview with Undo restarted automatic metadata enrichment')
+  const wrapper = blockElement(editor, 'a')
+  const input = wrapper.querySelector('.oe-lp__url-input')
+  assert(input, 'restored LinkPreview is not editable')
+  input.value = 'https://example.org/new'
+  input.dispatchEvent(new Event('change', { bubbles: true }))
+  equal(requests.length, 2, 'explicit URL submission no longer resolves metadata after Undo')
+  equal(requests[1].url, 'https://example.org/new')
+})
+
 test('Gallery rich captions keep their marks through native editing and history', async () => {
   const fixture = pluginParityFixtures.find(entry => entry.name === 'Gallery')
   const editor = pluginEditor({ ...fixture, data: { ...fixture.data, images: [{ id: 'first', url: fixture.data.images[0].url, caption: '<b>Al</b>pha' }] } })
