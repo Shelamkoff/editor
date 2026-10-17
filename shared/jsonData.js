@@ -26,16 +26,15 @@ export function equalJsonValue(left, right) {
   if (left === right) return true
   if (left === null || right === null
     || typeof left !== 'object' || typeof right !== 'object') return false
-  const isArray = Array.isArray(left)
-  if (isArray !== Array.isArray(right)) return false
-  if (isArray) {
-    if (left.length !== right.length) return false
+  if (Array.isArray(left)) {
+    if (!Array.isArray(right) || left.length !== right.length) return false
     for (let index = 0; index < left.length; index++) {
       if (Object.hasOwn(left, index) !== Object.hasOwn(right, index)
         || !equalJsonValue(left[index], right[index])) return false
     }
     return true
   }
+  if (Array.isArray(right)) return false
   const keys = Object.keys(left)
   if (keys.length !== Object.keys(right).length) return false
   for (const key of keys) {
