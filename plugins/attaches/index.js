@@ -535,7 +535,7 @@ export function createAttachesPlugin(config={}){
                 })),
               }
             },
-            update(next,previousCanonical){if(!dead&&!reconcileNames(next,previousCanonical))project(next)}
+            update(next,previousCanonical){if(!dead&&!reconcileNames(next,previousCanonical))project(next)},
             editableFields:()=>Object.freeze(data.files.flatMap(file=>{
               const element=nameFields.get(file.id)
               return element?[Object.freeze({
