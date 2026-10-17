@@ -1092,4 +1092,41 @@ test('Carousel manually selected settings slide survives metadata save', async (
     'editing a slide from the selector reset the selection to a different slide')
 })
 
+
+test('Carousel retired settings inputs cannot mutate prior slide after picker changes', async () => {
+  const fixture = pluginParityFixtures.find(entry => entry.name === 'Carousel')
+  const editor = pluginEditor({ ...fixture, data: {
+    ...fixture.data,
+    slides: [
+      { id: 'first', type: 'image', src: pixel, caption: 'Alpha', alt: 'First image' },
+      { id: 'second', type: 'image', src: pixel, caption: 'Bravo', alt: 'Second image' },
+    ],
+  } })
+  const panel = () => blockElement(editor, 'a').querySelector('.oe-carousel-block__settings-panel')
+  const altInput = () => [...panel().querySelectorAll('label')]
+    .find(label => label.querySelector(':scope > span')?.textContent === 'Alternative text')
+    ?.querySelector('input')
+  const stale = altInput()
+  assert(stale && stale.value === 'First image', 'Carousel first slide settings missing')
+  const picker = panel().querySelector('.oe-carousel-block__slide-select')
+  picker.value = 'second'
+  picker.dispatchEvent(new Event('change', { bubbles: true }))
+  equal(altInput()?.value, 'Second image')
+
+  const before = editor.save().blocks
+  stale.value = 'Stale first slide edit'
+  stale.dispatchEvent(new Event('change', { bubbles: true }))
+  equal(editor.save().blocks, before, 'retired Carousel settings edited an unrelated slide')
+
+  const second = altInput()
+  second.value = 'Updated second'
+  second.dispatchEvent(new Event('change', { bubbles: true }))
+  equal(editor.save().blocks[0].data.slides.map(slide => slide.alt),
+    ['First image', 'Updated second'], 'active settings edit did not target its selected slide')
+  const current = editor.save().blocks
+  second.value = 'Late obsolete edit'
+  second.dispatchEvent(new Event('change', { bubbles: true }))
+  equal(editor.save().blocks, current, 'old settings input remained authoritative after metadata commit')
+})
+
 await run()
