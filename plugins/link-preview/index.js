@@ -9,6 +9,8 @@ import { TEMPLATE_ICONS } from './templateIcons.js'
 const editorStyles=new URL('./link-preview.css',import.meta.url).href
 const ICON='<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 15l6-6"/><path d="M11 6l.463-.536a5 5 0 0 1 7.071 7.072L18 13"/><path d="M13 18l-.397.534a5.068 5.068 0 0 1-7.127 0 4.972 4.972 0 0 1 0-7.071L6 11"/></svg>'
 
+const META_FIELDS=Object.freeze(['title','description','image','favicon','domain'])
+
 const TEMPLATE_LABELS=Object.freeze({
   horizontal:'Horizontal',
   compact:'Compact',
@@ -177,6 +179,10 @@ export function createLinkPreviewPlugin(config={}){
           wrapper.append(urlBar,card,actions)
 
           let data={...initial}
+          // A value may change away and back while a metadata request is
+          // pending. Track projected field revisions, not just equality.
+          const metaRevisions=Object.create(null)
+          for(const key of META_FIELDS)metaRevisions[key]=0
           let readOnly=context.isReadOnly()
           let dead=false
           let currentTask=null
@@ -208,6 +214,9 @@ export function createLinkPreviewPlugin(config={}){
               next.url===data.url||(!!authoredUrl&&next.url===authoredUrl)
             )
             if(!retainDraft)clearInputTimer()
+            for(const key of META_FIELDS){
+              if(next[key]!==data[key])metaRevisions[key]++
+            }
             data={...next}
             if(!retainDraft)input.value=data.url
             input.readOnly=readOnly
@@ -255,17 +264,18 @@ export function createLinkPreviewPlugin(config={}){
               // providers belong to the same finally/cancellation boundary.
               // Preserve newer host edits when the URL stays unchanged.
               const atRequest=context.getData()
+              const requestRevisions={...metaRevisions}
               const result=await snapshot.fetchMeta(url,{signal:task.signal})
               if(dead||task.signal.aborted||current!==generation)return
               const meta=result&&typeof result==='object'?result:{}
               task.commit(previous=>previous.url===url?({
                 ...previous,
-                title:typeof meta.title==='string'&&previous.title===atRequest.title?meta.title:previous.title,
-                description:typeof meta.description==='string'&&previous.description===atRequest.description?meta.description:previous.description,
-                image:typeof meta.image==='string'&&previous.image===atRequest.image?meta.image:previous.image,
-                favicon:typeof meta.favicon==='string'&&previous.favicon===atRequest.favicon?meta.favicon:previous.favicon,
-                domain:previous.domain!==atRequest.domain?previous.domain:
-                  typeof meta.domain==='string'?meta.domain:previous.domain||host(url),
+                title:typeof meta.title==='string'&&metaRevisions.title===requestRevisions.title&&previous.title===atRequest.title?meta.title:previous.title,
+                description:typeof meta.description==='string'&&metaRevisions.description===requestRevisions.description&&previous.description===atRequest.description?meta.description:previous.description,
+                image:typeof meta.image==='string'&&metaRevisions.image===requestRevisions.image&&previous.image===atRequest.image?meta.image:previous.image,
+                favicon:typeof meta.favicon==='string'&&metaRevisions.favicon===requestRevisions.favicon&&previous.favicon===atRequest.favicon?meta.favicon:previous.favicon,
+                domain:metaRevisions.domain!==requestRevisions.domain||previous.domain!==atRequest.domain
+                  ?previous.domain:typeof meta.domain==='string'?meta.domain:previous.domain||host(url),
               }):previous)
             }catch(error){
               if(!task.signal.aborted)console.warn('[LinkPreview] Metadata resolution failed',error)
