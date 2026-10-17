@@ -119,6 +119,10 @@ export function openSourceEditor(config) {
     } catch {
       value = ''
     }
+    // normalize() is consumer supplied and can reenter the editor: it may
+    // dispose this owner or open a successor while this submit is in flight.
+    // Neither success nor validation feedback may outlive this form session.
+    if (closed || config.signal.aborted) return
     if (!value) {
       error.textContent = config.invalidText
       error.hidden = false
