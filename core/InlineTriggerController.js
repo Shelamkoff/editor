@@ -210,7 +210,7 @@ export class InlineTriggerController {
     })
     active.session=session
     try {
-      active.runtime.onTriggerQuery?.(session)
+      synchronousResult(active.runtime.onTriggerQuery?.(session), error => this.#reportError(error))
     } catch (error) {
       // A failed interactive query must not keep a query lease/popup alive.
       // A newer reentrant session is a separate owner and stays untouched.
@@ -231,7 +231,10 @@ export class InlineTriggerController {
     const session=active.session
     let result
     try {
-      result=active.runtime.onTriggerKeydown?.(event,session)??'pass'
+      result=synchronousResult(
+        active.runtime.onTriggerKeydown?.(event,session),
+        error => this.#reportError(error),
+      )??'pass'
       if(result!=='handled'&&result!=='pass'){
         throw new TypeError('Inline onTriggerKeydown() must return "handled" or "pass"')
       }
