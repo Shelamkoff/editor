@@ -103,7 +103,7 @@ class FakeElement {
   }
 }
 
-function mount(config = {}, initialOverrides = {}) {
+function mount(config = {}, initialOverrides = {}, options = {}) {
   let nextTimer = 1
   const timers = new Map()
   const ownerDocument = {
@@ -136,6 +136,7 @@ function mount(config = {}, initialOverrides = {}) {
   let instance
   const context = {
     ownerDocument, signal: owner.signal,
+    restoring: options.restoring === true,
     getData: () => {
       if (failNextRead) {
         failNextRead = false
@@ -382,5 +383,26 @@ test('LinkPreview initial enrichment is skipped after the host supplies metadata
     assert.deepEqual(calls, [],
       'initial metadata request ignored the title supplied by host before its microtask')
     assert.equal(h.model().title, 'Host-provided title')
+  } finally { h.destroy() }
+})
+
+test('LinkPreview restored history projection never restarts initial metadata enrichment', async () => {
+  const requests = []
+  const h = mount({
+    fetchMeta: async url => {
+      requests.push(url)
+      return { title: 'Unexpected replay side effect' }
+    },
+  }, { title: '' }, { restoring: true })
+  try {
+    await Promise.resolve()
+    await Promise.resolve()
+    assert.deepEqual(requests, [],
+      'history restoration started a fresh network metadata request')
+    assert.equal(h.model().title, '')
+    // A deliberate new submission remains available after history replay.
+    h.input.value = 'https://vimeo.com/123456'
+    h.input.dispatch('keydown')
+    assert.deepEqual(requests, ['https://vimeo.com/123456'])
   } finally { h.destroy() }
 })
