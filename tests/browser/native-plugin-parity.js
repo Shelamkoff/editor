@@ -795,7 +795,7 @@ test('Person sibling update keeps the author caret and updates the current tab a
     persons: current.data.persons.map(person => person.id === 'two'
       ? { ...person, role: 'Editor' } : person),
   } }))
-  equal(document.activeElement, field, 'Person detached the active field after another person's role changed')
+  equal(document.activeElement, field, 'Person detached the active field after the other record changed')
   checkFieldCaret(field, 2)
   const afterSibling = editor.save().blocks
   equal(afterSibling[0].data.persons[1].role, 'Editor')
