@@ -804,17 +804,14 @@ export function createCarouselPlugin(config={}){
 
           const moveSlide=(from,to)=>{
             if(readOnly||from===to||to<0||to>=data.slides.length)return
-            const activeId=data.slides[activeIndex]?.id
+            // update(next) already maps the active slide id to its new index.
+            // A queued second mapping would override later navigation.
             retainControlFocus(wrapper,()=>context.updateData(current=>{
               const slides=current.slides.map(slide=>({...slide}))
               const [moved]=slides.splice(from,1)
               if(moved)slides.splice(to,0,moved)
               return {...current,slides}
             }))
-            queueMicrotask(()=>{
-              const index=data.slides.findIndex(slide=>slide.id===activeId)
-              if(index>=0)activeIndex=index
-            })
           }
 
           wrapper.addEventListener('dragover',event=>{
