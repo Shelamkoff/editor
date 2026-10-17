@@ -34,14 +34,14 @@ function harness({ canFocus = false } = {}) {
 test('rejected plugin focus does not move logical caret into an unrelated field', () => {
   const { view, calls } = harness()
   assert.equal(view.focus('a', { fieldKey: 'missing', offset: 2 }), false)
-  assert.deepEqual(calls, ['setCurrent', 'focus'],
+  assert.deepEqual(calls, ['focus'],
     'failed focus still published a new logical caret')
 })
 
 test('successful plugin focus preserves explicit caret placement', () => {
   const { view, calls } = harness({ canFocus: true })
   assert.equal(view.focus('a', { fieldKey: 'title', offset: 2 }), true)
-  assert.deepEqual(calls, ['setCurrent', 'focus', 'setCaret'])
+  assert.deepEqual(calls, ['focus', 'setCaret'])
 })
 
 test('a failed logical caret placement is not reported as successful focus', () => {
@@ -59,11 +59,11 @@ test('a failed logical caret placement is not reported as successful focus', () 
     runtime, reconciler: { getElement() {} }, interaction, selection,
   })
   assert.equal(view.focus('a', { fieldKey: 'deleted', offset: 0 }), false)
-  assert.deepEqual(calls, ['setCurrent', 'focus', 'setCaret'])
+  assert.deepEqual(calls, ['focus', 'setCaret'])
 })
 
 test('focus without an explicit caret does not attempt to set one', () => {
   const { view, calls } = harness({ canFocus: true })
   assert.equal(view.focus('a'), true)
-  assert.deepEqual(calls, ['setCurrent', 'focus'])
+  assert.deepEqual(calls, ['focus'])
 })
