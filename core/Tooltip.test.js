@@ -89,3 +89,70 @@ test('a retired timer cannot expose an already destroyed tooltip', () => {
   assert.equal(h.popup.style.display, 'none')
   assert.equal(h.anchor.getAttribute('aria-describedby'), null)
 })
+
+function boundAnchor(rect = { left: 20, width: 80, top: 20, bottom: 40, height: 20 }) {
+  const handlers = new Map()
+  const attrs = new Map()
+  return {
+    handlers,
+    addEventListener(type, fn) { handlers.set(type, fn) },
+    fire(type) { handlers.get(type)?.() },
+    getBoundingClientRect: () => rect,
+    getAttribute: name => attrs.get(name) ?? null,
+    setAttribute(name, value) { attrs.set(name, value) },
+    removeAttribute(name) { attrs.delete(name) },
+  }
+}
+
+test('an obsolete mouseleave does not cancel a newer anchor tooltip', () => {
+  const h = tooltipHarness()
+  const a = boundAnchor()
+  const b = boundAnchor({ left: 120, width: 60, top: 20, bottom: 40, height: 20 })
+  h.root.contains = node => node === a || node === b
+  const tooltip = new Tooltip(h.root)
+  tooltip.bind(a, () => 'Old')
+  tooltip.bind(b, () => 'New')
+
+  a.fire('mouseenter')
+  b.fire('mouseenter')
+  a.fire('mouseleave')
+  h.callbacks[1]()
+  assert.equal(h.popup.style.display, 'flex',
+    'old anchor mouseleave canceled the new anchor pending tooltip')
+  assert.equal(h.popup.children[0].textContent, 'New')
+  assert.equal(b.getAttribute('aria-describedby'), h.popup.id)
+  tooltip.destroy()
+})
+
+test('an obsolete blur does not hide another anchor already showing a tooltip', () => {
+  const h = tooltipHarness()
+  const a = boundAnchor()
+  const b = boundAnchor({ left: 120, width: 60, top: 20, bottom: 40, height: 20 })
+  h.root.contains = node => node === a || node === b
+  const tooltip = new Tooltip(h.root)
+  tooltip.bind(a, () => 'Old')
+  tooltip.bind(b, () => 'New')
+  a.fire('focus')
+  h.callbacks[0]()
+  b.fire('focus')
+  h.callbacks[1]()
+  a.fire('blur')
+  assert.equal(h.popup.style.display, 'flex',
+    'old anchor blur retired a newer active tooltip')
+  assert.equal(b.getAttribute('aria-describedby'), h.popup.id)
+  tooltip.destroy()
+})
+
+test('queued bound event after destroy never evaluates extension tooltip labels', () => {
+  const h = tooltipHarness()
+  const a = boundAnchor()
+  h.root.contains = node => node === a
+  const tooltip = new Tooltip(h.root)
+  let labelCalls = 0
+  tooltip.bind(a, () => { labelCalls++; return 'Unavailable' })
+  tooltip.destroy()
+  a.fire('mouseenter')
+  assert.equal(labelCalls, 0,
+    'retired tooltip still ran author-provided label callback')
+  assert.equal(h.popup.removed, true)
+})
