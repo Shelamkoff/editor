@@ -83,12 +83,13 @@ export class ClipboardController {
   #view
   #crossSelection
   #inlineCommands
+  #isComposing
   #controller
   #task = null
   #taskAnchorId = null
   #diagnostics
 
-  constructor({ root, runtime, registry, reconciler, selection, view, crossSelection = null, inlineCommands = null, diagnostics = null }) {
+  constructor({ root, runtime, registry, reconciler, selection, view, crossSelection = null, inlineCommands = null, diagnostics = null, isComposing = () => false }) {
     this.#root = root
     this.#runtime = runtime
     this.#registry = registry
@@ -98,6 +99,7 @@ export class ClipboardController {
     this.#crossSelection = crossSelection
     this.#inlineCommands = inlineCommands
     this.#diagnostics = diagnostics
+    this.#isComposing = typeof isComposing === 'function' ? isComposing : () => false
     const AbortControllerCtor = root.ownerDocument?.defaultView?.AbortController ?? AbortController
     this.#controller = new AbortControllerCtor()
     root.addEventListener('copy', event => this.#onCopy(event), { capture: true, signal: this.#controller.signal })
@@ -231,6 +233,16 @@ export class ClipboardController {
 
   #onCut(event) {
     if (this.#runtime.readOnly || event.defaultPrevented || !event.clipboardData || !this.#ownsEvent(event)) return
+    if (event.isComposing || this.#isComposing()) {
+      // Native IME preedit is not a committed canonical selection. Never
+      // export it as a structural Cut or let the browser delete model-owned
+      // rich text. Native plain-text inputs still own their Cut event.
+      const owner = this.#reconciler.resolveEditableTarget(event.target)
+      if (owner?.mode !== 'plain-text' && (this.#crossSelection?.active || owner?.mode === 'rich-text')) {
+        event.preventDefault()
+      }
+      return
+    }
     try {
     const ownerDocument=this.#root.ownerDocument
 
