@@ -98,3 +98,7 @@ A focused Node/V8 adapter executes the **actual production plugin source** plus 
 The adapter intentionally stubs DOM layout, URL validation helpers, plugin panels and network/runtime dependencies. The registered browser scenarios in `tests/browser/native-plugin-parity.js` and `tests/browser/native-plugin-media.js` passed independent JavaScript syntax parsing after stripping imports for the check, but they were **not run in the real browser**.
 
 The full `npm test`, project TypeScript 5.9.3 gate, browser runner, installed-package consumer, heap/IME/multirealm checks and complete v1/v2 gesture matrix have **not** run on this HEAD. The remaining LinkPreview URL/metadata single-step Undo/Redo difference from v1 remains unresolved; no claim of full functional parity should be made.
+
+## Guarded async-history follow-up
+
+The adjacent LinkPreview URL-plus-metadata history discrepancy described above has since been addressed with a revision-scoped continuation protocol. See [the subsequent async history parity report](RECTOR_V2_LINK_PREVIEW_ASYNC_HISTORY_PARITY_2026-10-17.md) for commits, tests and limitations. All full-browser and final-SHA acceptance boundaries stated here remain outstanding.
