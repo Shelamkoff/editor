@@ -54,17 +54,21 @@ export function snapshotDataSchema(source, label, { richText = false, validateDe
       if (!input || typeof input !== 'object' || Array.isArray(input)) {
         throw new TypeError(`${label} schema decode input must be an object`)
       }
-      const candidate = { ...input }
-      if (candidate.dataVersion !== currentVersion) {
+      // Schema decoding only owns these two envelope fields. Spreading the
+      // entire caller object invokes unrelated getters (including symbols)
+      // before the version gate and can inspect an unsupported payload.
+      const dataVersion = Object.hasOwn(input, 'dataVersion') ? input.dataVersion : undefined
+      if (dataVersion !== currentVersion) {
         throw markDocumentValidationFailure(
-          new RangeError(`Unsupported ${label} data version ${String(candidate.dataVersion)}; current version is ${currentVersion}`),
+          new RangeError(`Unsupported ${label} data version ${String(dataVersion)}; current version is ${currentVersion}`),
           { reason: 'unsupported-data-version' },
         )
       }
       return schemaValidationBoundary({}, () => {
+        const data = Object.hasOwn(input, 'data') ? input.data : undefined
         const result = decode({
           dataVersion: currentVersion,
-          data: cloneEditorData(candidate.data),
+          data: cloneEditorData(data),
         })
         if (!result || typeof result !== 'object' || Array.isArray(result)
             || result.dataVersion !== currentVersion) {
