@@ -167,6 +167,7 @@ function mount() {
     ownerDocument,
     model: () => canonical,
     pendingTimers: () => timers.size,
+    pendingTimerIds: () => [...timers.keys()],
     flushTimers() {
       const queued = [...timers.values()]
       timers.clear()
@@ -249,6 +250,7 @@ test('Embed preserves an in-progress URL draft and its debounce across an unrela
     input.value = 'https://vimeo.com/123456'
     input.dispatch('input')
     assert.equal(h.pendingTimers(), 1)
+    const originalTimer = h.pendingTimerIds()[0]
 
     h.external({ ...h.model(), title: 'Metadata from another control' })
     assert.equal(h.ownerDocument.activeElement, input)
@@ -256,6 +258,8 @@ test('Embed preserves an in-progress URL draft and its debounce across an unrela
       'unrelated canonical update erased the unfinished video URL')
     assert.equal(h.pendingTimers(), 1,
       'unrelated canonical update silently canceled the URL debounce')
+    assert.equal(h.pendingTimerIds()[0], originalTimer,
+      'repeated host updates must not restart a pending URL parse indefinitely')
 
     h.flushTimers()
     assert.equal(h.model().service, 'vimeo')
