@@ -843,7 +843,32 @@ export function createCarouselPlugin(config={}){
             }),
             update(next){
               const activeId=data.slides[activeIndex]?.id
+              // Inactive caption text affects only the settings picker, not
+              // the mounted slide. Leave the active contenteditable connected
+              // so updating another slide cannot collapse its native caret.
+              const unchangedActiveView=next.slides.length===data.slides.length
+                &&JSON.stringify(next.options)===JSON.stringify(data.options)
+                &&next.slides.every((slide,index)=>{
+                  const previous=data.slides[index]
+                  return slide.id===previous.id
+                    &&slide.type===previous.type
+                    &&slide.src===previous.src
+                    &&slide.alt===previous.alt
+                    &&slide.poster===previous.poster
+                    &&slide.html===previous.html
+                    &&(index!==activeIndex||slide.caption===previous.caption)
+                })
               data=cloneData(next)
+              if(unchangedActiveView){
+                const picker=wrapper.querySelector('.oe-carousel-block__slide-select')
+                if(picker){
+                  for(const [index,option] of [...picker.options].entries()){
+                    const slide=data.slides[index]
+                    option.textContent=`${index+1} · ${slide.caption||slide.alt||slide.type}`
+                  }
+                }
+                return
+              }
               const nextIndex=activeId?data.slides.findIndex(slide=>slide.id===activeId):-1
               activeIndex=nextIndex>=0?nextIndex:Math.min(activeIndex,Math.max(0,data.slides.length-1))
               project()
