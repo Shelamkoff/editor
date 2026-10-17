@@ -118,4 +118,16 @@ test('native cross-block conversion to Code rejects loss of inline widgets witho
   equal(editableField(editor, 'a').querySelector('[data-inline-plugin="color"]')?.contentEditable, 'false')
 })
 
+
+test('native rich-text selection converted to Code retains text, not authored HTML tags', async () => {
+  const editor = mount([para('a', 'First <b>bold</b><br>last')])
+  const before = editor.save().blocks
+  const field = editableField(editor, 'a')
+  await dragAcross(editor, field, 0, field, 15)
+  await chooseType(editor, 'code')
+  const after = editor.save().blocks
+  equal(after.map(block => [block.type, block.data.code]), [['code', 'First bold\nlast']])
+  await checkHistory(editor, before, after)
+})
+
 await run()
