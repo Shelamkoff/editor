@@ -308,7 +308,7 @@ test('drag cancellation cannot remove its drop spacer adopted by another contain
   h.document.dispatch('pointermove', pointerEvent(7, 45, { x: 8 }))
   const parent = h.view.element('A').parentNode
   const spacer = parent.children.find(child => child.className === 'oe-block-drop-gap')
-  assert(spacer, 'drag did not create a spacer')
+  assert.equal(Boolean(spacer), true, 'drag did not create a spacer')
   const outside = new FakeEventTarget()
   parent.children.splice(parent.children.indexOf(spacer), 1)
   outside.appendChild(spacer)
