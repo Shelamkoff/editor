@@ -56,6 +56,8 @@ export interface BlockInstanceContext<
 > extends DataOperationContext {
   readonly ownerDocument: Document
   readonly signal: AbortSignal
+  /** True during Undo/Redo and recovery: suppress automatic external side effects. */
+  readonly restoring?: boolean
   getData(): Readonly<D>
   updateData(producer: (current: Readonly<D>) => D): void
   commitDomMutation(operation: () => void): void
