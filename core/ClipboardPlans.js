@@ -178,6 +178,7 @@ export function materializeClipboardRichText(s,part,reserved) {
   if(typeof part?.html!=='string')throw new TypeError('Clipboard rich-text part must contain html')
   const inline=part.inline===undefined?{}:s.normalizeExternalInline(part.inline)??{}
   const payload={kind:/** @type {'rich-text'} */('rich-text'),data:{text:part.html}}
+  const importContext=Object.freeze({ownerDocument:s.ownerDocument})
   const ordered=[
     s.defaultBlockType,
     ...s.blockTypes.filter(type=>type!==s.defaultBlockType),
@@ -185,8 +186,13 @@ export function materializeClipboardRichText(s,part,reserved) {
   for(const type of ordered){
     const definition=s.getBlockDefinition(type)
     const conversion=definition?.capabilities?.conversion
-    if(!conversion?.canImport?.(payload))continue
-    const data=conversion.import(payload)
+    if(!conversion||typeof conversion.canImport!=='function')continue
+    // Each extension receives a separate author snapshot. A rejected
+    // candidate cannot change what later importers inspect or commit.
+    const accepted=synchronousResult(conversion.canImport(cloneEditorData(payload)))
+    if(typeof accepted!=='boolean')throw new TypeError('Clipboard conversion canImport() must return a boolean')
+    if(!accepted)continue
+    const data=synchronousResult(conversion.import(cloneEditorData(payload),importContext))
     const id=s.allocateId(type,reserved)
     const record=s.recordFromData(id,type,definition,data,undefined,inline)
     s.assertConversionInlinePreserved(payload,inline,definition,record)
