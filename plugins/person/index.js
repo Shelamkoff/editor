@@ -255,6 +255,8 @@ export function createPersonPlugin(config={}){
           }
 
           const renderTabs=()=>{
+            // A detached source tab cannot complete its old native drag.
+            dragId=null
             tabsController?.abort()
             tabsController=new AbortControllerCtor()
             tabs.replaceChildren()
