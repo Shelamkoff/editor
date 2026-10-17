@@ -123,6 +123,7 @@ const CODE_PASTE_PATTERNS = Object.freeze([
 function selectedPayloadText(payload,ownerDocument){
   if((payload?.kind!=='plain-text'&&payload?.kind!=='rich-text')||typeof payload.data?.text!=='string')throw new TypeError('Code can only join textual payloads')
   if(payload.kind==='plain-text')return payload.data.text
+  if(!ownerDocument?.createElement)throw new TypeError('Code rich-text conversion requires an owning document')
   const template=ownerDocument.createElement('template')
   setSanitizedHtml(template,payload.data.text)
   for(const lineBreak of template.content.querySelectorAll('br'))lineBreak.replaceWith(ownerDocument.createTextNode('\n'))
@@ -174,9 +175,8 @@ export function createCodePlugin(config = {}) {
       },
       export: data => ({ kind: 'plain-text', data: { text: data.code } }),
       canImport: payload => (payload?.kind === 'plain-text' || payload?.kind === 'rich-text') && typeof payload.data?.text === 'string',
-      import(payload) {
-        if ((payload?.kind !== 'plain-text' && payload?.kind !== 'rich-text') || typeof payload.data?.text !== 'string') throw new TypeError('Code can only import textual payloads')
-        return { code: payload.data.text, language: 'auto' }
+      import(payload,context) {
+        return { code: selectedPayloadText(payload,context?.ownerDocument), language: 'auto' }
       },
     }),
     htmlImport: Object.freeze({
