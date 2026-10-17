@@ -1318,3 +1318,53 @@ test('projection sync ignores JSON property insertion order but commits genuine 
     runtime.destroy()
   }
 })
+
+
+test('guarded URL-style async continuation replays the complete authored state together', () => {
+  const runtime = new DocumentRuntime({
+    registry: registry([paragraphDefinition()]),
+    data: { version: '2.0.0', blocks: [block('a', { text: 'Before' })] },
+  })
+  const initial = runtime.get('a')
+  runtime.update('a', () => ({ data: { text: 'After' } }))
+  const baseRevision = runtime.revision
+  runtime.update('a', () => ({ tunes: { textAlign: 'center' } }), 'interaction', {
+    historyContinuation: { baseRevision, fieldKey: 'text' },
+  })
+  assert.equal(runtime.get('a').data.text, 'After')
+  assert.equal(runtime.get('a').tunes.textAlign, 'center')
+  assert.equal(runtime.undo(), true)
+  assert.equal(runtime.get('a').data.text, initial.data.text)
+  assert.deepEqual(runtime.get('a').tunes, initial.tunes)
+  assert.equal(runtime.canUndo, false)
+  assert.equal(runtime.redo(), true)
+  assert.equal(runtime.get('a').data.text, 'After')
+  assert.equal(runtime.get('a').tunes.textAlign, 'center')
+  runtime.destroy()
+})
+
+test('revision lease keeps delayed extension metadata distinct after host activity', () => {
+  const runtime = new DocumentRuntime({
+    registry: registry([paragraphDefinition()]),
+    data: { version: '2.0.0', blocks: [
+      block('a', { text: 'Before' }),
+      block('b', { text: 'Another block' }),
+    ] },
+  })
+  runtime.update('a', () => ({ data: { text: 'After' } }))
+  const baseRevision = runtime.revision
+  runtime.update('b', () => ({ data: { text: 'Host changed' } }), 'host')
+  runtime.update('a', () => ({ tunes: { textAlign: 'center' } }), 'interaction', {
+    historyContinuation: { baseRevision, fieldKey: 'text' },
+  })
+  assert.equal(runtime.get('a').tunes.textAlign, 'center')
+  assert.equal(runtime.undo(), true)
+  assert.equal(runtime.get('a').data.text, 'After')
+  assert.equal(runtime.get('a').tunes, undefined)
+  assert.equal(runtime.get('b').data.text, 'Host changed')
+  assert.equal(runtime.undo(), true)
+  assert.equal(runtime.get('b').data.text, 'Another block')
+  assert.equal(runtime.undo(), true)
+  assert.equal(runtime.get('a').data.text, 'Before')
+  runtime.destroy()
+})
