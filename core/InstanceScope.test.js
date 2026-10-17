@@ -366,3 +366,41 @@ test('configure(readOnly) immediately aborts active descendant tasks and cannot 
   assert.equal(fresh.commit(current => ({ ...current, value: 3 })), true)
   assert.equal(data.value, 3)
 })
+
+
+test('hierarchical read-only decisions match an independent oracle over 1200 mode updates', () => {
+  const nodes = [
+    new InstanceScope({ staged: false }),
+  ]
+  nodes.push(new InstanceScope({ staged: false, parent: nodes[0] }))
+  nodes.push(new InstanceScope({ staged: false, parent: nodes[1] }))
+  nodes.push(new InstanceScope({ staged: false, parent: nodes[0] }))
+  const parents = [-1, 0, 1, 0]
+  const local = [false, false, false, false]
+  let seed = 0x62b2d801
+  const random = size => {
+    seed ^= seed << 13
+    seed ^= seed >>> 17
+    seed ^= seed << 5
+    return (seed >>> 0) % size
+  }
+  let operations = 0
+  for (let step = 0; step < 1200; step++) {
+    const target = random(nodes.length)
+    const value = random(2) === 0
+    local[target] = value
+    if (step % 3 === 0) nodes[target].configure({ readOnly: value })
+    else nodes[target].setReadOnly(value)
+    for (let index = 0; index < nodes.length; index++) {
+      let expected = false
+      for (let ancestor = index; ancestor >= 0; ancestor = parents[ancestor]) {
+        expected ||= local[ancestor]
+      }
+      assert.equal(nodes[index].readOnly, expected, 'wrong effective read-only at step ' + step + ', node ' + index)
+      const before = operations
+      assert.equal(nodes[index].runMutation(() => operations++), !expected,
+        'mutation permission diverges from ancestor restrictions at step ' + step + ', node ' + index)
+      assert.equal(operations, before + (expected ? 0 : 1))
+    }
+  }
+})
