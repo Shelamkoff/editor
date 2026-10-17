@@ -44,6 +44,24 @@ test('successful plugin focus preserves explicit caret placement', () => {
   assert.deepEqual(calls, ['setCurrent', 'focus', 'setCaret'])
 })
 
+test('a failed logical caret placement is not reported as successful focus', () => {
+  const calls = []
+  const runtime = { list: () => [] }
+  const interaction = {
+    currentId: null,
+    setCurrent() { calls.push('setCurrent') },
+    focus() { calls.push('focus'); return true },
+  }
+  const selection = {
+    setCaret() { calls.push('setCaret'); return false },
+  }
+  const view = new EditorViewModel({
+    runtime, reconciler: { getElement() {} }, interaction, selection,
+  })
+  assert.equal(view.focus('a', { fieldKey: 'deleted', offset: 0 }), false)
+  assert.deepEqual(calls, ['setCurrent', 'focus', 'setCaret'])
+})
+
 test('focus without an explicit caret does not attempt to set one', () => {
   const { view, calls } = harness({ canFocus: true })
   assert.equal(view.focus('a'), true)
