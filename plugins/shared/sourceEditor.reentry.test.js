@@ -127,14 +127,15 @@ test('source normalization cannot submit after the owning scope is aborted', asy
     },
     onSubmit(value) { changes.push(value) },
   }))
-  h.field('url').value = 'https://example.test/one'
-  h.field('url').fire('submit')
-  // The submit event belongs to its form; call the form's actual listener.
+  const retired = h.surface('url')
+  const originalField = h.field('url')
+  originalField.value = 'https://example.test/one'
   h.panel('url').fire('submit')
   await Promise.resolve()
   assert.deepEqual(changes, [], 'aborted source editor submitted stale input')
-  assert.equal(h.surface('url').getAttribute('aria-hidden'), 'true')
-  assert.equal(h.document.activeElement !== h.field('url'), true,
+  assert.equal(retired.getAttribute('aria-hidden'), 'true')
+  assert.equal(retired.parentNode, null, 'aborted source surface remained mounted')
+  assert.notEqual(h.document.activeElement, originalField,
     'aborted source editor stole focus back')
 })
 
@@ -169,12 +170,15 @@ test('invalid normalization cannot focus a form revoked during validation', asyn
       return ''
     },
   }))
-  h.field('url').value = 'not a URL'
+  const retired = h.surface('url')
+  const originalField = h.field('url')
+  originalField.value = 'not a URL'
   h.panel('url').fire('submit')
   await Promise.resolve()
-  assert.notEqual(h.document.activeElement, h.field('url'),
+  assert.notEqual(h.document.activeElement, originalField,
     'retired invalid form regained focus after scope teardown')
-  assert.equal(h.surface('url').getAttribute('aria-hidden'), 'true')
+  assert.equal(retired.getAttribute('aria-hidden'), 'true')
+  assert.equal(retired.parentNode, null)
 })
 
 test('ordinary validated submissions still complete once and cache the surface', async () => {
