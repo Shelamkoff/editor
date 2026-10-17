@@ -138,7 +138,8 @@ export interface ConversionCapability<D extends object> {
   selectionMode?: 'single' | 'per-block'
   export(data: Readonly<D>): ConversionPayload
   canImport(payload: ConversionPayload): boolean
-  import(payload: ConversionPayload): D
+  /** The host supplies the owning document for imports that need to decode rich text. */
+  import(payload: ConversionPayload, context?: { readonly ownerDocument: Document }): D
   /** Optional single-target aggregation; receives owned payloads and an explicit document for HTML decoding. */
   joinSelection?(payloads: readonly ConversionPayload[], context: { readonly ownerDocument: Document }): ConversionPayload
 }
