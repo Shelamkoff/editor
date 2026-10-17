@@ -142,3 +142,55 @@ test('trigger encoding is guarded before invoking the insertion command', () => 
   }, { value: '#fff' }), /trigger encoding failed/)
   assert.equal(calls.length, 0)
 })
+
+test('refused inline widget insert does not claim success or move the caret', () => {
+  const { controller, runtime, definition, carets } = harness()
+  definition.schema = { createDefault: () => ({ value: '#fff' }) }
+  runtime.insertInlineWidget = () => false
+
+  assert.equal(controller.insert('color'), false,
+    'a rejected insertion was still reported successful')
+  assert.deepEqual(carets, [], 'rejected widget insert displaced the caret')
+})
+
+test('refused trigger widget insert keeps its trigger session alive', () => {
+  const { controller, runtime, definition, carets } = harness()
+  definition.schema = { encode: data => ({ dataVersion: 1, data }) }
+  runtime.insertInlineWidget = () => false
+
+  assert.equal(controller.commitTrigger('color', {
+    blockId: 'a', fieldKey: 'text', range: { start: 0, end: 2 },
+  }, { value: '#fff' }), false,
+  'a failed widget insertion made the trigger controller retire its query')
+  assert.deepEqual(carets, [])
+})
+
+test('a successful widget insertion preserves the expected caret and true return', () => {
+  const { controller, runtime, definition, carets } = harness()
+  definition.schema = { createDefault: () => ({ value: '#fff' }) }
+  runtime.insertInlineWidget = () => 'inline-1'
+
+  assert.equal(controller.insert('color'), true)
+  assert.deepEqual(carets, [{ blockId: 'a', target: { fieldKey: 'text', offset: 3 } }])
+})
+
+test('fresh inline text insertion succeeds when its rich-text command returns void', () => {
+  const { controller, runtime, definition, carets } = harness()
+  let replacements = 0
+  runtime.replaceRichText = () => { replacements++ }
+  definition.insertion = { createInitial: () => ({ kind: 'text', text: 'Hello' }) }
+  assert.equal(controller.insert('color'), true)
+  assert.equal(replacements, 1)
+  assert.deepEqual(carets, [{ blockId: 'a', target: { fieldKey: 'text', offset: 7 } }])
+})
+
+test('rejected fresh inline text insertion cannot fire the success observer', () => {
+  const calls = []
+  const { controller, runtime, definition, carets } = harness()
+  runtime.replaceRichText = () => false
+  definition.insertion = { createInitial: () => ({ kind: 'text', text: 'Hello' }) }
+  // A failed authoring transaction must not act like fresh text for triggers.
+  const runtimeResult = controller.insert('color')
+  assert.equal(runtimeResult, false)
+  assert.deepEqual(carets, [])
+})
