@@ -73,7 +73,8 @@ export class EditorViewModel {
 
   focus(id = this.#interaction.currentId, target) {
     if (!id) return false
-    this.#interaction.setCurrent(id)
+    // InteractionState now claims the current block only after the owning
+    // plugin successfully focuses; do not pre-claim a failed focus attempt.
     const focused = this.#interaction.focus(id, target)
     // A disabled or stale instance can refuse focus. Do not re-point the
     // document selection after that refusal, or report a missing caret as
