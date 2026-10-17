@@ -303,7 +303,7 @@ export class BlockReconciler {
   }
 
 
-  prepare({ store, draft, changes, sourceBlockId, generation }) {
+  prepare({ store, draft, changes, sourceBlockId, generation, origin }) {
     this.#assertLive()
     this.#store = store
     const structuralChange = hasStructuralChange(changes)
@@ -325,6 +325,7 @@ export class BlockReconciler {
     const expectedEntries = this.#entries
     const previousEntries = new Map(expectedEntries)
     const replaceDocument = changes.some(change => change.kind === 'document.replace')
+    const restoring = origin === 'history'
     const staged = new Map()
     const updates = []
     const removals = []
@@ -343,14 +344,14 @@ export class BlockReconciler {
         }
 
         if (!before || !current) {
-          const entry = this.#createEntry(after, { candidate: true, stageInline: true, generation })
+          const entry = this.#createEntry(after, { candidate: true, stageInline: true, generation, restoring })
           staged.set(id, entry)
           insertions.push({ id, entry, after })
           continue
         }
 
         if (replaceDocument || before.type !== after.type) {
-          const entry = this.#createEntry(after, { candidate: true, stageInline: true, generation })
+          const entry = this.#createEntry(after, { candidate: true, stageInline: true, generation, restoring })
           staged.set(id, entry)
           replacements.push({ id, before: current, after: entry, beforeRecord: before, afterRecord: after })
           continue
@@ -358,7 +359,7 @@ export class BlockReconciler {
 
         const dataChanged = !sameJson(before.data, after.data)
         if (dataChanged && typeof current.instance.update !== 'function') {
-          const entry = this.#createEntry(after, { candidate: true, stageInline: true, generation })
+          const entry = this.#createEntry(after, { candidate: true, stageInline: true, generation, restoring })
           staged.set(id, entry)
           replacements.push({ id, before: current, after: entry, beforeRecord: before, afterRecord: after })
           continue
@@ -523,6 +524,7 @@ export class BlockReconciler {
               candidate: false,
               stageInline: true,
               generation: store.generation,
+              restoring: true,
             }))
           }
         } catch (error) {
@@ -689,13 +691,13 @@ export class BlockReconciler {
     if(this.#entries!==expected)throw new Error(message)
   }
 
-  #stageAll(source, { candidate = false, stageInline = false, generation = source.generation } = {}) {
+  #stageAll(source, { candidate = false, stageInline = false, generation = source.generation, restoring = false } = {}) {
     const staged = new Map()
     try {
       for (const id of source.ids()) {
         const record = source.peek(id)
         if (!record) throw new Error(`Canonical block is missing: ${id}`)
-        staged.set(id, this.#createEntry(record, { candidate, stageInline, generation }))
+        staged.set(id, this.#createEntry(record, { candidate, stageInline, generation, restoring }))
       }
       return staged
     } catch (error) {
@@ -704,7 +706,7 @@ export class BlockReconciler {
     }
   }
 
-  #createEntry(record, { candidate = false, stageInline = false, generation = this.#store?.generation ?? 0 } = {}) {
+  #createEntry(record, { candidate = false, stageInline = false, generation = this.#store?.generation ?? 0, restoring = false } = {}) {
     const ownerDocument = this.#container.ownerDocument
     const lifetime = { candidate: candidate ? record : null }
     const scope = new InstanceScope({ staged: true, generation, readOnly: this.#readOnly })
@@ -754,6 +756,9 @@ export class BlockReconciler {
       const base = this.#contextFactory(record.id, record.type, controller.signal, readRecord, scope) ?? {}
       const context = Object.freeze({
         ...base,
+        // A fresh user block may load metadata once; a replay/recovery
+        // projection must not repeat automatic side effects.
+        restoring: restoring === true,
         ownerDocument: base.ownerDocument ?? ownerDocument,
         signal: base.signal ?? controller.signal,
         isReadOnly: typeof base.isReadOnly === 'function'
@@ -941,7 +946,7 @@ export class BlockReconciler {
     const oldContainerChildren=Array.from(this.#container.childNodes??this.#container.children??[])
     let fresh
     try{
-      fresh=this.#stageAll(store,{candidate:false,stageInline:true,generation:store.generation})
+      fresh=this.#stageAll(store,{candidate:false,stageInline:true,generation:store.generation,restoring:true})
       this.#assertPublicationOwner(previousEntries,'Block restoration owner changed during staging')
     }catch(error){
       if(fresh)for(const entry of fresh.values())this.#destroyEntry(entry)
