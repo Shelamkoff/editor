@@ -171,7 +171,9 @@ export function createColumnsPlugin(config = {}) {
                 if(column.content)setSanitizedHtml(element,column.content)
                 else element.textContent=''
               }
-              grid.appendChild(element)
+              // Moving an unchanged contenteditable collapses the browser's
+              // native selection. Reposition only when the order changed.
+              if(grid.children[index]!==element)grid.insertBefore(element,grid.children[index]??null)
             })
             for(const [id,node] of nodes){
               if(live.has(id))continue
