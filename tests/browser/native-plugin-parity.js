@@ -1846,6 +1846,36 @@ test('Gallery native caption then style update keeps the same editing host', asy
   equal(editor.save().blocks, afterInput)
 })
 
+test('Carousel Undo and external reversion repaint the active caption after native typing', async () => {
+  const fixture = pluginParityFixtures.find(entry => entry.name === 'Carousel')
+  const editor = pluginEditor({ ...fixture, data: {
+    ...fixture.data,
+    slides: [
+      { id: 'first', type: 'image', src: pixel, alt: '', caption: 'Alpha' },
+      { id: 'second', type: 'image', src: pixel, alt: 'Second', caption: 'Bravo' },
+    ],
+  } })
+  focusedField(editor, { key: 'slide:first:caption' }, 2)
+  await printable('X')
+  equal(editor.save().blocks[0].data.slides[0].caption, 'AlXpha')
+  equal(editor.undo(), true)
+  const shown = () => blockElement(editor, 'a')
+    .querySelector('.oe-carousel-block__caption[data-slide-id="first"]')
+  equal(editor.save().blocks[0].data.slides[0].caption, 'Alpha')
+  equal(shown()?.innerHTML, 'Alpha',
+    'Carousel Undo restored old author text without updating the active caption DOM')
+  equal(editor.redo(), true)
+  equal(shown()?.innerHTML, 'AlXpha',
+    'Carousel Redo did not display the restored native caption')
+  editor.blocks.update('a', current => ({
+    data: { ...current.data, slides: current.data.slides.map(slide =>
+      slide.id === 'first' ? { ...slide, caption: 'Alpha' } : slide) },
+  }))
+  equal(editor.save().blocks[0].data.slides[0].caption, 'Alpha')
+  equal(shown()?.innerHTML, 'Alpha',
+    'Carousel external caption reversion retained a stale native caption')
+})
+
 test('Carousel native caption then inactive slide edit keeps the active caret', async () => {
   const fixture = pluginParityFixtures.find(entry => entry.name === 'Carousel')
   const editor = pluginEditor({ ...fixture, data: {
