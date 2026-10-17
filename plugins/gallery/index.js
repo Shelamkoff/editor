@@ -131,15 +131,14 @@ function renderGallerySettings(context, { visualLayouts = false } = {}){
     )))
 
     for(const [key,labelKey,label] of [['gap','styleGap','Gap'],['borderRadius','styleRadius','Border radius'],['height','styleHeight','Height']]){
-      root.appendChild(line(
-        context.t(galleryLabel(labelKey,label)),
-        input(data.styles[key]??'',value=>commit(current=>{
-          const styles={...current.styles}
-          if(String(value).trim())styles[key]=String(value).trim()
-          else delete styles[key]
-          return {...current,styles}
-        })),
-      ))
+      const control=input(data.styles[key]??'',value=>commit(current=>{
+        const styles={...current.styles}
+        if(String(value).trim())styles[key]=String(value).trim()
+        else delete styles[key]
+        return {...current,styles}
+      }))
+      control.dataset.galleryStyle=key
+      root.appendChild(line(context.t(galleryLabel(labelKey,label)),control))
     }
   }
 
@@ -673,9 +672,11 @@ export function createGalleryPlugin(config={}){
                     if(slot.classList.contains(CSS.slotFilled))slot.style.borderRadius=data.styles.borderRadius??''
                   }
                 }
-                // The closed settings form is another projection of styles.
-                // Keep it current without disconnecting the focused caption.
-                wrapper.querySelector('.'+CSS.dropdownPanel)?.replaceChildren(renderCurrentSettings())
+                // Keep the existing form controls and their listeners; only
+                // style input values have changed, not the view's ownership.
+                for(const control of wrapper.querySelectorAll('[data-gallery-style]')){
+                  control.value=data.styles[control.dataset.galleryStyle]??''
+                }
                 return
               }
               project(next)
