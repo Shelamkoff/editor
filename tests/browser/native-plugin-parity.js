@@ -1,6 +1,6 @@
 import { test, make, para, editorRoot, blockElement, editableField, pause, assert, equal, run } from './regressions/harness.js'
 import { clickNative, dispatchKey, printable } from './native-input-helpers.js'
-import { createParagraphPlugin, createPollPlugin, createPersonPlugin, createCodePlugin, createTablePlugin, createTogglePlugin, createHeadingPlugin } from '../../plugins/index.js'
+import { createParagraphPlugin, createPollPlugin, createPersonPlugin, createCodePlugin, createTablePlugin, createListPlugin, createTogglePlugin, createHeadingPlugin } from '../../plugins/index.js'
 import { getTextOffset } from '../../shared/textOffset.js'
 import { pluginParityFixtures, readPath, writePath } from './plugin-parity-fixtures.js'
 
@@ -685,6 +685,50 @@ test('Table heading cells follow row reordering through public update and histor
     data: { ...current.data, rows: current.data.rows.slice(1) },
   }))
   equal(tags(), [['first', 'TH', 'Alpha']])
+})
+
+test('List: sibling data update retains native editing focus and caret', async () => {
+  const definition = createListPlugin()
+  const editor = make([{ id: 'a', type: 'list', dataVersion: definition.schema.currentVersion,
+    data: { style: 'unordered', items: [{ id: 'one', text: 'Alpha' }, { id: 'two', text: 'Bravo' }] } }],
+    { plugins: [createParagraphPlugin(), definition] })
+  const field = focusedField(editor, { key: 'item:two' }, 2)
+  checkFieldCaret(field, 2)
+  editor.blocks.update('a', current => ({
+    data: { ...current.data, items: current.data.items.map(item =>
+      item.id === 'one' ? { ...item, text: 'Changed' } : item) },
+  }))
+  equal(document.activeElement, field, 'List moved an unchanged editable and blurred its focus')
+  checkFieldCaret(field, 2)
+  equal(editor.save().blocks[0].data.items.map(item => item.text), ['Changed', 'Bravo'])
+  const after = editor.save().blocks
+  await printable('X')
+  equal(editor.save().blocks[0].data.items[1].text, 'BrXavo', 'List input moved to a wrong field')
+  equal(editor.undo(), true)
+  equal(editor.save().blocks, after)
+})
+
+test('Table: sibling cell update retains native editing focus and caret', async () => {
+  const definition = createTablePlugin()
+  const editor = make([{ id: 'a', type: 'table', dataVersion: definition.schema.currentVersion,
+    data: { withHeadings: false, rows: [
+      { id: 'top', cells: [{ id: 'left', text: 'Alpha' }, { id: 'right', text: 'Bravo' }] },
+      { id: 'bottom', cells: [{ id: 'single', text: 'Charlie' }, { id: 'extra', text: 'Delta' }] },
+    ] } }], { plugins: [createParagraphPlugin(), definition] })
+  const field = focusedField(editor, { key: 'cell:top:right' }, 2)
+  checkFieldCaret(field, 2)
+  editor.blocks.update('a', current => ({
+    data: { ...current.data, rows: current.data.rows.map(row => row.id === 'bottom'
+      ? { ...row, cells: row.cells.map(cell => cell.id === 'single' ? { ...cell, text: 'Edited' } : cell) } : row) },
+  }))
+  equal(document.activeElement, field, 'Table reordered an unchanged editable and blurred its focus')
+  checkFieldCaret(field, 2)
+  equal(editor.save().blocks[0].data.rows[1].cells[0].text, 'Edited')
+  const after = editor.save().blocks
+  await printable('X')
+  equal(editor.save().blocks[0].data.rows[0].cells[1].text, 'BrXavo', 'Table input moved to a wrong field')
+  equal(editor.undo(), true)
+  equal(editor.save().blocks, after)
 })
 
 await run()
