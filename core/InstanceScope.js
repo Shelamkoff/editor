@@ -31,6 +31,7 @@ export class InstanceScope{
   #health=()=> 'ready'
   #phase=()=> 'idle'
   #currentGeneration
+  #currentRevision=()=>0
   #signal=null
   #abortListener=null
 
@@ -51,14 +52,15 @@ export class InstanceScope{
   get interactionEpoch(){return this.#interactionEpoch}
   get readOnly(){return this.#state==='revoked'||this.#readOnly||this.#inheritedReadOnly}
 
-  /** @param {{generation?:number,readOnly?:boolean,health?:()=>string,phase?:()=>string,currentGeneration?:()=>number,signal?:AbortSignal,parent?:InstanceScope}} [options] */
-  configure({generation,readOnly,health,phase,currentGeneration,signal,parent}={}){
+  /** @param {{generation?:number,readOnly?:boolean,health?:()=>string,phase?:()=>string,currentGeneration?:()=>number,currentRevision?:()=>number,signal?:AbortSignal,parent?:InstanceScope}} [options] */
+  configure({generation,readOnly,health,phase,currentGeneration,currentRevision,signal,parent}={}){
     if(this.#state==='revoked')throw createAbortError()
     if(Number.isSafeInteger(generation)&&generation>0)this.#generation=generation
     if(typeof readOnly==='boolean')this.setReadOnly(readOnly)
     if(typeof health==='function')this.#health=health
     if(typeof phase==='function')this.#phase=phase
     if(typeof currentGeneration==='function')this.#currentGeneration=currentGeneration
+    if(typeof currentRevision==='function')this.#currentRevision=currentRevision
     if(parent)this.attachParent(parent)
 
     if(signal&&signal!==this.#signal){
@@ -206,8 +208,10 @@ export class InstanceScope{
       throw createAbortError('Cannot begin a data task for an inactive parent scope')
     }
 
+    const baseRevision=this.#currentRevision()
     const controller=new AbortController()
     const task={
+      baseRevision,
       controller,
       epoch:this.#interactionEpoch,
       generation:this.#generation,
@@ -225,8 +229,12 @@ export class InstanceScope{
 
     return Object.freeze({
       signal:controller.signal,
-      commit:producer=>{
+      commit:(producer,options)=>{
         if(typeof producer!=='function')throw new TypeError('DataTask.commit() requires a producer')
+        const field=options?.mergeWithPreviousField
+        if(field!==undefined&&(typeof field!=='string'||!field||field.length>128)){
+          throw new TypeError('History continuation field must be a non-empty string')
+        }
         if(task.closed||task.committing||controller.signal.aborted)return false
         if(
           this.#state!=='active'
@@ -244,7 +252,10 @@ export class InstanceScope{
         if(currentPhase!=='idle')throw new Error(`Cannot commit a data task during ${currentPhase} phase`)
         task.committing=true
         try{
-          updateData(current=>producer(snapshot(current)))
+          const continuation=field!==undefined&&Number.isSafeInteger(task.baseRevision)&&task.baseRevision>0
+            ?{historyContinuation:{baseRevision:task.baseRevision,fieldKey:field}}
+            :undefined
+          updateData(current=>producer(snapshot(current)),continuation)
           close(false)
           return true
         }catch(error){
