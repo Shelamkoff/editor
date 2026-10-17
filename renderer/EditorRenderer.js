@@ -47,7 +47,9 @@ function stableJsonSignature(value) {
     const keys = Object.keys(value).sort()
     return '{' + keys.map(key => JSON.stringify(key) + ':' + stableJsonSignature(value[key])).join(',') + '}'
   }
-  return JSON.stringify(value)
+  const primitive = JSON.stringify(value)
+  if (primitive === undefined) throw new TypeError('Renderer deep signature requires JSON values')
+  return primitive
 }
 
 /**
