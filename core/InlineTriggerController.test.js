@@ -91,7 +91,7 @@ function triggerScenario(query,keydown,commitTrigger=()=>false) {
     addEventListener(type,listener){events.set(type,listener)},
   }
   const runtime={
-    onTriggerQuery(session){calls.push('query');query?.(session)},
+    onTriggerQuery(session){calls.push('query');return query?.(session)},
     onTriggerKeydown(event,session){calls.push('keydown');return keydown?.(event,session)},
     onTriggerCancel(){calls.push('cancel')},
   }
@@ -233,4 +233,45 @@ test('successful reentrant inline commit does not clear a successor session',()=
   assert.deepEqual(h.calls,['query','cancel','query'])
   h.controller.destroy()
   assert.deepEqual(h.calls,['query','cancel','query','cancel'])
+})
+
+test('async inline trigger query is rejected and its late failure is contained', async () => {
+  let assimilated=0
+  const h=triggerScenario(() => ({
+    then(_resolve,reject){
+      assimilated++
+      reject(new Error('late query rejection'))
+    },
+  }),()=> 'pass')
+  assert.equal(h.controller.refresh(),false,
+    'asynchronous trigger query remained an active authoring session')
+  assert.equal(h.controller.isActive,false)
+  assert.equal(h.calls.filter(x=>x==='cancel').length,1)
+  assert.equal(h.errors.some(error=>/synchron/i.test(error.message)),true)
+  await Promise.resolve()
+  await Promise.resolve()
+  assert.equal(assimilated,1,'rejected thenable was not safely consumed')
+  assert.equal(h.errors.some(error=>/late query rejection/.test(error.message)),true)
+  h.controller.destroy()
+})
+
+test('async inline trigger keydown consumes its key and reports its late rejection', async () => {
+  let assimilated=0
+  const h=triggerScenario(null,()=>({
+    then(_resolve,reject){
+      assimilated++
+      reject(new Error('late keydown rejection'))
+    },
+  }))
+  assert.equal(h.controller.refresh(),true)
+  const event=h.press()
+  assert.deepEqual(event,{prevented:true,stopped:true},
+    'async keydown was allowed to pass into native Enter editing')
+  assert.equal(h.controller.isActive,false)
+  assert.equal(h.calls.filter(x=>x==='cancel').length,1)
+  await Promise.resolve()
+  await Promise.resolve()
+  assert.equal(assimilated,1,'async keydown result was never awaited or contained')
+  assert.equal(h.errors.some(error=>/late keydown rejection/.test(error.message)),true)
+  h.controller.destroy()
 })
