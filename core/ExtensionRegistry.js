@@ -44,11 +44,14 @@ function snapshotLabel(input, label) {
   if (!input || typeof input !== 'object' || Array.isArray(input)) {
     throw new TypeError(`${label} must be an object`)
   }
-  const value = { ...input }
-  if (typeof value.key !== 'string' || !value.key || typeof value.fallback !== 'string') {
+  // Only the declared label fields are part of the schema. Spreading an
+  // extension object invokes unrelated getters during registration.
+  const key = input.key
+  const fallback = input.fallback
+  if (typeof key !== 'string' || !key || typeof fallback !== 'string') {
     throw new TypeError(`${label} must contain key and fallback strings`)
   }
-  return Object.freeze({ key: value.key, fallback: value.fallback })
+  return Object.freeze({ key, fallback })
 }
 
 function snapshotFormatting(source, label) {
@@ -130,7 +133,21 @@ function snapshotCapabilities(source, label) {
   if (!source || typeof source !== 'object' || Array.isArray(source)) {
     throw new TypeError(`${label} capabilities must be an object`)
   }
-  const candidate = { ...source }
+  // Capture recognized capabilities once, without reading unknown properties
+  // or depending on an extension-owned iterator or spread behavior.
+  const candidate = {
+    empty: source.empty,
+    formatting: source.formatting,
+    merge: source.merge,
+    conversion: source.conversion,
+    htmlImport: source.htmlImport,
+    clipboard: source.clipboard,
+    selectionSlice: source.selectionSlice,
+    inlineControls: source.inlineControls,
+    settings: source.settings,
+    paste: source.paste,
+    shortcuts: source.shortcuts,
+  }
   const result = {}
   if (candidate.empty !== undefined) {
     result.empty = snapshotCapabilityObject(candidate.empty, `${label} empty`, [['isEmpty', false]])
@@ -184,7 +201,12 @@ function snapshotToolbox(source, label) {
     if (!item || typeof item !== 'object' || Array.isArray(item)) {
       throw new TypeError(`${label} toolbox[${index}] must be an object`)
     }
-    const candidate = { ...item }
+    const candidate = {
+      id: item.id,
+      label: item.label,
+      icon: item.icon,
+      configure: item.configure,
+    }
     if (typeof candidate.id !== 'string' || !candidate.id || ids.has(candidate.id)) {
       throw new TypeError(`${label} toolbox item id must be unique and non-empty`)
     }
@@ -207,7 +229,16 @@ function snapshotBlockDefinition(source) {
   if (!source || typeof source !== 'object' || Array.isArray(source)) {
     throw new TypeError('Block definition must be an object')
   }
-  const candidate = { ...source }
+  const candidate = {
+    type: source.type,
+    label: source.label,
+    icon: source.icon,
+    styles: source.styles,
+    schema: source.schema,
+    toolbox: source.toolbox,
+    capabilities: source.capabilities,
+    setup: source.setup,
+  }
   validateType(candidate.type, 'Block definition')
   if (typeof candidate.icon !== 'string') throw new TypeError(`Block definition "${candidate.type}" icon must be a string`)
   const styles = candidate.styles ?? []
@@ -231,7 +262,18 @@ function snapshotInlineDefinition(source) {
   if (!source || typeof source !== 'object' || Array.isArray(source)) {
     throw new TypeError('Inline definition must be an object')
   }
-  const candidate = { ...source }
+  const candidate = {
+    type: source.type,
+    label: source.label,
+    icon: source.icon,
+    styles: source.styles,
+    schema: source.schema,
+    trigger: source.trigger,
+    paste: source.paste,
+    editing: source.editing,
+    insertion: source.insertion,
+    setup: source.setup,
+  }
   validateType(candidate.type, 'Inline definition')
   if (typeof candidate.icon !== 'string') throw new TypeError(`Inline definition "${candidate.type}" icon must be a string`)
   const styles = candidate.styles ?? []
