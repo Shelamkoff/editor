@@ -5,6 +5,13 @@ import { sanitizeRawHtml } from '../shared/sanitize/sanitizeRawHtml.js'
 import { toTrustedHtml } from '../shared/sanitize/trustedHtml.js'
 import { synchronousResult } from '../shared/synchronousResult.js'
 
+// Unclaimed top-level text containers still delimit authored HTML blocks.
+// Registered import capabilities take precedence over this fallback.
+const TEXT_BLOCK_ROOTS=new Set([
+  'p','div','li','h1','h2','h3','h4','h5','h6',
+  'blockquote','pre','tr','td','th','figure',
+])
+
 function orderedTypes(registry,currentType){
   const types=registry.blockTypes
   return currentType&&types.includes(currentType)
@@ -125,8 +132,20 @@ export function prepareHtmlImport(html,options){
 
     // Safe but unsupported structural wrappers are transparent. Their children
     // remain in source order and may resolve to other registered root capabilities.
+    const boundary=topLevel&&TEXT_BLOCK_ROOTS.has(tag)
+    if(boundary)flush()
+    const firstPart=parts.length
     if(topLevel||element.children.length||element.textContent?.trim())structural=true
     for(const child of [...element.childNodes])visit(child,false)
+    if(boundary){
+      flush()
+      // Paragraph/div roots are text-like at the caret. Other unclaimed
+      // block roots retain structural placement rather than erasing a
+      // locally selected text range. A matched descendant keeps its contract.
+      if(parts[firstPart]?.kind==='rich-text'){
+        parts[firstPart].inlineWhenLeading=tag==='p'||tag==='div'
+      }
+    }
   }
 
   for(const child of [...template.content.childNodes])visit(child,true)
@@ -159,11 +178,14 @@ export function prepareHtmlImport(html,options){
   // A leading inline-capable root is inserted at the current caret, even
   // when other HTML roots create subsequent canonical blocks.
   const first=parts[0]
-  const leadingInlineHtml=first?.kind==='rich-text'?first.html
+  const leadingInlineHtml=first?.kind==='rich-text'&&first.inlineWhenLeading!==false?first.html
     :first?.kind==='block'&&first.inlineWhenSingleRoot
       ?serializeRichText(first.sourceRoot,ownerDocument):null
+  // Fallback roots become the configured default block, not whichever
+  // type currently owns the caret. Explicit HTML importers retain their type.
+  const fallbackTypes=orderedTypes(registry,registry.defaultBlockType??null)
   const blocks=parts.map(part=>part.kind==='block'
     ?{type:part.type,data:part.data}
-    :materializeRichText(part.html,{registry,types,context}))
+    :materializeRichText(part.html,{registry,types:fallbackTypes,context}))
   return {kind:'blocks',blocks,...(leadingInlineHtml===null?{}:{leadingInlineHtml})}
 }

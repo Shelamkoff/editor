@@ -1,3 +1,4 @@
+import './html-root-parity.js'
 import { createColorSwatchPlugin } from '../../inline-plugins/color.js'
 import { createParagraphPlugin, createTablePlugin } from '../../plugins/index.js'
 import { restoreSelectionByOffsets } from '../../shared/textOffset.js'
