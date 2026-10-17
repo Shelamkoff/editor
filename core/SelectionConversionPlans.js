@@ -46,7 +46,7 @@ export function conversionTargetData(s, targetDefinition, payload, target, baseD
       accepted = outcome
     }
     data = accepted
-      ? synchronousResult(conversion.import(cloneEditorData(candidate)))
+      ? synchronousResult(conversion.import(cloneEditorData(candidate), Object.freeze({ ownerDocument: s.ownerDocument })))
       : synchronousResult(targetDefinition.schema.createDefault())
   }
 
