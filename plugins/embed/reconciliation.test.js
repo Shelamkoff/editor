@@ -112,6 +112,11 @@ class FakeElement {
       if (index >= 0) group.splice(index, 1)
     }, { once: true })
   }
+  dispatch(type) {
+    for (const handler of [...(this.listeners.get(type) ?? [])]) {
+      handler({ type, target: this, preventDefault() {}, stopPropagation() {} })
+    }
+  }
   focus() { this.ownerDocument.activeElement = this }
   setAttribute(name, value) { this.attributes.set(name, String(value)) }
   getAttribute(name) { return this.attributes.get(name) ?? null }
@@ -121,9 +126,16 @@ class FakeElement {
 }
 
 function mount() {
+  const timers = new Map()
+  let nextTimer = 1
   const ownerDocument = {
     activeElement: null,
-    defaultView: { AbortController, addEventListener() {}, removeEventListener() {} },
+    defaultView: {
+      AbortController,
+      addEventListener() {}, removeEventListener() {},
+      setTimeout(callback) { const id = nextTimer++; timers.set(id, callback); return id },
+      clearTimeout(id) { timers.delete(id) },
+    },
     createElement(tag) { return new FakeElement(tag, ownerDocument) },
     createTextNode(value) {
       const node = new FakeElement('#text', ownerDocument)
@@ -154,6 +166,12 @@ function mount() {
     instance,
     ownerDocument,
     model: () => canonical,
+    pendingTimers: () => timers.size,
+    flushTimers() {
+      const queued = [...timers.values()]
+      timers.clear()
+      for (const callback of queued) callback()
+    },
     nativeCommit(next) { canonical = structuredClone(next) },
     external(next) {
       canonical = structuredClone(next)
@@ -220,5 +238,46 @@ test('Embed reprojects an externally changed caption instead of hiding it behind
       'a genuinely remote caption edit must replace the old authoring host')
     assert.equal(h.instance.read().caption, '')
     assert.notEqual(h.ownerDocument.activeElement, field)
+  } finally { h.destroy() }
+})
+
+test('Embed preserves an in-progress URL draft and its debounce across an unrelated update', () => {
+  const h = mount()
+  try {
+    const input = h.instance.element.querySelector('.oe-embed__url-input')
+    input.focus()
+    input.value = 'https://vimeo.com/123456'
+    input.dispatch('input')
+    assert.equal(h.pendingTimers(), 1)
+
+    h.external({ ...h.model(), title: 'Metadata from another control' })
+    assert.equal(h.ownerDocument.activeElement, input)
+    assert.equal(input.value, 'https://vimeo.com/123456',
+      'unrelated canonical update erased the unfinished video URL')
+    assert.equal(h.pendingTimers(), 1,
+      'unrelated canonical update silently canceled the URL debounce')
+
+    h.flushTimers()
+    assert.equal(h.model().service, 'vimeo')
+    assert.equal(h.model().videoId, '123456')
+    assert.equal(h.pendingTimers(), 0)
+  } finally { h.destroy() }
+})
+
+test('Embed drops a stale URL draft when the canonical video source is changed externally', () => {
+  const h = mount()
+  try {
+    const input = h.instance.element.querySelector('.oe-embed__url-input')
+    input.focus()
+    input.value = 'https://vimeo.com/123456'
+    input.dispatch('input')
+    assert.equal(h.pendingTimers(), 1)
+
+    h.external({ ...h.model(), videoId: '9bZkp7q19f0' })
+    assert.equal(input.value, 'https://youtu.be/9bZkp7q19f0')
+    assert.equal(h.pendingTimers(), 0,
+      'obsolete URL draft could overwrite an external source replacement')
+    h.flushTimers()
+    assert.equal(h.model().videoId, '9bZkp7q19f0')
   } finally { h.destroy() }
 })
