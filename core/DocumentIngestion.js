@@ -2,10 +2,7 @@
 import { decodeCurrentDocument } from '../shared/DocumentSchema.js'
 import { DOCUMENT_FORMAT_VERSION } from '../shared/documentFormat.js'
 import { schemaValidationBoundary } from '../shared/documentValidationIssue.js'
-
-function sameJson(left, right) {
-  return JSON.stringify(left) === JSON.stringify(right)
-}
+import { equalJsonValue } from '../shared/jsonData.js'
 
 /** Prepare a new document using only explicit canonical-data services. */
 export function prepareNewDocument(services) {
@@ -36,8 +33,8 @@ export function prepareCurrentDocument(input, services) {
     const tunes = services.normalizeTunes(block.tunes)
     if (tunes === undefined) delete next.tunes
     else next.tunes = tunes
-    if (block.dataVersion !== next.dataVersion || !sameJson(block.data, next.data)
-      || !sameJson(block.tunes, next.tunes) || !sameJson(block.inline, next.inline)) delete next.revision
+    if (block.dataVersion !== next.dataVersion || !equalJsonValue(block.data, next.data)
+      || !equalJsonValue(block.tunes, next.tunes) || !equalJsonValue(block.inline, next.inline)) delete next.revision
     return next
   })
   return blocks.length ? { version: DOCUMENT_FORMAT_VERSION, blocks } : prepareNewDocument(services)
