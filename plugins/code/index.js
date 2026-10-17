@@ -13,6 +13,113 @@ const COPY_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
 const CHECK_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
 const EDIT_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L9 17l-4 1 1-4z"/></svg>'
 
+// Keep Code's text-Paste recognition aligned with v1; normal prose must not
+// be claimed by overly broad language prefixes. HTML <pre>/<code> roots are
+// handled independently by the htmlImport capability.
+const CODE_PASTE_PATTERNS = Object.freeze([
+  // ── PHP: <?php or <?= at line start ──
+  /^<\?(php\b|=)/m,
+
+  // ── JavaScript: import ... from '...', export default, const x = require() ──
+  /^import\s+[\w{*][\w\s{},*]*\s+from\s+['"]/m,
+  /^export\s+(default\s+)?(function|class|const|let)\b/m,
+  /^const\s+\w+\s*=\s*require\s*\(/m,
+
+  // ── TypeScript: interface X {, type X =, import type ──
+  /^interface\s+\w+\s*(<[\w,\s]+>\s*)?\{/m,
+  /^type\s+\w+(<[\w,\s]+>)?\s*=/m,
+  /^import\s+type\s+/m,
+
+  // ── Python: def func(...):, class X:, from x import, if __name__ ──
+  /^def\s+\w+\s*\(.*\)\s*(->\s*\w+\s*)?:/m,
+  /^class\s+\w+.*:\s*$/m,
+  /^from\s+[\w.]+\s+import\s+/m,
+  /^if\s+__name__\s*==\s*['"]__main__['"]/m,
+
+  // ── HTML: <!DOCTYPE or <html ──
+  /^\s*<!DOCTYPE\s+html/i,
+  /^\s*<html[\s>]/im,
+
+  // ── CSS/SCSS: selectors with braces, @media, @keyframes, @import url ──
+  /^@media\s*[\s(]/m,
+  /^@keyframes\s+\w/m,
+  /^@import\s+url\s*\(/m,
+  /^[.#]\w[\w-]*\s*\{[^}]*}/m,
+
+  // ── JSON: { "key": or [ { ──
+  /^\s*\{\s*\n\s*"[\w$]+":\s/,
+  /^\s*\[\s*\n\s*\{/,
+
+  // ── SQL: SELECT ... FROM, CREATE TABLE, INSERT INTO ──
+  /^\s*SELECT\s+[\w.*,\s]+\s+FROM\s+\w/im,
+  /^\s*CREATE\s+(TABLE|VIEW|INDEX|DATABASE|FUNCTION|PROCEDURE)\s+/im,
+  /^\s*INSERT\s+INTO\s+\w/im,
+  /^\s*ALTER\s+TABLE\s+\w/im,
+
+  // ── Bash/Shell: shebang ──
+  /^#!\s*\/(?:usr\/)?bin\/(bash|sh|zsh|env)\b/,
+
+  // ── Go: package main\n, func main() { ──
+  /^package\s+\w+\s*\n/m,
+  /^func\s+(\(\s*\w+\s+\*?\w+\s*\)\s*)?\w+\s*\(/m,
+
+  // ── Rust: fn name(, use std::, #[derive(, impl X for Y ──
+  /^fn\s+\w+\s*(<[\w,\s:]+>\s*)?\(/m,
+  /^use\s+(std|crate|super|self)::/m,
+  /^#\[(derive|allow|cfg|test|macro_use)\b/m,
+  /^impl\s+(<[\w,\s:]+>\s*)?\w+\s+(for\s+)?\w/m,
+
+  // ── Java: package x.y.z;, import java., public static void main ──
+  /^package\s+[\w.]+;\s*$/m,
+  /^import\s+(static\s+)?javax?\./m,
+  /^public\s+static\s+void\s+main\s*\(/m,
+  /^@(Override|Component|Service|Entity|Repository|Controller|Autowired|Bean)\b/m,
+
+  // ── Kotlin: fun name(, data class, val/var x:, suspend fun ──
+  /^fun\s+\w+\s*[(<]/m,
+  /^(data\s+)?class\s+\w+.*\{/m,
+  /^suspend\s+fun\s+/m,
+  /^import\s+kotlinx?\./m,
+
+  // ── Swift: import Foundation/UIKit/SwiftUI, func x() ->, @IBOutlet ──
+  /^import\s+(Foundation|UIKit|SwiftUI|Combine|CoreData)\b/m,
+  /^func\s+\w+\s*\(.*\)\s*(->\s*\w)/m,
+  /^@(IBOutlet|IBAction|objc|available|Published)\b/m,
+  /^guard\s+let\s+\w+/m,
+
+  // ── C/C++: #include <header> or "header" ──
+  /^#include\s*<[\w./]+>/m,
+  /^#include\s*"[\w./]+"/m,
+  /^using\s+namespace\s+std\s*;/m,
+  /^(std|boost|fmt)::\w+/m,
+  /^template\s*<(class|typename)\s/m,
+
+  // ── C#: using System;, namespace X {, [HttpGet], [Serializable] ──
+  /^using\s+System[\w.]*;\s*$/m,
+  /^namespace\s+[\w.]+\s*[;{]/m,
+  /^\[(HttpGet|HttpPost|HttpPut|HttpDelete|Authorize|ApiController|Serializable|Route)\b/m,
+
+  // ── XML: <?xml, standalone tags with xmlns ──
+  /^\s*<\?xml\s+version=/im,
+  /^\s*<[\w:-]+\s+xmlns[=:]/im,
+
+  // ── YAML: key:\n  nested-key: val (multiline structure required) ──
+  /^\w[\w.-]*:\s*\n\s+\w[\w.-]*:\s/m,
+
+  // ── TOML: [section]\nkey = ──
+  /^\[\w[\w.-]*]\s*\n\w[\w.-]*\s*=/m,
+
+  // ── Markdown: fenced code block ```lang ──
+  /^```\w+\s*\n/m,
+
+  // ── Dockerfile: FROM image:tag ──
+  /^FROM\s+\w[\w./:@-]+\s*$/m,
+
+  // ── Nginx: server {, location /, proxy_pass ──
+  /^(http|server|location|upstream)\s*[{\/~]/m,
+  /^\s*proxy_pass\s+https?:\/\//m,
+])
+
 function selectedPayloadText(payload,ownerDocument){
   if((payload?.kind!=='plain-text'&&payload?.kind!=='rich-text')||typeof payload.data?.text!=='string')throw new TypeError('Code can only join textual payloads')
   if(payload.kind==='plain-text')return payload.data.text
@@ -85,7 +192,7 @@ export function createCodePlugin(config = {}) {
     }),
     paste: Object.freeze({
       accepts(input) {
-        return input.kind === 'text' && /(^#!|^<\?(?:php|=)|^import\s|^SELECT\s|^#include\s)/im.test(input.text)
+        return input.kind === 'text' && CODE_PASTE_PATTERNS.some(pattern => pattern.test(input.text))
       },
       resolve(input) {
         return input.kind === 'text'
