@@ -233,6 +233,10 @@ export class ClipboardController {
 
   #onCut(event) {
     if (this.#runtime.readOnly || event.defaultPrevented || !event.clipboardData || !this.#ownsEvent(event)) return
+    // An auxiliary text field owns its own clipboard even when a stale
+    // cross-block selection still exists elsewhere in the editor.
+    const inputOwner = this.#reconciler.resolveEditableTarget(event.target)
+    if (inputOwner?.mode === 'plain-text') return
     if (event.isComposing || this.#isComposing()) {
       // Native IME preedit is not a committed canonical selection. Never
       // export it as a structural Cut or let the browser delete model-owned
@@ -356,7 +360,7 @@ export class ClipboardController {
   #onPaste(event) {
     if (this.#runtime.readOnly || event.defaultPrevented || !this.#ownsEvent(event)) return
     const owner = this.#reconciler.resolveEditableTarget(event.target)
-    if (owner?.mode === 'plain-text' && !this.#crossSelection?.active) return
+    if (owner?.mode === 'plain-text') return
     this.cancelPendingTask()
     const startedAt = this.#diagnostics ? this.#diagnostics.now() : 0
     try {
