@@ -2112,3 +2112,43 @@ for(const outerOperation of ['mount','restore']){
     assert.deepEqual([...released].sort(),['A','B','C'])
   })
 }
+
+
+test('creation context distinguishes new entries from history replay and recovery', () => {
+  const { registry, reconciler, store } = setup(1)
+  const flags = []
+  const runtime = registry.getBlockRuntime('paragraph')
+  const originalCreate = runtime.create
+  runtime.create = (initial, context) => {
+    flags.push(context.restoring)
+    return originalCreate(initial, context)
+  }
+
+  const draft = store.createDraft()
+  draft.insert(1, block('user-created'))
+  const prepared = reconciler.prepare({
+    store, draft, changes: draft.changes, origin: 'user',
+    generation: store.generation,
+  })
+  assert.equal(flags.at(-1), false,
+    'a normal user insertion was incorrectly marked as history restoration')
+  prepared.discard()
+
+  const replay = store.createDraft()
+  replay.insert(1, block('history-created'))
+  const replayPrepared = reconciler.prepare({
+    store, draft: replay, changes: replay.changes, origin: 'history',
+    generation: store.generation,
+  })
+  assert.equal(flags.at(-1), true,
+    'Undo/Redo projection did not identify itself as restoration')
+  replayPrepared.discard()
+
+  const restoredStore = new DocumentStore({
+    version: '2.0.0', blocks: [block('restored')],
+  })
+  reconciler.restore(restoredStore)
+  assert.equal(flags.at(-1), true,
+    'full recovery projection did not identify itself as restoration')
+  reconciler.destroy()
+})
