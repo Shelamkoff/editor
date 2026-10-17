@@ -110,3 +110,53 @@ test('Columns retains existing fields while growing and shrinking the layout', (
   assert.equal(instance.editableFields()[1].element, original[1])
   instance.destroy()
 })
+
+test('500 deterministic Columns updates preserve row order and avoid no-op remounts', () => {
+  let state = 246813579
+  const random = max => {
+    state ^= state << 13
+    state ^= state >>> 17
+    state ^= state << 5
+    return (state >>> 0) % max
+  }
+  let ids = ['left', 'right']
+  let layout = '1-1'
+  let issued = 0
+  const instance = make(ids, layout)
+  for (let step = 0; step < 500; step++) {
+    const next = [...ids]
+    const operation = random(6)
+    if (operation === 0) next.reverse()
+    else if (operation === 1 && next.length > 1) next.push(next.shift())
+    else if (operation === 2) layout = next.length === 2 ? '1-2' : '1-1-1'
+    else if (operation === 3) {
+      if (next.length === 2) {
+        next.push('extra-' + issued++)
+        layout = '1-1-1'
+      } else {
+        next.pop()
+        layout = '1-1'
+      }
+    } else if (operation === 4 && next.length === 3) {
+      next.unshift(next.pop())
+    }
+    if (next.length === 3) layout = '1-1-1'
+    else if (layout === '1-1-1') layout = '1-1'
+    const before = instance.editableFields().map(field => ({
+      key: field.key, element: field.element, moves: field.element.moveCount,
+    }))
+    instance.update(values(next, layout))
+    assert.deepEqual(order(instance), next, 'Columns order differs from author model on step ' + step)
+    assert.deepEqual(instance.read().columns.map(column => column.id), next)
+    assert.deepEqual(instance.editableFields().map(field => field.key), next.map(id => 'column:' + id))
+    if (operation === 5) {
+      for (const previous of before) {
+        const current = instance.editableFields().find(field => field.key === previous.key)
+        assert.equal(current?.element, previous.element, 'no-op replaced the column on step ' + step)
+        assert.equal(current?.element.moveCount, previous.moves, 'no-op detached a column on step ' + step)
+      }
+    }
+    ids = next
+  }
+  instance.destroy()
+})
