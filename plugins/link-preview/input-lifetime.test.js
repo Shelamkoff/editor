@@ -123,6 +123,8 @@ function mount(config = {}) {
   }
   const owner = new AbortController()
   const definition = createLinkPreviewPlugin({ ...config, injectStyles: false })
+  let failNextRead = false
+  const taskSignals = []
   let canonical = {
     ...definition.schema.createDefault(),
     url: 'https://example.com/Alpha',
@@ -132,10 +134,18 @@ function mount(config = {}) {
   }
   let instance
   const context = {
-    ownerDocument, signal: owner.signal, getData: () => canonical,
+    ownerDocument, signal: owner.signal,
+    getData: () => {
+      if (failNextRead) {
+        failNextRead = false
+        throw new Error('revoked during task acquisition')
+      }
+      return canonical
+    },
     isReadOnly: () => false,
     beginTask() {
       const controller = new AbortController()
+      taskSignals.push(controller.signal)
       owner.signal.addEventListener('abort', () => controller.abort(), { once: true })
       return {
         signal: controller.signal,
@@ -160,6 +170,8 @@ function mount(config = {}) {
   const input = instance.editableFields().find(field => field.key === 'url').element
   return {
     instance, input, ownerDocument,
+    failNextRead() { failNextRead = true },
+    taskSignals: () => taskSignals,
     model: () => canonical,
     timerIds: () => [...timers.keys()],
     flushTimers() {
@@ -295,5 +307,18 @@ test('LinkPreview cancels an obsolete metadata request after host replaces its U
     await Promise.resolve()
     assert.equal(h.model().url, 'https://example.org/new')
     assert.equal(h.model().title, 'Host replacement')
+  } finally { h.destroy() }
+})
+
+test('LinkPreview retires a task if authority is revoked during metadata snapshot', async () => {
+  const h = mount({ fetchMeta: async () => ({ title: 'Should not load' }) })
+  try {
+    h.failNextRead()
+    h.input.value = 'https://vimeo.com/123456'
+    h.input.dispatch('keydown')
+    await Promise.resolve()
+    assert.equal(h.taskSignals().length, 1)
+    assert.equal(h.taskSignals()[0].aborted, true,
+      'a failure reading the metadata baseline left an acquired DataTask alive')
   } finally { h.destroy() }
 })
