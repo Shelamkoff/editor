@@ -279,7 +279,7 @@ export function createAttachesPlugin(config={}){
               if(event.key==='Enter'){
                 event.preventDefault();event.stopPropagation();name.blur();wrapper.focus()
               }else if(!event.ctrlKey&&!event.metaKey)event.stopPropagation()
-            },{signal:context.signal})
+            },{signal:settingsController.signal})
             nameFields.set(file.id,name)
             const meta=document.createElement('div')
             meta.className=inGroup?'oe-attaches__row-size':variant==='b'?'oe-attaches__pill-size':variant==='f'?'oe-attaches__notion-size':'oe-attaches__meta'
@@ -318,14 +318,19 @@ export function createAttachesPlugin(config={}){
                 if(readOnly||dead)return
                 updateData({...data,files:data.files.filter(entry=>entry.id!==file.id)})
                 wrapper.focus()
-              },{signal:context.signal})
+              },{signal:settingsController.signal})
               row.appendChild(remove)
             }
             return row
           }
 
           const project=next=>{
+            // Every regenerated control belongs to this view, not to the
+            // whole block lifetime. Abort retired callbacks before repaint.
             settingsController?.abort()
+            const AbortControllerCtor=document.defaultView?.AbortController??AbortController
+            settingsController=new AbortControllerCtor()
+            const viewSignal=settingsController.signal
             data=cloneData(next)
             nameFields.clear()
             groupBody=null
@@ -338,7 +343,7 @@ export function createAttachesPlugin(config={}){
             if(data.files.length===0){
               const empty=createMediaDropzone({ownerDocument:document,prefix:'oe-attaches',icon:ICON,
                 uploadText:runtimeContext.t('dropzoneUpload','Upload'),afterText:runtimeContext.t('dropzoneText','files from your device or drag and drop them here'),
-                urlPrefix:runtimeContext.t('dropzoneUrlPrefix','or'),emptyText:runtimeContext.t('emptyReadonly','No files'),readOnly,signal:context.signal,
+                urlPrefix:runtimeContext.t('dropzoneUrlPrefix','or'),emptyText:runtimeContext.t('emptyReadonly','No files'),readOnly,signal:viewSignal,
                 onUpload:chooseFiles,inlineActions:[{label:runtimeContext.t('dropzoneUrl','Insert a URL'),onSelect:openUrl}],
                 actions:snapshot.actions.map(action=>({...action,onSelect:()=>void runAction(action)})),
               })
@@ -361,8 +366,8 @@ export function createAttachesPlugin(config={}){
                 groupBody.className='oe-attaches__group-body'
                 groupBody.id='oe-attaches-group-'+context.createId('view')
                 groupChevron.setAttribute('aria-controls',groupBody.id)
-                groupChevron.addEventListener('click',event=>{event.stopPropagation();setExpanded(!expanded)},{signal:context.signal})
-                header.addEventListener('click',()=>setExpanded(!expanded),{signal:context.signal})
+                groupChevron.addEventListener('click',event=>{event.stopPropagation();setExpanded(!expanded)},{signal:viewSignal})
+                header.addEventListener('click',()=>setExpanded(!expanded),{signal:viewSignal})
                 header.append(count,groupChevron)
                 data.files.forEach(file=>groupBody.appendChild(renderFile(file,true)))
                 list.append(header,groupBody)
@@ -376,18 +381,15 @@ export function createAttachesPlugin(config={}){
                 add.type='button'
                 add.className='oe-attaches__action-btn'
                 add.textContent=runtimeContext.t('add','Add file')
-                add.addEventListener('click',chooseFiles,{signal:context.signal})
+                add.addEventListener('click',chooseFiles,{signal:viewSignal})
                 actions.appendChild(add)
                 const byUrl=document.createElement('button')
                 byUrl.type='button'
                 byUrl.className='oe-attaches__action-btn'
                 byUrl.textContent=runtimeContext.t('dropzoneUrl','Insert a URL')
-                byUrl.addEventListener('click',openUrl,{signal:context.signal})
+                byUrl.addEventListener('click',openUrl,{signal:viewSignal})
                 actions.appendChild(byUrl)
-                const AbortControllerCtor=document.defaultView?.AbortController??AbortController
-                settingsController?.abort()
-                settingsController=new AbortControllerCtor()
-                const menuSignal=settingsController.signal
+                const menuSignal=viewSignal
                 const dropdown=document.createElement('div')
                 dropdown.className='oe-attaches__dropdown'
                 const settings=document.createElement('button')
@@ -444,7 +446,7 @@ export function createAttachesPlugin(config={}){
                   button.type='button'
                   button.className='oe-attaches__action-btn'
                   button.textContent=action.label
-                  button.addEventListener('click',()=>void runAction(action),{signal:context.signal})
+                  button.addEventListener('click',()=>void runAction(action),{signal:viewSignal})
                   actions.appendChild(button)
                 }
                 const removeAll=document.createElement('button')
@@ -455,7 +457,7 @@ export function createAttachesPlugin(config={}){
                   abortTasks()
                   context.updateData(current=>({...current,files:[]}))
                   wrapper.focus()
-                },{signal:context.signal})
+                },{signal:viewSignal})
                 actions.appendChild(removeAll)
                 wrapper.appendChild(actions)
               }
