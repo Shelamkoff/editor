@@ -843,7 +843,7 @@ test('Carousel retains newer selection after moving the previously active slide'
   assert(next && !next.disabled, 'the active slide cannot be moved forward')
   next.click()
   equal(editor.save().blocks[0].data.slides.map(slide => slide.id), ['second', 'first'])
-  // Move schedules a microtask. A newer, synchronous focus choice wins.
+  // A previous move must not override a newer synchronous focus choice.
   editor.blocks.focus('a', { fieldKey: 'slide:second:caption', offset: 'start' })
   equal(caption()?.dataset.slideId, 'second')
   await Promise.resolve()
