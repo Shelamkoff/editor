@@ -1,0 +1,221 @@
+import test from 'node:test'
+import assert from 'node:assert/strict'
+import { createEmbedPlugin } from './index.js'
+
+// Deliberately small, owning-document DOM: this suite checks whether a
+// focused native caption is detached, not HTML parsing or sanitization.
+class FakeElement {
+  constructor(tagName, ownerDocument) {
+    this.tagName = tagName.toUpperCase()
+    this.ownerDocument = ownerDocument
+    this.parentNode = null
+    this.children = []
+    this.className = ''
+    this.dataset = {}
+    this.style = {}
+    this.attributes = new Map()
+    this._text = ''
+    this._html = ''
+    this.contentEditable = 'inherit'
+    this.isConnected = true
+    this.hidden = false
+    this.listeners = new Map()
+    const element = this
+    this.classList = {
+      contains: name => element.className.split(/\s+/).includes(name),
+      add(name) {
+        if (!this.contains(name)) element.className += ' ' + name
+      },
+      remove(name) {
+        element.className = element.className.split(/\s+/).filter(part => part !== name).join(' ')
+      },
+      toggle(name, force) {
+        const next = force ?? !this.contains(name)
+        if (next) this.add(name)
+        else this.remove(name)
+        return next
+      },
+    }
+  }
+  get firstChild() { return this.children[0] ?? null }
+  get textContent() { return this._text + this.children.map(child => child.textContent).join('') }
+  set textContent(value) {
+    this.replaceChildren()
+    this._text = String(value)
+    this._html = String(value)
+  }
+  get innerHTML() { return this._html || this.children.map(child => child.innerHTML).join('') }
+  set innerHTML(value) {
+    this.replaceChildren()
+    this._html = String(value)
+    this._text = String(value)
+  }
+  append(...children) { for (const child of children) this.appendChild(child) }
+  appendChild(child) { return this.insertBefore(child, null) }
+  insertBefore(child, reference) {
+    if (typeof child === 'string') child = this.ownerDocument.createTextNode(child)
+    child.remove()
+    child.parentNode = this
+    child.isConnected = this.isConnected
+    const index = reference === null ? -1 : this.children.indexOf(reference)
+    if (index < 0) this.children.push(child)
+    else this.children.splice(index, 0, child)
+    return child
+  }
+  replaceChildren(...children) {
+    if (this.contains(this.ownerDocument.activeElement)) this.ownerDocument.activeElement = null
+    for (const child of this.children) {
+      child.parentNode = null
+      child.isConnected = false
+    }
+    this.children = []
+    this._text = ''
+    this._html = ''
+    this.append(...children)
+  }
+  remove() {
+    if (!this.parentNode) return
+    if (this.contains(this.ownerDocument.activeElement)) this.ownerDocument.activeElement = null
+    const siblings = this.parentNode.children
+    const index = siblings.indexOf(this)
+    if (index >= 0) siblings.splice(index, 1)
+    this.parentNode = null
+    this.isConnected = false
+  }
+  contains(target) {
+    return target === this || this.children.some(child => child.contains(target))
+  }
+  querySelectorAll(selector) {
+    const found = []
+    const visit = parent => {
+      for (const child of parent.children) {
+        if (selector.startsWith('.')
+          ? child.className.split(/\s+/).includes(selector.slice(1))
+          : child.tagName === selector.toUpperCase()) found.push(child)
+        visit(child)
+      }
+    }
+    visit(this)
+    return found
+  }
+  querySelector(selector) { return this.querySelectorAll(selector)[0] ?? null }
+  addEventListener(name, handler, options = {}) {
+    if (options.signal?.aborted) return
+    const group = this.listeners.get(name) ?? []
+    group.push(handler)
+    this.listeners.set(name, group)
+    options.signal?.addEventListener('abort', () => {
+      const index = group.indexOf(handler)
+      if (index >= 0) group.splice(index, 1)
+    }, { once: true })
+  }
+  focus() { this.ownerDocument.activeElement = this }
+  setAttribute(name, value) { this.attributes.set(name, String(value)) }
+  getAttribute(name) { return this.attributes.get(name) ?? null }
+  removeAttribute(name) { this.attributes.delete(name) }
+  closest() { return null }
+  getClientRects() { return [] }
+}
+
+function mount() {
+  const ownerDocument = {
+    activeElement: null,
+    defaultView: { AbortController, addEventListener() {}, removeEventListener() {} },
+    createElement(tag) { return new FakeElement(tag, ownerDocument) },
+    createTextNode(value) {
+      const node = new FakeElement('#text', ownerDocument)
+      node.textContent = value
+      return node
+    },
+    addEventListener() {},
+  }
+  const owner = new AbortController()
+  const definition = createEmbedPlugin({ injectStyles: false, resolvePreview: false })
+  let canonical = {
+    ...definition.schema.createDefault(),
+    service: 'youtube',
+    videoId: 'dQw4w9WgXcQ',
+  }
+  let instance
+  instance = definition.setup({ t: (_key, fallback) => fallback }).create(canonical, {
+    ownerDocument,
+    signal: owner.signal,
+    getData: () => canonical,
+    isReadOnly: () => false,
+    updateData(producer) {
+      canonical = producer(structuredClone(canonical))
+      instance.update(canonical)
+    },
+  })
+  return {
+    instance,
+    ownerDocument,
+    model: () => canonical,
+    nativeCommit(next) { canonical = structuredClone(next) },
+    external(next) {
+      canonical = structuredClone(next)
+      instance.update(canonical)
+    },
+    destroy() { instance.destroy(); owner.abort() },
+  }
+}
+
+function caption(instance) {
+  return instance.editableFields().find(field => field.key === 'caption')?.element
+}
+
+test('Embed retains focused native caption when title and duration change', () => {
+  const h = mount()
+  try {
+    const field = caption(h.instance)
+    field.focus()
+    field.innerHTML = 'AlXpha'
+    // NativeInputController can commit the edit without reprojecting the
+    // originating DOM; the plugin-local snapshot is therefore still empty.
+    h.nativeCommit({ ...h.model(), caption: 'AlXpha' })
+    h.external({ ...h.model(), title: 'New title', duration: '2:34' })
+
+    assert.equal(caption(h.instance), field,
+      'unrelated player metadata update detached a native contenteditable')
+    assert.equal(h.ownerDocument.activeElement, field,
+      'unrelated player metadata update lost native focus and caret owner')
+    assert.equal(h.instance.read().caption, 'AlXpha')
+    assert.equal(h.instance.element.querySelector('.oe-embed__title')?.textContent, 'New title')
+    assert.equal(h.instance.element.querySelector('.oe-embed__duration')?.textContent, '2:34')
+  } finally { h.destroy() }
+})
+
+test('Embed retains native caption while changing the video source', () => {
+  const h = mount()
+  try {
+    const field = caption(h.instance)
+    field.focus()
+    field.innerHTML = 'AlXpha'
+    h.nativeCommit({ ...h.model(), caption: 'AlXpha' })
+    h.external({ ...h.model(), videoId: '9bZkp7q19f0' })
+
+    assert.equal(caption(h.instance), field,
+      'source replacement should change the player, not detach unchanged caption DOM')
+    assert.equal(h.ownerDocument.activeElement, field)
+    assert.equal(h.instance.read().videoId, '9bZkp7q19f0')
+    assert.equal(h.instance.read().caption, 'AlXpha')
+  } finally { h.destroy() }
+})
+
+test('Embed reprojects an externally changed caption instead of hiding it behind native DOM', () => {
+  const h = mount()
+  try {
+    const field = caption(h.instance)
+    field.focus()
+    field.innerHTML = 'AlXpha'
+    h.nativeCommit({ ...h.model(), caption: 'AlXpha' })
+    h.external({ ...h.model(), title: 'First update' })
+    assert.equal(caption(h.instance), field)
+
+    h.external({ ...h.model(), caption: '' })
+    assert.notEqual(caption(h.instance), field,
+      'a genuinely remote caption edit must replace the old authoring host')
+    assert.equal(h.instance.read().caption, '')
+    assert.notEqual(h.ownerDocument.activeElement, field)
+  } finally { h.destroy() }
+})
