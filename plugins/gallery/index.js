@@ -442,6 +442,16 @@ export function createGalleryPlugin(config={}){
             return slot
           }
 
+          const renderCurrentSettings=()=>renderGallerySettings({
+            ownerDocument:document,
+            getData:()=>context.getData(),
+            t:label=>runtimeContext.t(label.key,label.fallback),
+            updateData:producer=>{
+              wrapper.focus({preventScroll:true})
+              return retainControlFocus(wrapper,()=>context.updateData(producer))
+            },
+          },{visualLayouts:true})
+
           const project=next=>{
             viewController?.abort()
             const Ctor=document.defaultView?.AbortController??AbortController
@@ -556,15 +566,7 @@ export function createGalleryPlugin(config={}){
               panel.className=CSS.dropdownPanel
               panel.setAttribute('role','group')
               panel.setAttribute('aria-label',settings.textContent)
-              panel.appendChild(renderGallerySettings({
-                ownerDocument:document,
-                getData:()=>context.getData(),
-                t:label=>runtimeContext.t(label.key,label.fallback),
-                updateData:producer=>{
-                  wrapper.focus({preventScroll:true})
-                  return retainControlFocus(wrapper,()=>context.updateData(producer))
-                },
-              },{visualLayouts:true}))
+              panel.appendChild(renderCurrentSettings())
               const settingsLayer=createPluginLayer(wrapper,viewSignal)
               const positioner=createPluginPanelPositioner(panel,dropdown,{signal:viewSignal,preferAbove:true})
               const setOpen=open=>{
@@ -671,6 +673,9 @@ export function createGalleryPlugin(config={}){
                     if(slot.classList.contains(CSS.slotFilled))slot.style.borderRadius=data.styles.borderRadius??''
                   }
                 }
+                // The closed settings form is another projection of styles.
+                // Keep it current without disconnecting the focused caption.
+                wrapper.querySelector('.'+CSS.dropdownPanel)?.replaceChildren(renderCurrentSettings())
                 return
               }
               project(next)
