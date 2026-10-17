@@ -53,12 +53,18 @@ export class InlineCommandController {
     }
 
     if (insertion.fresh.kind === 'text') {
-      this.#withCaret(target, target.range.start + insertion.fresh.text.length, () => this.#runtime.replaceRichText(
-        target.blockId,
-        target.fieldKey,
-        target.range,
-        { kind: 'text', text: insertion.fresh.text },
-      ))
+      // Rich-text replacement returns void on success, unlike widget insert
+      // which returns an occurrence ID. Preserve an explicit failure result.
+      const inserted = this.#withCaret(target, target.range.start + insertion.fresh.text.length, () => {
+        const result = this.#runtime.replaceRichText(
+          target.blockId,
+          target.fieldKey,
+          target.range,
+          { kind: 'text', text: insertion.fresh.text },
+        )
+        return result === undefined ? true : result
+      })
+      if (!inserted) return false
       this.#onFreshText?.({
         type,
         blockId: target.blockId,
@@ -176,17 +182,17 @@ export class InlineCommandController {
 
   #insertWidget(type, target, data, trailingText = '') {
     if (typeof trailingText !== 'string' || /[\r\n]/.test(trailingText)) throw new TypeError('Inline trailing text must be a single-line string')
-    this.#withCaret(target, target.range.start + 1 + trailingText.length, () => this.#runtime.insertInlineWidget(
+    return this.#withCaret(target, target.range.start + 1 + trailingText.length, () => this.#runtime.insertInlineWidget(
       target.blockId, target.fieldKey, target.range, type, data, { trailingText },
     ))
-    return true
   }
 
   #withCaret(target, offset, operation) {
     const point = { blockId: target.blockId, fieldKey: target.fieldKey, offset }
     const result = this.#runtime.interact('inline.insert', operation, () => ({ anchor: point, focus: { ...point } }))
+    if (!result) return false
     this.#selection.setCaret(target.blockId, { fieldKey: target.fieldKey, offset })
-    return result
+    return true
   }
 
   #currentRange() {
