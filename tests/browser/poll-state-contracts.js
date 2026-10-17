@@ -365,6 +365,38 @@ test('a new remote Poll identity clears an unsubmitted choice', async () => {
   } finally { h.destroy() }
 })
 
+
+test('retired Poll option marker cannot update pending selection after an author repaint', async () => {
+  const h = mount({ remote: false })
+  try {
+    const staleMarker = h.instance.element.querySelector('.oe-poll__option-marker[data-option-id="b"]')
+    h.update(data => ({ ...data, question: 'Edited question' }))
+    equal(staleMarker.isConnected, false, 'old option marker is still mounted')
+    staleMarker.click()
+    equal(h.selected(), [], 'retired option marker changed the current Poll selection')
+    const live = h.instance.element.querySelector('.oe-poll__option-marker[data-option-id="b"]')
+    live.click()
+    equal(h.selected(), ['b'], 'the current Poll option lost its handler')
+  } finally { h.destroy() }
+})
+
+test('retired Poll add-option action cannot write after a runtime-only refresh', async () => {
+  const h = mount({ remote: false })
+  try {
+    const staleAdd = h.instance.element.querySelector('.oe-poll__option-add')
+    const marker = h.instance.element.querySelector('.oe-poll__option-marker[data-option-id="b"]')
+    marker.click()
+    equal(marker.isConnected, true, 'runtime result update replaced the authoring host')
+    equal(staleAdd.isConnected, false, 'runtime action button was not replaced')
+    const before = h.store.get('poll').data
+    staleAdd.click()
+    equal(h.store.get('poll').data, before, 'retired runtime action inserted an option')
+    const liveAdd = h.instance.element.querySelector('.oe-poll__option-add')
+    liveAdd.click()
+    equal(h.store.get('poll').data.options.length, 3, 'the current add-option action stopped working')
+  } finally { h.destroy() }
+})
+
 const results = []
 for (const entry of cases) {
   try { await entry.run(); results.push({ name: entry.name, pass: true }) }
