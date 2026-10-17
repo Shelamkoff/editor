@@ -19,6 +19,7 @@ class FakeElement {
     this._text = ''
     this._html = ''
     this.classList = { add() {}, remove() {}, toggle() {} }
+    this.listeners = new Map()
   }
   get textContent() { return this._text + this.children.map(child => child.textContent).join('') }
   set textContent(value) { this.replaceChildren(); this._text = String(value); this._html = String(value) }
@@ -54,7 +55,12 @@ class FakeElement {
     return false
   }
   focus() { this.ownerDocument.activeElement = this }
-  addEventListener() {}
+  addEventListener(type, listener) {
+    const group = this.listeners.get(type) ?? []
+    group.push(listener)
+    this.listeners.set(type, group)
+  }
+  dispatch(type) { for (const listener of this.listeners.get(type) ?? []) listener({ type, target: this }) }
   setAttribute(name, value) { this.attributes[name] = String(value) }
   getAttribute(name) {
     if (name === 'data-person-id') return this.dataset.personId ?? null
@@ -130,5 +136,21 @@ test('Person replaces active author fields when the active person is removed', (
     'person:b:name', 'person:b:role', 'person:b:bio',
   ])
   assert.deepEqual(instance.read().persons.map(item => item.id), ['b'])
+  instance.destroy()
+})
+
+test('Person current name input updates the tab created by a sibling change', () => {
+  const { instance } = mount()
+  const field = nameField(instance, 'a')
+  const next = input()
+  next.persons[1].role = 'New role'
+  instance.update(next)
+  assert.equal(nameField(instance, 'a'), field, 'the editing host must remain mounted')
+  field.textContent = 'Changed name'
+  field.dispatch('input')
+  const tabs = instance.element.children[0]
+  const current = tabs.children.find(item => item.dataset.personId === 'a')
+  const label = current.querySelector('.oe-person__tab-label')
+  assert.equal(label.textContent, 'Changed name', 'typing updated a stale detached tab label')
   instance.destroy()
 })
