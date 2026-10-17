@@ -493,7 +493,13 @@ export function createAttachesPlugin(config={}){
                 mode:/** @type {'plain-text'} */('plain-text'),
               })]:[]
             })),
-            setReadOnly(value){settingsController?.abort();readOnly=value;project(data)},
+            setReadOnly(value){
+              settingsController?.abort()
+              readOnly=value
+              // The source file-name field may have committed a native edit
+              // without refreshing this detached local data snapshot.
+              project(context.getData())
+            },
             focus(target){
               if(dead||readOnly)return
               if(groupBody)setExpanded(true)
