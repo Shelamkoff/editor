@@ -134,7 +134,10 @@ export class LogicalSelection {
       ? fields.find(field=>field.key===target.fieldKey)
       : fields[0]
     if(!owner){
-      if(this.#reconciler.getElement(blockId))this.#clearNativeSelection()
+      // An explicitly keyed target that disappeared is a failed request,
+      // not permission to retire the user's existing native text selection.
+      // Fieldless block caret requests still clear our old editing range.
+      if(!target.fieldKey && this.#reconciler.getElement(blockId))this.#clearNativeSelection()
       return false
     }
     const length=owner.mode==='plain-text'&&typeof owner.element.value==='string'
