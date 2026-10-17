@@ -625,7 +625,12 @@ export class DocumentRuntime {
       ? { ...token, blockId: id }
       : undefined
     this.#engine.execute({
-      origin: 'external',
+      // A block instance's data authority owns its edits; the public host API
+      // remains external. This prevents async plugin completion from adopting
+      // an unrelated host URL edit into the same Undo action.
+      origin: authority === 'interaction' && options?.pluginOrigin === true
+        ? 'plugin'
+        : 'external',
       name: 'block.update',
       ...(continuation ? { continuation } : {}),
     }, tx => {
@@ -1626,7 +1631,7 @@ export class DocumentRuntime {
       updateData: (producer, options) => {
         this.update(id, current => ({
           data: producer(current.data),
-        }), 'interaction', options)
+        }), 'interaction', { ...options, pluginOrigin: true })
       },
       commitDomMutation: operation => {
         this.syncBlockFromProjection(id, operation, {
