@@ -474,7 +474,8 @@ export function createEmbedPlugin(config = {}) {
             // data before replacing any view children.
             const previousCaption = data.caption
             const ownedCaption = /** @type {HTMLElement | null} */ (view.querySelector('.oe-embed__caption'))
-            const retainCaption = !!ownedCaption && (
+            const captionWillExist = !!(next.service && next.videoId) || !!next.caption
+            const retainCaption = !!ownedCaption && captionWillExist && (
               next.caption === previousCaption || next.caption === ownedCaption.innerHTML.trim()
             )
             data = { ...next }
