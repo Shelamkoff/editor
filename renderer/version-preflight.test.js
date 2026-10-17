@@ -188,3 +188,46 @@ test('unchanged producer revision still skips deep data inspection after version
     assert.equal(container.children[0].children[0], original)
   } finally { renderer.destroy() }
 })
+
+for (const operation of ['render', 'renderTo']) {
+  test(operation + ': style acquisition cannot mutate unrevisioned renderer inputs', async () => {
+    const { EditorRenderer } = await import('./index.js')
+    const blockData = { value: 'committed' }
+    const document = { version: '2.0.0', blocks: [
+      { id: 'owned', type: 'style-snapshot', dataVersion: 1, data: blockData },
+    ] }
+    let styled = 0
+    let rendered
+    const originalHead = ownerDocument.head
+    ownerDocument.head = {
+      appendChild() {
+        styled++
+        blockData.value = 'mutated during link insertion'
+      },
+    }
+    const renderer = new EditorRenderer({ blockTypes: [], injectStyles: true })
+    renderer.registerRenderer({
+      type: 'style-snapshot', styles: ['/private-style.css'],
+      schema: {
+        currentVersion: 1,
+        createDefault() { return {} },
+        encode(data) { return { dataVersion: 1, data } },
+        decode(input) { return input },
+      },
+      render(block) {
+        rendered = block.data.value
+        return ownerDocument.createElement('article')
+      },
+    })
+    try {
+      if (operation === 'render') renderer.render(document)
+      else renderer.renderTo(document, ownerDocument.createElement('main'))
+      assert.equal(styled > 0, true, 'fixture never acquired the stylesheet')
+      assert.equal(rendered, 'committed',
+        'stylesheet insertion callback rewrote the renderer input before its JSON snapshot')
+    } finally {
+      renderer.destroy()
+      ownerDocument.head = originalHead
+    }
+  })
+}
