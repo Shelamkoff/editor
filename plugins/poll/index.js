@@ -516,17 +516,23 @@ export function createPollPlugin(config={}){
               }
             },
             update(next){
-              const reconnect=next.pollId!==data.pollId||next.type!==data.type||next.options.map(x=>x.id).join('|')!==data.options.map(x=>x.id).join('|')
+              const identityChanged=next.pollId!==data.pollId
+              const optionsChanged=next.options.length!==data.options.length
+                ||next.options.some((option,index)=>option.id!==data.options[index].id)
+              const reconnect=identityChanged||next.type!==data.type||optionsChanged
               const initialChanged=JSON.stringify(next.initialResults??null)!==JSON.stringify(data.initialResults??null)
+              const resetResults=identityChanged||initialChanged
               data=cloneData(next)
+              // Author edits retain acknowledged results. A changed poll identity
+              // or explicit seed replacement starts an independent result state.
               runtime=normalizePollResults(
-                initialChanged?data.initialResults:(data.initialResults??runtime),
+                resetResults?data.initialResults:runtime,
                 data.options.map(option=>option.id),
                 maxVoters,
                 data.type,
               )
               selected=new Set(runtime.currentUserVote??[])
-              if(initialChanged)hasVoted=(runtime.currentUserVote?.length??0)>0
+              if(resetResults)hasVoted=(runtime.currentUserVote?.length??0)>0
               else hasVoted=(runtime.currentUserVote?.length??0)>0||hasVoted
               if(reconnect)connect()
               project()
