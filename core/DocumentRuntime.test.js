@@ -1230,3 +1230,49 @@ test('toolbox must reject an asynchronous empty-block decision before inserting 
   assert.equal(runtime.canUndo,false)
   runtime.destroy()
 })
+
+
+test('public block update ignores JSON object insertion order without a history entry', () => {
+  const definition = {
+    type: 'semantic-json',
+    schema: {
+      currentVersion: 1,
+      createDefault: () => ({ nested: { left: 1, right: 2 }, list: [{ a: 1, b: 2 }] }),
+      encode: data => ({ dataVersion: 1, data: structuredClone(data) }),
+      decode: ({ dataVersion, data }) => ({ dataVersion, data: structuredClone(data) }),
+    },
+  }
+  const initial = {
+    nested: { left: 1, right: 2 },
+    list: [{ a: 1, b: 2 }],
+  }
+  const runtime = new DocumentRuntime({
+    registry: registry([definition]),
+    data: { version: '2.0.0', blocks: [{ id: 'entry', type: definition.type, dataVersion: 1, data: initial }] },
+  })
+  try {
+    const baseline = runtime.revision
+    runtime.update('entry', () => ({
+      data: {
+        list: [{ b: 2, a: 1 }],
+        nested: { right: 2, left: 1 },
+      },
+    }), 'host')
+    assert.equal(runtime.revision, baseline, 'object key order created a phantom author revision')
+    assert.equal(runtime.canUndo, false, 'object key order created a phantom history entry')
+    assert.deepEqual(runtime.get('entry').data, initial)
+
+    runtime.update('entry', () => ({
+      data: {
+        list: [{ b: 2, a: 1 }],
+        nested: { right: 3, left: 1 },
+      },
+    }), 'host')
+    assert.equal(runtime.revision, baseline + 1, 'genuine payload change did not commit')
+    assert.equal(runtime.canUndo, true)
+    assert.equal(runtime.undo(), true)
+    assert.deepEqual(runtime.get('entry').data, initial)
+  } finally {
+    runtime.destroy()
+  }
+})
