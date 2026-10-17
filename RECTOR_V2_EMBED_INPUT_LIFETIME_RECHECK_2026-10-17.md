@@ -68,3 +68,13 @@ npm run docs:check
 ```
 
 The full v1/v2 gesture differential, actual browser caret/selection, native IME, clipboard, Undo/Redo, read-only transitions, media/player behavior and heap/resource lifetime remain part of whole-library acceptance. The limited focused pass must not be used to claim every v1 behavior or all plugin paths are already stable.
+
+## Addendum — empty-caption cleanup after clearing the source
+
+A second-order regression was found after the first caption-retention fix. When a configured Embed had an empty caption, clearing `service` and `videoId` could retain the obsolete empty caption editor in the DOM. The previous full-replace implementation removed it.
+
+A sixth regression was added and reproduced the incorrect state. **RED: 5/6**, with the empty-caption case failing. The reconciliation now preserves the caption only when the incoming canonical state actually requires one (configured player or nonempty caption). **GREEN: 6/6** focused tests with actual production Embed source and controlled DOM/dependency adapters.
+
+Commits: [failing Node test](https://github.com/Shelamkoff/editor/commit/25ac0a0bbee5bc75fc23c88cef826345eae5c834), [fix](https://github.com/Shelamkoff/editor/commit/49d15fa6a7bcbe91b3abf4a0844af7842454d1fb), [registered native browser case](https://github.com/Shelamkoff/editor/commit/db84771d58a0caf9cf384fafcc73a8ec45ac8b4c).
+
+The browser case checks removal of obsolete caption and player plus Undo restoration. It passed syntax parsing but was **not run in real Chromium**. This addendum supersedes the previous 5/5 targeted count; it does not establish full-library/browser acceptance.
