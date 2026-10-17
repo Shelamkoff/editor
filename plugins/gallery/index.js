@@ -226,7 +226,7 @@ export function createGalleryPlugin(config={}){
           let viewController=null
           let dragId=null
 
-          const updateData=next=>retainControlFocus(wrapper,()=>context.updateData(()=>next))
+          const updateData=producer=>retainControlFocus(wrapper,()=>context.updateData(producer))
           const syncLoading=()=>wrapper.classList.toggle(CSS.loading,tasks.size>0)
           const beginTask=()=>{
             const task=context.beginTask()
@@ -422,7 +422,7 @@ export function createGalleryPlugin(config={}){
               remove.type='button'
               remove.className=CSS.slotRemove
               remove.textContent='×'
-              remove.addEventListener('click',()=>updateData({...data,images:data.images.filter(item=>item.id!==image.id)}),{signal:viewController.signal})
+              remove.addEventListener('click',()=>updateData(current=>({...current,images:current.images.filter(item=>item.id!==image.id)})),{signal:viewController.signal})
 
               const earlier=document.createElement('button')
               earlier.type='button'
