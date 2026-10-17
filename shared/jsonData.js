@@ -15,6 +15,36 @@ export function isPlainObjectPrototype(prototype) {
     && Function.prototype.toString.call(constructor) === objectConstructorSource
 }
 
+/** Compare already-owned JSON values without treating object key insertion
+ * order as a document edit. Array order, types and actual key presence matter.
+ * Inputs at these call sites were captured at the JSON validation boundary.
+ * @param {unknown} left
+ * @param {unknown} right
+ * @returns {boolean}
+ */
+export function equalJsonValue(left, right) {
+  if (left === right) return true
+  if (left === null || right === null
+    || typeof left !== 'object' || typeof right !== 'object') return false
+  const isArray = Array.isArray(left)
+  if (isArray !== Array.isArray(right)) return false
+  if (isArray) {
+    if (left.length !== right.length) return false
+    for (let index = 0; index < left.length; index++) {
+      if (Object.hasOwn(left, index) !== Object.hasOwn(right, index)
+        || !equalJsonValue(left[index], right[index])) return false
+    }
+    return true
+  }
+  const keys = Object.keys(left)
+  if (keys.length !== Object.keys(right).length) return false
+  for (const key of keys) {
+    if (!Object.hasOwn(right, key)
+      || !equalJsonValue(left[key], right[key])) return false
+  }
+  return true
+}
+
 /**
  * Clone a value while asserting that it can cross the persisted Rector
  * document boundary without changing meaning during JSON serialization.
