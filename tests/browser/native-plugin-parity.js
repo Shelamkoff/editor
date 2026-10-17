@@ -1243,8 +1243,7 @@ test('Attaches removing a different file preserves a committed native file name'
   await printable('X')
   const afterInput = editor.save().blocks
   equal(afterInput[0].data.files[0].name, 'AlXpha')
-  const otherFile = blockElement(editor, 'a').querySelector('.oe-attaches__file[data-file-id="second"]')
-  const remove = otherFile?.querySelector('.oe-attaches__remove')
+  const remove = [...blockElement(editor, 'a').querySelectorAll('.oe-attaches__remove')][1]
   assert(remove, 'second Attaches file lacks its Remove action')
   remove.click()
   const afterRemove = editor.save().blocks
@@ -1262,7 +1261,8 @@ test('Image replacing source URL preserves native authored caption and one-step 
   const afterInput = editor.save().blocks
   equal(afterInput[0].data.caption, 'AlXpha')
   const wrapper = blockElement(editor, 'a')
-  const replace = wrapper.querySelector('.oe-image__actions .oe-image__action-btn')
+  const replace = [...wrapper.querySelectorAll('.oe-image__action-btn')]
+    .find(button => button.textContent?.includes('Replace'))
   assert(replace, 'Image source replacement action is missing')
   replace.click()
   const sourceUrl = [...wrapper.querySelectorAll('.oe-image__action-btn')]
