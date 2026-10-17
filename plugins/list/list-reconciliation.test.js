@@ -92,3 +92,36 @@ test('List does not move a field on a semantically identical update', () => {
   assert.deepEqual(instance.editableFields().map(field => field.element.moveCount), beforeMoves)
   instance.destroy()
 })
+
+test('List matches an independent row-order oracle through 600 deterministic edits', () => {
+  let state = 314159265
+  const random = limit => {
+    state ^= state << 13
+    state ^= state >>> 17
+    state ^= state << 5
+    return (state >>> 0) % limit
+  }
+  const instance = mount(['a', 'b', 'c'])
+  let ids = ['a', 'b', 'c'], count = 0
+  for (let step = 0; step < 600; step++) {
+    const next = [...ids], action = random(5)
+    if (action === 0 && next.length < 12) next.splice(random(next.length + 1), 0, 'new-' + count++)
+    else if (action === 1 && next.length > 1) next.splice(random(next.length), 1)
+    else if (action === 2) next.reverse()
+    else if (action === 3 && next.length > 1) next.push(next.shift())
+    const before = instance.editableFields().map(field => ({ id: field.key, element: field.element, moves: field.element.moveCount }))
+    instance.update(items(next))
+    assert.deepEqual(idsOf(instance), next, 'List DOM order differs from authored data at step ' + step)
+    assert.deepEqual(instance.read().items.map(item => item.id), next)
+    assert.deepEqual(instance.editableFields().map(field => field.key), next.map(id => 'item:' + id))
+    if (action === 4) {
+      for (const old of before) {
+        const current = instance.editableFields().find(field => field.key === old.id)
+        assert.equal(current?.element, old.element, 'no-op update replaced the editable')
+        assert.equal(current?.element.moveCount, old.moves, 'no-op update moved the editable')
+      }
+    }
+    ids = next
+  }
+  instance.destroy()
+})
