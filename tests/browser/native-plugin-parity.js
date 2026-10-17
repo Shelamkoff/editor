@@ -428,6 +428,52 @@ test('LinkPreview pending URL survives unrelated template update and is eventual
   equal(after.template, 'compact')
 })
 
+test('LinkPreview late metadata respects newer host edits and cancels an obsolete URL', async () => {
+  const pending = []
+  const fixture = pluginParityFixtures.find(entry => entry.name === 'LinkPreview')
+  const editor = pluginEditor({
+    ...fixture,
+    factory: () => fixture.factory({
+      fetchMeta: (url, { signal }) => new Promise(resolve => {
+        pending.push({ url, signal, resolve })
+      }),
+    }),
+  })
+  const input = focusedField(editor, { key: 'url' }, 'end')
+  input.value = 'https://vimeo.com/123456'
+  input.dispatchEvent(new Event('change', { bubbles: true }))
+  equal(pending.length, 1)
+  equal(pending[0].url, 'https://vimeo.com/123456')
+  equal(pending[0].signal.aborted, false)
+
+  editor.blocks.update('a', current => ({
+    data: { ...current.data, title: 'Host-authored title' },
+  }))
+  pending[0].resolve({ title: 'Late fetched title', description: 'Fetched description' })
+  await pause(50)
+  const afterMetadata = editor.save().blocks[0].data
+  equal(afterMetadata.title, 'Host-authored title',
+    'late metadata replaced a newer author-provided title')
+  equal(afterMetadata.description, 'Fetched description',
+    'metadata response no longer populates an untouched field')
+
+  input.value = 'https://example.org/second'
+  input.dispatchEvent(new Event('change', { bubbles: true }))
+  equal(pending.length, 2)
+  equal(pending[1].signal.aborted, false)
+
+  editor.blocks.update('a', current => ({
+    data: { ...current.data, url: 'https://example.net/host', title: 'New host source' },
+  }))
+  equal(pending[1].signal.aborted, true,
+    'old URL metadata task remained alive after host source replacement')
+  pending[1].resolve({ title: 'Obsolete fetched title' })
+  await pause(50)
+  const afterSource = editor.save().blocks[0].data
+  equal(afterSource.url, 'https://example.net/host')
+  equal(afterSource.title, 'New host source')
+})
+
 test('Gallery rich captions keep their marks through native editing and history', async () => {
   const fixture = pluginParityFixtures.find(entry => entry.name === 'Gallery')
   const editor = pluginEditor({ ...fixture, data: { ...fixture.data, images: [{ id: 'first', url: fixture.data.images[0].url, caption: '<b>Al</b>pha' }] } })
