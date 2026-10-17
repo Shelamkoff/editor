@@ -1284,4 +1284,30 @@ test('Image replacing source URL preserves native authored caption and one-step 
     'Image source replacement could not be undone without losing native caption')
 })
 
+
+test('Embed changing video URL preserves its native committed caption', async () => {
+  const fixture = pluginParityFixtures.find(item => item.name === 'Embed')
+  const editor = pluginEditor(fixture)
+  focusedField(editor, { key: 'caption' }, 2)
+  await printable('X')
+  const afterInput = editor.save().blocks
+  equal(afterInput[0].data.caption, 'AlXpha')
+  const wrapper = blockElement(editor, 'a')
+  const replace = [...wrapper.querySelectorAll('.oe-embed__action-btn')]
+    .find(button => button.textContent?.trim() === 'Replace')
+  assert(replace, 'Embed source replacement action is missing')
+  replace.click()
+  const url = wrapper.querySelector('.oe-embed__url-input')
+  const insert = [...wrapper.querySelectorAll('.oe-embed__action-btn')]
+    .find(button => button.textContent?.trim() === 'Insert')
+  assert(url && insert, 'Embed video URL editor is missing')
+  url.value = 'https://youtu.be/9bZkp7q19f0'
+  insert.click()
+  const after = editor.save().blocks
+  equal(after[0].data.videoId, '9bZkp7q19f0')
+  equal(after[0].data.caption, 'AlXpha', 'Embed source replacement lost committed native caption')
+  equal(editor.undo(), true)
+  equal(editor.save().blocks, afterInput, 'Embed source change could not be undone separately')
+})
+
 await run()
