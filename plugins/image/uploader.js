@@ -74,7 +74,12 @@ export class ImageUploader {
         signal?.removeEventListener('abort', abort)
         resolve()
       }
-      const abort = () => reader.abort()
+      const abort = () => {
+        // Abort dispatch is the authoritative task cancellation. FileReader
+        // adapters may omit onabort or throw, but the Promise must settle.
+        try { reader.abort() } catch {}
+        finally { finish() }
+      }
       signal?.addEventListener('abort', abort, { once: true })
 
       reader.onload = () => {
