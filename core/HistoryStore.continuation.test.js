@@ -121,3 +121,41 @@ test('a continuation closes the old native typing group', () => {
   followup.commit()
   assert.equal(h.undoDepth, 2)
 })
+
+
+test('host-origin URL update cannot be coalesced with a later user-triggered metadata refresh', () => {
+  const h = new HistoryStore()
+  const before = block('a', 'https://old.example')
+  const newUrl = block('a', 'https://host.example')
+  const fetched = block('a', 'https://host.example', 'Refresh title')
+  // A host changed the document; pressing Enter on that unchanged URL later
+  // does not make the older host action part of the user's fetch gesture.
+  h.push(record(2, before, newUrl, 'external', 'block.update'))
+  const prepared = h.prepareRecord(record(3, newUrl, fetched, 'external', 'block.update'), {
+    continuation: continuation(2),
+  })
+  assert.equal(prepared.coalesced, false,
+    'an externally authored URL mutation was adopted into the metadata gesture')
+  prepared.commit()
+  assert.equal(h.undoDepth, 2)
+  const replay = h.prepareReplay('undo')
+  assert.deepEqual(replay.record.changes[0].before, newUrl)
+  assert.deepEqual(replay.record.changes[0].after, fetched)
+})
+
+test('a plugin-authored URL action can be continued, unlike an unrelated host update', () => {
+  const h = new HistoryStore()
+  const before = block('a', 'https://old.example')
+  const newUrl = block('a', 'https://plugin.example')
+  const fetched = block('a', 'https://plugin.example', 'Fetched title')
+  h.push(record(2, before, newUrl, 'plugin', 'block.update'))
+  const prepared = h.prepareRecord(record(3, newUrl, fetched, 'plugin', 'block.update'), {
+    continuation: continuation(2),
+  })
+  assert.equal(prepared.coalesced, true,
+    'a genuine plugin URL authoring gesture lost its one-step history continuation')
+  prepared.commit()
+  assert.equal(h.undoDepth, 1)
+  assert.deepEqual(h.peekUndo().changes[0].before, before)
+  assert.deepEqual(h.peekUndo().changes[0].after, fetched)
+})
