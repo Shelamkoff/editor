@@ -1,6 +1,6 @@
 import { test, make, para, editorRoot, blockElement, editableField, pause, assert, equal, run } from './regressions/harness.js'
 import { clickNative, dispatchKey, printable } from './native-input-helpers.js'
-import { createParagraphPlugin, createPollPlugin, createPersonPlugin, createCodePlugin, createTablePlugin, createListPlugin, createTogglePlugin, createHeadingPlugin } from '../../plugins/index.js'
+import { createParagraphPlugin, createPollPlugin, createPersonPlugin, createCodePlugin, createTablePlugin, createListPlugin, createColumnsPlugin, createTogglePlugin, createHeadingPlugin } from '../../plugins/index.js'
 import { getTextOffset } from '../../shared/textOffset.js'
 import { pluginParityFixtures, readPath, writePath } from './plugin-parity-fixtures.js'
 
@@ -729,6 +729,56 @@ test('Table: sibling cell update retains native editing focus and caret', async 
   equal(editor.save().blocks[0].data.rows[0].cells[1].text, 'BrXavo', 'Table input moved to a wrong field')
   equal(editor.undo(), true)
   equal(editor.save().blocks, after)
+})
+
+test('Columns sibling update retains editing caret, typing and atomic history', async () => {
+  const definition = createColumnsPlugin()
+  const editor = make([{ id: 'a', type: definition.type,
+    dataVersion: definition.schema.currentVersion, data: {
+      layout: '1-1',
+      columns: [{ id: 'left', content: 'Alpha' }, { id: 'right', content: 'Bravo' }],
+    },
+  }], { plugins: [createParagraphPlugin(), definition] })
+  const field = focusedField(editor, { key: 'column:right' }, 2)
+  const before = editor.save().blocks
+  checkFieldCaret(field, 2)
+  editor.blocks.update('a', current => ({
+    data: { ...current.data,
+      columns: current.data.columns.map(column => column.id === 'left'
+        ? { ...column, content: 'Changed' } : column),
+    },
+  }))
+  const afterSibling = editor.save().blocks
+  equal(document.activeElement, field, 'Columns moved an unchanged editing host')
+  checkFieldCaret(field, 2)
+  equal(afterSibling[0].data.columns.map(column => column.content), ['Changed', 'Bravo'])
+  await printable('X')
+  const afterInput = editor.save().blocks
+  equal(afterInput[0].data.columns.map(column => column.content), ['Changed', 'BrXavo'])
+  checkFieldCaret(field, 3)
+  equal(editor.undo(), true)
+  equal(editor.save().blocks, afterSibling)
+  equal(editor.undo(), true)
+  equal(editor.save().blocks, before)
+  equal(editor.redo(), true)
+  equal(editor.save().blocks, afterSibling)
+  equal(editor.redo(), true)
+  equal(editor.save().blocks, afterInput)
+})
+
+test('Columns layout-only update preserves active editing node and caret', async () => {
+  const definition = createColumnsPlugin()
+  const editor = make([{ id: 'a', type: definition.type,
+    dataVersion: definition.schema.currentVersion, data: {
+      layout: '1-1',
+      columns: [{ id: 'left', content: 'Alpha' }, { id: 'right', content: 'Bravo' }],
+    },
+  }], { plugins: [createParagraphPlugin(), definition] })
+  const field = focusedField(editor, { key: 'column:right' }, 3)
+  editor.blocks.update('a', current => ({ data: { ...current.data, layout: '1-2' } }))
+  equal(document.activeElement, field, 'Changing a grid layout discarded editing focus')
+  checkFieldCaret(field, 3)
+  equal(editor.save().blocks[0].data.layout, '1-2')
 })
 
 await run()
