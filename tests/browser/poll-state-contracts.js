@@ -2,6 +2,7 @@ import { createPollPlugin } from '../../plugins/poll/index.js'
 import { DocumentStore } from '../../core/DocumentStore.js'
 import { HistoryStore } from '../../core/HistoryStore.js'
 import { TransactionEngine } from '../../core/TransactionEngine.js'
+import { NativeInputController } from '../../core/NativeInputController.js'
 
 const cases = []
 const browserErrors = []
@@ -19,7 +20,7 @@ function result(revision, a = 7, b = 3, currentUserVote = ['a']) {
 }
 
 /** Exercise the public block-instance contract with the real canonical/history owners. */
-function mount({ seed, remote = true, resultsMode = 'always', options = [{ id: 'a', text: 'A' }, { id: 'b', text: 'B' }] } = {}) {
+function mount({ seed, remote = true, nativeInput = false, resultsMode = 'always', options = [{ id: 'a', text: 'A' }, { id: 'b', text: 'B' }] } = {}) {
   const loads = [], subscriptions = [], votes = [], errors = []
   const dataSource = {
     load(request) { return new Promise(resolve => loads.push({ ...request, resolve })) },
@@ -45,13 +46,16 @@ function mount({ seed, remote = true, resultsMode = 'always', options = [{ id: '
   const history = new HistoryStore()
   const controller = new AbortController()
   const runtime = definition.setup({ t: (_key, fallback) => fallback })
-  let instance, readOnly = false, id = 0
+  let instance, candidate = null, readOnly = false, id = 0
   const engine = new TransactionEngine({
     store, history,
-    projector: { prepare({ draft }) { return {
-      apply() { instance.update(draft.get('poll').data) },
-      recover() { instance.update(store.get('poll').data) },
-      finalize() {}, discard() {},
+    projector: { prepare({ draft, sourceBlockId }) { return {
+      apply() {
+        candidate = draft.get('poll').data
+        if (sourceBlockId !== 'poll') instance.update(candidate)
+      },
+      recover() { candidate = null; instance.update(store.get('poll').data) },
+      finalize() { candidate = null }, discard() { candidate = null },
     } } },
   })
   const update = producer => engine.execute({ origin: 'plugin', name: 'poll.author-update' }, tx => {
@@ -61,11 +65,37 @@ function mount({ seed, remote = true, resultsMode = 'always', options = [{ id: '
   })
   instance = runtime.create(initial, {
     ownerDocument: document, signal: controller.signal,
+    getData: () => structuredClone(candidate ?? store.get('poll').data),
     isReadOnly: () => readOnly, createId: () => 'created-' + ++id,
     updateData: update,
     commitDomMutation(operation) { operation(); update(() => instance.read()) },
   })
   document.querySelector('#sandbox').append(instance.element)
+  const inputController = nativeInput ? new NativeInputController({
+    root: instance.element,
+    runtime: {
+      get readOnly() { return readOnly },
+      get generation() { return store.generation },
+      get revision() { return store.revision },
+      syncBlockFromProjection(id, operation, metadata) {
+        operation()
+        engine.execute({
+          ...metadata,
+          sourceBlockId: metadata.preserveSourceProjection ? id : undefined,
+        }, tx => {
+          const current = tx.get(id)
+          const encoded = definition.schema.encode(instance.read())
+          tx.update(id, { ...current, data: encoded.data })
+        })
+      },
+    },
+    reconciler: {
+      resolveEditableTarget(target) {
+        const field = instance.editableFields().find(field => field.element === target || field.element.contains(target))
+        return field ? { ...field, blockId: 'poll', fieldKey: field.key } : null
+      },
+    },
+  }) : null
   return {
     instance, store, history, engine, loads, subscriptions, votes, errors, update,
     percentages: () => [...instance.element.querySelectorAll('.oe-poll__result-pct')].map(el => el.textContent),
@@ -77,7 +107,7 @@ function mount({ seed, remote = true, resultsMode = 'always', options = [{ id: '
       await tick()
     },
     setReadOnly(value) { readOnly = value; instance.setReadOnly(value) },
-    destroy() { instance.destroy(); controller.abort(); runtime.destroy(); instance.element.remove() },
+    destroy() { inputController?.destroy(); instance.destroy(); controller.abort(); runtime.destroy(); instance.element.remove() },
   }
 }
 
@@ -238,6 +268,40 @@ test('destroyed and superseded subscriptions cannot republish results', async ()
   equal(h.percentages(), ['70%', '30%'], 'destroyed subscription changed the retired DOM')
   equal(h.loads[0].signal.aborted, true, 'destroy did not abort result loading')
   equal(h.errors, [], 'stale subscription caused an error')
+})
+
+for (const field of ['question', 'option:a']) {
+  test(`a retained native ${field} edit survives a read-only round trip`, async () => {
+    const h = mount({ nativeInput: true })
+    try {
+      await h.resolveLoad(0, result('2'))
+      const target = h.instance.editableFields().find(item => item.key === field).element
+      target.textContent = 'Native text'
+      target.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: 'text' }))
+      const canonical = h.store.get('poll').data
+      equal(field === 'question' ? canonical.question : canonical.options[0].text,
+        'Native text', 'native input did not reach the canonical model')
+      h.setReadOnly(true)
+      h.setReadOnly(false)
+      const restored = h.instance.editableFields().find(item => item.key === field).element
+      equal(restored.textContent, 'Native text', 'mode change replaced committed author text with stale plugin data')
+    } finally { h.destroy() }
+  })
+}
+
+test('a subscription uses the committed native option label without replacing its editing field', async () => {
+  const h = mount({ nativeInput: true })
+  try {
+    await h.resolveLoad(0, result('2'))
+    const target = h.instance.editableFields().find(item => item.key === 'option:a').element
+    target.textContent = 'Native label'
+    target.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: 'label' }))
+    h.subscriptions[0].onUpdate(result('3'))
+    equal(h.instance.element.querySelector('.oe-poll__result-label').textContent,
+      'Native label', 'subscription rendered a stale author label')
+    equal(h.instance.editableFields().find(item => item.key === 'option:a').element === target,
+      true, 'runtime-only update replaced the editing host')
+  } finally { h.destroy() }
 })
 
 const results = []

@@ -355,7 +355,12 @@ export function createPollPlugin(config={}){
             }
           }
 
-          const projectRuntime=()=>retainControlFocus(wrapper,()=>project(true))
+          const projectRuntime=()=>retainControlFocus(wrapper,()=>{
+            // Native source projections may commit without calling update().
+            // Read authoring data from the current canonical owner, not an old cache.
+            data=cloneData(context.getData())
+            project(true)
+          })
 
           const syncAuthoring=()=>{
             if(readOnly||dead)return
@@ -544,7 +549,11 @@ export function createPollPlugin(config={}){
                 return element?[Object.freeze({key:'option:'+option.id,element:/** @type {HTMLElement} */(element),mode:/** @type {'rich-text'} */('rich-text')})]:[]
               }),
             ]),
-            setReadOnly(value){readOnly=value;project()},
+            setReadOnly(value){
+              readOnly=value
+              data=cloneData(context.getData())
+              project()
+            },
             focus(){if(!dead&&!readOnly)(wrapper.querySelector('.oe-poll__question'))?.focus()},
             destroy(){
               if(dead)return
