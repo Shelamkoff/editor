@@ -1326,7 +1326,9 @@ test('guarded URL-style async continuation replays the complete authored state t
     data: { version: '2.0.0', blocks: [block('a', { text: 'Before' })] },
   })
   const initial = runtime.get('a')
-  runtime.update('a', () => ({ data: { text: 'After' } }))
+  runtime.update('a', () => ({ data: { text: 'After' } }), 'interaction', {
+    pluginOrigin: true,
+  })
   const baseRevision = runtime.revision
   runtime.update('a', () => ({ tunes: { textAlign: 'center' } }), 'interaction', {
     historyContinuation: { baseRevision, fieldKey: 'text' },
@@ -1351,7 +1353,9 @@ test('revision lease keeps delayed extension metadata distinct after host activi
       block('b', { text: 'Another block' }),
     ] },
   })
-  runtime.update('a', () => ({ data: { text: 'After' } }))
+  runtime.update('a', () => ({ data: { text: 'After' } }), 'interaction', {
+    pluginOrigin: true,
+  })
   const baseRevision = runtime.revision
   runtime.update('b', () => ({ data: { text: 'Host changed' } }), 'host')
   runtime.update('a', () => ({ tunes: { textAlign: 'center' } }), 'interaction', {
@@ -1366,5 +1370,45 @@ test('revision lease keeps delayed extension metadata distinct after host activi
   assert.equal(runtime.get('b').data.text, 'Another block')
   assert.equal(runtime.undo(), true)
   assert.equal(runtime.get('a').data.text, 'Before')
+  runtime.destroy()
+})
+
+test('async plugin completion never consumes an unrelated host-authored URL history step', () => {
+  const runtime = new DocumentRuntime({
+    registry: registry([paragraphDefinition()]),
+    data: { version: '2.0.0', blocks: [block('a', { text: 'Before' })] },
+  })
+  runtime.update('a', () => ({ data: { text: 'Host supplied URL' } }), 'host')
+  const baseRevision = runtime.revision
+
+  runtime.update('a', () => ({ tunes: { textAlign: 'center' } }), 'interaction', {
+    pluginOrigin: true,
+    historyContinuation: { baseRevision, fieldKey: 'text' },
+  })
+  assert.equal(runtime.get('a').tunes.textAlign, 'center')
+  assert.equal(runtime.undo(), true)
+  assert.equal(runtime.get('a').data.text, 'Host supplied URL',
+    'undoing metadata unexpectedly reverted a prior host URL change')
+  assert.equal(runtime.get('a').tunes, undefined)
+  assert.equal(runtime.canUndo, true)
+  assert.equal(runtime.undo(), true)
+  assert.equal(runtime.get('a').data.text, 'Before')
+  runtime.destroy()
+})
+
+test('block data authority and public host updates publish distinct event origins', () => {
+  const events = []
+  const runtime = new DocumentRuntime({
+    registry: registry([paragraphDefinition()]),
+    data: { version: '2.0.0', blocks: [block('a', { text: 'Before' })] },
+    onCommit: event => events.push(event),
+  })
+  runtime.update('a', () => ({ data: { text: 'Host change' } }), 'host')
+  runtime.update('a', () => ({ data: { text: 'Extension change' } }), 'interaction', {
+    pluginOrigin: true,
+  })
+  assert.equal(events.length, 2)
+  assert.equal(events[0].origin, 'external')
+  assert.equal(events[1].origin, 'plugin')
   runtime.destroy()
 })
