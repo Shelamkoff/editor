@@ -377,6 +377,57 @@ test('LinkPreview accepts a URL typed from an empty draft and resolves metadata 
   equal(editor.save().blocks[0].data.title, 'Resolved')
 })
 
+test('LinkPreview native URL caret survives template and metadata changes', async () => {
+  const fixture = pluginParityFixtures.find(entry => entry.name === 'LinkPreview')
+  const editor = pluginEditor(fixture)
+  const input = focusedField(editor, { key: 'url' }, 'end')
+  await printable('X')
+  const afterInput = editor.save().blocks
+  const authored = afterInput[0].data.url
+  equal(authored, 'https://example.com/AlphaX')
+  checkFieldCaret(input, authored.length)
+
+  editor.blocks.update('a', current => ({
+    data: { ...current.data, template: 'compact', title: 'Changed by host' },
+  }))
+  const afterHost = editor.save().blocks
+  equal(afterHost[0].data.url, authored)
+  equal(input.value, authored,
+    'LinkPreview host metadata update replaced an already committed native URL')
+  equal(document.activeElement, input,
+    'LinkPreview metadata update lost active URL editing focus')
+  checkFieldCaret(input, authored.length)
+  equal(blockElement(editor, 'a').querySelector('.oe-lp__card')?.classList.contains('oe-lp__card--compact'), true)
+
+  await printable('Y')
+  equal(editor.save().blocks[0].data.url, authored + 'Y')
+  checkFieldCaret(input, authored.length + 1)
+  equal(editor.undo(), true)
+  equal(editor.save().blocks, afterHost)
+  equal(editor.undo(), true)
+  equal(editor.save().blocks, afterInput)
+})
+
+test('LinkPreview pending URL survives unrelated template update and is eventually applied', async () => {
+  const fixture = pluginParityFixtures.find(entry => entry.name === 'LinkPreview')
+  const editor = pluginEditor(fixture)
+  const input = focusedField(editor, { key: 'url' }, 'end')
+  const draft = 'https://vimeo.com/123456'
+  input.value = draft
+  input.dispatchEvent(new Event('input', { bubbles: true }))
+  editor.blocks.update('a', current => ({
+    data: { ...current.data, template: 'compact' },
+  }))
+
+  equal(document.activeElement, input)
+  equal(input.value, draft, 'LinkPreview metadata projection erased the pending URL')
+  await pause(700)
+  const after = editor.save().blocks[0].data
+  equal(after.url, draft)
+  equal(after.domain, 'vimeo.com')
+  equal(after.template, 'compact')
+})
+
 test('Gallery rich captions keep their marks through native editing and history', async () => {
   const fixture = pluginParityFixtures.find(entry => entry.name === 'Gallery')
   const editor = pluginEditor({ ...fixture, data: { ...fixture.data, images: [{ id: 'first', url: fixture.data.images[0].url, caption: '<b>Al</b>pha' }] } })
