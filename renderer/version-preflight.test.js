@@ -189,7 +189,7 @@ test('unchanged producer revision still skips deep data inspection after version
   } finally { renderer.destroy() }
 })
 
-for (const operation of ['render', 'renderTo']) {
+for (const operation of ['renderBlock', 'render', 'renderTo']) {
   test(operation + ': style acquisition cannot mutate unrevisioned renderer inputs', async () => {
     const { EditorRenderer } = await import('./index.js')
     const blockData = { value: 'committed' }
@@ -220,7 +220,8 @@ for (const operation of ['render', 'renderTo']) {
       },
     })
     try {
-      if (operation === 'render') renderer.render(document)
+      if (operation === 'renderBlock') renderer.renderBlock(document.blocks[0])
+      else if (operation === 'render') renderer.render(document)
       else renderer.renderTo(document, ownerDocument.createElement('main'))
       assert.equal(styled > 0, true, 'fixture never acquired the stylesheet')
       assert.equal(rendered, 'committed',
