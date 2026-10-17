@@ -32,6 +32,24 @@ function restoreChildOrder(parent, expected) {
   }
 }
 
+/** Stable fingerprint of already-owned JSON. Unlike JSON.stringify(), this
+ * treats object property insertion order as irrelevant while retaining array
+ * order and primitive values. Only used on the deep-signature path; a trusted
+ * producer revision must continue to avoid traversing unchanged payloads.
+ * @param {unknown} value
+ * @returns {string}
+ */
+function stableJsonSignature(value) {
+  if (Array.isArray(value)) {
+    return '[' + value.map(item => stableJsonSignature(item)).join(',') + ']'
+  }
+  if (value !== null && typeof value === 'object') {
+    const keys = Object.keys(value).sort()
+    return '{' + keys.map(key => JSON.stringify(key) + ':' + stableJsonSignature(value[key])).join(',') + '}'
+  }
+  return JSON.stringify(value)
+}
+
 /**
  * Renders Rector document blocks to DOM elements.
  */
@@ -350,7 +368,7 @@ export class EditorRenderer {
     if (typeof block.revision === 'string' || typeof block.revision === 'number') {
       return JSON.stringify([rendererRevision, block.type, block.dataVersion, block.revision])
     }
-    return JSON.stringify([
+    return stableJsonSignature([
       rendererRevision,
       block.type,
       block.dataVersion ?? null,
