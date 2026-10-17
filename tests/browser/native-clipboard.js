@@ -165,4 +165,31 @@ test('failed owned Cut preserves both canonical model and native contenteditable
   equal(editor.canUndo, false, 'Rejected Cut created a history entry')
 })
 
+test('editor chrome button keeps native clipboard ownership with selected blocks', async () => {
+  const editor = make([para('a', 'Alpha'), para('b', 'Bravo')])
+  editor.blocks.select(['a'])
+  const root = editorRoot(editor)
+  const button = document.createElement('button')
+  button.textContent = 'Independent auxiliary control'
+  root.appendChild(button)
+  const before = editor.save().blocks
+  try {
+    for (const type of ['copy', 'cut', 'paste']) {
+      const clipboard = new DataTransfer()
+      const event = new ClipboardEvent(type, {
+        bubbles: true, cancelable: true, clipboardData: clipboard,
+      })
+      button.dispatchEvent(event)
+      assert(!event.defaultPrevented,
+        'editor chrome button lost native ' + type + ' ownership to an old selection')
+      equal(clipboard.getData(CLIPBOARD_FRAGMENT_MIME), '',
+        'editor exposed selected canonical block data to a toolbar button')
+      equal(editor.save().blocks, before)
+    }
+  } finally {
+    button.remove()
+    editor.blocks.clearSelection()
+  }
+})
+
 await run()
