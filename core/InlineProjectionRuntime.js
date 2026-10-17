@@ -47,7 +47,7 @@ export class InlineProjectionRuntime {
   #blocks=new Map()
   #projectingBlocks=new Set()
   #invalidatedProjectionBlocks=new Set()
-  /** @type {Set<() => void>} */
+  /** @type {Set<(() => void) & { blockId: string }>} */
   #pendingPreparations=new Set()
   #owned=new WeakMap()
   #readOnly
@@ -273,7 +273,7 @@ export class InlineProjectionRuntime {
 
   /** Complete owned inline DOM/cache changes under the DocumentRuntime's
    * existing protected-projection edit guard. A later projection transaction
-   * retires removed entries; no new canonical store is introduced.
+   * retires removed entries; no new canonical store is introducedced.
    */
   applyNativeInlineChanges(blockId,fieldKey,changes){
     this.#assertLive()
