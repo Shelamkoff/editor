@@ -377,6 +377,43 @@ test('LinkPreview accepts a URL typed from an empty draft and resolves metadata 
   equal(editor.save().blocks[0].data.title, 'Resolved')
 })
 
+test('LinkPreview host URL replacement stays a separate Undo step from explicit metadata refresh', async () => {
+  const pending = []
+  const fixture = pluginParityFixtures.find(entry => entry.name === 'LinkPreview')
+  const editor = pluginEditor({
+    ...fixture,
+    factory: () => fixture.factory({
+      fetchMeta: (url, { signal }) => new Promise(resolve => {
+        pending.push({ url, signal, resolve })
+      }),
+    }),
+  })
+  const before = editor.save().blocks
+  const hostUrl = 'https://host.example/new'
+  editor.blocks.update('a', current => ({
+    data: { ...current.data, url: hostUrl, title: 'Host title', domain: 'host.example' },
+  }))
+  const afterHost = editor.save().blocks
+  const input = focusedField(editor, { key: 'url' }, 'end')
+  equal(input.value, hostUrl)
+  input.dispatchEvent(new Event('change', { bubbles: true }))
+  equal(pending.length, 1, 'explicit metadata refresh did not start')
+  pending[0].resolve({ title: 'Enriched title' })
+  await pause(50)
+  const afterMetadata = editor.save().blocks
+  equal(afterMetadata[0].data.title, 'Enriched title')
+
+  equal(editor.undo(), true)
+  equal(editor.save().blocks, afterHost,
+    'metadata enrichment improperly absorbed an earlier unrelated host URL update')
+  equal(editor.undo(), true)
+  equal(editor.save().blocks, before)
+  equal(editor.redo(), true)
+  equal(editor.save().blocks, afterHost)
+  equal(editor.redo(), true)
+  equal(editor.save().blocks, afterMetadata)
+})
+
 test('LinkPreview URL and delayed metadata undo as one action when no edit intervenes', async () => {
   const pending = []
   const fixture = pluginParityFixtures.find(entry => entry.name === 'LinkPreview')
