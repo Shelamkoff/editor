@@ -194,3 +194,32 @@ test('rejected fresh inline text insertion cannot fire the success observer', ()
   assert.equal(runtimeResult, false)
   assert.deepEqual(carets, [])
 })
+
+test('frozen inline Paste patterns remain usable without writable lastIndex', () => {
+  const { controller, calls, definition } = harness()
+  definition.paste.patterns = Object.freeze([
+    Object.freeze(/^#[a-f0-9]{3}$/gi),
+  ])
+  assert.equal(controller.pasteText('#fff tail'), true,
+    'inline paste tried to mutate a frozen extension-owned RegExp')
+  assert.equal(calls.length, 1)
+  assert.deepEqual(calls[0].segments, [
+    { kind: 'widget', type: 'color', data: { value: '#fff' } },
+    { kind: 'text', text: ' tail' },
+  ])
+})
+
+test('inline Paste does not reset or advance extension-owned RegExp lastIndex', () => {
+  const { controller, calls, definition } = harness()
+  const pattern = /^#[a-f0-9]{3}$/gi
+  pattern.lastIndex = 2
+  definition.paste.patterns = [pattern]
+
+  assert.equal(controller.pasteText('#f00 tail'), true)
+  assert.equal(calls.length, 1)
+  assert.equal(pattern.lastIndex, 2,
+    'a reusable plugin pattern had its observable state overwritten by Paste')
+  assert.equal(controller.pasteText('#fff tail'), true,
+    'subsequent matches depend on a mutable extension pattern cursor')
+  assert.equal(pattern.lastIndex, 2)
+})
