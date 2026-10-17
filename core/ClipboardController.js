@@ -159,6 +159,9 @@ export class ClipboardController {
 
   #onCopy(event) {
     if (event.defaultPrevented || !event.clipboardData || !this.#ownsEvent(event)) return
+    // Registered plain-text controls own their native Copy as well as Cut and
+    // Paste. A stale cross-block selection must not export document fragments.
+    if(this.#reconciler.resolveEditableTarget(event.target)?.mode==='plain-text')return
     const ownerDocument = this.#root.ownerDocument
 
     if (this.#crossSelection?.active) {
@@ -610,7 +613,9 @@ export class ClipboardController {
     const owner = this.#reconciler.resolveEditableTarget(target)
     if (owner?.mode === 'plain-text' && (target === owner.element || owner.element.contains(target))) return true
     if (owner?.mode === 'rich-text' && editingHostForEvent(this.#root, target) === owner.element) return true
-    return !target.closest?.('input, textarea, select, [contenteditable="true"], [data-inline-plugin]')
+    // Button/chrome and locked widget controls retain native clipboard
+    // ownership. A stale model selection cannot authorize their gestures.
+    return !target.closest?.('input, textarea, select, button, [contenteditable="true"], [contenteditable="false"], [data-inline-plugin]')
   }
 
   #mutateCut(operation) {
