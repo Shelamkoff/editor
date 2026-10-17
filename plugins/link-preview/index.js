@@ -248,10 +248,12 @@ export function createLinkPreviewPlugin(config={}){
             const task=context.beginTask()
             currentTask=task
             const current=++generation
-            // Do not allow a response to overwrite a more recent host edit
-            // to individual metadata fields while the URL itself is stable.
-            const atRequest=context.getData()
             try{
+              // The data authority can be revoked synchronously even after
+              // beginTask(). Both snapshot acquisition and external metadata
+              // providers belong to the same finally/cancellation boundary.
+              // Preserve newer host edits when the URL stays unchanged.
+              const atRequest=context.getData()
               const result=await snapshot.fetchMeta(url,{signal:task.signal})
               if(dead||task.signal.aborted||current!==generation)return
               const meta=result&&typeof result==='object'?result:{}
