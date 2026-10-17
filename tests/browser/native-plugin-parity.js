@@ -1311,6 +1311,49 @@ test('Embed changing video URL preserves its native committed caption', async ()
 })
 
 
+test('Embed native caption survives metadata and source updates without losing caret', async () => {
+  const fixture = pluginParityFixtures.find(entry => entry.name === 'Embed')
+  const editor = pluginEditor(fixture)
+  const field = focusedField(editor, { key: 'caption' }, 2)
+  await printable('X')
+  const afterInput = editor.save().blocks
+  equal(afterInput[0].data.caption, 'AlXpha')
+  checkFieldCaret(field, 3)
+
+  editor.blocks.update('a', current => ({
+    data: { ...current.data, title: 'Updated title', duration: '2:34' },
+  }))
+  const afterMetadata = editor.save().blocks
+  equal(afterMetadata[0].data.caption, 'AlXpha')
+  equal(blockElement(editor, 'a').querySelector('.oe-embed__caption'), field,
+    'Embed metadata change detached the live native caption')
+  equal(document.activeElement, field,
+    'Embed metadata change moved focus from its native caption')
+  checkFieldCaret(field, 3)
+  equal(blockElement(editor, 'a').querySelector('.oe-embed__title')?.textContent, 'Updated title')
+  equal(blockElement(editor, 'a').querySelector('.oe-embed__duration')?.textContent, '2:34')
+
+  editor.blocks.update('a', current => ({
+    data: { ...current.data, videoId: '9bZkp7q19f0' },
+  }))
+  const afterSource = editor.save().blocks
+  equal(afterSource[0].data.caption, 'AlXpha')
+  equal(afterSource[0].data.videoId, '9bZkp7q19f0')
+  equal(blockElement(editor, 'a').querySelector('.oe-embed__caption'), field,
+    'Embed source change detached an unchanged native caption')
+  checkFieldCaret(field, 3)
+
+  await printable('Y')
+  equal(editor.save().blocks[0].data.caption, 'AlXYpha')
+  checkFieldCaret(field, 4)
+  equal(editor.undo(), true)
+  equal(editor.save().blocks, afterSource)
+  equal(editor.undo(), true)
+  equal(editor.save().blocks, afterMetadata)
+  equal(editor.undo(), true)
+  equal(editor.save().blocks, afterInput)
+})
+
 test('Gallery native caption then style update keeps the same editing host', async () => {
   const fixture = pluginParityFixtures.find(entry => entry.name === 'Gallery')
   const editor = pluginEditor(fixture)
