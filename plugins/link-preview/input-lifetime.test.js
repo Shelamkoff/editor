@@ -103,7 +103,7 @@ class FakeElement {
   }
 }
 
-function mount(config = {}) {
+function mount(config = {}, initialOverrides = {}) {
   let nextTimer = 1
   const timers = new Map()
   const ownerDocument = {
@@ -131,6 +131,7 @@ function mount(config = {}) {
     title: 'Alpha',
     domain: 'example.com',
     template: 'horizontal',
+    ...initialOverrides,
   }
   let instance
   const context = {
@@ -320,5 +321,29 @@ test('LinkPreview retires a task if authority is revoked during metadata snapsho
     assert.equal(h.taskSignals().length, 1)
     assert.equal(h.taskSignals()[0].aborted, true,
       'a failure reading the metadata baseline left an acquired DataTask alive')
+  } finally { h.destroy() }
+})
+
+test('LinkPreview initial metadata microtask does not restart an already-submitted new URL', async () => {
+  const requests = []
+  const h = mount({
+    fetchMeta: (url, { signal }) => {
+      requests.push({ url, signal })
+      return new Promise(() => {})
+    },
+  }, { title: '' })
+  try {
+    // Initial empty metadata queues an asynchronous attempt for the loaded URL.
+    // Submit a different URL before that microtask has executed.
+    h.input.value = 'https://vimeo.com/123456'
+    h.input.dispatch('keydown')
+    assert.deepEqual(requests.map(request => request.url), ['https://vimeo.com/123456'])
+
+    await Promise.resolve()
+    await Promise.resolve()
+    assert.deepEqual(requests.map(request => request.url), ['https://vimeo.com/123456'],
+      'outdated initial metadata microtask restarted the new URL request')
+    assert.equal(requests[0].signal.aborted, false,
+      'initial metadata microtask canceled a more recent user-initiated request')
   } finally { h.destroy() }
 })
