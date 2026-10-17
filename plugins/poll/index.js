@@ -146,6 +146,15 @@ export function createPollPlugin(config={}){
           let unsubscribe=null
           let connectionVersion=0
           let loadVersion=0
+          // Authoring markers can survive a runtime-only projection, but the
+          // submit/actions surface is regenerated on every projection.
+          const ViewAbortController=document.defaultView?.AbortController??AbortController
+          let authorViewController=null
+          let runtimeViewController=null
+          context.signal.addEventListener('abort',()=>{
+            authorViewController?.abort()
+            runtimeViewController?.abort()
+          },{once:true})
 
           const report=error=>{
             if(!dead){failed=true;projectRuntime()}
@@ -177,6 +186,9 @@ export function createPollPlugin(config={}){
             const rows=list?[...list.querySelectorAll('.oe-poll__option')]:[]
             const keepFields=preserveFields&&question&&list&&rows.length===data.options.length
               &&rows.every((row,index)=>row.getAttribute('data-option-id')===data.options[index].id)
+            runtimeViewController?.abort()
+            runtimeViewController=new ViewAbortController()
+            const runtimeSignal=runtimeViewController.signal
             if(keepFields){
               for(const child of [...wrapper.children])if(child!==question&&child!==list)child.remove()
               for(const row of rows){
@@ -188,6 +200,9 @@ export function createPollPlugin(config={}){
                 choice.disabled=readOnly||loading||submitting
               }
             }else{
+              authorViewController?.abort()
+              authorViewController=new ViewAbortController()
+              const authorSignal=authorViewController.signal
               wrapper.replaceChildren()
 
               const question=document.createElement('div')
@@ -214,7 +229,7 @@ export function createPollPlugin(config={}){
                 choice.textContent=selected.has(option.id)?'✓':'○'
                 choice.classList.toggle('oe-poll__option-marker--selected',selected.has(option.id))
                 choice.disabled=readOnly||loading||submitting
-                choice.addEventListener('click',()=>toggleSelection(option.id),{signal:context.signal})
+                choice.addEventListener('click',()=>toggleSelection(option.id),{signal:authorSignal})
 
                 const text=document.createElement('div')
                 text.className='oe-poll__option-text'
@@ -233,7 +248,7 @@ export function createPollPlugin(config={}){
                   remove.addEventListener('click',()=>{
                     if(data.options.length<=2)return
                     retainControlFocus(wrapper,()=>context.updateData(current=>({...current,options:current.options.filter(item=>item.id!==option.id)})))
-                  },{signal:context.signal})
+                  },{signal:authorSignal})
                   row.appendChild(remove)
                 }
 
@@ -302,7 +317,7 @@ export function createPollPlugin(config={}){
             submit.className='oe-poll__submit'
             submit.disabled=readOnly||loading||submitting||selected.size===0
             submit.textContent=submitting?runtimeContext.t('submitting','Submitting…'):runtimeContext.t('vote','Vote')
-            submit.addEventListener('click',()=>void submitVote(),{signal:context.signal})
+            submit.addEventListener('click',()=>void submitVote(),{signal:runtimeSignal})
             wrapper.appendChild(submit)
 
             if(!readOnly){
@@ -313,7 +328,7 @@ export function createPollPlugin(config={}){
               add.addEventListener('click',()=>{
                 const id=context.createId('option')
                 retainControlFocus(wrapper,()=>context.updateData(current=>({...current,options:[...current.options,{id,text:''}]})))
-              },{signal:context.signal})
+              },{signal:runtimeSignal})
               wrapper.appendChild(add)
 
               const actions=document.createElement('div')
@@ -324,12 +339,12 @@ export function createPollPlugin(config={}){
                 button.className='oe-poll__action-btn'+(id==='reset'?' oe-poll__action-btn--danger':'')
                 button.dataset.pollAction=id
                 button.textContent=label
-                button.addEventListener('mousedown',event=>event.preventDefault(),{signal:context.signal})
+                button.addEventListener('mousedown',event=>event.preventDefault(),{signal:runtimeSignal})
                 button.addEventListener('click',()=>{
                   if(dead||readOnly)return
                   wrapper.focus({preventScroll:true})
                   retainControlFocus(wrapper,()=>context.updateData(operation))
-                },{signal:context.signal})
+                },{signal:runtimeSignal})
                 actions.appendChild(button)
               }
               actionButton('type',runtimeContext.t(data.type==='single'?'single':'multiple','Choice type'),current=>capabilities.settings.apply(current,current.type==='single'?'multiple':'single'))
@@ -565,6 +580,8 @@ export function createPollPlugin(config={}){
             destroy(){
               if(dead)return
               dead=true
+              authorViewController?.abort()
+              runtimeViewController?.abort()
               connectionVersion++
               loadVersion++
               controller?.abort()
