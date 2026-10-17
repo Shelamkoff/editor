@@ -152,6 +152,22 @@ export function createPersonPlugin(config={}){
             }
           }
 
+          // Native input may have advanced canonical rich-text without
+          // reprojecting this source body, specifically to preserve its caret.
+          // Compare the next active person with what the user still sees.
+          const projectedActive=()=>{
+            syncControls()
+            const current=activePerson()
+            if(!current)return null
+            if(readOnly)return current
+            const visible={...current}
+            for(const key of ['name','role','bio']){
+              const field=body.querySelector('.oe-person__'+key)
+              if(field)visible[key]=field.innerHTML.trim()
+            }
+            return visible
+          }
+
           const flushVisible=()=>{
             if(!readOnly)context.commitDomMutation(()=>{})
             data=cloneData(context.getData())
@@ -505,7 +521,7 @@ export function createPersonPlugin(config={}){
             },
             update(next){
               if(dead)return
-              const previousActive=activePerson()
+              const previousActive=projectedActive()
               const previousId=activeId
               data=cloneData(next)
               const nextActive=data.persons.find(person=>person.id===previousId)
