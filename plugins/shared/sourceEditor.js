@@ -61,6 +61,9 @@ export function preloadSourceEditor(wrapper, signal, kinds) {
 export function openSourceEditor(config) {
   if (config.signal.aborted) return { close() {} }
   activeEditors.get(config.wrapper)?.close()
+  // Closing restores focus and can synchronously open a newer editor.
+  // Never overwrite that reentrant successor with an older pending open.
+  if (config.signal.aborted || activeEditors.has(config.wrapper)) return { close() {} }
 
   const surface = ensureSurface(config.wrapper, config.signal, config.kind)
   if (!surface) return { close() {} }
