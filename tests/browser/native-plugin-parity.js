@@ -1354,6 +1354,38 @@ test('Embed native caption survives metadata and source updates without losing c
   equal(editor.save().blocks, afterInput)
 })
 
+test('Embed URL draft and pending parse survive an unrelated canonical update', async () => {
+  const fixture = pluginParityFixtures.find(entry => entry.name === 'Embed')
+  const editor = pluginEditor(fixture)
+  const wrapper = blockElement(editor, 'a')
+  const replace = [...wrapper.querySelectorAll('.oe-embed__action-btn')]
+    .find(button => button.textContent?.trim() === 'Replace')
+  assert(replace, 'Embed Replace action is missing')
+  await clickNative(replace)
+  const input = wrapper.querySelector('.oe-embed__url-input')
+  assert(input && document.activeElement === input, 'Embed URL input was not focused')
+  const draft = 'https://vimeo.com/123456'
+  input.value = draft
+  input.dispatchEvent(new Event('input', { bubbles: true }))
+
+  editor.blocks.update('a', current => ({
+    data: { ...current.data, title: 'Changed by host' },
+  }))
+  const afterMetadata = editor.save().blocks
+  equal(input.value, draft, 'Embed metadata update erased a pending URL draft')
+  equal(document.activeElement, input, 'Embed metadata update blurred the URL input')
+
+  await pause(700)
+  const afterSource = editor.save().blocks
+  equal(afterSource[0].data.service, 'vimeo',
+    'Embed metadata update canceled the pending valid URL parse')
+  equal(afterSource[0].data.videoId, '123456')
+  equal(afterSource[0].data.title, 'Changed by host')
+  equal(editor.undo(), true)
+  equal(editor.save().blocks, afterMetadata,
+    'URL parse was not a separate atomic action after the host update')
+})
+
 test('Gallery native caption then style update keeps the same editing host', async () => {
   const fixture = pluginParityFixtures.find(entry => entry.name === 'Gallery')
   const editor = pluginEditor(fixture)
