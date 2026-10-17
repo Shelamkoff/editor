@@ -377,6 +377,75 @@ test('LinkPreview accepts a URL typed from an empty draft and resolves metadata 
   equal(editor.save().blocks[0].data.title, 'Resolved')
 })
 
+test('LinkPreview URL and delayed metadata undo as one action when no edit intervenes', async () => {
+  const pending = []
+  const fixture = pluginParityFixtures.find(entry => entry.name === 'LinkPreview')
+  const editor = pluginEditor({
+    ...fixture,
+    factory: () => fixture.factory({
+      fetchMeta: (url, { signal }) => new Promise(resolve => {
+        pending.push({ url, signal, resolve })
+      }),
+    }),
+  })
+  const before = editor.save().blocks
+  const input = focusedField(editor, { key: 'url' }, 'end')
+  input.value = 'https://vimeo.com/123456'
+  input.dispatchEvent(new Event('change', { bubbles: true }))
+  equal(pending.length, 1)
+  const afterUrl = editor.save().blocks
+  equal(afterUrl[0].data.url, 'https://vimeo.com/123456')
+  equal(afterUrl[0].data.title, '')
+
+  pending[0].resolve({ title: 'Resolved video', description: 'Metadata description' })
+  await pause(50)
+  const afterMetadata = editor.save().blocks
+  equal(afterMetadata[0].data.title, 'Resolved video')
+  equal(afterMetadata[0].data.description, 'Metadata description')
+  equal(editor.undo(), true)
+  equal(editor.save().blocks, before,
+    'Undo left the submitted URL behind instead of reverting the whole URL gesture')
+  equal(editor.canUndo, false)
+  equal(editor.redo(), true)
+  equal(editor.save().blocks, afterMetadata,
+    'Redo failed to restore URL and its metadata together')
+})
+
+test('LinkPreview metadata remains an independent Undo action after intervening host edit', async () => {
+  const pending = []
+  const fixture = pluginParityFixtures.find(entry => entry.name === 'LinkPreview')
+  const editor = pluginEditor({
+    ...fixture,
+    factory: () => fixture.factory({
+      fetchMeta: (url, { signal }) => new Promise(resolve => {
+        pending.push({ url, signal, resolve })
+      }),
+    }),
+  })
+  const before = editor.save().blocks
+  const input = focusedField(editor, { key: 'url' }, 'end')
+  input.value = 'https://vimeo.com/123456'
+  input.dispatchEvent(new Event('change', { bubbles: true }))
+  const afterUrl = editor.save().blocks
+  equal(pending.length, 1)
+
+  editor.blocks.update('a', current => ({
+    data: { ...current.data, template: 'compact' },
+  }))
+  const afterHost = editor.save().blocks
+  pending[0].resolve({ title: 'Resolved video' })
+  await pause(50)
+  equal(editor.save().blocks[0].data.title, 'Resolved video')
+
+  equal(editor.undo(), true)
+  equal(editor.save().blocks, afterHost,
+    'delayed metadata wrongly merged across the host template edit')
+  equal(editor.undo(), true)
+  equal(editor.save().blocks, afterUrl)
+  equal(editor.undo(), true)
+  equal(editor.save().blocks, before)
+})
+
 test('LinkPreview native URL caret survives template and metadata changes', async () => {
   const fixture = pluginParityFixtures.find(entry => entry.name === 'LinkPreview')
   const editor = pluginEditor(fixture)
