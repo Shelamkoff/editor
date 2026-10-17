@@ -81,3 +81,17 @@ test('Code HTML import preserves v1 trailing-newline behavior', () => {
     language: 'auto',
   })
 })
+
+test('Code HTML Paste preserves all preformatted text around an embedded code element', () => {
+  const importRoot = createCodePlugin({ injectStyles: false }).capabilities.htmlImport.importRoot
+  const pre = {
+    tagName: 'PRE',
+    textContent: 'before inner after\n\n',
+    querySelector: selector => selector === ':scope > code'
+      ? { tagName: 'CODE', textContent: 'inner' } : null,
+  }
+  assert.deepEqual(importRoot(pre), {
+    code: 'before inner after\n',
+    language: 'auto',
+  })
+})
