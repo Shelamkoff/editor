@@ -170,6 +170,9 @@ export class LogicalSelection {
     const fields=this.#reconciler.getEditableFields(point.blockId)
     if(!fields.length)return null
     let owner=fields.find(field=>field.key===point.fieldKey)
+    // History or host replacement can retire a keyed field while keeping the
+    // block alive. Never relocate an explicit old field address to its sibling.
+    if(!owner&&point.fieldKey)return null
     if(!owner)owner=fields[0]
     const length=owner.mode==='plain-text'&&typeof owner.element.value==='string'
       ? owner.element.value.length
