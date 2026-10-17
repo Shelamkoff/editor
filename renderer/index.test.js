@@ -408,6 +408,63 @@ test('renderer replacement and unregister invalidate mounted blocks and keep the
   assert.deepEqual(disposedByNew, [newElement])
 })
 
+
+test('unrevisioned renderTo preserves DOM identity when only JSON object keys reorder', async () => {
+  const { EditorRenderer } = await import('./index.js')
+  let renders = 0
+  const disposed = []
+  const renderer = new EditorRenderer({ blockTypes: [], injectStyles: false })
+  renderer.registerRenderer({
+    type: 'semantic-json',
+    schema: passthroughSchema,
+    render(block) {
+      renders++
+      const element = document.createElement('article')
+      element.textContent = block.data.nested.left
+      return element
+    },
+    destroy(element) { disposed.push(element) },
+  })
+  const container = document.createElement('main')
+  const makeBlock = (data, tunes, inline) => ({
+    id: 'a', type: 'semantic-json', dataVersion: 1, data, tunes, inline,
+  })
+  const initial = makeBlock({
+    nested: { left: 'L', right: 'R' },
+    slides: [{ id: 'one', label: 'A' }, { id: 'two', label: 'B' }],
+  }, { align: 'center', padding: 2 }, {
+    one: { type: 'future-inline', dataVersion: 1, data: { name: 'Ada', id: 1 } },
+  })
+  const reordered = makeBlock({
+    slides: [{ label: 'A', id: 'one' }, { label: 'B', id: 'two' }],
+    nested: { right: 'R', left: 'L' },
+  }, { padding: 2, align: 'center' }, {
+    one: { data: { id: 1, name: 'Ada' }, dataVersion: 1, type: 'future-inline' },
+  })
+
+  try {
+    renderer.renderTo({ version: '2.0.0', blocks: [initial] }, container)
+    const firstElement = container.children[0].children[0]
+    renderer.renderTo({ version: '2.0.0', blocks: [reordered] }, container)
+
+    assert.equal(renders, 1, 'equivalent object key order repainted an unchanged block')
+    assert.equal(container.children[0].children[0], firstElement,
+      'unrevisioned renderer needlessly replaced live DOM and lost its state')
+    assert.deepEqual(disposed, [])
+
+    const changed = makeBlock({
+      ...reordered.data,
+      slides: [...reordered.data.slides].reverse(),
+    }, reordered.tunes, reordered.inline)
+    renderer.renderTo({ version: '2.0.0', blocks: [changed] }, container)
+    assert.equal(renders, 2, 'actual array reordering should invalidate DOM reuse')
+    assert.notEqual(container.children[0].children[0], firstElement)
+    assert.deepEqual(disposed, [firstElement])
+  } finally {
+    renderer.destroy(container)
+  }
+})
+
 test('producer revisions skip deep signatures while JSON input keeps compatibility fallback', async () => {
   const { EditorRenderer: BaseEditorRenderer } = await import('./index.js')
   const EditorRenderer=CurrentFixtureRenderer(BaseEditorRenderer)
