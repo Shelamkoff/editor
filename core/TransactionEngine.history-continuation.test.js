@@ -76,3 +76,40 @@ test('invalid continuation metadata fails before mutation', () => {
   assert.deepEqual(store.list(), initial)
   assert.equal(history.undoDepth, 0)
 })
+
+
+test('host-origin source update cannot be merged into a later plugin metadata refresh', () => {
+  const { store, history, engine } = harness()
+  const before = store.get('a')
+  engine.execute({ origin: 'external', name: 'block.update' },
+    tx => tx.update('a', block('a', 'https://host.example')))
+  const afterHost = store.get('a')
+  const baseRevision = store.revision
+  engine.execute({
+    origin: 'plugin', name: 'block.update',
+    continuation: { baseRevision, blockId: 'a', fieldKey: 'url' },
+  }, tx => tx.update('a', block('a', 'https://host.example', 'Fetched title')))
+  assert.equal(history.undoDepth, 2, 'a user metadata refresh adopted host-authored URL history')
+  assert.equal(engine.undo(), true)
+  assert.deepEqual(store.get('a'), afterHost, 'Undo removed the host URL rather than just metadata')
+  assert.equal(engine.undo(), true)
+  assert.deepEqual(store.get('a'), before)
+})
+
+test('plugin-authored URL replacement followed by its async metadata is one Undo action', () => {
+  const { store, history, engine } = harness()
+  const before = store.get('a')
+  engine.execute({ origin: 'plugin', name: 'block.update' },
+    tx => tx.update('a', block('a', 'https://plugin.example')))
+  const baseRevision = store.revision
+  engine.execute({
+    origin: 'plugin', name: 'block.update',
+    continuation: { baseRevision, blockId: 'a', fieldKey: 'url' },
+  }, tx => tx.update('a', block('a', 'https://plugin.example', 'Fetched title')))
+  assert.equal(history.undoDepth, 1)
+  assert.equal(engine.undo(), true)
+  assert.deepEqual(store.get('a'), before)
+  assert.equal(engine.redo(), true)
+  assert.equal(store.get('a').data.url, 'https://plugin.example')
+  assert.equal(store.get('a').data.title, 'Fetched title')
+})
