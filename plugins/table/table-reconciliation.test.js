@@ -135,3 +135,38 @@ test('Table keeps unchanged mounted row and editable cell stable on sibling text
   assert.equal(row.moveCount, firstRowMoves, 'unmodified row was detached from the table')
   instance.destroy()
 })
+
+test('Table maintains headings and row order through 600 deterministic structural edits', () => {
+  let state = 271828183
+  const random = limit => {
+    state ^= state << 13
+    state ^= state >>> 17
+    state ^= state << 5
+    return (state >>> 0) % limit
+  }
+  let ids = ['a', 'b', 'c'], headings = true, count = 0
+  const instance = mount(ids, headings)
+  for (let step = 0; step < 600; step++) {
+    const next = [...ids], action = random(6)
+    if (action === 0 && next.length < 12) next.splice(random(next.length + 1), 0, 'new-' + count++)
+    else if (action === 1 && next.length > 1) next.splice(random(next.length), 1)
+    else if (action === 2) next.reverse()
+    else if (action === 3 && next.length > 1) next.unshift(next.pop())
+    else if (action === 4) headings = !headings
+    const before = instance.editableFields().map(field => ({ id: field.key, element: field.element, moves: field.element.moveCount }))
+    instance.update(data(next, headings))
+    assert.deepEqual(rows(instance), next.map((id, index) => ({
+      id, tag: headings && index === 0 ? 'TH' : 'TD',
+    })), 'Table DOM heading/order differs from data at step ' + step)
+    assert.deepEqual(instance.read().rows.map(row => row.id), next)
+    if (action === 5) {
+      for (const old of before) {
+        const current = instance.editableFields().find(field => field.key === old.id)
+        assert.equal(current?.element, old.element, 'no-op update replaced the cell')
+        assert.equal(current?.element.moveCount, old.moves, 'no-op update moved the cell')
+      }
+    }
+    ids = next
+  }
+  instance.destroy()
+})
