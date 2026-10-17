@@ -29,7 +29,9 @@ export function acquireStyleUrls(urls, ownerDocument = globalThis.document) {
         entries.delete(url)
         // Continue releasing remaining ownership even if a DOM adapter
         // rejects removal; partial acquisition must never retain counts.
-        try { entry.link.remove() } catch {}
+        try {
+          if (!entry.link.parentNode || entry.link.parentNode === head) entry.link.remove()
+        } catch {}
       }
     }
     if (entries.size === 0) entriesByDocument.delete(ownerDocument)
@@ -40,7 +42,17 @@ export function acquireStyleUrls(urls, ownerDocument = globalThis.document) {
   }
   acquiringByDocument.add(ownerDocument)
   try {
-    for (const url of new Set(urls)) {
+    // This helper can also be called directly, without ExtensionRegistry's
+    // snapshot. Never invoke a caller-owned Array iterator while acquiring.
+    const seen = new Set()
+    for (let index = 0; index < urls.length; index++) {
+      if (!Object.hasOwn(urls, index)) {
+        throw new TypeError('Stylesheet URLs must be a dense array')
+      }
+      const url = urls[index]
+      if (typeof url !== 'string') throw new TypeError('Stylesheet URL must be a string')
+      if (seen.has(url)) continue
+      seen.add(url)
       const existing = entries.get(url)
       if (existing) {
         existing.count++
@@ -53,7 +65,9 @@ export function acquireStyleUrls(urls, ownerDocument = globalThis.document) {
           head.appendChild(link)
         } catch (error) {
           // Some DOM adapters append before reporting failure.
-          try { link.remove() } catch {}
+          try {
+            if (!link.parentNode || link.parentNode === head) link.remove()
+          } catch {}
           throw error
         }
         entries.set(url, { count: 1, link })
