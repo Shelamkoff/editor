@@ -96,12 +96,13 @@ export class InlineToolMounts {
     entry.started = true
     entry.revoke = revoke
     // Acquisition hooks are extension callbacks, not authoring commands.
-    // Guard them like teardown so reentrant persisted mutations are denied.
-    this.#complete(this.#observe(()=>tool.bindSelectionPort?.(port)))
+    // Guard callback *and* synchronous-result thenable inspection. An authored
+    // return value can expose a mutating getter for its `then` property.
+    this.#observe(()=>this.#complete(tool.bindSelectionPort?.(port)))
     // Port binding may synchronously revoke this toolbar. Do not mount a
     // resource after its selection authority and disposal have been retired.
     if (this.#closed || owners.get(entry.source) !== entry) return
-    this.#complete(this.#observe(()=>tool.onMount?.(button, mutations)))
+    this.#observe(()=>this.#complete(tool.onMount?.(button, mutations)))
   }
 
   /** Retire all scopes before cleanup; independently release every started owner. */
@@ -115,8 +116,8 @@ export class InlineToolMounts {
     for (const entry of this.#entries) attempt(() => entry.revoke?.())
     for (const entry of [...this.#entries].reverse()) {
       if (entry.started) {
-        attempt(() => this.#complete(this.#observe(() => entry.tool.bindSelectionPort?.(null))))
-        attempt(() => this.#complete(this.#observe(() => entry.tool.destroy?.())))
+        attempt(() => this.#observe(() => this.#complete(entry.tool.bindSelectionPort?.(null))))
+        attempt(() => this.#observe(() => this.#complete(entry.tool.destroy?.())))
       }
       if (owners.get(entry.source) === entry) owners.delete(entry.source)
     }
