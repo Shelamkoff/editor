@@ -444,6 +444,7 @@ export function createCarouselPlugin(config={}){
             /** @type {Slide[]} */
             const slides=[]
             const createdObjectUrls=[]
+            let committed=false
             try{
               for(const file of files){
                 if(task.signal.aborted)break
@@ -476,14 +477,19 @@ export function createCarouselPlugin(config={}){
                   if(!task.signal.aborted)console.warn('[Carousel] File resolution failed',error)
                 }
               }
-              const committed=!task.signal.aborted&&addSlides(slides,task)
+              committed=!task.signal.aborted&&addSlides(slides,task)
+            }catch(error){
+              // A failed canonical commit is not an owned media resource.
+              // Catch here: drop handlers intentionally invoke this async
+              // operation without awaiting its Promise.
+              if(!task.signal.aborted)console.warn('[Carousel] File batch failed',error)
+            }finally{
               if(!committed){
                 for(const url of createdObjectUrls){
                   objectUrls.get(url)?.revokeObjectURL(url)
                   objectUrls.delete(url)
                 }
               }
-            }finally{
               finishTask(task)
             }
           }
