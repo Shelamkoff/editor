@@ -323,8 +323,16 @@ export function createLinkPreviewPlugin(config={}){
           },{signal:context.signal})
 
           project(data)
-          if(data.url&&!data.title&&!data.image&&!data.favicon){
-            queueMicrotask(()=>{if(!dead&&!readOnly)void resolveMeta(data.url)})
+          // Initial metadata enrichment belongs only to the URL seen at
+          // creation. A user submit or host update before this microtask runs
+          // must not restart a newer request or enrich obsolete data.
+          const initialMetaUrl=data.url
+          if(snapshot.fetchMeta&&initialMetaUrl&&!data.title&&!data.image&&!data.favicon){
+            queueMicrotask(()=>{
+              if(dead||readOnly||context.signal.aborted||currentTask
+                ||data.url!==initialMetaUrl||data.title||data.image||data.favicon)return
+              void resolveMeta(initialMetaUrl)
+            })
           }
 
           return {
