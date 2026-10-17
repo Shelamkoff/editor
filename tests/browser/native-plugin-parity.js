@@ -1159,4 +1159,59 @@ for (const name of ['Image', 'Gallery', 'Carousel', 'Person', 'Attaches', 'Embed
   })
 }
 
+
+test('Gallery regenerated view clears an interrupted image drag', async () => {
+  const fixture = pluginParityFixtures.find(item => item.name === 'Gallery')
+  const editor = pluginEditor(fixture)
+  const root = blockElement(editor, 'a').querySelector('.oe-gallery')
+  const source = root.querySelector('.oe-gallery__slot[data-image-id="first"]')
+  assert(source, 'Gallery source slot is missing')
+  const dragstart = new Event('dragstart', { bubbles: true, cancelable: true })
+  Object.defineProperty(dragstart, 'dataTransfer', {
+    value: { setData() {}, effectAllowed: '' },
+  })
+  source.dispatchEvent(dragstart)
+  editor.blocks.update('a', current => ({
+    data: { ...current.data, images: current.data.images.map(image =>
+      image.id === 'second' ? { ...image, caption: 'Updated second' } : image) },
+  }))
+  const over = new Event('dragover', { bubbles: true, cancelable: true })
+  const transfer = { types: ['Files'], dropEffect: 'none' }
+  Object.defineProperty(over, 'dataTransfer', { value: transfer })
+  root.dispatchEvent(over)
+  assert(over.defaultPrevented, 'old image drag prevented a fresh file drop after Gallery projection')
+  equal(transfer.dropEffect, 'copy')
+})
+
+test('Person regenerated tabs reject a drag from the retired tab tree', async () => {
+  const fixture = pluginParityFixtures.find(item => item.name === 'Person')
+  const editor = pluginEditor({ ...fixture, data: {
+    persons: [
+      { id: 'first', name: 'Alpha', role: 'Writer', bio: '', avatar: '', links: [] },
+      { id: 'second', name: 'Bravo', role: 'Editor', bio: '', avatar: '', links: [] },
+    ],
+  } })
+  const tabs = blockElement(editor, 'a').querySelector('.oe-person__tabs')
+  const source = tabs.querySelector('.oe-person__tab[data-person-id="first"]')
+  assert(source)
+  const start = new Event('dragstart', { bubbles: true, cancelable: true })
+  Object.defineProperty(start, 'dataTransfer', { value: { setData() {}, effectAllowed: '' } })
+  source.dispatchEvent(start)
+  editor.blocks.update('a', current => ({
+    data: { persons: current.data.persons.map(person => person.id === 'second'
+      ? { ...person, role: 'Changed role' } : person) },
+  }))
+  const target = tabs.querySelector('.oe-person__tab[data-person-id="second"]')
+  assert(target)
+  const hover = new Event('dragover', { bubbles: true, cancelable: true })
+  target.dispatchEvent(hover)
+  assert(!hover.defaultPrevented, 'old Person tab drag survived rebuilding its source')
+  const newStart = new Event('dragstart', { bubbles: true, cancelable: true })
+  Object.defineProperty(newStart, 'dataTransfer', { value: { setData() {}, effectAllowed: '' } })
+  tabs.querySelector('.oe-person__tab[data-person-id="first"]').dispatchEvent(newStart)
+  const currentHover = new Event('dragover', { bubbles: true, cancelable: true })
+  target.dispatchEvent(currentHover)
+  assert(currentHover.defaultPrevented, 'fresh Person tab drag stopped working')
+})
+
 await run()
