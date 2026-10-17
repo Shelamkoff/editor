@@ -97,6 +97,7 @@ class Node {
     const event = { type, target: this, preventDefault() {}, stopPropagation() {} }
     for (const listener of [...(this.listeners.get(type) ?? [])]) listener(event)
   }
+  insertAdjacentHTML() { /* Trusted icons do not affect panel lifecycle. */ }
   setAttribute(name, value) { this.attributes.set(name, String(value)) }
   getAttribute(name) { return this.attributes.get(name) ?? null }
   querySelectorAll(selector) {
@@ -120,7 +121,7 @@ class Node {
 }
 function setup() {
   const doc = {
-    defaultView: { AbortController },
+    defaultView: { AbortController, addEventListener() {}, removeEventListener() {} },
     activeElement: null,
     createElement(tag) { return new Node(tag, doc) },
     createTextNode(value) {
@@ -134,8 +135,8 @@ function setup() {
   let canonical = {
     ...definition.schema.createDefault(),
     images: [
-      { id: 'first', url: 'https://example.test/first.png', caption: 'Alpha' },
-      { id: 'second', url: 'https://example.test/second.png', caption: 'Bravo' },
+      { id: 'first', url: 'https://example.test/first.png', caption: '' },
+      { id: 'second', url: 'https://example.test/second.png', caption: '' },
     ],
     layout: '1',
     styles: { gap: '8px' },
@@ -190,7 +191,7 @@ test('retired Gallery style input is inert after a full block projection', () =>
     h.external({
       ...h.model(),
       images: h.model().images.map(image => image.id === 'second'
-        ? { ...image, caption: 'Changed second' } : image),
+        ? { ...image, url: 'https://example.test/changed.png' } : image),
       styles: { gap: '12px' },
     })
     const currentGap = h.gapInput(h.form())
