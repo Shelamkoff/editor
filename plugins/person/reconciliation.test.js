@@ -354,3 +354,31 @@ test('Person still reprojects an externally changed active field', () => {
   assert.equal(instance.read().persons[0].name, 'Remote author name')
   instance.destroy()
 })
+
+
+test('Person keeps a natively edited link URL when a different person changes', () => {
+  const initial = input()
+  initial.persons[0].links.push({
+    id: 'site', type: 'website', url: 'https://example.com/Alpha',
+  })
+  const { instance, ownerDocument, setCanonicalData } = mount(initial)
+  const key = 'person:a:link:site:url'
+  const original = instance.editableFields().find(field => field.key === key)?.element
+  assert.ok(original, 'test missing the original link editor')
+  original.focus()
+
+  const canonical = structuredClone(initial)
+  canonical.persons[0].links[0].url = 'https://example.com/AlXpha'
+  original.value = canonical.persons[0].links[0].url
+  setCanonicalData(canonical)
+  const next = structuredClone(canonical)
+  next.persons[1].role = 'Writer'
+  setCanonicalData(next)
+  instance.update(next)
+
+  assert.equal(instance.editableFields().find(field => field.key === key)?.element, original,
+    'Person sibling update detached a natively edited link input')
+  assert.equal(ownerDocument.activeElement, original)
+  assert.equal(instance.read().persons[0].links[0].url, 'https://example.com/AlXpha')
+  instance.destroy()
+})
