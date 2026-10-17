@@ -1601,6 +1601,20 @@ test('Attaches keeps the active native filename caret when a sibling name change
     'typing after sibling edit lost author text or selected the wrong file')
 })
 
+test('Attaches persists an intentionally empty filename after native deletion', async () => {
+  const fixture = pluginParityFixtures.find(item => item.name === 'Attaches')
+  const editor = pluginEditor(fixture)
+  const initialName = editor.save().blocks[0].data.files[0].name
+  assert(initialName.length > 0, 'Attaches fixture needs an authored filename')
+  const field = focusedField(editor, { key: 'file:first:name' }, 'end')
+  for (let index = 0; index < initialName.length; index++) {
+    await dispatchKey('Backspace', 'Backspace', 8)
+  }
+  equal(field.textContent, '', 'native deletion did not clear the editing field')
+  equal(editor.save().blocks[0].data.files[0].name, '',
+    'an empty authored attachment name was replaced with its stale value')
+})
+
 test('Attaches removing a different file preserves a committed native file name', async () => {
   const fixture = pluginParityFixtures.find(item => item.name === 'Attaches')
   const original = fixture.data.files[0]
