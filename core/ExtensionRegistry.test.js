@@ -791,3 +791,31 @@ test('ExtensionRegistry snapshots formatting and stylesheet arrays without calle
     assert.deepEqual([...registry.getBlockDefinition('paragraph').capabilities.formatting.inlineTools], ['bold'])
   } finally { registry.destroy() }
 })
+
+for (const capabilityName of ['settings', 'inlineControls']) {
+  test('ExtensionRegistry captures ' + capabilityName + ' label accessor only once', () => {
+    let reads = 0
+    const capability = {
+      kind: 'actions',
+      actions() { return [] },
+      apply(data) { return data },
+      get label() {
+        reads++
+        if (reads > 1) throw new Error('settings label accessor evaluated more than once')
+        return { key: 'actions', fallback: 'Block actions' }
+      },
+    }
+    const source = {
+      ...blockDefinition('paragraph'),
+      capabilities: { [capabilityName]: capability },
+    }
+    const registry = new ExtensionRegistry({
+      ownerDocument: documentStub(), blocks: [source], acquireStyles: false,
+    })
+    try {
+      const prepared = registry.getBlockDefinition('paragraph').capabilities[capabilityName]
+      assert.equal(prepared.label.fallback, 'Block actions')
+      assert.equal(reads, 1)
+    } finally { registry.destroy() }
+  })
+}
