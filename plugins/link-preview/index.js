@@ -182,6 +182,7 @@ export function createLinkPreviewPlugin(config={}){
           let currentTask=null
           let generation=0
           let inputTimer=null
+          let composing=false
           const timerHost=document.defaultView??globalThis
           const clearInputTimer=()=>{
             if(inputTimer!==null)timerHost.clearTimeout(inputTimer)
@@ -275,6 +276,7 @@ export function createLinkPreviewPlugin(config={}){
           }
 
           const commitUrl=()=>{
+            if(composing)return
             clearInputTimer()
             if(readOnly||dead)return
             const url=sanitizeUrl(input.value,{policy:'external',allowRelative:false,fallback:''})
@@ -306,7 +308,17 @@ export function createLinkPreviewPlugin(config={}){
             input.focus()
           },{signal:context.signal})
 
+          input.addEventListener('compositionstart',()=>{
+            composing=true
+            clearInputTimer()
+          },{signal:context.signal})
+          input.addEventListener('compositionend',()=>{
+            composing=false
+            clearInputTimer()
+            if(!readOnly&&!dead)inputTimer=timerHost.setTimeout(commitUrl,500)
+          },{signal:context.signal})
           input.addEventListener('keydown',event=>{
+            if(composing||event.isComposing||event.keyCode===229)return
             if(event.key==='Enter'){
               event.preventDefault()
               event.stopPropagation()
@@ -316,9 +328,9 @@ export function createLinkPreviewPlugin(config={}){
             }
           },{signal:context.signal})
           input.addEventListener('change',commitUrl,{signal:context.signal})
-          input.addEventListener('input',()=>{
+          input.addEventListener('input',event=>{
             clearInputTimer()
-            if(readOnly||dead)return
+            if(readOnly||dead||composing||event.isComposing)return
             inputTimer=timerHost.setTimeout(commitUrl,500)
           },{signal:context.signal})
 
@@ -344,13 +356,14 @@ export function createLinkPreviewPlugin(config={}){
             update(next){if(!dead)project(next)},
             editableFields:()=>Object.freeze([Object.freeze({key:'url',element:input,mode:/** @type {'plain-text'} */('plain-text')})]),
             setReadOnly(value){
+              if(value)composing=false
               readOnly=value
               // Native URL input may have committed without updating this
               // instance while the browser input selection was preserved.
               project(context.getData())
             },
             focus(){if(!dead&&!readOnly)input.focus()},
-            destroy(){dead=true;clearInputTimer();currentTask?.cancel();currentTask=null},
+            destroy(){dead=true;composing=false;clearInputTimer();currentTask?.cancel();currentTask=null},
           }
         },
         destroy(){destroyed=true},
