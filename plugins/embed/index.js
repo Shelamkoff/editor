@@ -460,13 +460,27 @@ export function createEmbedPlugin(config = {}) {
             playerController = new Ctor()
             wrapper.classList.remove('oe-embed--playing')
             const sourceChanged = data.service !== next.service || data.videoId !== next.videoId
+            // NativeInputController may have committed a caption without
+            // reprojecting its editing host. Compare both the previous
+            // projection and the still-mounted DOM with incoming canonical
+            // data before replacing any view children.
+            const previousCaption = data.caption
+            const ownedCaption = /** @type {HTMLElement | null} */ (view.querySelector('.oe-embed__caption'))
+            const retainCaption = !!ownedCaption && (
+              next.caption === previousCaption || next.caption === ownedCaption.innerHTML.trim()
+            )
             data = { ...next }
             if (sourceChanged) {
               coverTask?.cancel()
               coverTask = null
             }
             previewController?.abort()
-            view.replaceChildren()
+            // The caption must stay connected throughout player replacement:
+            // re-appending it after replaceChildren() loses browser selection.
+            for (const child of Array.from(view.children)) {
+              if (!retainCaption || child !== ownedCaption) child.remove()
+            }
+            const activeCaption = retainCaption ? ownedCaption : null
             const configured = !!data.service && !!data.videoId
             urlBar.hidden = false
             insert.hidden = readOnly
@@ -479,38 +493,40 @@ export function createEmbedPlugin(config = {}) {
             wrapper.classList.toggle('oe-embed--filled', configured)
 
             if (configured) {
-            const built = buildPlayer({
-              service: data.service,
-              videoId: data.videoId,
-              cover: data.cover,
-              title: data.title,
-              duration: data.duration,
-              classPrefix: 'oe',
-              playIcon: PLAY_ICON,
-              placeholderHtml: PLACEHOLDER,
-              playLabel: runtimeContext.t('play', 'Play'),
-              videoLabel: runtimeContext.t('video', 'Video'),
-              ownerDocument: document,
-            })
-            const play = built.player.querySelector('button')
-            play?.setAttribute(READ_ONLY_INTERACTIVE_ATTRIBUTE, '')
-            play?.addEventListener('click', () => {
-              built.play()
-              wrapper.classList.add('oe-embed--playing')
-            }, { signal: playerController.signal })
-            view.appendChild(built.player)
-            void resolvePreview(built)
+              const built = buildPlayer({
+                service: data.service,
+                videoId: data.videoId,
+                cover: data.cover,
+                title: data.title,
+                duration: data.duration,
+                classPrefix: 'oe',
+                playIcon: PLAY_ICON,
+                placeholderHtml: PLACEHOLDER,
+                playLabel: runtimeContext.t('play', 'Play'),
+                videoLabel: runtimeContext.t('video', 'Video'),
+                ownerDocument: document,
+              })
+              const play = built.player.querySelector('button')
+              play?.setAttribute(READ_ONLY_INTERACTIVE_ATTRIBUTE, '')
+              play?.addEventListener('click', () => {
+                built.play()
+                wrapper.classList.add('oe-embed--playing')
+              }, { signal: playerController.signal })
+              // Keep the caption's existing position in the editing DOM.
+              view.insertBefore(built.player, activeCaption)
+              void resolvePreview(built)
             }
             if (!configured && !data.caption) return
 
-            const caption = document.createElement('div')
+            const caption = activeCaption ?? document.createElement('div')
             caption.className = 'oe-embed__caption'
             caption.contentEditable = readOnly ? 'false' : 'true'
             caption.dataset.placeholder = runtimeContext.t('captionPlaceholder', 'Caption')
-            if (data.caption) setSanitizedHtml(caption, data.caption)
-            view.appendChild(caption)
+            if (!activeCaption) {
+              if (data.caption) setSanitizedHtml(caption, data.caption)
+              view.appendChild(caption)
+            }
           }
-
           project(data)
 
           return {
