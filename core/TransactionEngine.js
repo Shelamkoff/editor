@@ -69,6 +69,20 @@ function normalizeMetadata(metadata) {
     }
     result.sourceBlockId = metadata.sourceBlockId
   }
+  if (metadata.continuation !== undefined) {
+    const token = metadata.continuation
+    if (!token || typeof token !== 'object' || Array.isArray(token)
+      || !Number.isSafeInteger(token.baseRevision) || token.baseRevision < 1
+      || typeof token.blockId !== 'string' || !token.blockId
+      || typeof token.fieldKey !== 'string' || !token.fieldKey || token.fieldKey.length > 128) {
+      throw new TypeError('Async history continuation requires a revision, blockId and fieldKey')
+    }
+    result.continuation = {
+      baseRevision: token.baseRevision,
+      blockId: token.blockId,
+      fieldKey: token.fieldKey,
+    }
+  }
   return result
 }
 
@@ -189,7 +203,10 @@ export class TransactionEngine {
         selectionAfter,
       }
       if (metadata.historyGroup !== undefined) record.historyGroup = metadata.historyGroup
-      historyCommit = this.#history.prepareRecord(record, { coalesce: metadata.coalesce })
+      historyCommit = this.#history.prepareRecord(record, {
+        coalesce: metadata.coalesce,
+        continuation: metadata.continuation,
+      })
 
       const event = this.#event({
         sequence: storeCommit.revision,
