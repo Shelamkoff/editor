@@ -64,12 +64,13 @@ function carouselLabel(key,fallback){
  * Render model-first Carousel settings. The panel reads and writes canonical
  * CarouselData only; it never treats the mounted block DOM as persistence.
  * @param {import('../../plugin-kit/types').SettingsPanelContext<any>} context
+ * @param {{initialSlideId?:string,onSlideSelected?:(id:string)=>void}} [options]
  */
-function renderCarouselSettings(context){
+function renderCarouselSettings(context,{initialSlideId,onSlideSelected}={}){
   const document=context.ownerDocument
   const root=document.createElement('div')
   root.className='oe-carousel-block__settings-panel'
-  let selectedId=context.getData().slides[0]?.id??''
+  let selectedId=initialSlideId??context.getData().slides[0]?.id??''
 
   const commit=producer=>{
     context.updateData(producer)
@@ -126,7 +127,7 @@ function renderCarouselSettings(context){
       option.selected=item.id===slide.id
       select.appendChild(option)
     })
-    select.addEventListener('change',()=>{selectedId=select.value;render()})
+    select.addEventListener('change',()=>{selectedId=select.value;onSlideSelected?.(selectedId);render()})
     slidePicker.append(pickerLabel,select)
     root.appendChild(slidePicker)
 
@@ -351,6 +352,7 @@ export function createCarouselPlugin(config={}){
           let dead=false
           const preloadEditors=()=>{if(!readOnly)preloadSourceEditor(wrapper,context.signal,['url','html'])}
           let activeIndex=0
+          let settingsSlideId=null
           const tasks=new Set()
           let autoplayTimer=null
           let viewController=null
@@ -373,6 +375,8 @@ export function createCarouselPlugin(config={}){
           }
           const activate=index=>{
             if(data.slides.length===0){activeIndex=0;return}
+            // Navigation selects the visible slide for its settings.
+            settingsSlideId=null
             const focused=document.activeElement
             const chromeFocused=wrapper.contains(focused)&&!focused.closest?.('input,textarea,select,[contenteditable="true"]')
             if(data.options.loop)activeIndex=(index+data.slides.length)%data.slides.length
@@ -688,7 +692,7 @@ export function createCarouselPlugin(config={}){
                   wrapper.focus({preventScroll:true})
                   return retainControlFocus(wrapper,()=>context.updateData(producer))
                 },
-              }))
+              },{initialSlideId:settingsSlideId??slide.id,onSlideSelected:id=>{settingsSlideId=id}}))
               const settingsLayer=createPluginLayer(wrapper,viewSignal)
               const positioner=createPluginPanelPositioner(panel,dropdown,{signal:viewSignal,preferAbove:true})
               const setOpen=open=>{
