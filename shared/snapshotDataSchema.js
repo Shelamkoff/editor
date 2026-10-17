@@ -1,5 +1,6 @@
 // @ts-check
 import { cloneEditorData } from './cloneEditorData.js'
+import { equalJsonValue } from './jsonData.js'
 import { markDocumentValidationFailure, schemaValidationBoundary } from './documentValidationIssue.js'
 import { synchronousResult } from './synchronousResult.js'
 
@@ -108,7 +109,7 @@ export function snapshotDataSchema(source, label, { richText = false, validateDe
     const initial = schema.createDefault()
     const encoded = schema.encode(initial)
     const decoded = schema.decode(encoded)
-    if (JSON.stringify(decoded.data) !== JSON.stringify(encoded.data)) {
+    if (!equalJsonValue(decoded.data, encoded.data)) {
       throw new TypeError(`${label} default must round-trip through encode/decode`)
     }
   }
