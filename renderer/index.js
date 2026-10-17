@@ -1,6 +1,5 @@
 // @ts-check
 import { EditorRenderer as EditorRendererImpl, getSupportedBlockTypes } from './EditorRenderer.js'
-import { cloneEditorData } from '../shared/cloneEditorData.js'
 import { snapshotCurrentBlockEnvelope, snapshotCurrentDocumentEnvelope } from '../shared/DocumentSchema.js'
 import { snapshotPollRendererConfig } from './pollConfigSnapshot.js'
 import { snapshotDataSchema } from '../shared/snapshotDataSchema.js'
@@ -135,34 +134,17 @@ function snapshotOutputBlockEnvelope(block) {
 }
 
 /**
- * Normalize the public document boundary without defeating producer revisions.
- * Unrevisioned blocks are snapshotted before their deep signature is computed.
- * Revisioned blocks keep opaque payloads unread until a changed block actually
- * needs rendering; the renderer snapshots them at that point.
+ * Capture one shallow, exact-version document envelope with original input
+ * identities. The implementation validates all registered versions first,
+ * then deep-owns every unrevisioned block before invoking a renderer callback.
+ * Producer-revision reuse must never inspect unchanged deep payloads.
  * @param {unknown} data
  * @returns {import('./types').OutputData}
  */
 function prepareOutputData(data) {
-  const candidate = snapshotCurrentDocumentEnvelope(data, {
+  return /** @type {import('./types').OutputData} */ (snapshotCurrentDocumentEnvelope(data, {
     snapshotBlock: snapshotOutputBlockEnvelope,
-  })
-
-  const blocks = candidate.blocks.map(block => {
-    if (typeof block.revision !== 'string' && typeof block.revision !== 'number') {
-      const snapshot = cloneEditorData(block)
-      Object.defineProperty(snapshot, validationSourceKey, {
-        value: /** @type {any} */ (block)[validationSourceKey] ?? block,
-        enumerable: false,
-        configurable: false,
-        writable: false,
-      })
-      snapshotCurrentBlockEnvelope(snapshot, 'EditorRenderer block')
-      return snapshot
-    }
-    return block
-  })
-
-  return /** @type {import('./types').OutputData} */ ({ ...candidate, blocks })
+  }))
 }
 
 /**
