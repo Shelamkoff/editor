@@ -83,8 +83,9 @@ export class SlashCommandController {
   }
 
   destroy() {
-    this.close()
+    if (this.#controller.signal.aborted) return
     this.#controller.abort()
+    this.close()
     this.#menu.remove()
   }
 
@@ -132,6 +133,9 @@ export class SlashCommandController {
   }
 
   #onInput(event) {
+    // Browser dispatch may retain a callback before the listener's AbortSignal
+    // is revoked. A retired menu must never inspect mounted field ownership.
+    if (this.#controller.signal.aborted) return
     if (this.#runtime.readOnly || event.isComposing || this.#isComposing()) {
       this.close()
       return
@@ -188,7 +192,8 @@ export class SlashCommandController {
   }
 
   #onKeydown(event) {
-    if (event.defaultPrevented || event.isComposing || event.keyCode === 229 || this.#isComposing()) return
+    if (this.#controller.signal.aborted || event.defaultPrevented
+      || event.isComposing || event.keyCode === 229 || this.#isComposing()) return
     if (!this.#session) return
     if (!this.#sessionIsCurrent()) {
       this.close()
