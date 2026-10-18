@@ -116,6 +116,9 @@ export class EditorViewModel {
   }
 
   setCaret(id, target) {
+    // Deferred caret work may run after failed recovery or editor teardown.
+    // Reject it before asking the logical selection to touch detached DOM.
+    if (this.#runtime.health !== 'ready' || !this.#runtime.has(id)) return false
     const decision = this.#interaction.explicitCurrentVersion
     const generation = this.#runtime.generation
     const modeEpoch = this.#runtime.modeEpoch
