@@ -7,15 +7,17 @@ export class InteractionState {
   #currentId = null
   #selected = new Set()
   #onChange
+  #onError
   #generation
   #currentClaimVersion = 0
 
-  constructor({ runtime, reconciler, onChange }) {
+  constructor({ runtime, reconciler, onChange, onError }) {
     if (!runtime?.list) throw new TypeError('InteractionState requires a DocumentRuntime')
     if (!reconciler?.focus) throw new TypeError('InteractionState requires a BlockReconciler')
     this.#runtime = runtime
     this.#reconciler = reconciler
     this.#onChange = typeof onChange === 'function' ? onChange : null
+    this.#onError = typeof onError === 'function' ? onError : () => {}
     this.reconcile({ notify: false })
   }
 
@@ -128,6 +130,6 @@ export class InteractionState {
       selectedIds: Object.freeze([...selectedIds]),
       previousCurrentId,
       previousSelectedIds: Object.freeze([...previousSelectedIds]),
-    })])
+    })], this.#onError)
   }
 }
