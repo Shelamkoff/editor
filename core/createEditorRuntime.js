@@ -289,18 +289,27 @@ export function createEditorRuntime(input){
     requestSplit:id=>keyboardRouter?.split(id),
     requestExit:id=>keyboardRouter?.exit(id),
     onCommit:event=>{
+      // The model and history are already committed. A fallible presentation,
+      // clipboard, timer, or event adapter must not suppress independent
+      // observers of that same immutable transaction.
+      const complete=(operation,name)=>{
+        try { operation() }
+        catch(error) {
+          try { reportDiagnostic('command.failed','commit.'+name,error) } catch {}
+        }
+      }
       // Revoke stale clipboard work before fallible UI refresh/notifications.
-      clipboard?.handleTransaction(event)
-      interaction?.reconcile()
-      toolbar?.refresh()
-      notifier?.schedule()
-      emit('transaction:committed',event)
-      emit('document:changed',{
+      complete(()=>clipboard?.handleTransaction(event),'clipboard')
+      complete(()=>interaction?.reconcile(),'interaction')
+      complete(()=>toolbar?.refresh(),'toolbar')
+      complete(()=>notifier?.schedule(),'change-notifier')
+      complete(()=>emit('transaction:committed',event),'transaction-event')
+      complete(()=>emit('document:changed',{
         origin:event.origin,
         action:event.action,
         changes:event.changes,
-      })
-      emit('history:changed',event.history)
+      }),'document-event')
+      complete(()=>emit('history:changed',event.history),'history-event')
     },
     projectorFactory:({activationResolver,contextFactory,projectPresentation})=>{
       reconciler=new BlockReconciler({
