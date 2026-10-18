@@ -25,7 +25,7 @@ function setup() {
     destroy() { if (!destroyed) { controls.push(['destroy']); destroyed = true; runtime.destroy() } },
     isDestroyed: () => destroyed,
   })
-  return { runtime, api, handle, controls }
+  return { runtime, api, handle, controls, view }
 }
 
 test('public insert captures supported fields once under preparation before dispatch', () => {
@@ -127,5 +127,53 @@ test('public block selection snapshots ordinary iterable IDs without borrowing t
   api.select(selected)
   selected[0] = 'mutated'
   assert.deepEqual(controls, [['select', ['a']]])
+  handle.destroy()
+})
+
+test('public focus target getter is read once before dispatch', () => {
+  const { api, handle, controls, view } = setup()
+  let reads = 0
+  const seen = []
+  view.focus = (_id, target) => {
+    // Real view focus passes the target into both plugin and logical caret
+    // operations. Both must receive the same author-supplied field identity.
+    seen.push(target.fieldKey, target.fieldKey)
+    return true
+  }
+  const target = {
+    get fieldKey() { return ++reads === 1 ? 'title' : 'caption' },
+    offset: 'end',
+  }
+  assert.equal(api.focus('a', target), true)
+  assert.equal(reads, 1, 'one public focus sampled a mutable target getter more than once')
+  assert.deepEqual(seen, ['title', 'title'])
+  assert.deepEqual(controls, [])
+  handle.destroy()
+})
+
+test('public focus target cannot destroy editor while preparing its field selection', () => {
+  const { api, handle, controls, view } = setup()
+  view.focus = (_id, target) => {
+    const field = target.fieldKey
+    controls.push(['focus', field])
+    return true
+  }
+  const target = {
+    get fieldKey() {
+      handle.destroy()
+      return 'text'
+    },
+    offset: 0,
+  }
+  assert.throws(() => api.focus('a', target), /prepar|destroy/i)
+  assert.equal(handle.isReady, true, 'a focus option accessor destroyed its editor before focus')
+  assert.deepEqual(controls, [], 'retired focus was still applied')
+  handle.destroy()
+})
+
+test('public focus without a target remains supported', () => {
+  const { api, handle, controls } = setup()
+  assert.equal(Boolean(api.focus('a')), true)
+  assert.deepEqual(controls, [['focus']])
   handle.destroy()
 })
