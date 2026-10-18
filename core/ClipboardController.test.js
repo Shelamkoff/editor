@@ -599,3 +599,22 @@ test('accepted Paste matcher cannot rewrite its own later resolver input', async
     assert.equal(resolvedName, 'original.mp4')
   } finally { fixture.controller.destroy() }
 })
+
+test('a retired Clipboard paste listener cannot claim a later event after destruction', async () => {
+  let resolutions = 0
+  const fixture = clipboardHarness({
+    formats: ['Files'],
+    files: [{ name: 'retired.mp4', type: 'video/mp4' }],
+    accepts: () => true,
+    resolve() {
+      resolutions++
+      return { kind: 'block', data: { src: 'blob:should-not-allocate' } }
+    },
+  })
+  fixture.controller.destroy()
+  fixture.paste()
+  for (let index = 0; index < 6; index++) await Promise.resolve()
+  assert.equal(resolutions, 0, 'retired Clipboard listener executed a plugin resolver')
+  assert.equal(fixture.event.defaultPrevented, false,
+    'destroyed Clipboard controller claimed a new native paste event')
+})
