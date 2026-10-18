@@ -48,7 +48,7 @@ export class ChangeNotifier {
     if (this.#destroyed || !this.#onChange) return
     const generation = ++this.#generation
     if (this.#timer !== null) this.#timerHost.clearTimeout(this.#timer)
-    this.#timer = this.#timerHost.setTimeout(async () => {
+    const nextTimer = this.#timerHost.setTimeout(async () => {
       // A retired timer may still be queued by the host. It must not clear
       // a newer pending timer or invoke save after replacement/destroy.
       if (this.#destroyed || generation !== this.#generation || !this.#onChange) return
@@ -67,6 +67,14 @@ export class ChangeNotifier {
         else console.warn('[ChangeNotifier] Failed to save or notify:', err)
       }
     }, this.#delay)
+    // Timer registration itself is a host callback. It may synchronously
+    // schedule a newer change or destroy this notifier before returning its
+    // handle. Only the surviving generation may publish a pending timer.
+    if (this.#destroyed || generation !== this.#generation) {
+      this.#timerHost.clearTimeout(nextTimer)
+      return
+    }
+    this.#timer = nextTimer
   }
 
   destroy() {
