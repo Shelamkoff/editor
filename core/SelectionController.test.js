@@ -389,3 +389,64 @@ test('ordinary cross-block range restores the owned native endpoints once', () =
   assert.deepEqual(h.view.selectedIds, ['a', 'b'])
   h.controller.destroy()
 })
+
+
+test('cross-block backward restore preserves native anchor with collapse and extend', () => {
+  const h = mountedRestoreFixture()
+  h.native.setBaseAndExtent = undefined
+  h.native.collapse = (node, offset) => {
+    h.native.anchorNode = node
+    h.native.focusNode = node
+    h.native.anchorOffset = offset
+    h.native.focusOffset = offset
+    h.native.rangeCount = 1
+  }
+  h.native.extend = (node, offset) => {
+    h.native.focusNode = node
+    h.native.focusOffset = offset
+  }
+  assert.equal(h.controller.restore({
+    anchor: h.point('b', 4), focus: h.point('a', 1),
+  }), true)
+  assert.equal(h.native.anchorNode, h.fields.get('b').child)
+  assert.equal(h.native.focusNode, h.fields.get('a').child)
+  assert.deepEqual([h.native.anchorOffset, h.native.focusOffset], [4, 1])
+  h.controller.destroy()
+})
+
+test('unsupported backward cross-block Range fallback preserves prior native selection', () => {
+  const h = mountedRestoreFixture()
+  const originalNode = h.fields.get('a').child
+  h.native.anchorNode = originalNode
+  h.native.focusNode = originalNode
+  h.native.anchorOffset = 1
+  h.native.focusOffset = 3
+  h.native.setBaseAndExtent = undefined
+  h.native.collapse = undefined
+  h.native.extend = undefined
+  let clearCount = 0
+  let rangeApplicationCount = 0
+  h.native.removeAllRanges = () => { clearCount++ }
+  h.native.addRange = () => { rangeApplicationCount++ }
+  assert.equal(h.controller.restore({
+    anchor: h.point('b', 4), focus: h.point('a', 1),
+  }), false, 'Range-only browser cannot represent an inverted native anchor')
+  assert.equal(clearCount, 0, 'failed direction restoration destroyed earlier selection')
+  assert.equal(rangeApplicationCount, 0)
+  assert.deepEqual([h.native.anchorOffset, h.native.focusOffset], [1, 3])
+  h.controller.destroy()
+})
+
+test('forward cross-block Range fallback remains usable without direction-specific methods', () => {
+  const h = mountedRestoreFixture()
+  h.native.setBaseAndExtent = undefined
+  h.native.collapse = undefined
+  h.native.extend = undefined
+  assert.equal(h.controller.restore({
+    anchor: h.point('a', 1), focus: h.point('b', 4),
+  }), true)
+  assert.equal(h.native.anchorNode, h.fields.get('a').child)
+  assert.equal(h.native.focusNode, h.fields.get('b').child)
+  assert.deepEqual([h.native.anchorOffset, h.native.focusOffset], [1, 4])
+  h.controller.destroy()
+})
