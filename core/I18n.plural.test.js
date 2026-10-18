@@ -30,3 +30,23 @@ test('English and Russian integer categories agree with the platform plural rule
     }
   }
 })
+test('fallback English plural forms use English categories under Russian UI locale', () => {
+  const i18n = new I18n(
+    { primary: forms },
+    { fallback: { one: '{count} item', other: '{count} items' } },
+    'ru',
+  )
+  for (const [value, expected] of [
+    [1, '1 item'], [2, '2 items'], [21, '21 items'], [101, '101 items'],
+  ]) assert.equal(i18n.plural('fallback', value), expected)
+  assert.equal(i18n.plural('primary', 21), 'one:21', 'primary language still uses Russian grammar')
+})
+
+test('late English fallback plugin translations retain English plural grammar after freeze', () => {
+  const i18n = new I18n({ __lang: 'ru', existing: forms }, {}, 'ru')
+  i18n.mergeFallback({ 'plugin.count': { one: 'One ({count})', other: 'Many ({count})' } })
+  i18n.freeze()
+  assert.equal(i18n.plural('plugin.count', 21), 'Many (21)')
+  assert.equal(i18n.plural('plugin.count', 1), 'One (1)')
+  assert.equal(i18n.plural('existing', 21), 'one:21')
+})
