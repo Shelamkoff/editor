@@ -571,6 +571,9 @@ export function createEditorRuntime(input){
     if(destroyed)return
     ready=true
     emit('editor:ready')
+    // Event listeners run synchronously and can destroy or replace this
+    // editor. Do not invoke the retained onReady hook after that teardown.
+    if(destroyed)return
     invokeObserver(config.onReady,[editor],error=>reportDiagnostic('command.failed','onReady',error))
   })
 
