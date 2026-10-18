@@ -6,6 +6,8 @@ import { getTextOffset } from '../../shared/textOffset.js'
 import { createHeadingPlugin } from '../../plugins/heading/index.js'
 import { createParagraphPlugin } from '../../plugins/paragraph/index.js'
 import { createColorSwatchPlugin } from '../../inline-plugins/color.js'
+import { createInlineParser } from '../../renderer/inline.js'
+import { getHighlightRuntime, setHighlightRuntime, loadHighlightRuntime } from '../../shared/highlightRuntime.js'
 
 const assert = {
   equal,
@@ -2585,6 +2587,34 @@ test('post-commit event fanout survives a failing change debounce timer', () => 
   ], 'post-commit notification failure suppressed independent committed events')
   assert.equal(notifications[0].value.changes[0].kind, 'block.update')
   assert.equal(notifications[2].value.canUndo, true)
+})
+
+
+test('deferred code highlighting does not overwrite newer inline text', async () => {
+  const previousRuntime = getHighlightRuntime()
+  const hadAmbientRuntime = Object.hasOwn(window, 'hljs')
+  const previousAmbientRuntime = window.hljs
+  try {
+    // Force the actual inline parser through its lazy highlighting branch.
+    // A resolved prior import is still asynchronous via Promise.then().
+    window.hljs = undefined
+    setHighlightRuntime(null)
+    const source = '<code lang="javascript">const first = 1;\nconst second = 2;</code>'
+    const fragment = createInlineParser('editor', document)(source)
+    const code = fragment.querySelector('code')
+    check(code, 'sanitized code element was not retained by the inline parser')
+    const newText = 'Newer canonical code\nnot the original source'
+    code.textContent = newText
+
+    await loadHighlightRuntime()
+    for (let index = 0; index < 3; index++) await Promise.resolve()
+    equal(code.textContent, newText,
+      'old lazy syntax-highlighting callback replaced a newer code owner')
+  } finally {
+    setHighlightRuntime(previousRuntime)
+    if (hadAmbientRuntime) window.hljs = previousAmbientRuntime
+    else delete window.hljs
+  }
 })
 
 await run()
