@@ -50,6 +50,7 @@ export function prepareClipboardBlockSlice(s,record,start,end) {
   }
 
   const result=cloneEditorData(synchronousResult(capability.slice(cloneEditorData(record.data),{
+    ownerDocument:s.ownerDocument,
     createId:prefix=>s.allocateId(prefix),
     field:key=>selected.get(key)??null,
   })))
