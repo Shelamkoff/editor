@@ -92,6 +92,7 @@ export class InteractionState {
     if (!id || this.#runtime.health !== 'ready' || !this.#runtime.has(id)) return false
     const claimVersion = this.#currentClaimVersion
     const generation = this.#runtime.generation
+    const revision = this.#runtime.revision
     const modeEpoch = this.#runtime.modeEpoch
     const readOnly = this.#runtime.readOnly
     // The plug-in focus callback may synchronously cause a newer focus,
@@ -99,6 +100,7 @@ export class InteractionState {
     if (!this.#reconciler.focus(id, target)) return false
     if (claimVersion !== this.#currentClaimVersion
       || generation !== this.#runtime.generation
+      || revision !== this.#runtime.revision
       || modeEpoch !== this.#runtime.modeEpoch
       || readOnly !== this.#runtime.readOnly
       || this.#runtime.health === 'destroyed'
@@ -112,6 +114,7 @@ export class InteractionState {
       && modeEpoch === this.#runtime.modeEpoch
       && readOnly === this.#runtime.readOnly
       && generation === this.#runtime.generation
+      && revision === this.#runtime.revision
       && this.#runtime.health !== 'destroyed'
       && this.#runtime.health !== 'failed'
   }
