@@ -404,3 +404,83 @@ test('hierarchical read-only decisions match an independent oracle over 1200 mod
     }
   }
 })
+test('beginTask cannot issue a live task after its admission callbacks revoke the scope', () => {
+  for (const interruption of ['revoke', 'read-only', 'read-only-roundtrip', 'parent-revoke']) {
+    const parent = new InstanceScope({ staged: false, generation: 3 })
+    const scope = new InstanceScope({ staged: false, generation: 3, parent })
+    let probes = 0
+    scope.configure({
+      health: () => 'ready',
+      phase: () => 'idle',
+      currentGeneration: () => 3,
+      currentRevision() {
+        probes++
+        if (interruption === 'revoke') scope.revoke()
+        else if (interruption === 'read-only') scope.setReadOnly(true)
+        else if (interruption === 'read-only-roundtrip') {
+          scope.setReadOnly(true)
+          scope.setReadOnly(false)
+        } else parent.revoke()
+        return 7
+      },
+    })
+    let writes = 0
+    const context = scope.createAuthority({
+      readData: () => ({ text: 'Original' }),
+      updateData() { writes++ },
+    })
+    assert.throws(() => context.beginTask(),
+      error => error?.name === 'AbortError',
+      interruption + ' returned a task with authoring authority after revocation')
+    assert.equal(probes, 1)
+    assert.equal(writes, 0)
+  }
+})
+
+test('callbacks that revoke a scope during a health or phase check cannot run producers', () => {
+  for (const stage of ['health', 'phase', 'parent-health']) {
+    const parent = new InstanceScope({ staged: false, generation: 1 })
+    const scope = new InstanceScope({ staged: false, generation: 1, parent })
+    let calls = 0
+    const retire = () => {
+      calls++
+      if (stage === 'parent-health') parent.revoke()
+      else scope.revoke()
+    }
+    scope.configure({
+      health() {
+        if (stage === 'health') retire()
+        return 'ready'
+      },
+      phase() {
+        if (stage === 'phase') retire()
+        return 'idle'
+      },
+    })
+    if (stage === 'parent-health') parent.configure({
+      health() { retire(); return 'ready' },
+    })
+    let producers = 0
+    const context = scope.createAuthority({
+      readData: () => ({ value: 1 }),
+      updateData(producer) { producers++; producer({ value: 1 }) },
+    })
+    assert.equal(scope.runMutation(() => { producers++ }), false,
+      stage + ' let an invalid scope run a host mutation')
+    context.updateData(() => { producers++; return { value: 2 } })
+    assert.equal(producers, 0, stage + ' dispatched a retired producer')
+    assert.equal(calls, 1)
+  }
+})
+
+test('getData refuses a scope revoked by its health callback before reading author data', () => {
+  const scope = new InstanceScope({ staged: false })
+  let reads = 0
+  scope.configure({ health() { scope.revoke(); return 'ready' } })
+  const context = scope.createAuthority({
+    readData() { reads++; return { text: 'private author data' } },
+    updateData() {},
+  })
+  assert.throws(() => context.getData(), error => error?.name === 'AbortError')
+  assert.equal(reads, 0, 'revoked scope exposed data after the health check')
+})
