@@ -87,3 +87,45 @@ test('caught insertion preparation failure after dispatch poisons the outer draf
   assert.equal(runtime.canUndo, false)
   runtime.destroy()
 })
+
+
+test('public block selection iterable cannot destroy editor during input capture', () => {
+  const { api, handle, controls } = setup()
+  const ids = {
+    *[Symbol.iterator]() {
+      handle.destroy()
+      yield 'a'
+    },
+  }
+  assert.throws(() => api.select(ids), /prepar|destroy/i,
+    'iterating external IDs destroyed the editor before selection dispatch')
+  assert.equal(handle.isReady, true, 'invalid control reentry destroyed a healthy editor')
+  assert.deepEqual(controls, [], 'selection reached the view after ownership was revoked')
+  handle.destroy()
+})
+
+test('public block selection iterable cannot replace canonical document during input capture', () => {
+  const { api, runtime, handle, controls } = setup()
+  const before = runtime.save().blocks
+  const ids = {
+    *[Symbol.iterator]() {
+      runtime.clear()
+      yield 'a'
+    },
+  }
+  assert.throws(() => api.select(ids), /prepar/i,
+    'a control input iterator replaced the document outside a protected preparation')
+  assert.deepEqual(runtime.save().blocks, before,
+    'failed selected-ID capture changed committed content')
+  assert.deepEqual(controls, [], 'failed selection capture touched the view')
+  handle.destroy()
+})
+
+test('public block selection snapshots ordinary iterable IDs without borrowing the source array', () => {
+  const { api, handle, controls } = setup()
+  const selected = ['a']
+  api.select(selected)
+  selected[0] = 'mutated'
+  assert.deepEqual(controls, [['select', ['a']]])
+  handle.destroy()
+})
