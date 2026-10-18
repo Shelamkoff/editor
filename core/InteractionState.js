@@ -88,7 +88,8 @@ export class InteractionState {
   }
 
   focus(id = this.#currentId, target, { deferCurrent = false } = {}) {
-    if (!id || !this.#runtime.has(id)) return false
+    // A retained focus callback must not invoke a retired plugin instance.
+    if (!id || this.#runtime.health !== 'ready' || !this.#runtime.has(id)) return false
     const claimVersion = this.#currentClaimVersion
     const generation = this.#runtime.generation
     const modeEpoch = this.#runtime.modeEpoch
