@@ -459,6 +459,10 @@ export class SelectionController {
     }
     if (!staged) return null
     this.#deactivate()
+    // clearSelection notifies host observers. If one of them has already
+    // selected new blocks (or changed control mode), do not hand out an IME
+    // session with an obsolete author selection.
+    if (!canStage() || this.#view.selectedIds.length) return null
     const restore = () => {
       if (settled) return false
       // IME may alter the provisional caret within its current host, but a
@@ -550,7 +554,9 @@ export class SelectionController {
     // Untouched blocks must never retain provisional preedit DOM after the
     // canonical commit. The old selection is retired only after stage succeeds.
     this.#deactivate()
+    if (!ownsStage()) return null
     const stagedSelection=[...this.#view.selectedIds]
+    if (stagedSelection.length) return null
     const stagedCurrent=this.#view.currentId
     const stagedFocus=this.#document.activeElement
     const restore = () => {
