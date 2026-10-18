@@ -830,3 +830,71 @@ test('clipboard data writer teardown cancels an uncommitted Cut before model mut
   assert.equal(commits, 0, 'Cut attempted a canonical edit after clipboard writer retired the editor')
   assert.equal(active, true, 'retired Cut cleared author selection')
 })
+
+
+test('cross-block plain-text Paste preserves a committed transaction but skips detached presentation', () => {
+  let selected = true, cleared = 0, committed = 0, detachedReads = 0
+  const crossSelection = {
+    get active() { return selected },
+    bookmark: { anchor: { blockId: 'a', fieldKey: 'text', offset: 0 },
+      focus: { blockId: 'a', fieldKey: 'text', offset: 1 } },
+    wholeBlockIds: [],
+    clear() { cleared++; selected = false },
+  }
+  const h = clipboardHarness({
+    crossSelection,
+    formats: ['text/plain'],
+    read: type => type === 'text/plain' ? 'Alpha' : '',
+    accepts: () => false,
+  })
+  h.runtime.prepareLogicalClipboardSlice = () => ({ focus: { blockId: 'a' } })
+  h.runtime.replacePreparedClipboardSlice = (_plan, parts) => {
+    committed++
+    assert.deepEqual(parts, [{ kind: 'rich-text', html: 'Alpha' }])
+    return { blockId: 'a', focus: { fieldKey: 'text', offset: 5 } }
+  }
+  let retired = false
+  const afterDeath = () => { if (retired) detachedReads++ }
+  h.view.element = afterDeath
+  h.view.reconcileInteraction = afterDeath
+  h.view.setCurrent = afterDeath
+  h.runtime.interact = (_name, operation, selectionAfter) => {
+    const result = operation()
+    selectionAfter?.(result)
+    h.controller.destroy()
+    retired = true
+    return result
+  }
+  h.paste()
+  assert.equal(h.event.defaultPrevented, true, 'owned composite Paste fell through to native editing')
+  assert.equal(committed, 1, 'composite Paste did not commit once')
+  assert.equal(detachedReads, 0, 'composite Paste touched detached view after commit')
+  assert.equal(cleared, 0, 'retired composite Paste attempted UI selection cleanup')
+})
+
+test('cross-block clipboard read that destroys editor cannot subsequently author Paste', () => {
+  let h, committed = 0
+  const crossSelection = {
+    active: true,
+    bookmark: { anchor: { blockId: 'a', fieldKey: 'text', offset: 0 },
+      focus: { blockId: 'a', fieldKey: 'text', offset: 1 } },
+    wholeBlockIds: [],
+    clear() { throw Error('retired Paste cleared selected blocks') },
+  }
+  h = clipboardHarness({
+    crossSelection,
+    formats: ['text/plain'],
+    accepts: () => false,
+    read(type) {
+      if (type === 'text/plain') h.controller.destroy()
+      return type === 'text/plain' ? 'Alpha' : ''
+    },
+  })
+  h.runtime.prepareLogicalClipboardSlice = () => {
+    committed++
+    throw Error('retired Paste prepared canonical slices')
+  }
+  h.paste()
+  assert.equal(committed, 0, 'clipboard callback revoked ownership before preparation')
+  assert.equal(h.event.defaultPrevented, false, 'retired clipboard handler claimed the old Paste event')
+})
