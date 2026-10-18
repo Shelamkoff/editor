@@ -85,6 +85,7 @@ export class DragController {
         element,
         generation:this.#runtime.generation,
         revision:this.#runtime.revision,
+        modeEpoch:this.#runtime.modeEpoch,
         startX:event.clientX,
         startY:event.clientY,
         active:false,
@@ -142,6 +143,7 @@ export class DragController {
       &&!this.#runtime.readOnly
       &&this.#runtime.generation===state.generation
       &&this.#runtime.revision===state.revision
+      &&this.#runtime.modeEpoch===state.modeEpoch
       &&this.#runtime.has(state.sourceId)
       &&this.#view.element(state.sourceId)===state.element
     )
@@ -230,6 +232,15 @@ export class DragController {
     const targetIndex=resolveDragGap(order,state.sourceId,state)
     const currentIndex=this.#runtime.indexOf(state.sourceId)
     this.#cancelSession(state)
+    // Lost pointer capture is dispatched synchronously. A host callback may
+    // destroy the editor, change read-only mode, or replace the projected block
+    // during releasePointerCapture(). Revalidate before touching canonical data.
+    if(this.#destroyed||this.#runtime.readOnly
+      ||this.#runtime.generation!==state.generation
+      ||this.#runtime.revision!==state.revision
+      ||this.#runtime.modeEpoch!==state.modeEpoch
+      ||!this.#runtime.has(state.sourceId)
+      ||this.#view.element(state.sourceId)!==state.element)return
     this.#suppressNextClick()
 
     if(currentIndex<0||targetIndex===currentIndex)return
