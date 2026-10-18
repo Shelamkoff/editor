@@ -485,3 +485,45 @@ test('Paste resolver rejection with throwing diagnostics is contained and a late
     assert.equal(f.applied.length, 1)
   } finally { f.controller.destroy() }
 })
+test('Paste diagnostic hooks cannot author another insertion before routing', async () => {
+  let runtime
+  let inObservation = false
+  let attempts = 0
+  let denied = 0
+  let clock = 0
+  const diagnostics = {
+    now() {
+      if (runtime) {
+        attempts++
+        try { runtime.applyPasteResults() }
+        catch (error) {
+          if (/diagnostic observation/.test(String(error))) denied++
+          else throw error
+        }
+      }
+      return ++clock
+    },
+    threshold() { return Infinity },
+    emit() {},
+    errorName(error) { return error?.name ?? 'UnknownError' },
+  }
+  const f = fixture({ diagnostics })
+  runtime = f.runtime
+  const originalApply = runtime.applyPasteResults.bind(runtime)
+  runtime.applyPasteResults = (...args) => {
+    if (inObservation) throw new Error('Cannot persist during diagnostic observation')
+    return originalApply(...args)
+  }
+  runtime.observeExtension = operation => {
+    inObservation = true
+    try { return operation() }
+    finally { inObservation = false }
+  }
+  try {
+    f.paste()
+    await f.settle()
+    assert.ok(attempts >= 2, 'both the ingress and async Paste clocks ran')
+    assert.equal(denied, attempts, 'every diagnostic mutation was denied')
+    assert.equal(f.applied.length, 1, 'only the authorized Paste committed')
+  } finally { f.controller.destroy() }
+})
