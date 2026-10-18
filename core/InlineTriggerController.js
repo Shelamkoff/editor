@@ -15,6 +15,7 @@ export class InlineTriggerController {
   #controller
   #modeEpoch=0
   #active=null
+  #committedSessions=new WeakSet()
   #triggers=[]
   #observe
   #reportError
@@ -215,6 +216,7 @@ export class InlineTriggerController {
       ||modeEpoch!==this.#modeEpoch||this.#active!==active
       ||active.session!==sessionBefore)return
     active.textPrefix=textPrefix
+    let committing=false
     const session=Object.freeze({
       blockId:active.blockId,
       fieldKey:active.fieldKey,
@@ -222,14 +224,27 @@ export class InlineTriggerController {
       range:Object.freeze({start:active.logicalStart,end:focusOffset}),
       anchor:active.anchor,
       commit:(data,options)=>{
-        if(this.#active!==active||active.session!==session)return false
-        const range=this.#liveRange(active)
-        if(!range)return false
-        const committed=this.#commands.commitTrigger(active.type,{...session,range},data,options)===true
-        // A committing callback can open a successor synchronously. Retire
-        // only the session that actually performed the commit.
-        if(committed&&this.#active===active&&active.session===session)this.#active=null
-        return committed
+        // The same session cannot launch a second edit while the first
+        // resolves, including reentrant host/commit observers. A successor
+        // session has independent ownership even if it shares this query.
+        if(this.#active!==active||active.session!==session
+          ||committing||this.#committedSessions.has(session))return false
+        committing=true
+        const commitEpoch=this.#modeEpoch
+        try{
+          const range=this.#liveRange(active)
+          if(!range||this.#controller.signal.aborted||this.#isReadOnly()
+            ||commitEpoch!==this.#modeEpoch||this.#active!==active
+            ||active.session!==session)return false
+          const committed=this.#commands.commitTrigger(active.type,{...session,range},data,options)===true
+          if(committed){
+            this.#committedSessions.add(session)
+            // A committing callback can open a successor synchronously. Retire
+            // only the session that actually performed the commit.
+            if(this.#active===active&&active.session===session)this.#active=null
+          }
+          return committed
+        }finally{committing=false}
       },
       cancel:()=>{if(this.#active===active&&active.session===session)this.#cancel()},
     })
@@ -283,7 +298,10 @@ export class InlineTriggerController {
     // The plug-in callback can synchronously retire this controller. Do not
     // consume a captured DOM key after losing that event's owner.
     if(this.#controller.signal.aborted||this.#isReadOnly()||modeEpoch!==this.#modeEpoch)return
-    if(result==='handled'){
+    if(result==='handled'||this.#committedSessions.has(session)){
+      // A committed canonical inline insertion owns its initiating key even
+      // if an extension mistakenly returned pass; otherwise Enter could also
+      // split the containing block after inserting the widget.
       event.preventDefault()
       event.stopPropagation()
       return
