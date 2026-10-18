@@ -159,6 +159,13 @@ export class LogicalSelection {
       ? a
       : findNodeAtOffset(focus.owner.element,focus.offset,'end')
 
+    // Range.addRange cannot encode backward anchor/focus direction. If this
+    // browser has neither setBaseAndExtent nor collapse+extend, do not first
+    // replace the author's existing selection with an unrepresentable range.
+    const directionCapable = typeof selection.setBaseAndExtent==='function'
+      || (typeof selection.collapse==='function'&&typeof selection.extend==='function')
+    if (!directionCapable && this.#unrepresentableBackward(anchor,focus)) return false
+
     try{
       // A DOM Selection does not restore document.activeElement after a
       // focused editing host was removed and recreated by undo/redo.
@@ -238,6 +245,14 @@ export class LogicalSelection {
       fieldKey:owner.fieldKey,
       offset:Math.max(0,Math.trunc(offset)||0),
     }
+  }
+
+  #unrepresentableBackward(anchor,focus){
+    if(anchor.owner.element===focus.owner.element)return anchor.offset>focus.offset
+    // DOM's compareDocumentPosition is the authoritative order for separate
+    // editing fields. Disconnected fields have no restorable native Range.
+    const relative=anchor.owner.element.compareDocumentPosition?.(focus.owner.element)
+    return typeof relative==='number' && Boolean(relative & (1|2))
   }
 
   #nativeRangeMatches(selection,anchor,focus){
