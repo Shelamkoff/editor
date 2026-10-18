@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 
 import { InlineWidgetInputController } from './InlineWidgetInputController.js'
 
-function fixture(handle = () => null) {
+function fixture(handle = () => null, { onClaim = null } = {}) {
   const events = {}
   const writes = []
   const diagnostics = []
@@ -63,7 +63,10 @@ function fixture(handle = () => null) {
     root,runtime,registry,reconciler,projection,selection,
     diagnostics:{emit:(code,metadata)=>diagnostics.push([code,metadata]),
       errorName:error=>error?.name||'UnknownError'},
-    onOwnedBeforeInput:()=>claimed.push('retired'),
+    onOwnedBeforeInput:()=>{
+      claimed.push('retired')
+      onClaim?.(controller)
+    },
   })
   const emit=(target=field,options={})=>{
     let canceled=false,stopped=false
@@ -689,4 +692,18 @@ test('retiring inline owner inside an accepted beforeinput prevents a subsequent
   assert.equal(late.canceled,false)
   assert.equal(state.runtime.revision,2)
   assert.deepEqual(state.writes,[])
+})
+
+test('reentrant inline-controller destroy while claiming beforeinput prevents a late model commit',()=>{
+  const state=fixture(()=>({kind:'remove',caret:0}),{
+    onClaim: controller=>controller.destroy(),
+  })
+  const oldRevision=state.runtime.revision
+  const event=state.emit()
+  assert.equal(event.canceled,true,'controller already owned the event before teardown')
+  assert.equal(event.stopped,true)
+  assert.deepEqual(state.claimed,['retired'])
+  assert.deepEqual(state.writes,[],
+    'destruction during the owning beforeinput callback allowed a later canonical edit')
+  assert.equal(state.runtime.revision,oldRevision)
 })
