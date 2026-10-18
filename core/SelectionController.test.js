@@ -652,7 +652,10 @@ test('cross-block IME staging refuses a silent native caret failure without disc
   h.native.setBaseAndExtent = () => {}
   assert.equal(h.controller.beginComposition(), null,
     'a silent no-op native Selection setter cannot start composition')
-  assert.deepEqual([h.native.anchorNode,h.native.anchorOffset,h.native.focusNode,h.native.focusOffset],nativeBefore)
+  assert.equal(h.native.anchorNode,nativeBefore[0])
+  assert.equal(h.native.anchorOffset,nativeBefore[1])
+  assert.equal(h.native.focusNode,nativeBefore[2])
+  assert.equal(h.native.focusOffset,nativeBefore[3])
   assert.deepEqual(h.view.selectedIds, ['a','b'])
   assert.equal(h.controller.active, true)
   h.controller.destroy()
