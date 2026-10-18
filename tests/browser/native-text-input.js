@@ -276,4 +276,44 @@ for (const [initial, offset, pastedText, expected] of [
   })
 }
 
+
+for (const delimiter of [' ', 'Enter']) {
+  test(`Native typed color token converts on ${delimiter === ' ' ? 'Space' : 'Enter'} without duplicating the delimiter`, async () => {
+    const editor = make([para('a', '')], { inlinePlugins: [createColorSwatchPlugin()] })
+    const field = editableField(editor, 'a')
+    select(field, 0)
+    for (const character of '#ff0000') await printable(character)
+    const typed = editor.save().blocks
+    equal(typed[0].data.text, '#ff0000', 'Native typing failed before delimiter conversion')
+    if (delimiter === ' ') await printable(' ')
+    else await dispatchKey('Enter', 'Enter', 13)
+    const converted = editor.save().blocks
+    equal(converted.length, 1, 'Typed Enter incorrectly split the matched word into two blocks')
+    equal(Object.values(converted[0].inline ?? {}).map(widget => widget.data.value), ['#ff0000'])
+    equal(decodeInline(editor), [delimiter === ' ' ? '#ff0000 ' : '#ff0000'])
+    const native = window.getSelection()
+    assert(native?.isCollapsed && field.contains(native.anchorNode), 'Conversion lost its native editing host caret')
+    equal(getTextOffset(field, native.anchorNode, native.anchorOffset), delimiter === ' ' ? 2 : 1)
+    editor.undo()
+    equal(editor.save().blocks, typed, 'Undo did not restore the typed word before its canonical conversion')
+    editor.redo()
+    equal(editor.save().blocks, converted, 'Redo did not restore the typed widget and suffix')
+  })
+}
+
+test('Native unmatched color-like word and selected text retain their normal space typing', async () => {
+  for (const selected of [false, true]) {
+    const editor = make([para('a', selected ? '#f00' : '#ggg')], {
+      inlinePlugins: [createColorSwatchPlugin()],
+    })
+    const field = editableField(editor, 'a')
+    select(field, selected ? 0 : 4, selected ? 4 : 4)
+    await printable(' ')
+    const after = editor.save().blocks
+    equal(after[0].data.text, selected ? ' ' : '#ggg ',
+      'An unrecognized or selected word was erroneously turned into an inline widget')
+    equal(Object.keys(after[0].inline ?? {}), [], 'A nonmatching native word created inline data')
+  }
+})
+
 await run()
