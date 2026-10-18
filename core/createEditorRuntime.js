@@ -494,6 +494,7 @@ export function createEditorRuntime(input){
     selection:logicalSelection,
     view,
     inlineToolbar,
+    inlineCommands,
     crossSelection,
     isComposing:()=>nativeInput.isComposing,
     reportError:error=>reportDiagnostic('command.failed','keyboard.shortcut',error),
