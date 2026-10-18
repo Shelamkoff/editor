@@ -476,30 +476,44 @@ export class TransactionEngine {
     invokeObserver(this.#onCommit, [event], error => this.#diagnostic(error))
   }
 
+  #observeDiagnostics(operation) {
+    if (!this.#diagnostics) return undefined
+    // Telemetry is an observer, never a source of new authoring authority.
+    // The clock, threshold and error sink can all be user-provided callbacks.
+    const previousPhase = this.#phase
+    this.#phase = 'diagnostic-observation'
+    try { return operation(this.#diagnostics) }
+    catch { return undefined }
+    finally { this.#phase = previousPhase }
+  }
+
   #observeCommand(operation, run) {
-    const startedAt = this.#diagnostics ? this.#diagnostics.now() : 0
+    const startedAt = this.#observeDiagnostics(sink => sink.now()) ?? 0
+    this.#assertHealthy()
     try {
       return run()
     } catch (error) {
-      this.#diagnostics?.emit('command.failed', {
+      this.#observeDiagnostics(sink => sink.emit('command.failed', {
         operation,
-        errorName: this.#diagnostics.errorName(error),
-      })
+        errorName: sink.errorName(error),
+      }))
       throw error
     } finally {
-      if (startedAt && this.#diagnostics) {
-        const durationMs = this.#diagnostics.now() - startedAt
-        if (durationMs >= this.#diagnostics.threshold('commandMs')) {
-          this.#diagnostics.emit('command.slow', { operation, durationMs })
-        }
+      if (startedAt) {
+        this.#observeDiagnostics(sink => {
+          const durationMs = sink.now() - startedAt
+          if (durationMs >= sink.threshold('commandMs')) {
+            sink.emit('command.slow', { operation, durationMs })
+          }
+        })
       }
     }
   }
 
   #diagnostic(error, operation = 'transaction.observer') {
-    this.#diagnostics?.emit('command.failed', {
+    this.#observeDiagnostics(sink => sink.emit('command.failed', {
       operation,
-      errorName: this.#diagnostics.errorName(error),
-    })
+      errorName: sink.errorName(error),
+    }))
   }
 }
