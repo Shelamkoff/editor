@@ -137,7 +137,13 @@ export class EditorBlocksApi {
 
   *[Symbol.iterator]() {
     this.#assertLive()
-    for (const record of this.#runtime.list()) yield snapshot(this.#runtime, record)
+    // Iterators can be retained and resumed after editor.destroy(). Recheck
+    // ownership before every yielded snapshot and at normal exhaustion.
+    for (const record of this.#runtime.list()) {
+      this.#assertLive()
+      yield snapshot(this.#runtime, record)
+    }
+    this.#assertLive()
   }
 }
 
