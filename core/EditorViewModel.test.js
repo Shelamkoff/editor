@@ -293,3 +293,19 @@ test('focus without an explicit caret keeps normal plugin-only block focus behav
   assert.equal(h.view.currentId, 'b')
   assert.deepEqual(h.events, ['b'])
 })
+
+
+for (const health of ['destroyed', 'failed']) {
+  test('retired ' + health + ' EditorViewModel cannot invoke a logical caret callback', () => {
+    let carets = 0
+    const h = harness({
+      caret() { carets++; throw Error('retired DOM selection callback was invoked') },
+    })
+    h.runtime.health = health
+    assert.equal(h.view.setCaret('b', { fieldKey: 'text', offset: 1 }), false)
+    assert.equal(h.view.focus('b', { fieldKey: 'text', offset: 1 }), false)
+    assert.equal(carets, 0)
+    assert.equal(h.view.currentId, 'a')
+    assert.deepEqual(h.events, [])
+  })
+}
