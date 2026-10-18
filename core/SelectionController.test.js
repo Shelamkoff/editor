@@ -166,3 +166,34 @@ test('destroyed SelectionController cannot extend or activate a detached author 
   }), false)
   assert.equal(touched, 0)
 })
+
+test('a captured selection mousedown callback is inert after editor destruction', () => {
+  const handlers = new Map()
+  let hitTests = 0
+  const doc = {
+    defaultView: { AbortController },
+    addEventListener() {},
+    caretPositionFromPoint() {
+      hitTests++
+      return null
+    },
+  }
+  const root = {
+    ownerDocument: doc,
+    addEventListener(type, listener) { handlers.set(type, listener) },
+    classList: { add() {}, remove() {} },
+    contains() { return true },
+  }
+  const controller = new SelectionController({
+    root,
+    runtime: { readOnly: false, generation: 1, ids: () => ['a'] },
+    reconciler: { resolveEditableTarget: () => null },
+    view: { clearSelection() {} },
+  })
+  const retained = handlers.get('mousedown')
+  assert.equal(typeof retained, 'function')
+  controller.destroy()
+  retained({ button: 0, target: {}, clientX: 1, clientY: 2 })
+  assert.equal(hitTests, 0, 'retired selection owner still performed DOM hit testing')
+  assert.equal(controller.dragging, false)
+})
