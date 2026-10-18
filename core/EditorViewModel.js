@@ -99,6 +99,17 @@ export class EditorViewModel {
     // focus, so a rejected gesture can restore the previous native owner.
     let previousBookmark = null
     try { previousBookmark = this.#selection.capture?.() ?? null } catch {}
+    // Selection capture itself invokes external DOM/selection adapters.
+    // A newer focus or mode transition during that callback revokes the old
+    // request *before* it can call the destination plugin's focus method.
+    if (decision !== this.#interaction.explicitCurrentVersion
+      || previousCurrentId !== this.#interaction.currentId
+      || generation !== this.#runtime.generation
+      || revision !== this.#runtime.revision
+      || modeEpoch !== this.#runtime.modeEpoch
+      || readOnly !== this.#runtime.readOnly
+      || this.#runtime.health !== 'ready'
+      || !this.#runtime.has(id)) return false
     const restoreRejectedFocus = () => {
       if (!previousBookmark
         || decision !== this.#interaction.explicitCurrentVersion
