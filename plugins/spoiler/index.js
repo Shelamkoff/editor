@@ -69,7 +69,8 @@ export function createSpoilerPlugin(config = {}) {
         }
         return {
           parts:[{kind:/** @type {'local-block'} */ ('local-block'),data:selected}],
-          remaining:(!remaining.label.trim()&&!remaining.content.trim())?null:remaining,
+          remaining:isRichTextEmpty(remaining.label,context)&&isRichTextEmpty(remaining.content,context)
+            ?null:remaining,
           focus:null,
         }
       },
