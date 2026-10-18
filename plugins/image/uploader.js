@@ -97,6 +97,15 @@ export class ImageUploader {
       reader.onerror = finish
       reader.onabort = finish
 
+      // A cross-realm FileReader constructor may synchronously tear down the
+      // owning block before its signal listener can be registered. Observe
+      // the state after installation instead of waiting for an event already
+      // dispatched; never begin a reader for a retired task.
+      if (signal?.aborted) {
+        abort()
+        return
+      }
+
       try {
         reader.readAsDataURL(file)
       } catch {
