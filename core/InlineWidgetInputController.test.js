@@ -638,3 +638,55 @@ test('accepted inline edit cannot restore a caret after read-only to editable ro
   assert.equal(caretCalls,0,'retired inline edit stole focus after read-only round trip')
   assert.equal(state.writes.filter(call=>call[0]==='caret').length,0)
 })
+
+test('retired InlineWidgetInputController cannot claim a captured inline beforeinput',()=>{
+  const state=fixture(()=>({kind:'remove'}))
+  state.controller.destroy()
+  const event=state.emit()
+  assert.equal(event.canceled,false,'retired capture callback claimed native editing')
+  assert.equal(event.stopped,false)
+  assert.equal(state.invokes,0,'retired capture callback invoked inline editing extension')
+  assert.deepEqual(state.writes,[])
+})
+
+test('retired InlineWidgetInputController cannot capture or settle a stale native deletion',()=>{
+  const state=fixture()
+  let fieldReads=0, commits=0
+  state.reconciler.getEditableField=()=>{
+    fieldReads++
+    throw new Error('retired inline controller read a detached field')
+  }
+  state.runtime.reconcileNativeInlineInput=()=>{
+    commits++
+    throw new Error('retired inline controller attempted a canonical commit')
+  }
+  const original={
+    target:state.field,inputType:'deleteWordBackward',
+    defaultPrevented:false,isTrusted:false,
+  }
+  const snapshot={
+    blockId:'a',fieldKey:'text',blockType:'paragraph',
+    fieldElement:state.field,occurrences:[],
+    generation:state.runtime.generation,revision:state.runtime.revision,
+  }
+  state.controller.destroy()
+  assert.equal(state.controller.captureNativeDeletion(
+    {blockId:'a',fieldKey:'text',mode:'rich-text',element:state.field},
+    original,state.root.ownerDocument.defaultView.getSelection()),null)
+  assert.deepEqual(state.controller.completeNativeDeletion(snapshot,original),{status:'stale'})
+  assert.doesNotThrow(()=>state.controller.discardStaleNativeDeletion(snapshot))
+  assert.equal(fieldReads,0)
+  assert.equal(commits,0)
+})
+
+test('retiring inline owner inside an accepted beforeinput prevents a subsequent edit',()=>{
+  const state=fixture(()=>({kind:'remove',caret:0}))
+  state.runtime.get=()=>({type:'paragraph'})
+  state.controller.destroy()
+  // An integration may invoke an earlier captured callback directly; it
+  // cannot exercise a once-valid editing handle after the owner is retired.
+  const late=state.emit()
+  assert.equal(late.canceled,false)
+  assert.equal(state.runtime.revision,2)
+  assert.deepEqual(state.writes,[])
+})
