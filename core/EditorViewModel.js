@@ -83,26 +83,36 @@ export class EditorViewModel {
 
   focus(id = this.#interaction.currentId, target) {
     if (!id) return false
-    // InteractionState first validates the mounted plugin focus owner and
-    // claims the current block. The subsequent native caret callback can
-    // itself publish a newer current-block decision or change edit mode.
-    const focused = this.#interaction.focus(id, target)
-    if (!focused || !target) return focused
+    if (!target) return this.#interaction.focus(id)
+    // Keyed focus is a two-part author gesture: mounted plugin focus and
+    // logical caret ownership. Do not publish currentId until both accept.
+    // A missing field must not emit a false current-block change.
     const decision = this.#interaction.explicitCurrentVersion
     const generation = this.#runtime.generation
     const modeEpoch = this.#runtime.modeEpoch
     const readOnly = this.#runtime.readOnly
+    if (!this.#interaction.focus(id, target, { deferCurrent: true })) return false
+    if (decision !== this.#interaction.explicitCurrentVersion
+      || generation !== this.#runtime.generation
+      || modeEpoch !== this.#runtime.modeEpoch
+      || readOnly !== this.#runtime.readOnly
+      || this.#runtime.health !== 'ready'
+      || !this.#runtime.has(id)) return false
     if (this.#selection.setCaret(id, target) !== true) return false
-    // An accepted caret is not sufficient proof of success after a focus or
-    // mode switch inside selection callbacks. Never report ownership of the
-    // stale request while a newer author gesture owns current focus.
-    return decision === this.#interaction.explicitCurrentVersion
-      && this.#interaction.currentId === id
+    // Native caret focus may synchronously hand ownership to a newer block,
+    // generation or control mode. The older request never reclaims it.
+    if (decision !== this.#interaction.explicitCurrentVersion
+      || generation !== this.#runtime.generation
+      || modeEpoch !== this.#runtime.modeEpoch
+      || readOnly !== this.#runtime.readOnly
+      || this.#runtime.health !== 'ready'
+      || !this.#runtime.has(id)) return false
+    this.#interaction.setCurrent(id)
+    return this.#interaction.currentId === id
       && generation === this.#runtime.generation
       && modeEpoch === this.#runtime.modeEpoch
       && readOnly === this.#runtime.readOnly
       && this.#runtime.health === 'ready'
-      && this.#runtime.has(id)
   }
 
   setCaret(id, target) {
