@@ -20,44 +20,54 @@ export class LogicalSelection {
     const document = this.#root.ownerDocument
     const active = document.activeElement
     const activeOwner = active ? this.#reconciler.resolveEditableTarget(active) : null
+    // Field ownership resolution may synchronously focus another host.
+    // An old input cannot supply the bookmark for that newer author gesture.
+    if (document.activeElement !== active) return null
     const focusedBlock=active&&!activeOwner?this.#reconciler.resolveBlockTarget?.(active):null
-    if(focusedBlock&&!this.#reconciler.getEditableFields(focusedBlock).length){
-      const point={blockId:focusedBlock,fieldKey:'',offset:0}
-      return {anchor:point,focus:{...point}}
+    if (document.activeElement !== active) return null
+    if(focusedBlock){
+      const fields=this.#reconciler.getEditableFields(focusedBlock)
+      if(document.activeElement !== active)return null
+      if(!fields.length){
+        const point={blockId:focusedBlock,fieldKey:'',offset:0}
+        return {anchor:point,focus:{...point}}
+      }
     }
 
-    if (
-      activeOwner
-      && activeOwner.mode === 'plain-text'
-      && typeof active.selectionStart === 'number'
-      && typeof active.selectionEnd === 'number'
-    ) {
-      const start = Math.max(0, active.selectionStart)
-      const end = Math.max(start, active.selectionEnd)
-      const forward = active.selectionDirection !== 'backward'
-      const anchor = this.#point(activeOwner, forward ? start : end)
-      const focus = this.#point(activeOwner, forward ? end : start)
-      return { anchor, focus }
+    if (activeOwner && activeOwner.mode === 'plain-text') {
+      // Read each native property once; DOM getters can reenter a focus event.
+      const startOffset=active.selectionStart
+      const endOffset=active.selectionEnd
+      const direction=active.selectionDirection
+      if(document.activeElement !== active)return null
+      if(typeof startOffset === 'number' && typeof endOffset === 'number'){
+        const start = Math.max(0, startOffset)
+        const end = Math.max(start, endOffset)
+        const forward = direction !== 'backward'
+        const anchor = this.#point(activeOwner, forward ? start : end)
+        const focus = this.#point(activeOwner, forward ? end : start)
+        return { anchor, focus }
+      }
     }
 
     const selection = document.defaultView?.getSelection() ?? null
-    if (!selection?.anchorNode || !selection.focusNode) return null
-    const anchorOwner = this.#reconciler.resolveEditableTarget(selection.anchorNode)
-    const focusOwner = this.#reconciler.resolveEditableTarget(selection.focusNode)
-    if (!anchorOwner || !focusOwner) return null
+    if (!selection) return null
+    const anchorNode=selection.anchorNode, focusNode=selection.focusNode
+    const anchorOffset=selection.anchorOffset, focusOffset=selection.focusOffset
+    if (!anchorNode || !focusNode || document.activeElement !== active) return null
+    const unchanged=()=>selection.anchorNode===anchorNode
+      &&selection.focusNode===focusNode
+      &&selection.anchorOffset===anchorOffset
+      &&selection.focusOffset===focusOffset
+      &&document.activeElement===active
+    const anchorOwner = this.#reconciler.resolveEditableTarget(anchorNode)
+    if(!unchanged())return null
+    const focusOwner = this.#reconciler.resolveEditableTarget(focusNode)
+    if (!anchorOwner || !focusOwner || !unchanged()) return null
 
-    return {
-      anchor: this.#point(anchorOwner, getTextOffset(
-        anchorOwner.element,
-        selection.anchorNode,
-        selection.anchorOffset,
-      )),
-      focus: this.#point(focusOwner, getTextOffset(
-        focusOwner.element,
-        selection.focusNode,
-        selection.focusOffset,
-      )),
-    }
+    const anchor=this.#point(anchorOwner,getTextOffset(anchorOwner.element,anchorNode,anchorOffset))
+    const focus=this.#point(focusOwner,getTextOffset(focusOwner.element,focusNode,focusOffset))
+    return unchanged()?{anchor,focus}:null
   }
 
   restore(bookmark) {
@@ -65,14 +75,21 @@ export class LogicalSelection {
     if(bookmark.anchor.blockId===bookmark.focus.blockId
       &&bookmark.anchor.fieldKey===''&&bookmark.focus.fieldKey===''
       &&!this.#reconciler.getEditableFields(bookmark.anchor.blockId).length){
-      const block=this.#reconciler.getElement(bookmark.anchor.blockId)
+      const blockId=bookmark.anchor.blockId
+      const block=this.#reconciler.getElement(blockId)
       if(!block)return false
       // A plugin's default focus may be an auxiliary URL/file chooser. History
       // restores ownership of the block command, not that control's DOM history.
-      this.#clearNativeSelection()
-      block.tabIndex=-1
-      block.focus({preventScroll:true})
-      return this.#root.ownerDocument.activeElement===block
+      try{
+        this.#clearNativeSelection()
+        if(this.#reconciler.getElement(blockId)!==block)return false
+        block.tabIndex=-1
+        block.focus({preventScroll:true})
+        return this.#root.ownerDocument.activeElement===block
+          &&this.#reconciler.getElement(blockId)===block
+      }catch{
+        return false
+      }
     }
     // Validate both keyed endpoints before invoking any potentially
     // side-effectful plugin focus. A half-retired range must not steal focus
