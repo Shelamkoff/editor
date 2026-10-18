@@ -62,3 +62,69 @@ test('diagnostics contain rejected observer promises', async () => {
 
   assert.equal(calls, 1)
 })
+test('diagnostics never inspect or emit undeclared payload fields', async () => {
+  const seen = []
+  const diagnostics = new Diagnostics(event => seen.push(event))
+  const input = {
+    operation: 'clipboard.paste',
+    pluginType: 'paragraph',
+    blockType: 'paragraph',
+    errorName: 'TypeError',
+    durationMs: 3.5,
+  }
+  let forbiddenReads = 0
+  for (const name of ['content', 'code', 'timestamp', 'payload']) {
+    Object.defineProperty(input, name, {
+      enumerable: true,
+      get() { forbiddenReads++; throw new Error(`Undeclared diagnostic field ${name} accessed`) },
+    })
+  }
+
+  assert.doesNotThrow(() => diagnostics.emit('paste.failed', input))
+  await Promise.resolve()
+  assert.equal(forbiddenReads, 0, 'diagnostics must not evaluate undeclared fields')
+  assert.equal(seen.length, 1)
+  assert.deepEqual(
+    {
+      code: seen[0].code,
+      operation: seen[0].operation,
+      pluginType: seen[0].pluginType,
+      blockType: seen[0].blockType,
+      errorName: seen[0].errorName,
+      durationMs: seen[0].durationMs,
+    },
+    {
+      code: 'paste.failed',
+      operation: 'clipboard.paste',
+      pluginType: 'paragraph',
+      blockType: 'paragraph',
+      errorName: 'TypeError',
+      durationMs: 3.5,
+    },
+  )
+  assert.equal(typeof seen[0].timestamp, 'number')
+  assert.deepEqual(
+    Object.keys(seen[0]).sort(),
+    ['code', 'timestamp', 'operation', 'pluginType', 'blockType', 'errorName', 'durationMs'].sort(),
+  )
+})
+
+test('diagnostic metadata does not deliver accidental object payloads or invalid durations', async () => {
+  const events = []
+  const diagnostics = new Diagnostics(event => events.push(event))
+  diagnostics.emit('command.failed', {
+    operation: { data: { secret: 'document content' } },
+    pluginType: { value: 'not metadata' },
+    blockType: ['not', 'metadata'],
+    errorName: 42,
+    durationMs: Infinity,
+    code: 'render.slow',
+    timestamp: 0,
+    content: 'document content',
+  })
+  await Promise.resolve()
+  assert.equal(events.length, 1)
+  assert.equal(events[0].code, 'command.failed')
+  assert.notEqual(events[0].timestamp, 0)
+  assert.deepEqual(Object.keys(events[0]).sort(), ['code', 'timestamp'])
+})
