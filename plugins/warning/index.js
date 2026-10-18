@@ -69,7 +69,8 @@ export function createWarningPlugin(config = {}) {
         }
         return {
           parts:[{kind:/** @type {'local-block'} */ ('local-block'),data:selected}],
-          remaining:(!remaining.title.trim()&&!remaining.message.trim())?null:remaining,
+          remaining:isRichTextEmpty(remaining.title,context)&&isRichTextEmpty(remaining.message,context)
+            ?null:remaining,
           focus:null,
         }
       },
