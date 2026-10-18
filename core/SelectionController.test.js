@@ -759,3 +759,30 @@ test('queued focus read of current block must not call editor focus after destru
   assert.deepEqual(h.calls, [], 'queued focus called the view after its currentId lookup destroyed the editor')
   assert.equal(h.controller.active,false)
 })
+
+
+test('whole-block IME staging cannot replace a newer selected-block decision', () => {
+  const h = harness()
+  h.controller.selectBlocks(['a'])
+  h.view.focus = () => {
+    h.view.clearSelection()
+    return true
+  }
+  assert.equal(h.controller.beginComposition(), null,
+    'stale whole-block composition started after a newer author selection cleared the old blocks')
+  assert.deepEqual(h.view.selectedIds, [])
+  assert.equal(h.mutations(), 0)
+  h.controller.destroy()
+})
+
+test('whole-block IME staging can still return a handle for unchanged selected blocks', () => {
+  const h = harness()
+  h.controller.selectBlocks(['a'])
+  h.view.focus = () => true
+  const pending = h.controller.beginComposition()
+  assert.ok(pending, 'valid selected blocks could not start a composition')
+  assert.equal(pending.blockId, 'a')
+  assert.equal(pending.cancel(), true)
+  assert.deepEqual(h.view.selectedIds, ['a'])
+  h.controller.destroy()
+})
