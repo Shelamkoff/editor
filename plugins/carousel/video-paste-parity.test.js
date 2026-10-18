@@ -36,7 +36,6 @@ test('Carousel file Paste preserves v1 video source through the clipboard-owned 
     id: 'slide-1',
     type: 'video',
     src: 'blob:rector-video-paste-1',
-    poster: undefined,
     alt: 'clip.mp4',
     caption: '',
   })
