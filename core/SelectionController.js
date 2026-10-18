@@ -443,17 +443,33 @@ export class SelectionController {
   }
 
   #beginWholeComposition(ids) {
-    const blockId = ids.find(id => this.#reconciler.getEditableFields(id).length)
-    const field = blockId ? this.#reconciler.getEditableFields(blockId)[0] : null
-    if (!field) return null
     const generation = this.#runtime.generation
     const revision = this.#runtime.revision
     const modeEpoch = this.#runtime.modeEpoch
+    const ownsStage = () => !this.#controller.signal.aborted
+      && !this.#runtime.readOnly
+      && this.#runtime.health !== 'destroyed'
+      && this.#runtime.health !== 'failed'
+      && this.#runtime.generation === generation
+      && this.#runtime.revision === revision
+      && this.#runtime.modeEpoch === modeEpoch
+    const blockId = ids.find(id => this.#reconciler.getEditableFields(id).length)
+    const field = blockId ? this.#reconciler.getEditableFields(blockId)[0] : null
+    if (!field || !ownsStage()) return null
     let settled = false
-    // Stage preedit in an owner that the selection will replace. Untouched
-    // blocks must never retain provisional DOM after the canonical commit.
+    // Focus is an externally observable operation. Stage first, then retire
+    // the former whole-block selection only if the new editing host accepted
+    // its focus. A failed/throwing focus must leave that selection intact.
+    let focused = false
+    try {
+      focused = this.#view.focus(blockId, { fieldKey: field.key, offset: 'start' }) === true
+    } catch {
+      return null
+    }
+    if (!focused || !ownsStage()) return null
+    // Untouched blocks must never retain provisional preedit DOM after the
+    // canonical commit. The old selection is retired only after stage succeeds.
     this.#deactivate()
-    this.#view.focus(blockId, { fieldKey: field.key, offset: 'start' })
     const restore = () => {
       if (settled || this.#controller.signal.aborted || this.#runtime.readOnly
         || this.#runtime.health !== 'ready' || this.#runtime.modeEpoch !== modeEpoch
