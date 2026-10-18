@@ -91,7 +91,7 @@ function clipboardHarness({ formats = [], read = () => '', files = [], accepts =
   const paste = () => handlers.get('paste')(event)
   const cut = () => handlers.get('cut')(event)
   const copy = () => handlers.get('copy')(event)
-  return { controller, runtime, view, reconciler, event, paste, cut, copy, reads, bookmark }
+  return { controller, runtime, view, reconciler, event, paste, dispatchPaste: next => handlers.get('paste')(next), cut, copy, reads, bookmark }
 }
 
 test('present but empty private clipboard MIME is a consumed rejection without text fallback', () => {
@@ -1038,4 +1038,44 @@ test('clipboard ingress mode-epoch switch revokes a captured Paste before readin
   assert.equal(queries, 1, 'old Paste continued after mode switch in ownership lookup')
   assert.equal(reads, 0)
   assert.equal(h.event.defaultPrevented, false)
+})
+
+
+test('nested owned Paste supersedes its predecessor without a second authoring transaction', () => {
+  let h, nested = false
+  const committed = []
+  h = clipboardHarness({
+    formats: ['text/plain'],
+    accepts: () => false,
+    read(type) {
+      if (type === 'text/html') return ''
+      if (type !== 'text/plain') return ''
+      if (!nested) {
+        nested = true
+        const next = {
+          ...h.event,
+          defaultPrevented: false,
+          clipboardData: {
+            types: ['text/plain'], files: [],
+            getData(kind) { return kind === 'text/plain' ? 'newer' : '' },
+          },
+          preventDefault() { this.defaultPrevented = true },
+        }
+        h.dispatchPaste(next)
+        assert.equal(next.defaultPrevented, true, 'successor Paste did not own its gesture')
+        return 'older'
+      }
+      return 'newer'
+    },
+  })
+  h.runtime.replaceLogicalRange = (_bookmark, replacement) => {
+    committed.push(replacement.text)
+    return { blockId: 'a', fieldKey: 'text', offset: replacement.text.length }
+  }
+  h.paste()
+  assert.deepEqual(committed, ['newer'],
+    'the original synchronous Paste committed again after its successor')
+  assert.equal(h.event.defaultPrevented, true,
+    'superseded Paste fell back to native DOM insertion outside canonical history')
+  h.controller.destroy()
 })
