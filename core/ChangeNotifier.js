@@ -47,7 +47,13 @@ export class ChangeNotifier {
   schedule() {
     if (this.#destroyed || !this.#onChange) return
     const generation = ++this.#generation
-    if (this.#timer !== null) this.#timerHost.clearTimeout(this.#timer)
+    // Revoke the previous handle before entering the host's clearTimeout:
+    // it may synchronously schedule a successor. The outer caller must not
+    // cancel that successor or allocate another timer for a retired epoch.
+    const previousTimer = this.#timer
+    this.#timer = null
+    if (previousTimer !== null) this.#timerHost.clearTimeout(previousTimer)
+    if (this.#destroyed || generation !== this.#generation) return
     const nextTimer = this.#timerHost.setTimeout(async () => {
       // A retired timer may still be queued by the host. It must not clear
       // a newer pending timer or invoke save after replacement/destroy.
