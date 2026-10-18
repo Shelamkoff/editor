@@ -140,7 +140,14 @@ export class LogicalSelection {
         selection.removeAllRanges()
         selection.addRange(range)
       }
-      return true
+      // Native selection APIs may synchronously dispatch focus/selection
+      // listeners. A newer mounted occurrence or collapsed author focus
+      // must not inherit the old caret command's successful return value.
+      const collapsed = bookmark.anchor.blockId === bookmark.focus.blockId
+        && bookmark.anchor.fieldKey === bookmark.focus.fieldKey
+        && bookmark.anchor.offset === bookmark.focus.offset
+      return this.#sameCurrentOwners(bookmark,anchor,focus)
+        && (!collapsed || document.activeElement === anchor.owner.element)
     }catch{
       return false
     }
