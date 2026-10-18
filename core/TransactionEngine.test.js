@@ -691,3 +691,83 @@ for (const action of ['undo', 'redo']) {
     assert.equal(engine.phase, 'idle')
   })
 }
+
+
+test('destroy during pre-command selection capture cannot commit a new transaction', () => {
+  let engine, armed = false
+  const { store, history, projections, engine: created } = harness({
+    selection: {
+      capture() {
+        if (armed) engine.destroy()
+        return null
+      },
+    },
+  })
+  engine = created
+  armed = true
+  assert.throws(() => engine.execute({ origin: 'user', name: 'update' },
+    tx => tx.update('a', block('a', 'Disallowed'))), /destroyed/)
+  assert.equal(store.get('a').data.text, 'a')
+  assert.equal(store.revision, 0)
+  assert.equal(history.canUndo, false)
+  assert.deepEqual(projections, [])
+})
+
+test('destroy during history selection capture cannot replay committed history', () => {
+  let engine, armed = false
+  const { store, history, engine: created } = harness({
+    selection: {
+      capture() {
+        if (armed) engine.destroy()
+        return null
+      },
+    },
+  })
+  engine = created
+  engine.execute({ origin: 'user', name: 'update' },
+    tx => tx.update('a', block('a', 'Committed')))
+  armed = true
+  assert.throws(() => engine.undo(), /destroyed/)
+  assert.equal(store.get('a').data.text, 'Committed')
+  assert.equal(store.revision, 1)
+  assert.equal(history.undoDepth, 1)
+  assert.equal(history.redoDepth, 0)
+})
+
+test('projector teardown during apply cannot commit an already destroyed engine', () => {
+  let engine, recoveries = 0
+  const { store, history, engine: created } = harness({
+    projector: {
+      prepare() {
+        return {
+          apply() { engine.destroy() },
+          recover() { recoveries++ },
+          finalize() {},
+          discard() {},
+        }
+      },
+    },
+  })
+  engine = created
+  assert.throws(() => engine.execute({ origin: 'user', name: 'update' },
+    tx => tx.update('a', block('a', 'Disallowed'))), /destroyed/)
+  assert.equal(recoveries, 1, 'aborted projection did not attempt prepared recovery')
+  assert.equal(store.get('a').data.text, 'a')
+  assert.equal(store.revision, 0)
+  assert.equal(history.canUndo, false)
+})
+
+test('selectionAfter teardown before commit leaves canonical model and history unchanged', () => {
+  const { store, history, engine } = harness()
+  assert.throws(() => engine.execute({
+    origin: 'user',
+    name: 'update',
+    selectionAfter() {
+      engine.destroy()
+      return null
+    },
+  }, tx => tx.update('a', block('a', 'Disallowed'))), /destroyed/)
+  assert.equal(store.get('a').data.text, 'a')
+  assert.equal(store.revision, 0)
+  assert.equal(history.canUndo, false)
+})
