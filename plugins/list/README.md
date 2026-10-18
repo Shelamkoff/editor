@@ -45,7 +45,7 @@ The registered block type is `list`. Its factory is also exported by the complet
 | `style` | yes | `ordered` or `unordered`. A newly inserted list uses the toolbox variant selected by the user. |
 | `items` | yes | A non-empty array of strings with at least one non-blank item. Each string contains sanitized inline HTML and may reference the block's `inline` map. |
 
-An empty trailing item is an editing state, not valid persisted list data. Pressing Enter in that item removes it and creates the editor's default block after the list as one undoable action. Pressing Enter in the sole empty item converts the list itself to the default block.
+An empty trailing item, including visually empty HTML markup such as `<br>`, is an editing state, not valid persisted list data. Pressing Enter in that item removes it and creates the editor's default block after the list as one undoable action. Pressing Enter in the sole empty item converts the list itself to the default block.
 
 In a non-empty item, Enter splits at the caret: content before the caret remains in the current item and content after it moves to a new following item. With a non-collapsed selection, the selected content is removed first; the unselected suffix becomes the new item, including selections that cross several items. At the start of any item except the first, Backspace merges that item into the preceding one. These structural edits each form one undoable history step.
 
