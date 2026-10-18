@@ -1544,3 +1544,78 @@ test('destroy during Undo publication prevents its deferred selection callback',
     'deferred Undo callback ran after reentrant editor teardown')
   assert.equal(runtime.health, 'destroyed')
 })
+
+
+test('read-only selection capture cannot reenter host mutation or mode transition', () => {
+  let runtime
+  let armed = false
+  let producers = 0
+  let projectionTransitions = 0
+  const failures = []
+  const selection = {
+    capture() {
+      if (!armed) return null
+      armed = false
+      for (const operation of [
+        () => runtime.update('a', () => {
+          producers++
+          return { data: { text: 'Unexpected selection callback edit' } }
+        }, 'host'),
+        () => runtime.setReadOnly(true),
+      ]) {
+        try { operation() } catch (error) { failures.push(error.message) }
+      }
+      return null
+    },
+    restore() {},
+  }
+  runtime = new DocumentRuntime({
+    registry: registry([paragraphDefinition()]),
+    data: { version: '2.0.0', blocks: [block('a', { text: 'Committed' })] },
+    selection,
+    projector: { setReadOnly() { projectionTransitions++ } },
+  })
+  const before = runtime.save().blocks
+  const revision = runtime.revision
+  const initialTransitions = projectionTransitions
+  armed = true
+  runtime.setReadOnly(true)
+  assert.equal(producers, 0, 'selection capture authored a host update before the transition was guarded')
+  assert.deepEqual(failures, [
+    'Cannot mutate document during read-only transition',
+    'Cannot mutate document during read-only transition',
+  ])
+  assert.equal(projectionTransitions - initialTransitions, 1,
+    'one mode request recursively executed projector transitions')
+  assert.equal(runtime.readOnly, true)
+  assert.deepEqual(runtime.save().blocks, before)
+  assert.equal(runtime.revision, revision)
+  assert.equal(runtime.canUndo, false)
+  runtime.destroy()
+})
+
+test('read-only selection capture keeps committed queries available and leaves no stuck guard', () => {
+  let runtime
+  let armed = false
+  let capturedText = null
+  const selection = {
+    capture() {
+      if (armed) capturedText = runtime.get('a')?.data.text
+      return null
+    },
+    restore() {},
+  }
+  runtime = new DocumentRuntime({
+    registry: registry([paragraphDefinition()]),
+    data: { version: '2.0.0', blocks: [block('a', { text: 'Visible' })] },
+    selection,
+  })
+  armed = true
+  runtime.setReadOnly(true)
+  assert.equal(capturedText, 'Visible')
+  assert.equal(runtime.readOnly, true)
+  runtime.setReadOnly(false)
+  runtime.update('a', () => ({ data: { text: 'Writable again' } }), 'host')
+  assert.equal(runtime.get('a').data.text, 'Writable again')
+  runtime.destroy()
+})
