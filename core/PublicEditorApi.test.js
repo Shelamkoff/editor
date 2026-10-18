@@ -2,6 +2,8 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { EditorBlocksApi, EditorHandle } from './PublicEditorApi.js'
 import { DocumentRuntime } from './DocumentRuntime.js'
+import { InteractionState } from './InteractionState.js'
+import { EditorViewModel } from './EditorViewModel.js'
 import { createVersionedDataSchema } from '../shared/versionedDataSchema.js'
 
 function setup() {
@@ -264,4 +266,65 @@ test('public block iterator still returns independent snapshots while editor is 
   blocks[0].data.text = 'changed only in caller snapshot'
   assert.equal(api.get('a').data.text, 'A')
   handle.destroy()
+})
+function publicInsertCurrentHarness(reentrantSelection = false) {
+  const records = [
+    { id: 'a', type: 'paragraph', dataVersion: 1, data: { text: 'Existing' } },
+  ]
+  let interaction
+  let sequence = 0
+  const runtime = {
+    generation: 1,
+    health: 'ready',
+    list: () => records,
+    ids: () => records.map(record => record.id),
+    has: id => records.some(record => record.id === id),
+    get: id => records.find(record => record.id === id),
+    assertCommandAuthority: authority => assert.equal(authority, 'host'),
+    prepareExtensionValue: operation => operation(),
+    insert(type, data, index, options, authority) {
+      assert.equal(authority, 'host')
+      const id = 'inserted-' + (++sequence)
+      const record = {
+        id, type, dataVersion: 1, data,
+        ...(options.tunes === undefined ? {} : { tunes: options.tunes }),
+        ...(options.inline === undefined ? {} : { inline: options.inline }),
+      }
+      records.splice(index ?? records.length, 0, record)
+      if (reentrantSelection) {
+        // Model the editor's synchronous post-commit observer: the author
+        // explicitly reclaims the existing block before insert() returns.
+        interaction.setCurrent('a')
+      }
+      return id
+    },
+  }
+  const reconciler = { getElement: () => null, focus: () => true }
+  interaction = new InteractionState({ runtime, reconciler })
+  const view = new EditorViewModel({
+    runtime, reconciler, interaction,
+    selection: { capture: () => null },
+  })
+  const api = new EditorBlocksApi({ runtime, view })
+  return { api, runtime, view }
+}
+
+test('public insert preserves a newer current-block decision made during its commit', () => {
+  const { api, runtime, view } = publicInsertCurrentHarness(true)
+  const id = api.insert({
+    type: 'paragraph',
+    data: { text: 'New' },
+    tunes: { textAlign: 'right' },
+  })
+  assert.equal(id, 'inserted-1')
+  assert.equal(runtime.get(id).data.text, 'New')
+  assert.equal(runtime.get(id).tunes.textAlign, 'right')
+  assert.equal(view.currentId, 'a',
+    'public insert reclaimed focus after a newer explicit author selection')
+})
+
+test('public insert selects its inserted block when no later author decision exists', () => {
+  const { api, view } = publicInsertCurrentHarness()
+  const id = api.insert({ type: 'paragraph', data: { text: 'New' } })
+  assert.equal(view.currentId, id)
 })
