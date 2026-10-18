@@ -694,3 +694,68 @@ test('successful cross-block IME stage can cancel and restore original selected 
   assert.equal(handle.cancel(),false,'settled composition restored old range again')
   h.controller.destroy()
 })
+
+
+async function queuedFocusBoundaryHarness(retire) {
+  const node = { nodeType: 3 }
+  const selection = { anchorNode: node, focusNode: node, anchorOffset: 1, focusOffset: 1 }
+  const activeElement = {}
+  const doc = {
+    activeElement,
+    defaultView: { AbortController, getSelection() { return selection } },
+    addEventListener() {},
+  }
+  const root = { ownerDocument: doc, addEventListener() {}, contains() { return true },
+    classList: { add() {}, remove() {} } }
+  const mounted = {}
+  const calls = []
+  let reads = 0, currentReads = 0, controller
+  const runtime = {
+    readOnly: false, health: 'ready', generation: 1, revision: 1, modeEpoch: 0,
+    has: id => id === 'a', ids: () => ['a'],
+    replaceWholeDocument() { return { blockId:'a', fieldKey:'text', offset:3 } },
+    interact(_name, operation) { this.revision++; return operation() },
+  }
+  const view = {
+    selectedIds: [],
+    get currentId() {
+      currentReads++
+      if (retire === 'current' && currentReads === 1) controller.destroy()
+      return 'a'
+    },
+    element() {
+      reads++
+      if (retire === 'element' && reads === 2) {
+        // Same mounted block, but it belongs to a replacement edit-mode
+        // epoch when the view getter returns.
+        runtime.modeEpoch += 2
+      }
+      return mounted
+    },
+    select(ids) { this.selectedIds = [...ids] },
+    clearSelection() { this.selectedIds = [] },
+    reconcileInteraction() {},
+    setCurrent() {},
+    focus(id,target) { calls.push({id,target}); return true },
+  }
+  controller = new SelectionController({ root, runtime, view,
+    reconciler: { resolveEditableTarget() { return null } } })
+  controller.selectBlocks(['a'])
+  assert.equal(controller.replace({ kind:'text', text:'Hello' }), true)
+  await Promise.resolve()
+  return { controller, calls, reads, currentReads, runtime }
+}
+
+test('queued focus read of mounted view must not revive a retired edit epoch', async () => {
+  const h = await queuedFocusBoundaryHarness('element')
+  assert.equal(h.reads, 2)
+  assert.deepEqual(h.calls, [], 'old queued focus was applied after mount lookup changed mode epoch')
+  h.controller.destroy()
+})
+
+test('queued focus read of current block must not call editor focus after destruction', async () => {
+  const h = await queuedFocusBoundaryHarness('current')
+  assert.equal(h.currentReads, 1)
+  assert.deepEqual(h.calls, [], 'queued focus called the view after its currentId lookup destroyed the editor')
+  assert.equal(h.controller.active,false)
+})
