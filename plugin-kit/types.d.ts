@@ -247,6 +247,8 @@ export type BlockShortcutAction<D extends object> =
   | { kind: 'update', data: D, focus?: FocusTarget }
 
 export interface ShortcutOperationContext extends DataOperationContext {
+  /** The editor's owning DOM realm for parsing rich-text shortcut decisions. */
+  readonly ownerDocument: Document
   /** Logical UTF-16 length, including one unit per line break or atomic widget. */
   fieldLength(fieldKey: string): number
   splitField(fieldKey: string, range: Readonly<{ start: number, end: number }>): {
