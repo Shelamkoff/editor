@@ -188,3 +188,33 @@ test('setCaret refuses a callback that retires its owning runtime', () => {
   assert.equal(h.view.currentId, 'a')
   assert.deepEqual(h.events, [])
 })
+
+
+test('a same-block explicit author claim during insert supersedes automatic new-block focus', () => {
+  const h = harness({
+    insertCommit(interaction) {
+      // No currentId change, but a later explicit focus intent still outranks
+      // the insertion that is currently unwinding its commit observer.
+      interaction.setCurrent('a')
+    },
+  })
+  assert.equal(h.view.insert('paragraph', { text: 'New' }), 'new')
+  assert.equal(h.view.currentId, 'a')
+  assert.deepEqual(h.events, [])
+})
+
+test('a same-fallback explicit focus during block removal wins over the returned neighbor', () => {
+  const h = harness({
+    removeCommit(interaction) {
+      interaction.reconcile()
+      // Automatic fallback is "a". A newer author action explicitly
+      // accepts that fallback, while the removed block's returned neighbor
+      // is "c". The old removal must not steal current block back to "c".
+      interaction.setCurrent('a')
+    },
+  })
+  h.interaction.setCurrent('b')
+  h.view.remove('b')
+  assert.equal(h.view.currentId, 'a')
+  assert.deepEqual(h.events, ['b', 'a'])
+})
