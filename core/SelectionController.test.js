@@ -450,3 +450,32 @@ test('forward cross-block Range fallback remains usable without direction-specif
   assert.deepEqual([h.native.anchorOffset, h.native.focusOffset], [1, 4])
   h.controller.destroy()
 })
+
+
+test('cross-block native setter that silently ignores restore cannot publish selection', () => {
+  const h = mountedRestoreFixture()
+  h.native.setBaseAndExtent = () => { h.calls.native++ }
+  assert.equal(h.controller.restore({
+    anchor: h.point('a', 1), focus: h.point('b', 3),
+  }), false, 'a rejected DOM selection was incorrectly published')
+  assert.equal(h.calls.native, 1)
+  assert.equal(h.calls.selected, 0)
+  assert.equal(h.controller.active, false)
+  h.controller.destroy()
+})
+
+test('cross-block native selection callback changing offsets supersedes old restoration', () => {
+  let h
+  h = mountedRestoreFixture({
+    onSelection() {
+      h.native.anchorOffset = 4
+      h.native.focusOffset = 4
+    },
+  })
+  assert.equal(h.controller.restore({
+    anchor: h.point('a', 1), focus: h.point('b', 2),
+  }), false, 'an old selection command reported success after a newer native caret')
+  assert.equal(h.calls.selected, 0)
+  assert.deepEqual([h.native.anchorOffset, h.native.focusOffset], [4,4])
+  h.controller.destroy()
+})
