@@ -2452,4 +2452,39 @@ test('Public conversion target getter cannot reenter canonical update during pla
   assert.equal(editor.canUndo, false)
 })
 
+
+test('Public keyed focus does not publish current block when its field is missing', () => {
+  const editor = make([para('a', 'Alpha'), para('b', 'Bravo')])
+  assert.equal(editor.blocks.focus('a', { fieldKey: 'text', offset: 2 }), true)
+  const events = []
+  const unsubscribe = editor.on('currentBlock:changed', event => events.push(event.currentId))
+  const snapshot = editor.save().blocks
+  try {
+    assert.equal(editor.blocks.focus('b', { fieldKey: 'missing-title', offset: 1 }), false)
+    equal(editor.blocks.currentId, 'a')
+    equal(events, [], 'Rejected keyed focus published a current block that never got its caret')
+    equal(editor.save().blocks, snapshot)
+    assert.equal(editor.canUndo, false)
+  } finally { unsubscribe() }
+})
+
+test('Public keyed focus publishes current block only after its native caret is in the field', () => {
+  const editor = make([para('a', 'Alpha'), para('b', 'Bravo')])
+  assert.equal(editor.blocks.focus('a', { fieldKey: 'text', offset: 1 }), true)
+  const events = []
+  const unsubscribe = editor.on('currentBlock:changed', event => {
+    const field = editableField(editor, 'b')
+    const selection = window.getSelection()
+    const inside = selection?.isCollapsed && field.contains(selection.anchorNode)
+    const position = inside ? getTextOffset(field, selection.anchorNode, selection.anchorOffset) : null
+    events.push({ currentId: event.currentId, inside, position })
+  })
+  try {
+    assert.equal(editor.blocks.focus('b', { fieldKey: 'text', offset: 2 }), true)
+    equal(editor.blocks.currentId, 'b')
+    equal(events, [{ currentId: 'b', inside: true, position: 2 }])
+    assert.equal(editor.canUndo, false)
+  } finally { unsubscribe() }
+})
+
 await run()
