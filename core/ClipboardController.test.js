@@ -1173,3 +1173,34 @@ test('async Paste resolver cannot allocate data IDs under a revoked mode epoch',
     assert.equal(ids, 0)
   } finally { h.controller.destroy() }
 })
+
+
+test('async Paste createId cannot return a new identifier after its host allocator changes control mode', () => {
+  let context
+  const h = clipboardHarness({
+    formats: ['Files'],
+    files: [{ name: 'asset.dat' }],
+    accepts: () => true,
+    resolve(_input, provided) {
+      context = provided
+      return new Promise(() => {})
+    },
+  })
+  h.runtime.modeEpoch = 0
+  let generations = 0
+  h.runtime.createDataId = () => {
+    generations++
+    h.runtime.readOnly = true
+    h.runtime.modeEpoch++
+    h.runtime.readOnly = false
+    h.runtime.modeEpoch++
+    return 'stale-id'
+  }
+  try {
+    h.paste()
+    assert.equal(typeof context?.createId, 'function')
+    assert.throws(() => context.createId('asset'), /retired|no longer active|mode/i,
+      'a reentrant custom ID generator returned an ID to a revoked Paste resolver')
+    assert.equal(generations, 1)
+  } finally { h.controller.destroy() }
+})
