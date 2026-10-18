@@ -432,10 +432,10 @@ export class ClipboardController {
         if(!plan)return
         try {
           const result=this.#mutatePaste(() => this.#runtime.replacePreparedClipboardSlice(plan,fragment.parts))
-          if(result){
+          if(result&&this.#canPresent()){
             this.#crossSelection.clear()
-            this.#view.reconcileInteraction()
-            this.#view.setCurrent(result.blockId)
+            if(this.#canPresent())this.#view.reconcileInteraction()
+            if(this.#canPresent())this.#view.setCurrent(result.blockId)
           }
         } catch (error) {
           this.#diagnostics?.emit('paste.failed', {
@@ -458,8 +458,8 @@ export class ClipboardController {
           range,
           fragment.parts,
         ))
-        this.#view.reconcileInteraction()
-        this.#view.setCurrent(result.blockId)
+        if(this.#canPresent())this.#view.reconcileInteraction()
+        if(this.#canPresent())this.#view.setCurrent(result.blockId)
       } catch (error) {
         this.#diagnostics?.emit('paste.failed', {
           operation: 'clipboard.private-fragment',
@@ -584,8 +584,8 @@ export class ClipboardController {
           const result=this.#mutatePaste(() => this.#runtime.insertClipboardParts(
             owner.blockId,owner.fieldKey,range,parts,
           ))
-          this.#view.reconcileInteraction()
-          if(result?.blockId)this.#view.setCurrent(result.blockId)
+          if(this.#canPresent())this.#view.reconcileInteraction()
+          if(result?.blockId&&this.#canPresent())this.#view.setCurrent(result.blockId)
           return
         }
         // A structural first root (table, image, etc.) is inserted after
@@ -594,9 +594,9 @@ export class ClipboardController {
         const inserted=this.#mutatePaste(() => this.#runtime.insertLocalBlocks(
           owner.blockId,plan.blocks,{replaceEmpty:range.start===range.end,name:'clipboard.html-import'},
         ))
-        this.#view.reconcileInteraction()
+        if(this.#canPresent())this.#view.reconcileInteraction()
         const last=inserted.at(-1)
-        if(last)this.#view.setCurrent(last)
+        if(last&&this.#canPresent())this.#view.setCurrent(last)
         return
       }
     }
@@ -618,8 +618,8 @@ export class ClipboardController {
         owner.blockId, owner.fieldKey, range,
         lines.map(line => ({ kind: 'rich-text', html: escapeHtml(line) })),
       ))
-      this.#view.reconcileInteraction()
-      this.#view.setCurrent(result.blockId)
+      if(this.#canPresent())this.#view.reconcileInteraction()
+      if(this.#canPresent())this.#view.setCurrent(result.blockId)
       return
     }
     // v1 pastes one meaningful line without leading/trailing empty lines.
@@ -659,6 +659,7 @@ export class ClipboardController {
 
   /** @param {string} blockId @param {any} focus @param {AbortSignal|null} [taskSignal] */
   #scheduleFocus(blockId,focus,taskSignal=null) {
+    if(!this.#canPresent()||taskSignal?.aborted)return
     const generation=this.#runtime.generation,revision=this.#runtime.revision
     const modeEpoch=this.#runtime.modeEpoch
     const mounted=this.#view.element?.(blockId)
@@ -669,7 +670,7 @@ export class ClipboardController {
     // runs; for those, rely on the canonical owner and revision guards.
     const selected=this.#crossSelection?.active ? null : this.#selection.capture()
     queueMicrotask(()=>{
-      if(this.#controller.signal.aborted||taskSignal?.aborted||this.#runtime.readOnly
+      if(!this.#canPresent()||taskSignal?.aborted
         ||generation!==this.#runtime.generation||revision!==this.#runtime.revision
         ||modeEpoch!==this.#runtime.modeEpoch||!this.#runtime.has(blockId)
         ||(mounted&&this.#view.element?.(blockId)!==mounted)
@@ -691,7 +692,7 @@ export class ClipboardController {
       return { anchor: point, focus: { ...point } }
     })
     const blockId=Array.isArray(result)?result.at(-1):result?.blockId
-    if(blockId)this.#scheduleFocus(blockId,result?.focus??{offset:'end'},this.#task?.signal)
+    if(blockId&&this.#canPresent())this.#scheduleFocus(blockId,result?.focus??{offset:'end'},this.#task?.signal)
     return result
   }
 
@@ -701,12 +702,24 @@ export class ClipboardController {
       { anchor: point(range.start), focus: point(range.end) }, replacement,
     ), caret => caret ? { anchor: caret, focus: { ...caret } } : null)
     if (!result) return false
+    if (!this.#canPresent()) return true
     this.#scheduleFocus(result.blockId,{fieldKey:result.fieldKey,offset:result.offset})
+    if (!this.#canPresent()) return true
     this.#view.reconcileInteraction()
-    this.#view.setCurrent(result.blockId)
+    if (this.#canPresent()) this.#view.setCurrent(result.blockId)
     return true
   }
 
+
+  #canPresent() {
+    // A committed Paste may synchronously notify a host that destroys its
+    // editor. Preserve the canonical result while retiring all old view,
+    // selection and deferred-focus work before it can touch detached fields.
+    return !this.#destroyed && !this.#controller.signal.aborted
+      && !this.#runtime.readOnly
+      && this.#runtime.health !== 'destroyed'
+      && this.#runtime.health !== 'failed'
+  }
 
   #route(input, blockId) {
     return this.#runtime.prepareExtensionValue(() => {
@@ -857,8 +870,8 @@ export class ClipboardController {
           owner.blockId,owner.fieldKey,range,resolved,
         ))
         persisted = this.#runtime.revision !== revision
-        this.#view.reconcileInteraction()
-        this.#view.setCurrent(applied.blockId)
+        if(this.#canPresent())this.#view.reconcileInteraction()
+        if(this.#canPresent())this.#view.setCurrent(applied.blockId)
       }catch(error){
         // A committed transaction can still encounter a presentation error.
         // If canonical revision advanced, the document already owns the blob.
