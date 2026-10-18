@@ -110,7 +110,17 @@ export class EditorBlocksApi {
   focus(id, target) {
     this.#assertLive()
     this.#runtime.assertControlAuthority()
-    return this.#view.focus(id, target)
+    // A custom fieldKey/offset getter must not change between plug-in focus
+    // and LogicalSelection.setCaret. Snapshot the public option fields inside
+    // a protected input-read phase before allowing presentation side effects.
+    // Keep optional undefined fields intact; focus targets are not persisted
+    // document payloads and need no JSON format conversion.
+    const captured = target && typeof target === 'object'
+      ? this.#runtime.prepareExtensionValue(() => ({ ...target }))
+      : target
+    this.#assertLive()
+    this.#runtime.assertControlAuthority()
+    return this.#view.focus(id, captured)
   }
 
   *[Symbol.iterator]() {
