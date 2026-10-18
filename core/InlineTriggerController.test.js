@@ -365,3 +365,47 @@ for (const hook of ['capture', 'getEditableField', 'nativeInputRoute']) {
     assert.deepEqual(h.calls,['query','cancel'])
   })
 }
+
+
+for (const decision of ['pass', undefined]) {
+  test('successful trigger keydown commit owns Enter even when plugin returns ' + String(decision), () => {
+    const h = triggerScenario(null, (_event, session) => {
+      assert.equal(session.commit({ id: 'chosen', name: 'Chosen' }), true)
+      return decision
+    }, () => true)
+    assert.equal(h.controller.refresh(), true)
+    assert.deepEqual(h.press('Enter'), { prevented: true, stopped: true },
+      'successful canonical mention commit leaked Enter into ordinary block split')
+    assert.equal(h.controller.isActive, false)
+    assert.deepEqual(h.calls, ['query', 'keydown'])
+    h.controller.destroy()
+  })
+}
+
+test('failed trigger commit returning pass does not falsely consume the native key', () => {
+  const h = triggerScenario(null, (_event, session) => {
+    assert.equal(session.commit({ id: 'missing', name: 'Missing' }), false)
+    return 'pass'
+  }, () => false)
+  assert.equal(h.controller.refresh(), true)
+  assert.deepEqual(h.press('Enter'), { prevented: false, stopped: false })
+  assert.equal(h.controller.isActive, true, 'failed commit retired the query')
+  h.controller.destroy()
+  assert.deepEqual(h.calls, ['query', 'keydown', 'cancel'])
+})
+
+test('committed key and reentrant successor preserve the new trigger while consuming original Enter', () => {
+  let h, origin = null
+  h = triggerScenario(session => { origin ??= session }, (_event, session) => {
+    assert.equal(session, origin)
+    assert.equal(session.commit({ id: 'success', name: 'Success' }), true)
+    assert.equal(h.controller.refresh(), true, 'follow-on query failed to start')
+    return 'pass'
+  }, () => true)
+  assert.equal(h.controller.refresh(), true)
+  assert.deepEqual(h.press('Enter'), { prevented: true, stopped: true })
+  assert.equal(h.controller.isActive, true)
+  assert.deepEqual(h.calls, ['query', 'keydown', 'query'])
+  h.controller.destroy()
+  assert.deepEqual(h.calls, ['query', 'keydown', 'query', 'cancel'])
+})
