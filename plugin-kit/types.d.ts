@@ -174,6 +174,8 @@ export interface SelectedFieldSlice {
 }
 
 export interface ClipboardSliceContext extends DataOperationContext {
+  /** Editor-owned DOM parser realm for rich-text residual emptiness checks. */
+  readonly ownerDocument: Document
   field(fieldKey: string): SelectedFieldSlice | null
 }
 
