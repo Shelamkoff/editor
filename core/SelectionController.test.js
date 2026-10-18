@@ -567,3 +567,62 @@ test('conversion caret transferred native focus cannot claim stale current block
   assert.equal(h.document.activeElement, outsideFocus)
   h.controller.destroy()
 })
+
+
+test('whole-block IME staging refuses failed plugin focus without losing selected blocks', () => {
+  const h = harness()
+  h.controller.selectBlocks(['a'])
+  let focusCalls = 0
+  h.view.focus = () => { focusCalls++; return false }
+  assert.equal(h.controller.beginComposition(), null)
+  assert.equal(focusCalls, 1)
+  assert.deepEqual(h.view.selectedIds, ['a'],
+    'refused IME staging discarded the previously selected blocks')
+  assert.equal(h.mutations(), 0)
+  h.controller.destroy()
+})
+
+test('whole-block IME staging contains a throwing focus without clearing selection', () => {
+  const h = harness()
+  h.controller.selectBlocks(['a'])
+  h.view.focus = () => { throw Error('stale native focus') }
+  assert.equal(h.controller.beginComposition(), null)
+  assert.deepEqual(h.view.selectedIds, ['a'])
+  assert.equal(h.mutations(), 0)
+  h.controller.destroy()
+})
+
+test('whole-block IME staging revokes a focus callback that round-trips edit mode', () => {
+  const h = harness()
+  h.controller.selectBlocks(['a'])
+  h.view.focus = () => {
+    h.runtime.readOnly = true
+    h.runtime.modeEpoch++
+    h.runtime.readOnly = false
+    h.runtime.modeEpoch++
+    return true
+  }
+  assert.equal(h.controller.beginComposition(), null)
+  assert.deepEqual(h.view.selectedIds, ['a'])
+  assert.equal(h.mutations(), 0)
+  h.controller.destroy()
+})
+
+test('whole-block IME staging cannot return an active handle after controller destruction', () => {
+  const h = harness()
+  h.controller.selectBlocks(['a'])
+  h.view.focus = () => { h.controller.destroy(); return true }
+  assert.equal(h.controller.beginComposition(), null)
+  assert.deepEqual(h.view.selectedIds, [])
+  assert.equal(h.mutations(), 0)
+})
+
+test('whole-block IME staging cannot be retained after focus changes the canonical revision', () => {
+  const h = harness()
+  h.controller.selectBlocks(['a'])
+  h.view.focus = () => { h.runtime.revision++; return true }
+  assert.equal(h.controller.beginComposition(), null)
+  assert.deepEqual(h.view.selectedIds, ['a'])
+  assert.equal(h.mutations(), 0)
+  h.controller.destroy()
+})
