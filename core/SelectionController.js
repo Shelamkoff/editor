@@ -214,7 +214,9 @@ export class SelectionController {
         native.removeAllRanges()
         native.addRange(built.range)
       }
-      if (!canRestore() || !this.#ownsRangeEndpoints(bookmark,built)) return false
+      if (!canRestore() || !this.#ownsRangeEndpoints(bookmark,built)
+        || !this.#nativeSelectionMatches(bookmark,native)) return false
+      if (!canRestore()) return false
       this.#activate(bookmark,built.range)
       if (!canRestore()) return false
       if(bookmark.conversionCaret){
@@ -229,6 +231,21 @@ export class SelectionController {
       }
       return canRestore()
     } catch { return false }
+  }
+
+  #nativeSelectionMatches(bookmark,native) {
+    // Native setters can silently do nothing, and selectionchange listeners
+    // can synchronously install a different caret inside the *same* fields.
+    // The logical bookmark must still match both mounted native endpoints
+    // before we publish selected blocks or our custom highlight.
+    const matches=(node,offset,point)=>{
+      const field=this.#reconciler.getEditableField(point.blockId,point.fieldKey)
+      return Boolean(node&&field&&field.mode!=='plain-text'
+        &&field.element.contains(node)
+        &&getTextOffset(field.element,node,offset)===point.offset)
+    }
+    return matches(native.anchorNode,native.anchorOffset,bookmark.anchor)
+      &&matches(native.focusNode,native.focusOffset,bookmark.focus)
   }
 
   #ownsRangeEndpoints(bookmark,built) {
