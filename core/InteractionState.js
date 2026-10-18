@@ -84,16 +84,23 @@ export class InteractionState {
     if (!id || !this.#runtime.has(id)) return false
     const claimVersion = this.#currentClaimVersion
     const generation = this.#runtime.generation
+    const modeEpoch = this.#runtime.modeEpoch
+    const readOnly = this.#runtime.readOnly
     // The plug-in focus callback may synchronously cause a newer focus,
     // render a replacement occurrence, or revoke the editor entirely.
     if (!this.#reconciler.focus(id, target)) return false
     if (claimVersion !== this.#currentClaimVersion
       || generation !== this.#runtime.generation
+      || modeEpoch !== this.#runtime.modeEpoch
+      || readOnly !== this.#runtime.readOnly
       || this.#runtime.health === 'destroyed'
       || this.#runtime.health === 'failed'
       || !this.#runtime.has(id)) return false
     this.setCurrent(id)
     return this.#currentId === id
+      && modeEpoch === this.#runtime.modeEpoch
+      && readOnly === this.#runtime.readOnly
+      && generation === this.#runtime.generation
       && this.#runtime.health !== 'destroyed'
       && this.#runtime.health !== 'failed'
   }
